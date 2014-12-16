@@ -382,7 +382,7 @@ formatBalanceReportItem opts accountName depth amount (fmt:fmts) =
 
 formatField :: ReportOpts -> Maybe AccountName -> Int -> Amount -> Bool -> Maybe Int -> Maybe Int -> HledgerFormatField -> String
 formatField opts accountName depth total ljust min max field = case field of
-        AccountField     -> formatValue ljust min max $ maybe "" (accountNameDrop (drop_ opts)) accountName
+        AccountField     -> formatValue ljust min max $ maybe "" (maybeAccountNameDrop opts) accountName
         DepthSpacerField -> case min of
                                Just m  -> formatValue ljust Nothing max $ replicate (depth * m) ' '
                                Nothing -> formatValue ljust Nothing max $ replicate depth ' '
@@ -424,7 +424,7 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals
     accts = map renderacct items'
     renderacct ((a,a',i),_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
-      | otherwise  = accountNameDrop (drop_ opts) a
+      | otherwise  = maybeAccountNameDrop opts a
     acctswidth = maximum $ map length $ accts
     totalrow | no_total_ opts = row "" []
              | otherwise      = row "" coltotals
@@ -446,7 +446,7 @@ cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, colto
     accts = map renderacct items
     renderacct ((a,a',i),_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
-      | otherwise  = accountNameDrop (drop_ opts) a
+      | otherwise  = maybeAccountNameDrop opts a
     acctswidth = maximum $ map length $ accts
     addtotalrow | no_total_ opts = id
                 | otherwise      = (+----+ row "" coltotals)
@@ -468,7 +468,7 @@ historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, colto
     accts = map renderacct items
     renderacct ((a,a',i),_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
-      | otherwise  = accountNameDrop (drop_ opts) a
+      | otherwise  = maybeAccountNameDrop opts a
     acctswidth = maximum $ map length $ accts
     addtotalrow | no_total_ opts = id
                 | otherwise      = (+----+ row "" coltotals)

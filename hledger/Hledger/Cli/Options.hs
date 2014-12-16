@@ -49,6 +49,7 @@ module Hledger.Cli.Options (
   defaultWidth,
   defaultWidthWithFlag,
   widthFromOpts,
+  maybeAccountNameDrop,
   -- | For balance:
   lineFormatFromOpts,
 
@@ -464,6 +465,11 @@ outputwidthp =
 widthp :: Stream [Char] m t => ParsecT [Char] st m Width
 widthp = (string "auto" >> return Auto)
     <|> (Width . read) `fmap` many1 digit
+
+-- | Drop leading components of accounts names as specified by --drop, but only in --flat mode.
+maybeAccountNameDrop :: ReportOpts -> AccountName -> AccountName
+maybeAccountNameDrop opts a | tree_ opts = a
+                            | otherwise  = accountNameDrop (drop_ opts) a
 
 -- Other utils
 

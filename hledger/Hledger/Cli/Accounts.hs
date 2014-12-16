@@ -56,7 +56,7 @@ accounts CliOpts{reportopts_=ropts} j = do
       as' | tree_ ropts = expandAccountNames as
           | otherwise   = as
       render a | tree_ ropts = replicate (2 * (accountNameLevel a - 1)) ' ' ++ accountLeafName a
-               | otherwise   = accountNameDrop (drop_ ropts) a
+               | otherwise   = maybeAccountNameDrop ropts a
   mapM_ (putStrLn . render) as'
 
 tests_Hledger_Cli_Accounts = TestList []
