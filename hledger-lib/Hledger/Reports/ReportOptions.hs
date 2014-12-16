@@ -285,7 +285,7 @@ tests_queryFromOpts = [
                                                       ,query_="date:'to 2013'"
                                                       })
   assertEqual "" (Date2 $ mkdatespan "2012/01/01" "2013/01/01")
-                 (queryFromOpts nulldate defreportopts{query_="edate:'in 2012'"})
+                 (queryFromOpts nulldate defreportopts{query_="date2:'in 2012'"})
   assertEqual "" (Or [Acct "a a", Acct "'b"])
                  (queryFromOpts nulldate defreportopts{query_="'a a' 'b"})
  ]

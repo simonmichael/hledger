@@ -208,7 +208,7 @@ prefixes = map (++":") [
     ,"desc"
     ,"acct"
     ,"date"
-    ,"edate"
+    ,"date2"
     ,"status"
     ,"cur"
     ,"real"
@@ -240,12 +240,12 @@ parseQueryTerm d ('n':'o':'t':':':s) = case parseQueryTerm d s of
 parseQueryTerm _ ('c':'o':'d':'e':':':s) = Left $ Code s
 parseQueryTerm _ ('d':'e':'s':'c':':':s) = Left $ Desc s
 parseQueryTerm _ ('a':'c':'c':'t':':':s) = Left $ Acct s
+parseQueryTerm d ('d':'a':'t':'e':'2':':':s) =
+        case parsePeriodExpr d s of Left e         -> error' $ "\"date2:"++s++"\" gave a "++showDateParseError e
+                                    Right (_,span) -> Left $ Date2 span
 parseQueryTerm d ('d':'a':'t':'e':':':s) =
         case parsePeriodExpr d s of Left e         -> error' $ "\"date:"++s++"\" gave a "++showDateParseError e
                                     Right (_,span) -> Left $ Date span
-parseQueryTerm d ('e':'d':'a':'t':'e':':':s) =
-        case parsePeriodExpr d s of Left e         -> error' $ "\"date:"++s++"\" gave a "++showDateParseError e
-                                    Right (_,span) -> Left $ Date2 span
 parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ Status $ parseStatus s
 parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s
 parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt ord q where (ord, q) = parseAmountQueryTerm s

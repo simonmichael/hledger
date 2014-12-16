@@ -177,7 +177,7 @@ tests_balanceReport =
    (defreportopts{query_="date:'in 2009'"}, samplejournal2) `gives`
     ([],
      Mixed [nullamt])
-   (defreportopts{query_="edate:'in 2009'"}, samplejournal2) `gives`
+   (defreportopts{query_="date2:'in 2009'"}, samplejournal2) `gives`
     ([
       (("assets:bank:checking","assets:bank:checking",0),mamountp' "$1.00")
      ,(("income:salary","income:salary",0),mamountp' "$-1.00")
