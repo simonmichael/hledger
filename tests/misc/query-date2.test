@@ -1,0 +1,48 @@
+# filtering by secondary date (cf #201)
+
+# 1. -b/-e/-p match the secondary date if --date2 is present
+hledgerdev -f- register -p 2014/1/2 --date2
+<<<
+2014/1/1=1/2
+  (a)  1
+
+2014/1/3
+  (b)  1
+>>>
+2014/01/02                      (a)                              1             1
+>>>=0
+
+# 2. date: is not affected by --date2
+hledgerdev -f- register date:2014/1/2 --date2
+<<<
+2014/1/1=1/2
+  (a)  1
+
+2014/1/3
+  (b)  1
+>>>
+>>>=0
+
+# 3. date2: matches the secondary date
+hledgerdev -f- register date2:2014/1/2
+<<<
+2014/1/1=1/2
+  (a)  1
+
+2014/1/3
+  (b)  1
+>>>
+2014/01/02                      (a)                              1             1
+>>>=0
+
+# 4. date2: is not affected by --date2
+hledgerdev -f- register date2:2014/1/1 --date2
+<<<
+2014/1/1=1/2
+  (a)  1
+
+2014/1/3
+  (b)  1
+>>>
+>>>=0
+
