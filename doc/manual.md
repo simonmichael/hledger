@@ -1317,6 +1317,9 @@ served from a generic web server like apache, which is good at handling static
 files and caching. One can also serve the files in a separate domain to reduce
 cookies overhead.
 
+The web app detects changes in journal files, showing the new data on the next request.
+(It does not currently detect changes in CSV or rules files.)
+
 **Note:** unlike any other hledger command, `web` can alter existing journal
 data, via the edit form.  A numbered backup of the file is saved on
 each edit, normally (ie if file permissions allow, disk is not full, etc.)
