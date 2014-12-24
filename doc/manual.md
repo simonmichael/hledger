@@ -173,7 +173,7 @@ you write a cheque, and the date it clears in your bank.  When you want to
 model this, eg for more accurate balances, write both dates separated by
 an equals sign. The *primary date*, on the left, is used by default; the
 *secondary date*, on the right, is used when the `--date2` flag is specified
-(`--aux-date` or `--effective` will also work).
+(For Ledger compatibility, `--aux-date` or `--effective` also work.)
 
 Their meaning is up to you, but it's best to follow a consistent rule. I
 write the bank's clearing date as primary, and the date I initiated the
