@@ -360,6 +360,7 @@ simplifyQuery q =
                      -- all queryIsDate qs = Date $ spansUnion $ mapMaybe queryTermDateSpan qs  ?
                      | otherwise = Or $ map simplify $ filter (/=None) qs
     simplify (Date (DateSpan Nothing Nothing)) = Any
+    simplify (Date2 (DateSpan Nothing Nothing)) = Any
     simplify q = q
 
 tests_simplifyQuery = [
