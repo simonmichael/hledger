@@ -60,7 +60,8 @@ postingsReport opts q j = (totallabel, items)
       datelessq = filterQuery (not . queryIsDate) q
       (dateqcons,pdate) | date2_ opts = (Date2, postingDate2)
                         | otherwise   = (Date, postingDate)
-      requestedspan  = dbg "requestedspan"  $ queryDateSpan (date2_ opts) q                              -- span specified by -b/-e/-p options and query args
+      requestedspan  = dbg "requestedspan"  $ queryDateSpan (date2_ opts) q   -- span specified by -b/-e/-p options and query args
+                                                                              -- XXX doesn't handle date2:
       requestedspan' = dbg "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan (date2_ opts) j  -- if open-ended, close it using the journal's end dates
       intervalspans  = dbg "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan' -- interval spans enclosing it
       reportstart    = dbg "reportstart"    $ maybe Nothing spanStart $ headMay intervalspans
