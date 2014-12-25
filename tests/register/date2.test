@@ -1,3 +1,4 @@
+# 1.
 hledgerdev -f - register --date2
 <<<
 2009/1/1=2010/1/1 x
@@ -7,3 +8,63 @@ hledgerdev -f - register --date2
 2010/01/01 x                    a                                1             1
                                 b                               -1             0
 >>>=0
+
+# 2. -b/-e/-p match the secondary date if --date2 is present (also, the secondary date is displayed)
+hledgerdev -f- register -p 2014/1/2 --date2
+<<<
+2014/1/1=1/2
+  (a)  1
+
+2014/1/3
+  (b)  1
+>>>
+2014/01/02                      (a)                              1             1
+>>>=0
+
+# 3. date: matches the secondary date if --date2 is present (on the command line, at least)
+hledgerdev -f- register date:2014/1/2 --date2
+<<<
+2014/1/1=1/2
+  (a)  1
+
+2014/1/3
+  (b)  1
+>>>
+2014/01/02                      (a)                              1             1
+>>>=0
+
+# 4. date2: matches the secondary date
+hledgerdev -f- register date2:2014/1/2
+<<<
+2014/1/1=1/2
+  (a)  1
+
+2014/1/3
+  (b)  1
+>>>
+2014/01/01                      (a)                              1             1
+>>>=0
+
+# 5. you need to add --date2 if you also want the secondary date displayed
+hledgerdev -f- register date2:2014/1/2 --date2
+<<<
+2014/1/1=1/2
+  (a)  1
+
+2014/1/3
+  (b)  1
+>>>
+2014/01/02                      (a)                              1             1
+>>>=0
+
+# 3. date2: matching is not affected by --date2
+hledgerdev -f- register date2:2014/1/1 --date2
+<<<
+2014/1/1=1/2
+  (a)  1
+
+2014/1/3
+  (b)  1
+>>>
+>>>=0
+

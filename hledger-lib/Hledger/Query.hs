@@ -19,11 +19,14 @@ module Hledger.Query (
   queryIsAcct,
   queryIsDepth,
   queryIsDate,
+  queryIsDate2,
+  queryIsDateOrDate2,
   queryIsStartDateOnly,
   queryIsSym,
   queryStartDate,
   queryEndDate,
   queryDateSpan,
+  queryDateSpan',
   queryDepth,
   queryEmpty,
   inAccount,
@@ -415,8 +418,16 @@ queryIsDepth _ = False
 
 queryIsDate :: Query -> Bool
 queryIsDate (Date _) = True
-queryIsDate (Date2 _) = True
 queryIsDate _ = False
+
+queryIsDate2 :: Query -> Bool
+queryIsDate2 (Date2 _) = True
+queryIsDate2 _ = False
+
+queryIsDateOrDate2 :: Query -> Bool
+queryIsDateOrDate2 (Date _) = True
+queryIsDateOrDate2 (Date2 _) = True
+queryIsDateOrDate2 _ = False
 
 queryIsDesc :: Query -> Bool
 queryIsDesc (Desc _) = True
@@ -476,6 +487,20 @@ queryDateSpans secondary (And qs) = concatMap (queryDateSpans secondary) qs
 queryDateSpans False (Date span) = [span]
 queryDateSpans True (Date2 span) = [span]
 queryDateSpans _ _ = []
+
+-- | What date span (or secondary date span) does this query specify ?
+-- For OR expressions, use the widest possible span. NOT is ignored.
+queryDateSpan' :: Query -> DateSpan
+queryDateSpan' q = spansUnion $ queryDateSpans' q
+
+-- | Extract all date (or secondary date) spans specified in this query.
+-- NOT is ignored.
+queryDateSpans' :: Query -> [DateSpan]
+queryDateSpans' (Or qs) = concatMap queryDateSpans' qs
+queryDateSpans' (And qs) = concatMap queryDateSpans' qs
+queryDateSpans' (Date span) = [span]
+queryDateSpans' (Date2 span) = [span]
+queryDateSpans' _ = []
 
 -- | What is the earliest of these dates, where Nothing is latest ?
 earliestMaybeDate :: [Maybe Day] -> Maybe Day
