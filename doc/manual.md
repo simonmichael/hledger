@@ -137,9 +137,13 @@ Now let's explore the available journal file syntax in detail.
 
 Each journal entry begins with a [simple date](#simple-dates) in
 column 0, followed by three optional fields with spaces between them:
-a status flag (`*` or `!` or nothing), a transaction code (eg a check
-number), and/or a description; then two or more postings (of some
-amount to some account), each on their own line.
+
+- a status flag, which can be empty or `!` or `*` (meaning "uncleared", "pending" and "cleared", or whatever you want)
+- a transaction code (eg a check number),
+- and/or a description
+
+then two or more postings (of some amount to some account), each on
+their own line.
 
 The posting amounts within a transaction must always balance, ie add up to
 0.  You can leave one amount blank and it will be inferred.
@@ -852,7 +856,7 @@ A query term can be any of the following:
 - `date2:PERIODEXPR` - as above, but match secondary dates
 - `tag:NAME[=REGEX]` - match by (exact, case sensitive) [tag](#tags) name, and optionally match the tag value by regular expression. Note `tag:` will match a transaction if it or any its postings have the tag, and will match posting if it or its parent transaction has the tag.
 - `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
-- `status:1` or `status:0` - match cleared/uncleared transactions
+- `status:1` or `status:0` - match pending/cleared or uncleared transactions respectively
 - `real:1` or `real:0` - match real/virtual-ness
 - `empty:1` or `empty:0` - match if amount is/is not zero
 - `amt:N`, `amt:<N`, `amt:<=N`, `amt:>N`, `amt:>=N` - match postings with a single-commodity

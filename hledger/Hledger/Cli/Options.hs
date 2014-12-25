@@ -120,7 +120,7 @@ reportflags = [
  ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set start date, end date, and/or reporting interval all at once (overrides the flags above)"
  ,flagNone ["date2","aux-date"] (setboolopt "date2") "use postings/txns' secondary dates instead"
 
- ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only cleared postings/txns"
+ ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only pending/cleared postings/txns"
  ,flagNone ["uncleared","U"] (setboolopt "uncleared") "include only uncleared postings/txns"
  ,flagNone ["real","R"]      (setboolopt "real") "include only non-virtual postings"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/postings deeper than N"

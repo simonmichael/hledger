@@ -331,18 +331,18 @@ parseTag s | '=' `elem` s = (n, Just $ tail v)
            | otherwise    = (s, Nothing)
            where (n,v) = break (=='=') s
 
--- | Parse the boolean value part of a "status:" query, allowing "*" as
--- another way to spell True, similar to the journal file format.
+-- -- , treating "*" or "!" as synonyms for "1".
+-- | Parse the boolean value part of a "status:" query.
 parseStatus :: String -> Bool
-parseStatus s = s `elem` (truestrings ++ ["*"])
+parseStatus s = s `elem` (truestrings) -- ++ ["*","!"])
 
--- | Parse the boolean value part of a "status:" query. A true value can
--- be spelled as "1", "t" or "true".
+-- | Parse the boolean value part of a "status:" query. "1" means true,
+-- anything else will be parsed as false without error.
 parseBool :: String -> Bool
 parseBool s = s `elem` truestrings
 
 truestrings :: [String]
-truestrings = ["1","t","true"]
+truestrings = ["1"]
 
 simplifyQuery :: Query -> Query
 simplifyQuery q =
