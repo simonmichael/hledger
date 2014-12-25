@@ -43,26 +43,26 @@ h4 { margin-top:2em; }
 
 #### 2014/9/12 hledger-web 0.23.3
 
-- remove warp, wai-handler-launch upper bounds (fixes #205)
+- remove warp, wai-handler-launch upper bounds (fixes [#205](http://bugs.hledger.org/205))
 
 #### 2014/9/12 hledger 0.23.3
 
-- allow text 1.2+ (fixes #207)
+- allow text 1.2+ (fixes [#207](http://bugs.hledger.org/207))
 
 #### 2014/5/8 hledger 0.23.2
 
-- register: also fix date sorting of postings (#184)
+- register: also fix date sorting of postings ([#184](http://bugs.hledger.org/184))
 
 #### 2014/5/7 hledger 0.23.1
 
 - register: fix a refactoring-related regression that the tests
   missed: if transactions were not ordered by date in the journal,
   register could include postings before the report start date in the
-  output. (#184)
-- add: don't apply a default commodity to amounts on entry (#138)
-- cli: options before the add-on command name are now also passed to it (#182)
-- csv: allow the first name in a fields list to be empty (#178)
-- csv: don't validate fields count in skipped lines (#177)
+  output. ([#184](http://bugs.hledger.org/184))
+- add: don't apply a default commodity to amounts on entry ([#138](http://bugs.hledger.org/138))
+- cli: options before the add-on command name are now also passed to it ([#182](http://bugs.hledger.org/182))
+- csv: allow the first name in a fields list to be empty ([#178](http://bugs.hledger.org/178))
+- csv: don't validate fields count in skipped lines ([#177](http://bugs.hledger.org/177))
 
 
 ## 2014/5/1 hledger 0.23
@@ -80,8 +80,8 @@ Journal format:
 - A # (hash) in column 0 is now also supported for starting a top-level journal comment, like Ledger.
 - The "too many missing amounts" error now reminds about the 2-space rule.
 - Fix: . (period) is no longer parsed as a valid amount.
-- Fix: default commodity directives no longer limit the maximum display precision (#169).
-- Fix: + before an amount is no longer parsed as part of the commodity (#181).
+- Fix: default commodity directives no longer limit the maximum display precision ([#169](http://bugs.hledger.org/169)).
+- Fix: + before an amount is no longer parsed as part of the commodity ([#181](http://bugs.hledger.org/181)).
 
 CLI:
 
@@ -118,8 +118,8 @@ balance:
 - Multicolumn balance reports can now show the account hierarchy with --tree.
 - Multicolumn report start/end dates are adjusted to encompass the displayed
   report periods, so the first and last periods are "full" and comparable to the others.
-- Fix: zero-balance leaf accounts below a non-zero-balance parent are no longer always shown (#170).
-- Fix: multicolumn reports now support --date2 (cf #174).
+- Fix: zero-balance leaf accounts below a non-zero-balance parent are no longer always shown ([#170](http://bugs.hledger.org/170)).
+- Fix: multicolumn reports now support --date2 (cf [#174](http://bugs.hledger.org/174)).
 
 balancesheet, cashflow, incomestatement:
 
@@ -135,7 +135,7 @@ register:
   includes the prior starting balance, use --historical/-H (like balance). 
 - With a report interval, report start/end dates are adjusted to encompass the displayed
   periods, so the first and last periods are "full" and comparable to the others.
-- Fix: --date2 now works with report intervals (fixes #174).
+- Fix: --date2 now works with report intervals (fixes [#174](http://bugs.hledger.org/174)).
 
 Queries:
 
@@ -155,7 +155,7 @@ Miscellaneous:
 - Default report dates now notice any posting dates outside the transaction dates' span.
 - Debug output improvements.
 - New add-on example: extra/hledger-rewrite.hs, adds postings to matched entries.
-- Compatible with GHC 7.2 (#155) - GHC 7.8, shakespeare 2
+- Compatible with GHC 7.2 ([#155](http://bugs.hledger.org/155)) - GHC 7.8, shakespeare 2
 
 
 ## 2014/5/1 hledger-web 0.23
@@ -169,11 +169,11 @@ Changes since 0.22.8:
 
 #### 2014/4/29 hledger-web 0.22.8
 
-- allow shakespeare 2.* (#179)
+- allow shakespeare 2.* ([#179](http://bugs.hledger.org/179))
 
 #### 2014/4/17 hledger-web 0.22.7
 
-- add Peter Simons' patch fixing Data.Conduit.Network HostIPv4 error (#171)
+- add Peter Simons' patch fixing Data.Conduit.Network HostIPv4 error ([#171](http://bugs.hledger.org/171))
 
 #### 2014/4/16 hledger-web 0.22.6
 
@@ -188,7 +188,7 @@ Changes since 0.22.8:
 #### 2014/4/15 hledger-web 0.22.5
 
 - allow http-client 0.3.*, fixing cabal install again with GHC <= 7.6 (not yet 7.8)
-- use pretty-show only with GHC 7.4+, fixing GHC 7.2 (fixes #155)
+- use pretty-show only with GHC 7.4+, fixing GHC 7.2 (fixes [#155](http://bugs.hledger.org/155))
 - allow warp 2.1, fixing cabal install
 
 #### 2014/2/10 hledger-web 0.22.4
@@ -207,9 +207,9 @@ New:
 
 Improved:
 
-* web: include unminified source of all javascript to help packagers (fixes #161)
+* web: include unminified source of all javascript to help packagers (fixes [#161](http://bugs.hledger.org/161))
 * web: work around clang-related build failures with OS X mavericks/XCode 5
-* web: allow blaze-html 0.7 (closes #159)
+* web: allow blaze-html 0.7 (closes [#159](http://bugs.hledger.org/159))
 
 
 #### 2014/1/6 hledger 0.22.1
@@ -297,16 +297,16 @@ Marko Kocić, Max Bolingbroke, and a big welcome to first-time committer John Wi
 
 #### 2013/6/3 hledger 0.21.1
 
-  - web: show proper Y-values in register chart (fixes #122)
+  - web: show proper Y-values in register chart (fixes [#122](http://bugs.hledger.org/122))
   - web: avoid trailing commas in register chart values, in case of trouble with IE
 
 ## 2013/6/1 hledger 0.21
 
 Bugs fixed:
 
-  - parsing: don't fail when a csv amount has trailing whitespace (fixes #113)
-  - web: don't show prices in the accounts sidebar (fixes #114)
-  - web: show one line per commodity in charts. Needs more polish, but fixes #109.
+  - parsing: don't fail when a csv amount has trailing whitespace (fixes [#113](http://bugs.hledger.org/113))
+  - web: don't show prices in the accounts sidebar (fixes [#114](http://bugs.hledger.org/114))
+  - web: show one line per commodity in charts. Needs more polish, but fixes [#109](http://bugs.hledger.org/109).
   - web: bump yesod-platform dependency to avoid a cabal install failure
 
 Journal reading:
@@ -316,7 +316,7 @@ Journal reading:
 web command:
 
   - web: support/require yesod 1.2
-  - web: show zero-balance accounts in the sidebar (fixes #106)
+  - web: show zero-balance accounts in the sidebar (fixes [#106](http://bugs.hledger.org/106))
   - web: use nicer select2 autocomplete widgets in the add form
 
 Documentation and infrastructure:
@@ -332,9 +332,9 @@ Documentation and infrastructure:
 
 Bugs fixed:
 
-  * balance: a 0.19 regression which showed wrong total balance with `--flat` has been fixed (#94)
+  * balance: a 0.19 regression which showed wrong total balance with `--flat` has been fixed ([#94](http://bugs.hledger.org/94))
   * register: when `--date2` is used, the register is now sorted by the secondary date
-  * web: some missing static & template files have been added to the package, fixing cabal-dev and hackage builds (#97, #98)
+  * web: some missing static & template files have been added to the package, fixing cabal-dev and hackage builds ([#97](http://bugs.hledger.org/97), [#98](http://bugs.hledger.org/98))
   * web: some hardcoded static urls have been fixed
   * Dependencies and code have been updated to support the latest
     libraries and GHC versions.  For now, hledger requires GHC 7.2+
@@ -374,8 +374,8 @@ Querying:
 
 add comand:
 
-  - Transaction codes and comments (which may contain tags) can now be entered, following a date or amount respectively. (#45)
-  - The current entry may be restarted by entering `<` at any prompt. (#47)
+  - Transaction codes and comments (which may contain tags) can now be entered, following a date or amount respectively. ([#45](http://bugs.hledger.org/45))
+  - The current entry may be restarted by entering `<` at any prompt. ([#47](http://bugs.hledger.org/47))
   - Entries are displayed and confirmed before they are written to the journal.
   - Default values may be specified for the first entry by providing them as command line arguments.
   - Miscellaneous UI cleanups
@@ -512,12 +512,12 @@ Release contributors:
   * allow non-threaded builds, supporting more debian architectures
   * parsing: give a clearer error when journal file path contains ~
   * parsing: -B/--cost now ignores P historical prices, like ledger
-  * parsing: inferred amounts now use the cost commodity if known, like ledger (#69)
+  * parsing: inferred amounts now use the cost commodity if known, like ledger ([#69](http://bugs.hledger.org/69))
   * balance: report differently-priced lots in an account as a single amount, like ledger
   * web: support and require yesod >= 0.9.4
   * web: use the main aeson package again
   * web: fix a regression with dollar signs in hamlet templates
-  * web: add form allowed blank account names (#81)
+  * web: add form allowed blank account names ([#81](http://bugs.hledger.org/81))
   * chart, vty: hledger-chart and hledger-vty demoted to non-maintained extras for now
 
 #### 2011/10/26 hledger-web 0.16.5
@@ -534,13 +534,13 @@ Release contributors:
 
 #### 2011/10/4 hledger-web 0.16.2
 
-  * web: more cabal install fixes (remove bad path, add routes and models) (#63)
+  * web: more cabal install fixes (remove bad path, add routes and models) ([#63](http://bugs.hledger.org/63))
 
 #### 2011/10/4 hledger 0.16.1
 
-  * parsing: show correct line number for posting parse errors (#67)
-  * web: declare static files as extra-source-files to fix cabal install (#63)
-  * web: add a threaded flag for debian (#68)
+  * parsing: show correct line number for posting parse errors ([#67](http://bugs.hledger.org/67))
+  * web: declare static files as extra-source-files to fix cabal install ([#63](http://bugs.hledger.org/63))
+  * web: add a threaded flag for debian ([#68](http://bugs.hledger.org/68))
   * web: fewer build warnings by default
 
 ## 2011/10/1 hledger 0.16
@@ -549,20 +549,20 @@ Release contributors:
 ***a stability/bugfix/polish release (which may become the pattern for
 even-numbered releases in future.)***
 
-  * cli: strip the -- when calling add-on commands, so their options work (#64)
+  * cli: strip the -- when calling add-on commands, so their options work ([#64](http://bugs.hledger.org/64))
   * cli: hledger ADDON --version now shows add-on command's version
   * cli: only the add and web commands auto-create the journal file
   * cli: give a non-confusing error if LEDGER_FILE contains a literal tilde
   * add: clearer prompts, more validation, use . to end also
-  * add: use unix line endings consistently, avoiding parse error on windows (#51)
-  * add: avoid excess whitespace between transactions (#46)
+  * add: use unix line endings consistently, avoiding parse error on windows ([#51](http://bugs.hledger.org/51))
+  * add: avoid excess whitespace between transactions ([#46](http://bugs.hledger.org/46))
   * balance: ledger compatibility fix: don't elide parent accounts with multiple displayed subaccounts
   * convert: always order converted transactions by date
   * convert: rename currency -> base-currency, in-field, out-field -> amount-in-field, amount-out-field
   * convert: give an error, not a zero when date or amount-in-field/amount-out-field parsing fails
   * register: show more useful range of intervals with --empty and a query pattern
-  * print, web: always show both dates, ignoring --effective (#42)
-  * web: production builds (the default with cabal) have all web content embedded (dev builds use ./static/) (#63)
+  * print, web: always show both dates, ignoring --effective ([#42](http://bugs.hledger.org/42))
+  * web: production builds (the default with cabal) have all web content embedded (dev builds use ./static/) ([#63](http://bugs.hledger.org/63))
   * web: update to yesod 0.9
   * web: obey at least some of the general reporting options, like --cost
   * web: adjust the default base url when a custom port is specified
@@ -630,15 +630,15 @@ even-numbered releases in future.)***
 
   * remove the specific process dependency that caused too many cabal install problems
   * treat arguments as possibly-encoded platform strings, do not assume UTF-8
-  * hledger now always reads and writes data as UTF-8, ignoring the system locale (#34)
+  * hledger now always reads and writes data as UTF-8, ignoring the system locale ([#34](http://bugs.hledger.org/34))
   * look at the LEDGER_FILE env var for the journal path, otherwise LEDGER, like ledger
   * handle a blank LEDGER_FILE or LEDGER value more gracefully (use the default file path)
-  * the default journal file path is now ~/.hledger.journal, to avoid breaking mac filevault (#41)
+  * the default journal file path is now ~/.hledger.journal, to avoid breaking mac filevault ([#41](http://bugs.hledger.org/41))
   * amounts with different prices are now aggregated, like ledger
   * zero amounts now have no sign or commodity, like ledger
   * parsing: assume current year when transaction dates have no year and there is no default year
   * parsing: more careful validation of eg leap years in transaction dates
-  * parsing: better international number format support, allowing comma as decimal point and flexible digit groups (#32)
+  * parsing: better international number format support, allowing comma as decimal point and flexible digit groups ([#32](http://bugs.hledger.org/32))
   * parsing: support @@ syntax specifying total price
   * parsing: infer the conversion price in transactions involving two unpriced commodities
   * parsing: support per-posting cleared status
@@ -652,8 +652,8 @@ even-numbered releases in future.)***
   * histogram: honour the specified start or end dates
   * print: don't show a trailing space when description is blank
   * web: allow filter patterns with spaces if quoted, like command line
-  * web: make edit form more cross-browser compatible, fixing it in firefox (#38)
-  * web: move hidden add/edit/import forms below main content to help text-mode browsers a bit (#33)
+  * web: make edit form more cross-browser compatible, fixing it in firefox ([#38](http://bugs.hledger.org/38))
+  * web: move hidden add/edit/import forms below main content to help text-mode browsers a bit ([#33](http://bugs.hledger.org/33))
 
 Release contributors: Simon Michael, Dmitry Astapov, Eric Kow, Max Bolingbroke, Omari Norman.
 Stats:
@@ -681,7 +681,7 @@ installable web interface, bugfixes, and a much-deliberated package split.***
   * parsing: price precisions no longer affect commodities' display precisions
   * add: readline-style editing
   * add: tab-completion for account names
-  * add: add the default commodity, if any, to commodity-less amounts (#26)
+  * add: add the default commodity, if any, to commodity-less amounts ([#26](http://bugs.hledger.org/26))
   * add: misc. commodity/precision/defaults-related bugfixes
   * chart: give a meaningful error message for empty journals
   * chart: update for current Chart lib (0.14)
@@ -691,7 +691,7 @@ installable web interface, bugfixes, and a much-deliberated package split.***
   * web: handle multiple filter patterns correctly
   * web: allow single- or double-quoted filter patterns containing spaces
   * web: update for current yesod lib (0.6.*)
-  * transaction balancing is now based on display precision (#23)
+  * transaction balancing is now based on display precision ([#23](http://bugs.hledger.org/23))
   * briefer, more informative usage error messages
 
 #### 2010/9/6 hledger 0.12.1
@@ -704,7 +704,7 @@ installable web interface, bugfixes, and a much-deliberated package split.***
 ## 2010/9/5 hledger 0.12
 
   * web: new, better web ui; accounts are now a permanent sidebar; add form uses auto-completing combo fields
-  * installing: fix a build error with parsec 3 (#22)
+  * installing: fix a build error with parsec 3 ([#22](http://bugs.hledger.org/22))
   * installing: require exactly matching hledger-lib version for more robust builds
   * installing: explicit data-object dependency to ensure hledger and hledger-lib use the same time version
   * installing: explicit hamlet dependency for more robust building
@@ -714,7 +714,7 @@ installable web interface, bugfixes, and a much-deliberated package split.***
   * installing: require cabal 1.6 or greater
   * add -D/--daily flag
   * register: with --depth, clip account names or aggregate postings rather than excluding them
-  * fix !include with deeply nested directories (#21)
+  * fix !include with deeply nested directories ([#21](http://bugs.hledger.org/21))
   * fix obscured date parse errors with parsec 3
   * handle unicode better in errors
   * fix a ghc 6.12.3 error when running interpreted
@@ -827,7 +827,7 @@ to make building (h)ledger-compatible tools easier.***
     add form
   * parsing: don't ignore unparsed text following an amount
   * parsing: @ was being treated as a currency symbol
-  * add: fix precision handling in default amounts (\#19)
+  * add: fix precision handling in default amounts ([#19](http://bugs.hledger.org/19))
   * add: elide last amount in added transactions
   * convert: keep original description by default, allow
     backreferences in replace pattern
@@ -850,12 +850,12 @@ to make building (h)ledger-compatible tools easier.***
     -fwebhappstack instead
   * web: pre-fill the add form with today's date
   * web: help links, better search form wording
-  * web: show a proper error for a bad date in add form (\#17)
+  * web: show a proper error for a bad date in add form ([#17](http://bugs.hledger.org/17))
   * web: fix for unicode search form values
   * web: fix stack overflow caused by regexpr, and handle requests
-    faster (\#14)
+    faster ([#14](http://bugs.hledger.org/14))
   * web: look for more-generic browser executables
-  * web: more robust browser starting (\#6)
+  * web: more robust browser starting ([#6](http://bugs.hledger.org/6))
   * error message cleanups
   * more tests, refactoring, docs
 
@@ -879,15 +879,15 @@ at 3983 lines of non-test code, 139 tests, 53% coverage.
   * chart: new command, generates balances pie chart (requires
     -fchart flag, gtk2hs) (Roman Cheplyaka, Simon Michael)
   * register: make reporting intervals honour a display expression
-    (\#18)
+    ([#18](http://bugs.hledger.org/18))
   * web: fix help link
   * web: use today as default when adding with a blank date
   * web: re-enable account/period fields, they seem to be fixed,
-    along with file re-reading (\#16)
+    along with file re-reading ([#16](http://bugs.hledger.org/16))
   * web: get static files from the cabal data dir, or the current
-    dir when using make (\#13)
-  * web: preserve encoding during add, assuming it's utf-8 (\#15)
-  * fix some non-utf8-aware file handling (\#15)
+    dir when using make ([#13](http://bugs.hledger.org/13))
+  * web: preserve encoding during add, assuming it's utf-8 ([#15](http://bugs.hledger.org/15))
+  * fix some non-utf8-aware file handling ([#15](http://bugs.hledger.org/15))
   * filter ledger again for each command, not just once at program
     start
   * refactoring, clearer data types
@@ -915,15 +915,15 @@ at 3464 lines of non-test code, 97 tests, 53% test coverage.
     align amounts, show end of line comments, show all amounts for
     clarity (don't elide the final balancing amount)
   * ui: use vty 4, fixes non-ascii and gnome terminal problems
-    (issues \#3, \#4)
+    (issues [#3](http://bugs.hledger.org/3), [#4](http://bugs.hledger.org/4))
   * web: allow data entry, react to data file changes, better
     layout, help links, remove histogram command and filter fields for
     now, fix bad localhost redirect, filter form did not work in eg
-    firefox (issue \#7), reset link did not work in all browsers
+    firefox (issue [#7](http://bugs.hledger.org/7)), reset link did not work in all browsers
   * parsing: require whitespace between date and status code, allow
     (and ignore) a time in price records, better error messages,
     non-zero exit code on parse failure
-  * display non-ascii error messages properly (issue \#5)
+  * display non-ascii error messages properly (issue [#5](http://bugs.hledger.org/5))
   * fix an arithmetic bug that occasionally rejected valid
     transactions
   * fix a regex bug in showtree
@@ -940,7 +940,7 @@ at 3377 lines of non-test code, 97 tests, 53% test coverage.
 #### 2009/06/22 hledger 0.6.1
 
   * avoid use of exitSuccess which was breaking ghc 6.8/base 3
-    compatibility (issue \#2)
+    compatibility (issue [#2](http://bugs.hledger.org/2))
 
 ## 2009/06/13 hledger 0.6
 
