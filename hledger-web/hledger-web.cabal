@@ -23,7 +23,11 @@ build-type:     Simple
 extra-tmp-files:
 extra-source-files:
                 messages/en.msg
+                config/favicon.ico
+                config/keter.yaml
+                config/robots.txt
                 config/routes
+                config/settings.yml
                 static/css/bootstrap-theme.css
                 static/css/bootstrap-theme.css.map
                 static/css/bootstrap-theme.min.css
@@ -38,19 +42,50 @@ extra-source-files:
                 static/js/bootstrap.min.js
                 static/js/excanvas.js
                 static/js/excanvas.min.js
+                static/js/jquery.colorhelpers.js
+                static/js/jquery.colorhelpers.min.js
+                static/js/jquery.cookie.js
+                static/js/jquery.flot.canvas.js
+                static/js/jquery.flot.canvas.min.js
+                static/js/jquery.flot.categories.js
+                static/js/jquery.flot.categories.min.js
+                static/js/jquery.flot.crosshair.js
+                static/js/jquery.flot.crosshair.min.js
+                static/js/jquery.flot.errorbars.js
+                static/js/jquery.flot.errorbars.min.js
+                static/js/jquery.flot.fillbetween.js
+                static/js/jquery.flot.fillbetween.min.js
+                static/js/jquery.flot.image.js
+                static/js/jquery.flot.image.min.js
                 static/js/jquery.flot.js
                 static/js/jquery.flot.min.js
+                static/js/jquery.flot.navigate.js
+                static/js/jquery.flot.navigate.min.js
+                static/js/jquery.flot.pie.js
+                static/js/jquery.flot.pie.min.js
+                static/js/jquery.flot.resize.js
+                static/js/jquery.flot.resize.min.js
+                static/js/jquery.flot.selection.js
+                static/js/jquery.flot.selection.min.js
+                static/js/jquery.flot.stack.js
+                static/js/jquery.flot.stack.min.js
+                static/js/jquery.flot.symbol.js
+                static/js/jquery.flot.symbol.min.js
+                static/js/jquery.flot.threshold.js
+                static/js/jquery.flot.threshold.min.js
+                static/js/jquery.flot.time.js
+                static/js/jquery.flot.time.min.js
+                static/js/jquery.flot.tooltip.js
+                static/js/jquery.flot.tooltip.min.js
+                static/js/jquery.hotkeys.js
                 static/js/jquery.min.js
                 static/js/jquery.url.js
+                static/js/typeahead.bundle.js
+                static/js/typeahead.bundle.min.js
                 static/hledger.css
                 static/hledger.js
-                static/select2-spinner.gif
-                static/select2.css
-                static/select2.js
-                static/select2.min.js
-                static/select2.png
-                templates/default-layout.hamlet
                 templates/default-layout-wrapper.hamlet
+                templates/default-layout.hamlet
                 templates/homepage.hamlet
                 templates/homepage.julius
                 templates/homepage.lucius
