@@ -31,6 +31,7 @@ Dependencies:
 - require yesod 1.4* (fixes #212)
 - js updated (jquery, bootstrap, flot), added (typeahead, cookie, hotkeys),
   removed (select2)
+
 0.23.3 (2014/9/12)
 
 - remove warp, wai-handler-launch upper bounds (fixes #205)

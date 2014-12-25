@@ -61,8 +61,11 @@ Queries:
 - date:/date2: with a malformed date now reports an error instead of
   being ignored
 - amt: now supports >= or <=
+- clarify status: docs and behaviour; "*" is no longer a synonym for
+  "1" (fixes #227)
 
 balance:
+- fix: in tree mode, --drop is ignored instead of showing empty account names
 - a depth limit of 0 now shows summary items with account name "...",
   instead of an empty report (#206)
 - in multicolumn balance reports, -E now also shows posting-less
@@ -74,6 +77,8 @@ balance:
 
 register:
 - runs faster with large output
+- supports date2:, and date:/date2: combined with --date2, better (fixes
+  #201, #221, #222)
 - a depth limit of 0 now shows summary items (see balance)
 - -A/--average now implies -E/--empty
 - postings with multi-commodity amounts are now top-aligned, like
