@@ -5,9 +5,9 @@
 # hledger User Manual
 
 This reference manual is for
- hledger 0.23.98 (the latest pre-0.24 HEAD).
- <!-- [hledger 0.23](http://hackage.haskell.org/package/hledger-0.23) -->
- and [hledger-web 0.23](http://hackage.haskell.org/package/hledger-web-0.23).
+ <!-- hledger 0.25.98 (the latest pre-0.25 HEAD). -->
+ [hledger 0.24](http://hackage.haskell.org/package/hledger-0.24)
+ and [hledger-web 0.24](http://hackage.haskell.org/package/hledger-web-0.24).
  <!-- Other versions: [0.22 Manual](0.22/manual). -->
 
 ## Introduction

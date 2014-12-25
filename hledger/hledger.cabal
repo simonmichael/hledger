@@ -1,5 +1,5 @@
 name:           hledger
-version: 0.23.98
+version: 0.24
 stability:      stable
 category:       Finance, Console
 synopsis:       The main command-line interface for the hledger accounting tool.
@@ -43,7 +43,7 @@ flag threaded
 
 
 library
-  cpp-options: -DVERSION="0.23.98"
+  cpp-options: -DVERSION="0.24"
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
   ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   default-language: Haskell2010
@@ -65,7 +65,7 @@ library
                   Hledger.Cli.Register
                   Hledger.Cli.Stats
   build-depends:
-                  hledger-lib == 0.23.98
+                  hledger-lib == 0.24
                  ,base >= 4.3 && < 5
                  -- ,cabal-file-th
                  ,containers
@@ -108,15 +108,15 @@ executable hledger
   main-is:        hledger-cli.hs
   hs-source-dirs: app
   default-language: Haskell2010
-  cpp-options: -DVERSION="0.23.98"
+  cpp-options: -DVERSION="0.24"
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
   ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   if flag(threaded)
        ghc-options:   -threaded
   -- same as above:
   build-depends:
-                  hledger-lib == 0.23.98
-                 ,hledger == 0.23.98
+                  hledger-lib == 0.24
+                 ,hledger == 0.24
                  ,base >= 4.3 && < 5
                  ,containers
                  ,cmdargs >= 0.10 && < 0.11
