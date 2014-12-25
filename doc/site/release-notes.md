@@ -3,6 +3,7 @@
 <nav id="toc" class="right-toc">
 <p>Major releases:</p>
 <ul>
+<li><a href="#hledger-0.24">hledger 0.24 (2014/12/25)</a>
 <li><a href="#hledger-0.23">hledger 0.23 (2014/5/1)</a>
 <li><a href="#hledger-0.22">hledger 0.22 (2013/12/13)</a>
 <li><a href="#hledger-0.21">hledger 0.21 (2013/6/1)</a>
@@ -40,6 +41,196 @@ change logs.
 <style>
 h4 { margin-top:2em; }
 </style>
+
+## 2014/12/25 hledger 0.24
+
+Release contributors:
+Simon Michael,
+Julien Moutinho,
+Ryan Desfosses,
+Gergely Risko,
+Gwern.
+
+<!-- [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/N) -->
+***CSV export,
+a non-floating point number representation,
+more powerful account aliases,
+speedups,
+and
+a streamlined web UI.***
+
+**User-visible changes in hledger since 0.23.3:**
+
+General:
+
+- fix redundant compilation when cabal installing the hledger packages
+- switch to Decimal for representing amounts ([#118](http://bugs.hledger.org/118))
+- report interval headings (eg in balance, register reports) are shown
+  compactly when possible
+- general speedups
+
+Journal format:
+
+- detect decimal point and digit groups more robustly ([#196](http://bugs.hledger.org/196))
+- check that transaction dates are followed by whitespace or newline
+- check that dates use a consistent separator character
+- balance assertions now are specific to a single commodity, like
+  Ledger ([#195](http://bugs.hledger.org/195))
+- support multi-line comments using "comment", "end comment"
+  directives, like Ledger
+
+CSV format:
+
+- fix: reading CSV data from stdin now works better
+- the original order of same-day transactions is now usually preserved
+  (if the records appear to be in reverse date order, we reverse them
+  before finally sorting by transaction date)
+- the rules file include directive is now relative to the current
+  file's directory ([#198](http://bugs.hledger.org/198))
+- CSV output is now built in to the balance, print, and register
+  commands, controlled by -O/--output-format (and -o/--output-file,
+  see below). This means that hledger data can be easily exported,
+  eg for spreadsheet reporting or to migrate to a different tool.
+
+CLI:
+
+- the --width and --debug options now require their argument ([#149](http://bugs.hledger.org/149))
+- when an option is repeated, the last value takes precedence ([#219](http://bugs.hledger.org/219)).
+  This is helpful eg for customising your reporting command aliases on
+  the fly.
+- smart dates (used in -p/-b/-e/date:/date2:) now must use a
+  consistent separator character, and must be parseable to the end
+- output destination and format selection is now built in to the
+  balance, print and register commands, controlled by -o/--output-file
+  and -O/--output-format options. Notes:
+  -o - means stdout.
+  An output file name suffix matching a supported format will also
+  set the output format, unless overridden by --output-format.
+  Commands' supported output formats are listed in their
+  command-line help. Two formats are currently available:
+  txt (the default) and csv.
+- balance assertions can be disabled with --ignore-assertions
+
+Account aliases:
+
+- all matching account aliases are now applied, not just one directive
+  and one option
+- account aliases now match by case insensitive regular expressions
+  matching anywhere in the account name
+- account aliases can replace multiple occurrences of the pattern
+  within an account name
+- an account alias replacement pattern can reference matched groups
+  with \N
+
+Queries:
+
+- date:/date2: with a malformed date now reports an error instead of
+  being ignored
+- amt: now supports >= or <=
+- clarify status: docs and behaviour; "*" is no longer a synonym for
+  "1" (fixes [#227](http://bugs.hledger.org/227))
+
+balance:
+
+- fix: in tree mode, --drop is ignored instead of showing empty account names
+- a depth limit of 0 now shows summary items with account name "...",
+  instead of an empty report ([#206](http://bugs.hledger.org/206))
+- in multicolumn balance reports, -E now also shows posting-less
+  accounts with a non-zero balance during the period (in addition to
+  showing leading & trailing empty columns)
+- in multicolumn reports, multi-commodity amounts are rendered on one
+  line for better layout ([#186](http://bugs.hledger.org/186))
+- multicolumn reports' title now includes the report span
+
+register:
+
+- runs faster with large output
+- supports date2:, and date:/date2: combined with --date2, better (fixes
+  [#201](http://bugs.hledger.org/201), [#221](http://bugs.hledger.org/221), [#222](http://bugs.hledger.org/222))
+- a depth limit of 0 now shows summary items (see balance)
+- -A/--average now implies -E/--empty
+- postings with multi-commodity amounts are now top-aligned, like
+  Ledger
+
+Performance:
+```
++--------------------------------------------++----------------+--------------+--------+
+|                                            || hledger-0.23.3 | hledger-0.24 | ledger |
++============================================++================+==============+========+
+| -f data/100x100x10.journal     balance     ||           0.05 |         0.03 |   0.01 |
+| -f data/1000x1000x10.journal   balance     ||           0.34 |         0.21 |   0.04 |
+| -f data/10000x1000x10.journal  balance     ||           2.72 |         1.48 |   0.19 |
+| -f data/10000x1000x10.journal  balance aa  ||           3.16 |         1.55 |   0.14 |
+| -f data/100x100x10.journal     register    ||           0.09 |         0.05 |   0.04 |
+| -f data/1000x1000x10.journal   register    ||           0.66 |         0.32 |   0.30 |
+| -f data/10000x1000x10.journal  register    ||           6.27 |         2.77 |   2.80 |
+| -f data/10000x1000x10.journal  register aa ||           3.30 |         1.62 |   0.21 |
+| -f data/100x100x10.journal     print       ||           0.06 |         0.05 |   0.01 |
+| -f data/1000x1000x10.journal   print       ||           0.42 |         0.25 |   0.04 |
+| -f data/10000x1000x10.journal  print       ||           3.95 |         2.57 |   0.38 |
+| -f data/10000x1000x10.journal  print aa    ||           3.23 |         1.56 |   0.14 |
+| -f data/100x100x10.journal     stat        ||           0.04 |         0.03 |   0.01 |
+| -f data/1000x1000x10.journal   stat        ||           0.35 |         0.24 |   0.03 |
+| -f data/10000x1000x10.journal  stat        ||          14.84 |        13.29 |   0.20 |
+| -f data/10000x1000x10.journal  stat aa     ||          12.08 |        10.16 |   0.17 |
++--------------------------------------------++----------------+--------------+--------+
+```
+
+**User-visible changes in hledger-web since 0.23.3:**
+
+General:
+
+- fix: add missing hs/js files to package
+- the web UI has been streamlined, dropping the raw and entries views and
+  the edit form
+- the help dialog has been improved
+- keyboard shortcuts are now available
+- the sidebar can be toggled open or closed (press s)
+
+Journal view:
+
+- layout tweaks for less truncation of descriptions and account names
+
+Register view:
+
+- fix: don't show all zero amounts when searching by account within an
+  account register view
+- chart improvements: show zero balances with correct commodity; show
+  accurate balance at all dates; show transaction events & tooltips;
+  show zero/today lines & background colors
+
+Add form:
+
+- parses data more strictly and gives better errors (eg [#194](http://bugs.hledger.org/194))
+- allows any number of postings, not just two
+- after adding a transaction, goes back to the journal
+- keyboard shortcut (a) allows quick access
+
+Dependencies:
+
+- allow warp 3\*, wai-handler-launch 3\*
+- require yesod 1.4* (fixes [#212](http://bugs.hledger.org/212))
+- js updated (jquery, bootstrap, flot), added (typeahead, cookie, hotkeys),
+  removed (select2)
+
+
+**API-ish changes in hledger-lib since 0.23.3:**
+
+- fix combineJournalUpdates folding order
+- fix a regexReplaceCI bug
+- fix a splitAtElement bug with adjacent separators
+- mostly replace slow regexpr with regex-tdfa (fixes [#189](http://bugs.hledger.org/189))
+- use the modern Text.Parsec API
+- allow transformers 0.4*
+- regexReplace now supports backreferences
+- Transactions now remember their parse location in the journal file
+- export Regexp types, disambiguate CsvReader's similarly-named type
+- export failIfInvalidMonth/Day (closes [#216](http://bugs.hledger.org/216))
+- track the commodity of zero amounts when possible
+  (useful eg for hledger-web's multi-commodity charts)
+- show posting dates in debug output
+- more debug helpers
+
 
 #### 2014/9/12 hledger-web 0.23.3
 
