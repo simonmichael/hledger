@@ -265,7 +265,9 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "tree mode: use this custom line format"
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "tree mode: don't squash boring parent accounts"
-     ,flagNone ["no-total"] (\opts -> setboolopt "no-total" opts) "don't show the final total"
+     ,flagNone ["no-total"] (\opts -> setboolopt "no-total" opts) "don't show the final total(s) row"
+     ,flagNone ["row-totals"] (\opts -> setboolopt "row-totals" opts) "multicolumn mode: show a row totals column"
+     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "multicolumn mode: show a row averages column"
      ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "multicolumn mode: show accumulated ending balances"
      ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "multicolumn mode: show historical ending balances"
      ]
@@ -393,85 +395,127 @@ formatField opts accountName depth total ljust min max field = case field of
 
 -- | Render a multi-column balance report as CSV.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
-multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, coltotals)) =
-  ("account" : "short account" : "indent" : map showDateSpan colspans) :
-  [a : a' : show i : map showMixedAmountOneLineWithoutPrice amts | ((a,a',i), amts) <- items]
+multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+  ("account" : "short account" : "indent" : map showDateSpan colspans
+   ++ (if row_totals_ opts then ["total"] else [])
+   ++ (if average_ opts then ["average"] else [])
+  ) :
+  [a : a' : show i :
+   map showMixedAmountOneLineWithoutPrice
+   (amts
+    ++ (if row_totals_ opts then [rowtot] else [])
+    ++ (if average_ opts then [rowavg] else []))
+  | ((a,a',i), amts, rowtot, rowavg) <- items]
   ++
   if no_total_ opts
   then []
-  else [["totals", "", ""] ++ map showMixedAmountOneLineWithoutPrice coltotals]
+  else [["totals", "", ""]
+        ++ map showMixedAmountOneLineWithoutPrice (
+           coltotals
+           ++ (if row_totals_ opts then [tot] else [])
+           ++ (if average_ opts then [avg] else [])
+           )]
 
 -- | Render a multi-column period balance report as plain text suitable for console output.
 periodBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
-periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals)) =
+periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
   unlines $
   ([printf "Balance changes in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
    render
     id
-    ((" "++) . showDateSpan)
+    (" "++)
     showMixedAmountOneLineWithoutPrice
     $ Table
       (T.Group NoLine $ map (Header . padright acctswidth) accts)
-      (T.Group NoLine $ map Header colspans)
-      (map snd items')
+      (T.Group NoLine $ map Header colheadings)
+      (map rowvals items')
     +----+
     totalrow
   where
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
+    colheadings = map showDateSpan colspans
+                  ++ (if row_totals_ opts then ["  Total"] else [])
+                  ++ (if average_ opts then ["Average"] else [])
     items' | empty_ opts = items
            | otherwise   = items -- dbg "2" $ filter (any (not . isZeroMixedAmount) . snd) $ dbg "1" items
     accts = map renderacct items'
-    renderacct ((a,a',i),_)
+    renderacct ((a,a',i),_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = maybeAccountNameDrop opts a
     acctswidth = maximum $ map length $ accts
+    rowvals (_,as,rowtot,rowavg) = as
+                                   ++ (if row_totals_ opts then [rowtot] else [])
+                                   ++ (if average_ opts then [rowavg] else [])
     totalrow | no_total_ opts = row "" []
-             | otherwise      = row "" coltotals
+             | otherwise      = row "" $
+                                coltotals
+                                ++ (if row_totals_ opts then [tot] else [])
+                                ++ (if average_ opts then [avg] else [])
 
 -- | Render a multi-column cumulative balance report as plain text suitable for console output.
 cumulativeBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
-cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals)) =
+cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
   unlines $
   ([printf "Ending balances (cumulative) in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
-   render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $
+   render id (" "++) showMixedAmountOneLineWithoutPrice $
     addtotalrow $
      Table
        (T.Group NoLine $ map (Header . padright acctswidth) accts)
-       (T.Group NoLine $ map Header colspans)
-       (map snd items)
+       (T.Group NoLine $ map Header colheadings)
+       (map rowvals items)
   where
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
+    colheadings = map (maybe "" (showDate . prevday) . spanEnd) colspans
+                  ++ (if row_totals_ opts then ["  Total"] else [])
+                  ++ (if average_ opts then ["Average"] else [])
     accts = map renderacct items
-    renderacct ((a,a',i),_)
+    renderacct ((a,a',i),_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = maybeAccountNameDrop opts a
     acctswidth = maximum $ map length $ accts
+    rowvals (_,as,rowtot,rowavg) = as
+                                   ++ (if row_totals_ opts then [rowtot] else [])
+                                   ++ (if average_ opts then [rowavg] else [])
     addtotalrow | no_total_ opts = id
-                | otherwise      = (+----+ row "" coltotals)
+                | otherwise      = (+----+ (row "" $
+                                    coltotals
+                                    ++ (if row_totals_ opts then [tot] else [])
+                                    ++ (if average_ opts then [avg] else [])
+                                    ))
 
 -- | Render a multi-column historical balance report as plain text suitable for console output.
 historicalBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
-historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, coltotals)) =
+historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
   unlines $
   ([printf "Ending balances (historical) in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
-   render id ((" "++) . maybe "" (showDate . prevday) . spanEnd) showMixedAmountOneLineWithoutPrice $
+   render id (" "++) showMixedAmountOneLineWithoutPrice $
     addtotalrow $
      Table
        (T.Group NoLine $ map (Header . padright acctswidth) accts)
-       (T.Group NoLine $ map Header colspans)
-       (map snd items)
+       (T.Group NoLine $ map Header colheadings)
+       (map rowvals items)
   where
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
+    colheadings = map (maybe "" (showDate . prevday) . spanEnd) colspans
+                  ++ (if row_totals_ opts then ["  Total"] else [])
+                  ++ (if average_ opts then ["Average"] else [])
     accts = map renderacct items
-    renderacct ((a,a',i),_)
+    renderacct ((a,a',i),_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = maybeAccountNameDrop opts a
     acctswidth = maximum $ map length $ accts
+    rowvals (_,as,rowtot,rowavg) = as
+                             ++ (if row_totals_ opts then [rowtot] else [])
+                             ++ (if average_ opts then [rowavg] else [])
     addtotalrow | no_total_ opts = id
-                | otherwise      = (+----+ row "" coltotals)
+                | otherwise      = (+----+ (row "" $
+                                    coltotals
+                                    ++ (if row_totals_ opts then [tot] else [])
+                                    ++ (if average_ opts then [avg] else [])
+                                    ))
 
 -- | Figure out the overall date span of a multicolumn balance report.
 multiBalanceReportSpan :: MultiBalanceReport -> DateSpan

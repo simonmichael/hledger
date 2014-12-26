@@ -41,7 +41,7 @@ import Hledger.Reports.BalanceReport
 -- (see 'BalanceType' and "Hledger.Cli.Balance").
 newtype MultiBalanceReport = MultiBalanceReport ([DateSpan]
                                                 ,[MultiBalanceReportRow]
-                                                ,[MixedAmount]
+                                                ,MultiBalanceTotalsRow
                                                 )
 
 -- | A row in a multi balance report has
@@ -49,7 +49,13 @@ newtype MultiBalanceReport = MultiBalanceReport ([DateSpan]
 -- * An account name, with rendering hints
 --
 -- * A list of amounts to be shown in each of the report's columns.
-type MultiBalanceReportRow = (RenderableAccountName, [MixedAmount])
+--
+-- * The total of the row amounts.
+--
+-- * The average of the row amounts.
+type MultiBalanceReportRow = (RenderableAccountName, [MixedAmount], MixedAmount, MixedAmount)
+
+type MultiBalanceTotalsRow = ([MixedAmount], MixedAmount, MixedAmount)
 
 instance Show MultiBalanceReport where
     -- use ppShow to break long lists onto multiple lines
@@ -65,7 +71,7 @@ type ClippedAccountName = AccountName
 -- showing the change of balance, accumulated balance, or historical balance
 -- in each of the specified periods.
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
-multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
+multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow)
     where
       symq       = dbg "symq"   $ filterQuery queryIsSym $ dbg "requested q" q
       depthq     = dbg "depthq" $ filterQuery queryIsDepth q
@@ -144,23 +150,29 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totals)
 
       items :: [MultiBalanceReportRow] =
           dbg "items" $
-          [((a, accountLeafName a, accountNameLevel a), displayedBals)
+          [((a, accountLeafName a, accountNameLevel a), displayedBals, rowtot, rowavg)
            | (a,changes) <- acctBalChanges
            , let displayedBals = case balancetype_ opts of
                                   HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
                                   CumulativeBalance -> drop 1 $ scanl (+) nullmixedamt changes
                                   _                 -> changes
+           , let rowtot = sum displayedBals
+           , let rowavg = averageMixedAmounts displayedBals
            , empty_ opts || depth == 0 || any (not . isZeroMixedAmount) displayedBals
            ]
 
       totals :: [MixedAmount] =
-          dbg "totals" $
+          -- dbg "totals" $
           map sum balsbycol
           where
-            balsbycol = transpose [bs | ((a,_,_),bs) <- items, not (tree_ opts) || a `elem` highestlevelaccts]
+            balsbycol = transpose [bs | ((a,_,_),bs,_,_) <- items, not (tree_ opts) || a `elem` highestlevelaccts]
             highestlevelaccts     =
                 dbg "highestlevelaccts" $
                 [a | a <- displayedAccts, not $ any (`elem` displayedAccts) $ init $ expandAccountName a]
+
+      totalsrow :: MultiBalanceTotalsRow =
+          dbg "totalsrow" $
+          (totals, sum totals, averageMixedAmounts totals)
 
       dbg s = let p = "multiBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in this function's debug output
       -- dbg = const id  -- exclude this function from debug output

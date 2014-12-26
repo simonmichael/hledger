@@ -1019,7 +1019,7 @@ In flat mode, balances from accounts below the depth limit will be shown as part
 
 <!-- $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done -->
 
-##### Multi balance reports
+##### Multicolumn balance reports
 
 With a [reporting interval](#reporting-interval), multiple balance
 columns will be shown, one for each report period.
@@ -1065,6 +1065,11 @@ all accounts which existed at the report start date will be
 considered, not just the ones with activity during the report period
 (use -E to include low-activity accounts which would otherwise would
 be omitted).
+
+The `--row-totals` flag adds an additional column showing the total
+for each row.  The `-A/--average` flag adds one more column showing
+the average value in each row. Note in `--H/--historical` mode only
+the average is useful, and in `--cumulative` mode neither is useful.
 
 ##### Custom output formats
 

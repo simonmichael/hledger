@@ -80,6 +80,7 @@ module Hledger.Data.Amount (
   -- ** arithmetic
   costOfMixedAmount,
   divideMixedAmount,
+  averageMixedAmounts,
   isNegativeMixedAmount,
   isZeroMixedAmount,
   isReallyZeroMixedAmount,
@@ -479,6 +480,11 @@ costOfMixedAmount (Mixed as) = Mixed $ map costOfAmount as
 -- | Divide a mixed amount's quantities by a constant.
 divideMixedAmount :: MixedAmount -> Quantity -> MixedAmount
 divideMixedAmount (Mixed as) d = Mixed $ map (flip divideAmount d) as
+
+-- | Calculate the average of some mixed amounts.
+averageMixedAmounts :: [MixedAmount] -> MixedAmount
+averageMixedAmounts [] = 0
+averageMixedAmounts as = sum as `divideMixedAmount` fromIntegral (length as)
 
 -- | Is this mixed amount negative, if it can be normalised to a single commodity ?
 isNegativeMixedAmount :: MixedAmount -> Maybe Bool
