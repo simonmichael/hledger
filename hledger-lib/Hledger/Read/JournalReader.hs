@@ -214,7 +214,7 @@ includedirective = do
   r <- liftIO $ runErrorT u
   case r of
     Left err -> return $ throwError err
-    Right (ju, ctx) -> return $ ErrorT $ return $ Right ju
+    Right (ju, _finalparsectx) -> return $ ErrorT $ return $ Right ju
 
 journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
