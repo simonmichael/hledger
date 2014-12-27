@@ -935,13 +935,12 @@ hledger-lib/hledger-lib.cabal: $(VERSIONFILE)
 
 hledger/hledger.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
-	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^[ ,]*hledger(-lib)? *[>=]=) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
 hledger-web/hledger-web.cabal: $(VERSIONFILE)
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
-	perl -p -e "s/(^[ ,]*hledger *[>=]=) *.*/\1 $(VERSION)/" -i $@
-	perl -p -e "s/(^[ ,]*hledger-lib *[>=]=) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^[ ,]*hledger(-lib|-web)? *[>=]=) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
 doc/MANUAL.md: $(VERSIONFILE)
