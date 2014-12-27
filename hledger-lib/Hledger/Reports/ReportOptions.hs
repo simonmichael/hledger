@@ -85,8 +85,8 @@ data ReportOpts = ReportOpts {
     ,balancetype_    :: BalanceType
     ,accountlistmode_  :: AccountListMode
     ,drop_           :: Int
+    ,row_total_      :: Bool
     ,no_total_       :: Bool
-    ,row_totals_     :: Bool
  } deriving (Show, Data, Typeable)
 
 instance Default ReportOpts where def = defreportopts
@@ -148,8 +148,8 @@ rawOptsToReportOpts rawopts = do
     ,balancetype_ = balancetypeopt rawopts
     ,accountlistmode_ = accountlistmodeopt rawopts
     ,drop_        = intopt "drop" rawopts
+    ,row_total_   = boolopt "row-total" rawopts
     ,no_total_    = boolopt "no-total" rawopts
-    ,row_totals_  = boolopt "row-totals" rawopts
     }
 
 accountlistmodeopt :: RawOpts -> AccountListMode

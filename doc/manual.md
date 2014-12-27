@@ -1003,7 +1003,7 @@ more compact output. Use `--no-elide` to prevent this.
 Accounts which have zero balance (and no non-zero subaccounts) are
 omitted. Use `-E/--empty` to show them.
 
-A final total is displayed by default; use `--no-total` to suppress it.
+A final total is displayed by default; use `-N/--no-total` to suppress it.
 
 ##### Flat mode
 
@@ -1066,10 +1066,10 @@ considered, not just the ones with activity during the report period
 (use -E to include low-activity accounts which would otherwise would
 be omitted).
 
-The `--row-totals` flag adds an additional column showing the total
-for each row.  The `-A/--average` flag adds one more column showing
-the average value in each row. Note in `--H/--historical` mode only
-the average is useful, and in `--cumulative` mode neither is useful.
+The `-T/--row-total` flag adds an additional column showing the total
+for each row.  The `-A/--average` flag adds a column showing the
+average value in each row. Note in `--H/--historical` mode only the
+average is useful, and in `--cumulative` mode neither is useful.
 
 ##### Custom output formats
 
