@@ -905,7 +905,10 @@ followingcommentp =
      return $ unlines $ samelinecomment:newlinecomments
 
 comment :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
-comment = commentStartingWith "#;"
+comment = commentStartingWith commentchars
+
+commentchars :: [Char]
+commentchars = "#;*"
 
 semicoloncomment :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 semicoloncomment = commentStartingWith ";"

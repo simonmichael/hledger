@@ -410,7 +410,7 @@ commentline :: Stream [Char] m t => ParsecT [Char] CsvRules m ()
 commentline = many spacenonewline >> commentchar >> restofline >> return () <?> "comment line"
 
 commentchar :: Stream [Char] m t => ParsecT [Char] CsvRules m Char
-commentchar = oneOf ";#"
+commentchar = oneOf ";#*"
 
 directive :: Stream [Char] m t => ParsecT [Char] CsvRules m (DirectiveName, String)
 directive = do

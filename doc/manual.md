@@ -383,7 +383,9 @@ P 2010/1/1 € $1.40
 
 #### Comments
 
-- A semicolon (`;`) or hash (`#`) in column 0 starts a journal comment line, which hledger will ignore.
+- A semicolon (`;`) or hash (`#`) or asterisk (`*`) in column 0 starts
+  a journal comment line, which hledger will ignore. (Asterisk allows you
+  to embed emacs org/outline-mode nodes and treat your journal like an outline.)
 
 - A semicolon after a transaction's description and/or indented on the following lines
 starts a transaction comment.
