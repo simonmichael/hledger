@@ -422,16 +422,12 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotal
   unlines $
   ([printf "Balance changes in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
-   render
-    id
-    (" "++)
-    showMixedAmountOneLineWithoutPrice
-    $ Table
-      (T.Group NoLine $ map (Header . padright acctswidth) accts)
-      (T.Group NoLine $ map Header colheadings)
-      (map rowvals items')
-    +----+
-    totalrow
+   render id (" "++) showMixedAmountOneLineWithoutPrice $
+    addtotalrow $
+     Table
+     (T.Group NoLine $ map (Header . padright acctswidth) accts)
+     (T.Group NoLine $ map Header colheadings)
+     (map rowvals items')
   where
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
     colheadings = map showDateSpan colspans
@@ -447,11 +443,12 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotal
     rowvals (_,as,rowtot,rowavg) = as
                                    ++ (if row_total_ opts then [rowtot] else [])
                                    ++ (if average_ opts then [rowavg] else [])
-    totalrow | no_total_ opts = row "" []
-             | otherwise      = row "" $
-                                coltotals
-                                ++ (if row_total_ opts then [tot] else [])
-                                ++ (if average_ opts then [avg] else [])
+    addtotalrow | no_total_ opts = id
+                | otherwise      = (+----+ (row "" $
+                                    coltotals
+                                    ++ (if row_total_ opts then [tot] else [])
+                                    ++ (if average_ opts then [avg] else [])
+                                    ))
 
 -- | Render a multi-column cumulative balance report as plain text suitable for console output.
 cumulativeBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
