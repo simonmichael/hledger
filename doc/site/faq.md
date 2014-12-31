@@ -2,73 +2,74 @@
 
 # Frequently asked questions
 
-## hledger and ledger
+## hledger and Ledger
 
-### How does hledger relate to ledger ?
+### How does hledger relate to Ledger ?
 
-hledger was inspired by and is partly a clone of John Wiegley's [ledger](http://ledger-cli.org),
-specifically Ledger 3.
+hledger was inspired by John Wiegley's
+[Ledger](http://ledger-cli.org).  It is a friendly, mostly compatible
+rewrite of Ledger in Haskell, begun in 2007 (Ledger started in 2003),
+focussing on robustness, usability, ease of development, long-term
+maintainability, and new experiments such as the
+[web interface](manual.html#web).  It currently lacks some of Ledger's
+power-user features and speed.  hledger stays compatible with Ledger
+wherever possible, so that with a little care you can use both tools
+on the same data files.
 
-I was a happy ledger user and contributor for some time; I still use it
-occasionally. I wrote hledger because I wanted to develop financial tools
-in the Haskell programming language and ecosystem, whose advantages I
-believe are compelling. I have also tried to make hledger a little more
-simple, usable, installable, documented, appealing to collaborators, and
-to provide alternate user interfaces to make it more widely useful.
+Longer answer: I was a happy Ledger user and contributor for some
+time, then became too dissatisfied with bugs, missing/wrong
+documentation and a long period of stagnation. I also wanted to try
+implementing Ledger's brilliant design in the Haskell programming
+language and ecosystem, which I believe has compelling advantages. I
+try to build on Ledger's experience to make hledger easier to learn
+and use, better documented, more appealing to work on; and to provide
+alternate user interfaces (interactive, curses, web) to make it useful
+to more people.
 
-ledger has more advanced power-user features on the command-line
-(periodic and modifier transactions, budgets, capital gains tracking,
-value expressions, custom output formats, etc.) and it remains faster
-and more memory efficient (for now!)...
+hledger builds quickly and has a complete and accurate manual, an
+easier report query syntax, a data entry assistant, an optional web
+interface (which often works on Ledger files too), and multi-column
+balance reports.  Ledger has additional power-user features (capital
+gains tracking, periodic and modifier transactions, budget reports,
+custom value expressions..)  and it remains faster and more memory
+efficient (for now!).
 
-hledger builds faster and has an up-to-date manual and an optional web
-interface (which often works on ledger files too)...
+The two projects collaborate freely.  For some time we shared the
+[#ledger](irc://irc.freenode.net/#ledger) IRC channel; in 2014 I added
+a dedicated [#hledger](irc://irc.freenode.net/#hledger) channel.
+I give back to Ledger by providing infrastructure
+([ledger-cli.org](http://ledger-cli.org)), IRC support, [LedgerTips](http://twitter.com/LedgerTips) etc.
 
-The two projects collaborate freely.  We share the
-[#ledger](irc://irc.freenode.net/#ledger) IRC channel but have
-separate mail lists
-([hledger list](http://groups.google.com/group/hledger/),
-[ledger-cli list](http://groups.google.com/group/ledger-cli/)).  I try
-to give back by providing infrastructure
-([ledger-cli.org](http://ledger-cli.org)) and IRC support.
-hledger stays compatible with ledger wherever possible, so that you
-can often use both tools on the same data file.
-
-Summary: hledger is a friendly, co-evolving, compatible rewrite of Ledger
-in Haskell, lacking some of ledger's power features and raw performance,
-and focussing on robustness, usability, ease of development, and
-experimental add-ons such as the [web interface](manual.html#web).
-
-### And ledger 4 ?
+### And Ledger 4 ?
 
 There is also a [ledger4](https://github.com/ledger/ledger4) on github; this is 
 John's own rewrite of the core of
-ledger 3 in haskell. It's an early library prototype, not a usable tool.
+Ledger 3 in haskell. It's an early library prototype, not a usable tool.
 Perhaps some day hledger or something like it would use this as its foundation. 
 
 ### File format differences ?
 
-hledger's file format is mostly identical with ledger's, by design.
+hledger's file format is mostly identical with Ledger's, by design.
 Generally, it's easy to keep a journal file that works with both hledger
-and ledger if you avoid ledger's and hledger's more specialised syntax
+and Ledger if you avoid Ledger's and hledger's more specialised syntax
 (or keep it in separate files which you include only when appropriate).
 
-Some ledger syntax is parsed but ignored (such as
+Some Ledger syntax is parsed but ignored (such as
 [automated transactions](http://ledger-cli.org/3.0/doc/ledger3.html#Automated-Transactions), [periodic transactions](http://ledger-cli.org/3.0/doc/ledger3.html#Periodic-Transactions), and
 [historical prices](manual.html#historical-prices)).
 Some features are not currently parsed and will cause an error, eg
-ledger's more recent top-level directives. There can also be subtle
+Ledger's more recent top-level directives. There can also be subtle
 differences in parser behaviour, such as with
-[hledger comments](manual.html#comments) vs [ledger comments](http://ledger-cli.org/3.0/doc/ledger3.html#Commenting-on-your-Journal),
+[hledger comments](manual.html#comments) vs [Ledger comments](http://ledger-cli.org/3.0/doc/ledger3.html#Commenting-on-your-Journal),
 or [balance assertions](manual.html#assertions-and-ordering).
 
 ### Feature differences ?
 
-hledger mimics a subset of [ledger 3.x](http://ledger-cli.org), and adds some features of its own.
+hledger mimics a subset of [Ledger 3.x](http://ledger-cli.org), and adds some features of its own.
 
 We currently support:
 
-- ledger's journal format, mostly
+- Ledger's journal format, mostly
 - csv format
 - timelog format
 - regular journal transactions
@@ -102,7 +103,7 @@ And we add these commands:
 
 ### Option/command differences ?
 
-ledger options and commands not supported include:
+Ledger options and commands not supported include:
 ```
 Basic options:
 -o, --output FILE      write output to FILE
@@ -160,7 +161,7 @@ entry DATE PAYEE AMT   output a derived entry, based on the arguments
 ### Other functionality differences ?
 
 - hledger recognises description and negative patterns by "desc:"
-  and "not:" prefixes, unlike ledger 3's free-form parser
+  and "not:" prefixes, unlike Ledger 3's free-form parser
 
 - hledger does not require a space between command-line flags and their values,
   eg `-fFILE` works as well as `-f FILE`
@@ -191,28 +192,28 @@ entry DATE PAYEE AMT   output a derived entry, based on the arguments
 - hledger's default commodity directive (D) sets the commodity to be
   used for subsequent commodityless amounts, and also sets that
   commodity's display settings if such an amount is the first
-  seen. ledger uses D only for commodity display settings and for the
+  seen. Ledger uses D only for commodity display settings and for the
   entry command.
 
 - hledger generates a description for timelog sessions, instead of
   taking it from the clock-out entry
 
 - hledger's [include directive](manual.html#including-other-files) does not support
-  shell glob patterns (eg `include *.journal` ), which ledger does.
+  shell glob patterns (eg `include *.journal` ), which Ledger does.
 
 - when checking [balance assertions](manual.html#balance-assertions)
   hledger sorts the account's postings first by date and then (for
-  postings with the same date) by parse order. ledger goes strictly by
+  postings with the same date) by parse order. Ledger goes strictly by
   parse order.
 
-- ledger allows amounts to have a
+- Ledger allows amounts to have a
   [fixed lot price](manual.html#fixed-lot-prices) and a regular price in any
   order (and uses whichever appears first). hledger requires the fixed
   lot price to come last (and ignores it).
 
 ### Implementation differences ?
 
-ledger is written in C++, whereas hledger is written in [Haskell](http://haskell.org).
+Ledger is written in C++, whereas hledger is written in [Haskell](http://haskell.org).
 Haskell is a highly regarded up-and-coming programming language that enables
 a coding style known as pure functional programming, offering the
 promise of more bug-free and maintainable software built in fewer
