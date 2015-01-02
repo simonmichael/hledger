@@ -442,6 +442,7 @@ one, and all tags have values except TAG1:
 In the journal file, a hledger tag value can contain: text, internal whitespace, or punctuation, but not: commas, newlines, or leading/trailing whitespace (putting quotes around it doesn't work, but probably should).
 
 In [tag queries](manual#queries), remember the tag name must match exactly, while the value part is the usual case-insensitive infix regular expression match.
+
 #### Directives
 
 ##### Account aliases
