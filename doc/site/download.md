@@ -73,8 +73,8 @@ Use cabal
 
 ## I want to build the [latest release](http://hackage.haskell.org/package/hledger) with [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html)
 
-`cabal install alex happy`    (if you don't already have these in your path)\
-`cabal sandbox init; cabal update; cabal install hledger-web`\
+`cabal install alex happy`    *(if you don't already have these in your path)*\
+`cabal sandbox init; cabal update; cabal install hledger-web`    *(use cabal 1.20+)*\
 <!-- [cabal install guide](cabal-install.html) -->
 
 Or just cabal install `hledger` if you don't need the web interface.\
@@ -86,3 +86,6 @@ The [Installation Guide](installing.html) describes how to install using cabal i
 `cabal install alex happy`    (if you don't already have these in your path)\
 `git clone https://github.com/simonmichael/hledger; cd hledger; make sandbox install`
 
+## I want to run the Ubuntu hledger packages in a virtual machine
+
+Try <https://github.com/sciurus/hledger-vagrant>.
