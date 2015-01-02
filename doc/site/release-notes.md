@@ -49,7 +49,7 @@ Simon Michael,
 Julien Moutinho,
 Ryan Desfosses,
 Gergely Risko,
-Gwern.
+Gwern Branwen.
 
 <!-- [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/N) -->
 ***CSV export,
@@ -67,7 +67,29 @@ General:
 - switch to Decimal for representing amounts ([#118](http://bugs.hledger.org/118))
 - report interval headings (eg in balance, register reports) are shown
   compactly when possible
-- general speedups
+- general speedups.
+```
++--------------------------------------------++----------------+--------------+--------+
+|                                            || hledger-0.23.3 | hledger-0.24 | ledger |
++============================================++================+==============+========+
+| -f data/100x100x10.journal     balance     ||           0.05 |         0.03 |   0.01 |
+| -f data/1000x1000x10.journal   balance     ||           0.34 |         0.21 |   0.04 |
+| -f data/10000x1000x10.journal  balance     ||           2.72 |         1.48 |   0.19 |
+| -f data/10000x1000x10.journal  balance aa  ||           3.16 |         1.55 |   0.14 |
+| -f data/100x100x10.journal     register    ||           0.09 |         0.05 |   0.04 |
+| -f data/1000x1000x10.journal   register    ||           0.66 |         0.32 |   0.30 |
+| -f data/10000x1000x10.journal  register    ||           6.27 |         2.77 |   2.80 |
+| -f data/10000x1000x10.journal  register aa ||           3.30 |         1.62 |   0.21 |
+| -f data/100x100x10.journal     print       ||           0.06 |         0.05 |   0.01 |
+| -f data/1000x1000x10.journal   print       ||           0.42 |         0.25 |   0.04 |
+| -f data/10000x1000x10.journal  print       ||           3.95 |         2.57 |   0.38 |
+| -f data/10000x1000x10.journal  print aa    ||           3.23 |         1.56 |   0.14 |
+| -f data/100x100x10.journal     stat        ||           0.04 |         0.03 |   0.01 |
+| -f data/1000x1000x10.journal   stat        ||           0.35 |         0.24 |   0.03 |
+| -f data/10000x1000x10.journal  stat        ||          14.84 |        13.29 |   0.20 |
+| -f data/10000x1000x10.journal  stat aa     ||          12.08 |        10.16 |   0.17 |
++--------------------------------------------++----------------+--------------+--------+
+```
 
 Journal format:
 
@@ -120,7 +142,7 @@ Account aliases:
 - account aliases can replace multiple occurrences of the pattern
   within an account name
 - an account alias replacement pattern can reference matched groups
-  with \N
+  with \\N
 
 Queries:
 
@@ -152,29 +174,6 @@ register:
 - postings with multi-commodity amounts are now top-aligned, like
   Ledger
 
-Performance:
-```
-+--------------------------------------------++----------------+--------------+--------+
-|                                            || hledger-0.23.3 | hledger-0.24 | ledger |
-+============================================++================+==============+========+
-| -f data/100x100x10.journal     balance     ||           0.05 |         0.03 |   0.01 |
-| -f data/1000x1000x10.journal   balance     ||           0.34 |         0.21 |   0.04 |
-| -f data/10000x1000x10.journal  balance     ||           2.72 |         1.48 |   0.19 |
-| -f data/10000x1000x10.journal  balance aa  ||           3.16 |         1.55 |   0.14 |
-| -f data/100x100x10.journal     register    ||           0.09 |         0.05 |   0.04 |
-| -f data/1000x1000x10.journal   register    ||           0.66 |         0.32 |   0.30 |
-| -f data/10000x1000x10.journal  register    ||           6.27 |         2.77 |   2.80 |
-| -f data/10000x1000x10.journal  register aa ||           3.30 |         1.62 |   0.21 |
-| -f data/100x100x10.journal     print       ||           0.06 |         0.05 |   0.01 |
-| -f data/1000x1000x10.journal   print       ||           0.42 |         0.25 |   0.04 |
-| -f data/10000x1000x10.journal  print       ||           3.95 |         2.57 |   0.38 |
-| -f data/10000x1000x10.journal  print aa    ||           3.23 |         1.56 |   0.14 |
-| -f data/100x100x10.journal     stat        ||           0.04 |         0.03 |   0.01 |
-| -f data/1000x1000x10.journal   stat        ||           0.35 |         0.24 |   0.03 |
-| -f data/10000x1000x10.journal  stat        ||          14.84 |        13.29 |   0.20 |
-| -f data/10000x1000x10.journal  stat aa     ||          12.08 |        10.16 |   0.17 |
-+--------------------------------------------++----------------+--------------+--------+
-```
 
 **User-visible changes in hledger-web since 0.23.3:**
 
