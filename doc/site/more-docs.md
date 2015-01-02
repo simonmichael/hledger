@@ -26,6 +26,12 @@
 - [Fabrice Niessen on Ledger, hledger, beancount, CSV2Ledger](http://www.mygooglest.com/fni/ledger.html) 2010
 - [советы: Ledger — бухучёт в командной строке](http://s.arboreus.com/2009/05/personal-accounting-in-command-line.html) ([english](http://translate.google.com/translate?hl=en&sl=ru&u=http://s.arboreus.com/2009/05/personal-accounting-in-command-line.html)) 2009
 
+- Hacker News mentions:\
+[Hledger – Double-entry accounting from the Unix tools perspective (2012)](https://news.ycombinator.com/item?id=8806056) 2014\
+[Ledger, a powerful CLI accounting tool](https://news.ycombinator.com/item?id=7707262) 2014\
+[Command Line Accounting With Ledger and Reckon](https://news.ycombinator.com/item?id=5233255) 2013\
+[Ledger: Command-line double-entry accounting](https://news.ycombinator.com/item?id=872244) 2009
+
 ## Related info
 
 John Wiegley's [Ledger](http://www.ledger-cli.org/) inspired hledger.
