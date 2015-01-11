@@ -1,5 +1,9 @@
 User-visible changes in hledger (see also hledger-lib):
 
+0.24.1 (2014/1/11)
+
+- fix balance accumulation through assertions in several commodities (#195)
+
 0.24 (2014/12/25)
 
 General:
