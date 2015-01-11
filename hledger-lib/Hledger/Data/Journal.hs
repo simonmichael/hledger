@@ -446,10 +446,9 @@ checkBalanceAssertion :: ([String],MixedAmount) -> [Posting] -> ([String],MixedA
 checkBalanceAssertion (errs,startbal) ps
   | null ps = (errs,startbal)
   | isNothing assertion = (errs,startbal)
-  |
-    -- bal' /= assertedbal  -- MixedAmount's Eq instance currently gets confused by different precisions
-    not $ isReallyZeroMixedAmount (bal - assertedbal) = (errs++[err], bal)
-  | otherwise = (errs,bal)
+  | -- bal' /= assertedbal  -- MixedAmount's Eq instance currently gets confused by different precisions
+    not $ isReallyZeroMixedAmount (bal - assertedbal) = (errs++[err], fullbal)
+  | otherwise = (errs,fullbal)
   where
     p = last ps
     assertion = pbalanceassertion p
@@ -473,7 +472,7 @@ checkBalanceAssertion (errs,startbal) ps
 -- assertion are discarded.
 splitAssertions :: [Posting] -> [[Posting]]
 splitAssertions ps
-  | null rest = [[]]
+  | null rest = []
   | otherwise = (ps'++[head rest]):splitAssertions (tail rest)
   where
     (ps',rest) = break (isJust . pbalanceassertion) ps
