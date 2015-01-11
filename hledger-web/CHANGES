@@ -1,5 +1,9 @@
 User-visible changes in hledger-web (see also hledger):
 
+0.24.1 (2015/1/10)
+
+- add missing modules to fix cabal tests (#232)
+
 0.24 (2014/12/25)
 
 General:
