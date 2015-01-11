@@ -1,6 +1,6 @@
 API-ish changes in hledger-lib. For user-visible changes, see hledger.
 
-0.24 (unreleased)
+0.24 (2014/12/25)
 
 - fix combineJournalUpdates folding order
 - fix a regexReplaceCI bug

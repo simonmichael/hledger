@@ -1,6 +1,6 @@
 User-visible changes in hledger-web (see also hledger):
 
-0.24 (unreleased)
+0.24 (2014/12/25)
 
 General:
 - fix: add missing hs/js files to package
