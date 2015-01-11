@@ -90,6 +90,8 @@ extra-source-files:
                 templates/homepage.julius
                 templates/homepage.lucius
                 templates/normalize.lucius
+                tests/HomeTest.hs
+                tests/TestImport.hs
                 CHANGES
 
 source-repository head
