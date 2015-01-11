@@ -91,7 +91,7 @@ DOCFILES:= \
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
 	$(CABALFILES) \
-	doc/MANUAL.md \
+	doc/manual.md \
 
 # file(s) which require recompilation for a build to have an up-to-date version string
 VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
