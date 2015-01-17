@@ -550,6 +550,9 @@ hledger will create it if necessary, with some default rules which you'll need t
 At minimum, the rules file must specify the `date` and `amount` fields.
 For an example, see [How to read CSV files](how-to-read-csv-files.html).
 
+(For CSV output, see [CSV output](#csv-output).)
+
+
 #### CSV rules
 
 The following six kinds of rule can appear in the rules file, in any order.
@@ -1072,7 +1075,7 @@ for each row.  The `-A/--average` flag adds a column showing the
 average value in each row. Note in `--H/--historical` mode only the
 average is useful, and in `--cumulative` mode neither is useful.
 
-##### Custom output formats
+##### Customising console output
 
 In simple balance reports (only), the `--format FMT` option will customize
 the format of output lines. `FMT` is like a C printf/strftime-style
@@ -1136,6 +1139,26 @@ Or, if you'd like to export the balance sheet:
 
 The default output format is `%20(total)  %2(depth_spacer)%-(account)`.
 
+##### Output destination
+
+The balance, print and register commands can write their output to a
+destination other than the console. This is controlled by the
+`-o/--output-file` option. Eg:
+
+- `hledger balance -o -`    - write to stdout (the default)
+- `hledger balance -o FILE` - write to FILE
+
+##### CSV output
+
+The balance, print and register commands can write their output as
+CSV. This is useful for exporting data to other applications, eg to
+make charts in a spreadsheet. This is controlled by the
+`-O/--output-format` option, or by specifying a `.csv` file extension
+with `-o/--output-file`. Eg:
+
+- `hledger balance -O csv`      - write CSV to stdout
+- `hledger balance -o FILE.csv` - write CSV to FILE.csv
+
 
 #### balancesheet
 
@@ -1175,6 +1198,11 @@ Examples:
 
     $ hledger print
     $ hledger print employees:bob | hledger -f- register expenses
+
+The print command also supports 
+[output destination](#output-destination)
+and
+[CSV output](#csv-output).
 
 #### register
 
@@ -1222,6 +1250,11 @@ It's often most useful to see just one line per interval.
 When using report intervals, the report's normal start/end dates are
 "enlarged" to contain a whole number of intervals, so that the first
 and last intervals will be "full" and comparable to the others.
+
+The register command also supports 
+[output destination](#output-destination)
+and
+[CSV output](#csv-output).
 
 #### stats
 
