@@ -86,12 +86,22 @@ tests_postingsReportAsText = [
 
 -- | Render one register report line item as plain text. Layout is like so:
 -- @
--- <----------------------------- width (default: 80) ---------------------------->
--- date (10)  description (50%)     account (50%)         amount (12)  balance (12)
+-- <---------------- width (specified, terminal width, or 80) -------------------->
+-- date (10)  description           account              amount (12)   balance (12)
 -- DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
+-- @
+-- If description's width is specified, account will use the remaining space.
+-- Otherwise, description and account divide up the space equally.
+--
+-- With a reporting interval, the layout is like so:
+-- @
+-- <---------------- width (specified, terminal width, or 80) -------------------->
+-- date (21)              account                        amount (12)   balance (12)
+-- DDDDDDDDDDDDDDDDDDDDD  aaaaaaaaaaaaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
+-- @
 --
 -- date and description are shown for the first posting of a transaction only.
--- @
+--
 postingsReportItemAsText :: CliOpts -> PostingsReportItem -> String
 postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
   intercalate "\n" $
@@ -101,11 +111,8 @@ postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
     [printf (spacer ++ "%"++amtw++"s  %"++balw++"s") a b | (a,b) <- zip amtrest balrest ]
 
     where
-      totalwidth = case widthFromOpts opts of
-           Left _                       -> defaultWidth -- shouldn't happen
-           Right (TotalWidth (Width w)) -> w
-           Right (TotalWidth Auto)      -> defaultWidth -- XXX
-           Right (FieldWidths _)        -> defaultWidth -- XXX
+      -- calculate widths
+      (totalwidth,mdescwidth) = registerWidthsFromOpts opts
       amtwidth = 12
       balwidth = 12
       (datewidth, date) = case (mdate,menddate) of
@@ -114,15 +121,15 @@ postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
                             (Just d, Nothing)  -> (10, showDate d)
                             _                  -> (10, "")
       remaining = totalwidth - (datewidth + 1 + 2 + amtwidth + 2 + balwidth)
-      (descwidth, acctwidth) | isJust menddate = (0, remaining-2)
-                             | even remaining  = (r2, r2)
-                             | otherwise       = (r2, r2+1)
+      (descwidth, acctwidth)
+        | hasinterval = (0, remaining - 2)
+        | otherwise   = (w, remaining - 2 - w)
         where
-          r2 = (remaining-2) `div` 2
+            hasinterval = isJust menddate
+            w = fromMaybe ((remaining - 2) `div` 2) mdescwidth
       [datew,descw,acctw,amtw,balw] = map show [datewidth,descwidth,acctwidth,amtwidth,balwidth]
 
-
-
+      -- gather content
       desc = maybe "" (take descwidth . elideRight descwidth) mdesc
       acct = parenthesise $ elideAccountName awidth $ paccount p
          where

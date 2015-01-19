@@ -1,5 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable #-}
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts #-}
 {-|
 
 Common cmdargs modes and flags, a command-line options type, and
@@ -43,12 +42,10 @@ module Hledger.Cli.Options (
   rulesFilePathFromOpts,
   outputFileFromOpts,
   outputFormatFromOpts,
-  -- | For register:
-  OutputWidth(..),
-  Width(..),
   defaultWidth,
-  defaultWidthWithFlag,
   widthFromOpts,
+  -- | For register:
+  registerWidthsFromOpts,
   maybeAccountNameDrop,
   -- | For balance:
   lineFormatFromOpts,
@@ -71,6 +68,9 @@ import Safe
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
+#ifndef mingw32_HOST_OS
+import System.Console.Terminfo
+#endif
 import System.Directory
 import System.Environment
 import System.Exit (exitSuccess)
@@ -255,7 +255,11 @@ data CliOpts = CliOpts {
     ,ignore_assertions_ :: Bool
     ,debug_           :: Int            -- ^ debug level, set by @--debug[=N]@. See also 'Hledger.Utils.debugLevel'.
     ,no_new_accounts_ :: Bool           -- add
-    ,width_           :: Maybe String   -- register
+    ,width_           :: Maybe String   -- ^ the --width value provided, if any
+    ,available_width_ :: Int            -- ^ estimated usable screen width, based on
+                                        -- 1. the COLUMNS env var, if set
+                                        -- 2. the width reported by the terminal, if supported
+                                        -- 3. the default (80)
     ,reportopts_      :: ReportOpts
  } deriving (Show, Data, Typeable)
 
@@ -274,18 +278,33 @@ defcliopts = CliOpts
     def
     def
     def
+    defaultWidth
     def
 
 -- | Convert possibly encoded option values to regular unicode strings.
 decodeRawOpts :: RawOpts -> RawOpts
 decodeRawOpts = map (\(name',val) -> (name', fromSystemString val))
 
+-- | Default width for hledger console output, when not otherwise specified.
+defaultWidth :: Int
+defaultWidth = 80
+
 -- | Parse raw option string values to the desired final data types.
 -- Any relative smart dates will be converted to fixed dates based on
 -- today's date. Parsing failures will raise an error.
+-- Also records the terminal width, if supported.
 rawOptsToCliOpts :: RawOpts -> IO CliOpts
 rawOptsToCliOpts rawopts = do
   ropts <- rawOptsToReportOpts rawopts
+  mcolumns <- readMay <$> getEnvSafe "COLUMNS"
+  mtermwidth <-
+#ifdef mingw32_HOST_OS
+    return Nothing
+#else
+    setupTermFromEnv >>= return . flip getCapability termColumns
+    -- XXX Throws a SetupTermError if the terminfo database could not be read, should catch
+#endif
+  let availablewidth = head $ catMaybes [mcolumns, mtermwidth, Just defaultWidth]
   return defcliopts {
               rawopts_         = rawopts
              ,command_         = stringopt "command" rawopts
@@ -297,7 +316,8 @@ rawOptsToCliOpts rawopts = do
              ,debug_           = intopt "debug" rawopts
              ,ignore_assertions_ = boolopt "ignore-assertions" rawopts
              ,no_new_accounts_ = boolopt "no-new-accounts" rawopts -- add
-             ,width_           = maybestringopt "width" rawopts    -- register
+             ,width_           = maybestringopt "width" rawopts
+             ,available_width_ = availablewidth
              ,reportopts_      = ropts
              }
 
@@ -307,9 +327,7 @@ checkCliOpts opts@CliOpts{reportopts_=ropts} = do
   case lineFormatFromOpts ropts of
     Left err -> optserror $ "could not parse format option: "++err
     Right _ -> return ()
-  case widthFromOpts opts of
-    Left err -> optserror $ "could not parse width option: "++err
-    Right _ -> return ()
+  -- XXX check registerWidthsFromOpts opts
   return opts
 
 -- Currently only used by some extras/ scripts:
@@ -405,6 +423,47 @@ rulesFilePathFromOpts opts = do
   d <- getCurrentDirectory
   maybe (return Nothing) (fmap Just . expandPath d) $ rules_file_ opts
 
+-- | Get the width in characters to use for console output.
+-- This comes from the --width option, or the COLUMNS environment
+-- variable, or (on posix platforms) the current terminal width, or 80.
+-- Will raise a parse error for a malformed --width argument.
+widthFromOpts :: CliOpts -> Int
+widthFromOpts CliOpts{width_=Nothing, available_width_=w} = w
+widthFromOpts CliOpts{width_=Just s}  =
+    case runParser (read `fmap` many1 digit <* eof) () "(unknown)" s of
+        Left e   -> optserror $ "could not parse width option: "++show e
+        Right w  -> w
+
+-- for register:
+
+-- | Get the width in characters to use for the register command's console output,
+-- and also the description column width if specified (following the main width, comma-separated).
+-- The widths will be as follows:
+-- @
+-- no --width flag - overall width is the available width (COLUMNS, or posix terminal width, or 80); description width is unspecified (auto)
+-- --width W       - overall width is W, description width is auto
+-- --width W,D     - overall width is W, description width is D
+-- @
+-- Will raise a parse error for a malformed --width argument.
+registerWidthsFromOpts :: CliOpts -> (Int, Maybe Int)
+registerWidthsFromOpts CliOpts{width_=Nothing, available_width_=w} = (w, Nothing)
+registerWidthsFromOpts CliOpts{width_=Just s}  =
+    case runParser registerwidthp () "(unknown)" s of
+        Left e   -> optserror $ "could not parse width option: "++show e
+        Right ws -> ws
+    where
+        registerwidthp :: Stream [Char] m t => ParsecT [Char] st m (Int, Maybe Int)
+        registerwidthp = do
+          totalwidth <- read `fmap` many1 digit
+          descwidth <- optionMaybe (char ',' >> read `fmap` many1 digit)
+          eof
+          return (totalwidth, descwidth)
+
+-- | Drop leading components of accounts names as specified by --drop, but only in --flat mode.
+maybeAccountNameDrop :: ReportOpts -> AccountName -> AccountName
+maybeAccountNameDrop opts a | tree_ opts = a
+                            | otherwise  = accountNameDrop (drop_ opts) a
+
 -- for balance, currently:
 
 -- | Parse the format option if provided, possibly returning an error,
@@ -420,56 +479,6 @@ defaultBalanceLineFormat = [
     , FormatField True (Just 2) Nothing DepthSpacerField
     , FormatField True Nothing Nothing AccountField
     ]
-
--- for register:
-
--- | Output width configuration (for register).
-data OutputWidth =
-    TotalWidth Width    -- ^ specify the overall width
-  | FieldWidths [Width] -- ^ specify each field's width
-  deriving Show
-
--- | A width value.
-data Width =
-    Width Int -- ^ set width to exactly this number of characters
-  | Auto      -- ^ set width automatically from available space
-  deriving Show
-
--- | Default width of hledger console output.
-defaultWidth :: Int
-defaultWidth = 80
-
--- | Width of hledger console output when the -w flag is used with no value.
-defaultWidthWithFlag :: Int
-defaultWidthWithFlag = 120
-
--- | Parse the width option if provided, possibly returning an error,
--- otherwise get the default value.
-widthFromOpts :: CliOpts -> Either String OutputWidth
-widthFromOpts CliOpts{width_=Nothing} = Right $ TotalWidth $ Width defaultWidth
-widthFromOpts CliOpts{width_=Just ""} = Right $ TotalWidth $ Width defaultWidthWithFlag
-widthFromOpts CliOpts{width_=Just s}  = parseWidth s
-
-parseWidth :: String -> Either String OutputWidth
-parseWidth s = case (runParser (outputwidthp <* eof) () "(unknown)") s of
-    Left  e -> Left $ show e
-    Right x -> Right x
-
-outputwidthp :: Stream [Char] m t => ParsecT [Char] st m OutputWidth
-outputwidthp =
-  try (do w <- widthp
-          ws <- many1 (char ',' >> widthp)
-          return $ FieldWidths $ w:ws)
-  <|> TotalWidth `fmap` widthp
-
-widthp :: Stream [Char] m t => ParsecT [Char] st m Width
-widthp = (string "auto" >> return Auto)
-    <|> (Width . read) `fmap` many1 digit
-
--- | Drop leading components of accounts names as specified by --drop, but only in --flat mode.
-maybeAccountNameDrop :: ReportOpts -> AccountName -> AccountName
-maybeAccountNameDrop opts a | tree_ opts = a
-                            | otherwise  = accountNameDrop (drop_ opts) a
 
 -- Other utils
 
@@ -552,7 +561,7 @@ addonExtensions =
   ]
 
 getEnvSafe :: String -> IO String
-getEnvSafe v = getEnv v `C.catch` (\(_::C.IOException) -> return "")
+getEnvSafe v = getEnv v `C.catch` (\(_::C.IOException) -> return "") -- XXX should catch only isDoesNotExistError e
 
 getDirectoryContentsSafe :: FilePath -> IO [String]
 getDirectoryContentsSafe d =

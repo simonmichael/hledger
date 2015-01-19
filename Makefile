@@ -474,7 +474,7 @@ unittest-interpreted:
 # 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
 functest: bin/hledgerdev tests/addons/hledger-addon
 	@echo functional tests:
-	@($(SHELLTEST) --execdir tests -- --threads=16 --hide-successes \
+	@(COLUMNS=80 $(SHELLTEST) --execdir tests --threads=16 \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # generate dummy add-ons for testing (hledger-addon the rest)
