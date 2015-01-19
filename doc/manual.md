@@ -1077,9 +1077,13 @@ average is useful, and in `--cumulative` mode neither is useful.
 
 ##### Customising console output
 
-In simple balance reports (only), the `--format FMT` option will customize
-the format of output lines. `FMT` is like a C printf/strftime-style
-format string, except that field names are enclosed in parentheses:
+(Tip: currently two commands, balance and register, can customise their
+console output, and they do it differently.)
+
+In simple balance reports (not multi-column ones), the `--format FMT`
+option will customize the format of output lines. `FMT` is like a C
+printf/strftime-style format string, except that field names are
+enclosed in parentheses:
 
     %[-][MIN][.MAX]([FIELD])
 
@@ -1231,10 +1235,6 @@ It works best when showing just one account and one commodity.
 The `--related`/`-r` flag shows the *other* postings in the transactions
 of the postings which would normally be shown.
 
-The `--width`/`-w` option adjusts the width of the output. By default,
-this is 80 characters. To allow more space for descriptions and account
-names, use `-w N` to increase the width to N characters (the argument is required).
-
 With a [reporting interval](#reporting-interval) register shows
 aggregated summary postings, within each interval:
 
@@ -1250,6 +1250,32 @@ It's often most useful to see just one line per interval.
 When using report intervals, the report's normal start/end dates are
 "enlarged" to contain a whole number of intervals, so that the first
 and last intervals will be "full" and comparable to the others.
+
+##### Customising console output
+
+(Tip: currently two commands, balance and register, can customise their
+console output, and they do it differently.)
+
+register uses the full terminal width by default, except on windows.
+You can set a different output width via the `COLUMNS` environment
+variable (not a bash shell variable) or by using the `--width`/`-w` option.
+
+The description and account columns normally share the space equally
+(about half of (width - 40) each). You can adjust this by adding a
+description width as part of --width's argument, comma-separated:
+`--width W,D` . Here's a diagram:
+```
+<--------------------------------- width (W) ---------------------------------->
+date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
+DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
+```
+and some examples:
+```shell
+$ hledger reg                 # use terminal width on posix
+$ hledger reg -w 100          # width 100, equal description/account widths
+$ hledger reg -w 100,40       # width 100, wider description
+$ hledger reg -w $COLUMNS,100 # terminal width, and set description width
+```
 
 The register command also supports 
 [output destination](#output-destination)
