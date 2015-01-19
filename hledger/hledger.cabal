@@ -41,6 +41,10 @@ flag threaded
     Description:   Build with support for multithreaded execution
     Default:       True
 
+flag curses
+    Description:   On POSIX systems, enable curses support for auto-detecting terminal width.
+    Default:       True
+
 
 library
   cpp-options: -DVERSION="0.24.98"
@@ -102,7 +106,8 @@ library
                  ,wizards == 1.0.*
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
-
+  if !os(windows) && flag(curses)
+    build-depends: terminfo
 
 executable hledger
   main-is:        hledger-cli.hs
