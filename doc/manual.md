@@ -447,25 +447,54 @@ In [tag queries](manual#queries), remember the tag name must match exactly, whil
 
 ##### Account aliases
 
-You can define account aliases to rewrite certain account names (and their subaccounts).
-This tends to be a little more reliable than post-processing with sed or similar.
-The directive is `alias ORIG = ALIAS`, where ORIG and ALIAS are full account names.
+You can define account aliases to rewrite account names. For a quick example,
+see [How to use account aliases](how-to-use-account-aliases.html).
+
+In hledger, this feature is quite powerful and requires a little care.
+It can be used for
+
+- expanding shorthand account names to their full form, so your entries require less typing
+- adjusting old data to match your current chart of accounts, which tends to change over time
+- experimenting with new account organisations
+- massaging reports, both cosmetic changes and deeper ones ("combine these separate accounts into one")
+
+An account alias can be defined on the command line:
+
+    $ hledger --alias 'REGEX=REPLACEMENT' balance
+
+or with a directive in the journal file:
+```
+alias REGEX = REPLACEMENT
+```
 Eg:
 
-    alias expenses = equity:draw:personal
+    alias ^expenses = equity:draw:personal
 
-To forget all aliases defined to this point, use:
+Spaces around the = are optional and ignored.
+You can define as many aliases as you like.
+
+Each alias is tested against each account name as those are read from the journal.
+When REGEX (a case-insensitive regular expression) matches
+anywhere within the account name, the matched part is replaced by
+REPLACEMENT.
+An alias can replace multiple matches in one account name.
+REGEX can contain parenthesised match groups, and REPLACEMENT can
+include these with a numeric backreference (like `\1`).
+
+An alias becomes active when it is read, and affects all entries
+read after it. It will also affect the entries of any files [included](#including-other-files)
+after it. It will not affect a parent file (aliases do not "leak"
+upward).  To forget all aliases defined to this point, use this
+directive:
 
     end aliases
 
-You can also specify aliases on the command line:
+Active aliases are applied in the order they were defined, and are
+cumulative (each alias sees the result of applying the previous ones).
 
-    $ hledger --alias 'my earning=income:business' ...
-
-Journal directive aliases are applied first, then command-line aliases,
-and at most one of each will be applied to each account name.
-
-See also [How to use account aliases](how-to-use-account-aliases.html).
+Account aliases changed significantly in hledger 0.24 and are
+currently somewhat incompatible with Ledger's aliases, which do not
+use regular expressions. They can also hurt performance.
 
 ##### Default commodity
 
@@ -1257,8 +1286,8 @@ and last intervals will be "full" and comparable to the others.
 console output, and they do it differently.)
 
 register uses the full terminal width by default, except on windows.
-You can set a different output width via the `COLUMNS` environment
-variable (not a bash shell variable) or by using the `--width`/`-w` option.
+You can override this by setting the `COLUMNS` environment variable (not a bash shell variable)
+or by using the `--width`/`-w` option.
 
 The description and account columns normally share the space equally
 (about half of (width - 40) each). You can adjust this by adding a

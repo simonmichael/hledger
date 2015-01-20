@@ -19,8 +19,8 @@ However, at tax reporting time we need to view these as a single entity (at leas
 In `unified.journal`, we include both files, and rewrite the personal
 account names to fit into the business chart of accounts,
 
-    alias expenses    = equity:draw:personal
-    alias assets:cash = assets:personal cash
+    alias ^expenses    = equity:draw:personal
+    alias ^assets:cash = assets:personal cash
     include personal.journal
     end aliases
 
@@ -43,6 +43,3 @@ your accountant:
 
     $ hledger --alias 'my earning=income:business' ...
 
-Note that 
-journal directive aliases are applied first, then command-line aliases,
-and at most one of each will be applied to each account name.
