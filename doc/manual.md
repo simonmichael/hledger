@@ -459,9 +459,9 @@ It can be used for
 - massaging reports, both cosmetic changes and deeper ones ("combine these separate accounts into one")
 
 An account alias can be defined on the command line:
-
-    $ hledger --alias 'REGEX=REPLACEMENT' balance
-
+```shell
+$ hledger --alias 'REGEX=REPLACEMENT' balance
+```
 or with a directive in the journal file:
 ```
 alias REGEX = REPLACEMENT
@@ -993,7 +993,7 @@ Here's [an example](step-by-step.html#record-a-transaction-with-hledger-add).
 ### Reports
 
 Here are the built-in commands for reporting useful information from your journal,
-which hledger's main purpose. (The original commands inherited from Ledger were, simplest first:
+(hledger's main function). (The original commands inherited from Ledger were, simplest first:
 [print](#print), [register](#register) and [balance](#balance).)
 
 #### accounts
