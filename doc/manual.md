@@ -320,6 +320,24 @@ that no matter how many assertions you add, you can't be sure the
 account does not contain some unexpected commodity. (We'll add support
 for this kind of total balance assertion if there's demand.)
 
+###### Assertions and subaccounts
+
+Balance assertions do not count the balance from subaccounts; they check
+the posted account's exclusive balance. For example:
+```
+1/1
+  checking:fund   1 = 1  ; post to this subaccount, its balance is now 1
+  checking        1 = 1  ; post to the parent account, its exclusive balance is now 1
+  equity
+```
+The balance report's flat mode shows these exclusive balances more clearly:
+```shell
+$ hledger bal checking --flat
+                   1  checking
+                   1  checking:fund
+--------------------
+                   2
+```
 
 ##### Prices
 
