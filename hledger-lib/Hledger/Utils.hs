@@ -55,26 +55,34 @@ import Hledger.Utils.UTF8IOCompat (SystemString,fromSystemString,toSystemString,
 
 -- strings
 
+lowercase, uppercase :: String -> String
 lowercase = map toLower
 uppercase = map toUpper
 
 -- | Remove leading and trailing whitespace.
+strip :: String -> String
 strip = lstrip . rstrip
 
 -- | Remove leading whitespace.
+lstrip :: String -> String
 lstrip = dropWhile (`elem` " \t") :: String -> String -- XXX isSpace ?
 
 -- | Remove trailing whitespace.
+rstrip :: String -> String
 rstrip = reverse . lstrip . reverse
 
 -- | Remove trailing newlines/carriage returns.
+chomp :: String -> String
 chomp = reverse . dropWhile (`elem` "\r\n") . reverse
 
+stripbrackets :: String -> String
 stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse :: String -> String
 
+elideLeft :: Int -> String -> String
 elideLeft width s =
     if length s > width then ".." ++ reverse (take (width - 2) $ reverse s) else s
 
+elideRight :: Int -> String -> String
 elideRight width s =
     if length s > width then take (width - 2) s ++ ".." else s
 
@@ -94,14 +102,17 @@ quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
 
 -- | Double-quote this string if it contains whitespace, single quotes
 -- or double-quotes, escaping the quotes as needed.
+quoteIfNeeded :: String -> String
 quoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars) = "\"" ++ escapeDoubleQuotes s ++ "\""
                 | otherwise = s
 
 -- | Single-quote this string if it contains whitespace or double-quotes.
 -- No good for strings containing single quotes.
+singleQuoteIfNeeded :: String -> String
 singleQuoteIfNeeded s | any (`elem` s) whitespacechars = "'"++s++"'"
                       | otherwise = s
 
+quotechars, whitespacechars :: [Char]
 quotechars      = "'\""
 whitespacechars = " \t\n\r"
 
