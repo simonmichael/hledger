@@ -32,20 +32,21 @@ handlePost = do
 handleAdd :: Handler Html
 handleAdd = do
   VD{..} <- getViewData
-  -- gruesome adhoc form handling, port to yesod-form later
-  mjournal <- lookupPostParam  "journal"
+  -- XXX gruesome form handling, port to yesod-form later
+  mjournalpath <- lookupPostParam  "journal"
   mdate <- lookupPostParam  "date"
   mdesc <- lookupPostParam  "description"
   let edate = maybe (Left "date required") (either (\e -> Left $ showDateParseError e) Right . fixSmartDateStrEither today . strip . unpack) mdate
       edesc = Right $ maybe "" unpack mdesc
-      ejournal = maybe (Right $ journalFilePath j)
+      ejournalpath = maybe
+                       (Right $ journalFilePath j)
                        (\f -> let f' = unpack f in
                               if f' `elem` journalFilePaths j
                               then Right f'
                               else Left $ "unrecognised journal file path: " ++ f'
                               )
-                       mjournal
-      estrs = [edate, edesc, ejournal]
+                       mjournalpath
+      estrs = [edate, edesc, ejournalpath]
       (errs1, [date,desc,journalpath]) = (lefts estrs, rights estrs)
   (params,_) <- runRequestBody
   -- mtrace params
@@ -136,15 +137,16 @@ handleEdit = do
   -- get form input values, or validation errors.
   -- getRequest >>= liftIO (reqRequestBody req) >>= mtrace
   mtext <- lookupPostParam "text"
-  mjournal <- lookupPostParam "journal"
+  mjournalpath <- lookupPostParam "journal"
   let etext = maybe (Left "No value provided") (Right . unpack) mtext
-      ejournal = maybe (Right $ journalFilePath j)
+      ejournalpath = maybe
+                       (Right $ journalFilePath j)
                        (\f -> let f' = unpack f in
                               if f' `elem` journalFilePaths j
                               then Right f'
                               else Left ("unrecognised journal file path"::String))
-                       mjournal
-      estrs = [etext, ejournal]
+                       mjournalpath
+      estrs = [etext, ejournalpath]
       errs = lefts estrs
       [text,journalpath] = rights estrs
   -- display errors or perform edit
