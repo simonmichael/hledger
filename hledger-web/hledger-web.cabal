@@ -187,6 +187,7 @@ library
                    , yaml
                    , yesod                >= 1.4 && < 1.5
                    , yesod-core
+                   , yesod-form
                    , yesod-static
                    , json
                    -- required by extra ghci utilities:
@@ -258,6 +259,7 @@ executable         hledger-web
                    , yaml
                    , yesod                >= 1.4 && < 1.5
                    , yesod-core
+                   , yesod-form
                    , yesod-static
                    , json
                    -- required by extra ghci utilities:
