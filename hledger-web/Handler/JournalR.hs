@@ -4,8 +4,8 @@ module Handler.JournalR where
 
 import Import
 
+import Handler.AddForm
 import Handler.Common
-import Handler.Post
 
 import Hledger.Data
 import Hledger.Query
@@ -38,7 +38,7 @@ getJournalR = do
      |]
 
 postJournalR :: Handler Html
-postJournalR = handlePost
+postJournalR = postAddForm
 
 -- | Render a "TransactionsReport" as html for the formatted journal view.
 journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute

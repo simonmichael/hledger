@@ -8,8 +8,8 @@ import Data.List
 import Data.Maybe
 import Safe
 
+import Handler.AddForm
 import Handler.Common
-import Handler.Post
 import Handler.Utils
 
 import Hledger.Data
@@ -40,7 +40,7 @@ getRegisterR = do
      |]
 
 postRegisterR :: Handler Html
-postRegisterR = handlePost
+postRegisterR = postAddForm
 
 -- Generate html for an account register, including a balance chart and transaction list.
 registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute

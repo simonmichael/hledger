@@ -120,51 +120,51 @@ searchform VD{..} = [hamlet|
  where
   filtering = not $ null q
 
--- | Edit journal form.
-editform :: ViewData -> HtmlUrl AppRoute
-editform VD{..} = [hamlet|
-<form#editform method=POST style=display:none;>
- <h2#contenttitle>#{title}>
- <table.form>
-  $if manyfiles
-   <tr>
-    <td colspan=2>
-     Editing ^{journalselect $ files j}
-  <tr>
-   <td colspan=2>
-    <!-- XXX textarea ids are unquoted journal file paths here, not valid html -->
-    $forall f <- files j
-     <textarea id=#{fst f}_textarea name=text rows=25 cols=80 style=display:none; disabled=disabled>
-      \#{snd f}
-  <tr#addbuttonrow>
-   <td>
-    <span.help>^{formathelp}
-   <td align=right>
-    <span.help>
-     Are you sure ? This will overwrite the journal. #
-    <input type=hidden name=action value=edit>
-    <input type=submit name=submit value="save journal">
-    \ or #
-    <a href="#" onclick="return editformToggle(event)">cancel
-|]
-  where
-    title = "Edit journal" :: String
-    manyfiles = length (files j) > 1
-    formathelp = helplink "file-format" "file format help"
+-- -- | Edit journal form.
+-- editform :: ViewData -> HtmlUrl AppRoute
+-- editform VD{..} = [hamlet|
+-- <form#editform method=POST style=display:none;>
+--  <h2#contenttitle>#{title}>
+--  <table.form>
+--   $if manyfiles
+--    <tr>
+--     <td colspan=2>
+--      Editing ^{journalselect $ files j}
+--   <tr>
+--    <td colspan=2>
+--     <!-- XXX textarea ids are unquoted journal file paths here, not valid html -->
+--     $forall f <- files j
+--      <textarea id=#{fst f}_textarea name=text rows=25 cols=80 style=display:none; disabled=disabled>
+--       \#{snd f}
+--   <tr#addbuttonrow>
+--    <td>
+--     <span.help>^{formathelp}
+--    <td align=right>
+--     <span.help>
+--      Are you sure ? This will overwrite the journal. #
+--     <input type=hidden name=action value=edit>
+--     <input type=submit name=submit value="save journal">
+--     \ or #
+--     <a href="#" onclick="return editformToggle(event)">cancel
+-- |]
+--   where
+--     title = "Edit journal" :: String
+--     manyfiles = length (files j) > 1
+--     formathelp = helplink "file-format" "file format help"
 
--- | Import journal form.
-importform :: HtmlUrl AppRoute
-importform = [hamlet|
-<form#importform method=POST style=display:none;>
- <table.form>
-  <tr>
-   <td>
-    <input type=file name=file>
-    <input type=hidden name=action value=import>
-    <input type=submit name=submit value="import from file">
-    \ or #
-    <a href="#" onclick="return importformToggle(event)">cancel
-|]
+-- -- | Import journal form.
+-- importform :: HtmlUrl AppRoute
+-- importform = [hamlet|
+-- <form#importform method=POST style=display:none;>
+--  <table.form>
+--   <tr>
+--    <td>
+--     <input type=file name=file>
+--     <input type=hidden name=action value=import>
+--     <input type=submit name=submit value="import from file">
+--     \ or #
+--     <a href="#" onclick="return importformToggle(event)">cancel
+-- |]
 
 -- | Link to a topic in the manual.
 helplink :: String -> String -> HtmlUrl AppRoute

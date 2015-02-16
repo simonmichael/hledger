@@ -141,10 +141,9 @@ library
                      Settings
                      Settings.StaticFiles
                      Settings.Development
+                     Handler.AddForm
                      Handler.Common
-                     Handler.JournalEditR
                      Handler.JournalR
-                     Handler.Post
                      Handler.RegisterR
                      Handler.RootR
                      Handler.SidebarR

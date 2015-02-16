@@ -1,6 +1,6 @@
 -- | POST helpers.
 
-module Handler.Post where
+module Handler.AddForm where
 
 import Import
 
@@ -10,6 +10,7 @@ import Data.List (sort)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
 import Data.Text (unpack)
 import qualified Data.Text as T
+import Data.Time.Calendar
 import Text.Parsec (digit, eof, many1, string, runParser)
 
 import Hledger.Utils
@@ -18,20 +19,11 @@ import Hledger.Read
 import Hledger.Cli hiding (num)
 
 
--- | Handle a post from any of the edit forms.
-handlePost :: Handler Html
-handlePost = do
-  action <- lookupPostParam  "action"
-  case action of Just "add"    -> handleAdd
-                 -- Just "edit"   -> handleEdit
-                 -- Just "import" -> handleImport
-                 _             -> invalidArgs ["invalid action"]
-
 -- | Handle a post from the transaction add form.
-handleAdd :: Handler Html
-handleAdd = do
+postAddForm :: Handler Html
+postAddForm = do
   VD{..} <- getViewData
-  -- XXX gruesome form handling, port to yesod-form later
+  -- XXX gruesome form handling, port to yesod-form. cf #234
   mjournalpath <- lookupPostParam  "journal"
   mdate <- lookupPostParam  "date"
   mdesc <- lookupPostParam  "description"
@@ -46,7 +38,9 @@ handleAdd = do
                               )
                        mjournalpath
       estrs = [edate, edesc, ejournalpath]
-      (errs1, [date,desc,journalpath]) = (lefts estrs, rights estrs)
+      (errs1, [date, desc, journalpath]) = case (lefts estrs, rights estrs) of
+        ([], [_,_,_]) -> ([], rights estrs)
+        _             -> (lefts estrs, [error "",error "",error ""]) -- RHS won't be used
   (params,_) <- runRequestBody
   -- mtrace params
   let paramnamep s = do {string s; n <- many1 digit; eof; return (read n :: Int)}
@@ -97,37 +91,32 @@ handleAdd = do
 
   redirect (JournalR) -- , [("add","1")])
 
--- personForm :: Html -> MForm Handler (FormResult Person, Widget)
--- personForm extra = do
---     (nameRes, nameView) <- mreq textField "this is not used" Nothing
---     (ageRes, ageView) <- mreq intField "neither is this" Nothing
---     let personRes = Person <$> nameRes <*> ageRes
---     let widget = do
---             toWidget
---                 [lucius|
---                     ##{fvId ageView} {
---                         width: 3em;
---                     }
---                 |]
---             [whamlet|
---                 #{extra}
---                 <p>
---                     Hello, my name is #
---                     ^{fvInput nameView}
---                     \ and I am #
---                     ^{fvInput ageView}
---                     \ years old. #
---                     <input type=submit value="Introduce myself">
---             |]
---     return (personRes, widget)
---
---     ((res, widget), enctype) <- runFormGet personForm
---     defaultLayout
---         [whamlet|
---             <p>Result: #{show res}
---             <form enctype=#{enctype}>
---                 ^{widget}
---         |]
+-- -- | Handle a post from the journal edit form.
+-- handleEdit :: Handler Html
+-- handleEdit = do
+--   VD{..} <- getViewData
+--   -- get form input values, or validation errors.
+--   -- getRequest >>= liftIO (reqRequestBody req) >>= mtrace
+--   mtext <- lookupPostParam "text"
+--   mtrace "--------------------------"
+--   mtrace (journalFilePaths j)
+--   mjournalpath <- lookupPostParam "journal"
+--   let etext = maybe (Left "No value provided") (Right . unpack) mtext
+--       ejournalpath = maybe
+--                        (Right $ journalFilePath j)
+--                        (\f -> let f' = unpack f in
+--                               if f' `elem` dbg0 "paths2" (journalFilePaths j)
+--                               then Right f'
+--                               else Left ("unrecognised journal file path"::String))
+--                        mjournalpath
+--       estrs = [etext, ejournalpath]
+--       errs = lefts estrs
+--       [text,journalpath] = rights estrs
+--   -- display errors or perform edit
+--   if not $ null errs
+--    then do
+--     setMessage $ toHtml (intercalate "; " errs :: String)
+--     redirect JournalR
 
 -- -- | Handle a post from the journal edit form.
 -- handleEdit :: Handler Html
