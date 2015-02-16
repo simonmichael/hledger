@@ -143,7 +143,6 @@ library
                      Settings.Development
                      Handler.Common
                      Handler.JournalEditR
-                     Handler.JournalEntriesR
                      Handler.JournalR
                      Handler.Post
                      Handler.RegisterR
