@@ -37,7 +37,6 @@ import Data.List
 import Data.Maybe
 import Data.Text as Text (Text,pack,unpack)
 import Data.Time.Calendar
-import System.FilePath (takeFileName)
 #if BLAZE_HTML_0_4
 import Text.Blaze (preEscapedString)
 #else
@@ -370,22 +369,31 @@ addform _ vd@VD{..} = [hamlet|
          |]
        | otherwise = [hamlet|
           <td #addbtncell style="text-align:right;">
-           <input type=hidden name=action value=add>
            <button type=submit .btn .btn-lg name=submit>add
-           $if length files' > 1
-            <br>to: ^{journalselect files'}
+           $if length filepaths > 1
+            <br>
+            <span class="input-lg">to:
+            ^{journalselect filepaths}
          |]
        where
         amtvar = "amount" ++ show n
         amtph = "Amount " ++ show n
-        files' = [(takeFileName f,s) | (f,s) <- files j]
+        filepaths = map fst $ files j
 
            -- <button .btn style="font-size:18px;" type=submit title="Add this transaction">Add
 
-journalselect :: [(FilePath,String)] -> HtmlUrl AppRoute
-journalselect journalfiles = [hamlet|
-<select id=journalselect name=journal onchange="/*journalSelect(event)*/">
- $forall f <- journalfiles
-  <option value=#{fst f}>#{fst f}
+journalselect :: [FilePath] -> HtmlUrl AppRoute
+journalselect journalfilepaths = [hamlet|
+<select id=journalselect name=journal onchange="/*journalSelect(event)*/" class="form-control input-lg" style="width:auto; display:inline-block;">
+ $forall p <- journalfilepaths
+  <option value=#{p}>#{p}
+|]
+
+journalradio :: [FilePath] -> HtmlUrl AppRoute
+journalradio journalfilepaths = [hamlet|
+ $forall p <- journalfilepaths
+  <div style="white-space:nowrap;">
+   <span class="input-lg" style="position:relative; top:-8px; left:8px;">#{p}
+   <input name=journal type=radio value=#{p} class="form-control" style="width:auto; display:inline;">
 |]
 
