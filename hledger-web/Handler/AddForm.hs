@@ -10,12 +10,10 @@ import Control.Applicative
 import Data.Either (lefts,rights)
 import Data.List (sort)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
--- import Data.Maybe
-import Data.Text (unpack)
+import Data.Text (append, pack, unpack)
 import qualified Data.Text as T
--- import Data.Time.Calendar
+import Data.Time.Calendar
 import Text.Parsec (digit, eof, many1, string, runParser)
--- import Yesod.Form.Jquery
 
 import Hledger.Utils
 import Hledger.Data hiding (num)
@@ -26,50 +24,57 @@ import Hledger.Cli hiding (num)
 -- Part of the data required from the add form.
 -- Don't know how to handle the variable posting fields with yesod-form yet.
 data AddForm = AddForm
-    { addFormJournalFile  :: Maybe Text -- FilePath
-    , addFormDate         :: Maybe Text -- Day
+    { addFormDate         :: Day
     , addFormDescription  :: Maybe Text -- String
     -- , addFormPostings     :: [(AccountName, String)]
+    , addFormJournalFile  :: Maybe Text -- FilePath
     }
   deriving Show
 
 postAddForm :: Handler Html
 postAddForm = do
-  VD{..} <- getViewData
   let showErrors errs = do
-        -- error $ show errs -- XXX uncomment to prevent redirect, for debugging
+        -- error $ show errs -- XXX uncomment to prevent redirect for debugging
         setMessage [shamlet|
-                     Error:<br>
-                     $forall e<-errs
-                      \#{e}<br>
+                    Errors:<br>
+                    $forall e<-errs
+                     \#{e}<br>
                    |]
+                                
+  -- 1. process the fixed fields with yesod-form
+
+  VD{..} <- getViewData
+  let
+      validateJournalFile :: Text -> Either FormMessage Text
+      validateJournalFile f
+        | unpack f `elem` journalFilePaths j = Right f
+        | otherwise                          = Left $ MsgInvalidEntry $ pack "the selected journal file \"" `append` f `append` "\"is unknown"
+
+      validateDate :: Text -> Handler (Either FormMessage Day)
+      validateDate s = return $
+        case fixSmartDateStrEither' today $ strip $ unpack s of
+          Right d  -> Right d
+          Left _   -> Left $ MsgInvalidEntry $ pack "could not parse date \"" `append` s `append` pack "\":" -- ++ show e)
+
   formresult <- runInputPostResult $ AddForm
-    <$> iopt textField "journal"
-    <*> iopt textField "date"
-        -- (jqueryDayField def
-        -- {
-        --   jdsChangeYear = True     -- give a year dropdown
-        -- , jdsYearRange = "1900:-5" -- 1900 till five years ago
-        -- }) "date"
+    <$> ireq (checkMMap validateDate (pack . show) textField) "date"
     <*> iopt textField "description"
+    <*> iopt (check validateJournalFile textField) "journal"
+  
   case formresult of
-    FormMissing          -> showErrors ["there is no form data"::String]
-    FormFailure errs     -> showErrors errs
-    FormSuccess formdata -> do
+    FormMissing      -> showErrors ["there is no form data"::String]
+    FormFailure errs -> showErrors errs
+    FormSuccess dat  -> do
       let AddForm{
-             addFormJournalFile=mjournalfile
-            ,addFormDate       =mdate
+             addFormDate       =date
             ,addFormDescription=mdesc
-            } = formdata
-          date = parsedate $ fixSmartDateStr today $ maybe "today" (strip . unpack) mdate
+            ,addFormJournalFile=mjournalfile
+            } = dat
           desc = maybe "" unpack mdesc
-          journalfile = maybe
-                        (journalFilePath j)
-                        (\f' -> let f = unpack f' in
-                                if f `elem` journalFilePaths j
-                                then f
-                                else error $ "the selected journal file is unknown: " ++ f)
-                        mjournalfile
+          journalfile = maybe (journalFilePath j) unpack mjournalfile
+
+      -- 2. the fixed fields look good; now process the posting fields adhocly,
+      -- getting either errors or a balanced transaction
 
       (params,_) <- runRequestBody
       let numberedParams s =
@@ -93,22 +98,23 @@ postAddForm = do
           (amts', amtErrs)  = (rights eamts, map show $ lefts eamts)
           amts | length amts' == num = amts'
                | otherwise           = amts' ++ [missingamt]
-          -- if no errors so far, generate a transaction and balance it or get the error.
           errs = if not (null paramErrs) then paramErrs else (acctErrs ++ amtErrs)
-          et | not $ null errs = Left errs
-             | otherwise = either (\e -> Left [L.head $ lines e]) Right
-                            (balanceTransaction Nothing $ nulltransaction {
-                                tdate=date
-                               ,tdescription=desc
-                               ,tpostings=[nullposting{paccount=acct, pamount=Mixed [amt]} | (acct,amt) <- zip accts amts]
-                               })
-      -- display errors or add transaction
-      case et of
+          etxn | not $ null errs = Left errs
+               | otherwise = either (\e -> Left [L.head $ lines e]) Right
+                              (balanceTransaction Nothing $ nulltransaction {
+                                  tdate=date
+                                 ,tdescription=desc
+                                 ,tpostings=[nullposting{paccount=acct, pamount=Mixed [amt]} | (acct,amt) <- zip accts amts]
+                                 })
+      case etxn of
        Left errs -> showErrors errs
        Right t -> do
-        let t' = txnTieKnot t -- XXX move into balanceTransaction
+        -- 3. all fields look good and form a balanced transaction; append it to the file
         liftIO $ do ensureJournalFileExists journalfile
-                    appendToJournalFileOrStdout journalfile $ showTransaction t'
+                    appendToJournalFileOrStdout journalfile $
+                      showTransaction $
+                      txnTieKnot -- XXX move into balanceTransaction
+                      t
         setMessage [shamlet|<span>Transaction added.|]
 
   redirect (JournalR) -- , [("add","1")])
