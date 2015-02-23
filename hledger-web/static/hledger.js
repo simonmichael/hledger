@@ -243,7 +243,7 @@ function addformDeletePosting() {
   focuslost = focuslost || 
     $('#addform tr.posting:last > td:last input:last').is(':focus');
   // replace new last row's amount field with the button
-  $('#addform tr.posting:last > td:last').html(btn);
+  $('#addform tr.posting:last > td:last').css('text-align','right').html(btn);
   // if deleted row had focus, focus the new last row
   if (focuslost) $('#addform tr.posting:last > td:first input:last').focus();
 }
