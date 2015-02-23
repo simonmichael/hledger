@@ -1,4 +1,4 @@
-$maybe m <- msg
+$maybe m <- lastmsg
   $if not $ isPrefixOf "Errors" (renderHtml m)
     <div #message>#{m}
 ^{widget}
