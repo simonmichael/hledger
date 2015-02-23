@@ -55,8 +55,6 @@ topbar VD{..} = [hamlet|
 <nav class="navbar" role="navigation">
  <div#topbar>
   <h1>#{title}
- $maybe m' <- msg
-  <div#message>#{m'}
 |]
   where
     title = takeFileName $ journalFilePath j

@@ -100,4 +100,7 @@ $newline never
                 <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
                 <h3 .modal-title #addLabel>Add a transaction
               <div .modal-body>
+                $maybe m <- msg
+                  $if isPrefixOf "Errors" (renderHtml m)
+                    <div #message>#{m}
                 ^{addform staticRootUrl vd}

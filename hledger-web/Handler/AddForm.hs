@@ -61,9 +61,9 @@ postAddForm = do
     <*> iopt textField "description"
     <*> iopt (check validateJournalFile textField) "journal"
   
-  case formresult of
-    FormMissing      -> showErrors ["there is no form data"::String]
-    FormFailure errs -> showErrors errs
+  ok <- case formresult of
+    FormMissing      -> showErrors ["there is no form data"::String] >> return False
+    FormFailure errs -> showErrors errs >> return False
     FormSuccess dat  -> do
       let AddForm{
              addFormDate       =date
@@ -107,7 +107,7 @@ postAddForm = do
                                  ,tpostings=[nullposting{paccount=acct, pamount=Mixed [amt]} | (acct,amt) <- zip accts amts]
                                  })
       case etxn of
-       Left errs -> showErrors errs
+       Left errs -> showErrors errs >> return False
        Right t -> do
         -- 3. all fields look good and form a balanced transaction; append it to the file
         liftIO $ do ensureJournalFileExists journalfile
@@ -116,5 +116,6 @@ postAddForm = do
                       txnTieKnot -- XXX move into balanceTransaction
                       t
         setMessage [shamlet|<span>Transaction added.|]
+        return True
 
-  redirect (JournalR) -- , [("add","1")])
+  if ok then redirect JournalR else redirect (JournalR, [("add","1")])

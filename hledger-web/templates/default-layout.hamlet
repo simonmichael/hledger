@@ -1,3 +1,4 @@
-$maybe msg <- mmsg
-    <div #message>#{msg}
+$maybe m <- msg
+  $if not $ isPrefixOf "Errors" (renderHtml m)
+    <div #message>#{m}
 ^{widget}

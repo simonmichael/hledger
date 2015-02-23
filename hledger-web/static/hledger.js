@@ -6,7 +6,7 @@
 $(document).ready(function() {
 
   // show add form if ?add=1
-  if ($.url.param('add')) { addformShow(); }
+  if ($.url.param('add')) { addformShow(showmsg=true); }
 
   // sidebar account hover handlers
   $('#sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
@@ -126,8 +126,8 @@ function registerChartClick(ev, pos, item) {
 //----------------------------------------------------------------------
 // ADD FORM
 
-function addformShow() {
-  addformReset();
+function addformShow(showmsg=false) {
+  addformReset(showmsg);
   $('#addmodal')
     .on('shown.bs.modal', function (e) {
       addformFocus();
@@ -136,13 +136,14 @@ function addformShow() {
 }
 
 // Make sure the add form is empty and clean for display.
-function addformReset() {
+function addformReset(showmsg=false) {
   if ($('form#addform').length > 0) {
+    if (!showmsg) $('div#message').html('');
     $('form#addform')[0].reset();
-    $('input#date').val('today');
     // reset typehead state (though not fetched completions)
     $('.typeahead').typeahead('val', '');
     $('.tt-dropdown-menu').hide();
+    $('input#date').val('today');
   }
 }
 

@@ -25,6 +25,7 @@ import Settings (staticRoot, widgetFile, Extra (..))
 import Settings (staticDir)
 import Text.Jasmine (minifym)
 #endif
+import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Hamlet (hamletFile)
 
 import Hledger.Web.Options
@@ -104,7 +105,7 @@ instance Yesod App where
 
     defaultLayout widget = do
         master <- getYesod
-        mmsg <- getMessage
+        vd@VD{..} <- getViewData
 
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
@@ -140,7 +141,6 @@ instance Yesod App where
             $(widgetFile "default-layout")
 
         staticRootUrl <- (staticRoot . settings) <$> getYesod
-        vd@VD{..} <- getViewData
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     -- This is done to provide an optimization for serving static files from
@@ -232,8 +232,9 @@ getViewData :: Handler ViewData
 getViewData = do
   app        <- getYesod
   let opts@WebOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} = appOpts app
-  (j, err)   <- getCurrentJournal app copts{reportopts_=ropts{no_elide_=True}}
-  msg        <- getMessageOr err
+  (j, merr)  <- getCurrentJournal app copts{reportopts_=ropts{no_elide_=True}}
+  lastmsg    <- getLastMessage
+  let msg = maybe lastmsg (Just . toHtml) merr
   Just here  <- getCurrentRoute
   today      <- liftIO getCurrentDay
   q          <- getParameterOrNull "q"
@@ -275,11 +276,10 @@ getViewData = do
       getParameterOrNull :: String -> Handler String
       getParameterOrNull p = unpack `fmap` fromMaybe "" <$> lookupGetParam (pack p)
 
--- | Get the message set by the last request, or the newer message provided, if any.
-getMessageOr :: Maybe String -> Handler (Maybe Html)
-getMessageOr mnewmsg = do
-  oldmsg <- getMessage
-  return $ maybe oldmsg (Just . toHtml) mnewmsg
+-- | Get the message that was set by the last request, in a
+-- referentially transparent manner (allowing multiple reads).
+getLastMessage :: Handler (Maybe Html)
+getLastMessage = cached getMessage
 
 -- add form dialog, part of the default template
 
@@ -334,7 +334,7 @@ addform _ vd@VD{..} = [hamlet|
      <table style="width:100%;">
       <tr#descriptionrow>
        <td>
-        <input #date        .typeahead .form-control .input-lg type=text size=15 name=date placeholder="Date" value=#{date}>
+        <input #date        .typeahead .form-control .input-lg type=text size=15 name=date placeholder="Date" value=#{defdate}>
        <td>
         <input #description .typeahead .form-control .input-lg type=text size=40 name=description placeholder="Description">
    $forall n <- postingnums
@@ -344,7 +344,7 @@ addform _ vd@VD{..} = [hamlet|
      Tab in last field for <a .small href="#" onclick="addformAddPosting(); return false;">more</a> (or ctrl +, ctrl -)
 |]
  where
-  date = "today" :: String
+  defdate = "today" :: String
   dates = ["today","yesterday","tomorrow"] :: [String]
   descriptions = sort $ nub $ map tdescription $ jtxns j
   accts = sort $ journalAccountNamesUsed j
