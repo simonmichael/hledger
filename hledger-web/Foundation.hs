@@ -349,7 +349,8 @@ addform _ vd@VD{..} = [hamlet|
   dates = ["today","yesterday","tomorrow"] :: [String]
   descriptions = sort $ nub $ map tdescription $ jtxns j
   accts = sort $ journalAccountNamesUsed j
-  listToJsonValueObjArrayStr as  = preEscapedString $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("value", showJSON a)]) as
+  escapeJSSpecialChars = regexReplaceCI "</script>" "<\\/script>" -- #236
+  listToJsonValueObjArrayStr as  = preEscapedString $ escapeJSSpecialChars $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("value", showJSON a)]) as
   numpostings = 4
   postingnums = [1..numpostings]
   postingfields :: ViewData -> Int -> HtmlUrl AppRoute
