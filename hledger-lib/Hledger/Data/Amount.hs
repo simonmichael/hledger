@@ -100,8 +100,10 @@ module Hledger.Data.Amount (
 ) where
 
 import Data.Char (isDigit)
-#ifndef DOUBLE
-import Data.Decimal
+#ifdef DOUBLE
+roundTo = flip const
+#else
+import Data.Decimal (roundTo)
 #endif
 import Data.Function (on)
 import Data.List
@@ -150,10 +152,8 @@ nullamt = amount
 missingamt :: Amount
 missingamt = amount{acommodity="AUTO"}
 
--- handy amount constructors for tests
-#ifdef DOUBLE
-roundTo = flip const
-#endif
+-- Handy amount constructors for tests.
+-- usd/eur/gbp round their argument to a whole number of pennies/cents.
 num n = amount{acommodity="",  aquantity=n}
 usd n = amount{acommodity="$", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
 eur n = amount{acommodity="€", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
