@@ -122,7 +122,7 @@ tests_showTransactionUnelided = [
       "2012/05/14=2012/05/15 (code) desc    ; tcomment1",
       "    ; tcomment2",
       "                $1.00",
-      "    * a          2.0h",
+      "    * a         2.00h",
       "    ; pcomment2",
       ""
       ]
@@ -203,7 +203,7 @@ tests_postingAsLines = [
       }
      `gives` [
       "                $1.00",
-      "    * a          2.0h    ; pcomment1",
+      "    * a         2.00h    ; pcomment1",
       "    ; pcomment2",
       "    ;   tag3: val3  "
       ]

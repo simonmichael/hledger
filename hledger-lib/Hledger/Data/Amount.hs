@@ -155,10 +155,10 @@ missingamt = amount{acommodity="AUTO"}
 -- Handy amount constructors for tests.
 -- usd/eur/gbp round their argument to a whole number of pennies/cents.
 num n = amount{acommodity="",  aquantity=n}
+hrs n = amount{acommodity="h", aquantity=n,           astyle=amountstyle{asprecision=2, ascommodityside=R}}
 usd n = amount{acommodity="$", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
 eur n = amount{acommodity="€", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
 gbp n = amount{acommodity="£", aquantity=roundTo 2 n, astyle=amountstyle{asprecision=2}}
-hrs n = amount{acommodity="h", aquantity=roundTo 1 n, astyle=amountstyle{asprecision=1, ascommodityside=R}}
 amt `at` priceamt = amt{aprice=UnitPrice priceamt}
 amt @@ priceamt = amt{aprice=TotalPrice priceamt}
 

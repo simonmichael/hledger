@@ -736,10 +736,10 @@ and creates a virtual transaction (or several - one per day) with the
 appropriate amount of hours. From the time log above, hledger print gives:
 
     2009/03/31 * 22:21-23:59
-        (projects:A)          1.6h
+        (projects:A)         1.64h
     
     2009/04/01 * 00:00-02:00
-        (projects:A)          2.0h
+        (projects:A)         2.01h
 
 Here is a
 [sample.timelog](https://raw.github.com/simonmichael/hledger/master/data/sample.timelog) to

@@ -132,7 +132,7 @@ tests_Hledger_Cli = TestList
 
   ,"show dollars" ~: showAmount (usd 1) ~?= "$1.00"
 
-  ,"show hours" ~: showAmount (hrs 1) ~?= "1.0h"
+  ,"show hours" ~: showAmount (hrs 1) ~?= "1.00h"
 
  ]
 
