@@ -1,4 +1,77 @@
-User-visible changes in hledger (see also hledger-lib):
+User-visible changes in hledger and hledger-lib.
+
+
+
+- build with terminfo support on POSIX systems by default
+    
+    On non-windows systems, we now build with terminfo support by
+    default, useful for detecting terminal width and other things.
+
+    This requires the C curses dev libaries, which makes POSIX
+    installation slightly harder; if it causes problems you can
+    disable terminfo support with the new `curses` cabal flag, eg:
+    cabal install -f-curses ... (or cabal might try this
+    automatically, I'm not sure).
+
+- register: use the full terminal width, respect COLUMNS, allow column width adjustment
+    
+    On POSIX systems, register now uses the full terminal width by
+    default. Specifically, the output width is set from:
+    
+    1. a --width option
+    2. or a COLUMNS environment variable (NB: not the same as a bash shell var)
+    3. or on POSIX (non-windows) systems, the current terminal width
+    4. or the default, 80 characters.
+    
+    Also, register's --width option now accepts an optional
+    description column width following the overall width,
+    comma-separated (--width WIDTH[,DESCWIDTH]). This also sets the
+    account column width, since the available space (WIDTH-41) is
+    divided up between these two columns. Here's a diagram:
+    
+    <--------------------------------- width (W) ---------------------------------->
+    date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
+    DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
+    
+    Examples:
+    $ hledger reg                 # use terminal width on posix
+    $ hledger reg -w 100          # width 100, equal description/account widths
+    $ hledger reg -w 100,40       # width 100, wider description
+    $ hledger reg -w $COLUMNS,100 # terminal width and set description width
+
+- balance: new -T/--row-total and -A/--average options
+
+  In multicolumn balance reports, -T/--row-total now shows a row totals
+  column and -A/--average shows a row averages column.
+  This helps eg to see monthly average expenses (hledger bal ^expenses -MA).
+
+  NB our use of -T deviates from Ledger's UI, where -T sets a custom
+  final total expression.
+
+- balance: -N is now short for --no-total
+- balance: fix partially-visible totals row with --no-total
+    
+    A periodic (not using --cumulative or --historical) balance report
+    with --no-total now hides the totals row properly.
+
+- journal, csv: comment lines can also start with *
+    
+    As in Ledger. This means you can embed emacs org/outline-mode nodes in
+    your journal file and manipulate it like an outline.
+
+- journal: fix balance accumulation across assertions (#195)
+    
+    A sequence of balance assertions asserting first one commodity, then
+    another, then the first again, was not working.
+
+- timelog: show hours with two decimal places instead of one
+- in weekly reports, simplify week 52's heading like the others
+- disallow trailing garbage in a number of parsers
+
+    Trailing garbage is no longer ignored when parsing the following:
+    balance --format option, register --width option, hledger-rewrite
+    options, hledger add's inputs, CSV amounts, posting amounts,
+    posting dates in tags.
 
 0.24.1 (2014/1/11)
 

@@ -1,4 +1,11 @@
-API-ish changes in hledger-lib. For user-visible changes, see hledger.
+API-ish changes in hledger-lib.
+User-visible changes appear in hledger's change log.
+
+
+
+- fix JournalReader "ctx" compilation warning
+- note the rounding of built-in commodities
+- add some type signatures in Utils to help make ghci-web
 
 0.24.1 (2014/1/11)
 

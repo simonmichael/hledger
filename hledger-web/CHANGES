@@ -1,4 +1,24 @@
-User-visible changes in hledger-web (see also hledger):
+User-visible changes in hledger-web.
+See also hledger's change log.
+
+
+
+- fix the add form when there are included files (#234)
+
+    NB to make this work, the add form now shows the full file path of
+    the main and included journal files.
+
+- improve add form validation (#223, #234)
+    
+    All add form errors are displayed as form errors, not internal
+    server errors, and when there are errors the add form is redisplayed
+    (form inputs are not preserved, currently).
+
+- keep the add button right-aligned when pressing ctrl - on the add form
+
+0.24.1 (?)
+
+- add missing modules for cabal test (#232)
 
 0.24 (2014/12/25)
 
