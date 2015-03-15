@@ -16,9 +16,9 @@ See also hledger's change log.
 
 - keep the add button right-aligned when pressing ctrl - on the add form
 
-0.24.1 (?)
+0.24.1 (2015/1/10)
 
-- add missing modules for cabal test (#232)
+- add missing modules to fix cabal tests (#232)
 
 0.24 (2014/12/25)
 

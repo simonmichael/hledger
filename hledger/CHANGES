@@ -59,12 +59,14 @@ User-visible changes in hledger and hledger-lib.
     As in Ledger. This means you can embed emacs org/outline-mode nodes in
     your journal file and manipulate it like an outline.
 
+0.24.1 (2015/3/15)
+
 - journal: fix balance accumulation across assertions (#195)
     
     A sequence of balance assertions asserting first one commodity, then
     another, then the first again, was not working.
 
-- timelog: show hours with two decimal places instead of one
+- timelog: show hours with two decimal places instead of one (#237)
 - in weekly reports, simplify week 52's heading like the others
 - disallow trailing garbage in a number of parsers
 
@@ -73,9 +75,7 @@ User-visible changes in hledger and hledger-lib.
     options, hledger add's inputs, CSV amounts, posting amounts,
     posting dates in tags.
 
-0.24.1 (2014/1/11)
-
-- fix balance accumulation through assertions in several commodities (#195)
+- allow utf8-string-1 (fpco/stackage/#426)
 
 0.24 (2014/12/25)
 
