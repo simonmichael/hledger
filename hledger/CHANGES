@@ -1,8 +1,11 @@
 User-visible changes in hledger (see also hledger-lib):
 
-0.24.1 (2014/1/11)
+0.24.1 (2015/3/15)
 
+- timelog: show hours with 2 decimal places, not 1 (#237)
 - fix balance accumulation through assertions in several commodities (#195)
+- fix rendering of week 52 heading in weekly reports
+- allow utf8-string-1 (fpco/stackage/#426)
 
 0.24 (2014/12/25)
 
