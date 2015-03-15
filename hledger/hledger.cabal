@@ -98,7 +98,7 @@ library
                  ,text >= 0.11
                  ,tabular >= 0.2 && < 0.3
                  ,time
-                 ,utf8-string >= 0.3.5 && < 0.4
+                 ,utf8-string >= 0.3.5 && < 1.1
                  ,wizards == 1.0.*
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
@@ -140,7 +140,7 @@ executable hledger
                  ,tabular >= 0.2 && < 0.3
                  ,text >= 0.11
                  ,time
-                 ,utf8-string >= 0.3.5 && < 0.4
+                 ,utf8-string >= 0.3.5 && < 1.1
                  ,wizards == 1.0.*
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
