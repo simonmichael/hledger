@@ -42,6 +42,24 @@ change logs.
 h4 { margin-top:2em; }
 </style>
 
+
+#### 2015/3/15 hledger 0.24.1
+
+- timelog: show hours with 2 decimal places, not 1 (#237)
+- fix balance accumulation through assertions in several commodities (#195)
+- fix rendering of week 52 heading in weekly reports
+- allow utf8-string-1 (fpco/stackage/#426)
+
+#### 2015/3/15 hledger-lib 0.24.1
+
+- fix JournalReader "ctx" compilation warning
+- add some type signatures in Utils to help make ghci-web
+
+#### 2015/1/10 hledger-web 0.24.1
+
+- add missing modules to fix cabal tests (#232)
+
+
 ## 2014/12/25 hledger 0.24
 
 Release contributors:
