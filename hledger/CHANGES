@@ -24,10 +24,10 @@ User-visible changes in hledger and hledger-lib.
     4. or the default, 80 characters.
     
     Also, register's --width option now accepts an optional
-    description column width following the overall width,
-    comma-separated (--width WIDTH[,DESCWIDTH]). This also sets the
-    account column width, since the available space (WIDTH-41) is
-    divided up between these two columns. Here's a diagram:
+    description column width following the overall width (--width
+    WIDTH[,DESCWIDTH]). This also sets the account column width, since
+    the available space (WIDTH-41) is divided up between these two
+    columns. Here's a diagram:
     
     <--------------------------------- width (W) ---------------------------------->
     date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
