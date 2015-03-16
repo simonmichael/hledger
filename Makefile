@@ -176,11 +176,16 @@ defaulttarget: bin/hledgerdev
 #  at least start cabal build in hledger packages, to make cabal include files (dist/build/{Paths_PKG.hs,cabal_macros.h}) (not working with a sandbox)
 # When done we should be able to make install, repl-{lib,cli,web}, ghci[-web], check etc.
 
-sandbox: .cabal-sandbox
+sandbox: .cabal-sandbox sandbox-links
 
 .cabal-sandbox:
 	cabal sandbox init
 	cabal sandbox add-source ./hledger-lib ./hledger ./hledger-web
+
+# when using a cabal sandbox, create dist/build symlinks (assumes you
+# did cabal build) so that make ghci[-web] works
+sandbox-links:
+	-for p in hledger{-lib,,-web}; do (cd $$p/dist; ln -s dist-*/build); done
 
 # cabal install the main hledger packages and all their dependencies
 # in the sandbox if any, otherwise in the user's package db
