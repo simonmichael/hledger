@@ -45,10 +45,10 @@ h4 { margin-top:2em; }
 
 #### 2015/3/15 hledger 0.24.1
 
-- timelog: show hours with 2 decimal places, not 1 (#237)
-- fix balance accumulation through assertions in several commodities (#195)
+- timelog: show hours with 2 decimal places, not 1 ([#237](http://bugs.hledger.org/237))
+- fix balance accumulation through assertions in several commodities ([#195](http://bugs.hledger.org/195))
 - fix rendering of week 52 heading in weekly reports
-- allow utf8-string-1 (fpco/stackage/#426)
+- allow utf8-string-1 ([fpco/stackage/#426](https://github.com/fpco/stackage/issues/426))
 
 #### 2015/3/15 hledger-lib 0.24.1
 
@@ -57,7 +57,7 @@ h4 { margin-top:2em; }
 
 #### 2015/1/10 hledger-web 0.24.1
 
-- add missing modules to fix cabal tests (#232)
+- add missing modules to fix cabal tests ([#232](http://bugs.hledger.org/232))
 
 
 ## 2014/12/25 hledger 0.24
