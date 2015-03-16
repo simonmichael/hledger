@@ -1,4 +1,4 @@
-# tests for "make benchmark"
+# tests for "make bench"
 # one command per line, without the executable
 
 -f data/100x100x10.journal     balance
