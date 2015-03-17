@@ -1,5 +1,5 @@
 # cabal repl works for hledger-web
 echo :q | make repl-web | tail
->>> /Ok, modules loaded: Settings, Main, Hledger.Web.Main, /
+>>> /Ok, modules loaded: Application, Foundation,/
 >>>2
 >>>= 0
