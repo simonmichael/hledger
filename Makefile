@@ -30,7 +30,7 @@ GHCPKG=ghc-pkg
 HADDOCK=haddock
 CABAL=cabal
 CABALINSTALL=cabal install -w $(GHC)
-SHELLTEST=shelltest
+SHELLTEST=shelltest -j16 --hide-successes
 # used for make auto, http://joyful.com/repos/searchpath
 SP=sp
 
@@ -402,7 +402,7 @@ tools/generatejournal: tools/generatejournal.hs
 
 check:
 	@echo sanity-check developer environment:
-	@($(SHELLTEST) checks -- \
+	@($(SHELLTEST) checks \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 
@@ -479,7 +479,7 @@ unittest-interpreted:
 # 16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
 functest: bin/hledgerdev tests/addons/hledger-addon
 	@echo functional tests:
-	@(COLUMNS=80 $(SHELLTEST) --execdir tests --threads=16 \
+	@(COLUMNS=80 $(SHELLTEST) --execdir tests \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # generate dummy add-ons for testing (hledger-addon the rest)
@@ -501,7 +501,7 @@ test-ghc-%: # bin/hledgerdev.ghc-$*
 	@(echo unit tests: \
 	&& bin/hledgerdev.ghc-$* test \
 	&& echo functional tests: \
-	&& $(SHELLTEST) tests -w bin/hledgerdev.ghc-$* -- --threads=16 --hide-successes \
+	&& $(SHELLTEST) tests -w bin/hledgerdev.ghc-$* \
 	&& echo $@ PASSED) || echo $@ FAILED
 
 # run unit and functional tests with main supported GHC versions
