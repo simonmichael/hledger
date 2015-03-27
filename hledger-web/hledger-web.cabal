@@ -110,6 +110,11 @@ flag library-only
     Description:   Build for use with "yesod devel"
     Default:       False
 
+flag old-locale
+  description: A compatibility flag, set automatically by cabal.
+               If false then depend on time >= 1.5, 
+               if true then depend on time < 1.5 together with old-locale.
+  default: False
 
 library
     cpp-options:   -DVERSION="0.24.98"
@@ -171,14 +176,12 @@ library
                    , HUnit
                    , network-conduit
                    , conduit-extra
-                   , old-locale
                    , parsec               >= 3
                    , regexpr              >= 0.5.1
                    , safe                 >= 0.2
                    , shakespeare          >= 2.0
                    , template-haskell
                    , text
-                   , time
                    , transformers
                    , wai
                    , wai-extra
@@ -194,6 +197,10 @@ library
                    -- , fsnotify
                    -- , hsdev
                    -- , mtl
+  if flag(old-locale)
+    build-depends: time < 1.5, old-locale
+  else
+    build-depends: time >= 1.5
 
 
 executable         hledger-web
@@ -243,14 +250,12 @@ executable         hledger-web
                    , HUnit
                    , network-conduit
                    , conduit-extra
-                   , old-locale
                    , parsec               >= 3
                    , regexpr              >= 0.5.1
                    , safe                 >= 0.2
                    , shakespeare          >= 2.0 && < 2.1
                    , template-haskell
                    , text
-                   , time
                    , transformers
                    , wai
                    , wai-extra
@@ -266,6 +271,10 @@ executable         hledger-web
                    -- , fsnotify
                    -- , hsdev
                    -- , mtl
+  if flag(old-locale)
+    build-depends: time < 1.5, old-locale
+  else
+    build-depends: time >= 1.5
 
 test-suite test
     type:              exitcode-stdio-1.0

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE NoMonoLocalBinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-|
@@ -67,14 +68,18 @@ import Control.Applicative ((<*))
 import Control.Monad
 import Data.List
 import Data.Maybe
+#if MIN_VERSION_time(1,5,0)
+import Data.Time.Format hiding (months)
+#else
 import Data.Time.Format
+import System.Locale (defaultTimeLocale)
+#endif
 import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate
 import Data.Time.Calendar.WeekDate
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Safe (headMay, lastMay, readMay)
-import System.Locale (defaultTimeLocale)
 import Test.HUnit
 import Text.Parsec
 import Text.Printf

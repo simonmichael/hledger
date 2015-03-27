@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-|
 
 A 'TimeLogEntry' is a clock-in, clock-out, or other directive in a timelog
@@ -13,7 +14,9 @@ import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
 import Data.Time.LocalTime
+#if !MIN_VERSION_time(1,5,0)
 import System.Locale (defaultTimeLocale)
+#endif
 import Test.HUnit
 import Text.Printf
 

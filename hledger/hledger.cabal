@@ -45,6 +45,12 @@ flag curses
     Description:   On POSIX systems, enable curses support for auto-detecting terminal width.
     Default:       True
 
+flag old-locale
+  description: A compatibility flag, set automatically by cabal.
+               If false then depend on time >= 1.5, 
+               if true then depend on time < 1.5 together with old-locale.
+  default: False
+
 
 library
   cpp-options: -DVERSION="0.24.98"
@@ -81,7 +87,6 @@ library
                  ,haskeline >= 0.6 && <= 0.8
                  ,HUnit
                  ,mtl
-                 ,old-locale
                  ,old-time
                  ,parsec >= 3
                  ,process
@@ -101,9 +106,12 @@ library
                  ,split >= 0.1 && < 0.3
                  ,text >= 0.11
                  ,tabular >= 0.2 && < 0.3
-                 ,time
                  ,utf8-string >= 0.3.5 && < 1.1
                  ,wizards == 1.0.*
+  if flag(old-locale)
+    build-depends: time < 1.5, old-locale
+  else
+    build-depends: time >= 1.5
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
   if !os(windows) && flag(curses)
@@ -132,7 +140,6 @@ executable hledger
                  ,haskeline >= 0.6 && <= 0.8
                  ,HUnit
                  ,mtl
-                 ,old-locale
                  ,old-time
                  ,parsec >= 3
                  ,process
@@ -144,9 +151,12 @@ executable hledger
                  ,split >= 0.1 && < 0.3
                  ,tabular >= 0.2 && < 0.3
                  ,text >= 0.11
-                 ,time
                  ,utf8-string >= 0.3.5 && < 1.1
                  ,wizards == 1.0.*
+  if flag(old-locale)
+    build-depends: time < 1.5, old-locale
+  else
+    build-depends: time >= 1.5
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
 
@@ -171,7 +181,6 @@ test-suite tests
                , haskeline
                , HUnit
                , mtl
-               , old-locale
                , old-time
                , parsec >= 3
                , process
@@ -185,9 +194,12 @@ test-suite tests
                , test-framework
                , test-framework-hunit
                , text
-               , time
                , transformers
                , wizards == 1.0.*
+  if flag(old-locale)
+    build-depends: time < 1.5, old-locale
+  else
+    build-depends: time >= 1.5
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
 
@@ -203,11 +215,13 @@ benchmark bench
   build-depends:    hledger-lib,
                     hledger,
                     base >= 4.3 && < 5,
-                    old-locale,
-                    time,
                     html,
                     tabular >= 0.2 && < 0.3,
                     process,
                     filepath,
                     directory
+  if flag(old-locale)
+    build-depends: time < 1.5, old-locale
+  else
+    build-depends: time >= 1.5
   

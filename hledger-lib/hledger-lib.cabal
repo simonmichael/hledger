@@ -39,6 +39,12 @@ flag double
     Default:       False
 
 
+flag old-locale
+  description: A compatibility flag, set automatically by cabal.
+               If false then depend on time >= 1.5, 
+               if true then depend on time < 1.5 together with old-locale.
+  default: False
+
 library
   -- should set patchlevel here as in Makefile
   cpp-options: -DPATCHLEVEL=0
@@ -93,20 +99,21 @@ library
                  ,directory
                  ,filepath
                  ,mtl
-                 ,old-locale
                  ,old-time
                  ,parsec >= 3
                  ,regex-tdfa
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  ,split >= 0.1 && < 0.3
-                 ,time
                  ,transformers >= 0.2 && < 0.5
                  ,utf8-string >= 0.3.5 && < 1.1
                  ,HUnit
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
-
+  if flag(old-locale)
+    build-depends: time < 1.5, old-locale
+  else
+    build-depends: time >= 1.5
 
 test-suite tests
   type:     exitcode-stdio-1.0
@@ -128,7 +135,6 @@ test-suite tests
                , filepath
                , HUnit
                , mtl
-               , old-locale
                , old-time
                , parsec >= 3
                , regex-tdfa
@@ -137,10 +143,13 @@ test-suite tests
                , split
                , test-framework
                , test-framework-hunit
-               , time
                , transformers
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
+  if flag(old-locale)
+    build-depends: time < 1.5, old-locale
+  else
+    build-depends: time >= 1.5
 
 -- cf http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
 

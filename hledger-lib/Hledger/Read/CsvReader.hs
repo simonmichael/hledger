@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-|
 
 A reader for CSV data, using an extra rules file to help interpret the data.
@@ -30,11 +31,15 @@ import Data.Maybe
 import Data.Ord
 import Data.Time.Calendar (Day)
 import Data.Time.Format (parseTime)
+#if MIN_VERSION_time(1,5,0)
+import Data.Time.Format (defaultTimeLocale)
+#else
+import System.Locale (defaultTimeLocale)
+#endif
 import Safe
 import System.Directory (doesFileExist)
 import System.FilePath
 import System.IO (stderr)
-import System.Locale (defaultTimeLocale)
 import Test.HUnit
 import Text.CSV (parseCSV, CSV)
 import Text.Parsec hiding (parse)
