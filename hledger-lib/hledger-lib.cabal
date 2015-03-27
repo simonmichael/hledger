@@ -35,9 +35,9 @@ source-repository head
   location: https://github.com/simonmichael/hledger
 
 flag double
-    Description:   Use old Double number representation (instead of Decimal), for testing/benchmarking.
-    Default:       False
-
+    description:   Use old Double number representation (instead of Decimal), for testing/benchmarking.
+    default:       False
+    manual:        True
 
 flag old-locale
   description: A compatibility flag, set automatically by cabal.
