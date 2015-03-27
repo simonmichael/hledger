@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-|
 
 A ledger-compatible @register@ command.
@@ -31,8 +32,17 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
       flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "include prior postings in the running total"
      ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a running average instead of the running total (implies --empty)"
      ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show postings' siblings instead"
-     ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N" "set output width (default: 80)"
-     ]
+     ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
+      (unlines
+       ["set output width (default:"
+#ifdef mingw32_HOST_OS
+       ,(show defaultWidth)
+#else
+       ,"terminal width"
+#endif
+       ,"or COLUMNS. -wN,M sets description width as well)"
+       ])
+    ]
      ++ outputflags
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
