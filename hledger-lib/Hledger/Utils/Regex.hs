@@ -126,7 +126,7 @@ replaceBackReference _ s = error' $ "replaceBackReference called on non-numeric-
 replaceAllBy :: Regex -> (String -> String) -> String -> String
 replaceAllBy re f s = start end
   where
-    (_, end, start) = foldl' go (0, s, id) $ getAllMatches $ match re s
+    (_, end, start) = foldl' go (0, s, id) $ (getAllMatches $ match re s :: [(Int, Int)])
     go (ind,read,write) (off,len) =
       let (skip, start) = splitAt (off - ind) read
           (matched, remaining) = splitAt len start
