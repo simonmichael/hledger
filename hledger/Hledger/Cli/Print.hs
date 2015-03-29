@@ -94,31 +94,31 @@ entriesReportAsCsv items =
 
 transactionToCSV :: Integer -> Transaction -> CSV
 transactionToCSV n t =
-	map (\p -> show n:date:date2:status:code:description:comment:p)
-	 (concatMap postingToCSV $ tpostings t)
-	where
-		description = tdescription t
-		date = showDate (tdate t)
-		date2 = maybe "" showDate (tdate2 t)
-		status = if tstatus t then "*" else ""
-		code = tcode t
-		comment = chomp $ strip $ tcomment t
+  map (\p -> show n:date:date2:status:code:description:comment:p)
+   (concatMap postingToCSV $ tpostings t)
+  where
+    description = tdescription t
+    date = showDate (tdate t)
+    date2 = maybe "" showDate (tdate2 t)
+    status = if tstatus t then "*" else ""
+    code = tcode t
+    comment = chomp $ strip $ tcomment t
 
 postingToCSV :: Posting -> CSV
 postingToCSV p =
-	map (\(a@(Amount {aquantity=q,acommodity=c})) ->
-		let a_ = a{acommodity=""} in
-		let amount = showAmount a_ in
-		let commodity = c in
-		let credit = if q < 0 then showAmount $ negate a_ else "" in
-		let debit  = if q > 0 then showAmount a_ else "" in
-		account:amount:commodity:credit:debit:status:comment:[])
-	 amounts
-	where
-		Mixed amounts = pamount p
-		status = if pstatus p then "*" else ""
-		account = showAccountName Nothing (ptype p) (paccount p)
-		comment = chomp $ strip $ pcomment p
+  map (\(a@(Amount {aquantity=q,acommodity=c})) ->
+    let a_ = a{acommodity=""} in
+    let amount = showAmount a_ in
+    let commodity = c in
+    let credit = if q < 0 then showAmount $ negate a_ else "" in
+    let debit  = if q > 0 then showAmount a_ else "" in
+    account:amount:commodity:credit:debit:status:comment:[])
+   amounts
+  where
+    Mixed amounts = pamount p
+    status = if pstatus p then "*" else ""
+    account = showAccountName Nothing (ptype p) (paccount p)
+    comment = chomp $ strip $ pcomment p
 
 tests_Hledger_Cli_Print = TestList []
   -- tests_showTransactions
