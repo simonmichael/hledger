@@ -31,7 +31,7 @@ module Hledger.Read (
 )
 where
 import qualified Control.Exception as C
-import Control.Monad.Error
+import Control.Monad.Except
 import Data.List
 import Data.Maybe
 import System.Directory (doesFileExist, getHomeDirectory)
@@ -127,7 +127,7 @@ readJournal format rulesfile assrt path s =
         firstSuccessOrBestError [] []        = return $ Left "no readers found"
         firstSuccessOrBestError errs (r:rs) = do
           dbgAtM 1 "trying reader" (rFormat r)
-          result <- (runErrorT . (rParser r) rulesfile assrt path') s
+          result <- (runExceptT . (rParser r) rulesfile assrt path') s
           dbgAtM 1 "reader result" $ either id show result
           case result of Right j -> return $ Right j                       -- success!
                          Left e  -> firstSuccessOrBestError (errs++[e]) rs -- keep trying
@@ -235,7 +235,7 @@ tests_Hledger_Read = TestList $
    tests_Hledger_Read_CsvReader,
 
    "journal" ~: do
-    r <- runErrorT $ parseWithCtx nullctx JournalReader.journal ""
+    r <- runExceptT $ parseWithCtx nullctx JournalReader.journal ""
     assertBool "journal should parse an empty file" (isRight $ r)
     jE <- readJournal Nothing Nothing True Nothing "" -- don't know how to get it from journal
     either error' (assertBool "journal parsing an empty file should give an empty journal" . null . jtxns) jE

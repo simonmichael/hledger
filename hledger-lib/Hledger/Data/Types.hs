@@ -19,7 +19,7 @@ For more detailed documentation on each type, see the corresponding modules.
 
 module Hledger.Data.Types
 where
-import Control.Monad.Error (ErrorT)
+import Control.Monad.Except (ExceptT)
 import Data.Data
 #ifndef DOUBLE
 import Data.Decimal
@@ -200,7 +200,7 @@ data Journal = Journal {
 
 -- | A JournalUpdate is some transformation of a Journal. It can do I/O or
 -- raise an error.
-type JournalUpdate = ErrorT String IO (Journal -> Journal)
+type JournalUpdate = ExceptT String IO (Journal -> Journal)
 
 -- | The id of a data format understood by hledger, eg @journal@ or @csv@.
 type StorageFormat = String
@@ -213,7 +213,7 @@ data Reader = Reader {
      -- quickly check if this reader can probably handle the given file path and file content
     ,rDetector :: FilePath -> String -> Bool
      -- parse the given string, using the given parse rules file if any, returning a journal or error aware of the given file path
-    ,rParser   :: Maybe FilePath -> Bool -> FilePath -> String -> ErrorT String IO Journal
+    ,rParser   :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
     }
 
 instance Show Reader where show r = rFormat r ++ " reader"

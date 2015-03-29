@@ -45,6 +45,7 @@ flag old-locale
                if true then depend on time < 1.5 together with old-locale.
   default: False
 
+
 library
   -- should set patchlevel here as in Makefile
   cpp-options: -DPATCHLEVEL=0
@@ -99,6 +100,7 @@ library
                  ,directory
                  ,filepath
                  ,mtl
+                 ,mtl-compat
                  ,old-time
                  ,parsec >= 3
                  ,regex-tdfa
@@ -114,6 +116,7 @@ library
     build-depends: time < 1.5, old-locale
   else
     build-depends: time >= 1.5
+
 
 test-suite tests
   type:     exitcode-stdio-1.0
@@ -135,6 +138,7 @@ test-suite tests
                , filepath
                , HUnit
                , mtl
+               , mtl-compat
                , old-time
                , parsec >= 3
                , regex-tdfa

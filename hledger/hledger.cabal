@@ -87,6 +87,7 @@ library
                  ,haskeline >= 0.6 && <= 0.8
                  ,HUnit
                  ,mtl
+                 ,mtl-compat
                  ,old-time
                  ,parsec >= 3
                  ,process
@@ -140,6 +141,7 @@ executable hledger
                  ,haskeline >= 0.6 && <= 0.8
                  ,HUnit
                  ,mtl
+                 ,mtl-compat
                  ,old-time
                  ,parsec >= 3
                  ,process
@@ -181,6 +183,7 @@ test-suite tests
                , haskeline
                , HUnit
                , mtl
+               , mtl-compat
                , old-time
                , parsec >= 3
                , process
@@ -196,12 +199,12 @@ test-suite tests
                , text
                , transformers
                , wizards == 1.0.*
+  if impl(ghc >= 7.4)
+    build-depends: pretty-show >= 1.6.4
   if flag(old-locale)
     build-depends: time < 1.5, old-locale
   else
     build-depends: time >= 1.5
-  if impl(ghc >= 7.4)
-    build-depends: pretty-show >= 1.6.4
 
 
 -- not a standard cabal bench test, I think

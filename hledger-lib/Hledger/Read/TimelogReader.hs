@@ -48,7 +48,7 @@ module Hledger.Read.TimelogReader (
 )
 where
 import Control.Monad
-import Control.Monad.Error
+import Control.Monad.Except
 import Data.List (isPrefixOf, foldl')
 import Test.HUnit
 import Text.Parsec hiding (parse)
@@ -78,10 +78,10 @@ detect f s
 -- | Parse and post-process a "Journal" from timeclock.el's timelog
 -- format, saving the provided file path and the current time, or give an
 -- error.
-parse :: Maybe FilePath -> Bool -> FilePath -> String -> ErrorT String IO Journal
+parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parse _ = parseJournalWith timelogFile
 
-timelogFile :: ParsecT [Char] JournalContext (ErrorT String IO) (JournalUpdate, JournalContext)
+timelogFile :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate, JournalContext)
 timelogFile = do items <- many timelogItem
                  eof
                  ctx <- getState
@@ -98,7 +98,7 @@ timelogFile = do items <- many timelogItem
                           ] <?> "timelog entry, or default year or historical price directive"
 
 -- | Parse a timelog entry.
-timelogentry :: ParsecT [Char] JournalContext (ErrorT String IO) TimeLogEntry
+timelogentry :: ParsecT [Char] JournalContext (ExceptT String IO) TimeLogEntry
 timelogentry = do
   sourcepos <- getPosition
   code <- oneOf "bhioO"

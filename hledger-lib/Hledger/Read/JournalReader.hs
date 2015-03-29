@@ -48,7 +48,7 @@ where
 import Control.Applicative ((<*))
 import qualified Control.Exception as C
 import Control.Monad
-import Control.Monad.Error
+import Control.Monad.Except
 import Data.Char (isNumber)
 import Data.List
 import Data.List.Split (wordsBy)
@@ -87,7 +87,7 @@ detect f s
 
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
-parse :: Maybe FilePath -> Bool -> FilePath -> String -> ErrorT String IO Journal
+parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parse _ = parseJournalWith journal
 
 -- parsing utils
@@ -98,7 +98,7 @@ combineJournalUpdates us = liftM (foldl' (\acc new x -> new (acc x)) id) $ seque
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
-parseJournalWith :: (ParsecT [Char] JournalContext (ErrorT String IO) (JournalUpdate,JournalContext)) -> Bool -> FilePath -> String -> ErrorT String IO Journal
+parseJournalWith :: (ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate,JournalContext)) -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parseJournalWith p assrt f s = do
   tc <- liftIO getClockTime
   tl <- liftIO getCurrentLocalTime
@@ -151,7 +151,7 @@ clearAccountAliases = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" (and final "JournalContext") which can be
 -- applied to an empty journal to get the final result.
-journal :: ParsecT [Char] JournalContext (ErrorT String IO) (JournalUpdate,JournalContext)
+journal :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate,JournalContext)
 journal = do
   journalupdates <- many journalItem
   eof
@@ -171,7 +171,7 @@ journal = do
                            ] <?> "journal transaction or directive"
 
 -- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
-directive :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+directive :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 directive = do
   optional $ char '!'
   choice' [
@@ -189,7 +189,7 @@ directive = do
    ]
   <?> "directive"
 
-includedirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+includedirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 includedirective = do
   string "include"
   many1 spacenonewline
@@ -197,7 +197,7 @@ includedirective = do
   outerState <- getState
   outerPos <- getPosition
   let curdir = takeDirectory (sourceName outerPos)
-  let (u::ErrorT String IO (Journal -> Journal, JournalContext)) = do
+  let (u::ExceptT String IO (Journal -> Journal, JournalContext)) = do
        filepath <- expandPath curdir filename
        txt <- readFileOrError outerPos filepath
        let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
@@ -210,18 +210,18 @@ includedirective = do
                             return (u, ctx)
          Left err -> throwError $ inIncluded ++ show err
        where readFileOrError pos fp =
-                ErrorT $ liftM Right (readFile' fp) `C.catch`
+                ExceptT $ liftM Right (readFile' fp) `C.catch`
                   \e -> return $ Left $ printf "%s reading %s:\n%s" (show pos) fp (show (e::C.IOException))
-  r <- liftIO $ runErrorT u
+  r <- liftIO $ runExceptT u
   case r of
     Left err -> return $ throwError err
-    Right (ju, _finalparsectx) -> return $ ErrorT $ return $ Right ju
+    Right (ju, _finalparsectx) -> return $ ExceptT $ return $ Right ju
 
 journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
  -- NOTE: first encountered file to left, to avoid a reverse
 
-accountdirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+accountdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 accountdirective = do
   string "account"
   many1 spacenonewline
@@ -229,16 +229,16 @@ accountdirective = do
   newline
   pushParentAccount parent
   -- return $ return id
-  return $ ErrorT $ return $ Right id
+  return $ ExceptT $ return $ Right id
 
-enddirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+enddirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 enddirective = do
   string "end"
   popParentAccount
   -- return (return id)
-  return $ ErrorT $ return $ Right id
+  return $ ExceptT $ return $ Right id
 
-aliasdirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+aliasdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 aliasdirective = do
   string "alias"
   many1 spacenonewline
@@ -249,13 +249,13 @@ aliasdirective = do
                   ,accountNameWithoutPostingType $ strip alias)
   return $ return id
 
-endaliasesdirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+endaliasesdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 endaliasesdirective = do
   string "end aliases"
   clearAccountAliases
   return (return id)
 
-tagdirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+tagdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 tagdirective = do
   string "tag" <?> "tag directive"
   many1 spacenonewline
@@ -263,13 +263,13 @@ tagdirective = do
   restofline
   return $ return id
 
-endtagdirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+endtagdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 endtagdirective = do
   (string "end tag" <|> string "pop") <?> "end tag or pop directive"
   restofline
   return $ return id
 
-defaultyeardirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+defaultyeardirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 defaultyeardirective = do
   char 'Y' <?> "default year"
   many spacenonewline
@@ -279,7 +279,7 @@ defaultyeardirective = do
   setYear y'
   return $ return id
 
-defaultcommoditydirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+defaultcommoditydirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 defaultcommoditydirective = do
   char 'D' <?> "default commodity"
   many1 spacenonewline
@@ -288,7 +288,7 @@ defaultcommoditydirective = do
   restofline
   return $ return id
 
-historicalpricedirective :: ParsecT [Char] JournalContext (ErrorT String IO) HistoricalPrice
+historicalpricedirective :: ParsecT [Char] JournalContext (ExceptT String IO) HistoricalPrice
 historicalpricedirective = do
   char 'P' <?> "historical price"
   many spacenonewline
@@ -300,7 +300,7 @@ historicalpricedirective = do
   restofline
   return $ HistoricalPrice date symbol price
 
-ignoredpricecommoditydirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+ignoredpricecommoditydirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 ignoredpricecommoditydirective = do
   char 'N' <?> "ignored-price commodity"
   many1 spacenonewline
@@ -308,7 +308,7 @@ ignoredpricecommoditydirective = do
   restofline
   return $ return id
 
-commodityconversiondirective :: ParsecT [Char] JournalContext (ErrorT String IO) JournalUpdate
+commodityconversiondirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 commodityconversiondirective = do
   char 'C' <?> "commodity conversion"
   many1 spacenonewline
@@ -320,7 +320,7 @@ commodityconversiondirective = do
   restofline
   return $ return id
 
-modifiertransaction :: ParsecT [Char] JournalContext (ErrorT String IO) ModifierTransaction
+modifiertransaction :: ParsecT [Char] JournalContext (ExceptT String IO) ModifierTransaction
 modifiertransaction = do
   char '=' <?> "modifier transaction"
   many spacenonewline
@@ -328,7 +328,7 @@ modifiertransaction = do
   postings <- postings
   return $ ModifierTransaction valueexpr postings
 
-periodictransaction :: ParsecT [Char] JournalContext (ErrorT String IO) PeriodicTransaction
+periodictransaction :: ParsecT [Char] JournalContext (ExceptT String IO) PeriodicTransaction
 periodictransaction = do
   char '~' <?> "periodic transaction"
   many spacenonewline
@@ -337,7 +337,7 @@ periodictransaction = do
   return $ PeriodicTransaction periodexpr postings
 
 -- | Parse a (possibly unbalanced) transaction.
-transaction :: ParsecT [Char] JournalContext (ErrorT String IO) Transaction
+transaction :: ParsecT [Char] JournalContext (ExceptT String IO) Transaction
 transaction = do
   -- ptrace "transaction"
   sourcepos <- getPosition

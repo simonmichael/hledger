@@ -23,7 +23,7 @@ where
 import Control.Applicative ((<$>), (<*))
 import Control.Exception hiding (try)
 import Control.Monad
-import Control.Monad.Error
+import Control.Monad.Except
 -- import Test.HUnit
 import Data.Char (toLower, isDigit, isSpace)
 import Data.List
@@ -68,7 +68,7 @@ detect f s
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.
 -- XXX currently ignores the string and reads from the file path
-parse :: Maybe FilePath -> Bool -> FilePath -> String -> ErrorT String IO Journal
+parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parse rulesfile _ f s = do
   r <- liftIO $ readJournalFromCsv rulesfile f s
   case r of Left e -> throwError e
@@ -97,7 +97,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   if created
    then hPrintf stderr "creating default conversion rules file %s, edit this file for better results\n" rulesfile
    else hPrintf stderr "using conversion rules file %s\n" rulesfile
-  rules_ <- liftIO $ runErrorT $ parseRulesFile rulesfile
+  rules_ <- liftIO $ runExceptT $ parseRulesFile rulesfile
   let rules = case rules_ of
               Right (t::CsvRules) -> t
               Left err -> throwerr $ show err
@@ -340,15 +340,15 @@ getDirective :: DirectiveName -> CsvRules -> Maybe FieldTemplate
 getDirective directivename = lookup directivename . rdirectives
 
 
-parseRulesFile :: FilePath -> ErrorT String IO CsvRules
+parseRulesFile :: FilePath -> ExceptT String IO CsvRules
 parseRulesFile f = do
   s <- liftIO $ (readFile' f >>= expandIncludes (takeDirectory f))
   let rules = parseCsvRules f s
   case rules of
-    Left e -> ErrorT $ return $ Left $ show e
+    Left e -> ExceptT $ return $ Left $ show e
     Right r -> do
-               r_ <- liftIO $ runErrorT $ validateRules r
-               ErrorT $ case r_ of
+               r_ <- liftIO $ runExceptT $ validateRules r
+               ExceptT $ case r_ of
                  Left e -> return $ Left $ show $ toParseError e
                  Right r -> return $ Right r
   where
@@ -374,13 +374,13 @@ parseCsvRules rulesfile s =
   runParser rulesp rules rulesfile s
 
 -- | Return the validated rules, or an error.
-validateRules :: CsvRules -> ErrorT String IO CsvRules
+validateRules :: CsvRules -> ExceptT String IO CsvRules
 validateRules rules = do
-  unless (isAssigned "date")   $ ErrorT $ return $ Left "Please specify (at top level) the date field. Eg: date %1\n"
+  unless (isAssigned "date")   $ ExceptT $ return $ Left "Please specify (at top level) the date field. Eg: date %1\n"
   unless ((amount && not (amountin || amountout)) ||
           (not amount && (amountin && amountout)))
-    $ ErrorT $ return $ Left "Please specify (at top level) either the amount field, or both the amount-in and amount-out fields. Eg: amount %2\n"
-  ErrorT $ return $ Right rules
+    $ ExceptT $ return $ Left "Please specify (at top level) either the amount field, or both the amount-in and amount-out fields. Eg: amount %2\n"
+  ExceptT $ return $ Right rules
   where
     amount = isAssigned "amount"
     amountin = isAssigned "amount-in"
