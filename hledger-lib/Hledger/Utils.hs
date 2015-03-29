@@ -29,8 +29,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           )
 where
 import Control.Monad (liftM)
-import Control.Monad.Error (MonadIO)
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Char
 import Data.List
 import qualified Data.Map as M
