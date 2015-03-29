@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP #-}
+-- {-# LANGUAGE CPP #-}
 {- |
 
 UTF-8 aware string IO functions that will work across multiple platforms
