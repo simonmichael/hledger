@@ -94,21 +94,20 @@ library
                  ,regex-tdfa
                  ,regexpr >= 0.5.1
                  ,safe >= 0.2
--- http://www.yesodweb.com/blog/2014/04/consolidation-progress
--- in order to support both the old and new versions of shakespeare,
--- you just need to ensure that you have both the shakespeare and
--- deprecated packages listed in your cabal file. In other words, if
--- previously you depended on hamlet, now you should depend on hamlet
--- and shakespeare. When you're ready to drop backwards compatibility,
--- simply put a lower bound of >= 2.0 on shakespeare and remove the
--- deprecated packages.
-                 ,shakespeare-text >= 1.0 && < 1.2
-                 ,shakespeare      >= 1.0 && < 2.1
                  ,split >= 0.1 && < 0.3
                  ,text >= 0.11
                  ,tabular >= 0.2 && < 0.3
                  ,utf8-string >= 0.3.5 && < 1.1
                  ,wizards == 1.0.*
+  if impl(ghc >= 7.10)
+    -- ghc 7.10 requires shakespeare 2.0.2.2+
+    build-depends: shakespeare      >= 2.0.2.2 && < 2.1
+  else
+    -- for older ghcs, allow shakespeare 2.x or 1.x (which also requires shakespeare-text)
+    -- http://www.yesodweb.com/blog/2014/04/consolidation-progress
+    build-depends:
+                  shakespeare      >= 1.0 && < 2.1
+                 ,shakespeare-text >= 1.0 && < 1.2
   if flag(old-locale)
     build-depends: time < 1.5, old-locale
   else
@@ -117,6 +116,7 @@ library
     build-depends: pretty-show >= 1.6.4
   if !os(windows) && flag(curses)
     build-depends: terminfo
+
 
 executable hledger
   main-is:        hledger-cli.hs
