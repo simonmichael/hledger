@@ -74,7 +74,7 @@ import Data.Maybe
 import Data.Time.Format hiding (months)
 #else
 import Data.Time.Format
-import System.Locale (defaultTimeLocale)
+import System.Locale (TimeLocale, defaultTimeLocale)
 #endif
 import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate
