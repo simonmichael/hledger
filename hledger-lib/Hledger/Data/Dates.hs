@@ -64,7 +64,9 @@ module Hledger.Data.Dates (
 )
 where
 
-import Control.Applicative ((<*))
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative.Compat ((<*))
+#endif
 import Control.Monad
 import Data.List
 import Data.Maybe

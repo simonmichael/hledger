@@ -162,6 +162,7 @@ library
                      hledger              == 0.24.98
                    , hledger-lib          == 0.24.98
                    , base                 >= 4 && < 5
+                   , base-compat          >= 0.5.0
                    , blaze-html
                    , blaze-markup
                    , bytestring
@@ -236,6 +237,7 @@ executable         hledger-web
                    , hledger              == 0.24.98
                    , hledger-web          == 0.24.98
                    , base                 >= 4 && < 5
+                   , base-compat          >= 0.5.0
                    , blaze-html
                    , blaze-markup
                    , bytestring
@@ -285,6 +287,7 @@ test-suite test
     build-depends: 
                      hledger-web          == 0.24.98
                    , base
+                   , base-compat          >= 0.5.0
                    , hspec
                    , yesod
                    , yesod-test

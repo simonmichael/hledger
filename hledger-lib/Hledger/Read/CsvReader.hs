@@ -20,7 +20,9 @@ module Hledger.Read.CsvReader (
   tests_Hledger_Read_CsvReader
 )
 where
-import Control.Applicative ((<$>), (<*))
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative.Compat ((<$>), (<*))
+#endif
 import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Except

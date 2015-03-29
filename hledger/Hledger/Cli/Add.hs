@@ -3,12 +3,14 @@ A history-aware add command to help with data entry.
 |-}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
-{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts #-}
 
 module Hledger.Cli.Add
 where
 
-import Control.Applicative ((<*))
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative.Compat ((<*))
+#endif
 import Control.Exception as E
 import Control.Monad
 import Control.Monad.Trans (liftIO)

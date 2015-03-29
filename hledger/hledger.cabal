@@ -77,6 +77,7 @@ library
   build-depends:
                   hledger-lib == 0.24.98
                  ,base >= 4.3 && < 5
+                 ,base-compat >= 0.5.0
                  -- ,cabal-file-th
                  ,containers
                  ,cmdargs >= 0.10 && < 0.11
@@ -132,6 +133,7 @@ executable hledger
                   hledger-lib == 0.24.98
                  ,hledger == 0.24.98
                  ,base >= 4.3 && < 5
+                 ,base-compat >= 0.5.0
                  ,containers
                  ,cmdargs >= 0.10 && < 0.11
                  ,csv
@@ -174,6 +176,7 @@ test-suite tests
   build-depends: hledger-lib
                , hledger
                , base >= 4.3 && < 5
+               , base-compat >= 0.5.0
                , cmdargs
                , containers
                , csv
@@ -218,6 +221,7 @@ benchmark bench
   build-depends:    hledger-lib,
                     hledger,
                     base >= 4.3 && < 5,
+                    base-compat >= 0.5.0,
                     html,
                     tabular >= 0.2 && < 0.3,
                     process,

@@ -59,7 +59,9 @@ module Hledger.Cli.Options (
 )
 where
 
-import Control.Applicative ((<$>), (<*))
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative.Compat ((<$>), (<*))
+#endif
 import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.List

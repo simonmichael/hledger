@@ -1,4 +1,5 @@
 #!/usr/bin/env runhaskell
+{-# LANGUAGE CPP #-}
 {-|
 hledger-rewrite [PATTERNS] --add-posting "ACCT  AMTEXPR" ...
 
@@ -22,7 +23,9 @@ Tested-with: hledger HEAD ~ 2014/2/4
 -- hledger lib, cli and cmdargs utils
 import Hledger.Cli
 -- more utils for parsing
-import Control.Applicative ((<*)) hiding (many)
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative.Compat ((<*))
+#endif
 import Text.Parsec
 
 

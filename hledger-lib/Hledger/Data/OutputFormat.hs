@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE CPP #-}
 module Hledger.Data.OutputFormat (
           parseStringFormat
         , formatsp
@@ -8,8 +9,10 @@ module Hledger.Data.OutputFormat (
         , tests
         ) where
 
-import Control.Applicative ((<*))
 import Numeric
+#if !MIN_VERSION_base(4,8,0)
+import Control.Applicative.Compat ((<*))
+#endif
 import Data.Char (isPrint)
 import Data.Maybe
 import Test.HUnit
