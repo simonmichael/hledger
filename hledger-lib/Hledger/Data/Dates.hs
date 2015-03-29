@@ -427,12 +427,22 @@ nthdayofweekcontaining n d | d1 >= d    = d1
 --     parseTime defaultTimeLocale "%Y-%m-%d %H:%M:%S" s
 --     ]
 
+parsetime :: ParseTime t => TimeLocale -> String -> String -> Maybe t
+parsetime =
+#if MIN_VERSION_time(1,5,0)
+     parseTimeM True
+#else
+     parseTime
+#endif
+
+
 -- | Parse a couple of date string formats to a time type.
 parsedateM :: String -> Maybe Day
 parsedateM s = firstJust [
-     parseTime defaultTimeLocale "%Y/%m/%d" s,
-     parseTime defaultTimeLocale "%Y-%m-%d" s
+     parsetime defaultTimeLocale "%Y/%m/%d" s,
+     parsetime defaultTimeLocale "%Y-%m-%d" s
      ]
+
 
 -- -- | Parse a date-time string to a time type, or raise an error.
 -- parsedatetime :: String -> LocalTime
@@ -447,7 +457,7 @@ parsedate s =  fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")
 -- | Parse a time string to a time type using the provided pattern, or
 -- return the default.
 parsetimewith :: ParseTime t => String -> String -> t -> t
-parsetimewith pat s def = fromMaybe def $ parseTime defaultTimeLocale pat s
+parsetimewith pat s def = fromMaybe def $ parsetime defaultTimeLocale pat s
 
 {-|
 Parse a date in any of the formats allowed in ledger's period expressions,

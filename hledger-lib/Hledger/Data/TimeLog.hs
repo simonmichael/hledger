@@ -14,7 +14,7 @@ import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
 import Data.Time.LocalTime
-#if !MIN_VERSION_time(1,5,0)
+#if !(MIN_VERSION_time(1,5,0))
 import System.Locale (defaultTimeLocale)
 #endif
 import Test.HUnit
@@ -112,7 +112,12 @@ tests_Hledger_Data_TimeLog = TestList [
          nowstr = showtime now
          yesterday = prevday today
          clockin = TimeLogEntry nullsourcepos In
-         mktime d = LocalTime d . fromMaybe midnight . parseTime defaultTimeLocale "%H:%M:%S"
+         mktime d = LocalTime d . fromMaybe midnight .
+#if MIN_VERSION_time(1,5,0)
+                    parseTimeM True defaultTimeLocale "%H:%M:%S"
+#else
+                    parseTime defaultTimeLocale "%H:%M:%S"
+#endif
          showtime = formatTime defaultTimeLocale "%H:%M"
          assertEntriesGiveStrings name es ss = assertEqual name ss (map tdescription $ timeLogEntriesToTransactions now es)
 

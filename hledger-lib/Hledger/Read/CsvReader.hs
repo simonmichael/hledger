@@ -32,10 +32,10 @@ import Data.List
 import Data.Maybe
 import Data.Ord
 import Data.Time.Calendar (Day)
-import Data.Time.Format (parseTime)
 #if MIN_VERSION_time(1,5,0)
-import Data.Time.Format (defaultTimeLocale)
+import Data.Time.Format (parseTimeM, defaultTimeLocale)
 #else
+import Data.Time.Format (parseTime)
 import System.Locale (defaultTimeLocale)
 #endif
 import Safe
@@ -720,7 +720,13 @@ renderTemplate rules record t = regexReplaceBy "%[A-z0-9]+" replace t
 parseDateWithFormatOrDefaultFormats :: Maybe DateFormat -> String -> Maybe Day
 parseDateWithFormatOrDefaultFormats mformat s = firstJust $ map parsewith formats
   where
-    parsewith = flip (parseTime defaultTimeLocale) s
+    parsetime =
+#if MIN_VERSION_time(1,5,0)
+     parseTimeM True
+#else
+     parseTime
+#endif
+    parsewith = flip (parsetime defaultTimeLocale) s
     formats = maybe
                ["%Y/%-m/%-d"
                ,"%Y-%-m-%-d"
