@@ -234,7 +234,7 @@ install: \
 	)
 	$(CABALINSTALL) $(patsubst %,./%,$(PACKAGES)) $(EXTRAINSTALLARGS) --enable-tests
 
-x`install-force: \
+install-force: \
 	$(call def-help,install-force,\
 	cabal install the main hledger packages and all their dependencies more forcibly\
 	(can break installed libs, requiring ghc-pkg-clean)\
