@@ -161,8 +161,30 @@ RELEASEBINARYSUFFIX=$(shell echo "-$(VERSION)-`uname`-`arch`" | tr '[:upper:]' '
 TIME:=$(shell date +"%Y%m%d%H%M")
 
 
+# import the def-help function for documenting make rules. 
+# Standard usage:
+# TARGET: PREREQUISITES \
+# 	$(call def-help,TARGET,\
+# 	HELP\
+# 	)
+# 	ACTIONS
+#
+# Also:
+# $(call def-help-section,SECTION,\
+# HELP\
+# )
+#
+# Arguments to def-help etc. may not contain , so use eg ; instead.
+# They should not contain ' as it breaks emacs font-lock.
+# HELP is one or more lines, or can be blank.
+#
+include help-system.mk
 
-defaulttarget: bin/hledgerdev
+default: help \
+	$(call def-help,help,\
+	list all documented rules in this makefile\
+	)
+
 
 ######################################################################
 # SETUP
