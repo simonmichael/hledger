@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP, OverloadedStrings, QuasiQuotes, RecordWildCards #-}
 -- | Common page components and rendering helpers.
 -- For global page layout, see Application.hs.
 

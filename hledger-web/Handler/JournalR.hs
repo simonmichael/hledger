@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, RecordWildCards #-}
 -- | /journal handlers.
 
 module Handler.JournalR where

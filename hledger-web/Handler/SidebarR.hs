@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, RecordWildCards #-}
 -- | /sidebar
 
 module Handler.SidebarR where

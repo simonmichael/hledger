@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, RecordWildCards #-}
 -- | /register handlers.
 
 module Handler.RegisterR where

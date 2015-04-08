@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, OverloadedStrings, QuasiQuotes, RecordWildCards #-}
 -- | Add form data & handler. (The layout and js are defined in
 -- Foundation so that the add form can be in the default layout for
 -- all views.)

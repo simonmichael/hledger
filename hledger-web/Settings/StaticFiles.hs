@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 module Settings.StaticFiles where
 
 import Prelude (IO, putStrLn, (++), (>>), return)

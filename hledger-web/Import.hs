@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 module Import
     ( module Import
     ) where
