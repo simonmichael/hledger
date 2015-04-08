@@ -295,7 +295,7 @@ files change in any of the hledger{-lib,,-web} packages.
 ## How to..
 
 New contributors of all levels are most welcome.
-Here are some tips to help you get productive on the hledger project.
+Here are some tips/checklists/procedures to help you get productive on the hledger project.
 
 ### Suggest enhancements
 
@@ -449,3 +449,87 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 - marketing, communication, outreach
 - release management, roadmap planning
 
+### Do a major release
+
+1. cleanup
+    - review working copies (laptop, server, website) & branches, commit pending changes
+2. document
+    - */*.cabal (descriptions, tested-with, files..)
+    - haddocks
+    - */CHANGES
+    - doc/contributors.md
+    - doc/site/release-notes.md
+    - doc/manual.md (commands, options, --help, ledger compatibility..)
+    - doc/site/step-by-step.md
+    - doc/site/how-to-*
+    - doc/site/faq.md (ledger compatibility)
+    - doc/site/installing.md
+    - doc/ANNOUNCE
+3. test
+    - coarse tests
+      - make unittest
+      - make functest
+      - make haddocktest
+4. branch
+    - start release branch (git checkout -b X.Y)
+5. version
+    - edit .version
+    - make setversion
+    - double-check (cabal files, manual, download page..)
+6. package
+    - check Makefile's PACKAGES includes all
+    - make cabalsdist
+    - [make windows binaries]
+    - [make osx binaries]
+7. test
+    - fine tests
+      - install from tarballs into a clean directory
+8. tag
+    - make tagrelease
+9. push
+    - git push --tags
+10. upload
+    - make cabalupload
+11. announce
+    - email hledger haskell-cafe haskell [ledger]
+    - tweet
+    - [blog]
+    - [reddit]
+
+### Do a minor release
+
+Differences from a major release: set PACKAGES only to the affected package(s),
+don't run make setversion. Use make -n if unsure.
+
+1. cleanup
+    - review working copies (laptop, server, website) & branches, commit pending changes
+2. document
+    - */*.cabal for affected package(s) (descriptions, tested-with, files..)
+    - */CHANGES for affected package(s)
+    - doc/site/release-notes.md
+    - doc/manual.md (commands, options, --help, ledger compatibility..)
+    - doc/site/step-by-step.md
+    - doc/site/how-to-*
+3. test
+    - make unittest
+    - make functest
+    - make haddocktest
+4. branch
+    - switch to release branch (git checkout X.Y)
+5. version
+    - edit .version (don't make setversion)
+    - manually bump version for affected package(s): cabal files, manual..
+6. package
+    - set Makefile's PACKAGES to affected package(s)
+    - make cabalsdist
+7. test
+    - install from tarball(s) into a clean directory
+8. tag
+    - make tagrelease
+9. push
+    - git push --tags
+10. upload
+    - make cabalupload
+11. announce
+    - [email hledger]
+    - [tweet]
