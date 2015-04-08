@@ -6,8 +6,8 @@
 
 This reference manual is for
  <!-- hledger 0.25.98 (the latest pre-0.25 HEAD). -->
- [hledger 0.24](http://hackage.haskell.org/package/hledger-0.24)
- and [hledger-web 0.24](http://hackage.haskell.org/package/hledger-web-0.24).
+ [hledger 0.24.1](http://hackage.haskell.org/package/hledger-0.24.1)
+ and [hledger-web 0.24.1](http://hackage.haskell.org/package/hledger-web-0.24.1).
  <!-- Other versions: [0.22 Manual](0.22/manual). -->
 
 ## Introduction
