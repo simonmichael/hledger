@@ -3,6 +3,7 @@
 <nav id="toc" class="right-toc">
 <p>Major releases:</p>
 <ul>
+<li><a href="#hledger-0.25">hledger 0.25 (2015/4/7)</a>
 <li><a href="#hledger-0.24">hledger 0.24 (2014/12/25)</a>
 <li><a href="#hledger-0.23">hledger 0.23 (2014/5/1)</a>
 <li><a href="#hledger-0.22">hledger 0.22 (2013/12/13)</a>
@@ -42,6 +43,88 @@ change logs.
 h4 { margin-top:2em; }
 </style>
 
+
+## 2015/4/7 hledger 0.25
+
+<!-- [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/N) -->
+[announcement](https://groups.google.com/forum/#!topic/hledger/k2Y_NYZGGJw)
+***GHC 7.10 compatibility, terminal width awareness, useful averages and totals columns, and a more robust hledger-web add form.***
+
+Release contributors:
+Simon Michael,
+Julien Moutinho.
+
+**User-visible changes in hledger since 0.24.1:**
+
+- GHC 7.10 compatibility ([#239](http://bugs.hledger.org/239))
+
+- On POSIX systems, the register command now uses the full terminal width by
+    default. Specifically, the output width is set from:
+    
+    1. a --width option
+    2. or a COLUMNS environment variable (NB: not the same as a bash shell var)
+    3. or on POSIX (non-windows) systems, the current terminal width
+    4. or the default, 80 characters.
+    
+    This feature requires the C curses dev libraries, making installation slightly harder.
+    If that's a problem you can disable curses support with a cabal flag:
+    `cabal install -f-curses ...`.
+
+- register's --width option now accepts an optional
+    description column width following the overall width (`--width
+    WIDTH[,DESCWIDTH]`). This also sets the account column width, since
+    the available space (WIDTH-41) is divided up between these two
+    columns. Here's a diagram:
+<br clear="all">
+```    
+    <--------------------------------- width (W) ---------------------------------->
+    date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
+    DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
+```    
+    Examples:
+```
+    $ hledger reg                 # use terminal width on posix
+    $ hledger reg -w 100          # width 100, equal description/account widths
+    $ hledger reg -w 100,40       # width 100, wider description
+    $ hledger reg -w $COLUMNS,100 # terminal width and set description width
+```
+
+- balance: new -T/--row-total and -A/--average options
+
+    In multicolumn balance reports, -T/--row-total now shows a totals
+    column and -A/--average shows an averages column.
+    This helps eg to see monthly average expenses (hledger bal ^expenses -MA).
+
+    NB our use of -T deviates from Ledger's UI, where -T sets a custom
+    final total expression.
+
+- balance: -N is now short for --no-total
+- balance: fix partially-visible totals row with --no-total
+    
+    A periodic (not using --cumulative or --historical) balance report
+    with --no-total now hides the totals row properly.
+
+- journal, csv: comment lines can also start with *
+    
+    As in Ledger. This means you can embed emacs org/outline-mode nodes in
+    your journal file and manipulate it like an outline.
+
+**User-visible changes in hledger-web since 0.24.1:**
+
+- GHC 7.10 compatibility ([#239](http://bugs.hledger.org/239))
+
+- fix the add form when there are included files ([#234](http://bugs.hledger.org/234))
+
+    NB to make this work, the add form now shows the full file path of
+    the main and included journal files.
+
+- improve add form validation ([#223](http://bugs.hledger.org/223), [#234](http://bugs.hledger.org/234))
+    
+    All add form errors are displayed as form errors, not internal
+    server errors, and when there are errors the add form is redisplayed
+    (form inputs are not preserved, currently).
+
+- keep the add button right-aligned when pressing ctrl - on the add form
 
 #### 2015/3/15 hledger 0.24.1
 
