@@ -1,26 +1,27 @@
-I'm pleased to announce hledger and hledger-web 0.23!
+I'm pleased to announce hledger and hledger-web 0.25.
 
-This release includes command-line fixes and polish, a new accounts
-command, and a number of changes to the balance command relating
-to --depth, --flat, and multicolumn mode, which I find has made it much
-more useful. Release notes:
-http://hledger.org/release-notes#hledger-023-201451 .
-Contributors to this release: Peter Simons and Marko Kocić.
+This release brings GHC 7.10 compatibility, terminal width awareness,
+useful averages and totals columns, and a more robust hledger-web add
+form.
 
-hledger (http://hledger.org) is a command-line tool and haskell library
-for tracking financial transactions, which are stored in a human-readable
-plain text format. It can also read CSV or timelog files. It provides useful
-reports, and can also help you record new transactions interactively.
-Add-on commands include hledger-web (a web interface),
-hledger-irr (for calculating internal rate of return) and hledger-interest
-(for generating interest transactions).  hledger is inspired by and largely
-compatible with Ledger.
+Full release notes: http://hledger.org/release-notes#hledger-0.25 .
+Release contributors: Simon Michael, Julien Moutinho.
+
+hledger (http://hledger.org) is a command-line tool and haskell
+library for tracking financial transactions, which are stored in a
+human-readable plain text format. It can also read CSV or timelog
+files. It provides useful reports, and can also help you record new
+transactions interactively.  Add-on commands include hledger-web (a
+web interface), hledger-irr (for calculating internal rate of return)
+and hledger-interest (for generating interest transactions).  hledger
+is inspired by and largely compatible with Ledger, and can be used
+with some Ledger files.
 
 Installation:
 
 cabal update; cabal install hledger [hledger-web]
-(see http://hledger.org/installing for help)
-or sponsor a binary at http://hledger.org/download
+or see http://hledger.org/download
+and http://hledger.org/installing for more options.
 
 Best!
 -Simon
