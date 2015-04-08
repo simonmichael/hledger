@@ -36,8 +36,8 @@ Use cabal
  **I'm on Windows**\
  <!-- [windows install guide](windows-install.html)\ -->
  Download, unzip, and run:\
- [hledger-0.23.3.win32.zip](http://hledger.org/downloads/hledger-0.23.3-windows-intel32.exe.zip)\
- [hledger-web-0.23.3.win32.zip](http://hledger.org/downloads/hledger-web-0.23.3-windows-intel32.exe.zip)
+ [hledger-0.25.windows.zip](http://hledger.org/downloads/hledger-0.25-windows.zip)\
+ [hledger-web-0.25.windows.zip](http://hledger.org/downloads/hledger-web-0.25-windows.zip)
 
  </td>
  <td width="25%">
