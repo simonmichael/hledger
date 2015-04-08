@@ -19,6 +19,10 @@ define def-help-section
 	$(if $(need-help),$(warning --------------------$1--------------------$2))
 endef
 
+define def-help-subsection
+	$(if $(need-help),$(warning $1$2))
+endef
+
 define last-element
 	$(word $(words $1),$1)
 endef

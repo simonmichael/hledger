@@ -209,17 +209,19 @@ check: \
 	@($(SHELLTESTV) checks \
 		&& echo $@ PASSED) || echo $@ FAILED
 
-sandbox: .cabal-sandbox sandbox-links \
-	$(call def-help,sandbox,\
-	set up a cabal sandbox and some symlinks\
-	)
+include sandbox.mk
 
-.cabal-sandbox: \
-	$(call def-help,.cabal-sandbox,\
-	initialise ./.cabal sandbox and add hledger packages as sources \
-	)
-	cabal sandbox init
-	cabal sandbox add-source ./hledger-lib ./hledger ./hledger-web
+# sandbox: .cabal-sandbox sandbox-links \
+# 	$(call def-help,sandbox,\
+# 	set up a cabal sandbox and some symlinks\
+# 	)
+
+# .cabal-sandbox: \
+# 	$(call def-help,.cabal-sandbox,\
+# 	initialise ./.cabal sandbox and add hledger packages as sources \
+# 	)
+# 	cabal sandbox init
+# 	cabal sandbox add-source ./hledger-lib ./hledger ./hledger-web
 
 sandbox-links: \
 	$(call def-help,sandbox-links,\
@@ -228,7 +230,7 @@ sandbox-links: \
 	-for p in hledger{-lib,,-web}; do (cd $$p/dist; ln -s dist-*/build); done
 
 install: \
-	$(call def-help,sandbox-links,\
+	$(call def-help,install,\
 	cabal install the main hledger packages and all their dependencies\
 	in the sandbox if any; otherwise in the users package db\
 	)
@@ -817,34 +819,25 @@ viewcoverage: \
 	)
 	$(VIEWHTML) doc/profs/coverage/index.html
 
-repl-lib: \
-	$(call def-help,repl-lib,\
-	single-package debug prompts, using all cabal settings\
-	)
+# XXX with a sandbox, use sandbox-repl-* instead
+repl-lib:\
+	$(call def-help,repl-lib, start a cabal REPL and load the hledger-lib package)
 	(cd hledger-lib; cabal repl)
 
-repl-cli repl: \
-	$(call def-help,repl-cli repl,\
-	\
-	)
+repl-cli:\
+	$(call def-help,repl-cli, start a cabal REPL and load the hledger package)
 	(cd hledger; cabal repl exe:hledger)
 
-repl-web: \
-	$(call def-help,repl-web,\
-	\
-	)
+repl-web:\
+	$(call def-help,repl-web, start a cabal REPL and load the hledger-web package)
 	(cd hledger-web; cabal repl exe:hledger-web)
 
 ghci: \
-	$(call def-help,ghci,\
-	multi-package debug prompts, mimicking most cabal settings\
-	)
-	cabal exec $(GHCI) -- $(WARNINGS) $(INCLUDEPATHS) $(MAIN)
+	$(call def-help,ghci, start a sandbox-aware GHCI REPL and load the hledger-lib and hledger packages)
+	cabal exec $(GHCI) -- -XCPP $(CABALMACROSFLAGS) $(WARNINGS) $(INCLUDEPATHS) hledger/Hledger/Cli/Main.hs
 
 ghci-web: \
-	$(call def-help,ghci-web,\
-	\
-	)
+	$(call def-help,ghci-web, start a sandbox-aware GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
 	cabal exec $(GHCI) -- $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
 
 samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/1000x10000x10.journal data/10000x1000x10.journal data/10000x10000x10.journal data/100000x1000x10.journal \
