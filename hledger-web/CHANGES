@@ -2,7 +2,7 @@ User-visible changes in hledger-web.
 See also hledger's change log.
 
 
-0.25 (unreleased)
+0.25 (2015/4/7)
 
 - GHC 7.10 compatibility (#239)
 

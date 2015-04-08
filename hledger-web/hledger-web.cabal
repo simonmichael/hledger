@@ -1,5 +1,5 @@
 name:           hledger-web
-version: 0.24.98
+version: 0.25
 stability:      stable
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool.
@@ -117,7 +117,7 @@ flag old-locale
   default: False
 
 library
-    cpp-options:   -DVERSION="0.24.98"
+    cpp-options:   -DVERSION="0.25"
     if flag(dev) || flag(library-only)
         cpp-options: -DDEVELOPMENT
  
@@ -159,8 +159,8 @@ library
                      Hledger.Web.Options
                      -- Setup -- stops yesod devel complaining, requires build-depends: Cabal
     build-depends:
-                     hledger              == 0.24.98
-                   , hledger-lib          == 0.24.98
+                     hledger              == 0.25
+                   , hledger-lib          == 0.25
                    , base                 >= 4 && < 5
                    , base-compat          >= 0.5.0
                    , blaze-html
@@ -208,7 +208,7 @@ executable         hledger-web
     if flag(library-only)
         Buildable: False
 
-    cpp-options:   -DVERSION="0.24.98"
+    cpp-options:   -DVERSION="0.25"
     if flag(dev)
         cpp-options: -DDEVELOPMENT
 
@@ -233,9 +233,9 @@ executable         hledger-web
     main-is:         main.hs
 
     build-depends:
-                     hledger-lib          == 0.24.98
-                   , hledger              == 0.24.98
-                   , hledger-web          == 0.24.98
+                     hledger-lib          == 0.25
+                   , hledger              == 0.25
+                   , hledger-web          == 0.25
                    , base                 >= 4 && < 5
                    , base-compat          >= 0.5.0
                    , blaze-html
@@ -285,7 +285,7 @@ test-suite test
     hs-source-dirs:    tests
     main-is:           main.hs
     build-depends: 
-                     hledger-web          == 0.24.98
+                     hledger-web          == 0.25
                    , base
                    , base-compat          >= 0.5.0
                    , hspec
