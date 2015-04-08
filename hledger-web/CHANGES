@@ -2,6 +2,9 @@ User-visible changes in hledger-web.
 See also hledger's change log.
 
 
+0.25 (unreleased)
+
+- GHC 7.10 compatibility (#239)
 
 - fix the add form when there are included files (#234)
 

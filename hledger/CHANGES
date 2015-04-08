@@ -1,6 +1,9 @@
 User-visible changes in hledger and hledger-lib.
 
 
+0.25 (unreleased)
+
+- GHC 7.10 compatibility (#239)
 
 - build with terminfo support on POSIX systems by default
     

@@ -2,6 +2,10 @@ API-ish changes in hledger-lib.
 User-visible changes appear in hledger's change log.
 
 
+0.25 (unreleased)
+
+- GHC 7.10 compatibility (#239)
+
 0.24.1 (2015/3/15)
 
 - fix JournalReader "ctx" compilation warning
