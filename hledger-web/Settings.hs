@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
+{-# LANGUAGE CPP, OverloadedStrings, QuasiQuotes #-}
 -- | Settings are centralized, as much as possible, into this file. This
 -- includes database connection settings, static file locations, etc.
 -- In addition, you can configure a number of different aspects of Yesod
@@ -13,7 +13,9 @@ import Yesod.Default.Config
 import Yesod.Default.Util
 import Data.Text (Text)
 import Data.Yaml
+#if !MIN_VERSION_base(4,8,0)
 import Control.Applicative
+#endif
 import Settings.Development
 import Data.Default (def)
 import Text.Hamlet

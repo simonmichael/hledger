@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleContexts, OverloadedStrings, QuasiQuotes, RecordWildCards #-}
+{-# LANGUAGE CPP, FlexibleContexts, OverloadedStrings, QuasiQuotes, RecordWildCards #-}
 -- | Add form data & handler. (The layout and js are defined in
 -- Foundation so that the add form can be in the default layout for
 -- all views.)
@@ -7,7 +7,9 @@ module Handler.AddForm where
 
 import Import
 
+#if !MIN_VERSION_base(4,8,0)
 import Control.Applicative
+#endif
 import Data.Either (lefts,rights)
 import Data.List (sort)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
