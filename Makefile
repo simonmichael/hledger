@@ -142,7 +142,7 @@ PREFERMACUSRLIBFLAGS=-L/usr/lib
 GHCMEMFLAGS= #+RTS -M200m -RTS
 CABALMACROSFLAGS=-optP-include -optPhledger/dist/build/autogen/cabal_macros.h
 BUILDFLAGS1:=-rtsopts $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) $(GHCMEMFLAGS) $(CABALMACROSFLAGS) -DPATCHLEVEL=$(PATCHLEVEL) -DDEVELOPMENT
-BUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='"$(VERSION)dev"'
+BUILDFLAGS:=$(BUILDFLAGS1) -XCPP -DVERSION='"$(VERSION)dev"'
 PROFBUILDFLAGS:=-prof -fprof-auto -osuf hs_p
 # sp needs different quoting:
 AUTOBUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='\"$(VERSION)dev\"' # $(PROFBUILDFLAGS) 
@@ -834,11 +834,11 @@ repl-web:\
 
 ghci: \
 	$(call def-help,ghci, start a sandbox-aware GHCI REPL and load the hledger-lib and hledger packages)
-	cabal exec $(GHCI) -- -XCPP $(CABALMACROSFLAGS) $(WARNINGS) $(INCLUDEPATHS) hledger/Hledger/Cli/Main.hs
+	cabal exec $(GHCI) -- $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
 
 ghci-web: \
 	$(call def-help,ghci-web, start a sandbox-aware GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
-	cabal exec $(GHCI) -- $(BUILDFLAGS) $(WEBLANGEXTS) hledger-web/app/main.hs
+	cabal exec $(GHCI) -- $(BUILDFLAGS) hledger-web/app/main.hs
 
 samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/1000x10000x10.journal data/10000x1000x10.journal data/10000x10000x10.journal data/100000x1000x10.journal \
 	$(call def-help,samplejournals,\
