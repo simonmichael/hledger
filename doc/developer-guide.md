@@ -351,7 +351,7 @@ and the default view given by [bugs.hledger.org](http://bugs.hledger.org) exclud
 5. the hledger Makefile assumes GNU Make, so on some platforms you may need to spell "make" as "gmake"
 6. get the hledger repo:
 
-        git clone git@github.com:simonmichael/hledger.git
+        git clone https://github.com/simonmichael/hledger.git
         cd hledger
 
 7. install packages required to build hledger and add-ons, or as many of them as possible:
