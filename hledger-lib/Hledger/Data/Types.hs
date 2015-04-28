@@ -155,7 +155,8 @@ data TimeLogEntry = TimeLogEntry {
       tlsourcepos :: SourcePos,
       tlcode :: TimeLogCode,
       tldatetime :: LocalTime,
-      tlcomment :: String
+      tlaccount :: String,
+      tldescription :: String
     } deriving (Eq,Ord,Typeable,Data)
 
 data HistoricalPrice = HistoricalPrice {

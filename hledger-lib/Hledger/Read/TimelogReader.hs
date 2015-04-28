@@ -50,6 +50,7 @@ where
 import Control.Monad
 import Control.Monad.Except
 import Data.List (isPrefixOf, foldl')
+import Data.Maybe (fromMaybe)
 import Test.HUnit
 import Text.Parsec hiding (parse)
 import System.FilePath
@@ -58,7 +59,7 @@ import Hledger.Data
 -- XXX too much reuse ?
 import Hledger.Read.JournalReader (
   directive, historicalpricedirective, defaultyeardirective, emptyorcommentlinep, datetimep,
-  parseJournalWith, getParentAccount
+  parseJournalWith, modifiedaccountname
   )
 import Hledger.Utils
 
@@ -104,8 +105,9 @@ timelogentry = do
   code <- oneOf "bhioO"
   many1 spacenonewline
   datetime <- datetimep
-  comment <- optionMaybe (many1 spacenonewline >> liftM2 (++) getParentAccount restofline)
-  return $ TimeLogEntry sourcepos (read [code]) datetime (maybe "" rstrip comment)
+  account <- fromMaybe "" <$> optionMaybe (many1 spacenonewline >> modifiedaccountname)
+  description <- fromMaybe "" <$> optionMaybe (many1 spacenonewline >> restofline)
+  return $ TimeLogEntry sourcepos (read [code]) datetime account description
 
 tests_Hledger_Read_TimelogReader = TestList [
  ]

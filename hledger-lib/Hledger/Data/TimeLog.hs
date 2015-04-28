@@ -28,7 +28,7 @@ import Hledger.Data.Posting
 import Hledger.Data.Transaction
 
 instance Show TimeLogEntry where
-    show t = printf "%s %s %s" (show $ tlcode t) (show $ tldatetime t) (tlcomment t)
+    show t = printf "%s %s %s  %s" (show $ tlcode t) (show $ tldatetime t) (tlaccount t) (tldescription t)
 
 instance Show TimeLogCode where
     show SetBalance = "b"
@@ -54,7 +54,7 @@ timeLogEntriesToTransactions now [i]
     | odate > idate = entryFromTimeLogInOut i o' : timeLogEntriesToTransactions now [i',o]
     | otherwise = [entryFromTimeLogInOut i o]
     where
-      o = TimeLogEntry (tlsourcepos i) Out end ""
+      o = TimeLogEntry (tlsourcepos i) Out end "" ""
       end = if itime > now then itime else now
       (itime,otime) = (tldatetime i,tldatetime o)
       (idate,odate) = (localDay itime,localDay otime)
@@ -84,20 +84,22 @@ entryFromTimeLogInOut i o
             tdate2       = Nothing,
             tstatus      = True,
             tcode        = "",
-            tdescription = showtime itod ++ "-" ++ showtime otod,
+            tdescription = desc,
             tcomment     = "",
             ttags        = [],
             tpostings    = ps,
             tpreceding_comment_lines=""
           }
-      showtime = take 5 . show
-      acctname = tlcomment i
       itime    = tldatetime i
       otime    = tldatetime o
       itod     = localTimeOfDay itime
       otod     = localTimeOfDay otime
       idate    = localDay itime
+      desc     | null (tldescription i) = showtime itod ++ "-" ++ showtime otod
+               | otherwise              = tldescription i
+      showtime = take 5 . show
       hours    = elapsedSeconds (toutc otime) (toutc itime) / 3600 where toutc = localTimeToUTC utc
+      acctname = tlaccount i
       amount   = Mixed [hrs hours]
       ps       = [posting{paccount=acctname, pamount=amount, ptype=VirtualPosting, ptransaction=Just t}]
 
@@ -122,18 +124,18 @@ tests_Hledger_Data_TimeLog = TestList [
          assertEntriesGiveStrings name es ss = assertEqual name ss (map tdescription $ timeLogEntriesToTransactions now es)
 
      assertEntriesGiveStrings "started yesterday, split session at midnight"
-                                  [clockin (mktime yesterday "23:00:00") ""]
+                                  [clockin (mktime yesterday "23:00:00") "" ""]
                                   ["23:00-23:59","00:00-"++nowstr]
      assertEntriesGiveStrings "split multi-day sessions at each midnight"
-                                  [clockin (mktime (addDays (-2) today) "23:00:00") ""]
+                                  [clockin (mktime (addDays (-2) today) "23:00:00") "" ""]
                                   ["23:00-23:59","00:00-23:59","00:00-"++nowstr]
      assertEntriesGiveStrings "auto-clock-out if needed"
-                                  [clockin (mktime today "00:00:00") ""]
+                                  [clockin (mktime today "00:00:00") "" ""]
                                   ["00:00-"++nowstr]
      let future = utcToLocalTime tz $ addUTCTime 100 now'
          futurestr = showtime future
      assertEntriesGiveStrings "use the clockin time for auto-clockout if it's in the future"
-                                  [clockin future ""]
+                                  [clockin future "" ""]
                                   [printf "%s-%s" futurestr futurestr]
 
  ]
