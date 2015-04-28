@@ -45,14 +45,13 @@ module Hledger.Read.JournalReader (
 #endif
 )
 where
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative.Compat ((<*))
-#endif
+import Prelude ()
+import Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
-import Control.Monad
-import Control.Monad.Except
+import Control.Monad.Compat
+import Control.Monad.Except (ExceptT(..), liftIO, throwError, catchError)
 import Data.Char (isNumber)
-import Data.List
+import Data.List.Compat
 import Data.List.Split (wordsBy)
 import Data.Maybe
 import Data.Time.Calendar
@@ -69,7 +68,6 @@ import System.Time (getClockTime)
 
 import Hledger.Data
 import Hledger.Utils
-import Prelude hiding (readFile)
 
 
 -- standard reader exports

@@ -64,11 +64,10 @@ module Hledger.Data.Dates (
 )
 where
 
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative.Compat ((<*))
-#endif
+import Prelude ()
+import Prelude.Compat
 import Control.Monad
-import Data.List
+import Data.List.Compat
 import Data.Maybe
 #if MIN_VERSION_time(1,5,0)
 import Data.Time.Format hiding (months)

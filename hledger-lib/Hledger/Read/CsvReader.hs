@@ -20,15 +20,14 @@ module Hledger.Read.CsvReader (
   tests_Hledger_Read_CsvReader
 )
 where
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative.Compat ((<$>), (<*))
-#endif
+import Prelude ()
+import Prelude.Compat hiding (getContents)
 import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Except
 -- import Test.HUnit
 import Data.Char (toLower, isDigit, isSpace)
-import Data.List
+import Data.List.Compat
 import Data.Maybe
 import Data.Ord
 import Data.Time.Calendar (Day)
@@ -50,7 +49,6 @@ import Text.Parsec.Error
 import Text.Printf (hPrintf,printf)
 
 import Hledger.Data
-import Prelude hiding (getContents)
 import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
 import Hledger.Read.JournalReader (amountp)
