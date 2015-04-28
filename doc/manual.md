@@ -152,23 +152,14 @@ The posting amounts within a transaction must always balance, ie add up to
 
 ##### Simple dates
 
-Within a journal file, transaction dates always follow a year/month/day
-format, although several different separator characters are accepted. Some
-examples: `2010/01/31`, `2010/1/31`, `2010-1-31`, `2010.1.31`.
+Within a journal (or timelog) file, dates are written as YYYY/MM/DD (year/month/day).
+Hyphen (-) and period (.) are also allowed as separators.
+Leading zeroes are optional.
+The year may be omitted, in which case it defaults to the current
+year, or you can set the default year with a
+[default year directive](#default-year).
 
-Writing the year is optional if you set a default year with a Y directive.
-This is a line containing `Y` and the year; it affects subsequent
-transactions, like so:
-
-    Y2009
-    
-    12/15  ; equivalent to 2009/12/15
-      ...
-    
-    Y2010
-    
-    1/31  ; equivalent to 2010/1/31
-      ...
+Some examples: `2010/01/31`, `1/31`, `2010-01-31`, `2010.1.31`.
 
 ##### Secondary dates
 
@@ -578,6 +569,24 @@ Included files are also affected, eg:
     account personal
     include personal.journal
     end
+
+##### Default year
+
+You can set a default year, to be used for all subsequent
+[simple dates](#simple-dates) which don't specify a year.
+This is a line beginning with `Y` followed by the year, like so:
+
+    Y2009
+    
+    12/15  ; equivalent to 2009/12/15
+      ...
+    
+    Y2010
+    
+    1/31  ; equivalent to 2010/1/31
+      ...
+
+This directive can also be used in [timelog files](#timelog).
 
 ##### Including other files
 
