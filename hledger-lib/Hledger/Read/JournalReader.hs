@@ -30,6 +30,7 @@ module Hledger.Read.JournalReader (
   datetimep,
   codep,
   accountnamep,
+  modifiedaccountname,
   postingp,
   amountp,
   amountp',

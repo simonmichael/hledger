@@ -738,21 +738,39 @@ The original order of same-day entries will be preserved, usually.
 
 ### Timelog
 
-hledger can also read time log files. These are (a subset of) timeclock.el's
-format, containing clock-in and clock-out entries like so:
+hledger can also read timelog files.
+[As with Ledger](http://ledger-cli.org/3.0/doc/ledger3.html#Time-Keeping),
+these are (a subset of)
+[timeclock.el](http://www.emacswiki.org/emacs/TimeClock)'s format,
+containing clock-in and clock-out entries like so:
 
-    i 2009/03/31 22:21:45 projects:A
-    o 2009/04/01 02:00:34
+    i 2015/03/30 09:00:00 some:account name  optional description after two spaces
+    o 2015/03/30 09:20:00
+    i 2015/03/31 22:21:45 another account
+    o 2015/04/01 02:00:34
 
-hledger treats the clock-in description ("projects:A") as an account name,
-and creates a virtual transaction (or several - one per day) with the
-appropriate amount of hours. From the time log above, hledger print gives:
+The date is a [simple date](#simple-dates), so hyphen (-) and period
+(.) are also allowed as separators, leading zeroes are optional, the
+year may be omitted (and a [default year directive](#default-year) can
+be used to set it).
 
-    2009/03/31 * 22:21-23:59
-        (projects:A)         1.64h
-    
-    2009/04/01 * 00:00-02:00
-        (projects:A)         2.01h
+The time format is HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional.
+The timezone, if present, must be four digits and is ignored
+(currently the time is always interpreted as a local time).
+
+hledger treats each clock-in/clock-out pair as a transaction posting
+some number of hours to a (single) account. Or, several transactions
+if the session spans more than one day. Eg for the above time log,
+hledger print gives:
+
+    2015/03/30 * optional description after two spaces
+        (some:account name)         0.33h
+
+    2015/03/31 * 22:21-23:59
+        (another account)         1.64h
+
+    2015/04/01 * 00:00-02:00
+        (another account)         2.01h
 
 Here is a
 [sample.timelog](https://raw.github.com/simonmichael/hledger/master/data/sample.timelog) to

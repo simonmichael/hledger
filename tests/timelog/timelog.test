@@ -1,12 +1,22 @@
 # a timelog session is parsed as a similarly-named transaction with one virtual posting
 hledgerdev -f - print
 <<<
-i 2009/1/1 08:00:00 something
-o 2009/1/1 09:00:00
+i 2009/1/1 08:00:00
+o 2009/1/1 09:00:00 stuff on checkout record  is ignored
 
+i 2009/1/2 08:00:00 account name
+o 2009/1/2 09:00:00
+i 2009/1/3 08:00:00 some:account name  and a description
+o 2009/1/3 09:00:00
 >>>
 2009/01/01 * 08:00-09:00
-    (something)         1.00h
+    ()         1.00h
+
+2009/01/02 * 08:00-09:00
+    (account name)         1.00h
+
+2009/01/03 * and a description
+    (some:account name)         1.00h
 
 >>>2
 >>>= 0
