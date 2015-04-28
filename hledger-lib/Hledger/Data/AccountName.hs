@@ -118,17 +118,17 @@ elideAccountName width s
       names = splitOn ", " $ take (length s - 8) s
       widthpername = (max 0 (width - 8 - 2 * (max 1 (length names) - 1))) `div` length names
     in
-     elideLeft width $
+     elideLeftWidth width False $
      (++" (split)") $
      intercalate ", " $
      [accountNameFromComponents $ elideparts widthpername [] $ accountNameComponents s' | s' <- names]
   | otherwise =
-    elideLeft width $ accountNameFromComponents $ elideparts width [] $ accountNameComponents s
+    elideLeftWidth width False $ accountNameFromComponents $ elideparts width [] $ accountNameComponents s
       where
         elideparts :: Int -> [String] -> [String] -> [String]
         elideparts width done ss
-          | length (accountNameFromComponents $ done++ss) <= width = done++ss
-          | length ss > 1 = elideparts width (done++[take 2 $ head ss]) (tail ss)
+          | strWidth (accountNameFromComponents $ done++ss) <= width = done++ss
+          | length ss > 1 = elideparts width (done++[takeWidth 2 $ head ss]) (tail ss)
           | otherwise = done++ss
 
 -- | Keep only the first n components of an account name, where n

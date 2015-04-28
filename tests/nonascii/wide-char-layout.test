@@ -1,0 +1,31 @@
+# alignment calculations should handle wide characters
+
+# 1. register, account name
+hledger -f - register
+<<<
+1/1
+  知  1
+  b
+>>>
+2015/01/01                      知                               1             1
+                                b                               -1             0
+>>>=0
+
+# # 2. balance, commodity symbol
+# hledger -f - balance
+# <<<
+# 1/1
+#   a   知1
+#   b   $-1
+# >>>
+#                  知1  a
+#                  $-1  b
+# --------------------
+#                  $-1
+#                  知1
+# >>>=0
+
+# import Text.Data.ICU.Char
+# case property EastAsianWidth c of
+#   Wide -> 2
+#   _    -> 1

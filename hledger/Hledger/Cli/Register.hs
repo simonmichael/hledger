@@ -19,7 +19,6 @@ import Data.Maybe
 import System.Console.CmdArgs.Explicit
 import Text.CSV
 import Test.HUnit
-import Text.Printf
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -119,14 +118,29 @@ tests_postingsReportAsText = [
 --
 postingsReportItemAsText :: CliOpts -> PostingsReportItem -> String
 postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
+  -- use elide*Width to be wide-char-aware
   intercalate "\n" $
-    [printf ("%-"++datew++"s %-"++descw++"s  %-"++acctw++"s  %"++amtw++"s  %"++balw++"s")
-            date desc acct amtfirstline balfirstline]
+    [concat [elideRightWidth datewidth True date
+            ," "
+            ,elideRightWidth descwidth True desc
+            ,"  "
+            ,elideRightWidth acctwidth True acct
+            ,"  "
+            ,elideLeftWidth amtwidth True amtfirstline
+            ,"  "
+            ,elideLeftWidth balwidth True balfirstline
+            ]]
     ++
-    [printf (spacer ++ "%"++amtw++"s  %"++balw++"s") a b | (a,b) <- zip amtrest balrest ]
-
+    [concat [spacer
+            ,elideLeftWidth amtwidth True a
+            ,"  "
+            ,elideLeftWidth balwidth True b
+            ]
+     | (a,b) <- zip amtrest balrest
+     ]
     where
       -- calculate widths
+      -- XXX should be smarter, eg resize amount columns when needed; cf hledger-ui
       (totalwidth,mdescwidth) = registerWidthsFromOpts opts
       amtwidth = 12
       balwidth = 12
@@ -142,16 +156,16 @@ postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
         where
             hasinterval = isJust menddate
             w = fromMaybe ((remaining - 2) `div` 2) mdescwidth
-      [datew,descw,acctw,amtw,balw] = map show [datewidth,descwidth,acctwidth,amtwidth,balwidth]
 
       -- gather content
-      desc = maybe "" (take descwidth . elideRight descwidth) mdesc
+      desc = fromMaybe "" mdesc
       acct = parenthesise $ elideAccountName awidth $ paccount p
          where
-          (parenthesise, awidth) = case ptype p of
-                               BalancedVirtualPosting -> (\s -> "["++s++"]", acctwidth-2)
-                               VirtualPosting         -> (\s -> "("++s++")", acctwidth-2)
-                               _                      -> (id,acctwidth)
+          (parenthesise, awidth) =
+            case ptype p of
+              BalancedVirtualPosting -> (\s -> "["++s++"]", acctwidth-2)
+              VirtualPosting         -> (\s -> "("++s++")", acctwidth-2)
+              _                      -> (id,acctwidth)
       amt = showMixedAmountWithoutPrice $ pamount p
       bal = showMixedAmountWithoutPrice b
       -- alternate behaviour, show null amounts as 0 instead of blank
@@ -163,9 +177,6 @@ postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
       (amtfirstline:amtrest) = take numlines $ amtlines ++ repeat "" -- posting amount is top-aligned
       (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) "" ++ ballines -- balance amount is bottom-aligned
       spacer = replicate (totalwidth - (amtwidth + 2 + balwidth)) ' '
-
--- XXX
--- showPostingWithBalanceForVty showtxninfo p b = postingsReportItemAsText defreportopts $ mkpostingsReportItem showtxninfo p b
 
 tests_Hledger_Cli_Register :: Test
 tests_Hledger_Cli_Register = TestList
