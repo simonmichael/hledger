@@ -10,12 +10,12 @@ Release contributors: Simon Michael, Julien Moutinho.
 hledger (http://hledger.org) is a command-line tool and haskell
 library for tracking financial transactions, which are stored in a
 human-readable plain text format. It can also read CSV or timelog
-files. It provides useful reports, and can also help you record new
-transactions interactively.  Add-on commands include hledger-web (a
-web interface), hledger-irr (for calculating internal rate of return)
-and hledger-interest (for generating interest transactions).  hledger
-is inspired by and largely compatible with Ledger, and can be used
-with some Ledger files.
+files, and output CSV. It provides useful reports, and can also help
+you record new transactions interactively.  Add-on commands include
+hledger-web (a web interface), hledger-irr (for calculating internal
+rate of return) and hledger-interest (for generating interest
+transactions).  hledger is inspired by and largely compatible with
+Ledger, and can be used with some Ledger files.
 
 Installation:
 
