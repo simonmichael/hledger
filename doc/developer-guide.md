@@ -495,6 +495,8 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
     - tweet
     - [blog]
     - [reddit]
+    - add announcement link, update short description in release notes
+12. deploy at demo.hledger.org
 
 ### Do a minor release
 
