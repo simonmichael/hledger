@@ -475,7 +475,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 5. version
     - edit .version
     - make setversion
-    - double-check (cabal files, manual, download page..)
+    - double-check, commit (cabal files, manual, download page..)
 6. package
     - check Makefile's PACKAGES includes all
     - make cabalsdist
@@ -489,7 +489,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 9. push
     - git push --tags
 10. upload
-    - make cabalupload
+    - make hackageupload
 11. announce
     - email hledger haskell-cafe haskell [ledger]
     - tweet
@@ -497,6 +497,8 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
     - [reddit]
     - add announcement link, update short description in release notes
 12. deploy at demo.hledger.org
+13. issues
+    - review/close open issues in tracker
 
 ### Do a minor release
 
