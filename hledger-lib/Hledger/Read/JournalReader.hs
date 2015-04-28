@@ -440,8 +440,10 @@ test_transaction = do
     assertEqual 2 (let Right t = p in length $ tpostings t)
 #endif
 
--- | Parse a date in YYYY/MM/DD format. Fewer digits are allowed. The year
--- may be omitted if a default year has already been set.
+-- | Parse a date in YYYY/MM/DD format.
+-- Hyphen (-) and period (.) are also allowed as separators.
+-- The year may be omitted if a default year has been set.
+-- Leading zeroes may be omitted.
 datep :: Stream [Char] m t => ParsecT [Char] JournalContext m Day
 datep = do
   -- hacky: try to ensure precise errors for invalid dates
@@ -463,10 +465,12 @@ datep = do
     Just date -> return date
   <?> "full or partial date"
 
--- | Parse a date and time in YYYY/MM/DD HH:MM[:SS][+-ZZZZ] format.  Any
--- timezone will be ignored; the time is treated as local time.  Fewer
--- digits are allowed, except in the timezone. The year may be omitted if
--- a default year has already been set.
+-- | Parse a date and time in YYYY/MM/DD HH:MM[:SS][+-ZZZZ] format.
+-- Hyphen (-) and period (.) are also allowed as date separators.
+-- The year may be omitted if a default year has been set.
+-- Seconds are optional.
+-- The timezone is optional and ignored (the time is always interpreted as a local time).
+-- Leading zeroes may be omitted (except in a timezone).
 datetimep :: Stream [Char] m Char => ParsecT [Char] JournalContext m LocalTime
 datetimep = do
   day <- datep
@@ -618,21 +622,24 @@ modifiedaccountname = do
   aliases <- getAccountAliases
   return $ accountNameApplyAliases aliases prefixed
 
--- | Parse an account name. Account names may have single spaces inside
--- them, and are terminated by two or more spaces. They should have one or
--- more components of at least one character, separated by the account
--- separator char.
+-- | Parse an account name. Account names start with a non-space, may
+-- have single spaces inside them, and are terminated by two or more
+-- spaces (or end of input). Also they have one or more components of
+-- at least one character, separated by the account separator char.
+-- (This parser will also consume one following space, if present.)
 accountnamep :: Stream [Char] m Char => ParsecT [Char] st m AccountName
 accountnamep = do
-    a <- many1 (nonspace <|> singlespace)
-    let a' = striptrailingspace a
-    when (accountNameFromComponents (accountNameComponents a') /= a')
-         (fail $ "account name seems ill-formed: "++a')
-    return a'
+    a <- do
+      c <- nonspace
+      cs <- striptrailingspace <$> many (nonspace <|> singlespace)
+      return $ c:cs
+    when (accountNameFromComponents (accountNameComponents a) /= a)
+         (fail $ "account name seems ill-formed: "++a)
+    return a
     where
       singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})
-      -- couldn't avoid consuming a final space sometimes, harmless
-      striptrailingspace s = if last s == ' ' then init s else s
+      striptrailingspace "" = ""
+      striptrailingspace s  = if last s == ' ' then init s else s
 
 -- accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
 --     <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
