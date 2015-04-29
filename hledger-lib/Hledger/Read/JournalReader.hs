@@ -49,7 +49,7 @@ import Prelude ()
 import Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
 import Control.Monad.Compat
-import Control.Monad.Except (ExceptT(..), liftIO, throwError, catchError)
+import Control.Monad.Except (ExceptT(..), liftIO, runExceptT, throwError, catchError)
 import Data.Char (isNumber)
 import Data.List.Compat
 import Data.List.Split (wordsBy)
