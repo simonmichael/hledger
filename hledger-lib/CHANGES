@@ -8,6 +8,9 @@ User-visible changes appear in hledger's change log.
 
 - dependency compatibility updates
 
+0.25.1 (2015/4/29)
+
+- support/require base-compat >0.8 (#245)
 
 0.25 (2015/4/7)
 
