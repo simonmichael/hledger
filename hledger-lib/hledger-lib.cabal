@@ -89,7 +89,7 @@ library
                   Hledger.Utils.UTF8IOCompat
   build-depends:
                   base >= 4.3 && < 5
-                 ,base-compat >= 0.8.0
+                 ,base-compat >= 0.8.1
                  ,array
                  ,blaze-markup >= 0.5.1
                  ,bytestring
@@ -128,7 +128,7 @@ test-suite tests
   default-language: Haskell2010
   build-depends: hledger-lib
                , base >= 4.3 && < 5
-               , base-compat >= 0.8.0
+               , base-compat >= 0.8.1
                , array
                , blaze-markup >= 0.5.1
                , cmdargs
