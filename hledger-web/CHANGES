@@ -2,6 +2,10 @@ User-visible changes in hledger-web.
 See also hledger's change log.
 
 
+0.25.1 (2015/4/29)
+
+- support/require base-compat >0.8 (#245)
+
 0.25 (2015/4/7)
 
 - GHC 7.10 compatibility (#239)
