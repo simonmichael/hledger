@@ -47,8 +47,10 @@ module Hledger.Read.TimelogReader (
   tests_Hledger_Read_TimelogReader
 )
 where
-import Control.Monad
-import Control.Monad.Except
+import Prelude ()
+import Prelude.Compat
+import Control.Monad (liftM)
+import Control.Monad.Except (ExceptT)
 import Data.List (isPrefixOf, foldl')
 import Data.Maybe (fromMaybe)
 import Test.HUnit
