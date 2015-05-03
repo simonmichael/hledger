@@ -126,7 +126,8 @@ function registerChartClick(ev, pos, item) {
 //----------------------------------------------------------------------
 // ADD FORM
 
-function addformShow(showmsg=false) {
+function addformShow(showmsg) {
+  showmsg = typeof showmsg !== 'undefined' ? a : false;
   addformReset(showmsg);
   $('#addmodal')
     .on('shown.bs.modal', function (e) {
@@ -136,7 +137,8 @@ function addformShow(showmsg=false) {
 }
 
 // Make sure the add form is empty and clean for display.
-function addformReset(showmsg=false) {
+function addformReset(showmsg) {
+  showmsg = typeof showmsg !== 'undefined' ? a : false;
   if ($('form#addform').length > 0) {
     if (!showmsg) $('div#message').html('');
     $('form#addform')[0].reset();
