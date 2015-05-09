@@ -894,7 +894,7 @@ test_numberp = do
 
 multilinecommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
 multilinecommentp = do
-  string "comment" >> newline
+  string "comment" >> many spacenonewline >> newline
   go
   where
     go = try (string "end comment" >> newline >> return ())
