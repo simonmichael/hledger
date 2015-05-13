@@ -48,6 +48,14 @@ Here are some good intros, which also serve as a good orientation for hledger:
 - [Non-Profit Accounting With Ledger CLI, A Tutorial](https://gitorious.org/ledger/npo-ledger-cli/source/npo-ledger-cli-tutorial.md)
   describes Software Freedom Conservancy's setup, 2013
 
+Martin Blais' [beancount](http://furius.ca/beancount/) is another Ledger-inspired tool, written in Python.
+It has good [documentation](http://furius.ca/beancount/doc/index) some which may also be interesting to hledger users:
+
+- Command-line Accounting in Context
+- [Command-line Accounting Cookbook](http://furius.ca/beancount/doc/cookbook) advice and example real-world journal entries
+- The Double-Entry Counting Method
+- A Comparison of Beancount and Ledger & HLedger
+
 See also the two Twitter feeds:
 
 - <a href="https://twitter.com/LedgerTips">@LedgerTips</a> Tips and tricks for Ledger, hledger, beancount, etc.
