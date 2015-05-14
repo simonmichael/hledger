@@ -48,7 +48,16 @@ data Interval = NoInterval
 
 type AccountName = String
 
-type AccountAlias = (Regexp,Replacement)
+data AccountAlias = BasicAlias AccountName AccountName
+                  | RegexAlias Regexp Replacement
+  deriving (
+  Eq
+  ,Read
+  ,Show
+  ,Ord
+  ,Data
+  ,Typeable
+  )
 
 data Side = L | R deriving (Eq,Show,Read,Ord,Typeable,Data)
 

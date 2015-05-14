@@ -392,10 +392,10 @@ journalApplyAliases aliases j@Journal{jtxns=ts} =
   --  else (dbgtrace $
   --        "applying additional command-line aliases:\n"
   --        ++ chomp (unlines $ map (" "++) $ lines $ ppShow aliases))) $
-  j{jtxns=map fixtransaction ts}
+  j{jtxns=map dotransaction ts}
     where
-      fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
-      fixposting p@Posting{paccount=a} = p{paccount=accountNameApplyAliases aliases a}
+      dotransaction t@Transaction{tpostings=ps} = t{tpostings=map doposting ps}
+      doposting p@Posting{paccount=a} = p{paccount= accountNameApplyAliases aliases a}
 
 -- | Do post-parse processing on a journal to make it ready for use: check
 -- all transactions balance, canonicalise amount formats, close any open

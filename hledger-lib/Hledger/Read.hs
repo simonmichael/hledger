@@ -25,6 +25,7 @@ module Hledger.Read (
        mamountp',
        numberp,
        codep,
+       accountaliasp,
        -- * Tests
        samplejournal,
        tests_Hledger_Read,

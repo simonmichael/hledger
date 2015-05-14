@@ -360,17 +360,9 @@ getCliOpts mode' = do
 -- CliOpts accessors
 
 -- | Get the account name aliases from options, if any.
-aliasesFromOpts :: CliOpts -> [(AccountName,AccountName)]
-aliasesFromOpts = map parseAlias . alias_
-    where
-      -- similar to ledgerAlias
-      parseAlias :: String -> (AccountName,AccountName)
-      parseAlias s = (accountNameWithoutPostingType $ strip orig
-                     ,accountNameWithoutPostingType $ strip alias')
-          where
-            (orig, alias) = break (=='=') s
-            alias' = case alias of ('=':rest) -> rest
-                                   _ -> orig
+aliasesFromOpts :: CliOpts -> [AccountAlias]
+aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp () ("--alias "++quoteIfNeeded a) a)
+                  . alias_
 
 -- | Get the (tilde-expanded, absolute) journal file path from
 -- 1. options, 2. an environment variable, or 3. the default.

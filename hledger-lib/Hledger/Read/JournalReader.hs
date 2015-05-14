@@ -37,7 +37,8 @@ module Hledger.Read.JournalReader (
   mamountp',
   numberp,
   emptyorcommentlinep,
-  followingcommentp
+  followingcommentp,
+  accountaliasp
 #ifdef TESTS
   -- * Tests
   -- disabled by default, HTF not available on windows
@@ -243,12 +244,33 @@ aliasdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdat
 aliasdirective = do
   string "alias"
   many1 spacenonewline
-  orig <- many1 $ noneOf "="
-  char '='
-  alias <- restofline
-  addAccountAlias (accountNameWithoutPostingType $ strip orig
-                  ,accountNameWithoutPostingType $ strip alias)
+  alias <- accountaliasp
+  addAccountAlias alias
   return $ return id
+
+accountaliasp :: Stream [Char] m Char => ParsecT [Char] st m AccountAlias
+accountaliasp = regexaliasp <|> basicaliasp
+
+basicaliasp :: Stream [Char] m Char => ParsecT [Char] st m AccountAlias
+basicaliasp = do
+  -- pdbg 0 "basicaliasp"
+  old <- rstrip <$> (many1 $ noneOf "=")
+  char '='
+  many spacenonewline
+  new <- rstrip <$> anyChar `manyTill` eolof  -- don't require a final newline, good for cli options
+  return $ BasicAlias old new
+
+regexaliasp :: Stream [Char] m Char => ParsecT [Char] st m AccountAlias
+regexaliasp = do
+  -- pdbg 0 "regexaliasp"
+  char '/'
+  re <- many1 $ noneOf "/\n\r" -- paranoid: don't try to read past line end
+  char '/'
+  many spacenonewline
+  char '='
+  many spacenonewline
+  repl <- rstrip <$> anyChar `manyTill` eolof
+  return $ RegexAlias re repl
 
 endaliasesdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 endaliasesdirective = do

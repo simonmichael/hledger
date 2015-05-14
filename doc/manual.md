@@ -460,54 +460,76 @@ In [tag queries](manual#queries), remember the tag name must match exactly, whil
 
 ##### Account aliases
 
-You can define account aliases to rewrite account names. For a quick example,
-see [How to use account aliases](how-to-use-account-aliases.html).
+You can define aliases which rewrite your account names (after reading the journal,
+before generating reports). hledger's account aliases can be useful for:
 
-In hledger, this feature is quite powerful and requires a little care.
-It can be used for
+- expanding shorthand account names to their full form, allowing easier data entry and a less verbose journal
+- adapting old journals to your current chart of accounts
+- experimenting with new account organisations, like a new hierarchy or combining two accounts into one
+- customising reports
 
-- expanding shorthand account names to their full form, so your entries require less typing
-- adjusting old data to match your current chart of accounts, which tends to change over time
-- experimenting with new account organisations
-- massaging reports, both cosmetic changes and deeper ones ("combine these separate accounts into one")
+See also [How to use account aliases](how-to-use-account-aliases.html).
 
-An account alias can be defined on the command line:
-```shell
-$ hledger --alias 'REGEX=REPLACEMENT' balance
-```
-or with a directive in the journal file:
-```
-alias REGEX = REPLACEMENT
-```
+###### Basic aliases
+
+To set an account alias, use the `alias` directive in your journal file.
+This affects all subsequent journal entries in the current file or its
+[included files](#including-other-files).
+The spaces around the = are optional:
+
+    alias OLD = NEW
+
+Or, you can use the `--alias` option on the command line.
+This affects all entries. It's useful for trying out aliases interactively:
+
+    --alias 'OLD=NEW'
+
+OLD and NEW are full account names.
+hledger will replace any occurrence of the old account name with the
+new one. Subaccounts are also affected. Eg:
+
+    alias checking = assets:bank:wells fargo:checking
+    # rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
+
+###### Regex aliases
+
+There is also a more powerful variant that uses a regular expression,
+indicated by the forward slashes. (This was the default behaviour in hledger 0.24-0.25):
+
+    alias /REGEX/ = REPLACEMENT
+
+or:
+
+    --alias '/REGEX/=REPLACEMENT'
+
+<!-- (Can also be written `'/REGEX/REPLACEMENT/'`). -->
+REGEX is a case-insensitive regular expression. Anywhere it matches
+inside an account name, the matched part will be replaced by
+REPLACEMENT.
+If REGEX contains parenthesised match groups, these can be referenced
+by the usual numeric backreferences in REPLACEMENT.
+Note, currently regular expression aliases may cause noticeable slow-downs.
+(And if you use Ledger on your hledger file, they will be ignored.)
 Eg:
 
-    alias ^expenses = equity:draw:personal
+    alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
+    # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 
-Spaces around the = are optional and ignored.
-You can define as many aliases as you like.
+###### Multiple aliases
 
-Each alias is tested against each account name as those are read from the journal.
-When REGEX (a case-insensitive regular expression) matches
-anywhere within the account name, the matched part is replaced by
-REPLACEMENT.
-An alias can replace multiple matches in one account name.
-REGEX can contain parenthesised match groups, and REPLACEMENT can
-include these with a numeric backreference (like `\1`).
+You can define as many aliases as you like using directives or command-line options.
+Aliases are recursive - each alias sees the result of applying previous ones.
+(This is different from Ledger, where aliases are non-recursive by default).
+Aliases are applied in the following order:
 
-An alias becomes active when it is read, and affects all entries
-read after it. It will also affect the entries of any files [included](#including-other-files)
-after it. It will not affect a parent file (aliases do not "leak"
-upward).  To forget all aliases defined to this point, use this
-directive:
+1. alias directives, most recently seen first (recent directives take precedence over earlier ones; directives not yet seen are ignored)
+2. alias options, in the order they appear on the command line
+
+###### end aliases
+
+You can clear (forget) all currently defined aliases with the `end aliases` directive:
 
     end aliases
-
-Active aliases are applied in the order they were defined, and are
-cumulative (each alias sees the result of applying the previous ones).
-
-Account aliases changed significantly in hledger 0.24 and are
-currently somewhat incompatible with Ledger's aliases, which do not
-use regular expressions. They can also hurt performance.
 
 ##### Default commodity
 

@@ -1,22 +1,54 @@
 # alias-related tests
 
-# 1. alias directive. The pattern is a case-insensitive regular
-# expression matching anywhere in the account name. All matching
-# aliases will be applied to an account name in turn, most recently
-# declared first. The replacement can replace multiple matches within
-# the account name.  The replacement pattern supports numeric
-# backreferences.
+# . simple alias directive
+hledgerdev -f- accounts
+<<<
+alias checking = assets:bank:checking
+1/1
+    (checking:a)  1
+>>>
+assets:bank:checking:a
+>>>=0
+
+# . simple alias matches whole account name components only
+hledgerdev -f- accounts
+<<<
+alias a:b = A:B
+1/1
+    (a:b:c)   1  ; should match this
+1/1
+    (a:bb:d)  1  ; should not match this
+>>>
+A:B:c
+a:bb:d
+>>>=0
+
+# . regex alias directive
+hledgerdev -f- accounts
+<<<
+alias /^(.+):bank:([^:]+):?(.*)/ = \1:\2 \3
+1/1
+    (assets:bank:B:checking:a)  1
+>>>
+assets:B checking:a
+>>>=0
+
+# . regex alias pattern is a case-insensitive regular expression
+# matching anywhere in the account name. All matching aliases are
+# applied to an account name in turn, most recently seen first. The
+# replacement can replace multiple matches within the account name.
+# The replacement pattern supports numeric backreferences.
 #
 hledgerdev -f- print
 <<<
-alias a=b
+alias /a/ = b
 
 2011/01/01
     A a  1
     a a  2
     c
 
-alias A (.)=\1
+alias /A (.)/=\1
 
 2011/01/01
     A a  1
@@ -36,10 +68,10 @@ alias A (.)=\1
 
 >>>=0
 
-# 2. command-line --alias option. These are applied in the order
-# written. Spaces are allowed if quoted.
+# . --alias command-line options are applied in the order written.
+# Spaces are allowed if quoted.
 # 
-hledgerdev -f- print --alias 'A (.)=a' --alias a=b
+hledgerdev -f- print --alias '/A (.)/=a' --alias /a/=b
 <<<
 2011/01/01
     a a  1
@@ -54,12 +86,12 @@ hledgerdev -f- print --alias 'A (.)=a' --alias a=b
 
 >>>=0
 
-# 3. Alias options run after alias directives.
+# . alias options are applied after alias directives.
 #
-hledgerdev -f- print --alias a=A --alias B=C --alias B=D --alias C=D
+hledgerdev -f- print --alias /a/=A --alias /B/=C --alias /B/=D --alias /C/=D
 <<<
-alias ^a=B
-alias ^a=E
+alias /^a/=B
+alias /^a/=E
 alias E=F
 
 2011/01/01

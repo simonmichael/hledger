@@ -37,7 +37,6 @@ module Hledger.Data.Posting (
   joinAccountNames,
   concatAccountNames,
   accountNameApplyAliases,
-  accountNameApplyOneAlias,
   -- * arithmetic
   sumPostings,
   -- * rendering
@@ -219,22 +218,26 @@ concatAccountNames :: [AccountName] -> AccountName
 concatAccountNames as = accountNameWithPostingType t $ intercalate ":" $ map accountNameWithoutPostingType as
     where t = headDef RegularPosting $ filter (/= RegularPosting) $ map accountNamePostingType as
 
--- | Rewrite an account name using all applicable aliases from the given list, in sequence.
+-- | Rewrite an account name using all matching aliases from the given list, in sequence.
+-- Each alias sees the result of applying the previous aliases.
 accountNameApplyAliases :: [AccountAlias] -> AccountName -> AccountName
 accountNameApplyAliases aliases a = accountNameWithPostingType atype aname'
   where
     (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
-    matchingaliases = filter (\(re,_) -> regexMatchesCI re aname) aliases
-    aname' = foldl (flip (uncurry regexReplaceCI)) aname matchingaliases
+    aname' = foldl
+             (\acct alias -> dbg6 "got" $ aliasReplace (dbg6 "alias" alias) acct)
+             aname
+             aliases
 
--- | Rewrite an account name using the first applicable alias from the given list, if any.
-accountNameApplyOneAlias :: [AccountAlias] -> AccountName -> AccountName
-accountNameApplyOneAlias aliases a = accountNameWithPostingType atype aname'
-  where
-    (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
-    firstmatchingalias = headDef Nothing $ map Just $ filter (\(re,_) -> regexMatchesCI re aname) aliases
-    applyAlias = uncurry regexReplaceCI
-    aname' = maybe id applyAlias firstmatchingalias $ aname
+-- aliasMatches :: AccountAlias -> AccountName -> Bool
+-- aliasMatches (BasicAlias old _) a = old `isAccountNamePrefixOf` a
+-- aliasMatches (RegexAlias re  _) a = regexMatchesCI re a
+
+aliasReplace :: AccountAlias -> AccountName -> AccountName
+aliasReplace (BasicAlias old new) a | old `isAccountNamePrefixOf` a = new ++ drop (length old) a
+                                    | otherwise = a
+aliasReplace (RegexAlias re repl) a = regexReplaceCI re repl a
+
 
 tests_Hledger_Data_Posting = TestList [
 
