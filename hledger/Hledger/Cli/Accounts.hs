@@ -49,10 +49,10 @@ accounts :: CliOpts -> Journal -> IO ()
 accounts CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q = queryFromOpts d ropts
-      nodepthq = dbg "nodepthq" $ filterQuery (not . queryIsDepth) q
-      depth    = dbg "depth" $ queryDepth $ filterQuery queryIsDepth q
-      ps = dbg "ps" $ journalPostings $ filterJournalPostings nodepthq j
-      as = dbg "as" $ nub $ filter (not . null) $ map (clipAccountName depth) $ sort $ map paccount ps
+      nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) q
+      depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth q
+      ps = dbg1 "ps" $ journalPostings $ filterJournalPostings nodepthq j
+      as = dbg1 "as" $ nub $ filter (not . null) $ map (clipAccountName depth) $ sort $ map paccount ps
       as' | tree_ ropts = expandAccountNames as
           | otherwise   = as
       render a | tree_ ropts = replicate (2 * (accountNameLevel a - 1)) ' ' ++ accountLeafName a

@@ -823,7 +823,7 @@ numberp = do
   -- ptrace "numberp"
   sign <- signp
   parts <- many1 $ choice' [many1 digit, many1 $ char ',', many1 $ char '.']
-  dbgAt 8 "numberp parsed" (sign,parts) `seq` return ()
+  dbg8 "numberp parsed" (sign,parts) `seq` return ()
 
   -- check the number is well-formed and identify the decimal point and digit
   -- group separator characters used, if any
@@ -861,7 +861,7 @@ numberp = do
       frac' = if null frac then "0" else frac
       quantity = read $ sign++int'++"."++frac' -- this read should never fail
 
-  return $ dbgAt 8 "numberp quantity,precision,mdecimalpoint,mgrps" (quantity,precision,mdecimalpoint,mgrps)
+  return $ dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (quantity,precision,mdecimalpoint,mgrps)
   <?> "numberp"
   where
     numeric = isNumber . headDef '_'

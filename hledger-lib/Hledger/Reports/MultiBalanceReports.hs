@@ -73,41 +73,41 @@ type ClippedAccountName = AccountName
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
 multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow)
     where
-      symq       = dbg "symq"   $ filterQuery queryIsSym $ dbg "requested q" q
-      depthq     = dbg "depthq" $ filterQuery queryIsDepth q
+      symq       = dbg1 "symq"   $ filterQuery queryIsSym $ dbg1 "requested q" q
+      depthq     = dbg1 "depthq" $ filterQuery queryIsDepth q
       depth      = queryDepth depthq
-      depthless  = dbg "depthless" . filterQuery (not . queryIsDepth)
-      datelessq  = dbg "datelessq"  $ filterQuery (not . queryIsDateOrDate2) q
+      depthless  = dbg1 "depthless" . filterQuery (not . queryIsDepth)
+      datelessq  = dbg1 "datelessq"  $ filterQuery (not . queryIsDateOrDate2) q
       dateqcons  = if date2_ opts then Date2 else Date
-      precedingq = dbg "precedingq" $ And [datelessq, dateqcons $ DateSpan Nothing (spanStart reportspan)]
-      requestedspan  = dbg "requestedspan"  $ queryDateSpan (date2_ opts) q                              -- span specified by -b/-e/-p options and query args
-      requestedspan' = dbg "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan (date2_ opts) j  -- if open-ended, close it using the journal's end dates
-      intervalspans  = dbg "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan'           -- interval spans enclosing it
-      reportspan     = dbg "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans) -- the requested span enlarged to a whole number of intervals
+      precedingq = dbg1 "precedingq" $ And [datelessq, dateqcons $ DateSpan Nothing (spanStart reportspan)]
+      requestedspan  = dbg1 "requestedspan"  $ queryDateSpan (date2_ opts) q                              -- span specified by -b/-e/-p options and query args
+      requestedspan' = dbg1 "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan (date2_ opts) j  -- if open-ended, close it using the journal's end dates
+      intervalspans  = dbg1 "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan'           -- interval spans enclosing it
+      reportspan     = dbg1 "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans) -- the requested span enlarged to a whole number of intervals
                                                        (maybe Nothing spanEnd   $ lastMay intervalspans)
-      newdatesq = dbg "newdateq" $ dateqcons reportspan
-      reportq  = dbg "reportq" $ depthless $ And [datelessq, newdatesq] -- user's query enlarged to whole intervals and with no depth limit
+      newdatesq = dbg1 "newdateq" $ dateqcons reportspan
+      reportq  = dbg1 "reportq" $ depthless $ And [datelessq, newdatesq] -- user's query enlarged to whole intervals and with no depth limit
 
       ps :: [Posting] =
-          dbg "ps" $
+          dbg1 "ps" $
           journalPostings $
           filterJournalAmounts symq $     -- remove amount parts excluded by cur:
           filterJournalPostings reportq $        -- remove postings not matched by (adjusted) query
           journalSelectingAmountFromOpts opts j
 
-      displayspans = dbg "displayspans" $ splitSpan (intervalFromOpts opts) displayspan
+      displayspans = dbg1 "displayspans" $ splitSpan (intervalFromOpts opts) displayspan
         where
           displayspan
-            | empty_ opts = dbg "displayspan (-E)" $ reportspan                                -- all the requested intervals
-            | otherwise   = dbg "displayspan"      $ requestedspan `spanIntersect` matchedspan -- exclude leading/trailing empty intervals
-          matchedspan = dbg "matchedspan" $ postingsDateSpan' (whichDateFromOpts opts) ps
+            | empty_ opts = dbg1 "displayspan (-E)" $ reportspan                                -- all the requested intervals
+            | otherwise   = dbg1 "displayspan"      $ requestedspan `spanIntersect` matchedspan -- exclude leading/trailing empty intervals
+          matchedspan = dbg1 "matchedspan" $ postingsDateSpan' (whichDateFromOpts opts) ps
 
       psPerSpan :: [[Posting]] =
-          dbg "psPerSpan" $
+          dbg1 "psPerSpan" $
           [filter (isPostingInDateSpan' (whichDateFromOpts opts) s) ps | s <- displayspans]
 
       postedAcctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
-          dbg "postedAcctBalChangesPerSpan" $
+          dbg1 "postedAcctBalChangesPerSpan" $
           map postingAcctBals psPerSpan
           where
             postingAcctBals :: [Posting] -> [(ClippedAccountName, MixedAmount)]
@@ -120,36 +120,36 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
                       | tree_ opts = filter ((depthq `matchesAccount`).aname) -- exclude deeper balances
                       | otherwise  = clipAccountsAndAggregate depth -- aggregate deeper balances at the depth limit
 
-      postedAccts :: [AccountName] = dbg "postedAccts" $ sort $ accountNamesFromPostings ps
+      postedAccts :: [AccountName] = dbg1 "postedAccts" $ sort $ accountNamesFromPostings ps
 
       -- starting balances and accounts from transactions before the report start date
-      startacctbals = dbg "startacctbals" $ map (\((a,_,_),b) -> (a,b)) startbalanceitems
+      startacctbals = dbg1 "startacctbals" $ map (\((a,_,_),b) -> (a,b)) startbalanceitems
           where
-            (startbalanceitems,_) = dbg "starting balance report" $ balanceReport opts' precedingq j
+            (startbalanceitems,_) = dbg1 "starting balance report" $ balanceReport opts' precedingq j
                                     where
                                       opts' | tree_ opts = opts{no_elide_=True}
                                             | otherwise  = opts{accountlistmode_=ALFlat}
       startingBalanceFor a = fromMaybe nullmixedamt $ lookup a startacctbals
-      startAccts = dbg "startAccts" $ map fst startacctbals
+      startAccts = dbg1 "startAccts" $ map fst startacctbals
 
       displayedAccts :: [ClippedAccountName] =
-          dbg "displayedAccts" $
+          dbg1 "displayedAccts" $
           (if tree_ opts then expandAccountNames else id) $
           nub $ map (clipOrEllipsifyAccountName depth) $
           if empty_ opts then nub $ sort $ startAccts ++ postedAccts else postedAccts
 
       acctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
-          dbg "acctBalChangesPerSpan" $
+          dbg1 "acctBalChangesPerSpan" $
           [sortBy (comparing fst) $ unionBy (\(a,_) (a',_) -> a == a') postedacctbals zeroes
            | postedacctbals <- postedAcctBalChangesPerSpan]
           where zeroes = [(a, nullmixedamt) | a <- displayedAccts]
 
       acctBalChanges :: [(ClippedAccountName, [MixedAmount])] =
-          dbg "acctBalChanges" $
+          dbg1 "acctBalChanges" $
           [(a, map snd abs) | abs@((a,_):_) <- transpose acctBalChangesPerSpan] -- never null, or used when null...
 
       items :: [MultiBalanceReportRow] =
-          dbg "items" $
+          dbg1 "items" $
           [((a, accountLeafName a, accountNameLevel a), displayedBals, rowtot, rowavg)
            | (a,changes) <- acctBalChanges
            , let displayedBals = case balancetype_ opts of
@@ -162,18 +162,18 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
            ]
 
       totals :: [MixedAmount] =
-          -- dbg "totals" $
+          -- dbg1 "totals" $
           map sum balsbycol
           where
             balsbycol = transpose [bs | ((a,_,_),bs,_,_) <- items, not (tree_ opts) || a `elem` highestlevelaccts]
             highestlevelaccts     =
-                dbg "highestlevelaccts" $
+                dbg1 "highestlevelaccts" $
                 [a | a <- displayedAccts, not $ any (`elem` displayedAccts) $ init $ expandAccountName a]
 
       totalsrow :: MultiBalanceTotalsRow =
-          dbg "totalsrow" $
+          dbg1 "totalsrow" $
           (totals, sum totals, averageMixedAmounts totals)
 
-      dbg s = let p = "multiBalanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in this function's debug output
-      -- dbg = const id  -- exclude this function from debug output
+      dbg1 s = let p = "multiBalanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in this function's debug output
+      -- dbg1 = const id  -- exclude this function from debug output
 

@@ -62,19 +62,19 @@ flatShowsExclusiveBalance    = True
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReport opts q j = (items, total)
     where
-      -- dbg = const id -- exclude from debug output
-      dbg s = let p = "balanceReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
+      -- dbg1 = const id -- exclude from debug output
+      dbg1 s = let p = "balanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
 
       accts = ledgerRootAccount $ ledgerFromJournal q $ journalSelectingAmountFromOpts opts j
       accts' :: [Account]
           | queryDepth q == 0 =
-                         dbg "accts" $
+                         dbg1 "accts" $
                          take 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
-          | flat_ opts = dbg "accts" $
+          | flat_ opts = dbg1 "accts" $
                          filterzeros $
                          filterempty $
                          drop 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
-          | otherwise  = dbg "accts" $
+          | otherwise  = dbg1 "accts" $
                          filter (not.aboring) $
                          drop 1 $ flattenAccounts $
                          markboring $
@@ -86,9 +86,9 @@ balanceReport opts q j = (items, total)
             filterempty = filter (\a -> anumpostings a > 0 || not (isZeroMixedAmount (balance a)))
             prunezeros  = if empty_ opts then id else fromMaybe nullacct . pruneAccounts (isZeroMixedAmount . balance)
             markboring  = if no_elide_ opts then id else markBoringParentAccounts
-      items = dbg "items" $ map (balanceReportItem opts q) accts'
-      total | not (flat_ opts) = dbg "total" $ sum [amt | ((_,_,indent),amt) <- items, indent == 0]
-            | otherwise        = dbg "total" $
+      items = dbg1 "items" $ map (balanceReportItem opts q) accts'
+      total | not (flat_ opts) = dbg1 "total" $ sum [amt | ((_,_,indent),amt) <- items, indent == 0]
+            | otherwise        = dbg1 "total" $
                                  if flatShowsExclusiveBalance
                                  then sum $ map snd items
                                  else sum $ map aebalance $ clipAccountsAndAggregate 1 accts'

@@ -241,11 +241,11 @@ accountWizard EntryState{..} = do
    line $ green $ printf "Account %d%s%s: " pnum (endmsg::String) (showDefault def)
     where
       canfinish = not (null esPostings) && postingsBalanced esPostings
-      parseAccountOrDotOrNull _  _ "."       = dbg $ Just "." -- . always signals end of txn
-      parseAccountOrDotOrNull "" True ""     = dbg $ Just ""  -- when there's no default and txn is balanced, "" also signals end of txn
-      parseAccountOrDotOrNull def@(_:_) _ "" = dbg $ Just def -- when there's a default, "" means use that
-      parseAccountOrDotOrNull _ _ s          = dbg $ either (const Nothing) validateAccount $ runParser (accountnamep <* eof) (jContext esJournal) "" s -- otherwise, try to parse the input as an accountname
-      dbg = id -- strace
+      parseAccountOrDotOrNull _  _ "."       = dbg1 $ Just "." -- . always signals end of txn
+      parseAccountOrDotOrNull "" True ""     = dbg1 $ Just ""  -- when there's no default and txn is balanced, "" also signals end of txn
+      parseAccountOrDotOrNull def@(_:_) _ "" = dbg1 $ Just def -- when there's a default, "" means use that
+      parseAccountOrDotOrNull _ _ s          = dbg1 $ either (const Nothing) validateAccount $ runParser (accountnamep <* eof) (jContext esJournal) "" s -- otherwise, try to parse the input as an accountname
+      dbg1 = id -- strace
       validateAccount s | no_new_accounts_ esOpts && not (s `elem` journalAccountNames esJournal) = Nothing
                         | otherwise = Just s
 

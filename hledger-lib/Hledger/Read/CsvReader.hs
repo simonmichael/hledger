@@ -101,7 +101,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   let rules = case rules_ of
               Right (t::CsvRules) -> t
               Left err -> throwerr $ show err
-  dbgAtM 2 "rules" rules
+  dbg2IO "rules" rules
 
   -- apply skip directive
   let skip = maybe 0 oneorerror $ getDirective "skip" rules
@@ -113,10 +113,10 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   -- parsec seems to fail if you pass it "-" here
   let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
   records <- (either throwerr id .
-              dbgAt 2 "validateCsv" . validateCsv skip .
-              dbgAt 2 "parseCsv")
+              dbg2 "validateCsv" . validateCsv skip .
+              dbg2 "parseCsv")
              `fmap` parseCsv parsecfilename csvdata
-  dbgAtM 1 "first 3 csv records" $ take 3 records
+  dbg1IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
   -- let (headerlines, datalines) = identifyHeaderLines records

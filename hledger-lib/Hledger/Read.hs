@@ -126,9 +126,9 @@ readJournal format rulesfile assrt path s =
         firstSuccessOrBestError :: [String] -> [Reader] -> IO (Either String Journal)
         firstSuccessOrBestError [] []        = return $ Left "no readers found"
         firstSuccessOrBestError errs (r:rs) = do
-          dbgAtM 1 "trying reader" (rFormat r)
+          dbg1IO "trying reader" (rFormat r)
           result <- (runExceptT . (rParser r) rulesfile assrt path') s
-          dbgAtM 1 "reader result" $ either id show result
+          dbg1IO "reader result" $ either id show result
           case result of Right j -> return $ Right j                       -- success!
                          Left e  -> firstSuccessOrBestError (errs++[e]) rs -- keep trying
         firstSuccessOrBestError (e:_) []    = return $ Left e              -- none left, return first error
@@ -137,7 +137,7 @@ readJournal format rulesfile assrt path s =
 -- | Which readers are worth trying for this (possibly unspecified) format, filepath, and data ?
 readersFor :: (Maybe StorageFormat, Maybe FilePath, String) -> [Reader]
 readersFor (format,path,s) =
-    dbg ("possible readers for "++show (format,path,elideRight 30 s)) $
+    dbg1 ("possible readers for "++show (format,path,elideRight 30 s)) $
     case format of
      Just f  -> case readerForStorageFormat f of Just r  -> [r]
                                                  Nothing -> []

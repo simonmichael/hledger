@@ -199,15 +199,15 @@ main = do
     isNullCommand        = null rawcmd
     (argsbeforecmd, argsaftercmd') = break (==rawcmd) args
     argsaftercmd         = drop 1 argsaftercmd'
-    dbgM :: Show a => String -> a -> IO ()
-    dbgM = dbgAtM 2
+    dbgIO :: Show a => String -> a -> IO ()
+    dbgIO = tracePrettyAtIO 2
 
-  dbgM "running" prognameandversion
-  dbgM "raw args" args
-  dbgM "raw args rearranged for cmdargs" args'
-  dbgM "raw command is probably" rawcmd
-  dbgM "raw args before command" argsbeforecmd
-  dbgM "raw args after command" argsaftercmd
+  dbgIO "running" prognameandversion
+  dbgIO "raw args" args
+  dbgIO "raw args rearranged for cmdargs" args'
+  dbgIO "raw command is probably" rawcmd
+  dbgIO "raw args before command" argsbeforecmd
+  dbgIO "raw args after command" argsaftercmd
 
   -- Search PATH for add-ons, excluding any that match built-in names.
   -- The precise addon names (including file extension) are used for command
@@ -231,27 +231,27 @@ main = do
     generalHelp          = putStr $ showModeHelp $ mainmode addonDisplayNames
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
     f `orShowHelp` mode  = if hasHelp args then putStr (showModeHelp mode) else f
-  dbgM "processed opts" opts
-  dbgM "command matched" cmd
-  dbgM "isNullCommand" isNullCommand
-  dbgM "isInternalCommand" isInternalCommand
-  dbgM "isExternalCommand" isExternalCommand
-  dbgM "isBadCommand" isBadCommand
+  dbgIO "processed opts" opts
+  dbgIO "command matched" cmd
+  dbgIO "isNullCommand" isNullCommand
+  dbgIO "isInternalCommand" isInternalCommand
+  dbgIO "isExternalCommand" isExternalCommand
+  dbgIO "isBadCommand" isBadCommand
   d <- getCurrentDay
-  dbgM "date span from opts" (dateSpanFromOpts d $ reportopts_ opts)
-  dbgM "interval from opts" (intervalFromOpts $ reportopts_ opts)
-  dbgM "query from opts & args" (queryFromOpts d $ reportopts_ opts)
+  dbgIO "date span from opts" (dateSpanFromOpts d $ reportopts_ opts)
+  dbgIO "interval from opts" (intervalFromOpts $ reportopts_ opts)
+  dbgIO "query from opts & args" (queryFromOpts d $ reportopts_ opts)
   let
     runHledgerCommand
       -- high priority flags and situations. --help should be highest priority.
-      | hasHelp argsbeforecmd    = dbgM "" "--help before command, showing general help" >> generalHelp
+      | hasHelp argsbeforecmd    = dbgIO "" "--help before command, showing general help" >> generalHelp
       | not (hasHelp argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameandversion
       | not (hasHelp argsaftercmd) && (hasDetailedVersion argsbeforecmd || (hasDetailedVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameanddetailedversion
       -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
       -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
-      | isNullCommand            = dbgM "" "no command, showing general help" >> generalHelp
+      | isNullCommand            = dbgIO "" "no command, showing general help" >> generalHelp
       | isBadCommand             = badCommandError
 
       -- internal commands
@@ -271,9 +271,9 @@ main = do
       | isExternalCommand = do
           let externalargs = argsbeforecmd ++ filter (not.(=="--")) argsaftercmd
           let shellcmd = printf "%s-%s %s" progname cmd (unwords' externalargs) :: String
-          dbgM "external command selected" cmd
-          dbgM "external command arguments" (map quoteIfNeeded externalargs)
-          dbgM "running shell command" shellcmd
+          dbgIO "external command selected" cmd
+          dbgIO "external command arguments" (map quoteIfNeeded externalargs)
+          dbgIO "running shell command" shellcmd
           system shellcmd >>= exitWith
 
       -- deprecated commands

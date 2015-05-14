@@ -86,65 +86,93 @@ debugLevel = case snd $ break (=="--debug") args of
     where
       args = unsafePerformIO getArgs
 
--- | Print a message and a showable value to the console if the global
--- debug level is non-zero.  Uses unsafePerformIO.
+-- | Convenience aliases for tracePrettyAt.
+-- Pretty-print a message and the showable value to the console, then return it.
 dbg :: Show a => String -> a -> a
-dbg = dbg1
+dbg = tracePrettyAt 0
 
--- always prints
-dbg0 :: Show a => String -> a -> a
-dbg0 = dbgAt 0
-
+-- | Pretty-print a message and the showable value to the console when the debug level is >= 1, then return it. Uses unsafePerformIO.
 dbg1 :: Show a => String -> a -> a
-dbg1 = dbgAt 1
+dbg1 = tracePrettyAt 1
 
 dbg2 :: Show a => String -> a -> a
-dbg2 = dbgAt 2
+dbg2 = tracePrettyAt 2
 
 dbg3 :: Show a => String -> a -> a
-dbg3 = dbgAt 3
+dbg3 = tracePrettyAt 3
 
 dbg4 :: Show a => String -> a -> a
-dbg4 = dbgAt 4
+dbg4 = tracePrettyAt 4
 
 dbg5 :: Show a => String -> a -> a
-dbg5 = dbgAt 5
+dbg5 = tracePrettyAt 5
 
 dbg6 :: Show a => String -> a -> a
-dbg6 = dbgAt 6
+dbg6 = tracePrettyAt 6
 
 dbg7 :: Show a => String -> a -> a
-dbg7 = dbgAt 7
+dbg7 = tracePrettyAt 7
 
 dbg8 :: Show a => String -> a -> a
-dbg8 = dbgAt 8
+dbg8 = tracePrettyAt 8
 
 dbg9 :: Show a => String -> a -> a
-dbg9 = dbgAt 9
+dbg9 = tracePrettyAt 9
 
--- | Print a message and a showable value to the console if the global
--- debug level is at or above the specified level.  Uses unsafePerformIO.
-dbgAt :: Show a => Int -> String -> a -> a
-dbgAt lvl = dbgppshow lvl
+-- | Convenience aliases for tracePrettyAtIO.
+-- Like dbg, but convenient to insert in an IO monad.
+dbgIO :: Show a => String -> a -> IO ()
+dbgIO = tracePrettyAtIO 0
 
-    -- Could not deduce (a ~ ())
-    -- from the context (Show a)
-    --   bound by the type signature for
-    --              dbgM :: Show a => String -> a -> IO ()
-    --   at hledger/Hledger/Cli/Main.hs:200:13-42
-    --   ‘a’ is a rigid type variable bound by
-    --       the type signature for dbgM :: Show a => String -> a -> IO ()
-    --       at hledger/Hledger/Cli/Main.hs:200:13
-    -- Expected type: String -> a -> IO ()
-    --   Actual type: String -> a -> IO a
--- dbgAtM :: (Monad m, Show a) => Int -> String -> a -> m a
--- dbgAtM lvl lbl x = dbgAt lvl lbl x `seq` return x
--- XXX temporary:
-dbgAtM :: Show a => Int -> String -> a -> IO ()
-dbgAtM = dbgAtIO
+dbg1IO :: Show a => String -> a -> IO ()
+dbg1IO = tracePrettyAtIO 1
 
-dbgAtIO :: Show a => Int -> String -> a -> IO ()
-dbgAtIO lvl lbl x = dbgAt lvl lbl x `seq` return ()
+dbg2IO :: Show a => String -> a -> IO ()
+dbg2IO = tracePrettyAtIO 2
+
+dbg3IO :: Show a => String -> a -> IO ()
+dbg3IO = tracePrettyAtIO 3
+
+dbg4IO :: Show a => String -> a -> IO ()
+dbg4IO = tracePrettyAtIO 4
+
+dbg5IO :: Show a => String -> a -> IO ()
+dbg5IO = tracePrettyAtIO 5
+
+dbg6IO :: Show a => String -> a -> IO ()
+dbg6IO = tracePrettyAtIO 6
+
+dbg7IO :: Show a => String -> a -> IO ()
+dbg7IO = tracePrettyAtIO 7
+
+dbg8IO :: Show a => String -> a -> IO ()
+dbg8IO = tracePrettyAtIO 8
+
+dbg9IO :: Show a => String -> a -> IO ()
+dbg9IO = tracePrettyAtIO 9
+
+-- | Pretty-print a message and a showable value to the console if the debug level is at or above the specified level.
+-- dbtAt 0 always prints. Otherwise, uses unsafePerformIO.
+tracePrettyAt :: Show a => Int -> String -> a -> a
+tracePrettyAt lvl = dbgppshow lvl
+
+tracePrettyAtIO :: Show a => Int -> String -> a -> IO ()
+tracePrettyAtIO lvl lbl x = tracePrettyAt lvl lbl x `seq` return ()
+
+-- XXX
+-- Could not deduce (a ~ ())
+-- from the context (Show a)
+--   bound by the type signature for
+--              dbgM :: Show a => String -> a -> IO ()
+--   at hledger/Hledger/Cli/Main.hs:200:13-42
+--   ‘a’ is a rigid type variable bound by
+--       the type signature for dbgM :: Show a => String -> a -> IO ()
+--       at hledger/Hledger/Cli/Main.hs:200:13
+-- Expected type: String -> a -> IO ()
+--   Actual type: String -> a -> IO a
+--
+-- tracePrettyAtM :: (Monad m, Show a) => Int -> String -> a -> m a
+-- tracePrettyAtM lvl lbl x = tracePrettyAt lvl lbl x `seq` return x
 
 -- | print this string to the console before evaluating the expression,
 -- if the global debug level is non-zero.  Uses unsafePerformIO.
@@ -168,7 +196,7 @@ dbgshow level
 -- Values are displayed with ppShow, each field/constructor on its own line.
 dbgppshow :: Show a => Int -> String -> a -> a
 dbgppshow level
-    | debugLevel < level = flip const
+    | level > 0 && debugLevel < level = flip const
     | otherwise = \s a -> let p = ppShow a
                               ls = lines p
                               nlorspace | length ls > 1 = "\n"

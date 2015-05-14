@@ -54,7 +54,7 @@ postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
 postingsReport opts q j = (totallabel, items)
     where
       -- figure out adjusted queries & spans like multiBalanceReport
-      symq = dbg "symq"   $ filterQuery queryIsSym $ dbg "requested q" q
+      symq = dbg1 "symq"   $ filterQuery queryIsSym $ dbg1 "requested q" q
       depth = queryDepth q
       depthless = filterQuery (not . queryIsDepth)
       datelessq = filterQuery (not . queryIsDateOrDate2) q
@@ -62,23 +62,23 @@ postingsReport opts q j = (totallabel, items)
       dateq = filterQuery queryIsDateOrDate2 q
       (dateqcons,pdate) | queryIsDate2 dateq || (queryIsDate dateq && date2_ opts) = (Date2, postingDate2)
                         | otherwise = (Date, postingDate)
-      requestedspan  = dbg "requestedspan"  $ queryDateSpan' q   -- span specified by -b/-e/-p options and query args
-      requestedspan' = dbg "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan ({-date2_ opts-} False) j  -- if open-ended, close it using the journal's end dates
-      intervalspans  = dbg "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan' -- interval spans enclosing it
-      reportstart    = dbg "reportstart"    $ maybe Nothing spanStart $ headMay intervalspans
-      reportend      = dbg "reportend"      $ maybe Nothing spanEnd   $ lastMay intervalspans
-      reportspan     = dbg "reportspan"     $ DateSpan reportstart reportend  -- the requested span enlarged to a whole number of intervals
-      beforestartq   = dbg "beforestartq"   $ dateqcons $ DateSpan Nothing reportstart
-      beforeendq     = dbg "beforeendq"     $ dateqcons $ DateSpan Nothing reportend
-      reportq        = dbg "reportq"        $ depthless $ And [datelessq, beforeendq] -- user's query with no start date, end date on an interval boundary and no depth limit
+      requestedspan  = dbg1 "requestedspan"  $ queryDateSpan' q   -- span specified by -b/-e/-p options and query args
+      requestedspan' = dbg1 "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan ({-date2_ opts-} False) j  -- if open-ended, close it using the journal's end dates
+      intervalspans  = dbg1 "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan' -- interval spans enclosing it
+      reportstart    = dbg1 "reportstart"    $ maybe Nothing spanStart $ headMay intervalspans
+      reportend      = dbg1 "reportend"      $ maybe Nothing spanEnd   $ lastMay intervalspans
+      reportspan     = dbg1 "reportspan"     $ DateSpan reportstart reportend  -- the requested span enlarged to a whole number of intervals
+      beforestartq   = dbg1 "beforestartq"   $ dateqcons $ DateSpan Nothing reportstart
+      beforeendq     = dbg1 "beforeendq"     $ dateqcons $ DateSpan Nothing reportend
+      reportq        = dbg1 "reportq"        $ depthless $ And [datelessq, beforeendq] -- user's query with no start date, end date on an interval boundary and no depth limit
 
       pstoend =
-          dbg "ps4" $ sortBy (comparing pdate) $                                  -- sort postings by date (or date2)
-          dbg "ps3" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
-          dbg "ps2" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
-          dbg "ps1" $ filter (reportq `matchesPosting`) $                         -- filter postings by the query, including before the report start date, ignoring depth
+          dbg1 "ps4" $ sortBy (comparing pdate) $                                  -- sort postings by date (or date2)
+          dbg1 "ps3" $ map (filterPostingAmount symq) $                            -- remove amount parts which the query's cur: terms would exclude
+          dbg1 "ps2" $ (if related_ opts then concatMap relatedPostings else id) $ -- with -r, replace each with its sibling postings
+          dbg1 "ps1" $ filter (reportq `matchesPosting`) $                         -- filter postings by the query, including before the report start date, ignoring depth
                       journalPostings $ journalSelectingAmountFromOpts opts j
-      (precedingps, reportps) = dbg "precedingps, reportps" $ span (beforestartq `matchesPosting`) pstoend
+      (precedingps, reportps) = dbg1 "precedingps, reportps" $ span (beforestartq `matchesPosting`) pstoend
 
       showempty = queryEmpty q || average_ opts
       -- displayexpr = display_ opts  -- XXX
@@ -87,14 +87,14 @@ postingsReport opts q j = (totallabel, items)
       whichdate = whichDateFromOpts opts
       itemps | interval == NoInterval = map (,Nothing) reportps
              | otherwise              = summarisePostingsByInterval interval whichdate depth showempty reportspan reportps
-      items = dbg "items" $ postingsReportItems itemps (nullposting,Nothing) whichdate depth startbal runningcalc 1
+      items = dbg1 "items" $ postingsReportItems itemps (nullposting,Nothing) whichdate depth startbal runningcalc 1
         where
           startbal = if balancetype_ opts == HistoricalBalance then sumPostings precedingps else 0
           runningcalc | average_ opts = \i avg amt -> avg + (amt - avg) `divideMixedAmount` (fromIntegral i) -- running average
                       | otherwise     = \_ bal amt -> bal + amt                                              -- running total
 
-      dbg s = let p = "postingsReport" in Hledger.Utils.dbg (p++" "++s)  -- add prefix in debug output
-      -- dbg = const id  -- exclude from debug output
+      dbg1 s = let p = "postingsReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
+      -- dbg1 = const id  -- exclude from debug output
 
 totallabel = "Total"
 

@@ -434,7 +434,7 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotal
                   ++ (if row_total_ opts then ["  Total"] else [])
                   ++ (if average_ opts then ["Average"] else [])
     items' | empty_ opts = items
-           | otherwise   = items -- dbg "2" $ filter (any (not . isZeroMixedAmount) . snd) $ dbg "1" items
+           | otherwise   = items -- dbg1 "2" $ filter (any (not . isZeroMixedAmount) . snd) $ dbg1 "1" items
     accts = map renderacct items'
     renderacct ((a,a',i),_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'

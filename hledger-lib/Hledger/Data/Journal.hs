@@ -495,7 +495,7 @@ journalCanonicaliseAmounts :: Journal -> Journal
 journalCanonicaliseAmounts j@Journal{jtxns=ts} = j''
     where
       j'' = j'{jtxns=map fixtransaction ts}
-      j' = j{jcommoditystyles = canonicalStyles $ dbgAt 8 "journalAmounts" $ journalAmounts j}
+      j' = j{jcommoditystyles = canonicalStyles $ dbg8 "journalAmounts" $ journalAmounts j}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
