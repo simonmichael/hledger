@@ -2,7 +2,15 @@ API-ish changes in hledger-lib.
 User-visible changes appear in hledger's change log.
 
 
+- some cleanup of debug trace helpers
+
+- tighten up some date and account name parsers (don't accept leading spaces; docs)
+
+- dependency compatibility updates
+
+
 0.25 (2015/4/7)
+
 
 - GHC 7.10 compatibility (#239)
 

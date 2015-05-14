@@ -1,6 +1,24 @@
 User-visible changes in hledger and hledger-lib.
 
 
+- journal: bring back non-regular-expressing aliases, as the default (#252)
+    
+    The regex account aliases added in 0.24 trip up people switching between
+    hledger and Ledger. (Also they are currently slow).
+    
+    This change makes the old non-regex aliases the default; they are
+    unsurprising, useful, and pretty close in functionality to Ledger's.
+    
+    The new regex aliases are still available; they must be enclosed
+    in forward slashes. Ledger effectively ignores these, which is ok.
+    
+- journal: allow whitespace following a comment directive
+
+- timelog: add support for the description field, like Ledger (#247)
+
+- dependency compatibility updates
+
+
 0.25 (2015/4/7)
 
 - GHC 7.10 compatibility (#239)

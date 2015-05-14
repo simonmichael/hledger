@@ -2,6 +2,9 @@ User-visible changes in hledger-web.
 See also hledger's change log.
 
 
+- fix a js error breaking add form in browsers other than firefox (#251, Carlos Lopez-Camey <c.lopez@kmels.net>)
+
+
 0.25 (2015/4/7)
 
 - GHC 7.10 compatibility (#239)
