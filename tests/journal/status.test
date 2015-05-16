@@ -1,0 +1,80 @@
+# 1. the status field can contain nothing,
+hledgerdev -f- print
+<<<
+2015/1/1 x
+  (a)  1
+>>>
+2015/01/01 x
+    (a)             1
+
+>>>=0
+
+# 2. or !
+hledgerdev -f- print
+<<<
+2015/1/1 ! x
+  (a)  1
+>>>
+2015/01/01 ! x
+    (a)             1
+
+>>>=0
+
+# 3. or *
+hledgerdev -f- print
+<<<
+2015/1/1 * x
+  (a)  1
+>>>
+2015/01/01 * x
+    (a)             1
+
+>>>=0
+
+# 4. --cleared matches * only
+hledgerdev -f- print --cleared
+<<<
+2015/1/1 x
+  (a)  1
+2015/1/1 ! x
+  (b)  1
+2015/1/1 * x
+  (c)  1
+>>>
+2015/01/01 * x
+    (c)             1
+
+>>>=0
+
+# 5. --pending matches ! only
+hledgerdev -f- print --pending
+<<<
+2015/1/1 x
+  (a)  1
+2015/1/1 ! x
+  (b)  1
+2015/1/1 * x
+  (c)  1
+>>>
+2015/01/01 ! x
+    (b)             1
+
+>>>=0
+
+# 6. --uncleared matches all except *
+hledgerdev -f- print --uncleared
+<<<
+2015/1/1 x
+  (a)  1
+2015/1/1 ! x
+  (b)  1
+2015/1/1 * x
+  (c)  1
+>>>
+2015/01/01 x
+    (a)             1
+
+2015/01/01 ! x
+    (b)             1
+
+>>>=0
