@@ -63,6 +63,7 @@ data ReportOpts = ReportOpts {
     ,end_            :: Maybe Day
     ,period_         :: Maybe (Interval,DateSpan)
     ,cleared_        :: Bool
+    ,pending_        :: Bool
     ,uncleared_      :: Bool
     ,cost_           :: Bool
     ,depth_          :: Maybe Int
@@ -119,6 +120,7 @@ defreportopts = ReportOpts
     def
     def
     def
+    def
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = do
@@ -128,6 +130,7 @@ rawOptsToReportOpts rawopts = do
     ,end_         = maybesmartdateopt d "end" rawopts
     ,period_      = maybeperiodopt d rawopts
     ,cleared_     = boolopt "cleared" rawopts
+    ,pending_     = boolopt "pending" rawopts
     ,uncleared_   = boolopt "uncleared" rawopts
     ,cost_        = boolopt "cost" rawopts
     ,depth_       = maybeintopt "depth" rawopts
@@ -226,9 +229,10 @@ intervalFromOpts ReportOpts{..} =
                   | otherwise =  NoInterval
 
 -- | Get a maybe boolean representing the last cleared/uncleared option if any.
-clearedValueFromOpts :: ReportOpts -> Maybe Bool
-clearedValueFromOpts ReportOpts{..} | cleared_   = Just True
-                                    | uncleared_ = Just False
+clearedValueFromOpts :: ReportOpts -> Maybe ClearedStatus
+clearedValueFromOpts ReportOpts{..} | cleared_   = Just Cleared
+                                    | pending_   = Just Pending
+                                    | uncleared_ = Just Uncleared
                                     | otherwise  = Nothing
 
 -- depthFromOpts :: ReportOpts -> Int

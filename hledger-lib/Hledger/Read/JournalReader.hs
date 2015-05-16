@@ -36,6 +36,7 @@ module Hledger.Read.JournalReader (
   amountp',
   mamountp',
   numberp,
+  statusp,
   emptyorcommentlinep,
   followingcommentp,
   accountaliasp
@@ -367,7 +368,7 @@ transaction = do
   date <- datep <?> "transaction"
   edate <- optionMaybe (secondarydatep date) <?> "secondary date"
   lookAhead (spacenonewline <|> newline) <?> "whitespace or newline"
-  status <- status <?> "cleared flag"
+  status <- statusp <?> "cleared status"
   code <- codep <?> "transaction code"
   description <- descriptionp >>= return . strip
   comment <- try followingcommentp <|> (newline >> return "")
@@ -407,14 +408,14 @@ test_transaction = do
      nulltransaction{
       tdate=parsedate "2012/05/14",
       tdate2=Just $ parsedate "2012/05/15",
-      tstatus=False,
+      tstatus=Uncleared,
       tcode="code",
       tdescription="desc",
       tcomment=" tcomment1\n tcomment2\n ttag1: val1\n",
       ttags=[("ttag1","val1")],
       tpostings=[
         nullposting{
-          pstatus=True,
+          pstatus=Cleared,
           paccount="a",
           pamount=Mixed [usd 1],
           pcomment=" pcomment1\n pcomment2\n ptag1: val1\n  ptag2: val2\n",
@@ -535,8 +536,14 @@ secondarydatep primarydate = do
   edate <- withDefaultYear primarydate datep
   return edate
 
-status :: Stream [Char] m Char => ParsecT [Char] JournalContext m Bool
-status = try (do { many spacenonewline; (char '*' <|> char '!') <?> "status"; return True } ) <|> return False
+statusp :: Stream [Char] m Char => ParsecT [Char] JournalContext m ClearedStatus
+statusp =
+  choice'
+    [ many spacenonewline >> char '*' >> return Cleared
+    , many spacenonewline >> char '!' >> return Pending
+    , return Uncleared
+    ]
+    <?> "cleared status"
 
 codep :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
@@ -555,7 +562,7 @@ postings = many1 (try postingp) <?> "postings"
 postingp :: Stream [Char] m Char => ParsecT [Char] JournalContext m Posting
 postingp = do
   many1 spacenonewline
-  status <- status
+  status <- statusp
   many spacenonewline
   account <- modifiedaccountname
   let (ptype, account') = (accountNamePostingType account, unbracket account)

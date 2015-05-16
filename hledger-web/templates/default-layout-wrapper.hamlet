@@ -81,7 +81,7 @@ $newline never
                         <li> <b><tt>desc:REGEXP</tt></b> - filter on description
                         <li> <b><tt>date:PERIODEXP</tt></b>, <b><tt>date2:PERIODEXP</tt></b> - filter on date or secondary date
                         <li> <b><tt>code:REGEXP</tt></b> - filter on transaction's code (eg check number)
-                        <li> <b><tt>status:*</tt></b>, <b><tt>status:!</tt></b>, <b><tt>status:</tt></b> - filter on transaction's status flag (eg cleared status)
+                        <li> <b><tt>status:*</tt></b>, <b><tt>status:!</tt></b>, <b><tt>status:</tt></b> - filter on transaction's cleared status (cleared, pending, uncleared)
                         <!-- <li> <b><tt>empty:BOOL</tt></b> - filter on whether amount is zero -->
                         <li> <b><tt>amt:N</tt></b>, <b><tt>amt:&lt;N</tt></b>, <b><tt>amt:&gt;N</tt></b> - filter on the unsigned amount magnitude. Or with a sign before N, filter on the signed value. (Single-commodity amounts only.)
                         <li> <b><tt>cur:REGEXP</tt></b> - filter on the currency/commodity symbol (must match all of it). Dollar sign must be written as <tt>\$</tt>

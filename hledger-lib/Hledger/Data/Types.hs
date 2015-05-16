@@ -5,7 +5,7 @@ Most data types are defined here to avoid import cycles.
 Here is an overview of the hledger data model:
 
 > Journal                  -- a journal is read from one or more data files. It contains..
->  [Transaction]           -- journal transactions (aka entries), which have date, status, code, description and..
+>  [Transaction]           -- journal transactions (aka entries), which have date, cleared status, code, description and..
 >   [Posting]              -- multiple account postings, which have account name and amount
 >  [HistoricalPrice]       -- historical commodity prices
 >
@@ -116,10 +116,18 @@ data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
 
 type Tag = (String, String)  -- ^ A tag name and (possibly empty) value.
 
+data ClearedStatus = Uncleared | Pending | Cleared
+                   deriving (Eq,Ord,Typeable,Data)
+
+instance Show ClearedStatus where -- custom show
+  show Uncleared = ""             -- a bad idea
+  show Pending   = "!"            -- don't do it
+  show Cleared   = "*"
+
 data Posting = Posting {
       pdate :: Maybe Day,  -- ^ this posting's date, if different from the transaction's
       pdate2 :: Maybe Day,  -- ^ this posting's secondary date, if different from the transaction's
-      pstatus :: Bool,
+      pstatus :: ClearedStatus,
       paccount :: AccountName,
       pamount :: MixedAmount,
       pcomment :: String, -- ^ this posting's comment lines, as a single non-indented multi-line string
@@ -139,7 +147,7 @@ data Transaction = Transaction {
       tsourcepos :: SourcePos,
       tdate :: Day,
       tdate2 :: Maybe Day,
-      tstatus :: Bool,  -- XXX tcleared ?
+      tstatus :: ClearedStatus,
       tcode :: String,
       tdescription :: String,
       tcomment :: String, -- ^ this transaction's comment lines, as a single non-indented multi-line string

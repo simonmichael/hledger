@@ -100,7 +100,7 @@ transactionToCSV n t =
     description = tdescription t
     date = showDate (tdate t)
     date2 = maybe "" showDate (tdate2 t)
-    status = if tstatus t then "*" else ""
+    status = show $ tstatus t
     code = tcode t
     comment = chomp $ strip $ tcomment t
 
@@ -116,7 +116,7 @@ postingToCSV p =
    amounts
   where
     Mixed amounts = pamount p
-    status = if pstatus p then "*" else ""
+    status = show $ pstatus p
     account = showAccountName Nothing (ptype p) (paccount p)
     comment = chomp $ strip $ pcomment p
 

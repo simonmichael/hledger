@@ -13,7 +13,7 @@ module Hledger.Data.Posting (
   posting,
   post,
   -- * operations
-  postingCleared,
+  postingStatus,
   isReal,
   isVirtual,
   isBalancedVirtual,
@@ -67,7 +67,7 @@ nullposting, posting :: Posting
 nullposting = Posting
                 {pdate=Nothing
                 ,pdate2=Nothing
-                ,pstatus=False
+                ,pstatus=Uncleared
                 ,paccount=""
                 ,pamount=nullmixedamt
                 ,pcomment=""
@@ -137,14 +137,28 @@ postingDate2 p = headDef nulldate $ catMaybes dates
                 ,maybe Nothing (Just . tdate) $ ptransaction p
                 ]
 
--- |Is this posting cleared? If this posting was individually marked
--- as cleared, returns True. Otherwise, return the parent
--- transaction's cleared status or, if there is no parent
--- transaction, return False.
-postingCleared :: Posting -> Bool
-postingCleared p = if pstatus p
-                    then True
-                    else maybe False tstatus $ ptransaction p
+-- | Get a posting's cleared status: cleared or pending if explicitly set,
+-- otherwise the cleared status of its parent transaction, or uncleared
+-- if there is no parent transaction.
+-- (Note Uncleared's ambiguity, can mean "uncleared" or "don't know".
+postingStatus :: Posting -> ClearedStatus
+postingStatus Posting{pstatus=s, ptransaction=mt}
+  | s == Uncleared = case mt of Just t  -> tstatus t
+                                Nothing -> Uncleared
+  | otherwise = s
+
+-- -- | Is this posting cleared? True if the posting is explicitly marked
+-- -- cleared, false if it is marked pending, otherwise true if the
+-- -- parent transaction is marked cleared or false if there is no parent
+-- -- transaction.
+-- -- (Note Uncleared's ambiguity, can mean "uncleared" or "don't know".
+-- postingIsCleared :: Posting -> Bool
+-- postingIsCleared p
+--   | pstatus p == Cleared = True
+--   | pstatus p == Pending = False
+--   | otherwise = case ptransaction p of
+--                   Just t  -> tstatus t == Cleared
+--                   Nothing -> False
 
 -- | Tags for this posting including any inherited from its parent transaction.
 postingAllTags :: Posting -> [Tag]

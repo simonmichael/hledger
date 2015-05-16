@@ -73,7 +73,7 @@ data Query = Any              -- ^ always match
            | Acct String      -- ^ match postings whose account matches this regexp
            | Date DateSpan    -- ^ match if primary date in this date span
            | Date2 DateSpan   -- ^ match if secondary date in this date span
-           | Status Bool      -- ^ match if cleared status has this value
+           | Status ClearedStatus  -- ^ match if cleared status has this value
            | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
            | Amt OrdPlus Quantity  -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
            | Sym String       -- ^ match if the entire commodity symbol is matched by this regexp
@@ -265,9 +265,11 @@ tests_parseQueryTerm = [
     "a" `gives` (Left $ Acct "a")
     "acct:expenses:autres d\233penses" `gives` (Left $ Acct "expenses:autres d\233penses")
     "not:desc:a b" `gives` (Left $ Not $ Desc "a b")
-    "status:1" `gives` (Left $ Status True)
-    "status:0" `gives` (Left $ Status False)
-    "status:" `gives` (Left $ Status False)
+    "status:1" `gives` (Left $ Status Cleared)
+    "status:*" `gives` (Left $ Status Cleared)
+    "status:!" `gives` (Left $ Status Pending)
+    "status:0" `gives` (Left $ Status Uncleared)
+    "status:" `gives` (Left $ Status Uncleared)
     "real:1" `gives` (Left $ Real True)
     "date:2008" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
     "date:from 2012/5/17" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
@@ -333,8 +335,10 @@ parseTag s | '=' `elem` s = (n, Just $ tail v)
 
 -- -- , treating "*" or "!" as synonyms for "1".
 -- | Parse the boolean value part of a "status:" query.
-parseStatus :: String -> Bool
-parseStatus s = s `elem` (truestrings) -- ++ ["*","!"])
+parseStatus :: String -> ClearedStatus
+parseStatus s | s `elem` ["1","*"] = Cleared
+              | s == "!"           = Pending
+              | otherwise          = Uncleared
 
 -- | Parse the boolean value part of a "status:" query. "1" means true,
 -- anything else will be parsed as false without error.
@@ -399,7 +403,7 @@ tests_filterQuery = [
   let (q,p) `gives` r = assertEqual "" r (filterQuery p q)
   (Any, queryIsDepth) `gives` Any
   (Depth 1, queryIsDepth) `gives` Depth 1
-  (And [And [Status True,Depth 1]], not . queryIsDepth) `gives` Status True
+  (And [And [Status Cleared,Depth 1]], not . queryIsDepth) `gives` Status Cleared
   -- (And [Date nulldatespan, Not (Or [Any, Depth 1])], queryIsDepth) `gives` And [Not (Or [Depth 1])]
  ]
 
@@ -643,7 +647,8 @@ matchesPosting (Desc r) p = regexMatchesCI r $ maybe "" tdescription $ ptransact
 matchesPosting (Acct r) p = regexMatchesCI r $ paccount p
 matchesPosting (Date span) p = span `spanContainsDate` postingDate p
 matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
-matchesPosting (Status v) p = v == postingCleared p
+matchesPosting (Status Uncleared) p = postingStatus p /= Cleared
+matchesPosting (Status s) p = postingStatus p == s
 matchesPosting (Real v) p = v == isReal p
 matchesPosting q@(Depth _) Posting{paccount=a} = q `matchesAccount` a
 matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
@@ -660,16 +665,16 @@ matchesPosting (Tag n (Just v)) p = isJust $ lookupTagByNameAndValue (n,v) $ pos
 tests_matchesPosting = [
    "matchesPosting" ~: do
     -- matching posting status..
-    assertBool "positive match on true posting status"  $
-                   (Status True)  `matchesPosting` nullposting{pstatus=True}
-    assertBool "negative match on true posting status"  $
-               not $ (Not $ Status True)  `matchesPosting` nullposting{pstatus=True}
-    assertBool "positive match on false posting status" $
-                   (Status False) `matchesPosting` nullposting{pstatus=False}
-    assertBool "negative match on false posting status" $
-               not $ (Not $ Status False) `matchesPosting` nullposting{pstatus=False}
+    assertBool "positive match on cleared posting status"  $
+                   (Status Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
+    assertBool "negative match on cleared posting status"  $
+               not $ (Not $ Status Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
+    assertBool "positive match on unclered posting status" $
+                   (Status Uncleared) `matchesPosting` nullposting{pstatus=Uncleared}
+    assertBool "negative match on unclered posting status" $
+               not $ (Not $ Status Uncleared) `matchesPosting` nullposting{pstatus=Uncleared}
     assertBool "positive match on true posting status acquired from transaction" $
-                   (Status True) `matchesPosting` nullposting{pstatus=False,ptransaction=Just nulltransaction{tstatus=True}}
+                   (Status Cleared) `matchesPosting` nullposting{pstatus=Uncleared,ptransaction=Just nulltransaction{tstatus=Cleared}}
     assertBool "real:1 on real posting" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
     assertBool "real:1 on virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
     assertBool "real:1 on balanced virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
@@ -701,7 +706,8 @@ matchesTransaction (Desc r) t = regexMatchesCI r $ tdescription t
 matchesTransaction q@(Acct _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Date span) t = spanContainsDate span $ tdate t
 matchesTransaction (Date2 span) t = spanContainsDate span $ transactionDate2 t
-matchesTransaction (Status v) t = v == tstatus t
+matchesTransaction (Status Uncleared) t = tstatus t /= Cleared
+matchesTransaction (Status s) t = tstatus t == s
 matchesTransaction (Real v) t = v == hasRealPostings t
 matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Empty _) _ = True

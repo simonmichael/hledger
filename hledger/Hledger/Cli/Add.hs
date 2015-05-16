@@ -147,7 +147,7 @@ transactionWizard es@EntryState{..} = do
       balancedPostingsWizard = do
         ps <- postingsWizard es2{esPostings=[]}
         let t = nulltransaction{tdate=date
-                               ,tstatus=False
+                               ,tstatus=Uncleared
                                ,tcode=code
                                ,tdescription=desc
                                ,tcomment=comment

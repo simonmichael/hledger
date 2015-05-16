@@ -51,7 +51,7 @@ import Text.Printf (hPrintf,printf)
 import Hledger.Data
 import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
-import Hledger.Read.JournalReader (amountp)
+import Hledger.Read.JournalReader (amountp, statusp)
 
 
 reader :: Reader
@@ -602,7 +602,15 @@ transactionFromCsvRecord sourcepos rules record = t
        ++"or "++maybe "add a" (const "change your") mskip++" skip rule"
       ,"for m/d/y or d/m/y dates, use date-format %-m/%-d/%Y or date-format %-d/%-m/%Y"
       ]
-    status      = maybe False ((=="*") . render) $ mfieldtemplate "status"
+    status      =
+      case mfieldtemplate "status" of
+        Nothing  -> Uncleared
+        Just str -> either statuserror id $ runParser (statusp <* eof) nullctx "" $ render str
+          where
+            statuserror err = error' $ unlines
+              ["error: could not parse \""++str++"\" as a cleared status (should be *, ! or empty)"
+              ,"the parse error is:      "++show err
+              ]
     code        = maybe "" render $ mfieldtemplate "code"
     description = maybe "" render $ mfieldtemplate "description"
     comment     = maybe "" render $ mfieldtemplate "comment"

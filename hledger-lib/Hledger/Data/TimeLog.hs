@@ -82,7 +82,7 @@ entryFromTimeLogInOut i o
             tsourcepos   = tlsourcepos i,
             tdate        = idate,
             tdate2       = Nothing,
-            tstatus      = True,
+            tstatus      = Cleared,
             tcode        = "",
             tdescription = desc,
             tcomment     = "",

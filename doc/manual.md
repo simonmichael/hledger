@@ -840,7 +840,8 @@ General flags:
                           all at once (overrides the flags above)
      --date2 --aux-date   use postings/txns' secondary dates instead
   -C --cleared            include only cleared postings/txns
-  -U --uncleared          include only uncleared postings/txns
+     --pending            include only pending postings/txns
+  -U --uncleared          include only uncleared (and pending) postings/txns
   -R --real               include only non-virtual postings
      --depth=N            hide accounts/postings deeper than N
   -E --empty              show empty/zero things which are normally omitted
@@ -962,7 +963,7 @@ A query term can be any of the following:
 - `date2:PERIODEXPR` - as above, but match secondary dates
 - `tag:NAME[=REGEX]` - match by (exact, case sensitive) [tag](#tags) name, and optionally match the tag value by regular expression. Note `tag:` will match a transaction if it or any its postings have the tag, and will match posting if it or its parent transaction has the tag.
 - `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
-- `status:1` or `status:0` - match pending/cleared or uncleared transactions respectively
+- `status:*` or `status:!` or `status:` - match cleared, pending, or uncleared/pending transactions respectively
 - `real:1` or `real:0` - match real/virtual-ness
 - `empty:1` or `empty:0` - match if amount is/is not zero
 - `amt:N`, `amt:<N`, `amt:<=N`, `amt:>N`, `amt:>=N` - match postings with a single-commodity
