@@ -73,7 +73,7 @@ data Query = Any              -- ^ always match
            | Acct String      -- ^ match postings whose account matches this regexp
            | Date DateSpan    -- ^ match if primary date in this date span
            | Date2 DateSpan   -- ^ match if secondary date in this date span
-           | Status ClearedStatus  -- ^ match if cleared status has this value
+           | Status ClearedStatus  -- ^ match txns/postings with this cleared status (Status Uncleared matches all states except cleared)
            | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
            | Amt OrdPlus Quantity  -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
            | Sym String       -- ^ match if the entire commodity symbol is matched by this regexp
@@ -249,7 +249,9 @@ parseQueryTerm d ('d':'a':'t':'e':'2':':':s) =
 parseQueryTerm d ('d':'a':'t':'e':':':s) =
         case parsePeriodExpr d s of Left e         -> error' $ "\"date:"++s++"\" gave a "++showDateParseError e
                                     Right (_,span) -> Left $ Date span
-parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = Left $ Status $ parseStatus s
+parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = 
+        case parseStatus s of Left e   -> error' $ "\"status:"++s++"\" gave a parse error: " ++ e
+                              Right st -> Left $ Status st
 parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s
 parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt ord q where (ord, q) = parseAmountQueryTerm s
 parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
@@ -333,12 +335,12 @@ parseTag s | '=' `elem` s = (n, Just $ tail v)
            | otherwise    = (s, Nothing)
            where (n,v) = break (=='=') s
 
--- -- , treating "*" or "!" as synonyms for "1".
--- | Parse the boolean value part of a "status:" query.
-parseStatus :: String -> ClearedStatus
-parseStatus s | s `elem` ["1","*"] = Cleared
-              | s == "!"           = Pending
-              | otherwise          = Uncleared
+-- | Parse the value part of a "status:" query, or return an error.
+parseStatus :: String -> Either String ClearedStatus
+parseStatus s | s `elem` ["*","1"] = Right Cleared
+              | s `elem` ["!"]     = Right Pending
+              | s `elem` ["","0"]  = Right Uncleared
+              | otherwise          = Left $ "could not parse "++show s++" as a status (should be *, ! or empty)"
 
 -- | Parse the boolean value part of a "status:" query. "1" means true,
 -- anything else will be parsed as false without error.
