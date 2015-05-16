@@ -145,152 +145,7 @@ Here's the original [proposal](http://article.gmane.org/gmane.comp.finance.ledge
 
 <!-- ### contributors and credits -->
 
----
 
-## Implementation notes
-
-### hledger
-
-There are two core cabal packages:
-
-**[hledger-lib](http://hackage.haskell.org/package/hledger-lib)** - data model, parsing, manipulation, standard reports
-([github](https://github.com/simonmichael/hledger/tree/master/hledger-lib))\
-**[hledger](http://hackage.haskell.org/package/hledger)** - command line interface, reusable cli options & helpers
-([github](https://github.com/simonmichael/hledger/tree/master/hledger))
-
-Most data types are defined in hledger-lib:Hledger.Data.Types,
-while functions that operate on them are defined in
-hledger-lib:Hledger.Data.TYPENAME.
-Here's a diagram of the main data model:
-
-<uml>
-hide empty members
-hide circle
-skinparam packageStyle Rect
-
-Ledger *-- Journal
-Ledger *-- "*" Account
-note top of Ledger: A Journal and all its accounts with their balances.\nUsed for balance report
-note top of Journal: A journal file and parsed transactions & directives.\nUsed for print & register reports
-note bottom of Account: An account's name, balance (inclusive &\nexclusive), parent and child accounts
-Account o-- "*" Account :subaccounts, parent
-Journal o-- File
-File o-- "*" File :include
-Journal *-- "*" HistoricalPrice
-Journal *-- "*" Transaction
-HistoricalPrice -- Date
-HistoricalPrice -- Amount
-Transaction -- Date
-Transaction *-- "*" Posting
-Transaction o-- "*" Tag
-Posting o- "*" Tag
-Posting -- "0..1" Date
-Account -- AccountName
-Posting -- AccountName
-Account -- "2" MixedAmount
-Posting -- MixedAmount
-MixedAmount *-- "*" Amount
-Amount -- Commodity
-Amount -- Quantity
-Amount -- Price
-Amount -- AmountStyle
-</uml>
-
-hledger parses the journal file into a
-[Journal](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Journal),
-which contains a list of
-[Transactions](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Transaction),
-each containing multiple
-[Postings](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Posting)
-of some
-[MixedAmount](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:MixedAmount)
-(multiple
-single-[Commodity](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Commodity)
-[Amounts](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Amount))
-to some
-[AccountName](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:AccountName).
-Commands get and render 
-[Reports](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Reports.html)
-from the Journal, or sometimes from a
-[Ledger](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Ledger),
-which contains
-[Accounts](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Account)
-representing the summed balances and other details of each account.
-
-After surveying the packages, modules, and data types, try tracing the execution of a hledger command:
-
-1. CLI stuff is in [hledger:Hledger.Cli](https://github.com/simonmichael/hledger/tree/master/hledger/Hledger/Cli).
-2. [hledger:Hledger.Cli.Main:main](https://github.com/simonmichael/hledger/blob/master/hledger/Hledger/Cli/Main.hs#L179)
-parses the command line to select a command, then
-3. gives it to
-[hledger:Hledger.Cli.Utils:withJournalDo](https://github.com/simonmichael/hledger/blob/master/hledger/Hledger/Cli/Utils.hs#L61),
-which runs it after doing all the initial parsing.
-4. Parsing code is under
-[hledger-lib:Hledger.Read](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Read.hs),
-eg the
-[hledger-lib:Hledger.Read.JournalReader](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Read/JournalReader.hs).
-5. Commands extract useful information from the parsed data model using
-[hledger-lib:Hledger.Reports](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Reports),
-and
-6. render it to the console.
-7. Everything uses the types and data
-utilities under
-[hledger-lib:Hledger.Data](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Data),
-and the general helpers from
-[hledger-lib:Hledger.Utils](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Utils.hs)
-and below.
-
-### hledger-web
-
-hledger-web is in a third cabal package:
-
-**[hledger-web](http://hackage.haskell.org/package/hledger-web)** - web interface
-([github](https://github.com/simonmichael/hledger/tree/master/hledger-web))
-
-It is a single-executable web application using the
-[yesod](http://yesodweb.com) framework.  It runs a built-in web server
-serving some views of the journal file, reading it at startup and
-again whenever it changes. It can also append new transactions to the journal file.
-There are two main views, which can be filtered with [query arguments](manual#query-arguments):
-
-- [/journal](http://demo.hledger.org/journal), showing general journal entries (like `hledger print`)
-
-- [/register](http://demo.hledger.org/register?q=inacct:Assets:Bank:Checking),
-  showing transactions affecting an account (slightly different from
-  `hledger register`, which shows postings).
-
-There is also:
-
-- a sidebar (toggled by pressing `s`) showing the chart of accounts (like `hledger balance`)
-- an [add form](http://demo.hledger.org/journal?add=1) for adding new transactions (press `a`)
-- a help dialog showing quick help and keybindings (press `h` or click ?)
-
-Most of the action is in
-
-- [config/routes](https://github.com/simonmichael/hledger/tree/master/hledger-web/config/routes)
-- [templates/default-layout-wrapper.hamlet](https://github.com/simonmichael/hledger/tree/master/hledger-web/templates/default-layout-wrapper.hamlet)
-- [Foundation](https://github.com/simonmichael/hledger/tree/master/hledger-web/Foundation.hs)
-- [Handler.*](https://github.com/simonmichael/hledger/tree/master/hledger-web/Handler)
-- [static/hledger.js](https://github.com/simonmichael/hledger/tree/master/hledger-web/static/hledger.js)
-- [static/hledger.css](https://github.com/simonmichael/hledger/tree/master/hledger-web/static/hledger.css)
-
-Handler module and function names end with R, like the Yesod-generated route type they deal with.
-
-Dynamically generated page content is mostly inline hamlet.
-Lucius/Julius files and widgets generally are not used, except for the default layout.
-
-The quickest way to test changes is `make ghciweb`, `:main --serve`, control-C, `:r`, repeat.
-No linking is required, and changes to static files like hledger.js are visible after reloading a page.
-
-Another way is `yesod devel`, which rebuilds automatically when files
-change, including config files, templates and static files (but only in the hledger-web package).
-
-A third way is `make autoweb`, if you can get it working (see the
-makefile for instructions). This rebuilds automatically when haskell
-files change in any of the hledger{-lib,,-web} packages.
-
-
----
 
 ## How to..
 
@@ -560,3 +415,150 @@ don't run make setversion. Use make -n if unsure.
 11. announce
     - [email hledger]
     - [tweet]
+
+
+## Implementation notes
+
+### hledger
+
+There are two core cabal packages:
+
+**[hledger-lib](http://hackage.haskell.org/package/hledger-lib)** - data model, parsing, manipulation, standard reports
+([github](https://github.com/simonmichael/hledger/tree/master/hledger-lib))\
+**[hledger](http://hackage.haskell.org/package/hledger)** - command line interface, reusable cli options & helpers
+([github](https://github.com/simonmichael/hledger/tree/master/hledger))
+
+Most data types are defined in hledger-lib:Hledger.Data.Types,
+while functions that operate on them are defined in
+hledger-lib:Hledger.Data.TYPENAME.
+Here's a diagram of the main data model:
+<img src="images/data-model.png">
+<!--
+generated by the old wiki from:
+<uml>
+hide empty members
+hide circle
+skinparam packageStyle Rect
+
+Ledger *-- Journal
+Ledger *-- "*" Account
+note top of Ledger: A Journal and all its accounts with their balances.\nUsed for balance report
+note top of Journal: A journal file and parsed transactions & directives.\nUsed for print & register reports
+note bottom of Account: An account's name, balance (inclusive &\nexclusive), parent and child accounts
+Account o-- "*" Account :subaccounts, parent
+Journal o-- File
+File o-- "*" File :include
+Journal *-- "*" HistoricalPrice
+Journal *-- "*" Transaction
+HistoricalPrice -- Date
+HistoricalPrice -- Amount
+Transaction -- Date
+Transaction *-- "*" Posting
+Transaction o-- "*" Tag
+Posting o- "*" Tag
+Posting -- "0..1" Date
+Account -- AccountName
+Posting -- AccountName
+Account -- "2" MixedAmount
+Posting -- MixedAmount
+MixedAmount *-- "*" Amount
+Amount -- Commodity
+Amount -- Quantity
+Amount -- Price
+Amount -- AmountStyle
+</uml>
+-->
+
+hledger parses the journal file into a
+[Journal](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Journal),
+which contains a list of
+[Transactions](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Transaction),
+each containing multiple
+[Postings](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Posting)
+of some
+[MixedAmount](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:MixedAmount)
+(multiple
+single-[Commodity](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Commodity)
+[Amounts](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Amount))
+to some
+[AccountName](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:AccountName).
+Commands get and render 
+[Reports](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Reports.html)
+from the Journal, or sometimes from a
+[Ledger](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Ledger),
+which contains
+[Accounts](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Account)
+representing the summed balances and other details of each account.
+
+After surveying the packages, modules, and data types, try tracing the execution of a hledger command:
+
+1. CLI stuff is in [hledger:Hledger.Cli](https://github.com/simonmichael/hledger/tree/master/hledger/Hledger/Cli).
+2. [hledger:Hledger.Cli.Main:main](https://github.com/simonmichael/hledger/blob/master/hledger/Hledger/Cli/Main.hs#L179)
+parses the command line to select a command, then
+3. gives it to
+[hledger:Hledger.Cli.Utils:withJournalDo](https://github.com/simonmichael/hledger/blob/master/hledger/Hledger/Cli/Utils.hs#L61),
+which runs it after doing all the initial parsing.
+4. Parsing code is under
+[hledger-lib:Hledger.Read](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Read.hs),
+eg the
+[hledger-lib:Hledger.Read.JournalReader](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Read/JournalReader.hs).
+5. Commands extract useful information from the parsed data model using
+[hledger-lib:Hledger.Reports](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Reports),
+and
+6. render it to the console.
+7. Everything uses the types and data
+utilities under
+[hledger-lib:Hledger.Data](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Data),
+and the general helpers from
+[hledger-lib:Hledger.Utils](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Utils.hs)
+and below.
+
+### hledger-web
+
+hledger-web is in a third cabal package:
+
+**[hledger-web](http://hackage.haskell.org/package/hledger-web)** - web interface
+([github](https://github.com/simonmichael/hledger/tree/master/hledger-web))
+
+It is a single-executable web application using the
+[yesod](http://yesodweb.com) framework.  It runs a built-in web server
+serving some views of the journal file, reading it at startup and
+again whenever it changes. It can also append new transactions to the journal file.
+There are two main views, which can be filtered with [query arguments](manual#query-arguments):
+
+- [/journal](http://demo.hledger.org/journal), showing general journal entries (like `hledger print`)
+
+- [/register](http://demo.hledger.org/register?q=inacct:Assets:Bank:Checking),
+  showing transactions affecting an account (slightly different from
+  `hledger register`, which shows postings).
+
+There is also:
+
+- a sidebar (toggled by pressing `s`) showing the chart of accounts (like `hledger balance`)
+- an [add form](http://demo.hledger.org/journal?add=1) for adding new transactions (press `a`)
+- a help dialog showing quick help and keybindings (press `h` or click ?)
+
+Most of the action is in
+
+- [config/routes](https://github.com/simonmichael/hledger/tree/master/hledger-web/config/routes)
+- [templates/default-layout-wrapper.hamlet](https://github.com/simonmichael/hledger/tree/master/hledger-web/templates/default-layout-wrapper.hamlet)
+- [Foundation](https://github.com/simonmichael/hledger/tree/master/hledger-web/Foundation.hs)
+- [Handler.*](https://github.com/simonmichael/hledger/tree/master/hledger-web/Handler)
+- [static/hledger.js](https://github.com/simonmichael/hledger/tree/master/hledger-web/static/hledger.js)
+- [static/hledger.css](https://github.com/simonmichael/hledger/tree/master/hledger-web/static/hledger.css)
+
+Handler module and function names end with R, like the Yesod-generated route type they deal with.
+
+Dynamically generated page content is mostly inline hamlet.
+Lucius/Julius files and widgets generally are not used, except for the default layout.
+
+The quickest way to test changes is `make ghciweb`, `:main --serve`, control-C, `:r`, repeat.
+No linking is required, and changes to static files like hledger.js are visible after reloading a page.
+
+Another way is `yesod devel`, which rebuilds automatically when files
+change, including config files, templates and static files (but only in the hledger-web package).
+
+A third way is `make autoweb`, if you can get it working (see the
+makefile for instructions). This rebuilds automatically when haskell
+files change in any of the hledger{-lib,,-web} packages.
+
