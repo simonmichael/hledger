@@ -1603,7 +1603,11 @@ Examples:
 -->
 
 
-## Editor support
+
+## Appendices
+
+
+### Editor support
 
 Add-on modes exist for various text editors, to make working with journal
 files easier. They add colour, navigation aids and helpful commands.
@@ -1627,11 +1631,9 @@ https://twitter.com/LedgerTips/status/501767602067472384
 -->
 
 
+### Troubleshooting
 
-
-## Troubleshooting
-
-### Run-time problems
+#### Run-time problems
 
 Here are some issues you might encounter when you run hledger
 (and remember you can also seek help from the
@@ -1639,12 +1641,12 @@ Here are some issues you might encounter when you run hledger
 [mail list](http://list.hledger.org) or
 [bug tracker](http://bugs.hledger.org)):
 
-#### Successfully installed, but "No command 'hledger' found"
+##### Successfully installed, but "No command 'hledger' found"
 cabal installs binaries into a special directory, which should be added
 to your PATH environment variable.  On unix-like systems, it is
 ~/.cabal/bin.
 
-#### "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors
+##### "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors
 In order to handle non-ascii letters and symbols (like £), hledger needs
 an appropriate locale. This is usually configured system-wide; you can
 also configure it temporarily.  The locale may need to be one that
@@ -1684,37 +1686,37 @@ Note some platforms allow variant locale spellings, but not all (ubuntu
 accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
 
 
-### Known limitations
+#### Known limitations
 
 Here are some things to be aware of.
 
-#### Add-on-specific options must follow --
+##### Add-on-specific options must follow --
 
 When invoking an add-on via hledger, add-on flags which are not also
 understood by the main hledger executable must have a `--` argument
 preceding them. Eg hledger-web's `--server` flag must be used like so:
 `hledger web -- --server`.
 
-#### -w/--width and --debug options must be written without whitespace
+##### -w/--width and --debug options must be written without whitespace
 
 Up to hledger 0.23, these optional-value flags [did not work](https://github.com/simonmichael/hledger/issues/149) with whitespace between the flag and value.
 IE these worked: `--debug`, `-w`, `--debug=2`, `-w100`, but these did not: `--debug 2`, `-w 100`.
 From 0.24, a value is required and the whitespace does not matter.
 
-#### Not all of Ledger's journal file syntax is supported
+##### Not all of Ledger's journal file syntax is supported
 
 See [file format differences](faq#file-format-differences).
 
-#### balance is less speedy than Ledger's on large data files
+##### balance is less speedy than Ledger's on large data files
 
 hledger's balance command (in particular) takes more time, and uses more memory, than Ledger's.
 This becomes more noticeable with large data files.
 
-#### Windows CMD.EXE
+##### Windows CMD.EXE
 
 Non-ascii characters and colours are not supported.
 
-#### Windows cygwin/msys/mintty
+##### Windows cygwin/msys/mintty
 
 The tab key is not supported in hledger add.
 
