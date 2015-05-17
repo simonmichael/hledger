@@ -64,6 +64,7 @@ import Prelude.Compat
 import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.List.Compat
+import Data.List.Split (splitOneOf)
 import Data.Maybe
 import Safe
 import System.Console.CmdArgs
@@ -514,7 +515,7 @@ hledgerAddons = do
 -- directory) or whether it has execute permission.
 hledgerExecutablesInPath :: IO [String]
 hledgerExecutablesInPath = do
-  pathdirs <- regexSplit "[:;]" `fmap` getEnvSafe "PATH"
+  pathdirs <- splitOneOf "[:;]" `fmap` getEnvSafe "PATH"
   pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
   return $ nub $ sort $ filter isHledgerExeName pathfiles
   -- XXX should exclude directories and files without execute permission.

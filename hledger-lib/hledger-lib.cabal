@@ -105,7 +105,6 @@ library
                  ,old-time
                  ,parsec >= 3
                  ,regex-tdfa
-                 ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  ,split >= 0.1 && < 0.3
                  ,transformers >= 0.2 && < 0.5
@@ -144,7 +143,6 @@ test-suite tests
                , old-time
                , parsec >= 3
                , regex-tdfa
-               , regexpr
                , safe
                , split
                , test-framework

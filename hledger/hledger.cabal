@@ -93,7 +93,6 @@ library
                  ,parsec >= 3
                  ,process
                  ,regex-tdfa
-                 ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  ,split >= 0.1 && < 0.3
                  ,text >= 0.11
@@ -148,7 +147,6 @@ executable hledger
                  ,parsec >= 3
                  ,process
                  ,regex-tdfa
-                 ,regexpr >= 0.5.1
                  ,safe >= 0.2
                  ,shakespeare-text >= 1.0 && < 1.2
                  ,shakespeare      >= 1.0 && < 2.1
@@ -191,7 +189,6 @@ test-suite tests
                , parsec >= 3
                , process
                , regex-tdfa
-               , regexpr
                , safe
                , shakespeare-text >= 1.0 && < 1.2
                , shakespeare      >= 1.0 && < 2.1

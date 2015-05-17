@@ -1,8 +1,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-|
 
-Easy regular expression helpers, based on regex-tdfa and (a little) on
-regexpr. These should:
+Easy regular expression helpers, currently based on regex-tdfa. These should:
 
 - be cross-platform, not requiring C libraries
 
@@ -30,22 +29,19 @@ module Hledger.Utils.Regex (
    -- * type aliases
    Regexp
   ,Replacement
-   -- * based on regex-tdfa
+   -- * standard regex operations
   ,regexMatches
   ,regexMatchesCI
   ,regexReplace
   ,regexReplaceCI
   ,regexReplaceBy
   ,regexReplaceByCI
-   -- * based on regexpr
-  ,regexSplit
   )
 where
 
 import Data.Array
 import Data.Char
 import Data.List (foldl')
-import Text.RegexPR (splitRegexPR)
 import Text.Regex.TDFA (
   Regex, CompOption(..), ExecOption(..), defaultCompOpt, defaultExecOpt,
   makeRegexOpts, AllMatches(getAllMatches), match, (=~), MatchText
@@ -131,9 +127,4 @@ replaceAllBy re f s = start end
       let (skip, start) = splitAt (off - ind) read
           (matched, remaining) = splitAt len start
       in (off + len, remaining, write . (skip++) . (f matched ++))
-
--- uses regexpr, may be slow:
-
-regexSplit :: Regexp -> String -> [Regexp]
-regexSplit = splitRegexPR
 

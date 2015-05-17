@@ -178,7 +178,6 @@ library
                    , network-conduit
                    , conduit-extra
                    , parsec               >= 3
-                   , regexpr              >= 0.5.1
                    , safe                 >= 0.2
                    , shakespeare          >= 2.0
                    , template-haskell
@@ -253,7 +252,6 @@ executable         hledger-web
                    , network-conduit
                    , conduit-extra
                    , parsec               >= 3
-                   , regexpr              >= 0.5.1
                    , safe                 >= 0.2
                    , shakespeare          >= 2.0 && < 2.1
                    , template-haskell
