@@ -1575,6 +1575,42 @@ Examples:
 ## Appendices
 
 
+### Regular Expressions
+
+hledger uses [regular expressions](http://www.regular-expressions.info) in a number of places:
+
+- [query terms](#queries), on the command line and in the hledger-web search form: `REGEX`, `desc:REGEX`, `cur:REGEX`, `tag:...=REGEX`
+- [CSV rules](#csv-rules) conditional blocks: `if REGEX ...`
+- [account alias](#account-aliases) directives and options: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
+
+hledger's regular expressions come from the
+[regex-tdfa](http://hackage.haskell.org/package/regex-tdfa/docs/Text-Regex-TDFA.html)
+library. In general they:
+
+- are case insensitive
+- are infix matching (do not need to match the entire thing being matched)
+- are [POSIX extended regular expressions](http://www.regular-expressions.info/posix.html#ere)
+- also support [GNU word boundaries](http://www.regular-expressions.info/wordboundaries.html) (\\<, \\>, \\b, \\B)
+- and parenthesised [capturing groups](http://www.regular-expressions.info/refcapture.html) and numeric backreferences in replacement strings
+- do not support [mode modifiers](http://www.regular-expressions.info/modifiers.html) like (?s)
+
+Some things to note:
+
+- In the `alias` directive and `--alias` option, regular expressions
+must be enclosed in forward slashes (`/REGEX/`). Elsewhere in hledger,
+these are not required.
+
+- To match a regular expression metacharacter like `$` as a literal
+character, prepend a backslash. Eg to search for amounts with the
+dollar sign in hledger-web, write `cur:\$`.
+
+- On the command line, some metacharacters like `$` have a special
+meaning to the shell and so must be escaped a second time, with single
+or double quotes or another backslash.  Eg, to match amounts with the
+dollar sign from the command line, write `cur:'\$'` or `cur:\\$`.
+
+
+
 ### Editor support
 
 Add-on modes exist for various text editors, to make working with journal
