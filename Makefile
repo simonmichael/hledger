@@ -31,7 +31,8 @@ GHCPKG=ghc-pkg
 HADDOCK=haddock
 CABAL=cabal
 CABALINSTALL=cabal install -w $(GHC)
-SHELLTEST=shelltest -j16 --hide-successes
+TESTFRAMEWORKOPTS=-j16 --hide-successes
+SHELLTEST=cabal exec -- shelltest --execdir -- $(TESTFRAMEWORKOPTS)
 # used for make auto, http://joyful.com/repos/searchpath
 SP=sp
 
@@ -641,7 +642,7 @@ functest: bin/hledgerdev tests/addons/hledger-addon \
 	16 threads sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless\
 	)
 	@echo functional tests:
-	@(COLUMNS=80 $(SHELLTEST) --execdir tests \
+	@(COLUMNS=80 PATH=`pwd`/bin:$(PATH) $(SHELLTEST) tests \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
@@ -650,13 +651,13 @@ tests/addons/hledger-addon: \
 	generate dummy add-ons for testing (hledger-addon the rest)\
 	)
 	rm -rf tests/addons/hledger-*
-	printf '#!/bin/sh\necho add-on: $$0\necho args: $$*\n' >tests/ADDONS/hledger-addon
+	printf '#!/bin/sh\necho add-on: $$0\necho args: $$*\n' >tests/addons/hledger-addon
 	for E in '' $(ADDONEXTS); do \
-		cp tests/ADDONS/hledger-addon tests/ADDONS/hledger-addon.$$E; done
+		cp tests/addons/hledger-addon tests/addons/hledger-addon.$$E; done
 	for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do \
-		cp tests/ADDONS/hledger-addon tests/ADDONS/hledger-$$F; done
-	mkdir tests/ADDONS/hledger-addondir
-	chmod +x tests/ADDONS/hledger-*
+		cp tests/addons/hledger-addon tests/addons/hledger-$$F; done
+	mkdir tests/addons/hledger-addondir
+	chmod +x tests/addons/hledger-*
 
 test-ghc-%: # bin/hledgerdev.ghc-$* \
 	$(call def-help,test-ghc-%,\
