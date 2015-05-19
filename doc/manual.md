@@ -1438,6 +1438,14 @@ files which you've downloaded manually. It can be a nice alternative
 to hledger's built-in CSV reader, especially if your bank supports OFX
 download.
 
+#### diff
+
+[hledger-diff](http://hackage.haskell.org/package/hledger-diff)
+compares two journal files. Given an account name, it prints out the
+transactions affecting that account which are in one journal file but
+not in the other.  This can be useful for reconciling existing
+journals with bank statements.
+
 #### interest
 
 [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
