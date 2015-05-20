@@ -1009,12 +1009,6 @@ Remember that a `-p` [period](#period-expressions) flag will cause any other `-b
 ## Commands
 
 hledger provides a number of subcommands out of the box; run `hledger` with no arguments to see a list.
-The most-used commands are probably
-[balance](#balance),
-[register](#register),
-[print](#print)
-and [accounts](#accounts).
-
 More [add-on commands](#add-ons) will appear if you install additional `hledger-*` packages,
 or if you put programs or scripts named `hledger-NAME` in your PATH.
 
@@ -1023,15 +1017,65 @@ You can write its full name (eg `balance`), or one of the
 standard short aliases displayed in parentheses in the command list
 (eg `bs`), or any unambiguous prefix of a command (eg `inc`).
 
-### Data entry
+### Overview
 
-Many hledger users edit their journals directly with a text editor, or generate them from CSV.
-For more interactive data entry, there is the `add` command and also the `web` add-on (below).
+Built-in commands:
+
+- [accounts](#accounts) - show account names
+- [activity](#activity) - show a histogram of transaction activity
+- [add](#add) - interactively prompt for new journal entries
+- [balance](#balance) - show accounts and their balances in one or more periods
+- [balancesheet](#balancesheet) - show asset and liability balances
+- [cashflow](#cashflow) - show changes in asset balances
+- [incomestatement](#incomestatement) - show revenues and expenses
+- [print](#print) - show journal entries
+- [register](#register) - show postings, usually to a specific account, in one or more periods
+- [stats](#stats) - show some journal summary info
+- [test](#test) - run built-in unit tests
+
+Add-on commands:
+
+- [autosync](#autosync) - downloads OFX data from banks, converts OFX to journal entries, and prints the new ones
+- [diff](#diff) - compare two journal files and show differing transactions
+- [interest](#interest) - generate interest transactions for various schemes
+- [irr](#irr) - calculate the internal rate of return of an account
+- [web](#web) - a web UI for browsing transactions and accounts and adding new ones
+
+Experimental commands:
+
+- [equity](#equity) - generate an "opening balances" entry restoring all account balances
+- [print-unique](#print-unique) - show only journal entries with unique descriptions
+- [rewrite](#rewrite) - like print, but adds custom postings to matched entries
+
+<!-- Unmaintained commands: -->
+<!-- - [chart](#chart) -->
+<!-- - [vty](#vty) -->
+
+### Built-in commands
+
+#### accounts
+
+This command lists matched account names, as a flat list by default, or (with the `--tree` flag) as a hierarchy.
+With no query arguments, all account names are listed.
+
+#### activity
+
+The activity command displays an ascii bar chart showing
+transaction counts by day, week, month or other reporting interval
+(by day is the default).
+
+Examples:
+
+    $ hledger activity -p weekly dining
 
 #### add
 
-The add command prompts interactively for new transactions, and appends
-them to the journal file. Just run `hledger add` and follow the prompts.
+Many hledger users edit their journals directly with a text editor, or generate them from CSV.
+For more interactive data entry, there is the `add` command, 
+which prompts interactively on the console for new transactions, and appends
+them to the journal file. This is the only built-in command which can write to your journal file.
+
+To use it, just run `hledger add` and follow the prompts.
 You can add as many transactions as you like; when you are finished,
 enter `.` or press control-d or control-c to exit.
 
@@ -1062,30 +1106,10 @@ Additional convenience features:
 
 Here's [an example](step-by-step.html#record-a-transaction-with-hledger-add).
 
-### Reports
-
-Here are the built-in commands for reporting useful information from your journal,
-(hledger's main function). (The original commands inherited from Ledger were, simplest first:
-[print](#print), [register](#register) and [balance](#balance).)
-
-#### accounts
-
-This command lists matched account names, as a flat list by default, or (with the `--tree` flag) as a hierarchy.
-With no query arguments, all account names are listed.
-
-#### activity
-
-The activity command displays an ascii bar chart showing
-transaction counts by day, week, month or other reporting interval
-(by day is the default).
-
-Examples:
-
-    $ hledger activity -p weekly dining
-
 #### balance
 
 The balance command displays accounts and their balances.
+It is the most complex and perhaps most useful command.
 
 ##### Simple balance reports
 
@@ -1405,7 +1429,7 @@ Examples:
     $ hledger test
     $ hledger test -v balance
 
-### Add-ons
+### Add-on commands
 
 Add-on commands are executables in your PATH whose name starts with
 `hledger-` and ends with no file extension or one of these common
@@ -1524,7 +1548,7 @@ Examples:
     $ hledger-web -E -B --depth 2 -f some.journal
     $ hledger-web --server --port 5010 --base-url http://some.vhost.com --debug=1
 
-### Experimental
+### Experimental commands
 
 The following add-ons are examples and experiments provided in the
 [extra](https://github.com/simonmichael/hledger/tree/master/extra)
@@ -1555,7 +1579,9 @@ Prints only journal entries which are unique (by description).
 Prints all journal entries, adding specified custom postings to matched entries.
 
 
-<!-- unmaintained:
+<!--
+
+### Unmaintained commands
 
 #### chart
 
