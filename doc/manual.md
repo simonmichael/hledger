@@ -103,28 +103,18 @@ in a certain account.
 To create an initial journal, run `hledger add` and follow the prompts to
 enter some transactions.  Or, save this
 [sample file](https://raw.github.com/simonmichael/hledger/master/data/sample.journal) as
-`.hledger.journal` in your home directory. Now try commands like these:
+`.hledger.journal` in your home directory. Now try some commands, eg like these:
 
-    $ hledger
-        # show available commands
-    $ hledger add
-        # add more transactions to the journal file
-    $ hledger balance
-        # all accounts with aggregated balances
-    $ hledger balance --help
-        # show help for balance command
-    $ hledger balance --depth 1
-        # only top-level accounts
-    $ hledger register
-        # show account postings, with running total
-    $ hledger reg income
-        # show postings to/from income accounts
-    $ hledger reg 'assets:some bank:checking'
-        # show postings to/from this checking account
-    $ hledger print desc:shop
-        # show transactions with shop in the description
-    $ hledger activity -W
-        # show transaction counts per week as a bar chart
+    $ hledger                                 # show available commands
+    $ hledger add                             # add more transactions to the journal file
+    $ hledger balance                         # all accounts with aggregated balances
+    $ hledger balance --help                  # show help for balance command
+    $ hledger balance --depth 1               # only top-level accounts
+    $ hledger register                        # show account postings, with running total
+    $ hledger reg income                      # show postings to/from income accounts
+    $ hledger reg 'assets:some bank:checking' # show postings to/from this checking account
+    $ hledger print desc:shop                 # show transactions with shop in the description
+    $ hledger activity -W                     # show transaction counts per week as a bar chart
 
 ## Data formats
 
@@ -193,8 +183,7 @@ The posting amounts within a transaction must always balance, ie add up to
 
 ##### Simple dates
 
-Within a journal (or timelog) file, dates are written as YYYY/MM/DD (year/month/day).
-Hyphen (-) and period (.) are also allowed as separators.
+Within a journal file, transaction dates use Y/M/D (or Y-M-D or Y.M.D)
 Leading zeroes are optional.
 The year may be omitted, in which case it defaults to the current
 year, or you can set the default year with a
@@ -433,18 +422,19 @@ P 2010/1/1 € $1.40
 
 #### Comments
 
-- A semicolon (`;`) or hash (`#`) or asterisk (`*`) in column 0 starts
-  a journal comment line, which hledger will ignore. (Asterisk allows you
-  to embed emacs org/outline-mode nodes and treat your journal like an outline.)
+Lines in the journal beginning with a semicolon (`;`) or hash (`#`) or
+asterisk (`*`) are comments, and will be ignored. (Asterisk comments
+make it easy to treat your journal like an org-mode outline in emacs.)
 
-- A semicolon after a transaction's description and/or indented on the following lines
-starts a transaction comment.
+Also, anything between
+[`comment` and `end comment` directives](#multi-line-comments) is a
+(multi-line) comment.
 
-- A semicolon after a posting's amount and/or indented on the following lines starts a posting comment.
-
-- With the `comment` and `end comment` keywords it is possible to have multiline comments.
-
-Transaction and posting comments are displayed by [print](#print), can contain [tags](#tags) and can be [queried](#queries).
+You can attach comments to a transaction by writing them after the
+description and/or indented on the following lines (before the
+postings).  Similarly, you can attach comments to an individual
+posting by writing them after the amount and/or indented on the
+following lines.
 
 Some examples:
 
@@ -470,32 +460,31 @@ Some examples:
 
 #### Tags
 
-You can include *tags* (labels), optionally with values,
-in transaction and posting comments, and then [query by tag](manual#queries).
-This is like Ledger's [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
-feature, except hledger's tag values are simple strings.
+A *tag* is a word followed by a full colon inside a transaction or
+posting [comment](#comments).  You can write multiple tags, comma
+separated. Eg: `; a comment containing sometag:, anothertag:`.  You can search for tags
+with the [`tag:` query](manual#queries).
 
-A tag is any unspaced word immediately followed by a full colon, eg: `sometag:` .
-A tag's *value* is the characters following the colon, if any, until the next comma or newline,
-with any leading and trailing whitespace removed. 
-Comma may be used to write multiple tags on one line.
+A tag can also have a value, which is any text between the colon and
+the next comma or newline, excluding leading/trailing whitespace.
+(So hledger tag values can not contain commas or newlines).
 
-For example, here is a transaction with three tags, the posting has
-one, and all tags have values except TAG1:
+Tags in a transaction comment affect the transaction and all of its postings,
+while tags in a posting comment affect only that posting.
+For example, the following transaction has three tags (A, TAG2, third-tag)
+and the posting has four (A, TAG2, third-tag, posting-tag):
 
-    1/1 a transaction    ; TAG1:, TAG2: tag2's value
-        ; TAG3: a third transaction tag
-        a  $1  ; TAG4: a posting tag
+    1/1 a transaction  ; A:, TAG2:
+        ; third-tag: a third transaction tag, this time with a value
+        (a)  $1  ; posting-tag:
 
-**Things to note:**
+Tags are like Ledger's
+[metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
+feature, except hledger's tag values are always simple strings.
 
-In the journal file, a hledger tag value can contain: text, internal whitespace, or punctuation, but not: commas, newlines, or leading/trailing whitespace (putting quotes around it doesn't work, but probably should).
-
-The position of the comment containing the tag determines what is
-tagged - the whole transaction and all of its postings, or just a
-single posting (cf [transaction comment or posting comment](manual#comments)).
-
-In [tag queries](manual#queries), remember the tag name must match exactly, while the value part is the usual case-insensitive infix regular expression match.
+Note: when searching with a `tag:` query, currently tag names must
+match exactly (and case sensitively!). (Tag values are matched in the more
+usual way, as case-insensitive infix [regular expressions](#regular-expressions)).
 
 #### Directives
 
@@ -572,6 +561,23 @@ You can clear (forget) all currently defined aliases with the `end aliases` dire
 
     end aliases
 
+##### Multi-line comments
+
+A line containing just `comment` starts a multi-line [comment](#comments),
+and a line containing just `end comment` ends it. Eg:
+
+    1/1
+      a  1
+
+    comment
+    this is ignored
+
+    and so is this
+    end comment
+
+    1/2
+      a  1
+
 ##### Default commodity
 
 You can set a default commodity, to be used for amounts without one.
@@ -617,7 +623,7 @@ within a section of the journal. Use the `account` directive like so:
     
     end
 
-If `!end` is omitted, the effect lasts to the end of the file.
+If `end` is omitted, the effect lasts to the end of the file.
 The above is equivalent to:
 
     2010/01/01
@@ -635,27 +641,33 @@ Included files are also affected, eg:
 
 ##### Default year
 
-You can set a default year, to be used for all subsequent
-[simple dates](#simple-dates) which don't specify a year.
-This is a line beginning with `Y` followed by the year, like so:
+You can set a default year to be used for subsequent dates which don't
+specify a year. This is a line beginning with `Y` followed by the year. Eg:
 
-    Y2009
+    Y2009      ; set default year to 2009
     
-    12/15  ; equivalent to 2009/12/15
-      ...
+    12/15      ; equivalent to 2009/12/15
+      expenses  1
+      assets
     
-    Y2010
+    Y2010      ; change default year to 2010
     
-    1/31  ; equivalent to 2010/1/31
-      ...
-
-This directive can also be used in [timelog files](#timelog).
+    2009/1/30  ; specifies the year, not affected
+      expenses  1
+      assets
+    
+    1/31       ; equivalent to 2010/1/31
+      expenses  1
+      assets
 
 ##### Including other files
 
-You can pull in the content of additional journal files, by writing lines like this:
+You can pull in the content of additional journal files by writing an
+include directive, like this:
 
     include path/to/file.journal
+
+If the path does not begin with a slash, it is relative to the current file.
 
 The `include` directive may only be used in journal files, and currently
 it may only include other journal files (eg, not CSV or timelog files.)
@@ -1002,7 +1014,7 @@ A query term can be any of the following:
 - `desc:REGEX` - match transaction descriptions
 - `date:PERIODEXPR` - match dates within the specified [period](#period-expressions). *Actually, full period syntax is [not yet supported](https://github.com/simonmichael/hledger/issues/141).*
 - `date2:PERIODEXPR` - as above, but match secondary dates
-- `tag:NAME[=REGEX]` - match by (exact, case sensitive) [tag](#tags) name, and optionally match the tag value by regular expression. Note `tag:` will match a transaction if it or any its postings have the tag, and will match posting if it or its parent transaction has the tag.
+- `tag:NAME[=REGEX]` - match by (exact, case sensitive) [tag](#tags) name, and optionally match the tag value by regular expression. Note `tag:` will match a transaction if it or any its postings have the tag, and will match a posting if it or its parent transaction has the tag.
 - `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
 - `status:*` or `status:!` or `status:` - match cleared, pending, or uncleared/pending transactions respectively
 - `real:1` or `real:0` - match real/virtual-ness
