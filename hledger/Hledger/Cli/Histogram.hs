@@ -13,10 +13,8 @@ import Data.Ord
 import System.Console.CmdArgs.Explicit
 import Text.Printf
 
+import Hledger
 import Hledger.Cli.Options
-import Hledger.Data
-import Hledger.Reports
-import Hledger.Query
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 
@@ -54,10 +52,7 @@ showHistogram opts q j = concatMap (printDayWith countBar) spanps
       -- same as Register
       -- should count transactions, not postings ?
       -- ps = sortBy (comparing postingDate) $ filterempties $ filter matchapats $ filterdepth $ journalPostings j
-      ps = sortBy (comparing postingDate) $ filterempties $ filter (q `matchesPosting`) $ journalPostings j
-      filterempties
-          | queryEmpty q = id
-          | otherwise = filter (not . isZeroMixedAmount . pamount)
+      ps = sortBy (comparing postingDate) $ filter (q `matchesPosting`) $ journalPostings j
 
 printDayWith f (DateSpan b _, ps) = printf "%s %s\n" (show $ fromJust b) (f ps)
 
