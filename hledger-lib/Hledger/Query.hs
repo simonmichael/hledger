@@ -28,7 +28,6 @@ module Hledger.Query (
   queryDateSpan,
   queryDateSpan',
   queryDepth,
-  queryEmpty,
   inAccount,
   inAccountQuery,
   -- * matching
@@ -540,23 +539,6 @@ queryDepth q = case queryDepth' q of [] -> 99999
     queryDepth' (Or qs) = concatMap queryDepth' qs
     queryDepth' (And qs) = concatMap queryDepth' qs
     queryDepth' _ = []
-
--- | The empty (zero amount) status specified by this query, defaulting to false.
-queryEmpty :: Query -> Bool
-queryEmpty = headDef False . queryEmpty'
-  where
-    queryEmpty' (Empty v) = [v]
-    queryEmpty' (Or qs) = concatMap queryEmpty' qs
-    queryEmpty' (And qs) = concatMap queryEmpty' qs
-    queryEmpty' _ = []
-
--- -- | The "include empty" option specified by this query, defaulting to false.
--- emptyQueryOpt :: [QueryOpt] -> Bool
--- emptyQueryOpt = headDef False . emptyQueryOpt'
---   where
---     emptyQueryOpt' [] = False
---     emptyQueryOpt' (QueryOptEmpty v:_) = v
---     emptyQueryOpt' (_:vs) = emptyQueryOpt' vs
 
 -- | The account we are currently focussed on, if any, and whether subaccounts are included.
 -- Just looks at the first query option.

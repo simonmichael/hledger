@@ -1017,7 +1017,6 @@ A query term can be any of the following:
 - `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
 - `status:*` or `status:!` or `status:` - match cleared, pending, or uncleared/pending transactions respectively
 - `real:1` or `real:0` - match real/virtual-ness
-- `empty:1` or `empty:0` - match if amount is/is not zero
 - `amt:N`, `amt:<N`, `amt:<=N`, `amt:>N`, `amt:>=N` - match postings with a single-commodity
   amount that is equal to, less than, or greater than N.
   (Multi-commodity amounts are not tested, and will always match.)

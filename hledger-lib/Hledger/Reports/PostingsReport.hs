@@ -80,7 +80,7 @@ postingsReport opts q j = (totallabel, items)
                       journalPostings $ journalSelectingAmountFromOpts opts j
       (precedingps, reportps) = dbg1 "precedingps, reportps" $ span (beforestartq `matchesPosting`) pstoend
 
-      showempty = queryEmpty q || average_ opts
+      showempty = empty_ opts || average_ opts
       -- displayexpr = display_ opts  -- XXX
       interval = intervalFromOpts opts -- XXX
 
@@ -234,7 +234,7 @@ tests_postingsReport = [
    -- with query and/or command-line options
    assertEqual "" 11 (length $ snd $ postingsReport defreportopts Any samplejournal)
    assertEqual ""  9 (length $ snd $ postingsReport defreportopts{monthly_=True} Any samplejournal)
-   assertEqual "" 19 (length $ snd $ postingsReport defreportopts{monthly_=True} (Empty True) samplejournal)
+   assertEqual "" 19 (length $ snd $ postingsReport defreportopts{monthly_=True, empty_=True} Any samplejournal)
    assertEqual ""  4 (length $ snd $ postingsReport defreportopts (Acct "assets:bank:checking") samplejournal)
 
    -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
