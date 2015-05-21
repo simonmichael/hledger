@@ -1008,7 +1008,8 @@ A query term can be any of the following:
 - `acct:REGEX` - same as above
 - `code:REGEX` - match by transaction code (eg check number)
 - `desc:REGEX` - match transaction descriptions
-- `date:PERIODEXPR` - match dates within the specified [period](#period-expressions). *Actually, full period syntax is [not yet supported](https://github.com/simonmichael/hledger/issues/141).*
+- `date:PERIODEXPR` - match dates within the specified [period](#period-expressions)
+  (which should not include a [reporting interval](#reporting-interval), cf [#141](https://github.com/simonmichael/hledger/issues/141))
 - `date2:PERIODEXPR` - as above, but match secondary dates
 - `tag:REGEX[=REGEX]` - match by [tag](#tags) name, and optionally also by tag value.
    Note a `tag:` query is considered to match a transaction if it matches any of the postings.
