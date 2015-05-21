@@ -47,7 +47,7 @@ import Data.Either
 import Data.List
 import Data.Maybe
 import Data.Time.Calendar
-import Safe (readDef, headDef, headMay)
+import Safe (readDef, headDef)
 import Test.HUnit
 -- import Text.ParserCombinators.Parsec
 import Text.Parsec hiding (Empty)
@@ -68,19 +68,19 @@ data Query = Any              -- ^ always match
            | Not Query        -- ^ negate this match
            | Or [Query]       -- ^ match if any of these match
            | And [Query]      -- ^ match if all of these match
-           | Code String      -- ^ match if code matches this regexp
-           | Desc String      -- ^ match if description matches this regexp
-           | Acct String      -- ^ match postings whose account matches this regexp
+           | Code Regexp      -- ^ match if code matches this regexp
+           | Desc Regexp      -- ^ match if description matches this regexp
+           | Acct Regexp      -- ^ match postings whose account matches this regexp
            | Date DateSpan    -- ^ match if primary date in this date span
            | Date2 DateSpan   -- ^ match if secondary date in this date span
            | Status ClearedStatus  -- ^ match txns/postings with this cleared status (Status Uncleared matches all states except cleared)
            | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
            | Amt OrdPlus Quantity  -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
-           | Sym String       -- ^ match if the entire commodity symbol is matched by this regexp
+           | Sym Regexp       -- ^ match if the entire commodity symbol is matched by this regexp
            | Empty Bool       -- ^ if true, show zero-amount postings/accounts which are usually not shown
                               --   more of a query option than a query criteria ?
            | Depth Int        -- ^ match if account depth is less than or equal to this value
-           | Tag String (Maybe String)  -- ^ match if a tag with this exact name, and with value
+           | Tag Regexp (Maybe Regexp)  -- ^ match if a tag's name, and optionally its value, is matched by these respective regexps
                                         -- matching the regexp if provided, exists
     deriving (Eq,Data,Typeable)
 
@@ -330,7 +330,7 @@ tests_parseAmountQueryTerm = [
     "-0.23" `gives` (Eq,(-0.23))
   ]
 
-parseTag :: String -> (String, Maybe String)
+parseTag :: String -> (Regexp, Maybe Regexp)
 parseTag s | '=' `elem` s = (n, Just $ tail v)
            | otherwise    = (s, Nothing)
            where (n,v) = break (=='=') s
@@ -660,8 +660,7 @@ matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
 -- matchesPosting (Empty True) Posting{pamount=a} = isZeroMixedAmount a
 matchesPosting (Empty _) _ = True
 matchesPosting (Sym r) Posting{pamount=Mixed as} = any (regexMatchesCI $ "^" ++ r ++ "$") $ map acommodity as
-matchesPosting (Tag n Nothing) p = isJust $ lookupTagByName n $ postingAllTags p
-matchesPosting (Tag n (Just v)) p = isJust $ lookupTagByNameAndValue (n,v) $ postingAllTags p
+matchesPosting (Tag n v) p = not $ null $ matchedTags n v $ postingAllTags p
 -- matchesPosting _ _ = False
 
 tests_matchesPosting = [
@@ -715,8 +714,7 @@ matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Empty _) _ = True
 matchesTransaction (Depth d) t = any (Depth d `matchesPosting`) $ tpostings t
 matchesTransaction q@(Sym _) t = any (q `matchesPosting`) $ tpostings t
-matchesTransaction (Tag n Nothing) t = isJust $ lookupTagByName n $ transactionAllTags t
-matchesTransaction (Tag n (Just v)) t = isJust $ lookupTagByNameAndValue (n,v) $ transactionAllTags t
+matchesTransaction (Tag n v) t = not $ null $ matchedTags n v $ transactionAllTags t
 
 -- matchesTransaction _ _ = False
 
@@ -732,17 +730,13 @@ tests_matchesTransaction = [
    assertBool "" $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
  ]
 
-lookupTagByName :: String -> [Tag] -> Maybe Tag
-lookupTagByName namepat tags = headMay [(n,v) | (n,v) <- tags, matchTagName namepat n]
-
-lookupTagByNameAndValue :: Tag -> [Tag] -> Maybe Tag
-lookupTagByNameAndValue (namepat, valpat) tags = headMay [(n,v) | (n,v) <- tags, matchTagName namepat n, matchTagValue valpat v]
-
-matchTagName :: String -> String -> Bool
-matchTagName pat name = pat == name
-
-matchTagValue :: String -> String -> Bool
-matchTagValue pat value = regexMatchesCI pat value
+-- | Filter a list of tags by matching against their names and
+-- optionally also their values.
+matchedTags :: Regexp -> Maybe Regexp -> [Tag] -> [Tag]
+matchedTags namepat valuepat tags = filter (match namepat valuepat) tags
+  where
+    match npat Nothing     (n,_) = regexMatchesCI npat n
+    match npat (Just vpat) (n,v) = regexMatchesCI npat n && regexMatchesCI vpat v
 
 -- tests
 

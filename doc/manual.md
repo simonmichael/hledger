@@ -482,10 +482,6 @@ Tags are like Ledger's
 [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
 feature, except hledger's tag values are always simple strings.
 
-Note: when searching with a `tag:` query, currently tag names must
-match exactly (and case sensitively!). (Tag values are matched in the more
-usual way, as case-insensitive infix [regular expressions](#regular-expressions)).
-
 #### Directives
 
 ##### Account aliases
@@ -1014,7 +1010,9 @@ A query term can be any of the following:
 - `desc:REGEX` - match transaction descriptions
 - `date:PERIODEXPR` - match dates within the specified [period](#period-expressions). *Actually, full period syntax is [not yet supported](https://github.com/simonmichael/hledger/issues/141).*
 - `date2:PERIODEXPR` - as above, but match secondary dates
-- `tag:NAME[=REGEX]` - match by (exact, case sensitive) [tag](#tags) name, and optionally match the tag value by regular expression. Note `tag:` will match a transaction if it or any its postings have the tag, and will match a posting if it or its parent transaction has the tag.
+- `tag:REGEX[=REGEX]` - match by [tag](#tags) name, and optionally also by tag value.
+   Note a `tag:` query is considered to match a transaction if it matches any of the postings.
+   Also remember that postings inherit all of their parent transaction's tags.
 - `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
 - `status:*` or `status:!` or `status:` - match cleared, pending, or uncleared/pending transactions respectively
 - `real:1` or `real:0` - match real/virtual-ness
