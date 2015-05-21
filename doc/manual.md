@@ -4,35 +4,76 @@
 
 # hledger User Manual
 
-This reference manual is for
- <!-- hledger 0.25.98 (the latest pre-0.25 HEAD). -->
- [hledger 0.25.1](http://hackage.haskell.org/package/hledger-0.25.1)
- and [hledger-web 0.25.1](http://hackage.haskell.org/package/hledger-web-0.25.1).
- <!-- Other versions: [0.22 Manual](0.22/manual). -->
+## Introduction and overview
 
-## Introduction
-
-[hledger](/) is a program for tracking money, time,
-or any other commodity, using a simple, editable file format and
-double-entry accounting, inspired by and largely compatible with
-[ledger](http://ledger-cli.org).  hledger is Free Software released
-under GPL version 3 or later.
-
-hledger's basic function is to read a plain text file describing (eg)
-financial transactions, and quickly generate useful reports via the
-command line. It can also help you record transactions, or (via add-ons)
-provide a local web interface for editing, or publish live financial data
-on the web.
-
-You can use it to, eg:
+[hledger](/) is a program for tracking money, time, or any other
+commodity, using double-entry accounting and a simple, editable file
+format.  It is inspired by and largely compatible with
+[ledger](http://ledger-cli.org). Its basic function is to read a plain
+text file describing financial transactions, and quickly generate
+useful reports via the command line. It can also help you record
+transactions, and there is also a web interface. You can use it to,
+eg:
 
 - track spending and income
 - track unpaid or due invoices
 - track time and report by day/week/month/project
 - get accurate numbers for client billing and tax filing
 
-hledger works on unix, mac and windows.
-See [Download](download.html) for installation help.
+hledger is Free Software released under GPL version 3 or later, and is
+tested on unix, mac and windows.  See [Download](download.html) for
+installation help.
+
+This manual is the reference for every part of hledger's functionality;
+this version documents
+[hledger 0.25.1](http://hackage.haskell.org/package/hledger-0.25.1)
+and [hledger-web 0.25.1](http://hackage.haskell.org/package/hledger-web-0.25.1).
+If you find anything missing or incorrect, please report it as a bug.
+Patches and feedback are always welcome.
+
+If you're just starting with hledger, there's no need to read all of this.
+Instead, I suggest (in addition to, or instead of, the step-by-step [tutorial](step-by-step)):
+
+1. read [Usage](#usage) to learn the basic UI and start a journal file
+2. and the first part of [Journal](#journal) which explains the journal file
+3. then try out the [commands](#commands)
+4. when you're ready, learn how to refine them with search [queries](#queries) and command-line [options](#options).
+
+Here is an overview of hledger's commands.
+
+**Built-in commands:**
+
+- [accounts](#accounts) - show account names
+- [activity](#activity) - show a histogram of transaction activity
+- [add](#add) - interactively prompt for new journal entries
+- [balance](#balance) - show accounts and their balances in one or more periods
+- [balancesheet](#balancesheet) - show asset and liability balances
+- [cashflow](#cashflow) - show changes in asset balances
+- [incomestatement](#incomestatement) - show revenues and expenses
+- [print](#print) - show journal entries
+- [register](#register) - show postings, usually to a specific account, in one or more periods
+- [stats](#stats) - show some journal summary info
+- [test](#test) - run built-in unit tests
+
+**Add-on commands:**
+(install the corresponding packages to make these available)
+
+- [autosync](#autosync) - downloads OFX data from banks, converts OFX to journal entries, and prints the new ones
+- [diff](#diff) - compare two journal files and show differing transactions
+- [interest](#interest) - generate interest transactions for various schemes
+- [irr](#irr) - calculate the internal rate of return of an account
+- [web](#web) - a web UI for browsing transactions and accounts and adding new ones
+
+**Experimental commands:**
+(extra scripts available in the hledger source)
+
+- [equity](#equity) - generate an "opening balances" entry restoring all account balances
+- [print-unique](#print-unique) - show only journal entries with unique descriptions
+- [rewrite](#rewrite) - like print, but adds custom postings to matched entries
+
+<!-- Unmaintained commands: -->
+<!-- - [chart](#chart) -->
+<!-- - [vty](#vty) -->
 
 ## Usage
 
@@ -985,39 +1026,7 @@ You can write its full name (eg `balance`), or one of the
 standard short aliases displayed in parentheses in the command list
 (eg `bs`), or any unambiguous prefix of a command (eg `inc`).
 
-### Overview
-
-Built-in commands:
-
-- [accounts](#accounts) - show account names
-- [activity](#activity) - show a histogram of transaction activity
-- [add](#add) - interactively prompt for new journal entries
-- [balance](#balance) - show accounts and their balances in one or more periods
-- [balancesheet](#balancesheet) - show asset and liability balances
-- [cashflow](#cashflow) - show changes in asset balances
-- [incomestatement](#incomestatement) - show revenues and expenses
-- [print](#print) - show journal entries
-- [register](#register) - show postings, usually to a specific account, in one or more periods
-- [stats](#stats) - show some journal summary info
-- [test](#test) - run built-in unit tests
-
-Add-on commands:
-
-- [autosync](#autosync) - downloads OFX data from banks, converts OFX to journal entries, and prints the new ones
-- [diff](#diff) - compare two journal files and show differing transactions
-- [interest](#interest) - generate interest transactions for various schemes
-- [irr](#irr) - calculate the internal rate of return of an account
-- [web](#web) - a web UI for browsing transactions and accounts and adding new ones
-
-Experimental commands:
-
-- [equity](#equity) - generate an "opening balances" entry restoring all account balances
-- [print-unique](#print-unique) - show only journal entries with unique descriptions
-- [rewrite](#rewrite) - like print, but adds custom postings to matched entries
-
-<!-- Unmaintained commands: -->
-<!-- - [chart](#chart) -->
-<!-- - [vty](#vty) -->
+For an overview of commands see the [introduction and overview](#introduction-and-overview) above.
 
 ### Built-in commands
 
