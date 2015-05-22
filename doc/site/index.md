@@ -41,7 +41,7 @@ tr {
 
 # hledger is...
 
-### a lightweight, dependable, cross-platform accounting program
+## a lightweight, dependable, cross-platform accounting program
 
 <img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:0 0 1em 1em;" />
 hledger is a computer program for easily tracking money, time, or

@@ -1,11 +1,61 @@
 code {
+		background-color:inherit;
 		color: inherit;
 }
 pre {
+		/* clear:both; */
+		background-color:inherit;
+		border:none;
 		margin-left:1em;
 		margin-right:2em;
-		background-color:#e0e0e0;
-		/* width:fit-content; */
+		border-radius:6px;
+		display:inline-block;
+		/* display:table; */
+		/* background-color:#e0e0e0; */
+}
+.clear, h3, h4, h5, h6 {
+		clear:both;
+}
+.display-table {
+		display:table;
+}
+.journal {
+		background-color:#efe;
+		border:thin solid #cec;
+		/* border:none; */
+}
+.timelog {
+		background-color:#ffe;
+		border:thin solid #eec;
+		/* border:none; */
+}
+.csv, .rules {
+		background-color:#eef;
+		border:thin solid #cce;
+		/* border:none; */
+}
+.shell {
+		background-color:white;
+		border:none;
+		border-left:2px solid black;
+		border-top:2px solid black;
+		border-top-right-radius:0;
+		border-bottom-left-radius:0;
+		/* padding-top:0; */
+		/* padding-bottom:0; */
+}
+
+.shell::first-line {
+		font-weight:bold;
+}
+.nobold::first-line {
+		font-weight:normal;
+}
+.bold {
+		font-weight:bold;
+}
+.right {
+    float:right;
 }
 .navbar-brand {font-weight:bold;}
 /* from https://github.com/blaenk/blaenk.github.io/blob/source/provider/scss/_article.scss */
