@@ -79,7 +79,9 @@ Here is an overview of hledger's commands.
 
 Basic usage is:
 
-    $ hledger COMMAND [OPTIONS] [ARGS]
+```shell
+$ hledger COMMAND [OPTIONS] [ARGS]
+```
 
 Most [commands](#commands) query or operate on a
 [journal file](#journal), which by default is `.hledger.journal`
@@ -105,16 +107,18 @@ enter some transactions.  Or, save this
 [sample file](https://raw.github.com/simonmichael/hledger/master/data/sample.journal) as
 `.hledger.journal` in your home directory. Now try some commands, eg like these:
 
-    $ hledger                                 # show available commands
-    $ hledger add                             # add more transactions to the journal file
-    $ hledger balance                         # all accounts with aggregated balances
-    $ hledger balance --help                  # show help for balance command
-    $ hledger balance --depth 1               # only top-level accounts
-    $ hledger register                        # show account postings, with running total
-    $ hledger reg income                      # show postings to/from income accounts
-    $ hledger reg 'assets:some bank:checking' # show postings to/from this checking account
-    $ hledger print desc:shop                 # show transactions with shop in the description
-    $ hledger activity -W                     # show transaction counts per week as a bar chart
+``` {.shell .bold}
+$ hledger                                 # show available commands
+$ hledger add                             # add more transactions to the journal file
+$ hledger balance                         # all accounts with aggregated balances
+$ hledger balance --help                  # show help for balance command
+$ hledger balance --depth 1               # only top-level accounts
+$ hledger register                        # show account postings, with running total
+$ hledger reg income                      # show postings to/from income accounts
+$ hledger reg 'assets:some bank:checking' # show postings to/from this checking account
+$ hledger print desc:shop                 # show transactions with shop in the description
+$ hledger activity -W                     # show transaction counts per week as a bar chart
+```
 
 ## Data formats
 
@@ -139,28 +143,30 @@ Many users, though, also edit the journal file directly with a text editor, perh
 
 Here's an example:
 
-    ; A sample journal file. This is a comment.
-    
-    2008/01/01 income               ; <- transaction's first line starts in column 0, contains date and description
-        assets:bank:checking  $1    ; <- posting lines start with whitespace, each contains an account name
-        income:salary        $-1    ;    followed by at least two spaces and an amount
-    
-    2008/06/01 gift
-        assets:bank:checking  $1    ; <- at least two postings in a transaction
-        income:gifts         $-1    ; <- their amounts must balance to 0
-    
-    2008/06/02 save
-        assets:bank:saving    $1
-        assets:bank:checking        ; <- one amount may be omitted; here $-1 is inferred
-    
-    2008/06/03 eat & shop           ; <- description can be anything
-        expenses:food         $1
-        expenses:supplies     $1    ; <- this transaction debits two expense accounts
-        assets:cash                 ; <- $-2 inferred
-    
-    2008/12/31 * pay off            ; <- an optional * or ! after the date means "cleared" (or anything you want)
-        liabilities:debts     $1
-        assets:bank:checking
+```journal
+; A sample journal file. This is a comment.
+
+2008/01/01 income               ; <- transaction's first line starts in column 0, contains date and description
+    assets:bank:checking  $1    ; <- posting lines start with whitespace, each contains an account name
+    income:salary        $-1    ;    followed by at least two spaces and an amount
+
+2008/06/01 gift
+    assets:bank:checking  $1    ; <- at least two postings in a transaction
+    income:gifts         $-1    ; <- their amounts must balance to 0
+
+2008/06/02 save
+    assets:bank:saving    $1
+    assets:bank:checking        ; <- one amount may be omitted; here $-1 is inferred
+
+2008/06/03 eat & shop           ; <- description can be anything
+    expenses:food         $1
+    expenses:supplies     $1    ; <- this transaction debits two expense accounts
+    assets:cash                 ; <- $-2 inferred
+
+2008/12/31 * pay off            ; <- an optional * or ! after the date means "cleared" (or anything you want)
+    liabilities:debts     $1
+    assets:bank:checking
+```
 
 Now let's explore the available journal file syntax in detail.
 
@@ -206,17 +212,19 @@ transaction as secondary (if needed).
 
 Example:
 
-    ; PRIMARY=SECONDARY
-    ; The secondary date's year is optional, defaulting to the primary's
-    2010/2/23=2/19 movie ticket
-      expenses:cinema                   $10
-      assets:checking
+``` {.journal}
+; PRIMARY=SECONDARY
+; The secondary date's year is optional, defaulting to the primary's
+2010/2/23=2/19 movie ticket
+  expenses:cinema                   $10
+  assets:checking
 
-    $ hledger register checking
-    2010/02/23 movie ticket         assets:checking                $-10         $-10
+$ hledger register checking
+2010/02/23 movie ticket         assets:checking                $-10         $-10
 
-    $ hledger register checking --date2
-    2010/02/19 movie ticket         assets:checking                $-10         $-10
+$ hledger register checking --date2
+2010/02/19 movie ticket         assets:checking                $-10         $-10
+```
 
 ##### Posting dates
 
@@ -233,7 +241,7 @@ is also supported, as an alternate spelling of the date and date2 tags.
 Note: if you do use either of these forms, be sure to give them a valid DATE
 or you'll get a parse error, eg an empty `date:` tag is not allowed.
 
-#### Accounts
+#### Account names
 
 Account names typically have several parts separated by a full colon, from
 which hledger derives a hierarchical chart of accounts. They can be
@@ -241,6 +249,9 @@ anything you like, but in finance there are traditionally five top-level
 accounts: `assets`, `liabilities`, `income`, `expenses`, and `equity`.
 
 Account names may contain single spaces, eg: `assets:accounts receivable`.
+Because of this, they must always be followed by at least two spaces (or newline).
+
+Account names can be [aliased](#account-aliases).
 
 #### Amounts
 
@@ -288,13 +299,15 @@ These look like `=EXPECTEDBALANCE` following a posting's amount. Eg in
 this example we assert the expected dollar balance in accounts a and b after
 each posting:
 
-    2013/1/1
-      a   $1  =$1
-      b       =$-1
+``` {.journal}
+2013/1/1
+  a   $1  =$1
+  b       =$-1
 
-    2013/1/2
-      a   $1  =$2
-      b  $-1  =$-2
+2013/1/2
+  a   $1  =$2
+  b  $-1  =$-2
+```
 
 After reading a journal file, hledger will check all balance
 assertions and report an error if any of them fail. Balance assertions
@@ -345,7 +358,7 @@ for this kind of total balance assertion if there's demand.)
 
 Balance assertions do not count the balance from subaccounts; they check
 the posted account's exclusive balance. For example:
-```
+``` {.journal}
 1/1
   checking:fund   1 = 1  ; post to this subaccount, its balance is now 1
   checking        1 = 1  ; post to the parent account, its exclusive balance is now 1
@@ -371,30 +384,38 @@ three ways to specify a transaction price:
 
 1. Write the unit price (exchange rate) explicitly as `@ UNITPRICE` after the amount:
 
-        2009/1/1
-         assets:foreign currency   €100 @ $1.35  ; one hundred euros at $1.35 each
-         assets:cash
+    ```journal
+    2009/1/1
+      assets:foreign currency   €100 @ $1.35  ; one hundred euros at $1.35 each
+      assets:cash
+    ```
 
 2. Or write the total price for this amount as `@@ TOTALPRICE`:
 
-        2009/1/1
-         assets:foreign currency   €100 @@ $135  ; one hundred euros at $135 for the lot
-         assets:cash
+    ```journal
+    2009/1/1
+      assets:foreign currency   €100 @@ $135  ; one hundred euros at $135 for the lot
+      assets:cash
+    ```
 
 3. Or fully specify all posting amounts using exactly two commodities:
 
-        2009/1/1
-         assets:foreign currency   €100          ; one hundred euros
-         assets:cash              $-135          ; exchanged for $135
+    ```journal
+    2009/1/1
+      assets:foreign currency   €100          ; one hundred euros
+      assets:cash              $-135          ; exchanged for $135
+    ```
 
 You can use the `--cost/-B` flag with reporting commands to see such
 amounts converted to their price's commodity. Eg, using any of the above
 examples we get:
 
-    $ hledger print --cost
-    2009/01/01
-        assets:foreign currency       $135.00
-        assets:cash                  $-135.00
+```shell
+$ hledger print --cost
+2009/01/01
+    assets:foreign currency       $135.00
+    assets:cash                  $-135.00
+```
 
 ##### Prices are fixed
 
@@ -412,7 +433,7 @@ hledger parses that syntax, and (currently) ignores it.
 
 hledger also parses, and currently ignores, ledger-style historical price directives:
 <!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
-```
+```journal
 ; Historical price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
 ; These say the euro's exchange rate is $1.35 during 2009 and
 ; $1.40 from 2010/1/1 on.
@@ -438,25 +459,26 @@ following lines.
 
 Some examples:
 
-    # a journal comment
-    
-    ; also a journal comment
-    
-    comment
-    This is a multiline comment,
-    which continues until a line
-    where the "end comment" string
-    appears on its own.
-    end comment
-    
-    2012/5/14 something  ; a transaction comment
-        ; the transaction comment, continued
-        posting1  1  ; a comment for posting 1
-        posting2
-        ; a comment for posting 2
-        ; another comment line for posting 2
-    ; a journal comment (because not indented)
+```journal
+# a journal comment
 
+; also a journal comment
+
+comment
+This is a multiline comment,
+which continues until a line
+where the "end comment" string
+appears on its own.
+end comment
+
+2012/5/14 something  ; a transaction comment
+    ; the transaction comment, continued
+    posting1  1  ; a comment for posting 1
+    posting2
+    ; a comment for posting 2
+    ; another comment line for posting 2
+; a journal comment (because not indented)
+```
 
 #### Tags
 
@@ -474,9 +496,11 @@ while tags in a posting comment affect only that posting.
 For example, the following transaction has three tags (A, TAG2, third-tag)
 and the posting has four (A, TAG2, third-tag, posting-tag):
 
-    1/1 a transaction  ; A:, TAG2:
-        ; third-tag: a third transaction tag, this time with a value
-        (a)  $1  ; posting-tag:
+``` {.journal}
+1/1 a transaction  ; A:, TAG2:
+    ; third-tag: a third transaction tag, this time with a value
+    (a)  $1  ; posting-tag:
+```
 
 Tags are like Ledger's
 [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
@@ -503,30 +527,32 @@ This affects all subsequent journal entries in the current file or its
 [included files](#including-other-files).
 The spaces around the = are optional:
 
-    alias OLD = NEW
+``` {.journal}
+alias OLD = NEW
+```
 
-Or, you can use the `--alias` option on the command line.
-This affects all entries. It's useful for trying out aliases interactively:
-
-    --alias 'OLD=NEW'
+Or, you can use the `--alias 'OLD=NEW'` option on the command line.
+This affects all entries. It's useful for trying out aliases interactively.
 
 OLD and NEW are full account names.
 hledger will replace any occurrence of the old account name with the
 new one. Subaccounts are also affected. Eg:
 
-    alias checking = assets:bank:wells fargo:checking
-    # rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
+``` {.journal}
+alias checking = assets:bank:wells fargo:checking
+# rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
+```
 
 ###### Regex aliases
 
 There is also a more powerful variant that uses a regular expression,
 indicated by the forward slashes. (This was the default behaviour in hledger 0.24-0.25):
 
-    alias /REGEX/ = REPLACEMENT
+``` {.journal}
+alias /REGEX/ = REPLACEMENT
+```
 
-or:
-
-    --alias '/REGEX/=REPLACEMENT'
+or `--alias '/REGEX/=REPLACEMENT'`.
 
 <!-- (Can also be written `'/REGEX/REPLACEMENT/'`). -->
 REGEX is a case-insensitive regular expression. Anywhere it matches
@@ -538,8 +564,10 @@ Note, currently regular expression aliases may cause noticeable slow-downs.
 (And if you use Ledger on your hledger file, they will be ignored.)
 Eg:
 
-    alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
-    # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
+``` {.journal}
+alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
+# rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
+```
 
 ###### Multiple aliases
 
@@ -555,24 +583,14 @@ Aliases are applied in the following order:
 
 You can clear (forget) all currently defined aliases with the `end aliases` directive:
 
-    end aliases
+``` {.journal}
+end aliases
+```
 
 ##### Multi-line comments
 
-A line containing just `comment` starts a multi-line [comment](#comments),
-and a line containing just `end comment` ends it. Eg:
-
-    1/1
-      a  1
-
-    comment
-    this is ignored
-
-    and so is this
-    end comment
-
-    1/2
-      a  1
+A line containing just `comment` starts a multi-line comment, and a
+line containing just `end comment` ends it. See [comments](#comments).
 
 ##### Default commodity
 
@@ -585,89 +603,162 @@ Also note the directive itself does not influence the commodity's default
 [display style](#amount-display-styles), but the amount it is
 applied to might. Here's an example:
 
-    ; set £ as the default commodity
-    D £1,000.00
-    
-    2010/1/1
-      a  2340
-      b
-    
-    2014/1/1
-      c  £1000
-      d
-    
+```journal
+; set £ as the default commodity
+D £1,000.00
 
-    $ hledger print
-    2010/01/01
-        a     £2,340.00
-        b    £-2,340.00
+2010/1/1
+  a  2340
+  b
 
-    2014/01/01
-        c     £1,000.00
-        d    £-1,000.00
+2014/1/1
+  c  £1000
+  d
+```
+```{.shell}
+$ hledger print
+2010/01/01
+    a     £2,340.00
+    b    £-2,340.00
+
+2014/01/01
+    c     £1,000.00
+    d    £-1,000.00
+```
 
 ##### Default parent account
 
 You can specify a parent account which will be prepended to all accounts
 within a section of the journal. Use the `account` directive like so:
 
-    account home
-    
-    2010/1/1
-        food    $10
-        cash
-    
-    end
+``` {.journal}
+account home
+
+2010/1/1
+    food    $10
+    cash
+
+end
+```
 
 If `end` is omitted, the effect lasts to the end of the file.
 The above is equivalent to:
 
-    2010/01/01
-        home:food           $10
-        home:cash          $-10
+``` {.journal}
+2010/01/01
+    home:food           $10
+    home:cash          $-10
+```
 
 Included files are also affected, eg:
 
-    account business
-    include biz.journal
-    end
-    account personal
-    include personal.journal
-    end
+``` {.journal}
+account business
+include biz.journal
+end
+account personal
+include personal.journal
+end
+```
 
 ##### Default year
 
 You can set a default year to be used for subsequent dates which don't
 specify a year. This is a line beginning with `Y` followed by the year. Eg:
 
-    Y2009      ; set default year to 2009
-    
-    12/15      ; equivalent to 2009/12/15
-      expenses  1
-      assets
-    
-    Y2010      ; change default year to 2010
-    
-    2009/1/30  ; specifies the year, not affected
-      expenses  1
-      assets
-    
-    1/31       ; equivalent to 2010/1/31
-      expenses  1
-      assets
+``` {.journal}
+Y2009      ; set default year to 2009
+
+12/15      ; equivalent to 2009/12/15
+  expenses  1
+  assets
+
+Y2010      ; change default year to 2010
+
+2009/1/30  ; specifies the year, not affected
+  expenses  1
+  assets
+
+1/31       ; equivalent to 2010/1/31
+  expenses  1
+  assets
+```
 
 ##### Including other files
 
 You can pull in the content of additional journal files by writing an
 include directive, like this:
 
-    include path/to/file.journal
+``` {.journal}
+include path/to/file.journal
+```
 
 If the path does not begin with a slash, it is relative to the current file.
 
 The `include` directive may only be used in journal files, and currently
 it may only include other journal files (eg, not CSV or timelog files.)
 
+
+### Timelog
+
+hledger can also read timelog files.
+[As with Ledger](http://ledger-cli.org/3.0/doc/ledger3.html#Time-Keeping),
+these are (a subset of)
+[timeclock.el](http://www.emacswiki.org/emacs/TimeClock)'s format,
+containing clock-in and clock-out entries as in the example below.
+The date is a [simple date](#simple-dates) (also, [default year directives](#default-year) work).
+The time format is HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional.
+The timezone, if present, must be four digits and is ignored
+(currently the time is always interpreted as a local time).
+
+```timelog
+i 2015/03/30 09:00:00 some:account name  optional description after two spaces
+o 2015/03/30 09:20:00
+i 2015/03/31 22:21:45 another account
+o 2015/04/01 02:00:34
+```
+
+hledger treats each clock-in/clock-out pair as a transaction posting
+some number of hours to an account. Or if the session spans more than
+one day, it is split into several transactions, one for each day. For
+the above time log, `hledger print` generates these journal entries:
+
+``` {.shell}
+$ hledger -f t.timelog print
+2015/03/30 * optional description after two spaces
+    (some:account name)         0.33h
+
+2015/03/31 * 22:21-23:59
+    (another account)         1.64h
+
+2015/04/01 * 00:00-02:00
+    (another account)         2.01h
+
+```
+
+Here is a
+[sample.timelog](https://raw.github.com/simonmichael/hledger/master/data/sample.timelog) to
+download and some queries to try:
+
+``` {.shell .bold}
+$ hledger -f sample.timelog balance                               # current time balances
+$ hledger -f sample.timelog register -p 2009/3                    # sessions in march 2009
+$ hledger -f sample.timelog register -p weekly --depth 1 --empty  # time summary by week
+```
+
+To generate time logs, ie to clock in and clock out, you could:
+
+- use emacs and the built-in timeclock.el, or
+  the extended [timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el)
+  and perhaps the extras in [ledgerutils.el](http://hub.darcs.net/simon/ledgertools/ledgerutils.el)
+
+- at the command line, use these bash aliases:
+    ``` {.shell bold}
+    alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
+    alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
+    ```
+- or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/ledger/ledger/tree/maint/scripts).
+  These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
 ### CSV
 
@@ -696,7 +787,7 @@ You'll need this when your CSV contains header lines. Eg:
 <!-- hledger tries to skip initial CSV header lines automatically. -->
 <!-- If it guesses wrong, use this directive to skip exactly N lines. -->
 <!-- This can also be used in a conditional block to ignore certain CSV records. -->
-```
+```rules
 # ignore the first CSV line
 skip 1
 ```
@@ -706,19 +797,23 @@ When your CSV date fields are not formatted like `YYYY/MM/DD` (or `YYYY-MM-DD` o
 you'll need to specify the format.
 DATEFMT is a [strptime-like date parsing pattern](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime),
 which must parse the date field values completely. Examples:
-```
+
+``` {.rules .display-table}
 # parses "6/11/2013":
 date-format %-d/%-m/%Y
 ```
-```
+
+``` {.rules .display-table}
 # parses "11/06/2013":
 date-format %m/%d/%Y
 ```
-```
+
+``` {.rules .display-table}
 # parses "2013-Nov-06":
 date-format %Y-%h-%d
 ```
-```
+
+``` {.rules .display-table}
 # parses "11/6/2013 11:32 PM":
 date-format %-m/%-d/%Y %l:%M %p
 ```
@@ -726,12 +821,10 @@ date-format %-m/%-d/%Y %l:%M %p
 **`fields` *CSVFIELDNAME1*, *CSVFIELDNAME2*...**\
 (Field list)\
 This (a) names the CSV fields (names may not contain whitespace),
-and (b) assigns them to journal entry fields if you use any of these standard field names:\
-\
-`date`, `date2`, `status`, `code`, `description`, `comment`, `account1`, `account2`, `amount`, `amount-in`, `amount-out`, `currency`.\
-\
+and (b) assigns them to journal entry fields if you use any of these standard field names:
+`date`, `date2`, `status`, `code`, `description`, `comment`, `account1`, `account2`, `amount`, `amount-in`, `amount-out`, `currency`.
 Eg:
-```
+```rules
 # use the 1st, 2nd and 4th CSV fields as the entry date, description and amount
 # give the 7th and 8th fields custom names for later reference
 fields date, description, , amount, , , somefield, anotherfield
@@ -744,11 +837,11 @@ which can include CSV field values interpolated by name (`%CSVFIELDNAME`) or 1-b
 <!-- Whitespace before or after the value is ignored. -->
 Field assignments can be used instead of or in addition to a field list.
 Eg:
-```
+```{.rules .display-table}
 # set the amount to the 4th CSV field with "USD " prepended
 amount USD %4
 ```
-```
+```{.rules .display-table}
 # combine three fields to make a comment (containing two tags)
 comment note: %somefield - %anotherfield, date: %1
 ```
@@ -768,12 +861,12 @@ specific field).  When there are multiple patterns they should be written
 on separate lines, unindented.
 The field assignments are on separate lines indented by at least one space.
 Examples:
-```
+```{.rules .display-table}
 # if the CSV record contains "groceries", set account2 to "expenses:groceries"
 if groceries
  account2 expenses:groceries
 ```
-```
+```{.rules .display-table}
 # if the CSV record contains any of these patterns, set account2 and comment as shown
 if
 monthly service fee
@@ -786,7 +879,7 @@ banking thru software
 **`include` *RULESFILE***\
 Include another rules file at this point. `RULESFILE` is either an absolute file path or
 a path relative to the current file's directory. Eg:
-```
+```rules
 # rules reused with several CSV files
 include common.rules
 ```
@@ -806,64 +899,6 @@ If an amount value is parenthesised, it will be de-parenthesised and sign-flippe
 The generated journal entries will be sorted by date.
 The original order of same-day entries will be preserved, usually.
 <!-- (by reversing the CSV entries if they seem to be in reverse date order). -->
-
-### Timelog
-
-hledger can also read timelog files.
-[As with Ledger](http://ledger-cli.org/3.0/doc/ledger3.html#Time-Keeping),
-these are (a subset of)
-[timeclock.el](http://www.emacswiki.org/emacs/TimeClock)'s format,
-containing clock-in and clock-out entries like so:
-
-    i 2015/03/30 09:00:00 some:account name  optional description after two spaces
-    o 2015/03/30 09:20:00
-    i 2015/03/31 22:21:45 another account
-    o 2015/04/01 02:00:34
-
-The date is a [simple date](#simple-dates), so hyphen (-) and period
-(.) are also allowed as separators, leading zeroes are optional, the
-year may be omitted (and a [default year directive](#default-year) can
-be used to set it).
-
-The time format is HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional.
-The timezone, if present, must be four digits and is ignored
-(currently the time is always interpreted as a local time).
-
-hledger treats each clock-in/clock-out pair as a transaction posting
-some number of hours to a (single) account. Or, several transactions
-if the session spans more than one day. Eg for the above time log,
-hledger print gives:
-
-    2015/03/30 * optional description after two spaces
-        (some:account name)         0.33h
-
-    2015/03/31 * 22:21-23:59
-        (another account)         1.64h
-
-    2015/04/01 * 00:00-02:00
-        (another account)         2.01h
-
-Here is a
-[sample.timelog](https://raw.github.com/simonmichael/hledger/master/data/sample.timelog) to
-download and some queries to try:
-
-    hledger -f sample.timelog balance                               # current time balances
-    hledger -f sample.timelog register -p 2009/3                    # sessions in march 2009
-    hledger -f sample.timelog register -p weekly --depth 1 --empty  # time summary by week
-
-To generate time logs, ie to clock in and clock out, you could:
-
-- use emacs and the built-in timeclock.el, or
-  the extended [timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el)
-  and perhaps the extras in [ledgerutils.el](http://hub.darcs.net/simon/ledgertools/ledgerutils.el)
-
-- at the command line, use these bash aliases:
-  ```
-  alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
-  alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
-  ```
-- or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/ledger/ledger/tree/maint/scripts).
-  These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
 
 ## Options
@@ -1004,58 +1039,90 @@ more space-separated search terms, optional prefixes to match specific
 fields, quotes to enclose whitespace, etc.
 A query term can be any of the following:
 
-- `REGEX` - match account names by this regular expression
-- `acct:REGEX` - same as above
-- `code:REGEX` - match by transaction code (eg check number)
-- `desc:REGEX` - match transaction descriptions
-- `date:PERIODEXPR` - match dates within the specified [period](#period-expressions)
-  (which should not include a [reporting interval](#reporting-interval), cf [#141](https://github.com/simonmichael/hledger/issues/141))
-- `date2:PERIODEXPR` - as above, but match secondary dates
-- `tag:REGEX[=REGEX]` - match by [tag](#tags) name, and optionally also by tag value.
-   Note a `tag:` query is considered to match a transaction if it matches any of the postings.
-   Also remember that postings inherit all of their parent transaction's tags.
-- `depth:N` - match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
-- `status:*` or `status:!` or `status:` - match cleared, pending, or uncleared/pending transactions respectively
-- `real:1` or `real:0` - match real/virtual-ness
-- `amt:N`, `amt:<N`, `amt:<=N`, `amt:>N`, `amt:>=N` - match postings with a single-commodity
-  amount that is equal to, less than, or greater than N.
-  (Multi-commodity amounts are not tested, and will always match.)
-  The comparison has two modes: if N is preceded by a `+` or `-` sign
-  (or is 0), the two signed numbers are compared. Otherwise, the
-  absolute magnitudes are compared, ignoring sign.
-- `cur:REGEX` - match postings or transactions including any amounts
-  whose currency/commodity symbol is fully matched by REGEX. (For a
-  partial match, use `.*REGEX.*`). Note, to match characters which are
-  regex-significant, like the dollar sign (`$`), you need to prepend `\`.
-  And when using the command line you need to add one more level
-  of quoting to hide it from the shell, so eg do: `hledger print cur:'\$'`
-  or `hledger print cur:\\$`.
-- `not:` before any of the above negates the match
+---------------------------------- ------------------------------------------------------------------------------------------------------------------------
+`REGEX`                            match account names by this regular expression
 
-### Combining query arguments
+\                                  \
+`acct:REGEX`                       same as above
 
-hledger query expressions don't support full boolean logic. Instead, multiple query terms
-are combined as follows:
+\                                  \
+`amt:N`, `amt:<N`, `amt:<=N`,      match postings with a single-commodity
+`amt:>N`, `amt:>=N`                amount that is equal to, less than, or greater than N.
+\                                  (Multi-commodity amounts are not tested, and will always match.)
+\                                  The comparison has two modes: if N is preceded by a `+` or `-` sign
+                                   (or is 0), the two signed numbers are compared. Otherwise, the
+                                   absolute magnitudes are compared, ignoring sign.
 
-- The [print](#print) command selects transactions which:
-  - match any of the description terms AND
-  - have any postings matching any of the positive account terms AND
-  - have no postings matching any of the negative account terms AND
-  - match all the other terms.
+\                                  \
+`code:REGEX`                       match by transaction code (eg check number)
 
-<!-- -->
+\                                  \
+`cur:REGEX`                        match postings or transactions including any amounts
+\                                  whose currency/commodity symbol is fully matched by REGEX. (For a
+\                                  partial match, use `.*REGEX.*`). Note, to match characters which are
+\                                  regex-significant, like the dollar sign (`$`), you need to prepend `\`.
+\                                  And when using the command line you need to add one more level
+                                   of quoting to hide it from the shell, so eg do: `hledger print cur:'\$'`
+                                   or `hledger print cur:\\$`.
 
-- Other reporting commands (eg [register](#register) and [balance](#balance)) select transactions/postings/accounts which match (or negatively match):
-  - any of the description terms AND
-  - any of the account terms AND
-  - all the other terms.
+\                                  \
+`desc:REGEX`                       match transaction descriptions
 
-### Query arguments or options ?
+\                                  \
+`date:PERIODEXPR`                  match dates within the specified [period](#period-expressions)
+\                                  (which should not include a [reporting interval](#reporting-interval))
 
-On the command line, some of the query terms above can also be expressed as command-line flags. 
-Generally you can mix and match query arguments and flags, and the resulting query will be their intersection.
-Remember that a `-p` [period](#period-expressions) flag will cause any other `-b`, `-e` or `-p` flags on the command line to be ignored.
+\                                  \
+`date2:PERIODEXPR`                 as above, but match [secondary dates](#secondary-dates)
 
+\                                  \
+`depth:N`                          match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
+
+\                                  \
+`real:1`, `real:0`                 match real/virtual-ness
+
+\                                  \
+`status:*`, `status:!`, `status:`  match cleared, pending, or uncleared/pending transactions respectively
+                                   \
+                                   \
+
+\                                  \
+`tag:REGEX[=REGEX]`                match by [tag](#tags) name, and optionally also by tag value.
+\                                  Note a `tag:` query is considered to match a transaction if it matches any of the postings.
+\                                  Also remember that postings inherit all of their parent transaction's tags.
+
+\                                  \
+`not:`                             before any of the above negates the match.
+
+---------------------------------- ------------------------------------------------------------------------------------------------------------------------
+
+\
+
+Note that some of these can also be expressed as command-line options (eg `depth:2` is equivalent to `--depth 2`).
+Generally you can mix options and query arguments, and the resulting query will be their intersection.
+<!-- (but remember the `-p` [period](#period-expressions) option is a bit special and will cause `-b`, `-e` and other `-p` options to be ignored). -->
+
+hledger query expressions don't support boolean logic (AND, OR, grouping with parentheses).
+Instead, multiple query terms are combined as follows:
+
+---
+
++----------------------------------------+----------------------------------------------------------------------+
+|The [print](#print) command             | - match any of the description terms AND                             |
+|selects transactions which:             | - have any postings matching any of the positive account terms AND   |
+|\                                       | - have no postings matching any of the negative account terms AND    |
+|\                                       | - match all the other terms.                                         |
+|\                                       |                                                                      |
+|\                                       |                                                                      |
++----------------------------------------+----------------------------------------------------------------------+
+|All other commands select               | - any of the description terms AND                                   |
+|transactions/postings/accounts          | - any of the account terms AND                                       |
+|which match (or negatively match):      | - all the other terms.                                               |
+|\                                       |                                                                      |
+|\                                       |                                                                      |
++----------------------------------------+----------------------------------------------------------------------+
+
+---
 
 ## Commands
 
@@ -1068,26 +1135,108 @@ You can write its full name (eg `balance`), or one of the
 standard short aliases displayed in parentheses in the command list
 (eg `bs`), or any unambiguous prefix of a command (eg `inc`).
 
-For an overview of commands see the [introduction and overview](#introduction-and-overview) above.
+Below are the commands supported by hledger.
+For a quick summary, see the [introduction and overview](#introduction-and-overview) above.
+To try out these examples for yourself, use the sample journal. Eg:
+```{.shell .bold}
+$ wget https://raw.github.com/simonmichael/hledger/master/data/sample.journal
+$ export LEDGER_FILE=sample.journal
+```
 
 ### Built-in commands
 
 #### accounts
 
-This command lists matched account names, as a flat list by default, or (with the `--tree` flag) as a hierarchy.
-With no query arguments, all account names are listed.
+``` {.shell .right}
+$ hledger accounts --tree
+assets
+  bank
+    checking
+    saving
+  cash
+expenses
+  food
+  supplies
+income
+  gifts
+  salary
+liabilities
+  debts
+```
+
+``` {.shell .right}
+$ hledger accounts --drop 1
+bank:checking
+bank:saving
+cash
+food
+supplies
+gifts
+salary
+debts
+```
+
+``` {.shell .right}
+$ hledger accounts
+assets:bank:checking
+assets:bank:saving
+assets:cash
+expenses:food
+expenses:supplies
+income:gifts
+income:salary
+liabilities:debts
+```
+
+This command lists all account names, or with query arguments, matched account names.
+
+It shows a flat list by default. In this mode you can add `--drop N`
+to omit the first few account name components.
+
+With `--tree`, it shows the account hierarchy.
 
 #### activity
 
-The activity command displays an ascii bar chart showing
+``` {.shell .right}
+$ hledger activity --quarterly
+2008-01-01 **
+2008-04-01 *******
+2008-07-01 
+2008-10-01 **
+```
+
+The activity command displays an ascii histogram showing
 transaction counts by day, week, month or other reporting interval
-(by day is the default).
-
-Examples:
-
-    $ hledger activity -p weekly dining
+(by day is the default). With query arguments, it counts only matched transactions.
 
 #### add
+
+``` {.shell .right}
+$ hledger add
+Adding transactions to journal file /src/hledger/data/sample.journal
+Any command line arguments will be used as defaults.
+Use tab key to complete, readline keys to edit, enter to accept defaults.
+An optional (CODE) may follow transaction dates.
+An optional ; COMMENT may follow descriptions or amounts.
+If you make a mistake, enter < at any prompt to restart the transaction.
+To end a transaction, enter . when prompted.
+To quit, enter . at a date prompt or press control-d or control-c.
+Date [2015/05/22]: 
+Description: supermarket
+Account 1: expenses:food
+Amount  1: $10
+Account 2: assets:checking
+Amount  2 [$-10.0]: 
+Account 3 (or . or enter to finish this transaction): .
+2015/05/22 supermarket
+    expenses:food             $10
+    assets:checking        $-10.0
+
+Save this transaction to the journal ? [y]: 
+Saved.
+Starting the next transaction (. or ctrl-D/ctrl-C to quit)
+Date [2015/05/22]: <CTRL-D> $
+```
 
 Many hledger users edit their journals directly with a text editor, or generate them from CSV.
 For more interactive data entry, there is the `add` command, 
@@ -1098,29 +1247,21 @@ To use it, just run `hledger add` and follow the prompts.
 You can add as many transactions as you like; when you are finished,
 enter `.` or press control-d or control-c to exit.
 
-Additional convenience features:
+Features:
 
 - add tries to provide useful defaults, using the most similar recent
   transaction (by description) as a template.
-
 - You can also set the initial defaults with command line arguments.
-
 - [Readline-style edit keys](http://tiswww.case.edu/php/chet/readline/rluserman.html#SEC3)
   can be used during data entry.
-
 - The tab key will auto-complete whenever possible - accounts,
   descriptions, dates (`yesterday`, `today`, `tomorrow`). If the input
   area is empty, it will insert the default value.
-
 - If the journal defines a [default commodity](#default-commodity),
   it will be added to any bare numbers entered.
-
 - A parenthesised transaction [code](#entries) may be entered following a date.
-
 - [Comments](#comments) and tags may be entered following a description or amount.
-
 - If you make a mistake, enter `<` at any prompt to restart the transaction.
-
 - Input prompts are displayed in a different colour when the terminal supports it.
 
 Here's [an example](step-by-step.html#record-a-transaction-with-hledger-add).
@@ -1132,12 +1273,25 @@ It is the most complex and perhaps most useful command.
 
 ##### Simple balance reports
 
+``` {.shell .right}
+$ hledger balance
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+                  $2  expenses
+                  $1    food
+                  $1    supplies
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+                  $1  liabilities:debts
+--------------------
+                   0
+```
+
 Simple balance reports have no [reporting interval](#reporting-interval).
 They show the sum of matched postings in each account.
 (If postings are not date-restricted, this is usually the same as the ending balance).
-
-    $ hledger balance
-    $ hledger balance -p 'last month' expenses:food
 
 By default, simple balance reports display the accounts as a
 hierarchy, with subaccounts indented below their parent. Each
@@ -1151,15 +1305,36 @@ more compact output. Use `--no-elide` to prevent this.
 Accounts which have zero balance (and no non-zero subaccounts) are
 omitted. Use `-E/--empty` to show them.
 
+``` {.shell .right .clear}
+$ hledger balance -p 2008/6 expenses --no-total
+                  $2  expenses
+                  $1    food
+                  $1    supplies
+```
+
 A final total is displayed by default; use `-N/--no-total` to suppress it.
 
 ##### Flat mode
+
+``` {.shell .right}
+$ hledger balance -p 2008/6 expenses -N --flat --drop 1
+                  $1  food
+                  $1  supplies
+```
 
 To see a flat list of full account names instead of the default hierarchical display, use `--flat`.
 In this mode, accounts (unless depth-clipped) show their "exclusive" balance, excluding any subaccount balances.
 In this mode, you can also use `--drop N` to omit the first few account name components.
 
 ##### Depth limiting
+
+``` {.shell .right}
+$ hledger balance -N --depth 1
+                 $-1  assets
+                  $2  expenses
+                 $-2  income
+                  $1  liabilities
+```
 
 With `--depth N`, balance shows accounts only to the specified depth.
 This is very useful to show a complex charts of accounts in less detail.
@@ -1172,6 +1347,21 @@ In flat mode, balances from accounts below the depth limit will be shown as part
 With a [reporting interval](#reporting-interval), multiple balance
 columns will be shown, one for each report period.
 There are three types of multi-column balance report, showing different information:
+
+``` {.shell .right}
+$ hledger balance --quarterly income expenses -E
+Balance changes in 2008:
+
+                   ||  2008q1  2008q2  2008q3  2008q4 
+===================++=================================
+ expenses:food     ||       0      $1       0       0 
+ expenses:supplies ||       0      $1       0       0 
+ income:gifts      ||       0     $-1       0       0 
+ income:salary     ||     $-1       0       0       0 
+-------------------++---------------------------------
+                   ||     $-1      $1       0       0 
+
+```
 
 1. By default: each column shows the sum of postings in that period,
 ie the account's change of balance in that period. This is useful eg
@@ -1186,17 +1376,80 @@ or cashflow statement:
    $ hledger balance ^assets ^liabilities 'not:(receivable|payable)' -p 'weekly this month'
 -->
 
+<br clear=all>
+``` {.shell .right}
+$ hledger balance --quarterly income expenses -E --cumulative
+Ending balances (cumulative) in 2008:
+
+                   ||  2008/03/31  2008/06/30  2008/09/30  2008/12/31 
+===================++=================================================
+ expenses:food     ||           0          $1          $1          $1 
+ expenses:supplies ||           0          $1          $1          $1 
+ income:gifts      ||           0         $-1         $-1         $-1 
+ income:salary     ||         $-1         $-1         $-1         $-1 
+-------------------++-------------------------------------------------
+                   ||         $-1           0           0           0 
+
+```
+
 2. With `--cumulative`: each column shows the ending balance for that
 period, accumulating the changes across periods, starting from 0 at
 the report start date. This mode is not often used.
 
+<br clear=all>
+``` {.shell .right}
+$ hledger balance ^assets ^liabilities -Q 
+Balance changes in 2008:
+
+                      ||  2008q1  2008q2  2008q3  2008q4 
+======================++=================================
+ assets:bank:checking ||      $1       0       0     $-1 
+ assets:bank:saving   ||       0      $1       0       0 
+ assets:cash          ||       0     $-2       0       0 
+ liabilities:debts    ||       0       0       0      $1 
+----------------------++---------------------------------
+                      ||      $1     $-1       0       0 
+
+$ hledger balance ^assets ^liabilities --quarterly --historical --begin 2008/4/1
+Ending balances (historical) in 2008/04/01-2008/12/31:
+
+                      ||  2008/06/30  2008/09/30  2008/12/31 
+======================++=====================================
+ assets:bank:checking ||          $1          $1           0 
+ assets:bank:saving   ||          $1          $1          $1 
+ assets:cash          ||         $-2         $-2         $-2 
+ liabilities:debts    ||           0           0          $1 
+----------------------++-------------------------------------
+                      ||           0           0           0 
+
+```
+
 3. With `--historical/-H`: each column shows the actual historical
 ending balance for that period, accumulating the changes across
 periods, starting from the actual balance at the report start date.
-This is useful eg for a multi-year balance sheet.
-<!--
-    $ hledger balance ^assets ^liabilities -YH
--->
+This is useful eg for a multi-period balance sheet, and when
+you are showing only the data after a certain start date.
+
+<br clear=all>
+
+``` {.shell .right}
+$ hledger balance -Q income expenses --tree -E -TA
+Balance changes in 2008:
+
+            ||  2008q1  2008q2  2008q3  2008q4    Total  Average 
+============++===================================================
+ expenses   ||       0      $2       0       0       $2       $1 
+   food     ||       0      $1       0       0       $1        0 
+   supplies ||       0      $1       0       0       $1        0 
+ income     ||     $-1     $-1       0       0      $-2      $-1 
+   gifts    ||       0     $-1       0       0      $-1        0 
+   salary   ||     $-1       0       0       0      $-1        0 
+------------++---------------------------------------------------
+            ||     $-1      $1       0       0        0        0 
+
+# Average is rounded to the dollar here since all journal amounts are
+
+```
 
 Multi-column balance reports display accounts in flat mode by default;
 to see the hierarchy, use `--tree`.
@@ -1219,96 +1472,92 @@ for each row.  The `-A/--average` flag adds a column showing the
 average value in each row. Note in `--H/--historical` mode only the
 average is useful, and in `--cumulative` mode neither is useful.
 
-##### Customising console output
+##### Custom balance output
 
-(Tip: currently two commands, balance and register, can customise their
-console output, and they do it differently.)
+``` {.shell .right}
+$ hledger balance --format "%20(account) %-(total)"
+              assets $-1
+         bank:saving $1
+                cash $-2
+            expenses $2
+                food $1
+            supplies $1
+              income $-2
+               gifts $-1
+              salary $-1
+   liabilities:debts $1
+--------------------
+                   0
+```
 
-In simple balance reports (not multi-column ones), the `--format FMT`
-option will customize the format of output lines. `FMT` is like a C
-printf/strftime-style format string, except that field names are
-enclosed in parentheses:
+In simple (non-multi-column) balance reports, you can customize the
+output with `--format FMT`. FMT (plus a newline) will be displayed for
+each account/balance pair. It is a format string with data fields
+interpolated by
 
-    %[-][MIN][.MAX]([FIELD])
+`%[-][MIN][.MAX](FIELDNAME)`
 
-If the minus sign is given, the text is left justified. The `MIN` field
-specified a minimum number of characters in width. After the value is
-injected into the string, spaces is added to make sure the string is at
-least as long as `MIN`. Similary, the `MAX` field specifies the maximum
-number of characters. The string will be cut if the injected string is too
-long.
+where a minus sign means left-justify, MIN means pad with spaces to at
+least this width, and MAX means truncate at this width. The field name
+must be enclosed in parentheses. Three are available:
 
-- `%-(total)   ` the total of an account, left justified
-- `%20(total)  ` The same, right justified, at least 20 chars wide
-- `%.20(total) ` The same, no more than 20 chars wide
-- `%-.20(total)` Left justified, maximum twenty chars wide
+- `depth_spacer` - a number of spaces equal to the account's depth, or if MIN is specified, MIN * depth spaces.
+- `account`      - the account's name
+- `total`        - the account's balance/sum of postings
 
-The following `FIELD` types are currently supported:
+Some examples:
 
-- `account` inserts the account name
-- `depth_spacer` inserts a space for each level of an account's
-  depth. That is, if an account has two parents, this construct will
-  insert two spaces. If a minimum width is specified, that much space is
-  inserted for each level of depth. Thus `%5_`, for an account with four
-  parents, will insert twenty spaces.
-- `total` inserts the total for the account
+- `%(total)`         - the account's total
+- `%-20.20(account)` - the account's name, left justified, padded to 20 characters and clipped at 20 characters
 
-Examples:
-
-If you want the account before the total you can use this format:
-
-    $ hledger balance --format "%20(account) %-(total)"
-                  assets $-1
-             bank:saving $1
-                    cash $-2
-                expenses $2
-                    food $1
-                supplies $1
-                  income $-2
-                   gifts $-1
-                  salary $-1
-       liabilities:debts $1
-    --------------------
-                       0
-
-Or, if you'd like to export the balance sheet:
-
-    $ hledger balance --format "%(total);%(account)" --no-total
-    $-1;assets
-    $1;bank:saving
-    $-2;cash
-    $2;expenses
-    $1;food
-    $1;supplies
-    $-2;income
-    $-1;gifts
-    $-1;salary
-    $1;liabilities:debts
-
-The default output format is `%20(total)  %2(depth_spacer)%-(account)`.
+The balance command's default format is `%20(total)  %2(depth_spacer)%-(account)`.
 
 ##### Output destination
 
+```{.shell .bold .right}
+$ hledger balance -o -     # write to stdout (the default)
+$ hledger balance -o FILE  # write to FILE
+```
+
 The balance, print and register commands can write their output to a
 destination other than the console. This is controlled by the
-`-o/--output-file` option. Eg:
-
-- `hledger balance -o -`    - write to stdout (the default)
-- `hledger balance -o FILE` - write to FILE
+`-o/--output-file` option.
 
 ##### CSV output
+
+```{.shell .bold .right}
+$ hledger balance -O csv       # write CSV to stdout
+$ hledger balance -o FILE.csv  # write CSV to FILE.csv
+```
 
 The balance, print and register commands can write their output as
 CSV. This is useful for exporting data to other applications, eg to
 make charts in a spreadsheet. This is controlled by the
 `-O/--output-format` option, or by specifying a `.csv` file extension
-with `-o/--output-file`. Eg:
-
-- `hledger balance -O csv`      - write CSV to stdout
-- `hledger balance -o FILE.csv` - write CSV to FILE.csv
-
+with `-o/--output-file`.
 
 #### balancesheet
+
+```{.shell .right}
+$ hledger balancesheet
+Balance Sheet
+
+Assets:
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+--------------------
+                 $-1
+
+Liabilities:
+                  $1  liabilities:debts
+--------------------
+                  $1
+
+Total:
+--------------------
+                   0
+```
 
 This command displays a simple
 [balance sheet](http://en.wikipedia.org/wiki/Balance_sheet). It currently
@@ -1317,15 +1566,53 @@ assumes that you have top-level accounts named `asset` and `liability`
 
 #### cashflow
 
-This command displays a simplified
+```{.shell .right}
+$ hledger cashflow
+Cashflow Statement
+
+Cash flows:
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+--------------------
+                 $-1
+
+Total:
+--------------------
+                 $-1
+```
+
+This command displays a simple
 [cashflow statement](http://en.wikipedia.org/wiki/Cash_flow_statement)
-(without the traditional segmentation into operating, investing, and
-financing cash flows.) It shows the change in all "cash" accounts for the
+It shows the change in all "cash" (ie, liquid assets) accounts for the
 period. It currently assumes that cash accounts are under a top-level
 account named `asset` and do not contain `receivable` or `A/R` (plural
 forms also allowed.)
 
 #### incomestatement
+
+```{.shell .right}
+$ hledger incomestatement
+Income Statement
+
+Revenues:
+                 $-2  income
+                 $-1    gifts
+                 $-1    salary
+--------------------
+                 $-2
+
+Expenses:
+                  $2  expenses
+                  $1    food
+                  $1    supplies
+--------------------
+                  $2
+
+Total:
+--------------------
+                   0
+```
 
 This command displays a simple
 [income statement](http://en.wikipedia.org/wiki/Income_statement).  It
@@ -1333,6 +1620,31 @@ currently assumes that you have top-level accounts named `income` (or
 `revenue`) and `expense` (plural forms also allowed.)
 
 #### print
+
+```{.shell .right}
+$ hledger print
+2008/01/01 income
+    assets:bank:checking            $1
+    income:salary                  $-1
+
+2008/06/01 gift
+    assets:bank:checking            $1
+    income:gifts                   $-1
+
+2008/06/02 save
+    assets:bank:saving              $1
+    assets:bank:checking           $-1
+
+2008/06/03 * eat & shop
+    expenses:food                $1
+    expenses:supplies            $1
+    assets:cash                 $-2
+
+2008/12/31 * pay off
+    liabilities:debts               $1
+    assets:bank:checking           $-1
+
+```
 
 The print command displays full transactions from the journal file,
 tidily formatted and showing all amounts explicitly. The output of
@@ -1342,11 +1654,6 @@ preserve all original content exactly (eg directives).
 hledger's print command also shows all unit prices in effect, or (with
 -B/--cost) shows cost amounts.
 
-Examples:
-
-    $ hledger print
-    $ hledger print employees:bob | hledger -f- register expenses
-
 The print command also supports 
 [output destination](#output-destination)
 and
@@ -1354,22 +1661,30 @@ and
 
 #### register
 
-The register command displays postings, one per line, and their running
-total.  With no [query terms](#queries), this is not all that different
-from [print](#print):
+```{.shell .right}
+$ hledger register checking
+2008/01/01 income                  assets:bank:checking               $1            $1
+2008/06/01 gift                    assets:bank:checking               $1            $2
+2008/06/02 save                    assets:bank:checking              $-1            $1
+2008/12/31 pay off                 assets:bank:checking              $-1             0
+```
 
-    $ hledger register
+The register command displays postings, one per line, and their
+running total.  This is typically used with a [query](#queries)
+selecting a particular account, to see that account's activity.
 
-More typically, use it to see a specific account's activity:
-
-    $ hledger register assets:bank:checking
+```{.shell .right .clear}
+$ hledger register checking -b 2008/6 --historical
+2008/06/01 gift                    assets:bank:checking               $1            $2
+2008/06/02 save                    assets:bank:checking              $-1            $1
+2008/12/31 pay off                 assets:bank:checking              $-1             0
+```
 
 The `--historical`/`-H` flag adds the balance from any prior postings
-to the running total, to show the actual running account balance.
+to the running total, to show the actual historical running balance.
+This is useful when you want to see just the recent activity.
 
-The `--depth` option limits the amount of sub-account detail displayed:
-
-    $ hledger register assets:bank:checking --depth 2
+The `--depth` option limits the amount of sub-account detail displayed.
 
 The `--average`/`-A` flag shows the running average posting amount
 instead of the running total (so, the final number displayed is the
@@ -1379,26 +1694,48 @@ It works best when showing just one account and one commodity.
 The `--related`/`-r` flag shows the *other* postings in the transactions
 of the postings which would normally be shown.
 
-With a [reporting interval](#reporting-interval) register shows
-aggregated summary postings, within each interval:
+```{.shell .right}
+$ hledger register --monthly income
+2008/01                 income:salary                                $-1           $-1
+2008/06                 income:gifts                                 $-1           $-2
+```
+```{.shell .right}
+$ hledger register --monthly income -E
+2008/01                 income:salary                                $-1           $-1
+2008/02                                                                0           $-1
+2008/03                                                                0           $-1
+2008/04                                                                0           $-1
+2008/05                                                                0           $-1
+2008/06                 income:gifts                                 $-1           $-2
+2008/07                                                                0           $-2
+2008/08                                                                0           $-2
+2008/09                                                                0           $-2
+2008/10                                                                0           $-2
+2008/11                                                                0           $-2
+2008/12                                                                0           $-2
+```
+```{.shell .right .clear}
+$ hledger register --monthly assets --depth 1  # cashflow (changes to assets) by month
+2008/01                 assets                                        $1            $1
+2008/06                 assets                                       $-1             0
+2008/12                 assets                                       $-1           $-1
+```
 
-    $ hledger register --monthly rent
-    $ hledger register --monthly -E food --depth 4
+With a [reporting interval](#reporting-interval), register shows
+summary postings, one per interval, aggregating the postings to each account.
 
-One summary posting will be shown for each account in each interval.
-Summary postings with a zero amount are not shown; use the `--empty`/`-E` flag to show them.
+Periods with no activity, and summary postings with a zero amount, are
+not shown by default; use the `--empty`/`-E` flag to see them.
 
-If necessary, use the `--depth` option to summarise the accounts.
-It's often most useful to see just one line per interval.
+Often, you'll want to see just one line per interval.
+The `--depth` option helps with this, causing subaccounts to be aggregated.
 
-When using report intervals, the report's normal start/end dates are
-"enlarged" to contain a whole number of intervals, so that the first
-and last intervals will be "full" and comparable to the others.
+Note when using report intervals, if you specify start/end dates these
+will be adjusted outward if necessary to contain a whole number of
+intervals. This ensures that the first and last intervals are full
+length and comparable to the others in the report.
 
-##### Customising console output
-
-(Tip: currently two commands, balance and register, can customise their
-console output, and they do it differently.)
+##### Custom register output
 
 register uses the full terminal width by default, except on windows.
 You can override this by setting the `COLUMNS` environment variable (not a bash shell variable)
@@ -1414,39 +1751,48 @@ date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
 DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
 ```
 and some examples:
-```shell
+```{.shell .bold}
 $ hledger reg                 # use terminal width on posix
 $ hledger reg -w 100          # width 100, equal description/account widths
 $ hledger reg -w 100,40       # width 100, wider description
 $ hledger reg -w $COLUMNS,100 # terminal width, and set description width
 ```
 
-The register command also supports 
-[output destination](#output-destination)
-and
-[CSV output](#csv-output).
+The register command also supports the
+`-o/--output-file` and `-O/--output-format` options for controlling
+[output destination](#output-destination) and [CSV output](#csv-output).
 
 #### stats
 
+```{.shell .right}
+$ hledger stats
+Main journal file        : /src/hledger/data/sample.journal
+Included journal files   : 
+Transactions span        : 2008-01-01 to 2009-01-01 (366 days)
+Last transaction         : 2008-12-31 (2333 days ago)
+Transactions             : 5 (0.0 per day)
+Transactions last 30 days: 0 (0.0 per day)
+Transactions last 7 days : 0 (0.0 per day)
+Payees/descriptions      : 5
+Accounts                 : 8 (depth 3)
+Commodities              : 1 ($)
+```
+
 The stats command displays summary information for the whole journal, or
-a matched part of it.
-
-Examples:
-
-    $ hledger stats
-    $ hledger stats -p 'monthly in 2009'
+a matched part of it. With a [reporting interval](#reporting-interval),
+it shows a report for each report period.
 
 #### test
 
-This command runs hledger's built-in unit tests and displays a quick
-report. A pattern can be provided to filter tests by name. It's mainly
-used in development, but it's also nice to be able to check hledger for
-smoke at any time.
+```{.shell .right}
+$ hledger test
+Cases: 74  Tried: 74  Errors: 0  Failures: 0
+```
 
-Examples:
-
-    $ hledger test
-    $ hledger test -v balance
+This command runs hledger's built-in unit tests and displays a quick report.
+With a regular expression argument, it selects only tests with matching names.
+It's mainly used in development, but it's also nice to be able to
+check your hledger executable for smoke at any time.
 
 ### Add-on commands
 
@@ -1511,6 +1857,12 @@ See the package page for more.
 
 #### web
 
+```{.shell .bold .right}
+$ hledger-web
+$ hledger-web -E -B --depth 2 -f some.journal
+$ hledger-web --server --port 5010 --base-url http://some.vhost.com --debug=1
+```
+
 [hledger-web](http://hackage.haskell.org/package/hledger-web)
 provides a web-based user interface for viewing and modifying your ledger.
 It includes an account register view that is more useful than the command-line register, and basic data entry.
@@ -1560,12 +1912,6 @@ server will be able to see and add entries to the journal.
 <!-- valid [journal format](#journal). If the file becomes unparseable -->
 <!-- by other means, hledger-web will show an error until the file has been -->
 <!-- fixed. -->
-
-Examples:
-
-    $ hledger-web
-    $ hledger-web -E -B --depth 2 -f some.journal
-    $ hledger-web --server --port 5010 --base-url http://some.vhost.com --debug=1
 
 ### Experimental commands
 
@@ -1744,32 +2090,38 @@ I'm not sure yet).
 
 Here's an example of setting the locale temporarily, on ubuntu gnu/linux:
 
-    $ file my.journal
-    my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
-    $ locale -a
-    C
-    en_US.utf8                             # <- a UTF8-aware locale is available
-    POSIX
-    $ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
+```{.shell}
+$ file my.journal
+my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
+$ locale -a
+C
+en_US.utf8                             # <- a UTF8-aware locale is available
+POSIX
+$ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
+```
 
 Here's one way to set it permanently, there are probably better ways:
 
-    $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
-    $ bash --login
+```{.shell}
+$ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
+$ bash --login
+```
 
 If we preferred to use eg `fr_FR.utf8`, we might have to install that first:
 
-    $ apt-get install language-pack-fr
-    $ locale -a
-    C
-    en_US.utf8
-    fr_BE.utf8
-    fr_CA.utf8
-    fr_CH.utf8
-    fr_FR.utf8
-    fr_LU.utf8
-    POSIX
-    $ LANG=fr_FR.utf8 hledger -f my.journal print
+```{.shell}
+$ apt-get install language-pack-fr
+$ locale -a
+C
+en_US.utf8
+fr_BE.utf8
+fr_CA.utf8
+fr_CH.utf8
+fr_FR.utf8
+fr_LU.utf8
+POSIX
+$ LANG=fr_FR.utf8 hledger -f my.journal print
+```
 
 Note some platforms allow variant locale spellings, but not all (ubuntu
 accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
