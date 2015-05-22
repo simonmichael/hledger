@@ -39,7 +39,7 @@ tr {
 .indent2 { margin:0  5em 0 10em; }
 </style>
 
-# hledger is...
+<h1 style="font-size:6em;">hledger</h1>
 
 ## a lightweight, dependable, cross-platform accounting program
 
