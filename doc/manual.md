@@ -279,7 +279,7 @@ However the display precision will be the highest precision seen in all posting 
 The precisions used in a price amount, or a D directive, don't affect the canonical display precision directly, but they can affect it indirectly, eg when D's default commodity is applied to a commodity-less amount or when an amountless posting is balanced using a price's commodity (actually this last case does not influence the canonical display precision but probably should).
 
 
-##### Balance Assertions
+#### Balance Assertions
 
 hledger supports ledger-style
 [balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions)
@@ -303,7 +303,7 @@ while cleaning up old entries. You can disable them temporarily with
 the `--ignore-assertions` flag, which can be useful for
 troubleshooting or for reading Ledger files.
 
-###### Assertions and ordering
+##### Assertions and ordering
 
 hledger sorts an account's postings and assertions first by date and
 then (for postings on the same day) by parse order. Note this is
@@ -326,7 +326,7 @@ account's balance on the same day, you'll have to put the assertion
 in the right file.
 
 
-###### Assertions and commodities
+##### Assertions and commodities
 
 The asserted balance must be a simple single-commodity amount, and in
 fact the assertion checks only this commodity's balance within the
@@ -341,7 +341,7 @@ that no matter how many assertions you add, you can't be sure the
 account does not contain some unexpected commodity. (We'll add support
 for this kind of total balance assertion if there's demand.)
 
-###### Assertions and subaccounts
+##### Assertions and subaccounts
 
 Balance assertions do not count the balance from subaccounts; they check
 the posted account's exclusive balance. For example:
@@ -360,7 +360,7 @@ $ hledger bal checking --flat
                    2
 ```
 
-##### Prices
+#### Prices
 
 <!-- ##### Transaction prices -->
 
@@ -396,7 +396,7 @@ examples we get:
         assets:foreign currency       $135.00
         assets:cash                  $-135.00
 
-###### Prices are fixed
+##### Prices are fixed
 
 In hledger, the price used in a given posting is fixed.
 This is what you want for eg recording purchases made while travelling abroad,
@@ -408,7 +408,7 @@ Ledger has a different syntax for specifying
 hledger parses that syntax, and (currently) ignores it.
 <!-- hledger treats this as an alternate spelling of `@ PRICE`, for greater compatibility with Ledger files. -->
 
-###### Historical prices
+##### Historical prices
 
 hledger also parses, and currently ignores, ledger-style historical price directives:
 <!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
