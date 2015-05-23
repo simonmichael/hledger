@@ -206,40 +206,69 @@ an equals sign. The *primary date*, on the left, is used by default; the
 *secondary date*, on the right, is used when the `--date2` flag is specified
 (For Ledger compatibility, `--aux-date` or `--effective` also work.)
 
-Their meaning is up to you, but it's best to follow a consistent rule. I
-write the bank's clearing date as primary, and the date I initiated the
-transaction as secondary (if needed).
+Their meaning is up to you, but it's best to follow a consistent rule.
+Eg write the bank's clearing date as primary, and when needed, the
+date the transaction was initiated as secondary.
 
-Example:
+Here's an example. Note that a secondary date will use the year of the
+primary date if unspecified.
 
-``` {.journal}
-; PRIMARY=SECONDARY
-; The secondary date's year is optional, defaulting to the primary's
+```journal
 2010/2/23=2/19 movie ticket
   expenses:cinema                   $10
   assets:checking
+```
 
+```{.shell}
 $ hledger register checking
 2010/02/23 movie ticket         assets:checking                $-10         $-10
+```
 
+```{.shell}
 $ hledger register checking --date2
 2010/02/19 movie ticket         assets:checking                $-10         $-10
 ```
 
+Secondary dates require some effort: you must use them consistently in
+your journal entries and remember whether to use or not use the
+`--date2` flag for your reports. Arguably they are now obsolete,
+superseded by...
+
 ##### Posting dates
 
-[Comments and tags](#comments) are covered below, but while we are talking
-about dates: you can give individual postings a different date from their
-parent transaction, by adding a posting tag like `date:DATE`, where DATE is
-a [simple date](#simple-dates). The secondary date can be set with
-`date2:DATE2`. If present, these dates will take precedence in reports.
+You can give individual postings a different date from their parent
+transaction, by adding a [posting tag](#tags) (see below) like
+`date:DATE`, where DATE is a [simple date](#simple-dates).  This is
+probably the best way to control posting dates precisely. Eg in this
+example the expense should appear in May reports, and the deduction
+from checking should be reported on 6/1 for easy bank reconciliation:
 
-Ledger's bracketed posting date syntax (`[DATE]`,
-`[DATE=DATE2]` or `[=DATE2]` in a posting comment)
-is also supported, as an alternate spelling of the date and date2 tags.
+``` {.journal}
+2015/5/30
+    expenses:food     $10   ; food purchased on saturday 5/30
+    assets:checking         ; bank cleared it on monday, date:6/1
+```
 
-Note: if you do use either of these forms, be sure to give them a valid DATE
-or you'll get a parse error, eg an empty `date:` tag is not allowed.
+```{.shell}
+$ hledger -f tt.j register food
+2015/05/30                      expenses:food                  $10           $10
+```
+
+```{.shell}
+$ hledger -f tt.j register checking
+2015/06/01                      assets:checking               $-10          $-10
+```
+
+A posting date will use the year of the transaction date if unspecified.
+
+You can also set the secondary date, with `date2:DATE2`.
+For compatibility, Ledger's older posting date syntax is also
+supported: `[DATE]`, `[DATE=DATE2]` or `[=DATE2]` in a posting
+comment.
+
+When using any of these forms, be sure to provide a valid simple date
+or you'll get a parse error. Eg a `date:` tag with no value is not
+allowed.
 
 #### Account names
 
