@@ -219,11 +219,13 @@ primary date if unspecified.
   assets:checking
 ```
 
+<div style="clear:both;"></div>
 ```{.shell}
 $ hledger register checking
 2010/02/23 movie ticket         assets:checking                $-10         $-10
 ```
 
+<div style="clear:both;"></div>
 ```{.shell}
 $ hledger register checking --date2
 2010/02/19 movie ticket         assets:checking                $-10         $-10
@@ -249,11 +251,13 @@ from checking should be reported on 6/1 for easy bank reconciliation:
     assets:checking         ; bank cleared it on monday, date:6/1
 ```
 
+<div style="clear:both;"></div>
 ```{.shell}
 $ hledger -f tt.j register food
 2015/05/30                      expenses:food                  $10           $10
 ```
 
+<div style="clear:both;"></div>
 ```{.shell}
 $ hledger -f tt.j register checking
 2015/06/01                      assets:checking               $-10          $-10
@@ -1405,7 +1409,7 @@ or cashflow statement:
    $ hledger balance ^assets ^liabilities 'not:(receivable|payable)' -p 'weekly this month'
 -->
 
-<br clear=all>
+<div style="clear:both;"></div>
 ``` {.shell .right}
 $ hledger balance --quarterly income expenses -E --cumulative
 Ending balances (cumulative) in 2008:
@@ -1425,7 +1429,7 @@ Ending balances (cumulative) in 2008:
 period, accumulating the changes across periods, starting from 0 at
 the report start date. This mode is not often used.
 
-<br clear=all>
+<div style="clear:both;"></div>
 ``` {.shell .right}
 $ hledger balance ^assets ^liabilities -Q 
 Balance changes in 2008:
@@ -1459,8 +1463,7 @@ periods, starting from the actual balance at the report start date.
 This is useful eg for a multi-period balance sheet, and when
 you are showing only the data after a certain start date.
 
-<br clear=all>
-
+<div style="clear:both;"></div>
 ``` {.shell .right}
 $ hledger balance -Q income expenses --tree -E -TA
 Balance changes in 2008:
