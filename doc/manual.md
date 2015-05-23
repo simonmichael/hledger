@@ -1692,10 +1692,10 @@ and
 
 ```{.shell .right}
 $ hledger register checking
-2008/01/01 income                  assets:bank:checking               $1            $1
-2008/06/01 gift                    assets:bank:checking               $1            $2
-2008/06/02 save                    assets:bank:checking              $-1            $1
-2008/12/31 pay off                 assets:bank:checking              $-1             0
+2008/01/01 income               assets:bank:checking            $1            $1
+2008/06/01 gift                 assets:bank:checking            $1            $2
+2008/06/02 save                 assets:bank:checking           $-1            $1
+2008/12/31 pay off              assets:bank:checking           $-1             0
 ```
 
 The register command displays postings, one per line, and their
@@ -1704,9 +1704,9 @@ selecting a particular account, to see that account's activity.
 
 ```{.shell .right .clear}
 $ hledger register checking -b 2008/6 --historical
-2008/06/01 gift                    assets:bank:checking               $1            $2
-2008/06/02 save                    assets:bank:checking              $-1            $1
-2008/12/31 pay off                 assets:bank:checking              $-1             0
+2008/06/01 gift                 assets:bank:checking            $1            $2
+2008/06/02 save                 assets:bank:checking           $-1            $1
+2008/12/31 pay off              assets:bank:checking           $-1             0
 ```
 
 The `--historical`/`-H` flag adds the balance from any prior postings
@@ -1725,29 +1725,29 @@ of the postings which would normally be shown.
 
 ```{.shell .right}
 $ hledger register --monthly income
-2008/01                 income:salary                                $-1           $-1
-2008/06                 income:gifts                                 $-1           $-2
+2008/01                 income:salary                          $-1           $-1
+2008/06                 income:gifts                           $-1           $-2
 ```
 ```{.shell .right}
 $ hledger register --monthly income -E
-2008/01                 income:salary                                $-1           $-1
-2008/02                                                                0           $-1
-2008/03                                                                0           $-1
-2008/04                                                                0           $-1
-2008/05                                                                0           $-1
-2008/06                 income:gifts                                 $-1           $-2
-2008/07                                                                0           $-2
-2008/08                                                                0           $-2
-2008/09                                                                0           $-2
-2008/10                                                                0           $-2
-2008/11                                                                0           $-2
-2008/12                                                                0           $-2
+2008/01                 income:salary                          $-1           $-1
+2008/02                                                          0           $-1
+2008/03                                                          0           $-1
+2008/04                                                          0           $-1
+2008/05                                                          0           $-1
+2008/06                 income:gifts                           $-1           $-2
+2008/07                                                          0           $-2
+2008/08                                                          0           $-2
+2008/09                                                          0           $-2
+2008/10                                                          0           $-2
+2008/11                                                          0           $-2
+2008/12                                                          0           $-2
 ```
 ```{.shell .right .clear}
 $ hledger register --monthly assets --depth 1  # cashflow (changes to assets) by month
-2008/01                 assets                                        $1            $1
-2008/06                 assets                                       $-1             0
-2008/12                 assets                                       $-1           $-1
+2008/01                 assets                                  $1            $1
+2008/06                 assets                                 $-1             0
+2008/12                 assets                                 $-1           $-1
 ```
 
 With a [reporting interval](#reporting-interval), register shows
