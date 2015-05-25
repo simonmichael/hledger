@@ -127,10 +127,10 @@ WARNINGS:=\
 WEBLANGEXTS:=\
 	-XCPP \
 	-XMultiParamTypeClasses \
-	-XOverloadedStrings \
 	-XQuasiQuotes \
 	-XRecordWildCards \
 	-XTemplateHaskell \
+#	-XOverloadedStrings \
 #	-XNoImplicitPrelude \
 #	-XTypeFamilies \
 #	-XGADTs \
