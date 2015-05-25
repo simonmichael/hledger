@@ -1,5 +1,5 @@
 #!/usr/bin/env runhaskell
-{-# LANGUAGE CPP #-}
+-- {-# LANGUAGE CPP #-}
 {-|
 hledger-rewrite [PATTERNS] --add-posting "ACCT  AMTEXPR" ...
 
@@ -23,9 +23,9 @@ Tested-with: hledger HEAD ~ 2014/2/4
 -- hledger lib, cli and cmdargs utils
 import Hledger.Cli
 -- more utils for parsing
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative.Compat ((<*))
-#endif
+-- #if !MIN_VERSION_base(4,8,0)
+-- import Control.Applicative.Compat ((<*))
+-- #endif
 import Text.Parsec
 
 
@@ -70,7 +70,7 @@ amountexprp =
 amountExprRenderer :: Query -> AmountExpr -> (Transaction -> MixedAmount)
 amountExprRenderer q aex =
   case aex of
-    AmountLiteral s    -> either parseerror (const . mixed) $ runParser (amountp <* eof) nullctx "" s
+    AmountLiteral s    -> mamountp' s -- either parseerror (const . mixed) $ runParser (amountp <* eof) nullctx "" s
     AmountMultiplier n -> (`divideMixedAmount` (1 / n)) . (`firstAmountMatching` q)
   where
     firstAmountMatching :: Transaction -> Query -> MixedAmount

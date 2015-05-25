@@ -37,7 +37,7 @@ main = do
   withJournalDo opts $
    \CliOpts{reportopts_=ropts} j -> do
         today <- getCurrentDay
-        let ropts_ = ropts{flat_=True}
+        let ropts_ = ropts{accountlistmode_=ALFlat}
             q = queryFromOpts today ropts_
             (acctbals,_) = balanceReport ropts_ q j
             balancingamt = negate $ sum $ map (\((_,_,_),b) -> b) acctbals
