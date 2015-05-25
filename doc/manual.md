@@ -1851,6 +1851,58 @@ have different release schedules and platform support.
 
 #### autosync
 
+```{.shell .right}
+$ hledger autosync --help
+usage: hledger-autosync [-h] [-m MAX] [-r] [-a ACCOUNT] [-l LEDGER] [-i INDENT]
+                        [--initial] [--fid FID] [--assertions] [-d] [--hledger]
+                        [--slow] [--which]
+                        [PATH]
+
+Synchronize ledger.
+
+positional arguments:
+  PATH                  do not sync; import from OFX file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m MAX, --max MAX     maximum number of days to process
+  -r, --resync          do not stop until max days reached
+  -a ACCOUNT, --account ACCOUNT
+                        set account name for import
+  -l LEDGER, --ledger LEDGER
+                        specify ledger file to READ for syncing
+  -i INDENT, --indent INDENT
+                        number of spaces to use for indentation
+  --initial             create initial balance entries
+  --fid FID             pass in fid value for OFX files that do not supply it
+  --assertions          create balance assertion entries
+  -d, --debug           enable debug logging
+  --hledger             force use of hledger (on by default if invoked as hledger-
+                        autosync)
+  --slow                use slow, but possibly more robust, method of calling ledger
+                        (no subprocess)
+  --which               display which version of ledger/hledger/ledger-python will
+                        be used by ledger-autosync to check for previous
+                        transactions
+$ head acct1.ofx
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEUID:NONE
+NEWFILEUIDe:8509488b59d1bb45
+
+$ hledger autosync acct1.ofx
+2013/08/30 MONTHLY SERVICE FEE
+    ; ofxid: 3000.4303001832.201308301
+    WF:4303001832                               -$6.00
+    [assets:business:bank:wf:bchecking:banking]  $6.00
+
+```
+
 [ledger-autosync](https://bitbucket.org/egh/ledger-autosync/commits/all),
 which includes a `hledger-autosync` alias, downloads transactions
 from your bank(s) via OFX, and prints just the new ones as journal
@@ -1861,6 +1913,29 @@ download.
 
 #### diff
 
+```{.shell .right}
+$ hledger diff --help
+Usage: hledger-diff account:name left.journal right.journal
+$ cat a.journal
+1/1
+ (acct:one)  1
+
+$ cat b.journal
+1/1
+ (acct:one)  1
+2/2
+ (acct:two)  2
+
+$ hledger diff acct:two a.journal b.journal
+Unmatched transactions in the first journal:
+
+Unmatched transactions in the second journal:
+
+2015/02/02
+    (acct:two)            $2
+
+```
+
 [hledger-diff](http://hackage.haskell.org/package/hledger-diff)
 compares two journal files. Given an account name, it prints out the
 transactions affecting that account which are in one journal file but
@@ -1868,6 +1943,87 @@ not in the other.  This can be useful for reconciling existing
 journals with bank statements.
 
 #### interest
+
+```{.shell .right}
+$ hledger interest --help
+Usage: hledger-interest [OPTION...] ACCOUNT
+  -h          --help            print this message and exit
+  -V          --version         show version number and exit
+  -v          --verbose         echo input ledger to stdout (default)
+  -q          --quiet           don't echo input ledger to stdout
+              --today           compute interest up until today
+  -f FILE     --file=FILE       input ledger file (pass '-' for stdin)
+  -s ACCOUNT  --source=ACCOUNT  interest source account
+  -t ACCOUNT  --target=ACCOUNT  interest target account
+              --act             use 'act' day counting convention
+              --30-360          use '30/360' day counting convention
+              --30E-360         use '30E/360' day counting convention
+              --30E-360isda     use '30E/360isda' day counting convention
+              --constant=RATE   constant interest rate
+              --annual=RATE     annual interest rate
+              --bgb288          compute interest according to German BGB288
+              --ing-diba        compute interest according for Ing-Diba Tagesgeld account
+```
+
+```{.shell .right .clear}
+$ cat interest.journal
+2008/09/26 Loan
+     Assets:Bank          EUR 10000.00
+     Liabilities:Bank
+
+2008/11/27 Payment
+     Assets:Bank          EUR -3771.12
+     Liabilities:Bank
+
+2009/05/03 Payment
+     Assets:Bank          EUR -1200.00
+     Liabilities:Bank
+
+2010/12/10 Payment
+     Assets:Bank          EUR -3700.00
+     Liabilities:Bank
+```
+
+```{.shell .right .clear}
+$ hledger interest -- -f interest.journal --source=Expenses:Interest \
+    --target=Liabilities:Bank --30-360 --annual=0.05 Liabilities:Bank
+2008/09/26 Loan
+    Assets:Bank       EUR 10000.00
+    Liabilities:Bank  EUR -10000.00
+
+2008/11/27 0.05% interest for EUR -10000.00 over 61 days
+    Liabilities:Bank     EUR -84.72
+    Expenses:Interest     EUR 84.72
+
+2008/11/27 Payment
+    Assets:Bank       EUR -3771.12
+    Liabilities:Bank   EUR 3771.12
+
+2008/12/31 0.05% interest for EUR -6313.60 over 34 days
+    Liabilities:Bank     EUR -29.81
+    Expenses:Interest     EUR 29.81
+
+2009/05/03 0.05% interest for EUR -6343.42 over 123 days
+    Liabilities:Bank    EUR -108.37
+    Expenses:Interest    EUR 108.37
+
+2009/05/03 Payment
+    Assets:Bank       EUR -1200.00
+    Liabilities:Bank   EUR 1200.00
+
+2009/12/31 0.05% interest for EUR -5251.78 over 238 days
+    Liabilities:Bank    EUR -173.60
+    Expenses:Interest    EUR 173.60
+
+2010/12/10 0.05% interest for EUR -5425.38 over 340 days
+    Liabilities:Bank    EUR -256.20
+    Expenses:Interest    EUR 256.20
+
+2010/12/10 Payment
+    Assets:Bank       EUR -3700.00
+    Liabilities:Bank   EUR 3700.00
+
+```
 
 [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
 computes interests for a given account. Using command line flags,
@@ -1879,6 +2035,64 @@ with a fixed rate and the scheme mandated by the German BGB288
 
 #### irr
 
+```{.shell .right}
+$ hledger irr --help
+Usage: hledger-irr [OPTION...]
+  -h          --help                        print this message and exit
+  -V          --version                     show version number and exit
+  -c          --cashflow                    also show all revant transactions
+  -f FILE     --file=FILE                   input ledger file (pass '-' for stdin)
+  -i ACCOUNT  --investment-account=ACCOUNT  investment account
+  -t ACCOUNT  --interest-account=ACCOUNT    interest/gain/fees/losses account
+  -b DATE     --begin=DATE                  calculate interest from this date
+  -e DATE     --end=DATE                    calculate interest until this date
+  -D          --daily                       calculate interest for each day
+  -W          --weekly                      calculate interest for each week
+  -M          --monthly                     calculate interest for each month
+  -Y          --yearly                      calculate interest for each year
+```
+
+```{.shell .right .clear}
+$ cat irr.journal 
+2011-01-01 Some wild speculation – I wonder if it pays off
+   Speculation   €100.00
+   Cash
+
+2011-02-01 More speculation (and adjustment of value)
+   Cash         -€10.00
+   Rate Gain     -€1.00
+   Speculation
+
+2011-03-01 Lets pull out some money (and adjustment of value)
+   Cash          €30.00
+   Rate Gain     -€3.00
+   Speculation
+
+2011-04-01 More speculation (and it lost some money!)
+   Cash         -€50.00
+   Rate Gain     € 5.00
+   Speculation
+
+2011-05-01 Getting some money out (and adjustment of value)
+   Speculation  -€44.00
+   Rate Gain    -€ 3.00
+   Cash
+
+2011-06-01 Emptying the account (after adjusting the value)
+   Speculation   -€85.00
+   Cash           €90.00
+   Rate Gain     -€ 5.00
+```
+
+```{.shell .right .clear}
+$ hledger-irr -f irr.journal -t "Rate Gain" -i Speculation  --monthly
+2011/01/01 - 2011/02/01: 12.49%
+2011/02/01 - 2011/03/01: 41.55%
+2011/03/01 - 2011/04/01: -51.44%
+2011/04/01 - 2011/05/01: 32.24%
+2011/05/01 - 2011/06/01: 95.92%
+```
+
 [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
 computes the internal rate of return, also known as the effective
 interest rate, of a given investment. After specifying what account
@@ -1889,49 +2103,63 @@ See the package page for more.
 
 #### web
 
-```{.shell .bold .right}
-$ hledger-web
-$ hledger-web -E -B --depth 2 -f some.journal
-$ hledger-web --server --port 5010 --base-url http://some.vhost.com --debug=1
+<style>
+.highslide img {max-width:250px; float:right; margin:0 0 1em 1em;}
+.highslide-caption {color:white; background-color:black;}
+</style>
+<a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
+<a href="images/hledger-web/normal/journal-sidebar.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/journal-sidebar.png" title="Journal view with accounts sidebar" /></a>
+
+[hledger-web](http://hackage.haskell.org/package/hledger-web) provides
+a web-based user interface for hledger. You can add new journal
+entries with basic auto-completion, and easily browse your accounts,
+with a more useful account register view and historical balance
+charts.  You can see a live demo (with junk data) at
+[demo.hledger.org](http://demo.hledger.org).
+
+```{.shell .noclear}
+$ hledger web --help
+hledger-web [OPTIONS] [PATTERNS]
+  start serving the hledger web interface
+
+Flags:
+     --server             log requests, and don't browse or auto-exit
+     --port=PORT          set the tcp port (default: 5000)
+     --base-url=BASEURL   set the base url (default: http://localhost:PORT)
+     --file-url=FILEURL   set the static files url (default: BASEURL/static)
+...
+$ hledger web
+Starting web app on port 5000 with base url http://localhost:5000
+Starting web browser if possible
+Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)
 ```
 
-[hledger-web](http://hackage.haskell.org/package/hledger-web)
-provides a web-based user interface for viewing and modifying your ledger.
-It includes an account register view that is more useful than the command-line register, and basic data entry.
-You can see it running at [demo.hledger.org](http://demo.hledger.org).
+By default, `hledger web` starts the web app, displays it in your
+default web browser if possible, keeps it running for as long as you
+have it open in a browser window, and then exits.
 
-web-specific options:
+With `--server`, it starts the web app in non-transient mode and logs
+requests to the console.  Typically when running hledger web as part
+of a website you'll want to use `--base-url` to set the
+protocol/hostname/port/path to be used in hyperlinks.  The
+`--file-url` option allows static files to be served from a different
+url, eg for better caching or cookie-less serving.
 
-    --server            log requests, don't exit on inactivity
-    --port=N            serve on tcp port N (default 5000)
-    --base-url=URL      use this base url (default http://localhost:PORT/)
-    --static-root=URL   use this base url for static files (default http://localhost:PORT/static)
+<a href="images/hledger-web/normal/help.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/help.png" title="Help dialog" /></a>
+<a href="images/hledger-web/normal/add.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/add.png" title="Add form" /></a>
 
-By default, the web command starts a transient local web app and displays it in your default web browser ("local ui mode").
-With `--server`, it starts the web app, leaves it running, and also logs requests to the console ("server mode").
+You can use `--port` to listen on a different TCP port, eg if you are
+running multiple hledger-web instances.  This need not be the same as
+the PORT in the base url.
 
-Typically in server mode you'll also want to use
-`--base-url` to set the protocol/hostname/port/path to be used in
-hyperlinks.
+Note there is no built-in access control, so you will need to hide
+hledger-web behind an authenticating proxy (such as apache or nginx)
+if you want to restrict who can see and add entries to your journal.
 
-You can use `--port` to listen on a different TCP port, eg if you are running multiple hledger-web
-instances.  Note `--port`'s argument need not be the same as the PORT
-in the base url.
-
-The more advanced option `--static-root` allows the static files served from a
-separate base url.  This enables the optimization that the static files can be
-served from a generic web server like apache, which is good at handling static
-files and caching. One can also serve the files in a separate domain to reduce
-cookies overhead.
-
-The web app detects changes in journal files (but not CSV or rules
-files, currently), showing the new data on the next request.  If such
-a change makes the file unparseable, hledger-web will show an error
+With [journal](#journal) and [timelog](#timelog) files (but not [CSV](#csv) files, currently)
+the web app detects changes and will show the new data on the next request.
+If a change makes the file unparseable, hledger-web will show an error
 until the file has been fixed.
-
-Note there is no built-in access control, so unless you run it behind
-an authenticating proxy (such as apache or nginx), any visitor to your
-server will be able to see and add entries to the journal.
 
 <!-- edit form -->
 <!-- Note: unlike any other hledger command, `web` can alter existing journal -->
@@ -1956,22 +2184,65 @@ robustness).
 
 #### equity
 
-Like ledger's equity command, this prints a single journal entry with
-postings matching the current balance in each account (or the
-specified accounts) in the default journal. An entry like this is
-useful to carry over asset and liability balances when beginning a new
-journal file, eg at the start of the year.
+```{.shell .right}
+$ hledger balance --flat -E assets liabilities
+                   0  assets:bank:checking
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $1  liabilities:debts
+--------------------
+                   0
+$ hledger equity assets liabilities
+2015/05/23
+    assets:bank:saving                $-1
+    assets:cash                        $2
+    liabilities:debts                 $-1
+    equity:closing balances             0
 
-You can also use the same entry with signs reversed to close out the
-old file, resetting balances to 0. This means you'll see the correct
-asset/liability balances whether you use one file or a whole sequence
-of files as input to hledger.
+2015/05/23
+    assets:bank:saving                 $1
+    assets:cash                       $-2
+    liabilities:debts                  $1
+    equity:opening balances             0
+
+```
+
+This prints a journal entry which zeroes out the specified accounts
+(or all accounts) with a transfer to/from "equity:closing balances"
+(like Ledger's equity command). Also, it prints an similar entry with
+opposite sign for restoring the balances from "equity:opening
+balances".
+
+These can be useful for ending one journal file and starting a new
+one, respectively. By zeroing your asset and liability accounts at the
+end of a file and restoring them at the start of the next one, you
+will see correct asset/liability balances whether you run hledger on
+just one file, or on several files concatenated with [include](#include).
 
 #### print-unique
 
-Prints only journal entries which are unique (by description).
+```{.shell .right}
+$ cat unique.journal
+1/1 test
+ (acct:one)  1
+2/2 test
+ (acct:two)  2
+$ LEDGER_FILE=unique.journal hledger print-unique
+(-f option not supported)
+2015/01/01 test
+    (acct:one)             1
+
+```
+
+Print only only journal entries which have a unique description.
 
 #### rewrite
+
+```{.shell .right .bold}
+$ hledger rewrite -- [QUERY]        --add-posting "ACCT  AMTEXPR" ...
+$ hledger rewrite -- ^income        --add-posting '(liabilities:tax)  *.33'
+$ hledger rewrite -- expenses:gifts --add-posting '(budget:gifts)  *-1"'
+```
 
 Prints all journal entries, adding specified custom postings to matched entries.
 
