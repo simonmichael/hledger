@@ -6,7 +6,7 @@
 $(document).ready(function() {
 
   // show add form if ?add=1
-  if ($.url.param('add')) { addformShow(showmsg=true); }
+  if ($.url.param('add')) { addformShow(true); }
 
   // sidebar account hover handlers
   $('#sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
@@ -127,7 +127,7 @@ function registerChartClick(ev, pos, item) {
 // ADD FORM
 
 function addformShow(showmsg) {
-  showmsg = typeof showmsg !== 'undefined' ? a : false;
+  showmsg = typeof showmsg !== 'undefined' ? showmsg : false;
   addformReset(showmsg);
   $('#addmodal')
     .on('shown.bs.modal', function (e) {
@@ -138,7 +138,7 @@ function addformShow(showmsg) {
 
 // Make sure the add form is empty and clean for display.
 function addformReset(showmsg) {
-  showmsg = typeof showmsg !== 'undefined' ? a : false;
+  showmsg = typeof showmsg !== 'undefined' ? showmsg : false;
   if ($('form#addform').length > 0) {
     if (!showmsg) $('div#message').html('');
     $('form#addform')[0].reset();
