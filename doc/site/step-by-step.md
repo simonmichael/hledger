@@ -15,7 +15,7 @@ You'll need:
 
 1. A basic understanding of the command line, text file editing, and regular expressions. Or, the ability to ask for help on the IRC channel.
 
-2. hledger (see [Download](download.html)). These exercises were last tested with: hledger 0.23dev-20140212.
+2. hledger (see [Download](download.html)). These exercises were last tested with: hledger 0.25.1.
 
 
 
@@ -25,7 +25,7 @@ You'll need:
 
 Get a command prompt, and run hledger to check the version. It should be reasonably [up to date](release-notes.html):
 
-```
+```shell
 $ hledger --version
 hledger 0.23
 ```
@@ -37,7 +37,7 @@ hledger 0.23
 hledger reads financial transactions from a "journal file" (so named because it represents a [General Journal](http://en.wikipedia.org/wiki/General_Journal)).
 The default journal file is in your home directory; check its path using the [stats](manual.html#stats) command.
 You should see something like:
-```
+```shell
 $ hledger stats
 The hledger journal file "/home/YOU/.hledger.journal" was not found.
 Please create it first, eg with "hledger add" or a text editor.
@@ -54,34 +54,33 @@ Follow the help and use the [add](manual.html#add) command to record your first 
 an imaginary purchase at the supermarket.
 We'll go through this in detail. Later you'll learn other ways to enter data.
 
-```
+```shell
 $ hledger add
+Creating hledger journal file "/home/YOU/.hledger.journal".
 Adding transactions to journal file /home/YOU/.hledger.journal
-Provide field values at the prompts, or press enter to accept defaults.
-Use readline keys to edit, use tab key to complete account names.
-A code (in parentheses) may be entered following transaction dates.
-A comment may be entered following descriptions or amounts.
+Any command line arguments will be used as defaults.
+Use tab key to complete, readline keys to edit, enter to accept defaults.
+An optional (CODE) may follow transaction dates.
+An optional ; COMMENT may follow descriptions or amounts.
 If you make a mistake, enter < at any prompt to restart the transaction.
-To complete a transaction, enter . when prompted.
-To quit, press control-d or control-c.
-
-Starting a new transaction.
-date ? [2014/02/12]: 
+To end a transaction, enter . when prompted.
+To quit, enter . at a date prompt or press control-d or control-c.
+Date [2015/05/25]:
 ```
 
 `add` prompts for each transaction field. The first is the date.
 The value in square brackets is the suggested default (today's date). Press enter to accept it.
 
-```
-description ? : trip to the supermarket
+```{.shell .continued}
+Description: trip to the supermarket
 ```
 
 Transactions have an optional description (a single line of text) to help you understand them.
 You can describe the transaction here, or put a payee name, or leave it blank. 
 Type `trip to the supermarket` and press enter.
 
-```
-account 1 ? : expenses
+```{.shell .continued}
+Account 1: expenses
 ```
 
 Transactions have two or more accounts. Keep it simple; just enter `expenses` for the first one.
@@ -91,20 +90,20 @@ A purchase is a transfer of money from an asset account to an expense account.
 An asset is something you own, like some money in a bank account or in your pocket.
 Once the money has been "moved" to an expense, you no longer own it, but the increasing balance in the expense account reminds you where it went.
 
-```
-amount  1 ? : $10
+```{.shell .continued}
+Amount  1: $10
 ```
 
 The amount being "moved" to `expenses`. In this case 10 US dollars.
 
-```
-account 2 ? : assets
+```{.shell .continued}
+Account 2: assets
 ```
 
 Next, specify which account the money comes from. Just say `assets`.
 
-```
-amount  2 ? [$-10.0]: 
+```{.shell .continued}
+Amount  2 ? [$-10.0]: 
 ```
 
 Now you're asked for the amount to "move" to or from the `assets` account.
@@ -115,19 +114,18 @@ In a balanced transaction, the sum of posted amounts is zero, in other words no 
 hledger does not allow unbalanced transactions.
 Press enter to accept the default. It has an extra decimal place, but never mind.
 
-```
-account 3 (or . to complete this transaction) ? : .
+```{.shell .continued}
+Account 3 (or . to finish this transaction): .
 ```
 
 Type `.` (period) and press enter.
 
-```
-Transaction entered:
-2014/02/12 trip to the supermarket
+```{.shell .continued}
+2015/05/25 trip to the supermarket
     expenses           $10
     assets          $-10.0
 
-Accept this transaction ? [y]:
+Save this transaction to the journal ? [y]:
 ```
 
 You are given a chance to review the transaction just entered.
@@ -138,12 +136,10 @@ two or more spaces, and an amount.
 (Account names can contain spaces, so at least two spaces are needed to separate them from the amount.)
 Press enter.
 
-```
-Added to the journal.
-
-Starting a new transaction.
-date ? [2014/02/12]: <CTRL-D>
-$
+```{.shell .continued}
+Saved.
+Starting the next transaction (. or ctrl-D/ctrl-C to quit)
+Date [2015/05/25]: <CTRL-D>
 ```
 
 hledger has saved it to the journal file and is ready for the next
@@ -151,12 +147,12 @@ entry.  Press control-d (on Windows, control-c) once to exit.
 
 `stats` should now report that your journal exists and contains one transaction:
 
-```
+```shell
 $ hledger stats
 Main journal file        : /home/YOU/.hledger.journal
 Included journal files   : 
-Transactions span        : 2014-02-12 to 2014-02-13 (1 days)
-Last transaction         : 2014-02-12 (0 days ago)
+Transactions span        : 2015-05-25 to 2015-05-26 (1 days)
+Last transaction         : 2015-05-25 (0 days ago)
 Transactions             : 1 (1.0 per day)
 Transactions last 30 days: 1 (0.0 per day)
 Transactions last 7 days : 1 (0.1 per day)
@@ -170,23 +166,25 @@ Commodities              : 1 ($)
 The [print](manual.html#print) command shows a tidied-up view of the transaction entries in your journal.
 Since there's just one so far, you should see:
 
-```
+```shell
 $ hledger print
-2014/02/12 trip to the supermarket
+2015/05/25 trip to the supermarket
     expenses           $10
     assets            $-10
+
 ```
 
 ### Examine your journal file
 
 List and print the journal file (on Windows, use `dir` and `type` and the file path from `hledger stats`):
 
-```
+```shell
 $ ls -l ~/.hledger.journal
--rw-rw-r-- 1 YOU YOU 74 Feb 12 08:10 /home/YOU/.hledger.journal
+-rw-r--r--  1 YOU  YOU  114 May 25 16:55 /home/YOU/.hledger.journal
 $ cat ~/.hledger.journal
+; journal created 2015-05-25 by hledger
 
-2014/02/12 trip to the supermarket
+2015/05/25 trip to the supermarket
     expenses           $10
     assets
 ```
@@ -205,13 +203,13 @@ Only one missing amount is allowed in each transaction.
 Since the journal file is plain text, you can edit it directly with any text editor.
 Edit the file and change it to test whether two missing amounts is reported as an error. Eg:
 
-```
+```shell
 $ emacs ~/.hledger.journal
 ```
 
 Remove the expenses amount and save the file. It now looks like this:
 
-```
+```journal
 2014/02/12 trip to the supermarket
     expenses           
     assets
@@ -219,12 +217,12 @@ Remove the expenses amount and save the file. It now looks like this:
 
 Running `print` again, you should see:
 
-```
-$ hledger print
+```shell
 hledger: could not balance this transaction (can't have more than one missing amount; remember to put 2 or more spaces before amounts)
-2014/02/12 trip to the supermarket
+2015/05/25 trip to the supermarket
     expenses
     assets
+
 
 ```
 
@@ -236,9 +234,9 @@ Notice the last part of that error message: "`... remember to put 2 or more spac
 Another cause of this error is forgetting to put two spaces before the
 amount, like this:
 
-```
-2014/02/12 trip to the supermarket
-    expenses $10  ; <- only one space between expenses and $10 - need at least two
+```journal
+2015/05/25 trip to the supermarket
+    expenses $10  ; <- problem: only one space between expenses and $10
     assets
 ```
 
@@ -250,27 +248,36 @@ amount.  So remember: two or more spaces.
 
 Edit the file to look like this:
 
-```
-2014/02/12 trip to the supermarket
-    expenses        $10
-    assets          $10
+```journal
+2015/05/25 trip to the supermarket
+    expenses           $10
+    assets             $10  ; <- deliberate problem: both amounts are positive
 ```
 
 Here, we wrote both posting amounts but got the sign wrong on one of them, so they don't add up to zero.
 hledger should detect this mistake. Verify it by running some command, eg `print`. You should see:
 
-```
+```shell
 $ hledger print
 hledger: could not balance this transaction (real postings are off by $20)
-2014/02/12 trip to the supermarket
+2015/05/25 trip to the supermarket
     expenses           $10
     assets             $10
+
+
 ```
 
 That makes sense. (It calls them "real" postings because there are some other kinds of posting you haven't learned about yet; they aren't important.)
 
 Correct the mistake by adding the minus sign, or just removing the assets amount entirely, and verify
-that `print` works again.
+that `print` works again:
+```shell
+$ hledger print
+2015/05/25 trip to the supermarket
+    expenses           $10
+    assets            $-10
+
+```
 
 ### Record a transaction by editing
 
@@ -278,26 +285,26 @@ Edit the file again and manually add a second purchase transaction.
 It's often quickest to copy & paste a similar entry, then change it.
 Make the file look like this:
 
-```
-2014/02/12 trip to the supermarket
+```journal
+2015/05/25 trip to the supermarket
     expenses           $10
-    assets
+    assets            $-10
 
-2014/02/13 forgot the bread
-    expenses           $5
+2015/05/26 forgot the bread
+    expenses            $5
     assets
 ```
 
 The blank line between transactions is customary, though not required.
 Test your work with `print`. You should see:
 
-```
+```shell
 $ hledger print
-2014/02/12 trip to the supermarket
+2015/05/25 trip to the supermarket
     expenses           $10
     assets            $-10
 
-2014/02/13 forgot the bread
+2015/05/26 forgot the bread
     expenses            $5
     assets             $-5
 
@@ -309,12 +316,12 @@ The [register](manual.html#register) command shows transactions in a different f
 Remember, a posting is an increase or decrease of some account by some amount, and a transaction contains two or more of them.
 Run `register` and compare with the output of `print` above. You should see:
 
-```
+```shell
 $ hledger register
-2014/02/12 trip to the super..  expenses                       $10           $10
-                                assets                        $-10             0
-2014/02/13 forgot the bread     expenses                        $5            $5
-                                assets                         $-5             0
+2015/05/25 trip to the supermarket  expenses                          $10           $10
+                                    assets                           $-10             0
+2015/05/26 forgot the bread         expenses                           $5            $5
+                                    assets                            $-5             0
 ```
 
 Postings are displayed one per line.
@@ -330,22 +337,24 @@ The register report is more useful when we restrict it to a subset of postings -
 say, only the postings within a single account.
 You can do this by specifying the account name as a command line argument.
 
-Run a register report for the `expenses` account. You should see:
+Run a register report for the `expenses` account. You should see something like the below.
+(On POSIX platforms, this command uses the terminal width so the output may look slightly different.
+You can force it to look like the below by running `export COLUMNS=80` first:
 
-```
+```shell
 $ hledger register expenses
-2014/02/12 trip to the super..  expenses                       $10           $10
-2014/02/13 forgot the bread     expenses                        $5           $15
+2015/05/25 trip to the super..  expenses                       $10           $10
+2015/05/26 forgot the bread     expenses                        $5           $15
 ```
 
 Now it's clear that your `expenses` balance - ie, the total amount spent - has increased to $15.
 
 Your `assets` balance should have dropped accordingly. Check it:
 
-```
+```shell
 $ hledger register assets
-2014/02/12 trip to the super..  assets                        $-10          $-10
-2014/02/13 forgot the bread     assets                         $-5          $-15
+2015/05/25 trip to the super..  assets                        $-10          $-10
+2015/05/26 forgot the bread     assets                         $-5          $-15
 ```
 
 ### Query expressions
@@ -359,31 +368,31 @@ So "`e`" would match both `expenses` and `assets`.
 
 And if you had an account named `other assets`, "`assets`" would also match that, so to match only the `assets`
 account you'd need a more precise pattern like "`^assets$`".
-If this doesn't make sense, read a little about regular expressions.
-In a regular expression `^` means "match at the beginning" and `$` means "match at the end".
+(In a regular expression `^` means "match at the beginning" and `$` means "match at the end".)
+If this doesn't make sense, read a little about [regular expressions](manual.html#regular-expressions).
 
 Multiple query arguments are ANDed and ORed together in a fixed way - follow the link for details.
 Basically queries on the same field are ORed, and queries on different fields are ANDed.
 
 Run the following examples and make sure they make sense, consulting the manual as needed.
 
-Show only transactions whose description contains the regular expression "`bread`":
-
-```
-$ hledger print desc:bread
-2014/02/13 forgot the bread
+Show only transactions whose description ends with "bread":
+```shell
+$ hledger print desc:bread$
+2015/05/26 forgot the bread
     expenses            $5
     assets             $-5
+
 ```
 
-Show only postings on or after a certain date to an account whose name ends with "es":
-```
-$ hledger register date:2014/2/13- 'es$'
-2014/02/13 forgot the bread     expenses                        $5            $5
-```
+<!-- Note how the account-matching pattern `es$` needs to be quoted here, -->
+<!-- because it contains the regular expression metacharacter `$` which would otherwise be interpreted by the unix shell. -->
 
-Note how the account-matching pattern `es$` needs to be quoted here,
-because it contains the regular expression metacharacter `$` which would otherwise be interpreted by the unix shell.
+Show only postings on or after a certain date to an account whose name contains "exp":
+```shell
+$ hledger register date:2015/5/26- exp
+2015/05/26 forgot the bread     expenses                        $5            $5
+```
 
 ### Show accounts and their balances with "hledger balance"
 
@@ -391,7 +400,8 @@ The third of hledger's three core reporting commands is [balance](manual.html#ba
 Use it to list all the accounts posted to, and their ending balance.
 You should see account balances agreeing with the final running total in the register reports above:
 
-```
+```{.shell .nobold}
+$ hledger balance
                 $-15  assets
                  $15  expenses
 --------------------
@@ -401,7 +411,7 @@ You should see account balances agreeing with the final running total in the reg
 The overall total of these balances is also shown. As with other reports, you can use a query expression to select a subset of the data to report on.
 Eg:
 
-```
+```shell
 $ hledger balance assets
                 $-15  assets
 --------------------
@@ -411,8 +421,8 @@ $ hledger balance assets
 ### balance shows the sum of matched posting amounts
 
 Here's a balance report based only on the postings dated 2013/2/13:
-```
-$ hledger balance date:2014/2/13
+```shell
+$ hledger balance date:2015/5/26
                  $-5  assets
                   $5  expenses
 --------------------
@@ -424,9 +434,9 @@ real-world account balance, rather it shows the sum of the postings
 you have selected.
 If you're not sure what those are, run a `register` report with the same arguments to see them:
 
-```
-$ hledger register date:2014/2/13
-2014/02/13 forgot the bread     expenses                        $5            $5
+```shell
+$ hledger register date:2015/5/26
+2015/05/26 forgot the bread     expenses                        $5            $5
                                 assets                         $-5             0
 ```
 
@@ -520,9 +530,9 @@ Five numbers does not give a lot of detail. If you want to know what
 portion of expenses went to buy food, you could add up just the
 transactions with (say) "supermarket" in their description. You know how to do this with hledger:
 
-```
+```shell
 $ hledger register desc:supermarket expenses
-2014/02/12 trip to the super..  expenses                       $10           $10
+2015/05/25 trip to the super..  expenses                       $10           $10
 ```
 
 But descriptions are irregular, and as you can see we missed the $5 purchase on the following day.
@@ -586,21 +596,40 @@ In others, the tree structure is encoded as decimal account numbers, something l
 With hledger, tree structure is implied by writing account names like `ACCOUNT:SUBACCOUNT`.
 Try it: edit your journal file and change the account names like so:
 
-```
+```shell
 $ cat ~/.hledger.journal
 
-2014/02/12 trip to the supermarket
-    expenses:supplies     $10
-    assets:checking
+2015/05/25 trip to the supermarket
+    expenses:supplies           $10
+    assets:checking            $-10
 
-2014/02/13 forgot the bread
-    expenses:food      $5
+2015/05/26 forgot the bread
+    expenses:food            $5
     assets:cash
 ```
 
-hledger will infer the chart of accounts from these names, and `balance` will indent subaccounts to show the tree structure:
-
+hledger will infer the chart of accounts from these names.
+The `accounts` command will list all accounts posted to:
+```shell
+$ hledger accounts
+assets:cash
+assets:checking
+expenses:food
+expenses:supplies
 ```
+
+and `accounts --tree` will show the tree structure, indenting subaccounts below their parents (and eliding the common part of their names):
+```shell
+assets
+  cash
+  checking
+expenses
+  food
+  supplies
+```
+
+Conversely, the `balance` command shows the tree structure by default:
+```shell
 $ hledger balance
                 $-15  assets
                  $-5    cash
@@ -612,35 +641,27 @@ $ hledger balance
                    0
 ```
 
-For clarity, the common part of the subaccount names is not displayed.
-You can see the full account names used internally like this:
+As you can see, the balance reported for parent accounts includes the
+balances of any subaccounts (it would also include any postings to the
+parent account itself.)
 
-```
-$ hledger balance --flat --empty
-                $-15  assets
+To see full account names in a flat list, use `--flat`:
+
+```shell
+$ hledger balance --flat
                  $-5  assets:cash
                 $-10  assets:checking
-                 $15  expenses
                   $5  expenses:food
                  $10  expenses:supplies
 --------------------
                    0
 ```
 
-With `--flat`, the balance command shows full account names without indentation.
-The `--empty` flag here requests that the accounts with no direct postings of their own be displayed.
-Normally the balance report omits or elides such "uninteresting" accounts when they don't add much information.
-(In the default indented view, they are included to clarify the structure.)
-
-As you can see, the balance reported for parent accounts includes the
-balances of any subaccounts (it would also include any postings to the
-parent account itself.)
-
 hledger accepts whatever account names you choose, so you can use as much or as little account hierarchy as you need.
 Most users have at least two levels of accounts.
-You can always limit the amount of detail in a balance report with `--depth`:
+You can limit the amount of detail in a balance report by hiding accounts below a certain depth:
 
-```
+```shell
 $ hledger balance --depth 1
                 $-15  assets
                  $15  expenses

@@ -48,7 +48,12 @@ pre {
 .shell::first-line {
 		font-weight:bold;
 }
-.nobold::first-line {
+.shell.continued {
+		background-color:white;
+		border-top:none;
+		border-top-left-radius:0;
+}
+.shell.continued::first-line, .nobold::first-line {
 		font-weight:normal;
 }
 .bold {
