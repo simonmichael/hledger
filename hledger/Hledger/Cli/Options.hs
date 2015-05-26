@@ -250,7 +250,7 @@ s `withAliases` as = s ++ " (" ++ intercalate ", " as ++ ")"
 data CliOpts = CliOpts {
      rawopts_         :: RawOpts
     ,command_         :: String
-    ,file_            :: Maybe FilePath
+    ,file_            :: [FilePath]
     ,rules_file_      :: Maybe FilePath
     ,output_file_     :: Maybe FilePath
     ,output_format_   :: Maybe String
@@ -311,7 +311,7 @@ rawOptsToCliOpts rawopts = do
   return defcliopts {
               rawopts_         = rawopts
              ,command_         = stringopt "command" rawopts
-             ,file_            = maybestringopt "file" rawopts
+             ,file_            = map stripquotes $ listofstringopt "file" rawopts
              ,rules_file_      = maybestringopt "rules-file" rawopts
              ,output_file_     = maybestringopt "output-file" rawopts
              ,output_format_   = maybestringopt "output-format" rawopts
@@ -368,12 +368,14 @@ aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp () ("--alias "+
 
 -- | Get the (tilde-expanded, absolute) journal file path from
 -- 1. options, 2. an environment variable, or 3. the default.
-journalFilePathFromOpts :: CliOpts -> IO String
+journalFilePathFromOpts :: CliOpts -> IO [String]
 journalFilePathFromOpts opts = do
   f <- defaultJournalPath
   d <- getCurrentDirectory
-  expandPath d $ fromMaybe f $ file_ opts
-
+  mapM (expandPath d) $ ifEmpty (file_ opts) [f]
+ where
+    ifEmpty [] d = d
+    ifEmpty l _ = l
 
 -- | Get the expanded, absolute output file path from options,
 -- or the default (-, meaning stdout).
