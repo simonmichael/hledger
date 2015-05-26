@@ -2108,7 +2108,7 @@ See the package page for more.
 .highslide-caption {color:white; background-color:black;}
 </style>
 <a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
-<a href="images/hledger-web/normal/journal-sidebar.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/journal-sidebar.png" title="Journal view with accounts sidebar" /></a>
+<a href="images/hledger-web/normal/journal.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/journal.png" title="Journal view" /></a>
 
 [hledger-web](http://hackage.haskell.org/package/hledger-web) provides
 a web-based user interface for hledger. You can add new journal
