@@ -256,7 +256,7 @@ main = do
 
       -- internal commands
       | cmd == "activity"        = withJournalDo opts histogram       `orShowHelp` activitymode
-      | cmd == "add"             = (journalFilePathFromOpts opts >>= ensureJournalFileExists >> withJournalDo opts add) `orShowHelp` addmode
+      | cmd == "add"             = (journalFilePathFromOpts opts >>= (ensureJournalFileExists . head) >> withJournalDo opts add) `orShowHelp` addmode
       | cmd == "accounts"        = withJournalDo opts accounts        `orShowHelp` accountsmode
       | cmd == "balance"         = withJournalDo opts balance         `orShowHelp` balancemode
       | cmd == "balancesheet"    = withJournalDo opts balancesheet    `orShowHelp` balancesheetmode
