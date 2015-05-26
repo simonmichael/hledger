@@ -29,7 +29,12 @@ pre {
 		border:thin solid #eec;
 		/* border:none; */
 }
-.csv, .rules {
+.csv {
+		background-color:#cce;
+		border:thin solid #aad;
+		/* border:none; */
+}
+.rules {
 		background-color:#eef;
 		border:thin solid #cce;
 		/* border:none; */

@@ -211,17 +211,21 @@ and the default view given by [bugs.hledger.org](http://bugs.hledger.org) exclud
    On some platforms the command will be eg `gmake` instead of `make`.
 4. Get the hledger repo:
 
-        git clone https://github.com/simonmichael/hledger.git
+    ```shell
+    $ git clone https://github.com/simonmichael/hledger.git
+    ```
 
 5. You might want to install or upgrade some of these haskell developer tools.
    If you're not sure, skip this step and return to it as needed.
    Be sure the cabal bin directory where these are installed (eg ~/.cabal/bin) is in your PATH.
 
-        cabal update
-        cabal install alex happy       # if you get alex/happy-related errors when building hledger
-        cabal install haddock          # needed to build hledger API docs
-        cabal install shelltestrunner  # needed to run hledger functional tests (may need latest git version)
-        cabal install hoogle hlint     # maybe useful for searching API docs and checking code
+    ```{.shell .bold}
+    $ cabal update
+    $ cabal install alex happy       # if you get alex/happy-related errors when building hledger
+    $ cabal install haddock          # needed to build hledger API docs
+    $ cabal install shelltestrunner  # needed to run hledger functional tests (may need latest git version)
+    $ cabal install hoogle hlint     # maybe useful for searching API docs and checking code
+    ```
 
     You'll also want a comfortable code editor, preferably with Haskell support.
     (I use emacs + [haskell-mode](https://github.com/haskell/haskell-mode),
@@ -229,10 +233,12 @@ and the default view given by [bugs.hledger.org](http://bugs.hledger.org) exclud
 
 6. Install haskell libs required by hledger:
 
-        cabal update
-        cd hledger
-        cabal sandbox init   # optional
-        make installdeps     # or cabal install --only-dep ./hledger-lib ./hledger [./hledger-web]
+    ```{.shell .bold}
+    $ cabal update
+    $ cd hledger
+    $ cabal sandbox init   # optional
+    $ make installdeps     # or cabal install --only-dep ./hledger-lib ./hledger [./hledger-web]
+    ```
 
     This will install the required dependencies from Hackage.
     If you're new to cabal, you can expect problems at this stage.
@@ -242,13 +248,17 @@ and the default view given by [bugs.hledger.org](http://bugs.hledger.org) exclud
 
 7. Build with cabal:
 
-        make cabalbuild
+    ```shell
+    $ make cabalbuild
+    ```
 
     (Tip: `make cabalCMD` runs `cabal CMD` in each of the hledger packages).
 
 8. Build with GHC:
 
-        make bin/hledgerdev
+    ```shell
+    $ make bin/hledgerdev
+    ```
 
     This builds hledger (and hledger-lib) with GHC directly, without using cabal,
     and as quickly as possible, without optimizations (the "dev" suffix is a reminder of this).
