@@ -1,5 +1,10 @@
 % home
 
+<style>
+.highslide img {max-width:200px; float:right; margin:0 0 1em 1em;}
+.highslide-caption {color:white; background-color:black;}
+</style>
+
 <div class="row">
 <div class="col-md-9">
 
@@ -77,6 +82,8 @@ and is part of the enthusiastic and supportive "*ledger" community.
 <div class="indent0">
 ### a command-line tool, that respects your data
 
+<a href="images/balance-q-inc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/balance-q-inc.png" title="Balance report showing income/expense by quarter" /></a>
+
 hledger is first a command-line tool. It follows Ledger's philosophy:
 your data lives in a simple, safe, plain text file which you can edit
 any way you wish; hledger reads that file and produces reports of
@@ -87,6 +94,8 @@ transactions, but does not change existing ones.)
 <div class="indent1">
 ### ...with a web UI
 
+<a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
+
 hledger comes with a built-in web server providing an alternate
 [browser-based interface](manual.html#web)
 ([demo](http://demo.hledger.org)), for assisted data entry and point
@@ -95,6 +104,8 @@ simultaneously.  </div>
 
 <div class="indent2">
 ### a Haskell application and library
+
+<a href="images/hledger-lib-api.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-lib-api.png" title="Part of hledger-lib's haddock api documentation" /></a>
 
 hledger is written in Haskell, a modern and highly-regarded
 programming language which contributes to hledger's robustness,
@@ -109,6 +120,7 @@ applications.
 <div class="indent0">
 ### documented
 
+<!-- <a href="images/manual.png" class="highslide" onclick="return hs.expand(this)"><img src="images/manual.png" title="hledger's manual" /></a> -->
 Complete, accurate documentation is always a top priority.
 </div>
 
