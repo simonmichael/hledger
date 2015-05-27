@@ -187,7 +187,7 @@ ensureJournalFileExists :: FilePath -> IO ()
 ensureJournalFileExists f = do
   exists <- doesFileExist f
   when (not exists) $ do
-    hPrintf stderr "Creating hledger journal file \"%s\".\n" f
+    hPrintf stderr "Creating hledger journal file %s.\n" f
     -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
     -- we currently require unix line endings on all platforms.
     newJournalContent >>= writeFile f
