@@ -260,6 +260,7 @@ isTransactionBalanced styles t =
       bvsum' = canonicalise $ costOfMixedAmount bvsum
       canonicalise = maybe id canonicaliseMixedAmount styles
 
+-- XXX refactor
 -- | Ensure this transaction is balanced, possibly inferring a missing
 -- amount or conversion price, or return an error message.
 --
@@ -298,30 +299,45 @@ balanceTransaction styles t@Transaction{tpostings=ps}
       ramountsinorder = concatMap amounts rmixedamountsinorder
       rcommoditiesinorder  = map acommodity ramountsinorder
       rsumamounts  = amounts $ sum rmixedamountsinorder
-      -- assumption: the sum of mixed amounts is normalised (one simple amount per commodity)
-      t'' = if length rsumamounts == 2 && all ((==NoPrice).aprice) rsumamounts && t'==t
+      -- as it says above, we can infer a conversion price when
+      t'' = if t'==t  --  all real amounts were explicit (we didn't have to infer any)
+               && length rsumamounts == 2  -- and the sum of real amounts has exactly two commodities (assumption: summing mixed amounts normalises to one simple amount per commodity)
+               && all ((==NoPrice).aprice) rsumamounts  -- and none of the amounts had explicit prices
              then t'{tpostings=map inferprice ps}
              else t'
           where
-            -- assumption: a posting's mixed amount contains one simple amount
-            inferprice p@Posting{pamount=Mixed [a@Amount{acommodity=c,aprice=NoPrice}], ptype=RegularPosting}
+            inferprice p@Posting{pamount=Mixed [a@Amount{acommodity=c,aprice=NoPrice}], ptype=RegularPosting} -- assumption: a posting's mixed amount contains one simple amount
                 = p{pamount=Mixed [a{aprice=conversionprice c}]}
                 where
                   conversionprice c | c == unpricedcommodity
-                                        -- assign a balancing price. Use @@ for more exact output when possible.
-                                        -- invariant: prices should always be positive. Enforced with "abs"
+
+                                        -- calculate a price that makes the postings balance, and give it "just enough"
+                                        -- display precision that a manual calculation with the displayed numbers
+                                        -- shows the transaction balancing.
                                         = if length ramountsinunpricedcommodity == 1
+
+                                           -- when there is only one posting in the target commodity,
+                                           -- show a total price (@@) for more exact output. In this
+                                           -- case show all available decimal digits, it shouldn't be too many.
                                            then TotalPrice $ abs targetcommodityamount `withPrecision` maxprecision
-                                           else UnitPrice $ abs (targetcommodityamount `divideAmount` (aquantity unpricedamount)) `withPrecision` maxprecision
+
+                                           -- otherwise, calculate the average unit conversion price across all postings.
+                                           -- Set the precision to the sum of the precisions of the commodities involved,
+                                           -- which should be enough to make calculation look right while also preventing
+                                           -- irrational numbers from printing excessive digits.
+                                           else UnitPrice $ abs unitprice `withPrecision` sumofprecisions
+
                                     | otherwise = NoPrice
                       where
                         unpricedcommodity     = head $ filter (`elem` (map acommodity rsumamounts)) rcommoditiesinorder
                         unpricedamount        = head $ filter ((==unpricedcommodity).acommodity) rsumamounts
                         targetcommodityamount = head $ filter ((/=unpricedcommodity).acommodity) rsumamounts
                         ramountsinunpricedcommodity = filter ((==unpricedcommodity).acommodity) ramountsinorder
+                        unitprice             = targetcommodityamount `divideAmount` (aquantity unpricedamount)
+                        sumofprecisions       = (asprecision $ astyle $ targetcommodityamount) + (asprecision $ astyle $ unpricedamount)
             inferprice p = p
 
-      -- maybe infer prices for balanced virtual postings. Just duplicates the above for now.
+      -- maybe infer prices for balanced virtual postings. Duplicates the above. XXX
       bvmixedamountsinorder = map pamount $ balancedVirtualPostings t''
       bvamountsinorder = concatMap amounts bvmixedamountsinorder
       bvcommoditiesinorder  = map acommodity bvamountsinorder
@@ -336,13 +352,15 @@ balanceTransaction styles t@Transaction{tpostings=ps}
                   conversionprice c | c == unpricedcommodity
                                         = if length bvamountsinunpricedcommodity == 1
                                            then TotalPrice $ abs targetcommodityamount `withPrecision` maxprecision
-                                           else UnitPrice $ abs (targetcommodityamount `divideAmount` (aquantity unpricedamount)) `withPrecision` maxprecision
+                                           else UnitPrice  $ abs unitprice             `withPrecision` sumofprecisions
                                     | otherwise = NoPrice
                       where
                         unpricedcommodity     = head $ filter (`elem` (map acommodity bvsumamounts)) bvcommoditiesinorder
                         unpricedamount        = head $ filter ((==unpricedcommodity).acommodity) bvsumamounts
                         targetcommodityamount = head $ filter ((/=unpricedcommodity).acommodity) bvsumamounts
                         bvamountsinunpricedcommodity = filter ((==unpricedcommodity).acommodity) bvamountsinorder
+                        unitprice             = targetcommodityamount `divideAmount` (aquantity unpricedamount)
+                        sumofprecisions       = (asprecision $ astyle $ targetcommodityamount) + (asprecision $ astyle $ unpricedamount)
             inferprice p = p
 
       -- tie the knot so eg relatedPostings works right

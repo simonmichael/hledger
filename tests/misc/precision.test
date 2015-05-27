@@ -78,6 +78,7 @@ hledgerdev -f - balance --cost
 --------------------
                    0
 >>>=0
+
 # hledger 0.14pre: precision=2, presumably from price
 #            $3266.32  assets:investment:ACME
 #           $-3266.32  equity:opening balances
@@ -93,8 +94,8 @@ hledgerdev -f - balance --cost
 #              $-3266  equity:opening balances
 #--------------------
 #                   0
-## 6. with a default commodity.. XXX should observe it
 
+## 6. with a default commodity.. XXX should observe it
 hledgerdev -f - balance --cost
 <<<
 D $1000.0
@@ -122,3 +123,40 @@ D $1000.0
 ###            $-3266.3  equity:opening balances
 ###--------------------
 ###                   0
+
+# 
+# 7. when there are multiple postings in the commodity being priced,
+# show the averaged unit price, with precision equal to the sum of
+# the max precisions of the commodities being converted (#262).
+# Here the (irrational) price should be displayed with just precision 4
+# (C's precision 2 + D's precision 2).
+hledgerdev -f- print
+<<<
+1/1
+    c    C 10.00
+    c    C 11.00
+    d  D -320.00
+>>>
+2015/01/01
+    c  C 10.00 @ D 15.2381
+    c  C 11.00 @ D 15.2381
+    d     D -320.00
+
+>>>=0
+
+
+## 8. Here the price should be displayed with precision 7
+# (E's precision 4 + F's precision 3).
+hledgerdev -f- print
+<<<
+1/1
+    e    E 10.0000
+    e    E 11
+    f  F -320.000
+>>>
+2015/01/01
+    e  E 10.0000 @ F 15.2380952
+    e  E 11.0000 @ F 15.2380952
+    f    F -320.000
+
+>>>=0
