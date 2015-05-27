@@ -68,7 +68,7 @@ withJournalDo opts cmd = do
   -- to let the add command work.
   rulespath <- rulesFilePathFromOpts opts
   journalpath <- journalFilePathFromOpts opts
-  ej <- readJournalFile Nothing rulespath (not $ ignore_assertions_ opts) (head journalpath)
+  ej <- readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpath
   either error' (cmd opts . journalApplyAliases (aliasesFromOpts opts)) ej
 
 -- | Write some output to stdout or to a file selected by --output-file.

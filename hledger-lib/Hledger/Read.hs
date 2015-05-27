@@ -15,6 +15,7 @@ module Hledger.Read (
        readJournal,
        readJournal',
        readJournalFile,
+       readJournalFiles,
        requireJournalFileExists,
        ensureJournalFileExists,
        -- * Parsers used elsewhere
@@ -39,7 +40,7 @@ import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
 import System.FilePath ((</>))
-import System.IO (IOMode(..), withFile, stdin, stderr, hSetNewlineMode, universalNewlineMode)
+import System.IO (IOMode(..), openFile, stdin, stderr, hSetNewlineMode, universalNewlineMode)
 import Test.HUnit
 import Text.Printf
 
@@ -51,7 +52,7 @@ import Hledger.Read.TimelogReader as TimelogReader
 import Hledger.Read.CsvReader as CsvReader
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
-import Hledger.Utils.UTF8IOCompat (getContents, hGetContents, writeFile)
+import Hledger.Utils.UTF8IOCompat (hGetContents, writeFile)
 
 
 journalEnvVar           = "LEDGER_FILE"
@@ -163,17 +164,24 @@ readersForPathAndData (f,s) = filter (\r -> (rDetector r) f s) readers
 -- conversion of that format. Also there is a flag specifying whether
 -- to check or ignore balance assertions in the journal.
 readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> FilePath -> IO (Either String Journal)
-readJournalFile format rulesfile assrt "-" = do
-  hSetNewlineMode stdin universalNewlineMode
-  getContents >>= readJournal format rulesfile assrt (Just "-")
-readJournalFile format rulesfile assrt f = do
-  requireJournalFileExists f
-  withFile f ReadMode $ \h -> do
+readJournalFile format rulesfile assrt f = readJournalFiles format rulesfile assrt [f]
+
+readJournalFiles :: Maybe StorageFormat -> Maybe FilePath -> Bool -> [FilePath] -> IO (Either String Journal)
+readJournalFiles format rulesfile assrt f = do
+  contents <- fmap concat $ mapM readFileAnyNewline f
+  readJournal format rulesfile assrt (listToMaybe f) contents
+ where
+  readFileAnyNewline f = do
+    requireJournalFileExists f
+    h <- fileHandle f
     hSetNewlineMode h universalNewlineMode
-    hGetContents h >>= readJournal format rulesfile assrt (Just f)
+    hGetContents h
+  fileHandle "-" = return stdin
+  fileHandle f = openFile f ReadMode
 
 -- | If the specified journal file does not exist, give a helpful error and quit.
 requireJournalFileExists :: FilePath -> IO ()
+requireJournalFileExists "-" = return ()
 requireJournalFileExists f = do
   exists <- doesFileExist f
   when (not exists) $ do
