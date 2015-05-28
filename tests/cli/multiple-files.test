@@ -1,0 +1,39 @@
+# 1. all data files on the command line should be read
+hledgerdev inc -f personal.journal -f business.journal
+>>>
+Income Statement
+
+Revenues:
+--------------------
+                   0
+
+Expenses:
+                  $2  expenses
+                  $1    food
+                  $1    office supplies
+--------------------
+                  $2
+
+Total:
+--------------------
+                  $2
+>>>2
+>>>=0
+
+# 2. aliases in files should only apply to later files
+hledgerdev print -f personal.journal -f business.journal -f alias.journal -f personal.journal
+>>>
+2014/01/01
+    expenses:office supplies            $1
+    assets:business checking           $-1
+
+2014/01/02
+    expenses:food            $1
+    assets:cash             $-1
+
+2014/01/02
+    equity:draw:personal:food            $1
+    assets:personal:cash                $-1
+
+>>>2
+>>>=0
