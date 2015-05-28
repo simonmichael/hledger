@@ -226,7 +226,7 @@ accountNameApplyAliases aliases a = accountNameWithPostingType atype aname'
   where
     (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
     aname' = foldl
-             (\acct alias -> dbg6 "got" $ aliasReplace (dbg6 "alias" alias) acct)
+             (\acct alias -> dbg6 "result" $ aliasReplace (dbg6 "alias" alias) (dbg6 "account" acct))
              aname
              aliases
 
@@ -235,8 +235,9 @@ accountNameApplyAliases aliases a = accountNameWithPostingType atype aname'
 -- aliasMatches (RegexAlias re  _) a = regexMatchesCI re a
 
 aliasReplace :: AccountAlias -> AccountName -> AccountName
-aliasReplace (BasicAlias old new) a | old `isAccountNamePrefixOf` a = new ++ drop (length old) a
-                                    | otherwise = a
+aliasReplace (BasicAlias old new) a
+  | old `isAccountNamePrefixOf` a || old == a = new ++ drop (length old) a
+  | otherwise = a
 aliasReplace (RegexAlias re repl) a = regexReplaceCI re repl a
 
 

@@ -59,6 +59,7 @@ parentAccountNames a = parentAccountNames' $ parentAccountName a
       parentAccountNames' "" = []
       parentAccountNames' a = a : parentAccountNames' (parentAccountName a)
 
+-- | Is the first account a parent or other ancestor of (and not the same as) the second ?
 isAccountNamePrefixOf :: AccountName -> AccountName -> Bool
 isAccountNamePrefixOf = isPrefixOf . (++ [acctsepchar])
 

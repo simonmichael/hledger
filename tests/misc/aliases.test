@@ -1,5 +1,7 @@
 # alias-related tests
 
+# simple aliases
+
 # simple alias directive
 hledgerdev -f- accounts
 <<<
@@ -22,6 +24,18 @@ alias a:b = A:B
 A:B:c
 a:bb:d
 >>>=0
+
+# a simple alias matching the whole account name works
+hledgerdev -f- accounts
+<<<
+alias a:b = A:B
+1/1
+    (a:b)   1
+>>>
+A:B
+>>>=0
+
+# regular expression aliases
 
 # regex alias directive
 hledgerdev -f- accounts
@@ -67,6 +81,8 @@ alias /A (.)/=\1
     c            -3
 
 >>>=0
+
+# CLI
 
 # --alias command-line options are applied in the order written.
 # Spaces are allowed if quoted.
