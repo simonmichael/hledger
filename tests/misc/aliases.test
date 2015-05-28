@@ -1,6 +1,6 @@
 # alias-related tests
 
-# . simple alias directive
+# simple alias directive
 hledgerdev -f- accounts
 <<<
 alias checking = assets:bank:checking
@@ -10,7 +10,7 @@ alias checking = assets:bank:checking
 assets:bank:checking:a
 >>>=0
 
-# . simple alias matches whole account name components only
+# simple alias matches whole account name components only
 hledgerdev -f- accounts
 <<<
 alias a:b = A:B
@@ -23,7 +23,7 @@ A:B:c
 a:bb:d
 >>>=0
 
-# . regex alias directive
+# regex alias directive
 hledgerdev -f- accounts
 <<<
 alias /^(.+):bank:([^:]+):?(.*)/ = \1:\2 \3
@@ -33,7 +33,7 @@ alias /^(.+):bank:([^:]+):?(.*)/ = \1:\2 \3
 assets:B checking:a
 >>>=0
 
-# . regex alias pattern is a case-insensitive regular expression
+# regex alias pattern is a case-insensitive regular expression
 # matching anywhere in the account name. All matching aliases are
 # applied to an account name in turn, most recently seen first. The
 # replacement can replace multiple matches within the account name.
@@ -68,7 +68,7 @@ alias /A (.)/=\1
 
 >>>=0
 
-# . --alias command-line options are applied in the order written.
+# --alias command-line options are applied in the order written.
 # Spaces are allowed if quoted.
 # 
 hledgerdev -f- print --alias '/A (.)/=a' --alias /a/=b
@@ -86,7 +86,7 @@ hledgerdev -f- print --alias '/A (.)/=a' --alias /a/=b
 
 >>>=0
 
-# . alias options are applied after alias directives.
+# alias options are applied after alias directives.
 #
 hledgerdev -f- print --alias /a/=A --alias /B/=C --alias /B/=D --alias /C/=D
 <<<
