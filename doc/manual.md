@@ -1060,6 +1060,12 @@ With the `--depth N` option, commands like [account](#account), [balance](#balan
 and [register](#register) will show only the uppermost accounts in the account
 tree, down to level N. Use this when you want a summary with less detail.
 
+### Multiple files
+
+One may specify the `--file FILE` option multiple times. This is equivalent to
+concatenating the files to standard input and passing `--file -`, except that
+the add command functions normally and adds entries to the first specified file.
+
 ## Queries
 
 One of hledger's strengths is being able to quickly report on precise subsets of your data.\
