@@ -323,6 +323,27 @@ However the display precision will be the highest precision seen in all posting 
 The precisions used in a price amount, or a D directive, don't affect the canonical display precision directly, but they can affect it indirectly, eg when D's default commodity is applied to a commodity-less amount or when an amountless posting is balanced using a price's commodity (actually this last case does not influence the canonical display precision but probably should).
 
 
+#### Virtual Postings
+
+When you parenthesise the account name in a posting, that posting is considered *virtual*, which
+means:
+
+- it is ignored when checking that the transaction is balanced
+- it is excluded from reports when the `--real/-R` flag is used, or the `real:1` query.
+
+You could use this, eg, to set an account's opening balance without needing to use the
+`equity:opening balances` account:
+
+```journal
+1/1 special unbalanced posting to set initial balance
+  (assets:checking)   $1000
+```
+##### Balanced Virtual Postings
+
+When the account name is bracketed, the posting is *balanced virtual*, which is just like a virtual posting except the balanced virtual postings in a transaction must balance to 0, like the real postings (but separately from them). Balanced virtual postings are also excluded by `--real/-R` or `real:1`.
+
+Virtual postings are a feature inherited from Ledger can can occasionally be useful, but they can be a crutch and you should think twice or three times before using them. You can almost always find an equivalent journal entry using two or more real postings that will be more correct and more error-proof.
+
 #### Balance Assertions
 
 hledger supports ledger-style
@@ -405,6 +426,13 @@ $ hledger bal checking --flat
 --------------------
                    2
 ```
+
+###### Assertions and virtual postings
+
+Balance assertions are checked against all postings, both real and
+[virtual](#virtual-postings). They are not affected by the `--real/-R`
+flag or `real:` query.
+
 
 #### Prices
 
@@ -1528,7 +1556,7 @@ $ hledger balance --format "%20(account) %-(total)"
                    0
 ```
 
-In simple (non-multi-column) balance reports, you can customize the
+In simple (non-multi-column) balance reports, you can customise the
 output with `--format FMT`. FMT (plus a newline) will be displayed for
 each account/balance pair. It is a format string with data fields
 interpolated by
