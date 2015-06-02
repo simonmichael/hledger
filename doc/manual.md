@@ -1818,10 +1818,12 @@ DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
 ```
 and some examples:
 ```{.shell .bold}
-$ hledger reg                 # use terminal width on posix
-$ hledger reg -w 100          # width 100, equal description/account widths
-$ hledger reg -w 100,40       # width 100, wider description
-$ hledger reg -w $COLUMNS,100 # terminal width, and set description width
+$ hledger reg                 # use terminal width (or 80 on windows)
+$ hledger reg -w 100          # use width 100
+$ COLUMNS=100 hledger reg     # set with one-time environment variable
+$ export COLUMNS=100; hledger reg  # set till session end (or window resize)
+$ hledger reg -w 100,40       # set overall width 100, description width 40
+$ hledger reg -w $COLUMNS,40  # use terminal width, and set description width
 ```
 
 The register command also supports the
