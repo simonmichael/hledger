@@ -13,6 +13,7 @@ import Yesod.Default.Main
 import Yesod.Default.Handlers
 import Network.Wai.Middleware.RequestLogger (logStdoutDev, logStdout)
 import Network.HTTP.Conduit (newManager)
+import Prelude (head)
 
 -- adapt to http-conduit 1.x or 2.x when cabal macros are available, otherwise assume 2.x
 #ifdef MIN_VERSION_http_conduit
@@ -77,7 +78,7 @@ makeFoundation conf = do
 -- uses the journal specified by the LEDGER_FILE env var, or ~/.hledger.journal
 getApplicationDev :: IO (Int, Application)
 getApplicationDev = do
-  f <- journalFilePathFromOpts defcliopts
+  f <- head `fmap` journalFilePathFromOpts defcliopts -- XXX head should be safe for now
   j <- either error' id `fmap` readJournalFile Nothing Nothing True f
   defaultDevelApp loader (makeApplication defwebopts j)
   where

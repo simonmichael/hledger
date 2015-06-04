@@ -47,12 +47,13 @@ runWith opts
   | "version" `inRawOpts` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
   | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
   | otherwise = do
-    requireJournalFileExists =<< journalFilePathFromOpts (cliopts_ opts)
+    requireJournalFileExists =<< (head `fmap` journalFilePathFromOpts (cliopts_ opts)) -- XXX head should be safe for now
     withJournalDo' opts web
 
 withJournalDo' :: WebOpts -> (WebOpts -> Journal -> IO ()) -> IO ()
 withJournalDo' opts cmd = do
-  journalFilePathFromOpts (cliopts_ opts) >>= readJournalFile Nothing Nothing True >>=
+  -- XXX head should be safe for now
+  (head `fmap` journalFilePathFromOpts (cliopts_ opts)) >>= readJournalFile Nothing Nothing True >>=
     either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
 
 -- | The web command.
