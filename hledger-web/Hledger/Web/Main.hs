@@ -19,7 +19,6 @@ import Data.String
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, setPort)
 import Network.Wai.Handler.Launch (runUrlPort)
 --
-import Prelude hiding (putStrLn)
 #if !MIN_VERSION_base(4,8,0)
 import Control.Applicative ((<$>))
 #endif
@@ -28,6 +27,7 @@ import Data.Text (pack)
 import System.Exit (exitSuccess)
 import System.IO (hFlush, stdout)
 import Text.Printf
+import Prelude hiding (putStrLn)
 
 import Hledger
 import Hledger.Utils.UTF8IOCompat (putStrLn)
