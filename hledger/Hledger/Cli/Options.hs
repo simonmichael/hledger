@@ -368,6 +368,8 @@ aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp () ("--alias "+
 
 -- | Get the (tilde-expanded, absolute) journal file path from
 -- 1. options, 2. an environment variable, or 3. the default.
+-- Actually, returns one or more file paths. There will be more
+-- than one if multiple -f options were provided.
 journalFilePathFromOpts :: CliOpts -> IO [String]
 journalFilePathFromOpts opts = do
   f <- defaultJournalPath
