@@ -220,3 +220,27 @@ promise of more bug-free and maintainable software built in fewer
 lines of code. Haskell also provides a more abstracted, portable
 platform which can make deployment and installation easier in some
 cases.
+## UI surprises
+### What are these extra amounts with no account name in the balance report ?
+
+A journal entry like this:
+```journal
+1/1
+  a 1
+  b
+```
+gives the error `hledger: could not balance this transaction (can't have more than one missing amount; remember to put 2 or more spaces before amounts)`, because there needs to be at least two spaces separating account names and amounts, eg like this:
+```journal
+1/1
+  a  1
+  b
+```
+
+### What are these extra amounts with no account name in the balance report ?
+
+Eg: https://gist.github.com/achiang/1b16a49f432375c68941
+
+In most hledger reports, like Ledger, account balances containing multiple commodities are displayed on multiple lines, one per commodity.
+In the register command these lines are top-aligned, in the balance command they are bottom-aligned.
+
+In [multi-column balance reports](manual.html#multicolumn-balance-reports), multi-commodity amounts are displayed on one line instead, comma-separated.
