@@ -550,7 +550,7 @@ codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `m
 
 -- Parse the following whitespace-beginning lines as postings, posting tags, and/or comments.
 postings :: Stream [Char] m Char => ParsecT [Char] JournalContext m [Posting]
-postings = many1 (try postingp) <?> "postings"
+postings = many (try postingp) <?> "postings"
 
 -- linebeginningwithspaces :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 -- linebeginningwithspaces = do
