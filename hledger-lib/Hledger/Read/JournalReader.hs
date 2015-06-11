@@ -40,8 +40,9 @@ module Hledger.Read.JournalReader (
   emptyorcommentlinep,
   followingcommentp,
   accountaliasp
-#ifdef TESTS
   -- * Tests
+  ,tests_Hledger_Read_JournalReader
+#ifdef TESTS
   -- disabled by default, HTF not available on windows
   ,htf_thisModulesTests
   ,htf_Hledger_Read_JournalReader_importedTests
@@ -60,6 +61,7 @@ import Data.Maybe
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Safe (headDef, lastDef)
+import Test.HUnit
 #ifdef TESTS
 import Test.Framework
 import Text.Parsec.Error
@@ -425,6 +427,13 @@ test_transaction = do
           }
         ],
       tpreceding_comment_lines=""
+      }
+    unlines [
+      "2015/1/1",
+      ]
+     `gives`
+     nulltransaction{
+      tdate=parsedate "2015/01/01",
       }
 
     assertRight $ parseWithCtx nullctx transaction $ unlines
@@ -895,29 +904,27 @@ numberp = do
   where
     numeric = isNumber . headDef '_'
 
-#ifdef TESTS
-test_numberp = do
-      let s `is` n = assertParseEqual' (parseWithCtx nullctx numberp s) n
-          assertFails = assertBool . isLeft . parseWithCtx nullctx numberp
-      assertFails ""
-      "0"          `is` (0, 0, '.', ',', [])
-      "1"          `is` (1, 0, '.', ',', [])
-      "1.1"        `is` (1.1, 1, '.', ',', [])
-      "1,000.1"    `is` (1000.1, 1, '.', ',', [3])
-      "1.00.000,1" `is` (100000.1, 1, ',', '.', [3,2])
-      "1,000,000"  `is` (1000000, 0, '.', ',', [3,3])
-      "1."         `is` (1,   0, '.', ',', [])
-      "1,"         `is` (1,   0, ',', '.', [])
-      ".1"         `is` (0.1, 1, '.', ',', [])
-      ",1"         `is` (0.1, 1, ',', '.', [])
-      assertFails "1,000.000,1"
-      assertFails "1.000,000.1"
-      assertFails "1,000.000.1"
-      assertFails "1,,1"
-      assertFails "1..1"
-      assertFails ".1,"
-      assertFails ",1."
-#endif
+-- test_numberp = do
+--       let s `is` n = assertParseEqual (parseWithCtx nullctx numberp s) n
+--           assertFails = assertBool . isLeft . parseWithCtx nullctx numberp
+--       assertFails ""
+--       "0"          `is` (0, 0, '.', ',', [])
+--       "1"          `is` (1, 0, '.', ',', [])
+--       "1.1"        `is` (1.1, 1, '.', ',', [])
+--       "1,000.1"    `is` (1000.1, 1, '.', ',', [3])
+--       "1.00.000,1" `is` (100000.1, 1, ',', '.', [3,2])
+--       "1,000,000"  `is` (1000000, 0, '.', ',', [3,3])
+--       "1."         `is` (1,   0, '.', ',', [])
+--       "1,"         `is` (1,   0, ',', '.', [])
+--       ".1"         `is` (0.1, 1, '.', ',', [])
+--       ",1"         `is` (0.1, 1, ',', '.', [])
+--       assertFails "1,000.000,1"
+--       assertFails "1.000,000.1"
+--       assertFails "1,000.000.1"
+--       assertFails "1,,1"
+--       assertFails "1..1"
+--       assertFails ".1,"
+--       assertFails ",1."
 
 -- comment parsers
 
@@ -1019,9 +1026,13 @@ dateValueFromTags  ts = maybe Nothing (Just . snd) $ find ((=="date") . fst) ts
 date2ValueFromTags ts = maybe Nothing (Just . snd) $ find ((=="date2") . fst) ts
 
 
+tests_Hledger_Read_JournalReader = TestList $ concat [
+    -- test_numberp
+ ]
+
 {- old hunit tests
 
-test_Hledger_Read_JournalReader = TestList $ concat [
+tests_Hledger_Read_JournalReader = TestList $ concat [
     test_numberp,
     test_amountp,
     test_spaceandamountormissing,

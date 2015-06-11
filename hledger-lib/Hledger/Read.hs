@@ -239,7 +239,7 @@ samplejournal = readJournal' $ unlines
 tests_Hledger_Read = TestList $
   tests_readJournal'
   ++ [
-   -- tests_Hledger_Read_JournalReader,
+   tests_Hledger_Read_JournalReader,
    tests_Hledger_Read_TimelogReader,
    tests_Hledger_Read_CsvReader,
 
