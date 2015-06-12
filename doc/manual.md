@@ -1146,7 +1146,7 @@ A query term can be any of the following:
 `depth:N`                          match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
 
 \                                  \
-`real:1`, `real:0`                 match real/virtual-ness
+`real:`/`real:1`, `real:0`         match real or [virtual](#virtual-postings) postings respectively
 
 \                                  \
 `status:*`, `status:!`, `status:`  match cleared, pending, or uncleared/pending transactions respectively

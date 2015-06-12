@@ -251,7 +251,7 @@ parseQueryTerm d ('d':'a':'t':'e':':':s) =
 parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = 
         case parseStatus s of Left e   -> error' $ "\"status:"++s++"\" gave a parse error: " ++ e
                               Right st -> Left $ Status st
-parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s
+parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s || null s
 parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt ord q where (ord, q) = parseAmountQueryTerm s
 parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
 parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ Depth $ readDef 0 s
