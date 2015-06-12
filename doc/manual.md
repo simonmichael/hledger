@@ -179,11 +179,13 @@ column 0, followed by three optional fields with spaces between them:
 - a transaction code (eg a check number),
 - and/or a description
 
-then two or more postings (of some amount to some account), each on
-their own line.
+then some number of postings, of some amount to some account, each on
+its own line. Usually there are at least two postings, though one or
+even none is possible.
 
-The posting amounts within a transaction must always balance, ie add up to
-0.  You can leave one amount blank and it will be inferred.
+The ([real](#virtual-postings)) posting amounts within a transaction
+must always balance, ie add up to 0.  Optionally one amount can be
+left blank, in which case it will be inferred.
 
 #### Dates
 
