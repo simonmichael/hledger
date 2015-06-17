@@ -1,8 +1,7 @@
 # hledger project makefile
 
 # GHC-compiled executables require a locale (and not just C) or they
-# will die on encountering non-ascii data.
-# Set LANG only if not already set
+# will die on encountering non-ascii data. Set LANG to something if not already set.
 export LANG?=en_US.UTF-8
 
 # command to run during "make prof" and "make heap"
@@ -377,7 +376,7 @@ bin/hledger: \
 	build the "production" optimised cabal build with profiling enabled. Assumes a cabal sandbox.\
 	)
 	rm -f bin/hledger
-	cabal install --disable-library-profiling --disable-executable-profiling ./hledger-lib ./hledger \
+	cabal install --disable-profiling ./hledger-lib ./hledger \
 		&& mv .cabal-sandbox/bin/hledger bin/hledger
 
 bin/hledger-prof: \
@@ -385,7 +384,7 @@ bin/hledger-prof: \
 	build the "production" cabal build with profiling enabled.\
 	)
 	rm -f bin/hledger-prof
-	cabal install -p --enable-executable-profiling --ghc-options=-fprof-auto ./hledger-lib ./hledger \
+	cabal install --enable-profiling --ghc-options=-fprof-auto ./hledger-lib ./hledger \
 		&& mv .cabal-sandbox/bin/hledger bin/hledger-prof
 
 # build the dev build with profiling enabled.
