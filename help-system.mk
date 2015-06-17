@@ -1,5 +1,30 @@
-# makefile self-documentation
-# http://www.cmcrossroads.com/print/article/self-documenting-makefiles
+# Helpers for self-documenting makefiles.
+# Based on http://www.cmcrossroads.com/print/article/self-documenting-makefiles
+#
+# Standard usage:
+#
+# TARGET: PREREQUISITES $(call def-help,TARGET,HELP)
+# 	ACTIONS
+#
+# or on multiple lines:
+#
+# TARGET: PREREQUISITES \
+# 	$(call def-help,TARGET,\
+# 	HELP\
+# 	)
+# 	ACTIONS
+#
+# Also:
+#
+# $(call def-help-section,SECTION,HELP)
+#
+# and:
+#
+# $(call def-help-subsection,SECTION,HELP)
+#
+# HELP is one or more lines, or can be blank.
+# Certain characters such as comma and parentheses are not allowed.
+# You may want to avoid ' also as it breaks emacs font-lock.
 
 help:
 	@echo $(if $(need-help),,Type \'make$(dash-f) help\' to get help)
