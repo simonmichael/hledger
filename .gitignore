@@ -16,7 +16,7 @@ cabal.sandbox.config
 hledger-web/static/tmp/
 hledger-web/yesod-devel/
 log
-Makefile.local
+.local.mk
 /messages
 *.o
 old
@@ -32,3 +32,4 @@ tt.*
 ttt.*
 tttt.*
 ttttt.*
+.stack-work
