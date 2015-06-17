@@ -42,8 +42,6 @@ extra-source-files:
                 static/js/bootstrap.min.js
                 static/js/excanvas.js
                 static/js/excanvas.min.js
-                static/js/jquery.colorhelpers.js
-                static/js/jquery.colorhelpers.min.js
                 static/js/jquery.cookie.js
                 static/js/jquery.flot.canvas.js
                 static/js/jquery.flot.canvas.min.js
