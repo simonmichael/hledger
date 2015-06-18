@@ -24,14 +24,8 @@ build-type:     Simple
 -- data-files:
 extra-tmp-files:
 extra-source-files: 
-                    tests/suite.hs
+                    test/test.hs
                     CHANGES
-
--- Cabal-Version:  >= 1.9.2
--- Test-Suite test-hledger
---     type:       exitcode-stdio-1.0
---     main-is:    test-hledger.hs
---     build-depends: base
 
 source-repository head
   type:     git
@@ -163,10 +157,10 @@ executable hledger
     build-depends: pretty-show >= 1.6.4
 
 
-test-suite tests
+test-suite test
   type:     exitcode-stdio-1.0
-  main-is:  suite.hs
-  hs-source-dirs: tests
+  main-is:  test.hs
+  hs-source-dirs: test
   default-language: Haskell2010
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
   ghc-options: -fno-warn-type-defaults -fno-warn-orphans
