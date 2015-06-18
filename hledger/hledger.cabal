@@ -201,11 +201,10 @@ test-suite test
     build-depends: time >= 1.5
 
 
--- not a standard cabal bench test, I think
 benchmark bench
   type:             exitcode-stdio-1.0
-  -- hs-source-dirs:   
-  main-is:          ../tools/simplebench.hs
+  hs-source-dirs:   bench
+  main-is:          bench.hs
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
   ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   default-language: Haskell2010
