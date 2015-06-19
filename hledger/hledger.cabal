@@ -74,6 +74,7 @@ library
                  ,base-compat >= 0.8.1
                  -- ,cabal-file-th
                  ,containers
+                 ,unordered-containers
                  ,cmdargs >= 0.10 && < 0.11
                  ,csv
                  -- ,data-pprint >= 0.2.1 && < 0.3
@@ -128,6 +129,7 @@ executable hledger
                  ,base >= 4.3 && < 5
                  ,base-compat >= 0.8.1
                  ,containers
+                 ,unordered-containers
                  ,cmdargs >= 0.10 && < 0.11
                  ,csv
                  -- ,data-pprint >= 0.2.1 && < 0.3

@@ -13,6 +13,8 @@ where
 import Data.List
 import Data.Maybe
 import Data.Ord
+import Data.HashSet (size, fromList)
+import Data.Text (pack)
 import Data.Time.Calendar
 import System.Console.CmdArgs.Explicit
 import Text.Printf
@@ -63,7 +65,7 @@ showLedgerStats l today span =
         ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
         ,("Transactions last 30 days", printf "%d (%0.1f per day)" tnum30 txnrate30)
         ,("Transactions last 7 days", printf "%d (%0.1f per day)" tnum7 txnrate7)
-        ,("Payees/descriptions", show $ length $ nub $ map tdescription ts)
+        ,("Payees/descriptions", show $ size $ fromList $ map (pack . tdescription) ts)
         ,("Accounts", printf "%d (depth %d)" acctnum acctdepth)
         ,("Commodities", printf "%s (%s)" (show $ length cs) (intercalate ", " cs))
       -- Transactions this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
