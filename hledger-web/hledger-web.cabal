@@ -76,6 +76,7 @@ extra-source-files:
                 static/js/jquery.flot.tooltip.js
                 static/js/jquery.flot.tooltip.min.js
                 static/js/jquery.hotkeys.js
+                static/js/jquery.js
                 static/js/jquery.min.js
                 static/js/jquery.url.js
                 static/js/typeahead.bundle.js
