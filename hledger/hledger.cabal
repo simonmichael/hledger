@@ -214,8 +214,10 @@ benchmark bench
                     hledger,
                     base >= 4.3 && < 5,
                     base-compat >= 0.8.1,
+                    criterion,
                     html,
                     tabular >= 0.2 && < 0.3,
+                    timeit,
                     process,
                     filepath,
                     directory

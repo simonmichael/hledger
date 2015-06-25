@@ -4,4 +4,5 @@ packages:
 - hledger-web
 flags: {}
 resolver: nightly-2015-06-17
-extra-deps: []
+extra-deps:
+- timeit-1.0.0.0
