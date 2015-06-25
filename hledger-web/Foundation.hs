@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, MultiParamTypeClasses, OverloadedStrings, RecordWildCards, QuasiQuotes, TemplateHaskell, TypeFamilies #-}
+{-# LANGUAGE CPP, MultiParamTypeClasses, OverloadedStrings, RecordWildCards, QuasiQuotes, TemplateHaskell, TypeFamilies, TypeSynonymInstances, FlexibleInstances #-}
 {-
 
 Define the web application's foundation, in the usual Yesod style.
@@ -41,8 +41,9 @@ import Data.Maybe
 import Data.Text as Text (Text,pack,unpack)
 import Data.Time.Calendar
 #if BLAZE_HTML_0_4
-import Text.Blaze (preEscapedString)
+import Text.Blaze (preEscapedString, Markup)
 #else
+import Text.Blaze (Markup)
 import Text.Blaze.Internal (preEscapedString)
 #endif
 import Text.JSON
@@ -204,7 +205,9 @@ data ViewData = VD {
     ,aopts        :: [QueryOpt] -- ^ query options parsed from the accounts sidebar query expr
     ,showpostings :: Bool       -- ^ current p parameter, 1 or 0 shows/hides all postings where applicable
     ,showsidebar  :: Bool       -- ^ current showsidebar cookie value
-    }
+    } deriving (Show)
+
+instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
 
 -- | Make a default ViewData, using day 0 as today's date.
 nullviewdata :: ViewData
