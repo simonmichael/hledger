@@ -53,7 +53,7 @@ mkYesodDispatch "App" resourcesApp
 -- migrations handled by Yesod.
 makeApplication :: WebOpts -> Journal -> AppConfig DefaultEnv Extra -> IO Application
 makeApplication opts j conf = do
-    foundation <- makeFoundation conf
+    foundation <- makeFoundation conf opts
     writeIORef (appJournal foundation) j
     app <- toWaiAppPlain foundation
     return $ logWare app
@@ -62,8 +62,8 @@ makeApplication opts j conf = do
             | server_ opts = logStdout
             | otherwise    = id
 
-makeFoundation :: AppConfig DefaultEnv Extra -> IO App
-makeFoundation conf = do
+makeFoundation :: AppConfig DefaultEnv Extra -> WebOpts -> IO App
+makeFoundation conf opts = do
     manager <- newManager
 #ifdef http_conduit_2
                defaultManagerSettings
@@ -72,7 +72,7 @@ makeFoundation conf = do
 #endif
     s <- staticSite
     jref <- newIORef nulljournal
-    return $ App conf s manager defwebopts jref
+    return $ App conf s manager opts jref
 
 -- for yesod devel
 -- uses the journal specified by the LEDGER_FILE env var, or ~/.hledger.journal
