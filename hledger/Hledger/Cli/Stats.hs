@@ -23,13 +23,15 @@ import qualified Data.Map as Map
 import Hledger
 import Hledger.Cli.Options
 import Prelude hiding (putStr)
-import Hledger.Utils.UTF8IOCompat (putStr)
+import Hledger.Cli.Utils (writeOutput)
 
 
 statsmode = (defCommandMode $ ["stats"] ++ aliases) {
   modeHelp = "show some journal statistics" `withAliases` aliases
  ,modeGroupFlags = Group {
-     groupUnnamed = []
+     groupUnnamed = [
+        flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE[.FMT]" "write output to FILE instead of stdout. A recognised FMT suffix influences the format."
+        ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
     }
@@ -39,7 +41,7 @@ statsmode = (defCommandMode $ ["stats"] ++ aliases) {
 -- like Register.summarisePostings
 -- | Print various statistics for the journal.
 stats :: CliOpts -> Journal -> IO ()
-stats CliOpts{reportopts_=reportopts_} j = do
+stats opts@CliOpts{reportopts_=reportopts_} j = do
   d <- getCurrentDay
   let q = queryFromOpts d reportopts_
       l = ledgerFromJournal q j
@@ -47,7 +49,7 @@ stats CliOpts{reportopts_=reportopts_} j = do
       intervalspans = splitSpan (intervalFromOpts reportopts_) reportspan
       showstats = showLedgerStats l d
       s = intercalate "\n" $ map showstats intervalspans
-  putStr s
+  writeOutput opts s
 
 showLedgerStats :: Ledger -> Day -> DateSpan -> String
 showLedgerStats l today span =

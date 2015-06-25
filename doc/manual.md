@@ -1587,7 +1587,7 @@ $ hledger balance -o -     # write to stdout (the default)
 $ hledger balance -o FILE  # write to FILE
 ```
 
-The balance, print and register commands can write their output to a
+The balance, print, register and stats commands can write their output to a
 destination other than the console. This is controlled by the
 `-o/--output-file` option.
 
@@ -1851,6 +1851,9 @@ Commodities              : 1 ($)
 The stats command displays summary information for the whole journal, or
 a matched part of it. With a [reporting interval](#reporting-interval),
 it shows a report for each report period.
+
+The stats command also supports `-o/--output-file`
+for controlling [output destination](#output-destination).
 
 #### test
 
