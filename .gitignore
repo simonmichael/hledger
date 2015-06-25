@@ -33,3 +33,6 @@ ttt.*
 tttt.*
 ttttt.*
 .stack-work
+.idea
+.project
+profs/*
