@@ -9,6 +9,7 @@ import Yesod.Default.Config
 import Yesod.Test
 import Test.Hspec (hspec)
 import Application (makeFoundation)
+import Hledger.Web.Options (defwebopts)
 
 import HomeTest
 
@@ -17,7 +18,7 @@ main = do
     conf <- Yesod.Default.Config.loadConfig $ (configSettings Testing)
                     { csParseExtra = parseExtra
                     }
-    foundation <- makeFoundation conf
+    foundation <- makeFoundation conf defwebopts
     hspec $ do
       yesodSpec foundation $ do
         homeSpecs
