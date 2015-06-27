@@ -3,14 +3,11 @@
 -- With --criterion, show accurate times (slow).
 -- With --simplebench, show approximate times for the commands in default.bench, using the first hledger executable on $PATH.
 
-import Control.Concurrent (threadDelay)
 import Criterion.Main     (defaultMainWith, defaultConfig, bench, nfIO)
--- import Criterion.Types
 import SimpleBench        (defaultMain)
 import System.Directory   (getCurrentDirectory)
 import System.Environment (getArgs, withArgs)
 import System.Info        (os)
--- import System.IO          (hFlush, stdout)
 import System.Process     (readProcess)
 import System.TimeIt      (timeItT)
 import Text.Printf
@@ -22,10 +19,6 @@ inputfile = "bench/10000x1000x10.journal"
 outputfile = "/dev/null" -- hide output of benchmarked commands (XXX unixism)
 -- outputfile = "-" -- show output of benchmarked commands
 
--- a delay to avoid truncation of final output by "stack bench"
--- https://github.com/commercialhaskell/stack/issues/413
-stackFinalOutputDelaySeconds = 0 -- 10
-
 main = do
  -- withArgs ["--simplebench"] $ do
  -- withArgs ["--criterion"] $ do
@@ -35,8 +28,6 @@ main = do
     else if "--simplebench" `elem` args
          then benchWithSimplebench
          else benchWithTimeit
-  -- hFlush stdout
-  threadDelay (stackFinalOutputDelaySeconds * 1000000)
 
 benchWithTimeit = do
   getCurrentDirectory >>= printf "Benchmarking hledger in %s with timeit\n"
