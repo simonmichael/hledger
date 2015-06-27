@@ -149,6 +149,9 @@ postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
                                _                      -> (id,acctwidth)
       amt = showMixedAmountWithoutPrice $ pamount p
       bal = showMixedAmountWithoutPrice b
+      -- alternate behaviour, show null amounts as 0 instead of blank
+      -- amt = if null amt' then "0" else amt'
+      -- bal = if null bal' then "0" else bal'
       (amtlines, ballines) = (lines amt, lines bal)
       (amtlen, ballen) = (length amtlines, length ballines)
       numlines = max 1 (max amtlen ballen)
