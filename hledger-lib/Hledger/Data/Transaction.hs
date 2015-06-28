@@ -40,7 +40,6 @@ import Data.Time.Calendar
 import Test.HUnit
 import Text.Printf
 import qualified Data.Map as Map
-import Text.Parsec.Pos
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -56,8 +55,8 @@ instance Show ModifierTransaction where
 instance Show PeriodicTransaction where
     show t = "~ " ++ ptperiodicexpr t ++ "\n" ++ unlines (map show (ptpostings t))
 
-nullsourcepos :: SourcePos
-nullsourcepos = initialPos ""
+nullsourcepos :: GenericSourcePos
+nullsourcepos = GenericSourcePos "" 1 1
 
 nulltransaction :: Transaction
 nulltransaction = Transaction {

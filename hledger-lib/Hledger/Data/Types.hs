@@ -143,8 +143,13 @@ data Posting = Posting {
 instance Eq Posting where
     (==) (Posting a1 b1 c1 d1 e1 f1 g1 h1 i1 _) (Posting a2 b2 c2 d2 e2 f2 g2 h2 i2 _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2 && g1==g2 && h1==h2 && i1==i2
 
+-- | The position of parse errors (eg), like parsec's SourcePos but generic.
+-- File name, 1-based line number and 1-based column number.
+data GenericSourcePos = GenericSourcePos FilePath Int Int
+  deriving (Eq, Read, Show, Ord, Data, Typeable)
+
 data Transaction = Transaction {
-      tsourcepos :: SourcePos,
+      tsourcepos :: GenericSourcePos,
       tdate :: Day,
       tdate2 :: Maybe Day,
       tstatus :: ClearedStatus,
@@ -169,7 +174,7 @@ data PeriodicTransaction = PeriodicTransaction {
 data TimeLogCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord,Typeable,Data)
 
 data TimeLogEntry = TimeLogEntry {
-      tlsourcepos :: SourcePos,
+      tlsourcepos :: GenericSourcePos,
       tlcode :: TimeLogCode,
       tldatetime :: LocalTime,
       tlaccount :: String,

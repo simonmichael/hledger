@@ -22,6 +22,7 @@ module Hledger.Read.JournalReader (
   reader,
   -- * Parsers used elsewhere
   parseJournalWith,
+  genericSourcePos,
   getParentAccount,
   journal,
   directive,
@@ -96,6 +97,9 @@ parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journ
 parse _ = parseJournalWith journal
 
 -- parsing utils
+
+genericSourcePos :: SourcePos -> GenericSourcePos
+genericSourcePos p = GenericSourcePos (sourceName p) (sourceLine p) (sourceColumn p)
 
 -- | Flatten a list of JournalUpdate's into a single equivalent one.
 combineJournalUpdates :: [JournalUpdate] -> JournalUpdate
@@ -366,7 +370,7 @@ periodictransaction = do
 transaction :: ParsecT [Char] JournalContext (ExceptT String IO) Transaction
 transaction = do
   -- ptrace "transaction"
-  sourcepos <- getPosition
+  sourcepos <- genericSourcePos <$> getPosition
   date <- datep <?> "transaction"
   edate <- optionMaybe (secondarydatep date) <?> "secondary date"
   lookAhead (spacenonewline <|> newline) <?> "whitespace or newline"
@@ -481,7 +485,7 @@ datep :: Stream [Char] m t => ParsecT [Char] JournalContext m Day
 datep = do
   -- hacky: try to ensure precise errors for invalid dates
   -- XXX reported error position is not too good
-  -- pos <- getPosition
+  -- pos <- genericSourcePos <$> getPosition
   datestr <- many1 $ choice' [digit, datesepchar]
   let sepchars = nub $ sort $ filter (`elem` datesepchars) datestr
   when (length sepchars /= 1) $ fail $ "bad date, different separators used: " ++ datestr

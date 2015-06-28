@@ -51,7 +51,7 @@ import Text.Printf (hPrintf,printf)
 import Hledger.Data
 import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
-import Hledger.Read.JournalReader (amountp, statusp)
+import Hledger.Read.JournalReader (amountp, statusp, genericSourcePos)
 
 
 reader :: Reader
@@ -643,7 +643,7 @@ transactionFromCsvRecord sourcepos rules record = t
 
     -- build the transaction
     t = nulltransaction{
-      tsourcepos               = sourcepos,
+      tsourcepos               = genericSourcePos sourcepos,
       tdate                    = date',
       tdate2                   = mdate2',
       tstatus                  = status,
