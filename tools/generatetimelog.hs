@@ -1,0 +1,31 @@
+#!/usr/bin/env runhaskell
+{-
+generatetimelog.hs NUMENTRIES
+
+Outputs a dummy timelog with the specified number of clock-in/clock-out entries,
+one per day.
+
+-}
+
+module Main
+where
+import System.Environment
+import Data.Time.LocalTime
+import Data.Time.Calendar
+import Text.Printf
+
+main = do
+  args <- getArgs
+  let [numentries] = map read args :: [Integer]
+  today <- getCurrentDay
+  let startdate = addDays (-numentries) today
+  mapM_ (putStr . showentry) [startdate..today]
+  return ()
+
+showentry d =
+  printf "i %s 09:00:00 dummy\no %s 17:00:00\n" (show d) (show d)
+
+getCurrentDay = do
+  t <- getZonedTime
+  return $ localDay (zonedTimeToLocalTime t)
+
