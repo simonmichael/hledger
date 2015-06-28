@@ -304,13 +304,15 @@ bin/hledgerdev.ghcall: \
 	build hledger with the main supported GHC versions\
 	)
 
+#CABALINSTALLDIR=~/.cabal
+CABALINSTALLDIR=.cabal-sandbox
 bin/hledger: \
 	$(call def-help,bin/hledger,\
-	build the "production" optimised cabal build with profiling enabled. Assumes a cabal sandbox.\
+	build the "production" optimised cabal build with profiling enabled.\
 	)
 	rm -f bin/hledger
 	cabal install --disable-profiling ./hledger-lib ./hledger \
-		&& mv .cabal-sandbox/bin/hledger bin/hledger
+		&& mv $(CABALINSTALLDIR)/bin/hledger bin/hledger
 
 bin/hledger-prof: \
 	$(call def-help,bin/hledger-prof,\
@@ -318,7 +320,7 @@ bin/hledger-prof: \
 	)
 	rm -f bin/hledger-prof
 	cabal install --enable-profiling --ghc-options=-fprof-auto ./hledger-lib ./hledger \
-		&& mv .cabal-sandbox/bin/hledger bin/hledger-prof
+		&& mv $(CABALINSTALLDIR)/bin/hledger bin/hledger-prof
 
 # build the dev build with profiling enabled.
 # not working with cabal sandbox
