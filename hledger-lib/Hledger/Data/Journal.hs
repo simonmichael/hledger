@@ -106,7 +106,7 @@ instance Show Journal where
              (show accounts)
              (show $ jcommoditystyles j)
              -- ++ (show $ journalTransactions l)
-             where accounts = flatten $ journalAccountNameTree j
+             where accounts = filter (/= "root") $ flatten $ journalAccountNameTree j
 
 -- showJournalDebug j = unlines [
 --                       show j
