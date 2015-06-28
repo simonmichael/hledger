@@ -277,34 +277,30 @@ isTransactionBalanced styles t =
 -- non-explicitly-priced amounts in different commodities (likewise
 -- for balanced virtual postings).
 balanceTransaction :: Maybe (Map.Map Commodity AmountStyle) -> Transaction -> Either String Transaction
-balanceTransaction styles t@Transaction{tpostings=ps}
-    | length rwithoutamounts > 1 || length bvwithoutamounts > 1
-        = Left $ printerr "could not balance this transaction (can't have more than one missing amount; remember to put 2 or more spaces before amounts)"
-    | not $ isTransactionBalanced styles t''' = Left $ printerr $ nonzerobalanceerror t'''
-    | otherwise = Right t''''
-    where
-      -- maybe infer missing amounts
-      (rwithamounts, rwithoutamounts)   = partition hasAmount $ realPostings t
-      (bvwithamounts, bvwithoutamounts) = partition hasAmount $ balancedVirtualPostings t
-      ramounts  = map pamount rwithamounts
-      bvamounts = map pamount bvwithamounts
-      t' = t{tpostings=map inferamount ps}
-          where
-            inferamount p | not (hasAmount p) && isReal p            = p{pamount = costOfMixedAmount (- sum ramounts)}
-                          | not (hasAmount p) && isBalancedVirtual p = p{pamount = costOfMixedAmount (- sum bvamounts)}
-                          | otherwise                             = p
+balanceTransaction styles t@Transaction{tpostings=ps} =
+  case inferAmounts t of
+    Left err           -> Left err
+    Right tWithAmounts ->
+     case isTransactionBalanced styles tWithAmountsAndPrices of
+      False -> Left $ printerr $ nonzerobalanceerror tWithAmountsAndPrices
+      True  -> Right $ txnTieKnot tWithAmountsAndPrices
 
-      -- maybe infer conversion prices, for real postings
-      rmixedamountsinorder = map pamount $ realPostings t'
+     where
+      printerr s = intercalate "\n" [s, showTransactionUnelided t]
+
+      -------------------------------------------------------------------------
+      -- infer conversion prices for real postings if needed
+      rmixedamountsinorder = map pamount $ realPostings tWithAmounts
       ramountsinorder = concatMap amounts rmixedamountsinorder
       rcommoditiesinorder  = map acommodity ramountsinorder
       rsumamounts  = amounts $ sum rmixedamountsinorder
       -- as it says above, we can infer a conversion price when
-      t'' = if t'==t  --  all real amounts were explicit (we didn't have to infer any)
-               && length rsumamounts == 2  -- and the sum of real amounts has exactly two commodities (assumption: summing mixed amounts normalises to one simple amount per commodity)
-               && all ((==NoPrice).aprice) rsumamounts  -- and none of the amounts had explicit prices
-             then t'{tpostings=map inferprice ps}
-             else t'
+      tWithAmountsAndRealPrices =
+            if tWithAmounts == t                       --  all real amounts were explicit (we didn't have to infer any)
+               && length rsumamounts == 2              -- and the sum of real amounts has exactly two commodities (assumption: summing mixed amounts normalises to one simple amount per commodity)
+               && all ((==NoPrice).aprice) rsumamounts -- and none of the amounts had explicit prices
+             then tWithAmounts{tpostings=map inferprice ps}
+             else tWithAmounts
           where
             inferprice p@Posting{pamount=Mixed [a@Amount{acommodity=c,aprice=NoPrice}], ptype=RegularPosting} -- assumption: a posting's mixed amount contains one simple amount
                 = p{pamount=Mixed [a{aprice=conversionprice c}]}
@@ -337,14 +333,16 @@ balanceTransaction styles t@Transaction{tpostings=ps}
                         sumofprecisions       = (asprecision $ astyle $ targetcommodityamount) + (asprecision $ astyle $ unpricedamount)
             inferprice p = p
 
-      -- maybe infer prices for balanced virtual postings. Duplicates the above. XXX
-      bvmixedamountsinorder = map pamount $ balancedVirtualPostings t''
+      -------------------------------------------------------------------------
+      -- infer conversion prices for balanced virtual postings if needed. XXX duplicates the above
+      bvmixedamountsinorder = map pamount $ balancedVirtualPostings tWithAmountsAndRealPrices
       bvamountsinorder = concatMap amounts bvmixedamountsinorder
       bvcommoditiesinorder  = map acommodity bvamountsinorder
       bvsumamounts  = amounts $ sum bvmixedamountsinorder
-      t''' = if length bvsumamounts == 2 && all ((==NoPrice).aprice) bvsumamounts && t'==t -- XXX could check specifically for bv amount inferring
-             then t''{tpostings=map inferprice ps}
-             else t''
+      tWithAmountsAndPrices =
+           if length bvsumamounts == 2 && all ((==NoPrice).aprice) bvsumamounts && tWithAmounts==t -- XXX could check specifically for bv amount inferring
+             then tWithAmountsAndRealPrices{tpostings=map inferprice ps}
+             else tWithAmountsAndRealPrices
           where
             inferprice p@Posting{pamount=Mixed [a@Amount{acommodity=c,aprice=NoPrice}], ptype=BalancedVirtualPosting}
                 = p{pamount=Mixed [a{aprice=conversionprice c}]}
@@ -363,10 +361,24 @@ balanceTransaction styles t@Transaction{tpostings=ps}
                         sumofprecisions       = (asprecision $ astyle $ targetcommodityamount) + (asprecision $ astyle $ unpricedamount)
             inferprice p = p
 
-      -- tie the knot so eg relatedPostings works right
-      t'''' = txnTieKnot t'''
-
-      printerr s = intercalate "\n" [s, showTransactionUnelided t]
+-- | Infer up to one missing amount each for this transactions's real
+-- and balanced virtual postings, if needed, or return an error
+-- message if we can't.
+inferAmounts :: Transaction -> Either String Transaction
+inferAmounts t@Transaction{tpostings=ps}
+  | length amountlessrealps > 1
+      = Left $ printerr "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
+  | length amountlessbvps > 1
+      = Left $ printerr "could not balance this transaction - can't have more than one balanced virtual posting with no amount (remember to put 2 or more spaces before amounts)"
+  | otherwise
+      = Right t{tpostings=map inferamount ps}
+  where
+    printerr s = intercalate "\n" [s, showTransactionUnelided t]
+    ((amountfulrealps, amountlessrealps), realsum) = (partition hasAmount (realPostings t), sum $ map pamount amountfulrealps)
+    ((amountfulbvps, amountlessbvps), bvsum)       = (partition hasAmount (balancedVirtualPostings t), sum $ map pamount amountfulbvps)
+    inferamount p@Posting{ptype=RegularPosting}         | not (hasAmount p) = p{pamount=costOfMixedAmount (-realsum)}
+    inferamount p@Posting{ptype=BalancedVirtualPosting} | not (hasAmount p) = p{pamount=costOfMixedAmount (-bvsum)}
+    inferamount p = p
 
 nonzerobalanceerror :: Transaction -> String
 nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
@@ -382,7 +394,8 @@ nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rms
 transactionDate2 :: Transaction -> Day
 transactionDate2 t = fromMaybe (tdate t) $ tdate2 t
 
--- | Ensure a transaction's postings refer back to it.
+-- | Ensure a transaction's postings refer back to it, so that eg
+-- relatedPostings works right.
 txnTieKnot :: Transaction -> Transaction
 txnTieKnot t@Transaction{tpostings=ps} = t{tpostings=map (settxn t) ps}
 
