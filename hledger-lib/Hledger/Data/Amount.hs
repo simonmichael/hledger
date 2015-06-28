@@ -184,7 +184,7 @@ amountWithCommodity c a = a{acommodity=c, aprice=NoPrice}
 
 -- | Convert an amount to the commodity of its assigned price, if any.  Notes:
 --
--- - price amounts must be MixedAmounts with exactly one component Amount (or there will be a runtime error)
+-- - price amounts must be MixedAmounts with exactly one component Amount (or there will be a runtime error) XXX
 --
 -- - price amounts should be positive, though this is not currently enforced
 costOfAmount :: Amount -> Amount

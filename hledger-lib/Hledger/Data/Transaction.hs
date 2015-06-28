@@ -260,25 +260,13 @@ isTransactionBalanced styles t =
       bvsum' = canonicalise $ costOfMixedAmount bvsum
       canonicalise = maybe id canonicaliseMixedAmount styles
 
--- XXX refactor
 -- | Ensure this transaction is balanced, possibly inferring a missing
--- amount or conversion price, or return an error message.
---
--- Balancing is affected by commodity display precisions, so those may
--- be provided.
---
--- We can infer a missing real amount when there are multiple real
--- postings and exactly one of them is amountless (likewise for
--- balanced virtual postings). Inferred amounts are converted to cost
--- basis when possible.
---
--- We can infer a conversion price when all real amounts are specified
--- and the sum of real postings' amounts is exactly two
--- non-explicitly-priced amounts in different commodities (likewise
--- for balanced virtual postings).
+-- amount or conversion price(s), or return an error message.
+-- Balancing is affected by commodity display precisions, so those can
+-- (optionally) be provided.
 balanceTransaction :: Maybe (Map.Map Commodity AmountStyle) -> Transaction -> Either String Transaction
-balanceTransaction styles t@Transaction{tpostings=ps} =
-  case inferAmounts t of
+balanceTransaction styles t =
+  case inferBalancingAmount t of
     Left err           -> Left err
     Right tWithAmounts ->
      case isTransactionBalanced styles tWithAmountsAndPrices of
@@ -286,86 +274,28 @@ balanceTransaction styles t@Transaction{tpostings=ps} =
       True  -> Right $ txnTieKnot tWithAmountsAndPrices
 
      where
+      tWithAmountsAndPrices = (if tWithAmounts==t then inferBalancingPrices else id) tWithAmounts -- XXX unneeded ?
       printerr s = intercalate "\n" [s, showTransactionUnelided t]
-
-      -------------------------------------------------------------------------
-      -- infer conversion prices for real postings if needed
-      rmixedamountsinorder = map pamount $ realPostings tWithAmounts
-      ramountsinorder = concatMap amounts rmixedamountsinorder
-      rcommoditiesinorder  = map acommodity ramountsinorder
-      rsumamounts  = amounts $ sum rmixedamountsinorder
-      -- as it says above, we can infer a conversion price when
-      tWithAmountsAndRealPrices =
-            if tWithAmounts == t                       --  all real amounts were explicit (we didn't have to infer any)
-               && length rsumamounts == 2              -- and the sum of real amounts has exactly two commodities (assumption: summing mixed amounts normalises to one simple amount per commodity)
-               && all ((==NoPrice).aprice) rsumamounts -- and none of the amounts had explicit prices
-             then tWithAmounts{tpostings=map inferprice ps}
-             else tWithAmounts
+      nonzerobalanceerror :: Transaction -> String
+      nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
           where
-            inferprice p@Posting{pamount=Mixed [a@Amount{acommodity=c,aprice=NoPrice}], ptype=RegularPosting} -- assumption: a posting's mixed amount contains one simple amount
-                = p{pamount=Mixed [a{aprice=conversionprice c}]}
-                where
-                  conversionprice c | c == unpricedcommodity
+            (rsum, _, bvsum) = transactionPostingBalances t
+            rmsg | isReallyZeroMixedAmountCost rsum = ""
+                 | otherwise = "real postings are off by " ++ showMixedAmount (costOfMixedAmount rsum)
+            bvmsg | isReallyZeroMixedAmountCost bvsum = ""
+                  | otherwise = "balanced virtual postings are off by " ++ showMixedAmount (costOfMixedAmount bvsum)
+            sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
 
-                                        -- calculate a price that makes the postings balance, and give it "just enough"
-                                        -- display precision that a manual calculation with the displayed numbers
-                                        -- shows the transaction balancing.
-                                        = if length ramountsinunpricedcommodity == 1
-
-                                           -- when there is only one posting in the target commodity,
-                                           -- show a total price (@@) for more exact output. In this
-                                           -- case show all available decimal digits, it shouldn't be too many.
-                                           then TotalPrice $ abs targetcommodityamount `withPrecision` maxprecision
-
-                                           -- otherwise, calculate the average unit conversion price across all postings.
-                                           -- Set the precision to the sum of the precisions of the commodities involved,
-                                           -- which should be enough to make calculation look right while also preventing
-                                           -- irrational numbers from printing excessive digits.
-                                           else UnitPrice $ abs unitprice `withPrecision` sumofprecisions
-
-                                    | otherwise = NoPrice
-                      where
-                        unpricedcommodity     = head $ filter (`elem` (map acommodity rsumamounts)) rcommoditiesinorder
-                        unpricedamount        = head $ filter ((==unpricedcommodity).acommodity) rsumamounts
-                        targetcommodityamount = head $ filter ((/=unpricedcommodity).acommodity) rsumamounts
-                        ramountsinunpricedcommodity = filter ((==unpricedcommodity).acommodity) ramountsinorder
-                        unitprice             = targetcommodityamount `divideAmount` (aquantity unpricedamount)
-                        sumofprecisions       = (asprecision $ astyle $ targetcommodityamount) + (asprecision $ astyle $ unpricedamount)
-            inferprice p = p
-
-      -------------------------------------------------------------------------
-      -- infer conversion prices for balanced virtual postings if needed. XXX duplicates the above
-      bvmixedamountsinorder = map pamount $ balancedVirtualPostings tWithAmountsAndRealPrices
-      bvamountsinorder = concatMap amounts bvmixedamountsinorder
-      bvcommoditiesinorder  = map acommodity bvamountsinorder
-      bvsumamounts  = amounts $ sum bvmixedamountsinorder
-      tWithAmountsAndPrices =
-           if length bvsumamounts == 2 && all ((==NoPrice).aprice) bvsumamounts && tWithAmounts==t -- XXX could check specifically for bv amount inferring
-             then tWithAmountsAndRealPrices{tpostings=map inferprice ps}
-             else tWithAmountsAndRealPrices
-          where
-            inferprice p@Posting{pamount=Mixed [a@Amount{acommodity=c,aprice=NoPrice}], ptype=BalancedVirtualPosting}
-                = p{pamount=Mixed [a{aprice=conversionprice c}]}
-                where
-                  conversionprice c | c == unpricedcommodity
-                                        = if length bvamountsinunpricedcommodity == 1
-                                           then TotalPrice $ abs targetcommodityamount `withPrecision` maxprecision
-                                           else UnitPrice  $ abs unitprice             `withPrecision` sumofprecisions
-                                    | otherwise = NoPrice
-                      where
-                        unpricedcommodity     = head $ filter (`elem` (map acommodity bvsumamounts)) bvcommoditiesinorder
-                        unpricedamount        = head $ filter ((==unpricedcommodity).acommodity) bvsumamounts
-                        targetcommodityamount = head $ filter ((/=unpricedcommodity).acommodity) bvsumamounts
-                        bvamountsinunpricedcommodity = filter ((==unpricedcommodity).acommodity) bvamountsinorder
-                        unitprice             = targetcommodityamount `divideAmount` (aquantity unpricedamount)
-                        sumofprecisions       = (asprecision $ astyle $ targetcommodityamount) + (asprecision $ astyle $ unpricedamount)
-            inferprice p = p
-
--- | Infer up to one missing amount each for this transactions's real
--- and balanced virtual postings, if needed, or return an error
+-- | Infer up to one missing amount for this transactions's real postings, and
+-- likewise for its balanced virtual postings, if needed; or return an error
 -- message if we can't.
-inferAmounts :: Transaction -> Either String Transaction
-inferAmounts t@Transaction{tpostings=ps}
+--
+-- We can infer a missing amount when there are multiple postings and exactly
+-- one of them is amountless. If the amounts had price(s) the inferred amount
+-- have the same price(s), and will be converted to the price commodity.
+-- 
+inferBalancingAmount :: Transaction -> Either String Transaction
+inferBalancingAmount t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
       = Left $ printerr "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
   | length amountlessbvps > 1
@@ -380,15 +310,78 @@ inferAmounts t@Transaction{tpostings=ps}
     inferamount p@Posting{ptype=BalancedVirtualPosting} | not (hasAmount p) = p{pamount=costOfMixedAmount (-bvsum)}
     inferamount p = p
 
-nonzerobalanceerror :: Transaction -> String
-nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
-    where
-      (rsum, _, bvsum) = transactionPostingBalances t
-      rmsg | isReallyZeroMixedAmountCost rsum = ""
-           | otherwise = "real postings are off by " ++ showMixedAmount (costOfMixedAmount rsum)
-      bvmsg | isReallyZeroMixedAmountCost bvsum = ""
-            | otherwise = "balanced virtual postings are off by " ++ showMixedAmount (costOfMixedAmount bvsum)
-      sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
+-- | Infer prices for this transaction's posting amounts, if needed to make
+-- the postings balance. This is done once for the real postings and again
+-- (separately) for the balanced virtual postings. When it's not possible, the
+-- transaction is left unchanged.
+-- 
+-- The simplest example is a transaction with two postings, each in a
+-- different commodity, with no prices specified. In this case we'll add a
+-- price to the first posting such that it can be converted to the commodity
+-- of the second posting (with -B), and such that the postings balance.
+-- 
+-- In general, we can infer a conversion price when the sum of posting amounts
+-- contains exactly two different commodities and no explicit prices.  The
+-- transaction could contain additional commodities, and/or prices, if they
+-- cancel out; what matters is that the sum of posting amounts contains
+-- exactly two commodities and zero prices.
+-- 
+-- There can also be more than two postings in either of the commodities.
+-- 
+-- We want to avoid excessive display of digits when the calculated price is
+-- an irrational number, while also ensuring the displayed numbers balance if
+-- the user does a manual calculation. This is achieved in two ways:
+-- 
+-- - when there is only one posting in the "from" commodity, a total price
+--   (@@) is used, and all available decimal digits are shown
+-- 
+-- - otherwise, a suitable averaged unit price (@) is applied to the relevant
+--   postings, with a display precision that is the sum of the display
+--   precisions of the two commodities being converted between.
+-- 
+-- All postings are expected to contain an explicit amount (no missing
+-- amounts) in a single commodity.  (The code used to avoid inferring prices
+-- when it had previously inferred a missing amount, but it seems harmless to
+-- do that.)
+-- 
+inferBalancingPrices :: Transaction -> Transaction
+inferBalancingPrices t@Transaction{tpostings=ps} = t{tpostings=ps'}
+  where
+    ps' = map (priceInferrerFor t BalancedVirtualPosting) $
+          map (priceInferrerFor t RegularPosting) $
+          ps
+
+-- | Generate a posting update function which assigns a suitable balancing
+-- price to the posting, if and as appropriate for the given transaction and
+-- posting type (real or balanced virtual).
+priceInferrerFor :: Transaction -> PostingType -> (Posting -> Posting)
+priceInferrerFor t pt = inferprice
+  where
+    postings       = filter ((==pt).ptype) $ tpostings t
+    pmixedamounts  = map pamount postings
+    pamounts       = concatMap amounts pmixedamounts
+    pcommodities   = map acommodity pamounts
+    sumamounts     = amounts $ sum pmixedamounts -- sum normalises to one amount per commodity & price
+    sumcommodities = map acommodity sumamounts
+    sumprices      = filter (/=NoPrice) $ map aprice sumamounts
+    caninferprices = length sumcommodities == 2 && null sumprices
+
+    inferprice p@Posting{pamount=Mixed [a]}
+      | caninferprices && ptype p == pt && acommodity a == fromcommodity
+        = p{pamount=Mixed [a{aprice=conversionprice}]}
+      where
+        fromcommodity = head $ filter (`elem` sumcommodities) pcommodities -- these heads are ugly but should be safe
+        conversionprice
+          | fromcount==1 = TotalPrice $ abs toamount `withPrecision` maxprecision
+          | otherwise    = UnitPrice $ abs unitprice `withPrecision` summedprecision
+          where
+            fromcount       = length $ filter ((==fromcommodity).acommodity) pamounts
+            fromamount      = head $ filter ((==fromcommodity).acommodity) sumamounts
+            tocommodity     = head $ filter (/=fromcommodity) sumcommodities
+            toamount        = head $ filter ((==tocommodity).acommodity) sumamounts
+            unitprice       = toamount `divideAmount` (aquantity fromamount)
+            summedprecision = (asprecision $ astyle $ toamount) + (asprecision $ astyle $ fromamount)
+    inferprice p = p
 
 -- Get a transaction's secondary date, defaulting to the primary date.
 transactionDate2 :: Transaction -> Day
