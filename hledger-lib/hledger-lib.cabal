@@ -98,6 +98,7 @@ library
                  ,csv
                  -- ,data-pprint >= 0.2.3 && < 0.3
                  ,Decimal
+                 ,deepseq
                  ,directory
                  ,filepath
                  ,mtl
@@ -135,6 +136,7 @@ test-suite tests
                , csv
                -- , data-pprint >= 0.2.3 && < 0.3
                , Decimal
+               , deepseq
                , directory
                , filepath
                , HUnit
