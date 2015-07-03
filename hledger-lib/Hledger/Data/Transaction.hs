@@ -267,14 +267,12 @@ isTransactionBalanced styles t =
 balanceTransaction :: Maybe (Map.Map Commodity AmountStyle) -> Transaction -> Either String Transaction
 balanceTransaction styles t =
   case inferBalancingAmount t of
-    Left err           -> Left err
-    Right tWithAmounts ->
-     case isTransactionBalanced styles tWithAmountsAndPrices of
-      False -> Left $ printerr $ nonzerobalanceerror tWithAmountsAndPrices
-      True  -> Right $ txnTieKnot tWithAmountsAndPrices
-
+    Left err -> Left err
+    Right t' -> let t'' = inferBalancingPrices t'
+                in if isTransactionBalanced styles t''
+                   then Right $ txnTieKnot t''
+                   else Left $ printerr $ nonzerobalanceerror t''
      where
-      tWithAmountsAndPrices = (if tWithAmounts==t then inferBalancingPrices else id) tWithAmounts -- XXX unneeded ?
       printerr s = intercalate "\n" [s, showTransactionUnelided t]
       nonzerobalanceerror :: Transaction -> String
       nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
@@ -321,10 +319,13 @@ inferBalancingAmount t@Transaction{tpostings=ps}
 -- of the second posting (with -B), and such that the postings balance.
 -- 
 -- In general, we can infer a conversion price when the sum of posting amounts
--- contains exactly two different commodities and no explicit prices.  The
--- transaction could contain additional commodities, and/or prices, if they
--- cancel out; what matters is that the sum of posting amounts contains
--- exactly two commodities and zero prices.
+-- contains exactly two different commodities and no explicit prices.  Also
+-- all postings are expected to contain an explicit amount (no missing
+-- amounts) in a single commodity. Otherwise no price inferring is attempted.
+-- 
+-- The transaction itself could contain more than two commodities, and/or
+-- prices, if they cancel out; what matters is that the sum of posting amounts
+-- contains exactly two commodities and zero prices.
 -- 
 -- There can also be more than two postings in either of the commodities.
 -- 
@@ -344,11 +345,6 @@ inferBalancingAmount t@Transaction{tpostings=ps}
 -- when the commodity display precisions are low, eg when a journal doesn't
 -- use any decimal places. The minimum of 2 helps make the prices shown by the
 -- print command a bit less surprising in this case. Could do better.)
--- 
--- All postings are expected to contain an explicit amount (no missing
--- amounts) in a single commodity.  (The code used to avoid inferring prices
--- when it had previously inferred a missing amount, but it seems harmless to
--- do that.)
 -- 
 inferBalancingPrices :: Transaction -> Transaction
 inferBalancingPrices t@Transaction{tpostings=ps} = t{tpostings=ps'}
