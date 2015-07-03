@@ -311,9 +311,9 @@ inferBalancingAmount t@Transaction{tpostings=ps}
     inferamount p = p
 
 -- | Infer prices for this transaction's posting amounts, if needed to make
--- the postings balance. This is done once for the real postings and again
--- (separately) for the balanced virtual postings. When it's not possible, the
--- transaction is left unchanged.
+-- the postings balance, and if possible. This is done once for the real
+-- postings and again (separately) for the balanced virtual postings. When
+-- it's not possible, the transaction is left unchanged.
 -- 
 -- The simplest example is a transaction with two postings, each in a
 -- different commodity, with no prices specified. In this case we'll add a
@@ -329,15 +329,21 @@ inferBalancingAmount t@Transaction{tpostings=ps}
 -- There can also be more than two postings in either of the commodities.
 -- 
 -- We want to avoid excessive display of digits when the calculated price is
--- an irrational number, while also ensuring the displayed numbers balance if
--- the user does a manual calculation. This is achieved in two ways:
+-- an irrational number, while hopefully also ensuring the displayed numbers
+-- make sense if the user does a manual calculation. This is (mostly) achieved
+-- in two ways:
 -- 
 -- - when there is only one posting in the "from" commodity, a total price
 --   (@@) is used, and all available decimal digits are shown
 -- 
 -- - otherwise, a suitable averaged unit price (@) is applied to the relevant
---   postings, with a display precision that is the sum of the display
---   precisions of the two commodities being converted between.
+--   postings, with display precision equal to the summed display precisions
+--   of the two commodities being converted between, or 2, whichever is larger.
+-- 
+-- (We don't always calculate a good-looking display precision for unit prices
+-- when the commodity display precisions are low, eg when a journal doesn't
+-- use any decimal places. The minimum of 2 helps make the prices shown by the
+-- print command a bit less surprising in this case. Could do better.)
 -- 
 -- All postings are expected to contain an explicit amount (no missing
 -- amounts) in a single commodity.  (The code used to avoid inferring prices
@@ -373,14 +379,14 @@ priceInferrerFor t pt = inferprice
         fromcommodity = head $ filter (`elem` sumcommodities) pcommodities -- these heads are ugly but should be safe
         conversionprice
           | fromcount==1 = TotalPrice $ abs toamount `withPrecision` maxprecision
-          | otherwise    = UnitPrice $ abs unitprice `withPrecision` summedprecision
+          | otherwise    = UnitPrice $ abs unitprice `withPrecision` unitprecision
           where
-            fromcount       = length $ filter ((==fromcommodity).acommodity) pamounts
-            fromamount      = head $ filter ((==fromcommodity).acommodity) sumamounts
-            tocommodity     = head $ filter (/=fromcommodity) sumcommodities
-            toamount        = head $ filter ((==tocommodity).acommodity) sumamounts
-            unitprice       = toamount `divideAmount` (aquantity fromamount)
-            summedprecision = (asprecision $ astyle $ toamount) + (asprecision $ astyle $ fromamount)
+            fromcount     = length $ filter ((==fromcommodity).acommodity) pamounts
+            fromamount    = head $ filter ((==fromcommodity).acommodity) sumamounts
+            tocommodity   = head $ filter (/=fromcommodity) sumcommodities
+            toamount      = head $ filter ((==tocommodity).acommodity) sumamounts
+            unitprice     = toamount `divideAmount` (aquantity fromamount)
+            unitprecision = max 2 ((asprecision $ astyle $ toamount) + (asprecision $ astyle $ fromamount))
     inferprice p = p
 
 -- Get a transaction's secondary date, defaulting to the primary date.
