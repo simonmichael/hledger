@@ -559,7 +559,7 @@ unittest-%: bin/hledgerdev \
 # 	@(run$(GHC) $(MAIN) test \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 
-# shelltest -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless\
+# shelltest -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
 functest: bin/hledgerdev tests/addons/hledger-addon \
 	$(call def-help,functest,\
 	run functional tests; requires shelltestrunner >= 0.9 from hackage\
