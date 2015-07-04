@@ -212,9 +212,9 @@ journalAssetAccountQuery  :: Journal -> Query
 journalAssetAccountQuery _ = Acct "^assets?(:|$)"
 
 -- | A query for Liability accounts in this journal.
--- This is currently hard-coded to the case-insensitive regex @^liabilit(y|ies)(:|$)@.
+-- This is currently hard-coded to the case-insensitive regex @^(debts?|liabilit(y|ies))(:|$)@.
 journalLiabilityAccountQuery  :: Journal -> Query
-journalLiabilityAccountQuery _ = Acct "^liabilit(y|ies)(:|$)"
+journalLiabilityAccountQuery _ = Acct "^(debts?|liabilit(y|ies))(:|$)"
 
 -- | A query for Equity accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^equity(:|$)@.
