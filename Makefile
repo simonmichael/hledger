@@ -14,6 +14,7 @@
 # - stack, installs dependencies and drives cabal & ghc
 # - shelltestrunner (latest version from hackage or possibly git), runs functional tests
 # - hasktags, generates tag files for code navigation
+# - profiteur, renders profiles as interactive html
 #
 # Kinds of hledger builds:
 #
@@ -318,6 +319,18 @@ bin/hledgerdev hledgerdev: \
 # 	build hledger with the main supported GHC versions\
 # 	)
 
+#	hledger-lib/Hledger/Read/TimelogReaderPP.hs
+dev: dev.hs $(SOURCEFILES) \
+	$(call def-help,dev,build the dev.hs script (for quick experiments/benchmarks))
+	stack ghc -- $(CABALMACROSFLAGS) -ihledger-lib dev.hs \
+
+dev-profile: $(SOURCEFILES) \
+	$(call def-help,dev-profile,profile the dev.hs script)
+	stack ghc -- $(CABALMACROSFLAGS) -ihledger-lib dev.hs -prof -fprof-auto -osuf p_o \
+	&& time ./dev +RTS -P \
+	&& cp dev.prof dev.prof.$(TIME) \
+	&& profiteur dev.prof
+
 # #CABALINSTALLDIR=~/.cabal
 # CABALINSTALLDIR=.cabal-sandbox
 # bin/hledger: \
@@ -618,6 +631,11 @@ haddocktest: \
 # 		&& make --no-print-directory -s hledgernowarnings \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 
+cabalfiletest: \
+	$(call def-help,cabalfiletest, run cabal check to test cabal file syntax )
+	@(make --no-print-directory cabalcheck \
+		&& echo $@ PASSED) || echo $@ FAILED
+
 # quickcabaltest: \
 # 	$(call def-help,quickcabaltest,\
 # 	make sure cabal is reasonably happy\
@@ -812,11 +830,10 @@ $(call def-help-subsection,DOCUMENTATION:)
 # 	-cd doc/site; hakyll clean
 # #	rm -rf doc/site/_site/*
 
-# site-preview: \
-# 	$(call def-help,site-preview,\
-# 	\
-# 	) #doc/site/site
-# 	cd doc/site; hakyll preview
+# XXX hakyll preview/watch mostly don't live-update any more
+site-preview: \
+	$(call def-help,site-preview, run a hakyll server to preview the website  ) #doc/site/site
+	cd doc/site; hakyll preview
 
 # site-view: site \
 # 	$(call def-help,site-view,\
