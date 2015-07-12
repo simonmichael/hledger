@@ -339,12 +339,41 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 
 ### Do a major release
 
-1. cleanup
-    - review working copies (laptop, server, website) & branches, commit pending changes
-2. document
-    - */*.cabal (descriptions, tested-with, files..)
+- review the release how-to in the developer guide
+    - and update as needed
+      (make site-preview, http://localhost:8000/developer-guide.html#do-a-major-release)
+
+- clean working copy
+    - commit/stash/clear any pending changes in working copy
+    - merge any commits from other branches & working copies
+    - check out master, or release branch.
+      Major releases are done in master if possible.
+      If not, do as much of the below as is feasible in master,
+      then start a release branch (git checkout -b X.Y)
+
+- ensure tests pass
+    - make unittest
+    - make functest
+    - make haddocktest
+    - make cabalfiletest
+
+- update dependencies
+    - check & fix any outdated upper bounds
+      (dev guide -> quick links -> hackage)
+
+- update docs
     - haddocks
+    - */hledger*.cabal
+        - descriptions
+        - tested-with
+        - file lists
+            - data-files
+            - extra-tmp-files
+            - extra-source-files
+            - exposed-modules
+            - other-modules
     - */CHANGES
+    - doc/developer-guide.md
     - doc/contributors.md
     - doc/site/release-notes.md
     - doc/manual.md (commands, options, --help, ledger compatibility..)
@@ -352,46 +381,57 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
     - doc/site/how-to-*
     - doc/site/faq.md (ledger compatibility)
     - doc/site/installing.md
+    - doc/site/download.md
     - doc/ANNOUNCE
-3. test
-    - coarse tests
-      - make unittest
-      - make functest
-      - make haddocktest
-4. branch
-    - start release branch (git checkout -b X.Y)
-5. version
+
+- update version
     - edit .version
     - make setversion
-    - double-check, commit (cabal files, manual, download page..)
-6. package
-    - check Makefile's PACKAGES includes all
+    - double-check & commit (cabal files, manual, download page..)
+
+- make tarballs/binaries
+    - ensure no packages are commented out in Makefile's PACKAGES
     - make cabalsdist
     - [make windows binaries]
-    - [make osx binaries]
-7. test
-    - fine tests
-      - install from tarballs into a clean directory
-8. tag
+    - [make mac binaries]
+
+- release tests
+    - make haddocktest
+    - make cabalfiletest
+    - cabal tarballs install into a clean directory without warnings
+    - cabal upload --dry reports no problems
+
+- tag
     - make tagrelease
-9. push
+
+- publish
     - git push --tags
-10. upload
+    - ensure the website is showing latest docs
+      (download page, release notes, manual, how-tos, dev guide links, etc.)
+    - ensure hydra has successfully built the latest packages
     - make hackageupload
-11. announce
-    - email hledger haskell-cafe haskell [ledger]
+    - deploy at demo.hledger.org
+
+- announce
+    - review/close open issues in tracker
+    - email doc/ANNOUNCE to hledger, haskell-cafe, haskell, [ledger] lists
     - tweet
     - [blog]
     - [reddit]
-    - add announcement link, update short description in release notes
-12. deploy at demo.hledger.org
-13. issues
-    - review/close open issues in tracker
+    - update release notes with announcement link & short description
+
+- post-release
+    - ensure hackage is showing the latest haddocks
+    - check the hackage build matrix report
+    - handle problem reports, support requests
+
 
 ### Do a minor release
 
-Differences from a major release: set PACKAGES only to the affected package(s),
-don't run make setversion. Use make -n if unsure.
+Differences from a major release:
+work in a release branch,
+set PACKAGES only to the affected package(s),
+don't run make setversion.
 
 1. cleanup
     - review working copies (laptop, server, website) & branches, commit pending changes
