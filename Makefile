@@ -1,13 +1,41 @@
 ###############################################################################
-# hledger project makefile. A restart after Makefile.old.
+# hledger project makefile
+#
+# This is a reboot of Makefile.old. The old rules are commented out below,
+# to be removed or updated over the next while.
+#
+# Users of this makefile: hledger developers, contributors, probably not end-users.
+#
+# Every user-relevant rule in this makefile should use def-help to define
+# a help string. Use "make help" to see the available rules.
+#
+# Supplementary tools:
+#
+# - stack, installs dependencies and drives cabal & ghc
+# - shelltestrunner (latest version from hackage or possibly git), runs functional tests
+# - hasktags, generates tag files for code navigation
+#
+# Kinds of hledger builds:
+#
+# - stack build: built with stack
+#   (hledger/.stack-work/dist/ARCH/CABAL/build/hledger/hledger,
+#   .stack-work/install/ARCH/SNAPSHOT/GHC/bin/hledger, installs to ~/.local/bin)
+# - cabal build: built with cabal (and maybe a sandbox)
+#   (hledger/dist/build/hledger/hledger, installs to ~/.cabal/bin)
+# - ghc build: built quickly with ghc only, unoptimised, with DEVELOPMENT flag
+#   (bin/hledgerdev)
+#
+# This makefile mostly uses stack to get things done (slow but robust).
+# Secondarily it uses ghc directly to do some developer tasks (faster).
+# # Also if needed it uses cabal directly for a few tasks.
 
-# import def-help* functions for documenting make rules. See the file for usage.
+# def-help* functions for documenting make rules. See the file for usage.
 include help-system.mk
 
-default: help \
-	$(call def-help,help,\
-	list all documented rules in this makefile\
-	)
+$(call def-help-section, hledger make rules )
+
+help2: \
+	$(call def-help,[help], list documented rules in this makefile. make -n RULE shows more detail. )
 
 ###############################################################################
 # VARS
@@ -36,99 +64,90 @@ default: help \
 # VIEWPDF=$(BROWSE)
 # PRINT=lpr
 
-# GHC=ghc
+GHC=ghc
 # GHCI=ghci
 # GHCPKG=ghc-pkg
 # HADDOCK=haddock
 # CABAL=cabal
 # CABALINSTALL=cabal install -w $(GHC)
-# TESTFRAMEWORKOPTS=-j16 --hide-successes
-# SHELLTEST=cabal exec -- shelltest --execdir -- $(TESTFRAMEWORKOPTS)
+
+# -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
+SHELLTESTOPTS=--execdir -- -j16 --hide-successes
+# run shell tests using the executable specified in tests
+SHELLTEST=shelltest $(SHELLTESTOPTS)
+# run shell tests using the stack build
+SHELLTESTSTK=stack exec -- shelltest $(SHELLTESTOPTS)
+#SHELLTESTSTK=shelltest -w `stack exec which hledger` $(SHELLTESTOPTS)
+
 # # used for make auto, http://joyful.com/repos/searchpath
 # SP=sp
 
-# PACKAGES=\
-# 	hledger-lib \
-# 	hledger \
-# 	hledger-web
+PACKAGES=\
+	hledger-lib \
+	hledger \
+	hledger-web
 
-# INCLUDEPATHS=\
-# 	-ihledger-lib \
-# 	-ihledger \
-# 	-ihledger-web \
-# 	-ihledger-web/app
+INCLUDEPATHS=\
+	-ihledger-lib \
+	-ihledger \
+	-ihledger-web \
+	-ihledger-web/app
 
-# MAIN=hledger/app/hledger-cli.hs
+MAIN=hledger/app/hledger-cli.hs
 
-# # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
-# SOURCEFILES:= \
-# 	hledger/*hs \
-# 	hledger/Hledger/*hs \
-# 	hledger/Hledger/*/*hs \
-# 	hledger-*/*hs \
-# 	hledger-*/Hledger/*hs \
-# 	hledger-*/Hledger/*/*hs \
-# 	hledger-web/app/*.hs \
-# 	hledger-web/Handler/*.hs \
-# 	hledger-web/Hledger/*.hs \
-# 	hledger-web/Settings/*.hs
+# all source files in the project (plus a few strays like Setup.hs & hlint.hs)
+SOURCEFILES:= \
+	hledger/*hs \
+	hledger/Hledger/*hs \
+	hledger/Hledger/*/*hs \
+	hledger-*/*hs \
+	hledger-*/Hledger/*hs \
+	hledger-*/Hledger/*/*hs \
+	hledger-web/app/*.hs \
+	hledger-web/Handler/*.hs \
+	hledger-web/Hledger/*.hs \
+	hledger-web/Settings/*.hs
 
-# # # a more careful list suitable for for haddock-all
-# # HADDOCKSOURCEFILES:= \
-# # 	hledger-lib/Hledger.hs \
-# # 	hledger-lib/Hledger/*hs \
-# # 	hledger-lib/Hledger/*/*hs \
-# # 	hledger/Hledger/*hs \
-# # 	hledger/Hledger/*/*hs \
-# # 	hledger-web/Application.hs \
-# # 	hledger-web/Foundation.hs \
-# # 	hledger-web/Hledger/*hs \
-# # 	hledger-web/Hledger/*/*hs \
-# # 	hledger-web/Import.hs \
-# # 	hledger-web/Settings.hs \
-# # 	hledger-web/Settings/*hs \
-# # 	hledger-web/app/*hs \
+CABALFILES:= \
+	hledger/hledger.cabal \
+	hledger-*/*.cabal
 
-# CABALFILES:= \
-# 	hledger/hledger.cabal \
-# 	hledger-*/*.cabal
+WEBFILES:= \
+	hledger-web/templates/* \
+	hledger-web/static/*.js \
+	hledger-web/static/*.css
 
-# WEBFILES:= \
-# 	hledger-web/templates/* \
-# 	hledger-web/static/*.js \
-# 	hledger-web/static/*.css
+DOCFILES:= \
+	doc/*.md
 
-# DOCFILES:= \
-# 	doc/*.md
-
-# # files which should be updated when the version changes
-# VERSIONSENSITIVEFILES=\
-# 	$(CABALFILES) \
-# 	doc/manual.md \
+# files which should be updated when the version changes
+VERSIONSENSITIVEFILES=\
+	$(CABALFILES) \
+	doc/manual.md \
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
 
-# # master file defining the current release/build version
-# VERSIONFILE=.version
+# master file defining the current release/build version
+VERSIONFILE=.version
 
-# # two or three-part version string, whatever's in VERSION
-# VERSION:=$(shell cat $(VERSIONFILE))
+# two or three-part version string, whatever's in VERSION
+VERSION:=$(shell cat $(VERSIONFILE))
 
 # # the number of commits since the last tag
 # PATCHLEVEL:=$(shell git describe --long | awk -F - '{print $$2}')
 # # the number of commits since the last_release tag
 # #PATCHLEVEL:=$(shell git rev-list last_release..HEAD | wc -l)
 
-# # build flags
-# # comment the below to see more warnings
-# WARNINGS:=\
-# 	-Wall \
-# 	-fno-warn-unused-do-bind \
-# 	-fno-warn-name-shadowing \
-# 	-fno-warn-missing-signatures \
-# 	-fno-warn-orphans \
-# 	-fno-warn-type-defaults \
+# flags for ghc builds
+
+WARNINGS:=\
+	-Wall \
+	-fno-warn-unused-do-bind \
+	-fno-warn-name-shadowing \
+	-fno-warn-missing-signatures \
+	-fno-warn-orphans \
+	-fno-warn-type-defaults \
 
 # # For ghc-only dev builds of hledger-web: enable the language
 # # extensions specified in hledger-web.cabal, except for some which are
@@ -153,12 +172,14 @@ default: help \
 # PREFERMACUSRLIBFLAGS=-L/usr/lib
 # GHCMEMFLAGS= #+RTS -M200m -RTS
 
-# # include the macro definitions generated by cabal build,
-# # from either dist or dist-sandbox (hopefully you don't have both)
-# CABALMACROSFLAGS=-optP-include -optP hledger/dist*/build/autogen/cabal_macros.h
+# ghc builds need the macro definitions generated by cabal
+# from cabal's dist or dist-sandbox, hopefully there's just one
+#CABALMACROSFLAGS=-optP-include -optP hledger/dist*/build/autogen/cabal_macros.h
+# from stack's dist, hopefully there's just one
+CABALMACROSFLAGS=-optP-include -optP hledger/.stack-work/dist/*/*/build/autogen/cabal_macros.h
 
-# BUILDFLAGS1:=-rtsopts $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) $(GHCMEMFLAGS) $(CABALMACROSFLAGS) -DPATCHLEVEL=$(PATCHLEVEL) -DDEVELOPMENT
-# BUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='"$(VERSION)dev"'
+BUILDFLAGS1:=-rtsopts $(WARNINGS) $(INCLUDEPATHS) $(PREFERMACUSRLIBFLAGS) $(GHCMEMFLAGS) $(CABALMACROSFLAGS) -DPATCHLEVEL=$(PATCHLEVEL) -DDEVELOPMENT
+BUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='"$(VERSION)dev"'
 # PROFBUILDFLAGS:=-prof -fprof-auto -osuf hs_p
 # # sp needs different quoting:
 # AUTOBUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='\"$(VERSION)dev\"' # $(PROFBUILDFLAGS) 
@@ -178,7 +199,11 @@ default: help \
 
 
 ###############################################################################
-# $(call def-help-section,INSTALLING)
+$(call def-help-subsection,INSTALLING:)
+
+install: \
+	$(call def-help,install, download dependencies and install hledger executables to ~/.local/bin or equivalent (with stack))
+	stack install
 
 # cabal-install: \
 # 	$(call def-help,cabal-install,\
@@ -200,23 +225,14 @@ default: help \
 # # 	)
 # # 	-for p in $(call reverse,$(PACKAGES)); do $(GHCPKG) unregister $$p; done
 
-# # utility function
-# reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
-
-# cabal%: \
-# 	$(call def-help,cabalCMD,\
-# 	run cabal CMD inside each hledger package directory\
-# 	)
-# 	for p in $(PACKAGES); do (echo doing cabal $* in $$p; cd $$p; cabal $*; echo); done
-
-# # # run a command in all hledger package dirs
-# # all%:
-# # 	for p in $(PACKAGES); do (echo doing $* in $$p; cd $$p; $*); done
-
 ###############################################################################
-# $(call def-help-section,DEVELOPER BUILDS)
+$(call def-help-subsection,BUILDING:)
 
 # EXTRAINSTALLARGS=
+
+build: \
+	$(call def-help,build, download dependencies and build hledger executables (with stack))
+	stack build
 
 # check-setup: \
 # 	$(call def-help,check-setup,\
@@ -282,12 +298,10 @@ default: help \
 # # force a compile even if binary exists, since we don't specify dependencies for these
 # .PHONY: bin/hledgerdev bin/hledger-prof bin/hledgeropt bin/hledger-webdev
 
-# bin/hledgerdev: \
-# 	$(call def-help,bin/hledgerdev,\
-# 	build hledger developer binary, ie as quickly as possible\
-# 	requires cabal macros, generated by doing a cabal build in hledger/\
-# 	)
-# 	$(GHC) $(MAIN) -o bin/hledgerdev $(BUILDFLAGS)
+# NB requires cabal macros generated by cabal build in hledger/
+bin/hledgerdev hledgerdev: \
+	$(call def-help,hledgerdev, quickly build the hledger executable (with ghc and -DDEVELOPMENT) )
+	$(GHC) $(MAIN) -o bin/hledgerdev $(BUILDFLAGS)
 
 # bin/hledgerdev.ghc-%: $(SOURCEFILES) \
 # 	$(call def-help,bin/hledgerdev.ghc-%,\
@@ -472,7 +486,7 @@ default: help \
 # 	$(GHC) tools/generatejournal.hs
 
 ###############################################################################
-# $(call def-help-section,TESTING)
+$(call def-help-subsection,TESTING:)
 
 # packdeps: \
 # 	$(call def-help,packdeps,\
@@ -480,10 +494,8 @@ default: help \
 # 	)
 # 	for p in $(PACKAGES); do packdeps $$p/$$p.cabal; done
 
-# test: codetest \
-# 	$(call def-help,test,\
-# 	run default tests; ie codetest\
-# 	)
+test: pkgtest builtintest functest \
+	$(call def-help,test, run default tests )
 
 # test-ghc-%: # bin/hledgerdev.ghc-$* \
 # 	$(call def-help,test-ghc-%,\
@@ -527,46 +539,48 @@ default: help \
 # 	)
 # 	hlint --hint=hlint --report=hlint.html $(SOURCEFILES)
 
-# unittest: bin/hledgerdev \
-# 	$(call def-help,unittest,\
-# 	run built-in unit tests\
-# 	)
-# 	@echo unit tests:
+#@echo package tests:
+pkgtest: \
+	$(call def-help,pkgtest, run the test suites for each package )
+	@(stack test \
+		&& echo $@ PASSED) || echo $@ FAILED
+
+# NB ensure hledger executable is current (eg do pkgtest first)
+#@echo "built-in tests (hledger cli unit tests)":
+builtintest: \
+	$(call def-help,builtintest, run tests built in to the hledger executable (subset of pkg tests) )
+	@(stack exec hledger test \
+		&& echo $@ PASSED) || echo $@ FAILED
+
+# builtintestghc: bin/hledgerdev \
+# 	$(call def-help,builtintest, run built-in unit tests with ghc build )
 # 	@(bin/hledgerdev test \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 
-# unittest-%: bin/hledgerdev \
-# 	$(call def-help,unittest-PAT,\
-# 	run built-in unit tests whose name contains PAT\
-# 	)
-# 	@echo unit tests:
+# builtintestghc-%: bin/hledgerdev \
+# 	$(call def-help,builtintest-PAT, run built-in unit tests whose name contains PAT )
 # 	@(bin/hledgerdev test $* \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 
-# # unittest-standalone: tools/unittest \
-# # 	$(call def-help,unittest-standalone,\
-# # 	XXX doesnt rebuild on hledger source changes\
-# # 	)
-# # 	@echo unit tests (standalone):
-# # 	@(tools/unittest \
-# # 		&& echo $@ PASSED) || echo $@ FAILED
-
-# # unittest-interpreted: \
-# # 	$(call def-help,unittest-interpreted,\
-# # 	run unit tests without waiting for compilation\
-# # 	)
-# # 	@echo "unit tests (interpreted)":
-# # 	@(run$(GHC) $(MAIN) test \
-# # 		&& echo $@ PASSED) || echo $@ FAILED
-
-# # shelltest -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" here but seems harmless
-# functest: bin/hledgerdev tests/addons/hledger-addon \
-# 	$(call def-help,functest,\
-# 	run functional tests; requires shelltestrunner >= 0.9 from hackage\
+# builtintestghc-interpreted: \
+# 	$(call def-help,builtintest-interpreted,\
+# 	run built-in unit tests without waiting for compilation\
 # 	)
-# 	@echo functional tests:
-# 	@(COLUMNS=80 PATH=`pwd`/bin:$(PATH) $(SHELLTEST) tests \
+# 	@echo "builtin tests (interpreted)":
+# 	@(run$(GHC) $(MAIN) test \
 # 		&& echo $@ PASSED) || echo $@ FAILED
+
+# NB ensure hledger executable is current (eg do pkgtest first)
+functest: tests/addons/hledger-addon \
+	$(call def-help,functest, run hledger functional tests with the stack build )
+	@(COLUMNS=80 PATH=`pwd`/bin:$(PATH) $(SHELLTESTSTK) tests \
+		&& echo $@ PASSED) || echo $@ FAILED
+
+#@echo functional tests:
+functestdef: bin/hledgerdev tests/addons/hledger-addon \
+	$(call def-help-hide,functestdef, run hledger functional tests with the hledger in PATH )
+	@(COLUMNS=80 PATH=`pwd`/bin:$(PATH) $(SHELLTEST) tests \
+		&& echo $@ PASSED) || echo $@ FAILED
 
 # ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
 # tests/addons/hledger-addon: \
@@ -591,12 +605,10 @@ default: help \
 # 	@for f in $(DOCTESTFILES); do \
 # 		(tools/doctest $$f && echo $@ PASSED) || echo $@ FAILED ; done
 
-# haddocktest: \
-# 	$(call def-help,haddocktest,\
-# 	make sure we have no haddock errors\
-# 	)
-# 	@(make --quiet haddock \
-# 		&& echo $@ PASSED) || echo $@ FAILED
+haddocktest: \
+	$(call def-help,haddocktest, run haddock and make sure it succeeds )
+	@(make --quiet haddock \
+		&& echo $@ PASSED) || echo $@ FAILED
 
 # warningstest: \
 # 	$(call def-help,warningstest,\
@@ -774,7 +786,7 @@ default: help \
 # 	tools/generatejournal 100000 1000 10 >$@
 
 ###############################################################################
-# $(call def-help-section,DOCUMENTATION)
+$(call def-help-subsection,DOCUMENTATION:)
 
 # docs: site codedocs \
 # 	$(call def-help,docs,\
@@ -883,7 +895,7 @@ HADDOCKFLAGS= \
 	--ghc-options='-optP-P' \
 
 haddock: \
-	$(call def-help,haddock,build haddock docs for hledger packages)
+	$(call def-help,haddock, generate haddock docs for the hledger packages )
 	stack haddock --no-haddock-deps --no-keep-going # && echo OK
 #	stack -v haddock --no-haddock-deps --no-keep-going # && echo OK
 
@@ -961,8 +973,8 @@ haddock: \
 # # 	hoogle --convert=main.txt --output=default.hoo
 
 ###############################################################################
-# $(call def-help-section,RELEASING)
-# cf developer guide -> how to -> major/minor release
+$(call def-help-subsection,RELEASING:)
+#$(call def-help-subsection,see also developer guide -> how to -> do a release)
 
 # # XXX UPDATE
 # # Version numbering. See also .version and Version.hs.
@@ -1040,51 +1052,36 @@ haddock: \
 # # 	)
 # # 	darcs record -m "bump version" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
 
-# setversion: $(VERSIONSENSITIVEFILES) \
-# 	$(call def-help,setversion,\
-# 	update the version string in local files. This should be run immediately\
-# 	after editing the VERSION file.\
-# 	)
+setversion: $(VERSIONSENSITIVEFILES) \
+	$(call def-help,setversion, update all version strings to match $(VERSIONFILE) )
 
-# Setversion: \
-# 	$(call def-help,Setversion,\
-# 	re-update version string even if it seems unchanged\
-# 	)
-# 	touch $(VERSIONFILE); make setversion
+setversionforce:\
+	$(call def-help,setversionforce, update all version strings even if $(VERSIONFILE) seems unchanged)
+	touch $(VERSIONFILE); make setversion
 
-# hledger-lib/hledger-lib.cabal: $(VERSIONFILE) \
-# 	$(call def-help,hledger-lib/hledger-lib.cabal,\
-# 	update the version in this file when $(VERSIONFILE) has changed \
-# 	)
-# 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
+hledger-lib/hledger-lib.cabal: $(VERSIONFILE) \
+	$(call def-help-hide,hledger-lib/hledger-lib.cabal, update the version in this file )
+	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
 
-# hledger/hledger.cabal: $(VERSIONFILE) \
-# 	$(call def-help,hledger/hledger.cabal,\
-# 	update the version in this file when $(VERSIONFILE) has changed \
-# 	)
-# 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
-# 	perl -p -e "s/(^[ ,]*hledger(-lib)? *[>=]=) *.*/\1 $(VERSION)/" -i $@
-# 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
+hledger/hledger.cabal: $(VERSIONFILE) \
+	$(call def-help-hide,hledger/hledger.cabal, update the version in this file )
+	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^[ ,]*hledger(-lib)? *[>=]=) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
-# hledger-web/hledger-web.cabal: $(VERSIONFILE) \
-# 	$(call def-help,hledger-web/hledger-web.cabal,\
-# 	update the version in this file when $(VERSIONFILE) has changed \
-# 	)
-# 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
-# 	perl -p -e "s/(^[ ,]*hledger(-lib|-web)? *[>=]=) *.*/\1 $(VERSION)/" -i $@
-# 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
+hledger-web/hledger-web.cabal: $(VERSIONFILE) \
+	$(call def-help-hide,hledger-web/hledger-web.cabal, update the version in this file )
+	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^[ ,]*hledger(-lib|-web)? *[>=]=) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
-# doc/MANUAL.md: $(VERSIONFILE) \
-# 	$(call def-help,hledger-web/hledger-web.cabal,\
-# 	update the version in this file when $(VERSIONFILE) has changed \
-# 	)
-# 	perl -p -e "s/(^Version:) +[0-9.]+/\1 $(VERSION)/" -i $@
+doc/MANUAL.md: $(VERSIONFILE) \
+	$(call def-help-hide,doc/MANUAL.md, update the version in this file )
+	perl -p -e "s/(^Version:) +[0-9.]+/\1 $(VERSION)/" -i $@
 
-# tagrelease: \
-# 	$(call def-help,tagrelease,\
-# 	commit a release tag based on $(VERSIONFILE) for each package\
-# 	)
-# 	for p in $(PACKAGES); do git tag $$p-$(VERSION); done
+tagrelease: \
+	$(call def-help,tagrelease, commit a release tag based on $(VERSIONFILE) for each package )
+	for p in $(PACKAGES); do git tag $$p-$(VERSION); done
 
 # hackageupload-dry: \
 # 	$(call def-help,hackageupload-dry,\
@@ -1255,48 +1252,66 @@ haddock: \
 # 	@echo
 
 ###############################################################################
-# $(call def-help-section,MISCELLANEOUS)
+$(call def-help-subsection,MISCELLANEOUS:)
 
-# tag: emacstags \
-# 	$(call def-help,tag,\
-# 	generate tag files for source code navigation; currently just emacs\
-# 	)
+usage: cabalusage stackusage \
+	$(call def-help,usage, show size of various dirs )
+	du -sh .git bin data doc extra
+	du -sh .
 
-# emacstags: \
-# 	$(call def-help,emacstags,\
-# 	\
-# 	)
-# 	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(WEBFILES) $(CABALFILES) $(DOCFILES) Makefile
+stackusage: \
+	$(call def-help,stackusage, show size of stack working dirs )
+	-du -shc `find . -name '.stack*'`
 
-# cleanghc: \
-# 	$(call def-help,cleanghc,\
-# 	remove object files etc. left over from non-cabal developer builds\
-# 	)
-# 	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" | grep -vE '(virthualenv|cabal-sandbox)'`
+cabalusage: \
+	$(call def-help,cabalusage, show size of cabal working dirs if any )
+	-du -shc */dist* 2>/dev/null
 
-# cleanbin: \
-# 	$(call def-help,cleanbin,\
-# 	remove non-cabal executables\
-# 	)
-# 	rm -f bin/hledgerdev bin/hledgerdev.ghc*
+tag: emacstags \
+	$(call def-help,tag, generate tag files for source code navigation (for emacs) )
 
-# cleantags: \
-# 	$(call def-help,cleantags,\
-# 	remove tag files\
-# 	)
-# 	rm -f TAGS tags
+emacstags:
+	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(WEBFILES) $(CABALFILES) $(DOCFILES) Makefile
 
-# clean: cleanghc \
-# 	$(call def-help,clean,\
-# 	default cleanup - ghc object files\
-# 	)
+cleantags: \
+	$(call def-help-hide,cleantags, remove tag files )
+	rm -f TAGS tags
 
-# Clean: cleanghc cabalclean cleanbin cleantags \
-# 	$(call def-help,Clean,\
-# 	thorough cleanup - cabal and non-cabal builds and tags \
-# 	)
+stackclean: \
+	$(call def-help-hide,stackclean, remove .stack-work/* in packages (but not in project) )
+	stack clean
+
+Stackclean: \
+	$(call def-help-hide,Stackclean, remove all stack working dirs )
+	stack clean
+
+cleanghco: \
+	$(call def-help-hide,cleanghc, remove ghc build leftovers )
+	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" | grep -vE '(virthualenv|cabal-sandbox)'`
+
+cleanghc: cleanghco \
+	$(call def-help-hide,cleanghc, remove ghc builds )
+	rm -f bin/hledgerdev bin/hledgerdev.ghc*
+
+clean: cleanghco \
+	$(call def-help,clean, default cleanup (ghc build leftovers) )
+
+Clean: stackclean cabalclean cleanghc cleantags \
+	$(call def-help,Clean, thorough cleanup (stack/cabal/ghc builds and tags) )
+
+# reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
+
+cabal%: \
+	$(call def-help,cabalCMD, run cabal CMD inside each hledger package directory )
+	for p in $(PACKAGES); do (cd $$p; cabal $*); done
+
+all%: \
+	$(call def-help,all"CMD", run CMD inside each hledger package directory )
+	for p in $(PACKAGES); do (cd $$p; $*); done
 
 ###############################################################################
 # LOCAL UNTRACKED CUSTOMISATIONS
 
 -include local.mk
+
+$(call def-help-section,------------------)
