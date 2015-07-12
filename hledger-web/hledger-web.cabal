@@ -174,8 +174,7 @@ library
                    , http-conduit
                    , http-client
                    , HUnit
-                   , network-conduit
-                   , conduit-extra
+                   , conduit-extra        >= 1.1
                    , parsec               >= 3
                    , safe                 >= 0.2
                    , shakespeare          >= 2.0
@@ -248,7 +247,6 @@ executable         hledger-web
                    , http-conduit
                    , http-client
                    , HUnit
-                   , network-conduit
                    , conduit-extra
                    , parsec               >= 3
                    , safe                 >= 0.2
