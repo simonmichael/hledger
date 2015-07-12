@@ -1,4 +1,4 @@
-hledgerdev -f - register τράπ
+hledger -f - register τράπ
 <<<
 2009-01-01 проверка
   τράπεζα  10 руб

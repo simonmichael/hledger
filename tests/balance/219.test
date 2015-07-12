@@ -1,6 +1,6 @@
 # issue 219, --tree and --flat flags should override each other cleanly
 # 1. multiple flags ending with --flat, equivalent to --flat
-hledgerdev -f balance-multicol.journal bal -MEH --no-total date:2013/1 --tree --flat
+hledger -f balance-multicol.journal bal -MEH --no-total date:2013/1 --tree --flat
 >>>
 Ending balances (historical) in 2013/01:
 
@@ -11,7 +11,7 @@ Ending balances (historical) in 2013/01:
 >>>= 0
 
 # 2. multiple flags ending with --tree, equivalent to --tree
-hledgerdev -f balance-multicol.journal bal -MEH --no-total date:2013/1 --flat --tree
+hledger -f balance-multicol.journal bal -MEH --no-total date:2013/1 --flat --tree
 >>>
 Ending balances (historical) in 2013/01:
 

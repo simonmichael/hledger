@@ -1,6 +1,6 @@
 # price-related tests
 # 1. print a transaction with an explicit unit price
-hledgerdev -f- print
+hledger -f- print
 <<<
 2011/01/01
     expenses:foreign currency       €100 @ $1.35
@@ -13,7 +13,7 @@ hledgerdev -f- print
 >>>=0
 
 # 2. -B/--cost converts to the price's commodity ("cost")
-hledgerdev -f- print --cost
+hledger -f- print --cost
 <<<
 2011/01/01
     expenses:foreign currency       €100 @ $1.35
@@ -26,7 +26,7 @@ hledgerdev -f- print --cost
 >>>=0
 
 # 3. -B should ignore historical price directives
-hledgerdev -f- print -B
+hledger -f- print -B
 <<<
 P 2011/01/01 € $1.35
 
@@ -42,7 +42,7 @@ P 2011/01/01 € $1.35
 >>>=0
 
 # 4. print a transaction with a total price
-hledgerdev -f - print
+hledger -f - print
 <<<
 2011/01/01
     expenses:foreign currency       €100 @@ $135
@@ -56,7 +56,7 @@ hledgerdev -f - print
 
 # 5. when the balance has exactly two commodities, both unpriced, infer an
 # implicit conversion price for the first one in terms of the second.
-hledgerdev -f - print
+hledger -f - print
 <<<
 2011/01/01
     expenses:foreign currency       €100
@@ -77,7 +77,7 @@ hledgerdev -f - print
 >>>=0
 
 ## 6. another, from ledger tests. Just one posting to price so uses @@.
-hledgerdev -f - print
+hledger -f - print
 <<<
 2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
     c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG
@@ -90,7 +90,7 @@ hledgerdev -f - print
 >>>=0
 
 # 7. when the balance has more than two commodities, don't bother
-hledgerdev -f - print
+hledger -f - print
 <<<
 2011/01/01
     expenses:foreign currency       €100
@@ -99,7 +99,7 @@ hledgerdev -f - print
 >>>= !0
 
 # 8. another
-hledgerdev -f - balance -B
+hledger -f - balance -B
 <<<
 2011/01/01
     expenses:foreign currency        €99
@@ -114,7 +114,7 @@ hledgerdev -f - balance -B
 >>>=0
 
 # 9. transaction in two commodities should balance out properly
-hledgerdev -f - balance --cost
+hledger -f - balance --cost
 <<<
 2011/01/01 x
   a  10£ @@ 16$
@@ -129,7 +129,7 @@ hledgerdev -f - balance --cost
 # 10. When commodity price is specified implicitly, transaction should
 #     be considered balanced out even when first amount is negative
 #     (that is, price for it should be determined properly, with proper sign)
-hledgerdev -f - balance
+hledger -f - balance
 <<<
 2011/01/01 x
   a  -10£
@@ -144,7 +144,7 @@ hledgerdev -f - balance
 
 # 11. When commodity price is specified implicitly, transaction should
 #     NOT be considered balanced out when BOTH amounts are negative
-hledgerdev -f - balance
+hledger -f - balance
 <<<
 2011/01/01 x
   a  -10£
@@ -153,7 +153,7 @@ hledgerdev -f - balance
 >>>=1
 
 # 12. Differently-priced lots of a commodity should be merged in balance report
-hledgerdev -f - balance
+hledger -f - balance
 <<<
 2011/1/1
   (a)   £1 @ $2
@@ -167,7 +167,7 @@ hledgerdev -f - balance
 >>>=0
 
 # 13. this should balance
-hledgerdev -f - balance
+hledger -f - balance
 <<<
 2011/1/1
     a  1h @ $10
@@ -176,7 +176,7 @@ hledgerdev -f - balance
 >>>= 0
 
 # 14. we ignore P, so this should balance
-hledgerdev -f - balance
+hledger -f - balance
 <<<
 P 2011/11/15 EUR CHF 1
 2011/11/19
@@ -185,7 +185,7 @@ P 2011/11/15 EUR CHF 1
 >>>= 0
 
 # # 14b. if P worked, this should balance
-# hledgerdev -f - balance
+# hledger -f - balance
 # <<<
 # P 2011/11/15 EUR CHF 1.234
 # 2011/11/19
@@ -195,7 +195,7 @@ P 2011/11/15 EUR CHF 1
 # >>>= 0
 
 # 15. these balance because of the unit prices, and should parse successfully
-hledgerdev -f - balance --no-total
+hledger -f - balance --no-total
 <<<
 1/1
     a   1X @ 2Y
@@ -205,7 +205,7 @@ hledgerdev -f - balance --no-total
 >>>= 0
 
 # 16.
-hledgerdev -f - balance --no-total -B
+hledger -f - balance --no-total -B
 <<<
 1/1
     a   1X @ 2Y
@@ -214,7 +214,7 @@ hledgerdev -f - balance --no-total -B
 >>>= 0
 
 # 17. likewise with total prices. Note how the primary amount's sign is used.
-hledgerdev -f - balance --no-total
+hledger -f - balance --no-total
 <<<
 1/1
     a   1X @@ 1Y
@@ -224,7 +224,7 @@ hledgerdev -f - balance --no-total
 >>>= 0
 
 # 18. 
-hledgerdev -f - balance --no-total -B
+hledger -f - balance --no-total -B
 <<<
 1/1
     a   1X @@ 1Y
@@ -233,7 +233,7 @@ hledgerdev -f - balance --no-total -B
 >>>= 0
 
 # 19. here, a's primary amount is 0, and its cost is 1Y; b is the assigned auto-balancing amount of -1Y (per issue 69)
-hledgerdev -f - balance --no-total -E
+hledger -f - balance --no-total -E
 <<<
 1/1
     a   1X @@ 1Y
@@ -246,7 +246,7 @@ hledgerdev -f - balance --no-total -E
 >>>= 0
 
 # 20. the above with -B
-hledgerdev -f - balance --no-total -E -B
+hledger -f - balance --no-total -E -B
 <<<
 1/1
     a   1X @@ 1Y
@@ -261,7 +261,7 @@ hledgerdev -f - balance --no-total -E -B
 # # when the *cost-basis* balance has exactly two commodities, both
 # # unpriced, infer an implicit conversion price for the first one in terms
 # # of the second.
-# hledgerdev -f - print
+# hledger -f - print
 # <<<
 # 2011/01/01
 #     expenses:foreign currency       €100

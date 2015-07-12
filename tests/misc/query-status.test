@@ -1,7 +1,7 @@
 # filtering by transaction status
 
 # 1. with --cleared, print shows cleared transactions only
-hledgerdev -f- print --cleared
+hledger -f- print --cleared
 <<<
 2010/1/1 x
   a  1
@@ -26,7 +26,7 @@ hledgerdev -f- print --cleared
 >>>=0
 
 # 2. with --uncleared, shows uncleared transactions only
-hledgerdev -f- print --uncleared
+hledger -f- print --uncleared
 <<<
 2010/1/1 x
   a  1
@@ -47,7 +47,7 @@ hledgerdev -f- print --uncleared
 >>>=0
 
 # 3. can also have per-posting cleared status
-hledgerdev -f- register --cleared
+hledger -f- register --cleared
 <<<
 2012/1/1
   a  1
@@ -61,7 +61,7 @@ hledgerdev -f- register --cleared
 
 
 # 4. also works with balance as shown, same as ledger. Hmm.
-hledgerdev -f- balance --uncleared
+hledger -f- balance --uncleared
 <<<
 2012/1/1
   a  1

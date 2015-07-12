@@ -1,5 +1,5 @@
 # 1. all data files on the command line should be read
-hledgerdev inc -f personal.journal -f business.journal
+hledger inc -f personal.journal -f business.journal
 >>>
 Income Statement
 
@@ -21,7 +21,7 @@ Total:
 >>>=0
 
 # 2. aliases in files should only apply to later files
-hledgerdev print -f personal.journal -f business.journal -f alias.journal -f personal.journal
+hledger print -f personal.journal -f business.journal -f alias.journal -f personal.journal
 >>>
 2014/01/01
     expenses:office supplies            $1

@@ -1,5 +1,5 @@
 # nested includes in subdirectories
- mkdir -p b/c/d ; printf '2010/1/1\n (D)  1\n' >b/c/d/d.journal ; printf '2010/1/1\n (C)  1\n!include d/d.journal\n' >b/c/c.journal ; printf '2010/1/1\n (B)  1\n!include c/c.journal\n' >b/b.journal ; printf '2010/1/1\n (A)  1\n!include b/b.journal\n' >a.journal ; hledgerdev -f a.journal print; rm -rf a.journal b
+ mkdir -p b/c/d ; printf '2010/1/1\n (D)  1\n' >b/c/d/d.journal ; printf '2010/1/1\n (C)  1\n!include d/d.journal\n' >b/c/c.journal ; printf '2010/1/1\n (B)  1\n!include c/c.journal\n' >b/b.journal ; printf '2010/1/1\n (A)  1\n!include b/b.journal\n' >a.journal ; hledger -f a.journal print; rm -rf a.journal b
 >>>
 2010/01/01
     (A)             1

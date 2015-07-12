@@ -4,7 +4,7 @@
 # display style for the commodity.
 
 # 1. no default commodity
-hledgerdev -f- print
+hledger -f- print
 <<<
 2010/1/1
   a  1000
@@ -17,7 +17,7 @@ hledgerdev -f- print
 >>>=0
 
 # 2. pound, two decimal places, no digit group separator
-hledgerdev -f- print
+hledger -f- print
 <<<
 D £1000.00
 2010/1/1
@@ -31,7 +31,7 @@ D £1000.00
 >>>=0
 
 # 3. dollar, comma decimal point, three decimal places, no digit group separator
-hledgerdev -f- print
+hledger -f- print
 <<<
 D $1,000
 2010/1/1
@@ -45,7 +45,7 @@ D $1,000
 >>>=0
 
 # 4. dollar, three digit group separator, one decimal place
-hledgerdev -f- print
+hledger -f- print
 <<<
 D $1,000.0
 2010/1/1
@@ -59,7 +59,7 @@ D $1,000.0
 # 5. commodity and display style applied to the second posting amount..
 # which ends up setting the digit group style, since it's the first amount
 # with digit groups. The great precision is used.
-hledgerdev -f- print
+hledger -f- print
 <<<
 D $1,000.0
 2010/1/1

@@ -1,4 +1,4 @@
-hledgerdev -f - print
+hledger -f - print
 <<<
 2009/1/1 x
  aaaaabbbbbcccccdddddeeeeefffffggggghhhhh   1

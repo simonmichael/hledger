@@ -1,5 +1,5 @@
 # 1. issue 87, hledger should give this balance.
-hledgerdev -f - balance --no-total b
+hledger -f - balance --no-total b
 <<<
 1/1
     a  -553.653 X @@ 2609.92
@@ -26,7 +26,7 @@ hledgerdev -f - balance --no-total b
 >>>= 0
 
 # 2. As above, but the prices have a commodity - should work the same.
-hledgerdev -f - balance --no-total b
+hledger -f - balance --no-total b
 <<<
 1/1
     a  -553.653 X @@ 2609.92 Y

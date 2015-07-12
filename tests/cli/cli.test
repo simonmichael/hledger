@@ -60,55 +60,55 @@
 # version 
 
 # 1. --version shows version
-hledgerdev --version
+hledger --version
 >>> /^hledger [0-9]/
 >>>=0
 
 # 2. --version also works after a command, if it's internal
-hledgerdev balance --version
+hledger balance --version
 >>> /^hledger [0-9]/
 >>>=0
 
 # help
 
 # 3. with no command, show general help
-hledgerdev
+hledger
 >>> /^hledger \[COMMAND\]/
 >>>=0
 
 # 4. no-command help still works if there are flags, at least the common ones
-hledgerdev -fsomefile
+hledger -fsomefile
 >>> /^hledger \[COMMAND\]/
 >>>=0
 
 # 5. and also with a space between flag and value
-hledgerdev -f somefile
+hledger -f somefile
 >>> /^hledger \[COMMAND\]/
 >>>=0
 
 # 6. with --help, and possibly other common flags present, show general help
-hledgerdev --help --version -f /dev/null
+hledger --help --version -f /dev/null
 >>> /^hledger \[COMMAND\]/
 >>>=0
 
 # 7. with --help before COMMAND, show general help
-hledgerdev --help balance --cost
+hledger --help balance --cost
 >>> /^hledger \[COMMAND\]/
 >>>=0
 
 # 8. with --help after command, show command help
-hledgerdev balance --help
+hledger balance --help
 >>> /^balance \[OPTIONS\]/
 >>>=0
 
 # 9. should work with deprecated commands too
-hledgerdev convert --help
+hledger convert --help
 >>>
 >>>2 /no longer needed/
 >>>=1
 
 # 10. with an unrecognised command, give general help and non-zero exit status
-hledgerdev nosuchcommand
+hledger nosuchcommand
 >>>
 >>>2 /not recognized/
 >>>=1
@@ -116,18 +116,18 @@ hledgerdev nosuchcommand
 # flag positions
 
 # 11. most flags can not go before command
-hledgerdev --daily register
+hledger --daily register
 >>>
 >>>2 /Unknown flag: --daily/
 >>>=1
 
 # 12. help and input flags can go before command
-hledgerdev -f /dev/null --alias somealiases --rules-file -? -h --help --version --debug 1 register --daily
+hledger -f /dev/null --alias somealiases --rules-file -? -h --help --version --debug 1 register --daily
 >>> /^hledger \[COMMAND\]/
 >>>=0
 
 # 13. or after it, and spaces in options are optional
-hledgerdev register -f/dev/null --alias=somealiases --rules-file -? -h --help --version --debug 1 --daily
+hledger register -f/dev/null --alias=somealiases --rules-file -? -h --help --version --debug 1 --daily
 >>> /^register \[OPTIONS\]/
 >>>=0
 

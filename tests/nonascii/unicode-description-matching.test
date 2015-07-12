@@ -1,4 +1,4 @@
-hledgerdev -f - register desc:аура
+hledger -f - register desc:аура
 <<<
 2009-01-01 аура (cyrillic letters)
   bank  10

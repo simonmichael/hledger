@@ -1,5 +1,5 @@
 # 1. monthly reporting interval, no end dates, shows just the intervals with data:
-hledgerdev -f- register --period 'monthly'
+hledger -f- register --period 'monthly'
 <<<
 2011/2/1
   (a)  1
@@ -8,7 +8,7 @@ hledgerdev -f- register --period 'monthly'
 >>>=0
 
 # 2. or with a query pattern, just the intervals with matched data:
-hledgerdev -f- register --period 'monthly' b
+hledger -f- register --period 'monthly' b
 <<<
 2011/1/1
   (a)  1
@@ -21,7 +21,7 @@ hledgerdev -f- register --period 'monthly' b
 
 # 3. with --empty, show all intervals spanned by the journal
 # (unlike current ledger, but more useful)
-hledgerdev -f- register --period 'monthly' b --empty
+hledger -f- register --period 'monthly' b --empty
 <<<
 2011/1/1
   (a)  1
@@ -38,7 +38,7 @@ hledgerdev -f- register --period 'monthly' b --empty
 >>>=0
 
 # 4. any specified begin/end dates limit the intervals reported
-hledgerdev -f- register --period 'monthly to 2011/3/1' b --empty
+hledger -f- register --period 'monthly to 2011/3/1' b --empty
 <<<
 2011/1/1
   (a)  1
@@ -54,7 +54,7 @@ hledgerdev -f- register --period 'monthly to 2011/3/1' b --empty
 >>>=0
 
 # 5. --date2 should work with intervals
-hledgerdev -f- register --monthly --date2
+hledger -f- register --monthly --date2
 <<<
 2014/1/1
   (a)  1
@@ -67,7 +67,7 @@ hledgerdev -f- register --monthly --date2
 >>>=0
 
 # 6. All matched postings in the displayed intervals should be reported on.
-hledgerdev -f- register -p 'monthly 2014/1/10-2014/2/20'
+hledger -f- register -p 'monthly 2014/1/10-2014/2/20'
 <<<
 2014/1/5
  (before)  1

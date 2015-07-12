@@ -1,5 +1,5 @@
 # a timelog session is parsed as a similarly-named transaction with one virtual posting
-hledgerdev -f - print
+hledger -f - print
 <<<
 i 2009/1/1 08:00:00
 o 2009/1/1 09:00:00 stuff on checkout record  is ignored

@@ -1,5 +1,5 @@
 # 1. accept a blank description
-hledgerdev -f- print
+hledger -f- print
 <<<
 2010/1/1 
   a  1
@@ -8,7 +8,7 @@ hledgerdev -f- print
 >>>=0
 
 # 2. same, but no separator space after the date
-hledgerdev -f- print
+hledger -f- print
 <<<
 2010/1/1
   a  1

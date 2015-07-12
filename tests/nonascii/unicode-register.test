@@ -1,4 +1,4 @@
-hledgerdev -f - register
+hledger -f - register
 <<<
 2009-01-01 проверка
   τράπεζα  10 руб

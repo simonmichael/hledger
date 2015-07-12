@@ -1,6 +1,6 @@
 #!/usr/bin/env shelltest
 # 1. One commodity. Zero accounts should be elided but the final total should not.
-hledgerdev -f - balance
+hledger -f - balance
 <<<
 2010/04/01 tr1
   a   16$
@@ -15,7 +15,7 @@ hledgerdev -f - balance
 >>>=0
 
 # 2. An uninteresting parent account (with same balance as its single subaccount) is elided by default, like ledger
-hledgerdev -f - balance --no-total
+hledger -f - balance --no-total
 <<<
 1/1
   (a:b)   1
@@ -24,7 +24,7 @@ hledgerdev -f - balance --no-total
 >>>=0
 
 # 3. But not with --no-elide
-hledgerdev -f - balance --no-total --no-elide
+hledger -f - balance --no-total --no-elide
 <<<
 1/1
   (a:b)   1
@@ -34,7 +34,7 @@ hledgerdev -f - balance --no-total --no-elide
 >>>=0
 
 # 4. Nor when it has more than one subaccount
-hledgerdev -f - balance --no-total
+hledger -f - balance --no-total
 <<<
 1/1
   (a:b)    1
@@ -47,7 +47,7 @@ hledgerdev -f - balance --no-total
 >>>=0
 
 # 5. Zero-balance leaves should also be hidden by default.
-hledgerdev -f - balance --no-total
+hledger -f - balance --no-total
 <<<
 1/1
  (a)          1

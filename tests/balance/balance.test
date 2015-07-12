@@ -1,5 +1,5 @@
 # 1.
-hledgerdev -f sample.journal balance
+hledger -f sample.journal balance
 >>>
                  $-1  assets
                   $1    bank:saving
@@ -16,7 +16,7 @@ hledgerdev -f sample.journal balance
 >>>=0
 
 # 2. 
-hledgerdev -f sample.journal balance o
+hledger -f sample.journal balance o
 >>>
                   $1  expenses:food
                  $-2  income

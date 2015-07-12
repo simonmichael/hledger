@@ -1,5 +1,5 @@
 # 1. register --depth N matches postings as usual but clips account names to N
-hledgerdev -f - register aa --depth 1
+hledger -f - register aa --depth 1
 <<<
 2010/1/1 x
   a:aa:aaa      1
@@ -9,7 +9,7 @@ hledgerdev -f - register aa --depth 1
 >>>=0
 
 # 2. separate postings remain separate
-hledgerdev -f - register aa --depth 2
+hledger -f - register aa --depth 2
 <<<
 2010/1/1 x
   a:aa      1
@@ -29,7 +29,7 @@ hledgerdev -f - register aa --depth 2
 >>>=0
 
 # 3. with a reporting interval, all postings are aggregated under each (clipped) account
-hledgerdev -f - register aa --depth 1 --daily
+hledger -f - register aa --depth 1 --daily
 <<<
 2010/1/1 x
   a:aa      1
@@ -48,7 +48,7 @@ hledgerdev -f - register aa --depth 1 --daily
 >>>=0
 
 # 4. with --cleared
-hledgerdev -f - register a --depth 1 --cleared
+hledger -f - register a --depth 1 --cleared
 <<<
 2012/1/1 *
   (a:aa)      1
@@ -58,7 +58,7 @@ hledgerdev -f - register a --depth 1 --cleared
 >>>=0
 
 # 5. depth 0 aggregates everything into a single line
-hledgerdev -f - register --depth 0 --daily a b
+hledger -f - register --depth 0 --daily a b
 <<<
 2010/1/1 x
   a:aa      1

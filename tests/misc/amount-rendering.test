@@ -1,6 +1,6 @@
 # amount layout tests, using default vertical layout
 # 1. print
-hledgerdev -f - print
+hledger -f - print
 <<<
 2010/1/1
     a  EUR 1    ; a euro
@@ -16,7 +16,7 @@ hledgerdev -f - print
 >>>=0
 
 # 2. register
-hledgerdev -f - register
+hledger -f - register
 <<<
 2010/1/1
     a  EUR 1    ; a euro
@@ -31,7 +31,7 @@ hledgerdev -f - register
 >>>=0
 
 # 3. balance
-hledgerdev -f - balance
+hledger -f - balance
 <<<
 2010/1/1
     a  EUR 1    ; a euro
@@ -48,7 +48,7 @@ hledgerdev -f - balance
 
 # 4. a zero amount is always displayed as just "0", regardless of any commodity/decimal places/price (like ledger)
 #
-hledgerdev -f- print --empty
+hledger -f- print --empty
 <<<
 2010/3/1 x
   a  $0.00 @ 3EUR
@@ -62,7 +62,7 @@ hledgerdev -f- print --empty
 
 # 5. mixed amounts with prices
 # XXX
-# hledgerdev -f - print
+# hledger -f - print
 # <<<
 # 2010/1/1
 #     a  EUR 1 @ USD 1.1 ; a euro
@@ -84,7 +84,7 @@ hledgerdev -f- print --empty
 #>>>=0
 #
 # #
-# hledgerdev -f - register
+# hledger -f - register
 # <<<
 # 2010/1/1
 #     a  EUR 1 @ USD 1.1 ; a euro
@@ -99,7 +99,7 @@ hledgerdev -f- print --empty
 #>>>=0
 #
 # #
-# hledgerdev -f - balance
+# hledger -f - balance
 # <<<
 # 2010/1/1
 #     a  EUR 1 @ USD 1.1 ; a euro

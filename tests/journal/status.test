@@ -1,5 +1,5 @@
 # 1. the status field can contain nothing,
-hledgerdev -f- print
+hledger -f- print
 <<<
 2015/1/1 x
   (a)  1
@@ -10,7 +10,7 @@ hledgerdev -f- print
 >>>=0
 
 # 2. or !
-hledgerdev -f- print
+hledger -f- print
 <<<
 2015/1/1 ! x
   (a)  1
@@ -21,7 +21,7 @@ hledgerdev -f- print
 >>>=0
 
 # 3. or *
-hledgerdev -f- print
+hledger -f- print
 <<<
 2015/1/1 * x
   (a)  1
@@ -32,7 +32,7 @@ hledgerdev -f- print
 >>>=0
 
 # 4. --cleared matches * only
-hledgerdev -f- print --cleared
+hledger -f- print --cleared
 <<<
 2015/1/1 x
   (a)  1
@@ -47,7 +47,7 @@ hledgerdev -f- print --cleared
 >>>=0
 
 # 5. --pending matches ! only
-hledgerdev -f- print --pending
+hledger -f- print --pending
 <<<
 2015/1/1 x
   (a)  1
@@ -62,7 +62,7 @@ hledgerdev -f- print --pending
 >>>=0
 
 # 6. --uncleared matches all except *
-hledgerdev -f- print --uncleared
+hledger -f- print --uncleared
 <<<
 2015/1/1 x
   (a)  1

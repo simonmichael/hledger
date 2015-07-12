@@ -1,6 +1,6 @@
 #!/usr/bin/env shelltest
 # 1. test some balance assertions
-hledgerdev -f - stats
+hledger -f - stats
 <<<
 2013/1/1
   a    $1  =$1
@@ -20,7 +20,7 @@ hledgerdev -f - stats
 >>>=0
 
 # 2. same entries as 1 but different parse order, assertion should still pass based on date
-hledgerdev -f - stats
+hledger -f - stats
 <<<
 2013/1/1
   a    $1  =$1
@@ -41,7 +41,7 @@ hledgerdev -f - stats
 
 # 3. like 1 but switch order of postings in last entry,
 # assertion should fail and exit code should be non zero
-hledgerdev -f - stats
+hledger -f - stats
 <<<
 2013/1/1
   a    $1  =$1
@@ -61,7 +61,7 @@ hledgerdev -f - stats
 >>>=1
 
 # 4. should also work without commodity symbols
-hledgerdev -f - stats
+hledger -f - stats
 <<<
 2013/1/1
   (a)    1  =1
@@ -71,7 +71,7 @@ hledgerdev -f - stats
 >>>=0
 
 # 5. should work for fractional amount with trailing zeros
-hledgerdev -f - stats
+hledger -f - stats
 <<<
 2013/1/1
   a    $1.20  =$1.20
@@ -90,7 +90,7 @@ hledgerdev -f - stats
 >>>=0
 
 # 6. assertions currently check only a single commodity's balance, like Ledger
-hledgerdev -f - stats
+hledger -f - stats
 <<<
 1/2
   (a)  A1
@@ -102,7 +102,7 @@ hledgerdev -f - stats
 >>>=0
 
 # 7. balances should accumulate (#195)
-hledgerdev -f - stats
+hledger -f - stats
 <<<
 1/1
     (a)   1F = 1F
@@ -118,7 +118,7 @@ hledgerdev -f - stats
 # in a, 3.4 EUR @@ $5.6 and -3.4 EUR cancel out (wrong ?)
 # in b, 
 # 
-# hledgerdev -f - stats
+# hledger -f - stats
 # <<<
 # 2013/1/1
 #   a    $1.20

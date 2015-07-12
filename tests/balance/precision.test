@@ -1,5 +1,5 @@
 #
-hledgerdev -f- balance
+hledger -f- balance
 <<<
 1/1
   a   1.00

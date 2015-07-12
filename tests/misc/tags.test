@@ -1,7 +1,7 @@
 # 1. we parse metadata tags in transaction and posting comments. Currently,
 # - they can be on the same line and/or separate lines
 # - they are always printed on separate lines
-hledgerdev -f - print
+hledger -f - print
 <<<
 2010/01/01  ; txntag1: txn val 1
   ; txntag2: txn val 2
@@ -24,7 +24,7 @@ hledgerdev -f - print
 >>>=0
 
 # 2. reports can filter by tag existence
-hledgerdev -f - print tag:foo
+hledger -f - print tag:foo
 <<<
 2010/01/01    ; foo:bar
   a             1
@@ -50,7 +50,7 @@ hledgerdev -f - print tag:foo
 >>>=0
 
 # 3. or tag value
-hledgerdev -f - print tag:foo=bar
+hledger -f - print tag:foo=bar
 <<<
 2010/01/01    ; foo:bar
   a             1
@@ -73,7 +73,7 @@ hledgerdev -f - print tag:foo=bar
 >>>=0
 
 # 4. postings inherit their transaction's tags
-hledgerdev -f - register tag:foo=bar
+hledger -f - register tag:foo=bar
 <<<
 2010/01/01
   a             1    ; foo:bar
