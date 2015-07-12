@@ -493,7 +493,7 @@ datesepchar :: Stream [Char] m Char => ParsecT [Char] st m Char
 datesepchar = oneOf datesepchars
 
 validYear, validMonth, validDay :: String -> Bool
-validYear s = length s >= 4 && isJust (readMay s :: Maybe Int)
+validYear s = length s >= 4 && isJust (readMay s :: Maybe Year)
 validMonth s = maybe False (\n -> n>=1 && n<=12) $ readMay s
 validDay s = maybe False (\n -> n>=1 && n<=31) $ readMay s
 
