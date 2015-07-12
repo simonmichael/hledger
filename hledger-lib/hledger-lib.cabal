@@ -1,5 +1,5 @@
 name:           hledger-lib
-version: 0.25.98
+version: 0.26
 stability:      stable
 category:       Finance, Console
 synopsis:       Core data types, parsers and utilities for the hledger accounting tool.
