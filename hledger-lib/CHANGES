@@ -2,11 +2,13 @@ API-ish changes in hledger-lib.
 User-visible changes appear in hledger's change log.
 
 
+0.26 (2015/7/12)
+
+- allow year parser to handle arbitrarily large years
+- Journal's Show instance reported one too many accounts
 - some cleanup of debug trace helpers
-
-- tighten up some date and account name parsers (don't accept leading spaces; docs)
-
-- dependency compatibility updates
+- tighten up some date and account name parsers (don't accept leading spaces; hadddocks)
+- drop regexpr dependency
 
 0.25.1 (2015/4/29)
 

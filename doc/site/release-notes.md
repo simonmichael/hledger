@@ -3,6 +3,7 @@
 <nav id="toc" class="right-toc">
 <p>Major releases:</p>
 <ul>
+<li><a href="#hledger-0.26">hledger 0.26 (2015/7/12)</a>
 <li><a href="#hledger-0.25">hledger 0.25 (2015/4/7)</a>
 <li><a href="#hledger-0.24">hledger 0.24 (2014/12/25)</a>
 <li><a href="#hledger-0.23">hledger 0.23 (2014/5/1)</a>
@@ -43,6 +44,190 @@ change logs.
 h4 { margin-top:2em; }
 </style>
 
+
+## 2015/7/12 hledger 0.26
+
+<!-- [announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/N) -->
+<!-- [announcement](https://groups.google.com/forum/#!topic/hledger/k2Y_NYZGGJw) -->
+***Website & doc updates, account aliases, misc. bugfixes & cleanups, performance.***
+
+Release contributors:
+Simon Michael,
+Imuli,
+Carlos Lopez-Camey,
+Kyle Marek-Spartz,
+Rick Lupton,
+Simon Hengel.
+
+**Changes to hledger.org & docs:**
+
+- examples everywhere, screenshots, content & style updates
+- manual: reorganise topics, add some undocumented things, clarify some things
+- dev guide: more links, put how-tos first, copy diagram from old wiki, update the setup docs
+
+
+**User-visible changes in hledger since 0.25.1:**
+
+Account aliases:
+
+- Account aliases are once again non-regular-expression-based, by default. (#252)
+    
+    The regex account aliases added in 0.24 tend to trip up people
+    switching between hledger and Ledger. (Also they are currently
+    slow).  We now use the old non-regular-expression aliases again,
+    by default; these are unsurprising, useful, and pretty close in
+    functionality to Ledger's aliases.
+
+    The new regex aliases are still available, but they must now be
+    enclosed in forward slashes. (Ledger effectively ignores these.)
+    
+Journal format:
+
+- We now parse, and also print, journal entries with no postings, as
+  proposed on the mail lists.  These are not well-formed General
+  Journal entries/transactions, but on the other hand:
+    Ledger and beancount parse them;
+    if they are parsed, they should be printed;
+    they provide a convenient way to record (and report) non-transaction events;
+    and they permit more gradual introduction and learning of the concepts
+    (so eg a beginner can keep a simple journal before learning about accounts and postings).
+
+- Trailing whitespace after a `comment` directive is now ignored.
+
+Command-line interface:
+
+- The -f/file option may now be used multiple times. 
+  This is equivalent to concatenating the input files before running hledger.
+  The add command adds entries to the first file specified.
+
+Queries:
+
+- real: (no argument) is now a synonym for real:1
+
+- tag: now matches tag names with a regular expression, like most other queries
+
+- empty: is no longer supported, as it overlaps a bit confusingly with
+  amt:0. The --empty flag is still available.
+
+- You can now match on pending status (#250)
+    
+    A transaction/posting status of ! (pending) was effectively equivalent
+    to * (cleared). Now it's a separate state, not matched by --cleared.
+    The new Ledger-compatible --pending flag matches it, and so does
+    --uncleared.
+
+    The relevant search query terms are now status:*, status:! and
+    status: (the old status:1 and status:0 spellings are deprecated).
+    
+    Since we interpret --uncleared and status: as "any state except cleared",
+    it's not currently possible to match things which are neither cleared
+    nor pending.
+
+activity:
+
+- activity no longer excludes 0-amount postings by default.
+
+add:
+
+- Don't show quotes around the journal file path in the "Creating..."
+  message, for consistency with the subsequent "Adding..." message.
+
+balancesheet:
+
+- Accounts beginning with "debt" or now also recognised as liabilities.
+
+print:
+
+- We now limit the display precision of inferred prices. (#262)
+    
+    When a transaction posts to two commodities without specifying the
+    conversion price, we generate a price which makes it balance (cf
+    http://hledger.org/manual.html#prices). The print command showed
+    this with full precision (so that manual calculations with the
+    displayed numbers would look right), but this sometimes meant we
+    showed 255 digits (when there are multiple postings in the
+    commodity being priced, and the averaged unit price is an
+    irrational number). In this case we now set the price's display
+    precision to the sum of the (max) display precisions of the
+    commodities involved. An example:
+    ```
+    hledger -f- print
+    <<<
+    1/1
+        c    C 10.00
+        c    C 11.00
+        d  D -320.00
+    >>>
+    2015/01/01
+        c  C 10.00 @ D 15.2381
+        c  C 11.00 @ D 15.2381
+        d     D -320.00
+    
+    >>>=0
+    ```
+    There might still be cases where this will show more price decimal
+    places than necessary. 
+
+- We now show inferred unit prices with at least 2 decimal places.
+    
+    When inferring prices, if the commodities involved have low
+    display precisions, we don't do a good job of rendering
+    accurate-looking unit prices. Eg if the journal doesn't use any
+    decimal places, any inferred unit prices are also displayed with
+    no decimal places, which makes them look wrong to the user.  Now,
+    we always give inferred unit prices a minimum display precision of
+    2, which helps a bit.
+
+register:
+
+- Postings with no amounts could give a runtime error in some obscure case, now fixed.
+
+stats: 
+
+- stats now supports -o/--outputfile, like register/balance/print.
+- An O(n^2) performance slowdown has been fixed, it's now much faster on large journals.
+    ```
+    +--------------------------------------++--------+--------+
+    |                                      ||   0.25 |   0.26 |
+    +======================================++========+========+
+    | -f data/100x100x10.journal     stats ||   0.10 |   0.16 |
+    | -f data/1000x1000x10.journal   stats ||   0.45 |   0.21 |
+    | -f data/10000x1000x10.journal  stats ||  58.92 |   2.16 |
+    +--------------------------------------++--------+--------+
+    ```
+    
+Miscellaneous:
+
+- The June 30 day span was not being rendered correctly; fixed. (#272)
+- The deprecated shakespeare-text dependency has been removed more thoroughly.
+- The bench script invoked by "cabal bench" or "stack bench" now runs
+  some simple benchmarks.
+  You can get more accurate benchmark times by running with --criterion.
+  This will usually give much the same numbers and takes much longer.
+  Or with --simplebench, it benchmarks whatever commands are
+  configured in bench/default.bench. This mode uses the first
+  "hledger" executable in $PATH.
+
+**User-visible changes in hledger-web since 0.25.1:**
+
+- make the j keybinding respect --base-url (fixes #271)
+- respect command line options (fixes #225)
+- include the unminified jquery source again (#161)
+- fix build breakage from #165 (fixes #268)
+- fix a js error breaking add form in browsers other than firefox (#251, Carlos Lopez-Camey <c.lopez@kmels.net>)
+- drop deprecated network-conduit dependency
+
+#### 2015/4/29 hledger-web 0.25.1
+
+- support/require base-compat >0.8 (#245)
+
+#### 2015/4/29 hledger 0.25.1
+
+- timelog: support the description field (#247)
+
+#### 2015/4/29 hledger-lib 0.25.1
+
+- support/require base-compat >0.8 (#245)
 
 ## 2015/4/7 hledger 0.25
 

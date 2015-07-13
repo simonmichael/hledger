@@ -1,7 +1,11 @@
 User-visible changes in hledger and hledger-lib.
 
 
-- journal: bring back non-regular-expressing aliases, as the default (#252)
+0.26 (2015/7/12)
+
+Account aliases:
+
+- Account aliases are once again non-regular-expression-based, by default. (#252)
     
     The regex account aliases added in 0.24 trip up people switching between
     hledger and Ledger. (Also they are currently slow).
@@ -10,15 +14,138 @@ User-visible changes in hledger and hledger-lib.
     unsurprising, useful, and pretty close in functionality to Ledger's.
     
     The new regex aliases are still available; they must be enclosed
-    in forward slashes. Ledger effectively ignores these, which is ok.
+    in forward slashes. (Ledger effectively ignores these.)
     
-- journal: allow whitespace following a comment directive
+Journal format:
 
-- dependency compatibility updates
+- We now parse, and also print, journal entries with no postings, as
+  proposed on the mail lists.  These are not well-formed General
+  Journal entries/transactions, but here is my rationale:
+    
+    - Ledger and beancount parse them
+    - if they are parsed, they should be printed
+    - they provide a convenient way to record (and report) non-transaction events
+    - they permit more gradual introduction and learning of the concepts.
+      So eg a beginner can keep a simple journal before learning about accounts and postings.
+
+- Trailing whitespace after a `comment` directive is now ignored.
+
+Command-line interface:
+
+- The -f/file option may now be used multiple times. 
+  This is equivalent to concatenating the input files before running hledger.
+  The add command adds entries to the first file specified.
+
+Queries:
+
+- real: (no argument) is now a synonym for real:1
+
+- tag: now matches tag names with a regular expression, like most other queries
+
+- empty: is no longer supported, as it overlaps a bit confusingly with
+  amt:0. The --empty flag is still available.
+
+- You can now match on pending status (#250)
+    
+    A transaction/posting status of ! (pending) was effectively equivalent
+    to * (cleared). Now it's a separate state, not matched by --cleared.
+    The new Ledger-compatible --pending flag matches it, and so does
+    --uncleared.
+
+    The relevant search query terms are now status:*, status:! and
+    status: (the old status:1 and status:0 spellings are deprecated).
+    
+    Since we interpret --uncleared and status: as "any state except cleared",
+    it's not currently possible to match things which are neither cleared
+    nor pending.
+
+activity:
+- activity no longer excludes 0-amount postings by default.
+
+add:
+- Don't show quotes around the journal file path in the "Creating..."
+  message, for consistency with the subsequent "Adding..." message.
+
+balancesheet:
+- Accounts beginning with "debt" or now also recognised as liabilities.
+
+print:
+- We now limit the display precision of inferred prices. (#262)
+    
+    When a transaction posts to two commodities without specifying the
+    conversion price, we generate a price which makes it balance (cf
+    http://hledger.org/manual.html#prices). The print command showed
+    this with full precision (so that manual calculations with the
+    displayed numbers would look right), but this sometimes meant we
+    showed 255 digits (when there are multiple postings in the
+    commodity being priced, and the averaged unit price is an
+    irrational number). In this case we now set the price's display
+    precision to the sum of the (max) display precisions of the
+    commodities involved. An example:
+    
+    hledgerdev -f- print
+    <<<
+    1/1
+        c    C 10.00
+        c    C 11.00
+        d  D -320.00
+    >>>
+    2015/01/01
+        c  C 10.00 @ D 15.2381
+        c  C 11.00 @ D 15.2381
+        d     D -320.00
+    
+    >>>=0
+    
+    There might still be cases where this will show more price decimal
+    places than necessary. 
+
+- We now show inferred unit prices with at least 2 decimal places.
+    
+    When inferring prices, if the commodities involved have low
+    display precisions, we don't do a good job of rendering
+    accurate-looking unit prices. Eg if the journal doesn't use any
+    decimal places, any inferred unit prices are also displayed with
+    no decimal places, which makes them look wrong to the user.  Now,
+    we always give inferred unit prices a minimum display precision of
+    2, which helps a bit.
+
+register:
+- Postings with no amounts could give a runtime error in some obscure case, now fixed.
+
+stats: 
+- stats now supports -o/--outputfile, like register/balance/print.
+- An O(n^2) performance slowdown has been fixed, it's now much faster on large journals.
+
+      +--------------------------------------++--------+--------+
+      |                                      ||   0.25 |   0.26 |
+      +======================================++========+========+
+      | -f data/100x100x10.journal     stats ||   0.10 |   0.16 |
+      | -f data/1000x1000x10.journal   stats ||   0.45 |   0.21 |
+      | -f data/10000x1000x10.journal  stats ||  58.92 |   2.16 |
+      +--------------------------------------++--------+--------+
+
+Miscellaneous:
+
+- The June 30 day span was not being rendered correctly; fixed. (#272)
+
+- The bench script invoked by "cabal bench" or "stack bench" now runs
+  some simple benchmarks.
+    
+    You can get more accurate benchmark times by running with --criterion.
+    This will usually give much the same numbers and takes much longer.
+    
+    Or with --simplebench, it benchmarks whatever commands are
+    configured in bench/default.bench. This mode uses the first
+    "hledger" executable in $PATH.
+
+- The deprecated shakespeare-text dependency has been removed more thoroughly.
+
 
 0.25.1 (2015/4/29)
 
 - timelog: support the description field (#247)
+
 
 0.25 (2015/4/7)
 
