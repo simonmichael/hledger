@@ -1088,9 +1088,9 @@ hledger-web/hledger-web.cabal: $(VERSIONFILE) \
 	perl -p -e "s/(^[ ,]*hledger(-lib|-web)? *[>=]=) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
-doc/MANUAL.md: $(VERSIONFILE) \
+doc/manual.md: $(VERSIONFILE) \
 	$(call def-help-hide,doc/MANUAL.md, update the version in this file )
-	perl -p -e "s/(^Version:) +[0-9.]+/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(this version documents hledger and hledger-web) +[0-9.]+/\1 $(VERSION)/" -i $@
 
 tagrelease: \
 	$(call def-help,tagrelease, commit a release tag based on $(VERSIONFILE) for each package )
