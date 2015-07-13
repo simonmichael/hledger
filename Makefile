@@ -15,6 +15,7 @@
 # - shelltestrunner (latest version from hackage or possibly git), runs functional tests
 # - hasktags, generates tag files for code navigation
 # - profiteur, renders profiles as interactive html
+# - hakyll-std, my generic site-building hakyll script
 #
 # Kinds of hledger builds:
 #
@@ -816,19 +817,14 @@ $(call def-help-subsection,DOCUMENTATION:)
 # 	\
 # 	)
 
-# site-build site: \
-# 	$(call def-help,site-build site,\
-# 	build some additional static bits of the hledger.org website\
-# 	Requires hakyll-std, a generic hakyll site builder\
-# 	) #olddocs
-# 	-cd doc/site; hakyll build
+site: \
+	$(call def-help,site, generate the hledger.org website with hakyll-std (a generic hakyll script) ) #olddocs
+	-cd doc/site; hakyll build
 
-# site-clean: \
-# 	$(call def-help,site-clean,\
-# 	\
-# 	) #cleanolddocs
-# 	-cd doc/site; hakyll clean
-# #	rm -rf doc/site/_site/*
+site-clean: \
+	$(call def-help,site-clean, remove hakyll-generated files (& take down the website) ) #cleanolddocs
+	-cd doc/site; hakyll clean
+#	rm -rf doc/site/_site/*
 
 # XXX hakyll preview/watch mostly don't live-update any more
 site-preview: \
