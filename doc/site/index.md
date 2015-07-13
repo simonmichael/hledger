@@ -25,6 +25,7 @@ tr {
     border-top:thin solid #bbb;
 }
 </style>
+|
 |---------------------------|-------------------------------------------------------------------------
 | IRC                       | [#hledger](http://irc.hledger.org) (see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1))
 | Mail list&nbsp;&nbsp;     | via [google](http://list.hledger.org) or [gmane](http://news.gmane.org/gmane.comp.finance.ledger.hledger)

@@ -1008,6 +1008,7 @@ words, can be relative to today's date, and assume 1 when less-significant date 
 
 Examples:
 
+|
 |--------------------------------------------------|------------------------------------------------------|
 | `2009/1/1`, `2009/01/01`, `2009-1-1`, `2009.1.1` &nbsp; | simple dates, several separators allowed             |
 | `2009/1`, `2009`                                 | same as above - a missing day or month defaults to 1 |
@@ -2395,12 +2396,13 @@ using one of these modes is quite recommended.
 
 These were written with Ledger in mind, but also work with hledger files:
 
+|
 |----------------|----------------------------------------------------|
 | Emacs          | <http://www.ledger-cli.org/3.0/doc/ledger-mode.html> |
 | Vim            | <https://github.com/ledger/ledger/wiki/Getting-started-with-Vim> |
 | Sublime Text   | <https://github.com/ledger/ledger/wiki/Using-Sublime-Text> |
 | Textmate       | <https://github.com/ledger/ledger/wiki/Using-TextMate-2> |
-| Text Wrangler &nbsp;  | <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler> |
+| Text Wrangler &nbsp; | <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler> |
 
 <!-- Some related LedgerTips:
 https://twitter.com/LedgerTips/status/504061626233159681
