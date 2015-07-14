@@ -1,11 +1,20 @@
-I'm pleased to announce hledger and hledger-web 0.25.
+I'm pleased to announce hledger and hledger-web 0.26!
 
-This release brings GHC 7.10 compatibility, terminal width awareness,
-useful averages and totals columns, and a more robust hledger-web add
-form.
+This release restores non-regular-expression account aliases as the
+default, and brings miscellaneous bugfixes and cleanups, and some
+performance work. Also the website and documentation have been
+improved, and now include many more examples.
+Full release notes: http://hledger.org/release-notes#hledger-0.26 .
 
-Full release notes: http://hledger.org/release-notes#hledger-0.25 .
-Release contributors: Simon Michael, Julien Moutinho.
+Release contributors: 
+Simon Michael,
+Imuli,
+Carlos Lopez-Camey,
+Kyle Marek-Spartz,
+Rick Lupton,
+Simon Hengel.
+
+About:
 
 hledger (http://hledger.org) is a command-line tool and haskell
 library for tracking financial transactions, which are stored in a
@@ -19,9 +28,16 @@ Ledger, and can be used with some Ledger files.
 
 Installation:
 
-cabal update; cabal install hledger [hledger-web]
-or see http://hledger.org/download
-and http://hledger.org/installing for more options.
+$ cabal update; [cabal sandbox init;] cabal install hledger[-web]
+
+or:
+
+$ git clone https://github.com/simonmichael/hledger.git
+$ cd hledger
+$ git checkout hledger-0.26
+$ stack install
+
+or see http://hledger.org/download for more options.
 
 Best!
 -Simon
