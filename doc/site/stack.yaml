@@ -1,6 +1,5 @@
-# stack.yaml for hakyll-std
-extra-deps: []
-resolver: nightly-2015-07-01
+# stack.yaml for hakyll-std.
+resolver: nightly-2015-07-01  # same as the main stack.yaml
 flags: {}
-packages:
-- '.'
+extra-deps:
+- hfsevents-0.1.5
