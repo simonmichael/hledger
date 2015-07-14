@@ -362,8 +362,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
     - check & fix any outdated upper bounds
       (dev guide -> quick links -> hackage)
 
-- update docs
-    - haddocks
+- update cabal files
     - */hledger*.cabal
         - descriptions
         - tested-with
@@ -373,16 +372,24 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
             - extra-source-files
             - exposed-modules
             - other-modules
+
+- update stack.yaml file
+    - resolver
+    - extra-deps
+    - flags
+
+- update docs
+    - haddocks
     - */CHANGES
-    - doc/developer-guide.md
-    - doc/contributors.md
     - doc/site/release-notes.md
+    - doc/contributors.md
     - doc/manual.md (commands, options, --help, ledger compatibility..)
     - doc/site/step-by-step.md
     - doc/site/how-to-*
     - doc/site/faq.md (ledger compatibility)
     - doc/site/installing.md
     - doc/site/download.md
+    - doc/developer-guide.md
     - doc/ANNOUNCE
 
 - update version
@@ -406,12 +413,16 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
     - make tagrelease
 
 - publish
+    - stack upload hledger-lib; stack upload hledger; stack upload hledger-web
+      (or make cabalsdist hackageupload[-dry])
+    - [wait a day for it to appear in stackage nightly ?]
+    - ensure hackage is showing the latest haddocks
+    - check the hackage build matrix
     - git push --tags
-    - ensure the website is showing latest docs
-      (download page, release notes, manual, how-tos, dev guide links, etc.)
-    - ensure hydra has successfully built the latest packages
-    - make hackageupload
     - deploy at demo.hledger.org
+    - [upload binaries to hledger.org]
+    - ensure the website is showing latest docs
+      (download links, release notes, manual, how-tos, dev guide links, etc.)
 
 - announce
     - review/close open issues in tracker
@@ -422,8 +433,6 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
     - update release notes with announcement link & short description
 
 - post-release
-    - ensure hackage is showing the latest haddocks
-    - check the hackage build matrix report
     - handle problem reports, support requests
 
 
