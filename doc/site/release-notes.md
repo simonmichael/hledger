@@ -214,7 +214,7 @@ Miscellaneous:
 - respect command line options (fixes #225)
 - include the unminified jquery source again (#161)
 - fix build breakage from #165 (fixes #268)
-- fix a js error breaking add form in browsers other than firefox (#251, Carlos Lopez-Camey <c.lopez@kmels.net>)
+- fix a js error breaking add form in browsers other than firefox (fixes #251)
 - drop deprecated network-conduit dependency
 
 #### 2015/4/29 hledger-web 0.25.1
