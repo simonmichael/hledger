@@ -1,0 +1,39 @@
+# hpack specification for generating the cabal file
+# (run "hpack" in this directory)
+
+name        : hakyll-std
+version     : 0.1.0
+license     : BSD3
+synopsis    : Generic hakyll site builder script (shipped with hledger)
+description : |
+  A simple hakyll website builder suitable for (eg) software-related websites, intended to be used as-is without recompilation. Features:
+
+  - renders markdown and common web file types found in standard places
+  - a site.tmpl template will be used when rendering markdown files
+  - "- toc" in markdown files is replaced by a table of contents
+  - fenced code blocks are appropriately syntax-highlighted by highlighting-kate
+    (you should provide a syntax.css)
+
+  See the module doc (follow homepage link) for precise details.
+
+category    : Web
+github      : simonmichael/hledger
+homepage    : https://github.com/simonmichael/hledger/blob/master/doc/site/hakyll-std.hs
+author      : Simon Michael
+maintainer  : '-'
+
+dependencies:
+  - base >= 4.7 && < 5
+  - hakyll >=4.7
+  - pandoc #>=1.15
+  - pandoc-types
+  - process
+  - directory
+  - data-default
+  - blaze-html
+  - containers
+
+executables:
+  hakyll-std:
+    main: hakyll-std.hs
+    other-modules: TableOfContents

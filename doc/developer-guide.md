@@ -209,10 +209,10 @@ and the default view given by [bugs.hledger.org](http://bugs.hledger.org) exclud
     $ cd hledger
     ```
 
-3. Install optional extra tools (see the Makefile for a list):
+3. Install [GNU Make](http://www.gnu.org/software/make) and other optional extra tools (see the Makefile for a list):
 
     ```shell
-    $ stack install shelltestrunner hasktags profiteur
+    $ stack install shelltestrunner hasktags profiteur hpack
     ```
 
 4. Run `make` or `stack --help` to see some suggested commands:

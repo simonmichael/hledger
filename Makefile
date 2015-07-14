@@ -15,6 +15,7 @@
 # - shelltestrunner (latest version from hackage or possibly git), runs functional tests
 # - hasktags, generates tag files for code navigation
 # - profiteur, renders profiles as interactive html
+# - hpack, generates cabal files from package.yaml files
 # - hakyll-std, my generic site-building hakyll script
 #
 # Kinds of hledger builds:
@@ -112,7 +113,10 @@ SOURCEFILES:= \
 
 CABALFILES:= \
 	hledger/hledger.cabal \
-	hledger-*/*.cabal
+	hledger-*/*.cabal \
+
+CABALFILESFROMHPACK:= \
+	doc/site/hakyll-std.cabal
 
 WEBFILES:= \
 	hledger-web/templates/* \
@@ -820,9 +824,7 @@ $(call def-help-subsection,DOCUMENTATION:)
 doc/site/hakyll-std hakyll-std: \
 	doc/site/hakyll-std.hs \
 	doc/site/TableOfContents.hs \
-	doc/site/hakyll-std.cabal \
-	doc/site/stack.yaml \
-	$(call def-help,hakyll-std, build a generic hakyll site builder script )
+		$(call def-help,hakyll-std, build a generic hakyll site builder script )
 	cd doc/site; stack ghc hakyll-std
 
 site: doc/site/hakyll-std \
@@ -1275,13 +1277,34 @@ tagrelease: \
 ###############################################################################
 $(call def-help-subsection,MISCELLANEOUS:)
 
+# allow automatic variables in the prerequisites of subsequent rules
+.SECONDEXPANSION:
+
+gencabalfiles: $$(CABALFILESFROMHPACK) \
+		$(call def-help,gencabalfiles, regenerate cabal files from their package.yaml definitions )
+
+%.cabal: $$(dir $$@)package.yaml \
+		$(call def-help-hide,PATH/SOME.cabal, regenerate a cabal file from its package.yaml definition with hpack )
+	cd $(dir $*) && \
+	hpack && \
+	touch $(notdir $@) && \
+	cabal check
+
+cabal%: \
+	$(call def-help,cabalCMD, run cabal CMD inside each hledger package directory )
+	for p in $(PACKAGES); do (cd $$p; cabal $*); done
+
+all%: \
+	$(call def-help,all"CMD", run CMD inside each hledger package directory )
+	for p in $(PACKAGES); do (cd $$p; $*); done
+
 usage: cabalusage stackusage \
 	$(call def-help,usage, show size of various dirs )
 	du -sh .git bin data doc extra
 	du -sh .
 
 stackusage: \
-	$(call def-help,stackusage, show size of stack working dirs )
+	$(call def-help,stackusage, show size of stack working dirs if any )
 	-du -shc `find . -name '.stack*'`
 
 cabalusage: \
@@ -1321,14 +1344,6 @@ Clean: stackclean cabalclean cleanghc cleantags \
 	$(call def-help,Clean, thorough cleanup (stack/cabal/ghc builds and tags) )
 
 # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
-
-cabal%: \
-	$(call def-help,cabalCMD, run cabal CMD inside each hledger package directory )
-	for p in $(PACKAGES); do (cd $$p; cabal $*); done
-
-all%: \
-	$(call def-help,all"CMD", run CMD inside each hledger package directory )
-	for p in $(PACKAGES); do (cd $$p; $*); done
 
 ###############################################################################
 # LOCAL UNTRACKED CUSTOMISATIONS
