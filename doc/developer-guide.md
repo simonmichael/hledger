@@ -200,6 +200,46 @@ and the default view given by [bugs.hledger.org](http://bugs.hledger.org) exclud
 
 ### Set up for development
 
+1. Download and install [stack](https://github.com/commercialhaskell/stack/wiki/Downloads).
+   This builds haskell projects and can also install GHC (and on windows, git) if needed.
+2. Get the hledger repo:
+
+    ```{.shell .bold}
+    $ git clone https://github.com/simonmichael/hledger.git
+    $ cd hledger
+    ```
+
+3. Install optional extra tools (see the Makefile for a list):
+
+    ```shell
+    $ stack install shelltestrunner hasktags profiteur
+    ```
+
+4. Run `make` or `stack --help` to see some suggested commands:
+
+    ```{.shell .bold}
+    $ make
+    Makefile:37: -------------------- hledger make rules --------------------
+    Makefile:39: make [help] -- list documented rules in this makefile. make -n RULE shows more detail. 
+    Makefile:204: (INSTALLING:)
+    Makefile:206: make install -- download dependencies and install hledger executables to ~/.local/bin or equivalent (with stack)
+    Makefile:231: (BUILDING:)
+    Makefile:235: make build -- download dependencies and build hledger executables (with stack)
+    Makefile:304: make hledgerdev -- quickly build the hledger executable (with ghc and -DDEVELOPMENT) 
+    ...
+    $ stack --help
+    Available commands:
+      build                    Build the project(s) in this directory/configuration
+      install                  Build executables and install to a user path
+      test                     Build and test the project(s) in this
+                               directory/configuration
+      bench                    Build and benchmark the project(s) in this
+                               directory/configuration
+    ...
+    ```
+
+Old instructions:
+
 1. Get [GHC](https://www.haskell.org/ghc/) and [cabal-install](http://hackage.haskell.org/package/cabal-install) installed.
    I recommend the [stackage.org install guide](http://www.stackage.org/install).
    You can see which GHC versions are officially supported in the `tested-with` field in
@@ -235,7 +275,6 @@ and the default view given by [bugs.hledger.org](http://bugs.hledger.org) exclud
 6. Install haskell libs required by hledger:
 
     ```{.shell .bold}
-    $ cabal update
     $ cd hledger
     $ cabal sandbox init   # optional
     $ make installdeps     # or cabal install --only-dep ./hledger-lib ./hledger [./hledger-web]

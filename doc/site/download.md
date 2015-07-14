@@ -1,6 +1,6 @@
 # Download
 
-## I want to download and run
+## I want to download and run a recent release
 <!-- <sub>(If the download is out of date or doesn't run on my system, I might troubleshoot or donate to fund improvements)</sub> -->
 
 <table>
@@ -70,20 +70,29 @@ Use cabal
 </tr>
 </table>
 
-## I want to build the [latest release](http://hackage.haskell.org/package/hledger) with [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html)
+## I want to build the [latest release](http://hackage.haskell.org/package/hledger):
 
-`cabal install alex happy`    *(if you don't already have these in your path)*\
-`cabal sandbox init; cabal update; cabal install hledger-web`    *(use cabal 1.20+)*\
-<!-- [cabal install guide](cabal-install.html) -->
+Recommended:
 
-Or just cabal install `hledger` if you don't need the web interface.\
-The [Installation Guide](installing.html) describes how to install using cabal in more detail.\
+1. Download and install [stack](https://github.com/commercialhaskell/stack/wiki/Downloads)
+2. `stack --resolver nightly-2015-07-13 install hledger [hledger-web]`
+
+Or:
+
+1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html)
+2. `cabal install alex happy`    *(if these are not already in your PATH)*
+3. `cabal update`
+4. `cabal sandbox init`
+5. `cabal install hledger[-web]`
+
+The old [Installation Guide](installing.html) has more notes on this process.
 [Release Notes](release-notes.html) shows what's new in the hledger packages.
 
 ## I want to build the [latest development version](https://github.com/simonmichael/hledger/commits/master)
 
-`cabal install alex happy`    (if you don't already have these in your path)\
-`git clone https://github.com/simonmichael/hledger; cd hledger; make sandbox install`
+1. `git clone https://github.com/simonmichael/hledger.git`
+2. `cd hledger`
+3. `stack install` (or cabal install as shown above)
 
 ## I want to run the Ubuntu hledger packages in a virtual machine
 
