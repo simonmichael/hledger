@@ -1,0 +1,39 @@
+name:                hakyll-std
+version:             0.1.0
+synopsis:            Generic hakyll site builder script.
+description:         Generic hakyll site builder script.
+homepage:            http://github.com/simonmichael/hledger
+license:             BSD3
+license-file:        LICENSE
+author:              Simon Michael
+maintainer:          simon@joyful.com
+-- copyright:           
+category:            Web
+build-type:          Simple
+-- extra-source-files:  
+cabal-version:       >=1.10
+
+-- library
+--   hs-source-dirs:      src
+--   build-depends:       base >= 4.7 && < 5
+--   default-language:    Haskell2010
+
+executable hakyll-std
+  default-language:    Haskell2010
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  hs-source-dirs:      .
+  main-is:             hakyll-std.hs
+  other-modules:       TableOfContents
+  build-depends:       base >= 4.7 && < 5
+                      ,hakyll >=4.7
+                      ,pandoc >=1.15
+                      ,pandoc-types
+                      ,process
+                      ,directory
+                      ,data-default
+                      ,blaze-html
+                      ,containers
+
+-- source-repository head
+--   type:     git
+--   location: https://github.com/simonmichael/hledger

@@ -817,19 +817,27 @@ $(call def-help-subsection,DOCUMENTATION:)
 # 	\
 # 	)
 
-site: \
-	$(call def-help,site, generate the hledger.org website with hakyll-std (a generic hakyll script) ) #olddocs
-	-cd doc/site; hakyll build
+doc/site/hakyll-std hakyll-std: \
+	doc/site/hakyll-std.hs \
+	doc/site/TableOfContents.hs \
+	doc/site/hakyll-std.cabal \
+	doc/site/stack.yaml \
+	$(call def-help,hakyll-std, build a generic hakyll site builder script )
+	cd doc/site; stack ghc hakyll-std
 
-site-clean: \
+site: doc/site/hakyll-std \
+	$(call def-help,site, generate the hledger.org website with hakyll-std )
+	-cd doc/site; ./hakyll-std build
+
+site-clean: doc/site/hakyll-std \
 	$(call def-help,site-clean, remove hakyll-generated files (& take down the website) ) #cleanolddocs
-	-cd doc/site; hakyll clean
+	-cd doc/site; ./hakyll-std clean
 #	rm -rf doc/site/_site/*
 
-# XXX hakyll preview/watch mostly don't live-update any more
-site-preview: \
+# XXX hakyll watch & preview mostly don't live-update any more
+site-preview: doc/site/hakyll-std \
 	$(call def-help,site-preview, run a hakyll server to preview the website  ) #doc/site/site
-	cd doc/site; hakyll preview
+	-cd doc/site; ./hakyll-std watch # -h hledger.org
 
 # site-view: site \
 # 	$(call def-help,site-view,\

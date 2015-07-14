@@ -1,0 +1,6 @@
+# stack.yaml for hakyll-std
+extra-deps: []
+resolver: nightly-2015-07-01
+flags: {}
+packages:
+- '.'
