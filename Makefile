@@ -1334,7 +1334,7 @@ Stackclean: \
 
 cleanghco: \
 	$(call def-help-hide,cleanghc, remove ghc build leftovers )
-	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*~" | grep -vE '(virthualenv|cabal-sandbox)'`
+	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*.dyn_o" -o -name "*.dyn_hi" -o -name "*~" | grep -vE '\.(stack-work|cabal-sandbox|virthualenv)'`
 
 cleanghc: cleanghco \
 	$(call def-help-hide,cleanghc, remove ghc builds )
