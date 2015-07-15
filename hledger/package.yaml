@@ -1,0 +1,158 @@
+# hpack specification for generating the cabal file
+# https://github.com/sol/hpack#readme
+# http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
+
+# currently the cabal file will have these limitations (which must be fixed by hand if needed):
+# - does not specify tested-with or extensions or benchmarks
+# - does not allow building in non-threaded mode (for debian)
+# - does not allow building with time < 1.5, and therefore GHC < 7.2.1
+# - does not allow building without pretty-show, and therefore GHC < 7.4.1
+# - does not allow building without threads or curses
+
+name        : hledger
+version     : '0.26'
+stability   : stable
+category    : Finance, Console
+synopsis    : The main command-line interface for the hledger accounting tool.
+description : |
+  hledger is a library and set of user tools for working
+  with financial data (or anything that can be tracked in a
+  double-entry accounting ledger.) It is a haskell port and
+  friendly fork of John Wiegley's Ledger. hledger provides
+  command-line, curses and web interfaces, and aims to be a
+  reliable, practical tool for daily use.
+
+license     : GPL
+author      : Simon Michael <simon@joyful.com>
+maintainer  : Simon Michael <simon@joyful.com>
+github      : simonmichael/hledger
+homepage    : http://hledger.org
+bug-reports : http://hledger.org/bugs
+# XXX not supported
+#tested-with : GHC==7.4.2, GHC==7.6.3, GHC==7.8.4, GHC==7.10.1
+            
+extra-source-files:
+  - CHANGES
+
+# XXX not supported
+# flag threaded
+#     Description:   Build with support for multithreaded execution
+#     Default:       True
+
+# flag curses
+#     Description:   On POSIX systems, enable curses support for auto-detecting terminal width.
+#     Default:       True
+
+# flag old-locale
+#   description: A compatibility flag, set automatically by cabal.
+#                If false then depend on time >= 1.5, 
+#                if true then depend on time < 1.5 together with old-locale.
+#   default: False
+
+dependencies:
+  - hledger-lib == 0.26
+  - base >= 4.3 && < 5
+  - base-compat >= 0.8.1
+  - containers
+  - unordered-containers
+  - cmdargs >= 0.10 && < 0.11
+  - csv
+  - directory
+  - filepath
+  - haskeline >= 0.6 && <= 0.8
+  - HUnit
+  - mtl
+  - mtl-compat
+  - old-time
+  - parsec >= 3
+  - process
+  - regex-tdfa
+  - safe >= 0.2
+  - split >= 0.1 && < 0.3
+  - text >= 0.11
+  - tabular >= 0.2 && < 0.3
+  - utf8-string >= 0.3.5 && < 1.1
+  - wizards == 1.0.*
+# XXX not supported
+# if impl(ghc >= 7.10)
+#   -- ghc 7.10 requires shakespeare 2.0.2.2+
+#   build-depends: shakespeare      >= 2.0.2.2 && < 2.1
+# else
+#   -- for older ghcs, allow shakespeare 1.x (which also requires shakespeare-text)
+#   -- http://www.yesodweb.com/blog/2014/04/consolidation-progress
+#   build-depends:
+#                 shakespeare      >= 1.0 && < 2.1
+#                ,shakespeare-text >= 1.0 && < 1.2
+  - shakespeare >= 2.0.2.2 && < 2.1
+# if !os(windows) && flag(curses)
+#   build-depends: terminfo
+  - terminfo
+# if impl(ghc >= 7.4)
+#   dependencies: pretty-show >= 1.6.4
+  - pretty-show >= 1.6.4
+# if flag(old-locale)
+#   build-depends: time < 1.5, old-locale
+# else
+#   build-depends: time >= 1.5
+  - time >= 1.5
+
+ghc-options:
+  -Wall
+  -fno-warn-unused-do-bind
+  -fno-warn-name-shadowing
+  -fno-warn-missing-signatures
+  -fno-warn-type-defaults
+  -fno-warn-orphans
+
+cpp-options: -DVERSION="0.26"
+
+library:
+  # source-dirs: .  # XXX includes Setup and uncommitted stuff
+  exposed-modules:
+    - Hledger.Cli
+    - Hledger.Cli.Main
+    - Hledger.Cli.Options
+    - Hledger.Cli.Tests
+    - Hledger.Cli.Utils
+    - Hledger.Cli.Version
+    - Hledger.Cli.Add
+    - Hledger.Cli.Accounts
+    - Hledger.Cli.Balance
+    - Hledger.Cli.Balancesheet
+    - Hledger.Cli.Cashflow
+    - Hledger.Cli.Histogram
+    - Hledger.Cli.Incomestatement
+    - Hledger.Cli.Print
+    - Hledger.Cli.Register
+    - Hledger.Cli.Stats
+
+executables:
+  hledger:
+    source-dirs: app
+    main: hledger-cli.hs
+    # if flag(threaded)
+    #   ghc-options:   -threaded
+    ghc-options:
+      -threaded
+    dependencies:
+      - hledger == 0.26
+
+tests:
+  test:
+    source-dirs: test
+    main: test.hs
+    dependencies:
+      - hledger
+      - test-framework
+      - test-framework-hunit
+
+# XXX not supported
+# benchmarks:
+#   bench:
+#     source-dirs: bench
+#     main: bench.hs
+#     dependencies:
+#       - hledger
+#       - criterion
+#       - html
+#       - timeit

@@ -19,7 +19,7 @@ description : |
 category    : Web
 github      : simonmichael/hledger
 homepage    : https://github.com/simonmichael/hledger/blob/master/doc/site/hakyll-std.hs
-author      : Simon Michael
+author      : Simon Michael <simon@joyful.com>
 maintainer  : '-'
 
 dependencies:

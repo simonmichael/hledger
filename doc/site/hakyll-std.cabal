@@ -17,7 +17,7 @@ description:    A simple hakyll website builder suitable for (eg) software-relat
 category:       Web
 homepage:       https://github.com/simonmichael/hledger/blob/master/doc/site/hakyll-std.hs
 bug-reports:    https://github.com/simonmichael/hledger/issues
-author:         Simon Michael
+author:         Simon Michael <simon@joyful.com>
 maintainer:     -
 license:        BSD3
 license-file:   LICENSE

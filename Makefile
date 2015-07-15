@@ -9,7 +9,7 @@
 # Every user-relevant rule in this makefile should use def-help to define
 # a help string. Use "make help" to see the available rules.
 #
-# Supplementary tools:
+# Supplementary tools used:
 #
 # - stack, installs dependencies and drives cabal & ghc
 # - shelltestrunner (latest version from hackage or possibly git), runs functional tests
@@ -17,6 +17,7 @@
 # - profiteur, renders profiles as interactive html
 # - hpack, generates cabal files from package.yaml files
 # - hakyll-std, my generic site-building hakyll script
+# - perl, currently used by a few rules (setversion)
 #
 # Kinds of hledger builds:
 #
@@ -114,8 +115,6 @@ SOURCEFILES:= \
 CABALFILES:= \
 	hledger/hledger.cabal \
 	hledger-*/*.cabal \
-
-CABALFILESFROMHPACK:= \
 	doc/site/hakyll-std.cabal
 
 WEBFILES:= \
@@ -1082,18 +1081,20 @@ setversionforce:\
 	$(call def-help,setversionforce, update all version strings even if $(VERSIONFILE) seems unchanged)
 	touch $(VERSIONFILE); make setversion
 
-hledger-lib/hledger-lib.cabal: $(VERSIONFILE) \
-	$(call def-help-hide,hledger-lib/hledger-lib.cabal, update the version in this file )
+# XXX may need fixing:
+
+hledger-lib/package.yaml: $(VERSIONFILE) \
+	$(call def-help-hide,hledger-lib/package.yaml, update the version in this file )
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
 
-hledger/hledger.cabal: $(VERSIONFILE) \
-	$(call def-help-hide,hledger/hledger.cabal, update the version in this file )
+hledger/package.yaml: $(VERSIONFILE) \
+	$(call def-help-hide,hledger/package.yaml, update the version in this file )
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(^[ ,]*hledger(-lib)? *[>=]=) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
-hledger-web/hledger-web.cabal: $(VERSIONFILE) \
-	$(call def-help-hide,hledger-web/hledger-web.cabal, update the version in this file )
+hledger-web/package.yaml: $(VERSIONFILE) \
+	$(call def-help-hide,hledger-web/package.yaml, update the version in this file )
 	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(^[ ,]*hledger(-lib|-web)? *[>=]=) *.*/\1 $(VERSION)/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
@@ -1277,10 +1278,12 @@ tagrelease: \
 ###############################################################################
 $(call def-help-subsection,MISCELLANEOUS:)
 
-# allow automatic variables in the prerequisites of subsequent rules
+# allow automatic variables (using $$) in the prerequisites of subsequent rules
 .SECONDEXPANSION:
 
-gencabalfiles: $$(CABALFILESFROMHPACK) \
+# XXX enable for all cabal files when hpack is a little better
+# gencabalfiles: $$(CABALFILES)
+gencabalfiles: doc/site/hakyll-std.cabal \
 		$(call def-help,gencabalfiles, regenerate cabal files from their package.yaml definitions )
 
 %.cabal: $$(dir $$@)package.yaml \
