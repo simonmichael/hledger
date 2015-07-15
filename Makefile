@@ -44,9 +44,9 @@ help2: \
 ###############################################################################
 # VARS
 
-# # GHC-compiled executables require a locale (and not just C) or they
-# # will die on encountering non-ascii data. Set LANG to something if not already set.
-# export LANG?=en_US.UTF-8
+# GHC-compiled executables require a locale (and not just C) or they
+# will die on encountering non-ascii data. Set LANG to something if not already set.
+export LANG?=en_US.UTF-8
 
 # # command to run during "make prof" and "make heap"
 # PROFCMD=bin/hledger-prof balance -f data/1000x1000x10.journal >/dev/null
