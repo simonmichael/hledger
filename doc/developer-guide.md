@@ -124,7 +124,7 @@ Relevant tools include:
 
 ### Code reviews
 
-We held a code review party, hopefully the first of many, in July 2014 on the mail list and IRC channel.
+We have so far held one code review party, in July 2014, on the mail list and IRC channel.
 Here's the original [proposal](http://article.gmane.org/gmane.comp.finance.ledger.hledger/1070) giving some motivation, and the discussion logs, note these are a good source of hledger development tips:
 
 - 2014/7/21-25 **hledger-web code & UI**
@@ -151,26 +151,26 @@ Here's the original [proposal](http://article.gmane.org/gmane.comp.finance.ledge
 ## How to..
 
 New contributors of all levels are most welcome.
-Here are some tips/checklists/procedures to help you get productive on the hledger project.
+Here are some tips/suggested procedures to help you get productive on the hledger project.
 
 ### Suggest enhancements
 
-Suggestions and feature requests (aka wishes) are easy to make, and can be valuable,
-but we don't want them to pile up ad infinitum and obscure bugs and
-other developer priorities. Before opening a github issue, consider:
+Suggestions and feature requests (aka wishes) are very welcome, but we
+don't want them to pile up in the issue tracker obscuring bugs and
+higher-priority tasks. So before opening a github issue, first consider:
 
-1. Perhaps discussion is most appropriate at this stage ?
-   [#hledger](irc://irc.freenode.net/#ledger) or the
-   [mail list](http://list.hledger.org) are excellent places for this.
-   Both are archived, so the idea won't be lost.
-2. We have a collection of enhancement ideas on the
-   [trello planning board](http://hledger.org/trello).
-   Perhaps your idea is already there, or you can add it ?
-3. We have bug reports and more wishes in the [bug tracker](http:///bugs.hledger.org).
-   Is your idea already there ?
+1. The [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel on freenode
+   and the [mail list](http://list.hledger.org) (list.hledger.org) are excellent places for discussing and refining ideas.
+   Both are archived and linkable, so the idea won't be lost. IRC is quick (if I'm not online, leave a comment anyway),
+   while the mail list has the most readers.
+2. The [trello board](http://trello.hledger.org) (trello.hledger.org) is a good place
+   for storing and prioritising backlog and wishlist items of all kinds.
+3. The [bug tracker](http:///bugs.hledger.org) (bugs.hledger.org) on github
+   is best used for issues with the existing product or docs. If you're not sure if you're reporting
+   a bug or not, it's fine to post it here.
 
-When a wish does land in the bug tracker, it gets the WISH label,
-and the default view given by [bugs.hledger.org](http://bugs.hledger.org) excludes these.
+When wishes land in the bug tracker, they get the WISH label, and
+these are excluded from the default view given by bugs.hledger.org.
 
 ### Report problems
 
