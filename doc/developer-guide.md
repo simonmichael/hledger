@@ -255,9 +255,36 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 
 ### Run the tests
 
-- set up for hledger development
-- cabal install shelltestrunner
-- make test
+This command will install haskell dependencies (you might need to
+install additional system dependencies yourself) and run the package
+test suites.  Currently these consist of hledger-lib's unit tests,
+hledger's unit tests, and hledger-web's functional tests:
+
+```shell
+$ stack test [PKG]
+```
+
+Run the hledger-lib and hledger unit tests as a built-in hledger command:
+```shell
+$ [stack exec] hledger test
+```
+
+Run the hledger functional tests:
+```{.shell .bold}
+$ stack install shelltestrunner  # if not already done
+$ make functest
+```
+
+Run both unit and functional tests:
+```{.shell .bold}
+$ make test
+```
+
+Test haddock doc generation:
+```shell
+$ make haddocktest
+```
+
 
 ### Add a test
 
