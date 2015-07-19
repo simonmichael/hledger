@@ -253,6 +253,53 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 - set up for hledger development
 - send patches with names prefixed with "doc: " (or "site: ")
 
+### Use the REPL (GHCI)
+
+These all work from the main hledger source directory (at least).
+
+First, ensure all required dependencies are installed with these
+commands. (You might also need to install some system libs like
+terminfo or curses.)
+
+```{.shell .bold}
+$ stack test
+$ stack bench
+```
+
+Get a GHCI prompt for hledger-lib:
+```{.shell .bold}
+$ stack ghci hledger-lib
+```
+
+Get a GHCI prompt for hledger:
+```{.shell .bold}
+$ stack ghci hledger
+```
+
+Get a GHCI prompt for hledger-web:
+```{.shell .bold}
+$ stack ghci hledger-web
+```
+hledger-web also needs to find some things in its current directory (like the static/ directory).
+This normally just works, if not please [send details](https://github.com/simonmichael/hledger/issues/274).
+
+Get a GHCI prompt for hledger and hledger-lib:
+```{.shell .bold}
+$ make ghci
+```
+
+Get a GHCI prompt for hledger-web, hledger and hledger-lib:
+```{.shell .bold}
+$ make ghci-web
+```
+
+<!--
+For the dev.hs developer script:
+```{.shell .bold}
+$ make ghci-dev
+```
+-->
+
 ### Run the tests
 
 This command will install haskell dependencies (you might need to
