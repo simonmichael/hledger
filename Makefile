@@ -69,7 +69,7 @@ export LANG?=en_US.UTF-8
 # PRINT=lpr
 
 GHC=ghc
-# GHCI=ghci
+GHCI=ghci
 # GHCPKG=ghc-pkg
 # HADDOCK=haddock
 # CABAL=cabal
@@ -139,10 +139,10 @@ VERSIONFILE=.version
 # two or three-part version string, whatever's in VERSION
 VERSION:=$(shell cat $(VERSIONFILE))
 
-# # the number of commits since the last tag
-# PATCHLEVEL:=$(shell git describe --long | awk -F - '{print $$2}')
-# # the number of commits since the last_release tag
-# #PATCHLEVEL:=$(shell git rev-list last_release..HEAD | wc -l)
+# the number of commits since the last tag
+PATCHLEVEL:=$(shell git describe --long | awk -F - '{print $$2}')
+# the number of commits since the last_release tag
+#PATCHLEVEL:=$(shell git rev-list last_release..HEAD | wc -l)
 
 # flags for ghc builds
 
@@ -773,13 +773,13 @@ cabalfiletest: \
 # 	$(call def-help,repl-web, start a cabal REPL and load the hledger-web package)
 # 	(cd hledger-web; cabal repl exe:hledger-web)
 
-# ghci: \
-# 	$(call def-help,ghci, start a sandbox-aware GHCI REPL and load the hledger-lib and hledger packages)
-# 	cabal exec $(GHCI) -- $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
+ghci: \
+	 	$(call def-help,ghci, start a GHCI REPL and load the hledger-lib and hledger packages)
+	stack exec $(GHCI) -- $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
 
-# ghci-web: \
-# 	$(call def-help,ghci-web, start a sandbox-aware GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
-# 	cabal exec $(GHCI) -- $(BUILDFLAGS) hledger-web/app/main.hs
+ghci-web: \
+		$(call def-help,ghci-web, start a GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
+	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-web/app/main.hs
 
 # samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/1000x10000x10.journal data/10000x1000x10.journal data/10000x10000x10.journal data/100000x1000x10.journal \
 # 	$(call def-help,samplejournals,\
