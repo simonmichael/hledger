@@ -4,6 +4,9 @@
 
 # Developer guide
 
+Contributors of all levels are most welcome in the hledger project.
+This guide is action-oriented: below you'll find useful links, then procedures, then general info.
+
 ## Quick links
 
 <style>
@@ -68,90 +71,10 @@ libghc-hledger-lib-prof
 -->
 
 
-## Project overview
-
-A rough overview/blueprint for the hledger project.
-
-### Mission, principles, goals
-
-The hledger project aims to produce:
-
-- a practical, accessible, dependable tool for end users
-- a useful library and toolbox for finance-minded haskell programmers
-- a successful, time-and-money-solvent project within a thriving ecosystem of financial software projects.
-
-### Roles and activities
-
-- newcomer/potential user
-- user
-- library user
-- field tester
-- bug wrangler
-- support
-- documentor
-- qa
-- developer
-- packager
-- communicator
-- project manager
-
-### Documentation
-
-Project documentation lives in a number of places:
-
-- `doc/*.md` and `doc/site/*.md` form the hledger.org website, which is generated with hakyll[-std] and pandoc
-- haddock documentation in the code appears on Hackage
-- short blurbs: cabal files, module headers, HCAR, GSOC project, ..
-- `doc/notes.org` has some old developer notes
-- developer reports (profiles, benchmarks, coverage..) in doc/profs, sometimes published at hledger.org/profs
-
-### Code
-
-The hledger repo is hosted on Github, at <http://github.com/simonmichael/hledger>.
-You can also jump there via `code.hledger.org[/commits]`.
-
-### Quality control
-
-Relevant tools include:
-
-- unit tests (HUnit, make unittest)
-- functional tests (shelltestrunner, make functest)
-- performance tests (simplebench, make bench)
-- documentation tests (make haddocktest + manual)
-- ui tests (manual)
-- installation tests (manual)
-- code reviews
-
-### Code reviews
-
-We have so far held one code review party, in July 2014, on the mail list and IRC channel.
-Here's the original [proposal](http://article.gmane.org/gmane.comp.finance.ledger.hledger/1070) giving some motivation, and the discussion logs, note these are a good source of hledger development tips:
-
-- 2014/7/21-25 **hledger-web code & UI**
-  [mail thread](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1070),
-  [IRC log](http://hledger.org/static/irc-20140725-code-review.html)
-
-
-<!-- ### release process -->
-
-<!-- ### roadmap -->
-
-<!-- ### communication and collaboration -->
-
-<!-- ### web presence and hosting setup -->
-
-<!-- ### finances and other resources -->
-
-<!-- ### licensing and legal issues -->
-
-<!-- ### contributors and credits -->
-
-
-
 ## How to..
 
-New contributors of all levels are most welcome.
-Here are some tips/suggested procedures to help you get productive on the hledger project.
+Here are some suggested procedures to help us all quickly (re)engage
+with the project and get things done.
 
 ### Suggest enhancements
 
@@ -174,9 +97,13 @@ these are excluded from the default view given by bugs.hledger.org.
 
 ### Report problems
 
-- check for related issues in the [bug tracker](http:///bugs.hledger.org) or in the [mail list archive](http://list.hledger.org)
-- discuss/confirm the issue on irc or list
-- report new issues in the bug tracker
+- for quick help or if you're not sure about the problem,
+  you can ask on the [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel
+  or the [mail list](http://list.hledger.org) (list.hledger.org).
+  If #hledger does not respond quickly, you can leave the window open and check back later, or leave your email address.
+- check the open and closed issues in the [bug tracker](http://bugs.hledger.org) (bugs.hledger.org). Sometimes the problem has been fixed in git but not yet released.
+- report new issues in the bug tracker (shortcut: [bugs.hledger.org/new](http://bugs.hledger.org/new))
+
 <!-- - test and share problem journal snippets at paste . hledger.org -->
 
 ### Help with testing
@@ -514,6 +441,84 @@ don't run make setversion.
 11. announce
     - [email hledger]
     - [tweet]
+
+
+## Project overview
+
+### Mission, principles, goals
+
+The hledger project aims to produce:
+
+- a practical, accessible, dependable tool for end users
+- a useful library and toolbox for finance-minded haskell programmers
+- a successful, time-and-money-solvent project within a thriving ecosystem of financial software projects.
+
+### Roles and activities
+
+- newcomer/potential user
+- user
+- library user
+- field tester
+- bug wrangler
+- support
+- documentor
+- qa
+- developer
+- packager
+- communicator
+- project manager
+
+### Documentation
+
+Project documentation lives in a number of places:
+
+- `doc/*.md` and `doc/site/*.md` form the hledger.org website, which is generated with hakyll[-std] and pandoc
+- haddock documentation in the code appears on Hackage
+- short blurbs: cabal files, module headers, HCAR, GSOC project, ..
+- `doc/notes.org` has some old developer notes
+- developer reports (profiles, benchmarks, coverage..) in doc/profs, sometimes published at hledger.org/profs
+
+### Code
+
+The hledger repo is hosted on Github, at <http://github.com/simonmichael/hledger>.
+You can also jump there via `code.hledger.org[/commits]`.
+
+### Quality control
+
+Relevant tools include:
+
+- unit tests (HUnit, make unittest)
+- functional tests (shelltestrunner, make functest)
+- performance tests (simplebench, make bench)
+- documentation tests (make haddocktest + manual)
+- ui tests (manual)
+- installation tests (manual)
+- code reviews
+
+### Code reviews
+
+We have held one code review party, in July 2014, on the mail list and IRC channel.
+Here's the original [proposal](http://article.gmane.org/gmane.comp.finance.ledger.hledger/1070) giving some motivation, and the discussion logs, note these are a good source of hledger development tips:
+
+- 2014/7/21-25 **hledger-web code & UI**
+  [mail thread](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1070),
+  [IRC log](http://hledger.org/static/irc-20140725-code-review.html)
+
+
+<!-- ### release process -->
+
+<!-- ### roadmap -->
+
+<!-- ### communication and collaboration -->
+
+<!-- ### web presence and hosting setup -->
+
+<!-- ### finances and other resources -->
+
+<!-- ### licensing and legal issues -->
+
+<!-- ### contributors and credits -->
+
 
 
 ## Implementation notes
