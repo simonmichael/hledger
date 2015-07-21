@@ -26,6 +26,7 @@ extra-tmp-files:
 extra-source-files: 
                     test/test.hs
                     CHANGES
+                    README.md
 
 source-repository head
   type:     git
