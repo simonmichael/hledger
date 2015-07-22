@@ -1,0 +1,31 @@
+#!/usr/bin/env python
+# runhledgercov "HPCCOMMAND [HPCARGS]" [HLEDGERARGS]
+#
+# A front-end that resets the tix count, runs hledgercov (the HPC-enabled build)
+# with the specified hledger args, and runs hpc with the specified hpc args.
+# Should be run from hledger's top source directory.
+#
+# Eg:
+# hledger$ tools/runhledgercov report test
+# hledger$ tools/runhledgercov "markup --destdir=coverage" test 'some unit test'
+
+hledgercov="hledgercov"
+verbosity = 0  # 0=no output, 1=stderr only, 2=stdout+stderr
+
+import sys, os
+
+hpcargs, hledgerargs = sys.argv[1], ' '.join(sys.argv[2:])
+
+# remove old tix files
+os.system("rm -f %s.tix" % hledgercov)
+
+# run the hpc-enabled binary with the specified hledger arguments to generate tix files
+if verbosity<1:
+    os.system("bin/%s %s >/dev/null 2>&1" % (hledgercov,hledgerargs))
+elif verbosity==1:
+    os.system("bin/%s %s >/dev/null" % (hledgercov,hledgerargs))
+else:
+    os.system("bin/%s %s" % (hledgercov,hledgerargs))
+
+# run the specified hpc command on the tix files
+os.system("hpc %s %s" % (hpcargs,hledgercov))
