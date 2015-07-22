@@ -1,5 +1,10 @@
 # Download
 
+<div style="float:right; text-align:right; white-space:nowrap; ">
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5J33NLXYXCYAY"><img border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt="paypal"></a> 
+<a href="https://flattr.com/submit/auto?user_id=simonmichael&url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a> 
+<script data-gratipay-username="simonmichael" data-gratipay-widget="button" src="//grtp.co/v1.js"></script> 
+</div>
 ## I want to download and run a recent release
 <!-- <sub>(If the download is out of date or doesn't run on my system, I might troubleshoot or donate to fund improvements)</sub> -->
 
@@ -36,8 +41,9 @@ Use cabal
  **I'm on Windows**\
  <!-- [windows install guide](windows-install.html)\ -->
  Download, unzip, and run:\
- [hledger-0.25.windows.zip](http://hledger.org/downloads/hledger-0.25-windows.zip)\
- [hledger-web-0.25.windows.zip](http://hledger.org/downloads/hledger-web-0.25-windows.zip)
+ [hledger-0.26-win64.zip](http://hledger.org/downloads/hledger-0.26-win64.zip)
+  (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.zip))\
+ [hledger-web-0.26-win64.zip](http://hledger.org/downloads/hledger-web-0.26-win64.zip)
 
  </td>
  <td width="25%">
@@ -46,22 +52,19 @@ Use cabal
  <!-- [mac install guide](mac-install.html)\ -->
  <!-- [hledger.mac.zip]()\ -->
  <!-- [hledger-web.mac.zip]()\ -->
- Use cabal (see below)
+ Use stack or cabal (see below)
 
  </td>
  </tr>
  <tr>
  <td colspan="2" style="padding-left:1em;padding-right:2em;">
 
- <div style="margin-left:1em; margin-right:1em; float:right;">
-<a href="https://flattr.com/submit/auto?user_id=simonmichael&url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a> <br>
-<script data-gratipay-username="simonmichael" data-gratipay-widget="button" src="//grtp.co/v1.js"></script> <br>
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5J33NLXYXCYAY"><img border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt="paypal"></a> <br>
- </div>
+<!--
  Building and supporting Windows and Mac binaries is costly, so
  it's demand-driven - you can indicate demand by making a project
  donation of any size. Binaries funded in this way will be linked here.
  This is a quick way to help the project and your fellow users!
+-->
 
  </td>
  </tr>
