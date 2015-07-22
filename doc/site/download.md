@@ -5,12 +5,12 @@
 <a href="https://flattr.com/submit/auto?user_id=simonmichael&url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a> 
 <script data-gratipay-username="simonmichael" data-gratipay-widget="button" src="//grtp.co/v1.js"></script> 
 </div>
-## I want to download and run a recent release
+## I want to download and run
 <!-- <sub>(If the download is out of date or doesn't run on my system, I might troubleshoot or donate to fund improvements)</sub> -->
 
-<table>
+<table width="100%">
 <tr valign="top">
-<td width="50%">
+<td width="33%">
 **I'm on Debian or Ubuntu**\
 `apt-get install hledger hledger-web`
 
@@ -33,11 +33,10 @@ Use cabal
 -->
 
 </td>
-<td width="50%">
- <table border=0 cellspacing=0 cellpadding=0>
- <tr valign=top>
- <td width="50%">
-
+<td width="33%">
+ <!-- <table border=0 cellspacing=0 cellpadding=0> -->
+ <!-- <tr valign=top> -->
+ <!-- <td width="50%"> -->
  **I'm on Windows**\
  <!-- [windows install guide](windows-install.html)\ -->
  Download, unzip, and run:\
@@ -46,8 +45,7 @@ Use cabal
  [hledger-web-0.26-win64.zip](http://hledger.org/downloads/hledger-web-0.26-win64.zip)
 
  </td>
- <td width="25%">
-
+ <td width="33%">
  **I'm on Mac**\
  <!-- [mac install guide](mac-install.html)\ -->
  <!-- [hledger.mac.zip]()\ -->
@@ -56,8 +54,8 @@ Use cabal
 
  </td>
  </tr>
- <tr>
- <td colspan="2" style="padding-left:1em;padding-right:2em;">
+ <!-- <tr> -->
+ <!-- <td colspan="2" style="padding-left:1em;padding-right:2em;"> -->
 
 <!--
  Building and supporting Windows and Mac binaries is costly, so
@@ -66,14 +64,14 @@ Use cabal
  This is a quick way to help the project and your fellow users!
 -->
 
- </td>
- </tr>
+ <!-- </td> -->
+ <!-- </tr> -->
  </table>
 </td>
 </tr>
 </table>
 
-## I want to build the [latest release](http://hackage.haskell.org/package/hledger):
+## I want to build the [latest release](http://hackage.haskell.org/package/hledger)
 
 Recommended:
 
@@ -85,7 +83,7 @@ Recommended:
 
 3. `stack --resolver nightly-2015-07-13 install hledger`
 
-    (on windows, stack [can't](https://github.com/commercialhaskell/stack/issues/661) install the latest hledger-web yet. `stack install hledger-web-0.24.1` will install an older version)
+    (on windows, stack [can't](https://github.com/commercialhaskell/stack/issues/661) install the latest hledger-web yet)
 
 Or:
 
