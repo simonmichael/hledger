@@ -61,10 +61,10 @@ PROFRTSFLAGS=-P
 # # executables to run during "make simplebench"
 # BENCHEXES=hledger-0.23.3 hledger
 
-# # misc. tools
-# BROWSE=open
+# misc. system tools
+BROWSE=open
 # VIEWHTML=$(BROWSE)
-# VIEWPS=$(BROWSE)
+VIEWPS=$(BROWSE)
 # VIEWPDF=$(BROWSE)
 # PRINT=lpr
 
@@ -699,7 +699,7 @@ cabalfiletest: \
 # 	tools/simplifyprof.hs doc/profs/latest.prof
 
 quickprof-%: hledgerprof samplejournals \
-		$(call def-help,quickprof-"CMD", profile some command against a sample journal and display the execution profile )
+		$(call def-help,quickprof-"CMD", run some command against a sample journal and display the execution profile )
 	stack exec -- hledgerprof +RTS $(PROFRTSFLAGS) -RTS $* -f data/10000x1000x10.journal >/dev/null
 	profiteur hledgerprof.prof
 	@echo
@@ -724,14 +724,12 @@ quickprof-%: hledgerprof samplejournals \
 # 	)
 # 	$(VIEWPS) doc/profs/latest.ps
 
-# quickheap: samplejournals \
-# 	$(call def-help,quickheap,\
-# 	generate and display a graphical heap profile, dont save\
-# 	) #bin/hledgerprof
-# 	@echo "Profiling heap with: $(PROFCMD)"
-# 	$(PROFCMD) +RTS -hc -RTS
-# 	hp2ps hledgerprof.hp
-# 	$(VIEWPS) hledger.ps
+quickheap-%: hledgerprof samplejournals \
+		$(call def-help,quickheap-"CMD", run some command against a sample journal and display the heap profile )
+	stack exec -- hledgerprof +RTS -hc -RTS $* -f data/10000x1000x10.journal >/dev/null
+	hp2ps hledgerprof.hp
+	@echo generated hledgerprof.ps
+	$(VIEWPS) hledgerprof.ps
 
 # quickcoverage: hledgercov \
 # 	$(call def-help,quickcoverage,\
