@@ -74,8 +74,15 @@ Use cabal
 
 Recommended:
 
-1. Download and install [stack](https://github.com/commercialhaskell/stack/wiki/Downloads)
-2. `stack --resolver nightly-2015-07-13 install hledger [hledger-web]`
+1. Download and install [stack](https://github.com/commercialhaskell/stack/wiki/Downloads) (on windows, choose the 64-bit version if you will be processing [large data](https://github.com/simonmichael/hledger/issues/275))
+
+2. `stack --resolver nightly-2015-07-13 setup`
+
+    (if you need GHC, eg on windows. If you're not sure, run the next command and it will tell you)
+
+3. `stack --resolver nightly-2015-07-13 install hledger`
+
+    (on windows, stack [can't](https://github.com/commercialhaskell/stack/issues/661) install the latest hledger-web yet. `stack install hledger-web-0.24.1` will install an older version)
 
 Or:
 
