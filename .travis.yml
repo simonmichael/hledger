@@ -4,7 +4,7 @@ sudo: false
 cache:
   directories:
   - $HOME/.stack/
-  - $HOME/.stack-work/
+  # - "$HOME/.stack-work/"
 
 before_install:
 - mkdir -p ~/.local/bin
