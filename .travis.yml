@@ -13,11 +13,11 @@ before_install:
 - chmod a+x ~/.local/bin/stack
 
 install:
-  - stack --no-terminal setup
-  - stack --no-terminal build --only-snapshot
+  - stack setup
+  - stack build --only-snapshot
 
 script:
-  - stack --no-terminal test
+  - stack test
 
 # coveralls.io coverage reports
 # after_script:
