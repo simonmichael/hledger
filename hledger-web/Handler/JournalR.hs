@@ -34,7 +34,7 @@ getJournalR = do
   hledgerLayout vd "journal" [hamlet|
        <h2#contenttitle>#{title}
        <!-- p>Journal entries record movements of commodities between accounts. -->
-       <a#addformlink role="button" style="cursor:pointer;" data-toggle="modal" data-target="#addmodal"  title="Add a new transaction to the journal" style="margin-top:1em;">Add a transaction
+       <a#addformlink role="button" style="cursor:pointer;" onClick="addformReset(true);" data-toggle="modal" data-target="#addmodal"  title="Add a new transaction to the journal" style="margin-top:1em;">Add a transaction
        ^{maincontent}
      |]
 
