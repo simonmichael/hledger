@@ -31,7 +31,7 @@ notifications:
     on_success: change # [always|never|change] default: always
     on_failure: change # default: always
     use_notice: true
-    #skip_join: true
+    skip_join: true
     # If you enable skip_join, remember to remove the NO_EXTERNAL_MSGS flag (n) on the IRC channel(s) the bot notifies.
     template:
       - "%{commit}: %{message} %{build_url}"
