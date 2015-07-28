@@ -25,3 +25,5 @@ Though limited in features, hledger is lightweight, usable and reliable.
 For some, it is a simpler, less distracting, more future-proof alternative to Quicken or GnuCash.
 
 For more, see http://hledger.org.
+
+[![Build Status](https://travis-ci.org/simonmichael/hledger.svg?branch=master)](https://travis-ci.org/simonmichael/hledger)
