@@ -1,0 +1,19 @@
+language: haskell
+
+sudo: false
+cache:
+  directories:
+  - $HOME/.stack/
+
+before_install:
+- mkdir -p ~/.local/bin
+- export PATH=~/.local/bin:$PATH
+- travis_retry curl -L https://github.com/commercialhaskell/stack/releases/download/v0.1.1.0/stack-0.1.1.0-x86_64-linux.gz | gunzip > ~/.local/bin/stack
+- chmod a+x ~/.local/bin/stack
+
+install:
+  - stack setup --no-terminal
+  - stack build --only-snapshot --no-terminal
+
+script:
+  - stack build --no-terminal
