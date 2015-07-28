@@ -17,3 +17,54 @@ install:
 
 script:
   - stack build --no-terminal
+
+notifications:
+
+  # email:
+  #   recipients:
+  #     - one@example.com
+  #     - other@example.com
+  #   on_success: [always|never|change] # default: change
+  #   on_failure: [always|never|change] # default: always
+
+  irc:
+    channels:
+      - "chat.freenode.net#hledger"
+    on_success: change # [always|never|change] default: always
+    on_failure: change # default: always
+    use_notice: true
+
+    # You can interpolate the following variables:
+    #     repository_slug: your GitHub repo identifier (like svenfuchs/minimal)
+    #     repository_name: the slug without the username
+    #     repository: same as repository_slug [Deprecated]
+    #     build_number: build number
+    #     build_id: build id
+    #     branch: branch build name
+    #     commit: shortened commit SHA
+    #     author: commit author name
+    #     commit_message: commit message of build
+    #     commit_subject: first line of the commit message
+    #     result: result of build
+    #     message: travis message to the build
+    #     duration: duration of the build
+    #     compare_url: commit change view URL
+    #     build_url: URL of the build detail
+    # The default template is:
+    # notifications:
+    #   irc:
+    #     template:
+    #       - "%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}"
+    #       - "Change view : %{compare_url}"
+    #       - "Build details : %{build_url}"
+    template:
+      - "%{repository_name} (%{commit}) : %{message} %{build_url}""
+
+    # If you enable skip_join, remember to remove the NO_EXTERNAL_MSGS flag (n) on the IRC channel(s) the bot notifies.
+    # If you want the bot to send messages to channels protected with a channel key (ie, set with /mode #channel +k password), you can use the channel_key variable:
+    # notifications:
+    #   irc:
+    #     channels:
+    #       - "irc.freenode.org#my-channel"
+    #     channel_key: 'password'
+    #skip_join: true
