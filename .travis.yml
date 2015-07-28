@@ -16,7 +16,8 @@ install:
   - stack build --only-snapshot --no-terminal
 
 script:
-  - stack build --no-terminal
+  #- stack build --no-terminal
+  - stack test --no-terminal
 
 notifications:
 
