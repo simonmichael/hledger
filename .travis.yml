@@ -59,7 +59,7 @@ notifications:
     #       - "Change view : %{compare_url}"
     #       - "Build details : %{build_url}"
     template:
-      - "%{repository_name} (%{commit}) : %{message} %{build_url}""
+      - "%{repository_name} (%{commit}) : %{message} %{build_url}"
 
     # If you enable skip_join, remember to remove the NO_EXTERNAL_MSGS flag (n) on the IRC channel(s) the bot notifies.
     # If you want the bot to send messages to channels protected with a channel key (ie, set with /mode #channel +k password), you can use the channel_key variable:
