@@ -4,6 +4,7 @@ sudo: false
 cache:
   directories:
   - $HOME/.stack/
+  - $HOME/.stack-work/
 
 before_install:
 - mkdir -p ~/.local/bin
@@ -12,12 +13,13 @@ before_install:
 - chmod a+x ~/.local/bin/stack
 
 install:
-  - stack setup --no-terminal
-  - stack build --only-snapshot --no-terminal
+  - stack --no-terminal --skip-ghc-check setup
+  - stack --no-terminal --skip-ghc-check build --only-snapshot
+  # testing: where are we now ?
+  - pwd
 
 script:
-  #- stack build --no-terminal
-  - stack test --no-terminal
+  - stack --no-terminal --skip-ghc-check test
 
 notifications:
 
