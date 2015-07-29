@@ -116,6 +116,7 @@ exposed as reusable Haskell
 easy to write your own hledger-compatible
 [scripts](more-docs.html#scripting-examples), [add-ons](manual.html#add-ons) and
 applications.
+&nbsp;&nbsp;[![build status (travis)](https://travis-ci.org/simonmichael/hledger.svg?branch=master)](https://travis-ci.org/simonmichael/hledger)
 </div>
 
 <div class="indent0">
