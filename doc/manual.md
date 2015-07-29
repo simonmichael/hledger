@@ -2423,9 +2423,9 @@ Here are some issues you might encounter when you run hledger
 [bug tracker](http://bugs.hledger.org)):
 
 **Successfully installed, but "No command 'hledger' found"**  
-cabal installs binaries into a special directory, which should be added
-to your PATH environment variable.  On unix-like systems, it is
-~/.cabal/bin.
+stack and cabal install binaries into a special directory, which
+should be added to your PATH environment variable.  On unix-like
+systems, it is ~/.local/bin and ~/.cabal/bin respectively.
 
 **"Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**  
 In order to handle non-ascii letters and symbols (like £), hledger needs
@@ -2475,35 +2475,23 @@ accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
 
 #### Known limitations
 
-Here are some things to be aware of.
+**Command line interface**
 
-**Add-on-specific options must follow --**  
+Add-on command options, unless they are also understood by the main
+hledger executable, must be written after `--`, like this:
+`hledger web -- --server`
 
-When invoking an add-on via hledger, add-on flags which are not also
-understood by the main hledger executable must have a `--` argument
-preceding them. Eg hledger-web's `--server` flag must be used like so:
-`hledger web -- --server`.
+**Differences from Ledger**
 
-**-w/--width and --debug options must be written without whitespace**  
+Not all of Ledger's journal file syntax is supported. See [file format differences](faq#file-format-differences).
 
-Up to hledger 0.23, these optional-value flags [did not work](https://github.com/simonmichael/hledger/issues/149) with whitespace between the flag and value.
-IE these worked: `--debug`, `-w`, `--debug=2`, `-w100`, but these did not: `--debug 2`, `-w 100`.
-From 0.24, a value is required and the whitespace does not matter.
+hledger is slower than Ledger, and uses more memory, on large data files.
 
-**Not all of Ledger's journal file syntax is supported**  
+**Windows limitations**
 
-See [file format differences](faq#file-format-differences).
+In a windows CMD window, non-ascii characters and colours are not supported.
 
-**balance is less speedy than Ledger's on large data files**  
+In a windows Cygwin/MSYS/Mintty window, the tab key is not supported in hledger add.
 
-hledger's balance command (in particular) takes more time, and uses more memory, than Ledger's.
-This becomes more noticeable with large data files.
 
-**Windows CMD.EXE**  
-
-Non-ascii characters and colours are not supported.
-
-**Windows cygwin/msys/mintty**  
-
-The tab key is not supported in hledger add.
 
