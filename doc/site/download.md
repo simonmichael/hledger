@@ -2,8 +2,10 @@
 
 <div style="float:right; text-align:right; white-space:nowrap; ">
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5J33NLXYXCYAY"><img border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt="paypal"></a> 
-<a href="https://flattr.com/submit/auto?user_id=simonmichael&url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a> 
+<a style="margin-left:3px;" href="https://flattr.com/submit/auto?user_id=simonmichael&url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a> 
+<div style="display:inline-block; position:relative; top:5px;">
 <script data-gratipay-username="simonmichael" data-gratipay-widget="button" src="//grtp.co/v1.js"></script> 
+</div>
 </div>
 ## I want to download and run
 <!-- <sub>(If the download is out of date or doesn't run on my system, I might troubleshoot or donate to fund improvements)</sub> -->
@@ -87,9 +89,11 @@ This is a quick way to help the project and your fellow users!
 
 **[Release notes](release-notes.html)**
 
-Recommended:
+Using stack (easiest, recommended):
 
-1. Download and install [stack](https://github.com/commercialhaskell/stack/wiki/Downloads) (on windows, choose the 64-bit version if you will be processing [>50k transactions](https://github.com/simonmichael/hledger/issues/275))
+1. Download and install [stack](https://github.com/commercialhaskell/stack/wiki/Downloads)
+
+    (on windows, choose the 64-bit version if you will be processing [>50k transactions](https://github.com/simonmichael/hledger/issues/275))
 
 2. `stack --resolver nightly-2015-07-13 setup`
 
@@ -99,15 +103,15 @@ Recommended:
 
     (on windows, stack [can't](https://github.com/commercialhaskell/stack/issues/661) install the latest hledger-web yet)
 
-Or:
+Using cabal:
 
 1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html)
-2. `cabal install alex happy`    *(if these are not already in your PATH)*
-3. `cabal update`
+2. `cabal update`
+3. `cabal install alex happy`    *(if these are not already in your PATH)*
 4. `cabal sandbox init`
 5. `cabal install hledger[-web]`
 
-## I want to build the [latest master branch](https://github.com/simonmichael/hledger/commits/master)
+## I want to build the latest [master branch](https://github.com/simonmichael/hledger/commits/master)
 
 1. `git clone https://github.com/simonmichael/hledger.git` (shortcut: `git clone code.hledger.org hledger`)
 2. `cd hledger`
