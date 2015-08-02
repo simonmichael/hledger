@@ -1149,7 +1149,7 @@ A query term can be any of the following:
 `depth:N`                          match (or display, depending on command) accounts at or above this [depth](#depth-limiting)
 
 \                                  \
-`real:`/`real:1`, `real:0`         match real or [virtual](#virtual-postings) postings respectively
+`real:`, `real:0`                  match real or [virtual](#virtual-postings) postings respectively
 
 \                                  \
 `status:*`, `status:!`, `status:`  match cleared, pending, or uncleared/pending transactions respectively
@@ -1159,7 +1159,7 @@ A query term can be any of the following:
 \                                  \
 `tag:REGEX[=REGEX]`                match by [tag](#tags) name, and optionally also by tag value.
 \                                  Note a `tag:` query is considered to match a transaction if it matches any of the postings.
-\                                  Also remember that postings inherit all of their parent transaction's tags.
+\                                  Also remember that postings inherit the tags of their parent transaction.
 
 \                                  \
 `not:`                             before any of the above negates the match.
