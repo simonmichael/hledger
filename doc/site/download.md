@@ -50,7 +50,7 @@ Use stack or cabal (see below)
 </td></tr>
 
 <tr><td>
-**on Red Hat, Fedora or CentOS**
+**on Fedora**
 </td><td>
 `yum install hledger hledger-web`
 </td></tr>
