@@ -23,6 +23,3 @@ set -euo pipefail
 # appropriate for your application.
 apt-get update
 apt-get install -y haskell-platform libncurses-dev
-mkdir /var/lib/hledger
-touch /var/lib/hledger/ledger.dat
-chown -R vagrant.vagrant /var/lib/hledger
