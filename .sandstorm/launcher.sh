@@ -30,4 +30,5 @@ set -euo pipefail
 # appropriate for your application.
 mkdir -p /var/lib/hledger
 touch /var/lib/hledger/ledger.dat
-/home/vagrant/.cabal/bin/hledger-web --server -f /var/lib/hledger/ledger.dat --port 8000
+cd /var
+hledger-web --server -f /var/lib/hledger/ledger.dat --port 8000
