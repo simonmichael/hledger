@@ -20,4 +20,4 @@ set -euo pipefail
 # By default, this script does nothing.  You'll have to modify it as
 # appropriate for your application.
 cabal update
-cabal install hledger-web-0.26
+cabal install  --root-cmd=sudo --global --prefix=/usr/local hledger-web

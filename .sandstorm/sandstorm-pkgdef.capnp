@@ -76,6 +76,6 @@ const myCommand :Spk.Manifest.Command = (
   argv = ["/sandstorm-http-bridge", "8000", "--", "/opt/app/.sandstorm/launcher.sh"],
   environ = [
     # Note that this defines the *entire* environment seen by your app.
-    (key = "PATH", value = "/usr/local/bin:/usr/bin:/bin:/home/vagrant/.cabal/bin")
+    (key = "PATH", value = "/usr/local/bin:/usr/bin:/bin")
   ]
 );
