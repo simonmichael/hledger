@@ -52,7 +52,7 @@ Use stack or cabal (see below)
 <tr><td>
 **on Fedora**
 </td><td>
-`yum install hledger hledger-web`
+`yum install hledger`
 </td></tr>
 
 <tr><td>
