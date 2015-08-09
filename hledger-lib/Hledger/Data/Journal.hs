@@ -487,17 +487,19 @@ journalBalanceTransactions j@Journal{jtxns=ts, jcommoditystyles=ss} =
                                     Left e    -> Left e
       where balance = balanceTransaction (Just ss)
 
--- | Convert all the journal's posting amounts (not price amounts) to
--- their canonical display settings. Ie, all amounts in a given
--- commodity will use (a) the display settings of the first, and (b)
--- the greatest precision, of the posting amounts in that commodity.
+-- | Convert all the journal's posting amounts (and historical price
+-- amounts, but currently not transaction price amounts) to their
+-- canonical display settings. Ie, all amounts in a given commodity
+-- will use (a) the display settings of the first, and (b) the
+-- greatest precision, of the posting amounts in that commodity.
 journalCanonicaliseAmounts :: Journal -> Journal
-journalCanonicaliseAmounts j@Journal{jtxns=ts} = j''
+journalCanonicaliseAmounts j@Journal{jtxns=ts, historical_prices=hps} = j''
     where
-      j'' = j'{jtxns=map fixtransaction ts}
+      j'' = j'{jtxns=map fixtransaction ts, historical_prices=map fixhistoricalprice hps}
       j' = j{jcommoditystyles = canonicalStyles $ dbg8 "journalAmounts" $ journalAmounts j}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
+      fixhistoricalprice hp@HistoricalPrice{hamount=a} = hp{hamount=fixamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
       fixamount a@Amount{acommodity=c} = a{astyle=journalCommodityStyle j' c}
 
