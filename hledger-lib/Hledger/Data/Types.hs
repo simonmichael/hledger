@@ -180,7 +180,7 @@ data HistoricalPrice = HistoricalPrice {
       hdate :: Day,
       hcommodity :: Commodity,
       hamount :: Amount
-    } deriving (Eq,Typeable,Data) -- & Show (in Amount.hs)
+    } deriving (Eq,Ord,Typeable,Data) -- & Show (in Amount.hs)
 
 type Year = Integer
 
