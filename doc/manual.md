@@ -494,7 +494,7 @@ hledger parses that syntax, and (currently) ignores it.
 
 ##### Market prices
 
-hledger also parses, and currently ignores, ledger-style historical price directives (which we call market prices):
+You can record market prices for commodities with a P directive (Ledger calls these historical prices). These will be used by the `-V/--value` option supported by certain commands ([balance](#balance)).
 <!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
 ```journal
 ; Market price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
@@ -1540,6 +1540,24 @@ The `-T/--row-total` flag adds an additional column showing the total
 for each row.  The `-A/--average` flag adds a column showing the
 average value in each row. Note in `--H/--historical` mode only the
 average is useful, and in `--cumulative` mode neither is useful.
+
+##### Market value
+
+The `-V/--value` flag converts all the reported amounts to their
+"current market value" using their default market price. That is the
+latest [market price](#market-prices) (P directive) found in the
+journal (or an included file), for the amount's commodity, dated on or
+before the report end date.
+    
+Unlike Ledger, hledger's -V only uses the market prices recorded with
+P directives, ignoring transaction prices recorded as part of posting
+amounts (which -B/--cost uses). Using -B and -V together is allowed.
+
+<!--
+``` {.shell .right}
+$ hledger balance -V ...
+```
+-->
 
 ##### Custom balance output
 
