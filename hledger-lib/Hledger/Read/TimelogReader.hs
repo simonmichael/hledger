@@ -60,7 +60,7 @@ import System.FilePath
 import Hledger.Data
 -- XXX too much reuse ?
 import Hledger.Read.JournalReader (
-  directive, historicalpricedirective, defaultyeardirective, emptyorcommentlinep, datetimep,
+  directive, marketpricedirective, defaultyeardirective, emptyorcommentlinep, datetimep,
   parseJournalWith, modifiedaccountname
   )
 import Hledger.Utils
@@ -94,7 +94,7 @@ timelogFile = do items <- many timelogItem
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
       timelogItem = choice [ directive
-                          , liftM (return . addHistoricalPrice) historicalpricedirective
+                          , liftM (return . addMarketPrice) marketpricedirective
                           , defaultyeardirective
                           , emptyorcommentlinep >> return (return id)
                           , liftM (return . addTimeLogEntry)  timelogentry

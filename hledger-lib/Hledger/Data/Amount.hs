@@ -118,7 +118,7 @@ import Hledger.Data.Commodity
 import Hledger.Utils
 
 
-deriving instance Show HistoricalPrice
+deriving instance Show MarketPrice
 
 amountstyle = AmountStyle L False 0 (Just '.') Nothing
 

@@ -26,7 +26,7 @@ module Hledger.Read.JournalReader (
   journal,
   directive,
   defaultyeardirective,
-  historicalpricedirective,
+  marketpricedirective,
   datetimep,
   codep,
   accountnamep,
@@ -170,7 +170,7 @@ journal = do
                            , liftM (return . addTransaction) transaction
                            , liftM (return . addModifierTransaction) modifiertransaction
                            , liftM (return . addPeriodicTransaction) periodictransaction
-                           , liftM (return . addHistoricalPrice) historicalpricedirective
+                           , liftM (return . addMarketPrice) marketpricedirective
                            , emptyorcommentlinep >> return (return id)
                            , multilinecommentp >> return (return id)
                            ] <?> "journal transaction or directive"
@@ -314,9 +314,9 @@ defaultcommoditydirective = do
   restofline
   return $ return id
 
-historicalpricedirective :: ParsecT [Char] JournalContext (ExceptT String IO) HistoricalPrice
-historicalpricedirective = do
-  char 'P' <?> "historical price"
+marketpricedirective :: ParsecT [Char] JournalContext (ExceptT String IO) MarketPrice
+marketpricedirective = do
+  char 'P' <?> "market price"
   many spacenonewline
   date <- try (do {LocalTime d _ <- datetimep; return d}) <|> datep -- a time is ignored
   many1 spacenonewline
@@ -324,7 +324,7 @@ historicalpricedirective = do
   many spacenonewline
   price <- amountp
   restofline
-  return $ HistoricalPrice date symbol price
+  return $ MarketPrice date symbol price
 
 ignoredpricecommoditydirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 ignoredpricecommoditydirective = do
@@ -1084,8 +1084,8 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
      assertParse (parseWithCtx nullctx defaultyeardirective "Y 2010\n")
      assertParse (parseWithCtx nullctx defaultyeardirective "Y 10001\n")
 
-  ,"historicalpricedirective" ~:
-    assertParseEqual (parseWithCtx nullctx historicalpricedirective "P 2004/05/01 XYZ $55.00\n") (HistoricalPrice (parsedate "2004/05/01") "XYZ" $ usd 55)
+  ,"marketpricedirective" ~:
+    assertParseEqual (parseWithCtx nullctx marketpricedirective "P 2004/05/01 XYZ $55.00\n") (MarketPrice (parsedate "2004/05/01") "XYZ" $ usd 55)
 
   ,"ignoredpricecommoditydirective" ~: do
      assertParse (parseWithCtx nullctx ignoredpricecommoditydirective "N $\n")

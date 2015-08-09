@@ -492,12 +492,12 @@ Ledger has a different syntax for specifying
 hledger parses that syntax, and (currently) ignores it.
 <!-- hledger treats this as an alternate spelling of `@ PRICE`, for greater compatibility with Ledger files. -->
 
-##### Historical prices
+##### Market prices
 
-hledger also parses, and currently ignores, ledger-style historical price directives:
+hledger also parses, and currently ignores, ledger-style historical price directives (which we call market prices):
 <!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
 ```journal
-; Historical price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
+; Market price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
 ; These say the euro's exchange rate is $1.35 during 2009 and
 ; $1.40 from 2010/1/1 on.
 P 2009/1/1 € $1.35

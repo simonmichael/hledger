@@ -7,7 +7,7 @@ Here is an overview of the hledger data model:
 > Journal                  -- a journal is read from one or more data files. It contains..
 >  [Transaction]           -- journal transactions (aka entries), which have date, cleared status, code, description and..
 >   [Posting]              -- multiple account postings, which have account name and amount
->  [HistoricalPrice]       -- historical commodity prices
+>  [MarketPrice]           -- historical market prices for commodities
 >
 > Ledger                   -- a ledger is derived from a journal, by applying a filter specification and doing some further processing. It contains..
 >  Journal                 -- a filtered copy of the original journal, containing only the transactions and postings we are interested in
@@ -176,10 +176,10 @@ data TimeLogEntry = TimeLogEntry {
       tldescription :: String
     } deriving (Eq,Ord,Typeable,Data)
 
-data HistoricalPrice = HistoricalPrice {
-      hdate :: Day,
-      hcommodity :: Commodity,
-      hamount :: Amount
+data MarketPrice = MarketPrice {
+      mpdate :: Day,
+      mpcommodity :: Commodity,
+      mpamount :: Amount
     } deriving (Eq,Ord,Typeable,Data) -- & Show (in Amount.hs)
 
 type Year = Integer
@@ -205,7 +205,7 @@ data Journal = Journal {
       jperiodictxns :: [PeriodicTransaction],
       jtxns :: [Transaction],
       open_timelog_entries :: [TimeLogEntry],
-      historical_prices :: [HistoricalPrice],
+      jmarketprices :: [MarketPrice],
       final_comment_lines :: String,        -- ^ any trailing comments from the journal file
       jContext :: JournalContext,           -- ^ the context (parse state) at the end of parsing
       files :: [(FilePath, String)],        -- ^ the file path and raw text of the main and

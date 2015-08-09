@@ -626,10 +626,10 @@ note bottom of Account: An account's name, balance (inclusive &\nexclusive), par
 Account o-- "*" Account :subaccounts, parent
 Journal o-- File
 File o-- "*" File :include
-Journal *-- "*" HistoricalPrice
+Journal *-- "*" MarketPrice
 Journal *-- "*" Transaction
-HistoricalPrice -- Date
-HistoricalPrice -- Amount
+MarketPrice -- Date
+MarketPrice -- Amount
 Transaction -- Date
 Transaction *-- "*" Posting
 Transaction o-- "*" Tag

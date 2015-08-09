@@ -9,7 +9,7 @@ other data format (see "Hledger.Read").
 
 module Hledger.Data.Journal (
   -- * Parsing helpers
-  addHistoricalPrice,
+  addMarketPrice,
   addModifierTransaction,
   addPeriodicTransaction,
   addTimeLogEntry,
@@ -114,7 +114,7 @@ instance Show Journal where
 --                      ,show (jmodifiertxns j)
 --                      ,show (jperiodictxns j)
 --                      ,show $ open_timelog_entries j
---                      ,show $ historical_prices j
+--                      ,show $ jmarketprices j
 --                      ,show $ final_comment_lines j
 --                      ,show $ jContext j
 --                      ,show $ map fst $ files j
@@ -125,7 +125,7 @@ nulljournal = Journal { jmodifiertxns = []
                       , jperiodictxns = []
                       , jtxns = []
                       , open_timelog_entries = []
-                      , historical_prices = []
+                      , jmarketprices = []
                       , final_comment_lines = []
                       , jContext = nullctx
                       , files = []
@@ -154,8 +154,8 @@ addModifierTransaction mt j = j { jmodifiertxns = mt : jmodifiertxns j }
 addPeriodicTransaction :: PeriodicTransaction -> Journal -> Journal
 addPeriodicTransaction pt j = j { jperiodictxns = pt : jperiodictxns j }
 
-addHistoricalPrice :: HistoricalPrice -> Journal -> Journal
-addHistoricalPrice h j = j { historical_prices = h : historical_prices j }
+addMarketPrice :: MarketPrice -> Journal -> Journal
+addMarketPrice h j = j { jmarketprices = h : jmarketprices j }
 
 addTimeLogEntry :: TimeLogEntry -> Journal -> Journal
 addTimeLogEntry tle j = j { open_timelog_entries = tle : open_timelog_entries j }
@@ -411,7 +411,7 @@ journalFinalise tclock tlocal path txt ctx assrt j@Journal{files=fs} = do
      , jtxns=reverse $ jtxns j -- NOTE: see addTransaction
      , jmodifiertxns=reverse $ jmodifiertxns j -- NOTE: see addModifierTransaction
      , jperiodictxns=reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
-     , historical_prices=reverse $ historical_prices j -- NOTE: see addHistoricalPrice
+     , jmarketprices=reverse $ jmarketprices j -- NOTE: see addMarketPrice
      , open_timelog_entries=reverse $ open_timelog_entries j -- NOTE: see addTimeLogEntry
      })
   >>= if assrt then journalCheckBalanceAssertions else return
@@ -493,13 +493,13 @@ journalBalanceTransactions j@Journal{jtxns=ts, jcommoditystyles=ss} =
 -- will use (a) the display settings of the first, and (b) the
 -- greatest precision, of the posting amounts in that commodity.
 journalCanonicaliseAmounts :: Journal -> Journal
-journalCanonicaliseAmounts j@Journal{jtxns=ts, historical_prices=hps} = j''
+journalCanonicaliseAmounts j@Journal{jtxns=ts, jmarketprices=mps} = j''
     where
-      j'' = j'{jtxns=map fixtransaction ts, historical_prices=map fixhistoricalprice hps}
+      j'' = j'{jtxns=map fixtransaction ts, jmarketprices=map fixmarketprice mps}
       j' = j{jcommoditystyles = canonicalStyles $ dbg8 "journalAmounts" $ journalAmounts j}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
-      fixhistoricalprice hp@HistoricalPrice{hamount=a} = hp{hamount=fixamount a}
+      fixmarketprice mp@MarketPrice{mpamount=a} = mp{mpamount=fixamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
       fixamount a@Amount{acommodity=c} = a{astyle=journalCommodityStyle j' c}
 
@@ -530,8 +530,8 @@ journalCommodityStyle :: Journal -> Commodity -> AmountStyle
 journalCommodityStyle j c = M.findWithDefault amountstyle c $ jcommoditystyles j
 
 -- -- | Apply this journal's historical price records to unpriced amounts where possible.
--- journalApplyHistoricalPrices :: Journal -> Journal
--- journalApplyHistoricalPrices j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
+-- journalApplyMarketPrices :: Journal -> Journal
+-- journalApplyMarketPrices j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
 --     where
 --       fixtransaction t@Transaction{tdate=d, tpostings=ps} = t{tpostings=map fixposting ps}
 --        where
@@ -539,14 +539,14 @@ journalCommodityStyle j c = M.findWithDefault amountstyle c $ jcommoditystyles j
 --         fixmixedamount (Mixed as) = Mixed $ map fixamount as
 --         fixamount = fixprice
 --         fixprice a@Amount{price=Just _} = a
---         fixprice a@Amount{commodity=c} = a{price=maybe Nothing (Just . UnitPrice) $ journalHistoricalPriceFor j d c}
+--         fixprice a@Amount{commodity=c} = a{price=maybe Nothing (Just . UnitPrice) $ journalMarketPriceFor j d c}
 
 -- -- | Get the price for a commodity on the specified day from the price database, if known.
 -- -- Does only one lookup step, ie will not look up the price of a price.
--- journalHistoricalPriceFor :: Journal -> Day -> Commodity -> Maybe MixedAmount
--- journalHistoricalPriceFor j d Commodity{symbol=s} = do
---   let ps = reverse $ filter ((<= d).hdate) $ filter ((s==).hsymbol) $ sortBy (comparing hdate) $ historical_prices j
---   case ps of (HistoricalPrice{hamount=a}:_) -> Just a
+-- journalMarketPriceFor :: Journal -> Day -> Commodity -> Maybe MixedAmount
+-- journalMarketPriceFor j d Commodity{symbol=s} = do
+--   let ps = reverse $ filter ((<= d).mpdate) $ filter ((s==).hsymbol) $ sortBy (comparing mpdate) $ jmarketprices j
+--   case ps of (MarketPrice{mpamount=a}:_) -> Just a
 --              _ -> Nothing
 
 -- | Close any open timelog sessions in this journal using the provided current time.

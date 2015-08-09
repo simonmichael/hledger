@@ -347,9 +347,9 @@ amountValue j d a =
 commodityValue :: Journal -> Day -> Commodity -> Maybe Amount
 commodityValue j d c
     | null applicableprices = Nothing
-    | otherwise             = Just $ hamount $ last applicableprices
+    | otherwise             = Just $ mpamount $ last applicableprices
   where
-    applicableprices = [p | p <- sort $ historical_prices j, hcommodity p == c, hdate p <= d]
+    applicableprices = [p | p <- sort $ jmarketprices j, mpcommodity p == c, mpdate p <= d]
 
 -- | Find the best commodity to convert to when asked to show the
 -- market value of this commodity on the given date. That is, the one
@@ -357,7 +357,7 @@ commodityValue j d c
 -- mentioned in the most recent applicable historical price directive
 -- before this date.
 -- defaultValuationCommodity :: Journal -> Day -> Commodity -> Maybe Commodity
--- defaultValuationCommodity j d c = hamount <$> commodityValue j d c
+-- defaultValuationCommodity j d c = mpamount <$> commodityValue j d c
 
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
