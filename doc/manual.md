@@ -438,14 +438,19 @@ flag or `real:` query.
 
 #### Prices
 
-<!-- ##### Transaction prices -->
+##### Transaction prices
 
-When recording an amount, you can also record its price in another
-commodity. This documents an exchange rate that was applied within
-this transaction (or to be precise, within the posting). There are
-three ways to specify a transaction price:
+When recording a transaction, you can also record an amount's price in another commodity.
+This documents the exchange rate, cost (of a purchase), or selling price (of a sale) that was in effect within this particular transaction (or more precisely, within the particular posting).
+These transaction prices are fixed, and do not change.
 
-1. Write the unit price (exchange rate) explicitly as `@ UNITPRICE` after the amount:
+Such priced amounts can be displayed in their transaction price's
+commodity, by using the `--cost/-B` flag (B for "cost Basis"),
+supported by most hledger commands.
+
+There are three ways to specify a transaction price:
+
+1. Write the unit price (aka exchange rate), as `@ UNITPRICE` after the amount:
 
     ```journal
     2009/1/1
@@ -453,7 +458,7 @@ three ways to specify a transaction price:
       assets:cash
     ```
 
-2. Or write the total price for this amount as `@@ TOTALPRICE`:
+2. Or write the total price, as `@@ TOTALPRICE` after the amount:
 
     ```journal
     2009/1/1
@@ -461,7 +466,9 @@ three ways to specify a transaction price:
       assets:cash
     ```
 
-3. Or fully specify all posting amounts using exactly two commodities:
+3. Or let hledger infer the price so as to balance the transaction.
+   To permit this, you must fully specify all posting amounts, and
+   their sum must have a non-zero amount in exactly two commodities:
 
     ```journal
     2009/1/1
@@ -469,40 +476,50 @@ three ways to specify a transaction price:
       assets:cash              $-135          ; exchanged for $135
     ```
 
-You can use the `--cost/-B` flag with reporting commands to see such
-amounts converted to their price's commodity. Eg, using any of the above
-examples we get:
+With any of the above examples we get:
 
 ```shell
-$ hledger print --cost
+$ hledger print -B
 2009/01/01
     assets:foreign currency       $135.00
     assets:cash                  $-135.00
 ```
 
-##### Prices are fixed
-
-In hledger, the price used in a given posting is fixed.
-This is what you want for eg recording purchases made while travelling abroad,
-but you can't (yet) track the value of stocks whose price fluctuates.
-
-This is different from Ledger, where prices fluctuate by default.
-Ledger has a different syntax for specifying
-[fixed prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices): `{=PRICE}`.
-hledger parses that syntax, and (currently) ignores it.
-<!-- hledger treats this as an alternate spelling of `@ PRICE`, for greater compatibility with Ledger files. -->
+Example use for transaction prices: recording the effective conversion
+rate of purchases made in a foreign currency.
 
 ##### Market prices
 
-You can record market prices for commodities with a P directive (Ledger calls these historical prices). These will be used by the `-V/--value` option supported by certain commands ([balance](#balance)).
+Market prices are not tied to a particular transaction; they represent
+historical exchange rates between two commodities, usually from some
+public market which publishes such rates.
+
+When market prices are known, the `-V/--value` option will use them to
+convert reported amounts to their market value as of the report end
+date. This option is currently availabel only with the
+[balance](#balance) command.
+
+You record market prices (Ledger calls them historical prices) with a
+P directive, in the journal or perhaps in a separate
+[included](#include-directive) file.  Market price directives have the
+format: `P DATE COMMODITYSYMBOL UNITPRICE`
 <!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
+
+For example, the following directives say that the euro's exchange rate was 1.35 US dollars during 2009, and $1.40 from 2010 onward (and unknown before 2009).
 ```journal
-; Market price directives look like: P DATE COMMODITYSYMBOL UNITPRICE
-; These say the euro's exchange rate is $1.35 during 2009 and
-; $1.40 from 2010/1/1 on.
 P 2009/1/1 € $1.35
 P 2010/1/1 € $1.40
 ```
+
+Example use for market prices: tracking the value of stocks.
+
+<!--
+This is different from Ledger, where transaction prices fluctuate by
+default.  Ledger has a different syntax for specifying
+[fixed prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices):
+`{=PRICE}`.  hledger parses that syntax, and (currently) ignores it.
+-->
+<!-- hledger treats this as an alternate spelling of `@ PRICE`, for greater compatibility with Ledger files. -->
 
 #### Comments
 
