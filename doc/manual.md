@@ -496,13 +496,16 @@ public market which publishes such rates.
 
 When market prices are known, the `-V/--value` option will use them to
 convert reported amounts to their market value as of the report end
-date. This option is currently availabel only with the
+date. This option is currently available only with the
 [balance](#balance) command.
 
 You record market prices (Ledger calls them historical prices) with a
 P directive, in the journal or perhaps in a separate
-[included](#include-directive) file.  Market price directives have the
-format: `P DATE COMMODITYSYMBOL UNITPRICE`
+[included](#including-other-files) file.  Market price directives have
+the format:
+```journal
+P DATE COMMODITYSYMBOL UNITPRICE
+```
 <!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
 
 For example, the following directives say that the euro's exchange rate was 1.35 US dollars during 2009, and $1.40 from 2010 onward (and unknown before 2009).
