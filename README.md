@@ -26,8 +26,14 @@ For some, it is a simpler, less distracting, more future-proof alternative to Qu
 
 For more, see http://hledger.org.
 
-[![Build Status](https://img.shields.io/travis/simonmichael/hledger.svg)](https://travis-ci.org/simonmichael/hledger)
-[![Bountysource](https://api.bountysource.com/badge/team?team_id=75979&style=bounties_received)](https://www.bountysource.com/teams/hledger)
-[![License](https://img.shields.io/badge/license-GPLv3+-blue.svg)](http://www.gnu.org/licenses/gpl.html)
-<!-- [![Github Releases](https://img.shields.io/github/downloads/simonmichael/hledger/latest/total.svg)](https://github.com/simonmichael/hledger/releases) -->
-<!-- [![Gratipay](https://img.shields.io/gratipay/hledger.svg)]() -->
+[![license](https://img.shields.io/badge/license-GPLv3+-blue.svg)](http://www.gnu.org/licenses/gpl.html)
+[![hackage release](https://img.shields.io/hackage/v/hledger.svg?label=current+release)](http://hackage.haskell.org/package/hledger)
+<!-- [![github release](https://img.shields.io/github/release/simonmichael/hledger.svg?label=github+release)](https://github.com/simonmichael/hledger/releases) -->
+<!-- [![github latest release downloads](https://img.shields.io/github/downloads/simonmichael/hledger/latest/total.svg?label=github+downloads)](https://github.com/simonmichael/hledger/releases) -->
+<!-- [![gratipay](https://img.shields.io/gratipay/hledger.svg)]() -->
+
+[![travis build status](https://img.shields.io/travis/simonmichael/hledger.svg)](https://travis-ci.org/simonmichael/hledger)
+[![hackage deps](https://img.shields.io/hackage-deps/v/hledger.svg?label=hackage+deps)](http://packdeps.haskellers.com/feed?needle=hledger)
+[![github issues](https://img.shields.io/github/issues/simonmichael/hledger.svg)](http://bugs.hledger.org)
+[![bountysource](https://api.bountysource.com/badge/team?team_id=75979&style=bounties_received)](https://github.com/simonmichael/hledger/issues?q=label:bounty)
+
