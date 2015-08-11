@@ -33,7 +33,7 @@ For more, see http://hledger.org.
 <!-- [![gratipay](https://img.shields.io/gratipay/hledger.svg)]() -->
 
 [![travis build status](https://img.shields.io/travis/simonmichael/hledger.svg)](https://travis-ci.org/simonmichael/hledger)
-[![hackage deps](https://img.shields.io/hackage-deps/v/hledger.svg?label=hackage+deps)](http://packdeps.haskellers.com/feed?needle=hledger)
+[![hackage upper bounds](https://img.shields.io/hackage-deps/v/hledger.svg?label=hackage+upper-bounds)](http://packdeps.haskellers.com/feed?needle=hledger)
 [![github issues](https://img.shields.io/github/issues/simonmichael/hledger.svg)](http://bugs.hledger.org)
 [![bountysource](https://api.bountysource.com/badge/team?team_id=75979&style=bounties_received)](https://github.com/simonmichael/hledger/issues?q=label:bounty)
 
