@@ -26,4 +26,8 @@ For some, it is a simpler, less distracting, more future-proof alternative to Qu
 
 For more, see http://hledger.org.
 
-[![Build Status](https://travis-ci.org/simonmichael/hledger.svg?branch=master)](https://travis-ci.org/simonmichael/hledger)
+[![Build Status](https://img.shields.io/travis/simonmichael/hledger.svg)](https://travis-ci.org/simonmichael/hledger)
+[![Bountysource](https://api.bountysource.com/badge/team?team_id=75979&style=bounties_received)](https://www.bountysource.com/teams/hledger)
+<!-- [![Github Releases](https://img.shields.io/github/downloads/simonmichael/hledger/latest/total.svg)](https://github.com/simonmichael/hledger/releases) -->
+<!-- [![Gratipay](https://img.shields.io/gratipay/hledger.svg)]() -->
+[![License](https://img.shields.io/badge/license-GPLv3+-blue.svg)](http://www.gnu.org/licenses/gpl.html)
