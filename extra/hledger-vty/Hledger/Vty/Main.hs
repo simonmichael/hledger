@@ -13,33 +13,33 @@ import Data.Time.Calendar
 import Graphics.Vty
 import Safe
 import System.Exit
-import Text.Printf
 
 import Hledger
-import Hledger.Cli hiding (progname,progversion)
+import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.Vty.Options
-import Prelude hiding (putStrLn)
-import Hledger.Utils.UTF8 (putStrLn)
 
 
 main :: IO ()
 main = do
   opts <- getHledgerVtyOpts
-  when (debug_ $ cliopts_ opts) $ printf "%s\n" progversion >> printf "opts: %s\n" (show opts)
+  -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
   runWith opts
 
 runWith :: VtyOpts -> IO ()
 runWith opts = run opts
     where
       run opts
-          | "help" `in_` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp vtymode) >> exitSuccess
-          | "version" `in_` (rawopts_ $ cliopts_ opts)         = putStrLn progversion >> exitSuccess
-          | "binary-filename" `in_` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
+          | "help" `inRawOpts` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp vtymode) >> exitSuccess
+          | "version" `inRawOpts` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
+          | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
           | otherwise                                          = withJournalDo' opts vty
 
 withJournalDo' :: VtyOpts -> (VtyOpts -> Journal -> IO ()) -> IO ()
 withJournalDo' opts cmd = do
-  journalFilePathFromOpts (cliopts_ opts) >>= readJournalFile Nothing >>=
+  -- journalFilePathFromOpts (cliopts_ opts) >>= readJournalFile Nothing >>=
+  --   either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
+  -- XXX head should be safe for now
+  (head `fmap` journalFilePathFromOpts (cliopts_ opts)) >>= readJournalFile Nothing Nothing True >>=
     either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
 
 helpmsg = "(b)alance, (r)egister, (p)rint, (right) to drill down, (left) to back up, (q)uit"
@@ -78,17 +78,29 @@ data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
 -- | Run the vty (curses-style) ui.
 vty :: VtyOpts -> Journal -> IO ()
 vty opts j = do
-  v <- mkVty
-  DisplayRegion w h <- display_bounds $ terminal v
-  d <-  getCurrentDay
-  let a = enter d BalanceScreen (patterns_ $ reportopts_ $ cliopts_ opts)
+  cfg <- standardIOConfig
+  v <- mkVty cfg
+
+  -- let line0 = string (defAttr ` withForeColor ` green) "first line"
+  --     line1 = string (defAttr ` withBackColor ` blue) "second line"
+  --     img = line0 <-> line1
+  --     pic = picForImage img
+  -- update vty pic
+  -- e <- nextEvent vty
+  -- shutdown vty
+  -- print ("Last event was: " ++ show e)
+
+  Output{displayBounds=getdisplayregion} <- outputForConfig cfg
+  (w,h) <- getdisplayregion
+  d <- getCurrentDay
+  let a = enter d BalanceScreen (words' $ query_ $ reportopts_ $ cliopts_ opts)
           AppState {
                   av=v
-                 ,aw=fromIntegral w
-                 ,ah=fromIntegral h
+                 ,aw=w
+                 ,ah=h
                  ,amsg=helpmsg
                  ,aopts=opts
-                 ,aargs=patterns_ $ reportopts_ $ cliopts_ opts
+                 ,aargs=words' $ query_ $ reportopts_ $ cliopts_ opts
                  ,ajournal=j
                  ,abuf=[]
                  ,alocs=[]
@@ -99,14 +111,14 @@ vty opts j = do
 go :: AppState -> IO ()
 go a@AppState{av=av,aopts=opts} = do
   when (not $ debug_vty_ opts) $ update av (renderScreen a)
-  k <- next_event av
+  k <- nextEvent av
   d <- getCurrentDay
   case k of
-    EvResize x y                -> go $ resize x y a
-    EvKey (KASCII 'l') [MCtrl]  -> refresh av >> go a{amsg=helpmsg}
-    EvKey (KASCII 'b') []       -> go $ resetTrailAndEnter d BalanceScreen a
-    EvKey (KASCII 'r') []       -> go $ resetTrailAndEnter d RegisterScreen a
-    EvKey (KASCII 'p') []       -> go $ resetTrailAndEnter d PrintScreen a
+    EvResize x y                -> go $ resize' x y a
+    EvKey (KChar 'l') [MCtrl]  -> refresh av >> go a{amsg=helpmsg}
+    EvKey (KChar 'b') []       -> go $ resetTrailAndEnter d BalanceScreen a
+    EvKey (KChar 'r') []       -> go $ resetTrailAndEnter d RegisterScreen a
+    EvKey (KChar 'p') []       -> go $ resetTrailAndEnter d PrintScreen a
     EvKey KRight []             -> go $ drilldown d a
     EvKey KEnter []             -> go $ drilldown d a
     EvKey KLeft  []             -> go $ backout d a
@@ -120,10 +132,10 @@ go a@AppState{av=av,aopts=opts} = do
     EvKey KDown  [MShift]       -> go $ moveToBottom a
     EvKey KPageUp []            -> go $ prevpage a
     EvKey KBS []                -> go $ prevpage a
-    EvKey (KASCII ' ') [MShift] -> go $ prevpage a
+    EvKey (KChar ' ') [MShift] -> go $ prevpage a
     EvKey KPageDown []          -> go $ nextpage a
-    EvKey (KASCII ' ') []       -> go $ nextpage a
-    EvKey (KASCII 'q') []       -> shutdown av >> return ()
+    EvKey (KChar ' ') []       -> go $ nextpage a
+    EvKey (KChar 'q') []       -> shutdown av >> return ()
 --    EvKey KEsc   []           -> shutdown av >> return ()
     _                           -> go a
 
@@ -162,8 +174,8 @@ updateCursorY f a = setCursorY (f $ cursorY a) a
 updateScrollY f a = setScrollY (f $ scrollY a) a
 -- updatePosY f a = setPosY (f $ posY a) a
 
-resize :: Int -> Int -> AppState -> AppState
-resize x y a = setCursorY cy' a{aw=x,ah=y}
+resize' :: Int -> Int -> AppState -> AppState
+resize' x y a = setCursorY cy' a{aw=x,ah=y}
     where
       cy = cursorY a
       cy' = min cy (y-2)
@@ -255,11 +267,12 @@ resetTrailAndEnter d scr a = enter d scr (aargs a) $ clearLocs a
 updateData :: Day -> AppState -> AppState
 updateData d a@AppState{aopts=opts,ajournal=j} =
     case screen a of
-      BalanceScreen  -> a{abuf=accountsReportAsText ropts $ accountsReport ropts fspec j}
-      RegisterScreen -> a{abuf=lines $ postingsReportAsText ropts $ postingsReport ropts fspec j}
-      PrintScreen    -> a{abuf=lines $ showTransactions ropts fspec j} -- XXX use entriesReport/entriesReportAsText now
-    where fspec = optsToFilterSpec ropts{patterns_=currentArgs a} d
-          ropts = reportopts_ $ cliopts_ opts
+      BalanceScreen  -> a{abuf=lines $ balanceReportAsText ropts $ balanceReport ropts q j}
+      RegisterScreen -> a{abuf=lines $ postingsReportAsText cliopts $ postingsReport ropts q j}
+      PrintScreen    -> a{abuf=lines $ entriesReportAsText $ entriesReport ropts q j}
+    where q     = queryFromOpts d ropts{query_=unwords' $ currentArgs a}
+          ropts = reportopts_ cliopts
+          cliopts = cliopts_ opts
 
 backout :: Day -> AppState -> AppState
 backout d a | screen a == BalanceScreen = a
@@ -316,21 +329,26 @@ currentTransaction a@AppState{ajournal=j,abuf=buf} = ptransaction p
     where
       p = headDef nullposting $ filter ismatch $ journalPostings j
       ismatch p = postingDate p == parsedate (take 10 datedesc)
-                  && take 70 (showPostingWithBalanceForVty False p nullmixedamt) == (datedesc ++ acctamt)
+                  && take 70 (showPostingWithBalanceForVty p nullmixedamt) == (datedesc ++ acctamt)
       datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ headDef "" rest : reverse above
       acctamt = drop 32 $ headDef "" rest
       (above,rest) = splitAt y buf
       y = posY a
 
+showPostingWithBalanceForVty p b =
+  postingsReportItemAsText defcliopts $
+  mkpostingsReportItem False False PrimaryDate Nothing p b
+
 -- renderers
 
 renderScreen :: AppState -> Picture
 renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
-    Picture {pic_cursor = Cursor (fromIntegral cx) (fromIntegral cy)
-            ,pic_image = mainimg
-                         <->
-                         renderStatus w msg
-            ,pic_background = Background ' ' def_attr
+    Picture {picCursor = Cursor (fromIntegral cx) (fromIntegral cy)
+            ,picLayers = [mainimg
+                          <->
+                          renderStatus w msg
+                         ]
+            ,picBackground = Background ' ' defAttr
             }
     where
       (cx, cy) = (0, cursorY a)
@@ -345,11 +363,11 @@ renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
 --           | otherwise = splitAt y ls
 --       ls = lines $ fitto w (h-1) $ unlines $ drop as $ buf
 -- trying for more speed
-      mainimg = vert_cat (map (string defaultattr) above)
+      mainimg = vertCat (map (string defaultattr) above)
                <->
                string currentlineattr thisline
                <->
-               vert_cat (map (string defaultattr) below)
+               vertCat (map (string defaultattr) below)
       (thisline,below) | null rest = (blankline,[])
                        | otherwise = (head rest, tail rest)
       (above,rest) = splitAt cy linestorender
@@ -365,7 +383,7 @@ renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
 --       blankline = replicate w ' '
 
 -- renderString :: Attr -> String -> Image
--- renderString attr s = vert_cat $ map (string attr) rows
+-- renderString attr s = vertCat $ map (string attr) rows
 --     where
 --       rows = lines $ fitto w h s
 --       w = maximum $ map length ls
@@ -385,22 +403,22 @@ data UITheme = Restrained | Colorful | Blood
  currentlineattr,
  statusattr
  ) = case theme of
-       Restrained -> (def_attr
-                    ,def_attr `with_style` bold
-                    ,def_attr `with_style` reverse_video
+       Restrained -> (defAttr
+                    ,defAttr `withStyle` bold
+                    ,defAttr `withStyle` reverseVideo
                     )
-       Colorful   -> (def_attr `with_style` reverse_video
-                    ,def_attr `with_fore_color` white `with_back_color` red
-                    ,def_attr `with_fore_color` black `with_back_color` green
+       Colorful   -> (defAttr `withStyle` reverseVideo
+                    ,defAttr `withForeColor` white `withBackColor` red
+                    ,defAttr `withForeColor` black `withBackColor` green
                     )
-       Blood      -> (def_attr `with_style` reverse_video
-                    ,def_attr `with_fore_color` white `with_back_color` red
-                    ,def_attr `with_style` reverse_video
+       Blood      -> (defAttr `withStyle` reverseVideo
+                    ,defAttr `withForeColor` white `withBackColor` red
+                    ,defAttr `withStyle` reverseVideo
                     )
 
--- halfbrightattr = def_attr `with_style` dim
--- reverseattr = def_attr `with_style` reverse_video
--- redattr = def_attr `with_fore_color` red
--- greenattr = def_attr `with_fore_color` green
--- reverseredattr = def_attr `with_style` reverse_video `with_fore_color` red
--- reversegreenattr= def_attr `with_style` reverse_video `with_fore_color` green
+-- halfbrightattr = defAttr `withStyle` dim
+-- reverseattr = defAttr `withStyle` reverseVideo
+-- redattr = defAttr `withForeColor` red
+-- greenattr = defAttr `withForeColor` green
+-- reverseredattr = defAttr `withStyle` reverseVideo `withForeColor` red
+-- reversegreenattr= defAttr `withStyle` reverseVideo `withForeColor` green

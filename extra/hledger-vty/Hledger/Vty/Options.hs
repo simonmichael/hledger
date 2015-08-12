@@ -1,30 +1,37 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
 {-|
 
 -}
 
 module Hledger.Vty.Options
 where
-import Distribution.PackageDescription.TH (packageVariable, package, pkgName, pkgVersion)
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 
-import Hledger.Cli hiding (progname,progversion)
+import Hledger.Cli hiding (progname,version,prognameandversion)
 
-progname    = $(packageVariable (pkgName . package))
-progversion = progname ++ " " ++ $(packageVariable (pkgVersion . package)) :: String
+progname, version :: String
+progname = "hledger-vty"
+#ifdef VERSION
+version = VERSION
+#else
+version = ""
+#endif
+prognameandversion :: String
+prognameandversion = progname ++ " " ++ version :: String
 
 vtyflags = [
   flagNone ["debug-vty"]  (\opts -> setboolopt "rules-file" opts) "run with no terminal output, showing console"
  ]
 
+--vtymode :: Mode [([Char], [Char])]
 vtymode =  (mode "hledger-vty" [("command","vty")]
             "browse accounts, postings and entries in a full-window curses interface"
-            commandargsflag []){
+            (argsFlag "[PATTERNS]") []){
               modeGroupFlags = Group {
                                 groupUnnamed = vtyflags
                                ,groupHidden = []
-                               ,groupNamed = [(generalflagstitle, generalflags1)]
+                               ,groupNamed = [(generalflagsgroup1)]
                                }
              ,modeHelpSuffix=[
                   -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window curses ui."
@@ -45,7 +52,7 @@ defvtyopts = VtyOpts
 
 toVtyOpts :: RawOpts -> IO VtyOpts
 toVtyOpts rawopts = do
-  cliopts <- toCliOpts rawopts
+  cliopts <- rawOptsToCliOpts rawopts
   return defvtyopts {
               debug_vty_ = boolopt "debug-vty" rawopts
              ,cliopts_   = cliopts

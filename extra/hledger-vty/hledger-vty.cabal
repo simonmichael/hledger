@@ -1,5 +1,5 @@
 name:           hledger-vty
-version: 0.16.1
+version: 0.26.98
 category:       Finance
 synopsis:       A curses-style console interface for the hledger accounting tool.
 description:    
@@ -17,7 +17,7 @@ maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://code.google.com/p/hledger/issues
 stability:      beta
-tested-with:    GHC==6.10, GHC==6.12
+tested-with:    GHC==7.10
 cabal-version:  >= 1.6
 build-type:     Simple
 -- data-dir:       data
@@ -37,12 +37,11 @@ executable hledger-vty
                   Hledger.Vty.Main
                   Hledger.Vty.Options
   build-depends:
-                  hledger == 0.16.1
-                 ,hledger-lib == 0.16.1
+                  hledger == 0.26.98
+                 ,hledger-lib == 0.26.98
                  ,HUnit
                  ,base >= 3 && < 5
-                 ,cabal-file-th
-                 ,cmdargs == 0.8.*
+                 ,cmdargs >= 0.8
                  -- ,containers
                  -- ,csv
                  -- ,directory
@@ -57,4 +56,4 @@ executable hledger-vty
                  -- ,split == 0.1.*
                  ,time
                  -- ,utf8-string >= 0.3.5 && < 0.4
-                 ,vty >= 4.6.0.1 && < 4.8
+                 ,vty >= 5.2 && < 5.3
