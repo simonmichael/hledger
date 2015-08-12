@@ -1,11 +1,12 @@
 # hpack specification for generating the cabal file
 # https://github.com/sol/hpack#readme
 # http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
-
-# currently the cabal file will have these limitations (which must be fixed by hand if needed):
-# - does not specify tested-with or extensions
-# - does not allow building in non-threaded mode (for debian) or dev or library-only mode (for yesod devel)
-# - does not allow building with time < 1.5, and therefore GHC < 7.2.1
+#
+# as of hpack 0.5.4 these must be added manually:
+# - tested-with
+# - flags
+# - benchmarks
+# - conditional blocks
 
 name        : hledger-web
 version     : '0.26'
@@ -27,7 +28,7 @@ github      : simonmichael/hledger
 homepage    : http://hledger.org
 bug-reports : http://hledger.org/bugs
 # XXX not supported
-#tested-with : GHC==7.6.3, GHC==7.8.4, GHC==7.10.1
+tested-with : GHC==7.6.3, GHC==7.8.4, GHC==7.10.1
             
 extra-source-files:
   - CHANGES

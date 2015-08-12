@@ -1,13 +1,12 @@
 # hpack specification for generating the cabal file
 # https://github.com/sol/hpack#readme
 # http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
-
-# currently the cabal file will have these limitations (which must be fixed by hand if needed):
-# - does not specify tested-with or extensions or benchmarks
-# - does not allow building in non-threaded mode (for debian)
-# - does not allow building with time < 1.5, and therefore GHC < 7.2.1
-# - does not allow building without pretty-show, and therefore GHC < 7.4.1
-# - does not allow building without threads or curses
+#
+# as of hpack 0.5.4 these must be added manually:
+# - tested-with
+# - flags
+# - benchmarks
+# - conditional blocks
 
 name        : hledger
 version     : '0.26'
@@ -29,25 +28,33 @@ github      : simonmichael/hledger
 homepage    : http://hledger.org
 bug-reports : http://hledger.org/bugs
 # XXX not supported
-#tested-with : GHC==7.4.2, GHC==7.6.3, GHC==7.8.4, GHC==7.10.1
+tested-with : GHC==7.4.2, GHC==7.6.3, GHC==7.8.4, GHC==7.10.1
             
 extra-source-files:
   - CHANGES
+  - README.md
+  - test/test.hs
 
 # XXX not supported
-# flag threaded
-#     Description:   Build with support for multithreaded execution
-#     Default:       True
+flags:
+  threaded:
+    - default: True
+    - description:
+        Build with support for multithreaded execution
 
-# flag curses
-#     Description:   On POSIX systems, enable curses support for auto-detecting terminal width.
-#     Default:       True
+flag:
+  curses:
+    - default: True
+    - description:
+        On POSIX systems, enable curses support for auto-detecting terminal width.
 
-# flag old-locale
-#   description: A compatibility flag, set automatically by cabal.
-#                If false then depend on time >= 1.5, 
-#                if true then depend on time < 1.5 together with old-locale.
-#   default: False
+flag:
+  old-locale:
+    - default: False
+    - description:
+        A compatibility flag, set automatically by cabal.
+        If false then depend on time >= 1.5, 
+        if true then depend on time < 1.5 together with old-locale.
 
 dependencies:
   - hledger-lib == 0.26
@@ -151,6 +158,7 @@ tests:
 #   bench:
 #     source-dirs: bench
 #     main: bench.hs
+#     other-modules: SimpleBench
 #     dependencies:
 #       - hledger
 #       - criterion
