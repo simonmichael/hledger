@@ -1,16 +1,18 @@
+-- This file has been generated from package.yaml by hpack version 0.5.4.
+--
+-- see: https://github.com/sol/hpack
+
 name:           hledger-web
-version: 0.26
+version:        0.26
 stability:      stable
 category:       Finance
-synopsis:       A web interface for the hledger accounting tool.
-description:    
-                hledger is a library and set of user tools for working
+synopsis:       A web interface for the hledger accounting tool
+description:    hledger is a library and set of user tools for working
                 with financial data (or anything that can be tracked in a
                 double-entry accounting ledger.) It is a haskell port and
                 friendly fork of John Wiegley's Ledger. hledger provides
                 command-line, curses and web interfaces, and aims to be a
                 reliable, practical tool for daily use.
-
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
@@ -18,271 +20,270 @@ maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://hledger.org/bugs
 tested-with:    GHC==7.6.3, GHC==7.8.4, GHC==7.10.1
-cabal-version:  >= 1.8
+cabal-version:  >= 1.10
 build-type:     Simple
-extra-tmp-files:
+
 extra-source-files:
-                messages/en.msg
-                config/favicon.ico
-                config/keter.yaml
-                config/robots.txt
-                config/routes
-                config/settings.yml
-                static/css/bootstrap-theme.css
-                static/css/bootstrap-theme.css.map
-                static/css/bootstrap-theme.min.css
-                static/css/bootstrap.css
-                static/css/bootstrap.css.map
-                static/css/bootstrap.min.css
-                static/fonts/glyphicons-halflings-regular.eot
-                static/fonts/glyphicons-halflings-regular.svg
-                static/fonts/glyphicons-halflings-regular.ttf
-                static/fonts/glyphicons-halflings-regular.woff
-                static/js/bootstrap.js
-                static/js/bootstrap.min.js
-                static/js/excanvas.js
-                static/js/excanvas.min.js
-                static/js/jquery.cookie.js
-                static/js/jquery.flot.canvas.js
-                static/js/jquery.flot.canvas.min.js
-                static/js/jquery.flot.categories.js
-                static/js/jquery.flot.categories.min.js
-                static/js/jquery.flot.crosshair.js
-                static/js/jquery.flot.crosshair.min.js
-                static/js/jquery.flot.errorbars.js
-                static/js/jquery.flot.errorbars.min.js
-                static/js/jquery.flot.fillbetween.js
-                static/js/jquery.flot.fillbetween.min.js
-                static/js/jquery.flot.image.js
-                static/js/jquery.flot.image.min.js
-                static/js/jquery.flot.js
-                static/js/jquery.flot.min.js
-                static/js/jquery.flot.navigate.js
-                static/js/jquery.flot.navigate.min.js
-                static/js/jquery.flot.pie.js
-                static/js/jquery.flot.pie.min.js
-                static/js/jquery.flot.resize.js
-                static/js/jquery.flot.resize.min.js
-                static/js/jquery.flot.selection.js
-                static/js/jquery.flot.selection.min.js
-                static/js/jquery.flot.stack.js
-                static/js/jquery.flot.stack.min.js
-                static/js/jquery.flot.symbol.js
-                static/js/jquery.flot.symbol.min.js
-                static/js/jquery.flot.threshold.js
-                static/js/jquery.flot.threshold.min.js
-                static/js/jquery.flot.time.js
-                static/js/jquery.flot.time.min.js
-                static/js/jquery.flot.tooltip.js
-                static/js/jquery.flot.tooltip.min.js
-                static/js/jquery.hotkeys.js
-                static/js/jquery.js
-                static/js/jquery.min.js
-                static/js/jquery.url.js
-                static/js/typeahead.bundle.js
-                static/js/typeahead.bundle.min.js
-                static/hledger.css
-                static/hledger.js
-                templates/default-layout-wrapper.hamlet
-                templates/default-layout.hamlet
-                templates/homepage.hamlet
-                templates/homepage.julius
-                templates/homepage.lucius
-                templates/normalize.lucius
-                tests/HomeTest.hs
-                tests/TestImport.hs
-                CHANGES
+      CHANGES
+      config/favicon.ico
+      config/keter.yaml
+      config/robots.txt
+      config/routes
+      config/settings.yml
+      messages/en.msg
+      static/css/bootstrap-theme.css
+      static/css/bootstrap-theme.css.map
+      static/css/bootstrap-theme.min.css
+      static/css/bootstrap.css
+      static/css/bootstrap.css.map
+      static/css/bootstrap.min.css
+      static/fonts/glyphicons-halflings-regular.eot
+      static/fonts/glyphicons-halflings-regular.svg
+      static/fonts/glyphicons-halflings-regular.ttf
+      static/fonts/glyphicons-halflings-regular.woff
+      static/hledger.css
+      static/hledger.js
+      static/js/bootstrap.js
+      static/js/bootstrap.min.js
+      static/js/excanvas.js
+      static/js/excanvas.min.js
+      static/js/jquery.cookie.js
+      static/js/jquery.flot.canvas.js
+      static/js/jquery.flot.canvas.min.js
+      static/js/jquery.flot.categories.js
+      static/js/jquery.flot.categories.min.js
+      static/js/jquery.flot.crosshair.js
+      static/js/jquery.flot.crosshair.min.js
+      static/js/jquery.flot.errorbars.js
+      static/js/jquery.flot.errorbars.min.js
+      static/js/jquery.flot.fillbetween.js
+      static/js/jquery.flot.fillbetween.min.js
+      static/js/jquery.flot.image.js
+      static/js/jquery.flot.image.min.js
+      static/js/jquery.flot.js
+      static/js/jquery.flot.min.js
+      static/js/jquery.flot.navigate.js
+      static/js/jquery.flot.navigate.min.js
+      static/js/jquery.flot.pie.js
+      static/js/jquery.flot.pie.min.js
+      static/js/jquery.flot.resize.js
+      static/js/jquery.flot.resize.min.js
+      static/js/jquery.flot.selection.js
+      static/js/jquery.flot.selection.min.js
+      static/js/jquery.flot.stack.js
+      static/js/jquery.flot.stack.min.js
+      static/js/jquery.flot.symbol.js
+      static/js/jquery.flot.symbol.min.js
+      static/js/jquery.flot.threshold.js
+      static/js/jquery.flot.threshold.min.js
+      static/js/jquery.flot.time.js
+      static/js/jquery.flot.time.min.js
+      static/js/jquery.flot.tooltip.js
+      static/js/jquery.flot.tooltip.min.js
+      static/js/jquery.hotkeys.js
+      static/js/jquery.js
+      static/js/jquery.min.js
+      static/js/jquery.url.js
+      static/js/typeahead.bundle.js
+      static/js/typeahead.bundle.min.js
+      templates/default-layout-wrapper.hamlet
+      templates/default-layout.hamlet
+      templates/homepage.hamlet
+      templates/homepage.julius
+      templates/homepage.lucius
+      templates/normalize.lucius
 
 source-repository head
-    type:     git
+    type: git
     location: https://github.com/simonmichael/hledger
 
 flag threaded
-    Description:   Build with support for multithreaded execution.
-    Default:       True
+  default: True
+  description:
+    Build with support for multithreaded execution.
 
 flag dev
-    Description:   Turn on development settings, like auto-reload templates.
-    Default:       False
+  default: False
+  description:
+    Turn on development settings, like auto-reload templates.
 
 flag library-only
-    Description:   Build for use with "yesod devel"
-    Default:       False
+  default: False
+  description:
+    Build for use with "yesod devel"
 
 flag old-locale
-  description: A compatibility flag, set automatically by cabal.
-               If false then depend on time >= 1.5, 
-               if true then depend on time < 1.5 together with old-locale.
   default: False
+  description:
+    A compatibility flag, set automatically by cabal.
+    If false then depend on time >= 1.5, 
+    if true then depend on time < 1.5 together with old-locale.
 
 library
-    cpp-options:   -DVERSION="0.26"
+    ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+    cpp-options: -DVERSION="0.26"
     if flag(dev) || flag(library-only)
         cpp-options: -DDEVELOPMENT
- 
-    ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
-    ghc-options: -fno-warn-type-defaults -fno-warn-orphans
- 
-    extensions:
-                CPP
-                MultiParamTypeClasses
-                NoImplicitPrelude
-                OverloadedStrings
-                QuasiQuotes
-                RecordWildCards
-                TemplateHaskell
-                TypeFamilies
-                -- seem to not be needed at present:
-                -- GADTs
-                -- GeneralizedNewtypeDeriving
-                -- FlexibleContexts
-                -- EmptyDataDecls
-                -- NoMonomorphismRestriction
-
-    exposed-modules: Application
-                     Foundation
-                     Import
-                     Settings
-                     Settings.StaticFiles
-                     Settings.Development
-                     Handler.AddForm
-                     Handler.Common
-                     Handler.JournalR
-                     Handler.RegisterR
-                     Handler.RootR
-                     Handler.SidebarR
-                     Handler.Utils
-    -- other-modules:
-                     Hledger.Web
-                     Hledger.Web.Main
-                     Hledger.Web.Options
-                     -- Setup -- stops yesod devel complaining, requires build-depends: Cabal
     build-depends:
-                     hledger              == 0.26
-                   , hledger-lib          == 0.26
-                   , base                 >= 4 && < 5
-                   , base-compat          >= 0.8.1
-                   , blaze-html
-                   , blaze-markup
-                   , bytestring
-                   , clientsession
-                   , cmdargs              >= 0.10 && < 0.11
-                   , data-default
-                   , directory
-                   , filepath
-                   , hjsmin
-                   , http-conduit
-                   , http-client
-                   , HUnit
-                   , conduit-extra        >= 1.1
-                   , parsec               >= 3
-                   , safe                 >= 0.2
-                   , shakespeare          >= 2.0
-                   , template-haskell
-                   , text
-                   , transformers
-                   , wai
-                   , wai-extra
-                   , wai-handler-launch   >= 1.3
-                   , warp
-                   , yaml
-                   , yesod                >= 1.4 && < 1.5
-                   , yesod-core
-                   , yesod-form
-                   , yesod-static
-                   , json
-                   -- required by extra ghci utilities:
-                   -- , fsnotify
-                   -- , hsdev
-                   -- , mtl
-  if flag(old-locale)
-    build-depends: time < 1.5, old-locale
-  else
-    build-depends: time >= 1.5
+          hledger-lib == 0.26
+        , hledger == 0.26
+        , base               >= 4 && < 5
+        , base-compat        >= 0.8.1
+        , blaze-html
+        , blaze-markup
+        , bytestring
+        , clientsession
+        , cmdargs            >= 0.10 && < 0.11
+        , data-default
+        , directory
+        , filepath
+        , hjsmin
+        , http-conduit
+        , http-client
+        , HUnit
+        , conduit-extra      >= 1.1
+        , parsec             >= 3
+        , safe               >= 0.2
+        , shakespeare        >= 2.0
+        , template-haskell
+        , text
+        , transformers
+        , wai
+        , wai-extra
+        , wai-handler-launch >= 1.3
+        , warp
+        , yaml
+        , yesod              >= 1.4 && < 1.5
+        , yesod-core
+        , yesod-form
+        , yesod-static
+        , json
+        , time >= 1.5
+    if flag(old-locale)
+      build-depends: time < 1.5, old-locale
+    else
+      build-depends: time >= 1.5
+    exposed-modules:
+          Application
+          Foundation
+          Handler.AddForm
+          Handler.Common
+          Handler.JournalR
+          Handler.RegisterR
+          Handler.RootR
+          Handler.SidebarR
+          Handler.Utils
+          Hledger.Web
+          Hledger.Web.Main
+          Hledger.Web.Options
+          Import
+          Settings
+          Settings.Development
+          Settings.StaticFiles
+    default-language: Haskell2010
 
-
-executable         hledger-web
+executable hledger-web
     if flag(library-only)
-        Buildable: False
-
-    cpp-options:   -DVERSION="0.26"
-    if flag(dev)
-        cpp-options: -DDEVELOPMENT
-
-    ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
-    ghc-options: -fno-warn-type-defaults -fno-warn-orphans
+      buildable: False
+    main-is: main.hs
+    hs-source-dirs:
+          app
+    ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -threaded
     if flag(threaded)
-        ghc-options: -threaded
+      ghc-options: -threaded
     if flag(dev)
-        ghc-options:   -O0
-
-    extensions: 
-                CPP
-                MultiParamTypeClasses
-                NoImplicitPrelude
-                OverloadedStrings
-                QuasiQuotes
-                RecordWildCards
-                TemplateHaskell
-                TypeFamilies
-
-    hs-source-dirs:  app
-    main-is:         main.hs
-
+      ghc-options:   -O0
+    cpp-options: -DVERSION="0.26"
+    if flag(dev)
+      cpp-options: -DDEVELOPMENT
     build-depends:
-                     hledger-lib          == 0.26
-                   , hledger              == 0.26
-                   , hledger-web          == 0.26
-                   , base                 >= 4 && < 5
-                   , base-compat          >= 0.8.1
-                   , blaze-html
-                   , blaze-markup
-                   , bytestring
-                   , clientsession
-                   , cmdargs              >= 0.10 && < 0.11
-                   , data-default
-                   , directory
-                   , filepath
-                   , hjsmin
-                   , http-conduit
-                   , http-client
-                   , HUnit
-                   , conduit-extra
-                   , parsec               >= 3
-                   , safe                 >= 0.2
-                   , shakespeare          >= 2.0 && < 2.1
-                   , template-haskell
-                   , text
-                   , transformers
-                   , wai
-                   , wai-extra
-                   , wai-handler-launch   >= 1.3
-                   , warp
-                   , yaml
-                   , yesod                >= 1.4 && < 1.5
-                   , yesod-core
-                   , yesod-form
-                   , yesod-static
-                   , json
-                   -- required by extra ghci utilities:
-                   -- , fsnotify
-                   -- , hsdev
-                   -- , mtl
-  if flag(old-locale)
-    build-depends: time < 1.5, old-locale
-  else
-    build-depends: time >= 1.5
+          hledger-lib == 0.26
+        , hledger == 0.26
+        , base               >= 4 && < 5
+        , base-compat        >= 0.8.1
+        , blaze-html
+        , blaze-markup
+        , bytestring
+        , clientsession
+        , cmdargs            >= 0.10 && < 0.11
+        , data-default
+        , directory
+        , filepath
+        , hjsmin
+        , http-conduit
+        , http-client
+        , HUnit
+        , conduit-extra      >= 1.1
+        , parsec             >= 3
+        , safe               >= 0.2
+        , shakespeare        >= 2.0
+        , template-haskell
+        , text
+        , transformers
+        , wai
+        , wai-extra
+        , wai-handler-launch >= 1.3
+        , warp
+        , yaml
+        , yesod              >= 1.4 && < 1.5
+        , yesod-core
+        , yesod-form
+        , yesod-static
+        , json
+        , time >= 1.5
+        , hledger-web == 0.26
+    if flag(old-locale)
+      build-depends: time < 1.5, old-locale
+    else
+      build-depends: time >= 1.5
+    default-language: Haskell2010
 
 test-suite test
-    type:              exitcode-stdio-1.0
-    ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
-    ghc-options: -fno-warn-type-defaults -fno-warn-orphans
-    hs-source-dirs:    tests
-    main-is:           main.hs
-    build-depends: 
-                     hledger-web          == 0.26
-                   , base
-                   , base-compat          >= 0.8.1
-                   , hspec
-                   , yesod
-                   , yesod-test
+    type: exitcode-stdio-1.0
+    main-is: main.hs
+    hs-source-dirs:
+          tests
+    ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+    cpp-options: -DVERSION="0.26"
+    build-depends:
+          hledger-lib == 0.26
+        , hledger == 0.26
+        , base               >= 4 && < 5
+        , base-compat        >= 0.8.1
+        , blaze-html
+        , blaze-markup
+        , bytestring
+        , clientsession
+        , cmdargs            >= 0.10 && < 0.11
+        , data-default
+        , directory
+        , filepath
+        , hjsmin
+        , http-conduit
+        , http-client
+        , HUnit
+        , conduit-extra      >= 1.1
+        , parsec             >= 3
+        , safe               >= 0.2
+        , shakespeare        >= 2.0
+        , template-haskell
+        , text
+        , transformers
+        , wai
+        , wai-extra
+        , wai-handler-launch >= 1.3
+        , warp
+        , yaml
+        , yesod              >= 1.4 && < 1.5
+        , yesod-core
+        , yesod-form
+        , yesod-static
+        , json
+        , time >= 1.5
+        , hledger-web
+        , hspec
+        , yesod-test
+    other-modules:
+          HomeTest
+          TestImport
+    default-language: Haskell2010

@@ -1,162 +1,154 @@
+-- This file has been generated from package.yaml by hpack version 0.5.4.
+--
+-- see: https://github.com/sol/hpack
+
 name:           hledger-lib
 version: 0.26
 stability:      stable
 category:       Finance, Console
 synopsis:       Core data types, parsers and utilities for the hledger accounting tool.
-description:
-                hledger is a library and set of user tools for working
+description:    hledger is a library and set of user tools for working
                 with financial data (or anything that can be tracked in a
                 double-entry accounting ledger.) It is a haskell port and
                 friendly fork of John Wiegley's Ledger. hledger provides
                 command-line, curses and web interfaces, and aims to be a
                 reliable, practical tool for daily use.
-
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
 bug-reports:    http://hledger.org/bugs
-tested-with:    GHC==7.4.2, GHC==7.6.3, GHC==7.8.4, GHC==7.10.1
 cabal-version:  >= 1.10
 build-type:     Simple
--- data-dir:       data
--- data-files:
--- extra-tmp-files:
-extra-source-files: 
-                    tests/suite.hs
-                    CHANGES
---   README
---   sample.ledger
---   sample.timelog
+tested-with:    GHC==7.4.2, GHC==7.6.3, GHC==7.8.4, GHC==7.10.1
+
+extra-source-files:
+    CHANGES 
 
 source-repository head
-  type:     git
+  type: git
   location: https://github.com/simonmichael/hledger
 
 flag double
-    description:   Use old Double number representation (instead of Decimal), for testing/benchmarking.
-    default:       False
-    manual:        True
+  manual: True
+  default: False
+  description:
+    Use old Double number representation (instead of Decimal), for testing/benchmarking.
 
 flag old-locale
-  description: A compatibility flag, set automatically by cabal.
-               If false then depend on time >= 1.5, 
-               if true then depend on time < 1.5 together with old-locale.
   default: False
-
+  description: 
+    A compatibility flag, set automatically by cabal.
+    If false then depend on time >= 1.5, 
+    if true then depend on time < 1.5 together with old-locale.
 
 library
-  -- should set patchlevel here as in Makefile
-  cpp-options: -DPATCHLEVEL=0
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
-  ghc-options: -fno-warn-type-defaults -fno-warn-orphans
   if flag(double)
     cpp-options: -DDOUBLE
-  default-language: Haskell2010
-  exposed-modules:
-                  Hledger
-                  Hledger.Data
-                  Hledger.Data.Account
-                  Hledger.Data.AccountName
-                  Hledger.Data.Amount
-                  Hledger.Data.Commodity
-                  Hledger.Data.Dates
-                  Hledger.Data.OutputFormat
-                  Hledger.Data.Journal
-                  Hledger.Data.Ledger
-                  Hledger.Data.Posting
-                  Hledger.Data.RawOptions
-                  Hledger.Data.TimeLog
-                  Hledger.Data.Transaction
-                  Hledger.Data.Types
-                  Hledger.Query
-                  Hledger.Read
-                  Hledger.Read.CsvReader
-                  Hledger.Read.JournalReader
-                  Hledger.Read.TimelogReader
-                  Hledger.Reports
-                  Hledger.Reports.ReportOptions
-                  Hledger.Reports.BalanceHistoryReport
-                  Hledger.Reports.BalanceReport
-                  Hledger.Reports.EntriesReport
-                  Hledger.Reports.MultiBalanceReports
-                  Hledger.Reports.PostingsReport
-                  Hledger.Reports.TransactionsReports
-                  Hledger.Utils
-                  Hledger.Utils.Debug
-                  Hledger.Utils.Regex
-                  Hledger.Utils.UTF8IOCompat
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-                  base >= 4.3 && < 5
-                 ,base-compat >= 0.8.1
-                 ,array
-                 ,blaze-markup >= 0.5.1
-                 ,bytestring
-                 ,cmdargs >= 0.10 && < 0.11
-                 ,containers
-                 ,csv
-                 -- ,data-pprint >= 0.2.3 && < 0.3
-                 ,Decimal
-                 ,directory
-                 ,filepath
-                 ,mtl
-                 ,mtl-compat
-                 ,old-time
-                 ,parsec >= 3
-                 ,regex-tdfa
-                 ,safe >= 0.2
-                 ,split >= 0.1 && < 0.3
-                 ,transformers >= 0.2 && < 0.5
-                 ,utf8-string >= 0.3.5 && < 1.1
-                 ,HUnit
+      base >= 4.3 && < 5
+    , base-compat >= 0.8.1
+    , array
+    , blaze-markup >= 0.5.1
+    , bytestring
+    , cmdargs >= 0.10 && < 0.11
+    , containers
+    , csv
+    , Decimal
+    , directory
+    , filepath
+    , mtl
+    , mtl-compat
+    , old-time
+    , parsec >= 3
+    , regex-tdfa
+    , safe >= 0.2
+    , split >= 0.1 && < 0.3
+    , transformers >= 0.2 && < 0.5
+    , utf8-string >= 0.3.5 && < 1.1
+    , HUnit
+    , pretty-show >= 1.6.4
+    , time >= 1.5
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
   if flag(old-locale)
     build-depends: time < 1.5, old-locale
   else
     build-depends: time >= 1.5
-
+  exposed-modules:
+      Hledger
+      Hledger.Data
+      Hledger.Data.Account
+      Hledger.Data.AccountName
+      Hledger.Data.Amount
+      Hledger.Data.Commodity
+      Hledger.Data.Dates
+      Hledger.Data.Journal
+      Hledger.Data.Ledger
+      Hledger.Data.OutputFormat
+      Hledger.Data.Posting
+      Hledger.Data.RawOptions
+      Hledger.Data.TimeLog
+      Hledger.Data.Transaction
+      Hledger.Data.Types
+      Hledger.Query
+      Hledger.Read
+      Hledger.Read.CsvReader
+      Hledger.Read.JournalReader
+      Hledger.Read.TimelogReader
+      Hledger.Reports
+      Hledger.Reports.ReportOptions
+      Hledger.Reports.BalanceHistoryReport
+      Hledger.Reports.BalanceReport
+      Hledger.Reports.EntriesReport
+      Hledger.Reports.MultiBalanceReports
+      Hledger.Reports.PostingsReport
+      Hledger.Reports.TransactionsReports
+      Hledger.Utils
+      Hledger.Utils.Debug
+      Hledger.Utils.Regex
+      Hledger.Utils.UTF8IOCompat
+  default-language: Haskell2010
 
 test-suite tests
-  type:     exitcode-stdio-1.0
-  main-is:  suite.hs
-  hs-source-dirs: tests
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
-  ghc-options: -fno-warn-type-defaults -fno-warn-orphans
-  default-language: Haskell2010
-  build-depends: hledger-lib
-               , base >= 4.3 && < 5
-               , base-compat >= 0.8.1
-               , array
-               , blaze-markup >= 0.5.1
-               , cmdargs
-               , containers
-               , csv
-               -- , data-pprint >= 0.2.3 && < 0.3
-               , Decimal
-               , directory
-               , filepath
-               , HUnit
-               , mtl
-               , mtl-compat
-               , old-time
-               , parsec >= 3
-               , regex-tdfa
-               , safe
-               , split
-               , test-framework
-               , test-framework-hunit
-               , transformers
+  type: exitcode-stdio-1.0
+  main-is: suite.hs
+  hs-source-dirs:
+      tests
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  build-depends:
+      base >= 4.3 && < 5
+    , base-compat >= 0.8.1
+    , array
+    , blaze-markup >= 0.5.1
+    , bytestring
+    , cmdargs >= 0.10 && < 0.11
+    , containers
+    , csv
+    , Decimal
+    , directory
+    , filepath
+    , mtl
+    , mtl-compat
+    , old-time
+    , parsec >= 3
+    , regex-tdfa
+    , safe >= 0.2
+    , split >= 0.1 && < 0.3
+    , transformers >= 0.2 && < 0.5
+    , utf8-string >= 0.3.5 && < 1.1
+    , HUnit
+    , pretty-show >= 1.6.4
+    , time >= 1.5
+    , hledger-lib
+    , test-framework
+    , test-framework-hunit
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
   if flag(old-locale)
     build-depends: time < 1.5, old-locale
   else
     build-depends: time >= 1.5
-
--- cf http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
-
--- Additional dependencies:
--- required for make test: test-framework, test-framework-hunit
--- required for make bench: tabular-0.1
+  default-language: Haskell2010
