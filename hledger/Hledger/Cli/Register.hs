@@ -9,6 +9,7 @@ module Hledger.Cli.Register (
   registermode
  ,register
  ,postingsReportAsText
+ ,postingsReportItemAsText
  -- ,showPostingWithBalanceForVty
  ,tests_Hledger_Cli_Register
 ) where

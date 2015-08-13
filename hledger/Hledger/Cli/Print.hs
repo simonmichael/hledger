@@ -7,6 +7,7 @@ A ledger-compatible @print@ command.
 module Hledger.Cli.Print (
   printmode
  ,print'
+ ,entriesReportAsText
  ,tests_Hledger_Cli_Print
 )
 where
