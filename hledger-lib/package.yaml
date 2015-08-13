@@ -55,6 +55,7 @@ dependencies:
   - containers
   - csv
   - Decimal
+  - deepseq
   - directory
   - filepath
   - mtl

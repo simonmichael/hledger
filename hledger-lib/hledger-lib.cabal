@@ -57,6 +57,7 @@ library
     , containers
     , csv
     , Decimal
+    , deepseq
     , directory
     , filepath
     , mtl
@@ -128,6 +129,7 @@ test-suite tests
     , containers
     , csv
     , Decimal
+    , deepseq
     , directory
     , filepath
     , mtl

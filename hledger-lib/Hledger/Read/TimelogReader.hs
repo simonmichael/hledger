@@ -61,7 +61,7 @@ import Hledger.Data
 -- XXX too much reuse ?
 import Hledger.Read.JournalReader (
   directive, marketpricedirective, defaultyeardirective, emptyorcommentlinep, datetimep,
-  parseJournalWith, modifiedaccountname
+  parseJournalWith, modifiedaccountname, genericSourcePos
   )
 import Hledger.Utils
 
@@ -103,7 +103,7 @@ timelogFile = do items <- many timelogItem
 -- | Parse a timelog entry.
 timelogentry :: ParsecT [Char] JournalContext (ExceptT String IO) TimeLogEntry
 timelogentry = do
-  sourcepos <- getPosition
+  sourcepos <- genericSourcePos <$> getPosition
   code <- oneOf "bhioO"
   many1 spacenonewline
   datetime <- datetimep

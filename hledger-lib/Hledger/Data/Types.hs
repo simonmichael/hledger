@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, StandaloneDeriving, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE CPP, DeriveDataTypeable, StandaloneDeriving, DeriveGeneric, TypeSynonymInstances, FlexibleInstances #-}
 {-|
 
 Most data types are defined here to avoid import cycles.
@@ -19,6 +19,8 @@ For more detailed documentation on each type, see the corresponding modules.
 
 module Hledger.Data.Types
 where
+import GHC.Generics (Generic)
+import Control.DeepSeq (NFData)
 import Control.Monad.Except (ExceptT)
 import Data.Data
 #ifndef DOUBLE
@@ -29,7 +31,6 @@ import qualified Data.Map as M
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (ClockTime(..))
-import Text.Parsec.Pos
 
 import Hledger.Utils.Regex
 
@@ -38,28 +39,29 @@ type SmartDate = (String,String,String)
 
 data WhichDate = PrimaryDate | SecondaryDate deriving (Eq,Show)
 
-data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Ord,Data,Typeable)
+data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Ord,Data,Generic,Typeable)
+
+instance NFData DateSpan
 
 data Interval = NoInterval
               | Days Int | Weeks Int | Months Int | Quarters Int | Years Int
               | DayOfMonth Int | DayOfWeek Int
               -- WeekOfYear Int | MonthOfYear Int | QuarterOfYear Int
-                deriving (Eq,Show,Ord,Data,Typeable)
+                deriving (Eq,Show,Ord,Data,Generic,Typeable)
+
+instance NFData Interval
 
 type AccountName = String
 
 data AccountAlias = BasicAlias AccountName AccountName
                   | RegexAlias Regexp Replacement
-  deriving (
-  Eq
-  ,Read
-  ,Show
-  ,Ord
-  ,Data
-  ,Typeable
-  )
+  deriving (Eq, Read, Show, Ord, Data, Generic, Typeable)
 
-data Side = L | R deriving (Eq,Show,Read,Ord,Typeable,Data)
+instance NFData AccountAlias
+
+data Side = L | R deriving (Eq,Show,Read,Ord,Typeable,Data,Generic)
+
+instance NFData Side
 
 type Commodity = String
 
@@ -82,7 +84,9 @@ numberRepresentation = "Decimal"
 
 -- | An amount's price (none, per unit, or total) in another commodity.
 -- Note the price should be a positive number, although this is not enforced.
-data Price = NoPrice | UnitPrice Amount | TotalPrice Amount deriving (Eq,Ord,Typeable,Data)
+data Price = NoPrice | UnitPrice Amount | TotalPrice Amount deriving (Eq,Ord,Typeable,Data,Generic)
+
+instance NFData Price
 
 -- | Display style for an amount.
 data AmountStyle = AmountStyle {
@@ -91,7 +95,9 @@ data AmountStyle = AmountStyle {
       asprecision :: Int,            -- ^ number of digits displayed after the decimal point
       asdecimalpoint :: Maybe Char,  -- ^ character used as decimal point: period or comma. Nothing means "unspecified, use default"
       asdigitgroups :: Maybe DigitGroupStyle -- ^ style for displaying digit groups, if any
-} deriving (Eq,Ord,Read,Show,Typeable,Data)
+} deriving (Eq,Ord,Read,Show,Typeable,Data,Generic)
+
+instance NFData AmountStyle
 
 -- | A style for displaying digit groups in the integer part of a
 -- floating point number. It consists of the character used to
@@ -100,24 +106,34 @@ data AmountStyle = AmountStyle {
 -- the decimal point. The last group size is assumed to repeat. Eg,
 -- comma between thousands is DigitGroups ',' [3].
 data DigitGroupStyle = DigitGroups Char [Int]
-  deriving (Eq,Ord,Read,Show,Typeable,Data)
+  deriving (Eq,Ord,Read,Show,Typeable,Data,Generic)
+
+instance NFData DigitGroupStyle
 
 data Amount = Amount {
       acommodity :: Commodity,
       aquantity :: Quantity,
       aprice :: Price,                -- ^ the (fixed) price for this amount, if any
       astyle :: AmountStyle
-    } deriving (Eq,Ord,Typeable,Data)
+    } deriving (Eq,Ord,Typeable,Data,Generic)
 
-newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord,Typeable,Data)
+instance NFData Amount
+
+newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord,Typeable,Data,Generic)
+
+instance NFData MixedAmount
 
 data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
-                   deriving (Eq,Show,Typeable,Data)
+                   deriving (Eq,Show,Typeable,Data,Generic)
+
+instance NFData PostingType
 
 type Tag = (String, String)  -- ^ A tag name and (possibly empty) value.
 
 data ClearedStatus = Uncleared | Pending | Cleared
-                   deriving (Eq,Ord,Typeable,Data)
+                   deriving (Eq,Ord,Typeable,Data,Generic)
+
+instance NFData ClearedStatus
 
 instance Show ClearedStatus where -- custom show
   show Uncleared = ""             -- a bad idea
@@ -136,15 +152,24 @@ data Posting = Posting {
       pbalanceassertion :: Maybe MixedAmount,  -- ^ optional: the expected balance in the account after this posting
       ptransaction :: Maybe Transaction    -- ^ this posting's parent transaction (co-recursive types).
                                            -- Tying this knot gets tedious, Maybe makes it easier/optional.
-    } deriving (Typeable,Data)
+    } deriving (Typeable,Data,Generic)
+
+instance NFData Posting
 
 -- The equality test for postings ignores the parent transaction's
 -- identity, to avoid infinite loops.
 instance Eq Posting where
     (==) (Posting a1 b1 c1 d1 e1 f1 g1 h1 i1 _) (Posting a2 b2 c2 d2 e2 f2 g2 h2 i2 _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2 && g1==g2 && h1==h2 && i1==i2
 
+-- | The position of parse errors (eg), like parsec's SourcePos but generic.
+-- File name, 1-based line number and 1-based column number.
+data GenericSourcePos = GenericSourcePos FilePath Int Int
+  deriving (Eq, Read, Show, Ord, Data, Generic, Typeable)
+
+instance NFData GenericSourcePos
+
 data Transaction = Transaction {
-      tsourcepos :: SourcePos,
+      tsourcepos :: GenericSourcePos,
       tdate :: Day,
       tdate2 :: Maybe Day,
       tstatus :: ClearedStatus,
@@ -154,33 +179,45 @@ data Transaction = Transaction {
       ttags :: [Tag], -- ^ tag names and values, extracted from the comment
       tpostings :: [Posting],            -- ^ this transaction's postings
       tpreceding_comment_lines :: String -- ^ any comment lines immediately preceding this transaction
-    } deriving (Eq,Typeable,Data)
+    } deriving (Eq,Typeable,Data,Generic)
+
+instance NFData Transaction
 
 data ModifierTransaction = ModifierTransaction {
       mtvalueexpr :: String,
       mtpostings :: [Posting]
-    } deriving (Eq,Typeable,Data)
+    } deriving (Eq,Typeable,Data,Generic)
+
+instance NFData ModifierTransaction
 
 data PeriodicTransaction = PeriodicTransaction {
       ptperiodicexpr :: String,
       ptpostings :: [Posting]
-    } deriving (Eq,Typeable,Data)
+    } deriving (Eq,Typeable,Data,Generic)
 
-data TimeLogCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord,Typeable,Data)
+instance NFData PeriodicTransaction
+
+data TimeLogCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord,Typeable,Data,Generic)
+
+instance NFData TimeLogCode
 
 data TimeLogEntry = TimeLogEntry {
-      tlsourcepos :: SourcePos,
+      tlsourcepos :: GenericSourcePos,
       tlcode :: TimeLogCode,
       tldatetime :: LocalTime,
       tlaccount :: String,
       tldescription :: String
-    } deriving (Eq,Ord,Typeable,Data)
+    } deriving (Eq,Ord,Typeable,Data,Generic)
+
+instance NFData TimeLogEntry
 
 data MarketPrice = MarketPrice {
       mpdate :: Day,
       mpcommodity :: Commodity,
       mpamount :: Amount
-    } deriving (Eq,Ord,Typeable,Data) -- & Show (in Amount.hs)
+    } deriving (Eq,Ord,Typeable,Data,Generic) -- & Show (in Amount.hs)
+
+instance NFData MarketPrice
 
 type Year = Integer
 
@@ -195,10 +232,15 @@ data JournalContext = Ctx {
                                         --   specified with "account" directive(s). Concatenated, these
                                         --   are the account prefix prepended to parsed account names.
     , ctxAliases   :: ![AccountAlias]   -- ^ the current list of account name aliases in effect
-    } deriving (Read, Show, Eq, Data, Typeable)
+    } deriving (Read, Show, Eq, Data, Typeable, Generic)
+
+instance NFData JournalContext
 
 deriving instance Data (ClockTime)
 deriving instance Typeable (ClockTime)
+deriving instance Generic (ClockTime)
+
+instance NFData ClockTime
 
 data Journal = Journal {
       jmodifiertxns :: [ModifierTransaction],
@@ -214,7 +256,9 @@ data Journal = Journal {
                                             -- order encountered.
       filereadtime :: ClockTime,            -- ^ when this journal was last read from its file(s)
       jcommoditystyles :: M.Map Commodity AmountStyle  -- ^ how to display amounts in each commodity
-    } deriving (Eq, Typeable, Data)
+    } deriving (Eq, Typeable, Data, Generic)
+
+instance NFData Journal
 
 -- | A JournalUpdate is some transformation of a Journal. It can do I/O or
 -- raise an error.
