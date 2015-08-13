@@ -26,7 +26,7 @@ author      : Simon Michael <simon@joyful.com>
 maintainer  : Simon Michael <simon@joyful.com>
 github      : simonmichael/hledger
 homepage    : http://hledger.org
-bug-reports : http://hledger.org/bugs
+bug-reports : http://bugs.hledger.org
 # XXX not supported
 tested-with : GHC==7.6.3, GHC==7.8.4, GHC==7.10.1
             
