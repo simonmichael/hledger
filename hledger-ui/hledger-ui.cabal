@@ -1,61 +1,71 @@
+-- This file has been generated from package.yaml by hpack version 0.5.4.
+--
+-- see: https://github.com/sol/hpack
+
 name:           hledger-ui
-version: 0.26.98
-category:       Finance
-synopsis:       A curses-style console interface for the hledger accounting tool.
-description:    
-                hledger is a library and set of user tools for working
+version:        0.26.98
+category:       Finance, Console
+synopsis:       A curses-style text user interface for the hledger accounting tool.
+description:    hledger is a library and set of user tools for working
                 with financial data (or anything that can be tracked in a
                 double-entry accounting ledger.) It is a haskell port and
                 friendly fork of John Wiegley's Ledger. hledger provides
                 command-line, curses and web interfaces, and aims to be a
                 reliable, practical tool for daily use.
-
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
-bug-reports:    http://code.google.com/p/hledger/issues
+bug-reports:    http://bugs.hledger.org
 stability:      beta
-tested-with:    GHC==7.10
-cabal-version:  >= 1.6
+cabal-version:  >= 1.10
 build-type:     Simple
--- data-dir:       data
--- data-files:
-extra-tmp-files:
-extra-source-files: 
-                    CHANGES
-                    README
+
+extra-source-files:
+    CHANGES
+    README
 
 source-repository head
-  type:     darcs
-  location: http://joyful.com/repos/hledger
+  type: git
+  location: https://github.com/simonmichael/hledger
+
+flag threaded
+  default: True
+  description:
+    Build with support for multithreaded execution
+
+flag old-locale
+  default: False
+  description:
+    A compatibility flag, set automatically by cabal.
+    If false then depend on time >= 1.5,
+    if true then depend on time < 1.5 together with old-locale.
 
 executable hledger-ui
-  main-is:        hledger-ui.hs
-  ghc-options:    -threaded -W
-  other-modules:
-                  Hledger.UI
-                  Hledger.UI.Main
-                  Hledger.UI.Options
+  main-is: hledger-ui.hs
+  hs-source-dirs:
+      .
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  if flag(threaded)
+    ghc-options: -threaded
+  cpp-options: -DVERSION="0.26.98"
   build-depends:
-                  hledger == 0.26.98
-                 ,hledger-lib == 0.26.98
-                 ,HUnit
-                 ,base >= 3 && < 5
-                 ,cmdargs >= 0.8
-                 -- ,containers
-                 -- ,csv
-                 -- ,directory
-                 -- ,filepath
-                 -- ,mtl
-                 -- ,old-locale
-                 -- ,old-time
-                 -- ,parsec
-                 -- ,process
-                 -- ,regexpr >= 0.5.1
-                 ,safe >= 0.2
-                 -- ,split == 0.1.*
-                 ,time
-                 -- ,utf8-string >= 0.3.5 && < 0.4
-                 ,vty >= 5.2 && < 5.4
+      hledger == 0.26.98
+    , hledger-lib == 0.26.98
+    , base >= 3 && < 5
+    , cmdargs >= 0.8
+    , HUnit
+    , safe >= 0.2
+    , vty >= 5.2 && < 5.4
+  if impl(ghc >= 7.4)
+    build-depends: pretty-show >= 1.6.4
+  if flag(old-locale)
+    build-depends: time < 1.5, old-locale
+  else
+    build-depends: time >= 1.5
+  other-modules:
+      Hledger.UI
+      Hledger.UI.Main
+      Hledger.UI.Options
+  default-language: Haskell2010

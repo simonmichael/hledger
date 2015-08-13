@@ -1,0 +1,7 @@
+User-visible changes in hledger-ui.
+
+0.27 (unreleased)
+
+- hledger-ui is the new name for hledger-vty, the curses-style text
+  UI.  It is intended to be installed by all hledger users, except on
+  (native) Windows where vty is not supported.

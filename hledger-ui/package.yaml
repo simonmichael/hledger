@@ -1,0 +1,101 @@
+# hpack specification for generating the cabal file
+# https://github.com/sol/hpack#readme
+# http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
+#
+# as of hpack 0.5.4 these must be added manually:
+# - tested-with
+# - flags
+# - benchmarks
+# - conditional blocks
+
+name        : hledger-ui
+version     : '0.26.98'
+stability   : beta
+category    : Finance, Console
+synopsis    : A curses-style text user interface for the hledger accounting tool.
+description : |
+  hledger is a library and set of user tools for working
+  with financial data (or anything that can be tracked in a
+  double-entry accounting ledger.) It is a haskell port and
+  friendly fork of John Wiegley's Ledger. hledger provides
+  command-line, curses and web interfaces, and aims to be a
+  reliable, practical tool for daily use.
+
+license     : GPL
+author      : Simon Michael <simon@joyful.com>
+maintainer  : Simon Michael <simon@joyful.com>
+github      : simonmichael/hledger
+homepage    : http://hledger.org
+bug-reports : http://bugs.hledger.org
+# XXX not supported
+tested-with : GHC==7.10.2
+
+extra-source-files:
+  - CHANGES
+  - README
+
+# XXX not supported
+# flag:
+#   old-locale:
+#     - default: False
+#     - description:
+#         A compatibility flag, set automatically by cabal.
+#         If false then depend on time >= 1.5,
+#         if true then depend on time < 1.5 together with old-locale.
+
+ghc-options:
+  -Wall
+  -fno-warn-unused-do-bind
+  -fno-warn-name-shadowing
+  -fno-warn-missing-signatures
+  -fno-warn-type-defaults
+  -fno-warn-orphans
+
+cpp-options: -DVERSION="0.26.98"
+
+executables:
+  hledger-ui:
+    source-dirs: .
+    main: hledger-ui.hs
+    # if flag(threaded)
+    #   ghc-options:   -threaded
+    ghc-options:
+      -threaded
+    dependencies:
+      - hledger == 0.26.98
+      - hledger-lib == 0.26.98
+      - base >= 3 && < 5
+      - cmdargs >= 0.8
+      - HUnit
+      - safe >= 0.2
+      - vty >= 5.2 && < 5.4
+      # XXX not supported
+      # if impl(ghc >= 7.4)
+      #   build-depends: pretty-show >= 1.6.4
+      - pretty-show >= 1.6.4
+      # if flag(old-locale)
+      #   build-depends: time < 1.5, old-locale
+      # else
+      #   build-depends: time >= 1.5
+      - time >= 1.5
+
+# tests:
+#   test:
+#     source-dirs: test
+#     main: test.hs
+#     dependencies:
+#       - hledger-ui
+#       - test-framework
+#       - test-framework-hunit
+
+# XXX not supported
+# benchmarks:
+#   bench:
+#     source-dirs: bench
+#     main: bench.hs
+#     other-modules: SimpleBench
+#     dependencies:
+#       - hledger-ui
+#       - criterion
+#       - html
+#       - timeit
