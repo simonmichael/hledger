@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           hledger-lib
-version: 0.26
+version:        0.26.98
 stability:      stable
 category:       Finance, Console
 synopsis:       Core data types, parsers and utilities for the hledger accounting tool.

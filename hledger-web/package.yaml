@@ -9,7 +9,7 @@
 # - conditional blocks
 
 name        : hledger-web
-version     : '0.26'
+version     : '0.26.98'
 stability   : stable
 category    : Finance
 synopsis    : A web interface for the hledger accounting tool
@@ -120,8 +120,8 @@ extra-source-files:
 #   default: False
 
 dependencies:
-  - hledger-lib == 0.26
-  - hledger == 0.26
+  - hledger-lib == 0.26.98
+  - hledger == 0.26.98
   - base               >= 4 && < 5
   - base-compat        >= 0.8.1
   - blaze-html
@@ -189,7 +189,7 @@ ghc-options:
 # #   -- EmptyDataDecls
 # #   -- NoMonomorphismRestriction
 
-cpp-options: -DVERSION="0.26"
+cpp-options: -DVERSION="0.26.98"
 # XXX
 # if flag(dev) || flag(library-only)
 #   cpp-options: -DDEVELOPMENT
@@ -229,7 +229,7 @@ executables:
     source-dirs: app
     main: main.hs
     dependencies:
-      - hledger-web == 0.26
+      - hledger-web == 0.26.98
 
 tests:
   test:

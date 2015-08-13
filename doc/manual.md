@@ -25,7 +25,7 @@ tested on unix, mac and windows.  See [Download](download.html) for
 installation help.
 
 This manual is the reference for every part of hledger's functionality;
-this version documents hledger and hledger-web 0.26
+this version documents hledger and hledger-web 0.26.98
 <!-- [hledger 0.25](http://hackage.haskell.org/package/hledger-0.25) -->
 <!-- and [hledger-web 0.25](http://hackage.haskell.org/package/hledger-web-0.25). -->
 If you find anything missing or incorrect, please report it as a bug.

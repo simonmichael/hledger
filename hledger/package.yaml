@@ -9,7 +9,7 @@
 # - conditional blocks
 
 name        : hledger
-version     : '0.26'
+version     : '0.26.98'
 stability   : stable
 category    : Finance, Console
 synopsis    : The main command-line interface for the hledger accounting tool.
@@ -57,7 +57,7 @@ flag:
         if true then depend on time < 1.5 together with old-locale.
 
 dependencies:
-  - hledger-lib == 0.26
+  - hledger-lib == 0.26.98
   - base >= 4.3 && < 5
   - base-compat >= 0.8.1
   - containers
@@ -111,7 +111,7 @@ ghc-options:
   -fno-warn-type-defaults
   -fno-warn-orphans
 
-cpp-options: -DVERSION="0.26"
+cpp-options: -DVERSION="0.26.98"
 
 library:
   # source-dirs: .  # XXX includes Setup and uncommitted stuff
@@ -142,7 +142,7 @@ executables:
     ghc-options:
       -threaded
     dependencies:
-      - hledger == 0.26
+      - hledger == 0.26.98
 
 tests:
   test:

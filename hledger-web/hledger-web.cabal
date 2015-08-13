@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           hledger-web
-version:        0.26
+version:        0.26.98
 stability:      stable
 category:       Finance
 synopsis:       A web interface for the hledger accounting tool
@@ -121,12 +121,12 @@ flag old-locale
 
 library
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-    cpp-options: -DVERSION="0.26"
+    cpp-options: -DVERSION="0.26.98"
     if flag(dev) || flag(library-only)
         cpp-options: -DDEVELOPMENT
     build-depends:
-          hledger-lib == 0.26
-        , hledger == 0.26
+          hledger-lib == 0.26.98
+        , hledger == 0.26.98
         , base               >= 4 && < 5
         , base-compat        >= 0.8.1
         , blaze-html
@@ -193,12 +193,12 @@ executable hledger-web
       ghc-options: -threaded
     if flag(dev)
       ghc-options:   -O0
-    cpp-options: -DVERSION="0.26"
+    cpp-options: -DVERSION="0.26.98"
     if flag(dev)
       cpp-options: -DDEVELOPMENT
     build-depends:
-          hledger-lib == 0.26
-        , hledger == 0.26
+          hledger-lib == 0.26.98
+        , hledger == 0.26.98
         , base               >= 4 && < 5
         , base-compat        >= 0.8.1
         , blaze-html
@@ -231,7 +231,7 @@ executable hledger-web
         , yesod-static
         , json
         , time >= 1.5
-        , hledger-web == 0.26
+        , hledger-web == 0.26.98
     if flag(old-locale)
       build-depends: time < 1.5, old-locale
     else
@@ -244,10 +244,10 @@ test-suite test
     hs-source-dirs:
           tests
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-    cpp-options: -DVERSION="0.26"
+    cpp-options: -DVERSION="0.26.98"
     build-depends:
-          hledger-lib == 0.26
-        , hledger == 0.26
+          hledger-lib == 0.26.98
+        , hledger == 0.26.98
         , base               >= 4 && < 5
         , base-compat        >= 0.8.1
         , blaze-html
