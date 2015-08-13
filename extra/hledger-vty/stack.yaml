@@ -1,8 +1,0 @@
-packages:
-- '../../hledger-lib'
-- '../../hledger'
-- '.'
-flags:
-resolver: lts-3.0
-extra-deps:
-- vty-5.2.10

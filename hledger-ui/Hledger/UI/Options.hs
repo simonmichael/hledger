@@ -3,7 +3,7 @@
 
 -}
 
-module Hledger.Vty.Options
+module Hledger.UI.Options
 where
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
@@ -11,7 +11,7 @@ import System.Console.CmdArgs.Explicit
 import Hledger.Cli hiding (progname,version,prognameandversion)
 
 progname, version :: String
-progname = "hledger-vty"
+progname = "hledger-ui"
 #ifdef VERSION
 version = VERSION
 #else
@@ -20,16 +20,16 @@ version = ""
 prognameandversion :: String
 prognameandversion = progname ++ " " ++ version :: String
 
-vtyflags = [
-  flagNone ["debug-vty"]  (\opts -> setboolopt "rules-file" opts) "run with no terminal output, showing console"
+uiflags = [
+  flagNone ["debug-ui"]  (\opts -> setboolopt "rules-file" opts) "run with no terminal output, showing console"
  ]
 
---vtymode :: Mode [([Char], [Char])]
-vtymode =  (mode "hledger-vty" [("command","vty")]
+--uimode :: Mode [([Char], [Char])]
+uimode =  (mode "hledger-ui" [("command","ui")]
             "browse accounts, postings and entries in a full-window curses interface"
             (argsFlag "[PATTERNS]") []){
               modeGroupFlags = Group {
-                                groupUnnamed = vtyflags
+                                groupUnnamed = uiflags
                                ,groupHidden = []
                                ,groupNamed = [(generalflagsgroup1)]
                                }
@@ -38,31 +38,31 @@ vtymode =  (mode "hledger-vty" [("command","vty")]
                  ]
            }
 
--- hledger-vty options, used in hledger-vty and above
-data VtyOpts = VtyOpts {
-     debug_vty_ :: Bool
+-- hledger-ui options, used in hledger-ui and above
+data UIOpts = UIOpts {
+     debug_ui_ :: Bool
     ,cliopts_   :: CliOpts
  } deriving (Show)
 
-defvtyopts = VtyOpts
+defuiopts = UIOpts
     def
     def
 
 -- instance Default CliOpts where def = defcliopts
 
-toVtyOpts :: RawOpts -> IO VtyOpts
-toVtyOpts rawopts = do
+toUIOpts :: RawOpts -> IO UIOpts
+toUIOpts rawopts = do
   cliopts <- rawOptsToCliOpts rawopts
-  return defvtyopts {
-              debug_vty_ = boolopt "debug-vty" rawopts
+  return defuiopts {
+              debug_ui_ = boolopt "debug-ui" rawopts
              ,cliopts_   = cliopts
              }
 
-checkVtyOpts :: VtyOpts -> IO VtyOpts
-checkVtyOpts opts = do
+checkUIOpts :: UIOpts -> IO UIOpts
+checkUIOpts opts = do
   checkCliOpts $ cliopts_ opts
   return opts
 
-getHledgerVtyOpts :: IO VtyOpts
-getHledgerVtyOpts = processArgs vtymode >>= return . decodeRawOpts >>= toVtyOpts >>= checkVtyOpts
+getHledgerUIOpts :: IO UIOpts
+getHledgerUIOpts = processArgs uimode >>= return . decodeRawOpts >>= toUIOpts >>= checkUIOpts
 

@@ -1,4 +1,4 @@
-name:           hledger-vty
+name:           hledger-ui
 version: 0.26.98
 category:       Finance
 synopsis:       A curses-style console interface for the hledger accounting tool.
@@ -23,19 +23,21 @@ build-type:     Simple
 -- data-dir:       data
 -- data-files:
 extra-tmp-files:
-extra-source-files:
+extra-source-files: 
+                    CHANGES
+                    README
 
 source-repository head
   type:     darcs
   location: http://joyful.com/repos/hledger
 
-executable hledger-vty
-  main-is:        hledger-vty.hs
+executable hledger-ui
+  main-is:        hledger-ui.hs
   ghc-options:    -threaded -W
   other-modules:
-                  Hledger.Vty
-                  Hledger.Vty.Main
-                  Hledger.Vty.Options
+                  Hledger.UI
+                  Hledger.UI.Main
+                  Hledger.UI.Options
   build-depends:
                   hledger == 0.26.98
                  ,hledger-lib == 0.26.98
@@ -56,4 +58,4 @@ executable hledger-vty
                  -- ,split == 0.1.*
                  ,time
                  -- ,utf8-string >= 0.3.5 && < 0.4
-                 ,vty >= 5.2 && < 5.3
+                 ,vty >= 5.2 && < 5.4

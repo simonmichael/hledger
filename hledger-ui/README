@@ -1,0 +1,4 @@
+A curses-style console interface for the hledger accounting tool.
+hledger-vty was revived in 2015 to become this package.
+It allows browsing the balance, register and print reports with cursor keys and scrolling.
+

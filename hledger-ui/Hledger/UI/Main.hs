@@ -1,10 +1,10 @@
 {-|
-hledger-vty - a hledger add-on providing a curses-style interface.
+hledger-ui - a hledger add-on providing a curses-style interface.
 Copyright (c) 2007-2011 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 -}
 
-module Hledger.Vty.Main (main) where
+module Hledger.UI.Main (main) where
 
 import Control.Monad
 import Data.List
@@ -16,25 +16,25 @@ import System.Exit
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
-import Hledger.Vty.Options
+import Hledger.UI.Options
 
 
 main :: IO ()
 main = do
-  opts <- getHledgerVtyOpts
+  opts <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
   runWith opts
 
-runWith :: VtyOpts -> IO ()
+runWith :: UIOpts -> IO ()
 runWith opts = run opts
     where
       run opts
-          | "help" `inRawOpts` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp vtymode) >> exitSuccess
+          | "help" `inRawOpts` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp uimode) >> exitSuccess
           | "version" `inRawOpts` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
           | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
-          | otherwise                                          = withJournalDo' opts vty
+          | otherwise                                          = withJournalDo' opts ui
 
-withJournalDo' :: VtyOpts -> (VtyOpts -> Journal -> IO ()) -> IO ()
+withJournalDo' :: UIOpts -> (UIOpts -> Journal -> IO ()) -> IO ()
 withJournalDo' opts cmd = do
   -- journalFilePathFromOpts (cliopts_ opts) >>= readJournalFile Nothing >>=
   --   either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
@@ -42,17 +42,17 @@ withJournalDo' opts cmd = do
   (head `fmap` journalFilePathFromOpts (cliopts_ opts)) >>= readJournalFile Nothing Nothing True >>=
     either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
 
-helpmsg = "(b)alance, (r)egister, (p)rint, (right) to drill down, (left) to back up, (q)uit"
+helpmsg = "(right) drill down, (left) back up, (q)uit"
 
 instance Show Vty where show = const "a Vty"
 
--- | The application state when running the vty command.
+-- | The application state when running the ui command.
 data AppState = AppState {
      av :: Vty                   -- ^ the vty context
     ,aw :: Int                   -- ^ window width
     ,ah :: Int                   -- ^ window height
     ,amsg :: String              -- ^ status message
-    ,aopts :: VtyOpts            -- ^ command-line opts
+    ,aopts :: UIOpts            -- ^ command-line opts
     ,aargs :: [String]           -- ^ command-line args at startup
     ,ajournal :: Journal         -- ^ parsed journal
     ,abuf :: [String]            -- ^ lines of the current buffered view
@@ -75,11 +75,11 @@ data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
             -- | LedgerScreen      -- ^ shows the raw journal entries
               deriving (Eq,Show)
 
--- | Run the vty (curses-style) ui.
-vty :: VtyOpts -> Journal -> IO ()
-vty opts j = do
+-- | Run the curses-style ui.
+ui :: UIOpts -> Journal -> IO ()
+ui opts j = do
   cfg <- standardIOConfig
-  v <- mkVty cfg
+  vty <- mkVty cfg
 
   -- let line0 = string (defAttr ` withForeColor ` green) "first line"
   --     line1 = string (defAttr ` withBackColor ` blue) "second line"
@@ -95,7 +95,7 @@ vty opts j = do
   d <- getCurrentDay
   let a = enter d BalanceScreen (words' $ query_ $ reportopts_ $ cliopts_ opts)
           AppState {
-                  av=v
+                  av=vty
                  ,aw=w
                  ,ah=h
                  ,amsg=helpmsg
@@ -110,15 +110,15 @@ vty opts j = do
 -- | Update the screen, wait for the next event, repeat.
 go :: AppState -> IO ()
 go a@AppState{av=av,aopts=opts} = do
-  when (not $ debug_vty_ opts) $ update av (renderScreen a)
+  when (not $ debug_ui_ opts) $ update av (renderScreen a)
   k <- nextEvent av
   d <- getCurrentDay
   case k of
     EvResize x y                -> go $ resize' x y a
     EvKey (KChar 'l') [MCtrl]  -> refresh av >> go a{amsg=helpmsg}
-    EvKey (KChar 'b') []       -> go $ resetTrailAndEnter d BalanceScreen a
-    EvKey (KChar 'r') []       -> go $ resetTrailAndEnter d RegisterScreen a
-    EvKey (KChar 'p') []       -> go $ resetTrailAndEnter d PrintScreen a
+    -- EvKey (KChar 'b') []       -> go $ resetTrailAndEnter d BalanceScreen a
+    -- EvKey (KChar 'r') []       -> go $ resetTrailAndEnter d RegisterScreen a
+    -- EvKey (KChar 'p') []       -> go $ resetTrailAndEnter d PrintScreen a
     EvKey KRight []             -> go $ drilldown d a
     EvKey KEnter []             -> go $ drilldown d a
     EvKey KLeft  []             -> go $ backout d a
@@ -329,13 +329,13 @@ currentTransaction a@AppState{ajournal=j,abuf=buf} = ptransaction p
     where
       p = headDef nullposting $ filter ismatch $ journalPostings j
       ismatch p = postingDate p == parsedate (take 10 datedesc)
-                  && take 70 (showPostingWithBalanceForVty p nullmixedamt) == (datedesc ++ acctamt)
+                  && take 70 (showPostingWithBalanceForUI p nullmixedamt) == (datedesc ++ acctamt)
       datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ headDef "" rest : reverse above
       acctamt = drop 32 $ headDef "" rest
       (above,rest) = splitAt y buf
       y = posY a
 
-showPostingWithBalanceForVty p b =
+showPostingWithBalanceForUI p b =
   postingsReportItemAsText defcliopts $
   mkpostingsReportItem False False PrimaryDate Nothing p b
 
@@ -395,7 +395,9 @@ renderStatus w = string statusattr . take w . (++ repeat ' ')
 
 -- the all-important theming engine!
 
-theme = Restrained
+-- theme = Restrained
+theme = Colorful
+-- theme = Blood
 
 data UITheme = Restrained | Colorful | Blood
 

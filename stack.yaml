@@ -1,7 +1,9 @@
 packages:
 - hledger-lib
 - hledger
+- hledger-ui
 - hledger-web
 flags: {}
 resolver: lts-3.0
 extra-deps:
+- vty-5.3.1
