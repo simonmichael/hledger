@@ -121,7 +121,7 @@ executable hledger
   main-is: hledger-cli.hs
   hs-source-dirs:
       app
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -threaded
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   if flag(threaded)
     ghc-options: -threaded
   cpp-options: -DVERSION="0.26.98"
