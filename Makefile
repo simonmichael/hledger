@@ -117,6 +117,11 @@ CABALFILES:= \
 	hledger-*/*.cabal \
 	doc/site/hakyll-std.cabal
 
+HPACKFILES:= \
+	hledger/package.yaml \
+	hledger-*/package.yaml \
+	doc/site/package.yaml
+
 WEBFILES:= \
 	hledger-web/templates/* \
 	hledger-web/static/*.js \
@@ -127,7 +132,7 @@ DOCFILES:= \
 
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
-	$(CABALFILES) \
+	$(HPACKFILES) \
 	doc/manual.md \
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
@@ -1075,18 +1080,18 @@ setversionforce:\
 
 hledger-lib/package.yaml: $(VERSIONFILE) \
 	$(call def-help-hide,hledger-lib/package.yaml, update the version in this file )
-	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
 
 hledger/package.yaml: $(VERSIONFILE) \
 	$(call def-help-hide,hledger/package.yaml, update the version in this file )
-	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
-	perl -p -e "s/(^[ ,]*hledger(-lib)? *[>=]=) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
+	perl -p -e "s/(hledger(-lib)? *[>=]= *).*/\$${1}$(VERSION)/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
 hledger-web/package.yaml: $(VERSIONFILE) \
 	$(call def-help-hide,hledger-web/package.yaml, update the version in this file )
-	perl -p -e "s/(^ *version:) *.*/\1 $(VERSION)/" -i $@
-	perl -p -e "s/(^[ ,]*hledger(-lib|-web)? *[>=]=) *.*/\1 $(VERSION)/" -i $@
+	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
+	perl -p -e "s/(hledger(-lib|-web)? *[>=]= *).*/\$${1}$(VERSION)/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
 doc/manual.md: $(VERSIONFILE) \
