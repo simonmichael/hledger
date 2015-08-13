@@ -3,6 +3,6 @@ packages:
 - '../../hledger'
 - '.'
 flags:
-resolver: nightly-2015-08-03
+resolver: lts-3.0
 extra-deps:
 - vty-5.2.10

@@ -3,6 +3,5 @@ packages:
 - hledger
 - hledger-web
 flags: {}
-resolver: nightly-2015-07-01
+resolver: lts-3.0
 extra-deps:
-- timeit-1.0.0.0
