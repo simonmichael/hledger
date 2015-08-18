@@ -22,6 +22,11 @@ prognameandversion = progname ++ " " ++ version :: String
 
 uiflags = [
   flagNone ["debug-ui"]  (\opts -> setboolopt "rules-file" opts) "run with no terminal output, showing console"
+  ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
+  ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
+  ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
+  ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "no eliding at all, stronger than --empty"
+  -- ,flagNone ["no-total"] (\opts -> setboolopt "no-total" opts) "don't show the final total"
  ]
 
 --uimode :: Mode [([Char], [Char])]

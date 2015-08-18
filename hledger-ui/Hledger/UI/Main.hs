@@ -1,38 +1,77 @@
 {-|
 hledger-ui - a hledger add-on providing a curses-style interface.
-Copyright (c) 2007-2011 Simon Michael <simon@joyful.com>
+Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
+
+TODO:
+reg: don't repeat date/description for postings in same txn
+reg: show a hledger-web-style register
+--
+switch to next brick release
+reg: use full width
+page up/down
+home/end
+search
+filter
+--
+show journal entries
+add
+edit
 -}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
-module Hledger.UI.Main (main) where
+module Hledger.UI.Main where
 
+-- import Control.Applicative
+-- import Control.Lens ((^.))
 import Control.Monad
-import Data.List
-import Data.Maybe
-import Data.Time.Calendar
-import Graphics.Vty
-import Safe
+-- import Data.Default
+-- import Data.Monoid              -- 
+-- import Data.List
+-- import Data.Maybe
+-- import Data.Time.Calendar
+-- import Safe
 import System.Exit
+
+import qualified Graphics.Vty as V
+-- import qualified Brick.Types as T
+import qualified Brick.Main as M
+-- import qualified Brick.AttrMap as A
+-- import qualified Brick.Widgets.Border as B
+-- import qualified Brick.Widgets.Center as C
+-- import qualified Brick.Widgets.List as L
+-- import Brick.Util (fg, on)
+-- import Brick.Widgets.Core
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.Options
+import Hledger.UI.UITypes
+import Hledger.UI.UIUtils
+import Hledger.UI.AccountsScreen as AS
+import Hledger.UI.RegisterScreen as RS
 
+----------------------------------------------------------------------
+
+-- | The available screens.
+appScreens = [
+   AS.screen
+  ,RS.screen
+  ]
 
 main :: IO ()
 main = do
   opts <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
-  runWith opts
-
-runWith :: UIOpts -> IO ()
-runWith opts = run opts
+  run opts
     where
       run opts
-          | "help" `inRawOpts` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp uimode) >> exitSuccess
-          | "version" `inRawOpts` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
-          | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
-          | otherwise                                          = withJournalDo' opts ui
+        | "help" `inRawOpts` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp uimode) >> exitSuccess
+        | "version" `inRawOpts` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
+        | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
+        | otherwise                                                = withJournalDo' opts runBrickUi
 
 withJournalDo' :: UIOpts -> (UIOpts -> Journal -> IO ()) -> IO ()
 withJournalDo' opts cmd = do
@@ -42,385 +81,30 @@ withJournalDo' opts cmd = do
   (head `fmap` journalFilePathFromOpts (cliopts_ opts)) >>= readJournalFile Nothing Nothing True >>=
     either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
 
-helpmsg = "(right) drill down, (left) back up, (q)uit"
-
-instance Show Vty where show = const "a Vty"
-
--- | The application state when running the ui command.
-data AppState = AppState {
-     av :: Vty                   -- ^ the vty context
-    ,aw :: Int                   -- ^ window width
-    ,ah :: Int                   -- ^ window height
-    ,amsg :: String              -- ^ status message
-    ,aopts :: UIOpts            -- ^ command-line opts
-    ,aargs :: [String]           -- ^ command-line args at startup
-    ,ajournal :: Journal         -- ^ parsed journal
-    ,abuf :: [String]            -- ^ lines of the current buffered view
-    ,alocs :: [Loc]              -- ^ user's navigation trail within the UI
-                                -- ^ never null, head is current location
-    } deriving (Show)
-
--- | A location within the user interface.
-data Loc = Loc {
-     scr :: Screen               -- ^ one of the available screens
-    ,sy :: Int                   -- ^ viewport y scroll position
-    ,cy :: Int                   -- ^ cursor y position
-    ,largs :: [String]           -- ^ command-line args, possibly narrowed for this location
-    } deriving (Show)
-
--- | The screens available within the user interface.
-data Screen = BalanceScreen     -- ^ like hledger balance, shows accounts
-            | RegisterScreen    -- ^ like hledger register, shows transaction-postings
-            | PrintScreen       -- ^ like hledger print, shows journal transactions
-            -- | LedgerScreen      -- ^ shows the raw journal entries
-              deriving (Eq,Show)
-
--- | Run the curses-style ui.
-ui :: UIOpts -> Journal -> IO ()
-ui opts j = do
-  cfg <- standardIOConfig
-  vty <- mkVty cfg
-
-  -- let line0 = string (defAttr ` withForeColor ` green) "first line"
-  --     line1 = string (defAttr ` withBackColor ` blue) "second line"
-  --     img = line0 <-> line1
-  --     pic = picForImage img
-  -- update vty pic
-  -- e <- nextEvent vty
-  -- shutdown vty
-  -- print ("Last event was: " ++ show e)
-
-  Output{displayBounds=getdisplayregion} <- outputForConfig cfg
-  (w,h) <- getdisplayregion
+runBrickUi :: UIOpts -> Journal -> IO ()
+runBrickUi opts j = do
   d <- getCurrentDay
-  let a = enter d BalanceScreen (words' $ query_ $ reportopts_ $ cliopts_ opts)
-          AppState {
-                  av=vty
-                 ,aw=w
-                 ,ah=h
-                 ,amsg=helpmsg
-                 ,aopts=opts
-                 ,aargs=words' $ query_ $ reportopts_ $ cliopts_ opts
-                 ,ajournal=j
-                 ,abuf=[]
-                 ,alocs=[]
-                 }
-  go a
 
--- | Update the screen, wait for the next event, repeat.
-go :: AppState -> IO ()
-go a@AppState{av=av,aopts=opts} = do
-  when (not $ debug_ui_ opts) $ update av (renderScreen a)
-  k <- nextEvent av
-  d <- getCurrentDay
-  case k of
-    EvResize x y                -> go $ resize' x y a
-    EvKey (KChar 'l') [MCtrl]  -> refresh av >> go a{amsg=helpmsg}
-    -- EvKey (KChar 'b') []       -> go $ resetTrailAndEnter d BalanceScreen a
-    -- EvKey (KChar 'r') []       -> go $ resetTrailAndEnter d RegisterScreen a
-    -- EvKey (KChar 'p') []       -> go $ resetTrailAndEnter d PrintScreen a
-    EvKey KRight []             -> go $ drilldown d a
-    EvKey KEnter []             -> go $ drilldown d a
-    EvKey KLeft  []             -> go $ backout d a
-    EvKey KUp    []             -> go $ moveUpAndPushEdge a
-    EvKey KDown  []             -> go $ moveDownAndPushEdge a
-    EvKey KHome  []             -> go $ moveToTop a
-    EvKey KUp    [MCtrl]        -> go $ moveToTop a
-    EvKey KUp    [MShift]       -> go $ moveToTop a
-    EvKey KEnd   []             -> go $ moveToBottom a
-    EvKey KDown  [MCtrl]        -> go $ moveToBottom a
-    EvKey KDown  [MShift]       -> go $ moveToBottom a
-    EvKey KPageUp []            -> go $ prevpage a
-    EvKey KBS []                -> go $ prevpage a
-    EvKey (KChar ' ') [MShift] -> go $ prevpage a
-    EvKey KPageDown []          -> go $ nextpage a
-    EvKey (KChar ' ') []       -> go $ nextpage a
-    EvKey (KChar 'q') []       -> shutdown av >> return ()
---    EvKey KEsc   []           -> shutdown av >> return ()
-    _                           -> go a
+  let
+    args = words' $ query_ $ reportopts_ $ cliopts_ opts
+    scr = head appScreens
+    st = (sInitFn scr) d args
+         AppState{
+            aopts=opts
+           ,aargs=args
+           ,ajournal=j
+           ,aScreen=scr
+           ,aPrevScreens=[]
+           }
+         
+    app :: M.App (AppState) V.Event
+    app = M.App {
+        M.appLiftVtyEvent = id
+      , M.appStartEvent   = return
+      , M.appAttrMap      = const attrMap
+      , M.appChooseCursor = M.showFirstCursor
+      , M.appHandleEvent  = \st ev -> (sHandleFn $ aScreen st) st ev
+      , M.appDraw         = \st -> (sDrawFn $ aScreen st) st
+      }
 
--- app state modifiers
-
--- | The number of lines currently available for the main data display area.
-pageHeight :: AppState -> Int
-pageHeight a = ah a - 1
-
-setLocCursorY, setLocScrollY :: Int -> Loc -> Loc
-setLocCursorY y l = l{cy=y}
-setLocScrollY y l = l{sy=y}
-
-cursorY, scrollY, posY :: AppState -> Int
-cursorY = cy . loc
-scrollY = sy . loc
-posY a = scrollY a + cursorY a
-
-setCursorY, setScrollY, setPosY :: Int -> AppState -> AppState
-setCursorY _ AppState{alocs=[]} = error' "shouldn't happen" -- silence warnings
-setCursorY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)} where l' = setLocCursorY y l
-
-setScrollY _ AppState{alocs=[]} = error' "shouldn't happen" -- silence warnings
-setScrollY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)} where l' = setLocScrollY y l
-
-setPosY _ AppState{alocs=[]}    = error' "shouldn't happen" -- silence warnings
-setPosY y a@AppState{alocs=(l:locs)} = a{alocs=(l':locs)}
-    where
-      l' = setLocScrollY sy $ setLocCursorY cy l
-      ph = pageHeight a
-      cy = y `mod` ph
-      sy = y - cy
-
-updateCursorY, updateScrollY {-, updatePosY-} :: (Int -> Int) -> AppState -> AppState
-updateCursorY f a = setCursorY (f $ cursorY a) a
-updateScrollY f a = setScrollY (f $ scrollY a) a
--- updatePosY f a = setPosY (f $ posY a) a
-
-resize' :: Int -> Int -> AppState -> AppState
-resize' x y a = setCursorY cy' a{aw=x,ah=y}
-    where
-      cy = cursorY a
-      cy' = min cy (y-2)
-
-moveToTop :: AppState -> AppState
-moveToTop = setPosY 0
-
-moveToBottom :: AppState -> AppState
-moveToBottom a = setPosY (length $ abuf a) a
-
-moveUpAndPushEdge :: AppState -> AppState
-moveUpAndPushEdge a
-    | cy > 0 = updateCursorY (subtract 1) a
-    | sy > 0 = updateScrollY (subtract 1) a
-    | otherwise = a
-    where Loc{sy=sy,cy=cy} = head $ alocs a
-
-moveDownAndPushEdge :: AppState -> AppState
-moveDownAndPushEdge a
-    | sy+cy >= bh = a
-    | cy < ph-1 = updateCursorY (+1) a
-    | otherwise = updateScrollY (+1) a
-    where
-      Loc{sy=sy,cy=cy} = head $ alocs a
-      ph = pageHeight a
-      bh = length $ abuf a
-
--- | Scroll down by page height or until we can just see the last line,
--- without moving the cursor, or if we are already scrolled as far as
--- possible then move the cursor to the last line.
-nextpage :: AppState -> AppState
-nextpage (a@AppState{abuf=b})
-    | sy < bh-jump = setScrollY sy' a
-    | otherwise    = setCursorY (bh-sy) a
-    where
-      sy = scrollY a
-      jump = pageHeight a - 1
-      bh = length b
-      sy' = min (sy+jump) (bh-jump)
-
--- | Scroll up by page height or until we can just see the first line,
--- without moving the cursor, or if we are scrolled as far as possible
--- then move the cursor to the first line.
-prevpage :: AppState -> AppState
-prevpage a
-    | sy > 0    = setScrollY sy' a
-    | otherwise = setCursorY 0 a
-    where
-      sy = scrollY a
-      jump = pageHeight a - 1
-      sy' = max (sy-jump) 0
-
--- | Push a new UI location on to the stack.
-pushLoc :: Loc -> AppState -> AppState
-pushLoc l a = a{alocs=(l:alocs a)}
-
-popLoc :: AppState -> AppState
-popLoc a@AppState{alocs=locs}
-    | length locs > 1 = a{alocs=drop 1 locs}
-    | otherwise = a
-
-clearLocs :: AppState -> AppState
-clearLocs a = a{alocs=[]}
-
--- exit :: AppState -> AppState
--- exit = popLoc
-
-loc :: AppState -> Loc
-loc = head . alocs
-
--- | Get the filter pattern args in effect for the current ui location.
-currentArgs :: AppState -> [String]
-currentArgs (AppState {alocs=Loc{largs=as}:_}) = as
-currentArgs (AppState {aargs=as}) = as
-
-screen :: AppState -> Screen
-screen a = scr where (Loc scr _ _ _) = loc a
-
--- | Enter a new screen, with possibly new args, adding the new ui location to the stack.
-enter :: Day -> Screen -> [String] -> AppState -> AppState
-enter d scr@BalanceScreen args a  = updateData d $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
-enter d scr@RegisterScreen args a = updateData d $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
-enter d scr@PrintScreen args a    = updateData d $ pushLoc Loc{scr=scr,sy=0,cy=0,largs=args} a
-
-resetTrailAndEnter :: Day -> Screen -> AppState -> AppState
-resetTrailAndEnter d scr a = enter d scr (aargs a) $ clearLocs a
-
--- | Regenerate the display data appropriate for the current screen.
-updateData :: Day -> AppState -> AppState
-updateData d a@AppState{aopts=opts,ajournal=j} =
-    case screen a of
-      BalanceScreen  -> a{abuf=lines $ balanceReportAsText ropts $ balanceReport ropts q j}
-      RegisterScreen -> a{abuf=lines $ postingsReportAsText cliopts $ postingsReport ropts q j}
-      PrintScreen    -> a{abuf=lines $ entriesReportAsText $ entriesReport ropts q j}
-    where q     = queryFromOpts d ropts{query_=unwords' $ currentArgs a}
-          ropts = reportopts_ cliopts
-          cliopts = cliopts_ opts
-
-backout :: Day -> AppState -> AppState
-backout d a | screen a == BalanceScreen = a
-            | otherwise = updateData d $ popLoc a
-
-drilldown :: Day -> AppState -> AppState
-drilldown d a =
-    case screen a of
-      BalanceScreen  -> enter d RegisterScreen [currentAccountName a] a
-      RegisterScreen -> scrollToTransaction e $ enter d PrintScreen (currentArgs a) a
-      PrintScreen   -> a
-    where e = currentTransaction a
-
--- | Get the account name currently highlighted by the cursor on the
--- balance screen. Results undefined while on other screens.
-currentAccountName :: AppState -> AccountName
-currentAccountName a = accountNameAt (abuf a) (posY a)
-
--- | Get the full name of the account being displayed at a specific line
--- within the balance command's output.
-accountNameAt :: [String] -> Int -> AccountName
-accountNameAt buf lineno = accountNameFromComponents anamecomponents
-    where
-      namestohere = map (drop 22) $ take (lineno+1) buf
-      (indented, nonindented) = span (" " `isPrefixOf`) $ reverse namestohere
-      thisbranch = indented ++ take 1 nonindented
-      anamecomponents = reverse $ map strip $ dropsiblings thisbranch
-      dropsiblings :: [AccountName] -> [AccountName]
-      dropsiblings [] = []
-      dropsiblings (x:xs) = x : dropsiblings xs'
-          where
-            xs' = dropWhile moreindented xs
-            moreindented = (>= myindent) . indentof
-            myindent = indentof x
-            indentof = length . takeWhile (==' ')
-
--- | If on the print screen, move the cursor to highlight the specified entry
--- (or a reasonable guess). Doesn't work.
-scrollToTransaction :: Maybe Transaction -> AppState -> AppState
-scrollToTransaction Nothing a = a
-scrollToTransaction (Just t) a@AppState{abuf=buf} = setCursorY cy $ setScrollY sy a
-    where
-      entryfirstline = head $ lines $ showTransaction t
-      halfph = pageHeight a `div` 2
-      y = fromMaybe 0 $ findIndex (== entryfirstline) buf
-      sy = max 0 $ y - halfph
-      cy = y - sy
-
--- | Get the transaction containing the posting currently highlighted by
--- the cursor on the register screen (or best guess). Results undefined
--- while on other screens.
-currentTransaction :: AppState -> Maybe Transaction
-currentTransaction a@AppState{ajournal=j,abuf=buf} = ptransaction p
-    where
-      p = headDef nullposting $ filter ismatch $ journalPostings j
-      ismatch p = postingDate p == parsedate (take 10 datedesc)
-                  && take 70 (showPostingWithBalanceForUI p nullmixedamt) == (datedesc ++ acctamt)
-      datedesc = take 32 $ fromMaybe "" $ find (not . (" " `isPrefixOf`)) $ headDef "" rest : reverse above
-      acctamt = drop 32 $ headDef "" rest
-      (above,rest) = splitAt y buf
-      y = posY a
-
-showPostingWithBalanceForUI p b =
-  postingsReportItemAsText defcliopts $
-  mkpostingsReportItem False False PrimaryDate Nothing p b
-
--- renderers
-
-renderScreen :: AppState -> Picture
-renderScreen (a@AppState{aw=w,ah=h,abuf=buf,amsg=msg}) =
-    Picture {picCursor = Cursor (fromIntegral cx) (fromIntegral cy)
-            ,picLayers = [mainimg
-                          <->
-                          renderStatus w msg
-                         ]
-            ,picBackground = Background ' ' defAttr
-            }
-    where
-      (cx, cy) = (0, cursorY a)
-      sy = scrollY a
---       mainimg = (renderString attr $ unlines $ above)
---           <->
---           (renderString reverseattr $ thisline)
---           <->
---           (renderString attr $ unlines $ below)
---       (above,(thisline:below))
---           | null ls   = ([],[""])
---           | otherwise = splitAt y ls
---       ls = lines $ fitto w (h-1) $ unlines $ drop as $ buf
--- trying for more speed
-      mainimg = vertCat (map (string defaultattr) above)
-               <->
-               string currentlineattr thisline
-               <->
-               vertCat (map (string defaultattr) below)
-      (thisline,below) | null rest = (blankline,[])
-                       | otherwise = (head rest, tail rest)
-      (above,rest) = splitAt cy linestorender
-      linestorender = map padclipline $ take (h-1) $ drop sy $ buf ++ replicate h blankline
-      padclipline = take w . (++ blankline)
-      blankline = replicate w ' '
-
--- padClipString :: Int -> Int -> String -> [String]
--- padClipString h w s = rows
---     where
---       rows = map padclipline $ take h $ lines s ++ replicate h blankline
---       padclipline = take w . (++ blankline)
---       blankline = replicate w ' '
-
--- renderString :: Attr -> String -> Image
--- renderString attr s = vertCat $ map (string attr) rows
---     where
---       rows = lines $ fitto w h s
---       w = maximum $ map length ls
---       h = length ls
---       ls = lines s
-
-renderStatus :: Int -> String -> Image
-renderStatus w = string statusattr . take w . (++ repeat ' ')
-
--- the all-important theming engine!
-
--- theme = Restrained
-theme = Colorful
--- theme = Blood
-
-data UITheme = Restrained | Colorful | Blood
-
-(defaultattr,
- currentlineattr,
- statusattr
- ) = case theme of
-       Restrained -> (defAttr
-                    ,defAttr `withStyle` bold
-                    ,defAttr `withStyle` reverseVideo
-                    )
-       Colorful   -> (defAttr `withStyle` reverseVideo
-                    ,defAttr `withForeColor` white `withBackColor` red
-                    ,defAttr `withForeColor` black `withBackColor` green
-                    )
-       Blood      -> (defAttr `withStyle` reverseVideo
-                    ,defAttr `withForeColor` white `withBackColor` red
-                    ,defAttr `withStyle` reverseVideo
-                    )
-
--- halfbrightattr = defAttr `withStyle` dim
--- reverseattr = defAttr `withStyle` reverseVideo
--- redattr = defAttr `withForeColor` red
--- greenattr = defAttr `withForeColor` green
--- reverseredattr = defAttr `withStyle` reverseVideo `withForeColor` red
--- reversegreenattr= defAttr `withStyle` reverseVideo `withForeColor` green
+  void $ M.defaultMain app st

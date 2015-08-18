@@ -33,6 +33,7 @@ module Hledger.Cli.Options (
   checkCliOpts,
   outputFormats,
   defaultOutputFormat,
+  defaultBalanceLineFormat,
 
   -- possibly these should move into argsToCliOpts
   -- * CLI option accessors

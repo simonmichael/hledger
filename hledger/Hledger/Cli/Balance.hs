@@ -236,6 +236,7 @@ module Hledger.Cli.Balance (
   balancemode
  ,balance
  ,balanceReportAsText
+ ,balanceReportItemAsText
  ,periodBalanceReportAsText
  ,cumulativeBalanceReportAsText
  ,historicalBalanceReportAsText

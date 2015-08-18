@@ -68,6 +68,8 @@ executables:
       - cmdargs >= 0.8
       - HUnit
       - safe >= 0.2
+      - transformers
+      - vector
       - vty >= 5.2 && < 5.4
       # XXX not supported
       # if impl(ghc >= 7.4)

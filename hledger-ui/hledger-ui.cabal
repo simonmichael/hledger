@@ -54,9 +54,14 @@ executable hledger-ui
       hledger == 0.26.98
     , hledger-lib == 0.26.98
     , base >= 3 && < 5
+    , brick
     , cmdargs >= 0.8
+    , data-default
     , HUnit
+    , lens >= 4.12.3 && < 4.13
     , safe >= 0.2
+    , transformers
+    , vector
     , vty >= 5.2 && < 5.4
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
@@ -68,4 +73,8 @@ executable hledger-ui
       Hledger.UI
       Hledger.UI.Main
       Hledger.UI.Options
+      Hledger.UI.UITypes
+      Hledger.UI.UIUtils
+      Hledger.UI.AccountsScreen
+      Hledger.UI.RegisterScreen
   default-language: Haskell2010
