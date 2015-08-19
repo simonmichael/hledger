@@ -122,7 +122,11 @@ library:
     - Hledger.Reports.TransactionsReports
     - Hledger.Utils
     - Hledger.Utils.Debug
+    - Hledger.Utils.Parse
     - Hledger.Utils.Regex
+    - Hledger.Utils.String
+    - Hledger.Utils.Test
+    - Hledger.Utils.Tree
     - Hledger.Utils.UTF8IOCompat
 
 tests:
