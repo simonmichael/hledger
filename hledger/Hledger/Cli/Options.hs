@@ -467,11 +467,11 @@ maybeAccountNameDrop opts a | tree_ opts = a
 
 -- | Parse the format option if provided, possibly returning an error,
 -- otherwise get the default value.
-lineFormatFromOpts :: ReportOpts -> Either String [StringFormat]
+lineFormatFromOpts :: ReportOpts -> Either String StringFormat
 lineFormatFromOpts = maybe (Right defaultBalanceLineFormat) parseStringFormat . format_
 
 -- | Default line format for balance report: "%20(total)  %2(depth_spacer)%-(account)"
-defaultBalanceLineFormat :: [StringFormat]
+defaultBalanceLineFormat :: StringFormat
 defaultBalanceLineFormat = [
       FormatField False (Just 20) Nothing TotalField
     , FormatLiteral "  "

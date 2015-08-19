@@ -408,40 +408,47 @@ This implementation turned out to be a bit convoluted but implements the followi
               EUR -1
     b         USD -1  ; Account 'b' has two amounts. The account name is printed on the last line.
 -}
--- | Render one balance report line item as plain text suitable for console output.
-balanceReportItemAsText :: ReportOpts -> [StringFormat] -> BalanceReportItem -> [String]
-balanceReportItemAsText opts fmt ((_, accountName, depth), Mixed amounts) =
-    -- 'amounts' could contain several quantities of the same commodity with different price.
-    -- In order to combine them into single value (which is expected) we take the first price and
-    -- use it for the whole mixed amount. This could be suboptimal. XXX
-    let Mixed normAmounts = normaliseMixedAmountSquashPricesForDisplay (Mixed amounts) in
-    case normAmounts of
-      [] -> []
-      [a] -> [formatBalanceReportItem fmt ((Just accountName'), depth, a)]
-      (as) -> multiline as
-    where
+-- | Render one balance report line item as plain text suitable for console output (or
+-- whatever string format is specified).
+balanceReportItemAsText :: ReportOpts -> StringFormat -> BalanceReportItem -> [String]
+balanceReportItemAsText opts fmt ((_, accountName, depth), amt) =
+    let
       accountName' = maybeAccountNameDrop opts accountName
-      multiline :: [Amount] -> [String]
-      multiline []     = []
-      multiline [a]    = [formatBalanceReportItem fmt ((Just accountName'), depth, a)]
-      multiline (a:as) = (formatBalanceReportItem fmt (Nothing, depth, a)) : multiline as
+      -- 'amounts' could contain several quantities of the same commodity with different price.
+      -- In order to combine them into single value (which is expected) we take the first price and
+      -- use it for the whole mixed amount. This could be suboptimal. XXX
+      amt' = normaliseMixedAmountSquashPricesForDisplay amt
+    in
+     formatBalanceReportItem fmt (accountName', depth, amt')
 
-formatBalanceReportItem :: [StringFormat] -> (Maybe AccountName, Int, Amount) -> String
-formatBalanceReportItem [] (_, _, _) = ""
-formatBalanceReportItem (fmt:fmts) (macctname, depth, amount) =
-  format fmt (macctname, depth, amount) ++
-  formatBalanceReportItem fmts (macctname, depth, amount)
-  where
-    format :: StringFormat -> (Maybe AccountName, Int, Amount) -> String
-    format (FormatLiteral s) _ = s
-    format (FormatField ljust min max field) (macctname, depth, total) = case field of
-      DepthSpacerField -> formatString ljust Nothing max $ replicate d ' '
-                          where d = case min of
-                                     Just m  -> depth * m
-                                     Nothing -> depth
-      AccountField     -> formatString ljust min max $ fromMaybe "" macctname
-      TotalField       -> formatString ljust min max $ showAmountWithoutPrice total
-      _                -> ""
+-- | Render a balance report item using the given StringFormat, generating one or more lines of text.
+formatBalanceReportItem :: StringFormat -> (AccountName, Int, MixedAmount) -> [String]
+formatBalanceReportItem [] _ = [""]
+formatBalanceReportItem fmt (acctname, depth, Mixed amts) =
+  case amts of
+    []     -> []
+    [a]    -> [formatLine fmt (Just acctname, depth, a)]
+    (a:as) -> [formatLine fmt (Just acctname, depth, a)] ++
+              [formatLine fmt (Nothing, depth, a) | a <- as]
+
+-- | Render one line of a balance report item using the given StringFormat, maybe omitting the account name.
+formatLine :: StringFormat -> (Maybe AccountName, Int, Amount) -> String
+formatLine [] _ = ""
+formatLine (fmt:fmts) (macctname, depth, amount) =
+  formatComponent fmt (macctname, depth, amount) ++
+  formatLine fmts (macctname, depth, amount)
+
+-- | Render one StringFormat component of one line of a balance report item.
+formatComponent :: StringFormatComponent -> (Maybe AccountName, Int, Amount) -> String
+formatComponent (FormatLiteral s) _ = s
+formatComponent (FormatField ljust min max field) (macctname, depth, total) = case field of
+  DepthSpacerField -> formatString ljust Nothing max $ replicate d ' '
+                      where d = case min of
+                                 Just m  -> depth * m
+                                 Nothing -> depth
+  AccountField     -> formatString ljust min max $ fromMaybe "" macctname
+  TotalField       -> formatString ljust min max $ showAmountWithoutPrice total
+  _                -> ""
 
 -- multi-column balance reports
 

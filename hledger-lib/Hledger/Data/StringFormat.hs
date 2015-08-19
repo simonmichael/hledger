@@ -7,7 +7,8 @@
 module Hledger.Data.StringFormat (
           parseStringFormat
         , formatString
-        , StringFormat(..)
+        , StringFormat
+        , StringFormatComponent(..)
         , ReportItemField(..)
         -- , stringformatp
         , tests
@@ -24,14 +25,17 @@ import Text.Printf (printf)
 
 
 -- | A format specification/template to use when rendering report line items as text.
--- These are currently supported by the balance command.
-data StringFormat =
+-- (Currently supported by the balance command in single-column mode).
+type StringFormat = [StringFormatComponent]
+
+data StringFormatComponent =
     FormatLiteral String
   | FormatField Bool        -- Left justified ?
                 (Maybe Int) -- Min width
                 (Maybe Int) -- Max width
                 ReportItemField       -- Field name
   deriving (Show, Eq)
+
 
 -- | An id identifying which report item field to interpolate.  These
 -- are drawn from several hledger report types, so are not all
@@ -55,7 +59,7 @@ formatString leftJustified min max s = printf fmt s
       fmt = "%" ++ l ++ min' ++ max' ++ "s"
 
 -- | Parse a string format specification, or return a parse error.
-parseStringFormat :: String -> Either String [StringFormat]
+parseStringFormat :: String -> Either String StringFormat
 parseStringFormat input = case (runParser (stringformatp <* eof) () "(unknown)") input of
     Left y -> Left $ show y
     Right x -> Right x
@@ -71,7 +75,7 @@ field = do
     <|> try (string "total" >> return TotalField)
     <|> try (many1 digit >>= (\s -> return $ FieldNo $ read s))
 
-formatField :: Stream [Char] m Char => ParsecT [Char] st m StringFormat
+formatField :: Stream [Char] m Char => ParsecT [Char] st m StringFormatComponent
 formatField = do
     char '%'
     leftJustified <- optionMaybe (char '-')
@@ -86,7 +90,7 @@ formatField = do
         Just text -> Just m where ((m,_):_) = readDec text
         _ -> Nothing
 
-formatLiteral :: Stream [Char] m Char => ParsecT [Char] st m StringFormat
+formatLiteral :: Stream [Char] m Char => ParsecT [Char] st m StringFormatComponent
 formatLiteral = do
     s <- many1 c
     return $ FormatLiteral s
@@ -95,24 +99,24 @@ formatLiteral = do
       c =     (satisfy isPrintableButNotPercentage <?> "printable character")
           <|> try (string "%%" >> return '%')
 
-formatp :: Stream [Char] m Char => ParsecT [Char] st m StringFormat
+formatp :: Stream [Char] m Char => ParsecT [Char] st m StringFormatComponent
 formatp =
         formatField
     <|> formatLiteral
 
-stringformatp :: Stream [Char] m Char => ParsecT [Char] st m [StringFormat]
+stringformatp :: Stream [Char] m Char => ParsecT [Char] st m StringFormat
 stringformatp = many formatp
 
 ----------------------------------------------------------------------
 
-testFormat :: StringFormat -> String -> String -> Assertion
+testFormat :: StringFormatComponent -> String -> String -> Assertion
 testFormat fs value expected = assertEqual name expected actual
     where
         (name, actual) = case fs of
             FormatLiteral l -> ("literal", formatString False Nothing Nothing l)
             FormatField leftJustify min max _ -> ("field", formatString leftJustify min max value)
 
-testParser :: String -> [StringFormat] -> Assertion
+testParser :: String -> StringFormat -> Assertion
 testParser s expected = case (parseStringFormat s) of
     Left  error -> assertFailure $ show error
     Right actual -> assertEqual ("Input: " ++ s) expected actual
