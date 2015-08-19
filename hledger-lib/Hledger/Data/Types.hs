@@ -265,10 +265,11 @@ instance NFData Journal
 type JournalUpdate = ExceptT String IO (Journal -> Journal)
 
 -- | The id of a data format understood by hledger, eg @journal@ or @csv@.
+-- The --output-format option selects one of these for output.
 type StorageFormat = String
 
--- | A hledger journal reader is a triple of format name, format-detecting
--- predicate, and a parser to Journal.
+-- | A hledger journal reader is a triple of storage format name, a
+-- detector of that format, and a parser from that format to Journal.
 data Reader = Reader {
      -- name of the format this reader handles
      rFormat   :: StorageFormat
@@ -279,26 +280,6 @@ data Reader = Reader {
     }
 
 instance Show Reader where show r = rFormat r ++ " reader"
-
--- format strings
-
-data HledgerFormatField =
-    AccountField
-  | DefaultDateField
-  | DescriptionField
-  | TotalField
-  | DepthSpacerField
-  | FieldNo Int
-    deriving (Show, Eq)
-
-data OutputFormat =
-    FormatLiteral String
-  | FormatField Bool        -- Left justified ?
-                (Maybe Int) -- Min width
-                (Maybe Int) -- Max width
-                HledgerFormatField       -- Field
-  deriving (Show, Eq)
-
 
 -- | An account, with name, balances and links to parent/subaccounts
 -- which let you walk up or down the account tree.
@@ -313,8 +294,6 @@ data Account = Account {
   aboring :: Bool           -- ^ used in the accounts report to label elidable parents
   }
 
-
-
 -- | A Ledger has the journal it derives from, and the accounts
 -- derived from that. Accounts are accessible both list-wise and
 -- tree-wise, since each one knows its parent and subs; the first
@@ -323,3 +302,4 @@ data Ledger = Ledger {
   ljournal :: Journal,
   laccounts :: [Account]
 }
+
