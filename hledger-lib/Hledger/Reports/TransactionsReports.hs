@@ -11,6 +11,8 @@ a some base account.  They are used by hledger-web.
 module Hledger.Reports.TransactionsReports (
   TransactionsReport,
   TransactionsReportItem,
+  AccountTransactionsReport,
+  AccountTransactionsReportItem,
   triOrigTransaction,
   triDate,
   triAmount,
@@ -78,15 +80,16 @@ journalTransactionsReport opts j q = (totallabel, items)
 
 -- | An account transactions report represents transactions affecting
 -- a particular account (or possibly several accounts, but we don't
--- use that). It is used by hledger-web's account register view, where
--- we want to show one row per journal transaction, with:
+-- use that). It is used by hledger-web's (and hledger-ui's) account
+-- register view, where we want to show one row per journal
+-- transaction, with:
 --
 -- - the total increase/decrease to the current account
 --
 -- - the names of the other account(s) posted to/from
 --
--- - transaction dates adjusted to the date of the earliest posting to
---   the current account, if those postings have their own dates
+-- - transaction dates, adjusted to the date of the earliest posting to
+--   the current account if those postings have their own dates
 --
 -- Currently, reporting intervals are not supported, and report items
 -- are most recent first.
@@ -199,7 +202,7 @@ accountTransactionsReportItems query thisacctquery bal signfn (torig:ts) =
 
 -- | Generate a simplified summary of some postings' accounts.
 summarisePostingAccounts :: [Posting] -> String
-summarisePostingAccounts = intercalate ", " . map accountLeafName . nub . map paccount
+summarisePostingAccounts = intercalate ", " . map accountSummarisedName . nub . map paccount
 
 filterTransactionPostings :: Query -> Transaction -> Transaction
 filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m `matchesPosting`) ps}

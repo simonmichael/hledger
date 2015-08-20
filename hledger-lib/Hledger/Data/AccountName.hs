@@ -10,6 +10,7 @@ hierarchy.
 module Hledger.Data.AccountName
 where
 import Data.List
+import Data.List.Split (splitOn)
 import Data.Tree
 import Test.HUnit
 import Text.Printf
@@ -30,6 +31,15 @@ accountNameFromComponents = concat . intersperse [acctsepchar]
 
 accountLeafName :: AccountName -> String
 accountLeafName = last . accountNameComponents
+
+accountSummarisedName :: AccountName -> String
+accountSummarisedName a
+  -- | length cs > 1 = take 2 (head cs) ++ ":" ++ a'
+  | length cs > 1 = intercalate ":" (map (take 2) $ init cs) ++ ":" ++ a'
+  | otherwise     = a'
+    where
+      cs = accountNameComponents a
+      a' = accountLeafName a
 
 accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
@@ -100,7 +110,18 @@ nullaccountnametree = Node "root" []
 --     ..:Af:Lu:Sn:Ca:Ch:Cash  ; Abbreviated and elided!
 -- @
 elideAccountName :: Int -> AccountName -> AccountName
-elideAccountName width s =
+elideAccountName width s
+  -- XXX special case for transactions register's multi-account pseudo-names
+  | " (split)" `isSuffixOf` s =
+    let
+      names = splitOn ", " $ take (length s - 8) s
+      widthpername = (max 0 (width - 8 - 2 * (max 1 (length names) - 1))) `div` length names
+    in
+     elideLeft width $
+     (++" (split)") $
+     intercalate ", " $
+     [accountNameFromComponents $ elideparts widthpername [] $ accountNameComponents s' | s' <- names]
+  | otherwise =
     elideLeft width $ accountNameFromComponents $ elideparts width [] $ accountNameComponents s
       where
         elideparts :: Int -> [String] -> [String] -> [String]

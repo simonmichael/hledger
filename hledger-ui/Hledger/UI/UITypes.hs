@@ -37,5 +37,11 @@ data Screen =
     ,sDrawFn :: AppState -> [Widget]
     }
   deriving (Show)
+  | RegisterScreen2 {
+     rs2State :: List AccountTransactionsReportItem
+    ,sInitFn :: Day -> [String] -> AppState -> AppState
+    ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
+    ,sDrawFn :: AppState -> [Widget]
+    }
 
 instance Show (List a) where show _ = "<List>"

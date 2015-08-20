@@ -98,6 +98,6 @@ handleRegisterScreen st@AppState{aScreen=s@RegisterScreen{rsState=is}} e =
     -- fall through to the list's event handler (handles [pg]up/down)
     ev                       -> do
                                  is' <- handleEvent ev is
-                                 continue $ st{aScreen=s{rsState=is'}}
+                                 continue st{aScreen=s{rsState=is'}}
                                  -- continue =<< handleEventLensed st someLens ev
 handleRegisterScreen _ _ = error "event handler called with wrong screen type, should not happen"

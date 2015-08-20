@@ -26,7 +26,7 @@ import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.Options
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
-import qualified Hledger.UI.RegisterScreen as RS (screen)
+import qualified Hledger.UI.RegisterScreen2 as RS2 (screen)
 
 screen = AccountsScreen{
    asState  = list "accounts" V.empty 1
@@ -105,7 +105,7 @@ handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
         Vty.EvKey (Vty.KRight) []    -> continue st'
           where
-            st' = screenEnter d args RS.screen st
+            st' = screenEnter d args RS2.screen st
             args = case listSelectedElement is of
                     Just (_, ((acct, _, _), _)) -> ["acct:"++accountNameToAccountRegex acct]
                     Nothing -> []

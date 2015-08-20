@@ -4,20 +4,27 @@ Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 
 TODO:
-reg: don't repeat date/description for postings in same txn
-reg: show a hledger-web-style register
+show journal entries
 --
 switch to next brick release
-reg: use full width
-reg: keep cursor at bottom of screen when jumping to end
-page up/down
-home/end
+ reg: use full width
+ home/end
+ keep cursor at bottom of screen if jumping to end
+ reg2: find subaccounts' transactions better
+ reg2: track current account better
+ reg2: track current query better
+--
+-H
+--drop
 search
 filter
---
-show journal entries
+depth adjustment
 add
 edit
+options adjustment
+reload on screen change
+reload on redraw
+reload on file change
 -}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -45,14 +52,15 @@ import Hledger.UI.Options
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
 import Hledger.UI.AccountsScreen as AS
-import Hledger.UI.RegisterScreen as RS
+-- import Hledger.UI.RegisterScreen as RS
+import Hledger.UI.RegisterScreen2 as RS2
 
 ----------------------------------------------------------------------
 
 -- | The available screens.
 appScreens = [
    AS.screen
-  ,RS.screen
+  ,RS2.screen
   ]
 
 main :: IO ()
