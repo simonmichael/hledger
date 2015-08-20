@@ -51,7 +51,7 @@ tests_Hledger_Cli = TestList
  [
     tests_Hledger
    -- ,tests_Hledger_Cli_Add
-   -- ,tests_Hledger_Cli_Balance
+   ,tests_Hledger_Cli_Balance
    ,tests_Hledger_Cli_Balancesheet
    ,tests_Hledger_Cli_Cashflow
    -- ,tests_Hledger_Cli_Histogram
