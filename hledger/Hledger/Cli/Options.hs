@@ -81,7 +81,6 @@ import Test.HUnit
 import Text.Parsec
 
 import Hledger
-import Hledger.Data.StringFormat as StringFormat
 import Hledger.Cli.Version
 
 
@@ -472,7 +471,7 @@ lineFormatFromOpts = maybe (Right defaultBalanceLineFormat) parseStringFormat . 
 
 -- | Default line format for balance report: "%20(total)  %2(depth_spacer)%-(account)"
 defaultBalanceLineFormat :: StringFormat
-defaultBalanceLineFormat = [
+defaultBalanceLineFormat = BottomAligned [
       FormatField False (Just 20) Nothing TotalField
     , FormatLiteral "  "
     , FormatField True (Just 2) Nothing DepthSpacerField

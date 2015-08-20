@@ -26,9 +26,12 @@ module Hledger.Utils.String (
  chomp,
  elideLeft,
  elideRight,
+ formatString,
  -- * multi-line layout
  concatTopPadded,
  concatBottomPadded,
+ concatOneLine,
+ vConcatLeftAligned,
  vConcatRightAligned,
  padtop,
  padbottom,
@@ -42,7 +45,7 @@ module Hledger.Utils.String (
 import Data.Char
 import Data.List
 import Text.Parsec
-import Text.Printf
+import Text.Printf (printf)
 
 import Hledger.Utils.Parse
 import Hledger.Utils.Regex
@@ -77,6 +80,16 @@ elideLeft width s =
 elideRight :: Int -> String -> String
 elideRight width s =
     if length s > width then take (width - 2) s ++ ".." else s
+
+-- | Clip and pad a string to a minimum & maximum width, and/or left/right justify it.
+-- Works on multi-line strings too (but will rewrite non-unix line endings).
+formatString :: Bool -> Maybe Int -> Maybe Int -> String -> String
+formatString leftJustified minwidth maxwidth s = intercalate "\n" $ map (printf fmt) $ lines s
+    where
+      justify = if leftJustified then "-" else ""
+      minwidth' = maybe "" show minwidth
+      maxwidth' = maybe "" (("."++).show) maxwidth
+      fmt = "%" ++ justify ++ minwidth' ++ maxwidth' ++ "s"
 
 underline :: String -> String
 underline s = s' ++ replicate (length s) '-' ++ "\n"
@@ -171,7 +184,20 @@ concatBottomPadded strs = intercalate "\n" $ map concat $ transpose padded
                                             | otherwise = maximum $ map length ls
       padded = map (xpad . ypad) lss
 
--- | Compose strings vertically and right-aligned.
+
+-- | Join multi-line strings horizontally, after compressing each of
+-- them to a single line with a comma and space between each original line.
+concatOneLine :: [String] -> String
+concatOneLine strs = concat $ map ((intercalate ", ").lines) strs
+
+-- | Join strings vertically, left-aligned and right-padded.
+vConcatLeftAligned :: [String] -> String
+vConcatLeftAligned ss = intercalate "\n" $ map showfixedwidth ss
+    where
+      showfixedwidth = printf (printf "%%-%ds" width)
+      width = maximum $ map length ss
+
+-- | Join strings vertically, right-aligned and left-padded.
 vConcatRightAligned :: [String] -> String
 vConcatRightAligned ss = intercalate "\n" $ map showfixedwidth ss
     where

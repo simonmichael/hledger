@@ -127,3 +127,8 @@ readFile' name =  do
   h <- openFile name ReadMode
   hSetNewlineMode h universalNewlineMode
   hGetContents h
+
+-- | Total version of maximum, for integral types, giving 0 for an empty list.
+maximum' :: Integral a => [a] -> a
+maximum' [] = 0
+maximum' xs = maximum xs

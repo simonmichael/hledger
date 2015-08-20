@@ -242,9 +242,9 @@ module Hledger.Cli.Balance (
  ,tests_Hledger_Cli_Balance
 ) where
 
-import Data.List (sort)
+import Data.List (intercalate, sort)
 import Data.Time.Calendar (Day)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, isJust)
 import System.Console.CmdArgs.Explicit as C
 import Text.CSV
 import Test.HUnit
@@ -253,7 +253,6 @@ import Text.Tabular as T
 import Text.Tabular.AsciiArt
 
 import Hledger
-import Hledger.Data.StringFormat
 import Hledger.Cli.Options
 import Hledger.Cli.Utils
 
@@ -373,15 +372,26 @@ balanceReportAsCsv opts (items, total) =
 balanceReportAsText :: ReportOpts -> BalanceReport -> String
 balanceReportAsText opts ((items, total)) = unlines $ concat lines ++ t
   where
-      lines = case lineFormatFromOpts opts of
+      fmt = lineFormatFromOpts opts
+      lines = case fmt of
                 Right fmt -> map (balanceReportItemAsText opts fmt) items
                 Left err  -> [[err]]
       t = if no_total_ opts
            then []
-           else ["--------------------"
-                 -- TODO: This must use the format somehow
-                ,padleft 20 $ showMixedAmountWithoutPrice total
-                ]
+           else
+             case fmt of
+               Right fmt ->
+                let
+                  -- abuse renderBalanceReportItem to render the total with similar format
+                  acctcolwidth = maximum' [length fullname | ((fullname, _, _), _) <- items]
+                  totallines = map rstrip $ renderBalanceReportItem fmt (replicate (acctcolwidth+1) ' ', 0, total)
+                  -- with a custom format, extend the line to the full report width;
+                  -- otherwise show the usual 20-char line for compatibility
+                  overlinewidth | isJust (format_ opts) = maximum' $ map length $ concat lines
+                                | otherwise             = 20
+                  overline   = replicate overlinewidth '-'
+                in overline : totallines
+               Left _ -> []
 
 tests_balanceReportAsText = [
   "balanceReportAsText" ~: do
@@ -409,45 +419,54 @@ This implementation turned out to be a bit convoluted but implements the followi
     b         USD -1  ; Account 'b' has two amounts. The account name is printed on the last line.
 -}
 -- | Render one balance report line item as plain text suitable for console output (or
--- whatever string format is specified).
+-- whatever string format is specified). Note, prices will not be rendered, and
+-- differently-priced quantities of the same commodity will appear merged.
+-- The output will be one or more lines depending on the format and number of commodities.
 balanceReportItemAsText :: ReportOpts -> StringFormat -> BalanceReportItem -> [String]
 balanceReportItemAsText opts fmt ((_, accountName, depth), amt) =
-    let
-      accountName' = maybeAccountNameDrop opts accountName
-      -- 'amounts' could contain several quantities of the same commodity with different price.
-      -- In order to combine them into single value (which is expected) we take the first price and
-      -- use it for the whole mixed amount. This could be suboptimal. XXX
-      amt' = normaliseMixedAmountSquashPricesForDisplay amt
-    in
-     formatBalanceReportItem fmt (accountName', depth, amt')
+  renderBalanceReportItem fmt (
+    maybeAccountNameDrop opts accountName,
+    depth,
+    normaliseMixedAmountSquashPricesForDisplay amt
+    )
 
 -- | Render a balance report item using the given StringFormat, generating one or more lines of text.
-formatBalanceReportItem :: StringFormat -> (AccountName, Int, MixedAmount) -> [String]
-formatBalanceReportItem [] _ = [""]
-formatBalanceReportItem fmt (acctname, depth, Mixed amts) =
-  case amts of
-    []     -> []
-    [a]    -> [formatLine fmt (Just acctname, depth, a)]
-    (a:as) -> [formatLine fmt (Just acctname, depth, a)] ++
-              [formatLine fmt (Nothing, depth, a) | a <- as]
+renderBalanceReportItem :: StringFormat -> (AccountName, Int, MixedAmount) -> [String]
+renderBalanceReportItem fmt (acctname, depth, total) =
+  lines $
+  case fmt of
+    OneLine comps       -> concatOneLine      $ render1 comps
+    TopAligned comps    -> concatBottomPadded $ render comps
+    BottomAligned comps -> concatTopPadded    $ render comps
+  where
+    render1 = map (renderComponent1 (acctname, depth, total))
+    render  = map (renderComponent (acctname, depth, total))
 
--- | Render one line of a balance report item using the given StringFormat, maybe omitting the account name.
-formatLine :: StringFormat -> (Maybe AccountName, Int, Amount) -> String
-formatLine [] _ = ""
-formatLine (fmt:fmts) (macctname, depth, amount) =
-  formatComponent fmt (macctname, depth, amount) ++
-  formatLine fmts (macctname, depth, amount)
-
--- | Render one StringFormat component of one line of a balance report item.
-formatComponent :: StringFormatComponent -> (Maybe AccountName, Int, Amount) -> String
-formatComponent (FormatLiteral s) _ = s
-formatComponent (FormatField ljust min max field) (macctname, depth, total) = case field of
+-- | Render one StringFormat component for a balance report item.
+renderComponent :: (AccountName, Int, MixedAmount) -> StringFormatComponent -> String
+renderComponent _ (FormatLiteral s) = s
+renderComponent (acctname, depth, total) (FormatField ljust min max field) = case field of
   DepthSpacerField -> formatString ljust Nothing max $ replicate d ' '
                       where d = case min of
                                  Just m  -> depth * m
                                  Nothing -> depth
-  AccountField     -> formatString ljust min max $ fromMaybe "" macctname
-  TotalField       -> formatString ljust min max $ showAmountWithoutPrice total
+  AccountField     -> formatString ljust min max acctname
+  TotalField       -> formatString ljust min max $ showMixedAmountWithoutPrice total
+  _                -> ""
+
+-- | Render one StringFormat component for a balance report item.
+-- This variant is for use with OneLine string formats; it squashes
+-- any multi-line rendered values onto one line, comma-and-space separated,
+-- while still complying with the width spec.
+renderComponent1 :: (AccountName, Int, MixedAmount) -> StringFormatComponent -> String
+renderComponent1 _ (FormatLiteral s) = s
+renderComponent1 (acctname, depth, total) (FormatField ljust min max field) = case field of
+  AccountField     -> formatString ljust min max ((intercalate ", " . lines) (indented acctname))
+                      where
+                        -- better to indent the account name here rather than use a DepthField component
+                        -- so that it complies with width spec. Uses a fixed indent step size.
+                        indented = ((replicate (depth*2) ' ')++)
+  TotalField       -> formatString ljust min max $ ((intercalate ", " . map strip . lines) (showMixedAmountWithoutPrice total))
   _                -> ""
 
 -- multi-column balance reports
@@ -511,7 +530,7 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotal
     renderacct ((a,a',i),_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = maybeAccountNameDrop opts a
-    acctswidth = maximum $ map length $ accts
+    acctswidth = maximum' $ map length $ accts
     rowvals (_,as,rowtot,rowavg) = as
                                    ++ (if row_total_ opts then [rowtot] else [])
                                    ++ (if average_ opts then [rowavg] else [])
@@ -543,7 +562,7 @@ cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (colt
     renderacct ((a,a',i),_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = maybeAccountNameDrop opts a
-    acctswidth = maximum $ map length $ accts
+    acctswidth = maximum' $ map length $ accts
     rowvals (_,as,rowtot,rowavg) = as
                                    ++ (if row_total_ opts then [rowtot] else [])
                                    ++ (if average_ opts then [rowavg] else [])
@@ -575,7 +594,7 @@ historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (colt
     renderacct ((a,a',i),_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = maybeAccountNameDrop opts a
-    acctswidth = maximum $ map length $ accts
+    acctswidth = maximum' $ map length $ accts
     rowvals (_,as,rowtot,rowavg) = as
                              ++ (if row_total_ opts then [rowtot] else [])
                              ++ (if average_ opts then [rowavg] else [])

@@ -1612,12 +1612,29 @@ must be enclosed in parentheses. Three are available:
 - `account`      - the account's name
 - `total`        - the account's balance/sum of postings
 
-Some examples:
+When the total has multiple commodities, by default each commodity is
+displayed on a separate line, and the report item will be bottom
+aligned.  You can change how such multi-line values are rendered by
+beginning the format with a special prefix:
+
+- `%_` - render on multiple lines, bottom-aligned (the default)
+- `%^` - render on multiple lines, top-aligned
+- `%,` - render on one line, with multi-line values comma-separated
+
+There are some quirks:
+
+- In one-line mode, `%(depth_spacer)` has no effect, instead `%(account)` has indentation built in.
+- Consistent column widths are not well enforced, causing ragged edges unless you set suitable widths.
+- Beware of specifying a maximum width; it will clip account names and amounts that are too wide, with no visible indication.
+
+Some experimentation may be needed to get pleasing output.
+
+Examples:
 
 - `%(total)`         - the account's total
 - `%-20.20(account)` - the account's name, left justified, padded to 20 characters and clipped at 20 characters
-
-The balance command's default format is `%20(total)  %2(depth_spacer)%-(account)`.
+- `%20(total)  %2(depth_spacer)%-(account)` - default format for the single-column balance report
+- `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
 
 ##### Output destination
 

@@ -10,6 +10,6 @@ hledger -f sample.journal balance --format="%30(account) %-.20(total)"
                          gifts $-1
                         salary $-1
              liabilities:debts $1
---------------------
-                   0
+----------------------------------
+                               0
 >>>= 0
