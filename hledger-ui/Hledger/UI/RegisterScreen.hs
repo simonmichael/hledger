@@ -11,14 +11,10 @@ import Data.List
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
 import qualified Graphics.Vty as Vty
-import qualified Brick.Types as T
-import qualified Brick.Main as M
--- import qualified Brick.AttrMap as A
-import qualified Brick.Widgets.Border as B
-import qualified Brick.Widgets.Center as C
-import qualified Brick.Widgets.List as L
--- import Brick.Util (fg, on)
-import Brick.Widgets.Core
+import Brick
+import Brick.Widgets.List
+import Brick.Widgets.Border
+import Brick.Widgets.Center
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
@@ -27,7 +23,7 @@ import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
 
 screen = RegisterScreen{
-   rsState  = L.list "register" V.empty
+   rsState  = list "register" V.empty 1
   ,sInitFn    = initRegisterScreen
   ,sDrawFn    = drawRegisterScreen
   ,sHandleFn = handleRegisterScreen
@@ -38,8 +34,8 @@ initRegisterScreen d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Register
   st{aScreen=s{rsState=is'}}
   where
     is' =
-      L.listMoveTo (length items) $
-      L.list (T.Name "register") (V.fromList items)
+      listMoveTo (length items) $
+      list (Name "register") (V.fromList items) 1
     (_label,items) = postingsReport ropts q j
       where
         q = queryFromOpts d ropts
@@ -53,20 +49,24 @@ initRegisterScreen _ _ _ = error "init function called with wrong screen type, s
 drawRegisterScreen :: AppState -> [Widget]
 drawRegisterScreen AppState{aopts=_opts, aScreen=RegisterScreen{rsState=is}} = [ui]
   where
-    label = "Posting " <+> cur <+> " of " <+> total <+> " in this account and subaccounts" -- " <+> str query <+> "and subaccounts"
-    cur = case is^.(L.listSelectedL) of
-            Nothing -> "-"
-            Just i -> str (show (i + 1))
-    total = str $ show $ length $ is^.(L.listElementsL)
+    label = str "Posting "
+            <+> cur
+            <+> str " of "
+            <+> total
+            <+> str " in this account and subaccounts" -- " <+> str query <+> "and subaccounts"
+    cur = str $ case is^.(listSelectedL) of
+                 Nothing -> "-"
+                 Just i -> show (i + 1)
+    total = str $ show $ length $ is^.(listElementsL)
     -- query = query_ $ reportopts_ $ cliopts_ opts
-    box = B.borderWithLabel label $
+    box = borderWithLabel label $
           -- hLimit 25 $
           -- vLimit 15 $
-          L.renderList is drawRegisterItem 1
+          renderList is drawRegisterItem
     ui = box
-    _ui = C.vCenter $ vBox [ C.hCenter box
-                          , " "
-                          , C.hCenter "Press Esc to exit."
+    _ui = vCenter $ vBox [ hCenter box
+                          , str " "
+                          , hCenter $ str "Press Esc to exit."
                           ]
 drawRegisterScreen _ = error "draw function called with wrong screen type, should not happen"
 
@@ -88,13 +88,16 @@ drawRegisterItem sel item =
   in
    selStr item
 
-handleRegisterScreen :: AppState -> Vty.Event -> M.EventM (M.Next AppState)
+handleRegisterScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleRegisterScreen st@AppState{aScreen=s@RegisterScreen{rsState=is}} e =
   case e of
-    Vty.EvKey Vty.KEsc []        -> M.halt st
-    Vty.EvKey (Vty.KChar 'q') [] -> M.halt st
-    Vty.EvKey (Vty.KLeft) []     -> M.continue $ popScreen st
-    -- Vty.EvKey (Vty.KRight) []    -> error (show curItem) where curItem = L.listSelectedElement is
-    -- fall through to the list's event handler (handles up/down)
-    ev                       -> M.continue st{aScreen=s{rsState=T.handleEvent ev is}}
+    Vty.EvKey Vty.KEsc []        -> halt st
+    Vty.EvKey (Vty.KChar 'q') [] -> halt st
+    Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
+    -- Vty.EvKey (Vty.KRight) []    -> error (show curItem) where curItem = listSelectedElement is
+    -- fall through to the list's event handler (handles [pg]up/down)
+    ev                       -> do
+                                 is' <- handleEvent ev is
+                                 continue $ st{aScreen=s{rsState=is'}}
+                                 -- continue =<< handleEventLensed st someLens ev
 handleRegisterScreen _ _ = error "event handler called with wrong screen type, should not happen"

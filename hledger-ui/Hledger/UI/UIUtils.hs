@@ -1,7 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Hledger.UI.UIUtils
-where
+module Hledger.UI.UIUtils (
+  pushScreen
+ ,popScreen
+ ,screenEnter
+ ,attrMap
+ ,customAttrMap
+ ,customAttr
+ ) where
 
 -- import Control.Lens ((^.))
 -- import Control.Monad
@@ -9,13 +15,8 @@ where
 import Data.Monoid              -- 
 import Data.Time.Calendar (Day)
 import qualified Graphics.Vty as V
--- import qualified Brick.Types as T
--- import qualified Brick.Main as M
-import qualified Brick.AttrMap as A
--- import qualified Brick.Widgets.Border as B
--- import qualified Brick.Widgets.Center as C
-import qualified Brick.Widgets.List as L
-import Brick.Util
+import Brick
+import Brick.Widgets.List
 
 import Hledger.UI.UITypes
 
@@ -40,12 +41,12 @@ screenEnter d args scr st = (sInitFn scr) d args $
                             pushScreen scr
                             st
 
-attrMap :: A.AttrMap
-attrMap = A.attrMap V.defAttr
-    [ (L.listAttr,            V.white `on` V.blue)
-    , (L.listSelectedAttr,    V.black `on` V.white)
+customAttrMap :: AttrMap
+customAttrMap = attrMap V.defAttr
+    [ (listAttr,            V.white `on` V.blue)
+    , (listSelectedAttr,    V.black `on` V.white)
     -- , (customAttr,            fg V.cyan)
     ]
 
-customAttr :: A.AttrName
-customAttr = L.listSelectedAttr <> "custom"
+customAttr :: AttrName
+customAttr = listSelectedAttr <> "custom"

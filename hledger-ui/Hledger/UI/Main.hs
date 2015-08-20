@@ -9,6 +9,7 @@ reg: show a hledger-web-style register
 --
 switch to next brick release
 reg: use full width
+reg: keep cursor at bottom of screen when jumping to end
 page up/down
 home/end
 search
@@ -36,14 +37,7 @@ import Control.Monad
 import System.Exit
 
 import qualified Graphics.Vty as V
--- import qualified Brick.Types as T
-import qualified Brick.Main as M
--- import qualified Brick.AttrMap as A
--- import qualified Brick.Widgets.Border as B
--- import qualified Brick.Widgets.Center as C
--- import qualified Brick.Widgets.List as L
--- import Brick.Util (fg, on)
--- import Brick.Widgets.Core
+import Brick
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
@@ -97,14 +91,14 @@ runBrickUi opts j = do
            ,aPrevScreens=[]
            }
          
-    app :: M.App (AppState) V.Event
-    app = M.App {
-        M.appLiftVtyEvent = id
-      , M.appStartEvent   = return
-      , M.appAttrMap      = const attrMap
-      , M.appChooseCursor = M.showFirstCursor
-      , M.appHandleEvent  = \st ev -> (sHandleFn $ aScreen st) st ev
-      , M.appDraw         = \st -> (sDrawFn $ aScreen st) st
+    app :: App (AppState) V.Event
+    app = App {
+        appLiftVtyEvent = id
+      , appStartEvent   = return
+      , appAttrMap      = const customAttrMap
+      , appChooseCursor = showFirstCursor
+      , appHandleEvent  = \st ev -> (sHandleFn $ aScreen st) st ev
+      , appDraw         = \st -> (sDrawFn $ aScreen st) st
       }
 
-  void $ M.defaultMain app st
+  void $ defaultMain app st

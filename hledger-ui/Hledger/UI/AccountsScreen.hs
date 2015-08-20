@@ -15,14 +15,10 @@ import Data.List
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
 import qualified Graphics.Vty as Vty
-import qualified Brick.Types as T
-import qualified Brick.Main as M
--- import qualified Brick.AttrMap as A
-import qualified Brick.Widgets.Border as B
-import qualified Brick.Widgets.Center as C
-import qualified Brick.Widgets.List as L
--- import Brick.Util (fg, on)
-import Brick.Widgets.Core
+import Brick
+import Brick.Widgets.List
+import Brick.Widgets.Border
+import Brick.Widgets.Center
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
@@ -33,7 +29,7 @@ import Hledger.UI.UIUtils
 import qualified Hledger.UI.RegisterScreen as RS (screen)
 
 screen = AccountsScreen{
-   asState  = L.list "accounts" V.empty
+   asState  = list "accounts" V.empty 1
   ,sInitFn    = initAccountsScreen
   ,sDrawFn    = drawAccountsScreen
   ,sHandleFn = handleAccountsScreen
@@ -43,7 +39,7 @@ initAccountsScreen :: Day -> [String] -> AppState -> AppState
 initAccountsScreen d args st@AppState{aopts=opts, ajournal=j, aScreen=s@AccountsScreen{}} =
   st{aScreen=s{asState=is'}}
    where
-    is' = L.list (T.Name "accounts") (V.fromList items)
+    is' = list (Name "accounts") (V.fromList items) 1
     (items,_total) = balanceReport ropts q j
       where
         q = queryFromOpts d ropts
@@ -58,21 +54,21 @@ initAccountsScreen _ _ _ = error "init function called with wrong screen type, s
 drawAccountsScreen :: AppState -> [Widget]
 drawAccountsScreen st@AppState{aScreen=AccountsScreen{asState=is}} = [ui]
     where
-      label = "Account " <+> cur <+> " of " <+> total
-      cur = case is^.(L.listSelectedL) of
-              Nothing -> "-"
-              Just i -> str (show (i + 1))
-      total = str $ show $ length $ is^.(L.listElementsL)
-      box = B.borderWithLabel label $
+      label = str "Account " <+> cur <+> str " of " <+> total
+      cur = str (case is^.listSelectedL of
+                  Nothing -> "-"
+                  Just i -> show (i + 1))
+      total = str $ show $ length $ is^.listElementsL
+      box = borderWithLabel label $
             -- hLimit 25 $
             -- vLimit 15 $
-            L.renderList is (drawAccountsItem fmt) 1
+            renderList is (drawAccountsItem fmt)
       ui = box
-      _ui = C.vCenter $ vBox [ C.hCenter box
-                            , " "
-                            , C.hCenter "Press Esc to exit."
+      _ui = vCenter $ vBox [ hCenter box
+                            , str " "
+                            , hCenter $ str "Press Esc to exit."
                             ]
-      items = L.listElements is
+      items = listElements is
       flat = flat_ $ reportopts_ $ cliopts_ $ aopts st
       acctcolwidth = maximum $
                       V.map
@@ -97,26 +93,29 @@ drawAccountsItem fmt sel item =
     in
      selStr item
 
-handleAccountsScreen :: AppState -> Vty.Event -> M.EventM (M.Next AppState)
+handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
     d <- liftIO getCurrentDay
     -- c <- getContext
     -- let h = c^.availHeightL
-    --     moveSel n l = L.listMoveBy n l
+    --     moveSel n l = listMoveBy n l
     case e of
-        Vty.EvKey Vty.KEsc []        -> M.halt st
-        Vty.EvKey (Vty.KChar 'q') [] -> M.halt st
-        Vty.EvKey (Vty.KLeft) []     -> M.continue $ popScreen st
-        Vty.EvKey (Vty.KRight) []    -> M.continue st'
+        Vty.EvKey Vty.KEsc []        -> halt st
+        Vty.EvKey (Vty.KChar 'q') [] -> halt st
+        Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
+        Vty.EvKey (Vty.KRight) []    -> continue st'
           where
             st' = screenEnter d args RS.screen st
-            args = case L.listSelectedElement is of
+            args = case listSelectedElement is of
                     Just (_, ((acct, _, _), _)) -> ["acct:"++accountNameToAccountRegex acct]
                     Nothing -> []
 
-        -- Vty.EvKey (Vty.KPageDown) [] -> M.continue $ st{aScreen=scr{asState=moveSel h is}}
-        -- Vty.EvKey (Vty.KPageUp) []   -> M.continue $ st{aScreen=scr{asState=moveSel (-h) is}}
+        -- Vty.EvKey (Vty.KPageDown) [] -> continue $ st{aScreen=scr{asState=moveSel h is}}
+        -- Vty.EvKey (Vty.KPageUp) []   -> continue $ st{aScreen=scr{asState=moveSel (-h) is}}
 
         -- fall through to the list's event handler (handles up/down)
-        ev                       -> M.continue st{aScreen=scr{asState=T.handleEvent ev is}}
+        ev                       -> do
+                                     is' <- handleEvent ev is
+                                     continue $ st{aScreen=scr{asState=is'}}
+                                 -- continue =<< handleEventLensed st someLens ev
 handleAccountsScreen _ _ = error "event handler called with wrong screen type, should not happen"
