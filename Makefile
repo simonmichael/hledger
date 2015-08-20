@@ -89,11 +89,13 @@ SHELLTESTSTK=stack exec -- shelltest $(SHELLTESTOPTS)
 PACKAGES=\
 	hledger-lib \
 	hledger \
+	hledger-ui \
 	hledger-web
 
 INCLUDEPATHS=\
 	-ihledger-lib \
 	-ihledger \
+	-ihledger-ui \
 	-ihledger-web \
 	-ihledger-web/app
 
@@ -769,6 +771,10 @@ quickheap-%: hledgerprof samplejournals \
 ghci: \
 	 	$(call def-help,ghci, start a GHCI REPL and load the hledger-lib and hledger packages)
 	stack exec $(GHCI) -- $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
+
+ghci-ui: \
+		$(call def-help,ghci-ui, start a GHCI REPL and load the hledger-lib, hledger and hledger-ui packages)
+	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
 
 ghci-web: \
 		$(call def-help,ghci-web, start a GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
