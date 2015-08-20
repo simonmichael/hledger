@@ -6,3 +6,25 @@ except those on (native) Windows, where it is not supported.
 
 hledger-ui currently allows browsing the balance, register and print
 reports, with drill-down and scrolling.
+
+
+Backlog:
+show journal entries
+fix -H
+fix --drop
+track current account better
+track current query better
+search
+filter
+depth adjustment
+switch to next brick release
+ reg: use full width
+ reg2: find subaccounts' transactions better
+ keep cursor at bottom of screen if jumping to end
+add
+edit
+options adjustment
+reload
+ on screen change
+ on redraw
+ on file change

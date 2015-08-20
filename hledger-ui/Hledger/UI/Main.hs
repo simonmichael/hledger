@@ -2,29 +2,6 @@
 hledger-ui - a hledger add-on providing a curses-style interface.
 Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
-
-TODO:
-show journal entries
---
-switch to next brick release
- reg: use full width
- home/end
- keep cursor at bottom of screen if jumping to end
- reg2: find subaccounts' transactions better
- reg2: track current account better
- reg2: track current query better
---
--H
---drop
-search
-filter
-depth adjustment
-add
-edit
-options adjustment
-reload on screen change
-reload on redraw
-reload on file change
 -}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
