@@ -60,6 +60,7 @@ executable hledger-ui
     , HUnit
     , lens >= 4.12.3 && < 4.13
     , safe >= 0.2
+    , split >= 0.1 && < 0.3
     , transformers
     , vector
     , vty >= 5.2 && < 5.4
