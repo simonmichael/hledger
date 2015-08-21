@@ -1,5 +1,9 @@
 language: haskell
 
+branches:
+  only:
+    - master
+
 sudo: false
 cache:
   directories:
