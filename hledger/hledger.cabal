@@ -75,10 +75,6 @@ library
     , tabular >= 0.2 && < 0.3
     , utf8-string >= 0.3.5 && < 1.1
     , wizards == 1.0.*
-    , shakespeare >= 2.0.2.2 && < 2.1
-    , terminfo
-    , pretty-show >= 1.6.4
-    , time >= 1.5
 
   if impl(ghc >= 7.10)
     -- ghc 7.10 requires shakespeare 2.0.2.2+
@@ -89,12 +85,15 @@ library
     build-depends:
                   shakespeare      >= 1.0 && < 2.1
                  ,shakespeare-text >= 1.0 && < 1.2
+
   if flag(old-locale)
     build-depends: time < 1.5, old-locale
   else
     build-depends: time >= 1.5
+
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
+
   if !os(windows) && flag(curses)
     build-depends: terminfo
 
@@ -149,23 +148,26 @@ executable hledger
     , tabular >= 0.2 && < 0.3
     , utf8-string >= 0.3.5 && < 1.1
     , wizards == 1.0.*
-    , shakespeare >= 2.0.2.2 && < 2.1
-    , terminfo
-    , pretty-show >= 1.6.4
-    , time >= 1.5
     , hledger == 0.26.98
+
   if impl(ghc >= 7.10)
     build-depends: shakespeare      >= 2.0.2.2 && < 2.1
   else
     build-depends:
                   shakespeare      >= 1.0 && < 2.1
                  ,shakespeare-text >= 1.0 && < 1.2
+
   if flag(old-locale)
     build-depends: time < 1.5, old-locale
   else
     build-depends: time >= 1.5
+
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
+
+  if !os(windows) && flag(curses)
+    build-depends: terminfo
+
   default-language: Haskell2010
 
 test-suite test
@@ -199,25 +201,28 @@ test-suite test
     , tabular >= 0.2 && < 0.3
     , utf8-string >= 0.3.5 && < 1.1
     , wizards == 1.0.*
-    , shakespeare >= 2.0.2.2 && < 2.1
-    , terminfo
-    , pretty-show >= 1.6.4
-    , time >= 1.5
     , hledger
     , test-framework
     , test-framework-hunit
+
   if impl(ghc >= 7.10)
     build-depends: shakespeare      >= 2.0.2.2 && < 2.1
   else
     build-depends:
                   shakespeare      >= 1.0 && < 2.1
                  ,shakespeare-text >= 1.0 && < 1.2
+
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
+
   if flag(old-locale)
     build-depends: time < 1.5, old-locale
   else
     build-depends: time >= 1.5
+
+  if !os(windows) && flag(curses)
+    build-depends: terminfo
+
   default-language: Haskell2010
 
 benchmark bench
@@ -239,6 +244,7 @@ benchmark bench
                     process,
                     filepath,
                     directory
+
   if flag(old-locale)
     build-depends: time < 1.5, old-locale
   else

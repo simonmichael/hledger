@@ -158,11 +158,12 @@ library
         , yesod-form
         , yesod-static
         , json
-        , time >= 1.5
+
     if flag(old-locale)
       build-depends: time < 1.5, old-locale
     else
       build-depends: time >= 1.5
+
     exposed-modules:
           Application
           Foundation
@@ -230,17 +231,21 @@ executable hledger-web
         , yesod-form
         , yesod-static
         , json
-        , time >= 1.5
         , hledger-web == 0.26.98
+
     if flag(old-locale)
       build-depends: time < 1.5, old-locale
     else
       build-depends: time >= 1.5
+
     default-language: Haskell2010
 
 test-suite test
     type: exitcode-stdio-1.0
     main-is: main.hs
+    other-modules:
+          HomeTest
+          TestImport
     hs-source-dirs:
           tests
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
@@ -279,11 +284,13 @@ test-suite test
         , yesod-form
         , yesod-static
         , json
-        , time >= 1.5
         , hledger-web
         , hspec
         , yesod-test
-    other-modules:
-          HomeTest
-          TestImport
+
+    if flag(old-locale)
+      build-depends: time < 1.5, old-locale
+    else
+      build-depends: time >= 1.5
+
     default-language: Haskell2010

@@ -70,14 +70,15 @@ library
     , transformers >= 0.2 && < 0.5
     , utf8-string >= 0.3.5 && < 1.1
     , HUnit
-    , pretty-show >= 1.6.4
-    , time >= 1.5
+
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
+
   if flag(old-locale)
     build-depends: time < 1.5, old-locale
   else
     build-depends: time >= 1.5
+
   exposed-modules:
       Hledger
       Hledger.Data
@@ -146,15 +147,16 @@ test-suite tests
     , transformers >= 0.2 && < 0.5
     , utf8-string >= 0.3.5 && < 1.1
     , HUnit
-    , pretty-show >= 1.6.4
-    , time >= 1.5
     , hledger-lib
     , test-framework
     , test-framework-hunit
+
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
+
   if flag(old-locale)
     build-depends: time < 1.5, old-locale
   else
     build-depends: time >= 1.5
+
   default-language: Haskell2010
