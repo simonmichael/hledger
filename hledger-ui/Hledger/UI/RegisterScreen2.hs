@@ -26,19 +26,23 @@ import Hledger.UI.UIUtils
 
 screen = RegisterScreen2{
    rs2State  = list "register" V.empty 1
+  ,rs2Size   = (0,0)
   ,sInitFn    = initRegisterScreen2
   ,sDrawFn    = drawRegisterScreen2
   ,sHandleFn = handleRegisterScreen2
   }
 
 initRegisterScreen2 :: Day -> [String] -> AppState -> AppState
-initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen2{}} =
+initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen2{rs2Size=size}} =
   st{aScreen=s{rs2State=is'}}
   where
     is' =
       -- listMoveTo (length items) $
-      list (Name "register") (V.fromList items) 1
+      list (Name "register") (V.fromList items') 1
 
+    -- XXX temporary hack: include saved viewport size in list elements
+    -- for element draw function
+    items' = zip (repeat size) items
     (_label,items) = accountTransactionsReport ropts j thisacctq q
       where
         -- XXX temp
@@ -77,8 +81,8 @@ drawRegisterScreen2 AppState{aopts=_opts, aScreen=RegisterScreen2{rs2State=is}} 
                           ]
 drawRegisterScreen2 _ = error "draw function called with wrong screen type, should not happen"
 
-drawRegisterItem :: Bool -> AccountTransactionsReportItem -> Widget
-drawRegisterItem sel item =
+drawRegisterItem :: Bool -> ((Int,Int), AccountTransactionsReportItem) -> Widget
+drawRegisterItem sel ((w,_h),item) =
 
   -- (w,_) <- getViewportSize "register" -- getCurrentViewportSize
   -- st@AppState{aopts=opts} <- getAppState
@@ -99,7 +103,7 @@ drawRegisterItem sel item =
             acctnames = nub $ sort $ splitOn ", " acctsstr -- XXX
         in
          intercalate ", " $ map strip $ lines $ 
-         postingsReportItemAsText defcliopts{width_=Just "160"} $ -- XXX
+         postingsReportItemAsText defcliopts{width_=Just (show w)} $
          mkpostingsReportItem True True PrimaryDate Nothing p totalamt
       -- fmt = BottomAligned [
       --     FormatField False (Just 20) Nothing TotalField

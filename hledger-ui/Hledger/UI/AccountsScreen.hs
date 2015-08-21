@@ -103,9 +103,10 @@ handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
         Vty.EvKey Vty.KEsc []        -> halt st
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
-        Vty.EvKey (Vty.KRight) []    -> continue st'
+        Vty.EvKey (Vty.KRight) []    -> do
+          (w,h) <- getViewportSize "accounts"
+          continue $ screenEnter d args RS2.screen{rs2Size=(w,h)} st
           where
-            st' = screenEnter d args RS2.screen st
             args = case listSelectedElement is of
                     Just (_, ((acct, _, _), _)) -> ["acct:"++accountNameToAccountRegex acct]
                     Nothing -> []

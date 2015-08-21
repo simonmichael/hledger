@@ -36,12 +36,13 @@ data Screen =
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     ,sDrawFn :: AppState -> [Widget]
     }
-  deriving (Show)
   | RegisterScreen2 {
-     rs2State :: List AccountTransactionsReportItem
+     rs2Size :: (Int,Int) -- ^ XXX prev screen's viewport size on entering this screen
+    ,rs2State :: List ((Int,Int), AccountTransactionsReportItem)
     ,sInitFn :: Day -> [String] -> AppState -> AppState
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     ,sDrawFn :: AppState -> [Widget]
     }
+  deriving (Show)
 
 instance Show (List a) where show _ = "<List>"

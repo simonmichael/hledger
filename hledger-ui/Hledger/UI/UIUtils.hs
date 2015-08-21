@@ -7,10 +7,12 @@ module Hledger.UI.UIUtils (
  ,attrMap
  ,customAttrMap
  ,customAttr
+ ,getViewportSize
  ) where
 
--- import Control.Lens ((^.))
+import Control.Lens ((^.))
 -- import Control.Monad
+import Control.Monad.IO.Class
 -- import Data.Default
 import Data.Monoid              -- 
 import Data.Time.Calendar (Day)
@@ -49,4 +51,15 @@ customAttrMap = attrMap V.defAttr
     ]
 
 customAttr :: AttrName
+
+-- | In the EventM monad, get the named current viewport's width and height,
+-- or (0,0) if the named viewport is not found.
+getViewportSize :: Name -> EventM (Int,Int)
+getViewportSize name = do
+  mvp <- lookupViewport name
+  let (w,h) = case mvp of
+        Just vp -> vp ^. vpSize
+        Nothing -> (0,0)
+  return (w,h)
+
 customAttr = listSelectedAttr <> "custom"
