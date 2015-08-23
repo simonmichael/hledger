@@ -14,16 +14,17 @@ import Data.List
 -- import Data.Monoid              -- 
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
-import qualified Graphics.Vty as Vty
+import Graphics.Vty as Vty
 import Brick
 import Brick.Widgets.List
-import Brick.Widgets.Border
-import Brick.Widgets.Center
+-- import Brick.Widgets.Border
+-- import Brick.Widgets.Center
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
 -- import Hledger.Cli.Options (defaultBalanceLineFormat)
 import Hledger.UI.Options
+-- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
 import qualified Hledger.UI.RegisterScreen2 as RS2 (screen)
@@ -47,7 +48,10 @@ initAccountsScreen d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Accounts
              --{query_=unwords' $ locArgs l}
         ropts = (reportopts_ cliopts)
                 {no_elide_=True}
-                {query_=unwords' args}
+                {
+                  query_=unwords' args,
+                  balancetype_=HistoricalBalance -- XXX balanceReport doesn't respect this yet
+                }
         cliopts = cliopts_ opts
 initAccountsScreen _ _ _ = error "init function called with wrong screen type, should not happen"
 
@@ -59,15 +63,7 @@ drawAccountsScreen st@AppState{aScreen=AccountsScreen{asState=is}} = [ui]
                   Nothing -> "-"
                   Just i -> show (i + 1))
       total = str $ show $ length $ is^.listElementsL
-      box = borderWithLabel label $
-            -- hLimit 25 $
-            -- vLimit 15 $
-            renderList is (drawAccountsItem fmt)
-      ui = box
-      _ui = vCenter $ vBox [ hCenter box
-                            , str " "
-                            , hCenter $ str "Press Esc to exit."
-                            ]
+
       items = listElements is
       flat = flat_ $ reportopts_ $ cliopts_ $ aopts st
       acctcolwidth = maximum $
@@ -82,16 +78,17 @@ drawAccountsScreen st@AppState{aScreen=AccountsScreen{asState=is}} = [ui]
              , FormatField False (Just 40) Nothing TotalField
              ]
 
+      ui = defaultLayout label $ renderList is (drawAccountsItem fmt)
+
 drawAccountsScreen _ = error "draw function called with wrong screen type, should not happen"
 
 drawAccountsItem :: StringFormat -> Bool -> BalanceReportItem -> Widget
-drawAccountsItem fmt sel item =
-    let selStr i = if sel
-                   then withAttr customAttr (str $ showitem i)
-                   else str $ showitem i
-        showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
-    in
-     selStr item
+drawAccountsItem fmt _sel item =
+  Widget Greedy Fixed $ do
+    -- c <- getContext
+    let
+      showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
+    render $ str $ showitem item
 
 handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
@@ -104,8 +101,9 @@ handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
         Vty.EvKey (Vty.KRight) []    -> do
-          (w,h) <- getViewportSize "accounts"
-          continue $ screenEnter d args RS2.screen{rs2Size=(w,h)} st
+          let st' = screenEnter d args RS2.screen st
+          vScrollToBeginning $ viewportScroll "register"
+          continue st'
           where
             args = case listSelectedElement is of
                     Just (_, ((acct, _, _), _)) -> ["acct:"++accountNameToAccountRegex acct]

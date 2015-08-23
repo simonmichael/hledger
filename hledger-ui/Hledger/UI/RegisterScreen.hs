@@ -7,6 +7,7 @@ module Hledger.UI.RegisterScreen
 where
 
 import Control.Lens ((^.))
+-- import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
@@ -42,7 +43,7 @@ initRegisterScreen d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Register
              -- query_="cur:\\$"} -- XXX limit to one commodity to ensure one-line items
              --{query_=unwords' $ locArgs l}
         ropts = (reportopts_ cliopts)
-                {query_=unwords' args}
+                { query_=unwords' args }
         cliopts = cliopts_ opts
 initRegisterScreen _ _ _ = error "init function called with wrong screen type, should not happen"
 
@@ -72,12 +73,17 @@ drawRegisterScreen _ = error "draw function called with wrong screen type, shoul
 
 drawRegisterItem :: Bool -> PostingsReportItem -> Widget
 drawRegisterItem sel item =
+
+  -- (w,_) <- getViewportSize "register" -- getCurrentViewportSize
+  -- st@AppState{aopts=opts} <- getAppState
+  -- let opts' = opts{width_=Just $ show w}
+
   let selStr i = if sel
-                 then withAttr customAttr (str $ showitem i)
+                 then {- withAttr selectedAttr -} str $ showitem i
                  else str $ showitem i
       showitem (_,_,_,p,b) =
         intercalate ", " $ map strip $ lines $ 
-        postingsReportItemAsText defcliopts $
+        postingsReportItemAsText defcliopts{width_=Just "160"} $ -- XXX
         mkpostingsReportItem True True PrimaryDate Nothing p b
       -- fmt = BottomAligned [
       --     FormatField False (Just 20) Nothing TotalField
@@ -89,7 +95,7 @@ drawRegisterItem sel item =
    selStr item
 
 handleRegisterScreen :: AppState -> Vty.Event -> EventM (Next AppState)
-handleRegisterScreen st@AppState{aScreen=s@RegisterScreen{rsState=is}} e =
+handleRegisterScreen st@AppState{aopts=_opts,aScreen=s@RegisterScreen{rsState=is}} e = do
   case e of
     Vty.EvKey Vty.KEsc []        -> halt st
     Vty.EvKey (Vty.KChar 'q') [] -> halt st

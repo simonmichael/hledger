@@ -1,6 +1,6 @@
 -- The register screen, showing account postings, like the CLI register command.
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
 
 module Hledger.UI.RegisterScreen2
  (screen)
@@ -8,111 +8,147 @@ where
 
 import Control.Lens ((^.))
 -- import Control.Monad.IO.Class (liftIO)
-import Data.List
+-- import Data.List
 import Data.List.Split (splitOn)
+-- import Data.Maybe
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
-import qualified Graphics.Vty as Vty
+import Graphics.Vty as Vty
 import Brick
 import Brick.Widgets.List
-import Brick.Widgets.Border
-import Brick.Widgets.Center
+-- import Brick.Widgets.Border
+-- import Brick.Widgets.Border.Style
+-- import Brick.Widgets.Center
+-- import Text.Printf
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.Options
+-- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
 
 screen = RegisterScreen2{
    rs2State  = list "register" V.empty 1
-  ,rs2Size   = (0,0)
   ,sInitFn    = initRegisterScreen2
   ,sDrawFn    = drawRegisterScreen2
   ,sHandleFn = handleRegisterScreen2
   }
 
 initRegisterScreen2 :: Day -> [String] -> AppState -> AppState
-initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen2{rs2Size=size}} =
-  st{aScreen=s{rs2State=is'}}
+initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen2{}} =
+  st{aScreen=s{rs2State=l}}
   where
-    is' =
-      -- listMoveTo (length items) $
-      list (Name "register") (V.fromList items') 1
+    -- gather arguments and queries
+    ropts = (reportopts_ $ cliopts_ opts)
+            {
+              query_=unwords' args,
+              balancetype_=HistoricalBalance
+            }
+    -- XXX temp
+    curacct = drop 5 $ head args -- should be "acct:..." 
+    thisacctq = Acct $ curacct -- XXX why is this excluding subs: accountNameToAccountRegex curacct
+    q = queryFromOpts d ropts
+         -- query_="cur:\\$"} -- XXX limit to one commodity to ensure one-line items
+         --{query_=unwords' $ locArgs l}
 
-    -- XXX temporary hack: include saved viewport size in list elements
-    -- for element draw function
-    items' = zip (repeat size) items
-    (_label,items) = accountTransactionsReport ropts j thisacctq q
-      where
-        -- XXX temp
-        curacct = drop 5 $ head args -- should be "acct:..." 
-        thisacctq = Acct $ curacct -- XXX why is this excluding subs: accountNameToAccountRegex curacct
+    -- run a transactions report, most recent last
+    (_label,items') = accountTransactionsReport ropts j thisacctq q
+    items = reverse items'
 
-        q = queryFromOpts d ropts
-             -- query_="cur:\\$"} -- XXX limit to one commodity to ensure one-line items
-             --{query_=unwords' $ locArgs l}
-        ropts = (reportopts_ cliopts)
-                {query_=unwords' args}
-        cliopts = cliopts_ opts
+    -- pre-render all items; these will be the List elements. This helps calculate column widths.
+    displayitem (_, t, _issplit, otheracctsstr, change, bal) =
+      (showDate $ tdate t
+      ,tdescription t
+      ,case splitOn ", " otheracctsstr of
+        [s] -> s
+        _   -> "<split>"
+      ,showMixedAmountOneLineWithoutPrice change
+      ,showMixedAmountOneLineWithoutPrice bal
+      )
+    displayitems = map displayitem items
+
+    -- build the List, moving the selection to the end
+    l = listMoveTo (length items) $
+        list (Name "register") (V.fromList displayitems) 1
+
+        -- (listName someList)
+
 initRegisterScreen2 _ _ _ = error "init function called with wrong screen type, should not happen"
 
 drawRegisterScreen2 :: AppState -> [Widget]
-drawRegisterScreen2 AppState{aopts=_opts, aScreen=RegisterScreen2{rs2State=is}} = [ui]
+drawRegisterScreen2 AppState{aopts=_opts, aScreen=RegisterScreen2{rs2State=l}} = [ui]
   where
     label = str "Transaction "
             <+> cur
             <+> str " of "
             <+> total
             <+> str " to/from this account" -- " <+> str query <+> "and subaccounts"
-    cur = str $ case is^.(listSelectedL) of
+    cur = str $ case l^.listSelectedL of
                  Nothing -> "-"
                  Just i -> show (i + 1)
-    total = str $ show $ length $ is^.(listElementsL)
+    total = str $ show $ length displayitems
+    displayitems = V.toList $ l^.listElementsL
+
     -- query = query_ $ reportopts_ $ cliopts_ opts
-    box = borderWithLabel label $
-          -- hLimit 25 $
-          -- vLimit 15 $
-          renderList is drawRegisterItem
-    ui = box
-    _ui = vCenter $ vBox [ hCenter box
-                          , str " "
-                          , hCenter $ str "Press Esc to exit."
-                          ]
+
+    ui = Widget Greedy Greedy $ do
+
+      -- calculate column widths, based on current available width
+      c <- getContext
+      let
+        totalwidth = c^.availWidthL - 2 -- XXX trimmed.. for the margin ?
+
+        -- the date column is fixed width
+        datewidth = 10
+
+        -- multi-commodity amounts rendered on one line can be
+        -- arbitrarily wide.  Give the two amounts as much space as
+        -- they need, while reserving a minimum of space for other
+        -- columns and whitespace.  If they don't get all they need,
+        -- allocate it to them proportionally to their maximum widths.
+        maxamtswidth = max 0 (totalwidth - 21)
+        changewidth' = maximum' $ map (length . fourth5) displayitems
+        balwidth' = maximum' $ map (length . fifth5) displayitems
+        changewidthproportion = (changewidth' + balwidth') `div` changewidth'
+        maxchangewidth = maxamtswidth `div` changewidthproportion
+        maxbalwidth = maxamtswidth - maxchangewidth
+        changewidth = min maxchangewidth changewidth' 
+        balwidth = min maxbalwidth balwidth'
+
+        -- assign the remaining space to the description and accounts columns
+        maxdescacctswidth = totalwidth - 17 - changewidth - balwidth
+        -- allocating proportionally.
+        -- descwidth' = maximum' $ map (length . second5) displayitems
+        -- acctswidth' = maximum' $ map (length . third5) displayitems
+        -- descwidthproportion = (descwidth' + acctswidth') `div` descwidth'
+        -- maxdescwidth = min (maxdescacctswidth - 7) (maxdescacctswidth `div` descwidthproportion)
+        -- maxacctswidth = maxdescacctswidth - maxdescwidth
+        -- descwidth = min maxdescwidth descwidth' 
+        -- acctswidth = min maxacctswidth acctswidth'
+        -- allocating equally.
+        descwidth = maxdescacctswidth `div` 2
+        acctswidth = maxdescacctswidth - descwidth
+
+        colwidths = (datewidth,descwidth,acctswidth,changewidth,balwidth)
+
+      render $ defaultLayout label $ renderList l (drawRegisterItem colwidths)
+
 drawRegisterScreen2 _ = error "draw function called with wrong screen type, should not happen"
 
-drawRegisterItem :: Bool -> ((Int,Int), AccountTransactionsReportItem) -> Widget
-drawRegisterItem sel ((w,_h),item) =
-
-  -- (w,_) <- getViewportSize "register" -- getCurrentViewportSize
-  -- st@AppState{aopts=opts} <- getAppState
-  -- let opts' = opts{width_=Just $ show w}
-
-  let selStr i = if sel
-                 then withAttr customAttr (str $ showitem i)
-                 else str $ showitem i
-      showitem (_origt,t,split,acctsstr,postedamt,totalamt) =
-        -- make a fake posting to render
-        let p = nullposting{
-                  pdate=Just $ tdate t
-                 ,paccount=if split then intercalate ", " acctnames ++" (split)" else acctsstr
-                    -- XXX elideAccountName doesn't elide combined split names well
-                 ,pamount=postedamt
-                 ,ptransaction=Just t
-                 }
-            acctnames = nub $ sort $ splitOn ", " acctsstr -- XXX
-        in
-         intercalate ", " $ map strip $ lines $ 
-         postingsReportItemAsText defcliopts{width_=Just (show w)} $
-         mkpostingsReportItem True True PrimaryDate Nothing p totalamt
-      -- fmt = BottomAligned [
-      --     FormatField False (Just 20) Nothing TotalField
-      --   , FormatLiteral "  "
-      --   , FormatField True (Just 2) Nothing DepthSpacerField
-      --   , FormatField True Nothing Nothing AccountField
-      --   ]
-  in
-   selStr item
+drawRegisterItem :: (Int,Int,Int,Int,Int) -> Bool -> (String,String,String,String,String) -> Widget
+drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) _sel (date,desc,accts,change,bal) =
+  Widget Greedy Fixed $ do
+    render $
+      str (padright datewidth $ elideRight datewidth date) <+>
+      str " " <+>
+      str (padright descwidth $ elideRight descwidth desc) <+>
+      str "  " <+>
+      str (padright acctswidth $ elideLeft acctswidth $ accts) <+>
+      str "  " <+>
+      str (padleft changewidth $ elideLeft changewidth change) <+>
+      str "  " <+>
+      str (padleft balwidth $ elideLeft balwidth bal)
 
 handleRegisterScreen2 :: AppState -> Vty.Event -> EventM (Next AppState)
 handleRegisterScreen2 st@AppState{aopts=_opts,aScreen=s@RegisterScreen2{rs2State=is}} e = do

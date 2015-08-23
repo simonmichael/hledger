@@ -12,10 +12,11 @@ module Hledger.UI.Main where
 -- import Control.Applicative
 -- import Control.Lens ((^.))
 import Control.Monad
+-- import Control.Monad.IO.Class (liftIO)
 -- import Data.Default
 -- import Data.Monoid              -- 
 -- import Data.List
--- import Data.Maybe
+import Data.Maybe
 -- import Data.Time.Calendar
 -- import Safe
 import System.Exit
@@ -27,18 +28,13 @@ import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.Options
 import Hledger.UI.UITypes
-import Hledger.UI.UIUtils
+-- import Hledger.UI.UIUtils
+import Hledger.UI.Theme
 import Hledger.UI.AccountsScreen as AS
 -- import Hledger.UI.RegisterScreen as RS
-import Hledger.UI.RegisterScreen2 as RS2
+-- import Hledger.UI.RegisterScreen2 as RS2
 
 ----------------------------------------------------------------------
-
--- | The available screens.
-appScreens = [
-   AS.screen
-  ,RS2.screen
-  ]
 
 main :: IO ()
 main = do
@@ -65,8 +61,10 @@ runBrickUi opts j = do
   d <- getCurrentDay
 
   let
+    theme = maybe defaultTheme (fromMaybe defaultTheme . getTheme) $
+            maybestringopt "theme" $ rawopts_ $ cliopts_ opts
     args = words' $ query_ $ reportopts_ $ cliopts_ opts
-    scr = head appScreens
+    scr = AS.screen
     st = (sInitFn scr) d args
          AppState{
             aopts=opts
@@ -80,10 +78,11 @@ runBrickUi opts j = do
     app = App {
         appLiftVtyEvent = id
       , appStartEvent   = return
-      , appAttrMap      = const customAttrMap
+      , appAttrMap      = const theme
       , appChooseCursor = showFirstCursor
       , appHandleEvent  = \st ev -> (sHandleFn $ aScreen st) st ev
       , appDraw         = \st -> (sDrawFn $ aScreen st) st
       }
 
   void $ defaultMain app st
+

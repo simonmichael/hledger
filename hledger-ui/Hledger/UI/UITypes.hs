@@ -37,8 +37,7 @@ data Screen =
     ,sDrawFn :: AppState -> [Widget]
     }
   | RegisterScreen2 {
-     rs2Size :: (Int,Int) -- ^ XXX prev screen's viewport size on entering this screen
-    ,rs2State :: List ((Int,Int), AccountTransactionsReportItem)
+     rs2State :: List (String,String,String,String,String)
     ,sInitFn :: Day -> [String] -> AppState -> AppState
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     ,sDrawFn :: AppState -> [Widget]

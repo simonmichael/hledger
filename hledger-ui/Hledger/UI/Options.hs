@@ -5,10 +5,12 @@
 
 module Hledger.UI.Options
 where
+import Data.List (intercalate)
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 
 import Hledger.Cli hiding (progname,version,prognameandversion)
+import Hledger.UI.Theme (themeNames)
 
 progname, version :: String
 progname = "hledger-ui"
@@ -25,6 +27,7 @@ uiflags = [
   ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
   ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
   ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
+  ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
   ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "no eliding at all, stronger than --empty"
   -- ,flagNone ["no-total"] (\opts -> setboolopt "no-total" opts) "don't show the final total"
  ]
@@ -66,6 +69,10 @@ toUIOpts rawopts = do
 checkUIOpts :: UIOpts -> IO UIOpts
 checkUIOpts opts = do
   checkCliOpts $ cliopts_ opts
+  case maybestringopt "theme" $ rawopts_ $ cliopts_ opts of
+    Just t | not $ elem t themeNames ->
+      optserror $ "invalid theme name: "++t
+    _ -> return ()
   return opts
 
 getHledgerUIOpts :: IO UIOpts

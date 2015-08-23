@@ -56,6 +56,7 @@ executable hledger-ui
     , base >= 3 && < 5
     , brick
     , cmdargs >= 0.8
+    , containers
     , data-default
     , HUnit
     , lens >= 4.12.3 && < 4.13
@@ -74,6 +75,7 @@ executable hledger-ui
       Hledger.UI
       Hledger.UI.Main
       Hledger.UI.Options
+      Hledger.UI.Theme
       Hledger.UI.UITypes
       Hledger.UI.UIUtils
       Hledger.UI.AccountsScreen

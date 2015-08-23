@@ -113,6 +113,10 @@ tests_postingsReportAsText = [
 --
 -- date and description are shown for the first posting of a transaction only.
 --
+-- Returns a string which can be multi-line, eg if the running balance
+-- has multiple commodities. Does not yet support formatting control
+-- like balance reports.
+--
 postingsReportItemAsText :: CliOpts -> PostingsReportItem -> String
 postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
   intercalate "\n" $

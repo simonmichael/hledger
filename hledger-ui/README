@@ -8,17 +8,31 @@ hledger-ui currently allows browsing the balance, register and print
 reports, with drill-down and scrolling.
 
 
-Backlog:
-show journal entries
+# HACKING
+
+## Backlog:
+```
+merge to master
+ brick release
+
+make it more useful
+ register
+  simplify/remove unhelpful account names ?
+ show journal entries
+  transaction dialog / journal screen
+ bs/is/cf-ish reports
+ save custom reports
+
 fix -H
 fix --drop
 track current account better
+ show it in register title
 track current query better
-search
-filter
-depth adjustment
+search in page
+adjust query
+adjust depth
+use color, selectable themes
 switch to next brick release
- reg: use full width
  reg2: find subaccounts' transactions better
  keep cursor at bottom of screen if jumping to end
 add
@@ -28,3 +42,5 @@ reload
  on screen change
  on redraw
  on file change
+
+```
