@@ -1,9 +1,14 @@
+# cf https://github.com/commercialhaskell/stack/wiki/stack.yaml
+
+resolver: lts-3.0
+
 packages:
 - hledger-lib
 - hledger
 - hledger-ui
 - hledger-web
-flags: {}
-resolver: lts-3.0
+
+flags:
+
 extra-deps:
 - vty-5.3.1
