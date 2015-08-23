@@ -73,6 +73,13 @@ third5  (_,_,x,_,_) = x
 fourth5 (_,_,_,x,_) = x
 fifth5  (_,_,_,_,x) = x
 
+first6  (x,_,_,_,_,_) = x
+second6 (_,x,_,_,_,_) = x
+third6  (_,_,x,_,_,_) = x
+fourth6 (_,_,_,x,_,_) = x
+fifth6  (_,_,_,_,x,_) = x
+sixth6  (_,_,_,_,_,x) = x
+
 -- lists
 
 splitAtElement :: Eq a => a -> [a] -> [[a]]
