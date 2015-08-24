@@ -107,17 +107,18 @@ drawRegisterScreen2 AppState{aopts=_opts, aScreen=RegisterScreen2{rs2State=l}} =
         -- they need, while reserving a minimum of space for other
         -- columns and whitespace.  If they don't get all they need,
         -- allocate it to them proportionally to their maximum widths.
-        maxamtswidth = max 0 (totalwidth - 21)
-        changewidth' = maximum' $ map (length . fourth5) displayitems
-        balwidth' = maximum' $ map (length . fifth5) displayitems
-        changewidthproportion = fromIntegral (changewidth' + balwidth') / fromIntegral changewidth'
+        whitespacewidth = 23
+        maxamtswidth = max 0 (totalwidth - whitespacewidth)
+        maxchangewidthseen = maximum' $ map (length . fourth5) displayitems
+        maxbalwidthseen = maximum' $ map (length . fifth5) displayitems
+        changewidthproportion = fromIntegral (maxchangewidthseen + maxbalwidthseen) / fromIntegral maxchangewidthseen
         maxchangewidth = round $ fromIntegral maxamtswidth / changewidthproportion
         maxbalwidth = maxamtswidth - maxchangewidth
-        changewidth = min maxchangewidth changewidth' 
-        balwidth = min maxbalwidth balwidth'
+        changewidth = min maxchangewidth maxchangewidthseen 
+        balwidth = min maxbalwidth maxbalwidthseen
 
         -- assign the remaining space to the description and accounts columns
-        maxdescacctswidth = totalwidth - 17 - changewidth - balwidth
+        maxdescacctswidth = totalwidth - (whitespacewidth - 4) - changewidth - balwidth
         -- allocating proportionally.
         -- descwidth' = maximum' $ map (length . second5) displayitems
         -- acctswidth' = maximum' $ map (length . third5) displayitems
@@ -141,13 +142,13 @@ drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) _sel (dat
   Widget Greedy Fixed $ do
     render $
       str (padright datewidth $ elideRight datewidth date) <+>
-      str " " <+>
+      str "  " <+>
       str (padright descwidth $ elideRight descwidth desc) <+>
       str "  " <+>
       str (padright acctswidth $ elideLeft acctswidth $ accts) <+>
       str "  " <+>
       str (padleft changewidth $ elideLeft changewidth change) <+>
-      str "  " <+>
+      str "   " <+>
       str (padleft balwidth $ elideLeft balwidth bal)
 
 handleRegisterScreen2 :: AppState -> Vty.Event -> EventM (Next AppState)
