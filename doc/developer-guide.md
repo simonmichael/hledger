@@ -403,8 +403,71 @@ Summary (best iteration):
 +-----------------------------------------++---------+
 ```
 
-For quick, fine-grained performance measurements eg when troubleshooting or optimising, I use [dev.hs](https://github.com/simonmichael/hledger/blob/master/dev.hs).
+bench's --simplebench mode is based on a standalone tool, tools/simplebench.hs.
+simplebench.hs is a generic benchmarker of one or more executables (specified on the command line) against one or more sets of command-line arguments (specified in a file). 
+It has a better command-line interface than bench.hs, so you may find it more convenient
+for comparing multiple hledger versions, or hledger and ledger. Eg:
 
+```shell
+$ stack exec -- ghc tools/simplebench
+[1 of 1] Compiling Main             ( tools/simplebench.hs, tools/simplebench.o )
+Linking tools/simplebench ...
+```
+```shell
+$ tools/simplebench -h
+tools/simplebench -h
+simplebench: at least one executable needed
+bench [-f testsfile] [-n iterations] [-p precision] executable1 [executable2 ...]
+
+Run some functional tests with each of the specified executables,
+where a test is "zero or more arguments supported by all executables",
+and report the best execution times.
+
+  -f testsfile   --testsfile=testsfile    file containing tests, one per line, default: bench.tests
+  -n iterations  --iterations=iterations  number of test iterations to run, default: 2
+  -p precision   --precision=precision    show times with this precision, default: 2
+  -v             --verbose                show intermediate results
+  -h             --help                   show this help
+
+Tips:
+- executables may have arguments if enclosed in quotes
+- tests can be commented out with #
+- results are saved in benchresults.{html,txt}
+```
+```shell
+cd hledger; $ ../tools/simplebench -f bench/default.bench hledger ledger
+Using bench/default.bench
+Running 4 tests 2 times with 2 executables at 2015-08-24 04:24:37.257068 UTC:
+
+Summary (best iteration):
+
++-----------------------------------------++---------+--------+
+|                                         || hledger | ledger |
++=========================================++=========+========+
+| -f bench/10000x1000x10.journal print    ||    3.24 |   0.43 |
+| -f bench/10000x1000x10.journal register ||    3.80 |   3.48 |
+| -f bench/10000x1000x10.journal balance  ||    2.05 |   0.18 |
+| -f bench/10000x1000x10.journal stats    ||    2.10 |   0.19 |
++-----------------------------------------++---------+--------+
+```
+
+Finally, for quick, fine-grained performance measurements when troubleshooting or optimising, I use
+[dev.hs](https://github.com/simonmichael/hledger/blob/master/dev.hs).
+
+### Generate sample journal files
+
+```shell
+$ make samplejournals
+ghc tools/generatejournal.hs
+[1 of 1] Compiling Main             ( tools/generatejournal.hs, tools/generatejournal.o )
+Linking tools/generatejournal ...
+tools/generatejournal 100 100 10 >data/100x100x10.journal
+tools/generatejournal 1000 1000 10 >data/1000x1000x10.journal
+tools/generatejournal 1000 10000 10 >data/1000x10000x10.journal
+tools/generatejournal 10000 1000 10 >data/10000x1000x10.journal
+tools/generatejournal 10000 10000 10 >data/10000x10000x10.journal
+tools/generatejournal 100000 1000 10 >data/100000x1000x10.journal
+```
 
 ### Run tests
 
