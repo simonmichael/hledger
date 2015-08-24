@@ -77,14 +77,28 @@ libghc-hledger-lib-prof
 
 ## How to..
 
-Here are some suggested procedures to help you quickly (re)engage
-with the project and get things done.
+### Do user testing
+
+- review and critique our documentation and web presence
+- test the procedures on [download](download) and on this page
+- check that the hledger binaries run your platform, and `hledger test` reports no failures
+- test the hledger tools' functionality, usability, browser compatibility, ui layout etc.
+- discuss/report problems via irc/mail list/bug tracker
+
+### Get help
+
+- for quick help or if you're not sure about the problem,
+  you can ask on the [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel
+  or the [mail list](http://list.hledger.org) (list.hledger.org).
+  If #hledger does not respond quickly, you can leave the window open and check back later, or leave your email address.
+- check the open and closed issues in the [bug tracker](http://bugs.hledger.org) (bugs.hledger.org). Sometimes the problem has been fixed in git but not yet released.
+
+<!-- - test and share problem journal snippets at paste . hledger.org -->
 
 ### Suggest enhancements
 
-Suggestions and feature requests (aka wishes) are very welcome, but we
-don't want them to pile up in the issue tracker obscuring bugs and
-higher-priority tasks. So before opening a github issue, first consider:
+Suggestions and feature requests are welcome, but we don't want them to pile up in the issue tracker obscuring higher-priority tasks.
+So consider these alternatives:
 
 1. The [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel on freenode
    and the [mail list](http://list.hledger.org) (list.hledger.org) are excellent places for discussing and refining ideas.
@@ -93,82 +107,62 @@ higher-priority tasks. So before opening a github issue, first consider:
 2. The [trello board](http://trello.hledger.org) (trello.hledger.org) is a good place
    for storing and prioritising backlog and wishlist items of all kinds.
 3. The [bug tracker](http:///bugs.hledger.org) (bugs.hledger.org) on github
-   is best used for issues with the existing product or docs. If you're not sure if you're reporting
-   a bug or not, it's fine to post it here.
+   is mostly used for reporting problems with the existing product or docs.
+   If you're not sure if it's a problem or not, it's fine to report it.
+   When enhancement requests land in the bug tracker, they get the WISH label, and are excluded from the default view at [bugs.hledger.org](http://bugs.hledger.org).
+   
 
-When wishes land in the bug tracker, they get the WISH label, and
-these are excluded from the default view given by bugs.hledger.org.
+### Report bugs
 
-### Report problems
+- get to know the bug tracker (on github) and its contents.
+  Some convenient url shortcuts:\
+  [`bugs.hledger.org`](http://bugs.hledger.org)   - show non-wishlist issues \
+  `bugs.hledger.org/N`   - jump to issue #N
+- research and update existing issues
+- report a bug: [`bugs.hledger.org/new`](http://bugs.hledger.org/new)
 
-- for quick help or if you're not sure about the problem,
-  you can ask on the [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel
-  or the [mail list](http://list.hledger.org) (list.hledger.org).
-  If #hledger does not respond quickly, you can leave the window open and check back later, or leave your email address.
-- check the open and closed issues in the [bug tracker](http://bugs.hledger.org) (bugs.hledger.org). Sometimes the problem has been fixed in git but not yet released.
-- report new issues in the bug tracker (shortcut: [bugs.hledger.org/new](http://bugs.hledger.org/new))
+### Install stack and git
 
-<!-- - test and share problem journal snippets at paste . hledger.org -->
+[stack](https://github.com/commercialhaskell/stack/wiki/Downloads) is
+the recommended tool for building hledger from source.
+It builds haskell projects, installing required haskell libraries as needed.
+It can also install GHC (the compiler) and (on windows) git, if needed.
 
-### Help with testing
+You don't need to use stack, if you are already expert with the older
+cabal tool, or even just GHC, but I won't attempt to document those
+procedures; these docs assume you have downloaded and installed stack.
 
-- review and test our documentation and web presence
-- download and test the binaries on your platform
-- test installing via cabal
-- use the tools and test functionality, usability, browser compatibility, ui layout etc.
-- check that `hledger test` reports no failures
-- [run the developer tests](#how-to-run-the-tests)
-- discuss/report problems via irc/mail list/bug tracker
+[git](http://git-scm.com) is the revision control tool you'll need to
+fetch the latest hledger source and submit changes. On windows, stack
+can install it for you. These docs assume you have installed git and
+know a little about how to use it.
 
-### Help with bug tracking
+### Install other optional tools
 
-- get to know the [bug tracker](http://bugs.hledger.org) and its contents
-- research and update issues
-- some convenient url shortcuts:\
-  [`bugs.hledger.org`](http://bugs.hledger.org)\
-  [`bugs.hledger.org/new`](http://bugs.hledger.org/new)\
-  `bugs.hledger.org/N`
+Up-to-date `alex`, `happy`, and `haddock` tools are required, but `stack` should install those for you.
 
-### Set up for development
+Here are some optional extra tools:
 
-1. Download and install [stack](https://github.com/commercialhaskell/stack/wiki/Downloads).
-   This builds haskell projects and can also install GHC (and on windows, git) if needed.
-2. Get the hledger repo:
+- `shelltestrunner` is useful for running functional tests.
+- `hasktags` is an easy way to generate editor tag files for quick source code navigation.
+- `profiteur` is for reporting stack profiles.
+- `hpack` regenerates cabal files when package.yaml files have been updated.
+- `hoogle` is for searching source code.
 
-    ```{.shell .bold}
-    $ git clone https://github.com/simonmichael/hledger.git
-    $ cd hledger
-    ```
+You can install them all with:
 
-3. Install [GNU Make](http://www.gnu.org/software/make) and other optional extra tools (see the Makefile for a list):
+```shell
+$ stack install shelltestrunner hasktags profiteur hpack hoogle
+```
 
-    ```shell
-    $ stack install shelltestrunner hasktags profiteur hpack
-    ```
+### Get the latest hledger source
 
-4. Run `make` or `stack --help` to see some suggested commands:
+```{.shell .bold}
+$ git clone code.hledger.org hledger    # aka github.com/simonmichael/hledger.git
+$ cd hledger
+```
 
-    ```{.shell .bold}
-    $ make
-    Makefile:37: -------------------- hledger make rules --------------------
-    Makefile:39: make [help] -- list documented rules in this makefile. make -n RULE shows more detail. 
-    Makefile:204: (INSTALLING:)
-    Makefile:206: make install -- download dependencies and install hledger executables to ~/.local/bin or equivalent (with stack)
-    Makefile:231: (BUILDING:)
-    Makefile:235: make build -- download dependencies and build hledger executables (with stack)
-    Makefile:304: make hledgerdev -- quickly build the hledger executable (with ghc and -DDEVELOPMENT) 
-    ...
-    $ stack --help
-    Available commands:
-      build                    Build the project(s) in this directory/configuration
-      install                  Build executables and install to a user path
-      test                     Build and test the project(s) in this
-                               directory/configuration
-      bench                    Build and benchmark the project(s) in this
-                               directory/configuration
-    ...
-    ```
-
+<!--
 Old instructions:
 
 1. Get [GHC](https://www.haskell.org/ghc/) and [cabal-install](http://hackage.haskell.org/package/cabal-install) installed.
@@ -235,74 +229,97 @@ Old instructions:
     and as quickly as possible, without optimizations (the "dev" suffix is a reminder of this).
     I use and recommend this method for development, as it crosses package boundaries and ensures you are building the latest code.
     However it needs some files generated by cabal build, which is why we did that first.
-
-
-### Get your changes accepted
-
-Follow the usual github workflow:
-
-- fork the main hledger repo on github,
-- git clone it to your local machine,
-- git commit, after (?) pulling and merging the latest upstream changes
-- git push back to github,
-- open a pull request on github,
-- follow up on any discussion there.
-
-If you're new to this process, [help.github.com](http://help.github.com) may be useful.
-
-### Improve the documentation
-
-- get familiar with the website and documentation online, review and test
-- get familiar with the site/doc source files (see Makefile)
-- set up for hledger development
-- send patches with names prefixed with "doc: " (or "site: ")
-
-### Use the REPL (GHCI)
-
-These all work from the main hledger source directory (at least).
-
-First, ensure all required dependencies are installed with these
-commands. (You might also need to install some system libs like
-terminfo or curses.)
-
-```{.shell .bold}
-$ stack test
-$ stack bench
-```
-
-Get a GHCI prompt for hledger-lib:
-```{.shell .bold}
-$ stack ghci hledger-lib
-```
-
-Get a GHCI prompt for hledger:
-```{.shell .bold}
-$ stack ghci hledger
-```
-
-Get a GHCI prompt for hledger-web:
-```{.shell .bold}
-$ stack ghci hledger-web
-```
-hledger-web also needs to find some things in its current directory (like the static/ directory).
-This normally just works, if not please [send details](https://github.com/simonmichael/hledger/issues/274).
-
-Get a GHCI prompt for hledger and hledger-lib:
-```{.shell .bold}
-$ make ghci
-```
-
-Get a GHCI prompt for hledger-web, hledger and hledger-lib:
-```{.shell .bold}
-$ make ghci-web
-```
-
-<!--
-For the dev.hs developer script:
-```{.shell .bold}
-$ make ghci-dev
-```
 -->
+
+### Use the Makefile
+
+A Makefile is provided to make common developer tasks easy to remember,
+and to insulate us a little from the ever-evolving Haskell tools ecosystem.
+Using it is entirely optional, but recommended.
+You'll need [GNU Make](http://www.gnu.org/software/make) installed.
+
+The Makefile is self-documenting. Run `make` to see a list of the main make rules:
+
+```{.shell}
+$ make
+Makefile:37: -------------------- hledger make rules --------------------
+Makefile:39: make [help] -- list documented rules in this makefile. make -n RULE shows more detail. 
+Makefile:204: (INSTALLING:)
+Makefile:206: make install -- download dependencies and install hledger executables to ~/.local/bin or equivalent (with stack)
+Makefile:231: (BUILDING:)
+Makefile:235: make build -- download dependencies and build hledger executables (with stack)
+Makefile:304: make hledgerdev -- quickly build the hledger executable (with ghc and -DDEVELOPMENT) 
+...
+```
+
+To see what a make rule will do without actually doing it, use the `-n` flag:
+
+```{.shell}
+$ make build -n
+stack build
+```
+```{.shell}
+$ make test -n
+(stack test \
+		&& echo pkgtest PASSED) || echo pkgtest FAILED
+(stack exec hledger test \
+		&& echo builtintest PASSED) || echo builtintest FAILED
+(COLUMNS=80 PATH=`pwd`/bin:/home/simon/src/hledger/bin:/home/simon/src/hledger/extra:/home/simon/.local/bin:/home/simon/.cabal/bin:/opt/ghc/7.10.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/var/lib/gems/1.9.1/bin stack exec -- shelltest --execdir -- -j16 --hide-successes tests \
+		&& echo functest PASSED) || echo functest FAILED
+```
+
+### Build or install hledger
+
+Run `make` to see a list of build rules. You probably want `build` or `install`.
+
+`make build` runs stack build, which downloads required haskell
+dependencies and builds all hledger packages.
+The resulting executables will be somewhere under .stack-work, eg in
+`.stack-work/install/i386-linux/lts-3.0/7.10.2/bin/`.
+
+```shell
+$ make build
+stack build
+hledger-lib-0.26.98: configure
+hledger-lib-0.26.98: build
+hledger-lib-0.26.98: install
+hledger-0.26.98: configure
+hledger-0.26.98: build
+Progress: 1/4
+...
+```
+
+Note stack will install required haskell libraries, but not C
+libraries such as curses or terminfo. If you get a build error, it is
+likely because one of these is missing, in which case you must
+identify and install it yourself using your system's package
+manager. This is usually a bit harder on Windows.
+
+`make install` runs stack install, which does everything stack build does and also
+copies the executables to `~/.local/bin` or the Windows equivalent.
+You should make sure this directory is in your `$PATH`, so that you can just type
+`hledger` to run the latest.
+```shell
+$ make install
+stack install
+NOTE: the install command is functionally equivalent to 'build --copy-bins'
+hledger-0.26.98: build
+...
+Copied executables to /Users/simon/.local/bin/:
+- hledger-web
+- hledger-ui
+- hledger
+```
+
+You can save time and effort by building just the package(s) you're interested in.
+To install just the hledger command-line tool, but not hledger-ui or (especially costly)
+hledger-web, do:
+```shell
+$ stack install hledger
+```
+
+(This looks like the [download page](download) command for installing the latest hledger release from Stackage.
+The difference is, here we are running it inside the hledger source tree, so the source version will be installed.)
 
 ### Run benchmarks
 
@@ -469,7 +486,7 @@ tools/generatejournal 10000 10000 10 >data/10000x10000x10.journal
 tools/generatejournal 100000 1000 10 >data/100000x1000x10.journal
 ```
 
-### Run tests
+### Run developer tests
 
 This command will install haskell dependencies (you might need to
 install additional system dependencies yourself) and run the package
@@ -510,6 +527,60 @@ $ make haddocktest
 - write test, verify expected result
 - get it committed
 
+### Use the REPL (GHCI)
+
+These all work from the main hledger source directory (at least).
+
+First, ensure all required dependencies are installed with these
+commands. (You might also need to install some system libs like
+terminfo or curses.)
+
+```{.shell .bold}
+$ stack test
+$ stack bench
+```
+
+Get a GHCI prompt for hledger-lib:
+```{.shell .bold}
+$ stack ghci hledger-lib
+```
+
+Get a GHCI prompt for hledger:
+```{.shell .bold}
+$ stack ghci hledger
+```
+
+Get a GHCI prompt for hledger-web:
+```{.shell .bold}
+$ stack ghci hledger-web
+```
+hledger-web also needs to find some things in its current directory (like the static/ directory).
+This normally just works, if not please [send details](https://github.com/simonmichael/hledger/issues/274).
+
+Get a GHCI prompt for hledger and hledger-lib:
+```{.shell .bold}
+$ make ghci
+```
+
+Get a GHCI prompt for hledger-web, hledger and hledger-lib:
+```{.shell .bold}
+$ make ghci-web
+```
+
+<!--
+For the dev.hs developer script:
+```{.shell .bold}
+$ make ghci-dev
+```
+-->
+
+### Improve the documentation
+
+- get familiar with the website and documentation online, review and test
+- get familiar with the site/doc source files (see Makefile)
+- get the latest hledger source
+- send patches with names prefixed with "doc: " (or "site: ")
+
 ### Fix a bug or add a feature
 
 - research, discuss, validate the issue/feature on irc/list/bug tracker
@@ -518,6 +589,19 @@ $ make haddocktest
 - develop a patch
 - include any related issue numbers in the patch name, eg: "fix for blah blah (#NNN)"
 - get it committed
+
+### Get your changes accepted
+
+Follow the usual github workflow:
+
+- fork the main hledger repo on github,
+- git clone it to your local machine,
+- git commit, after (?) pulling and merging the latest upstream changes
+- git push back to github,
+- open a pull request on github,
+- follow up on any discussion there.
+
+If you're new to this process, [help.github.com](http://help.github.com) may be useful.
 
 ### Become a contributor
 
