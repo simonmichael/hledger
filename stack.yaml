@@ -11,6 +11,6 @@ packages:
 flags:
 
 extra-deps:
-- brick-0.1
+- brick-0.2
 - text-zipper-0.2.1
 - vty-5.3.1
