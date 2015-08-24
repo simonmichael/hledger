@@ -24,7 +24,7 @@ td { padding-bottom:1em; padding-right:1em; }
 Download, unzip, and run
 [hledger-0.26-win64.zip](http://hledger.org/downloads/hledger-0.26-win64.zip)
 <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.zip)) -->
-and
+and/or
 [hledger-web-0.26-win64.zip](http://hledger.org/downloads/hledger-web-0.26-win64.zip)
 </td></tr>
 
@@ -85,39 +85,41 @@ donation of any size. Binaries funded in this way will be linked here.
 This is a quick way to help the project and your fellow users!
 -->
 
-## I want to build the latest release
-
 **[Release notes](release-notes.html)**
 
-Using stack (easiest, recommended):
+## I want to build the latest release
 
-1. Download and install [stack](https://github.com/commercialhaskell/stack/wiki/Downloads)
+**Using the stack tool** (easiest, recommended):
 
-    (on windows, choose the 64-bit version if you will be processing [>50k transactions](https://github.com/simonmichael/hledger/issues/275))
+1. Install [`stack`](https://github.com/commercialhaskell/stack/wiki/Downloads)
+    (on Windows, you should choose the 64-bit stack download if you will be
+processing >50,000 transactions at a time with hledger, cf [#275](https://github.com/simonmichael/hledger/issues/275)).
 
-2. `stack --resolver nightly-2015-07-13 setup`
+2. `stack setup`
+    (if you need GHC, eg on Windows. If you're not sure, run the next command and it will tell you.)
 
-    (do this if you need GHC, eg on windows. If you're not sure, run the next command and it will tell you)
+3. `stack install hledger` (the command-line UI), or\
+   `stack install hledger-ui` (the terminal UI; not available on Windows; includes the above), or\
+   `stack install hledger-web` (the web UI; includes the above)
 
-3. `stack --resolver nightly-2015-07-13 install hledger`
+4. stack will report where it installed the binaries (`~/.local/bin` or the Windows equivalent).
+   You should ensure this directory is in your `$PATH` (stack will let you know),
+   so that you can just type `hledger` to run it.
 
-    (on windows, stack [can't](https://github.com/commercialhaskell/stack/issues/661) install the latest hledger-web yet)
+**Without stack,** the process is much more variable; this is most likely to work:
 
-Using cabal:
-
-1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html)
+1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html) if needed
 2. `cabal update`
-3. `cabal install alex happy`    *(if these are not already in your PATH)*
+3. `cabal install alex happy`
 4. `cabal sandbox init`
-5. `cabal install hledger[-web]`
+5. `cabal install hledger[-ui|-web]`
+6. Ensure `~/.cabal/bin` or the Windows equivalent is in your `$PATH`
 
 ## I want to build the latest [master branch](https://github.com/simonmichael/hledger/commits/master)
 
-1. `git clone https://github.com/simonmichael/hledger.git` (shortcut: `git clone code.hledger.org hledger`)
-2. `cd hledger`
-3. `stack install` (or `cabal sandbox init; cabal install ./hledger{-lib,,-web}`)
+See the [Developer Guide](http://hledger.org/developer-guide.html), or just:
 
-\
-\
-See also the old [Installation Guide](installing.html).
+1. `git clone http://code.hledger.org hledger`
+2. `cd hledger`
+3. `stack install`
 

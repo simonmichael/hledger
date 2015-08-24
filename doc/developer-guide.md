@@ -132,6 +132,10 @@ You don't need to use stack, if you are already expert with the older
 cabal tool, or even just GHC, but I won't attempt to document those
 procedures; these docs assume you have downloaded and installed stack.
 
+On Windows, you should choose the 64-bit stack download if you will be
+processing >50,000 transactions at a time with hledger
+([#275](https://github.com/simonmichael/hledger/issues/275)).
+
 [git](http://git-scm.com) is the revision control tool you'll need to
 fetch the latest hledger source and submit changes. On windows, stack
 can install it for you. These docs assume you have installed git and
