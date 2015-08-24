@@ -107,18 +107,22 @@ drawRegisterScreen2 AppState{aopts=_opts, aScreen=RegisterScreen2{rs2State=l}} =
         -- they need, while reserving a minimum of space for other
         -- columns and whitespace.  If they don't get all they need,
         -- allocate it to them proportionally to their maximum widths.
-        whitespacewidth = 23
-        maxamtswidth = max 0 (totalwidth - whitespacewidth)
+        whitespacewidth = 9 -- inter-column whitespace, fixed width
+        minnonamtcolswidth = datewidth + 2 + 2 -- date column plus at least 2 for desc and accts
+        maxamtswidth = max 0 (totalwidth - minnonamtcolswidth - whitespacewidth)
         maxchangewidthseen = maximum' $ map (length . fourth5) displayitems
         maxbalwidthseen = maximum' $ map (length . fifth5) displayitems
-        changewidthproportion = fromIntegral (maxchangewidthseen + maxbalwidthseen) / fromIntegral maxchangewidthseen
-        maxchangewidth = round $ fromIntegral maxamtswidth / changewidthproportion
+        changewidthproportion = fromIntegral maxchangewidthseen / fromIntegral (maxchangewidthseen + maxbalwidthseen)
+        maxchangewidth = round $ changewidthproportion * fromIntegral maxamtswidth
         maxbalwidth = maxamtswidth - maxchangewidth
         changewidth = min maxchangewidth maxchangewidthseen 
         balwidth = min maxbalwidth maxbalwidthseen
 
         -- assign the remaining space to the description and accounts columns
-        maxdescacctswidth = max 0 (totalwidth - datewidth - changewidth - balwidth - (whitespacewidth - 2))
+        -- maxdescacctswidth = totalwidth - (whitespacewidth - 4) - changewidth - balwidth
+        maxdescacctswidth =
+          -- trace (show (totalwidth, datewidth, changewidth, balwidth, whitespacewidth)) $
+          max 0 (totalwidth - datewidth - changewidth - balwidth - whitespacewidth)
         -- allocating proportionally.
         -- descwidth' = maximum' $ map (length . second5) displayitems
         -- acctswidth' = maximum' $ map (length . third5) displayitems
