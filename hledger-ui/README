@@ -12,32 +12,30 @@ reports, with drill-down and scrolling.
 
 ## Backlog:
 ```
+reg: fix width overflow in some accounts
 merge to master
- brick release
+blog
 
-make it more useful
- register
-  simplify/remove unhelpful account names ?
- show journal entries
-  transaction dialog / journal screen
- bs/is/cf-ish reports
- save custom reports
-
+drop old register code
 fix -H
 fix --drop
-track current account better
- show it in register title
-track current query better
+better screen titles
+ track current account better
+ track current query better
+register
+ simplify/remove unhelpful account names ?
+ find subaccounts' transactions better ?
+show journal entries
+ transaction dialog / journal screen
+bs/is/cf-ish reports
+persistent custom reports
+persistent config
 search in page
 adjust query
 adjust depth
-use color, selectable themes
-switch to next brick release
- reg2: find subaccounts' transactions better
- keep cursor at bottom of screen if jumping to end
+adjust other options
 add
 edit
-options adjustment
 reload
  on screen change
  on redraw
