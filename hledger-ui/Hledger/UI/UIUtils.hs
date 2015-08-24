@@ -5,7 +5,7 @@ module Hledger.UI.UIUtils (
  ,popScreen
  ,screenEnter
  ,getViewportSize
- ,margin
+ -- ,margin
  ,withBorderAttr
  ,topBottomBorderWithLabel
  ,defaultLayout
@@ -61,7 +61,9 @@ getViewportSize name = do
 defaultLayout label =
   topBottomBorderWithLabel label .
   margin 1 0 Nothing
-  -- margin 1 0 (Just white)
+  -- topBottomBorderWithLabel2 label .
+  -- padLeftRight 1 -- XXX should reduce inner widget's width by 2, but doesn't
+                    -- "the layout adjusts... if you use the core combinators"
 
 topBottomBorderWithLabel label = \wrapped ->
   Widget Greedy Greedy $ do
@@ -79,9 +81,21 @@ topBottomBorderWithLabel label = \wrapped ->
       <=>
       hBorder
 
+-- XXX should be equivalent to the above, but isn't (page down goes offscreen)
+_topBottomBorderWithLabel2 label = \wrapped ->
+ let debugmsg = ""
+ in hBorderWithLabel (label <+> str debugmsg)
+    <=>
+    wrapped
+    <=>
+    hBorder
+
+-- XXX superseded by pad, in theory
 -- | Wrap a widget in a margin with the given horizontal and vertical
 -- thickness, using the current background colour or the specified
--- colour. XXX May disrupt border style of inner widgets.
+-- colour.
+-- XXX May disrupt border style of inner widgets.
+-- XXX Should reduce the available size visible to inner widget, but doesn't seem to (cf drawRegisterScreen2).
 margin :: Int -> Int -> Maybe Color -> Widget -> Widget
 margin h v mcolour = \w ->
   Widget Greedy Greedy $ do

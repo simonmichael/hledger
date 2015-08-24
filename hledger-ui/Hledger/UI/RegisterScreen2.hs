@@ -97,7 +97,8 @@ drawRegisterScreen2 AppState{aopts=_opts, aScreen=RegisterScreen2{rs2State=l}} =
       -- calculate column widths, based on current available width
       c <- getContext
       let
-        totalwidth = c^.availWidthL - 2 -- XXX trimmed.. for the margin ?
+        totalwidth = c^.availWidthL
+                     - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
 
         -- the date column is fixed width
         datewidth = 10
