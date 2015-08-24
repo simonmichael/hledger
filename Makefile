@@ -475,11 +475,9 @@ dev-profile: $(SOURCEFILES) \
 # 	)
 # 	$(GHC) tools/doctest.hs
 
-# tools/simplebench: tools/simplebench.hs \
-# 	$(call def-help,tools/simplebench,\
-# 	build the simple benchmark runner. Requires html and tabular.\
-# 	)
-# 	$(GHC) tools/simplebench.hs
+tools/simplebench: tools/simplebench.hs \
+		$(call def-help,tools/simplebench, build the standalone generic benchmark runner. Requires libs installed by stack build --bench. )
+	stack exec -- $(GHC) tools/simplebench.hs
 
 # tools/criterionbench: tools/criterionbench.hs \
 # 	$(call def-help,tools/criterionbench,\
@@ -493,11 +491,9 @@ dev-profile: $(SOURCEFILES) \
 # 	)
 # 	$(GHC) tools/progressionbench.hs
 
-# tools/generatejournal: tools/generatejournal.hs \
-# 	$(call def-help,tools/generatejournal,\
-# 	build the generatejournal tool\
-# 	)
-# 	$(GHC) tools/generatejournal.hs
+tools/generatejournal: tools/generatejournal.hs \
+		$(call def-help,tools/generatejournal, build the generatejournal tool )
+	$(GHC) tools/generatejournal.hs
 
 ###############################################################################
 $(call def-help-subsection,TESTING:)
