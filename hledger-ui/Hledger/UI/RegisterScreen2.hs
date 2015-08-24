@@ -118,7 +118,7 @@ drawRegisterScreen2 AppState{aopts=_opts, aScreen=RegisterScreen2{rs2State=l}} =
         balwidth = min maxbalwidth maxbalwidthseen
 
         -- assign the remaining space to the description and accounts columns
-        maxdescacctswidth = totalwidth - (whitespacewidth - 4) - changewidth - balwidth
+        maxdescacctswidth = max 0 (totalwidth - datewidth - changewidth - balwidth - (whitespacewidth - 2))
         -- allocating proportionally.
         -- descwidth' = maximum' $ map (length . second5) displayitems
         -- acctswidth' = maximum' $ map (length . third5) displayitems
