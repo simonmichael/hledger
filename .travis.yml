@@ -23,7 +23,8 @@ before_install:
   - chmod a+x ~/.local/bin/stack
 
 install:
-  - stack +RTS -N2 -RTS --no-terminal build --install-ghc --only-snapshot
+  - stack +RTS -N2 -RTS setup
+  - stack +RTS -N2 -RTS build --only-snapshot
 
 script:
   - stack +RTS -N2 -RTS build --test
