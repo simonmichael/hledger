@@ -29,6 +29,8 @@ before_install:
 # script:
 #   - stack build --test
 
+install:
+
 script:
   - stack +RTS -N2 -RTS --install-ghc --no-terminal build --test
 
