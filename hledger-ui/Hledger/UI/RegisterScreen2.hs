@@ -110,8 +110,8 @@ drawRegisterScreen2 AppState{aopts=_opts, aScreen=RegisterScreen2{rs2State=l}} =
         maxamtswidth = max 0 (totalwidth - 21)
         changewidth' = maximum' $ map (length . fourth5) displayitems
         balwidth' = maximum' $ map (length . fifth5) displayitems
-        changewidthproportion = (changewidth' + balwidth') `div` changewidth'
-        maxchangewidth = maxamtswidth `div` changewidthproportion
+        changewidthproportion = fromIntegral (changewidth' + balwidth') / fromIntegral changewidth'
+        maxchangewidth = round $ fromIntegral maxamtswidth / changewidthproportion
         maxbalwidth = maxamtswidth - maxchangewidth
         changewidth = min maxchangewidth changewidth' 
         balwidth = min maxbalwidth balwidth'
@@ -121,8 +121,8 @@ drawRegisterScreen2 AppState{aopts=_opts, aScreen=RegisterScreen2{rs2State=l}} =
         -- allocating proportionally.
         -- descwidth' = maximum' $ map (length . second5) displayitems
         -- acctswidth' = maximum' $ map (length . third5) displayitems
-        -- descwidthproportion = (descwidth' + acctswidth') `div` descwidth'
-        -- maxdescwidth = min (maxdescacctswidth - 7) (maxdescacctswidth `div` descwidthproportion)
+        -- descwidthproportion = (descwidth' + acctswidth') / descwidth'
+        -- maxdescwidth = min (maxdescacctswidth - 7) (maxdescacctswidth / descwidthproportion)
         -- maxacctswidth = maxdescacctswidth - maxdescwidth
         -- descwidth = min maxdescwidth descwidth' 
         -- acctswidth = min maxacctswidth acctswidth'
