@@ -40,11 +40,19 @@ getTheme name = M.lookup name themes
 --
 -- A hledger-ui theme is a vty/brick AttrMap.  Each theme specifies a
 -- default style (Attr), plus extra styles which are applied when
--- their (hierarchical) name matches the widget rendering context.  Eg
--- when rendering a widget named "b" which is inside a widget named
--- "a", the following styles will be applied if they exist: the
--- default style, then a style named "a", and finally a style named
--- "a" <> "b".
+-- their (hierarchical) name matches the widget rendering context.
+-- "More specific styles, if present, are used and only fall back to
+-- more general ones when the more specific ones are absent, but also
+-- these styles get merged, so that if a more specific style only
+-- provides the foreground color, its more general parent style can
+-- set the background color, too."
+-- For example: rendering a widget named "b" inside a widget named "a",
+-- - if a style named "a" <> "b" exists, it will be used. Anything it
+--   does not specify will be taken from a style named "a" if that
+--   exists, otherwise from the default style.
+-- - otherwise if a style named "a" exists, it will be used, and
+--   anything it does not specify will be taken from the default style.
+-- - otherwise (you guessed it) the default style is used.
 --
 themes :: M.Map String AttrMap
 themes = M.fromList themesList
