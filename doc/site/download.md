@@ -96,7 +96,7 @@ This is a quick way to help the project and your fellow users!
 processing >50,000 transactions at a time with hledger, cf [#275](https://github.com/simonmichael/hledger/issues/275)).
 
 2. `stack setup`
-    (if you need GHC, eg on Windows. If you're not sure, run the next command and it will tell you.)
+    (if you need GHC installed. If you're not sure, run the next command and it will tell you.)
 
 3. `stack install hledger` (the command-line UI), or\
    `stack install hledger-ui` (the terminal UI; not available on Windows; includes the above), or\
