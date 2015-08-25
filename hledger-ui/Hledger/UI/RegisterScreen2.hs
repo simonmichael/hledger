@@ -62,7 +62,8 @@ initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Registe
       ,tdescription t
       ,case splitOn ", " otheracctsstr of
         [s] -> s
-        _   -> "<split>"
+        ss  -> intercalate ", " ss
+        -- _   -> "<split>"
       ,showMixedAmountOneLineWithoutPrice change
       ,showMixedAmountOneLineWithoutPrice bal
       )
