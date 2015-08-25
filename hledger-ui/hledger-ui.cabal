@@ -58,6 +58,7 @@ executable hledger-ui
     , cmdargs >= 0.8
     , containers
     , data-default
+    , filepath
     , HUnit
     , lens >= 4.12.3 && < 4.13
     , safe >= 0.2
