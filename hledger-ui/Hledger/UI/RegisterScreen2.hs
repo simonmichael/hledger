@@ -48,13 +48,19 @@ initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Registe
               balancetype_=HistoricalBalance
             }
     -- XXX temp
-    thisacctq = Acct $ accountNameToAccountRegex acct -- XXX why is this excluding subs: accountNameToAccountRegex curacct
+    thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
     q = queryFromOpts d ropts
          -- query_="cur:\\$"} -- XXX limit to one commodity to ensure one-line items
          --{query_=unwords' $ locArgs l}
 
     -- run a transactions report, most recent last
-    (_label,items') = accountTransactionsReport ropts j q thisacctq
+    q' =
+      -- ltrace "q"
+      q
+    thisacctq' =
+      -- ltrace "thisacctq"
+      thisacctq
+    (_label,items') = accountTransactionsReport ropts j q' thisacctq'
     items = reverse items'
 
     -- pre-render all items; these will be the List elements. This helps calculate column widths.
@@ -82,8 +88,8 @@ drawRegisterScreen2 :: AppState -> [Widget]
 drawRegisterScreen2 AppState{aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
                              aargs=_args, aScreen=RegisterScreen2{rs2State=l,rs2Acct=acct}} = [ui]
   where
-    label = str "Transactions in "
-            <+> withAttr ("border" <> "bold") (str acct)
+    label = withAttr ("border" <> "bold") (str acct)
+            <+> str " transactions"
             <+> borderQuery querystr
             -- <+> str " and subs"
             <+> str " ("

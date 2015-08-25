@@ -125,4 +125,4 @@ withBorderAttr attr = updateAttrMap (applyAttrMappings [(borderAttr, attr)])
 
 borderQuery :: String -> Widget
 borderQuery ""  = str ""
-borderQuery qry = str " filtered by: " <+> withAttr (borderAttr <> "query") (str qry)
+borderQuery qry = str " matching " <+> withAttr (borderAttr <> "query") (str qry)

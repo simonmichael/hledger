@@ -58,19 +58,19 @@ initAccountsScreen _ _ _ = error "init function called with wrong screen type, s
 drawAccountsScreen :: AppState -> [Widget]
 drawAccountsScreen st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{asState=is}} = [ui]
     where
-      label = str "Accounts in "
-              <+> withAttr ("border" <> "bold") files
+      label = files
+              <+> str " accounts"
               <+> borderQuery querystr
               <+> str " ("
               <+> cur
               <+> str " of "
               <+> total
               <+> str ")"
-      files = str $ case journalFilePaths j of
-                     [] -> ""
-                     [f] -> takeFileName f
-                     [f,_] -> takeFileName f ++ " (& 1 included file)"
-                     f:fs -> takeFileName f ++ " (& " ++ show (length fs) ++ " included files)"
+      files = case journalFilePaths j of
+                     [] -> str ""
+                     [f] -> withAttr ("border" <> "bold") $ str $ takeFileName f
+                     [f,_] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
+                     f:fs -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
       querystr = query_ $ reportopts_ $ cliopts_ uopts
       cur = str (case is^.listSelectedL of
                   Nothing -> "-"
