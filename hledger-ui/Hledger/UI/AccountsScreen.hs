@@ -48,7 +48,6 @@ initAccountsScreen d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Accounts
              -- query_="cur:\\$"} -- XXX limit to one commodity to ensure one-line items
              --{query_=unwords' $ locArgs l}
         ropts = (reportopts_ cliopts)
-                {no_elide_=True}
                 {
                   query_=unwords' args,
                   balancetype_=HistoricalBalance -- XXX balanceReport doesn't respect this yet
