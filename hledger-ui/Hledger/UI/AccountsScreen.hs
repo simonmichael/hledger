@@ -11,8 +11,9 @@ import Control.Lens ((^.))
 import Control.Monad.IO.Class
 -- import Data.Default
 import Data.List
--- import Data.Monoid              -- 
+import Data.Monoid
 import Data.Time.Calendar (Day)
+import System.FilePath (takeFileName)
 import qualified Data.Vector as V
 import Graphics.Vty as Vty
 import Brick
@@ -56,9 +57,22 @@ initAccountsScreen d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Accounts
 initAccountsScreen _ _ _ = error "init function called with wrong screen type, should not happen"
 
 drawAccountsScreen :: AppState -> [Widget]
-drawAccountsScreen st@AppState{aScreen=AccountsScreen{asState=is}} = [ui]
+drawAccountsScreen st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{asState=is}} = [ui]
     where
-      label = str "Account " <+> cur <+> str " of " <+> total
+      label = str "Accounts in "
+              <+> withAttr ("border" <> "bold") files
+              <+> borderQuery querystr
+              <+> str " ("
+              <+> cur
+              <+> str " of "
+              <+> total
+              <+> str ")"
+      files = str $ case journalFilePaths j of
+                     [] -> ""
+                     [f] -> takeFileName f
+                     [f,_] -> takeFileName f ++ " (& 1 included file)"
+                     f:fs -> takeFileName f ++ " (& " ++ show (length fs) ++ " included files)"
+      querystr = query_ $ reportopts_ $ cliopts_ uopts
       cur = str (case is^.listSelectedL of
                   Nothing -> "-"
                   Just i -> show (i + 1))

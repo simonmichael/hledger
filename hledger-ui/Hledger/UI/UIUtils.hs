@@ -9,13 +9,14 @@ module Hledger.UI.UIUtils (
  ,withBorderAttr
  ,topBottomBorderWithLabel
  ,defaultLayout
+ ,borderQuery
  ) where
 
 import Control.Lens ((^.))
 -- import Control.Monad
 -- import Control.Monad.IO.Class
 -- import Data.Default
--- import Data.Monoid              -- 
+import Data.Monoid
 import Data.Time.Calendar (Day)
 import Brick
 -- import Brick.Widgets.List
@@ -121,3 +122,7 @@ withBorderAttr attr = updateAttrMap (applyAttrMappings [(borderAttr, attr)])
 --                       , str " "
 --                       , hCenter $ str "Press Esc to exit."
 --                       ]
+
+borderQuery :: String -> Widget
+borderQuery ""  = str ""
+borderQuery qry = str " filtered by: " <+> withAttr (borderAttr <> "query") (str qry)

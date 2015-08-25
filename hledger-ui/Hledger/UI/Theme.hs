@@ -66,7 +66,9 @@ themesList :: [(String, AttrMap)]
 themesList = [
   ("default", attrMap
             (black `on` white & bold) [ -- default style for this theme
-              (borderAttr       , white `on` black),
+              (borderAttr       , white `on` black & dim),
+              (borderAttr <> "bold", white `on` black & bold),
+              (borderAttr <> "query", yellow `on` black & bold),
               -- ("normal"                , black `on` white),
               ("list"                  , black `on` white),      -- regular list items
               ("list" <> "selected"    , white `on` blue & bold) -- selected list items
