@@ -8,8 +8,9 @@ where
 
 import Control.Lens ((^.))
 -- import Control.Monad.IO.Class (liftIO)
--- import Data.List
+import Data.List
 import Data.List.Split (splitOn)
+import Data.Monoid
 -- import Data.Maybe
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
@@ -30,13 +31,14 @@ import Hledger.UI.UIUtils
 
 screen = RegisterScreen2{
    rs2State  = list "register" V.empty 1
+  ,rs2Acct   = ""
   ,sInitFn    = initRegisterScreen2
   ,sDrawFn    = drawRegisterScreen2
   ,sHandleFn = handleRegisterScreen2
   }
 
 initRegisterScreen2 :: Day -> [String] -> AppState -> AppState
-initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen2{}} =
+initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen2{rs2Acct=acct}} =
   st{aScreen=s{rs2State=l}}
   where
     -- gather arguments and queries
@@ -46,14 +48,13 @@ initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Registe
               balancetype_=HistoricalBalance
             }
     -- XXX temp
-    curacct = drop 5 $ head args -- should be "acct:..." 
-    thisacctq = Acct $ curacct -- XXX why is this excluding subs: accountNameToAccountRegex curacct
+    thisacctq = Acct $ accountNameToAccountRegex acct -- XXX why is this excluding subs: accountNameToAccountRegex curacct
     q = queryFromOpts d ropts
          -- query_="cur:\\$"} -- XXX limit to one commodity to ensure one-line items
          --{query_=unwords' $ locArgs l}
 
     -- run a transactions report, most recent last
-    (_label,items') = accountTransactionsReport ropts j thisacctq q
+    (_label,items') = accountTransactionsReport ropts j q thisacctq
     items = reverse items'
 
     -- pre-render all items; these will be the List elements. This helps calculate column widths.
@@ -78,13 +79,18 @@ initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Registe
 initRegisterScreen2 _ _ _ = error "init function called with wrong screen type, should not happen"
 
 drawRegisterScreen2 :: AppState -> [Widget]
-drawRegisterScreen2 AppState{aopts=_opts, aScreen=RegisterScreen2{rs2State=l}} = [ui]
+drawRegisterScreen2 AppState{aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
+                             aargs=_args, aScreen=RegisterScreen2{rs2State=l,rs2Acct=acct}} = [ui]
   where
-    label = str "Transaction "
+    label = str "Transactions in "
+            <+> withAttr ("border" <> "bold") (str acct)
+            <+> borderQuery querystr
+            -- <+> str " and subs"
+            <+> str " ("
             <+> cur
             <+> str " of "
             <+> total
-            <+> str " to/from this account" -- " <+> str query <+> "and subaccounts"
+            <+> str ")"
     cur = str $ case l^.listSelectedL of
                  Nothing -> "-"
                  Just i -> show (i + 1)

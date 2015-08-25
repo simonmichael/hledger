@@ -22,7 +22,7 @@ data AppState = AppState {
 
 -- | Types of screen available within the app, along with their state.
 -- Screen types are distinguished by their constructor and by the type
--- of their state (hence the unique accessor names for the latter).
+-- of their state (which must have unique accessor names).
 data Screen =
     AccountsScreen {
      asState :: List BalanceReportItem                            -- ^ the screen's state (data being displayed and widget state)
@@ -38,6 +38,7 @@ data Screen =
     }
   | RegisterScreen2 {
      rs2State :: List (String,String,String,String,String)
+    ,rs2Acct :: AccountName              -- ^ the account we are showing a register for
     ,sInitFn :: Day -> [String] -> AppState -> AppState
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     ,sDrawFn :: AppState -> [Widget]

@@ -104,7 +104,7 @@ drawAccountsItem fmt _sel item =
     render $ str $ showitem item
 
 handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
-handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
+handleAccountsScreen st@AppState{aargs=args, aScreen=scr@AccountsScreen{asState=is}} e = do
     d <- liftIO getCurrentDay
     -- c <- getContext
     -- let h = c^.availHeightL
@@ -114,13 +114,13 @@ handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
         Vty.EvKey (Vty.KRight) []    -> do
-          let st' = screenEnter d args RS2.screen st
+          let st' = screenEnter d args RS2.screen{rs2Acct=acct} st
           vScrollToBeginning $ viewportScroll "register"
           continue st'
           where
-            args = case listSelectedElement is of
-                    Just (_, ((acct, _, _), _)) -> ["acct:"++accountNameToAccountRegex acct]
-                    Nothing -> []
+            acct = case listSelectedElement is of
+                    Just (_, ((a, _, _), _)) -> a
+                    Nothing -> ""
 
         -- Vty.EvKey (Vty.KPageDown) [] -> continue $ st{aScreen=scr{asState=moveSel h is}}
         -- Vty.EvKey (Vty.KPageUp) []   -> continue $ st{aScreen=scr{asState=moveSel (-h) is}}
