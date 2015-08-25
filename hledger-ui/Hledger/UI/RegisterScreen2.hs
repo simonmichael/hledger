@@ -109,7 +109,7 @@ drawRegisterScreen2 AppState{aopts=_opts, aScreen=RegisterScreen2{rs2State=l}} =
         -- they need, while reserving a minimum of space for other
         -- columns and whitespace.  If they don't get all they need,
         -- allocate it to them proportionally to their maximum widths.
-        whitespacewidth = 9 -- inter-column whitespace, fixed width
+        whitespacewidth = 10 -- inter-column whitespace, fixed width
         minnonamtcolswidth = datewidth + 2 + 2 -- date column plus at least 2 for desc and accts
         maxamtswidth = max 0 (totalwidth - minnonamtcolswidth - whitespacewidth)
         maxchangewidthseen = maximum' $ map (length . fourth5) displayitems
@@ -152,7 +152,7 @@ drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) _sel (dat
       str (padright descwidth $ elideRight descwidth desc) <+>
       str "  " <+>
       str (padright acctswidth $ elideLeft acctswidth $ accts) <+>
-      str "  " <+>
+      str "   " <+>
       str (padleft changewidth $ elideLeft changewidth change) <+>
       str "   " <+>
       str (padleft balwidth $ elideLeft balwidth bal)
