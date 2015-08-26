@@ -44,6 +44,7 @@ initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Registe
     -- gather arguments and queries
     ropts = (reportopts_ $ cliopts_ opts)
             {
+              depth_=Nothing,
               query_=unwords' args,
               balancetype_=HistoricalBalance
             }
