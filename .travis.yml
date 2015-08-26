@@ -27,7 +27,9 @@ install:
   - stack +RTS -N2 -RTS build --only-snapshot
 
 script:
-  - stack +RTS -N2 -RTS build --test
+  - stack +RTS -N2 -RTS build --test --haddock
+#  - stack +RTS -N2 -RTS haddock --no-haddock-deps
+# https://github.com/commercialhaskell/stack/issues/857
 
 # coveralls.io coverage reports
 # after_script:
