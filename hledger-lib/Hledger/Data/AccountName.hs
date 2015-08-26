@@ -32,9 +32,10 @@ accountNameFromComponents = concat . intersperse [acctsepchar]
 accountLeafName :: AccountName -> String
 accountLeafName = last . accountNameComponents
 
+-- | Truncate all account name components but the last to two characters.
 accountSummarisedName :: AccountName -> String
 accountSummarisedName a
-  -- | length cs > 1 = take 2 (head cs) ++ ":" ++ a'
+  --   length cs > 1 = take 2 (head cs) ++ ":" ++ a'
   | length cs > 1 = intercalate ":" (map (take 2) $ init cs) ++ ":" ++ a'
   | otherwise     = a'
     where

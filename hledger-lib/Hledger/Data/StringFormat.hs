@@ -45,10 +45,15 @@ data StringFormat =
 
 data StringFormatComponent =
     FormatLiteral String        -- ^ Literal text to be rendered as-is
-  | FormatField Bool            -- ^ Left justified if true, right justified if false
-                (Maybe Int)     -- ^ Minimum width; will be space-padded if narrower than this
-                (Maybe Int)     -- ^ Maximum width; will be clipped if wider than this
-                ReportItemField -- ^ One of several standard hledger report item fields to interpolate
+  | FormatField Bool
+                (Maybe Int)
+                (Maybe Int)
+                ReportItemField -- ^ A data field to be formatted and interpolated. Parameters:
+                                --
+                                -- - Left justify ? Right justified if false
+                                -- - Minimum width ? Will be space-padded if narrower than this
+                                -- - Maximum width ? Will be clipped if wider than this
+                                -- - Which of the standard hledger report item fields to interpolate
   deriving (Show, Eq)
 
 -- | An id identifying which report item field to interpolate.  These
