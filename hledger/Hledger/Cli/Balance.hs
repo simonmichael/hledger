@@ -243,8 +243,7 @@ module Hledger.Cli.Balance (
  ,tests_Hledger_Cli_Balance
 ) where
 
-import Data.List (intercalate, sort)
-import Data.Time.Calendar (Day)
+import Data.List (intercalate)
 import Data.Maybe (fromMaybe, isJust)
 import System.Console.CmdArgs.Explicit as C
 import Text.CSV
@@ -315,41 +314,6 @@ balance opts@CliOpts{reportopts_=ropts} j = do
           writeOutput opts $ render ropts $ convert report
 
 -- single-column balance reports
-
--- | Convert all the amounts in a single-column balance report to
--- their value on the given date in their default valuation
--- commodities.
-balanceReportValue :: Journal -> Day -> BalanceReport -> BalanceReport
-balanceReportValue j d r = r'
-  where
-    (items,total) = r
-    r' = ([(n, mixedAmountValue j d a) |(n,a) <- items], mixedAmountValue j d total)
-
-mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
-mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
-
--- | Find the market value of this amount on the given date, in it's
--- default valuation commodity, based on historical prices. If no
--- default valuation commodity can be found, the amount is left
--- unchanged.
-amountValue :: Journal -> Day -> Amount -> Amount
-amountValue j d a =
-  case commodityValue j d (acommodity a) of
-    Just v  -> v{aquantity=aquantity v * aquantity a
-                ,aprice=aprice a
-                }
-    Nothing -> a
-
--- | Find the market value, if known, of one unit of this commodity on
--- the given date, in the commodity in which it has most recently been
--- market-priced (ie the commodity mentioned in the most recent
--- applicable historical price directive before this date).
-commodityValue :: Journal -> Day -> Commodity -> Maybe Amount
-commodityValue j d c
-    | null applicableprices = Nothing
-    | otherwise             = Just $ mpamount $ last applicableprices
-  where
-    applicableprices = [p | p <- sort $ jmarketprices j, mpcommodity p == c, mpdate p <= d]
 
 -- | Find the best commodity to convert to when asked to show the
 -- market value of this commodity on the given date. That is, the one
@@ -471,19 +435,6 @@ renderComponent1 (acctname, depth, total) (FormatField ljust min max field) = ca
   _                -> ""
 
 -- multi-column balance reports
-
--- | Convert all the amounts in a multi-column balance report to their
--- value on the given date in their default valuation commodities
--- (which are determined as of that date, not the report interval dates).
-multiBalanceReportValue :: Journal -> Day -> MultiBalanceReport -> MultiBalanceReport
-multiBalanceReportValue j d r = r'
-  where
-    MultiBalanceReport (spans, rows, (coltotals, rowtotaltotal, rowavgtotal)) = r
-    r' = MultiBalanceReport
-         (spans,
-          [(n, map convert rowamts, convert rowtotal, convert rowavg) | (n, rowamts, rowtotal, rowavg) <- rows],
-          (map convert coltotals, convert rowtotaltotal, convert rowavgtotal))
-    convert = mixedAmountValue j d
 
 -- | Render a multi-column balance report as CSV.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV

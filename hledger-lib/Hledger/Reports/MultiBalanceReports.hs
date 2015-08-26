@@ -8,7 +8,8 @@ Multi-column balance reports, used by the balance command.
 module Hledger.Reports.MultiBalanceReports (
   MultiBalanceReport(..),
   MultiBalanceReportRow,
-  multiBalanceReport
+  multiBalanceReport,
+  multiBalanceReportValue
 
   -- -- * Tests
   -- tests_Hledger_Reports_MultiBalanceReport
@@ -18,6 +19,7 @@ where
 import Data.List
 import Data.Maybe
 import Data.Ord
+import Data.Time.Calendar
 import Safe
 -- import Test.HUnit
 
@@ -176,4 +178,17 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
 
       dbg1 s = let p = "multiBalanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in this function's debug output
       -- dbg1 = const id  -- exclude this function from debug output
+
+-- | Convert all the amounts in a multi-column balance report to their
+-- value on the given date in their default valuation commodities
+-- (which are determined as of that date, not the report interval dates).
+multiBalanceReportValue :: Journal -> Day -> MultiBalanceReport -> MultiBalanceReport
+multiBalanceReportValue j d r = r'
+  where
+    MultiBalanceReport (spans, rows, (coltotals, rowtotaltotal, rowavgtotal)) = r
+    r' = MultiBalanceReport
+         (spans,
+          [(n, map convert rowamts, convert rowtotal, convert rowavg) | (n, rowamts, rowtotal, rowavg) <- rows],
+          (map convert coltotals, convert rowtotaltotal, convert rowavgtotal))
+    convert = mixedAmountValue j d
 

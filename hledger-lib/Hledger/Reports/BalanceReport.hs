@@ -10,6 +10,8 @@ module Hledger.Reports.BalanceReport (
   BalanceReportItem,
   RenderableAccountName,
   balanceReport,
+  balanceReportValue,
+  mixedAmountValue,
   flatShowsExclusiveBalance,
 
   -- * Tests
@@ -17,7 +19,9 @@ module Hledger.Reports.BalanceReport (
 )
 where
 
+import Data.List (sort)
 import Data.Maybe
+import Data.Time.Calendar
 import Test.HUnit
 
 import Hledger.Data
@@ -122,6 +126,41 @@ balanceReportItem opts q a
 --     MultiBalanceReport (_,mbrrows,mbrtotals) = periodBalanceReport opts q j
 --     items = [(a,a',n, headDef 0 bs) | ((a,a',n), bs) <- mbrrows]
 --     total = headDef 0 mbrtotals
+
+-- | Convert all the amounts in a single-column balance report to
+-- their value on the given date in their default valuation
+-- commodities.
+balanceReportValue :: Journal -> Day -> BalanceReport -> BalanceReport
+balanceReportValue j d r = r'
+  where
+    (items,total) = r
+    r' = ([(n, mixedAmountValue j d a) |(n,a) <- items], mixedAmountValue j d total)
+
+mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
+mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
+
+-- | Find the market value of this amount on the given date, in it's
+-- default valuation commodity, based on historical prices. If no
+-- default valuation commodity can be found, the amount is left
+-- unchanged.
+amountValue :: Journal -> Day -> Amount -> Amount
+amountValue j d a =
+  case commodityValue j d (acommodity a) of
+    Just v  -> v{aquantity=aquantity v * aquantity a
+                ,aprice=aprice a
+                }
+    Nothing -> a
+
+-- | Find the market value, if known, of one unit of this commodity on
+-- the given date, in the commodity in which it has most recently been
+-- market-priced (ie the commodity mentioned in the most recent
+-- applicable historical price directive before this date).
+commodityValue :: Journal -> Day -> Commodity -> Maybe Amount
+commodityValue j d c
+    | null applicableprices = Nothing
+    | otherwise             = Just $ mpamount $ last applicableprices
+  where
+    applicableprices = [p | p <- sort $ jmarketprices j, mpcommodity p == c, mpdate p <= d]
 
 tests_balanceReport =
   let
