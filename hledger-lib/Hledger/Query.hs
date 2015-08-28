@@ -78,7 +78,9 @@ data Query = Any              -- ^ always match
            | Sym Regexp       -- ^ match if the entire commodity symbol is matched by this regexp
            | Empty Bool       -- ^ if true, show zero-amount postings/accounts which are usually not shown
                               --   more of a query option than a query criteria ?
-           | Depth Int        -- ^ match if account depth is less than or equal to this value
+           | Depth Int        -- ^ match if account depth is less than or equal to this value.
+                              --   Depth is sometimes used like a query (for filtering report data)
+                              --   and sometimes like a query option (for controlling display)
            | Tag Regexp (Maybe Regexp)  -- ^ match if a tag's name, and optionally its value, is matched by these respective regexps
                                         -- matching the regexp if provided, exists
     deriving (Eq,Data,Typeable)
