@@ -12,33 +12,34 @@ reports, with drill-down and scrolling.
 
 ## Backlog:
 ```
-reg: fix width overflow in some accounts
-merge to master
+reg: show historical running balance
+acc: fix -H, show historical balances
+ switch to multibalance report ?
+adjust filter
+ accounts screen
+ register screen
+reg: improve other account names
+ test showing only real postings when there are reals and virtuals
+journal entry view dialog
 blog
-
-drop old register code
-fix -H
+reg: support -V
+redraw on ctrl-l/cmd-r
+ reload on redraw
+ reload on screen change
+ reload on file change
+acc: show total
 fix --drop
-better screen titles
- track current account better
- track current query better
-register
- simplify/remove unhelpful account names ?
- find subaccounts' transactions better ?
-show journal entries
- transaction dialog / journal screen
+show "modified account names" with --drop or --alias
+journal screen
 bs/is/cf-ish reports
 persistent custom reports
 persistent config
 search in page
-adjust query
-adjust depth
 adjust other options
 add
 edit
-reload
- on screen change
- on redraw
- on file change
+custom screens
+plugin screens
+
 
 ```
