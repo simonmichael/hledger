@@ -201,8 +201,14 @@ accountTransactionsReportItems query thisacctquery bal signfn (torig:ts) =
 --       (froms,tos) = partition (fromMaybe False . isNegativeMixedAmount . pamount) ps
 
 -- | Generate a simplified summary of some postings' accounts.
+-- To reduce noise, if there are both real and virtual postings, show only the real ones.
 summarisePostingAccounts :: [Posting] -> String
-summarisePostingAccounts = intercalate ", " . map accountSummarisedName . nub . map paccount
+summarisePostingAccounts ps =
+  (intercalate ", " . map accountSummarisedName . nub . map paccount) displayps
+  where
+    realps = filter isReal ps
+    displayps | null realps = ps
+              | otherwise   = realps
 
 filterTransactionPostings :: Query -> Transaction -> Transaction
 filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m `matchesPosting`) ps}
