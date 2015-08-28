@@ -66,8 +66,8 @@ defwebopts = WebOpts
 
 -- instance Default WebOpts where def = defwebopts
 
-toWebOpts :: RawOpts -> IO WebOpts
-toWebOpts rawopts = do
+rawOptsToWebOpts :: RawOpts -> IO WebOpts
+rawOptsToWebOpts rawopts = checkWebOpts <$> do
   cliopts <- rawOptsToCliOpts rawopts
   let p = fromMaybe defport $ maybeintopt "port" rawopts
   return defwebopts {
@@ -80,11 +80,9 @@ toWebOpts rawopts = do
   where
     stripTrailingSlash = reverse . dropWhile (=='/') . reverse -- yesod don't like it
 
-checkWebOpts :: WebOpts -> IO WebOpts
-checkWebOpts opts = do
-  _ <- checkCliOpts $ cliopts_ opts
-  return opts
+checkWebOpts :: WebOpts -> WebOpts
+checkWebOpts = id
 
 getHledgerWebOpts :: IO WebOpts
-getHledgerWebOpts = processArgs webmode >>= return . decodeRawOpts >>= toWebOpts >>= checkWebOpts
+getHledgerWebOpts = processArgs webmode >>= return . decodeRawOpts >>= rawOptsToWebOpts
 

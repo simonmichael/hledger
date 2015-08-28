@@ -144,7 +144,7 @@ argsToCliOpts args addons = do
     args'        = moveFlagsAfterCommand args
     cmdargsopts  = processValue (mainmode addons) args'
     cmdargsopts' = decodeRawOpts cmdargsopts
-  rawOptsToCliOpts cmdargsopts' >>= checkCliOpts
+  rawOptsToCliOpts cmdargsopts'
 
 -- | A hacky workaround for cmdargs not accepting flags before the
 -- subcommand name: try to detect and move such flags after the
