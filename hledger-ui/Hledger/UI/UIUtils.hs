@@ -8,14 +8,18 @@ module Hledger.UI.UIUtils (
  -- ,margin
  ,withBorderAttr
  ,topBottomBorderWithLabel
+ ,topBottomBorderWithLabels
  ,defaultLayout
- ,borderQuery
+ ,borderQueryStr
+ ,borderDepthStr
+ ,borderKeysStr
  ) where
 
 import Control.Lens ((^.))
 -- import Control.Monad
 -- import Control.Monad.IO.Class
 -- import Data.Default
+import Data.List
 import Data.Monoid
 import Data.Time.Calendar (Day)
 import Brick
@@ -44,9 +48,9 @@ popScreen st = st
 -- Extra args can be passed to the new screen's init function,
 -- these can be eg query arguments.
 screenEnter :: Day -> [String] -> Screen -> AppState -> AppState
-screenEnter d args scr st = (sInitFn scr) d args $
+screenEnter d args scr st = (sInitFn scr) d $
                             pushScreen scr
-                            st
+                            st{aargs=args}
 
 -- | In the EventM monad, get the named current viewport's width and height,
 -- or (0,0) if the named viewport is not found.
@@ -59,8 +63,8 @@ getViewportSize name = do
   -- liftIO $ putStrLn $ show (w,h)
   return (w,h)
 
-defaultLayout label =
-  topBottomBorderWithLabel label .
+defaultLayout toplabel bottomlabel =
+  topBottomBorderWithLabels (str " "<+>toplabel<+>str " ") (str " "<+>bottomlabel<+>str " ") .
   margin 1 0 Nothing
   -- topBottomBorderWithLabel2 label .
   -- padLeftRight 1 -- XXX should reduce inner widget's width by 2, but doesn't
@@ -81,6 +85,22 @@ topBottomBorderWithLabel label = \wrapped ->
       wrapped'
       <=>
       hBorder
+
+topBottomBorderWithLabels toplabel bottomlabel = \wrapped ->
+  Widget Greedy Greedy $ do
+    c <- getContext
+    let (_w,h) = (c^.availWidthL, c^.availHeightL)
+        h' = h - 2
+        wrapped' = vLimit (h') wrapped
+        debugmsg =
+          ""
+          -- "  debug: "++show (_w,h')
+    render $
+      hBorderWithLabel (toplabel <+> str debugmsg)
+      <=>
+      wrapped'
+      <=>
+      hBorderWithLabel bottomlabel
 
 -- XXX should be equivalent to the above, but isn't (page down goes offscreen)
 _topBottomBorderWithLabel2 label = \wrapped ->
@@ -123,6 +143,16 @@ withBorderAttr attr = updateAttrMap (applyAttrMappings [(borderAttr, attr)])
 --                       , hCenter $ str "Press Esc to exit."
 --                       ]
 
-borderQuery :: String -> Widget
-borderQuery ""  = str ""
-borderQuery qry = str " matching " <+> withAttr (borderAttr <> "query") (str qry)
+borderQueryStr :: String -> Widget
+borderQueryStr ""  = str ""
+borderQueryStr qry = str " matching " <+> withAttr (borderAttr <> "query") (str qry)
+
+borderDepthStr :: Maybe Int -> Widget
+borderDepthStr Nothing  = str ""
+borderDepthStr (Just d) = str " to " <+> withAttr (borderAttr <> "depth") (str $ "depth "++show d)
+
+borderKeysStr :: [String] -> Widget
+borderKeysStr keydescs = str $ intercalate sep keydescs
+  where
+    sep = " | "
+    -- sep = "  "

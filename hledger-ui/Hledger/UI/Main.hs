@@ -65,7 +65,7 @@ runBrickUi opts j = do
             maybestringopt "theme" $ rawopts_ $ cliopts_ opts
     args = words' $ query_ $ reportopts_ $ cliopts_ opts
     scr = AS.screen
-    st = (sInitFn scr) d args
+    st = (sInitFn scr) d
          AppState{
             aopts=opts
            ,aargs=args

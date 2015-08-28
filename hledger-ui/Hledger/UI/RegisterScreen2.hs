@@ -37,8 +37,8 @@ screen = RegisterScreen2{
   ,sHandleFn = handleRegisterScreen2
   }
 
-initRegisterScreen2 :: Day -> [String] -> AppState -> AppState
-initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen2{rs2Acct=acct}} =
+initRegisterScreen2 :: Day -> AppState -> AppState
+initRegisterScreen2 d st@AppState{aargs=args, aopts=opts, ajournal=j, aScreen=s@RegisterScreen2{rs2Acct=acct}} =
   st{aScreen=s{rs2State=l}}
   where
     -- gather arguments and queries
@@ -71,7 +71,7 @@ initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Registe
       ,case splitOn ", " otheracctsstr of
         [s] -> s
         ss  -> intercalate ", " ss
-        -- _   -> "<split>"
+        -- _   -> "<split>"  -- should do this if accounts field width < 30
       ,showMixedAmountOneLineWithoutPrice change
       ,showMixedAmountOneLineWithoutPrice bal
       )
@@ -83,15 +83,15 @@ initRegisterScreen2 d args st@AppState{aopts=opts, ajournal=j, aScreen=s@Registe
 
         -- (listName someList)
 
-initRegisterScreen2 _ _ _ = error "init function called with wrong screen type, should not happen"
+initRegisterScreen2 _ _ = error "init function called with wrong screen type, should not happen"
 
 drawRegisterScreen2 :: AppState -> [Widget]
-drawRegisterScreen2 AppState{aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
-                             aargs=_args, aScreen=RegisterScreen2{rs2State=l,rs2Acct=acct}} = [ui]
+drawRegisterScreen2 AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
+                             aScreen=RegisterScreen2{rs2State=l,rs2Acct=acct}} = [ui]
   where
-    label = withAttr ("border" <> "bold") (str acct)
+    toplabel = withAttr ("border" <> "bold") (str acct)
             <+> str " transactions"
-            <+> borderQuery querystr
+            -- <+> borderQueryStr querystr -- no, account transactions report shows all transactions in the acct ?
             -- <+> str " and subs"
             <+> str " ("
             <+> cur
@@ -149,10 +149,14 @@ drawRegisterScreen2 AppState{aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reporto
         -- allocating equally.
         descwidth = maxdescacctswidth `div` 2
         acctswidth = maxdescacctswidth - descwidth
-
         colwidths = (datewidth,descwidth,acctswidth,changewidth,balwidth)
 
-      render $ defaultLayout label $ renderList l (drawRegisterItem colwidths)
+        bottomlabel = borderKeysStr [
+           -- "up/down/pgup/pgdown/home/end: move"
+           "left: return to accounts"
+          ]
+
+      render $ defaultLayout toplabel bottomlabel $ renderList l (drawRegisterItem colwidths)
 
 drawRegisterScreen2 _ = error "draw function called with wrong screen type, should not happen"
 

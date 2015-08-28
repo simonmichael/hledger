@@ -26,20 +26,20 @@ data AppState = AppState {
 data Screen =
     AccountsScreen {
      asState :: List BalanceReportItem                            -- ^ the screen's state (data being displayed and widget state)
-    ,sInitFn :: Day -> [String] -> AppState -> AppState                         -- ^ function to initialise the screen's state on entry
+    ,sInitFn :: Day -> AppState -> AppState                         -- ^ function to initialise the screen's state on entry
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState) -- ^ brick event handler to use for this screen
     ,sDrawFn :: AppState -> [Widget]                                -- ^ brick renderer to use for this screen
     }
   | RegisterScreen {
      rsState :: List PostingsReportItem
-    ,sInitFn :: Day -> [String] -> AppState -> AppState
+    ,sInitFn :: Day -> AppState -> AppState
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     ,sDrawFn :: AppState -> [Widget]
     }
   | RegisterScreen2 {
      rs2State :: List (String,String,String,String,String)
     ,rs2Acct :: AccountName              -- ^ the account we are showing a register for
-    ,sInitFn :: Day -> [String] -> AppState -> AppState
+    ,sInitFn :: Day -> AppState -> AppState
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     ,sDrawFn :: AppState -> [Widget]
     }
