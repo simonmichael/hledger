@@ -20,12 +20,20 @@ import Text.CSV
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
+import Hledger.Cli.Add ( transactionsSimilarTo )
 
 
 printmode = (defCommandMode $ ["print"] ++ aliases) {
   modeHelp = "show transaction entries" `withAliases` aliases
  ,modeGroupFlags = Group {
-     groupUnnamed = outputflags
+     groupUnnamed = [
+        let matcharg = "STR"
+        in
+         flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) matcharg
+         ("show the transaction whose description is most similar to "++matcharg
+          ++ ", and is most recent")
+        ]
+        ++ outputflags
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
     }
@@ -34,7 +42,13 @@ printmode = (defCommandMode $ ["print"] ++ aliases) {
 
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()
-print' opts@CliOpts{reportopts_=ropts} j = do
+print' opts j = do
+  case maybestringopt "match" $ rawopts_ opts of
+    Nothing   -> printEntries opts j
+    Just desc -> printMatch opts j desc
+
+printEntries :: CliOpts -> Journal -> IO ()
+printEntries opts@CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q = queryFromOpts d ropts
       fmt = outputFormatFromOpts opts
@@ -120,6 +134,29 @@ postingToCSV p =
     status = show $ pstatus p
     account = showAccountName Nothing (ptype p) (paccount p)
     comment = chomp $ strip $ pcomment p
+
+-- --match
+
+-- | Print the transaction most closely and recently matching a description
+-- (and the query, if any).
+printMatch :: CliOpts -> Journal -> String -> IO ()
+printMatch CliOpts{reportopts_=ropts} j desc = do
+  d <- getCurrentDay
+  let q = queryFromOpts d ropts
+  case similarTransaction' j q desc of
+                Nothing -> putStrLn "no matches found."
+                Just t  -> putStr $ showTransactionUnelided t
+
+  where
+    -- Identify the closest recent match for this description in past transactions.
+    similarTransaction' :: Journal -> Query -> String -> Maybe Transaction
+    similarTransaction' j q desc
+      | null historymatches = Nothing
+      | otherwise           = Just $ snd $ head historymatches
+      where
+        historymatches = transactionsSimilarTo j q desc
+
+-- tests
 
 tests_Hledger_Cli_Print = TestList []
   -- tests_showTransactions
