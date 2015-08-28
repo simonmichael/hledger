@@ -15,6 +15,7 @@ import Control.Monad
 import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper, toLower)
 import Data.List.Compat
+import qualified Data.Set as S
 import Data.Maybe
 import Data.Time.Calendar (Day)
 import Data.Typeable (Typeable)
@@ -384,8 +385,9 @@ capitalize :: String -> String
 capitalize "" = ""
 capitalize (c:cs) = toUpper c : cs
 
--- Find the most similar and recent transactions matching the given transaction description and report query.
--- Transactions are listed with their "relevancy" score, most relevant first.
+-- | Find the most similar and recent transactions matching the given
+-- transaction description and report query.  Transactions are listed
+-- with their "relevancy" score, most relevant first.
 transactionsSimilarTo :: Journal -> Query -> String -> [(Double,Transaction)]
 transactionsSimilarTo j q desc =
     sortBy compareRelevanceAndRecency
@@ -396,27 +398,32 @@ transactionsSimilarTo j q desc =
       ts = filter (q `matchesTransaction`) $ jtxns j
       threshold = 0
 
-compareDescriptions :: [Char] -> [Char] -> Double
+-- | Return a similarity measure, from 0 to 1, for two transaction
+-- descriptions.  This is like compareStrings, but first strips out
+-- numbers, which often appear in transaction descriptions without
+-- being helpful for checking similarity.
+compareDescriptions :: String -> String -> Double
 compareDescriptions s t = compareStrings s' t'
     where s' = simplify s
           t' = simplify t
           simplify = filter (not . (`elem` "0123456789"))
 
--- | Return a similarity measure, from 0 to 1, for two strings.
--- This is Simon White's letter pairs algorithm from
--- http://www.catalysoft.com/articles/StrikeAMatch.html
--- with a modification for short strings.
+-- | Return a similarity measure, from 0 to 1, for two strings.  This
+-- was based on Simon White's string similarity algorithm
+-- (http://www.catalysoft.com/articles/StrikeAMatch.html), later found
+-- to be https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient,
+-- modified to handle short strings better.
 compareStrings :: String -> String -> Double
 compareStrings "" "" = 1
 compareStrings (_:[]) "" = 0
 compareStrings "" (_:[]) = 0
 compareStrings (a:[]) (b:[]) = if toUpper a == toUpper b then 1 else 0
-compareStrings s1 s2 = 2.0 * fromIntegral i / fromIntegral u
+compareStrings s1 s2 = 2 * commonpairs / totalpairs
     where
-      i = length $ intersect pairs1 pairs2
-      u = length pairs1 + length pairs2
-      pairs1 = wordLetterPairs $ uppercase s1
-      pairs2 = wordLetterPairs $ uppercase s2
+      pairs1      = S.fromList $ wordLetterPairs $ uppercase s1
+      pairs2      = S.fromList $ wordLetterPairs $ uppercase s2
+      commonpairs = fromIntegral $ S.size $ S.intersection pairs1 pairs2
+      totalpairs  = fromIntegral $ S.size pairs1 + S.size pairs2
 
 wordLetterPairs = concatMap letterPairs . words
 
