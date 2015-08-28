@@ -297,7 +297,7 @@ defaultWidth = 80
 -- today's date. Parsing failures will raise an error.
 -- Also records the terminal width, if supported.
 rawOptsToCliOpts :: RawOpts -> IO CliOpts
-rawOptsToCliOpts rawopts = do
+rawOptsToCliOpts rawopts = checkCliOpts <$> do
   ropts <- rawOptsToReportOpts rawopts
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
   mtermwidth <-
@@ -325,13 +325,14 @@ rawOptsToCliOpts rawopts = do
              }
 
 -- | Do final validation of processed opts, raising an error if there is trouble.
-checkCliOpts :: CliOpts -> IO CliOpts -- or pure..
-checkCliOpts opts@CliOpts{reportopts_=ropts} = do
-  case lineFormatFromOpts ropts of
-    Left err -> optserror $ "could not parse format option: "++err
-    Right _ -> return ()
+checkCliOpts :: CliOpts -> CliOpts
+checkCliOpts opts =
+  either optserror (const opts) $ do
+    -- XXX move to checkReportOpts or move _format to CliOpts
+    case lineFormatFromOpts $ reportopts_ opts of
+      Left err -> Left $ "could not parse format option: "++err
+      Right _  -> Right ()
   -- XXX check registerWidthsFromOpts opts
-  return opts
 
 -- Currently only used by some extras/ scripts:
 -- | Parse hledger CLI options from the command line using the given
@@ -341,7 +342,7 @@ getCliOpts :: Mode RawOpts -> IO CliOpts
 getCliOpts mode' = do
   args' <- getArgs
   let rawopts = decodeRawOpts $ processValue mode' args'
-  opts <- rawOptsToCliOpts rawopts >>= checkCliOpts
+  opts <- rawOptsToCliOpts rawopts
   debugArgs args' opts
   -- if any (`elem` args) ["--help","-h","-?"]
   when ("help" `inRawOpts` rawopts_ opts) $

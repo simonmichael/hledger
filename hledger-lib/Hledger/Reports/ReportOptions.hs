@@ -12,6 +12,7 @@ module Hledger.Reports.ReportOptions (
   FormatStr,
   defreportopts,
   rawOptsToReportOpts,
+  checkReportOpts,
   flat_,
   tree_,
   dateSpanFromOpts,
@@ -125,7 +126,7 @@ defreportopts = ReportOpts
     def
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
-rawOptsToReportOpts rawopts = do
+rawOptsToReportOpts rawopts = checkReportOpts <$> do
   d <- getCurrentDay
   return defreportopts{
      begin_       = maybesmartdateopt d "begin" rawopts
@@ -146,7 +147,7 @@ rawOptsToReportOpts rawopts = do
     ,monthly_     = boolopt "monthly" rawopts
     ,quarterly_   = boolopt "quarterly" rawopts
     ,yearly_      = boolopt "yearly" rawopts
-    ,format_      = maybestringopt "format" rawopts
+    ,format_      = maybestringopt "format" rawopts -- XXX move to CliOpts or move validation from Cli.Options to here
     ,query_       = unwords $ listofstringopt "args" rawopts -- doesn't handle an arg like "" right
     ,average_     = boolopt "average" rawopts
     ,related_     = boolopt "related" rawopts
@@ -157,6 +158,11 @@ rawOptsToReportOpts rawopts = do
     ,no_total_    = boolopt "no-total" rawopts
     ,value_       = boolopt "value" rawopts
     }
+
+-- | Do extra validation of opts, raising an error if there is trouble.
+checkReportOpts :: ReportOpts -> ReportOpts
+checkReportOpts ropts@ReportOpts{..} =
+  ropts
 
 accountlistmodeopt :: RawOpts -> AccountListMode
 accountlistmodeopt rawopts =

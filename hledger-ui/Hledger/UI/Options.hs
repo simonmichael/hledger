@@ -59,23 +59,21 @@ defuiopts = UIOpts
 
 -- instance Default CliOpts where def = defcliopts
 
-toUIOpts :: RawOpts -> IO UIOpts
-toUIOpts rawopts = do
+rawOptsToUIOpts :: RawOpts -> IO UIOpts
+rawOptsToUIOpts rawopts = checkUIOpts <$> do
   cliopts <- rawOptsToCliOpts rawopts
   return defuiopts {
               debug_ui_ = boolopt "debug-ui" rawopts
              ,cliopts_   = cliopts
              }
 
-checkUIOpts :: UIOpts -> IO UIOpts
-checkUIOpts opts = do
-  checkCliOpts $ cliopts_ opts
-  case maybestringopt "theme" $ rawopts_ $ cliopts_ opts of
-    Just t | not $ elem t themeNames ->
-      optserror $ "invalid theme name: "++t
-    _ -> return ()
-  return opts
+checkUIOpts :: UIOpts -> UIOpts
+checkUIOpts opts =
+  either optserror (const opts) $ do
+    case maybestringopt "theme" $ rawopts_ $ cliopts_ opts of
+      Just t | not $ elem t themeNames -> Left $ "invalid theme name: "++t
+      _                                -> Right ()
 
 getHledgerUIOpts :: IO UIOpts
-getHledgerUIOpts = processArgs uimode >>= return . decodeRawOpts >>= toUIOpts >>= checkUIOpts
+getHledgerUIOpts = processArgs uimode >>= return . decodeRawOpts >>= rawOptsToUIOpts
 
