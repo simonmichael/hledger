@@ -110,6 +110,7 @@ SOURCEFILES:= \
 	hledger-*/Hledger/*hs \
 	hledger-*/Hledger/*/*hs \
 	hledger-web/app/*.hs \
+	hledger-web/tests/*.hs \
 	hledger-web/Handler/*.hs \
 	hledger-web/Hledger/*.hs \
 	hledger-web/Settings/*.hs
@@ -1315,7 +1316,7 @@ tag: emacstags \
 	$(call def-help,tag, generate tag files for source code navigation (for emacs) )
 
 emacstags:
-	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(WEBFILES) $(CABALFILES) $(DOCFILES) Makefile
+	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(WEBFILES) $(CABALFILES) $(HPACKFILES) $(DOCFILES) Makefile
 
 cleantags: \
 	$(call def-help-hide,cleantags, remove tag files )
