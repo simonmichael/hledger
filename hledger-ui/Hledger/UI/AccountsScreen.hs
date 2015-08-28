@@ -177,6 +177,8 @@ handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
         Vty.EvKey (Vty.KChar '7') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 7 st
         Vty.EvKey (Vty.KChar '8') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 8 st
         Vty.EvKey (Vty.KChar '9') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 9 st
+        Vty.EvKey (Vty.KChar '+') [] -> continue $ initAccountsScreen (Just acct) d $ incDepth st
+        Vty.EvKey (Vty.KChar '-') [] -> continue $ initAccountsScreen (Just acct) d $ decDepth st
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
         Vty.EvKey (Vty.KRight) []    -> do
           let st' = screenEnter d RS.screen{rsAcct=acct} st
@@ -199,3 +201,29 @@ setDepth depth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{..}}} =
   where
     md | depth==0  = Nothing
        | otherwise = Just depth
+
+-- | Increment the current depth limit. If this makes it equal to the
+-- the maximum account depth, remove the depth limit.
+incDepth :: AppState -> AppState
+incDepth st@AppState{
+  aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{..}}},
+  ajournal=j
+  } =
+  st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=inc depth_}}}}
+  where
+    inc (Just d) | d < (maxdepth-1) = Just $ d+1
+      where maxdepth = maximum $ map accountNameLevel $ journalAccountNames j
+    inc _ = Nothing
+
+-- | Decrement the current depth limit towards 0. If there was no depth limit,
+-- set it to one less than the maximum account depth.
+decDepth :: AppState -> AppState
+decDepth st@AppState{
+  aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{..}}},
+  ajournal=j
+  } =
+  st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=dec depth_}}}}
+  where
+    dec (Just d) = Just $ max 0 (d-1)
+    dec Nothing  = Just $ maxdepth-1
+      where maxdepth = maximum $ map accountNameLevel $ journalAccountNames j
