@@ -119,11 +119,11 @@ drawAccountsScreen st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{a
       cur = str (case is^.listSelectedL of
                   Nothing -> "-"
                   Just i -> show (i + 1))
-      total = str $ show $ length $ is^.listElementsL
+      total = str $ show $ V.length $ is^.listElementsL
 
       items = listElements is
       flat = flat_ $ reportopts_ $ cliopts_ $ aopts st
-      acctcolwidth = maximum $
+      acctcolwidth = V.maximum $
                       V.map
                        (\((full,short,indent),_) ->
                          if flat then length full else length short + indent*2)
