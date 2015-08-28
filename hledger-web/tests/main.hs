@@ -9,7 +9,7 @@ import Yesod.Default.Config
 import Yesod.Test
 import Test.Hspec (hspec)
 import Application (makeFoundation)
-import Hledger.Web.Options (defwebopts)
+import Hledger.Web.WebOptions (defwebopts)
 
 import HomeTest
 
