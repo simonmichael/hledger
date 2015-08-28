@@ -74,7 +74,7 @@ initAccountsScreen mselacct d st@AppState{
               -- ensure depth_ also reflects depth: args
               depth_=depthfromoptsandargs,
               -- remove depth: args from query_
-              query_=ltrace "b" $ unwords $ -- as in ReportOptions, with same limitations
+              query_=unwords $ -- as in ReportOptions, with same limitations
                      [v | (k,v) <- rawopts_ copts, k=="args", not $ "depth" `isPrefixOf` v],
               -- XXX balanceReport doesn't respect this yet
               balancetype_=HistoricalBalance
