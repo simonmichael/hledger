@@ -164,21 +164,23 @@ handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
       acct = case listSelectedElement is of
               Just (_, ((a, _, _), _)) -> a
               Nothing -> ""
+      reload = continue . initAccountsScreen (Just acct) d
+
     case e of
         Vty.EvKey Vty.KEsc []        -> halt st
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
-        Vty.EvKey (Vty.KChar '-') [] -> continue $ initAccountsScreen (Just acct) d $ decDepth st
-        Vty.EvKey (Vty.KChar '+') [] -> continue $ initAccountsScreen (Just acct) d $ incDepth st
-        Vty.EvKey (Vty.KChar '1') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 1 st
-        Vty.EvKey (Vty.KChar '2') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 2 st
-        Vty.EvKey (Vty.KChar '3') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 3 st
-        Vty.EvKey (Vty.KChar '4') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 4 st
-        Vty.EvKey (Vty.KChar '5') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 5 st
-        Vty.EvKey (Vty.KChar '6') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 6 st
-        Vty.EvKey (Vty.KChar '7') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 7 st
-        Vty.EvKey (Vty.KChar '8') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 8 st
-        Vty.EvKey (Vty.KChar '9') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 9 st
-        Vty.EvKey (Vty.KChar '0') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 0 st
+        Vty.EvKey (Vty.KChar '-') [] -> reload $ decDepth st
+        Vty.EvKey (Vty.KChar '+') [] -> reload $ incDepth st
+        Vty.EvKey (Vty.KChar '1') [] -> reload $ setDepth 1 st
+        Vty.EvKey (Vty.KChar '2') [] -> reload $ setDepth 2 st
+        Vty.EvKey (Vty.KChar '3') [] -> reload $ setDepth 3 st
+        Vty.EvKey (Vty.KChar '4') [] -> reload $ setDepth 4 st
+        Vty.EvKey (Vty.KChar '5') [] -> reload $ setDepth 5 st
+        Vty.EvKey (Vty.KChar '6') [] -> reload $ setDepth 6 st
+        Vty.EvKey (Vty.KChar '7') [] -> reload $ setDepth 7 st
+        Vty.EvKey (Vty.KChar '8') [] -> reload $ setDepth 8 st
+        Vty.EvKey (Vty.KChar '9') [] -> reload $ setDepth 9 st
+        Vty.EvKey (Vty.KChar '0') [] -> reload $ setDepth 0 st
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
         Vty.EvKey (Vty.KRight) []    -> do
           let st' = screenEnter d RS.screen{rsAcct=acct} st
