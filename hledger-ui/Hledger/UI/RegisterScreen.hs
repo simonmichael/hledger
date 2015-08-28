@@ -38,14 +38,13 @@ screen = RegisterScreen{
   }
 
 initRegisterScreen :: Day -> AppState -> AppState
-initRegisterScreen d st@AppState{aargs=args, aopts=opts, ajournal=j, aScreen=s@RegisterScreen{rsAcct=acct}} =
+initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{rsAcct=acct}} =
   st{aScreen=s{rsState=l}}
   where
     -- gather arguments and queries
     ropts = (reportopts_ $ cliopts_ opts)
             {
               depth_=Nothing,
-              query_=unwords' args,
               balancetype_=HistoricalBalance
             }
     -- XXX temp

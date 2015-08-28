@@ -45,12 +45,10 @@ popScreen st = st
 
 -- | Enter a new screen, saving the old screen & state in the
 -- navigation history and initialising the new screen's state.
--- Extra args can be passed to the new screen's init function,
--- these can be eg query arguments.
-screenEnter :: Day -> [String] -> Screen -> AppState -> AppState
-screenEnter d args scr st = (sInitFn scr) d $
-                            pushScreen scr
-                            st{aargs=args}
+screenEnter :: Day -> Screen -> AppState -> AppState
+screenEnter d scr st = (sInitFn scr) d $
+                       pushScreen scr
+                       st
 
 -- | In the EventM monad, get the named current viewport's width and height,
 -- or (0,0) if the named viewport is not found.

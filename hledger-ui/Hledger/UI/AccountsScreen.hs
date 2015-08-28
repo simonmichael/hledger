@@ -40,7 +40,7 @@ screen = AccountsScreen{
   }
 
 initAccountsScreen :: Maybe AccountName -> Day -> AppState -> AppState
-initAccountsScreen mselacct d st@AppState{aopts=opts, aargs=args, ajournal=j, aScreen=s@AccountsScreen{}} =
+initAccountsScreen mselacct d st@AppState{aopts=opts, ajournal=j, aScreen=s@AccountsScreen{}} =
   st{aScreen=s{asState=is''}}
    where
     is' = list (Name "accounts") (V.fromList items) 1
@@ -60,7 +60,6 @@ initAccountsScreen mselacct d st@AppState{aopts=opts, aargs=args, ajournal=j, aS
          --{query_=unwords' $ locArgs l}
     ropts = (reportopts_ cliopts)
             {
-              query_=unwords' args,
               balancetype_=HistoricalBalance -- XXX balanceReport doesn't respect this yet
             }
     cliopts = cliopts_ opts
@@ -131,7 +130,7 @@ drawAccountsItem fmt _sel item =
     render $ str $ showitem item
 
 handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
-handleAccountsScreen st@AppState{aargs=args, aScreen=scr@AccountsScreen{asState=is}} e = do
+handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
     d <- liftIO getCurrentDay
     -- c <- getContext
     -- let h = c^.availHeightL
@@ -155,7 +154,7 @@ handleAccountsScreen st@AppState{aargs=args, aScreen=scr@AccountsScreen{asState=
         Vty.EvKey (Vty.KChar '9') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 9 st
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
         Vty.EvKey (Vty.KRight) []    -> do
-          let st' = screenEnter d args RS.screen{rsAcct=acct} st
+          let st' = screenEnter d RS.screen{rsAcct=acct} st
           vScrollToBeginning $ viewportScroll "register"
           continue st'
 

@@ -14,7 +14,7 @@ import Hledger.UI.Options
 -- from, brick's App.
 data AppState = AppState {
    aopts :: UIOpts          -- ^ command-line options at startup
-  ,aargs :: [String]        -- ^ command-line arguments at startup
+  -- ,aargs :: [String]        -- ^ command-line arguments at startup
   ,ajournal :: Journal      -- ^ the parsed journal
   ,aScreen :: Screen        -- ^ the currently active screen
   ,aPrevScreens :: [Screen] -- ^ previously visited screens
