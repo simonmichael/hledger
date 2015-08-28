@@ -23,7 +23,7 @@ import Text.Printf
 import Hledger
 import Hledger.Cli hiding (progname,progversion)
 
-import Hledger.Chart.Options
+import Hledger.Chart.ChartOptions
 
 main :: IO ()
 main = do

@@ -176,7 +176,7 @@ library
           Handler.Utils
           Hledger.Web
           Hledger.Web.Main
-          Hledger.Web.Options
+          Hledger.Web.WebOptions
           Import
           Settings
           Settings.Development

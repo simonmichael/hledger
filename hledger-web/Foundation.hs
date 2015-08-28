@@ -30,7 +30,7 @@ import Text.Jasmine (minifym)
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Hamlet (hamletFile)
 
-import Hledger.Web.Options
+import Hledger.Web.WebOptions
 import Hledger.Data.Types
 -- import Hledger.Web.Settings
 -- import Hledger.Web.Settings.StaticFiles

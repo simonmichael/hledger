@@ -6,7 +6,7 @@ related utilities used by hledger commands.
 
 -}
 
-module Hledger.Cli.Options (
+module Hledger.Cli.CliOptions (
 
   -- * cmdargs flags & modes
   helpflags,
@@ -55,7 +55,7 @@ module Hledger.Cli.Options (
   hledgerAddons,
 
   -- * Tests
-  tests_Hledger_Cli_Options
+  tests_Hledger_Cli_CliOptions
 
 )
 where
@@ -584,7 +584,7 @@ getDirectoryContentsSafe d =
 
 -- tests
 
-tests_Hledger_Cli_Options :: Test
-tests_Hledger_Cli_Options = TestList
+tests_Hledger_Cli_CliOptions :: Test
+tests_Hledger_Cli_CliOptions = TestList
  [
  ]

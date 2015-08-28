@@ -3,7 +3,7 @@
 
 -}
 
-module Hledger.UI.Options
+module Hledger.UI.UIOptions
 where
 #if !MIN_VERSION_base(4,8,0)
 import Data.Functor.Compat ((<$>))

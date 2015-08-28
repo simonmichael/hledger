@@ -60,7 +60,7 @@ import Hledger.Cli.Incomestatement
 import Hledger.Cli.Print
 import Hledger.Cli.Register
 import Hledger.Cli.Stats
-import Hledger.Cli.Options
+import Hledger.Cli.CliOptions
 import Hledger.Cli.Tests
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
@@ -186,7 +186,7 @@ main = do
   -- on the raw command-line arguments, cmdarg's interpretation of
   -- same, and hledger-* executables in the user's PATH. A somewhat
   -- complex mishmash of cmdargs and custom processing, hence all the
-  -- debugging support and tests. See also Hledger.Cli.Options and
+  -- debugging support and tests. See also Hledger.Cli.CliOptions and
   -- command-line.test.
 
   -- some preliminary (imperfect) argument parsing to supplement cmdargs

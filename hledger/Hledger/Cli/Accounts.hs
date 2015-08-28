@@ -23,7 +23,7 @@ import Test.HUnit
 import Hledger
 import Prelude hiding (putStrLn)
 import Hledger.Utils.UTF8IOCompat (putStrLn)
-import Hledger.Cli.Options
+import Hledger.Cli.CliOptions
 
 
 -- | Command line options for this command.

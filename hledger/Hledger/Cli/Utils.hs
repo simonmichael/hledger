@@ -53,7 +53,7 @@ import System.Time (ClockTime(TOD))
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 #endif
 
-import Hledger.Cli.Options
+import Hledger.Cli.CliOptions
 import Hledger.Data
 import Hledger.Read
 import Hledger.Utils

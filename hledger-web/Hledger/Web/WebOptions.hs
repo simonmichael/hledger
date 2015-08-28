@@ -1,5 +1,5 @@
 {-# LANGUAGE CPP #-}
-module Hledger.Web.Options
+module Hledger.Web.WebOptions
 where
 import Prelude
 #if !MIN_VERSION_base(4,8,0)

@@ -253,7 +253,7 @@ import Text.Tabular as T
 import Text.Tabular.AsciiArt
 
 import Hledger
-import Hledger.Cli.Options
+import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 
 

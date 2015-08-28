@@ -71,7 +71,7 @@ ptrace msg = do
 -- a higher value (note: not @--debug N@ for some reason).  This uses
 -- unsafePerformIO and can be accessed from anywhere and before normal
 -- command-line processing. After command-line processing, it is also
--- available as the @debug_@ field of 'Hledger.Cli.Options.CliOpts'.
+-- available as the @debug_@ field of 'Hledger.Cli.CliOptions.CliOpts'.
 -- {-# OPTIONS_GHC -fno-cse #-} 
 -- {-# NOINLINE debugLevel #-}
 debugLevel :: Int

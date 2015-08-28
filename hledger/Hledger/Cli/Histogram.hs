@@ -14,7 +14,7 @@ import System.Console.CmdArgs.Explicit
 import Text.Printf
 
 import Hledger
-import Hledger.Cli.Options
+import Hledger.Cli.CliOptions
 import Prelude hiding (putStr)
 import Hledger.Utils.UTF8IOCompat (putStr)
 

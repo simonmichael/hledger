@@ -36,11 +36,11 @@ import Handler.JournalR
 import Handler.RegisterR
 import Handler.SidebarR
 
-import Hledger.Web.Options (WebOpts(..), defwebopts)
+import Hledger.Web.WebOptions (WebOpts(..), defwebopts)
 import Hledger.Data (Journal, nulljournal)
 import Hledger.Read (readJournalFile)
 import Hledger.Utils (error')
-import Hledger.Cli.Options (defcliopts, journalFilePathFromOpts)
+import Hledger.Cli.CliOptions (defcliopts, journalFilePathFromOpts)
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the

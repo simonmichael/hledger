@@ -118,7 +118,7 @@ library:
   exposed-modules:
     - Hledger.Cli
     - Hledger.Cli.Main
-    - Hledger.Cli.Options
+    - Hledger.Cli.CliOptions
     - Hledger.Cli.Tests
     - Hledger.Cli.Utils
     - Hledger.Cli.Version

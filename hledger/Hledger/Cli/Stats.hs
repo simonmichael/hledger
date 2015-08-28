@@ -21,7 +21,7 @@ import Text.Printf
 import qualified Data.Map as Map
 
 import Hledger
-import Hledger.Cli.Options
+import Hledger.Cli.CliOptions
 import Prelude hiding (putStr)
 import Hledger.Cli.Utils (writeOutput)
 

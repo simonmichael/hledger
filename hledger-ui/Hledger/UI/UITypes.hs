@@ -6,7 +6,7 @@ import Brick
 import Brick.Widgets.List (List)
 
 import Hledger
-import Hledger.UI.Options
+import Hledger.UI.UIOptions
 
 ----------------------------------------------------------------------
 

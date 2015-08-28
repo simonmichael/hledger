@@ -32,7 +32,7 @@ import Prelude hiding (putStrLn)
 import Hledger
 import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Cli hiding (progname,prognameandversion)
-import Hledger.Web.Options
+import Hledger.Web.WebOptions
 
 
 main :: IO ()

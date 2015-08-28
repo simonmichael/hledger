@@ -3,7 +3,7 @@
 
 -}
 
-module Hledger.Chart.Options
+module Hledger.Chart.ChartOptions
 where
 import Data.Maybe
 import System.Console.CmdArgs

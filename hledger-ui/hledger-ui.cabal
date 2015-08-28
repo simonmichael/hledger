@@ -76,7 +76,7 @@ executable hledger-ui
   other-modules:
       Hledger.UI
       Hledger.UI.Main
-      Hledger.UI.Options
+      Hledger.UI.UIOptions
       Hledger.UI.Theme
       Hledger.UI.UITypes
       Hledger.UI.UIUtils

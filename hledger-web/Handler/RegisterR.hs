@@ -17,8 +17,8 @@ import Hledger.Data
 import Hledger.Query
 import Hledger.Reports
 import Hledger.Utils
-import Hledger.Cli.Options
-import Hledger.Web.Options
+import Hledger.Cli.CliOptions
+import Hledger.Web.WebOptions
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html

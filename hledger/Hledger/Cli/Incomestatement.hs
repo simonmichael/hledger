@@ -17,7 +17,7 @@ import Test.HUnit
 import Text.Shakespeare.Text
 
 import Hledger
-import Hledger.Cli.Options
+import Hledger.Cli.CliOptions
 import Hledger.Cli.Balance
 
 

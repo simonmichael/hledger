@@ -25,8 +25,8 @@ import Brick.Widgets.List
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
--- import Hledger.Cli.Options (defaultBalanceLineFormat)
-import Hledger.UI.Options
+-- import Hledger.Cli.CliOptions (defaultBalanceLineFormat)
+import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils

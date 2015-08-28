@@ -18,7 +18,7 @@ module Hledger.Cli (
                      module Hledger.Cli.Print,
                      module Hledger.Cli.Register,
                      module Hledger.Cli.Stats,
-                     module Hledger.Cli.Options,
+                     module Hledger.Cli.CliOptions,
                      module Hledger.Cli.Utils,
                      module Hledger.Cli.Version,
                      tests_Hledger_Cli,
@@ -41,7 +41,7 @@ import Hledger.Cli.Incomestatement
 import Hledger.Cli.Print
 import Hledger.Cli.Register
 import Hledger.Cli.Stats
-import Hledger.Cli.Options
+import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
 
@@ -56,7 +56,7 @@ tests_Hledger_Cli = TestList
    ,tests_Hledger_Cli_Cashflow
    -- ,tests_Hledger_Cli_Histogram
    ,tests_Hledger_Cli_Incomestatement
-   ,tests_Hledger_Cli_Options
+   ,tests_Hledger_Cli_CliOptions
    -- ,tests_Hledger_Cli_Print
    ,tests_Hledger_Cli_Register
    -- ,tests_Hledger_Cli_Stats

@@ -24,7 +24,7 @@ import Brick.Widgets.List
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
-import Hledger.UI.Options
+import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
