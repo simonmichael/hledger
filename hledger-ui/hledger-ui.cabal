@@ -54,7 +54,8 @@ executable hledger-ui
       hledger == 0.26.98
     , hledger-lib == 0.26.98
     , base >= 3 && < 5
-    , brick
+    , base-compat >= 0.8.1
+    , brick >= 0.2 && < 0.3
     , cmdargs >= 0.8
     , containers
     , data-default
