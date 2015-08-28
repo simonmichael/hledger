@@ -64,6 +64,9 @@ import Prelude ()
 import Prelude.Compat
 import qualified Control.Exception as C
 import Control.Monad (when)
+#if !MIN_VERSION_base(4,8,0)
+import Data.Functor.Compat ((<$>))
+#endif
 import Data.List.Compat
 import Data.List.Split (splitOneOf)
 import Data.Maybe

@@ -3,7 +3,7 @@ module Hledger.Web.Options
 where
 import Prelude
 #if !MIN_VERSION_base(4,8,0)
-import Control.Applicative ((<$>))
+import Data.Functor.Compat ((<$>))
 #endif
 import Data.Maybe
 import System.Console.CmdArgs

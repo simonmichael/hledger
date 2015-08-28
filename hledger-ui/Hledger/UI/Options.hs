@@ -5,6 +5,9 @@
 
 module Hledger.UI.Options
 where
+#if !MIN_VERSION_base(4,8,0)
+import Data.Functor.Compat ((<$>))
+#endif
 import Data.List (intercalate)
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit

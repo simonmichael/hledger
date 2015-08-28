@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, DeriveDataTypeable #-}
+{-# LANGUAGE CPP, RecordWildCards, DeriveDataTypeable #-}
 {-|
 
 Options common to most hledger reports.
@@ -31,6 +31,9 @@ module Hledger.Reports.ReportOptions (
 where
 
 import Data.Data (Data)
+#if !MIN_VERSION_base(4,8,0)
+import Data.Functor.Compat ((<$>))
+#endif
 import Data.Typeable (Typeable)
 import Data.Time.Calendar
 import System.Console.CmdArgs.Default  -- some additional default stuff
