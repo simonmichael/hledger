@@ -49,7 +49,7 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
             }
     -- XXX temp
     thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
-    q = queryFromOpts d ropts
+    q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts
          -- query_="cur:\\$"} -- XXX limit to one commodity to ensure one-line items
          --{query_=unwords' $ locArgs l}
 

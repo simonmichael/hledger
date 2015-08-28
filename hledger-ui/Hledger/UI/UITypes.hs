@@ -13,7 +13,7 @@ import Hledger.UI.Options
 -- | hledger-ui's application state. This is part of, but distinct
 -- from, brick's App.
 data AppState = AppState {
-   aopts :: UIOpts          -- ^ command-line options at startup
+   aopts :: UIOpts          -- ^ command-line options, query, depth etc. currently in effect.
   -- ,aargs :: [String]        -- ^ command-line arguments at startup
   ,ajournal :: Journal      -- ^ the parsed journal
   ,aScreen :: Screen        -- ^ the currently active screen

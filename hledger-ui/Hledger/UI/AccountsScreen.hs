@@ -40,40 +40,62 @@ screen = AccountsScreen{
   }
 
 initAccountsScreen :: Maybe AccountName -> Day -> AppState -> AppState
-initAccountsScreen mselacct d st@AppState{aopts=opts, ajournal=j, aScreen=s@AccountsScreen{}} =
-  st{aScreen=s{asState=is''}}
+initAccountsScreen mselacct d st@AppState{
+  aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}},
+  ajournal=j,
+  aScreen=s@AccountsScreen{}
+  } =
+  st{aopts=opts', aScreen=s{asState=l'}}
    where
-    is' = list (Name "accounts") (V.fromList items) 1
-    -- crazy hacks dept.
-    -- when we're adjusting depth, mselacct is the account that was selected previously,
+    l = list (Name "accounts") (V.fromList items) 1
+
+    -- hacky: when we're adjusting depth, mselacct is the account that was selected previously,
     -- in which case try and keep the selection near where it was
-    is'' = case mselacct of
-             Nothing -> is'
+    l' = case mselacct of
+             Nothing -> l
              Just a  -> -- vScrollToBeginning $ viewportScroll "accounts"
-                           maybe is' (flip listMoveTo is') mi
+                           maybe l (flip listMoveTo l) mi
                where
                  mi = findIndex (\((acct,_,_),_) -> acct==a') items
                  a' = maybe a (flip clipAccountName a) $ depth_ ropts
 
+    -- XXX messing around with depth, which is different from other queries
+    -- In hledger,
+    -- - reportopts{depth_} indicates --depth options
+    -- - reportopts{query_} is the query arguments as a string
+    -- - the report query is based on both of these.
+    -- For hledger-ui, currently, we move depth: arguments out of reportopts{query_}
+    -- and into reportopts{depth_}, so that depth and other kinds of filter query
+    -- can be displayed independently.
+    opts' = uopts{cliopts_=copts{reportopts_=ropts'}}
     q = queryFromOpts d ropts
-         -- query_="cur:\\$"} -- XXX limit to one commodity to ensure one-line items
-         --{query_=unwords' $ locArgs l}
-    ropts = (reportopts_ cliopts)
+    ropts' = ropts
             {
-              balancetype_=HistoricalBalance -- XXX balanceReport doesn't respect this yet
+              -- ensure depth_ also reflects depth: args
+              depth_=depthfromoptsandargs,
+              -- remove depth: args from query_
+              query_=ltrace "b" $ unwords $ -- as in ReportOptions, with same limitations
+                     [v | (k,v) <- rawopts_ copts, k=="args", not $ "depth" `isPrefixOf` v],
+              -- XXX balanceReport doesn't respect this yet
+              balancetype_=HistoricalBalance
             }
-    cliopts = cliopts_ opts
-    convert | value_ ropts = balanceReportValue j valuedate
+      where
+        depthfromoptsandargs = case queryDepth q of 99999 -> Nothing
+                                                    d     -> Just d
+    -- maybe convert balances to market value
+    convert | value_ ropts' = balanceReportValue j valuedate
             | otherwise    = id
       where
         valuedate = fromMaybe d $ queryEndDate False q
 
-    (items,_total) = convert $ balanceReport ropts q j
+    -- run the report
+    (items,_total) = convert $ balanceReport ropts' q j
 
 initAccountsScreen _ _ _ = error "init function called with wrong screen type, should not happen"
 
 drawAccountsScreen :: AppState -> [Widget]
-drawAccountsScreen st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{asState=is}} = [ui]
+drawAccountsScreen st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{asState=is}} =
+  [ui]
     where
       toplabel = files
               <+> str " accounts"
@@ -91,6 +113,9 @@ drawAccountsScreen st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{a
                      f:fs -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
       querystr = query_ $ reportopts_ $ cliopts_ uopts
       depth = depth_ $ reportopts_ $ cliopts_ uopts
+      -- ropts = reportopts_ $ cliopts_ uopts
+      -- q = queryFromOpts d ropts
+      -- depth = queryDepth q
       cur = str (case is^.listSelectedL of
                   Nothing -> "-"
                   Just i -> show (i + 1))
