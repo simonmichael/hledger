@@ -256,7 +256,11 @@ parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) =
 parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s || null s
 parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt ord q where (ord, q) = parseAmountQueryTerm s
 parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
-parseQueryTerm _ ('d':'e':'p':'t':'h':':':s) = Left $ Depth $ readDef 0 s
+parseQueryTerm _ ('d':'e':'p':'t':'h':':':s)
+  | n >= 0    = Left $ Depth n
+  | otherwise = error' "depth: should have a positive number"
+  where n = readDef 0 s
+
 parseQueryTerm _ ('c':'u':'r':':':s) = Left $ Sym s -- support cur: as an alias
 parseQueryTerm _ ('t':'a':'g':':':s) = Left $ Tag n v where (n,v) = parseTag s
 parseQueryTerm _ "" = Left $ Any

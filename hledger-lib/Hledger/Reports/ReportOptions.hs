@@ -162,7 +162,10 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
 -- | Do extra validation of opts, raising an error if there is trouble.
 checkReportOpts :: ReportOpts -> ReportOpts
 checkReportOpts ropts@ReportOpts{..} =
-  ropts
+  either optserror (const ropts) $ do
+    case depth_ of
+      Just d | d < 0 -> Left "--depth should have a positive number"
+      _              -> Right ()
 
 accountlistmodeopt :: RawOpts -> AccountListMode
 accountlistmodeopt rawopts =
