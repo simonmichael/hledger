@@ -30,7 +30,7 @@ import Hledger.UI.Options
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
-import qualified Hledger.UI.RegisterScreen2 as RS2 (screen)
+import qualified Hledger.UI.RegisterScreen as RS (screen)
 
 screen = AccountsScreen{
    asState  = list "accounts" V.empty 1
@@ -155,7 +155,7 @@ handleAccountsScreen st@AppState{aargs=args, aScreen=scr@AccountsScreen{asState=
         Vty.EvKey (Vty.KChar '9') [] -> continue $ initAccountsScreen (Just acct) d $ setDepth 9 st
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
         Vty.EvKey (Vty.KRight) []    -> do
-          let st' = screenEnter d args RS2.screen{rs2Acct=acct} st
+          let st' = screenEnter d args RS.screen{rsAcct=acct} st
           vScrollToBeginning $ viewportScroll "register"
           continue st'
 

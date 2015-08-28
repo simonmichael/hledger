@@ -32,7 +32,6 @@ import Hledger.UI.UITypes
 import Hledger.UI.Theme
 import Hledger.UI.AccountsScreen as AS
 -- import Hledger.UI.RegisterScreen as RS
--- import Hledger.UI.RegisterScreen2 as RS2
 
 ----------------------------------------------------------------------
 

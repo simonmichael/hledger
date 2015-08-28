@@ -31,14 +31,8 @@ data Screen =
     ,sDrawFn :: AppState -> [Widget]                                -- ^ brick renderer to use for this screen
     }
   | RegisterScreen {
-     rsState :: List PostingsReportItem
-    ,sInitFn :: Day -> AppState -> AppState
-    ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
-    ,sDrawFn :: AppState -> [Widget]
-    }
-  | RegisterScreen2 {
-     rs2State :: List (String,String,String,String,String)
-    ,rs2Acct :: AccountName              -- ^ the account we are showing a register for
+     rsState :: List (String,String,String,String,String)
+    ,rsAcct :: AccountName              -- ^ the account we are showing a register for
     ,sInitFn :: Day -> AppState -> AppState
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     ,sDrawFn :: AppState -> [Widget]
