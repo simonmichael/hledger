@@ -18,7 +18,7 @@ import Control.Monad
 -- import Data.List
 import Data.Maybe
 -- import Data.Time.Calendar
--- import Safe
+import Safe
 import System.Exit
 
 import qualified Graphics.Vty as V
@@ -31,7 +31,7 @@ import Hledger.UI.UITypes
 -- import Hledger.UI.UIUtils
 import Hledger.UI.Theme
 import Hledger.UI.AccountsScreen as AS
--- import Hledger.UI.RegisterScreen as RS
+import Hledger.UI.RegisterScreen as RS
 
 ----------------------------------------------------------------------
 
@@ -60,9 +60,18 @@ runBrickUi opts j = do
   d <- getCurrentDay
 
   let
+    -- XXX move this stuff into Options, UIOpts
     theme = maybe defaultTheme (fromMaybe defaultTheme . getTheme) $
             maybestringopt "theme" $ rawopts_ $ cliopts_ opts
-    scr = AS.screen
+    mshowacct = maybestringopt "register" $ rawopts_ $ cliopts_ opts
+    scr = case mshowacct of
+      Nothing -> AS.screen
+      Just apat -> RS.screen{rsAcct=acct}
+        where
+          acct = headDef
+                 (error' $ "--register "++apat++" did not match any account")
+                 $ filter (regexMatches apat) $ journalAccountNames j
+
     st = (sInitFn scr) d
          AppState{
             aopts=opts
