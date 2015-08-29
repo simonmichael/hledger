@@ -160,7 +160,7 @@ drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{repo
 drawRegisterScreen _ = error "draw function called with wrong screen type, should not happen"
 
 drawRegisterItem :: (Int,Int,Int,Int,Int) -> Bool -> (String,String,String,String,String) -> Widget
-drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) _sel (date,desc,accts,change,bal) =
+drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected (date,desc,accts,change,bal) =
   Widget Greedy Fixed $ do
     render $
       str (padright datewidth $ elideRight datewidth date) <+>
@@ -169,9 +169,16 @@ drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) _sel (dat
       str "  " <+>
       str (padright acctswidth $ elideLeft acctswidth $ accts) <+>
       str "   " <+>
-      str (padleft changewidth $ elideLeft changewidth change) <+>
+      withAttr changeattr (str (padleft changewidth $ elideLeft changewidth change)) <+>
       str "   " <+>
-      str (padleft balwidth $ elideLeft balwidth bal)
+      withAttr balattr (str (padleft balwidth $ elideLeft balwidth bal))
+  where
+    changeattr | '-' `elem` change = sel $ "list" <> "amount" <> "decrease"
+               | otherwise         = sel $ "list" <> "amount" <> "increase"
+    balattr    | '-' `elem` bal    = sel $ "list" <> "balance" <> "negative"
+               | otherwise         = sel $ "list" <> "balance" <> "positive"
+    sel | selected  = (<> "selected")
+        | otherwise = id
 
 handleRegisterScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleRegisterScreen st@AppState{aopts=_opts,aScreen=s@RegisterScreen{rsState=is}} e = do

@@ -47,7 +47,7 @@ initAccountsScreen mselacct d st@AppState{
   } =
   st{aopts=opts', aScreen=s{asState=l'}}
    where
-    l = list (Name "accounts") (V.fromList items) 1
+    l = list (Name "accounts") (V.fromList displayitems) 1
 
     -- hacky: when we're adjusting depth, mselacct is the account that was selected previously,
     -- in which case try and keep the selection near where it was
@@ -91,16 +91,29 @@ initAccountsScreen mselacct d st@AppState{
     -- run the report
     (items,_total) = convert $ balanceReport ropts' q j
 
+    -- pre-render the list items
+    displayitem ((fullacct, shortacct, indent), bal) =
+      (indent
+      ,fullacct
+      ,if tree_ ropts' then shortacct else fullacct
+      ,map showAmountWithoutPrice amts -- like showMixedAmountOneLineWithoutPrice
+      )
+      where
+        Mixed amts = normaliseMixedAmountSquashPricesForDisplay $ stripPrices bal
+        stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}
+    displayitems = map displayitem items
+
+
 initAccountsScreen _ _ _ = error "init function called with wrong screen type, should not happen"
 
 drawAccountsScreen :: AppState -> [Widget]
-drawAccountsScreen st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{asState=is}} =
+drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{asState=l}} =
   [ui]
     where
       toplabel = files
               <+> str " accounts"
               <+> borderQueryStr querystr
-              <+> borderDepthStr depth
+              <+> borderDepthStr mdepth
               <+> str " ("
               <+> cur
               <+> str " of "
@@ -112,28 +125,11 @@ drawAccountsScreen st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{a
                      [f,_] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
                      f:fs -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
       querystr = query_ $ reportopts_ $ cliopts_ uopts
-      depth = depth_ $ reportopts_ $ cliopts_ uopts
-      -- ropts = reportopts_ $ cliopts_ uopts
-      -- q = queryFromOpts d ropts
-      -- depth = queryDepth q
-      cur = str (case is^.listSelectedL of
+      mdepth = depth_ $ reportopts_ $ cliopts_ uopts
+      cur = str (case l^.listSelectedL of
                   Nothing -> "-"
                   Just i -> show (i + 1))
-      total = str $ show $ V.length $ is^.listElementsL
-
-      items = listElements is
-      flat = flat_ $ reportopts_ $ cliopts_ $ aopts st
-      acctcolwidth = V.maximum $
-                      V.map
-                       (\((full,short,indent),_) ->
-                         if flat then length full else length short + indent*2)
-                       items 
-      fmt = OneLine [ -- use a one-line format, List elements must have equal height
-               FormatField True (Just 2) Nothing DepthSpacerField
-             , FormatField True (Just acctcolwidth) Nothing AccountField
-             , FormatLiteral "  "
-             , FormatField False (Just 40) Nothing TotalField
-             ]
+      total = str $ show $ V.length $ l^.listElementsL
 
       bottomlabel = borderKeysStr [
          -- "up/down/pgup/pgdown/home/end: move"
@@ -142,27 +138,81 @@ drawAccountsScreen st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{a
         ,"q: quit"
         ]
 
-      ui = defaultLayout toplabel bottomlabel $ renderList is (drawAccountsItem fmt)
+      ui = Widget Greedy Greedy $ do
+        c <- getContext
+        let
+          availwidth =
+            -- ltrace "availwidth" $
+            c^.availWidthL
+            - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
+          displayitems = listElements l
+          maxacctwidthseen =
+            -- ltrace "maxacctwidthseen" $
+            V.maximum $
+            V.map (\(indent,_,displayacct,_) -> indent*2 + length displayacct) $
+            -- V.filter (\(indent,_,_,_) -> (indent-1) <= fromMaybe 99999 mdepth) $
+            displayitems
+          maxbalwidthseen =
+            -- ltrace "maxbalwidthseen" $
+            V.maximum $ V.map (\(_,_,_,amts) -> sum (map length amts) + 2 * (length amts-1)) displayitems
+          maxbalwidth =
+            -- ltrace "maxbalwidth" $
+            max 0 (availwidth - 2 - 4) -- leave 2 whitespace plus least 4 for accts
+          balwidth =
+            -- ltrace "balwidth" $
+            min maxbalwidth maxbalwidthseen
+          maxacctwidth =
+            -- ltrace "maxacctwidth" $
+            availwidth - 2 - balwidth
+          acctwidth =
+            -- ltrace "acctwidth" $
+            min maxacctwidth maxacctwidthseen
+
+          -- XXX how to minimise the balance column's jumping around
+          -- as you change the depth limit ?
+
+          colwidths = (acctwidth, balwidth)
+
+        render $ defaultLayout toplabel bottomlabel $ renderList l (drawAccountsItem colwidths)
 
 drawAccountsScreen _ = error "draw function called with wrong screen type, should not happen"
 
-drawAccountsItem :: StringFormat -> Bool -> BalanceReportItem -> Widget
-drawAccountsItem fmt _sel item =
+drawAccountsItem :: (Int,Int) -> Bool -> (Int, String, String, [String]) -> Widget
+drawAccountsItem (acctwidth, balwidth) selected (indent, _fullacct, displayacct, balamts) =
   Widget Greedy Fixed $ do
     -- c <- getContext
-    let
-      showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
-    render $ str $ showitem item
+      -- let showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
+    render $
+      addamts balamts $
+      str (padright acctwidth $ elideRight acctwidth $ replicate (2*indent) ' ' ++ displayacct) <+>
+      str "  " <+>
+      str (balspace balamts)
+      where
+        balspace as = replicate n ' '
+          where n = max 0 (balwidth - (sum (map length as) + 2 * (length as - 1)))
+        addamts :: [String] -> Widget -> Widget
+        addamts [] w = w
+        addamts [a] w = (<+> renderamt a) w
+        -- foldl' :: (b -> a -> b) -> b -> t a -> b
+        -- foldl' (Widget -> String -> Widget) -> Widget -> [String] -> Widget
+        addamts (a:as) w = foldl' addamt (addamts [a] w) as
+        addamt :: Widget -> String -> Widget
+        addamt w a = ((<+> renderamt a) . (<+> str ", ")) w
+        renderamt :: String -> Widget
+        renderamt a | '-' `elem` a = withAttr (sel $ "list" <> "balance" <> "negative") $ str a
+                    | otherwise    = withAttr (sel $ "list" <> "balance" <> "positive") $ str a
+        sel | selected  = (<> "selected")
+            | otherwise = id
 
 handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
-handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
+handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=l}} e = do
     d <- liftIO getCurrentDay
     -- c <- getContext
     -- let h = c^.availHeightL
     --     moveSel n l = listMoveBy n l
     let
-      acct = case listSelectedElement is of
-              Just (_, ((a, _, _), _)) -> a
+      acct = case listSelectedElement l of
+              Just (_, (_, fullacct, _, _)) -> fullacct
               Nothing -> ""
       reload = continue . initAccountsScreen (Just acct) d
 
@@ -187,13 +237,13 @@ handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=is}} e = do
           vScrollToBeginning $ viewportScroll "register"
           continue st'
 
-        -- Vty.EvKey (Vty.KPageDown) [] -> continue $ st{aScreen=scr{asState=moveSel h is}}
-        -- Vty.EvKey (Vty.KPageUp) []   -> continue $ st{aScreen=scr{asState=moveSel (-h) is}}
+        -- Vty.EvKey (Vty.KPageDown) [] -> continue $ st{aScreen=scr{asState=moveSel h l}}
+        -- Vty.EvKey (Vty.KPageUp) []   -> continue $ st{aScreen=scr{asState=moveSel (-h) l}}
 
         -- fall through to the list's event handler (handles up/down)
         ev                       -> do
-                                     is' <- handleEvent ev is
-                                     continue $ st{aScreen=scr{asState=is'}}
+                                     l' <- handleEvent ev l
+                                     continue $ st{aScreen=scr{asState=l'}}
                                  -- continue =<< handleEventLensed st someLens ev
 handleAccountsScreen _ _ = error "event handler called with wrong screen type, should not happen"
 

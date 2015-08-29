@@ -72,10 +72,17 @@ themesList = [
               (borderAttr <> "depth", cyan `on` black & bold),
               -- ("normal"                , black `on` white),
               ("list"                  , black `on` white),      -- regular list items
-              ("list" <> "selected"    , white `on` blue & bold) -- selected list items
+              ("list" <> "selected"    , white `on` blue & bold), -- selected list items
               -- ("list" <> "selected"     , black `on` brightYellow),
               -- ("list" <> "accounts"  , white `on` brightGreen),
-              -- ("list" <> "amount"       , black `on` white & bold)
+              ("list" <> "amount" <> "increase", currentAttr `withForeColor` green),
+              ("list" <> "amount" <> "decrease", currentAttr `withForeColor` red),
+              ("list" <> "balance" <> "positive",  currentAttr `withForeColor` black),
+              ("list" <> "balance" <> "negative", currentAttr `withForeColor` red),
+              ("list" <> "amount" <> "increase" <> "selected", brightGreen `on` blue & bold),
+              ("list" <> "amount" <> "decrease" <> "selected", brightRed `on` blue & bold),
+              ("list" <> "balance" <> "positive" <> "selected",  white `on` blue & bold),
+              ("list" <> "balance" <> "negative" <> "selected", brightRed `on` blue & bold)
               ]),
 
   ("terminal", attrMap

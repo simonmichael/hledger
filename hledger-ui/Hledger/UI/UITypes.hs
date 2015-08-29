@@ -25,13 +25,13 @@ data AppState = AppState {
 -- of their state (which must have unique accessor names).
 data Screen =
     AccountsScreen {
-     asState :: List BalanceReportItem                            -- ^ the screen's state (data being displayed and widget state)
+     asState :: List (Int,String,String,[String])  -- ^ indent level, full account name, full or short account name to display, rendered amounts
     ,sInitFn :: Day -> AppState -> AppState                         -- ^ function to initialise the screen's state on entry
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState) -- ^ brick event handler to use for this screen
     ,sDrawFn :: AppState -> [Widget]                                -- ^ brick renderer to use for this screen
     }
   | RegisterScreen {
-     rsState :: List (String,String,String,String,String)
+     rsState :: List (String,String,String,String,String) -- ^ date, description, other accts, change amt, balance amt
     ,rsAcct :: AccountName              -- ^ the account we are showing a register for
     ,sInitFn :: Day -> AppState -> AppState
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
