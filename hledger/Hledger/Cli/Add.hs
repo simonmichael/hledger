@@ -400,8 +400,8 @@ transactionsSimilarTo j q desc =
 
 -- | Return a similarity measure, from 0 to 1, for two transaction
 -- descriptions.  This is like compareStrings, but first strips out
--- numbers, which often appear in transaction descriptions without
--- being helpful for checking similarity.
+-- any numbers, to improve accuracy eg when there are bank transaction
+-- ids from imported data.
 compareDescriptions :: String -> String -> Double
 compareDescriptions s t = compareStrings s' t'
     where s' = simplify s
@@ -413,6 +413,7 @@ compareDescriptions s t = compareStrings s' t'
 -- (http://www.catalysoft.com/articles/StrikeAMatch.html), later found
 -- to be https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient,
 -- modified to handle short strings better.
+-- Todo: check out http://nlp.fi.muni.cz/raslan/2008/raslan08.pdf#page=14 .
 compareStrings :: String -> String -> Double
 compareStrings "" "" = 1
 compareStrings (_:[]) "" = 0
