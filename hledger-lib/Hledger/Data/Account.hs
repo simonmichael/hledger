@@ -169,10 +169,10 @@ pruneAccounts p = headMay . prune
 
 -- | Flatten an account tree into a list, which is sometimes
 -- convenient. Note since accounts link to their parents/subs, the
--- account tree remains intact and can still be used. It's a tree/list!
+-- tree's structure remains intact and can still be used. It's a tree/list!
 flattenAccounts :: Account -> [Account]
 flattenAccounts a = squish a []
-  where squish a as = a:Prelude.foldr squish as (asubs a)
+  where squish a as = a : Prelude.foldr squish as (asubs a)
 
 -- | Filter an account tree (to a list).
 filterAccounts :: (Account -> Bool) -> Account -> [Account]
