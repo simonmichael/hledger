@@ -27,7 +27,7 @@ For some, it is a simpler, less distracting, more future-proof alternative to Qu
 
 For more, see http://hledger.org.
 
-[![license](https://img.shields.io/badge/license-GPLv3+-blue.svg)](http://www.gnu.org/licenses/gpl.html)
+[![license](https://img.shields.io/badge/license-GPLv3+-brightgreen.svg)](http://www.gnu.org/licenses/gpl.html)
 [![hackage release](https://img.shields.io/hackage/v/hledger.svg?label=current+release)](http://hackage.haskell.org/package/hledger)
 <!-- [![github release](https://img.shields.io/github/release/simonmichael/hledger.svg?label=github+release)](https://github.com/simonmichael/hledger/releases) -->
 <!-- [![github latest release downloads](https://img.shields.io/github/downloads/simonmichael/hledger/latest/total.svg?label=github+downloads)](https://github.com/simonmichael/hledger/releases) -->
