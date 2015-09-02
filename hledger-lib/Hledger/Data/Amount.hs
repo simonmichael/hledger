@@ -377,9 +377,11 @@ mixed = normaliseMixedAmount . Mixed
 --
 -- * amounts in the same commodity are combined unless they have different prices or total prices
 --
--- * multiple zero amounts are replaced by just one. If they had the same commodity, it is preserved.
+-- * multiple zero amounts, all with the same non-null commodity, are replaced by just the last of them, preserving the commodity and amount style (all but the last zero amount are discarded)
 --
--- * an empty amount list is replaced with a single commodityless zero
+-- * multiple zero amounts with multiple commodities, or no commodities, are replaced by one commodity-less zero amount
+--
+-- * an empty amount list is replaced by one commodity-less zero amount
 --
 -- * the special "missing" mixed amount remains unchanged
 --
@@ -393,7 +395,7 @@ normaliseHelper squashprices (Mixed as)
   | otherwise            = Mixed nonzeros
   where
     newzero = case filter (/= "") (map acommodity zeros) of
-               [c] -> nullamt{acommodity=c}
+               _:_ -> last zeros
                _   -> nullamt
     (zeros, nonzeros) = partition isReallyZeroAmount $
                         map sumSimilarAmountsUsingFirstPrice $
