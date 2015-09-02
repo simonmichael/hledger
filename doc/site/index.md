@@ -71,6 +71,7 @@ will remain free and available for as long as you need it.  It has
 been developed as a community project by
 [Simon Michael](http://joyful.com) and
 [contributors](contributors.html) since 2007.
+[![license](https://img.shields.io/badge/license-GPLv3+-brightgreen.svg)](http://www.gnu.org/licenses/gpl.html)
 </div>
 
 <div class="indent2">
