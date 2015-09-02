@@ -624,13 +624,13 @@ tests_Hledger_Data_Amount = TestList $
 
   -- MixedAmount
 
-  ,"adding mixed amounts, preserving minimum precision and a single commodity on zero" ~: do
+  ,"adding mixed amounts to zero, the commodity and amount style are preserved" ~: do
     (sum $ map (Mixed . (:[]))
              [usd 1.25
-             ,usd (-1) `withPrecision` 0
+             ,usd (-1) `withPrecision` 3
              ,usd (-0.25)
              ])
-      `is` Mixed [usd 0 `withPrecision` 0]
+      `is` Mixed [usd 0 `withPrecision` 3]
 
   ,"adding mixed amounts with total prices" ~: do
     (sum $ map (Mixed . (:[]))

@@ -170,7 +170,7 @@ tests_balanceReport =
           showw (acct,amt) = (acct, showMixedAmountDebug amt)
       assertEqual "items" (map showw eitems) (map showw aitems)
       assertEqual "total" (showMixedAmountDebug etotal) (showMixedAmountDebug atotal)
-    usd0 = nullamt{acommodity="$"}
+    usd0 = usd 0
   in [
 
    "balanceReport with no args on null journal" ~: do

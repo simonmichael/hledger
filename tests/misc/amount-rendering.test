@@ -46,7 +46,7 @@ hledger -f - balance
                    0
 >>>=0
 
-# 4. a zero amount is always displayed as just "0", regardless of any commodity/decimal places/price (like ledger)
+# 4. a single-commodity zero amount's commodity/decimal places/price is preserved, when possible
 #
 hledger -f- print --empty
 <<<
@@ -55,10 +55,35 @@ hledger -f- print --empty
   b
 >>>
 2010/03/01 x
-    a             0
+    a      0 @ 3EUR
     b             0
 
 >>>=0
+
+# 5.
+# When preserving a zero amount's commodity, we should also preserve
+# the amount style, such as where to place the symbol.
+# https://github.com/simonmichael/hledger/issues/230
+hledger -f- balance
+<<<
+D 1000,00€
+
+1/1
+      a:b         0
+
+1/2
+      a:1      4000,58
+      a:D     -1000,58
+      e       -3000
+>>>
+            3000,00€  a
+            4000,58€    1
+           -1000,58€    D
+           -3000,00€  e
+--------------------
+                   0
+>>>= 0
+
 
 # 5. mixed amounts with prices
 # XXX
