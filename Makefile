@@ -148,7 +148,6 @@ VERSIONFILE=.version
 VERSION:=$(shell cat $(VERSIONFILE))
 
 # the number of commits since the last tag
-#DESCRIBE:=$(shell git describe --tags --match 'hledger-[0-9]*' --dirty )
 PATCHLEVEL:=$(shell git describe --tags --match 'hledger-[0-9]*' --long | awk -F- '{print $$3}')
 #PATCHLEVEL:=$(shell git describe --tags --match 'hledger-web-[0-9]*' --long | awk -F- '{print $$4}')
 # the number of commits since the last_release tag
@@ -1073,6 +1072,10 @@ $(call def-help-subsection,RELEASING:)
 # # 	in these files. Triggered by "make release".\
 # # 	)
 # # 	darcs record -m "bump version" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
+
+describe: \
+		$(call def-help,describe, show an accurate git-describe version string )
+	@git describe --tags --match 'hledger-[0-9]*' --dirty
 
 setversion: $(VERSIONSENSITIVEFILES) \
 	$(call def-help,setversion, update all version strings to match $(VERSIONFILE) )
