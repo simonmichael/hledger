@@ -148,7 +148,9 @@ VERSIONFILE=.version
 VERSION:=$(shell cat $(VERSIONFILE))
 
 # the number of commits since the last tag
-PATCHLEVEL:=$(shell git describe --tags | awk -F - '{print $$2}')
+#DESCRIBE:=$(shell git describe --tags --match 'hledger-[0-9]*' --dirty )
+PATCHLEVEL:=$(shell git describe --tags --match 'hledger-[0-9]*' --long | awk -F- '{print $$3}')
+#PATCHLEVEL:=$(shell git describe --tags --match 'hledger-web-[0-9]*' --long | awk -F- '{print $$4}')
 # the number of commits since the last_release tag
 #PATCHLEVEL:=$(shell git rev-list last_release..HEAD | wc -l)
 
