@@ -45,15 +45,15 @@ main = do
         | "help" `inRawOpts` (rawopts_ $ cliopts_ opts)            = putStr (showModeHelp uimode) >> exitSuccess
         | "version" `inRawOpts` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
         | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
-        | otherwise                                                = withJournalDo' opts runBrickUi
+        | otherwise                                                = withJournalDoUICommand opts runBrickUi
 
-withJournalDo' :: UIOpts -> (UIOpts -> Journal -> IO ()) -> IO ()
-withJournalDo' opts cmd = do
-  -- journalFilePathFromOpts (cliopts_ opts) >>= readJournalFile Nothing >>=
-  --   either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
-  -- XXX head should be safe for now
-  (head `fmap` journalFilePathFromOpts (cliopts_ opts)) >>= readJournalFile Nothing Nothing True >>=
-    either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
+-- XXX withJournalDo specialised for UIOpts
+withJournalDoUICommand :: UIOpts -> (UIOpts -> Journal -> IO ()) -> IO ()
+withJournalDoUICommand uopts@UIOpts{cliopts_=copts} cmd = do
+  rulespath <- rulesFilePathFromOpts copts
+  journalpath <- journalFilePathFromOpts copts
+  ej <- readJournalFiles Nothing rulespath (not $ ignore_assertions_ copts) journalpath
+  either error' (cmd uopts . journalApplyAliases (aliasesFromOpts copts)) ej
 
 runBrickUi :: UIOpts -> Journal -> IO ()
 runBrickUi opts j = do
