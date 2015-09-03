@@ -148,7 +148,7 @@ VERSIONFILE=.version
 VERSION:=$(shell cat $(VERSIONFILE))
 
 # the number of commits since the last tag
-PATCHLEVEL:=$(shell git describe --long | awk -F - '{print $$2}')
+PATCHLEVEL:=$(shell git describe --tags | awk -F - '{print $$2}')
 # the number of commits since the last_release tag
 #PATCHLEVEL:=$(shell git rev-list last_release..HEAD | wc -l)
 
