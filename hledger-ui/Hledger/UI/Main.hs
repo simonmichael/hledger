@@ -127,11 +127,11 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
       , appChooseCursor = showFirstCursor
       , appHandleEvent  = \st ev -> sHandleFn (aScreen st) st ev
       , appDraw         = \st -> sDrawFn (aScreen st) st
- -- XXX bizarro. removing the st arg and parameter above,
- -- which according to GHCI does not change the type,
- -- causes "Exception: draw function called with wrong screen type"
- -- on entering a register. Likewise, removing the st ev args and parameters
- -- causes an exception on exiting a register.
+         -- XXX bizarro. removing the st arg and parameter above,
+         -- which according to GHCI does not change the type,
+         -- causes "Exception: draw function called with wrong screen type"
+         -- on entering a register. Likewise, removing the st ev args and parameters
+         -- causes an exception on exiting a register.
       }
 
   void $ defaultMain app st
