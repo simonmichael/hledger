@@ -108,9 +108,9 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
               <+> str ")"
       files = case journalFilePaths j of
                      [] -> str ""
-                     [f] -> withAttr ("border" <> "bold") $ str $ takeFileName f
-                     [f,_] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
-                     f:fs -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
+                     f:_ -> withAttr ("border" <> "bold") $ str $ takeFileName f
+                     -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
+                     -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
       querystr = query_ $ reportopts_ $ cliopts_ uopts
       mdepth = depth_ $ reportopts_ $ cliopts_ uopts
       cur = str (case l^.listSelectedL of
