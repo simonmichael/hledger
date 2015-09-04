@@ -45,7 +45,7 @@ initAccountsScreen mselacct d st@AppState{
   ajournal=j,
   aScreen=s@AccountsScreen{}
   } =
-  st{aopts=opts', aScreen=s{asState=l'}}
+  st{aopts=uopts', aScreen=s{asState=l'}}
    where
     l = list (Name "accounts") (V.fromList displayitems) 1
 
@@ -59,29 +59,14 @@ initAccountsScreen mselacct d st@AppState{
                  mi = findIndex (\((acct,_,_),_) -> acct==a') items
                  a' = maybe a (flip clipAccountName a) $ depth_ ropts
 
-    -- XXX messing around with depth, which is different from other queries
-    -- In hledger,
-    -- - reportopts{depth_} indicates --depth options
-    -- - reportopts{query_} is the query arguments as a string
-    -- - the report query is based on both of these.
-    -- For hledger-ui, currently, we move depth: arguments out of reportopts{query_}
-    -- and into reportopts{depth_}, so that depth and other kinds of filter query
-    -- can be displayed independently.
-    opts' = uopts{cliopts_=copts{reportopts_=ropts'}}
+    uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
+    ropts' = ropts {
+      -- XXX balanceReport doesn't respect this yet
+      balancetype_=HistoricalBalance
+      }
+
     q = queryFromOpts d ropts
-    ropts' = ropts
-            {
-              -- ensure depth_ also reflects depth: args
-              depth_=depthfromoptsandargs,
-              -- remove depth: args from query_
-              query_=unwords $ -- as in ReportOptions, with same limitations
-                     [v | (k,v) <- rawopts_ copts, k=="args", not $ "depth" `isPrefixOf` v],
-              -- XXX balanceReport doesn't respect this yet
-              balancetype_=HistoricalBalance
-            }
-      where
-        depthfromoptsandargs = case queryDepth q of 99999 -> Nothing
-                                                    d     -> Just d
+
     -- maybe convert balances to market value
     convert | value_ ropts' = balanceReportValue j valuedate
             | otherwise    = id
