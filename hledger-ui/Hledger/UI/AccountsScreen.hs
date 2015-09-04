@@ -122,6 +122,7 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
          -- ("up/down/pgup/pgdown/home/end", "move")
          ("-+1234567890", "adjust depth limit")
         ,("right/enter", "show transactions")
+        ,("g", "reload")
         ,("q", "quit")
         ]
 
@@ -192,7 +193,11 @@ drawAccountsItem (acctwidth, balwidth) selected (indent, _fullacct, displayacct,
             | otherwise = id
 
 handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
-handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=l}} e = do
+handleAccountsScreen st@AppState{
+  aScreen=scr@AccountsScreen{asState=l}
+  ,aopts=UIOpts{cliopts_=copts}
+  ,ajournal=j
+  } e = do
     d <- liftIO getCurrentDay
     -- c <- getContext
     -- let h = c^.availHeightL
@@ -206,6 +211,13 @@ handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=l}} e = do
     case e of
         Vty.EvKey Vty.KEsc []        -> halt st
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
+        -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
+        Vty.EvKey (Vty.KChar 'g') [] -> do
+          (ej, changed) <- liftIO $ journalReloadIfChanged copts j
+          case (changed, ej) of
+            (True, Right j') -> reload st{ajournal=j'}
+            -- (True, Left err) -> continue st{amsg=err} -- XXX report parse error
+            _                -> continue st
         Vty.EvKey (Vty.KChar '-') [] -> reload $ decDepth st
         Vty.EvKey (Vty.KChar '+') [] -> reload $ incDepth st
         Vty.EvKey (Vty.KChar '1') [] -> reload $ setDepth 1 st
