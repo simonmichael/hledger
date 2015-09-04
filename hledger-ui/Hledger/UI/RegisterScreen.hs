@@ -151,8 +151,8 @@ drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{repo
         colwidths = (datewidth,descwidth,acctswidth,changewidth,balwidth)
 
         bottomlabel = borderKeysStr [
-           -- "up/down/pgup/pgdown/home/end: move"
-           "left: return to accounts"
+           -- ("up/down/pgup/pgdown/home/end", "move")
+           ("left", "return to accounts")
           ]
 
       render $ defaultLayout toplabel bottomlabel $ renderList l (drawRegisterItem colwidths)

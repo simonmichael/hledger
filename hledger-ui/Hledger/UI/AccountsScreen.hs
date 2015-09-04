@@ -119,10 +119,10 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
       total = str $ show $ V.length $ l^.listElementsL
 
       bottomlabel = borderKeysStr [
-         -- "up/down/pgup/pgdown/home/end: move"
-         "-+1234567890: adjust depth limit"
-        ,"right: show transactions"
-        ,"q: quit"
+         -- ("up/down/pgup/pgdown/home/end", "move")
+         ("-+1234567890", "adjust depth limit")
+        ,("right", "show transactions")
+        ,("q", "quit")
         ]
 
       ui = Widget Greedy Greedy $ do

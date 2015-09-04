@@ -149,8 +149,11 @@ borderDepthStr :: Maybe Int -> Widget
 borderDepthStr Nothing  = str ""
 borderDepthStr (Just d) = str " to " <+> withAttr (borderAttr <> "depth") (str $ "depth "++show d)
 
-borderKeysStr :: [String] -> Widget
-borderKeysStr keydescs = str $ intercalate sep keydescs
+borderKeysStr :: [(String,String)] -> Widget
+borderKeysStr keydescs =
+  hBox $
+  intersperse sep $
+  [withAttr (borderAttr <> "keys") (str keys) <+> str ": " <+> str desc | (keys, desc) <- keydescs]
   where
-    sep = " | "
+    sep = str " | "
     -- sep = "  "
