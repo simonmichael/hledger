@@ -219,7 +219,7 @@ handleAccountsScreen st@AppState{aScreen=scr@AccountsScreen{asState=l}} e = do
         Vty.EvKey (Vty.KChar '9') [] -> reload $ setDepth 9 st
         Vty.EvKey (Vty.KChar '0') [] -> reload $ setDepth 0 st
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
-        Vty.EvKey (Vty.KRight) []    -> do
+        Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
           let st' = screenEnter d RS.screen{rsAcct=acct} st
           vScrollToBeginning $ viewportScroll "register"
           continue st'
