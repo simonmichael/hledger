@@ -101,13 +101,12 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
                  $ filter (regexMatches apat) $ journalAccountNames j
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary AppState value..
-          ascr = AS.screen
           ascr' = aScreen $
-                  (sInitFn ascr) d
+                  AS.initAccountsScreen (Just acct) d  -- acct will be selected
                   AppState{
                     aopts=uopts'
                    ,ajournal=j
-                   ,aScreen=ascr
+                   ,aScreen=AS.screen
                    ,aPrevScreens=[]
                    }
 

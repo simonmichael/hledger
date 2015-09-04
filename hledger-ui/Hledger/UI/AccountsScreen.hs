@@ -4,7 +4,9 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Hledger.UI.AccountsScreen
- (screen)
+ (screen
+ ,initAccountsScreen
+ )
 where
 
 import Control.Lens ((^.))
