@@ -11,7 +11,7 @@ where
 
 import Control.Lens ((^.))
 -- import Control.Monad
-import Control.Monad.IO.Class
+import Control.Monad.IO.Class (liftIO)
 -- import Data.Default
 import Data.List
 import Data.Maybe
@@ -103,7 +103,7 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
               <+> borderDepthStr mdepth
               <+> str " ("
               <+> cur
-              <+> str " of "
+              <+> str "/"
               <+> total
               <+> str ")"
       files = case journalFilePaths j of
@@ -120,7 +120,7 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
 
       bottomlabel = borderKeysStr [
          -- ("up/down/pgup/pgdown/home/end", "move")
-         ("-+1234567890", "adjust depth limit")
+         ("-, +/=, 1234567890", "adjust depth limit")
         ,("right/enter", "show transactions")
         ,("g", "reload")
         ,("q", "quit")
@@ -220,6 +220,7 @@ handleAccountsScreen st@AppState{
             _                -> continue st
         Vty.EvKey (Vty.KChar '-') [] -> reload $ decDepth st
         Vty.EvKey (Vty.KChar '+') [] -> reload $ incDepth st
+        Vty.EvKey (Vty.KChar '=') [] -> reload $ incDepth st
         Vty.EvKey (Vty.KChar '1') [] -> reload $ setDepth 1 st
         Vty.EvKey (Vty.KChar '2') [] -> reload $ setDepth 2 st
         Vty.EvKey (Vty.KChar '3') [] -> reload $ setDepth 3 st
