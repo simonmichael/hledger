@@ -82,7 +82,7 @@ initAccountsScreen mselacct d st@AppState{
     displayitem ((fullacct, shortacct, indent), bal) =
       (indent
       ,fullacct
-      ,if tree_ ropts' then shortacct else fullacct
+      ,if flat_ ropts' then fullacct else shortacct
       ,map showAmountWithoutPrice amts -- like showMixedAmountOneLineWithoutPrice
       )
       where
