@@ -7,7 +7,7 @@ module Hledger.UI.RegisterScreen
 where
 
 import Control.Lens ((^.))
--- import Control.Monad.IO.Class (liftIO)
+import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.List.Split (splitOn)
 import Data.Monoid
@@ -94,7 +94,7 @@ drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{repo
             -- <+> str " and subs"
             <+> str " ("
             <+> cur
-            <+> str " of "
+            <+> str "/"
             <+> total
             <+> str ")"
     cur = str $ case l^.listSelectedL of
@@ -152,7 +152,8 @@ drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{repo
 
         bottomlabel = borderKeysStr [
            -- ("up/down/pgup/pgdown/home/end", "move")
-           ("left", "return to accounts")
+           ("g", "reload")
+          ,("left", "return to accounts")
           ]
 
       render $ defaultLayout toplabel bottomlabel $ renderList l (drawRegisterItem colwidths)
@@ -181,10 +182,23 @@ drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected 
         | otherwise = id
 
 handleRegisterScreen :: AppState -> Vty.Event -> EventM (Next AppState)
-handleRegisterScreen st@AppState{aopts=_opts,aScreen=s@RegisterScreen{rsState=is}} e = do
+handleRegisterScreen st@AppState{
+   aScreen=s@RegisterScreen{rsState=is}
+  ,aopts=UIOpts{cliopts_=copts}
+  ,ajournal=j
+  } e = do
+  d <- liftIO getCurrentDay
+  let
+    reload = continue . initRegisterScreen d
   case e of
     Vty.EvKey Vty.KEsc []        -> halt st
     Vty.EvKey (Vty.KChar 'q') [] -> halt st
+    Vty.EvKey (Vty.KChar 'g') [] -> do
+      (ej, changed) <- liftIO $ journalReloadIfChanged copts j
+      case (changed, ej) of
+        (True, Right j') -> reload st{ajournal=j'}
+        -- (True, Left err) -> continue st{amsg=err} -- XXX report parse error
+        _                -> continue st
     Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
     -- Vty.EvKey (Vty.KRight) []    -> error (show curItem) where curItem = listSelectedElement is
     -- fall through to the list's event handler (handles [pg]up/down)
