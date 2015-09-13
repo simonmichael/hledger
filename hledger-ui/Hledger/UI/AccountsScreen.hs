@@ -121,6 +121,7 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
       bottomlabel = borderKeysStr [
          -- ("up/down/pgup/pgdown/home/end", "move")
          ("-+=1234567890", "adjust/clear depth limit")
+        ,("f", "flat/tree mode")
         ,("right/enter", "show transactions")
         ,("g", "reload")
         ,("q", "quit")
@@ -195,7 +196,7 @@ drawAccountsItem (acctwidth, balwidth) selected (indent, _fullacct, displayacct,
 handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleAccountsScreen st@AppState{
   aScreen=scr@AccountsScreen{asState=l}
-  ,aopts=UIOpts{cliopts_=copts}
+  ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
   ,ajournal=j
   } e = do
     d <- liftIO getCurrentDay
@@ -231,6 +232,15 @@ handleAccountsScreen st@AppState{
         Vty.EvKey (Vty.KChar '8') [] -> reload $ setDepth 8 st
         Vty.EvKey (Vty.KChar '9') [] -> reload $ setDepth 9 st
         Vty.EvKey (Vty.KChar '0') [] -> reload $ setDepth 0 st
+        Vty.EvKey (Vty.KChar 'f') [] -> reload $ st'
+          where
+            st' = st{
+              aopts=(aopts st){
+                 cliopts_=copts{
+                    reportopts_=toggleFlatMode ropts
+                    }
+                 }
+              }
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
         Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
           let st' = screenEnter d RS.screen{rsAcct=acct} st
@@ -246,6 +256,11 @@ handleAccountsScreen st@AppState{
                                      continue $ st{aScreen=scr{asState=l'}}
                                  -- continue =<< handleEventLensed st someLens ev
 handleAccountsScreen _ _ = error "event handler called with wrong screen type, should not happen"
+
+-- | Toggle between flat and tree mode. If in the third "default" mode, go to flat mode.
+toggleFlatMode :: ReportOpts -> ReportOpts
+toggleFlatMode ropts@ReportOpts{accountlistmode_=ALFlat} = ropts{accountlistmode_=ALTree}
+toggleFlatMode ropts = ropts{accountlistmode_=ALFlat}
 
 -- | Get the maximum account depth in the current journal.
 maxDepth :: AppState -> Int
