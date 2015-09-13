@@ -120,7 +120,7 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
 
       bottomlabel = borderKeysStr [
          -- ("up/down/pgup/pgdown/home/end", "move")
-         ("-, +/=, 1234567890", "adjust depth limit")
+         ("-+=1234567890", "adjust/clear depth limit")
         ,("right/enter", "show transactions")
         ,("g", "reload")
         ,("q", "quit")
