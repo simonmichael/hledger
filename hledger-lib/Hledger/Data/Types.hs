@@ -19,6 +19,7 @@ For more detailed documentation on each type, see the corresponding modules.
 
 module Hledger.Data.Types
 where
+
 import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)
 import Control.Monad.Except (ExceptT)
@@ -76,7 +77,7 @@ type Quantity = Decimal
 deriving instance Data (Quantity)
 -- The following is for hledger-web, and requires blaze-markup.
 -- Doing it here avoids needing a matching flag on the hledger-web package.
-instance ToMarkup (Quantity) 
+instance ToMarkup (Quantity)
  where
    toMarkup = toMarkup . show
 numberRepresentation = "Decimal"
