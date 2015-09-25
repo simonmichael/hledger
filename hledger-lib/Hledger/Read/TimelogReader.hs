@@ -61,7 +61,7 @@ import Hledger.Data
 -- XXX too much reuse ?
 import Hledger.Read.JournalReader (
   directive, marketpricedirective, defaultyeardirective, emptyorcommentlinep, datetimep,
-  parseJournalWith, modifiedaccountname, genericSourcePos
+  parseJournalWith, modifiedaccountnamep, genericSourcePos
   )
 import Hledger.Utils
 
@@ -107,7 +107,7 @@ timelogentry = do
   code <- oneOf "bhioO"
   many1 spacenonewline
   datetime <- datetimep
-  account <- fromMaybe "" <$> optionMaybe (many1 spacenonewline >> modifiedaccountname)
+  account <- fromMaybe "" <$> optionMaybe (many1 spacenonewline >> modifiedaccountnamep)
   description <- fromMaybe "" <$> optionMaybe (many1 spacenonewline >> restofline)
   return $ TimeLogEntry sourcepos (read [code]) datetime account description
 

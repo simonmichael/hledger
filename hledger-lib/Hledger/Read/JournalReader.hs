@@ -31,7 +31,7 @@ module Hledger.Read.JournalReader (
   datetimep,
   codep,
   accountnamep,
-  modifiedaccountname,
+  modifiedaccountnamep,
   postingp,
   amountp,
   amountp',
@@ -577,7 +577,7 @@ postingp = do
   many1 spacenonewline
   status <- statusp
   many spacenonewline
-  account <- modifiedaccountname
+  account <- modifiedaccountnamep
   let (ptype, account') = (accountNamePostingType account, unbracket account)
   amount <- spaceandamountormissing
   massertion <- partialbalanceassertion
@@ -657,13 +657,15 @@ test_postingp = do
 #endif
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
-modifiedaccountname :: Stream [Char] m Char => ParsecT [Char] JournalContext m AccountName
-modifiedaccountname = do
-  a <- accountnamep
-  prefix <- getParentAccount
-  let prefixed = prefix `joinAccountNames` a
+modifiedaccountnamep :: Stream [Char] m Char => ParsecT [Char] JournalContext m AccountName
+modifiedaccountnamep = do
+  parent <- getParentAccount
   aliases <- getAccountAliases
-  return $ accountNameApplyAliases aliases prefixed
+  a <- accountnamep
+  return $
+    accountNameApplyAliases aliases $
+    joinAccountNames parent
+    a
 
 -- | Parse an account name. Account names start with a non-space, may
 -- have single spaces inside them, and are terminated by two or more
