@@ -601,13 +601,7 @@ builtintest: \
 # NB ensure hledger executable is current (eg do pkgtest first)
 functest: tests/addons/hledger-addon \
 	$(call def-help,functest, run hledger functional tests with the stack build )
-	@(COLUMNS=80 PATH=`pwd`/bin:$(PATH) $(SHELLTESTSTK) tests \
-		&& echo $@ PASSED) || echo $@ FAILED
-
-#@echo functional tests:
-functestdef: bin/hledgerdev tests/addons/hledger-addon \
-	$(call def-help-hide,functestdef, run hledger functional tests with the hledger in PATH )
-	@(COLUMNS=80 PATH=`pwd`/bin:$(PATH) $(SHELLTEST) tests \
+	@(COLUMNS=80 $(SHELLTESTSTK) tests \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
