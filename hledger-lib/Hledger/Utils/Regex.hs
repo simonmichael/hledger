@@ -22,7 +22,8 @@ Easy regular expression helpers, currently based on regex-tdfa. These should:
 Regex strings are automatically compiled into regular expressions the
 first time they are seen, and these are cached. If you use a huge
 number of unique regular expressions this might lead to increased
-memory usage.
+memory usage. Several functions have memoised variants (*Memo), which
+also trade space for time.
 
 Current limitations:
 
@@ -39,6 +40,8 @@ module Hledger.Utils.Regex (
   ,regexMatchesCI
   ,regexReplace
   ,regexReplaceCI
+  ,regexReplaceMemo
+  ,regexReplaceCIMemo
   ,regexReplaceBy
   ,regexReplaceByCI
   )
@@ -101,6 +104,14 @@ regexReplace re = replaceRegex (toRegex re)
 
 regexReplaceCI :: Regexp -> Replacement -> String -> String
 regexReplaceCI re = replaceRegex (toRegexCI re)
+
+-- | A memoising version of regexReplace. Caches the result for each
+-- search pattern, replacement pattern, target string tuple.
+regexReplaceMemo :: Regexp -> Replacement -> String -> String
+regexReplaceMemo re repl = memo (regexReplace re repl)
+
+regexReplaceCIMemo :: Regexp -> Replacement -> String -> String
+regexReplaceCIMemo re repl = memo (regexReplaceCI re repl)
 
 --
 
