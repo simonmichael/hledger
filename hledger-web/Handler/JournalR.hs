@@ -3,6 +3,7 @@
 
 module Handler.JournalR where
 
+import Data.Text (pack)
 import Import
 
 import Handler.AddForm
@@ -71,7 +72,7 @@ $forall p' <- tpostings t
   <td.description>
   <td.account>
    &nbsp;
-   <a href="/register?q=inacct:'#{paccount p'}'##{date}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
+   <a href="@?{acctlink (paccount p')}##{date}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
   <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
 <tr.#{evenodd}>
  <td>&nbsp;
@@ -80,6 +81,7 @@ $forall p' <- tpostings t
  <td>
 |]
      where
+       acctlink a = (RegisterR, [("q", pack $ accountQuery a)])
        evenodd = if even n then "even" else "odd" :: String
        -- datetransition | newm = "newmonth"
        --                | newd = "newday"

@@ -74,7 +74,7 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
    itemAsHtml VD{..} (n, newd, newm, _, (torig, tacct, split, acct, amt, bal)) = [hamlet|
 
 <tr ##{date} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show torig}" style="vertical-align:top;">
- <td.date><a href="/journal##{date}">#{date}
+ <td.date><a href="@{JournalR}##{date}">#{date}
  <td.description title="#{show torig}">#{elideRight 30 desc}
  <td.account>#{elideRight 40 acct}
  <td.amount style="text-align:right; white-space:nowrap;">
