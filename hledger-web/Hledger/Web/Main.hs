@@ -52,9 +52,15 @@ runWith opts
 
 withJournalDo' :: WebOpts -> (WebOpts -> Journal -> IO ()) -> IO ()
 withJournalDo' opts cmd = do
-  -- XXX head should be safe for now
-  (head `fmap` journalFilePathFromOpts (cliopts_ opts)) >>= readJournalFile Nothing Nothing True >>=
-    either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
+  f <- head `fmap` journalFilePathFromOpts (cliopts_ opts) -- XXX head should be safe for now
+
+  -- https://github.com/simonmichael/hledger/issues/202
+  -- -f- gives [Error#yesod-core] <stdin>: hGetContents: illegal operation (handle is closed) for some reason
+  -- Also we may be writing to this file. Just disallow it.
+  when (f == "-") $ error' "hledger-web doesn't support --f -, please specify a file path"
+
+  readJournalFile Nothing Nothing True f >>=
+   either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
 
 -- | The web command.
 web :: WebOpts -> Journal -> IO ()
