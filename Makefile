@@ -210,7 +210,7 @@ BUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='"$(VERSION)dev"'
 # # some other thing for linux binary filenames
 # RELEASEBINARYSUFFIX=$(shell echo "-$(VERSION)-`uname`-`arch`" | tr '[:upper:]' '[:lower:]')
 
-# TIME:=$(shell date +"%Y%m%d%H%M")
+TIME:=$(shell date +"%Y%m%d%H%M")
 
 ###############################################################################
 $(call def-help-subsection,INSTALLING:)
@@ -360,12 +360,25 @@ dev: dev.hs $(SOURCEFILES) \
 	$(call def-help,dev, build the dev.hs script for quick experiments (with ghc) )
 	stack ghc -- $(CABALMACROSFLAGS) -ihledger-lib dev.hs \
 
-dev-profile: $(SOURCEFILES) \
-	$(call def-help,dev-profile, profile the dev.hs script )
-	stack ghc -- $(CABALMACROSFLAGS) -ihledger-lib dev.hs -prof -fprof-auto -osuf p_o \
-	&& time ./dev +RTS -P \
-	&& cp dev.prof dev.prof.$(TIME) \
-	&& profiteur dev.prof
+# dev0: dev.hs $(SOURCEFILES) \
+# 	$(call def-help,dev, build the dev.hs script for quick experiments (with ghc -O0) )
+# 	stack ghc -- -O0 $(CABALMACROSFLAGS) -ihledger-lib dev.hs -o dev0 \
+
+# dev2: dev.hs $(SOURCEFILES) \
+# 	$(call def-help,dev, build the dev.hs script for quick experiments (with ghc -O2) )
+# 	stack ghc -- -O2 $(CABALMACROSFLAGS) -ihledger-lib dev.hs -o dev2 \
+
+# to get profiling deps installed, first do something like:
+# stack build --library-profiling hledger-lib timeit criterion
+devprof: dev.hs $(SOURCEFILES) \
+	$(call def-help,devprof, build the dev.hs script with profiling support )
+	stack ghc -- $(CABALMACROSFLAGS) -ihledger-lib dev.hs -rtsopts -prof -fprof-auto -osuf p_o -o devprof
+
+profile-dev: devprof \
+	$(call def-help,devprof, profile the dev.hs script )
+	time ./devprof +RTS -P \
+	&& cp devprof.prof devprof.prof.$(TIME) \
+	&& profiteur devprof.prof
 
 # # build other executables quickly
 
@@ -774,6 +787,10 @@ quickheap-%: hledgerprof samplejournals \
 ghci: \
 	 	$(call def-help,ghci, start a GHCI REPL and load the hledger-lib and hledger packages)
 	stack exec $(GHCI) -- $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
+
+ghci-dev: \
+	 	$(call def-help,ghci, start a GHCI REPL and load the dev.hs script plus hledger-lib and hledger)
+	stack exec $(GHCI) -- $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
 
 ghci-ui: \
 		$(call def-help,ghci-ui, start a GHCI REPL and load the hledger-lib, hledger and hledger-ui packages)
