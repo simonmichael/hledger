@@ -352,7 +352,8 @@ showDefault s = " [" ++ s ++ "]"
 journalAddTransaction :: Journal -> CliOpts -> Transaction -> IO Journal
 journalAddTransaction j@Journal{jtxns=ts} opts t = do
   let f = journalFilePath j
-  appendToJournalFileOrStdout f $ showTransaction t
+  appendToJournalFileOrStdout f $ showTransactionUnelided t
+    -- unelided shows all amounts explicitly, in case there's a price, cf #283
   when (debug_ opts > 0) $ do
     putStrLn $ printf "\nAdded transaction to %s:" f
     putStrLn =<< registerFromString (show t)
