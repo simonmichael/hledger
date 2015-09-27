@@ -75,9 +75,9 @@ web opts j = do
    then do
     putStrLn "Press ctrl-c to quit"
     hFlush stdout
-    runSettings (setPort p defaultSettings) app
+    Network.Wai.Handler.Warp.runSettings (setPort p defaultSettings) app
    else do
     putStrLn "Starting web browser if possible"
     putStrLn "Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)"
     hFlush stdout
-    runUrlPort p "" app
+    Network.Wai.Handler.Launch.runUrlPort p "" app
