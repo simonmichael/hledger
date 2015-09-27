@@ -48,6 +48,7 @@ module Hledger.Data.Posting (
 where
 import Data.List
 import Data.Maybe
+import Data.MemoUgly (memo)
 import Data.Ord
 import Data.Time.Calendar
 import Safe
@@ -238,7 +239,7 @@ aliasReplace :: AccountAlias -> AccountName -> AccountName
 aliasReplace (BasicAlias old new) a
   | old `isAccountNamePrefixOf` a || old == a = new ++ drop (length old) a
   | otherwise = a
-aliasReplace (RegexAlias re repl) a = regexReplaceCI re repl a
+aliasReplace (RegexAlias re repl) a = regexReplaceCIMemo re repl a
 
 
 tests_Hledger_Data_Posting = TestList [
