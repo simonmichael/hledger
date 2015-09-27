@@ -104,6 +104,58 @@ genericSourcePos p = GenericSourcePos (sourceName p) (sourceLine p) (sourceColum
 -- | Flatten a list of JournalUpdate's into a single equivalent one.
 combineJournalUpdates :: [JournalUpdate] -> JournalUpdate
 combineJournalUpdates us = liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence us
+-- XXX may be contributing to excessive stack use
+-- cf http://neilmitchell.blogspot.co.uk/2015/09/detecting-space-leaks.html
+-- $ ./devprof +RTS -K576K -xc
+-- *** Exception (reporting due to +RTS -xc): (THUNK_STATIC), stack trace: 
+--   Hledger.Read.JournalReader.combineJournalUpdates.\,
+--   called from Hledger.Read.JournalReader.combineJournalUpdates,
+--   called from Hledger.Read.JournalReader.fixedlotprice,
+--   called from Hledger.Read.JournalReader.partialbalanceassertion,
+--   called from Hledger.Read.JournalReader.getDefaultCommodityAndStyle,
+--   called from Hledger.Read.JournalReader.priceamount,
+--   called from Hledger.Read.JournalReader.nosymbolamount,
+--   called from Hledger.Read.JournalReader.numberp,
+--   called from Hledger.Read.JournalReader.rightsymbolamount,
+--   called from Hledger.Read.JournalReader.simplecommoditysymbol,
+--   called from Hledger.Read.JournalReader.quotedcommoditysymbol,
+--   called from Hledger.Read.JournalReader.commoditysymbol,
+--   called from Hledger.Read.JournalReader.signp,
+--   called from Hledger.Read.JournalReader.leftsymbolamount,
+--   called from Hledger.Read.JournalReader.amountp,
+--   called from Hledger.Read.JournalReader.spaceandamountormissing,
+--   called from Hledger.Read.JournalReader.accountnamep.singlespace,
+--   called from Hledger.Utils.Parse.nonspace,
+--   called from Hledger.Read.JournalReader.accountnamep,
+--   called from Hledger.Read.JournalReader.getAccountAliases,
+--   called from Hledger.Read.JournalReader.getParentAccount,
+--   called from Hledger.Read.JournalReader.modifiedaccountnamep,
+--   called from Hledger.Read.JournalReader.postingp,
+--   called from Hledger.Read.JournalReader.postings,
+--   called from Hledger.Read.JournalReader.commentStartingWith,
+--   called from Hledger.Read.JournalReader.semicoloncomment,
+--   called from Hledger.Read.JournalReader.followingcommentp,
+--   called from Hledger.Read.JournalReader.descriptionp,
+--   called from Hledger.Read.JournalReader.codep,
+--   called from Hledger.Read.JournalReader.statusp,
+--   called from Hledger.Utils.Parse.spacenonewline,
+--   called from Hledger.Read.JournalReader.secondarydatep,
+--   called from Hledger.Data.Dates.datesepchar,
+--   called from Hledger.Read.JournalReader.datep,
+--   called from Hledger.Read.JournalReader.transaction,
+--   called from Hledger.Utils.Parse.choice',
+--   called from Hledger.Read.JournalReader.directive,
+--   called from Hledger.Read.JournalReader.emptyorcommentlinep,
+--   called from Hledger.Read.JournalReader.multilinecommentp,
+--   called from Hledger.Read.JournalReader.journal.journalItem,
+--   called from Hledger.Read.JournalReader.journal,
+--   called from Hledger.Read.JournalReader.parseJournalWith,
+--   called from Hledger.Read.readJournal.tryReaders.firstSuccessOrBestError,
+--   called from Hledger.Read.readJournal.tryReaders,
+--   called from Hledger.Read.readJournal,
+--   called from Main.main,
+--   called from Main.CAF
+-- Stack space overflow: current size 33568 bytes.
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
