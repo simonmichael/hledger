@@ -664,6 +664,7 @@ modifiedaccountnamep = do
   a <- accountnamep
   return $
     accountNameApplyAliases aliases $
+     -- XXX accountNameApplyAliasesMemo ? doesn't seem to make a difference
     joinAccountNames parent
     a
 

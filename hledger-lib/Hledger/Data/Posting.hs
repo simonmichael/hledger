@@ -37,6 +37,7 @@ module Hledger.Data.Posting (
   joinAccountNames,
   concatAccountNames,
   accountNameApplyAliases,
+  accountNameApplyAliasesMemo,
   -- * arithmetic
   sumPostings,
   -- * rendering
@@ -230,6 +231,10 @@ accountNameApplyAliases aliases a = accountNameWithPostingType atype aname'
              (\acct alias -> dbg6 "result" $ aliasReplace (dbg6 "alias" alias) (dbg6 "account" acct))
              aname
              aliases
+
+-- | Memoising version of accountNameApplyAliases, maybe overkill.
+accountNameApplyAliasesMemo :: [AccountAlias] -> AccountName -> AccountName
+accountNameApplyAliasesMemo aliases = memo (accountNameApplyAliases aliases)
 
 -- aliasMatches :: AccountAlias -> AccountName -> Bool
 -- aliasMatches (BasicAlias old _) a = old `isAccountNamePrefixOf` a
