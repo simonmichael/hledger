@@ -17,7 +17,12 @@ Easy regular expression helpers, currently based on regex-tdfa. These should:
 
 - have simple monomorphic types
 
-- work with strings
+- work with simple strings
+
+Regex strings are automatically compiled into regular expressions the
+first time they are seen, and these are cached. If you use a huge
+number of unique regular expressions this might lead to increased
+memory usage.
 
 Current limitations:
 
@@ -42,6 +47,7 @@ where
 import Data.Array
 import Data.Char
 import Data.List (foldl')
+import Data.MemoUgly (memo)
 import Text.Regex.TDFA (
   Regex, CompOption(..), ExecOption(..), defaultCompOpt, defaultExecOpt,
   makeRegexOpts, AllMatches(getAllMatches), match, (=~), MatchText
@@ -60,10 +66,10 @@ type Replacement = String
 -- | Convert our string-based regexps to real ones. Can fail if the
 -- string regexp is malformed.
 toRegex :: Regexp -> Regex
-toRegex = makeRegexOpts compOpt execOpt
+toRegex = memo (makeRegexOpts compOpt execOpt)
 
 toRegexCI :: Regexp -> Regex
-toRegexCI = makeRegexOpts compOpt{caseSensitive=False} execOpt
+toRegexCI = memo (makeRegexOpts compOpt{caseSensitive=False} execOpt)
 
 compOpt :: CompOption
 compOpt = defaultCompOpt
