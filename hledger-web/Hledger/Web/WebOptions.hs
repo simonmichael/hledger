@@ -50,9 +50,9 @@ webmode =  (mode "hledger-web" [("command","web")]
 -- hledger-web options, used in hledger-web and above
 data WebOpts = WebOpts {
      server_   :: Bool
-    ,base_url_ :: String
     ,port_     :: Int
-    ,static_root_ :: Maybe String
+    ,base_url_ :: String
+    ,file_url_ :: Maybe String
     ,cliopts_  :: CliOpts
  } deriving (Show)
 
@@ -74,7 +74,7 @@ rawOptsToWebOpts rawopts = checkWebOpts <$> do
               port_ = p
              ,server_ = boolopt "server" rawopts
              ,base_url_ = maybe (defbaseurl p) stripTrailingSlash $ maybestringopt "base-url" rawopts
-             ,static_root_ = stripTrailingSlash <$> maybestringopt "static-root" rawopts
+             ,file_url_ = stripTrailingSlash <$> maybestringopt "file-url" rawopts
              ,cliopts_   = cliopts
              }
   where

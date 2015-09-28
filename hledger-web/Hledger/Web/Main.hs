@@ -69,13 +69,13 @@ web opts j = do
   let j' = filterJournalTransactions (queryFromOpts d $ reportopts_ $ cliopts_ opts) j
       p = port_ opts
       u = base_url_ opts
-      staticRoot' = pack <$> static_root_ opts
+      staticRoot = pack <$> file_url_ opts
   _ <- printf "Starting web app on port %d with base url %s\n" p u
   app <- makeApplication opts j' AppConfig{appEnv = Development
                                           ,appPort = p
                                           ,appRoot = pack u
                                           ,appHost = fromString "*4"
-                                          ,appExtra = Extra "" Nothing staticRoot'
+                                          ,appExtra = Extra "" Nothing staticRoot
                                           }
   if server_ opts
    then do
