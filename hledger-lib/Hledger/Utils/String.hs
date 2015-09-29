@@ -29,11 +29,6 @@ module Hledger.Utils.String (
  elideLeft,
  elideRight,
  formatString,
- -- * wide-character-aware single-line layout
- strWidth,
- takeWidth,
- elideLeftWidth,
- elideRightWidth,
  -- * multi-line layout
  concatTopPadded,
  concatBottomPadded,
@@ -45,7 +40,14 @@ module Hledger.Utils.String (
  padleft,
  padright,
  cliptopleft,
- fitto
+ fitto,
+ -- * wide-character-aware layout
+ strWidth,
+ takeWidth,
+ fitString,
+ fitStringMulti,
+ padLeftWide,
+ padRightWide
  ) where
 
 
@@ -169,26 +171,28 @@ unbracket s
     | (head s == '[' && last s == ']') || (head s == '(' && last s == ')') = init $ tail s
     | otherwise = s
 
--- | Join multi-line strings as side-by-side rectangular strings of the same height, top-padded.
+-- | Join several multi-line strings as side-by-side rectangular strings of the same height, top-padded.
+-- Treats wide characters as double width.
 concatTopPadded :: [String] -> String
 concatTopPadded strs = intercalate "\n" $ map concat $ transpose padded
     where
       lss = map lines strs
       h = maximum $ map length lss
       ypad ls = replicate (difforzero h (length ls)) "" ++ ls
-      xpad ls = map (padleft w) ls where w | null ls = 0
-                                           | otherwise = maximum $ map length ls
+      xpad ls = map (padLeftWide w) ls where w | null ls = 0
+                                               | otherwise = maximum $ map strWidth ls
       padded = map (xpad . ypad) lss
 
--- | Join multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
+-- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
+-- Treats wide characters as double width.
 concatBottomPadded :: [String] -> String
 concatBottomPadded strs = intercalate "\n" $ map concat $ transpose padded
     where
       lss = map lines strs
       h = maximum $ map length lss
       ypad ls = ls ++ replicate (difforzero h (length ls)) ""
-      xpad ls = map (padright w) ls where w | null ls = 0
-                                            | otherwise = maximum $ map length ls
+      xpad ls = map (padRightWide w) ls where w | null ls = 0
+                                                | otherwise = maximum $ map strWidth ls
       padded = map (xpad . ypad) lss
 
 
@@ -237,11 +241,13 @@ difforzero :: (Num a, Ord a) => a -> a -> a
 difforzero a b = maximum [(a - b), 0]
 
 -- | Convert a multi-line string to a rectangular string left-padded to the specified width.
+-- Treats wide characters as double width.
 padleft :: Int -> String -> String
 padleft w "" = concat $ replicate w " "
 padleft w s = intercalate "\n" $ map (printf (printf "%%%ds" w)) $ lines s
 
 -- | Convert a multi-line string to a rectangular string right-padded to the specified width.
+-- Treats wide characters as double width.
 padright :: Int -> String -> String
 padright w "" = concat $ replicate w " "
 padright w s = intercalate "\n" $ map (printf (printf "%%-%ds" w)) $ lines s
@@ -258,27 +264,87 @@ fitto w h s = intercalate "\n" $ take h $ rows ++ repeat blankline
       fit w = take w . (++ repeat ' ')
       blankline = replicate w ' '
 
--- Functions below are aware of double-width characters eg in CJK text.
+-- Functions below treat wide (eg CJK) characters as double-width.
 
--- | Wide-character-aware string clipping to the specified width, with an ellipsis on the right.
--- When the second argument is true, also right-pad with spaces to the specified width if needed.
-elideLeftWidth :: Int -> Bool -> String -> String
-elideLeftWidth width pad s
-  | strWidth s > width = ellipsis ++ reverse (takeWidth (width - length ellipsis) $ reverse s)
-  | otherwise          = reverse (takeWidth width $ reverse s ++ padding)
-  where
-    ellipsis = ".."
-    padding = if pad then repeat ' ' else ""
+-- | A version of fitString that works on multi-line strings,
+-- separate for now to avoid breakage.
+-- This will rewrite any line endings to unix newlines.
+fitStringMulti :: Maybe Int -> Maybe Int -> Bool -> Bool -> String -> String
+fitStringMulti mminwidth mmaxwidth ellipsify rightside s =
+  (intercalate "\n" . map (fitString mminwidth mmaxwidth ellipsify rightside) . lines) s
 
--- | Wide-character-aware string clipping to the specified width, with an ellipsis on the left.
--- When the second argument is true, also left-pad with spaces to the specified width if needed.
-elideRightWidth :: Int -> Bool -> String -> String
-elideRightWidth width pad s
-  | strWidth s > width = takeWidth (width - length ellipsis) s ++ ellipsis
-  | otherwise          = takeWidth width $ s ++ padding
+-- | General-purpose single-line string layout function.
+-- It can left- or right-pad a short string to a minimum width.
+-- It can left- or right-clip a long string to a maximum width, optionally inserting an ellipsis.
+-- It clips and pads on the right if the fourth argument is true, on the left otherwise.
+-- It treats wide characters as double width.
+fitString :: Maybe Int -> Maybe Int -> Bool -> Bool -> String -> String
+fitString mminwidth mmaxwidth ellipsify rightside s = (clip . pad) s
   where
-    ellipsis = ".."
-    padding = if pad then repeat ' ' else ""
+    clip :: String -> String
+    clip s =
+      case mmaxwidth of
+        Just w
+          | strWidth s > w ->
+            case rightside of
+              True  -> takeWidth (w - length ellipsis) s ++ ellipsis
+              False -> ellipsis ++ reverse (takeWidth (w - length ellipsis) $ reverse s)
+          | otherwise -> s
+          where
+            ellipsis = if ellipsify then ".." else ""
+        Nothing -> s
+    pad :: String -> String
+    pad s =
+      case mminwidth of
+        Just w
+          | sw < w ->
+            case rightside of
+              True  -> s ++ replicate (w - sw) ' '
+              False -> replicate (w - sw) ' ' ++ s
+          | otherwise -> s
+        Nothing -> s
+      where sw = strWidth s
+
+-- | Wide-character-aware right-clip a string to the specified width.
+-- When the second argument is true, an ellipsis will be inserted if the string is clipped.
+-- When the third argument is true, a short string will be right-padded with spaces to the specified width.
+-- Works on multi-line strings too (but will rewrite non-unix line endings).
+elideLeftWidth :: Int -> Bool -> Bool -> String -> String
+elideLeftWidth width ellipsify pad s = format s --intercalate "\n" $ map format $ lines s
+  where
+    format s
+      | strWidth s > width = ellipsis ++ reverse (takeWidth (width - length ellipsis) $ reverse s)
+      | otherwise          = reverse (takeWidth width $ reverse s ++ padding)
+      where
+        ellipsis = if ellipsify then ".." else ""
+        padding = if pad then repeat ' ' else ""
+
+-- | Wide-character-aware left-clip a string to the specified width.
+-- When the second argument is true, an ellipsis will be inserted if the string is clipped.
+-- When the third argument is true, a short string will be left-padded with spaces to the specified width.
+elideRightWidth :: Int -> Bool -> Bool -> String -> String
+elideRightWidth width ellipsify pad s = format s --intercalate "\n" $ map format $ lines s
+  where
+    format s
+      | strWidth s > width = takeWidth (width - length ellipsis) s ++ ellipsis
+      | otherwise          = takeWidth width $ s ++ padding
+      where
+        ellipsis = if ellipsify then ".." else ""
+        padding = if pad then repeat ' ' else ""
+
+-- | Left-pad a string to the specified width. (Also clips to this width.)
+-- Treats wide characters as double width.
+-- Works on multi-line strings too (but will rewrite non-unix line endings).
+padLeftWide :: Int -> String -> String
+padLeftWide w "" = replicate w ' '
+padLeftWide w s = intercalate "\n" $ map (elideLeftWidth w False True) $ lines s
+
+-- | Right-pad a string to the specified width. (Also clips to this width.)
+-- Treats wide characters as double width.
+-- Works on multi-line strings too (but will rewrite non-unix line endings).
+padRightWide :: Int -> String -> String
+padRightWide w "" = replicate w ' '
+padRightWide w s = intercalate "\n" $ map (elideRightWidth w False True) $ lines s
 
 -- | Double-width-character-aware string truncation. Take as many
 -- characters as possible from a string without exceeding the

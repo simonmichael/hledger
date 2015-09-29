@@ -353,7 +353,7 @@ balanceReportAsText opts ((items, total)) = unlines $ concat lines ++ t
                   -- with a custom format, extend the line to the full report width;
                   -- otherwise show the usual 20-char line for compatibility
                   overlinewidth | isJust (format_ opts) = maximum' $ map length $ concat lines
-                                | otherwise             = 20
+                                | otherwise             = defaultTotalFieldWidth
                   overline   = replicate overlinewidth '-'
                 in overline : totallines
                Left _ -> []
@@ -407,6 +407,8 @@ renderBalanceReportItem fmt (acctname, depth, total) =
     render1 = map (renderComponent1 (acctname, depth, total))
     render  = map (renderComponent (acctname, depth, total))
 
+defaultTotalFieldWidth = 20
+
 -- | Render one StringFormat component for a balance report item.
 renderComponent :: (AccountName, Int, MixedAmount) -> StringFormatComponent -> String
 renderComponent _ (FormatLiteral s) = s
@@ -416,7 +418,7 @@ renderComponent (acctname, depth, total) (FormatField ljust min max field) = cas
                                  Just m  -> depth * m
                                  Nothing -> depth
   AccountField     -> formatString ljust min max acctname
-  TotalField       -> formatString ljust min max $ showMixedAmountWithoutPrice total
+  TotalField       -> fitStringMulti min max True False $ showMixedAmountWithoutPrice total
   _                -> ""
 
 -- | Render one StringFormat component for a balance report item.
@@ -431,7 +433,7 @@ renderComponent1 (acctname, depth, total) (FormatField ljust min max field) = ca
                         -- better to indent the account name here rather than use a DepthField component
                         -- so that it complies with width spec. Uses a fixed indent step size.
                         indented = ((replicate (depth*2) ' ')++)
-  TotalField       -> formatString ljust min max $ ((intercalate ", " . map strip . lines) (showMixedAmountWithoutPrice total))
+  TotalField       -> fitStringMulti min max True False $ ((intercalate ", " . map strip . lines) (showMixedAmountWithoutPrice total))
   _                -> ""
 
 -- multi-column balance reports

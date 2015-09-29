@@ -120,21 +120,21 @@ postingsReportItemAsText :: CliOpts -> PostingsReportItem -> String
 postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
   -- use elide*Width to be wide-char-aware
   intercalate "\n" $
-    [concat [elideRightWidth datewidth True date
+    [concat [fitString (Just datewidth) (Just datewidth) True True date
             ," "
-            ,elideRightWidth descwidth True desc
+            ,fitString (Just descwidth) (Just descwidth) True True desc
             ,"  "
-            ,elideRightWidth acctwidth True acct
+            ,fitString (Just acctwidth) (Just acctwidth) True True acct
             ,"  "
-            ,elideLeftWidth amtwidth True amtfirstline
+            ,fitString (Just amtwidth) (Just amtwidth) True False amtfirstline
             ,"  "
-            ,elideLeftWidth balwidth True balfirstline
+            ,fitString (Just balwidth) (Just balwidth) True False balfirstline
             ]]
     ++
     [concat [spacer
-            ,elideLeftWidth amtwidth True a
+            ,fitString (Just amtwidth) (Just amtwidth) True False a
             ,"  "
-            ,elideLeftWidth balwidth True b
+            ,fitString (Just balwidth) (Just balwidth) True False b
             ]
      | (a,b) <- zip amtrest balrest
      ]
