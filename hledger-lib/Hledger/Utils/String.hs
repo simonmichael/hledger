@@ -266,17 +266,10 @@ fitto w h s = intercalate "\n" $ take h $ rows ++ repeat blankline
 
 -- Functions below treat wide (eg CJK) characters as double-width.
 
--- | A version of fitString that works on multi-line strings,
--- separate for now to avoid breakage.
--- This will rewrite any line endings to unix newlines.
-fitStringMulti :: Maybe Int -> Maybe Int -> Bool -> Bool -> String -> String
-fitStringMulti mminwidth mmaxwidth ellipsify rightside s =
-  (intercalate "\n" . map (fitString mminwidth mmaxwidth ellipsify rightside) . lines) s
-
 -- | General-purpose single-line string layout function.
 -- It can left- or right-pad a short string to a minimum width.
--- It can left- or right-clip a long string to a maximum width, optionally inserting an ellipsis.
--- It clips and pads on the right if the fourth argument is true, on the left otherwise.
+-- It can left- or right-clip a long string to a maximum width, optionally inserting an ellipsis (the third argument).
+-- It clips and pads on the right when the fourth argument is true, otherwise on the left.
 -- It treats wide characters as double width.
 fitString :: Maybe Int -> Maybe Int -> Bool -> Bool -> String -> String
 fitString mminwidth mmaxwidth ellipsify rightside s = (clip . pad) s
@@ -305,46 +298,30 @@ fitString mminwidth mmaxwidth ellipsify rightside s = (clip . pad) s
         Nothing -> s
       where sw = strWidth s
 
--- | Wide-character-aware right-clip a string to the specified width.
--- When the second argument is true, an ellipsis will be inserted if the string is clipped.
--- When the third argument is true, a short string will be right-padded with spaces to the specified width.
--- Works on multi-line strings too (but will rewrite non-unix line endings).
-elideLeftWidth :: Int -> Bool -> Bool -> String -> String
-elideLeftWidth width ellipsify pad s = format s --intercalate "\n" $ map format $ lines s
-  where
-    format s
-      | strWidth s > width = ellipsis ++ reverse (takeWidth (width - length ellipsis) $ reverse s)
-      | otherwise          = reverse (takeWidth width $ reverse s ++ padding)
-      where
-        ellipsis = if ellipsify then ".." else ""
-        padding = if pad then repeat ' ' else ""
+-- | A version of fitString that works on multi-line strings,
+-- separate for now to avoid breakage.
+-- This will rewrite any line endings to unix newlines.
+fitStringMulti :: Maybe Int -> Maybe Int -> Bool -> Bool -> String -> String
+fitStringMulti mminwidth mmaxwidth ellipsify rightside s =
+  (intercalate "\n" . map (fitString mminwidth mmaxwidth ellipsify rightside) . lines) s
 
--- | Wide-character-aware left-clip a string to the specified width.
--- When the second argument is true, an ellipsis will be inserted if the string is clipped.
--- When the third argument is true, a short string will be left-padded with spaces to the specified width.
-elideRightWidth :: Int -> Bool -> Bool -> String -> String
-elideRightWidth width ellipsify pad s = format s --intercalate "\n" $ map format $ lines s
-  where
-    format s
-      | strWidth s > width = takeWidth (width - length ellipsis) s ++ ellipsis
-      | otherwise          = takeWidth width $ s ++ padding
-      where
-        ellipsis = if ellipsify then ".." else ""
-        padding = if pad then repeat ' ' else ""
-
--- | Left-pad a string to the specified width. (Also clips to this width.)
+-- | Left-pad a string to the specified width.
 -- Treats wide characters as double width.
 -- Works on multi-line strings too (but will rewrite non-unix line endings).
 padLeftWide :: Int -> String -> String
 padLeftWide w "" = replicate w ' '
-padLeftWide w s = intercalate "\n" $ map (elideLeftWidth w False True) $ lines s
+padLeftWide w s  = intercalate "\n" $ map (fitString (Just w) Nothing False False) $ lines s
+-- XXX not yet replaceable by
+-- padLeftWide w = fitStringMulti (Just w) Nothing False False
 
--- | Right-pad a string to the specified width. (Also clips to this width.)
+-- | Right-pad a string to the specified width.
 -- Treats wide characters as double width.
 -- Works on multi-line strings too (but will rewrite non-unix line endings).
 padRightWide :: Int -> String -> String
 padRightWide w "" = replicate w ' '
-padRightWide w s = intercalate "\n" $ map (elideRightWidth w False True) $ lines s
+padRightWide w s  = intercalate "\n" $ map (fitString (Just w) Nothing False True) $ lines s
+-- XXX not yet replaceable by
+-- padRightWide w = fitStringMulti (Just w) Nothing False True
 
 -- | Double-width-character-aware string truncation. Take as many
 -- characters as possible from a string without exceeding the
