@@ -138,12 +138,12 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
           maxacctwidthseen =
             -- ltrace "maxacctwidthseen" $
             V.maximum $
-            V.map (\(indent,_,displayacct,_) -> indent*2 + length displayacct) $
+            V.map (\(indent,_,displayacct,_) -> indent*2 + strWidth displayacct) $
             -- V.filter (\(indent,_,_,_) -> (indent-1) <= fromMaybe 99999 mdepth) $
             displayitems
           maxbalwidthseen =
             -- ltrace "maxbalwidthseen" $
-            V.maximum $ V.map (\(_,_,_,amts) -> sum (map length amts) + 2 * (length amts-1)) displayitems
+            V.maximum $ V.map (\(_,_,_,amts) -> sum (map strWidth amts) + 2 * (length amts-1)) displayitems
           maxbalwidth =
             -- ltrace "maxbalwidth" $
             max 0 (availwidth - 2 - 4) -- leave 2 whitespace plus least 4 for accts
@@ -173,12 +173,12 @@ drawAccountsItem (acctwidth, balwidth) selected (indent, _fullacct, displayacct,
       -- let showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
     render $
       addamts balamts $
-      str (padright acctwidth $ elideRight acctwidth $ replicate (2*indent) ' ' ++ displayacct) <+>
+      str (fitString (Just acctwidth) (Just acctwidth) True True $ replicate (2*indent) ' ' ++ displayacct) <+>
       str "  " <+>
       str (balspace balamts)
       where
         balspace as = replicate n ' '
-          where n = max 0 (balwidth - (sum (map length as) + 2 * (length as - 1)))
+          where n = max 0 (balwidth - (sum (map strWidth as) + 2 * (length as - 1)))
         addamts :: [String] -> Widget -> Widget
         addamts [] w = w
         addamts [a] w = (<+> renderamt a) w
