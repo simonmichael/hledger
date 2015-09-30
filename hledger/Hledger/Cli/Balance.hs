@@ -250,7 +250,7 @@ import Text.CSV
 import Test.HUnit
 import Text.Printf (printf)
 import Text.Tabular as T
-import Text.Tabular.AsciiArt
+import Text.Tabular.AsciiWide
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -470,7 +470,7 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotal
    render id (" "++) showMixedAmountOneLineWithoutPrice $
     addtotalrow $
      Table
-     (T.Group NoLine $ map (Header . padright acctswidth) accts)
+     (T.Group NoLine $ map (Header . padRightWide acctswidth) accts)
      (T.Group NoLine $ map Header colheadings)
      (map rowvals items')
   where
@@ -484,7 +484,7 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotal
     renderacct ((a,a',i),_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = maybeAccountNameDrop opts a
-    acctswidth = maximum' $ map length $ accts
+    acctswidth = maximum' $ map strWidth accts
     rowvals (_,as,rowtot,rowavg) = as
                                    ++ (if row_total_ opts then [rowtot] else [])
                                    ++ (if average_ opts then [rowavg] else [])
@@ -504,7 +504,7 @@ cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (colt
    render id (" "++) showMixedAmountOneLineWithoutPrice $
     addtotalrow $
      Table
-       (T.Group NoLine $ map (Header . padright acctswidth) accts)
+       (T.Group NoLine $ map (Header . padRightWide acctswidth) accts)
        (T.Group NoLine $ map Header colheadings)
        (map rowvals items)
   where
@@ -516,7 +516,7 @@ cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (colt
     renderacct ((a,a',i),_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = maybeAccountNameDrop opts a
-    acctswidth = maximum' $ map length $ accts
+    acctswidth = maximum' $ map strWidth accts
     rowvals (_,as,rowtot,rowavg) = as
                                    ++ (if row_total_ opts then [rowtot] else [])
                                    ++ (if average_ opts then [rowavg] else [])
@@ -536,7 +536,7 @@ historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (colt
    render id (" "++) showMixedAmountOneLineWithoutPrice $
     addtotalrow $
      Table
-       (T.Group NoLine $ map (Header . padright acctswidth) accts)
+       (T.Group NoLine $ map (Header . padRightWide acctswidth) accts)
        (T.Group NoLine $ map Header colheadings)
        (map rowvals items)
   where
@@ -548,7 +548,7 @@ historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (colt
     renderacct ((a,a',i),_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
       | otherwise  = maybeAccountNameDrop opts a
-    acctswidth = maximum' $ map length $ accts
+    acctswidth = maximum' $ map strWidth accts
     rowvals (_,as,rowtot,rowavg) = as
                              ++ (if row_total_ opts then [rowtot] else [])
                              ++ (if average_ opts then [rowavg] else [])
