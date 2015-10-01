@@ -132,6 +132,7 @@ library:
     - Hledger.Cli.Print
     - Hledger.Cli.Register
     - Hledger.Cli.Stats
+    - Text.Tabular.AsciiWide
 
 executables:
   hledger:
