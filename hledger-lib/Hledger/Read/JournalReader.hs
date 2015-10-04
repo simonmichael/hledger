@@ -538,7 +538,10 @@ datep = do
   -- hacky: try to ensure precise errors for invalid dates
   -- XXX reported error position is not too good
   -- pos <- genericSourcePos <$> getPosition
-  datestr <- many1 $ choice' [digit, datesepchar]
+  datestr <- do
+    c <- digit
+    cs <- many $ choice' [digit, datesepchar]
+    return $ c:cs
   let sepchars = nub $ sort $ filter (`elem` datesepchars) datestr
   when (length sepchars /= 1) $ fail $ "bad date, different separators used: " ++ datestr
   let dateparts = wordsBy (`elem` datesepchars) datestr
