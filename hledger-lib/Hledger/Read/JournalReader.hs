@@ -995,7 +995,7 @@ multilinecommentp = do
   string "comment" >> many spacenonewline >> newline
   go
   where
-    go = try (string "end comment" >> newline >> return ())
+    go = try (eof <|> (string "end comment" >> newline >> return ()))
          <|> (anyLine >> go)
     anyLine = anyChar `manyTill` newline
 

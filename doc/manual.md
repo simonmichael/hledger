@@ -530,9 +530,8 @@ Lines in the journal beginning with a semicolon (`;`) or hash (`#`) or
 asterisk (`*`) are comments, and will be ignored. (Asterisk comments
 make it easy to treat your journal like an org-mode outline in emacs.)
 
-Also, anything between
-[`comment` and `end comment` directives](#multi-line-comments) is a
-(multi-line) comment.
+Also, anything between [`comment` and `end comment` directives](#multi-line-comments) is a (multi-line) comment.
+If there is no `end comment`, the comment extends to the end of the file.
 
 You can attach comments to a transaction by writing them after the
 description and/or indented on the following lines (before the
