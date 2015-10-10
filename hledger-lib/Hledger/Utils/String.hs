@@ -336,14 +336,17 @@ takeWidth w (c:cs) | cw <= w   = c:takeWidth (w-cw) cs
 -- from Pandoc (copyright John MacFarlane, GPL)
 -- see also http://unicode.org/reports/tr11/#Description
 
--- | Get real length of string, taking into account combining and
--- double-width characters.
+-- | Calculate the designated render width of a string, taking into
+-- account wide characters and line breaks (the longest line within a
+-- multi-line string determines the width ).
 strWidth :: String -> Int
-strWidth = foldr (\a b -> charWidth a + b) 0
+strWidth "" = 0
+strWidth s = maximum $ map (foldr (\a b -> charWidth a + b) 0) $ lines s
 
--- | Returns the width of a character in a monospace font: 0 for a
--- combining character, 1 for a regular character, 2 for an East Asian
--- wide character.
+-- | Get the designated render width of a character: 0 for a combining
+-- character, 1 for a regular character, 2 for a wide character.
+-- (Wide characters are rendered as exactly double width in apps and
+-- fonts that support it.)
 charWidth :: Char -> Int
 charWidth c =
   case c of
