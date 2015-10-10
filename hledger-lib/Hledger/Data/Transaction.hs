@@ -136,9 +136,7 @@ showTransaction' elide t =
               ++ [""]
     where
       descriptionline = rstrip $ concat [date, status, code, desc, samelinecomment]
-      date = showdate (tdate t) ++ maybe "" showedate (tdate2 t)
-      showdate = printf "%-10s" . showDate
-      showedate = printf "=%s" . showdate
+      date = showDate (tdate t) ++ maybe "" (("="++) . showDate) (tdate2 t)
       status | tstatus t == Cleared = " *"
              | tstatus t == Pending = " !"
              | otherwise            = ""
@@ -183,12 +181,13 @@ postingAsLines elideamount ps p =
       case renderCommentLines (pcomment p) of []   -> ("",[])
                                               c:cs -> (c,cs)
     showacct p =
-      indent $ showstatus p ++ printf (printf "%%-%ds" w) (showAccountName Nothing (ptype p) (paccount p))
+      indent $
+        showstatus p ++ fitString (Just w) Nothing False True (showAccountName Nothing (ptype p) (paccount p))
         where
           showstatus p = if pstatus p == Cleared then "* " else ""
-          w = maximum $ map (length . paccount) ps
+          w = maximum $ map (strWidth . paccount) ps
     showamt =
-        padleft 12 . showMixedAmount
+        padLeftWide 12 . showMixedAmount
 
 tests_postingAsLines = [
    "postingAsLines" ~: do

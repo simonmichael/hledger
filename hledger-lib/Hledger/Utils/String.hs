@@ -266,7 +266,7 @@ fitto w h s = intercalate "\n" $ take h $ rows ++ repeat blankline
 
 -- Functions below treat wide (eg CJK) characters as double-width.
 
--- | General-purpose single-line string layout function.
+-- | General-purpose wide-char-aware single-line string layout function.
 -- It can left- or right-pad a short string to a minimum width.
 -- It can left- or right-clip a long string to a maximum width, optionally inserting an ellipsis (the third argument).
 -- It clips and pads on the right when the fourth argument is true, otherwise on the left.

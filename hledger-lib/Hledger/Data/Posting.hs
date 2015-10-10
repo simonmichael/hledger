@@ -54,7 +54,6 @@ import Data.Ord
 import Data.Time.Calendar
 import Safe
 import Test.HUnit
-import Text.Printf
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -90,12 +89,12 @@ showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
     where
       ledger3ishlayout = False
       acctnamewidth = if ledger3ishlayout then 25 else 22
-      showaccountname = printf ("%-"++(show acctnamewidth)++"s") . bracket . elideAccountName width
+      showaccountname = fitString (Just acctnamewidth) Nothing False False . bracket . elideAccountName width
       (bracket,width) = case t of
                           BalancedVirtualPosting -> (\s -> "["++s++"]", acctnamewidth-2)
                           VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
                           _ -> (id,acctnamewidth)
-      showamount = padleft 12 . showMixedAmount
+      showamount = padLeftWide 12 . showMixedAmount
 
 
 showComment :: String -> String
