@@ -794,7 +794,17 @@ ghci-web: \
 		$(call def-help,ghci-web, start a GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
 	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-web/app/main.hs
 
-samplejournals: data/sample.journal data/100x100x10.journal data/1000x1000x10.journal data/1000x10000x10.journal data/10000x1000x10.journal data/10000x10000x10.journal data/100000x1000x10.journal \
+samplejournals: \
+	data/sample.journal \
+	data/100x100x10.journal \
+	data/1000x1000x10.journal \
+	data/1000x10000x10.journal \
+	data/10000x1000x10.journal \
+	data/10000x10000x10.journal \
+	data/100000x1000x10.journal \
+	data/ascii.journal \
+	data/chinese.journal \
+	data/mixed.journal \
 	$(call def-help,samplejournals, regenerate standard sample journals in data/ )
 
 data/sample.journal:
@@ -817,6 +827,15 @@ data/10000x10000x10.journal: tools/generatejournal
 
 data/100000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 100000 1000 10 >$@
+
+data/ascii.journal: tools/generatejournal
+	tools/generatejournal 3 5 5 >$@
+
+data/chinese.journal: tools/generatejournal
+	tools/generatejournal 3 5 5 --chinese >$@
+
+data/mixed.journal: tools/generatejournal
+	tools/generatejournal 3 5 5 --mixed >$@
 
 ###############################################################################
 $(call def-help-subsection,DOCUMENTATION:)
