@@ -1,17 +1,46 @@
-# ALl output should preserve alignment etc. when showing wide characters.
-# XXX For a better test, the sample journals should have commodity symbols.
-# XXX How to test hledger-ui ?
+# ALl output should preserve alignment etc. when showing wide characters
+# (in apps and fonts which render wide chars as exactly double width).
+#
+# XXX add commodity symbols and prices to the sample journals
+# XXX how to test hledger-ui ?
 
 # 1.
-hledger -f chinese.journal print
+# hledger -f chinese.journal print
+# >>>
+# 2014/01/01 transaction 1
+#     㐀                1
+#     㐀:㐁            -1
+#
+# 2014/01/02 transaction 2
+#     㐀:㐁:㐂                1
+#     㐀:㐁:㐂:㐃            -1
+#
+# 2014/01/03 transaction 3
+#     㐀:㐁:㐂:㐃:㐄             1
+#     㐀                        -1
+#
+# >>>=0
+hledger -f - print
+<<<
+2014-01-01 transaction 1
+  㐀                                          㐃㐃1 @ 2 㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂
+  㐀:㐁                                       ;㐃㐃-1
+
+2014-01-02 transaction 2
+  㐀:㐁:㐂                                    USD 1
+  㐀:㐁:㐂:㐃                                EUR -1
+
+2014-01-03 transaction 3
+  㐀:㐁:㐂:㐃:㐄                                  1
+  㐀                                            -1
 >>>
 2014/01/01 transaction 1
-    㐀                1
-    㐀:㐁            -1
+    㐀     㐃㐃1 @ 2 㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂
+    㐀:㐁         -2 㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂㐂    ; 㐃㐃-1
 
 2014/01/02 transaction 2
-    㐀:㐁:㐂                1
-    㐀:㐁:㐂:㐃            -1
+    㐀:㐁:㐂     USD 1 @@ EUR 1
+    㐀:㐁:㐂:㐃          EUR -1
 
 2014/01/03 transaction 3
     㐀:㐁:㐂:㐃:㐄             1

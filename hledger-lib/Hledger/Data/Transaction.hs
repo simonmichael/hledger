@@ -175,19 +175,25 @@ postingAsLines elideamount ps p =
     postinglines
     ++ newlinecomments
   where
-    postinglines = map rstrip $ lines $ concatTopPadded [showacct p, "  ", amount, samelinecomment]
-    amount = if elideamount then "" else showamt (pamount p)
+    postinglines = map rstrip $ lines $ concatTopPadded [account, "  ", amount, samelinecomment]
+
+    account =
+      indent $
+        showstatus p ++ fitString (Just acctwidth) Nothing False True (showAccountName Nothing (ptype p) (paccount p))
+        where
+          showstatus p = if pstatus p == Cleared then "* " else ""
+          acctwidth = maximum $ map (strWidth . paccount) ps
+
+    -- currently prices are considered part of the amount string when right-aligning amounts
+    amount
+      | elideamount = ""
+      | otherwise   = fitStringMulti (Just amtwidth) Nothing False False $ showMixedAmount $ pamount p
+      where
+        amtwidth = maximum $ 12 : map (strWidth . showMixedAmount . pamount) ps  -- min. 12 for backwards compatibility
+
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])
                                               c:cs -> (c,cs)
-    showacct p =
-      indent $
-        showstatus p ++ fitString (Just w) Nothing False True (showAccountName Nothing (ptype p) (paccount p))
-        where
-          showstatus p = if pstatus p == Cleared then "* " else ""
-          w = maximum $ map (strWidth . paccount) ps
-    showamt =
-        padLeftWide 12 . showMixedAmount
 
 tests_postingAsLines = [
    "postingAsLines" ~: do
