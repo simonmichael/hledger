@@ -63,7 +63,8 @@ data ReportItemField =
     AccountField      -- ^ A posting or balance report item's account name
   | DefaultDateField  -- ^ A posting or register or entry report item's date
   | DescriptionField  -- ^ A posting or register or entry report item's description
-  | TotalField        -- ^ A balance or posting report item's balance or running total
+  | TotalField        -- ^ A balance or posting report item's balance or running total.
+                      --   Always rendered right-justified.
   | DepthSpacerField  -- ^ A balance report item's indent level (which may be different from the account name depth).
                       --   Rendered as this number of spaces, multiplied by the minimum width spec if any.
   | FieldNo Int       -- ^ A report item's nth field. May be unimplemented.

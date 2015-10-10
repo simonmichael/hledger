@@ -1581,19 +1581,19 @@ $ hledger balance -V ...
 ##### Custom balance output
 
 ``` {.shell .right}
-$ hledger balance --format "%20(account) %-(total)"
-              assets $-1
-         bank:saving $1
-                cash $-2
-            expenses $2
-                food $1
-            supplies $1
-              income $-2
-               gifts $-1
-              salary $-1
-   liabilities:debts $1
---------------------
-                   0
+$ hledger balance --format "%20(account) %12(total)"
+              assets          $-1
+         bank:saving           $1
+                cash          $-2
+            expenses           $2
+                food           $1
+            supplies           $1
+              income          $-2
+               gifts          $-1
+              salary          $-1
+   liabilities:debts           $1
+---------------------------------
+                                0
 ```
 
 In simple (non-multi-column) balance reports, you can customise the
@@ -1601,15 +1601,15 @@ output with `--format FMT`. FMT (plus a newline) will be displayed for
 each account/balance pair. It is a format string with data fields
 interpolated by
 
-`%[-][MIN][.MAX](FIELDNAME)`
+`%[MIN][.MAX](FIELDNAME)`
 
-where a minus sign means left-justify, MIN means pad with spaces to at
-least this width, and MAX means truncate at this width. The field name
-must be enclosed in parentheses. Three are available:
+where MIN means pad with spaces to at least this width, and MAX means
+truncate at this width. The field name must be enclosed in
+parentheses. Three fields are available:
 
 - `depth_spacer` - a number of spaces equal to the account's depth, or if MIN is specified, MIN * depth spaces.
 - `account`      - the account's name
-- `total`        - the account's balance/sum of postings
+- `total`        - the account's balance/posted total, right justified
 
 When the total has multiple commodities, by default each commodity is
 displayed on a separate line, and the report item will be bottom
@@ -1620,13 +1620,12 @@ beginning the format with a special prefix:
 - `%^` - render on multiple lines, top-aligned
 - `%,` - render on one line, with multi-line values comma-separated
 
-There are some quirks:
-
-- In one-line mode, `%(depth_spacer)` has no effect, instead `%(account)` has indentation built in.
-- Consistent column widths are not well enforced, causing ragged edges unless you set suitable widths.
-- Beware of specifying a maximum width; it will clip account names and amounts that are too wide, with no visible indication.
-
-Some experimentation may be needed to get pleasing output.
+There are some quirks, and experimentation may be needed to get pleasing output.
+In one-line mode, `%(depth_spacer)` has no effect, instead `%(account)` has indentation built in.
+<!-- XXX retest:
+Consistent column widths are not well enforced, causing ragged edges unless you set suitable widths.
+Beware of specifying a maximum width; it will clip account names and amounts that are too wide, with no visible indication.
+-->
 
 Examples:
 
