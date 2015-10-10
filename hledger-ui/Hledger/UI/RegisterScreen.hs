@@ -124,8 +124,8 @@ drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{repo
         whitespacewidth = 10 -- inter-column whitespace, fixed width
         minnonamtcolswidth = datewidth + 2 + 2 -- date column plus at least 2 for desc and accts
         maxamtswidth = max 0 (totalwidth - minnonamtcolswidth - whitespacewidth)
-        maxchangewidthseen = maximum' $ map (length . fourth5) displayitems
-        maxbalwidthseen = maximum' $ map (length . fifth5) displayitems
+        maxchangewidthseen = maximum' $ map (strWidth . fourth5) displayitems
+        maxbalwidthseen = maximum' $ map (strWidth . fifth5) displayitems
         changewidthproportion = fromIntegral maxchangewidthseen / fromIntegral (maxchangewidthseen + maxbalwidthseen)
         maxchangewidth = round $ changewidthproportion * fromIntegral maxamtswidth
         maxbalwidth = maxamtswidth - maxchangewidth
@@ -138,8 +138,8 @@ drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{repo
           -- trace (show (totalwidth, datewidth, changewidth, balwidth, whitespacewidth)) $
           max 0 (totalwidth - datewidth - changewidth - balwidth - whitespacewidth)
         -- allocating proportionally.
-        -- descwidth' = maximum' $ map (length . second5) displayitems
-        -- acctswidth' = maximum' $ map (length . third5) displayitems
+        -- descwidth' = maximum' $ map (strWidth . second5) displayitems
+        -- acctswidth' = maximum' $ map (strWidth . third5) displayitems
         -- descwidthproportion = (descwidth' + acctswidth') / descwidth'
         -- maxdescwidth = min (maxdescacctswidth - 7) (maxdescacctswidth / descwidthproportion)
         -- maxacctswidth = maxdescacctswidth - maxdescwidth
@@ -164,15 +164,15 @@ drawRegisterItem :: (Int,Int,Int,Int,Int) -> Bool -> (String,String,String,Strin
 drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected (date,desc,accts,change,bal) =
   Widget Greedy Fixed $ do
     render $
-      str (padright datewidth $ elideRight datewidth date) <+>
+      str (fitString (Just datewidth) (Just datewidth) True True date) <+>
       str "  " <+>
-      str (padright descwidth $ elideRight descwidth desc) <+>
+      str (fitString (Just descwidth) (Just descwidth) True True desc) <+>
       str "  " <+>
-      str (padright acctswidth $ elideLeft acctswidth $ accts) <+>
+      str (fitString (Just acctswidth) (Just acctswidth) True True accts) <+>
       str "   " <+>
-      withAttr changeattr (str (padleft changewidth $ elideLeft changewidth change)) <+>
+      withAttr changeattr (str (fitString (Just changewidth) (Just changewidth) True False change)) <+>
       str "   " <+>
-      withAttr balattr (str (padleft balwidth $ elideLeft balwidth bal))
+      withAttr balattr (str (fitString (Just balwidth) (Just balwidth) True False bal))
   where
     changeattr | '-' `elem` change = sel $ "list" <> "amount" <> "decrease"
                | otherwise         = sel $ "list" <> "amount" <> "increase"
