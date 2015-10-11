@@ -81,7 +81,12 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [date,desc,acct,amt,bal]
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> String
-postingsReportAsText opts = unlines . map (postingsReportItemAsText opts) . snd
+postingsReportAsText opts (_,items) = unlines $ map (postingsReportItemAsText opts amtwidth balwidth) items
+  where
+    amtwidth = maximum $ 12 : map (strWidth . showMixedAmount . itemamt) items
+    balwidth = maximum $ 12 : map (strWidth . showMixedAmount . itembal) items
+    itemamt (_,_,_,Posting{pamount=a},_) = a
+    itembal (_,_,_,_,a) = a
 
 tests_postingsReportAsText = [
   "postingsReportAsText" ~: do
@@ -116,9 +121,10 @@ tests_postingsReportAsText = [
 -- has multiple commodities. Does not yet support formatting control
 -- like balance reports.
 --
-postingsReportItemAsText :: CliOpts -> PostingsReportItem -> String
-postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
+postingsReportItemAsText :: CliOpts -> Int -> Int -> PostingsReportItem -> String
+postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, menddate, mdesc, p, b) =
   -- use elide*Width to be wide-char-aware
+  -- trace (show (totalwidth, datewidth, descwidth, acctwidth, amtwidth, balwidth)) $
   intercalate "\n" $
     [concat [fitString (Just datewidth) (Just datewidth) True True date
             ," "
@@ -140,15 +146,23 @@ postingsReportItemAsText opts (mdate, menddate, mdesc, p, b) =
      ]
     where
       -- calculate widths
-      -- XXX should be smarter, eg resize amount columns when needed; cf hledger-ui
       (totalwidth,mdescwidth) = registerWidthsFromOpts opts
-      amtwidth = 12
-      balwidth = 12
       (datewidth, date) = case (mdate,menddate) of
                             (Just _, Just _)   -> (21, showDateSpan (DateSpan mdate menddate))
                             (Nothing, Just _)  -> (21, "")
                             (Just d, Nothing)  -> (10, showDate d)
                             _                  -> (10, "")
+      (amtwidth, balwidth)
+        | shortfall <= 0 = (preferredamtwidth, preferredbalwidth)
+        | otherwise      = (adjustedamtwidth, adjustedbalwidth)
+        where
+          mincolwidth = 2 -- columns always show at least an ellipsis
+          maxamtswidth = max 0 (totalwidth - (datewidth + 1 + mincolwidth + 2 + mincolwidth + 2 + 2))
+          shortfall = (preferredamtwidth + preferredbalwidth) - maxamtswidth
+          amtwidthproportion = fromIntegral preferredamtwidth / fromIntegral (preferredamtwidth + preferredbalwidth)
+          adjustedamtwidth = round $ amtwidthproportion * fromIntegral maxamtswidth
+          adjustedbalwidth = maxamtswidth - adjustedamtwidth
+
       remaining = totalwidth - (datewidth + 1 + 2 + amtwidth + 2 + balwidth)
       (descwidth, acctwidth)
         | hasinterval = (0, remaining - 2)
