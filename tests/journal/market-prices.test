@@ -1,0 +1,25 @@
+# market prices defined with the P directive are used by -V/--value.
+
+# 1. market prices (a) are affected by D directives and (b) contribute
+# to amount style canonicalisation.
+# (https://github.com/simonmichael/hledger/issues/131#issuecomment-133545140)
+
+hledger -f- balance -V
+<<<
+D 1000.00 H
+
+P 2015/08/14 EEEE   41.66
+P 2015/08/14 FFFF   74.62
+P 2015/08/14 GGGG  32.39
+
+2015/08/15
+    a  2.4120 EEEE @@ 100
+    a  0.3350 FFFF @@ 25
+    a  0.7718 GGGG @@ 25
+    b
+>>>
+            150.48 H  a
+           -150.00 H  b
+--------------------
+              0.48 H
+>>>=0

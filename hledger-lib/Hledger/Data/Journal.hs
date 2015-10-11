@@ -583,13 +583,23 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
 --               Just (UnitPrice ma)  -> c:(concatMap amountCommodities $ amounts ma)
 --               Just (TotalPrice ma) -> c:(concatMap amountCommodities $ amounts ma)
 
--- | Get all this journal's (mixed) amounts, in the order parsed.
-journalMixedAmounts :: Journal -> [MixedAmount]
-journalMixedAmounts = map pamount . journalPostings
-
--- | Get all this journal's component amounts, roughly in the order parsed.
+-- | Get an ordered list of the amounts in this journal which will
+-- influence amount style canonicalisation. These are:
+--
+-- * amounts in market price directives (in parse order)
+-- * amounts in postings (in parse order)
+--
+-- Amounts in default commodity directives also influence
+-- canonicalisation, but earlier, as amounts are parsed.
+-- Amounts in posting prices are not used for canonicalisation.
+--
 journalAmounts :: Journal -> [Amount]
-journalAmounts = concatMap flatten . journalMixedAmounts where flatten (Mixed as) = as
+journalAmounts j =
+  concat
+   [map mpamount $ jmarketprices j
+   ,concatMap flatten $ map pamount $ journalPostings j
+   ]
+  where flatten (Mixed as) = as
 
 -- | The fully specified date span enclosing the dates (primary or secondary)
 -- of all this journal's transactions and postings, or DateSpan Nothing Nothing
