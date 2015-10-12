@@ -51,10 +51,11 @@ import Prelude ()
 import Prelude.Compat
 import Control.Monad (liftM)
 import Control.Monad.Except (ExceptT)
+import Control.Monad.State (StateT, get)
 import Data.List (isPrefixOf, foldl')
 import Data.Maybe (fromMaybe)
 import Test.HUnit
-import Text.Parsec hiding (parse)
+import Text.Megaparsec hiding (parse)
 import System.FilePath
 
 import Hledger.Data
@@ -84,10 +85,10 @@ detect f s
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parse _ = parseJournalWith timelogFile
 
-timelogFile :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate, JournalContext)
+timelogFile :: ParsecT [Char] (ExceptT String (StateT JournalContext IO)) (JournalUpdate, JournalContext)
 timelogFile = do items <- many timelogItem
                  eof
-                 ctx <- getState
+                 ctx <- get
                  return (liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence items, ctx)
     where
       -- As all ledger line types can be distinguished by the first
@@ -101,14 +102,14 @@ timelogFile = do items <- many timelogItem
                           ] <?> "timelog entry, or default year or historical price directive"
 
 -- | Parse a timelog entry.
-timelogentry :: ParsecT [Char] JournalContext (ExceptT String IO) TimeLogEntry
+timelogentry :: ParsecT [Char] (ExceptT String (StateT JournalContext IO)) TimeLogEntry
 timelogentry = do
   sourcepos <- genericSourcePos <$> getPosition
   code <- oneOf "bhioO"
-  many1 spacenonewline
+  some spacenonewline
   datetime <- datetimep
-  account <- fromMaybe "" <$> optionMaybe (many1 spacenonewline >> modifiedaccountnamep)
-  description <- fromMaybe "" <$> optionMaybe (many1 spacenonewline >> restofline)
+  account <- fromMaybe "" <$> optional (some spacenonewline >> modifiedaccountnamep)
+  description <- fromMaybe "" <$> optional (some spacenonewline >> restofline)
   return $ TimeLogEntry sourcepos (read [code]) datetime account description
 
 tests_Hledger_Read_TimelogReader = TestList [

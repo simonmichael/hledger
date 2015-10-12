@@ -19,7 +19,7 @@ import Numeric
 import Data.Char (isPrint)
 import Data.Maybe
 import Test.HUnit
-import Text.Parsec
+import Text.Megaparsec
 
 import Hledger.Utils.String (formatString)
 
@@ -78,15 +78,15 @@ data ReportItemField =
 
 -- | Parse a string format specification, or return a parse error.
 parseStringFormat :: String -> Either String StringFormat
-parseStringFormat input = case (runParser (stringformatp <* eof) () "(unknown)") input of
+parseStringFormat input = case (runParser (stringformatp <* eof) "(unknown)") input of
     Left y -> Left $ show y
     Right x -> Right x
 
 defaultStringFormatStyle = BottomAligned
 
-stringformatp :: Stream [Char] m Char => ParsecT [Char] st m StringFormat
+stringformatp :: Stream [Char] Char => ParsecT [Char] m StringFormat
 stringformatp = do
-  alignspec <- optionMaybe (try $ char '%' >> oneOf "^_,")
+  alignspec <- optional (try $ char '%' >> oneOf "^_,")
   let constructor =
         case alignspec of
           Just '^' -> TopAligned
@@ -95,24 +95,24 @@ stringformatp = do
           _        -> defaultStringFormatStyle
   constructor <$> many componentp
 
-componentp :: Stream [Char] m Char => ParsecT [Char] st m StringFormatComponent
+componentp :: Stream [Char] Char => ParsecT [Char] m StringFormatComponent
 componentp = formatliteralp <|> formatfieldp
 
-formatliteralp :: Stream [Char] m Char => ParsecT [Char] st m StringFormatComponent
+formatliteralp :: Stream [Char] Char => ParsecT [Char] m StringFormatComponent
 formatliteralp = do
-    s <- many1 c
+    s <- some c
     return $ FormatLiteral s
     where
       isPrintableButNotPercentage x = isPrint x && (not $ x == '%')
       c =     (satisfy isPrintableButNotPercentage <?> "printable character")
           <|> try (string "%%" >> return '%')
 
-formatfieldp :: Stream [Char] m Char => ParsecT [Char] st m StringFormatComponent
+formatfieldp :: Stream [Char] Char => ParsecT [Char] m StringFormatComponent
 formatfieldp = do
     char '%'
-    leftJustified <- optionMaybe (char '-')
-    minWidth <- optionMaybe (many1 $ digit)
-    maxWidth <- optionMaybe (do char '.'; many1 $ digit) -- TODO: Can this be (char '1') *> (many1 digit)
+    leftJustified <- optional (char '-')
+    minWidth <- optional (some $ digitChar)
+    maxWidth <- optional (do char '.'; some $ digitChar) -- TODO: Can this be (char '1') *> (some digitChar)
     char '('
     f <- fieldp
     char ')'
@@ -122,14 +122,14 @@ formatfieldp = do
         Just text -> Just m where ((m,_):_) = readDec text
         _ -> Nothing
 
-fieldp :: Stream [Char] m Char => ParsecT [Char] st m ReportItemField
+fieldp :: Stream [Char] Char => ParsecT [Char] m ReportItemField
 fieldp = do
         try (string "account" >> return AccountField)
     <|> try (string "depth_spacer" >> return DepthSpacerField)
     <|> try (string "date" >> return DescriptionField)
     <|> try (string "description" >> return DescriptionField)
     <|> try (string "total" >> return TotalField)
-    <|> try (many1 digit >>= (\s -> return $ FieldNo $ read s))
+    <|> try (some digitChar >>= (\s -> return $ FieldNo $ read s))
 
 ----------------------------------------------------------------------
 
