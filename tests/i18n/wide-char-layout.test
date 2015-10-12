@@ -5,21 +5,6 @@
 # XXX how to test hledger-ui ?
 
 # 1.
-# hledger -f chinese.journal print
-# >>>
-# 2014/01/01 transaction 1
-#     㐀                1
-#     㐀:㐁            -1
-#
-# 2014/01/02 transaction 2
-#     㐀:㐁:㐂                1
-#     㐀:㐁:㐂:㐃            -1
-#
-# 2014/01/03 transaction 3
-#     㐀:㐁:㐂:㐃:㐄             1
-#     㐀                        -1
-#
-# >>>=0
 hledger -f - print
 <<<
 2014-01-01 transaction 1
