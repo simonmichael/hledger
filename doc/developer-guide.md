@@ -842,6 +842,13 @@ Here's the original [proposal](http://article.gmane.org/gmane.comp.finance.ledge
   [mail thread](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1070),
   [IRC log](http://hledger.org/static/irc-20140725-code-review.html)
 
+Dev sprint/party #2 was on 2015/10/10.
+
+- [announcement, report](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1254)
+- [chat](http://ircbrowse.net/day/hledger/2015/10/10)
+  [log](http://ircbrowse.net/day/hledger/2015/10/11)
+
+
 
 <!-- ### release process -->
 
