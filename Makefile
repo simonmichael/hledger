@@ -604,9 +604,9 @@ builtintest: \
 # 	@(run$(GHC) $(MAIN) test \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 
-# NB ensure hledger executable is current (eg do pkgtest first)
 functest: tests/addons/hledger-addon \
-	$(call def-help,functest, run hledger functional tests with the stack build )
+	$(call def-help,functest, run the functional tests for hledger )
+	@stack build hledger
 	@(COLUMNS=80 $(SHELLTESTSTK) tests \
 		&& echo $@ PASSED) || echo $@ FAILED
 
