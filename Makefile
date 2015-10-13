@@ -374,11 +374,17 @@ devprof: dev.hs $(SOURCEFILES) \
 	$(call def-help,devprof, build the dev.hs script with profiling support )
 	stack ghc -- $(CABALMACROSFLAGS) -ihledger-lib dev.hs -rtsopts -prof -fprof-auto -osuf p_o -o devprof
 
-profile-dev: devprof \
-	$(call def-help,devprof, profile the dev.hs script )
+dev-profile: devprof \
+	$(call def-help,dev-profile, get a time & space profile of the dev.hs script )
 	time ./devprof +RTS -P \
 	&& cp devprof.prof devprof.prof.$(TIME) \
 	&& profiteur devprof.prof
+
+dev-heap: devprof \
+	$(call def-help,dev-heap, get a heap profile of the dev.hs script )
+	time ./devprof +RTS -hc \
+	&& cp devprof.hp devprof.hp.$(TIME) \
+	&& hp2ps devprof.hp.$(TIME)
 
 # # build other executables quickly
 
