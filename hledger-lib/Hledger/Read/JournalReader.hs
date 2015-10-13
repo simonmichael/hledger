@@ -105,9 +105,8 @@ genericSourcePos p = GenericSourcePos (sourceName p) (sourceLine p) (sourceColum
 -- monadic actions which can do IO or raise an exception) into a
 -- single equivalent action.
 combineJournalUpdates :: [JournalUpdate] -> JournalUpdate
-combineJournalUpdates us = liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence us
+combineJournalUpdates us = foldl' (flip (.)) id <$> sequence us
 -- XXX may be contributing to excessive stack use
---combineJournalUpdates us = foldl' (flip (.)) id <$> sequence us
 
 -- cf http://neilmitchell.blogspot.co.uk/2015/09/detecting-space-leaks.html
 -- $ ./devprof +RTS -K576K -xc
