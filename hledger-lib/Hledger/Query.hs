@@ -49,7 +49,7 @@ import Data.Time.Calendar
 import Safe (readDef, headDef)
 import Test.HUnit
 -- import Text.ParserCombinators.Parsec
-import Text.Parsec hiding (Empty)
+import Text.Megaparsec hiding (Empty)
 
 import Hledger.Utils
 import Hledger.Data.Types
@@ -176,9 +176,9 @@ tests_parseQuery = [
 words'' :: [String] -> String -> [String]
 words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
     where
-      maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, pattern] `sepBy` many1 spacenonewline
+      maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, pattern] `sepBy` some spacenonewline
       prefixedQuotedPattern = do
-        not' <- fromMaybe "" `fmap` (optionMaybe $ string "not:")
+        not' <- fromMaybe "" `fmap` (optional $ string "not:")
         let allowednexts | null not' = prefixes
                          | otherwise = prefixes ++ [""]
         next <- choice' $ map string allowednexts

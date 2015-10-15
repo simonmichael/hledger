@@ -15,6 +15,7 @@ extra-deps:
 - text-zipper-0.2.1
 - uglymemo-0.1.0.1
 - vty-5.3.1
+- megaparsec-4.0.0
 
 ghc-options:
   rtsopts:

@@ -54,7 +54,8 @@ import Prelude ()
 import Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
 import Control.Monad.Compat
-import Control.Monad.Except (ExceptT(..), liftIO, runExceptT, throwError, catchError)
+import Control.Monad.Except (ExceptT(..), liftIO, runExceptT, throwError, catchError, mapExceptT)
+import Control.Monad.State (MonadState, MonadIO, StateT, get, put, modify', evalState, evalStateT)
 import Data.Char (isNumber)
 import Data.List.Compat
 import Data.List.Split (wordsBy)
@@ -65,9 +66,9 @@ import Safe (headDef, lastDef)
 import Test.HUnit
 #ifdef TESTS
 import Test.Framework
-import Text.Parsec.Error
+import Text.Megaparsec.Error
 #endif
-import Text.Parsec hiding (parse)
+import Text.Megaparsec hiding (parse)
 import Text.Printf
 import System.FilePath
 import System.Time (getClockTime)
@@ -75,6 +76,8 @@ import System.Time (getClockTime)
 import Hledger.Data
 import Hledger.Utils
 
+hideStateT :: Monad m => ExceptT e (StateT s m) a -> s -> ExceptT e m a
+hideStateT x s = mapExceptT (\p -> evalStateT p s) x
 
 -- standard reader exports
 
@@ -162,12 +165,12 @@ combineJournalUpdates us = foldl' (flip (.)) id <$> sequence us
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
-parseJournalWith :: (ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate,JournalContext)) -> Bool -> FilePath -> String -> ExceptT String IO Journal
+parseJournalWith :: (ParsecT [Char] (ExceptT String (StateT JournalContext IO)) (JournalUpdate,JournalContext)) -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parseJournalWith p assrt f s = do
   tc <- liftIO getClockTime
   tl <- liftIO getCurrentLocalTime
   y <- liftIO getCurrentYear
-  r <- runParserT p nullctx{ctxYear=Just y} f s
+  r <- hideStateT (runParserT p f s) nullctx{ctxYear=Just y}
   case r of
     Right (updates,ctx) -> do
                            j <- updates `ap` return nulljournal
@@ -176,50 +179,50 @@ parseJournalWith p assrt f s = do
                              Left estr -> throwError estr
     Left e -> throwError $ show e
 
-setYear :: Stream [Char] m Char => Integer -> ParsecT [Char] JournalContext m ()
-setYear y = modifyState (\ctx -> ctx{ctxYear=Just y})
+setYear :: (Stream [Char] Char, MonadState JournalContext m)  => Integer -> ParsecT [Char] m ()
+setYear y = modify' (\ctx -> ctx{ctxYear=Just y})
 
-getYear :: Stream [Char] m Char => ParsecT s JournalContext m (Maybe Integer)
-getYear = liftM ctxYear getState
+getYear :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT s m (Maybe Integer)
+getYear = liftM ctxYear get
 
-setDefaultCommodityAndStyle :: Stream [Char] m Char => (Commodity,AmountStyle) -> ParsecT [Char] JournalContext m ()
-setDefaultCommodityAndStyle cs = modifyState (\ctx -> ctx{ctxDefaultCommodityAndStyle=Just cs})
+setDefaultCommodityAndStyle :: (Stream [Char] Char, MonadState JournalContext m) => (Commodity,AmountStyle) -> ParsecT [Char] m ()
+setDefaultCommodityAndStyle cs = modify' (\ctx -> ctx{ctxDefaultCommodityAndStyle=Just cs})
 
-getDefaultCommodityAndStyle :: Stream [Char] m Char => ParsecT [Char] JournalContext m (Maybe (Commodity,AmountStyle))
-getDefaultCommodityAndStyle = ctxDefaultCommodityAndStyle `fmap` getState
+getDefaultCommodityAndStyle :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m (Maybe (Commodity,AmountStyle))
+getDefaultCommodityAndStyle = ctxDefaultCommodityAndStyle `fmap` get
 
-pushParentAccount :: Stream [Char] m Char => String -> ParsecT [Char] JournalContext m ()
-pushParentAccount parent = modifyState addParentAccount
+pushParentAccount :: (Stream [Char] Char, MonadState JournalContext m) => String -> ParsecT [Char] m ()
+pushParentAccount parent = modify' addParentAccount
     where addParentAccount ctx0 = ctx0 { ctxAccount = parent : ctxAccount ctx0 }
 
-popParentAccount :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
-popParentAccount = do ctx0 <- getState
+popParentAccount :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m ()
+popParentAccount = do ctx0 <- get
                       case ctxAccount ctx0 of
                         [] -> unexpected "End of account block with no beginning"
-                        (_:rest) -> setState $ ctx0 { ctxAccount = rest }
+                        (_:rest) -> put $ ctx0 { ctxAccount = rest }
 
-getParentAccount :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
-getParentAccount = liftM (concatAccountNames . reverse . ctxAccount) getState
+getParentAccount :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m String
+getParentAccount = liftM (concatAccountNames . reverse . ctxAccount) get
 
-addAccountAlias :: Stream [Char] m Char => AccountAlias -> ParsecT [Char] JournalContext m ()
-addAccountAlias a = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=a:ctxAliases})
+addAccountAlias :: (Stream [Char] Char, MonadState JournalContext m) => AccountAlias -> ParsecT [Char] m ()
+addAccountAlias a = modify' (\(ctx@Ctx{..}) -> ctx{ctxAliases=a:ctxAliases})
 
-getAccountAliases :: Stream [Char] m Char => ParsecT [Char] JournalContext m [AccountAlias]
-getAccountAliases = liftM ctxAliases getState
+getAccountAliases :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m [AccountAlias]
+getAccountAliases = liftM ctxAliases get
 
-clearAccountAliases :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
-clearAccountAliases = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
+clearAccountAliases :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m ()
+clearAccountAliases = modify' (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
 
 -- parsers
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" (and final "JournalContext") which can be
 -- applied to an empty journal to get the final result.
-journal :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate,JournalContext)
+journal :: ParsecT [Char] (ExceptT String (StateT JournalContext IO)) (JournalUpdate,JournalContext)
 journal = do
   journalupdates <- many journalItem
   eof
-  finalctx <- getState
+  finalctx <- get
   return $ (combineJournalUpdates journalupdates, finalctx)
     where
       -- As all journal line types can be distinguished by the first
@@ -235,7 +238,7 @@ journal = do
                            ] <?> "journal transaction or directive"
 
 -- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
-directive :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+directive :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 directive = do
   optional $ char '!'
   choice' [
@@ -253,19 +256,19 @@ directive = do
    ]
   <?> "directive"
 
-includedirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+includedirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 includedirective = do
   string "include"
-  many1 spacenonewline
+  some spacenonewline
   filename <- restofline
-  outerState <- getState
+  outerState <- get
   outerPos <- getPosition
   let curdir = takeDirectory (sourceName outerPos)
   let (u::ExceptT String IO (Journal -> Journal, JournalContext)) = do
        filepath <- expandPath curdir filename
        txt <- readFileOrError outerPos filepath
        let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
-       r <- runParserT journal outerState filepath txt
+       r <- hideStateT (runParserT journal filepath txt) outerState
        case r of
          Right (ju, ctx) -> do
                             u <- combineJournalUpdates [ return $ journalAddFile (filepath,txt)
@@ -285,48 +288,48 @@ journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
  -- NOTE: first encountered file to left, to avoid a reverse
 
-accountdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+accountdirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 accountdirective = do
   string "account"
-  many1 spacenonewline
+  some spacenonewline
   parent <- accountnamep
   newline
   pushParentAccount parent
   -- return $ return id
   return $ ExceptT $ return $ Right id
 
-enddirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+enddirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 enddirective = do
   string "end"
   popParentAccount
   -- return (return id)
   return $ ExceptT $ return $ Right id
 
-aliasdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+aliasdirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 aliasdirective = do
   string "alias"
-  many1 spacenonewline
+  some spacenonewline
   alias <- accountaliasp
   addAccountAlias alias
   return $ return id
 
-accountaliasp :: Stream [Char] m Char => ParsecT [Char] st m AccountAlias
+accountaliasp :: Stream [Char] Char => ParsecT [Char] m AccountAlias
 accountaliasp = regexaliasp <|> basicaliasp
 
-basicaliasp :: Stream [Char] m Char => ParsecT [Char] st m AccountAlias
+basicaliasp :: Stream [Char] Char => ParsecT [Char] m AccountAlias
 basicaliasp = do
   -- pdbg 0 "basicaliasp"
-  old <- rstrip <$> (many1 $ noneOf "=")
+  old <- rstrip <$> (some $ noneOf "=")
   char '='
   many spacenonewline
   new <- rstrip <$> anyChar `manyTill` eolof  -- don't require a final newline, good for cli options
   return $ BasicAlias old new
 
-regexaliasp :: Stream [Char] m Char => ParsecT [Char] st m AccountAlias
+regexaliasp :: Stream [Char] Char => ParsecT [Char] m AccountAlias
 regexaliasp = do
   -- pdbg 0 "regexaliasp"
   char '/'
-  re <- many1 $ noneOf "/\n\r" -- paranoid: don't try to read past line end
+  re <- some $ noneOf "/\n\r" -- paranoid: don't try to read past line end
   char '/'
   many spacenonewline
   char '='
@@ -334,69 +337,69 @@ regexaliasp = do
   repl <- rstrip <$> anyChar `manyTill` eolof
   return $ RegexAlias re repl
 
-endaliasesdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+endaliasesdirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 endaliasesdirective = do
   string "end aliases"
   clearAccountAliases
   return (return id)
 
-tagdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+tagdirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 tagdirective = do
   string "tag" <?> "tag directive"
-  many1 spacenonewline
-  _ <- many1 nonspace
+  some spacenonewline
+  _ <- some nonspace
   restofline
   return $ return id
 
-endtagdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+endtagdirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 endtagdirective = do
   (string "end tag" <|> string "pop") <?> "end tag or pop directive"
   restofline
   return $ return id
 
-defaultyeardirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+defaultyeardirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 defaultyeardirective = do
   char 'Y' <?> "default year"
   many spacenonewline
-  y <- many1 digit
+  y <- some digitChar
   let y' = read y
   failIfInvalidYear y
   setYear y'
   return $ return id
 
-defaultcommoditydirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+defaultcommoditydirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 defaultcommoditydirective = do
   char 'D' <?> "default commodity"
-  many1 spacenonewline
+  some spacenonewline
   Amount{..} <- amountp
   setDefaultCommodityAndStyle (acommodity, astyle)
   restofline
   return $ return id
 
-marketpricedirective :: ParsecT [Char] JournalContext (ExceptT String IO) MarketPrice
+marketpricedirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) MarketPrice
 marketpricedirective = do
   char 'P' <?> "market price"
   many spacenonewline
   date <- try (do {LocalTime d _ <- datetimep; return d}) <|> datep -- a time is ignored
-  many1 spacenonewline
+  some spacenonewline
   symbol <- commoditysymbol
   many spacenonewline
   price <- amountp
   restofline
   return $ MarketPrice date symbol price
 
-ignoredpricecommoditydirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+ignoredpricecommoditydirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 ignoredpricecommoditydirective = do
   char 'N' <?> "ignored-price commodity"
-  many1 spacenonewline
+  some spacenonewline
   commoditysymbol
   restofline
   return $ return id
 
-commodityconversiondirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+commodityconversiondirective :: (MonadState JournalContext m, MonadIO m) => ParsecT [Char] (ExceptT String m) JournalUpdate
 commodityconversiondirective = do
   char 'C' <?> "commodity conversion"
-  many1 spacenonewline
+  some spacenonewline
   amountp
   many spacenonewline
   char '='
@@ -405,7 +408,7 @@ commodityconversiondirective = do
   restofline
   return $ return id
 
-modifiertransaction :: ParsecT [Char] JournalContext (ExceptT String IO) ModifierTransaction
+modifiertransaction :: ParsecT [Char] (ExceptT String (StateT JournalContext IO)) ModifierTransaction
 modifiertransaction = do
   char '=' <?> "modifier transaction"
   many spacenonewline
@@ -413,7 +416,7 @@ modifiertransaction = do
   postings <- postings
   return $ ModifierTransaction valueexpr postings
 
-periodictransaction :: ParsecT [Char] JournalContext (ExceptT String IO) PeriodicTransaction
+periodictransaction :: ParsecT [Char] (ExceptT String (StateT JournalContext IO)) PeriodicTransaction
 periodictransaction = do
   char '~' <?> "periodic transaction"
   many spacenonewline
@@ -422,12 +425,12 @@ periodictransaction = do
   return $ PeriodicTransaction periodexpr postings
 
 -- | Parse a (possibly unbalanced) transaction.
-transaction :: ParsecT [Char] JournalContext (ExceptT String IO) Transaction
+transaction :: ParsecT [Char] (ExceptT String (StateT JournalContext IO)) Transaction
 transaction = do
   -- ptrace "transaction"
   sourcepos <- genericSourcePos <$> getPosition
   date <- datep <?> "transaction"
-  edate <- optionMaybe (secondarydatep date) <?> "secondary date"
+  edate <- optional (secondarydatep date) <?> "secondary date"
   lookAhead (spacenonewline <|> newline) <?> "whitespace or newline"
   status <- statusp <?> "cleared status"
   code <- codep <?> "transaction code"
@@ -536,14 +539,14 @@ test_transaction = do
 -- Hyphen (-) and period (.) are also allowed as separators.
 -- The year may be omitted if a default year has been set.
 -- Leading zeroes may be omitted.
-datep :: Stream [Char] m t => ParsecT [Char] JournalContext m Day
+datep :: (MonadState JournalContext m) => Stream [Char] t => ParsecT [Char] m Day
 datep = do
   -- hacky: try to ensure precise errors for invalid dates
   -- XXX reported error position is not too good
   -- pos <- genericSourcePos <$> getPosition
   datestr <- do
-    c <- digit
-    cs <- many $ choice' [digit, datesepchar]
+    c <- digitChar
+    cs <- many $ choice' [digitChar, datesepchar]
     return $ c:cs
   let sepchars = nub $ sort $ filter (`elem` datesepchars) datestr
   when (length sepchars /= 1) $ fail $ "bad date, different separators used: " ++ datestr
@@ -566,35 +569,35 @@ datep = do
 -- Seconds are optional.
 -- The timezone is optional and ignored (the time is always interpreted as a local time).
 -- Leading zeroes may be omitted (except in a timezone).
-datetimep :: Stream [Char] m Char => ParsecT [Char] JournalContext m LocalTime
+datetimep :: (MonadState JournalContext m) => Stream [Char] Char => ParsecT [Char] m LocalTime
 datetimep = do
   day <- datep
-  many1 spacenonewline
-  h <- many1 digit
+  some spacenonewline
+  h <- some digitChar
   let h' = read h
   guard $ h' >= 0 && h' <= 23
   char ':'
-  m <- many1 digit
+  m <- some digitChar
   let m' = read m
   guard $ m' >= 0 && m' <= 59
-  s <- optionMaybe $ char ':' >> many1 digit
+  s <- optional $ char ':' >> some digitChar
   let s' = case s of Just sstr -> read sstr
                      Nothing   -> 0
   guard $ s' >= 0 && s' <= 59
   {- tz <- -}
-  optionMaybe $ do
+  optional $ do
                    plusminus <- oneOf "-+"
-                   d1 <- digit
-                   d2 <- digit
-                   d3 <- digit
-                   d4 <- digit
+                   d1 <- digitChar
+                   d2 <- digitChar
+                   d3 <- digitChar
+                   d4 <- digitChar
                    return $ plusminus:d1:d2:d3:d4:""
   -- ltz <- liftIO $ getCurrentTimeZone
   -- let tz' = maybe ltz (fromMaybe ltz . parseTime defaultTimeLocale "%z") tz
   -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
   return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
 
-secondarydatep :: Stream [Char] m Char => Day -> ParsecT [Char] JournalContext m Day
+secondarydatep :: (Stream [Char] Char, MonadState JournalContext m) => Day -> ParsecT [Char] m Day
 secondarydatep primarydate = do
   char '='
   -- kludgy way to use primary date for default year
@@ -607,7 +610,7 @@ secondarydatep primarydate = do
   edate <- withDefaultYear primarydate datep
   return edate
 
-statusp :: Stream [Char] m Char => ParsecT [Char] JournalContext m ClearedStatus
+statusp :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m ClearedStatus
 statusp =
   choice'
     [ many spacenonewline >> char '*' >> return Cleared
@@ -616,11 +619,11 @@ statusp =
     ]
     <?> "cleared status"
 
-codep :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
-codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
+codep :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m String
+codep = try (do { some spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
 -- Parse the following whitespace-beginning lines as postings, posting tags, and/or comments.
-postings :: Stream [Char] m Char => ParsecT [Char] JournalContext m [Posting]
+postings :: Stream [Char] Char => ParsecT [Char] (ExceptT String (StateT JournalContext IO)) [Posting]
 postings = many (try postingp) <?> "postings"
 
 -- linebeginningwithspaces :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
@@ -630,9 +633,9 @@ postings = many (try postingp) <?> "postings"
 --   cs <- restofline
 --   return $ sp ++ (c:cs) ++ "\n"
 
-postingp :: Stream [Char] m Char => ParsecT [Char] JournalContext m Posting
+postingp :: Stream [Char] Char => ParsecT [Char] (ExceptT String (StateT JournalContext IO)) Posting
 postingp = do
-  many1 spacenonewline
+  some spacenonewline
   status <- statusp
   many spacenonewline
   account <- modifiedaccountnamep
@@ -641,20 +644,20 @@ postingp = do
   massertion <- partialbalanceassertion
   _ <- fixedlotprice
   many spacenonewline
-  ctx <- getState
+  ctx <- get
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = tagsInComment comment
   -- oh boy
   date <- case dateValueFromTags tags of
         Nothing -> return Nothing
-        Just v -> case runParser (datep <* eof) ctx "" v of
+        Just v -> case evalState (runParserT (datep <* eof) "" v) ctx of
                     Right d -> return $ Just d
-                    Left err -> parserFail $ show err
+                    Left err -> fail $ show err
   date2 <- case date2ValueFromTags tags of
         Nothing -> return Nothing
-        Just v -> case runParser (datep <* eof) ctx "" v of
+        Just v -> case evalState (runParserT (datep <* eof) "" v) ctx of
                     Right d -> return $ Just d
-                    Left err -> parserFail $ show err
+                    Left err -> fail $ show err
   return posting
    { pdate=date
    , pdate2=date2
@@ -715,7 +718,7 @@ test_postingp = do
 #endif
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
-modifiedaccountnamep :: Stream [Char] m Char => ParsecT [Char] JournalContext m AccountName
+modifiedaccountnamep :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m AccountName
 modifiedaccountnamep = do
   parent <- getParentAccount
   aliases <- getAccountAliases
@@ -731,7 +734,7 @@ modifiedaccountnamep = do
 -- spaces (or end of input). Also they have one or more components of
 -- at least one character, separated by the account separator char.
 -- (This parser will also consume one following space, if present.)
-accountnamep :: Stream [Char] m Char => ParsecT [Char] st m AccountName
+accountnamep :: Stream [Char] Char => ParsecT [Char] m AccountName
 accountnamep = do
     a <- do
       c <- nonspace
@@ -751,10 +754,10 @@ accountnamep = do
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
 -- "missing" marker amount.
-spaceandamountormissing :: Stream [Char] m Char => ParsecT [Char] JournalContext m MixedAmount
+spaceandamountormissing :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m MixedAmount
 spaceandamountormissing =
   try (do
-        many1 spacenonewline
+        some spacenonewline
         (Mixed . (:[])) `fmap` amountp <|> return missingmixedamt
       ) <|> return missingmixedamt
 
@@ -775,7 +778,7 @@ test_spaceandamountormissing = do
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
-amountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
+amountp :: (Stream [Char] t, MonadState JournalContext m) => ParsecT [Char] m Amount
 amountp = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount
 
 #ifdef TESTS
@@ -795,7 +798,7 @@ test_amountp = do
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
 amountp' s =
-  case runParser (amountp <* eof) nullctx "" s of
+  case evalState (runParserT (amountp <* eof) "" s) nullctx of
     Right t -> t
     Left err -> error' $ show err
 
@@ -803,13 +806,13 @@ amountp' s =
 mamountp' :: String -> MixedAmount
 mamountp' = Mixed . (:[]) . amountp'
 
-signp :: Stream [Char] m t => ParsecT [Char] JournalContext m String
+signp :: (Stream [Char] t, MonadState JournalContext m) => ParsecT [Char] m String
 signp = do
-  sign <- optionMaybe $ oneOf "+-"
+  sign <- optional $ oneOf "+-"
   return $ case sign of Just '-' -> "-"
                         _        -> ""
 
-leftsymbolamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
+leftsymbolamount :: (Stream [Char] t, MonadState JournalContext m) => ParsecT [Char] m Amount
 leftsymbolamount = do
   sign <- signp
   c <- commoditysymbol
@@ -821,7 +824,7 @@ leftsymbolamount = do
   return $ applysign $ Amount c q p s
   <?> "left-symbol amount"
 
-rightsymbolamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
+rightsymbolamount :: (Stream [Char] t, MonadState JournalContext m) => ParsecT [Char] m Amount
 rightsymbolamount = do
   (q,prec,mdec,mgrps) <- numberp
   sp <- many spacenonewline
@@ -831,7 +834,7 @@ rightsymbolamount = do
   return $ Amount c q p s
   <?> "right-symbol amount"
 
-nosymbolamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
+nosymbolamount :: (Stream [Char] t, MonadState JournalContext m) => ParsecT [Char] m Amount
 nosymbolamount = do
   (q,prec,mdec,mgrps) <- numberp
   p <- priceamount
@@ -843,20 +846,20 @@ nosymbolamount = do
   return $ Amount c q p s
   <?> "no-symbol amount"
 
-commoditysymbol :: Stream [Char] m t => ParsecT [Char] JournalContext m String
+commoditysymbol :: (Stream [Char] t, MonadState JournalContext m) => ParsecT [Char] m String
 commoditysymbol = (quotedcommoditysymbol <|> simplecommoditysymbol) <?> "commodity symbol"
 
-quotedcommoditysymbol :: Stream [Char] m t => ParsecT [Char] JournalContext m String
+quotedcommoditysymbol :: (Stream [Char] t, MonadState JournalContext m) => ParsecT [Char] m String
 quotedcommoditysymbol = do
   char '"'
-  s <- many1 $ noneOf ";\n\""
+  s <- some $ noneOf ";\n\""
   char '"'
   return s
 
-simplecommoditysymbol :: Stream [Char] m t => ParsecT [Char] JournalContext m String
-simplecommoditysymbol = many1 (noneOf nonsimplecommoditychars)
+simplecommoditysymbol :: (Stream [Char] t, MonadState JournalContext m) => ParsecT [Char] m String
+simplecommoditysymbol = some (noneOf nonsimplecommoditychars)
 
-priceamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Price
+priceamount :: (Stream [Char] t, MonadState JournalContext m) => ParsecT [Char] m Price
 priceamount =
     try (do
           many spacenonewline
@@ -872,7 +875,7 @@ priceamount =
             return $ UnitPrice a))
          <|> return NoPrice
 
-partialbalanceassertion :: Stream [Char] m t => ParsecT [Char] JournalContext m (Maybe MixedAmount)
+partialbalanceassertion :: (Stream [Char] t, MonadState JournalContext m) => ParsecT [Char] m (Maybe MixedAmount)
 partialbalanceassertion =
     try (do
           many spacenonewline
@@ -893,7 +896,7 @@ partialbalanceassertion =
 --          <|> return Nothing
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
-fixedlotprice :: Stream [Char] m Char => ParsecT [Char] JournalContext m (Maybe Amount)
+fixedlotprice :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m (Maybe Amount)
 fixedlotprice =
     try (do
           many spacenonewline
@@ -919,13 +922,13 @@ fixedlotprice =
 -- seen following the decimal point), the decimal point character used if any,
 -- and the digit group style if any.
 --
-numberp :: Stream [Char] m t => ParsecT [Char] JournalContext m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+numberp :: (Stream [Char] t, MonadState JournalContext m) => ParsecT [Char] m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
 numberp = do
   -- a number is an optional sign followed by a sequence of digits possibly
   -- interspersed with periods, commas, or both
   -- ptrace "numberp"
   sign <- signp
-  parts <- many1 $ choice' [many1 digit, many1 $ char ',', many1 $ char '.']
+  parts <- some $ choice' [some digitChar, some $ char ',', some $ char '.']
   dbg8 "numberp parsed" (sign,parts) `seq` return ()
 
   -- check the number is well-formed and identify the decimal point and digit
@@ -993,7 +996,7 @@ numberp = do
 
 -- comment parsers
 
-multilinecommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
+multilinecommentp :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m ()
 multilinecommentp = do
   string "comment" >> many spacenonewline >> newline
   go
@@ -1002,28 +1005,28 @@ multilinecommentp = do
          <|> (anyLine >> go)
     anyLine = anyChar `manyTill` newline
 
-emptyorcommentlinep :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
+emptyorcommentlinep :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m ()
 emptyorcommentlinep = do
   many spacenonewline >> (comment <|> (many spacenonewline >> newline >> return ""))
   return ()
 
-followingcommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+followingcommentp :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m String
 followingcommentp =
   -- ptrace "followingcommentp"
   do samelinecomment <- many spacenonewline >> (try semicoloncomment <|> (newline >> return ""))
-     newlinecomments <- many (try (many1 spacenonewline >> semicoloncomment))
+     newlinecomments <- many (try (some spacenonewline >> semicoloncomment))
      return $ unlines $ samelinecomment:newlinecomments
 
-comment :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+comment :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m String
 comment = commentStartingWith commentchars
 
 commentchars :: [Char]
 commentchars = "#;*"
 
-semicoloncomment :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+semicoloncomment :: (Stream [Char] Char, MonadState JournalContext m) => ParsecT [Char] m String
 semicoloncomment = commentStartingWith ";"
 
-commentStartingWith :: Stream [Char] m Char => String -> ParsecT [Char] JournalContext m String
+commentStartingWith :: (Stream [Char] Char, MonadState JournalContext m) => String -> ParsecT [Char] m String
 commentStartingWith cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
@@ -1040,7 +1043,7 @@ tagsInComment c = concatMap tagsInCommentLine $ lines c'
 tagsInCommentLine :: String -> [Tag]
 tagsInCommentLine = catMaybes . map maybetag . map strip . splitAtElement ','
   where
-    maybetag s = case runParser (tag <* eof) nullctx "" s of
+    maybetag s = case evalState (runParserT (tag <* eof) "" s) nullctx of
                   Right t -> Just t
                   Left _ -> Nothing
 
@@ -1052,7 +1055,7 @@ tag = do
 
 tagname = do
   -- ptrace "tagname"
-  n <- many1 $ noneOf ": \t"
+  n <- some $ noneOf ": \t"
   char ':'
   return n
 

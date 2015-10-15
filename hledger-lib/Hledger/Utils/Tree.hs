@@ -4,7 +4,7 @@ module Hledger.Utils.Tree where
 import Data.List (foldl')
 import qualified Data.Map as M
 import Data.Tree
--- import Text.Parsec
+-- import Text.Megaparsec
 -- import Text.Printf
 
 import Hledger.Utils.Regex

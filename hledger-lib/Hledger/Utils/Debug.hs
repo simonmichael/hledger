@@ -23,7 +23,7 @@ import Safe (readDef)
 import System.Environment (getArgs)
 import System.Exit
 import System.IO.Unsafe (unsafePerformIO)
-import Text.Parsec
+import Text.Megaparsec
 import Text.Printf
 
 #if __GLASGOW_HASKELL__ >= 704
@@ -54,7 +54,7 @@ traceWith f e = trace (f e) e
 
 -- | Parsec trace - show the current parsec position and next input,
 -- and the provided label if it's non-null.
-ptrace :: Stream [Char] m t => String -> ParsecT [Char] st m ()
+ptrace :: Stream [Char] t => String -> ParsecT [Char] m ()
 ptrace msg = do
   pos <- getPosition
   next <- take peeklength `fmap` getInput
@@ -227,7 +227,7 @@ dbgExit msg = const (unsafePerformIO exitFailure) . dbg msg
 -- input) to the console when the debug level is at or above
 -- this level. Uses unsafePerformIO.
 -- pdbgAt :: GenParser m => Float -> String -> m ()
-pdbg :: Stream [Char] m t => Int -> String -> ParsecT [Char] st m ()
+pdbg :: Stream [Char] t => Int -> String -> ParsecT [Char] m ()
 pdbg level msg = when (level <= debugLevel) $ ptrace msg
 
 
