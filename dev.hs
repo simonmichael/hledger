@@ -1,3 +1,4 @@
+#!/usr/bin/env runghc
 -- dev.hs, for miscellaneous profiling/benchmarking/testing.
 
 -- {-# LANGUAGE DeriveDataTypeable, StandaloneDeriving, DeriveGeneric #-}
@@ -50,44 +51,48 @@ timeReadJournal msg s = timeit msg $ either error id <$> readJournal Nothing Not
 main = do
   -- putStrLn $ regexReplaceCI "^aa" "xx" "aa:bb:cc:dd:ee"
 
+  (_t0,_j) <- timeit ("read "++journal) $ either error id <$> readJournalFile Nothing Nothing True journal
+  return ()
+  -- printf "Total: %0.2fs\n" (sum [t0,t1,t2,t3,t4])
+
   -- -- read the input journal
-  s <- readFile journal
-  j <- either error id <$> readJournal Nothing Nothing True Nothing s
-  -- putStrLn $ show $ length $ jtxns j -- sanity check we parsed it all
-  let accts = map paccount $ journalPostings j
+  -- s <- readFile journal
+  -- j <- either error id <$> readJournal Nothing Nothing True Nothing s
+  -- -- putStrLn $ show $ length $ jtxns j -- sanity check we parsed it all
+  -- let accts = map paccount $ journalPostings j
 
-  Criterion.Main.defaultMainWith defaultConfig $ [
-    --  bench ("toRegexCI") $ whnf toRegexCI "^aa"
-    -- ,bench ("toRegexCI") $ whnfIO (return $ toRegexCI "^aa")
-    -- ,bench ("toRegexCI x 1000") $ nfIO $ sequence_ (map (return . toRegexCI) (replicate 1000 "^aa"))
-    --  bench ("regexReplaceCI")             $ nf (regexReplaceCI "aa" "xx") "aa:bb:cc:dd:ee:1"
-    -- ,bench ("regexReplaceCI x 1000")      $ nf (map (regexReplaceCI "bb" "xx")) (replicate 1000 "aa:bb:cc:dd:ee;2")
-    -- ,bench ("regexReplaceCIMemo")         $ nf (regexReplaceCIMemo "ee" "xx") "aa:bb:cc:dd:ee:5"
-    -- ,bench ("regexReplaceCIMemo x 1000")  $ nf (map (regexReplaceCIMemo "ff" "xx")) (replicate 1000 "aa:bb:cc:dd:ee:6")
-     bench ("apply one regex alias to one posting") $
-       nf (map (accountNameApplyAliases [RegexAlias "^1:" "x:"])) (map paccount $ take 1 $ journalPostings j)
-    -- ,bench ("apply one regex alias to 20000 postings") $
-    --    nf (map (accountNameApplyAliases [RegexAlias "^1:" "x:"])) (map paccount $ journalPostings j)
-    -- ,bench ("apply 3 regex aliases to 20000 postings") $
-    --    nf (map (accountNameApplyAliases [
-    --                 RegexAlias "^1:" "x:"
-    --                ,RegexAlias "^2:" "x:"
-    --                ,RegexAlias "^3:" "x:"
-    --                ])) accts
+  -- Criterion.Main.defaultMainWith defaultConfig $ [
+  --   --  bench ("toRegexCI") $ whnf toRegexCI "^aa"
+  --   -- ,bench ("toRegexCI") $ whnfIO (return $ toRegexCI "^aa")
+  --   -- ,bench ("toRegexCI x 1000") $ nfIO $ sequence_ (map (return . toRegexCI) (replicate 1000 "^aa"))
+  --   --  bench ("regexReplaceCI")             $ nf (regexReplaceCI "aa" "xx") "aa:bb:cc:dd:ee:1"
+  --   -- ,bench ("regexReplaceCI x 1000")      $ nf (map (regexReplaceCI "bb" "xx")) (replicate 1000 "aa:bb:cc:dd:ee;2")
+  --   -- ,bench ("regexReplaceCIMemo")         $ nf (regexReplaceCIMemo "ee" "xx") "aa:bb:cc:dd:ee:5"
+  --   -- ,bench ("regexReplaceCIMemo x 1000")  $ nf (map (regexReplaceCIMemo "ff" "xx")) (replicate 1000 "aa:bb:cc:dd:ee:6")
+  --    bench ("apply one regex alias to one posting") $
+  --      nf (map (accountNameApplyAliases [RegexAlias "^1:" "x:"])) (map paccount $ take 1 $ journalPostings j)
+  --   -- ,bench ("apply one regex alias to 20000 postings") $
+  --   --    nf (map (accountNameApplyAliases [RegexAlias "^1:" "x:"])) (map paccount $ journalPostings j)
+  --   -- ,bench ("apply 3 regex aliases to 20000 postings") $
+  --   --    nf (map (accountNameApplyAliases [
+  --   --                 RegexAlias "^1:" "x:"
+  --   --                ,RegexAlias "^2:" "x:"
+  --   --                ,RegexAlias "^3:" "x:"
+  --   --                ])) accts
 
-    -- ,bench ("readJournal") $ whnfIO $
-    --    either error id <$>
-    --    readJournal Nothing Nothing True Nothing s
-    -- ,bench ("readJournal with aliases") $ whnfIO $
-    --    either error id <$>
-    --    readJournal Nothing Nothing True Nothing (
-    --      unlines [
-    --         "alias /^fb:/=xx \n"
-    --         ,"alias /^f1:/=xx \n"
-    --         ,"alias /^e7:/=xx \n"
-    --         ] ++ s)
+  --   -- ,bench ("readJournal") $ whnfIO $
+  --   --    either error id <$>
+  --   --    readJournal Nothing Nothing True Nothing s
+  --   -- ,bench ("readJournal with aliases") $ whnfIO $
+  --   --    either error id <$>
+  --   --    readJournal Nothing Nothing True Nothing (
+  --   --      unlines [
+  --   --         "alias /^fb:/=xx \n"
+  --   --         ,"alias /^f1:/=xx \n"
+  --   --         ,"alias /^e7:/=xx \n"
+  --   --         ] ++ s)
 
-    ]
+  --   ]
 
   -- (t0,j0) <- timeReadJournal ("read "++journal) s
   -- (t0',j0') <- timeReadJournal ("read "++journal++" again") s
