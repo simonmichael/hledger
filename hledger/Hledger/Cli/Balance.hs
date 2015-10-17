@@ -265,14 +265,14 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
       flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree (default in simple reports)"
      ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list (default in multicolumn mode)"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "tree mode: use this custom line format"
+     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "singlecolumn mode: use this custom line format"
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "tree mode: don't squash boring parent accounts"
      ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "multicolumn mode: show historical ending balances"
      ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "multicolumn mode: show accumulated ending balances"
      ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "multicolumn mode: show a row average column"
      ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "multicolumn mode: show a row total column"
      ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "don't show the final total row"
-     ,flagNone ["value","V"] (setboolopt "value") "show amounts as their market value in their default valuation commodity"
+     ,flagNone ["value","V"] (setboolopt "value") "show amounts as their current market value in their default valuation commodity"
      ]
      ++ outputflags
     ,groupHidden = []
