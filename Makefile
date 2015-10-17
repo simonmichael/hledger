@@ -381,10 +381,13 @@ dev-profile: devprof \
 	&& profiteur devprof.prof
 
 dev-heap: devprof \
-	$(call def-help,dev-heap, get a heap profile of the dev.hs script )
-	time ./devprof +RTS -hc \
-	&& cp devprof.hp devprof.hp.$(TIME) \
-	&& hp2ps devprof.hp.$(TIME)
+	$(call def-help,dev-heap, get heap profiles of the dev.hs script )
+	time ./devprof +RTS -hc -L1000 && cp devprof.hp devprof-hc.hp && hp2ps devprof-hc.hp
+	time ./devprof +RTS -hr -L1000 && cp devprof.hp devprof-hr.hp && hp2ps devprof-hr.hp
+
+dev-heap-upload:
+	curl -F "file=@devprof-hc.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
+	curl -F "file=@devprof-hr.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
 
 # # build other executables quickly
 
