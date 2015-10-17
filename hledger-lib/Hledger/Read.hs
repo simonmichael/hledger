@@ -244,9 +244,9 @@ tests_Hledger_Read = TestList $
    tests_Hledger_Read_CsvReader,
 
    "journal" ~: do
-    r <- runExceptT $ parseWithCtx nullctx JournalReader.journal ""
-    assertBool "journal should parse an empty file" (isRight $ r)
+    r <- runExceptT $ parseWithCtx nullctx JournalReader.journalp ""
+    assertBool "journalp should parse an empty file" (isRight $ r)
     jE <- readJournal Nothing Nothing True Nothing "" -- don't know how to get it from journal
-    either error' (assertBool "journal parsing an empty file should give an empty journal" . null . jtxns) jE
+    either error' (assertBool "journalp parsing an empty file should give an empty journal" . null . jtxns) jE
 
   ]

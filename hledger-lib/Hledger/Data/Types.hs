@@ -262,7 +262,7 @@ data Journal = Journal {
 instance NFData Journal
 
 -- | A JournalUpdate is some transformation of a Journal. It can do I/O or
--- raise an error.
+-- raise an exception.
 type JournalUpdate = ExceptT String IO (Journal -> Journal)
 
 -- | The id of a data format understood by hledger, eg @journal@ or @csv@.

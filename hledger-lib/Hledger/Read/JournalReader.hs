@@ -21,7 +21,7 @@ module Hledger.Read.JournalReader (
   -- * Reader
   reader,
   -- * Parsers used elsewhere
-  parseJournalWith,
+  parseAndFinaliseJournal,
   genericSourcePos,
   getParentAccount,
   journalp,
@@ -94,7 +94,7 @@ detect f s
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
-parse _ = parseJournalWith journalp
+parse _ = parseAndFinaliseJournal journalp
 
 -- parsing utils
 
@@ -162,15 +162,17 @@ combineJournalUpdates us = foldl' (flip (.)) id <$> sequence us
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
-parseJournalWith :: (ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate,JournalContext)) -> Bool -> FilePath -> String -> ExceptT String IO Journal
-parseJournalWith p assrt f s = do
+parseAndFinaliseJournal ::
+  (ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate,JournalContext))
+  -> Bool -> FilePath -> String -> ExceptT String IO Journal
+parseAndFinaliseJournal parser assrt f s = do
   tc <- liftIO getClockTime
   tl <- liftIO getCurrentLocalTime
   y <- liftIO getCurrentYear
-  r <- runParserT p nullctx{ctxYear=Just y} f s
+  r <- runParserT parser nullctx{ctxYear=Just y} f s
   case r of
     Right (updates,ctx) -> do
-                           j <- updates `ap` return nulljournal
+                           j <- ap updates (return nulljournal)
                            case journalFinalise tc tl f s ctx assrt j of
                              Right j'  -> return j'
                              Left estr -> throwError estr

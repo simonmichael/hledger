@@ -61,7 +61,7 @@ import Hledger.Data
 -- XXX too much reuse ?
 import Hledger.Read.JournalReader (
   directivep, marketpricedirectivep, defaultyeardirectivep, emptyorcommentlinep, datetimep,
-  parseJournalWith, modifiedaccountnamep, genericSourcePos
+  parseAndFinaliseJournal, modifiedaccountnamep, genericSourcePos
   )
 import Hledger.Utils
 
@@ -82,7 +82,7 @@ detect f s
 -- format, saving the provided file path and the current time, or give an
 -- error.
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
-parse _ = parseJournalWith timelogfilep
+parse _ = parseAndFinaliseJournal timelogfilep
 
 timelogfilep :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate, JournalContext)
 timelogfilep = do items <- many timelogitemp
