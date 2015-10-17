@@ -60,7 +60,7 @@ import System.FilePath
 import Hledger.Data
 -- XXX too much reuse ?
 import Hledger.Read.JournalReader (
-  directive, marketpricedirective, defaultyeardirective, emptyorcommentlinep, datetimep,
+  directivep, marketpricedirectivep, defaultyeardirectivep, emptyorcommentlinep, datetimep,
   parseJournalWith, modifiedaccountnamep, genericSourcePos
   )
 import Hledger.Utils
@@ -82,27 +82,27 @@ detect f s
 -- format, saving the provided file path and the current time, or give an
 -- error.
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
-parse _ = parseJournalWith timelogFile
+parse _ = parseJournalWith timelogfilep
 
-timelogFile :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate, JournalContext)
-timelogFile = do items <- many timelogItem
-                 eof
-                 ctx <- getState
-                 return (liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence items, ctx)
+timelogfilep :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate, JournalContext)
+timelogfilep = do items <- many timelogitemp
+                  eof
+                  ctx <- getState
+                  return (liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence items, ctx)
     where
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
-      timelogItem = choice [ directive
-                          , liftM (return . addMarketPrice) marketpricedirective
-                          , defaultyeardirective
+      timelogitemp = choice [ directivep
+                          , liftM (return . addMarketPrice) marketpricedirectivep
+                          , defaultyeardirectivep
                           , emptyorcommentlinep >> return (return id)
-                          , liftM (return . addTimeLogEntry)  timelogentry
+                          , liftM (return . addTimeLogEntry)  timelogentryp
                           ] <?> "timelog entry, or default year or historical price directive"
 
 -- | Parse a timelog entry.
-timelogentry :: ParsecT [Char] JournalContext (ExceptT String IO) TimeLogEntry
-timelogentry = do
+timelogentryp :: ParsecT [Char] JournalContext (ExceptT String IO) TimeLogEntry
+timelogentryp = do
   sourcepos <- genericSourcePos <$> getPosition
   code <- oneOf "bhioO"
   many1 spacenonewline

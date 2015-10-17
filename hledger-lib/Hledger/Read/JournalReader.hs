@@ -24,10 +24,10 @@ module Hledger.Read.JournalReader (
   parseJournalWith,
   genericSourcePos,
   getParentAccount,
-  journal,
-  directive,
-  defaultyeardirective,
-  marketpricedirective,
+  journalp,
+  directivep,
+  defaultyeardirectivep,
+  marketpricedirectivep,
   datetimep,
   codep,
   accountnamep,
@@ -94,7 +94,7 @@ detect f s
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
-parse _ = parseJournalWith journal
+parse _ = parseJournalWith journalp
 
 -- parsing utils
 
@@ -215,8 +215,8 @@ clearAccountAliases = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" (and final "JournalContext") which can be
 -- applied to an empty journal to get the final result.
-journal :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate,JournalContext)
-journal = do
+journalp :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate,JournalContext)
+journalp = do
   journalupdates <- many journalItem
   eof
   finalctx <- getState
@@ -225,36 +225,36 @@ journal = do
       -- As all journal line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
-      journalItem = choice [ directive
-                           , liftM (return . addTransaction) transaction
-                           , liftM (return . addModifierTransaction) modifiertransaction
-                           , liftM (return . addPeriodicTransaction) periodictransaction
-                           , liftM (return . addMarketPrice) marketpricedirective
+      journalItem = choice [ directivep
+                           , liftM (return . addTransaction) transactionp
+                           , liftM (return . addModifierTransaction) modifiertransactionp
+                           , liftM (return . addPeriodicTransaction) periodictransactionp
+                           , liftM (return . addMarketPrice) marketpricedirectivep
                            , emptyorcommentlinep >> return (return id)
                            , multilinecommentp >> return (return id)
                            ] <?> "journal transaction or directive"
 
 -- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
-directive :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-directive = do
+directivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+directivep = do
   optional $ char '!'
   choice' [
-    includedirective
-   ,aliasdirective
-   ,endaliasesdirective
-   ,accountdirective
-   ,enddirective
-   ,tagdirective
-   ,endtagdirective
-   ,defaultyeardirective
-   ,defaultcommoditydirective
-   ,commodityconversiondirective
-   ,ignoredpricecommoditydirective
+    includedirectivep
+   ,aliasdirectivep
+   ,endaliasesdirectivep
+   ,accountdirectivep
+   ,enddirectivep
+   ,tagdirectivep
+   ,endtagdirectivep
+   ,defaultyeardirectivep
+   ,defaultcommoditydirectivep
+   ,commodityconversiondirectivep
+   ,ignoredpricecommoditydirectivep
    ]
   <?> "directive"
 
-includedirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-includedirective = do
+includedirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+includedirectivep = do
   string "include"
   many1 spacenonewline
   filename <- restofline
@@ -265,7 +265,7 @@ includedirective = do
        filepath <- expandPath curdir filename
        txt <- readFileOrError outerPos filepath
        let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
-       r <- runParserT journal outerState filepath txt
+       r <- runParserT journalp outerState filepath txt
        case r of
          Right (ju, ctx) -> do
                             u <- combineJournalUpdates [ return $ journalAddFile (filepath,txt)
@@ -285,8 +285,8 @@ journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
  -- NOTE: first encountered file to left, to avoid a reverse
 
-accountdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-accountdirective = do
+accountdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+accountdirectivep = do
   string "account"
   many1 spacenonewline
   parent <- accountnamep
@@ -295,15 +295,15 @@ accountdirective = do
   -- return $ return id
   return $ ExceptT $ return $ Right id
 
-enddirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-enddirective = do
+enddirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+enddirectivep = do
   string "end"
   popParentAccount
   -- return (return id)
   return $ ExceptT $ return $ Right id
 
-aliasdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-aliasdirective = do
+aliasdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+aliasdirectivep = do
   string "alias"
   many1 spacenonewline
   alias <- accountaliasp
@@ -334,28 +334,28 @@ regexaliasp = do
   repl <- rstrip <$> anyChar `manyTill` eolof
   return $ RegexAlias re repl
 
-endaliasesdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-endaliasesdirective = do
+endaliasesdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+endaliasesdirectivep = do
   string "end aliases"
   clearAccountAliases
   return (return id)
 
-tagdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-tagdirective = do
+tagdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+tagdirectivep = do
   string "tag" <?> "tag directive"
   many1 spacenonewline
   _ <- many1 nonspace
   restofline
   return $ return id
 
-endtagdirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-endtagdirective = do
+endtagdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+endtagdirectivep = do
   (string "end tag" <|> string "pop") <?> "end tag or pop directive"
   restofline
   return $ return id
 
-defaultyeardirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-defaultyeardirective = do
+defaultyeardirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+defaultyeardirectivep = do
   char 'Y' <?> "default year"
   many spacenonewline
   y <- many1 digit
@@ -364,8 +364,8 @@ defaultyeardirective = do
   setYear y'
   return $ return id
 
-defaultcommoditydirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-defaultcommoditydirective = do
+defaultcommoditydirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
   many1 spacenonewline
   Amount{..} <- amountp
@@ -373,28 +373,28 @@ defaultcommoditydirective = do
   restofline
   return $ return id
 
-marketpricedirective :: ParsecT [Char] JournalContext (ExceptT String IO) MarketPrice
-marketpricedirective = do
+marketpricedirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) MarketPrice
+marketpricedirectivep = do
   char 'P' <?> "market price"
   many spacenonewline
   date <- try (do {LocalTime d _ <- datetimep; return d}) <|> datep -- a time is ignored
   many1 spacenonewline
-  symbol <- commoditysymbol
+  symbol <- commoditysymbolp
   many spacenonewline
   price <- amountp
   restofline
   return $ MarketPrice date symbol price
 
-ignoredpricecommoditydirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-ignoredpricecommoditydirective = do
+ignoredpricecommoditydirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+ignoredpricecommoditydirectivep = do
   char 'N' <?> "ignored-price commodity"
   many1 spacenonewline
-  commoditysymbol
+  commoditysymbolp
   restofline
   return $ return id
 
-commodityconversiondirective :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-commodityconversiondirective = do
+commodityconversiondirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+commodityconversiondirectivep = do
   char 'C' <?> "commodity conversion"
   many1 spacenonewline
   amountp
@@ -405,26 +405,26 @@ commodityconversiondirective = do
   restofline
   return $ return id
 
-modifiertransaction :: ParsecT [Char] JournalContext (ExceptT String IO) ModifierTransaction
-modifiertransaction = do
+modifiertransactionp :: ParsecT [Char] JournalContext (ExceptT String IO) ModifierTransaction
+modifiertransactionp = do
   char '=' <?> "modifier transaction"
   many spacenonewline
   valueexpr <- restofline
-  postings <- postings
+  postings <- postingsp
   return $ ModifierTransaction valueexpr postings
 
-periodictransaction :: ParsecT [Char] JournalContext (ExceptT String IO) PeriodicTransaction
-periodictransaction = do
+periodictransactionp :: ParsecT [Char] JournalContext (ExceptT String IO) PeriodicTransaction
+periodictransactionp = do
   char '~' <?> "periodic transaction"
   many spacenonewline
   periodexpr <- restofline
-  postings <- postings
+  postings <- postingsp
   return $ PeriodicTransaction periodexpr postings
 
 -- | Parse a (possibly unbalanced) transaction.
-transaction :: ParsecT [Char] JournalContext (ExceptT String IO) Transaction
-transaction = do
-  -- ptrace "transaction"
+transactionp :: ParsecT [Char] JournalContext (ExceptT String IO) Transaction
+transactionp = do
+  -- ptrace "transactionp"
   sourcepos <- genericSourcePos <$> getPosition
   date <- datep <?> "transaction"
   edate <- optionMaybe (secondarydatep date) <?> "secondary date"
@@ -434,15 +434,15 @@ transaction = do
   description <- descriptionp >>= return . strip
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = tagsInComment comment
-  postings <- postings
+  postings <- postingsp
   return $ txnTieKnot $ Transaction sourcepos date edate status code description comment tags postings ""
 
 descriptionp = many (noneOf ";\n")
 
 #ifdef TESTS
-test_transaction = do
+test_transactionp = do
     let s `gives` t = do
-                        let p = parseWithCtx nullctx transaction s
+                        let p = parseWithCtx nullctx transactionp s
                         assertBool $ isRight p
                         let Right t2 = p
                             -- same f = assertEqual (f t) (f t2)
@@ -495,33 +495,33 @@ test_transaction = do
       tdate=parsedate "2015/01/01",
       }
 
-    assertRight $ parseWithCtx nullctx transaction $ unlines
+    assertRight $ parseWithCtx nullctx transactionp $ unlines
       ["2007/01/28 coopportunity"
       ,"    expenses:food:groceries                   $47.18"
       ,"    assets:checking                          $-47.18"
       ,""
       ]
 
-    -- transaction should not parse just a date
-    assertLeft $ parseWithCtx nullctx transaction "2009/1/1\n"
+    -- transactionp should not parse just a date
+    assertLeft $ parseWithCtx nullctx transactionp "2009/1/1\n"
 
-    -- transaction should not parse just a date and description
-    assertLeft $ parseWithCtx nullctx transaction "2009/1/1 a\n"
+    -- transactionp should not parse just a date and description
+    assertLeft $ parseWithCtx nullctx transactionp "2009/1/1 a\n"
 
-    -- transaction should not parse a following comment as part of the description
-    let p = parseWithCtx nullctx transaction "2009/1/1 a ;comment\n b 1\n"
+    -- transactionp should not parse a following comment as part of the description
+    let p = parseWithCtx nullctx transactionp "2009/1/1 a ;comment\n b 1\n"
     assertRight p
     assertEqual "a" (let Right p' = p in tdescription p')
 
     -- parse transaction with following whitespace line
-    assertRight $ parseWithCtx nullctx transaction $ unlines
+    assertRight $ parseWithCtx nullctx transactionp $ unlines
         ["2012/1/1"
         ,"  a  1"
         ,"  b"
         ," "
         ]
 
-    let p = parseWithCtx nullctx transaction $ unlines
+    let p = parseWithCtx nullctx transactionp $ unlines
              ["2009/1/1 x  ; transaction comment"
              ," a  1  ; posting 1 comment"
              ," ; posting 1 comment 2"
@@ -620,8 +620,8 @@ codep :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
 -- Parse the following whitespace-beginning lines as postings, posting tags, and/or comments.
-postings :: Stream [Char] m Char => ParsecT [Char] JournalContext m [Posting]
-postings = many (try postingp) <?> "postings"
+postingsp :: Stream [Char] m Char => ParsecT [Char] JournalContext m [Posting]
+postingsp = many (try postingp) <?> "postings"
 
 -- linebeginningwithspaces :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 -- linebeginningwithspaces = do
@@ -637,9 +637,9 @@ postingp = do
   many spacenonewline
   account <- modifiedaccountnamep
   let (ptype, account') = (accountNamePostingType account, unbracket account)
-  amount <- spaceandamountormissing
-  massertion <- partialbalanceassertion
-  _ <- fixedlotprice
+  amount <- spaceandamountormissingp
+  massertion <- partialbalanceassertionp
+  _ <- fixedlotpricep
   many spacenonewline
   ctx <- getState
   comment <- try followingcommentp <|> (newline >> return "")
@@ -751,8 +751,8 @@ accountnamep = do
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
 -- "missing" marker amount.
-spaceandamountormissing :: Stream [Char] m Char => ParsecT [Char] JournalContext m MixedAmount
-spaceandamountormissing =
+spaceandamountormissingp :: Stream [Char] m Char => ParsecT [Char] JournalContext m MixedAmount
+spaceandamountormissingp =
   try (do
         many1 spacenonewline
         (Mixed . (:[])) `fmap` amountp <|> return missingmixedamt
@@ -765,18 +765,18 @@ assertParseEqual' parse expected = either (assertFailure.show) (`is'` expected) 
 is' :: (Eq a, Show a) => a -> a -> Assertion
 a `is'` e = assertEqual e a
 
-test_spaceandamountormissing = do
-    assertParseEqual' (parseWithCtx nullctx spaceandamountormissing " $47.18") (Mixed [usd 47.18])
-    assertParseEqual' (parseWithCtx nullctx spaceandamountormissing "$47.18") missingmixedamt
-    assertParseEqual' (parseWithCtx nullctx spaceandamountormissing " ") missingmixedamt
-    assertParseEqual' (parseWithCtx nullctx spaceandamountormissing "") missingmixedamt
+test_spaceandamountormissingp = do
+    assertParseEqual' (parseWithCtx nullctx spaceandamountormissingp " $47.18") (Mixed [usd 47.18])
+    assertParseEqual' (parseWithCtx nullctx spaceandamountormissingp "$47.18") missingmixedamt
+    assertParseEqual' (parseWithCtx nullctx spaceandamountormissingp " ") missingmixedamt
+    assertParseEqual' (parseWithCtx nullctx spaceandamountormissingp "") missingmixedamt
 #endif
 
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
 amountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
-amountp = try leftsymbolamount <|> try rightsymbolamount <|> nosymbolamount
+amountp = try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
 
 #ifdef TESTS
 test_amountp = do
@@ -809,32 +809,32 @@ signp = do
   return $ case sign of Just '-' -> "-"
                         _        -> ""
 
-leftsymbolamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
-leftsymbolamount = do
+leftsymbolamountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
+leftsymbolamountp = do
   sign <- signp
-  c <- commoditysymbol
+  c <- commoditysymbolp
   sp <- many spacenonewline
   (q,prec,mdec,mgrps) <- numberp
   let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-  p <- priceamount
+  p <- priceamountp
   let applysign = if sign=="-" then negate else id
   return $ applysign $ Amount c q p s
   <?> "left-symbol amount"
 
-rightsymbolamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
-rightsymbolamount = do
+rightsymbolamountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
+rightsymbolamountp = do
   (q,prec,mdec,mgrps) <- numberp
   sp <- many spacenonewline
-  c <- commoditysymbol
-  p <- priceamount
+  c <- commoditysymbolp
+  p <- priceamountp
   let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   return $ Amount c q p s
   <?> "right-symbol amount"
 
-nosymbolamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
-nosymbolamount = do
+nosymbolamountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
+nosymbolamountp = do
   (q,prec,mdec,mgrps) <- numberp
-  p <- priceamount
+  p <- priceamountp
   -- apply the most recently seen default commodity and style to this commodityless amount
   defcs <- getDefaultCommodityAndStyle
   let (c,s) = case defcs of
@@ -843,21 +843,21 @@ nosymbolamount = do
   return $ Amount c q p s
   <?> "no-symbol amount"
 
-commoditysymbol :: Stream [Char] m t => ParsecT [Char] JournalContext m String
-commoditysymbol = (quotedcommoditysymbol <|> simplecommoditysymbol) <?> "commodity symbol"
+commoditysymbolp :: Stream [Char] m t => ParsecT [Char] JournalContext m String
+commoditysymbolp = (quotedcommoditysymbolp <|> simplecommoditysymbolp) <?> "commodity symbol"
 
-quotedcommoditysymbol :: Stream [Char] m t => ParsecT [Char] JournalContext m String
-quotedcommoditysymbol = do
+quotedcommoditysymbolp :: Stream [Char] m t => ParsecT [Char] JournalContext m String
+quotedcommoditysymbolp = do
   char '"'
   s <- many1 $ noneOf ";\n\""
   char '"'
   return s
 
-simplecommoditysymbol :: Stream [Char] m t => ParsecT [Char] JournalContext m String
-simplecommoditysymbol = many1 (noneOf nonsimplecommoditychars)
+simplecommoditysymbolp :: Stream [Char] m t => ParsecT [Char] JournalContext m String
+simplecommoditysymbolp = many1 (noneOf nonsimplecommoditychars)
 
-priceamount :: Stream [Char] m t => ParsecT [Char] JournalContext m Price
-priceamount =
+priceamountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Price
+priceamountp =
     try (do
           many spacenonewline
           char '@'
@@ -872,8 +872,8 @@ priceamount =
             return $ UnitPrice a))
          <|> return NoPrice
 
-partialbalanceassertion :: Stream [Char] m t => ParsecT [Char] JournalContext m (Maybe MixedAmount)
-partialbalanceassertion =
+partialbalanceassertionp :: Stream [Char] m t => ParsecT [Char] JournalContext m (Maybe MixedAmount)
+partialbalanceassertionp =
     try (do
           many spacenonewline
           char '='
@@ -893,8 +893,8 @@ partialbalanceassertion =
 --          <|> return Nothing
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
-fixedlotprice :: Stream [Char] m Char => ParsecT [Char] JournalContext m (Maybe Amount)
-fixedlotprice =
+fixedlotpricep :: Stream [Char] m Char => ParsecT [Char] JournalContext m (Maybe Amount)
+fixedlotpricep =
     try (do
           many spacenonewline
           char '{'
@@ -1004,27 +1004,27 @@ multilinecommentp = do
 
 emptyorcommentlinep :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
 emptyorcommentlinep = do
-  many spacenonewline >> (comment <|> (many spacenonewline >> newline >> return ""))
+  many spacenonewline >> (commentp <|> (many spacenonewline >> newline >> return ""))
   return ()
 
 followingcommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
 followingcommentp =
   -- ptrace "followingcommentp"
-  do samelinecomment <- many spacenonewline >> (try semicoloncomment <|> (newline >> return ""))
-     newlinecomments <- many (try (many1 spacenonewline >> semicoloncomment))
+  do samelinecomment <- many spacenonewline >> (try semicoloncommentp <|> (newline >> return ""))
+     newlinecomments <- many (try (many1 spacenonewline >> semicoloncommentp))
      return $ unlines $ samelinecomment:newlinecomments
 
-comment :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
-comment = commentStartingWith commentchars
+commentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+commentp = commentStartingWithp commentchars
 
 commentchars :: [Char]
 commentchars = "#;*"
 
-semicoloncomment :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
-semicoloncomment = commentStartingWith ";"
+semicoloncommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+semicoloncommentp = commentStartingWithp ";"
 
-commentStartingWith :: Stream [Char] m Char => String -> ParsecT [Char] JournalContext m String
-commentStartingWith cs = do
+commentStartingWithp :: Stream [Char] m Char => String -> ParsecT [Char] JournalContext m String
+commentStartingWithp cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
   many spacenonewline
@@ -1040,23 +1040,23 @@ tagsInComment c = concatMap tagsInCommentLine $ lines c'
 tagsInCommentLine :: String -> [Tag]
 tagsInCommentLine = catMaybes . map maybetag . map strip . splitAtElement ','
   where
-    maybetag s = case runParser (tag <* eof) nullctx "" s of
+    maybetag s = case runParser (tagp <* eof) nullctx "" s of
                   Right t -> Just t
                   Left _ -> Nothing
 
-tag = do
+tagp = do
   -- ptrace "tag"
-  n <- tagname
-  v <- tagvalue
+  n <- tagnamep
+  v <- tagvaluep
   return (n,v)
 
-tagname = do
+tagnamep = do
   -- ptrace "tagname"
   n <- many1 $ noneOf ": \t"
   char ':'
   return n
 
-tagvalue = do
+tagvaluep = do
   -- ptrace "tagvalue"
   v <- anyChar `manyTill` ((char ',' >> return ()) <|> eolof)
   return $ strip $ reverse $ dropWhile (==',') $ reverse $ strip v
@@ -1100,24 +1100,24 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
 tests_Hledger_Read_JournalReader = TestList $ concat [
     test_numberp,
     test_amountp,
-    test_spaceandamountormissing,
+    test_spaceandamountormissingp,
     test_tagcomment,
     test_inlinecomment,
     test_comments,
     test_ledgerDateSyntaxToTags,
     test_postingp,
-    test_transaction,
+    test_transactionp,
     [
-   "modifiertransaction" ~: do
-     assertParse (parseWithCtx nullctx modifiertransaction "= (some value expr)\n some:postings  1\n")
+   "modifiertransactionp" ~: do
+     assertParse (parseWithCtx nullctx modifiertransactionp "= (some value expr)\n some:postings  1\n")
 
-  ,"periodictransaction" ~: do
-     assertParse (parseWithCtx nullctx periodictransaction "~ (some period expr)\n some:postings  1\n")
+  ,"periodictransactionp" ~: do
+     assertParse (parseWithCtx nullctx periodictransactionp "~ (some period expr)\n some:postings  1\n")
 
-  ,"directive" ~: do
-     assertParse (parseWithCtx nullctx directive "!include /some/file.x\n")
-     assertParse (parseWithCtx nullctx directive "account some:account\n")
-     assertParse (parseWithCtx nullctx (directive >> directive) "!account a\nend\n")
+  ,"directivep" ~: do
+     assertParse (parseWithCtx nullctx directivep "!include /some/file.x\n")
+     assertParse (parseWithCtx nullctx directivep "account some:account\n")
+     assertParse (parseWithCtx nullctx (directivep >> directivep) "!account a\nend\n")
 
   ,"comment" ~: do
      assertParse (parseWithCtx nullctx comment "; some comment \n")
@@ -1145,28 +1145,28 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
       assertParseEqual (parseWithCtx nullctx p "2011/1/1 00:00-0800") startofday
       assertParseEqual (parseWithCtx nullctx p "2011/1/1 00:00+1234") startofday
 
-  ,"defaultyeardirective" ~: do
-     assertParse (parseWithCtx nullctx defaultyeardirective "Y 2010\n")
-     assertParse (parseWithCtx nullctx defaultyeardirective "Y 10001\n")
+  ,"defaultyeardirectivep" ~: do
+     assertParse (parseWithCtx nullctx defaultyeardirectivep "Y 2010\n")
+     assertParse (parseWithCtx nullctx defaultyeardirectivep "Y 10001\n")
 
-  ,"marketpricedirective" ~:
-    assertParseEqual (parseWithCtx nullctx marketpricedirective "P 2004/05/01 XYZ $55.00\n") (MarketPrice (parsedate "2004/05/01") "XYZ" $ usd 55)
+  ,"marketpricedirectivep" ~:
+    assertParseEqual (parseWithCtx nullctx marketpricedirectivep "P 2004/05/01 XYZ $55.00\n") (MarketPrice (parsedate "2004/05/01") "XYZ" $ usd 55)
 
-  ,"ignoredpricecommoditydirective" ~: do
-     assertParse (parseWithCtx nullctx ignoredpricecommoditydirective "N $\n")
+  ,"ignoredpricecommoditydirectivep" ~: do
+     assertParse (parseWithCtx nullctx ignoredpricecommoditydirectivep "N $\n")
 
-  ,"defaultcommoditydirective" ~: do
-     assertParse (parseWithCtx nullctx defaultcommoditydirective "D $1,000.0\n")
+  ,"defaultcommoditydirectivep" ~: do
+     assertParse (parseWithCtx nullctx defaultcommoditydirectivep "D $1,000.0\n")
 
-  ,"commodityconversiondirective" ~: do
-     assertParse (parseWithCtx nullctx commodityconversiondirective "C 1h = $50.00\n")
+  ,"commodityconversiondirectivep" ~: do
+     assertParse (parseWithCtx nullctx commodityconversiondirectivep "C 1h = $50.00\n")
 
-  ,"tagdirective" ~: do
-     assertParse (parseWithCtx nullctx tagdirective "tag foo \n")
+  ,"tagdirectivep" ~: do
+     assertParse (parseWithCtx nullctx tagdirectivep "tag foo \n")
 
-  ,"endtagdirective" ~: do
-     assertParse (parseWithCtx nullctx endtagdirective "end tag \n")
-     assertParse (parseWithCtx nullctx endtagdirective "pop \n")
+  ,"endtagdirectivep" ~: do
+     assertParse (parseWithCtx nullctx endtagdirectivep "end tag \n")
+     assertParse (parseWithCtx nullctx endtagdirectivep "pop \n")
 
   ,"accountnamep" ~: do
     assertBool "accountnamep parses a normal account name" (isRight $ parsewith accountnamep "a:b:c")
@@ -1174,10 +1174,10 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
     assertBool "accountnamep rejects an empty leading component" (isLeft $ parsewith accountnamep ":b:c")
     assertBool "accountnamep rejects an empty trailing component" (isLeft $ parsewith accountnamep "a:b:")
 
-  ,"leftsymbolamount" ~: do
-    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$1")  (usd 1 `withPrecision` 0)
-    assertParseEqual (parseWithCtx nullctx leftsymbolamount "$-1") (usd (-1) `withPrecision` 0)
-    assertParseEqual (parseWithCtx nullctx leftsymbolamount "-$1") (usd (-1) `withPrecision` 0)
+  ,"leftsymbolamountp" ~: do
+    assertParseEqual (parseWithCtx nullctx leftsymbolamountp "$1")  (usd 1 `withPrecision` 0)
+    assertParseEqual (parseWithCtx nullctx leftsymbolamountp "$-1") (usd (-1) `withPrecision` 0)
+    assertParseEqual (parseWithCtx nullctx leftsymbolamountp "-$1") (usd (-1) `withPrecision` 0)
 
   ,"amount" ~: do
      let -- | compare a parse result with an expected amount, showing the debug representation for clarity
