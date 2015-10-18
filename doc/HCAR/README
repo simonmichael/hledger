@@ -1,1 +1,152 @@
-The hledger project's entries for the biannual Haskell Communities and Activities Report.
+In this directory are all of hledger's Haskell Communities and Activities Report entries.
+
+--
+
+https://mail.haskell.org/pipermail/haskell-cafe/2015-October/121563.html
+
+Dear all,
+
+We would like to collect contributions for the 28th edition of the
+
+============================================================
+             Haskell Communities & Activities Report
+
+http://www.haskell.org/haskellwiki/Haskell_Communities_and_Activities_Report
+
+                Submission deadline: 30 October 2015
+
+     (please send your contributions to hcar at haskell.org,
+                 in plain text or LaTeX format, both are equally accepted)
+============================================================
+
+This is the short story:
+
+* If you are working on any project that is in some way related
+  to Haskell, please write a short entry and submit it. Even if
+  the project is very small or unfinished or you think it is not
+  important enough --- please reconsider and submit an entry anyway!
+
+* If you are interested in an existing project related to Haskell that
+  has not previously been mentioned in the HCAR, please tell us, so
+  that we can contact the project leaders and ask them to submit an
+  entry.
+
+* If you are working on a project that is looking for contributors,
+  please write a short entry and submit it, mentioning that your are looking
+  for contributors. The final report might have an index with such projects,
+  provided we get enough such submissions.
+
+* Feel free to pass on this call for contributions to others that
+  might be interested.
+
+More detailed information:
+
+The Haskell Communities & Activities Report is a bi-annual overview of
+the state of Haskell as well as Haskell-related projects over the
+last, and possibly the upcoming six months. If you have only recently
+been exposed to Haskell, it might be a good idea to browse the
+previous edition --- you will find interesting projects described as
+well as several starting points and links that may provide answers to
+many questions.
+
+Contributions will be collected until the submission deadline. They
+will then be compiled into a coherent report that is published online
+as soon as it is ready. As always, this is a great opportunity to
+update your webpages, make new releases, announce or even start new
+projects, or to talk about developments you want every Haskeller to
+know about!
+
+Looking forward to your contributions,
+
+Mihai Maruseac and Alejandro Serrano Mena
+
+
+FAQ:
+
+Q: What format should I write in?
+
+A: The usual format is a LaTeX source file, adhering to the template
+that is available at:
+
+     http://haskell.org/communities/05-2015/template.tex
+
+There is also a LaTeX style file at
+
+     http://haskell.org/communities/05-2015/hcar.sty
+
+that you can use to preview your entry. If you do not know LaTeX, then
+use plain text. If you modify an old entry that you have written for an
+earlier edition of the report, you should soon receive your old entry as
+a template (provided we have your valid email address). Please modify
+that template, rather than using your own version of the old entry as a
+template.
+
+_However_, if you don't want/have time to format the entry for LaTeX,
+you can submit it in any other format possible and we will be happy to
+convert it for the final report.
+
+Q: Can I include Haskell code?
+
+A: Yes. Please use lhs2tex syntax (http://www.andres-loeh.de/lhs2tex/).
+The report is compiled in mode polycode.fmt.
+
+Q: Can I include images?
+
+A: Yes, you are even encouraged to do so. Please use .jpg or .png
+format, then, PNG being preferred for simplicity.
+
+Q: Should I send files in .zip archives or similar?
+
+A: No, plain file attachements are the way.
+
+Q: How much should I write?
+
+A: Authors are asked to limit entries to about one column of text. A
+general introduction is helpful. Apart from that, you should focus on
+recent or upcoming developments. Pointers to online content can be given
+for more comprehensive or "historic" overviews of a project. Images do
+not count towards the length limit, so you may want to use this
+opportunity to pep up entries. There is no minimum length of an entry!
+The report aims for being as complete as possible, so please consider
+writing an entry, even if it is only a few lines long.
+
+Q: Which topics are relevant?
+
+A: All topics which are related to Haskell in some way are relevant. We
+usually had reports from users of Haskell (private, academic, or
+commercial), from authors or contributors to projects related to
+Haskell, from people working on the Haskell language, libraries, on
+language extensions or variants. We also like reports about
+distributions of Haskell software, Haskell infrastructure, books and
+tutorials on Haskell. Reports on past and upcoming events related to
+Haskell are also relevant. Finally, there might be new topics we do not
+even think about. As a rule of thumb: if in doubt, then it probably is
+relevant and has a place in the HCAR. You can also simply ask us.
+
+Q: Is unfinished work relevant? Are ideas for projects relevant?
+
+A: Yes! You can use the HCAR to talk about projects you are currently
+working on. You can use it to look for other developers that might help
+you. You can use HCAR to ask for more contributors to your project,
+it is a good way to gain visibility and traction.
+
+Q: If I do not update my entry, but want to keep it in the report, what
+should I do?
+
+A: Tell us that there are no changes. The old entry will typically be
+reused in this case, but it might be dropped if it is older than a year,
+to give more room and more attention to projects that change a lot. Do
+not resend complete entries if you have not changed them.
+
+Q: Will I get confirmation if I send an entry? How do I know whether my
+email has even reached its destination, and not ended up in a spam folder?
+
+A: Prior to publication of the final report, we will send a draft to all
+contributors, for possible corrections. So if you do not hear from us
+within two weeks after the deadline, it is safer to send another mail
+and check whether your first one was received.
+
+-- 
+Mihai Maruseac (MM)
+"If you can't solve a problem, then there's an easier problem you can
+solve: find it." -- George Polya
