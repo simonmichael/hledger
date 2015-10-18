@@ -1,0 +1,78 @@
+% hledger-Sh.tex
+\documentclass[DIV16,twocolumn,10pt]{scrreprt}
+\usepackage{paralist}
+\usepackage{graphicx}
+\usepackage[final]{hcar}
+
+%include polycode.fmt
+
+\begin{document}
+
+\begin{hcarentry}{hledger}
+\report{Simon Michael}
+\status{(active development)}
+%% \participants{(PARTICIPANTS OTHER THAN MYSELF)}% optional
+\makeheader
+
+%% (WHAT IS IT?)
+
+hledger is a cross-platform program (and Haskell library) for tracking
+money, time, or any other commodity, using double-entry accounting and
+a simple, editable text file format.  
+hledger aims to be a reliable, practical tool for daily use,
+and provides command-line, curses-style, and web interfaces.
+It is inspired by and largely compatible with John Wiegley's Ledger program.  
+hledger is released under GNU GPLv3+.
+
+%% (WHAT IS ITS STATUS? / WHAT HAS HAPPENED SINCE LAST TIME?)
+
+hledger's HCAR entry was last updated in the November 2011 report, but
+development has continued steadily, with 2-3 major releases each year.
+
+Many new features and improvements have been introduced, making hledger much more useful.
+These include:
+\begin{compactitem}
+\item Easier installation, using stack, system packages, or downloadable Windows binaries.
+\item A simpler and more robust web interface, with built-in help, balance charts, flexible transaction entry, and automatic browser startup
+\item A new curses-style interface, hledger-ui, is now included and fully supported (in 0.27)
+\item The command-line interface is more robust, and is aware of terminal width, COLUMNS, and wide characters (0.27)
+\item New commands: accounts, balancesheet, cashflow, incomestatement
+\item New add-on packages: hledger-diff, hledger-interest, and hledger-irr
+\item hledger can now report current value based on market prices (-V, in 0.27)
+\item The journal format has become richer, supporting more Ledger features such as balance assertions
+\item hledger journals and reports can be exported as CSV
+\item hledger now reads CSV files directly, using flexible conversion rules
+\item The balance command can show multiple columns, with per-period changes or historical balances
+\item Depth-limiting now interacts well with other features, making it effective for summarising
+\item hledger-web's query language is richer and is also used by the command-line interface
+\item The Decimal library is used for representing amounts exactly
+\item Unicode is handled correctly
+\item Many commands are faster
+\end{compactitem}
+
+Project updates include:
+\begin{compactitem}
+\item hledger.org and the docs have been refreshed a few times, and now include many examples
+\item hledger's code repo and bug tracker have moved from darcs/darcs hub/google code to git/github
+\item hledger has its own IRC channel on freenode: #hledger, with logging and commit/issue/travis notifications
+\end{compactitem}
+
+%% (CAN OTHERS GET IT?)
+
+hledger is available from hledger.org, github, hackage, stackage, and
+is packaged for a number of systems including Debian, Ubuntu, Gentoo,
+Fedora, and NixOS.  See http://hledger.org/download.html or
+http://hledger.org/developer-guide.html for guidance.
+
+%% (WHAT ARE THE IMMEDIATE PLANS?)
+
+Immediate plans: ship hledger 0.27, then: 
+improve parser speed and memory efficiency, 
+integrate a separate parser for Ledger files built by John Wiegley,
+and work towards the 1.0 release.
+
+\FurtherReading
+  \url{http://hledger.org}
+\end{hcarentry}
+
+\end{document}
