@@ -1,0 +1,204 @@
+
+.TH "hledger\-ui" "1" "October 2015" "" "hledger User Manuals"
+
+
+
+.SH NAME
+.PP
+hledger\-ui \- curses\-style interface for the hledger accounting tool
+.SH SYNOPSIS
+.PP
+\f[C]hledger\-ui\ [OPTIONS]\ [QUERYARGS]\f[]
+.PD 0
+.P
+.PD
+\f[C]hledger\ ui\ \-\-\ [OPTIONS]\ [QUERYARGS]\f[]
+.SH DESCRIPTION
+.PP
+hledger is a cross\-platform program for tracking money, time, or any
+other commodity, using double\-entry accounting and a simple, editable
+file format.
+hledger is inspired by and largely compatible with ledger(1).
+.PP
+hledger\-ui is hledger\[aq]s curses\-style interface.
+It reads a hledger journal file (~/.hledger.journal, $LEDGER_FILE, or
+\-f FILE) and provides a simple full\-screen console interface for
+viewing account balances and transactions.
+It is simpler and more efficient for browsing than the hledger CLI, but
+lighter and faster than hledger\-web.
+.PP
+The journal file is \f[C]~/.hledger.journal\f[], \f[C]$LEDGER_FILE\f[],
+or another file specified with \-f.
+For more about the format, see hledger(1) or hledger_journal(5).
+.SH OPTIONS
+.PP
+Note: if invoking hledger\-ui as a hledger subcommand, write
+\f[C]\-\-\f[] before options as shown above.
+.PP
+Any QUERYARGS are interpreted as a hledger search query which filters
+the data.
+.TP
+.B \f[C]\-\-flat\f[]
+show full account names, unindented
+.RS
+.RE
+.TP
+.B \f[C]\-\-no\-elide\f[]
+don\[aq]t compress empty parent accounts on one line
+.RS
+.RE
+.TP
+.B \f[C]\-\-register=ACCTREGEX\f[]
+start in the (first) matched account\[aq]s register screen
+.RS
+.RE
+.TP
+.B \f[C]\-\-theme=default|terminal|greenterm\f[]
+use this custom display theme
+.RS
+.RE
+.TP
+.B \f[C]\-V\ \-\-value\f[]
+show amounts as their current market value in their default valuation
+commodity (accounts screen only)
+.RS
+.RE
+.TP
+.B \f[C]\-h\ \-\-help\f[]
+show help
+.RS
+.RE
+.TP
+.B \f[C]\-\-version\f[]
+show version information
+.RS
+.RE
+.SS hledger options:
+.PP
+The following common hledger options should also work:
+.TP
+.B \f[C]\-f\ FILE\ \-\-file=FILE\f[]
+use a different input file.
+For stdin, use \-
+.RS
+.RE
+.TP
+.B \f[C]\-\-rules\-file=RULESFILE\f[]
+Conversion rules file to use when reading CSV (default: FILE.rules)
+.RS
+.RE
+.TP
+.B \f[C]\-\-alias=OLD=NEW\f[]
+display accounts named OLD as NEW
+.RS
+.RE
+.TP
+.B \f[C]\-\-ignore\-assertions\f[]
+ignore any failing balance assertions in the journal
+.RS
+.RE
+.TP
+.B \f[C]\-\-debug=N\f[]
+show debug output if N is 1\-9 (default: 0)
+.RS
+.RE
+.TP
+.B \f[C]\-b\ \-\-begin=DATE\f[]
+include postings/txns on or after this date
+.RS
+.RE
+.TP
+.B \f[C]\-e\ \-\-end=DATE\f[]
+include postings/txns before this date
+.RS
+.RE
+.TP
+.B \f[C]\-p\ \-\-period=PERIODEXP\f[]
+set start date, end date, and/or reporting interval all at once
+(overrides the flags above)
+.RS
+.RE
+.TP
+.B \f[C]\-\-date2\ \-\-aux\-date\f[]
+use postings/txns\[aq] secondary dates instead
+.RS
+.RE
+.TP
+.B \f[C]\-C\ \-\-cleared\f[]
+include only cleared postings/txns
+.RS
+.RE
+.TP
+.B \f[C]\-\-pending\f[]
+include only pending postings/txns
+.RS
+.RE
+.TP
+.B \f[C]\-U\ \-\-uncleared\f[]
+include only uncleared (and pending) postings/txns
+.RS
+.RE
+.TP
+.B \f[C]\-R\ \-\-real\f[]
+include only non\-virtual postings
+.RS
+.RE
+.TP
+.B \f[C]\-\-depth=N\f[]
+hide accounts/postings deeper than N
+.RS
+.RE
+.TP
+.B \f[C]\-E\ \-\-empty\f[]
+show empty/zero things which are normally omitted
+.RS
+.RE
+.TP
+.B \f[C]\-B\ \-\-cost\f[]
+show amounts in their cost price\[aq]s commodity
+.RS
+.RE
+.SH ENVIRONMENT
+.PP
+\f[B]LEDGER_FILE\f[] sets the default journal file path.
+If not set, it is \f[C]~/.hledger.journal\f[].
+.PP
+\f[B]COLUMNS\f[] sets the screen width to use (normally the full
+terminal width).
+.SH FILES
+.PP
+Reads data from a hledger journal file (\f[C]$LEDGER_FILE\f[] or
+\f[C]~/.hledger.journal\f[] by default), or a CSV file plus associated
+CSV rules file.
+.SH BUGS
+.PP
+The need to precede options with \f[C]\-\-\f[] when invoked from hledger
+is awkward.
+.PP
+\f[C]\-f\-\f[] doesn\[aq]t work (hledger\-ui can\[aq]t read from stdin).
+.PP
+\f[C]\-V\f[] doesn\[aq]t affect the register screen.
+.PP
+If you reload while in the register screen, when you return to the
+accounts screen it will be showing old data, and pressing g again will
+not reload it; you must adjust depth to force it (eg press 0).
+
+
+.SH "REPORTING BUGS"
+Report bugs at http://bugs.hledger.org.
+
+.SH AUTHORS
+Simon Michael <simon@joyful.com>
+
+.SH COPYRIGHT
+
+Copyright (C) 2007-2015 Simon Michael.
+.br
+Released under GNU GPLv3+.
+
+.SH SEE ALSO
+hledger(1), hledger\-ui(1), hledger\-web(1), ledger(1)
+.br
+hledger_csv(5), hledger_journal(5), hledger_timelog(5)
+
+For more information, see http://hledger.org.

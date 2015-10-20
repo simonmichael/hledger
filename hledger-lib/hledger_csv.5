@@ -1,0 +1,258 @@
+
+.TH "hledger_csv" "5" "October 2015" "" "hledger User Manuals"
+
+
+
+.SH NAME
+.PP
+hledger_csv \- reading CSV files with hledger, and the CSV rules file
+format
+.SH DESCRIPTION
+.PP
+hledger can read CSV files, converting each CSV record into a journal
+entry (transaction), if you provide some conversion hints in a "rules
+file".
+This file should be named like the CSV file with an additional
+\f[C]\&.rules\f[] suffix (eg: \f[C]mybank.csv.rules\f[]); or, you can
+specify the file with \f[C]\-\-rules\-file\ PATH\f[].
+hledger will create it if necessary, with some default rules which
+you\[aq]ll need to adjust.
+At minimum, the rules file must specify the \f[C]date\f[] and
+\f[C]amount\f[] fields.
+For an example, see How to read CSV files.
+.PP
+(For CSV output, see CSV output.)
+.SH CSV RULES
+.PP
+The following six kinds of rule can appear in the rules file, in any
+order.
+Blank lines and lines beginning with \f[C]#\f[] or \f[C];\f[] are
+ignored.
+.PP
+\f[B]\f[C]skip\f[] \f[I]N\f[]\f[]
+.PD 0
+.P
+.PD
+Skip this number of CSV records at the beginning.
+You\[aq]ll need this when your CSV contains header lines.
+Eg:
+.IP
+.nf
+\f[C]
+#\ ignore\ the\ first\ CSV\ line
+skip\ 1
+\f[]
+.fi
+.PP
+\f[B]\f[C]date\-format\f[] \f[I]DATEFMT\f[]\f[]
+.PD 0
+.P
+.PD
+When your CSV date fields are not formatted like \f[C]YYYY/MM/DD\f[] (or
+\f[C]YYYY\-MM\-DD\f[] or \f[C]YYYY.MM.DD\f[]), you\[aq]ll need to
+specify the format.
+DATEFMT is a strptime\-like date parsing pattern, which must parse the
+date field values completely.
+Examples:
+.IP
+.nf
+\f[C]
+#\ parses\ "6/11/2013":
+date\-format\ %\-d/%\-m/%Y
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+#\ parses\ "11/06/2013":
+date\-format\ %m/%d/%Y
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+#\ parses\ "2013\-Nov\-06":
+date\-format\ %Y\-%h\-%d
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+#\ parses\ "11/6/2013\ 11:32\ PM":
+date\-format\ %\-m/%\-d/%Y\ %l:%M\ %p
+\f[]
+.fi
+.PP
+\f[B]\f[C]fields\f[] \f[I]CSVFIELDNAME1\f[],
+\f[I]CSVFIELDNAME2\f[]...\f[]
+.PD 0
+.P
+.PD
+(Field list)
+.PD 0
+.P
+.PD
+This (a) names the CSV fields (names may not contain whitespace), and
+(b) assigns them to journal entry fields if you use any of these
+standard field names: \f[C]date\f[], \f[C]date2\f[], \f[C]status\f[],
+\f[C]code\f[], \f[C]description\f[], \f[C]comment\f[],
+\f[C]account1\f[], \f[C]account2\f[], \f[C]amount\f[],
+\f[C]amount\-in\f[], \f[C]amount\-out\f[], \f[C]currency\f[].
+Eg:
+.IP
+.nf
+\f[C]
+#\ use\ the\ 1st,\ 2nd\ and\ 4th\ CSV\ fields\ as\ the\ entry\ date,\ description\ and\ amount
+#\ give\ the\ 7th\ and\ 8th\ fields\ custom\ names\ for\ later\ reference
+fields\ date,\ description,\ ,\ amount,\ ,\ ,\ somefield,\ anotherfield
+\f[]
+.fi
+.PP
+\f[B]\f[I]ENTRYFIELDNAME\f[] \f[I]FIELDVALUE\f[]\f[]
+.PD 0
+.P
+.PD
+(Field assignment)
+.PD 0
+.P
+.PD
+This sets a journal entry field (one of the standard names above) to the
+given text value, which can include CSV field values interpolated by
+name (\f[C]%CSVFIELDNAME\f[]) or 1\-based position (\f[C]%N\f[]).
+ Field assignments can be used instead of or in addition to a field
+list.
+Eg:
+.IP
+.nf
+\f[C]
+#\ set\ the\ amount\ to\ the\ 4th\ CSV\ field\ with\ "USD\ "\ prepended
+amount\ USD\ %4
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+#\ combine\ three\ fields\ to\ make\ a\ comment\ (containing\ two\ tags)
+comment\ note:\ %somefield\ \-\ %anotherfield,\ date:\ %1
+\f[]
+.fi
+.PP
+\f[B]\f[C]if\f[] \f[I]PATTERN\f[]
+.PD 0
+.P
+.PD
+\ \ \ \ \f[I]FIELDASSIGNMENTS\f[]...\f[]
+.PD 0
+.P
+.PD
+or
+.PD 0
+.P
+.PD
+\f[B]\f[C]if\f[]
+.PD 0
+.P
+.PD
+\f[I]PATTERN\f[]
+.PD 0
+.P
+.PD
+\f[I]PATTERN\f[]...
+.PD 0
+.P
+.PD
+\ \ \ \ \f[I]FIELDASSIGNMENTS\f[]...\f[]
+.PD 0
+.P
+.PD
+(Conditional block)
+.PD 0
+.P
+.PD
+This applies one or more field assignments, only to those CSV records
+matched by one of the PATTERNs.
+The patterns are case\-insensitive regular expressions which match
+anywhere within the whole CSV record (it\[aq]s not yet possible to match
+within a specific field).
+When there are multiple patterns they should be written on separate
+lines, unindented.
+The field assignments are on separate lines indented by at least one
+space.
+Examples:
+.IP
+.nf
+\f[C]
+#\ if\ the\ CSV\ record\ contains\ "groceries",\ set\ account2\ to\ "expenses:groceries"
+if\ groceries
+\ account2\ expenses:groceries
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+#\ if\ the\ CSV\ record\ contains\ any\ of\ these\ patterns,\ set\ account2\ and\ comment\ as\ shown
+if
+monthly\ service\ fee
+atm\ transaction\ fee
+banking\ thru\ software
+\ account2\ expenses:business:banking
+\ comment\ \ XXX\ deductible\ ?\ check
+\f[]
+.fi
+.PP
+\f[B]\f[C]include\f[] \f[I]RULESFILE\f[]\f[]
+.PD 0
+.P
+.PD
+Include another rules file at this point.
+\f[C]RULESFILE\f[] is either an absolute file path or a path relative to
+the current file\[aq]s directory.
+Eg:
+.IP
+.nf
+\f[C]
+#\ rules\ reused\ with\ several\ CSV\ files
+include\ common.rules
+\f[]
+.fi
+.SS Other CSV tips
+.PP
+Each generated journal entry will have two postings, to
+\f[C]account1\f[] and \f[C]account2\f[] respectively.
+Currently it\[aq]s not possible to generate entries with more than two
+postings.
+.PP
+If the CSV has debit/credit amounts in separate fields, assign to the
+\f[C]amount\-in\f[] and \f[C]amount\-out\f[] pseudo fields instead of
+\f[C]amount\f[].
+.PP
+If the CSV has the currency in a separate field, assign that to the
+\f[C]currency\f[] pseudo field which will be automatically prepended to
+the amount.
+(Or you can do the same thing with a field assignment.)
+.PP
+If an amount value is parenthesised, it will be de\-parenthesised and
+sign\-flipped automatically.
+.PP
+The generated journal entries will be sorted by date.
+The original order of same\-day entries will be preserved, usually.
+
+
+.SH "REPORTING BUGS"
+Report bugs at http://bugs.hledger.org.
+
+.SH AUTHORS
+Simon Michael <simon@joyful.com>
+
+.SH COPYRIGHT
+
+Copyright (C) 2007-2015 Simon Michael.
+.br
+Released under GNU GPLv3+.
+
+.SH SEE ALSO
+hledger(1), hledger\-ui(1), hledger\-web(1), ledger(1)
+.br
+hledger_csv(5), hledger_journal(5), hledger_timelog(5)
+
+For more information, see http://hledger.org.

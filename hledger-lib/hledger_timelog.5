@@ -1,0 +1,99 @@
+
+.TH "hledger_timelog" "5" "October 2015" "" "hledger User Manuals"
+
+
+
+.SH NAME
+.PP
+hledger_timelog \- hledger\[aq]s timelog file format
+.SH DESCRIPTION
+.PP
+hledger can read timelog files.
+As with Ledger, these are (a subset of) timeclock.el\[aq]s format,
+containing clock\-in and clock\-out entries as in the example below.
+The date is a simple date (also, default year directives work).
+The time format is HH:MM[:SS][+\-ZZZZ].
+Seconds and timezone are optional.
+The timezone, if present, must be four digits and is ignored (currently
+the time is always interpreted as a local time).
+.IP
+.nf
+\f[C]
+i\ 2015/03/30\ 09:00:00\ some:account\ name\ \ optional\ description\ after\ two\ spaces
+o\ 2015/03/30\ 09:20:00
+i\ 2015/03/31\ 22:21:45\ another\ account
+o\ 2015/04/01\ 02:00:34
+\f[]
+.fi
+.PP
+hledger treats each clock\-in/clock\-out pair as a transaction posting
+some number of hours to an account.
+Or if the session spans more than one day, it is split into several
+transactions, one for each day.
+For the above time log, \f[C]hledger\ print\f[] generates these journal
+entries:
+.IP
+.nf
+\f[C]
+$\ hledger\ \-f\ t.timelog\ print
+2015/03/30\ *\ optional\ description\ after\ two\ spaces
+\ \ \ \ (some:account\ name)\ \ \ \ \ \ \ \ \ 0.33h
+
+2015/03/31\ *\ 22:21\-23:59
+\ \ \ \ (another\ account)\ \ \ \ \ \ \ \ \ 1.64h
+
+2015/04/01\ *\ 00:00\-02:00
+\ \ \ \ (another\ account)\ \ \ \ \ \ \ \ \ 2.01h
+\f[]
+.fi
+.PP
+Here is a sample.timelog to download and some queries to try:
+.IP
+.nf
+\f[C]
+$\ hledger\ \-f\ sample.timelog\ balance\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ current\ time\ balances
+$\ hledger\ \-f\ sample.timelog\ register\ \-p\ 2009/3\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ sessions\ in\ march\ 2009
+$\ hledger\ \-f\ sample.timelog\ register\ \-p\ weekly\ \-\-depth\ 1\ \-\-empty\ \ #\ time\ summary\ by\ week
+\f[]
+.fi
+.PP
+To generate time logs, ie to clock in and clock out, you could:
+.IP \[bu] 2
+use emacs and the built\-in timeclock.el, or the extended
+timeclock\-x.el and perhaps the extras in ledgerutils.el
+.IP \[bu] 2
+at the command line, use these bash aliases:
+.RS 2
+.IP
+.nf
+\f[C]
+alias\ ti="echo\ i\ `date\ \[aq]+%Y\-%m\-%d\ %H:%M:%S\[aq]`\ \\$*\ >>$TIMELOG"
+alias\ to="echo\ o\ `date\ \[aq]+%Y\-%m\-%d\ %H:%M:%S\[aq]`\ >>$TIMELOG"
+\f[]
+.fi
+.RE
+.IP \[bu] 2
+or use the old \f[C]ti\f[] and \f[C]to\f[] scripts in the ledger 2.x
+repository.
+These rely on a "timeclock" executable which I think is just the ledger
+2 executable renamed.
+
+
+.SH "REPORTING BUGS"
+Report bugs at http://bugs.hledger.org.
+
+.SH AUTHORS
+Simon Michael <simon@joyful.com>
+
+.SH COPYRIGHT
+
+Copyright (C) 2007-2015 Simon Michael.
+.br
+Released under GNU GPLv3+.
+
+.SH SEE ALSO
+hledger(1), hledger\-ui(1), hledger\-web(1), ledger(1)
+.br
+hledger_csv(5), hledger_journal(5), hledger_timelog(5)
+
+For more information, see http://hledger.org.

@@ -1,0 +1,699 @@
+
+.TH "hledger" "1" "October 2015" "hledger 0.26.98" "hledger User Manuals"
+
+
+
+.SH NAME
+.PP
+hledger \- a command\-line accounting tool
+.SH SYNOPSIS
+.PP
+\f[C]hledger\ [\-f\ FILE]\ COMMAND\ [OPTIONS]\ [CMDARGS]\f[]
+.PD 0
+.P
+.PD
+\f[C]hledger\ [\-f\ FILE]\ ADDONCMD\ \-\-\ [OPTIONS]\ [CMDARGS]\f[]
+.SH DESCRIPTION
+.PP
+hledger is a cross\-platform program for tracking money, time, or any
+other commodity, using double\-entry accounting and a simple, editable
+file format.
+It is inspired by and largely compatible with ledger(1).
+hledger aims to be a reliable, practical tool for daily use.
+This man page is a quick reference and introduction; for more complete
+docs, see http://hledger.org/manual.
+.PP
+This is hledger's command\-line interface (there are also curses and web
+interfaces).
+Its basic function is to read a plain text file describing financial
+transactions (in accounting terms, a general journal) and print useful
+reports on standard output, or export them as CSV.
+hledger can also read CSV files, converting them semi\-automatically to
+journal format.
+Additionally, hledger lists other hledger\-* executables found in the
+user's $PATH and can invoke them as subcommands.
+.PP
+The journal file is \f[C]~/.hledger.journal\f[] by default, or another
+file path specified by \f[C]$LEDGER_FILE\f[].
+You can also specify a file with \f[C]\-f\ FILE\f[], or standard input
+with \f[C]\-f\-\f[].
+.PP
+Transactions are dated movements of money between two (or more) named
+accounts, and are recorded with journal entries like this:
+.IP
+.nf
+\f[C]
+2015/10/16\ bought\ food
+\ expenses:food\ \ \ \ \ \ \ \ \ \ $10
+\ assets:cash
+\f[]
+.fi
+.PP
+For more about the format, see hledger_journal(5).
+.PP
+Most users use a text editor to edit the journal, usually with an editor
+mode such as ledger\-mode for added convenience.
+hledger's interactive add command is another way to record new
+transactions.
+hledger never changes existing transactions.
+.PP
+To get started, you can either save some entries like the above in
+\f[C]~/.hledger.journal\f[], or run \f[C]hledger\ add\f[] and follow the
+prompts.
+Then try some commands like \f[C]hledger\ print\f[] or
+\f[C]hledger\ balance\f[].
+See COMMANDS and EXAMPLES below.
+.SH OPTIONS
+.PP
+To see general help and the command list: \f[C]hledger\ \-\-help\f[] or
+\f[C]hledger\f[]
+.PP
+To see all options available with a command:
+\f[C]hledger\ COMMAND\ \-\-help\f[]
+.PP
+Except for the General options below, options must be written after
+COMMAND, not before it.
+.PP
+Also, when invoking external add\-on commands, their options must be
+written after a double hyphen.
+(Or, you can invoke the external command directly.) Eg:
+.IP
+.nf
+\f[C]
+$\ hledger\ ui\ \-\-\ \-\-register\ cash
+$\ hledger\-ui\ \-\-register\ cash
+\f[]
+.fi
+.PP
+Options and command arguments can be intermixed.
+Arguments are usually interpreted as a search query which filters the
+data, see QUERIES.
+.SS General flags:
+.PP
+These can appear anywhere in the command line.
+.TP
+.B \f[C]\-h\ \-\-help\f[]
+show general help or (after command) command help
+.RS
+.RE
+.TP
+.B \f[C]\-\-version\f[]
+show version information
+.RS
+.RE
+.TP
+.B \f[C]\-f\ FILE\ \-\-file=FILE\f[]
+use a different input file.
+For stdin, use \-
+.RS
+.RE
+.TP
+.B \f[C]\-\-rules\-file=RULESFILE\f[]
+Conversion rules file to use when reading CSV (default: FILE.rules)
+.RS
+.RE
+.TP
+.B \f[C]\-\-alias=OLD=NEW\f[]
+display accounts named OLD as NEW
+.RS
+.RE
+.TP
+.B \f[C]\-\-ignore\-assertions\f[]
+ignore any failing balance assertions in the journal
+.RS
+.RE
+.TP
+.B \f[C]\-\-debug=N\f[]
+: show debug output if N is 1\-9 (default: 0)
+.RS
+.RE
+.SS Common reporting flags:
+.PP
+These are supported by most commands, where applicable.
+They must be written after the command name.
+Additional command\-specific flags are described in COMMANDS below.
+.TP
+.B \f[C]\-b\ \-\-begin=DATE\f[]
+include postings/txns on or after this date
+.RS
+.RE
+.TP
+.B \f[C]\-e\ \-\-end=DATE\f[]
+include postings/txns before this date
+.RS
+.RE
+.TP
+.B \f[C]\-D\ \-\-daily\f[]
+multiperiod/multicolumn report by day
+.RS
+.RE
+.TP
+.B \f[C]\-W\ \-\-weekly\f[]
+multiperiod/multicolumn report by week
+.RS
+.RE
+.TP
+.B \f[C]\-M\ \-\-monthly\f[]
+multiperiod/multicolumn report by month
+.RS
+.RE
+.TP
+.B \f[C]\-Q\ \-\-quarterly\f[]
+multiperiod/multicolumn report by quarter
+.RS
+.RE
+.TP
+.B \f[C]\-Y\ \-\-yearly\f[]
+multiperiod/multicolumn report by year
+.RS
+.RE
+.TP
+.B \f[C]\-p\ \-\-period=PERIODEXP\f[]
+set start date, end date, and/or reporting interval all at once
+(overrides the flags above)
+.RS
+.RE
+.TP
+.B \f[C]\-\-date2\ \-\-aux\-date\f[]
+use postings/txns\[aq] secondary dates instead
+.RS
+.RE
+.TP
+.B \f[C]\-C\ \-\-cleared\f[]
+include only cleared postings/txns
+.RS
+.RE
+.TP
+.B \f[C]\-\-pending\f[]
+include only pending postings/txns
+.RS
+.RE
+.TP
+.B \f[C]\-U\ \-\-uncleared\f[]
+include only uncleared (and pending) postings/txns
+.RS
+.RE
+.TP
+.B \f[C]\-R\ \-\-real\f[]
+include only non\-virtual postings
+.RS
+.RE
+.TP
+.B \f[C]\-\-depth=N\f[]
+hide accounts/postings deeper than N
+.RS
+.RE
+.TP
+.B \f[C]\-E\ \-\-empty\f[]
+show empty/zero things which are normally omitted
+.RS
+.RE
+.TP
+.B \f[C]\-B\ \-\-cost\f[]
+show amounts in their cost price\[aq]s commodity
+.RS
+.RE
+.PP
+If a reporting option is repeated, the last one takes precedence.
+Eg \-p jan \-p feb is equivalent to \-p feb.
+.SH COMMANDS
+.PP
+COMMAND selects one of hledger\[aq]s subcommands; omit it to list
+available commands.
+To save typing, some commands have a short form; any unique prefix also
+works.
+.PP
+Here is a summary (see http://hledger.org/manual#commands for the full
+command help):
+.SS Data entry:
+.SS add
+.PP
+prompt for transactions and add them to the journal.
+.PP
+This is the only hledger command that writes to the journal file.
+It appends only, existing transactions are not changed.
+.TP
+.B \f[C]\-\-no\-new\-accounts\f[]
+don\[aq]t allow creating new accounts; helps prevent typos when entering
+account names
+.RS
+.RE
+.SS Reporting:
+.SS accounts
+.PP
+show account names
+.TP
+.B \f[C]\-\-tree\f[]
+show short account names, as a tree
+.RS
+.RE
+.TP
+.B \f[C]\-\-flat\f[]
+show full account names, as a list (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-drop=N\f[]
+in flat mode: omit N leading account name parts
+.RS
+.RE
+.SS activity
+.PP
+show an ascii barchart of posting counts per interval (default: daily)
+.SS balance, bal
+.PP
+show accounts and balances
+.TP
+.B \f[C]\-\-tree\f[]
+show short account names, as a tree
+.RS
+.RE
+.TP
+.B \f[C]\-\-flat\f[]
+show full account names, as a list (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-drop=N\f[]
+in flat mode: omit N leading account name parts
+.RS
+.RE
+.TP
+.B \f[C]\-\-format=LINEFORMAT\f[]
+in single\-column balance reports: use this custom line format
+.RS
+.RE
+.TP
+.B \f[C]\-\-no\-elide\f[]
+in tree mode: don\[aq]t squash boring parent accounts
+.RS
+.RE
+.TP
+.B \f[C]\-H\ \-\-historical\f[]
+in multicolumn mode: show historical ending balances
+.RS
+.RE
+.TP
+.B \f[C]\-\-cumulative\f[]
+in multicolumn mode: show accumulated ending balances
+.RS
+.RE
+.TP
+.B \f[C]\-A\ \-\-average\f[]
+in multicolumn mode: show a row average column
+.RS
+.RE
+.TP
+.B \f[C]\-T\ \-\-row\-total\f[]
+in multicolumn mode: show a row total column
+.RS
+.RE
+.TP
+.B \f[C]\-N\ \-\-no\-total\f[]
+don\[aq]t show the final total row
+.RS
+.RE
+.TP
+.B \f[C]\-V\ \-\-value\f[]
+show amounts as their current market value in their default valuation
+commodity
+.RS
+.RE
+.TP
+.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
+write output to FILE instead of stdout.
+A recognised FMT suffix influences the format.
+.RS
+.RE
+.TP
+.B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
+select the output format.
+Supported formats: txt, csv.
+.RS
+.RE
+.SS balancesheet, bs
+.PP
+show a balance sheet
+.TP
+.B \f[C]\-\-flat\f[]
+show full account names, as a list (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-drop=N\f[]
+in flat mode: omit N leading account name parts
+.RS
+.RE
+.SS cashflow, cf
+.PP
+show a cashflow statement
+.TP
+.B \f[C]\-\-flat\f[]
+show full account names, as a list (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-drop=N\f[]
+in flat mode: omit N leading account name parts
+.RS
+.RE
+.SS incomestatement, is
+.PP
+show an income statement
+.TP
+.B \f[C]\-\-flat\f[]
+show full account names, as a list (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-drop=N\f[]
+in flat mode: omit N leading account name parts
+.RS
+.RE
+.SS print
+.PP
+show transactions from the journal
+.TP
+.B \f[C]\-m\ STR\ \-\-match=STR\f[]
+show the transaction whose description is most similar to STR, and is
+most recent
+.RS
+.RE
+.TP
+.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
+write output to FILE instead of stdout.
+A recognised FMT suffix influences the format.
+.RS
+.RE
+.TP
+.B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
+select the output format.
+Supported formats: txt, csv.
+.RS
+.RE
+.SS register, reg
+.PP
+show postings and running total
+.TP
+.B \f[C]\-H\ \-\-historical\f[]
+include prior postings in the running total
+.RS
+.RE
+.TP
+.B \f[C]\-A\ \-\-average\f[]
+show a running average instead of the running total (implies \-\-empty)
+.RS
+.RE
+.TP
+.B \f[C]\-r\ \-\-related\f[]
+show postings\[aq] siblings instead
+.RS
+.RE
+.TP
+.B \f[C]\-w\ N\ \-\-width=N\f[]
+set output width (default: terminal width or COLUMNS.
+\-wN,M sets description width as well)
+.RS
+.RE
+.TP
+.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
+write output to FILE instead of stdout.
+A recognised FMT suffix influences the format.
+.RS
+.RE
+.TP
+.B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
+select the output format.
+Supported formats: txt, csv.
+.RS
+.RE
+.SS stats
+.PP
+show some journal statistics
+.TP
+.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
+write output to FILE instead of stdout.
+A recognised FMT suffix influences the format.
+.RS
+.RE
+.SS Add\-on commands:
+.PP
+Additional commands will be available when executables or scripts named
+"\f[C]hledger\-\f[]CMD" are installed in the PATH.
+These are often provided by a package of the same name, or you can make
+your own custom scripts (haskell scripts can use hledger\-lib allowing
+tight integration).
+Some available add\-ons are:
+.SS autosync
+.PP
+download OFX bank data and/or convert OFX to hledger journal format
+.SS diff
+.PP
+show transactions present in one journal file but not another
+.SS interest
+.PP
+generate interest transactions
+.SS irr
+.PP
+calculate internal rate of return
+.SS ui
+.PP
+curses\-style interface, see hledger\-ui(1)
+.SS web
+.PP
+web interface, see hledger\-web(1)
+.SH QUERIES
+.PP
+Most commands accept an optional query expression, written as arguments
+after the command name, to filter the data by date, account name or
+other criteria.
+The syntax is similar to a web search: one or more space\-separated
+search terms, quotes to enclose whitespace, optional prefixes to match
+specific fields.
+Multiple search terms are combined as follows:
+.PP
+All commands except print: show transactions/postings/accounts which
+match (or negatively match)
+.IP \[bu] 2
+any of the description terms AND
+.IP \[bu] 2
+any of the account terms AND
+.IP \[bu] 2
+all the other terms.
+.PP
+The print command: show transactions which
+.IP \[bu] 2
+match any of the description terms AND
+.IP \[bu] 2
+have any postings matching any of the positive account terms AND
+.IP \[bu] 2
+have no postings matching any of the negative account terms AND
+.IP \[bu] 2
+match all the other terms.
+.PP
+The following kinds of search terms can be used:
+.TP
+.B \f[B]\f[C]REGEX\f[]\f[]
+match account names by this regular expression
+.RS
+.RE
+.TP
+.B \f[B]\f[C]acct:REGEX\f[]\f[]
+same as above
+.RS
+.RE
+.TP
+.B \f[B]\f[C]amt:N,\ amt:<N,\ amt:<=N,\ amt:>N,\ amt:>=N\f[]\f[]
+match postings with a single\-commodity amount that is equal to, less
+than, or greater than N.
+(Multi\-commodity amounts are not tested, and will always match.) The
+comparison has two modes: if N is preceded by a + or \- sign (or is 0),
+the two signed numbers are compared.
+Otherwise, the absolute magnitudes are compared, ignoring sign.
+.RS
+.RE
+.TP
+.B \f[B]\f[C]code:REGEX\f[]\f[]
+match by transaction code (eg check number)
+.RS
+.RE
+.TP
+.B \f[B]\f[C]cur:REGEX\f[]\f[]
+match postings or transactions including any amounts whose
+currency/commodity symbol is fully matched by REGEX.
+(For a partial match, use \f[C]\&.*REGEX.*\f[]).
+Note, to match characters which are regex\-significant, like the dollar
+sign (\f[C]$\f[]), you need to prepend \f[C]\\\f[].
+And when using the command line you need to add one more level of
+quoting to hide it from the shell, so eg do:
+\f[C]hledger\ print\ cur:\[aq]\\$\[aq]\f[] or
+\f[C]hledger\ print\ cur:\\\\$\f[].
+.RS
+.RE
+.TP
+.B \f[B]\f[C]desc:REGEX\f[]\f[]
+match transaction descriptions
+.RS
+.RE
+.TP
+.B \f[B]\f[C]date:PERIODEXPR\f[]\f[]
+match dates within the specified period (which should not include a
+reporting interval
+.RS
+.RE
+.TP
+.B \f[B]\f[C]date2:PERIODEXPR\f[]\f[]
+as above, but match secondary dates
+.RS
+.RE
+.TP
+.B \f[B]\f[C]depth:N\f[]\f[]
+match (or display, depending on command) accounts at or above this depth
+.RS
+.RE
+.TP
+.B \f[B]\f[C]real:,\ real:0\f[]\f[]
+match real or virtual postings respectively
+.RS
+.RE
+.TP
+.B \f[B]\f[C]status:*,\ status:!,\ status:\f[]\f[]
+match cleared, pending, or uncleared/pending transactions respectively
+.RS
+.RE
+.TP
+.B \f[B]\f[C]tag:REGEX[=REGEX]\f[]\f[]
+match by tag name, and optionally also by tag value.
+Note a tag: query is considered to match a transaction if it matches any
+of the postings.
+Also remember that postings inherit the tags of their parent
+transaction.
+.RS
+.RE
+.TP
+.B \f[B]\f[C]not:\f[]\f[]
+before any of the above negates the match.
+.RS
+.RE
+.SH EXAMPLES
+.PP
+Two simple transactions in hledger journal format:
+.IP
+.nf
+\f[C]
+2015/9/30\ gift\ received
+\ \ assets:cash\ \ \ $20
+\ \ income:gifts
+
+2015/10/16\ farmers\ market
+\ \ expenses:food\ \ \ \ $10
+\ \ assets:cash
+\f[]
+.fi
+.PP
+Some basic reports:
+.IP
+.nf
+\f[C]
+$\ hledger\ print
+2015/09/30\ gift\ received
+\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ $20
+\ \ \ \ income:gifts\ \ \ \ \ \ \ \ \ \ $\-20
+
+2015/10/16\ farmers\ market
+\ \ \ \ expenses:food\ \ \ \ \ \ \ \ \ \ \ $10
+\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ $\-10
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ accounts\ \-\-tree
+assets
+\ \ cash
+expenses
+\ \ food
+income
+\ \ gifts
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ balance
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $10\ \ assets:cash
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $10\ \ expenses:food
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-20\ \ income:gifts
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ register\ cash
+2015/09/30\ gift\ received\ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $20\ \ \ \ \ \ \ \ \ \ \ $20
+2015/10/16\ farmers\ market\ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-10\ \ \ \ \ \ \ \ \ \ \ $10
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ available\ commands
+$\ hledger\ add\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ add\ more\ transactions\ to\ the\ journal\ file
+$\ hledger\ balance\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ all\ accounts\ with\ aggregated\ balances
+$\ hledger\ balance\ \-\-help\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ help\ for\ balance\ command
+$\ hledger\ balance\ \-\-depth\ 1\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ only\ top\-level\ accounts
+$\ hledger\ register\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ account\ postings,\ with\ running\ total
+$\ hledger\ reg\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ postings\ to/from\ income\ accounts
+$\ hledger\ reg\ \[aq]assets:some\ bank:checking\[aq]\ #\ show\ postings\ to/from\ this\ checking\ account
+$\ hledger\ print\ desc:shop\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ transactions\ with\ shop\ in\ the\ description
+$\ hledger\ activity\ \-W\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ transaction\ counts\ per\ week\ as\ a\ bar\ chart
+\f[]
+.fi
+.SH ENVIRONMENT
+.PP
+\f[B]LEDGER_FILE\f[] sets the default journal file path.
+If not set, it is \f[C]~/.hledger.journal\f[].
+.PP
+\f[B]COLUMNS\f[] sets the default width used by the register command
+(normally the full terminal width).
+.SH FILES
+.PP
+Reads data from a hledger journal file (\f[C]$LEDGER_FILE\f[] or
+\f[C]~/.hledger.journal\f[] by default), or a CSV file plus associated
+CSV rules file.
+.SH BUGS
+.PP
+The need to precede options with \f[C]\-\-\f[] when invoked from hledger
+is awkward.
+.PP
+hledger can\[aq]t render non\-ascii characters when run from a Windows
+command prompt (up to Windows 7 at least).
+.PP
+When input data contains non\-ascii characters, a suitable system locale
+must be configured (or there will be an unhelpful error).
+Eg on POSIX, set LANG to something other than C.
+.SH REPORTING BUGS
+.PP
+Report bugs at http://bugs.hledger.org.
+
+
+.SH "REPORTING BUGS"
+Report bugs at http://bugs.hledger.org.
+
+.SH AUTHORS
+Simon Michael <simon@joyful.com>
+
+.SH COPYRIGHT
+
+Copyright (C) 2007-2015 Simon Michael.
+.br
+Released under GNU GPLv3+.
+
+.SH SEE ALSO
+hledger(1), hledger\-ui(1), hledger\-web(1), ledger(1)
+.br
+hledger_csv(5), hledger_journal(5), hledger_timelog(5)
+
+For more information, see http://hledger.org.

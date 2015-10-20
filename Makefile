@@ -1033,6 +1033,34 @@ haddock: \
 # # 	cd site/api && \
 # # 	hoogle --convert=main.txt --output=default.hoo
 
+# in subsequent rules, allow automatic variables to be used in prerequisites (use $$)
+.SECONDEXPANSION:
+
+MANPAGES=\
+	hledger-lib/hledger_csv.5 \
+	hledger-lib/hledger_journal.5 \
+	hledger-lib/hledger_timelog.5 \
+	hledger/hledger.1 \
+	hledger-ui/hledger-ui.1 \
+	hledger-web/hledger-web.1 \
+
+manpages: $(MANPAGES) \
+		$(call def-help,manpages, generate man pages from markdown )
+
+%.1 %.5: $$@.md doc/manpage.template
+	pandoc $< -t man -s --template doc/manpage.template -o $@ \
+		--filter tools/pandocCapitalizeHeaders.hs \
+		--filter tools/pandocRemoveNotes.hs \
+		--filter tools/pandocRemoveLinks.hs
+#		--filter tools/pandocCapitalizeHeaders \
+#		--filter tools/pandocRemoveNotes \
+#		--filter tools/pandocRemoveLinks
+# faster when compiled
+
+
+clean-manpages:
+	rm -f $(MANPAGES)
+
 ###############################################################################
 $(call def-help-subsection,RELEASING:)
 #$(call def-help-subsection,see also developer guide -> how to -> do a release)
@@ -1321,9 +1349,6 @@ tagrelease: \
 ###############################################################################
 $(call def-help-subsection,MISCELLANEOUS:)
 
-# allow automatic variables (using $$) in the prerequisites of subsequent rules
-.SECONDEXPANSION:
-
 # XXX enable for all cabal files when hpack is a little better
 # gencabalfiles: $$(CABALFILES)
 gencabalfiles: doc/site/hakyll-std.cabal \
@@ -1386,7 +1411,7 @@ cleanghc: cleanghco \
 clean: cleanghco \
 	$(call def-help,clean, default cleanup (ghc build leftovers) )
 
-Clean: stackclean cabalclean cleanghc cleantags \
+Clean: stackclean cabalclean cleanghc cleantags clean-manpages \
 	$(call def-help,Clean, thorough cleanup (stack/cabal/ghc builds and tags) )
 
 # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
