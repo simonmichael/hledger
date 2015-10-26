@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack --resolver nightly-2015-07-01 --install-ghc runghc --package hakyll --package pandoc
+-- stack runghc --package hakyll --package pandoc
 {-# LANGUAGE OverloadedStrings #-}
 {- |
 
