@@ -1,7 +1,27 @@
 User-visible changes in hledger-ui.
+See also hledger's change log.
 
 0.27 (unreleased)
 
-- hledger-ui is the new name for hledger-vty, the curses-style text
-  UI.  It is intended to be installed by all hledger users, except on
-  (native) Windows where vty is not supported.
+- hledger-ui is a new curses-style UI, intended to be a standard part
+  of the hledger toolset for all users (except on native MS Windows,
+  where vty is not yet supported).
+
+  The UI is currently very simple, allowing just browsing of accounts
+  and transactions, but it has a number of improvements over the old
+  hledger-vty:
+
+  - adapts to screen size
+  - handles wide characters
+  - manages cursor and scroll position better
+  - shows multi-commodity amounts on one line
+  - shows transactions rather than postings, like hledger-web
+  - allows depth adjustment
+  - allows tree/flat mode toggle
+  - allows journal reloading
+  - color-codes posting amounts
+  - offers multiple color themes
+  - includes built-in help
+
+  hledger-ui is built with brick, a new higher-level UI library based
+  on vty, making it relatively easy to grow and maintain.

@@ -1,6 +1,23 @@
 User-visible changes in hledger-web.
 See also hledger's change log.
 
+0.27 (unreleased)
+
+- Fix keyboard shortcut for adding a transaction (Carlos Lopez-Camey)
+
+- Clear the form when clicking 'Add a transaction' (just like the shortcut) (Carlos Lopez-Camey)
+
+- Disallow -f- (reading from standard input) which currently doesn't work (#202)
+
+- Fix broken links when using --base-url (#235)
+
+- Fix the --file-url option (#285)
+
+- Show fewer "other accounts" in the account register: to reduce
+  clutter in the "other accounts" field, if there are both real and
+  virtual postings to other accounts, show only the accounts posted to
+  by real postings.
+
 
 0.26 (2015/7/12)
 

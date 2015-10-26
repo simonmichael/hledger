@@ -1,6 +1,28 @@
 API-ish changes in hledger-lib.
-User-visible changes appear in hledger's change log.
+For user-visible changes, see hledger's change log.
 
+0.27 (unreleased)
+
+- The main hledger types now derive NFData, which makes it easier to
+  time things with criterion.
+
+- Utils has been split up more.
+
+- Utils.Regex: regular expression compilation has been memoized, and
+  memoizing versions of regexReplace[CI] have been added, since
+  compiling regular expressions every time seems to be quite
+  expensive (#244).
+ 
+- Utils.String: strWidth is now aware of multi-line strings (#242).
+
+- Read: parsers now use a consistent p suffix.
+
+- New dependencies: deepseq, uglymemo.
+
+- All the hledger packages' cabal files are now generated from
+  simpler, less redundant yaml files by hpack, in principle. In
+  practice, manual fixups are still needed until hpack gets better,
+  but it's still a win.
 
 0.26 (2015/7/12)
 

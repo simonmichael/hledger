@@ -1,6 +1,91 @@
 User-visible changes in hledger and hledger-lib.
 
 
+0.27 (unreleased)
+
+Account aliases:
+
+- Regular expression account aliases are now fast enough that you can
+  use lots of them without slowing things down. Previously they took
+  O(aliases x transactions) time, and now they take O(aliases x
+  accounts) time; also regular expressions are no longer recompiled
+  unnecessarily, for additional speedup.
+
+Documentation:
+
+- The hledger packages now have man pages, based on the current user
+  manual (thanks to the mighty pandoc) (#282).
+ 
+Journal format:
+
+- Dates must now begin with a digit (not /, eg).
+
+- The comment directive longer requires an end comment, and will
+  extend to the end of the file(s) without it.
+
+Command-line interface:
+
+- Output (balance reports, register reports, print output etc.)
+  containing wide characters, eg chinese/japanese/korean characters,
+  should now align correctly, when viewed in apps and fonts that show
+  wide characters as double width (#242).
+ 
+- The argument for --depth or depth: must now be positive.
+
+add:
+
+- Journal entries are now written with all amounts explicit, to avoid
+  losing price info (#283).
+
+- Fixed a bug which sometimes (when the same letter pair was repeated)
+  caused it not to pick the most similar past transaction for defaults.
+    
+balance:
+
+- There is now a -V/--value flag to report current market value (as in Ledger).
+  It converts all reported amounts using their "default market price".
+  "Market price" is the new name for "historical prices", defined with the P directive.
+  The default market price for a commodity is the most recent one found in the journal on or before the report end date.
+    
+  Unlike Ledger, hledger's -V uses only the market prices recorded
+  with P directives; it does not use the "transaction prices"
+  recorded as part of posting amounts (which are used by -B/--cost).
+  Also, using both -B and -V at the same time is supported.
+
+- Fixed a bug in amount normalization which caused amount styles
+  (commodity symbol placement, decimal point character, etc.) to be
+  lost in certain cases (#230, #276).
+
+- The balance command's --format option can now adjust the rendering
+  style of multi-commodity amounts, if you begin the format string
+  with one of:
+    
+     %_  - renders amounts on multiple lines, bottom-aligned (the default)
+     %^  - renders amounts on multiple lines, top-aligned
+     %,  - renders amounts on one line, comma-separated
+    
+- The balance report's final total (and the line above it) now adapt
+  themselves to a custom --format.
+
+print:
+
+- The --match option prints the journal entry that best matches a
+  description (ie whose description field is most similar to the value
+  given, and if there are several equally similar, the most recent).
+  This was originally an add-on I used to guess account names for
+  ledger-autosync. It's nice for quickly looking up a recent
+  transaction from a guessed or partial description.
+
+- print now always right-aligns the amounts in an entry, even when
+  they are wider than 12 characters.  (If there is a price, it's
+  considered part of the amount for right-alignment.)
+
+register:
+
+- Amount columns now resize automatically, using more space if it's
+  needed and available.
+
+
 0.26 (2015/7/12)
 
 Account aliases:
@@ -416,4 +501,4 @@ Miscellaneous:
 - allow text 1.1, drop data-pprint to build with GHC 7.8.x
 
 
-0.22.1 (2014/1/6) and older: see http://hledger.org/release-notes or doc/CHANGES.md.
+0.22.1 (2014/1/6) and older: see http://hledger.org/release-notes or doc/release-notes.md.
