@@ -2263,6 +2263,12 @@ hledger-web, and other accounting systems), rather than postings
   if you have adjusted the report start date. Currently it always
   shows the running total).
 
+##### Error screen
+
+This screen will appear if there is a problem, such as a parse error,
+when you press g to reload. Once you have fixed the problem described,
+press g again to reload and restore normal operation.
+
 #### web
 
 <style>

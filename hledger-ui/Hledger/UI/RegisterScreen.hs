@@ -28,6 +28,7 @@ import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
+import qualified Hledger.UI.ErrorScreen as ES (screen)
 
 screen = RegisterScreen{
    rsState  = list "register" V.empty 1
@@ -193,12 +194,18 @@ handleRegisterScreen st@AppState{
   case e of
     Vty.EvKey Vty.KEsc []        -> halt st
     Vty.EvKey (Vty.KChar 'q') [] -> halt st
+
     Vty.EvKey (Vty.KChar 'g') [] -> do
-      (ej, changed) <- liftIO $ journalReloadIfChanged copts j
-      case (changed, ej) of
-        (True, Right j') -> reload st{ajournal=j'}
-        -- (True, Left err) -> continue st{amsg=err} -- XXX report parse error
-        _                -> continue st
+      ej <- liftIO $ journalReload j
+      case ej of
+        Right j' -> reload st{ajournal=j'}
+        Left err -> continue $ screenEnter d ES.screen{esState=err} st
+      -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
+      -- case (changed, ej) of
+      --   (True, Right j') -> reload st{ajournal=j'}
+      --   -- (True, Left err) -> continue st{amsg=err} -- XXX report parse error
+      --   _                -> continue st
+
     Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
     -- Vty.EvKey (Vty.KRight) []    -> error (show curItem) where curItem = listSelectedElement is
     -- fall through to the list's event handler (handles [pg]up/down)

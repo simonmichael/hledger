@@ -109,8 +109,6 @@ The following common hledger options should also work:
 
 # SCREENS
 
-Currently there are two:
-
 ## Accounts screen
 
 This is the screen shown at startup by default.
@@ -151,6 +149,12 @@ hledger-web, and other accounting systems), rather than postings
   current account's historic balance as of the transaction date, even
   if you have adjusted the report start date. Currently it always
   shows the running total).
+
+## Error screen
+
+This screen will appear if there is a problem, such as a parse error,
+when you press g to reload. Once you have fixed the problem described,
+press g again to reload and restore normal operation.
 
 # ENVIRONMENT
 

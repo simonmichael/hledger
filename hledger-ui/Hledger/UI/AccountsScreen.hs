@@ -33,6 +33,7 @@ import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
 import qualified Hledger.UI.RegisterScreen as RS (screen)
+import qualified Hledger.UI.ErrorScreen as ES (screen)
 
 screen = AccountsScreen{
    asState  = list "accounts" V.empty 1
@@ -213,12 +214,18 @@ handleAccountsScreen st@AppState{
         Vty.EvKey Vty.KEsc []        -> halt st
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
         -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
+
         Vty.EvKey (Vty.KChar 'g') [] -> do
-          (ej, changed) <- liftIO $ journalReloadIfChanged copts j
-          case (changed, ej) of
-            (True, Right j') -> reload st{ajournal=j'}
-            -- (True, Left err) -> continue st{amsg=err} -- XXX report parse error
-            _                -> continue st
+          ej <- liftIO $ journalReload j
+          case ej of
+            Right j' -> reload st{ajournal=j'}
+            Left err -> continue $ screenEnter d ES.screen{esState=err} st
+          -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
+          -- case (changed, ej) of
+          --   (True, Right j') -> reload st{ajournal=j'}
+          --   -- (True, Left err) -> continue st{amsg=err} -- XXX report parse error
+          --   _                -> continue st
+
         Vty.EvKey (Vty.KChar '-') [] -> reload $ decDepth st
         Vty.EvKey (Vty.KChar '+') [] -> reload $ incDepth st
         Vty.EvKey (Vty.KChar '=') [] -> reload $ incDepth st
