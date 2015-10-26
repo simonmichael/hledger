@@ -103,6 +103,7 @@ MAIN=hledger/app/hledger-cli.hs
 
 # all source files in the project (plus a few strays like Setup.hs & hlint.hs)
 SOURCEFILES:= \
+	dev.hs \
 	hledger/*hs \
 	hledger/bench/*hs \
 	hledger/Hledger/*hs \
