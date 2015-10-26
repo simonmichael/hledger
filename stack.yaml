@@ -1,6 +1,6 @@
 # cf https://github.com/commercialhaskell/stack/wiki/stack.yaml
 
-resolver: lts-3.0
+resolver: nightly-2015-10-25  # or newer
 
 packages:
 - hledger-lib
@@ -11,10 +11,7 @@ packages:
 flags:
 
 extra-deps:
-- brick-0.2
-- text-zipper-0.2.1
 - uglymemo-0.1.0.1
-- vty-5.3.1
 
 ghc-options:
   rtsopts:
