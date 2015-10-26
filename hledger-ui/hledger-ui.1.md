@@ -116,7 +116,7 @@ Currently there are two:
 This is the screen shown at startup by default.
 It shows a scrollable list of accounts and their balances - all accounts, or just the matched accounts if you specified a query on the command line.
 `f` toggles flat mode on and off.
-You can limit the depth of accounts displayed, to reduce detail, by pressing `-` to reduce it.
+You can limit the depth of accounts displayed, to see less detail, by pressing `-`.
 `+` (or `=`) increases the depth limit again.
 Or, press a number key to set a specific depth limit, eg `1` to see just top level accounts.
 Use the cursor keys to move up or down, and cursor right (or enter) to view an account's transaction register.

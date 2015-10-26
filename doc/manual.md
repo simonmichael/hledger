@@ -2196,6 +2196,73 @@ fees, or cost), it calculates the hypothetical annual rate of fixed
 rate investment that would have provided the exact same cash flow.
 See the package page for more.
 
+#### ui
+
+[hledger-ui](http://hackage.haskell.org/package/hledger-ui) is hledger's curses-style interface.
+It provides a simple full-screen console interface for viewing account
+balances and transactions. It is simpler and more efficient for
+browsing than the hledger CLI, but lighter and faster than
+hledger-web.
+
+```{.shell .noclear}
+$ hledger ui -- --help
+hledger-ui [OPTIONS] [PATTERNS]
+  browse accounts, postings and entries in a full-window curses interface
+
+Flags:
+     --theme=THEME         use this custom display theme (default, terminal,
+                           greenterm)
+     --register=ACCTREGEX  start in the (first) matched account's register
+     --flat                show full account names, unindented
+     --no-elide            don't compress empty parent accounts on one line
+  -V --value               show amounts as their market value in their
+                           default valuation commodity (accounts screen)
+...
+```
+
+Currently there are two screens:
+
+##### Accounts screen
+
+This is the screen shown at startup by default.
+It shows a scrollable list of accounts and their balances - all accounts, or just the matched accounts if you specified a query on the command line.
+`f` toggles flat mode on and off.
+You can limit the depth of accounts displayed, to see less detail, by pressing `-`.
+`+` (or `=`) increases the depth limit again.
+Or, press a number key to set a specific depth limit, eg `1` to see just top level accounts.
+Use the cursor keys to move up or down, and cursor right (or enter) to view an account's transaction register.
+
+##### Register screen
+
+This screen shows a register of transactions affecting a particular account -
+all transactions, or just the matched ones if there was a query on the command line.
+
+You can reach the register screen by pressing cursor right or enter on
+the accounts screen, or jump directly to it at startup by specifying
+an account with `--register ACCTREGEX` on the command line.
+The cursor left key returns to the accounts screen.
+
+The register screen shows transactions (like the register in
+hledger-web, and other accounting systems), rather than postings
+(like hledger's register command). This means:
+
+- It shows transactions affecting a selected current account, rather
+  than postings matching a pattern. Each line represents a whole transaction.
+
+- It lists the other account(s) involved in the transaction, in
+  abbreviated form. (As an exception, if both real and virtual
+  postings are involved, only the accounts affected by real postings
+  are listed.)
+
+- The amount field shows the overall effect of the transaction on the
+  current account; positive for an inflow to this account, negative
+  for an outflow.
+
+- (Not implemented yet: the balance field should usually show the
+  current account's historic balance as of the transaction date, even
+  if you have adjusted the report start date. Currently it always
+  shows the running total).
+
 #### web
 
 <style>
@@ -2213,7 +2280,7 @@ charts.  You can see a live demo (with junk data) at
 [demo.hledger.org](http://demo.hledger.org).
 
 ```{.shell .noclear}
-$ hledger web --help
+$ hledger web -- --help
 hledger-web [OPTIONS] [PATTERNS]
   start serving the hledger web interface
 
