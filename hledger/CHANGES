@@ -6,15 +6,14 @@ User-visible changes in hledger and hledger-lib.
 Account aliases:
 
 - Regular expression account aliases are now fast enough that you can
-  use lots of them without slowing things down. Previously they took
-  O(aliases x transactions) time, and now they take O(aliases x
-  accounts) time; also regular expressions are no longer recompiled
-  unnecessarily, for additional speedup.
+  use lots of them without slowing things down. They now take
+  O(aliases x accounts) time, instead of O(aliases x transactions);
+  also, regular expressions are no longer recompiled unnecessarily.
 
 Documentation:
 
 - The hledger packages now have man pages, based on the current user
-  manual (thanks to the mighty pandoc) (#282).
+  manual, thanks to the mighty pandoc (#282).
  
 Journal format:
 
@@ -47,7 +46,7 @@ balance:
   "Market price" is the new name for "historical prices", defined with the P directive.
   The default market price for a commodity is the most recent one found in the journal on or before the report end date.
     
-  Unlike Ledger, hledger's -V uses only the market prices recorded
+    Unlike Ledger, hledger's -V uses only the market prices recorded
   with P directives; it does not use the "transaction prices"
   recorded as part of posting amounts (which are used by -B/--cost).
   Also, using both -B and -V at the same time is supported.

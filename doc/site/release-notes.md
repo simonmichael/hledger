@@ -3,6 +3,7 @@
 <nav id="toc" class="right-toc">
 <p>Major releases:</p>
 <ul>
+<li><a href="#hledger-0.27">hledger 0.27 (2015/10/xx)</a>
 <li><a href="#hledger-0.26">hledger 0.26 (2015/7/12)</a>
 <li><a href="#hledger-0.25">hledger 0.25 (2015/4/7)</a>
 <li><a href="#hledger-0.24">hledger 0.24 (2014/12/25)</a>
@@ -36,6 +37,7 @@
 
 Based on the 
 [hledger](http://hackage.haskell.org/package/hledger/changelog),
+[hledger-ui](http://hackage.haskell.org/package/hledger-ui/changelog) &
 [hledger-web](http://hackage.haskell.org/package/hledger-web/changelog) &
 [hledger-lib](http://hackage.haskell.org/package/hledger-lib/changelog)
 change logs.
@@ -43,6 +45,140 @@ change logs.
 <style>
 h4 { margin-top:2em; }
 </style>
+
+
+## 2015/10/xx hledger 0.27
+
+***New curses-style interface, market value reporting, wide characters, fast regex aliases, man pages***
+
+Release contributors:
+Simon Michael,
+Carlos Lopez-Camey.
+
+**hledger 0.27:**
+
+Account aliases:
+
+- Regular expression account aliases are now fast enough that you can
+  use lots of them without slowing things down. They now take
+  O(aliases x accounts) time, instead of O(aliases x transactions);
+  also, regular expressions are no longer recompiled unnecessarily.
+
+Documentation:
+
+- The hledger packages now have man pages, based on the current user
+  manual, thanks to the mighty pandoc ([#282](http://bugs.hledger.org/282)).
+ 
+Journal format:
+
+- Dates must now begin with a digit (not /, eg).
+
+- The comment directive longer requires an end comment, and will
+  extend to the end of the file(s) without it.
+
+Command-line interface:
+
+- Output (balance reports, register reports, print output etc.)
+  containing wide characters, eg chinese/japanese/korean characters,
+  should now align correctly, when viewed in apps and fonts that show
+  wide characters as double width ([#242](http://bugs.hledger.org/242)).
+ 
+- The argument for --depth or depth: must now be positive.
+
+add:
+
+- Journal entries are now written with all amounts explicit, to avoid
+  losing price info ([#283](http://bugs.hledger.org/283)).
+
+- Fixed a bug which sometimes (when the same letter pair was repeated)
+  caused it not to pick the most similar past transaction for defaults.
+    
+balance:
+
+- There is now a -V/--value flag to report current market value (as in Ledger).
+  It converts all reported amounts using their "default market price".
+  "Market price" is the new name for "historical prices", defined with the P directive.
+  The default market price for a commodity is the most recent one found in the journal on or before the report end date.
+    
+    Unlike Ledger, hledger's -V uses only the market prices recorded
+  with P directives; it does not use the "transaction prices"
+  recorded as part of posting amounts (which are used by -B/--cost).
+  Also, using both -B and -V at the same time is supported.
+
+- Fixed a bug in amount normalization which caused amount styles
+  (commodity symbol placement, decimal point character, etc.) to be
+  lost in certain cases ([#230](http://bugs.hledger.org/230), [#276](http://bugs.hledger.org/276)).
+
+- The balance command's --format option can now adjust the rendering
+  style of multi-commodity amounts, if you begin the format string
+  with one of:
+    
+     %_  - renders amounts on multiple lines, bottom-aligned (the default)
+     %^  - renders amounts on multiple lines, top-aligned
+     %,  - renders amounts on one line, comma-separated
+    
+- The balance report's final total (and the line above it) now adapt
+  themselves to a custom --format.
+
+print:
+
+- The --match option prints the journal entry that best matches a
+  description (ie whose description field is most similar to the value
+  given, and if there are several equally similar, the most recent).
+  This was originally an add-on I used to guess account names for
+  ledger-autosync. It's nice for quickly looking up a recent
+  transaction from a guessed or partial description.
+
+- print now always right-aligns the amounts in an entry, even when
+  they are wider than 12 characters.  (If there is a price, it's
+  considered part of the amount for right-alignment.)
+
+register:
+
+- Amount columns now resize automatically, using more space if it's
+  needed and available.
+
+**hledger-ui 0.27:**
+
+- hledger-ui is a new curses-style UI, intended to be a standard part
+  of the hledger toolset for all users (except on native MS Windows,
+  where vty is not supported [yet](https://github.com/coreyoconnor/vty/pull/1)).
+
+    The UI is currently very simple, allowing just browsing of accounts
+  and transactions, but it has a number of improvements over the old
+  hledger-vty, which it replaces:
+
+    - adapts to screen size
+    - handles wide characters
+    - manages cursor and scroll position better
+    - shows multi-commodity amounts on one line
+    - shows transactions rather than postings, like hledger-web
+    - allows depth adjustment
+    - allows tree/flat mode toggle
+    - allows journal reloading
+    - color-codes posting amounts
+    - offers multiple color themes
+    - includes built-in help
+
+    hledger-ui is built with brick, a new higher-level UI library based
+  on vty, making it relatively easy to grow and maintain.
+
+**hledger-web 0.27:**
+
+- Fix keyboard shortcut for adding a transaction (Carlos Lopez-Camey)
+
+- Clear the form when clicking 'Add a transaction' (just like the shortcut) (Carlos Lopez-Camey)
+
+- Disallow -f- (reading from standard input) which currently doesn't work ([#202](http://bugs.hledger.org/202))
+
+- Fix broken links when using --base-url ([#235](http://bugs.hledger.org/235))
+
+- Fix the --file-url option ([#285](http://bugs.hledger.org/285))
+
+- Show fewer "other accounts" in the account register: to reduce
+  clutter in the "other accounts" field, if there are both real and
+  virtual postings to other accounts, show only the accounts posted to
+  by real postings.
 
 
 ## 2015/7/12 hledger 0.26
