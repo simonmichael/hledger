@@ -8,6 +8,7 @@ cabal.sandbox.config
 */dist/
 *.dyn_hi
 *.dyn_o
+*.p_o
 *.hi
 hledger-web/static/tmp/
 hledger-web/yesod-devel/
