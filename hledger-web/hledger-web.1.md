@@ -18,12 +18,9 @@ using double-entry accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
 
 hledger-web is hledger's web interface.  It starts a simple web
-application for browsing and adding transactions in a hledger journal
-file, and also (unless started with --server) opens the app in a new
-web browser window if possible, and exits after two minutes of
-inactivity.
-
-hledger-web provides a more user-friendly UI than the hledger CLI or
+application for browsing and adding transactions, and optionally
+opens it in a web browser window if possible.
+It provides a more user-friendly UI than the hledger CLI or
 hledger-ui interface, showing more at once (accounts, the current
 account register, balance charts) and allowing history-aware data
 entry, interactive searching, and bookmarking.
@@ -36,6 +33,32 @@ the main journal file (only ?) on every edit.
 
 The journal file is `~/.hledger.journal`, `$LEDGER_FILE`, or another file specified with -f.
 For more about the format, see hledger(1) or hledger_journal(5).
+
+By default, hledger-web starts the web app in "transient mode" and
+also opens it in your default web browser if possible. In this mode
+the web app will keep running for as long as you have it open in a
+browser window, and will exit after two minutes of inactivity (no
+requests and no browser windows viewing it).
+
+With `--server`, it starts the web app in non-transient mode and logs
+requests to the console.  Typically when running hledger web as part
+of a website you'll want to use `--base-url` to set the
+protocol/hostname/port/path to be used in hyperlinks.  The
+`--file-url` option allows static files to be served from a different
+url, eg for better caching or cookie-less serving.
+
+You can use `--port` to listen on a different TCP port, eg if you are
+running multiple hledger-web instances.  This need not be the same as
+the PORT in the base url.
+
+Note there is no built-in access control, so you will need to hide
+hledger-web behind an authenticating proxy (such as apache or nginx)
+if you want to restrict who can see and add entries to your journal.
+
+With journal and timelog files (but not CSV files, currently)
+the web app detects changes and will show the new data on the next request.
+If a change makes the file unparseable, hledger-web will show an error
+until the file has been fixed.
 
 # OPTIONS
 

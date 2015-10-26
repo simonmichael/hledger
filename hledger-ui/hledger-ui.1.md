@@ -107,6 +107,51 @@ The following common hledger options should also work:
 `-B --cost`
 : show amounts in their cost price's commodity
 
+# SCREENS
+
+Currently there are two:
+
+## Accounts screen
+
+This is the screen shown at startup by default.
+It shows a scrollable list of accounts and their balances - all accounts, or just the matched accounts if you specified a query on the command line.
+`f` toggles flat mode on and off.
+You can limit the depth of accounts displayed, to reduce detail, by pressing `-` to reduce it.
+`+` (or `=`) increases the depth limit again.
+Or, press a number key to set a specific depth limit, eg `1` to see just top level accounts.
+Use the cursor keys to move up or down, and cursor right (or enter) to view an account's transaction register.
+
+## Register screen
+
+This screen shows a register of transactions affecting a particular account -
+all transactions, or just the matched ones if there was a query on the command line.
+
+You can reach the register screen by pressing cursor right or enter on
+the accounts screen, or jump directly to it at startup by specifying
+an account with `--register ACCTREGEX` on the command line.
+The cursor left key returns to the accounts screen.
+
+The register screen shows transactions (like the register in
+hledger-web, and other accounting systems), rather than postings
+(like hledger's register command). This means:
+
+- It shows transactions affecting a selected current account, rather
+  than postings matching a pattern. Each line represents a whole transaction.
+
+- It lists the other account(s) involved in the transaction, in
+  abbreviated form. (As an exception, if both real and virtual
+  postings are involved, only the accounts affected by real postings
+  are listed.)
+
+- The amount field shows the overall effect of the transaction on the
+  current account; positive for an inflow to this account, negative
+  for an outflow.
+
+- (Not implemented yet: the balance field should usually show the
+  current account's historic balance as of the transaction date, even
+  if you have adjusted the report start date. Currently it always
+  shows the running total).
+
 # ENVIRONMENT
 
 **LEDGER_FILE**
