@@ -6,6 +6,7 @@
 module Hledger.UI.AccountsScreen
  (screen
  ,initAccountsScreen
+ ,asSetSelectedAccount
  )
 where
 
@@ -32,7 +33,7 @@ import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
-import qualified Hledger.UI.RegisterScreen as RS (screen)
+import qualified Hledger.UI.RegisterScreen as RS (screen, rsSetCurrentAccount)
 import qualified Hledger.UI.ErrorScreen as ES (screen)
 
 screen = AccountsScreen{
@@ -41,6 +42,9 @@ screen = AccountsScreen{
   ,sDrawFn   = drawAccountsScreen
   ,sHandleFn = handleAccountsScreen
   }
+
+asSetSelectedAccount a scr@AccountsScreen{asState=(l,_)} = scr{asState=(l,a)}
+asSetSelectedAccount _ scr = scr
 
 initAccountsScreen :: Day -> AppState -> AppState
 initAccountsScreen d st@AppState{
@@ -248,7 +252,7 @@ handleAccountsScreen st@AppState{
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
         Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
           let
-            scr = setRegisterScreenCurrentAccount selacct' RS.screen
+            scr = RS.rsSetCurrentAccount selacct' RS.screen
             st'' = screenEnter d scr st'
           vScrollToBeginning $ viewportScroll "register"
           continue st''

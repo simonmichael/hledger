@@ -3,7 +3,9 @@
 {-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
 
 module Hledger.UI.RegisterScreen
- (screen)
+ (screen
+ ,rsSetCurrentAccount
+ )
 where
 
 import Control.Lens ((^.))
@@ -36,6 +38,9 @@ screen = RegisterScreen{
   ,sDrawFn   = drawRegisterScreen
   ,sHandleFn = handleRegisterScreen
   }
+
+rsSetCurrentAccount a scr@RegisterScreen{rsState=(l,_)} = scr{rsState=(l,a)}
+rsSetCurrentAccount _ scr = scr
 
 initRegisterScreen :: Day -> AppState -> AppState
 initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{rsState=(_,acct)}} =

@@ -13,16 +13,17 @@ import Hledger.UI.UIOptions
 -- | hledger-ui's application state. This is part of, but distinct
 -- from, brick's App.
 data AppState = AppState {
-   aopts :: UIOpts          -- ^ command-line options, query, depth etc. currently in effect.
-  -- ,aargs :: [String]        -- ^ command-line arguments at startup
-  ,ajournal :: Journal      -- ^ the parsed journal
+   aopts :: UIOpts          -- ^ the command-line options and query currently in effect
+  ,ajournal :: Journal      -- ^ the journal being viewed
   ,aScreen :: Screen        -- ^ the currently active screen
-  ,aPrevScreens :: [Screen] -- ^ previously visited screens
+  ,aPrevScreens :: [Screen] -- ^ previously visited screens, most recent first
   } deriving (Show)
 
 -- | Types of screen available within the app, along with their state.
--- Screen types are distinguished by their constructor and by the type
--- of their state (which must have unique accessor names).
+-- Screen types are distinguished by their constructor and their state
+-- field, which must have unique names.
+--
+-- This type causes partial functions, so take care.
 data Screen =
     AccountsScreen {
      asState :: (List (Int,String,String,[String]), AccountName)  -- ^ list widget holding (indent level, full account name, full or short account name to display, rendered amounts);
@@ -39,7 +40,7 @@ data Screen =
     ,sDrawFn :: AppState -> [Widget]
     }
   | ErrorScreen {
-     esState :: String -- ^ error message to display
+     esState :: String                                            -- ^ error message to display
     ,sInitFn :: Day -> AppState -> AppState
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     ,sDrawFn :: AppState -> [Widget]
@@ -47,10 +48,3 @@ data Screen =
   deriving (Show)
 
 instance Show (List a) where show _ = "<List>"
-
--- ugh
-setAccountsScreenSelectedAccount a scr@AccountsScreen{asState=(l,_)} = scr{asState=(l,a)}
-setAccountsScreenSelectedAccount _ scr = scr
-
-setRegisterScreenCurrentAccount a scr@RegisterScreen{rsState=(l,_)} = scr{rsState=(l,a)}
-setRegisterScreenCurrentAccount _ scr = scr
