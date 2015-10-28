@@ -179,6 +179,5 @@ The need to precede options with `--` when invoked from hledger is awkward.
 `-V` doesn't affect the register screen.
 
 When you press `g`, the current and all previous screens are
-regenerated.  With large data this will cause a noticeable pause,
-which could be reduced if the previous screens were processed in a
-background thread.
+regenerated, which may cause a noticeable pause. Also there is no
+visual indication that this is in progress.

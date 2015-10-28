@@ -220,15 +220,10 @@ handleAccountsScreen st@AppState{
         -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
 
         Vty.EvKey (Vty.KChar 'g') [] -> do
-          ej <- liftIO $ journalReload j
+          ej <- liftIO $ journalReload j  -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
           case ej of
             Right j' -> continue $ reload j' d st
             Left err -> continue $ screenEnter d ES.screen{esState=err} st
-          -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
-          -- case (changed, ej) of
-          --   (True, Right j') -> reload st{ajournal=j'}
-          --   -- (True, Left err) -> continue st{amsg=err} -- XXX report parse error
-          --   _                -> continue st
 
         Vty.EvKey (Vty.KChar '-') [] -> continue $ reload' d $ decDepth st
         Vty.EvKey (Vty.KChar '+') [] -> continue $ reload' d $ incDepth st
