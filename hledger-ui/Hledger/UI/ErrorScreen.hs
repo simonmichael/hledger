@@ -41,7 +41,7 @@ drawErrorScreen :: AppState -> [Widget]
 drawErrorScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
                              aScreen=ErrorScreen{esState=err}} = [ui]
   where
-    toplabel = withAttr ("border" <> "bold") (str "Problem - please fix then press g to reload")
+    toplabel = withAttr ("border" <> "bold") (str "Oops. Please fix this problem then press g to reload")
             -- <+> str " transactions"
             -- <+> borderQueryStr querystr -- no, account transactions report shows all transactions in the acct ?
             -- <+> str " and subs"
@@ -72,8 +72,7 @@ drawErrorScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reporto
       --   totalwidth = c^.availWidthL
       --                - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
 
-      render $ defaultLayout toplabel bottomlabel $
-        vBox $ map str $ lines err
+      render $ defaultLayout toplabel bottomlabel $ withAttr "error" $ str err
 
 drawErrorScreen _ = error "draw function called with wrong screen type, should not happen"
 

@@ -66,6 +66,7 @@ themesList :: [(String, AttrMap)]
 themesList = [
   ("default", attrMap
             (black `on` white & bold) [ -- default style for this theme
+              ("error", currentAttr `withForeColor` red),
               (borderAttr       , white `on` black & dim),
               (borderAttr <> "bold", white `on` black & bold),
               (borderAttr <> "query", yellow `on` black & bold),
