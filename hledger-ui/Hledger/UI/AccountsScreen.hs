@@ -36,9 +36,9 @@ import qualified Hledger.UI.RegisterScreen as RS (screen)
 import qualified Hledger.UI.ErrorScreen as ES (screen)
 
 screen = AccountsScreen{
-   asState  = (list "accounts" V.empty 1, "")
-  ,sInitFn    = initAccountsScreen
-  ,sDrawFn    = drawAccountsScreen
+   asState   = (list "accounts" V.empty 1, "")
+  ,sInitFn   = initAccountsScreen
+  ,sDrawFn   = drawAccountsScreen
   ,sHandleFn = handleAccountsScreen
   }
 
@@ -247,7 +247,9 @@ handleAccountsScreen st@AppState{
               }
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
         Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
-          let st'' = screenEnter d RS.screen{rsAcct=selacct'} st'
+          let
+            scr = setRegisterScreenCurrentAccount selacct' RS.screen
+            st'' = screenEnter d scr st'
           vScrollToBeginning $ viewportScroll "register"
           continue st''
 

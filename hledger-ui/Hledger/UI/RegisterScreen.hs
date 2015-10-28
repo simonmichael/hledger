@@ -31,16 +31,15 @@ import Hledger.UI.UIUtils
 import qualified Hledger.UI.ErrorScreen as ES (screen)
 
 screen = RegisterScreen{
-   rsState  = list "register" V.empty 1
-  ,rsAcct   = ""
-  ,sInitFn    = initRegisterScreen
-  ,sDrawFn    = drawRegisterScreen
+   rsState   = (list "register" V.empty 1, "")
+  ,sInitFn   = initRegisterScreen
+  ,sDrawFn   = drawRegisterScreen
   ,sHandleFn = handleRegisterScreen
   }
 
 initRegisterScreen :: Day -> AppState -> AppState
-initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{rsAcct=acct}} =
-  st{aScreen=s{rsState=l}}
+initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{rsState=(_,acct)}} =
+  st{aScreen=s{rsState=(l,acct)}}
   where
     -- gather arguments and queries
     ropts = (reportopts_ $ cliopts_ opts)
@@ -87,7 +86,7 @@ initRegisterScreen _ _ = error "init function called with wrong screen type, sho
 
 drawRegisterScreen :: AppState -> [Widget]
 drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
-                             aScreen=RegisterScreen{rsState=l,rsAcct=acct}} = [ui]
+                             aScreen=RegisterScreen{rsState=(l,acct)}} = [ui]
   where
     toplabel = withAttr ("border" <> "bold") (str acct)
             <+> str " transactions"
@@ -184,7 +183,7 @@ drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected 
 
 handleRegisterScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleRegisterScreen st@AppState{
-   aScreen=s@RegisterScreen{rsState=is}
+   aScreen=s@RegisterScreen{rsState=(l,acct)}
   ,aopts=UIOpts{cliopts_=_copts}
   ,ajournal=j
   } e = do
@@ -203,7 +202,7 @@ handleRegisterScreen st@AppState{
     -- Vty.EvKey (Vty.KRight) []    -> error (show curItem) where curItem = listSelectedElement is
     -- fall through to the list's event handler (handles [pg]up/down)
     ev                       -> do
-                                 is' <- handleEvent ev is
-                                 continue st{aScreen=s{rsState=is'}}
+                                 l' <- handleEvent ev l
+                                 continue st{aScreen=s{rsState=(l',acct)}}
                                  -- continue =<< handleEventLensed st someLens ev
 handleRegisterScreen _ _ = error "event handler called with wrong screen type, should not happen"

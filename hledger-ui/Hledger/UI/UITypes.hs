@@ -26,15 +26,14 @@ data AppState = AppState {
 data Screen =
     AccountsScreen {
      asState :: (List (Int,String,String,[String]), AccountName)  -- ^ list widget holding (indent level, full account name, full or short account name to display, rendered amounts);
-                                                                  --   the currently selected account's full name (or "")
-    ,sInitFn :: Day -> AppState -> AppState                         -- ^ function to initialise the screen's state on entry
-    ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState) -- ^ brick event handler to use for this screen
-    ,sDrawFn :: AppState -> [Widget]                                -- ^ brick renderer to use for this screen
+                                                                  --   the full name of the currently selected account (or "")
+    ,sInitFn :: Day -> AppState -> AppState                       -- ^ function to initialise the screen's state on entry
+    ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)   -- ^ brick event handler to use for this screen
+    ,sDrawFn :: AppState -> [Widget]                              -- ^ brick renderer to use for this screen
     }
   | RegisterScreen {
-     rsState :: List (String,String,String,String,String) -- ^ list widget holding (date, description, other accts, change amt, balance amt)
-     -- XXX move into rsState ?
-    ,rsAcct :: AccountName              -- ^ the account we are showing a register for
+     rsState :: (List (String,String,String,String,String), AccountName) -- ^ list widget holding (date, description, other accts, change amt, balance amt);
+                                                                         --   the full name of the account we are showing a register for
     ,sInitFn :: Day -> AppState -> AppState
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     ,sDrawFn :: AppState -> [Widget]
@@ -48,3 +47,10 @@ data Screen =
   deriving (Show)
 
 instance Show (List a) where show _ = "<List>"
+
+-- ugh
+setAccountsScreenSelectedAccount a scr@AccountsScreen{asState=(l,_)} = scr{asState=(l,a)}
+setAccountsScreenSelectedAccount _ scr = scr
+
+setRegisterScreenCurrentAccount a scr@RegisterScreen{rsState=(l,_)} = scr{rsState=(l,a)}
+setRegisterScreenCurrentAccount _ scr = scr
