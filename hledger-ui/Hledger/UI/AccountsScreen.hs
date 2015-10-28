@@ -36,31 +36,30 @@ import qualified Hledger.UI.RegisterScreen as RS (screen)
 import qualified Hledger.UI.ErrorScreen as ES (screen)
 
 screen = AccountsScreen{
-   asState  = list "accounts" V.empty 1
-  ,sInitFn    = initAccountsScreen Nothing
+   asState  = (list "accounts" V.empty 1, "")
+  ,sInitFn    = initAccountsScreen
   ,sDrawFn    = drawAccountsScreen
   ,sHandleFn = handleAccountsScreen
   }
 
-initAccountsScreen :: Maybe AccountName -> Day -> AppState -> AppState
-initAccountsScreen mselacct d st@AppState{
+initAccountsScreen :: Day -> AppState -> AppState
+initAccountsScreen d st@AppState{
   aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}},
   ajournal=j,
-  aScreen=s@AccountsScreen{}
+  aScreen=s@AccountsScreen{asState=(_,selacct)}
   } =
-  st{aopts=uopts', aScreen=s{asState=l'}}
+  st{aopts=uopts', aScreen=s{asState=(l',selacct)}}
    where
     l = list (Name "accounts") (V.fromList displayitems) 1
 
-    -- hacky: when we're adjusting depth, mselacct is the account that was selected previously,
-    -- in which case try and keep the selection near where it was
-    l' = case mselacct of
-             Nothing -> l
-             Just a  -> -- vScrollToBeginning $ viewportScroll "accounts"
-                           maybe l (flip listMoveTo l) mi
-               where
-                 mi = findIndex (\((acct,_,_),_) -> acct==a') items
-                 a' = maybe a (flip clipAccountName a) $ depth_ ropts
+    -- keep the selection near the last known selected account if possible
+    l' | null selacct = l
+       | otherwise = maybe l (flip listMoveTo l) midx
+      where
+        midx = findIndex (\((a,_,_),_) -> a==selacctclipped) items
+        selacctclipped = case depth_ ropts of
+                          Nothing -> selacct
+                          Just d  -> clipAccountName d selacct
 
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
     ropts' = ropts {
@@ -92,10 +91,10 @@ initAccountsScreen mselacct d st@AppState{
     displayitems = map displayitem items
 
 
-initAccountsScreen _ _ _ = error "init function called with wrong screen type, should not happen"
+initAccountsScreen _ _ = error "init function called with wrong screen type, should not happen"
 
 drawAccountsScreen :: AppState -> [Widget]
-drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{asState=l}} =
+drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{asState=(l,_)}} =
   [ui]
     where
       toplabel = files
@@ -196,7 +195,7 @@ drawAccountsItem (acctwidth, balwidth) selected (indent, _fullacct, displayacct,
 
 handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleAccountsScreen st@AppState{
-  aScreen=scr@AccountsScreen{asState=l}
+  aScreen=scr@AccountsScreen{asState=(l,selacct)}
   ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
   ,ajournal=j
   } e = do
@@ -204,63 +203,59 @@ handleAccountsScreen st@AppState{
     -- c <- getContext
     -- let h = c^.availHeightL
     --     moveSel n l = listMoveBy n l
-    let
-      acct = case listSelectedElement l of
-              Just (_, (_, fullacct, _, _)) -> fullacct
-              Nothing -> ""
 
-      -- Customize reload to preserve the account selection while reloading.
-      -- XXX reloads only the current screen, not previous ones - ok for now as accounts screen is always the first
-      -- XXX won't have any effect when this screen is reloaded by a deeper screen's reload - should move selected acct into state
-      reload' = initAccountsScreen (Just acct)
+    -- before we go anywhere, remember the currently selected account.
+    -- (This is preserved across screen changes, unlike List's selection state)
+    let
+      selacct' = case listSelectedElement l of
+                  Just (_, (_, fullacct, _, _)) -> fullacct
+                  Nothing -> selacct
+      st' = st{aScreen=scr{asState=(l,selacct')}}
 
     case e of
-        Vty.EvKey Vty.KEsc []        -> halt st
-        Vty.EvKey (Vty.KChar 'q') [] -> halt st
+        Vty.EvKey Vty.KEsc []        -> halt st'
+        Vty.EvKey (Vty.KChar 'q') [] -> halt st'
         -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
 
         Vty.EvKey (Vty.KChar 'g') [] -> do
           ej <- liftIO $ journalReload j  -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
           case ej of
-            Right j' -> continue $ reload j' d st
-            Left err -> continue $ screenEnter d ES.screen{esState=err} st
+            Right j' -> continue $ reload j' d st'
+            Left err -> continue $ screenEnter d ES.screen{esState=err} st'
 
-        Vty.EvKey (Vty.KChar '-') [] -> continue $ reload' d $ decDepth st
-        Vty.EvKey (Vty.KChar '+') [] -> continue $ reload' d $ incDepth st
-        Vty.EvKey (Vty.KChar '=') [] -> continue $ reload' d $ incDepth st
-        Vty.EvKey (Vty.KChar '1') [] -> continue $ reload' d $ setDepth 1 st
-        Vty.EvKey (Vty.KChar '2') [] -> continue $ reload' d $ setDepth 2 st
-        Vty.EvKey (Vty.KChar '3') [] -> continue $ reload' d $ setDepth 3 st
-        Vty.EvKey (Vty.KChar '4') [] -> continue $ reload' d $ setDepth 4 st
-        Vty.EvKey (Vty.KChar '5') [] -> continue $ reload' d $ setDepth 5 st
-        Vty.EvKey (Vty.KChar '6') [] -> continue $ reload' d $ setDepth 6 st
-        Vty.EvKey (Vty.KChar '7') [] -> continue $ reload' d $ setDepth 7 st
-        Vty.EvKey (Vty.KChar '8') [] -> continue $ reload' d $ setDepth 8 st
-        Vty.EvKey (Vty.KChar '9') [] -> continue $ reload' d $ setDepth 9 st
-        Vty.EvKey (Vty.KChar '0') [] -> continue $ reload' d $ setDepth 0 st
-        Vty.EvKey (Vty.KChar 'f') [] -> continue $ reload' d $ st'
+        Vty.EvKey (Vty.KChar '-') [] -> continue $ reload j d $ decDepth st'
+        Vty.EvKey (Vty.KChar '+') [] -> continue $ reload j d $ incDepth st'
+        Vty.EvKey (Vty.KChar '=') [] -> continue $ reload j d $ incDepth st'
+        Vty.EvKey (Vty.KChar '1') [] -> continue $ reload j d $ setDepth 1 st'
+        Vty.EvKey (Vty.KChar '2') [] -> continue $ reload j d $ setDepth 2 st'
+        Vty.EvKey (Vty.KChar '3') [] -> continue $ reload j d $ setDepth 3 st'
+        Vty.EvKey (Vty.KChar '4') [] -> continue $ reload j d $ setDepth 4 st'
+        Vty.EvKey (Vty.KChar '5') [] -> continue $ reload j d $ setDepth 5 st'
+        Vty.EvKey (Vty.KChar '6') [] -> continue $ reload j d $ setDepth 6 st'
+        Vty.EvKey (Vty.KChar '7') [] -> continue $ reload j d $ setDepth 7 st'
+        Vty.EvKey (Vty.KChar '8') [] -> continue $ reload j d $ setDepth 8 st'
+        Vty.EvKey (Vty.KChar '9') [] -> continue $ reload j d $ setDepth 9 st'
+        Vty.EvKey (Vty.KChar '0') [] -> continue $ reload j d $ setDepth 0 st'
+        Vty.EvKey (Vty.KChar 'f') [] -> continue $ reload j d $ st''
           where
-            st' = st{
-              aopts=(aopts st){
+            st'' = st'{
+              aopts=(aopts st'){
                  cliopts_=copts{
                     reportopts_=toggleFlatMode ropts
                     }
                  }
               }
-        Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
+        Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
         Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
-          let st' = screenEnter d RS.screen{rsAcct=acct} st
+          let st'' = screenEnter d RS.screen{rsAcct=selacct'} st'
           vScrollToBeginning $ viewportScroll "register"
-          continue st'
-
-        -- Vty.EvKey (Vty.KPageDown) [] -> continue $ st{aScreen=scr{asState=moveSel h l}}
-        -- Vty.EvKey (Vty.KPageUp) []   -> continue $ st{aScreen=scr{asState=moveSel (-h) l}}
+          continue st''
 
         -- fall through to the list's event handler (handles up/down)
         ev                       -> do
                                      l' <- handleEvent ev l
-                                     continue $ st{aScreen=scr{asState=l'}}
-                                 -- continue =<< handleEventLensed st someLens ev
+                                     continue $ st'{aScreen=scr{asState=(l',selacct')}}
+                                 -- continue =<< handleEventLensed st' someLens ev
 handleAccountsScreen _ _ = error "event handler called with wrong screen type, should not happen"
 
 -- | Toggle between flat and tree mode. If in the third "default" mode, go to flat mode.

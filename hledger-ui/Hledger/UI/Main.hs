@@ -102,14 +102,17 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary AppState value..
           ascr' = aScreen $
-                  AS.initAccountsScreen (Just acct) d  -- acct will be selected
+                  AS.initAccountsScreen d $
                   AppState{
                     aopts=uopts'
                    ,ajournal=j
-                   ,aScreen=AS.screen
+                   ,aScreen=setAccountsScreenSelection acct AS.screen
                    ,aPrevScreens=[]
                    }
-
+          -- ugh
+          setAccountsScreenSelection a scr@AccountsScreen{asState=(l,_)} = scr{asState=(l,a)}
+          setAccountsScreenSelection _ scr = scr
+  
     st = (sInitFn scr) d
          AppState{
             aopts=uopts'
