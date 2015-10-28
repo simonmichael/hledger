@@ -103,24 +103,16 @@ handleErrorScreen st@AppState{
   ,aopts=UIOpts{cliopts_=_copts}
   ,ajournal=j
   } e = do
-  -- d <- liftIO getCurrentDay
-  -- let
-  --   reload = continue . initErrorScreen d
   case e of
     Vty.EvKey Vty.KEsc []        -> halt st
     Vty.EvKey (Vty.KChar 'q') [] -> halt st
 
     Vty.EvKey (Vty.KChar 'g') [] -> do
-      ej <- liftIO $ journalReload j
+      d <- liftIO getCurrentDay
+      ej <- liftIO $ journalReload j -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
       case ej of
         Left err -> continue st{aScreen=s{esState=err}} -- show latest parse error
-        Right _j' -> continue $ popScreen st  -- return to previous screen. XXX should reload it too
-
-      -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
-      -- case (changed, ej) of
-      --   (True, Right j') -> reload st{ajournal=j'}
-      --   -- (True, Left err) -> continue st{amsg=err} -- XXX report parse error
-      --   _                -> continue st
+        Right j' -> continue $ reload j' d $ popScreen st  -- return to previous screen, and reload it
 
     -- Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
     -- Vty.EvKey (Vty.KRight) []    -> error (show curItem) where curItem = listSelectedElement is

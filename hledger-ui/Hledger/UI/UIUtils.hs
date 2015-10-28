@@ -4,6 +4,7 @@ module Hledger.UI.UIUtils (
   pushScreen
  ,popScreen
  ,screenEnter
+ ,reload
  ,getViewportSize
  -- ,margin
  ,withBorderAttr
@@ -29,7 +30,24 @@ import Brick.Widgets.Border.Style
 import Graphics.Vty as Vty
 
 import Hledger.UI.UITypes
+import Hledger.Data.Types (Journal)
 import Hledger.Utils (applyN)
+-- import Hledger.Utils.Debug
+
+-- | Regenerate the content for the current and previous screens, from a new journal and current date.
+reload :: Journal -> Day -> AppState -> AppState
+reload j d st@AppState{aScreen=s,aPrevScreens=ss} =
+  -- clumsy due to entanglement of AppState and Screen.
+  -- sInitFn operates only on an appstate's current screen, so
+  -- remove all the screens from the appstate and then add them back
+  -- one at a time, regenerating as we go.
+  let
+    first:rest = reverse $ s:ss
+    st0 = st{ajournal=j, aScreen=first, aPrevScreens=[]}
+    st1 = (sInitFn first) d st0
+    st2 = foldl' (\st s -> (sInitFn s) d $ pushScreen s st) st1 rest
+  in
+    st2
 
 pushScreen :: Screen -> AppState -> AppState
 pushScreen scr st = st{aPrevScreens=(aScreen st:aPrevScreens st)

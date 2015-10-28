@@ -185,26 +185,19 @@ drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected 
 handleRegisterScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleRegisterScreen st@AppState{
    aScreen=s@RegisterScreen{rsState=is}
-  ,aopts=UIOpts{cliopts_=copts}
+  ,aopts=UIOpts{cliopts_=_copts}
   ,ajournal=j
   } e = do
-  d <- liftIO getCurrentDay
-  let
-    reload = continue . initRegisterScreen d
   case e of
     Vty.EvKey Vty.KEsc []        -> halt st
     Vty.EvKey (Vty.KChar 'q') [] -> halt st
 
     Vty.EvKey (Vty.KChar 'g') [] -> do
-      ej <- liftIO $ journalReload j
+      d <- liftIO getCurrentDay
+      ej <- liftIO $ journalReload j  -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
       case ej of
-        Right j' -> reload st{ajournal=j'}
+        Right j' -> continue $ reload j' d st
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
-      -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
-      -- case (changed, ej) of
-      --   (True, Right j') -> reload st{ajournal=j'}
-      --   -- (True, Left err) -> continue st{amsg=err} -- XXX report parse error
-      --   _                -> continue st
 
     Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
     -- Vty.EvKey (Vty.KRight) []    -> error (show curItem) where curItem = listSelectedElement is

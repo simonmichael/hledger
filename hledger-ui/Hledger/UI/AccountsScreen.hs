@@ -208,7 +208,11 @@ handleAccountsScreen st@AppState{
       acct = case listSelectedElement l of
               Just (_, (_, fullacct, _, _)) -> fullacct
               Nothing -> ""
-      reload = continue . initAccountsScreen (Just acct) d
+
+      -- Customize reload to preserve the account selection while reloading.
+      -- XXX reloads only the current screen, not previous ones - ok for now as accounts screen is always the first
+      -- XXX won't have any effect when this screen is reloaded by a deeper screen's reload - should move selected acct into state
+      reload' = initAccountsScreen (Just acct)
 
     case e of
         Vty.EvKey Vty.KEsc []        -> halt st
@@ -218,7 +222,7 @@ handleAccountsScreen st@AppState{
         Vty.EvKey (Vty.KChar 'g') [] -> do
           ej <- liftIO $ journalReload j
           case ej of
-            Right j' -> reload st{ajournal=j'}
+            Right j' -> continue $ reload j' d st
             Left err -> continue $ screenEnter d ES.screen{esState=err} st
           -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
           -- case (changed, ej) of
@@ -226,20 +230,20 @@ handleAccountsScreen st@AppState{
           --   -- (True, Left err) -> continue st{amsg=err} -- XXX report parse error
           --   _                -> continue st
 
-        Vty.EvKey (Vty.KChar '-') [] -> reload $ decDepth st
-        Vty.EvKey (Vty.KChar '+') [] -> reload $ incDepth st
-        Vty.EvKey (Vty.KChar '=') [] -> reload $ incDepth st
-        Vty.EvKey (Vty.KChar '1') [] -> reload $ setDepth 1 st
-        Vty.EvKey (Vty.KChar '2') [] -> reload $ setDepth 2 st
-        Vty.EvKey (Vty.KChar '3') [] -> reload $ setDepth 3 st
-        Vty.EvKey (Vty.KChar '4') [] -> reload $ setDepth 4 st
-        Vty.EvKey (Vty.KChar '5') [] -> reload $ setDepth 5 st
-        Vty.EvKey (Vty.KChar '6') [] -> reload $ setDepth 6 st
-        Vty.EvKey (Vty.KChar '7') [] -> reload $ setDepth 7 st
-        Vty.EvKey (Vty.KChar '8') [] -> reload $ setDepth 8 st
-        Vty.EvKey (Vty.KChar '9') [] -> reload $ setDepth 9 st
-        Vty.EvKey (Vty.KChar '0') [] -> reload $ setDepth 0 st
-        Vty.EvKey (Vty.KChar 'f') [] -> reload $ st'
+        Vty.EvKey (Vty.KChar '-') [] -> continue $ reload' d $ decDepth st
+        Vty.EvKey (Vty.KChar '+') [] -> continue $ reload' d $ incDepth st
+        Vty.EvKey (Vty.KChar '=') [] -> continue $ reload' d $ incDepth st
+        Vty.EvKey (Vty.KChar '1') [] -> continue $ reload' d $ setDepth 1 st
+        Vty.EvKey (Vty.KChar '2') [] -> continue $ reload' d $ setDepth 2 st
+        Vty.EvKey (Vty.KChar '3') [] -> continue $ reload' d $ setDepth 3 st
+        Vty.EvKey (Vty.KChar '4') [] -> continue $ reload' d $ setDepth 4 st
+        Vty.EvKey (Vty.KChar '5') [] -> continue $ reload' d $ setDepth 5 st
+        Vty.EvKey (Vty.KChar '6') [] -> continue $ reload' d $ setDepth 6 st
+        Vty.EvKey (Vty.KChar '7') [] -> continue $ reload' d $ setDepth 7 st
+        Vty.EvKey (Vty.KChar '8') [] -> continue $ reload' d $ setDepth 8 st
+        Vty.EvKey (Vty.KChar '9') [] -> continue $ reload' d $ setDepth 9 st
+        Vty.EvKey (Vty.KChar '0') [] -> continue $ reload' d $ setDepth 0 st
+        Vty.EvKey (Vty.KChar 'f') [] -> continue $ reload' d $ st'
           where
             st' = st{
               aopts=(aopts st){

@@ -178,6 +178,7 @@ The need to precede options with `--` when invoked from hledger is awkward.
 
 `-V` doesn't affect the register screen.
 
-If you reload while in the register screen, when you return to the
-accounts screen it will be showing old data, and pressing g again will
-not reload it; you must adjust depth to force it (eg press 0).
+When you press `g`, the current and all previous screens are
+regenerated.  With large data this will cause a noticeable pause,
+which could be reduced if the previous screens were processed in a
+background thread.
