@@ -346,7 +346,7 @@ strWidth s = maximum $ map (foldr (\a b -> charWidth a + b) 0) $ lines s
 -- | Get the designated render width of a character: 0 for a combining
 -- character, 1 for a regular character, 2 for a wide character.
 -- (Wide characters are rendered as exactly double width in apps and
--- fonts that support it.)
+-- fonts that support it.) (From Pandoc.)
 charWidth :: Char -> Int
 charWidth c =
   case c of
