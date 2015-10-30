@@ -33,8 +33,15 @@ data Screen =
     ,sDrawFn :: AppState -> [Widget]                              -- ^ brick renderer to use for this screen
     }
   | RegisterScreen {
-     rsState :: (List (String,String,String,String,String), AccountName) -- ^ list widget holding (date, description, other accts, change amt, balance amt);
-                                                                         --   the full name of the account we are showing a register for
+     rsState :: (List (String,String,String,String,String,Transaction), AccountName)
+                                                                  -- ^ list widget holding (date, description, other accts, change amt, balance amt, and the full transaction);
+                                                                  --   the full name of the account we are showing a register for
+    ,sInitFn :: Day -> AppState -> AppState
+    ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
+    ,sDrawFn :: AppState -> [Widget]
+    }
+  | TransactionScreen {
+     tsState :: Transaction                                       -- ^ the transaction we are viewing
     ,sInitFn :: Day -> AppState -> AppState
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     ,sDrawFn :: AppState -> [Widget]

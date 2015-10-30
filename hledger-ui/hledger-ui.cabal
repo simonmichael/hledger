@@ -83,4 +83,5 @@ executable hledger-ui
       Hledger.UI.AccountsScreen
       Hledger.UI.ErrorScreen
       Hledger.UI.RegisterScreen
+      Hledger.UI.TransactionScreen
   default-language: Haskell2010

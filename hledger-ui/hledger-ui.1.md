@@ -167,6 +167,14 @@ hledger-web, and other accounting systems), rather than postings
     $ hledger-ui --register checking desc:market
     ```
 
+## Transaction screen
+
+Pressing cursor right or enter on a transaction in the register screen
+will display the transaction in full, as a general journal entry
+(similar to `hledger print`).
+This shows more detail, such as the cleared status, transaction code,
+comments and tags, and the individual account postings.
+
 ## Error screen
 
 This screen will appear if there is a problem, such as a parse error,

@@ -126,7 +126,7 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
          -- ("up/down/pgup/pgdown/home/end", "move")
          ("-+=1234567890", "adjust depth limit")
         ,("f", "flat/tree mode")
-        ,("right/enter", "show transactions")
+        ,("right/enter", "show register")
         ,("g", "reload")
         ,("q", "quit")
         ]

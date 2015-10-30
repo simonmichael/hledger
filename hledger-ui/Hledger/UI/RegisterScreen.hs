@@ -30,6 +30,7 @@ import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
+import qualified Hledger.UI.TransactionScreen as TS (screen)
 import qualified Hledger.UI.ErrorScreen as ES (screen)
 
 screen = RegisterScreen{
@@ -55,8 +56,6 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
     -- XXX temp
     thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
     q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts
-         -- query_="cur:\\$"} -- XXX limit to one commodity to ensure one-line items
-         --{query_=unwords' $ locArgs l}
 
     -- run a transactions report, most recent last
     q' =
@@ -78,6 +77,7 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
         -- _   -> "<split>"  -- should do this if accounts field width < 30
       ,showMixedAmountOneLineWithoutPrice change
       ,showMixedAmountOneLineWithoutPrice bal
+      ,t
       )
     displayitems = map displayitem items
 
@@ -129,8 +129,8 @@ drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{repo
         whitespacewidth = 10 -- inter-column whitespace, fixed width
         minnonamtcolswidth = datewidth + 2 + 2 -- date column plus at least 2 for desc and accts
         maxamtswidth = max 0 (totalwidth - minnonamtcolswidth - whitespacewidth)
-        maxchangewidthseen = maximum' $ map (strWidth . fourth5) displayitems
-        maxbalwidthseen = maximum' $ map (strWidth . fifth5) displayitems
+        maxchangewidthseen = maximum' $ map (strWidth . fourth6) displayitems
+        maxbalwidthseen = maximum' $ map (strWidth . fifth6) displayitems
         changewidthproportion = fromIntegral maxchangewidthseen / fromIntegral (maxchangewidthseen + maxbalwidthseen)
         maxchangewidth = round $ changewidthproportion * fromIntegral maxamtswidth
         maxbalwidth = maxamtswidth - maxchangewidth
@@ -143,8 +143,8 @@ drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{repo
           -- trace (show (totalwidth, datewidth, changewidth, balwidth, whitespacewidth)) $
           max 0 (totalwidth - datewidth - changewidth - balwidth - whitespacewidth)
         -- allocating proportionally.
-        -- descwidth' = maximum' $ map (strWidth . second5) displayitems
-        -- acctswidth' = maximum' $ map (strWidth . third5) displayitems
+        -- descwidth' = maximum' $ map (strWidth . second6) displayitems
+        -- acctswidth' = maximum' $ map (strWidth . third6) displayitems
         -- descwidthproportion = (descwidth' + acctswidth') / descwidth'
         -- maxdescwidth = min (maxdescacctswidth - 7) (maxdescacctswidth / descwidthproportion)
         -- maxacctswidth = maxdescacctswidth - maxdescwidth
@@ -157,16 +157,18 @@ drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{repo
 
         bottomlabel = borderKeysStr [
            -- ("up/down/pgup/pgdown/home/end", "move")
-           ("g", "reload")
-          ,("left", "return to accounts")
+           ("left", "return to accounts")
+          ,("right/enter", "show transaction")
+          ,("g", "reload")
+          ,("q", "quit")
           ]
 
       render $ defaultLayout toplabel bottomlabel $ renderList l (drawRegisterItem colwidths)
 
 drawRegisterScreen _ = error "draw function called with wrong screen type, should not happen"
 
-drawRegisterItem :: (Int,Int,Int,Int,Int) -> Bool -> (String,String,String,String,String) -> Widget
-drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected (date,desc,accts,change,bal) =
+drawRegisterItem :: (Int,Int,Int,Int,Int) -> Bool -> (String,String,String,String,String,Transaction) -> Widget
+drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected (date,desc,accts,change,bal,_) =
   Widget Greedy Fixed $ do
     render $
       str (fitString (Just datewidth) (Just datewidth) True True date) <+>
@@ -192,22 +194,28 @@ handleRegisterScreen st@AppState{
   ,aopts=UIOpts{cliopts_=_copts}
   ,ajournal=j
   } e = do
+  d <- liftIO getCurrentDay
   case e of
     Vty.EvKey Vty.KEsc []        -> halt st
     Vty.EvKey (Vty.KChar 'q') [] -> halt st
 
     Vty.EvKey (Vty.KChar 'g') [] -> do
-      d <- liftIO getCurrentDay
       ej <- liftIO $ journalReload j  -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
       case ej of
         Right j' -> continue $ reload j' d st
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
 
     Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
-    -- Vty.EvKey (Vty.KRight) []    -> error (show curItem) where curItem = listSelectedElement is
+
+    Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
+      case listSelectedElement l of
+        Just (_, (_, _, _, _, _, t)) -> continue $ screenEnter d TS.screen{tsState=t} st
+        Nothing -> continue st
+
     -- fall through to the list's event handler (handles [pg]up/down)
     ev                       -> do
                                  l' <- handleEvent ev l
                                  continue st{aScreen=s{rsState=(l',acct)}}
                                  -- continue =<< handleEventLensed st someLens ev
+
 handleRegisterScreen _ _ = error "event handler called with wrong screen type, should not happen"
