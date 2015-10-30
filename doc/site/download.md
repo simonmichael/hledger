@@ -91,6 +91,9 @@ This is a quick way to help the project and your fellow users!
 
 **Using the stack tool** (easiest, recommended):
 
+*SNAPSHOT for 0.27 will be announced when ready, until then use cabal or see "build the latest master branch" below*
+
+
 1. Install [`stack`](https://github.com/commercialhaskell/stack/wiki/Downloads)
     (on Windows, you should choose the 64-bit stack download if you will be
 processing >50,000 transactions at a time with hledger, cf [#275](https://github.com/simonmichael/hledger/issues/275)).
@@ -100,8 +103,7 @@ processing >50,000 transactions at a time with hledger, cf [#275](https://github
 
 3. `stack --resolver SNAPSHOT install hledger` (the command-line UI), or\
    `stack --resolver SNAPSHOT install hledger-ui` (the terminal UI; not available on Windows; includes the above), or\
-   `stack --resolver SNAPSHOT install hledger-web` (the web UI; includes the above)\
-   SNAPSHOT for 0.27 will be announced when ready, until then build the latest master branch (below)
+   `stack --resolver SNAPSHOT install hledger-web` (the web UI; includes the above)
 
 4. stack will report where it installed the binaries (`~/.local/bin` or the Windows equivalent).
    You should ensure this directory is in your `$PATH` (stack will let you know),
