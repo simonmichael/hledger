@@ -68,7 +68,7 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
     items = reverse items'
 
     -- pre-render all items; these will be the List elements. This helps calculate column widths.
-    displayitem (_, t, _issplit, otheracctsstr, change, bal) =
+    displayitem (t, _, _issplit, otheracctsstr, change, bal) =
       (showDate $ tdate t
       ,tdescription t
       ,case splitOn ", " otheracctsstr of
