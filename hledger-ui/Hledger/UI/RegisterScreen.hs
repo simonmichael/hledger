@@ -19,8 +19,7 @@ import qualified Data.Vector as V
 import Graphics.Vty as Vty
 import Brick
 import Brick.Widgets.List
--- import Brick.Widgets.Border
--- import Brick.Widgets.Border.Style
+import Brick.Widgets.Border (borderAttr)
 -- import Brick.Widgets.Center
 -- import Text.Printf
 
@@ -90,10 +89,11 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
 initRegisterScreen _ _ = error "init function called with wrong screen type, should not happen"
 
 drawRegisterScreen :: AppState -> [Widget]
-drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
-                             aScreen=RegisterScreen{rsState=(l,acct)}} = [ui]
+drawRegisterScreen AppState{aopts=uopts -- @UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}
+                           ,aScreen=RegisterScreen{rsState=(l,acct)}} = [ui]
   where
     toplabel = withAttr ("border" <> "bold") (str acct)
+            <+> cleared
             <+> str " transactions"
             -- <+> borderQueryStr querystr -- no, account transactions report shows all transactions in the acct ?
             -- <+> str " and subs"
@@ -102,6 +102,9 @@ drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{repo
             <+> str "/"
             <+> total
             <+> str ")"
+    cleared = if (cleared_ $ reportopts_ $ cliopts_ uopts)
+              then withAttr (borderAttr <> "query") (str " cleared")
+              else str ""
     cur = str $ case l^.listSelectedL of
                  Nothing -> "-"
                  Just i -> show (i + 1)
@@ -157,8 +160,9 @@ drawRegisterScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{repo
 
         bottomlabel = borderKeysStr [
            -- ("up/down/pgup/pgdown/home/end", "move")
-           ("left", "return to accounts")
-          ,("right/enter", "show transaction")
+           ("left", "back")
+          ,("C", "cleared?")
+          ,("right/enter", "transaction")
           ,("g", "reload")
           ,("q", "quit")
           ]
@@ -204,6 +208,8 @@ handleRegisterScreen st@AppState{
       case ej of
         Right j' -> continue $ reload j' d st
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
+
+    Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
 
     Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
 

@@ -69,8 +69,8 @@ themesList = [
               ("error", currentAttr `withForeColor` red),
               (borderAttr       , white `on` black & dim),
               (borderAttr <> "bold", white `on` black & bold),
-              (borderAttr <> "query", yellow `on` black & bold),
-              (borderAttr <> "depth", cyan `on` black & bold),
+              (borderAttr <> "query", cyan `on` black & bold),
+              (borderAttr <> "depth", yellow `on` black & bold),
               (borderAttr <> "keys", white `on` black & bold),
               -- ("normal"                , black `on` white),
               ("list"                  , black `on` white),      -- regular list items

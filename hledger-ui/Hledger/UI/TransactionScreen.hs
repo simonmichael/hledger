@@ -51,12 +51,15 @@ drawTransactionScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{r
     -- datedesc = show (tdate t) ++ " " ++ tdescription t
     toplabel =
       str "Transaction "
-      -- <+> withAttr ("border" <> "bold") (str $ 
+      -- <+> withAttr ("border" <> "bold") (str $ "#" ++ show (tindex t))
+      -- <+> str (" ("++show i++" of "++show (length nts)++" in "++acct++")")
+      <+> (str $ "#" ++ show (tindex t))
+      <+> str " ("
       <+> withAttr ("border" <> "bold") (str $ show i)
-      <+> str (" of "++show (length nts)++" in "++acct)
+      <+> str (" of "++show (length nts)++" in "++acct++")")
     bottomlabel = borderKeysStr [
-       ("left", "return to register")
-      ,("up/down", "prev/next transaction")
+       ("left", "back")
+      ,("up/down", "prev/next")
       ,("g", "reload")
       ,("q", "quit")
       ]
@@ -85,6 +88,8 @@ handleTransactionScreen st@AppState{
       case ej of
         Right j' -> continue $ reload j' d st
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
+
+    -- Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
 
     Vty.EvKey (Vty.KUp) []       -> continue $ reload j d st{aScreen=s{tsState=((iprev,tprev),nts,acct)}}
     Vty.EvKey (Vty.KDown) []     -> continue $ reload j d st{aScreen=s{tsState=((inext,tnext),nts,acct)}}

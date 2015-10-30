@@ -14,6 +14,8 @@ module Hledger.UI.UIUtils (
  ,borderQueryStr
  ,borderDepthStr
  ,borderKeysStr
+ --
+ ,stToggleCleared
  ) where
 
 import Control.Lens ((^.))
@@ -31,8 +33,19 @@ import Graphics.Vty as Vty
 
 import Hledger.UI.UITypes
 import Hledger.Data.Types (Journal)
+import Hledger.UI.UIOptions
+import Hledger.Cli.CliOptions
+import Hledger.Reports.ReportOptions
 import Hledger.Utils (applyN)
 -- import Hledger.Utils.Debug
+
+stToggleCleared :: AppState -> AppState
+stToggleCleared st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  st{aopts=uopts{cliopts_=copts{reportopts_=toggleCleared ropts}}}
+
+-- | Toggle between showing all and showing only cleared items.
+toggleCleared :: ReportOpts -> ReportOpts
+toggleCleared ropts = ropts{cleared_=not $ cleared_ ropts}
 
 -- | Regenerate the content for the current and previous screens, from a new journal and current date.
 reload :: Journal -> Day -> AppState -> AppState
@@ -171,7 +184,8 @@ borderKeysStr :: [(String,String)] -> Widget
 borderKeysStr keydescs =
   hBox $
   intersperse sep $
-  [withAttr (borderAttr <> "keys") (str keys) <+> str ": " <+> str desc | (keys, desc) <- keydescs]
+  [withAttr (borderAttr <> "keys") (str keys) <+> str ":" <+> str desc | (keys, desc) <- keydescs]
   where
-    sep = str " | "
-    -- sep = "  "
+    -- sep = str " | "
+    sep = str " "
+

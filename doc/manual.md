@@ -2220,77 +2220,94 @@ Flags:
 ...
 ```
 
-Currently there are two screens:
+##### Keys
+
+Generally the cursor keys navigate; `right` (or `enter`) goes deeper, `left` returns to the previous screen,
+`up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
+
+`g` gets the latest data and reloads the screen (and any previous screens). There may be a noticeable pause.
+
+`q` quits the application.
+
+Some screens have additional key bindings, described below.
 
 ##### Accounts screen
 
-This is the screen shown at startup by default.
-It shows a scrollable list of accounts and their balances - all accounts, or just the matched accounts if you specified a query on the command line.
-`f` toggles flat mode on and off.
-You can limit the depth of accounts displayed, to see less detail, by pressing `-`.
-`+` (or `=`) increases the depth limit again.
-Or, press a number key to set a specific depth limit, eg `1` to see just top level accounts.
-Use the cursor keys to move up or down, and cursor right (or enter) to view an account's transaction register.
+This is normally the first screen displayed.
+It lists accounts and their balances, like hledger's balance command.
+By default, it shows all accounts and their latest ending balances.
+if you specify a query on the command line, it shows just the matched accounts and the balances from matched transactions.
+
+When not in flat mode, indentation indicates the account hierarchy. `F` toggles flat mode on and off.
+
+By default, all subaccounts are displayed.
+To see less detail, set a depth limit by pressing a number key, `1` to `9`.
+Or, adjust the depth limit by pressing `-` or `+` (`=` also works).
+`0` removes the depth limit.
+
+`C` toggles cleared mode. In cleared mode, the accounts and balances
+are derived only from transactions which are marked cleared (*).
+
+Press `right` or `enter` to view an account's transactions register.
 
 ##### Register screen
 
-This screen shows a register of transactions affecting a particular account -
-all transactions, or just the matched ones if there was a query on the command line.
+This screen lists all transactions affecting a particular account (like a check register).
+In cleared mode (press `C`) it lists only transactions which are marked cleared.
+It does not otherwise filter by query.
 
-You can reach the register screen by pressing cursor right or enter on
-the accounts screen, or jump directly to it at startup by specifying
-an account with `--register ACCTREGEX` on the command line.
-The cursor left key returns to the accounts screen.
+Note this screen shows transactions, not postings (unlike hledger's
+register command). This means:
 
-The register screen shows transactions (like the register in
-hledger-web, and other accounting systems), rather than postings
-(like hledger's register command). This means:
+- Each line represents a whole transaction.
 
-- It shows transactions affecting a selected current account, rather
-  than postings matching a pattern. Each line represents a whole transaction.
+- For each transaction, it shows the other account(s) involved, in
+  abbreviated form. (If there are both real and virtual postings, it
+  shows only the accounts affected by real postings.)
 
-- It lists the other account(s) involved in the transaction, in
-  abbreviated form. (As an exception, if both real and virtual
-  postings are involved, only the accounts affected by real postings
-  are listed.)
-
-- The amount field shows the overall effect of the transaction on the
-  current account; positive for an inflow to this account, negative
+- It shows the overall change to the current account's balance from
+  each transaction; positive for an inflow to this account, negative
   for an outflow.
 
-- When possible, the balance field shows the current account's
-  historic balance as of the transaction date, rather than a running
-  total starting from 0.
-
-    Specifically, the register shows historic balances when no query
-  other than a date limit is in effect. Eg:
+- When no query other than a date limit is in effect, it shows the
+  current account's historic balance as of the transaction date.
+  Otherwise it shows a running total starting from zero.  Eg, these
+  will show historic balances:
 
     ```
     $ hledger-ui
-    $ hledger-ui -b 'this month'
+    $ hledger-ui --begin 'this month'
     $ hledger-ui --register checking date:2015/10
     ```
 
-    whereas the following would revert to showing a running total
-    instead, since they are not just date-limited:
+    while these will show a running total, since the queries are not just date limits:
 
     ```
     $ hledger-ui checking
-    $ hledger-ui -b 'this month' --cleared
-    $ hledger-ui --register checking desc:market
+    $ hledger-ui --begin 'this month' desc:market
+    $ hledger-ui --register checking --cleared
     ```
+
+Press `right` or `enter` to view the selected transaction in full detail.
 
 ##### Transaction screen
 
-Pressing cursor right or enter on a transaction in the register screen
-will display the transaction in full, as a general journal entry
-(similar to `hledger print`).
-This shows more detail, such as the cleared status, transaction code,
-comments and tags, and the individual account postings.
+This screen shows a single transaction, as a general journal entry,
+similar to hledger's print command and journal format (hledger_journal(5)).
 
-You can use the cursor up/down keys to step through all transactions
-listed in the previous account register screen. Cursor left returns to
-that screen.
+The transaction's date(s) and any cleared flag, transaction code,
+description, comments, along with all of its account postings are
+shown.  Simple transactions have two postings, but there can be more
+(or in certain cases, fewer).
+
+`up` and `down` will step through all transactions listed in the
+previous account register screen.  In the title bar, the numbers in
+parentheses show your position within that account register. They will
+vary depending on which account register you came from (remember most
+transactions appear in multiple account registers). The #N number
+preceding them is the transaction's position within the complete
+unfiltered journal, which is a more stable id (at least until the next
+reload).
 
 ##### Error screen
 

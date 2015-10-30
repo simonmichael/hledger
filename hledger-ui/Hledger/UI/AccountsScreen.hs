@@ -23,7 +23,7 @@ import qualified Data.Vector as V
 import Graphics.Vty as Vty
 import Brick
 import Brick.Widgets.List
--- import Brick.Widgets.Border
+import Brick.Widgets.Border (borderAttr)
 -- import Brick.Widgets.Center
 
 import Hledger
@@ -104,6 +104,7 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
       toplabel = files
               <+> str " accounts"
               <+> borderQueryStr querystr
+              <+> cleared
               <+> borderDepthStr mdepth
               <+> str " ("
               <+> cur
@@ -117,6 +118,9 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
                      -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
       querystr = query_ $ reportopts_ $ cliopts_ uopts
       mdepth = depth_ $ reportopts_ $ cliopts_ uopts
+      cleared = if (cleared_ $ reportopts_ $ cliopts_ uopts)
+                then str " with " <+> withAttr (borderAttr <> "query") (str "cleared") <+> str " txns"
+                else str ""
       cur = str (case l^.listSelectedL of
                   Nothing -> "-"
                   Just i -> show (i + 1))
@@ -124,9 +128,10 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
 
       bottomlabel = borderKeysStr [
          -- ("up/down/pgup/pgdown/home/end", "move")
-         ("-+=1234567890", "adjust depth limit")
-        ,("f", "flat/tree mode")
-        ,("right/enter", "show register")
+         ("-=1234567890", "depth")
+        ,("F", "flat?")
+        ,("C", "cleared?")
+        ,("right/enter", "register")
         ,("g", "reload")
         ,("q", "quit")
         ]
@@ -199,8 +204,7 @@ drawAccountsItem (acctwidth, balwidth) selected (indent, _fullacct, displayacct,
 
 handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleAccountsScreen st@AppState{
-  aScreen=scr@AccountsScreen{asState=(l,selacct)}
-  ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+   aScreen=scr@AccountsScreen{asState=(l,selacct)}
   ,ajournal=j
   } e = do
     d <- liftIO getCurrentDay
@@ -240,15 +244,8 @@ handleAccountsScreen st@AppState{
         Vty.EvKey (Vty.KChar '8') [] -> continue $ reload j d $ setDepth 8 st'
         Vty.EvKey (Vty.KChar '9') [] -> continue $ reload j d $ setDepth 9 st'
         Vty.EvKey (Vty.KChar '0') [] -> continue $ reload j d $ setDepth 0 st'
-        Vty.EvKey (Vty.KChar 'f') [] -> continue $ reload j d $ st''
-          where
-            st'' = st'{
-              aopts=(aopts st'){
-                 cliopts_=copts{
-                    reportopts_=toggleFlatMode ropts
-                    }
-                 }
-              }
+        Vty.EvKey (Vty.KChar 'F') [] -> continue $ reload j d $ stToggleFlat st'
+        Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st'
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
         Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
           let
@@ -263,6 +260,10 @@ handleAccountsScreen st@AppState{
                                      continue $ st'{aScreen=scr{asState=(l',selacct')}}
                                  -- continue =<< handleEventLensed st' someLens ev
 handleAccountsScreen _ _ = error "event handler called with wrong screen type, should not happen"
+
+stToggleFlat :: AppState -> AppState
+stToggleFlat st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  st{aopts=uopts{cliopts_=copts{reportopts_=toggleFlatMode ropts}}}
 
 -- | Toggle between flat and tree mode. If in the third "default" mode, go to flat mode.
 toggleFlatMode :: ReportOpts -> ReportOpts
