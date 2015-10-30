@@ -212,6 +212,12 @@ getAccountAliases = liftM ctxAliases getState
 clearAccountAliases :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
 clearAccountAliases = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
 
+getIndex :: Stream [Char] m Char => ParsecT s JournalContext m Integer
+getIndex = liftM ctxTransactionIndex getState
+
+setIndex :: Stream [Char] m Char => Integer -> ParsecT [Char] JournalContext m ()
+setIndex i = modifyState (\ctx -> ctx{ctxTransactionIndex=i})
+
 -- parsers
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
@@ -437,7 +443,9 @@ transactionp = do
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = tagsInComment comment
   postings <- postingsp
-  return $ txnTieKnot $ Transaction sourcepos date edate status code description comment tags postings ""
+  index <- getIndex
+  setIndex (index+1)
+  return $ txnTieKnot $ Transaction index sourcepos date edate status code description comment tags postings ""
 
 descriptionp = many (noneOf ";\n")
 

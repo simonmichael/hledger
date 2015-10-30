@@ -368,6 +368,7 @@ Right samplejournal2 = journalBalanceTransactions $
          nulljournal
          {jtxns = [
            txnTieKnot $ Transaction {
+             tindex=0,
              tsourcepos=nullsourcepos,
              tdate=parsedate "2008/01/01",
              tdate2=Just $ parsedate "2009/01/01",

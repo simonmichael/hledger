@@ -35,6 +35,9 @@ module Hledger.Data.Journal (
   journalDescriptions,
   journalFilePath,
   journalFilePaths,
+  journalTransactionAt,
+  journalNextTransaction,
+  journalPrevTransaction,
   journalPostings,
   -- * Standard account types
   journalBalanceSheetAccountQuery,
@@ -134,7 +137,7 @@ nulljournal = Journal { jmodifiertxns = []
                       }
 
 nullctx :: JournalContext
-nullctx = Ctx { ctxYear = Nothing, ctxDefaultCommodityAndStyle = Nothing, ctxAccount = [], ctxAliases = [] }
+nullctx = Ctx{ctxYear=Nothing, ctxDefaultCommodityAndStyle=Nothing, ctxAccount=[], ctxAliases=[], ctxTransactionIndex=0}
 
 journalFilePath :: Journal -> FilePath
 journalFilePath = fst . mainfile
@@ -160,6 +163,20 @@ addMarketPrice h j = j { jmarketprices = h : jmarketprices j }
 addTimeLogEntry :: TimeLogEntry -> Journal -> Journal
 addTimeLogEntry tle j = j { open_timelog_entries = tle : open_timelog_entries j }
 
+-- | Get the transaction with this index (its 1-based position in the input stream), if any.
+journalTransactionAt :: Journal -> Integer -> Maybe Transaction
+journalTransactionAt Journal{jtxns=ts} i =
+  -- it's probably ts !! (i+1), but we won't assume
+  headMay [t | t <- ts, tindex t == i]
+
+-- | Get the transaction that appeared immediately after this one in the input stream, if any.
+journalNextTransaction :: Journal -> Transaction -> Maybe Transaction
+journalNextTransaction j t = journalTransactionAt j (tindex t + 1)
+  
+-- | Get the transaction that appeared immediately before this one in the input stream, if any.
+journalPrevTransaction :: Journal -> Transaction -> Maybe Transaction
+journalPrevTransaction j t = journalTransactionAt j (tindex t - 1)
+  
 -- | Unique transaction descriptions used in this journal.
 journalDescriptions :: Journal -> [String]
 journalDescriptions = nub . sort . map tdescription . jtxns
@@ -683,6 +700,7 @@ Right samplejournal = journalBalanceTransactions $
          nulljournal
          {jtxns = [
            txnTieKnot $ Transaction {
+             tindex=0,
              tsourcepos=nullsourcepos,
              tdate=parsedate "2008/01/01",
              tdate2=Nothing,
@@ -699,6 +717,7 @@ Right samplejournal = journalBalanceTransactions $
            }
           ,
            txnTieKnot $ Transaction {
+             tindex=0,
              tsourcepos=nullsourcepos,
              tdate=parsedate "2008/06/01",
              tdate2=Nothing,
@@ -715,6 +734,7 @@ Right samplejournal = journalBalanceTransactions $
            }
           ,
            txnTieKnot $ Transaction {
+             tindex=0,
              tsourcepos=nullsourcepos,
              tdate=parsedate "2008/06/02",
              tdate2=Nothing,
@@ -731,6 +751,7 @@ Right samplejournal = journalBalanceTransactions $
            }
           ,
            txnTieKnot $ Transaction {
+             tindex=0,
              tsourcepos=nullsourcepos,
              tdate=parsedate "2008/06/03",
              tdate2=Nothing,
@@ -747,6 +768,7 @@ Right samplejournal = journalBalanceTransactions $
            }
           ,
            txnTieKnot $ Transaction {
+             tindex=0,
              tsourcepos=nullsourcepos,
              tdate=parsedate "2008/12/31",
              tdate2=Nothing,

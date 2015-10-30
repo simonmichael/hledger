@@ -79,6 +79,7 @@ entryFromTimeLogInOut i o
         error' $ "clock-out time less than clock-in time in:\n" ++ showTransaction t
     where
       t = Transaction {
+            tindex       = 0,
             tsourcepos   = tlsourcepos i,
             tdate        = idate,
             tdate2       = Nothing,

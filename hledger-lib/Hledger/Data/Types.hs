@@ -170,6 +170,7 @@ data GenericSourcePos = GenericSourcePos FilePath Int Int
 instance NFData GenericSourcePos
 
 data Transaction = Transaction {
+      tindex :: Integer, -- ^ this transaction's 1-based position in the input stream, or 0 when not available
       tsourcepos :: GenericSourcePos,
       tdate :: Day,
       tdate2 :: Maybe Day,
@@ -233,6 +234,7 @@ data JournalContext = Ctx {
                                         --   specified with "account" directive(s). Concatenated, these
                                         --   are the account prefix prepended to parsed account names.
     , ctxAliases   :: ![AccountAlias]   -- ^ the current list of account name aliases in effect
+    , ctxTransactionIndex   :: !Integer -- ^ the number of transactions read so far
     } deriving (Read, Show, Eq, Data, Typeable, Generic)
 
 instance NFData JournalContext
