@@ -145,10 +145,27 @@ hledger-web, and other accounting systems), rather than postings
   current account; positive for an inflow to this account, negative
   for an outflow.
 
-- (Not implemented yet: the balance field should usually show the
-  current account's historic balance as of the transaction date, even
-  if you have adjusted the report start date. Currently it always
-  shows the running total).
+- When possible, the balance field shows the current account's
+  historic balance as of the transaction date, rather than a running
+  total starting from 0.
+
+    Specifically, the register shows historic balances when no query
+  other than a date limit is in effect. Eg:
+
+    ```
+    $ hledger-ui
+    $ hledger-ui -b 'this month'
+    $ hledger-ui --register checking date:2015/10
+    ```
+
+    whereas the following would revert to showing a running total
+    instead, since they are not just date-limited:
+
+    ```
+    $ hledger-ui checking
+    $ hledger-ui -b 'this month' --cleared
+    $ hledger-ui --register checking desc:market
+    ```
 
 ## Error screen
 
@@ -181,3 +198,7 @@ The need to precede options with `--` when invoked from hledger is awkward.
 When you press `g`, the current and all previous screens are
 regenerated, which may cause a noticeable pause. Also there is no
 visual indication that this is in progress.
+
+The register screen's switching between historic balance and running
+total based on query arguments may be confusing, and there is no
+column heading to indicate which is being displayed.
