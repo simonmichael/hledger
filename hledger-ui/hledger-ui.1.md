@@ -20,8 +20,8 @@ hledger is inspired by and largely compatible with ledger(1).
 hledger-ui is hledger's curses-style interface.
 It reads a hledger journal file (~/.hledger.journal, $LEDGER_FILE, or -f FILE) and
 provides a simple full-screen console interface for viewing account
-balances and transactions. It is simpler and more efficient for
-browsing than the hledger CLI, but lighter and faster than
+balances and transactions. It is simpler and more convenient for
+browsing than the command-line interface, but lighter and faster than
 hledger-web.
 
 The journal file is `~/.hledger.journal`, `$LEDGER_FILE`, or another file specified with -f.

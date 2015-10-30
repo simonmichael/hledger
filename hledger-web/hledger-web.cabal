@@ -6,22 +6,26 @@ name:           hledger-web
 version:        0.26.98
 stability:      stable
 category:       Finance
-synopsis:       A web interface for the hledger accounting tool
-description:    hledger is a library and set of user tools for working
-                with financial data (or anything that can be tracked in a
-                double-entry accounting ledger.) It is a haskell port and
-                friendly fork of John Wiegley's Ledger. hledger provides
-                command-line, curses and web interfaces, and aims to be a
-                reliable, practical tool for daily use.
+synopsis:       Web interface for the hledger accounting tool
+description:
+    This is hledger's web interface.
+    It provides a more user-friendly and collaborative UI than the
+    command-line or curses-style interfaces.
+    hledger is a cross-platform program for tracking money, time, or
+    any other commodity, using double-entry accounting and a simple,
+    editable file format. It is inspired by and largely compatible
+    with ledger(1).  hledger provides command-line, curses and web
+    interfaces, and aims to be a reliable, practical tool for daily
+    use.
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 homepage:       http://hledger.org
-bug-reports:    http://hledger.org/bugs
-tested-with:    GHC==7.6.3, GHC==7.8.4, GHC==7.10.1
+bug-reports:    http://bugs.hledger.org
 cabal-version:  >= 1.10
 build-type:     Simple
+tested-with:    GHC==7.6.3, GHC==7.8.4, GHC==7.10.2
 
 extra-source-files:
       CHANGES
