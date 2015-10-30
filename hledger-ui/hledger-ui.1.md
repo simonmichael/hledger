@@ -214,7 +214,3 @@ visual indication that this is in progress.
 The register screen's switching between historic balance and running
 total based on query arguments may be confusing, and there is no
 column heading to indicate which is being displayed.
-
-When you navigate to an earlier or later transaction with cursor
-up/down in the transaction screen, and then return to the register
-screen, the selection will not have moved.

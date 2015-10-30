@@ -19,7 +19,7 @@ import Data.Time.Calendar (Day)
 import Graphics.Vty as Vty
 -- import Safe (headDef, lastDef)
 import Brick
--- import Brick.Widgets.List
+import Brick.Widgets.List (listMoveTo)
 -- import Brick.Widgets.Border
 -- import Brick.Widgets.Border.Style
 -- import Brick.Widgets.Center
@@ -89,8 +89,16 @@ handleTransactionScreen st@AppState{
     Vty.EvKey (Vty.KUp) []       -> continue $ reload j d st{aScreen=s{tsState=((iprev,tprev),nts,acct)}}
     Vty.EvKey (Vty.KDown) []     -> continue $ reload j d st{aScreen=s{tsState=((inext,tnext),nts,acct)}}
 
-    Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
+    Vty.EvKey (Vty.KLeft) []     -> continue st''
+      where
+        st'@AppState{aScreen=scr} = popScreen st
+        st'' = st'{aScreen=rsSetSelectedTransaction (fromIntegral i) scr}
 
     _ev -> continue st
 
 handleTransactionScreen _ _ = error "event handler called with wrong screen type, should not happen"
+
+rsSetSelectedTransaction i scr@RegisterScreen{rsState=(l,a)} = scr{rsState=(l',a)}
+  where l' = listMoveTo (i-1) l
+rsSetSelectedTransaction _ scr = scr
+
