@@ -443,9 +443,9 @@ transactionp = do
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = tagsInComment comment
   postings <- postingsp
-  index <- getIndex
-  setIndex (index+1)
-  return $ txnTieKnot $ Transaction index sourcepos date edate status code description comment tags postings ""
+  i' <- (+1) <$> getIndex
+  setIndex i'
+  return $ txnTieKnot $ Transaction i' sourcepos date edate status code description comment tags postings ""
 
 descriptionp = many (noneOf ";\n")
 
