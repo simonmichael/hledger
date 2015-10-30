@@ -47,7 +47,7 @@ h4 { margin-top:2em; }
 </style>
 
 
-## 2015/10/xx hledger 0.27
+## 2015/10/30 hledger 0.27
 
 ***New curses-style interface, market value reporting, wide characters, fast regex aliases, man pages***
 
