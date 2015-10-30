@@ -701,7 +701,8 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 - update version
     - edit .version
     - make setversion
-    - double-check & commit (cabal files, manual, download page..)
+    - double-check: cabal files, man pages ?, manual, download, release-notes, devguide..
+    - commit
 
 - make tarballs/binaries
     - ensure no packages are commented out in Makefile's PACKAGES

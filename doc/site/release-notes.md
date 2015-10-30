@@ -3,7 +3,7 @@
 <nav id="toc" class="right-toc">
 <p>Major releases:</p>
 <ul>
-<li><a href="#hledger-0.27">hledger 0.27 (2015/10/xx)</a>
+<li><a href="#hledger-0.27">hledger 0.27 (2015/10/30)</a>
 <li><a href="#hledger-0.26">hledger 0.26 (2015/7/12)</a>
 <li><a href="#hledger-0.25">hledger 0.25 (2015/4/7)</a>
 <li><a href="#hledger-0.24">hledger 0.24 (2014/12/25)</a>
@@ -142,23 +142,23 @@ register:
 
 - hledger-ui is a new curses-style UI, intended to be a standard part
   of the hledger toolset for all users (except on native MS Windows,
-  where vty is not supported [yet](https://github.com/coreyoconnor/vty/pull/1)).
+  where the vty lib is not [yet](https://github.com/coreyoconnor/vty/pull/1) supported).
 
-    The UI is currently very simple, allowing just browsing of accounts
-  and transactions, but it has a number of improvements over the old
+    The UI is quite simple, allowing just browsing of accounts and
+  transactions, but it has a number of improvements over the old
   hledger-vty, which it replaces:
 
     - adapts to screen size
     - handles wide characters
-    - manages cursor and scroll position better
     - shows multi-commodity amounts on one line
-    - shows transactions rather than postings, like hledger-web
+    - manages cursor and scroll position better
     - allows depth adjustment
-    - allows tree/flat mode toggle
+    - allows --flat toggle
+    - allows --cleared toggle
     - allows journal reloading
-    - color-codes posting amounts
+    - shows a more useful transaction register, like hledger-web
     - offers multiple color themes
-    - includes built-in help
+    - includes some built-in help
 
     hledger-ui is built with brick, a new higher-level UI library based
   on vty, making it relatively easy to grow and maintain.
