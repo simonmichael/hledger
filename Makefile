@@ -1165,6 +1165,12 @@ hledger/package.yaml: $(VERSIONFILE) \
 	perl -p -e "s/(hledger(-lib)? *[>=]= *).*/\$${1}$(VERSION)/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
+hledger-ui/package.yaml: $(VERSIONFILE) \
+	$(call def-help-hide,hledger-ui/package.yaml, update the version in this file )
+	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
+	perl -p -e "s/(hledger(-lib|-ui)? *[>=]= *).*/\$${1}$(VERSION)/" -i $@
+	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
+
 hledger-web/package.yaml: $(VERSIONFILE) \
 	$(call def-help-hide,hledger-web/package.yaml, update the version in this file )
 	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
