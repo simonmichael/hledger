@@ -87,6 +87,7 @@ module Hledger.Data.Amount (
   isReallyZeroMixedAmountCost,
   -- ** rendering
   showMixedAmount,
+  showMixedAmountOneLine,
   showMixedAmountDebug,
   showMixedAmountWithoutPrice,
   showMixedAmountOneLineWithoutPrice,
@@ -519,19 +520,25 @@ isReallyZeroMixedAmountCost = isReallyZeroMixedAmount . costOfMixedAmount
 -- normalising it to one amount per commodity. Assumes amounts have
 -- no or similar prices, otherwise this can show misleading prices.
 showMixedAmount :: MixedAmount -> String
-showMixedAmount = showMixedAmountHelper False
+showMixedAmount = showMixedAmountHelper False False
 
 -- | Like showMixedAmount, but zero amounts are shown with their
 -- commodity if they have one.
 showMixedAmountWithZeroCommodity :: MixedAmount -> String
-showMixedAmountWithZeroCommodity = showMixedAmountHelper True
+showMixedAmountWithZeroCommodity = showMixedAmountHelper True False
 
-showMixedAmountHelper :: Bool -> MixedAmount -> String
-showMixedAmountHelper showzerocommodity m =
-  vConcatRightAligned $ map showw $ amounts $ normaliseMixedAmountSquashPricesForDisplay m
+-- | Get the one-line string representation of a mixed amount.
+showMixedAmountOneLine :: MixedAmount -> String
+showMixedAmountOneLine = showMixedAmountHelper False True
+
+showMixedAmountHelper :: Bool -> Bool -> MixedAmount -> String
+showMixedAmountHelper showzerocommodity useoneline m =
+  join $ map showamt $ amounts $ normaliseMixedAmountSquashPricesForDisplay m
   where
-    showw | showzerocommodity = showAmountWithZeroCommodity
-          | otherwise         = showAmount
+    join | useoneline = intercalate ", "
+         | otherwise  = vConcatRightAligned
+    showamt | showzerocommodity = showAmountWithZeroCommodity
+            | otherwise         = showAmount
 
 -- | Compact labelled trace of a mixed amount, for debugging.
 ltraceamount :: String -> MixedAmount -> MixedAmount

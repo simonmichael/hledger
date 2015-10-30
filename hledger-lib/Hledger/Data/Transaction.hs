@@ -30,6 +30,7 @@ module Hledger.Data.Transaction (
   -- * rendering
   showTransaction,
   showTransactionUnelided,
+  showTransactionUnelidedOneLineAmounts,
   -- * misc.
   tests_Hledger_Data_Transaction
 )
@@ -89,10 +90,10 @@ pcommentwidth = no limit -- 22
 @
 -}
 showTransaction :: Transaction -> String
-showTransaction = showTransaction' True
+showTransaction = showTransactionHelper True False
 
 showTransactionUnelided :: Transaction -> String
-showTransactionUnelided = showTransaction' False
+showTransactionUnelided = showTransactionHelper False False
 
 tests_showTransactionUnelided = [
    "showTransactionUnelided" ~: do
@@ -127,12 +128,15 @@ tests_showTransactionUnelided = [
       ]
  ]
 
+showTransactionUnelidedOneLineAmounts :: Transaction -> String
+showTransactionUnelidedOneLineAmounts = showTransactionHelper False True
+
 -- cf showPosting
-showTransaction' :: Bool -> Transaction -> String
-showTransaction' elide t =
+showTransactionHelper :: Bool -> Bool -> Transaction -> String
+showTransactionHelper elide onelineamounts t =
     unlines $ [descriptionline]
               ++ newlinecomments
-              ++ (postingsAsLines elide t (tpostings t))
+              ++ (postingsAsLines elide onelineamounts t (tpostings t))
               ++ [""]
     where
       descriptionline = rstrip $ concat [date, status, code, desc, samelinecomment]
@@ -164,14 +168,14 @@ renderCommentLines s  = case lines s of ("":ls) -> "":map commentprefix ls
 --       ls = lines s
 --       prefix = indent . (";"++)
 
-postingsAsLines :: Bool -> Transaction -> [Posting] -> [String]
-postingsAsLines elide t ps
+postingsAsLines :: Bool -> Bool -> Transaction -> [Posting] -> [String]
+postingsAsLines elide onelineamounts t ps
     | elide && length ps > 1 && isTransactionBalanced Nothing t -- imprecise balanced check
-       = (concatMap (postingAsLines False ps) $ init ps) ++ postingAsLines True ps (last ps)
-    | otherwise = concatMap (postingAsLines False ps) ps
+       = (concatMap (postingAsLines False onelineamounts ps) $ init ps) ++ postingAsLines True onelineamounts ps (last ps)
+    | otherwise = concatMap (postingAsLines False onelineamounts ps) ps
 
-postingAsLines :: Bool -> [Posting] -> Posting -> [String]
-postingAsLines elideamount ps p =
+postingAsLines :: Bool -> Bool -> [Posting] -> Posting -> [String]
+postingAsLines elideamount onelineamounts ps p =
     postinglines
     ++ newlinecomments
   where
@@ -186,8 +190,9 @@ postingAsLines elideamount ps p =
 
     -- currently prices are considered part of the amount string when right-aligning amounts
     amount
-      | elideamount = ""
-      | otherwise   = fitStringMulti (Just amtwidth) Nothing False False $ showMixedAmount $ pamount p
+      | elideamount    = ""
+      | onelineamounts = fitString (Just amtwidth) Nothing False False $ showMixedAmountOneLine $ pamount p
+      | otherwise      = fitStringMulti (Just amtwidth) Nothing False False $ showMixedAmount $ pamount p
       where
         amtwidth = maximum $ 12 : map (strWidth . showMixedAmount . pamount) ps  -- min. 12 for backwards compatibility
 
@@ -197,7 +202,7 @@ postingAsLines elideamount ps p =
 
 tests_postingAsLines = [
    "postingAsLines" ~: do
-    let p `gives` ls = assertEqual "" ls (postingAsLines False [p] p)
+    let p `gives` ls = assertEqual "" ls (postingAsLines False False [p] p)
     posting `gives` ["                 0"]
     posting{
       pstatus=Cleared,
