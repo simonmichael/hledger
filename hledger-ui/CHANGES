@@ -1,7 +1,7 @@
 User-visible changes in hledger-ui.
 See also hledger's change log.
 
-0.27 (unreleased)
+0.27 (2015/10/30)
 
 - hledger-ui is a new curses-style UI, intended to be a standard part
   of the hledger toolset for all users (except on native MS Windows,
