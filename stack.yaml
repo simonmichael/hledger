@@ -13,6 +13,6 @@ flags:
 extra-deps:
 - uglymemo-0.1.0.1
 
-ghc-options:
-  rtsopts:
-    all
+# ghc-options:
+#   rtsopts:
+#     all
