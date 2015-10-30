@@ -1,7 +1,7 @@
 API-ish changes in hledger-lib.
 For user-visible changes, see hledger's change log.
 
-0.27 (unreleased)
+0.27 (2015/10/30)
 
 - The main hledger types now derive NFData, which makes it easier to
   time things with criterion.

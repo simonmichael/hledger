@@ -1,7 +1,7 @@
 User-visible changes in hledger-web.
 See also hledger's change log.
 
-0.27 (unreleased)
+0.27 (2015/10/30)
 
 - Fix keyboard shortcut for adding a transaction (Carlos Lopez-Camey)
 
