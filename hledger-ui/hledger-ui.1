@@ -24,8 +24,8 @@ hledger\-ui is hledger\[aq]s curses\-style interface.
 It reads a hledger journal file (~/.hledger.journal, $LEDGER_FILE, or
 \-f FILE) and provides a simple full\-screen console interface for
 viewing account balances and transactions.
-It is simpler and more efficient for browsing than the hledger CLI, but
-lighter and faster than hledger\-web.
+It is simpler and more convenient for browsing than the command\-line
+interface, but lighter and faster than hledger\-web.
 .PP
 The journal file is \f[C]~/.hledger.journal\f[], \f[C]$LEDGER_FILE\f[],
 or another file specified with \-f.
@@ -158,6 +158,123 @@ show empty/zero things which are normally omitted
 show amounts in their cost price\[aq]s commodity
 .RS
 .RE
+.SH KEYS
+.PP
+Generally the cursor keys navigate; \f[C]right\f[] (or \f[C]enter\f[])
+goes deeper, \f[C]left\f[] returns to the previous screen,
+\f[C]up\f[]/\f[C]down\f[]/\f[C]page\ up\f[]/\f[C]page\ down\f[]/\f[C]home\f[]/\f[C]end\f[]
+move up and down through lists.
+.PP
+\f[C]g\f[] gets the latest data and reloads the screen (and any previous
+screens).
+There may be a noticeable pause.
+.PP
+\f[C]q\f[] quits the application.
+.PP
+Some screens have additional key bindings, described below.
+.SH SCREENS
+.SS Accounts screen
+.PP
+This is normally the first screen displayed.
+It lists accounts and their balances, like hledger\[aq]s balance
+command.
+By default, it shows all accounts and their latest ending balances.
+if you specify a query on the command line, it shows just the matched
+accounts and the balances from matched transactions.
+.PP
+When not in flat mode, indentation indicates the account hierarchy.
+\f[C]F\f[] toggles flat mode on and off.
+.PP
+By default, all subaccounts are displayed.
+To see less detail, set a depth limit by pressing a number key,
+\f[C]1\f[] to \f[C]9\f[].
+Or, adjust the depth limit by pressing \f[C]\-\f[] or \f[C]+\f[]
+(\f[C]=\f[] also works).
+\f[C]0\f[] removes the depth limit.
+.PP
+\f[C]C\f[] toggles cleared mode.
+In cleared mode, the accounts and balances are derived only from
+transactions which are marked cleared (*).
+.PP
+Press \f[C]right\f[] or \f[C]enter\f[] to view an account\[aq]s
+transactions register.
+.SS Register screen
+.PP
+This screen lists all transactions affecting a particular account (like
+a check register).
+In cleared mode (press \f[C]C\f[]) it lists only transactions which are
+marked cleared.
+It does not otherwise filter by query.
+.PP
+Note this screen shows transactions, not postings (unlike hledger\[aq]s
+register command).
+This means:
+.IP \[bu] 2
+Each line represents a whole transaction.
+.IP \[bu] 2
+For each transaction, it shows the other account(s) involved, in
+abbreviated form.
+(If there are both real and virtual postings, it shows only the accounts
+affected by real postings.)
+.IP \[bu] 2
+It shows the overall change to the current account\[aq]s balance from
+each transaction; positive for an inflow to this account, negative for
+an outflow.
+.IP \[bu] 2
+When no query other than a date limit is in effect, it shows the current
+account\[aq]s historic balance as of the transaction date.
+Otherwise it shows a running total starting from zero.
+Eg, these will show historic balances:
+.RS 2
+.IP
+.nf
+\f[C]
+$\ hledger\-ui
+$\ hledger\-ui\ \-\-begin\ \[aq]this\ month\[aq]
+$\ hledger\-ui\ \-\-register\ checking\ date:2015/10
+\f[]
+.fi
+.PP
+while these will show a running total, since the queries are not just
+date limits:
+.IP
+.nf
+\f[C]
+$\ hledger\-ui\ checking
+$\ hledger\-ui\ \-\-begin\ \[aq]this\ month\[aq]\ desc:market
+$\ hledger\-ui\ \-\-register\ checking\ \-\-cleared
+\f[]
+.fi
+.RE
+.PP
+Press \f[C]right\f[] or \f[C]enter\f[] to view the selected transaction
+in full detail.
+.SS Transaction screen
+.PP
+This screen shows a single transaction, as a general journal entry,
+similar to hledger\[aq]s print command and journal format
+(hledger_journal(5)).
+.PP
+The transaction\[aq]s date(s) and any cleared flag, transaction code,
+description, comments, along with all of its account postings are shown.
+Simple transactions have two postings, but there can be more (or in
+certain cases, fewer).
+.PP
+\f[C]up\f[] and \f[C]down\f[] will step through all transactions listed
+in the previous account register screen.
+In the title bar, the numbers in parentheses show your position within
+that account register.
+They will vary depending on which account register you came from
+(remember most transactions appear in multiple account registers).
+The #N number preceding them is the transaction\[aq]s position within
+the complete unfiltered journal, which is a more stable id (at least
+until the next reload).
+.SS Error screen
+.PP
+This screen will appear if there is a problem, such as a parse error,
+when you press g to reload.
+Once you have fixed the problem described, press g again to reload and
+restore normal operation.
 .SH ENVIRONMENT
 .PP
 \f[B]LEDGER_FILE\f[] sets the default journal file path.
@@ -177,11 +294,15 @@ is awkward.
 .PP
 \f[C]\-f\-\f[] doesn\[aq]t work (hledger\-ui can\[aq]t read from stdin).
 .PP
-\f[C]\-V\f[] doesn\[aq]t affect the register screen.
+\f[C]\-V\f[] affects only the accounts screen.
 .PP
-If you reload while in the register screen, when you return to the
-accounts screen it will be showing old data, and pressing g again will
-not reload it; you must adjust depth to force it (eg press 0).
+When you press \f[C]g\f[], the current and all previous screens are
+regenerated, which may cause a noticeable pause.
+Also there is no visual indication that this is in progress.
+.PP
+The register screen\[aq]s switching between historic balance and running
+total based on query arguments may be confusing, and there is no column
+heading to indicate which is being displayed.
 
 
 .SH "REPORTING BUGS"
