@@ -175,6 +175,10 @@ will display the transaction in full, as a general journal entry
 This shows more detail, such as the cleared status, transaction code,
 comments and tags, and the individual account postings.
 
+You can use the cursor up/down keys to step through all transactions
+listed in the previous account register screen. Cursor left returns to
+that screen.
+
 ## Error screen
 
 This screen will appear if there is a problem, such as a parse error,
@@ -201,7 +205,7 @@ The need to precede options with `--` when invoked from hledger is awkward.
 
 `-f-` doesn't work (hledger-ui can't read from stdin).
 
-`-V` doesn't affect the register screen.
+`-V` affects only the accounts screen.
 
 When you press `g`, the current and all previous screens are
 regenerated, which may cause a noticeable pause. Also there is no
@@ -210,3 +214,7 @@ visual indication that this is in progress.
 The register screen's switching between historic balance and running
 total based on query arguments may be confusing, and there is no
 column heading to indicate which is being displayed.
+
+When you navigate to an earlier or later transaction with cursor
+up/down in the transaction screen, and then return to the register
+screen, the selection will not have moved.

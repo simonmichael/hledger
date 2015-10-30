@@ -2288,6 +2288,10 @@ will display the transaction in full, as a general journal entry
 This shows more detail, such as the cleared status, transaction code,
 comments and tags, and the individual account postings.
 
+You can use the cursor up/down keys to step through all transactions
+listed in the previous account register screen. Cursor left returns to
+that screen.
+
 ##### Error screen
 
 This screen will appear if there is a problem, such as a parse error,

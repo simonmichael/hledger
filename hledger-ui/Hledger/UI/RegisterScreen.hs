@@ -209,7 +209,13 @@ handleRegisterScreen st@AppState{
 
     Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
       case listSelectedElement l of
-        Just (_, (_, _, _, _, _, t)) -> continue $ screenEnter d TS.screen{tsState=t} st
+        Just (_, (_, _, _, _, _, t)) ->
+          let
+            ts = map sixth6 $ V.toList $ listElements l
+            numberedts = zip [1..] ts
+            i = fromIntegral $ maybe 0 (+1) $ elemIndex t ts -- XXX
+          in
+            continue $ screenEnter d TS.screen{tsState=((i,t),numberedts,acct)} st
         Nothing -> continue st
 
     -- fall through to the list's event handler (handles [pg]up/down)

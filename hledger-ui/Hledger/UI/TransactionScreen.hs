@@ -1,6 +1,6 @@
 -- The transaction screen, showing a single transaction's general journal entry.
 
-{-# LANGUAGE OverloadedStrings #-} -- , FlexibleContexts
+{-# LANGUAGE OverloadedStrings, TupleSections #-} -- , FlexibleContexts
 
 module Hledger.UI.TransactionScreen
  (screen
@@ -11,11 +11,13 @@ where
 import Control.Monad.IO.Class (liftIO)
 -- import Data.List
 -- import Data.List.Split (splitOn)
+-- import Data.Ord
 import Data.Monoid
 -- import Data.Maybe
 import Data.Time.Calendar (Day)
 -- import qualified Data.Vector as V
 import Graphics.Vty as Vty
+-- import Safe (headDef, lastDef)
 import Brick
 -- import Brick.Widgets.List
 -- import Brick.Widgets.Border
@@ -32,25 +34,29 @@ import Hledger.UI.UIUtils
 import qualified Hledger.UI.ErrorScreen as ES (screen)
 
 screen = TransactionScreen{
-   tsState   = nulltransaction
+   tsState   = ((1,nulltransaction),[(1,nulltransaction)],"")
   ,sInitFn   = initTransactionScreen
   ,sDrawFn   = drawTransactionScreen
   ,sHandleFn = handleTransactionScreen
   }
 
 initTransactionScreen :: Day -> AppState -> AppState
-initTransactionScreen _d st@AppState{aopts=_opts, ajournal=_j, aScreen=_s@TransactionScreen{tsState=_t}} = st
+initTransactionScreen _d st@AppState{aopts=_opts, ajournal=_j, aScreen=_s@TransactionScreen{tsState=_}} = st
 initTransactionScreen _ _ = error "init function called with wrong screen type, should not happen"
 
 drawTransactionScreen :: AppState -> [Widget]
 drawTransactionScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
-                               aScreen=TransactionScreen{tsState=t}} = [ui]
+                               aScreen=TransactionScreen{tsState=((i,t),nts,acct)}} = [ui]
   where
+    -- datedesc = show (tdate t) ++ " " ++ tdescription t
     toplabel =
       str "Transaction "
-      <+> withAttr ("border" <> "bold") (str $ show (tdate t) ++ " " ++ tdescription t)
+      -- <+> withAttr ("border" <> "bold") (str $ 
+      <+> withAttr ("border" <> "bold") (str $ show i)
+      <+> str (" of "++show (length nts)++" in "++acct)
     bottomlabel = borderKeysStr [
        ("left", "return to register")
+      ,("up/down", "prev/next transaction")
       ,("g", "reload")
       ,("q", "quit")
       ]
@@ -61,10 +67,14 @@ drawTransactionScreen _ = error "draw function called with wrong screen type, sh
 
 handleTransactionScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleTransactionScreen st@AppState{
-   aScreen=_s@TransactionScreen{tsState=_t}
+   aScreen=s@TransactionScreen{tsState=((i,t),nts,acct)}
   ,aopts=UIOpts{cliopts_=_copts}
   ,ajournal=j
   } e = do
+  d <- liftIO getCurrentDay
+  let
+    (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
+    (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
   case e of
     Vty.EvKey Vty.KEsc []        -> halt st
     Vty.EvKey (Vty.KChar 'q') [] -> halt st
@@ -75,6 +85,9 @@ handleTransactionScreen st@AppState{
       case ej of
         Right j' -> continue $ reload j' d st
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
+
+    Vty.EvKey (Vty.KUp) []       -> continue $ reload j d st{aScreen=s{tsState=((iprev,tprev),nts,acct)}}
+    Vty.EvKey (Vty.KDown) []     -> continue $ reload j d st{aScreen=s{tsState=((inext,tnext),nts,acct)}}
 
     Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
 

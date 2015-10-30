@@ -41,7 +41,7 @@ data Screen =
     ,sDrawFn :: AppState -> [Widget]
     }
   | TransactionScreen {
-     tsState :: Transaction                                       -- ^ the transaction we are viewing
+     tsState :: ((Integer,Transaction), [(Integer,Transaction)], AccountName)         -- ^ the (numbered) transaction we are viewing, a numbered list of transactions we can step through, and the account whose register we entered this screen from
     ,sInitFn :: Day -> AppState -> AppState
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     ,sDrawFn :: AppState -> [Widget]
