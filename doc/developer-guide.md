@@ -284,11 +284,11 @@ The resulting executables will be somewhere under .stack-work, eg in
 ```shell
 $ make build
 stack build
-hledger-lib-0.26.98: configure
-hledger-lib-0.26.98: build
-hledger-lib-0.26.98: install
-hledger-0.26.98: configure
-hledger-0.26.98: build
+hledger-lib-0.27: configure
+hledger-lib-0.27: build
+hledger-lib-0.27: install
+hledger-0.27: configure
+hledger-0.27: build
 Progress: 1/4
 ...
 ```
@@ -307,7 +307,7 @@ You should make sure this directory is in your `$PATH`, so that you can just typ
 $ make install
 stack install
 NOTE: the install command is functionally equivalent to 'build --copy-bins'
-hledger-0.26.98: build
+hledger-0.27: build
 ...
 Copied executables to /Users/simon/.local/bin/:
 - hledger-web
@@ -341,16 +341,16 @@ which by default shows quick elapsed-time measurements for several operations on
 $ stack bench hledger
 NOTE: the bench command is functionally equivalent to 'build --bench'
 ...
-hledger-0.26.98: benchmarks
+hledger-0.27: benchmarks
 Running 1 benchmarks...
 Benchmark bench: RUNNING...
 Benchmarking hledger in /Users/simon/src/hledger/hledger with timeit
-read bench/10000x1000x10.journal        [1.63s]
-print                                   [1.41s]
-register                                [1.83s]
-balance                                 [0.24s]
-stats                                   [0.22s]
-Total: 5.33s
+read bench/10000x1000x10.journal        [1.57s]
+print                                   [1.29s]
+register                                [1.92s]
+balance                                 [0.21s]
+stats                                   [0.23s]
+Total: 5.22s
 Benchmark bench: FINISH
 ```
 
