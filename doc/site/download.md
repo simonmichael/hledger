@@ -98,9 +98,10 @@ processing >50,000 transactions at a time with hledger, cf [#275](https://github
 2. `stack setup`
     (if you need GHC installed. If you're not sure, run the next command and it will tell you.)
 
-3. `stack --resolver nightly-2015-10-25 install hledger` (the command-line UI), or\
-   `stack --resolver nightly-2015-10-25 install hledger-ui` (the terminal UI; not available on Windows; includes the above), or\
-   `stack --resolver nightly-2015-10-25 install hledger-web` (the web UI; includes the above)
+3. `stack --resolver SNAPSHOT install hledger` (the command-line UI), or\
+   `stack --resolver SNAPSHOT install hledger-ui` (the terminal UI; not available on Windows; includes the above), or\
+   `stack --resolver SNAPSHOT install hledger-web` (the web UI; includes the above)\
+   SNAPSHOT for 0.27 will be announced when ready, until then build the latest master branch (below)
 
 4. stack will report where it installed the binaries (`~/.local/bin` or the Windows equivalent).
    You should ensure this directory is in your `$PATH` (stack will let you know),
