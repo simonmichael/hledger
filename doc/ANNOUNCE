@@ -1,43 +1,30 @@
-I'm pleased to announce hledger and hledger-web 0.26!
+I'm pleased to announce hledger 0.27!
 
-This release restores non-regular-expression account aliases as the
-default, and brings miscellaneous bugfixes and cleanups, and some
-performance work. Also the website and documentation have been
-improved, and now include many more examples.
-Full release notes: http://hledger.org/release-notes#hledger-0.26 .
+hledger is a cross-platform program for tracking money, time, or any
+other commodity, using double-entry accounting and a simple, editable
+file format.  It can also read CSV or timelog files, and export CSV.
+It provides command-line, curses and web interfaces, and aims to be a
+reliable, practical tool for daily use.  It is inspired by and largely
+compatible with ledger(1).
+
+This release introduces hledger-ui, a new curses-style interface that
+I'm quite pleased with (not yet available on Windows). Built on vty
+and the new brick library, it lets you review account balances and
+transactions with fewer keystrokes and less effort.
+
+Also, we can now report current value based on market prices (hurrah);
+wide characters are displayed properly; regular expression account
+aliases are fast; and unix man pages are provided. You can see all
+changes at http://hledger.org/release-notes#hledger-0.27 .
 
 Release contributors: 
 Simon Michael,
-Imuli,
-Carlos Lopez-Camey,
-Kyle Marek-Spartz,
-Rick Lupton,
-Simon Hengel.
+Carlos Lopez-Camey.
 
-About:
+hledger can be installed with cabal or stack; see
+http://hledger.org/download .
+If you'd like to contribute Windows or Mac binaries, please get in
+touch.
 
-hledger (http://hledger.org) is a command-line tool and haskell
-library for tracking financial transactions, which are stored in a
-human-readable plain text format. It can also read CSV or timelog
-files, and output CSV. It provides useful reports, and can also help
-you record new transactions interactively.  Add-on commands include
-hledger-web (a web interface), hledger-irr (for calculating internal
-rate of return) and hledger-interest (for generating interest
-transactions).  hledger is inspired by and largely compatible with
-Ledger, and can be used with some Ledger files.
-
-Installation:
-
-$ cabal update; [cabal sandbox init;] cabal install hledger[-web]
-
-or:
-
-$ git clone https://github.com/simonmichael/hledger.git
-$ cd hledger
-$ git checkout hledger-0.26
-$ stack install
-
-or see http://hledger.org/download for more options.
-
-Best!
+Happy Hallowe'en!
 -Simon
