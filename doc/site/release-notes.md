@@ -50,6 +50,8 @@ h4 { margin-top:2em; }
 ## 2015/10/30 hledger 0.27
 
 ***New curses-style interface, market value reporting, wide characters, fast regex aliases, man pages***
+([announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1267))
+<!-- [announcement](https://groups.google.com/forum/#!topic/hledger/3w7G0H9e7aE) -->
 
 Release contributors:
 Simon Michael,
@@ -140,7 +142,7 @@ register:
 
 **hledger-ui 0.27:**
 
-- hledger-ui is a new curses-style UI, intended to be a standard part
+- [hledger-ui](manual#ui) is a new curses-style UI, intended to be a standard part
   of the hledger toolset for all users (except on native MS Windows,
   where the vty lib is not [yet](https://github.com/coreyoconnor/vty/pull/1) supported).
 
