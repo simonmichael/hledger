@@ -220,27 +220,89 @@ promise of more bug-free and maintainable software built in fewer
 lines of code. Haskell also provides a more abstracted, portable
 platform which can make deployment and installation easier in some
 cases.
-## UI surprises
-### What are these extra amounts with no account name in the balance report ?
 
-A journal entry like this:
+## UI surprises
+
+### Why does it complain about missing amounts ? I put one there
+
+This is an easy mistake at first. This journal entry:
 ```journal
 1/1
   a 1
   b
 ```
-gives the error `hledger: could not balance this transaction (can't have more than one missing amount; remember to put 2 or more spaces before amounts)`, because there needs to be at least two spaces separating account names and amounts, eg like this:
+will give a parse error (`...can't have more than one real posting with no amount...`).
+
+There must always be at least two spaces between the account name and amount. So instead, it should be:
 ```journal
 1/1
   a  1
   b
 ```
 
-### What are these extra amounts with no account name in the balance report ?
 
-Eg: https://gist.github.com/achiang/1b16a49f432375c68941
+### Why do some amounts appear on their own line with no account name ?
 
-In most hledger reports, like Ledger, account balances containing multiple commodities are displayed on multiple lines, one per commodity.
-In the register command these lines are top-aligned, in the balance command they are bottom-aligned.
+When hledger needs to show a multi-commodity amount, each commodity is displayed on its own line, one above the other (like Ledger).
 
-In [multi-column balance reports](manual.html#multicolumn-balance-reports), multi-commodity amounts are displayed on one line instead, comma-separated.
+Here are some examples. With this journal, the implicit balancing amount drawn from the `b` account will be a multicommodity amount (a euro and a dollar):
+```journal
+2015/1/1
+    a         EUR 1
+    a         USD 1
+    b
+```
+the `print` command shows the `b` posting's amount on two lines, bottom-aligned:
+```shell
+$ hledger -f t.j print
+2015/01/01
+    a         USD 1
+    a         EUR 1
+             EUR -1  ; <-
+    b        USD -1  ; <- a euro and a dollar is drawn from b
+```
+the `balance` command shows that both `a` and `b` have a multi-commodity balance (again, bottom-aligned):
+```shell
+$ hledger -f t.j balance
+               EUR 1     ; <-
+               USD 1  a  ; <- a's balance is a euro and a dollar
+              EUR -1     ; <-
+              USD -1  b  ; <- b's balance is a negative euro and dollar
+--------------------
+                   0
+```
+while the `register` command shows (top-aligned, this time) a multi-commodity running total after the second posting,
+and a multi-commodity amount in the third posting:
+```shell
+$ hledger -f t.j register --width 50
+2015/01/01       a             EUR 1         EUR 1
+                 a             USD 1         EUR 1  ; <- the running total is now a euro and a dollar        
+                                             USD 1  ;                                                        
+                 b            EUR -1                ; <- the amount posted to b is a negative euro and dollar
+                              USD -1             0  ;
+```
+
+Newer reports like [multi-column balance reports](manual.html#multicolumn-balance-reports) show multi-commodity amounts on one line instead, comma-separated.
+Although wider, this seems clearer and we should probably use it more:
+```shell
+$ hledger -f t.j balance --yearly
+Balance changes in 2015:
+
+   ||           2015 
+===++================
+ a ||   EUR 1, USD 1 
+ b || EUR -1, USD -1 
+---++----------------
+   ||              0 
+```
+
+You will also see amounts without a corresponding account name if you remove too many account name segments with [`--drop`](manual.html#balance):
+```shell
+$ hledger -f t.j balance --drop 1
+               EUR 1  
+               USD 1  
+              EUR -1  
+              USD -1  
+--------------------
+                   0
+```
