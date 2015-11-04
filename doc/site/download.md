@@ -1,5 +1,3 @@
-# Download
-
 <div style="float:right; text-align:right; white-space:nowrap; ">
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=5J33NLXYXCYAY"><img border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt="paypal"></a> 
 <a style="margin-left:3px;" href="https://flattr.com/submit/auto?user_id=simonmichael&url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a> 
@@ -7,6 +5,10 @@
 <script data-gratipay-username="simonmichael" data-gratipay-widget="button" src="//grtp.co/v1.js"></script> 
 </div>
 </div>
+# Download
+
+**[Release notes](release-notes.html)**
+
 ## I want to download and run
 <!-- <sub>(If the download is out of date or doesn't run on my system, I might troubleshoot or donate to fund improvements)</sub> -->
 
@@ -26,15 +28,13 @@ Download, unzip, and run
 <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.zip)) -->
 and/or
 [hledger-web-0.26-win64.zip](http://hledger.org/downloads/hledger-web-0.26-win64.zip)
+<br><em>(Latest release is 0.27. To contribute binaries for windows or mac, please <a href="mailto:simon@joyful.com">get in touch</a>.)</em>
 </td></tr>
 
 <tr><td>
 **on Mac**
 </td><td>
-<!-- [mac install guide](mac-install.html)\ -->
-<!-- [hledger.mac.zip]()\ -->
-<!-- [hledger-web.mac.zip]()\ -->
-Use stack or cabal (see below)
+Build with stack or cabal as described below.
 </td></tr>
 
 <tr><td>
@@ -62,7 +62,7 @@ Use stack or cabal (see below)
 </td></tr>
 
 <tr><td>
-**in a Virtualbox VM**
+**in a VM**
 </td><td>
 Try <https://github.com/sciurus/hledger-vagrant>
 </td></tr>
@@ -85,31 +85,24 @@ donation of any size. Binaries funded in this way will be linked here.
 This is a quick way to help the project and your fellow users!
 -->
 
-**[Release notes](release-notes.html)**
-
 ## I want to build the latest release
 
-**Using the stack tool** (easiest, recommended):
+**Using stack** (easiest, recommended):\
+*2015/11/3: but hledger-ui has not yet reached stackage; you must install it from source (see below) or with cabal*
 
-*SNAPSHOT for 0.27 will be announced when ready, until then use cabal or see "build the latest master branch" below*
-
-
-1. Install [`stack`](https://github.com/commercialhaskell/stack/wiki/Downloads)
-    (on Windows, you should choose the 64-bit stack download if you will be
-processing >50,000 transactions at a time with hledger, cf [#275](https://github.com/simonmichael/hledger/issues/275)).
-
+1. Install [`stack`](https://github.com/commercialhaskell/stack/blob/master/doc/install_and_upgrade.md)
+    (On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275).)
+    <!-- needed if you will be processing >50,000 transactions at once -->
 2. `stack setup`
     (if you need GHC installed. If you're not sure, run the next command and it will tell you.)
-
-3. `stack --resolver SNAPSHOT install hledger` (the command-line UI), or\
-   `stack --resolver SNAPSHOT install hledger-ui` (the terminal UI; not available on Windows; includes the above), or\
-   `stack --resolver SNAPSHOT install hledger-web` (the web UI; includes the above)
-
-4. stack will report where it installed the binaries (`~/.local/bin` or the Windows equivalent).
-   You should ensure this directory is in your `$PATH` (stack will let you know),
+3. `stack --resolver nightly-2015-11-02 install hledger` (the command-line interface), or\
+   `stack --resolver nightly-2015-11-02 install hledger-web` (the web interface; also installs the CLI)\
+    <!-- `stack --resolver nightly-2015-11-02 install hledger-ui` (the curses-style interfaces; not available on Windows; also installs the CLI), or\ -->
+4. Ensure `~/.local/bin` or the Windows equivalent is in your `$PATH`,
    so that you can just type `hledger` to run it.
+   (stack will show the proper directory and will tell you if it is not in $PATH).
 
-**Without stack,** the process is much more variable; this is most likely to work:
+**Using cabal** (results will vary, not recommended for non-experts):
 
 1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html) if needed
 2. `cabal update`
@@ -118,11 +111,11 @@ processing >50,000 transactions at a time with hledger, cf [#275](https://github
 5. `cabal install hledger[-ui|-web]`
 6. Ensure `~/.cabal/bin` or the Windows equivalent is in your `$PATH`
 
-## I want to build the latest [master branch](https://github.com/simonmichael/hledger/commits/master)
-
-See the [Developer Guide](http://hledger.org/developer-guide.html), or just:
+## I want to build the [latest source](https://github.com/simonmichael/hledger/commits/master)
 
 1. `git clone http://code.hledger.org hledger`
 2. `cd hledger`
 3. `stack install`
+
+or see the [Developer Guide](http://hledger.org/developer-guide.html) for more help.
 
