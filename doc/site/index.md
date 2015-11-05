@@ -94,17 +94,28 @@ transactions, but does not change existing ones.)
 </div>
 
 <div class="indent1">
-### ...with a web UI
+### and a curses UI
+
+<a href="images/hledger-ui/hledger-ui-bcexample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc.png" title="hledger-ui accounts screen" /></a>
+
+hledger also provides a curses-style [console interface](manual#ui)
+that lets you review account balances and transactions with fewer
+keystrokes and less effort.
+</div>
+
+<div class="indent2">
+### and a web UI
 
 <a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
 
 hledger comes with a built-in web server providing an alternate
 [browser-based interface](manual.html#web)
 ([demo](http://demo.hledger.org)), for assisted data entry and point
-and click reporting. The web and command-line clients can be used
-simultaneously.  </div>
+and click reporting. The web and command-line/curses interfaces can be used
+simultaneously.
+</div>
 
-<div class="indent2">
+<div class="indent1">
 ### a Haskell application and library
 
 <a href="images/hledger-lib-api.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-lib-api.png" title="Part of hledger-lib's haddock api documentation" /></a>
@@ -142,8 +153,8 @@ folk as well.
 
 hledger strives to be usable, practical and to provide real-world value.
 I've been depending on it and improving it since 2007.
-I needed a tool like this badly, and I want to keep it growing and helping others who can also benefit.
-You can help!
+I needed a tool like this badly, and I want to keep it growing and helping others gain financial clarity and control.
+If you feel the same way, join us!
 </div>
 
 
