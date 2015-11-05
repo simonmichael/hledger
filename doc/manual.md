@@ -805,7 +805,7 @@ some number of hours to an account. Or if the session spans more than
 one day, it is split into several transactions, one for each day. For
 the above time log, `hledger print` generates these journal entries:
 
-``` {.shell}
+```{.shell}
 $ hledger -f t.timelog print
 2015/03/30 * optional description after two spaces
     (some:account name)         0.33h
@@ -822,7 +822,7 @@ Here is a
 [sample.timelog](https://raw.github.com/simonmichael/hledger/master/data/sample.timelog) to
 download and some queries to try:
 
-``` {.shell .bold}
+```{.shell .bold}
 $ hledger -f sample.timelog balance                               # current time balances
 $ hledger -f sample.timelog register -p 2009/3                    # sessions in march 2009
 $ hledger -f sample.timelog register -p weekly --depth 1 --empty  # time summary by week
@@ -835,11 +835,11 @@ To generate time logs, ie to clock in and clock out, you could:
   and perhaps the extras in [ledgerutils.el](http://hub.darcs.net/simon/ledgertools/ledgerutils.el)
 
 - at the command line, use these bash aliases:
-    ``` {.shell bold}
+    ```{.shell .bold}
     alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
     alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
     ```
-- or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/ledger/ledger/tree/maint/scripts).
+- or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/ledger/ledger/tree/release/2.6.3/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
 
 ### CSV
@@ -2207,6 +2207,7 @@ See the package page for more.
 <a href="images/hledger-ui/hledger-ui-sample-acc-greenterm.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-acc-greenterm.png" title="Accounts screen with greenterm theme" /></a>
 <a href="images/hledger-ui/hledger-ui-sample-txn.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-txn.png" title="Transaction screen" /></a>
 <a href="images/hledger-ui/hledger-ui-sample-reg.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-reg.png" title="Register screen" /></a>
+<!-- <br clear=all> -->
 <a href="images/hledger-ui/hledger-ui-bcexample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc.png" title="beancount example accounts" /></a>
 <a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade:cash.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade:cash.png" title="beancount example's etrade cash subaccount" /></a>
 <a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" title="beancount example's etrade investments, all commoditiess" /></a>
