@@ -120,12 +120,12 @@ SOURCEFILES:= \
 CABALFILES:= \
 	hledger/hledger.cabal \
 	hledger-*/*.cabal \
-	doc/site/hakyll-std.cabal
+	site/hakyll-std.cabal
 
 HPACKFILES:= \
 	hledger/package.yaml \
 	hledger-*/package.yaml \
-	doc/site/package.yaml
+	site/package.yaml
 
 WEBFILES:= \
 	hledger-web/templates/* \
@@ -860,34 +860,34 @@ $(call def-help-subsection,DOCUMENTATION:)
 # 	\
 # 	)
 
-doc/site/hakyll-std hakyll-std: \
-	doc/site/hakyll-std.hs \
-	doc/site/TableOfContents.hs \
+site/hakyll-std hakyll-std: \
+	site/hakyll-std.hs \
+	site/TableOfContents.hs \
 		$(call def-help,hakyll-std, build a generic hakyll site builder script )
-	cd doc/site; stack ghc hakyll-std
+	cd site; stack ghc hakyll-std
 
-site: doc/site/hakyll-std \
-	$(call def-help,site, generate the hledger.org website with hakyll-std )
-	-cd doc/site; ./hakyll-std build
+site-build: site/hakyll-std \
+	$(call def-help,site-build, generate the hledger.org website with hakyll-std )
+	-cd site; ./hakyll-std build
 
-site-clean: doc/site/hakyll-std \
+site-clean: site/hakyll-std \
 	$(call def-help,site-clean, remove hakyll-generated files (& take down the website) ) #cleanolddocs
-	-cd doc/site; ./hakyll-std clean
-#	rm -rf doc/site/_site/*
+	-cd site; ./hakyll-std clean
+#	rm -rf site/_site/*
 
 # XXX hakyll watch & preview mostly don't live-update any more
-site-preview: doc/site/hakyll-std \
-	$(call def-help,site-preview, run a hakyll server to preview the website  ) #doc/site/site
-	-cd doc/site; ./hakyll-std watch # -h hledger.org
+site-preview: site/hakyll-std \
+	$(call def-help,site-preview, run a hakyll server to preview the website  ) #site/site
+	-cd site; ./hakyll-std watch # -h hledger.org
 
 # site-view: site \
 # 	$(call def-help,site-view,\
 # 	\
 # 	)
-# 	$(VIEWHTML) doc/site/_site/index.html
+# 	$(VIEWHTML) site/_site/index.html
 
 # # site-auto:
-# # 	cd doc/site; $(AUTOBUILD) site.hs -o site $(PREFERMACUSRLIBFLAGS) --run preview
+# # 	cd site; $(AUTOBUILD) site.hs -o site $(PREFERMACUSRLIBFLAGS) --run preview
 
 # # ensure some old doc versions are in place:
 
@@ -969,25 +969,25 @@ haddock: \
 
 # # http://www.cs.york.ac.uk/fp/darcs/hscolour/
 # HSCOLOUR=HsColour -css
-# hscolour: doc/site/api/src doc/site/api/src/hscolour.css \
+# hscolour: site/api/src site/api/src/hscolour.css \
 # 	$(call def-help,hscolour,\
 # 	\
 # 	)
 # 	for f in $(HADDOCKSOURCEFILES); do \
-# 		$(HSCOLOUR) -anchor $$f -odoc/site/api/src/`echo $$f | sed -e's%[^/]*/%%' | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
+# 		$(HSCOLOUR) -anchor $$f -osite/api/src/`echo $$f | sed -e's%[^/]*/%%' | sed -e's%/%-%g' | sed -e's%\.hs$$%.html%'` ; \
 # 	done
 
-# doc/site/api/src/hscolour.css: doc/site/api/src \
-# 	$(call def-help,doc/site/api/src/hscolour.css,\
+# site/api/src/hscolour.css: site/api/src \
+# 	$(call def-help,site/api/src/hscolour.css,\
 # 	\
 # 	)
-# 	$(HSCOLOUR) -print-css >doc/site/api/src/hscolour.css
+# 	$(HSCOLOUR) -print-css >site/api/src/hscolour.css
 
-# doc/site/api/src: \
-# 	$(call def-help,doc/site/api/src,\
+# site/api/src: \
+# 	$(call def-help,site/api/src,\
 # 	\
 # 	)
-# 	mkdir -p doc/site/api/src
+# 	mkdir -p site/api/src
 
 # sourcegraph: \
 # 	$(call def-help,sourcegraph,\
@@ -1358,7 +1358,7 @@ $(call def-help-subsection,MISCELLANEOUS:)
 
 # XXX enable for all cabal files when hpack is a little better
 # gencabalfiles: $$(CABALFILES)
-gencabalfiles: doc/site/hakyll-std.cabal \
+gencabalfiles: site/hakyll-std.cabal \
 		$(call def-help,gencabalfiles, regenerate cabal files from their package.yaml definitions )
 
 %.cabal: $$(dir $$@)package.yaml \

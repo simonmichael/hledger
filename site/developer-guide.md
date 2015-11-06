@@ -684,18 +684,18 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
     - flags
 
 - update docs
-    - */CHANGES
-    - doc/site/release-notes.md
     - haddocks
+    - changelogs
     - man pages
-    - doc/contributors.md
-    - doc/manual.md (commands, options, --help, ledger compatibility..)
-    - doc/site/step-by-step.md
-    - doc/site/how-to-*
-    - doc/site/faq.md (ledger compatibility)
-    - doc/site/installing.md
-    - doc/site/download.md
-    - doc/developer-guide.md
+    - site/release-notes.md
+    - site/manual.md (commands, options, --help, ledger compatibility..)
+    - site/developer-guide.md
+    - site/step-by-step.md
+    - site/how-to-*
+    - site/faq.md (ledger compatibility)
+    - site/installing.md
+    - site/download.md
+    - site/contributors.md
     - doc/ANNOUNCE
 
 - update version
@@ -754,10 +754,10 @@ don't run make setversion.
 2. document
     - */*.cabal for affected package(s) (descriptions, tested-with, files..)
     - */CHANGES for affected package(s)
-    - doc/site/release-notes.md
-    - doc/manual.md (commands, options, --help, ledger compatibility..)
-    - doc/site/step-by-step.md
-    - doc/site/how-to-*
+    - site/release-notes.md
+    - site/manual.md (commands, options, --help, ledger compatibility..)
+    - site/step-by-step.md
+    - site/how-to-*
 3. test
     - make unittest
     - make functest
@@ -812,7 +812,7 @@ The hledger project aims to produce:
 
 Project documentation lives in a number of places:
 
-- `doc/*.md` and `doc/site/*.md` form the hledger.org website, which is generated with hakyll[-std] and pandoc
+- `site/*.md` is the hledger.org website content, which is generated with hakyll[-std] and pandoc
 - haddock documentation in the code appears on Hackage
 - short blurbs: cabal files, module headers, HCAR, GSOC project, ..
 - `doc/notes.org` has some old developer notes
