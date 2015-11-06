@@ -1,4 +1,0 @@
-# stack.yaml for hakyll-std.
-resolver: lts-3.0
-flags: {}
-extra-deps:

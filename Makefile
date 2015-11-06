@@ -120,7 +120,7 @@ SOURCEFILES:= \
 CABALFILES:= \
 	hledger/hledger.cabal \
 	hledger-*/*.cabal \
-	site/hakyll-std.cabal
+	site/hakyll-std/hakyll-std.cabal
 
 HPACKFILES:= \
 	hledger/package.yaml \
@@ -860,25 +860,25 @@ $(call def-help-subsection,DOCUMENTATION:)
 # 	\
 # 	)
 
-site/hakyll-std: \
-	site/hakyll-std.hs \
-	site/TableOfContents.hs \
+hakyll-std site/hakyll-std/hakyll-std: \
+	site/hakyll-std/hakyll-std.hs \
+	site/hakyll-std/TableOfContents.hs \
 		$(call def-help,hakyll-std, build a generic hakyll site builder script )
-	cd site; ./hakyll-std.hs >/dev/null && stack ghc hakyll-std.hs
+	cd site/hakyll-std; ./hakyll-std.hs >/dev/null && stack ghc hakyll-std.hs
 
-site-build: site/hakyll-std \
+site-build: site/hakyll-std/hakyll-std \
 	$(call def-help,site-build, generate the hledger.org website with hakyll-std )
-	-cd site; ./hakyll-std build
+	-cd site; hakyll-std/hakyll-std build
 
-site-clean: site/hakyll-std \
+site-clean: site/hakyll-std/hakyll-std \
 	$(call def-help,site-clean, remove hakyll-generated files (& take down the website) ) #cleanolddocs
-	-cd site; ./hakyll-std clean
+	-cd site; hakyll-std/hakyll-std clean
 #	rm -rf site/_site/*
 
 # XXX hakyll watch & preview mostly don't live-update any more
-site-preview: site/hakyll-std \
+site-preview: site/hakyll-std/hakyll-std \
 	$(call def-help,site-preview, run a hakyll server to preview the website  ) #site/site
-	-cd site; ./hakyll-std watch # -h hledger.org
+	-cd site; hakyll-std/hakyll-std watch # -h hledger.org
 
 # site-view: site \
 # 	$(call def-help,site-view,\
@@ -1358,7 +1358,7 @@ $(call def-help-subsection,MISCELLANEOUS:)
 
 # XXX enable for all cabal files when hpack is a little better
 # gencabalfiles: $$(CABALFILES)
-gencabalfiles: site/hakyll-std.cabal \
+gencabalfiles: site/hakyll-std/hakyll-std.cabal \
 		$(call def-help,gencabalfiles, regenerate cabal files from their package.yaml definitions )
 
 %.cabal: $$(dir $$@)package.yaml \
