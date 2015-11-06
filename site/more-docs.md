@@ -3,7 +3,6 @@
 # More docs...
 
 - [Release Notes](release-notes.html)
-- [Screenshots](old-screenshots.html) (old)
 
 ## How-tos
 

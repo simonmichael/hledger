@@ -693,7 +693,6 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
     - site/step-by-step.md
     - site/how-to-*
     - site/faq.md (ledger compatibility)
-    - site/installing.md
     - site/download.md
     - site/contributors.md
     - doc/ANNOUNCE
