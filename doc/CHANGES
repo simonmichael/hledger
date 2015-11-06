@@ -1,0 +1,40 @@
+Miscellaneous changes in the hledger project, as of each release.
+
+(For package-specific changes, see the package changelogs.)
+
+0.27 (2015/10/31)
+
+- The site is now built with hakyll-std, a generic hakyll script.
+
+- The hledger cabal files are now generated from package.yaml files by
+  hpack, in principle, removing a lot of error-prone duplication and
+  boilerplate.  (In practice, both files are being updated manually
+  for the moment, until hpack supports flags and conditional blocks.)
+
+- Time/allocation and heap profiling is working again, and easier:
+
+  - `make quickprof-CMD` generates a profile for CMD, which runs
+    against one of the sample journals. (CMD must be one word,
+    enclosing in double quotes isn't working here for some reason).
+
+  - `make quickheap-CMD` generates a heap profile for CMD, in
+    hledgerprof.ps, and tries to open it in a viewer (currently the
+    mac-friendly "open" executable, so you may need to adjust this in
+    the makefile).  As with quickprof, CMD must be one word and runs
+    against one of the sample journals.
+
+  - `make hledgerprof` builds the hledgerprof executable used for
+    time/allocation profiling. `make hledgercov` builds the hledgercov
+    executable used for coverage reports.
+
+- Travis CI now tests the build on each github push and announces
+  status changes by email and on #hledger.
+
+- hledger once again has a HCAR entry.
+
+- Each hledger package now includes one or more man pages, generated
+  from markdown by the mighty pandoc.  Currently there are six: one
+  for each main executable and each input file format. Currently these
+  somewhat duplicate the manual on the website; this will be resolved
+  somehow.
+
