@@ -28,7 +28,7 @@ Download, unzip, and run
 <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.zip)) -->
 and/or
 [hledger-web-0.26-win64.zip](http://hledger.org/downloads/hledger-web-0.26-win64.zip)
-<br><em>(Latest release is 0.27. To contribute binaries for windows or mac, please <a href="mailto:simon@joyful.com">get in touch</a>.)</em>
+<br><em>(The current release is 0.27. To contribute binaries for windows or mac, please <a href="mailto:simon@joyful.com">get in touch</a>.)</em>
 </td></tr>
 
 <tr><td>
@@ -85,31 +85,31 @@ donation of any size. Binaries funded in this way will be linked here.
 This is a quick way to help the project and your fellow users!
 -->
 
-## I want to build the latest release
+## I want to build the current release
 
-**Using stack** (easiest, recommended):\
-*2015/11/3: but hledger-ui has not yet reached stackage; you must install it from source (see below) or with cabal*
+**with stack** (easiest, recommended):
 
 1. Install [`stack`](https://github.com/commercialhaskell/stack/blob/master/doc/install_and_upgrade.md)
     (On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275).)
     <!-- needed if you will be processing >50,000 transactions at once -->
 2. `stack setup`
     (if you need GHC installed. If you're not sure, run the next command and it will tell you.)
-3. `stack --resolver nightly-2015-11-02 install hledger` (the command-line interface), or\
-   `stack --resolver nightly-2015-11-02 install hledger-web` (the web interface; also installs the CLI)\
-    <!-- `stack --resolver nightly-2015-11-02 install hledger-ui` (the curses-style interfaces; not available on Windows; also installs the CLI), or\ -->
+3. `stack --resolver nightly install hledger` (installs just the command-line interface), or\
+   `stack --resolver nightly install hledger-web` (installs both CLI and web interface)\
+    <!-- `stack --resolver nightly-2015-11-02 install hledger-ui` (the curses-style interfaces; [not yet available on Windows](https://github.com/coreyoconnor/vty/pull/1); also installs the CLI), or\ -->
+    *2015/11/3: hledger-ui has [not yet reached stackage](https://github.com/fpco/stackage/issues/938); you must install it from source or with cabal, see below.*
 4. Ensure `~/.local/bin` or the Windows equivalent is in your `$PATH`,
    so that you can just type `hledger` to run it.
    (stack will show the proper directory and will tell you if it is not in $PATH).
 
-**Using cabal** (results will vary, not recommended for non-experts):
+**with cabal** (results will vary, not recommended for non-experts):
 
-1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html) if needed
-2. `cabal update`
-3. `cabal install alex happy`
-4. `cabal sandbox init`
-5. `cabal install hledger[-ui|-web]`
-6. Ensure `~/.cabal/bin` or the Windows equivalent is in your `$PATH`
+1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html) if needed.
+2. Ensure `~/.cabal/bin` or the Windows equivalent is in your `$PATH`.
+3. `cabal update`
+4. `cabal install alex happy`
+5. `cabal sandbox init`
+6. `cabal install hledger[-ui|-web]` (On Windows, hledger-ui is [not yet supported](https://github.com/coreyoconnor/vty/pull/1).)
 
 ## I want to build the [latest source](https://github.com/simonmichael/hledger/commits/master)
 
