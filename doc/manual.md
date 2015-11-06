@@ -1277,7 +1277,9 @@ income:salary
 liabilities:debts
 ```
 
-This command lists all account names, or with query arguments, matched account names.
+This command lists all account names that are in use (ie, all the
+accounts which have at least one transaction posting to them).  With
+query arguments, only matched account names are shown.
 
 It shows a flat list by default. In this mode you can add `--drop N`
 to omit the first few account name components.
