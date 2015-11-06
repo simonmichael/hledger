@@ -860,11 +860,11 @@ $(call def-help-subsection,DOCUMENTATION:)
 # 	\
 # 	)
 
-site/hakyll-std hakyll-std: \
+site/hakyll-std: \
 	site/hakyll-std.hs \
 	site/TableOfContents.hs \
 		$(call def-help,hakyll-std, build a generic hakyll site builder script )
-	cd site; stack ghc hakyll-std
+	cd site; ./hakyll-std.hs >/dev/null && stack ghc hakyll-std.hs
 
 site-build: site/hakyll-std \
 	$(call def-help,site-build, generate the hledger.org website with hakyll-std )
