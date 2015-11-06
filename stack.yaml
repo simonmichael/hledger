@@ -1,6 +1,6 @@
 # cf https://github.com/commercialhaskell/stack/wiki/stack.yaml
 
-resolver: nightly-2015-10-25  # or newer
+resolver: nightly-2015-11-04  # or newer
 
 packages:
 - hledger-lib
