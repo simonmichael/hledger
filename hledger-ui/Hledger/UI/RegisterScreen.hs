@@ -57,13 +57,7 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
     q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts
 
     -- run a transactions report, most recent last
-    q' =
-      -- ltrace "q"
-      q
-    thisacctq' =
-      -- ltrace "thisacctq"
-      thisacctq
-    (_label,items') = accountTransactionsReport ropts j q' thisacctq'
+    (_label,items') = accountTransactionsReport ropts j q thisacctq
     items = reverse items'
 
     -- pre-render all items; these will be the List elements. This helps calculate column widths.
