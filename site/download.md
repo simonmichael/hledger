@@ -9,7 +9,7 @@
 
 **[Release notes](release-notes.html)**
 
-## I want to download and run
+## I want to download a packaged version
 <!-- <sub>(If the download is out of date or doesn't run on my system, I might troubleshoot or donate to fund improvements)</sub> -->
 
 <style>
@@ -85,9 +85,9 @@ donation of any size. Binaries funded in this way will be linked here.
 This is a quick way to help the project and your fellow users!
 -->
 
-## I want to build the current release
+## I want to build the latest release (0.27)
 
-**with stack** (easiest, recommended):
+**with stack** (most reliable, recommended)
 
 1. Install [`stack`](https://github.com/commercialhaskell/stack/blob/master/doc/install_and_upgrade.md)
     (On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275).)
@@ -102,16 +102,19 @@ This is a quick way to help the project and your fellow users!
    so that you can just type `hledger` to run it.
    (stack will show the proper directory and will tell you if it is not in $PATH).
 
-**with cabal** (results will vary, not recommended for non-experts):
+**with cabal** (results will vary, recommended only if you can't install stack):
 
 1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html) if needed.
 2. Ensure `~/.cabal/bin` or the Windows equivalent is in your `$PATH`.
 3. `cabal update`
 4. `cabal install alex happy`
-5. `cabal sandbox init`
-6. `cabal install hledger[-ui|-web]` (On Windows, hledger-ui is [not yet supported](https://github.com/coreyoconnor/vty/pull/1).)
+5. `mkdir hledger-sandbox`
+6. `cd hledger-sandbox`
+7. `cabal sandbox init`
+8. `cabal install hledger[-ui|-web]` (On Windows, hledger-ui is [not yet supported](https://github.com/coreyoconnor/vty/pull/1).)
+9. Ensure this `.../hledger-sandbox/.cabal-sandbox/bin` is in your `$PATH` (or move its contents to ~/.cabal/bin).
 
-## I want to build the [latest source](https://github.com/simonmichael/hledger/commits/master)
+## I want to build the [unreleased git version](https://github.com/simonmichael/hledger/commits/master)
 
 1. `git clone http://code.hledger.org hledger`
 2. `cd hledger`
