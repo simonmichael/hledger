@@ -54,14 +54,15 @@ tr {
 hledger is a computer program for easily tracking money, time, or
 other commodities, on unix, mac and windows. With simple yet powerful
 functionality accessed from command line or web browser, it is a
-reliable, lightweight alternative to Quicken or GnuCash. I
-use it for:
+reliable, lightweight, cross-platform alternative to Quicken or GnuCash.
 
-- tracking spending and income
-- seeing time reports by day/week/month/project
-- getting accurate numbers for client billing and tax filing
-- tracking invoices
-- building financial and time clarity and serenity
+<!-- I use it for: -->
+
+<!-- - tracking spending and income -->
+<!-- - seeing time reports by day/week/month/project -->
+<!-- - getting accurate numbers for client billing and tax filing -->
+<!-- - tracking invoices -->
+<!-- - building financial and time clarity and serenity -->
 
 <div class="indent1">
 
@@ -82,13 +83,20 @@ hledger was inspired by and maintains substantial compatibility with [Ledger](fa
 and is part of the enthusiastic and supportive "*ledger" community.
 </div>
 
+<div class="indent1">
+### documented
+
+<!-- <a href="images/manual.png" class="highslide" onclick="return hs.expand(this)"><img src="images/manual.png" title="hledger's manual" /></a> -->
+Complete, accurate documentation is always a top priority.
+</div>
+
 <div class="indent0">
 ### a command-line tool, that respects your data
 
 <a href="images/balance-q-inc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/balance-q-inc.png" title="Balance report showing income/expense by quarter" /></a>
 
-hledger is first a command-line tool. It follows Ledger's philosophy:
-your data lives in a simple, safe, plain text file which you can edit
+hledger is first a command-line tool. 
+Your data lives in a simple, safe, plain text file which you can edit
 any way you wish; hledger reads that file and produces reports of
 various kinds, without changing your data. (It can help you add new
 transactions, but does not change existing ones.)
@@ -121,7 +129,7 @@ simultaneously.
 
 <a href="images/hledger-lib-api.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-lib-api.png" title="Part of hledger-lib's haddock api documentation" /></a>
 
-hledger is written in Haskell, a modern and highly-regarded
+hledger is written in Haskell, a modern, highly-regarded
 programming language which contributes to hledger's robustness,
 performance and long-term maintainability.  Most functionality is
 exposed as reusable Haskell
@@ -132,35 +140,31 @@ applications.
 &nbsp;&nbsp;[![build status (travis)](https://travis-ci.org/simonmichael/hledger.svg?branch=master)](https://travis-ci.org/simonmichael/hledger)
 </div>
 
+<!-- <div class="indent1"> -->
+<!-- ### comfortable for techies, usable by all -->
+
+<!-- hledger aims to be useful to both computer experts and regular folks. -->
+<!-- Currently it is a bit more suited to power users, who appreciate the -->
+<!-- power of text files, revision control, scriptability and double entry -->
+<!-- accounting. The web interface helps make it accessible to GUI-only -->
+<!-- folk as well. -->
+<!-- </div> -->
+
 <div class="indent0">
-### documented
-
-<!-- <a href="images/manual.png" class="highslide" onclick="return hs.expand(this)"><img src="images/manual.png" title="hledger's manual" /></a> -->
-Complete, accurate documentation is always a top priority.
-</div>
-
-<div class="indent1">
-### comfortable for techies, usable by all
-
-hledger aims to be useful to both computer experts and regular folks.
-Currently it is a bit more suited to power users, who appreciate the
-power of text files, revision control, scriptability and double entry
-accounting. The web interface helps make it accessible to GUI-only
-folk as well.
-</div>
-
-<div class="indent2">
 ### focussed on serving the user
 
 hledger strives to be usable, practical and to provide real-world value.
-I've been depending on it and improving it since 2007.
+Currently it is particularly suited to power users who appreciate the
+power of text files, revision control, scriptability and double entry
+accounting. 
+I've been using it daily and improving it since 2007.
 I needed a tool like this badly, and I want to keep it growing and helping others gain financial clarity and control.
 If you feel the same way, join us!
 </div>
 
 
 <div style="margin-top:3em; text-align:center; ">
-<!-- Has hledger saved you or your employer money, time or peace of mind ? -->
+<!-- Has hledger saved you or your employer money, time or peace of mind ?
 <!-- Donations: -->
 <a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt="bountysource"></a> &nbsp;
 <a href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a> &nbsp;
