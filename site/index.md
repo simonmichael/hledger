@@ -15,9 +15,9 @@
 <div class="panel-body">
 **[Install](download.html)**,
 read the **[tutorial](step-by-step.html)**
-or **[manual](manual.html)**
-or **[blog posts](more-docs.html#blog-posts-articles)**,
-or join us on IRC or the mail list.
+or **[manual](manual.html)**,
+<!-- or **[blog posts](more-docs.html#blog-posts-articles)**, -->
+join us on IRC/mail list.
 
 <style>
 tr {
@@ -27,11 +27,12 @@ tr {
 </style>
 |
 |---------------------------|-------------------------------------------------------------------------
-| IRC                       | [#hledger](http://irc.hledger.org) (see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1))
+| IRC                       | [#hledger](http://irc.hledger.org) <!-- (see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1)) -->
 | Mail list&nbsp;&nbsp;     | via [google](http://list.hledger.org) or [gmane](http://news.gmane.org/gmane.comp.finance.ledger.hledger)
 | Twitter                   | [#ledgercli](https://twitter.com/search?q=%23ledgercli&src=typd&f=realtime), <a href="https://twitter.com/ledgertips">@LedgerTips</a>
 | Github                    | [code](http://github.com/simonmichael/hledger), [bugs](http://bugs.hledger.org), [issues](http://issues.hledger.org)
-| More...&nbsp;&nbsp;       | [quick links](http://hledger.org/developer-guide.html#quick-links)
+
+<!-- | More...&nbsp;&nbsp;       | [quick links](http://hledger.org/developer-guide.html#quick-links) -->
 
 <!-- | web UI demo             | [demo.hledger.org](http://demo.hledger.org) | -->
 <!-- [web ui demo](http://demo.hledger.org/register?q=inacct%3Aassets%3Abank%3Achecking+sym%3A\%24) -->
