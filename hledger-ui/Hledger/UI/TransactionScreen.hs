@@ -71,7 +71,7 @@ drawTransactionScreen _ = error "draw function called with wrong screen type, sh
 handleTransactionScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleTransactionScreen st@AppState{
    aScreen=s@TransactionScreen{tsState=((i,t),nts,acct)}
-  ,aopts=UIOpts{cliopts_=_copts}
+  ,aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
   ,ajournal=j
   } e = do
   d <- liftIO getCurrentDay
@@ -86,7 +86,28 @@ handleTransactionScreen st@AppState{
       d <- liftIO getCurrentDay
       ej <- liftIO $ journalReload j  -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
       case ej of
-        Right j' -> continue $ reload j' d st
+        Right j' -> do
+          -- got to redo the register screen's transactions report, to get the latest transactions list for this screen
+          -- XXX duplicates initRegisterScreen
+          let
+            ropts' = ropts {depth_=Nothing
+                           ,balancetype_=HistoricalBalance
+                           }
+            q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
+            thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
+            items = reverse $ snd $ accountTransactionsReport ropts j' q thisacctq
+            ts = map first6 items
+            numberedts = zip [1..] ts
+            -- select the best current transaction from the new list
+            -- stay at the same index if possible, or if we are now past the end, select the last, otherwise select the first
+            (i',t') = case lookup i numberedts
+                      of Just t'' -> (i,t'')
+                         Nothing | null numberedts -> (0,nulltransaction)
+                                 | i > fst (last numberedts) -> last numberedts
+                                 | otherwise -> head numberedts
+            st' = st{aScreen=s{tsState=((i',t'),numberedts,acct)}}
+          continue $ reload j' d st'
+
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
 
     -- Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
