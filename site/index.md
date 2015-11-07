@@ -7,10 +7,14 @@ title: home
 .highslide-caption {color:white; background-color:black;}
 </style>
 
-<div class="row">
-<div class="col-md-9">
+<div class="row"> <!-- main row -->
+<!-- <div class="col-md-9"> <\!-- main column -\-> -->
+<div class=""> <!-- main column -->
 
-<div class="panel panel-primary" style="float:right; max-width:200px; margin-left:1em;">
+<div style="float:right; max-width:200px; margin-left:1em;"> <!-- top-right area -->
+
+<!-- get started box -->
+<div class="panel panel-primary">
 <div class="panel-heading">
 <h2 class="panel-title">Get started</h2>
 </div>
@@ -40,7 +44,25 @@ tr {
 <!-- [web ui demo](http://demo.hledger.org/register?q=inacct%3Aassets%3Abank%3Achecking+sym%3A\%24) -->
 
 </div>
-</div>
+</div> <!-- end of get started box -->
+
+</div> <!-- end of top-right area -->
+
+<div style="float:right; max-width:270px; margin-left:1em;"> <!-- second top-right area -->
+<!-- donate buttons -->
+<div style="margin-top:1em; text-align:center;">
+ <!-- Has hledger saved you or your employer money, time or peace of mind ?
+<!-- Would you like to support our mission ? (and what should it be ?)
+<!-- Donations: -->
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt="paypal"></a> &nbsp;\
+<!-- <div style="display:inline; position:relative; top:6px;"><script data-gratipay-username="simonmichael" data-gratipay-widget="button" src="//grtp.co/v1.js"></script></div> &nbsp; -->
+<a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt="bountysource"></a> &nbsp;
+<a href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a> &nbsp;
+<!-- Also testimonials, examples, blogging, packaging, and patches. -->
+</div> <!-- end of donate buttons -->
+</div> <!-- end of second top-right area -->
+
+<!-- main content -->
 
 <style>
 .indent0 { margin:0 15em 0  0em; }
@@ -50,14 +72,18 @@ tr {
 
 <h1 style="font-size:6em;">hledger</h1>
 
-## Making accounting fun for techies.
+<img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:0 1em 0 1em;" />
 
-<img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:0 0 1em 1em;" />
+<h2 style="margin-top:0; margin-bottom:.5em;">Making accounting fun for techies.</h2>
+
+<p style="font-size:large;">
 hledger is a computer program for easily tracking money, time, or
 other commodities, on unix, mac and windows. With simple yet powerful
-functionality accessed from command line or web browser, it is a
+functionality accessed from command line, terminal or web browser, it is a
 reliable, lightweight, cross-platform alternative to Quicken or GnuCash.
+</p>
 
+<div style="font-size:large;"> <!-- large text -->
 <!-- I use it for: -->
 
 <!-- - tracking spending and income -->
@@ -67,7 +93,6 @@ reliable, lightweight, cross-platform alternative to Quicken or GnuCash.
 <!-- - building financial and time clarity and serenity -->
 
 <div class="indent1">
-
 ### Free&nbsp;software
 
 hledger is available under the GNU GPLv3+, which helps ensure that it
@@ -89,7 +114,7 @@ and is part of the enthusiastic and supportive "*ledger" community.
 ### documented
 
 <!-- <a href="images/manual.png" class="highslide" onclick="return hs.expand(this)"><img src="images/manual.png" title="hledger's manual" /></a> -->
-Complete, accurate documentation is always a top priority.
+Complete, accurate documentation is a top priority.
 </div>
 
 <div class="indent0">
@@ -164,22 +189,20 @@ I needed a tool like this badly, and I want to keep it growing and helping other
 If you feel the same way, join us!
 </div>
 
+</div> <!-- end of large text -->
+
+<!-- end of main content -->
 
 <div style="margin-top:3em; text-align:center; ">
-<!-- Has hledger saved you or your employer money, time or peace of mind ?
-<!-- Donations: -->
-<a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt="bountysource"></a> &nbsp;
-<a href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a> &nbsp;
-<div style="display:inline; position:relative; top:6px;"><script data-gratipay-username="simonmichael" data-gratipay-widget="button" src="//grtp.co/v1.js"></script></div> &nbsp;
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt="paypal"></a> &nbsp;
-<!-- Also testimonials, examples, blogging, packaging, and patches. -->
-</div>
 
-</div>
-<div class="col-md-3">
-
+<!-- twitter widget -->
+<!-- <div class="col-md-3"> -->
+<div style="margin-top:2em;">
+### Latest tweets about hledger and Ledger:
 <a class="twitter-timeline" width="" height="600px" data-dnt="true" href="https://twitter.com/hashtag/ledgercli" data-widget-id="539507319734677504"></a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+</div> <!-- end of twitter widget -->
 
 </div>
-</div>
+
+</div> <!-- end of main row -->
