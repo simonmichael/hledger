@@ -48,7 +48,7 @@ tr {
 
 <h1 style="font-size:6em;">hledger</h1>
 
-## a lightweight, dependable, cross-platform accounting program
+## Making accounting fun for techies.
 
 <img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:0 0 1em 1em;" />
 hledger is a computer program for easily tracking money, time, or
