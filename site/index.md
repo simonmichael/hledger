@@ -1,4 +1,6 @@
-% home
+---
+title: home
+...
 
 <style>
 .highslide img {max-width:200px; float:right; margin:0 0 1em 1em;}
