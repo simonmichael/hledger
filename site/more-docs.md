@@ -2,8 +2,6 @@
 
 # More docs...
 
-- [Release Notes](release-notes.html)
-
 ## How-tos
 
 - [How to read CSV files](how-to-read-csv-files.html)

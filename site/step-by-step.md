@@ -2,9 +2,10 @@
 
 # hledger step by step
 
-Here you can learn hledger (and a little double-entry accounting) by
-practicing, one hands-on exercise at a time (similar to the
-"Learn X the Hard Way" books.)
+Here you can learn hledger (and a little
+[double-entry accounting](https://en.wikipedia.org/wiki/Double-entry_bookkeeping_system))
+by practicing, one hands-on exercise at a time (similar to the "Learn
+X the Hard Way" books.)
 
 You'll learn the most if you work through each small step in order.
 If a step specifies no particular task, your task is to run the examples and understand it.
@@ -15,7 +16,7 @@ You'll need:
 
 1. A basic understanding of the command line, text file editing, and regular expressions. Or, the ability to ask for help on the IRC channel.
 
-2. hledger (see [Download](download.html)). These exercises were last tested with: hledger 0.25.1.
+2. hledger (see [Download](download.html)). These exercises were last tested with hledger 0.26.
 
 
 
