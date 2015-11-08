@@ -20,10 +20,13 @@ title: home
 </div>
 <div class="panel-body">
 **[Install](download.html)**,
-read the **[tutorial](step-by-step.html)**
+read the
+**[release notes](release-notes.html)**,
+**[tutorial](step-by-step.html)**,
 or **[manual](manual.html)**,
 <!-- or **[blog posts](more-docs.html#blog-posts-articles)**, -->
-join us on IRC/mail list.
+try the **[web UI](http://demo.hledger.org)**,
+introduce yourself and tell us what's good/bad..
 
 <style>
 tr {
@@ -68,22 +71,35 @@ tr {
 .indent0 { margin:0 15em 0  0em; }
 .indent1 { margin:0 10em 0  5em; }
 .indent2 { margin:0  5em 0 10em; }
+.indent3 { margin:0    0 0 15em; }
 </style>
 
 <h1 style="font-size:6em;">hledger</h1>
 
-<img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:0 1em 0 1em;" />
+<img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:1em 1em 0 1em;" />
 
-<h2 style="margin-top:0; margin-bottom:.5em;">Making accounting fun for techies.</h2>
-
-<p style="font-size:large;">
-hledger is a computer program for easily tracking money, time, or
-other commodities, on unix, mac and windows. With simple yet powerful
-functionality accessed from command line, terminal or web browser, it is a
-reliable, lightweight, cross-platform alternative to Quicken or GnuCash.
-</p>
+<h2 style="margin-top:0; margin-bottom:.5em;">
+<!-- Making accounting fun for techies. -->
+Simple, precise, future-proof accounting for techies.
+</h2>
 
 <div style="font-size:large;"> <!-- large text -->
+
+hledger is a lightweight accounting program for tracking money, time, or
+other commodities, on unix, mac and windows. With simple yet powerful
+functionality accessed from command line, terminal or web browser, it is a
+reliable, cross-platform alternative to Quicken, GnuCash, spreadsheets etc.
+
+**Step 1:** Record your transactions in a plain text file (using any text editor,
+hledger's add command, the web interface, CSV or OFX import, custom scripts..)
+
+**Step 2:** Run hledger to analyze and report your accounts, currencies,
+balances, monthly averages, market values and more.
+
+You can start out very simple, and get more sophisticated as you learn
+more about double-entry accounting.  You'll feel closer to your
+finances, and accounting becomes fun.  [Try it!](step-by-step.html)
+
 <!-- I use it for: -->
 
 <!-- - tracking spending and income -->
@@ -95,26 +111,19 @@ reliable, lightweight, cross-platform alternative to Quicken or GnuCash.
 <div class="indent1">
 ### Free&nbsp;software
 
-hledger is available under the GNU GPLv3+, which helps ensure that it
-will remain free and available for as long as you need it.  It has
-been developed as a community project by
-[Simon Michael](http://joyful.com) and
-[contributors](contributors.html) since 2007.
+hledger is Free software released under GNU GPLv3+, which helps ensure
+its longevity.  It has been developed by
+[Simon Michael](http://joyful.com) and contributors since 2007.
 [![license](https://img.shields.io/badge/license-GPLv3+-brightgreen.svg)](http://www.gnu.org/licenses/gpl.html)
 </div>
 
 <div class="indent2">
 ### inspired by Ledger
 
-hledger was inspired by and maintains substantial compatibility with [Ledger](faq.html#hledger-and-ledger),
-and is part of the enthusiastic and supportive "*ledger" community.
-</div>
-
-<div class="indent1">
-### documented
-
-<!-- <a href="images/manual.png" class="highslide" onclick="return hs.expand(this)"><img src="images/manual.png" title="hledger's manual" /></a> -->
-Complete, accurate documentation is a top priority.
+hledger is a Haskell reimplementation of the excellent [Ledger](faq.html#hledger-and-ledger).
+It remains substantially compatible with Ledger - if you wish you can keep your data compatible with both -
+and it is part of the enthusiastic and growing *ledger community.
+Read more about the differences in the [FAQ](faq.html#hledger-and-ledger).
 </div>
 
 <div class="indent0">
@@ -123,18 +132,18 @@ Complete, accurate documentation is a top priority.
 <a href="images/balance-q-inc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/balance-q-inc.png" title="Balance report showing income/expense by quarter" /></a>
 
 hledger is first a command-line tool. 
-Your data lives in a simple, safe, plain text file which you can edit
+Your data lives in a plain text journal file which you can edit
 any way you wish; hledger reads that file and produces reports of
 various kinds, without changing your data. (It can help you add new
 transactions, but does not change existing ones.)
 </div>
 
 <div class="indent1">
-### and a curses UI
+### and a console UI
 
 <a href="images/hledger-ui/hledger-ui-bcexample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc.png" title="hledger-ui accounts screen" /></a>
 
-hledger also provides a curses-style [console interface](manual#ui)
+hledger also provides a curses-style [console&nbsp;interface](manual#ui)
 that lets you review account balances and transactions with fewer
 keystrokes and less effort.
 </div>
@@ -144,14 +153,14 @@ keystrokes and less effort.
 
 <a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
 
-hledger comes with a built-in web server providing an alternate
-[browser-based interface](manual.html#web)
+hledger comes with a built-in web server providing a
+[web&nbsp;interface](manual.html#web)
 ([demo](http://demo.hledger.org)), for assisted data entry and point
 and click reporting. The web and command-line/curses interfaces can be used
 simultaneously.
 </div>
 
-<div class="indent1">
+<div class="indent3">
 ### a Haskell application and library
 
 <a href="images/hledger-lib-api.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-lib-api.png" title="Part of hledger-lib's haddock api documentation" /></a>
@@ -178,15 +187,19 @@ applications.
 <!-- </div> -->
 
 <div class="indent0">
-### focussed on serving the user
+### focussed on serving users
 
 hledger strives to be usable, practical and to provide real-world value.
-Currently it is particularly suited to power users who appreciate the
+Intuitive features, bug-free operation and complete, accurate documentation are top goals.
+Currently it is particularly suited to techies, ie users who appreciate the
 power of text files, revision control, scriptability and double entry
 accounting. 
-I've been using it daily and improving it since 2007.
-I needed a tool like this badly, and I want to keep it growing and helping others gain financial clarity and control.
+
+I've been using hledger daily and improving it since 2007.
+I needed a tool like this badly, and I want to keep it growing and
+helping others to transform their financial lives.
 If you feel the same way, join us!
+
 </div>
 
 </div> <!-- end of large text -->
