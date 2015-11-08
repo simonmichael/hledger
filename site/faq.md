@@ -2,70 +2,65 @@
 
 # Frequently asked questions
 
-## hledger and Ledger
+## hledger & Ledger
 
-### How does hledger relate to Ledger ?
+### History
 
-hledger was inspired by John Wiegley's
-[Ledger](http://ledger-cli.org).  It is a friendly, mostly compatible
-rewrite of Ledger in Haskell, begun in 2007 (Ledger started in 2003),
-focussing on robustness, usability, ease of development, long-term
-maintainability, and new experiments such as the
-[web interface](manual.html#web).  It currently lacks some of Ledger's
-power-user features and speed.  hledger stays compatible with Ledger
-wherever possible, so that with a little care you can use both tools
-on the same data files.
+I was a happy user of John Wiegley's [Ledger](http://ledger-cli.org)
+(begun in 2003) for some time. There was a long period of stagnation
+in that project. I grew tired of bugs, missing and wrong documentation,
+and explaining the situation to confused newcomers.
+I really, truly needed a reliable accounting tool.
+I really didn't want to spend time learning C++.
 
-Longer answer: I was a happy Ledger user and contributor for some
-time, then became too dissatisfied with bugs, missing/wrong
-documentation and a long period of stagnation. I also wanted to try
-implementing Ledger's brilliant design in the Haskell programming
-language and ecosystem, which I believe has compelling advantages. I
-try to build on Ledger's experience to make hledger easier to learn
-and use, better documented, more appealing to work on; and to provide
-alternate user interfaces (interactive, curses, web) to make it useful
-to more people.
+I felt Ledger could be implemented well and perhaps even more
+successfully in the Haskell programming language, which has some
+compelling advantages. (It encourages the coding style known as pure
+functional programming, allowing more bug-free, concise and
+maintainable software. It provides a more abstracted, portable
+platform making installation easier. It is attractive for contributors
+to work on.)
 
-hledger builds quickly and has a complete and accurate manual, an
-easier report query syntax, a data entry assistant, an optional web
-interface (which often works on Ledger files too), and multi-column
-balance reports.  Ledger has additional power-user features (capital
-gains tracking, periodic and modifier transactions, budget reports,
-custom value expressions..)  and it remains faster and more memory
-efficient (for now!).
+I couldn't ask John to start over - back then he was not the Haskell
+lover he has since become! - so in 2007 I started prototyping a
+parser, and kept going.  My goals were to (a) learn how well Haskell
+could do in this (simple, thought I) real-world application, and (b)
+maybe, build on Ledger's experience to create a new implementation
+prioritising ease of use. It would have simpler features, fewer bugs,
+better documentation, and additional user interfaces.
 
-The two projects collaborate freely.  For some time we shared the
-[#ledger](irc://irc.freenode.net/#ledger) IRC channel; in 2014 I added
-a dedicated [#hledger](irc://irc.freenode.net/#hledger) channel.
-I give back to Ledger by providing infrastructure
-([ledger-cli.org](http://ledger-cli.org)), IRC support, [LedgerTips](http://twitter.com/LedgerTips) etc.
+Later the Ledger project revived and attracted more contributors. The
+two projects collaborate freely and ideas have travelled in both
+directions.  Having two independent somewhat-compatible
+implementations has been quite helpful for testing and
+troubleshooting, exploring the design space, and growing the "*ledger"
+community.  I also give back to Ledger by providing infrastructure
+like [ledger-cli.org](http://ledger-cli.org),
+[LedgerTips](http://twitter.com/LedgerTips), IRC support on #ledger
+etc.
 
-### And Ledger 4 ?
+For some time hledger shared Ledger's IRC channel #ledger. In 2014 I
+added the dedicated [#hledger](irc://irc.freenode.net/#hledger)
+channel.
 
-There is also a [ledger4](https://github.com/ledger/ledger4) on github; this is 
-John's own rewrite of the core of
-Ledger 3 in haskell. It's an early library prototype, not a usable tool.
-Perhaps some day hledger or something like it would use this as its foundation. 
+### Future ?
 
-### File format differences ?
+There is a [ledger4](https://github.com/ledger/ledger4) repo on
+github; this is John's 2012/2013 rewrite of some parts of Ledger 3,
+including the parser, in Haskell. We have a plan to add this parser to
+hledger in 2015/2016, increasing its ability to read Ledger's files.
 
-hledger's file format is mostly identical with Ledger's, by design.
-Generally, it's easy to keep a journal file that works with both hledger
-and Ledger if you avoid Ledger's and hledger's more specialised syntax
-(or keep it in separate files which you include only when appropriate).
+### Features
 
-Some Ledger syntax is parsed but ignored (such as
-[automated transactions](http://ledger-cli.org/3.0/doc/ledger3.html#Automated-Transactions), [periodic transactions](http://ledger-cli.org/3.0/doc/ledger3.html#Periodic-Transactions), and
-[historical prices](manual.html#historical-prices)).
-Some features are not currently parsed and will cause an error, eg
-Ledger's more recent top-level directives. There can also be subtle
-differences in parser behaviour, such as with
-[hledger comments](manual.html#comments) vs [Ledger comments](http://ledger-cli.org/3.0/doc/ledger3.html#Commenting-on-your-Journal),
-or [balance assertions](manual.html#assertions-and-ordering).
+Compared to Ledger, hledger builds quickly and has a complete and
+accurate manual, an easier report query syntax, multi-column balance
+reports, better depth limiting, an interactive data entry assistant,
+and optional web and curses interfaces.
 
-### Feature differences ?
-
-hledger mimics a subset of [Ledger 3.x](http://ledger-cli.org), and adds some features of its own.
+Compared to hledger, Ledger has additional power-user features such as
+periodic and modifier transactions, budget reports, and the built in
+value expressions language, and it remains faster and more memory
+efficient (for now).
 
 We currently support:
 
@@ -74,19 +69,17 @@ We currently support:
 - timelog format
 - regular journal transactions
 - multiple commodities
-- fixed prices
+- fixed transaction prices
+- varying market prices
 - virtual postings
-- print, register & balance commands
-- filtering by many criteria, with different query syntax
-- display expressions containing just a simple date predicate
 - some basic output formatting
+- the print, register & balance commands
+- report filtering, using a different query syntax
 
 We do not support:
 
 - automated transactions
 - value expressions
-- fluctuating prices and historical price records
-- display formats other than `d>[DATE]` or similar
 - budget reports
 
 And we add these commands:
@@ -98,67 +91,26 @@ And we add these commands:
 - incomestatement
 - irr
 - interest
-- vty
+- ui
 - web
 
-### Option/command differences ?
+### File formats
 
-Ledger options and commands not supported include:
-```
-Basic options:
--o, --output FILE      write output to FILE
--i, --init-file FILE   initialize ledger using FILE (default: ~/.ledgerrc)
--a, --account NAME     use NAME for the default account (useful with QIF)
+hledger's journal file format is mostly identical with Ledger's, by design.
+Generally, it's easy to keep a journal file that works with both hledger
+and Ledger if you avoid Ledger's and hledger's more specialised syntax
+(or keep it in separate files which you include only when appropriate).
 
-Report filtering:
--c, --current          show only current and past entries (not future)
---period-sort EXPR sort each report period's entries by EXPR
--L, --actual           consider only actual (non-automated) transactions
---budget           generate budget entries based on periodic entries
---add-budget       show all transactions plus the budget
---unbudgeted       show only unbudgeted transactions
---forecast EXPR    generate forecast entries while EXPR is true
--l, --limit EXPR       calculate only transactions matching EXPR
--t, --amount EXPR      use EXPR to calculate the displayed amount
--T, --total EXPR       use EXPR to calculate the displayed total
+Some Ledger syntax is parsed but ignored (such as
+[automated transactions](http://ledger-cli.org/3.0/doc/ledger3.html#Automated-Transactions)
+and [periodic transactions](http://ledger-cli.org/3.0/doc/ledger3.html#Periodic-Transactions)).
+Some features are not currently parsed and will cause an error, eg
+Ledger's more recent top-level directives. There can also be subtle
+differences in parser behaviour, such as with
+[hledger comments](manual.html#comments) vs [Ledger comments](http://ledger-cli.org/3.0/doc/ledger3.html#Commenting-on-your-Journal),
+or [balance assertions](manual.html#assertions-and-ordering).
 
-Output customization:
--n, --collapse         Only show totals in the top-most accounts.
--P, --by-payee         show summarized totals by payee
--x, --comm-as-payee    set commodity name as the payee, for reporting
---dow              show a days-of-the-week report
--S, --sort EXPR        sort report according to the value expression EXPR
---head COUNT       show only the first COUNT entries (negative inverts)
---tail COUNT       show only the last COUNT entries (negative inverts)
---pager PAGER      send all output through the given PAGER program
--A, --average          report average transaction amount
--D, --deviation        report deviation from the average
--%, --percentage       report balance totals as a percentile of the parent
---totals           in the "xml" report, include running total
--j, --amount-data      print only raw amount data (useful for scripting)
--J, --total-data       print only raw total data
--y, --date-format STR  use STR as the date format (default: %Y/%m/%d)
---balance-format      --register-format       --print-format
---plot-amount-format  --plot-total-format     --equity-format
---prices-format       --wide-register-format
-
-Commodity reporting:
---price-db FILE    sets the price database to FILE (def: ~/.pricedb)
--L, --price-exp MINS   download quotes only if newer than MINS (def: 1440)
--Q, --download         download price information when needed
--O, --quantity         report commodity totals (this is the default)
--V, --market           report last known market value
--g, --performance      report gain/loss for each displayed transaction
--G, --gain             report net gain/loss
-
-Commands:
-xml      [REGEXP]...   print matching entries in XML format
-equity   [REGEXP]...   output equity entries for matching accounts
-prices   [REGEXP]...   display price history for matching commodities
-entry DATE PAYEE AMT   output a derived entry, based on the arguments
-```
-
-### Other functionality differences ?
+### Functional differences
 
 - hledger recognises description and negative patterns by "desc:"
   and "not:" prefixes, unlike Ledger 3's free-form parser
@@ -174,9 +126,6 @@ entry DATE PAYEE AMT   output a derived entry, based on the arguments
 - hledger always shows timelog balances in hours
 
 - hledger splits multi-day timelog sessions at midnight by default (Ledger does this with an option)
-
-- hledger doesn't track the value of commodities with varying
-  price; prices are fixed as of the transaction date
 
 - hledger's output follows the decimal point character, digit grouping,
   and digit group separator character used in the journal.
@@ -199,31 +148,23 @@ entry DATE PAYEE AMT   output a derived entry, based on the arguments
   taking it from the clock-out entry
 
 - hledger's [include directive](manual.html#including-other-files) does not support
-  shell glob patterns (eg `include *.journal` ), which Ledger does.
+  shell glob patterns (eg `include *.journal` ), which Ledger's does.
 
 - when checking [balance assertions](manual.html#balance-assertions)
   hledger sorts the account's postings first by date and then (for
   postings with the same date) by parse order. Ledger goes strictly by
   parse order.
 
-- Ledger allows amounts to have a
-  [fixed lot price](manual.html#fixed-lot-prices) and a regular price in any
-  order (and uses whichever appears first). hledger requires the fixed
-  lot price to come last (and ignores it).
+- Ledger allows amounts to have a fixed lot price (the {} syntax ?)
+  and a regular price in any order (and uses whichever appears
+  first). hledger requires the fixed lot price to come last (and
+  ignores it).
 
-### Implementation differences ?
 
-Ledger is written in C++, whereas hledger is written in [Haskell](http://haskell.org).
-Haskell is a highly regarded up-and-coming programming language that enables
-a coding style known as pure functional programming, offering the
-promise of more bug-free and maintainable software built in fewer
-lines of code. Haskell also provides a more abstracted, portable
-platform which can make deployment and installation easier in some
-cases.
 
 ## UI surprises
 
-### Why does it complain about missing amounts ? I put one there
+### Why does it complain about missing amounts even though I wrote one ?
 
 This is an easy mistake at first. This journal entry:
 ```journal
