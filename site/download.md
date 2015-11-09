@@ -102,6 +102,9 @@ This is a quick way to help the project and your fellow users!
    so that you can just type `hledger` to run it.
    (stack will show the proper directory and will tell you if it is not in $PATH).
 
+Eg, on a mac:
+<script type="text/javascript" src="https://asciinema.org/a/29672.js" id="asciicast-29672" async></script>
+
 **with cabal** (results will vary, recommended only if you can't install stack):
 
 1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html) if needed.
