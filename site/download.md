@@ -9,6 +9,8 @@
 
 **[Release notes](release-notes.html)**
 
+<a name="packaged"></a>
+
 ## I want to download a packaged version
 <!-- <sub>(If the download is out of date or doesn't run on my system, I might troubleshoot or donate to fund improvements)</sub> -->
 
@@ -85,6 +87,8 @@ donation of any size. Binaries funded in this way will be linked here.
 This is a quick way to help the project and your fellow users!
 -->
 
+<a name="released"></a>
+
 ## I want to build the latest release (0.27)
 
 **with stack** (most reliable, recommended)
@@ -116,6 +120,8 @@ Eg, on a mac:
 7. `cabal sandbox init`
 8. `cabal install hledger[-ui|-web]` (On Windows, hledger-ui is [not yet supported](https://github.com/coreyoconnor/vty/pull/1).)
 9. Ensure this `.../hledger-sandbox/.cabal-sandbox/bin` is in your `$PATH` (or move its contents to ~/.cabal/bin).
+
+<a name="unreleased"></a>
 
 ## I want to build the [unreleased git version](https://github.com/simonmichael/hledger/commits/master)
 
