@@ -94,8 +94,8 @@ reliable, cross-platform alternative to Quicken, GnuCash, spreadsheets etc.
 **Step 1:** Record your transactions in a plain text file (using any text editor,
 hledger's add command, the web interface, CSV or OFX import, custom scripts..)
 
-**Step 2:** Run hledger to analyze and report your accounts, currencies,
-balances, monthly averages, market values and more.
+**Step 2:** Ask hledger about your accounts, currencies, balances,
+monthly averages, market values and more.
 
 You can start out very simple, and get more sophisticated as you learn
 more about double-entry accounting.  You'll feel closer to your
@@ -140,10 +140,9 @@ transactions, but does not change existing ones.)
 </div>
 
 <div class="indent1">
-### and a console UI
+### a console UI
 
 <a href="images/hledger-ui/hledger-ui-bcexample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc.png" title="hledger-ui accounts screen" /></a>
-
 hledger also provides a curses-style [console&nbsp;interface](manual#ui)
 that lets you review account balances and transactions with fewer
 keystrokes and less effort.
@@ -153,7 +152,7 @@ keystrokes and less effort.
 </div>
 
 <div class="indent2">
-### and a web UI
+### a web UI
 
 <a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
 
