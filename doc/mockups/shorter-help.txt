@@ -1,0 +1,418 @@
+-*- org -*-
+
+* 0.27's command-line help
+
+$ hledger --help
+hledger [COMMAND] ... [OPTIONS] [ARGS]
+
+Data entry commands:
+  add              prompt for transactions and add them to the journal
+
+Reporting commands:
+  print            show transaction entries
+  accounts         show account names
+  balance          show accounts and balances (bal)
+  register         show postings and running total (reg)
+  incomestatement  show an income statement (is)
+  balancesheet     show a balance sheet (bs)
+  cashflow         show a cashflow statement (cf)
+  activity         show an ascii barchart of posting counts per interval
+                   (default: daily)
+  stats            show some journal statistics
+
+Add-on commands:
+  autosync       
+  chart            generate simple balance pie charts
+  check-dates    
+  check-dates1   
+  convertdates   
+  diff           
+  equity           show a transaction entry zeroing all accounts
+  estimatedtax   
+  estimatedtax.hs
+  interest         generate interest transaction entries
+  irr              calculate internal rate of return
+  print-unique     print only transactions with unique descriptions
+  register-match 
+  rewrite          add specified postings to matched transaction entries
+  ui             
+  ui1            
+  vty              start the curses-style interface
+  web              start the web interface
+  webdev         
+
+
+General flags:
+  -h --help     show general help or (after command) command help
+     --debug=N  show debug output if N is 1-9 (default: 0)
+     --version  show version information
+
+$ hledger accounts --help
+accounts [OPTIONS] [PATTERNS]
+  show account names
+
+Flags:
+     --tree               show short account names, as a tree
+     --flat               show full account names, as a list (default)
+     --drop=N             flat mode: omit N leading account name parts
+
+General flags:
+  -f --file=FILE          use a different input file. For stdin, use -
+     --rules-file=RFILE   CSV conversion rules file (default: FILE.rules)
+     --alias=OLD=NEW      display accounts named OLD as NEW
+     --ignore-assertions  ignore any balance assertions in the journal
+  -b --begin=DATE         include postings/txns on or after this date
+  -e --end=DATE           include postings/txns before this date
+  -D --daily              multiperiod/multicolumn report by day
+  -W --weekly             multiperiod/multicolumn report by week
+  -M --monthly            multiperiod/multicolumn report by month
+  -Q --quarterly          multiperiod/multicolumn report by quarter
+  -Y --yearly             multiperiod/multicolumn report by year
+  -p --period=PERIODEXP   set start date, end date, and/or reporting interval
+                          all at once (overrides the flags above)
+     --date2 --aux-date   use postings/txns' secondary dates instead
+  -C --cleared            include only cleared postings/txns
+     --pending            include only pending postings/txns
+  -U --uncleared          include only uncleared (and pending) postings/txns
+  -R --real               include only non-virtual postings
+     --depth=N            hide accounts/postings deeper than N
+  -E --empty              show empty/zero things which are normally omitted
+  -B --cost               show amounts in their cost price's commodity
+  -h --help               show general help or (after command) command help
+     --debug=N            show debug output if N is 1-9 (default: 0)
+     --version            show version information
+
+This command lists the accounts referenced by matched postings (and in tree
+mode, their parents as well). The accounts can be depth-clipped (--depth N) or
+have their leading parts trimmed (--drop N).
+
+$ hledger balance --help
+balance [OPTIONS] [PATTERNS]
+  show accounts and balances (bal)
+
+Flags:
+     --tree                    show accounts as a tree (default in simple
+                               reports)
+     --flat                    show accounts as a list (default in
+                               multicolumn mode)
+     --drop=N                  flat mode: omit N leading account name parts
+     --format=FORMATSTR        singlecolumn mode: use this custom line format
+     --no-elide                tree mode: don't squash boring parent accounts
+  -H --historical              multicolumn mode: show historical ending
+                               balances
+     --cumulative              multicolumn mode: show accumulated ending
+                               balances
+  -A --average                 multicolumn mode: show a row average column
+  -T --row-total               multicolumn mode: show a row total column
+  -N --no-total                don't show the final total row
+  -V --value                   show amounts as their current market value in
+                               their default valuation commodity
+  -o --output-file=FILE[.FMT]  write output to FILE instead of stdout. A
+                               recognised FMT suffix influences the format.
+  -O --output-format=FMT       select the output format. Supported formats:
+                               txt, csv.
+
+General flags:
+  -f --file=FILE               use a different input file. For stdin, use -
+     --rules-file=RFILE        CSV conversion rules file (default:
+                               FILE.rules)
+     --alias=OLD=NEW           display accounts named OLD as NEW
+     --ignore-assertions       ignore any balance assertions in the journal
+  -b --begin=DATE              include postings/txns on or after this date
+  -e --end=DATE                include postings/txns before this date
+  -D --daily                   multiperiod/multicolumn report by day
+  -W --weekly                  multiperiod/multicolumn report by week
+  -M --monthly                 multiperiod/multicolumn report by month
+  -Q --quarterly               multiperiod/multicolumn report by quarter
+  -Y --yearly                  multiperiod/multicolumn report by year
+  -p --period=PERIODEXP        set start date, end date, and/or reporting
+                               interval all at once (overrides the flags above)
+     --date2 --aux-date        use postings/txns' secondary dates instead
+  -C --cleared                 include only cleared postings/txns
+     --pending                 include only pending postings/txns
+  -U --uncleared               include only uncleared (and pending)
+                               postings/txns
+  -R --real                    include only non-virtual postings
+     --depth=N                 hide accounts/postings deeper than N
+  -E --empty                   show empty/zero things which are normally
+                               omitted
+  -B --cost                    show amounts in their cost price's commodity
+  -h --help                    show general help or (after command) command
+                               help
+     --debug=N                 show debug output if N is 1-9 (default: 0)
+     --version                 show version information
+
+$ hledger print --help
+print [OPTIONS] [PATTERNS]
+  show transaction entries
+
+Flags:
+  -m --match=STR               show the transaction whose description is most
+                               similar to STR, and is most recent
+  -o --output-file=FILE[.FMT]  write output to FILE instead of stdout. A
+                               recognised FMT suffix influences the format.
+  -O --output-format=FMT       select the output format. Supported formats:
+                               txt, csv.
+
+General flags:
+  -f --file=FILE               use a different input file. For stdin, use -
+     --rules-file=RFILE        CSV conversion rules file (default:
+                               FILE.rules)
+     --alias=OLD=NEW           display accounts named OLD as NEW
+     --ignore-assertions       ignore any balance assertions in the journal
+  -b --begin=DATE              include postings/txns on or after this date
+  -e --end=DATE                include postings/txns before this date
+  -D --daily                   multiperiod/multicolumn report by day
+  -W --weekly                  multiperiod/multicolumn report by week
+  -M --monthly                 multiperiod/multicolumn report by month
+  -Q --quarterly               multiperiod/multicolumn report by quarter
+  -Y --yearly                  multiperiod/multicolumn report by year
+  -p --period=PERIODEXP        set start date, end date, and/or reporting
+                               interval all at once (overrides the flags above)
+     --date2 --aux-date        use postings/txns' secondary dates instead
+  -C --cleared                 include only cleared postings/txns
+     --pending                 include only pending postings/txns
+  -U --uncleared               include only uncleared (and pending)
+                               postings/txns
+  -R --real                    include only non-virtual postings
+     --depth=N                 hide accounts/postings deeper than N
+  -E --empty                   show empty/zero things which are normally
+                               omitted
+  -B --cost                    show amounts in their cost price's commodity
+  -h --help                    show general help or (after command) command
+                               help
+     --debug=N                 show debug output if N is 1-9 (default: 0)
+     --version                 show version information
+
+$ hledger register --help
+register [OPTIONS] [PATTERNS]
+  show postings and running total (reg)
+
+Flags:
+  -H --historical              include prior postings in the running total
+  -A --average                 show a running average instead of the running
+                               total (implies --empty)
+  -r --related                 show postings' siblings instead
+  -w --width=N                 set output width (default: terminal width or
+                               COLUMNS. -wN,M sets description width as well)
+  -o --output-file=FILE[.FMT]  write output to FILE instead of stdout. A
+                               recognised FMT suffix influences the format.
+  -O --output-format=FMT       select the output format. Supported formats:
+                               txt, csv.
+
+General flags:
+  -f --file=FILE               use a different input file. For stdin, use -
+     --rules-file=RFILE        CSV conversion rules file (default:
+                               FILE.rules)
+     --alias=OLD=NEW           display accounts named OLD as NEW
+     --ignore-assertions       ignore any balance assertions in the journal
+  -b --begin=DATE              include postings/txns on or after this date
+  -e --end=DATE                include postings/txns before this date
+  -D --daily                   multiperiod/multicolumn report by day
+  -W --weekly                  multiperiod/multicolumn report by week
+  -M --monthly                 multiperiod/multicolumn report by month
+  -Q --quarterly               multiperiod/multicolumn report by quarter
+  -Y --yearly                  multiperiod/multicolumn report by year
+  -p --period=PERIODEXP        set start date, end date, and/or reporting
+                               interval all at once (overrides the flags above)
+     --date2 --aux-date        use postings/txns' secondary dates instead
+  -C --cleared                 include only cleared postings/txns
+     --pending                 include only pending postings/txns
+  -U --uncleared               include only uncleared (and pending)
+                               postings/txns
+  -R --real                    include only non-virtual postings
+     --depth=N                 hide accounts/postings deeper than N
+  -E --empty                   show empty/zero things which are normally
+                               omitted
+  -B --cost                    show amounts in their cost price's commodity
+  -h --help                    show general help or (after command) command
+                               help
+     --debug=N                 show debug output if N is 1-9 (default: 0)
+     --version                 show version information
+
+$ hledger stats --help
+stats [OPTIONS] [PATTERNS]
+  show some journal statistics
+
+Flags:
+  -o --output-file=FILE[.FMT]  write output to FILE instead of stdout. A
+                               recognised FMT suffix influences the format.
+
+General flags:
+  -f --file=FILE               use a different input file. For stdin, use -
+     --rules-file=RFILE        CSV conversion rules file (default:
+                               FILE.rules)
+     --alias=OLD=NEW           display accounts named OLD as NEW
+     --ignore-assertions       ignore any balance assertions in the journal
+  -b --begin=DATE              include postings/txns on or after this date
+  -e --end=DATE                include postings/txns before this date
+  -D --daily                   multiperiod/multicolumn report by day
+  -W --weekly                  multiperiod/multicolumn report by week
+  -M --monthly                 multiperiod/multicolumn report by month
+  -Q --quarterly               multiperiod/multicolumn report by quarter
+  -Y --yearly                  multiperiod/multicolumn report by year
+  -p --period=PERIODEXP        set start date, end date, and/or reporting
+                               interval all at once (overrides the flags above)
+     --date2 --aux-date        use postings/txns' secondary dates instead
+  -C --cleared                 include only cleared postings/txns
+     --pending                 include only pending postings/txns
+  -U --uncleared               include only uncleared (and pending)
+                               postings/txns
+  -R --real                    include only non-virtual postings
+     --depth=N                 hide accounts/postings deeper than N
+  -E --empty                   show empty/zero things which are normally
+                               omitted
+  -B --cost                    show amounts in their cost price's commodity
+  -h --help                    show general help or (after command) command
+                               help
+     --debug=N                 show debug output if N is 1-9 (default: 0)
+     --version                 show version information
+
+* ideas for shorter help
+
+** general help: Flags moved to top, -h and --help split:
+
+$ hledger --help
+hledger [COMMAND] ... [OPTIONS] [ARGS]
+
+General flags:
+  -h            show short help (general or, after command, command-specific)
+     --help     show long help (general or command-specific)
+     --debug=N  show debug output if N is 1-9 (default: 0)
+     --version  show version information
+
+Data entry commands:
+  add              prompt for transactions and add them to the journal
+
+Reporting commands:
+  print            show transaction entries
+  accounts         show account names
+  balance          show accounts and balances (bal)
+  register         show postings and running total (reg)
+  incomestatement  show an income statement (is)
+  balancesheet     show a balance sheet (bs)
+  cashflow         show a cashflow statement (cf)
+  activity         show an ascii barchart of posting counts per interval
+                   (default: daily)
+  stats            show some journal statistics
+
+Add-on commands:
+  autosync       
+  chart            generate simple balance pie charts
+  check-dates    
+  check-dates1   
+  convertdates   
+  diff           
+  equity           show a transaction entry zeroing all accounts
+  estimatedtax   
+  estimatedtax.hs
+  interest         generate interest transaction entries
+  irr              calculate internal rate of return
+  print-unique     print only transactions with unique descriptions
+  register-match 
+  rewrite          add specified postings to matched transaction entries
+  ui             
+  ui1            
+  vty              start the curses-style interface
+  web              start the web interface
+  webdev         
+
+** -h shows just the command-specific flags:
+
+$ hledger accounts -h
+accounts [OPTIONS] [PATTERNS]
+  show account names
+
+Flags:
+     --tree               show short account names, as a tree
+     --flat               show full account names, as a list (default)
+     --drop=N             flat mode: omit N leading account name parts
+
+(To see all flags, use --help)
+
+$ hledger balance -h
+balance [OPTIONS] [PATTERNS]
+  show accounts and balances (bal)
+
+Flags:
+     --tree                    show accounts as a tree (default in simple
+                               reports)
+     --flat                    show accounts as a list (default in
+                               multicolumn mode)
+     --drop=N                  flat mode: omit N leading account name parts
+     --format=FORMATSTR        singlecolumn mode: use this custom line format
+     --no-elide                tree mode: don't squash boring parent accounts
+  -H --historical              multicolumn mode: show historical ending
+                               balances
+     --cumulative              multicolumn mode: show accumulated ending
+                               balances
+  -A --average                 multicolumn mode: show a row average column
+  -T --row-total               multicolumn mode: show a row total column
+  -N --no-total                don't show the final total row
+  -V --value                   show amounts as their current market value in
+                               their default valuation commodity
+  -o --output-file=FILE[.FMT]  write output to FILE instead of stdout. A
+                               recognised FMT suffix influences the format.
+  -O --output-format=FMT       select the output format. Supported formats:
+                               txt, csv.
+
+(To see all flags, use --help)
+
+** -h shows command-specific flags plus general flags in brief:
+
+$ hledger print -h
+print [OPTIONS] [PATTERNS]
+  show transaction entries
+
+Flags:
+  -m --match=STR               show the transaction whose description is most
+                               similar to STR, and is most recent
+  -o --output-file=FILE[.FMT]  write output to FILE instead of stdout. A
+                               recognised FMT suffix influences the format.
+  -O --output-format=FMT       select the output format. Supported formats:
+                               txt, csv.
+
+General flags (for more detail, use --help):
+  -f --file=FILE --rules-file=RFILE --alias=OLD=NEW --ignore-assertions -b
+  --begin=DATE -e --end=DATE -D --daily -W --weekly -M --monthly -Q
+  --quarterly -Y --yearly -p --period=PERIODEXP --date2 --aux-date -C
+  --cleared --pending -U --uncleared -R --real --depth=N -E --empty -B
+  --cost -h --help --debug=N --version
+
+$ hledger register -h
+register [OPTIONS] [PATTERNS]
+  show postings and running total (reg)
+
+Flags:
+  -H --historical              include prior postings in the running total
+  -A --average                 show a running average instead of the running
+                               total (implies --empty)
+  -r --related                 show postings' siblings instead
+  -w --width=N                 set output width (default: terminal width or
+                               COLUMNS. -wN,M sets description width as well)
+  -o --output-file=FILE[.FMT]  write output to FILE instead of stdout. A
+                               recognised FMT suffix influences the format.
+  -O --output-format=FMT       select the output format. Supported formats:
+                               txt, csv.
+
+General flags (for more detail, use --help):
+  -f --file=FILE --rules-file=RFILE --alias=OLD=NEW --ignore-assertions -b
+  --begin=DATE -e --end=DATE -D --daily -W --weekly -M --monthly -Q
+  --quarterly -Y --yearly -p --period=PERIODEXP --date2 --aux-date -C
+  --cleared --pending -U --uncleared -R --real --depth=N -E --empty -B
+  --cost -h --help --debug=N --version
+
+$ hledger stats -h
+stats [OPTIONS] [PATTERNS]
+  show some journal statistics
+
+Flags:
+  -o --output-file=FILE[.FMT]  write output to FILE instead of stdout. A
+                               recognised FMT suffix influences the format.
+
+General flags (for more detail, use --help):
+  -f --file=FILE --rules-file=RFILE --alias=OLD=NEW --ignore-assertions -b
+  --begin=DATE -e --end=DATE -D --daily -W --weekly -M --monthly -Q
+  --quarterly -Y --yearly -p --period=PERIODEXP --date2 --aux-date -C
+  --cleared --pending -U --uncleared -R --real --depth=N -E --empty -B
+  --cost -h --help --debug=N --version
