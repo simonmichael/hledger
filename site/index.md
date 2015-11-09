@@ -146,9 +146,7 @@ transactions, but does not change existing ones.)
 hledger also provides a curses-style [console&nbsp;interface](manual#ui)
 that lets you review account balances and transactions with fewer
 keystrokes and less effort.
-(Click below, or view [full size](https://asciinema.org/a/29665))
-<!-- <a href="https://asciinema.org/a/29665" target="_blank"><img style="height:160px;" src="https://asciinema.org/a/29665.png" /></a> -->
-<script type="text/javascript" data-t="12" data-autoplay=0 src="https://asciinema.org/a/dxjvur5r3xbl0spa33i4fijg0.js?t=12" id="asciicast-dxjvur5r3xbl0spa33i4fijg0" async></script>
+<script type="text/javascript" data-t="12" data-autoplay=0 src="https://asciinema.org/a/29665.js" id="asciicast-29665" async></script>
 </div>
 
 <div class="indent2">
