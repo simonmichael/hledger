@@ -1942,8 +1942,8 @@ There are some tricks when specifying options:
 
 Add-ons which are written in haskell can take advantage of hledger's library API
 for journal parsing, reports, consistent command-line options etc.
-One notable add-on is [hledger-web](#web), which is maintained along with
-hledger and supported on the same major platforms. Other add-ons may
+Two notable add-ons are [hledger-ui](#ui) and [hledger-web](#web),
+shipped with hledger. Other add-ons may
 have different release schedules and platform support.
 
 #### autosync
