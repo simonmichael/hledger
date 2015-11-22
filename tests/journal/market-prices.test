@@ -1,22 +1,48 @@
-# market prices defined with the P directive are used by -V/--value.
+# . Market prices are ignored by -B/--cost.
+hledger -f- print -B
+<<<
+P 2011/01/01 € $1.35
 
-# 1. market prices (a) are affected by D directives and (b) contribute
-# to amount style canonicalisation.
+2011/01/01
+    expenses:foreign currency       €100
+    assets
+
+>>>
+2011/01/01
+    expenses:foreign currency          €100
+    assets                            €-100
+
+>>>=0
+
+# # 14b. market price used in balancing - this should balance
+# hledger -f - balance
+# <<<
+# P 2011/11/15 EUR CHF 1.234
+# 2011/11/19
+#     a                             EUR 1000.00
+#     b                             USD 1000.00
+#     c                             CHF -1254
+# >>>= 0
+
+# . Market prices are used by -V/--value.
+# They are affected by D directives, currently.
+# They contribute to amount style canonicalisation.
 # (https://github.com/simonmichael/hledger/issues/131#issuecomment-133545140)
 
 hledger -f- balance -V
 <<<
-D 1000.00 H
 
-P 2015/08/14 EEEE   41.66
-P 2015/08/14 FFFF   74.62
+D 1000.00 H                ; declare a default commodity named H
+
+P 2015/08/14 EEEE  41.66   ; default commodity H is used for these market prices
+P 2015/08/14 FFFF  74.62
 P 2015/08/14 GGGG  32.39
 
 2015/08/15
-    a  2.4120 EEEE @@ 100
+    a  2.4120 EEEE @@ 100  ; default commodity H is used for these transaction prices
     a  0.3350 FFFF @@ 25
     a  0.7718 GGGG @@ 25
-    b
+    b                      ; implicit balancing amount is in the cost commodity, H
 >>>
             150.48 H  a
            -150.00 H  b

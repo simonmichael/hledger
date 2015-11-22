@@ -25,23 +25,7 @@ hledger -f- print --cost
 
 >>>=0
 
-# 3. -B should ignore historical price directives
-hledger -f- print -B
-<<<
-P 2011/01/01 € $1.35
-
-2011/01/01
-    expenses:foreign currency       €100
-    assets
-
->>>
-2011/01/01
-    expenses:foreign currency          €100
-    assets                            €-100
-
->>>=0
-
-# 4. print a transaction with a total price
+# 3. print a transaction with a total price
 hledger -f - print
 <<<
 2011/01/01
@@ -54,7 +38,7 @@ hledger -f - print
 
 >>>=0
 
-# 5. when the balance has exactly two commodities, both unpriced, infer an
+# 4. when the balance has exactly two commodities, both unpriced, infer an
 # implicit conversion price for the first one in terms of the second.
 hledger -f - print
 <<<
@@ -76,7 +60,7 @@ hledger -f - print
 
 >>>=0
 
-## 6. another, from ledger tests. Just one posting to price so uses @@.
+## 5. another, from ledger tests. Just one posting to price so uses @@.
 hledger -f - print
 <<<
 2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
@@ -89,7 +73,7 @@ hledger -f - print
 
 >>>=0
 
-# 7. when the balance has more than two commodities, don't bother
+# 6. when the balance has more than two commodities, don't bother
 hledger -f - print
 <<<
 2011/01/01
@@ -98,7 +82,7 @@ hledger -f - print
     expenses:other                  £200
 >>>= !0
 
-# 8. another
+# 7. another
 hledger -f - balance -B
 <<<
 2011/01/01
@@ -113,7 +97,7 @@ hledger -f - balance -B
                    0
 >>>=0
 
-# 9. transaction in two commodities should balance out properly
+# 8. transaction in two commodities should balance out properly
 hledger -f - balance --cost
 <<<
 2011/01/01 x
@@ -126,9 +110,9 @@ hledger -f - balance --cost
                    0
 >>>=0
 
-# 10. When commodity price is specified implicitly, transaction should
-#     be considered balanced out even when first amount is negative
-#     (that is, price for it should be determined properly, with proper sign)
+# 9. When commodity price is specified implicitly, transaction should
+#    be considered balanced out even when first amount is negative
+#    (that is, price for it should be determined properly, with proper sign)
 hledger -f - balance
 <<<
 2011/01/01 x
@@ -142,7 +126,7 @@ hledger -f - balance
                 -10£
 >>>=0
 
-# 11. When commodity price is specified implicitly, transaction should
+# 10. When commodity price is specified implicitly, transaction should
 #     NOT be considered balanced out when BOTH amounts are negative
 hledger -f - balance
 <<<
@@ -152,7 +136,7 @@ hledger -f - balance
 >>>
 >>>=1
 
-# 12. Differently-priced lots of a commodity should be merged in balance report
+# 11. Differently-priced lots of a commodity should be merged in balance report
 hledger -f - balance
 <<<
 2011/1/1
@@ -166,7 +150,7 @@ hledger -f - balance
                   £2
 >>>=0
 
-# 13. this should balance
+# 12. this should balance
 hledger -f - balance
 <<<
 2011/1/1
@@ -175,26 +159,7 @@ hledger -f - balance
     c  $-30
 >>>= 0
 
-# 14. we ignore P, so this should balance
-hledger -f - balance
-<<<
-P 2011/11/15 EUR CHF 1
-2011/11/19
-    a                             EUR 1000.00
-    b                             CHF -1254
->>>= 0
-
-# # 14b. if P worked, this should balance
-# hledger -f - balance
-# <<<
-# P 2011/11/15 EUR CHF 1.234
-# 2011/11/19
-#     a                             EUR 1000.00
-#     b                             USD 1000.00
-#     c                             CHF -1254
-# >>>= 0
-
-# 15. these balance because of the unit prices, and should parse successfully
+# 13. these balance because of the unit prices, and should parse successfully
 hledger -f - balance --no-total
 <<<
 1/1
@@ -204,7 +169,7 @@ hledger -f - balance --no-total
                  -1X  a
 >>>= 0
 
-# 16.
+# 14.
 hledger -f - balance --no-total -B
 <<<
 1/1
@@ -213,7 +178,7 @@ hledger -f - balance --no-total -B
 >>>
 >>>= 0
 
-# 17. likewise with total prices. Note how the primary amount's sign is used.
+# 15. likewise with total prices. Note how the primary amount's sign is used.
 hledger -f - balance --no-total
 <<<
 1/1
@@ -223,7 +188,7 @@ hledger -f - balance --no-total
                  -1X  a
 >>>= 0
 
-# 18. 
+# 16. 
 hledger -f - balance --no-total -B
 <<<
 1/1
@@ -232,7 +197,7 @@ hledger -f - balance --no-total -B
 >>>
 >>>= 0
 
-# 19. here, a's primary amount is 0, and its cost is 1Y; b is the assigned auto-balancing amount of -1Y (per issue 69)
+# 17. here, a's primary amount is 0, and its cost is 1Y; b is the assigned auto-balancing amount of -1Y (per issue 69)
 hledger -f - balance --no-total -E
 <<<
 1/1
@@ -245,7 +210,7 @@ hledger -f - balance --no-total -E
                  -1Y  b
 >>>= 0
 
-# 20. the above with -B
+# 18. the above with -B
 hledger -f - balance --no-total -E -B
 <<<
 1/1
