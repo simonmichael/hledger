@@ -89,7 +89,7 @@ Command-line interface:
 
 add:
 
-- Journal entries are now written with all amounts explicit, to avoid
+- Journal entries are now saved with all amounts explicit, to avoid
   losing price info ([#283](http://bugs.hledger.org/283)).
 
 - Fixed a bug which sometimes (when the same letter pair was repeated)
@@ -103,9 +103,9 @@ balance:
   The default market price for a commodity is the most recent one found in the journal on or before the report end date.
     
     Unlike Ledger, hledger's -V uses only the market prices recorded
-  with P directives; it does not use the "transaction prices"
-  recorded as part of posting amounts (which are used by -B/--cost).
-  Also, using both -B and -V at the same time is supported.
+  with P directives; it does not use the transaction prices
+  recorded as part of posting amounts.
+  Using both -B and -V at the same time is possible.
 
 - Fixed a bug in amount normalization which caused amount styles
   (commodity symbol placement, decimal point character, etc.) to be
