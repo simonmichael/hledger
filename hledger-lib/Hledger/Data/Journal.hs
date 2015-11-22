@@ -16,7 +16,8 @@ module Hledger.Data.Journal (
   addTransaction,
   journalApplyAliases,
   journalBalanceTransactions,
-  journalCanonicaliseAmounts,
+  journalApplyCommodityStyles,
+  commodityStylesFromAmounts,
   journalConvertAmountsToCost,
   journalFinalise,
   -- * Filtering
@@ -49,7 +50,7 @@ module Hledger.Data.Journal (
   journalEquityAccountQuery,
   journalCashAccountQuery,
   -- * Misc
-  canonicalStyles,
+  canonicalStyleFrom,
   matchpats,
   nullctx,
   nulljournal,
@@ -420,7 +421,7 @@ journalApplyAliases aliases j@Journal{jtxns=ts} =
 journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContext -> Bool -> Journal -> Either String Journal
 journalFinalise tclock tlocal path txt ctx assrt j@Journal{files=fs} = do
   (journalBalanceTransactions $
-    journalCanonicaliseAmounts $
+    journalApplyCommodityStyles $
     journalCloseTimeLogEntries tlocal $
     j{ files=(path,txt):fs
      , filereadtime=tclock
@@ -504,47 +505,62 @@ journalBalanceTransactions j@Journal{jtxns=ts, jcommoditystyles=ss} =
                                     Left e    -> Left e
       where balance = balanceTransaction (Just ss)
 
--- | Convert all the journal's posting amounts (and historical price
--- amounts, but currently not transaction price amounts) to their
--- canonical display settings. Ie, all amounts in a given commodity
--- will use (a) the display settings of the first, and (b) the
--- greatest precision, of the posting amounts in that commodity.
-journalCanonicaliseAmounts :: Journal -> Journal
-journalCanonicaliseAmounts j@Journal{jtxns=ts, jmarketprices=mps} = j''
+-- | Choose standard display formats for all commodities, and
+-- adjust all the journal's posting amount styles to use them.
+journalApplyCommodityStyles :: Journal -> Journal
+journalApplyCommodityStyles j@Journal{jtxns=ts, jmarketprices=mps} = j''
     where
+      j' = journalChooseCommodityStyles j
       j'' = j'{jtxns=map fixtransaction ts, jmarketprices=map fixmarketprice mps}
-      j' = j{jcommoditystyles = canonicalStyles $ dbg8 "journalAmounts" $ journalAmounts j}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmarketprice mp@MarketPrice{mpamount=a} = mp{mpamount=fixamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
       fixamount a@Amount{acommodity=c} = a{astyle=journalCommodityStyle j' c}
 
--- | Given a list of amounts in parse order, build a map from commodities
--- to canonical display styles for amounts in that commodity.
-canonicalStyles :: [Amount] -> M.Map Commodity AmountStyle
-canonicalStyles amts = M.fromList commstyles
+-- | Get this journal's standard display style for the given commodity, or the null style.
+journalCommodityStyle :: Journal -> Commodity -> AmountStyle
+journalCommodityStyle j c = M.findWithDefault amountstyle c $ jcommoditystyles j
+
+-- | Choose a standard display style for each commodity.
+-- "hledger... will use the format of the first posting amount in the
+-- commodity, and the highest precision of all posting amounts in the commodity."
+--
+-- (In user docs, we may now be calling this "format" for consistency with
+-- the commodity directive's format keyword; in code, it's mostly "style").
+--
+journalChooseCommodityStyles :: Journal -> Journal
+journalChooseCommodityStyles j =
+  j{jcommoditystyles =
+        commodityStylesFromAmounts $
+        dbg8 "journalChooseCommmodityStyles using amounts" $ journalAmounts j}
+
+-- | Given a list of amounts in parse order, build a map from their commodity names
+-- to standard commodity display formats.
+commodityStylesFromAmounts :: [Amount] -> M.Map Commodity AmountStyle
+commodityStylesFromAmounts amts = M.fromList commstyles
   where
     samecomm = \a1 a2 -> acommodity a1 == acommodity a2
     commamts = [(acommodity $ head as, as) | as <- groupBy samecomm $ sortBy (comparing acommodity) amts]
     commstyles = [(c, canonicalStyleFrom $ map astyle as) | (c,as) <- commamts]
 
--- Given an ordered list of amount styles for a commodity, build a canonical style.
+-- | Given an ordered list of amount styles, choose a canonical style.
+-- That is: the style of the first, and the
+-- maximum precision of all.
 canonicalStyleFrom :: [AmountStyle] -> AmountStyle
 canonicalStyleFrom [] = amountstyle
 canonicalStyleFrom ss@(first:_) =
   first{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   where
-    -- precision is the maximum of all precisions seen
-    prec = maximum $ map asprecision ss
-    -- find the first decimal point and the first digit group style seen,
-    -- or use defaults.
-    mdec  = Just $ headDef '.' $ catMaybes $ map asdecimalpoint ss
     mgrps = maybe Nothing Just $ headMay $ catMaybes $ map asdigitgroups ss
-
--- | Get this journal's canonical amount style for the given commodity, or the null style.
-journalCommodityStyle :: Journal -> Commodity -> AmountStyle
-journalCommodityStyle j c = M.findWithDefault amountstyle c $ jcommoditystyles j
+    -- precision is maximum of all precisions
+    prec = maximum $ map asprecision ss
+    mdec  = Just $ headDef '.' $ catMaybes $ map asdecimalpoint ss
+    -- precision is that of first amount with a decimal point
+    -- (mdec, prec) =
+    --   case filter (isJust . asdecimalpoint) ss of
+    --   (s:_) -> (asdecimalpoint s, asprecision s)
+    --   []    -> (Just '.', 0)
 
 -- -- | Apply this journal's historical price records to unpriced amounts where possible.
 -- journalApplyMarketPrices :: Journal -> Journal
@@ -575,7 +591,7 @@ journalCloseTimeLogEntries now j@Journal{jtxns=ts, open_timelog_entries=es} =
 journalConvertAmountsToCost :: Journal -> Journal
 journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
     where
-      -- similar to journalCanonicaliseAmounts
+      -- similar to journalApplyCommodityStyles
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as

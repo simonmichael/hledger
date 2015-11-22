@@ -134,7 +134,8 @@ balanceReportValue :: Journal -> Day -> BalanceReport -> BalanceReport
 balanceReportValue j d r = r'
   where
     (items,total) = r
-    r' = ([(n, mixedAmountValue j d a) |(n,a) <- items], mixedAmountValue j d total)
+    r' = dbg8 "balanceReportValue" $
+         ([(n, mixedAmountValue j d a) |(n,a) <- items], mixedAmountValue j d total)
 
 mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
 mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
