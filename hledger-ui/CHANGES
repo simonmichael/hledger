@@ -1,6 +1,12 @@
 User-visible changes in hledger-ui.
 See also hledger's change log.
 
+0.27.1 (2015/12/3)
+
+- allow lens 4.13
+- make reloading work on the transaction screen
+
+
 0.27 (2015/10/30)
 
 - hledger-ui is a new curses-style UI, intended to be a standard part
