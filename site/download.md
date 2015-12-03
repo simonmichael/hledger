@@ -60,7 +60,7 @@ Build with stack or cabal as described below.
 <tr><td>
 **on NixOS**
 </td><td style="white-space:nowrap;">
-`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledgerWeb`
+`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-web`
 </td></tr>
 
 <tr><td>
