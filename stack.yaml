@@ -5,6 +5,7 @@ packages:
 - hledger
 - hledger-ui
 - hledger-web
+- hledger-api
 
 #flags:
 

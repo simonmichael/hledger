@@ -1,0 +1,42 @@
+-- This file has been generated from package.yaml by hpack version 0.5.4.
+--
+-- see: https://github.com/sol/hpack
+
+name:           hledger-api
+version:        0.27.98
+synopsis:       Web API server for the hledger accounting tool
+description:    This is a simple web API server for hledger data.
+                It comes with a series of simple client-side web app examples.
+                .
+                hledger is a cross-platform program for tracking money, time, or
+                any other commodity, using double-entry accounting and a simple,
+                editable file format. It is inspired by and largely compatible
+                with ledger(1).  hledger provides command-line, curses and web
+                interfaces, and aims to be a reliable, practical tool for daily
+                use.
+category:       Finance
+stability:      alpha
+homepage:       http://hledger.org
+bug-reports:    http://bugs.hledger.org
+author:         Simon Michael <simon@joyful.com>
+maintainer:     Simon Michael <simon@joyful.com>
+license:        GPL
+build-type:     Simple
+cabal-version:  >= 1.10
+
+extra-source-files:
+    CHANGES
+
+source-repository head
+  type: git
+  location: https://github.com/simonmichael/hledger
+
+executable hledger-api
+  main-is: hledger-api.hs
+  ghc-options: -threaded
+  cpp-options: -DVERSION="0.27.98"
+  build-depends:
+      hledger-lib == 0.27
+    , hledger == 0.27
+    , base               >= 4 && < 5
+  default-language: Haskell2010
