@@ -347,7 +347,9 @@ addform _ vd@VD{..} = [hamlet|
     ^{postingfields vd n}
   <span style="padding-left:2em;">
    <span .small>
-     Tab in last field for <a .small href="#" onclick="addformAddPosting(); return false;">more</a> (or ctrl +, ctrl -)
+     Tab in last field for
+     <a href="#" onclick="addformAddPosting(); return false;">more
+     (or ctrl +, ctrl -)
 |]
  where
   defdate = "today" :: String
