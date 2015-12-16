@@ -260,3 +260,8 @@ tr.firstposting td          { }
 .twitter-typeahead {
   width:100%;
 }
+
+code {
+  font-weight: bold;
+  color: black;
+}
