@@ -128,8 +128,8 @@ instance Yesod App where
             addStylesheet $ StaticR css_bootstrap_min_css
              -- load these things early, in HEAD:
             toWidgetHead [hamlet|
-                          <script type="text/javascript" src="@{StaticR js_jquery_min_js}"></script>
-                          <script type="text/javascript" src="@{StaticR js_typeahead_bundle_min_js}"></script>
+                          <script type="text/javascript" src="@{StaticR js_jquery_min_js}">
+                          <script type="text/javascript" src="@{StaticR js_typeahead_bundle_min_js}">
                          |]
             addScript $ StaticR js_bootstrap_min_js
             -- addScript $ StaticR js_typeahead_bundle_min_js
