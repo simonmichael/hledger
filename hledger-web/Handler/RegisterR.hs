@@ -73,8 +73,9 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, newd, newm, _, (torig, tacct, split, acct, amt, bal)) = [hamlet|
 
-<tr ##{date} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show torig}" style="vertical-align:top;">
- <td.date><a href="@{JournalR}##{date}">#{date}
+<tr ##{tindex torig} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show torig}" style="vertical-align:top;">
+ <td.date>
+  <a href="@{JournalR}##{tindex torig}">#{date}
  <td.description title="#{show torig}">#{elideRight 30 desc}
  <td.account>#{elideRight 40 acct}
  <td.amount style="text-align:right; white-space:nowrap;">
@@ -119,7 +120,7 @@ registerChartHtml percommoditytxnreports =
           $forall i <- reverse items
            [
             #{dayToJsTimestamp $ triDate i},
-            #{simpleMixedAmountQuantity $ triCommodityBalance c i},
+            #{simpleMixedAmountQuantity $ triCommodityBalance c i}
            ],
           /* [] */
         ],
@@ -145,6 +146,7 @@ registerChartHtml percommoditytxnreports =
             '#{showMixedAmountWithZeroCommodity $ triCommodityAmount c i}',
             '#{showMixedAmountWithZeroCommodity $ triCommodityBalance c i}',
             '#{concat $ intersperse "\\n" $ lines  $ show $ triOrigTransaction i}',
+            #{tindex $ triOrigTransaction i}
            ],
           /* [] */
         ],

@@ -113,13 +113,12 @@ function registerChart($container, series) {
 
 function registerChartClick(ev, pos, item) {
   if (item) {
-    var date = $.plot.dateGenerator(item.datapoint[0], {});
-    var dateid = $.plot.formatDate(date, '%Y-%m-%d');
-    $target = $('#'+dateid);
-    if ($target.length)
+    $target = $('#'+item.series.data[item.dataIndex][5]);
+    if ($target.length) {
       $('html, body').animate({
         scrollTop: $target.offset().top
       }, 1000);
+    }
   }
 }
 

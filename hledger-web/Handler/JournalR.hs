@@ -60,7 +60,7 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
 -- .#{datetransition}
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, _, _, _, (t, _, split, _, amt, _)) = [hamlet|
-<tr ##{date} .item.#{evenodd}.#{firstposting} style="vertical-align:top;" title="#{show t}">
+<tr ##{tindex t} .item.#{evenodd}.#{firstposting} style="vertical-align:top;" title="#{show t}">
  <td.date>#{date}
  <td.description colspan=2>#{elideRight 60 desc}
  <td.amount style="text-align:right;">
@@ -72,7 +72,7 @@ $forall p' <- tpostings t
   <td.description>
   <td.account>
    &nbsp;
-   <a href="@?{acctlink (paccount p')}##{date}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
+   <a href="@?{acctlink (paccount p')}##{tindex t}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
   <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
 <tr.#{evenodd}>
  <td>&nbsp;
