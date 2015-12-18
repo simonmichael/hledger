@@ -8,7 +8,7 @@ body                                                                 { backgroun
 .registerreport .odd                                                 { background-color:#ded; }
 /* .transactionsreport .odd                                             { background-color:#eee; } */
 .filtering                                                           { background-color:#e0e0e0; }
-a:link, a:visited { color:#00e; }
+a:link, a:visited { color:#00e !important; }
 /* a:link:hover, a:visited:hover { color:red; } */
 /* #main                                                                { border-color:#e0e0e0; } see below */
 /* .journalreport td                                                    { border-color:thin solid #e0e0e0; } see below */
