@@ -92,10 +92,6 @@ extra-source-files:
       static/js/typeahead.bundle.min.js
       templates/default-layout-wrapper.hamlet
       templates/default-layout.hamlet
-      templates/homepage.hamlet
-      templates/homepage.julius
-      templates/homepage.lucius
-      templates/normalize.lucius
 
 source-repository head
     type: git

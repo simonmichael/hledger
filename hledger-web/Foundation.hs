@@ -124,7 +124,6 @@ instance Yesod App where
     --     hamletToRepHtml $(hamletFile "templates/default-layout-wrapper.hamlet")
 
         pc <- widgetToPageContent $ do
-            $(widgetFile "normalize")
             addStylesheet $ StaticR css_bootstrap_min_css
              -- load these things early, in HEAD:
             toWidgetHead [hamlet|
