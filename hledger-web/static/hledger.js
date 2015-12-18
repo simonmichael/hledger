@@ -31,6 +31,10 @@ $(document).ready(function() {
   if (window.location.hash && $(window.location.hash)[0]) {
     $(window.location.hash).addClass('highlighted');
   }
+  $(window).on('hashchange', function(event) {
+    $('.highlighted').removeClass('highlighted');
+    $(window.location.hash).addClass('highlighted');
+  });
 });
 
 //----------------------------------------------------------------------
@@ -99,8 +103,10 @@ function registerChart($container, series) {
 
 function registerChartClick(ev, pos, item) {
   if (item) {
-    $target = $('#'+item.series.data[item.dataIndex][5]);
+    targetselector = '#'+item.series.data[item.dataIndex][5];
+    $target = $(targetselector);
     if ($target.length) {
+      window.location.hash = targetselector;
       $('html, body').animate({
         scrollTop: $target.offset().top
       }, 1000);
