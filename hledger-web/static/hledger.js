@@ -36,58 +36,39 @@ function registerChart($container, series) {
   return $container.plot(
     series,
     { /* general chart options */
-      // series: {
-      // },
-      // yaxis: {
-      //   /* ticks: 6, */
-      // },
       xaxis: {
         mode: "time",
         timeformat: "%Y/%m/%d"
-        /* ticks: 6, */
+      },
+      legend: {
+        position: 'sw'
       },
       grid: {
         markings:
          function (axes) {
           var now = Date.now();
           var markings = [
-            // {
-            //   xaxis: { to: now },        // past
-            //   yaxis: { from: 0, to: 0 }, // =0
-            //  color: '#d88',
-            //  lineWidth:1
-            // },
             {
               xaxis: { to: now }, // past
               yaxis: { to: 0 },   // <0
               color: '#ffdddd',
             },
-
-            // {
-            //   xaxis: { from: now, to: now }, // now
-            //  color: '#bbb',
-            // },
-
             {
               xaxis: { from: now }, // future
               yaxis: { from: 0 },   // >0
-              // color: '#dddddd',
               color: '#e0e0e0',
             },
             {
               xaxis: { from: now }, // future
               yaxis: { to: 0 },     // <0
-              // color: '#ddbbbb',
               color: '#e8c8c8',
             },
             {
-              // xaxis: { from: now },      // future
               yaxis: { from: 0, to: 0 }, // =0
               color: '#bb0000',
               lineWidth:1
             },
           ];
-          // console.log(markings);
           return markings;
         },
         hoverable: true,
@@ -253,33 +234,20 @@ function addformDeletePosting() {
 // SIDEBAR
 
 function sidebarToggle() {
-  //console.log('sidebarToggle');
   var visible = $('#sidebar').is(':visible');
-  //console.log('sidebar visibility was',visible);
   // if opening sidebar, start an ajax fetch of its content
   if (!visible) {
-    //console.log('getting sidebar content');
     $.get("sidebar"
          ,null
          ,function(data) {
-            //console.log( "success" );
             $("#sidebar-body" ).html(data);
           })
-          .done(function() {
-            //console.log( "success 2" );
-          })
           .fail(function() {
-            //console.log( "error" );
+            alert("Loading the sidebar did fail");
           });
   }
-  // localStorage.setItem('sidebarVisible', !visible);
   // set a cookie to communicate the new sidebar state to the server
   $.cookie('showsidebar', visible ? '0' : '1');
-  // horizontally slide the sidebar in or out
-  // how to make it smooth, without delayed content pop-in ?
-  //$('#sidebar').animate({'width': 'toggle'});
-  //$('#sidebar').animate({'width': visible ? 'hide' : '+=20m'});
-  //$('#sidebar-spacer').width(200);
   $('#sidebar').animate({'width': visible ? 'hide' : 'show'});
 }
 
