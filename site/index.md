@@ -72,7 +72,7 @@ tr {
 .indent1 { margin:0 10em 0  5em; }
 .indent2 { margin:0  5em 0 10em; }
 .indent3 { margin:0    0 0 15em; }
-/*div.asciicast { float:right; }*/
+/*div.asciicast { float:right; height:200px; }*/
 </style>
 
 <h1 style="font-size:6em;">hledger</h1>
@@ -139,6 +139,7 @@ various kinds, without changing your data. (It can help you add new
 transactions, but does not change existing ones.)
 </div>
 
+<a name="and-a-console-ui"></a>
 <div class="indent1">
 ### a console UI
 
@@ -146,7 +147,7 @@ transactions, but does not change existing ones.)
 hledger also provides a curses-style [console&nbsp;interface](manual#ui)
 that lets you review account balances and transactions with fewer
 keystrokes and less effort.
-<script type="text/javascript" data-t="12" data-autoplay=0 src="https://asciinema.org/a/29665.js" id="asciicast-29665" async></script>
+<script type="text/javascript" data-t="9" data-autoplay=0 src="https://asciinema.org/a/29665.js" id="asciicast-29665" async></script>
 </div>
 
 <div class="indent2">
