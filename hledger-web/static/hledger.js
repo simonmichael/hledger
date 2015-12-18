@@ -26,6 +26,11 @@ $(document).ready(function() {
   $('body, #addform input, #addform select').bind('keydown', 'ctrl+-',       addformDeletePosting);
   $('#addform tr.posting:last > td:first input').bind('keydown', 'tab', addformAddPostingWithTab);
 
+
+  // highlight the entry from the url hash
+  if (window.location.hash && $(window.location.hash)[0]) {
+    $(window.location.hash).addClass('highlighted');
+  }
 });
 
 //----------------------------------------------------------------------

@@ -60,25 +60,26 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
 -- .#{datetransition}
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
-<tr ##{tindex torig} .item.#{evenodd}.#{firstposting} style="vertical-align:top;" title="#{show torig}">
- <td.date>#{date}
- <td.description colspan=2>#{elideRight 60 desc}
- <td.amount style="text-align:right;">
-  $if showamt
-   \#{mixedAmountAsHtml amt}
-$forall p' <- tpostings torig
- <tr .item.#{evenodd}.posting title="#{show torig}">
-  <td.date>
-  <td.description>
-  <td.account>
-   &nbsp;
-   <a href="@?{acctlink (paccount p')}##{tindex torig}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
-  <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
-<tr.#{evenodd}>
- <td>&nbsp;
- <td>
- <td>
- <td>
+<tbody ##{tindex torig}>
+  <tr .item.#{evenodd}.#{firstposting} style="vertical-align:top;" title="#{show torig}">
+   <td.date>#{date}
+   <td.description colspan=2>#{elideRight 60 desc}
+   <td.amount style="text-align:right;">
+    $if showamt
+     \#{mixedAmountAsHtml amt}
+  $forall p' <- tpostings torig
+   <tr .item.#{evenodd}.posting title="#{show torig}">
+    <td.date>
+    <td.description>
+    <td.account>
+     &nbsp;
+     <a href="@?{acctlink (paccount p')}##{tindex torig}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
+    <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
+  <tr.#{evenodd}>
+   <td>&nbsp;
+   <td>
+   <td>
+   <td>
 |]
      where
        acctlink a = (RegisterR, [("q", pack $ accountQuery a)])
