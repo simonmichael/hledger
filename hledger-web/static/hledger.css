@@ -128,6 +128,9 @@ tr td:first-child { padding-left:0.3em; }
 .amount, .balance { width:2em; }  /* minimise width */
 .positive                   { }
 
+td.balance, td.numpostings {
+  text-align: right;
+}
 /* table.transactionsreport         { border-spacing: 0; } */
 /* .transactionsreport td           {  } */
 /* .transactionsreport pre          { margin-top:0; } */
