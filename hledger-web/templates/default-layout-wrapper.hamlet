@@ -61,11 +61,11 @@ $newline never
                     <p>
                       <b>Keyboard shortcuts
                       <ul>
-                        <li> <b><tt>h</tt></b> or maybe <b><tt>?</tt></b> - view this help (escape or click to exit)
-                        <li> <b><tt>j</tt></b> - go to the Journal view (home)
-                        <li> <b><tt>a</tt></b> - add a transaction (escape to cancel)
-                        <li> <b><tt>s</tt></b> - toggle sidebar
-                        <li> <b><tt>f</tt></b> - focus search form ("find")
+                        <li> <code>h</code> or maybe <code>?</code> - view this help (escape or click to exit)
+                        <li> <code>j</code> - go to the Journal view (home)
+                        <li> <code>a</code> - add a transaction (escape to cancel)
+                        <li> <code>s</code> - toggle sidebar
+                        <li> <code>f</code> - focus search form ("find")
                     <p>
                       <b>General
                       <ul>
@@ -79,19 +79,19 @@ $newline never
                     <p>
                       <b>Search
                       <ul>
-                        <li> <b><tt>acct:REGEXP</tt></b> - filter on to/from account
-                        <li> <b><tt>desc:REGEXP</tt></b> - filter on description
-                        <li> <b><tt>date:PERIODEXP</tt></b>, <b><tt>date2:PERIODEXP</tt></b> - filter on date or secondary date
-                        <li> <b><tt>code:REGEXP</tt></b> - filter on transaction's code (eg check number)
-                        <li> <b><tt>status:*</tt></b>, <b><tt>status:!</tt></b>, <b><tt>status:</tt></b> - filter on transaction's cleared status (cleared, pending, uncleared)
-                        <!-- <li> <b><tt>empty:BOOL</tt></b> - filter on whether amount is zero -->
-                        <li> <b><tt>amt:N</tt></b>, <b><tt>amt:&lt;N</tt></b>, <b><tt>amt:&gt;N</tt></b> - filter on the unsigned amount magnitude. Or with a sign before N, filter on the signed value. (Single-commodity amounts only.)
-                        <li> <b><tt>cur:REGEXP</tt></b> - filter on the currency/commodity symbol (must match all of it). Dollar sign must be written as <tt>\$</tt>
-                        <li> <b><tt>tag:NAME</tt></b>, <b><tt>tag:NAME=REGEX</tt></b> - filter on tag name, or tag name and value
-                        <!-- <li> <b><tt>depth:N</tt></b> - filter out accounts below this depth -->
-                        <li> <b><tt>real:BOOL</tt></b> - filter on postings' real/virtual-ness
+                        <li> <code>acct:REGEXP</code> - filter on to/from account
+                        <li> <code>desc:REGEXP</code> - filter on description
+                        <li> <code>date:PERIODEXP</code>, <code>date2:PERIODEXP</code> - filter on date or secondary date
+                        <li> <code>code:REGEXP</code> - filter on transaction's code (eg check number)
+                        <li> <code>status:*</code>, <code>status:!</code>, <code>status:</code> - filter on transaction's cleared status (cleared, pending, uncleared)
+                        <!-- <li> <code>empty:BOOL</code> - filter on whether amount is zero -->
+                        <li> <code>amt:N</code>, <code>amt:&lt;N</code>, <code>amt:&gt;N</code> - filter on the unsigned amount magnitude. Or with a sign before N, filter on the signed value. (Single-commodity amounts only.)
+                        <li> <code>cur:REGEXP</code> - filter on the currency/commodity symbol (must match all of it). Dollar sign must be written as <code>\$</code>
+                        <li> <code>tag:NAME</code>, <code>tag:NAME=REGEX</code> - filter on tag name, or tag name and value
+                        <!-- <li> <code>depth:N</code> - filter out accounts below this depth -->
+                        <li> <code>real:BOOL</code> - filter on postings' real/virtual-ness
                         <li> Enclose search patterns containing spaces in single or double quotes
-                        <li> Prepend <b><tt>not:</tt></b> to negate a search term
+                        <li> Prepend <code>not:</code> to negate a search term
                         <li> Multiple search terms on different fields are AND'ed, multiple search terms on the same field are OR'ed
                         <li> These search terms also work with command-line hledger
 

@@ -138,7 +138,7 @@ searchform VD{..} = [hamlet|
 --   <tr#addbuttonrow>
 --    <td>
 --     <span.help>^{formathelp}
---    <td align=right>
+--    <td>
 --     <span.help>
 --      Are you sure ? This will overwrite the journal. #
 --     <input type=hidden name=action value=edit>
@@ -193,7 +193,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
    <td colspan=2>
   <tr>
    <td>
-   <td.balance align=right>#{mixedAmountAsHtml total}
+   <td.balance>#{mixedAmountAsHtml total}
 |]
  where
    l = ledgerFromJournal Any j
@@ -210,11 +210,11 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
      &nbsp;
      <a href="@?{acctonlyquery}" title="Show transactions affecting this account but not subaccounts">only
 
- <td.balance align=right>#{mixedAmountAsHtml abal}
+ <td.balance>#{mixedAmountAsHtml abal}
 |]
      where
        hassubs = not $ maybe False (null.asubs) $ ledgerAccount l acct
- -- <td.numpostings align=right title="#{numpostings} transactions in this account">(#{numpostings})
+ -- <td.numpostings title="#{numpostings} transactions in this account">(#{numpostings})
        -- numpostings = maybe 0 (length.apostings) $ ledgerAccount l acct
        depthclass = "depth"++show aindent
        inacctclass = case inacctmatcher of

@@ -35,7 +35,7 @@ getJournalR = do
   hledgerLayout vd "journal" [hamlet|
        <h2#contenttitle>#{title}
        <!-- p>Journal entries record movements of commodities between accounts. -->
-       <a#addformlink role="button" style="cursor:pointer;" onClick="addformReset(true);" data-toggle="modal" data-target="#addmodal"  title="Add a new transaction to the journal" style="margin-top:1em;">Add a transaction
+       <a#addformlink role="button" style="cursor:pointer; margin-top:1em;" onClick="addformReset(true);" data-toggle="modal" data-target="#addmodal"  itle="Add a new transaction to the journal" >Add a transaction
        ^{maincontent}
      |]
 
@@ -59,26 +59,27 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
  where
 -- .#{datetransition}
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml VD{..} (n, _, _, _, (t, _, split, _, amt, _)) = [hamlet|
-<tr ##{date} .item.#{evenodd}.#{firstposting} style="vertical-align:top;" title="#{show t}">
- <td.date>#{date}
- <td.description colspan=2>#{elideRight 60 desc}
- <td.amount style="text-align:right;">
-  $if showamt
-   \#{mixedAmountAsHtml amt}
-$forall p' <- tpostings t
- <tr .item.#{evenodd}.posting title="#{show t}">
-  <td.date>
-  <td.description>
-  <td.account>
-   &nbsp;
-   <a href="@?{acctlink (paccount p')}##{date}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
-  <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
-<tr.#{evenodd}>
- <td>&nbsp;
- <td>
- <td>
- <td>
+   itemAsHtml VD{..} (n, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
+<tbody ##{tindex torig}>
+  <tr .item.#{evenodd}.#{firstposting} style="vertical-align:top;" title="#{show torig}">
+   <td.date>#{date}
+   <td.description colspan=2>#{elideRight 60 desc}
+   <td.amount style="text-align:right;">
+    $if showamt
+     \#{mixedAmountAsHtml amt}
+  $forall p' <- tpostings torig
+   <tr .item.#{evenodd}.posting title="#{show torig}">
+    <td.date>
+    <td.description>
+    <td.account>
+     &nbsp;
+     <a href="@?{acctlink (paccount p')}##{tindex torig}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
+    <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
+  <tr.#{evenodd}>
+   <td>&nbsp;
+   <td>
+   <td>
+   <td>
 |]
      where
        acctlink a = (RegisterR, [("q", pack $ accountQuery a)])
@@ -86,7 +87,7 @@ $forall p' <- tpostings t
        -- datetransition | newm = "newmonth"
        --                | newd = "newday"
        --                | otherwise = "" :: String
-       (firstposting, date, desc) = (False, show $ tdate t, tdescription t)
+       (firstposting, date, desc) = (False, show $ tdate torig, tdescription torig)
        -- acctquery = (here, [("q", pack $ accountQuery acct)])
        showamt = not split || not (isZeroMixedAmount amt)
 

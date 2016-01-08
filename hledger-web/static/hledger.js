@@ -26,6 +26,15 @@ $(document).ready(function() {
   $('body, #addform input, #addform select').bind('keydown', 'ctrl+-',       addformDeletePosting);
   $('#addform tr.posting:last > td:first input').bind('keydown', 'tab', addformAddPostingWithTab);
 
+
+  // highlight the entry from the url hash
+  if (window.location.hash && $(window.location.hash)[0]) {
+    $(window.location.hash).addClass('highlighted');
+  }
+  $(window).on('hashchange', function(event) {
+    $('.highlighted').removeClass('highlighted');
+    $(window.location.hash).addClass('highlighted');
+  });
 });
 
 //----------------------------------------------------------------------
@@ -36,58 +45,39 @@ function registerChart($container, series) {
   return $container.plot(
     series,
     { /* general chart options */
-      // series: {
-      // },
-      // yaxis: {
-      //   /* ticks: 6, */
-      // },
       xaxis: {
         mode: "time",
         timeformat: "%Y/%m/%d"
-        /* ticks: 6, */
+      },
+      legend: {
+        position: 'sw'
       },
       grid: {
         markings:
          function (axes) {
           var now = Date.now();
           var markings = [
-            // {
-            //   xaxis: { to: now },        // past
-            //   yaxis: { from: 0, to: 0 }, // =0
-            //  color: '#d88',
-            //  lineWidth:1
-            // },
             {
               xaxis: { to: now }, // past
               yaxis: { to: 0 },   // <0
               color: '#ffdddd',
             },
-
-            // {
-            //   xaxis: { from: now, to: now }, // now
-            //  color: '#bbb',
-            // },
-
             {
               xaxis: { from: now }, // future
               yaxis: { from: 0 },   // >0
-              // color: '#dddddd',
               color: '#e0e0e0',
             },
             {
               xaxis: { from: now }, // future
               yaxis: { to: 0 },     // <0
-              // color: '#ddbbbb',
               color: '#e8c8c8',
             },
             {
-              // xaxis: { from: now },      // future
               yaxis: { from: 0, to: 0 }, // =0
               color: '#bb0000',
               lineWidth:1
             },
           ];
-          // console.log(markings);
           return markings;
         },
         hoverable: true,
@@ -113,13 +103,14 @@ function registerChart($container, series) {
 
 function registerChartClick(ev, pos, item) {
   if (item) {
-    var date = $.plot.dateGenerator(item.datapoint[0], {});
-    var dateid = $.plot.formatDate(date, '%Y-%m-%d');
-    $target = $('#'+dateid);
-    if ($target.length)
+    targetselector = '#'+item.series.data[item.dataIndex][5];
+    $target = $(targetselector);
+    if ($target.length) {
+      window.location.hash = targetselector;
       $('html, body').animate({
         scrollTop: $target.offset().top
       }, 1000);
+    }
   }
 }
 
@@ -254,33 +245,20 @@ function addformDeletePosting() {
 // SIDEBAR
 
 function sidebarToggle() {
-  //console.log('sidebarToggle');
   var visible = $('#sidebar').is(':visible');
-  //console.log('sidebar visibility was',visible);
   // if opening sidebar, start an ajax fetch of its content
   if (!visible) {
-    //console.log('getting sidebar content');
     $.get("sidebar"
          ,null
          ,function(data) {
-            //console.log( "success" );
             $("#sidebar-body" ).html(data);
           })
-          .done(function() {
-            //console.log( "success 2" );
-          })
           .fail(function() {
-            //console.log( "error" );
+            alert("Loading the sidebar did fail");
           });
   }
-  // localStorage.setItem('sidebarVisible', !visible);
   // set a cookie to communicate the new sidebar state to the server
   $.cookie('showsidebar', visible ? '0' : '1');
-  // horizontally slide the sidebar in or out
-  // how to make it smooth, without delayed content pop-in ?
-  //$('#sidebar').animate({'width': 'toggle'});
-  //$('#sidebar').animate({'width': visible ? 'hide' : '+=20m'});
-  //$('#sidebar-spacer').width(200);
   $('#sidebar').animate({'width': visible ? 'hide' : 'show'});
 }
 

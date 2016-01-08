@@ -124,12 +124,11 @@ instance Yesod App where
     --     hamletToRepHtml $(hamletFile "templates/default-layout-wrapper.hamlet")
 
         pc <- widgetToPageContent $ do
-            $(widgetFile "normalize")
             addStylesheet $ StaticR css_bootstrap_min_css
              -- load these things early, in HEAD:
             toWidgetHead [hamlet|
-                          <script type="text/javascript" src="@{StaticR js_jquery_min_js}"></script>
-                          <script type="text/javascript" src="@{StaticR js_typeahead_bundle_min_js}"></script>
+                          <script type="text/javascript" src="@{StaticR js_jquery_min_js}">
+                          <script type="text/javascript" src="@{StaticR js_typeahead_bundle_min_js}">
                          |]
             addScript $ StaticR js_bootstrap_min_js
             -- addScript $ StaticR js_typeahead_bundle_min_js
@@ -347,7 +346,9 @@ addform _ vd@VD{..} = [hamlet|
     ^{postingfields vd n}
   <span style="padding-left:2em;">
    <span .small>
-     Tab in last field for <a .small href="#" onclick="addformAddPosting(); return false;">more</a> (or ctrl +, ctrl -)
+     Tab in last field for
+     <a href="#" onclick="addformAddPosting(); return false;">more
+     (or ctrl +, ctrl -)
 |]
  where
   defdate = "today" :: String

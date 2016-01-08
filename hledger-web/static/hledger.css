@@ -8,7 +8,7 @@ body                                                                 { backgroun
 .registerreport .odd                                                 { background-color:#ded; }
 /* .transactionsreport .odd                                             { background-color:#eee; } */
 .filtering                                                           { background-color:#e0e0e0; }
-a:link, a:visited { color:#00e; }
+a:link, a:visited { color:#00e !important; }
 /* a:link:hover, a:visited:hover { color:red; } */
 /* #main                                                                { border-color:#e0e0e0; } see below */
 /* .journalreport td                                                    { border-color:thin solid #e0e0e0; } see below */
@@ -25,6 +25,9 @@ a:link, a:visited { color:#00e; }
 #editform textarea                                                   { background-color:#eee; }
 .negative                                                            { color:#800; }
 .help                                                                {  }
+.highlighted {
+  background-color: #F4F466 !important;
+}
 
 #sidebar .hoverlinks { visibility:hidden; }
 /* #sidebar .mouseover { background-color:rgba(208,208,208,0.5); } */
@@ -119,10 +122,15 @@ body                        { margin:0; }
 .description                { padding-left:1em; white-space:normal; }
 .account                    { padding-left:1em; white-space:normal; }
 .amount                     { padding-left:1em; white-space:nowrap; }
-.balance                    { padding-left:1em; padding-right:0.3em; white-space:nowrap; }
+.balance                    { padding-left:1em; white-space:nowrap; }
+tr td:last-child { padding-right:0.3em; }
+tr td:first-child { padding-left:0.3em; }
 .amount, .balance { width:2em; }  /* minimise width */
 .positive                   { }
 
+td.balance, td.numpostings {
+  text-align: right;
+}
 /* table.transactionsreport         { border-spacing: 0; } */
 /* .transactionsreport td           {  } */
 /* .transactionsreport pre          { margin-top:0; } */
@@ -259,4 +267,9 @@ tr.firstposting td          { }
 
 .twitter-typeahead {
   width:100%;
+}
+
+code {
+  font-weight: bold;
+  color: black;
 }
