@@ -27,7 +27,7 @@ cabal-version:  >= 1.10
 
 extra-source-files:
     CHANGES
-    examples/01-hello.html
+    examples/01-accounts.html
 
 source-repository head
   type: git
