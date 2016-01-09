@@ -34,7 +34,7 @@ bug-reports : http://bugs.hledger.org
             
 extra-source-files:
   - CHANGES
-  - examples/
+  - examples/*.html
 
 # XXX not supported
 # flag threaded

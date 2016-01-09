@@ -21,11 +21,13 @@ bug-reports:    http://bugs.hledger.org
 author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL
+license-file:   LICENSE
 build-type:     Simple
 cabal-version:  >= 1.10
 
 extra-source-files:
     CHANGES
+    examples/01-hello.html
 
 source-repository head
   type: git
