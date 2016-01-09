@@ -38,7 +38,14 @@ executable hledger-api
   ghc-options: -threaded
   cpp-options: -DVERSION="0.27.98"
   build-depends:
-      hledger-lib == 0.27
-    , hledger == 0.27
-    , base               >= 4 && < 5
+      hledger-lib      == 0.27
+    , hledger          == 0.27
+    , base             >= 4 && < 5
+    , aeson
+    , either
+    , servant-server
+    , text
+    , transformers
+    , wai
+    , warp
   default-language: Haskell2010

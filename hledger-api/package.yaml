@@ -150,7 +150,14 @@ executables:
     # source-dirs: app
     main: hledger-api.hs
     dependencies:
-      - hledger-lib == 0.27
-      - hledger == 0.27
-      - base               >= 4 && < 5
+      - hledger-lib      == 0.27
+      - hledger          == 0.27
+      - base             >= 4 && < 5
+      - aeson
+      - either
+      - servant-server
+      - text
+      - transformers
+      - wai
+      - warp
 
