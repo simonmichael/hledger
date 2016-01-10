@@ -154,6 +154,7 @@ executables:
       - hledger          == 0.27
       - base             >= 4 && < 5
       - aeson
+      - containers
       - Decimal
       - docopt
       - either

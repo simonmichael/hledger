@@ -16,6 +16,7 @@ import           Control.Monad.Trans.Either
 import           Control.Monad.Trans.Reader
 import           Data.Aeson
 import           Data.Decimal
+import qualified Data.Map as M
 import           Data.Monoid
 import           Data.Proxy
 import           Data.Text
@@ -26,11 +27,11 @@ import           Safe
 import           Servant
 import           System.Console.Docopt
 import           System.Environment (getArgs)
+import           System.Exit
 import           System.IO
 import           Text.Printf
 
 import Hledger.Cli hiding (Reader, version)
-import System.Exit
 
 version="0.27.98"
 
@@ -45,6 +46,7 @@ Usage:
 
 Options:
   -f --file FILE  use a different input file
+                  (default: $LEDGER_FILE or ~/.hledger.journal)
   -p --port PORT  use a different TCP port (default: 8001)
      --version    show version
   -h --help       show this help
@@ -64,15 +66,9 @@ main = do
   requireJournalFileExists f
   readJournalFile Nothing Nothing True f >>= either error' (serveApi f p)
 
--- serveApi :: CliOpts -> Journal -> IO ()
 serveApi :: FilePath -> Int -> Journal -> IO ()
 serveApi f p j = do
-  -- d <- getCurrentDay
-  -- let j' =
-  --       filterJournalTransactions (queryFromOpts d $ reportopts_ opts) $
-  --       journalApplyAliases (aliasesFromOpts opts) $
-  --       j
-  printf "Starting web api serving %s on port %d\nPress ctrl-c to quit\n" f p >> hFlush stdout
+  printf "Starting web api for %s on port %d\nPress ctrl-c to quit\n" f p >> hFlush stdout
   Warp.run p $ hledgerApiApp j
 
 hledgerApiApp :: Journal -> Wai.Application
@@ -88,18 +84,22 @@ hledgerApiApp j = Servant.serve hledgerApi hledgerApiServer
         readerToEither = Nat $ \r -> return (runReader r j)
 
 type HledgerApi =
-  "accounts" :> Get '[JSON] [AccountName]
-  :<|>
-  "transactions" :> Get '[JSON] [Transaction]
+       "accounts" :> Get '[JSON] [AccountName]
+  :<|> "transactions" :> Get '[JSON] [Transaction]
+  :<|> "prices" :> Get '[JSON] [MarketPrice]
+  :<|> "commodities" :> Get '[JSON] [Commodity]
 
 hledgerServerT :: ServerT HledgerApi (Reader Journal)
 hledgerServerT =
-  accountsH
-  :<|>
-  transactionsH
+       accountsH
+  :<|> transactionsH
+  :<|> pricesH
+  :<|> commoditiesH
   where
     accountsH = journalAccountNames <$> ask
     transactionsH = jtxns <$> ask
+    pricesH = jmarketprices <$> ask
+    commoditiesH = (M.keys . jcommoditystyles) <$> ask
 
 
 instance ToJSON ClearedStatus where toJSON = genericToJSON defaultOptions -- avoid https://github.com/bos/aeson/issues/290
@@ -110,6 +110,7 @@ instance ToJSON Side where toJSON = genericToJSON defaultOptions
 instance ToJSON DigitGroupStyle where toJSON = genericToJSON defaultOptions
 instance ToJSON MixedAmount where toJSON = genericToJSON defaultOptions
 instance ToJSON Price where toJSON = genericToJSON defaultOptions
+instance ToJSON MarketPrice where toJSON = genericToJSON defaultOptions
 instance ToJSON Posting
   where
     toJSON Posting{..} =
