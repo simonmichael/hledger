@@ -1,0 +1,88 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>hledger-api example 01</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+</head
+
+<body>
+  <table border=0 width="100%">
+    <tr valign="top">
+      <td width="50%">
+
+        <h2>Commodities</h2> 
+        <pre id="commodities"></pre>
+
+        <h2>Market Prices</h2> 
+        <pre id="prices"></pre>
+
+        <h2>Account names</h2> 
+        <pre id="accounts"></pre>
+
+      </td>
+      <td width="50%">
+
+        <h2>Transactions</h2> 
+        <pre id="transactions"></pre>
+
+      </td>
+    </tr>
+  </table>
+
+<script>
+
+$(document).ready(function(){
+
+  get('commodities', id);
+  get('prices', showMarketPrice);
+  get('accounts', id);
+  get('transactions', showTransaction);
+
+});
+
+function get(method, showfn) {
+  return $.ajax({
+    url: "http://localhost:8001/"+method,
+    context: document.body,
+    success: function(data){
+      $('#'+method).text(data.map(showfn).join('\n'));
+    },
+    error: function(jqXHR, textStatus, errorThrown){
+      alert('error');
+    }
+  });
+}
+
+function id(x){ return x; }
+
+function showAmount(a) {
+  return a.acommodity + a.aquantity;
+}
+
+function showMixedAmount(ma) {
+  return ma.map(showAmount).join(', ');
+}
+
+function showMarketPrice(mp) {
+  return mp.mpdate + ' ' + mp.mpcommodity + ' ' + showAmount(mp.mpamount);
+}
+
+function showPosting(p) {
+  return p.paccount + '  ' + showMixedAmount(p.pamount);
+}
+
+function showPostingLine(p) {
+  return '    ' + showPosting(p) + '\n';
+}
+
+function showTransaction(t) {
+  return (
+    t.tdate + ' ' + t.tdescription + '\n'
+    + t.tpostings.map(showPostingLine).join('')
+  );
+}
+
+</script>
+
+</body>
+</html>
