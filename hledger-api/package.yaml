@@ -154,7 +154,9 @@ executables:
       - hledger          == 0.27
       - base             >= 4 && < 5
       - aeson
+      - docopt
       - either
+      - safe
       - servant-server
       - text
       - transformers
