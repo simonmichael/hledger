@@ -5,6 +5,9 @@
 {-# LANGUAGE QuasiQuotes       #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
+-- {-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards   #-}
 
 module Main where
 
@@ -12,6 +15,7 @@ import           Control.Monad
 import           Control.Monad.Trans.Either
 import           Control.Monad.Trans.Reader
 import           Data.Aeson
+import           Data.Decimal
 import           Data.Monoid
 import           Data.Proxy
 import           Data.Text
@@ -85,12 +89,48 @@ hledgerApiApp j = Servant.serve hledgerApi hledgerApiServer
 
 type HledgerApi =
   "accounts" :> Get '[JSON] [AccountName]
+  :<|>
+  "transactions" :> Get '[JSON] [Transaction]
 
 hledgerServerT :: ServerT HledgerApi (Reader Journal)
 hledgerServerT =
   accountsH
+  :<|>
+  transactionsH
   where
-    accountsH = do
-      j <- ask
-      return $ journalAccountNames j
+    accountsH = journalAccountNames <$> ask
+    transactionsH = jtxns <$> ask
 
+
+instance ToJSON ClearedStatus where toJSON = genericToJSON defaultOptions -- avoid https://github.com/bos/aeson/issues/290
+instance ToJSON GenericSourcePos where toJSON = genericToJSON defaultOptions
+instance ToJSON Amount where toJSON = genericToJSON defaultOptions
+instance ToJSON AmountStyle where toJSON = genericToJSON defaultOptions
+instance ToJSON Side where toJSON = genericToJSON defaultOptions
+instance ToJSON DigitGroupStyle where toJSON = genericToJSON defaultOptions
+instance ToJSON MixedAmount where toJSON = genericToJSON defaultOptions
+instance ToJSON Price where toJSON = genericToJSON defaultOptions
+instance ToJSON Posting
+  where
+    toJSON Posting{..} =
+      object
+      ["pdate" .= toJSON pdate
+      ,"pdate2" .= toJSON pdate2
+      ,"pstatus" .= toJSON pstatus
+      ,"paccount" .= toJSON paccount
+      ,"pamount" .= toJSON pamount
+      ,"pcomment" .= toJSON pcomment
+      ,"ptype" .= toJSON ptype
+      ,"ptags" .= toJSON ptags
+      ,"pbalanceassertion" .= toJSON pbalanceassertion
+       -- just show parent transaction's index
+      ,"ptransaction" .= toJSON (maybe "" (show.tindex) ptransaction)
+      ]
+instance ToJSON PostingType where toJSON = genericToJSON defaultOptions
+instance ToJSON Transaction where toJSON = genericToJSON defaultOptions
+instance ToJSON Decimal
+  where
+    -- toJSON (Decimal decimalPlaces decimalMantissa) =
+    --   object ["places" .= decimalPlaces, "mantissa" .= decimalMantissa]
+    -- toEncoding = genericToEncoding defaultOptions
+    toJSON d = toJSON $ show d
