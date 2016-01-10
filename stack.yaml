@@ -9,10 +9,9 @@ packages:
 
 #flags:
 
-resolver: nightly-2015-11-04  # or newer
+resolver: lts-4.1  # or newer
 
-extra-deps:
-- uglymemo-0.1.0.1
+# extra-deps:
 
 # ghc-options:
 #   rtsopts:
