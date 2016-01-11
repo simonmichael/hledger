@@ -10,12 +10,15 @@
     <script src="libraries/angular-ui-router.min.js"></script>
     <script src="libraries/jquery-2.2.0.min.js"></script>
     <script src="hledger-client.js"></script>
+    <link type="text/css" rel="stylesheet" href="libraries/bootstrap/css/bootstrap.css">
   </head>
   <body class="container">
-    <div class="navbar">
-      <a ui-sref="accounts">Accounts</a>
-      <a ui-sref="help">Help</a>
-    </div>
+    <nav class="navbar">
+      <ul class="nav navbar-nav">
+        <li><a ui-sref="accounts">Accounts</a></li>
+        <li><a ui-sref="help">Help</a></li>
+      </ul>
+    </nav>
     <div ui-view></div>
     <footer>hleder-api-client</footer>
   </body>
