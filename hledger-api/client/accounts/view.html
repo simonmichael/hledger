@@ -1,7 +1,9 @@
 <div ng-controller="AccountsController as accountsList">
   <h2>Accounts</h2>
+  Search: <input ng-model="query"/>
   <ul class="unstyled">
-    <li ng-repeat="account in accountsList.acocunts">
+    {{accountsList.accounts}}
+    <li ng-repeat="account in accounts | filter: query">
       <a href="#/accounts/{{account.name}}/journal">{{account.name}}</a>
       <span class="balance">{{account.balance}}</span>
     </li>

@@ -8,9 +8,7 @@ hledger.config(function($stateProvider, $urlRouterProvider) {
     .state('accounts', {
       url: "/accounts",
       templateUrl: "accounts/view.html",
-      controller: function($scope) {
-        $scope.accounts = ["A", "List", "Of", "Items"];
-      }
+      controller: 'AccountsController'
     })
     .state('help', {
       url: "/help",
@@ -24,7 +22,7 @@ hledger.factory('Journal', function($resource) {
 
 hledger.controller("JournalController", function($scope, Journal) {
   Journal.query(function(data) {
-   $scope.journals = data;
+   $scope.journal = data;
   });
 });
 
