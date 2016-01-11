@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="hledger">
+  <head>
+    <meta charset="utf-8">  
+    <title>hledger</title>
+    <meta name="description" content="hledger">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="libraries/angular.min.js"></script>
+    <script src="libraries/angular-resource.min.js"></script>
+    <script src="libraries/angular-ui-router.min.js"></script>
+    <script src="libraries/jquery-2.2.0.min.js"></script>
+    <script src="hledger-client.js"></script>
+  </head>
+  <body class="container">
+    <div class="navbar">
+      <a ui-sref="accounts">Accounts</a>
+      <a ui-sref="help">Help</a>
+    </div>
+    <div ui-view></div>
+    <footer>hleder-api-client</footer>
+  </body>
+</html>
+

@@ -1,0 +1,9 @@
+<div ng-controller="AccountsController as accountsList">
+  <h2>Accounts</h2>
+  <ul class="unstyled">
+    <li ng-repeat="account in accountsList.acocunts">
+      <a href="#/accounts/{{account.name}}/journal">{{account.name}}</a>
+      <span class="balance">{{account.balance}}</span>
+    </li>
+  </ul>
+</div>
