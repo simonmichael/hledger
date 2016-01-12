@@ -1,0 +1,7 @@
+ul.accounts, ul.accounts ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+ul.accounts ul {
+  margin-left: 15px;
+}
