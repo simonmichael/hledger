@@ -69,7 +69,7 @@ executables:
       - hledger-lib >= 0.27 && < 0.28
       - base >= 3 && < 5
       - base-compat >= 0.8.1
-      - brick >= 0.2 && < 0.4
+      - brick >= 0.2 && < 0.5
       - cmdargs >= 0.8
       - containers
       - data-default
