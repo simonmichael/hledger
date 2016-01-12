@@ -1,6 +1,10 @@
 User-visible changes in hledger-ui.
 See also hledger's change log.
 
+0.27.3 (2016/1/12)
+
+- allow brick 0.4
+
 0.27.2 (2016/1/11)
 
 - allow brick 0.3.x
