@@ -98,9 +98,7 @@ This is a quick way to help the project and your fellow users!
     <!-- needed if you will be processing >50,000 transactions at once -->
 2. `stack setup`
     (if you need GHC installed. If you're not sure, run the next command and it will tell you.)
-3. `stack --resolver nightly-2015-11-04 install hledger [hledger-web]` \
-    <!-- `stack --resolver nightly-2015-11-02 install hledger-ui` (the curses-style interfaces; [not yet available on Windows](https://github.com/coreyoconnor/vty/pull/1); also installs the CLI), or\ -->
-    *2015/11/3: hledger-ui has [not yet reached stackage](https://github.com/fpco/stackage/issues/938); you must install it from source or with cabal, see below.*
+3. `stack --resolver lts-4 install hledger [hledger-ui] [hledger-web]`
 4. Ensure `~/.local/bin` or the Windows equivalent is in your `$PATH`,
    so that you can just type `hledger` to run it.
    (stack will show the proper directory and will tell you if it is not in $PATH).
