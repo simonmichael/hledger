@@ -8,10 +8,12 @@
 -- {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 
 module Main where
 
 import           Control.Monad
+import           Control.Monad.IO.Class
 import           Control.Monad.Trans.Either
 import           Control.Monad.Trans.Reader
 import           Data.Aeson
@@ -19,7 +21,7 @@ import           Data.Decimal
 import qualified Data.Map as M
 import           Data.Monoid
 import           Data.Proxy
-import           Data.Text hiding (map)
+import           Data.Text hiding (map,reverse)
 import           GHC.Generics
 import           Network.Wai as Wai
 import           Network.Wai.Handler.Warp as Warp
@@ -31,6 +33,7 @@ import           System.Exit
 import           System.IO
 import           Text.Printf
 
+import Hledger.Query
 import Hledger.Cli hiding (Reader, version)
 
 version="0.27.98"
@@ -90,6 +93,9 @@ type HledgerApi =
   :<|> "prices"       :> Get '[JSON] [MarketPrice]
   :<|> "commodities"  :> Get '[JSON] [Commodity]
   :<|> "accounts"     :> Get '[JSON] [Account]
+  :<|> "reports" :>
+       -- "accounttransactions" :> QueryParam "acct" AccountName :> Get '[JSON] AccountTransactionsReport
+       "accounttransactions" :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
 
 hledgerServerT :: ServerT HledgerApi (Reader Journal)
 hledgerServerT =
@@ -98,13 +104,24 @@ hledgerServerT =
   :<|> pricesH
   :<|> commoditiesH
   :<|> accountsH
+  :<|> accounttransactionsH
   where
     accountnamesH = journalAccountNames <$> ask
     transactionsH = jtxns <$> ask
     pricesH = jmarketprices <$> ask
     commoditiesH = (M.keys . jcommoditystyles) <$> ask
     accountsH = laccounts . ledgerFromJournal Hledger.Cli.Any <$> ask
-
+    accounttransactionsH (a::AccountName) = do
+      j <- ask
+      -- d <- liftIO getCurrentDay
+      let
+        ropts = defreportopts
+        -- ropts' = ropts {depth_=Nothing
+        --                ,balancetype_=HistoricalBalance
+        --                }
+        q = Hledger.Query.Any --filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
+        thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
+      return $ accountTransactionsReport ropts j q thisacctq
 
 instance ToJSON ClearedStatus where toJSON = genericToJSON defaultOptions -- avoid https://github.com/bos/aeson/issues/290
 instance ToJSON GenericSourcePos where toJSON = genericToJSON defaultOptions
@@ -151,3 +168,5 @@ instance ToJSON Account
       ,"asubs"        .= toJSON (map toJSON $ asubs a)
       ]
 
+
+instance ToJSON AccountTransactionsReport where toJSON = genericToJSON defaultOptions
