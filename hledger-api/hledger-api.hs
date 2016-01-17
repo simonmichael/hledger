@@ -82,7 +82,7 @@ hledgerApiApp j = Servant.serve hledgerApi hledgerApiServer
 
     -- add Reader to the server monad so handlers can see the journal
     hledgerApiServer :: Servant.Server HledgerApi
-    hledgerApiServer = Servant.enter readerToEither hledgerServerT
+    hledgerApiServer = Servant.enter readerToEither hledgerAPIServer
       where
         readerToEither :: Reader Journal :~> EitherT ServantErr IO
         readerToEither = Nat $ \r -> return (runReader r j)
@@ -94,11 +94,10 @@ type HledgerApi =
   :<|> "commodities"  :> Get '[JSON] [Commodity]
   :<|> "accounts"     :> Get '[JSON] [Account]
   :<|> "reports" :>
-       -- "accounttransactions" :> QueryParam "acct" AccountName :> Get '[JSON] AccountTransactionsReport
        "accounttransactions" :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
 
-hledgerServerT :: ServerT HledgerApi (Reader Journal)
-hledgerServerT =
+hledgerAPIServer :: ServerT HledgerApi (Reader Journal)
+hledgerAPIServer =
        accountnamesH
   :<|> transactionsH
   :<|> pricesH
@@ -123,8 +122,12 @@ hledgerServerT =
         thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
       return $ accountTransactionsReport ropts j q thisacctq
 
-instance ToJSON ClearedStatus where toJSON = genericToJSON defaultOptions -- avoid https://github.com/bos/aeson/issues/290
+-- brief toJSON definitions included to avoid https://github.com/bos/aeson/issues/290
+-- use toEncoding = genericToEncoding defaultOptions instead ?
+instance ToJSON ClearedStatus where toJSON = genericToJSON defaultOptions
 instance ToJSON GenericSourcePos where toJSON = genericToJSON defaultOptions
+instance ToJSON Decimal where
+  toJSON = toJSON . show
 instance ToJSON Amount where toJSON = genericToJSON defaultOptions
 instance ToJSON AmountStyle where toJSON = genericToJSON defaultOptions
 instance ToJSON Side where toJSON = genericToJSON defaultOptions
@@ -132,41 +135,31 @@ instance ToJSON DigitGroupStyle where toJSON = genericToJSON defaultOptions
 instance ToJSON MixedAmount where toJSON = genericToJSON defaultOptions
 instance ToJSON Price where toJSON = genericToJSON defaultOptions
 instance ToJSON MarketPrice where toJSON = genericToJSON defaultOptions
-instance ToJSON Posting
-  where
-    toJSON Posting{..} =
-      object
-      ["pdate"             .= toJSON pdate
-      ,"pdate2"            .= toJSON pdate2
-      ,"pstatus"           .= toJSON pstatus
-      ,"paccount"          .= toJSON paccount
-      ,"pamount"           .= toJSON pamount
-      ,"pcomment"          .= toJSON pcomment
-      ,"ptype"             .= toJSON ptype
-      ,"ptags"             .= toJSON ptags
-      ,"pbalanceassertion" .= toJSON pbalanceassertion
-      ,"ptransactionidx"   .= toJSON (maybe "" (show.tindex) ptransaction)
-      ]
 instance ToJSON PostingType where toJSON = genericToJSON defaultOptions
+instance ToJSON Posting where
+  toJSON Posting{..} =
+    object
+    ["pdate"             .= toJSON pdate
+    ,"pdate2"            .= toJSON pdate2
+    ,"pstatus"           .= toJSON pstatus
+    ,"paccount"          .= toJSON paccount
+    ,"pamount"           .= toJSON pamount
+    ,"pcomment"          .= toJSON pcomment
+    ,"ptype"             .= toJSON ptype
+    ,"ptags"             .= toJSON ptags
+    ,"pbalanceassertion" .= toJSON pbalanceassertion
+    ,"ptransactionidx"   .= toJSON (maybe "" (show.tindex) ptransaction)
+    ]
 instance ToJSON Transaction where toJSON = genericToJSON defaultOptions
-instance ToJSON Decimal
-  where
-    -- toJSON (Decimal decimalPlaces decimalMantissa) =
-    --   object ["places" .= decimalPlaces, "mantissa" .= decimalMantissa]
-    -- toEncoding = genericToEncoding defaultOptions
-    toJSON d = toJSON $ show d
-instance ToJSON Account
-  where
-    toJSON a =
-      object
-      ["aname"        .= toJSON (aname a)
-      ,"aebalance"    .= toJSON (aebalance a)
-      ,"aibalance"    .= toJSON (aibalance a)
-      ,"anumpostings" .= toJSON (anumpostings a)
-      ,"aboring"      .= toJSON (aboring a)
-      ,"aparentname"  .= toJSON (maybe "" aname $ aparent a)
-      ,"asubs"        .= toJSON (map toJSON $ asubs a)
-      ]
-
-
+instance ToJSON Account where
+  toJSON a =
+    object
+    ["aname"        .= toJSON (aname a)
+    ,"aebalance"    .= toJSON (aebalance a)
+    ,"aibalance"    .= toJSON (aibalance a)
+    ,"anumpostings" .= toJSON (anumpostings a)
+    ,"aboring"      .= toJSON (aboring a)
+    ,"aparentname"  .= toJSON (maybe "" aname $ aparent a)
+    ,"asubs"        .= toJSON (map toJSON $ asubs a)
+    ]
 instance ToJSON AccountTransactionsReport where toJSON = genericToJSON defaultOptions
