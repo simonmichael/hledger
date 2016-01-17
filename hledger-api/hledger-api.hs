@@ -19,7 +19,7 @@ import           Data.Decimal
 import qualified Data.Map as M
 import           Data.Monoid
 import           Data.Proxy
-import           Data.Text
+import           Data.Text hiding (map)
 import           GHC.Generics
 import           Network.Wai as Wai
 import           Network.Wai.Handler.Warp as Warp
@@ -68,7 +68,7 @@ main = do
 
 serveApi :: FilePath -> Int -> Journal -> IO ()
 serveApi f p j = do
-  printf "Starting web api for %s on port %d\nPress ctrl-c to quit\n" f p >> hFlush stdout
+  printf "Starting web api for %s on port %d\nPress ctrl-c to quit\n" f p
   Warp.run p $ hledgerApiApp j
 
 hledgerApiApp :: Journal -> Wai.Application
@@ -77,6 +77,7 @@ hledgerApiApp j = Servant.serve hledgerApi hledgerApiServer
     hledgerApi :: Proxy HledgerApi
     hledgerApi = Proxy
 
+    -- add Reader to the server monad so handlers can see the journal
     hledgerApiServer :: Servant.Server HledgerApi
     hledgerApiServer = Servant.enter readerToEither hledgerServerT
       where
@@ -84,22 +85,25 @@ hledgerApiApp j = Servant.serve hledgerApi hledgerApiServer
         readerToEither = Nat $ \r -> return (runReader r j)
 
 type HledgerApi =
-       "accounts" :> Get '[JSON] [AccountName]
+       "accountnames" :> Get '[JSON] [AccountName]
   :<|> "transactions" :> Get '[JSON] [Transaction]
-  :<|> "prices" :> Get '[JSON] [MarketPrice]
-  :<|> "commodities" :> Get '[JSON] [Commodity]
+  :<|> "prices"       :> Get '[JSON] [MarketPrice]
+  :<|> "commodities"  :> Get '[JSON] [Commodity]
+  :<|> "accounts"     :> Get '[JSON] [Account]
 
 hledgerServerT :: ServerT HledgerApi (Reader Journal)
 hledgerServerT =
-       accountsH
+       accountnamesH
   :<|> transactionsH
   :<|> pricesH
   :<|> commoditiesH
+  :<|> accountsH
   where
-    accountsH = journalAccountNames <$> ask
+    accountnamesH = journalAccountNames <$> ask
     transactionsH = jtxns <$> ask
     pricesH = jmarketprices <$> ask
     commoditiesH = (M.keys . jcommoditystyles) <$> ask
+    accountsH = laccounts . ledgerFromJournal Hledger.Cli.Any <$> ask
 
 
 instance ToJSON ClearedStatus where toJSON = genericToJSON defaultOptions -- avoid https://github.com/bos/aeson/issues/290
@@ -115,17 +119,16 @@ instance ToJSON Posting
   where
     toJSON Posting{..} =
       object
-      ["pdate" .= toJSON pdate
-      ,"pdate2" .= toJSON pdate2
-      ,"pstatus" .= toJSON pstatus
-      ,"paccount" .= toJSON paccount
-      ,"pamount" .= toJSON pamount
-      ,"pcomment" .= toJSON pcomment
-      ,"ptype" .= toJSON ptype
-      ,"ptags" .= toJSON ptags
+      ["pdate"             .= toJSON pdate
+      ,"pdate2"            .= toJSON pdate2
+      ,"pstatus"           .= toJSON pstatus
+      ,"paccount"          .= toJSON paccount
+      ,"pamount"           .= toJSON pamount
+      ,"pcomment"          .= toJSON pcomment
+      ,"ptype"             .= toJSON ptype
+      ,"ptags"             .= toJSON ptags
       ,"pbalanceassertion" .= toJSON pbalanceassertion
-       -- just show parent transaction's index
-      ,"ptransaction" .= toJSON (maybe "" (show.tindex) ptransaction)
+      ,"ptransactionidx"   .= toJSON (maybe "" (show.tindex) ptransaction)
       ]
 instance ToJSON PostingType where toJSON = genericToJSON defaultOptions
 instance ToJSON Transaction where toJSON = genericToJSON defaultOptions
@@ -135,3 +138,16 @@ instance ToJSON Decimal
     --   object ["places" .= decimalPlaces, "mantissa" .= decimalMantissa]
     -- toEncoding = genericToEncoding defaultOptions
     toJSON d = toJSON $ show d
+instance ToJSON Account
+  where
+    toJSON a =
+      object
+      ["aname"        .= toJSON (aname a)
+      ,"aebalance"    .= toJSON (aebalance a)
+      ,"aibalance"    .= toJSON (aibalance a)
+      ,"anumpostings" .= toJSON (anumpostings a)
+      ,"aboring"      .= toJSON (aboring a)
+      ,"aparentname"  .= toJSON (maybe "" aname $ aparent a)
+      ,"asubs"        .= toJSON (map toJSON $ asubs a)
+      ]
+
