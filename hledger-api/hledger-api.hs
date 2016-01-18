@@ -74,19 +74,6 @@ serveApi f p j = do
   printf "Starting web api for %s on port %d\nPress ctrl-c to quit\n" f p
   Warp.run p $ hledgerApiApp j
 
-hledgerApiApp :: Journal -> Wai.Application
-hledgerApiApp j = Servant.serve hledgerApi hledgerApiServer
-  where
-    hledgerApi :: Proxy HledgerApi
-    hledgerApi = Proxy
-
-    -- add Reader to the server monad so handlers can see the journal
-    hledgerApiServer :: Servant.Server HledgerApi
-    hledgerApiServer = Servant.enter readerToEither hledgerAPIServer
-      where
-        readerToEither :: Reader Journal :~> EitherT ServantErr IO
-        readerToEither = Nat $ \r -> return (runReader r j)
-
 type HledgerApi =
        "accountnames" :> Get '[JSON] [AccountName]
   :<|> "transactions" :> Get '[JSON] [Transaction]
@@ -95,32 +82,39 @@ type HledgerApi =
   :<|> "accounts"     :> Get '[JSON] [Account]
   :<|> "reports" :>
        "accounttransactions" :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
+  :<|> Raw
 
-hledgerAPIServer :: ServerT HledgerApi (Reader Journal)
-hledgerAPIServer =
-       accountnamesH
-  :<|> transactionsH
-  :<|> pricesH
-  :<|> commoditiesH
-  :<|> accountsH
-  :<|> accounttransactionsH
+hledgerApiApp :: Journal -> Wai.Application
+hledgerApiApp j = Servant.serve api server
   where
-    accountnamesH = journalAccountNames <$> ask
-    transactionsH = jtxns <$> ask
-    pricesH = jmarketprices <$> ask
-    commoditiesH = (M.keys . jcommoditystyles) <$> ask
-    accountsH = laccounts . ledgerFromJournal Hledger.Cli.Any <$> ask
-    accounttransactionsH (a::AccountName) = do
-      j <- ask
-      -- d <- liftIO getCurrentDay
-      let
-        ropts = defreportopts
-        -- ropts' = ropts {depth_=Nothing
-        --                ,balancetype_=HistoricalBalance
-        --                }
-        q = Hledger.Query.Any --filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
-        thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
-      return $ accountTransactionsReport ropts j q thisacctq
+    api :: Proxy HledgerApi
+    api = Proxy
+
+    server :: Server HledgerApi
+    server =
+           accountnamesH
+      :<|> transactionsH
+      :<|> pricesH
+      :<|> commoditiesH
+      :<|> accountsH
+      :<|> accounttransactionsH
+      :<|> serveDirectory "static"
+      where
+        accountnamesH = return $ journalAccountNames j
+        transactionsH = return $ jtxns j
+        pricesH       = return $ jmarketprices j
+        commoditiesH  = return $ (M.keys . jcommoditystyles) j
+        accountsH     = return $ laccounts $ ledgerFromJournal Hledger.Cli.Any j
+        accounttransactionsH (a::AccountName) = do
+          -- d <- liftIO getCurrentDay
+          let
+            ropts = defreportopts
+            -- ropts' = ropts {depth_=Nothing
+            --                ,balancetype_=HistoricalBalance
+            --                }
+            q = Hledger.Query.Any --filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
+            thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
+          return $ accountTransactionsReport ropts j q thisacctq
 
 -- brief toJSON definitions included to avoid https://github.com/bos/aeson/issues/290
 -- use toEncoding = genericToEncoding defaultOptions instead ?
