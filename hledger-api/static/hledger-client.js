@@ -17,7 +17,7 @@ function listToTree(list, id_field, parent_field) {
 }
 
 hledger.config(function($stateProvider, $urlRouterProvider) {
-  $urlRouterProvider.otherwise("/accounts");
+  //$urlRouterProvider.otherwise("/");
   $stateProvider
     .state('accounts', {
       url: "/accounts",
@@ -49,3 +49,10 @@ hledger.controller("AccountsController", function($scope, Account) {
     $scope.accounts = listToTree(data, 'aname', 'aparentname')[0].children;
   });
 });
+
+hledger.filter("accountNameNode", function() {
+  return function(account) {
+    return account.replace(/^.*:/, '');
+  };
+});
+
