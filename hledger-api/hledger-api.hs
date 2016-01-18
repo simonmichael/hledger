@@ -41,6 +41,8 @@ doc :: Docopt
 doc = [docopt|
 hledger-api 0.27.98
 
+Serves hledger data and reports as a JSON web API.
+
 Usage:
   hledger-api [options]
   hledger-api --version
@@ -49,6 +51,8 @@ Usage:
 Options:
   -f --file FILE  use a different input file
                   (default: $LEDGER_FILE or ~/.hledger.journal)
+  -d --static-dir DIR  serve files from a different directory
+                  (default: ./static/)
   -p --port PORT  use a different TCP port (default: 8001)
      --version    show version
   -h --help       show this help
@@ -66,12 +70,15 @@ main = do
   deff <- defaultJournalPath
   let f = getArgWithDefault args deff (longOption "file")
   requireJournalFileExists f
-  readJournalFile Nothing Nothing True f >>= either error' (serveApi f p)
+  let
+    defd = "static"
+    d = getArgWithDefault args defd (longOption "static-dir")
+  readJournalFile Nothing Nothing True f >>= either error' (serveApi p d f)
 
-serveApi :: FilePath -> Int -> Journal -> IO ()
-serveApi f p j = do
-  printf "Starting web api for %s on port %d\nPress ctrl-c to quit\n" f p
-  Warp.run p $ hledgerApiApp j
+serveApi :: Int -> FilePath -> FilePath -> Journal -> IO ()
+serveApi p d f j = do
+  printf "Starting web api on port %d using files from %s for %s\nPress ctrl-c to quit\n" p d f
+  Warp.run p $ hledgerApiApp d j
 
 type HledgerApi =
        "accountnames" :> Get '[JSON] [AccountName]
@@ -82,8 +89,8 @@ type HledgerApi =
   :<|> "accounttransactions" :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
   :<|> Raw
 
-hledgerApiApp :: Journal -> Wai.Application
-hledgerApiApp j = Servant.serve api server
+hledgerApiApp :: FilePath -> Journal -> Wai.Application
+hledgerApiApp staticdir j = Servant.serve api server
   where
     api :: Proxy HledgerApi
     api = Proxy
@@ -96,13 +103,13 @@ hledgerApiApp j = Servant.serve api server
       :<|> commoditiesH
       :<|> accountsH
       :<|> accounttransactionsH
-      :<|> serveDirectory "static"
+      :<|> serveDirectory staticdir
       where
         accountnamesH = return $ journalAccountNames j
         transactionsH = return $ jtxns j
         pricesH       = return $ jmarketprices j
         commoditiesH  = return $ (M.keys . jcommoditystyles) j
-        accountsH     = return $ laccounts $ ledgerFromJournal Hledger.Cli.Any j
+        accountsH     = return $ laccounts $ ledgerFromJournal Hledger.Query.Any j
         accounttransactionsH (a::AccountName) = do
           -- d <- liftIO getCurrentDay
           let
@@ -114,9 +121,7 @@ hledgerApiApp j = Servant.serve api server
             thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
           return $ accountTransactionsReport ropts j q thisacctq
 
--- brief toJSON definitions included to avoid https://github.com/bos/aeson/issues/290
--- use toEncoding = genericToEncoding defaultOptions instead ?
-instance ToJSON ClearedStatus where toJSON = genericToJSON defaultOptions
+instance ToJSON ClearedStatus where toJSON = genericToJSON defaultOptions -- avoiding https://github.com/bos/aeson/issues/290
 instance ToJSON GenericSourcePos where toJSON = genericToJSON defaultOptions
 instance ToJSON Decimal where
   toJSON = toJSON . show
