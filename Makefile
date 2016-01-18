@@ -1273,13 +1273,12 @@ tagrelease: \
 # 	@darcs changes --from-tag $(FROMTAG) |grep '^\w' |cut -c 31- |sort |uniq
 # 	@echo
 
-# showloc: \
-# 	$(call def-help,showloc,\
-# 	\
-# 	)
-# 	@echo Current lines of code including tests:
-# 	@sloccount `ls $(SOURCEFILES)` | grep haskell:
-# 	@echo
+cloc: \
+	$(call def-help,cloc, count lines of source code )
+	@echo Lines of code including tests:
+	@cloc --exclude-lang=HTML --exclude-dir=.stack-work,.idea,dist,old,bin,doc,site,.tutorial-data .
+	@echo
+# `ls $(SOURCEFILES)`
 
 # sloc: \
 # 	$(call def-help,sloc,\
