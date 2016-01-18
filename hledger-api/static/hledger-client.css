@@ -1,0 +1,22 @@
+ul.accounts, ul.accounts ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+ul.accounts ul {
+  margin-left: 15px;
+}
+ul.accounts li {
+  clear: both;
+  border-top: 1px dotted #888;
+}
+ul.accounts .balances {
+  display: block;
+  float: right;
+  text-align: right;
+}
+ul.accounts .balance {
+  display: block;
+}
+ul.accounts .balance .commodity-side-L {
+  float: left;
+}
