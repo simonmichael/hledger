@@ -1,14 +1,13 @@
-{-# LANGUAGE DataKinds         #-}
-{-# LANGUAGE DeriveGeneric     #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PolyKinds         #-}
-{-# LANGUAGE QuasiQuotes       #-}
-{-# LANGUAGE TypeFamilies      #-}
-{-# LANGUAGE TypeOperators     #-}
--- {-# LANGUAGE TypeSynonymInstances #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE DataKinds           #-}
+{-# LANGUAGE DeriveGeneric       #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE PolyKinds           #-}
+{-# LANGUAGE QuasiQuotes         #-}
+{-# LANGUAGE TypeFamilies        #-}
+{-# LANGUAGE TypeOperators       #-}
+{-# LANGUAGE FlexibleInstances   #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
@@ -80,8 +79,7 @@ type HledgerApi =
   :<|> "prices"       :> Get '[JSON] [MarketPrice]
   :<|> "commodities"  :> Get '[JSON] [Commodity]
   :<|> "accounts"     :> Get '[JSON] [Account]
-  :<|> "reports" :>
-       "accounttransactions" :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
+  :<|> "accounttransactions" :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
   :<|> Raw
 
 hledgerApiApp :: Journal -> Wai.Application
