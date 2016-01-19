@@ -80,9 +80,7 @@ type HledgerApi =
   :<|> "prices"       :> Get '[JSON] [MarketPrice]
   :<|> "commodities"  :> Get '[JSON] [Commodity]
   :<|> "accounts"     :> Get '[JSON] [Account]
-  :<|> "reports" :>
-       "accounttransactions" :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
-  :<|> Raw
+  :<|> "accounts"     :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
 
 hledgerApiApp :: Journal -> Wai.Application
 hledgerApiApp j = Servant.serve api server
