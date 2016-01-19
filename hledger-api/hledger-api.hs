@@ -106,7 +106,7 @@ hledgerApiApp j = Servant.serve api combinedServer
         transactionsH = return $ jtxns j
         pricesH       = return $ jmarketprices j
         commoditiesH  = return $ (M.keys . jcommoditystyles) j
-        accountsH     = return $ laccounts $ ledgerFromJournal Hledger.Cli.Any j
+        accountsH     = return $ ledgerTopAccounts $ ledgerFromJournal Hledger.Query.Any j
         accounttransactionsH (a::AccountName) = do
           -- d <- liftIO getCurrentDay
           let
