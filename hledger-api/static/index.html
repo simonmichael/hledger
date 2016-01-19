@@ -16,12 +16,13 @@
   <body class="container">
     <nav class="navbar">
       <ul class="nav navbar-nav">
-        <li><a ui-sref="">Dashboard</a></li>
+        <li><a ui-sref="dashboard">Dashboard</a></li>
         <li><a ui-sref="help">Help</a></li>
       </ul>
     </nav>
-    <div ng-include src="'/accounts/index.html'" class="col-xs-6 col-md-3"></div>
+    <div ng-include src="'/accounts/sidebar.html'" class="col-xs-6 col-md-3"></div>
     <div ui-view class="col-xs-12 col-md-8"></div>
+    <div class="clear"></div>
     <footer>hleder-api-client</footer>
   </body>
 </html>

@@ -2,6 +2,7 @@ var hledger = angular.module('hledger', [
   'ui.router',
   'ngResource'
 ])
+hledger.api_root = '/api/v1';
 function listToTree(list, id_field, parent_field) {
   children = function(list, parent_id) {
     return $.grep(list,
@@ -19,10 +20,23 @@ function listToTree(list, id_field, parent_field) {
 hledger.config(function($stateProvider, $urlRouterProvider) {
   //$urlRouterProvider.otherwise("/");
   $stateProvider
+    .state('dashboard', {
+      url: ""
+    })
     .state('accounts', {
+      abstract: true,
       url: "/accounts",
-      templateUrl: "accounts/index.html",
-      controller: 'AccountsController'
+      templateUrl: "accounts/index.html"
+    })
+    .state('accounts.show', {
+      url: "/:id",
+      templateUrl: 'accounts/show.html',
+      resolve: {
+        Account: 'Account',
+        account: function(Account, $stateParams) {
+          return Account.get($stateParams);
+        }
+      }
     })
     .state('help', {
       url: "/help",
@@ -31,7 +45,7 @@ hledger.config(function($stateProvider, $urlRouterProvider) {
 });
 
 hledger.factory('Journal', function($resource) {
-  return($resource("/journals/:id"));
+  return($resource(hledger.api_root + "/journals/:id"));
 });
 
 hledger.controller("JournalController", function($scope, Journal) {
@@ -41,7 +55,7 @@ hledger.controller("JournalController", function($scope, Journal) {
 });
 
 hledger.factory('Account', function($resource) {
-  return($resource("/accounts/:id"));
+  return($resource(hledger.api_root + "/accounts/:id"));
 });
 
 hledger.controller("AccountsController", function($scope, Account) {
