@@ -14,8 +14,8 @@
         <span class="commodity commodity-side-{{balance.astyle.ascommodityside}}">{{balance.acommodity}}</span>
       </div>
     </div>
-    <ul ng-if="account.children">
-      <li ng-repeat="account in account.children | filter: account_name" ng-include="'account.html'"></li>
+    <ul ng-if="account.asubs">
+      <li ng-repeat="account in account.asubs | filter: account_name" ng-include="'account.html'"></li>
     </ul>
   </script
 </div>
