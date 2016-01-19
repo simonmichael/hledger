@@ -82,21 +82,25 @@ type HledgerApi =
   :<|> "accounts"     :> Get '[JSON] [Account]
   :<|> "accounts"     :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
 
+type CombinedServer =
+       "api" :>
+         "v1" :> HledgerApi
+  :<|> Raw
+
 hledgerApiApp :: Journal -> Wai.Application
-hledgerApiApp j = Servant.serve api server
+hledgerApiApp j = Servant.serve api combinedServer
   where
-    api :: Proxy HledgerApi
+    api :: Proxy CombinedServer
     api = Proxy
 
-    server :: Server HledgerApi
-    server =
+    apiServer :: Server HledgerApi
+    apiServer =
            accountnamesH
       :<|> transactionsH
       :<|> pricesH
       :<|> commoditiesH
       :<|> accountsH
       :<|> accounttransactionsH
-      :<|> serveDirectory "static"
       where
         accountnamesH = return $ journalAccountNames j
         transactionsH = return $ jtxns j
@@ -113,6 +117,10 @@ hledgerApiApp j = Servant.serve api server
             q = Hledger.Query.Any --filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
             thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
           return $ accountTransactionsReport ropts j q thisacctq
+
+    combinedServer :: Server CombinedServer
+    combinedServer = apiServer
+        :<|> serveDirectory "static"
 
 -- brief toJSON definitions included to avoid https://github.com/bos/aeson/issues/290
 -- use toEncoding = genericToEncoding defaultOptions instead ?
