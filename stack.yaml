@@ -9,7 +9,7 @@ packages:
 
 #flags:
 
-resolver: lts-4.1  # or newer
+resolver: lts-4.2  # or newer
 
 extra-deps:
 - servant-swagger-0.1
