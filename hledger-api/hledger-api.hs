@@ -71,7 +71,7 @@ main = do
   args <- getArgs >>= parseArgsOrExit doc
   when (isPresent args (longOption "help")) $ exitWithUsage doc
   when (isPresent args (longOption "version")) $ putStrLn version >> exitSuccess
-  when (isPresent args (longOption "swagger")) $ BL8.putStrLn (encode swaggerDoc) >> exitSuccess
+  when (isPresent args (longOption "swagger")) $ BL8.putStrLn (encode swaggerSpec) >> exitSuccess
   let defp = "8001"
   p <- case readMay $ getArgWithDefault args defp (longOption "port") of
         Nothing -> exitWithUsage doc
@@ -96,11 +96,13 @@ type HledgerApi =
   :<|> "commodities"  :> Get '[JSON] [Commodity]
   :<|> "accounts"     :> Get '[JSON] [Account]
   :<|> "accounttransactions" :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
-  -- :<|> "swagger"      :> Get '[JSON] Swagger
   :<|> Raw
 
+type HledgerApi' = ("swagger.json" :> Get '[JSON] Swagger) :<|> HledgerApi
+
 hledgerApiApp :: FilePath -> Journal -> Wai.Application
-hledgerApiApp staticdir j = Servant.serve api server
+hledgerApiApp staticdir j =
+  Servant.serve (Proxy :: Proxy HledgerApi') (return swaggerSpec :<|> server)
   where
     api :: Proxy HledgerApi
     api = Proxy
@@ -113,7 +115,6 @@ hledgerApiApp staticdir j = Servant.serve api server
       :<|> commoditiesH
       :<|> accountsH
       :<|> accounttransactionsH
-      -- :<|> swaggerH
       :<|> serveDirectory staticdir
       where
         accountnamesH = return $ journalAccountNames j
@@ -131,7 +132,6 @@ hledgerApiApp staticdir j = Servant.serve api server
             q = Hledger.Query.Any --filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
             thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
           return $ accountTransactionsReport ropts j q thisacctq
-        -- swaggerH = return swaggerDoc
 
 instance ToJSON ClearedStatus where toJSON = genericToJSON defaultOptions -- avoiding https://github.com/bos/aeson/issues/290
 instance ToJSON GenericSourcePos where toJSON = genericToJSON defaultOptions
@@ -175,14 +175,13 @@ instance ToJSON AccountTransactionsReport where toJSON = genericToJSON defaultOp
 
 -- swagger api doc
 
-swaggerDoc :: Swagger
-swaggerDoc = toSwagger (Proxy :: Proxy HledgerApi)
+swaggerSpec :: Swagger
+swaggerSpec = toSwagger (Proxy :: Proxy HledgerApi)
   & info.infoTitle   .~ "hledger API"
   & info.infoVersion .~ "0.0.0.1"
   & info.infoDescription ?~ "This is the API provided by hledger-api for reading hledger data"
   & info.infoLicense ?~ License "GPLv3+" (Nothing)
 
--- instance ToSchema Swagger
 instance ToSchema ClearedStatus
 instance ToSchema GenericSourcePos
 instance ToSchema Decimal
