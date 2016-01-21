@@ -11,7 +11,8 @@ packages:
 
 resolver: lts-4.1  # or newer
 
-# extra-deps:
+extra-deps:
+- servant-swagger-0.1
 
 # ghc-options:
 #   rtsopts:
