@@ -27,7 +27,8 @@ cabal-version:  >= 1.10
 
 extra-source-files:
     CHANGES
-    examples/01-accounts.html
+    examples/01.html
+    examples/02.html
 
 source-repository head
   type: git
@@ -42,12 +43,16 @@ executable hledger-api
     , hledger          == 0.27
     , base             >= 4 && < 5
     , aeson
+    , bytestring
     , containers
     , Decimal
     , docopt
     , either
+    , lens
     , safe
     , servant-server
+    , servant-swagger
+    , swagger2
     , text
     , transformers
     , wai
