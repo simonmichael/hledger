@@ -295,7 +295,7 @@ data Account = Account {
   aibalance :: MixedAmount, -- ^ this account's balance, including subaccounts
   aparent :: Maybe Account, -- ^ parent account
   aboring :: Bool           -- ^ used in the accounts report to label elidable parents
-  }
+  } deriving (Typeable, Data, Generic)
 
 -- | A Ledger has the journal it derives from, and the accounts
 -- derived from that. Accounts are accessible both list-wise and
