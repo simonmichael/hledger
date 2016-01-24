@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="hledger">
+  <head>
+    <meta charset="utf-8">  
+    <title>hledger</title>
+    <meta name="description" content="hledger">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="libraries/angular.min.js"></script>
+    <script src="libraries/angular-resource.min.js"></script>
+    <script src="libraries/angular-ui-router.min.js"></script>
+    <script src="libraries/jquery-2.2.0.min.js"></script>
+    <script src="hledger-client.js"></script>
+    <link type="text/css" rel="stylesheet" href="libraries/bootstrap/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="hledger-client.css">
+    <script>
+      if (~location.toString().indexOf('/angular')) {
+        alert("To view this example, please start hledger-api from inside its folder.");
+      };
+    </script>
+  </head>
+  <body class="container">
+    <nav class="navbar">
+      <ul class="nav navbar-nav">
+        <li><a ui-sref="dashboard">Dashboard</a></li>
+        <li><a ui-sref="help">Help</a></li>
+      </ul>
+    </nav>
+    <div ng-include src="'/accounts/sidebar.html'" class="col-xs-6 col-md-3"></div>
+    <div ui-view class="col-xs-12 col-md-8"></div>
+    <div class="clear"></div>
+    <!-- <footer>hleder-api-client</footer> -->
+  </body>
+</html>
+

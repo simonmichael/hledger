@@ -15,7 +15,7 @@ Account names:
 $(document).ready(
 function() {
   $.ajax({
-    url: "http://localhost:8001/accounts",
+    url: "http://localhost:8001/api/v1/accountnames",
     context: document.body,
     success: function(data){
       $('pre').text(data.join('\n'));

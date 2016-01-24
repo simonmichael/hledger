@@ -1,7 +1,7 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>hledger-api example 01</title>
+  <title>hledger-api example 02</title>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 </head
 
@@ -17,7 +17,7 @@
         <pre id="prices"></pre>
 
         <h2>Account names</h2> 
-        <pre id="accounts"></pre>
+        <pre id="accountnames"></pre>
 
       </td>
       <td width="50%">
@@ -35,14 +35,14 @@ $(document).ready(function(){
 
   get('commodities', id);
   get('prices', showMarketPrice);
-  get('accounts', id);
+  get('accountnames', id);
   get('transactions', showTransaction);
 
 });
 
 function get(method, showfn) {
   return $.ajax({
-    url: "http://localhost:8001/"+method,
+    url: "http://localhost:8001/api/v1/"+method,
     context: document.body,
     success: function(data){
       $('#'+method).text(data.map(showfn).join('\n'));

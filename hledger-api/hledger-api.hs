@@ -60,11 +60,18 @@ Options:
   -f --file FILE  use a different input file
                   (default: $LEDGER_FILE or ~/.hledger.journal)
   -d --static-dir DIR  serve files from a different directory
-                  (default: ./static/)
+                  (default: .)
   -p --port PORT  use a different TCP port (default: 8001)
      --version    show version
   -h --help       show this help
 |]
+
+swaggerSpec :: Swagger
+swaggerSpec = toSwagger (Proxy :: Proxy HledgerApi)
+  & info.infoTitle   .~ "hledger API"
+  & info.infoVersion .~ pack version
+  & info.infoDescription ?~ "This is the API provided by hledger-api for reading hledger data"
+  & info.infoLicense ?~ License "GPLv3+" (Nothing)
 
 main :: IO ()
 main = do
@@ -80,48 +87,62 @@ main = do
   let f = getArgWithDefault args deff (longOption "file")
   requireJournalFileExists f
   let
-    defd = "static"
+    defd = "."
     d = getArgWithDefault args defd (longOption "static-dir")
   readJournalFile Nothing Nothing True f >>= either error' (serveApi p d f)
 
 serveApi :: Int -> FilePath -> FilePath -> Journal -> IO ()
 serveApi p d f j = do
-  printf "Starting web api on port %d using files from %s for %s\nPress ctrl-c to quit\n" p d f
+  printf "Starting web api http://localhost:%d/api/v1 for %s\n" p f
+  printf "and file server  http://localhost:%d        for %s/\n" p d
+  printf "Press ctrl-c to quit\n"
   Warp.run p $ hledgerApiApp d j
 
 type HledgerApi =
-       "accountnames" :> Get '[JSON] [AccountName]
-  :<|> "transactions" :> Get '[JSON] [Transaction]
-  :<|> "prices"       :> Get '[JSON] [MarketPrice]
-  :<|> "commodities"  :> Get '[JSON] [Commodity]
-  :<|> "accounts"     :> Get '[JSON] [Account]
-  :<|> "accounttransactions" :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
+  "api" :> "v1" :>
+    (
+         "accountnames" :> Get '[JSON] [AccountName]
+    :<|> "transactions" :> Get '[JSON] [Transaction]
+    :<|> "prices"       :> Get '[JSON] [MarketPrice]
+    :<|> "commodities"  :> Get '[JSON] [Commodity]
+    :<|> "accounts"     :> Get '[JSON] [Account]
+    :<|> "accounts"     :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
+    )
+
+type HledgerSwaggerApi =
+       "swagger.json" :> Get '[JSON] Swagger
+  :<|> HledgerApi
+
+type HledgerSwaggerFilesApi =
+       HledgerSwaggerApi
   :<|> Raw
 
-type HledgerApi' = ("swagger.json" :> Get '[JSON] Swagger) :<|> HledgerApi
-
 hledgerApiApp :: FilePath -> Journal -> Wai.Application
-hledgerApiApp staticdir j =
-  Servant.serve (Proxy :: Proxy HledgerApi') (return swaggerSpec :<|> server)
+hledgerApiApp staticdir j = Servant.serve api server
   where
-    api :: Proxy HledgerApi
+    api :: Proxy HledgerSwaggerFilesApi
     api = Proxy
 
-    server :: Server HledgerApi
+    server :: Server HledgerSwaggerFilesApi
     server =
-           accountnamesH
+      (
+           return swaggerSpec
+      --
+      :<|> accountnamesH
       :<|> transactionsH
       :<|> pricesH
       :<|> commoditiesH
       :<|> accountsH
       :<|> accounttransactionsH
+      )
+      --
       :<|> serveDirectory staticdir
       where
         accountnamesH = return $ journalAccountNames j
         transactionsH = return $ jtxns j
         pricesH       = return $ jmarketprices j
         commoditiesH  = return $ (M.keys . jcommoditystyles) j
-        accountsH     = return $ laccounts $ ledgerFromJournal Hledger.Query.Any j
+        accountsH     = return $ ledgerTopAccounts $ ledgerFromJournal Hledger.Query.Any j
         accounttransactionsH (a::AccountName) = do
           -- d <- liftIO getCurrentDay
           let
@@ -172,15 +193,6 @@ instance ToJSON Account where
     ,"asubs"        .= toJSON (map toJSON $ asubs a)
     ]
 instance ToJSON AccountTransactionsReport where toJSON = genericToJSON defaultOptions
-
--- swagger api doc
-
-swaggerSpec :: Swagger
-swaggerSpec = toSwagger (Proxy :: Proxy HledgerApi)
-  & info.infoTitle   .~ "hledger API"
-  & info.infoVersion .~ "0.0.0.1"
-  & info.infoDescription ?~ "This is the API provided by hledger-api for reading hledger data"
-  & info.infoLicense ?~ License "GPLv3+" (Nothing)
 
 instance ToSchema ClearedStatus
 instance ToSchema GenericSourcePos

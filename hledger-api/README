@@ -1,2 +1,2 @@
-Beginnings of a web API server, and a series of simple client-side web app examples.
-This is an alternative to hledger-web, and for variety and research uses servant instead of yesod.
+A web API server for hledger data, and some client-side app examples.
+This is an alternative to hledger-web, and for variety uses servant instead of yesod.
