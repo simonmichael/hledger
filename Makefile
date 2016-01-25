@@ -125,7 +125,7 @@ CABALFILES:= \
 HPACKFILES:= \
 	hledger/package.yaml \
 	hledger-*/package.yaml \
-	site/package.yaml
+	site/hakyll-std/package.yaml
 
 WEBFILES:= \
 	hledger-web/templates/* \
@@ -133,7 +133,7 @@ WEBFILES:= \
 	hledger-web/static/*.css
 
 DOCFILES:= \
-	doc/*.md
+	*/*.md
 
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
@@ -1392,7 +1392,11 @@ tag: emacstags \
 	$(call def-help,tag, generate tag files for source code navigation (for emacs) )
 
 emacstags:
-	-@rm -f TAGS; hasktags -e $(SOURCEFILES) $(WEBFILES) $(CABALFILES) $(HPACKFILES) $(DOCFILES) Makefile
+	rm -f TAGS
+	hasktags -e $(SOURCEFILES)
+	for f in Makefile $(WEBFILES) $(HPACKFILES) $(CABALFILES) $(DOCFILES); do \
+		printf "\n$$f,1\n" >> TAGS; \
+	done
 
 cleantags: \
 	$(call def-help-hide,cleantags, remove tag files )
