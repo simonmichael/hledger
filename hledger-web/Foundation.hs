@@ -229,7 +229,7 @@ viewdataWithDateAndParams d q a p =
           ,am           = acctsmatcher
           ,aopts        = acctsopts
           ,showpostings = p == "1"
-          ,showsidebar  = False
+          ,showsidebar  = True
           }
 
 -- | Gather data used by handlers and templates in the current request.
@@ -246,11 +246,11 @@ getViewData = do
   a          <- getParameterOrNull "a"
   p          <- getParameterOrNull "p"
 
-  -- a "sidebar" query parameter overrides the "showsidebar" cookie
-  sidebarparam <- lookupGetParam (pack "sidebar")
-  cookies <- reqCookies <$> getRequest
-  let sidebarcookie = lookup "showsidebar" cookies
-  let showsidebar = maybe (sidebarcookie == Just "1") (=="1") sidebarparam
+  -- sidebar visibility: show it, unless there is a showsidebar cookie
+  -- set to "0", or a ?sidebar=0 query parameter.
+  msidebarparam <- lookupGetParam "sidebar"
+  msidebarcookie <- reqCookies <$> getRequest >>= return . lookup "showsidebar"
+  let showsidebar = maybe (msidebarcookie /= Just "0") (/="0") msidebarparam
 
   return (viewdataWithDateAndParams today q a p){
                opts=opts
