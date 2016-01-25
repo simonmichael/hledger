@@ -57,7 +57,7 @@ withJournalDo' opts cmd = do
   -- https://github.com/simonmichael/hledger/issues/202
   -- -f- gives [Error#yesod-core] <stdin>: hGetContents: illegal operation (handle is closed) for some reason
   -- Also we may be writing to this file. Just disallow it.
-  when (f == "-") $ error' "hledger-web doesn't support --f -, please specify a file path"
+  when (f == "-") $ error' "hledger-web doesn't support -f -, please specify a file path"
 
   readJournalFile Nothing Nothing True f >>=
    either error' (cmd opts . journalApplyAliases (aliasesFromOpts $ cliopts_ opts))
