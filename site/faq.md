@@ -150,6 +150,9 @@ or [balance assertions](manual.html#assertions-and-ordering).
 - hledger's [include directive](manual.html#including-other-files) does not support
   shell glob patterns (eg `include *.journal` ), which Ledger's does.
 
+- hledger's include directive works only in journal files, and currently can only include
+  journal files, not eg timelog or CSV files
+
 - when checking [balance assertions](manual.html#balance-assertions)
   hledger sorts the account's postings first by date and then (for
   postings with the same date) by parse order. Ledger goes strictly by
