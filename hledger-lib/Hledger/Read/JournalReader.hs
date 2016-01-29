@@ -295,19 +295,19 @@ journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
 
 accountdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 accountdirectivep = do
-  string "account"
+  (try $ string "apply" >> many1 spacenonewline >> string "account")
+    <|> string "account"
   many1 spacenonewline
   parent <- accountnamep
   newline
   pushParentAccount parent
-  -- return $ return id
   return $ ExceptT $ return $ Right id
 
 enddirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 enddirectivep = do
   string "end"
+  optional $ many1 spacenonewline >> string "apply" >> many1 spacenonewline >> string "account"
   popParentAccount
-  -- return (return id)
   return $ ExceptT $ return $ Right id
 
 aliasdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate

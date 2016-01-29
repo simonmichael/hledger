@@ -711,10 +711,10 @@ $ hledger print
 ##### Default parent account
 
 You can specify a parent account which will be prepended to all accounts
-within a section of the journal. Use the `account` directive like so:
+within a section of the journal. Use the `apply account` directive like so:
 
 ``` {.journal}
-account home
+apply account home
 
 2010/1/1
     food    $10
@@ -722,6 +722,8 @@ account home
 
 end
 ```
+
+(`!account`, `account`, and `end apply account` are also supported).
 
 If `end` is omitted, the effect lasts to the end of the file.
 The above is equivalent to:
