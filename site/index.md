@@ -170,8 +170,10 @@ simultaneously.
 hledger is written in Haskell, a modern, highly-regarded
 programming language which contributes to hledger's robustness,
 performance and long-term maintainability.  Most functionality is
-exposed as reusable Haskell
-[libraries](http://hackage.haskell.org/package/hledger-lib), making it
+exposed as
+[reusable](http://hackage.haskell.org/package/hledger-lib)
+[Haskell](http://hackage.haskell.org/package/hledger)
+[libraries](http://hackage.haskell.org/package/hledger-web), making it
 easy to write your own hledger-compatible
 [scripts](more-docs.html#scripting-examples), [add-ons](manual.html#add-ons) and
 applications.
