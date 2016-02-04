@@ -36,6 +36,7 @@ tr {
 | Gentoo                  | [hledger](http://gpo.zugaina.org/dev-haskell/hledger), [hledger-web](http://gpo.zugaina.org/dev-haskell/hledger-web), [\*hledger\*](http://gpo.zugaina.org/Search?search=hledger) |
 | Fedora                  | [hledger](https://apps.fedoraproject.org/packages/hledger), [\*hledger\*](https://apps.fedoraproject.org/packages/s/hledger), [hledger (package db)](https://admin.fedoraproject.org/pkgdb/package/hledger/), [Haskell SIG](http://fedoraproject.org/wiki/Haskell_SIG) |
 | Nix                     | [hydra build status](http://hydra.nixos.org/search?query=hledger) |
+| Homebrew                | [hledger](https://github.com/Homebrew/homebrew/blob/master/Library/Formula/hledger.rb) |
 | Reference               | [GHC Can I Use](http://damianfral.github.io/ghcaniuse/) |
 
 <!-- list the debian packages for clarity:

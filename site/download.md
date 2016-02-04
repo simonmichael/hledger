@@ -36,7 +36,7 @@ and/or
 <tr><td>
 **on Mac**
 </td><td>
-Build with stack or cabal as described below.
+`brew install hledger`
 </td></tr>
 
 <tr><td>
