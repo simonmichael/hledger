@@ -98,7 +98,7 @@ This is a quick way to help the project and your fellow users!
     <!-- needed if you will be processing >50,000 transactions at once -->
 2. `stack setup`
     (if you need GHC installed. If you're not sure, run the next command and it will tell you.)
-3. `stack --resolver lts-4 install hledger [hledger-ui] [hledger-web]`
+3. `stack install hledger [hledger-ui] [hledger-web]`
 4. Ensure `~/.local/bin` or the Windows equivalent is in your `$PATH`,
    so that you can just type `hledger` to run it.
    (stack will show the proper directory and will tell you if it is not in $PATH).
