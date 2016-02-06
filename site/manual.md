@@ -86,7 +86,9 @@ $ hledger COMMAND [OPTIONS] [ARGS]
 Most [commands](#commands) query or operate on a
 [journal file](#journal), which by default is `.hledger.journal`
 in your home directory. You can specify a different file with the `-f`
-option or `LEDGER_FILE` environment variable, or standard input with `-f-`.
+option or `LEDGER_FILE` environment variable
+*([not a shell variable](#run-time-problems))*,
+or standard input with `-f-`.
 
 Options are similar across most commands, with some variations; use
 `hledger COMMAND --help` for details.
@@ -2614,8 +2616,13 @@ Here are some issues you might encounter when you run hledger
 
 **Successfully installed, but "No command 'hledger' found"**  
 stack and cabal install binaries into a special directory, which
-should be added to your PATH environment variable.  On unix-like
-systems, it is ~/.local/bin and ~/.cabal/bin respectively.
+should be added to your PATH environment variable.  Eg on unix-like
+systems, that is ~/.local/bin and ~/.cabal/bin respectively.
+
+**I set a custom LEDGER_FILE, but hledger is still using the default file**  
+`LEDGER_FILE` should be a real environment variable, not just a shell variable.
+The command `env | grep LEDGER_FILE` should show it.
+You may need to use `export`. Here's an [explanation](http://stackoverflow.com/a/7411509).
 
 **"Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" errors**  
 In order to handle non-ascii letters and symbols (like £), hledger needs

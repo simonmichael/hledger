@@ -29,7 +29,9 @@ format. Additionally, hledger lists other hledger-\* executables found
 in the user’s \$PATH and can invoke them as subcommands.
 
 The journal file is `~/.hledger.journal` by default, or another file path
-specified by `$LEDGER_FILE`. You can also specify a file with `-f FILE`,
+specified by `$LEDGER_FILE`.
+(This should be a real environment variable, not a shell variable.)
+You can also specify a file with `-f FILE`,
 or standard input with `-f-`.
 
 Transactions are dated movements of money between two (or more) named
