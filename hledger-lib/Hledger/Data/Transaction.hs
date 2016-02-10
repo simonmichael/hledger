@@ -31,6 +31,7 @@ module Hledger.Data.Transaction (
   showTransaction,
   showTransactionUnelided,
   showTransactionUnelidedOneLineAmounts,
+  showPostingLine,
   -- * misc.
   tests_Hledger_Data_Transaction
 )
@@ -200,6 +201,15 @@ postingAsLines elideamount onelineamounts ps p =
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])
                                               c:cs -> (c,cs)
+
+
+-- used in balance assertion error
+showPostingLine p =
+  indent $
+  if pstatus p == Cleared then "* " else "" ++
+  showAccountName Nothing (ptype p) (paccount p) ++
+  "    " ++
+  showMixedAmountOneLine (pamount p)
 
 tests_postingAsLines = [
    "postingAsLines" ~: do

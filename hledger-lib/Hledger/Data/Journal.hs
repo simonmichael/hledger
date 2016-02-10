@@ -465,24 +465,36 @@ checkBalanceAssertion (errs,startbal) ps
   | null ps = (errs,startbal)
   | isNothing assertion = (errs,startbal)
   | -- bal' /= assertedbal  -- MixedAmount's Eq instance currently gets confused by different precisions
-    not $ isReallyZeroMixedAmount (bal - assertedbal) = (errs++[err], fullbal)
-  | otherwise = (errs,fullbal)
+    not $ isReallyZeroMixedAmount (actualbal - assertedbal) = (errs++[err], finalfullbal)
+  | otherwise = (errs,finalfullbal)
   where
     p = last ps
     assertion = pbalanceassertion p
     Just assertedbal = dbg2 "assertedbal" assertion
     assertedcomm = dbg2 "assertedcomm" $ maybe "" acommodity $ headMay $ amounts assertedbal
-    fullbal = dbg2 "fullbal" $ sum $ [dbg2 "startbal" startbal] ++ map pamount ps
-    singlebal = dbg2 "singlebal" $ filterMixedAmount (\a -> acommodity a == assertedcomm) fullbal
-    bal = singlebal -- check single-commodity balance like Ledger; maybe add == FULLBAL later
-    err = printf "Balance assertion failed for account %s on %s\n%sAfter posting:\n   %s\nexpected balance in commodity \"%s\" is %s, calculated balance was %s."
+    finalfullbal = dbg2 "finalfullbal" $ sum $ [dbg2 "startbal" startbal] ++ map pamount ps
+    finalsinglebal = dbg2 "finalsinglebal" $ filterMixedAmount (\a -> acommodity a == assertedcomm) finalfullbal
+    actualbal = finalsinglebal -- just check the single-commodity balance, like Ledger; maybe add ==FULLBAL later
+    diff = actualbal - assertedbal
+    diffplus | isNegativeMixedAmount diff == Just False = "+"
+             | otherwise = ""
+    err = printf (unlines [
+                      "a balance assertion failed on %s",
+                      "in account %s",
+                      "in commodity %s",
+                      "asserted balance was %s, actual balance was %s (%s)",
+                      "after posting:",
+                      "%s",
+                      "%s"
+                      ])
+                 (showDate $ postingDate p)
                  (paccount p)
-                 (show $ postingDate p)
-                 (maybe "" (("In transaction:\n"++).show) $ ptransaction p)
-                 (show p)
                  assertedcomm
                  (showMixedAmount assertedbal)
-                 (showMixedAmount singlebal)
+                 (showMixedAmount finalsinglebal)
+                 (diffplus ++ showMixedAmount diff)
+                 (showPostingLine p)
+                 (maybe "" (("in transaction:\n"++).show) $ ptransaction p)
 
 -- Given a sequence of postings to a single account, split it into
 -- sub-sequences consisting of ordinary postings followed by a single
