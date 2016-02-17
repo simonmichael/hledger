@@ -6,28 +6,29 @@
 
 ### History
 
-I was a happy user of John Wiegley's [Ledger](http://ledger-cli.org)
-(begun in 2003) for some time. There was a long period of stagnation
-in that project. I grew tired of bugs, missing and wrong documentation,
-and explaining the situation to confused newcomers.
-I really, truly needed a reliable accounting tool.
-I really didn't want to spend time learning C++.
+I discovered John Wiegley's [Ledger](http://ledger-cli.org) in 2006, and was a happy user at first.
+Then came a long period of stagnation in that project,
+with missing and misleading documentation, irksome bugs, and a confusing release situation.
 
-I felt Ledger could be implemented well and perhaps even more
-successfully in the Haskell programming language, which has some
-compelling advantages. (It encourages the coding style known as pure
-functional programming, allowing more bug-free, concise and
-maintainable software. It provides a more abstracted, portable
-platform making installation easier. It is attractive for contributors
-to work on.)
+I urgently needed a reliable accounting tool that I enjoyed using. I also wanted to lower the barriers to entry for newcomers.
+For a while I worked within the Ledger project, reporting bugs and setting up a new domain and website.
+But, I didn't want to spend time learning C++. And I did want to spend time learning Haskell.
+I felt Ledger could be implemented well and perhaps more efficiently in that language,
+which has some compelling advantages.
+<!-- (It encourages the coding style known as pure functional programming, -->
+<!-- allowing more bug-free, concise and maintainable software. It provides -->
+<!-- a more abstracted, portable platform making installation easier. It is -->
+<!-- attractive for contributors to work on.) -->
 
-I couldn't ask John to start over - back then he was not the Haskell
-lover he has since become! - so in 2007 I started prototyping a
-parser, and kept going.  My goals were to (a) learn how well Haskell
-could do in this (simple, thought I) real-world application, and (b)
-maybe, build on Ledger's experience to create a new implementation
-prioritising ease of use. It would have simpler features, fewer bugs,
-better documentation, and additional user interfaces.
+I couldn't expect John to start over - at that time he was not the Haskell
+fan he is now - so in 2007 I began experimenting myself, built a
+toy parser, and kept tinkering. I wanted
+(a) to get better at Haskell by building something useful to me,
+(b) to learn how well Haskell could work for real-world applications,
+and as increasingly time passed,
+(c) to provide a new implementation with a greater focus on ease of use, simpler
+features, absence of user-visible bugs, and high-quality documentation and web presence.
+Also to experiment with new user interfaces, APIs, etc.
 
 Later the Ledger project revived and attracted more contributors. The
 two projects collaborate freely and ideas have travelled in both
@@ -37,11 +38,8 @@ troubleshooting, exploring the design space, and growing the "*ledger"
 community.  I also give back to Ledger by providing infrastructure
 like [ledger-cli.org](http://ledger-cli.org),
 [LedgerTips](http://twitter.com/LedgerTips), IRC support on #ledger
-etc.
-
-For some time hledger shared Ledger's IRC channel #ledger. In 2014 I
-added the dedicated [#hledger](irc://irc.freenode.net/#hledger)
-channel.
+etc. In 2014 I added a [#hledger](irc://irc.freenode.net/#hledger) channel
+to allow more hledger-specific discussion.
 
 ### Future ?
 
