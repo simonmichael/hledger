@@ -28,21 +28,23 @@ I couldn't expect John to start over - at that time he was not the Haskell fan h
 So in 2007 I began experimenting.
 I built a toy parser in a few different languages, and it was easiest in Haskell.
 I kept tinkering. Goals included:
-(a) to get better at Haskell by building something useful to me,
-(b) to learn how well Haskell could work for real-world applications,
-and as increasingly time passed,
-(c) to provide a new implementation with a greater focus on ease of use, simpler
-features, absence of user-visible bugs, and high-quality documentation and web presence.
-Also to experiment with new user interfaces, APIs, etc.
+
+- to get better at Haskell by building something useful to me,
+- to learn how well Haskell could work for real-world applications,
+- and eventually: to provide a new implementation focussing more on
+  ease of use, absence of user-visible bugs, and high-quality documentation and web presence.
+  Also to experiment with new user interfaces, APIs, etc.
 
 Before too long I had a tool that was useful to me. With Ledger still installed,
 and by maintaining high compatibility, I now had two tools  with different strengths,
 each providing a comparison for the other in case of confusion or suspected bugs,
 which was itself quite valuable.
 
-Later the Ledger project revived and attracted more contributors. I have
-remained active in that community, sharing discoveries and design discussions,
-and happily we have seen many ideas travelling in both directions.
+Happily, the Ledger project later revived and has attracted new active contributors.
+I have remained active in that community, sharing discoveries and
+design discussions, and we have seen many ideas travelling in both directions.
+hledger shared #ledger's IRC channel until 2014, when I added
+[#hledger](irc://irc.freenode.net/#hledger) to allow us more space.
 
 I think having independent but compatible implementations has been
 quite helpful for troubleshooting, exploring the design space, and
@@ -52,7 +54,7 @@ the [ledger-cli.org](http://ledger-cli.org) site,
 [LedgerTips](http://twitter.com/LedgerTips),
 IRC support on #ledger,
 and now [plaintextaccounting.org](http://plaintextaccounting.org).
-In 2014 I added a [#hledger](irc://irc.freenode.net/#hledger) channel to allow more hledger-specific discussion.
+
 
 ### Future ?
 
