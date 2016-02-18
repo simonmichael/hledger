@@ -6,23 +6,28 @@
 
 ### History
 
-I discovered John Wiegley's [Ledger](http://ledger-cli.org) in 2006, and was a happy user at first.
-Then came a long period of stagnation in that project,
-with missing and misleading documentation, irksome bugs, and a confusing release situation.
+I discovered John Wiegley's [Ledger](http://ledger-cli.org) in 2006,
+and was very happy to find this efficient command-line reporting tool with a transparent data format.
 
-I urgently needed a reliable accounting tool that I enjoyed using. I also wanted to lower the barriers to entry for newcomers.
-For a while I worked within the Ledger project, reporting bugs and setting up a new domain and website.
-But, I didn't want to spend time learning C++. And I did want to spend time learning Haskell.
-I felt Ledger could be implemented well and perhaps more efficiently in that language,
-which has some compelling advantages.
+Initially, I used it to generate time reports for my job.
+Before long I wanted that to work a little differently - splitting the transaction at day boundaries, reporting in hours, etc.
+John had got busy elsewhere and the Ledger project now entered a fairly long period of stagnation, with persistent bugs, documentation problems, and a confusing release situation.
+I did what I could to help build momentum in the Ledger project, reporting bugs, supporting newcomers, and contributing a new domain and website.
+But, I didn't want to spend time learning C++. I was learning Haskell, which I did want to spend time in.
+I felt Ledger could be implemented well and, in the long run, more efficiently in that language,
+which has some compelling advantages such as lower maintenance costs.
+<!-- ([eg](http://neilmitchell.blogspot.com/2016/02/selling-haskell-in-pub.html)). -->
 <!-- (It encourages the coding style known as pure functional programming, -->
 <!-- allowing more bug-free, concise and maintainable software. It provides -->
 <!-- a more abstracted, portable platform making installation easier. It is -->
 <!-- attractive for contributors to work on.) -->
 
-I couldn't expect John to start over - at that time he was not the Haskell
-fan he is now - so in 2007 I began experimenting myself, built a
-toy parser, and kept tinkering. I wanted
+I urgently needed a reliable accounting tool that I enjoyed using.
+I also wanted to see what I could do to reduce roadbumps and confusion for newcomers.
+I couldn't expect John to start over - at that time he was not the Haskell fan he is now.
+So in 2007 I began experimenting.
+I built a toy parser in a few different languages, and it was easiest in Haskell.
+I kept tinkering. Goals included:
 (a) to get better at Haskell by building something useful to me,
 (b) to learn how well Haskell could work for real-world applications,
 and as increasingly time passed,
@@ -30,16 +35,24 @@ and as increasingly time passed,
 features, absence of user-visible bugs, and high-quality documentation and web presence.
 Also to experiment with new user interfaces, APIs, etc.
 
-Later the Ledger project revived and attracted more contributors. The
-two projects collaborate freely and ideas have travelled in both
-directions.  Having two independent somewhat-compatible
-implementations has been quite helpful for testing and
-troubleshooting, exploring the design space, and growing the "*ledger"
-community.  I also give back to Ledger by providing infrastructure
-like [ledger-cli.org](http://ledger-cli.org),
-[LedgerTips](http://twitter.com/LedgerTips), IRC support on #ledger
-etc. In 2014 I added a [#hledger](irc://irc.freenode.net/#hledger) channel
-to allow more hledger-specific discussion.
+Before too long I had a tool that was useful to me. With Ledger still installed,
+and by maintaining high compatibility, I now had two tools  with different strengths,
+each providing a comparison for the other in case of confusion or suspected bugs,
+which was itself quite valuable.
+
+Later the Ledger project revived and attracted more contributors. I have
+remained active in that community, sharing discoveries and design discussions,
+and happily we have seen many ideas travelling in both directions.
+
+I think having independent but compatible implementations has been
+quite helpful for troubleshooting, exploring the design space, and
+growing the "Ledger-likes" community.
+My other projects in that direction include
+the [ledger-cli.org](http://ledger-cli.org) site,
+[LedgerTips](http://twitter.com/LedgerTips),
+IRC support on #ledger,
+and now [plaintextaccounting.org](http://plaintextaccounting.org).
+In 2014 I added a [#hledger](irc://irc.freenode.net/#hledger) channel to allow more hledger-specific discussion.
 
 ### Future ?
 
