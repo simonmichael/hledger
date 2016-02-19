@@ -1045,6 +1045,7 @@ MANPAGES=\
 	hledger-lib/hledger_csv.5 \
 	hledger-lib/hledger_journal.5 \
 	hledger-lib/hledger_timelog.5 \
+	hledger-lib/hledger_timedot.5 \
 	hledger/hledger.1 \
 	hledger-ui/hledger-ui.1 \
 	hledger-web/hledger-web.1 \

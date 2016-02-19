@@ -787,7 +787,7 @@ it may only include other journal files (eg, not CSV or timelog files.)
 
 ### Timelog
 
-hledger can also read timelog files.
+hledger can also read timelog (aka timeclock) files.
 [As with Ledger](http://ledger-cli.org/3.0/doc/ledger3.html#Time-Keeping),
 these are (a subset of)
 [timeclock.el](http://www.emacswiki.org/emacs/TimeClock)'s format,
@@ -845,6 +845,77 @@ To generate time logs, ie to clock in and clock out, you could:
     ```
 - or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/ledger/ledger/tree/release/2.6.3/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
+
+
+### Timedot
+
+Timedot is another time-logging format supported by hledger.
+It is convenient for approximate and retroactive time logging,
+eg when the real-time clock-in/out required with a timeclock file is too precise or too interruptive.
+It can be formatted like a bar chart, making clear at a glance where time was spent.
+
+Though called "timedot", the format does not specify the commodity being logged, so could represent other dated, quantifiable things.
+Eg you could record a single-entry journal of financial transactions, perhaps slightly more conveniently than with hledger_journal(5) format.
+
+## Format
+
+A timedot file contains a series of day entries.
+A day entry begins with a date, and is followed by category/quantity pairs, one per line.
+Dates are hledger-style [simple date](#simple-dates) (see hledger_journal(5)).
+Categories are hledger-style account names, optionally indented.
+There must be at least two spaces between the category and the quantity.
+Quantities can be written in two ways:
+
+1. a series of dots (period characters).
+   Each dot represents "a quarter" - eg, a quarter hour.
+   Spaces can be used to group dots into hours, for easier counting.
+
+2. a number (integer or decimal), representing "units" - eg, hours.
+   A good alternative when dots are cumbersome.
+   (A number also can record negative quantities.)
+
+Blank lines and lines beginning with #, ; or * are ignored.
+An example:
+
+```timedot
+# on this day, 6h was spent on client work, 1.5h on haskell FOSS work, etc.
+2016/2/1
+inc:client1   .... .... .... .... .... ....
+fos:haskell   .... .. 
+biz:research  .
+
+2016/2/2
+inc:client1   .... ....
+biz:research  .
+```
+
+Or with numbers:
+
+```timedot
+2016/2/1
+inc:client1   6
+fos:haskell   1.5
+biz:research  .25
+```
+
+I prefer . (period) for separating account components:
+
+```timedot
+2016/2/3
+fos.hledger.timedot  4
+biz.research         1
+```
+
+hledger requires : (colon), so rewrite them with --alias:
+
+```shell
+$ hledger -f t.timedot --alias /\\./=: bal -W
+```
+
+[default year directives](#default-year) may be used.
+
+Here is a
+[sample.timedot](https://raw.github.com/simonmichael/hledger/master/data/sample.timedot).
 
 ### CSV
 

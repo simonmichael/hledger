@@ -29,6 +29,7 @@ module Hledger.Read.JournalReader (
   defaultyeardirectivep,
   marketpricedirectivep,
   datetimep,
+  datep,
   codep,
   accountnamep,
   modifiedaccountnamep,

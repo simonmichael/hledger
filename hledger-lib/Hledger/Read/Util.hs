@@ -1,41 +1,13 @@
 {-# LANGUAGE ScopedTypeVariables #-}
-{-|
-
-This is the entry point to hledger's reading system, which can read
-Journals from various data formats. Use this module if you want to parse
-journal data or read journal files. Generally it should not be necessary
-to import modules below this one.
-
--}
-
-module Hledger.Read (
-       -- * Journal reading API
-       defaultJournalPath,
-       defaultJournal,
-       readJournal,
-       readJournal',
-       readJournalFile,
-       readJournalFiles,
-       requireJournalFileExists,
-       ensureJournalFileExists,
-       -- * Parsers used elsewhere
-       postingp,
-       accountnamep,
-       amountp,
-       amountp',
-       mamountp',
-       numberp,
-       codep,
-       accountaliasp,
-       -- * Tests
-       samplejournal,
-       tests_Hledger_Read,
-)
+module Hledger.Read.Util
 where
-import qualified Control.Exception as C
 import Control.Monad.Except
-import Data.List
 import Data.Maybe
+--
+import qualified Control.Exception as C
+-- import Control.Monad.Except
+import Data.List
+-- import Data.Maybe
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
@@ -45,8 +17,8 @@ import Test.HUnit
 import Text.Printf
 
 import Hledger.Data.Dates (getCurrentDay)
+import Hledger.Data.Journal () -- Show instance
 import Hledger.Data.Types
-import Hledger.Data.Journal (nullctx)
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.TimedotReader as TimedotReader
 import Hledger.Read.TimelogReader as TimelogReader
@@ -70,74 +42,6 @@ readers = [
  ,CsvReader.reader
  ]
 
--- | All the data formats we can read.
--- formats = map rFormat readers
-
--- | Get the default journal file path specified by the environment.
--- Like ledger, we look first for the LEDGER_FILE environment
--- variable, and if that does not exist, for the legacy LEDGER
--- environment variable. If neither is set, or the value is blank,
--- return the hard-coded default, which is @.hledger.journal@ in the
--- users's home directory (or in the current directory, if we cannot
--- determine a home directory).
-defaultJournalPath :: IO String
-defaultJournalPath = do
-  s <- envJournalPath
-  if null s then defaultJournalPath else return s
-    where
-      envJournalPath =
-        getEnv journalEnvVar
-         `C.catch` (\(_::C.IOException) -> getEnv journalEnvVar2
-                                            `C.catch` (\(_::C.IOException) -> return ""))
-      defaultJournalPath = do
-                  home <- getHomeDirectory `C.catch` (\(_::C.IOException) -> return "")
-                  return $ home </> journalDefaultFilename
-
--- | Read the default journal file specified by the environment, or raise an error.
-defaultJournal :: IO Journal
-defaultJournal = defaultJournalPath >>= readJournalFile Nothing Nothing True >>= either error' return
-
--- | Read a journal from the given string, trying all known formats, or simply throw an error.
-readJournal' :: String -> IO Journal
-readJournal' s = readJournal Nothing Nothing True Nothing s >>= either error' return
-
-tests_readJournal' = [
-  "readJournal' parses sample journal" ~: do
-     _ <- samplejournal
-     assertBool "" True
- ]
-
-
-
--- | Read a journal from this string, trying whatever readers seem appropriate:
---
--- - if a format is specified, try that reader only
---
--- - or if one or more readers recognises the file path and data, try those
---
--- - otherwise, try them all.
---
--- A CSV conversion rules file may also be specified for use by the CSV reader.
--- Also there is a flag specifying whether to check or ignore balance assertions in the journal.
-readJournal :: Maybe StorageFormat -> Maybe FilePath -> Bool -> Maybe FilePath -> String -> IO (Either String Journal)
-readJournal format rulesfile assrt path s =
-  tryReaders $ readersFor (format, path, s)
-  where
-    -- try each reader in turn, returning the error of the first if all fail
-    tryReaders :: [Reader] -> IO (Either String Journal)
-    tryReaders = firstSuccessOrBestError []
-      where
-        firstSuccessOrBestError :: [String] -> [Reader] -> IO (Either String Journal)
-        firstSuccessOrBestError [] []        = return $ Left "no readers found"
-        firstSuccessOrBestError errs (r:rs) = do
-          dbg1IO "trying reader" (rFormat r)
-          result <- (runExceptT . (rParser r) rulesfile assrt path') s
-          dbg1IO "reader result" $ either id show result
-          case result of Right j -> return $ Right j                       -- success!
-                         Left e  -> firstSuccessOrBestError (errs++[e]) rs -- keep trying
-        firstSuccessOrBestError (e:_) []    = return $ Left e              -- none left, return first error
-        path' = fromMaybe "(string)" path
-
 -- | Which readers are worth trying for this (possibly unspecified) format, filepath, and data ?
 readersFor :: (Maybe StorageFormat, Maybe FilePath, String) -> [Reader]
 readersFor (format,path,s) =
@@ -159,6 +63,35 @@ readerForStorageFormat s | null rs = Nothing
 -- | Find the readers which think they can handle the given file path and data, if any.
 readersForPathAndData :: (FilePath,String) -> [Reader]
 readersForPathAndData (f,s) = filter (\r -> (rDetector r) f s) readers
+
+-- try each reader in turn, returning the error of the first if all fail
+tryReaders :: [Reader] -> Maybe FilePath -> Bool -> Maybe FilePath -> String -> IO (Either String Journal)
+tryReaders readers mrulesfile assrt path s = firstSuccessOrBestError [] readers
+  where
+    firstSuccessOrBestError :: [String] -> [Reader] -> IO (Either String Journal)
+    firstSuccessOrBestError [] []        = return $ Left "no readers found"
+    firstSuccessOrBestError errs (r:rs) = do
+      dbg1IO "trying reader" (rFormat r)
+      result <- (runExceptT . (rParser r) mrulesfile assrt path') s
+      dbg1IO "reader result" $ either id show result
+      case result of Right j -> return $ Right j                       -- success!
+                     Left e  -> firstSuccessOrBestError (errs++[e]) rs -- keep trying
+    firstSuccessOrBestError (e:_) []    = return $ Left e              -- none left, return first error
+    path' = fromMaybe "(string)" path
+
+
+-- | Read a journal from this string, trying whatever readers seem appropriate:
+--
+-- - if a format is specified, try that reader only
+--
+-- - or if one or more readers recognises the file path and data, try those
+--
+-- - otherwise, try them all.
+--
+-- A CSV conversion rules file may also be specified for use by the CSV reader.
+-- Also there is a flag specifying whether to check or ignore balance assertions in the journal.
+readJournal :: Maybe StorageFormat -> Maybe FilePath -> Bool -> Maybe FilePath -> String -> IO (Either String Journal)
+readJournal mformat mrulesfile assrt path s = tryReaders (readersFor (mformat, path, s)) mrulesfile assrt path s
 
 -- | Read a Journal from this file (or stdin if the filename is -) or give
 -- an error message, using the specified data format or trying all known
@@ -208,6 +141,40 @@ newJournalContent = do
   d <- getCurrentDay
   return $ printf "; journal created %s by hledger\n" (show d)
 
+-- | Get the default journal file path specified by the environment.
+-- Like ledger, we look first for the LEDGER_FILE environment
+-- variable, and if that does not exist, for the legacy LEDGER
+-- environment variable. If neither is set, or the value is blank,
+-- return the hard-coded default, which is @.hledger.journal@ in the
+-- users's home directory (or in the current directory, if we cannot
+-- determine a home directory).
+defaultJournalPath :: IO String
+defaultJournalPath = do
+  s <- envJournalPath
+  if null s then defaultJournalPath else return s
+    where
+      envJournalPath =
+        getEnv journalEnvVar
+         `C.catch` (\(_::C.IOException) -> getEnv journalEnvVar2
+                                            `C.catch` (\(_::C.IOException) -> return ""))
+      defaultJournalPath = do
+                  home <- getHomeDirectory `C.catch` (\(_::C.IOException) -> return "")
+                  return $ home </> journalDefaultFilename
+
+-- | Read the default journal file specified by the environment, or raise an error.
+defaultJournal :: IO Journal
+defaultJournal = defaultJournalPath >>= readJournalFile Nothing Nothing True >>= either error' return
+
+-- | Read a journal from the given string, trying all known formats, or simply throw an error.
+readJournal' :: String -> IO Journal
+readJournal' s = readJournal Nothing Nothing True Nothing s >>= either error' return
+
+tests_readJournal' = [
+  "readJournal' parses sample journal" ~: do
+     _ <- samplejournal
+     assertBool "" True
+ ]
+
 -- tests
 
 samplejournal = readJournal' $ unlines
@@ -237,18 +204,3 @@ samplejournal = readJournal' $ unlines
  ,"    liabilities:debts  $1"
  ,"    assets:bank:checking"
  ]
-
-tests_Hledger_Read = TestList $
-  tests_readJournal'
-  ++ [
-   tests_Hledger_Read_JournalReader,
-   tests_Hledger_Read_TimelogReader,
-   tests_Hledger_Read_CsvReader,
-
-   "journal" ~: do
-    r <- runExceptT $ parseWithCtx nullctx JournalReader.journalp ""
-    assertBool "journalp should parse an empty file" (isRight $ r)
-    jE <- readJournal Nothing Nothing True Nothing "" -- don't know how to get it from journal
-    either error' (assertBool "journalp parsing an empty file should give an empty journal" . null . jtxns) jE
-
-  ]

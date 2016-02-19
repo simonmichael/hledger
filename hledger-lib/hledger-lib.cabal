@@ -102,6 +102,7 @@ library
       Hledger.Read
       Hledger.Read.CsvReader
       Hledger.Read.JournalReader
+      Hledger.Read.TimedotReader
       Hledger.Read.TimelogReader
       Hledger.Reports
       Hledger.Reports.ReportOptions
