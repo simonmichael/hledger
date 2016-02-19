@@ -248,7 +248,7 @@ s `withAliases` as = s ++ " (" ++ intercalate ", " as ++ ")"
 
 -- | Command line options, used in the @hledger@ package and above.
 -- This is the \"opts\" used throughout hledger CLI code.
--- representing the options that arguments that were provided at
+-- representing the options and arguments that were provided at
 -- startup on the command-line.
 data CliOpts = CliOpts {
      rawopts_         :: RawOpts
