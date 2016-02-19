@@ -50,7 +50,7 @@ toggleCleared ropts = ropts{cleared_=not $ cleared_ ropts}
 -- | Regenerate the content for the current and previous screens, from a new journal and current date.
 reload :: Journal -> Day -> AppState -> AppState
 reload j d st@AppState{aScreen=s,aPrevScreens=ss} =
-  -- clumsy due to entanglement of AppState and Screen.
+  -- XXX clumsy due to entanglement of AppState and Screen.
   -- sInitFn operates only on an appstate's current screen, so
   -- remove all the screens from the appstate and then add them back
   -- one at a time, regenerating as we go.
