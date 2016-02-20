@@ -83,7 +83,7 @@ timedotfilep = do items <- many timedotfileitemp
          ] <?> "timedot day entry, or default year or comment line or blank line"
 
 addTransactions :: [Transaction] -> Journal -> Journal
-addTransactions ts j = foldr ($) j (map addTransaction ts) -- XXX
+addTransactions ts j = foldl' (flip ($)) j (map addTransaction ts)
 
 -- | Parse timedot day entries to zero or more time transactions for that day.
 -- @
