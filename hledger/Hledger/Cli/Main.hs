@@ -157,26 +157,38 @@ argsToCliOpts args addons = do
 -- - move all required-argument help and input flags along with their values, space-separated or not
 -- - not confuse things further or cause misleading errors.
 moveFlagsAfterCommand :: [String] -> [String]
-moveFlagsAfterCommand args = move args
+moveFlagsAfterCommand args = moveArgs $ ensureDebugHasArg args
   where
-    move (f:a:as)           | isMovableNoArgFlag f           = (move $ a:as) ++ [f]
-    move (f:v:a:as)         | isMovableReqArgFlag f          = (move $ a:as) ++ [f,v]
-    move (fv:a:as)          | isMovableReqArgFlagAndValue fv = (move $ a:as) ++ [fv]
-    move ("--debug":v:a:as) | not (null v) && all isDigit v  = (move $ a:as) ++ ["--debug",v]
-    move ("--debug":a:as)                                    = (move $ a:as) ++ ["--debug"]
-    move (fv@('-':'-':'d':'e':'b':'u':'g':'=':_):a:as)       = (move $ a:as) ++ [fv]
-    move as = as
+    -- quickly! make sure --debug has a numeric argument, or this all goes to hell
+    ensureDebugHasArg as =
+      case break (=="--debug") as of
+       (bs,"--debug":c:cs) | null c || not (all isDigit c) -> bs++"--debug=1":c:cs
+       (bs,"--debug":[])                                   -> bs++"--debug=1":[]
+       _                                                   -> as
 
-    isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` noargflagstomove
-    isMovableReqArgFlag a = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` reqargflagstomove
-    isMovableReqArgFlagAndValue ('-':'-':a:as) = case break (== '=') (a:as) of (f:fs,_) -> (f:fs) `elem` reqargflagstomove
-                                                                               _        -> False
-    isMovableReqArgFlagAndValue ('-':f:_:_) = [f] `elem` reqargflagstomove
-    isMovableReqArgFlagAndValue _ = False
+    -- -h ..., --version ...
+    moveArgs (f:a:as)   | isMovableNoArgFlag f           = (moveArgs $ a:as) ++ [f]
+    -- -f FILE ..., --alias ALIAS ...
+    moveArgs (f:v:a:as) | isMovableReqArgFlag f
+                        , not (take 1 v == "-")          = (moveArgs $ a:as) ++ [f,v]
+    -- -fFILE ..., --alias=ALIAS ...
+    moveArgs (fv:a:as)  | isMovableReqArgFlagAndValue fv = (moveArgs $ a:as) ++ [fv]
+    -- anything else
+    moveArgs as = as
 
-    noargflagstomove  = concatMap flagNames $ filter ((==FlagNone).flagInfo) flagstomove
-    reqargflagstomove = concatMap flagNames $ filter ((==FlagReq ).flagInfo) flagstomove
-    flagstomove = inputflags ++ helpflags
+isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` noargflagstomove
+
+isMovableReqArgFlag a = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` reqargflagstomove
+
+isMovableReqArgFlagAndValue ('-':'-':a:as) = case break (== '=') (a:as) of (f:fs,_:_) -> (f:fs) `elem` reqargflagstomove
+                                                                           _          -> False
+isMovableReqArgFlagAndValue ('-':shortflag:_:_) = [shortflag] `elem` reqargflagstomove
+isMovableReqArgFlagAndValue _ = False
+
+flagstomove = inputflags ++ helpflags
+noargflagstomove  = concatMap flagNames $ filter ((==FlagNone).flagInfo) flagstomove
+reqargflagstomove = -- filter (/= "debug") $
+                    concatMap flagNames $ filter ((==FlagReq ).flagInfo) flagstomove
 
 -- | Let's go.
 main :: IO ()
