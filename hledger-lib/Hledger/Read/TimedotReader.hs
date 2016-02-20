@@ -96,7 +96,7 @@ timedotdayp :: ParsecT [Char] JournalContext (ExceptT String IO) [Transaction]
 timedotdayp = do
   ptrace " timedotdayp"
   d <- datep <* eolof
-  es <- catMaybes <$> many (const Nothing <$> emptyorcommentlinep <|>
+  es <- catMaybes <$> many (const Nothing <$> try emptyorcommentlinep <|>
                             Just <$> (notFollowedBy datep >> timedotentryp))
   return $ map (\t -> t{tdate=d}) es -- <$> many timedotentryp
 
