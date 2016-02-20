@@ -138,7 +138,7 @@ DOCFILES:= \
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
 	$(HPACKFILES) \
-	doc/manual.md \
+	site/manual-start.md \
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
@@ -870,7 +870,7 @@ hakyll-std site/hakyll-std/hakyll-std: \
 		$(call def-help,hakyll-std, build a generic hakyll site builder script )
 	cd site/hakyll-std; ./hakyll-std.hs >/dev/null && stack ghc hakyll-std.hs
 
-site-build: site/hakyll-std/hakyll-std \
+site-build: site/hakyll-std/hakyll-std site/manual.md \
 	$(call def-help,site-build, generate the hledger.org website with hakyll-std )
 	-cd site; hakyll-std/hakyll-std build
 
@@ -1051,21 +1051,34 @@ MANPAGES=\
 	hledger-web/hledger-web.1 \
 
 manpages: $(MANPAGES) \
-		$(call def-help,manpages, generate man pages from markdown )
+		$(call def-help,manpages, generate man pages )
 
 %.1 %.5: $$@.md doc/manpage.template
 	pandoc $< -t man -s --template doc/manpage.template -o $@ \
-		--filter tools/pandocCapitalizeHeaders.hs \
-		--filter tools/pandocRemoveNotes.hs \
-		--filter tools/pandocRemoveLinks.hs
-#		--filter tools/pandocCapitalizeHeaders \
-#		--filter tools/pandocRemoveNotes \
-#		--filter tools/pandocRemoveLinks
+		--filter tools/pandocCapitalizeHeaders \
+		--filter tools/pandocRemoveNotes \
+		--filter tools/pandocRemoveLinks \
+		--filter tools/pandocRemoveHtmlBlocks \
+		--filter tools/pandocRemoveHtmlInlines \
 # faster when compiled
-
+#		--filter tools/pandocCapitalizeHeaders.hs \
+#		--filter tools/pandocRemoveNotes.hs \
+#		--filter tools/pandocRemoveLinks.hs \
+#		--filter tools/pandocRemoveHtmlBlocks.hs \
+#		--filter tools/pandocRemoveHtmlInlines.hs \
 
 clean-manpages:
 	rm -f $(MANPAGES)
+
+site/manual2.md: site/manual-start.md site/manual-end.md $(MANPAGES) \
+		$(call def-help,site/manual2.md, generate combined user manual )
+	cat site/manual-start.md >site/manual2.md && \
+	pandoc \
+		--filter tools/pandocRemoveManpageBlocks \
+		hledger-ui/hledger-ui.1.md -w markdown >>site/manual2.md && \
+	cat site/manual-end.md >>site/manual2.md
+
+#--template doc/userguide.template \
 
 ###############################################################################
 $(call def-help-subsection,RELEASING:)
@@ -1182,8 +1195,8 @@ hledger-web/package.yaml: $(VERSIONFILE) \
 	perl -p -e "s/(hledger(-lib|-web)? *[>=]= *).*/\$${1}$(VERSION)/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
-doc/manual.md: $(VERSIONFILE) \
-	$(call def-help-hide,doc/MANUAL.md, update the version in this file )
+site/manual-start.md: $(VERSIONFILE) \
+	$(call def-help-hide,site/manual-start.md, update the version in this file )
 	perl -p -e "s/(this version documents hledger and hledger-web) +[0-9.]+/\1 $(VERSION)/" -i $@
 
 tagrelease: \
