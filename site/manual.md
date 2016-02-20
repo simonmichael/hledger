@@ -792,7 +792,7 @@ hledger can also read timelog (aka timeclock) files.
 these are (a subset of)
 [timeclock.el](http://www.emacswiki.org/emacs/TimeClock)'s format,
 containing clock-in and clock-out entries as in the example below.
-The date is a [simple date](#simple-dates) (also, [default year directives](#default-year) work).
+The date is a [simple dates](#simple-dates) (also, [default year directives](#default-year) work).
 The time format is HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional.
 The timezone, if present, must be four digits and is ignored
 (currently the time is always interpreted as a local time).
@@ -857,7 +857,7 @@ It can be formatted like a bar chart, making clear at a glance where time was sp
 Though called "timedot", the format does not specify the commodity being logged, so could represent other dated, quantifiable things.
 Eg you could record a single-entry journal of financial transactions, perhaps slightly more conveniently than with hledger_journal(5) format.
 
-## Format
+#### Format
 
 A timedot file contains a series of day entries.
 A day entry begins with a date, and is followed by category/quantity pairs, one per line.
@@ -916,6 +916,8 @@ $ hledger -f t.timedot --alias /\\./=: bal -W
 
 Here is a
 [sample.timedot](https://raw.github.com/simonmichael/hledger/master/data/sample.timedot).
+
+
 
 ### CSV
 

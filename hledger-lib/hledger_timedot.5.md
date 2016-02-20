@@ -20,7 +20,7 @@ Eg you could record a single-entry journal of financial transactions, perhaps sl
 
 A timedot file contains a series of day entries.
 A day entry begins with a date, and is followed by category/quantity pairs, one per line.
-Dates are hledger-style [simple date](#simple-dates) (see hledger_journal(5)).
+Dates are hledger-style [simple dates](#simple-dates) (see hledger_journal(5)).
 Categories are hledger-style account names, optionally indented.
 There must be at least two spaces between the category and the quantity.
 Quantities can be written in two ways:
