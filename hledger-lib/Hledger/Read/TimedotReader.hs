@@ -108,6 +108,7 @@ timedotentryp :: ParsecT [Char] JournalContext (ExceptT String IO) Transaction
 timedotentryp = do
   ptrace "  timedotentryp"
   pos <- genericSourcePos <$> getPosition
+  many spacenonewline
   a <- modifiedaccountnamep
   many spacenonewline
   hours <-
