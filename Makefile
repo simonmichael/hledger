@@ -1281,7 +1281,9 @@ tagrelease: \
 cloc: \
 	$(call def-help,cloc, count lines of source code )
 	@echo Lines of code including tests:
-	@cloc --exclude-lang=HTML --exclude-dir=.stack-work,.idea,dist,old,bin,doc,site,.tutorial-data .
+	@cloc --exclude-lang=HTML --exclude-dir=.stack-work,.idea,dist,old,bin,doc,site,.tutorial-data,static,angular .
+
+
 	@echo
 # `ls $(SOURCEFILES)`
 
