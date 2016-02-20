@@ -1,0 +1,35 @@
+# WIP see doc/mockups/commodity-styles.txt
+
+# 1. The four decimal places of the market price should not alter the
+# canonical style of two decimal places in a's converted-to-B balance
+# (#295).
+hledger -f- bal -V -N
+<<<
+P 2015/1/1 A 1.0001 B
+2015/1/1
+    (a)  1.00 A
+    (b)  1.00 B
+>>>
+              1.00 B  a
+              1.00 B  b
+>>>=0
+
+# 2. This should choose the 1,000.00 format (the first amount sets
+# decimal point to period, the second sets digit group size to 3 and
+# digit group separator to comma).
+# hledger -f- print
+# <<<
+# 2015/1/1
+#     (a)  1000.00 A
+
+# 2015/1/1
+#     (a)    1,000 A
+# >>>
+# 2015/01/01
+#     (a)    1,000.00 A
+
+# 2015/01/01
+#     (a)    1,000.00 A
+
+# >>>=0
+
