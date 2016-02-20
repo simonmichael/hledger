@@ -132,7 +132,7 @@ D $1000.0
 # (C's precision 2 + D's precision 2).
 hledger -f- print
 <<<
-1/1
+2015/1/1
     c    C 10.00
     c    C 11.00
     d  D -320.00
@@ -149,7 +149,7 @@ hledger -f- print
 # (E's precision 4 + F's precision 3).
 hledger -f- print
 <<<
-1/1
+2015/1/1
     e    E 10.0000
     e    E 11
     f  F -320.000
