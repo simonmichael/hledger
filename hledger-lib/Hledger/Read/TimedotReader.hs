@@ -60,9 +60,9 @@ format = "timedot"
 
 -- | Does the given file path and data look like it might contain this format ?
 detect :: FilePath -> String -> Bool
-detect f _s
-  | f /= "-"  = takeExtension f == '.':format  -- from a file: yes if the extension matches the format name
-  | otherwise = False                          -- from stdin: yes if...
+detect f s
+  | f /= "-"  = takeExtension f == '.':format -- from a file: yes if the extension matches the format name
+  | otherwise = regexMatches "(^|\n)[0-9]" s  -- from stdin: yes if we can see a possible timedot day entry (digits in column 0)
 
 -- | Parse and post-process a "Journal" from the timedot format, or give an error.
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal

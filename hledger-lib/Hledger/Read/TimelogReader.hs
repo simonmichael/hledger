@@ -51,7 +51,7 @@ import Prelude ()
 import Prelude.Compat
 import Control.Monad (liftM)
 import Control.Monad.Except (ExceptT)
-import Data.List (isPrefixOf, foldl')
+import Data.List (foldl')
 import Data.Maybe (fromMaybe)
 import Test.HUnit
 import Text.Parsec hiding (parse)
@@ -75,8 +75,8 @@ format = "timelog"
 -- | Does the given file path and data look like it might be timeclock.el's timelog format ?
 detect :: FilePath -> String -> Bool
 detect f s
-  | f /= "-"  = takeExtension f == '.':format               -- from a file: yes if the extension is .timelog
-  | otherwise = "i " `isPrefixOf` s || "o " `isPrefixOf` s  -- from stdin: yes if it starts with "i " or "o "
+  | f /= "-"  = takeExtension f == '.':format -- from a known file name: yes if the extension is this format's name
+  | otherwise = regexMatches "(^|\n)[io] " s  -- from stdin: yes if any line starts with "i " or "o "
 
 -- | Parse and post-process a "Journal" from timeclock.el's timelog
 -- format, saving the provided file path and the current time, or give an

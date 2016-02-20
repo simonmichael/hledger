@@ -88,9 +88,8 @@ format = "journal"
 -- | Does the given file path and data look like it might be hledger's journal format ?
 detect :: FilePath -> String -> Bool
 detect f s
-  | f /= "-"  = takeExtension f `elem` ['.':format, ".j"]  -- from a file: yes if the extension is .journal or .j
-  -- from stdin: yes if we can see something that looks like a journal entry (digits in column 0 with the next line indented)
-  | otherwise = regexMatches "^[0-9]+.*\n[ \t]+" s
+  | f /= "-"  = takeExtension f `elem` ['.':format, ".j"] -- from a known file name: yes if the extension is this format's name or .j
+  | otherwise = regexMatches "(^|\n)[0-9]+.*\n[ \t]+" s   -- from stdin: yes if we can see something that looks like a journal entry (digits in column 0 with the next line indented)
 
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
@@ -275,6 +274,7 @@ includedirectivep = do
        txt <- readFileOrError outerPos filepath
        let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
        r <- runParserT journalp outerState filepath txt
+
        case r of
          Right (ju, ctx) -> do
                             u <- combineJournalUpdates [ return $ journalAddFile (filepath,txt)
