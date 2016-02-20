@@ -781,6 +781,8 @@ include path/to/file.journal
 
 If the path does not begin with a slash, it is relative to the current file.
 
+Glob patterns (`*`) are not currently supported.
+
 The `include` directive may only be used in journal files, and currently
 it may only include other journal files (eg, not CSV or timelog files.)
 
