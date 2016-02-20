@@ -2,6 +2,17 @@
 %
 % October 2015
 
+<!--
+doc generation process:
+core docs live in per-package, man-page-structured markdown files like this one
+the whole file is used to generate a man page, with filters:
+ html blocks and inline html are stripped
+content between \<!-- USERGUIDE --\> and \<!-- /USERGUIDE --\> is reused for the user guide, with filters:
+ heading levels are increased (+4)
+-->
+
+<div class="manpage">
+
 # NAME
 
 hledger-ui - curses-style interface for the hledger accounting tool
@@ -17,15 +28,52 @@ hledger is a cross-platform program for tracking money, time, or any other commo
 using double-entry accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
 
+</div>
+
+<div class="userguide">
+
+<style>
+.highslide img {max-width:250px; float:right; margin:0 0 1em 1em;}
+.highslide-caption {color:white; background-color:black;}
+</style>
+<a href="images/hledger-ui/hledger-ui-sample-acc2.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-acc2.png" title="Accounts screen with query and depth limit" /></a>
+<a href="images/hledger-ui/hledger-ui-sample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-acc.png" title="Accounts screen" /></a>
+<a href="images/hledger-ui/hledger-ui-sample-acc-greenterm.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-acc-greenterm.png" title="Accounts screen with greenterm theme" /></a>
+<a href="images/hledger-ui/hledger-ui-sample-txn.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-txn.png" title="Transaction screen" /></a>
+<a href="images/hledger-ui/hledger-ui-sample-reg.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-reg.png" title="Register screen" /></a>
+<!-- <br clear=all> -->
+<a href="images/hledger-ui/hledger-ui-bcexample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc.png" title="beancount example accounts" /></a>
+<a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade:cash.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade:cash.png" title="beancount example's etrade cash subaccount" /></a>
+<a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" title="beancount example's etrade investments, all commoditiess" /></a>
+
+</div>
+
 hledger-ui is hledger's curses-style interface.
-It reads a hledger journal file (~/.hledger.journal, $LEDGER_FILE, or -f FILE) and
-provides a simple full-screen console interface for viewing account
-balances and transactions. It is simpler and more convenient for
+It reads a hledger journal file
+<div class="manpage">
+(~/.hledger.journal, $LEDGER_FILE, or -f FILE; see hledger(1) or hledger_journal(5))a
+</div>
+and provides a simple full-screen console interface for viewing account balances and transactions.
+
+It is simpler and more convenient for
 browsing than the command-line interface, but lighter and faster than
 hledger-web.
 
-The journal file is `~/.hledger.journal`, `$LEDGER_FILE`, or another file specified with -f.
-For more about the format, see hledger(1) or hledger_journal(5).
+```{.shell .noclear}
+$ hledger ui -- --help
+hledger-ui [OPTIONS] [PATTERNS]
+  browse accounts, postings and entries in a full-window curses interface
+
+Flags:
+     --theme=THEME         use this custom display theme (default, terminal,
+                           greenterm)
+     --register=ACCTREGEX  start in the (first) matched account's register
+     --flat                show full account names, unindented
+     --no-elide            don't compress empty parent accounts on one line
+  -V --value               show amounts as their market value in their
+                           default valuation commodity (accounts screen)
+  ...
+```
 
 # OPTIONS
 
@@ -204,6 +252,8 @@ This screen will appear if there is a problem, such as a parse error,
 when you press g to reload. Once you have fixed the problem described,
 press g again to reload and restore normal operation.
 
+<div class="manpage">
+
 # ENVIRONMENT
 
 **LEDGER_FILE**
@@ -233,3 +283,5 @@ visual indication that this is in progress.
 The register screen's switching between historic balance and running
 total based on query arguments may be confusing, and there is no
 column heading to indicate which is being displayed.
+
+</div>
