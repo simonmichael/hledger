@@ -1,6 +1,6 @@
 {-|
 
-A reader for the new "timedot" file format (tentative name).
+A reader for the "timedot" file format.
 Example:
 
 @
@@ -9,13 +9,13 @@ Example:
 
 # on 2/1, 1h was spent on FOSS haskell work, 0.25h on research, etc.
 2/1
-fos.haskell  .... ..
-biz.research .
-inc.client1  .... .... .... .... .... ....
+fos.haskell   .... ..
+biz.research  .
+inc.client1   .... .... .... .... .... ....
 
 2/2
-biz.research .
-inc.client1 .... .... ..
+biz.research  .
+inc.client1   .... .... ..
 
 @
 
@@ -58,7 +58,7 @@ reader = Reader format detect parse
 format :: String
 format = "timedot"
 
--- | Does the given file path and data look like it contain this format ?
+-- | Does the given file path and data look like it might contain this format ?
 detect :: FilePath -> String -> Bool
 detect f _s
   | f /= "-"  = takeExtension f == '.':format  -- from a file: yes if the extension matches the format name
