@@ -804,6 +804,10 @@ ghci-web: \
 		$(call def-help,ghci-web, start a GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
 	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-web/app/main.hs
 
+ghci-api: \
+		$(call def-help,ghci-api, start a GHCI REPL and load the hledger-lib, hledger and hledger-api packages)
+	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-api/hledger-api.hs
+
 samplejournals: \
 	data/sample.journal \
 	data/100x100x10.journal \
