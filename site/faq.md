@@ -10,10 +10,12 @@ I discovered John Wiegley's [Ledger](http://ledger-cli.org) in 2006,
 and was very happy to find this efficient command-line reporting tool with a transparent data format.
 
 Initially, I used it to generate time reports for my job.
-Before long I wanted that to work a little differently - splitting the transaction at day boundaries, reporting in hours, etc.
-John had got busy elsewhere and the Ledger project now entered a fairly long period of stagnation, with persistent bugs, documentation problems, and a confusing release situation.
-I did what I could to help build momentum in the Ledger project, reporting bugs, supporting newcomers, and contributing a new domain and website.
-But, I didn't want to spend time learning C++. I was learning Haskell, which I did want to spend time in.
+Before long I wanted that to work differently - splitting sessions at day boundaries, reporting in hours, etc.
+John had got busy elsewhere and the Ledger project now stalled, with unfixed bugs, wrong documentation and a confusing release situation persisting for a long time.
+I did what I could to help build momentum, reporting bugs, supporting newcomers, and contributing a new domain and website.
+But, I didn't want to spend time learning C++.
+
+I was learning Haskell, which I did want to spend time in.
 I felt Ledger could be implemented well and, in the long run, more efficiently in that language,
 which has some compelling advantages such as lower maintenance costs.
 <!-- ([eg](http://neilmitchell.blogspot.com/2016/02/selling-haskell-in-pub.html)). -->
@@ -21,13 +23,14 @@ which has some compelling advantages such as lower maintenance costs.
 <!-- allowing more bug-free, concise and maintainable software. It provides -->
 <!-- a more abstracted, portable platform making installation easier. It is -->
 <!-- attractive for contributors to work on.) -->
-
 I urgently needed a reliable accounting tool that I enjoyed using.
 I also wanted to see what I could do to reduce roadbumps and confusion for newcomers.
-I couldn't expect John to start over - at that time he was not the Haskell fan he is now.
+
+I couldn't expect John to start over - at that time he was not the Haskell fan he is now!
 So in 2007 I began experimenting.
 I built a toy parser in a few different languages, and it was easiest in Haskell.
-I kept tinkering. Goals included:
+I kept tinkering.
+Goals included:
 
 - to get better at Haskell by building something useful to me,
 - to learn how well Haskell could work for real-world applications,
