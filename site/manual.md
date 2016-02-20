@@ -785,9 +785,9 @@ The `include` directive may only be used in journal files, and currently
 it may only include other journal files (eg, not CSV or timelog files.)
 
 
-### Timelog
+### Timeclock
 
-hledger can also read timelog (aka timeclock) files.
+hledger can also read files in timeclock format.
 [As with Ledger](http://ledger-cli.org/3.0/doc/ledger3.html#Time-Keeping),
 these are (a subset of)
 [timeclock.el](http://www.emacswiki.org/emacs/TimeClock)'s format,
