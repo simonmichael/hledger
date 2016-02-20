@@ -51,24 +51,54 @@ biz:research  .
 Or with numbers:
 
 ```timedot
-2016/2/1
-inc:client1   6
-fos:haskell   1.5
-biz:research  .25
-```
-
-I prefer . (period) for separating account components:
-
-```timedot
 2016/2/3
-fos.hledger.timedot  4
-biz.research         1
+inc:client1   4
+fos:hledger   3
+biz:research  1
 ```
 
-hledger requires : (colon), so rewrite them with --alias:
+Reporting:
 
 ```shell
-$ hledger -f t.timedot --alias /\\./=: bal -W
+$ hledger -f t.timedot print date:2016/2/2
+2016/02/02 *
+    (inc:client1)          2.00
+
+2016/02/02 *
+    (biz:research)          0.25
+```
+```shell
+$ hledger -f t.timedot bal --daily --tree
+Balance changes in 2016/02/01-2016/02/03:
+
+            ||  2016/02/01d  2016/02/02d  2016/02/03d 
+============++========================================
+ biz        ||         0.25         0.25         1.00 
+   research ||         0.25         0.25         1.00 
+ fos        ||         1.50            0         3.00 
+   haskell  ||         1.50            0            0 
+   hledger  ||            0            0         3.00 
+ inc        ||         6.00         2.00         4.00 
+   client1  ||         6.00         2.00         4.00 
+------------++----------------------------------------
+            ||         7.75         2.25         8.00 
+```
+
+I'd prefer to use period for separating account components.
+We can rewrite these to the colon hledger requires with --alias:
+
+```timedot
+2016/2/4
+fos.hledger.timedot  4
+fos.ledger           ..
+```
+```shell
+$ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4
+                4.50  fos
+                4.00    hledger:timedot
+                0.50    ledger
+--------------------
+                4.50
 ```
 
 [default year directives](#default-year) may be used.
