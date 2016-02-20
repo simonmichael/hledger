@@ -57,7 +57,7 @@ hledger -f - stats
   b   $-1  = $-3
 
 >>>
->>>2 /Balance assertion failed for account b on 2013-01-03/
+>>>2 /balance assertion failed on 2013\/01\/03/
 >>>=1
 
 # 4. should also work without commodity symbols
