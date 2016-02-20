@@ -13,18 +13,13 @@ module Main where
 
 import           Control.Lens ((&), (.~), (?~))
 import           Control.Monad
-import           Control.Monad.IO.Class
-import           Control.Monad.Trans.Either
-import           Control.Monad.Trans.Reader
 import           Data.Aeson
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import           Data.Decimal
 import qualified Data.Map as M
-import           Data.Monoid
 import           Data.Proxy
 import           Data.Swagger
 import           Data.Text hiding (map,reverse)
-import           GHC.Generics
 import           Network.Wai as Wai
 import           Network.Wai.Handler.Warp as Warp
 import           Safe
@@ -33,7 +28,6 @@ import           Servant.Swagger
 import           System.Console.Docopt
 import           System.Environment (getArgs)
 import           System.Exit
-import           System.IO
 import           Text.Printf
 
 import Hledger.Query
