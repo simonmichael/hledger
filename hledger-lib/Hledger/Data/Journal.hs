@@ -494,7 +494,11 @@ checkBalanceAssertion (errs,startbal) ps
                  (showMixedAmount finalsinglebal)
                  (diffplus ++ showMixedAmount diff)
                  (showPostingLine p)
-                 (maybe "" (("in transaction:\n"++).show) $ ptransaction p)
+                 (case ptransaction p of
+                    Nothing -> ""
+                    Just t -> printf "in transaction at %s line %d:\n%s" f l (show t)
+                              where GenericSourcePos f l _ = tsourcepos t
+                 )
 
 -- Given a sequence of postings to a single account, split it into
 -- sub-sequences consisting of ordinary postings followed by a single
