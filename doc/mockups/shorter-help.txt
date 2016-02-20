@@ -379,40 +379,54 @@ General flags (for more detail, use --help):
   --cleared --pending -U --uncleared -R --real --depth=N -E --empty -B
   --cost -h --help --debug=N --version
 
+** -h shows command-specific flags in brief plus general flags in brief:
+
 $ hledger register -h
 register [OPTIONS] [PATTERNS]
   show postings and running total (reg)
 
 Flags:
-  -H --historical              include prior postings in the running total
-  -A --average                 show a running average instead of the running
-                               total (implies --empty)
-  -r --related                 show postings' siblings instead
-  -w --width=N                 set output width (default: terminal width or
-                               COLUMNS. -wN,M sets description width as well)
-  -o --output-file=FILE[.FMT]  write output to FILE instead of stdout. A
-                               recognised FMT suffix influences the format.
-  -O --output-format=FMT       select the output format. Supported formats:
-                               txt, csv.
-
-General flags (for more detail, use --help):
-  -f --file=FILE --rules-file=RFILE --alias=OLD=NEW --ignore-assertions -b
-  --begin=DATE -e --end=DATE -D --daily -W --weekly -M --monthly -Q
-  --quarterly -Y --yearly -p --period=PERIODEXP --date2 --aux-date -C
-  --cleared --pending -U --uncleared -R --real --depth=N -E --empty -B
+  -H --historical -A --average -r --related -w --width=N
+  -o --output-file=FILE[.FMT] -O --output-format=FMT
+                             
+General flags:
+  -f --file=FILE --rules-file=RFILE --alias=OLD=NEW --ignore-assertions
+  -b --begin=DATE -e --end=DATE -D --daily -W --weekly -M --monthly
+  -Q --quarterly -Y --yearly -p --period=PERIODEXP --date2 --aux-date
+  -C --cleared --pending -U --uncleared -R --real --depth=N -E --empty -B
   --cost -h --help --debug=N --version
+
+(for more detail, use --help)
+
+** -h shows specific flags and general flags in brief, together
 
 $ hledger stats -h
 stats [OPTIONS] [PATTERNS]
   show some journal statistics
 
 Flags:
-  -o --output-file=FILE[.FMT]  write output to FILE instead of stdout. A
-                               recognised FMT suffix influences the format.
-
-General flags (for more detail, use --help):
+  -o --output-file=FILE[.FMT]
   -f --file=FILE --rules-file=RFILE --alias=OLD=NEW --ignore-assertions -b
   --begin=DATE -e --end=DATE -D --daily -W --weekly -M --monthly -Q
   --quarterly -Y --yearly -p --period=PERIODEXP --date2 --aux-date -C
   --cleared --pending -U --uncleared -R --real --depth=N -E --empty -B
   --cost -h --help --debug=N --version
+
+(for more detail, use --help)
+
+** -h shows specific flags and general flags in brief, together, more compactly
+
+$ hledger stats -h
+
+stats [-o --output-file=FILE[.FMT] -f --file=FILE --rules-file=RFILE
+      --alias=OLD=NEW --ignore-assertions -b --begin=DATE -e
+      --end=DATE -D --daily -W --weekly -M --monthly -Q --quarterly -Y
+      --yearly -p --period=PERIODEXP --date2 --aux-date -C --cleared
+      --pending -U --uncleared -R --real --depth=N -E --empty -B
+      --cost -h --help --debug=N --version]
+      [PATTERNS]
+
+  show some journal statistics
+
+
+(for more detail, use --help)
