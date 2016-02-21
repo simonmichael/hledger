@@ -2,3 +2,11 @@ _cache
 _site
 files/downloads
 files/static
+hledger-api.1.md
+hledger-ui.1.md
+hledger-web.1.md
+hledger.1.md
+hledger_csv.5.md
+hledger_journal.5.md
+hledger_timedot.5.md
+hledger_timelog.5.md

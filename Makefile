@@ -1041,6 +1041,9 @@ haddock: \
 # in subsequent rules, allow automatic variables to be used in prerequisites (use $$)
 .SECONDEXPANSION:
 
+########################
+# man pages
+
 MANPAGES=\
 	hledger-lib/hledger_csv.5 \
 	hledger-lib/hledger_journal.5 \
@@ -1053,6 +1056,18 @@ MANPAGES=\
 manpages: $(MANPAGES) \
 		$(call def-help,manpages, generate man pages )
 
+# %.1 %.5: $$@.md doc/manpage.template
+# 	pandoc $< -t man -s --template doc/manpage.template -o $@ \
+# 		--filter tools/pandocCapitalizeHeaders.hs \
+# 		--filter tools/pandocRemoveNotes.hs \
+# 		--filter tools/pandocRemoveLinks.hs \
+# 		--filter tools/pandocRemoveHtmlBlocks.hs \
+# 		--filter tools/pandocRemoveHtmlInlines.hs \
+
+# much faster when compiled
+# but note, filters need to be compiled with a version of
+# pandoc-types compatible with the pandoc you run them with
+# (filters compiled for pandoc 1.15 broke with pandoc 1.16)
 %.1 %.5: $$@.md doc/manpage.template
 	pandoc $< -t man -s --template doc/manpage.template -o $@ \
 		--filter tools/pandocCapitalizeHeaders \
@@ -1060,25 +1075,44 @@ manpages: $(MANPAGES) \
 		--filter tools/pandocRemoveLinks \
 		--filter tools/pandocRemoveHtmlBlocks \
 		--filter tools/pandocRemoveHtmlInlines \
-# faster when compiled
-#		--filter tools/pandocCapitalizeHeaders.hs \
-#		--filter tools/pandocRemoveNotes.hs \
-#		--filter tools/pandocRemoveLinks.hs \
-#		--filter tools/pandocRemoveHtmlBlocks.hs \
-#		--filter tools/pandocRemoveHtmlInlines.hs \
 
 clean-manpages:
 	rm -f $(MANPAGES)
 
-site/manual2.md: site/manual-start.md site/manual-end.md $(MANPAGES) \
+########################
+# web manual 2, man page synced
+
+# how to generate the web-based user manual and man pages from one source ?
+
+# plan 1:
+#
+# core docs are maintained as multiple pandoc-style man-markdown files
+#  eg hledger/hledger.1.md, hledger-ui/hledger-ui.1.md, hledger-lib/hledger_journal.5.md etc.
+#
+# to generate a man page, apply filters:
+#  strip html blocks and inline html
+#
+# to generate web manual content,
+#  extract marked content (inside <div class="userguide">)
+#  and apply filters:
+#   demote headings 4 steps
+
+site/manual2-1.md: site/manual-start.md site/manual-end.md $(MANPAGES) \
 		$(call def-help,site/manual2.md, generate combined user manual )
-	cat site/manual-start.md >site/manual2.md && \
+	cat site/manual-start.md >$@ && \
 	pandoc \
 		--filter tools/pandocRemoveManpageBlocks \
-		hledger-ui/hledger-ui.1.md -w markdown >>site/manual2.md && \
-	cat site/manual-end.md >>site/manual2.md
-
+		hledger-ui/hledger-ui.1.md -w markdown >>$@ && \
+	cat site/manual-end.md >>$@
 #--template doc/userguide.template \
+
+# plan 2:
+#
+# split web manual into pages corresponding to man pages, at least initially
+
+# %.1.html %.5: $$@.md doc/webmanual.template
+# 	echo pandoc $< -t man -s --template doc/webmanual.template -o $@
+# too hard, see Shake.hs
 
 ###############################################################################
 $(call def-help-subsection,RELEASING:)
