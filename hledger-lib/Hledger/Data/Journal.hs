@@ -64,11 +64,10 @@ import Data.List
 -- import Data.Map (findWithDefault)
 import Data.Maybe
 import Data.Ord
-import Safe (headMay)
+import Safe (headMay, headDef)
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Data.Tree
-import Safe (headDef)
 import System.Time (ClockTime(TOD))
 import Test.HUnit
 import Text.Printf
@@ -173,11 +172,11 @@ journalTransactionAt Journal{jtxns=ts} i =
 -- | Get the transaction that appeared immediately after this one in the input stream, if any.
 journalNextTransaction :: Journal -> Transaction -> Maybe Transaction
 journalNextTransaction j t = journalTransactionAt j (tindex t + 1)
-  
+
 -- | Get the transaction that appeared immediately before this one in the input stream, if any.
 journalPrevTransaction :: Journal -> Transaction -> Maybe Transaction
 journalPrevTransaction j t = journalTransactionAt j (tindex t - 1)
-  
+
 -- | Unique transaction descriptions used in this journal.
 journalDescriptions :: Journal -> [String]
 journalDescriptions = nub . sort . map tdescription . jtxns

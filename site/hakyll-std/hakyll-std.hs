@@ -143,4 +143,4 @@ main = do
 
   -- can't do anything here, hakyll exits
 
-linkReadmeToIndex = system "ln -sf README.html _site/index.html" >> return ()
+linkReadmeToIndex = void $ system "ln -sf README.html _site/index.html"
