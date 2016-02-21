@@ -110,7 +110,7 @@ Amount  2 ? [$-10.0]:
 Now you're asked for the amount to "move" to or from the `assets` account.
 As the default, hledger offers the amount required to "balance" the postings entered so far.
 The minus sign indicates the money is moving from this account.
-(hledger uses positive and negative sign instead of accounting's traditional "debit" and "credit" terminology.)
+(hledger uses the positive and negative sign instead of accounting's traditional "debit" and "credit" terminology.)
 In a balanced transaction, the sum of posted amounts is zero, in other words no money disappears into thin air.
 hledger does not allow unbalanced transactions.
 Press enter to accept the default. It has an extra decimal place, but never mind.
@@ -211,7 +211,7 @@ $ emacs ~/.hledger.journal
 Remove the expenses amount and save the file. It now looks like this:
 
 ```journal
-2014/02/12 trip to the supermarket
+2015/05/25 trip to the supermarket
     expenses           
     assets
 ```
@@ -500,7 +500,7 @@ Accounting describes the status of a business, person or other entity at any poi
 - **Equity**      - The amount invested by owners/shareholders
 
 The foundation of double-entry accounting is the [accounting equation](http://en.wikipedia.org/wiki/accounting_equation), which says
-that Equity is always equal to Assets minus Liabilities (or, Net Assets).
+Equity is always equal to Assets minus Liabilities (or, Net Assets).
 
 This is also written as: Assets = Liabilities + Equity.
 Another way to say it: what the entity owns is funded either by debt or by the capital provided by its owners.
@@ -527,7 +527,7 @@ Liabilities balances).
 
 ### Chart of Accounts
 
-Five numbers does not give a lot of detail. If you want to know what
+Five numbers do not give a lot of detail. If you want to know what
 portion of expenses went to buy food, you could add up just the
 transactions with (say) "supermarket" in their description. You know how to do this with hledger:
 
