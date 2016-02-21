@@ -2,11 +2,18 @@
 %
 % October 2015
 
+<div class="manonly">
+
 # NAME
 
 hledger_journal - reference for hledger's journal file format
 
 # DESCRIPTION
+
+</div>
+<div class="webonly">
+* toc
+</div>
 
 hledger's usual data source is a plain text file containing journal entries in hledger journal format.
 This file represents a standard accounting [general journal](http://en.wikipedia.org/wiki/General_journal).

@@ -2,6 +2,8 @@
 %
 % January 2016
 
+<div class="manonly">
+
 # NAME
 
 hledger-api - web API server for the hledger accounting tool
@@ -16,6 +18,11 @@ hledger-api - web API server for the hledger accounting tool
 hledger is a cross-platform program for tracking money, time, or any other commodity,
 using double-entry accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
+
+</div>
+<div class="webonly">
+<!-- * toc -->
+</div>
 
 hledger-api is a simple web API server, intended to support
 client-side web apps operating on hledger data. It comes with a series
@@ -101,6 +108,8 @@ access.
 <!-- `-B --cost` -->
 <!-- : show amounts in their cost price's commodity -->
 
+<div class="manonly">
+
 # ENVIRONMENT
 
 **LEDGER_FILE**
@@ -131,3 +140,4 @@ The need to precede options with `--` when invoked from hledger is awkward.
 <!-- appear to run normally, but you will be seeing pages served from the -->
 <!-- first one. -->
 
+</div>

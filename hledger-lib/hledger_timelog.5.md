@@ -2,11 +2,18 @@
 % 
 % October 2015
 
+<div class="manonly">
+
 # NAME
 
 hledger_timelog - hledger's timelog file format
 
 # DESCRIPTION
+
+</div>
+<div class="webonly">
+<!-- * toc -->
+</div>
 
 hledger can read timelog files.
 [As with Ledger](http://ledger-cli.org/3.0/doc/ledger3.html#Time-Keeping),

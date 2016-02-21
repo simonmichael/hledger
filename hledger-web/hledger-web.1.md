@@ -2,6 +2,8 @@
 %
 % October 2015
 
+<div class="manonly">
+
 # NAME
 
 hledger-web - web interface for the hledger accounting tool
@@ -16,6 +18,11 @@ hledger-web - web interface for the hledger accounting tool
 hledger is a cross-platform program for tracking money, time, or any other commodity,
 using double-entry accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
+
+</div>
+<div class="webonly">
+* toc
+</div>
 
 hledger-web is hledger's web interface.  It starts a simple web
 application for browsing and adding transactions, and optionally
@@ -137,6 +144,8 @@ The following common hledger options should also work:
 `-B --cost`
 : show amounts in their cost price's commodity
 
+<div class="manonly">
+
 # ENVIRONMENT
 
 **LEDGER_FILE**
@@ -167,3 +176,4 @@ If you start two instances on the same port, the second one will
 appear to run normally, but you will be seeing pages served from the
 first one.
 
+</div>

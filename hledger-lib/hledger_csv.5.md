@@ -1,12 +1,19 @@
 % hledger_csv(5)
-% 
+%
 % October 2015
+
+<div class="manonly">
 
 # NAME
 
 hledger_csv - reading CSV files with hledger, and the CSV rules file format
 
 # DESCRIPTION
+
+</div>
+<div class="webonly">
+* toc
+</div>
 
 hledger can read
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files,

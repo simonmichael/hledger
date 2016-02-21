@@ -2,11 +2,18 @@
 %
 % February 2016
 
+<div class="manonly">
+
 # NAME
 
 hledger_timedot - time logging format
 
 # DESCRIPTION
+
+</div>
+<div class="webonly">
+* toc
+</div>
 
 Timedot is a plain text format for logging dated, categorised quantities (eg time), supported by hledger.
 It is convenient for approximate and retroactive time logging,
@@ -84,9 +91,8 @@ Balance changes in 2016/02/01-2016/02/03:
             ||         7.75         2.25         8.00 
 ```
 
-I'd prefer to use period for separating account components.
-We can rewrite these to the colon hledger requires with an
-[account alias](#account-aliases):
+I prefer to use period for separating account components.
+We can make this work with an [account alias](#account-aliases):
 
 ```timedot
 2016/2/4

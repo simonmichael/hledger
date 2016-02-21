@@ -2,6 +2,8 @@
 %
 % October 2015
 
+<div class="manonly">
+
 # NAME
 
 hledger - a command-line accounting tool
@@ -19,6 +21,11 @@ file format. It is inspired by and largely compatible with ledger(1).
 hledger aims to be a reliable, practical tool for daily use. This man
 page is a quick reference and introduction; for more complete docs, see
 http://hledger.org/manual.
+
+</div>
+<div class="webonly">
+* toc
+</div>
 
 This is hledger’s command-line interface (there are also curses and web
 interfaces). Its basic function is to read a plain text file describing
@@ -484,6 +491,8 @@ $ hledger print desc:shop                 # show transactions with shop in the d
 $ hledger activity -W                     # show transaction counts per week as a bar chart
 ```
 
+<div class="manonly">
+
 # ENVIRONMENT
 
 **LEDGER_FILE**
@@ -510,3 +519,5 @@ Eg on POSIX, set LANG to something other than C.
 # REPORTING BUGS
 
 Report bugs at http://bugs.hledger.org.
+
+</div>

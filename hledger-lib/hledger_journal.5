@@ -7,6 +7,8 @@
 .PP
 hledger_journal \- reference for hledger\[aq]s journal file format
 .SH DESCRIPTION
+.IP \[bu] 2
+toc
 .PP
 hledger\[aq]s usual data source is a plain text file containing journal
 entries in hledger journal format.
@@ -698,11 +700,11 @@ $\ hledger\ print
 .PP
 You can specify a parent account which will be prepended to all accounts
 within a section of the journal.
-Use the \f[C]account\f[] directive like so:
+Use the \f[C]apply\ account\f[] directive like so:
 .IP
 .nf
 \f[C]
-account\ home
+apply\ account\ home
 
 2010/1/1
 \ \ \ \ food\ \ \ \ $10
@@ -711,6 +713,9 @@ account\ home
 end
 \f[]
 .fi
+.PP
+(\f[C]!account\f[], \f[C]account\f[], and \f[C]end\ apply\ account\f[]
+are also supported).
 .PP
 If \f[C]end\f[] is omitted, the effect lasts to the end of the file.
 The above is equivalent to:
@@ -774,6 +779,8 @@ include\ path/to/file.journal
 .PP
 If the path does not begin with a slash, it is relative to the current
 file.
+.PP
+Glob patterns (\f[C]*\f[]) are not currently supported.
 .PP
 The \f[C]include\f[] directive may only be used in journal files, and
 currently it may only include other journal files (eg, not CSV or

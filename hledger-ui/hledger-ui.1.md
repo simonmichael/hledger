@@ -2,6 +2,8 @@
 %
 % October 2015
 
+<div class="manonly">
+
 # NAME
 
 hledger-ui - curses-style interface for the hledger accounting tool
@@ -17,10 +19,34 @@ hledger is a cross-platform program for tracking money, time, or any other commo
 using double-entry accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
 
+</div>
+<div class="webonly">
+* toc
+
+<style>
+.highslide img {max-width:250px; float:right; margin:0 0 1em 1em;}
+.highslide-caption {color:white; background-color:black;}
+</style>
+<a href="images/hledger-ui/hledger-ui-sample-acc2.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-acc2.png" title="Accounts screen with query and depth limit" /></a>
+<a href="images/hledger-ui/hledger-ui-sample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-acc.png" title="Accounts screen" /></a>
+<a href="images/hledger-ui/hledger-ui-sample-acc-greenterm.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-acc-greenterm.png" title="Accounts screen with greenterm theme" /></a>
+<a href="images/hledger-ui/hledger-ui-sample-txn.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-txn.png" title="Transaction screen" /></a>
+<a href="images/hledger-ui/hledger-ui-sample-reg.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-sample-reg.png" title="Register screen" /></a>
+<!-- <br clear=all> -->
+<a href="images/hledger-ui/hledger-ui-bcexample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc.png" title="beancount example accounts" /></a>
+<a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade:cash.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade:cash.png" title="beancount example's etrade cash subaccount" /></a>
+<a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" title="beancount example's etrade investments, all commoditiess" /></a>
+
+</div>
+
 hledger-ui is hledger's curses-style interface.
-It reads a hledger journal file (~/.hledger.journal, $LEDGER_FILE, or -f FILE) and
-provides a simple full-screen console interface for viewing account
-balances and transactions. It is simpler and more convenient for
+It reads a hledger journal file
+<div class="manonly">
+(~/.hledger.journal, $LEDGER_FILE, or -f FILE; see hledger(1) or hledger_journal(5))
+</div>
+and provides a simple full-screen console interface for viewing account balances and transactions.
+
+It is simpler and more convenient for
 browsing than the command-line interface, but lighter and faster than
 hledger-web.
 
@@ -204,6 +230,8 @@ This screen will appear if there is a problem, such as a parse error,
 when you press g to reload. Once you have fixed the problem described,
 press g again to reload and restore normal operation.
 
+<div class="manonly">
+
 # ENVIRONMENT
 
 **LEDGER_FILE**
@@ -233,3 +261,5 @@ visual indication that this is in progress.
 The register screen's switching between historic balance and running
 total based on query arguments may be confusing, and there is no
 column heading to indicate which is being displayed.
+
+</div>
