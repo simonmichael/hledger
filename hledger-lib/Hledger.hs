@@ -1,19 +1,15 @@
 module Hledger (
-                module Hledger.Data
-               ,module Hledger.Query
-               ,module Hledger.Read
-               ,module Hledger.Reports
-               ,module Hledger.Utils
-               ,tests_Hledger
+  module X
+ ,tests_Hledger
 )
 where
-import Test.HUnit
+import           Test.HUnit
 
-import Hledger.Data
-import Hledger.Query
-import Hledger.Read hiding (samplejournal)
-import Hledger.Reports
-import Hledger.Utils
+import           Hledger.Data    as X
+import           Hledger.Query   as X
+import           Hledger.Read    as X hiding (samplejournal)
+import           Hledger.Reports as X
+import           Hledger.Utils   as X
 
 tests_Hledger = TestList
     [
