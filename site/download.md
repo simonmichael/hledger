@@ -63,12 +63,6 @@ and/or
 `nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-web`
 </td></tr>
 
-<tr><td>
-**in a VM**
-</td><td>
-Try <https://github.com/sciurus/hledger-vagrant>
-</td></tr>
-
 </table>
 
 <!--
@@ -103,9 +97,6 @@ This is a quick way to help the project and your fellow users!
    so that you can just type `hledger` to run it.
    (stack will show the proper directory and will tell you if it is not in $PATH).
 
-Eg, on a mac:
-<script type="text/javascript" src="https://asciinema.org/a/29672.js" id="asciicast-29672" async></script>
-
 **with cabal** (results will vary, recommended only if you can't install stack):
 
 1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html) if needed.
@@ -117,6 +108,10 @@ Eg, on a mac:
 7. `cabal sandbox init`
 8. `cabal install hledger[-ui|-web]` (On Windows, hledger-ui is [not yet supported](https://github.com/coreyoconnor/vty/pull/1).)
 9. Ensure this `.../hledger-sandbox/.cabal-sandbox/bin` is in your `$PATH` (or move its contents to ~/.cabal/bin).
+
+**in a VM**
+
+- if stack or cabal can't run on your OS, maybe this [vagrant image](https://github.com/sciurus/hledger-vagrant) can ?
 
 <a name="unreleased"></a>
 
