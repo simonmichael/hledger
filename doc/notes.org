@@ -1126,6 +1126,10 @@ http://stackoverflow.com/questions/6398996/good-haskell-source-to-read-and-learn
 *** selinger article on currency & capital gains accounting
 http://www.mscs.dal.ca/~selinger/accounting/tutorial.html#1.2
 *** parsec lexing/expression parsing tutorial: http://burz.github.io/2014/06/24/parsing.html
+*** beancount
+**** open https://bitbucket.org/blais/beancount/src/18d27ae7a877d4976853dad2b42a5dffb6feefb1/src/python/beancount/ops/summarize.py?at=default&fileviewer=file-view-default#summarize.py-30
+**** close https://bitbucket.org/blais/beancount/src/18d27ae7a877d4976853dad2b42a5dffb6feefb1/src/python/beancount/ops/summarize.py?at=default&fileviewer=file-view-default#summarize.py-97
+**** clear https://bitbucket.org/blais/beancount/src/18d27ae7a877d4976853dad2b42a5dffb6feefb1/src/python/beancount/ops/summarize.py?at=default&fileviewer=file-view-default#summarize.py-145
 ** other software
 *** http://easybooksapp.com/
 *** http://gnucash.org
