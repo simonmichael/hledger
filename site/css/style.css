@@ -67,7 +67,9 @@ pre {
 .right {
     float:right;
 }
-.navbar-brand {font-weight:bold;}
+.navbar       { font-size:x-large;  }
+.navbar-brand { font-weight:bold; font-size:xx-large; }
+.navbar-nav   { margin-left:1em;  }
 /* from https://github.com/blaenk/blaenk.github.io/blob/source/provider/scss/_article.scss */
 #toc {
 		max-width:40%;

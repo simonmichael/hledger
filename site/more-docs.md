@@ -2,10 +2,8 @@
 
 # More docs...
 
-## How-tos
-
-- [How to read CSV files](how-to-read-csv-files.html)
-- [How to use account aliases](how-to-use-account-aliases.html)
+Most of this has been contributed to the new **[plaintextaccounting.org](http://plaintextaccounting.org)** site,
+but not yet eg the [accounting](#accounting) links.
 
 ## Blog posts & articles
 

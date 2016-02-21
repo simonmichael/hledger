@@ -1,13 +1,14 @@
 <div style="float:right; text-align:right; white-space:nowrap; ">
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt="paypal"></a> 
-<a style="margin-left:3px;" href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="Flattr this" title="Flattr this" border="0"></a> 
-<div style="display:inline-block; position:relative; top:5px;">
+<a style="margin-left:3px;" href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="" title="Flattr this" border="0"></a> 
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img width=62 height=31 border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt=""></a> 
+<div style="display:inline-block; position:relative; top:5px; width:62px; height:31px;">
 <script data-gratipay-username="simonmichael" data-gratipay-widget="button" src="//grtp.co/v1.js"></script> 
 </div>
+<a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt=""></a> &nbsp;
 </div>
 # Download
 
-**[Release notes](release-notes.html)**
+### [Release notes](release-notes.html)
 
 <a name="packaged"></a>
 
@@ -16,7 +17,8 @@
 
 <style>
 tr { vertical-align:top; }
-td { padding-bottom:1em; padding-right:1em; }
+td { padding-bottom:.5em; padding-right:1em; }
+a { white-space:nowrap; }
 </style>
 
 <table>
@@ -30,7 +32,7 @@ Download, unzip, and run
 <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.zip)) -->
 and/or
 [hledger-web-0.26-win64.zip](http://hledger.org/downloads/hledger-web-0.26-win64.zip)
-<br><em>(The current release is 0.27. To contribute binaries for windows or mac, please <a href="mailto:simon@joyful.com">get in touch</a>.)</em>
+<em>(The current release is 0.27. To contribute binaries for windows or mac, please <a href="mailto:simon@joyful.com">get in touch</a>.)</em>
 </td></tr>
 
 <tr><td>
@@ -39,7 +41,7 @@ and/or
 `brew install hledger`
 </td></tr>
 
-<tr><td>
+<tr><td style="white-space:nowrap;">
 **on Debian or Ubuntu**
 </td><td>
 `apt-get install hledger hledger-web`
@@ -59,7 +61,7 @@ and/or
 
 <tr><td>
 **on NixOS**
-</td><td style="white-space:nowrap;">
+</td><td>
 `nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-web`
 </td></tr>
 

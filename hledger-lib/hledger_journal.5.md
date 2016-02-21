@@ -18,7 +18,7 @@ hledger_journal - reference for hledger's journal file format
 hledger's usual data source is a plain text file containing journal entries in hledger journal format.
 This file represents a standard accounting [general journal](http://en.wikipedia.org/wiki/General_journal).
 I use file names ending in `.journal`, but that's not required.
-The journal file contains a number of transaction entries, 
+The journal file contains a number of transaction entries,
 each describing a transfer of money (or any commodity) between two or more named accounts,
 in a simple format readable by both hledger and humans.
 
@@ -28,8 +28,8 @@ so hledger can work with [compatible](faq.html#file-format-differences) ledger j
 It's safe, and encouraged, to run both hledger and ledger on the same journal file,
 eg to validate the results you're getting.
 
-You can use hledger without learning any more about this file; 
-just use the [add](#add) or [web](#web) commands to create and update it. 
+You can use hledger without learning any more about this file;
+just use the [add](#add) or [web](#web) commands to create and update it.
 Many users, though, also edit the journal file directly with a text editor, perhaps assisted by the helper modes for emacs or vim.
 
 Here's an example:

@@ -58,14 +58,6 @@ the [ledger-cli.org](http://ledger-cli.org) site,
 IRC support on #ledger,
 and now [plaintextaccounting.org](http://plaintextaccounting.org).
 
-
-### Future ?
-
-There is a [ledger4](https://github.com/ledger/ledger4) repo on
-github; this is John's 2012/2013 rewrite of some parts of Ledger 3,
-including the parser, in Haskell. We have a plan to add this parser to
-hledger in 2015/2016, increasing its ability to read Ledger's files.
-
 ### Features
 
 Compared to Ledger, hledger builds quickly and has a complete and
@@ -179,6 +171,12 @@ or [balance assertions](manual.html#assertions-and-ordering).
   first). hledger requires the fixed lot price to come last (and
   ignores it).
 
+### Future ?
+
+There is a [ledger4](https://github.com/ledger/ledger4) repo on
+github; this is John's 2012/2013 rewrite of some parts of Ledger 3,
+including the parser, in Haskell. We have a plan to add this parser to
+hledger in 2015/2016, increasing its ability to read Ledger's files.
 
 
 ## UI surprises

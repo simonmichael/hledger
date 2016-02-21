@@ -1,35 +1,40 @@
 * toc
 
-# hledger step by step
+# hledger Step by Step
 
-Here you can learn hledger (and a little
-[double-entry accounting](https://en.wikipedia.org/wiki/Double-entry_bookkeeping_system))
-by practicing, one hands-on exercise at a time (similar to the "Learn
-X the Hard Way" books.)
+Here you can learn hledger (and a little double-entry bookkeeping)
+by practicing, one hands-on exercise at a time. You'll need:
 
-You'll learn the most if you work through each small step in order.
-If a step specifies no particular task, your task is to run the examples and understand it.
+1. A little familiarity with
+   the [command](http://tutorial.djangogirls.org/en/intro_to_command_line/index.html)
+   [line](https://en.flossmanuals.net/command-line/).
+   Or, the ability to ask for help on the IRC channel.
 
-If you get stuck, or have any other feedback, report it on IRC or the mail list, or send a pull request for this page.
+2. hledger. [Download](download.html) and install it if you haven't already.
 
-You'll need:
+You'll learn the most if you master each small step, in order.  Most
+steps give you a task with a clear goal; if not, your task is to run
+the examples and understand them.
 
-1. A basic understanding of the command line, text file editing, and regular expressions. Or, the ability to ask for help on the IRC channel.
+If you get stuck, find a problem, or have feedback, please report it on the
+[IRC channel or mail list](developer-guide.html#quick-links),
+or send a pull request for this page.
 
-2. hledger (see [Download](download.html)). These exercises were last tested with hledger 0.26.
+Let's get started!
 
-
-
+<div class="clearfix"></div>
 ## SETUP
 
 ### Check your hledger installation
 
-Get a command prompt, and run hledger to check the version. It should be reasonably [up to date](release-notes.html):
+Get a command prompt, and run hledger to check the version. It should be reasonably [up to date](release-notes.html). These exercises were last tested with this version:
 
 ```shell
 $ hledger --version
 hledger 0.26
 ```
+
+
 
 ## BASIC DATA ENTRY & REPORTING
 
