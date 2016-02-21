@@ -927,9 +927,8 @@ Balance changes in 2016/02/01-2016/02/03:
             ||         7.75         2.25         8.00 
 ```
 
-I'd prefer to use period for separating account components.
-We can rewrite these to the colon hledger requires with an
-[account alias](#account-aliases):
+I prefer to use period for separating account components.
+We can make this work with an [account alias](#account-aliases):
 
 ```timedot
 2016/2/4
