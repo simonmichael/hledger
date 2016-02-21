@@ -84,7 +84,7 @@ tr {
 Simple, precise, future-proof accounting for techies.
 </h2>
 
-<div style="font-size:large;"> <!-- large text -->
+<div style="font-size:medium;">
 
 hledger is a lightweight accounting program for tracking money, time, or
 other commodities, on unix, mac and windows. With simple yet powerful
@@ -146,8 +146,7 @@ transactions, but does not change existing ones.)
 <a href="images/hledger-ui/hledger-ui-bcexample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc.png" title="hledger-ui accounts screen" /></a>
 hledger also provides a curses-style [console&nbsp;interface](manual#ui)
 that lets you review account balances and transactions with fewer
-keystrokes and less effort.
-<script type="text/javascript" data-t="9" data-autoplay=0 src="https://asciinema.org/a/29665.js" id="asciicast-29665" async></script>
+keystrokes and less effort ([screencast](https://asciinema.org/a/29665)).
 </div>
 
 <div class="indent2">
