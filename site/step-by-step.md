@@ -107,7 +107,7 @@ Next, specify which account the money comes from. Just say `assets`.
 Amount  2 ? [$-10.0]: 
 ```
 
-Now you've asked for the amount to "move" to or from the `assets` account.
+Now you're asked for the amount to "move" to or from the `assets` account.
 As the default, hledger offers the amount required to "balance" the postings entered so far.
 The minus sign indicates the money is moving from this account.
 (hledger uses the positive and negative sign instead of accounting's traditional "debit" and "credit" terminology.)
