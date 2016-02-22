@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack runghc --package hakyll --package pandoc
+-- stack runghc --package hakyll --package pandoc-1.16.0.2
 {-# LANGUAGE OverloadedStrings #-}
 {- |
 
