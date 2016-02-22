@@ -115,7 +115,7 @@ So consider these alternatives:
    is mostly used for reporting problems with the existing product or docs.
    If you're not sure if it's a problem or not, it's fine to report it.
    When enhancement requests land in the bug tracker, they get the WISH label, and are excluded from the default view at [bugs.hledger.org](http://bugs.hledger.org).
-   
+
 
 ### Report bugs
 
@@ -252,12 +252,12 @@ The Makefile is self-documenting. Run `make` to see a list of the main make rule
 ```{.shell}
 $ make
 Makefile:37: -------------------- hledger make rules --------------------
-Makefile:39: make [help] -- list documented rules in this makefile. make -n RULE shows more detail. 
+Makefile:39: make [help] -- list documented rules in this makefile. make -n RULE shows more detail.
 Makefile:204: (INSTALLING:)
 Makefile:206: make install -- download dependencies and install hledger executables to ~/.local/bin or equivalent (with stack)
 Makefile:231: (BUILDING:)
 Makefile:235: make build -- download dependencies and build hledger executables (with stack)
-Makefile:304: make hledgerdev -- quickly build the hledger executable (with ghc and -DDEVELOPMENT) 
+Makefile:304: make hledgerdev -- quickly build the hledger executable (with ghc and -DDEVELOPMENT)
 ...
 ```
 
@@ -337,7 +337,7 @@ which we define using `bench` declarations in cabal files.
 There is [one in hledger.cabal](https://github.com/simonmichael/hledger/blob/master/hledger/hledger.cabal#L228),
 with related code and data files in [hledger/bench/](https://github.com/simonmichael/hledger/tree/master/hledger/bench).
 
-To run the standard hledger benchmark, use `stack bench hledger`. 
+To run the standard hledger benchmark, use `stack bench hledger`.
 This installs haskell dependencies (but not system dependencies) and rebuilds as needed,
 then runs [hledger/bench/bench.hs](https://github.com/simonmichael/hledger/blob/master/hledger/bench/bench.hs),
 which by default shows quick elapsed-time measurements for several operations on a standard data file:
@@ -430,7 +430,7 @@ Summary (best iteration):
 ```
 
 bench's --simplebench mode is based on a standalone tool, [tools/simplebench.hs](https://github.com/simonmichael/hledger/blob/master/tools/simplebench.hs).
-simplebench.hs is a generic benchmarker of one or more executables (specified on the command line) against one or more sets of command-line arguments (specified in a file). 
+simplebench.hs is a generic benchmarker of one or more executables (specified on the command line) against one or more sets of command-line arguments (specified in a file).
 It has a better command-line interface than bench.hs, so you may find it more convenient
 for comparing multiple hledger versions, or hledger and ledger. Eg:
 
@@ -755,8 +755,8 @@ don't run make setversion.
 1. cleanup
     - review working copies (laptop, server, website) & branches, commit pending changes
 2. document
-    - */*.cabal for affected package(s) (descriptions, tested-with, files..)
-    - */CHANGES for affected package(s)
+    - \*/\*.cabal for affected package(s) (descriptions, tested-with, files..)
+    - \*/CHANGES for affected package(s)
     - site/release-notes.md
     - site/manual.md (commands, options, --help, ledger compatibility..)
     - site/step-by-step.md
@@ -936,7 +936,7 @@ single-[Commodity](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hl
 [Amounts](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Amount))
 to some
 [AccountName](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:AccountName).
-Commands get and render 
+Commands get and render
 [Reports](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Reports.html)
 from the Journal, or sometimes from a
 [Ledger](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Ledger),
@@ -1015,4 +1015,3 @@ change, including config files, templates and static files (but only in the hled
 A third way is `make autoweb`, if you can get it working (see the
 makefile for instructions). This rebuilds automatically when haskell
 files change in any of the hledger{-lib,,-web} packages.
-
