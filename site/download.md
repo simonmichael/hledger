@@ -50,7 +50,7 @@ and/or
 <tr><td>
 **on Gentoo**
 </td><td>
-`emerge hledger hledger-web`
+`layman -a zugaina && emerge hledger hledger-web`
 </td></tr>
 
 <tr><td>
