@@ -14,9 +14,11 @@ hledger-rewrite.hs expenses:gifts --add-posting '(reserve:gifts)  *-1"'
 
 Note the single quotes to protect the dollar sign from bash, and the two spaces between account and amount.
 See the command-line help for more details.
-Currently does not work when invoked via "hledger rewrite".
+Currently does not work when invoked via hledger, run hledger-rewrite[.hs] directly.
 
-Tested-with: hledger HEAD ~ 2014/2/4
+Needs to work on unbalanced entries, eg while editing one.
+
+Tested-with: hledger HEAD ~ 2016/3/2
 
 |-}
 
@@ -70,7 +72,7 @@ amountexprp =
 amountExprRenderer :: Query -> AmountExpr -> (Transaction -> MixedAmount)
 amountExprRenderer q aex =
   case aex of
-    AmountLiteral s    -> mamountp' s -- either parseerror (const . mixed) $ runParser (amountp <* eof) nullctx "" s
+    AmountLiteral s    -> const (mamountp' s)
     AmountMultiplier n -> (`divideMixedAmount` (1 / n)) . (`firstAmountMatching` q)
   where
     firstAmountMatching :: Transaction -> Query -> MixedAmount
