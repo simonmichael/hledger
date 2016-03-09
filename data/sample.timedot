@@ -1,22 +1,24 @@
+# see also http://hledger.org/docs -> How To Use Another Account Separator Character
+
 2/1
-fos.haskell  ....
-biz.research  .
-inc.client1  .... .... .... .... .... ....
+fos:haskell   ....
+biz:research  .
+inc:client1   .... .... .... .... .... ....
 
 2/2
-biz.research  .
-inc.client1  .... .... ..
+biz:research  .
+inc:client1   .... .... ..
 
 2/3
-biz.research  .
-fos.hledger  .... .... ...
-biz.it  .... ..
-inc.client1  .... .... .... .... ....
+biz:research  .
+fos:hledger   .... .... ...
+biz:it        .... ..
+inc:client1   .... .... .... .... ....
 
 2/4
-biz.research  .... ..
-fos.hledger  .... .... ....
-fos.ledger  .
-fos.haskell  ..
-inc.client1  .... ....
+biz:research  .... ..
+fos:hledger   .... .... ....
+fos:ledger    0.25
+fos:haskell   .5
+inc:client1   2
 

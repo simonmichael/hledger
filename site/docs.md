@@ -32,6 +32,10 @@ An example of converting bank data.
 #### [How to use account aliases](how-to-use-account-aliases.html)
 Aliases for account name rewriting.
 
+#### [How to use another account separator character](how-to-use-another-account-separator-character.html)
+Writing `some.sub.account` instead of `some:sub:account`.
+
+
 ## General info
 
 #### [More docs](more-docs.html)

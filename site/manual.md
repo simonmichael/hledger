@@ -927,28 +927,13 @@ Balance changes in 2016/02/01-2016/02/03:
             ||         7.75         2.25         8.00 
 ```
 
-I prefer to use period for separating account components.
-We can make this work with an [account alias](#account-aliases):
-
-```timedot
-2016/2/4
-fos.hledger.timedot  4
-fos.ledger           ..
-```
-```shell
-$ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4
-                4.50  fos
-                4.00    hledger:timedot
-                0.50    ledger
---------------------
-                4.50
-```
-
 [default year directives](#default-year) may be used.
 
 Here is a
 [sample.timedot](https://raw.github.com/simonmichael/hledger/master/data/sample.timedot).
 
+If you'd like to use dot in account names as well, see
+[how to use another account separator character](how-to-use-another-account-separator-character.html).
 
 
 ### CSV
