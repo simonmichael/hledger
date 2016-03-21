@@ -27,11 +27,11 @@ a { white-space:nowrap; }
 **on Windows**
 </td><td>
 <!-- [windows install guide](windows-install.html)\ -->
-Download, unzip, and run
-[hledger-0.26-win64.zip](http://hledger.org/downloads/hledger-0.26-win64.zip)
-<!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.zip)) -->
+Download and run
+[hledger-0.26-win64.exe](http://hledger.org/downloads/hledger-0.26-win64.exe)
+<!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.exe)) -->
 and/or
-[hledger-web-0.26-win64.zip](http://hledger.org/downloads/hledger-web-0.26-win64.zip)
+[hledger-web-0.26-win64.exe](http://hledger.org/downloads/hledger-web-0.26-win64.exe)
 <em>(The current release is 0.27. To contribute binaries for windows or mac, please <a href="mailto:simon@joyful.com">get in touch</a>.)</em>
 </td></tr>
 
