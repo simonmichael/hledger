@@ -167,12 +167,13 @@ moveFlagsAfterCommand args = moveArgs $ ensureDebugHasArg args
        _                                                   -> as
 
     -- -h ..., --version ...
-    moveArgs (f:a:as)   | isMovableNoArgFlag f           = (moveArgs $ a:as) ++ [f]
+    moveArgs (f:a:as)   | isMovableNoArgFlag f                   = (moveArgs $ a:as) ++ [f]
     -- -f FILE ..., --alias ALIAS ...
-    moveArgs (f:v:a:as) | isMovableReqArgFlag f
-                        , not (take 1 v == "-")          = (moveArgs $ a:as) ++ [f,v]
+    moveArgs (f:v:a:as) | isMovableReqArgFlag f, isValue v       = (moveArgs $ a:as) ++ [f,v]
     -- -fFILE ..., --alias=ALIAS ...
-    moveArgs (fv:a:as)  | isMovableReqArgFlagAndValue fv = (moveArgs $ a:as) ++ [fv]
+    moveArgs (fv:a:as)  | isMovableReqArgFlagAndValue fv         = (moveArgs $ a:as) ++ [fv]
+    -- -f(missing arg)
+    moveArgs (f:a:as)   | isMovableReqArgFlag f, not (isValue a) = (moveArgs $ a:as) ++ [f]
     -- anything else
     moveArgs as = as
 
@@ -184,6 +185,10 @@ isMovableReqArgFlagAndValue ('-':'-':a:as) = case break (== '=') (a:as) of (f:fs
                                                                            _          -> False
 isMovableReqArgFlagAndValue ('-':shortflag:_:_) = [shortflag] `elem` reqargflagstomove
 isMovableReqArgFlagAndValue _ = False
+
+isValue "-"     = True
+isValue ('-':_) = False
+isValue _       = True
 
 flagstomove = inputflags ++ helpflags
 noargflagstomove  = concatMap flagNames $ filter ((==FlagNone).flagInfo) flagstomove
