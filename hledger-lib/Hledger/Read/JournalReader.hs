@@ -190,18 +190,22 @@ setDefaultCommodityAndStyle cs = modifyState (\ctx -> ctx{ctxDefaultCommodityAnd
 getDefaultCommodityAndStyle :: Stream [Char] m Char => ParsecT [Char] JournalContext m (Maybe (Commodity,AmountStyle))
 getDefaultCommodityAndStyle = ctxDefaultCommodityAndStyle `fmap` getState
 
+pushAccount :: Stream [Char] m Char => String -> ParsecT [Char] JournalContext m ()
+pushAccount acct = modifyState addAccount
+    where addAccount ctx0 = ctx0 { ctxAccounts = acct : ctxAccounts ctx0 }
+
 pushParentAccount :: Stream [Char] m Char => String -> ParsecT [Char] JournalContext m ()
 pushParentAccount parent = modifyState addParentAccount
-    where addParentAccount ctx0 = ctx0 { ctxAccount = parent : ctxAccount ctx0 }
+    where addParentAccount ctx0 = ctx0 { ctxParentAccount = parent : ctxParentAccount ctx0 }
 
 popParentAccount :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
 popParentAccount = do ctx0 <- getState
-                      case ctxAccount ctx0 of
-                        [] -> unexpected "End of account block with no beginning"
-                        (_:rest) -> setState $ ctx0 { ctxAccount = rest }
+                      case ctxParentAccount ctx0 of
+                        [] -> unexpected "End of apply account block with no beginning"
+                        (_:rest) -> setState $ ctx0 { ctxParentAccount = rest }
 
 getParentAccount :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
-getParentAccount = liftM (concatAccountNames . reverse . ctxAccount) getState
+getParentAccount = liftM (concatAccountNames . reverse . ctxParentAccount) getState
 
 addAccountAlias :: Stream [Char] m Char => AccountAlias -> ParsecT [Char] JournalContext m ()
 addAccountAlias a = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=a:ctxAliases})
@@ -251,7 +255,8 @@ directivep = do
    ,aliasdirectivep
    ,endaliasesdirectivep
    ,accountdirectivep
-   ,enddirectivep
+   ,applyaccountdirectivep
+   ,endapplyaccountdirectivep
    ,tagdirectivep
    ,endtagdirectivep
    ,defaultyeardirectivep
@@ -296,18 +301,27 @@ journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
 
 accountdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
 accountdirectivep = do
-  (try $ string "apply" >> many1 spacenonewline >> string "account")
-    <|> string "account"
+  string "account"
+  many1 spacenonewline
+  acct <- accountnamep
+  newline
+  let indentedline = many1 spacenonewline >> restofline
+  many indentedline
+  pushAccount acct
+  return $ ExceptT $ return $ Right id
+
+applyaccountdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+applyaccountdirectivep = do
+  string "apply" >> many1 spacenonewline >> string "account"
   many1 spacenonewline
   parent <- accountnamep
   newline
   pushParentAccount parent
   return $ ExceptT $ return $ Right id
 
-enddirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
-enddirectivep = do
-  string "end"
-  optional $ many1 spacenonewline >> string "apply" >> many1 spacenonewline >> string "account"
+endapplyaccountdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+endapplyaccountdirectivep = do
+  string "end" >> many1 spacenonewline >> string "apply" >> many1 spacenonewline >> string "account"
   popParentAccount
   return $ ExceptT $ return $ Right id
 

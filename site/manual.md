@@ -671,6 +671,59 @@ You can clear (forget) all currently defined aliases with the `end aliases` dire
 end aliases
 ```
 
+##### account directive
+
+The `account` directive predefines account names, as in Ledger and Beancount.
+This may be useful for your own documentation; hledger doesn't make use of it yet.
+
+``` {.journal}
+; account ACCT
+;   OPTIONAL COMMENTS/TAGS...
+
+account assets:bank:checking
+ a comment
+ acct-no:12345
+
+account expenses:food
+
+; etc.
+```
+
+##### apply account directive
+
+You can specify a parent account which will be prepended to all accounts
+within a section of the journal. Use the `apply account` and `end apply account`
+directives like so:
+
+``` {.journal}
+apply account home
+
+2010/1/1
+    food    $10
+    cash
+
+end apply account
+```
+which is equivalent to:
+``` {.journal}
+2010/01/01
+    home:food           $10
+    home:cash          $-10
+```
+
+If `end apply account` is omitted, the effect lasts to the end of the file.
+Included files are also affected, eg:
+
+``` {.journal}
+apply account business
+include biz.journal
+end apply account
+apply account personal
+include personal.journal
+```
+
+Prior to hledger 0.28, legacy `account` and `end` spellings were also supported.
+
 ##### Multi-line comments
 
 A line containing just `comment` starts a multi-line comment, and a
@@ -708,43 +761,6 @@ $ hledger print
 2014/01/01
     c     £1,000.00
     d    £-1,000.00
-```
-
-##### Default parent account
-
-You can specify a parent account which will be prepended to all accounts
-within a section of the journal. Use the `apply account` directive like so:
-
-``` {.journal}
-apply account home
-
-2010/1/1
-    food    $10
-    cash
-
-end
-```
-
-(`!account`, `account`, and `end apply account` are also supported).
-
-If `end` is omitted, the effect lasts to the end of the file.
-The above is equivalent to:
-
-``` {.journal}
-2010/01/01
-    home:food           $10
-    home:cash          $-10
-```
-
-Included files are also affected, eg:
-
-``` {.journal}
-account business
-include biz.journal
-end
-account personal
-include personal.journal
-end
 ```
 
 ##### Default year

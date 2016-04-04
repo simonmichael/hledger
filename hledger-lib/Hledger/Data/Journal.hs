@@ -137,7 +137,7 @@ nulljournal = Journal { jmodifiertxns = []
                       }
 
 nullctx :: JournalContext
-nullctx = Ctx{ctxYear=Nothing, ctxDefaultCommodityAndStyle=Nothing, ctxAccount=[], ctxAliases=[], ctxTransactionIndex=0}
+nullctx = Ctx{ctxYear=Nothing, ctxDefaultCommodityAndStyle=Nothing, ctxAccounts=[], ctxParentAccount=[], ctxAliases=[], ctxTransactionIndex=0}
 
 journalFilePath :: Journal -> FilePath
 journalFilePath = fst . mainfile

@@ -62,31 +62,19 @@ tests_Hledger_Cli = TestList
    -- ,tests_Hledger_Cli_Stats
 
 
-   ,"account directive" ~:
+   ,"apply account directive" ~:
    let ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)} in
    let sameParse str1 str2 = do j1 <- readJournal Nothing Nothing True Nothing str1 >>= either error' (return . ignoresourcepos)
                                 j2 <- readJournal Nothing Nothing True Nothing str2 >>= either error' (return . ignoresourcepos)
                                 j1 `is` j2{filereadtime=filereadtime j1, files=files j1, jContext=jContext j1}
    in TestList
    [
-    "account directive 1" ~: sameParse
-                          "2008/12/07 One\n  test:from  $-1\n  test:to  $1\n"
-                          "!account test\n2008/12/07 One\n  from  $-1\n  to  $1\n"
-
-   ,"account directive 2" ~: sameParse
-                           "2008/12/07 One\n  test:foo:from  $-1\n  test:foo:to  $1\n"
-                           "!account test\n!account foo\n2008/12/07 One\n  from  $-1\n  to  $1\n"
-
-   ,"account directive 3" ~: sameParse
-                           "2008/12/07 One\n  test:from  $-1\n  test:to  $1\n"
-                           "!account test\n!account foo\n!end\n2008/12/07 One\n  from  $-1\n  to  $1\n"
-
-   ,"account directive 4" ~: sameParse
+    "apply account directive 1" ~: sameParse
                            ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" ++
-                            "!account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" ++
-                            "!account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" ++
-                            "!end\n2008/12/07 Four\n  why  $-4\n  zed  $4\n" ++
-                            "!end\n2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
+                            "apply account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" ++
+                            "apply account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" ++
+                            "end apply account\n2008/12/07 Four\n  why  $-4\n  zed  $4\n" ++
+                            "end apply account\n2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
                            )
                            ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" ++
                             "2008/12/07 Two\n  outer:aigh  $-2\n  outer:bee  $2\n" ++
@@ -95,8 +83,8 @@ tests_Hledger_Cli = TestList
                             "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
                            )
 
-   ,"account directive should preserve \"virtual\" posting type" ~: do
-      j <- readJournal Nothing Nothing True Nothing "!account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
+   ,"apply account directive should preserve \"virtual\" posting type" ~: do
+      j <- readJournal Nothing Nothing True Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
       let p = head $ tpostings $ head $ jtxns j
       assertBool "" $ paccount p == "test:from"
       assertBool "" $ ptype p == VirtualPosting

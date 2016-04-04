@@ -1,40 +1,10 @@
-# Accept three forms of the account directive
-# . !account, !end (ledger 2, hledger)
-hledger -f - accounts
-<<<
-!account a
-2016/1/1
-    (b)  1
-!end
-2016/1/2
-    (c)  1
->>>
-a:b
-c
->>>=0
-
-# . account, end (ledger 3 pre ?, hledger)
-hledger -f - accounts
-<<<
-account a
-2016/1/1
-    (b)  1
-end
-2016/1/2
-    (c)  1
->>>
-a:b
-c
->>>=0
-
-# . apply account, end [apply account] (ledger 3, hledger)
-# . now: apply account
+# . apply account, end apply account
 hledger -f - accounts
 <<<
 apply account a
 2016/1/1
     (b)  1
-end
+end apply account
 apply account aa
 2016/1/1
     (b)  1

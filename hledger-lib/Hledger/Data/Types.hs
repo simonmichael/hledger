@@ -230,11 +230,12 @@ type Year = Integer
 data JournalContext = Ctx {
       ctxYear      :: !(Maybe Year)      -- ^ the default year most recently specified with Y
     , ctxDefaultCommodityAndStyle :: !(Maybe (Commodity,AmountStyle)) -- ^ the default commodity and amount style most recently specified with D
-    , ctxAccount   :: ![AccountName]     -- ^ the current stack of parent accounts/account name components
-                                        --   specified with "account" directive(s). Concatenated, these
-                                        --   are the account prefix prepended to parsed account names.
-    , ctxAliases   :: ![AccountAlias]   -- ^ the current list of account name aliases in effect
-    , ctxTransactionIndex   :: !Integer -- ^ the number of transactions read so far
+    , ctxAccounts :: ![AccountName]      -- ^ the accounts that have been defined with account directives so far
+    , ctxParentAccount :: ![AccountName] -- ^ the current stack of parent accounts/account name components
+                                         --   specified with "apply account" directive(s). Concatenated, these
+                                         --   are the account prefix prepended to parsed account names.
+    , ctxAliases   :: ![AccountAlias]    -- ^ the current list of account name aliases in effect
+    , ctxTransactionIndex   :: !Integer  -- ^ the number of transactions read so far
     } deriving (Read, Show, Eq, Data, Typeable, Generic)
 
 instance NFData JournalContext
