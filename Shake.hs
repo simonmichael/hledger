@@ -44,6 +44,7 @@ usage = [i|Usage:
  ./Shake.hs compile       # compile this script (optional)
  ./Shake --help           # show options, eg --color
  ./Shake                  # show commands
+ ./Shake docs             # generate all docs
  ./Shake manpages         # generate nroff files for man
  ./Shake webmanpages      # generate web man pages for hakyll
 |]
@@ -90,17 +91,19 @@ main = do
       cmd "stack ghc Shake.hs" :: Action ExitCode
       putLoud "Compiled ./Shake, you can now use this instead of ./Shake.hs"
 
+    phony "docs" $ need [
+       "manpages"
+      ,"webmanpages"
+      ]
+
     -- docs
 
-    -- man pages, converted to man nroff with web-only sections removed
     let manpageNroffs = [manpageDir p </> p | p <- manpages]
-
-    -- man pages, still markdown but with man-only sections removed
-    -- (we let hakyll do the final markdown rendering)
-    let webManpageMds = ["site" </> p <.>".md" | p <- manpages]
+        webManpageMds = ["site" </> p <.>".md" | p <- manpages]
 
     phony "manpages" $ need manpageNroffs
 
+    -- man pages converted to nroff, with web-only sections removed
     manpageNroffs |%> \out -> do
       let
         md = out <.> "md"
@@ -116,6 +119,8 @@ main = do
 
     phony "webmanpages" $ need webManpageMds
 
+    -- man pages still as markdown, but with man-only sections removed
+    -- (hakyll does the final rendering)
     webManpageMds |%> \out -> do
       let
         p = dropExtension $ takeFileName out
@@ -139,7 +144,7 @@ main = do
       removeFilesAfter "" manpageNroffs
       removeFilesAfter "" webManpageMds
       putNormal "Cleaning object files"
-      removeFilesAfter "tools" ["*.o","*.p_o","*.hi"]
+      removeFilesAfter "doc" ["*.o","*.p_o","*.hi"]
       putNormal "Cleaning shake build files"
       removeFilesAfter buildDir ["//*"]
 
