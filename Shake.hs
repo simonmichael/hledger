@@ -42,8 +42,8 @@ import "directory"    System.Directory as S (getDirectoryContents)
 
 usage = [i|Usage:
  ./Shake.hs compile       # compile this script (optional)
- ./Shake                  # show commands
  ./Shake --help           # show options, eg --color
+ ./Shake                  # show commands
  ./Shake manpages         # generate nroff files for man
  ./Shake webmanpages      # generate web man pages for hakyll
 |]
@@ -93,15 +93,15 @@ main = do
     -- docs
 
     -- man pages, converted to man nroff with web-only sections removed
-    let manpageNroffsForMan = [manpageDir p </> p | p <- manpages]
+    let manpageNroffs = [manpageDir p </> p | p <- manpages]
 
     -- man pages, still markdown but with man-only sections removed
     -- (we let hakyll do the final markdown rendering)
-    let manpageMdsForHakyll = ["site" </> p <.>".md" | p <- manpages]
+    let webManpageMds = ["site" </> p <.>".md" | p <- manpages]
 
-    phony "manpages" $ need manpageNroffsForMan
+    phony "manpages" $ need manpageNroffs
 
-    manpageNroffsForMan |%> \out -> do
+    manpageNroffs |%> \out -> do
       let
         md = out <.> "md"
         tmpl = "doc/manpage.nroff"
@@ -114,9 +114,9 @@ main = do
         "--filter doc/pandoc-capitalize-headers"
         "-o" out
 
-    phony "webmanpages" $ need manpageMdsForHakyll
+    phony "webmanpages" $ need webManpageMds
 
-    manpageMdsForHakyll |%> \out -> do
+    webManpageMds |%> \out -> do
       let
         p = dropExtension $ takeFileName out
         md = manpageDir p </> p <.> "md"
@@ -136,8 +136,8 @@ main = do
 
     phony "clean" $ do
       putNormal "Cleaning generated files"
-      removeFilesAfter "" manpageNroffsForMan
-      removeFilesAfter "" manpageMdsForHakyll
+      removeFilesAfter "" manpageNroffs
+      removeFilesAfter "" webManpageMds
       putNormal "Cleaning object files"
       removeFilesAfter "tools" ["*.o","*.p_o","*.hi"]
       putNormal "Cleaning shake build files"
