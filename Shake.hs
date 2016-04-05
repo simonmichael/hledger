@@ -20,7 +20,6 @@ Requires: https://www.haskell.org/downloads#stack
 Shake notes:
 notes:
  unclear:
-  want
   oracles
  wishlist:
   wildcards in phony rules
@@ -53,7 +52,6 @@ Commands:
  webmanual
 |]
 
-manpages :: [String]
 manpages = [
    "hledger_csv.5"
   ,"hledger_journal.5"
@@ -65,21 +63,16 @@ manpages = [
   ,"hledger-web.1"
   ]
 
-manpageDir :: String -> FilePath
 manpageDir p
   | '_' `elem` p = "hledger-lib"
   | otherwise    = dropExtension p
 
-buildDir :: FilePath
 buildDir = ".build"
 
-pandocExe :: String
 pandocExe = "stack exec -- pandoc" -- use the pandoc required above
 
-pandocFiltersResolver :: String
 pandocFiltersResolver = ""
 
-main :: IO ()
 main = do
 
   pandocFilters <-
@@ -106,17 +99,16 @@ main = do
 
     -- docs
 
-    -- man pages, still markdown but with man-only sections removed.
-    -- (We let hakyll do the html rendering since it's good
-    -- at applying the site style, table of contents etc.)
-    let manpageFilteredMds = ["site" </> p <.>".md" | p <- manpages]
-
     -- man pages, converted to man nroff with web-only sections removed
-    let manpageNroffs = [manpageDir p </> p | p <- manpages]
+    let manpageNroffsForMan = [manpageDir p </> p | p <- manpages]
 
-    phony "manpages" $ need $ manpageNroffs ++ manpageFilteredMds
+    -- man pages, still markdown but with man-only sections removed
+    -- (we let hakyll do the final markdown rendering)
+    let manpageMdsForHakyll = ["site" </> p <.>".md" | p <- manpages]
 
-    manpageNroffs |%> \out -> do
+    phony "manpages" $ need manpageNroffsForMan
+
+    manpageNroffsForMan |%> \out -> do
       let
         md = out <.> "md"
         tmpl = "doc/manpage.nroff"
@@ -129,44 +121,32 @@ main = do
         "--filter tools/pandocCapitalizeHeaders"
         "-o" out
 
-    manpageFilteredMds |%> \out -> do
+    phony "webmanual" $ need manpageMdsForHakyll
+
+    manpageMdsForHakyll |%> \out -> do
       let
         p = dropExtension $ takeFileName out
         md = manpageDir p </> p <.> "md"
         tmpl = "doc/manpage.html"
       need $ md : tmpl : pandocFilters
       cmd pandocExe md "--to markdown"
-        -- XXX assume this is compiled
         "--filter tools/pandocRemoveManonlyBlocks"
         "-o" out
+
+    phony "pandocfilters" $ need pandocFilters
 
     pandocFilters |%> \out -> do
       need [out <.> "hs"]
       cmd ("stack "++pandocFiltersResolver++" ghc") out
 
+    -- cleanup
+
     phony "clean" $ do
       putNormal "Cleaning generated files"
-      removeFilesAfter "" manpageNroffs
-      removeFilesAfter "" manpageFilteredMds
+      removeFilesAfter "" manpageNroffsForMan
+      removeFilesAfter "" manpageMdsForHakyll
       putNormal "Cleaning object files"
       removeFilesAfter "tools" ["*.o","*.p_o","*.hi"]
       putNormal "Cleaning shake build files"
       removeFilesAfter buildDir ["//*"]
 
-    -- manpageHtmls |%> \out -> do
-    --   let
-    --     p = dropExtension $ takeFileName out
-    --     md = manpageDir p </> p <.> "md"
-    --     tmpl = "doc/manpage.html"
-    --   need [md, tmpl]
-    --   cmd pandocExe md "--to html --filter tools/pandocRemoveManpageBlocks.hs --template" tmpl "-o" out
-
-    -- "site/manual2.html" %> \out -> do
-    --   need ["site/manual2.md"]
-    --   cmd pandocExe "site/manual2.md -o" out
-
-    -- "_build//*.o" %> \out -> do
-    --     let c = dropDirectory1 $ out -<.> "c"
-    --     let m = out -<.> "m"
-    --     () <- cmd "gcc -c" [c] "-o" [out] "-MMD -MF" [m]
-    --     needMakefileDependencies m
