@@ -2,7 +2,7 @@
 %
 % February 2016
 
-<div class="manonly">
+<div class="man">
 
 # NAME
 
@@ -11,7 +11,7 @@ hledger_timedot - time logging format
 # DESCRIPTION
 
 </div>
-<div class="webonly">
+<div class="web">
 * toc
 </div>
 

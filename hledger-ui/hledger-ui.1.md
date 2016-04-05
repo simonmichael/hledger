@@ -2,7 +2,7 @@
 %
 % October 2015
 
-<div class="manonly">
+<div class="man">
 
 # NAME
 
@@ -20,7 +20,7 @@ using double-entry accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
 
 </div>
-<div class="webonly">
+<div class="web">
 * toc
 
 <style>
@@ -41,7 +41,7 @@ hledger is inspired by and largely compatible with ledger(1).
 
 hledger-ui is hledger's curses-style interface.
 It reads a hledger journal file
-<div class="manonly">
+<div class="man">
 (~/.hledger.journal, $LEDGER_FILE, or -f FILE; see hledger(1) or hledger_journal(5))
 </div>
 and provides a simple full-screen console interface for viewing account balances and transactions.
@@ -230,7 +230,7 @@ This screen will appear if there is a problem, such as a parse error,
 when you press g to reload. Once you have fixed the problem described,
 press g again to reload and restore normal operation.
 
-<div class="manonly">
+<div class="man">
 
 # ENVIRONMENT
 

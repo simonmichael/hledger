@@ -2,7 +2,7 @@
 %
 % October 2015
 
-<div class="manonly">
+<div class="man">
 
 # NAME
 
@@ -23,7 +23,7 @@ page is a quick reference and introduction; for more complete docs, see
 http://hledger.org/manual.
 
 </div>
-<div class="webonly">
+<div class="web">
 * toc
 </div>
 
@@ -491,7 +491,7 @@ $ hledger print desc:shop                 # show transactions with shop in the d
 $ hledger activity -W                     # show transaction counts per week as a bar chart
 ```
 
-<div class="manonly">
+<div class="man">
 
 # ENVIRONMENT
 

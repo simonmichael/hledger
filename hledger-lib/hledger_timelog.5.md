@@ -2,7 +2,7 @@
 % 
 % October 2015
 
-<div class="manonly">
+<div class="man">
 
 # NAME
 
@@ -11,7 +11,7 @@ hledger_timelog - hledger's timelog file format
 # DESCRIPTION
 
 </div>
-<div class="webonly">
+<div class="web">
 <!-- * toc -->
 </div>
 

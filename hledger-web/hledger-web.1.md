@@ -2,7 +2,7 @@
 %
 % October 2015
 
-<div class="manonly">
+<div class="man">
 
 # NAME
 
@@ -20,7 +20,7 @@ using double-entry accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
 
 </div>
-<div class="webonly">
+<div class="web">
 * toc
 </div>
 
@@ -144,7 +144,7 @@ The following common hledger options should also work:
 `-B --cost`
 : show amounts in their cost price's commodity
 
-<div class="manonly">
+<div class="man">
 
 # ENVIRONMENT
 

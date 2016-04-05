@@ -5,8 +5,8 @@ import Text.Pandoc.Builder
 import Text.Pandoc.JSON
 
 main :: IO ()
-main = toJSONFilter dropManonlyBlocks
+main = toJSONFilter dropManBlocks
 
-dropManonlyBlocks :: Block -> Block
-dropManonlyBlocks (Div ("",["manonly"],[]) _) = Plain []
-dropManonlyBlocks x = x
+dropManBlocks :: Block -> Block
+dropManBlocks (Div ("",["man"],[]) _) = Plain []
+dropManBlocks x = x

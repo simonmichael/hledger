@@ -5,8 +5,8 @@ import Text.Pandoc.Builder
 import Text.Pandoc.JSON
 
 main :: IO ()
-main = toJSONFilter dropWebonlyBlocks
+main = toJSONFilter dropWebBlocks
 
-dropWebonlyBlocks :: Block -> Block
-dropWebonlyBlocks (Div ("",["webonly"],[]) _) = Plain []
-dropWebonlyBlocks x = x
+dropWebBlocks :: Block -> Block
+dropWebBlocks (Div ("",["web"],[]) _) = Plain []
+dropWebBlocks x = x
