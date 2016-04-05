@@ -1,10 +1,55 @@
 #!/usr/bin/env stack
--- stack runghc --package shake
+{- stack runghc
+   --package base-prelude
+   --package directory
+   --package extra
+   --package here
+   --package safe
+   --package shake
+   --package time
+-}
+{-
+Usage: see below.
+Shake.hs is a more powerful Makefile, providing a number of commands
+for performing useful tasks. Compiling this script is suggested, so that
+it runs quicker and will not be affected eg when exploring old code versions.
+More about Shake: http://shakebuild.com/manual
+Requires: https://www.haskell.org/downloads#stack
 
-import Development.Shake
-import Development.Shake.FilePath
-import Data.List
-import System.Directory as S (getDirectoryContents)
+Shake notes:
+notes:
+ unclear:
+  want
+  oracles
+ wishlist:
+  wildcards in phony rules
+  multiple individually accessible wildcards
+  just one shake import
+-}
+
+{-# LANGUAGE PackageImports, QuasiQuotes #-}
+
+import                Prelude ()
+import "base-prelude" BasePrelude
+-- import "base"         System.Console.GetOpt
+import "extra"        Data.List.Extra
+import "here"         Data.String.Here
+import "safe"         Safe
+import "shake"        Development.Shake
+import "shake"        Development.Shake.FilePath
+import "time"         Data.Time
+import "directory"    System.Directory as S (getDirectoryContents)
+
+usage = [i|Usage:
+ ./Shake.hs compile                     # compile this script (optional)
+ ./Shake                                # show commands
+ ./Shake --help                         # show options
+ ./Shake [--color] COMMAND
+
+Commands:
+ compile
+ manpages
+|]
 
 manpages :: [String]
 manpages = [
@@ -33,17 +78,35 @@ main = do
     map ("tools" </>). nub . sort . map (-<.> "") . filter ("pandoc" `isPrefixOf`)
     <$> S.getDirectoryContents "tools"
 
-  -- man pages, still markdown but with man-only sections removed.
-  -- (We let hakyll do the html rendering since it's good
-  -- at applying the site style, table of contents etc.)
-  let manpageFilteredMds = ["site" </> p <.>".md" | p <- manpages]
+  shakeArgs
+    shakeOptions{
+       shakeFiles=buildDir
+      ,shakeVerbosity=Loud
+      -- ,shakeReport=[".shake.html"]
+      } $ do
 
-  -- man pages, converted to man nroff with web-only sections removed
-  let manpageNroffs = [manpageDir p </> p | p <- manpages]
+    want ["help"]
 
-  shakeArgs shakeOptions{shakeFiles=buildDir} $ do
+    phony "help" $ liftIO $ putStrLn usage
 
-    want $ manpageNroffs ++ manpageFilteredMds
+    phony "compile" $ need ["Shake"]
+
+    "Shake" %> \out -> do
+      need ["Shake.hs"]
+      cmd "stack ghc Shake.hs" :: Action ExitCode
+      putLoud "Compiled ./Shake, you can now use this instead of ./Shake.hs"
+
+    -- docs
+
+    -- man pages, still markdown but with man-only sections removed.
+    -- (We let hakyll do the html rendering since it's good
+    -- at applying the site style, table of contents etc.)
+    let manpageFilteredMds = ["site" </> p <.>".md" | p <- manpages]
+
+    -- man pages, converted to man nroff with web-only sections removed
+    let manpageNroffs = [manpageDir p </> p | p <- manpages]
+
+    phony "manpages" $ need $ manpageNroffs ++ manpageFilteredMds
 
     manpageNroffs |%> \out -> do
       let
