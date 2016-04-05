@@ -4,9 +4,9 @@
 import Text.Pandoc.JSON
 
 main :: IO ()
-main = toJSONFilter removeNotes
+main = toJSONFilter dropNotes
 
-removeNotes :: Inline -> Inline
-removeNotes (Note _) = Str ""
-removeNotes x = x
+dropNotes :: Inline -> Inline
+dropNotes (Note _) = Str ""
+dropNotes x = x
 

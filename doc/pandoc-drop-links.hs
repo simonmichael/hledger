@@ -4,9 +4,9 @@
 import Text.Pandoc.JSON
 
 main :: IO ()
-main = toJSONFilter removeLinks
+main = toJSONFilter dropLinks
 
-removeLinks :: Inline -> [Inline]
-removeLinks (Link _ is _) = is
-removeLinks x = [x]
+dropLinks :: Inline -> [Inline]
+dropLinks (Link _ is _) = is
+dropLinks x = [x]
 

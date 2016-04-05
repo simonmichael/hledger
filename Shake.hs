@@ -76,8 +76,8 @@ pandocFiltersResolver = ""
 main = do
 
   pandocFilters <-
-    map ("tools" </>). nub . sort . map (-<.> "") . filter ("pandoc" `isPrefixOf`)
-    <$> S.getDirectoryContents "tools"
+    map ("doc" </>). nub . sort . map (-<.> "") . filter ("pandoc-" `isPrefixOf`)
+    <$> S.getDirectoryContents "doc"
 
   shakeArgs
     shakeOptions{
@@ -114,11 +114,11 @@ main = do
         tmpl = "doc/manpage.nroff"
       need $ md : tmpl : pandocFilters
       cmd pandocExe md "--to man -s --template" tmpl
-        "--filter tools/pandocRemoveHtmlBlocks"
-        "--filter tools/pandocRemoveHtmlInlines"
-        "--filter tools/pandocRemoveLinks"
-        "--filter tools/pandocRemoveNotes"
-        "--filter tools/pandocCapitalizeHeaders"
+        "--filter doc/pandoc-drop-html-blocks"
+        "--filter doc/pandoc-drop-html-inlines"
+        "--filter doc/pandoc-drop-links"
+        "--filter doc/pandoc-drop-notes"
+        "--filter doc/pandoc-capitalize-headers"
         "-o" out
 
     phony "webmanual" $ need manpageMdsForHakyll
@@ -130,7 +130,7 @@ main = do
         tmpl = "doc/manpage.html"
       need $ md : tmpl : pandocFilters
       cmd pandocExe md "--to markdown"
-        "--filter tools/pandocRemoveManonlyBlocks"
+        "--filter doc/pandoc-drop-man-blocks"
         "-o" out
 
     phony "pandocfilters" $ need pandocFilters
