@@ -159,7 +159,7 @@ executables:
       - Decimal
       - docopt
       - either
-      - lens
+      - microlens        >= 0.3.5.1 && < 0.5
       - safe
       - servant-server
       - servant-swagger

@@ -66,7 +66,7 @@ executable hledger-ui
     , data-default
     , filepath
     , HUnit
-    , lens >= 4.12.3 && < 4.14
+    , microlens >= 0.3.5.1 && < 0.5
     , safe >= 0.2
     , split >= 0.1 && < 0.3
     , transformers

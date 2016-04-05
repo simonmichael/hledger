@@ -10,7 +10,7 @@ module Hledger.UI.AccountsScreen
  )
 where
 
-import Control.Lens ((^.))
+import Lens.Micro ((^.))
 -- import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 -- import Data.Default

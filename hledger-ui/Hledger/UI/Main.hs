@@ -10,7 +10,7 @@ Released under GPL version 3 or later.
 module Hledger.UI.Main where
 
 -- import Control.Applicative
--- import Control.Lens ((^.))
+-- import Lens.Micro ((^.))
 import Control.Monad
 -- import Control.Monad.IO.Class (liftIO)
 -- import Data.Default

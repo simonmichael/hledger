@@ -11,7 +11,7 @@
 
 module Main where
 
-import           Control.Lens ((&), (.~), (?~))
+import           Lens.Micro ((&), (.~))
 import           Control.Monad
 import           Data.Aeson
 import qualified Data.ByteString.Lazy.Char8 as BL8
@@ -64,8 +64,8 @@ swaggerSpec :: Swagger
 swaggerSpec = toSwagger (Proxy :: Proxy HledgerApi)
   & info.infoTitle   .~ "hledger API"
   & info.infoVersion .~ pack version
-  & info.infoDescription ?~ "This is the API provided by hledger-api for reading hledger data"
-  & info.infoLicense ?~ License "GPLv3+" (Nothing)
+  & info.infoDescription .~ Just "This is the API provided by hledger-api for reading hledger data"
+  & info.infoLicense .~ Just (License "GPLv3+" (Nothing))
 
 main :: IO ()
 main = do
@@ -196,7 +196,7 @@ instance ToSchema Decimal
    where
      schema = mempty
        & schemaType .~ SwaggerNumber
-       & schemaExample ?~ toJSON (100 :: Decimal)
+       & schemaExample .~ Just (toJSON (100 :: Decimal))
 instance ToSchema Amount
 instance ToSchema AmountStyle
 instance ToSchema Side

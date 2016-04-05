@@ -6,7 +6,7 @@ module Hledger.UI.ErrorScreen
  (screen)
 where
 
--- import Control.Lens ((^.))
+-- import Lens.Micro ((^.))
 import Control.Monad.IO.Class (liftIO)
 import Data.Monoid
 -- import Data.Maybe

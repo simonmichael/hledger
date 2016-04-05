@@ -18,7 +18,7 @@ module Hledger.UI.UIUtils (
  ,stToggleCleared
  ) where
 
-import Control.Lens ((^.))
+import Lens.Micro ((^.))
 -- import Control.Monad
 -- import Control.Monad.IO.Class
 -- import Data.Default
