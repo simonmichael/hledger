@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack runghc
+{- stack runghc --verbosity info
    --package base-prelude
    --package directory
    --package extra
@@ -7,6 +7,7 @@
    --package safe
    --package shake
    --package time
+   --package pandoc
 -}
 {-
 Usage: see below.
@@ -49,6 +50,7 @@ usage = [i|Usage:
 Commands:
  compile
  manpages
+ webmanual
 |]
 
 manpages :: [String]
@@ -72,10 +74,10 @@ buildDir :: FilePath
 buildDir = ".build"
 
 pandocExe :: String
-pandocExe = "pandoc"
+pandocExe = "stack exec -- pandoc" -- use the pandoc required above
 
 pandocFiltersResolver :: String
-pandocFiltersResolver = "--resolver lts-5.11"
+pandocFiltersResolver = ""
 
 main :: IO ()
 main = do
@@ -133,7 +135,7 @@ main = do
         md = manpageDir p </> p <.> "md"
         tmpl = "doc/manpage.html"
       need $ md : tmpl : pandocFilters
-      cmd "pandoc" md "--to markdown"
+      cmd pandocExe md "--to markdown"
         -- XXX assume this is compiled
         "--filter tools/pandocRemoveManonlyBlocks"
         "-o" out
@@ -157,11 +159,11 @@ main = do
     --     md = manpageDir p </> p <.> "md"
     --     tmpl = "doc/manpage.html"
     --   need [md, tmpl]
-    --   cmd "pandoc" md "--to html --filter tools/pandocRemoveManpageBlocks.hs --template" tmpl "-o" out
+    --   cmd pandocExe md "--to html --filter tools/pandocRemoveManpageBlocks.hs --template" tmpl "-o" out
 
     -- "site/manual2.html" %> \out -> do
     --   need ["site/manual2.md"]
-    --   cmd "pandoc site/manual2.md -o" out
+    --   cmd pandocExe "site/manual2.md -o" out
 
     -- "_build//*.o" %> \out -> do
     --     let c = dropDirectory1 $ out -<.> "c"
