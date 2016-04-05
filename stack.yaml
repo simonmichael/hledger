@@ -9,10 +9,12 @@ packages:
 
 #flags:
 
-resolver: lts-4.2  # or newer
+# this or a newer snapshot is suggested
+#resolver: lts-5.11
+# hledger-api/servant/aeson requires > lts-5
+resolver: nightly-2016-04-01
 
-extra-deps:
-- servant-swagger-0.1
+#extra-deps:
 
 # ghc-options:
 #   rtsopts:

@@ -33,7 +33,7 @@ import           Text.Printf
 import Hledger.Query
 import Hledger.Cli hiding (Reader, version)
 
-version="0.27.98"
+hledgerApiVersion="0.27.98"
 
 -- https://github.com/docopt/docopt.hs#readme
 doc :: Docopt
@@ -62,16 +62,16 @@ Options:
 
 swaggerSpec :: Swagger
 swaggerSpec = toSwagger (Proxy :: Proxy HledgerApi)
-  & info.infoTitle   .~ "hledger API"
-  & info.infoVersion .~ pack version
-  & info.infoDescription .~ Just "This is the API provided by hledger-api for reading hledger data"
-  & info.infoLicense .~ Just (License "GPLv3+" (Nothing))
+  & info.title       .~ "hledger API"
+  & info.version     .~ pack hledgerApiVersion
+  & info.description .~ Just "This is the API provided by hledger-api for reading hledger data"
+  & info.license     .~ Just (License "GPLv3+" (Nothing))
 
 main :: IO ()
 main = do
   args <- getArgs >>= parseArgsOrExit doc
   when (isPresent args (longOption "help")) $ exitWithUsage doc
-  when (isPresent args (longOption "version")) $ putStrLn version >> exitSuccess
+  when (isPresent args (longOption "version")) $ putStrLn hledgerApiVersion >> exitSuccess
   when (isPresent args (longOption "swagger")) $ BL8.putStrLn (encode swaggerSpec) >> exitSuccess
   let defp = "8001"
   p <- case readMay $ getArgWithDefault args defp (longOption "port") of
@@ -186,17 +186,15 @@ instance ToJSON Account where
     ,"aparentname"  .= toJSON (maybe "" aname $ aparent a)
     ,"asubs"        .= toJSON (map toJSON $ asubs a)
     ]
-instance ToJSON AccountTransactionsReport where toJSON = genericToJSON defaultOptions
-
 instance ToSchema ClearedStatus
 instance ToSchema GenericSourcePos
 instance ToSchema Decimal
  where
-  declareNamedSchema _proxy = pure (Just "Decimal", schema)
+  declareNamedSchema _proxy = pure $ NamedSchema (Just "Decimal") schema
    where
      schema = mempty
-       & schemaType .~ SwaggerNumber
-       & schemaExample .~ Just (toJSON (100 :: Decimal))
+       & type_   .~ SwaggerNumber
+       & example .~ Just (toJSON (100 :: Decimal))
 instance ToSchema Amount
 instance ToSchema AmountStyle
 instance ToSchema Side
