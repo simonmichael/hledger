@@ -41,17 +41,16 @@ import "time"         Data.Time
 import "directory"    System.Directory as S (getDirectoryContents)
 
 usage = [i|Usage:
- ./Shake.hs compile                     # compile this script (optional)
- ./Shake                                # show commands
- ./Shake --help                         # show options
- ./Shake [--color] COMMAND
-
-Commands:
- compile
- manpages
- webmanual
+ ./Shake.hs compile       # compile this script (optional)
+ ./Shake                  # show commands
+ ./Shake --help           # show options, eg --color
+ ./Shake manpages         # generate nroff files for man
+ ./Shake webmanpages      # generate web man pages for hakyll
 |]
 
+buildDir = ".build"
+pandocExe = "stack exec -- pandoc" -- use the pandoc required above
+pandocFiltersResolver = ""
 manpages = [
    "hledger_csv.5"
   ,"hledger_journal.5"
@@ -66,12 +65,6 @@ manpages = [
 manpageDir p
   | '_' `elem` p = "hledger-lib"
   | otherwise    = dropExtension p
-
-buildDir = ".build"
-
-pandocExe = "stack exec -- pandoc" -- use the pandoc required above
-
-pandocFiltersResolver = ""
 
 main = do
 
@@ -121,7 +114,7 @@ main = do
         "--filter doc/pandoc-capitalize-headers"
         "-o" out
 
-    phony "webmanual" $ need manpageMdsForHakyll
+    phony "webmanpages" $ need manpageMdsForHakyll
 
     manpageMdsForHakyll |%> \out -> do
       let
