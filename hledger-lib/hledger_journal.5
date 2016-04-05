@@ -651,6 +651,72 @@ You can clear (forget) all currently defined aliases with the
 end\ aliases
 \f[]
 .fi
+.SS account directive
+.PP
+The \f[C]account\f[] directive predefines account names, as in Ledger
+and Beancount.
+This may be useful for your own documentation; hledger doesn\[aq]t make
+use of it yet.
+.IP
+.nf
+\f[C]
+;\ account\ ACCT
+;\ \ \ OPTIONAL\ COMMENTS/TAGS...
+
+account\ assets:bank:checking
+\ a\ comment
+\ acct\-no:12345
+
+account\ expenses:food
+
+;\ etc.
+\f[]
+.fi
+.SS apply account directive
+.PP
+You can specify a parent account which will be prepended to all accounts
+within a section of the journal.
+Use the \f[C]apply\ account\f[] and \f[C]end\ apply\ account\f[]
+directives like so:
+.IP
+.nf
+\f[C]
+apply\ account\ home
+
+2010/1/1
+\ \ \ \ food\ \ \ \ $10
+\ \ \ \ cash
+
+end\ apply\ account
+\f[]
+.fi
+.PP
+which is equivalent to:
+.IP
+.nf
+\f[C]
+2010/01/01
+\ \ \ \ home:food\ \ \ \ \ \ \ \ \ \ \ $10
+\ \ \ \ home:cash\ \ \ \ \ \ \ \ \ \ $\-10
+\f[]
+.fi
+.PP
+If \f[C]end\ apply\ account\f[] is omitted, the effect lasts to the end
+of the file.
+Included files are also affected, eg:
+.IP
+.nf
+\f[C]
+apply\ account\ business
+include\ biz.journal
+end\ apply\ account
+apply\ account\ personal
+include\ personal.journal
+\f[]
+.fi
+.PP
+Prior to hledger 0.28, legacy \f[C]account\f[] and \f[C]end\f[]
+spellings were also supported.
 .SS Multi\-line comments
 .PP
 A line containing just \f[C]comment\f[] starts a multi\-line comment,
@@ -694,50 +760,6 @@ $\ hledger\ print
 2014/01/01
 \ \ \ \ c\ \ \ \ \ £1,000.00
 \ \ \ \ d\ \ \ \ £\-1,000.00
-\f[]
-.fi
-.SS Default parent account
-.PP
-You can specify a parent account which will be prepended to all accounts
-within a section of the journal.
-Use the \f[C]apply\ account\f[] directive like so:
-.IP
-.nf
-\f[C]
-apply\ account\ home
-
-2010/1/1
-\ \ \ \ food\ \ \ \ $10
-\ \ \ \ cash
-
-end
-\f[]
-.fi
-.PP
-(\f[C]!account\f[], \f[C]account\f[], and \f[C]end\ apply\ account\f[]
-are also supported).
-.PP
-If \f[C]end\f[] is omitted, the effect lasts to the end of the file.
-The above is equivalent to:
-.IP
-.nf
-\f[C]
-2010/01/01
-\ \ \ \ home:food\ \ \ \ \ \ \ \ \ \ \ $10
-\ \ \ \ home:cash\ \ \ \ \ \ \ \ \ \ $\-10
-\f[]
-.fi
-.PP
-Included files are also affected, eg:
-.IP
-.nf
-\f[C]
-account\ business
-include\ biz.journal
-end
-account\ personal
-include\ personal.journal
-end
 \f[]
 .fi
 .SS Default year
