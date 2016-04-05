@@ -71,6 +71,12 @@ manpageDir p
 buildDir :: FilePath
 buildDir = ".build"
 
+pandocExe :: String
+pandocExe = "pandoc"
+
+pandocFiltersResolver :: String
+pandocFiltersResolver = "--resolver lts-5.11"
+
 main :: IO ()
 main = do
 
@@ -113,8 +119,7 @@ main = do
         md = out <.> "md"
         tmpl = "doc/manpage.nroff"
       need $ md : tmpl : pandocFilters
-      cmd "pandoc" md "--to man -s --template" tmpl
-        -- XXX assume these are compiled
+      cmd pandocExe md "--to man -s --template" tmpl
         "--filter tools/pandocRemoveHtmlBlocks"
         "--filter tools/pandocRemoveHtmlInlines"
         "--filter tools/pandocRemoveLinks"
@@ -135,7 +140,7 @@ main = do
 
     pandocFilters |%> \out -> do
       need [out <.> "hs"]
-      cmd "stack ghc" out
+      cmd ("stack "++pandocFiltersResolver++" ghc") out
 
     phony "clean" $ do
       putNormal "Cleaning generated files"
