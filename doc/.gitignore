@@ -1,0 +1,7 @@
+pandoc-capitalize-headers
+pandoc-drop-html-blocks
+pandoc-drop-html-inlines
+pandoc-drop-links
+pandoc-drop-man-blocks
+pandoc-drop-notes
+pandoc-drop-web-blocks

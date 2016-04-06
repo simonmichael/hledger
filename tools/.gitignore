@@ -1,8 +1,1 @@
 generatetimelog
-pandocCapitalizeHeaders
-pandocRemoveHtmlBlocks
-pandocRemoveHtmlInlines
-pandocRemoveLinks
-pandocRemoveManonlyBlocks
-pandocRemoveNotes
-pandocRemoveWebonlyBlocks
