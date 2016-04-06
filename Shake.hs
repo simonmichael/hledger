@@ -109,7 +109,8 @@ main = do
         md = out <.> "md"
         tmpl = "doc/manpage.nroff"
       need $ md : tmpl : pandocFilters
-      cmd pandocExe md "--to man -s --template" tmpl
+      cmd pandocExe md "--to-man -s --template" tmpl
+        "--filter doc/pandoc-drop-web-blocks"
         "--filter doc/pandoc-drop-html-blocks"
         "--filter doc/pandoc-drop-html-inlines"
         "--filter doc/pandoc-drop-links"
