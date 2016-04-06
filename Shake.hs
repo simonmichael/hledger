@@ -18,9 +18,6 @@ More about Shake: http://shakebuild.com/manual
 Requires: https://www.haskell.org/downloads#stack
 
 Shake notes:
-notes:
- unclear:
-  oracles
  wishlist:
   wildcards in phony rules
   multiple individually accessible wildcards
@@ -47,11 +44,14 @@ usage = [i|Usage:
  ./Shake docs             # generate all docs
  ./Shake manpages         # generate nroff files for man
  ./Shake webmanpages      # generate web man pages for hakyll
+ ./Shake m4manpages       # generate nroff files for man (alternate method)
+ ./Shake m4webmanpages    # generate web man pages for hakyll (alternate method)
 |]
 
 buildDir = ".build"
-pandocExe = "stack exec -- pandoc" -- use the pandoc required above
-pandocFiltersResolver = ""
+pandoc =
+  -- "stack exec -- pandoc" -- use the pandoc required above
+  "pandoc"                  -- use pandoc in PATH (faster)
 manpages = [
    "hledger_csv.5"
   ,"hledger_journal.5"
@@ -64,8 +64,8 @@ manpages = [
   ]
 
 manpageDir p
-  | '_' `elem` p = "hledger-lib"
-  | otherwise    = dropExtension p
+  | '_' `elem` p = "hledger-lib" </> "doc"
+  | otherwise    = dropExtension p </> "doc"
 
 main = do
 
@@ -85,67 +85,99 @@ main = do
     phony "help" $ liftIO $ putStrLn usage
 
     phony "compile" $ need ["Shake"]
-
     "Shake" %> \out -> do
       need ["Shake.hs"]
       cmd "stack ghc Shake.hs" :: Action ExitCode
       putLoud "Compiled ./Shake, you can now use this instead of ./Shake.hs"
+
+    -- docs
+
+    -- method 1:
 
     phony "docs" $ need [
        "manpages"
       ,"webmanpages"
       ]
 
-    -- docs
+    -- pandoc filters, these adjust master md files for web or man output
+    phony "pandocfilters" $ need pandocFilters
+    pandocFilters |%> \out -> do
+      need [out <.> "hs"]
+      cmd ("stack ghc") out
 
+    -- man pages adjusted for man and converted to nroff, by pandoc
     let manpageNroffs = [manpageDir p </> p | p <- manpages]
-        webManpageMds = ["site" </> p <.>".md" | p <- manpages]
-
     phony "manpages" $ need manpageNroffs
-
-    -- man pages converted to nroff, with web-only sections removed
     manpageNroffs |%> \out -> do
-      let
-        md = out <.> "md"
-        tmpl = "doc/manpage.nroff"
+      let md = out <.> "md"
+          tmpl = "doc/manpage.nroff"
       need $ md : tmpl : pandocFilters
-      cmd pandocExe md "--to-man -s --template" tmpl
+      cmd pandoc md "-s --template" tmpl "-o" out
         "--filter doc/pandoc-drop-web-blocks"
         "--filter doc/pandoc-drop-html-blocks"
         "--filter doc/pandoc-drop-html-inlines"
         "--filter doc/pandoc-drop-links"
         "--filter doc/pandoc-drop-notes"
         "--filter doc/pandoc-capitalize-headers"
-        "-o" out
 
+    -- man pages adjusted for web by pandoc (ready for hakyll)
+    let webManpageMds = ["site" </> p <.>".md" | p <- manpages]
     phony "webmanpages" $ need webManpageMds
-
-    -- man pages still as markdown, but with man-only sections removed
-    -- (hakyll does the final rendering)
     webManpageMds |%> \out -> do
-      let
-        p = dropExtension $ takeFileName out
-        md = manpageDir p </> p <.> "md"
-        tmpl = "doc/manpage.html"
-      need $ md : tmpl : pandocFilters
-      cmd pandocExe md "--to markdown"
-        "--filter doc/pandoc-drop-man-blocks"
-        "-o" out
+      let p = dropExtension $ takeFileName out
+          md = manpageDir p </> p <.> "md"
+      need $ md : pandocFilters
+      cmd pandoc md "-o" out "--filter doc/pandoc-drop-man-blocks"
 
-    phony "pandocfilters" $ need pandocFilters
+    -- method 2:
 
-    pandocFilters |%> \out -> do
-      need [out <.> "hs"]
-      cmd ("stack "++pandocFiltersResolver++" ghc") out
+    phony "m4docs" $ need [
+       "m4manpages"
+      ,"m4webmanpages"
+      ]
+
+    -- man pages assembled from parts and adjusted for man with m4, adjusted more and converted to nroff with pandoc
+    let m4manpageNroffs = [manpageDir p </> "m4-"++p | p <- ["hledger.1"]]
+    phony "m4manpages" $ need m4manpageNroffs
+    m4manpageNroffs |%> \out -> do                      -- hledger/doc/m4-hledger.1
+      let (dir,file) = splitFileName out                -- hledger/doc, m4-hledger.1
+          m4src = dir </> drop 3 file <.> "md" <.> "m4" -- hledger/doc/hledger.1.md.m4
+          m4lib = "doc/lib.m4"
+          tmpl  = "doc/manpage.nroff"
+      need $ m4src : m4lib : tmpl : pandocFilters
+      cmd Shell "m4 -P" "-DMAN" "-I" dir m4lib m4src "|" pandoc "-s --template" tmpl "-o" out
+        "--filter doc/pandoc-drop-html-blocks"
+        "--filter doc/pandoc-drop-html-inlines"
+        "--filter doc/pandoc-drop-links"
+        "--filter doc/pandoc-drop-notes"
+        "--filter doc/pandoc-capitalize-headers"
+
+    -- man pages assembled from parts and adjusted for web with m4, adjusted slightly more with pandoc (ready for hakyll)
+    let m4webManpageMds = ["site" </> "m4-"++p <.>".md" | p <- ["hledger.1"]]
+    phony "m4webmanpages" $ need $ m4webManpageMds
+    m4webManpageMds |%> \out -> do                  -- site/m4-hledger.1.md
+      let file  = takeFileName out                  -- m4-hledger.1.md
+          manpage = drop 3 $ dropExtension file     -- hledger.1
+          dir = manpageDir manpage                  -- hledger/doc
+          m4src = dir </> manpage <.> "md" <.> "m4" -- hledger/doc/hledger.1.md.m4
+          m4includes = map (dir </>) ["description.md","examples.md","queries.md","commands.md","options.md"]
+          m4lib = "doc/lib.m4"
+      need $ m4src : m4lib : m4includes
+      cmd Shell "m4 -P" "-DWEB" "-I" dir m4lib m4src "|" pandoc "-o" out
 
     -- cleanup
 
     phony "clean" $ do
       putNormal "Cleaning generated files"
-      removeFilesAfter "" manpageNroffs
-      removeFilesAfter "" webManpageMds
+      -- removeFilesAfter "." manpageNroffs
+      removeFilesAfter "." webManpageMds
+      removeFilesAfter "." m4manpageNroffs
+      removeFilesAfter "." $ map (<.> "md") m4manpageNroffs
+      removeFilesAfter "." m4webManpageMds
+
+    phony "Clean" $ do
+      need ["clean"]
       putNormal "Cleaning object files"
-      removeFilesAfter "doc" ["*.o","*.p_o","*.hi"]
+      removeFilesAfter "doc" ["*.o","*.p_o","*.hi"] -- forces rebuild of exes ?
       putNormal "Cleaning shake build files"
       removeFilesAfter buildDir ["//*"]
-
