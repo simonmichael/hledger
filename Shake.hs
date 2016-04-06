@@ -142,9 +142,10 @@ main = do
     m4manpageNroffs |%> \out -> do                      -- hledger/doc/m4-hledger.1
       let (dir,file) = splitFileName out                -- hledger/doc, m4-hledger.1
           m4src = dir </> drop 3 file <.> "md" <.> "m4" -- hledger/doc/hledger.1.md.m4
+          m4includes = map (dir </>) ["description.md","examples.md","queries.md","commands.md","options.md"]
           m4lib = "doc/lib.m4"
           tmpl  = "doc/manpage.nroff"
-      need $ m4src : m4lib : tmpl : pandocFilters
+      need $ m4src : m4lib : tmpl : pandocFilters ++ m4includes
       cmd Shell "m4 -P" "-DMAN" "-I" dir m4lib m4src "|" pandoc "-s --template" tmpl "-o" out
         "--filter doc/pandoc-drop-html-blocks"
         "--filter doc/pandoc-drop-html-inlines"
