@@ -37,11 +37,11 @@ Writing `some.sub.account` instead of `some:sub:account`.
 
 **General info:**
 
-#### [plaintextaccounting.org](http://plaintextaccounting.org)
-A comprehensive collection common resources and practices from the plain text accounting community
-
 #### [More docs](more-docs.html)
-A few more useful links, eg on accounting, not yet moved to the above
+Some useful links, eg on accounting, not yet moved to...
+
+#### [plaintextaccounting.org](http://plaintextaccounting.org)
+A comprehensive collection of resources and practices from the plain text accounting community
 
 
 
@@ -53,7 +53,7 @@ A few more useful links, eg on accounting, not yet moved to the above
 #### [User Manual](manual.html)
 The hledger reference manual, all on one page.
 
-Or, here is more or less the same manual organized as unix man pages (work in progress):
+Or, as man pages (work in progress):
 
 <div style="padding-left:1em;">
 
@@ -83,7 +83,12 @@ Timeclock format, a sequence of clock-in/clock-out records.
 #### [hledger_timedot(5)](hledger_timedot.5.html)
 Timedot format, an alternative time logging format.
 
-<div>
+**Combined:**
+
+#### [All man pages](manual2.html)
+All hledger man pages on one web page.
+
+</div>
 
 </div>
 </div>

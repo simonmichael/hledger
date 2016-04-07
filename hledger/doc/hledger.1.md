@@ -2,8 +2,10 @@
 %
 % October 2015
 
+<div class="web">
+* toc
+</div>
 <div class="man">
-
 # NAME
 
 hledger - a command-line accounting tool
@@ -22,9 +24,6 @@ hledger aims to be a reliable, practical tool for daily use. This man
 page is a quick reference and introduction; for more complete docs, see
 http://hledger.org/manual.
 
-</div>
-<div class="web">
-* toc
 </div>
 
 This is hledger’s command-line interface (there are also curses and web

@@ -13,7 +13,10 @@ pre {
 		/* display:table; */
 		/* background-color:#e0e0e0; */
 }
-.clear, h3, h4, h5, h6 {
+.clear {
+		clear:both;
+}
+h4, h5, h6 {
 		clear:both;
 }
 .display-table {
@@ -70,11 +73,28 @@ pre {
 .navbar       { font-size:x-large;  }
 .navbar-brand { font-weight:bold; font-size:xx-large; }
 .navbar-nav   { margin-left:1em;  }
-/* from https://github.com/blaenk/blaenk.github.io/blob/source/provider/scss/_article.scss */
+/* table of contents styling */
+/* based on https://github.com/blaenk/blaenk.github.io/blob/source/provider/scss/_article.scss */
 #toc {
 		max-width:40%;
     margin-top: 1em;
 }
+/* move it to the right */
+#toc { /* right */
+    float: right;
+		margin:0 0 2em 2em;
+    padding: 0;
+}
+#toc (@media screen and (max-width: 600px)) {
+		float: none;
+		padding: 0;
+		margin-left: 0;
+		margin-top: 10px;
+}
+#toc:after {
+		clear: both;
+}
+/* margins and fonts */
 #toc p {
 		font-weight: bold;
 		margin-top: 0;
@@ -88,17 +108,8 @@ pre {
 		padding-left:0;
 		/* margin-left:1em; */
 }
-#toc > ol > li > a {
-		display:none;
-}
 #toc > ol (@media screen and (max-width: 600px)) {
 		font-size: 13px;
-}
-#toc > ol ol {
-		counter-reset: item;
-}
-#toc > ol > li > ol ol {
-		font-size:95%;
 }
 #toc li {
 		margin-top: 0;
@@ -107,32 +118,29 @@ pre {
 #toc li (@media screen and (max-width: 600px)) {
 		line-height: 1.69;
 }
-#toc > ol > li > ol > li:before {
-		content: counters(item, ".") ". ";
-		counter-increment: item;
+/* shrink subitems */
+#toc > ol > li > ol ol {
+		font-size:95%;
 }
-#toc > ol > li > ol > li > ol > li {
-		padding-left:2em;
-}
-#toc > ol > li > ol > li > ol > li > ol li {
+/* indent subitems */
+#toc > ol > li > ol li {
 		padding-left:1em;
 }
-#toc.right-toc {
-    float: right;
-    /* margin-left: 15px; */
-		margin:0 0 2em 2em;
-    padding: 0;
-}
-#toc.right-toc (@media screen and (max-width: 600px)) {
-		float: none;
-		padding: 0;
-		margin-left: 0;
-		margin-top: 10px;
-}
-#toc:after {
-		clear: both;
-}
+/* hide top item(s) */
+/* #toc > ol > li > a { display:none; } */
+/* #toc > ol > li > ol > li { padding-left:0; } */
+/* number top items */
+/* #toc > ol { counter-reset: item; } */
+/* #toc > ol > li:before { */
+/* 		content: counters(item, ".") ". "; */
+/* 		counter-increment: item; */
+/* } */
+/* #toc > ol > li > ol > li { */
+/* 		padding-left:2em; */
+/* } */
+
 /* */
+
 h2 {
 		margin-top:1.5em;
 }

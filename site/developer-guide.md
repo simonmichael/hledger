@@ -1,5 +1,9 @@
 <!-- hledger repo and http://hledger.org versions of this document are periodically bidirectionally synced -->
 
+<style>
+#toc > ol > li > a { display:none; }
+#toc > ol > li > ol > li { padding-left:0; }
+</style>
 * toc
 
 # Developer guide

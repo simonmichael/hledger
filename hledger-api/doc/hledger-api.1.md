@@ -2,6 +2,9 @@
 %
 % January 2016
 
+<div class="web">
+* toc
+</div>
 <div class="man">
 
 # NAME
@@ -19,9 +22,6 @@ hledger is a cross-platform program for tracking money, time, or any other commo
 using double-entry accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
 
-</div>
-<div class="web">
-<!-- * toc -->
 </div>
 
 hledger-api is a simple web API server, intended to support

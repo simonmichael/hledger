@@ -1,5 +1,9 @@
 <!-- hledger.org and hledger repo versions last synced: 2014/5/1 -->
 
+<style>
+#toc > ol > li > a { display:none; }
+#toc > ol > li > ol > li { padding-left:0; }
+</style>
 * toc
 
 # hledger User Manual

@@ -2,8 +2,10 @@
 %
 % October 2015
 
+<div class="web">
+* toc
+</div>
 <div class="man">
-
 # NAME
 
 hledger-web - web interface for the hledger accounting tool
@@ -18,10 +20,6 @@ hledger-web - web interface for the hledger accounting tool
 hledger is a cross-platform program for tracking money, time, or any other commodity,
 using double-entry accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
-
-</div>
-<div class="web">
-* toc
 </div>
 
 hledger-web is hledger's web interface.  It starts a simple web

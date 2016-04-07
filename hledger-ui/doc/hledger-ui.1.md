@@ -2,24 +2,6 @@
 %
 % October 2015
 
-<div class="man">
-
-# NAME
-
-hledger-ui - curses-style interface for the hledger accounting tool
-
-# SYNOPSIS
-
-`hledger-ui [OPTIONS] [QUERYARGS]`\
-`hledger ui -- [OPTIONS] [QUERYARGS]`
-
-# DESCRIPTION
-
-hledger is a cross-platform program for tracking money, time, or any other commodity,
-using double-entry accounting and a simple, editable file format.
-hledger is inspired by and largely compatible with ledger(1).
-
-</div>
 <div class="web">
 * toc
 
@@ -36,6 +18,23 @@ hledger is inspired by and largely compatible with ledger(1).
 <a href="images/hledger-ui/hledger-ui-bcexample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc.png" title="beancount example accounts" /></a>
 <a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade:cash.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade:cash.png" title="beancount example's etrade cash subaccount" /></a>
 <a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" title="beancount example's etrade investments, all commoditiess" /></a>
+</div>
+<div class="man">
+
+# NAME
+
+hledger-ui - curses-style interface for the hledger accounting tool
+
+# SYNOPSIS
+
+`hledger-ui [OPTIONS] [QUERYARGS]`\
+`hledger ui -- [OPTIONS] [QUERYARGS]`
+
+# DESCRIPTION
+
+hledger is a cross-platform program for tracking money, time, or any other commodity,
+using double-entry accounting and a simple, editable file format.
+hledger is inspired by and largely compatible with ledger(1).
 
 </div>
 

@@ -2,6 +2,9 @@
 % 
 % October 2015
 
+<div class="web">
+* toc
+</div>
 <div class="man">
 
 # NAME
@@ -10,9 +13,6 @@ hledger_timelog - hledger's timelog file format
 
 # DESCRIPTION
 
-</div>
-<div class="web">
-<!-- * toc -->
 </div>
 
 hledger can read timelog files.

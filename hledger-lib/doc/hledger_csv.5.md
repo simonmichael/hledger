@@ -2,6 +2,9 @@
 %
 % October 2015
 
+<div class="web">
+* toc
+</div>
 <div class="man">
 
 # NAME
@@ -10,9 +13,6 @@ hledger_csv - reading CSV files with hledger, and the CSV rules file format
 
 # DESCRIPTION
 
-</div>
-<div class="web">
-* toc
 </div>
 
 hledger can read

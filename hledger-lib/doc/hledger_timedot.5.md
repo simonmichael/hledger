@@ -2,6 +2,9 @@
 %
 % February 2016
 
+<div class="web">
+* toc
+</div>
 <div class="man">
 
 # NAME
@@ -10,9 +13,6 @@ hledger_timedot - time logging format
 
 # DESCRIPTION
 
-</div>
-<div class="web">
-* toc
 </div>
 
 Timedot is a plain text format for logging dated, categorised quantities (eg time), supported by hledger.

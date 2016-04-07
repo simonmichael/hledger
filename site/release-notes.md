@@ -1,8 +1,8 @@
 <!-- A manual TOC showing less detail than the automatic one. -->
 <!-- Putting the dates last is preferred for readability, but they are first in the headings below since that nicely keeps them out of the anchor urls. -->
-<nav id="toc" class="right-toc">
+<nav id="toc">
 <p>Major releases:</p>
-<ul>
+<ol>
 <li><a href="#hledger-0.27">hledger 0.27 (2015/10/30)</a>
 <li><a href="#hledger-0.26">hledger 0.26 (2015/7/12)</a>
 <li><a href="#hledger-0.25">hledger 0.25 (2015/4/7)</a>
@@ -30,7 +30,7 @@
 <li><a href="#hledger-0.3">hledger 0.3 (2009/01/17)</a>
 <li><a href="#hledger-0.2">hledger 0.2 (2008/11/23)</a>
 <li><a href="#hledger-0.1">hledger 0.1 (2008/10/15)</a>
-</ul>
+</ol>
 </nav>
 
 # Release notes

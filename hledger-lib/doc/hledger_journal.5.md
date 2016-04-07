@@ -2,6 +2,9 @@
 %
 % October 2015
 
+<div class="web">
+* toc
+</div>
 <div class="man">
 
 # NAME
@@ -10,9 +13,6 @@ hledger_journal - reference for hledger's journal file format
 
 # DESCRIPTION
 
-</div>
-<div class="web">
-* toc
 </div>
 
 hledger's usual data source is a plain text file containing journal entries in hledger journal format.
