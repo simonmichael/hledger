@@ -90,7 +90,7 @@ serve them from another server for efficiency, you would set the url with this.
 `--version`
 : show version information
 
-## hledger options:
+## hledger options
 
 The following common hledger options should also work:
 

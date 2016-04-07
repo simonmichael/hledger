@@ -81,7 +81,7 @@ $ hledger-ui --register cash
 Options and command arguments can be intermixed. Arguments are usually
 interpreted as a search query which filters the data, see QUERIES.
 
-## General flags:
+## General flags
 
 These can appear anywhere in the command line.
 
@@ -106,7 +106,7 @@ These can appear anywhere in the command line.
 `--debug=N`
 : : show debug output if N is 1-9 (default: 0)
 
-## Common reporting flags:
+## Common reporting flags
 
 These are supported by most commands, where applicable.
 They must be written after the command name.
@@ -170,7 +170,7 @@ To save typing, some commands have a short form; any unique prefix also works.
 
 Here is a summary (see http://hledger.org/manual#commands for the full command help):
 
-## Data entry:
+## Data entry
 
 ### add
 prompt for transactions and add them to the journal.
@@ -181,7 +181,7 @@ It appends only, existing transactions are not changed.
 `--no-new-accounts`
 : don't allow creating new accounts; helps prevent typos when entering account names
 
-## Reporting:
+## Reporting
 
 ### accounts
 show account names
@@ -310,7 +310,7 @@ show some journal statistics
 `-o FILE[.FMT] --output-file=FILE[.FMT]`
 : write output to FILE instead of stdout. A recognised FMT suffix influences the format.
 
-## Add-on commands:
+## Add-on commands
 
 Additional commands will be available when executables or scripts
 named "`hledger-`CMD" are installed in the PATH. These are often

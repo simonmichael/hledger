@@ -80,7 +80,7 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `--version`
 : show version information
 
-## hledger options:
+## hledger options
 
 The following common hledger options should also work:
 
