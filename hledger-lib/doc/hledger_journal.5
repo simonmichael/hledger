@@ -58,7 +58,7 @@ Here\[aq]s an example:
 .fi
 .PP
 Now let\[aq]s explore the available journal file syntax in detail.
-.SH TRANSACTIONS
+.SS Transactions
 .PP
 Transactions are represented by journal entries.
 Each begins with a simple date in column 0, followed by three optional
@@ -80,7 +80,7 @@ The (real) posting amounts within a transaction must always balance, ie
 add up to 0.
 Optionally one amount can be left blank, in which case it will be
 inferred.
-.SH DATES
+.SS Dates
 .SS Simple dates
 .PP
 Within a journal file, transaction dates use Y/M/D (or Y\-M\-D or Y.M.D)
@@ -178,7 +178,7 @@ in a posting comment.
 When using any of these forms, be sure to provide a valid simple date or
 you\[aq]ll get a parse error.
 Eg a \f[C]date:\f[] tag with no value is not allowed.
-.SH ACCOUNT NAMES
+.SS Account names
 .PP
 Account names typically have several parts separated by a full colon,
 from which hledger derives a hierarchical chart of accounts.
@@ -192,7 +192,7 @@ Because of this, they must always be followed by at least two spaces (or
 newline).
 .PP
 Account names can be aliased.
-.SH AMOUNTS
+.SS Amounts
 .PP
 After the account name, there is usually an amount.
 Important: between account name and amount, there must be \f[B]two or
@@ -245,7 +245,7 @@ indirectly, eg when D\[aq]s default commodity is applied to a
 commodity\-less amount or when an amountless posting is balanced using a
 price\[aq]s commodity (actually this last case does not influence the
 canonical display precision but probably should).
-.SH VIRTUAL POSTINGS
+.SS Virtual Postings
 .PP
 When you parenthesise the account name in a posting, that posting is
 considered \f[I]virtual\f[], which means:
@@ -278,7 +278,7 @@ occasionally be useful, but they can be a crutch and you should think
 twice or three times before using them.
 You can almost always find an equivalent journal entry using two or more
 real postings that will be more correct and more error\-proof.
-.SH BALANCE ASSERTIONS
+.SS Balance Assertions
 .PP
 hledger supports ledger\-style balance assertions in journal files.
 These look like \f[C]=EXPECTEDBALANCE\f[] following a posting\[aq]s
@@ -376,7 +376,7 @@ Balance assertions are checked against all postings, both real and
 virtual.
 They are not affected by the \f[C]\-\-real/\-R\f[] flag or
 \f[C]real:\f[] query.
-.SH PRICES
+.SS Prices
 .SS Transaction prices
 .PP
 When recording a transaction, you can also record an amount\[aq]s price
@@ -477,7 +477,7 @@ P\ 2010/1/1\ €\ $1.40
 .fi
 .PP
 Example use for market prices: tracking the value of stocks.
-.SH COMMENTS
+.SS Comments
 .PP
 Lines in the journal beginning with a semicolon (\f[C];\f[]) or hash
 (\f[C]#\f[]) or asterisk (\f[C]*\f[]) are comments, and will be ignored.
@@ -519,7 +519,7 @@ end\ comment
 ;\ a\ journal\ comment\ (because\ not\ indented)
 \f[]
 .fi
-.SH TAGS
+.SS Tags
 .PP
 A \f[I]tag\f[] is a word followed by a full colon inside a transaction
 or posting comment.
@@ -547,7 +547,7 @@ posting\-tag):
 .PP
 Tags are like Ledger\[aq]s metadata feature, except hledger\[aq]s tag
 values are always simple strings.
-.SH DIRECTIVES
+.SS Directives
 .SS Account aliases
 .PP
 You can define aliases which rewrite your account names (after reading

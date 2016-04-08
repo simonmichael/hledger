@@ -61,7 +61,7 @@ Here's an example:
 
 Now let's explore the available journal file syntax in detail.
 
-# Transactions
+## Transactions
 
 Transactions are represented by journal entries. Each begins with a
 [simple date](#simple-dates) in column 0, followed by three optional
@@ -79,9 +79,9 @@ The ([real](#virtual-postings)) posting amounts within a transaction
 must always balance, ie add up to 0.  Optionally one amount can be
 left blank, in which case it will be inferred.
 
-# Dates
+## Dates
 
-## Simple dates
+### Simple dates
 
 Within a journal file, transaction dates use Y/M/D (or Y-M-D or Y.M.D)
 Leading zeroes are optional.
@@ -91,7 +91,7 @@ year, or you can set the default year with a
 
 Some examples: `2010/01/31`, `1/31`, `2010-01-31`, `2010.1.31`.
 
-## Secondary dates
+### Secondary dates
 
 Real-life transactions sometimes involve more than one date - eg the date
 you write a cheque, and the date it clears in your bank.  When you want to
@@ -130,7 +130,7 @@ your journal entries and remember whether to use or not use the
 `--date2` flag for your reports. Arguably they are now obsolete,
 superseded by...
 
-## Posting dates
+### Posting dates
 
 You can give individual postings a different date from their parent
 transaction, by adding a [posting tag](#tags) (see below) like
@@ -168,7 +168,7 @@ When using any of these forms, be sure to provide a valid simple date
 or you'll get a parse error. Eg a `date:` tag with no value is not
 allowed.
 
-# Account names
+## Account names
 
 Account names typically have several parts separated by a full colon, from
 which hledger derives a hierarchical chart of accounts. They can be
@@ -180,7 +180,7 @@ Because of this, they must always be followed by at least two spaces (or newline
 
 Account names can be [aliased](#account-aliases).
 
-# Amounts
+## Amounts
 
 After the account name, there is usually an amount.
 Important: between account name and amount, there must be **two or more** spaces.
@@ -189,7 +189,7 @@ The amount is a number, optionally with a currency symbol or commodity name on e
 Negative amounts may have the minus sign either before or after the currency symbol (`-$1` or `$-1`).
 Commodity names which contain more than just letters should be enclosed in double quotes (`1 "person hours"`).
 
-## Decimal points and digit groups
+### Decimal points and digit groups
 
 hledger supports flexible decimal point and digit group separator styles,
 to support international variations. Numbers can use either a period (`.`)
@@ -200,7 +200,7 @@ digit group separators, you must also include a decimal point in at least
 one number in the same commodity, so that hledger knows which character is
 which. Eg, write `$1,000.00` or `$1.000,00`.
 
-## Amount display styles
+### Amount display styles
 
 Based on how you format amounts, hledger will infer canonical display
 styles for each commodity, and use these when displaying amounts in that
@@ -217,7 +217,7 @@ However the display precision will be the highest precision seen in all posting 
 The precisions used in a price amount, or a D directive, don't affect the canonical display precision directly, but they can affect it indirectly, eg when D's default commodity is applied to a commodity-less amount or when an amountless posting is balanced using a price's commodity (actually this last case does not influence the canonical display precision but probably should).
 
 
-# Virtual Postings
+## Virtual Postings
 
 When you parenthesise the account name in a posting, that posting is considered *virtual*, which
 means:
@@ -232,13 +232,13 @@ You could use this, eg, to set an account's opening balance without needing to u
 1/1 special unbalanced posting to set initial balance
   (assets:checking)   $1000
 ```
-## Balanced Virtual Postings
+### Balanced Virtual Postings
 
 When the account name is bracketed, the posting is *balanced virtual*, which is just like a virtual posting except the balanced virtual postings in a transaction must balance to 0, like the real postings (but separately from them). Balanced virtual postings are also excluded by `--real/-R` or `real:1`.
 
 Virtual postings are a feature inherited from Ledger can can occasionally be useful, but they can be a crutch and you should think twice or three times before using them. You can almost always find an equivalent journal entry using two or more real postings that will be more correct and more error-proof.
 
-# Balance Assertions
+## Balance Assertions
 
 hledger supports ledger-style
 [balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions)
@@ -264,7 +264,7 @@ while cleaning up old entries. You can disable them temporarily with
 the `--ignore-assertions` flag, which can be useful for
 troubleshooting or for reading Ledger files.
 
-## Assertions and ordering
+### Assertions and ordering
 
 hledger sorts an account's postings and assertions first by date and
 then (for postings on the same day) by parse order. Note this is
@@ -287,7 +287,7 @@ account's balance on the same day, you'll have to put the assertion
 in the right file.
 
 
-## Assertions and commodities
+### Assertions and commodities
 
 The asserted balance must be a simple single-commodity amount, and in
 fact the assertion checks only this commodity's balance within the
@@ -302,7 +302,7 @@ that no matter how many assertions you add, you can't be sure the
 account does not contain some unexpected commodity. (We'll add support
 for this kind of total balance assertion if there's demand.)
 
-## Assertions and subaccounts
+### Assertions and subaccounts
 
 Balance assertions do not count the balance from subaccounts; they check
 the posted account's exclusive balance. For example:
@@ -328,9 +328,9 @@ Balance assertions are checked against all postings, both real and
 flag or `real:` query.
 
 
-# Prices
+## Prices
 
-## Transaction prices
+### Transaction prices
 
 When recording a transaction, you can also record an amount's price in another commodity.
 This documents the exchange rate, cost (of a purchase), or selling price (of a sale) that was in effect within this particular transaction (or more precisely, within the particular posting).
@@ -380,7 +380,7 @@ $ hledger print -B
 Example use for transaction prices: recording the effective conversion
 rate of purchases made in a foreign currency.
 
-## Market prices
+### Market prices
 
 Market prices are not tied to a particular transaction; they represent
 historical exchange rates between two commodities, usually from some
@@ -416,7 +416,7 @@ default.  Ledger has a different syntax for specifying
 -->
 <!-- hledger treats this as an alternate spelling of `@ PRICE`, for greater compatibility with Ledger files. -->
 
-# Comments
+## Comments
 
 Lines in the journal beginning with a semicolon (`;`) or hash (`#`) or
 asterisk (`*`) are comments, and will be ignored. (Asterisk comments
@@ -454,7 +454,7 @@ end comment
 ; a journal comment (because not indented)
 ```
 
-# Tags
+## Tags
 
 A *tag* is a word followed by a full colon inside a transaction or
 posting [comment](#comments).  You can write multiple tags, comma
@@ -480,9 +480,9 @@ Tags are like Ledger's
 [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
 feature, except hledger's tag values are always simple strings.
 
-# Directives
+## Directives
 
-## Account aliases
+### Account aliases
 
 You can define aliases which rewrite your account names (after reading the journal,
 before generating reports). hledger's account aliases can be useful for:
@@ -494,7 +494,7 @@ before generating reports). hledger's account aliases can be useful for:
 
 See also [How to use account aliases](how-to-use-account-aliases.html).
 
-### Basic aliases
+#### Basic aliases
 
 To set an account alias, use the `alias` directive in your journal file.
 This affects all subsequent journal entries in the current file or its
@@ -517,7 +517,7 @@ alias checking = assets:bank:wells fargo:checking
 # rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
 ```
 
-### Regex aliases
+#### Regex aliases
 
 There is also a more powerful variant that uses a regular expression,
 indicated by the forward slashes. (This was the default behaviour in hledger 0.24-0.25):
@@ -543,7 +543,7 @@ alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
 # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 ```
 
-### Multiple aliases
+#### Multiple aliases
 
 You can define as many aliases as you like using directives or command-line options.
 Aliases are recursive - each alias sees the result of applying previous ones.
@@ -553,7 +553,7 @@ Aliases are applied in the following order:
 1. alias directives, most recently seen first (recent directives take precedence over earlier ones; directives not yet seen are ignored)
 2. alias options, in the order they appear on the command line
 
-### end aliases
+#### end aliases
 
 You can clear (forget) all currently defined aliases with the `end aliases` directive:
 
@@ -561,7 +561,7 @@ You can clear (forget) all currently defined aliases with the `end aliases` dire
 end aliases
 ```
 
-## account directive
+### account directive
 
 The `account` directive predefines account names, as in Ledger and Beancount.
 This may be useful for your own documentation; hledger doesn't make use of it yet.
@@ -579,7 +579,7 @@ account expenses:food
 ; etc.
 ```
 
-## apply account directive
+### apply account directive
 
 You can specify a parent account which will be prepended to all accounts
 within a section of the journal. Use the `apply account` and `end apply account`
@@ -614,12 +614,12 @@ include personal.journal
 
 Prior to hledger 0.28, legacy `account` and `end` spellings were also supported.
 
-## Multi-line comments
+### Multi-line comments
 
 A line containing just `comment` starts a multi-line comment, and a
 line containing just `end comment` ends it. See [comments](#comments).
 
-## Default commodity
+### Default commodity
 
 You can set a default commodity, to be used for amounts without one.
 Use the D directive with a sample amount.
@@ -653,7 +653,7 @@ $ hledger print
     d    £-1,000.00
 ```
 
-## Default year
+### Default year
 
 You can set a default year to be used for subsequent dates which don't
 specify a year. This is a line beginning with `Y` followed by the year. Eg:
@@ -676,7 +676,7 @@ Y2010      ; change default year to 2010
   assets
 ```
 
-## Including other files
+### Including other files
 
 You can pull in the content of additional journal files by writing an
 include directive, like this:

@@ -28,7 +28,7 @@ For an example, see [How to read CSV files](how-to-read-csv-files.html).
 (For CSV output, see [CSV output](#csv-output).)
 
 
-# CSV rules
+## CSV rules
 
 The following six kinds of rule can appear in the rules file, in any order.
 Blank lines and lines beginning with `#` or `;` are ignored.
@@ -137,7 +137,7 @@ a path relative to the current file's directory. Eg:
 include common.rules
 ```
 
-## Other CSV tips
+## CSV tips
 
 Each generated journal entry will have two postings, to `account1` and `account2` respectively.
 Currently it's not possible to generate entries with more than two postings.

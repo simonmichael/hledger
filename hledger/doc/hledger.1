@@ -89,9 +89,10 @@ $\ hledger\-ui\ \-\-register\ cash
 Options and command arguments can be intermixed.
 Arguments are usually interpreted as a search query which filters the
 data, see QUERIES.
-.SS General flags
 .PP
-These can appear anywhere in the command line.
+There are three kinds of options.
+General options are always available and can appear anywhere in the
+command line:
 .TP
 .B \f[C]\-h\ \-\-help\f[]
 show general help or (after command) command help
@@ -128,11 +129,11 @@ ignore any failing balance assertions in the journal
 : show debug output if N is 1\-9 (default: 0)
 .RS
 .RE
-.SS Common reporting flags
 .PP
-These are supported by most commands, where applicable.
-They must be written after the command name.
-Additional command\-specific flags are described in COMMANDS below.
+Common reporting options are supported by most commands where
+applicable, and individual commands may provide additional
+command\-specific options.
+Both of these must be written after the command name.
 .TP
 .B \f[C]\-b\ \-\-begin=DATE\f[]
 include postings/txns on or after this date

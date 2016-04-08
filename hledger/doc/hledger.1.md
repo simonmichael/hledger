@@ -81,9 +81,8 @@ $ hledger-ui --register cash
 Options and command arguments can be intermixed. Arguments are usually
 interpreted as a search query which filters the data, see QUERIES.
 
-## General flags
-
-These can appear anywhere in the command line.
+There are three kinds of options.
+General options are always available and can appear anywhere in the command line:
 
 `-h --help`
 : show general help or (after command) command help
@@ -106,11 +105,10 @@ These can appear anywhere in the command line.
 `--debug=N`
 : : show debug output if N is 1-9 (default: 0)
 
-## Common reporting flags
 
-These are supported by most commands, where applicable.
-They must be written after the command name.
-Additional command-specific flags are described in COMMANDS below.
+Common reporting options are supported by most commands where applicable,
+and individual commands may provide additional command-specific options.
+Both of these must be written after the command name.
 
 `-b --begin=DATE              `
 : include postings/txns on or after this date
