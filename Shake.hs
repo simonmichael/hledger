@@ -118,13 +118,13 @@ main = do
       let md = out <.> "md"
           tmpl = "doc/manpage.nroff"
       need $ md : tmpl : pandocFilters
-      cmd pandoc md "-s --template" tmpl "-o" out
+      cmd pandoc md "-s --template" tmpl
         "--filter doc/pandoc-drop-web-blocks"
         "--filter doc/pandoc-drop-html-blocks"
         "--filter doc/pandoc-drop-html-inlines"
         "--filter doc/pandoc-drop-links"
         "--filter doc/pandoc-drop-notes"
-        "--filter doc/pandoc-capitalize-headers"
+        "-o" out
 
     -- man pages adjusted for web by pandoc (ready for hakyll)
     let webManpageMds = ["site" </> p <.>".md" | p <- manpages]
@@ -133,10 +133,11 @@ main = do
       let p = dropExtension $ takeFileName out
           md = manpageDir p </> p <.> "md"
       need $ md : pandocFilters
-      cmd pandoc md "-o" out
+      cmd pandoc md
         "--filter doc/pandoc-demote-headers"
         -- "--filter doc/pandoc-add-toc"
         -- "--filter doc/pandoc-drop-man-blocks"
+        "-o" out
 
     -- method 2:
 
@@ -151,12 +152,12 @@ main = do
           tmpl  = "doc/manpage.nroff"
       need $ m4src : m4lib : tmpl : pandocFilters ++ m4includes
       cmd Shell "m4 -P" "-DMAN" "-I" dir m4lib m4src
-        "|" pandoc "-s --template" tmpl "-o" out
+        "|" pandoc "-s --template" tmpl
         "--filter doc/pandoc-drop-html-blocks"
         "--filter doc/pandoc-drop-html-inlines"
         "--filter doc/pandoc-drop-links"
         "--filter doc/pandoc-drop-notes"
-        "--filter doc/pandoc-capitalize-headers"
+        "-o" out
 
     -- man pages assembled from parts and adjusted for web with m4, adjusted slightly more with pandoc (ready for hakyll)
     let m4webManpageMds = ["site" </> "m4-"++p <.>".md" | p <- ["hledger.1"]]
@@ -170,9 +171,10 @@ main = do
           m4lib = "doc/lib.m4"
       need $ m4src : m4lib : m4includes
       cmd Shell "m4 -P" "-DMAN -DWEB" "-I" dir m4lib m4src
-        "|" pandoc "-o" out
+        "|" pandoc
         "--filter doc/pandoc-demote-headers"
         -- "--filter doc/pandoc-add-toc"
+        "-o" out
 
     -- web manual combined from man pages
 
@@ -180,12 +182,30 @@ main = do
     phony "webmanual" $ need [ webmanual ]
     "site/manual2.md" %> \out -> do
       need webManpageMds
-      cmd Shell "printf '* toc\\n\\n' >" webmanual :: Action ExitCode
+      liftIO $ writeFile webmanual [i|
+<style>
+#toc > ol > li {
+  padding-top:1em;
+  font-weight:bold;
+}
+#toc > ol > li > ol {
+  font-weight:normal;
+}
+</style>
+* toc
+
+|]
       forM_ webManpageMds $ \f -> do
-        let manpage = dropExtension $ takeFileName f
-        cmd Shell ("printf '\\n## "++ manpage ++"\\n\\n' >>") webmanual :: Action ExitCode
+        let heading =
+              let s = dropExtension $ dropExtension $ takeFileName f
+              in if "hledger_" `isPrefixOf` s
+                 then drop 8 s ++ " format"
+                 else s
+        cmd Shell ("printf '\\n## "++ heading ++"\\n\\n' >>") webmanual :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown"
+          "--filter doc/pandoc-drop-man-blocks"
           "--filter doc/pandoc-drop-toc"
+          -- "--filter doc/pandoc-capitalize-headers"
           "--filter doc/pandoc-demote-headers"
           ">>" webmanual :: Action ExitCode
 
