@@ -54,20 +54,6 @@ buildDir = ".build"
 pandoc =
   -- "stack exec -- pandoc" -- use the pandoc required above
   "pandoc"                  -- use pandoc in PATH (faster)
-manpages = [ -- in suggested reading order
-   "hledger.1"
-  ,"hledger-ui.1"
-  ,"hledger-web.1"
-  ,"hledger-api.1"
-  ,"hledger_journal.5"
-  ,"hledger_csv.5"
-  ,"hledger_timelog.5"
-  ,"hledger_timedot.5"
-  ]
-
-manpageDir p
-  | '_' `elem` p = "hledger-lib" </> "doc"
-  | otherwise    = dropExtension p </> "doc"
 
 main = do
 
@@ -103,6 +89,32 @@ main = do
       ]
 
     -- man pages
+
+    let
+      manpageNames = [ -- in suggested reading order
+         "hledger.1"
+        ,"hledger-ui.1"
+        ,"hledger-web.1"
+        ,"hledger-api.1"
+        ,"hledger_journal.5"
+        ,"hledger_csv.5"
+        ,"hledger_timelog.5"
+        ,"hledger_timedot.5"
+        ]
+
+      -- hledger.1 -> hledger, hledger_journal.5 -> journal
+      manpageNameToUri m | "hledger_" `isPrefixOf` m = dropExtension $ drop 8 m
+                         | otherwise                 = dropExtension m
+
+      -- hledger -> hledger.1, journal -> hledger_journal.5
+      manpageUriToName u | "hledger" `isPrefixOf` u = u <.> "1"
+                         | otherwise                = "hledger_" ++ u <.> "5"
+
+      -- hledger.1 -> hledger/doc, hledger_journal.5 -> hledger-lib/doc
+      manpageDir m
+        | '_' `elem` m = "hledger-lib" </> "doc"
+        | otherwise    = dropExtension m </> "doc"
+
     -- method 1:
 
     -- pandoc filters, these adjust master md files for web or man output
@@ -112,10 +124,10 @@ main = do
       cmd ("stack ghc") out
 
     -- man pages adjusted for man and converted to nroff, by pandoc
-    let manpageNroffs = [manpageDir p </> p | p <- manpages]
-    phony "manpages" $ need manpageNroffs
-    manpageNroffs |%> \out -> do
-      let md = out <.> "md"
+    let manpages = [manpageDir m </> m | m <- manpageNames] -- hledger/doc/hledger.1, hledger-lib/doc/hledger_journal.5
+    phony "manpages" $ need manpages
+    manpages |%> \out -> do
+      let md = out <.> "md"  -- hledger/doc/hledger.1.md
           tmpl = "doc/manpage.nroff"
       need $ md : tmpl : pandocFilters
       cmd pandoc md "-s --template" tmpl
@@ -127,11 +139,11 @@ main = do
         "-o" out
 
     -- man pages adjusted for web by pandoc (ready for hakyll)
-    let webManpageMds = ["site" </> p <.>".md" | p <- manpages]
-    phony "webmanpages" $ need webManpageMds
-    webManpageMds |%> \out -> do
-      let p = dropExtension $ takeFileName out
-          md = manpageDir p </> p <.> "md"
+    let webmanpages = ["site" </> manpageNameToUri m <.>".md" | m <- manpageNames] -- site/hledger.md, site/journal.md
+    phony "webmanpages" $ need webmanpages
+    webmanpages |%> \out -> do
+      let m = manpageUriToName $ dropExtension $ takeFileName out  -- hledger.1
+          md = manpageDir m </> m <.> "md"                         -- hledger/doc/hledger.1.md
       need $ md : pandocFilters
       cmd pandoc md
         "--filter doc/pandoc-demote-headers"
@@ -142,9 +154,9 @@ main = do
     -- method 2:
 
     -- man pages assembled from parts and adjusted for man with m4, adjusted more and converted to nroff with pandoc
-    let m4manpageNroffs = [manpageDir p </> "m4-"++p | p <- ["hledger.1"]]
-    phony "m4manpages" $ need m4manpageNroffs
-    m4manpageNroffs |%> \out -> do                      -- hledger/doc/m4-hledger.1
+    let m4manpages = [manpageDir m </> "m4-"++m | m <- ["hledger.1"]] -- hledger/doc/m4-hledger.1
+    phony "m4manpages" $ need m4manpages
+    m4manpages |%> \out -> do                           -- hledger/doc/m4-hledger.1
       let (dir,file) = splitFileName out                -- hledger/doc, m4-hledger.1
           m4src = dir </> drop 3 file <.> "md" <.> "m4" -- hledger/doc/hledger.1.md.m4
           m4includes = map (dir </>) ["description.md","examples.md","queries.md","commands.md","options.md"]
@@ -160,13 +172,13 @@ main = do
         "-o" out
 
     -- man pages assembled from parts and adjusted for web with m4, adjusted slightly more with pandoc (ready for hakyll)
-    let m4webManpageMds = ["site" </> "m4-"++p <.>".md" | p <- ["hledger.1"]]
-    phony "m4webmanpages" $ need $ m4webManpageMds
-    m4webManpageMds |%> \out -> do                  -- site/m4-hledger.1.md
-      let file  = takeFileName out                  -- m4-hledger.1.md
-          manpage = drop 3 $ dropExtension file     -- hledger.1
-          dir = manpageDir manpage                  -- hledger/doc
-          m4src = dir </> manpage <.> "md" <.> "m4" -- hledger/doc/hledger.1.md.m4
+    let m4webmanpages = ["site" </> "m4-" ++ manpageNameToUri m <.> ".md" | m <- ["hledger.1"]] -- site/m4-hledger.md
+    phony "m4webmanpages" $ need $ m4webmanpages
+    m4webmanpages |%> \out -> do                                   -- site/m4-hledger.md
+      let file  = takeFileName out                                 -- m4-hledger.1.md
+          manpage = manpageUriToName $ drop 3 $ dropExtension file -- hledger.1
+          dir = manpageDir manpage                                 -- hledger/doc
+          m4src = dir </> manpage <.> "md" <.> "m4"                -- hledger/doc/hledger.1.md.m4
           m4includes = map (dir </>) ["description.md","examples.md","queries.md","commands.md","options.md"]
           m4lib = "doc/lib.m4"
       need $ m4src : m4lib : m4includes
@@ -181,7 +193,7 @@ main = do
     let webmanual = "site/manual2.md"
     phony "webmanual" $ need [ webmanual ]
     "site/manual2.md" %> \out -> do
-      need webManpageMds
+      need webmanpages
       liftIO $ writeFile webmanual [i|
 <style>
 #toc > ol > li {
@@ -195,12 +207,12 @@ main = do
 * toc
 
 |]
-      forM_ webManpageMds $ \f -> do
+      forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
         let heading =
-              let s = dropExtension $ dropExtension $ takeFileName f
-              in if "hledger_" `isPrefixOf` s
-                 then drop 8 s ++ " format"
-                 else s
+              let h = dropExtension $ takeFileName f -- hledger, journal
+              in if "hledger" `isPrefixOf` h
+                 then h                              -- hledger
+                 else h ++ " format"                 -- journal format
         cmd Shell ("printf '\\n## "++ heading ++"\\n\\n' >>") webmanual :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown"
           "--filter doc/pandoc-drop-man-blocks"
@@ -213,14 +225,15 @@ main = do
 
     phony "clean" $ do
       putNormal "Cleaning generated files"
-      -- removeFilesAfter "." manpageNroffs
-      removeFilesAfter "." m4manpageNroffs
-      removeFilesAfter "." webManpageMds
-      removeFilesAfter "." m4webManpageMds
+      removeFilesAfter "." m4manpages
+      removeFilesAfter "." m4webmanpages
+      removeFilesAfter "." webmanpages
       removeFilesAfter "." [webmanual]
 
     phony "Clean" $ do
       need ["clean"]
+      putNormal "Cleaning generated man page nroffs"
+      removeFilesAfter "." manpages
       putNormal "Cleaning object files"
       removeFilesAfter "doc" ["*.o","*.p_o","*.hi"] -- forces rebuild of exes ?
       putNormal "Cleaning shake build files"

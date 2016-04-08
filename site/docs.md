@@ -57,30 +57,30 @@ Or, as man pages (work in progress):
 
 <div style="padding-left:1em;">
 
-#### [hledger(1)](hledger.1.html)
+#### [hledger(1)](hledger.html)
 The main reporting tool and command-line interface.
 
-#### [hledger-ui(1)](hledger-ui.1.html)
+#### [hledger-ui(1)](hledger-ui.html)
 A curses-style UI for quick exploration.
 
-#### [hledger-web(1)](hledger-web.1.html)
+#### [hledger-web(1)](hledger-web.html)
 A web UI for browsing and data entry, personal or shared.
 
-#### [hledger-api(1)](hledger-api.1.html)
+#### [hledger-api(1)](hledger-api.html)
 A REST-y JSON and file server, good for building client-side UIs.
 
 **File formats:**
 
-#### [hledger_journal(5)](hledger_journal.5.html)
+#### [hledger_journal(5)](journal.html)
 hledger's primary data format, representing a general journal.
 
-#### [hledger_csv(5)](hledger_csv.5.html)
+#### [hledger_csv(5)](csv.html)
 How hledger reads Comma Separated Value data.
 
-#### [hledger_timelog(5)](hledger_timelog.5.html)
+#### [hledger_timelog(5)](timelog.html)
 Timeclock format, a sequence of clock-in/clock-out records.
 
-#### [hledger_timedot(5)](hledger_timedot.5.html)
+#### [hledger_timedot(5)](timedot.html)
 Timedot format, an alternative time logging format.
 
 **Combined:**
