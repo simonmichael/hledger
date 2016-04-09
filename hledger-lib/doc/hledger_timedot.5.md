@@ -1,6 +1,6 @@
 % hledger_timedot(5)
 %
-% February 2016
+% April 2016
 
 <div class="web">
 * toc
@@ -9,7 +9,7 @@
 
 # NAME
 
-hledger_timedot - time logging format
+Timedot - hledger's human-friendly time logging format
 
 # DESCRIPTION
 

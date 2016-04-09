@@ -1,11 +1,15 @@
 # COMMANDS
 
-COMMAND selects one of hledger's subcommands; omit it to list available commands.
-To save typing, some commands have a short form; any unique prefix also works.
+hledger provides a number of subcommands; `hledger` with no arguments shows a list.
+
+Select a subcommand by writing its name as first argument (eg `hledger incomestatement`). You can also write any unambiguous prefix of a command name (`hledger inc`), or one of the standard short aliases displayed in the command list (`hledger is`).
+
+If you install additional `hledger-*` packages,
+or if you put programs or scripts named `hledger-NAME` in your PATH, these will also be listed as hledger subcommands.
 
 Here is a summary (see http://hledger.org/manual#commands for the full command help):
 
-## Data entry:
+## Data entry
 
 ### add
 prompt for transactions and add them to the journal.
@@ -16,9 +20,51 @@ It appends only, existing transactions are not changed.
 `--no-new-accounts`
 : don't allow creating new accounts; helps prevent typos when entering account names
 
-## Reporting:
+## Reporting
 
 ### accounts
+
+``` {.shell .right}
+$ hledger accounts --tree
+assets
+  bank
+    checking
+    saving
+  cash
+expenses
+  food
+  supplies
+income
+  gifts
+  salary
+liabilities
+  debts
+```
+
+``` {.shell .right}
+$ hledger accounts --drop 1
+bank:checking
+bank:saving
+cash
+food
+supplies
+gifts
+salary
+debts
+```
+
+``` {.shell .right}
+$ hledger accounts
+assets:bank:checking
+assets:bank:saving
+assets:cash
+expenses:food
+expenses:supplies
+income:gifts
+income:salary
+liabilities:debts
+```
+
 show account names
 
 `--tree`
@@ -29,6 +75,15 @@ show account names
 
 `--drop=N`
 : in flat mode: omit N leading account name parts
+
+This command lists all account names that are in use (ie, all the
+accounts which have at least one transaction posting to them).  With
+query arguments, only matched account names are shown.
+
+It shows a flat list by default. In this mode you can add `--drop N`
+to omit the first few account name components.
+
+With `--tree`, it shows the account hierarchy.
 
 ### activity
 show an ascii barchart of posting counts per interval
@@ -145,7 +200,7 @@ show some journal statistics
 `-o FILE[.FMT] --output-file=FILE[.FMT]`
 : write output to FILE instead of stdout. A recognised FMT suffix influences the format.
 
-## Add-on commands:
+## Add-on commands
 
 Additional commands will be available when executables or scripts
 named "`hledger-`CMD" are installed in the PATH. These are often

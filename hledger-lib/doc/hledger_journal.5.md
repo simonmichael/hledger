@@ -1,6 +1,6 @@
 % hledger_journal(5)
 %
-% October 2015
+% April 2016
 
 <div class="web">
 * toc
@@ -9,7 +9,7 @@
 
 # NAME
 
-hledger_journal - reference for hledger's journal file format
+Journal - hledger's default file format, representing a General Journal
 
 # DESCRIPTION
 

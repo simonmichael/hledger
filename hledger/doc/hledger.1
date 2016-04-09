@@ -1,5 +1,6 @@
+.\"t
 
-.TH "hledger" "1" "October 2015" "hledger 0.26.98" "hledger User Manuals"
+.TH "hledger" "1" "April 2016" "hledger 0.27.98" "hledger User Manuals"
 
 
 
@@ -215,15 +216,191 @@ show empty/zero things which are normally omitted
 show amounts in their cost price\[aq]s commodity
 .RS
 .RE
+.SS Multiple files
 .PP
-If a reporting option is repeated, the last one takes precedence.
+One may specify the \f[C]\-\-file\ FILE\f[] option multiple times.
+This is equivalent to concatenating the files to standard input and
+passing \f[C]\-\-file\ \-\f[], except that the add command functions
+normally and adds entries to the first specified file.
+.SS Repeated options
+.PP
+Otherwise, if a reporting option is repeated, the last one takes
+precedence.
 Eg \-p jan \-p feb is equivalent to \-p feb.
+.SS Depth limiting
+.PP
+With the \f[C]\-\-depth\ N\f[] option, commands like account, balance
+and register will show only the uppermost accounts in the account tree,
+down to level N.
+Use this when you want a summary with less detail.
+.SS Smart dates
+.PP
+hledger\[aq]s user interfaces accept a flexible "smart date" syntax
+(unlike dates in the journal file).
+Smart dates allow some english words, can be relative to today\[aq]s
+date, and can have less\-significant date parts omitted (defaulting to
+1).
+.PP
+Examples:
+.PP
+.TS
+tab(@);
+lw(33.7n) lw(36.3n).
+T{
+\f[C]2009/1/1\f[], \f[C]2009/01/01\f[], \f[C]2009\-1\-1\f[],
+\f[C]2009.1.1\f[] \ 
+T}@T{
+simple dates, several separators allowed
+T}
+T{
+\f[C]2009/1\f[], \f[C]2009\f[]
+T}@T{
+same as above \- a missing day or month defaults to 1
+T}
+T{
+\f[C]1/1\f[], \f[C]january\f[], \f[C]jan\f[], \f[C]this\ year\f[]
+T}@T{
+relative dates, meaning january 1 of the current year
+T}
+T{
+\f[C]next\ year\f[]
+T}@T{
+january 1 of next year
+T}
+T{
+\f[C]this\ month\f[]
+T}@T{
+the 1st of the current month
+T}
+T{
+\f[C]this\ week\f[]
+T}@T{
+the most recent monday
+T}
+T{
+\f[C]last\ week\f[]
+T}@T{
+the monday of the week before this one
+T}
+T{
+\f[C]lastweek\f[]
+T}@T{
+spaces are optional
+T}
+T{
+\f[C]today\f[], \f[C]yesterday\f[], \f[C]tomorrow\f[]
+T}@T{
+T}
+.TE
+.SS Reporting interval
+.PP
+A reporting interval can be specified so that commands like register,
+balance and activity will divide their reports into multiple report
+periods.
+The basic intervals can be selected with one of \f[C]\-D/\-\-daily\f[],
+\f[C]\-W/\-\-weekly\f[], \f[C]\-M/\-\-monthly\f[],
+\f[C]\-Q/\-\-quarterly\f[], or \f[C]\-Y/\-\-yearly\f[].
+More complex intervals may be specified with a period expression.
+.SS Period expressions
+.PP
+The \f[C]\-p/\-\-period\f[] option accepts period expressions, a
+shorthand way of expressing a start date, end date, and or reporting
+interval all at once.
+Note a period expression on the command line will cause any other date
+flags
+(\f[C]\-b\f[]/\f[C]\-e\f[]/\f[C]\-D\f[]/\f[C]\-W\f[]/\f[C]\-M\f[]/\f[C]\-Q\f[]/\f[C]\-Y\f[])
+to be ignored.
+.PP
+hledger\[aq]s period expressions are similar to Ledger\[aq]s, though not
+identical.
+Here\[aq]s a basic period expression specifying the first quarter of
+2009.
+Note hledger always treats start dates as inclusive and end dates as
+exclusive:
+.IP
+.nf
+\f[C]
+\-p\ "from\ 2009/1/1\ to\ 2009/4/1"
+\f[]
+.fi
+.PP
+Keywords like "from" and "to" are optional, and so are the spaces.
+Just don\[aq]t run two dates together:
+.IP
+.nf
+\f[C]
+\-p2009/1/1to2009/4/1
+\-p"2009/1/1\ 2009/4/1"
+\f[]
+.fi
+.PP
+Dates are smart dates, so if the current year is 2009, the above can
+also be written as:
+.IP
+.nf
+\f[C]
+\-p\ "1/1\ to\ 4/1"
+\-p\ "january\ to\ apr"
+\-p\ "this\ year\ to\ 4/1"
+\f[]
+.fi
+.PP
+If you specify only one date, the missing start or end date will be the
+earliest or latest transaction in your journal:
+.IP
+.nf
+\f[C]
+\-p\ "from\ 2009/1/1"\ \ (everything\ after\ january\ 1,\ 2009)
+\-p\ "from\ 2009/1"\ \ \ \ (the\ same)
+\-p\ "from\ 2009"\ \ \ \ \ \ (the\ same)
+\-p\ "to\ 2009"\ \ \ \ \ \ \ \ (everything\ before\ january\ 1,\ 2009)
+\f[]
+.fi
+.PP
+A single date with no "from" or "to" defines both the start and end date
+like so:
+.IP
+.nf
+\f[C]
+\-p\ "2009"\ \ \ \ \ \ \ \ \ \ \ (the\ year\ 2009;\ \ \ \ equivalent\ to\ "2009/1/1\ to\ 2010/1/1")
+\-p\ "2009/1"\ \ \ \ \ \ \ \ \ (the\ month\ of\ jan;\ equivalent\ to\ "2009/1/1\ to\ 2009/2/1")
+\-p\ "2009/1/1"\ \ \ \ \ \ \ (just\ that\ day;\ \ \ \ equivalent\ to\ "2009/1/1\ to\ 2009/1/2")
+\f[]
+.fi
+.PP
+Period expressions can also start with (or be) a reporting interval:
+\f[C]daily\f[], \f[C]weekly\f[], \f[C]monthly\f[], \f[C]quarterly\f[],
+\f[C]yearly\f[], or one of the \f[C]every\ ...\f[] expressions below.
+Optionally the word \f[C]in\f[] may appear between the reporting
+interval and the start/end dates.
+Examples:
+.IP
+.nf
+\f[C]
+\-p\ "weekly\ from\ 2009/1/1\ to\ 2009/4/1"
+\-p\ "monthly\ in\ 2008"
+\-p\ "bimonthly\ from\ 2008"
+\-p\ "quarterly"
+\-p\ "every\ 2\ weeks"
+\-p\ "every\ 5\ days\ from\ 1/3"
+\-p\ "every\ 15th\ day\ of\ month"
+\-p\ "every\ 4th\ day\ of\ week"
+\f[]
+.fi
 .SH COMMANDS
 .PP
-COMMAND selects one of hledger\[aq]s subcommands; omit it to list
-available commands.
-To save typing, some commands have a short form; any unique prefix also
-works.
+hledger provides a number of subcommands; \f[C]hledger\f[] with no
+arguments shows a list.
+.PP
+Select a subcommand by writing its name as first argument (eg
+\f[C]hledger\ incomestatement\f[]).
+You can also write any unambiguous prefix of a command name
+(\f[C]hledger\ inc\f[]), or one of the standard short aliases displayed
+in the command list (\f[C]hledger\ is\f[]).
+.PP
+If you install additional \f[C]hledger\-*\f[] packages, or if you put
+programs or scripts named \f[C]hledger\-NAME\f[] in your PATH, these
+will also be listed as hledger subcommands.
 .PP
 Here is a summary (see http://hledger.org/manual#commands for the full
 command help):
@@ -242,6 +419,53 @@ account names
 .RE
 .SS Reporting
 .SS accounts
+.IP
+.nf
+\f[C]
+$\ hledger\ accounts\ \-\-tree
+assets
+\ \ bank
+\ \ \ \ checking
+\ \ \ \ saving
+\ \ cash
+expenses
+\ \ food
+\ \ supplies
+income
+\ \ gifts
+\ \ salary
+liabilities
+\ \ debts
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ accounts\ \-\-drop\ 1
+bank:checking
+bank:saving
+cash
+food
+supplies
+gifts
+salary
+debts
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ accounts
+assets:bank:checking
+assets:bank:saving
+assets:cash
+expenses:food
+expenses:supplies
+income:gifts
+income:salary
+liabilities:debts
+\f[]
+.fi
 .PP
 show account names
 .TP
@@ -259,6 +483,16 @@ show full account names, as a list (default)
 in flat mode: omit N leading account name parts
 .RS
 .RE
+.PP
+This command lists all account names that are in use (ie, all the
+accounts which have at least one transaction posting to them).
+With query arguments, only matched account names are shown.
+.PP
+It shows a flat list by default.
+In this mode you can add \f[C]\-\-drop\ N\f[] to omit the first few
+account name components.
+.PP
+With \f[C]\-\-tree\f[], it shows the account hierarchy.
 .SS activity
 .PP
 show an ascii barchart of posting counts per interval (default: daily)
@@ -466,6 +700,8 @@ curses\-style interface, see hledger\-ui(1)
 web interface, see hledger\-web(1)
 .SH QUERIES
 .PP
+One of hledger\[aq]s strengths is being able to quickly report on
+precise subsets of your data.
 Most commands accept an optional query expression, written as arguments
 after the command name, to filter the data by date, account name or
 other criteria.
@@ -577,6 +813,12 @@ transaction.
 before any of the above negates the match.
 .RS
 .RE
+.PP
+Some of the above can also be expressed as command\-line options (eg
+\f[C]depth:2\f[] is equivalent to \f[C]\-\-depth\ 2\f[]).
+Generally you can mix options and query arguments, and the resulting
+query will be their intersection (aside from the \f[C]\-p/\-\-period\f[]
+option).
 .SH EXAMPLES
 .PP
 Two simple transactions in hledger journal format:
@@ -676,26 +918,24 @@ command prompt (up to Windows 7 at least).
 When input data contains non\-ascii characters, a suitable system locale
 must be configured (or there will be an unhelpful error).
 Eg on POSIX, set LANG to something other than C.
-.SH REPORTING BUGS
-.PP
-Report bugs at http://bugs.hledger.org.
 
 
 .SH "REPORTING BUGS"
-Report bugs at http://bugs.hledger.org.
+Report bugs at http://bugs.hledger.org
+(or on the #hledger IRC channel or hledger mail list)
 
 .SH AUTHORS
-Simon Michael <simon@joyful.com>
+Simon Michael <simon@joyful.com> and contributors
 
 .SH COPYRIGHT
 
-Copyright (C) 2007-2015 Simon Michael.
+Copyright (C) 2007-2016 Simon Michael.
 .br
 Released under GNU GPLv3+.
 
 .SH SEE ALSO
-hledger(1), hledger\-ui(1), hledger\-web(1), ledger(1)
-.br
-hledger_csv(5), hledger_journal(5), hledger_timelog(5)
+hledger(1), hledger\-ui(1), hledger\-web(1), hledger\-api(1),
+hledger_csv(5), hledger_journal(5), hledger_timelog(5), hledger_timedot(5),
+ledger(1)
 
-For more information, see http://hledger.org.
+http://hledger.org

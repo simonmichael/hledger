@@ -1,6 +1,6 @@
 % hledger_csv(5)
 %
-% October 2015
+% April 2016
 
 <div class="web">
 * toc
@@ -9,7 +9,7 @@
 
 # NAME
 
-hledger_csv - reading CSV files with hledger, and the CSV rules file format
+CSV - how hledger reads CSV data, and the CSV rules file format
 
 # DESCRIPTION
 

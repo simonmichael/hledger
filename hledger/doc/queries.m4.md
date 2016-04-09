@@ -1,5 +1,6 @@
 # QUERIES
 
+One of hledger's strengths is being able to quickly report on precise subsets of your data.
 Most commands accept an optional query expression, written as arguments after the command name,
 to filter the data by date, account name or other criteria.
 The syntax is similar to a web search:
@@ -8,13 +9,15 @@ quotes to enclose whitespace,
 optional prefixes to match specific fields.
 Multiple search terms are combined as follows:
 
-All commands except print: show transactions/postings/accounts which match (or negatively match)
+All commands except print:
+show transactions/postings/accounts which match (or negatively match)
 
 - any of the description terms AND
 - any of the account terms AND
 - all the other terms.
 
-The print command: show transactions which
+The print command:
+show transactions which
 
 - match any of the description terms AND
 - have any postings matching any of the positive account terms AND
@@ -90,3 +93,6 @@ parent transaction.
 **`not:`**
 : before any of the above negates the match.
 
+
+Some of the above can also be expressed as command-line options (eg `depth:2` is equivalent to `--depth 2`).
+Generally you can mix options and query arguments, and the resulting query will be their intersection (aside from the `-p/--period` option).

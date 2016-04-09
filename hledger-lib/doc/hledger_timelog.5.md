@@ -1,6 +1,6 @@
 % hledger_timelog(5)
 % 
-% October 2015
+% April 2016
 
 <div class="web">
 * toc
@@ -9,7 +9,7 @@
 
 # NAME
 
-hledger_timelog - hledger's timelog file format
+Timelog - the timeclock time logging format, as read by hledger
 
 # DESCRIPTION
 

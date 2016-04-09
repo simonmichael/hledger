@@ -1,6 +1,6 @@
-% hledger(1) hledger 0.26.98
+% hledger(1) hledger 0.27.98
 %
-% October 2015
+% April 2016
 
 <div class="web">
 * toc
@@ -57,9 +57,4 @@ hledger can't render non-ascii characters when run from a Windows command prompt
 When input data contains non-ascii characters, a suitable system locale must be configured (or there will be an unhelpful error).
 Eg on POSIX, set LANG to something other than C.
 
-# REPORTING BUGS
-
-Report bugs at http://bugs.hledger.org.
-
-}})
 </div>

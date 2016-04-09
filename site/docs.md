@@ -87,7 +87,7 @@ File formats:
 
 </div>
 
-#### 3. [New man pages, one page](manual2.html)
+#### 3. [New man pages, combined](manual2.html)
 
 </div>
 <div class="col-sm-3">
