@@ -150,12 +150,17 @@ main = do
     webmanpages |%> \out -> do
       let m = manpageUriToName $ dropExtension $ takeFileName out  -- hledger.1
           md = manpageDir m </> m <.> "md"                         -- hledger/doc/hledger.1.md
+          heading = let h = dropExtension m
+                    in if "hledger_" `isPrefixOf` h
+                       then drop 8 h ++ " format"
+                       else h
       need $ md : pandocFilters
-      cmd pandoc md "--atx-headers"
+      liftIO $ writeFile out $ "# " ++ heading ++ "\n\n"
+      cmd Shell pandoc md "-t markdown --atx-headers"
         "--filter doc/pandoc-demote-headers"
         -- "--filter doc/pandoc-add-toc"
         -- "--filter doc/pandoc-drop-man-blocks"
-        "-o" out
+        ">>" out
 
     -- adjust and combine man page mds for single-page web output, using pandoc
 
@@ -177,14 +182,15 @@ main = do
 
 |]
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
-        let heading =
-              let h = dropExtension $ takeFileName f -- hledger, journal
-              in if "hledger" `isPrefixOf` h
-                 then h                              -- hledger
-                 else h ++ " format"                 -- journal format
-        cmd Shell ("printf '\\n## "++ heading ++"\\n\\n' >>") webmanual :: Action ExitCode
+        -- let heading =
+        --       let h = dropExtension $ takeFileName f -- hledger, journal
+        --       in if "hledger" `isPrefixOf` h
+        --          then h                              -- hledger
+        --          else h ++ " format"                 -- journal format
+        -- cmd Shell ("printf '\\n## "++ heading ++"\\n\\n' >>") webmanual :: Action ExitCode
+        cmd Shell ("printf '\\n\\n' >>") webmanual :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown --atx-headers"
-          "--filter doc/pandoc-drop-man-blocks"
+          -- "--filter doc/pandoc-drop-man-blocks"
           "--filter doc/pandoc-drop-toc"
           -- "--filter doc/pandoc-capitalize-headers"
           "--filter doc/pandoc-demote-headers"
