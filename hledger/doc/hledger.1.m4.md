@@ -2,8 +2,11 @@
 %
 % October 2015
 
-_web_(* toc)
-_man_({{
+<div class="web">
+* toc
+</div>
+<div class="man">
+
 # NAME
 
 hledger - a command-line accounting tool
@@ -21,13 +24,15 @@ file format. It is inspired by and largely compatible with ledger(1).
 hledger aims to be a reliable, practical tool for daily use. This man
 page is a quick reference and introduction; for more complete docs, see
 http://hledger.org/manual.
-}})
-_include_(description.md)
-_include_(options.md)
-_include_(commands.md)
-_include_(queries.md)
-_include_(examples.md)
-_man_({{
+</div>
+
+_include_(description.m4.md)
+_include_(options.m4.md)
+_include_(commands.m4.md)
+_include_(queries.m4.md)
+_include_(examples.m4.md)
+
+<div class="man">
 
 # ENVIRONMENT
 
@@ -57,3 +62,4 @@ Eg on POSIX, set LANG to something other than C.
 Report bugs at http://bugs.hledger.org.
 
 }})
+</div>

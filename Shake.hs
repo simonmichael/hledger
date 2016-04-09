@@ -46,8 +46,6 @@ usage = [i|Usage:
  ./Shake manpages         # generate nroff files for man
  ./Shake webmanpages      # generate web man pages for hakyll
  ./Shake webmanual        # generate combined web man page for hakyll
- ./Shake m4manpages       # generate nroff files for man (alternate method)
- ./Shake m4webmanpages    # generate web man pages for hakyll (alternate method)
 |]
 
 buildDir = ".build"
@@ -83,8 +81,6 @@ main = do
     phony "site" $ need [
        "manpages"
       ,"webmanpages"
-      ,"m4manpages"
-      ,"m4webmanpages"
       ,"site/manual2.md"
       ]
 
@@ -115,15 +111,25 @@ main = do
         | '_' `elem` m = "hledger-lib" </> "doc"
         | otherwise    = dropExtension m </> "doc"
 
-    -- method 1:
+    -- some man pages have their md source assembled from parts with m4
+    let m4manpages = [manpageDir m </> m <.> ".md" | m <- ["hledger.1"]] -- hledger/doc/hledger.1.md
+    m4manpages |%> \out -> do     -- hledger/doc/hledger.1.md
+      let dir = takeDirectory out -- hledger/doc
+          m4src = out -<.> "m4" <.> "md"    -- hledger/doc/hledger.1.m4.md
+          m4lib = "doc/lib.m4"
+      -- assume all other m4 files in dir are included by this one
+      m4deps <- liftIO $ filter (/= m4src) . filter (".m4.md" `isSuffixOf`) . map (dir </>)
+                <$> S.getDirectoryContents dir
+      need $ m4src : m4lib : m4deps
+      cmd Shell "m4 -P -DWEB -DMAN -I" dir m4lib m4src ">" out
 
-    -- pandoc filters, these adjust master md files for web or man output
+    -- compile pandoc filters, used eg for adjusting manpage md source for web or man output
     phony "pandocfilters" $ need pandocFilters
     pandocFilters |%> \out -> do
       need [out <.> "hs"]
       cmd ("stack ghc") out
 
-    -- man pages adjusted for man and converted to nroff, by pandoc
+    -- adjust man page mds for man output and convert to nroff, with pandoc
     let manpages = [manpageDir m </> m | m <- manpageNames] -- hledger/doc/hledger.1, hledger-lib/doc/hledger_journal.5
     phony "manpages" $ need manpages
     manpages |%> \out -> do
@@ -138,7 +144,7 @@ main = do
         "--filter doc/pandoc-drop-notes"
         "-o" out
 
-    -- man pages adjusted for web by pandoc (ready for hakyll)
+    -- adjust man page mds for (hakyll) web output, with pandoc
     let webmanpages = ["site" </> manpageNameToUri m <.>".md" | m <- manpageNames] -- site/hledger.md, site/journal.md
     phony "webmanpages" $ need webmanpages
     webmanpages |%> \out -> do
@@ -151,44 +157,7 @@ main = do
         -- "--filter doc/pandoc-drop-man-blocks"
         "-o" out
 
-    -- method 2:
-
-    -- man pages assembled from parts and adjusted for man with m4, adjusted more and converted to nroff with pandoc
-    let m4manpages = [manpageDir m </> "m4-"++m | m <- ["hledger.1"]] -- hledger/doc/m4-hledger.1
-    phony "m4manpages" $ need m4manpages
-    m4manpages |%> \out -> do                           -- hledger/doc/m4-hledger.1
-      let (dir,file) = splitFileName out                -- hledger/doc, m4-hledger.1
-          m4src = dir </> drop 3 file <.> "md" <.> "m4" -- hledger/doc/hledger.1.md.m4
-          m4includes = map (dir </>) ["description.md","examples.md","queries.md","commands.md","options.md"]
-          m4lib = "doc/lib.m4"
-          tmpl  = "doc/manpage.nroff"
-      need $ m4src : m4lib : tmpl : pandocFilters ++ m4includes
-      cmd Shell "m4 -P" "-DMAN" "-I" dir m4lib m4src
-        "|" pandoc "-s --template" tmpl
-        "--filter doc/pandoc-drop-html-blocks"
-        "--filter doc/pandoc-drop-html-inlines"
-        "--filter doc/pandoc-drop-links"
-        "--filter doc/pandoc-drop-notes"
-        "-o" out
-
-    -- man pages assembled from parts and adjusted for web with m4, adjusted slightly more with pandoc (ready for hakyll)
-    let m4webmanpages = ["site" </> "m4-" ++ manpageNameToUri m <.> ".md" | m <- ["hledger.1"]] -- site/m4-hledger.md
-    phony "m4webmanpages" $ need $ m4webmanpages
-    m4webmanpages |%> \out -> do                                   -- site/m4-hledger.md
-      let file  = takeFileName out                                 -- m4-hledger.1.md
-          manpage = manpageUriToName $ drop 3 $ dropExtension file -- hledger.1
-          dir = manpageDir manpage                                 -- hledger/doc
-          m4src = dir </> manpage <.> "md" <.> "m4"                -- hledger/doc/hledger.1.md.m4
-          m4includes = map (dir </>) ["description.md","examples.md","queries.md","commands.md","options.md"]
-          m4lib = "doc/lib.m4"
-      need $ m4src : m4lib : m4includes
-      cmd Shell "m4 -P" "-DMAN -DWEB" "-I" dir m4lib m4src
-        "|" pandoc
-        "--filter doc/pandoc-demote-headers"
-        -- "--filter doc/pandoc-add-toc"
-        "-o" out
-
-    -- web manual combined from man pages
+    -- adjust and combine man page mds for single-page web output, using pandoc
 
     let webmanual = "site/manual2.md"
     phony "webmanual" $ need [ webmanual ]
@@ -225,8 +194,7 @@ main = do
 
     phony "clean" $ do
       putNormal "Cleaning generated files"
-      removeFilesAfter "." m4manpages
-      removeFilesAfter "." m4webmanpages
+      removeFilesAfter "." ["hledger/doc/hledger.1.md"]
       removeFilesAfter "." webmanpages
       removeFilesAfter "." [webmanual]
 
