@@ -145,7 +145,7 @@ main = do
       let m = manpageUriToName $ dropExtension $ takeFileName out  -- hledger.1
           md = manpageDir m </> m <.> "md"                         -- hledger/doc/hledger.1.md
       need $ md : pandocFilters
-      cmd pandoc md
+      cmd pandoc md "--atx-headers"
         "--filter doc/pandoc-demote-headers"
         -- "--filter doc/pandoc-add-toc"
         -- "--filter doc/pandoc-drop-man-blocks"
@@ -214,7 +214,7 @@ main = do
                  then h                              -- hledger
                  else h ++ " format"                 -- journal format
         cmd Shell ("printf '\\n## "++ heading ++"\\n\\n' >>") webmanual :: Action ExitCode
-        cmd Shell "pandoc" f "-t markdown"
+        cmd Shell "pandoc" f "-t markdown --atx-headers"
           "--filter doc/pandoc-drop-man-blocks"
           "--filter doc/pandoc-drop-toc"
           -- "--filter doc/pandoc-capitalize-headers"
