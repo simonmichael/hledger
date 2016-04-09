@@ -52,6 +52,7 @@ buildDir = ".build"
 pandoc =
   -- "stack exec -- pandoc" -- use the pandoc required above
   "pandoc"                  -- use pandoc in PATH (faster)
+hakyllstd = "site/hakyll-std/hakyll-std"
 
 main = do
 
@@ -78,11 +79,19 @@ main = do
 
     -- docs
 
-    phony "site" $ need [
-       "manpages"
-      ,"webmanpages"
-      ,"site/manual2.md"
-      ]
+    phony "site" $ do
+      need [
+         "manpages"
+        ,"webmanpages"
+        ,"site/manual2.md"
+        ,hakyllstd
+        ]
+      cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
+
+    hakyllstd %> \out -> do
+      let dir = takeDirectory out
+      need [out <.> "hs", dir </> "TableOfContents.hs"]
+      cmd (Cwd dir) "stack ghc hakyll-std"
 
     -- man pages
 
@@ -208,7 +217,12 @@ main = do
       need ["clean"]
       putNormal "Cleaning generated man page nroffs"
       removeFilesAfter "." manpages
+      putNormal "Cleaning all hakyll generated files"
+      removeFilesAfter "site" ["_*"]
+      putNormal "Cleaning executables"
+      removeFilesAfter "." $ hakyllstd : pandocFilters
       putNormal "Cleaning object files"
-      removeFilesAfter "doc" ["*.o","*.p_o","*.hi"] -- forces rebuild of exes ?
+      removeFilesAfter "doc"  ["*.o","*.p_o","*.hi"] -- forces rebuild of exes ?
+      removeFilesAfter "site" ["*.o","*.p_o","*.hi"]
       putNormal "Cleaning shake build files"
       removeFilesAfter buildDir ["//*"]
