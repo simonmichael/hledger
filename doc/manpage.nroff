@@ -19,24 +19,25 @@ $include-after$
 $endfor$
 
 .SH "REPORTING BUGS"
-Report bugs at http://bugs.hledger.org.
+Report bugs at http://bugs.hledger.org
+(or on the #hledger IRC channel or hledger mail list)
 
 .SH AUTHORS
 $if(author)$
 $for(author)$$author$$sep$; $endfor$.
 $else$
-Simon Michael <simon@joyful.com>
+Simon Michael <simon@joyful.com> and contributors
 $endif$
 
 .SH COPYRIGHT
 
-Copyright (C) 2007-2015 Simon Michael.
+Copyright (C) 2007-2016 Simon Michael.
 .br
 Released under GNU GPLv3+.
 
 .SH SEE ALSO
-hledger(1), hledger\-ui(1), hledger\-web(1), ledger(1)
-.br
-hledger_csv(5), hledger_journal(5), hledger_timelog(5)
+hledger(1), hledger\-ui(1), hledger\-web(1), hledger\-api(1),
+hledger_csv(5), hledger_journal(5), hledger_timelog(5), hledger_timedot(5),
+ledger(1)
 
-For more information, see http://hledger.org.
+http://hledger.org
