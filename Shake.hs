@@ -79,10 +79,14 @@ main = do
 
     -- docs
 
-    phony "site" $ do
+    phony "docs" $ do
       need [
          "manpages"
-        ,"webmanpages"
+         ]
+
+    phony "site" $ do
+      need [
+         "webmanpages"
         ,"site/manual2.md"
         ,hakyllstd
         ]
