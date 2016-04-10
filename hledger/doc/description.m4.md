@@ -15,11 +15,11 @@ or standard input with `-f-`.
 Transactions are dated movements of money between two (or more) named
 accounts, and are recorded with journal entries like this:
 
-```journal
+_journal_({{
 2015/10/16 bought food
  expenses:food          $10
  assets:cash
-```
+}})
 
 For more about the format, see hledger_journal(5).
 

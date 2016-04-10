@@ -27,10 +27,10 @@ http://hledger.org/manual.
 </div>
 
 _include_(description.m4.md)
-_include_(options.m4.md)
-_include_(commands.m4.md)
-_include_(queries.m4.md)
 _include_(examples.m4.md)
+_include_(options.m4.md)
+_include_(queries.m4.md)
+_include_(commands.m4.md)
 
 <div class="man">
 

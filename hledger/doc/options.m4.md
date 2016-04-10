@@ -10,10 +10,10 @@ COMMAND, not before it.
 Also, when invoking external add-on commands, their options must be
 written after a double hyphen. (Or, you can invoke the external command
 directly.) Eg:
-```{.shell .bold}
+_shellbold_({{
 $ hledger ui -- --register cash
 $ hledger-ui --register cash
-```
+}})
 
 Options and command arguments can be intermixed. Arguments are usually
 interpreted as a search query which filters the data, see QUERIES.

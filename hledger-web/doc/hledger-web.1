@@ -13,6 +13,8 @@ hledger\-web \- web interface for the hledger accounting tool
 .P
 .PD
 \f[C]hledger\ web\ \-\-\ [OPTIONS]\f[]
+.PP
+.PP
 .SH DESCRIPTION
 .PP
 hledger is a cross\-platform program for tracking money, time, or any
@@ -45,6 +47,15 @@ opens it in your default web browser if possible.
 In this mode the web app will keep running for as long as you have it
 open in a browser window, and will exit after two minutes of inactivity
 (no requests and no browser windows viewing it).
+.IP
+.nf
+\f[C]
+$\ hledger\ web
+Starting\ web\ app\ on\ port\ 5000\ with\ base\ url\ http://localhost:5000
+Starting\ web\ browser\ if\ possible
+Web\ app\ will\ auto\-exit\ after\ a\ few\ minutes\ with\ no\ browsers\ (or\ press\ ctrl\-c)
+\f[]
+.fi
 .PP
 With \f[C]\-\-server\f[], it starts the web app in non\-transient mode
 and logs requests to the console.

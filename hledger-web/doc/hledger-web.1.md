@@ -15,6 +15,16 @@ hledger-web - web interface for the hledger accounting tool
 `hledger-web [OPTIONS]`\
 `hledger web -- [OPTIONS]`
 
+<style>
+.highslide img {max-width:250px; float:right; margin:0 0 1em 1em;}
+.highslide-caption {color:white; background-color:black;}
+</style>
+<a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
+<a href="images/hledger-web/normal/journal.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/journal.png" title="Journal view" /></a>
+
+<a href="images/hledger-web/normal/help.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/help.png" title="Help dialog" /></a>
+<a href="images/hledger-web/normal/add.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/add.png" title="Add form" /></a>
+
 # DESCRIPTION
 
 hledger is a cross-platform program for tracking money, time, or any other commodity,
@@ -45,6 +55,13 @@ the web app will keep running for as long as you have it open in a
 browser window, and will exit after two minutes of inactivity (no
 requests and no browser windows viewing it).
 
+```shell
+$ hledger web
+Starting web app on port 5000 with base url http://localhost:5000
+Starting web browser if possible
+Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)
+```
+
 With `--server`, it starts the web app in non-transient mode and logs
 requests to the console.  Typically when running hledger web as part
 of a website you'll want to use `--base-url` to set the
@@ -64,6 +81,21 @@ With journal and timelog files (but not CSV files, currently)
 the web app detects changes and will show the new data on the next request.
 If a change makes the file unparseable, hledger-web will show an error
 until the file has been fixed.
+
+---
+# disabled
+# edit form
+# Note: unlike any other hledger command, `web` can alter existing journal
+# data, via the edit form.  A numbered backup of the file is saved on
+# each edit, normally (ie if file permissions allow, disk is not full, etc.)
+# Also, there is no built-in access control. So unless you run it behind an
+# authenticating proxy, any visitor to your server will be able to see and
+# overwrite the journal file (and included files.)
+# hledger-web disallows edits which would leave the journal file not in
+# valid [journal format](#journal). If the file becomes unparseable
+# by other means, hledger-web will show an error until the file has been
+# fixed.
+...
 
 # OPTIONS
 

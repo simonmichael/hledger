@@ -65,6 +65,82 @@ prompts.
 Then try some commands like \f[C]hledger\ print\f[] or
 \f[C]hledger\ balance\f[].
 See COMMANDS and EXAMPLES below.
+.SH EXAMPLES
+.PP
+Two simple transactions in hledger journal format:
+.IP
+.nf
+\f[C]
+2015/9/30\ gift\ received
+\ \ assets:cash\ \ \ $20
+\ \ income:gifts
+
+2015/10/16\ farmers\ market
+\ \ expenses:food\ \ \ \ $10
+\ \ assets:cash
+\f[]
+.fi
+.PP
+Some basic reports:
+.IP
+.nf
+\f[C]
+$\ hledger\ print
+2015/09/30\ gift\ received
+\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ $20
+\ \ \ \ income:gifts\ \ \ \ \ \ \ \ \ \ $\-20
+
+2015/10/16\ farmers\ market
+\ \ \ \ expenses:food\ \ \ \ \ \ \ \ \ \ \ $10
+\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ $\-10
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ accounts\ \-\-tree
+assets
+\ \ cash
+expenses
+\ \ food
+income
+\ \ gifts
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ balance
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $10\ \ assets:cash
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $10\ \ expenses:food
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-20\ \ income:gifts
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ register\ cash
+2015/09/30\ gift\ received\ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $20\ \ \ \ \ \ \ \ \ \ \ $20
+2015/10/16\ farmers\ market\ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-10\ \ \ \ \ \ \ \ \ \ \ $10
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ available\ commands
+$\ hledger\ add\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ add\ more\ transactions\ to\ the\ journal\ file
+$\ hledger\ balance\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ all\ accounts\ with\ aggregated\ balances
+$\ hledger\ balance\ \-\-help\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ help\ for\ balance\ command
+$\ hledger\ balance\ \-\-depth\ 1\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ only\ top\-level\ accounts
+$\ hledger\ register\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ account\ postings,\ with\ running\ total
+$\ hledger\ reg\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ postings\ to/from\ income\ accounts
+$\ hledger\ reg\ \[aq]assets:some\ bank:checking\[aq]\ #\ show\ postings\ to/from\ this\ checking\ account
+$\ hledger\ print\ desc:shop\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ transactions\ with\ shop\ in\ the\ description
+$\ hledger\ activity\ \-W\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ transaction\ counts\ per\ week\ as\ a\ bar\ chart
+\f[]
+.fi
 .SH OPTIONS
 .PP
 To see general help and the command list: \f[C]hledger\ \-\-help\f[] or
@@ -387,317 +463,6 @@ Examples:
 \-p\ "every\ 4th\ day\ of\ week"
 \f[]
 .fi
-.SH COMMANDS
-.PP
-hledger provides a number of subcommands; \f[C]hledger\f[] with no
-arguments shows a list.
-.PP
-Select a subcommand by writing its name as first argument (eg
-\f[C]hledger\ incomestatement\f[]).
-You can also write any unambiguous prefix of a command name
-(\f[C]hledger\ inc\f[]), or one of the standard short aliases displayed
-in the command list (\f[C]hledger\ is\f[]).
-.PP
-If you install additional \f[C]hledger\-*\f[] packages, or if you put
-programs or scripts named \f[C]hledger\-NAME\f[] in your PATH, these
-will also be listed as hledger subcommands.
-.PP
-Here is a summary (see http://hledger.org/manual#commands for the full
-command help):
-.SS Data entry
-.SS add
-.PP
-prompt for transactions and add them to the journal.
-.PP
-This is the only hledger command that writes to the journal file.
-It appends only, existing transactions are not changed.
-.TP
-.B \f[C]\-\-no\-new\-accounts\f[]
-don\[aq]t allow creating new accounts; helps prevent typos when entering
-account names
-.RS
-.RE
-.SS Reporting
-.SS accounts
-.IP
-.nf
-\f[C]
-$\ hledger\ accounts\ \-\-tree
-assets
-\ \ bank
-\ \ \ \ checking
-\ \ \ \ saving
-\ \ cash
-expenses
-\ \ food
-\ \ supplies
-income
-\ \ gifts
-\ \ salary
-liabilities
-\ \ debts
-\f[]
-.fi
-.IP
-.nf
-\f[C]
-$\ hledger\ accounts\ \-\-drop\ 1
-bank:checking
-bank:saving
-cash
-food
-supplies
-gifts
-salary
-debts
-\f[]
-.fi
-.IP
-.nf
-\f[C]
-$\ hledger\ accounts
-assets:bank:checking
-assets:bank:saving
-assets:cash
-expenses:food
-expenses:supplies
-income:gifts
-income:salary
-liabilities:debts
-\f[]
-.fi
-.PP
-show account names
-.TP
-.B \f[C]\-\-tree\f[]
-show short account names, as a tree
-.RS
-.RE
-.TP
-.B \f[C]\-\-flat\f[]
-show full account names, as a list (default)
-.RS
-.RE
-.TP
-.B \f[C]\-\-drop=N\f[]
-in flat mode: omit N leading account name parts
-.RS
-.RE
-.PP
-This command lists all account names that are in use (ie, all the
-accounts which have at least one transaction posting to them).
-With query arguments, only matched account names are shown.
-.PP
-It shows a flat list by default.
-In this mode you can add \f[C]\-\-drop\ N\f[] to omit the first few
-account name components.
-.PP
-With \f[C]\-\-tree\f[], it shows the account hierarchy.
-.SS activity
-.PP
-show an ascii barchart of posting counts per interval (default: daily)
-.SS balance, bal
-.PP
-show accounts and balances
-.TP
-.B \f[C]\-\-tree\f[]
-show short account names, as a tree
-.RS
-.RE
-.TP
-.B \f[C]\-\-flat\f[]
-show full account names, as a list (default)
-.RS
-.RE
-.TP
-.B \f[C]\-\-drop=N\f[]
-in flat mode: omit N leading account name parts
-.RS
-.RE
-.TP
-.B \f[C]\-\-format=LINEFORMAT\f[]
-in single\-column balance reports: use this custom line format
-.RS
-.RE
-.TP
-.B \f[C]\-\-no\-elide\f[]
-in tree mode: don\[aq]t squash boring parent accounts
-.RS
-.RE
-.TP
-.B \f[C]\-H\ \-\-historical\f[]
-in multicolumn mode: show historical ending balances
-.RS
-.RE
-.TP
-.B \f[C]\-\-cumulative\f[]
-in multicolumn mode: show accumulated ending balances
-.RS
-.RE
-.TP
-.B \f[C]\-A\ \-\-average\f[]
-in multicolumn mode: show a row average column
-.RS
-.RE
-.TP
-.B \f[C]\-T\ \-\-row\-total\f[]
-in multicolumn mode: show a row total column
-.RS
-.RE
-.TP
-.B \f[C]\-N\ \-\-no\-total\f[]
-don\[aq]t show the final total row
-.RS
-.RE
-.TP
-.B \f[C]\-V\ \-\-value\f[]
-show amounts as their current market value in their default valuation
-commodity
-.RS
-.RE
-.TP
-.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
-write output to FILE instead of stdout.
-A recognised FMT suffix influences the format.
-.RS
-.RE
-.TP
-.B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
-select the output format.
-Supported formats: txt, csv.
-.RS
-.RE
-.SS balancesheet, bs
-.PP
-show a balance sheet
-.TP
-.B \f[C]\-\-flat\f[]
-show full account names, as a list (default)
-.RS
-.RE
-.TP
-.B \f[C]\-\-drop=N\f[]
-in flat mode: omit N leading account name parts
-.RS
-.RE
-.SS cashflow, cf
-.PP
-show a cashflow statement
-.TP
-.B \f[C]\-\-flat\f[]
-show full account names, as a list (default)
-.RS
-.RE
-.TP
-.B \f[C]\-\-drop=N\f[]
-in flat mode: omit N leading account name parts
-.RS
-.RE
-.SS incomestatement, is
-.PP
-show an income statement
-.TP
-.B \f[C]\-\-flat\f[]
-show full account names, as a list (default)
-.RS
-.RE
-.TP
-.B \f[C]\-\-drop=N\f[]
-in flat mode: omit N leading account name parts
-.RS
-.RE
-.SS print
-.PP
-show transactions from the journal
-.TP
-.B \f[C]\-m\ STR\ \-\-match=STR\f[]
-show the transaction whose description is most similar to STR, and is
-most recent
-.RS
-.RE
-.TP
-.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
-write output to FILE instead of stdout.
-A recognised FMT suffix influences the format.
-.RS
-.RE
-.TP
-.B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
-select the output format.
-Supported formats: txt, csv.
-.RS
-.RE
-.SS register, reg
-.PP
-show postings and running total
-.TP
-.B \f[C]\-H\ \-\-historical\f[]
-include prior postings in the running total
-.RS
-.RE
-.TP
-.B \f[C]\-A\ \-\-average\f[]
-show a running average instead of the running total (implies \-\-empty)
-.RS
-.RE
-.TP
-.B \f[C]\-r\ \-\-related\f[]
-show postings\[aq] siblings instead
-.RS
-.RE
-.TP
-.B \f[C]\-w\ N\ \-\-width=N\f[]
-set output width (default: terminal width or COLUMNS.
-\-wN,M sets description width as well)
-.RS
-.RE
-.TP
-.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
-write output to FILE instead of stdout.
-A recognised FMT suffix influences the format.
-.RS
-.RE
-.TP
-.B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
-select the output format.
-Supported formats: txt, csv.
-.RS
-.RE
-.SS stats
-.PP
-show some journal statistics
-.TP
-.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
-write output to FILE instead of stdout.
-A recognised FMT suffix influences the format.
-.RS
-.RE
-.SS Add\-on commands
-.PP
-Additional commands will be available when executables or scripts named
-"\f[C]hledger\-\f[]CMD" are installed in the PATH.
-These are often provided by a package of the same name, or you can make
-your own custom scripts (haskell scripts can use hledger\-lib allowing
-tight integration).
-Some available add\-ons are:
-.SS autosync
-.PP
-download OFX bank data and/or convert OFX to hledger journal format
-.SS diff
-.PP
-show transactions present in one journal file but not another
-.SS interest
-.PP
-generate interest transactions
-.SS irr
-.PP
-calculate internal rate of return
-.SS ui
-.PP
-curses\-style interface, see hledger\-ui(1)
-.SS web
-.PP
-web interface, see hledger\-web(1)
 .SH QUERIES
 .PP
 One of hledger\[aq]s strengths is being able to quickly report on
@@ -819,82 +584,1363 @@ Some of the above can also be expressed as command\-line options (eg
 Generally you can mix options and query arguments, and the resulting
 query will be their intersection (aside from the \f[C]\-p/\-\-period\f[]
 option).
-.SH EXAMPLES
+.SH COMMANDS
 .PP
-Two simple transactions in hledger journal format:
-.IP
-.nf
-\f[C]
-2015/9/30\ gift\ received
-\ \ assets:cash\ \ \ $20
-\ \ income:gifts
-
-2015/10/16\ farmers\ market
-\ \ expenses:food\ \ \ \ $10
-\ \ assets:cash
-\f[]
-.fi
+hledger provides a number of subcommands; \f[C]hledger\f[] with no
+arguments shows a list.
 .PP
-Some basic reports:
-.IP
-.nf
-\f[C]
-$\ hledger\ print
-2015/09/30\ gift\ received
-\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ $20
-\ \ \ \ income:gifts\ \ \ \ \ \ \ \ \ \ $\-20
-
-2015/10/16\ farmers\ market
-\ \ \ \ expenses:food\ \ \ \ \ \ \ \ \ \ \ $10
-\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ $\-10
-\f[]
-.fi
+If you install additional \f[C]hledger\-*\f[] packages, or if you put
+programs or scripts named \f[C]hledger\-NAME\f[] in your PATH, these
+will also be listed as subcommands.
+.PP
+Run a subcommand by writing its name as first argument (eg
+\f[C]hledger\ incomestatement\f[]).
+You can also write any unambiguous prefix of a command name
+(\f[C]hledger\ inc\f[]), or one of the standard short aliases displayed
+in the command list (\f[C]hledger\ is\f[]).
+.SS accounts
+.PP
+Show account names.
+.TP
+.B \f[C]\-\-tree\f[]
+show short account names, as a tree
+.RS
+.RE
+.TP
+.B \f[C]\-\-flat\f[]
+show full account names, as a list (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-drop=N\f[]
+in flat mode: omit N leading account name parts
+.RS
+.RE
+.PP
+This command lists all account names that are in use (ie, all the
+accounts which have at least one transaction posting to them).
+With query arguments, only matched account names are shown.
+.PP
+It shows a flat list by default.
+With \f[C]\-\-tree\f[], it uses indentation to show the account
+hierarchy.
+.PP
+In flat mode you can add \f[C]\-\-drop\ N\f[] to omit the first few
+account name components.
+.PP
+Examples:
 .IP
 .nf
 \f[C]
 $\ hledger\ accounts\ \-\-tree
 assets
+\ \ bank
+\ \ \ \ checking
+\ \ \ \ saving
 \ \ cash
 expenses
 \ \ food
+\ \ supplies
 income
 \ \ gifts
+\ \ salary
+liabilities
+\ \ debts
 \f[]
 .fi
+.IP
+.nf
+\f[C]
+$\ hledger\ accounts\ \-\-drop\ 1
+bank:checking
+bank:saving
+cash
+food
+supplies
+gifts
+salary
+debts
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ accounts
+assets:bank:checking
+assets:bank:saving
+assets:cash
+expenses:food
+expenses:supplies
+income:gifts
+income:salary
+liabilities:debts
+\f[]
+.fi
+.SS activity
+.PP
+Show an ascii barchart of posting counts per interval.
+.PP
+The activity command displays an ascii histogram showing transaction
+counts by day, week, month or other reporting interval (by day is the
+default).
+With query arguments, it counts only matched transactions.
+.IP
+.nf
+\f[C]
+$\ hledger\ activity\ \-\-quarterly
+2008\-01\-01\ **
+2008\-04\-01\ *******
+2008\-07\-01\ 
+2008\-10\-01\ **
+\f[]
+.fi
+.SS balance
+.PP
+Show accounts and their balances.
+Alias: bal.
+.TP
+.B \f[C]\-\-tree\f[]
+show short account names, as a tree
+.RS
+.RE
+.TP
+.B \f[C]\-\-flat\f[]
+show full account names, as a list (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-drop=N\f[]
+in flat mode: omit N leading account name parts
+.RS
+.RE
+.TP
+.B \f[C]\-\-format=LINEFORMAT\f[]
+in single\-column balance reports: use this custom line format
+.RS
+.RE
+.TP
+.B \f[C]\-\-no\-elide\f[]
+in tree mode: don\[aq]t squash boring parent accounts
+.RS
+.RE
+.TP
+.B \f[C]\-H\ \-\-historical\f[]
+in multicolumn mode: show historical ending balances
+.RS
+.RE
+.TP
+.B \f[C]\-\-cumulative\f[]
+in multicolumn mode: show accumulated ending balances
+.RS
+.RE
+.TP
+.B \f[C]\-A\ \-\-average\f[]
+in multicolumn mode: show a row average column
+.RS
+.RE
+.TP
+.B \f[C]\-T\ \-\-row\-total\f[]
+in multicolumn mode: show a row total column
+.RS
+.RE
+.TP
+.B \f[C]\-N\ \-\-no\-total\f[]
+don\[aq]t show the final total row
+.RS
+.RE
+.TP
+.B \f[C]\-V\ \-\-value\f[]
+show amounts as their current market value in their default valuation
+commodity
+.RS
+.RE
+.TP
+.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
+write output to FILE instead of stdout.
+A recognised FMT suffix influences the format.
+.RS
+.RE
+.TP
+.B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
+select the output format.
+Supported formats: txt, csv.
+.RS
+.RE
+.PP
+The balance command displays accounts and balances.
+It is hledger\[aq]s most featureful and most useful command.
 .IP
 .nf
 \f[C]
 $\ hledger\ balance
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $10\ \ assets:cash
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $10\ \ expenses:food
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-20\ \ income:gifts
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ assets
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ bank:saving
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2\ \ \ \ cash
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $2\ \ expenses
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ food
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ supplies
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2\ \ income
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ gifts
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ salary
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ liabilities:debts
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
 \f[]
 .fi
+.PP
+More precisely, the balance command shows the \f[I]change\f[] to each
+account\[aq]s balance caused by all (matched) postings.
+In the common case where you do not filter by date and your journal sets
+the correct opening balances, this is the same as the account\[aq]s
+ending balance.
+.PP
+By default, accounts are displayed hierarchically, with subaccounts
+indented below their parent.
+"Boring" accounts, which contain a single interesting subaccount and no
+balance of their own, are elided into the following line for more
+compact output.
+(Use \f[C]\-\-no\-elide\f[] to prevent this.)
+.PP
+Each account\[aq]s balance is the "inclusive" balance \- it includes the
+balances of any subaccounts.
+.PP
+Accounts which have zero balance (and no non\-zero subaccounts) are
+omitted.
+Use \f[C]\-E/\-\-empty\f[] to show them.
 .IP
 .nf
 \f[C]
-$\ hledger\ register\ cash
-2015/09/30\ gift\ received\ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $20\ \ \ \ \ \ \ \ \ \ \ $20
-2015/10/16\ farmers\ market\ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-10\ \ \ \ \ \ \ \ \ \ \ $10
+$\ hledger\ balance\ \-p\ 2008/6\ expenses\ \-\-no\-total
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $2\ \ expenses
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ food
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ supplies
+\f[]
+.fi
+.PP
+A final total is displayed by default; use \f[C]\-N/\-\-no\-total\f[] to
+suppress it.
+.SS Flat mode
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-p\ 2008/6\ expenses\ \-N\ \-\-flat\ \-\-drop\ 1
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ food
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ supplies
+\f[]
+.fi
+.PP
+To see a flat list of full account names instead of the default
+hierarchical display, use \f[C]\-\-flat\f[].
+In this mode, accounts (unless depth\-clipped) show their "exclusive"
+balance, excluding any subaccount balances.
+In this mode, you can also use \f[C]\-\-drop\ N\f[] to omit the first
+few account name components.
+.SS Depth limiting
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-N\ \-\-depth\ 1
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ assets
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $2\ \ expenses
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2\ \ income
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ liabilities
+\f[]
+.fi
+.PP
+With \f[C]\-\-depth\ N\f[], balance shows accounts only to the specified
+depth.
+This is very useful to show a complex charts of accounts in less detail.
+In flat mode, balances from accounts below the depth limit will be shown
+as part of a parent account at the depth limit.
+.SS Multicolumn balance reports
+.PP
+With a reporting interval, multiple balance columns will be shown, one
+for each report period.
+There are three types of multi\-column balance report, showing different
+information:
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-\-quarterly\ income\ expenses\ \-E
+Balance\ changes\ in\ 2008:
+
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ 2008q1\ \ 2008q2\ \ 2008q3\ \ 2008q4\ 
+===================++=================================
+\ expenses:food\ \ \ \ \ ||\ \ \ \ \ \ \ 0\ \ \ \ \ \ $1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ 
+\ expenses:supplies\ ||\ \ \ \ \ \ \ 0\ \ \ \ \ \ $1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ 
+\ income:gifts\ \ \ \ \ \ ||\ \ \ \ \ \ \ 0\ \ \ \ \ $\-1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ 
+\ income:salary\ \ \ \ \ ||\ \ \ \ \ $\-1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ $\-1\ \ \ \ \ \ $1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ 
+\f[]
+.fi
+.IP "1." 3
+By default: each column shows the sum of postings in that period, ie the
+account\[aq]s change of balance in that period.
+This is useful eg for a monthly income statement.
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-\-quarterly\ income\ expenses\ \-E\ \-\-cumulative
+Ending\ balances\ (cumulative)\ in\ 2008:
+
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ 2008/03/31\ \ 2008/06/30\ \ 2008/09/30\ \ 2008/12/31\ 
+===================++=================================================
+\ expenses:food\ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ $1\ 
+\ expenses:supplies\ ||\ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ $1\ 
+\ income:gifts\ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ $\-1\ 
+\ income:salary\ \ \ \ \ ||\ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ $\-1\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ 0\ 
+\f[]
+.fi
+.IP "2." 3
+With \f[C]\-\-cumulative\f[]: each column shows the ending balance for
+that period, accumulating the changes across periods, starting from 0 at
+the report start date.
+This mode is not often used.
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ ^assets\ ^liabilities\ \-Q\ 
+Balance\ changes\ in\ 2008:
+
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ 2008q1\ \ 2008q2\ \ 2008q3\ \ 2008q4\ 
+======================++=================================
+\ assets:bank:checking\ ||\ \ \ \ \ \ $1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ $\-1\ 
+\ assets:bank:saving\ \ \ ||\ \ \ \ \ \ \ 0\ \ \ \ \ \ $1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ 
+\ assets:cash\ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ 0\ \ \ \ \ $\-2\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ 
+\ liabilities:debts\ \ \ \ ||\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ \ $1\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ $1\ \ \ \ \ $\-1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ 
+
+$\ hledger\ balance\ ^assets\ ^liabilities\ \-\-quarterly\ \-\-historical\ \-\-begin\ 2008/4/1
+Ending\ balances\ (historical)\ in\ 2008/04/01\-2008/12/31:
+
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ 2008/06/30\ \ 2008/09/30\ \ 2008/12/31\ 
+======================++=====================================
+\ assets:bank:checking\ ||\ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ \ 0\ 
+\ assets:bank:saving\ \ \ ||\ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ $1\ 
+\ assets:cash\ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ $\-2\ \ \ \ \ \ \ \ \ $\-2\ \ \ \ \ \ \ \ \ $\-2\ 
+\ liabilities:debts\ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ $1\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ 0\ 
+\f[]
+.fi
+.IP "3." 3
+With \f[C]\-\-historical/\-H\f[]: each column shows the actual
+historical ending balance for that period, accumulating the changes
+across periods, starting from the actual balance at the report start
+date.
+This is useful eg for a multi\-period balance sheet, and when you are
+showing only the data after a certain start date.
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-Q\ income\ expenses\ \-\-tree\ \-E\ \-TA
+Balance\ changes\ in\ 2008:
+
+\ \ \ \ \ \ \ \ \ \ \ \ ||\ \ 2008q1\ \ 2008q2\ \ 2008q3\ \ 2008q4\ \ \ \ Total\ \ Average\ 
+============++===================================================
+\ expenses\ \ \ ||\ \ \ \ \ \ \ 0\ \ \ \ \ \ $2\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ $2\ \ \ \ \ \ \ $1\ 
+\ \ \ food\ \ \ \ \ ||\ \ \ \ \ \ \ 0\ \ \ \ \ \ $1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ 0\ 
+\ \ \ supplies\ ||\ \ \ \ \ \ \ 0\ \ \ \ \ \ $1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ 0\ 
+\ income\ \ \ \ \ ||\ \ \ \ \ $\-1\ \ \ \ \ $\-1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ \ $\-2\ \ \ \ \ \ $\-1\ 
+\ \ \ gifts\ \ \ \ ||\ \ \ \ \ \ \ 0\ \ \ \ \ $\-1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ 0\ 
+\ \ \ salary\ \ \ ||\ \ \ \ \ $\-1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ 0\ 
+\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ $\-1\ \ \ \ \ \ $1\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ 0\ 
+
+#\ Average\ is\ rounded\ to\ the\ dollar\ here\ since\ all\ journal\ amounts\ are
+\f[]
+.fi
+.PP
+Multi\-column balance reports display accounts in flat mode by default;
+to see the hierarchy, use \f[C]\-\-tree\f[].
+.PP
+Note that with a reporting interval, the report start/end dates will be
+"enlarged" if necessary so that they encompass the displayed report
+periods.
+This is so that the first and last periods will be "full" and comparable
+to the others.
+.PP
+The \f[C]\-E/\-\-empty\f[] flag does two things here: first, the report
+will show all columns within the specified report period (without \-E,
+leading and trailing columns with all zeroes are not shown).
+Second, all accounts which existed at the report start date will be
+considered, not just the ones with activity during the report period
+(use \-E to include low\-activity accounts which would otherwise would
+be omitted).
+.PP
+The \f[C]\-T/\-\-row\-total\f[] flag adds an additional column showing
+the total for each row.
+The \f[C]\-A/\-\-average\f[] flag adds a column showing the average
+value in each row.
+Note in \f[C]\-\-H/\-\-historical\f[] mode only the average is useful,
+and in \f[C]\-\-cumulative\f[] mode neither is useful.
+.SS Market value
+.PP
+The \f[C]\-V/\-\-value\f[] flag converts all the reported amounts to
+their "current market value" using their default market price.
+That is the latest market price (P directive) found in the journal (or
+an included file), for the amount\[aq]s commodity, dated on or before
+the report end date.
+.PP
+Unlike Ledger, hledger\[aq]s \-V only uses the market prices recorded
+with P directives, ignoring transaction prices recorded as part of
+posting amounts (which \-B/\-\-cost uses).
+Using \-B and \-V together is allowed.
+.SS Custom balance output
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-\-format\ "%20(account)\ %12(total)"
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ assets\ \ \ \ \ \ \ \ \ \ $\-1
+\ \ \ \ \ \ \ \ \ bank:saving\ \ \ \ \ \ \ \ \ \ \ $1
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ cash\ \ \ \ \ \ \ \ \ \ $\-2
+\ \ \ \ \ \ \ \ \ \ \ \ expenses\ \ \ \ \ \ \ \ \ \ \ $2
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ food\ \ \ \ \ \ \ \ \ \ \ $1
+\ \ \ \ \ \ \ \ \ \ \ \ supplies\ \ \ \ \ \ \ \ \ \ \ $1
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ income\ \ \ \ \ \ \ \ \ \ $\-2
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ gifts\ \ \ \ \ \ \ \ \ \ $\-1
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ salary\ \ \ \ \ \ \ \ \ \ $\-1
+\ \ \ liabilities:debts\ \ \ \ \ \ \ \ \ \ \ $1
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
+.PP
+In simple (non\-multi\-column) balance reports, you can customise the
+output with \f[C]\-\-format\ FMT\f[].
+FMT (plus a newline) will be displayed for each account/balance pair.
+It is a format string with data fields interpolated by
+.PP
+\f[C]%[MIN][.MAX](FIELDNAME)\f[]
+.PP
+where MIN means pad with spaces to at least this width, and MAX means
+truncate at this width.
+The field name must be enclosed in parentheses.
+Three fields are available:
+.IP \[bu] 2
+\f[C]depth_spacer\f[] \- a number of spaces equal to the account\[aq]s
+depth, or if MIN is specified, MIN * depth spaces.
+.IP \[bu] 2
+\f[C]account\f[] \- the account\[aq]s name
+.IP \[bu] 2
+\f[C]total\f[] \- the account\[aq]s balance/posted total, right
+justified
+.PP
+When the total has multiple commodities, by default each commodity is
+displayed on a separate line, and the report item will be bottom
+aligned.
+You can change how such multi\-line values are rendered by beginning the
+format with a special prefix:
+.IP \[bu] 2
+\f[C]%_\f[] \- render on multiple lines, bottom\-aligned (the default)
+.IP \[bu] 2
+\f[C]%^\f[] \- render on multiple lines, top\-aligned
+.IP \[bu] 2
+\f[C]%,\f[] \- render on one line, with multi\-line values
+comma\-separated
+.PP
+There are some quirks, and experimentation may be needed to get pleasing
+output.
+In one\-line mode, \f[C]%(depth_spacer)\f[] has no effect, instead
+\f[C]%(account)\f[] has indentation built in.
+.PP
+Examples:
+.IP \[bu] 2
+\f[C]%(total)\f[] \- the account\[aq]s total
+.IP \[bu] 2
+\f[C]%\-20.20(account)\f[] \- the account\[aq]s name, left justified,
+padded to 20 characters and clipped at 20 characters
+.IP \[bu] 2
+\f[C]%20(total)\ \ %2(depth_spacer)%\-(account)\f[] \- default format
+for the single\-column balance report
+.IP \[bu] 2
+\f[C]%,%\-50(account)\ \ %25(total)\f[] \- account name padded to 50
+characters, total padded to 20 characters, with multiple commodities
+rendered on one line
+.SS Output destination
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-o\ \-\ \ \ \ \ #\ write\ to\ stdout\ (the\ default)
+$\ hledger\ balance\ \-o\ FILE\ \ #\ write\ to\ FILE
+\f[]
+.fi
+.PP
+The balance, print, register and stats commands can write their output
+to a destination other than the console.
+This is controlled by the \f[C]\-o/\-\-output\-file\f[] option.
+.SS CSV output
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-O\ csv\ \ \ \ \ \ \ #\ write\ CSV\ to\ stdout
+$\ hledger\ balance\ \-o\ FILE.csv\ \ #\ write\ CSV\ to\ FILE.csv
+\f[]
+.fi
+.PP
+The balance, print and register commands can write their output as CSV.
+This is useful for exporting data to other applications, eg to make
+charts in a spreadsheet.
+This is controlled by the \f[C]\-O/\-\-output\-format\f[] option, or by
+specifying a \f[C]\&.csv\f[] file extension with
+\f[C]\-o/\-\-output\-file\f[].
+.SS add
+.PP
+Prompt for transactions and add them to the journal.
+.TP
+.B \f[C]\-\-no\-new\-accounts\f[]
+don\[aq]t allow creating new accounts; helps prevent typos when entering
+account names
+.RS
+.RE
+.PP
+Many hledger users edit their journals directly with a text editor, or
+generate them from CSV.
+For more interactive data entry, there is the \f[C]add\f[] command,
+which prompts interactively on the console for new transactions, and
+appends them to the journal file (existing transactions are not
+changed).
+This is the only hledger command that writes to the journal file.
+.PP
+To use it, just run \f[C]hledger\ add\f[] and follow the prompts.
+You can add as many transactions as you like; when you are finished,
+enter \f[C]\&.\f[] or press control\-d or control\-c to exit.
+.PP
+Features:
+.IP \[bu] 2
+add tries to provide useful defaults, using the most similar recent
+transaction (by description) as a template.
+.IP \[bu] 2
+You can also set the initial defaults with command line arguments.
+.IP \[bu] 2
+Readline\-style edit keys can be used during data entry.
+.IP \[bu] 2
+The tab key will auto\-complete whenever possible \- accounts,
+descriptions, dates (\f[C]yesterday\f[], \f[C]today\f[],
+\f[C]tomorrow\f[]).
+If the input area is empty, it will insert the default value.
+.IP \[bu] 2
+If the journal defines a default commodity, it will be added to any bare
+numbers entered.
+.IP \[bu] 2
+A parenthesised transaction code may be entered following a date.
+.IP \[bu] 2
+Comments and tags may be entered following a description or amount.
+.IP \[bu] 2
+If you make a mistake, enter \f[C]<\f[] at any prompt to restart the
+transaction.
+.IP \[bu] 2
+Input prompts are displayed in a different colour when the terminal
+supports it.
+.PP
+Example (see the tutorial for a detailed explanation):
+.IP
+.nf
+\f[C]
+$\ hledger\ add
+Adding\ transactions\ to\ journal\ file\ /src/hledger/data/sample.journal
+Any\ command\ line\ arguments\ will\ be\ used\ as\ defaults.
+Use\ tab\ key\ to\ complete,\ readline\ keys\ to\ edit,\ enter\ to\ accept\ defaults.
+An\ optional\ (CODE)\ may\ follow\ transaction\ dates.
+An\ optional\ ;\ COMMENT\ may\ follow\ descriptions\ or\ amounts.
+If\ you\ make\ a\ mistake,\ enter\ <\ at\ any\ prompt\ to\ restart\ the\ transaction.
+To\ end\ a\ transaction,\ enter\ .\ when\ prompted.
+To\ quit,\ enter\ .\ at\ a\ date\ prompt\ or\ press\ control\-d\ or\ control\-c.
+Date\ [2015/05/22]:\ 
+Description:\ supermarket
+Account\ 1:\ expenses:food
+Amount\ \ 1:\ $10
+Account\ 2:\ assets:checking
+Amount\ \ 2\ [$\-10.0]:\ 
+Account\ 3\ (or\ .\ or\ enter\ to\ finish\ this\ transaction):\ .
+2015/05/22\ supermarket
+\ \ \ \ expenses:food\ \ \ \ \ \ \ \ \ \ \ \ \ $10
+\ \ \ \ assets:checking\ \ \ \ \ \ \ \ $\-10.0
+
+Save\ this\ transaction\ to\ the\ journal\ ?\ [y]:\ 
+Saved.
+Starting\ the\ next\ transaction\ (.\ or\ ctrl\-D/ctrl\-C\ to\ quit)
+Date\ [2015/05/22]:\ <CTRL\-D>\ $
+\f[]
+.fi
+.SS balancesheet
+.PP
+Show a balance sheet.
+Alias: bs.
+.TP
+.B \f[C]\-\-flat\f[]
+show full account names, as a list (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-drop=N\f[]
+in flat mode: omit N leading account name parts
+.RS
+.RE
+.PP
+This command displays a simple balance sheet.
+It currently assumes that you have top\-level accounts named
+\f[C]asset\f[] and \f[C]liability\f[] (plural forms also allowed.)
+.IP
+.nf
+\f[C]
+$\ hledger\ balancesheet
+Balance\ Sheet
+
+Assets:
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ assets
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ bank:saving
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2\ \ \ \ cash
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1
+
+Liabilities:
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ liabilities:debts
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1
+
+Total:
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
+.SS cashflow
+.PP
+Show a cashflow statement.
+Alias: cf.
+.TP
+.B \f[C]\-\-flat\f[]
+show full account names, as a list (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-drop=N\f[]
+in flat mode: omit N leading account name parts
+.RS
+.RE
+.PP
+This command displays a simple cashflow statement It shows the change in
+all "cash" (ie, liquid assets) accounts for the period.
+It currently assumes that cash accounts are under a top\-level account
+named \f[C]asset\f[] and do not contain \f[C]receivable\f[] or
+\f[C]A/R\f[] (plural forms also allowed.)
+.IP
+.nf
+\f[C]
+$\ hledger\ cashflow
+Cashflow\ Statement
+
+Cash\ flows:
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ assets
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ bank:saving
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2\ \ \ \ cash
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1
+
+Total:
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1
+\f[]
+.fi
+.SS incomestatement
+.PP
+Show an income statement.
+Alias: is.
+.TP
+.B \f[C]\-\-flat\f[]
+show full account names, as a list (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-drop=N\f[]
+in flat mode: omit N leading account name parts
+.RS
+.RE
+.PP
+This command displays a simple income statement.
+It currently assumes that you have top\-level accounts named
+\f[C]income\f[] (or \f[C]revenue\f[]) and \f[C]expense\f[] (plural forms
+also allowed.)
+.IP
+.nf
+\f[C]
+$\ hledger\ incomestatement
+Income\ Statement
+
+Revenues:
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2\ \ income
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ gifts
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ salary
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2
+
+Expenses:
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $2\ \ expenses
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ food
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ supplies
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $2
+
+Total:
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
+.SS print
+.PP
+Show transactions from the journal.
+.TP
+.B \f[C]\-m\ STR\ \-\-match=STR\f[]
+show the transaction whose description is most similar to STR, and is
+most recent
+.RS
+.RE
+.TP
+.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
+write output to FILE instead of stdout.
+A recognised FMT suffix influences the format.
+.RS
+.RE
+.TP
+.B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
+select the output format.
+Supported formats: txt, csv.
+.RS
+.RE
+.PP
+The print command displays full transactions from the journal file,
+tidily formatted and showing all amounts explicitly.
+The output of print is always a valid hledger journal, but it does
+always not preserve all original content exactly (eg directives).
+.PP
+hledger\[aq]s print command also shows all unit prices in effect, or
+(with \-B/\-\-cost) shows cost amounts.
+.PP
+The print command also supports output destination and CSV output.
+.IP
+.nf
+\f[C]
+$\ hledger\ print
+2008/01/01\ income
+\ \ \ \ assets:bank:checking\ \ \ \ \ \ \ \ \ \ \ \ $1
+\ \ \ \ income:salary\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1
+
+2008/06/01\ gift
+\ \ \ \ assets:bank:checking\ \ \ \ \ \ \ \ \ \ \ \ $1
+\ \ \ \ income:gifts\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1
+
+2008/06/02\ save
+\ \ \ \ assets:bank:saving\ \ \ \ \ \ \ \ \ \ \ \ \ \ $1
+\ \ \ \ assets:bank:checking\ \ \ \ \ \ \ \ \ \ \ $\-1
+
+2008/06/03\ *\ eat\ &\ shop
+\ \ \ \ expenses:food\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1
+\ \ \ \ expenses:supplies\ \ \ \ \ \ \ \ \ \ \ \ $1
+\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2
+
+2008/12/31\ *\ pay\ off
+\ \ \ \ liabilities:debts\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1
+\ \ \ \ assets:bank:checking\ \ \ \ \ \ \ \ \ \ \ $\-1
+\f[]
+.fi
+.SS register
+.PP
+Show postings and their running total.
+Alias: reg.
+.TP
+.B \f[C]\-H\ \-\-historical\f[]
+include prior postings in the running total
+.RS
+.RE
+.TP
+.B \f[C]\-A\ \-\-average\f[]
+show a running average instead of the running total (implies \-\-empty)
+.RS
+.RE
+.TP
+.B \f[C]\-r\ \-\-related\f[]
+show postings\[aq] siblings instead
+.RS
+.RE
+.TP
+.B \f[C]\-w\ N\ \-\-width=N\f[]
+set output width (default: terminal width or COLUMNS.
+\-wN,M sets description width as well)
+.RS
+.RE
+.TP
+.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
+write output to FILE instead of stdout.
+A recognised FMT suffix influences the format.
+.RS
+.RE
+.TP
+.B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
+select the output format.
+Supported formats: txt, csv.
+.RS
+.RE
+.IP
+.nf
+\f[C]
+$\ hledger\ register\ checking
+2008/01/01\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assets:bank:checking\ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ \ \ $1
+2008/06/01\ gift\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assets:bank:checking\ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ \ \ $2
+2008/06/02\ save\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assets:bank:checking\ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ \ \ \ $1
+2008/12/31\ pay\ off\ \ \ \ \ \ \ \ \ \ \ \ \ \ assets:bank:checking\ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
+.PP
+The register command displays postings, one per line, and their running
+total.
+This is typically used with a query selecting a particular account, to
+see that account\[aq]s activity.
+.IP
+.nf
+\f[C]
+$\ hledger\ register\ checking\ \-b\ 2008/6\ \-\-historical
+2008/06/01\ gift\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assets:bank:checking\ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ \ \ $2
+2008/06/02\ save\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assets:bank:checking\ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ \ \ \ $1
+2008/12/31\ pay\ off\ \ \ \ \ \ \ \ \ \ \ \ \ \ assets:bank:checking\ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
+.PP
+The \f[C]\-\-historical\f[]/\f[C]\-H\f[] flag adds the balance from any
+prior postings to the running total, to show the actual historical
+running balance.
+This is useful when you want to see just the recent activity.
+.PP
+The \f[C]\-\-depth\f[] option limits the amount of sub\-account detail
+displayed.
+.PP
+The \f[C]\-\-average\f[]/\f[C]\-A\f[] flag shows the running average
+posting amount instead of the running total (so, the final number
+displayed is the average for the whole report period).
+This flag implies \f[C]\-\-empty\f[] (see below).
+It works best when showing just one account and one commodity.
+.PP
+The \f[C]\-\-related\f[]/\f[C]\-r\f[] flag shows the \f[I]other\f[]
+postings in the transactions of the postings which would normally be
+shown.
+.IP
+.nf
+\f[C]
+$\ hledger\ register\ \-\-monthly\ income
+2008/01\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ income:salary\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ \ \ $\-1
+2008/06\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ income:gifts\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ \ \ $\-2
 \f[]
 .fi
 .IP
 .nf
 \f[C]
-$\ hledger\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ available\ commands
-$\ hledger\ add\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ add\ more\ transactions\ to\ the\ journal\ file
-$\ hledger\ balance\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ all\ accounts\ with\ aggregated\ balances
-$\ hledger\ balance\ \-\-help\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ help\ for\ balance\ command
-$\ hledger\ balance\ \-\-depth\ 1\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ only\ top\-level\ accounts
-$\ hledger\ register\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ account\ postings,\ with\ running\ total
-$\ hledger\ reg\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ postings\ to/from\ income\ accounts
-$\ hledger\ reg\ \[aq]assets:some\ bank:checking\[aq]\ #\ show\ postings\ to/from\ this\ checking\ account
-$\ hledger\ print\ desc:shop\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ transactions\ with\ shop\ in\ the\ description
-$\ hledger\ activity\ \-W\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ transaction\ counts\ per\ week\ as\ a\ bar\ chart
+$\ hledger\ register\ \-\-monthly\ income\ \-E
+2008/01\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ income:salary\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ \ \ $\-1
+2008/02\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ $\-1
+2008/03\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ $\-1
+2008/04\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ $\-1
+2008/05\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ $\-1
+2008/06\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ income:gifts\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ \ \ $\-2
+2008/07\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ $\-2
+2008/08\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ $\-2
+2008/09\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ $\-2
+2008/10\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ $\-2
+2008/11\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ $\-2
+2008/12\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ $\-2
 \f[]
 .fi
+.IP
+.nf
+\f[C]
+$\ hledger\ register\ \-\-monthly\ assets\ \-\-depth\ 1\ \ #\ cashflow\ (changes\ to\ assets)\ by\ month
+2008/01\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assets\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ \ \ \ \ \ \ \ \ $1
+2008/06\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assets\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ \ \ \ \ 0
+2008/12\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assets\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1\ \ \ \ \ \ \ \ \ \ \ $\-1
+\f[]
+.fi
+.PP
+With a reporting interval, register shows summary postings, one per
+interval, aggregating the postings to each account.
+.PP
+Periods with no activity, and summary postings with a zero amount, are
+not shown by default; use the \f[C]\-\-empty\f[]/\f[C]\-E\f[] flag to
+see them.
+.PP
+Often, you\[aq]ll want to see just one line per interval.
+The \f[C]\-\-depth\f[] option helps with this, causing subaccounts to be
+aggregated.
+.PP
+Note when using report intervals, if you specify start/end dates these
+will be adjusted outward if necessary to contain a whole number of
+intervals.
+This ensures that the first and last intervals are full length and
+comparable to the others in the report.
+.SS Custom register output
+.PP
+register uses the full terminal width by default, except on windows.
+You can override this by setting the \f[C]COLUMNS\f[] environment
+variable (not a bash shell variable) or by using the
+\f[C]\-\-width\f[]/\f[C]\-w\f[] option.
+.PP
+The description and account columns normally share the space equally
+(about half of (width \- 40) each).
+You can adjust this by adding a description width as part of
+\-\-width\[aq]s argument, comma\-separated: \f[C]\-\-width\ W,D\f[] .
+Here\[aq]s a diagram:
+.IP
+.nf
+\f[C]
+<\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\ width\ (W)\ \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\->
+date\ (10)\ \ description\ (D)\ \ \ \ \ \ \ account\ (W\-41\-D)\ \ \ \ \ amount\ (12)\ \ \ balance\ (12)
+DDDDDDDDDD\ dddddddddddddddddddd\ \ aaaaaaaaaaaaaaaaaaa\ \ AAAAAAAAAAAA\ \ AAAAAAAAAAAA
+\f[]
+.fi
+.PP
+and some examples:
+.IP
+.nf
+\f[C]
+$\ hledger\ reg\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ use\ terminal\ width\ (or\ 80\ on\ windows)
+$\ hledger\ reg\ \-w\ 100\ \ \ \ \ \ \ \ \ \ #\ use\ width\ 100
+$\ COLUMNS=100\ hledger\ reg\ \ \ \ \ #\ set\ with\ one\-time\ environment\ variable
+$\ export\ COLUMNS=100;\ hledger\ reg\ \ #\ set\ till\ session\ end\ (or\ window\ resize)
+$\ hledger\ reg\ \-w\ 100,40\ \ \ \ \ \ \ #\ set\ overall\ width\ 100,\ description\ width\ 40
+$\ hledger\ reg\ \-w\ $COLUMNS,40\ \ #\ use\ terminal\ width,\ and\ set\ description\ width
+\f[]
+.fi
+.PP
+The register command also supports the \f[C]\-o/\-\-output\-file\f[] and
+\f[C]\-O/\-\-output\-format\f[] options for controlling output
+destination and CSV output.
+.SS stats
+.PP
+Show some journal statistics.
+.TP
+.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
+write output to FILE instead of stdout.
+A recognised FMT suffix influences the format.
+.RS
+.RE
+.IP
+.nf
+\f[C]
+$\ hledger\ stats
+Main\ journal\ file\ \ \ \ \ \ \ \ :\ /src/hledger/data/sample.journal
+Included\ journal\ files\ \ \ :\ 
+Transactions\ span\ \ \ \ \ \ \ \ :\ 2008\-01\-01\ to\ 2009\-01\-01\ (366\ days)
+Last\ transaction\ \ \ \ \ \ \ \ \ :\ 2008\-12\-31\ (2333\ days\ ago)
+Transactions\ \ \ \ \ \ \ \ \ \ \ \ \ :\ 5\ (0.0\ per\ day)
+Transactions\ last\ 30\ days:\ 0\ (0.0\ per\ day)
+Transactions\ last\ 7\ days\ :\ 0\ (0.0\ per\ day)
+Payees/descriptions\ \ \ \ \ \ :\ 5
+Accounts\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ 8\ (depth\ 3)
+Commodities\ \ \ \ \ \ \ \ \ \ \ \ \ \ :\ 1\ ($)
+\f[]
+.fi
+.PP
+The stats command displays summary information for the whole journal, or
+a matched part of it.
+With a reporting interval, it shows a report for each report period.
+.PP
+The stats command also supports \f[C]\-o/\-\-output\-file\f[] for
+controlling output destination.
+.SS test
+.PP
+Run built\-in unit tests.
+.IP
+.nf
+\f[C]
+$\ hledger\ test
+Cases:\ 74\ \ Tried:\ 74\ \ Errors:\ 0\ \ Failures:\ 0
+\f[]
+.fi
+.PP
+This command runs hledger\[aq]s built\-in unit tests and displays a
+quick report.
+With a regular expression argument, it selects only tests with matching
+names.
+It\[aq]s mainly used in development, but it\[aq]s also nice to be able
+to check your hledger executable for smoke at any time.
+.SH ADD\-ON COMMANDS
+.PP
+Add\-on commands are executables in your PATH whose name starts with
+\f[C]hledger\-\f[] and ends with any of these file extensions: none,
+\f[C]\&.hs\f[],\f[C]\&.lhs\f[],\f[C]\&.pl\f[],\f[C]\&.py\f[],\f[C]\&.rb\f[],\f[C]\&.rkt\f[],\f[C]\&.sh\f[],\f[C]\&.bat\f[],\f[C]\&.com\f[],\f[C]\&.exe\f[].
+Also, an add\-on\[aq]s name may not be the same as any built\-in command
+or alias.
+.PP
+hledger will detect these and include them in the command list and let
+you invoke them with \f[C]hledger\ ADDONCMD\f[].
+However there are some limitations:
+.IP \[bu] 2
+Options appearing before ADDONCMD will be visible only to hledger and
+will not be passed to the add\-on.
+Eg: \f[C]hledger\ \-\-help\ web\f[] shows hledger\[aq]s help,
+\f[C]hledger\ web\ \-\-help\f[] shows hledger\-web\[aq]s help.
+.IP \[bu] 2
+Options understood only by the add\-on must go after a \f[C]\-\-\f[]
+argument to hide them from hledger, which would otherwise reject them.
+Eg: \f[C]hledger\ web\ \-\-\ \-\-server\f[].
+.PP
+Sometimes it may be more convenient to just run the add\-on directly,
+eg: \f[C]hledger\-web\ \-\-server\f[].
+.PP
+Add\-ons which are written in haskell can take advantage of the
+hledger\-lib library for journal parsing, reporting, command\-line
+options, etc.
+.PP
+Here are some hledger add\-ons available from Hackage, the extra
+directory in the hledger source, or elsewhere:
+.SS api
+.PP
+Web API server, see hledger\-api.
+.SS autosync
+.PP
+Download OFX bank data and/or convert OFX to hledger journal format.
+.IP
+.nf
+\f[C]
+$\ hledger\ autosync\ \-\-help
+usage:\ hledger\-autosync\ [\-h]\ [\-m\ MAX]\ [\-r]\ [\-a\ ACCOUNT]\ [\-l\ LEDGER]\ [\-i\ INDENT]
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [\-\-initial]\ [\-\-fid\ FID]\ [\-\-assertions]\ [\-d]\ [\-\-hledger]
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [\-\-slow]\ [\-\-which]
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [PATH]
+
+Synchronize\ ledger.
+
+positional\ arguments:
+\ \ PATH\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do\ not\ sync;\ import\ from\ OFX\ file
+
+optional\ arguments:
+\ \ \-h,\ \-\-help\ \ \ \ \ \ \ \ \ \ \ \ show\ this\ help\ message\ and\ exit
+\ \ \-m\ MAX,\ \-\-max\ MAX\ \ \ \ \ maximum\ number\ of\ days\ to\ process
+\ \ \-r,\ \-\-resync\ \ \ \ \ \ \ \ \ \ do\ not\ stop\ until\ max\ days\ reached
+\ \ \-a\ ACCOUNT,\ \-\-account\ ACCOUNT
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ set\ account\ name\ for\ import
+\ \ \-l\ LEDGER,\ \-\-ledger\ LEDGER
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ specify\ ledger\ file\ to\ READ\ for\ syncing
+\ \ \-i\ INDENT,\ \-\-indent\ INDENT
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ number\ of\ spaces\ to\ use\ for\ indentation
+\ \ \-\-initial\ \ \ \ \ \ \ \ \ \ \ \ \ create\ initial\ balance\ entries
+\ \ \-\-fid\ FID\ \ \ \ \ \ \ \ \ \ \ \ \ pass\ in\ fid\ value\ for\ OFX\ files\ that\ do\ not\ supply\ it
+\ \ \-\-assertions\ \ \ \ \ \ \ \ \ \ create\ balance\ assertion\ entries
+\ \ \-d,\ \-\-debug\ \ \ \ \ \ \ \ \ \ \ enable\ debug\ logging
+\ \ \-\-hledger\ \ \ \ \ \ \ \ \ \ \ \ \ force\ use\ of\ hledger\ (on\ by\ default\ if\ invoked\ as\ hledger\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ autosync)
+\ \ \-\-slow\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ use\ slow,\ but\ possibly\ more\ robust,\ method\ of\ calling\ ledger
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (no\ subprocess)
+\ \ \-\-which\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ display\ which\ version\ of\ ledger/hledger/ledger\-python\ will
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ be\ used\ by\ ledger\-autosync\ to\ check\ for\ previous
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ transactions
+$\ head\ acct1.ofx
+OFXHEADER:100
+DATA:OFXSGML
+VERSION:102
+SECURITY:NONE
+ENCODING:USASCII
+CHARSET:1252
+COMPRESSION:NONE
+OLDFILEUID:NONE
+NEWFILEUIDe:8509488b59d1bb45
+
+$\ hledger\ autosync\ acct1.ofx
+2013/08/30\ MONTHLY\ SERVICE\ FEE
+\ \ \ \ ;\ ofxid:\ 3000.4303001832.201308301
+\ \ \ \ WF:4303001832\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \-$6.00
+\ \ \ \ [assets:business:bank:wf:bchecking:banking]\ \ $6.00
+\f[]
+.fi
+.PP
+ledger\-autosync, which includes a \f[C]hledger\-autosync\f[] alias,
+downloads transactions from your bank(s) via OFX, and prints just the
+new ones as journal entries which you can add to your journal.
+It can also operate on .OFX files which you\[aq]ve downloaded manually.
+It can be a nice alternative to hledger\[aq]s built\-in CSV reader,
+especially if your bank supports OFX download.
+.SS diff
+.PP
+Show transactions present in one journal file but not another
+.IP
+.nf
+\f[C]
+$\ hledger\ diff\ \-\-help
+Usage:\ hledger\-diff\ account:name\ left.journal\ right.journal
+$\ cat\ a.journal
+1/1
+\ (acct:one)\ \ 1
+
+$\ cat\ b.journal
+1/1
+\ (acct:one)\ \ 1
+2/2
+\ (acct:two)\ \ 2
+
+$\ hledger\ diff\ acct:two\ a.journal\ b.journal
+Unmatched\ transactions\ in\ the\ first\ journal:
+
+Unmatched\ transactions\ in\ the\ second\ journal:
+
+2015/02/02
+\ \ \ \ (acct:two)\ \ \ \ \ \ \ \ \ \ \ \ $2
+\f[]
+.fi
+.PP
+hledger\-diff compares two journal files.
+Given an account name, it prints out the transactions affecting that
+account which are in one journal file but not in the other.
+This can be useful for reconciling existing journals with bank
+statements.
+.SS equity
+.PP
+Print a journal entry that resets account balances to zero.
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-\-flat\ \-E\ assets\ liabilities
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ assets:bank:checking
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ assets:bank:saving
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2\ \ assets:cash
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ liabilities:debts
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
+$\ hledger\ equity\ assets\ liabilities
+2015/05/23
+\ \ \ \ assets:bank:saving\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1
+\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $2
+\ \ \ \ liabilities:debts\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1
+\ \ \ \ equity:closing\ balances\ \ \ \ \ \ \ \ \ \ \ \ \ 0
+
+2015/05/23
+\ \ \ \ assets:bank:saving\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1
+\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2
+\ \ \ \ liabilities:debts\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1
+\ \ \ \ equity:opening\ balances\ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
+.PP
+This prints a journal entry which zeroes out the specified accounts (or
+all accounts) with a transfer to/from "equity:closing balances" (like
+Ledger\[aq]s equity command).
+Also, it prints an similar entry with opposite sign for restoring the
+balances from "equity:opening balances".
+.PP
+These can be useful for ending one journal file and starting a new one,
+respectively.
+By zeroing your asset and liability accounts at the end of a file and
+restoring them at the start of the next one, you will see correct
+asset/liability balances whether you run hledger on just one file, or on
+several files concatenated with include.
+.SS interest
+.PP
+Generate interest transactions.
+.IP
+.nf
+\f[C]
+$\ hledger\ interest\ \-\-help
+Usage:\ hledger\-interest\ [OPTION...]\ ACCOUNT
+\ \ \-h\ \ \ \ \ \ \ \ \ \ \-\-help\ \ \ \ \ \ \ \ \ \ \ \ print\ this\ message\ and\ exit
+\ \ \-V\ \ \ \ \ \ \ \ \ \ \-\-version\ \ \ \ \ \ \ \ \ show\ version\ number\ and\ exit
+\ \ \-v\ \ \ \ \ \ \ \ \ \ \-\-verbose\ \ \ \ \ \ \ \ \ echo\ input\ ledger\ to\ stdout\ (default)
+\ \ \-q\ \ \ \ \ \ \ \ \ \ \-\-quiet\ \ \ \ \ \ \ \ \ \ \ don\[aq]t\ echo\ input\ ledger\ to\ stdout
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-today\ \ \ \ \ \ \ \ \ \ \ compute\ interest\ up\ until\ today
+\ \ \-f\ FILE\ \ \ \ \ \-\-file=FILE\ \ \ \ \ \ \ input\ ledger\ file\ (pass\ \[aq]\-\[aq]\ for\ stdin)
+\ \ \-s\ ACCOUNT\ \ \-\-source=ACCOUNT\ \ interest\ source\ account
+\ \ \-t\ ACCOUNT\ \ \-\-target=ACCOUNT\ \ interest\ target\ account
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-act\ \ \ \ \ \ \ \ \ \ \ \ \ use\ \[aq]act\[aq]\ day\ counting\ convention
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-30\-360\ \ \ \ \ \ \ \ \ \ use\ \[aq]30/360\[aq]\ day\ counting\ convention
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-30E\-360\ \ \ \ \ \ \ \ \ use\ \[aq]30E/360\[aq]\ day\ counting\ convention
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-30E\-360isda\ \ \ \ \ use\ \[aq]30E/360isda\[aq]\ day\ counting\ convention
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-constant=RATE\ \ \ constant\ interest\ rate
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-annual=RATE\ \ \ \ \ annual\ interest\ rate
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-bgb288\ \ \ \ \ \ \ \ \ \ compute\ interest\ according\ to\ German\ BGB288
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-ing\-diba\ \ \ \ \ \ \ \ compute\ interest\ according\ for\ Ing\-Diba\ Tagesgeld\ account
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ cat\ interest.journal
+2008/09/26\ Loan
+\ \ \ \ \ Assets:Bank\ \ \ \ \ \ \ \ \ \ EUR\ 10000.00
+\ \ \ \ \ Liabilities:Bank
+
+2008/11/27\ Payment
+\ \ \ \ \ Assets:Bank\ \ \ \ \ \ \ \ \ \ EUR\ \-3771.12
+\ \ \ \ \ Liabilities:Bank
+
+2009/05/03\ Payment
+\ \ \ \ \ Assets:Bank\ \ \ \ \ \ \ \ \ \ EUR\ \-1200.00
+\ \ \ \ \ Liabilities:Bank
+
+2010/12/10\ Payment
+\ \ \ \ \ Assets:Bank\ \ \ \ \ \ \ \ \ \ EUR\ \-3700.00
+\ \ \ \ \ Liabilities:Bank
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ interest\ \-\-\ \-f\ interest.journal\ \-\-source=Expenses:Interest\ \\
+\ \ \ \ \-\-target=Liabilities:Bank\ \-\-30\-360\ \-\-annual=0.05\ Liabilities:Bank
+2008/09/26\ Loan
+\ \ \ \ Assets:Bank\ \ \ \ \ \ \ EUR\ 10000.00
+\ \ \ \ Liabilities:Bank\ \ EUR\ \-10000.00
+
+2008/11/27\ 0.05%\ interest\ for\ EUR\ \-10000.00\ over\ 61\ days
+\ \ \ \ Liabilities:Bank\ \ \ \ \ EUR\ \-84.72
+\ \ \ \ Expenses:Interest\ \ \ \ \ EUR\ 84.72
+
+2008/11/27\ Payment
+\ \ \ \ Assets:Bank\ \ \ \ \ \ \ EUR\ \-3771.12
+\ \ \ \ Liabilities:Bank\ \ \ EUR\ 3771.12
+
+2008/12/31\ 0.05%\ interest\ for\ EUR\ \-6313.60\ over\ 34\ days
+\ \ \ \ Liabilities:Bank\ \ \ \ \ EUR\ \-29.81
+\ \ \ \ Expenses:Interest\ \ \ \ \ EUR\ 29.81
+
+2009/05/03\ 0.05%\ interest\ for\ EUR\ \-6343.42\ over\ 123\ days
+\ \ \ \ Liabilities:Bank\ \ \ \ EUR\ \-108.37
+\ \ \ \ Expenses:Interest\ \ \ \ EUR\ 108.37
+
+2009/05/03\ Payment
+\ \ \ \ Assets:Bank\ \ \ \ \ \ \ EUR\ \-1200.00
+\ \ \ \ Liabilities:Bank\ \ \ EUR\ 1200.00
+
+2009/12/31\ 0.05%\ interest\ for\ EUR\ \-5251.78\ over\ 238\ days
+\ \ \ \ Liabilities:Bank\ \ \ \ EUR\ \-173.60
+\ \ \ \ Expenses:Interest\ \ \ \ EUR\ 173.60
+
+2010/12/10\ 0.05%\ interest\ for\ EUR\ \-5425.38\ over\ 340\ days
+\ \ \ \ Liabilities:Bank\ \ \ \ EUR\ \-256.20
+\ \ \ \ Expenses:Interest\ \ \ \ EUR\ 256.20
+
+2010/12/10\ Payment
+\ \ \ \ Assets:Bank\ \ \ \ \ \ \ EUR\ \-3700.00
+\ \ \ \ Liabilities:Bank\ \ \ EUR\ 3700.00
+\f[]
+.fi
+.PP
+hledger\-interest computes interests for a given account.
+Using command line flags, the program can be configured to use various
+schemes for day\-counting, such as act/act, 30/360, 30E/360, and
+30/360isda.
+Furthermore, it supports a (small) number of interest schemes, i.e.
+annual interest with a fixed rate and the scheme mandated by the German
+BGB288 (Basiszins für Verbrauchergeschäfte).
+See the package page for more.
+.SS irr
+.PP
+Calculate internal rate of return.
+.IP
+.nf
+\f[C]
+$\ hledger\ irr\ \-\-help
+Usage:\ hledger\-irr\ [OPTION...]
+\ \ \-h\ \ \ \ \ \ \ \ \ \ \-\-help\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print\ this\ message\ and\ exit
+\ \ \-V\ \ \ \ \ \ \ \ \ \ \-\-version\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ show\ version\ number\ and\ exit
+\ \ \-c\ \ \ \ \ \ \ \ \ \ \-\-cashflow\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ also\ show\ all\ revant\ transactions
+\ \ \-f\ FILE\ \ \ \ \ \-\-file=FILE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ input\ ledger\ file\ (pass\ \[aq]\-\[aq]\ for\ stdin)
+\ \ \-i\ ACCOUNT\ \ \-\-investment\-account=ACCOUNT\ \ investment\ account
+\ \ \-t\ ACCOUNT\ \ \-\-interest\-account=ACCOUNT\ \ \ \ interest/gain/fees/losses\ account
+\ \ \-b\ DATE\ \ \ \ \ \-\-begin=DATE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ from\ this\ date
+\ \ \-e\ DATE\ \ \ \ \ \-\-end=DATE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ until\ this\ date
+\ \ \-D\ \ \ \ \ \ \ \ \ \ \-\-daily\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ for\ each\ day
+\ \ \-W\ \ \ \ \ \ \ \ \ \ \-\-weekly\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ for\ each\ week
+\ \ \-M\ \ \ \ \ \ \ \ \ \ \-\-monthly\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ for\ each\ month
+\ \ \-Y\ \ \ \ \ \ \ \ \ \ \-\-yearly\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ for\ each\ year
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ cat\ irr.journal\ 
+2011\-01\-01\ Some\ wild\ speculation\ \[en]\ I\ wonder\ if\ it\ pays\ off
+\ \ \ Speculation\ \ \ €100.00
+\ \ \ Cash
+
+2011\-02\-01\ More\ speculation\ (and\ adjustment\ of\ value)
+\ \ \ Cash\ \ \ \ \ \ \ \ \ \-€10.00
+\ \ \ Rate\ Gain\ \ \ \ \ \-€1.00
+\ \ \ Speculation
+
+2011\-03\-01\ Lets\ pull\ out\ some\ money\ (and\ adjustment\ of\ value)
+\ \ \ Cash\ \ \ \ \ \ \ \ \ \ €30.00
+\ \ \ Rate\ Gain\ \ \ \ \ \-€3.00
+\ \ \ Speculation
+
+2011\-04\-01\ More\ speculation\ (and\ it\ lost\ some\ money!)
+\ \ \ Cash\ \ \ \ \ \ \ \ \ \-€50.00
+\ \ \ Rate\ Gain\ \ \ \ \ €\ 5.00
+\ \ \ Speculation
+
+2011\-05\-01\ Getting\ some\ money\ out\ (and\ adjustment\ of\ value)
+\ \ \ Speculation\ \ \-€44.00
+\ \ \ Rate\ Gain\ \ \ \ \-€\ 3.00
+\ \ \ Cash
+
+2011\-06\-01\ Emptying\ the\ account\ (after\ adjusting\ the\ value)
+\ \ \ Speculation\ \ \ \-€85.00
+\ \ \ Cash\ \ \ \ \ \ \ \ \ \ \ €90.00
+\ \ \ Rate\ Gain\ \ \ \ \ \-€\ 5.00
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\-irr\ \-f\ irr.journal\ \-t\ "Rate\ Gain"\ \-i\ Speculation\ \ \-\-monthly
+2011/01/01\ \-\ 2011/02/01:\ 12.49%
+2011/02/01\ \-\ 2011/03/01:\ 41.55%
+2011/03/01\ \-\ 2011/04/01:\ \-51.44%
+2011/04/01\ \-\ 2011/05/01:\ 32.24%
+2011/05/01\ \-\ 2011/06/01:\ 95.92%
+\f[]
+.fi
+.PP
+hledger\-irr computes the internal rate of return, also known as the
+effective interest rate, of a given investment.
+After specifying what account holds the investment, and what account
+stores the gains (or losses, or fees, or cost), it calculates the
+hypothetical annual rate of fixed rate investment that would have
+provided the exact same cash flow.
+See the package page for more.
+.SS print\-unique
+.PP
+Print only only journal entries which have a unique description.
+.IP
+.nf
+\f[C]
+$\ cat\ unique.journal
+1/1\ test
+\ (acct:one)\ \ 1
+2/2\ test
+\ (acct:two)\ \ 2
+$\ LEDGER_FILE=unique.journal\ hledger\ print\-unique
+(\-f\ option\ not\ supported)
+2015/01/01\ test
+\ \ \ \ (acct:one)\ \ \ \ \ \ \ \ \ \ \ \ \ 1
+\f[]
+.fi
+.SS rewrite
+.PP
+Prints all journal entries, adding specified custom postings to matched
+entries.
+.IP
+.nf
+\f[C]
+$\ hledger\ rewrite\ \-\-\ [QUERY]\ \ \ \ \ \ \ \ \-\-add\-posting\ "ACCT\ \ AMTEXPR"\ ...
+$\ hledger\ rewrite\ \-\-\ ^income\ \ \ \ \ \ \ \ \-\-add\-posting\ \[aq](liabilities:tax)\ \ *.33\[aq]
+$\ hledger\ rewrite\ \-\-\ expenses:gifts\ \-\-add\-posting\ \[aq](budget:gifts)\ \ *\-1"\[aq]
+\f[]
+.fi
+.SS ui
+.PP
+Curses\-style interface, see hledger\-ui.
+.SS web
+.PP
+Web interface, see hledger\-web.
 .SH ENVIRONMENT
 .PP
 \f[B]LEDGER_FILE\f[] sets the default journal file path.
