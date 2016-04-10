@@ -6,12 +6,17 @@ pre {
 		/* clear:both; */
 		background-color:inherit;
 		border:none;
-		margin-left:1em;
-		margin-right:2em;
+		/* margin-left:1em; */
+		/* margin-right:2em; */
 		border-radius:6px;
 		display:inline-block;
 		/* display:table; */
 		/* background-color:#e0e0e0; */
+    font-size:small;
+    /* white-space:nowrap; */
+}
+pre > code {
+    white-space:pre;
 }
 .clear {
 		clear:both;
