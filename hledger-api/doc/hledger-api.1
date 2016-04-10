@@ -1,0 +1,71 @@
+
+.TH "hledger\-api" "1" "January 2016" "" "hledger User Manuals"
+
+
+
+.SH NAME
+.PP
+hledger\-api \- web API server for the hledger accounting tool
+.SH SYNOPSIS
+.PP
+\f[C]hledger\-api\ [OPTIONS]\f[]
+.PD 0
+.P
+.PD
+\f[C]hledger\ api\ \-\-\ [OPTIONS]\f[]
+.SH DESCRIPTION
+.PP
+hledger is a cross\-platform program for tracking money, time, or any
+other commodity, using double\-entry accounting and a simple, editable
+file format.
+hledger is inspired by and largely compatible with ledger(1).
+.PP
+hledger\-api is a simple web API server, intended to support
+client\-side web apps operating on hledger data.
+It comes with a series of simple client\-side app examples, which drive
+it\[aq]s evolution.
+.PP
+Data is served from the usual hledger journal file:
+\f[C]~/.hledger.journal\f[], \f[C]$LEDGER_FILE\f[], or another file
+specified with \-f.
+For more about the format, see hledger(1) or hledger_journal(5).
+.PP
+The server listens for requests on port ...
+.PP
+Note there is no built\-in access control, so you will need to hide
+hledger\-api behind an authenticating proxy if you want to restrict
+access.
+.SH ENVIRONMENT
+.PP
+\f[B]LEDGER_FILE\f[] sets the default journal file path.
+If not set, it is \f[C]~/.hledger.journal\f[].
+.SH FILES
+.PP
+Reads data from a hledger journal file (\f[C]$LEDGER_FILE\f[] or
+\f[C]~/.hledger.journal\f[] by default), or a CSV file plus associated
+CSV rules file.
+.SH BUGS
+.PP
+The need to precede options with \f[C]\-\-\f[] when invoked from hledger
+is awkward.
+
+
+.SH "REPORTING BUGS"
+Report bugs at http://bugs.hledger.org
+(or on the #hledger IRC channel or hledger mail list)
+
+.SH AUTHORS
+Simon Michael <simon@joyful.com> and contributors
+
+.SH COPYRIGHT
+
+Copyright (C) 2007-2016 Simon Michael.
+.br
+Released under GNU GPLv3+.
+
+.SH SEE ALSO
+hledger(1), hledger\-ui(1), hledger\-web(1), hledger\-api(1),
+hledger_csv(5), hledger_journal(5), hledger_timelog(5), hledger_timedot(5),
+ledger(1)
+
+http://hledger.org
