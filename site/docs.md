@@ -29,19 +29,13 @@ Small, guided exercises introducing data entry, reporting, and accounting.
 #### [FAQ](faq.html)
 
 </div>
-<div class="col-sm-4">
+<div class="col-sm-3">
 
 **Reference**
 
-Take your pick:
+<!-- #### [Combined manual](manual2.html) -->
 
-#### 1. [Old manual](manual.html)
-
-#### 2. New man pages
-
-<div style="margin-left:1em;">
-
-Tools:
+<!-- or: -->
 
 <!-- **[hledger](manual2.html#hledger)** -->
 
@@ -52,18 +46,20 @@ Tools:
 <!-- **[hledger-api](manual2.html#hledger-api)** -->
 
 #### [hledger](hledger.html)
-<!-- The main reporting tool and command-line interface. -->
+The command-line interface.
+<!-- , with detailed reports. -->
 
 #### [hledger-ui](hledger-ui.html)
-<!-- A curses-style UI for quick exploration. -->
+The curses-style interface.
+<!-- , for quick exploration. -->
 
 #### [hledger-web](hledger-web.html)
-<!-- A web UI for browsing and data entry, personal or shared. -->
+The web interface.
+<!-- , for personal/shared browsing & data entry. -->
 
 #### [hledger-api](hledger-api.html)
-<!-- A REST-y JSON and file server, good for building client-side UIs. -->
-
-File formats:
+A JSON API server.
+<!-- , for building client-side apps. -->
 
 <!-- **[Journal](manual2.html#journal-format)** -->
 
@@ -84,10 +80,17 @@ File formats:
 
 #### [Timedot](timedot.html)
 <!-- Timedot format, an alternative time logging format. -->
+File formats.
 
-</div>
+or:
 
-#### 3. [New man pages, combined](manual2.html)
+#### [Combined manual](manual2.html)
+All on one page.
+
+\
+or:
+
+#### [Old manual](manual.html)
 
 </div>
 <div class="col-sm-3">
