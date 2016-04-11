@@ -25,17 +25,20 @@ hledger will create it if necessary, with some default rules which you'll need t
 At minimum, the rules file must specify the `date` and `amount` fields.
 For an example, see [How to read CSV files](how-to-read-csv-files.html).
 
-(For CSV output, see [CSV output](#csv-output).)
+To learn about *exporting* CSV, see [CSV output](hledger.html#csv-output).
 
 
-## CSV rules
+# CSV RULES
 
 The following six kinds of rule can appear in the rules file, in any order.
 Blank lines and lines beginning with `#` or `;` are ignored.
 
-**`skip` *N***\
+## skip
+
+`skip `*`N`*
+
 Skip this number of CSV records at the beginning.
-You'll need this when your CSV contains header lines. Eg:
+You'll need this whenever your CSV data contains header lines. Eg:
 <!-- XXX -->
 <!-- hledger tries to skip initial CSV header lines automatically. -->
 <!-- If it guesses wrong, use this directive to skip exactly N lines. -->
@@ -45,50 +48,60 @@ You'll need this when your CSV contains header lines. Eg:
 skip 1
 ```
 
-**`date-format` *DATEFMT***\
+## date-format
+
+`date-format `*`DATEFMT`*
+
 When your CSV date fields are not formatted like `YYYY/MM/DD` (or `YYYY-MM-DD` or `YYYY.MM.DD`),
 you'll need to specify the format.
 DATEFMT is a [strptime-like date parsing pattern](http://hackage.haskell.org/packages/archive/time/latest/doc/html/Data-Time-Format.html#v:formatTime),
 which must parse the date field values completely. Examples:
 
 ``` {.rules .display-table}
-# parses "6/11/2013":
+# for dates like "6/11/2013":
 date-format %-d/%-m/%Y
 ```
 
 ``` {.rules .display-table}
-# parses "11/06/2013":
+# for dates like "11/06/2013":
 date-format %m/%d/%Y
 ```
 
 ``` {.rules .display-table}
-# parses "2013-Nov-06":
+# for dates like "2013-Nov-06":
 date-format %Y-%h-%d
 ```
 
 ``` {.rules .display-table}
-# parses "11/6/2013 11:32 PM":
+# for dates like "11/6/2013 11:32 PM":
 date-format %-m/%-d/%Y %l:%M %p
 ```
 
-**`fields` *CSVFIELDNAME1*, *CSVFIELDNAME2*...**\
-(Field list)\
-This (a) names the CSV fields (names may not contain whitespace),
+## field list
+
+`fields `*`FIELDNAME1`*, *`FIELDNAME2`*...
+
+This (a) names the CSV fields, in order (names may not contain whitespace, but may be omitted),
 and (b) assigns them to journal entry fields if you use any of these standard field names:
 `date`, `date2`, `status`, `code`, `description`, `comment`, `account1`, `account2`, `amount`, `amount-in`, `amount-out`, `currency`.
 Eg:
 ```rules
-# use the 1st, 2nd and 4th CSV fields as the entry date, description and amount
-# give the 7th and 8th fields custom names for later reference
+# use the 1st, 2nd and 4th CSV fields as the entry's date, description and amount,
+# and give the 7th and 8th fields meaningful names for later reference:
+#
+# CSV field:
+#      1     2            3 4       5 6 7          8
+# entry field:
 fields date, description, , amount, , , somefield, anotherfield
 ```
 
-***ENTRYFIELDNAME* *FIELDVALUE***\
-(Field assignment)\
+## field assignment
+
+*`ENTRYFIELDNAME`* *`FIELDVALUE`*
+
 This sets a journal entry field (one of the standard names above) to the given text value,
 which can include CSV field values interpolated by name (`%CSVFIELDNAME`) or 1-based position (`%N`).
 <!-- Whitespace before or after the value is ignored. -->
-Field assignments can be used instead of or in addition to a field list.
 Eg:
 ```{.rules .display-table}
 # set the amount to the 4th CSV field with "USD " prepended
@@ -98,15 +111,18 @@ amount USD %4
 # combine three fields to make a comment (containing two tags)
 comment note: %somefield - %anotherfield, date: %1
 ```
+Field assignments can be used instead of or in addition to a field list.
 
-**`if` *PATTERN*\
-&nbsp;&nbsp;&nbsp;&nbsp;*FIELDASSIGNMENTS*...**\
-or\
-**`if`\
-*PATTERN*\
-*PATTERN*...\
-&nbsp;&nbsp;&nbsp;&nbsp;*FIELDASSIGNMENTS*...**\
-(Conditional block)\
+## conditional block
+
+`if` *`PATTERN`*\
+&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS`*...
+
+`if`\
+*`PATTERN`*\
+*`PATTERN`*...\
+&nbsp;&nbsp;&nbsp;&nbsp;*`FIELDASSIGNMENTS`*...
+
 This applies one or more field assignments, only to those CSV records matched by one of the PATTERNs.
 The patterns are case-insensitive regular expressions which match anywhere
 within the whole CSV record (it's not yet possible to match within a
@@ -126,10 +142,13 @@ monthly service fee
 atm transaction fee
 banking thru software
  account2 expenses:business:banking
- comment  XXX deductible ? check
+ comment  XXX deductible ? check it
 ```
 
-**`include` *RULESFILE***\
+## include
+
+`include `*`RULESFILE`*
+
 Include another rules file at this point. `RULESFILE` is either an absolute file path or
 a path relative to the current file's directory. Eg:
 ```rules
@@ -137,7 +156,7 @@ a path relative to the current file's directory. Eg:
 include common.rules
 ```
 
-## CSV tips
+# TIPS
 
 Each generated journal entry will have two postings, to `account1` and `account2` respectively.
 Currently it's not possible to generate entries with more than two postings.
