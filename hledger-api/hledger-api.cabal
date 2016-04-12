@@ -27,6 +27,7 @@ cabal-version:  >= 1.10
 
 extra-source-files:
     CHANGES
+    README
     examples/01.html
     examples/02.html
 
