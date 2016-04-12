@@ -28,6 +28,10 @@ tested-with:    GHC==7.4.2, GHC==7.6.3, GHC==7.8.4, GHC==7.10.2
 extra-source-files:
     CHANGES 
     README
+    doc/hledger_csv.5
+    doc/hledger_journal.5
+    doc/hledger_timedot.5
+    doc/hledger_timelog.5
 
 source-repository head
   type: git
