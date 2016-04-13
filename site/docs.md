@@ -82,15 +82,11 @@ A JSON API server.
 <!-- Timedot format, an alternative time logging format. -->
 File formats.
 
-or:
+\
+
 
 #### [Combined manual](manual2.html)
 All on one page.
-
-\
-or:
-
-#### [Old manual](manual.html)
 
 </div>
 <div class="col-sm-3">

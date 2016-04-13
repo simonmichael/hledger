@@ -84,10 +84,12 @@ main = do
          "manpages"
          ]
 
+    let webmanual = "site/manual.md"
+
     phony "site" $ do
       need [
          "webmanpages"
-        ,"site/manual2.md"
+        ,webmanual
         ,hakyllstd
         ]
       cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
@@ -177,9 +179,8 @@ main = do
 
     -- adjust and combine man page mds for single-page web output, using pandoc
 
-    let webmanual = "site/manual2.md"
     phony "webmanual" $ need [ webmanual ]
-    "site/manual2.md" %> \out -> do
+    webmanual %> \out -> do
       need webmanpages
       liftIO $ writeFile webmanual [i|
 <style>
