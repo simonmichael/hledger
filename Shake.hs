@@ -48,7 +48,6 @@ usage = [i|Usage:
  ./Shake webmanual        # generate combined web man page for hakyll
 |]
 
-buildDir = ".build"
 pandoc =
   -- "stack exec -- pandoc" -- use the pandoc required above
   "pandoc"                  -- use pandoc in PATH (faster)
@@ -62,8 +61,7 @@ main = do
 
   shakeArgs
     shakeOptions{
-       shakeFiles=buildDir
-      ,shakeVerbosity=Loud
+      shakeVerbosity=Loud
       -- ,shakeReport=[".shake.html"]
       } $ do
 
@@ -230,4 +228,4 @@ main = do
       removeFilesAfter "doc"  ["*.o","*.p_o","*.hi"] -- forces rebuild of exes ?
       removeFilesAfter "site" ["*.o","*.p_o","*.hi"]
       putNormal "Cleaning shake build files"
-      removeFilesAfter buildDir ["//*"]
+      removeFilesAfter ".shake" ["//*"]
