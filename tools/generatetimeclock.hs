@@ -1,8 +1,8 @@
 #!/usr/bin/env runhaskell
 {-
-generatetimelog.hs NUMENTRIES
+generatetimeclock.hs NUMENTRIES
 
-Outputs a dummy timelog with the specified number of clock-in/clock-out entries,
+Outputs a dummy timeclock log with the specified number of clock-in/clock-out entries,
 one per day.
 
 -}

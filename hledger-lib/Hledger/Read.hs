@@ -41,8 +41,8 @@ import Hledger.Data.Types
 import Hledger.Data.Journal (nullctx)
 import Hledger.Read.Util
 import Hledger.Read.JournalReader as JournalReader
+import Hledger.Read.TimeclockReader as TimeclockReader
 import Hledger.Read.TimedotReader as TimedotReader
-import Hledger.Read.TimelogReader as TimelogReader
 import Hledger.Read.CsvReader as CsvReader
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
@@ -52,8 +52,8 @@ tests_Hledger_Read = TestList $
   tests_readJournal'
   ++ [
    tests_Hledger_Read_JournalReader,
+   tests_Hledger_Read_TimeclockReader,
    tests_Hledger_Read_TimedotReader,
-   tests_Hledger_Read_TimelogReader,
    tests_Hledger_Read_CsvReader,
 
    "journal" ~: do

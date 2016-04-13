@@ -31,7 +31,7 @@ extra-source-files:
     doc/hledger_csv.5
     doc/hledger_journal.5
     doc/hledger_timedot.5
-    doc/hledger_timelog.5
+    doc/hledger_timeclock.5
 
 source-repository head
   type: git
@@ -100,7 +100,7 @@ library
       Hledger.Data.StringFormat
       Hledger.Data.Posting
       Hledger.Data.RawOptions
-      Hledger.Data.TimeLog
+      Hledger.Data.Timeclock
       Hledger.Data.Transaction
       Hledger.Data.Types
       Hledger.Query
@@ -108,7 +108,7 @@ library
       Hledger.Read.CsvReader
       Hledger.Read.JournalReader
       Hledger.Read.TimedotReader
-      Hledger.Read.TimelogReader
+      Hledger.Read.TimeclockReader
       Hledger.Read.Util
       Hledger.Reports
       Hledger.Reports.ReportOptions

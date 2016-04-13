@@ -38,7 +38,7 @@ Note there is no built-in access control, so you will need to hide
 hledger-api behind an authenticating proxy if you want to restrict
 access.
 
-<!-- With journal and timelog files (but not CSV files, currently) -->
+<!-- With journal and timeclock files (but not CSV files, currently) -->
 <!-- the web app detects changes and will show the new data on the next request. -->
 <!-- If a change makes the file unparseable, hledger-api will show an error -->
 <!-- until the file has been fixed. -->

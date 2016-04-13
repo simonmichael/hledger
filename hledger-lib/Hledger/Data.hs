@@ -18,7 +18,7 @@ module Hledger.Data (
                module Hledger.Data.Posting,
                module Hledger.Data.RawOptions,
                module Hledger.Data.StringFormat,
-               module Hledger.Data.TimeLog,
+               module Hledger.Data.Timeclock,
                module Hledger.Data.Transaction,
                module Hledger.Data.Types,
                tests_Hledger_Data
@@ -36,7 +36,7 @@ import Hledger.Data.Ledger
 import Hledger.Data.Posting
 import Hledger.Data.RawOptions
 import Hledger.Data.StringFormat
-import Hledger.Data.TimeLog
+import Hledger.Data.Timeclock
 import Hledger.Data.Transaction
 import Hledger.Data.Types
 
@@ -53,7 +53,7 @@ tests_Hledger_Data = TestList
     ,tests_Hledger_Data_Posting
     -- ,tests_Hledger_Data_RawOptions
     -- ,tests_Hledger_Data_StringFormat
-    ,tests_Hledger_Data_TimeLog
+    ,tests_Hledger_Data_Timeclock
     ,tests_Hledger_Data_Transaction
     -- ,tests_Hledger_Data_Types
     ]

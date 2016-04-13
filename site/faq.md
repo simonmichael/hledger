@@ -78,7 +78,7 @@ We currently support:
 
 - Ledger's journal format, mostly
 - csv format
-- timelog format
+- timeclock format
 - regular journal transactions
 - multiple commodities
 - fixed transaction prices
@@ -135,9 +135,9 @@ or [balance assertions](manual.html#assertions-and-ordering).
 - hledger shows start and end dates of the intervals requested,
   not just the span containing data
 
-- hledger always shows timelog balances in hours
+- hledger always shows timeclock balances in hours
 
-- hledger splits multi-day timelog sessions at midnight by default (Ledger does this with an option)
+- hledger splits multi-day timeclock sessions at midnight by default (Ledger does this with an option)
 
 - hledger's output follows the decimal point character, digit grouping,
   and digit group separator character used in the journal.
@@ -156,14 +156,14 @@ or [balance assertions](manual.html#assertions-and-ordering).
   seen. Ledger uses D only for commodity display settings and for the
   entry command.
 
-- hledger generates a description for timelog sessions, instead of
+- hledger generates a description for timeclock sessions, instead of
   taking it from the clock-out entry
 
 - hledger's [include directive](manual.html#including-other-files) does not support
   shell glob patterns (eg `include *.journal` ), which Ledger's does.
 
 - hledger's include directive works only in journal files, and currently can only include
-  journal files, not eg timelog or CSV files
+  journal files, not eg timeclock or CSV files
 
 - when checking [balance assertions](manual.html#balance-assertions)
   hledger sorts the account's postings first by date and then (for

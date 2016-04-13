@@ -12,7 +12,7 @@ module Hledger.Data.Journal (
   addMarketPrice,
   addModifierTransaction,
   addPeriodicTransaction,
-  addTimeLogEntry,
+  addTimeclockEntry,
   addTransaction,
   journalApplyAliases,
   journalBalanceTransactions,
@@ -81,7 +81,7 @@ import Hledger.Data.Amount
 import Hledger.Data.Dates
 import Hledger.Data.Transaction
 import Hledger.Data.Posting
-import Hledger.Data.TimeLog
+import Hledger.Data.Timeclock
 import Hledger.Query
 
 
@@ -116,7 +116,7 @@ instance Show Journal where
 --                      ,show (jtxns j)
 --                      ,show (jmodifiertxns j)
 --                      ,show (jperiodictxns j)
---                      ,show $ open_timelog_entries j
+--                      ,show $ open_timeclock_entries j
 --                      ,show $ jmarketprices j
 --                      ,show $ final_comment_lines j
 --                      ,show $ jContext j
@@ -127,7 +127,7 @@ nulljournal :: Journal
 nulljournal = Journal { jmodifiertxns = []
                       , jperiodictxns = []
                       , jtxns = []
-                      , open_timelog_entries = []
+                      , open_timeclock_entries = []
                       , jmarketprices = []
                       , final_comment_lines = []
                       , jContext = nullctx
@@ -160,8 +160,8 @@ addPeriodicTransaction pt j = j { jperiodictxns = pt : jperiodictxns j }
 addMarketPrice :: MarketPrice -> Journal -> Journal
 addMarketPrice h j = j { jmarketprices = h : jmarketprices j }
 
-addTimeLogEntry :: TimeLogEntry -> Journal -> Journal
-addTimeLogEntry tle j = j { open_timelog_entries = tle : open_timelog_entries j }
+addTimeclockEntry :: TimeclockEntry -> Journal -> Journal
+addTimeclockEntry tle j = j { open_timeclock_entries = tle : open_timeclock_entries j }
 
 -- | Get the transaction with this index (its 1-based position in the input stream), if any.
 journalTransactionAt :: Journal -> Integer -> Maybe Transaction
@@ -416,12 +416,12 @@ journalApplyAliases aliases j@Journal{jtxns=ts} =
 
 -- | Do post-parse processing on a journal to make it ready for use: check
 -- all transactions balance, canonicalise amount formats, close any open
--- timelog entries, maybe check balance assertions and so on.
+-- timeclock entries, maybe check balance assertions and so on.
 journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContext -> Bool -> Journal -> Either String Journal
 journalFinalise tclock tlocal path txt ctx assrt j@Journal{files=fs} = do
   (journalBalanceTransactions $
     journalApplyCommodityStyles $
-    journalCloseTimeLogEntries tlocal $
+    journalCloseTimeclockEntries tlocal $
     j{ files=(path,txt):fs
      , filereadtime=tclock
      , jContext=ctx
@@ -429,7 +429,7 @@ journalFinalise tclock tlocal path txt ctx assrt j@Journal{files=fs} = do
      , jmodifiertxns=reverse $ jmodifiertxns j -- NOTE: see addModifierTransaction
      , jperiodictxns=reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
      , jmarketprices=reverse $ jmarketprices j -- NOTE: see addMarketPrice
-     , open_timelog_entries=reverse $ open_timelog_entries j -- NOTE: see addTimeLogEntry
+     , open_timeclock_entries=reverse $ open_timeclock_entries j -- NOTE: see addTimeclockEntry
      })
   >>= if assrt then journalCheckBalanceAssertions else return
 
@@ -597,10 +597,10 @@ canonicalStyleFrom ss@(first:_) =
 --   case ps of (MarketPrice{mpamount=a}:_) -> Just a
 --              _ -> Nothing
 
--- | Close any open timelog sessions in this journal using the provided current time.
-journalCloseTimeLogEntries :: LocalTime -> Journal -> Journal
-journalCloseTimeLogEntries now j@Journal{jtxns=ts, open_timelog_entries=es} =
-  j{jtxns = ts ++ (timeLogEntriesToTransactions now es), open_timelog_entries = []}
+-- | Close any open timeclock sessions in this journal using the provided current time.
+journalCloseTimeclockEntries :: LocalTime -> Journal -> Journal
+journalCloseTimeclockEntries now j@Journal{jtxns=ts, open_timeclock_entries=es} =
+  j{jtxns = ts ++ (timeclockEntriesToTransactions now es), open_timeclock_entries = []}
 
 -- | Convert all this journal's amounts to cost by applying their prices, if any.
 journalConvertAmountsToCost :: Journal -> Journal

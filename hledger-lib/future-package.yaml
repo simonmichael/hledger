@@ -106,7 +106,7 @@ library:
     - Hledger.Data.StringFormat
     - Hledger.Data.Posting
     - Hledger.Data.RawOptions
-    - Hledger.Data.TimeLog
+    - Hledger.Data.Timeclock
     - Hledger.Data.Transaction
     - Hledger.Data.Types
     - Hledger.Query
@@ -114,7 +114,7 @@ library:
     - Hledger.Read.CsvReader
     - Hledger.Read.JournalReader
     - Hledger.Read.TimedotReader
-    - Hledger.Read.TimelogReader
+    - Hledger.Read.TimeclockReader
     - Hledger.Read.Util
     - Hledger.Reports
     - Hledger.Reports.ReportOptions

@@ -356,7 +356,7 @@ hledgercov: \
 	$(call def-help,hledgercov, build "bin/hledgercov" for coverage reports (with ghc) )
 	$(GHC) $(MAIN) -fhpc -o bin/hledgercov -outputdir .hledgercovobjs $(BUILDFLAGS)
 
-#	hledger-lib/Hledger/Read/TimelogReaderPP.hs
+#	hledger-lib/Hledger/Read/TimeclockReaderPP.hs
 dev: dev.hs $(SOURCEFILES) \
 	$(call def-help,dev, build the dev.hs script for quick experiments (with ghc) )
 	stack ghc -- $(CABALMACROSFLAGS) -ihledger-lib dev.hs \
@@ -1047,7 +1047,7 @@ haddock: \
 MANPAGES=\
 	hledger-lib/hledger_csv.5 \
 	hledger-lib/hledger_journal.5 \
-	hledger-lib/hledger_timelog.5 \
+	hledger-lib/hledger_timeclock.5 \
 	hledger-lib/hledger_timedot.5 \
 	hledger/hledger.1 \
 	hledger-ui/hledger-ui.1 \

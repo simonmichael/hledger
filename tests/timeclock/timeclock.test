@@ -1,4 +1,4 @@
-# a timelog session is parsed as a similarly-named transaction with one virtual posting
+# a timeclock session is parsed as a similarly-named transaction with one virtual posting
 hledger -f - print
 <<<
 i 2009/1/1 08:00:00
@@ -21,9 +21,9 @@ o 2009/1/3 09:00:00
 >>>2
 >>>= 0
 
-# ledger timelog example from #ledger
-# ==== consulting.timelog
-# ; Timelog for consulting sideline
+# ledger timeclock example from #ledger
+# ==== consulting.timeclock
+# ; Time log for consulting sideline
 # ; All times UTC
 # i 2011/01/26 16:00:00 XXXX:Remote "IPMI Access" 
 # o 2011/01/26 16:15:00
@@ -39,7 +39,7 @@ o 2009/1/3 09:00:00
 # ; Ledger for Consulting sideline
 
 # !account Consulting
-# !include consulting.timelog
+# !include consulting.timeclock
 # !end
 
 

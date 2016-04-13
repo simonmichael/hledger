@@ -199,19 +199,19 @@ data PeriodicTransaction = PeriodicTransaction {
 
 instance NFData PeriodicTransaction
 
-data TimeLogCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord,Typeable,Data,Generic)
+data TimeclockCode = SetBalance | SetRequiredHours | In | Out | FinalOut deriving (Eq,Ord,Typeable,Data,Generic)
 
-instance NFData TimeLogCode
+instance NFData TimeclockCode
 
-data TimeLogEntry = TimeLogEntry {
+data TimeclockEntry = TimeclockEntry {
       tlsourcepos :: GenericSourcePos,
-      tlcode :: TimeLogCode,
+      tlcode :: TimeclockCode,
       tldatetime :: LocalTime,
       tlaccount :: String,
       tldescription :: String
     } deriving (Eq,Ord,Typeable,Data,Generic)
 
-instance NFData TimeLogEntry
+instance NFData TimeclockEntry
 
 data MarketPrice = MarketPrice {
       mpdate :: Day,
@@ -250,7 +250,7 @@ data Journal = Journal {
       jmodifiertxns :: [ModifierTransaction],
       jperiodictxns :: [PeriodicTransaction],
       jtxns :: [Transaction],
-      open_timelog_entries :: [TimeLogEntry],
+      open_timeclock_entries :: [TimeclockEntry],
       jmarketprices :: [MarketPrice],
       final_comment_lines :: String,        -- ^ any trailing comments from the journal file
       jContext :: JournalContext,           -- ^ the context (parse state) at the end of parsing

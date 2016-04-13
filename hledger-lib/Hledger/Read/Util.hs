@@ -21,7 +21,7 @@ import Hledger.Data.Journal () -- Show instance
 import Hledger.Data.Types
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.TimedotReader as TimedotReader
-import Hledger.Read.TimelogReader as TimelogReader
+import Hledger.Read.TimeclockReader as TimeclockReader
 import Hledger.Read.CsvReader as CsvReader
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
@@ -37,7 +37,7 @@ journalDefaultFilename  = ".hledger.journal"
 readers :: [Reader]
 readers = [
   JournalReader.reader
- ,TimelogReader.reader
+ ,TimeclockReader.reader
  ,TimedotReader.reader
  ,CsvReader.reader
  ]

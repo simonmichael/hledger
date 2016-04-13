@@ -1,4 +1,4 @@
-% hledger_timelog(5)
+% hledger_timeclock(5)
 % 
 % April 2016
 
@@ -9,13 +9,13 @@
 
 # NAME
 
-Timelog - the timeclock time logging format, as read by hledger
+Timeclock - the time logging format of timeclock.el, as read by hledger
 
 # DESCRIPTION
 
 </div>
 
-hledger can read timelog files.
+hledger can read timeclock files.
 [As with Ledger](http://ledger-cli.org/3.0/doc/ledger3.html#Time-Keeping),
 these are (a subset of)
 [timeclock.el](http://www.emacswiki.org/emacs/TimeClock)'s format,
@@ -25,7 +25,7 @@ The time format is HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional.
 The timezone, if present, must be four digits and is ignored
 (currently the time is always interpreted as a local time).
 
-```timelog
+```timeclock
 i 2015/03/30 09:00:00 some:account name  optional description after two spaces
 o 2015/03/30 09:20:00
 i 2015/03/31 22:21:45 another account
@@ -38,7 +38,7 @@ one day, it is split into several transactions, one for each day. For
 the above time log, `hledger print` generates these journal entries:
 
 ``` {.shell}
-$ hledger -f t.timelog print
+$ hledger -f t.timeclock print
 2015/03/30 * optional description after two spaces
     (some:account name)         0.33h
 
@@ -51,13 +51,13 @@ $ hledger -f t.timelog print
 ```
 
 Here is a
-[sample.timelog](https://raw.github.com/simonmichael/hledger/master/data/sample.timelog) to
+[sample.timeclock](https://raw.github.com/simonmichael/hledger/master/data/sample.timeclock) to
 download and some queries to try:
 
 ```shell
-$ hledger -f sample.timelog balance                               # current time balances
-$ hledger -f sample.timelog register -p 2009/3                    # sessions in march 2009
-$ hledger -f sample.timelog register -p weekly --depth 1 --empty  # time summary by week
+$ hledger -f sample.timeclock balance                               # current time balances
+$ hledger -f sample.timeclock register -p 2009/3                    # sessions in march 2009
+$ hledger -f sample.timeclock register -p weekly --depth 1 --empty  # time summary by week
 ```
 
 To generate time logs, ie to clock in and clock out, you could:

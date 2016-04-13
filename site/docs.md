@@ -65,7 +65,7 @@ A JSON API server.
 
 <!-- **[CSV](manual2.html#csv-format)** -->
 
-<!-- **[Timeclock](manual2.html#timelog-format)** -->
+<!-- **[Timeclock](manual2.html#timeclock-format)** -->
 
 <!-- **[Timedot](manual2.html#timedot-format)** -->
 
@@ -75,7 +75,7 @@ A JSON API server.
 #### [CSV](csv.html)
 <!-- How hledger reads Comma Separated Value data. -->
 
-#### [Timeclock](timelog.html)
+#### [Timeclock](timeclock.html)
 <!-- Timeclock format, a sequence of clock-in/clock-out records. -->
 
 #### [Timedot](timedot.html)

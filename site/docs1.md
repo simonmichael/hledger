@@ -77,7 +77,7 @@ hledger's primary data format, representing a general journal.
 #### [hledger_csv(5)](csv.html)
 How hledger reads Comma Separated Value data.
 
-#### [hledger_timelog(5)](timelog.html)
+#### [hledger_timeclock(5)](timeclock.html)
 Timeclock format, a sequence of clock-in/clock-out records.
 
 #### [hledger_timedot(5)](timedot.html)

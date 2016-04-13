@@ -23,7 +23,7 @@ It can be formatted like a bar chart, making clear at a glance where time was sp
 Though called "timedot", the format does not specify the commodity being logged, so could represent other dated, quantifiable things.
 Eg you could record a single-entry journal of financial transactions, perhaps slightly more conveniently than with hledger_journal(5) format.
 
-## Format
+# FILE FORMAT
 
 A timedot file contains a series of day entries.
 A day entry begins with a date, and is followed by category/quantity pairs, one per line.

@@ -107,7 +107,7 @@ main = do
         ,"hledger-api.1"
         ,"hledger_journal.5"
         ,"hledger_csv.5"
-        ,"hledger_timelog.5"
+        ,"hledger_timeclock.5"
         ,"hledger_timedot.5"
         ]
 

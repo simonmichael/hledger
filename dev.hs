@@ -16,9 +16,9 @@ import Hledger
 -- import Hledger.Utils.Regex (toRegexCI)
 -- import Hledger.Utils.Debug
 -- import qualified Hledger.Read.JournalReader as JR
--- import qualified Hledger.Read.TimelogReader as TR
--- import qualified Hledger.Read.TimelogReaderNoJU as TRNOJU
--- import qualified Hledger.Read.TimelogReaderPP as TRPP
+-- import qualified Hledger.Read.TimeclockReader as TR
+-- import qualified Hledger.Read.TimeclockReaderNoJU as TRNOJU
+-- import qualified Hledger.Read.TimeclockReaderPP as TRPP
 
 -- import Control.DeepSeq (NFData)
 -- import Data.Data
@@ -36,7 +36,7 @@ journal =
   -- "data/10000x1000x10.journal"
   "data/10000x1000x10.journal"
 
-timelog = "data/sample.timelog"
+timeclock = "data/sample.timeclock"
 
 timeit :: String -> IO a -> IO (Double, a)
 timeit name action = do
@@ -131,8 +131,8 @@ main = do
 
   -- return ()
 
-  -- benchmark timelog parsing
-  -- s <- readFile inputtimelog
+  -- benchmark timeclock parsing
+  -- s <- readFile inputtimeclock
   -- putStrLn $ show $ length s
   -- let s = unlines [
   --       "i 2009/03/27 09:00:00 projects:a",
@@ -144,11 +144,11 @@ main = do
   --      ]
   -- -- let output = return . const -- putStrLn.show
 
-  -- -- withArgs ["-l"] $ defaultMain [bench "timelog polyparse" $ nfIO $ runExceptT $ TRPP.parseJournalWith' TRPP.timelogFile False "" s]
+  -- -- withArgs ["-l"] $ defaultMain [bench "timeclock polyparse" $ nfIO $ runExceptT $ TRPP.parseJournalWith' TRPP.timeclockFile False "" s]
   -- defaultMain [
-  --   -- bench ("read "++inputtimelog++" with parsec") $ nfIO $ runExceptT (TR.parse Nothing False "" s) >>= output
-  --   -- bench ("read "++inputtimelog++" with parsec, no ju") $ nfIO $ runExceptT (TRNOJU.parse Nothing False "" s) >>= output,
-  --   -- bench ("read "++inputtimelog++" polyparse")   $ nfIO $ runExceptT (TRPP.parse Nothing False "" s) >>= output
+  --   -- bench ("read "++inputtimeclock++" with parsec") $ nfIO $ runExceptT (TR.parse Nothing False "" s) >>= output
+  --   -- bench ("read "++inputtimeclock++" with parsec, no ju") $ nfIO $ runExceptT (TRNOJU.parse Nothing False "" s) >>= output,
+  --   -- bench ("read "++inputtimeclock++" polyparse")   $ nfIO $ runExceptT (TRPP.parse Nothing False "" s) >>= output
   --   ]
 
   -- return ()

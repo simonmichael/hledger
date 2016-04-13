@@ -1,13 +1,13 @@
 {-# LANGUAGE CPP #-}
 {-|
 
-A 'TimeLogEntry' is a clock-in, clock-out, or other directive in a timelog
+A 'TimeclockEntry' is a clock-in, clock-out, or other directive in a timeclock
 file (see timeclock.el or the command-line version). These can be
 converted to 'Transactions' and queried like a ledger.
 
 -}
 
-module Hledger.Data.TimeLog
+module Hledger.Data.Timeclock
 where
 import Data.Maybe
 import Data.Time.Calendar
@@ -27,17 +27,17 @@ import Hledger.Data.Amount
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
 
-instance Show TimeLogEntry where
+instance Show TimeclockEntry where
     show t = printf "%s %s %s  %s" (show $ tlcode t) (show $ tldatetime t) (tlaccount t) (tldescription t)
 
-instance Show TimeLogCode where
+instance Show TimeclockCode where
     show SetBalance = "b"
     show SetRequiredHours = "h"
     show In = "i"
     show Out = "o"
     show FinalOut = "O"
 
-instance Read TimeLogCode where
+instance Read TimeclockCode where
     readsPrec _ ('b' : xs) = [(SetBalance, xs)]
     readsPrec _ ('h' : xs) = [(SetRequiredHours, xs)]
     readsPrec _ ('i' : xs) = [(In, xs)]
@@ -48,32 +48,32 @@ instance Read TimeLogCode where
 -- | Convert time log entries to journal transactions. When there is no
 -- clockout, add one with the provided current time. Sessions crossing
 -- midnight are split into days to give accurate per-day totals.
-timeLogEntriesToTransactions :: LocalTime -> [TimeLogEntry] -> [Transaction]
-timeLogEntriesToTransactions _ [] = []
-timeLogEntriesToTransactions now [i]
-    | odate > idate = entryFromTimeLogInOut i o' : timeLogEntriesToTransactions now [i',o]
-    | otherwise = [entryFromTimeLogInOut i o]
+timeclockEntriesToTransactions :: LocalTime -> [TimeclockEntry] -> [Transaction]
+timeclockEntriesToTransactions _ [] = []
+timeclockEntriesToTransactions now [i]
+    | odate > idate = entryFromTimeclockInOut i o' : timeclockEntriesToTransactions now [i',o]
+    | otherwise = [entryFromTimeclockInOut i o]
     where
-      o = TimeLogEntry (tlsourcepos i) Out end "" ""
+      o = TimeclockEntry (tlsourcepos i) Out end "" ""
       end = if itime > now then itime else now
       (itime,otime) = (tldatetime i,tldatetime o)
       (idate,odate) = (localDay itime,localDay otime)
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
-timeLogEntriesToTransactions now (i:o:rest)
-    | odate > idate = entryFromTimeLogInOut i o' : timeLogEntriesToTransactions now (i':o:rest)
-    | otherwise = entryFromTimeLogInOut i o : timeLogEntriesToTransactions now rest
+timeclockEntriesToTransactions now (i:o:rest)
+    | odate > idate = entryFromTimeclockInOut i o' : timeclockEntriesToTransactions now (i':o:rest)
+    | otherwise = entryFromTimeclockInOut i o : timeclockEntriesToTransactions now rest
     where
       (itime,otime) = (tldatetime i,tldatetime o)
       (idate,odate) = (localDay itime,localDay otime)
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
 
--- | Convert a timelog clockin and clockout entry to an equivalent journal
+-- | Convert a timeclock clockin and clockout entry to an equivalent journal
 -- transaction, representing the time expenditure. Note this entry is  not balanced,
 -- since we omit the \"assets:time\" transaction for simpler output.
-entryFromTimeLogInOut :: TimeLogEntry -> TimeLogEntry -> Transaction
-entryFromTimeLogInOut i o
+entryFromTimeclockInOut :: TimeclockEntry -> TimeclockEntry -> Transaction
+entryFromTimeclockInOut i o
     | otime >= itime = t
     | otherwise =
         error' $ "clock-out time less than clock-in time in:\n" ++ showTransaction t
@@ -105,16 +105,16 @@ entryFromTimeLogInOut i o
       ps       = [posting{paccount=acctname, pamount=amount, ptype=VirtualPosting, ptransaction=Just t}]
 
 
-tests_Hledger_Data_TimeLog = TestList [
+tests_Hledger_Data_Timeclock = TestList [
 
-   "timeLogEntriesToTransactions" ~: do
+   "timeclockEntriesToTransactions" ~: do
      today <- getCurrentDay
      now' <- getCurrentTime
      tz <- getCurrentTimeZone
      let now = utcToLocalTime tz now'
          nowstr = showtime now
          yesterday = prevday today
-         clockin = TimeLogEntry nullsourcepos In
+         clockin = TimeclockEntry nullsourcepos In
          mktime d = LocalTime d . fromMaybe midnight .
 #if MIN_VERSION_time(1,5,0)
                     parseTimeM True defaultTimeLocale "%H:%M:%S"
@@ -122,7 +122,7 @@ tests_Hledger_Data_TimeLog = TestList [
                     parseTime defaultTimeLocale "%H:%M:%S"
 #endif
          showtime = formatTime defaultTimeLocale "%H:%M"
-         assertEntriesGiveStrings name es ss = assertEqual name ss (map tdescription $ timeLogEntriesToTransactions now es)
+         assertEntriesGiveStrings name es ss = assertEqual name ss (map tdescription $ timeclockEntriesToTransactions now es)
 
      assertEntriesGiveStrings "started yesterday, split session at midnight"
                                   [clockin (mktime yesterday "23:00:00") "" ""]
