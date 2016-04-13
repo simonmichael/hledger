@@ -21,9 +21,9 @@ hledger - a command-line accounting tool
 hledger is a cross-platform program for tracking money, time, or any
 other commodity, using double-entry accounting and a simple, editable
 file format. It is inspired by and largely compatible with ledger(1).
-hledger aims to be a reliable, practical tool for daily use. This man
-page is a quick reference and introduction; for more complete docs, see
-http://hledger.org/manual.
+Tested on unix, mac, windows, hledger aims to be a reliable, practical
+tool for daily use.
+
 </div>
 
 _include_(description.m4.md)
@@ -31,6 +31,7 @@ _include_(examples.m4.md)
 _include_(options.m4.md)
 _include_(queries.m4.md)
 _include_(commands.m4.md)
+_include_(troubleshooting.m4.md)
 
 <div class="man">
 

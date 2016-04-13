@@ -59,7 +59,8 @@ Here's an example:
     assets:bank:checking
 ```
 
-Now let's explore the available journal file syntax in detail.
+# FILE FORMAT
+<!-- Now let's explore the available journal file syntax in detail. -->
 
 ## Transactions
 
@@ -691,3 +692,29 @@ Glob patterns (`*`) are not currently supported.
 
 The `include` directive may only be used in journal files, and currently
 it may only include other journal files (eg, not CSV or timelog files.)
+
+# EDITOR SUPPORT
+
+Add-on modes exist for various text editors, to make working with journal
+files easier. They add colour, navigation aids and helpful commands.
+For hledger users who edit the journal file directly (the majority),
+using one of these modes is quite recommended.
+
+These were written with Ledger in mind, but also work with hledger files:
+
+|
+|----------------|----------------------------------------------------|
+| Emacs          | <http://www.ledger-cli.org/3.0/doc/ledger-mode.html> |
+| Vim            | <https://github.com/ledger/ledger/wiki/Getting-started> |
+| Sublime Text   | <https://github.com/ledger/ledger/wiki/Using-Sublime-Text> |
+| Textmate       | <https://github.com/ledger/ledger/wiki/Using-TextMate-2> |
+| Text Wrangler &nbsp; | <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler> |
+
+<!-- Some related LedgerTips:
+https://twitter.com/LedgerTips/status/504061626233159681
+https://twitter.com/LedgerTips/status/502820400276193280
+https://twitter.com/LedgerTips/status/502503912084361216
+https://twitter.com/LedgerTips/status/501767602067472384
+-->
+
+
