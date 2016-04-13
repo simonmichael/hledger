@@ -1,3 +1,4 @@
+.\"t
 
 .TH "hledger_journal" "5" "April 2016" "" "hledger User Manuals"
 
@@ -57,8 +58,7 @@ Here\[aq]s an example:
 \ \ \ \ assets:bank:checking
 \f[]
 .fi
-.PP
-Now let\[aq]s explore the available journal file syntax in detail.
+.SH FILE FORMAT
 .SS Transactions
 .PP
 Transactions are represented by journal entries.
@@ -806,6 +806,46 @@ Glob patterns (\f[C]*\f[]) are not currently supported.
 The \f[C]include\f[] directive may only be used in journal files, and
 currently it may only include other journal files (eg, not CSV or
 timelog files.)
+.SH EDITOR SUPPORT
+.PP
+Add\-on modes exist for various text editors, to make working with
+journal files easier.
+They add colour, navigation aids and helpful commands.
+For hledger users who edit the journal file directly (the majority),
+using one of these modes is quite recommended.
+.PP
+These were written with Ledger in mind, but also work with hledger
+files:
+.PP
+.TS
+tab(@);
+lw(16.5n) lw(51.5n).
+T{
+Emacs
+T}@T{
+http://www.ledger\-cli.org/3.0/doc/ledger\-mode.html
+T}
+T{
+Vim
+T}@T{
+https://github.com/ledger/ledger/wiki/Getting\-started
+T}
+T{
+Sublime Text
+T}@T{
+https://github.com/ledger/ledger/wiki/Using\-Sublime\-Text
+T}
+T{
+Textmate
+T}@T{
+https://github.com/ledger/ledger/wiki/Using\-TextMate\-2
+T}
+T{
+Text Wrangler \ 
+T}@T{
+https://github.com/ledger/ledger/wiki/Editing\-Ledger\-files\-with\-TextWrangler
+T}
+.TE
 
 
 .SH "REPORTING BUGS"
@@ -819,7 +859,7 @@ Simon Michael <simon@joyful.com> and contributors
 
 Copyright (C) 2007-2016 Simon Michael.
 .br
-Released under GNU GPLv3+.
+Released under GNU GPL v3 or later.
 
 .SH SEE ALSO
 hledger(1), hledger\-ui(1), hledger\-web(1), hledger\-api(1),

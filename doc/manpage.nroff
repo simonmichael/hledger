@@ -33,7 +33,7 @@ $endif$
 
 Copyright (C) 2007-2016 Simon Michael.
 .br
-Released under GNU GPLv3+.
+Released under GNU GPL v3 or later.
 
 .SH SEE ALSO
 hledger(1), hledger\-ui(1), hledger\-web(1), hledger\-api(1),
