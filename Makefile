@@ -123,9 +123,9 @@ CABALFILES:= \
 	site/hakyll-std/hakyll-std.cabal
 
 HPACKFILES:= \
-	hledger/package.yaml \
-	hledger-*/package.yaml \
-	site/hakyll-std/package.yaml
+	hledger/*package.yaml \
+	hledger-*/*package.yaml \
+	site/hakyll-std/*package.yaml
 
 WEBFILES:= \
 	hledger-web/templates/* \
