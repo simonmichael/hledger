@@ -7,9 +7,6 @@
 <a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt=""></a> &nbsp;
 </div>
 # Download
-
-### [Release notes](release-notes.html)
-
 <a name="packaged"></a>
 
 ## I want to download a packaged version
@@ -115,6 +112,8 @@ This is a quick way to help the project and your fellow users!
 
 - if stack or cabal can't run on your OS, maybe this [vagrant image](https://github.com/sciurus/hledger-vagrant) can ?
 
+Here are the [release notes](release-notes.html).
+
 <a name="unreleased"></a>
 
 ## I want to build the [unreleased git version](https://github.com/simonmichael/hledger/commits/master)
@@ -123,5 +122,5 @@ This is a quick way to help the project and your fellow users!
 2. `cd hledger`
 3. `stack install`
 
-or see the [Developer Guide](http://hledger.org/developer-guide.html) for more help.
+See also the [Developer Guide](http://hledger.org/developer-guide.html).
 
