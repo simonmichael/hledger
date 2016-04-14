@@ -164,6 +164,7 @@ main = do
     let txtmanpages = [m <.> "txt" | m <- manpages] -- hledger/doc/hledger.1.txt, hledger-lib/doc/journal.5.txt
     phony "txtmanpages" $ need txtmanpages
     txtmanpages |%> \out -> do
+      need manpages
       let nroffsrc = dropExtension out  -- hledger/doc/hledger.1
       cmd Shell nroff "-man" nroffsrc ">" out
 
