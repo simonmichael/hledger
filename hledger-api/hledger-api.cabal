@@ -29,6 +29,7 @@ extra-source-files:
     CHANGES
     README
     doc/hledger-api.1
+    doc/hledger-api.1.txt
     examples/01.html
     examples/02.html
 

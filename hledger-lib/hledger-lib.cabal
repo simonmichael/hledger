@@ -29,9 +29,13 @@ extra-source-files:
     CHANGES 
     README
     doc/hledger_csv.5
+    doc/hledger_csv.5.txt
     doc/hledger_journal.5
+    doc/hledger_journal.5.txt
     doc/hledger_timedot.5
+    doc/hledger_timedot.5.txt
     doc/hledger_timeclock.5
+    doc/hledger_timeclock.5.txt
 
 source-repository head
   type: git

@@ -31,6 +31,7 @@ extra-source-files:
     CHANGES
     README
     doc/hledger-ui.1
+    doc/hledger-ui.1.txt
 
 source-repository head
   type: git
