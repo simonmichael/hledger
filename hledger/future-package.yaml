@@ -63,11 +63,13 @@ dependencies:
   - hledger-lib == 0.27
   - base >= 4.3 && < 5
   - base-compat >= 0.8.1
+  - bytestring
   - containers
   - unordered-containers
   - cmdargs >= 0.10 && < 0.11
   - csv
   - directory
+  - file-embed
   - filepath
   - haskeline >= 0.6 && <= 0.8
   - HUnit

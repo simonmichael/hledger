@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts, TemplateHaskell #-}
 {-|
 
 Common cmdargs modes and flags, a command-line options type, and
@@ -21,6 +21,7 @@ module Hledger.Cli.CliOptions (
   defCommandMode,
   defAddonCommandMode,
   argsFlag,
+  showModeUsage,
   showModeHelp,
   withAliases,
 
@@ -64,6 +65,9 @@ import Prelude ()
 import Prelude.Compat
 import qualified Control.Exception as C
 import Control.Monad (when)
+import qualified Data.ByteString as BS
+import qualified Data.ByteString.UTF8 as BS8
+import Data.FileEmbed
 #if !MIN_VERSION_base(4,8,0)
 import Data.Functor.Compat ((<$>))
 #endif
@@ -93,7 +97,8 @@ import Hledger.Cli.Version
 -- | Common help flags: --help, --debug, --version...
 helpflags :: [Flag RawOpts]
 helpflags = [
-  flagNone ["help","h"] (setboolopt "help") "show general help or (after command) command help"
+  flagNone ["h"] (setboolopt "shorthelp") "show general usage or (after command) command usage"
+ ,flagNone ["help"] (setboolopt "longhelp") "show detailed help"
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "N" "show increasing amounts of debug output if N is 1-9. With no argument, show level 1"
  ,flagNone ["version"] (setboolopt "version") "show version information"
@@ -166,7 +171,7 @@ defMode =   Mode {
  ,modeGroupFlags = Group {
      groupNamed = []
     ,groupUnnamed = [
-        flagNone ["help","h","?"] (setboolopt "help") "Show command help."
+        flagNone ["h"] (setboolopt "shorthelp") "Show command help."
         ]
     ,groupHidden = []
     }
@@ -222,10 +227,18 @@ standardAddonsHelp = [
   ,("addon9", "dummy add-on command for testing")
   ]
 
--- | Get a mode's help message as a nicely wrapped string.
-showModeHelp :: Mode a -> String
-showModeHelp = (showText defaultWrap :: [Text] -> String) .
+-- | Get a mode's usage message as a nicely wrapped string.
+showModeUsage :: Mode a -> String
+showModeUsage = (showText defaultWrap :: [Text] -> String) .
                (helpText [] HelpFormatDefault :: Mode a -> [Text])
+
+hledgerManual :: BS.ByteString
+hledgerManual = $(embedFile "doc/hledger.1.txt")
+
+-- | Get the hledger long help, ready for console output
+-- (currently, the hledger.1 man page formatted for 80 columns).
+showModeHelp :: Mode a -> String
+showModeHelp _ = BS8.toString hledgerManual
 
 -- | Add command aliases to the command's help string.
 withAliases :: String -> [String] -> String
@@ -348,8 +361,8 @@ getCliOpts mode' = do
   opts <- rawOptsToCliOpts rawopts
   debugArgs args' opts
   -- if any (`elem` args) ["--help","-h","-?"]
-  when ("help" `inRawOpts` rawopts_ opts) $
-    putStr (showModeHelp mode') >> exitSuccess
+  when ("shorthelp" `inRawOpts` rawopts_ opts) $ putStr (showModeUsage mode') >> exitSuccess
+  when ("longhelp"  `inRawOpts` rawopts_ opts) $ putStr (showModeHelp mode') >> exitSuccess
   return opts
   where
     -- | Print debug info about arguments and options if --debug is present.
