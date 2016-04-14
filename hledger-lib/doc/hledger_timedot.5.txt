@@ -1,0 +1,125 @@
+
+hledger_timedot(5)           hledger User Manuals           hledger_timedot(5)
+
+
+
+NNAAMMEE
+       Timedot - hledger's human-friendly time logging format
+
+DDEESSCCRRIIPPTTIIOONN
+       Timedot  is  a plain text format for logging dated, categorised quanti-
+       ties (eg time), supported by hledger.  It is convenient for approximate
+       and  retroactive  time  logging,  eg  when  the  real-time clock-in/out
+       required with a timeclock file is too precise or too interruptive.   It
+       can  be formatted like a bar chart, making clear at a glance where time
+       was spent.
+
+       Though called "timedot", the format  does  not  specify  the  commodity
+       being  logged, so could represent other dated, quantifiable things.  Eg
+       you could record a single-entry journal of financial transactions, per-
+       haps slightly more conveniently than with hledger_journal(5) format.
+
+FFIILLEE FFOORRMMAATT
+       A  timedot  file  contains a series of day entries.  A day entry begins
+       with a date, and is followed by category/quantity pairs, one per  line.
+       Dates  are  hledger-style simple dates (see hledger_journal(5)).  Cate-
+       gories are hledger-style account  names,  optionally  indented.   There
+       must  be  at  least  two  spaces between the category and the quantity.
+       Quantities can be written in two ways:
+
+       1. a series of dots (period characters).  Each dot represents "a  quar-
+          ter"  -  eg,  a quarter hour.  Spaces can be used to group dots into
+          hours, for easier counting.
+
+       2. a number (integer or decimal), representing "units" - eg, hours.   A
+          good  alternative  when  dots  are  cumbersome.   (A number also can
+          record negative quantities.)
+
+       Blank lines and lines beginning with #, ; or * are ignored.   An  exam-
+       ple:
+
+              # on this day, 6h was spent on client work, 1.5h on haskell FOSS work, etc.
+              2016/2/1
+              inc:client1   .... .... .... .... .... ....
+              fos:haskell   .... ..
+              biz:research  .
+
+              2016/2/2
+              inc:client1   .... ....
+              biz:research  .
+
+       Or with numbers:
+
+              2016/2/3
+              inc:client1   4
+              fos:hledger   3
+              biz:research  1
+
+       Reporting:
+
+              $ hledger -f t.timedot print date:2016/2/2
+              2016/02/02 *
+                  (inc:client1)          2.00
+
+              2016/02/02 *
+                  (biz:research)          0.25
+
+              $ hledger -f t.timedot bal --daily --tree
+              Balance changes in 2016/02/01-2016/02/03:
+
+                          ||  2016/02/01d  2016/02/02d  2016/02/03d
+              ============++========================================
+               biz        ||         0.25         0.25         1.00
+                 research ||         0.25         0.25         1.00
+               fos        ||         1.50            0         3.00
+                 haskell  ||         1.50            0            0
+                 hledger  ||            0            0         3.00
+               inc        ||         6.00         2.00         4.00
+                 client1  ||         6.00         2.00         4.00
+              ------------++----------------------------------------
+                          ||         7.75         2.25         8.00
+
+       I  prefer to use period for separating account components.  We can make
+       this work with an account alias:
+
+              2016/2/4
+              fos.hledger.timedot  4
+              fos.ledger           ..
+
+              $ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4
+                              4.50  fos
+                              4.00    hledger:timedot
+                              0.50    ledger
+              --------------------
+                              4.50
+
+       default year directives may be used.
+
+       Here is a sample.timedot.
+
+
+
+RREEPPOORRTTIINNGG BBUUGGSS
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       or hledger mail list)
+
+
+AAUUTTHHOORRSS
+       Simon Michael <simon@joyful.com> and contributors
+
+
+CCOOPPYYRRIIGGHHTT
+       Copyright (C) 2007-2016 Simon Michael.
+       Released under GNU GPL v3 or later.
+
+
+SSEEEE AALLSSOO
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
+       dot(5), ledger(1)
+
+       http://hledger.org
+
+
+
+                                  April 2016                hledger_timedot(5)

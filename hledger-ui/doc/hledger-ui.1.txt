@@ -1,0 +1,258 @@
+
+hledger-ui(1)                hledger User Manuals                hledger-ui(1)
+
+
+
+NNAAMMEE
+       hledger-ui - curses-style interface for the hledger accounting tool
+
+SSYYNNOOPPSSIISS
+       hledger-ui [OPTIONS] [QUERYARGS]
+       hledger ui -- [OPTIONS] [QUERYARGS]
+
+DDEESSCCRRIIPPTTIIOONN
+       hledger  is  a  cross-platform program for tracking money, time, or any
+       other commodity, using double-entry accounting and a  simple,  editable
+       file  format.   hledger  is  inspired  by  and  largely compatible with
+       ledger(1).  hledger-ui is hledger's curses-style interface.  It reads a
+       hledger journal file
+
+       (~/.hledger.journal,  $LEDGER_FILE,  or  -f  FILE;  see  hledger(1)  or
+       hledger_journal(5))
+
+       and provides a simple full-screen console interface for viewing account
+       balances and transactions.
+
+       It  is  simpler  and more convenient for browsing than the command-line
+       interface, but lighter and faster than hledger-web.
+
+       The journal file is ~/.hledger.journal, $LEDGER_FILE, or  another  file
+       specified  with  -f.   For  more  about  the  format, see hledger(1) or
+       hledger_journal(5).
+
+OOPPTTIIOONNSS
+       Note: if invoking hledger-ui as a hledger subcommand, write  --  before
+       options as shown above.
+
+       Any  QUERYARGS  are interpreted as a hledger search query which filters
+       the data.
+
+       ----ffllaatt show full account names, unindented
+
+       ----nnoo--eelliiddee
+              don't compress empty parent accounts on one line
+
+       ----rreeggiisstteerr==AACCCCTTRREEGGEEXX
+              start in the (first) matched account's register screen
+
+       ----tthheemmee==ddeeffaauulltt||tteerrmmiinnaall||ggrreeeenntteerrmm
+              use this custom display theme
+
+       --VV ----vvaalluuee
+              show amounts as their current market value in their default val-
+              uation commodity (accounts screen only)
+
+       --hh ----hheellpp
+              show help
+
+       ----vveerrssiioonn
+              show version information
+
+   hhlleeddggeerr ooppttiioonnss
+       The following common hledger options should also work:
+
+       --ff FFIILLEE ----ffiillee==FFIILLEE
+              use a different input file.  For stdin, use -
+
+       ----rruulleess--ffiillee==RRUULLEESSFFIILLEE
+              Conversion   rules  file  to  use  when  reading  CSV  (default:
+              FILE.rules)
+
+       ----aalliiaass==OOLLDD==NNEEWW
+              display accounts named OLD as NEW
+
+       ----iiggnnoorree--aasssseerrttiioonnss
+              ignore any failing balance assertions in the journal
+
+       ----ddeebbuugg==NN
+              show debug output if N is 1-9 (default: 0)
+
+       --bb ----bbeeggiinn==DDAATTEE
+              include postings/txns on or after this date
+
+       --ee ----eenndd==DDAATTEE
+              include postings/txns before this date
+
+       --pp ----ppeerriioodd==PPEERRIIOODDEEXXPP
+              set start date, end date, and/or reporting interval all at  once
+              (overrides the flags above)
+
+       ----ddaattee22 ----aauuxx--ddaattee
+              use postings/txns' secondary dates instead
+
+       --CC ----cclleeaarreedd
+              include only cleared postings/txns
+
+       ----ppeennddiinngg
+              include only pending postings/txns
+
+       --UU ----uunncclleeaarreedd
+              include only uncleared (and pending) postings/txns
+
+       --RR ----rreeaall
+              include only non-virtual postings
+
+       ----ddeepptthh==NN
+              hide accounts/postings deeper than N
+
+       --EE ----eemmppttyy
+              show empty/zero things which are normally omitted
+
+       --BB ----ccoosstt
+              show amounts in their cost price's commodity
+
+KKEEYYSS
+       Generally  the cursor keys navigate; right (or enter) goes deeper, left
+       returns to the previous screen, up/down/page up/page down/home/end move
+       up and down through lists.
+
+       g  gets  the  latest  data  and  reloads  the  screen (and any previous
+       screens).  There may be a noticeable pause.
+
+       q quits the application.
+
+       Some screens have additional key bindings, described below.
+
+SSCCRREEEENNSS
+   AAccccoouunnttss ssccrreeeenn
+       This is normally the first screen displayed.   It  lists  accounts  and
+       their  balances,  like hledger's balance command.  By default, it shows
+       all accounts and their latest ending balances.  if you specify a  query
+       on  the  command  line, it shows just the matched accounts and the bal-
+       ances from matched transactions.
+
+       When not in flat mode, indentation indicates the account hierarchy.   F
+       toggles flat mode on and off.
+
+       By  default,  all subaccounts are displayed.  To see less detail, set a
+       depth limit by pressing a number key, 1 to 9.   Or,  adjust  the  depth
+       limit by pressing - or + (= also works).  0 removes the depth limit.
+
+       C toggles cleared mode.  In cleared mode, the accounts and balances are
+       derived only from transactions which are marked cleared (*).
+
+       Press right or enter to view an account's transactions register.
+
+   RReeggiisstteerr ssccrreeeenn
+       This screen lists all transactions affecting a particular account (like
+       a  check  register).   In cleared mode (press C) it lists only transac-
+       tions which are marked cleared.  It does not otherwise filter by query.
+
+       Note  this  screen  shows  transactions, not postings (unlike hledger's
+       register command).  This means:
+
+       +o Each line represents a whole transaction.
+
+       +o For each transaction, it shows  the  other  account(s)  involved,  in
+         abbreviated  form.   (If there are both real and virtual postings, it
+         shows only the accounts affected by real postings.)
+
+       +o It shows the overall change to the  current  account's  balance  from
+         each  transaction;  positive  for an inflow to this account, negative
+         for an outflow.
+
+       +o When no query other than a date limit is in effect, it shows the cur-
+         rent  account's  historic balance as of the transaction date.  Other-
+         wise it shows a running total starting from  zero.   Eg,  these  will
+         show historic balances:
+
+                $ hledger-ui
+                $ hledger-ui --begin 'this month'
+                $ hledger-ui --register checking date:2015/10
+
+         while these will show a running total, since the queries are not just
+         date limits:
+
+                $ hledger-ui checking
+                $ hledger-ui --begin 'this month' desc:market
+                $ hledger-ui --register checking --cleared
+
+       Press right or enter to view the selected transaction in full detail.
+
+   TTrraannssaaccttiioonn ssccrreeeenn
+       This screen shows a single transaction, as  a  general  journal  entry,
+       similar  to  hledger's  print command and journal format (hledger_jour-
+       nal(5)).
+
+       The transaction's date(s)  and  any  cleared  flag,  transaction  code,
+       description,  comments,  along  with  all  of  its account postings are
+       shown.  Simple transactions have two postings, but there  can  be  more
+       (or in certain cases, fewer).
+
+       up  and  down will step through all transactions listed in the previous
+       account register screen.  In the title bar, the numbers in  parentheses
+       show  your  position  within  that  account  register.   They will vary
+       depending on which account register you came from (remember most trans-
+       actions appear in multiple account registers).  The #N number preceding
+       them is the transaction's position within the complete unfiltered jour-
+       nal, which is a more stable id (at least until the next reload).
+
+   EErrrroorr ssccrreeeenn
+       This  screen  will appear if there is a problem, such as a parse error,
+       when you press g to reload.  Once you have fixed the problem described,
+       press g again to reload and restore normal operation.
+
+EENNVVIIRROONNMMEENNTT
+       LLEEDDGGEERR__FFIILLEE  sets  the  default  journal  file path.  If not set, it is
+       ~/.hledger.journal.
+
+       CCOOLLUUMMNNSS sets the screen  width  to  use  (normally  the  full  terminal
+       width).
+
+FFIILLEESS
+       Reads   data   from   a   hledger   journal   file   ($LEDGER_FILE   or
+       ~/.hledger.journal by default), or a CSV file plus associated CSV rules
+       file.
+
+BBUUGGSS
+       The  need  to precede options with -- when invoked from hledger is awk-
+       ward.
+
+       -f- doesn't work (hledger-ui can't read from stdin).
+
+       -V affects only the accounts screen.
+
+       When you press g, the current and all previous screens are regenerated,
+       which may cause a noticeable pause.  Also there is no visual indication
+       that this is in progress.
+
+       The register screen's switching between historic  balance  and  running
+       total based on query arguments may be confusing, and there is no column
+       heading to indicate which is being displayed.
+
+
+
+RREEPPOORRTTIINNGG BBUUGGSS
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       or hledger mail list)
+
+
+AAUUTTHHOORRSS
+       Simon Michael <simon@joyful.com> and contributors
+
+
+CCOOPPYYRRIIGGHHTT
+       Copyright (C) 2007-2016 Simon Michael.
+       Released under GNU GPL v3 or later.
+
+
+SSEEEE AALLSSOO
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
+       dot(5), ledger(1)
+
+       http://hledger.org
+
+
+
+                                 October 2015                    hledger-ui(1)

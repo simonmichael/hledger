@@ -44,6 +44,7 @@ usage = [i|Usage:
  ./Shake                  # show commands
  ./Shake site             # generate things needed for the website
  ./Shake manpages         # generate nroff files for man
+ ./Shake txtmanpages      # generate text man pages for embedding
  ./Shake webmanpages      # generate web man pages for hakyll
  ./Shake webmanual        # generate combined web man page for hakyll
 |]
@@ -52,6 +53,7 @@ pandoc =
   -- "stack exec -- pandoc" -- use the pandoc required above
   "pandoc"                  -- use pandoc in PATH (faster)
 hakyllstd = "site/hakyll-std/hakyll-std"
+nroff = "nroff"
 
 main = do
 
@@ -79,7 +81,8 @@ main = do
 
     phony "docs" $ do
       need [
-         "manpages"
+          "manpages"
+         ,"txtmanpages"
          ]
 
     let webmanual = "site/manual.md"
@@ -156,6 +159,13 @@ main = do
         "--filter doc/pandoc-drop-links"
         "--filter doc/pandoc-drop-notes"
         "-o" out
+
+    -- render man page nroffs as fixed-width text, for embedding
+    let txtmanpages = [m <.> "txt" | m <- manpages] -- hledger/doc/hledger.1.txt, hledger-lib/doc/journal.5.txt
+    phony "txtmanpages" $ need txtmanpages
+    txtmanpages |%> \out -> do
+      let nroffsrc = dropExtension out  -- hledger/doc/hledger.1
+      cmd Shell nroff "-man" nroffsrc ">" out
 
     -- adjust man page mds for (hakyll) web output, with pandoc
     let webmanpages = ["site" </> manpageNameToUri m <.>".md" | m <- manpageNames] -- site/hledger.md, site/journal.md

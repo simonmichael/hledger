@@ -1,0 +1,71 @@
+
+hledger-api(1)               hledger User Manuals               hledger-api(1)
+
+
+
+NNAAMMEE
+       hledger-api - web API server for the hledger accounting tool
+
+SSYYNNOOPPSSIISS
+       hledger-api [OPTIONS]
+       hledger api -- [OPTIONS]
+
+DDEESSCCRRIIPPTTIIOONN
+       hledger  is  a  cross-platform program for tracking money, time, or any
+       other commodity, using double-entry accounting and a  simple,  editable
+       file  format.   hledger  is  inspired  by  and  largely compatible with
+       ledger(1).
+
+       hledger-api is a simple web API server, intended to support client-side
+       web  apps  operating on hledger data.  It comes with a series of simple
+       client-side app examples, which drive it's evolution.
+
+       Data is served from the usual hledger journal file: ~/.hledger.journal,
+       $LEDGER_FILE,  or  another  file specified with -f.  For more about the
+       format, see hledger(1) or hledger_journal(5).
+
+       The server listens for requests on port ...
+
+       Note there is no built-in access control, so  you  will  need  to  hide
+       hledger-api  behind  an  authenticating  proxy  if you want to restrict
+       access.
+
+EENNVVIIRROONNMMEENNTT
+       LLEEDDGGEERR__FFIILLEE sets the default journal file path.   If  not  set,  it  is
+       ~/.hledger.journal.
+
+FFIILLEESS
+       Reads   data   from   a   hledger   journal   file   ($LEDGER_FILE   or
+       ~/.hledger.journal by default), or a CSV file plus associated CSV rules
+       file.
+
+BBUUGGSS
+       The  need  to precede options with -- when invoked from hledger is awk-
+       ward.
+
+
+
+RREEPPOORRTTIINNGG BBUUGGSS
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       or hledger mail list)
+
+
+AAUUTTHHOORRSS
+       Simon Michael <simon@joyful.com> and contributors
+
+
+CCOOPPYYRRIIGGHHTT
+       Copyright (C) 2007-2016 Simon Michael.
+       Released under GNU GPL v3 or later.
+
+
+SSEEEE AALLSSOO
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
+       dot(5), ledger(1)
+
+       http://hledger.org
+
+
+
+                                 January 2016                   hledger-api(1)
