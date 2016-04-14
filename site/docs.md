@@ -1,5 +1,3 @@
-<!-- * toc -->
-
 # Documentation
 
 <style>
@@ -33,18 +31,6 @@ Small, guided exercises introducing data entry, reporting, and accounting.
 
 **Reference**
 
-<!-- #### [Combined manual](manual2.html) -->
-
-<!-- or: -->
-
-<!-- **[hledger](manual2.html#hledger)** -->
-
-<!-- **[hledger-ui](manual2.html#hledger-ui)** -->
-
-<!-- **[hledger-web](manual2.html#hledger-web)** -->
-
-<!-- **[hledger-api](manual2.html#hledger-api)** -->
-
 #### [hledger](hledger.html)
 The command-line interface.
 <!-- , with detailed reports. -->
@@ -60,14 +46,6 @@ The web interface.
 #### [hledger-api](hledger-api.html)
 A JSON API server.
 <!-- , for building client-side apps. -->
-
-<!-- **[Journal](manual2.html#journal-format)** -->
-
-<!-- **[CSV](manual2.html#csv-format)** -->
-
-<!-- **[Timeclock](manual2.html#timeclock-format)** -->
-
-<!-- **[Timedot](manual2.html#timedot-format)** -->
 
 #### [Journal](journal.html)
 <!-- hledger's primary data format, representing a general journal. -->
@@ -85,7 +63,7 @@ File formats.
 \
 
 
-#### [Combined manual](manual2.html)
+#### [Combined manual](manual.html)
 All on one page.
 
 </div>
@@ -104,19 +82,6 @@ Some useful links not yet moved to..
 
 #### [plaintextaccounting.org](http://plaintextaccounting.org)
 More tips and tools from the plain text accounting community
-
-</div>
-</div>
-</div>
-
-<div class="container">
-<div class="row">
-<div class="col-sm-4">
-
-</div>
-<div class="col-sm-4">
-
-**&nbsp;**
 
 </div>
 </div>
