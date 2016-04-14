@@ -1,8 +1,8 @@
 # OPTIONS
 
-To see general help and the command list: `hledger --help` or `hledger`
+To see general usage and the command list: `hledger -h` or just `hledger`
 
-To see all options available with a command: `hledger COMMAND --help`
+To see usage for a specific command: `hledger COMMAND -h`
 
 Except for the General options below, options must be written after
 COMMAND, not before it.
@@ -21,8 +21,11 @@ interpreted as a search query which filters the data, see QUERIES.
 There are three kinds of options.
 General options are always available and can appear anywhere in the command line:
 
-`-h --help`
-: show general help or (after command) command help
+`-h`
+: show general usage or (after command) command usage
+
+`--help`
+: show detailed help
 
 `--version`
 : show version information

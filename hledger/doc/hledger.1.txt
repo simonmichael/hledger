@@ -102,9 +102,9 @@ EEXXAAMMPPLLEESS
               $ hledger activity -W                     # show transaction counts per week as a bar chart
 
 OOPPTTIIOONNSS
-       To see general help and the command list: hledger --help or hledger
+       To see general usage and the command list: hledger -h or just hledger
 
-       To see all options available with a command: hledger COMMAND --help
+       To see usage for a specific command: hledger COMMAND -h
 
        Except  for  the  General  options below, options must be written after
        COMMAND, not before it.
@@ -122,8 +122,9 @@ OOPPTTIIOONNSS
        There are three kinds of options.  General options are always available
        and can appear anywhere in the command line:
 
-       --hh ----hheellpp
-              show general help or (after command) command help
+       --hh     show general usage or (after command) command usage
+
+       ----hheellpp show detailed help
 
        ----vveerrssiioonn
               show version information
@@ -1181,8 +1182,8 @@ AADDDD--OONN CCOOMMMMAANNDDSS
        tions:
 
        +o Options appearing before ADDONCMD will be visible only to hledger and
-         will not be passed  to  the  add-on.   Eg:  hledger --help web  shows
-         hledger's help, hledger web --help shows hledger-web's help.
+         will not be passed to the add-on.  Eg: hledger -h web shows hledger's
+         usage, hledger web -h shows hledger-web's usage.
 
        +o Options  understood only by the add-on must go after a -- argument to
          hide them from hledger,  which  would  otherwise  reject  them.   Eg:

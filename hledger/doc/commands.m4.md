@@ -503,7 +503,7 @@ hledger will detect these and include them in the command list and let
 you invoke them with `hledger ADDONCMD`. However there are some limitations:
 
 - Options appearing before ADDONCMD will be visible only to hledger and will not be passed to the add-on.
-  Eg: `hledger --help web` shows hledger's help, `hledger web --help` shows hledger-web's help.
+  Eg: `hledger -h web` shows hledger's usage, `hledger web -h` shows hledger-web's usage.
 - Options understood only by the add-on must go after a `--` argument to hide them from hledger, which would otherwise reject them.
   Eg: `hledger web -- --server`.
 

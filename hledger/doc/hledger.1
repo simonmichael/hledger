@@ -142,11 +142,10 @@ $\ hledger\ activity\ \-W\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ tran
 .fi
 .SH OPTIONS
 .PP
-To see general help and the command list: \f[C]hledger\ \-\-help\f[] or
+To see general usage and the command list: \f[C]hledger\ \-h\f[] or just
 \f[C]hledger\f[]
 .PP
-To see all options available with a command:
-\f[C]hledger\ COMMAND\ \-\-help\f[]
+To see usage for a specific command: \f[C]hledger\ COMMAND\ \-h\f[]
 .PP
 Except for the General options below, options must be written after
 COMMAND, not before it.
@@ -170,8 +169,13 @@ There are three kinds of options.
 General options are always available and can appear anywhere in the
 command line:
 .TP
-.B \f[C]\-h\ \-\-help\f[]
-show general help or (after command) command help
+.B \f[C]\-h\f[]
+show general usage or (after command) command usage
+.RS
+.RE
+.TP
+.B \f[C]\-\-help\f[]
+show detailed help
 .RS
 .RE
 .TP
@@ -1625,8 +1629,8 @@ However there are some limitations:
 .IP \[bu] 2
 Options appearing before ADDONCMD will be visible only to hledger and
 will not be passed to the add\-on.
-Eg: \f[C]hledger\ \-\-help\ web\f[] shows hledger\[aq]s help,
-\f[C]hledger\ web\ \-\-help\f[] shows hledger\-web\[aq]s help.
+Eg: \f[C]hledger\ \-h\ web\f[] shows hledger\[aq]s usage,
+\f[C]hledger\ web\ \-h\f[] shows hledger\-web\[aq]s usage.
 .IP \[bu] 2
 Options understood only by the add\-on must go after a \f[C]\-\-\f[]
 argument to hide them from hledger, which would otherwise reject them.
