@@ -1,6 +1,8 @@
 -- -*- haskell -*-
 -- .ghci for hledger-web
 
+:set prompt "hledger-web> "
+
 -- yesod
 
 :set -i.:config:dist/build/autogen:app
