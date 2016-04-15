@@ -161,11 +161,11 @@ main = do
         "-o" out
 
     -- render man page nroffs as fixed-width text, for embedding
-    let txtmanpages = [m <.> "txt" | m <- manpages] -- hledger/doc/hledger.1.txt, hledger-lib/doc/journal.5.txt
+    let txtmanpages = [m <.> "txt" | m <- manpages] -- hledger/doc/hledger.1.txt, hledger-lib/doc/hledger_journal.5.txt
     phony "txtmanpages" $ need txtmanpages
     txtmanpages |%> \out -> do
       need manpages
-      let nroffsrc = dropExtension out  -- hledger/doc/hledger.1
+      let nroffsrc = dropExtension out  -- hledger/doc/hledger.1, hledger-lib/doc/hledger_journal.5
       cmd Shell nroff "-man" nroffsrc ">" out
 
     -- adjust man page mds for (hakyll) web output, with pandoc
