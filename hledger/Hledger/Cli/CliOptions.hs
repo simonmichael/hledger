@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts, TemplateHaskell #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts #-}
 {-|
 
 Common cmdargs modes and flags, a command-line options type, and
@@ -65,9 +65,6 @@ import Prelude ()
 import Prelude.Compat
 import qualified Control.Exception as C
 import Control.Monad (when)
-import qualified Data.ByteString as BS
-import qualified Data.ByteString.UTF8 as BS8
-import Data.FileEmbed
 #if !MIN_VERSION_base(4,8,0)
 import Data.Functor.Compat ((<$>))
 #endif
@@ -89,6 +86,7 @@ import Test.HUnit
 import Text.Parsec
 
 import Hledger
+import Hledger.Cli.DocFiles
 import Hledger.Cli.Version
 
 
@@ -232,13 +230,10 @@ showModeUsage :: Mode a -> String
 showModeUsage = (showText defaultWrap :: [Text] -> String) .
                (helpText [] HelpFormatDefault :: Mode a -> [Text])
 
-hledgerManual :: BS.ByteString
-hledgerManual = $(embedFile "doc/hledger.1.txt")
-
--- | Get the hledger long help, ready for console output
--- (currently, the hledger.1 man page formatted for 80 columns).
+-- | Get a mode's long help, ready for console output
+-- (currently, the hledger man page formatted for 80 columns).
 showModeHelp :: Mode a -> String
-showModeHelp _ = BS8.toString hledgerManual
+showModeHelp _ = lookupDocTxt "hledger"
 
 -- | Add command aliases to the command's help string.
 withAliases :: String -> [String] -> String

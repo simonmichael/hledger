@@ -110,6 +110,7 @@ library
       Hledger.Cli
       Hledger.Cli.Main
       Hledger.Cli.CliOptions
+      Hledger.Cli.DocFiles
       Hledger.Cli.Tests
       Hledger.Cli.Utils
       Hledger.Cli.Version
@@ -118,6 +119,7 @@ library
       Hledger.Cli.Balance
       Hledger.Cli.Balancesheet
       Hledger.Cli.Cashflow
+      Hledger.Cli.Help
       Hledger.Cli.Histogram
       Hledger.Cli.Incomestatement
       Hledger.Cli.Print

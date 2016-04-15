@@ -55,6 +55,7 @@ import Hledger.Cli.Accounts
 import Hledger.Cli.Balance
 import Hledger.Cli.Balancesheet
 import Hledger.Cli.Cashflow
+import Hledger.Cli.Help
 import Hledger.Cli.Histogram
 import Hledger.Cli.Incomestatement
 import Hledger.Cli.Print
@@ -98,6 +99,7 @@ mainmode addons = defMode {
                        cs -> [("\nAdd-on commands", map defAddonCommandMode cs)]
     -- modes in the unnamed group, shown first without a heading:
    ,groupUnnamed = [
+        helpmode
      ]
     -- modes handled but not shown
    ,groupHidden = [
@@ -244,8 +246,8 @@ main = do
     isBadCommand         = not (null rawcmd) && null cmd
     hasVersion           = ("--version" `elem`)
     hasDetailedVersion   = ("--version+" `elem`)
-    generalUsage         = putStr $ showModeUsage $ mainmode addonDisplayNames
-    generalHelp          = putStr $ showModeHelp $ mainmode addonDisplayNames
+    printUsage           = putStr $ showModeUsage $ mainmode addonDisplayNames
+    printHelp            = putStr $ showModeHelp  $ mainmode addonDisplayNames
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
     hasShortHelp args    = any (`elem` args) ["-h"]
     hasLongHelp args     = any (`elem` args) ["--help"]
@@ -265,15 +267,15 @@ main = do
   let
     runHledgerCommand
       -- high priority flags and situations. --help should be highest priority.
-      | hasShortHelp argsbeforecmd = dbgIO "" "-h before command, showing general usage" >> generalUsage
-      | hasLongHelp argsbeforecmd = dbgIO "" "--help before command, showing general help" >> generalHelp
+      | hasShortHelp argsbeforecmd = dbgIO "" "-h before command, showing general usage" >> printUsage
+      | hasLongHelp  argsbeforecmd = dbgIO "" "--help before command, showing general help" >> printHelp
       | not (hasHelp argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameandversion
       | not (hasHelp argsaftercmd) && (hasDetailedVersion argsbeforecmd || (hasDetailedVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameanddetailedversion
       -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
       -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
-      | isNullCommand            = dbgIO "" "no command, showing general help" >> generalUsage
+      | isNullCommand            = dbgIO "" "no command, showing general help" >> printUsage
       | isBadCommand             = badCommandError
 
       -- internal commands
@@ -288,6 +290,7 @@ main = do
       | cmd == "register"        = withJournalDo opts register        `orShowUsage` registermode `orShowHelp` registermode
       | cmd == "stats"           = withJournalDo opts stats           `orShowUsage` statsmode `orShowHelp` statsmode
       | cmd == "test"            = test' opts                         `orShowUsage` testmode `orShowHelp` testmode
+      | cmd == "help"            = help' opts                         `orShowUsage` helpmode `orShowHelp` helpmode
 
       -- an external command
       | isExternalCommand = do

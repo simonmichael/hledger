@@ -13,12 +13,14 @@ module Hledger.Cli (
                      module Hledger.Cli.Balance,
                      module Hledger.Cli.Balancesheet,
                      module Hledger.Cli.Cashflow,
+                     module Hledger.Cli.Help,
                      module Hledger.Cli.Histogram,
                      module Hledger.Cli.Incomestatement,
                      module Hledger.Cli.Print,
                      module Hledger.Cli.Register,
                      module Hledger.Cli.Stats,
                      module Hledger.Cli.CliOptions,
+                     module Hledger.Cli.DocFiles,
                      module Hledger.Cli.Utils,
                      module Hledger.Cli.Version,
                      tests_Hledger_Cli,
@@ -37,11 +39,13 @@ import Hledger.Cli.Balance
 import Hledger.Cli.Balancesheet
 import Hledger.Cli.Cashflow
 import Hledger.Cli.Histogram
+import Hledger.Cli.Help
 import Hledger.Cli.Incomestatement
 import Hledger.Cli.Print
 import Hledger.Cli.Register
 import Hledger.Cli.Stats
 import Hledger.Cli.CliOptions
+import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
 
