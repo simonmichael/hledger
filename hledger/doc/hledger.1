@@ -1299,21 +1299,27 @@ Total:
 .fi
 .SS help
 .PP
-Show detailed help (the main hledger man pages).
+Show detailed help.
 .PP
-The long \f[C]\-\-help\f[] flag displays the hledger man page, as
-fixed\-width text.
-The \f[C]help\f[] command can display any of the main hledger man pages.
-Run \f[C]hledger\ help\f[] with no arguments to see a list of topics.
-These correspond to the man pages, shortened for easy typing.
-Run \f[C]hledger\ help\ TOPIC\f[] to view that topic.
-You may wish to pipe the output into a pager for easier viewing.
-.PP
-\f[C]{.shell\ .clear}\ $\ hledger\ help\ Please\ choose\ a\ topic,\ eg:\ hledger\ help\ ui\ Topics:\ cli,\ ui,\ web,\ api,\ journal,\ csv,\ timeclock,\ timedot\f[],
+The \f[C]help\f[] command can display any of the main hledger man pages,
+as fixed\-width text.
+(Unlike \f[C]hledger\ \-\-help\f[], which displays only the hledger man
+page.) Run it with no arguments to list available topics (their names
+are shortened for easier typing), and run \f[C]hledger\ help\ TOPIC\f[]
+to select one.
+The output may be long, so you may wish to pipe it into a pager.
 .IP
 .nf
 \f[C]
-$\ hledger\ help\ cli
+$\ hledger\ help
+Please\ choose\ a\ topic,\ eg:\ hledger\ help\ ui
+Topics:\ cli,\ ui,\ web,\ api,\ journal,\ csv,\ timeclock,\ timedot
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ help\ cli\ |\ less
 
 hledger(1)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hledger\ User\ Manuals\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hledger(1)
 
@@ -1323,7 +1329,9 @@ NAME
 \ \ \ \ \ \ \ hledger\ \-\ a\ command\-line\ accounting\ tool
 
 SYNOPSIS
-\&...
+\ \ \ \ \ \ \ hledger\ [\-f\ FILE]\ COMMAND\ [OPTIONS]\ [CMDARGS]
+\ \ \ \ \ \ \ hledger\ [\-f\ FILE]\ ADDONCMD\ \-\-\ [OPTIONS]\ [CMDARGS]
+:
 \f[]
 .fi
 .SS incomestatement

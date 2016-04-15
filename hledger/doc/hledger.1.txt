@@ -940,19 +940,20 @@ CCOOMMMMAANNDDSS
                                $-1
 
    hheellpp
-       Show detailed help (the main hledger man pages).
+       Show detailed help.
 
-       The long --help flag displays the  hledger  man  page,  as  fixed-width
-       text.   The help command can display any of the main hledger man pages.
-       Run hledger help with no arguments to see a list of topics.  These cor-
-       respond   to   the   man   pages,   shortened  for  easy  typing.   Run
-       hledger help TOPIC to view that topic.  You may wish to pipe the output
-       into a pager for easier viewing.
+       The help command can display any of the  main  hledger  man  pages,  as
+       fixed-width  text.   (Unlike  hledger --help,  which  displays only the
+       hledger man page.) Run it with no arguments to  list  available  topics
+       (their    names   are   shortened   for   easier   typing),   and   run
+       hledger help TOPIC to select one.  The output may be long, so  you  may
+       wish to pipe it into a pager.
 
-       {.shell .clear} $ hledger help Please choose a topic, eg: hledger help ui Top-
-       ics: cli, ui, web, api, journal, csv, timeclock, timedot,
+              $ hledger help
+              Please choose a topic, eg: hledger help ui
+              Topics: cli, ui, web, api, journal, csv, timeclock, timedot
 
-              $ hledger help cli
+              $ hledger help cli | less
 
               hledger(1)                   hledger User Manuals                   hledger(1)
 
@@ -962,7 +963,9 @@ CCOOMMMMAANNDDSS
                      hledger - a command-line accounting tool
 
               SYNOPSIS
-              ...
+                     hledger [-f FILE] COMMAND [OPTIONS] [CMDARGS]
+                     hledger [-f FILE] ADDONCMD -- [OPTIONS] [CMDARGS]
+              :
 
    iinnccoommeessttaatteemmeenntt
        Show an income statement.  Alias: is.
@@ -972,8 +975,8 @@ CCOOMMMMAANNDDSS
        ----ddrroopp==NN
               in flat mode: omit N leading account name parts
 
-       This command displays a simple income statement.  It currently  assumes
-       that  you have top-level accounts named income (or revenue) and expense
+       This  command displays a simple income statement.  It currently assumes
+       that you have top-level accounts named income (or revenue) and  expense
        (plural forms also allowed.)
 
               $ hledger incomestatement
@@ -1001,7 +1004,7 @@ CCOOMMMMAANNDDSS
        Show transactions from the journal.
 
        --mm SSTTRR ----mmaattcchh==SSTTRR
-              show the transaction whose description is most similar  to  STR,
+              show  the  transaction whose description is most similar to STR,
               and is most recent
 
        --oo FFIILLEE[[..FFMMTT]] ----oouuttppuutt--ffiillee==FFIILLEE[[..FFMMTT]]
@@ -1011,12 +1014,12 @@ CCOOMMMMAANNDDSS
        --OO FFMMTT ----oouuttppuutt--ffoorrmmaatt==FFMMTT
               select the output format.  Supported formats: txt, csv.
 
-       The print command displays full transactions  from  the  journal  file,
-       tidily  formatted  and  showing  all amounts explicitly.  The output of
-       print is always a valid hledger journal, but it does  always  not  pre-
+       The  print  command  displays  full transactions from the journal file,
+       tidily formatted and showing all amounts  explicitly.   The  output  of
+       print  is  always  a valid hledger journal, but it does always not pre-
        serve all original content exactly (eg directives).
 
-       hledger's  print command also shows all unit prices in effect, or (with
+       hledger's print command also shows all unit prices in effect, or  (with
        -B/--cost) shows cost amounts.
 
        The print command also supports output destination and CSV output.
@@ -1050,14 +1053,14 @@ CCOOMMMMAANNDDSS
               include prior postings in the running total
 
        --AA ----aavveerraaggee
-              show a running average instead of  the  running  total  (implies
+              show  a  running  average  instead of the running total (implies
               --empty)
 
        --rr ----rreellaatteedd
               show postings' siblings instead
 
        --ww NN ----wwiiddtthh==NN
-              set  output  width  (default:  terminal width or COLUMNS.  -wN,M
+              set output width (default: terminal  width  or  COLUMNS.   -wN,M
               sets description width as well)
 
        --oo FFIILLEE[[..FFMMTT]] ----oouuttppuutt--ffiillee==FFIILLEE[[..FFMMTT]]
@@ -1074,7 +1077,7 @@ CCOOMMMMAANNDDSS
               2008/12/31 pay off              assets:bank:checking           $-1             0
 
        The register command displays postings, one per line, and their running
-       total.  This is typically used with  a  query  selecting  a  particular
+       total.   This  is  typically  used  with a query selecting a particular
        account, to see that account's activity.
 
               $ hledger register checking -b 2008/6 --historical
@@ -1082,18 +1085,18 @@ CCOOMMMMAANNDDSS
               2008/06/02 save                 assets:bank:checking           $-1            $1
               2008/12/31 pay off              assets:bank:checking           $-1             0
 
-       The  --historical/-H  flag  adds the balance from any prior postings to
+       The --historical/-H flag adds the balance from any  prior  postings  to
        the running total, to show the actual historical running balance.  This
        is useful when you want to see just the recent activity.
 
        The --depth option limits the amount of sub-account detail displayed.
 
-       The  --average/-A flag shows the running average posting amount instead
+       The --average/-A flag shows the running average posting amount  instead
        of the running total (so, the final number displayed is the average for
-       the  whole  report period).  This flag implies --empty (see below).  It
+       the whole report period).  This flag implies --empty (see  below).   It
        works best when showing just one account and one commodity.
 
-       The --related/-r flag shows the _o_t_h_e_r postings in the  transactions  of
+       The  --related/-r  flag shows the _o_t_h_e_r postings in the transactions of
        the postings which would normally be shown.
 
               $ hledger register --monthly income
@@ -1119,28 +1122,28 @@ CCOOMMMMAANNDDSS
               2008/06                 assets                                 $-1             0
               2008/12                 assets                                 $-1           $-1
 
-       With  a  reporting  interval,  register shows summary postings, one per
+       With a reporting interval, register shows  summary  postings,  one  per
        interval, aggregating the postings to each account.
 
-       Periods with no activity, and summary postings with a zero amount,  are
+       Periods  with no activity, and summary postings with a zero amount, are
        not shown by default; use the --empty/-E flag to see them.
 
-       Often,  you'll  want  to  see  just one line per interval.  The --depth
+       Often, you'll want to see just one  line  per  interval.   The  --depth
        option helps with this, causing subaccounts to be aggregated.
 
-       Note when using report intervals, if you specify start/end dates  these
-       will  be  adjusted  outward  if  necessary to contain a whole number of
-       intervals.  This ensures that the first and  last  intervals  are  full
+       Note  when using report intervals, if you specify start/end dates these
+       will be adjusted outward if necessary to  contain  a  whole  number  of
+       intervals.   This  ensures  that  the first and last intervals are full
        length and comparable to the others in the report.
 
    CCuussttoomm rreeggiisstteerr oouuttppuutt
-       register  uses  the  full terminal width by default, except on windows.
-       You can override this by setting the COLUMNS environment variable  (not
+       register uses the full terminal width by default,  except  on  windows.
+       You  can override this by setting the COLUMNS environment variable (not
        a bash shell variable) or by using the --width/-w option.
 
-       The  description  and  account columns normally share the space equally
-       (about half of (width - 40) each).  You can adjust  this  by  adding  a
-       description  width  as  part  of  --width's  argument, comma-separated:
+       The description and account columns normally share  the  space  equally
+       (about  half  of  (width  - 40) each).  You can adjust this by adding a
+       description width  as  part  of  --width's  argument,  comma-separated:
        --width W,D .  Here's a diagram:
 
               <--------------------------------- width (W) ---------------------------------->
@@ -1156,7 +1159,7 @@ CCOOMMMMAANNDDSS
               $ hledger reg -w 100,40       # set overall width 100, description width 40
               $ hledger reg -w $COLUMNS,40  # use terminal width, and set description width
 
-       The register command also supports the -o/--output-file  and  -O/--out-
+       The  register  command also supports the -o/--output-file and -O/--out-
        put-format options for controlling output destination and CSV output.
 
    ssttaattss
@@ -1178,8 +1181,8 @@ CCOOMMMMAANNDDSS
               Accounts                 : 8 (depth 3)
               Commodities              : 1 ($)
 
-       The stats command displays summary information for the  whole  journal,
-       or  a matched part of it.  With a reporting interval, it shows a report
+       The  stats  command displays summary information for the whole journal,
+       or a matched part of it.  With a reporting interval, it shows a  report
        for each report period.
 
        The stats command also supports -o/--output-file for controlling output
@@ -1191,37 +1194,37 @@ CCOOMMMMAANNDDSS
               $ hledger test
               Cases: 74  Tried: 74  Errors: 0  Failures: 0
 
-       This  command  runs  hledger's built-in unit tests and displays a quick
+       This command runs hledger's built-in unit tests and  displays  a  quick
        report.  With a regular expression argument, it selects only tests with
        matching names.  It's mainly used in development, but it's also nice to
        be able to check your hledger executable for smoke at any time.
 
 AADDDD--OONN CCOOMMMMAANNDDSS
-       Add-on commands are executables in your PATH  whose  name  starts  with
-       hledger-   and   ends   with   any  of  these  file  extensions:  none,
-       .hs,.lhs,.pl,.py,.rb,.rkt,.sh,.bat,.com,.exe.  Also, an  add-on's  name
+       Add-on  commands  are  executables  in your PATH whose name starts with
+       hledger-  and  ends  with  any  of   these   file   extensions:   none,
+       .hs,.lhs,.pl,.py,.rb,.rkt,.sh,.bat,.com,.exe.   Also,  an add-on's name
        may not be the same as any built-in command or alias.
 
-       hledger  will detect these and include them in the command list and let
-       you invoke them with hledger ADDONCMD.  However there are some  limita-
+       hledger will detect these and include them in the command list and  let
+       you  invoke them with hledger ADDONCMD.  However there are some limita-
        tions:
 
        +o Options appearing before ADDONCMD will be visible only to hledger and
          will not be passed to the add-on.  Eg: hledger -h web shows hledger's
          usage, hledger web -h shows hledger-web's usage.
 
-       +o Options  understood only by the add-on must go after a -- argument to
-         hide them from hledger,  which  would  otherwise  reject  them.   Eg:
+       +o Options understood only by the add-on must go after a -- argument  to
+         hide  them  from  hledger,  which  would  otherwise reject them.  Eg:
          hledger web -- --server.
 
-       Sometimes  it  may  be more convenient to just run the add-on directly,
+       Sometimes it may be more convenient to just run  the  add-on  directly,
        eg: hledger-web --server.
 
-       Add-ons which  are  written  in  haskell  can  take  advantage  of  the
-       hledger-lib   library  for  journal  parsing,  reporting,  command-line
+       Add-ons  which  are  written  in  haskell  can  take  advantage  of the
+       hledger-lib  library  for  journal  parsing,  reporting,   command-line
        options, etc.
 
-       Here are some hledger add-ons available from Hackage, the extra  direc-
+       Here  are some hledger add-ons available from Hackage, the extra direc-
        tory in the hledger source, or elsewhere:
 
    aappii
@@ -1279,11 +1282,11 @@ AADDDD--OONN CCOOMMMMAANNDDSS
                   WF:4303001832                               -$6.00
                   [assets:business:bank:wf:bchecking:banking]  $6.00
 
-       ledger-autosync,  which  includes  a  hledger-autosync alias, downloads
+       ledger-autosync, which includes  a  hledger-autosync  alias,  downloads
        transactions from your bank(s) via OFX, and prints just the new ones as
        journal entries which you can add to your journal.  It can also operate
-       on .OFX files which you've downloaded  manually.   It  can  be  a  nice
-       alternative  to  hledger's built-in CSV reader, especially if your bank
+       on  .OFX  files  which  you've  downloaded  manually.  It can be a nice
+       alternative to hledger's built-in CSV reader, especially if  your  bank
        supports OFX download.
 
    ddiiffff
@@ -1309,9 +1312,9 @@ AADDDD--OONN CCOOMMMMAANNDDSS
               2015/02/02
                   (acct:two)            $2
 
-       hledger-diff compares two journal files.  Given  an  account  name,  it
-       prints  out  the  transactions  affecting that account which are in one
-       journal file but not in the other.  This can be useful for  reconciling
+       hledger-diff  compares  two  journal  files.  Given an account name, it
+       prints out the transactions affecting that account  which  are  in  one
+       journal  file but not in the other.  This can be useful for reconciling
        existing journals with bank statements.
 
    eeqquuiittyy
@@ -1338,14 +1341,14 @@ AADDDD--OONN CCOOMMMMAANNDDSS
                   equity:opening balances             0
 
        This prints a journal entry which zeroes out the specified accounts (or
-       all accounts) with a transfer to/from "equity:closing  balances"  (like
-       Ledger's  equity command).  Also, it prints an similar entry with oppo-
+       all  accounts)  with a transfer to/from "equity:closing balances" (like
+       Ledger's equity command).  Also, it prints an similar entry with  oppo-
        site sign for restoring the balances from "equity:opening balances".
 
        These can be useful for ending one journal file and starting a new one,
-       respectively.   By zeroing your asset and liability accounts at the end
+       respectively.  By zeroing your asset and liability accounts at the  end
        of a file and restoring them at the start of the next one, you will see
-       correct  asset/liability  balances  whether you run hledger on just one
+       correct asset/liability balances whether you run hledger  on  just  one
        file, or on several files concatenated with include.
 
    iinntteerreesstt
@@ -1426,11 +1429,11 @@ AADDDD--OONN CCOOMMMMAANNDDSS
                   Liabilities:Bank   EUR 3700.00
 
        hledger-interest computes interests for a given account.  Using command
-       line  flags,  the  program can be configured to use various schemes for
-       day-counting, such as act/act, 30/360, 30E/360, and  30/360isda.   Fur-
-       thermore,  it  supports  a  (small)  number  of  interest schemes, i.e.
+       line flags, the program can be configured to use  various  schemes  for
+       day-counting,  such  as act/act, 30/360, 30E/360, and 30/360isda.  Fur-
+       thermore, it supports  a  (small)  number  of  interest  schemes,  i.e.
        annual interest with a fixed rate and the scheme mandated by the German
-       BGB288  (Basiszins f~A1/4r Verbrauchergesch~Aoxfte).  See the package page
+       BGB288 (Basiszins f~A1/4r Verbrauchergesch~Aoxfte).  See the package  page
        for more.
 
    iirrrr
@@ -1488,11 +1491,11 @@ AADDDD--OONN CCOOMMMMAANNDDSS
               2011/04/01 - 2011/05/01: 32.24%
               2011/05/01 - 2011/06/01: 95.92%
 
-       hledger-irr computes the internal rate of return,  also  known  as  the
-       effective  interest rate, of a given investment.  After specifying what
-       account holds the investment, and what account  stores  the  gains  (or
-       losses,  or  fees, or cost), it calculates the hypothetical annual rate
-       of fixed rate investment that would have provided the exact  same  cash
+       hledger-irr  computes  the  internal  rate of return, also known as the
+       effective interest rate, of a given investment.  After specifying  what
+       account  holds  the  investment,  and what account stores the gains (or
+       losses, or fees, or cost), it calculates the hypothetical  annual  rate
+       of  fixed  rate investment that would have provided the exact same cash
        flow.  See the package page for more.
 
    pprriinntt--uunniiqquuee
@@ -1524,26 +1527,26 @@ AADDDD--OONN CCOOMMMMAANNDDSS
 
 TTRROOUUBBLLEESSHHOOOOTTIINNGG
    RRuunn--ttiimmee pprroobblleemmss
-       Here are some issues you might encounter  when  you  run  hledger  (and
-       remember  you can also seek help from the IRC channel, mail list or bug
+       Here  are  some  issues  you  might encounter when you run hledger (and
+       remember you can also seek help from the IRC channel, mail list or  bug
        tracker):
 
        SSuucccceessssffuullllyy iinnssttaalllleedd,, bbuutt ""NNoo ccoommmmaanndd ''hhlleeddggeerr'' ffoouunndd""
        stack and cabal install binaries into a special directory, which should
-       be  added  to your PATH environment variable.  Eg on unix-like systems,
+       be added to your PATH environment variable.  Eg on  unix-like  systems,
        that is ~/.local/bin and ~/.cabal/bin respectively.
 
        II sseett aa ccuussttoomm LLEEDDGGEERR__FFIILLEE,, bbuutt hhlleeddggeerr iiss ssttiillll uussiinngg tthhee ddeeffaauulltt ffiillee
-       LEDGER_FILE  should  be  a  real environment variable, not just a shell
-       variable.  The command env | grep LEDGER_FILE should show it.  You  may
+       LEDGER_FILE should be a real environment variable,  not  just  a  shell
+       variable.   The command env | grep LEDGER_FILE should show it.  You may
        need to use export.  Here's an explanation.
 
-       ""IIlllleeggaall  bbyyttee  sseeqquueennccee""  oorr  ""IInnvvaalliidd oorr iinnccoommpplleettee mmuullttiibbyyttee oorr wwiiddee
+       ""IIlllleeggaall bbyyttee sseeqquueennccee"" oorr ""IInnvvaalliidd oorr  iinnccoommpplleettee  mmuullttiibbyyttee  oorr  wwiiddee
        cchhaarraacctteerr"" eerrrroorrss
-       In order to handle non-ascii letters and  symbols  (like  ^A-L),  hledger
-       needs  an  appropriate locale.  This is usually configured system-wide;
-       you can also configure it temporarily.  The locale may need to  be  one
-       that  supports  UTF-8, if you built hledger with GHC < 7.2 (or possibly
+       In  order  to  handle  non-ascii letters and symbols (like ^A-L), hledger
+       needs an appropriate locale.  This is usually  configured  system-wide;
+       you  can  also configure it temporarily.  The locale may need to be one
+       that supports UTF-8, if you built hledger with GHC < 7.2  (or  possibly
        always, I'm not sure yet).
 
        Here's  an  example  of  setting  the  locale  temporarily,  on  ubuntu
@@ -1562,7 +1565,7 @@ TTRROOUUBBLLEESSHHOOOOTTIINNGG
               $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
               $ bash --login
 
-       If  we  preferred  to  use eg fr_FR.utf8, we might have to install that
+       If we preferred to use eg fr_FR.utf8, we might  have  to  install  that
        first:
 
               $ apt-get install language-pack-fr
@@ -1583,31 +1586,31 @@ TTRROOUUBBLLEESSHHOOOOTTIINNGG
    KKnnoowwnn lliimmiittaattiioonnss
        CCoommmmaanndd lliinnee iinntteerrffaaccee
 
-       Add-on  command  options,  unless  they are also understood by the main
-       hledger  executable,   must   be   written   after   --,   like   this:
+       Add-on command options, unless they are also  understood  by  the  main
+       hledger   executable,   must   be   written   after   --,   like  this:
        hledger web -- --server
 
        DDiiffffeerreenncceess ffrroomm LLeeddggeerr
 
-       Not  all of Ledger's journal file syntax is supported.  See file format
+       Not all of Ledger's journal file syntax is supported.  See file  format
        differences.
 
-       hledger is slower than Ledger, and uses  more  memory,  on  large  data
+       hledger  is  slower  than  Ledger,  and uses more memory, on large data
        files.
 
        WWiinnddoowwss lliimmiittaattiioonnss
 
-       In  a windows CMD window, non-ascii characters and colours are not sup-
+       In a windows CMD window, non-ascii characters and colours are not  sup-
        ported.
 
        In a windows Cygwin/MSYS/Mintty window, the tab key is not supported in
        hledger add.
 
 EENNVVIIRROONNMMEENNTT
-       LLEEDDGGEERR__FFIILLEE  sets  the  default  journal  file path.  If not set, it is
+       LLEEDDGGEERR__FFIILLEE sets the default journal file path.   If  not  set,  it  is
        ~/.hledger.journal.
 
-       CCOOLLUUMMNNSS sets the default width used by the register  command  (normally
+       CCOOLLUUMMNNSS  sets  the default width used by the register command (normally
        the full terminal width).
 
 FFIILLEESS
@@ -1616,10 +1619,10 @@ FFIILLEESS
        file.
 
 BBUUGGSS
-       The  need  to precede options with -- when invoked from hledger is awk-
+       The need to precede options with -- when invoked from hledger  is  awk-
        ward.
 
-       hledger can't render non-ascii characters when run from a Windows  com-
+       hledger  can't render non-ascii characters when run from a Windows com-
        mand prompt (up to Windows 7 at least).
 
        When input data contains non-ascii characters, a suitable system locale
@@ -1629,7 +1632,7 @@ BBUUGGSS
 
 
 RREEPPOORRTTIINNGG BBUUGGSS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -1643,7 +1646,7 @@ CCOOPPYYRRIIGGHHTT
 
 
 SSEEEE AALLSSOO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

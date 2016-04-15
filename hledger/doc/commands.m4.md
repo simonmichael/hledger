@@ -236,23 +236,22 @@ Total:
 }})
 
 ## help
-Show detailed help (the main hledger man pages).
+Show detailed help.
 
-The long `--help` flag displays the hledger man page, as fixed-width text.
-The `help` command can display any of the main hledger man pages.
-Run `hledger help` with no arguments to see a list of topics.
-These correspond to the [man pages](/docs.html), shortened for easy typing.
-Run `hledger help TOPIC` to view that topic.
-You may wish to pipe the output into a pager for easier viewing.
+The `help` command can display any of the main [hledger man pages](/docs.html), as fixed-width text. 
+(Unlike `hledger --help`, which displays only the hledger man page.)
+Run it with no arguments to list available topics (their names are shortened for easier typing),
+and run `hledger help TOPIC` to select one.
+The output may be long, so you may wish to pipe it into a pager.
 
-_col3_({{
 _shell_({{
 $ hledger help
 Please choose a topic, eg: hledger help ui
 Topics: cli, ui, web, api, journal, csv, timeclock, timedot
-}}),
+}})
+
 _shell_({{
-$ hledger help cli
+$ hledger help cli | less
 
 hledger(1)                   hledger User Manuals                   hledger(1)
 
@@ -262,8 +261,9 @@ NAME
        hledger - a command-line accounting tool
 
 SYNOPSIS
-...
-}})
+       hledger [-f FILE] COMMAND [OPTIONS] [CMDARGS]
+       hledger [-f FILE] ADDONCMD -- [OPTIONS] [CMDARGS]
+:
 }})
 
 ## incomestatement
