@@ -175,7 +175,7 @@ show general usage or (after command) command usage
 .RE
 .TP
 .B \f[C]\-\-help\f[]
-show detailed help
+show detailed help (man page)
 .RS
 .RE
 .TP
@@ -1295,6 +1295,35 @@ Cash\ flows:
 Total:
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1
+\f[]
+.fi
+.SS help
+.PP
+Show detailed help (the main hledger man pages).
+.PP
+The long \f[C]\-\-help\f[] flag displays the hledger man page, as
+fixed\-width text.
+The \f[C]help\f[] command can display any of the main hledger man pages.
+Run \f[C]hledger\ help\f[] with no arguments to see a list of topics.
+These correspond to the man pages, shortened for easy typing.
+Run \f[C]hledger\ help\ TOPIC\f[] to view that topic.
+You may wish to pipe the output into a pager for easier viewing.
+.PP
+\f[C]{.shell\ .clear}\ $\ hledger\ help\ Please\ choose\ a\ topic,\ eg:\ hledger\ help\ ui\ Topics:\ cli,\ ui,\ web,\ api,\ journal,\ csv,\ timeclock,\ timedot\f[],
+.IP
+.nf
+\f[C]
+$\ hledger\ help\ cli
+
+hledger(1)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hledger\ User\ Manuals\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hledger(1)
+
+
+
+NAME
+\ \ \ \ \ \ \ hledger\ \-\ a\ command\-line\ accounting\ tool
+
+SYNOPSIS
+\&...
 \f[]
 .fi
 .SS incomestatement

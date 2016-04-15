@@ -25,7 +25,7 @@ General options are always available and can appear anywhere in the command line
 : show general usage or (after command) command usage
 
 `--help`
-: show detailed help
+: show detailed help (man page)
 
 `--version`
 : show version information
