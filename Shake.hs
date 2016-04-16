@@ -175,6 +175,7 @@ main = do
       need $ 
         webmanpages ++
         [webmanual
+        ,"releasemanual"
         ,hakyllstd
         ]
       cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
@@ -212,6 +213,14 @@ main = do
           "--filter doc/pandoc-demote-headers"
           ">>" webmanual :: Action ExitCode
 
+    -- check out and render manual pages for the current release also
+    phony "releasemanual" $ need [ "releasemanual0.27" ]
+
+    phony "releasemanual0.27" $ do
+      -- XXX under doc so hakyll-std will render it
+      cmd "mkdir -p site/doc/0.27" :: Action ExitCode
+      cmd Shell "git show 0.27:doc/manual.md >site/doc/0.27/manual.md"
+
     -- build standard hakyll script used for site rendering
     hakyllstd %> \out -> do
       let dir = takeDirectory out
@@ -222,7 +231,7 @@ main = do
 
     phony "clean" $ do
       putNormal "Cleaning generated files"
-      removeFilesAfter "." ["hledger/doc/hledger.1.md"]
+      removeFilesAfter "." mdmanpages
       removeFilesAfter "." webmanpages
       removeFilesAfter "." [webmanual]
 

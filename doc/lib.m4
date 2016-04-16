@@ -22,8 +22,8 @@ m4_define({{_shellbold_}}, {{```{.shell .bold .clear}$1```}})m4_dnl
 m4_define({{_journal_}}, {{```{.journal .clear}$1```}})m4_dnl
 m4_define({{_currentrelease_}}, {{0.27}})m4_dnl
 m4_define({{_versions_}},
-{{<div class="versions">
+<div class="versions">
 version:
 <a href="$1.html">dev</a>
-| <a href="_currentrelease_()/$1.html">_currentrelease_()</a>
-</div>}})m4_dnl
+| <a href="doc/_currentrelease_()/manual.html{{#}}m4_patsubst($1,{{hledger-}})">_currentrelease_()</a>
+</div>)m4_dnl
