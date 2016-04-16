@@ -3,6 +3,8 @@
 % January 2016
 
 <div class="web">
+_versions_({{hledger-api}})
+
 * toc
 </div>
 <div class="man">

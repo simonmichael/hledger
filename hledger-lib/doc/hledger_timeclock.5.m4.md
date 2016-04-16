@@ -3,6 +3,8 @@
 % April 2016
 
 <div class="web">
+_versions_({{timeclock}})
+
 * toc
 </div>
 <div class="man">

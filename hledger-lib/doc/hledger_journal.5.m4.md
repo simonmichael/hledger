@@ -3,6 +3,8 @@
 % April 2016
 
 <div class="web">
+_versions_({{journal}})
+
 * toc
 </div>
 <div class="man">
