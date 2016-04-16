@@ -42,7 +42,9 @@ usage = [i|Usage:
  ./Shake.hs compile       # compile this script (optional)
  ./Shake --help           # show options, eg --color
  ./Shake                  # show commands
- ./Shake site             # generate things needed for the website
+ ./Shake all              # generate everything
+ ./Shake docs             # generate general docs
+ ./Shake site             # generate the web site
  ./Shake manpages         # generate nroff files for man
  ./Shake txtmanpages      # generate text man pages for embedding
  ./Shake webmanpages      # generate web man pages for hakyll
@@ -72,35 +74,15 @@ main = do
     phony "help" $ liftIO $ putStrLn usage
 
     phony "compile" $ need ["Shake"]
+
     "Shake" %> \out -> do
-      need ["Shake.hs"]
+      need [out <.> "hs"]
       cmd "stack ghc Shake.hs" :: Action ExitCode
       putLoud "Compiled ./Shake, you can now use this instead of ./Shake.hs"
 
+    phony "all" $ need ["docs", "site"]
+
     -- docs
-
-    phony "docs" $ do
-      need [
-          "manpages"
-         ,"txtmanpages"
-         ]
-
-    let webmanual = "site/manual.md"
-
-    phony "site" $ do
-      need [
-         "webmanpages"
-        ,webmanual
-        ,hakyllstd
-        ]
-      cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
-
-    hakyllstd %> \out -> do
-      let dir = takeDirectory out
-      need [out <.> "hs", dir </> "TableOfContents.hs"]
-      cmd (Cwd dir) "stack ghc hakyll-std"
-
-    -- man pages
 
     let
       manpageNames = [ -- in suggested reading order
@@ -113,6 +95,23 @@ main = do
         ,"hledger_timeclock.5"
         ,"hledger_timedot.5"
         ]
+      -- manuals m4 source, may include other files (hledger/doc/hledger.1.m4.md)
+      m4manpages = [manpageDir m </> m <.> "m4.md" | m <- manpageNames]
+      --  manuals rendered to markdown, ready for adjusting to web or man pages by pandoc (hledger/doc/hledger.1.md)
+      mdmanpages = [manpageDir m </> m <.> "md" | m <- manpageNames]
+      --   manuals rendered to nroff, ready for man (hledger/doc/hledger.1)
+      nroffmanpages = [manpageDir m </> m | m <- manpageNames]
+      --    manuals rendered to text, ready for embedding (hledger/doc/hledger.1.txt)
+      txtmanpages = [manpageDir m </> m <.> "txt" | m <- manpageNames]
+      --   manuals rendered to markdown, ready for web output by hakyll (site/hledger.md)
+      webmanpages = ["site" </> manpageNameToUri m <.>"md" | m <- manpageNames]
+      --    manuals rendered to markdown and combined, ready for web output by hakyll
+      webmanual = "site/manual.md"
+
+      -- hledger.1 -> hledger/doc, hledger_journal.5 -> hledger-lib/doc
+      manpageDir m
+        | '_' `elem` m = "hledger-lib" </> "doc"
+        | otherwise    = dropExtension m </> "doc"
 
       -- hledger.1 -> hledger, hledger_journal.5 -> journal
       manpageNameToUri m | "hledger_" `isPrefixOf` m = dropExtension $ drop 8 m
@@ -122,37 +121,39 @@ main = do
       manpageUriToName u | "hledger" `isPrefixOf` u = u <.> "1"
                          | otherwise                = "hledger_" ++ u <.> "5"
 
-      -- hledger.1 -> hledger/doc, hledger_journal.5 -> hledger-lib/doc
-      manpageDir m
-        | '_' `elem` m = "hledger-lib" </> "doc"
-        | otherwise    = dropExtension m </> "doc"
+    phony "docs" $ do
+      need $
+        nroffmanpages
+        ++ txtmanpages
 
-    -- some man pages have their md source assembled from parts with m4
-    let m4manpages = [manpageDir m </> m <.> ".md" | m <- ["hledger.1"]] -- hledger/doc/hledger.1.md
-    m4manpages |%> \out -> do     -- hledger/doc/hledger.1.md
-      let dir = takeDirectory out -- hledger/doc
-          m4src = out -<.> "m4" <.> "md"    -- hledger/doc/hledger.1.m4.md
-          m4lib = "doc/lib.m4"
-      -- assume all other m4 files in dir are included by this one
-      m4deps <- liftIO $ filter (/= m4src) . filter (".m4.md" `isSuffixOf`) . map (dir </>)
-                <$> S.getDirectoryContents dir
-      need $ m4src : m4lib : m4deps
-      cmd Shell "m4 -P -DWEB -DMAN -I" dir m4lib m4src ">" out
-
-    -- compile pandoc filters, used eg for adjusting manpage md source for web or man output
+    -- compile pandoc helpers
     phony "pandocfilters" $ need pandocFilters
+
     pandocFilters |%> \out -> do
       need [out <.> "hs"]
       cmd ("stack ghc") out
 
+    -- man pages
+
+    -- process m4 includes and macros to get markdown, ready for further processing by pandoc
+    mdmanpages |%> \out -> do -- hledger/doc/hledger.1.md
+      let dir = takeDirectory out
+          src = out -<.> "m4.md"
+          lib = "doc/lib.m4"
+      -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
+      deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>)
+              <$> S.getDirectoryContents dir
+      need $ src : lib : deps
+      cmd Shell "m4 -P -DWEB -DMAN -I" dir lib src ">" out
+
     -- adjust man page mds for man output and convert to nroff, with pandoc
-    let manpages = [manpageDir m </> m | m <- manpageNames] -- hledger/doc/hledger.1, hledger-lib/doc/hledger_journal.5
-    phony "manpages" $ need manpages
-    manpages |%> \out -> do
-      let md = out <.> "md"  -- hledger/doc/hledger.1.md
+    phony "manpages" $ need nroffmanpages
+
+    nroffmanpages |%> \out -> do -- hledger/doc/hledger.1
+      let src  = out <.> "md"
           tmpl = "doc/manpage.nroff"
-      need $ md : tmpl : pandocFilters
-      cmd pandoc md "-s --template" tmpl
+      need $ src : tmpl : pandocFilters
+      cmd pandoc src "-s --template" tmpl
         "--filter doc/pandoc-drop-web-blocks"
         "--filter doc/pandoc-drop-html-blocks"
         "--filter doc/pandoc-drop-html-inlines"
@@ -160,36 +161,46 @@ main = do
         "--filter doc/pandoc-drop-notes"
         "-o" out
 
-    -- render man page nroffs as fixed-width text, for embedding
-    let txtmanpages = [m <.> "txt" | m <- manpages] -- hledger/doc/hledger.1.txt, hledger-lib/doc/hledger_journal.5.txt
+    -- render man page nroffs to fixed-width text for embedding in executables, with nroff
     phony "txtmanpages" $ need txtmanpages
-    txtmanpages |%> \out -> do
-      need manpages
-      let nroffsrc = dropExtension out  -- hledger/doc/hledger.1, hledger-lib/doc/hledger_journal.5
-      cmd Shell nroff "-man" nroffsrc ">" out
 
-    -- adjust man page mds for (hakyll) web output, with pandoc
-    let webmanpages = ["site" </> manpageNameToUri m <.>".md" | m <- manpageNames] -- site/hledger.md, site/journal.md
+    txtmanpages |%> \out -> do  -- hledger/doc/hledger.1.txt
+      let src = dropExtension out
+      need [src]
+      cmd Shell nroff "-man" src ">" out
+
+    -- web site
+
+    phony "site" $ do
+      need $ 
+        webmanpages ++
+        [webmanual
+        ,hakyllstd
+        ]
+      cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
+
+    -- adjust man page mds for web output, with pandoc
     phony "webmanpages" $ need webmanpages
-    webmanpages |%> \out -> do
-      let m = manpageUriToName $ dropExtension $ takeFileName out  -- hledger.1
-          md = manpageDir m </> m <.> "md"                         -- hledger/doc/hledger.1.md
+
+    webmanpages |%> \out -> do -- site/hledger.md
+      let m       = manpageUriToName $ dropExtension $ takeFileName out -- hledger.1
+          src     = manpageDir m </> m <.> "md" -- hledger/doc/hledger.1.md
           heading = let h = dropExtension m
                     in if "hledger_" `isPrefixOf` h
                        then drop 8 h ++ " format"
                        else h
-      need $ md : pandocFilters
+      need $ src : pandocFilters
       liftIO $ writeFile out $ "# " ++ heading ++ "\n\n"
-      cmd Shell pandoc md "-t markdown --atx-headers"
+      cmd Shell pandoc src "-t markdown --atx-headers"
         "--filter doc/pandoc-demote-headers"
         -- "--filter doc/pandoc-add-toc"
         -- "--filter doc/pandoc-drop-man-blocks"
         ">>" out
 
     -- adjust and combine man page mds for single-page web output, using pandoc
-
     phony "webmanual" $ need [ webmanual ]
-    webmanual %> \out -> do
+
+    webmanual %> \out -> do 
       need webmanpages
       liftIO $ writeFile webmanual [i|
 <style>
@@ -205,12 +216,6 @@ main = do
 
 |]
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
-        -- let heading =
-        --       let h = dropExtension $ takeFileName f -- hledger, journal
-        --       in if "hledger" `isPrefixOf` h
-        --          then h                              -- hledger
-        --          else h ++ " format"                 -- journal format
-        -- cmd Shell ("printf '\\n## "++ heading ++"\\n\\n' >>") webmanual :: Action ExitCode
         cmd Shell ("printf '\\n\\n' >>") webmanual :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown --atx-headers"
           -- "--filter doc/pandoc-drop-man-blocks"
@@ -218,6 +223,12 @@ main = do
           -- "--filter doc/pandoc-capitalize-headers"
           "--filter doc/pandoc-demote-headers"
           ">>" webmanual :: Action ExitCode
+
+    -- build standard hakyll script used for site rendering
+    hakyllstd %> \out -> do
+      let dir = takeDirectory out
+      need [out <.> "hs", dir </> "TableOfContents.hs"] -- XXX hard-coded dep
+      cmd (Cwd dir) "stack ghc hakyll-std"
 
     -- cleanup
 
@@ -230,7 +241,7 @@ main = do
     phony "Clean" $ do
       need ["clean"]
       putNormal "Cleaning generated man page nroffs"
-      removeFilesAfter "." manpages
+      removeFilesAfter "." nroffmanpages
       putNormal "Cleaning all hakyll generated files"
       removeFilesAfter "site" ["_*"]
       putNormal "Cleaning executables"
