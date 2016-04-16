@@ -4,8 +4,7 @@
 
 _web_({{
 _versions_({{hledger-api}})
-
-* toc
+_toc_
 }})
 _man_({{
 

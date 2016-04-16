@@ -4,9 +4,7 @@
 
 _web_({{
 _versions_({{hledger-ui}})
-
-* toc
-
+_toc_
 <style>
 .highslide img {max-width:250px; float:right; margin:0 0 1em 1em;}
 .highslide-caption {color:white; background-color:black;}

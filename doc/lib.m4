@@ -27,3 +27,4 @@ version:
 <a href="$1.html">dev</a>
 | <a href="doc/_currentrelease_()/manual.html{{#}}m4_patsubst($1,{{hledger-}})">_currentrelease_()</a>
 </div>)m4_dnl
+m4_define({{_toc_}}, {{* toc}})m4_dnl
