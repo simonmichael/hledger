@@ -23,8 +23,6 @@ a { white-space:nowrap; }
 <tr><td>
 **on Windows**
 </td><td>
-<!-- [windows install guide](windows-install.html)\ -->
-Download and run
 [hledger-0.26-win64.exe](http://hledger.org/downloads/hledger-0.26-win64.exe)
 <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.exe)) -->
 and/or
@@ -82,9 +80,9 @@ This is a quick way to help the project and your fellow users!
 
 <a name="released"></a>
 
-## I want to build the latest release (0.27)
+## I want to build the latest released version
 
-**with stack** (most reliable, recommended)
+<!-- **with stack** (recommended; or, you can use cabal) -->
 
 1. Install [`stack`](http://haskellstack.org)
     (On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275).)
@@ -96,6 +94,7 @@ This is a quick way to help the project and your fellow users!
    so that you can just type `hledger` to run it.
    (stack will show the proper directory and will tell you if it is not in $PATH).
 
+<!--
 **with cabal** (results will vary, recommended only if you can't install stack):
 
 1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html) if needed.
@@ -111,16 +110,17 @@ This is a quick way to help the project and your fellow users!
 **in a VM**
 
 - if stack or cabal can't run on your OS, maybe this [vagrant image](https://github.com/sciurus/hledger-vagrant) can ?
-
+-->
 Here are the [release notes](release-notes.html).
 
 <a name="unreleased"></a>
 
-## I want to build the [unreleased git version](https://github.com/simonmichael/hledger/commits/master)
+## I want to build the [latest development version](https://github.com/simonmichael/hledger/commits/master)
 
 1. `git clone http://code.hledger.org hledger`
 2. `cd hledger`
-3. `stack install`
+3. `stack install [hledger] [hledger-ui] [hledger-web] [hledger-api]`
 
-See also the [Developer Guide](http://hledger.org/developer-guide.html).
+This is what I use day to day. Includes the latest features, recommended.
+<!-- See also the [Developer Guide](http://hledger.org/developer-guide.html). -->
 
