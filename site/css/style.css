@@ -132,6 +132,14 @@ h4, h5, h6 {
 #toc > ol > li > ol li {
 		padding-left:1em;
 }
+/* embolden/separate top items */
+#toc > ol > li {
+  padding-top:1em;
+  font-weight:bold;
+}
+#toc > ol > li > ol {
+  font-weight:normal;
+}
 /* hide top item(s) */
 /* #toc > ol > li > a { display:none; } */
 /* #toc > ol > li > ol > li { padding-left:0; } */

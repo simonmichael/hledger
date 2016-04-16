@@ -202,19 +202,7 @@ main = do
 
     webmanual %> \out -> do 
       need webmanpages
-      liftIO $ writeFile webmanual [i|
-<style>
-#toc > ol > li {
-  padding-top:1em;
-  font-weight:bold;
-}
-#toc > ol > li > ol {
-  font-weight:normal;
-}
-</style>
-* toc
-
-|]
+      liftIO $ writeFile webmanual "* toc\n\n"
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
         cmd Shell ("printf '\\n\\n' >>") webmanual :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown --atx-headers"
