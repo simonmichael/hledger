@@ -2,12 +2,12 @@
 %
 % April 2016
 
-<div class="web">
+_web_({{
 _versions_({{hledger}})
 
 * toc
-</div>
-<div class="man">
+}})
+_man_({{
 
 # NAME
 
@@ -26,16 +26,14 @@ file format. It is inspired by and largely compatible with ledger(1).
 Tested on unix, mac, windows, hledger aims to be a reliable, practical
 tool for daily use.
 
-</div>
-
+}})
 _include_(description.m4.md)
 _include_(examples.m4.md)
 _include_(options.m4.md)
 _include_(queries.m4.md)
 _include_(commands.m4.md)
 _include_(troubleshooting.m4.md)
-
-<div class="man">
+_man_({{
 
 # ENVIRONMENT
 
@@ -60,4 +58,4 @@ hledger can't render non-ascii characters when run from a Windows command prompt
 When input data contains non-ascii characters, a suitable system locale must be configured (or there will be an unhelpful error).
 Eg on POSIX, set LANG to something other than C.
 
-</div>
+}})

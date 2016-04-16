@@ -2,12 +2,12 @@
 % 
 % April 2016
 
-<div class="web">
+_web_({{
 _versions_({{timeclock}})
 
 * toc
-</div>
-<div class="man">
+}})
+_man_({{
 
 # NAME
 
@@ -15,7 +15,7 @@ Timeclock - the time logging format of timeclock.el, as read by hledger
 
 # DESCRIPTION
 
-</div>
+}})
 
 hledger can read timeclock files.
 [As with Ledger](http://ledger-cli.org/3.0/doc/ledger3.html#Time-Keeping),

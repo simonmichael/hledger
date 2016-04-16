@@ -97,8 +97,6 @@ main = do
         ]
       -- manuals m4 source, may include other files (hledger/doc/hledger.1.m4.md)
       m4manpages = [manpageDir m </> m <.> "m4.md" | m <- manpageNames]
-      --  manuals rendered to markdown, ready for adjusting to web or man pages by pandoc (hledger/doc/hledger.1.md)
-      mdmanpages = [manpageDir m </> m <.> "md" | m <- manpageNames]
       --   manuals rendered to nroff, ready for man (hledger/doc/hledger.1)
       nroffmanpages = [manpageDir m </> m | m <- manpageNames]
       --    manuals rendered to text, ready for embedding (hledger/doc/hledger.1.txt)
@@ -135,26 +133,21 @@ main = do
 
     -- man pages
 
-    -- process m4 includes and macros to get markdown, ready for further processing by pandoc
-    mdmanpages |%> \out -> do -- hledger/doc/hledger.1.md
-      let dir = takeDirectory out
-          src = out -<.> "m4.md"
-          lib = "doc/lib.m4"
-      -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
-      deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>)
-              <$> S.getDirectoryContents dir
-      need $ src : lib : deps
-      cmd Shell "m4 -P -DWEB -DMAN -I" dir lib src ">" out
-
-    -- adjust man page mds for man output and convert to nroff, with pandoc
+    -- use m4 and pandoc to process macros, filter content, and convert to nroff suitable for man output
     phony "manpages" $ need nroffmanpages
 
     nroffmanpages |%> \out -> do -- hledger/doc/hledger.1
-      let src  = out <.> "md"
+      let src = out <.> "m4.md"
+          lib = "doc/lib.m4"
+          dir = takeDirectory out
           tmpl = "doc/manpage.nroff"
-      need $ src : tmpl : pandocFilters
-      cmd pandoc src "-s --template" tmpl
-        "--filter doc/pandoc-drop-web-blocks"
+      -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
+      deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
+      need $ src : lib : tmpl : deps ++ pandocFilters
+      cmd Shell
+        "m4 -P -DMAN -I" dir lib src "|"
+        pandoc "-f markdown -s --template" tmpl
+        -- "--filter doc/pandoc-drop-web-blocks"
         "--filter doc/pandoc-drop-html-blocks"
         "--filter doc/pandoc-drop-html-inlines"
         "--filter doc/pandoc-drop-links"
@@ -180,19 +173,25 @@ main = do
         ]
       cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
 
-    -- adjust man page mds for web output, with pandoc
+    -- use m4 and pandoc to process macros and filter content, leaving markdown suitable for web output
     phony "webmanpages" $ need webmanpages
 
     webmanpages |%> \out -> do -- site/hledger.md
       let m       = manpageUriToName $ dropExtension $ takeFileName out -- hledger.1
-          src     = manpageDir m </> m <.> "md" -- hledger/doc/hledger.1.md
+          dir     = manpageDir m
+          src     = dir </> m <.> "m4.md"
+          lib     = "doc/lib.m4"
           heading = let h = dropExtension m
                     in if "hledger_" `isPrefixOf` h
                        then drop 8 h ++ " format"
                        else h
-      need $ src : pandocFilters
+      -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
+      deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
+      need $ src : lib : deps ++ pandocFilters
       liftIO $ writeFile out $ "# " ++ heading ++ "\n\n"
-      cmd Shell pandoc src "-t markdown --atx-headers"
+      cmd Shell
+        "m4 -P -DMAN -DWEB -I" dir lib src "|"
+        pandoc "-f markdown -t markdown --atx-headers"
         "--filter doc/pandoc-demote-headers"
         -- "--filter doc/pandoc-add-toc"
         -- "--filter doc/pandoc-drop-man-blocks"
@@ -231,7 +230,6 @@ main = do
 
     phony "clean" $ do
       putNormal "Cleaning generated files"
-      removeFilesAfter "." mdmanpages
       removeFilesAfter "." webmanpages
       removeFilesAfter "." [webmanual]
 

@@ -2,12 +2,12 @@
 %
 % April 2016
 
-<div class="web">
+_web_({{
 _versions_({{timedot}})
 
 * toc
-</div>
-<div class="man">
+}})
+_man_({{
 
 # NAME
 
@@ -15,7 +15,7 @@ Timedot - hledger's human-friendly time logging format
 
 # DESCRIPTION
 
-</div>
+}})
 
 Timedot is a plain text format for logging dated, categorised quantities (eg time), supported by hledger.
 It is convenient for approximate and retroactive time logging,

@@ -2,12 +2,12 @@
 %
 % April 2016
 
-<div class="web">
+_web_({{
 _versions_({{journal}})
 
 * toc
-</div>
-<div class="man">
+}})
+_man_({{
 
 # NAME
 
@@ -15,7 +15,7 @@ Journal - hledger's default file format, representing a General Journal
 
 # DESCRIPTION
 
-</div>
+}})
 
 hledger's usual data source is a plain text file containing journal entries in hledger journal format.
 This file represents a standard accounting [general journal](http://en.wikipedia.org/wiki/General_journal).

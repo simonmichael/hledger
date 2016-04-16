@@ -2,12 +2,12 @@
 %
 % April 2016
 
-<div class="web">
+_web_({{
 _versions_({{csv}})
 
 * toc
-</div>
-<div class="man">
+}})
+_man_({{
 
 # NAME
 
@@ -15,7 +15,7 @@ CSV - how hledger reads CSV data, and the CSV rules file format
 
 # DESCRIPTION
 
-</div>
+}})
 
 hledger can read
 [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files,

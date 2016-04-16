@@ -2,7 +2,7 @@
 %
 % October 2015
 
-<div class="web">
+_web_({{
 _versions_({{hledger-ui}})
 
 * toc
@@ -20,8 +20,8 @@ _versions_({{hledger-ui}})
 <a href="images/hledger-ui/hledger-ui-bcexample-acc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc.png" title="beancount example accounts" /></a>
 <a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade:cash.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade:cash.png" title="beancount example's etrade cash subaccount" /></a>
 <a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" title="beancount example's etrade investments, all commoditiess" /></a>
-</div>
-<div class="man">
+}})
+_man_({{
 
 # NAME
 
@@ -38,13 +38,13 @@ hledger is a cross-platform program for tracking money, time, or any other commo
 using double-entry accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1).
 
-</div>
+}})
 
 hledger-ui is hledger's curses-style interface.
 It reads a hledger journal file
-<div class="man">
+_man_({{
 (~/.hledger.journal, $LEDGER_FILE, or -f FILE; see hledger(1) or hledger_journal(5))
-</div>
+}})
 and provides a simple full-screen console interface for viewing account balances and transactions.
 
 It is simpler and more convenient for
@@ -231,7 +231,7 @@ This screen will appear if there is a problem, such as a parse error,
 when you press g to reload. Once you have fixed the problem described,
 press g again to reload and restore normal operation.
 
-<div class="man">
+_man_({{
 
 # ENVIRONMENT
 
@@ -263,4 +263,4 @@ The register screen's switching between historic balance and running
 total based on query arguments may be confusing, and there is no
 column heading to indicate which is being displayed.
 
-</div>
+}})
