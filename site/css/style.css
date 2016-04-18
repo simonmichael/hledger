@@ -1,22 +1,32 @@
+table {
+    margin-bottom:1em;
+}
 code {
 		background-color:inherit;
 		color: inherit;
 }
 pre {
+    font-size:small;
+    margin-left:2em;
+}
+pre.shell, pre.journal, pre.csv, pre.rules, pre.timeclock, pre.timedot {
 		/* clear:both; */
 		background-color:inherit;
 		border:none;
 		/* margin-left:1em; */
 		/* margin-right:2em; */
 		border-radius:6px;
-		display:inline-block;
-		/* display:table; */
+		/* display:inline-block; */
+		display:table;
 		/* background-color:#e0e0e0; */
     font-size:small;
     /* white-space:nowrap; */
 }
 pre > code {
     white-space:pre;
+}
+pre.shell::first-line {
+		font-weight:bold;
 }
 .clear {
 		clear:both;
@@ -27,27 +37,32 @@ h4, h5, h6 {
 .display-table {
 		display:table;
 }
-.journal {
+pre.journal {
 		background-color:#efe;
 		border:thin solid #cec;
 		/* border:none; */
 }
-.timeclock {
-		background-color:#ffe;
-		border:thin solid #eec;
-		/* border:none; */
-}
-.csv {
+pre.csv {
 		background-color:#cce;
 		border:thin solid #aad;
 		/* border:none; */
 }
-.rules {
+pre.rules {
 		background-color:#eef;
 		border:thin solid #cce;
 		/* border:none; */
 }
-.shell {
+pre.timeclock {
+		background-color:#ffe;
+		border:thin solid #eec;
+		/* border:none; */
+}
+pre.timedot {
+		background-color:#ffe;
+		border:thin solid #eec;
+		/* border:none; */
+}
+pre.shell {
 		background-color:white;
 		border:none;
 		border-left:2px solid black;
@@ -58,9 +73,6 @@ h4, h5, h6 {
 		/* padding-bottom:0; */
 }
 
-.shell::first-line {
-		font-weight:bold;
-}
 .shell.continued {
 		background-color:white;
 		border-top:none;

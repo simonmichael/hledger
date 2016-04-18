@@ -24,6 +24,7 @@ $ hledger print
     expenses:food           $10
     assets:cash            $-10
 ```
+
 ```shell
 $ hledger accounts --tree
 assets
@@ -33,6 +34,7 @@ expenses
 income
   gifts
 ```
+
 ```shell
 $ hledger balance
                  $10  assets:cash
@@ -41,13 +43,16 @@ $ hledger balance
 --------------------
                    0
 ```
+
 ```shell
 $ hledger register cash
 2015/09/30 gift received   assets:cash               $20           $20
 2015/10/16 farmers market  assets:cash              $-10           $10
 ```
 
-```{.shell .bold}
+More commands:
+
+```shell
 $ hledger                                 # show available commands
 $ hledger add                             # add more transactions to the journal file
 $ hledger balance                         # all accounts with aggregated balances

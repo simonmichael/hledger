@@ -27,7 +27,7 @@ I'm not sure yet).
 
 Here's an example of setting the locale temporarily, on ubuntu gnu/linux:
 
-```{.shell}
+```shell
 $ file my.journal
 my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
 $ locale -a
@@ -39,14 +39,14 @@ $ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
 
 Here's one way to set it permanently, there are probably better ways:
 
-```{.shell}
+```shell
 $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
 $ bash --login
 ```
 
 If we preferred to use eg `fr_FR.utf8`, we might have to install that first:
 
-```{.shell}
+```shell
 $ apt-get install language-pack-fr
 $ locale -a
 C

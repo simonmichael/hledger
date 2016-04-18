@@ -10,7 +10,8 @@ COMMAND, not before it.
 Also, when invoking external add-on commands, their options must be
 written after a double hyphen. (Or, you can invoke the external command
 directly.) Eg:
-_shellbold_({{
+
+_shell_({{
 $ hledger ui -- --register cash
 $ hledger-ui --register cash
 }})
@@ -120,17 +121,17 @@ hledger's user interfaces accept a flexible "smart date" syntax (unlike dates in
 
 Examples:
 
-|
-|--------------------------------------------------|------------------------------------------------------|
-| `2009/1/1`, `2009/01/01`, `2009-1-1`, `2009.1.1` &nbsp; | simple dates, several separators allowed             |
-| `2009/1`, `2009`                                 | same as above - a missing day or month defaults to 1 |
-| `1/1`, `january`, `jan`, `this year`             | relative dates, meaning january 1 of the current year|
-| `next year`                                      | january 1 of next year                               |
-| `this month`                                     | the 1st of the current month                         |
-| `this week`                                      | the most recent monday                               |
-| `last week`                                      | the monday of the week before this one               |
-| `lastweek`                                       | spaces are optional                              |
-| `today`, `yesterday`, `tomorrow`                 |                                                      |
+------------------------------------------------- ------------------------------------------------------
+`2009/1/1`, `2009/01/01`, `2009-1-1`, `2009.1.1`  simple dates, several separators allowed
+`2009/1`, `2009`                                  same as above - a missing day or month defaults to 1
+`1/1`, `january`, `jan`, `this year`              relative dates, meaning january 1 of the current year
+`next year`                                       january 1 of next year
+`this month`                                      the 1st of the current month
+`this week`                                       the most recent monday
+`last week`                                       the monday of the week before this one
+`lastweek`                                        spaces are optional
+`today`, `yesterday`, `tomorrow`
+---
 
 ## Reporting interval
 
@@ -149,38 +150,48 @@ once. Note a period expression on the command line will cause any other date
 flags (`-b`/`-e`/`-D`/`-W`/`-M`/`-Q`/`-Y`) to be ignored.
 
 hledger's period expressions are similar to Ledger's, though not identical.
-Here's a basic period expression specifying the first quarter of 2009.  Note
+Here's a basic period expression specifying the first quarter of 2009. Note,
 hledger always treats start dates as inclusive and end dates as exclusive:
 
-    -p "from 2009/1/1 to 2009/4/1"
+`-p "from 2009/1/1 to 2009/4/1"`
 
-Keywords like "from" and "to" are optional, and so are the spaces.  Just
-don't run two dates together:
+Keywords like "from" and "to" are optional, and so are the spaces, as long
+as you don't run two dates together. "to" can also be written as "-".
+These are equivalent to the above:
 
-    -p2009/1/1to2009/4/1
-    -p"2009/1/1 2009/4/1"
+------------------------------
+`-p "2009/1/1 2009/4/1"`
+`-p2009/1/1to2009/4/1`
+`-p2009/1/1-2009/4/1`
+------------------------------
 
 Dates are [smart dates](#smart-dates), so if the current year is 2009, the
 above can also be written as:
 
-    -p "1/1 to 4/1"
-    -p "january to apr"
-    -p "this year to 4/1"
+------------------------------
+`-p "1/1 4/1"`
+`-p "january-apr"`
+`-p "this year to 4/1"`
+------------------------------
 
 If you specify only one date, the missing start or end date will be the
 earliest or latest transaction in your journal:
 
-    -p "from 2009/1/1"  (everything after january 1, 2009)
-    -p "from 2009/1"    (the same)
-    -p "from 2009"      (the same)
-    -p "to 2009"        (everything before january 1, 2009)
+---------------------------- ---------------------------------
+`-p "from 2009/1/1"`         everything after january 1, 2009
+`-p "from 2009/1"`           the same
+`-p "from 2009"`             the same
+`-p "to 2009"`               everything before january 1, 2009
+---------------------------- ---------------------------------
 
 A single date with no "from" or "to" defines both the start and end date
 like so:
 
-    -p "2009"           (the year 2009;    equivalent to "2009/1/1 to 2010/1/1")
-    -p "2009/1"         (the month of jan; equivalent to "2009/1/1 to 2009/2/1")
-    -p "2009/1/1"       (just that day;    equivalent to "2009/1/1 to 2009/1/2")
+--------------------- ------------------------------------------------------
+`-p "2009"`           the year 2009;    equivalent to "2009/1/1 to 2010/1/1"
+`-p "2009/1"`         the month of jan; equivalent to "2009/1/1 to 2009/2/1"
+`-p "2009/1/1"`       just that day;    equivalent to "2009/1/1 to 2009/1/2"
+--------------------- ------------------------------------------------------
 
 Period expressions can also start with (or be) a reporting interval:
 `daily`, `weekly`, `monthly`, `quarterly`, `yearly`, or one of the
@@ -188,14 +199,16 @@ Period expressions can also start with (or be) a reporting interval:
 between the reporting interval and the start/end dates.
 Examples:
 
-    -p "weekly from 2009/1/1 to 2009/4/1"
-    -p "monthly in 2008"
-    -p "bimonthly from 2008"
-    -p "quarterly"
-    -p "every 2 weeks"
-    -p "every 5 days from 1/3"
-    -p "every 15th day of month"
-    -p "every 4th day of week"
+------------------------------------------
+`-p "weekly from 2009/1/1 to 2009/4/1"`
+`-p "monthly in 2008"`
+`-p "bimonthly from 2008"`
+`-p "quarterly"`
+`-p "every 2 weeks"`
+`-p "every 5 days from 1/3"`
+`-p "every 15th day of month"`
+`-p "every 4th day of week"`
+------------------------------------------
 
 ## Regular Expressions
 

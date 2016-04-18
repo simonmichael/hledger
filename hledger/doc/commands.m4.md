@@ -13,6 +13,7 @@ command name (`hledger inc`), or one of the standard short aliases
 displayed in the command list (`hledger is`).
 
 ---
+# comment:
 # for each command: name, synopsis, description, examples.
 ...
 
@@ -90,15 +91,13 @@ The activity command displays an ascii histogram showing
 transaction counts by day, week, month or other reporting interval
 (by day is the default). With query arguments, it counts only matched transactions.
 
-_col3_({{
-_shell_({{
+```shell
 $ hledger activity --quarterly
 2008-01-01 **
 2008-04-01 *******
 2008-07-01 
 2008-10-01 **
-}})
-}})
+```
 
 ## add
 Prompt for transactions and add them to the journal.
@@ -178,8 +177,7 @@ This command displays a simple
 assumes that you have top-level accounts named `asset` and `liability`
 (plural forms also allowed.)
 
-_col3_({{
-_shell_({{
+```shell
 $ hledger balancesheet
 Balance Sheet
 
@@ -198,8 +196,7 @@ Liabilities:
 Total:
 --------------------
                    0
-}})
-}})
+```
 
 ## cashflow
 Show a cashflow statement. Alias: cf.
@@ -217,8 +214,7 @@ period. It currently assumes that cash accounts are under a top-level
 account named `asset` and do not contain `receivable` or `A/R` (plural
 forms also allowed.)
 
-_col3_({{
-_shell_({{
+```shell
 $ hledger cashflow
 Cashflow Statement
 
@@ -232,8 +228,7 @@ Cash flows:
 Total:
 --------------------
                  $-1
-}})
-}})
+```
 
 ## help
 Show detailed help.
@@ -280,8 +275,7 @@ This command displays a simple
 currently assumes that you have top-level accounts named `income` (or
 `revenue`) and `expense` (plural forms also allowed.)
 
-_col3_({{
-_shell_({{
+```shell
 $ hledger incomestatement
 Income Statement
 
@@ -302,8 +296,7 @@ Expenses:
 Total:
 --------------------
                    0
-}})
-}})
+```
 
 ## print
 Show transactions from the journal.
@@ -318,21 +311,7 @@ Show transactions from the journal.
 : select the output format. Supported formats:
 txt, csv.
 
-The print command displays full transactions from the journal file,
-tidily formatted and showing all amounts explicitly. The output of
-print is always a valid hledger journal, but it does always not
-preserve all original content exactly (eg directives).
-
-hledger's print command also shows all unit prices in effect, or (with
--B/--cost) shows cost amounts.
-
-The print command also supports 
-[output destination](#output-destination)
-and
-[CSV output](#csv-output).
-
-_col3_({{
-_shell_({{
+```shell
 $ hledger print
 2008/01/01 income
     assets:bank:checking            $1
@@ -354,9 +333,20 @@ $ hledger print
 2008/12/31 * pay off
     liabilities:debts               $1
     assets:bank:checking           $-1
+```
 
-}})
-}})
+The print command displays full transactions from the journal file,
+tidily formatted and showing all amounts explicitly. The output of
+print is always a valid hledger journal, but it does always not
+preserve all original content exactly (eg directives).
+
+hledger's print command also shows all unit prices in effect, or (with
+-B/--cost) shows cost amounts.
+
+The print command also supports 
+[output destination](#output-destination)
+and
+[CSV output](#csv-output).
 
 ## register
 Show postings and their running total. Alias: reg.
@@ -380,7 +370,11 @@ Show postings and their running total. Alias: reg.
 : select the output format. Supported formats:
 txt, csv.
 
-```{.shell .right}
+The register command displays postings, one per line, and their
+running total.  This is typically used with a [query](#queries)
+selecting a particular account, to see that account's activity:
+
+```shell
 $ hledger register checking
 2008/01/01 income               assets:bank:checking            $1            $1
 2008/06/01 gift                 assets:bank:checking            $1            $2
@@ -388,20 +382,16 @@ $ hledger register checking
 2008/12/31 pay off              assets:bank:checking           $-1             0
 ```
 
-The register command displays postings, one per line, and their
-running total.  This is typically used with a [query](#queries)
-selecting a particular account, to see that account's activity.
+The `--historical`/`-H` flag adds the balance from any undisplayed
+prior postings to the running total.  This is useful when you want to
+see only recent activity, with a historically accurate running balance:
 
-```{.shell .right .clear}
+```shell
 $ hledger register checking -b 2008/6 --historical
 2008/06/01 gift                 assets:bank:checking            $1            $2
 2008/06/02 save                 assets:bank:checking           $-1            $1
 2008/12/31 pay off              assets:bank:checking           $-1             0
 ```
-
-The `--historical`/`-H` flag adds the balance from any prior postings
-to the running total, to show the actual historical running balance.
-This is useful when you want to see just the recent activity.
 
 The `--depth` option limits the amount of sub-account detail displayed.
 
@@ -413,12 +403,18 @@ It works best when showing just one account and one commodity.
 The `--related`/`-r` flag shows the *other* postings in the transactions
 of the postings which would normally be shown.
 
-```{.shell .right}
+With a [reporting interval](#reporting-interval), register shows
+summary postings, one per interval, aggregating the postings to each account:
+
+```shell
 $ hledger register --monthly income
 2008/01                 income:salary                          $-1           $-1
 2008/06                 income:gifts                           $-1           $-2
 ```
-```{.shell .right}
+Periods with no activity, and summary postings with a zero amount, are
+not shown by default; use the `--empty`/`-E` flag to see them:
+
+```shell
 $ hledger register --monthly income -E
 2008/01                 income:salary                          $-1           $-1
 2008/02                                                          0           $-1
@@ -433,21 +429,16 @@ $ hledger register --monthly income -E
 2008/11                                                          0           $-2
 2008/12                                                          0           $-2
 ```
-```{.shell .right .clear}
-$ hledger register --monthly assets --depth 1  # cashflow (changes to assets) by month
+
+Often, you'll want to see just one line per interval.
+The `--depth` option helps with this, causing subaccounts to be aggregated:
+
+```shell
+$ hledger register --monthly assets --depth 1h
 2008/01                 assets                                  $1            $1
 2008/06                 assets                                 $-1             0
 2008/12                 assets                                 $-1           $-1
 ```
-
-With a [reporting interval](#reporting-interval), register shows
-summary postings, one per interval, aggregating the postings to each account.
-
-Periods with no activity, and summary postings with a zero amount, are
-not shown by default; use the `--empty`/`-E` flag to see them.
-
-Often, you'll want to see just one line per interval.
-The `--depth` option helps with this, causing subaccounts to be aggregated.
 
 Note when using report intervals, if you specify start/end dates these
 will be adjusted outward if necessary to contain a whole number of
@@ -470,13 +461,13 @@ date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
 DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
 ```
 and some examples:
-```{.shell .bold}
-$ hledger reg                 # use terminal width (or 80 on windows)
-$ hledger reg -w 100          # use width 100
-$ COLUMNS=100 hledger reg     # set with one-time environment variable
-$ export COLUMNS=100; hledger reg  # set till session end (or window resize)
-$ hledger reg -w 100,40       # set overall width 100, description width 40
-$ hledger reg -w $COLUMNS,40  # use terminal width, and set description width
+```shell
+$ hledger reg                     # use terminal width (or 80 on windows)
+$ hledger reg -w 100              # use width 100
+$ COLUMNS=100 hledger reg         # set with one-time environment variable
+$ export COLUMNS=100; hledger reg # set till session end (or window resize)
+$ hledger reg -w 100,40           # set overall width 100, description width 40
+$ hledger reg -w $COLUMNS,40      # use terminal width, and set description width
 ```
 
 The register command also supports the
@@ -489,7 +480,7 @@ Show some journal statistics.
 `-o FILE[.FMT] --output-file=FILE[.FMT]`
 : write output to FILE instead of stdout. A recognised FMT suffix influences the format.
 
-```{.shell .right}
+```shell
 $ hledger stats
 Main journal file        : /src/hledger/data/sample.journal
 Included journal files   : 
@@ -513,7 +504,7 @@ for controlling [output destination](#output-destination).
 ## test
 Run built-in unit tests.
 
-```{.shell .right}
+```shell
 $ hledger test
 Cases: 74  Tried: 74  Errors: 0  Failures: 0
 ```
@@ -553,7 +544,7 @@ Web API server, see [hledger-api](hledger-api.html).
 ## autosync
 Download OFX bank data and/or convert OFX to hledger journal format.
 
-``` {.shell .right}
+```shell
 $ hledger autosync --help
 usage: hledger-autosync [-h] [-m MAX] [-r] [-a ACCOUNT] [-l LEDGER] [-i INDENT]
                         [--initial] [--fid FID] [--assertions] [-d] [--hledger]
@@ -617,7 +608,7 @@ download.
 ## diff
 Show transactions present in one journal file but not another
 
-```{.shell .right}
+```shell
 $ hledger diff --help
 Usage: hledger-diff account:name left.journal right.journal
 $ cat a.journal
@@ -649,7 +640,7 @@ journals with bank statements.
 ## equity
 Print a journal entry that resets account balances to zero.
 
-```{.shell .right}
+```shell
 $ hledger balance --flat -E assets liabilities
                    0  assets:bank:checking
                   $1  assets:bank:saving
@@ -687,7 +678,7 @@ just one file, or on several files concatenated with [include](#include).
 ## interest
 Generate interest transactions.
 
-```{.shell .right}
+```shell
 $ hledger interest --help
 Usage: hledger-interest [OPTION...] ACCOUNT
   -h          --help            print this message and exit
@@ -708,7 +699,7 @@ Usage: hledger-interest [OPTION...] ACCOUNT
               --ing-diba        compute interest according for Ing-Diba Tagesgeld account
 ```
 
-```{.shell .right .clear}
+```shell
 $ cat interest.journal
 2008/09/26 Loan
      Assets:Bank          EUR 10000.00
@@ -727,7 +718,7 @@ $ cat interest.journal
      Liabilities:Bank
 ```
 
-```{.shell .right .clear}
+```shell
 $ hledger interest -- -f interest.journal --source=Expenses:Interest \
     --target=Liabilities:Bank --30-360 --annual=0.05 Liabilities:Bank
 2008/09/26 Loan
@@ -779,7 +770,7 @@ with a fixed rate and the scheme mandated by the German BGB288
 ## irr
 Calculate internal rate of return.
 
-```{.shell .right}
+```shell
 $ hledger irr --help
 Usage: hledger-irr [OPTION...]
   -h          --help                        print this message and exit
@@ -796,7 +787,7 @@ Usage: hledger-irr [OPTION...]
   -Y          --yearly                      calculate interest for each year
 ```
 
-```{.shell .right .clear}
+```shell
 $ cat irr.journal 
 2011-01-01 Some wild speculation – I wonder if it pays off
    Speculation   €100.00
@@ -828,7 +819,7 @@ $ cat irr.journal
    Rate Gain     -€ 5.00
 ```
 
-```{.shell .right .clear}
+```shell
 $ hledger-irr -f irr.journal -t "Rate Gain" -i Speculation  --monthly
 2011/01/01 - 2011/02/01: 12.49%
 2011/02/01 - 2011/03/01: 41.55%
@@ -848,7 +839,7 @@ See the package page for more.
 ## print-unique
 Print only only journal entries which have a unique description.
 
-```{.shell .right}
+```shell
 $ cat unique.journal
 1/1 test
  (acct:one)  1
@@ -864,7 +855,7 @@ $ LEDGER_FILE=unique.journal hledger print-unique
 ## rewrite
 Prints all journal entries, adding specified custom postings to matched entries.
 
-```{.shell .right .bold}
+```shell
 $ hledger rewrite -- [QUERY]        --add-posting "ACCT  AMTEXPR" ...
 $ hledger rewrite -- ^income        --add-posting '(liabilities:tax)  *.33'
 $ hledger rewrite -- expenses:gifts --add-posting '(budget:gifts)  *-1"'
