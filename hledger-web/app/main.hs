@@ -1,9 +1,9 @@
 import Prelude              (IO)
 
-import qualified Hledger.Web.Main
+import Hledger.Web.Main
 
 main :: IO ()
-main = Hledger.Web.Main.main
+main = hledgerWebMain
 
 -- more standard yesod main, for reloading experiments
 

@@ -35,8 +35,8 @@ import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.Web.WebOptions
 
 
-main :: IO ()
-main = do
+hledgerWebMain :: IO ()
+hledgerWebMain = do
   opts <- getHledgerWebOpts
   when (debug_ (cliopts_ opts) > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
   runWith opts
