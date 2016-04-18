@@ -563,21 +563,28 @@ $ stack bench
 
 Get a GHCI prompt for hledger-lib:
 ```shell
-$ stack ghci hledger-lib
+$ cd hledger-lib; stack ghci hledger-lib
 ```
+Changing into the package directory isn't actually needed, but it
+enables a custom .ghci script which sets a more useful short prompt.
 
 Get a GHCI prompt for hledger:
 ```shell
-$ stack ghci hledger
+$ cd hledger; stack ghci hledger
 ```
 
+Get a GHCI prompt for hledger-ui:
+```shell
+$ cd hledger-ui; stack ghci hledger-ui
+```
 Get a GHCI prompt for hledger-web:
 ```shell
-$ stack ghci hledger-web
+$ cd hledger-web; stack ghci hledger-web
 ```
 hledger-web also needs to find some things in its current directory (like the static/ directory).
 This normally just works, if not please [send details](https://github.com/simonmichael/hledger/issues/274).
 
+<!--
 Get a GHCI prompt for hledger and hledger-lib:
 ```shell
 $ make ghci
@@ -588,7 +595,6 @@ Get a GHCI prompt for hledger-web, hledger and hledger-lib:
 $ make ghci-web
 ```
 
-<!--
 For the dev.hs developer script:
 ```shell
 $ make ghci-dev
@@ -1010,7 +1016,7 @@ Handler module and function names end with R, like the Yesod-generated route typ
 Dynamically generated page content is mostly inline hamlet.
 Lucius/Julius files and widgets generally are not used, except for the default layout.
 
-The quickest way to test changes is `make ghciweb`, `:main --serve`, control-C, `:r`, repeat.
+The quickest way to test changes is `cd hledger-web; stack ghci hledger-web`, `:main --serve`, control-C, `:r`, repeat.
 No linking is required, and changes to static files like hledger.js are visible after reloading a page.
 
 Another way is `yesod devel`, which rebuilds automatically when files

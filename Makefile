@@ -788,25 +788,27 @@ quickheap-%: hledgerprof samplejournals \
 # 	$(call def-help,repl-web, start a cabal REPL and load the hledger-web package)
 # 	(cd hledger-web; cabal repl exe:hledger-web)
 
-ghci: \
-	 	$(call def-help,ghci, start a GHCI REPL and load the hledger-lib and hledger packages)
-	stack exec $(GHCI) -- $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
-
-ghci-dev: \
-	 	$(call def-help,ghci, start a GHCI REPL and load the dev.hs script plus hledger-lib and hledger)
-	stack exec $(GHCI) -- $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
-
-ghci-ui: \
-		$(call def-help,ghci-ui, start a GHCI REPL and load the hledger-lib, hledger and hledger-ui packages)
-	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
-
-ghci-web: \
-		$(call def-help,ghci-web, start a GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
-	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-web/app/main.hs
-
-ghci-api: \
-		$(call def-help,ghci-api, start a GHCI REPL and load the hledger-lib, hledger and hledger-api packages)
-	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-api/hledger-api.hs
+# multi-package GHCI prompts
+# XXX disabled since broken by file-embed
+# ghci: \
+# 	 	$(call def-help,ghci, start a GHCI REPL and load the hledger-lib and hledger packages)
+# 	stack exec $(GHCI) -- $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
+#
+# ghci-dev: \
+# 	 	$(call def-help,ghci, start a GHCI REPL and load the dev.hs script plus hledger-lib and hledger)
+# 	stack exec $(GHCI) -- $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
+#
+# ghci-ui: \
+# 		$(call def-help,ghci-ui, start a GHCI REPL and load the hledger-lib, hledger and hledger-ui packages)
+# 	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
+#
+# ghci-web: \
+# 		$(call def-help,ghci-web, start a GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
+# 	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-web/app/main.hs
+#
+# ghci-api: \
+# 		$(call def-help,ghci-api, start a GHCI REPL and load the hledger-lib, hledger and hledger-api packages)
+# 	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-api/hledger-api.hs
 
 samplejournals: \
 	data/sample.journal \
