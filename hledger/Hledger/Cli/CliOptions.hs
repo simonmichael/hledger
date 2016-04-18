@@ -230,10 +230,16 @@ showModeUsage :: Mode a -> String
 showModeUsage = (showText defaultWrap :: [Text] -> String) .
                (helpText [] HelpFormatDefault :: Mode a -> [Text])
 
--- | Get a mode's long help, ready for console output
--- (currently, the hledger man page formatted for 80 columns).
+-- | Get a mode's long help, ready for console output.  Currently that
+-- will be the hledger, hledger-ui, hledger-web or hledger-api man page,
+-- formatted for 80 columns.
 showModeHelp :: Mode a -> String
-showModeHelp _ = lookupDocTxt "cli"
+showModeHelp m
+  | n == "hledger-ui"  = lookupDocTxt "ui"
+  | n == "hledger-web" = lookupDocTxt "web"
+  --  | n == "hledger-api" = lookupDocTxt "api" -- hledger-api uses docopt
+  | otherwise          = lookupDocTxt "cli"
+  where n = headDef "" $ modeNames m
 
 -- | Add command aliases to the command's help string.
 withAliases :: String -> [String] -> String

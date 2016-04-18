@@ -57,7 +57,8 @@ Options:
                   (default: .)
   -p --port PORT  use a different TCP port (default: 8001)
      --version    show version
-  -h --help       show this help
+  -h              show usage
+     --help       show detailed help
 |]
 
 swaggerSpec :: Swagger
@@ -70,7 +71,8 @@ swaggerSpec = toSwagger (Proxy :: Proxy HledgerApi)
 main :: IO ()
 main = do
   args <- getArgs >>= parseArgsOrExit doc
-  when (isPresent args (longOption "help")) $ exitWithUsage doc
+  when (isPresent args (shortOption 'h')) $ exitWithUsage doc
+  when (isPresent args (longOption "help")) $ putStr (lookupDocTxt "api") >> exitSuccess
   when (isPresent args (longOption "version")) $ putStrLn hledgerApiVersion >> exitSuccess
   when (isPresent args (longOption "swagger")) $ BL8.putStrLn (encode swaggerSpec) >> exitSuccess
   let defp = "8001"
