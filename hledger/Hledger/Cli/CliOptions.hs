@@ -233,7 +233,7 @@ showModeUsage = (showText defaultWrap :: [Text] -> String) .
 -- | Get a mode's long help, ready for console output
 -- (currently, the hledger man page formatted for 80 columns).
 showModeHelp :: Mode a -> String
-showModeHelp _ = lookupDocTxt "hledger"
+showModeHelp _ = lookupDocTxt "cli"
 
 -- | Add command aliases to the command's help string.
 withAliases :: String -> [String] -> String
