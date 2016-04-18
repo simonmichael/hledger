@@ -42,6 +42,9 @@ readers = [
  ,CsvReader.reader
  ]
 
+readFormatNames :: [StorageFormat]
+readFormatNames = map rFormat readers
+
 -- | Which readers are worth trying for this (possibly unspecified) format, filepath, and data ?
 readersFor :: (Maybe StorageFormat, Maybe FilePath, String) -> [Reader]
 readersFor (format,path,s) =
