@@ -170,7 +170,7 @@ $ stack install shelltestrunner hasktags profiteur hpack hoogle
 
 ### Get the latest hledger source
 
-```{.shell .bold}
+```shell
 $ git clone code.hledger.org hledger    # aka github.com/simonmichael/hledger.git
 $ cd hledger
 ```
@@ -198,7 +198,7 @@ Old instructions:
    If you're not sure, skip this step and return to it as needed.
    Be sure the cabal bin directory where these are installed (eg ~/.cabal/bin) is in your PATH.
 
-    ```{.shell .bold}
+    ```shell
     $ cabal update
     $ cabal install alex happy       # if you get alex/happy-related errors when building hledger
     $ cabal install haddock          # needed to build hledger API docs
@@ -212,7 +212,7 @@ Old instructions:
 
 6. Install haskell libs required by hledger:
 
-    ```{.shell .bold}
+    ```shell
     $ cd hledger
     $ cabal sandbox init   # optional
     $ make installdeps     # or cabal install --only-dep ./hledger-lib ./hledger [./hledger-web]
@@ -253,7 +253,7 @@ You'll need [GNU Make](http://www.gnu.org/software/make) installed.
 
 The Makefile is self-documenting. Run `make` to see a list of the main make rules:
 
-```{.shell}
+```shell
 $ make
 Makefile:37: -------------------- hledger make rules --------------------
 Makefile:39: make [help] -- list documented rules in this makefile. make -n RULE shows more detail.
@@ -267,11 +267,11 @@ Makefile:304: make hledgerdev -- quickly build the hledger executable (with ghc 
 
 To see what a make rule will do without actually doing it, use the `-n` flag:
 
-```{.shell}
+```shell
 $ make build -n
 stack build
 ```
-```{.shell}
+```shell
 $ make test -n
 (stack test \
 		&& echo pkgtest PASSED) || echo pkgtest FAILED
@@ -524,13 +524,13 @@ $ [stack exec] hledger test
 ```
 
 Run the hledger functional tests:
-```{.shell .bold}
+```shell
 $ stack install shelltestrunner  # if not already done
 $ make functest
 ```
 
 Run both unit and functional tests:
-```{.shell .bold}
+```shell
 $ make test
 ```
 
@@ -556,41 +556,41 @@ First, ensure all required dependencies are installed with these
 commands. (You might also need to install some system libs like
 terminfo or curses.)
 
-```{.shell .bold}
+```shell
 $ stack test
 $ stack bench
 ```
 
 Get a GHCI prompt for hledger-lib:
-```{.shell .bold}
+```shell
 $ stack ghci hledger-lib
 ```
 
 Get a GHCI prompt for hledger:
-```{.shell .bold}
+```shell
 $ stack ghci hledger
 ```
 
 Get a GHCI prompt for hledger-web:
-```{.shell .bold}
+```shell
 $ stack ghci hledger-web
 ```
 hledger-web also needs to find some things in its current directory (like the static/ directory).
 This normally just works, if not please [send details](https://github.com/simonmichael/hledger/issues/274).
 
 Get a GHCI prompt for hledger and hledger-lib:
-```{.shell .bold}
+```shell
 $ make ghci
 ```
 
 Get a GHCI prompt for hledger-web, hledger and hledger-lib:
-```{.shell .bold}
+```shell
 $ make ghci-web
 ```
 
 <!--
 For the dev.hs developer script:
-```{.shell .bold}
+```shell
 $ make ghci-dev
 ```
 -->
