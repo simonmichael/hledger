@@ -327,7 +327,7 @@ balance opts@CliOpts{reportopts_=ropts} j = do
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[a, showMixedAmountWithoutPrice b] | ((a, _, _), b) <- items]
+  [[a, showMixedAmountOneLineWithoutPrice b] | ((a, _, _), b) <- items]
   ++
   if no_total_ opts
   then []
