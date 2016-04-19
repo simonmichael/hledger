@@ -97,7 +97,7 @@ $ hledger balance -p 2008/6 expenses -N --flat --drop 1
                   $1  supplies
 ```
 
-### Depth limiting
+### Depth limited balance reports
 
 With `--depth N`, balance shows accounts only to the specified depth.
 This is very useful to show a complex charts of accounts in less detail.

@@ -47,14 +47,15 @@ usage = [i|Usage:
  ./Shake site             # generate the web site
  ./Shake manpages         # generate nroff files for man
  ./Shake txtmanpages      # generate text man pages for embedding
+ ./Shake infomanpages     # generate info files for info
  ./Shake webmanpages      # generate web man pages for hakyll
  ./Shake webmanual        # generate combined web man page for hakyll
 |]
 
-pandoc =
-  -- "stack exec -- pandoc" -- use the pandoc required above
-  "pandoc"                  -- use pandoc in PATH (faster)
+pandoc = "pandoc"                   -- pandoc from PATH (faster)
+         --  "stack exec -- pandoc" -- pandoc from project's stackage snapshot
 hakyllstd = "site/hakyll-std/hakyll-std"
+makeinfo = "makeinfo"
 nroff = "nroff"
 
 main = do
@@ -101,6 +102,8 @@ main = do
       nroffmanpages = [manpageDir m </> m | m <- manpageNames]
       --    manuals rendered to text, ready for embedding (hledger/doc/hledger.1.txt)
       txtmanpages = [manpageDir m </> m <.> "txt" | m <- manpageNames]
+      --    manuals rendered to info, ready for info (hledger/doc/hledger.info)
+      infomanpages = [manpageDir m </> m <.> "info" | m <- manpageNames]
       --   manuals rendered to markdown, ready for web output by hakyll (site/hledger.md)
       webmanpages = ["site" </> manpageNameToUri m <.>"md" | m <- manpageNames]
       --    manuals rendered to markdown and combined, ready for web output by hakyll
@@ -122,6 +125,7 @@ main = do
     phony "docs" $ do
       need $
         nroffmanpages
+        ++ infomanpages
         ++ txtmanpages
 
     -- compile pandoc helpers
@@ -161,6 +165,27 @@ main = do
       let src = dropExtension out
       need [src]
       cmd Shell nroff "-man" src ">" out
+
+    -- use m4 and pandoc to process macros, filter content, and convert to info, suitable for info viewing
+    phony "infomanpages" $ need infomanpages
+
+    infomanpages |%> \out -> do -- hledger/doc/hledger.info
+      let src = out -<.> "m4.md"
+          lib = "doc/lib.m4"
+          dir = takeDirectory out
+      -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
+      deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
+      need $ src : lib : deps ++ pandocFilters
+      cmd Shell
+        "m4 -P -I" dir lib src "|"
+        pandoc "-f markdown"
+        -- "--filter doc/pandoc-drop-web-blocks"
+        "--filter doc/pandoc-drop-html-blocks"
+        "--filter doc/pandoc-drop-html-inlines"
+        "--filter doc/pandoc-drop-links"
+        "--filter doc/pandoc-drop-notes"
+        "-t texinfo |"
+        makeinfo "--force --no-split -o" out
 
     -- web site
 

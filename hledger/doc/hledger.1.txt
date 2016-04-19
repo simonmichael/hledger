@@ -680,7 +680,7 @@ CCOOMMMMAANNDDSS
                                 $1  food
                                 $1  supplies
 
-   DDeepptthh lliimmiittiinngg
+   DDeepptthh lliimmiitteedd bbaallaannccee rreeppoorrttss
        With  --depth N,  balance  shows  accounts only to the specified depth.
        This is very useful to show  a  complex  charts  of  accounts  in  less
        detail.   In  flat  mode,  balances from accounts below the depth limit
