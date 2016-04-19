@@ -9,9 +9,7 @@ packages:
 
 #flags:
 
-# this or a newer snapshot is suggested
-#resolver: lts-5.11
-# hledger-api/servant/aeson requires > lts-5
+# this or a newer snapshot is suggested (hledger-api/servant/aeson requires > lts-5)
 resolver: nightly-2016-04-01
 
 #extra-deps:
