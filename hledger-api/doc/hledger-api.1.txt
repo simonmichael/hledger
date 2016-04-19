@@ -24,11 +24,32 @@ DDEESSCCRRIIPPTTIIOONN
        $LEDGER_FILE,  or  another  file specified with -f.  For more about the
        format, see hledger(1) or hledger_journal(5).
 
-       The server listens for requests on port ...
+       The server listens on port 8001, or another specified with -p PORT.
 
        Note there is no built-in access control, so  you  will  need  to  hide
        hledger-api  behind  an  authenticating  proxy  if you want to restrict
        access.
+
+OOPPTTIIOONNSS
+       Note: if invoking hledger-api as a hledger subcommand, write --  before
+       options as shown above.
+
+       --ff ----ffiillee FFIILLEE
+              use   a   different   input   file   (default:  $LEDGER_FILE  or
+              ~/.hledger.journal)
+
+       --dd ----ssttaattiicc--ddiirr==DDIIRR
+              serve files from a different directory (default: .)
+
+       --pp ----ppoorrtt==PPOORRTT
+              use a different TCP port (default: 8001)
+
+       --hh     show usage
+
+       ----hheellpp show detailed help
+
+       ----vveerrssiioonn
+              show version information
 
 EENNVVIIRROONNMMEENNTT
        LLEEDDGGEERR__FFIILLEE sets the default journal file path.   If  not  set,  it  is

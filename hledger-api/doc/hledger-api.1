@@ -30,11 +30,47 @@ Data is served from the usual hledger journal file:
 specified with \-f.
 For more about the format, see hledger(1) or hledger_journal(5).
 .PP
-The server listens for requests on port ...
+The server listens on port 8001, or another specified with
+\f[C]\-p\ PORT\f[].
 .PP
 Note there is no built\-in access control, so you will need to hide
 hledger\-api behind an authenticating proxy if you want to restrict
 access.
+.SH OPTIONS
+.PP
+Note: if invoking hledger\-api as a hledger subcommand, write
+\f[C]\-\-\f[] before options as shown above.
+.TP
+.B \f[C]\-f\ \-\-file\ FILE\f[]
+use a different input file (default: \f[C]$LEDGER_FILE\f[] or
+\f[C]~/.hledger.journal\f[])
+.RS
+.RE
+.TP
+.B \f[C]\-d\ \-\-static\-dir=DIR\f[]
+serve files from a different directory (default: \f[C]\&.\f[])
+.RS
+.RE
+.TP
+.B \f[C]\-p\ \-\-port=PORT\f[]
+use a different TCP port (default: 8001)
+.RS
+.RE
+.TP
+.B \f[C]\-h\f[]
+show usage
+.RS
+.RE
+.TP
+.B \f[C]\-\-help\f[]
+show detailed help
+.RS
+.RE
+.TP
+.B \f[C]\-\-version\f[]
+show version information
+.RS
+.RE
 .SH ENVIRONMENT
 .PP
 \f[B]LEDGER_FILE\f[] sets the default journal file path.

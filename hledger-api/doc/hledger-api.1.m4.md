@@ -33,81 +33,33 @@ Data is served from the usual hledger journal file:
 `~/.hledger.journal`, `$LEDGER_FILE`, or another file specified with -f.
 For more about the format, see hledger(1) or hledger_journal(5).
 
-The server listens for requests on port ...
+The server listens on port 8001, or another specified with `-p PORT`.
 
 Note there is no built-in access control, so you will need to hide
 hledger-api behind an authenticating proxy if you want to restrict
 access.
 
-<!-- With journal and timeclock files (but not CSV files, currently) -->
-<!-- the web app detects changes and will show the new data on the next request. -->
-<!-- If a change makes the file unparseable, hledger-api will show an error -->
-<!-- until the file has been fixed. -->
+# OPTIONS
 
-<!-- # OPTIONS -->
+Note: if invoking hledger-api as a hledger subcommand, write `--` before options as shown above.
 
-<!-- Note: if invoking hledger-web as a hledger subcommand, write `--` before options as shown above. -->
+`-f --file FILE`
+: use a different input file (default: `$LEDGER_FILE` or `~/.hledger.journal`)
 
-<!-- `--port=PORT` -->
-<!-- : set the TCP port to listen on (default: 5000) -->
+`-d --static-dir=DIR`
+: serve files from a different directory (default: `.`)
 
-<!-- `-h --help` -->
-<!-- : show help -->
+`-p --port=PORT`
+: use a different TCP port (default: 8001)
 
-<!-- `--version` -->
-<!-- : show version information -->
+`-h`
+: show usage
 
-<!-- ## hledger options: -->
+`--help`
+: show detailed help
 
-<!-- The following common hledger options should also work: -->
-
-<!-- `-f FILE --file=FILE` -->
-<!-- : use a different input file. For stdin, use - -->
-
-<!-- `--rules-file=RULESFILE` -->
-<!-- : Conversion rules file to use when reading CSV (default: FILE.rules) -->
-
-<!-- `--alias=OLD=NEW` -->
-<!-- : display accounts named OLD as NEW -->
-
-<!-- `--ignore-assertions` -->
-<!-- : ignore any failing balance assertions in the journal -->
-
-<!-- `--debug=N` -->
-<!-- : show debug output if N is 1-9 (default: 0) -->
-
-<!-- `-b --begin=DATE` -->
-<!-- : include postings/txns on or after this date -->
-
-<!-- `-e --end=DATE` -->
-<!-- : include postings/txns before this date -->
-
-<!-- `-p --period=PERIODEXP` -->
-<!-- : set start date, end date, and/or reporting interval all at once (overrides the flags above) -->
-
-<!-- `--date2 --aux-date` -->
-<!-- : use postings/txns' secondary dates instead -->
-
-<!-- `-C --cleared` -->
-<!-- : include only cleared postings/txns -->
-
-<!-- `--pending` -->
-<!-- : include only pending postings/txns -->
-
-<!-- `-U --uncleared` -->
-<!-- : include only uncleared (and pending) postings/txns -->
-
-<!-- `-R --real` -->
-<!-- : include only non-virtual postings -->
-
-<!-- `--depth=N` -->
-<!-- : hide accounts/postings deeper than N -->
-
-<!-- `-E --empty` -->
-<!-- : show empty/zero things which are normally omitted -->
-
-<!-- `-B --cost` -->
-<!-- : show amounts in their cost price's commodity -->
+`--version`
+: show version information
 
 _man_({{
 
