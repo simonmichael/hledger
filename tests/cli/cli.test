@@ -86,28 +86,28 @@ hledger -f somefile
 >>> /^hledger \[COMMAND\]/
 >>>=0
 
-# 6. with --help, and possibly other common flags present, show general help
-hledger --help --version -f /dev/null
+# 6. with -h, and possibly other common flags present, show general usage
+hledger -h --version -f /dev/null
 >>> /^hledger \[COMMAND\]/
 >>>=0
 
-# 7. with --help before COMMAND, show general help
-hledger --help balance --cost
+# 7. with -h before COMMAND, show general usage
+hledger -h balance --cost
 >>> /^hledger \[COMMAND\]/
 >>>=0
 
-# 8. with --help after command, show command help
-hledger balance --help
+# 8. with -h after command, show command usage
+hledger balance -h
 >>> /^balance \[OPTIONS\]/
 >>>=0
 
 # 9. should work with deprecated commands too
-hledger convert --help
+hledger convert -h
 >>>
 >>>2 /no longer needed/
 >>>=1
 
-# 10. with an unrecognised command, give general help and non-zero exit status
+# 10. with an unrecognised command, give general usage and non-zero exit status
 hledger nosuchcommand
 >>>
 >>>2 /not recognized/
@@ -127,7 +127,7 @@ hledger -f /dev/null --alias somealiases --rules-file -h --help --version --debu
 >>>=0
 
 # 13. or after it, and spaces in options are optional
-hledger register -f/dev/null --alias=somealiases --rules-file -h --help --version --debug 1 --daily
+hledger register -f/dev/null --alias=somealiases --rules-file -h --version --debug 1 --daily
 >>> /^register \[OPTIONS\]/
 >>>=0
 
