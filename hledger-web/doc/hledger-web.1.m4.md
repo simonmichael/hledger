@@ -117,8 +117,11 @@ You would change this when sharing over the network, or integrating within a lar
 hledger-web normally serves static files itself, but if you wanted to
 serve them from another server for efficiency, you would set the url with this.
 
-`-h --help`
-: show help
+`-h`
+: show usage
+
+`--help`
+: show detailed help
 
 `--version`
 : show version information

@@ -23,10 +23,10 @@ There are three kinds of options.
 General options are always available and can appear anywhere in the command line:
 
 `-h`
-: show general usage or (after command) command usage
+: show general usage (or if after COMMAND, the command's usage)
 
 `--help`
-: show detailed help (man page)
+: show detailed help (or if after COMMAND, the command's help)
 
 `--version`
 : show version information

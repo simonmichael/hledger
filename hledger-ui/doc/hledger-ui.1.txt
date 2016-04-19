@@ -54,8 +54,9 @@ OOPPTTIIOONNSS
               show amounts as their current market value in their default val-
               uation commodity (accounts screen only)
 
-       --hh ----hheellpp
-              show help
+       --hh     show usage
+
+       ----hheellpp show detailed help
 
        ----vveerrssiioonn
               show version information

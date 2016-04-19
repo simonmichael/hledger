@@ -88,8 +88,9 @@ OOPPTTIIOONNSS
               them  from  another server for efficiency, you would set the url
               with this.
 
-       --hh ----hheellpp
-              show help
+       --hh     show usage
+
+       ----hheellpp show detailed help
 
        ----vveerrssiioonn
               show version information

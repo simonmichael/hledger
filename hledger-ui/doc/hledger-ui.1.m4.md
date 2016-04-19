@@ -74,8 +74,11 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 : show amounts as their current market value in their default valuation commodity
 (accounts screen only)
 
-`-h --help`
-: show help
+`-h`
+: show usage
+
+`--help`
+: show detailed help
 
 `--version`
 : show version information

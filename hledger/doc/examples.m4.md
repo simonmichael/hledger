@@ -56,7 +56,7 @@ More commands:
 $ hledger                                 # show available commands
 $ hledger add                             # add more transactions to the journal file
 $ hledger balance                         # all accounts with aggregated balances
-$ hledger balance --help                  # show help for balance command
+$ hledger balance --help                  # show detailed help for balance command
 $ hledger balance --depth 1               # only top-level accounts
 $ hledger register                        # show account postings, with running total
 $ hledger reg income                      # show postings to/from income accounts

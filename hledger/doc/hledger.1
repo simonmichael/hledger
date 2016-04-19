@@ -133,7 +133,7 @@ More commands:
 $\ hledger\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ available\ commands
 $\ hledger\ add\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ add\ more\ transactions\ to\ the\ journal\ file
 $\ hledger\ balance\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ all\ accounts\ with\ aggregated\ balances
-$\ hledger\ balance\ \-\-help\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ help\ for\ balance\ command
+$\ hledger\ balance\ \-\-help\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ detailed\ help\ for\ balance\ command
 $\ hledger\ balance\ \-\-depth\ 1\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ only\ top\-level\ accounts
 $\ hledger\ register\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ account\ postings,\ with\ running\ total
 $\ hledger\ reg\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ postings\ to/from\ income\ accounts
@@ -172,12 +172,12 @@ General options are always available and can appear anywhere in the
 command line:
 .TP
 .B \f[C]\-h\f[]
-show general usage or (after command) command usage
+show general usage (or if after COMMAND, the command\[aq]s usage)
 .RS
 .RE
 .TP
 .B \f[C]\-\-help\f[]
-show detailed help (man page)
+show detailed help (or if after COMMAND, the command\[aq]s help)
 .RS
 .RE
 .TP

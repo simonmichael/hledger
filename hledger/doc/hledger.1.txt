@@ -95,7 +95,7 @@ EEXXAAMMPPLLEESS
               $ hledger                                 # show available commands
               $ hledger add                             # add more transactions to the journal file
               $ hledger balance                         # all accounts with aggregated balances
-              $ hledger balance --help                  # show help for balance command
+              $ hledger balance --help                  # show detailed help for balance command
               $ hledger balance --depth 1               # only top-level accounts
               $ hledger register                        # show account postings, with running total
               $ hledger reg income                      # show postings to/from income accounts
@@ -124,9 +124,9 @@ OOPPTTIIOONNSS
        There are three kinds of options.  General options are always available
        and can appear anywhere in the command line:
 
-       --hh     show general usage or (after command) command usage
+       --hh     show general usage (or if after COMMAND, the command's usage)
 
-       ----hheellpp show detailed help (man page)
+       ----hheellpp show detailed help (or if after COMMAND, the command's help)
 
        ----vveerrssiioonn
               show version information
