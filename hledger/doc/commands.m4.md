@@ -231,18 +231,20 @@ Total:
 ```
 
 ## help
-Show detailed help.
+Show one of the hledger manuals.
 
-The `help` command can display any of the main [hledger man pages](/docs.html), as fixed-width text. 
+The `help` command displays any of the main [hledger man pages](/docs.html).
 (Unlike `hledger --help`, which displays only the hledger man page.)
 Run it with no arguments to list available topics (their names are shortened for easier typing),
 and run `hledger help TOPIC` to select one.
-The output may be long, so you may wish to pipe it into a pager.
+The output is similar to a man page, but fixed width.
+It may be long, so you may wish to pipe it into a pager.
+See also [info](#info) and [man](#man).
 
 _shell_({{
 $ hledger help
-Please choose a topic, eg: hledger help ui
-Topics: cli, ui, web, api, journal, csv, timeclock, timedot
+Choose a topic, eg: hledger help cli
+cli, ui, web, api, journal, csv, timeclock, timedot
 }})
 
 _shell_({{
@@ -297,6 +299,26 @@ Total:
 --------------------
                    0
 ```
+
+## info
+Show one of the hledger manuals using info.
+
+The `info` command displays any of the [hledger reference manuals](/docs.html)
+using the [info](https://en.wikipedia.org/wiki/Info_(Unix)) hypertextual documentation viewer.
+This can be a very efficient way to browse large manuals.
+It requires the "info" program to be available in your PATH.
+
+As with [help](#help), run it with no arguments to list available topics (manuals).
+
+## man
+Show one of the hledger manuals using man.
+
+The `man` command displays any of the [hledger reference manuals](/docs.html)
+using [man](https://en.wikipedia.org/wiki/Man_page), the standard documentation viewer on unix systems.
+This will fit the text to your terminal width, and probably invoke a pager automatically.
+It requires the "man" program to be available in your PATH.
+
+As with [help](#help), run it with no arguments to list available topics (manuals).
 
 ## print
 Show transactions from the journal.

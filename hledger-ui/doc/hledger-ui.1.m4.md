@@ -78,10 +78,16 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 : show usage
 
 `--help`
-: show detailed help
+: show manual
+
+`--man`
+: show manual with man
+
+`--info`
+: show manual with info
 
 `--version`
-: show version information
+: show version
 
 ## hledger options
 

@@ -56,10 +56,14 @@ OOPPTTIIOONNSS
 
        --hh     show usage
 
-       ----hheellpp show detailed help
+       ----hheellpp show manual
+
+       ----mmaann  show manual with man
+
+       ----iinnffoo show manual with info
 
        ----vveerrssiioonn
-              show version information
+              show version
 
    hhlleeddggeerr ooppttiioonnss
        The following common hledger options should also work:

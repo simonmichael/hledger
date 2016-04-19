@@ -55,9 +55,12 @@ import Hledger.Cli.Accounts
 import Hledger.Cli.Balance
 import Hledger.Cli.Balancesheet
 import Hledger.Cli.Cashflow
+import Hledger.Cli.DocFiles
 import Hledger.Cli.Help
 import Hledger.Cli.Histogram
 import Hledger.Cli.Incomestatement
+import Hledger.Cli.Info
+import Hledger.Cli.Man
 import Hledger.Cli.Print
 import Hledger.Cli.Register
 import Hledger.Cli.Stats
@@ -100,6 +103,8 @@ mainmode addons = defMode {
     -- modes in the unnamed group, shown first without a heading:
    ,groupUnnamed = [
         helpmode
+       ,manmode
+       ,infomode
      ]
     -- modes handled but not shown
    ,groupHidden = [
@@ -247,13 +252,19 @@ main = do
     hasVersion           = ("--version" `elem`)
     hasDetailedVersion   = ("--version+" `elem`)
     printUsage           = putStr $ showModeUsage $ mainmode addonDisplayNames
-    printHelp            = putStr $ showModeHelp  $ mainmode addonDisplayNames
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
-    hasShortHelp args    = any (`elem` args) ["-h"]
-    hasLongHelp args     = any (`elem` args) ["--help"]
-    hasHelp args         = hasShortHelp args || hasLongHelp args
-    f `orShowUsage` mode = if hasShortHelp args then putStr (showModeUsage mode) else f
-    f `orShowHelp` mode  = if hasLongHelp  args then putStr (showModeHelp mode) else f
+    hasShortHelpFlag args = any (`elem` args) ["-h"]
+    hasLongHelpFlag args = any (`elem` args) ["--help"]
+    hasManFlag args      = any (`elem` args) ["--man"]
+    hasInfoFlag args     = any (`elem` args) ["--info"]
+    hasSomeHelpFlag args = hasShortHelpFlag args || hasLongHelpFlag args || hasManFlag args || hasInfoFlag args
+    f `orShowHelp` mode
+      | hasShortHelpFlag args = putStr $ showModeUsage mode
+      | hasLongHelpFlag args  = printHelpForTopic t
+      | hasManFlag args       = runManForTopic t
+      | hasInfoFlag args      = runInfoForTopic t
+      | otherwise             = f
+      where t = topicForMode mode
   dbgIO "processed opts" opts
   dbgIO "command matched" cmd
   dbgIO "isNullCommand" isNullCommand
@@ -266,31 +277,35 @@ main = do
   dbgIO "query from opts & args" (queryFromOpts d $ reportopts_ opts)
   let
     runHledgerCommand
-      -- high priority flags and situations. --help should be highest priority.
-      | hasShortHelp argsbeforecmd = dbgIO "" "-h before command, showing general usage" >> printUsage
-      | hasLongHelp  argsbeforecmd = dbgIO "" "--help before command, showing general help" >> printHelp
-      | not (hasHelp argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
+      -- high priority flags and situations. -h, then --help, then --info are highest priority.
+      | hasShortHelpFlag argsbeforecmd = dbgIO "" "-h before command, showing general usage" >> printUsage
+      | hasLongHelpFlag  argsbeforecmd = dbgIO "" "--help before command, showing general manual" >> printHelpForTopic (topicForMode $ mainmode addonDisplayNames)
+      | hasManFlag       argsbeforecmd = dbgIO "" "--man before command, showing general manual with man" >> runManForTopic (topicForMode $ mainmode addonDisplayNames)
+      | hasInfoFlag      argsbeforecmd = dbgIO "" "--info before command, showing general manual with info" >> runInfoForTopic (topicForMode $ mainmode addonDisplayNames)
+      | not (hasSomeHelpFlag argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameandversion
-      | not (hasHelp argsaftercmd) && (hasDetailedVersion argsbeforecmd || (hasDetailedVersion argsaftercmd && isInternalCommand))
+      | not (hasSomeHelpFlag argsaftercmd) && (hasDetailedVersion argsbeforecmd || (hasDetailedVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameanddetailedversion
       -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
       -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
-      | isNullCommand            = dbgIO "" "no command, showing general help" >> printUsage
+      | isNullCommand            = dbgIO "" "no command, showing general usage" >> printUsage
       | isBadCommand             = badCommandError
 
       -- internal commands
-      | cmd == "activity"        = withJournalDo opts histogram       `orShowUsage` activitymode `orShowHelp` activitymode
-      | cmd == "add"             = (journalFilePathFromOpts opts >>= (ensureJournalFileExists . head) >> withJournalDo opts add) `orShowUsage` addmode `orShowHelp` addmode
-      | cmd == "accounts"        = withJournalDo opts accounts        `orShowUsage` accountsmode `orShowHelp` accountsmode
-      | cmd == "balance"         = withJournalDo opts balance         `orShowUsage` balancemode `orShowHelp` balancemode
-      | cmd == "balancesheet"    = withJournalDo opts balancesheet    `orShowUsage` balancesheetmode `orShowHelp` balancesheetmode
-      | cmd == "cashflow"        = withJournalDo opts cashflow        `orShowUsage` cashflowmode `orShowHelp` cashflowmode
-      | cmd == "incomestatement" = withJournalDo opts incomestatement `orShowUsage` incomestatementmode `orShowHelp` incomestatementmode
-      | cmd == "print"           = withJournalDo opts print'          `orShowUsage` printmode `orShowHelp` printmode
-      | cmd == "register"        = withJournalDo opts register        `orShowUsage` registermode `orShowHelp` registermode
-      | cmd == "stats"           = withJournalDo opts stats           `orShowUsage` statsmode `orShowHelp` statsmode
-      | cmd == "test"            = test' opts                         `orShowUsage` testmode `orShowHelp` testmode
-      | cmd == "help"            = help' opts                         `orShowUsage` helpmode `orShowHelp` helpmode
+      | cmd == "activity"        = withJournalDo opts histogram       `orShowHelp` activitymode
+      | cmd == "add"             = (journalFilePathFromOpts opts >>= (ensureJournalFileExists . head) >> withJournalDo opts add) `orShowHelp` addmode
+      | cmd == "accounts"        = withJournalDo opts accounts        `orShowHelp` accountsmode
+      | cmd == "balance"         = withJournalDo opts balance         `orShowHelp` balancemode
+      | cmd == "balancesheet"    = withJournalDo opts balancesheet    `orShowHelp` balancesheetmode
+      | cmd == "cashflow"        = withJournalDo opts cashflow        `orShowHelp` cashflowmode
+      | cmd == "incomestatement" = withJournalDo opts incomestatement `orShowHelp` incomestatementmode
+      | cmd == "print"           = withJournalDo opts print'          `orShowHelp` printmode
+      | cmd == "register"        = withJournalDo opts register        `orShowHelp` registermode
+      | cmd == "stats"           = withJournalDo opts stats           `orShowHelp` statsmode
+      | cmd == "test"            = test' opts                         `orShowHelp` testmode
+      | cmd == "help"            = help' opts                         `orShowHelp` helpmode
+      | cmd == "man"             = man opts                           `orShowHelp` manmode
+      | cmd == "info"            = info' opts                         `orShowHelp` infomode
 
       -- an external command
       | isExternalCommand = do

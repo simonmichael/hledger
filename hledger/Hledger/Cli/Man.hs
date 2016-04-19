@@ -1,13 +1,13 @@
 {-|
 
-The help command.
+The man command.
 
 |-}
 
-module Hledger.Cli.Help (
+module Hledger.Cli.Man (
 
-   helpmode
-  ,help'
+   manmode
+  ,man
 
   ) where
 
@@ -20,8 +20,8 @@ import Hledger.Data.RawOptions
 import Hledger.Cli.CliOptions
 import Hledger.Cli.DocFiles
 
-helpmode = (defCommandMode $ ["help"] ++ aliases) {
-  modeHelp = "show manual" `withAliases` aliases
+manmode = (defCommandMode $ ["man"] ++ aliases) {
+  modeHelp = "show manual with man" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []
@@ -30,13 +30,12 @@ helpmode = (defCommandMode $ ["help"] ++ aliases) {
  }
   where aliases = []
 
--- | Print detailed help on various topics.
-help' :: CliOpts -> IO ()
-help' opts = do
+-- | Try to use man to view the selected manual.
+man :: CliOpts -> IO ()
+man opts = do
   let args = listofstringopt "args" $ rawopts_ opts
   case args of
     []    -> putStrLn $
-             "Choose a topic, eg: hledger help cli\n" ++
+             "Choose a topic, eg: hledger man cli\n" ++
              intercalate ", " docTopics
-    topic:_ -> printHelpForTopic topic
-
+    topic:_ -> runManForTopic topic

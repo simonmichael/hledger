@@ -66,10 +66,16 @@ Note: if invoking hledger-api as a hledger subcommand, write `--` before options
 : show usage
 
 `--help`
-: show detailed help
+: show manual
+
+`--man`
+: show manual with man
+
+`--info`
+: show manual with info
 
 `--version`
-: show version information
+: show version
 
 _man_({{
 

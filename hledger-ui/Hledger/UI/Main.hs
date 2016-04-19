@@ -42,9 +42,10 @@ main = do
   run opts
     where
       run opts
-        | "shorthelp" `inRawOpts` (rawopts_ $ cliopts_ opts)       = putStr (showModeUsage uimode) >> exitSuccess
-        | "longhelp" `inRawOpts` (rawopts_ $ cliopts_ opts)        = putStr (showModeHelp  uimode) >> exitSuccess
-        | "version" `inRawOpts` (rawopts_ $ cliopts_ opts)         = putStrLn prognameandversion >> exitSuccess
+        | "h"               `inRawOpts` (rawopts_ $ cliopts_ opts) = putStr (showModeUsage uimode) >> exitSuccess
+        | "help"            `inRawOpts` (rawopts_ $ cliopts_ opts) = printHelpForTopic (topicForMode uimode) >> exitSuccess
+        | "info"            `inRawOpts` (rawopts_ $ cliopts_ opts) = runInfoForTopic (topicForMode uimode) >> exitSuccess
+        | "version"         `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn prognameandversion >> exitSuccess
         | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
         | otherwise                                                = withJournalDoUICommand opts runBrickUi
 

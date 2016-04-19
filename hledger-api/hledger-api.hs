@@ -48,7 +48,7 @@ Usage:
   hledger-api --swagger
     print API docs in Swagger 2.0 format
   hledger-api --version
-  hledger-api --help
+  hledger-api -h|--help|--info
 
 Options:
   -f --file FILE  use a different input file
@@ -58,7 +58,9 @@ Options:
   -p --port PORT  use a different TCP port (default: 8001)
      --version    show version
   -h              show usage
-     --help       show detailed help
+     --help       show manual
+     --man        show manual with man
+     --info       show manual with info
 |]
 
 swaggerSpec :: Swagger
@@ -72,7 +74,9 @@ main :: IO ()
 main = do
   args <- getArgs >>= parseArgsOrExit doc
   when (isPresent args (shortOption 'h')) $ exitWithUsage doc
-  when (isPresent args (longOption "help")) $ putStr (lookupDocTxt "api") >> exitSuccess
+  when (isPresent args (longOption "help")) $ printHelpForTopic "api" >> exitSuccess
+  when (isPresent args (longOption "man"))  $ runManForTopic "api" >> exitSuccess
+  when (isPresent args (longOption "info")) $ runInfoForTopic "api" >> exitSuccess
   when (isPresent args (longOption "version")) $ putStrLn hledgerApiVersion >> exitSuccess
   when (isPresent args (longOption "swagger")) $ BL8.putStrLn (encode swaggerSpec) >> exitSuccess
   let defp = "8001"

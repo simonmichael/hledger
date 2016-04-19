@@ -177,12 +177,23 @@ show general usage (or if after COMMAND, the command\[aq]s usage)
 .RE
 .TP
 .B \f[C]\-\-help\f[]
-show detailed help (or if after COMMAND, the command\[aq]s help)
+show hledger manual (or if after an add\-on COMMAND, show the
+add\-on\[aq]s manual)
+.RS
+.RE
+.TP
+.B \f[C]\-\-man\f[]
+show manual with man
+.RS
+.RE
+.TP
+.B \f[C]\-\-info\f[]
+show manual with info
 .RS
 .RE
 .TP
 .B \f[C]\-\-version\f[]
-show version information
+show version
 .RS
 .RE
 .TP
@@ -1352,21 +1363,22 @@ Total:
 .fi
 .SS help
 .PP
-Show detailed help.
+Show one of the hledger manuals.
 .PP
-The \f[C]help\f[] command can display any of the main hledger man pages,
-as fixed\-width text.
+The \f[C]help\f[] command displays any of the main hledger man pages.
 (Unlike \f[C]hledger\ \-\-help\f[], which displays only the hledger man
 page.) Run it with no arguments to list available topics (their names
 are shortened for easier typing), and run \f[C]hledger\ help\ TOPIC\f[]
 to select one.
-The output may be long, so you may wish to pipe it into a pager.
+The output is similar to a man page, but fixed width.
+It may be long, so you may wish to pipe it into a pager.
+See also info and man.
 .IP
 .nf
 \f[C]
 $\ hledger\ help
-Please\ choose\ a\ topic,\ eg:\ hledger\ help\ ui
-Topics:\ cli,\ ui,\ web,\ api,\ journal,\ csv,\ timeclock,\ timedot
+Choose\ a\ topic,\ eg:\ hledger\ help\ cli
+cli,\ ui,\ web,\ api,\ journal,\ csv,\ timeclock,\ timedot
 \f[]
 .fi
 .IP
@@ -1431,6 +1443,29 @@ Total:
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
 \f[]
 .fi
+.SS info
+.PP
+Show one of the hledger manuals using info.
+.PP
+The \f[C]info\f[] command displays any of the hledger reference manuals
+using the info hypertextual documentation viewer.
+This can be a very efficient way to browse large manuals.
+It requires the "info" program to be available in your PATH.
+.PP
+As with help, run it with no arguments to list available topics
+(manuals).
+.SS man
+.PP
+Show one of the hledger manuals using man.
+.PP
+The \f[C]man\f[] command displays any of the hledger reference manuals
+using man, the standard documentation viewer on unix systems.
+This will fit the text to your terminal width, and probably invoke a
+pager automatically.
+It requires the "man" program to be available in your PATH.
+.PP
+As with help, run it with no arguments to list available topics
+(manuals).
 .SS print
 .PP
 Show transactions from the journal.

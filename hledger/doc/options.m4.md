@@ -26,10 +26,16 @@ General options are always available and can appear anywhere in the command line
 : show general usage (or if after COMMAND, the command's usage)
 
 `--help`
-: show detailed help (or if after COMMAND, the command's help)
+: show hledger manual (or if after an add-on COMMAND, show the add-on's manual)
+
+`--man`
+: show manual with man
+
+`--info`
+: show manual with info
 
 `--version`
-: show version information
+: show version
 
 `-f FILE --file=FILE`
 : use a different input file. For stdin, use -

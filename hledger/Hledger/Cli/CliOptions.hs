@@ -22,7 +22,6 @@ module Hledger.Cli.CliOptions (
   defAddonCommandMode,
   argsFlag,
   showModeUsage,
-  showModeHelp,
   withAliases,
 
   -- * CLI options
@@ -54,6 +53,7 @@ module Hledger.Cli.CliOptions (
 
   -- * Other utils
   hledgerAddons,
+  topicForMode,
 
   -- * Tests
   tests_Hledger_Cli_CliOptions
@@ -95,8 +95,10 @@ import Hledger.Cli.Version
 -- | Common help flags: --help, --debug, --version...
 helpflags :: [Flag RawOpts]
 helpflags = [
-  flagNone ["h"] (setboolopt "shorthelp") "show general usage or (after command) command usage"
- ,flagNone ["help"] (setboolopt "longhelp") "show detailed help"
+  flagNone ["h"]    (setboolopt "h")    "show general usage or (after command) command usage"
+ ,flagNone ["help"] (setboolopt "help") "show manual"
+ ,flagNone ["man"]  (setboolopt "man")  "show manual with man"
+ ,flagNone ["info"] (setboolopt "info") "show manual with info"
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "N" "show increasing amounts of debug output if N is 1-9. With no argument, show level 1"
  ,flagNone ["version"] (setboolopt "version") "show version information"
@@ -169,7 +171,7 @@ defMode =   Mode {
  ,modeGroupFlags = Group {
      groupNamed = []
     ,groupUnnamed = [
-        flagNone ["h"] (setboolopt "shorthelp") "Show command help."
+        flagNone ["h"] (setboolopt "h") "Show command usage."
         ]
     ,groupHidden = []
     }
@@ -230,15 +232,15 @@ showModeUsage :: Mode a -> String
 showModeUsage = (showText defaultWrap :: [Text] -> String) .
                (helpText [] HelpFormatDefault :: Mode a -> [Text])
 
--- | Get a mode's long help, ready for console output.  Currently that
--- will be the hledger, hledger-ui, hledger-web or hledger-api man page,
--- formatted for 80 columns.
-showModeHelp :: Mode a -> String
-showModeHelp m
-  | n == "hledger-ui"  = lookupDocTxt "ui"
-  | n == "hledger-web" = lookupDocTxt "web"
+-- | Get the most appropriate documentation topic for a mode.
+-- Currently, that is either the hledger, hledger-ui, hledger-web or
+-- hledger-api manual.
+topicForMode :: Mode a -> Topic
+topicForMode m
+  | n == "hledger-ui"  = "ui"
+  | n == "hledger-web" = "web"
   --  | n == "hledger-api" = lookupDocTxt "api" -- hledger-api uses docopt
-  | otherwise          = lookupDocTxt "cli"
+  | otherwise          = "cli"
   where n = headDef "" $ modeNames m
 
 -- | Add command aliases to the command's help string.
@@ -362,8 +364,8 @@ getCliOpts mode' = do
   opts <- rawOptsToCliOpts rawopts
   debugArgs args' opts
   -- if any (`elem` args) ["--help","-h","-?"]
-  when ("shorthelp" `inRawOpts` rawopts_ opts) $ putStr (showModeUsage mode') >> exitSuccess
-  when ("longhelp"  `inRawOpts` rawopts_ opts) $ putStr (showModeHelp mode') >> exitSuccess
+  when ("h" `inRawOpts` rawopts_ opts) $ putStr (showModeUsage mode') >> exitSuccess
+  when ("help" `inRawOpts` rawopts_ opts) $ printHelpForTopic (topicForMode mode') >> exitSuccess
   return opts
   where
     -- | Print debug info about arguments and options if --debug is present.

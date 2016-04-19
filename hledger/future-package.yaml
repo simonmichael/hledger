@@ -81,6 +81,7 @@ dependencies:
   - regex-tdfa
   - safe >= 0.2
   - split >= 0.1 && < 0.3
+  - temporary
   - text >= 0.11
   - tabular >= 0.2 && < 0.3
   - utf8-string >= 0.3.5 && < 1.1
@@ -124,6 +125,7 @@ library:
     - Hledger.Cli
     - Hledger.Cli.Main
     - Hledger.Cli.CliOptions
+    - Hledger.Cli.DocFiles
     - Hledger.Cli.Tests
     - Hledger.Cli.Utils
     - Hledger.Cli.Version
@@ -132,8 +134,11 @@ library:
     - Hledger.Cli.Balance
     - Hledger.Cli.Balancesheet
     - Hledger.Cli.Cashflow
+    - Hledger.Cli.Help
     - Hledger.Cli.Histogram
     - Hledger.Cli.Incomestatement
+    - Hledger.Cli.Info
+    - Hledger.Cli.Man
     - Hledger.Cli.Print
     - Hledger.Cli.Register
     - Hledger.Cli.Stats

@@ -16,6 +16,8 @@ module Hledger.Cli (
                      module Hledger.Cli.Help,
                      module Hledger.Cli.Histogram,
                      module Hledger.Cli.Incomestatement,
+                     module Hledger.Cli.Info,
+                     module Hledger.Cli.Man,
                      module Hledger.Cli.Print,
                      module Hledger.Cli.Register,
                      module Hledger.Cli.Stats,
@@ -41,6 +43,8 @@ import Hledger.Cli.Cashflow
 import Hledger.Cli.Histogram
 import Hledger.Cli.Help
 import Hledger.Cli.Incomestatement
+import Hledger.Cli.Info
+import Hledger.Cli.Man
 import Hledger.Cli.Print
 import Hledger.Cli.Register
 import Hledger.Cli.Stats

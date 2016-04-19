@@ -121,10 +121,16 @@ serve them from another server for efficiency, you would set the url with this.
 : show usage
 
 `--help`
-: show detailed help
+: show manual
+
+`--man`
+: show manual with man
+
+`--info`
+: show manual with info
 
 `--version`
-: show version information
+: show version
 
 ## hledger options
 
