@@ -15,6 +15,7 @@ hledger-api - web API server for the hledger accounting tool
 # SYNOPSIS
 
 `hledger-api [OPTIONS]`\
+`hledger-api --swagger`\
 `hledger api -- [OPTIONS]`
 
 # DESCRIPTION
@@ -34,10 +35,12 @@ Data is served from the usual hledger journal file:
 For more about the format, see hledger(1) or hledger_journal(5).
 
 The server listens on port 8001, or another specified with `-p PORT`.
-
 Note there is no built-in access control, so you will need to hide
 hledger-api behind an authenticating proxy if you want to restrict
 access.
+
+If invoked as `hledger-api --swagger`, instead of starting a server
+the API docs will be printed in Swagger 2.0 format.
 
 # OPTIONS
 
@@ -51,6 +54,9 @@ Note: if invoking hledger-api as a hledger subcommand, write `--` before options
 
 `-p --port=PORT`
 : use a different TCP port (default: 8001)
+
+`--swagger`
+: print API docs in Swagger 2.0 format, and exit
 
 `-h`
 : show usage

@@ -12,6 +12,10 @@ hledger\-api \- web API server for the hledger accounting tool
 .PD 0
 .P
 .PD
+\f[C]hledger\-api\ \-\-swagger\f[]
+.PD 0
+.P
+.PD
 \f[C]hledger\ api\ \-\-\ [OPTIONS]\f[]
 .SH DESCRIPTION
 .PP
@@ -32,10 +36,12 @@ For more about the format, see hledger(1) or hledger_journal(5).
 .PP
 The server listens on port 8001, or another specified with
 \f[C]\-p\ PORT\f[].
-.PP
 Note there is no built\-in access control, so you will need to hide
 hledger\-api behind an authenticating proxy if you want to restrict
 access.
+.PP
+If invoked as \f[C]hledger\-api\ \-\-swagger\f[], instead of starting a
+server the API docs will be printed in Swagger 2.0 format.
 .SH OPTIONS
 .PP
 Note: if invoking hledger\-api as a hledger subcommand, write
@@ -54,6 +60,11 @@ serve files from a different directory (default: \f[C]\&.\f[])
 .TP
 .B \f[C]\-p\ \-\-port=PORT\f[]
 use a different TCP port (default: 8001)
+.RS
+.RE
+.TP
+.B \f[C]\-\-swagger\f[]
+print API docs in Swagger 2.0 format, and exit
 .RS
 .RE
 .TP

@@ -8,6 +8,7 @@ NNAAMMEE
 
 SSYYNNOOPPSSIISS
        hledger-api [OPTIONS]
+       hledger-api --swagger
        hledger api -- [OPTIONS]
 
 DDEESSCCRRIIPPTTIIOONN
@@ -24,11 +25,13 @@ DDEESSCCRRIIPPTTIIOONN
        $LEDGER_FILE,  or  another  file specified with -f.  For more about the
        format, see hledger(1) or hledger_journal(5).
 
-       The server listens on port 8001, or another specified with -p PORT.
-
-       Note there is no built-in access control, so  you  will  need  to  hide
-       hledger-api  behind  an  authenticating  proxy  if you want to restrict
+       The server listens on port 8001, or  another  specified  with  -p PORT.
+       Note  there  is  no  built-in  access control, so you will need to hide
+       hledger-api behind an authenticating proxy  if  you  want  to  restrict
        access.
+
+       If  invoked  as hledger-api --swagger, instead of starting a server the
+       API docs will be printed in Swagger 2.0 format.
 
 OOPPTTIIOONNSS
        Note: if invoking hledger-api as a hledger subcommand, write --  before
@@ -43,6 +46,9 @@ OOPPTTIIOONNSS
 
        --pp ----ppoorrtt==PPOORRTT
               use a different TCP port (default: 8001)
+
+       ----sswwaaggggeerr
+              print API docs in Swagger 2.0 format, and exit
 
        --hh     show usage
 
