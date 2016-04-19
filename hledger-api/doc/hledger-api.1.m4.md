@@ -3,7 +3,11 @@
 % January 2016
 
 _web_({{
-_versions_({{hledger-api}})
+m4_dnl _versions_({{hledger-api}})
+<div class="versions">
+version:
+<a href="$1.html">dev</a>
+</div>
 _toc_
 }})
 _man_({{
