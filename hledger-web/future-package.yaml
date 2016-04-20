@@ -54,9 +54,9 @@ extra-source-files:
   - templates/*.hamlet
 
 data-files:
-  - doc/*.1
-  - doc/*.txt
-  - doc/*.info
+  - doc/hledger-web.1
+  - doc/hledger-web.1.txt
+  - doc/hledger-web.1.info
 
 # XXX not supported
 # flag threaded

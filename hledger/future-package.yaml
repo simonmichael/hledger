@@ -39,9 +39,9 @@ extra-source-files:
   - test/test.hs
 
 data-files:
-  - doc/*.1
-  - doc/*.txt
-  - doc/*.info
+  - doc/hledger.1
+  - doc/hledger.1.txt
+  - doc/hledger.1.info
 
 # XXX not supported
 flags:

@@ -38,9 +38,9 @@ extra-source-files:
   - examples/*.html
 
 data-files:
-  - doc/*.1
-  - doc/*.txt
-  - doc/*.info
+  - doc/hledger-api.1
+  - doc/hledger-api.1.txt
+  - doc/hledger-api.1.info
 
 # XXX not supported
 # flag threaded

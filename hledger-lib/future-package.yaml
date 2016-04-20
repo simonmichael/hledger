@@ -36,9 +36,18 @@ extra-source-files:
   - README
 
 data-files:
-  - doc/*.5
-  - doc/*.txt
-  - doc/*.info
+  - doc/hledger_csv.5
+  - doc/hledger_csv.5.txt
+  - doc/hledger_csv.5.info
+  - doc/hledger_journal.5
+  - doc/hledger_journal.5.txt
+  - doc/hledger_journal.5.info
+  - doc/hledger_timedot.5
+  - doc/hledger_timedot.5.txt
+  - doc/hledger_timedot.5.info
+  - doc/hledger_timeclock.5
+  - doc/hledger_timeclock.5.txt
+  - doc/hledger_timeclock.5.info
 
 # XXX not supported
 # flag double
