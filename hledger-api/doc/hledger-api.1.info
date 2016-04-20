@@ -1,0 +1,74 @@
+This is hledger-api/doc/hledger-api.1.info, produced by makeinfo
+version 4.8 from stdin.
+
+
+File: hledger-api.1.info,  Node: Top,  Up: (dir)
+
+hledger-api(1)
+**************
+
+hledger-api is a simple web API server, intended to support client-side
+web apps operating on hledger data. It comes with a series of simple
+client-side app examples, which drive it's evolution.
+
+   Data is served from the usual hledger journal file:
+`~/.hledger.journal', `$LEDGER_FILE', or another file specified with
+-f. For more about the format, see hledger(1) or hledger_journal(5).
+
+   The server listens on port 8001, or another specified with `-p
+PORT'. Note there is no built-in access control, so you will need to
+hide hledger-api behind an authenticating proxy if you want to restrict
+access.
+
+   If invoked as `hledger-api --swagger', instead of starting a server
+the API docs will be printed in Swagger 2.0 format.
+
+* Menu:
+
+* OPTIONS::
+
+
+File: hledger-api.1.info,  Node: OPTIONS,  Prev: Top,  Up: Top
+
+1 OPTIONS
+*********
+
+Note: if invoking hledger-api as a hledger subcommand, write `--'
+before options as shown above.
+
+`-f --file FILE'
+     use a different input file (default: `$LEDGER_FILE' or
+     `~/.hledger.journal')
+
+`-d --static-dir=DIR'
+     serve files from a different directory (default: `.')
+
+`-p --port=PORT'
+     use a different TCP port (default: 8001)
+
+`--swagger'
+     print API docs in Swagger 2.0 format, and exit
+
+`-h'
+     show usage
+
+`--help'
+     show manual
+
+`--man'
+     show manual with man
+
+`--info'
+     show manual with info
+
+`--version'
+     show version
+
+
+
+Tag Table:
+Node: Top90
+Node: OPTIONS925
+Ref: #options1012
+
+End Tag Table

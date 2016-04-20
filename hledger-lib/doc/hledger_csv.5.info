@@ -1,0 +1,230 @@
+This is hledger-lib/doc/hledger_csv.5.info, produced by makeinfo
+version 4.8 from stdin.
+
+
+File: hledger_csv.5.info,  Node: Top,  Up: (dir)
+
+hledger_csv(5)
+**************
+
+hledger can read CSV files, converting each CSV record into a journal
+entry (transaction), if you provide some conversion hints in a "rules
+file". This file should be named like the CSV file with an additional
+`.rules' suffix (eg: `mybank.csv.rules'); or, you can specify the file
+with `--rules-file PATH'. hledger will create it if necessary, with
+some default rules which you'll need to adjust. At minimum, the rules
+file must specify the `date' and `amount' fields. For an example, see
+How to read CSV files.
+
+   To learn about _exporting_ CSV, see CSV output.
+
+* Menu:
+
+* CSV RULES::
+* TIPS::
+
+
+File: hledger_csv.5.info,  Node: CSV RULES,  Next: TIPS,  Prev: Top,  Up: Top
+
+1 CSV RULES
+***********
+
+The following six kinds of rule can appear in the rules file, in any
+order. Blank lines and lines beginning with `#' or `;' are ignored.
+
+* Menu:
+
+* skip::
+* date-format::
+* field list::
+* field assignment::
+* conditional block::
+* include::
+
+
+File: hledger_csv.5.info,  Node: skip,  Next: date-format,  Up: CSV RULES
+
+1.1 skip
+========
+
+`skip'_`N'_
+
+   Skip this number of CSV records at the beginning. You'll need this
+whenever your CSV data contains header lines. Eg:
+
+
+# ignore the first CSV line
+skip 1
+
+
+File: hledger_csv.5.info,  Node: date-format,  Next: field list,  Prev: skip,  Up: CSV RULES
+
+1.2 date-format
+===============
+
+`date-format'_`DATEFMT'_
+
+   When your CSV date fields are not formatted like `YYYY/MM/DD' (or
+`YYYY-MM-DD' or `YYYY.MM.DD'), you'll need to specify the format.
+DATEFMT is a strptime-like date parsing pattern, which must parse the
+date field values completely. Examples:
+
+
+# for dates like "6/11/2013":
+date-format %-d/%-m/%Y
+
+
+# for dates like "11/06/2013":
+date-format %m/%d/%Y
+
+
+# for dates like "2013-Nov-06":
+date-format %Y-%h-%d
+
+
+# for dates like "11/6/2013 11:32 PM":
+date-format %-m/%-d/%Y %l:%M %p
+
+
+File: hledger_csv.5.info,  Node: field list,  Next: field assignment,  Prev: date-format,  Up: CSV RULES
+
+1.3 field list
+==============
+
+`fields'_`FIELDNAME1'_, _`FIELDNAME2'_...
+
+   This (a) names the CSV fields, in order (names may not contain
+whitespace, but may be omitted), and (b) assigns them to journal entry
+fields if you use any of these standard field names: `date', `date2',
+`status', `code', `description', `comment', `account1', `account2',
+`amount', `amount-in', `amount-out', `currency'. Eg:
+
+
+# use the 1st, 2nd and 4th CSV fields as the entry's date, description and amount,
+# and give the 7th and 8th fields meaningful names for later reference:
+#
+# CSV field:
+#      1     2            3 4       5 6 7          8
+# entry field:
+fields date, description, , amount, , , somefield, anotherfield
+
+
+File: hledger_csv.5.info,  Node: field assignment,  Next: conditional block,  Prev: field list,  Up: CSV RULES
+
+1.4 field assignment
+====================
+
+_`ENTRYFIELDNAME'_ _`FIELDVALUE'_
+
+   This sets a journal entry field (one of the standard names above) to
+the given text value, which can include CSV field values interpolated by
+name (`%CSVFIELDNAME') or 1-based position (`%N'). Eg:
+
+
+# set the amount to the 4th CSV field with "USD " prepended
+amount USD %4
+
+
+# combine three fields to make a comment (containing two tags)
+comment note: %somefield - %anotherfield, date: %1
+
+   Field assignments can be used instead of or in addition to a field
+list.
+
+
+File: hledger_csv.5.info,  Node: conditional block,  Next: include,  Prev: field assignment,  Up: CSV RULES
+
+1.5 conditional block
+=====================
+
+`if' _`PATTERN'_
+_`FIELDASSIGNMENTS'_...
+
+   `if'
+_`PATTERN'_
+_`PATTERN'_...
+_`FIELDASSIGNMENTS'_...
+
+   This applies one or more field assignments, only to those CSV records
+matched by one of the PATTERNs. The patterns are case-insensitive
+regular expressions which match anywhere within the whole CSV record
+(it's not yet possible to match within a specific field). When there are
+multiple patterns they should be written on separate lines, unindented.
+The field assignments are on separate lines indented by at least one
+space. Examples:
+
+
+# if the CSV record contains "groceries", set account2 to "expenses:groceries"
+if groceries
+ account2 expenses:groceries
+
+
+# if the CSV record contains any of these patterns, set account2 and comment as shown
+if
+monthly service fee
+atm transaction fee
+banking thru software
+ account2 expenses:business:banking
+ comment  XXX deductible ? check it
+
+
+File: hledger_csv.5.info,  Node: include,  Prev: conditional block,  Up: CSV RULES
+
+1.6 include
+===========
+
+`include'_`RULESFILE'_
+
+   Include another rules file at this point. `RULESFILE' is either an
+absolute file path or a path relative to the current file's directory.
+Eg:
+
+
+# rules reused with several CSV files
+include common.rules
+
+
+File: hledger_csv.5.info,  Node: TIPS,  Prev: CSV RULES,  Up: Top
+
+2 TIPS
+******
+
+Each generated journal entry will have two postings, to `account1' and
+`account2' respectively. Currently it's not possible to generate
+entries with more than two postings.
+
+   If the CSV has debit/credit amounts in separate fields, assign to the
+`amount-in' and `amount-out' pseudo fields instead of `amount'.
+
+   If the CSV has the currency in a separate field, assign that to the
+`currency' pseudo field which will be automatically prepended to the
+amount. (Or you can do the same thing with a field assignment.)
+
+   If an amount value is parenthesised, it will be de-parenthesised and
+sign-flipped automatically.
+
+   The generated journal entries will be sorted by date. The original
+order of same-day entries will be preserved, usually.
+
+
+
+Tag Table:
+Node: Top90
+Node: CSV RULES771
+Ref: #csv-rules877
+Node: skip1120
+Ref: #skip1216
+Node: date-format1387
+Ref: #date-format1516
+Node: field list2025
+Ref: #field-list2164
+Node: field assignment2840
+Ref: #field-assignment2997
+Node: conditional block3502
+Ref: #conditional-block3658
+Node: include4548
+Ref: #include4659
+Node: TIPS4890
+Ref: #tips4974
+
+End Tag Table
