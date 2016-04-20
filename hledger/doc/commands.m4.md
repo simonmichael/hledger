@@ -877,6 +877,10 @@ $ LEDGER_FILE=unique.journal hledger print-unique
 ## rewrite
 Prints all journal entries, adding specified custom postings to matched entries.
 
+[hledger-rewrite.hs](https://github.com/simonmichael/hledger/blob/master/extra/hledger-rewrite.hs),
+in hledger's extra directory (compilation optional), adds postings to existing transactions,
+optionally with an amount based on the existing transaction's first amount. See the script for more details.
+
 ```shell
 $ hledger rewrite -- [QUERY]        --add-posting "ACCT  AMTEXPR" ...
 $ hledger rewrite -- ^income        --add-posting '(liabilities:tax)  *.33'
