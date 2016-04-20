@@ -34,7 +34,13 @@ bug-reports : http://bugs.hledger.org
             
 extra-source-files:
   - CHANGES
+  - README
   - examples/*.html
+
+data-files:
+  - doc/*.1
+  - doc/*.txt
+  - doc/*.info
 
 # XXX not supported
 # flag threaded

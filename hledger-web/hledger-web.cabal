@@ -30,71 +30,27 @@ tested-with:    GHC==7.6.3, GHC==7.8.4, GHC==7.10.2
 extra-source-files:
       CHANGES
       README
-      doc/hledger-web.1
-      doc/hledger-web.1.txt
       config/favicon.ico
       config/keter.yaml
       config/robots.txt
       config/routes
       config/settings.yml
-      messages/en.msg
-      static/css/bootstrap-theme.css
-      static/css/bootstrap-theme.css.map
-      static/css/bootstrap-theme.min.css
-      static/css/bootstrap.css
-      static/css/bootstrap.css.map
-      static/css/bootstrap.min.css
-      static/fonts/glyphicons-halflings-regular.eot
-      static/fonts/glyphicons-halflings-regular.svg
-      static/fonts/glyphicons-halflings-regular.ttf
-      static/fonts/glyphicons-halflings-regular.woff
+      messages/*.msg
+      static/css/*.css
+      static/css/*.map
+      static/fonts/*.eot
+      static/fonts/*.svg
+      static/fonts/*.ttf
+      static/fonts/*.woff
       static/hledger.css
       static/hledger.js
-      static/js/bootstrap.js
-      static/js/bootstrap.min.js
-      static/js/excanvas.js
-      static/js/excanvas.min.js
-      static/js/jquery.cookie.js
-      static/js/jquery.flot.canvas.js
-      static/js/jquery.flot.canvas.min.js
-      static/js/jquery.flot.categories.js
-      static/js/jquery.flot.categories.min.js
-      static/js/jquery.flot.crosshair.js
-      static/js/jquery.flot.crosshair.min.js
-      static/js/jquery.flot.errorbars.js
-      static/js/jquery.flot.errorbars.min.js
-      static/js/jquery.flot.fillbetween.js
-      static/js/jquery.flot.fillbetween.min.js
-      static/js/jquery.flot.image.js
-      static/js/jquery.flot.image.min.js
-      static/js/jquery.flot.js
-      static/js/jquery.flot.min.js
-      static/js/jquery.flot.navigate.js
-      static/js/jquery.flot.navigate.min.js
-      static/js/jquery.flot.pie.js
-      static/js/jquery.flot.pie.min.js
-      static/js/jquery.flot.resize.js
-      static/js/jquery.flot.resize.min.js
-      static/js/jquery.flot.selection.js
-      static/js/jquery.flot.selection.min.js
-      static/js/jquery.flot.stack.js
-      static/js/jquery.flot.stack.min.js
-      static/js/jquery.flot.symbol.js
-      static/js/jquery.flot.symbol.min.js
-      static/js/jquery.flot.threshold.js
-      static/js/jquery.flot.threshold.min.js
-      static/js/jquery.flot.time.js
-      static/js/jquery.flot.time.min.js
-      static/js/jquery.flot.tooltip.js
-      static/js/jquery.flot.tooltip.min.js
-      static/js/jquery.hotkeys.js
-      static/js/jquery.js
-      static/js/jquery.min.js
-      static/js/jquery.url.js
-      static/js/typeahead.bundle.js
-      static/js/typeahead.bundle.min.js
-      templates/default-layout-wrapper.hamlet
-      templates/default-layout.hamlet
+      static/js/*.js
+      templates/*.hamlet
+
+data-files:
+    doc/*.1
+    doc/*.txt
+    doc/*.info
 
 source-repository head
     type: git

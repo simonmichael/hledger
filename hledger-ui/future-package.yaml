@@ -37,6 +37,11 @@ extra-source-files:
   - CHANGES
   - README
 
+data-files:
+  - doc/*.1
+  - doc/*.txt
+  - doc/*.info
+
 # XXX not supported
 # flag:
 #   old-locale:

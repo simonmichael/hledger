@@ -33,6 +33,12 @@ tested-with : GHC==7.4.2, GHC==7.6.3, GHC==7.8.4, GHC==7.10.1
             
 extra-source-files:
   - CHANGES
+  - README
+
+data-files:
+  - doc/*.5
+  - doc/*.txt
+  - doc/*.info
 
 # XXX not supported
 # flag double

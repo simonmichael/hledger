@@ -28,10 +28,12 @@ cabal-version:  >= 1.10
 extra-source-files:
     CHANGES
     README
-    doc/hledger-api.1
-    doc/hledger-api.1.txt
-    examples/01.html
-    examples/02.html
+    examples/*.html
+
+data-files:
+    doc/*.1
+    doc/*.txt
+    doc/*.info
 
 source-repository head
   type: git

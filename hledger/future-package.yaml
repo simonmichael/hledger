@@ -38,6 +38,11 @@ extra-source-files:
   - README.md
   - test/test.hs
 
+data-files:
+  - doc/*.1
+  - doc/*.txt
+  - doc/*.info
+
 # XXX not supported
 flags:
   threaded:

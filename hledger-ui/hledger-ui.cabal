@@ -30,8 +30,11 @@ tested-with:    GHC==7.8.4, GHC==7.10.3
 extra-source-files:
     CHANGES
     README
-    doc/hledger-ui.1
-    doc/hledger-ui.1.txt
+
+data-files:
+    doc/*.1
+    doc/*.txt
+    doc/*.info
 
 source-repository head
   type: git
