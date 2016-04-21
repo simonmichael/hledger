@@ -614,19 +614,19 @@ functest: tests/addons/hledger-addon \
 	@(COLUMNS=80 $(SHELLTESTSTK) tests \
 		&& echo $@ PASSED) || echo $@ FAILED
 
-# ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
-# tests/addons/hledger-addon: \
-# 	$(call def-help,tests/addons/hledger-addon,\
-# 	generate dummy add-ons for testing (hledger-addon the rest)\
-# 	)
-# 	rm -rf tests/addons/hledger-*
-# 	printf '#!/bin/sh\necho add-on: $$0\necho args: $$*\n' >tests/addons/hledger-addon
-# 	for E in '' $(ADDONEXTS); do \
-# 		cp tests/addons/hledger-addon tests/addons/hledger-addon.$$E; done
-# 	for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do \
-# 		cp tests/addons/hledger-addon tests/addons/hledger-$$F; done
-# 	mkdir tests/addons/hledger-addondir
-# 	chmod +x tests/addons/hledger-*
+ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
+tests/addons/hledger-addon: \
+	$(call def-help,tests/addons/hledger-addon,\
+	generate dummy add-ons for testing (hledger-addon the rest)\
+	)
+	rm -rf tests/addons/hledger-*
+	printf '#!/bin/sh\necho add-on: $$0\necho args: $$*\n' >tests/addons/hledger-addon
+	for E in '' $(ADDONEXTS); do \
+		cp tests/addons/hledger-addon tests/addons/hledger-addon.$$E; done
+	for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do \
+		cp tests/addons/hledger-addon tests/addons/hledger-$$F; done
+	mkdir tests/addons/hledger-addondir
+	chmod +x tests/addons/hledger-*
 
 # DOCTESTFILES=\
 # 	hledger/Hledger/Cli/Tests.hs
