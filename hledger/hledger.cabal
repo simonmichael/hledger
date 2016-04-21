@@ -71,7 +71,7 @@ library
     , cmdargs >= 0.10 && < 0.11
     , csv
     , directory
-    , file-embed
+    , file-embed >= 0.0.10 && < 0.1
     , filepath
     , haskeline >= 0.6 && <= 0.8
     , HUnit
@@ -152,7 +152,7 @@ executable hledger
     , cmdargs >= 0.10 && < 0.11
     , csv
     , directory
-    , file-embed
+    , file-embed >= 0.0.10 && < 0.1
     , filepath
     , haskeline >= 0.6 && <= 0.8
     , HUnit
@@ -208,7 +208,7 @@ test-suite test
     , cmdargs >= 0.10 && < 0.11
     , csv
     , directory
-    , file-embed
+    , file-embed >= 0.0.10 && < 0.1
     , filepath
     , haskeline >= 0.6 && <= 0.8
     , HUnit
@@ -267,7 +267,7 @@ benchmark bench
                     temporary,
                     timeit,
                     process,
-                    file-embed,
+                    file-embed >= 0.0.10 && < 0.1,
                     filepath,
                     directory
 

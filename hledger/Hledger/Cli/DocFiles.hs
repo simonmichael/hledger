@@ -31,48 +31,47 @@ import Hledger.Utils (first3, second3, third3)
 
 type Topic = String
 
--- XXX assumes cwd is the hledger package directory, for now ghci must be run from there
 docFiles :: IsString a => [(Topic, (a, a, a))]
 docFiles = [
    ("cli",
-    ($(embedStringFile $ "../hledger/doc/hledger.1")
-    ,$(embedStringFile $ "../hledger/doc/hledger.1.txt")
-    ,$(embedStringFile $ "../hledger/doc/hledger.1.info")
+    ($(makeRelativeToProject "doc/hledger.1" >>= embedStringFile)
+    ,$(makeRelativeToProject "doc/hledger.1.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "doc/hledger.1.info" >>= embedStringFile)
     ))
   ,("ui",
-    ($(embedStringFile $ "../hledger-ui/doc/hledger-ui.1")
-    ,$(embedStringFile $ "../hledger-ui/doc/hledger-ui.1.txt")
-    ,$(embedStringFile $ "../hledger-ui/doc/hledger-ui.1.info")
+    ($(makeRelativeToProject "../hledger-ui/doc/hledger-ui.1" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-ui/doc/hledger-ui.1.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-ui/doc/hledger-ui.1.info" >>= embedStringFile)
     ))
   ,("web",
-    ($(embedStringFile $ "../hledger-web/doc/hledger-web.1")
-    ,$(embedStringFile $ "../hledger-web/doc/hledger-web.1.txt")
-    ,$(embedStringFile $ "../hledger-web/doc/hledger-web.1.info")
+    ($(makeRelativeToProject "../hledger-web/doc/hledger-web.1" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-web/doc/hledger-web.1.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-web/doc/hledger-web.1.info" >>= embedStringFile)
     ))
   ,("api",
-    ($(embedStringFile $ "../hledger-api/doc/hledger-api.1")
-    ,$(embedStringFile $ "../hledger-api/doc/hledger-api.1.txt")
-    ,$(embedStringFile $ "../hledger-api/doc/hledger-api.1.info")
+    ($(makeRelativeToProject "../hledger-api/doc/hledger-api.1" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-api/doc/hledger-api.1.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-api/doc/hledger-api.1.info" >>= embedStringFile)
     ))
   ,("journal",
-    ($(embedStringFile $ "../hledger-lib/doc/hledger_journal.5")
-    ,$(embedStringFile $ "../hledger-lib/doc/hledger_journal.5.txt")
-    ,$(embedStringFile $ "../hledger-lib/doc/hledger_journal.5.info")
+    ($(makeRelativeToProject "../hledger-lib/doc/hledger_journal.5" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-lib/doc/hledger_journal.5.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-lib/doc/hledger_journal.5.info" >>= embedStringFile)
     ))
   ,("csv",
-    ($(embedStringFile $ "../hledger-lib/doc/hledger_csv.5")
-    ,$(embedStringFile $ "../hledger-lib/doc/hledger_csv.5.txt")
-    ,$(embedStringFile $ "../hledger-lib/doc/hledger_csv.5.info")
+    ($(makeRelativeToProject "../hledger-lib/doc/hledger_csv.5" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-lib/doc/hledger_csv.5.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-lib/doc/hledger_csv.5.info" >>= embedStringFile)
     ))
   ,("timeclock",
-    ($(embedStringFile $ "../hledger-lib/doc/hledger_timeclock.5")
-    ,$(embedStringFile $ "../hledger-lib/doc/hledger_timeclock.5.txt")
-    ,$(embedStringFile $ "../hledger-lib/doc/hledger_timeclock.5.info")
+    ($(makeRelativeToProject "../hledger-lib/doc/hledger_timeclock.5" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-lib/doc/hledger_timeclock.5.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-lib/doc/hledger_timeclock.5.info" >>= embedStringFile)
     ))
   ,("timedot",
-    ($(embedStringFile $ "../hledger-lib/doc/hledger_timedot.5")
-    ,$(embedStringFile $ "../hledger-lib/doc/hledger_timedot.5.txt")
-    ,$(embedStringFile $ "../hledger-lib/doc/hledger_timedot.5.info")
+    ($(makeRelativeToProject "../hledger-lib/doc/hledger_timedot.5" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-lib/doc/hledger_timedot.5.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "../hledger-lib/doc/hledger_timedot.5.info" >>= embedStringFile)
     ))
   ]
 

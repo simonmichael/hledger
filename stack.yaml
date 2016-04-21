@@ -1,5 +1,8 @@
 # docs: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 
+# this or a newer snapshot is suggested (hledger-api/servant/aeson requires > lts-5)
+resolver: nightly-2016-04-01
+
 packages:
 - hledger-lib
 - hledger
@@ -7,12 +10,10 @@ packages:
 - hledger-web
 - hledger-api
 
+extra-deps:
+- file-embed-0.0.10
+
 #flags:
-
-# this or a newer snapshot is suggested (hledger-api/servant/aeson requires > lts-5)
-resolver: nightly-2016-04-01
-
-#extra-deps:
 
 # ghc-options:
 #   rtsopts:
