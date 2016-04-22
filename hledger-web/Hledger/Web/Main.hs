@@ -16,8 +16,8 @@ import Yesod.Default.Config --(fromArgs)
 import Settings            --  (parseExtra)
 import Application          (makeApplication)
 import Data.String
-import Network.Wai.Handler.Warp (runSettings, defaultSettings, setPort)
-import Network.Wai.Handler.Launch (runUrlPort)
+import Network.Wai.Handler.Warp (runSettings, defaultSettings, setHost, setPort)
+import Network.Wai.Handler.Launch (runHostPortUrl)
 --
 #if !MIN_VERSION_base(4,8,0)
 import Control.Applicative ((<$>))
@@ -70,23 +70,30 @@ web :: WebOpts -> Journal -> IO ()
 web opts j = do
   d <- getCurrentDay
   let j' = filterJournalTransactions (queryFromOpts d $ reportopts_ $ cliopts_ opts) j
+      h = "127.0.0.1"
       p = port_ opts
       u = base_url_ opts
       staticRoot = pack <$> file_url_ opts
-  _ <- printf "Starting web app on port %d with base url %s\n" p u
-  app <- makeApplication opts j' AppConfig{appEnv = Development
-                                          ,appPort = p
-                                          ,appRoot = pack u
-                                          ,appHost = fromString "*4"
-                                          ,appExtra = Extra "" Nothing staticRoot
-                                          }
+      appconfig = AppConfig{appEnv = Development
+                           ,appHost = fromString h
+                           ,appPort = p
+                           ,appRoot = pack u
+                           ,appExtra = Extra "" Nothing staticRoot
+                           }
+  app <- makeApplication opts j' appconfig
+  _ <- printf "Starting web app on host %s port %d with base url %s\n" h p u
   if server_ opts
-   then do
-    putStrLn "Press ctrl-c to quit"
-    hFlush stdout
-    Network.Wai.Handler.Warp.runSettings (setPort p defaultSettings) app
-   else do
-    putStrLn "Starting web browser if possible"
-    putStrLn "Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)"
-    hFlush stdout
-    Network.Wai.Handler.Launch.runUrlPort p "" app
+    then do
+      putStrLn "Press ctrl-c to quit"
+      hFlush stdout
+      let warpsettings =
+            setHost (fromString h) $
+            setPort p $
+            defaultSettings
+      Network.Wai.Handler.Warp.runSettings warpsettings app
+    else do
+      putStrLn "Starting web browser..."
+      putStrLn "Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)"
+      hFlush stdout
+      Network.Wai.Handler.Launch.runHostPortUrl h p "" app
+

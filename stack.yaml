@@ -9,6 +9,11 @@ packages:
 - hledger-ui
 - hledger-web
 - hledger-api
+- location:
+    git: https://github.com/simonmichael/wai
+    commit: 96847d4cfc5894823f591746cac32416f941ed90
+  subdirs:
+    - wai-handler-launch
 
 extra-deps:
 - file-embed-0.0.10
