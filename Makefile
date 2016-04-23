@@ -809,6 +809,9 @@ ghci-api: \
 # 		$(call def-help,ghci-api, start a GHCI REPL and load the hledger-lib, hledger and hledger-api packages)
 	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-api/hledger-api.hs
 
+ghcid-lib-doctest:
+	ghcid --command 'cd hledger-lib; stack ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
+
 samplejournals: \
 	data/sample.journal \
 	data/100x100x10.journal \

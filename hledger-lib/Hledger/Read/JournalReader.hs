@@ -1,7 +1,7 @@
--- * doc
--- lines beginning "-- *" are collapsible orgstruct nodes. Emacs users:
+--- * doc
+-- lines beginning "--- *" are collapsible orgstruct nodes. Emacs users:
 -- (add-hook 'haskell-mode-hook
---   (lambda () (set-variable 'orgstruct-heading-prefix-regexp "-- " t))
+--   (lambda () (set-variable 'orgstruct-heading-prefix-regexp "--- " t))
 --   'orgstruct-mode)
 
 {-|
@@ -20,11 +20,14 @@ reader should handle many ledger files as well. Example:
 
 -}
 
--- * module
+--- * module
+
 -- {-# OPTIONS_GHC -F -pgmF htfpp #-}
+
 {-# LANGUAGE CPP, RecordWildCards, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts #-}
 
 module Hledger.Read.JournalReader (
+
   -- * Reader
   reader,
 
@@ -61,7 +64,7 @@ module Hledger.Read.JournalReader (
 #endif
 )
 where
--- * imports
+--- * imports
 import Prelude ()
 import Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
@@ -88,7 +91,7 @@ import Hledger.Data
 import Hledger.Utils
 
 
--- * reader
+--- * reader
 
 reader :: Reader
 reader = Reader format detect parse
@@ -107,7 +110,7 @@ detect f s
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal journalp
 
--- * parsing utils
+--- * parsing utils
 
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (sourceLine p) (sourceColumn p)
@@ -233,8 +236,8 @@ getIndex = liftM ctxTransactionIndex getState
 setIndex :: Stream [Char] m Char => Integer -> ParsecT [Char] JournalContext m ()
 setIndex i = modifyState (\ctx -> ctx{ctxTransactionIndex=i})
 
--- * parsers
--- ** journal
+--- * parsers
+--- ** journal
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" (and final "JournalContext") which can be
@@ -258,7 +261,7 @@ journalp = do
                            , multilinecommentp >> return (return id)
                            ] <?> "journal transaction or directive"
 
--- ** directives
+--- ** directives
 
 -- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
 directivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
@@ -442,7 +445,7 @@ commodityconversiondirectivep = do
   restofline
   return $ return id
 
--- ** transactions
+--- ** transactions
 
 modifiertransactionp :: ParsecT [Char] JournalContext (ExceptT String IO) ModifierTransaction
 modifiertransactionp = do
@@ -585,7 +588,7 @@ codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `m
 
 descriptionp = many (noneOf ";\n")
 
--- ** dates
+--- ** dates
 
 -- | Parse a date in YYYY/MM/DD format.
 -- Hyphen (-) and period (.) are also allowed as separators.
@@ -662,7 +665,7 @@ secondarydatep primarydate = do
   edate <- withDefaultYear primarydate datep
   return edate
 
--- ** postings
+--- ** postings
 
 -- Parse the following whitespace-beginning lines as postings, posting tags, and/or comments.
 postingsp :: Stream [Char] m Char => ParsecT [Char] JournalContext m [Posting]
@@ -759,7 +762,7 @@ test_postingp = do
     -- assertEqual (Just nullmixedamt) (pbalanceassertion p)
 #endif
 
--- ** account names
+--- ** account names
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
 modifiedaccountnamep :: Stream [Char] m Char => ParsecT [Char] JournalContext m AccountName
@@ -795,7 +798,7 @@ accountnamep = do
 -- accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
 --     <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
 
--- ** amounts
+--- ** amounts
 
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
@@ -1040,7 +1043,7 @@ numberp = do
 --       assertFails ".1,"
 --       assertFails ",1."
 
--- ** comments
+--- ** comments
 
 multilinecommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
 multilinecommentp = do
@@ -1081,13 +1084,21 @@ commentStartingWithp cs = do
   optional newline
   return l
 
--- ** tags
+--- ** tags
 
 tagsInComment :: String -> [Tag]
 tagsInComment c = concatMap tagsInCommentLine $ lines c'
   where
     c' = ledgerDateSyntaxToTags c
 
+-- |
+-- ==== __Examples__
+-- >>> tagsInCommentLine ""
+-- []
+-- >>> tagsInCommentLine "a b"
+-- []
+-- >>> tagsInCommentLine "a b:, c:c d:d, e"
+-- [("c","c d:d")]
 tagsInCommentLine :: String -> [Tag]
 tagsInCommentLine = catMaybes . map maybetag . map strip . splitAtElement ','
   where
@@ -1142,7 +1153,7 @@ dateValueFromTags  ts = maybe Nothing (Just . snd) $ find ((=="date") . fst) ts
 date2ValueFromTags ts = maybe Nothing (Just . snd) $ find ((=="date2") . fst) ts
 
 
--- * tests
+--- * tests
 
 tests_Hledger_Read_JournalReader = TestList $ concat [
     -- test_numberp

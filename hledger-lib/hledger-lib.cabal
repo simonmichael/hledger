@@ -138,11 +138,10 @@ library
       Hledger.Utils.UTF8IOCompat
   default-language: Haskell2010
 
-test-suite tests
+test-suite hunittests
   type: exitcode-stdio-1.0
-  main-is: suite.hs
-  hs-source-dirs:
-      tests
+  main-is: hunittests.hs
+  hs-source-dirs: tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       base >= 4.3 && < 5
@@ -180,4 +179,13 @@ test-suite tests
   else
     build-depends: time >= 1.5
 
+  default-language: Haskell2010
+
+test-suite doctests
+  type: exitcode-stdio-1.0
+  hs-source-dirs: tests
+  main-is: doctests.hs
+  build-depends:
+      base
+    , doctest >= 0.8
   default-language: Haskell2010
