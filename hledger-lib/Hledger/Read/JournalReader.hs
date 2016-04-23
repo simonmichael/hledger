@@ -1,6 +1,9 @@
--- {-# OPTIONS_GHC -F -pgmF htfpp #-}
-{-# LANGUAGE CPP, RecordWildCards, NoMonoLocalBinds, ScopedTypeVariables #-}
-{-# LANGUAGE FlexibleContexts #-}
+-- * doc
+-- lines beginning "-- *" are collapsible orgstruct nodes. Emacs users:
+-- (add-hook 'haskell-mode-hook
+--   (lambda () (set-variable 'orgstruct-heading-prefix-regexp "-- " t))
+--   'orgstruct-mode)
+
 {-|
 
 A reader for hledger's journal file format
@@ -17,12 +20,19 @@ reader should handle many ledger files as well. Example:
 
 -}
 
+-- * module
+-- {-# OPTIONS_GHC -F -pgmF htfpp #-}
+{-# LANGUAGE CPP, RecordWildCards, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts #-}
+
 module Hledger.Read.JournalReader (
   -- * Reader
   reader,
-  -- * Parsers used elsewhere
-  parseAndFinaliseJournal,
+
+  -- * Parsing utils
   genericSourcePos,
+  parseAndFinaliseJournal,
+
+  -- * Parsers used elsewhere
   getParentAccount,
   journalp,
   directivep,
@@ -51,6 +61,7 @@ module Hledger.Read.JournalReader (
 #endif
 )
 where
+-- * imports
 import Prelude ()
 import Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
@@ -77,7 +88,7 @@ import Hledger.Data
 import Hledger.Utils
 
 
--- standard reader exports
+-- * reader
 
 reader :: Reader
 reader = Reader format detect parse
@@ -96,7 +107,7 @@ detect f s
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal journalp
 
--- parsing utils
+-- * parsing utils
 
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (sourceLine p) (sourceColumn p)
@@ -110,7 +121,7 @@ combineJournalUpdates us = foldl' (flip (.)) id <$> sequence us
 
 -- cf http://neilmitchell.blogspot.co.uk/2015/09/detecting-space-leaks.html
 -- $ ./devprof +RTS -K576K -xc
--- *** Exception (reporting due to +RTS -xc): (THUNK_STATIC), stack trace: 
+-- Exception (reporting due to +RTS -xc): (THUNK_STATIC), stack trace:
 --   Hledger.Read.JournalReader.combineJournalUpdates.\,
 --   called from Hledger.Read.JournalReader.combineJournalUpdates,
 --   called from Hledger.Read.JournalReader.fixedlotprice,
@@ -222,7 +233,8 @@ getIndex = liftM ctxTransactionIndex getState
 setIndex :: Stream [Char] m Char => Integer -> ParsecT [Char] JournalContext m ()
 setIndex i = modifyState (\ctx -> ctx{ctxTransactionIndex=i})
 
--- parsers
+-- * parsers
+-- ** journal
 
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" (and final "JournalContext") which can be
@@ -245,6 +257,8 @@ journalp = do
                            , emptyorcommentlinep >> return (return id)
                            , multilinecommentp >> return (return id)
                            ] <?> "journal transaction or directive"
+
+-- ** directives
 
 -- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
 directivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
@@ -428,6 +442,8 @@ commodityconversiondirectivep = do
   restofline
   return $ return id
 
+-- ** transactions
+
 modifiertransactionp :: ParsecT [Char] JournalContext (ExceptT String IO) ModifierTransaction
 modifiertransactionp = do
   char '=' <?> "modifier transaction"
@@ -461,8 +477,6 @@ transactionp = do
   i' <- (+1) <$> getIndex
   setIndex i'
   return $ txnTieKnot $ Transaction i' sourcepos date edate status code description comment tags postings ""
-
-descriptionp = many (noneOf ";\n")
 
 #ifdef TESTS
 test_transactionp = do
@@ -557,6 +571,22 @@ test_transactionp = do
     assertEqual 2 (let Right t = p in length $ tpostings t)
 #endif
 
+statusp :: Stream [Char] m Char => ParsecT [Char] JournalContext m ClearedStatus
+statusp =
+  choice'
+    [ many spacenonewline >> char '*' >> return Cleared
+    , many spacenonewline >> char '!' >> return Pending
+    , return Uncleared
+    ]
+    <?> "cleared status"
+
+codep :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
+
+descriptionp = many (noneOf ";\n")
+
+-- ** dates
+
 -- | Parse a date in YYYY/MM/DD format.
 -- Hyphen (-) and period (.) are also allowed as separators.
 -- The year may be omitted if a default year has been set.
@@ -632,17 +662,7 @@ secondarydatep primarydate = do
   edate <- withDefaultYear primarydate datep
   return edate
 
-statusp :: Stream [Char] m Char => ParsecT [Char] JournalContext m ClearedStatus
-statusp =
-  choice'
-    [ many spacenonewline >> char '*' >> return Cleared
-    , many spacenonewline >> char '!' >> return Pending
-    , return Uncleared
-    ]
-    <?> "cleared status"
-
-codep :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
-codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
+-- ** postings
 
 -- Parse the following whitespace-beginning lines as postings, posting tags, and/or comments.
 postingsp :: Stream [Char] m Char => ParsecT [Char] JournalContext m [Posting]
@@ -669,7 +689,7 @@ postingp = do
   ctx <- getState
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = tagsInComment comment
-  -- oh boy
+  -- parse any dates specified with tags here for good parse errors
   date <- case dateValueFromTags tags of
         Nothing -> return Nothing
         Just v -> case runParser (datep <* eof) ctx "" v of
@@ -739,6 +759,8 @@ test_postingp = do
     -- assertEqual (Just nullmixedamt) (pbalanceassertion p)
 #endif
 
+-- ** account names
+
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
 modifiedaccountnamep :: Stream [Char] m Char => ParsecT [Char] JournalContext m AccountName
 modifiedaccountnamep = do
@@ -772,6 +794,8 @@ accountnamep = do
 
 -- accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
 --     <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
+
+-- ** amounts
 
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
@@ -1016,7 +1040,7 @@ numberp = do
 --       assertFails ".1,"
 --       assertFails ",1."
 
--- comment parsers
+-- ** comments
 
 multilinecommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
 multilinecommentp = do
@@ -1056,6 +1080,8 @@ commentStartingWithp cs = do
   l <- anyChar `manyTill` eolof
   optional newline
   return l
+
+-- ** tags
 
 tagsInComment :: String -> [Tag]
 tagsInComment c = concatMap tagsInCommentLine $ lines c'
@@ -1115,6 +1141,8 @@ dateValueFromTags, date2ValueFromTags :: [Tag] -> Maybe String
 dateValueFromTags  ts = maybe Nothing (Just . snd) $ find ((=="date") . fst) ts
 date2ValueFromTags ts = maybe Nothing (Just . snd) $ find ((=="date2") . fst) ts
 
+
+-- * tests
 
 tests_Hledger_Read_JournalReader = TestList $ concat [
     -- test_numberp
@@ -1213,4 +1241,3 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
 
  ]]
 -}
-
