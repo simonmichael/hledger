@@ -5,7 +5,7 @@ import qualified Graphics.Vty as V
 import Brick
 import Brick.Widgets.List (List)
 import Text.Show.Functions ()
-  -- ensure we have the Show instance for functions. Warning, this also re-exports it
+  -- import the Show instance for functions. Warning, this also re-exports it
 
 import Hledger
 import Hledger.UI.UIOptions
