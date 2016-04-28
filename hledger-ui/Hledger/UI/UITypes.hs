@@ -4,6 +4,8 @@ import Data.Time.Calendar (Day)
 import qualified Graphics.Vty as V
 import Brick
 import Brick.Widgets.List (List)
+import Text.Show.Functions ()
+  -- import the Show instance for functions. Warning, this also re-exports it
 
 import Hledger
 import Hledger.UI.UIOptions
