@@ -1,8 +1,9 @@
 --- * doc
--- lines beginning "--- *" are collapsible orgstruct nodes. Emacs users:
+-- Lines beginning "--- *" are collapsible orgstruct nodes. Emacs users,
 -- (add-hook 'haskell-mode-hook
 --   (lambda () (set-variable 'orgstruct-heading-prefix-regexp "--- " t))
 --   'orgstruct-mode)
+-- and press TAB on nodes to expand/collapse.
 
 {-|
 
@@ -24,9 +25,11 @@ reader should handle many ledger files as well. Example:
 
 -- {-# OPTIONS_GHC -F -pgmF htfpp #-}
 
-{-# LANGUAGE CPP, RecordWildCards, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts #-}
+{-# LANGUAGE CPP, RecordWildCards, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections #-}
 
 module Hledger.Read.JournalReader (
+
+--- * exports
 
   -- * Reader
   reader,
@@ -71,12 +74,13 @@ import qualified Control.Exception as C
 import Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), liftIO, runExceptT, throwError, catchError)
 import Data.Char (isNumber)
+import Data.Functor.Identity
 import Data.List.Compat
 import Data.List.Split (wordsBy)
 import Data.Maybe
 import Data.Time.Calendar
 import Data.Time.LocalTime
-import Safe (headDef, lastDef)
+import Safe
 import Test.HUnit
 #ifdef TESTS
 import Test.Framework
@@ -111,6 +115,30 @@ parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journ
 parse _ = parseAndFinaliseJournal journalp
 
 --- * parsing utils
+
+-- | A parser of strings with generic user state, monad and return type.
+type StringParser u m a = ParsecT String u m a
+
+-- | A string parser with journal-parsing state.
+type JournalParser m a = StringParser JournalContext m a
+
+-- | A journal parser that runs in IO and can throw an error mid-parse.
+type ErroringJournalParser a = JournalParser (ExceptT String IO) a
+
+-- | Run a string parser with no state in the identity monad.
+runStringParser, rsp :: StringParser () Identity a -> String -> Either ParseError a
+runStringParser p s = runIdentity $ runParserT p () "" s
+rsp = runStringParser
+
+-- | Run a journal parser with a null journal-parsing state.
+runJournalParser, rjp :: Monad m => JournalParser m a -> String -> m (Either ParseError a)
+runJournalParser p s = runParserT p nullctx "" s
+rjp = runJournalParser
+
+-- | Run an error-raising journal parser with a null journal-parsing state.
+runErroringJournalParser, rejp :: ErroringJournalParser a -> String -> IO (Either String a)
+runErroringJournalParser p s = runExceptT $ runJournalParser p s >>= either (throwError.show) return
+rejp = runErroringJournalParser
 
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (sourceLine p) (sourceColumn p)
@@ -177,7 +205,7 @@ combineJournalUpdates us = foldl' (flip (.)) id <$> sequence us
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
 parseAndFinaliseJournal ::
-  (ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate,JournalContext))
+  (ErroringJournalParser (JournalUpdate,JournalContext))
   -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parseAndFinaliseJournal parser assrt f s = do
   tc <- liftIO getClockTime
@@ -192,48 +220,48 @@ parseAndFinaliseJournal parser assrt f s = do
                              Left estr -> throwError estr
     Left e -> throwError $ show e
 
-setYear :: Stream [Char] m Char => Integer -> ParsecT [Char] JournalContext m ()
+setYear :: Monad m => Integer -> JournalParser m ()
 setYear y = modifyState (\ctx -> ctx{ctxYear=Just y})
 
-getYear :: Stream [Char] m Char => ParsecT s JournalContext m (Maybe Integer)
+getYear :: Monad m => JournalParser m (Maybe Integer)
 getYear = liftM ctxYear getState
 
-setDefaultCommodityAndStyle :: Stream [Char] m Char => (Commodity,AmountStyle) -> ParsecT [Char] JournalContext m ()
+setDefaultCommodityAndStyle :: Monad m => (Commodity,AmountStyle) -> JournalParser m ()
 setDefaultCommodityAndStyle cs = modifyState (\ctx -> ctx{ctxDefaultCommodityAndStyle=Just cs})
 
-getDefaultCommodityAndStyle :: Stream [Char] m Char => ParsecT [Char] JournalContext m (Maybe (Commodity,AmountStyle))
+getDefaultCommodityAndStyle :: Monad m => JournalParser m (Maybe (Commodity,AmountStyle))
 getDefaultCommodityAndStyle = ctxDefaultCommodityAndStyle `fmap` getState
 
-pushAccount :: Stream [Char] m Char => String -> ParsecT [Char] JournalContext m ()
+pushAccount :: Monad m => String -> JournalParser m ()
 pushAccount acct = modifyState addAccount
     where addAccount ctx0 = ctx0 { ctxAccounts = acct : ctxAccounts ctx0 }
 
-pushParentAccount :: Stream [Char] m Char => String -> ParsecT [Char] JournalContext m ()
+pushParentAccount :: Monad m => String -> JournalParser m ()
 pushParentAccount parent = modifyState addParentAccount
     where addParentAccount ctx0 = ctx0 { ctxParentAccount = parent : ctxParentAccount ctx0 }
 
-popParentAccount :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
+popParentAccount :: Monad m => JournalParser m ()
 popParentAccount = do ctx0 <- getState
                       case ctxParentAccount ctx0 of
                         [] -> unexpected "End of apply account block with no beginning"
                         (_:rest) -> setState $ ctx0 { ctxParentAccount = rest }
 
-getParentAccount :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+getParentAccount :: Monad m => JournalParser m String
 getParentAccount = liftM (concatAccountNames . reverse . ctxParentAccount) getState
 
-addAccountAlias :: Stream [Char] m Char => AccountAlias -> ParsecT [Char] JournalContext m ()
+addAccountAlias :: Monad m => AccountAlias -> JournalParser m ()
 addAccountAlias a = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=a:ctxAliases})
 
-getAccountAliases :: Stream [Char] m Char => ParsecT [Char] JournalContext m [AccountAlias]
+getAccountAliases :: Monad m => JournalParser m [AccountAlias]
 getAccountAliases = liftM ctxAliases getState
 
-clearAccountAliases :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
+clearAccountAliases :: Monad m => JournalParser m ()
 clearAccountAliases = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
 
-getIndex :: Stream [Char] m Char => ParsecT s JournalContext m Integer
+getIndex :: Monad m => JournalParser m Integer
 getIndex = liftM ctxTransactionIndex getState
 
-setIndex :: Stream [Char] m Char => Integer -> ParsecT [Char] JournalContext m ()
+setIndex :: Monad m => Integer -> JournalParser m ()
 setIndex i = modifyState (\ctx -> ctx{ctxTransactionIndex=i})
 
 --- * parsers
@@ -242,7 +270,7 @@ setIndex i = modifyState (\ctx -> ctx{ctxTransactionIndex=i})
 -- | Top-level journal parser. Returns a single composite, I/O performing,
 -- error-raising "JournalUpdate" (and final "JournalContext") which can be
 -- applied to an empty journal to get the final result.
-journalp :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate,JournalContext)
+journalp :: ErroringJournalParser (JournalUpdate,JournalContext)
 journalp = do
   journalupdates <- many journalItem
   eof
@@ -264,7 +292,7 @@ journalp = do
 --- ** directives
 
 -- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
-directivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+directivep :: ErroringJournalParser JournalUpdate
 directivep = do
   optional $ char '!'
   choice' [
@@ -283,7 +311,7 @@ directivep = do
    ]
   <?> "directive"
 
-includedirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+includedirectivep :: ErroringJournalParser JournalUpdate
 includedirectivep = do
   string "include"
   many1 spacenonewline
@@ -316,7 +344,7 @@ journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
  -- NOTE: first encountered file to left, to avoid a reverse
 
-accountdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+accountdirectivep :: ErroringJournalParser JournalUpdate
 accountdirectivep = do
   string "account"
   many1 spacenonewline
@@ -327,7 +355,7 @@ accountdirectivep = do
   pushAccount acct
   return $ ExceptT $ return $ Right id
 
-applyaccountdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+applyaccountdirectivep :: ErroringJournalParser JournalUpdate
 applyaccountdirectivep = do
   string "apply" >> many1 spacenonewline >> string "account"
   many1 spacenonewline
@@ -336,13 +364,13 @@ applyaccountdirectivep = do
   pushParentAccount parent
   return $ ExceptT $ return $ Right id
 
-endapplyaccountdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+endapplyaccountdirectivep :: ErroringJournalParser JournalUpdate
 endapplyaccountdirectivep = do
   string "end" >> many1 spacenonewline >> string "apply" >> many1 spacenonewline >> string "account"
   popParentAccount
   return $ ExceptT $ return $ Right id
 
-aliasdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+aliasdirectivep :: ErroringJournalParser JournalUpdate
 aliasdirectivep = do
   string "alias"
   many1 spacenonewline
@@ -350,10 +378,10 @@ aliasdirectivep = do
   addAccountAlias alias
   return $ return id
 
-accountaliasp :: Stream [Char] m Char => ParsecT [Char] st m AccountAlias
+accountaliasp :: Monad m => StringParser u m AccountAlias
 accountaliasp = regexaliasp <|> basicaliasp
 
-basicaliasp :: Stream [Char] m Char => ParsecT [Char] st m AccountAlias
+basicaliasp :: Monad m => StringParser u m AccountAlias
 basicaliasp = do
   -- pdbg 0 "basicaliasp"
   old <- rstrip <$> (many1 $ noneOf "=")
@@ -362,7 +390,7 @@ basicaliasp = do
   new <- rstrip <$> anyChar `manyTill` eolof  -- don't require a final newline, good for cli options
   return $ BasicAlias old new
 
-regexaliasp :: Stream [Char] m Char => ParsecT [Char] st m AccountAlias
+regexaliasp :: Monad m => StringParser u m AccountAlias
 regexaliasp = do
   -- pdbg 0 "regexaliasp"
   char '/'
@@ -374,13 +402,13 @@ regexaliasp = do
   repl <- rstrip <$> anyChar `manyTill` eolof
   return $ RegexAlias re repl
 
-endaliasesdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+endaliasesdirectivep :: ErroringJournalParser JournalUpdate
 endaliasesdirectivep = do
   string "end aliases"
   clearAccountAliases
   return (return id)
 
-tagdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+tagdirectivep :: ErroringJournalParser JournalUpdate
 tagdirectivep = do
   string "tag" <?> "tag directive"
   many1 spacenonewline
@@ -388,13 +416,13 @@ tagdirectivep = do
   restofline
   return $ return id
 
-endtagdirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+endtagdirectivep :: ErroringJournalParser JournalUpdate
 endtagdirectivep = do
   (string "end tag" <|> string "pop") <?> "end tag or pop directive"
   restofline
   return $ return id
 
-defaultyeardirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+defaultyeardirectivep :: ErroringJournalParser JournalUpdate
 defaultyeardirectivep = do
   char 'Y' <?> "default year"
   many spacenonewline
@@ -404,7 +432,7 @@ defaultyeardirectivep = do
   setYear y'
   return $ return id
 
-defaultcommoditydirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+defaultcommoditydirectivep :: ErroringJournalParser JournalUpdate
 defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
   many1 spacenonewline
@@ -413,7 +441,7 @@ defaultcommoditydirectivep = do
   restofline
   return $ return id
 
-marketpricedirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) MarketPrice
+marketpricedirectivep :: ErroringJournalParser MarketPrice
 marketpricedirectivep = do
   char 'P' <?> "market price"
   many spacenonewline
@@ -425,7 +453,7 @@ marketpricedirectivep = do
   restofline
   return $ MarketPrice date symbol price
 
-ignoredpricecommoditydirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+ignoredpricecommoditydirectivep :: ErroringJournalParser JournalUpdate
 ignoredpricecommoditydirectivep = do
   char 'N' <?> "ignored-price commodity"
   many1 spacenonewline
@@ -433,7 +461,7 @@ ignoredpricecommoditydirectivep = do
   restofline
   return $ return id
 
-commodityconversiondirectivep :: ParsecT [Char] JournalContext (ExceptT String IO) JournalUpdate
+commodityconversiondirectivep :: ErroringJournalParser JournalUpdate
 commodityconversiondirectivep = do
   char 'C' <?> "commodity conversion"
   many1 spacenonewline
@@ -447,24 +475,24 @@ commodityconversiondirectivep = do
 
 --- ** transactions
 
-modifiertransactionp :: ParsecT [Char] JournalContext (ExceptT String IO) ModifierTransaction
+modifiertransactionp :: ErroringJournalParser ModifierTransaction
 modifiertransactionp = do
   char '=' <?> "modifier transaction"
   many spacenonewline
   valueexpr <- restofline
-  postings <- postingsp
+  postings <- postingsp Nothing
   return $ ModifierTransaction valueexpr postings
 
-periodictransactionp :: ParsecT [Char] JournalContext (ExceptT String IO) PeriodicTransaction
+periodictransactionp :: ErroringJournalParser PeriodicTransaction
 periodictransactionp = do
   char '~' <?> "periodic transaction"
   many spacenonewline
   periodexpr <- restofline
-  postings <- postingsp
+  postings <- postingsp Nothing
   return $ PeriodicTransaction periodexpr postings
 
 -- | Parse a (possibly unbalanced) transaction.
-transactionp :: ParsecT [Char] JournalContext (ExceptT String IO) Transaction
+transactionp :: ErroringJournalParser Transaction
 transactionp = do
   -- ptrace "transactionp"
   sourcepos <- genericSourcePos <$> getPosition
@@ -475,8 +503,8 @@ transactionp = do
   code <- codep <?> "transaction code"
   description <- descriptionp >>= return . strip
   comment <- try followingcommentp <|> (newline >> return "")
-  let tags = tagsInComment comment
-  postings <- postingsp
+  let tags = commentTags comment
+  postings <- postingsp (Just date)
   i' <- (+1) <$> getIndex
   setIndex i'
   return $ txnTieKnot $ Transaction i' sourcepos date edate status code description comment tags postings ""
@@ -574,7 +602,7 @@ test_transactionp = do
     assertEqual 2 (let Right t = p in length $ tpostings t)
 #endif
 
-statusp :: Stream [Char] m Char => ParsecT [Char] JournalContext m ClearedStatus
+statusp :: Monad m => JournalParser m ClearedStatus
 statusp =
   choice'
     [ many spacenonewline >> char '*' >> return Cleared
@@ -583,7 +611,7 @@ statusp =
     ]
     <?> "cleared status"
 
-codep :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+codep :: Monad m => JournalParser m String
 codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
 
 descriptionp = many (noneOf ";\n")
@@ -594,7 +622,7 @@ descriptionp = many (noneOf ";\n")
 -- Hyphen (-) and period (.) are also allowed as separators.
 -- The year may be omitted if a default year has been set.
 -- Leading zeroes may be omitted.
-datep :: Stream [Char] m t => ParsecT [Char] JournalContext m Day
+datep :: Monad m => JournalParser m Day
 datep = do
   -- hacky: try to ensure precise errors for invalid dates
   -- XXX reported error position is not too good
@@ -624,7 +652,7 @@ datep = do
 -- Seconds are optional.
 -- The timezone is optional and ignored (the time is always interpreted as a local time).
 -- Leading zeroes may be omitted (except in a timezone).
-datetimep :: Stream [Char] m Char => ParsecT [Char] JournalContext m LocalTime
+datetimep :: Monad m => JournalParser m LocalTime
 datetimep = do
   day <- datep
   many1 spacenonewline
@@ -652,7 +680,7 @@ datetimep = do
   -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
   return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
 
-secondarydatep :: Stream [Char] m Char => Day -> ParsecT [Char] JournalContext m Day
+secondarydatep :: Monad m => Day -> JournalParser m Day
 secondarydatep primarydate = do
   char '='
   -- kludgy way to use primary date for default year
@@ -665,21 +693,33 @@ secondarydatep primarydate = do
   edate <- withDefaultYear primarydate datep
   return edate
 
+-- |
+-- >> parsewith twoorthreepartdatestringp "2016/01/2"
+-- Right "2016/01/2"
+-- twoorthreepartdatestringp = do
+--   n1 <- many1 digit
+--   c <- datesepchar
+--   n2 <- many1 digit
+--   mn3 <- optionMaybe $ char c >> many1 digit
+--   return $ n1 ++ c:n2 ++ maybe "" (c:) mn3
+
 --- ** postings
 
--- Parse the following whitespace-beginning lines as postings, posting tags, and/or comments.
-postingsp :: Stream [Char] m Char => ParsecT [Char] JournalContext m [Posting]
-postingsp = many (try postingp) <?> "postings"
+-- Parse the following whitespace-beginning lines as postings, posting
+-- tags, and/or comments (inferring year, if needed, from the given date).
+postingsp :: Maybe Day -> ErroringJournalParser [Posting]
+postingsp mdate = many (try $ postingp mdate) <?> "postings"
 
--- linebeginningwithspaces :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+-- linebeginningwithspaces :: Monad m => JournalParser m String
 -- linebeginningwithspaces = do
 --   sp <- many1 spacenonewline
 --   c <- nonspace
 --   cs <- restofline
 --   return $ sp ++ (c:cs) ++ "\n"
 
-postingp :: Stream [Char] m Char => ParsecT [Char] JournalContext m Posting
-postingp = do
+postingp :: Maybe Day -> ErroringJournalParser Posting
+postingp mtdate = do
+  -- pdbg 0 "postingp"
   many1 spacenonewline
   status <- statusp
   many spacenonewline
@@ -689,23 +729,11 @@ postingp = do
   massertion <- partialbalanceassertionp
   _ <- fixedlotpricep
   many spacenonewline
-  ctx <- getState
-  comment <- try followingcommentp <|> (newline >> return "")
-  let tags = tagsInComment comment
-  -- parse any dates specified with tags here for good parse errors
-  date <- case dateValueFromTags tags of
-        Nothing -> return Nothing
-        Just v -> case runParser (datep <* eof) ctx "" v of
-                    Right d -> return $ Just d
-                    Left err -> parserFail $ show err
-  date2 <- case date2ValueFromTags tags of
-        Nothing -> return Nothing
-        Just v -> case runParser (datep <* eof) ctx "" v of
-                    Right d -> return $ Just d
-                    Left err -> parserFail $ show err
+  (comment,tags,mdate,mdate2) <-
+    try (followingcommentandtagsp mtdate) <|> (newline >> return ("",[],Nothing,Nothing))
   return posting
-   { pdate=date
-   , pdate2=date2
+   { pdate=mdate
+   , pdate2=mdate2
    , pstatus=status
    , paccount=account'
    , pamount=amount
@@ -718,7 +746,7 @@ postingp = do
 #ifdef TESTS
 test_postingp = do
     let s `gives` ep = do
-                         let parse = parseWithCtx nullctx postingp s
+                         let parse = parseWithCtx nullctx (postingp Nothing) s
                          assertBool -- "postingp parser"
                            $ isRight parse
                          let Right ap = parse
@@ -750,10 +778,10 @@ test_postingp = do
                         ,pdate=parsedateM "2012/11/28"}
 
     assertBool -- "postingp parses a quoted commodity with numbers"
-      (isRight $ parseWithCtx nullctx postingp "  a  1 \"DE123\"\n")
+      (isRight $ parseWithCtx nullctx (postingp Nothing) "  a  1 \"DE123\"\n")
 
   -- ,"postingp parses balance assertions and fixed lot prices" ~: do
-    assertBool (isRight $ parseWithCtx nullctx postingp "  a  1 \"DE123\" =$1 { =2.2 EUR} \n")
+    assertBool (isRight $ parseWithCtx nullctx (postingp Nothing) "  a  1 \"DE123\" =$1 { =2.2 EUR} \n")
 
     -- let parse = parseWithCtx nullctx postingp " a\n ;next-line comment\n"
     -- assertRight parse
@@ -765,7 +793,7 @@ test_postingp = do
 --- ** account names
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
-modifiedaccountnamep :: Stream [Char] m Char => ParsecT [Char] JournalContext m AccountName
+modifiedaccountnamep :: Monad m => JournalParser m AccountName
 modifiedaccountnamep = do
   parent <- getParentAccount
   aliases <- getAccountAliases
@@ -781,7 +809,7 @@ modifiedaccountnamep = do
 -- spaces (or end of input). Also they have one or more components of
 -- at least one character, separated by the account separator char.
 -- (This parser will also consume one following space, if present.)
-accountnamep :: Stream [Char] m Char => ParsecT [Char] st m AccountName
+accountnamep :: Monad m => StringParser u m AccountName
 accountnamep = do
     a <- do
       c <- nonspace
@@ -803,7 +831,7 @@ accountnamep = do
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
 -- "missing" marker amount.
-spaceandamountormissingp :: Stream [Char] m Char => ParsecT [Char] JournalContext m MixedAmount
+spaceandamountormissingp :: Monad m => JournalParser m MixedAmount
 spaceandamountormissingp =
   try (do
         many1 spacenonewline
@@ -827,7 +855,7 @@ test_spaceandamountormissingp = do
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
-amountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
+amountp :: Monad m => JournalParser m Amount
 amountp = try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
 
 #ifdef TESTS
@@ -849,19 +877,19 @@ amountp' :: String -> Amount
 amountp' s =
   case runParser (amountp <* eof) nullctx "" s of
     Right t -> t
-    Left err -> error' $ show err
+    Left err -> error' $ show err -- XXX should throwError
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
 mamountp' = Mixed . (:[]) . amountp'
 
-signp :: Stream [Char] m t => ParsecT [Char] JournalContext m String
+signp :: Monad m => JournalParser m String
 signp = do
   sign <- optionMaybe $ oneOf "+-"
   return $ case sign of Just '-' -> "-"
                         _        -> ""
 
-leftsymbolamountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
+leftsymbolamountp :: Monad m => JournalParser m Amount
 leftsymbolamountp = do
   sign <- signp
   c <- commoditysymbolp
@@ -873,7 +901,7 @@ leftsymbolamountp = do
   return $ applysign $ Amount c q p s
   <?> "left-symbol amount"
 
-rightsymbolamountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
+rightsymbolamountp :: Monad m => JournalParser m Amount
 rightsymbolamountp = do
   (q,prec,mdec,mgrps) <- numberp
   sp <- many spacenonewline
@@ -883,7 +911,7 @@ rightsymbolamountp = do
   return $ Amount c q p s
   <?> "right-symbol amount"
 
-nosymbolamountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Amount
+nosymbolamountp :: Monad m => JournalParser m Amount
 nosymbolamountp = do
   (q,prec,mdec,mgrps) <- numberp
   p <- priceamountp
@@ -895,20 +923,20 @@ nosymbolamountp = do
   return $ Amount c q p s
   <?> "no-symbol amount"
 
-commoditysymbolp :: Stream [Char] m t => ParsecT [Char] JournalContext m String
+commoditysymbolp :: Monad m => JournalParser m String
 commoditysymbolp = (quotedcommoditysymbolp <|> simplecommoditysymbolp) <?> "commodity symbol"
 
-quotedcommoditysymbolp :: Stream [Char] m t => ParsecT [Char] JournalContext m String
+quotedcommoditysymbolp :: Monad m => JournalParser m String
 quotedcommoditysymbolp = do
   char '"'
   s <- many1 $ noneOf ";\n\""
   char '"'
   return s
 
-simplecommoditysymbolp :: Stream [Char] m t => ParsecT [Char] JournalContext m String
+simplecommoditysymbolp :: Monad m => JournalParser m String
 simplecommoditysymbolp = many1 (noneOf nonsimplecommoditychars)
 
-priceamountp :: Stream [Char] m t => ParsecT [Char] JournalContext m Price
+priceamountp :: Monad m => JournalParser m Price
 priceamountp =
     try (do
           many spacenonewline
@@ -924,7 +952,7 @@ priceamountp =
             return $ UnitPrice a))
          <|> return NoPrice
 
-partialbalanceassertionp :: Stream [Char] m t => ParsecT [Char] JournalContext m (Maybe MixedAmount)
+partialbalanceassertionp :: Monad m => JournalParser m (Maybe MixedAmount)
 partialbalanceassertionp =
     try (do
           many spacenonewline
@@ -934,7 +962,7 @@ partialbalanceassertionp =
           return $ Just $ Mixed [a])
          <|> return Nothing
 
--- balanceassertion :: Stream [Char] m Char => ParsecT [Char] JournalContext m (Maybe MixedAmount)
+-- balanceassertion :: Monad m => JournalParser m (Maybe MixedAmount)
 -- balanceassertion =
 --     try (do
 --           many spacenonewline
@@ -945,7 +973,7 @@ partialbalanceassertionp =
 --          <|> return Nothing
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
-fixedlotpricep :: Stream [Char] m Char => ParsecT [Char] JournalContext m (Maybe Amount)
+fixedlotpricep :: Monad m => JournalParser m (Maybe Amount)
 fixedlotpricep =
     try (do
           many spacenonewline
@@ -971,7 +999,7 @@ fixedlotpricep =
 -- seen following the decimal point), the decimal point character used if any,
 -- and the digit group style if any.
 --
-numberp :: Stream [Char] m t => ParsecT [Char] JournalContext m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+numberp :: Monad m => JournalParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
 numberp = do
   -- a number is an optional sign followed by a sequence of digits possibly
   -- interspersed with periods, commas, or both
@@ -1045,7 +1073,7 @@ numberp = do
 
 --- ** comments
 
-multilinecommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
+multilinecommentp :: Monad m => JournalParser m ()
 multilinecommentp = do
   string "comment" >> many spacenonewline >> newline
   go
@@ -1054,28 +1082,83 @@ multilinecommentp = do
          <|> (anyLine >> go)
     anyLine = anyChar `manyTill` newline
 
-emptyorcommentlinep :: Stream [Char] m Char => ParsecT [Char] JournalContext m ()
+emptyorcommentlinep :: Monad m => JournalParser m ()
 emptyorcommentlinep = do
   many spacenonewline >> (commentp <|> (many spacenonewline >> newline >> return ""))
   return ()
 
-followingcommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+-- | Parse a possibly multi-line comment following a semicolon.
+followingcommentp :: Monad m => JournalParser m String
 followingcommentp =
   -- ptrace "followingcommentp"
   do samelinecomment <- many spacenonewline >> (try semicoloncommentp <|> (newline >> return ""))
      newlinecomments <- many (try (many1 spacenonewline >> semicoloncommentp))
      return $ unlines $ samelinecomment:newlinecomments
 
-commentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+-- | Parse a possibly multi-line comment following a semicolon, and
+-- any tags and/or posting dates within it. Posting dates can be
+-- expressed with "date"/"date2" tags and/or bracketed dates.  The
+-- dates are parsed in full here so that errors are reported in the
+-- right position. Missing years can be inferred if a default date is
+-- provided.
+--
+-- >>> rejp (followingcommentandtagsp (Just $ fromGregorian 2000 1 2)) "; a:b, date:3/4, [=5/6]"
+-- Right ("a:b, date:3/4, [=5/6]\n",[("a","b"),("date","3/4")],Just 2000-03-04,Just 2000-05-06)
+--
+-- Year unspecified and no default provided -> unknown year error, at correct position:
+-- >>> rejp (followingcommentandtagsp Nothing) "  ;    xxx   date:3/4\n  ; second line"
+-- Left ...line 1, column 22...year is unknown...
+--
+-- Date tag value contains trailing text - forgot the comma, confused:
+-- the syntaxes ?  We'll accept the leading date anyway
+-- >>> rejp (followingcommentandtagsp (Just $ fromGregorian 2000 1 2)) "; date:3/4=5/6"
+-- Right ("date:3/4=5/6\n",[("date","3/4=5/6")],Just 2000-03-04,Nothing)
+--
+followingcommentandtagsp :: Maybe Day -> ErroringJournalParser (String, [Tag], Maybe Day, Maybe Day)
+followingcommentandtagsp mdefdate = do
+  -- pdbg 0 "followingcommentandtagsp"
+
+  -- Parse a single or multi-line comment, starting on this line or the next one.
+  -- Save the starting position and preserve all whitespace for the subsequent re-parsing,
+  -- to get good error positions.
+  startpos <- getPosition
+  commentandwhitespace <- do
+    let semicoloncommentp' = (:) <$> char ';' <*> anyChar `manyTill` eolof
+    sp1 <- many spacenonewline
+    l1  <- try semicoloncommentp' <|> (newline >> return "")
+    ls  <- many $ try ((++) <$> many1 spacenonewline <*> semicoloncommentp')
+    return $ unlines $ (sp1 ++ l1) : ls
+  let comment = unlines $ map (lstrip . dropWhile (==';') . strip) $ lines commentandwhitespace
+  -- pdbg 0 $ "commentws:"++show commentandwhitespace
+  -- pdbg 0 $ "comment:"++show comment
+
+  -- Reparse the comment for any tags.
+  tags <- case runStringParser (setPosition startpos >> tagsp) commentandwhitespace of
+            Right ts -> return ts
+            Left e   -> throwError $ show e
+  -- pdbg 0 $ "tags: "++show tags
+
+  -- Reparse the comment for any posting dates. Use the transaction date for defaults, if provided.
+  epdates <- liftIO $ rejp (setPosition startpos >> postingdatesp mdefdate) commentandwhitespace
+  pdates <- case epdates of
+              Right ds -> return ds
+              Left e   -> throwError e
+  -- pdbg 0 $ "pdates: "++show pdates
+  let mdate  = headMay $ map snd $ filter ((=="date").fst)  pdates
+      mdate2 = headMay $ map snd $ filter ((=="date2").fst) pdates
+
+  return (comment, tags, mdate, mdate2)
+
+commentp :: Monad m => JournalParser m String
 commentp = commentStartingWithp commentchars
 
 commentchars :: [Char]
 commentchars = "#;*"
 
-semicoloncommentp :: Stream [Char] m Char => ParsecT [Char] JournalContext m String
+semicoloncommentp :: Monad m => JournalParser m String
 semicoloncommentp = commentStartingWithp ";"
 
-commentStartingWithp :: Stream [Char] m Char => String -> ParsecT [Char] JournalContext m String
+commentStartingWithp :: Monad m => String -> JournalParser m String
 commentStartingWithp cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
@@ -1086,74 +1169,188 @@ commentStartingWithp cs = do
 
 --- ** tags
 
-tagsInComment :: String -> [Tag]
-tagsInComment c = concatMap tagsInCommentLine $ lines c'
-  where
-    c' = ledgerDateSyntaxToTags c
+-- | Extract any tags (name:value ended by comma or newline) embedded in a string.
+--
+-- >>> commentTags "a b:, c:c d:d, e"
+-- [("b",""),("c","c d:d")]
+--
+-- >>> commentTags "a [1/1/1] [1/1] [1], [=1/1/1] [=1/1] [=1] [1/1=1/1/1] [1=1/1/1] b:c"
+-- [("b","c")]
+--
+-- --[("date","1/1/1"),("date","1/1"),("date2","1/1/1"),("date2","1/1"),("date","1/1"),("date2","1/1/1"),("date","1"),("date2","1/1/1")]
+--
+-- >>> commentTags "\na b:, \nd:e, f"
+-- [("b",""),("d","e")]
+--
+commentTags :: String -> [Tag]
+commentTags s =
+  case runStringParser tagsp s of
+    Right r -> r
+    Left _  -> [] -- shouldn't happen
 
--- |
--- ==== __Examples__
--- >>> tagsInCommentLine ""
--- []
--- >>> tagsInCommentLine "a b"
--- []
--- >>> tagsInCommentLine "a b:, c:c d:d, e"
--- [("c","c d:d")]
-tagsInCommentLine :: String -> [Tag]
-tagsInCommentLine = catMaybes . map maybetag . map strip . splitAtElement ','
-  where
-    maybetag s = case runParser (tagp <* eof) nullctx "" s of
-                  Right t -> Just t
-                  Left _ -> Nothing
+-- | Parse all tags found in a string.
+tagsp :: StringParser u Identity [Tag]
+tagsp = do
+  -- pdbg 0 $ "tagsp"
+  many (try (nontagp >> tagp))
 
+-- | Parse everything up till the first tag.
+--
+-- >>> rsp nontagp "\na b:, \nd:e, f"
+-- Right "\na "
+nontagp :: StringParser u Identity String
+nontagp = do
+  -- pdbg 0 "nontagp"
+  -- anyChar `manyTill` (lookAhead (try (tagorbracketeddatetagsp Nothing >> return ()) <|> eof))
+  anyChar `manyTill` (lookAhead (try (tagp >> return ()) <|> eof))
+  -- XXX costly ?
+
+-- | Tags begin with a colon-suffixed tag name (a word beginning with
+-- a letter) and are followed by a tag value (any text up to a comma
+-- or newline, whitespace-stripped).
+--
+-- >>> rsp tagp "a:b b , c AuxDate: 4/2"
+-- Right ("a","b b")
+--
+tagp :: Monad m => StringParser u m Tag
 tagp = do
-  -- ptrace "tag"
+  -- pdbg 0 "tagp"
   n <- tagnamep
   v <- tagvaluep
   return (n,v)
 
+-- |
+-- >>> rsp tagnamep "a:"
+-- Right "a"
+tagnamep :: Monad m => StringParser u m String
 tagnamep = do
-  -- ptrace "tagname"
-  n <- many1 $ noneOf ": \t"
-  char ':'
-  return n
+  -- pdbg 0 "tagnamep"
+  many1 (noneOf ": \t\n") <* char ':'
 
+tagvaluep :: Monad m => StringParser u m String
 tagvaluep = do
   -- ptrace "tagvalue"
-  v <- anyChar `manyTill` ((char ',' >> return ()) <|> eolof)
+  v <- anyChar `manyTill` ((try (char ',') >> return ()) <|> eolof)
   return $ strip $ reverse $ dropWhile (==',') $ reverse $ strip v
 
-ledgerDateSyntaxToTags :: String -> String
-ledgerDateSyntaxToTags = regexReplaceBy "\\[[-.\\/0-9=]+\\]" replace
-  where
-    replace ('[':s) | lastDef ' ' s == ']' = replace' $ init s
-    replace s = s
+--- ** posting dates
 
-    replace' s | isdate s = datetag s
-    replace' ('=':s) | isdate s = date2tag s
-    replace' s | last s =='=' && isdate (init s) = datetag (init s)
-    replace' s | length ds == 2 && isdate d1 && isdate d1 = datetag d1 ++ date2tag d2
-      where
-        ds = splitAtElement '=' s
-        d1 = headDef "" ds
-        d2 = lastDef "" ds
-    replace' s = s
+-- | Parse all posting dates found in a string. Posting dates can be
+-- expressed with date/date2 tags and/or bracketed dates.  The dates
+-- are parsed fully to give useful errors. Missing years can be
+-- inferred only if a default date is provided.
+--
+postingdatesp :: Maybe Day -> ErroringJournalParser [(TagName,Day)]
+postingdatesp mdefdate = do
+  -- pdbg 0 $ "postingdatesp"
+  let p = (datetagp mdefdate >>= return.(:[])) <|> bracketeddatetagsp mdefdate
+      nonp =
+         many (notFollowedBy p >> anyChar)
+         -- anyChar `manyTill` (lookAhead (try (p >> return ()) <|> eof))
+  concat <$> (many $ try (nonp >> p))
 
-    isdate = isJust . parsedateM
-    datetag s = "date:"++s++", "
-    date2tag s = "date2:"++s++", "
+--- ** date tags
 
-#ifdef TESTS
-test_ledgerDateSyntaxToTags = do
-     assertEqual "date2:2012/11/28, " $ ledgerDateSyntaxToTags "[=2012/11/28]"
-#endif
+-- | Date tags are tags with name "date" or "date2". Their value is
+-- parsed as a date, using the provided default date if any for
+-- inferring a missing year if needed. Any error in date parsing is
+-- reported and terminates parsing.
+--
+-- >>> rejp (datetagp Nothing) "date: 2000/1/2 "
+-- Right ("date",2000-01-02)
+--
+-- >>> rejp (datetagp (Just $ fromGregorian 2001 2 3)) "date2:3/4"
+-- Right ("date2",2001-03-04)
+--
+-- >>> rejp (datetagp Nothing) "date:  3/4"
+-- Left ...line 1, column 9...year is unknown...
+--
+datetagp :: Maybe Day -> ErroringJournalParser (TagName,Day)
+datetagp mdefdate = do
+  -- pdbg 0 "datetagp"
+  string "date"
+  n <- maybe "" id <$> optionMaybe (string "2")
+  char ':'
+  startpos <- getPosition
+  v <- tagvaluep
+  -- re-parse value as a date.
+  ctx <- getState
+  ep <- parseWithCtx
+    ctx{ctxYear=first3.toGregorian <$> mdefdate}
+    -- The value extends to a comma, newline, or end of file.
+    -- It seems like ignoring any extra stuff following a date
+    -- gives better errors here.
+    (do
+        setPosition startpos
+        datep) -- <* eof)
+    v
+  case ep
+    of Left e  -> throwError $ show e
+       Right d -> return ("date"++n, d)
 
-dateValueFromTags, date2ValueFromTags :: [Tag] -> Maybe String
-dateValueFromTags  ts = maybe Nothing (Just . snd) $ find ((=="date") . fst) ts
-date2ValueFromTags ts = maybe Nothing (Just . snd) $ find ((=="date2") . fst) ts
+--- ** bracketed dates
 
+-- tagorbracketeddatetagsp :: Monad m => Maybe Day -> StringParser u m [Tag]
+-- tagorbracketeddatetagsp mdefdate =
+--   bracketeddatetagsp mdefdate <|> ((:[]) <$> tagp)
 
---- * tests
+-- | Parse Ledger-style bracketed posting dates ([DATE=DATE2]), as
+-- "date" and/or "date2" tags. Anything that looks like an attempt at
+-- this (a square-bracketed sequence of 0123456789/-.= containing at
+-- least one digit and one date separator) is also parsed, and will
+-- throw an appropriate error.
+--
+-- The dates are parsed in full here so that errors are reported in
+-- the right position. A missing year in DATE can be inferred if a
+-- default date is provided. A missing year in DATE2 will be inferred
+-- from DATE.
+--
+-- >>> rejp (bracketeddatetagsp Nothing) "[2016/1/2=3/4]"
+-- Right [("date",2016-01-02),("date2",2016-03-04)]
+--
+-- >>> rejp (bracketeddatetagsp Nothing) "[1]"
+-- Left ...not a bracketed date...
+--
+-- >>> rejp (bracketeddatetagsp Nothing) "[2016/1/32]"
+-- Left ...line 1, column 11...bad date...
+--
+-- >>> rejp (bracketeddatetagsp Nothing) "[1/31]"
+-- Left ...line 1, column 6...year is unknown...
+--
+-- >>> rejp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
+-- Left ...line 1, column 15...bad date, different separators...
+--
+bracketeddatetagsp :: Maybe Day -> ErroringJournalParser [(TagName, Day)]
+bracketeddatetagsp mdefdate = do
+  -- pdbg 0 "bracketeddatetagsp"
+  char '['
+  startpos <- getPosition
+  let digits = "0123456789"
+  s <- many1 (oneOf $ '=':digits++datesepchars)
+  char ']'
+  unless (any (`elem` s) digits && any (`elem` datesepchars) s) $
+    parserFail "not a bracketed date"
+
+  -- looks sufficiently like a bracketed date, now we
+  -- re-parse as dates and throw any errors
+  ctx <- getState
+  ep <- parseWithCtx
+    ctx{ctxYear=first3.toGregorian <$> mdefdate}
+    (do
+        setPosition startpos
+        md1 <- optionMaybe datep
+        maybe (return ()) (setYear.first3.toGregorian) md1
+        md2 <- optionMaybe $ char '=' >> datep
+        eof
+        return (md1,md2)
+    )
+    s
+  case ep
+    of Left e          -> throwError $ show e
+       Right (md1,md2) -> return $ catMaybes $
+         [maybe Nothing (Just.("date",)) md1, maybe Nothing (Just.("date2",)) md2]
+
+--- * more tests
 
 tests_Hledger_Read_JournalReader = TestList $ concat [
     -- test_numberp

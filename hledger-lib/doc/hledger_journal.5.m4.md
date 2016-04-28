@@ -86,11 +86,9 @@ left blank, in which case it will be inferred.
 ### Simple dates
 
 Within a journal file, transaction dates use Y/M/D (or Y-M-D or Y.M.D)
-Leading zeroes are optional.
-The year may be omitted, in which case it defaults to the current
-year, or you can set the default year with a
-[default year directive](#default-year).
-
+Leading zeros are optional.
+The year may be omitted, in which case it will be inferred from the context - the current transaction, the default year set with a
+[default year directive](#default-year), or the current date when the command is run.
 Some examples: `2010/01/31`, `1/31`, `2010-01-31`, `2010.1.31`.
 
 ### Secondary dates
@@ -115,14 +113,12 @@ primary date if unspecified.
   assets:checking
 ```
 
-<div style="clear:both;"></div>
-```{.shell}
+```shell
 $ hledger register checking
 2010/02/23 movie ticket         assets:checking                $-10         $-10
 ```
 
-<div style="clear:both;"></div>
-```{.shell}
+```shell
 $ hledger register checking --date2
 2010/02/19 movie ticket         assets:checking                $-10         $-10
 ```
@@ -135,40 +131,39 @@ superseded by...
 ### Posting dates
 
 You can give individual postings a different date from their parent
-transaction, by adding a [posting tag](#tags) (see below) like
-`date:DATE`, where DATE is a [simple date](#simple-dates).  This is
-probably the best way to control posting dates precisely. Eg in this
-example the expense should appear in May reports, and the deduction
-from checking should be reported on 6/1 for easy bank reconciliation:
+transaction, by adding a [posting comment](#comments) containing a
+[tag](#tags) (see below) like `date:DATE`.  This is probably the best
+way to control posting dates precisely. Eg in this example the expense
+should appear in May reports, and the deduction from checking should
+be reported on 6/1 for easy bank reconciliation:
 
-``` {.journal}
+```journal
 2015/5/30
     expenses:food     $10   ; food purchased on saturday 5/30
     assets:checking         ; bank cleared it on monday, date:6/1
 ```
 
-<div style="clear:both;"></div>
-```{.shell}
-$ hledger -f tt.j register food
+```shell
+$ hledger -f t.j register food
 2015/05/30                      expenses:food                  $10           $10
 ```
 
-<div style="clear:both;"></div>
-```{.shell}
-$ hledger -f tt.j register checking
+```shell
+$ hledger -f t.j register checking
 2015/06/01                      assets:checking               $-10          $-10
 ```
 
-A posting date will use the year of the transaction date if unspecified.
+DATE should be a [simple date](#simple-dates); if the year is not
+specified it will use the year of the transaction's date.  You can set
+the secondary date similarly, with `date2:DATE2`.  The `date:` or
+`date2:` tags must have a valid simple date value if they are present,
+eg a `date:` tag with no value is not allowed.
 
-You can also set the secondary date, with `date2:DATE2`.
-For compatibility, Ledger's older posting date syntax is also
-supported: `[DATE]`, `[DATE=DATE2]` or `[=DATE2]` in a posting
-comment.
-
-When using any of these forms, be sure to provide a valid simple date
-or you'll get a parse error. Eg a `date:` tag with no value is not
-allowed.
+Ledger's earlier, more compact bracketed date syntax is also
+supported: `[DATE]`, `[DATE=DATE2]` or `[=DATE2]`. hledger will
+attempt to parse any square-bracketed sequence of the `0123456789/-.=`
+characters in this way. With this syntax, DATE infers its year from
+the transaction and DATE2 infers its year from DATE.
 
 ## Account names
 
@@ -249,7 +244,7 @@ These look like `=EXPECTEDBALANCE` following a posting's amount. Eg in
 this example we assert the expected dollar balance in accounts a and b after
 each posting:
 
-``` {.journal}
+```journal
 2013/1/1
   a   $1  =$1
   b       =$-1
@@ -308,7 +303,7 @@ for this kind of total balance assertion if there's demand.)
 
 Balance assertions do not count the balance from subaccounts; they check
 the posted account's exclusive balance. For example:
-``` {.journal}
+```journal
 1/1
   checking:fund   1 = 1  ; post to this subaccount, its balance is now 1
   checking        1 = 1  ; post to the parent account, its exclusive balance is now 1
@@ -472,7 +467,7 @@ while tags in a posting comment affect only that posting.
 For example, the following transaction has three tags (A, TAG2, third-tag)
 and the posting has four (A, TAG2, third-tag, posting-tag):
 
-``` {.journal}
+```journal
 1/1 a transaction  ; A:, TAG2:
     ; third-tag: a third transaction tag, this time with a value
     (a)  $1  ; posting-tag:
@@ -480,7 +475,7 @@ and the posting has four (A, TAG2, third-tag, posting-tag):
 
 Tags are like Ledger's
 [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
-feature, except hledger's tag values are always simple strings.
+feature, except hledger's tag values are simple strings.
 
 ## Directives
 
@@ -503,7 +498,7 @@ This affects all subsequent journal entries in the current file or its
 [included files](#including-other-files).
 The spaces around the = are optional:
 
-``` {.journal}
+```journal
 alias OLD = NEW
 ```
 
@@ -514,7 +509,7 @@ OLD and NEW are full account names.
 hledger will replace any occurrence of the old account name with the
 new one. Subaccounts are also affected. Eg:
 
-``` {.journal}
+```journal
 alias checking = assets:bank:wells fargo:checking
 # rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
 ```
@@ -524,7 +519,7 @@ alias checking = assets:bank:wells fargo:checking
 There is also a more powerful variant that uses a regular expression,
 indicated by the forward slashes. (This was the default behaviour in hledger 0.24-0.25):
 
-``` {.journal}
+```journal
 alias /REGEX/ = REPLACEMENT
 ```
 
@@ -540,7 +535,7 @@ Note, currently regular expression aliases may cause noticeable slow-downs.
 (And if you use Ledger on your hledger file, they will be ignored.)
 Eg:
 
-``` {.journal}
+```journal
 alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
 # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 ```
@@ -559,7 +554,7 @@ Aliases are applied in the following order:
 
 You can clear (forget) all currently defined aliases with the `end aliases` directive:
 
-``` {.journal}
+```journal
 end aliases
 ```
 
@@ -568,7 +563,7 @@ end aliases
 The `account` directive predefines account names, as in Ledger and Beancount.
 This may be useful for your own documentation; hledger doesn't make use of it yet.
 
-``` {.journal}
+```journal
 ; account ACCT
 ;   OPTIONAL COMMENTS/TAGS...
 
@@ -587,7 +582,7 @@ You can specify a parent account which will be prepended to all accounts
 within a section of the journal. Use the `apply account` and `end apply account`
 directives like so:
 
-``` {.journal}
+```journal
 apply account home
 
 2010/1/1
@@ -597,7 +592,7 @@ apply account home
 end apply account
 ```
 which is equivalent to:
-``` {.journal}
+```journal
 2010/01/01
     home:food           $10
     home:cash          $-10
@@ -606,7 +601,7 @@ which is equivalent to:
 If `end apply account` is omitted, the effect lasts to the end of the file.
 Included files are also affected, eg:
 
-``` {.journal}
+```journal
 apply account business
 include biz.journal
 end apply account
@@ -644,7 +639,7 @@ D £1,000.00
   c  £1000
   d
 ```
-```{.shell}
+```shell
 $ hledger print
 2010/01/01
     a     £2,340.00
@@ -660,7 +655,7 @@ $ hledger print
 You can set a default year to be used for subsequent dates which don't
 specify a year. This is a line beginning with `Y` followed by the year. Eg:
 
-``` {.journal}
+```journal
 Y2009      ; set default year to 2009
 
 12/15      ; equivalent to 2009/12/15
@@ -683,7 +678,7 @@ Y2010      ; change default year to 2010
 You can pull in the content of additional journal files by writing an
 include directive, like this:
 
-``` {.journal}
+```journal
 include path/to/file.journal
 ```
 

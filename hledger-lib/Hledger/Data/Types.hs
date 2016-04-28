@@ -129,7 +129,9 @@ data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
 
 instance NFData PostingType
 
-type Tag = (String, String)  -- ^ A tag name and (possibly empty) value.
+type TagName = String
+type TagValue = String
+type Tag = (TagName, TagValue)  -- ^ A tag name and (possibly empty) value.
 
 data ClearedStatus = Uncleared | Pending | Cleared
                    deriving (Eq,Ord,Typeable,Data,Generic)
