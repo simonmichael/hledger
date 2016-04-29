@@ -11,7 +11,7 @@ packages:
 - hledger-api
 - location:
     git: https://github.com/simonmichael/wai
-    commit: 96847d4cfc5894823f591746cac32416f941ed90
+    commit: 24a88489cdca18c14a869c06054d1409cb8b20ba
   subdirs:
     - wai-handler-launch
 
