@@ -78,10 +78,14 @@ Note there is no built-in access control, so you will need to hide
 hledger-web behind an authenticating proxy (such as apache or nginx)
 if you want to restrict who can see and add entries to your journal.
 
-With journal and timeclock files (but not CSV files, currently)
-the web app detects changes and will show the new data on the next request.
-If a change makes the file unparseable, hledger-web will show an error
-until the file has been fixed.
+Command-line options and arguments may be used to set an initial
+filter on the data. This is not shown in the web UI, but it will be
+applied in addition to any search query entered there.
+
+With journal and timeclock files (but not CSV files, currently) the
+web app detects changes made by other means and will show the new data
+on the next request. If a change makes the file unparseable,
+hledger-web will show an error until the file has been fixed.
 
 ---
 # disabled
