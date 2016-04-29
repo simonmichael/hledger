@@ -5,6 +5,12 @@
 
 $(document).ready(function() {
 
+  // ensure add form always focusses its first field
+  $('#addmodal')
+    .on('shown.bs.modal', function (e) {
+      addformFocus();
+    })
+
   // show add form if ?add=1
   if ($.url.param('add')) { addformShow(true); }
 
@@ -120,11 +126,7 @@ function registerChartClick(ev, pos, item) {
 function addformShow(showmsg) {
   showmsg = typeof showmsg !== 'undefined' ? showmsg : false;
   addformReset(showmsg);
-  $('#addmodal')
-    .on('shown.bs.modal', function (e) {
-      addformFocus();
-    })
-    .modal('show');
+  $('#addmodal').modal('show');
 }
 
 // Make sure the add form is empty and clean for display.
