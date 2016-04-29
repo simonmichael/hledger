@@ -25,6 +25,7 @@ where
 import Control.Exception as C
 import Data.List
 import Data.Maybe
+import Data.Time (Day)
 import Safe (readMay)
 import System.Console.CmdArgs
 import System.Directory (getModificationTime, getDirectoryContents, copyFile)
@@ -56,6 +57,7 @@ import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Hledger.Cli.CliOptions
 import Hledger.Data
 import Hledger.Read
+import Hledger.Reports (queryFromOpts)
 import Hledger.Utils
 
 
@@ -87,19 +89,23 @@ journalReload j = readJournalFile Nothing Nothing True $ journalFilePath j
 
 -- | Re-read a journal from its data file mostly, only if the file has
 -- changed since last read (or if there is no file, ie data read from
--- stdin). The provided options are mostly ignored. Return a journal or
--- the error message while reading it, and a flag indicating whether it
--- was re-read or not.
-journalReloadIfChanged :: CliOpts -> Journal -> IO (Either String Journal, Bool)
-journalReloadIfChanged _ j = do
+-- stdin). The provided options and current date are used to filter
+-- the re-read journal; this is intended to reapply the same filter as
+-- at program startup (though, the current date may not be what it was
+-- then, so results may differ). Returns a journal or error message,
+-- and a flag indicating whether it was re-read or not.
+journalReloadIfChanged :: CliOpts -> Day -> Journal -> IO (Either String Journal, Bool)
+journalReloadIfChanged opts d j = do
   let maybeChangedFilename f = do newer <- journalSpecifiedFileIsNewer j f
                                   return $ if newer then Just f else Nothing
   changedfiles <- catMaybes `fmap` mapM maybeChangedFilename (journalFilePaths j)
   if not $ null changedfiles
    then do
      whenLoud $ printf "%s has changed, reloading\n" (head changedfiles)
-     jE <- journalReload j
-     return (jE, True)
+     ej <- journalReload j
+     let initq = queryFromOpts d $ reportopts_ opts
+         ej'   = filterJournalTransactions initq <$> ej
+     return (ej', True)
    else
      return (Right j, False)
 
