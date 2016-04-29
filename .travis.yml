@@ -19,18 +19,18 @@ cache:
     # - "$HOME/.stack-work/"
 
 before_install:
-  - git --version
   - mkdir -p ~/.local/bin
   - export PATH=~/.local/bin:$PATH
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
   - chmod a+x ~/.local/bin/stack
-  - stack --version
 
 install:
   - stack +RTS -N2 -RTS setup
   - stack +RTS -N2 -RTS build --only-snapshot
 
 script:
+  - git --version
+  - stack --version
   - stack +RTS -N2 -RTS build --test --haddock
 #  - stack +RTS -N2 -RTS haddock --no-haddock-deps
 # https://github.com/commercialhaskell/stack/issues/857
