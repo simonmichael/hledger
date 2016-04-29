@@ -30,7 +30,7 @@ maintainer  : Simon Michael <simon@joyful.com>
 github      : simonmichael/hledger
 homepage    : http://hledger.org
 bug-reports : http://bugs.hledger.org
-# tested-with : GHC==7.10.3
+tested-with : GHC==7.10.3
             
 extra-source-files:
   - CHANGES
