@@ -136,7 +136,7 @@ function addformReset(showmsg) {
     // reset typehead state (though not fetched completions)
     $('.typeahead').typeahead('val', '');
     $('.tt-dropdown-menu').hide();
-    $('input#date').val('today');
+    $('input#date').val(''); // #322 don't set a default, typeahead(?) clears it on tab. See also Foundation.hs
   }
 }
 

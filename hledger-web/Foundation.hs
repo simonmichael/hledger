@@ -339,7 +339,7 @@ addform _ vd@VD{..} = [hamlet|
      <table style="width:100%;">
       <tr#descriptionrow>
        <td>
-        <input #date        .typeahead .form-control .input-lg type=text size=15 name=date placeholder="Date" value=#{defdate}>
+        <input #date        .typeahead .form-control .input-lg type=text size=15 name=date placeholder="Date" value="#{defdate}">
        <td>
         <input #description .typeahead .form-control .input-lg type=text size=40 name=description placeholder="Description">
    $forall n <- postingnums
@@ -351,7 +351,7 @@ addform _ vd@VD{..} = [hamlet|
      (or ctrl +, ctrl -)
 |]
  where
-  defdate = "today" :: String
+  defdate = "" :: String -- #322 don't set a default, typeahead(?) clears it on tab. See also hledger.js
   dates = ["today","yesterday","tomorrow"] :: [String]
   descriptions = sort $ nub $ map tdescription $ jtxns j
   accts = sort $ journalAccountNamesUsed j
