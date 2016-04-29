@@ -32,9 +32,6 @@ packages:
 - location:
     git: git@github.com:simonmichael/wizards.git
     commit: 631dcc1ac9a75c534369f82204e6e5016bf52ca7
-- location:
-    git: git@github.com:ekmett/lens.git
-    commit: 1c1ada12fcfd907afefab4bd5ac71268be03f818
 
 - hledger-web
 - wai/wai-handler-launch
@@ -153,7 +150,7 @@ extra-deps:
 - distributive-0.5.0.2
 - free-4.12.4
 - kan-extensions-5.0.1
-- lens-4.13.2.1
+- lens-4.14
 - microlens-0.4.3.0
 - profunctors-5.2
 - reflection-2.1.2
