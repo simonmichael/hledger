@@ -237,11 +237,11 @@ getViewData :: Handler ViewData
 getViewData = do
   app        <- getYesod
   let opts@WebOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} = appOpts app
-  (j, merr)  <- getCurrentJournal app copts{reportopts_=ropts{no_elide_=True}}
+  today      <- liftIO getCurrentDay
+  (j, merr)  <- getCurrentJournal app copts{reportopts_=ropts{no_elide_=True}} today
   lastmsg    <- getLastMessage
   let msg = maybe lastmsg (Just . toHtml) merr
   Just here  <- getCurrentRoute
-  today      <- liftIO getCurrentDay
   q          <- getParameterOrNull "q"
   a          <- getParameterOrNull "a"
   p          <- getParameterOrNull "p"
@@ -264,14 +264,14 @@ getViewData = do
       -- | Update our copy of the journal if the file changed. If there is an
       -- error while reloading, keep the old one and return the error, and set a
       -- ui message.
-      getCurrentJournal :: App -> CliOpts -> Handler (Journal, Maybe String)
-      getCurrentJournal app opts = do
+      getCurrentJournal :: App -> CliOpts -> Day -> Handler (Journal, Maybe String)
+      getCurrentJournal app opts d = do
         -- XXX put this inside atomicModifyIORef' for thread safety
         j <- liftIO $ readIORef $ appJournal app
-        (jE, changed) <- liftIO $ journalReloadIfChanged opts j
+        (ej, changed) <- liftIO $ journalReloadIfChanged opts d j
         if not changed
          then return (j,Nothing)
-         else case jE of
+         else case ej of
                 Right j' -> do liftIO $ writeIORef (appJournal app) j'
                                return (j',Nothing)
                 Left e   -> do setMessage $ "error while reading" {- ++ ": " ++ e-}

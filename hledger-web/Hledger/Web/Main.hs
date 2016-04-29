@@ -69,7 +69,8 @@ withJournalDo' opts cmd = do
 web :: WebOpts -> Journal -> IO ()
 web opts j = do
   d <- getCurrentDay
-  let j' = filterJournalTransactions (queryFromOpts d $ reportopts_ $ cliopts_ opts) j
+  let initq = queryFromOpts d $ reportopts_ $ cliopts_ opts
+      j' = filterJournalTransactions initq j
       h = "127.0.0.1"
       p = port_ opts
       u = base_url_ opts
