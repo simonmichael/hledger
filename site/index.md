@@ -1,16 +1,17 @@
 ---
 title: home
 ...
-
 <style>
 .highslide img {max-width:200px; float:right; margin:0 0 1em 1em;}
-.highslide-caption {color:white; background-color:black;}
+.highslide-caption {color:white; background-color:black};
+a {white-space:nowrap;}
+/*div.asciicast { float:right; height:200px; }*/
+</style>
+<style media="screen and (min-width:1020px) and (orientation: landscape)">
 .indent0 { margin:0 15em 0  0em; }
 .indent1 { margin:0 10em 0  5em; }
 .indent2 { margin:0  5em 0 10em; }
 .indent3 { margin:0    0 0 15em; }
-a {white-space:nowrap;}
-/*div.asciicast { float:right; height:200px; }*/
 </style>
 
 
