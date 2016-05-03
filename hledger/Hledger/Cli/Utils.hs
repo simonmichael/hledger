@@ -69,8 +69,8 @@ withJournalDo opts cmd = do
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   rulespath <- rulesFilePathFromOpts opts
-  journalpath <- journalFilePathFromOpts opts
-  ej <- readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpath
+  journalpaths <- journalFilePathFromOpts opts
+  ej <- readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpaths
   either error' (cmd opts . journalApplyAliases (aliasesFromOpts opts)) ej
 
 -- | Write some output to stdout or to a file selected by --output-file.
@@ -83,17 +83,21 @@ writeOutput opts s = do
 -- readJournalWithOpts :: CliOpts -> String -> IO Journal
 -- readJournalWithOpts opts s = readJournal Nothing Nothing Nothing s >>= either error' return
 
--- | Re-read a journal from its data file, or return an error string.
-journalReload :: Journal -> IO (Either String Journal)
-journalReload j = readJournalFile Nothing Nothing True $ journalFilePath j
+-- | Re-read the journal file(s) specified by options, or return an error string.
+-- Options are honoured and the provided date is used as the current date.
+journalReload :: CliOpts -> IO (Either String Journal)
+journalReload opts = do
+  rulespath <- rulesFilePathFromOpts opts
+  journalpaths <- journalFilePathFromOpts opts
+  readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpaths
 
--- | Re-read a journal from its data file mostly, only if the file has
--- changed since last read (or if there is no file, ie data read from
--- stdin). The provided options and current date are used to filter
--- the re-read journal; this is intended to reapply the same filter as
--- at program startup (though, the current date may not be what it was
--- then, so results may differ). Returns a journal or error message,
--- and a flag indicating whether it was re-read or not.
+-- | Re-read the journal file(s) specified by options, but only if any
+-- of them has changed since last read (or if there is no file, ie
+-- data read from stdin). The provided options and current date are
+-- used to filter the re-read journal; this is intended to reapply the
+-- same filter as at program startup (though, the current date may not
+-- be what it was then, so results may differ). Returns a journal or
+-- error message, and a flag indicating whether it was re-read or not.
 journalReloadIfChanged :: CliOpts -> Day -> Journal -> IO (Either String Journal, Bool)
 journalReloadIfChanged opts d j = do
   let maybeChangedFilename f = do newer <- journalSpecifiedFileIsNewer j f
@@ -102,7 +106,7 @@ journalReloadIfChanged opts d j = do
   if not $ null changedfiles
    then do
      whenLoud $ printf "%s has changed, reloading\n" (head changedfiles)
-     ej <- journalReload j
+     ej <- journalReload opts
      let initq = queryFromOpts d $ reportopts_ opts
          ej'   = filterJournalTransactions initq <$> ej
      return (ej', True)

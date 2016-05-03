@@ -105,9 +105,9 @@ readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> FilePath -> 
 readJournalFile format rulesfile assrt f = readJournalFiles format rulesfile assrt [f]
 
 readJournalFiles :: Maybe StorageFormat -> Maybe FilePath -> Bool -> [FilePath] -> IO (Either String Journal)
-readJournalFiles format rulesfile assrt f = do
-  contents <- fmap concat $ mapM readFileAnyNewline f
-  readJournal format rulesfile assrt (listToMaybe f) contents
+readJournalFiles format rulesfile assrt fs = do
+  contents <- fmap concat $ mapM readFileAnyNewline fs
+  readJournal format rulesfile assrt (listToMaybe fs) contents
  where
   readFileAnyNewline f = do
     requireJournalFileExists f
