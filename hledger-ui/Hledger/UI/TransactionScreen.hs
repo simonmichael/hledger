@@ -71,7 +71,7 @@ drawTransactionScreen _ = error "draw function called with wrong screen type, sh
 handleTransactionScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleTransactionScreen st@AppState{
    aScreen=s@TransactionScreen{tsState=((i,t),nts,acct)}
-  ,aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+  ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
   ,ajournal=j
   } e = do
   d <- liftIO getCurrentDay
@@ -84,7 +84,7 @@ handleTransactionScreen st@AppState{
 
     Vty.EvKey (Vty.KChar 'g') [] -> do
       d <- liftIO getCurrentDay
-      ej <- liftIO $ journalReload j  -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
+      (ej, _) <- liftIO $ journalReloadIfChanged copts d j
       case ej of
         Right j' -> do
           -- got to redo the register screen's transactions report, to get the latest transactions list for this screen

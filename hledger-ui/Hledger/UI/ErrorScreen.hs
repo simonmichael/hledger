@@ -100,7 +100,7 @@ drawErrorScreen _ = error "draw function called with wrong screen type, should n
 handleErrorScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleErrorScreen st@AppState{
    aScreen=s@ErrorScreen{esState=_err}
-  ,aopts=UIOpts{cliopts_=_copts}
+  ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   } e = do
   case e of
@@ -109,7 +109,7 @@ handleErrorScreen st@AppState{
 
     Vty.EvKey (Vty.KChar 'g') [] -> do
       d <- liftIO getCurrentDay
-      ej <- liftIO $ journalReload j -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
+      (ej, _) <- liftIO $ journalReloadIfChanged copts d j
       case ej of
         Left err -> continue st{aScreen=s{esState=err}} -- show latest parse error
         Right j' -> continue $ reload j' d $ popScreen st  -- return to previous screen, and reload it

@@ -205,6 +205,7 @@ drawAccountsItem (acctwidth, balwidth) selected (indent, _fullacct, displayacct,
 handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleAccountsScreen st@AppState{
    aScreen=scr@AccountsScreen{asState=(l,selacct)}
+  ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   } e = do
     d <- liftIO getCurrentDay
@@ -226,7 +227,7 @@ handleAccountsScreen st@AppState{
         -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
 
         Vty.EvKey (Vty.KChar 'g') [] -> do
-          ej <- liftIO $ journalReload j  -- (ej, changed) <- liftIO $ journalReloadIfChanged copts j
+          (ej, _) <- liftIO $ journalReloadIfChanged copts d j
           case ej of
             Right j' -> continue $ reload j' d st'
             Left err -> continue $ screenEnter d ES.screen{esState=err} st'
