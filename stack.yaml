@@ -10,8 +10,8 @@ packages:
 - hledger-web
 - hledger-api
 - location:
-    git: https://github.com/simonmichael/wai
-    commit: 24a88489cdca18c14a869c06054d1409cb8b20ba
+    git: https://github.com/yesodweb/wai
+    commit: 2a755b739dcc90a060f0a70b092c74ce7564ef12
   subdirs:
     - wai-handler-launch
 
