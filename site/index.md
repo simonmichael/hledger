@@ -67,7 +67,7 @@ tr {
 
 <!-- main content -->
 
-<h1 style="font-size:6em;">hledger</h1>
+<h1 style="font-size:4em;">hledger</h1>
 
 <img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:1em 1em 0 1em;" />
 
