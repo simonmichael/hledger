@@ -481,7 +481,7 @@ checkBalanceAssertion (errs,startbal) ps
                       "a balance assertion failed on %s",
                       "in account %s",
                       "in commodity %s",
-                      "asserted balance was %s, actual balance was %s (%s)",
+                      "asserted balance was %s, actual balance was %s (difference: %s)",
                       "after posting:",
                       "%s",
                       "%s"
