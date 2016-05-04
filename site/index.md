@@ -3,7 +3,7 @@ title: home
 ...
 <style>
 .highslide img {max-width:200px; float:right; margin:0 0 1em 1em;}
-.highslide-caption {color:white; background-color:black};
+.highslide-caption {color:white; background-color:black;}
 a {white-space:nowrap;}
 /*div.asciicast { float:right; height:200px; }*/
 </style>
