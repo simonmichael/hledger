@@ -37,6 +37,12 @@ module Hledger.Read.JournalReader (
   -- * Parsing utils
   genericSourcePos,
   parseAndFinaliseJournal,
+  runStringParser,
+  rsp,
+  runJournalParser,
+  rjp,
+  runErroringJournalParser,
+  rejp,
 
   -- * Parsers used elsewhere
   getParentAccount,
