@@ -56,11 +56,13 @@ or `hledger print cur:\\$`.
 : match transaction descriptions
 
 **`date:PERIODEXPR`**
-: match dates within the specified period (which should not include a
-reporting interval
+: match dates within the specified period.
+PERIODEXPR should not include a reporting interval.
+The command-line `--date2` flag makes this match secondary dates instead (like the `-b`/`-e`/`-p` options).
 
 **`date2:PERIODEXPR`**
-: as above, but match secondary dates
+: match secondary dates within the specified period.
+PERIODEXPR should not include a reporting interval.
 
 **`depth:N`**
 : match (or display, depending on command) accounts at or above this depth

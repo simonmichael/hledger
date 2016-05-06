@@ -95,14 +95,19 @@ Some examples: `2010/01/31`, `1/31`, `2010-01-31`, `2010.1.31`.
 
 Real-life transactions sometimes involve more than one date - eg the date
 you write a cheque, and the date it clears in your bank.  When you want to
-model this, eg for more accurate balances, write both dates separated by
-an equals sign. The *primary date*, on the left, is used by default; the
-*secondary date*, on the right, is used when the `--date2` flag is specified
-(For Ledger compatibility, `--aux-date` or `--effective` also work.)
+model this, eg for more accurate balances, you can specify individual
+[#posting-dates](posting dates), which I recommend. Or, you can use the
+secondary dates (aka auxiliary/effective dates) feature, supported for compatibility
+with Ledger.
 
-Their meaning is up to you, but it's best to follow a consistent rule.
-Eg write the bank's clearing date as primary, and when needed, the
-date the transaction was initiated as secondary.
+A secondary date can be written after the primary date, separated by
+an equals sign. The primary date, on the left, is used by default; the
+secondary date, on the right, is used when the `--date2` flag is
+specified (`--aux-date` or `--effective` also work).
+
+The meaning of secondary dates is up to you, but it's best to follow a
+consistent rule.  Eg write the bank's clearing date as primary, and
+when needed, the date the transaction was initiated as secondary.
 
 Here's an example. Note that a secondary date will use the year of the
 primary date if unspecified.
@@ -123,10 +128,11 @@ $ hledger register checking --date2
 2010/02/19 movie ticket         assets:checking                $-10         $-10
 ```
 
-Secondary dates require some effort: you must use them consistently in
+Secondary dates require some effort; you must use them consistently in
 your journal entries and remember whether to use or not use the
-`--date2` flag for your reports. Arguably they are now obsolete,
-superseded by...
+`--date2` flag for your reports. They are included in hledger for
+Ledger compatibility, but posting dates are a more powerful and less
+confusing alternative.
 
 ### Posting dates
 

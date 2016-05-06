@@ -80,8 +80,8 @@ Both of these must be written after the command name.
 `-p --period=PERIODEXP        `
 : set start date, end date, and/or reporting interval all at once (overrides the flags above)
 
-`--date2 --aux-date`
-: use postings/txns' secondary dates instead
+`--date2`
+: show, and match with -b/-e/-p/date:, secondary dates instead
 
 `-C --cleared                 `
 : include only cleared postings/txns

@@ -128,7 +128,7 @@ reportflags = [
  ,flagNone ["quarterly","Q"] (setboolopt "quarterly") "multiperiod/multicolumn report by quarter"
  ,flagNone ["yearly","Y"]    (setboolopt "yearly") "multiperiod/multicolumn report by year"
  ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set start date, end date, and/or reporting interval all at once (overrides the flags above)"
- ,flagNone ["date2","aux-date"] (setboolopt "date2") "use postings/txns' secondary dates instead"
+ ,flagNone ["date2"]         (setboolopt "date2") "show, and make -b/-e/-p/date: match, secondary dates instead"
 
  ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only cleared postings/txns"
  ,flagNone ["pending"]       (setboolopt "pending") "include only pending postings/txns"

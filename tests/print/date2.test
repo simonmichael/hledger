@@ -1,27 +1,37 @@
-# print shows both dates. The second's year defaults to the first's.
-hledger -f - print --date2
+# 1. print shows both primary and secondary dates. The second's year defaults to the first's.
+hledger -f - print
 <<<
-2009/1/1=1/2 x
-  a  1
-  b
+2000/1/1=3/3
+  (a)  1
+
+2000/1/2=2/2
+  (b)  1
+
 >>>
-2009/01/01=2009/01/02 x
-    a             1
-    b            -1
+2000/01/01=2000/03/03
+    (a)             1
+
+2000/01/02=2000/02/02
+    (b)             1
 
 >>>2
 >>>= 0
 
-# Secondary date of 29 Feb on leap year should be valid
+# 2. With --date2, the secondary date is used for sorting.
 hledger -f - print --date2
 <<<
-2001/2/27=2000/2/29 x
-  a  1
-  b
+2000/1/1=3/3
+  (a)  1
+
+2000/1/2=2/2
+  (b)  1
+
 >>>
-2001/02/27=2000/02/29 x
-    a             1
-    b            -1
+2000/01/02=2000/02/02
+    (b)             1
+
+2000/01/01=2000/03/03
+    (a)             1
 
 >>>2
 >>>= 0
