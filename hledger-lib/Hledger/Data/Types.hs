@@ -64,8 +64,6 @@ data Side = L | R deriving (Eq,Show,Read,Ord,Typeable,Data,Generic)
 
 instance NFData Side
 
-type Commodity = String
-
 -- | The basic numeric type used in amounts. Different implementations
 -- can be selected via cabal flag for testing and benchmarking purposes.
 numberRepresentation :: String
@@ -111,8 +109,15 @@ data DigitGroupStyle = DigitGroups Char [Int]
 
 instance NFData DigitGroupStyle
 
+type CommoditySymbol = String
+
+data Commodity = Commodity {
+  csymbol :: CommoditySymbol,
+  cformat :: Maybe AmountStyle
+  } -- deriving (Eq,Ord,Typeable,Data,Generic)
+
 data Amount = Amount {
-      acommodity :: Commodity,
+      acommodity :: CommoditySymbol,
       aquantity :: Quantity,
       aprice :: Price,                -- ^ the (fixed) price for this amount, if any
       astyle :: AmountStyle
@@ -217,7 +222,7 @@ instance NFData TimeclockEntry
 
 data MarketPrice = MarketPrice {
       mpdate :: Day,
-      mpcommodity :: Commodity,
+      mpcommodity :: CommoditySymbol,
       mpamount :: Amount
     } deriving (Eq,Ord,Typeable,Data,Generic) -- & Show (in Amount.hs)
 
@@ -231,7 +236,7 @@ type Year = Integer
 -- is saved for later use by eg the add command.
 data JournalContext = Ctx {
       ctxYear      :: !(Maybe Year)      -- ^ the default year most recently specified with Y
-    , ctxDefaultCommodityAndStyle :: !(Maybe (Commodity,AmountStyle)) -- ^ the default commodity and amount style most recently specified with D
+    , ctxDefaultCommodityAndStyle :: !(Maybe (CommoditySymbol,AmountStyle)) -- ^ the default commodity and amount style most recently specified with D
     , ctxAccounts :: ![AccountName]      -- ^ the accounts that have been defined with account directives so far
     , ctxParentAccount :: ![AccountName] -- ^ the current stack of parent accounts/account name components
                                          --   specified with "apply account" directive(s). Concatenated, these
@@ -261,7 +266,7 @@ data Journal = Journal {
                                             -- first followed by any included files in the
                                             -- order encountered.
       filereadtime :: ClockTime,            -- ^ when this journal was last read from its file(s)
-      jcommoditystyles :: M.Map Commodity AmountStyle  -- ^ how to display amounts in each commodity
+      jcommoditystyles :: M.Map CommoditySymbol AmountStyle  -- ^ how to display amounts in each commodity
     } deriving (Eq, Typeable, Data, Generic)
 
 instance NFData Journal

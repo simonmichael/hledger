@@ -270,7 +270,7 @@ transactionPostingBalances t = (sumPostings $ realPostings t
 -- | Is this transaction balanced ? A balanced transaction's real
 -- (non-virtual) postings sum to 0, and any balanced virtual postings
 -- also sum to 0.
-isTransactionBalanced :: Maybe (Map.Map Commodity AmountStyle) -> Transaction -> Bool
+isTransactionBalanced :: Maybe (Map.Map CommoditySymbol AmountStyle) -> Transaction -> Bool
 isTransactionBalanced styles t =
     -- isReallyZeroMixedAmountCost rsum && isReallyZeroMixedAmountCost bvsum
     isZeroMixedAmount rsum' && isZeroMixedAmount bvsum'
@@ -284,7 +284,7 @@ isTransactionBalanced styles t =
 -- amount or conversion price(s), or return an error message.
 -- Balancing is affected by commodity display precisions, so those can
 -- (optionally) be provided.
-balanceTransaction :: Maybe (Map.Map Commodity AmountStyle) -> Transaction -> Either String Transaction
+balanceTransaction :: Maybe (Map.Map CommoditySymbol AmountStyle) -> Transaction -> Either String Transaction
 balanceTransaction styles t =
   case inferBalancingAmount t of
     Left err -> Left err

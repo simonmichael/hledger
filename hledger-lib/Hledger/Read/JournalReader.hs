@@ -232,10 +232,10 @@ setYear y = modifyState (\ctx -> ctx{ctxYear=Just y})
 getYear :: Monad m => JournalParser m (Maybe Integer)
 getYear = liftM ctxYear getState
 
-setDefaultCommodityAndStyle :: Monad m => (Commodity,AmountStyle) -> JournalParser m ()
+setDefaultCommodityAndStyle :: Monad m => (CommoditySymbol,AmountStyle) -> JournalParser m ()
 setDefaultCommodityAndStyle cs = modifyState (\ctx -> ctx{ctxDefaultCommodityAndStyle=Just cs})
 
-getDefaultCommodityAndStyle :: Monad m => JournalParser m (Maybe (Commodity,AmountStyle))
+getDefaultCommodityAndStyle :: Monad m => JournalParser m (Maybe (CommoditySymbol,AmountStyle))
 getDefaultCommodityAndStyle = ctxDefaultCommodityAndStyle `fmap` getState
 
 pushAccount :: Monad m => String -> JournalParser m ()

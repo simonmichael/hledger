@@ -534,7 +534,7 @@ journalApplyCommodityStyles j@Journal{jtxns=ts, jmarketprices=mps} = j''
       fixamount a@Amount{acommodity=c} = a{astyle=journalCommodityStyle j' c}
 
 -- | Get this journal's standard display style for the given commodity, or the null style.
-journalCommodityStyle :: Journal -> Commodity -> AmountStyle
+journalCommodityStyle :: Journal -> CommoditySymbol -> AmountStyle
 journalCommodityStyle j c = M.findWithDefault amountstyle c $ jcommoditystyles j
 
 -- | Choose a standard display style for each commodity.
@@ -552,7 +552,7 @@ journalChooseCommodityStyles j =
 
 -- | Given a list of amounts in parse order, build a map from their commodity names
 -- to standard commodity display formats.
-commodityStylesFromAmounts :: [Amount] -> M.Map Commodity AmountStyle
+commodityStylesFromAmounts :: [Amount] -> M.Map CommoditySymbol AmountStyle
 commodityStylesFromAmounts amts = M.fromList commstyles
   where
     samecomm = \a1 a2 -> acommodity a1 == acommodity a2
@@ -591,8 +591,8 @@ canonicalStyleFrom ss@(first:_) =
 
 -- -- | Get the price for a commodity on the specified day from the price database, if known.
 -- -- Does only one lookup step, ie will not look up the price of a price.
--- journalMarketPriceFor :: Journal -> Day -> Commodity -> Maybe MixedAmount
--- journalMarketPriceFor j d Commodity{symbol=s} = do
+-- journalMarketPriceFor :: Journal -> Day -> CommoditySymbol -> Maybe MixedAmount
+-- journalMarketPriceFor j d CommoditySymbol{symbol=s} = do
 --   let ps = reverse $ filter ((<= d).mpdate) $ filter ((s==).hsymbol) $ sortBy (comparing mpdate) $ jmarketprices j
 --   case ps of (MarketPrice{mpamount=a}:_) -> Just a
 --              _ -> Nothing
@@ -613,19 +613,19 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
       fixamount = canonicaliseAmount (jcommoditystyles j) . costOfAmount
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
--- journalCanonicalCommodities :: Journal -> M.Map String Commodity
+-- journalCanonicalCommodities :: Journal -> M.Map String CommoditySymbol
 -- journalCanonicalCommodities j = canonicaliseCommodities $ journalAmountCommodities j
 
 -- -- | Get all this journal's amounts' commodities, in the order parsed.
--- journalAmountCommodities :: Journal -> [Commodity]
+-- journalAmountCommodities :: Journal -> [CommoditySymbol]
 -- journalAmountCommodities = map acommodity . concatMap amounts . journalAmounts
 
 -- -- | Get all this journal's amount and price commodities, in the order parsed.
--- journalAmountAndPriceCommodities :: Journal -> [Commodity]
+-- journalAmountAndPriceCommodities :: Journal -> [CommoditySymbol]
 -- journalAmountAndPriceCommodities = concatMap amountCommodities . concatMap amounts . journalAmounts
 
 -- -- | Get this amount's commodity and any commodities referenced in its price.
--- amountCommodities :: Amount -> [Commodity]
+-- amountCommodities :: Amount -> [CommoditySymbol]
 -- amountCommodities Amount{acommodity=c,aprice=p} =
 --     case p of Nothing -> [c]
 --               Just (UnitPrice ma)  -> c:(concatMap amountCommodities $ amounts ma)

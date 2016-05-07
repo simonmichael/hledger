@@ -104,7 +104,7 @@ type HledgerApi =
          "accountnames" :> Get '[JSON] [AccountName]
     :<|> "transactions" :> Get '[JSON] [Transaction]
     :<|> "prices"       :> Get '[JSON] [MarketPrice]
-    :<|> "commodities"  :> Get '[JSON] [Commodity]
+    :<|> "commodities"  :> Get '[JSON] [CommoditySymbol]
     :<|> "accounts"     :> Get '[JSON] [Account]
     :<|> "accounts"     :> Capture "acct" AccountName :> Get '[JSON] AccountTransactionsReport
     )

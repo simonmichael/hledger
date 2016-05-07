@@ -84,7 +84,7 @@ ledgerDateSpan :: Ledger -> DateSpan
 ledgerDateSpan = postingsDateSpan . ledgerPostings
 
 -- | All commodities used in this ledger.
-ledgerCommodities :: Ledger -> [Commodity]
+ledgerCommodities :: Ledger -> [CommoditySymbol]
 ledgerCommodities = M.keys . jcommoditystyles . ljournal
 
 

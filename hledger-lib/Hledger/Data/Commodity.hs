@@ -42,18 +42,18 @@ commoditysymbols =
   ]
 
 -- | Look up one of the sample commodities' symbol by name.
-comm :: String -> Commodity
+comm :: String -> CommoditySymbol
 comm name = snd $ fromMaybe
               (error' "commodity lookup failed")
               (find (\n -> fst n == name) commoditysymbols)
 
 -- | Find the conversion rate between two commodities. Currently returns 1.
-conversionRate :: Commodity -> Commodity -> Double
+conversionRate :: CommoditySymbol -> CommoditySymbol -> Double
 conversionRate _ _ = 1
 
 -- -- | Convert a list of commodities to a map from commodity symbols to
 -- -- unique, display-preference-canonicalised commodities.
--- canonicaliseCommodities :: [Commodity] -> Map.Map String Commodity
+-- canonicaliseCommodities :: [CommoditySymbol] -> Map.Map String CommoditySymbol
 -- canonicaliseCommodities cs =
 --     Map.fromList [(s,firstc{precision=maxp}) | s <- symbols,
 --                   let cs = commoditymap ! s,

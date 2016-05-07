@@ -926,7 +926,7 @@ Posting -- AccountName
 Account -- "2" MixedAmount
 Posting -- MixedAmount
 MixedAmount *-- "*" Amount
-Amount -- Commodity
+Amount -- CommoditySymbol
 Amount -- Quantity
 Amount -- Price
 Amount -- AmountStyle
@@ -942,7 +942,7 @@ each containing multiple
 of some
 [MixedAmount](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:MixedAmount)
 (multiple
-single-[Commodity](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Commodity)
+single-[CommoditySymbol](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:CommoditySymbol)
 [Amounts](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:Amount))
 to some
 [AccountName](http://hackage.haskell.org/package/hledger-lib-0.23.2/docs/Hledger-Data-Types.html#t:AccountName).

@@ -320,7 +320,7 @@ balance opts@CliOpts{reportopts_=ropts} j = do
 -- in which it has most recently been market-priced, ie the commodity
 -- mentioned in the most recent applicable historical price directive
 -- before this date.
--- defaultValuationCommodity :: Journal -> Day -> Commodity -> Maybe Commodity
+-- defaultValuationCommodity :: Journal -> Day -> CommoditySymbol -> Maybe CommoditySymbol
 -- defaultValuationCommodity j d c = mpamount <$> commodityValue j d c
 
 -- | Render a single-column balance report as CSV.

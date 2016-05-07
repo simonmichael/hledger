@@ -99,7 +99,7 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
                --                      Data.Foldable.Foldable t1 =>
                --                      t1 (Transaction, t2, t3, t4, t5, MixedAmount)
                --                      -> t -> Text.Blaze.Internal.HtmlM ()
-registerChartHtml :: [(Commodity, (String, [TransactionsReportItem]))] -> HtmlUrl AppRoute
+registerChartHtml :: [(CommoditySymbol, (String, [TransactionsReportItem]))] -> HtmlUrl AppRoute
 registerChartHtml percommoditytxnreports =
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
@@ -171,6 +171,6 @@ registerChartHtml percommoditytxnreports =
            of "" -> ""
               s  -> s++":"
    colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
-   commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(Commodity,Int)]
+   commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
    simpleMixedAmountQuantity = maybe 0 aquantity . headMay . amounts
    shownull c = if null c then " " else c

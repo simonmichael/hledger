@@ -217,7 +217,7 @@ filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m 
 
 -- | Split a transactions report whose items may involve several commodities,
 -- into one or more single-commodity transactions reports.
-transactionsReportByCommodity :: TransactionsReport -> [(Commodity, TransactionsReport)]
+transactionsReportByCommodity :: TransactionsReport -> [(CommoditySymbol, TransactionsReport)]
 transactionsReportByCommodity tr =
   [(c, filterTransactionsReportByCommodity c tr) | c <- transactionsReportCommodities tr]
   where
@@ -227,7 +227,7 @@ transactionsReportByCommodity tr =
 -- Remove transaction report items and item amount (and running
 -- balance amount) components that don't involve the specified
 -- commodity. Other item fields such as the transaction are left unchanged.
-filterTransactionsReportByCommodity :: Commodity -> TransactionsReport -> TransactionsReport
+filterTransactionsReportByCommodity :: CommoditySymbol -> TransactionsReport -> TransactionsReport
 filterTransactionsReportByCommodity c (label,items) =
   (label, fixTransactionsReportItemBalances $ concat [filterTransactionsReportItemByCommodity c i | i <- items])
   where

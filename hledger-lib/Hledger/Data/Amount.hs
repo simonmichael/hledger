@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP, StandaloneDeriving, RecordWildCards #-}
 {-|
 A simple 'Amount' is some quantity of money, shares, or anything else.
-It has a (possibly null) 'Commodity' and a numeric quantity:
+It has a (possibly null) 'CommoditySymbol' and a numeric quantity:
 
 @
   $1
@@ -180,7 +180,7 @@ similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{aspre
 
 -- | Convert an amount to the specified commodity, ignoring and discarding
 -- any assigned prices and assuming an exchange rate of 1.
-amountWithCommodity :: Commodity -> Amount -> Amount
+amountWithCommodity :: CommoditySymbol -> Amount -> Amount
 amountWithCommodity c a = a{acommodity=c, aprice=NoPrice}
 
 -- | Convert an amount to the commodity of its assigned price, if any.  Notes:
@@ -340,7 +340,7 @@ maxprecisionwithpoint = 999999
 
 -- like journalCanonicaliseAmounts
 -- | Canonicalise an amount's display style using the provided commodity style map.
-canonicaliseAmount :: M.Map Commodity AmountStyle -> Amount -> Amount
+canonicaliseAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
     where
       s' = findWithDefault s c styles
@@ -468,7 +468,7 @@ filterMixedAmount p (Mixed as) = Mixed $ filter p as
 -- with the specified commodity and the quantity of that commodity
 -- found in the original. NB if Amount's quantity is zero it will be
 -- discarded next time the MixedAmount gets normalised.
-filterMixedAmountByCommodity :: Commodity -> MixedAmount -> MixedAmount
+filterMixedAmountByCommodity :: CommoditySymbol -> MixedAmount -> MixedAmount
 filterMixedAmountByCommodity c (Mixed as) = Mixed as'
   where
     as' = case filter ((==c) . acommodity) as of
@@ -580,7 +580,7 @@ showMixedAmountOneLineWithoutPrice m = concat $ intersperse ", " $ map showAmoun
       stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}
 
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
-canonicaliseMixedAmount :: M.Map Commodity AmountStyle -> MixedAmount -> MixedAmount
+canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
 canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styles) as
 
 -------------------------------------------------------------------------------

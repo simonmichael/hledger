@@ -156,7 +156,7 @@ amountValue j d a =
 -- the given date, in the commodity in which it has most recently been
 -- market-priced (ie the commodity mentioned in the most recent
 -- applicable historical price directive before this date).
-commodityValue :: Journal -> Day -> Commodity -> Maybe Amount
+commodityValue :: Journal -> Day -> CommoditySymbol -> Maybe Amount
 commodityValue j d c
     | null applicableprices = Nothing
     | otherwise             = Just $ mpamount $ last applicableprices
