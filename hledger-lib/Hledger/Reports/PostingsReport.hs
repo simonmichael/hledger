@@ -53,9 +53,6 @@ type PostingsReportItem = (Maybe Day    -- The posting date, if this is the firs
 postingsReport :: ReportOpts -> Query -> Journal -> PostingsReport
 postingsReport opts q j = (totallabel, items)
     where
-      -- XXX combined date:/date2:/--date2 is not robust, you can confuse it
-      -- cf tests/register/date2.test
-
       reportspan = adjustReportDates opts q j
       whichdate = whichDateFromOpts opts
       depth = queryDepth q
