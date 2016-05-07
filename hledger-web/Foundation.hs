@@ -235,51 +235,53 @@ viewdataWithDateAndParams d q a p =
 -- | Gather data used by handlers and templates in the current request.
 getViewData :: Handler ViewData
 getViewData = do
-  app        <- getYesod
-  let opts@WebOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} = appOpts app
-  today      <- liftIO getCurrentDay
-  (j, merr)  <- getCurrentJournal app copts{reportopts_=ropts{no_elide_=True}} today
-  lastmsg    <- getLastMessage
-  let msg = maybe lastmsg (Just . toHtml) merr
-  Just here  <- getCurrentRoute
-  q          <- getParameterOrNull "q"
-  a          <- getParameterOrNull "a"
-  p          <- getParameterOrNull "p"
+  mhere      <- getCurrentRoute
+  case mhere of
+    Nothing -> return nullviewdata
+    Just here -> do
+      app        <- getYesod
+      let opts@WebOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} = appOpts app
+      today      <- liftIO getCurrentDay
+      (j, merr)  <- getCurrentJournal app copts{reportopts_=ropts{no_elide_=True}} today
+      lastmsg    <- getLastMessage
+      let msg = maybe lastmsg (Just . toHtml) merr
+      q          <- getParameterOrNull "q"
+      a          <- getParameterOrNull "a"
+      p          <- getParameterOrNull "p"
+      -- sidebar visibility: show it, unless there is a showsidebar cookie
+      -- set to "0", or a ?sidebar=0 query parameter.
+      msidebarparam <- lookupGetParam "sidebar"
+      msidebarcookie <- reqCookies <$> getRequest >>= return . lookup "showsidebar"
+      let showsidebar = maybe (msidebarcookie /= Just "0") (/="0") msidebarparam
 
-  -- sidebar visibility: show it, unless there is a showsidebar cookie
-  -- set to "0", or a ?sidebar=0 query parameter.
-  msidebarparam <- lookupGetParam "sidebar"
-  msidebarcookie <- reqCookies <$> getRequest >>= return . lookup "showsidebar"
-  let showsidebar = maybe (msidebarcookie /= Just "0") (/="0") msidebarparam
+      return (viewdataWithDateAndParams today q a p){
+                   opts=opts
+                  ,msg=msg
+                  ,here=here
+                  ,today=today
+                  ,j=j
+                  ,showsidebar=showsidebar
+                  }
+        where
+          -- | Update our copy of the journal if the file changed. If there is an
+          -- error while reloading, keep the old one and return the error, and set a
+          -- ui message.
+          getCurrentJournal :: App -> CliOpts -> Day -> Handler (Journal, Maybe String)
+          getCurrentJournal app opts d = do
+            -- XXX put this inside atomicModifyIORef' for thread safety
+            j <- liftIO $ readIORef $ appJournal app
+            (ej, changed) <- liftIO $ journalReloadIfChanged opts d j
+            if not changed
+             then return (j,Nothing)
+             else case ej of
+                    Right j' -> do liftIO $ writeIORef (appJournal app) j'
+                                   return (j',Nothing)
+                    Left e   -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
+                                   return (j, Just e)
 
-  return (viewdataWithDateAndParams today q a p){
-               opts=opts
-              ,msg=msg
-              ,here=here
-              ,today=today
-              ,j=j
-              ,showsidebar=showsidebar
-              }
-    where
-      -- | Update our copy of the journal if the file changed. If there is an
-      -- error while reloading, keep the old one and return the error, and set a
-      -- ui message.
-      getCurrentJournal :: App -> CliOpts -> Day -> Handler (Journal, Maybe String)
-      getCurrentJournal app opts d = do
-        -- XXX put this inside atomicModifyIORef' for thread safety
-        j <- liftIO $ readIORef $ appJournal app
-        (ej, changed) <- liftIO $ journalReloadIfChanged opts d j
-        if not changed
-         then return (j,Nothing)
-         else case ej of
-                Right j' -> do liftIO $ writeIORef (appJournal app) j'
-                               return (j',Nothing)
-                Left e   -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
-                               return (j, Just e)
-
-      -- | Get the named request parameter, or the empty string if not present.
-      getParameterOrNull :: String -> Handler String
-      getParameterOrNull p = unpack `fmap` fromMaybe "" <$> lookupGetParam (pack p)
+          -- | Get the named request parameter, or the empty string if not present.
+          getParameterOrNull :: String -> Handler String
+          getParameterOrNull p = unpack `fmap` fromMaybe "" <$> lookupGetParam (pack p)
 
 -- | Get the message that was set by the last request, in a
 -- referentially transparent manner (allowing multiple reads).
