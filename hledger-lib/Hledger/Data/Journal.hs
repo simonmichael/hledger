@@ -127,6 +127,7 @@ nulljournal :: Journal
 nulljournal = Journal { jmodifiertxns = []
                       , jperiodictxns = []
                       , jtxns = []
+                      , jcommodities = M.fromList []
                       , open_timeclock_entries = []
                       , jmarketprices = []
                       , final_comment_lines = []

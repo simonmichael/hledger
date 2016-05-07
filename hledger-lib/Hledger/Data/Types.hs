@@ -114,7 +114,9 @@ type CommoditySymbol = String
 data Commodity = Commodity {
   csymbol :: CommoditySymbol,
   cformat :: Maybe AmountStyle
-  } -- deriving (Eq,Ord,Typeable,Data,Generic)
+  } deriving (Show,Eq,Data,Generic) --,Ord,Typeable,Data,Generic)
+
+instance NFData Commodity
 
 data Amount = Amount {
       acommodity :: CommoditySymbol,
@@ -257,6 +259,8 @@ data Journal = Journal {
       jmodifiertxns :: [ModifierTransaction],
       jperiodictxns :: [PeriodicTransaction],
       jtxns :: [Transaction],
+      jcommoditystyles :: M.Map CommoditySymbol AmountStyle,  -- ^ commodities and formats inferred from journal amounts
+      jcommodities :: M.Map CommoditySymbol Commodity,        -- ^ commodities and formats defined by commodity directives
       open_timeclock_entries :: [TimeclockEntry],
       jmarketprices :: [MarketPrice],
       final_comment_lines :: String,        -- ^ any trailing comments from the journal file
@@ -265,8 +269,7 @@ data Journal = Journal {
                                             -- any included journal files. The main file is
                                             -- first followed by any included files in the
                                             -- order encountered.
-      filereadtime :: ClockTime,            -- ^ when this journal was last read from its file(s)
-      jcommoditystyles :: M.Map CommoditySymbol AmountStyle  -- ^ how to display amounts in each commodity
+      filereadtime :: ClockTime             -- ^ when this journal was last read from its file(s)
     } deriving (Eq, Typeable, Data, Generic)
 
 instance NFData Journal

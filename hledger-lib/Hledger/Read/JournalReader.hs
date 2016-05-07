@@ -25,7 +25,7 @@ reader should handle many ledger files as well. Example:
 
 -- {-# OPTIONS_GHC -F -pgmF htfpp #-}
 
-{-# LANGUAGE CPP, RecordWildCards, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections #-}
+{-# LANGUAGE CPP, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections #-}
 
 module Hledger.Read.JournalReader (
 
@@ -83,6 +83,7 @@ import Data.Char (isNumber)
 import Data.Functor.Identity
 import Data.List.Compat
 import Data.List.Split (wordsBy)
+import qualified Data.Map.Strict as M
 import Data.Maybe
 import Data.Time.Calendar
 import Data.Time.LocalTime
@@ -307,6 +308,7 @@ directivep = do
    ,endaliasesdirectivep
    ,accountdirectivep
    ,applyaccountdirectivep
+   ,commoditydirectivep
    ,endapplyaccountdirectivep
    ,tagdirectivep
    ,endtagdirectivep
@@ -350,16 +352,57 @@ journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
  -- NOTE: first encountered file to left, to avoid a reverse
 
+indentedlinep = many1 spacenonewline >> (rstrip <$> restofline)
+
 accountdirectivep :: ErroringJournalParser JournalUpdate
 accountdirectivep = do
   string "account"
   many1 spacenonewline
   acct <- accountnamep
   newline
-  let indentedline = many1 spacenonewline >> restofline
-  many indentedline
+  _ <- many indentedlinep
   pushAccount acct
   return $ ExceptT $ return $ Right id
+
+-- | Terminate parsing entirely, returning the given error message
+-- with the current parse position prepended.
+parserError :: String -> ErroringJournalParser a
+parserError s = do
+  pos <- getPosition
+  parserErrorAt pos s
+
+-- | Terminate parsing entirely, returning the given error message
+-- with the given parse position prepended.
+parserErrorAt :: SourcePos -> String -> ErroringJournalParser a
+parserErrorAt pos s = do
+  throwError $ show pos ++ ":\n" ++ s
+
+-- | Parse a commodity directive, containing 0 or more format subdirectives.
+commoditydirectivep :: ErroringJournalParser JournalUpdate
+commoditydirectivep = do
+  string "commodity"
+  many1 spacenonewline
+  sym <- commoditysymbolp
+  _ <- followingcommentp
+  mformat <- lastMay <$> many (indented $ formatdirectivep sym)
+  let comm = Commodity{csymbol=sym, cformat=mformat}
+  return $ ExceptT $ return $ Right $ \j -> j{jcommodities=M.insert sym comm $ jcommodities j}
+
+indented = (many1 spacenonewline >>)
+
+-- | Parse a format (sub)directive, throwing a parse error if its
+-- symbol does not match the one given.
+formatdirectivep :: CommoditySymbol -> ErroringJournalParser AmountStyle
+formatdirectivep expectedsym = do
+  string "format"
+  many1 spacenonewline
+  pos <- getPosition
+  Amount{acommodity,astyle} <- amountp
+  _ <- followingcommentp
+  if acommodity==expectedsym
+    then return astyle
+    else parserErrorAt pos $
+         printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 
 applyaccountdirectivep :: ErroringJournalParser JournalUpdate
 applyaccountdirectivep = do
@@ -369,6 +412,11 @@ applyaccountdirectivep = do
   newline
   pushParentAccount parent
   return $ ExceptT $ return $ Right id
+
+data Commodity2 = Commodity2 {
+  csymbol :: String,
+  cformat :: Maybe AmountStyle
+  } -- deriving (Eq,Ord,Typeable,Data,Generic)
 
 endapplyaccountdirectivep :: ErroringJournalParser JournalUpdate
 endapplyaccountdirectivep = do
