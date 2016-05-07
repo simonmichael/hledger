@@ -38,7 +38,6 @@ module Hledger.Data.Dates (
   prevday,
   parsePeriodExpr,
   nulldatespan,
-  tests_Hledger_Data_Dates,
   failIfInvalidYear,
   failIfInvalidMonth,
   failIfInvalidDay,
@@ -81,7 +80,6 @@ import Data.Time.Calendar.WeekDate
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Safe (headMay, lastMay, readMay)
-import Test.HUnit
 import Text.Parsec
 import Text.Printf
 
@@ -125,6 +123,7 @@ showDateSpan ds@(DateSpan (Just from) (Just to)) =
                                                 -> formatTime defaultTimeLocale "%0C%y/%m/%dw%V" from
     -- a day, YYYY/MM/DDd (d suffix is to distinguish from a regular date in register)
     ((fy,fm,fd), (ty,tm,td)) | fy==ty && fm==tm && fd+1==td -> formatTime defaultTimeLocale "%0C%y/%m/%dd" from
+    -- ((fy,fm,fd), (ty,tm,td)) | fy==ty && fm==tm && fd+1==td -> formatTime defaultTimeLocale "%0C%y/%m/%d" from -- try without the d
     -- crossing a year boundary
     ((fy,fm,fd), (ty,tm,td)) | fy+1==ty && fm==12 && tm==1 && fd==31 && td==1 -> formatTime defaultTimeLocale "%0C%y/%m/%dd" from
     -- crossing a month boundary XXX wrongly shows LEAPYEAR/2/28-LEAPYEAR/3/1 as LEAPYEAR/2/28
@@ -191,6 +190,32 @@ spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Noth
 
 -- | Split a DateSpan into one or more consecutive whole spans of the specified length which enclose it.
 -- If no interval is specified, the original span is returned.
+--
+-- ==== Examples:
+-- >>> let t i d1 d2 = splitSpan i $ mkdatespan d1 d2
+-- >>> t NoInterval "2008/01/01" "2009/01/01"
+-- [DateSpan 2008]
+-- >>> t (Quarters 1) "2008/01/01" "2009/01/01"
+-- [DateSpan 2008q1,DateSpan 2008q2,DateSpan 2008q3,DateSpan 2008q4]
+-- >>> splitSpan (Quarters 1) nulldatespan
+-- [DateSpan -]
+-- >>> t (Days 1) "2008/01/01" "2008/01/01"  -- an empty datespan
+-- [DateSpan 2008/01/01-2007/12/31]
+-- >>> t (Quarters 1) "2008/01/01" "2008/01/01"
+-- [DateSpan 2008/01/01-2007/12/31]
+-- >>> t (Months 1) "2008/01/01" "2008/04/01"
+-- [DateSpan 2008/01,DateSpan 2008/02,DateSpan 2008/03]
+-- >>> t (Months 2) "2008/01/01" "2008/04/01"
+-- [DateSpan 2008/01/01-2008/02/29,DateSpan 2008/03/01-2008/04/30]
+-- >>> t (Weeks 1) "2008/01/01" "2008/01/15"
+-- [DateSpan 2007/12/31w01,DateSpan 2008/01/07w02,DateSpan 2008/01/14w03]
+-- >>> t (Weeks 2) "2008/01/01" "2008/01/15"
+-- [DateSpan 2007/12/31-2008/01/13,DateSpan 2008/01/14-2008/01/27]
+-- >>> t (DayOfMonth 2) "2008/01/01" "2008/04/01"
+-- [DateSpan 2008/01/02-2008/02/01,DateSpan 2008/02/02-2008/03/01,DateSpan 2008/03/02-2008/04/01]
+-- >>> t (DayOfWeek 2) "2011/01/01" "2011/01/15"
+-- [DateSpan 2011/01/04-2011/01/10,DateSpan 2011/01/11-2011/01/17]
+--
 splitSpan :: Interval -> DateSpan -> [DateSpan]
 splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
 splitSpan NoInterval     s = [s]
@@ -345,6 +370,77 @@ fixSmartDateStrEither' d s = case parsewith smartdateonly (lowercase s) of
                                Left e -> Left e
 
 -- | Convert a SmartDate to an absolute date using the provided reference date.
+--
+-- ==== Examples:
+-- >>> let t = fixSmartDateStr (parsedate "2008/11/26")
+-- >>> t "0000-01-01"
+-- "0000/01/01"
+-- >>> t "1999-12-02"
+-- "1999/12/02"
+-- >>> t "1999.12.02"
+-- "1999/12/02"
+-- >>> t "1999/3/2"
+-- "1999/03/02"
+-- >>> t "19990302"
+-- "1999/03/02"
+-- >>> t "2008/2"
+-- "2008/02/01"
+-- >>> t "0020/2"
+-- "0020/02/01"
+-- >>> t "1000"
+-- "1000/01/01"
+-- >>> t "4/2"
+-- "2008/04/02"
+-- >>> t "2"
+-- "2008/11/02"
+-- >>> t "January"
+-- "2008/01/01"
+-- >>> t "feb"
+-- "2008/02/01"
+-- >>> t "today"
+-- "2008/11/26"
+-- >>> t "yesterday"
+-- "2008/11/25"
+-- >>> t "tomorrow"
+-- "2008/11/27"
+-- >>> t "this day"
+-- "2008/11/26"
+-- >>> t "last day"
+-- "2008/11/25"
+-- >>> t "next day"
+-- "2008/11/27"
+-- >>> t "this week"  -- last monday
+-- "2008/11/24"
+-- >>> t "last week"  -- previous monday
+-- "2008/11/17"
+-- >>> t "next week"  -- next monday
+-- "2008/12/01"
+-- >>> t "this month"
+-- "2008/11/01"
+-- >>> t "last month"
+-- "2008/10/01"
+-- >>> t "next month"
+-- "2008/12/01"
+-- >>> t "this quarter"
+-- "2008/10/01"
+-- >>> t "last quarter"
+-- "2008/07/01"
+-- >>> t "next quarter"
+-- "2009/01/01"
+-- >>> t "this year"
+-- "2008/01/01"
+-- >>> t "last year"
+-- "2007/01/01"
+-- >>> t "next year"
+-- "2009/01/01"
+--
+-- t "last wed"
+-- "2008/11/19"
+-- t "next friday"
+-- "2008/11/28"
+-- t "next january"
+-- "2009/01/01"
+--
 fixSmartDate :: Day -> SmartDate -> Day
 fixSmartDate refdate sdate = fix sdate
     where
@@ -451,14 +547,17 @@ parsedateM s = firstJust [
 --                             (parsedatetimeM s)
 
 -- | Parse a date string to a time type, or raise an error.
+-- >>> let d = parsedate "2008/11/26"
+-- >>> parsedate "2008/02/03" `is` _parsetimewith "%Y/%m/%d" "2008/02/03" d
+-- >>> parsedate "2008-02-03" `is` _parsetimewith "%Y/%m/%d" "2008/02/03" d
 parsedate :: String -> Day
 parsedate s =  fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")
                          (parsedateM s)
 
 -- | Parse a time string to a time type using the provided pattern, or
 -- return the default.
-parsetimewith :: ParseTime t => String -> String -> t -> t
-parsetimewith pat s def = fromMaybe def $ parsetime defaultTimeLocale pat s
+_parsetimewith :: ParseTime t => String -> String -> t -> t
+_parsetimewith pat s def = fromMaybe def $ parsetime defaultTimeLocale pat s
 
 {-|
 Parse a date in any of the formats allowed in ledger's period expressions,
@@ -601,6 +700,18 @@ lastthisnextthing = do
 
   return ("",r,p)
 
+-- |
+-- >>> let p = parsewith (periodexpr (parsedate "2008/11/26")) 
+-- >>> p "from aug to oct"
+-- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
+-- >>> p "aug to oct"
+-- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
+-- >>> p "every 3 days in aug"
+-- Right (Days 3,DateSpan 2008/08)
+-- >>> p "daily from aug"
+-- Right (Days 1,DateSpan 2008/08/01-)
+-- >>> p "every week to 2009"
+-- Right (Weeks 1,DateSpan -2008/12/31)
 periodexpr :: Stream [Char] m Char => Day -> ParsecT [Char] st m (Interval, DateSpan)
 periodexpr rdate = choice $ map try [
                     intervalanddateperiodexpr rdate,
@@ -741,102 +852,3 @@ nulldatespan = DateSpan Nothing Nothing
 
 nulldate :: Day
 nulldate = parsedate "0000/00/00"
-
-tests_Hledger_Data_Dates = TestList
- [
-
-   "parsedate" ~: do
-    let date1 = parsedate "2008/11/26"
-    parsedate "2008/02/03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
-    parsedate "2008-02-03" `is` parsetimewith "%Y/%m/%d" "2008/02/03" date1
-
-  ,"period expressions" ~: do
-    let todaysdate = parsedate "2008/11/26"
-    let str `gives` result = show (parsewith (periodexpr todaysdate) str) `is` ("Right " ++ result)
-    "from aug to oct"           `gives` "(NoInterval,DateSpan 2008/08/01-2008/09/30)"
-    "aug to oct"                `gives` "(NoInterval,DateSpan 2008/08/01-2008/09/30)"
-    "every 3 days in aug"       `gives` "(Days 3,DateSpan 2008/08)"
-    "daily from aug"            `gives` "(Days 1,DateSpan 2008/08/01-)"
-    "every week to 2009"        `gives` "(Weeks 1,DateSpan -2008/12/31)"
-
-  ,"splitSpan" ~: do
-    let gives (interval, span) = (splitSpan interval span `is`)
-    (NoInterval,mkdatespan "2008/01/01" "2009/01/01") `gives`
-     [mkdatespan "2008/01/01" "2009/01/01"]
-    (Quarters 1,mkdatespan "2008/01/01" "2009/01/01") `gives`
-     [mkdatespan "2008/01/01" "2008/04/01"
-     ,mkdatespan "2008/04/01" "2008/07/01"
-     ,mkdatespan "2008/07/01" "2008/10/01"
-     ,mkdatespan "2008/10/01" "2009/01/01"
-     ]
-    (Quarters 1,nulldatespan) `gives`
-     [nulldatespan]
-    (Days 1,mkdatespan "2008/01/01" "2008/01/01") `gives`
-     [mkdatespan "2008/01/01" "2008/01/01"]
-    (Quarters 1,mkdatespan "2008/01/01" "2008/01/01") `gives`
-     [mkdatespan "2008/01/01" "2008/01/01"]
-    (Months 1,mkdatespan "2008/01/01" "2008/04/01") `gives`
-     [mkdatespan "2008/01/01" "2008/02/01"
-     ,mkdatespan "2008/02/01" "2008/03/01"
-     ,mkdatespan "2008/03/01" "2008/04/01"
-     ]
-    (Months 2,mkdatespan "2008/01/01" "2008/04/01") `gives`
-     [mkdatespan "2008/01/01" "2008/03/01"
-     ,mkdatespan "2008/03/01" "2008/05/01"
-     ]
-    (Weeks 1,mkdatespan "2008/01/01" "2008/01/15") `gives`
-     [mkdatespan "2007/12/31" "2008/01/07"
-     ,mkdatespan "2008/01/07" "2008/01/14"
-     ,mkdatespan "2008/01/14" "2008/01/21"
-     ]
-    (Weeks 2,mkdatespan "2008/01/01" "2008/01/15") `gives`
-     [mkdatespan "2007/12/31" "2008/01/14"
-     ,mkdatespan "2008/01/14" "2008/01/28"
-     ]
-    (DayOfMonth 2,mkdatespan "2008/01/01" "2008/04/01") `gives`
-     [mkdatespan "2008/01/02" "2008/02/02"
-     ,mkdatespan "2008/02/02" "2008/03/02"
-     ,mkdatespan "2008/03/02" "2008/04/02"
-     ]
-    (DayOfWeek 2,mkdatespan "2011/01/01" "2011/01/15") `gives`
-     [mkdatespan "2011/01/04" "2011/01/11"
-     ,mkdatespan "2011/01/11" "2011/01/18"
-     ]
-
-  ,"fixSmartDateStr" ~: do
-    let gives = is . fixSmartDateStr (parsedate "2008/11/26")
-    "0000-01-01"   `gives` "0000/01/01"
-    "1999-12-02"   `gives` "1999/12/02"
-    "1999.12.02"   `gives` "1999/12/02"
-    "1999/3/2"     `gives` "1999/03/02"
-    "19990302"     `gives` "1999/03/02"
-    "2008/2"       `gives` "2008/02/01"
-    "0020/2"       `gives` "0020/02/01"
-    "1000"         `gives` "1000/01/01"
-    "4/2"          `gives` "2008/04/02"
-    "2"            `gives` "2008/11/02"
-    "January"      `gives` "2008/01/01"
-    "feb"          `gives` "2008/02/01"
-    "today"        `gives` "2008/11/26"
-    "yesterday"    `gives` "2008/11/25"
-    "tomorrow"     `gives` "2008/11/27"
-    "this day"     `gives` "2008/11/26"
-    "last day"     `gives` "2008/11/25"
-    "next day"     `gives` "2008/11/27"
-    "this week"    `gives` "2008/11/24" -- last monday
-    "last week"    `gives` "2008/11/17" -- previous monday
-    "next week"    `gives` "2008/12/01" -- next monday
-    "this month"   `gives` "2008/11/01"
-    "last month"   `gives` "2008/10/01"
-    "next month"   `gives` "2008/12/01"
-    "this quarter" `gives` "2008/10/01"
-    "last quarter" `gives` "2008/07/01"
-    "next quarter" `gives` "2009/01/01"
-    "this year"    `gives` "2008/01/01"
-    "last year"    `gives` "2007/01/01"
-    "next year"    `gives` "2009/01/01"
---     "last wed"     `gives` "2008/11/19"
---     "next friday"  `gives` "2008/11/28"
---     "next january" `gives` "2009/01/01"
-
- ]
