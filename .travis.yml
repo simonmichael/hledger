@@ -31,9 +31,7 @@ install:
 script:
   - git --version
   - stack --version
-  - stack +RTS -N2 -RTS build --test --haddock
-#  - stack +RTS -N2 -RTS haddock --no-haddock-deps
-# https://github.com/commercialhaskell/stack/issues/857
+  - stack +RTS -N2 -RTS build --test --haddock --no-haddock-deps
 
 # coveralls.io coverage reports
 # after_script:
