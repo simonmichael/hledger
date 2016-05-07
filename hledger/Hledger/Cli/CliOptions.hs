@@ -115,6 +115,7 @@ inputflags = [
  ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "RFILE" "CSV conversion rules file (default: FILE.rules)"
  ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "display accounts named OLD as NEW"
  ,flagNone ["ignore-assertions"] (setboolopt "ignore-assertions") "ignore any balance assertions in the journal"
+ ,flagReq ["pivot"]  (\s opts -> Right $ setopt "pivot" s opts)  "TAG" "Replace the accounts of postings with TAG by TAG:<value>"
  ]
 
 -- | Common report-related flags: --period, --cost, etc.

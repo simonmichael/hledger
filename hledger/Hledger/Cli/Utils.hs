@@ -71,7 +71,24 @@ withJournalDo opts cmd = do
   rulespath <- rulesFilePathFromOpts opts
   journalpaths <- journalFilePathFromOpts opts
   ej <- readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpaths
-  either error' (cmd opts . journalApplyAliases (aliasesFromOpts opts)) ej
+  either error' (cmd opts . pivotByOpts opts . journalApplyAliases (aliasesFromOpts opts)) ej
+
+-- | Apply the pivot transformation on a journal, if option is present.
+pivotByOpts :: CliOpts -> Journal -> Journal
+pivotByOpts opts
+  | Just tag <- maybeTag = pivot tag
+  | Nothing  <- maybeTag = id
+ where maybeTag = maybestringopt "pivot" . rawopts_ $ opts
+
+-- | Apply the pivot transformation by given tag on a journal.
+pivot :: String -> Journal -> Journal
+pivot tag j = j{jtxns = map pivotTrans . jtxns $ j}
+ where
+  pivotTrans t = t{tpostings = map pivotPosting . tpostings $ t}
+  pivotPosting p
+    | Just (_ , value) <- tagTuple = p{paccount = joinAccountNames tag value}
+    | _                <- tagTuple = p
+   where tagTuple = find ((tag ==) . fst) . ptags $ p
 
 -- | Write some output to stdout or to a file selected by --output-file.
 writeOutput :: CliOpts -> String -> IO ()
