@@ -91,7 +91,8 @@ import Hledger.Utils
 
 -- Help ppShow parse and line-wrap DateSpans better in debug output.
 instance Show DateSpan where
-    show (DateSpan s1 s2) = "DateSpan \"" ++ show s1 ++ "\" \"" ++ show s2 ++ "\""
+    show s = "DateSpan " ++ showDateSpan s
+    -- show s = "DateSpan \"" ++ showDateSpan s ++ "\"" -- quotes to help pretty-show
 
 showDate :: Day -> String
 showDate = formatTime defaultTimeLocale "%0C%y/%m/%d"
@@ -146,7 +147,8 @@ showDateSpan ds@(DateSpan (Just from) (Just to)) =
 
 showDateSpan ds = showDateSpan' ds
 
--- | Render a datespan as a display string.
+-- | Render a datespan as a display string like [START]-[ENDINCL]
+-- (optional start date, hyphen, optional inclusive end date).
 showDateSpan' (DateSpan from to) =
   concat
     [maybe "" showDate from
@@ -751,11 +753,11 @@ tests_Hledger_Data_Dates = TestList
   ,"period expressions" ~: do
     let todaysdate = parsedate "2008/11/26"
     let str `gives` result = show (parsewith (periodexpr todaysdate) str) `is` ("Right " ++ result)
-    "from aug to oct"           `gives` "(NoInterval,DateSpan \"Just 2008-08-01\" \"Just 2008-10-01\")"
-    "aug to oct"                `gives` "(NoInterval,DateSpan \"Just 2008-08-01\" \"Just 2008-10-01\")"
-    "every 3 days in aug"       `gives` "(Days 3,DateSpan \"Just 2008-08-01\" \"Just 2008-09-01\")"
-    "daily from aug"            `gives` "(Days 1,DateSpan \"Just 2008-08-01\" \"Nothing\")"
-    "every week to 2009"        `gives` "(Weeks 1,DateSpan \"Nothing\" \"Just 2009-01-01\")"
+    "from aug to oct"           `gives` "(NoInterval,DateSpan 2008/08/01-2008/09/30)"
+    "aug to oct"                `gives` "(NoInterval,DateSpan 2008/08/01-2008/09/30)"
+    "every 3 days in aug"       `gives` "(Days 3,DateSpan 2008/08)"
+    "daily from aug"            `gives` "(Days 1,DateSpan 2008/08/01-)"
+    "every week to 2009"        `gives` "(Weeks 1,DateSpan -2008/12/31)"
 
   ,"splitSpan" ~: do
     let gives (interval, span) = (splitSpan interval span `is`)
