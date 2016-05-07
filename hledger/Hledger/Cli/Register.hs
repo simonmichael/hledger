@@ -68,7 +68,7 @@ postingsReportAsCsv (_,is) =
 postingsReportItemAsCsvRecord :: PostingsReportItem -> Record
 postingsReportItemAsCsvRecord (_, _, _, p, b) = [date,desc,acct,amt,bal]
   where
-    date = showDate $ postingDate p
+    date = showDate $ postingDate p -- XXX csv should show date2 with --date2
     desc = maybe "" tdescription $ ptransaction p
     acct = bracket $ paccount p
       where

@@ -395,7 +395,7 @@ same [] = True
 same (a:as) = all (a==) as
 
 -- | Remove query terms (or whole sub-expressions) not matching the given
--- predicate from this query.  XXX Semantics not yet clear.
+-- predicate from this query.  XXX Semantics not completely clear.
 filterQuery :: (Query -> Bool) -> Query -> Query
 filterQuery p = simplifyQuery . filterQuery' p
 
