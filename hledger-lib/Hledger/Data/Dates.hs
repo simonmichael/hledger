@@ -546,10 +546,14 @@ parsedateM s = firstJust [
 -- parsedatetime s = fromMaybe (error' $ "could not parse timestamp \"" ++ s ++ "\"")
 --                             (parsedatetimeM s)
 
--- | Parse a date string to a time type, or raise an error.
--- >>> let d = parsedate "2008/11/26"
--- >>> parsedate "2008/02/03" `is` _parsetimewith "%Y/%m/%d" "2008/02/03" d
--- >>> parsedate "2008-02-03" `is` _parsetimewith "%Y/%m/%d" "2008/02/03" d
+-- | Parse a YYYY-MM-DD or YYYY/MM/DD date string to a Day, or raise an error. For testing/debugging.
+--
+-- >>> parsedate "2008/02/03"
+-- 2008-02-03
+-- >>> parsedate "2008/02/03/"
+-- *** Exception: could not parse date "2008/02/03/"
+-- >>> parsedate "2008/02/30"  -- invalid dates may get silently adjusted
+-- 2008-02-29
 parsedate :: String -> Day
 parsedate s =  fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")
                          (parsedateM s)
