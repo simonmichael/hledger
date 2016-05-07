@@ -121,8 +121,6 @@ matchedPostingsBeforeAndDuring opts q j (DateSpan mstart mend) =
         symq = dbg1 "symq" $ filterQuery queryIsSym q
     dateqtype
       | queryIsDate2 dateq || (queryIsDate dateq && date2_ opts) = Date2
-      -- | queryIsDate2 dateq = Date2
-      -- | queryIsDate2 dateq || date2_ opts = Date2
       | otherwise = Date
       where
         dateq = dbg1 "dateq" $ filterQuery queryIsDateOrDate2 $ dbg1 "q" q  -- XXX confused by multiple date:/date2: ?
