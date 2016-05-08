@@ -521,12 +521,14 @@ journalBalanceTransactions j@Journal{jtxns=ts, jcommoditystyles=ss} =
                                     Left e    -> Left e
       where balance = balanceTransaction (Just ss)
 
--- | Choose standard display formats for all commodities, and
--- adjust all the journal's posting amount styles to use them.
+-- | Choose and apply a consistent display format to the posting
+-- amounts in each commodity. Each commodity's format is specified by
+-- a commodity format directive, or otherwise inferred from posting
+-- amounts as in hledger < 0.28.
 journalApplyCommodityStyles :: Journal -> Journal
 journalApplyCommodityStyles j@Journal{jtxns=ts, jmarketprices=mps} = j''
     where
-      j' = journalChooseCommodityStyles j
+      j' = journalInferCommodityStyles j
       j'' = j'{jtxns=map fixtransaction ts, jmarketprices=map fixmarketprice mps}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
@@ -534,19 +536,24 @@ journalApplyCommodityStyles j@Journal{jtxns=ts, jmarketprices=mps} = j''
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
       fixamount a@Amount{acommodity=c} = a{astyle=journalCommodityStyle j' c}
 
--- | Get this journal's standard display style for the given commodity, or the null style.
+-- | Get this journal's standard display style for the given
+-- commodity.  That is the style defined by the last corresponding
+-- commodity format directive if any, otherwise the style inferred
+-- from the posting amounts (or in some cases, price amounts) in this
+-- commodity if any, otherwise the default style.
 journalCommodityStyle :: Journal -> CommoditySymbol -> AmountStyle
-journalCommodityStyle j c = M.findWithDefault amountstyle c $ jcommoditystyles j
+journalCommodityStyle j c =
+  headDef amountstyle{asprecision=2} $
+  catMaybes [
+     M.lookup c (jcommodities j) >>= cformat
+    ,M.lookup c $ jcommoditystyles j
+    ]
 
--- | Choose a standard display style for each commodity.
+-- | Infer a display format for each commodity based on the amounts parsed.
 -- "hledger... will use the format of the first posting amount in the
 -- commodity, and the highest precision of all posting amounts in the commodity."
---
--- (In user docs, we may now be calling this "format" for consistency with
--- the commodity directive's format keyword; in code, it's mostly "style").
---
-journalChooseCommodityStyles :: Journal -> Journal
-journalChooseCommodityStyles j =
+journalInferCommodityStyles :: Journal -> Journal
+journalInferCommodityStyles j =
   j{jcommoditystyles =
         commodityStylesFromAmounts $
         dbg8 "journalChooseCommmodityStyles using amounts" $ journalAmounts j}

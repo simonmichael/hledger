@@ -1,11 +1,16 @@
-# WIP see doc/mockups/commodity-styles.txt
-
 # 1. The four decimal places of the market price should not alter the
 # canonical style of two decimal places in a's converted-to-B balance
-# (#295).
+# (#295), but it turns out they do with -V. This can be fixed with a
+# commodity directive.
 hledger -f- bal -V -N
 <<<
+; use a commodity directive to ensure B is displayed with two decimal
+; places, or the price directive plus -V would make it four
+commodity B
+  format 1.00 B
+
 P 2015/1/1 A 1.0001 B
+
 2015/1/1
     (a)  1.00 A
     (b)  1.00 B
