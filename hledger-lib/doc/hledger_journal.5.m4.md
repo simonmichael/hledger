@@ -1,6 +1,6 @@
 % hledger_journal(5)
 %
-% April 2016
+% May 2016
 
 _web_({{
 _versions_({{journal}})
@@ -203,22 +203,23 @@ digit group separators, you must also include a decimal point in at least
 one number in the same commodity, so that hledger knows which character is
 which. Eg, write `$1,000.00` or `$1.000,00`.
 
-### Amount display styles
+### Amount formatting
 
-Based on how you format amounts, hledger will infer canonical display
-styles for each commodity, and use these when displaying amounts in that
-commodity. Amount styles include:
+hledger chooses a consistent format for displaying amounts in each commodity. This includes:
 
 - the position (left or right) and spacing (space or no separator) of the commodity symbol
 - the digit group separator character (comma or period) and digit group sizes, if any
 - the decimal point character (period or comma)
 - the display precision (number of decimal places displayed)
 
-The canonical style is generally the style of the first posting amount seen in a commodity.
-However the display precision will be the highest precision seen in all posting amounts in that commmodity.
+For each commodity, the format is chosen as follows:
 
-The precisions used in a price amount, or a D directive, don't affect the canonical display precision directly, but they can affect it indirectly, eg when D's default commodity is applied to a commodity-less amount or when an amountless posting is balanced using a price's commodity (actually this last case does not influence the canonical display precision but probably should).
+1. if there is a corresponding [commodity directive](#commodity-directive) specifying the format, that is used
+2. otherwise the format is inferred from the first posting amount in that commodity in the journal, except for the precision which will be the highest precision seen in all posting amounts in that commmodity.
+3. or if there are no such amounts in the journal, a default format is used (symbol on the left with no space, period decimal point and two decimal places).
 
+The precisions used in a price amount, or a D directive, don't affect the inferred amount format directly, but they can affect it indirectly. Eg when D's default commodity is applied to a commodity-less amount, or when an amountless posting is balanced using a price's commodity,
+or when -V is used. If this is disturbing your amount formats, use an explicit commodity directive.
 
 ## Virtual Postings
 
@@ -622,39 +623,42 @@ Prior to hledger 0.28, legacy `account` and `end` spellings were also supported.
 A line containing just `comment` starts a multi-line comment, and a
 line containing just `end comment` ends it. See [comments](#comments).
 
+### commodity directive
+
+The `commodity` directive predefines commodities (currently this is just informational),
+and also it may define the display format for amounts in this commodity (overriding the automatically inferred format).
+
+It may be written on a single line, like this:
+
+```journal
+; commodity EXAMPLEAMOUNT
+
+; display AAAA amounts with the symbol on the right, space-separated,
+; using period as decimal point, with four decimal places, and
+; separating thousands with comma.
+commodity 1,000.0000 AAAA
+```
+
+or on multiple lines, using the "format" subdirective. In this case
+the commodity symbol appears twice and should be the same in both places:
+
+```journal
+; commodity SYMBOL
+;   format EXAMPLEAMOUNT
+
+; display indian rupees with currency name on the left,
+; thousands, lakhs and crores comma-separated,
+; period as decimal point, and two decimal places.
+commodity INR
+  format INR 9,99,99,999.00
+```
+
 ### Default commodity
 
 You can set a default commodity, to be used for amounts without one.
 Use the D directive with a sample amount.
-The commodity (and the sample amount's display style) will be applied to all subsequent commodity-less amounts, up to the next D directive.
+The commodity (and the sample amount's display format) will be applied to all subsequent commodity-less amounts, up to the next D directive.
 (Note this is different from Ledger's default commodity directive.)
-
-Also note the directive itself does not influence the commodity's default
-[display style](#amount-display-styles), but the amount it is
-applied to might. Here's an example:
-
-```journal
-; set £ as the default commodity
-D £1,000.00
-
-2010/1/1
-  a  2340
-  b
-
-2014/1/1
-  c  £1000
-  d
-```
-```shell
-$ hledger print
-2010/01/01
-    a     £2,340.00
-    b    £-2,340.00
-
-2014/01/01
-    c     £1,000.00
-    d    £-1,000.00
-```
 
 ### Default year
 
