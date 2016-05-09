@@ -364,12 +364,12 @@ accountdirectivep = do
   pushAccount acct
   return $ ExceptT $ return $ Right id
 
--- | Terminate parsing entirely, returning the given error message
--- with the current parse position prepended.
-parserError :: String -> ErroringJournalParser a
-parserError s = do
-  pos <- getPosition
-  parserErrorAt pos s
+-- -- | Terminate parsing entirely, returning the given error message
+-- -- with the current parse position prepended.
+-- parserError :: String -> ErroringJournalParser a
+-- parserError s = do
+--   pos <- getPosition
+--   parserErrorAt pos s
 
 -- | Terminate parsing entirely, returning the given error message
 -- with the given parse position prepended.
