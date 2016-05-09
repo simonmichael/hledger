@@ -377,13 +377,38 @@ parserErrorAt :: SourcePos -> String -> ErroringJournalParser a
 parserErrorAt pos s = do
   throwError $ show pos ++ ":\n" ++ s
 
--- | Parse a commodity directive, containing 0 or more format subdirectives.
+-- | Parse a one-line or multi-line commodity directive.
+--
+-- >>> Right _ <- rejp commoditydirectivep "commodity $1.00"
+-- >>> Right _ <- rejp commoditydirectivep "commodity $\n  format $1.00"
+-- >>> Right _ <- rejp commoditydirectivep "commodity $\n\n" -- a commodity with no format
+-- >>> Right _ <- rejp commoditydirectivep "commodity $1.00\n  format $1.00" -- both, what happens ?
 commoditydirectivep :: ErroringJournalParser JournalUpdate
-commoditydirectivep = do
+commoditydirectivep = try commoditydirectiveonelinep <|> commoditydirectivemultilinep
+
+-- | Parse a one-line commodity directive.
+--
+-- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00"
+-- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
+commoditydirectiveonelinep :: ErroringJournalParser JournalUpdate
+commoditydirectiveonelinep = do
+  string "commodity"
+  many1 spacenonewline
+  Amount{acommodity,astyle} <- amountp
+  many spacenonewline
+  _ <- followingcommentp <|> (eolof >> return "")
+  let comm = Commodity{csymbol=acommodity, cformat=Just astyle}
+  return $ ExceptT $ return $ Right $ \j -> j{jcommodities=M.insert acommodity comm $ jcommodities j}
+
+-- | Parse a multi-line commodity directive, containing 0 or more format subdirectives.
+--
+-- >>> Right _ <- rejp commoditydirectivemultilinep "commodity $ ; blah \n  format $1.00 ; blah"
+commoditydirectivemultilinep :: ErroringJournalParser JournalUpdate
+commoditydirectivemultilinep = do
   string "commodity"
   many1 spacenonewline
   sym <- commoditysymbolp
-  _ <- followingcommentp
+  _ <- followingcommentp <|> (eolof >> return "")
   mformat <- lastMay <$> many (indented $ formatdirectivep sym)
   let comm = Commodity{csymbol=sym, cformat=mformat}
   return $ ExceptT $ return $ Right $ \j -> j{jcommodities=M.insert sym comm $ jcommodities j}
@@ -398,7 +423,7 @@ formatdirectivep expectedsym = do
   many1 spacenonewline
   pos <- getPosition
   Amount{acommodity,astyle} <- amountp
-  _ <- followingcommentp
+  _ <- followingcommentp <|> (eolof >> return "")
   if acommodity==expectedsym
     then return astyle
     else parserErrorAt pos $
