@@ -179,51 +179,44 @@ anything you like, but in finance there are traditionally five top-level
 accounts: `assets`, `liabilities`, `income`, `expenses`, and `equity`.
 
 Account names may contain single spaces, eg: `assets:accounts receivable`.
-Because of this, they must always be followed by at least two spaces (or newline).
+Because of this, they must always be followed by **two or more spaces** (or newline).
 
 Account names can be [aliased](#account-aliases).
 
 ## Amounts
 
 After the account name, there is usually an amount.
-Important: between account name and amount, there must be **two or more** spaces.
+Important: between account name and amount, there must be **two or more spaces**.
 
-The amount is a number, optionally with a currency symbol or commodity name on either the left or right.
-Negative amounts may have the minus sign either before or after the currency symbol (`-$1` or `$-1`).
-Commodity names which contain more than just letters should be enclosed in double quotes (`1 "person hours"`).
+Amounts consist of a number and (usually) a currency symbol or commodity name. Some examples:
 
-### Decimal points and digit groups
+  `2.00001`\
+  `$1`\
+  `4000 AAPL`\
+  `3 "green apples"`\
+  `-$1,000,000.00`\
+  `INR 9,99,99,999.00`\
+  `EUR -2.000.000,00`
 
-hledger supports flexible decimal point and digit group separator styles,
-to support international variations. Numbers can use either a period (`.`)
-or a comma (`,`) as decimal point. They can also have digit group
-separators at any position (eg thousands separators) which can be comma or
-period - whichever one you did not use as a decimal point. If you use
-digit group separators, you must also include a decimal point in at least
-one number in the same commodity, so that hledger knows which character is
-which. Eg, write `$1,000.00` or `$1.000,00`.
+As you can see, the amount format is somewhat flexible:
 
-### Amount formatting
+- amounts are a number (the "quantity") and optionally a currency symbol/commodity name (the "commodity").
+- the commodity is a symbol, word, or double-quoted phrase, on the left or right, with or without a separating space
+- negative amounts with a commodity on the left can have the minus sign before or after it
+- digit groups (thousands, or any other grouping) can be separated by commas (in which case period is used for decimal point) or periods (in which case comma is used for decimal point)
 
-hledger chooses a consistent format for displaying amounts in each commodity. This includes:
+You can use any of these variations when recording data, but when hledger displays amounts, it will choose a consistent format for each commodity.
+(Except for [price amounts](#prices), which are always formatted as written). The display format is chosen as follows:
 
-- the position (left or right) and spacing (space or no separator) of the commodity symbol
-- the digit group separator character (comma or period) and digit group sizes, if any
-- the decimal point character (period or comma)
-- the display precision (number of decimal places displayed)
+- if there is a [commodity directive](#commodity-directive) specifying the format, that is used
+- otherwise the format is inferred from the first posting amount in that commodity in the journal, and the precision (number of decimal places) will be the maximum from all posting amounts in that commmodity
+- or if there are no such amounts in the journal, a default format is used (like `$1000.00`).
 
-For each commodity, the format is chosen as follows:
-
-1. if there is a corresponding [commodity directive](#commodity-directive) specifying the format, that is used
-2. otherwise the format is inferred from the first posting amount in that commodity in the journal, except for the precision which will be the highest precision seen in all posting amounts in that commmodity.
-3. or if there are no such amounts in the journal, a default format is used (symbol on the left with no space, period decimal point and two decimal places).
-
-The precisions used in a price amount, or a D directive, don't affect the inferred amount format directly, but they can affect it indirectly. Eg when D's default commodity is applied to a commodity-less amount, or when an amountless posting is balanced using a price's commodity,
-or when -V is used. If this is disturbing your amount formats, use an explicit commodity directive.
+Price amounts and amounts in D directives usually don't affect amount format inference, but in some situations they can do so indirectly. (Eg when D's default commodity is applied to a commodity-less amount, or when an amountless posting is balanced using a price's commodity, or when -V is used.) If you find this causing problems, set the desired format with a commodity directive.
 
 ## Virtual Postings
 
-When you parenthesise the account name in a posting, that posting is considered *virtual*, which
+When you parenthesise the account name in a posting, we call that a *virtual posting*, which
 means:
 
 - it is ignored when checking that the transaction is balanced
@@ -236,11 +229,18 @@ You could use this, eg, to set an account's opening balance without needing to u
 1/1 special unbalanced posting to set initial balance
   (assets:checking)   $1000
 ```
-### Balanced Virtual Postings
 
-When the account name is bracketed, the posting is *balanced virtual*, which is just like a virtual posting except the balanced virtual postings in a transaction must balance to 0, like the real postings (but separately from them). Balanced virtual postings are also excluded by `--real/-R` or `real:1`.
+When the account name is bracketed, we call it a *balanced virtual posting*. This is like an ordinary virtual posting except the balanced virtual postings in a transaction must balance to 0, like the real postings (but separately from them). Balanced virtual postings are also excluded by `--real/-R` or `real:1`.
 
-Virtual postings are a feature inherited from Ledger can can occasionally be useful, but they can be a crutch and you should think twice or three times before using them. You can almost always find an equivalent journal entry using two or more real postings that will be more correct and more error-proof.
+```journal
+1/1 buy food with cash, and update some budget-tracking subaccounts elsewhere
+  expenses:food                   $10
+  assets:cash                    $-10
+  [assets:checking:available]     $10
+  [assets:checking:budget:food]  $-10
+```
+
+Virtual postings have some legitimate uses, but those are few. You can usually find an equivalent journal entry using real postings, which is more correct and provides better error checking.
 
 ## Balance Assertions
 
