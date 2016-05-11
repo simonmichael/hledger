@@ -9,15 +9,11 @@ packages:
 - hledger-ui
 - hledger-web
 - hledger-api
-- location:
-    git: https://github.com/yesodweb/wai
-    commit: 2a755b739dcc90a060f0a70b092c74ce7564ef12
-  subdirs:
-    - wai-handler-launch
 
 extra-deps:
 - brick-0.6
 - vty-5.5.0
+- wai-handler-launch-3.0.2
 
 #flags:
 
