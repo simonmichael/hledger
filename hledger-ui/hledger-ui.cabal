@@ -65,7 +65,7 @@ executable hledger-ui
     , hledger-lib >= 0.27 && < 0.28
     , base >= 3 && < 5
     , base-compat >= 0.8.1
-    , brick >= 0.2 && < 0.6
+    , brick >= 0.2 && < 0.7
     , cmdargs >= 0.8
     , containers
     , data-default
@@ -76,7 +76,7 @@ executable hledger-ui
     , split >= 0.1 && < 0.3
     , transformers
     , vector
-    , vty >= 5.2 && < 5.5
+    , vty >= 5.2 && < 5.6
   if impl(ghc >= 7.4)
     build-depends: pretty-show >= 1.6.4
   if flag(old-locale)

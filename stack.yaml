@@ -15,7 +15,9 @@ packages:
   subdirs:
     - wai-handler-launch
 
-#extra-deps:
+extra-deps:
+- brick-0.6
+- vty-5.5.0
 
 #flags:
 
