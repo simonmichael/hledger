@@ -8,7 +8,9 @@ packages:
 - hledger-ui
 - hledger-web
 
-flags:
+extra-deps:
+- brick-0.6
+- vty-5.5.0
 
 extra-deps:
 - uglymemo-0.1.0.1
