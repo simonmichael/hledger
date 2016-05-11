@@ -12,6 +12,9 @@ packages:
 
 extra-deps:
 - brick-0.6
+- aeson-0.11.2.0
+- servant-swagger-1.0.3
+- swagger2-2.0.2
 - vty-5.5.0
 - wai-handler-launch-3.0.2
 
