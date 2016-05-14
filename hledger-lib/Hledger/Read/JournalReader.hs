@@ -438,11 +438,6 @@ applyaccountdirectivep = do
   pushParentAccount parent
   return $ ExceptT $ return $ Right id
 
-data Commodity2 = Commodity2 {
-  csymbol :: String,
-  cformat :: Maybe AmountStyle
-  } -- deriving (Eq,Ord,Typeable,Data,Generic)
-
 endapplyaccountdirectivep :: ErroringJournalParser JournalUpdate
 endapplyaccountdirectivep = do
   string "end" >> many1 spacenonewline >> string "apply" >> many1 spacenonewline >> string "account"
