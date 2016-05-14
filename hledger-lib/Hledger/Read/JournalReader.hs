@@ -211,9 +211,7 @@ combineJournalUpdates us = foldl' (flip (.)) id <$> sequence us
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
-parseAndFinaliseJournal ::
-  (ErroringJournalParser (JournalUpdate,JournalContext))
-  -> Bool -> FilePath -> String -> ExceptT String IO Journal
+parseAndFinaliseJournal :: ErroringJournalParser (JournalUpdate,JournalContext) -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parseAndFinaliseJournal parser assrt f s = do
   tc <- liftIO getClockTime
   tl <- liftIO getCurrentLocalTime
@@ -231,7 +229,7 @@ setYear :: Monad m => Integer -> JournalParser m ()
 setYear y = modifyState (\ctx -> ctx{ctxYear=Just y})
 
 getYear :: Monad m => JournalParser m (Maybe Integer)
-getYear = liftM ctxYear getState
+getYear = fmap ctxYear getState
 
 setDefaultCommodityAndStyle :: Monad m => (CommoditySymbol,AmountStyle) -> JournalParser m ()
 setDefaultCommodityAndStyle cs = modifyState (\ctx -> ctx{ctxDefaultCommodityAndStyle=Just cs})
@@ -254,19 +252,19 @@ popParentAccount = do ctx0 <- getState
                         (_:rest) -> setState $ ctx0 { ctxParentAccount = rest }
 
 getParentAccount :: Monad m => JournalParser m String
-getParentAccount = liftM (concatAccountNames . reverse . ctxParentAccount) getState
+getParentAccount = fmap (concatAccountNames . reverse . ctxParentAccount) getState
 
 addAccountAlias :: Monad m => AccountAlias -> JournalParser m ()
 addAccountAlias a = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=a:ctxAliases})
 
 getAccountAliases :: Monad m => JournalParser m [AccountAlias]
-getAccountAliases = liftM ctxAliases getState
+getAccountAliases = fmap ctxAliases getState
 
 clearAccountAliases :: Monad m => JournalParser m ()
 clearAccountAliases = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
 
 getIndex :: Monad m => JournalParser m Integer
-getIndex = liftM ctxTransactionIndex getState
+getIndex = fmap ctxTransactionIndex getState
 
 setIndex :: Monad m => Integer -> JournalParser m ()
 setIndex i = modifyState (\ctx -> ctx{ctxTransactionIndex=i})
@@ -282,16 +280,16 @@ journalp = do
   journalupdates <- many journalItem
   eof
   finalctx <- getState
-  return $ (combineJournalUpdates journalupdates, finalctx)
+  return (combineJournalUpdates journalupdates, finalctx)
     where
       -- As all journal line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
       journalItem = choice [ directivep
-                           , liftM (return . addTransaction) transactionp
-                           , liftM (return . addModifierTransaction) modifiertransactionp
-                           , liftM (return . addPeriodicTransaction) periodictransactionp
-                           , liftM (return . addMarketPrice) marketpricedirectivep
+                           , fmap (return . addTransaction) transactionp
+                           , fmap (return . addModifierTransaction) modifiertransactionp
+                           , fmap (return . addPeriodicTransaction) periodictransactionp
+                           , fmap (return . addMarketPrice) marketpricedirectivep
                            , emptyorcommentlinep >> return (return id)
                            , multilinecommentp >> return (return id)
                            ] <?> "journal transaction or directive"
@@ -341,7 +339,7 @@ includedirectivep = do
                             return (u, ctx)
          Left err -> throwError $ inIncluded ++ show err
        where readFileOrError pos fp =
-                ExceptT $ liftM Right (readFile' fp) `C.catch`
+                ExceptT $ fmap Right (readFile' fp) `C.catch`
                   \e -> return $ Left $ printf "%s reading %s:\n%s" (show pos) fp (show (e::C.IOException))
   r <- liftIO $ runExceptT u
   case r of
@@ -374,8 +372,7 @@ accountdirectivep = do
 -- | Terminate parsing entirely, returning the given error message
 -- with the given parse position prepended.
 parserErrorAt :: SourcePos -> String -> ErroringJournalParser a
-parserErrorAt pos s = do
-  throwError $ show pos ++ ":\n" ++ s
+parserErrorAt pos s = throwError $ show pos ++ ":\n" ++ s
 
 -- | Parse a one-line or multi-line commodity directive.
 --
@@ -458,7 +455,7 @@ accountaliasp = regexaliasp <|> basicaliasp
 basicaliasp :: Monad m => StringParser u m AccountAlias
 basicaliasp = do
   -- pdbg 0 "basicaliasp"
-  old <- rstrip <$> (many1 $ noneOf "=")
+  old <- rstrip <$> many1 (noneOf "=")
   char '='
   many spacenonewline
   new <- rstrip <$> anyChar `manyTill` eolof  -- don't require a final newline, good for cli options
@@ -575,7 +572,7 @@ transactionp = do
   lookAhead (spacenonewline <|> newline) <?> "whitespace or newline"
   status <- statusp <?> "cleared status"
   code <- codep <?> "transaction code"
-  description <- descriptionp >>= return . strip
+  description <- strip <$> descriptionp
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = commentTags comment
   postings <- postingsp (Just date)
@@ -686,7 +683,7 @@ statusp =
     <?> "cleared status"
 
 codep :: Monad m => JournalParser m String
-codep = try (do { many1 spacenonewline; char '(' <?> "codep"; code <- anyChar `manyTill` char ')'; return code } ) <|> return ""
+codep = try (do { many1 spacenonewline; char '(' <?> "codep"; anyChar `manyTill` char ')' } ) <|> return ""
 
 descriptionp = many (noneOf ";\n")
 
@@ -762,10 +759,10 @@ secondarydatep primarydate = do
         y <- getYear
         let (y',_,_) = toGregorian d in setYear y'
         r <- p
-        when (isJust y) $ setYear $ fromJust y
+        when (isJust y) $ setYear $ fromJust y -- XXX
+        -- mapM setYear <$> y
         return r
-  edate <- withDefaultYear primarydate datep
-  return edate
+  withDefaultYear primarydate datep
 
 -- |
 -- >> parsewith twoorthreepartdatestringp "2016/01/2"
@@ -1093,14 +1090,14 @@ numberp = do
             (_,[_])    -> (False, Nothing, Nothing)  -- a single punctuation of some other length, not ok
             (_,_:_:_)  ->                                       -- two or more punctuations
               let (s:ss, d) = (init puncparts, last puncparts)  -- the leftmost is a separator and the rightmost may be a decimal point
-              in if (any ((/=1).length) puncparts               -- adjacent punctuation chars, not ok
-                     || any (s/=) ss                            -- separator chars vary, not ok
-                     || head parts == s)                        -- number begins with a separator char, not ok
+              in if any ((/=1).length) puncparts               -- adjacent punctuation chars, not ok
+                    || any (s/=) ss                            -- separator chars vary, not ok
+                    || head parts == s                        -- number begins with a separator char, not ok
                  then (False, Nothing, Nothing)
                  else if s == d
                       then (True, Nothing, Just $ head s)       -- just one kind of punctuation - must be separators
                       else (True, Just $ head d, Just $ head s) -- separator(s) and a decimal point
-  when (not ok) (fail $ "number seems ill-formed: "++concat parts)
+  unless ok $ fail $ "number seems ill-formed: "++concat parts
 
   -- get the digit group sizes and digit group style if any
   let (intparts',fracparts') = span ((/= mdecimalpoint) . Just . head) parts
@@ -1108,7 +1105,7 @@ numberp = do
       groupsizes = reverse $ case map length intparts of
                                (a:b:cs) | a < b -> b:cs
                                gs               -> gs
-      mgrps = maybe Nothing (Just . (`DigitGroups` groupsizes)) $ mseparator
+      mgrps = (`DigitGroups` groupsizes) <$> mseparator
 
   -- put the parts back together without digit group separators, get the precision and parse the value
   let int = concat $ "":intparts
@@ -1264,7 +1261,7 @@ commentTags s =
 
 -- | Parse all tags found in a string.
 tagsp :: StringParser u Identity [Tag]
-tagsp = do
+tagsp = -- do
   -- pdbg 0 $ "tagsp"
   many (try (nontagp >> tagp))
 
@@ -1273,10 +1270,10 @@ tagsp = do
 -- >>> rsp nontagp "\na b:, \nd:e, f"
 -- Right "\na "
 nontagp :: StringParser u Identity String
-nontagp = do
+nontagp = -- do
   -- pdbg 0 "nontagp"
   -- anyChar `manyTill` (lookAhead (try (tagorbracketeddatetagsp Nothing >> return ()) <|> eof))
-  anyChar `manyTill` (lookAhead (try (tagp >> return ()) <|> eof))
+  anyChar `manyTill` lookAhead (try (void tagp) <|> eof)
   -- XXX costly ?
 
 -- | Tags begin with a colon-suffixed tag name (a word beginning with
@@ -1297,14 +1294,14 @@ tagp = do
 -- >>> rsp tagnamep "a:"
 -- Right "a"
 tagnamep :: Monad m => StringParser u m String
-tagnamep = do
+tagnamep = -- do
   -- pdbg 0 "tagnamep"
   many1 (noneOf ": \t\n") <* char ':'
 
 tagvaluep :: Monad m => StringParser u m String
 tagvaluep = do
   -- ptrace "tagvalue"
-  v <- anyChar `manyTill` ((try (char ',') >> return ()) <|> eolof)
+  v <- anyChar `manyTill` (void (try (char ',')) <|> eolof)
   return $ strip $ reverse $ dropWhile (==',') $ reverse $ strip v
 
 --- ** posting dates
@@ -1317,11 +1314,11 @@ tagvaluep = do
 postingdatesp :: Maybe Day -> ErroringJournalParser [(TagName,Day)]
 postingdatesp mdefdate = do
   -- pdbg 0 $ "postingdatesp"
-  let p = (datetagp mdefdate >>= return.(:[])) <|> bracketeddatetagsp mdefdate
+  let p = ((:[]) <$> datetagp mdefdate) <|> bracketeddatetagsp mdefdate
       nonp =
          many (notFollowedBy p >> anyChar)
          -- anyChar `manyTill` (lookAhead (try (p >> return ()) <|> eof))
-  concat <$> (many $ try (nonp >> p))
+  concat <$> many (try (nonp >> p))
 
 --- ** date tags
 
@@ -1343,7 +1340,7 @@ datetagp :: Maybe Day -> ErroringJournalParser (TagName,Day)
 datetagp mdefdate = do
   -- pdbg 0 "datetagp"
   string "date"
-  n <- maybe "" id <$> optionMaybe (string "2")
+  n <- fromMaybe "" <$> optionMaybe (string "2")
   char ':'
   startpos <- getPosition
   v <- tagvaluep
@@ -1421,8 +1418,8 @@ bracketeddatetagsp mdefdate = do
     s
   case ep
     of Left e          -> throwError $ show e
-       Right (md1,md2) -> return $ catMaybes $
-         [maybe Nothing (Just.("date",)) md1, maybe Nothing (Just.("date2",)) md2]
+       Right (md1,md2) -> return $ catMaybes
+         [("date",) <$> md1, ("date2",) <$> md2]
 
 --- * more tests
 
