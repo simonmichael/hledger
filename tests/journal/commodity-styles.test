@@ -34,7 +34,7 @@ P 2015/1/1 A 1.0001 B
               1.00 B  b
 >>>=0
 
-# 2. This should choose the 1,000.00 format (the first amount sets
+# 3. This should choose the 1,000.00 format (the first amount sets
 # decimal point to period, the second sets digit group size to 3 and
 # digit group separator to comma).
 # hledger -f- print
