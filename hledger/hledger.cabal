@@ -37,6 +37,27 @@ data-files:
     doc/hledger.1
     doc/hledger.1.txt
     doc/hledger.1.info
+    doc/other/hledger-api.1
+    doc/other/hledger-api.1.txt
+    doc/other/hledger-api.1.info
+    doc/other/hledger-ui.1
+    doc/other/hledger-ui.1.txt
+    doc/other/hledger-ui.1.info
+    doc/other/hledger-web.1
+    doc/other/hledger-web.1.txt
+    doc/other/hledger-web.1.info
+    doc/other/hledger_journal.5
+    doc/other/hledger_journal.5.txt
+    doc/other/hledger_journal.5.info
+    doc/other/hledger_csv.5
+    doc/other/hledger_csv.5.txt
+    doc/other/hledger_csv.5.info
+    doc/other/hledger_timeclock.5
+    doc/other/hledger_timeclock.5.txt
+    doc/other/hledger_timeclock.5.info
+    doc/other/hledger_timedot.5
+    doc/other/hledger_timedot.5.txt
+    doc/other/hledger_timedot.5.info
 
 source-repository head
   type: git
