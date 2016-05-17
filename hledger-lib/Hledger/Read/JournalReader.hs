@@ -292,7 +292,7 @@ journalp = do
                            , fmap (return . addMarketPrice) marketpricedirectivep
                            , emptyorcommentlinep >> return (return id)
                            , multilinecommentp >> return (return id)
-                           ] <?> "journal transaction or directive"
+                           ] <?> "transaction or directive"
 
 --- ** directives
 
