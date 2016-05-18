@@ -244,7 +244,8 @@ data JournalContext = Ctx {
                                          --   specified with "apply account" directive(s). Concatenated, these
                                          --   are the account prefix prepended to parsed account names.
     , ctxAliases   :: ![AccountAlias]    -- ^ the current list of account name aliases in effect
-    , ctxTransactionIndex   :: !Integer  -- ^ the number of transactions read so far
+    , ctxTransactionIndex   :: !Integer  -- ^ the number of transactions read so far. (Does not count
+                                         --   timeclock/timedot/CSV entries, currently).
     } deriving (Read, Show, Eq, Data, Typeable, Generic)
 
 instance NFData JournalContext
