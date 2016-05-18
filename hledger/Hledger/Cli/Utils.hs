@@ -75,10 +75,10 @@ withJournalDo opts cmd = do
 
 -- | Apply the pivot transformation on a journal, if option is present.
 pivotByOpts :: CliOpts -> Journal -> Journal
-pivotByOpts opts
-  | Just tag <- maybeTag = pivot tag
-  | Nothing  <- maybeTag = id
- where maybeTag = maybestringopt "pivot" . rawopts_ $ opts
+pivotByOpts opts =
+  case maybestringopt "pivot" . rawopts_ $ opts of
+    Just tag -> pivot tag
+    Nothing  -> id
 
 -- | Apply the pivot transformation by given tag on a journal.
 pivot :: String -> Journal -> Journal
