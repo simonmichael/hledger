@@ -108,7 +108,8 @@ Prompt for transactions and add them to the journal.
 Many hledger users edit their journals directly with a text editor, or generate them from CSV.
 For more interactive data entry, there is the `add` command, 
 which prompts interactively on the console for new transactions, and appends
-them to the journal file (existing transactions are not changed).
+them to the journal file (if there are multiple `-f FILE` options, the first file is used.)
+Existing transactions are not changed.
 This is the only hledger command that writes to the journal file.
 
 To use it, just run `hledger add` and follow the prompts.

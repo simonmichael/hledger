@@ -110,9 +110,11 @@ Both of these must be written after the command name.
 
 ## Multiple files
 
-One may specify the `--file FILE` option multiple times. This is equivalent to
-concatenating the files to standard input and passing `--file -`, except that
-the add command functions normally and adds entries to the first specified file.
+You can specify multiple `-f/--file FILE` options. This is like
+combining all the files into one, except they can have different formats.
+Also directives and aliases in one file do not affect subsequent files
+(if you need that, use the [include directive](#including-other-files)
+instead).
 
 ## Repeated options
 

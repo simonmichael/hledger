@@ -124,7 +124,7 @@ tryReaders readers mrulesfile assrt path s = firstSuccessOrBestError [] readers
 -- A CSV conversion rules file may also be specified for use by the CSV reader.
 -- Also there is a flag specifying whether to check or ignore balance assertions in the journal.
 readJournal :: Maybe StorageFormat -> Maybe FilePath -> Bool -> Maybe FilePath -> String -> IO (Either String Journal)
-readJournal mformat mrulesfile assrt path s = tryReaders (readersFor (mformat, path, s)) mrulesfile assrt path s
+readJournal mformat mrulesfile assrt mpath s = tryReaders (readersFor (mformat, mpath, s)) mrulesfile assrt mpath s
 
 -- | Read a Journal from this file (or stdin if the filename is -) or give
 -- an error message, using the specified data format or trying all known
@@ -132,20 +132,30 @@ readJournal mformat mrulesfile assrt path s = tryReaders (readersFor (mformat, p
 -- conversion of that format. Also there is a flag specifying whether
 -- to check or ignore balance assertions in the journal.
 readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> FilePath -> IO (Either String Journal)
-readJournalFile format rulesfile assrt f = readJournalFiles format rulesfile assrt [f]
+readJournalFile mformat mrulesfile assrt f =
+  readFileOrStdinAnyNewline f >>= readJournal mformat mrulesfile assrt (Just f)
 
+-- | Read the given file, or standard input if the path is "-".
+readFileOrStdinAnyNewline :: String -> IO String
+readFileOrStdinAnyNewline f = do
+  requireJournalFileExists f
+  h <- fileHandle f
+  hSetNewlineMode h universalNewlineMode
+  hGetContents h
+  where
+    fileHandle "-" = return stdin
+    fileHandle f = openFile f ReadMode
+
+-- | Call readJournalFile on each specified file path, and combine the
+-- resulting journals into one. If there are any errors, the first is
+-- returned, otherwise they are combined per Journal's monoid instance
+-- (concatenated, basically). Currently the parse state (eg directives
+-- & aliases in effect) resets at the start of each file (though the
+-- final parse states from all files are combined at the end).
 readJournalFiles :: Maybe StorageFormat -> Maybe FilePath -> Bool -> [FilePath] -> IO (Either String Journal)
-readJournalFiles format rulesfile assrt fs = do
-  contents <- fmap concat $ mapM readFileAnyNewline fs
-  readJournal format rulesfile assrt (listToMaybe fs) contents
- where
-  readFileAnyNewline f = do
-    requireJournalFileExists f
-    h <- fileHandle f
-    hSetNewlineMode h universalNewlineMode
-    hGetContents h
-  fileHandle "-" = return stdin
-  fileHandle f = openFile f ReadMode
+readJournalFiles mformat mrulesfile assrt fs = do
+  (either Left (Right . mconcat) . sequence)
+    <$> mapM (readJournalFile mformat mrulesfile assrt) fs
 
 -- | If the specified journal file does not exist, give a helpful error and quit.
 requireJournalFileExists :: FilePath -> IO ()
