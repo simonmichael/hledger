@@ -1,4 +1,4 @@
-# nested includes in subdirectories
+# 1. nested includes in subdirectories
  mkdir -p b/c/d ; printf '2010/1/1\n (D)  1\n' >b/c/d/d.journal ; printf '2010/1/1\n (C)  1\n!include d/d.journal\n' >b/c/c.journal ; printf '2010/1/1\n (B)  1\n!include c/c.journal\n' >b/b.journal ; printf '2010/1/1\n (A)  1\n!include b/b.journal\n' >a.journal ; hledger -f a.journal print; rm -rf a.journal b
 >>>
 2010/01/01
@@ -14,4 +14,24 @@
     (D)             1
 
 >>>2
+>>>=0
+
+# 2. including other formats
+hledger -f - print
+<<<
+2016/1/1
+   (x)  1
+
+include a.timeclock
+include b.timedot
+>>>
+2016/01/01
+    (x)          1.00
+
+2016/01/01 *
+    (b.bb)          1.00
+
+2016/01/01 * 12:00-16:00
+    (a:aa)         4.00h
+
 >>>=0
