@@ -21,7 +21,7 @@ hledger can read timeclock files.
 these are (a subset of)
 [timeclock.el](http://www.emacswiki.org/emacs/TimeClock)'s format,
 containing clock-in and clock-out entries as in the example below.
-The date is a [simple date](#simple-dates) (also, [default year directives](#default-year) work).
+The date is a [simple date](#simple-dates).
 The time format is HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional.
 The timezone, if present, must be four digits and is ignored
 (currently the time is always interpreted as a local time).

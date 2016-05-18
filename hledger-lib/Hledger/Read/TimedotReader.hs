@@ -24,6 +24,8 @@ inc.client1   .... .... ..
 module Hledger.Read.TimedotReader (
   -- * Reader
   reader,
+  -- * Misc other exports
+  timedotfilep,
   -- * Tests
   tests_Hledger_Read_TimedotReader
 )
@@ -40,9 +42,8 @@ import Text.Parsec hiding (parse)
 import System.FilePath
 
 import Hledger.Data
--- XXX too much reuse ?
-import Hledger.Read.JournalReader (
-  datep, numberp, defaultyeardirectivep, emptyorcommentlinep, followingcommentp,
+import Hledger.Read.Common (
+  datep, numberp, emptyorcommentlinep, followingcommentp,
   parseAndFinaliseJournal, modifiedaccountnamep, genericSourcePos
   )
 import Hledger.Utils hiding (ptrace)
@@ -77,7 +78,6 @@ timedotfilep = do items <- many timedotfileitemp
       timedotfileitemp = do
         ptrace "timedotfileitemp"
         choice [
-         defaultyeardirectivep,
          emptyorcommentlinep >> return (return id),
          liftM (return . addTransactions) timedotdayp
          ] <?> "timedot day entry, or default year or comment line or blank line"

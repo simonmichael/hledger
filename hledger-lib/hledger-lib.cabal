@@ -115,11 +115,11 @@ library
       Hledger.Data.Types
       Hledger.Query
       Hledger.Read
+      Hledger.Read.Common
       Hledger.Read.CsvReader
       Hledger.Read.JournalReader
       Hledger.Read.TimedotReader
       Hledger.Read.TimeclockReader
-      Hledger.Read.Util
       Hledger.Reports
       Hledger.Reports.ReportOptions
       Hledger.Reports.BalanceHistoryReport

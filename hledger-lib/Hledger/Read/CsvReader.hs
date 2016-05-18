@@ -51,7 +51,7 @@ import Text.Printf (hPrintf,printf)
 import Hledger.Data
 import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
-import Hledger.Read.JournalReader (amountp, statusp, genericSourcePos)
+import Hledger.Read.Common (amountp, statusp, genericSourcePos)
 
 
 reader :: Reader

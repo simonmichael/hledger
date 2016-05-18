@@ -43,6 +43,8 @@ i, o or O.  The meanings of the codes are:
 module Hledger.Read.TimeclockReader (
   -- * Reader
   reader,
+  -- * Misc other exports
+  timeclockfilep,
   -- * Tests
   tests_Hledger_Read_TimeclockReader
 )
@@ -59,9 +61,8 @@ import System.FilePath
 
 import Hledger.Data
 -- XXX too much reuse ?
-import Hledger.Read.JournalReader (
-  directivep, marketpricedirectivep, defaultyeardirectivep, emptyorcommentlinep, datetimep,
-  parseAndFinaliseJournal, modifiedaccountnamep, genericSourcePos
+import Hledger.Read.Common (
+  emptyorcommentlinep, datetimep, parseAndFinaliseJournal, modifiedaccountnamep, genericSourcePos
   )
 import Hledger.Utils
 
@@ -93,10 +94,8 @@ timeclockfilep = do items <- many timeclockitemp
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
-      timeclockitemp = choice [ directivep
-                          , liftM (return . addMarketPrice) marketpricedirectivep
-                          , defaultyeardirectivep
-                          , emptyorcommentlinep >> return (return id)
+      timeclockitemp = choice [ 
+                            emptyorcommentlinep >> return (return id)
                           , liftM (return . addTimeclockEntry)  timeclockentryp
                           ] <?> "timeclock entry, or default year or historical price directive"
 
