@@ -63,6 +63,7 @@ import Control.Monad
 import Data.List
 -- import Data.Map (findWithDefault)
 import Data.Maybe
+import Data.Monoid
 import Data.Ord
 import Safe (headMay, headDef)
 import Data.Time.Calendar
@@ -123,6 +124,26 @@ instance Show Journal where
 --                      ,show $ map fst $ files j
 --                      ]
 
+-- The monoid instance for Journal concatenates the list fields,
+-- combines the map fields, keeps the final comment lines of the
+-- second journal, and keeps the latest of their last read times.
+-- See JournalContext for how the final parse contexts are combined.
+instance Monoid Journal where
+  mempty = nulljournal
+  mappend j1 j2 =
+    Journal{jmodifiertxns          = jmodifiertxns j1          <> jmodifiertxns j2          -- [ModifierTransaction]
+           ,jperiodictxns          = jperiodictxns j1          <> jperiodictxns j2          -- [PeriodicTransaction]
+           ,jtxns                  = jtxns j1                  <> jtxns j2                  -- [Transaction]
+           ,jcommoditystyles       = jcommoditystyles j1       <> jcommoditystyles j2       -- M.Map CommoditySymbol AmountStyle
+           ,jcommodities           = jcommodities j1           <> jcommodities j2           -- M.Map CommoditySymbol Commodity
+           ,open_timeclock_entries = open_timeclock_entries j1 <> open_timeclock_entries j2 -- [TimeclockEntry]
+           ,jmarketprices          = jmarketprices j1          <> jmarketprices j2          -- [MarketPrice]
+           ,final_comment_lines    = final_comment_lines j1    <> final_comment_lines j2    -- String
+           ,jContext               = jContext j1               <> jContext j2               -- JournalContext
+           ,files                  = files j1                  <> files j2                  -- [(FilePath, String)]
+           ,filereadtime           = max (filereadtime j1) (filereadtime j2)
+           }
+
 nulljournal :: Journal
 nulljournal = Journal { jmodifiertxns = []
                       , jperiodictxns = []
@@ -136,6 +157,22 @@ nulljournal = Journal { jmodifiertxns = []
                       , filereadtime = TOD 0 0
                       , jcommoditystyles = M.fromList []
                       }
+
+-- The monoid instance for JournalContext assumes the second context
+-- is that of an included journal, so it is mostly discarded except
+-- the accounts defined by account directives are concatenated, and
+-- the transaction indices (counts of transactions parsed, if any) are
+-- added.
+instance Monoid JournalContext where
+  mempty = nullctx
+  mappend c1 c2 =
+    Ctx { ctxYear                     = ctxYear c1
+        , ctxDefaultCommodityAndStyle = ctxDefaultCommodityAndStyle c1
+        , ctxAccounts                 = ctxAccounts c1 ++ ctxAccounts c2
+        , ctxParentAccount            = ctxParentAccount c1
+        , ctxAliases                  = ctxAliases c1
+        , ctxTransactionIndex         = ctxTransactionIndex c1 + ctxTransactionIndex c2
+        }
 
 nullctx :: JournalContext
 nullctx = Ctx{ctxYear=Nothing, ctxDefaultCommodityAndStyle=Nothing, ctxAccounts=[], ctxParentAccount=[], ctxAliases=[], ctxTransactionIndex=0}
