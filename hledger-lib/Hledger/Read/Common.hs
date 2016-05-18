@@ -178,11 +178,17 @@ getAccountAliases = fmap ctxAliases getState
 clearAccountAliases :: Monad m => JournalParser m ()
 clearAccountAliases = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
 
-getIndex :: Monad m => JournalParser m Integer
-getIndex = fmap ctxTransactionIndex getState
+getTransactionIndex :: Monad m => JournalParser m Integer
+getTransactionIndex = fmap ctxTransactionIndex getState
 
-setIndex :: Monad m => Integer -> JournalParser m ()
-setIndex i = modifyState (\ctx -> ctx{ctxTransactionIndex=i})
+setTransactionIndex :: Monad m => Integer -> JournalParser m ()
+setTransactionIndex i = modifyState (\ctx -> ctx{ctxTransactionIndex=i})
+
+-- | Increment the transaction index by one and return the new value.
+incrementTransactionIndex :: Monad m => JournalParser m Integer
+incrementTransactionIndex = do
+  modifyState (\ctx -> ctx{ctxTransactionIndex=ctxTransactionIndex ctx + 1})
+  getTransactionIndex
 
 journalAddFile :: (FilePath,String) -> Journal -> Journal
 journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}

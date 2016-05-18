@@ -416,9 +416,8 @@ transactionp = do
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = commentTags comment
   postings <- postingsp (Just date)
-  i' <- (+1) <$> getIndex
-  setIndex i'
-  return $ txnTieKnot $ Transaction i' sourcepos date edate status code description comment tags postings ""
+  idx <- incrementTransactionIndex
+  return $ txnTieKnot $ Transaction idx sourcepos date edate status code description comment tags postings ""
 
 #ifdef TESTS
 test_transactionp = do
