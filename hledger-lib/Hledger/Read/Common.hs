@@ -7,7 +7,8 @@
 
 {-|
 
-Some common parsers and parsing helpers used by several readers.
+Some common parsers and helpers used by several readers.
+Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 
 -}
 

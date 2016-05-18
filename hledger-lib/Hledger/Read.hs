@@ -135,7 +135,8 @@ readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> FilePath -> 
 readJournalFile mformat mrulesfile assrt f =
   readFileOrStdinAnyNewline f >>= readJournal mformat mrulesfile assrt (Just f)
 
--- | Read the given file, or standard input if the path is "-".
+-- | Read the given file, or standard input if the path is "-", using
+-- universal newline mode.
 readFileOrStdinAnyNewline :: String -> IO String
 readFileOrStdinAnyNewline f = do
   requireJournalFileExists f
@@ -149,9 +150,10 @@ readFileOrStdinAnyNewline f = do
 -- | Call readJournalFile on each specified file path, and combine the
 -- resulting journals into one. If there are any errors, the first is
 -- returned, otherwise they are combined per Journal's monoid instance
--- (concatenated, basically). Currently the parse state (eg directives
--- & aliases in effect) resets at the start of each file (though the
--- final parse states from all files are combined at the end).
+-- (concatenated, basically). Parse context (eg directives & aliases)
+-- is not maintained across file boundaries, it resets at the start of
+-- each file (though the rfinal parse state saved in the resulting
+-- journal is the combination of parse states from all files).
 readJournalFiles :: Maybe StorageFormat -> Maybe FilePath -> Bool -> [FilePath] -> IO (Either String Journal)
 readJournalFiles mformat mrulesfile assrt fs = do
   (either Left (Right . mconcat) . sequence)
