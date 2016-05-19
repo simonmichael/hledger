@@ -43,7 +43,7 @@ import Hledger.Utils
 type StringParser u m a = ParsecT String u m a
 
 -- | A string parser with journal-parsing state.
-type JournalParser m a = StringParser JournalContext m a
+type JournalParser m a = StringParser JournalParseState m a
 
 -- | A journal parser that runs in IO and can throw an error mid-parse.
 type ErroringJournalParser a = JournalParser (ExceptT String IO) a
@@ -55,7 +55,7 @@ rsp = runStringParser
 
 -- | Run a journal parser with a null journal-parsing state.
 runJournalParser, rjp :: Monad m => JournalParser m a -> String -> m (Either ParseError a)
-runJournalParser p s = runParserT p nullctx "" s
+runJournalParser p s = runParserT p nulljps "" s
 rjp = runJournalParser
 
 -- | Run an error-raising journal parser with a null journal-parsing state.
@@ -127,68 +127,68 @@ combineJournalUpdates us = foldl' (flip (.)) id <$> sequence us
 
 -- | Given a JournalUpdate-generating parsec parser, file path and data string,
 -- parse and post-process a Journal so that it's ready to use, or give an error.
-parseAndFinaliseJournal :: ErroringJournalParser (JournalUpdate,JournalContext) -> Bool -> FilePath -> String -> ExceptT String IO Journal
+parseAndFinaliseJournal :: ErroringJournalParser (JournalUpdate,JournalParseState) -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parseAndFinaliseJournal parser assrt f s = do
   tc <- liftIO getClockTime
   tl <- liftIO getCurrentLocalTime
   y <- liftIO getCurrentYear
-  r <- runParserT parser nullctx{ctxYear=Just y} f s
+  r <- runParserT parser nulljps{jpsYear=Just y} f s
   case r of
-    Right (updates,ctx) -> do
+    Right (updates,jps) -> do
                            j <- ap updates (return nulljournal)
-                           case journalFinalise tc tl f s ctx assrt j of
+                           case journalFinalise tc tl f s jps assrt j of
                              Right j'  -> return j'
                              Left estr -> throwError estr
     Left e -> throwError $ show e
 
 setYear :: Monad m => Integer -> JournalParser m ()
-setYear y = modifyState (\ctx -> ctx{ctxYear=Just y})
+setYear y = modifyState (\jps -> jps{jpsYear=Just y})
 
 getYear :: Monad m => JournalParser m (Maybe Integer)
-getYear = fmap ctxYear getState
+getYear = fmap jpsYear getState
 
 setDefaultCommodityAndStyle :: Monad m => (CommoditySymbol,AmountStyle) -> JournalParser m ()
-setDefaultCommodityAndStyle cs = modifyState (\ctx -> ctx{ctxDefaultCommodityAndStyle=Just cs})
+setDefaultCommodityAndStyle cs = modifyState (\jps -> jps{jpsDefaultCommodityAndStyle=Just cs})
 
 getDefaultCommodityAndStyle :: Monad m => JournalParser m (Maybe (CommoditySymbol,AmountStyle))
-getDefaultCommodityAndStyle = ctxDefaultCommodityAndStyle `fmap` getState
+getDefaultCommodityAndStyle = jpsDefaultCommodityAndStyle `fmap` getState
 
 pushAccount :: Monad m => String -> JournalParser m ()
 pushAccount acct = modifyState addAccount
-    where addAccount ctx0 = ctx0 { ctxAccounts = acct : ctxAccounts ctx0 }
+    where addAccount jps0 = jps0 { jpsAccounts = acct : jpsAccounts jps0 }
 
 pushParentAccount :: Monad m => String -> JournalParser m ()
 pushParentAccount parent = modifyState addParentAccount
-    where addParentAccount ctx0 = ctx0 { ctxParentAccount = parent : ctxParentAccount ctx0 }
+    where addParentAccount jps0 = jps0 { jpsParentAccount = parent : jpsParentAccount jps0 }
 
 popParentAccount :: Monad m => JournalParser m ()
-popParentAccount = do ctx0 <- getState
-                      case ctxParentAccount ctx0 of
+popParentAccount = do jps0 <- getState
+                      case jpsParentAccount jps0 of
                         [] -> unexpected "End of apply account block with no beginning"
-                        (_:rest) -> setState $ ctx0 { ctxParentAccount = rest }
+                        (_:rest) -> setState $ jps0 { jpsParentAccount = rest }
 
 getParentAccount :: Monad m => JournalParser m String
-getParentAccount = fmap (concatAccountNames . reverse . ctxParentAccount) getState
+getParentAccount = fmap (concatAccountNames . reverse . jpsParentAccount) getState
 
 addAccountAlias :: Monad m => AccountAlias -> JournalParser m ()
-addAccountAlias a = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=a:ctxAliases})
+addAccountAlias a = modifyState (\(jps@JournalParseState{..}) -> jps{jpsAliases=a:jpsAliases})
 
 getAccountAliases :: Monad m => JournalParser m [AccountAlias]
-getAccountAliases = fmap ctxAliases getState
+getAccountAliases = fmap jpsAliases getState
 
 clearAccountAliases :: Monad m => JournalParser m ()
-clearAccountAliases = modifyState (\(ctx@Ctx{..}) -> ctx{ctxAliases=[]})
+clearAccountAliases = modifyState (\(jps@JournalParseState{..}) -> jps{jpsAliases=[]})
 
 getTransactionIndex :: Monad m => JournalParser m Integer
-getTransactionIndex = fmap ctxTransactionIndex getState
+getTransactionIndex = fmap jpsTransactionIndex getState
 
 setTransactionIndex :: Monad m => Integer -> JournalParser m ()
-setTransactionIndex i = modifyState (\ctx -> ctx{ctxTransactionIndex=i})
+setTransactionIndex i = modifyState (\jps -> jps{jpsTransactionIndex=i})
 
 -- | Increment the transaction index by one and return the new value.
 incrementTransactionIndex :: Monad m => JournalParser m Integer
 incrementTransactionIndex = do
-  modifyState (\ctx -> ctx{ctxTransactionIndex=ctxTransactionIndex ctx + 1})
+  modifyState (\jps -> jps{jpsTransactionIndex=jpsTransactionIndex jps + 1})
   getTransactionIndex
 
 journalAddFile :: (FilePath,String) -> Journal -> Journal
@@ -368,10 +368,10 @@ is' :: (Eq a, Show a) => a -> a -> Assertion
 a `is'` e = assertEqual e a
 
 test_spaceandamountormissingp = do
-    assertParseEqual' (parseWithCtx nullctx spaceandamountormissingp " $47.18") (Mixed [usd 47.18])
-    assertParseEqual' (parseWithCtx nullctx spaceandamountormissingp "$47.18") missingmixedamt
-    assertParseEqual' (parseWithCtx nullctx spaceandamountormissingp " ") missingmixedamt
-    assertParseEqual' (parseWithCtx nullctx spaceandamountormissingp "") missingmixedamt
+    assertParseEqual' (parseWithState nulljps spaceandamountormissingp " $47.18") (Mixed [usd 47.18])
+    assertParseEqual' (parseWithState nulljps spaceandamountormissingp "$47.18") missingmixedamt
+    assertParseEqual' (parseWithState nulljps spaceandamountormissingp " ") missingmixedamt
+    assertParseEqual' (parseWithState nulljps spaceandamountormissingp "") missingmixedamt
 #endif
 
 -- | Parse a single-commodity amount, with optional symbol on the left or
@@ -382,22 +382,22 @@ amountp = try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
 
 #ifdef TESTS
 test_amountp = do
-    assertParseEqual' (parseWithCtx nullctx amountp "$47.18") (usd 47.18)
-    assertParseEqual' (parseWithCtx nullctx amountp "$1.") (usd 1 `withPrecision` 0)
+    assertParseEqual' (parseWithState nulljps amountp "$47.18") (usd 47.18)
+    assertParseEqual' (parseWithState nulljps amountp "$1.") (usd 1 `withPrecision` 0)
   -- ,"amount with unit price" ~: do
     assertParseEqual'
-     (parseWithCtx nullctx amountp "$10 @ €0.5")
+     (parseWithState nulljps amountp "$10 @ €0.5")
      (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1))
   -- ,"amount with total price" ~: do
     assertParseEqual'
-     (parseWithCtx nullctx amountp "$10 @@ €5")
+     (parseWithState nulljps amountp "$10 @@ €5")
      (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
 #endif
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
 amountp' s =
-  case runParser (amountp <* eof) nullctx "" s of
+  case runParser (amountp <* eof) nulljps "" s of
     Right t -> t
     Left err -> error' $ show err -- XXX should throwError
 
@@ -572,8 +572,8 @@ numberp = do
     numeric = isNumber . headDef '_'
 
 -- test_numberp = do
---       let s `is` n = assertParseEqual (parseWithCtx nullctx numberp s) n
---           assertFails = assertBool . isLeft . parseWithCtx nullctx numberp
+--       let s `is` n = assertParseEqual (parseWithState nulljps numberp s) n
+--           assertFails = assertBool . isLeft . parseWithState nulljps numberp
 --       assertFails ""
 --       "0"          `is` (0, 0, '.', ',', [])
 --       "1"          `is` (1, 0, '.', ',', [])
@@ -796,9 +796,9 @@ datetagp mdefdate = do
   startpos <- getPosition
   v <- tagvaluep
   -- re-parse value as a date.
-  ctx <- getState
-  ep <- parseWithCtx
-    ctx{ctxYear=first3.toGregorian <$> mdefdate}
+  jps <- getState
+  ep <- parseWithState
+    jps{jpsYear=first3.toGregorian <$> mdefdate}
     -- The value extends to a comma, newline, or end of file.
     -- It seems like ignoring any extra stuff following a date
     -- gives better errors here.
@@ -855,9 +855,9 @@ bracketeddatetagsp mdefdate = do
 
   -- looks sufficiently like a bracketed date, now we
   -- re-parse as dates and throw any errors
-  ctx <- getState
-  ep <- parseWithCtx
-    ctx{ctxYear=first3.toGregorian <$> mdefdate}
+  jps <- getState
+  ep <- parseWithState
+    jps{jpsYear=first3.toGregorian <$> mdefdate}
     (do
         setPosition startpos
         md1 <- optionMaybe datep

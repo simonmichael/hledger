@@ -605,7 +605,7 @@ transactionFromCsvRecord sourcepos rules record = t
     status      =
       case mfieldtemplate "status" of
         Nothing  -> Uncleared
-        Just str -> either statuserror id $ runParser (statusp <* eof) nullctx "" $ render str
+        Just str -> either statuserror id $ runParser (statusp <* eof) nulljps "" $ render str
           where
             statuserror err = error' $ unlines
               ["error: could not parse \""++str++"\" as a cleared status (should be *, ! or empty)"
@@ -617,7 +617,7 @@ transactionFromCsvRecord sourcepos rules record = t
     precomment  = maybe "" render $ mfieldtemplate "precomment"
     currency    = maybe (fromMaybe "" mdefaultcurrency) render $ mfieldtemplate "currency"
     amountstr   = (currency++) $ negateIfParenthesised $ getAmountStr rules record
-    amount      = either amounterror (Mixed . (:[])) $ runParser (amountp <* eof) nullctx "" amountstr
+    amount      = either amounterror (Mixed . (:[])) $ runParser (amountp <* eof) nulljps "" amountstr
     amounterror err = error' $ unlines
       ["error: could not parse \""++amountstr++"\" as an amount"
       ,showRecord record
@@ -780,20 +780,20 @@ test_parser =  [
     assertParseEqual (parseCsvRules "unknown" "") rules
 
   -- ,"convert rules parsing: accountrule" ~: do
-  --    assertParseEqual (parseWithCtx rules accountrule "A\na\n") -- leading blank line required
+  --    assertParseEqual (parseWithState rules accountrule "A\na\n") -- leading blank line required
   --                ([("A",Nothing)], "a")
 
   ,"convert rules parsing: trailing comments" ~: do
-     assertParse (parseWithCtx rules rulesp "skip\n# \n#\n")
+     assertParse (parseWithState rules rulesp "skip\n# \n#\n")
 
   ,"convert rules parsing: trailing blank lines" ~: do
-     assertParse (parseWithCtx rules rulesp "skip\n\n  \n")
+     assertParse (parseWithState rules rulesp "skip\n\n  \n")
 
   -- not supported
   -- ,"convert rules parsing: no final newline" ~: do
-  --    assertParse (parseWithCtx rules csvrulesfile "A\na")
-  --    assertParse (parseWithCtx rules csvrulesfile "A\na\n# \n#")
-  --    assertParse (parseWithCtx rules csvrulesfile "A\na\n\n  ")
+  --    assertParse (parseWithState rules csvrulesfile "A\na")
+  --    assertParse (parseWithState rules csvrulesfile "A\na\n# \n#")
+  --    assertParse (parseWithState rules csvrulesfile "A\na\n\n  ")
 
                  -- (rules{
                  --   -- dateField=Maybe FieldPosition,

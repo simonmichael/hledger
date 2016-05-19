@@ -51,7 +51,7 @@ type PostingExpr = (AccountName, AmountExpr)
 data AmountExpr = AmountLiteral String | AmountMultiplier Quantity deriving (Show)
 
 addPostingExprsFromOpts :: RawOpts -> [PostingExpr]
-addPostingExprsFromOpts = map (either parseerror id . runParser (postingexprp <* eof) nullctx "") . map stripquotes . listofstringopt "add-posting"
+addPostingExprsFromOpts = map (either parseerror id . runParser (postingexprp <* eof) nulljps "") . map stripquotes . listofstringopt "add-posting"
 
 postingexprp = do
   a <- accountnamep

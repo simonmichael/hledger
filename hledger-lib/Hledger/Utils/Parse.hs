@@ -16,8 +16,8 @@ choice' = choice . map Text.Parsec.try
 parsewith :: Parsec [Char] () a -> String -> Either ParseError a
 parsewith p = runParser p () ""
 
-parseWithCtx :: Stream s m t => u -> ParsecT s u m a -> s -> m (Either ParseError a)
-parseWithCtx ctx p = runParserT p ctx ""
+parseWithState :: Stream s m t => u -> ParsecT s u m a -> s -> m (Either ParseError a)
+parseWithState jps p = runParserT p jps ""
 
 fromparse :: Either ParseError a -> a
 fromparse = either parseerror id

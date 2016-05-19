@@ -222,23 +222,23 @@ instance NFData MarketPrice
 
 type Year = Integer
 
--- | A journal "context" is some data which can change in the course of
--- parsing a journal. An example is the default year, which changes when a
--- Y directive is encountered.  At the end of parsing, the final context
--- is saved for later use by eg the add command.
-data JournalContext = Ctx {
-      ctxYear                     :: !(Maybe Year)                          -- ^ the default year most recently specified with Y
-    , ctxDefaultCommodityAndStyle :: !(Maybe (CommoditySymbol,AmountStyle)) -- ^ the default commodity and amount style most recently specified with D
-    , ctxAccounts                 :: ![AccountName]                         -- ^ the accounts that have been defined with account directives so far
-    , ctxParentAccount            :: ![AccountName]                         -- ^ the current stack of parent accounts/account name components
+-- | Journal parse state is data we want to keep track of in the
+-- course of parsing a journal. An example is the default year, which
+-- changes when a Y directive is encountered.  At the end of parsing,
+-- the final state is saved for later use by eg the add command.
+data JournalParseState = JournalParseState {
+      jpsYear                     :: !(Maybe Year)                          -- ^ the default year most recently specified with Y
+    , jpsDefaultCommodityAndStyle :: !(Maybe (CommoditySymbol,AmountStyle)) -- ^ the default commodity and amount style most recently specified with D
+    , jpsAccounts                 :: ![AccountName]                         -- ^ the accounts that have been defined with account directives so far
+    , jpsParentAccount            :: ![AccountName]                         -- ^ the current stack of parent accounts/account name components
                                                                             --   specified with "apply account" directive(s). Concatenated, these
                                                                             --   are the account prefix prepended to parsed account names.
-    , ctxAliases                  :: ![AccountAlias]                        -- ^ the current list of account name aliases in effect
-    , ctxTransactionIndex         :: !Integer                               -- ^ the number of transactions read so far. (Does not count
+    , jpsAliases                  :: ![AccountAlias]                        -- ^ the current list of account name aliases in effect
+    , jpsTransactionIndex         :: !Integer                               -- ^ the number of transactions read so far. (Does not count
                                                                             --   timeclock/timedot/CSV entries, currently).
     } deriving (Read, Show, Eq, Data, Typeable, Generic)
 
-instance NFData JournalContext
+instance NFData JournalParseState
 
 deriving instance Data (ClockTime)
 deriving instance Typeable (ClockTime)
@@ -255,7 +255,7 @@ data Journal = Journal {
       open_timeclock_entries :: [TimeclockEntry],
       jmarketprices          :: [MarketPrice],
       final_comment_lines    :: String,                            -- ^ any trailing comments from the journal file
-      jContext               :: JournalContext,                    -- ^ the context (parse state) at the end of parsing
+      jparsestate            :: JournalParseState,                 -- ^ the final parse state
       files                  :: [(FilePath, String)],              -- ^ the file path and raw text of the main and
                                                                    --   any included journal files. The main file is
                                                                    --   first followed by any included files in the

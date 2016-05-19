@@ -69,11 +69,11 @@ detect f s
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal timedotfilep
 
-timedotfilep :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate, JournalContext)
+timedotfilep :: ParsecT [Char] JournalParseState (ExceptT String IO) (JournalUpdate, JournalParseState)
 timedotfilep = do items <- many timedotfileitemp
                   eof
-                  ctx <- getState
-                  return (liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence items, ctx)
+                  jps <- getState
+                  return (liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence items, jps)
     where
       timedotfileitemp = do
         ptrace "timedotfileitemp"
@@ -92,7 +92,7 @@ addTransactions ts j = foldl' (flip ($)) j (map addTransaction ts)
 -- biz.research .
 -- inc.client1  .... .... .... .... .... ....
 -- @
-timedotdayp :: ParsecT [Char] JournalContext (ExceptT String IO) [Transaction]
+timedotdayp :: ParsecT [Char] JournalParseState (ExceptT String IO) [Transaction]
 timedotdayp = do
   ptrace " timedotdayp"
   d <- datep <* eolof
@@ -104,7 +104,7 @@ timedotdayp = do
 -- @
 -- fos.haskell  .... ..
 -- @
-timedotentryp :: ParsecT [Char] JournalContext (ExceptT String IO) Transaction
+timedotentryp :: ParsecT [Char] JournalParseState (ExceptT String IO) Transaction
 timedotentryp = do
   ptrace "  timedotentryp"
   pos <- genericSourcePos <$> getPosition
@@ -128,14 +128,14 @@ timedotentryp = do
         }
   return t
 
-timedotdurationp :: ParsecT [Char] JournalContext (ExceptT String IO) Quantity
+timedotdurationp :: ParsecT [Char] JournalParseState (ExceptT String IO) Quantity
 timedotdurationp = try timedotnumberp <|> timedotdotsp
 
 -- | Parse a duration written as a decimal number of hours (optionally followed by the letter h).
 -- @
 -- 1.5h
 -- @
-timedotnumberp :: ParsecT [Char] JournalContext (ExceptT String IO) Quantity
+timedotnumberp :: ParsecT [Char] JournalParseState (ExceptT String IO) Quantity
 timedotnumberp = do
    (q, _, _, _) <- numberp
    many spacenonewline
@@ -147,7 +147,7 @@ timedotnumberp = do
 -- @
 -- .... ..
 -- @
-timedotdotsp :: ParsecT [Char] JournalContext (ExceptT String IO) Quantity
+timedotdotsp :: ParsecT [Char] JournalParseState (ExceptT String IO) Quantity
 timedotdotsp = do
   dots <- filter (not.isSpace) <$> many (oneOf ". ")
   return $ (/4) $ fromIntegral $ length dots

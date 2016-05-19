@@ -47,7 +47,7 @@ import Test.HUnit
 import Text.Printf
 
 import Hledger.Data.Dates (getCurrentDay)
-import Hledger.Data.Journal (nullctx)
+import Hledger.Data.Journal (nulljps)
 import Hledger.Data.Types
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.TimedotReader as TimedotReader
@@ -259,7 +259,7 @@ tests_Hledger_Read = TestList $
    tests_Hledger_Read_CsvReader,
 
    "journal" ~: do
-    r <- runExceptT $ parseWithCtx nullctx JournalReader.journalp ""
+    r <- runExceptT $ parseWithState nulljps JournalReader.journalp ""
     assertBool "journalp should parse an empty file" (isRight $ r)
     jE <- readJournal Nothing Nothing True Nothing "" -- don't know how to get it from journal
     either error' (assertBool "journalp parsing an empty file should give an empty journal" . null . jtxns) jE

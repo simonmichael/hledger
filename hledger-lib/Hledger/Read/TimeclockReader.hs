@@ -85,11 +85,11 @@ detect f s
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal timeclockfilep
 
-timeclockfilep :: ParsecT [Char] JournalContext (ExceptT String IO) (JournalUpdate, JournalContext)
+timeclockfilep :: ParsecT [Char] JournalParseState (ExceptT String IO) (JournalUpdate, JournalParseState)
 timeclockfilep = do items <- many timeclockitemp
                     eof
-                    ctx <- getState
-                    return (liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence items, ctx)
+                    jps <- getState
+                    return (liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence items, jps)
     where
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
@@ -100,7 +100,7 @@ timeclockfilep = do items <- many timeclockitemp
                           ] <?> "timeclock entry, or default year or historical price directive"
 
 -- | Parse a timeclock entry.
-timeclockentryp :: ParsecT [Char] JournalContext (ExceptT String IO) TimeclockEntry
+timeclockentryp :: ParsecT [Char] JournalParseState (ExceptT String IO) TimeclockEntry
 timeclockentryp = do
   sourcepos <- genericSourcePos <$> getPosition
   code <- oneOf "bhioO"

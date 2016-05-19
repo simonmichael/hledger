@@ -52,7 +52,7 @@ module Hledger.Data.Journal (
   -- * Misc
   canonicalStyleFrom,
   matchpats,
-  nullctx,
+  nulljps,
   nulljournal,
   -- * Tests
   samplejournal,
@@ -120,27 +120,27 @@ instance Show Journal where
 --                      ,show $ open_timeclock_entries j
 --                      ,show $ jmarketprices j
 --                      ,show $ final_comment_lines j
---                      ,show $ jContext j
+--                      ,show $ jparsestate j
 --                      ,show $ map fst $ files j
 --                      ]
 
 -- The monoid instance for Journal concatenates the list fields,
 -- combines the map fields, keeps the final comment lines of the
 -- second journal, and keeps the latest of their last read times.
--- See JournalContext for how the final parse contexts are combined.
+-- See JournalParseState for how the final parse states are combined.
 instance Monoid Journal where
   mempty = nulljournal
   mappend j1 j2 =
-    Journal{jmodifiertxns          = jmodifiertxns j1          <> jmodifiertxns j2          -- [ModifierTransaction]
-           ,jperiodictxns          = jperiodictxns j1          <> jperiodictxns j2          -- [PeriodicTransaction]
-           ,jtxns                  = jtxns j1                  <> jtxns j2                  -- [Transaction]
-           ,jcommoditystyles       = jcommoditystyles j1       <> jcommoditystyles j2       -- M.Map CommoditySymbol AmountStyle
-           ,jcommodities           = jcommodities j1           <> jcommodities j2           -- M.Map CommoditySymbol Commodity
-           ,open_timeclock_entries = open_timeclock_entries j1 <> open_timeclock_entries j2 -- [TimeclockEntry]
-           ,jmarketprices          = jmarketprices j1          <> jmarketprices j2          -- [MarketPrice]
-           ,final_comment_lines    = final_comment_lines j1    <> final_comment_lines j2    -- String
-           ,jContext               = jContext j1               <> jContext j2               -- JournalContext
-           ,files                  = files j1                  <> files j2                  -- [(FilePath, String)]
+    Journal{jmodifiertxns          = jmodifiertxns j1          <> jmodifiertxns j2
+           ,jperiodictxns          = jperiodictxns j1          <> jperiodictxns j2
+           ,jtxns                  = jtxns j1                  <> jtxns j2
+           ,jcommoditystyles       = jcommoditystyles j1       <> jcommoditystyles j2
+           ,jcommodities           = jcommodities j1           <> jcommodities j2
+           ,open_timeclock_entries = open_timeclock_entries j1 <> open_timeclock_entries j2
+           ,jmarketprices          = jmarketprices j1          <> jmarketprices j2
+           ,final_comment_lines    = final_comment_lines j1    <> final_comment_lines j2
+           ,jparsestate            = jparsestate j1            <> jparsestate j2
+           ,files                  = files j1                  <> files j2
            ,filereadtime           = max (filereadtime j1) (filereadtime j2)
            }
 
@@ -152,30 +152,30 @@ nulljournal = Journal { jmodifiertxns = []
                       , open_timeclock_entries = []
                       , jmarketprices = []
                       , final_comment_lines = []
-                      , jContext = nullctx
+                      , jparsestate = nulljps
                       , files = []
                       , filereadtime = TOD 0 0
                       , jcommoditystyles = M.fromList []
                       }
 
--- The monoid instance for JournalContext assumes the second context
--- is that of an included journal, so it is mostly discarded except
--- the accounts defined by account directives are concatenated, and
--- the transaction indices (counts of transactions parsed, if any) are
--- added.
-instance Monoid JournalContext where
-  mempty = nullctx
+-- The monoid instance for JournalParseState mostly discards the
+-- second parse state, except the accounts defined by account
+-- directives are concatenated, and the transaction indices (counts of
+-- transactions parsed, if any) are added.
+instance Monoid JournalParseState where
+  mempty = nulljps
   mappend c1 c2 =
-    Ctx { ctxYear                     = ctxYear c1
-        , ctxDefaultCommodityAndStyle = ctxDefaultCommodityAndStyle c1
-        , ctxAccounts                 = ctxAccounts c1 ++ ctxAccounts c2
-        , ctxParentAccount            = ctxParentAccount c1
-        , ctxAliases                  = ctxAliases c1
-        , ctxTransactionIndex         = ctxTransactionIndex c1 + ctxTransactionIndex c2
+    JournalParseState {
+          jpsYear                     = jpsYear c1
+        , jpsDefaultCommodityAndStyle = jpsDefaultCommodityAndStyle c1
+        , jpsAccounts                 = jpsAccounts c1 ++ jpsAccounts c2
+        , jpsParentAccount            = jpsParentAccount c1
+        , jpsAliases                  = jpsAliases c1
+        , jpsTransactionIndex         = jpsTransactionIndex c1 + jpsTransactionIndex c2
         }
 
-nullctx :: JournalContext
-nullctx = Ctx{ctxYear=Nothing, ctxDefaultCommodityAndStyle=Nothing, ctxAccounts=[], ctxParentAccount=[], ctxAliases=[], ctxTransactionIndex=0}
+nulljps :: JournalParseState
+nulljps = JournalParseState{jpsYear=Nothing, jpsDefaultCommodityAndStyle=Nothing, jpsAccounts=[], jpsParentAccount=[], jpsAliases=[], jpsTransactionIndex=0}
 
 journalFilePath :: Journal -> FilePath
 journalFilePath = fst . mainfile
@@ -455,14 +455,14 @@ journalApplyAliases aliases j@Journal{jtxns=ts} =
 -- | Do post-parse processing on a journal to make it ready for use: check
 -- all transactions balance, canonicalise amount formats, close any open
 -- timeclock entries, maybe check balance assertions and so on.
-journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalContext -> Bool -> Journal -> Either String Journal
-journalFinalise tclock tlocal path txt ctx assrt j@Journal{files=fs} = do
+journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalParseState -> Bool -> Journal -> Either String Journal
+journalFinalise tclock tlocal path txt jps assrt j@Journal{files=fs} = do
   (journalBalanceTransactions $
     journalApplyCommodityStyles $
     journalCloseTimeclockEntries tlocal $
     j{ files=(path,txt):fs
      , filereadtime=tclock
-     , jContext=ctx
+     , jparsestate=jps
      , jtxns=reverse $ jtxns j -- NOTE: see addTransaction
      , jmodifiertxns=reverse $ jmodifiertxns j -- NOTE: see addModifierTransaction
      , jperiodictxns=reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
