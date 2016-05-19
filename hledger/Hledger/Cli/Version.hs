@@ -14,7 +14,6 @@ where
 import System.Info (os, arch)
 import Text.Printf
 
-import Hledger.Data.Types (numberRepresentation)
 import Hledger.Utils
 
 
@@ -27,7 +26,7 @@ version = VERSION
 version = "dev build"
 #endif
 prognameandversion = progname ++ " " ++ version
-prognameanddetailedversion = printf "%s %s, using %s" progname version numberRepresentation
+prognameanddetailedversion = printf "%s %s" progname version
 
 -- developer build version strings include PATCHLEVEL (number of
 -- patches since the last tag). If defined, it must be a number.

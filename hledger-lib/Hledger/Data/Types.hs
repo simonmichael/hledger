@@ -24,10 +24,8 @@ import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)
 import Control.Monad.Except (ExceptT)
 import Data.Data
-#ifndef DOUBLE
 import Data.Decimal
 import Text.Blaze (ToMarkup(..))
-#endif
 import qualified Data.Map as M
 import Data.Time.Calendar
 import Data.Time.LocalTime
@@ -64,13 +62,7 @@ data Side = L | R deriving (Eq,Show,Read,Ord,Typeable,Data,Generic)
 
 instance NFData Side
 
--- | The basic numeric type used in amounts. Different implementations
--- can be selected via cabal flag for testing and benchmarking purposes.
-numberRepresentation :: String
-#ifdef DOUBLE
-type Quantity = Double
-numberRepresentation = "Double"
-#else
+-- | The basic numeric type used in amounts.
 type Quantity = Decimal
 deriving instance Data (Quantity)
 -- The following is for hledger-web, and requires blaze-markup.
@@ -78,8 +70,6 @@ deriving instance Data (Quantity)
 instance ToMarkup (Quantity)
  where
    toMarkup = toMarkup . show
-numberRepresentation = "Decimal"
-#endif
 
 -- | An amount's price (none, per unit, or total) in another commodity.
 -- Note the price should be a positive number, although this is not enforced.

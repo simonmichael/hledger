@@ -61,8 +61,6 @@ flag old-locale
     if true then depend on time < 1.5 together with old-locale.
 
 library
-  if flag(double)
-    cpp-options: -DDOUBLE
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       base >= 4.3 && < 5

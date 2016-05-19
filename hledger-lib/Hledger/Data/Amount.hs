@@ -101,11 +101,7 @@ module Hledger.Data.Amount (
 ) where
 
 import Data.Char (isDigit)
-#ifdef DOUBLE
-roundTo = flip const
-#else
 import Data.Decimal (roundTo)
-#endif
 import Data.Function (on)
 import Data.List
 import Data.Map (findWithDefault)
@@ -211,16 +207,8 @@ isZeroAmount a --  a==missingamt = False
                | otherwise     = (null . filter (`elem` digits) . showAmountWithoutPriceOrCommodity) a
 
 -- | Is this amount "really" zero, regardless of the display precision ?
--- Since we are using floating point, for now just test to some high precision.
 isReallyZeroAmount :: Amount -> Bool
-isReallyZeroAmount Amount{aquantity=q} = iszero q
-  where
-   iszero =
-#ifdef DOUBLE
-    null . filter (`elem` digits) . printf ("%."++show zeroprecision++"f") where zeroprecision = 8
-#else
-    (==0)
-#endif
+isReallyZeroAmount Amount{aquantity=q} = q == 0
 
 -- | Get the string representation of an amount, based on its commodity's
 -- display settings except using the specified precision.
@@ -292,15 +280,9 @@ showamountquantity Amount{aquantity=q, astyle=AmountStyle{asprecision=p, asdecim
     where
       -- isint n = fromIntegral (round n) == n
       qstr -- p == maxprecision && isint q = printf "%d" (round q::Integer)
-#ifdef DOUBLE
-        | p == maxprecisionwithpoint = printf "%f" q
-        | p == maxprecision          = chopdotzero $ printf "%f" q
-        | otherwise                  = printf ("%."++show p++"f") q
-#else
         | p == maxprecisionwithpoint = show q
         | p == maxprecision          = chopdotzero $ show q
         | otherwise                  = show $ roundTo (fromIntegral p) q
-#endif
 
 -- | Replace a number string's decimal point with the specified character,
 -- and add the specified digit group separators. The last digit group will
