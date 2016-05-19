@@ -1,6 +1,10 @@
 User-visible changes in hledger-ui.
 See also hledger's change log.
 
+0.27.4 (2016/5/19)
+
+- ensure we have the Show instance for functions, needed since regex-tdfa 1.2.2
+
 0.27.3 (2016/1/12)
 
 - allow brick 0.4
