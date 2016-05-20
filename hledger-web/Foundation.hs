@@ -271,9 +271,12 @@ getViewData = do
             -- XXX put this inside atomicModifyIORef' for thread safety
             j <- liftIO $ readIORef $ appJournal app
             (ej, changed) <- liftIO $ journalReloadIfChanged opts d j
+            -- re-apply any initial filter specified at startup
+            let initq = queryFromOpts d $ reportopts_ opts
+                ej' = filterJournalTransactions initq <$> ej
             if not changed
              then return (j,Nothing)
-             else case ej of
+             else case ej' of
                     Right j' -> do liftIO $ writeIORef (appJournal app) j'
                                    return (j',Nothing)
                     Left e   -> do setMessage $ "error while reading" {- ++ ": " ++ e-}

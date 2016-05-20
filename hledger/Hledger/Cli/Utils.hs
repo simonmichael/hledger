@@ -57,7 +57,6 @@ import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Hledger.Cli.CliOptions
 import Hledger.Data
 import Hledger.Read
-import Hledger.Reports (queryFromOpts)
 import Hledger.Utils
 
 
@@ -101,22 +100,21 @@ writeOutput opts s = do
 -- readJournalWithOpts opts s = readJournal Nothing Nothing Nothing s >>= either error' return
 
 -- | Re-read the journal file(s) specified by options, or return an error string.
--- Options are honoured and the provided date is used as the current date.
+-- Reads the full journal, without filtering.
 journalReload :: CliOpts -> IO (Either String Journal)
 journalReload opts = do
   rulespath <- rulesFilePathFromOpts opts
   journalpaths <- journalFilePathFromOpts opts
   readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpaths
 
--- | Re-read the journal file(s) specified by options, but only if any
--- of them has changed since last read (or if there is no file, ie
--- data read from stdin). The provided options and current date are
--- used to filter the re-read journal; this is intended to reapply the
--- same filter as at program startup (though, the current date may not
--- be what it was then, so results may differ). Returns a journal or
--- error message, and a flag indicating whether it was re-read or not.
+-- | Re-read the option-specified journal file(s), but only if any of
+-- them has changed since last read. (If the file is standard input,
+-- this will either do nothing or give an error, not tested yet).
+-- Returns a journal or error message, and a flag indicating whether
+-- it was re-read or not.  Like withJournalDo and journalReload, reads
+-- the full journal, without filtering.
 journalReloadIfChanged :: CliOpts -> Day -> Journal -> IO (Either String Journal, Bool)
-journalReloadIfChanged opts d j = do
+journalReloadIfChanged opts _d j = do
   let maybeChangedFilename f = do newer <- journalSpecifiedFileIsNewer j f
                                   return $ if newer then Just f else Nothing
   changedfiles <- catMaybes `fmap` mapM maybeChangedFilename (journalFilePaths j)
@@ -124,9 +122,7 @@ journalReloadIfChanged opts d j = do
    then do
      whenLoud $ printf "%s has changed, reloading\n" (head changedfiles)
      ej <- journalReload opts
-     let initq = queryFromOpts d $ reportopts_ opts
-         ej'   = filterJournalTransactions initq <$> ej
-     return (ej', True)
+     return (ej, True)
    else
      return (Right j, False)
 
