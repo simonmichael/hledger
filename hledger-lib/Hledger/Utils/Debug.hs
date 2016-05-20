@@ -17,6 +17,7 @@ module Hledger.Utils.Debug (
 where
 
 import Control.Monad (when)
+import Control.Monad.IO.Class
 import Data.List
 import Debug.Trace
 import Safe (readDef)
@@ -123,34 +124,34 @@ dbg9 = tracePrettyAt 9
 
 -- | Convenience aliases for tracePrettyAtIO.
 -- Like dbg, but convenient to insert in an IO monad.
-dbgIO :: Show a => String -> a -> IO ()
+dbgIO :: (MonadIO m, Show a) => String -> a -> m ()
 dbgIO = tracePrettyAtIO 0
 
-dbg1IO :: Show a => String -> a -> IO ()
+dbg1IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg1IO = tracePrettyAtIO 1
 
-dbg2IO :: Show a => String -> a -> IO ()
+dbg2IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg2IO = tracePrettyAtIO 2
 
-dbg3IO :: Show a => String -> a -> IO ()
+dbg3IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg3IO = tracePrettyAtIO 3
 
-dbg4IO :: Show a => String -> a -> IO ()
+dbg4IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg4IO = tracePrettyAtIO 4
 
-dbg5IO :: Show a => String -> a -> IO ()
+dbg5IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg5IO = tracePrettyAtIO 5
 
-dbg6IO :: Show a => String -> a -> IO ()
+dbg6IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg6IO = tracePrettyAtIO 6
 
-dbg7IO :: Show a => String -> a -> IO ()
+dbg7IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg7IO = tracePrettyAtIO 7
 
-dbg8IO :: Show a => String -> a -> IO ()
+dbg8IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg8IO = tracePrettyAtIO 8
 
-dbg9IO :: Show a => String -> a -> IO ()
+dbg9IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg9IO = tracePrettyAtIO 9
 
 -- | Pretty-print a message and a showable value to the console if the debug level is at or above the specified level.
@@ -158,8 +159,8 @@ dbg9IO = tracePrettyAtIO 9
 tracePrettyAt :: Show a => Int -> String -> a -> a
 tracePrettyAt lvl = dbgppshow lvl
 
-tracePrettyAtIO :: Show a => Int -> String -> a -> IO ()
-tracePrettyAtIO lvl lbl x = tracePrettyAt lvl lbl x `seq` return ()
+tracePrettyAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
+tracePrettyAtIO lvl lbl x = liftIO $ tracePrettyAt lvl lbl x `seq` return ()
 
 -- XXX
 -- Could not deduce (a ~ ())
