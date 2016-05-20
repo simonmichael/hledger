@@ -35,6 +35,9 @@ ppShow :: Show a => a -> String
 ppShow = show
 #endif
 
+pprint :: Show a => a -> IO ()
+pprint = putStrLn . ppShow
+
 
 -- | Trace (print on stdout at runtime) a showable value.
 -- (for easily tracing in the middle of a complex expression)
