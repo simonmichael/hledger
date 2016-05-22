@@ -1,6 +1,9 @@
 import Test.DocTest
 
-main = doctest [
-   "Hledger/Read/JournalReader.hs"
-  ,"Hledger/Data/Dates.hs"
-  ]
+main = do
+  let dist = "dist"
+  doctest [
+    "-optP-include"
+    ,"-optP" ++ dist ++ "/build/autogen/cabal_macros.h"
+    ,"Hledger.hs"
+    ]

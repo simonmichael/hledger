@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE ScopedTypeVariables, PackageImports #-}
 {-|
 
 Easy regular expression helpers, currently based on regex-tdfa. These should:
@@ -51,7 +51,7 @@ import Data.Array
 import Data.Char
 import Data.List (foldl')
 import Data.MemoUgly (memo)
-import Text.Regex.TDFA (
+import "regex-tdfa" Text.Regex.TDFA (
   Regex, CompOption(..), ExecOption(..), defaultCompOpt, defaultExecOpt,
   makeRegexOpts, AllMatches(getAllMatches), match, (=~), MatchText
   )
