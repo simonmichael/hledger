@@ -1,1 +1,2 @@
 :set prompt "hledger-lib> "
+:set -optP-include -optPdist/build/autogen/cabal_macros.h
