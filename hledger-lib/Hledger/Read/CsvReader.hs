@@ -605,7 +605,7 @@ transactionFromCsvRecord sourcepos rules record = t
     status      =
       case mfieldtemplate "status" of
         Nothing  -> Uncleared
-        Just str -> either statuserror id $ runParser (statusp <* eof) nulljps "" $ render str
+        Just str -> either statuserror id $ runParser (statusp <* eof) mempty "" $ render str
           where
             statuserror err = error' $ unlines
               ["error: could not parse \""++str++"\" as a cleared status (should be *, ! or empty)"
@@ -617,7 +617,7 @@ transactionFromCsvRecord sourcepos rules record = t
     precomment  = maybe "" render $ mfieldtemplate "precomment"
     currency    = maybe (fromMaybe "" mdefaultcurrency) render $ mfieldtemplate "currency"
     amountstr   = (currency++) $ negateIfParenthesised $ getAmountStr rules record
-    amount      = either amounterror (Mixed . (:[])) $ runParser (amountp <* eof) nulljps "" amountstr
+    amount      = either amounterror (Mixed . (:[])) $ runParser (amountp <* eof) mempty "" amountstr
     amounterror err = error' $ unlines
       ["error: could not parse \""++amountstr++"\" as an amount"
       ,showRecord record

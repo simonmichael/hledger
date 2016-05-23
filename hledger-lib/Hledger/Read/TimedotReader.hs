@@ -32,7 +32,7 @@ module Hledger.Read.TimedotReader (
 where
 import Prelude ()
 import Prelude.Compat
-import Control.Monad (liftM)
+import Control.Monad
 import Control.Monad.Except (ExceptT)
 import Data.Char (isSpace)
 import Data.List (foldl')
@@ -42,10 +42,7 @@ import Text.Parsec hiding (parse)
 import System.FilePath
 
 import Hledger.Data
-import Hledger.Read.Common (
-  datep, numberp, emptyorcommentlinep, followingcommentp,
-  parseAndFinaliseJournal, modifiedaccountnamep, genericSourcePos
-  )
+import Hledger.Read.Common
 import Hledger.Utils hiding (ptrace)
 
 -- easier to toggle this here sometimes
@@ -69,17 +66,16 @@ detect f s
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal timedotfilep
 
-timedotfilep :: ParsecT [Char] JournalParseState (ExceptT String IO) (JournalUpdate, JournalParseState)
-timedotfilep = do items <- many timedotfileitemp
+timedotfilep :: ErroringJournalParser ParsedJournal
+timedotfilep = do many timedotfileitemp
                   eof
-                  jps <- getState
-                  return (liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence items, jps)
+                  getState
     where
       timedotfileitemp = do
         ptrace "timedotfileitemp"
         choice [
-         emptyorcommentlinep >> return (return id),
-         liftM (return . addTransactions) timedotdayp
+          void emptyorcommentlinep
+         ,timedotdayp >>= \ts -> modifyState (addTransactions ts)
          ] <?> "timedot day entry, or default year or comment line or blank line"
 
 addTransactions :: [Transaction] -> Journal -> Journal
@@ -92,7 +88,7 @@ addTransactions ts j = foldl' (flip ($)) j (map addTransaction ts)
 -- biz.research .
 -- inc.client1  .... .... .... .... .... ....
 -- @
-timedotdayp :: ParsecT [Char] JournalParseState (ExceptT String IO) [Transaction]
+timedotdayp :: ErroringJournalParser [Transaction]
 timedotdayp = do
   ptrace " timedotdayp"
   d <- datep <* eolof
@@ -104,7 +100,7 @@ timedotdayp = do
 -- @
 -- fos.haskell  .... ..
 -- @
-timedotentryp :: ParsecT [Char] JournalParseState (ExceptT String IO) Transaction
+timedotentryp :: ErroringJournalParser Transaction
 timedotentryp = do
   ptrace "  timedotentryp"
   pos <- genericSourcePos <$> getPosition
@@ -128,14 +124,14 @@ timedotentryp = do
         }
   return t
 
-timedotdurationp :: ParsecT [Char] JournalParseState (ExceptT String IO) Quantity
+timedotdurationp :: ErroringJournalParser Quantity
 timedotdurationp = try timedotnumberp <|> timedotdotsp
 
 -- | Parse a duration written as a decimal number of hours (optionally followed by the letter h).
 -- @
 -- 1.5h
 -- @
-timedotnumberp :: ParsecT [Char] JournalParseState (ExceptT String IO) Quantity
+timedotnumberp :: ErroringJournalParser Quantity
 timedotnumberp = do
    (q, _, _, _) <- numberp
    many spacenonewline
@@ -147,7 +143,7 @@ timedotnumberp = do
 -- @
 -- .... ..
 -- @
-timedotdotsp :: ParsecT [Char] JournalParseState (ExceptT String IO) Quantity
+timedotdotsp :: ErroringJournalParser Quantity
 timedotdotsp = do
   dots <- filter (not.isSpace) <$> many (oneOf ". ")
   return $ (/4) $ fromIntegral $ length dots

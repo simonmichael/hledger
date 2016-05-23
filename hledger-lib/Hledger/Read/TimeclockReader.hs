@@ -51,9 +51,9 @@ module Hledger.Read.TimeclockReader (
 where
 import Prelude ()
 import Prelude.Compat
-import Control.Monad (liftM)
+import Control.Monad
+import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Except (ExceptT)
-import Data.List (foldl')
 import Data.Maybe (fromMaybe)
 import Test.HUnit
 import Text.Parsec hiding (parse)
@@ -61,9 +61,7 @@ import System.FilePath
 
 import Hledger.Data
 -- XXX too much reuse ?
-import Hledger.Read.Common (
-  emptyorcommentlinep, datetimep, parseAndFinaliseJournal, modifiedaccountnamep, genericSourcePos
-  )
+import Hledger.Read.Common
 import Hledger.Utils
 
 
@@ -85,22 +83,27 @@ detect f s
 parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal timeclockfilep
 
-timeclockfilep :: ParsecT [Char] JournalParseState (ExceptT String IO) (JournalUpdate, JournalParseState)
-timeclockfilep = do items <- many timeclockitemp
+timeclockfilep :: ErroringJournalParser ParsedJournal
+timeclockfilep = do many timeclockitemp
                     eof
-                    jps <- getState
-                    return (liftM (foldl' (\acc new x -> new (acc x)) id) $ sequence items, jps)
+                    j@Journal{jtxns=ts, jparsetimeclockentries=es} <- getState
+                    -- Convert timeclock entries in this journal to transactions, closing any unfinished sessions.
+                    -- Doing this here rather than in journalFinalise means timeclock sessions can't span file boundaries,
+                    -- but it simplifies code above.
+                    now <- liftIO getCurrentLocalTime
+                    let j' = j{jtxns = ts ++ timeclockEntriesToTransactions now (reverse es), jparsetimeclockentries = []}
+                    return j'
     where
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
       timeclockitemp = choice [ 
-                            emptyorcommentlinep >> return (return id)
-                          , liftM (return . addTimeclockEntry)  timeclockentryp
+                            void emptyorcommentlinep
+                          , timeclockentryp >>= \e -> modifyState (\j -> j{jparsetimeclockentries = e : jparsetimeclockentries j})
                           ] <?> "timeclock entry, or default year or historical price directive"
 
 -- | Parse a timeclock entry.
-timeclockentryp :: ParsecT [Char] JournalParseState (ExceptT String IO) TimeclockEntry
+timeclockentryp :: ErroringJournalParser TimeclockEntry
 timeclockentryp = do
   sourcepos <- genericSourcePos <$> getPosition
   code <- oneOf "bhioO"

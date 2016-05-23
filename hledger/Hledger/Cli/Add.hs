@@ -181,8 +181,8 @@ dateAndCodeWizard EntryState{..} = do
     where
       parseSmartDateAndCode refdate s = either (const Nothing) (\(d,c) -> return (fixSmartDate refdate d, c)) edc
           where
-            edc = runParser (dateandcodep <* eof) nulljps "" $ lowercase s
-            dateandcodep :: Stream [Char] m t => ParsecT [Char] JournalParseState m (SmartDate, String)
+            edc = runParser (dateandcodep <* eof) mempty "" $ lowercase s
+            dateandcodep :: Monad m => JournalParser m (SmartDate, String)
             dateandcodep = do
                 d <- smartdate
                 c <- optionMaybe codep
@@ -245,7 +245,7 @@ accountWizard EntryState{..} = do
       parseAccountOrDotOrNull _  _ "."       = dbg1 $ Just "." -- . always signals end of txn
       parseAccountOrDotOrNull "" True ""     = dbg1 $ Just ""  -- when there's no default and txn is balanced, "" also signals end of txn
       parseAccountOrDotOrNull def@(_:_) _ "" = dbg1 $ Just def -- when there's a default, "" means use that
-      parseAccountOrDotOrNull _ _ s          = dbg1 $ either (const Nothing) validateAccount $ runParser (accountnamep <* eof) (jparsestate esJournal) "" s -- otherwise, try to parse the input as an accountname
+      parseAccountOrDotOrNull _ _ s          = dbg1 $ either (const Nothing) validateAccount $ runParser (accountnamep <* eof) esJournal "" s -- otherwise, try to parse the input as an accountname
       dbg1 = id -- strace
       validateAccount s | no_new_accounts_ esOpts && not (s `elem` journalAccountNames esJournal) = Nothing
                         | otherwise = Just s
@@ -270,8 +270,8 @@ amountAndCommentWizard EntryState{..} = do
    line $ green $ printf "Amount  %d%s: " pnum (showDefault def)
     where
       parseAmountAndComment = either (const Nothing) Just . runParser (amountandcommentp <* eof) noDefCommodityJPS ""
-      noDefCommodityJPS = (jparsestate esJournal){jpsDefaultCommodityAndStyle=Nothing}
-      amountandcommentp :: Stream [Char] m t => ParsecT [Char] JournalParseState m (Amount, String)
+      noDefCommodityJPS = esJournal{jparsedefaultcommodity=Nothing}
+      amountandcommentp :: Monad m => JournalParser m (Amount, String)
       amountandcommentp = do
         a <- amountp
         many spacenonewline
@@ -291,7 +291,7 @@ amountAndCommentWizard EntryState{..} = do
   --
   -- let -- (amt,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') amtcmt
       -- a           = fromparse $ runParser (amountp <|> return missingamt) (jparsestate esJournal) "" amt
-  --     awithoutjps = fromparse $ runParser (amountp <|> return missingamt) nulljps              "" amt
+  --     awithoutjps = fromparse $ runParser (amountp <|> return missingamt) mempty              "" amt
   --     defamtaccepted = Just (showAmount a) == mdefamt
   --     es2 = if defamtaccepted then es1 else es1{esHistoricalPostings=Nothing}
   --     mdefaultcommodityapplied = if acommodity a == acommodity awithoutjps then Nothing else Just $ acommodity a

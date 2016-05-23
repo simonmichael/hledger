@@ -129,14 +129,14 @@ journalReloadIfChanged opts _d j = do
 -- | Has the journal's main data file changed since the journal was last
 -- read ?
 journalFileIsNewer :: Journal -> IO Bool
-journalFileIsNewer j@Journal{filereadtime=tread} = do
+journalFileIsNewer j@Journal{jlastreadtime=tread} = do
   tmod <- fileModificationTime $ journalFilePath j
   return $ diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
 
 -- | Has the specified file (presumably one of journal's data files)
 -- changed since journal was last read ?
 journalSpecifiedFileIsNewer :: Journal -> FilePath -> IO Bool
-journalSpecifiedFileIsNewer Journal{filereadtime=tread} f = do
+journalSpecifiedFileIsNewer Journal{jlastreadtime=tread} f = do
   tmod <- fileModificationTime f
   return $ diffClockTimes tmod tread > (TimeDiff 0 0 0 0 0 0 0)
 

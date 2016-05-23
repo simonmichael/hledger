@@ -56,14 +56,14 @@ module Hledger.Read.JournalReader (
   marketpricedirectivep,
   datetimep,
   datep,
-  codep,
-  accountnamep,
+  -- codep,
+  -- accountnamep,
   modifiedaccountnamep,
   postingp,
-  amountp,
-  amountp',
-  mamountp',
-  numberp,
+  -- amountp,
+  -- amountp',
+  -- mamountp',
+  -- numberp,
   statusp,
   emptyorcommentlinep,
   followingcommentp,
@@ -78,8 +78,10 @@ where
 import Prelude ()
 import Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
-import Control.Monad.Except (ExceptT(..), liftIO, runExceptT, throwError, catchError)
+import Control.Monad
+import Control.Monad.Except (ExceptT(..), liftIO, runExceptT, throwError)
 import qualified Data.Map.Strict as M
+import Data.Monoid
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Safe
@@ -121,32 +123,40 @@ parse _ = parseAndFinaliseJournal journalp
 --- * parsers
 --- ** journal
 
--- | Top-level journal parser. Returns a single composite, I/O performing,
--- error-raising "JournalUpdate" (and final "JournalParseState") which can be
--- applied to an empty journal to get the final result.
-journalp :: ErroringJournalParser (JournalUpdate,JournalParseState)
+-- | A journal parser. Accumulates and returns a "ParsedJournal",
+-- which should be finalised/validated before use.
+--
+-- >>> rejp (journalp <* eof) "2015/1/1\n a  0\n"
+-- Right Journal  with 1 transactions, 1 accounts
+--
+journalp :: ErroringJournalParser ParsedJournal
 journalp = do
-  journalupdates <- many journalItem
+  many addJournalItemP
   eof
-  finaljps <- getState
-  return (combineJournalUpdates journalupdates, finaljps)
-    where
-      -- As all journal line types can be distinguished by the first
-      -- character, excepting transactions versus empty (blank or
-      -- comment-only) lines, can use choice w/o try
-      journalItem = choice [ directivep
-                           , fmap (return . addTransaction) transactionp
-                           , fmap (return . addModifierTransaction) modifiertransactionp
-                           , fmap (return . addPeriodicTransaction) periodictransactionp
-                           , fmap (return . addMarketPrice) marketpricedirectivep
-                           , emptyorcommentlinep >> return (return id)
-                           , multilinecommentp >> return (return id)
-                           ] <?> "transaction or directive"
+  getState
+
+-- | A side-effecting parser; parses any kind of journal item
+-- and updates the parse state accordingly.
+addJournalItemP :: ErroringJournalParser ()
+addJournalItemP = do
+  -- all journal line types can be distinguished by the first
+  -- character, can use choice without backtracking
+  choice [
+      directivep
+    , transactionp          >>= modifyState . addTransaction
+    , modifiertransactionp  >>= modifyState . addModifierTransaction
+    , periodictransactionp  >>= modifyState . addPeriodicTransaction
+    , marketpricedirectivep >>= modifyState . addMarketPrice
+    , void emptyorcommentlinep
+    , void multilinecommentp
+    ] <?> "transaction or directive"
 
 --- ** directives
 
--- cf http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
-directivep :: ErroringJournalParser JournalUpdate
+-- | Parse any journal directive and update the parse state accordingly.
+-- Cf http://hledger.org/manual.html#directives,
+-- http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
+directivep :: ErroringJournalParser ()
 directivep = do
   optional $ char '!'
   choice' [
@@ -166,51 +176,65 @@ directivep = do
    ]
   <?> "directive"
 
-includedirectivep :: ErroringJournalParser JournalUpdate
+newJournalWithParseStateFrom :: Journal -> Journal
+newJournalWithParseStateFrom j = mempty{
+   jparsedefaultyear          = jparsedefaultyear j
+  ,jparsedefaultcommodity     = jparsedefaultcommodity j
+  ,jparseparentaccounts       = jparseparentaccounts j
+  ,jparsealiases              = jparsealiases j
+  ,jparsetransactioncount     = jparsetransactioncount j
+  ,jparsetimeclockentries = jparsetimeclockentries j
+  }
+
+includedirectivep :: ErroringJournalParser ()
 includedirectivep = do
   string "include"
   many1 spacenonewline
-  filename <- restofline
-  outerState <- getState
-  outerPos <- getPosition
-  let curdir = takeDirectory (sourceName outerPos)
-  -- XXX clean this up, probably after getting rid of JournalUpdate
-  let (u::ExceptT String IO (Journal -> Journal, JournalParseState)) = do
-       filepath <- expandPath curdir filename
-       txt <- readFileOrError outerPos filepath
-       let inIncluded = show outerPos ++ " in included file " ++ show filename ++ ":\n"
-       r <- runParserT
-            (choice' [journalp
-                     ,timeclockfilep
-                     ,timedotfilep
-                     -- can't include a csv file yet, that reader is special
-                     ])
-            outerState filepath txt
+  filename  <- restofline
+  parentpos <- getPosition
+  parentj   <- getState
+  let childj = newJournalWithParseStateFrom parentj
+  (ep :: Either String ParsedJournal) <-
+    liftIO $ runExceptT $ do
+      let curdir = takeDirectory (sourceName parentpos)
+      filepath <- expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
+      txt      <- readFile' filepath         `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
+      (ep1::Either ParseError ParsedJournal) <-
+        runParserT 
+           (choice' [journalp
+                    ,timeclockfilep
+                    ,timedotfilep
+                    -- can't include a csv file yet, that reader is special
+                    ])
+           childj filepath txt
+      either
+        (throwError
+          . ((show parentpos ++ " in included file " ++ show filename ++ ":\n") ++)
+          . show)
+        (return . journalAddFile (filepath,txt))
+        ep1
+  case ep of
+    Left e       -> throwError e
+    Right jchild -> modifyState (\jparent ->
+                                  -- trace ("jparent txns: " ++ show (jtxns jparent)) $ trace ("jchild txns: "++ show (jtxns jchild)) $
+                                  jchild <> jparent)
 
-       case r of
-         Right (ju, jps) -> do
-                            u <- combineJournalUpdates [ return $ journalAddFile (filepath,txt)
-                                                       , ju
-                                                       ] `catchError` (throwError . (inIncluded ++))
-                            return (u, jps)
-         Left err -> throwError $ inIncluded ++ show err
-       where readFileOrError pos fp =
-                ExceptT $ fmap Right (readFile' fp) `C.catch`
-                  \e -> return $ Left $ printf "%s reading %s:\n%s" (show pos) fp (show (e::C.IOException))
-  r <- liftIO $ runExceptT u
-  case r of
-    Left err -> return $ throwError err
-    Right (ju, _finalparsejps) -> return $ ExceptT $ return $ Right ju
+-- | Lift an IO action into the exception monad, rethrowing any IO
+-- error with the given message prepended.
+orRethrowIOError :: IO a -> String -> ExceptT String IO a
+orRethrowIOError io msg =
+  ExceptT $
+    (Right <$> io)
+    `C.catch` \(e::C.IOException) -> return $ Left $ printf "%s:\n%s" msg (show e)
 
-accountdirectivep :: ErroringJournalParser JournalUpdate
+accountdirectivep :: ErroringJournalParser ()
 accountdirectivep = do
   string "account"
   many1 spacenonewline
   acct <- accountnamep
   newline
   _ <- many indentedlinep
-  pushAccount acct
-  return $ ExceptT $ return $ Right id
+  modifyState (\j -> j{jaccounts = acct : jaccounts j})
 
 indentedlinep = many1 spacenonewline >> (rstrip <$> restofline)
 
@@ -220,14 +244,14 @@ indentedlinep = many1 spacenonewline >> (rstrip <$> restofline)
 -- >>> Right _ <- rejp commoditydirectivep "commodity $\n  format $1.00"
 -- >>> Right _ <- rejp commoditydirectivep "commodity $\n\n" -- a commodity with no format
 -- >>> Right _ <- rejp commoditydirectivep "commodity $1.00\n  format $1.00" -- both, what happens ?
-commoditydirectivep :: ErroringJournalParser JournalUpdate
+commoditydirectivep :: ErroringJournalParser ()
 commoditydirectivep = try commoditydirectiveonelinep <|> commoditydirectivemultilinep
 
 -- | Parse a one-line commodity directive.
 --
 -- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00"
 -- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
-commoditydirectiveonelinep :: ErroringJournalParser JournalUpdate
+commoditydirectiveonelinep :: ErroringJournalParser ()
 commoditydirectiveonelinep = do
   string "commodity"
   many1 spacenonewline
@@ -235,12 +259,12 @@ commoditydirectiveonelinep = do
   many spacenonewline
   _ <- followingcommentp <|> (eolof >> return "")
   let comm = Commodity{csymbol=acommodity, cformat=Just astyle}
-  return $ ExceptT $ return $ Right $ \j -> j{jcommodities=M.insert acommodity comm $ jcommodities j}
+  modifyState (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
 
 -- | Parse a multi-line commodity directive, containing 0 or more format subdirectives.
 --
 -- >>> Right _ <- rejp commoditydirectivemultilinep "commodity $ ; blah \n  format $1.00 ; blah"
-commoditydirectivemultilinep :: ErroringJournalParser JournalUpdate
+commoditydirectivemultilinep :: ErroringJournalParser ()
 commoditydirectivemultilinep = do
   string "commodity"
   many1 spacenonewline
@@ -248,9 +272,9 @@ commoditydirectivemultilinep = do
   _ <- followingcommentp <|> (eolof >> return "")
   mformat <- lastMay <$> many (indented $ formatdirectivep sym)
   let comm = Commodity{csymbol=sym, cformat=mformat}
-  return $ ExceptT $ return $ Right $ \j -> j{jcommodities=M.insert sym comm $ jcommodities j}
-
-indented = (many1 spacenonewline >>)
+  modifyState (\j -> j{jcommodities=M.insert sym comm $ jcommodities j})
+  where
+    indented = (many1 spacenonewline >>)
 
 -- | Parse a format (sub)directive, throwing a parse error if its
 -- symbol does not match the one given.
@@ -266,28 +290,25 @@ formatdirectivep expectedsym = do
     else parserErrorAt pos $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 
-applyaccountdirectivep :: ErroringJournalParser JournalUpdate
+applyaccountdirectivep :: ErroringJournalParser ()
 applyaccountdirectivep = do
   string "apply" >> many1 spacenonewline >> string "account"
   many1 spacenonewline
   parent <- accountnamep
   newline
   pushParentAccount parent
-  return $ ExceptT $ return $ Right id
 
-endapplyaccountdirectivep :: ErroringJournalParser JournalUpdate
+endapplyaccountdirectivep :: ErroringJournalParser ()
 endapplyaccountdirectivep = do
   string "end" >> many1 spacenonewline >> string "apply" >> many1 spacenonewline >> string "account"
   popParentAccount
-  return $ ExceptT $ return $ Right id
 
-aliasdirectivep :: ErroringJournalParser JournalUpdate
+aliasdirectivep :: ErroringJournalParser ()
 aliasdirectivep = do
   string "alias"
   many1 spacenonewline
   alias <- accountaliasp
   addAccountAlias alias
-  return $ return id
 
 accountaliasp :: Monad m => StringParser u m AccountAlias
 accountaliasp = regexaliasp <|> basicaliasp
@@ -313,27 +334,26 @@ regexaliasp = do
   repl <- rstrip <$> anyChar `manyTill` eolof
   return $ RegexAlias re repl
 
-endaliasesdirectivep :: ErroringJournalParser JournalUpdate
+endaliasesdirectivep :: ErroringJournalParser ()
 endaliasesdirectivep = do
   string "end aliases"
   clearAccountAliases
-  return (return id)
 
-tagdirectivep :: ErroringJournalParser JournalUpdate
+tagdirectivep :: ErroringJournalParser ()
 tagdirectivep = do
   string "tag" <?> "tag directive"
   many1 spacenonewline
   _ <- many1 nonspace
   restofline
-  return $ return id
+  return ()
 
-endtagdirectivep :: ErroringJournalParser JournalUpdate
+endtagdirectivep :: ErroringJournalParser ()
 endtagdirectivep = do
   (string "end tag" <|> string "pop") <?> "end tag or pop directive"
   restofline
-  return $ return id
+  return ()
 
-defaultyeardirectivep :: ErroringJournalParser JournalUpdate
+defaultyeardirectivep :: ErroringJournalParser ()
 defaultyeardirectivep = do
   char 'Y' <?> "default year"
   many spacenonewline
@@ -341,16 +361,14 @@ defaultyeardirectivep = do
   let y' = read y
   failIfInvalidYear y
   setYear y'
-  return $ return id
 
-defaultcommoditydirectivep :: ErroringJournalParser JournalUpdate
+defaultcommoditydirectivep :: ErroringJournalParser ()
 defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
   many1 spacenonewline
   Amount{..} <- amountp
-  setDefaultCommodityAndStyle (acommodity, astyle)
   restofline
-  return $ return id
+  setDefaultCommodityAndStyle (acommodity, astyle)
 
 marketpricedirectivep :: ErroringJournalParser MarketPrice
 marketpricedirectivep = do
@@ -364,15 +382,15 @@ marketpricedirectivep = do
   restofline
   return $ MarketPrice date symbol price
 
-ignoredpricecommoditydirectivep :: ErroringJournalParser JournalUpdate
+ignoredpricecommoditydirectivep :: ErroringJournalParser ()
 ignoredpricecommoditydirectivep = do
   char 'N' <?> "ignored-price commodity"
   many1 spacenonewline
   commoditysymbolp
   restofline
-  return $ return id
+  return ()
 
-commodityconversiondirectivep :: ErroringJournalParser JournalUpdate
+commodityconversiondirectivep :: ErroringJournalParser ()
 commodityconversiondirectivep = do
   char 'C' <?> "commodity conversion"
   many1 spacenonewline
@@ -382,7 +400,7 @@ commodityconversiondirectivep = do
   many spacenonewline
   amountp
   restofline
-  return $ return id
+  return ()
 
 --- ** transactions
 
@@ -416,13 +434,13 @@ transactionp = do
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = commentTags comment
   postings <- postingsp (Just date)
-  idx <- incrementTransactionIndex
-  return $ txnTieKnot $ Transaction idx sourcepos date edate status code description comment tags postings ""
+  n <- incrementTransactionCount
+  return $ txnTieKnot $ Transaction n sourcepos date edate status code description comment tags postings ""
 
 #ifdef TESTS
 test_transactionp = do
     let s `gives` t = do
-                        let p = parseWithState nulljps transactionp s
+                        let p = parseWithState mempty transactionp s
                         assertBool $ isRight p
                         let Right t2 = p
                             -- same f = assertEqual (f t) (f t2)
@@ -475,7 +493,7 @@ test_transactionp = do
       tdate=parsedate "2015/01/01",
       }
 
-    assertRight $ parseWithState nulljps transactionp $ unlines
+    assertRight $ parseWithState mempty transactionp $ unlines
       ["2007/01/28 coopportunity"
       ,"    expenses:food:groceries                   $47.18"
       ,"    assets:checking                          $-47.18"
@@ -483,25 +501,25 @@ test_transactionp = do
       ]
 
     -- transactionp should not parse just a date
-    assertLeft $ parseWithState nulljps transactionp "2009/1/1\n"
+    assertLeft $ parseWithState mempty transactionp "2009/1/1\n"
 
     -- transactionp should not parse just a date and description
-    assertLeft $ parseWithState nulljps transactionp "2009/1/1 a\n"
+    assertLeft $ parseWithState mempty transactionp "2009/1/1 a\n"
 
     -- transactionp should not parse a following comment as part of the description
-    let p = parseWithState nulljps transactionp "2009/1/1 a ;comment\n b 1\n"
+    let p = parseWithState mempty transactionp "2009/1/1 a ;comment\n b 1\n"
     assertRight p
     assertEqual "a" (let Right p' = p in tdescription p')
 
     -- parse transaction with following whitespace line
-    assertRight $ parseWithState nulljps transactionp $ unlines
+    assertRight $ parseWithState mempty transactionp $ unlines
         ["2012/1/1"
         ,"  a  1"
         ,"  b"
         ," "
         ]
 
-    let p = parseWithState nulljps transactionp $ unlines
+    let p = parseWithState mempty transactionp $ unlines
              ["2009/1/1 x  ; transaction comment"
              ," a  1  ; posting 1 comment"
              ," ; posting 1 comment 2"
@@ -555,7 +573,7 @@ postingp mtdate = do
 #ifdef TESTS
 test_postingp = do
     let s `gives` ep = do
-                         let parse = parseWithState nulljps (postingp Nothing) s
+                         let parse = parseWithState mempty (postingp Nothing) s
                          assertBool -- "postingp parser"
                            $ isRight parse
                          let Right ap = parse
@@ -587,12 +605,12 @@ test_postingp = do
                         ,pdate=parsedateM "2012/11/28"}
 
     assertBool -- "postingp parses a quoted commodity with numbers"
-      (isRight $ parseWithState nulljps (postingp Nothing) "  a  1 \"DE123\"\n")
+      (isRight $ parseWithState mempty (postingp Nothing) "  a  1 \"DE123\"\n")
 
   -- ,"postingp parses balance assertions and fixed lot prices" ~: do
-    assertBool (isRight $ parseWithState nulljps (postingp Nothing) "  a  1 \"DE123\" =$1 { =2.2 EUR} \n")
+    assertBool (isRight $ parseWithState mempty (postingp Nothing) "  a  1 \"DE123\" =$1 { =2.2 EUR} \n")
 
-    -- let parse = parseWithState nulljps postingp " a\n ;next-line comment\n"
+    -- let parse = parseWithState mempty postingp " a\n ;next-line comment\n"
     -- assertRight parse
     -- let Right p = parse
     -- assertEqual "next-line comment\n" (pcomment p)
@@ -619,30 +637,30 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
     test_transactionp,
     [
    "modifiertransactionp" ~: do
-     assertParse (parseWithState nulljps modifiertransactionp "= (some value expr)\n some:postings  1\n")
+     assertParse (parseWithState mempty modifiertransactionp "= (some value expr)\n some:postings  1\n")
 
   ,"periodictransactionp" ~: do
-     assertParse (parseWithState nulljps periodictransactionp "~ (some period expr)\n some:postings  1\n")
+     assertParse (parseWithState mempty periodictransactionp "~ (some period expr)\n some:postings  1\n")
 
   ,"directivep" ~: do
-     assertParse (parseWithState nulljps directivep "!include /some/file.x\n")
-     assertParse (parseWithState nulljps directivep "account some:account\n")
-     assertParse (parseWithState nulljps (directivep >> directivep) "!account a\nend\n")
+     assertParse (parseWithState mempty directivep "!include /some/file.x\n")
+     assertParse (parseWithState mempty directivep "account some:account\n")
+     assertParse (parseWithState mempty (directivep >> directivep) "!account a\nend\n")
 
   ,"comment" ~: do
-     assertParse (parseWithState nulljps comment "; some comment \n")
-     assertParse (parseWithState nulljps comment " \t; x\n")
-     assertParse (parseWithState nulljps comment "#x")
+     assertParse (parseWithState mempty comment "; some comment \n")
+     assertParse (parseWithState mempty comment " \t; x\n")
+     assertParse (parseWithState mempty comment "#x")
 
   ,"datep" ~: do
-     assertParse (parseWithState nulljps datep "2011/1/1")
-     assertParseFailure (parseWithState nulljps datep "1/1")
-     assertParse (parseWithState nulljps{jpsYear=Just 2011} datep "1/1")
+     assertParse (parseWithState mempty datep "2011/1/1")
+     assertParseFailure (parseWithState mempty datep "1/1")
+     assertParse (parseWithState mempty{jpsYear=Just 2011} datep "1/1")
 
   ,"datetimep" ~: do
       let p = do {t <- datetimep; eof; return t}
-          bad = assertParseFailure . parseWithState nulljps p
-          good = assertParse . parseWithState nulljps p
+          bad = assertParseFailure . parseWithState mempty p
+          good = assertParse . parseWithState mempty p
       bad "2011/1/1"
       bad "2011/1/1 24:00:00"
       bad "2011/1/1 00:60:00"
@@ -652,31 +670,31 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
       good "2011/1/1 3:5:7"
       -- timezone is parsed but ignored
       let startofday = LocalTime (fromGregorian 2011 1 1) (TimeOfDay 0 0 (fromIntegral 0))
-      assertParseEqual (parseWithState nulljps p "2011/1/1 00:00-0800") startofday
-      assertParseEqual (parseWithState nulljps p "2011/1/1 00:00+1234") startofday
+      assertParseEqual (parseWithState mempty p "2011/1/1 00:00-0800") startofday
+      assertParseEqual (parseWithState mempty p "2011/1/1 00:00+1234") startofday
 
   ,"defaultyeardirectivep" ~: do
-     assertParse (parseWithState nulljps defaultyeardirectivep "Y 2010\n")
-     assertParse (parseWithState nulljps defaultyeardirectivep "Y 10001\n")
+     assertParse (parseWithState mempty defaultyeardirectivep "Y 2010\n")
+     assertParse (parseWithState mempty defaultyeardirectivep "Y 10001\n")
 
   ,"marketpricedirectivep" ~:
-    assertParseEqual (parseWithState nulljps marketpricedirectivep "P 2004/05/01 XYZ $55.00\n") (MarketPrice (parsedate "2004/05/01") "XYZ" $ usd 55)
+    assertParseEqual (parseWithState mempty marketpricedirectivep "P 2004/05/01 XYZ $55.00\n") (MarketPrice (parsedate "2004/05/01") "XYZ" $ usd 55)
 
   ,"ignoredpricecommoditydirectivep" ~: do
-     assertParse (parseWithState nulljps ignoredpricecommoditydirectivep "N $\n")
+     assertParse (parseWithState mempty ignoredpricecommoditydirectivep "N $\n")
 
   ,"defaultcommoditydirectivep" ~: do
-     assertParse (parseWithState nulljps defaultcommoditydirectivep "D $1,000.0\n")
+     assertParse (parseWithState mempty defaultcommoditydirectivep "D $1,000.0\n")
 
   ,"commodityconversiondirectivep" ~: do
-     assertParse (parseWithState nulljps commodityconversiondirectivep "C 1h = $50.00\n")
+     assertParse (parseWithState mempty commodityconversiondirectivep "C 1h = $50.00\n")
 
   ,"tagdirectivep" ~: do
-     assertParse (parseWithState nulljps tagdirectivep "tag foo \n")
+     assertParse (parseWithState mempty tagdirectivep "tag foo \n")
 
   ,"endtagdirectivep" ~: do
-     assertParse (parseWithState nulljps endtagdirectivep "end tag \n")
-     assertParse (parseWithState nulljps endtagdirectivep "pop \n")
+     assertParse (parseWithState mempty endtagdirectivep "end tag \n")
+     assertParse (parseWithState mempty endtagdirectivep "pop \n")
 
   ,"accountnamep" ~: do
     assertBool "accountnamep parses a normal account name" (isRight $ parsewith accountnamep "a:b:c")
@@ -685,15 +703,15 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
     assertBool "accountnamep rejects an empty trailing component" (isLeft $ parsewith accountnamep "a:b:")
 
   ,"leftsymbolamountp" ~: do
-    assertParseEqual (parseWithState nulljps leftsymbolamountp "$1")  (usd 1 `withPrecision` 0)
-    assertParseEqual (parseWithState nulljps leftsymbolamountp "$-1") (usd (-1) `withPrecision` 0)
-    assertParseEqual (parseWithState nulljps leftsymbolamountp "-$1") (usd (-1) `withPrecision` 0)
+    assertParseEqual (parseWithState mempty leftsymbolamountp "$1")  (usd 1 `withPrecision` 0)
+    assertParseEqual (parseWithState mempty leftsymbolamountp "$-1") (usd (-1) `withPrecision` 0)
+    assertParseEqual (parseWithState mempty leftsymbolamountp "-$1") (usd (-1) `withPrecision` 0)
 
   ,"amount" ~: do
      let -- | compare a parse result with an expected amount, showing the debug representation for clarity
          assertAmountParse parseresult amount =
              (either (const "parse error") showAmountDebug parseresult) ~?= (showAmountDebug amount)
-     assertAmountParse (parseWithState nulljps amountp "1 @ $2")
+     assertAmountParse (parseWithState mempty amountp "1 @ $2")
        (num 1 `withPrecision` 0 `at` (usd 2 `withPrecision` 0))
 
  ]]

@@ -1,4 +1,4 @@
--- {-# LANGUAGE CPP #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-|
 
 A 'Journal' is a set of transactions, plus optional related data.  This is
@@ -12,7 +12,6 @@ module Hledger.Data.Journal (
   addMarketPrice,
   addModifierTransaction,
   addPeriodicTransaction,
-  addTimeclockEntry,
   addTransaction,
   journalApplyAliases,
   journalBalanceTransactions,
@@ -52,7 +51,6 @@ module Hledger.Data.Journal (
   -- * Misc
   canonicalStyleFrom,
   matchpats,
-  nulljps,
   nulljournal,
   -- * Tests
   samplejournal,
@@ -67,7 +65,6 @@ import Data.Monoid
 import Data.Ord
 import Safe (headMay, headDef)
 import Data.Time.Calendar
-import Data.Time.LocalTime
 import Data.Tree
 import System.Time (ClockTime(TOD))
 import Test.HUnit
@@ -82,9 +79,13 @@ import Hledger.Data.Amount
 import Hledger.Data.Dates
 import Hledger.Data.Transaction
 import Hledger.Data.Posting
-import Hledger.Data.Timeclock
 import Hledger.Query
 
+
+-- try to make Journal ppShow-compatible
+-- instance Show ClockTime where
+--   show t = "<ClockTime>"
+-- deriving instance Show Journal
 
 instance Show Journal where
   show j
@@ -108,7 +109,7 @@ instance Show Journal where
               length (jperiodictxns j))
              (length accounts)
              (show accounts)
-             (show $ jcommoditystyles j)
+             (show $ jinferredcommodities j)
              -- ++ (show $ journalTransactions l)
              where accounts = filter (/= "root") $ flatten $ journalAccountNameTree j
 
@@ -117,74 +118,73 @@ instance Show Journal where
 --                      ,show (jtxns j)
 --                      ,show (jmodifiertxns j)
 --                      ,show (jperiodictxns j)
---                      ,show $ open_timeclock_entries j
+--                      ,show $ jparsetimeclockentries j
 --                      ,show $ jmarketprices j
---                      ,show $ final_comment_lines j
+--                      ,show $ jfinalcommentlines j
 --                      ,show $ jparsestate j
---                      ,show $ map fst $ files j
+--                      ,show $ map fst $ jfiles j
 --                      ]
 
--- The monoid instance for Journal concatenates the list fields,
--- combines the map fields, keeps the final comment lines of the
--- second journal, and keeps the latest of their last read times.
--- See JournalParseState for how the final parse states are combined.
+-- The monoid instance for Journal is useful for two situations.
+-- 
+-- 1. concatenating finalised journals, eg with multiple -f options:
+-- FIRST <> SECOND. The second's list fields are appended to the
+-- first's, map fields are combined, transaction counts are summed,
+-- the parse state of the second is kept.
+-- 
+-- 2. merging a child parsed journal, eg with the include directive:
+-- CHILD <> PARENT. A parsed journal's data is in reverse order, so
+-- this gives what we want.
+--
 instance Monoid Journal where
   mempty = nulljournal
-  mappend j1 j2 =
-    Journal{jmodifiertxns          = jmodifiertxns j1          <> jmodifiertxns j2
-           ,jperiodictxns          = jperiodictxns j1          <> jperiodictxns j2
-           ,jtxns                  = jtxns j1                  <> jtxns j2
-           ,jcommoditystyles       = jcommoditystyles j1       <> jcommoditystyles j2
-           ,jcommodities           = jcommodities j1           <> jcommodities j2
-           ,open_timeclock_entries = open_timeclock_entries j1 <> open_timeclock_entries j2
-           ,jmarketprices          = jmarketprices j1          <> jmarketprices j2
-           ,final_comment_lines    = final_comment_lines j1    <> final_comment_lines j2
-           ,jparsestate            = jparsestate j1            <> jparsestate j2
-           ,files                  = files j1                  <> files j2
-           ,filereadtime           = max (filereadtime j1) (filereadtime j2)
-           }
+  mappend j1 j2 = Journal {
+     jparsedefaultyear          = jparsedefaultyear          j2
+    ,jparsedefaultcommodity     = jparsedefaultcommodity     j2
+    ,jparseparentaccounts       = jparseparentaccounts       j2
+    ,jparsealiases              = jparsealiases              j2
+    ,jparsetransactioncount     = jparsetransactioncount     j1 +  jparsetransactioncount     j2
+    ,jparsetimeclockentries = jparsetimeclockentries j1 <> jparsetimeclockentries j2
+    ,jaccounts                  = jaccounts                  j1 <> jaccounts                  j2
+    ,jcommodities               = jcommodities               j1 <> jcommodities               j2
+    ,jinferredcommodities       = jinferredcommodities       j1 <> jinferredcommodities       j2
+    ,jmarketprices              = jmarketprices              j1 <> jmarketprices              j2
+    ,jmodifiertxns              = jmodifiertxns              j1 <> jmodifiertxns              j2
+    ,jperiodictxns              = jperiodictxns              j1 <> jperiodictxns              j2
+    ,jtxns                      = jtxns                      j1 <> jtxns                      j2
+    ,jfinalcommentlines         = jfinalcommentlines         j2
+    ,jfiles                     = jfiles                     j1 <> jfiles                     j2
+    ,jlastreadtime              = max (jlastreadtime j1) (jlastreadtime j2)
+    }
 
 nulljournal :: Journal
-nulljournal = Journal { jmodifiertxns = []
-                      , jperiodictxns = []
-                      , jtxns = []
-                      , jcommodities = M.fromList []
-                      , open_timeclock_entries = []
-                      , jmarketprices = []
-                      , final_comment_lines = []
-                      , jparsestate = nulljps
-                      , files = []
-                      , filereadtime = TOD 0 0
-                      , jcommoditystyles = M.fromList []
-                      }
-
--- The monoid instance for JournalParseState mostly discards the
--- second parse state, except the accounts defined by account
--- directives are concatenated, and the transaction indices (counts of
--- transactions parsed, if any) are added.
-instance Monoid JournalParseState where
-  mempty = nulljps
-  mappend c1 c2 =
-    JournalParseState {
-          jpsYear                     = jpsYear c1
-        , jpsDefaultCommodityAndStyle = jpsDefaultCommodityAndStyle c1
-        , jpsAccounts                 = jpsAccounts c1 ++ jpsAccounts c2
-        , jpsParentAccount            = jpsParentAccount c1
-        , jpsAliases                  = jpsAliases c1
-        , jpsTransactionIndex         = jpsTransactionIndex c1 + jpsTransactionIndex c2
-        }
-
-nulljps :: JournalParseState
-nulljps = JournalParseState{jpsYear=Nothing, jpsDefaultCommodityAndStyle=Nothing, jpsAccounts=[], jpsParentAccount=[], jpsAliases=[], jpsTransactionIndex=0}
+nulljournal = Journal {
+   jparsedefaultyear          = Nothing
+  ,jparsedefaultcommodity     = Nothing
+  ,jparseparentaccounts       = []
+  ,jparsealiases              = []
+  ,jparsetransactioncount     = 0
+  ,jparsetimeclockentries = []
+  ,jaccounts                  = []
+  ,jcommodities               = M.fromList []
+  ,jinferredcommodities       = M.fromList []
+  ,jmarketprices              = []
+  ,jmodifiertxns              = []
+  ,jperiodictxns              = []
+  ,jtxns                      = []
+  ,jfinalcommentlines         = []
+  ,jfiles                     = []
+  ,jlastreadtime              = TOD 0 0
+  }
 
 journalFilePath :: Journal -> FilePath
 journalFilePath = fst . mainfile
 
 journalFilePaths :: Journal -> [FilePath]
-journalFilePaths = map fst . files
+journalFilePaths = map fst . jfiles
 
 mainfile :: Journal -> (FilePath, String)
-mainfile = headDef ("", "") . files
+mainfile = headDef ("", "") . jfiles
 
 addTransaction :: Transaction -> Journal -> Journal
 addTransaction t j = j { jtxns = t : jtxns j }
@@ -197,9 +197,6 @@ addPeriodicTransaction pt j = j { jperiodictxns = pt : jperiodictxns j }
 
 addMarketPrice :: MarketPrice -> Journal -> Journal
 addMarketPrice h j = j { jmarketprices = h : jmarketprices j }
-
-addTimeclockEntry :: TimeclockEntry -> Journal -> Journal
-addTimeclockEntry tle j = j { open_timeclock_entries = tle : open_timeclock_entries j }
 
 -- | Get the transaction with this index (its 1-based position in the input stream), if any.
 journalTransactionAt :: Journal -> Integer -> Maybe Transaction
@@ -452,22 +449,20 @@ journalApplyAliases aliases j@Journal{jtxns=ts} =
       dotransaction t@Transaction{tpostings=ps} = t{tpostings=map doposting ps}
       doposting p@Posting{paccount=a} = p{paccount= accountNameApplyAliases aliases a}
 
--- | Do post-parse processing on a journal to make it ready for use: check
--- all transactions balance, canonicalise amount formats, close any open
--- timeclock entries, maybe check balance assertions and so on.
-journalFinalise :: ClockTime -> LocalTime -> FilePath -> String -> JournalParseState -> Bool -> Journal -> Either String Journal
-journalFinalise tclock tlocal path txt jps assrt j@Journal{files=fs} = do
+-- | Do post-parse processing on a parsed journal to make it ready for
+-- use.  Reverse parsed data to normal order, canonicalise amount
+-- formats, check/ensure that transactions are balanced, and maybe
+-- check balance assertions.
+journalFinalise :: ClockTime -> FilePath -> String -> Bool -> ParsedJournal -> Either String Journal
+journalFinalise t path txt assrt j@Journal{jfiles=fs} = do
   (journalBalanceTransactions $
     journalApplyCommodityStyles $
-    journalCloseTimeclockEntries tlocal $
-    j{ files=(path,txt):fs
-     , filereadtime=tclock
-     , jparsestate=jps
-     , jtxns=reverse $ jtxns j -- NOTE: see addTransaction
-     , jmodifiertxns=reverse $ jmodifiertxns j -- NOTE: see addModifierTransaction
-     , jperiodictxns=reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
-     , jmarketprices=reverse $ jmarketprices j -- NOTE: see addMarketPrice
-     , open_timeclock_entries=reverse $ open_timeclock_entries j -- NOTE: see addTimeclockEntry
+    j{ jfiles        = (path,txt) : reverse fs
+     , jlastreadtime = t
+     , jtxns         = reverse $ jtxns j -- NOTE: see addTransaction
+     , jmodifiertxns = reverse $ jmodifiertxns j -- NOTE: see addModifierTransaction
+     , jperiodictxns = reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
+     , jmarketprices = reverse $ jmarketprices j -- NOTE: see addMarketPrice
      })
   >>= if assrt then journalCheckBalanceAssertions else return
 
@@ -553,7 +548,7 @@ splitAssertions ps
 -- amounts and working out the canonical commodities, since balancing
 -- depends on display precision. Reports only the first error encountered.
 journalBalanceTransactions :: Journal -> Either String Journal
-journalBalanceTransactions j@Journal{jtxns=ts, jcommoditystyles=ss} =
+journalBalanceTransactions j@Journal{jtxns=ts, jinferredcommodities=ss} =
   case sequence $ map balance ts of Right ts' -> Right j{jtxns=map txnTieKnot ts'}
                                     Left e    -> Left e
       where balance = balanceTransaction (Just ss)
@@ -583,7 +578,7 @@ journalCommodityStyle j c =
   headDef amountstyle{asprecision=2} $
   catMaybes [
      M.lookup c (jcommodities j) >>= cformat
-    ,M.lookup c $ jcommoditystyles j
+    ,M.lookup c $ jinferredcommodities j
     ]
 
 -- | Infer a display format for each commodity based on the amounts parsed.
@@ -591,7 +586,7 @@ journalCommodityStyle j c =
 -- commodity, and the highest precision of all posting amounts in the commodity."
 journalInferCommodityStyles :: Journal -> Journal
 journalInferCommodityStyles j =
-  j{jcommoditystyles =
+  j{jinferredcommodities =
         commodityStylesFromAmounts $
         dbg8 "journalChooseCommmodityStyles using amounts" $ journalAmounts j}
 
@@ -642,11 +637,6 @@ canonicalStyleFrom ss@(first:_) =
 --   case ps of (MarketPrice{mpamount=a}:_) -> Just a
 --              _ -> Nothing
 
--- | Close any open timeclock sessions in this journal using the provided current time.
-journalCloseTimeclockEntries :: LocalTime -> Journal -> Journal
-journalCloseTimeclockEntries now j@Journal{jtxns=ts, open_timeclock_entries=es} =
-  j{jtxns = ts ++ (timeclockEntriesToTransactions now es), open_timeclock_entries = []}
-
 -- | Convert all this journal's amounts to cost by applying their prices, if any.
 journalConvertAmountsToCost :: Journal -> Journal
 journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
@@ -655,7 +645,7 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount = canonicaliseAmount (jcommoditystyles j) . costOfAmount
+      fixamount = canonicaliseAmount (jinferredcommodities j) . costOfAmount
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 -- journalCanonicalCommodities :: Journal -> M.Map String CommoditySymbol

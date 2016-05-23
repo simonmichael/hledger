@@ -10,6 +10,7 @@ to import modules below this one.
 
 module Hledger.Read
   (
+       module Hledger.Read.Common,
        readFormatNames,
        -- * Journal reading API
        defaultJournalPath,
@@ -22,12 +23,12 @@ module Hledger.Read
        ensureJournalFileExists,
        -- * Parsers used elsewhere
        postingp,
-       accountnamep,
-       amountp,
-       amountp',
-       mamountp',
-       numberp,
-       codep,
+       -- accountnamep,
+       -- amountp,
+       -- amountp',
+       -- mamountp',
+       -- numberp,
+       -- codep,
        accountaliasp,
        -- * Tests
        samplejournal,
@@ -47,8 +48,8 @@ import Test.HUnit
 import Text.Printf
 
 import Hledger.Data.Dates (getCurrentDay)
-import Hledger.Data.Journal (nulljps)
 import Hledger.Data.Types
+import Hledger.Read.Common
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.TimedotReader as TimedotReader
 import Hledger.Read.TimeclockReader as TimeclockReader
@@ -259,7 +260,7 @@ tests_Hledger_Read = TestList $
    tests_Hledger_Read_CsvReader,
 
    "journal" ~: do
-    r <- runExceptT $ parseWithState nulljps JournalReader.journalp ""
+    r <- runExceptT $ parseWithState mempty JournalReader.journalp ""
     assertBool "journalp should parse an empty file" (isRight $ r)
     jE <- readJournal Nothing Nothing True Nothing "" -- don't know how to get it from journal
     either error' (assertBool "journalp parsing an empty file should give an empty journal" . null . jtxns) jE

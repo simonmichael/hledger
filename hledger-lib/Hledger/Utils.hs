@@ -32,7 +32,6 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           )
 where
 import Control.Monad (liftM)
-import Control.Monad.IO.Class (MonadIO, liftIO)
 -- import Data.Char
 -- import Data.List
 -- import Data.Maybe
@@ -115,13 +114,14 @@ applyN n f = (!! n) . iterate f
 
 -- | Convert a possibly relative, possibly tilde-containing file path to an absolute one,
 -- given the current directory. ~username is not supported. Leave "-" unchanged.
-expandPath :: MonadIO m => FilePath -> FilePath -> m FilePath -- general type sig for use in reader parsers
+-- Can raise an error.
+expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
 expandPath _ "-" = return "-"
 expandPath curdir p = (if isRelative p then (curdir </>) else id) `liftM` expandPath' p
   where
-    expandPath' ('~':'/':p)  = liftIO $ (</> p) `fmap` getHomeDirectory
-    expandPath' ('~':'\\':p) = liftIO $ (</> p) `fmap` getHomeDirectory
-    expandPath' ('~':_)      = error' "~USERNAME in paths is not supported"
+    expandPath' ('~':'/':p)  = (</> p) <$> getHomeDirectory
+    expandPath' ('~':'\\':p) = (</> p) <$> getHomeDirectory
+    expandPath' ('~':_)      = ioError $ userError "~USERNAME in paths is not supported"
     expandPath' p            = return p
 
 firstJust ms = case dropWhile (==Nothing) ms of

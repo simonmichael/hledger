@@ -43,7 +43,7 @@ import Hledger.Utils
 type StringParser u m a = ParsecT String u m a
 
 -- | A string parser with journal-parsing state.
-type JournalParser m a = StringParser JournalParseState m a
+type JournalParser m a = StringParser Journal m a
 
 -- | A journal parser that runs in IO and can throw an error mid-parse.
 type ErroringJournalParser a = JournalParser (ExceptT String IO) a
@@ -55,7 +55,7 @@ rsp = runStringParser
 
 -- | Run a journal parser with a null journal-parsing state.
 runJournalParser, rjp :: Monad m => JournalParser m a -> String -> m (Either ParseError a)
-runJournalParser p s = runParserT p nulljps "" s
+runJournalParser p s = runParserT p mempty "" s
 rjp = runJournalParser
 
 -- | Run an error-raising journal parser with a null journal-parsing state.
@@ -66,134 +66,72 @@ rejp = runErroringJournalParser
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (sourceLine p) (sourceColumn p)
 
--- | Flatten a list of JournalUpdate's (journal-transforming
--- monadic actions which can do IO or raise an exception) into a
--- single equivalent action.
-combineJournalUpdates :: [JournalUpdate] -> JournalUpdate
-combineJournalUpdates us = foldl' (flip (.)) id <$> sequence us
--- XXX may be contributing to excessive stack use
-
--- cf http://neilmitchell.blogspot.co.uk/2015/09/detecting-space-leaks.html
--- $ ./devprof +RTS -K576K -xc
--- Exception (reporting due to +RTS -xc): (THUNK_STATIC), stack trace:
---   Hledger.Read.JournalReader.combineJournalUpdates.\,
---   called from Hledger.Read.JournalReader.combineJournalUpdates,
---   called from Hledger.Read.JournalReader.fixedlotprice,
---   called from Hledger.Read.JournalReader.partialbalanceassertion,
---   called from Hledger.Read.JournalReader.getDefaultCommodityAndStyle,
---   called from Hledger.Read.JournalReader.priceamount,
---   called from Hledger.Read.JournalReader.nosymbolamount,
---   called from Hledger.Read.JournalReader.numberp,
---   called from Hledger.Read.JournalReader.rightsymbolamount,
---   called from Hledger.Read.JournalReader.simplecommoditysymbol,
---   called from Hledger.Read.JournalReader.quotedcommoditysymbol,
---   called from Hledger.Read.JournalReader.commoditysymbol,
---   called from Hledger.Read.JournalReader.signp,
---   called from Hledger.Read.JournalReader.leftsymbolamount,
---   called from Hledger.Read.JournalReader.amountp,
---   called from Hledger.Read.JournalReader.spaceandamountormissing,
---   called from Hledger.Read.JournalReader.accountnamep.singlespace,
---   called from Hledger.Utils.Parse.nonspace,
---   called from Hledger.Read.JournalReader.accountnamep,
---   called from Hledger.Read.JournalReader.getAccountAliases,
---   called from Hledger.Read.JournalReader.getParentAccount,
---   called from Hledger.Read.JournalReader.modifiedaccountnamep,
---   called from Hledger.Read.JournalReader.postingp,
---   called from Hledger.Read.JournalReader.postings,
---   called from Hledger.Read.JournalReader.commentStartingWith,
---   called from Hledger.Read.JournalReader.semicoloncomment,
---   called from Hledger.Read.JournalReader.followingcommentp,
---   called from Hledger.Read.JournalReader.descriptionp,
---   called from Hledger.Read.JournalReader.codep,
---   called from Hledger.Read.JournalReader.statusp,
---   called from Hledger.Utils.Parse.spacenonewline,
---   called from Hledger.Read.JournalReader.secondarydatep,
---   called from Hledger.Data.Dates.datesepchar,
---   called from Hledger.Read.JournalReader.datep,
---   called from Hledger.Read.JournalReader.transaction,
---   called from Hledger.Utils.Parse.choice',
---   called from Hledger.Read.JournalReader.directive,
---   called from Hledger.Read.JournalReader.emptyorcommentlinep,
---   called from Hledger.Read.JournalReader.multilinecommentp,
---   called from Hledger.Read.JournalReader.journal.journalItem,
---   called from Hledger.Read.JournalReader.journal,
---   called from Hledger.Read.JournalReader.parseJournalWith,
---   called from Hledger.Read.readJournal.tryReaders.firstSuccessOrBestError,
---   called from Hledger.Read.readJournal.tryReaders,
---   called from Hledger.Read.readJournal,
---   called from Main.main,
---   called from Main.CAF
--- Stack space overflow: current size 33568 bytes.
-
--- | Given a JournalUpdate-generating parsec parser, file path and data string,
--- parse and post-process a Journal so that it's ready to use, or give an error.
-parseAndFinaliseJournal :: ErroringJournalParser (JournalUpdate,JournalParseState) -> Bool -> FilePath -> String -> ExceptT String IO Journal
+-- | Given a parsec ParsedJournal parser, file path and data string,
+-- parse and post-process a ready-to-use Journal, or give an error.
+parseAndFinaliseJournal :: ErroringJournalParser ParsedJournal -> Bool -> FilePath -> String -> ExceptT String IO Journal
 parseAndFinaliseJournal parser assrt f s = do
-  tc <- liftIO getClockTime
-  tl <- liftIO getCurrentLocalTime
+  t <- liftIO getClockTime
   y <- liftIO getCurrentYear
-  r <- runParserT parser nulljps{jpsYear=Just y} f s
-  case r of
-    Right (updates,jps) -> do
-                           j <- ap updates (return nulljournal)
-                           case journalFinalise tc tl f s jps assrt j of
-                             Right j'  -> return j'
-                             Left estr -> throwError estr
-    Left e -> throwError $ show e
+  ep <- runParserT parser nulljournal{jparsedefaultyear=Just y} f s
+  case ep of
+    Right pj -> case journalFinalise t f s assrt pj of
+                        Right j -> return j
+                        Left e  -> throwError e
+    Left e   -> throwError $ show e
 
 setYear :: Monad m => Integer -> JournalParser m ()
-setYear y = modifyState (\jps -> jps{jpsYear=Just y})
+setYear y = modifyState (\j -> j{jparsedefaultyear=Just y})
 
 getYear :: Monad m => JournalParser m (Maybe Integer)
-getYear = fmap jpsYear getState
+getYear = fmap jparsedefaultyear getState
 
 setDefaultCommodityAndStyle :: Monad m => (CommoditySymbol,AmountStyle) -> JournalParser m ()
-setDefaultCommodityAndStyle cs = modifyState (\jps -> jps{jpsDefaultCommodityAndStyle=Just cs})
+setDefaultCommodityAndStyle cs = modifyState (\j -> j{jparsedefaultcommodity=Just cs})
 
 getDefaultCommodityAndStyle :: Monad m => JournalParser m (Maybe (CommoditySymbol,AmountStyle))
-getDefaultCommodityAndStyle = jpsDefaultCommodityAndStyle `fmap` getState
+getDefaultCommodityAndStyle = jparsedefaultcommodity `fmap` getState
 
-pushAccount :: Monad m => String -> JournalParser m ()
-pushAccount acct = modifyState addAccount
-    where addAccount jps0 = jps0 { jpsAccounts = acct : jpsAccounts jps0 }
+pushAccount :: Monad m => AccountName -> JournalParser m ()
+pushAccount acct = modifyState (\j -> j{jaccounts = acct : jaccounts j})
 
-pushParentAccount :: Monad m => String -> JournalParser m ()
-pushParentAccount parent = modifyState addParentAccount
-    where addParentAccount jps0 = jps0 { jpsParentAccount = parent : jpsParentAccount jps0 }
+pushParentAccount :: Monad m => AccountName -> JournalParser m ()
+pushParentAccount acct = modifyState (\j -> j{jparseparentaccounts = acct : jparseparentaccounts j})
 
 popParentAccount :: Monad m => JournalParser m ()
-popParentAccount = do jps0 <- getState
-                      case jpsParentAccount jps0 of
-                        [] -> unexpected "End of apply account block with no beginning"
-                        (_:rest) -> setState $ jps0 { jpsParentAccount = rest }
+popParentAccount = do
+  j <- getState
+  case jparseparentaccounts j of
+    []       -> unexpected "End of apply account block with no beginning"
+    (_:rest) -> setState j{jparseparentaccounts=rest}
 
 getParentAccount :: Monad m => JournalParser m String
-getParentAccount = fmap (concatAccountNames . reverse . jpsParentAccount) getState
+getParentAccount = fmap (concatAccountNames . reverse . jparseparentaccounts) getState
 
 addAccountAlias :: Monad m => AccountAlias -> JournalParser m ()
-addAccountAlias a = modifyState (\(jps@JournalParseState{..}) -> jps{jpsAliases=a:jpsAliases})
+addAccountAlias a = modifyState (\(j@Journal{..}) -> j{jparsealiases=a:jparsealiases})
 
 getAccountAliases :: Monad m => JournalParser m [AccountAlias]
-getAccountAliases = fmap jpsAliases getState
+getAccountAliases = fmap jparsealiases getState
 
 clearAccountAliases :: Monad m => JournalParser m ()
-clearAccountAliases = modifyState (\(jps@JournalParseState{..}) -> jps{jpsAliases=[]})
+clearAccountAliases = modifyState (\(j@Journal{..}) -> j{jparsealiases=[]})
 
-getTransactionIndex :: Monad m => JournalParser m Integer
-getTransactionIndex = fmap jpsTransactionIndex getState
+getTransactionCount :: Monad m => JournalParser m Integer
+getTransactionCount = fmap jparsetransactioncount getState
 
-setTransactionIndex :: Monad m => Integer -> JournalParser m ()
-setTransactionIndex i = modifyState (\jps -> jps{jpsTransactionIndex=i})
+setTransactionCount :: Monad m => Integer -> JournalParser m ()
+setTransactionCount i = modifyState (\j -> j{jparsetransactioncount=i})
 
 -- | Increment the transaction index by one and return the new value.
-incrementTransactionIndex :: Monad m => JournalParser m Integer
-incrementTransactionIndex = do
-  modifyState (\jps -> jps{jpsTransactionIndex=jpsTransactionIndex jps + 1})
-  getTransactionIndex
+incrementTransactionCount :: Monad m => JournalParser m Integer
+incrementTransactionCount = do
+  modifyState (\j -> j{jparsetransactioncount=jparsetransactioncount j + 1})
+  getTransactionCount
 
 journalAddFile :: (FilePath,String) -> Journal -> Journal
-journalAddFile f j@Journal{files=fs} = j{files=fs++[f]}
- -- NOTE: first encountered file to left, to avoid a reverse
+journalAddFile f j@Journal{jfiles=fs} = j{jfiles=fs++[f]}
+  -- append, unlike the other fields, even though we do a final reverse,
+  -- to compensate for additional reversal due to including/monoid-concatting
 
 -- -- | Terminate parsing entirely, returning the given error message
 -- -- with the current parse position prepended.
@@ -368,10 +306,10 @@ is' :: (Eq a, Show a) => a -> a -> Assertion
 a `is'` e = assertEqual e a
 
 test_spaceandamountormissingp = do
-    assertParseEqual' (parseWithState nulljps spaceandamountormissingp " $47.18") (Mixed [usd 47.18])
-    assertParseEqual' (parseWithState nulljps spaceandamountormissingp "$47.18") missingmixedamt
-    assertParseEqual' (parseWithState nulljps spaceandamountormissingp " ") missingmixedamt
-    assertParseEqual' (parseWithState nulljps spaceandamountormissingp "") missingmixedamt
+    assertParseEqual' (parseWithState mempty spaceandamountormissingp " $47.18") (Mixed [usd 47.18])
+    assertParseEqual' (parseWithState mempty spaceandamountormissingp "$47.18") missingmixedamt
+    assertParseEqual' (parseWithState mempty spaceandamountormissingp " ") missingmixedamt
+    assertParseEqual' (parseWithState mempty spaceandamountormissingp "") missingmixedamt
 #endif
 
 -- | Parse a single-commodity amount, with optional symbol on the left or
@@ -382,22 +320,22 @@ amountp = try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
 
 #ifdef TESTS
 test_amountp = do
-    assertParseEqual' (parseWithState nulljps amountp "$47.18") (usd 47.18)
-    assertParseEqual' (parseWithState nulljps amountp "$1.") (usd 1 `withPrecision` 0)
+    assertParseEqual' (parseWithState mempty amountp "$47.18") (usd 47.18)
+    assertParseEqual' (parseWithState mempty amountp "$1.") (usd 1 `withPrecision` 0)
   -- ,"amount with unit price" ~: do
     assertParseEqual'
-     (parseWithState nulljps amountp "$10 @ €0.5")
+     (parseWithState mempty amountp "$10 @ €0.5")
      (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1))
   -- ,"amount with total price" ~: do
     assertParseEqual'
-     (parseWithState nulljps amountp "$10 @@ €5")
+     (parseWithState mempty amountp "$10 @@ €5")
      (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
 #endif
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
 amountp' s =
-  case runParser (amountp <* eof) nulljps "" s of
+  case runParser (amountp <* eof) mempty "" s of
     Right t -> t
     Left err -> error' $ show err -- XXX should throwError
 
@@ -572,8 +510,8 @@ numberp = do
     numeric = isNumber . headDef '_'
 
 -- test_numberp = do
---       let s `is` n = assertParseEqual (parseWithState nulljps numberp s) n
---           assertFails = assertBool . isLeft . parseWithState nulljps numberp
+--       let s `is` n = assertParseEqual (parseWithState mempty numberp s) n
+--           assertFails = assertBool . isLeft . parseWithState mempty numberp
 --       assertFails ""
 --       "0"          `is` (0, 0, '.', ',', [])
 --       "1"          `is` (1, 0, '.', ',', [])
@@ -796,9 +734,9 @@ datetagp mdefdate = do
   startpos <- getPosition
   v <- tagvaluep
   -- re-parse value as a date.
-  jps <- getState
+  j <- getState
   ep <- parseWithState
-    jps{jpsYear=first3.toGregorian <$> mdefdate}
+    j{jparsedefaultyear=first3.toGregorian <$> mdefdate}
     -- The value extends to a comma, newline, or end of file.
     -- It seems like ignoring any extra stuff following a date
     -- gives better errors here.
@@ -855,9 +793,9 @@ bracketeddatetagsp mdefdate = do
 
   -- looks sufficiently like a bracketed date, now we
   -- re-parse as dates and throw any errors
-  jps <- getState
+  j <- getState
   ep <- parseWithState
-    jps{jpsYear=first3.toGregorian <$> mdefdate}
+    j{jparsedefaultyear=first3.toGregorian <$> mdefdate}
     (do
         setPosition startpos
         md1 <- optionMaybe datep

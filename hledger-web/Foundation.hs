@@ -391,7 +391,7 @@ addform _ vd@VD{..} = [hamlet|
        where
         amtvar = "amount" ++ show n
         amtph = "Amount " ++ show n
-        filepaths = map fst $ files j
+        filepaths = map fst $ jfiles j
 
            -- <button .btn style="font-size:18px;" type=submit title="Add this transaction">Add
 

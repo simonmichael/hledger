@@ -9,6 +9,6 @@ hledger -f- stats
 <<<
 include a.j
 include b.j
->>> /Included files *: *\.\/a/
+>>> /Included files *: *\.\/a\.j/
 >>>2
 >>>=0

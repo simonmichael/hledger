@@ -141,7 +141,7 @@ hledgerApiApp staticdir j = Servant.serve api server
         accountnamesH = return $ journalAccountNames j
         transactionsH = return $ jtxns j
         pricesH       = return $ jmarketprices j
-        commoditiesH  = return $ (M.keys . jcommoditystyles) j
+        commoditiesH  = return $ (M.keys . jinferredcommodities) j
         accountsH     = return $ ledgerTopAccounts $ ledgerFromJournal Hledger.Query.Any j
         accounttransactionsH (a::AccountName) = do
           -- d <- liftIO getCurrentDay

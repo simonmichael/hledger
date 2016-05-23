@@ -222,52 +222,48 @@ instance NFData MarketPrice
 
 type Year = Integer
 
--- | Journal parse state is data we want to keep track of in the
--- course of parsing a journal. An example is the default year, which
--- changes when a Y directive is encountered.  At the end of parsing,
--- the final state is saved for later use by eg the add command.
-data JournalParseState = JournalParseState {
-      jpsYear                     :: !(Maybe Year)                          -- ^ the default year most recently specified with Y
-    , jpsDefaultCommodityAndStyle :: !(Maybe (CommoditySymbol,AmountStyle)) -- ^ the default commodity and amount style most recently specified with D
-    , jpsAccounts                 :: ![AccountName]                         -- ^ the accounts that have been defined with account directives so far
-    , jpsParentAccount            :: ![AccountName]                         -- ^ the current stack of parent accounts/account name components
-                                                                            --   specified with "apply account" directive(s). Concatenated, these
-                                                                            --   are the account prefix prepended to parsed account names.
-    , jpsAliases                  :: ![AccountAlias]                        -- ^ the current list of account name aliases in effect
-    , jpsTransactionIndex         :: !Integer                               -- ^ the number of transactions read so far. (Does not count
-                                                                            --   timeclock/timedot/CSV entries, currently).
-    } deriving (Read, Show, Eq, Data, Typeable, Generic)
-
-instance NFData JournalParseState
+-- | A Journal, containing transactions and various other things.
+-- The basic data model for hledger.
+--
+-- This is used during parsing (as the type alias ParsedJournal), and
+-- then finalised/validated for use as a Journal. Some extra
+-- parsing-related fields are included for convenience, at least for
+-- now. In a ParsedJournal these are updated as parsing proceeds, in a
+-- Journal they represent the final state at end of parsing (used eg
+-- by the add command).
+--
+data Journal = Journal {
+  -- parsing-related data
+   jparsedefaultyear      :: (Maybe Year)                          -- ^ the current default year, specified by the most recent Y directive (or current date)
+  ,jparsedefaultcommodity :: (Maybe (CommoditySymbol,AmountStyle)) -- ^ the current default commodity and its format, specified by the most recent D directive
+  ,jparseparentaccounts   :: [AccountName]                         -- ^ the current stack of parent account names, specified by apply account directives
+  ,jparsealiases          :: [AccountAlias]                        -- ^ the current account name aliases in effect, specified by alias directives (& options ?)
+  ,jparsetransactioncount :: Integer                               -- ^ the current count of transactions parsed so far (only journal format txns, currently)
+  ,jparsetimeclockentries :: [TimeclockEntry]                   -- ^ timeclock sessions which have not been clocked out
+  -- principal data
+  ,jaccounts              :: [AccountName]                         -- ^ accounts that have been declared by account directives
+  ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
+  ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts
+  ,jmarketprices          :: [MarketPrice]
+  ,jmodifiertxns          :: [ModifierTransaction]
+  ,jperiodictxns          :: [PeriodicTransaction]
+  ,jtxns                  :: [Transaction]
+  ,jfinalcommentlines     :: String                                 -- ^ any final trailing comments in the (main) journal file
+  ,jfiles                 :: [(FilePath, String)]                   -- ^ the file path and raw text of the main and
+                                                                    --   any included journal files. The main file is first,
+                                                                    --   followed by any included files in the order encountered.
+  ,jlastreadtime          :: ClockTime                              -- ^ when this journal was last read from its file(s)
+  } deriving (Eq, Typeable, Data, Generic)
 
 deriving instance Data (ClockTime)
 deriving instance Typeable (ClockTime)
 deriving instance Generic (ClockTime)
-
 instance NFData ClockTime
-
-data Journal = Journal {
-      jmodifiertxns          :: [ModifierTransaction],
-      jperiodictxns          :: [PeriodicTransaction],
-      jtxns                  :: [Transaction],
-      jcommoditystyles       :: M.Map CommoditySymbol AmountStyle, -- ^ commodities and formats inferred from journal amounts
-      jcommodities           :: M.Map CommoditySymbol Commodity,   -- ^ commodities and formats defined by commodity directives
-      open_timeclock_entries :: [TimeclockEntry],
-      jmarketprices          :: [MarketPrice],
-      final_comment_lines    :: String,                            -- ^ any trailing comments from the journal file
-      jparsestate            :: JournalParseState,                 -- ^ the final parse state
-      files                  :: [(FilePath, String)],              -- ^ the file path and raw text of the main and
-                                                                   --   any included journal files. The main file is
-                                                                   --   first followed by any included files in the
-                                                                   --   order encountered.
-      filereadtime           :: ClockTime                          -- ^ when this journal was last read from its file(s)
-    } deriving (Eq, Typeable, Data, Generic)
-
 instance NFData Journal
 
--- | A JournalUpdate is some transformation of a Journal. It can do I/O or
--- raise an exception.
-type JournalUpdate = ExceptT String IO (Journal -> Journal)
+-- | A journal in the process of being parsed, not yet finalised.
+-- The data is partial, and list fields are in reverse order.
+type ParsedJournal = Journal
 
 -- | The id of a data format understood by hledger, eg @journal@ or @csv@.
 -- The --output-format option selects one of these for output.
