@@ -176,16 +176,6 @@ directivep = do
    ]
   <?> "directive"
 
-newJournalWithParseStateFrom :: Journal -> Journal
-newJournalWithParseStateFrom j = mempty{
-   jparsedefaultyear          = jparsedefaultyear j
-  ,jparsedefaultcommodity     = jparsedefaultcommodity j
-  ,jparseparentaccounts       = jparseparentaccounts j
-  ,jparsealiases              = jparsealiases j
-  ,jparsetransactioncount     = jparsetransactioncount j
-  ,jparsetimeclockentries = jparsetimeclockentries j
-  }
-
 includedirectivep :: ErroringJournalParser ()
 includedirectivep = do
   string "include"
@@ -194,12 +184,12 @@ includedirectivep = do
   parentpos <- getPosition
   parentj   <- getState
   let childj = newJournalWithParseStateFrom parentj
-  (ep :: Either String ParsedJournal) <-
+  (ej :: Either String ParsedJournal) <-
     liftIO $ runExceptT $ do
       let curdir = takeDirectory (sourceName parentpos)
       filepath <- expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
       txt      <- readFile' filepath         `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
-      (ep1::Either ParseError ParsedJournal) <-
+      (ej1::Either ParseError ParsedJournal) <-
         runParserT 
            (choice' [journalp
                     ,timeclockfilep
@@ -212,12 +202,21 @@ includedirectivep = do
           . ((show parentpos ++ " in included file " ++ show filename ++ ":\n") ++)
           . show)
         (return . journalAddFile (filepath,txt))
-        ep1
-  case ep of
+        ej1
+  case ej of
     Left e       -> throwError e
-    Right jchild -> modifyState (\jparent ->
-                                  -- trace ("jparent txns: " ++ show (jtxns jparent)) $ trace ("jchild txns: "++ show (jtxns jchild)) $
-                                  jchild <> jparent)
+    Right childj -> modifyState (\parentj -> childj <> parentj)
+    -- discard child's parse info, prepend its (reversed) list data, combine other fields
+
+newJournalWithParseStateFrom :: Journal -> Journal
+newJournalWithParseStateFrom j = mempty{
+   jparsedefaultyear      = jparsedefaultyear j
+  ,jparsedefaultcommodity = jparsedefaultcommodity j
+  ,jparseparentaccounts   = jparseparentaccounts j
+  ,jparsealiases          = jparsealiases j
+  ,jparsetransactioncount = jparsetransactioncount j
+  ,jparsetimeclockentries = jparsetimeclockentries j
+  }
 
 -- | Lift an IO action into the exception monad, rethrowing any IO
 -- error with the given message prepended.
