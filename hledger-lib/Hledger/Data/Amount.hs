@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP, StandaloneDeriving, RecordWildCards #-}
 {-|
 A simple 'Amount' is some quantity of money, shares, or anything else.
 It has a (possibly null) 'CommoditySymbol' and a numeric quantity:
@@ -40,6 +39,8 @@ with similar amounts since it mostly ignores assigned prices and commodity
 exchange rates.
 
 -}
+
+{-# LANGUAGE CPP, StandaloneDeriving, RecordWildCards, OverloadedStrings #-}
 
 module Hledger.Data.Amount (
   -- * Amount
@@ -106,6 +107,8 @@ import Data.Function (on)
 import Data.List
 import Data.Map (findWithDefault)
 import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Test.HUnit
 import Text.Printf
 import qualified Data.Map as M
@@ -258,14 +261,14 @@ showAmountHelper :: Bool -> Amount -> String
 showAmountHelper _ Amount{acommodity="AUTO"} = ""
 showAmountHelper showzerocommodity a@(Amount{acommodity=c, aprice=p, astyle=AmountStyle{..}}) =
     case ascommodityside of
-      L -> printf "%s%s%s%s" c' space quantity' price
-      R -> printf "%s%s%s%s" quantity' space c' price
+      L -> printf "%s%s%s%s" (T.unpack c') space quantity' price
+      R -> printf "%s%s%s%s" quantity' space (T.unpack c') price
     where
       quantity = showamountquantity a
       displayingzero = null $ filter (`elem` digits) $ quantity
       (quantity',c') | displayingzero && not showzerocommodity = ("0","")
                      | otherwise = (quantity, quoteCommoditySymbolIfNeeded c)
-      space = if (not (null c') && ascommodityspaced) then " " else "" :: String
+      space = if (not (T.null c') && ascommodityspaced) then " " else "" :: String
       price = showPrice p
 
 -- | Like showAmount, but show a zero amount's commodity if it has one.

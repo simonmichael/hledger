@@ -4,6 +4,8 @@ A ledger-compatible @print@ command.
 
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Cli.Print (
   printmode
  ,print'
@@ -13,6 +15,8 @@ module Hledger.Cli.Print (
 where
 
 import Data.List
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
 import Test.HUnit
 import Text.CSV
@@ -124,7 +128,7 @@ postingToCSV p =
   map (\(a@(Amount {aquantity=q,acommodity=c})) ->
     let a_ = a{acommodity=""} in
     let amount = showAmount a_ in
-    let commodity = c in
+    let commodity = T.unpack c in
     let credit = if q < 0 then showAmount $ negate a_ else "" in
     let debit  = if q > 0 then showAmount a_ else "" in
     account:amount:commodity:credit:debit:status:comment:[])

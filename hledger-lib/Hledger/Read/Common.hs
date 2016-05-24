@@ -13,7 +13,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 -}
 
 --- * module
-{-# LANGUAGE CPP, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections #-}
+{-# LANGUAGE CPP, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
 
 module Hledger.Read.Common
 where
@@ -386,18 +386,18 @@ nosymbolamountp = do
   return $ Amount c q p s
   <?> "no-symbol amount"
 
-commoditysymbolp :: Monad m => JournalParser m String
+commoditysymbolp :: Monad m => JournalParser m CommoditySymbol
 commoditysymbolp = (quotedcommoditysymbolp <|> simplecommoditysymbolp) <?> "commodity symbol"
 
-quotedcommoditysymbolp :: Monad m => JournalParser m String
+quotedcommoditysymbolp :: Monad m => JournalParser m CommoditySymbol
 quotedcommoditysymbolp = do
   char '"'
   s <- many1 $ noneOf ";\n\""
   char '"'
-  return s
+  return $ T.pack s
 
-simplecommoditysymbolp :: Monad m => JournalParser m String
-simplecommoditysymbolp = many1 (noneOf nonsimplecommoditychars)
+simplecommoditysymbolp :: Monad m => JournalParser m CommoditySymbol
+simplecommoditysymbolp = T.pack <$> many1 (noneOf nonsimplecommoditychars)
 
 priceamountp :: Monad m => JournalParser m Price
 priceamountp =

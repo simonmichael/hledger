@@ -6,10 +6,16 @@ display 'Amount's of the commodity - is the symbol on the left or right,
 are thousands separated by comma, significant decimal places and so on.
 
 -}
+
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Data.Commodity
 where
 import Data.List
 import Data.Maybe (fromMaybe)
+import Data.Monoid
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Test.HUnit
 -- import qualified Data.Map as M
 
@@ -18,9 +24,9 @@ import Hledger.Utils
 
 
 -- characters that may not be used in a non-quoted commodity symbol
-nonsimplecommoditychars = "0123456789-+.@;\n \"{}=" :: String
+nonsimplecommoditychars = "0123456789-+.@;\n \"{}=" :: [Char]
 
-quoteCommoditySymbolIfNeeded s | any (`elem` nonsimplecommoditychars) s = "\"" ++ s ++ "\""
+quoteCommoditySymbolIfNeeded s | any (`elem` nonsimplecommoditychars) (T.unpack s) = "\"" <> s <> "\""
                                | otherwise = s
 
 commodity = ""

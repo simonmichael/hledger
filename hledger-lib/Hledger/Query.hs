@@ -608,7 +608,7 @@ matchesAmount (Or qs) a = any (`matchesAmount` a) qs
 matchesAmount (And qs) a = all (`matchesAmount` a) qs
 --
 matchesAmount (Amt ord n) a = compareAmount ord n a
-matchesAmount (Sym r) a = regexMatchesCI ("^" ++ r ++ "$") $ acommodity a
+matchesAmount (Sym r) a = regexMatchesCI ("^" ++ r ++ "$") $ T.unpack $ acommodity a
 --
 matchesAmount _ _ = True
 
@@ -650,7 +650,7 @@ matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
 -- matchesPosting (Empty False) Posting{pamount=a} = True
 -- matchesPosting (Empty True) Posting{pamount=a} = isZeroMixedAmount a
 matchesPosting (Empty _) _ = True
-matchesPosting (Sym r) Posting{pamount=Mixed as} = any (regexMatchesCI $ "^" ++ r ++ "$") $ map acommodity as
+matchesPosting (Sym r) Posting{pamount=Mixed as} = any (regexMatchesCI $ "^" ++ r ++ "$") $ map (T.unpack . acommodity) as
 matchesPosting (Tag n v) p = not $ null $ matchedTags n v $ postingAllTags p
 -- matchesPosting _ _ = False
 

@@ -126,7 +126,7 @@ registerChartHtml percommoditytxnreports =
            ],
           /* [] */
         ],
-        label: '#{shownull c}',
+        label: '#{shownull $ T.unpack c}',
         color: #{colorForCommodity c},
         lines: {
           show: true,

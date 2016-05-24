@@ -101,7 +101,7 @@ data DigitGroupStyle = DigitGroups Char [Int]
 
 instance NFData DigitGroupStyle
 
-type CommoditySymbol = String
+type CommoditySymbol = Text
 
 data Commodity = Commodity {
   csymbol :: CommoditySymbol,
