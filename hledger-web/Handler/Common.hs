@@ -7,7 +7,8 @@ module Handler.Common where
 import Import
 
 import Data.List
-import Data.Text(pack)
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar
 import System.FilePath (takeFileName)
 #if BLAZE_HTML_0_4
@@ -221,17 +222,17 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
                        Just m' -> if m' `matchesAccount` acct then "inacct" else "notinacct"
                        Nothing -> "" :: String
        indent = preEscapedString $ concat $ replicate (2 * (1+aindent)) "&nbsp;"
-       acctquery = (RegisterR, [("q", pack $ accountQuery acct)])
-       acctonlyquery = (RegisterR, [("q", pack $ accountOnlyQuery acct)])
+       acctquery = (RegisterR, [("q", T.pack $ accountQuery acct)])
+       acctonlyquery = (RegisterR, [("q", T.pack $ accountOnlyQuery acct)])
 
 accountQuery :: AccountName -> String
-accountQuery a = "inacct:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
+accountQuery a = "inacct:" ++ quoteIfSpaced (T.unpack a) -- (accountNameToAccountRegex a)
 
 accountOnlyQuery :: AccountName -> String
-accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced a -- (accountNameToAccountRegex a)
+accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced (T.unpack a) -- (accountNameToAccountRegex a)
 
 accountUrl :: AppRoute -> AccountName -> (AppRoute, [(Text, Text)])
-accountUrl r a = (r, [("q", pack $ accountQuery a)])
+accountUrl r a = (r, [("q", T.pack $ accountQuery a)])
 
 -- stringIfLongerThan :: Int -> String -> String
 -- stringIfLongerThan n s = if length s > n then s else ""

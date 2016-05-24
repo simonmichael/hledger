@@ -1,4 +1,4 @@
-{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE StandaloneDeriving, OverloadedStrings #-}
 {-|
 
 A 'Journal' is a set of transactions, plus optional related data.  This is
@@ -63,6 +63,8 @@ import Data.List
 import Data.Maybe
 import Data.Monoid
 import Data.Ord
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Safe (headMay, headDef)
 import Data.Time.Calendar
 import Data.Tree
@@ -520,7 +522,7 @@ checkBalanceAssertion (errs,startbal) ps
                       "%s"
                       ])
                  (showDate $ postingDate p)
-                 (paccount p)
+                 (T.unpack $ paccount p) -- XXX pack
                  assertedcomm
                  (showMixedAmount assertedbal)
                  (showMixedAmount finalsinglebal)
@@ -528,7 +530,7 @@ checkBalanceAssertion (errs,startbal) ps
                  (showPostingLine p)
                  (case ptransaction p of
                     Nothing -> ""
-                    Just t -> printf "in transaction at %s line %d:\n%s" f l (show t)
+                    Just t -> printf "in transaction at %s line %d:\n%s" f l (show t) :: String
                               where GenericSourcePos f l _ = tsourcepos t
                  )
 

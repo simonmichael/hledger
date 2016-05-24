@@ -3,7 +3,7 @@ A history-aware add command to help with data entry.
 |-}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
-{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings #-}
 
 module Hledger.Cli.Add
 where
@@ -17,6 +17,8 @@ import Data.Char (toUpper, toLower)
 import Data.List.Compat
 import qualified Data.Set as S
 import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import Data.Typeable (Typeable)
 import Safe (headDef, headMay)
@@ -216,10 +218,10 @@ postingWizard es@EntryState{..} = do
   else do
     let es1 = es{esArgs=drop 1 esArgs}
     (amt,comment)  <- amountAndCommentWizard es1
-    return $ Just nullposting{paccount=stripbrackets acct
+    return $ Just nullposting{paccount=T.pack $ stripbrackets acct
                              ,pamount=Mixed [amt]
                              ,pcomment=comment
-                             ,ptype=accountNamePostingType acct
+                             ,ptype=accountNamePostingType $ T.pack acct
                              }
 
 postingsBalanced :: [Posting] -> Bool
@@ -245,7 +247,7 @@ accountWizard EntryState{..} = do
       parseAccountOrDotOrNull _  _ "."       = dbg1 $ Just "." -- . always signals end of txn
       parseAccountOrDotOrNull "" True ""     = dbg1 $ Just ""  -- when there's no default and txn is balanced, "" also signals end of txn
       parseAccountOrDotOrNull def@(_:_) _ "" = dbg1 $ Just def -- when there's a default, "" means use that
-      parseAccountOrDotOrNull _ _ s          = dbg1 $ either (const Nothing) validateAccount $ runParser (accountnamep <* eof) esJournal "" s -- otherwise, try to parse the input as an accountname
+      parseAccountOrDotOrNull _ _ s          = dbg1 $ either (const Nothing) ((T.unpack <$>) . validateAccount) $ runParser (accountnamep <* eof) esJournal "" s -- otherwise, try to parse the input as an accountname
       dbg1 = id -- strace
       validateAccount s | no_new_accounts_ esOpts && not (s `elem` journalAccountNames esJournal) = Nothing
                         | otherwise = Just s
@@ -315,7 +317,7 @@ descriptionCompleter :: Journal -> String -> CompletionFunc IO
 descriptionCompleter j = completer (journalDescriptions j)
 
 accountCompleter :: Journal -> String -> CompletionFunc IO
-accountCompleter j = completer (journalAccountNamesUsed j)
+accountCompleter j = completer (map T.unpack $ journalAccountNamesUsed j)
 
 amountCompleter :: String -> CompletionFunc IO
 amountCompleter = completer []
@@ -407,7 +409,7 @@ compareDescriptions :: String -> String -> Double
 compareDescriptions s t = compareStrings s' t'
     where s' = simplify s
           t' = simplify t
-          simplify = filter (not . (`elem` "0123456789"))
+          simplify = filter (not . (`elem` ("0123456789" :: String)))
 
 -- | Return a similarity measure, from 0 to 1, for two strings.  This
 -- was based on Simon White's string similarity algorithm

@@ -82,6 +82,7 @@ library
     , regex-tdfa
     , safe >= 0.2
     , split >= 0.1 && < 0.3
+    , text >= 1.2 && < 1.3
     , transformers >= 0.2 && < 0.6
     , uglymemo
     , utf8-string >= 0.3.5 && < 1.1
@@ -132,6 +133,7 @@ library
       Hledger.Utils.Regex
       Hledger.Utils.String
       Hledger.Utils.Test
+      Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
   default-language: Haskell2010
@@ -161,6 +163,7 @@ test-suite hunittests
     , regex-tdfa
     , safe >= 0.2
     , split >= 0.1 && < 0.3
+    , text >= 1.2 && < 1.3
     , transformers >= 0.2 && < 0.6
     , uglymemo
     , utf8-string >= 0.3.5 && < 1.1

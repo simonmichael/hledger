@@ -1,10 +1,11 @@
-{-# LANGUAGE DeriveDataTypeable #-}
 {-|
 
 A general query system for matching things (accounts, postings,
 transactions..)  by various criteria, and a parser for query expressions.
 
 -}
+
+{-# LANGUAGE DeriveDataTypeable, OverloadedStrings #-}
 
 module Hledger.Query (
   -- * Query and QueryOpt
@@ -45,6 +46,8 @@ import Data.Data
 import Data.Either
 import Data.List
 import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe (readDef, headDef)
 import Test.HUnit
@@ -236,8 +239,8 @@ defaultprefix = "acct"
 -- | Parse a single query term as either a query or a query option,
 -- or raise an error if it has invalid syntax.
 parseQueryTerm :: Day -> String -> Either Query QueryOpt
-parseQueryTerm _ ('i':'n':'a':'c':'c':'t':'o':'n':'l':'y':':':s) = Right $ QueryOptInAcctOnly s
-parseQueryTerm _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct s
+parseQueryTerm _ ('i':'n':'a':'c':'c':'t':'o':'n':'l':'y':':':s) = Right $ QueryOptInAcctOnly $ T.pack s
+parseQueryTerm _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct $ T.pack s
 parseQueryTerm d ('n':'o':'t':':':s) = case parseQueryTerm d s of
                                        Left m  -> Left $ Not m
                                        Right _ -> Left Any -- not:somequeryoption will be ignored
@@ -557,8 +560,8 @@ inAccount (QueryOptInAcct a:_) = Just (a,True)
 -- Just looks at the first query option.
 inAccountQuery :: [QueryOpt] -> Maybe Query
 inAccountQuery [] = Nothing
-inAccountQuery (QueryOptInAcctOnly a:_) = Just $ Acct $ accountNameToAccountOnlyRegex a
-inAccountQuery (QueryOptInAcct a:_) = Just $ Acct $ accountNameToAccountRegex a
+inAccountQuery (QueryOptInAcctOnly a : _) = Just $ Acct $ accountNameToAccountOnlyRegex a
+inAccountQuery (QueryOptInAcct a     : _) = Just $ Acct $ accountNameToAccountRegex a
 
 -- -- | Convert a query to its inverse.
 -- negateQuery :: Query -> Query
@@ -573,7 +576,7 @@ matchesAccount (None) _ = False
 matchesAccount (Not m) a = not $ matchesAccount m a
 matchesAccount (Or ms) a = any (`matchesAccount` a) ms
 matchesAccount (And ms) a = all (`matchesAccount` a) ms
-matchesAccount (Acct r) a = regexMatchesCI r a
+matchesAccount (Acct r) a = regexMatchesCI r (T.unpack a) -- XXX pack
 matchesAccount (Depth d) a = accountNameLevel a <= d
 matchesAccount (Tag _ _) _ = False
 matchesAccount _ _ = True
@@ -634,7 +637,7 @@ matchesPosting (Or qs) p = any (`matchesPosting` p) qs
 matchesPosting (And qs) p = all (`matchesPosting` p) qs
 matchesPosting (Code r) p = regexMatchesCI r $ maybe "" tcode $ ptransaction p
 matchesPosting (Desc r) p = regexMatchesCI r $ maybe "" tdescription $ ptransaction p
-matchesPosting (Acct r) p = regexMatchesCI r $ paccount p
+matchesPosting (Acct r) p = regexMatchesCI r $ T.unpack $ paccount p -- XXX pack
 matchesPosting (Date span) p = span `spanContainsDate` postingDate p
 matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
 matchesPosting (Status Uncleared) p = postingStatus p /= Cleared

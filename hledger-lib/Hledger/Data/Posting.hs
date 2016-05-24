@@ -7,6 +7,8 @@ look up the date or description there.
 
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Data.Posting (
   -- * Posting
   nullposting,
@@ -50,7 +52,10 @@ where
 import Data.List
 import Data.Maybe
 import Data.MemoUgly (memo)
+import Data.Monoid
 import Data.Ord
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe
 import Test.HUnit
@@ -89,7 +94,7 @@ showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
     where
       ledger3ishlayout = False
       acctnamewidth = if ledger3ishlayout then 25 else 22
-      showaccountname = fitString (Just acctnamewidth) Nothing False False . bracket . elideAccountName width
+      showaccountname = fitString (Just acctnamewidth) Nothing False False . bracket . T.unpack . elideAccountName width
       (bracket,width) = case t of
                           BalancedVirtualPosting -> (\s -> "["++s++"]", acctnamewidth-2)
                           VirtualPosting -> (\s -> "("++s++")", acctnamewidth-2)
@@ -192,32 +197,32 @@ postingsDateSpan' wd ps = DateSpan (Just $ postingdate $ head ps') (Just $ addDa
 
 accountNamePostingType :: AccountName -> PostingType
 accountNamePostingType a
-    | null a = RegularPosting
-    | head a == '[' && last a == ']' = BalancedVirtualPosting
-    | head a == '(' && last a == ')' = VirtualPosting
+    | T.null a = RegularPosting
+    | T.head a == '[' && T.last a == ']' = BalancedVirtualPosting
+    | T.head a == '(' && T.last a == ')' = VirtualPosting
     | otherwise = RegularPosting
 
 accountNameWithoutPostingType :: AccountName -> AccountName
 accountNameWithoutPostingType a = case accountNamePostingType a of
-                                    BalancedVirtualPosting -> init $ tail a
-                                    VirtualPosting -> init $ tail a
+                                    BalancedVirtualPosting -> T.init $ T.tail a
+                                    VirtualPosting -> T.init $ T.tail a
                                     RegularPosting -> a
 
 accountNameWithPostingType :: PostingType -> AccountName -> AccountName
-accountNameWithPostingType BalancedVirtualPosting a = "["++accountNameWithoutPostingType a++"]"
-accountNameWithPostingType VirtualPosting a = "("++accountNameWithoutPostingType a++")"
+accountNameWithPostingType BalancedVirtualPosting a = "["<>accountNameWithoutPostingType a<>"]"
+accountNameWithPostingType VirtualPosting a = "("<>accountNameWithoutPostingType a<>")"
 accountNameWithPostingType RegularPosting a = accountNameWithoutPostingType a
 
 -- | Prefix one account name to another, preserving posting type
 -- indicators like concatAccountNames.
 joinAccountNames :: AccountName -> AccountName -> AccountName
-joinAccountNames a b = concatAccountNames $ filter (not . null) [a,b]
+joinAccountNames a b = concatAccountNames $ filter (not . T.null) [a,b]
 
 -- | Join account names into one. If any of them has () or [] posting type
 -- indicators, these (the first type encountered) will also be applied to
 -- the resulting account name.
 concatAccountNames :: [AccountName] -> AccountName
-concatAccountNames as = accountNameWithPostingType t $ intercalate ":" $ map accountNameWithoutPostingType as
+concatAccountNames as = accountNameWithPostingType t $ T.intercalate ":" $ map accountNameWithoutPostingType as
     where t = headDef RegularPosting $ filter (/= RegularPosting) $ map accountNamePostingType as
 
 -- | Rewrite an account name using all matching aliases from the given list, in sequence.
@@ -241,9 +246,9 @@ accountNameApplyAliasesMemo aliases = memo (accountNameApplyAliases aliases)
 
 aliasReplace :: AccountAlias -> AccountName -> AccountName
 aliasReplace (BasicAlias old new) a
-  | old `isAccountNamePrefixOf` a || old == a = new ++ drop (length old) a
+  | old `isAccountNamePrefixOf` a || old == a = new <> T.drop (T.length old) a
   | otherwise = a
-aliasReplace (RegexAlias re repl) a = regexReplaceCIMemo re repl a
+aliasReplace (RegexAlias re repl) a = T.pack $ regexReplaceCIMemo re repl $ T.unpack a -- XXX
 
 
 tests_Hledger_Data_Posting = TestList [

@@ -10,6 +10,8 @@ The @accounts@ command lists account names:
 
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Cli.Accounts (
   accountsmode
  ,accounts
@@ -17,6 +19,9 @@ module Hledger.Cli.Accounts (
 ) where
 
 import Data.List
+import Data.Monoid
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit as C
 import Test.HUnit
 
@@ -52,11 +57,11 @@ accounts CliOpts{reportopts_=ropts} j = do
       nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) q
       depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth q
       ps = dbg1 "ps" $ journalPostings $ filterJournalPostings nodepthq j
-      as = dbg1 "as" $ nub $ filter (not . null) $ map (clipAccountName depth) $ sort $ map paccount ps
+      as = dbg1 "as" $ nub $ filter (not . T.null) $ map (clipAccountName depth) $ sort $ map paccount ps
       as' | tree_ ropts = expandAccountNames as
           | otherwise   = as
-      render a | tree_ ropts = replicate (2 * (accountNameLevel a - 1)) ' ' ++ accountLeafName a
+      render a | tree_ ropts = T.replicate (2 * (accountNameLevel a - 1)) " " <> accountLeafName a
                | otherwise   = maybeAccountNameDrop ropts a
-  mapM_ (putStrLn . render) as'
+  mapM_ (putStrLn . T.unpack . render) as'
 
 tests_Hledger_Cli_Accounts = TestList []

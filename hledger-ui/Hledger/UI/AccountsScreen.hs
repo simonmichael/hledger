@@ -17,6 +17,8 @@ import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.Maybe
 import Data.Monoid
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import System.FilePath (takeFileName)
 import qualified Data.Vector as V
@@ -57,7 +59,7 @@ initAccountsScreen d st@AppState{
     l = list (Name "accounts") (V.fromList displayitems) 1
 
     -- keep the selection near the last known selected account if possible
-    l' | null selacct = l
+    l' | T.null selacct = l
        | otherwise = maybe l (flip listMoveTo l) midx
       where
         midx = findIndex (\((a,_,_),_) -> a==selacctclipped) items
@@ -147,7 +149,7 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
           maxacctwidthseen =
             -- ltrace "maxacctwidthseen" $
             V.maximum $
-            V.map (\(indent,_,displayacct,_) -> indent*2 + strWidth displayacct) $
+            V.map (\(indent,_,displayacct,_) -> indent*2 + textWidth displayacct) $
             -- V.filter (\(indent,_,_,_) -> (indent-1) <= fromMaybe 99999 mdepth) $
             displayitems
           maxbalwidthseen =
@@ -175,14 +177,14 @@ drawAccountsScreen _st@AppState{aopts=uopts, ajournal=j, aScreen=AccountsScreen{
 
 drawAccountsScreen _ = error "draw function called with wrong screen type, should not happen"
 
-drawAccountsItem :: (Int,Int) -> Bool -> (Int, String, String, [String]) -> Widget
+drawAccountsItem :: (Int,Int) -> Bool -> (Int, AccountName, AccountName, [String]) -> Widget
 drawAccountsItem (acctwidth, balwidth) selected (indent, _fullacct, displayacct, balamts) =
   Widget Greedy Fixed $ do
     -- c <- getContext
       -- let showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
     render $
       addamts balamts $
-      str (fitString (Just acctwidth) (Just acctwidth) True True $ replicate (2*indent) ' ' ++ displayacct) <+>
+      str (T.unpack $ fitText (Just acctwidth) (Just acctwidth) True True $ T.replicate (2*indent) " " <> displayacct) <+>
       str "  " <+>
       str (balspace balamts)
       where

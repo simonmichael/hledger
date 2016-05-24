@@ -14,6 +14,8 @@ import Control.Monad.IO.Class (liftIO)
 -- import Data.Ord
 import Data.Monoid
 -- import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 -- import qualified Data.Vector as V
 import Graphics.Vty as Vty
@@ -56,7 +58,7 @@ drawTransactionScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{r
       <+> (str $ "#" ++ show (tindex t))
       <+> str " ("
       <+> withAttr ("border" <> "bold") (str $ show i)
-      <+> str (" of "++show (length nts)++" in "++acct++")")
+      <+> str (" of "++show (length nts)++" in "++T.unpack acct++")")
     bottomlabel = borderKeysStr [
        ("left", "back")
       ,("up/down", "prev/next")

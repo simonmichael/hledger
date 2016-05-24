@@ -22,6 +22,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           module Hledger.Utils.Parse,
                           module Hledger.Utils.Regex,
                           module Hledger.Utils.String,
+                          module Hledger.Utils.Text,
                           module Hledger.Utils.Test,
                           module Hledger.Utils.Tree,
                           -- Debug.Trace.trace,
@@ -38,6 +39,8 @@ import Control.Monad (liftM)
 -- import Data.PPrint
 import Data.Time.Clock
 import Data.Time.LocalTime
+-- import Data.Text (Text)
+-- import qualified Data.Text as T
 import System.Directory (getHomeDirectory)
 import System.FilePath((</>), isRelative)
 import System.IO
@@ -48,6 +51,7 @@ import Hledger.Utils.Debug
 import Hledger.Utils.Parse
 import Hledger.Utils.Regex
 import Hledger.Utils.String
+import Hledger.Utils.Text
 import Hledger.Utils.Test
 import Hledger.Utils.Tree
 -- import Prelude hiding (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
@@ -90,6 +94,8 @@ splitAtElement x l =
   where
     split es = let (first,rest) = break (x==) es
                in first : splitAtElement x rest
+
+-- text
 
 -- time
 

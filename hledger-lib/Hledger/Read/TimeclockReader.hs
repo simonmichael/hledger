@@ -40,6 +40,8 @@ i, o or O.  The meanings of the codes are:
 
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Read.TimeclockReader (
   -- * Reader
   reader,
@@ -55,6 +57,8 @@ import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Except (ExceptT)
 import Data.Maybe (fromMaybe)
+-- import Data.Text (Text)
+-- import qualified Data.Text as T
 import Test.HUnit
 import Text.Parsec hiding (parse)
 import System.FilePath

@@ -30,6 +30,8 @@ import Data.Char (toLower, isDigit, isSpace)
 import Data.List.Compat
 import Data.Maybe
 import Data.Ord
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 #if MIN_VERSION_time(1,5,0)
 import Data.Time.Format (parseTimeM, defaultTimeLocale)
@@ -638,8 +640,8 @@ transactionFromCsvRecord sourcepos rules record = t
     defaccount2 = case isNegativeMixedAmount amount2 of
                    Just True -> "income:unknown"
                    _         -> "expenses:unknown"
-    account1    = maybe "" render (mfieldtemplate "account1") `or` defaccount1
-    account2    = maybe "" render (mfieldtemplate "account2") `or` defaccount2
+    account1    = T.pack $ maybe "" render (mfieldtemplate "account1") `or` defaccount1
+    account2    = T.pack $ maybe "" render (mfieldtemplate "account2") `or` defaccount2
 
     -- build the transaction
     t = nulltransaction{

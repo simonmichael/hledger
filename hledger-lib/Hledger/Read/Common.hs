@@ -27,6 +27,8 @@ import Data.Functor.Identity
 import Data.List.Compat
 import Data.List.Split (wordsBy)
 import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Safe
@@ -104,7 +106,7 @@ popParentAccount = do
     []       -> unexpected "End of apply account block with no beginning"
     (_:rest) -> setState j{jparseparentaccounts=rest}
 
-getParentAccount :: Monad m => JournalParser m String
+getParentAccount :: Monad m => JournalParser m AccountName
 getParentAccount = fmap (concatAccountNames . reverse . jparseparentaccounts) getState
 
 addAccountAlias :: Monad m => AccountAlias -> JournalParser m ()
@@ -271,12 +273,13 @@ modifiedaccountnamep = do
 -- (This parser will also consume one following space, if present.)
 accountnamep :: Monad m => StringParser u m AccountName
 accountnamep = do
-    a <- do
+    astr <- do
       c <- nonspace
       cs <- striptrailingspace <$> many (nonspace <|> singlespace)
       return $ c:cs
+    let a = T.pack astr
     when (accountNameFromComponents (accountNameComponents a) /= a)
-         (fail $ "account name seems ill-formed: "++a)
+         (fail $ "account name seems ill-formed: "++astr)
     return a
     where
       singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})

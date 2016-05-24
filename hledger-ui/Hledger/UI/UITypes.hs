@@ -28,7 +28,7 @@ data AppState = AppState {
 -- This type causes partial functions, so take care.
 data Screen =
     AccountsScreen {
-     asState :: (List (Int,String,String,[String]), AccountName)  -- ^ list widget holding (indent level, full account name, full or short account name to display, rendered amounts);
+     asState :: (List (Int,AccountName,AccountName,[String]), AccountName)  -- ^ list widget holding (indent level, full account name, full or short account name to display, rendered amounts);
                                                                   --   the full name of the currently selected account (or "")
     ,sInitFn :: Day -> AppState -> AppState                       -- ^ function to initialise the screen's state on entry
     ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)   -- ^ brick event handler to use for this screen

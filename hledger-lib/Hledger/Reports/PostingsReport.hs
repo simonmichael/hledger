@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances, TupleSections #-}
+{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances, TupleSections, OverloadedStrings #-}
 {-|
 
 Postings report, used by the register command.

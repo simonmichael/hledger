@@ -232,6 +232,8 @@ Currently, empty cells show 0.
 
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Cli.Balance (
   balancemode
  ,balance
@@ -245,6 +247,9 @@ module Hledger.Cli.Balance (
 
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe, isJust)
+import Data.Monoid
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit as C
 import Text.CSV
 import Test.HUnit
@@ -327,7 +332,7 @@ balance opts@CliOpts{reportopts_=ropts} j = do
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[a, showMixedAmountOneLineWithoutPrice b] | ((a, _, _), b) <- items]
+  [[T.unpack a, showMixedAmountOneLineWithoutPrice b] | ((a, _, _), b) <- items]
   ++
   if no_total_ opts
   then []
@@ -348,8 +353,8 @@ balanceReportAsText opts ((items, total)) = unlines $ concat lines ++ t
                Right fmt ->
                 let
                   -- abuse renderBalanceReportItem to render the total with similar format
-                  acctcolwidth = maximum' [length fullname | ((fullname, _, _), _) <- items]
-                  totallines = map rstrip $ renderBalanceReportItem fmt (replicate (acctcolwidth+1) ' ', 0, total)
+                  acctcolwidth = maximum' [T.length fullname | ((fullname, _, _), _) <- items]
+                  totallines = map rstrip $ renderBalanceReportItem fmt (T.replicate (acctcolwidth+1) " ", 0, total)
                   -- with a custom format, extend the line to the full report width;
                   -- otherwise show the usual 20-char line for compatibility
                   overlinewidth | isJust (format_ opts) = maximum' $ map length $ concat lines
@@ -417,7 +422,7 @@ renderComponent (acctname, depth, total) (FormatField ljust min max field) = cas
                       where d = case min of
                                  Just m  -> depth * m
                                  Nothing -> depth
-  AccountField     -> formatString ljust min max acctname
+  AccountField     -> formatString ljust min max (T.unpack acctname)
   TotalField       -> fitStringMulti min max True False $ showMixedAmountWithoutPrice total
   _                -> ""
 
@@ -428,7 +433,7 @@ renderComponent (acctname, depth, total) (FormatField ljust min max field) = cas
 renderComponent1 :: (AccountName, Int, MixedAmount) -> StringFormatComponent -> String
 renderComponent1 _ (FormatLiteral s) = s
 renderComponent1 (acctname, depth, total) (FormatField ljust min max field) = case field of
-  AccountField     -> formatString ljust min max ((intercalate ", " . lines) (indented acctname))
+  AccountField     -> formatString ljust min max ((intercalate ", " . lines) (indented (T.unpack acctname)))
                       where
                         -- better to indent the account name here rather than use a DepthField component
                         -- so that it complies with width spec. Uses a fixed indent step size.
@@ -445,7 +450,7 @@ multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,to
    ++ (if row_total_ opts then ["total"] else [])
    ++ (if average_ opts then ["average"] else [])
   ) :
-  [a : a' : show i :
+  [T.unpack a : T.unpack a' : show i :
    map showMixedAmountOneLineWithoutPrice
    (amts
     ++ (if row_total_ opts then [rowtot] else [])
@@ -470,7 +475,7 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotal
    render id (" "++) showMixedAmountOneLineWithoutPrice $
     addtotalrow $
      Table
-     (T.Group NoLine $ map (Header . padRightWide acctswidth) accts)
+     (T.Group NoLine $ map (Header . padRightWide acctswidth . T.unpack) accts)
      (T.Group NoLine $ map Header colheadings)
      (map rowvals items')
   where
@@ -482,9 +487,9 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotal
            | otherwise   = items -- dbg1 "2" $ filter (any (not . isZeroMixedAmount) . snd) $ dbg1 "1" items
     accts = map renderacct items'
     renderacct ((a,a',i),_,_,_)
-      | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
+      | tree_ opts = T.replicate ((i-1)*2) " " <> a'
       | otherwise  = maybeAccountNameDrop opts a
-    acctswidth = maximum' $ map strWidth accts
+    acctswidth = maximum' $ map textWidth accts
     rowvals (_,as,rowtot,rowavg) = as
                                    ++ (if row_total_ opts then [rowtot] else [])
                                    ++ (if average_ opts then [rowavg] else [])
@@ -514,8 +519,8 @@ cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (colt
                   ++ (if average_ opts then ["Average"] else [])
     accts = map renderacct items
     renderacct ((a,a',i),_,_,_)
-      | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
-      | otherwise  = maybeAccountNameDrop opts a
+      | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack a'
+      | otherwise  = T.unpack $ maybeAccountNameDrop opts a
     acctswidth = maximum' $ map strWidth accts
     rowvals (_,as,rowtot,rowavg) = as
                                    ++ (if row_total_ opts then [rowtot] else [])
@@ -546,8 +551,8 @@ historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (colt
                   ++ (if average_ opts then ["Average"] else [])
     accts = map renderacct items
     renderacct ((a,a',i),_,_,_)
-      | tree_ opts = replicate ((i-1)*2) ' ' ++ a'
-      | otherwise  = maybeAccountNameDrop opts a
+      | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack a'
+      | otherwise  = T.unpack $ maybeAccountNameDrop opts a
     acctswidth = maximum' $ map strWidth accts
     rowvals (_,as,rowtot,rowavg) = as
                              ++ (if row_total_ opts then [rowtot] else [])

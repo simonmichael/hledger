@@ -1,4 +1,4 @@
-{-# LANGUAGE NoMonomorphismRestriction#-}
+{-# LANGUAGE NoMonomorphismRestriction, OverloadedStrings #-}
 {-|
 
 'AccountName's are strings like @assets:cash:petty@, with multiple
@@ -10,7 +10,9 @@ hierarchy.
 module Hledger.Data.AccountName
 where
 import Data.List
-import Data.List.Split (splitOn)
+import Data.Monoid
+import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Tree
 import Test.HUnit
 import Text.Printf
@@ -19,24 +21,29 @@ import Hledger.Data.Types
 import Hledger.Utils
 
 
-
--- change to use a different separator for nested accounts
+acctsepchar :: Char
 acctsepchar = ':'
 
-accountNameComponents :: AccountName -> [String]
-accountNameComponents = splitAtElement acctsepchar
+acctsep :: Text
+acctsep = T.pack [acctsepchar]
 
-accountNameFromComponents :: [String] -> AccountName
-accountNameFromComponents = concat . intersperse [acctsepchar]
+-- accountNameComponents :: AccountName -> [String]
+-- accountNameComponents = splitAtElement acctsepchar
 
-accountLeafName :: AccountName -> String
+accountNameComponents :: AccountName -> [Text]
+accountNameComponents = T.splitOn acctsep
+
+accountNameFromComponents :: [Text] -> AccountName
+accountNameFromComponents = T.intercalate acctsep
+
+accountLeafName :: AccountName -> Text
 accountLeafName = last . accountNameComponents
 
 -- | Truncate all account name components but the last to two characters.
-accountSummarisedName :: AccountName -> String
+accountSummarisedName :: AccountName -> Text
 accountSummarisedName a
   --   length cs > 1 = take 2 (head cs) ++ ":" ++ a'
-  | length cs > 1 = intercalate ":" (map (take 2) $ init cs) ++ ":" ++ a'
+  | length cs > 1 = (T.intercalate ":" (map (T.take 2) $ init cs)) <> ":" <> a'
   | otherwise     = a'
     where
       cs = accountNameComponents a
@@ -44,7 +51,7 @@ accountSummarisedName a
 
 accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
-accountNameLevel a = length (filter (==acctsepchar) a) + 1
+accountNameLevel a = T.length (T.filter (==acctsepchar) a) + 1
 
 accountNameDrop :: Int -> AccountName -> AccountName
 accountNameDrop n = accountNameFromComponents . drop n . accountNameComponents
@@ -72,7 +79,7 @@ parentAccountNames a = parentAccountNames' $ parentAccountName a
 
 -- | Is the first account a parent or other ancestor of (and not the same as) the second ?
 isAccountNamePrefixOf :: AccountName -> AccountName -> Bool
-isAccountNamePrefixOf = isPrefixOf . (++ [acctsepchar])
+isAccountNamePrefixOf = T.isPrefixOf . (<> acctsep)
 
 isSubAccountNameOf :: AccountName -> AccountName -> Bool
 s `isSubAccountNameOf` p =
@@ -113,22 +120,22 @@ nullaccountnametree = Node "root" []
 elideAccountName :: Int -> AccountName -> AccountName
 elideAccountName width s
   -- XXX special case for transactions register's multi-account pseudo-names
-  | " (split)" `isSuffixOf` s =
+  | " (split)" `T.isSuffixOf` s =
     let
-      names = splitOn ", " $ take (length s - 8) s
+      names = T.splitOn ", " $ T.take (T.length s - 8) s
       widthpername = (max 0 (width - 8 - 2 * (max 1 (length names) - 1))) `div` length names
     in
-     fitString Nothing (Just width) True False $
-     (++" (split)") $
-     intercalate ", " $
+     fitText Nothing (Just width) True False $
+     (<>" (split)") $
+     T.intercalate ", " $
      [accountNameFromComponents $ elideparts widthpername [] $ accountNameComponents s' | s' <- names]
   | otherwise =
-    fitString Nothing (Just width) True False $ accountNameFromComponents $ elideparts width [] $ accountNameComponents s
+    fitText Nothing (Just width) True False $ accountNameFromComponents $ elideparts width [] $ accountNameComponents s
       where
-        elideparts :: Int -> [String] -> [String] -> [String]
+        elideparts :: Int -> [Text] -> [Text] -> [Text]
         elideparts width done ss
-          | strWidth (accountNameFromComponents $ done++ss) <= width = done++ss
-          | length ss > 1 = elideparts width (done++[takeWidth 2 $ head ss]) (tail ss)
+          | textWidth (accountNameFromComponents $ done++ss) <= width = done++ss
+          | length ss > 1 = elideparts width (done++[textTakeWidth 2 $ head ss]) (tail ss)
           | otherwise = done++ss
 
 -- | Keep only the first n components of an account name, where n
@@ -143,18 +150,18 @@ clipOrEllipsifyAccountName 0 = const "..."
 clipOrEllipsifyAccountName n = accountNameFromComponents . take n . accountNameComponents
 
 -- | Convert an account name to a regular expression matching it and its subaccounts.
-accountNameToAccountRegex :: String -> String
+accountNameToAccountRegex :: AccountName -> Regexp
 accountNameToAccountRegex "" = ""
-accountNameToAccountRegex a = printf "^%s(:|$)" a
+accountNameToAccountRegex a = printf "^%s(:|$)" (T.unpack a)
 
 -- | Convert an account name to a regular expression matching it but not its subaccounts.
-accountNameToAccountOnlyRegex :: String -> String
+accountNameToAccountOnlyRegex :: AccountName -> Regexp
 accountNameToAccountOnlyRegex "" = ""
-accountNameToAccountOnlyRegex a = printf "^%s$" a
+accountNameToAccountOnlyRegex a = printf "^%s$"  $ T.unpack a -- XXX pack
 
 -- | Convert an exact account-matching regular expression to a plain account name.
-accountRegexToAccountName :: String -> String
-accountRegexToAccountName = regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1"
+accountRegexToAccountName :: Regexp -> AccountName
+accountRegexToAccountName = T.pack . regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1" -- XXX pack
 
 -- | Does this string look like an exact account-matching regular expression ?
 isAccountRegex  :: String -> Bool

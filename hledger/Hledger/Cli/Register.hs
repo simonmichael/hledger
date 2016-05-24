@@ -16,6 +16,8 @@ module Hledger.Cli.Register (
 
 import Data.List
 import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
 import Text.CSV
 import Test.HUnit
@@ -70,7 +72,7 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [date,desc,acct,amt,bal]
   where
     date = showDate $ postingDate p -- XXX csv should show date2 with --date2
     desc = maybe "" tdescription $ ptransaction p
-    acct = bracket $ paccount p
+    acct = bracket $ T.unpack $ paccount p
       where
         bracket = case ptype p of
                              BalancedVirtualPosting -> (\s -> "["++s++"]")
@@ -173,7 +175,7 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
 
       -- gather content
       desc = fromMaybe "" mdesc
-      acct = parenthesise $ elideAccountName awidth $ paccount p
+      acct = parenthesise $ T.unpack $ elideAccountName awidth $ paccount p
          where
           (parenthesise, awidth) =
             case ptype p of

@@ -7,6 +7,8 @@ import Import
 
 import Data.List
 import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Safe
 
 import Handler.AddForm
@@ -28,7 +30,7 @@ getRegisterR = do
   let -- injournal = isNothing inacct
       filtering = m /= Any
       -- title = "Transactions in "++a++s1++s2
-      title = a++s1++s2
+      title = T.unpack a++s1++s2
                where
                  (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
                  s1 = if inclsubs then "" else " (excluding subaccounts)"

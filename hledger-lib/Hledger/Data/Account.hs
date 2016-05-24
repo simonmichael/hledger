@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, StandaloneDeriving #-}
+{-# LANGUAGE RecordWildCards, StandaloneDeriving, OverloadedStrings #-}
 {-|
 
 

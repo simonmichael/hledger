@@ -7,11 +7,15 @@ tags.
 
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Data.Transaction (
   -- * Transaction
   nullsourcepos,
   nulltransaction,
   txnTieKnot,
+  txnUntieKnot,
+  journalUntieKnots,
   -- settxn,
   -- * operations
   showAccountName,
@@ -38,6 +42,8 @@ module Hledger.Data.Transaction (
 where
 import Data.List
 import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar
 import Test.HUnit
 import Text.Printf
@@ -188,7 +194,7 @@ postingAsLines elideamount onelineamounts ps p =
         showstatus p ++ fitString (Just acctwidth) Nothing False True (showAccountName Nothing (ptype p) (paccount p))
         where
           showstatus p = if pstatus p == Cleared then "* " else ""
-          acctwidth = maximum $ map (strWidth . paccount) ps
+          acctwidth = maximum $ map (textWidth . paccount) ps
 
     -- currently prices are considered part of the amount string when right-aligning amounts
     amount
@@ -239,12 +245,16 @@ indent = ("    "++)
 showAccountName :: Maybe Int -> PostingType -> AccountName -> String
 showAccountName w = fmt
     where
-      fmt RegularPosting = take w'
-      fmt VirtualPosting = parenthesise . reverse . take (w'-2) . reverse
-      fmt BalancedVirtualPosting = bracket . reverse . take (w'-2) . reverse
+      fmt RegularPosting = take w' . T.unpack
+      fmt VirtualPosting = parenthesise . reverse . take (w'-2) . reverse . T.unpack
+      fmt BalancedVirtualPosting = bracket . reverse . take (w'-2) . reverse . T.unpack
       w' = fromMaybe 999999 w
-      parenthesise s = "("++s++")"
-      bracket s = "["++s++"]"
+
+parenthesise :: String -> String
+parenthesise s = "("++s++")"
+
+bracket :: String -> String
+bracket s = "["++s++"]"
 
 hasRealPostings :: Transaction -> Bool
 hasRealPostings = not . null . realPostings
@@ -413,6 +423,16 @@ transactionDate2 t = fromMaybe (tdate t) $ tdate2 t
 -- relatedPostings works right.
 txnTieKnot :: Transaction -> Transaction
 txnTieKnot t@Transaction{tpostings=ps} = t{tpostings=map (settxn t) ps}
+
+-- | Ensure a transaction's postings do not refer back to it, so that eg
+-- recursiveSize and GHCI's :sprint work right.
+txnUntieKnot :: Transaction -> Transaction
+txnUntieKnot t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{ptransaction=Nothing}) ps}
+
+-- | Untie all transaction-posting knots in this journal, so that eg
+-- recursiveSize and GHCI's :sprint can work on it.
+journalUntieKnots :: Transaction -> Transaction
+journalUntieKnots t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{ptransaction=Nothing}) ps}
 
 -- | Set a posting's parent transaction.
 settxn :: Transaction -> Posting -> Posting

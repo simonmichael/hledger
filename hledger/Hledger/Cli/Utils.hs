@@ -25,6 +25,8 @@ where
 import Control.Exception as C
 import Data.List
 import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time (Day)
 import Safe (readMay)
 import System.Console.CmdArgs
@@ -85,7 +87,7 @@ pivot tag j = j{jtxns = map pivotTrans . jtxns $ j}
  where
   pivotTrans t = t{tpostings = map pivotPosting . tpostings $ t}
   pivotPosting p
-    | Just (_ , value) <- tagTuple = p{paccount = joinAccountNames tag value}
+    | Just (_ , value) <- tagTuple = p{paccount = joinAccountNames (T.pack tag) (T.pack value)}
     | _                <- tagTuple = p
    where tagTuple = find ((tag ==) . fst) . ptags $ p
 

@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-|
 
 A 'TimeclockEntry' is a clock-in, clock-out, or other directive in a timeclock
@@ -7,9 +6,13 @@ converted to 'Transactions' and queried like a ledger.
 
 -}
 
+{-# LANGUAGE CPP, OverloadedStrings #-}
+
 module Hledger.Data.Timeclock
 where
 import Data.Maybe
+-- import Data.Text (Text)
+-- import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format

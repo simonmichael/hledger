@@ -27,6 +27,8 @@ import Data.Data
 import Data.Decimal
 import Text.Blaze (ToMarkup(..))
 import qualified Data.Map as M
+import Data.Text (Text)
+-- import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (ClockTime(..))
@@ -50,7 +52,7 @@ data Interval = NoInterval
 
 instance NFData Interval
 
-type AccountName = String
+type AccountName = Text
 
 data AccountAlias = BasicAlias AccountName AccountName
                   | RegexAlias Regexp Replacement
@@ -206,7 +208,7 @@ data TimeclockEntry = TimeclockEntry {
       tlsourcepos   :: GenericSourcePos,
       tlcode        :: TimeclockCode,
       tldatetime    :: LocalTime,
-      tlaccount     :: String,
+      tlaccount     :: AccountName,
       tldescription :: String
     } deriving (Eq,Ord,Typeable,Data,Generic)
 

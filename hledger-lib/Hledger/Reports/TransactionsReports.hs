@@ -30,6 +30,8 @@ where
 
 import Data.List
 import Data.Ord
+-- import Data.Text (Text)
+import qualified Data.Text as T
 -- import Test.HUnit
 
 import Hledger.Data
@@ -204,7 +206,7 @@ accountTransactionsReportItems query thisacctquery bal signfn (torig:ts) =
 -- To reduce noise, if there are both real and virtual postings, show only the real ones.
 summarisePostingAccounts :: [Posting] -> String
 summarisePostingAccounts ps =
-  (intercalate ", " . map accountSummarisedName . nub . map paccount) displayps
+  (intercalate ", " . map (T.unpack . accountSummarisedName) . nub . map paccount) displayps -- XXX pack
   where
     realps = filter isReal ps
     displayps | null realps = ps

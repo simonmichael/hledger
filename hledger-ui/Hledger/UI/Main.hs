@@ -17,6 +17,8 @@ import Control.Monad
 -- import Data.Monoid              -- 
 import Data.List
 import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 -- import Data.Time.Calendar
 import Safe
 import System.Exit
@@ -100,7 +102,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
         where
           acct = headDef
                  (error' $ "--register "++apat++" did not match any account")
-                 $ filter (regexMatches apat) $ journalAccountNames j
+                 $ filter (regexMatches apat . T.unpack) $ journalAccountNames j
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary AppState value..
           ascr' = aScreen $

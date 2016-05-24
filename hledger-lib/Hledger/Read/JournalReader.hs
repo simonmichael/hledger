@@ -82,6 +82,8 @@ import Control.Monad
 import Control.Monad.Except (ExceptT(..), liftIO, runExceptT, throwError)
 import qualified Data.Map.Strict as M
 import Data.Monoid
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Safe
@@ -319,7 +321,7 @@ basicaliasp = do
   char '='
   many spacenonewline
   new <- rstrip <$> anyChar `manyTill` eolof  -- don't require a final newline, good for cli options
-  return $ BasicAlias old new
+  return $ BasicAlias (T.pack old) (T.pack new)
 
 regexaliasp :: Monad m => StringParser u m AccountAlias
 regexaliasp = do
@@ -550,7 +552,7 @@ postingp mtdate = do
   status <- statusp
   many spacenonewline
   account <- modifiedaccountnamep
-  let (ptype, account') = (accountNamePostingType account, unbracket account)
+  let (ptype, account') = (accountNamePostingType account, textUnbracket account)
   amount <- spaceandamountormissingp
   massertion <- partialbalanceassertionp
   _ <- fixedlotpricep

@@ -42,6 +42,7 @@ module Hledger.Utils.String (
  cliptopleft,
  fitto,
  -- * wide-character-aware layout
+ charWidth,
  strWidth,
  takeWidth,
  fitString,

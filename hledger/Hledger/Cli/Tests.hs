@@ -13,6 +13,8 @@ module Hledger.Cli.Tests (
 where
 
 import Control.Monad
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import System.Exit
 import Test.HUnit
 
@@ -61,7 +63,7 @@ runTests = liftM (fst . flip (,) 0) . runTestTT . flatTests
 --   --     firstproblem = find (\counts -> )
 
 -- | All or pattern-matched tests, as a flat list to show simple names.
-flatTests opts = TestList $ filter (matchesAccount (queryFromOpts nulldate $ reportopts_ opts) . testName) $ flattenTests tests_Hledger_Cli
+flatTests opts = TestList $ filter (matchesAccount (queryFromOpts nulldate $ reportopts_ opts) . T.pack . testName) $ flattenTests tests_Hledger_Cli
 
 -- -- | All or pattern-matched tests, in the original suites to show hierarchical names.
 -- hierarchicalTests opts = filterTests (matchesAccount (queryFromOpts nulldate $ reportopts_ opts) . testName) tests_Hledger_Cli

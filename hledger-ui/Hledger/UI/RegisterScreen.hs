@@ -14,6 +14,8 @@ import Data.List
 import Data.List.Split (splitOn)
 import Data.Monoid
 -- import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
 import Graphics.Vty as Vty
@@ -86,7 +88,7 @@ drawRegisterScreen :: AppState -> [Widget]
 drawRegisterScreen AppState{aopts=uopts -- @UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}
                            ,aScreen=RegisterScreen{rsState=(l,acct)}} = [ui]
   where
-    toplabel = withAttr ("border" <> "bold") (str acct)
+    toplabel = withAttr ("border" <> "bold") (str $ T.unpack acct)
             <+> cleared
             <+> str " transactions"
             -- <+> borderQueryStr querystr -- no, account transactions report shows all transactions in the acct ?

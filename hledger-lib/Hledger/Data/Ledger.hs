@@ -10,6 +10,8 @@ balances, and postings in each account.
 module Hledger.Data.Ledger
 where
 import qualified Data.Map as M
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Safe (headDef)
 import Test.HUnit
 import Text.Printf
@@ -72,7 +74,7 @@ ledgerLeafAccounts = filter (null.asubs) . laccounts
 
 -- | Accounts in ledger whose name matches the pattern, in tree order.
 ledgerAccountsMatching :: [String] -> Ledger -> [Account]
-ledgerAccountsMatching pats = filter (matchpats pats . aname) . laccounts
+ledgerAccountsMatching pats = filter (matchpats pats . T.unpack . aname) . laccounts -- XXX pack
 
 -- | List a ledger's postings, in the order parsed.
 ledgerPostings :: Ledger -> [Posting]

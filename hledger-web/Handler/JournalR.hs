@@ -3,7 +3,8 @@
 
 module Handler.JournalR where
 
-import Data.Text (pack)
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Import
 
 import Handler.AddForm
@@ -27,7 +28,7 @@ getJournalR = do
       -- showlastcolumn = if injournal && not filtering then False else True
       title = case inacct of
                 Nothing       -> "General Journal"++s2
-                Just (a,inclsubs) -> "Transactions in "++a++s1++s2
+                Just (a,inclsubs) -> "Transactions in "++T.unpack a++s1++s2
                                       where s1 = if inclsubs then "" else " (excluding subaccounts)"
                 where
                   s2 = if filtering then ", filtered" else ""
@@ -82,12 +83,12 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
    <td>
 |]
      where
-       acctlink a = (RegisterR, [("q", pack $ accountQuery a)])
+       acctlink a = (RegisterR, [("q", T.pack $ accountQuery a)])
        evenodd = if even n then "even" else "odd" :: String
        -- datetransition | newm = "newmonth"
        --                | newd = "newday"
        --                | otherwise = "" :: String
        (firstposting, date, desc) = (False, show $ tdate torig, tdescription torig)
-       -- acctquery = (here, [("q", pack $ accountQuery acct)])
+       -- acctquery = (here, [("q", T.pack $ accountQuery acct)])
        showamt = not split || not (isZeroMixedAmount amt)
 
