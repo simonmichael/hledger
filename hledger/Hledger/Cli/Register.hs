@@ -1,9 +1,10 @@
-{-# LANGUAGE CPP #-}
 {-|
 
 A ledger-compatible @register@ command.
 
 -}
+
+{-# LANGUAGE CPP, OverloadedStrings #-}
 
 module Hledger.Cli.Register (
   registermode

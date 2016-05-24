@@ -277,9 +277,9 @@ data Reader = Reader {
      -- name of the format this reader handles
      rFormat   :: StorageFormat
      -- quickly check if this reader can probably handle the given file path and file content
-    ,rDetector :: FilePath -> String -> Bool
+    ,rDetector :: FilePath -> Text -> Bool
      -- parse the given string, using the given parse rules file if any, returning a journal or error aware of the given file path
-    ,rParser   :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
+    ,rParser   :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
     }
 
 instance Show Reader where show r = rFormat r ++ " reader"

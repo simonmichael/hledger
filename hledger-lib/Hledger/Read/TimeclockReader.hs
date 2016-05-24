@@ -57,8 +57,8 @@ import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Except (ExceptT)
 import Data.Maybe (fromMaybe)
--- import Data.Text (Text)
--- import qualified Data.Text as T
+import Data.Text (Text)
+import qualified Data.Text as T
 import Test.HUnit
 import Text.Parsec hiding (parse)
 import System.FilePath
@@ -76,15 +76,15 @@ format :: String
 format = "timeclock"
 
 -- | Does the given file path and data look like it might be timeclock.el's timeclock format ?
-detect :: FilePath -> String -> Bool
-detect f s
+detect :: FilePath -> Text -> Bool
+detect f t
   | f /= "-"  = takeExtension f == '.':format -- from a known file name: yes if the extension is this format's name
-  | otherwise = regexMatches "(^|\n)[io] " s  -- from stdin: yes if any line starts with "i " or "o "
+  | otherwise = regexMatches "(^|\n)[io] " $ T.unpack t  -- from stdin: yes if any line starts with "i " or "o "
 
 -- | Parse and post-process a "Journal" from timeclock.el's timeclock
 -- format, saving the provided file path and the current time, or give an
 -- error.
-parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
+parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal timeclockfilep
 
 timeclockfilep :: ErroringJournalParser ParsedJournal

@@ -1,4 +1,3 @@
-{-# LANGUAGE ScopedTypeVariables #-}
 {-|
 
 This is the entry point to hledger's reading system, which can read
@@ -7,6 +6,8 @@ journal data or read journal files. Generally it should not be necessary
 to import modules below this one.
 
 -}
+
+{-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
 
 module Hledger.Read
   (
@@ -39,11 +40,13 @@ import qualified Control.Exception as C
 import Control.Monad.Except
 import Data.List
 import Data.Maybe
+import Data.Text (Text)
+import qualified Data.Text as T
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
 import System.FilePath ((</>))
-import System.IO (IOMode(..), openFile, stdin, stderr, hSetNewlineMode, universalNewlineMode)
+import System.IO (stderr)
 import Test.HUnit
 import Text.Printf
 
@@ -56,7 +59,7 @@ import Hledger.Read.TimeclockReader as TimeclockReader
 import Hledger.Read.CsvReader as CsvReader
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
-import Hledger.Utils.UTF8IOCompat (hGetContents, writeFile)
+import Hledger.Utils.UTF8IOCompat (writeFile)
 
 
 -- The available data file readers, each one handling a particular data
@@ -77,14 +80,14 @@ journalEnvVar2          = "LEDGER"
 journalDefaultFilename  = ".hledger.journal"
 
 -- | Which readers are worth trying for this (possibly unspecified) format, filepath, and data ?
-readersFor :: (Maybe StorageFormat, Maybe FilePath, String) -> [Reader]
-readersFor (format,path,s) =
-    dbg1 ("possible readers for "++show (format,path,elideRight 30 s)) $
+readersFor :: (Maybe StorageFormat, Maybe FilePath, Text) -> [Reader]
+readersFor (format,path,t) =
+    dbg1 ("possible readers for "++show (format,path,textElideRight 30 t)) $
     case format of
      Just f  -> case readerForStorageFormat f of Just r  -> [r]
                                                  Nothing -> []
      Nothing -> case path of Nothing  -> readers
-                             Just p   -> case readersForPathAndData (p,s) of [] -> readers
+                             Just p   -> case readersForPathAndData (p,t) of [] -> readers
                                                                              rs -> rs
 
 -- | Find the (first) reader which can handle the given format, if any.
@@ -95,18 +98,18 @@ readerForStorageFormat s | null rs = Nothing
       rs = filter ((s==).rFormat) readers :: [Reader]
 
 -- | Find the readers which think they can handle the given file path and data, if any.
-readersForPathAndData :: (FilePath,String) -> [Reader]
-readersForPathAndData (f,s) = filter (\r -> (rDetector r) f s) readers
+readersForPathAndData :: (FilePath,Text) -> [Reader]
+readersForPathAndData (f,t) = filter (\r -> (rDetector r) f t) readers
 
 -- try each reader in turn, returning the error of the first if all fail
-tryReaders :: [Reader] -> Maybe FilePath -> Bool -> Maybe FilePath -> String -> IO (Either String Journal)
-tryReaders readers mrulesfile assrt path s = firstSuccessOrBestError [] readers
+tryReaders :: [Reader] -> Maybe FilePath -> Bool -> Maybe FilePath -> Text -> IO (Either String Journal)
+tryReaders readers mrulesfile assrt path t = firstSuccessOrBestError [] readers
   where
     firstSuccessOrBestError :: [String] -> [Reader] -> IO (Either String Journal)
     firstSuccessOrBestError [] []        = return $ Left "no readers found"
     firstSuccessOrBestError errs (r:rs) = do
       dbg1IO "trying reader" (rFormat r)
-      result <- (runExceptT . (rParser r) mrulesfile assrt path') s
+      result <- (runExceptT . (rParser r) mrulesfile assrt path') t
       dbg1IO "reader result" $ either id show result
       case result of Right j -> return $ Right j                       -- success!
                      Left e  -> firstSuccessOrBestError (errs++[e]) rs -- keep trying
@@ -124,8 +127,8 @@ tryReaders readers mrulesfile assrt path s = firstSuccessOrBestError [] readers
 --
 -- A CSV conversion rules file may also be specified for use by the CSV reader.
 -- Also there is a flag specifying whether to check or ignore balance assertions in the journal.
-readJournal :: Maybe StorageFormat -> Maybe FilePath -> Bool -> Maybe FilePath -> String -> IO (Either String Journal)
-readJournal mformat mrulesfile assrt mpath s = tryReaders (readersFor (mformat, mpath, s)) mrulesfile assrt mpath s
+readJournal :: Maybe StorageFormat -> Maybe FilePath -> Bool -> Maybe FilePath -> Text -> IO (Either String Journal)
+readJournal mformat mrulesfile assrt mpath t = tryReaders (readersFor (mformat, mpath, t)) mrulesfile assrt mpath t
 
 -- | Read a Journal from this file (or stdin if the filename is -) or give
 -- an error message, using the specified data format or trying all known
@@ -133,20 +136,9 @@ readJournal mformat mrulesfile assrt mpath s = tryReaders (readersFor (mformat, 
 -- conversion of that format. Also there is a flag specifying whether
 -- to check or ignore balance assertions in the journal.
 readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> FilePath -> IO (Either String Journal)
-readJournalFile mformat mrulesfile assrt f =
-  readFileOrStdinAnyNewline f >>= readJournal mformat mrulesfile assrt (Just f)
-
--- | Read the given file, or standard input if the path is "-", using
--- universal newline mode.
-readFileOrStdinAnyNewline :: String -> IO String
-readFileOrStdinAnyNewline f = do
-  requireJournalFileExists f
-  h <- fileHandle f
-  hSetNewlineMode h universalNewlineMode
-  hGetContents h
-  where
-    fileHandle "-" = return stdin
-    fileHandle f = openFile f ReadMode
+readJournalFile mformat mrulesfile assrt f = do
+  -- requireJournalFileExists f -- XXX ?
+  readFileOrStdinAnyLineEnding f >>= readJournal mformat mrulesfile assrt (Just f)
 
 -- | Call readJournalFile on each specified file path, and combine the
 -- resulting journals into one. If there are any errors, the first is
@@ -165,11 +157,12 @@ requireJournalFileExists :: FilePath -> IO ()
 requireJournalFileExists "-" = return ()
 requireJournalFileExists f = do
   exists <- doesFileExist f
-  when (not exists) $ do
+  when (not exists) $ do  -- XXX might not be a journal file
     hPrintf stderr "The hledger journal file \"%s\" was not found.\n" f
     hPrintf stderr "Please create it first, eg with \"hledger add\" or a text editor.\n"
     hPrintf stderr "Or, specify an existing journal file with -f or LEDGER_FILE.\n"
     exitFailure
+
 
 -- | Ensure there is a journal file at the given path, creating an empty one if needed.
 ensureJournalFileExists :: FilePath -> IO ()
@@ -211,9 +204,9 @@ defaultJournalPath = do
 defaultJournal :: IO Journal
 defaultJournal = defaultJournalPath >>= readJournalFile Nothing Nothing True >>= either error' return
 
--- | Read a journal from the given string, trying all known formats, or simply throw an error.
-readJournal' :: String -> IO Journal
-readJournal' s = readJournal Nothing Nothing True Nothing s >>= either error' return
+-- | Read a journal from the given text, trying all known formats, or simply throw an error.
+readJournal' :: Text -> IO Journal
+readJournal' t = readJournal Nothing Nothing True Nothing t >>= either error' return
 
 tests_readJournal' = [
   "readJournal' parses sample journal" ~: do
@@ -223,7 +216,7 @@ tests_readJournal' = [
 
 -- tests
 
-samplejournal = readJournal' $ unlines
+samplejournal = readJournal' $ T.unlines
  ["2008/01/01 income"
  ,"    assets:bank:checking  $1"
  ,"    income:salary"

@@ -32,6 +32,9 @@ module Hledger.Cli (
                      module System.Console.CmdArgs.Explicit
               )
 where
+import Data.Monoid ((<>))
+import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar
 import System.Console.CmdArgs.Explicit
 import Test.HUnit
@@ -80,16 +83,16 @@ tests_Hledger_Cli = TestList
    in TestList
    [
     "apply account directive 1" ~: sameParse
-                           ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" ++
-                            "apply account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" ++
-                            "apply account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" ++
-                            "end apply account\n2008/12/07 Four\n  why  $-4\n  zed  $4\n" ++
+                           ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
+                            "apply account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" <>
+                            "apply account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" <>
+                            "end apply account\n2008/12/07 Four\n  why  $-4\n  zed  $4\n" <>
                             "end apply account\n2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
                            )
-                           ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" ++
-                            "2008/12/07 Two\n  outer:aigh  $-2\n  outer:bee  $2\n" ++
-                            "2008/12/07 Three\n  outer:inner:gamma  $-3\n  outer:inner:delta  $3\n" ++
-                            "2008/12/07 Four\n  outer:why  $-4\n  outer:zed  $4\n" ++
+                           ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
+                            "2008/12/07 Two\n  outer:aigh  $-2\n  outer:bee  $2\n" <>
+                            "2008/12/07 Three\n  outer:inner:gamma  $-3\n  outer:inner:delta  $3\n" <>
+                            "2008/12/07 Four\n  outer:why  $-4\n  outer:zed  $4\n" <>
                             "2008/12/07 Five\n  foo  $-5\n  bar  $5\n"
                            )
 
@@ -124,7 +127,7 @@ tests_Hledger_Cli = TestList
   --     `is` "aa:aa:aaaaaaaaaaaaaa")
 
   ,"default year" ~: do
-    j <- readJournal Nothing Nothing True Nothing defaultyear_journal_str >>= either error' return
+    j <- readJournal Nothing Nothing True Nothing defaultyear_journal_txt >>= either error' return
     tdate (head $ jtxns j) `is` fromGregorian 2009 1 1
     return ()
 
@@ -187,8 +190,8 @@ sample_journal_str = unlines
  ]
 -}
 
-defaultyear_journal_str :: String
-defaultyear_journal_str = unlines
+defaultyear_journal_txt :: Text
+defaultyear_journal_txt = T.unlines
  ["Y2009"
  ,""
  ,"01/01 A"

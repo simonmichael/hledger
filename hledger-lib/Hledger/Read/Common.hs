@@ -27,6 +27,7 @@ import Data.Functor.Identity
 import Data.List.Compat
 import Data.List.Split (wordsBy)
 import Data.Maybe
+-- import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
@@ -44,8 +45,11 @@ import Hledger.Utils
 -- | A parser of strings with generic user state, monad and return type.
 type StringParser u m a = ParsecT String u m a
 
--- | A string parser with journal-parsing state.
-type JournalParser m a = StringParser Journal m a
+-- | A parser of strict text with generic user state, monad and return type.
+type TextParser u m a = ParsecT Text u m a
+
+-- | A text parser with journal-parsing state.
+type JournalParser m a = TextParser Journal m a
 
 -- | A journal parser that runs in IO and can throw an error mid-parse.
 type ErroringJournalParser a = JournalParser (ExceptT String IO) a
@@ -55,14 +59,19 @@ runStringParser, rsp :: StringParser () Identity a -> String -> Either ParseErro
 runStringParser p s = runIdentity $ runParserT p () "" s
 rsp = runStringParser
 
+-- | Run a string parser with no state in the identity monad.
+runTextParser, rtp :: TextParser () Identity a -> Text -> Either ParseError a
+runTextParser p t = runIdentity $ runParserT p () "" t
+rtp = runTextParser
+
 -- | Run a journal parser with a null journal-parsing state.
-runJournalParser, rjp :: Monad m => JournalParser m a -> String -> m (Either ParseError a)
-runJournalParser p s = runParserT p mempty "" s
+runJournalParser, rjp :: Monad m => JournalParser m a -> Text -> m (Either ParseError a)
+runJournalParser p t = runParserT p mempty "" t
 rjp = runJournalParser
 
 -- | Run an error-raising journal parser with a null journal-parsing state.
-runErroringJournalParser, rejp :: ErroringJournalParser a -> String -> IO (Either String a)
-runErroringJournalParser p s = runExceptT $ runJournalParser p s >>= either (throwError.show) return
+runErroringJournalParser, rejp :: ErroringJournalParser a -> Text -> IO (Either String a)
+runErroringJournalParser p t = runExceptT $ runJournalParser p t >>= either (throwError.show) return
 rejp = runErroringJournalParser
 
 genericSourcePos :: SourcePos -> GenericSourcePos
@@ -70,13 +79,13 @@ genericSourcePos p = GenericSourcePos (sourceName p) (sourceLine p) (sourceColum
 
 -- | Given a parsec ParsedJournal parser, file path and data string,
 -- parse and post-process a ready-to-use Journal, or give an error.
-parseAndFinaliseJournal :: ErroringJournalParser ParsedJournal -> Bool -> FilePath -> String -> ExceptT String IO Journal
-parseAndFinaliseJournal parser assrt f s = do
+parseAndFinaliseJournal :: ErroringJournalParser ParsedJournal -> Bool -> FilePath -> Text -> ExceptT String IO Journal
+parseAndFinaliseJournal parser assrt f txt = do
   t <- liftIO getClockTime
   y <- liftIO getCurrentYear
-  ep <- runParserT parser nulljournal{jparsedefaultyear=Just y} f s
+  ep <- runParserT parser nulljournal{jparsedefaultyear=Just y} f txt
   case ep of
-    Right pj -> case journalFinalise t f (T.pack s) assrt pj of
+    Right pj -> case journalFinalise t f txt assrt pj of
                         Right j -> return j
                         Left e  -> throwError e
     Left e   -> throwError $ show e
@@ -271,7 +280,7 @@ modifiedaccountnamep = do
 -- spaces (or end of input). Also they have one or more components of
 -- at least one character, separated by the account separator char.
 -- (This parser will also consume one following space, if present.)
-accountnamep :: Monad m => StringParser u m AccountName
+accountnamep :: Monad m => TextParser u m AccountName
 accountnamep = do
     astr <- do
       c <- nonspace
@@ -338,9 +347,9 @@ test_amountp = do
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
 amountp' s =
-  case runParser (amountp <* eof) mempty "" s of
-    Right t -> t
-    Left err -> error' $ show err -- XXX should throwError
+  case runParser (amountp <* eof) mempty "" (T.pack s) of
+    Right amt -> amt
+    Left err  -> error' $ show err -- XXX should throwError
 
 -- | Parse a mixed amount from a string, or get an error.
 mamountp' :: String -> MixedAmount
@@ -585,7 +594,7 @@ followingcommentandtagsp mdefdate = do
   -- Save the starting position and preserve all whitespace for the subsequent re-parsing,
   -- to get good error positions.
   startpos <- getPosition
-  commentandwhitespace <- do
+  commentandwhitespace :: String <- do
     let semicoloncommentp' = (:) <$> char ';' <*> anyChar `manyTill` eolof
     sp1 <- many spacenonewline
     l1  <- try semicoloncommentp' <|> (newline >> return "")
@@ -596,13 +605,13 @@ followingcommentandtagsp mdefdate = do
   -- pdbg 0 $ "comment:"++show comment
 
   -- Reparse the comment for any tags.
-  tags <- case runStringParser (setPosition startpos >> tagsp) commentandwhitespace of
+  tags <- case runTextParser (setPosition startpos >> tagsp) $ T.pack commentandwhitespace of
             Right ts -> return ts
             Left e   -> throwError $ show e
   -- pdbg 0 $ "tags: "++show tags
 
   -- Reparse the comment for any posting dates. Use the transaction date for defaults, if provided.
-  epdates <- liftIO $ rejp (setPosition startpos >> postingdatesp mdefdate) commentandwhitespace
+  epdates <- liftIO $ rejp (setPosition startpos >> postingdatesp mdefdate) $ T.pack commentandwhitespace
   pdates <- case epdates of
               Right ds -> return ds
               Left e   -> throwError e
@@ -645,14 +654,14 @@ commentStartingWithp cs = do
 -- >>> commentTags "\na b:, \nd:e, f"
 -- [("b",""),("d","e")]
 --
-commentTags :: String -> [Tag]
+commentTags :: Text -> [Tag]
 commentTags s =
-  case runStringParser tagsp s of
+  case runTextParser tagsp s of
     Right r -> r
     Left _  -> [] -- shouldn't happen
 
 -- | Parse all tags found in a string.
-tagsp :: StringParser u Identity [Tag]
+tagsp :: TextParser u Identity [Tag]
 tagsp = -- do
   -- pdbg 0 $ "tagsp"
   many (try (nontagp >> tagp))
@@ -661,7 +670,7 @@ tagsp = -- do
 --
 -- >>> rsp nontagp "\na b:, \nd:e, f"
 -- Right "\na "
-nontagp :: StringParser u Identity String
+nontagp :: TextParser u Identity String
 nontagp = -- do
   -- pdbg 0 "nontagp"
   -- anyChar `manyTill` (lookAhead (try (tagorbracketeddatetagsp Nothing >> return ()) <|> eof))
@@ -675,7 +684,7 @@ nontagp = -- do
 -- >>> rsp tagp "a:b b , c AuxDate: 4/2"
 -- Right ("a","b b")
 --
-tagp :: Monad m => StringParser u m Tag
+tagp :: Monad m => TextParser u m Tag
 tagp = do
   -- pdbg 0 "tagp"
   n <- tagnamep
@@ -685,12 +694,12 @@ tagp = do
 -- |
 -- >>> rsp tagnamep "a:"
 -- Right "a"
-tagnamep :: Monad m => StringParser u m String
+tagnamep :: Monad m => TextParser u m String
 tagnamep = -- do
   -- pdbg 0 "tagnamep"
   many1 (noneOf ": \t\n") <* char ':'
 
-tagvaluep :: Monad m => StringParser u m String
+tagvaluep :: Monad m => TextParser u m String
 tagvaluep = do
   -- ptrace "tagvalue"
   v <- anyChar `manyTill` (void (try (char ',')) <|> eolof)
@@ -746,14 +755,14 @@ datetagp mdefdate = do
     (do
         setPosition startpos
         datep) -- <* eof)
-    v
+    (T.pack v)
   case ep
     of Left e  -> throwError $ show e
        Right d -> return ("date"++n, d)
 
 --- ** bracketed dates
 
--- tagorbracketeddatetagsp :: Monad m => Maybe Day -> StringParser u m [Tag]
+-- tagorbracketeddatetagsp :: Monad m => Maybe Day -> TextParser u m [Tag]
 -- tagorbracketeddatetagsp mdefdate =
 --   bracketeddatetagsp mdefdate <|> ((:[]) <$> tagp)
 
@@ -807,7 +816,7 @@ bracketeddatetagsp mdefdate = do
         eof
         return (md1,md2)
     )
-    s
+    (T.pack s)
   case ep
     of Left e          -> throwError $ show e
        Right (md1,md2) -> return $ catMaybes

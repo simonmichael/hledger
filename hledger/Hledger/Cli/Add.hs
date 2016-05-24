@@ -17,7 +17,7 @@ import Data.Char (toUpper, toLower)
 import Data.List.Compat
 import qualified Data.Set as S
 import Data.Maybe
--- import Data.Text (Text)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import Data.Typeable (Typeable)
@@ -183,7 +183,7 @@ dateAndCodeWizard EntryState{..} = do
     where
       parseSmartDateAndCode refdate s = either (const Nothing) (\(d,c) -> return (fixSmartDate refdate d, c)) edc
           where
-            edc = runParser (dateandcodep <* eof) mempty "" $ lowercase s
+            edc = runParser (dateandcodep <* eof) mempty "" $ T.pack $ lowercase s
             dateandcodep :: Monad m => JournalParser m (SmartDate, String)
             dateandcodep = do
                 d <- smartdate
@@ -244,13 +244,18 @@ accountWizard EntryState{..} = do
    line $ green $ printf "Account %d%s%s: " pnum (endmsg::String) (showDefault def)
     where
       canfinish = not (null esPostings) && postingsBalanced esPostings
+      parseAccountOrDotOrNull :: String -> Bool -> String -> Maybe String
       parseAccountOrDotOrNull _  _ "."       = dbg1 $ Just "." -- . always signals end of txn
       parseAccountOrDotOrNull "" True ""     = dbg1 $ Just ""  -- when there's no default and txn is balanced, "" also signals end of txn
       parseAccountOrDotOrNull def@(_:_) _ "" = dbg1 $ Just def -- when there's a default, "" means use that
-      parseAccountOrDotOrNull _ _ s          = dbg1 $ either (const Nothing) ((T.unpack <$>) . validateAccount) $ runParser (accountnamep <* eof) esJournal "" s -- otherwise, try to parse the input as an accountname
+      parseAccountOrDotOrNull _ _ s          = dbg1 $ fmap T.unpack $
+        either (const Nothing) validateAccount $
+          runParser (accountnamep <* eof) esJournal "" (T.pack s) -- otherwise, try to parse the input as an accountname
+        where
+          validateAccount :: Text -> Maybe Text
+          validateAccount t | no_new_accounts_ esOpts && not (t `elem` journalAccountNames esJournal) = Nothing
+                            | otherwise = Just t
       dbg1 = id -- strace
-      validateAccount s | no_new_accounts_ esOpts && not (s `elem` journalAccountNames esJournal) = Nothing
-                        | otherwise = Just s
 
 amountAndCommentWizard EntryState{..} = do
   let pnum = length esPostings + 1
@@ -271,8 +276,8 @@ amountAndCommentWizard EntryState{..} = do
    maybeRestartTransaction $
    line $ green $ printf "Amount  %d%s: " pnum (showDefault def)
     where
-      parseAmountAndComment = either (const Nothing) Just . runParser (amountandcommentp <* eof) noDefCommodityJPS ""
-      noDefCommodityJPS = esJournal{jparsedefaultcommodity=Nothing}
+      parseAmountAndComment = either (const Nothing) Just . runParser (amountandcommentp <* eof) nodefcommodityj "" . T.pack
+      nodefcommodityj = esJournal{jparsedefaultcommodity=Nothing}
       amountandcommentp :: Monad m => JournalParser m (Amount, String)
       amountandcommentp = do
         a <- amountp
@@ -378,7 +383,7 @@ ensureOneNewlineTerminated = (++"\n") . reverse . dropWhile (=='\n') . reverse
 registerFromString :: String -> IO String
 registerFromString s = do
   d <- getCurrentDay
-  j <- readJournal' s
+  j <- readJournal' $ T.pack s
   return $ postingsReportAsText opts $ postingsReport ropts (queryFromOpts d ropts) j
       where
         ropts = defreportopts{empty_=True}

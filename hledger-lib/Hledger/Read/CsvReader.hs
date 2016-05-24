@@ -30,7 +30,7 @@ import Data.Char (toLower, isDigit, isSpace)
 import Data.List.Compat
 import Data.Maybe
 import Data.Ord
--- import Data.Text (Text)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 #if MIN_VERSION_time(1,5,0)
@@ -63,16 +63,16 @@ format :: String
 format = "csv"
 
 -- | Does the given file path and data look like it might be CSV ?
-detect :: FilePath -> String -> Bool
-detect f s
+detect :: FilePath -> Text -> Bool
+detect f t
   | f /= "-"  = takeExtension f == '.':format  -- from a file: yes if the extension is .csv
-  | otherwise = length (filter (==',') s) >= 2 -- from stdin: yes if there are two or more commas
+  | otherwise = T.length (T.filter (==',') t) >= 2 -- from stdin: yes if there are two or more commas
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.
 -- XXX currently ignores the string and reads from the file path
-parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
-parse rulesfile _ f s = do
-  r <- liftIO $ readJournalFromCsv rulesfile f s
+parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
+parse rulesfile _ f t = do
+  r <- liftIO $ readJournalFromCsv rulesfile f t
   case r of Left e -> throwError e
             Right j -> return j
 
@@ -87,7 +87,7 @@ parse rulesfile _ f s = do
 -- 4. parse the rules file
 -- 5. convert the CSV records to a journal using the rules
 -- @
-readJournalFromCsv :: Maybe FilePath -> FilePath -> String -> IO (Either String Journal)
+readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
 readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
 readJournalFromCsv mrulesfile csvfile csvdata =
  handle (\e -> return $ Left $ show (e :: IOException)) $ do
@@ -117,7 +117,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   records <- (either throwerr id .
               dbg2 "validateCsv" . validateCsv skip .
               dbg2 "parseCsv")
-             `fmap` parseCsv parsecfilename csvdata
+             `fmap` parseCsv parsecfilename (T.unpack csvdata)
   dbg1IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
@@ -607,7 +607,7 @@ transactionFromCsvRecord sourcepos rules record = t
     status      =
       case mfieldtemplate "status" of
         Nothing  -> Uncleared
-        Just str -> either statuserror id $ runParser (statusp <* eof) mempty "" $ render str
+        Just str -> either statuserror id $ runParser (statusp <* eof) mempty "" $ T.pack $ render str
           where
             statuserror err = error' $ unlines
               ["error: could not parse \""++str++"\" as a cleared status (should be *, ! or empty)"
@@ -619,7 +619,7 @@ transactionFromCsvRecord sourcepos rules record = t
     precomment  = maybe "" render $ mfieldtemplate "precomment"
     currency    = maybe (fromMaybe "" mdefaultcurrency) render $ mfieldtemplate "currency"
     amountstr   = (currency++) $ negateIfParenthesised $ getAmountStr rules record
-    amount      = either amounterror (Mixed . (:[])) $ runParser (amountp <* eof) mempty "" amountstr
+    amount      = either amounterror (Mixed . (:[])) $ runParser (amountp <* eof) mempty "" $ T.pack amountstr
     amounterror err = error' $ unlines
       ["error: could not parse \""++amountstr++"\" as an amount"
       ,showRecord record

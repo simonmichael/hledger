@@ -37,6 +37,8 @@ import Control.Monad.Except (ExceptT)
 import Data.Char (isSpace)
 import Data.List (foldl')
 import Data.Maybe
+import Data.Text (Text)
+import qualified Data.Text as T
 import Test.HUnit
 import Text.Parsec hiding (parse)
 import System.FilePath
@@ -57,13 +59,13 @@ format :: String
 format = "timedot"
 
 -- | Does the given file path and data look like it might contain this format ?
-detect :: FilePath -> String -> Bool
-detect f s
+detect :: FilePath -> Text -> Bool
+detect f t
   | f /= "-"  = takeExtension f == '.':format -- from a file: yes if the extension matches the format name
-  | otherwise = regexMatches "(^|\n)[0-9]" s  -- from stdin: yes if we can see a possible timedot day entry (digits in column 0)
+  | otherwise = regexMatches "(^|\n)[0-9]" $ T.unpack t  -- from stdin: yes if we can see a possible timedot day entry (digits in column 0)
 
 -- | Parse and post-process a "Journal" from the timedot format, or give an error.
-parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
+parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal timedotfilep
 
 timedotfilep :: ErroringJournalParser ParsedJournal

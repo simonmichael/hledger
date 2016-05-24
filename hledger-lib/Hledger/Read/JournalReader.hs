@@ -82,7 +82,7 @@ import Control.Monad
 import Control.Monad.Except (ExceptT(..), liftIO, runExceptT, throwError)
 import qualified Data.Map.Strict as M
 import Data.Monoid
--- import Data.Text (Text)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
@@ -112,14 +112,14 @@ format :: String
 format = "journal"
 
 -- | Does the given file path and data look like it might be hledger's journal format ?
-detect :: FilePath -> String -> Bool
-detect f s
+detect :: FilePath -> Text -> Bool
+detect f t
   | f /= "-"  = takeExtension f `elem` ['.':format, ".j"] -- from a known file name: yes if the extension is this format's name or .j
-  | otherwise = regexMatches "(^|\n)[0-9]+.*\n[ \t]+" s   -- from stdin: yes if we can see something that looks like a journal entry (digits in column 0 with the next line indented)
+  | otherwise = regexMatches "(^|\n)[0-9]+.*\n[ \t]+" $ T.unpack t   -- from stdin: yes if we can see something that looks like a journal entry (digits in column 0 with the next line indented)
 
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
-parse :: Maybe FilePath -> Bool -> FilePath -> String -> ExceptT String IO Journal
+parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal journalp
 
 --- * parsers
@@ -190,7 +190,7 @@ includedirectivep = do
     liftIO $ runExceptT $ do
       let curdir = takeDirectory (sourceName parentpos)
       filepath <- expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
-      txt      <- readFile' filepath         `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
+      txt      <- readFileAnyLineEnding filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
       (ej1::Either ParseError ParsedJournal) <-
         runParserT 
            (choice' [journalp
@@ -203,7 +203,7 @@ includedirectivep = do
         (throwError
           . ((show parentpos ++ " in included file " ++ show filename ++ ":\n") ++)
           . show)
-        (return . journalAddFile (filepath, T.pack txt))
+        (return . journalAddFile (filepath, txt))
         ej1
   case ej of
     Left e       -> throwError e
@@ -311,10 +311,10 @@ aliasdirectivep = do
   alias <- accountaliasp
   addAccountAlias alias
 
-accountaliasp :: Monad m => StringParser u m AccountAlias
+accountaliasp :: Monad m => TextParser u m AccountAlias
 accountaliasp = regexaliasp <|> basicaliasp
 
-basicaliasp :: Monad m => StringParser u m AccountAlias
+basicaliasp :: Monad m => TextParser u m AccountAlias
 basicaliasp = do
   -- pdbg 0 "basicaliasp"
   old <- rstrip <$> many1 (noneOf "=")
@@ -323,7 +323,7 @@ basicaliasp = do
   new <- rstrip <$> anyChar `manyTill` eolof  -- don't require a final newline, good for cli options
   return $ BasicAlias (T.pack old) (T.pack new)
 
-regexaliasp :: Monad m => StringParser u m AccountAlias
+regexaliasp :: Monad m => TextParser u m AccountAlias
 regexaliasp = do
   -- pdbg 0 "regexaliasp"
   char '/'
@@ -433,7 +433,7 @@ transactionp = do
   code <- codep <?> "transaction code"
   description <- strip <$> descriptionp
   comment <- try followingcommentp <|> (newline >> return "")
-  let tags = commentTags comment
+  let tags = commentTags $ T.pack comment
   postings <- postingsp (Just date)
   n <- incrementTransactionCount
   return $ txnTieKnot $ Transaction n sourcepos date edate status code description comment tags postings ""

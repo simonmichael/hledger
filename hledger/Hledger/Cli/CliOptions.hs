@@ -1,10 +1,11 @@
-{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts #-}
 {-|
 
 Common cmdargs modes and flags, a command-line options type, and
 related utilities used by hledger commands.
 
 -}
+
+{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts #-}
 
 module Hledger.Cli.CliOptions (
 
@@ -71,6 +72,8 @@ import Data.Functor.Compat ((<$>))
 import Data.List.Compat
 import Data.List.Split (splitOneOf)
 import Data.Maybe
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Safe
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
@@ -384,7 +387,7 @@ getCliOpts mode' = do
 
 -- | Get the account name aliases from options, if any.
 aliasesFromOpts :: CliOpts -> [AccountAlias]
-aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp () ("--alias "++quoteIfNeeded a) a)
+aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp () ("--alias "++quoteIfNeeded a) $ T.pack a)
                   . alias_
 
 -- | Get the (tilde-expanded, absolute) journal file path from

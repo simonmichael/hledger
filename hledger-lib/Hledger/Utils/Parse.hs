@@ -3,6 +3,8 @@ module Hledger.Utils.Parse where
 
 import Data.Char
 import Data.List
+-- import Data.Text (Text)
+-- import qualified Data.Text as T
 import Text.Parsec
 import Text.Printf
 
@@ -31,15 +33,15 @@ showParseError e = "parse error at " ++ show e
 showDateParseError :: ParseError -> String
 showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tail $ lines $ show e)
 
-nonspace :: (Stream [Char] m Char) => ParsecT [Char] st m Char
+nonspace :: (Stream s m Char) => ParsecT s st m Char
 nonspace = satisfy (not . isSpace)
 
-spacenonewline :: (Stream [Char] m Char) => ParsecT [Char] st m Char
+spacenonewline :: (Stream s m Char) => ParsecT s st m Char
 spacenonewline = satisfy (`elem` " \v\f\t")
 
-restofline :: (Stream [Char] m Char) => ParsecT [Char] st m String
+restofline :: (Stream s m Char) => ParsecT s st m String
 restofline = anyChar `manyTill` newline
 
-eolof :: (Stream [Char] m Char) => ParsecT [Char] st m ()
+eolof :: (Stream s m Char) => ParsecT s st m ()
 eolof = (newline >> return ()) <|> eof
 

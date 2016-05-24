@@ -37,6 +37,8 @@ import Control.Monad (liftM)
 -- import Data.List
 -- import Data.Maybe
 -- import Data.PPrint
+import Data.Text (Text)
+import qualified Data.Text.IO as T
 import Data.Time.Clock
 import Data.Time.LocalTime
 -- import Data.Text (Text)
@@ -134,12 +136,30 @@ firstJust ms = case dropWhile (==Nothing) ms of
     [] -> Nothing
     (md:_) -> md
 
--- | Read a file in universal newline mode, handling whatever newline convention it may contain.
+-- | Read a file in universal newline mode, handling any of the usual line ending conventions.
 readFile' :: FilePath -> IO String
 readFile' name =  do
   h <- openFile name ReadMode
   hSetNewlineMode h universalNewlineMode
   hGetContents h
+
+-- | Read a file in universal newline mode, handling any of the usual line ending conventions.
+readFileAnyLineEnding :: FilePath -> IO Text
+readFileAnyLineEnding path =  do
+  h <- openFile path ReadMode
+  hSetNewlineMode h universalNewlineMode
+  T.hGetContents h
+
+-- | Read the given file, or standard input if the path is "-", using
+-- universal newline mode.
+readFileOrStdinAnyLineEnding :: String -> IO Text
+readFileOrStdinAnyLineEnding f = do
+  h <- fileHandle f
+  hSetNewlineMode h universalNewlineMode
+  T.hGetContents h
+  where
+    fileHandle "-" = return stdin
+    fileHandle f = openFile f ReadMode
 
 -- | Total version of maximum, for integral types, giving 0 for an empty list.
 maximum' :: Integral a => [a] -> a

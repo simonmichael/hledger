@@ -71,17 +71,17 @@ import Hledger.Utils.String (charWidth)
 -- lowercase = map toLower
 -- uppercase = map toUpper
 
--- -- | Remove leading and trailing whitespace.
--- strip :: String -> String
--- strip = lstrip . rstrip
+-- | Remove leading and trailing whitespace.
+textstrip :: Text -> Text
+textstrip = textlstrip . textrstrip
 
--- -- | Remove leading whitespace.
--- lstrip :: String -> String
--- lstrip = dropWhile (`elem` " \t") :: String -> String -- XXX isSpace ?
+-- | Remove leading whitespace.
+textlstrip :: Text -> Text
+textlstrip = T.dropWhile (`elem` " \t") :: Text -> Text -- XXX isSpace ?
 
--- -- | Remove trailing whitespace.
--- rstrip :: String -> String
--- rstrip = reverse . lstrip . reverse
+-- | Remove trailing whitespace.
+textrstrip = T.reverse . textlstrip . T.reverse
+textrstrip :: Text -> Text
 
 -- -- | Remove trailing newlines/carriage returns.
 -- chomp :: String -> String
@@ -94,9 +94,9 @@ import Hledger.Utils.String (charWidth)
 -- elideLeft width s =
 --     if length s > width then ".." ++ reverse (take (width - 2) $ reverse s) else s
 
--- elideRight :: Int -> String -> String
--- elideRight width s =
---     if length s > width then take (width - 2) s ++ ".." else s
+textElideRight :: Int -> Text -> Text
+textElideRight width t =
+    if T.length t > width then T.take (width - 2) t <> ".." else t
 
 -- -- | Clip and pad a string to a minimum & maximum width, and/or left/right justify it.
 -- -- Works on multi-line strings too (but will rewrite non-unix line endings).
