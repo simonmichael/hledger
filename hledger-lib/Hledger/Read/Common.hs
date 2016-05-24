@@ -27,7 +27,7 @@ import Data.Functor.Identity
 import Data.List.Compat
 import Data.List.Split (wordsBy)
 import Data.Maybe
--- import Data.Text (Text)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
@@ -76,7 +76,7 @@ parseAndFinaliseJournal parser assrt f s = do
   y <- liftIO getCurrentYear
   ep <- runParserT parser nulljournal{jparsedefaultyear=Just y} f s
   case ep of
-    Right pj -> case journalFinalise t f s assrt pj of
+    Right pj -> case journalFinalise t f (T.pack s) assrt pj of
                         Right j -> return j
                         Left e  -> throwError e
     Left e   -> throwError $ show e
@@ -130,7 +130,7 @@ incrementTransactionCount = do
   modifyState (\j -> j{jparsetransactioncount=jparsetransactioncount j + 1})
   getTransactionCount
 
-journalAddFile :: (FilePath,String) -> Journal -> Journal
+journalAddFile :: (FilePath,Text) -> Journal -> Journal
 journalAddFile f j@Journal{jfiles=fs} = j{jfiles=fs++[f]}
   -- append, unlike the other fields, even though we do a final reverse,
   -- to compensate for additional reversal due to including/monoid-concatting

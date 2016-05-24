@@ -251,7 +251,7 @@ data Journal = Journal {
   ,jperiodictxns          :: [PeriodicTransaction]
   ,jtxns                  :: [Transaction]
   ,jfinalcommentlines     :: String                                 -- ^ any final trailing comments in the (main) journal file
-  ,jfiles                 :: [(FilePath, String)]                   -- ^ the file path and raw text of the main and
+  ,jfiles                 :: [(FilePath, Text)]                     -- ^ the file path and raw text of the main and
                                                                     --   any included journal files. The main file is first,
                                                                     --   followed by any included files in the order encountered.
   ,jlastreadtime          :: ClockTime                              -- ^ when this journal was last read from its file(s)

@@ -63,7 +63,7 @@ import Data.List
 import Data.Maybe
 import Data.Monoid
 import Data.Ord
--- import Data.Text (Text)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (headMay, headDef)
 import Data.Time.Calendar
@@ -185,7 +185,7 @@ journalFilePath = fst . mainfile
 journalFilePaths :: Journal -> [FilePath]
 journalFilePaths = map fst . jfiles
 
-mainfile :: Journal -> (FilePath, String)
+mainfile :: Journal -> (FilePath, Text)
 mainfile = headDef ("", "") . jfiles
 
 addTransaction :: Transaction -> Journal -> Journal
@@ -455,7 +455,7 @@ journalApplyAliases aliases j@Journal{jtxns=ts} =
 -- use.  Reverse parsed data to normal order, canonicalise amount
 -- formats, check/ensure that transactions are balanced, and maybe
 -- check balance assertions.
-journalFinalise :: ClockTime -> FilePath -> String -> Bool -> ParsedJournal -> Either String Journal
+journalFinalise :: ClockTime -> FilePath -> Text -> Bool -> ParsedJournal -> Either String Journal
 journalFinalise t path txt assrt j@Journal{jfiles=fs} = do
   (journalBalanceTransactions $
     journalApplyCommodityStyles $

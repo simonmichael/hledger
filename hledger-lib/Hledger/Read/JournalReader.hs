@@ -203,7 +203,7 @@ includedirectivep = do
         (throwError
           . ((show parentpos ++ " in included file " ++ show filename ++ ":\n") ++)
           . show)
-        (return . journalAddFile (filepath,txt))
+        (return . journalAddFile (filepath, T.pack txt))
         ej1
   case ej of
     Left e       -> throwError e
