@@ -820,6 +820,7 @@ samplejournals: \
 	data/10000x1000x10.journal \
 	data/10000x10000x10.journal \
 	data/100000x1000x10.journal \
+	data/1000000x1000x10.journal \
 	data/ascii.journal \
 	data/chinese.journal \
 	data/mixed.journal \
@@ -845,6 +846,9 @@ data/10000x10000x10.journal: tools/generatejournal
 
 data/100000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 100000 1000 10 >$@
+
+data/1000000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 1000000 1000 10 >$@
 
 data/ascii.journal: tools/generatejournal
 	tools/generatejournal 3 5 5 >$@
