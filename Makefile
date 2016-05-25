@@ -69,7 +69,7 @@ VIEWPS=$(BROWSE)
 # PRINT=lpr
 
 GHC=ghc
-GHCI=ghci
+GHCI=ghci #-package ghc-datasize #-package ghc-heap-view
 # GHCPKG=ghc-pkg
 # HADDOCK=haddock
 # CABAL=cabal
@@ -791,23 +791,23 @@ quickheap-%: hledgerprof samplejournals \
 # multi-package GHCI prompts
 ghci: \
 # 	 	$(call def-help,ghci, start a GHCI REPL and load the hledger-lib and hledger packages)
-	stack exec $(GHCI) -- $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
+	stack exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
 
 ghci-dev: \
 # 	 	$(call def-help,ghci, start a GHCI REPL and load the dev.hs script plus hledger-lib and hledger)
-	stack exec $(GHCI) -- $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
+	stack exec -- $(GHCI) $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
 
 ghci-ui: \
 # 		$(call def-help,ghci-ui, start a GHCI REPL and load the hledger-lib, hledger and hledger-ui packages)
-	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
+	stack exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
 
 ghci-web: \
 # 		$(call def-help,ghci-web, start a GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
-	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-web/app/main.hs
+	stack exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
 
 ghci-api: \
 # 		$(call def-help,ghci-api, start a GHCI REPL and load the hledger-lib, hledger and hledger-api packages)
-	stack exec $(GHCI) -- $(BUILDFLAGS) hledger-api/hledger-api.hs
+	stack exec -- $(GHCI) $(BUILDFLAGS) hledger-api/hledger-api.hs
 
 ghcid-lib-doctest:
 	ghcid --command 'cd hledger-lib; stack ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
