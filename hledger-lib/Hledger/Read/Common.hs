@@ -39,6 +39,7 @@ import Text.Parsec hiding (parse)
 import Hledger.Data
 import Hledger.Utils
 
+-- $setup
 
 --- * parsing utils
 
@@ -668,7 +669,7 @@ tagsp = -- do
 
 -- | Parse everything up till the first tag.
 --
--- >>> rsp nontagp "\na b:, \nd:e, f"
+-- >>> rtp nontagp "\na b:, \nd:e, f"
 -- Right "\na "
 nontagp :: TextParser u Identity String
 nontagp = -- do
@@ -681,7 +682,7 @@ nontagp = -- do
 -- a letter) and are followed by a tag value (any text up to a comma
 -- or newline, whitespace-stripped).
 --
--- >>> rsp tagp "a:b b , c AuxDate: 4/2"
+-- >>> rtp tagp "a:b b , c AuxDate: 4/2"
 -- Right ("a","b b")
 --
 tagp :: Monad m => TextParser u m Tag
@@ -692,7 +693,7 @@ tagp = do
   return (n,v)
 
 -- |
--- >>> rsp tagnamep "a:"
+-- >>> rtp tagnamep "a:"
 -- Right "a"
 tagnamep :: Monad m => TextParser u m Text
 tagnamep = -- do

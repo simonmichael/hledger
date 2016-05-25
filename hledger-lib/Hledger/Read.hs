@@ -99,7 +99,7 @@ readerForStorageFormat s | null rs = Nothing
 
 -- | Find the readers which think they can handle the given file path and data, if any.
 readersForPathAndData :: (FilePath,Text) -> [Reader]
-readersForPathAndData (f,t) = filter (\r -> (rDetector r) f t) readers
+readersForPathAndData (f,t) = filter (\r -> dbg1 ("try "++rFormat r++" format") $ (rDetector r) f t) readers
 
 -- try each reader in turn, returning the error of the first if all fail
 tryReaders :: [Reader] -> Maybe FilePath -> Bool -> Maybe FilePath -> Text -> IO (Either String Journal)
@@ -116,7 +116,6 @@ tryReaders readers mrulesfile assrt path t = firstSuccessOrBestError [] readers
     firstSuccessOrBestError (e:_) []    = return $ Left e              -- none left, return first error
     path' = fromMaybe "(string)" path
 
-
 -- | Read a journal from this string, trying whatever readers seem appropriate:
 --
 -- - if a format is specified, try that reader only
@@ -130,16 +129,6 @@ tryReaders readers mrulesfile assrt path t = firstSuccessOrBestError [] readers
 readJournal :: Maybe StorageFormat -> Maybe FilePath -> Bool -> Maybe FilePath -> Text -> IO (Either String Journal)
 readJournal mformat mrulesfile assrt mpath t = tryReaders (readersFor (mformat, mpath, t)) mrulesfile assrt mpath t
 
--- | Read a Journal from this file (or stdin if the filename is -) or give
--- an error message, using the specified data format or trying all known
--- formats. A CSV conversion rules file may be specified for better
--- conversion of that format. Also there is a flag specifying whether
--- to check or ignore balance assertions in the journal.
-readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> FilePath -> IO (Either String Journal)
-readJournalFile mformat mrulesfile assrt f = do
-  -- requireJournalFileExists f -- XXX ?
-  readFileOrStdinAnyLineEnding f >>= readJournal mformat mrulesfile assrt (Just f)
-
 -- | Call readJournalFile on each specified file path, and combine the
 -- resulting journals into one. If there are any errors, the first is
 -- returned, otherwise they are combined per Journal's monoid instance
@@ -152,6 +141,16 @@ readJournalFiles mformat mrulesfile assrt fs = do
   (either Left (Right . mconcat) . sequence)
     <$> mapM (readJournalFile mformat mrulesfile assrt) fs
 
+-- | Read a Journal from this file (or stdin if the filename is -) or give
+-- an error message, using the specified data format or trying all known
+-- formats. A CSV conversion rules file may be specified for better
+-- conversion of that format. Also there is a flag specifying whether
+-- to check or ignore balance assertions in the journal.
+readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> FilePath -> IO (Either String Journal)
+readJournalFile mformat mrulesfile assrt f = do
+  requireJournalFileExists f
+  readFileOrStdinAnyLineEnding f >>= readJournal mformat mrulesfile assrt (Just f)
+
 -- | If the specified journal file does not exist, give a helpful error and quit.
 requireJournalFileExists :: FilePath -> IO ()
 requireJournalFileExists "-" = return ()
@@ -162,7 +161,6 @@ requireJournalFileExists f = do
     hPrintf stderr "Please create it first, eg with \"hledger add\" or a text editor.\n"
     hPrintf stderr "Or, specify an existing journal file with -f or LEDGER_FILE.\n"
     exitFailure
-
 
 -- | Ensure there is a journal file at the given path, creating an empty one if needed.
 ensureJournalFileExists :: FilePath -> IO ()
