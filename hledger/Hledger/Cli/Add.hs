@@ -201,7 +201,7 @@ descriptionAndCommentWizard EntryState{..} = do
        maybeRestartTransaction $
        line $ green $ printf "Description%s: " (showDefault def)
   let (desc,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') s
-  return (desc,comment)
+  return (desc, T.pack comment)
 
 postingsWizard es@EntryState{..} = do
   mp <- postingWizard es
@@ -278,11 +278,11 @@ amountAndCommentWizard EntryState{..} = do
     where
       parseAmountAndComment = either (const Nothing) Just . runParser (amountandcommentp <* eof) nodefcommodityj "" . T.pack
       nodefcommodityj = esJournal{jparsedefaultcommodity=Nothing}
-      amountandcommentp :: Monad m => JournalParser m (Amount, String)
+      amountandcommentp :: Monad m => JournalParser m (Amount, Text)
       amountandcommentp = do
         a <- amountp
         many spacenonewline
-        c <- fromMaybe "" `fmap` optionMaybe (char ';' >> many anyChar)
+        c <- T.pack <$> fromMaybe "" `fmap` optionMaybe (char ';' >> many anyChar)
         -- eof
         return (a,c)
       balancingamt = negate $ sum $ map pamount realps where realps = filter isReal esPostings

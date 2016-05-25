@@ -42,7 +42,7 @@ module Hledger.Data.Transaction (
 where
 import Data.List
 import Data.Maybe
--- import Data.Text (Text)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Test.HUnit
@@ -159,9 +159,9 @@ showTransactionHelper elide onelineamounts t =
                                                 c:cs -> (c,cs)
 
 -- Render a transaction or posting's comment as indented, semicolon-prefixed comment lines.
-renderCommentLines :: String -> [String]
-renderCommentLines s  = case lines s of ("":ls) -> "":map commentprefix ls
-                                        ls      -> map commentprefix ls
+renderCommentLines :: Text -> [String]
+renderCommentLines t  = case lines $ T.unpack t of ("":ls) -> "":map commentprefix ls
+                                                   ls      -> map commentprefix ls
     where
       commentprefix = indent . ("; "++)
 

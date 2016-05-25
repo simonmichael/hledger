@@ -29,7 +29,7 @@ import cycles.
 
 --- * module
 
-{-# LANGUAGE CPP, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections #-}
+{-# LANGUAGE CPP, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
 
 module Hledger.Read.JournalReader (
 
@@ -140,7 +140,7 @@ journalp = do
 -- | A side-effecting parser; parses any kind of journal item
 -- and updates the parse state accordingly.
 addJournalItemP :: ErroringJournalParser ()
-addJournalItemP = do
+addJournalItemP =
   -- all journal line types can be distinguished by the first
   -- character, can use choice without backtracking
   choice [
@@ -433,7 +433,7 @@ transactionp = do
   code <- codep <?> "transaction code"
   description <- strip <$> descriptionp
   comment <- try followingcommentp <|> (newline >> return "")
-  let tags = commentTags $ T.pack comment
+  let tags = commentTags comment
   postings <- postingsp (Just date)
   n <- incrementTransactionCount
   return $ txnTieKnot $ Transaction n sourcepos date edate status code description comment tags postings ""

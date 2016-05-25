@@ -128,8 +128,8 @@ data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
 
 instance NFData PostingType
 
-type TagName = String
-type TagValue = String
+type TagName = Text
+type TagValue = Text
 type Tag = (TagName, TagValue)  -- ^ A tag name and (possibly empty) value.
 
 data ClearedStatus = Uncleared | Pending | Cleared
@@ -148,7 +148,7 @@ data Posting = Posting {
       pstatus           :: ClearedStatus,
       paccount          :: AccountName,
       pamount           :: MixedAmount,
-      pcomment          :: String,            -- ^ this posting's comment lines, as a single non-indented multi-line string
+      pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
       ptype             :: PostingType,
       ptags             :: [Tag],             -- ^ tag names and values, extracted from the comment
       pbalanceassertion :: Maybe MixedAmount, -- ^ optional: the expected balance in the account after this posting
@@ -178,10 +178,10 @@ data Transaction = Transaction {
       tstatus                  :: ClearedStatus,
       tcode                    :: String,
       tdescription             :: String,
-      tcomment                 :: String,    -- ^ this transaction's comment lines, as a single non-indented multi-line string
+      tcomment                 :: Text,      -- ^ this transaction's comment lines, as a single non-indented multi-line string
       ttags                    :: [Tag],     -- ^ tag names and values, extracted from the comment
       tpostings                :: [Posting], -- ^ this transaction's postings
-      tpreceding_comment_lines :: String     -- ^ any comment lines immediately preceding this transaction
+      tpreceding_comment_lines :: Text       -- ^ any comment lines immediately preceding this transaction
     } deriving (Eq,Typeable,Data,Generic)
 
 instance NFData Transaction
@@ -250,7 +250,7 @@ data Journal = Journal {
   ,jmodifiertxns          :: [ModifierTransaction]
   ,jperiodictxns          :: [PeriodicTransaction]
   ,jtxns                  :: [Transaction]
-  ,jfinalcommentlines     :: String                                 -- ^ any final trailing comments in the (main) journal file
+  ,jfinalcommentlines     :: Text                                   -- ^ any final trailing comments in the (main) journal file
   ,jfiles                 :: [(FilePath, Text)]                     -- ^ the file path and raw text of the main and
                                                                     --   any included journal files. The main file is first,
                                                                     --   followed by any included files in the order encountered.

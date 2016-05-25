@@ -77,7 +77,7 @@ textstrip = textlstrip . textrstrip
 
 -- | Remove leading whitespace.
 textlstrip :: Text -> Text
-textlstrip = T.dropWhile (`elem` " \t") :: Text -> Text -- XXX isSpace ?
+textlstrip = T.dropWhile (`elem` (" \t" :: String)) :: Text -> Text -- XXX isSpace ?
 
 -- | Remove trailing whitespace.
 textrstrip = T.reverse . textlstrip . T.reverse

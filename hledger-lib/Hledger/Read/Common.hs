@@ -27,7 +27,7 @@ import Data.Functor.Identity
 import Data.List.Compat
 import Data.List.Split (wordsBy)
 import Data.Maybe
--- import Data.Monoid
+import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
@@ -560,12 +560,12 @@ emptyorcommentlinep = do
   return ()
 
 -- | Parse a possibly multi-line comment following a semicolon.
-followingcommentp :: Monad m => JournalParser m String
+followingcommentp :: Monad m => JournalParser m Text
 followingcommentp =
   -- ptrace "followingcommentp"
   do samelinecomment <- many spacenonewline >> (try semicoloncommentp <|> (newline >> return ""))
      newlinecomments <- many (try (many1 spacenonewline >> semicoloncommentp))
-     return $ unlines $ samelinecomment:newlinecomments
+     return $ T.unlines $ samelinecomment:newlinecomments
 
 -- | Parse a possibly multi-line comment following a semicolon, and
 -- any tags and/or posting dates within it. Posting dates can be
@@ -586,7 +586,7 @@ followingcommentp =
 -- >>> rejp (followingcommentandtagsp (Just $ fromGregorian 2000 1 2)) "; date:3/4=5/6"
 -- Right ("date:3/4=5/6\n",[("date","3/4=5/6")],Just 2000-03-04,Nothing)
 --
-followingcommentandtagsp :: Maybe Day -> ErroringJournalParser (String, [Tag], Maybe Day, Maybe Day)
+followingcommentandtagsp :: Maybe Day -> ErroringJournalParser (Text, [Tag], Maybe Day, Maybe Day)
 followingcommentandtagsp mdefdate = do
   -- pdbg 0 "followingcommentandtagsp"
 
@@ -600,7 +600,7 @@ followingcommentandtagsp mdefdate = do
     l1  <- try semicoloncommentp' <|> (newline >> return "")
     ls  <- many $ try ((++) <$> many1 spacenonewline <*> semicoloncommentp')
     return $ unlines $ (sp1 ++ l1) : ls
-  let comment = unlines $ map (lstrip . dropWhile (==';') . strip) $ lines commentandwhitespace
+  let comment = T.pack $ unlines $ map (lstrip . dropWhile (==';') . strip) $ lines commentandwhitespace
   -- pdbg 0 $ "commentws:"++show commentandwhitespace
   -- pdbg 0 $ "comment:"++show comment
 
@@ -621,23 +621,23 @@ followingcommentandtagsp mdefdate = do
 
   return (comment, tags, mdate, mdate2)
 
-commentp :: Monad m => JournalParser m String
+commentp :: Monad m => JournalParser m Text
 commentp = commentStartingWithp commentchars
 
 commentchars :: [Char]
 commentchars = "#;*"
 
-semicoloncommentp :: Monad m => JournalParser m String
+semicoloncommentp :: Monad m => JournalParser m Text
 semicoloncommentp = commentStartingWithp ";"
 
-commentStartingWithp :: Monad m => String -> JournalParser m String
+commentStartingWithp :: Monad m => [Char] -> JournalParser m Text
 commentStartingWithp cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
   many spacenonewline
   l <- anyChar `manyTill` eolof
   optional newline
-  return l
+  return $ T.pack l
 
 --- ** tags
 
@@ -694,16 +694,16 @@ tagp = do
 -- |
 -- >>> rsp tagnamep "a:"
 -- Right "a"
-tagnamep :: Monad m => TextParser u m String
+tagnamep :: Monad m => TextParser u m Text
 tagnamep = -- do
   -- pdbg 0 "tagnamep"
-  many1 (noneOf ": \t\n") <* char ':'
+  T.pack <$> many1 (noneOf ": \t\n") <* char ':'
 
-tagvaluep :: Monad m => TextParser u m String
+tagvaluep :: Monad m => TextParser u m Text
 tagvaluep = do
   -- ptrace "tagvalue"
   v <- anyChar `manyTill` (void (try (char ',')) <|> eolof)
-  return $ strip $ reverse $ dropWhile (==',') $ reverse $ strip v
+  return $ T.pack $ strip $ reverse $ dropWhile (==',') $ reverse $ strip v
 
 --- ** posting dates
 
@@ -741,7 +741,7 @@ datetagp :: Maybe Day -> ErroringJournalParser (TagName,Day)
 datetagp mdefdate = do
   -- pdbg 0 "datetagp"
   string "date"
-  n <- fromMaybe "" <$> optionMaybe (string "2")
+  n <- T.pack . fromMaybe "" <$> optionMaybe (string "2")
   char ':'
   startpos <- getPosition
   v <- tagvaluep
@@ -755,10 +755,10 @@ datetagp mdefdate = do
     (do
         setPosition startpos
         datep) -- <* eof)
-    (T.pack v)
+    v
   case ep
     of Left e  -> throwError $ show e
-       Right d -> return ("date"++n, d)
+       Right d -> return ("date"<>n, d)
 
 --- ** bracketed dates
 

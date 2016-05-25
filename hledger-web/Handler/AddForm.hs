@@ -95,8 +95,8 @@ postAddForm = do
                     | map fst acctparams == [1..num] &&
                       map fst amtparams `elem` [[1..num], [1..num-1]] = []
                     | otherwise = ["the posting parameters are malformed"]
-          eaccts = map (runParser (accountnamep <* eof) () "" . T.pack . strip . T.unpack . snd) acctparams
-          eamts  = map (runParser (amountp <* eof) mempty "" . T.pack . strip . T.unpack . snd) amtparams
+          eaccts = map (runParser (accountnamep <* eof) () "" . textstrip  . snd) acctparams
+          eamts  = map (runParser (amountp <* eof) mempty "" . textstrip . snd) amtparams
           (accts, acctErrs) = (rights eaccts, map show $ lefts eaccts)
           (amts', amtErrs)  = (rights eamts, map show $ lefts eamts)
           amts | length amts' == num = amts'

@@ -174,7 +174,7 @@ nulljournal = Journal {
   ,jmodifiertxns              = []
   ,jperiodictxns              = []
   ,jtxns                      = []
-  ,jfinalcommentlines         = []
+  ,jfinalcommentlines         = ""
   ,jfiles                     = []
   ,jlastreadtime              = TOD 0 0
   }

@@ -21,6 +21,8 @@ inc.client1   .... .... ..
 
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Read.TimedotReader (
   -- * Reader
   reader,

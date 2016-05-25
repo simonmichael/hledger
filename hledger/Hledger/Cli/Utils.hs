@@ -25,7 +25,7 @@ where
 import Control.Exception as C
 import Data.List
 import Data.Maybe
--- import Data.Text (Text)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (Day)
 import Safe (readMay)
@@ -78,16 +78,16 @@ withJournalDo opts cmd = do
 pivotByOpts :: CliOpts -> Journal -> Journal
 pivotByOpts opts =
   case maybestringopt "pivot" . rawopts_ $ opts of
-    Just tag -> pivot tag
+    Just tag -> pivot $ T.pack tag
     Nothing  -> id
 
 -- | Apply the pivot transformation by given tag on a journal.
-pivot :: String -> Journal -> Journal
+pivot :: Text -> Journal -> Journal
 pivot tag j = j{jtxns = map pivotTrans . jtxns $ j}
  where
   pivotTrans t = t{tpostings = map pivotPosting . tpostings $ t}
   pivotPosting p
-    | Just (_ , value) <- tagTuple = p{paccount = joinAccountNames (T.pack tag) (T.pack value)}
+    | Just (_ , value) <- tagTuple = p{paccount = joinAccountNames tag value}
     | _                <- tagTuple = p
    where tagTuple = find ((tag ==) . fst) . ptags $ p
 

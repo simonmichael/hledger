@@ -121,7 +121,7 @@ transactionToCSV n t =
     date2 = maybe "" showDate (tdate2 t)
     status = show $ tstatus t
     code = tcode t
-    comment = chomp $ strip $ tcomment t
+    comment = chomp $ strip $ T.unpack $ tcomment t
 
 postingToCSV :: Posting -> CSV
 postingToCSV p =
@@ -137,7 +137,7 @@ postingToCSV p =
     Mixed amounts = pamount p
     status = show $ pstatus p
     account = showAccountName Nothing (ptype p) (paccount p)
-    comment = chomp $ strip $ pcomment p
+    comment = chomp $ strip $ T.unpack $ pcomment p
 
 -- --match
 

@@ -726,8 +726,8 @@ tests_matchesTransaction = [
 matchedTags :: Regexp -> Maybe Regexp -> [Tag] -> [Tag]
 matchedTags namepat valuepat tags = filter (match namepat valuepat) tags
   where
-    match npat Nothing     (n,_) = regexMatchesCI npat n
-    match npat (Just vpat) (n,v) = regexMatchesCI npat n && regexMatchesCI vpat v
+    match npat Nothing     (n,_) = regexMatchesCI npat (T.unpack n) -- XXX
+    match npat (Just vpat) (n,v) = regexMatchesCI npat (T.unpack n) && regexMatchesCI vpat (T.unpack v)
 
 -- tests
 

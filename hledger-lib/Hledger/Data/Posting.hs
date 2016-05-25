@@ -54,7 +54,7 @@ import Data.Maybe
 import Data.MemoUgly (memo)
 import Data.Monoid
 import Data.Ord
--- import Data.Text (Text)
+import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe
@@ -102,8 +102,8 @@ showPosting p@Posting{paccount=a,pamount=amt,ptype=t} =
       showamount = padLeftWide 12 . showMixedAmount
 
 
-showComment :: String -> String
-showComment s = if null s then "" else "  ;" ++ s
+showComment :: Text -> String
+showComment t = if T.null t then "" else "  ;" ++ T.unpack t
 
 isReal :: Posting -> Bool
 isReal p = ptype p == RegularPosting
