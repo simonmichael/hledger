@@ -58,8 +58,8 @@ PROFRTSFLAGS=-P
 # COVCMD=test
 # COVCMD=-f test-wf.csv print
 
-# # executables to run during "make simplebench"
-# BENCHEXES=hledger-0.23.3 hledger
+# executables to run during "make quickbench"
+BENCHEXES=hledger-0.27 hledger-journalupdate hledger-parsedjournal hledger
 
 # misc. system tools
 BROWSE=open
@@ -677,13 +677,13 @@ cabalfiletest: \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 # #		&& cabal upload dist/$$p-$(VERSION).tar.gz --check -v3 \
 
-# quickbench: samplejournals tests/bench.tests tools/simplebench \
-# 	$(call def-help,quickbench,\
-# 	run simple performance benchmarks without saving results\
-# 	Requires some commands defined in tests/bench.tests and some BENCHEXES defined above.\
-# 	)
-# 	tools/simplebench -v -ftests/bench.tests $(BENCHEXES)
-# 	@rm -f benchresults.*
+quickbench: samplejournals bench.tests tools/simplebench \
+	$(call def-help,quickbench,\
+	run simple performance benchmarks without saving results\
+	Requires some commands defined in bench.tests and some BENCHEXES defined above.\
+	)
+	tools/simplebench -v -fbench.tests $(BENCHEXES)
+	@rm -f benchresults.*
 
 # bench: samplejournals tests/bench.tests tools/simplebench \
 # 	$(call def-help,bench,\
