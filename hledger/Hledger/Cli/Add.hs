@@ -162,7 +162,7 @@ transactionWizard es@EntryState{..} = do
   balancedPostingsWizard
 
 -- Identify the closest recent match for this description in past transactions.
-similarTransaction :: EntryState -> String -> Maybe Transaction
+similarTransaction :: EntryState -> Text -> Maybe Transaction
 similarTransaction EntryState{..} desc =
   let q = queryFromOptsOnly esToday $ reportopts_ esOpts
       historymatches = transactionsSimilarTo esJournal q desc
@@ -184,13 +184,13 @@ dateAndCodeWizard EntryState{..} = do
       parseSmartDateAndCode refdate s = either (const Nothing) (\(d,c) -> return (fixSmartDate refdate d, c)) edc
           where
             edc = runParser (dateandcodep <* eof) mempty "" $ T.pack $ lowercase s
-            dateandcodep :: Monad m => JournalParser m (SmartDate, String)
+            dateandcodep :: Monad m => JournalParser m (SmartDate, Text)
             dateandcodep = do
                 d <- smartdate
                 c <- optionMaybe codep
                 many spacenonewline
                 eof
-                return (d, fromMaybe "" c)
+                return (d, T.pack $ fromMaybe "" c)
       -- defday = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) defdate
       -- datestr = showDate $ fixSmartDate defday smtdate
 
@@ -200,8 +200,8 @@ descriptionAndCommentWizard EntryState{..} = do
        defaultTo' def $ nonEmpty $
        maybeRestartTransaction $
        line $ green $ printf "Description%s: " (showDefault def)
-  let (desc,comment) = (strip a, strip $ dropWhile (==';') b) where (a,b) = break (==';') s
-  return (desc, T.pack comment)
+  let (desc,comment) = (T.pack $ strip a, T.pack $ strip $ dropWhile (==';') b) where (a,b) = break (==';') s
+  return (desc, comment)
 
 postingsWizard es@EntryState{..} = do
   mp <- postingWizard es
@@ -319,7 +319,7 @@ dateCompleter :: String -> CompletionFunc IO
 dateCompleter = completer ["today","tomorrow","yesterday"]
 
 descriptionCompleter :: Journal -> String -> CompletionFunc IO
-descriptionCompleter j = completer (journalDescriptions j)
+descriptionCompleter j = completer (map T.unpack $ journalDescriptions j)
 
 accountCompleter :: Journal -> String -> CompletionFunc IO
 accountCompleter j = completer (map T.unpack $ journalAccountNamesUsed j)
@@ -396,7 +396,7 @@ capitalize (c:cs) = toUpper c : cs
 -- | Find the most similar and recent transactions matching the given
 -- transaction description and report query.  Transactions are listed
 -- with their "relevancy" score, most relevant first.
-transactionsSimilarTo :: Journal -> Query -> String -> [(Double,Transaction)]
+transactionsSimilarTo :: Journal -> Query -> Text -> [(Double,Transaction)]
 transactionsSimilarTo j q desc =
     sortBy compareRelevanceAndRecency
                $ filter ((> threshold).fst)
@@ -410,10 +410,10 @@ transactionsSimilarTo j q desc =
 -- descriptions.  This is like compareStrings, but first strips out
 -- any numbers, to improve accuracy eg when there are bank transaction
 -- ids from imported data.
-compareDescriptions :: String -> String -> Double
+compareDescriptions :: Text -> Text -> Double
 compareDescriptions s t = compareStrings s' t'
-    where s' = simplify s
-          t' = simplify t
+    where s' = simplify $ T.unpack s
+          t' = simplify $ T.unpack t
           simplify = filter (not . (`elem` ("0123456789" :: String)))
 
 -- | Return a similarity measure, from 0 to 1, for two strings.  This

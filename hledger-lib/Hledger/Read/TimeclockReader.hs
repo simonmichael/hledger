@@ -114,7 +114,7 @@ timeclockentryp = do
   many1 spacenonewline
   datetime <- datetimep
   account <- fromMaybe "" <$> optionMaybe (many1 spacenonewline >> modifiedaccountnamep)
-  description <- fromMaybe "" <$> optionMaybe (many1 spacenonewline >> restofline)
+  description <- T.pack . fromMaybe "" <$> optionMaybe (many1 spacenonewline >> restofline)
   return $ TimeclockEntry sourcepos (read [code]) datetime account description
 
 tests_Hledger_Read_TimeclockReader = TestList [

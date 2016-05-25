@@ -19,6 +19,8 @@ where
 import Data.List
 import Data.Maybe
 import Data.Ord (comparing)
+-- import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe (headMay, lastMay)
 import Test.HUnit
@@ -154,7 +156,7 @@ mkpostingsReportItem showdate showdesc wd menddate p b =
   where
     date = case wd of PrimaryDate   -> postingDate p
                       SecondaryDate -> postingDate2 p
-    desc = maybe "" tdescription $ ptransaction p
+    desc = T.unpack $ maybe "" tdescription $ ptransaction p
 
 -- | Convert a list of postings into summary postings, one per interval,
 -- aggregated to the specified depth if any.

@@ -215,7 +215,7 @@ journalPrevTransaction :: Journal -> Transaction -> Maybe Transaction
 journalPrevTransaction j t = journalTransactionAt j (tindex t - 1)
 
 -- | Unique transaction descriptions used in this journal.
-journalDescriptions :: Journal -> [String]
+journalDescriptions :: Journal -> [Text]
 journalDescriptions = nub . sort . map tdescription . jtxns
 
 -- | All postings from this journal's transactions, in order.

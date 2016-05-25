@@ -12,7 +12,7 @@ module Hledger.Data.Timeclock
 where
 import Data.Maybe
 -- import Data.Text (Text)
--- import qualified Data.Text as T
+import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
@@ -99,8 +99,8 @@ entryFromTimeclockInOut i o
       itod     = localTimeOfDay itime
       otod     = localTimeOfDay otime
       idate    = localDay itime
-      desc     | null (tldescription i) = showtime itod ++ "-" ++ showtime otod
-               | otherwise              = tldescription i
+      desc     | T.null (tldescription i) = T.pack $ showtime itod ++ "-" ++ showtime otod
+               | otherwise                = tldescription i
       showtime = take 5 . show
       hours    = elapsedSeconds (toutc otime) (toutc itime) / 3600 where toutc = localTimeToUTC utc
       acctname = tlaccount i
@@ -125,7 +125,7 @@ tests_Hledger_Data_Timeclock = TestList [
                     parseTime defaultTimeLocale "%H:%M:%S"
 #endif
          showtime = formatTime defaultTimeLocale "%H:%M"
-         assertEntriesGiveStrings name es ss = assertEqual name ss (map tdescription $ timeclockEntriesToTransactions now es)
+         assertEntriesGiveStrings name es ss = assertEqual name ss (map (T.unpack . tdescription) $ timeclockEntriesToTransactions now es)
 
      assertEntriesGiveStrings "started yesterday, split session at midnight"
                                   [clockin (mktime yesterday "23:00:00") "" ""]

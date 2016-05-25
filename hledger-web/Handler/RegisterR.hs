@@ -78,7 +78,7 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
 <tr ##{tindex torig} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show torig}" style="vertical-align:top;">
  <td.date>
   <a href="@{JournalR}##{tindex torig}">#{date}
- <td.description title="#{show torig}">#{elideRight 30 desc}
+ <td.description title="#{show torig}">#{textElideRight 30 desc}
  <td.account>#{elideRight 40 acct}
  <td.amount style="text-align:right; white-space:nowrap;">
   $if showamt

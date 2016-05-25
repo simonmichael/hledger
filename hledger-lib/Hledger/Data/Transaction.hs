@@ -58,10 +58,10 @@ import Hledger.Data.Amount
 instance Show Transaction where show = showTransactionUnelided
 
 instance Show ModifierTransaction where
-    show t = "= " ++ mtvalueexpr t ++ "\n" ++ unlines (map show (mtpostings t))
+    show t = "= " ++ T.unpack (mtvalueexpr t) ++ "\n" ++ unlines (map show (mtpostings t))
 
 instance Show PeriodicTransaction where
-    show t = "~ " ++ ptperiodicexpr t ++ "\n" ++ unlines (map show (ptpostings t))
+    show t = "~ " ++ T.unpack (ptperiodicexpr t) ++ "\n" ++ unlines (map show (ptpostings t))
 
 nullsourcepos :: GenericSourcePos
 nullsourcepos = GenericSourcePos "" 1 1
@@ -152,8 +152,8 @@ showTransactionHelper elide onelineamounts t =
       status | tstatus t == Cleared = " *"
              | tstatus t == Pending = " !"
              | otherwise            = ""
-      code = if length (tcode t) > 0 then printf " (%s)" $ tcode t else ""
-      desc = if null d then "" else " " ++ d where d = tdescription t
+      code = if T.length (tcode t) > 0 then printf " (%s)" $ T.unpack $ tcode t else ""
+      desc = if null d then "" else " " ++ d where d = T.unpack $ tdescription t
       (samelinecomment, newlinecomments) =
         case renderCommentLines (tcomment t) of []   -> ("",[])
                                                 c:cs -> (c,cs)

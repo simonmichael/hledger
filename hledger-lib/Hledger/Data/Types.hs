@@ -176,8 +176,8 @@ data Transaction = Transaction {
       tdate                    :: Day,
       tdate2                   :: Maybe Day,
       tstatus                  :: ClearedStatus,
-      tcode                    :: String,
-      tdescription             :: String,
+      tcode                    :: Text,
+      tdescription             :: Text,
       tcomment                 :: Text,      -- ^ this transaction's comment lines, as a single non-indented multi-line string
       ttags                    :: [Tag],     -- ^ tag names and values, extracted from the comment
       tpostings                :: [Posting], -- ^ this transaction's postings
@@ -187,14 +187,14 @@ data Transaction = Transaction {
 instance NFData Transaction
 
 data ModifierTransaction = ModifierTransaction {
-      mtvalueexpr :: String,
+      mtvalueexpr :: Text,
       mtpostings  :: [Posting]
     } deriving (Eq,Typeable,Data,Generic)
 
 instance NFData ModifierTransaction
 
 data PeriodicTransaction = PeriodicTransaction {
-      ptperiodicexpr :: String,
+      ptperiodicexpr :: Text,
       ptpostings     :: [Posting]
     } deriving (Eq,Typeable,Data,Generic)
 
@@ -209,7 +209,7 @@ data TimeclockEntry = TimeclockEntry {
       tlcode        :: TimeclockCode,
       tldatetime    :: LocalTime,
       tlaccount     :: AccountName,
-      tldescription :: String
+      tldescription :: Text
     } deriving (Eq,Ord,Typeable,Data,Generic)
 
 instance NFData TimeclockEntry

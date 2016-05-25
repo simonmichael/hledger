@@ -15,7 +15,7 @@ module Hledger.Cli.Print (
 where
 
 import Data.List
--- import Data.Text (Text)
+import Data.Text (Text)
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
 import Test.HUnit
@@ -49,7 +49,7 @@ print' :: CliOpts -> Journal -> IO ()
 print' opts j = do
   case maybestringopt "match" $ rawopts_ opts of
     Nothing   -> printEntries opts j
-    Just desc -> printMatch opts j desc
+    Just desc -> printMatch opts j $ T.pack desc
 
 printEntries :: CliOpts -> Journal -> IO ()
 printEntries opts@CliOpts{reportopts_=ropts} j = do
@@ -116,11 +116,11 @@ transactionToCSV n t =
   map (\p -> show n:date:date2:status:code:description:comment:p)
    (concatMap postingToCSV $ tpostings t)
   where
-    description = tdescription t
+    description = T.unpack $ tdescription t
     date = showDate (tdate t)
     date2 = maybe "" showDate (tdate2 t)
     status = show $ tstatus t
-    code = tcode t
+    code = T.unpack $ tcode t
     comment = chomp $ strip $ T.unpack $ tcomment t
 
 postingToCSV :: Posting -> CSV
@@ -143,7 +143,7 @@ postingToCSV p =
 
 -- | Print the transaction most closely and recently matching a description
 -- (and the query, if any).
-printMatch :: CliOpts -> Journal -> String -> IO ()
+printMatch :: CliOpts -> Journal -> Text -> IO ()
 printMatch CliOpts{reportopts_=ropts} j desc = do
   d <- getCurrentDay
   let q = queryFromOpts d ropts
@@ -153,7 +153,7 @@ printMatch CliOpts{reportopts_=ropts} j desc = do
 
   where
     -- Identify the closest recent match for this description in past transactions.
-    similarTransaction' :: Journal -> Query -> String -> Maybe Transaction
+    similarTransaction' :: Journal -> Query -> Text -> Maybe Transaction
     similarTransaction' j q desc
       | null historymatches = Nothing
       | otherwise           = Just $ snd $ head historymatches

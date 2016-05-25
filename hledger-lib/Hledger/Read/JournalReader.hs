@@ -411,7 +411,7 @@ modifiertransactionp :: ErroringJournalParser ModifierTransaction
 modifiertransactionp = do
   char '=' <?> "modifier transaction"
   many spacenonewline
-  valueexpr <- restofline
+  valueexpr <- T.pack <$> restofline
   postings <- postingsp Nothing
   return $ ModifierTransaction valueexpr postings
 
@@ -419,7 +419,7 @@ periodictransactionp :: ErroringJournalParser PeriodicTransaction
 periodictransactionp = do
   char '~' <?> "periodic transaction"
   many spacenonewline
-  periodexpr <- restofline
+  periodexpr <- T.pack <$> restofline
   postings <- postingsp Nothing
   return $ PeriodicTransaction periodexpr postings
 
@@ -432,8 +432,8 @@ transactionp = do
   edate <- optionMaybe (secondarydatep date) <?> "secondary date"
   lookAhead (spacenonewline <|> newline) <?> "whitespace or newline"
   status <- statusp <?> "cleared status"
-  code <- codep <?> "transaction code"
-  description <- strip <$> descriptionp
+  code <- T.pack <$> codep <?> "transaction code"
+  description <- T.pack . strip <$> descriptionp
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = commentTags comment
   postings <- postingsp (Just date)

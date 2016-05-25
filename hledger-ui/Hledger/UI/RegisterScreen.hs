@@ -65,7 +65,7 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
     -- pre-render all items; these will be the List elements. This helps calculate column widths.
     displayitem (t, _, _issplit, otheracctsstr, change, bal) =
       (showDate $ tdate t
-      ,tdescription t
+      ,T.unpack $ tdescription t
       ,case splitOn ", " otheracctsstr of
         [s] -> s
         ss  -> intercalate ", " ss

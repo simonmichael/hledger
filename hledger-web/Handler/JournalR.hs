@@ -64,7 +64,7 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
 <tbody ##{tindex torig}>
   <tr .item.#{evenodd}.#{firstposting} style="vertical-align:top;" title="#{show torig}">
    <td.date>#{date}
-   <td.description colspan=2>#{elideRight 60 desc}
+   <td.description colspan=2>#{textElideRight 60 desc}
    <td.amount style="text-align:right;">
     $if showamt
      \#{mixedAmountAsHtml amt}

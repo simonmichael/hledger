@@ -106,7 +106,7 @@ postAddForm = do
                | otherwise = either (\e -> Left [L.head $ lines e]) Right
                               (balanceTransaction Nothing $ nulltransaction {
                                   tdate=date
-                                 ,tdescription=desc
+                                 ,tdescription=T.pack desc
                                  ,tpostings=[nullposting{paccount=acct, pamount=Mixed [amt]} | (acct,amt) <- zip accts amts]
                                  })
       case etxn of
