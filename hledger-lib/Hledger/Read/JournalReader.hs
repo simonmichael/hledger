@@ -161,7 +161,7 @@ addJournalItemP =
 -- Cf http://hledger.org/manual.html#directives,
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
 directivep :: ErroringJournalParser ()
-directivep = do
+directivep = (do
   optional $ char '!'
   choice' [
     includedirectivep
@@ -178,7 +178,7 @@ directivep = do
    ,commodityconversiondirectivep
    ,ignoredpricecommoditydirectivep
    ]
-  <?> "directive"
+  ) <?> "directive"
 
 includedirectivep :: ErroringJournalParser ()
 includedirectivep = do

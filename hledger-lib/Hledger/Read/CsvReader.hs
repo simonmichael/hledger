@@ -420,13 +420,13 @@ commentcharp :: Stream [Char] m t => ParsecT [Char] CsvRules m Char
 commentcharp = oneOf ";#*"
 
 directivep :: Stream [Char] m t => ParsecT [Char] CsvRules m (DirectiveName, String)
-directivep = do
+directivep = (do
   pdbg 3 "trying directive"
   d <- choice' $ map string directives
   v <- (((char ':' >> many spacenonewline) <|> many1 spacenonewline) >> directivevalp)
        <|> (optional (char ':') >> many spacenonewline >> eolof >> return "")
   return (d,v)
-  <?> "directive"
+  ) <?> "directive"
 
 directives =
   ["date-format"
