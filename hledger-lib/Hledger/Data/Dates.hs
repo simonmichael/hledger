@@ -452,6 +452,22 @@ parsedateM s = firstJust [
 parsedate :: String -> Day
 parsedate s =  fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")
                          (parsedateM s)
+-- doctests I haven't been able to make compatible with both GHC 7 and 8
+-- -- >>> parsedate "2008/02/03/"
+-- -- *** Exception: could not parse date "2008/02/03/"
+-- #if MIN_VERSION_base(4,9,0)
+-- -- ...
+-- #endif
+-- #if MIN_VERSION_time(1,6,0)
+-- -- >>> parsedate "2008/02/30"  -- with time >= 1.6, invalid dates are rejected
+-- -- *** Exception: could not parse date "2008/02/30"
+-- #if MIN_VERSION_base(4,9,0)
+-- -- ...
+-- #endif
+-- #else
+-- -- >>> parsedate "2008/02/30"  -- with time < 1.6, they are silently adjusted
+-- -- 2008-02-29
+-- #endif
 
 -- | Parse a time string to a time type using the provided pattern, or
 -- return the default.
@@ -738,7 +754,7 @@ nulldatespan :: DateSpan
 nulldatespan = DateSpan Nothing Nothing
 
 nulldate :: Day
-nulldate = parsedate "0000/00/00"
+nulldate = parsedate "0000/01/01"
 
 tests_Hledger_Data_Dates = TestList
  [
