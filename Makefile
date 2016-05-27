@@ -49,7 +49,7 @@ help2: \
 export LANG?=en_US.UTF-8
 
 # command to run during profiling (time and heap)
-#PROFCMD=stack exec -- hledgerprof balance -f data/1000x1000x10.journal >/dev/null
+PROFCMD=stack exec -- hledgerprof balance -f data/10000x1000x10.journal >/dev/null
 
 #PROFRTSFLAGS=-p
 PROFRTSFLAGS=-P
@@ -74,14 +74,16 @@ GHCI=ghci #-package ghc-datasize #-package ghc-heap-view
 # HADDOCK=haddock
 # CABAL=cabal
 # CABALINSTALL=cabal install -w $(GHC)
+STACK=stack
+#STACK=stack --stack-yaml=stack-ghc8.yaml
 
 # -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
 SHELLTESTOPTS=--execdir -- -j16 --hide-successes
 # run shell tests using the executable specified in tests
 SHELLTEST=shelltest $(SHELLTESTOPTS)
 # run shell tests using the stack build
-SHELLTESTSTK=stack exec -- shelltest $(SHELLTESTOPTS)
 #SHELLTESTSTK=shelltest -w `stack exec which hledger` $(SHELLTESTOPTS)
+SHELLTESTSTK=$(STACK) exec -- shelltest $(SHELLTESTOPTS)
 
 # # used for make auto, http://joyful.com/repos/searchpath
 # SP=sp
@@ -218,7 +220,7 @@ $(call def-help-subsection,INSTALLING:)
 
 install: \
 	$(call def-help,install, download dependencies and install hledger executables to ~/.local/bin or equivalent (with stack))
-	stack install
+	$(STACK) install
 
 # cabal-install: \
 # 	$(call def-help,cabal-install,\
@@ -247,7 +249,7 @@ $(call def-help-subsection,BUILDING:)
 
 build: \
 	$(call def-help,build, download dependencies and build hledger executables (with stack))
-	stack build
+	$(STACK) build
 
 # check-setup: \
 # 	$(call def-help,check-setup,\
@@ -335,9 +337,9 @@ bin/hledgerdev hledgerdev: \
 
 hledgerprof: \
 	$(call def-help,hledgerprof, build "hledgerprof" for profiling (with stack) )
-	stack build hledger-lib hledger --library-profiling --executable-profiling --ghc-options=-fprof-auto
-	cp `stack exec which hledger`{,prof}
-	@echo to profile, use stack exec -- hledgerprof ...
+	$(STACK) build hledger-lib hledger --library-profiling --executable-profiling --ghc-options=-fprof-auto
+	cp `$(STACK) exec which hledger`{,prof}
+	@echo to profile, use $(STACK) exec -- hledgerprof ...
 
 # bin/hledgerprof: \
 # 	$(call def-help,bin/hledgerprof,\
@@ -359,21 +361,21 @@ hledgercov: \
 #	hledger-lib/Hledger/Read/TimeclockReaderPP.hs
 dev: dev.hs $(SOURCEFILES) \
 	$(call def-help,dev, build the dev.hs script for quick experiments (with ghc) )
-	stack ghc -- $(CABALMACROSFLAGS) -ihledger-lib dev.hs \
+	$(STACK) ghc -- $(CABALMACROSFLAGS) -ihledger-lib dev.hs \
 
 # dev0: dev.hs $(SOURCEFILES) \
 # 	$(call def-help,dev, build the dev.hs script for quick experiments (with ghc -O0) )
-# 	stack ghc -- -O0 $(CABALMACROSFLAGS) -ihledger-lib dev.hs -o dev0 \
+# 	$(STACK) ghc -- -O0 $(CABALMACROSFLAGS) -ihledger-lib dev.hs -o dev0 \
 
 # dev2: dev.hs $(SOURCEFILES) \
 # 	$(call def-help,dev, build the dev.hs script for quick experiments (with ghc -O2) )
-# 	stack ghc -- -O2 $(CABALMACROSFLAGS) -ihledger-lib dev.hs -o dev2 \
+# 	$(STACK) ghc -- -O2 $(CABALMACROSFLAGS) -ihledger-lib dev.hs -o dev2 \
 
 # to get profiling deps installed, first do something like:
 # stack build --library-profiling hledger-lib timeit criterion
 devprof: dev.hs $(SOURCEFILES) \
 	$(call def-help,devprof, build the dev.hs script with profiling support )
-	stack ghc -- $(CABALMACROSFLAGS) -ihledger-lib dev.hs -rtsopts -prof -fprof-auto -osuf p_o -o devprof
+	$(STACK) ghc -- $(CABALMACROSFLAGS) -ihledger-lib dev.hs -rtsopts -prof -fprof-auto -osuf p_o -o devprof
 
 dev-profile: devprof \
 	$(call def-help,dev-profile, get a time & space profile of the dev.hs script )
@@ -505,7 +507,7 @@ dev-heap-upload:
 
 tools/simplebench: tools/simplebench.hs \
 		$(call def-help,tools/simplebench, build the standalone generic benchmark runner. Requires libs installed by stack build --bench. )
-	stack exec -- $(GHC) tools/simplebench.hs
+	$(STACK) exec -- $(GHC) tools/simplebench.hs
 
 # tools/criterionbench: tools/criterionbench.hs \
 # 	$(call def-help,tools/criterionbench,\
@@ -580,14 +582,14 @@ test: pkgtest builtintest functest \
 #@echo package tests:
 pkgtest: \
 	$(call def-help,pkgtest, run the test suites for each package )
-	@(stack test \
+	@($(STACK) test \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # NB ensure hledger executable is current (eg do pkgtest first)
 #@echo "built-in tests (hledger cli unit tests)":
 builtintest: \
 	$(call def-help,builtintest, run tests built in to the hledger executable (subset of pkg tests) )
-	@(stack exec hledger test \
+	@($(STACK) exec hledger test \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 # builtintestghc: bin/hledgerdev \
@@ -610,7 +612,7 @@ builtintest: \
 
 functest: tests/addons/hledger-addon \
 	$(call def-help,functest, run the functional tests for hledger )
-	@stack build hledger
+	@$(STACK) build hledger
 	@(COLUMNS=80 $(SHELLTESTSTK) tests \
 		&& echo $@ PASSED) || echo $@ FAILED
 
@@ -723,7 +725,7 @@ quickbench: samplejournals bench.tests tools/simplebench \
 
 quickprof-%: hledgerprof samplejournals \
 		$(call def-help,quickprof-"CMD", run some command against a sample journal and display the execution profile )
-	stack exec -- hledgerprof +RTS $(PROFRTSFLAGS) -RTS $* -f data/10000x1000x10.journal >/dev/null
+	$(STACK) exec -- hledgerprof +RTS $(PROFRTSFLAGS) -RTS $* -f data/10000x1000x10.journal >/dev/null
 	profiteur hledgerprof.prof
 	@echo
 	@head -20 hledgerprof.prof
@@ -749,7 +751,7 @@ quickprof-%: hledgerprof samplejournals \
 
 quickheap-%: hledgerprof samplejournals \
 		$(call def-help,quickheap-"CMD", run some command against a sample journal and display the heap profile )
-	stack exec -- hledgerprof +RTS -hc -RTS $* -f data/10000x1000x10.journal >/dev/null
+	$(STACK) exec -- hledgerprof +RTS -hc -RTS $* -f data/10000x1000x10.journal >/dev/null
 	hp2ps hledgerprof.hp
 	@echo generated hledgerprof.ps
 	$(VIEWPS) hledgerprof.ps
@@ -791,26 +793,26 @@ quickheap-%: hledgerprof samplejournals \
 # multi-package GHCI prompts
 ghci: \
 # 	 	$(call def-help,ghci, start a GHCI REPL and load the hledger-lib and hledger packages)
-	stack exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
 
 ghci-dev: \
 # 	 	$(call def-help,ghci, start a GHCI REPL and load the dev.hs script plus hledger-lib and hledger)
-	stack exec -- $(GHCI) $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
 
 ghci-ui: \
 # 		$(call def-help,ghci-ui, start a GHCI REPL and load the hledger-lib, hledger and hledger-ui packages)
-	stack exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
 
 ghci-web: \
 # 		$(call def-help,ghci-web, start a GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
-	stack exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
 
 ghci-api: \
 # 		$(call def-help,ghci-api, start a GHCI REPL and load the hledger-lib, hledger and hledger-api packages)
-	stack exec -- $(GHCI) $(BUILDFLAGS) hledger-api/hledger-api.hs
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-api/hledger-api.hs
 
 ghcid-lib-doctest:
-	ghcid --command 'cd hledger-lib; stack ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
+	ghcid --command 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
 
 samplejournals: \
 	data/sample.journal \
@@ -970,8 +972,8 @@ HADDOCKFLAGS= \
 
 haddock: \
 	$(call def-help,haddock, generate haddock docs for the hledger packages )
-	stack haddock --no-haddock-deps --no-keep-going # && echo OK
-#	stack -v haddock --no-haddock-deps --no-keep-going # && echo OK
+	$(STACK) haddock --no-haddock-deps --no-keep-going # && echo OK
+#	$(STACK) -v haddock --no-haddock-deps --no-keep-going # && echo OK
 
 # view-haddock: \
 # 	$(call def-help,view-haddock-cli,\
@@ -1466,11 +1468,11 @@ cleantags: \
 
 stackclean: \
 	$(call def-help-hide,stackclean, remove .stack-work/* in packages (but not in project) )
-	stack clean
+	$(STACK) clean
 
 Stackclean: \
 	$(call def-help-hide,Stackclean, remove all stack working dirs )
-	stack clean
+	$(STACK) clean
 
 cleanghco: \
 	$(call def-help-hide,cleanghc, remove ghc build leftovers )
