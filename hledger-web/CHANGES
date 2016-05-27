@@ -1,6 +1,11 @@
 User-visible changes in hledger-web.
 See also hledger's change log.
 
+0.27.1 (2016/05/27)
+
+- GHC 8 compatibility
+
+
 0.27 (2015/10/30)
 
 - Fix keyboard shortcut for adding a transaction (Carlos Lopez-Camey)
