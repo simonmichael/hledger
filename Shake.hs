@@ -44,7 +44,7 @@ usage = [i|Usage:
  ./Shake                  # show commands
  ./Shake all              # generate everything
  ./Shake docs             # generate general docs
- ./Shake site             # generate the web site
+ ./Shake website          # generate the web site
  ./Shake manpages         # generate nroff files for man
  ./Shake txtmanpages      # generate text man pages for embedding
  ./Shake infomanpages     # generate info files for info
@@ -81,7 +81,7 @@ main = do
       cmd "stack ghc Shake.hs" :: Action ExitCode
       putLoud "Compiled ./Shake, you can now use this instead of ./Shake.hs"
 
-    phony "all" $ need ["docs", "site"]
+    phony "all" $ need ["docs", "website"]
 
     -- docs
 
@@ -189,7 +189,7 @@ main = do
 
     -- web site
 
-    phony "site" $ do
+    phony "website" $ do
       need $ 
         webmanpages ++
         [webmanual
