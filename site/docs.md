@@ -1,9 +1,9 @@
 # Documentation
 
 <style>
-h4 {
-margin-bottom:0.2em;
-}
+h2 { font-size:larger; margin-top:0.5em; }
+h3 { font-size:large; }
+h4 { margin-bottom:0.2em; }
 /*div.col-sm-5 { border:thin solid gray; }*/
 </style>
 
@@ -11,7 +11,7 @@ margin-bottom:0.2em;
 <div class="row">
 <div class="col-sm-3">
 
-**Getting started**
+## Getting started
 
 #### [Home](index.html)
 What is hledger, and what can it do for you ?
@@ -29,47 +29,49 @@ Small, guided exercises introducing data entry, reporting, and accounting.
 </div>
 <div class="col-sm-3">
 
-**Reference**
+## Reference
 
-#### [hledger](hledger.html)
-The command-line interface.
-<!-- , with detailed reports. -->
+#### [All-in-one manual](manual.html)
+All the below on one page. 
 
-#### [hledger-ui](hledger-ui.html)
-The curses-style interface.
-<!-- , for quick exploration. -->
 
-#### [hledger-web](hledger-web.html)
-The web interface.
-<!-- , for personal/shared browsing & data entry. -->
+### User Interfaces
 
-#### [hledger-api](hledger-api.html)
-A JSON API server.
-<!-- , for building client-side apps. -->
+#### [`hledger`](hledger.html)
+The main command-line UI.
+Good for data entry, control and scriptability. 
+
+#### [`hledger-ui`](hledger-ui.html)
+A curses-style UI
+, for quick review. 
+
+#### [`hledger-web`](hledger-web.html)
+A web UI
+, for browsing, data entry and sharing. 
+
+#### [`hledger-api`](hledger-api.html)
+A basic web API
+, for building client-side apps. 
+
+
+### File formats
 
 #### [Journal](journal.html)
-<!-- hledger's primary data format, representing a general journal. -->
+hledger's native data format, representing an accounting journal. 
 
 #### [CSV](csv.html)
-<!-- How hledger reads Comma Separated Value data. -->
+Comma Separated Values, used for import/export. 
 
 #### [Timeclock](timeclock.html)
-<!-- Timeclock format, a sequence of clock-in/clock-out records. -->
+For time logging, with clock-in/clock-out records. 
 
 #### [Timedot](timedot.html)
-<!-- Timedot format, an alternative time logging format. -->
-File formats.
-
-\
-
-
-#### [Combined manual](manual.html)
-All on one page.
+A more human-editable time logging format. 
 
 </div>
 <div class="col-sm-3">
 
-**More**
+## More
 
 #### [How to read CSV files](how-to-read-csv-files.html)
 
