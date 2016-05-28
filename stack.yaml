@@ -1,7 +1,7 @@
 # docs: https://github.com/commercialhaskell/stack/blob/release/doc/yaml_configuration.md
 
 # this or a newer snapshot is suggested (hledger-api/servant/aeson requires > lts-5)
-resolver: lts-5.16
+resolver: lts-6.0
 
 packages:
 - hledger-lib
