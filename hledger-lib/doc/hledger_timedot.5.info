@@ -109,8 +109,6 @@ $ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4
 --------------------
                 4.50
 
-   default year directives may be used.
-
    Here is a sample.timedot.
 
 

@@ -93,8 +93,6 @@ FFIILLEE FFOORRMMAATT
               --------------------
                               4.50
 
-       default year directives may be used.
-
        Here is a sample.timedot.
 
 

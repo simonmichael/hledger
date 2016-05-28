@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "April 2016" "" "hledger User Manuals"
+.TH "hledger_journal" "5" "May 2016" "" "hledger User Manuals"
 
 
 
@@ -85,25 +85,29 @@ inferred.
 .SS Simple dates
 .PP
 Within a journal file, transaction dates use Y/M/D (or Y\-M\-D or Y.M.D)
-Leading zeroes are optional.
-The year may be omitted, in which case it defaults to the current year,
-or you can set the default year with a default year directive.
-.PP
+Leading zeros are optional.
+The year may be omitted, in which case it will be inferred from the
+context \- the current transaction, the default year set with a default
+year directive, or the current date when the command is run.
 Some examples: \f[C]2010/01/31\f[], \f[C]1/31\f[],
 \f[C]2010\-01\-31\f[], \f[C]2010.1.31\f[].
 .SS Secondary dates
 .PP
 Real\-life transactions sometimes involve more than one date \- eg the
 date you write a cheque, and the date it clears in your bank.
-When you want to model this, eg for more accurate balances, write both
-dates separated by an equals sign.
-The \f[I]primary date\f[], on the left, is used by default; the
-\f[I]secondary date\f[], on the right, is used when the
-\f[C]\-\-date2\f[] flag is specified (For Ledger compatibility,
-\f[C]\-\-aux\-date\f[] or \f[C]\-\-effective\f[] also work.)
+When you want to model this, eg for more accurate balances, you can
+specify individual #posting\-dates, which I recommend.
+Or, you can use the secondary dates (aka auxiliary/effective dates)
+feature, supported for compatibility with Ledger.
 .PP
-Their meaning is up to you, but it\[aq]s best to follow a consistent
-rule.
+A secondary date can be written after the primary date, separated by an
+equals sign.
+The primary date, on the left, is used by default; the secondary date,
+on the right, is used when the \f[C]\-\-date2\f[] flag is specified
+(\f[C]\-\-aux\-date\f[] or \f[C]\-\-effective\f[] also work).
+.PP
+The meaning of secondary dates is up to you, but it\[aq]s best to follow
+a consistent rule.
 Eg write the bank\[aq]s clearing date as primary, and when needed, the
 date the transaction was initiated as secondary.
 .PP
@@ -133,15 +137,16 @@ $\ hledger\ register\ checking\ \-\-date2
 \f[]
 .fi
 .PP
-Secondary dates require some effort: you must use them consistently in
+Secondary dates require some effort; you must use them consistently in
 your journal entries and remember whether to use or not use the
 \f[C]\-\-date2\f[] flag for your reports.
-Arguably they are now obsolete, superseded by...
+They are included in hledger for Ledger compatibility, but posting dates
+are a more powerful and less confusing alternative.
 .SS Posting dates
 .PP
 You can give individual postings a different date from their parent
-transaction, by adding a posting tag (see below) like
-\f[C]date:DATE\f[], where DATE is a simple date.
+transaction, by adding a posting comment containing a tag (see below)
+like \f[C]date:DATE\f[].
 This is probably the best way to control posting dates precisely.
 Eg in this example the expense should appear in May reports, and the
 deduction from checking should be reported on 6/1 for easy bank
@@ -157,28 +162,31 @@ reconciliation:
 .IP
 .nf
 \f[C]
-$\ hledger\ \-f\ tt.j\ register\ food
+$\ hledger\ \-f\ t.j\ register\ food
 2015/05/30\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ expenses:food\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $10\ \ \ \ \ \ \ \ \ \ \ $10
 \f[]
 .fi
 .IP
 .nf
 \f[C]
-$\ hledger\ \-f\ tt.j\ register\ checking
+$\ hledger\ \-f\ t.j\ register\ checking
 2015/06/01\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ assets:checking\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-10\ \ \ \ \ \ \ \ \ \ $\-10
 \f[]
 .fi
 .PP
-A posting date will use the year of the transaction date if unspecified.
+DATE should be a simple date; if the year is not specified it will use
+the year of the transaction\[aq]s date.
+You can set the secondary date similarly, with \f[C]date2:DATE2\f[].
+The \f[C]date:\f[] or \f[C]date2:\f[] tags must have a valid simple date
+value if they are present, eg a \f[C]date:\f[] tag with no value is not
+allowed.
 .PP
-You can also set the secondary date, with \f[C]date2:DATE2\f[].
-For compatibility, Ledger\[aq]s older posting date syntax is also
-supported: \f[C][DATE]\f[], \f[C][DATE=DATE2]\f[] or \f[C][=DATE2]\f[]
-in a posting comment.
-.PP
-When using any of these forms, be sure to provide a valid simple date or
-you\[aq]ll get a parse error.
-Eg a \f[C]date:\f[] tag with no value is not allowed.
+Ledger\[aq]s earlier, more compact bracketed date syntax is also
+supported: \f[C][DATE]\f[], \f[C][DATE=DATE2]\f[] or \f[C][=DATE2]\f[].
+hledger will attempt to parse any square\-bracketed sequence of the
+\f[C]0123456789/\-.=\f[] characters in this way.
+With this syntax, DATE infers its year from the transaction and DATE2
+infers its year from DATE.
 .SS Account names
 .PP
 Account names typically have several parts separated by a full colon,
@@ -189,67 +197,87 @@ five top\-level accounts: \f[C]assets\f[], \f[C]liabilities\f[],
 .PP
 Account names may contain single spaces, eg:
 \f[C]assets:accounts\ receivable\f[].
-Because of this, they must always be followed by at least two spaces (or
-newline).
+Because of this, they must always be followed by \f[B]two or more
+spaces\f[] (or newline).
 .PP
 Account names can be aliased.
 .SS Amounts
 .PP
 After the account name, there is usually an amount.
 Important: between account name and amount, there must be \f[B]two or
-more\f[] spaces.
+more spaces\f[].
 .PP
-The amount is a number, optionally with a currency symbol or commodity
-name on either the left or right.
-Negative amounts may have the minus sign either before or after the
-currency symbol (\f[C]\-$1\f[] or \f[C]$\-1\f[]).
-Commodity names which contain more than just letters should be enclosed
-in double quotes (\f[C]1\ "person\ hours"\f[]).
-.SS Decimal points and digit groups
+Amounts consist of a number and (usually) a currency symbol or commodity
+name.
+Some examples:
 .PP
-hledger supports flexible decimal point and digit group separator
-styles, to support international variations.
-Numbers can use either a period (\f[C]\&.\f[]) or a comma (\f[C],\f[])
-as decimal point.
-They can also have digit group separators at any position (eg thousands
-separators) which can be comma or period \- whichever one you did not
-use as a decimal point.
-If you use digit group separators, you must also include a decimal point
-in at least one number in the same commodity, so that hledger knows
-which character is which.
-Eg, write \f[C]$1,000.00\f[] or \f[C]$1.000,00\f[].
-.SS Amount display styles
+\f[C]2.00001\f[]
+.PD 0
+.P
+.PD
+\f[C]$1\f[]
+.PD 0
+.P
+.PD
+\f[C]4000\ AAPL\f[]
+.PD 0
+.P
+.PD
+\f[C]3\ "green\ apples"\f[]
+.PD 0
+.P
+.PD
+\f[C]\-$1,000,000.00\f[]
+.PD 0
+.P
+.PD
+\f[C]INR\ 9,99,99,999.00\f[]
+.PD 0
+.P
+.PD
+\f[C]EUR\ \-2.000.000,00\f[]
 .PP
-Based on how you format amounts, hledger will infer canonical display
-styles for each commodity, and use these when displaying amounts in that
+As you can see, the amount format is somewhat flexible:
+.IP \[bu] 2
+amounts are a number (the "quantity") and optionally a currency
+symbol/commodity name (the "commodity").
+.IP \[bu] 2
+the commodity is a symbol, word, or double\-quoted phrase, on the left
+or right, with or without a separating space
+.IP \[bu] 2
+negative amounts with a commodity on the left can have the minus sign
+before or after it
+.IP \[bu] 2
+digit groups (thousands, or any other grouping) can be separated by
+commas (in which case period is used for decimal point) or periods (in
+which case comma is used for decimal point)
+.PP
+You can use any of these variations when recording data, but when
+hledger displays amounts, it will choose a consistent format for each
 commodity.
-Amount styles include:
+(Except for price amounts, which are always formatted as written).
+The display format is chosen as follows:
 .IP \[bu] 2
-the position (left or right) and spacing (space or no separator) of the
-commodity symbol
+if there is a commodity directive specifying the format, that is used
 .IP \[bu] 2
-the digit group separator character (comma or period) and digit group
-sizes, if any
+otherwise the format is inferred from the first posting amount in that
+commodity in the journal, and the precision (number of decimal places)
+will be the maximum from all posting amounts in that commmodity
 .IP \[bu] 2
-the decimal point character (period or comma)
-.IP \[bu] 2
-the display precision (number of decimal places displayed)
+or if there are no such amounts in the journal, a default format is used
+(like \f[C]$1000.00\f[]).
 .PP
-The canonical style is generally the style of the first posting amount
-seen in a commodity.
-However the display precision will be the highest precision seen in all
-posting amounts in that commmodity.
-.PP
-The precisions used in a price amount, or a D directive, don\[aq]t
-affect the canonical display precision directly, but they can affect it
-indirectly, eg when D\[aq]s default commodity is applied to a
-commodity\-less amount or when an amountless posting is balanced using a
-price\[aq]s commodity (actually this last case does not influence the
-canonical display precision but probably should).
+Price amounts and amounts in D directives usually don\[aq]t affect
+amount format inference, but in some situations they can do so
+indirectly.
+(Eg when D\[aq]s default commodity is applied to a commodity\-less
+amount, or when an amountless posting is balanced using a price\[aq]s
+commodity, or when \-V is used.) If you find this causing problems, set
+the desired format with a commodity directive.
 .SS Virtual Postings
 .PP
-When you parenthesise the account name in a posting, that posting is
-considered \f[I]virtual\f[], which means:
+When you parenthesise the account name in a posting, we call that a
+\f[I]virtual posting\f[], which means:
 .IP \[bu] 2
 it is ignored when checking that the transaction is balanced
 .IP \[bu] 2
@@ -265,20 +293,28 @@ needing to use the \f[C]equity:opening\ balances\f[] account:
 \ \ (assets:checking)\ \ \ $1000
 \f[]
 .fi
-.SS Balanced Virtual Postings
 .PP
-When the account name is bracketed, the posting is \f[I]balanced
-virtual\f[], which is just like a virtual posting except the balanced
-virtual postings in a transaction must balance to 0, like the real
-postings (but separately from them).
+When the account name is bracketed, we call it a \f[I]balanced virtual
+posting\f[].
+This is like an ordinary virtual posting except the balanced virtual
+postings in a transaction must balance to 0, like the real postings (but
+separately from them).
 Balanced virtual postings are also excluded by \f[C]\-\-real/\-R\f[] or
 \f[C]real:1\f[].
+.IP
+.nf
+\f[C]
+1/1\ buy\ food\ with\ cash,\ and\ update\ some\ budget\-tracking\ subaccounts\ elsewhere
+\ \ expenses:food\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $10
+\ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-10
+\ \ [assets:checking:available]\ \ \ \ \ $10
+\ \ [assets:checking:budget:food]\ \ $\-10
+\f[]
+.fi
 .PP
-Virtual postings are a feature inherited from Ledger can can
-occasionally be useful, but they can be a crutch and you should think
-twice or three times before using them.
-You can almost always find an equivalent journal entry using two or more
-real postings that will be more correct and more error\-proof.
+Virtual postings have some legitimate uses, but those are few.
+You can usually find an equivalent journal entry using real postings,
+which is more correct and provides better error checking.
 .SS Balance Assertions
 .PP
 hledger supports ledger\-style balance assertions in journal files.
@@ -547,7 +583,7 @@ posting\-tag):
 .fi
 .PP
 Tags are like Ledger\[aq]s metadata feature, except hledger\[aq]s tag
-values are always simple strings.
+values are simple strings.
 .SS Directives
 .SS Account aliases
 .PP
@@ -721,46 +757,50 @@ spellings were also supported.
 A line containing just \f[C]comment\f[] starts a multi\-line comment,
 and a line containing just \f[C]end\ comment\f[] ends it.
 See comments.
+.SS commodity directive
+.PP
+The \f[C]commodity\f[] directive predefines commodities (currently this
+is just informational), and also it may define the display format for
+amounts in this commodity (overriding the automatically inferred
+format).
+.PP
+It may be written on a single line, like this:
+.IP
+.nf
+\f[C]
+;\ commodity\ EXAMPLEAMOUNT
+
+;\ display\ AAAA\ amounts\ with\ the\ symbol\ on\ the\ right,\ space\-separated,
+;\ using\ period\ as\ decimal\ point,\ with\ four\ decimal\ places,\ and
+;\ separating\ thousands\ with\ comma.
+commodity\ 1,000.0000\ AAAA
+\f[]
+.fi
+.PP
+or on multiple lines, using the "format" subdirective.
+In this case the commodity symbol appears twice and should be the same
+in both places:
+.IP
+.nf
+\f[C]
+;\ commodity\ SYMBOL
+;\ \ \ format\ EXAMPLEAMOUNT
+
+;\ display\ indian\ rupees\ with\ currency\ name\ on\ the\ left,
+;\ thousands,\ lakhs\ and\ crores\ comma\-separated,
+;\ period\ as\ decimal\ point,\ and\ two\ decimal\ places.
+commodity\ INR
+\ \ format\ INR\ 9,99,99,999.00
+\f[]
+.fi
 .SS Default commodity
 .PP
 You can set a default commodity, to be used for amounts without one.
 Use the D directive with a sample amount.
-The commodity (and the sample amount\[aq]s display style) will be
+The commodity (and the sample amount\[aq]s display format) will be
 applied to all subsequent commodity\-less amounts, up to the next D
 directive.
 (Note this is different from Ledger\[aq]s default commodity directive.)
-.PP
-Also note the directive itself does not influence the commodity\[aq]s
-default display style, but the amount it is applied to might.
-Here\[aq]s an example:
-.IP
-.nf
-\f[C]
-;\ set\ £\ as\ the\ default\ commodity
-D\ £1,000.00
-
-2010/1/1
-\ \ a\ \ 2340
-\ \ b
-
-2014/1/1
-\ \ c\ \ £1000
-\ \ d
-\f[]
-.fi
-.IP
-.nf
-\f[C]
-$\ hledger\ print
-2010/01/01
-\ \ \ \ a\ \ \ \ \ £2,340.00
-\ \ \ \ b\ \ \ \ £\-2,340.00
-
-2014/01/01
-\ \ \ \ c\ \ \ \ \ £1,000.00
-\ \ \ \ d\ \ \ \ £\-1,000.00
-\f[]
-.fi
 .SS Default year
 .PP
 You can set a default year to be used for subsequent dates which
@@ -800,12 +840,10 @@ include\ path/to/file.journal
 .PP
 If the path does not begin with a slash, it is relative to the current
 file.
-.PP
 Glob patterns (\f[C]*\f[]) are not currently supported.
 .PP
-The \f[C]include\f[] directive may only be used in journal files, and
-currently it may only include other journal files (eg, not CSV or
-timeclock files.)
+The \f[C]include\f[] directive can only be used in journal files.
+It can include journal, timeclock or timedot files, but not CSV files.
 .SH EDITOR SUPPORT
 .PP
 Add\-on modes exist for various text editors, to make working with

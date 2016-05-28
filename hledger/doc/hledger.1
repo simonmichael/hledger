@@ -142,6 +142,27 @@ $\ hledger\ print\ desc:shop\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ transacti
 $\ hledger\ activity\ \-W\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ transaction\ counts\ per\ week\ as\ a\ bar\ chart
 \f[]
 .fi
+.PP
+With the journal
+.IP
+.nf
+\f[C]
+2016/02/16\ Member\ Fee\ Payment\ John\ Doe
+\ \ \ \ assets:bank\ account\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2\ EUR
+\ \ \ \ income:member\ fees\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \-2\ EUR
+\ \ \ \ \ \ ;\ member:\ John\ Doe
+\f[]
+.fi
+.PP
+the \-\-pivot comand will output the following:
+.IP
+.nf
+\f[C]
+$\ hledger\ bal\ \-\-pivot\ member
+\ \ \ \ 2\ EUR\ \ assets:bank\ account
+\ \ \ \-2\ EUR\ \ member:John\ Doe
+\f[]
+.fi
 .SH OPTIONS
 .PP
 To see general usage and the command list: \f[C]hledger\ \-h\f[] or just
@@ -269,8 +290,8 @@ set start date, end date, and/or reporting interval all at once
 .RS
 .RE
 .TP
-.B \f[C]\-\-date2\ \-\-aux\-date\f[]
-use postings/txns\[aq] secondary dates instead
+.B \f[C]\-\-date2\f[]
+show, and match with \-b/\-e/\-p/date:, secondary dates instead
 .RS
 .RE
 .TP
@@ -308,12 +329,27 @@ show empty/zero things which are normally omitted
 show amounts in their cost price\[aq]s commodity
 .RS
 .RE
+.TP
+.B `\-\-pivot TAG
+will transform the journal before any other processing by replacing the
+account name of every posting having the tag TAG with content VALUE by
+the account name "TAG:VALUE".
+.RS
+.RE
+The TAG will only match if it is a full\-length match.
+The pivot will only happen if the TAG is on a posting, not if it is on
+the transaction.
+If the tag value is a multi:level:account:name the new account name will
+be "TAG:multi:level:account:name".
+.RS
+.RE
 .SS Multiple files
 .PP
-One may specify the \f[C]\-\-file\ FILE\f[] option multiple times.
-This is equivalent to concatenating the files to standard input and
-passing \f[C]\-\-file\ \-\f[], except that the add command functions
-normally and adds entries to the first specified file.
+You can specify multiple \f[C]\-f/\-\-file\ FILE\f[] options.
+This is like combining all the files into one, except they can have
+different formats.
+Also directives and aliases in one file do not affect subsequent files
+(if you need that, use the include directive instead).
 .SS Repeated options
 .PP
 Otherwise, if a reporting option is repeated, the last one takes
@@ -657,13 +693,16 @@ match transaction descriptions
 .RE
 .TP
 .B \f[B]\f[C]date:PERIODEXPR\f[]\f[]
-match dates within the specified period (which should not include a
-reporting interval
+match dates within the specified period.
+PERIODEXPR should not include a reporting interval.
+The command\-line \f[C]\-\-date2\f[] flag makes this match secondary
+dates instead (like the \f[C]\-b\f[]/\f[C]\-e\f[]/\f[C]\-p\f[] options).
 .RS
 .RE
 .TP
 .B \f[B]\f[C]date2:PERIODEXPR\f[]\f[]
-as above, but match secondary dates
+match secondary dates within the specified period.
+PERIODEXPR should not include a reporting interval.
 .RS
 .RE
 .TP
@@ -695,8 +734,6 @@ transaction.
 before any of the above negates the match.
 .RS
 .RE
-.PP
-   *   *   *   *   *
 .PP
 Some of these can also be expressed as command\-line options (eg
 \f[C]depth:2\f[] is equivalent to \f[C]\-\-depth\ 2\f[]).
@@ -827,8 +864,9 @@ Many hledger users edit their journals directly with a text editor, or
 generate them from CSV.
 For more interactive data entry, there is the \f[C]add\f[] command,
 which prompts interactively on the console for new transactions, and
-appends them to the journal file (existing transactions are not
-changed).
+appends them to the journal file (if there are multiple
+\f[C]\-f\ FILE\f[] options, the first file is used.) Existing
+transactions are not changed.
 This is the only hledger command that writes to the journal file.
 .PP
 To use it, just run \f[C]hledger\ add\f[] and follow the prompts.
@@ -2103,6 +2141,11 @@ $\ LEDGER_FILE=unique.journal\ hledger\ print\-unique
 .PP
 Prints all journal entries, adding specified custom postings to matched
 entries.
+.PP
+hledger\-rewrite.hs, in hledger\[aq]s extra directory (compilation
+optional), adds postings to existing transactions, optionally with an
+amount based on the existing transaction\[aq]s first amount.
+See the script for more details.
 .IP
 .nf
 \f[C]

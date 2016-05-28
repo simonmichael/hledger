@@ -119,11 +119,11 @@ File: hledger_journal.5.info,  Node: Simple dates,  Next: Secondary dates,  Up: 
 ------------------
 
 Within a journal file, transaction dates use Y/M/D (or Y-M-D or Y.M.D)
-Leading zeroes are optional. The year may be omitted, in which case it
-defaults to the current year, or you can set the default year with a
-default year directive.
-
-   Some examples: `2010/01/31', `1/31', `2010-01-31', `2010.1.31'.
+Leading zeros are optional. The year may be omitted, in which case it
+will be inferred from the context - the current transaction, the default
+year set with a default year directive, or the current date when the
+command is run. Some examples: `2010/01/31', `1/31', `2010-01-31',
+`2010.1.31'.
 
 
 File: hledger_journal.5.info,  Node: Secondary dates,  Next: Posting dates,  Prev: Simple dates,  Up: Dates
@@ -133,15 +133,19 @@ File: hledger_journal.5.info,  Node: Secondary dates,  Next: Posting dates,  Pre
 
 Real-life transactions sometimes involve more than one date - eg the
 date you write a cheque, and the date it clears in your bank. When you
-want to model this, eg for more accurate balances, write both dates
-separated by an equals sign. The _primary date_, on the left, is used
-by default; the _secondary date_, on the right, is used when the
-`--date2' flag is specified (For Ledger compatibility, `--aux-date' or
-`--effective' also work.)
+want to model this, eg for more accurate balances, you can specify
+individual #posting-dates, which I recommend. Or, you can use the
+secondary dates (aka auxiliary/effective dates) feature, supported for
+compatibility with Ledger.
 
-   Their meaning is up to you, but it's best to follow a consistent
-rule.  Eg write the bank's clearing date as primary, and when needed,
-the date the transaction was initiated as secondary.
+   A secondary date can be written after the primary date, separated by
+an equals sign. The primary date, on the left, is used by default; the
+secondary date, on the right, is used when the `--date2' flag is
+specified (`--aux-date' or `--effective' also work).
+
+   The meaning of secondary dates is up to you, but it's best to follow
+a consistent rule. Eg write the bank's clearing date as primary, and
+when needed, the date the transaction was initiated as secondary.
 
    Here's an example. Note that a secondary date will use the year of
 the primary date if unspecified.
@@ -159,10 +163,11 @@ $ hledger register checking
 $ hledger register checking --date2
 2010/02/19 movie ticket         assets:checking                $-10         $-10
 
-   Secondary dates require some effort: you must use them consistently
+   Secondary dates require some effort; you must use them consistently
 in your journal entries and remember whether to use or not use the
-`--date2' flag for your reports. Arguably they are now obsolete,
-superseded by...
+`--date2' flag for your reports. They are included in hledger for
+Ledger compatibility, but posting dates are a more powerful and less
+confusing alternative.
 
 
 File: hledger_journal.5.info,  Node: Posting dates,  Prev: Secondary dates,  Up: Dates
@@ -171,11 +176,11 @@ File: hledger_journal.5.info,  Node: Posting dates,  Prev: Secondary dates,  Up:
 -------------------
 
 You can give individual postings a different date from their parent
-transaction, by adding a posting tag (see below) like `date:DATE',
-where DATE is a simple date. This is probably the best way to control
-posting dates precisely. Eg in this example the expense should appear in
-May reports, and the deduction from checking should be reported on 6/1
-for easy bank reconciliation:
+transaction, by adding a posting comment containing a tag (see below)
+like `date:DATE'. This is probably the best way to control posting
+dates precisely. Eg in this example the expense should appear in May
+reports, and the deduction from checking should be reported on 6/1 for
+easy bank reconciliation:
 
 
 2015/5/30
@@ -183,23 +188,24 @@ for easy bank reconciliation:
     assets:checking         ; bank cleared it on monday, date:6/1
 
 
-$ hledger -f tt.j register food
+$ hledger -f t.j register food
 2015/05/30                      expenses:food                  $10           $10
 
 
-$ hledger -f tt.j register checking
+$ hledger -f t.j register checking
 2015/06/01                      assets:checking               $-10          $-10
 
-   A posting date will use the year of the transaction date if
-unspecified.
+   DATE should be a simple date; if the year is not specified it will
+use the year of the transaction's date. You can set the secondary date
+similarly, with `date2:DATE2'. The `date:' or `date2:' tags must have a
+valid simple date value if they are present, eg a `date:' tag with no
+value is not allowed.
 
-   You can also set the secondary date, with `date2:DATE2'. For
-compatibility, Ledger's older posting date syntax is also supported:
-`[DATE]', `[DATE=DATE2]' or `[=DATE2]' in a posting comment.
-
-   When using any of these forms, be sure to provide a valid simple
-date or you'll get a parse error. Eg a `date:' tag with no value is not
-allowed.
+   Ledger's earlier, more compact bracketed date syntax is also
+supported: `[DATE]', `[DATE=DATE2]' or `[=DATE2]'. hledger will attempt
+to parse any square-bracketed sequence of the `0123456789/-.='
+characters in this way. With this syntax, DATE infers its year from the
+transaction and DATE2 infers its year from DATE.
 
 
 File: hledger_journal.5.info,  Node: Account names,  Next: Amounts,  Prev: Dates,  Up: FILE FORMAT
@@ -213,8 +219,8 @@ anything you like, but in finance there are traditionally five top-level
 accounts: `assets', `liabilities', `income', `expenses', and `equity'.
 
    Account names may contain single spaces, eg: `assets:accounts
-receivable'. Because of this, they must always be followed by at least
-two spaces (or newline).
+receivable'. Because of this, they must always be followed by *two or
+more spaces* (or newline).
 
    Account names can be aliased.
 
@@ -225,65 +231,56 @@ File: hledger_journal.5.info,  Node: Amounts,  Next: Virtual Postings,  Prev: Ac
 ===========
 
 After the account name, there is usually an amount. Important: between
-account name and amount, there must be *two or more* spaces.
+account name and amount, there must be *two or more spaces*.
 
-   The amount is a number, optionally with a currency symbol or
-commodity name on either the left or right. Negative amounts may have
-the minus sign either before or after the currency symbol (`-$1' or
-`$-1'). Commodity names which contain more than just letters should be
-enclosed in double quotes (`1 "person hours"').
+   Amounts consist of a number and (usually) a currency symbol or
+commodity name. Some examples:
 
-* Menu:
+   `2.00001'
+`$1'
+`4000 AAPL'
+`3 "green apples"'
+`-$1,000,000.00'
+`INR 9,99,99,999.00'
+`EUR -2.000.000,00'
 
-* Decimal points and digit groups::
-* Amount display styles::
+   As you can see, the amount format is somewhat flexible:
 
-
-File: hledger_journal.5.info,  Node: Decimal points and digit groups,  Next: Amount display styles,  Up: Amounts
+   * amounts are a number (the "quantity") and optionally a currency
+     symbol/commodity name (the "commodity").
 
-1.4.1 Decimal points and digit groups
--------------------------------------
+   * the commodity is a symbol, word, or double-quoted phrase, on the
+     left or right, with or without a separating space
 
-hledger supports flexible decimal point and digit group separator
-styles, to support international variations. Numbers can use either a
-period (`.') or a comma (`,') as decimal point. They can also have
-digit group separators at any position (eg thousands separators) which
-can be comma or period - whichever one you did not use as a decimal
-point. If you use digit group separators, you must also include a
-decimal point in at least one number in the same commodity, so that
-hledger knows which character is which. Eg, write `$1,000.00' or
-`$1.000,00'.
+   * negative amounts with a commodity on the left can have the minus
+     sign before or after it
 
-
-File: hledger_journal.5.info,  Node: Amount display styles,  Prev: Decimal points and digit groups,  Up: Amounts
+   * digit groups (thousands, or any other grouping) can be separated by
+     commas (in which case period is used for decimal point) or periods
+     (in which case comma is used for decimal point)
 
-1.4.2 Amount display styles
----------------------------
+   You can use any of these variations when recording data, but when
+hledger displays amounts, it will choose a consistent format for each
+commodity. (Except for price amounts, which are always formatted as
+written). The display format is chosen as follows:
 
-Based on how you format amounts, hledger will infer canonical display
-styles for each commodity, and use these when displaying amounts in that
-commodity. Amount styles include:
+   * if there is a commodity directive specifying the format, that is
+     used
 
-   * the position (left or right) and spacing (space or no separator)
-     of the commodity symbol
+   * otherwise the format is inferred from the first posting amount in
+     that commodity in the journal, and the precision (number of
+     decimal places) will be the maximum from all posting amounts in
+     that commmodity
 
-   * the digit group separator character (comma or period) and digit
-     group sizes, if any
+   * or if there are no such amounts in the journal, a default format
+     is used (like `$1000.00').
 
-   * the decimal point character (period or comma)
-
-   * the display precision (number of decimal places displayed)
-
-   The canonical style is generally the style of the first posting
-amount seen in a commodity. However the display precision will be the
-highest precision seen in all posting amounts in that commmodity.
-
-   The precisions used in a price amount, or a D directive, don't affect
-the canonical display precision directly, but they can affect it
-indirectly, eg when D's default commodity is applied to a commodity-less
-amount or when an amountless posting is balanced using a price's
-commodity (actually this last case does not influence the canonical
-display precision but probably should).
+   Price amounts and amounts in D directives usually don't affect amount
+format inference, but in some situations they can do so indirectly. (Eg
+when D's default commodity is applied to a commodity-less amount, or
+when an amountless posting is balanced using a price's commodity, or
+when -V is used.) If you find this causing problems, set the desired
+format with a commodity directive.
 
 
 File: hledger_journal.5.info,  Node: Virtual Postings,  Next: Balance Assertions,  Prev: Amounts,  Up: FILE FORMAT
@@ -291,8 +288,8 @@ File: hledger_journal.5.info,  Node: Virtual Postings,  Next: Balance Assertions
 1.5 Virtual Postings
 ====================
 
-When you parenthesise the account name in a posting, that posting is
-considered _virtual_, which means:
+When you parenthesise the account name in a posting, we call that a
+_virtual posting_, which means:
 
    * it is ignored when checking that the transaction is balanced
 
@@ -306,27 +303,22 @@ needing to use the `equity:opening balances' account:
 1/1 special unbalanced posting to set initial balance
   (assets:checking)   $1000
 
-* Menu:
+   When the account name is bracketed, we call it a _balanced virtual
+posting_. This is like an ordinary virtual posting except the balanced
+virtual postings in a transaction must balance to 0, like the real
+postings (but separately from them). Balanced virtual postings are also
+excluded by `--real/-R' or `real:1'.
 
-* Balanced Virtual Postings::
 
-
-File: hledger_journal.5.info,  Node: Balanced Virtual Postings,  Up: Virtual Postings
+1/1 buy food with cash, and update some budget-tracking subaccounts elsewhere
+  expenses:food                   $10
+  assets:cash                    $-10
+  [assets:checking:available]     $10
+  [assets:checking:budget:food]  $-10
 
-1.5.1 Balanced Virtual Postings
--------------------------------
-
-When the account name is bracketed, the posting is _balanced virtual_,
-which is just like a virtual posting except the balanced virtual
-postings in a transaction must balance to 0, like the real postings
-(but separately from them). Balanced virtual postings are also excluded
-by `--real/-R' or `real:1'.
-
-   Virtual postings are a feature inherited from Ledger can can
-occasionally be useful, but they can be a crutch and you should think
-twice or three times before using them. You can almost always find an
-equivalent journal entry using two or more real postings that will be
-more correct and more error-proof.
+   Virtual postings have some legitimate uses, but those are few. You
+can usually find an equivalent journal entry using real postings, which
+is more correct and provides better error checking.
 
 
 File: hledger_journal.5.info,  Node: Balance Assertions,  Next: Prices,  Prev: Virtual Postings,  Up: FILE FORMAT
@@ -602,7 +594,7 @@ and the posting has four (A, TAG2, third-tag, posting-tag):
     (a)  $1  ; posting-tag:
 
    Tags are like Ledger's metadata feature, except hledger's tag values
-are always simple strings.
+are simple strings.
 
 
 File: hledger_journal.5.info,  Node: Directives,  Prev: Tags,  Up: FILE FORMAT
@@ -616,6 +608,7 @@ File: hledger_journal.5.info,  Node: Directives,  Prev: Tags,  Up: FILE FORMAT
 * account directive::
 * apply account directive::
 * Multi-line comments::
+* commodity directive::
 * Default commodity::
 * Default year::
 * Including other files::
@@ -791,7 +784,7 @@ include personal.journal
 also supported.
 
 
-File: hledger_journal.5.info,  Node: Multi-line comments,  Next: Default commodity,  Prev: apply account directive,  Up: Directives
+File: hledger_journal.5.info,  Node: Multi-line comments,  Next: commodity directive,  Prev: apply account directive,  Up: Directives
 
 1.10.4 Multi-line comments
 --------------------------
@@ -800,47 +793,56 @@ A line containing just `comment' starts a multi-line comment, and a
 line containing just `end comment' ends it. See comments.
 
 
-File: hledger_journal.5.info,  Node: Default commodity,  Next: Default year,  Prev: Multi-line comments,  Up: Directives
+File: hledger_journal.5.info,  Node: commodity directive,  Next: Default commodity,  Prev: Multi-line comments,  Up: Directives
 
-1.10.5 Default commodity
+1.10.5 commodity directive
+--------------------------
+
+The `commodity' directive predefines commodities (currently this is
+just informational), and also it may define the display format for
+amounts in this commodity (overriding the automatically inferred
+format).
+
+   It may be written on a single line, like this:
+
+
+; commodity EXAMPLEAMOUNT
+
+; display AAAA amounts with the symbol on the right, space-separated,
+; using period as decimal point, with four decimal places, and
+; separating thousands with comma.
+commodity 1,000.0000 AAAA
+
+   or on multiple lines, using the "format" subdirective. In this case
+the commodity symbol appears twice and should be the same in both
+places:
+
+
+; commodity SYMBOL
+;   format EXAMPLEAMOUNT
+
+; display indian rupees with currency name on the left,
+; thousands, lakhs and crores comma-separated,
+; period as decimal point, and two decimal places.
+commodity INR
+  format INR 9,99,99,999.00
+
+
+File: hledger_journal.5.info,  Node: Default commodity,  Next: Default year,  Prev: commodity directive,  Up: Directives
+
+1.10.6 Default commodity
 ------------------------
 
 You can set a default commodity, to be used for amounts without one. Use
 the D directive with a sample amount. The commodity (and the sample
-amount's display style) will be applied to all subsequent commodity-less
-amounts, up to the next D directive. (Note this is different from
-Ledger's default commodity directive.)
-
-   Also note the directive itself does not influence the commodity's
-default display style, but the amount it is applied to might. Here's an
-example:
-
-
-; set £ as the default commodity
-D £1,000.00
-
-2010/1/1
-  a  2340
-  b
-
-2014/1/1
-  c  £1000
-  d
-
-
-$ hledger print
-2010/01/01
-    a     £2,340.00
-    b    £-2,340.00
-
-2014/01/01
-    c     £1,000.00
-    d    £-1,000.00
+amount's display format) will be applied to all subsequent
+commodity-less amounts, up to the next D directive. (Note this is
+different from Ledger's default commodity directive.)
 
 
 File: hledger_journal.5.info,  Node: Default year,  Next: Including other files,  Prev: Default commodity,  Up: Directives
 
-1.10.6 Default year
+1.10.7 Default year
 -------------------
 
 You can set a default year to be used for subsequent dates which don't
@@ -867,7 +869,7 @@ Y2010      ; change default year to 2010
 
 File: hledger_journal.5.info,  Node: Including other files,  Prev: Default year,  Up: Directives
 
-1.10.7 Including other files
+1.10.8 Including other files
 ----------------------------
 
 You can pull in the content of additional journal files by writing an
@@ -877,13 +879,10 @@ include directive, like this:
 include path/to/file.journal
 
    If the path does not begin with a slash, it is relative to the
-current file.
+current file. Glob patterns (`*') are not currently supported.
 
-   Glob patterns (`*') are not currently supported.
-
-   The `include' directive may only be used in journal files, and
-currently it may only include other journal files (eg, not CSV or
-timeclock files.)
+   The `include' directive can only be used in journal files. It can
+include journal, timeclock or timedot files, but not CSV files.
 
 
 File: hledger_journal.5.info,  Node: EDITOR SUPPORT,  Prev: FILE FORMAT,  Up: Top
@@ -917,67 +916,63 @@ Node: Dates3351
 Ref: #dates3479
 Node: Simple dates3544
 Ref: #simple-dates3672
-Node: Secondary dates3976
-Ref: #secondary-dates4132
-Node: Posting dates5408
-Ref: #posting-dates5539
-Node: Account names6715
-Ref: #account-names6854
-Node: Amounts7338
-Ref: #amounts7476
-Node: Decimal points and digit groups8003
-Ref: #decimal-points-and-digit-groups8196
-Node: Amount display styles8751
-Ref: #amount-display-styles8924
-Node: Virtual Postings10003
-Ref: #virtual-postings10164
-Node: Balanced Virtual Postings10683
-Ref: #balanced-virtual-postings10837
-Node: Balance Assertions11452
-Ref: #balance-assertions11616
-Node: Assertions and ordering12438
-Ref: #assertions-and-ordering12623
-Node: Assertions and commodities13654
-Ref: #assertions-and-commodities13880
-Node: Assertions and subaccounts14572
-Ref: #assertions-and-subaccounts14806
-Node: Assertions and virtual postings15328
-Ref: #assertions-and-virtual-postings15537
-Node: Prices15678
-Ref: #prices15810
-Node: Transaction prices15861
-Ref: #transaction-prices16006
-Node: Market prices17613
-Ref: #market-prices17748
-Node: Comments18636
-Ref: #comments18758
-Node: Tags19870
-Ref: #tags19988
-Node: Directives20918
-Ref: #directives21033
-Node: Account aliases21202
-Ref: #account-aliases21348
-Node: Basic aliases21950
-Ref: #basic-aliases22095
-Node: Regex aliases22783
-Ref: #regex-aliases22953
-Node: Multiple aliases23723
-Ref: #multiple-aliases23897
-Node: end aliases24393
-Ref: #end-aliases24535
-Node: account directive24637
-Ref: #account-directive24819
-Node: apply account directive25115
-Ref: #apply-account-directive25313
-Node: Multi-line comments25974
-Ref: #multi-line-comments26164
-Node: Default commodity26291
-Ref: #default-commodity26466
-Node: Default year27161
-Ref: #default-year27328
-Node: Including other files27751
-Ref: #including-other-files27910
-Node: EDITOR SUPPORT28327
-Ref: #editor-support28447
+Node: Secondary dates4036
+Ref: #secondary-dates4192
+Node: Posting dates5753
+Ref: #posting-dates5884
+Node: Account names7255
+Ref: #account-names7394
+Node: Amounts7879
+Ref: #amounts8017
+Node: Virtual Postings10015
+Ref: #virtual-postings10176
+Node: Balance Assertions11396
+Ref: #balance-assertions11560
+Node: Assertions and ordering12382
+Ref: #assertions-and-ordering12567
+Node: Assertions and commodities13598
+Ref: #assertions-and-commodities13824
+Node: Assertions and subaccounts14516
+Ref: #assertions-and-subaccounts14750
+Node: Assertions and virtual postings15272
+Ref: #assertions-and-virtual-postings15481
+Node: Prices15622
+Ref: #prices15754
+Node: Transaction prices15805
+Ref: #transaction-prices15950
+Node: Market prices17557
+Ref: #market-prices17692
+Node: Comments18580
+Ref: #comments18702
+Node: Tags19814
+Ref: #tags19932
+Node: Directives20855
+Ref: #directives20970
+Node: Account aliases21163
+Ref: #account-aliases21309
+Node: Basic aliases21911
+Ref: #basic-aliases22056
+Node: Regex aliases22744
+Ref: #regex-aliases22914
+Node: Multiple aliases23684
+Ref: #multiple-aliases23858
+Node: end aliases24354
+Ref: #end-aliases24496
+Node: account directive24598
+Ref: #account-directive24780
+Node: apply account directive25076
+Ref: #apply-account-directive25274
+Node: Multi-line comments25935
+Ref: #multi-line-comments26127
+Node: commodity directive26254
+Ref: #commodity-directive26440
+Node: Default commodity27313
+Ref: #default-commodity27488
+Node: Default year27809
+Ref: #default-year27976
+Node: Including other files28399
+Ref: #including-other-files28558
+Node: EDITOR SUPPORT28954
+Ref: #editor-support29074
 
 End Tag Table

@@ -106,8 +106,8 @@ The following common hledger options should also work:
      set start date, end date, and/or reporting interval all at once
      (overrides the flags above)
 
-`--date2 --aux-date'
-     use postings/txns' secondary dates instead
+`--date2'
+     show, and match with -b/-e/-p/date:, secondary dates instead
 
 `-C --cleared'
      include only cleared postings/txns
@@ -273,17 +273,17 @@ Node: OPTIONS682
 Ref: #options781
 Node: hledger options1547
 Ref: #hledger-options1653
-Node: KEYS2829
-Ref: #keys2926
-Node: SCREENS3323
-Ref: #screens3410
-Node: Accounts screen3500
-Ref: #accounts-screen3630
-Node: Register screen4475
-Ref: #register-screen4632
-Node: Transaction screen6014
-Ref: #transaction-screen6174
-Node: Error screen7041
-Ref: #error-screen7165
+Node: KEYS2836
+Ref: #keys2933
+Node: SCREENS3330
+Ref: #screens3417
+Node: Accounts screen3507
+Ref: #accounts-screen3637
+Node: Register screen4482
+Ref: #register-screen4639
+Node: Transaction screen6021
+Ref: #transaction-screen6181
+Node: Error screen7048
+Ref: #error-screen7172
 
 End Tag Table

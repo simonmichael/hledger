@@ -94,8 +94,8 @@ OOPPTTIIOONNSS
               set start date, end date, and/or reporting interval all at  once
               (overrides the flags above)
 
-       ----ddaattee22 ----aauuxx--ddaattee
-              use postings/txns' secondary dates instead
+       ----ddaattee22
+              show, and match with -b/-e/-p/date:, secondary dates instead
 
        --CC ----cclleeaarreedd
               include only cleared postings/txns

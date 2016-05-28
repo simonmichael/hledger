@@ -114,6 +114,21 @@ $ hledger reg 'assets:some bank:checking' # show postings to/from this checking 
 $ hledger print desc:shop                 # show transactions with shop in the description
 $ hledger activity -W                     # show transaction counts per week as a bar chart
 
+   With the journal
+
+
+2016/02/16 Member Fee Payment John Doe
+    assets:bank account                                   2 EUR
+    income:member fees                                  -2 EUR
+      ; member: John Doe
+
+   the -pivot comand will output the following:
+
+
+$ hledger bal --pivot member
+    2 EUR  assets:bank account
+   -2 EUR  member:John Doe
+
 
 File: hledger.1.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 
@@ -204,8 +219,8 @@ command name.
      set start date, end date, and/or reporting interval all at once
      (overrides the flags above)
 
-`--date2 --aux-date'
-     use postings/txns' secondary dates instead
+`--date2'
+     show, and match with -b/-e/-p/date:, secondary dates instead
 
 `-C --cleared'
      include only cleared postings/txns
@@ -228,6 +243,15 @@ command name.
 `-B --cost'
      show amounts in their cost price's commodity
 
+`-pivot TAG
+     will transform the journal before any other processing by
+     replacing the account name of every posting having the tag TAG
+     with content VALUE by the account name "TAG:VALUE".  The TAG will
+     only match if it is a full-length match. The pivot will only
+     happen if the TAG is on a posting, not if it is on the transaction.
+     If the tag value is a multi:level:account:name the new account
+     name will be "TAG:multi:level:account:name".
+
 * Menu:
 
 * Multiple files::
@@ -244,10 +268,10 @@ File: hledger.1.info,  Node: Multiple files,  Next: Repeated options,  Up: OPTIO
 2.1 Multiple files
 ==================
 
-One may specify the `--file FILE' option multiple times. This is
-equivalent to concatenating the files to standard input and passing
-`--file -', except that the add command functions normally and adds
-entries to the first specified file.
+You can specify multiple `-f/--file FILE' options. This is like
+combining all the files into one, except they can have different
+formats. Also directives and aliases in one file do not affect
+subsequent files (if you need that, use the include directive instead).
 
 
 File: hledger.1.info,  Node: Repeated options,  Next: Depth limiting,  Prev: Multiple files,  Up: OPTIONS
@@ -480,11 +504,14 @@ match (or negatively match)
      match transaction descriptions
 
 *`date:PERIODEXPR'*
-     match dates within the specified period (which should not include a
-     reporting interval
+     match dates within the specified period. PERIODEXPR should not
+     include a reporting interval. The command-line `--date2' flag
+     makes this match secondary dates instead (like the `-b'/`-e'/`-p'
+     options).
 
 *`date2:PERIODEXPR'*
-     as above, but match secondary dates
+     match secondary dates within the specified period. PERIODEXPR
+     should not include a reporting interval.
 
 *`depth:N'*
      match (or display, depending on command) accounts at or above this
@@ -506,8 +533,7 @@ match (or negatively match)
 *`not:'*
      before any of the above negates the match.
 
------------------------------------------------------------------------
-Some of these can also be expressed as command-line options (eg
+   Some of these can also be expressed as command-line options (eg
 `depth:2' is equivalent to `--depth 2'). Generally you can mix options
 and query arguments, and the resulting query will be their intersection
 (perhaps excluding the `-p/--period' option).
@@ -648,8 +674,9 @@ Prompt for transactions and add them to the journal.
    Many hledger users edit their journals directly with a text editor,
 or generate them from CSV. For more interactive data entry, there is the
 `add' command, which prompts interactively on the console for new
-transactions, and appends them to the journal file (existing
-transactions are not changed). This is the only hledger command that
+transactions, and appends them to the journal file (if there are
+multiple `-f FILE' options, the first file is used.) Existing
+transactions are not changed. This is the only hledger command that
 writes to the journal file.
 
    To use it, just run `hledger add' and follow the prompts. You can
@@ -1877,6 +1904,11 @@ File: hledger.1.info,  Node: rewrite,  Next: ui,  Prev: print-unique,  Up: ADD-O
 Prints all journal entries, adding specified custom postings to matched
 entries.
 
+   hledger-rewrite.hs, in hledger's extra directory (compilation
+optional), adds postings to existing transactions, optionally with an
+amount based on the existing transaction's first amount. See the script
+for more details.
+
 
 $ hledger rewrite -- [QUERY]        --add-posting "ACCT  AMTEXPR" ...
 $ hledger rewrite -- ^income        --add-posting '(liabilities:tax)  *.33'
@@ -2009,97 +2041,97 @@ Tag Table:
 Node: Top82
 Node: EXAMPLES1754
 Ref: #examples1856
-Node: OPTIONS3508
-Ref: #options3612
-Node: Multiple files6386
-Ref: #multiple-files6511
-Node: Repeated options6750
-Ref: #repeated-options6902
-Node: Depth limiting7022
-Ref: #depth-limiting7167
-Node: Smart dates7368
-Ref: #smart-dates7509
-Node: Reporting interval8506
-Ref: #reporting-interval8665
-Node: Period expressions9008
-Ref: #period-expressions9175
-Node: Regular Expressions11221
-Ref: #regular-expressions11363
-Node: QUERIES12846
-Ref: #queries12950
-Node: COMMANDS16125
-Ref: #commands16239
-Node: accounts16912
-Ref: #accounts17012
-Node: activity17994
-Ref: #activity18106
-Node: add18465
-Ref: #add18566
-Node: balance21160
-Ref: #balance21273
-Node: Flat mode23989
-Ref: #flat-mode24116
-Node: Depth limited balance reports24535
-Ref: #depth-limited-balance-reports24738
-Node: Multicolumn balance reports25159
-Ref: #multicolumn-balance-reports25361
-Node: Market value30010
-Ref: #market-value30174
-Node: Custom balance output30667
-Ref: #custom-balance-output30840
-Node: Output destination32944
-Ref: #output-destination33109
-Node: CSV output33379
-Ref: #csv-output33498
-Node: balancesheet33895
-Ref: #balancesheet34023
-Node: cashflow34675
-Ref: #cashflow34792
-Node: help35482
-Ref: #help35594
-Node: incomestatement36431
-Ref: #incomestatement36561
-Node: info37288
-Ref: #info37395
-Node: man37757
-Ref: #man37854
-Node: print38257
-Ref: #print38362
-Node: register39713
-Ref: #register39826
-Node: Custom register output44167
-Ref: #custom-register-output44298
-Node: stats45595
-Ref: #stats45701
-Node: test46582
-Ref: #test46669
-Node: ADD-ON COMMANDS47036
-Ref: #add-on-commands47172
-Node: api48460
-Ref: #api48552
-Node: autosync48586
-Ref: #autosync48701
-Node: diff51016
-Ref: #diff51126
-Node: equity51790
-Ref: #equity51904
-Node: interest53232
-Ref: #interest53349
-Node: irr56433
-Ref: #irr56546
-Node: print-unique58921
-Ref: #print-unique59051
-Node: rewrite59309
-Ref: #rewrite59428
-Node: ui59731
-Ref: #ui59831
-Node: web59872
-Ref: #web59960
-Node: TROUBLESHOOTING59993
-Ref: #troubleshooting60112
-Node: Run-time problems60166
-Ref: #run-time-problems60309
-Node: Known limitations62253
-Ref: #known-limitations62396
+Node: OPTIONS3860
+Ref: #options3964
+Node: Multiple files7217
+Ref: #multiple-files7342
+Node: Repeated options7607
+Ref: #repeated-options7759
+Node: Depth limiting7879
+Ref: #depth-limiting8024
+Node: Smart dates8225
+Ref: #smart-dates8366
+Node: Reporting interval9363
+Ref: #reporting-interval9522
+Node: Period expressions9865
+Ref: #period-expressions10032
+Node: Regular Expressions12078
+Ref: #regular-expressions12220
+Node: QUERIES13703
+Ref: #queries13807
+Node: COMMANDS17109
+Ref: #commands17223
+Node: accounts17896
+Ref: #accounts17996
+Node: activity18978
+Ref: #activity19090
+Node: add19449
+Ref: #add19550
+Node: balance22209
+Ref: #balance22322
+Node: Flat mode25038
+Ref: #flat-mode25165
+Node: Depth limited balance reports25584
+Ref: #depth-limited-balance-reports25787
+Node: Multicolumn balance reports26208
+Ref: #multicolumn-balance-reports26410
+Node: Market value31059
+Ref: #market-value31223
+Node: Custom balance output31716
+Ref: #custom-balance-output31889
+Node: Output destination33993
+Ref: #output-destination34158
+Node: CSV output34428
+Ref: #csv-output34547
+Node: balancesheet34944
+Ref: #balancesheet35072
+Node: cashflow35724
+Ref: #cashflow35841
+Node: help36531
+Ref: #help36643
+Node: incomestatement37480
+Ref: #incomestatement37610
+Node: info38337
+Ref: #info38444
+Node: man38806
+Ref: #man38903
+Node: print39306
+Ref: #print39411
+Node: register40762
+Ref: #register40875
+Node: Custom register output45216
+Ref: #custom-register-output45347
+Node: stats46644
+Ref: #stats46750
+Node: test47631
+Ref: #test47718
+Node: ADD-ON COMMANDS48085
+Ref: #add-on-commands48221
+Node: api49509
+Ref: #api49601
+Node: autosync49635
+Ref: #autosync49750
+Node: diff52065
+Ref: #diff52175
+Node: equity52839
+Ref: #equity52953
+Node: interest54281
+Ref: #interest54398
+Node: irr57482
+Ref: #irr57595
+Node: print-unique59970
+Ref: #print-unique60100
+Node: rewrite60358
+Ref: #rewrite60477
+Node: ui61006
+Ref: #ui61106
+Node: web61147
+Ref: #web61235
+Node: TROUBLESHOOTING61268
+Ref: #troubleshooting61387
+Node: Run-time problems61441
+Ref: #run-time-problems61584
+Node: Known limitations63528
+Ref: #known-limitations63671
 
 End Tag Table
