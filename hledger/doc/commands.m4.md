@@ -12,10 +12,12 @@ incomestatement`). You can also write any unambiguous prefix of a
 command name (`hledger inc`), or one of the standard short aliases
 displayed in the command list (`hledger is`).
 
+<!--
 ---
-# comment:
-# for each command: name, synopsis, description, examples.
+comment:
+for each command: name, synopsis, description, examples.
 ...
+-->
 
 ## accounts
 Show account names.
