@@ -120,4 +120,4 @@ SSEEEE AALLSSOO
 
 
 
-                                  April 2016                hledger_timedot(5)
+hledger 0.28                       May 2016                 hledger_timedot(5)

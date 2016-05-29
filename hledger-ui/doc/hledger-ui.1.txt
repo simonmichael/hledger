@@ -262,4 +262,4 @@ SSEEEE AALLSSOO
 
 
 
-                                 October 2015                    hledger-ui(1)
+hledger-ui 0.28                    May 2016                      hledger-ui(1)

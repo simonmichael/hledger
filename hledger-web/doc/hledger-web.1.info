@@ -4,8 +4,8 @@ version 4.8 from stdin.
 
 File: hledger-web.1.info,  Node: Top,  Up: (dir)
 
-hledger-web(1)
-**************
+hledger-web(1) hledger-web 0.28
+*******************************
 
 hledger-web is hledger's web interface. It starts a simple web
 application for browsing and adding transactions, and optionally opens
@@ -171,9 +171,9 @@ The following common hledger options should also work:
 
 Tag Table:
 Node: Top90
-Node: OPTIONS2834
-Ref: #options2921
-Node: hledger options3784
-Ref: #hledger-options3891
+Node: OPTIONS2868
+Ref: #options2955
+Node: hledger options3818
+Ref: #hledger-options3925
 
 End Tag Table

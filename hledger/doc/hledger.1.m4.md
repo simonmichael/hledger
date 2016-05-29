@@ -1,6 +1,6 @@
-% hledger(1) hledger 0.27.98
-%
-% April 2016
+% hledger(1) hledger _version_
+% _author_
+% _monthyear_
 
 _web_({{
 _versions_({{hledger}})

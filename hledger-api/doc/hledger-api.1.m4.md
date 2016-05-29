@@ -1,6 +1,6 @@
-% hledger-api(1)
-%
-% January 2016
+% hledger-api(1) hledger-api _version_
+% _author_
+% _monthyear_
 
 _web_({{
 m4_dnl _versions_({{hledger-api}})

@@ -1,6 +1,6 @@
-% hledger_timedot(5)
-%
-% April 2016
+% hledger_timedot(5) hledger _version_
+% _author_
+% _monthyear_
 
 _web_({{
 _versions_({{timedot}})

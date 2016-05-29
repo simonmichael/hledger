@@ -4,8 +4,8 @@ version 4.8 from stdin.
 
 File: hledger_journal.5.info,  Node: Top,  Up: (dir)
 
-hledger_journal(5)
-******************
+hledger_journal(5) hledger 0.28
+*******************************
 
 hledger's usual data source is a plain text file containing journal
 entries in hledger journal format. This file represents a standard
@@ -908,71 +908,71 @@ Text Wrangler     https://github.com/ledger/ledger/wiki/Editing-Ledger-files-wit
 
 Tag Table:
 Node: Top94
-Node: FILE FORMAT2260
-Ref: #file-format2386
-Node: Transactions2545
-Ref: #transactions2665
-Node: Dates3351
-Ref: #dates3479
-Node: Simple dates3544
-Ref: #simple-dates3672
-Node: Secondary dates4036
-Ref: #secondary-dates4192
-Node: Posting dates5753
-Ref: #posting-dates5884
-Node: Account names7255
-Ref: #account-names7394
-Node: Amounts7879
-Ref: #amounts8017
-Node: Virtual Postings10015
-Ref: #virtual-postings10176
-Node: Balance Assertions11396
-Ref: #balance-assertions11560
-Node: Assertions and ordering12382
-Ref: #assertions-and-ordering12567
-Node: Assertions and commodities13598
-Ref: #assertions-and-commodities13824
-Node: Assertions and subaccounts14516
-Ref: #assertions-and-subaccounts14750
-Node: Assertions and virtual postings15272
-Ref: #assertions-and-virtual-postings15481
-Node: Prices15622
-Ref: #prices15754
-Node: Transaction prices15805
-Ref: #transaction-prices15950
-Node: Market prices17557
-Ref: #market-prices17692
-Node: Comments18580
-Ref: #comments18702
-Node: Tags19814
-Ref: #tags19932
-Node: Directives20855
-Ref: #directives20970
-Node: Account aliases21163
-Ref: #account-aliases21309
-Node: Basic aliases21911
-Ref: #basic-aliases22056
-Node: Regex aliases22744
-Ref: #regex-aliases22914
-Node: Multiple aliases23684
-Ref: #multiple-aliases23858
-Node: end aliases24354
-Ref: #end-aliases24496
-Node: account directive24598
-Ref: #account-directive24780
-Node: apply account directive25076
-Ref: #apply-account-directive25274
-Node: Multi-line comments25935
-Ref: #multi-line-comments26127
-Node: commodity directive26254
-Ref: #commodity-directive26440
-Node: Default commodity27313
-Ref: #default-commodity27488
-Node: Default year27809
-Ref: #default-year27976
-Node: Including other files28399
-Ref: #including-other-files28558
-Node: EDITOR SUPPORT28954
-Ref: #editor-support29074
+Node: FILE FORMAT2286
+Ref: #file-format2412
+Node: Transactions2571
+Ref: #transactions2691
+Node: Dates3377
+Ref: #dates3505
+Node: Simple dates3570
+Ref: #simple-dates3698
+Node: Secondary dates4062
+Ref: #secondary-dates4218
+Node: Posting dates5779
+Ref: #posting-dates5910
+Node: Account names7281
+Ref: #account-names7420
+Node: Amounts7905
+Ref: #amounts8043
+Node: Virtual Postings10041
+Ref: #virtual-postings10202
+Node: Balance Assertions11422
+Ref: #balance-assertions11586
+Node: Assertions and ordering12408
+Ref: #assertions-and-ordering12593
+Node: Assertions and commodities13624
+Ref: #assertions-and-commodities13850
+Node: Assertions and subaccounts14542
+Ref: #assertions-and-subaccounts14776
+Node: Assertions and virtual postings15298
+Ref: #assertions-and-virtual-postings15507
+Node: Prices15648
+Ref: #prices15780
+Node: Transaction prices15831
+Ref: #transaction-prices15976
+Node: Market prices17583
+Ref: #market-prices17718
+Node: Comments18606
+Ref: #comments18728
+Node: Tags19840
+Ref: #tags19958
+Node: Directives20881
+Ref: #directives20996
+Node: Account aliases21189
+Ref: #account-aliases21335
+Node: Basic aliases21937
+Ref: #basic-aliases22082
+Node: Regex aliases22770
+Ref: #regex-aliases22940
+Node: Multiple aliases23710
+Ref: #multiple-aliases23884
+Node: end aliases24380
+Ref: #end-aliases24522
+Node: account directive24624
+Ref: #account-directive24806
+Node: apply account directive25102
+Ref: #apply-account-directive25300
+Node: Multi-line comments25961
+Ref: #multi-line-comments26153
+Node: commodity directive26280
+Ref: #commodity-directive26466
+Node: Default commodity27339
+Ref: #default-commodity27514
+Node: Default year27835
+Ref: #default-year28002
+Node: Including other files28425
+Ref: #including-other-files28584
+Node: EDITOR SUPPORT28980
+Ref: #editor-support29100
 
 End Tag Table

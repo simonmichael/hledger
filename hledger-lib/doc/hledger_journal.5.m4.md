@@ -1,6 +1,6 @@
-% hledger_journal(5)
-%
-% May 2016
+% hledger_journal(5) hledger _version_
+% _author_
+% _monthyear_
 
 _web_({{
 _versions_({{journal}})

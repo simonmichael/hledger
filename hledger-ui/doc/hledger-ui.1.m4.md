@@ -1,6 +1,6 @@
-% hledger-ui(1)
-%
-% October 2015
+% hledger-ui(1) hledger-ui _version_
+% _author_
+% _monthyear_
 
 _web_({{
 _versions_({{hledger-ui}})

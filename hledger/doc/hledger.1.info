@@ -4,8 +4,8 @@ from stdin.
 
 File: hledger.1.info,  Node: Top,  Up: (dir)
 
-hledger(1) hledger 0.27.98
-**************************
+hledger(1) hledger 0.28
+***********************
 
 This is hledger's command-line interface (there are also curses and web
 interfaces). Its basic function is to read a plain text file describing

@@ -99,4 +99,4 @@ SSEEEE AALLSSOO
 
 
 
-                                 January 2016                   hledger-api(1)
+hledger-api 0.28                   May 2016                     hledger-api(1)

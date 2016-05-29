@@ -4,8 +4,8 @@ version 4.8 from stdin.
 
 File: hledger_csv.5.info,  Node: Top,  Up: (dir)
 
-hledger_csv(5)
-**************
+hledger_csv(5) hledger 0.28
+***************************
 
 hledger can read CSV files, converting each CSV record into a journal
 entry (transaction), if you provide some conversion hints in a "rules
@@ -210,21 +210,21 @@ order of same-day entries will be preserved, usually.
 
 Tag Table:
 Node: Top90
-Node: CSV RULES771
-Ref: #csv-rules877
-Node: skip1120
-Ref: #skip1216
-Node: date-format1387
-Ref: #date-format1516
-Node: field list2025
-Ref: #field-list2164
-Node: field assignment2840
-Ref: #field-assignment2997
-Node: conditional block3502
-Ref: #conditional-block3658
-Node: include4548
-Ref: #include4659
-Node: TIPS4890
-Ref: #tips4974
+Node: CSV RULES797
+Ref: #csv-rules903
+Node: skip1146
+Ref: #skip1242
+Node: date-format1413
+Ref: #date-format1542
+Node: field list2051
+Ref: #field-list2190
+Node: field assignment2866
+Ref: #field-assignment3023
+Node: conditional block3528
+Ref: #conditional-block3684
+Node: include4574
+Ref: #include4685
+Node: TIPS4916
+Ref: #tips5000
 
 End Tag Table

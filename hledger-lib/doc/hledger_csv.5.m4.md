@@ -1,6 +1,6 @@
-% hledger_csv(5)
-%
-% April 2016
+% hledger_csv(5) hledger _version_
+% _author_
+% _monthyear_
 
 _web_({{
 _versions_({{csv}})
