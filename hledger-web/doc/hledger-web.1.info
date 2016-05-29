@@ -92,7 +92,7 @@ before options as shown above.
      with this.
 
 `-h'
-     show general usage (or if after COMMAND, the command's usage)
+     show general usage (or after COMMAND, the command's usage)
 
 `--help'
      show the current program's manual as plain text (or after an add-on
@@ -189,7 +189,7 @@ Tag Table:
 Node: Top90
 Node: OPTIONS2868
 Ref: #options2955
-Node: hledger options4376
-Ref: #hledger-options4483
+Node: hledger options4373
+Ref: #hledger-options4480
 
 End Tag Table

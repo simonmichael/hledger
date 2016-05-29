@@ -50,7 +50,7 @@ OOPPTTIIOONNSS
        ----sswwaaggggeerr
               print API docs in Swagger 2.0 format, and exit
 
-       --hh     show general usage (or if after COMMAND, the command's usage)
+       --hh     show general usage (or after COMMAND, the command's usage)
 
        ----hheellpp show the current program's manual as plain  text  (or  after  an
               add-on COMMAND, the add-on's manual)

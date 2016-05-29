@@ -92,7 +92,7 @@ OOPPTTIIOONNSS
               them  from  another server for efficiency, you would set the url
               with this.
 
-       --hh     show general usage (or if after COMMAND, the command's usage)
+       --hh     show general usage (or after COMMAND, the command's usage)
 
        ----hheellpp show the current program's manual as plain  text  (or  after  an
               add-on COMMAND, the add-on's manual)

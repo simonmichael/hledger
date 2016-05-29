@@ -159,7 +159,7 @@ QUERIES.
 available and can appear anywhere in the command line:
 
 `-h'
-     show general usage (or if after COMMAND, the command's usage)
+     show general usage (or after COMMAND, the command's usage)
 
 `--help'
      show the current program's manual as plain text (or after an add-on
@@ -2043,95 +2043,95 @@ Node: EXAMPLES1748
 Ref: #examples1850
 Node: OPTIONS3854
 Ref: #options3958
-Node: Multiple files7273
-Ref: #multiple-files7398
-Node: Repeated options7663
-Ref: #repeated-options7815
-Node: Depth limiting7935
-Ref: #depth-limiting8080
-Node: Smart dates8281
-Ref: #smart-dates8422
-Node: Reporting interval9419
-Ref: #reporting-interval9578
-Node: Period expressions9921
-Ref: #period-expressions10088
-Node: Regular Expressions12134
-Ref: #regular-expressions12276
-Node: QUERIES13759
-Ref: #queries13863
-Node: COMMANDS17165
-Ref: #commands17279
-Node: accounts17952
-Ref: #accounts18052
-Node: activity19034
-Ref: #activity19146
-Node: add19505
-Ref: #add19606
-Node: balance22265
-Ref: #balance22378
-Node: Flat mode25094
-Ref: #flat-mode25221
-Node: Depth limited balance reports25640
-Ref: #depth-limited-balance-reports25843
-Node: Multicolumn balance reports26264
-Ref: #multicolumn-balance-reports26466
-Node: Market value31115
-Ref: #market-value31279
-Node: Custom balance output31772
-Ref: #custom-balance-output31945
-Node: Output destination34049
-Ref: #output-destination34214
-Node: CSV output34484
-Ref: #csv-output34603
-Node: balancesheet35000
-Ref: #balancesheet35128
-Node: cashflow35780
-Ref: #cashflow35897
-Node: help36587
-Ref: #help36699
-Node: incomestatement37536
-Ref: #incomestatement37666
-Node: info38393
-Ref: #info38500
-Node: man38862
-Ref: #man38959
-Node: print39362
-Ref: #print39467
-Node: register40818
-Ref: #register40931
-Node: Custom register output45272
-Ref: #custom-register-output45403
-Node: stats46700
-Ref: #stats46806
-Node: test47687
-Ref: #test47774
-Node: ADD-ON COMMANDS48141
-Ref: #add-on-commands48277
-Node: api49565
-Ref: #api49657
-Node: autosync49691
-Ref: #autosync49806
-Node: diff52121
-Ref: #diff52231
-Node: equity52895
-Ref: #equity53009
-Node: interest54337
-Ref: #interest54454
-Node: irr57538
-Ref: #irr57651
-Node: print-unique60026
-Ref: #print-unique60156
-Node: rewrite60414
-Ref: #rewrite60533
-Node: ui61062
-Ref: #ui61162
-Node: web61203
-Ref: #web61291
-Node: TROUBLESHOOTING61324
-Ref: #troubleshooting61443
-Node: Run-time problems61497
-Ref: #run-time-problems61640
-Node: Known limitations63584
-Ref: #known-limitations63727
+Node: Multiple files7270
+Ref: #multiple-files7395
+Node: Repeated options7660
+Ref: #repeated-options7812
+Node: Depth limiting7932
+Ref: #depth-limiting8077
+Node: Smart dates8278
+Ref: #smart-dates8419
+Node: Reporting interval9416
+Ref: #reporting-interval9575
+Node: Period expressions9918
+Ref: #period-expressions10085
+Node: Regular Expressions12131
+Ref: #regular-expressions12273
+Node: QUERIES13756
+Ref: #queries13860
+Node: COMMANDS17162
+Ref: #commands17276
+Node: accounts17949
+Ref: #accounts18049
+Node: activity19031
+Ref: #activity19143
+Node: add19502
+Ref: #add19603
+Node: balance22262
+Ref: #balance22375
+Node: Flat mode25091
+Ref: #flat-mode25218
+Node: Depth limited balance reports25637
+Ref: #depth-limited-balance-reports25840
+Node: Multicolumn balance reports26261
+Ref: #multicolumn-balance-reports26463
+Node: Market value31112
+Ref: #market-value31276
+Node: Custom balance output31769
+Ref: #custom-balance-output31942
+Node: Output destination34046
+Ref: #output-destination34211
+Node: CSV output34481
+Ref: #csv-output34600
+Node: balancesheet34997
+Ref: #balancesheet35125
+Node: cashflow35777
+Ref: #cashflow35894
+Node: help36584
+Ref: #help36696
+Node: incomestatement37533
+Ref: #incomestatement37663
+Node: info38390
+Ref: #info38497
+Node: man38859
+Ref: #man38956
+Node: print39359
+Ref: #print39464
+Node: register40815
+Ref: #register40928
+Node: Custom register output45269
+Ref: #custom-register-output45400
+Node: stats46697
+Ref: #stats46803
+Node: test47684
+Ref: #test47771
+Node: ADD-ON COMMANDS48138
+Ref: #add-on-commands48274
+Node: api49562
+Ref: #api49654
+Node: autosync49688
+Ref: #autosync49803
+Node: diff52118
+Ref: #diff52228
+Node: equity52892
+Ref: #equity53006
+Node: interest54334
+Ref: #interest54451
+Node: irr57535
+Ref: #irr57648
+Node: print-unique60023
+Ref: #print-unique60153
+Node: rewrite60411
+Ref: #rewrite60530
+Node: ui61059
+Ref: #ui61159
+Node: web61200
+Ref: #web61288
+Node: TROUBLESHOOTING61321
+Ref: #troubleshooting61440
+Node: Run-time problems61494
+Ref: #run-time-problems61637
+Node: Known limitations63581
+Ref: #known-limitations63724
 
 End Tag Table
