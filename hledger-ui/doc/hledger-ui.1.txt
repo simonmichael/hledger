@@ -54,16 +54,33 @@ OOPPTTIIOONNSS
               show amounts as their current market value in their default val-
               uation commodity (accounts screen only)
 
-       --hh     show usage
+       --hh     show general usage (or if after COMMAND, the command's usage)
 
-       ----hheellpp show manual
+       ----hheellpp show  the  current  program's  manual as plain text (or after an
+              add-on COMMAND, the add-on's manual)
 
-       ----mmaann  show manual with man
+       ----mmaann  show the current program's manual with man
 
-       ----iinnffoo show manual with info
+       ----iinnffoo show the current program's manual with info
 
        ----vveerrssiioonn
               show version
+
+       ----ddeebbuugg==NN
+              show debug output if N is 1-9 (default: 0)
+
+       --ff FFIILLEE ----ffiillee==FFIILLEE
+              use a different input file.  For stdin, use -
+
+       ----rruulleess--ffiillee==RRUULLEESSFFIILLEE
+              Conversion  rules  file  to  use  when  reading  CSV   (default:
+              FILE.rules)
+
+       ----aalliiaass==OOLLDD==NNEEWW
+              display accounts named OLD as NEW
+
+       ----iiggnnoorree--aasssseerrttiioonnss
+              ignore any failing balance assertions in the journal
 
    hhlleeddggeerr ooppttiioonnss
        The following common hledger options should also work:

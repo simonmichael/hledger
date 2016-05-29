@@ -69,27 +69,54 @@ print API docs in Swagger 2.0 format, and exit
 .RE
 .TP
 .B \f[C]\-h\f[]
-show usage
+show general usage (or if after COMMAND, the command\[aq]s usage)
 .RS
 .RE
 .TP
 .B \f[C]\-\-help\f[]
-show manual
+show the current program\[aq]s manual as plain text (or after an add\-on
+COMMAND, the add\-on\[aq]s manual)
 .RS
 .RE
 .TP
 .B \f[C]\-\-man\f[]
-show manual with man
+show the current program\[aq]s manual with man
 .RS
 .RE
 .TP
 .B \f[C]\-\-info\f[]
-show manual with info
+show the current program\[aq]s manual with info
 .RS
 .RE
 .TP
 .B \f[C]\-\-version\f[]
 show version
+.RS
+.RE
+.TP
+.B \f[C]\-\-debug=N\f[]
+show debug output if N is 1\-9 (default: 0)
+.RS
+.RE
+.TP
+.B \f[C]\-f\ FILE\ \-\-file=FILE\f[]
+use a different input file.
+For stdin, use \-
+.RS
+.RE
+.TP
+.B \f[C]\-\-rules\-file=RULESFILE\f[]
+Conversion rules file to use when reading CSV (default: FILE.rules)
+.RS
+.RE
+.TP
+.B \f[C]\-\-alias=OLD=NEW\f[]
+display accounts named OLD as NEW
+.RS
+.RE
+.TP
+.B \f[C]\-\-ignore\-assertions\f[]
+ignore any failing balance assertions in the journal
 .RS
 .RE
 .SH ENVIRONMENT

@@ -149,6 +149,9 @@ OOPPTTIIOONNSS
        ----vveerrssiioonn
               show version
 
+       ----ddeebbuugg==NN
+              show debug output if N is 1-9 (default: 0)
+
        --ff FFIILLEE ----ffiillee==FFIILLEE
               use a different input file.  For stdin, use -
 
@@ -161,9 +164,6 @@ OOPPTTIIOONNSS
 
        ----iiggnnoorree--aasssseerrttiioonnss
               ignore any failing balance assertions in the journal
-
-       ----ddeebbuugg==NN
-              : show debug output if N is 1-9 (default: 0)
 
        Common reporting options are supported by most commands where  applica-
        ble,  and  individual  commands may provide additional command-specific

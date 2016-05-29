@@ -92,19 +92,35 @@ before options as shown above.
      with this.
 
 `-h'
-     show usage
+     show general usage (or if after COMMAND, the command's usage)
 
 `--help'
-     show manual
+     show the current program's manual as plain text (or after an add-on
+     COMMAND, the add-on's manual)
 
 `--man'
-     show manual with man
+     show the current program's manual with man
 
 `--info'
-     show manual with info
+     show the current program's manual with info
 
 `--version'
      show version
+
+`--debug=N'
+     show debug output if N is 1-9 (default: 0)
+
+`-f FILE --file=FILE'
+     use a different input file. For stdin, use -
+
+`--rules-file=RULESFILE'
+     Conversion rules file to use when reading CSV (default: FILE.rules)
+
+`--alias=OLD=NEW'
+     display accounts named OLD as NEW
+
+`--ignore-assertions'
+     ignore any failing balance assertions in the journal
 
 * Menu:
 
@@ -173,7 +189,7 @@ Tag Table:
 Node: Top90
 Node: OPTIONS2868
 Ref: #options2955
-Node: hledger options3818
-Ref: #hledger-options3925
+Node: hledger options4376
+Ref: #hledger-options4483
 
 End Tag Table

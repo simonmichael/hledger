@@ -52,3 +52,37 @@ m4_define({{_csv_}},       {{```csv$1```}}            )m4_dnl
 m4_define({{_rules_}},     {{```rules$1```}}          )m4_dnl
 m4_define({{_timeclock_}}, {{```timeclock$1```}}      )m4_dnl
 m4_define({{_timedot_}},   {{```timedot$1```}}        )m4_dnl
+m4_dnl
+m4_define({{_generaloptions_}}, {{
+
+`-h`
+: show general usage (or if after COMMAND, the command's usage)
+
+`--help`
+: show the current program's manual as plain text (or after an add-on COMMAND, the add-on's manual)
+
+`--man`
+: show the current program's manual with man
+
+`--info`
+: show the current program's manual with info
+
+`--version`
+: show version
+
+`--debug=N`
+: show debug output if N is 1-9 (default: 0)
+
+`-f FILE --file=FILE`
+: use a different input file. For stdin, use -
+
+`--rules-file=RULESFILE`
+: Conversion rules file to use when reading CSV (default: FILE.rules)
+
+`--alias=OLD=NEW`
+: display accounts named OLD as NEW
+
+`--ignore-assertions`
+: ignore any failing balance assertions in the journal
+
+}} )m4_dnl

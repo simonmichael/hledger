@@ -55,19 +55,35 @@ the data.
      valuation commodity (accounts screen only)
 
 `-h'
-     show usage
+     show general usage (or if after COMMAND, the command's usage)
 
 `--help'
-     show manual
+     show the current program's manual as plain text (or after an add-on
+     COMMAND, the add-on's manual)
 
 `--man'
-     show manual with man
+     show the current program's manual with man
 
 `--info'
-     show manual with info
+     show the current program's manual with info
 
 `--version'
      show version
+
+`--debug=N'
+     show debug output if N is 1-9 (default: 0)
+
+`-f FILE --file=FILE'
+     use a different input file. For stdin, use -
+
+`--rules-file=RULESFILE'
+     Conversion rules file to use when reading CSV (default: FILE.rules)
+
+`--alias=OLD=NEW'
+     display accounts named OLD as NEW
+
+`--ignore-assertions'
+     ignore any failing balance assertions in the journal
 
 * Menu:
 
@@ -271,19 +287,19 @@ Tag Table:
 Node: Top88
 Node: OPTIONS714
 Ref: #options813
-Node: hledger options1579
-Ref: #hledger-options1685
-Node: KEYS2868
-Ref: #keys2965
-Node: SCREENS3362
-Ref: #screens3449
-Node: Accounts screen3539
-Ref: #accounts-screen3669
-Node: Register screen4514
-Ref: #register-screen4671
-Node: Transaction screen6053
-Ref: #transaction-screen6213
-Node: Error screen7080
-Ref: #error-screen7204
+Node: hledger options2137
+Ref: #hledger-options2243
+Node: KEYS3426
+Ref: #keys3523
+Node: SCREENS3920
+Ref: #screens4007
+Node: Accounts screen4097
+Ref: #accounts-screen4227
+Node: Register screen5072
+Ref: #register-screen5229
+Node: Transaction screen6611
+Ref: #transaction-screen6771
+Node: Error screen7638
+Ref: #error-screen7762
 
 End Tag Table

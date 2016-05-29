@@ -22,35 +22,7 @@ interpreted as a search query which filters the data, see QUERIES.
 There are three kinds of options.
 General options are always available and can appear anywhere in the command line:
 
-`-h`
-: show general usage (or if after COMMAND, the command's usage)
-
-`--help`
-: show the current program's manual as plain text (or after an add-on COMMAND, the add-on's manual)
-
-`--man`
-: show the current program's manual with man
-
-`--info`
-: show the current program's manual with info
-
-`--version`
-: show version
-
-`-f FILE --file=FILE`
-: use a different input file. For stdin, use -
-
-`--rules-file=RULESFILE`
-: Conversion rules file to use when reading CSV (default: FILE.rules)
-
-`--alias=OLD=NEW`
-: display accounts named OLD as NEW
-
-`--ignore-assertions`
-: ignore any failing balance assertions in the journal
-
-`--debug=N`
-: : show debug output if N is 1-9 (default: 0)
+_generaloptions_
 
 Common reporting options are supported by most commands where applicable,
 and individual commands may provide additional command-specific options.

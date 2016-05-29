@@ -62,20 +62,7 @@ Note: if invoking hledger-api as a hledger subcommand, write `--` before options
 `--swagger`
 : print API docs in Swagger 2.0 format, and exit
 
-`-h`
-: show usage
-
-`--help`
-: show manual
-
-`--man`
-: show manual with man
-
-`--info`
-: show manual with info
-
-`--version`
-: show version
+_generaloptions_
 
 _man_({{
 
