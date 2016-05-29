@@ -162,14 +162,14 @@ available and can appear anywhere in the command line:
      show general usage (or if after COMMAND, the command's usage)
 
 `--help'
-     show hledger manual (or if after an add-on COMMAND, show the
-     add-on's manual)
+     show the current program's manual as plain text (or after an add-on
+     COMMAND, the add-on's manual)
 
 `--man'
-     show manual with man
+     show the current program's manual with man
 
 `--info'
-     show manual with info
+     show the current program's manual with info
 
 `--version'
      show version
@@ -1177,7 +1177,7 @@ File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: cashflow,  Up:
 4.7 help
 ========
 
-Show one of the hledger manuals.
+Show any of the hledger manuals.
 
    The `help' command displays any of the main hledger man pages.
 (Unlike `hledger --help', which displays only the hledger man page.)
@@ -1252,7 +1252,7 @@ File: hledger.1.info,  Node: info,  Next: man,  Prev: incomestatement,  Up: COMM
 4.9 info
 ========
 
-Show one of the hledger manuals using info.
+Show any of the hledger manuals using info.
 
    The `info' command displays any of the hledger reference manuals
 using the info hypertextual documentation viewer. This can be a very
@@ -1268,7 +1268,7 @@ File: hledger.1.info,  Node: man,  Next: print,  Prev: info,  Up: COMMANDS
 4.10 man
 ========
 
-Show one of the hledger manuals using man.
+Show any of the hledger manuals using man.
 
    The `man' command displays any of the hledger reference manuals
 using man, the standard documentation viewer on unix systems. This will
@@ -2039,99 +2039,99 @@ in hledger add.
 
 Tag Table:
 Node: Top82
-Node: EXAMPLES1754
-Ref: #examples1856
-Node: OPTIONS3860
-Ref: #options3964
-Node: Multiple files7217
-Ref: #multiple-files7342
-Node: Repeated options7607
-Ref: #repeated-options7759
-Node: Depth limiting7879
-Ref: #depth-limiting8024
-Node: Smart dates8225
-Ref: #smart-dates8366
-Node: Reporting interval9363
-Ref: #reporting-interval9522
-Node: Period expressions9865
-Ref: #period-expressions10032
-Node: Regular Expressions12078
-Ref: #regular-expressions12220
-Node: QUERIES13703
-Ref: #queries13807
-Node: COMMANDS17109
-Ref: #commands17223
-Node: accounts17896
-Ref: #accounts17996
-Node: activity18978
-Ref: #activity19090
-Node: add19449
-Ref: #add19550
-Node: balance22209
-Ref: #balance22322
-Node: Flat mode25038
-Ref: #flat-mode25165
-Node: Depth limited balance reports25584
-Ref: #depth-limited-balance-reports25787
-Node: Multicolumn balance reports26208
-Ref: #multicolumn-balance-reports26410
-Node: Market value31059
-Ref: #market-value31223
-Node: Custom balance output31716
-Ref: #custom-balance-output31889
-Node: Output destination33993
-Ref: #output-destination34158
-Node: CSV output34428
-Ref: #csv-output34547
-Node: balancesheet34944
-Ref: #balancesheet35072
-Node: cashflow35724
-Ref: #cashflow35841
-Node: help36531
-Ref: #help36643
-Node: incomestatement37480
-Ref: #incomestatement37610
-Node: info38337
-Ref: #info38444
-Node: man38806
-Ref: #man38903
-Node: print39306
-Ref: #print39411
-Node: register40762
-Ref: #register40875
-Node: Custom register output45216
-Ref: #custom-register-output45347
-Node: stats46644
-Ref: #stats46750
-Node: test47631
-Ref: #test47718
-Node: ADD-ON COMMANDS48085
-Ref: #add-on-commands48221
-Node: api49509
-Ref: #api49601
-Node: autosync49635
-Ref: #autosync49750
-Node: diff52065
-Ref: #diff52175
-Node: equity52839
-Ref: #equity52953
-Node: interest54281
-Ref: #interest54398
-Node: irr57482
-Ref: #irr57595
-Node: print-unique59970
-Ref: #print-unique60100
-Node: rewrite60358
-Ref: #rewrite60477
-Node: ui61006
-Ref: #ui61106
-Node: web61147
-Ref: #web61235
-Node: TROUBLESHOOTING61268
-Ref: #troubleshooting61387
-Node: Run-time problems61441
-Ref: #run-time-problems61584
-Node: Known limitations63528
-Ref: #known-limitations63671
+Node: EXAMPLES1748
+Ref: #examples1850
+Node: OPTIONS3854
+Ref: #options3958
+Node: Multiple files7275
+Ref: #multiple-files7400
+Node: Repeated options7665
+Ref: #repeated-options7817
+Node: Depth limiting7937
+Ref: #depth-limiting8082
+Node: Smart dates8283
+Ref: #smart-dates8424
+Node: Reporting interval9421
+Ref: #reporting-interval9580
+Node: Period expressions9923
+Ref: #period-expressions10090
+Node: Regular Expressions12136
+Ref: #regular-expressions12278
+Node: QUERIES13761
+Ref: #queries13865
+Node: COMMANDS17167
+Ref: #commands17281
+Node: accounts17954
+Ref: #accounts18054
+Node: activity19036
+Ref: #activity19148
+Node: add19507
+Ref: #add19608
+Node: balance22267
+Ref: #balance22380
+Node: Flat mode25096
+Ref: #flat-mode25223
+Node: Depth limited balance reports25642
+Ref: #depth-limited-balance-reports25845
+Node: Multicolumn balance reports26266
+Ref: #multicolumn-balance-reports26468
+Node: Market value31117
+Ref: #market-value31281
+Node: Custom balance output31774
+Ref: #custom-balance-output31947
+Node: Output destination34051
+Ref: #output-destination34216
+Node: CSV output34486
+Ref: #csv-output34605
+Node: balancesheet35002
+Ref: #balancesheet35130
+Node: cashflow35782
+Ref: #cashflow35899
+Node: help36589
+Ref: #help36701
+Node: incomestatement37538
+Ref: #incomestatement37668
+Node: info38395
+Ref: #info38502
+Node: man38864
+Ref: #man38961
+Node: print39364
+Ref: #print39469
+Node: register40820
+Ref: #register40933
+Node: Custom register output45274
+Ref: #custom-register-output45405
+Node: stats46702
+Ref: #stats46808
+Node: test47689
+Ref: #test47776
+Node: ADD-ON COMMANDS48143
+Ref: #add-on-commands48279
+Node: api49567
+Ref: #api49659
+Node: autosync49693
+Ref: #autosync49808
+Node: diff52123
+Ref: #diff52233
+Node: equity52897
+Ref: #equity53011
+Node: interest54339
+Ref: #interest54456
+Node: irr57540
+Ref: #irr57653
+Node: print-unique60028
+Ref: #print-unique60158
+Node: rewrite60416
+Ref: #rewrite60535
+Node: ui61064
+Ref: #ui61164
+Node: web61205
+Ref: #web61293
+Node: TROUBLESHOOTING61326
+Ref: #troubleshooting61445
+Node: Run-time problems61499
+Ref: #run-time-problems61642
+Node: Known limitations63586
+Ref: #known-limitations63729
 
 End Tag Table

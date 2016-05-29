@@ -21,7 +21,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.DocFiles
 
 manmode = (defCommandMode $ ["man"] ++ aliases) {
-  modeHelp = "show manual with man" `withAliases` aliases
+  modeHelp = "show any of the hledger manuals with man" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = []
     ,groupHidden = []

@@ -139,12 +139,12 @@ OOPPTTIIOONNSS
 
        --hh     show general usage (or if after COMMAND, the command's usage)
 
-       ----hheellpp show hledger manual (or if after an  add-on  COMMAND,  show  the
-              add-on's manual)
+       ----hheellpp show the current program's manual as plain  text  (or  after  an
+              add-on COMMAND, the add-on's manual)
 
-       ----mmaann  show manual with man
+       ----mmaann  show the current program's manual with man
 
-       ----iinnffoo show manual with info
+       ----iinnffoo show the manual with info
 
        ----vveerrssiioonn
               show version
@@ -966,7 +966,7 @@ CCOOMMMMAANNDDSS
                                $-1
 
    hheellpp
-       Show one of the hledger manuals.
+       Show any of the hledger manuals.
 
        The help command displays any of the main hledger man  pages.   (Unlike
        hledger --help,  which displays only the hledger man page.) Run it with
@@ -1027,7 +1027,7 @@ CCOOMMMMAANNDDSS
                                  0
 
    iinnffoo
-       Show one of the hledger manuals using info.
+       Show any of the hledger manuals using info.
 
        The  info  command  displays any of the hledger reference manuals using
        the info hypertextual documentation viewer.  This can be a  very  effi-
@@ -1038,7 +1038,7 @@ CCOOMMMMAANNDDSS
        als).
 
    mmaann
-       Show one of the hledger manuals using man.
+       Show any of the hledger manuals using man.
 
        The  man  command  displays  any of the hledger reference manuals using
        man, the standard documentation viewer on unix systems.  This will  fit

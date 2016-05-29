@@ -26,13 +26,13 @@ General options are always available and can appear anywhere in the command line
 : show general usage (or if after COMMAND, the command's usage)
 
 `--help`
-: show hledger manual (or if after an add-on COMMAND, show the add-on's manual)
+: show the current program's manual as plain text (or after an add-on COMMAND, the add-on's manual)
 
 `--man`
-: show manual with man
+: show the current program's manual with man
 
 `--info`
-: show manual with info
+: show the current program's manual with info
 
 `--version`
 : show version

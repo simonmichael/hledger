@@ -234,7 +234,7 @@ Total:
 ```
 
 ## help
-Show one of the hledger manuals.
+Show any of the hledger manuals.
 
 The `help` command displays any of the main [hledger man pages](/docs.html).
 (Unlike `hledger --help`, which displays only the hledger man page.)
@@ -304,7 +304,7 @@ Total:
 ```
 
 ## info
-Show one of the hledger manuals using info.
+Show any of the hledger manuals using info.
 
 The `info` command displays any of the [hledger reference manuals](/docs.html)
 using the [info](https://en.wikipedia.org/wiki/Info_(Unix)) hypertextual documentation viewer.
@@ -314,7 +314,7 @@ It requires the "info" program to be available in your PATH.
 As with [help](#help), run it with no arguments to list available topics (manuals).
 
 ## man
-Show one of the hledger manuals using man.
+Show any of the hledger manuals using man.
 
 The `man` command displays any of the [hledger reference manuals](/docs.html)
 using [man](https://en.wikipedia.org/wiki/Man_page), the standard documentation viewer on unix systems.
