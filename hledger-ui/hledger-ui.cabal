@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           hledger-ui
-version:        0.27.3
+version:        0.28
 stability:      beta
 category:       Finance, Console
 synopsis:       Curses-style user interface for the hledger accounting tool
@@ -59,10 +59,10 @@ executable hledger-ui
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   if flag(threaded)
     ghc-options: -threaded
-  cpp-options: -DVERSION="0.27.3"
+  cpp-options: -DVERSION="0.28"
   build-depends:
-      hledger >= 0.27 && < 0.28
-    , hledger-lib >= 0.27 && < 0.28
+      hledger >= 0.28 && < 0.29
+    , hledger-lib >= 0.28 && < 0.29
     , base >= 3 && < 5
     , base-compat >= 0.8.1
     , brick >= 0.2 && < 0.7

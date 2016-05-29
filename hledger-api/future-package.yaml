@@ -9,7 +9,7 @@
 # - conditional blocks
 
 name        : hledger-api
-version     : '0.27.98'
+version     : '0.28'
 stability   : alpha
 category    : Finance
 synopsis    : Web API server for the hledger accounting tool
@@ -62,8 +62,8 @@ data-files:
 #   default: False
 
 # dependencies:
-#   - hledger-lib == 0.27
-#   - hledger == 0.27
+#   - hledger-lib == 0.28
+#   - hledger == 0.28
 #   - base               >= 4 && < 5
   # - base-compat        >= 0.8.1
   # - blaze-html
@@ -123,7 +123,7 @@ data-files:
 # #   -- EmptyDataDecls
 # #   -- NoMonomorphismRestriction
 
-cpp-options: -DVERSION="0.27.98"
+cpp-options: -DVERSION="0.28"
 # XXX
 # if flag(dev) || flag(library-only)
 #   cpp-options: -DDEVELOPMENT
@@ -156,8 +156,8 @@ executables:
     # source-dirs: app
     main: hledger-api.hs
     dependencies:
-      - hledger-lib      == 0.27
-      - hledger          == 0.27
+      - hledger-lib      == 0.28
+      - hledger          == 0.28
       - base             >= 4 && < 5
       - aeson
       - bytestring

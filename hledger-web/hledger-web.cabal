@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           hledger-web
-version:        0.27
+version:        0.28
 stability:      stable
 category:       Finance
 synopsis:       Web interface for the hledger accounting tool
@@ -80,12 +80,12 @@ flag old-locale
 
 library
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-    cpp-options: -DVERSION="0.27"
+    cpp-options: -DVERSION="0.28"
     if flag(dev) || flag(library-only)
         cpp-options: -DDEVELOPMENT
     build-depends:
-          hledger-lib == 0.27
-        , hledger == 0.27
+          hledger-lib == 0.28
+        , hledger == 0.28
         , base               >= 4 && < 5
         , base-compat        >= 0.8.1
         , blaze-html
@@ -153,12 +153,12 @@ executable hledger-web
       ghc-options: -threaded
     if flag(dev)
       ghc-options:   -O0
-    cpp-options: -DVERSION="0.27"
+    cpp-options: -DVERSION="0.28"
     if flag(dev)
       cpp-options: -DDEVELOPMENT
     build-depends:
-          hledger-lib == 0.27
-        , hledger == 0.27
+          hledger-lib == 0.28
+        , hledger == 0.28
         , base               >= 4 && < 5
         , base-compat        >= 0.8.1
         , blaze-html
@@ -190,7 +190,7 @@ executable hledger-web
         , yesod-form
         , yesod-static
         , json
-        , hledger-web == 0.27
+        , hledger-web == 0.28
 
     if flag(old-locale)
       build-depends: time < 1.5, old-locale
@@ -208,10 +208,10 @@ test-suite test
     hs-source-dirs:
           tests
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-    cpp-options: -DVERSION="0.27"
+    cpp-options: -DVERSION="0.28"
     build-depends:
-          hledger-lib == 0.27
-        , hledger == 0.27
+          hledger-lib == 0.28
+        , hledger == 0.28
         , base               >= 4 && < 5
         , base-compat        >= 0.8.1
         , blaze-html

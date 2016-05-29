@@ -9,7 +9,7 @@
 # - conditional blocks
 
 name        : hledger-lib
-version     : '0.27'
+version     : '0.28'
 stability   : stable
 category    : Finance, Console
 synopsis    : Core data types, parsers and functionality for the hledger accounting tools
