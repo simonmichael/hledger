@@ -4,7 +4,6 @@ _*
 bin/*
 cabal-dev*
 cabal.sandbox.config
-/config
 */dist/
 *.dyn_hi
 *.dyn_o
@@ -13,14 +12,15 @@ cabal.sandbox.config
 hledger-web/static/tmp/
 hledger-web/yesod-devel/
 log
+/config
 /messages
+/static
+/templates
 *.o
 old
-/static
 t.*
 tags
 TAGS
-/templates
 tests/addons/hledger-*
 tools/generatejournal
 tools/simplebench
