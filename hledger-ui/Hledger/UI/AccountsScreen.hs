@@ -138,6 +138,7 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
          -- ("up/down/pgup/pgdown/home/end", "move")
          ("-=1234567890", "depth")
         ,("F", "flat?")
+        ,("E", "empty?")
         ,("C", "cleared?")
         ,("R", "real?")
         ,("right/enter", "register")
@@ -255,6 +256,7 @@ handleAccountsScreen st@AppState{
         Vty.EvKey (Vty.KChar '9') [] -> continue $ reload j d $ setDepth 9 st'
         Vty.EvKey (Vty.KChar '0') [] -> continue $ reload j d $ setDepth 0 st'
         Vty.EvKey (Vty.KChar 'F') [] -> continue $ reload j d $ stToggleFlat st'
+        Vty.EvKey (Vty.KChar 'E') [] -> continue $ reload j d $ stToggleEmpty st'
         Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st'
         Vty.EvKey (Vty.KChar 'R') [] -> continue $ reload j d $ stToggleReal st'
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'

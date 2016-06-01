@@ -16,6 +16,7 @@ module Hledger.UI.UIUtils (
  ,borderKeysStr
  --
  ,stToggleCleared
+ ,stToggleEmpty
  ,stToggleFlat
  ,stToggleReal
  ) where
@@ -48,6 +49,14 @@ stToggleCleared st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts
 -- | Toggle between showing all and showing only cleared items.
 toggleCleared :: ReportOpts -> ReportOpts
 toggleCleared ropts = ropts{cleared_=not $ cleared_ ropts}
+
+stToggleEmpty :: AppState -> AppState
+stToggleEmpty st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  st{aopts=uopts{cliopts_=copts{reportopts_=toggleEmpty ropts}}}
+
+-- | Toggle between showing all and showing only empty items.
+toggleEmpty :: ReportOpts -> ReportOpts
+toggleEmpty ropts = ropts{empty_=not $ empty_ ropts}
 
 stToggleFlat :: AppState -> AppState
 stToggleFlat st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
