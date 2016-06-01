@@ -37,6 +37,7 @@ import qualified Data.Text as T
 import Hledger.Data
 import Hledger.Query
 import Hledger.Reports.ReportOptions
+-- import Hledger.Utils.Debug
 
 
 -- | A transactions report includes a list of transactions
@@ -114,10 +115,15 @@ type AccountTransactionsReportItem =
 accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> AccountTransactionsReport
 accountTransactionsReport opts j q thisacctquery = (label, items)
  where
-     -- transactions with excluded currencies removed
+     -- transactions with excluded currencies and excluded virtual postings removed
      ts1 = jtxns $
-           filterJournalAmounts (filterQuery queryIsSym q) $
-           journalSelectingAmountFromOpts opts j
+           (if queryIsNull realq then id else filterJournalPostings realq) $ -- apply Real filter if it's in q
+           (if queryIsNull symq  then id else filterJournalAmounts symq) $   -- apply any cur:SYM filters in q
+           journalSelectingAmountFromOpts opts j  -- convert amounts to cost basis if -B
+        where
+          realq = filterQuery queryIsReal q
+          symq  = filterQuery queryIsSym q
+
      -- affecting this account
      ts2 = filter (matchesTransaction thisacctquery) ts1
      -- with dates adjusted for account transactions report
