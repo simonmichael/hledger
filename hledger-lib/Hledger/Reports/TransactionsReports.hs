@@ -218,9 +218,6 @@ summarisePostingAccounts ps =
     displayps | null realps = ps
               | otherwise   = realps
 
-filterTransactionPostings :: Query -> Transaction -> Transaction
-filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m `matchesPosting`) ps}
-
 -------------------------------------------------------------------------------
 
 -- | Split a transactions report whose items may involve several commodities,

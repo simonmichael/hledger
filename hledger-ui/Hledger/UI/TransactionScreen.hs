@@ -9,7 +9,7 @@ where
 
 -- import Lens.Micro ((^.))
 import Control.Monad.IO.Class (liftIO)
--- import Data.List
+import Data.List
 -- import Data.List.Split (splitOn)
 -- import Data.Ord
 import Data.Monoid
@@ -22,7 +22,7 @@ import Graphics.Vty as Vty
 -- import Safe (headDef, lastDef)
 import Brick
 import Brick.Widgets.List (listMoveTo)
--- import Brick.Widgets.Border
+import Brick.Widgets.Border (borderAttr)
 -- import Brick.Widgets.Border.Style
 -- import Brick.Widgets.Center
 -- import Text.Printf
@@ -43,12 +43,22 @@ screen = TransactionScreen{
   }
 
 initTransactionScreen :: Day -> AppState -> AppState
-initTransactionScreen _d st@AppState{aopts=_opts, ajournal=_j, aScreen=_s@TransactionScreen{tsState=_}} = st
+initTransactionScreen d st@AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+                                    ,ajournal=_j
+                                    ,aScreen=s@TransactionScreen{tsState=((n,t),nts,a)}} =
+  st{aScreen=s{tsState=((n, t'),nts,a)}}
+  where
+    -- re-filter the postings, eg because real/virtual was toggled.
+    -- get the original transaction from the list passed from the register screen.
+    t' = case lookup n nts of
+      Just torig -> filterTransactionPostings (queryFromOpts d ropts) torig
+      Nothing    -> t -- shouldn't happen
+
 initTransactionScreen _ _ = error "init function called with wrong screen type, should not happen"
 
 drawTransactionScreen :: AppState -> [Widget]
-drawTransactionScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
-                               aScreen=TransactionScreen{tsState=((i,t),nts,acct)}} = [ui]
+drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+                              ,aScreen=TransactionScreen{tsState=((i,t),nts,acct)}} = [ui]
   where
     -- datedesc = show (tdate t) ++ " " ++ tdescription t
     toplabel =
@@ -59,9 +69,18 @@ drawTransactionScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{r
       <+> str " ("
       <+> withAttr ("border" <> "bold") (str $ show i)
       <+> str (" of "++show (length nts)++" in "++T.unpack acct++")")
+      <+> togglefilters
+    togglefilters =
+      case concat [
+           if cleared_ ropts then ["cleared"] else []
+          ,if real_ ropts then ["real"] else []
+          ] of
+        [] -> str ""
+        fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs) <+> str " postings"
     bottomlabel = borderKeysStr [
        ("left", "back")
       ,("up/down", "prev/next")
+      ,("R", "real?")
       ,("g", "reload")
       ,("q", "quit")
       ]
@@ -113,6 +132,10 @@ handleTransactionScreen st@AppState{
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
 
     -- Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
+
+    Vty.EvKey (Vty.KChar 'R') [] ->
+      -- just show/hide the real postings in this transaction, don't bother updating parent screens
+      continue $ reload j d $ stToggleReal st
 
     Vty.EvKey (Vty.KUp) []       -> continue $ reload j d st{aScreen=s{tsState=((iprev,tprev),nts,acct)}}
     Vty.EvKey (Vty.KDown) []     -> continue $ reload j d st{aScreen=s{tsState=((inext,tnext),nts,acct)}}

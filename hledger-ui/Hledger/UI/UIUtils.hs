@@ -16,6 +16,8 @@ module Hledger.UI.UIUtils (
  ,borderKeysStr
  --
  ,stToggleCleared
+ ,stToggleFlat
+ ,stToggleReal
  ) where
 
 import Lens.Micro ((^.))
@@ -46,6 +48,23 @@ stToggleCleared st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts
 -- | Toggle between showing all and showing only cleared items.
 toggleCleared :: ReportOpts -> ReportOpts
 toggleCleared ropts = ropts{cleared_=not $ cleared_ ropts}
+
+stToggleFlat :: AppState -> AppState
+stToggleFlat st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  st{aopts=uopts{cliopts_=copts{reportopts_=toggleFlatMode ropts}}}
+
+-- | Toggle between flat and tree mode. If in the third "default" mode, go to flat mode.
+toggleFlatMode :: ReportOpts -> ReportOpts
+toggleFlatMode ropts@ReportOpts{accountlistmode_=ALFlat} = ropts{accountlistmode_=ALTree}
+toggleFlatMode ropts = ropts{accountlistmode_=ALFlat}
+
+stToggleReal :: AppState -> AppState
+stToggleReal st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  st{aopts=uopts{cliopts_=copts{reportopts_=toggleReal ropts}}}
+
+-- | Toggle between showing all and showing only real (non-virtual) items.
+toggleReal :: ReportOpts -> ReportOpts
+toggleReal ropts = ropts{real_=not $ real_ ropts}
 
 -- | Regenerate the content for the current and previous screens, from a new journal and current date.
 reload :: Journal -> Day -> AppState -> AppState

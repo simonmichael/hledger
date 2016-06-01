@@ -85,11 +85,11 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
 initRegisterScreen _ _ = error "init function called with wrong screen type, should not happen"
 
 drawRegisterScreen :: AppState -> [Widget]
-drawRegisterScreen AppState{aopts=uopts -- @UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}
+drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                            ,aScreen=RegisterScreen{rsState=(l,acct)}} = [ui]
   where
     toplabel = withAttr ("border" <> "bold") (str $ T.unpack acct)
-            <+> cleared
+            <+> togglefilters
             <+> str " transactions"
             -- <+> borderQueryStr querystr -- no, account transactions report shows all transactions in the acct ?
             -- <+> str " and subs"
@@ -98,9 +98,13 @@ drawRegisterScreen AppState{aopts=uopts -- @UIOpts{cliopts_=_copts@CliOpts{repor
             <+> str "/"
             <+> total
             <+> str ")"
-    cleared = if (cleared_ $ reportopts_ $ cliopts_ uopts)
-              then withAttr (borderAttr <> "query") (str " cleared")
-              else str ""
+    togglefilters =
+      case concat [
+           if cleared_ ropts then ["cleared"] else []
+          ,if real_ ropts then ["real"] else []
+          ] of
+        [] -> str ""
+        fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs)
     cur = str $ case l^.listSelectedL of
                  Nothing -> "-"
                  Just i -> show (i + 1)
@@ -158,6 +162,7 @@ drawRegisterScreen AppState{aopts=uopts -- @UIOpts{cliopts_=_copts@CliOpts{repor
            -- ("up/down/pgup/pgdown/home/end", "move")
            ("left", "back")
           ,("C", "cleared?")
+          ,("R", "real?")
           ,("right/enter", "transaction")
           ,("g", "reload")
           ,("q", "quit")
@@ -206,6 +211,7 @@ handleRegisterScreen st@AppState{
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
 
     Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
+    Vty.EvKey (Vty.KChar 'R') [] -> continue $ reload j d $ stToggleReal st
 
     Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
 

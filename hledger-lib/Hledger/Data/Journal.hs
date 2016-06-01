@@ -24,6 +24,7 @@ module Hledger.Data.Journal (
   filterJournalPostings,
   filterJournalAmounts,
   filterTransactionAmounts,
+  filterTransactionPostings,
   filterPostingAmount,
   -- * Querying
   journalAccountNames,
@@ -312,6 +313,10 @@ filterTransactionAmounts q t@Transaction{tpostings=ps} = t{tpostings=map (filter
 -- | Filter out all parts of this posting's amount which do not match the query.
 filterPostingAmount :: Query -> Posting -> Posting
 filterPostingAmount q p@Posting{pamount=Mixed as} = p{pamount=Mixed $ filter (q `matchesAmount`) as}
+
+filterTransactionPostings :: Query -> Transaction -> Transaction
+filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m `matchesPosting`) ps}
+
 
 {-
 -------------------------------------------------------------------------------
