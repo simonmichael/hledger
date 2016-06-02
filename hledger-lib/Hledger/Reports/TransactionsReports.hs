@@ -51,11 +51,11 @@ type TransactionsReport = (String                   -- label for the balance col
                           ,[TransactionsReportItem] -- line items, one per transaction
                           )
 type TransactionsReportItem = (Transaction -- the original journal transaction, unmodified
-                              ,Transaction -- the transaction as seen from a particular account
+                              ,Transaction -- the transaction as seen from a particular account, with postings maybe filtered
                               ,Bool        -- is this a split, ie more than one other account posting
                               ,String      -- a display string describing the other account(s), if any
-                              ,MixedAmount -- the amount posted to the current account(s) (or total amount posted)
-                              ,MixedAmount -- the running balance for the current account(s) after this transaction
+                              ,MixedAmount -- the amount posted to the current account(s) by the filtered postings (or total amount posted)
+                              ,MixedAmount -- the running balance for the current account(s) after the above
                               )
 
 triOrigTransaction (torig,_,_,_,_,_) = torig
@@ -114,39 +114,36 @@ type AccountTransactionsReportItem =
 
 accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> AccountTransactionsReport
 accountTransactionsReport opts j q thisacctquery = (label, items)
- where
-     -- transactions with excluded currencies and excluded virtual postings removed
-     ts1 = jtxns $
-           (if queryIsNull realq then id else filterJournalPostings realq) $ -- apply Real filter if it's in q
-           (if queryIsNull symq  then id else filterJournalAmounts symq) $   -- apply any cur:SYM filters in q
-           journalSelectingAmountFromOpts opts j  -- convert amounts to cost basis if -B
-        where
-          realq = filterQuery queryIsReal q
-          symq  = filterQuery queryIsSym q
+  where
+    -- get all transactions, with amounts converted to cost basis if -B
+    ts1 = jtxns $ journalSelectingAmountFromOpts opts j
+    -- apply any cur:SYM filters in q
+    symq  = filterQuery queryIsSym q
+    ts2 = (if queryIsNull symq then id else map (filterTransactionAmounts symq)) ts1
+    -- keep just the transactions affecting this account
+    ts3 = filter (matchesTransaction thisacctquery) ts2
+    -- adjust the transaction dates to the dates of postings to this account
+    -- XXX can be wrong since we filter real postings later ?
+    ts4 = map (setTransactionDateToPostingDate q thisacctquery) ts3
+    -- sort by the new dates
+    ts = sortBy (comparing tdate) ts4
 
-     -- affecting this account
-     ts2 = filter (matchesTransaction thisacctquery) ts1
-     -- with dates adjusted for account transactions report
-     ts3 = map (setTransactionDateToPostingDate q thisacctquery) ts2
-     -- and sorted
-     ts = sortBy (comparing tdate) ts3
+    -- starting balance: if we are filtering by a start date and nothing else,
+    -- the sum of postings to this account before that date; otherwise zero.
+    (startbal,label) | queryIsNull q                        = (nullmixedamt,        balancelabel)
+                     | queryIsStartDateOnly (date2_ opts) q = (sumPostings priorps, balancelabel)
+                     | otherwise                            = (nullmixedamt,        totallabel)
+                     where
+                       priorps = -- ltrace "priorps" $
+                                 filter (matchesPosting
+                                         (-- ltrace "priormatcher" $
+                                          And [thisacctquery, tostartdatequery]))
+                                        $ transactionsPostings ts
+                       tostartdatequery = Date (DateSpan Nothing startdate)
+                       startdate = queryStartDate (date2_ opts) q
 
-     -- starting balance: if we are filtering by a start date and nothing else,
-     -- the sum of postings to this account before that date; otherwise zero.
-     (startbal,label) | queryIsNull q                        = (nullmixedamt,        balancelabel)
-                      | queryIsStartDateOnly (date2_ opts) q = (sumPostings priorps, balancelabel)
-                      | otherwise                            = (nullmixedamt,        totallabel)
-                      where
-                        priorps = -- ltrace "priorps" $
-                                  filter (matchesPosting
-                                          (-- ltrace "priormatcher" $
-                                           And [thisacctquery, tostartdatequery]))
-                                         $ transactionsPostings ts
-                        tostartdatequery = Date (DateSpan Nothing startdate)
-                        startdate = queryStartDate (date2_ opts) q
-
-     items = reverse $ -- see also registerChartHtml
-             accountTransactionsReportItems q thisacctquery startbal negate ts
+    items = reverse $ -- see also registerChartHtml
+            accountTransactionsReportItems q thisacctquery startbal negate ts
 
 -- | Adjust a transaction's date to the earliest date of postings to a
 -- particular account, if any, after filtering with a certain query.
@@ -168,34 +165,32 @@ totallabel = "Running Total"
 balancelabel = "Historical Balance"
 
 -- | Generate transactions report items from a list of transactions,
--- using the provided query and current account queries, starting
--- balance, sign-setting function and balance-summing function. With a
--- "this account" query of None, this can be used the for the
--- journalTransactionsReport also.
+-- using the provided user-specified report query, a query specifying
+-- which account to use as the focus, a starting balance, a sign-setting
+-- function and a balance-summing function. Or with a None current account
+-- query, this can also be used for the journalTransactionsReport.
 accountTransactionsReportItems :: Query -> Query -> MixedAmount -> (MixedAmount -> MixedAmount) -> [Transaction] -> [TransactionsReportItem]
 accountTransactionsReportItems _ _ _ _ [] = []
-accountTransactionsReportItems query thisacctquery bal signfn (torig:ts) =
-    -- This is used for both accountTransactionsReport and journalTransactionsReport,
-    -- which makes it a bit overcomplicated
+accountTransactionsReportItems reportq thisacctq bal signfn (torig:ts) =
     case i of Just i' -> i':is
               Nothing -> is
+    -- 201403: This is used for both accountTransactionsReport and journalTransactionsReport, which makes it a bit overcomplicated
+    -- 201407: I've lost my grip on this, let's just hope for the best
+    -- 201606: we now calculate change and balance from filtered postings, check this still works well for all callers XXX
     where
-      -- XXX I've lost my grip on this, let's just hope for the best
-      origps = tpostings torig
-      tacct@Transaction{tpostings=queryps} = filterTransactionPostings query torig
-      (thisacctps, otheracctps) = partition (matchesPosting thisacctquery) origps
-      amt = negate $ sum $ map pamount thisacctps
-      numotheraccts = length $ nub $ map paccount otheracctps
-      otheracctstr | thisacctquery == None = summarisePostingAccounts origps
-                   | numotheraccts == 0    = summarisePostingAccounts thisacctps
-                   | otherwise             = summarisePostingAccounts otheracctps
-      (i,bal') = case queryps of
-           [] -> (Nothing,bal)
+      tacct@Transaction{tpostings=reportps} = filterTransactionPostings reportq torig
+      (i,bal') = case reportps of
+           [] -> (Nothing,bal)  -- no matched postings in this transaction, skip it
            _  -> (Just (torig, tacct, numotheraccts > 1, otheracctstr, a, b), b)
                  where
-                  a = signfn amt
+                  (thisacctps, otheracctps) = partition (matchesPosting thisacctq) reportps
+                  numotheraccts = length $ nub $ map paccount otheracctps
+                  otheracctstr | thisacctq == None  = summarisePostingAccounts reportps     -- no current account ? summarise all matched postings
+                               | numotheraccts == 0 = summarisePostingAccounts thisacctps   -- only postings to current account ? summarise those
+                               | otherwise          = summarisePostingAccounts otheracctps  -- summarise matched postings to other account(s)
+                  a = signfn $ negate $ sum $ map pamount thisacctps
                   b = bal + a
-      is = accountTransactionsReportItems query thisacctquery bal' signfn ts
+      is = accountTransactionsReportItems reportq thisacctq bal' signfn ts
 
 -- -- | Generate a short readable summary of some postings, like
 -- -- "from (negatives) to (positives)".

@@ -43,16 +43,10 @@ screen = TransactionScreen{
   }
 
 initTransactionScreen :: Day -> AppState -> AppState
-initTransactionScreen d st@AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+initTransactionScreen _d st@AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
                                     ,ajournal=_j
                                     ,aScreen=s@TransactionScreen{tsState=((n,t),nts,a)}} =
-  st{aScreen=s{tsState=((n, t'),nts,a)}}
-  where
-    -- re-filter the postings, eg because real/virtual was toggled.
-    -- get the original transaction from the list passed from the register screen.
-    t' = case lookup n nts of
-      Just torig -> filterTransactionPostings (queryFromOpts d ropts) torig
-      Nothing    -> t -- shouldn't happen
+  st{aScreen=s{tsState=((n,t),nts,a)}}
 
 initTransactionScreen _ _ = error "init function called with wrong screen type, should not happen"
 
@@ -69,23 +63,28 @@ drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
       <+> str " ("
       <+> withAttr ("border" <> "bold") (str $ show i)
       <+> str (" of "++show (length nts)++" in "++T.unpack acct++")")
-      <+> togglefilters
-    togglefilters =
-      case concat [
-           if cleared_ ropts then ["cleared"] else []
-          ,if real_ ropts then ["real"] else []
-          ] of
-        [] -> str ""
-        fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs) <+> str " postings"
+-- on this screen we will ignore real/cleared/empty and always show all postings
+--       <+> togglefilters
+--     togglefilters =
+--       case concat [
+--            if cleared_ ropts then ["cleared"] else []
+--           ,if real_ ropts then ["real"] else []
+--           ] of
+--         [] -> str ""
+--         fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs) <+> str " postings"
     bottomlabel = borderKeysStr [
        ("left", "back")
       ,("up/down", "prev/next")
-      ,("R", "real?")
+--       ,("C", "cleared?")
+--       ,("R", "real?")
       ,("g", "reload")
       ,("q", "quit")
       ]
     ui = Widget Greedy Greedy $ do
-      render $ defaultLayout toplabel bottomlabel $ str $ showTransactionUnelidedOneLineAmounts t
+      render $ defaultLayout toplabel bottomlabel $ str $
+        showTransactionUnelidedOneLineAmounts $
+        -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
+        t
 
 drawTransactionScreen _ = error "draw function called with wrong screen type, should not happen"
 
@@ -131,11 +130,8 @@ handleTransactionScreen st@AppState{
 
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
 
-    -- Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
-
-    Vty.EvKey (Vty.KChar 'R') [] ->
-      -- just show/hide the real postings in this transaction, don't bother updating parent screens
-      continue $ reload j d $ stToggleReal st
+--     Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
+--     Vty.EvKey (Vty.KChar 'R') [] -> continue $ reload j d $ stToggleReal st
 
     Vty.EvKey (Vty.KUp) []       -> continue $ reload j d st{aScreen=s{tsState=((iprev,tprev),nts,acct)}}
     Vty.EvKey (Vty.KDown) []     -> continue $ reload j d st{aScreen=s{tsState=((inext,tnext),nts,acct)}}
