@@ -296,9 +296,7 @@ filterJournalTransactions q j@Journal{jtxns=ts} = j{jtxns=filter (q `matchesTran
 -- | Keep only postings matching the query expression.
 -- This can leave unbalanced transactions.
 filterJournalPostings :: Query -> Journal -> Journal
-filterJournalPostings q j@Journal{jtxns=ts} = j{jtxns=map filtertransactionpostings ts}
-    where
-      filtertransactionpostings t@Transaction{tpostings=ps} = t{tpostings=filter (q `matchesPosting`) ps}
+filterJournalPostings q j@Journal{jtxns=ts} = j{jtxns=map (filterTransactionPostings q) ts}
 
 -- | Within each posting's amount, keep only the parts matching the query.
 -- This can leave unbalanced transactions.
@@ -315,7 +313,7 @@ filterPostingAmount :: Query -> Posting -> Posting
 filterPostingAmount q p@Posting{pamount=Mixed as} = p{pamount=Mixed $ filter (q `matchesAmount`) as}
 
 filterTransactionPostings :: Query -> Transaction -> Transaction
-filterTransactionPostings m t@Transaction{tpostings=ps} = t{tpostings=filter (m `matchesPosting`) ps}
+filterTransactionPostings q t@Transaction{tpostings=ps} = t{tpostings=filter (q `matchesPosting`) ps}
 
 
 {-
