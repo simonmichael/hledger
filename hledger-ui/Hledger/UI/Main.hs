@@ -79,7 +79,9 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
             depth_=depthfromoptsandargs,
             -- remove depth: args from query_
             query_=unwords $ -- as in ReportOptions, with same limitations
-                   [v | (k,v) <- rawopts_ copts, k=="args", not $ "depth" `isPrefixOf` v]
+                   [v | (k,v) <- rawopts_ copts, k=="args", not $ "depth" `isPrefixOf` v],
+            -- show items with zero amount by default, unlike the CLI
+            empty_=True
             }
          }
       }

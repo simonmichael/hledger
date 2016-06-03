@@ -104,6 +104,7 @@ drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
       case concat [
            if cleared_ ropts then ["cleared"] else []
           ,if real_ ropts then ["real"] else []
+          ,if empty_ ropts then [] else ["nonzero"]
           ] of
         [] -> str ""
         fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs)

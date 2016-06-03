@@ -106,6 +106,7 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
   [ui]
     where
       toplabel = files
+              <+> nonzero
               <+> str " accounts"
               <+> borderQueryStr querystr
               <+> togglefilters
@@ -129,6 +130,8 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
             ] of
           [] -> str ""
           fs -> str " with " <+> withAttr (borderAttr <> "query") (str $ intercalate ", " fs) <+> str " txns"
+      nonzero | empty_ ropts = str ""
+              | otherwise    = withAttr (borderAttr <> "query") (str " nonzero")
       cur = str (case l^.listSelectedL of
                   Nothing -> "-"
                   Just i -> show (i + 1))
@@ -138,7 +141,7 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
          -- ("up/down/pgup/pgdown/home/end", "move")
          ("-=1234567890", "depth")
         ,("F", "flat?")
-        ,("E", "empty?")
+        ,("E", "nonzero?")
         ,("C", "cleared?")
         ,("R", "real?")
         ,("right/enter", "register")
