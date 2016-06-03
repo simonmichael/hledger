@@ -83,7 +83,6 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
 
     -- keep the selection on the previously selected transaction if possible,
     -- (eg after toggling nonzero mode), otherwise select the last element.
-    -- XXX the scroll position should be disrupted less
     newl' = listMoveTo newselidx newl
       where
         newselidx = case listSelectedElement oldl of
@@ -221,7 +220,13 @@ handleRegisterScreen st@AppState{
         Right j' -> continue $ reload j' d st
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
 
-    Vty.EvKey (Vty.KChar 'E') [] -> continue $ reload j d $ stToggleEmpty st
+    Vty.EvKey (Vty.KChar 'E') [] -> do
+      -- encourage a more stable scroll position when toggling items.
+      -- We scroll to the beginning, then the viewport automatically
+      -- scrolls down just far enough to reveal the selection.
+      vScrollToBeginning $ viewportScroll "register"
+      continue $ reload j d $ stToggleEmpty st
+
     Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
     Vty.EvKey (Vty.KChar 'R') [] -> continue $ reload j d $ stToggleReal st
 
