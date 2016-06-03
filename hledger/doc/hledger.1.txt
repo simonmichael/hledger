@@ -218,7 +218,7 @@ OOPPTTIIOONNSS
        --BB ----ccoosstt
               show amounts in their cost price's commodity
 
-       ``----ppiivvoott TTAAGG
+       ----ppiivvoott TTAAGG
               will  transform  the  journal  before  any  other  processing by
               replacing the account name of every posting having the  tag  TAG
               with content VALUE by the account name "TAG:VALUE".

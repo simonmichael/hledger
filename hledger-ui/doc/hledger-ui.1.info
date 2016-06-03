@@ -138,7 +138,7 @@ the data.
 `-B --cost'
      show amounts in their cost price's commodity
 
-`-pivot TAG
+`--pivot TAG'
      will transform the journal before any other processing by
      replacing the account name of every posting having the tag TAG
      with content VALUE by the account name "TAG:VALUE".  The TAG will
@@ -288,17 +288,17 @@ Tag Table:
 Node: Top88
 Node: OPTIONS714
 Ref: #options813
-Node: KEYS3687
-Ref: #keys3784
-Node: SCREENS4181
-Ref: #screens4268
-Node: Accounts screen4358
-Ref: #accounts-screen4488
-Node: Register screen5333
-Ref: #register-screen5490
-Node: Transaction screen6872
-Ref: #transaction-screen7032
-Node: Error screen7899
-Ref: #error-screen8023
+Node: KEYS3689
+Ref: #keys3786
+Node: SCREENS4183
+Ref: #screens4270
+Node: Accounts screen4360
+Ref: #accounts-screen4490
+Node: Register screen5335
+Ref: #register-screen5492
+Node: Transaction screen6874
+Ref: #transaction-screen7034
+Node: Error screen7901
+Ref: #error-screen8025
 
 End Tag Table

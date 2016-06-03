@@ -175,7 +175,7 @@ before options as shown above.
 `-B --cost'
      show amounts in their cost price's commodity
 
-`-pivot TAG
+`--pivot TAG'
      will transform the journal before any other processing by
      replacing the account name of every posting having the tag TAG
      with content VALUE by the account name "TAG:VALUE".  The TAG will
