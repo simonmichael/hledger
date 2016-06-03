@@ -52,21 +52,22 @@ initAccountsScreen :: Day -> AppState -> AppState
 initAccountsScreen d st@AppState{
   aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}},
   ajournal=j,
-  aScreen=s@AccountsScreen{asState=(_,selacct)}
+  aScreen=s@AccountsScreen{asState=(oldl,selacct)}
   } =
-  st{aopts=uopts', aScreen=s{asState=(l',selacct)}}
+  st{aopts=uopts', aScreen=s{asState=(newl',selacct)}}
    where
-    l = list (Name "accounts") (V.fromList displayitems) 1
+    newl = list (Name "accounts") (V.fromList displayitems) 1
 
-    -- keep the selection near the last known selected account if possible
-    l' | T.null selacct = l
-       | otherwise = maybe l (flip listMoveTo l) midx
+    -- keep the selection near the last selected account
+    -- (may need to move to the next leaf account when entering flat mode)
+    newl' = listMoveTo selidx newl
       where
-        midx = findIndex (\((a,_,_),_) -> a==selacctclipped) items
-        selacctclipped = case depth_ ropts of
-                          Nothing -> selacct
-                          Just d  -> clipAccountName d selacct
-
+        selidx = case listSelectedElement oldl of
+                   Nothing            -> 0
+                   Just (_,(_,a,_,_)) -> fromMaybe (fromMaybe 0 mprefixmatch) mexactmatch
+                     where
+                       mexactmatch  = findIndex ((a ==)                      . second4) displayitems
+                       mprefixmatch = findIndex ((a `isAccountNamePrefixOf`) . second4) displayitems
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
     ropts' = ropts {
       -- XXX balanceReport doesn't respect this yet
