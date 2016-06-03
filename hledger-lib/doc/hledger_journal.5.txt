@@ -64,13 +64,21 @@ FFIILLEE FFOORRMMAATT
 
        +o and/or a description
 
-       then some number of postings, of some amount to some account,  each  on
-       its  own  line.  Usually there are at least two postings, though one or
-       even none is possible.
+       then some number of postings, of some amount  to  some  account.   Each
+       posting is on its own line, consisting of:
 
-       The (real) posting amounts within a transaction must always balance, ie
-       add up to 0.  Optionally one amount can be left blank, in which case it
-       will be inferred.
+       +o indentation of one or more spaces (or tabs)
+
+       +o optionally, a ! or * status flag followed by a space
+
+       +o an account name, optionally containing single spaces
+
+       +o optionally, two or more spaces or tabs followed by an amount
+
+       Usually there are two or more postings, though one or none is also pos-
+       sible.  The posting amounts within a transaction must  always  balance,
+       ie add up to 0.  Optionally one amount can be left blank, in which case
+       it will be inferred.
 
    DDaatteess
    SSiimmppllee ddaatteess

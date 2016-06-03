@@ -72,13 +72,21 @@ a transaction code (eg a check number),
 .IP \[bu] 2
 and/or a description
 .PP
-then some number of postings, of some amount to some account, each on
-its own line.
-Usually there are at least two postings, though one or even none is
-possible.
+then some number of postings, of some amount to some account.
+Each posting is on its own line, consisting of:
+.IP \[bu] 2
+indentation of one or more spaces (or tabs)
+.IP \[bu] 2
+optionally, a \f[C]!\f[] or \f[C]*\f[] status flag followed by a space
+.IP \[bu] 2
+an account name, optionally containing single spaces
+.IP \[bu] 2
+optionally, two or more spaces or tabs followed by an amount
 .PP
-The (real) posting amounts within a transaction must always balance, ie
-add up to 0.
+Usually there are two or more postings, though one or none is also
+possible.
+The posting amounts within a transaction must always balance, ie add up
+to 0.
 Optionally one amount can be left blank, in which case it will be
 inferred.
 .SS Dates

@@ -92,11 +92,19 @@ between them:
 
    * and/or a description
 
-   then some number of postings, of some amount to some account, each on
-its own line. Usually there are at least two postings, though one or
-even none is possible.
+   then some number of postings, of some amount to some account. Each
+posting is on its own line, consisting of:
 
-   The (real) posting amounts within a transaction must always balance,
+   * indentation of one or more spaces (or tabs)
+
+   * optionally, a `!' or `*' status flag followed by a space
+
+   * an account name, optionally containing single spaces
+
+   * optionally, two or more spaces or tabs followed by an amount
+
+   Usually there are two or more postings, though one or none is also
+possible. The posting amounts within a transaction must always balance,
 ie add up to 0. Optionally one amount can be left blank, in which case
 it will be inferred.
 
@@ -912,67 +920,67 @@ Node: FILE FORMAT2286
 Ref: #file-format2412
 Node: Transactions2571
 Ref: #transactions2691
-Node: Dates3377
-Ref: #dates3505
-Node: Simple dates3570
-Ref: #simple-dates3698
-Node: Secondary dates4062
-Ref: #secondary-dates4218
-Node: Posting dates5779
-Ref: #posting-dates5910
-Node: Account names7281
-Ref: #account-names7420
-Node: Amounts7905
-Ref: #amounts8043
-Node: Virtual Postings10041
-Ref: #virtual-postings10202
-Node: Balance Assertions11422
-Ref: #balance-assertions11586
-Node: Assertions and ordering12408
-Ref: #assertions-and-ordering12593
-Node: Assertions and commodities13624
-Ref: #assertions-and-commodities13850
-Node: Assertions and subaccounts14542
-Ref: #assertions-and-subaccounts14776
-Node: Assertions and virtual postings15298
-Ref: #assertions-and-virtual-postings15507
-Node: Prices15648
-Ref: #prices15780
-Node: Transaction prices15831
-Ref: #transaction-prices15976
-Node: Market prices17583
-Ref: #market-prices17718
-Node: Comments18606
-Ref: #comments18728
-Node: Tags19840
-Ref: #tags19958
-Node: Directives20881
-Ref: #directives20996
-Node: Account aliases21189
-Ref: #account-aliases21335
-Node: Basic aliases21937
-Ref: #basic-aliases22082
-Node: Regex aliases22770
-Ref: #regex-aliases22940
-Node: Multiple aliases23710
-Ref: #multiple-aliases23884
-Node: end aliases24380
-Ref: #end-aliases24522
-Node: account directive24624
-Ref: #account-directive24806
-Node: apply account directive25102
-Ref: #apply-account-directive25300
-Node: Multi-line comments25961
-Ref: #multi-line-comments26153
-Node: commodity directive26280
-Ref: #commodity-directive26466
-Node: Default commodity27339
-Ref: #default-commodity27514
-Node: Default year27835
-Ref: #default-year28002
-Node: Including other files28425
-Ref: #including-other-files28584
-Node: EDITOR SUPPORT28980
-Ref: #editor-support29100
+Node: Dates3634
+Ref: #dates3762
+Node: Simple dates3827
+Ref: #simple-dates3955
+Node: Secondary dates4319
+Ref: #secondary-dates4475
+Node: Posting dates6036
+Ref: #posting-dates6167
+Node: Account names7538
+Ref: #account-names7677
+Node: Amounts8162
+Ref: #amounts8300
+Node: Virtual Postings10298
+Ref: #virtual-postings10459
+Node: Balance Assertions11679
+Ref: #balance-assertions11843
+Node: Assertions and ordering12665
+Ref: #assertions-and-ordering12850
+Node: Assertions and commodities13881
+Ref: #assertions-and-commodities14107
+Node: Assertions and subaccounts14799
+Ref: #assertions-and-subaccounts15033
+Node: Assertions and virtual postings15555
+Ref: #assertions-and-virtual-postings15764
+Node: Prices15905
+Ref: #prices16037
+Node: Transaction prices16088
+Ref: #transaction-prices16233
+Node: Market prices17840
+Ref: #market-prices17975
+Node: Comments18863
+Ref: #comments18985
+Node: Tags20097
+Ref: #tags20215
+Node: Directives21138
+Ref: #directives21253
+Node: Account aliases21446
+Ref: #account-aliases21592
+Node: Basic aliases22194
+Ref: #basic-aliases22339
+Node: Regex aliases23027
+Ref: #regex-aliases23197
+Node: Multiple aliases23967
+Ref: #multiple-aliases24141
+Node: end aliases24637
+Ref: #end-aliases24779
+Node: account directive24881
+Ref: #account-directive25063
+Node: apply account directive25359
+Ref: #apply-account-directive25557
+Node: Multi-line comments26218
+Ref: #multi-line-comments26410
+Node: commodity directive26537
+Ref: #commodity-directive26723
+Node: Default commodity27596
+Ref: #default-commodity27771
+Node: Default year28092
+Ref: #default-year28259
+Node: Including other files28682
+Ref: #including-other-files28841
+Node: EDITOR SUPPORT29237
+Ref: #editor-support29357
 
 End Tag Table

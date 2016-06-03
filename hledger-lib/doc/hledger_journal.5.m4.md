@@ -69,17 +69,23 @@ Transactions are represented by journal entries. Each begins with a
 [simple date](#simple-dates) in column 0, followed by three optional
 fields with spaces between them:
 
-- a status flag, which can be empty or `!` or `*` (meaning "uncleared", "pending" and "cleared", or whatever you want)
+- a status flag, which can be empty or `!` or `*` (meaning "uncleared",
+  "pending" and "cleared", or whatever you want)
 - a transaction code (eg a check number),
 - and/or a description
 
-then some number of postings, of some amount to some account, each on
-its own line. Usually there are at least two postings, though one or
-even none is possible.
+then some number of postings, of some amount to some account. Each
+posting is on its own line, consisting of:
 
-The ([real](#virtual-postings)) posting amounts within a transaction
-must always balance, ie add up to 0.  Optionally one amount can be
-left blank, in which case it will be inferred.
+- indentation of one or more spaces (or tabs)
+- optionally, a `!` or `*` status flag followed by a space
+- an account name, optionally containing single spaces
+- optionally, two or more spaces or tabs followed by an amount
+
+Usually there are two or more postings, though one or none is also
+possible. The posting amounts within a transaction must always balance,
+ie add up to 0. Optionally one amount can be left blank, in which case
+it will be inferred.
 
 ## Dates
 
