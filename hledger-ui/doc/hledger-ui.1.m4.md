@@ -87,7 +87,8 @@ _reportingoptions_
 Generally the cursor keys navigate; `right` (or `enter`) goes deeper, `left` returns to the previous screen,
 `up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
 
-`g` gets the latest data and reloads the screen (and any previous screens). There may be a noticeable pause.
+`g` gets the latest data and reloads the screen (and any previous
+screens). With large journal files, there can be a noticeable pause.
 
 `q` quits the application.
 
@@ -109,19 +110,23 @@ To see less detail, set a depth limit by pressing a number key, `1` to `9`.
 Or, adjust the depth limit by pressing `-` or `+` (`=` also works).
 `0` removes the depth limit.
 
-`C` toggles cleared mode. In cleared mode, the accounts and balances
-are derived only from transactions which are marked cleared (*).
+`E` toggles nonzero mode, in which only accounts with nonzero balances
+are shown (hledger-ui shows zero items by default, unlike command-line
+hledger).
+
+`C` toggles cleared mode, in which
+[uncleared transactions (and postings)](/journal.html#transactions) are
+ignored.
+
+`R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 
 Press `right` or `enter` to view an account's transactions register.
 
 ## Register screen
 
-This screen lists all transactions affecting a particular account (like a check register).
-In cleared mode (press `C`) it lists only transactions which are marked cleared.
-It does not otherwise filter by query.
-
-Note this screen shows transactions, not postings (unlike hledger's
-register command). This means:
+This screen lists all transactions affecting a particular account, like
+a check register. Unlike hledger's register command (which
+lists individual postings), in hledger-ui's register:
 
 - Each line represents a whole transaction.
 
@@ -152,7 +157,18 @@ register command). This means:
     $ hledger-ui --register checking --cleared
     ```
 
-Press `right` or `enter` to view the selected transaction in full detail.
+`E` toggles nonzero mode, in which only transactions posting a nonzero
+change are shown (hledger-ui shows zero items by default,
+unlike command-line hledger).
+
+`C` toggles cleared mode, in which
+[uncleared transactions (and postings)](/journal.html#transactions) are
+ignored.
+
+`R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
+
+Press `right` or `enter` to view the selected transaction in full
+detail.
 
 ## Transaction screen
 

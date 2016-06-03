@@ -228,7 +228,7 @@ move up and down through lists.
 .PP
 \f[C]g\f[] gets the latest data and reloads the screen (and any previous
 screens).
-There may be a noticeable pause.
+With large journal files, there can be a noticeable pause.
 .PP
 \f[C]q\f[] quits the application.
 .PP
@@ -253,23 +253,23 @@ Or, adjust the depth limit by pressing \f[C]\-\f[] or \f[C]+\f[]
 (\f[C]=\f[] also works).
 \f[C]0\f[] removes the depth limit.
 .PP
-\f[C]C\f[] toggles cleared mode.
-In cleared mode, the accounts and balances are derived only from
-transactions which are marked cleared (*).
+\f[C]E\f[] toggles nonzero mode, in which only accounts with nonzero
+balances are shown (hledger\-ui shows zero items by default, unlike
+command\-line hledger).
+.PP
+\f[C]C\f[] toggles cleared mode, in which uncleared transactions (and
+postings) are ignored.
+.PP
+\f[C]R\f[] toggles real mode, in which virtual postings are ignored.
 .PP
 Press \f[C]right\f[] or \f[C]enter\f[] to view an account\[aq]s
 transactions register.
 .SS Register screen
 .PP
-This screen lists all transactions affecting a particular account (like
-a check register).
-In cleared mode (press \f[C]C\f[]) it lists only transactions which are
-marked cleared.
-It does not otherwise filter by query.
-.PP
-Note this screen shows transactions, not postings (unlike hledger\[aq]s
-register command).
-This means:
+This screen lists all transactions affecting a particular account, like
+a check register.
+Unlike hledger\[aq]s register command (which lists individual postings),
+in hledger\-ui\[aq]s register:
 .IP \[bu] 2
 Each line represents a whole transaction.
 .IP \[bu] 2
@@ -307,6 +307,15 @@ $\ hledger\-ui\ \-\-register\ checking\ \-\-cleared
 \f[]
 .fi
 .RE
+.PP
+\f[C]E\f[] toggles nonzero mode, in which only transactions posting a
+nonzero change are shown (hledger\-ui shows zero items by default,
+unlike command\-line hledger).
+.PP
+\f[C]C\f[] toggles cleared mode, in which uncleared transactions (and
+postings) are ignored.
+.PP
+\f[C]R\f[] toggles real mode, in which virtual postings are ignored.
 .PP
 Press \f[C]right\f[] or \f[C]enter\f[] to view the selected transaction
 in full detail.

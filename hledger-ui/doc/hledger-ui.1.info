@@ -158,7 +158,7 @@ Generally the cursor keys navigate; `right' (or `enter') goes deeper,
 down'/`home'/`end' move up and down through lists.
 
    `g' gets the latest data and reloads the screen (and any previous
-screens). There may be a noticeable pause.
+screens). With large journal files, there can be a noticeable pause.
 
    `q' quits the application.
 
@@ -197,8 +197,14 @@ depth limit by pressing a number key, `1' to `9'. Or, adjust the depth
 limit by pressing `-' or `+' (`=' also works).  `0' removes the depth
 limit.
 
-   `C' toggles cleared mode. In cleared mode, the accounts and balances
-are derived only from transactions which are marked cleared (*).
+   `E' toggles nonzero mode, in which only accounts with nonzero
+balances are shown (hledger-ui shows zero items by default, unlike
+command-line hledger).
+
+   `C' toggles cleared mode, in which uncleared transactions (and
+postings) are ignored.
+
+   `R' toggles real mode, in which virtual postings are ignored.
 
    Press `right' or `enter' to view an account's transactions register.
 
@@ -208,13 +214,9 @@ File: hledger-ui.1.info,  Node: Register screen,  Next: Transaction screen,  Pre
 3.2 Register screen
 ===================
 
-This screen lists all transactions affecting a particular account (like
-a check register). In cleared mode (press `C') it lists only
-transactions which are marked cleared. It does not otherwise filter by
-query.
-
-   Note this screen shows transactions, not postings (unlike hledger's
-register command). This means:
+This screen lists all transactions affecting a particular account, like
+a check register. Unlike hledger's register command (which lists
+individual postings), in hledger-ui's register:
 
    * Each line represents a whole transaction.
 
@@ -244,6 +246,15 @@ register command). This means:
      $ hledger-ui --begin 'this month' desc:market
      $ hledger-ui --register checking --cleared
 
+
+   `E' toggles nonzero mode, in which only transactions posting a
+nonzero change are shown (hledger-ui shows zero items by default, unlike
+command-line hledger).
+
+   `C' toggles cleared mode, in which uncleared transactions (and
+postings) are ignored.
+
+   `R' toggles real mode, in which virtual postings are ignored.
 
    Press `right' or `enter' to view the selected transaction in full
 detail.
@@ -290,15 +301,15 @@ Node: OPTIONS714
 Ref: #options813
 Node: KEYS3689
 Ref: #keys3786
-Node: SCREENS4183
-Ref: #screens4270
-Node: Accounts screen4360
-Ref: #accounts-screen4490
-Node: Register screen5335
-Ref: #register-screen5492
-Node: Transaction screen6874
-Ref: #transaction-screen7034
-Node: Error screen7901
-Ref: #error-screen8025
+Node: SCREENS4209
+Ref: #screens4296
+Node: Accounts screen4386
+Ref: #accounts-screen4516
+Node: Register screen5535
+Ref: #register-screen5692
+Node: Transaction screen7264
+Ref: #transaction-screen7424
+Node: Error screen8291
+Ref: #error-screen8415
 
 End Tag Table
