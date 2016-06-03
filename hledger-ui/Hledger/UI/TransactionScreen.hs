@@ -9,7 +9,7 @@ where
 
 -- import Lens.Micro ((^.))
 import Control.Monad.IO.Class (liftIO)
-import Data.List
+-- import Data.List
 -- import Data.List.Split (splitOn)
 -- import Data.Ord
 import Data.Monoid
@@ -22,7 +22,7 @@ import Graphics.Vty as Vty
 -- import Safe (headDef, lastDef)
 import Brick
 import Brick.Widgets.List (listMoveTo)
-import Brick.Widgets.Border (borderAttr)
+-- import Brick.Widgets.Border (borderAttr)
 -- import Brick.Widgets.Border.Style
 -- import Brick.Widgets.Center
 -- import Text.Printf
@@ -51,7 +51,7 @@ initTransactionScreen _d st@AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_
 initTransactionScreen _ _ = error "init function called with wrong screen type, should not happen"
 
 drawTransactionScreen :: AppState -> [Widget]
-drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
                               ,aScreen=TransactionScreen{tsState=((i,t),nts,acct)}} = [ui]
   where
     -- datedesc = show (tdate t) ++ " " ++ tdescription t
