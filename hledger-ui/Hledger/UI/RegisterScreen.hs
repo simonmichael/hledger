@@ -58,23 +58,25 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
     thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
     q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts
 
-    -- run a transactions report, most recent last
-    (_label,items') = accountTransactionsReport ropts j q thisacctq
-    items = reverse items'
+    (_label,items) = accountTransactionsReport ropts j q thisacctq
+    items' = (if empty_ ropts then id else filter ((/=0) . fifth6)) $  -- exclude zero-change txns unless --empty
+             reverse  -- most recent last
+             items
 
     -- pre-render all items; these will be the List elements. This helps calculate column widths.
-    displayitem (t, _, _issplit, otheracctsstr, change, bal) =
-      (showDate $ tdate t
-      ,T.unpack $ tdescription t
-      ,case splitOn ", " otheracctsstr of
-        [s] -> s
-        ss  -> intercalate ", " ss
-        -- _   -> "<split>"  -- should do this if accounts field width < 30
-      ,showMixedAmountOneLineWithoutPrice change
-      ,showMixedAmountOneLineWithoutPrice bal
-      ,t
-      )
-    displayitems = map displayitem items
+    displayitems = map displayitem items'
+      where
+        displayitem (t, _, _issplit, otheracctsstr, change, bal) =
+          (showDate $ tdate t
+          ,T.unpack $ tdescription t
+          ,case splitOn ", " otheracctsstr of
+            [s] -> s
+            ss  -> intercalate ", " ss
+            -- _   -> "<split>"  -- should do this if accounts field width < 30
+          ,showMixedAmountOneLineWithoutPrice change
+          ,showMixedAmountOneLineWithoutPrice bal
+          ,t
+          )
 
     -- build the List, moving the selection to the end
     l = listMoveTo (length items) $
@@ -161,6 +163,7 @@ drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
         bottomlabel = borderKeysStr [
            -- ("up/down/pgup/pgdown/home/end", "move")
            ("left", "back")
+          ,("E", "nonzero?")
           ,("C", "cleared?")
           ,("R", "real?")
           ,("right/enter", "transaction")
@@ -210,6 +213,7 @@ handleRegisterScreen st@AppState{
         Right j' -> continue $ reload j' d st
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
 
+    Vty.EvKey (Vty.KChar 'E') [] -> continue $ reload j d $ stToggleEmpty st
     Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
     Vty.EvKey (Vty.KChar 'R') [] -> continue $ reload j d $ stToggleReal st
 
