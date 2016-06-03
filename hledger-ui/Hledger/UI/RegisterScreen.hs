@@ -13,7 +13,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.List.Split (splitOn)
 import Data.Monoid
--- import Data.Maybe
+import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
@@ -45,8 +45,8 @@ rsSetCurrentAccount a scr@RegisterScreen{rsState=(l,_)} = scr{rsState=(l,a)}
 rsSetCurrentAccount _ scr = scr
 
 initRegisterScreen :: Day -> AppState -> AppState
-initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{rsState=(_,acct)}} =
-  st{aScreen=s{rsState=(l,acct)}}
+initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{rsState=(oldl,acct)}} =
+  st{aScreen=s{rsState=(newl',acct)}}
   where
     -- gather arguments and queries
     ropts = (reportopts_ $ cliopts_ opts)
@@ -59,7 +59,7 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
     q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts
 
     (_label,items) = accountTransactionsReport ropts j q thisacctq
-    items' = (if empty_ ropts then id else filter ((/=0) . fifth6)) $  -- exclude zero-change txns unless --empty
+    items' = (if empty_ ropts then id else filter (not . isZeroMixedAmount . fifth6)) $  -- without --empty, exclude no-change txns
              reverse  -- most recent last
              items
 
@@ -78,11 +78,18 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
           ,t
           )
 
-    -- build the List, moving the selection to the end
-    l = listMoveTo (length items) $
-        list (Name "register") (V.fromList displayitems) 1
+    -- build the List
+    newl = list (Name "register") (V.fromList displayitems) 1
 
-        -- (listName someList)
+    -- keep the selection on the previously selected transaction if possible,
+    -- (eg after toggling nonzero mode), otherwise select the last element.
+    -- XXX the scroll position should be disrupted less
+    newl' = listMoveTo newselidx newl
+      where
+        newselidx = case listSelectedElement oldl of
+                      Nothing                                     -> endidx
+                      Just (_,(_,_,_,_,_,Transaction{tindex=ti})) -> fromMaybe endidx $ findIndex ((==ti) . tindex . sixth6) displayitems
+        endidx = length displayitems
 
 initRegisterScreen _ _ = error "init function called with wrong screen type, should not happen"
 
