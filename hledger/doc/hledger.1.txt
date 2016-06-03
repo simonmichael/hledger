@@ -213,7 +213,7 @@ OOPPTTIIOONNSS
               hide accounts/postings deeper than N
 
        --EE ----eemmppttyy
-              show empty/zero things which are normally omitted
+              show items with zero amount, normally hidden
 
        --BB ----ccoosstt
               show amounts in their cost price's commodity

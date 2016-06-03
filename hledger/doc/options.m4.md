@@ -71,7 +71,7 @@ Both of these must be written after the command name.
 : hide accounts/postings deeper than N
 
 `-E --empty                   `
-: show empty/zero things which are normally omitted
+: show items with zero amount, normally hidden
 
 `-B --cost                    `
 : show amounts in their cost price's commodity

@@ -139,7 +139,7 @@ reportflags = [
  ,flagNone ["uncleared","U"] (setboolopt "uncleared") "include only uncleared (and pending) postings/txns"
  ,flagNone ["real","R"]      (setboolopt "real") "include only non-virtual postings"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/postings deeper than N"
- ,flagNone ["empty","E"]     (setboolopt "empty") "show empty/zero things which are normally omitted"
+ ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden"
  ,flagNone ["cost","B"]      (setboolopt "cost") "show amounts in their cost price's commodity"
  ]
 

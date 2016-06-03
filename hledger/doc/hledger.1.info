@@ -238,7 +238,7 @@ command name.
      hide accounts/postings deeper than N
 
 `-E --empty'
-     show empty/zero things which are normally omitted
+     show items with zero amount, normally hidden
 
 `-B --cost'
      show amounts in their cost price's commodity
@@ -2043,95 +2043,95 @@ Node: EXAMPLES1748
 Ref: #examples1850
 Node: OPTIONS3854
 Ref: #options3958
-Node: Multiple files7270
-Ref: #multiple-files7395
-Node: Repeated options7660
-Ref: #repeated-options7812
-Node: Depth limiting7932
-Ref: #depth-limiting8077
-Node: Smart dates8278
-Ref: #smart-dates8419
-Node: Reporting interval9416
-Ref: #reporting-interval9575
-Node: Period expressions9918
-Ref: #period-expressions10085
-Node: Regular Expressions12131
-Ref: #regular-expressions12273
-Node: QUERIES13756
-Ref: #queries13860
-Node: COMMANDS17162
-Ref: #commands17276
-Node: accounts17949
-Ref: #accounts18049
-Node: activity19031
-Ref: #activity19143
-Node: add19502
-Ref: #add19603
-Node: balance22262
-Ref: #balance22375
-Node: Flat mode25091
-Ref: #flat-mode25218
-Node: Depth limited balance reports25637
-Ref: #depth-limited-balance-reports25840
-Node: Multicolumn balance reports26261
-Ref: #multicolumn-balance-reports26463
-Node: Market value31112
-Ref: #market-value31276
-Node: Custom balance output31769
-Ref: #custom-balance-output31942
-Node: Output destination34046
-Ref: #output-destination34211
-Node: CSV output34481
-Ref: #csv-output34600
-Node: balancesheet34997
-Ref: #balancesheet35125
-Node: cashflow35777
-Ref: #cashflow35894
-Node: help36584
-Ref: #help36696
-Node: incomestatement37533
-Ref: #incomestatement37663
-Node: info38390
-Ref: #info38497
-Node: man38859
-Ref: #man38956
-Node: print39359
-Ref: #print39464
-Node: register40815
-Ref: #register40928
-Node: Custom register output45269
-Ref: #custom-register-output45400
-Node: stats46697
-Ref: #stats46803
-Node: test47684
-Ref: #test47771
-Node: ADD-ON COMMANDS48138
-Ref: #add-on-commands48274
-Node: api49562
-Ref: #api49654
-Node: autosync49688
-Ref: #autosync49803
-Node: diff52118
-Ref: #diff52228
-Node: equity52892
-Ref: #equity53006
-Node: interest54334
-Ref: #interest54451
-Node: irr57535
-Ref: #irr57648
-Node: print-unique60023
-Ref: #print-unique60153
-Node: rewrite60411
-Ref: #rewrite60530
-Node: ui61059
-Ref: #ui61159
-Node: web61200
-Ref: #web61288
-Node: TROUBLESHOOTING61321
-Ref: #troubleshooting61440
-Node: Run-time problems61494
-Ref: #run-time-problems61637
-Node: Known limitations63581
-Ref: #known-limitations63724
+Node: Multiple files7265
+Ref: #multiple-files7390
+Node: Repeated options7655
+Ref: #repeated-options7807
+Node: Depth limiting7927
+Ref: #depth-limiting8072
+Node: Smart dates8273
+Ref: #smart-dates8414
+Node: Reporting interval9411
+Ref: #reporting-interval9570
+Node: Period expressions9913
+Ref: #period-expressions10080
+Node: Regular Expressions12126
+Ref: #regular-expressions12268
+Node: QUERIES13751
+Ref: #queries13855
+Node: COMMANDS17157
+Ref: #commands17271
+Node: accounts17944
+Ref: #accounts18044
+Node: activity19026
+Ref: #activity19138
+Node: add19497
+Ref: #add19598
+Node: balance22257
+Ref: #balance22370
+Node: Flat mode25086
+Ref: #flat-mode25213
+Node: Depth limited balance reports25632
+Ref: #depth-limited-balance-reports25835
+Node: Multicolumn balance reports26256
+Ref: #multicolumn-balance-reports26458
+Node: Market value31107
+Ref: #market-value31271
+Node: Custom balance output31764
+Ref: #custom-balance-output31937
+Node: Output destination34041
+Ref: #output-destination34206
+Node: CSV output34476
+Ref: #csv-output34595
+Node: balancesheet34992
+Ref: #balancesheet35120
+Node: cashflow35772
+Ref: #cashflow35889
+Node: help36579
+Ref: #help36691
+Node: incomestatement37528
+Ref: #incomestatement37658
+Node: info38385
+Ref: #info38492
+Node: man38854
+Ref: #man38951
+Node: print39354
+Ref: #print39459
+Node: register40810
+Ref: #register40923
+Node: Custom register output45264
+Ref: #custom-register-output45395
+Node: stats46692
+Ref: #stats46798
+Node: test47679
+Ref: #test47766
+Node: ADD-ON COMMANDS48133
+Ref: #add-on-commands48269
+Node: api49557
+Ref: #api49649
+Node: autosync49683
+Ref: #autosync49798
+Node: diff52113
+Ref: #diff52223
+Node: equity52887
+Ref: #equity53001
+Node: interest54329
+Ref: #interest54446
+Node: irr57530
+Ref: #irr57643
+Node: print-unique60018
+Ref: #print-unique60148
+Node: rewrite60406
+Ref: #rewrite60525
+Node: ui61054
+Ref: #ui61154
+Node: web61195
+Ref: #web61283
+Node: TROUBLESHOOTING61316
+Ref: #troubleshooting61435
+Node: Run-time problems61489
+Ref: #run-time-problems61632
+Node: Known limitations63576
+Ref: #known-limitations63719
 
 End Tag Table
