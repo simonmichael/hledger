@@ -86,3 +86,59 @@ m4_define({{_generaloptions_}}, {{
 : ignore any failing balance assertions in the journal
 
 }} )m4_dnl
+m4_dnl
+m4_define({{_reportingoptions_}}, {{
+
+`-b --begin=DATE              `
+: include postings/txns on or after this date
+
+`-e --end=DATE                `
+: include postings/txns before this date
+
+`-D --daily                   `
+: multiperiod/multicolumn report by day
+
+`-W --weekly                  `
+: multiperiod/multicolumn report by week
+
+`-M --monthly                 `
+: multiperiod/multicolumn report by month
+
+`-Q --quarterly               `
+: multiperiod/multicolumn report by quarter
+
+`-Y --yearly                  `
+: multiperiod/multicolumn report by year
+
+`-p --period=PERIODEXP        `
+: set start date, end date, and/or reporting interval all at once (overrides the flags above)
+
+`--date2`
+: show, and match with -b/-e/-p/date:, secondary dates instead
+
+`-C --cleared                 `
+: include only cleared postings/txns
+
+`--pending`
+: include only pending postings/txns
+
+`-U --uncleared               `
+: include only uncleared (and pending) postings/txns
+
+`-R --real                    `
+: include only non-virtual postings
+
+`--depth=N`
+: hide accounts/postings deeper than N
+
+`-E --empty                   `
+: show items with zero amount, normally hidden
+
+`-B --cost                    `
+: show amounts in their cost price's commodity
+
+`--pivot TAG
+: will transform the journal before any other processing by replacing the account name of every posting having the tag TAG with content VALUE by the  account name "TAG:VALUE".
+: The TAG will only match if it is a full-length match. The pivot will only happen if the TAG is on a posting, not if it is on the transaction. If the tag value is a multi:level:account:name the new account name will be "TAG:multi:level:account:name".
+
+}} )m4_dnl

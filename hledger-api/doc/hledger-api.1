@@ -47,12 +47,6 @@ server the API docs will be printed in Swagger 2.0 format.
 Note: if invoking hledger\-api as a hledger subcommand, write
 \f[C]\-\-\f[] before options as shown above.
 .TP
-.B \f[C]\-f\ \-\-file\ FILE\f[]
-use a different input file (default: \f[C]$LEDGER_FILE\f[] or
-\f[C]~/.hledger.journal\f[])
-.RS
-.RE
-.TP
 .B \f[C]\-d\ \-\-static\-dir=DIR\f[]
 serve files from a different directory (default: \f[C]\&.\f[])
 .RS
@@ -67,6 +61,8 @@ use a different TCP port (default: 8001)
 print API docs in Swagger 2.0 format, and exit
 .RS
 .RE
+.PP
+hledger general options:
 .TP
 .B \f[C]\-h\f[]
 show general usage (or after COMMAND, the command\[aq]s usage)

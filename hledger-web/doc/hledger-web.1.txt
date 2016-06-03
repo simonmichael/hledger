@@ -92,6 +92,8 @@ OOPPTTIIOONNSS
               them  from  another server for efficiency, you would set the url
               with this.
 
+       hledger general options:
+
        --hh     show general usage (or after COMMAND, the command's usage)
 
        ----hheellpp show the current program's manual as plain  text  (or  after  an
@@ -120,24 +122,7 @@ OOPPTTIIOONNSS
        ----iiggnnoorree--aasssseerrttiioonnss
               ignore any failing balance assertions in the journal
 
-   hhlleeddggeerr ooppttiioonnss
-       The following common hledger options should also work:
-
-       --ff FFIILLEE ----ffiillee==FFIILLEE
-              use a different input file.  For stdin, use -
-
-       ----rruulleess--ffiillee==RRUULLEESSFFIILLEE
-              Conversion  rules  file  to  use  when  reading  CSV   (default:
-              FILE.rules)
-
-       ----aalliiaass==OOLLDD==NNEEWW
-              display accounts named OLD as NEW
-
-       ----iiggnnoorree--aasssseerrttiioonnss
-              ignore any failing balance assertions in the journal
-
-       ----ddeebbuugg==NN
-              show debug output if N is 1-9 (default: 0)
+       hledger reporting options:
 
        --bb ----bbeeggiinn==DDAATTEE
               include postings/txns on or after this date
@@ -145,8 +130,23 @@ OOPPTTIIOONNSS
        --ee ----eenndd==DDAATTEE
               include postings/txns before this date
 
+       --DD ----ddaaiillyy
+              multiperiod/multicolumn report by day
+
+       --WW ----wweeeekkllyy
+              multiperiod/multicolumn report by week
+
+       --MM ----mmoonntthhllyy
+              multiperiod/multicolumn report by month
+
+       --QQ ----qquuaarrtteerrllyy
+              multiperiod/multicolumn report by quarter
+
+       --YY ----yyeeaarrllyy
+              multiperiod/multicolumn report by year
+
        --pp ----ppeerriioodd==PPEERRIIOODDEEXXPP
-              set  start date, end date, and/or reporting interval all at once
+              set start date, end date, and/or reporting interval all at  once
               (overrides the flags above)
 
        ----ddaattee22
@@ -168,10 +168,19 @@ OOPPTTIIOONNSS
               hide accounts/postings deeper than N
 
        --EE ----eemmppttyy
-              show empty/zero things which are normally omitted
+              show items with zero amount, normally hidden
 
        --BB ----ccoosstt
               show amounts in their cost price's commodity
+
+       ``----ppiivvoott TTAAGG
+              will  transform  the  journal  before  any  other  processing by
+              replacing the account name of every posting having the  tag  TAG
+              with content VALUE by the account name "TAG:VALUE".
+       The  TAG  will only match if it is a full-length match.  The pivot will
+       only happen if the TAG is on a posting, not if it is  on  the  transac-
+       tion.   If  the tag value is a multi:level:account:name the new account
+       name will be "TAG:multi:level:account:name".
 
 EENNVVIIRROONNMMEENNTT
        LLEEDDGGEERR__FFIILLEE sets the default journal file path.   If  not  set,  it  is

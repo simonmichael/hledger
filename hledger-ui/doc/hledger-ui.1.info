@@ -54,6 +54,8 @@ the data.
      show amounts as their current market value in their default
      valuation commodity (accounts screen only)
 
+   hledger general options:
+
 `-h'
      show general usage (or after COMMAND, the command's usage)
 
@@ -85,38 +87,28 @@ the data.
 `--ignore-assertions'
      ignore any failing balance assertions in the journal
 
-* Menu:
-
-* hledger options::
-
-
-File: hledger-ui.1.info,  Node: hledger options,  Up: OPTIONS
-
-1.1 hledger options
-===================
-
-The following common hledger options should also work:
-
-`-f FILE --file=FILE'
-     use a different input file. For stdin, use -
-
-`--rules-file=RULESFILE'
-     Conversion rules file to use when reading CSV (default: FILE.rules)
-
-`--alias=OLD=NEW'
-     display accounts named OLD as NEW
-
-`--ignore-assertions'
-     ignore any failing balance assertions in the journal
-
-`--debug=N'
-     show debug output if N is 1-9 (default: 0)
+   hledger reporting options:
 
 `-b --begin=DATE'
      include postings/txns on or after this date
 
 `-e --end=DATE'
      include postings/txns before this date
+
+`-D --daily'
+     multiperiod/multicolumn report by day
+
+`-W --weekly'
+     multiperiod/multicolumn report by week
+
+`-M --monthly'
+     multiperiod/multicolumn report by month
+
+`-Q --quarterly'
+     multiperiod/multicolumn report by quarter
+
+`-Y --yearly'
+     multiperiod/multicolumn report by year
 
 `-p --period=PERIODEXP'
      set start date, end date, and/or reporting interval all at once
@@ -141,10 +133,19 @@ The following common hledger options should also work:
      hide accounts/postings deeper than N
 
 `-E --empty'
-     show empty/zero things which are normally omitted
+     show items with zero amount, normally hidden
 
 `-B --cost'
      show amounts in their cost price's commodity
+
+`-pivot TAG
+     will transform the journal before any other processing by
+     replacing the account name of every posting having the tag TAG
+     with content VALUE by the account name "TAG:VALUE".  The TAG will
+     only match if it is a full-length match. The pivot will only
+     happen if the TAG is on a posting, not if it is on the transaction.
+     If the tag value is a multi:level:account:name the new account
+     name will be "TAG:multi:level:account:name".
 
 
 File: hledger-ui.1.info,  Node: KEYS,  Next: SCREENS,  Prev: OPTIONS,  Up: Top
@@ -287,19 +288,17 @@ Tag Table:
 Node: Top88
 Node: OPTIONS714
 Ref: #options813
-Node: hledger options2134
-Ref: #hledger-options2240
-Node: KEYS3423
-Ref: #keys3520
-Node: SCREENS3917
-Ref: #screens4004
-Node: Accounts screen4094
-Ref: #accounts-screen4224
-Node: Register screen5069
-Ref: #register-screen5226
-Node: Transaction screen6608
-Ref: #transaction-screen6768
-Node: Error screen7635
-Ref: #error-screen7759
+Node: KEYS3687
+Ref: #keys3784
+Node: SCREENS4181
+Ref: #screens4268
+Node: Accounts screen4358
+Ref: #accounts-screen4488
+Node: Register screen5333
+Ref: #register-screen5490
+Node: Transaction screen6872
+Ref: #transaction-screen7032
+Node: Error screen7899
+Ref: #error-screen8023
 
 End Tag Table

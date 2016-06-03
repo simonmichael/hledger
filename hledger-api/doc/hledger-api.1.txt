@@ -37,10 +37,6 @@ OOPPTTIIOONNSS
        Note: if invoking hledger-api as a hledger subcommand, write --  before
        options as shown above.
 
-       --ff ----ffiillee FFIILLEE
-              use   a   different   input   file   (default:  $LEDGER_FILE  or
-              ~/.hledger.journal)
-
        --dd ----ssttaattiicc--ddiirr==DDIIRR
               serve files from a different directory (default: .)
 
@@ -50,9 +46,11 @@ OOPPTTIIOONNSS
        ----sswwaaggggeerr
               print API docs in Swagger 2.0 format, and exit
 
+       hledger general options:
+
        --hh     show general usage (or after COMMAND, the command's usage)
 
-       ----hheellpp show the current program's manual as plain  text  (or  after  an
+       ----hheellpp show  the  current  program's  manual as plain text (or after an
               add-on COMMAND, the add-on's manual)
 
        ----mmaann  show the current program's manual with man
@@ -69,7 +67,7 @@ OOPPTTIIOONNSS
               use a different input file.  For stdin, use -
 
        ----rruulleess--ffiillee==RRUULLEESSFFIILLEE
-              Conversion   rules  file  to  use  when  reading  CSV  (default:
+              Conversion  rules  file  to  use  when  reading  CSV   (default:
               FILE.rules)
 
        ----aalliiaass==OOLLDD==NNEEWW
@@ -79,7 +77,7 @@ OOPPTTIIOONNSS
               ignore any failing balance assertions in the journal
 
 EENNVVIIRROONNMMEENNTT
-       LLEEDDGGEERR__FFIILLEE sets the default journal file path.   If  not  set,  it  is
+       LLEEDDGGEERR__FFIILLEE  sets  the  default  journal  file path.  If not set, it is
        ~/.hledger.journal.
 
 FFIILLEESS
@@ -88,13 +86,13 @@ FFIILLEESS
        file.
 
 BBUUGGSS
-       The  need  to precede options with -- when invoked from hledger is awk-
+       The need to precede options with -- when invoked from hledger  is  awk-
        ward.
 
 
 
 RREEPPOORRTTIINNGG BBUUGGSS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -108,7 +106,7 @@ CCOOPPYYRRIIGGHHTT
 
 
 SSEEEE AALLSSOO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

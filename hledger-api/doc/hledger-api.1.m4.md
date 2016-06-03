@@ -50,9 +50,6 @@ the API docs will be printed in Swagger 2.0 format.
 
 Note: if invoking hledger-api as a hledger subcommand, write `--` before options as shown above.
 
-`-f --file FILE`
-: use a different input file (default: `$LEDGER_FILE` or `~/.hledger.journal`)
-
 `-d --static-dir=DIR`
 : serve files from a different directory (default: `.`)
 
@@ -61,6 +58,8 @@ Note: if invoking hledger-api as a hledger subcommand, write `--` before options
 
 `--swagger`
 : print API docs in Swagger 2.0 format, and exit
+
+hledger general options:
 
 _generaloptions_
 

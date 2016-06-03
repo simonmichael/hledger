@@ -74,59 +74,13 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 : show amounts as their current market value in their default valuation commodity
 (accounts screen only)
 
+hledger general options:
+
 _generaloptions_
 
-## hledger options
+hledger reporting options:
 
-The following common hledger options should also work:
-
-`-f FILE --file=FILE`
-: use a different input file. For stdin, use -
-
-`--rules-file=RULESFILE`
-: Conversion rules file to use when reading CSV (default: FILE.rules)
-
-`--alias=OLD=NEW`
-: display accounts named OLD as NEW
-
-`--ignore-assertions`
-: ignore any failing balance assertions in the journal
-
-`--debug=N`
-: show debug output if N is 1-9 (default: 0)
-
-`-b --begin=DATE`
-: include postings/txns on or after this date
-
-`-e --end=DATE`
-: include postings/txns before this date
-
-`-p --period=PERIODEXP`
-: set start date, end date, and/or reporting interval all at once (overrides the flags above)
-
-`--date2`
-: show, and match with -b/-e/-p/date:, secondary dates instead
-
-`-C --cleared`
-: include only cleared postings/txns
-
-`--pending`
-: include only pending postings/txns
-
-`-U --uncleared`
-: include only uncleared (and pending) postings/txns
-
-`-R --real`
-: include only non-virtual postings
-
-`--depth=N`
-: hide accounts/postings deeper than N
-
-`-E --empty`
-: show empty/zero things which are normally omitted
-
-`-B --cost`
-: show amounts in their cost price's commodity
+_reportingoptions_
 
 # KEYS
 

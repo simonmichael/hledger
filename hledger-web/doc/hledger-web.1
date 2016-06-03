@@ -113,6 +113,8 @@ serve them from another server for efficiency, you would set the url
 with this.
 .RS
 .RE
+.PP
+hledger general options:
 .TP
 .B \f[C]\-h\f[]
 show general usage (or after COMMAND, the command\[aq]s usage)
@@ -165,35 +167,8 @@ display accounts named OLD as NEW
 ignore any failing balance assertions in the journal
 .RS
 .RE
-.SS hledger options
 .PP
-The following common hledger options should also work:
-.TP
-.B \f[C]\-f\ FILE\ \-\-file=FILE\f[]
-use a different input file.
-For stdin, use \-
-.RS
-.RE
-.TP
-.B \f[C]\-\-rules\-file=RULESFILE\f[]
-Conversion rules file to use when reading CSV (default: FILE.rules)
-.RS
-.RE
-.TP
-.B \f[C]\-\-alias=OLD=NEW\f[]
-display accounts named OLD as NEW
-.RS
-.RE
-.TP
-.B \f[C]\-\-ignore\-assertions\f[]
-ignore any failing balance assertions in the journal
-.RS
-.RE
-.TP
-.B \f[C]\-\-debug=N\f[]
-show debug output if N is 1\-9 (default: 0)
-.RS
-.RE
+hledger reporting options:
 .TP
 .B \f[C]\-b\ \-\-begin=DATE\f[]
 include postings/txns on or after this date
@@ -202,6 +177,31 @@ include postings/txns on or after this date
 .TP
 .B \f[C]\-e\ \-\-end=DATE\f[]
 include postings/txns before this date
+.RS
+.RE
+.TP
+.B \f[C]\-D\ \-\-daily\f[]
+multiperiod/multicolumn report by day
+.RS
+.RE
+.TP
+.B \f[C]\-W\ \-\-weekly\f[]
+multiperiod/multicolumn report by week
+.RS
+.RE
+.TP
+.B \f[C]\-M\ \-\-monthly\f[]
+multiperiod/multicolumn report by month
+.RS
+.RE
+.TP
+.B \f[C]\-Q\ \-\-quarterly\f[]
+multiperiod/multicolumn report by quarter
+.RS
+.RE
+.TP
+.B \f[C]\-Y\ \-\-yearly\f[]
+multiperiod/multicolumn report by year
 .RS
 .RE
 .TP
@@ -242,12 +242,26 @@ hide accounts/postings deeper than N
 .RE
 .TP
 .B \f[C]\-E\ \-\-empty\f[]
-show empty/zero things which are normally omitted
+show items with zero amount, normally hidden
 .RS
 .RE
 .TP
 .B \f[C]\-B\ \-\-cost\f[]
 show amounts in their cost price\[aq]s commodity
+.RS
+.RE
+.TP
+.B `\-\-pivot TAG
+will transform the journal before any other processing by replacing the
+account name of every posting having the tag TAG with content VALUE by
+the account name "TAG:VALUE".
+.RS
+.RE
+The TAG will only match if it is a full\-length match.
+The pivot will only happen if the TAG is on a posting, not if it is on
+the transaction.
+If the tag value is a multi:level:account:name the new account name will
+be "TAG:multi:level:account:name".
 .RS
 .RE
 .SH ENVIRONMENT
