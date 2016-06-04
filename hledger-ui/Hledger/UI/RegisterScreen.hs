@@ -21,6 +21,7 @@ import qualified Data.Vector as V
 import Graphics.Vty as Vty
 import Brick
 import Brick.Widgets.List
+import Brick.Widgets.Edit
 import Brick.Widgets.Border (borderAttr)
 -- import Brick.Widgets.Center
 -- import Text.Printf
@@ -94,12 +95,14 @@ initRegisterScreen _ _ = error "init function called with wrong screen type, sho
 
 drawRegisterScreen :: AppState -> [Widget]
 drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
-                           ,aScreen=RegisterScreen{rsState=(l,acct)}} = [ui]
+                           ,aScreen=RegisterScreen{rsState=(l,acct)}
+                           ,aMinibuffer=mbuf}
+  = [ui]
   where
     toplabel = withAttr ("border" <> "bold") (str $ T.unpack acct)
             <+> togglefilters
             <+> str " transactions"
-            -- <+> borderQueryStr querystr -- no, account transactions report shows all transactions in the acct ?
+            <+> borderQueryStr (query_ ropts)
             -- <+> str " and subs"
             <+> str " ("
             <+> cur
@@ -176,12 +179,17 @@ drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           ,("C", "cleared?")
           ,("U", "uncleared?")
           ,("R", "real?")
+          ,("f", "filter")
           ,("right/enter", "transaction")
           ,("g", "reload")
           ,("q", "quit")
           ]
 
-      render $ defaultLayout toplabel bottomlabel $ renderList l (drawRegisterItem colwidths)
+        bottomarea = case mbuf of
+                      Nothing  -> bottomlabel
+                      Just ed  -> minibuffer ed
+
+      render $ defaultLayout toplabel bottomarea $ renderList l (drawRegisterItem colwidths)
 
 drawRegisterScreen _ = error "draw function called with wrong screen type, should not happen"
 
@@ -211,40 +219,53 @@ handleRegisterScreen st@AppState{
    aScreen=s@RegisterScreen{rsState=(l,acct)}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
-  } e = do
+  ,aMinibuffer=mbuf
+  } ev = do
   d <- liftIO getCurrentDay
-  case e of
-    Vty.EvKey Vty.KEsc []        -> halt st
-    Vty.EvKey (Vty.KChar 'q') [] -> halt st
+  case mbuf of
+    Nothing ->
 
-    Vty.EvKey (Vty.KChar 'g') [] -> do
-      (ej, _) <- liftIO $ journalReloadIfChanged copts d j
-      case ej of
-        Right j' -> continue $ reload j' d st
-        Left err -> continue $ screenEnter d ES.screen{esState=err} st
+      case ev of
+        Vty.EvKey (Vty.KChar 'q') [] -> halt st
 
-    Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ reload j d $ stToggleEmpty st)
-    Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ reload j d $ stToggleCleared st)
-    Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ reload j d $ stToggleUncleared st)
-    Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ reload j d $ stToggleReal st)
-    Vty.EvKey (Vty.KLeft)     [] -> continue $ popScreen st
+        Vty.EvKey (Vty.KChar 'g') [] -> do
+          (ej, _) <- liftIO $ journalReloadIfChanged copts d j
+          case ej of
+            Right j' -> continue $ reload j' d st
+            Left err -> continue $ screenEnter d ES.screen{esState=err} st
 
-    Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
-      case listSelectedElement l of
-        Just (_, (_, _, _, _, _, t)) ->
-          let
-            ts = map sixth6 $ V.toList $ listElements l
-            numberedts = zip [1..] ts
-            i = fromIntegral $ maybe 0 (+1) $ elemIndex t ts -- XXX
-          in
-            continue $ screenEnter d TS.screen{tsState=((i,t),numberedts,acct)} st
-        Nothing -> continue st
+        Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ reload j d $ stToggleEmpty st)
+        Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ reload j d $ stToggleCleared st)
+        Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ reload j d $ stToggleUncleared st)
+        Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ reload j d $ stToggleReal st)
+        Vty.EvKey (Vty.KChar 'f') [] -> (continue $ reload j d $ stShowMinibuffer st)
+        Vty.EvKey (Vty.KLeft)     [] -> continue $ popScreen st
 
-    -- fall through to the list's event handler (handles [pg]up/down)
-    ev                       -> do
-                                 l' <- handleEvent ev l
-                                 continue st{aScreen=s{rsState=(l',acct)}}
-                                 -- continue =<< handleEventLensed st someLens ev
+        Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
+          case listSelectedElement l of
+            Just (_, (_, _, _, _, _, t)) ->
+              let
+                ts = map sixth6 $ V.toList $ listElements l
+                numberedts = zip [1..] ts
+                i = fromIntegral $ maybe 0 (+1) $ elemIndex t ts -- XXX
+              in
+                continue $ screenEnter d TS.screen{tsState=((i,t),numberedts,acct)} st
+            Nothing -> continue st
+
+        -- fall through to the list's event handler (handles [pg]up/down)
+        ev                       -> do
+                                     l' <- handleEvent ev l
+                                     continue st{aScreen=s{rsState=(l',acct)}}
+                                     -- continue =<< handleEventLensed st someLens ev
+
+    Just ed ->
+        case ev of
+            Vty.EvKey Vty.KEsc   [] -> continue $ stHideMinibuffer st
+            Vty.EvKey Vty.KEnter [] -> continue $ reload j d $ stFilter s $ stHideMinibuffer st
+                                        where s = chomp $ unlines $ getEditContents ed
+            ev                      -> do ed' <- handleEvent ev ed
+                                          continue $ st{aMinibuffer=Just ed'}
+
   where
     -- Encourage a more stable scroll position when toggling list items (cf AccountsScreen.hs)
     scrollTop = vScrollToBeginning $ viewportScroll "register"

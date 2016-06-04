@@ -1,9 +1,12 @@
+{-# LANGUAGE StandaloneDeriving #-}
+
 module Hledger.UI.UITypes where
 
 import Data.Time.Calendar (Day)
 import qualified Graphics.Vty as V
 import Brick
 import Brick.Widgets.List (List)
+import Brick.Widgets.Edit (Editor)
 import Text.Show.Functions ()
   -- import the Show instance for functions. Warning, this also re-exports it
 
@@ -12,6 +15,10 @@ import Hledger.UI.UIOptions
 
 ----------------------------------------------------------------------
 
+instance Show Editor
+  where
+    show = const "<Editor>"
+
 -- | hledger-ui's application state. This is part of, but distinct
 -- from, brick's App.
 data AppState = AppState {
@@ -19,6 +26,7 @@ data AppState = AppState {
   ,ajournal :: Journal      -- ^ the journal being viewed
   ,aScreen :: Screen        -- ^ the currently active screen
   ,aPrevScreens :: [Screen] -- ^ previously visited screens, most recent first
+  ,aMinibuffer :: Maybe Editor  -- ^ a compact editor used for data entry, when active
   } deriving (Show)
 
 -- | Types of screen available within the app, along with their state.

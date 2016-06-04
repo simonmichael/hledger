@@ -25,6 +25,7 @@ import qualified Data.Vector as V
 import Graphics.Vty as Vty
 import Brick
 import Brick.Widgets.List
+import Brick.Widgets.Edit
 import Brick.Widgets.Border (borderAttr)
 -- import Brick.Widgets.Center
 
@@ -103,7 +104,8 @@ initAccountsScreen _ _ = error "init function called with wrong screen type, sho
 drawAccountsScreen :: AppState -> [Widget]
 drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                            ,ajournal=j
-                           ,aScreen=AccountsScreen{asState=(l,_)}} =
+                           ,aScreen=AccountsScreen{asState=(l,_)}
+                           ,aMinibuffer=mbuf} =
   [ui]
     where
       toplabel = files
@@ -148,10 +150,15 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
         ,("C", "cleared?")
         ,("U", "uncleared?")
         ,("R", "real?")
+        ,("f", "filter")
         ,("right/enter", "register")
         ,("g", "reload")
         ,("q", "quit")
         ]
+
+      bottomarea = case mbuf of
+                    Nothing  -> bottomlabel
+                    Just ed  -> minibuffer ed
 
       ui = Widget Greedy Greedy $ do
         c <- getContext
@@ -188,7 +195,7 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
 
           colwidths = (acctwidth, balwidth)
 
-        render $ defaultLayout toplabel bottomlabel $ renderList l (drawAccountsItem colwidths)
+        render $ defaultLayout toplabel bottomarea $ renderList l (drawAccountsItem colwidths)
 
 drawAccountsScreen _ = error "draw function called with wrong screen type, should not happen"
 
@@ -224,7 +231,8 @@ handleAccountsScreen st@AppState{
    aScreen=scr@AccountsScreen{asState=(l,selacct)}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
-  } e = do
+  ,aMinibuffer=mbuf
+  } ev = do
     d <- liftIO getCurrentDay
     -- c <- getContext
     -- let h = c^.availHeightL
@@ -238,48 +246,60 @@ handleAccountsScreen st@AppState{
                   Nothing -> selacct
       st' = st{aScreen=scr{asState=(l,selacct')}}
 
-    case e of
-        Vty.EvKey Vty.KEsc []        -> halt st'
-        Vty.EvKey (Vty.KChar 'q') [] -> halt st'
-        -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
+    case mbuf of
+      Nothing ->
 
-        Vty.EvKey (Vty.KChar 'g') [] -> do
-          (ej, _) <- liftIO $ journalReloadIfChanged copts d j
-          case ej of
-            Right j' -> continue $ reload j' d st'
-            Left err -> continue $ screenEnter d ES.screen{esState=err} st'
+        case ev of
+            Vty.EvKey (Vty.KChar 'q') [] -> halt st'
+            -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
 
-        Vty.EvKey (Vty.KChar '-') [] -> continue $ reload j d $ decDepth st'
-        Vty.EvKey (Vty.KChar '+') [] -> continue $ reload j d $ incDepth st'
-        Vty.EvKey (Vty.KChar '=') [] -> continue $ reload j d $ incDepth st'
-        Vty.EvKey (Vty.KChar '1') [] -> continue $ reload j d $ setDepth 1 st'
-        Vty.EvKey (Vty.KChar '2') [] -> continue $ reload j d $ setDepth 2 st'
-        Vty.EvKey (Vty.KChar '3') [] -> continue $ reload j d $ setDepth 3 st'
-        Vty.EvKey (Vty.KChar '4') [] -> continue $ reload j d $ setDepth 4 st'
-        Vty.EvKey (Vty.KChar '5') [] -> continue $ reload j d $ setDepth 5 st'
-        Vty.EvKey (Vty.KChar '6') [] -> continue $ reload j d $ setDepth 6 st'
-        Vty.EvKey (Vty.KChar '7') [] -> continue $ reload j d $ setDepth 7 st'
-        Vty.EvKey (Vty.KChar '8') [] -> continue $ reload j d $ setDepth 8 st'
-        Vty.EvKey (Vty.KChar '9') [] -> continue $ reload j d $ setDepth 9 st'
-        Vty.EvKey (Vty.KChar '0') [] -> continue $ reload j d $ setDepth 0 st'
-        Vty.EvKey (Vty.KChar 'F') [] -> continue $ reload j d $ stToggleFlat st'
-        Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ reload j d $ stToggleEmpty st')
-        Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ reload j d $ stToggleCleared st')
-        Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ reload j d $ stToggleUncleared st')
-        Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ reload j d $ stToggleReal st')
-        Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
-        Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
-          let
-            scr = RS.rsSetCurrentAccount selacct' RS.screen
-            st'' = screenEnter d scr st'
-          scrollTopRegister
-          continue st''
+            Vty.EvKey (Vty.KChar 'g') [] -> do
+              (ej, _) <- liftIO $ journalReloadIfChanged copts d j
+              case ej of
+                Right j' -> continue $ reload j' d st'
+                Left err -> continue $ screenEnter d ES.screen{esState=err} st'
 
-        -- fall through to the list's event handler (handles up/down)
-        ev                       -> do
-                                     l' <- handleEvent ev l
-                                     continue $ st'{aScreen=scr{asState=(l',selacct')}}
-                                 -- continue =<< handleEventLensed st' someLens ev
+            Vty.EvKey (Vty.KChar '-') [] -> continue $ reload j d $ decDepth st'
+            Vty.EvKey (Vty.KChar '+') [] -> continue $ reload j d $ incDepth st'
+            Vty.EvKey (Vty.KChar '=') [] -> continue $ reload j d $ incDepth st'
+            Vty.EvKey (Vty.KChar '1') [] -> continue $ reload j d $ setDepth 1 st'
+            Vty.EvKey (Vty.KChar '2') [] -> continue $ reload j d $ setDepth 2 st'
+            Vty.EvKey (Vty.KChar '3') [] -> continue $ reload j d $ setDepth 3 st'
+            Vty.EvKey (Vty.KChar '4') [] -> continue $ reload j d $ setDepth 4 st'
+            Vty.EvKey (Vty.KChar '5') [] -> continue $ reload j d $ setDepth 5 st'
+            Vty.EvKey (Vty.KChar '6') [] -> continue $ reload j d $ setDepth 6 st'
+            Vty.EvKey (Vty.KChar '7') [] -> continue $ reload j d $ setDepth 7 st'
+            Vty.EvKey (Vty.KChar '8') [] -> continue $ reload j d $ setDepth 8 st'
+            Vty.EvKey (Vty.KChar '9') [] -> continue $ reload j d $ setDepth 9 st'
+            Vty.EvKey (Vty.KChar '0') [] -> continue $ reload j d $ setDepth 0 st'
+            Vty.EvKey (Vty.KChar 'F') [] -> continue $ reload j d $ stToggleFlat st'
+            Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ reload j d $ stToggleEmpty st')
+            Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ reload j d $ stToggleCleared st')
+            Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ reload j d $ stToggleUncleared st')
+            Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ reload j d $ stToggleReal st')
+            Vty.EvKey (Vty.KChar 'f') [] -> continue $ reload j d $ stShowMinibuffer st'
+            Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
+            Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
+              let
+                scr = RS.rsSetCurrentAccount selacct' RS.screen
+                st'' = screenEnter d scr st'
+              scrollTopRegister
+              continue st''
+
+            -- fall through to the list's event handler (handles up/down)
+            ev                       -> do
+                                         l' <- handleEvent ev l
+                                         continue $ st'{aScreen=scr{asState=(l',selacct')}}
+                                     -- continue =<< handleEventLensed st' someLens ev
+
+      Just ed ->
+        case ev of
+            Vty.EvKey Vty.KEsc   [] -> continue $ stHideMinibuffer st'
+            Vty.EvKey Vty.KEnter [] -> continue $ reload j d $ stFilter s $ stHideMinibuffer st'
+                                        where s = chomp $ unlines $ getEditContents ed
+            ev                      -> do ed' <- handleEvent ev ed
+                                          continue $ st'{aMinibuffer=Just ed'}
+
   where
     -- Encourage a more stable scroll position when toggling list items.
     -- We scroll to the top, and the viewport will automatically

@@ -75,6 +75,7 @@ executable hledger-ui
     , safe >= 0.2
     , split >= 0.1 && < 0.3
     , text >= 1.2 && < 1.3
+    , text-zipper >= 0.4 && < 0.5
     , transformers
     , vector
     , vty >= 5.2 && < 5.6

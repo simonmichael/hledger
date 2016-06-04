@@ -14,6 +14,7 @@ module Hledger.UI.UIUtils (
  ,borderQueryStr
  ,borderDepthStr
  ,borderKeysStr
+ ,minibuffer
  --
  ,stToggleCleared
  ,stTogglePending
@@ -21,6 +22,9 @@ module Hledger.UI.UIUtils (
  ,stToggleEmpty
  ,stToggleFlat
  ,stToggleReal
+ ,stFilter
+ ,stShowMinibuffer
+ ,stHideMinibuffer
  ) where
 
 import Lens.Micro ((^.))
@@ -29,9 +33,11 @@ import Lens.Micro ((^.))
 -- import Data.Default
 import Data.List
 import Data.Monoid
+import Data.Text.Zipper (gotoEOL)
 import Data.Time.Calendar (Day)
 import Brick
 -- import Brick.Widgets.List
+import Brick.Widgets.Edit
 import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
 import Graphics.Vty as Vty
@@ -86,6 +92,20 @@ stToggleReal st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=r
   st{aopts=uopts{cliopts_=copts{reportopts_=toggleReal ropts}}}
   where
     toggleReal ropts = ropts{real_=not $ real_ ropts}
+
+-- | Apply a new filter query.
+stFilter :: String -> AppState -> AppState
+stFilter s st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  st{aopts=uopts{cliopts_=copts{reportopts_=ropts{query_=s}}}}
+
+-- | Enable the minibuffer, setting its content to the current query with the cursor at the end.
+stShowMinibuffer st = st{aMinibuffer=Just e}
+  where
+    e = applyEdit gotoEOL $ editor "minibuffer" (str . unlines) (Just 1) oldq
+    oldq = query_ $ reportopts_ $ cliopts_ $ aopts st
+
+-- | Disable the minibuffer, discarding any edit in progress.
+stHideMinibuffer st = st{aMinibuffer=Nothing}
 
 -- | Regenerate the content for the current and previous screens, from a new journal and current date.
 reload :: Journal -> Day -> AppState -> AppState
@@ -228,4 +248,10 @@ borderKeysStr keydescs =
   where
     -- sep = str " | "
     sep = str " "
+
+minibuffer :: Editor -> Widget
+minibuffer ed =
+  forceAttr (borderAttr <> "minibuffer") $
+  hBox $
+  [txt "filter: ", renderEditor ed]
 

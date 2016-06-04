@@ -154,7 +154,13 @@ KKEEYYSS
 
        q quits the application.
 
-       Some screens have additional key bindings, described below.
+       f lets you add or change the current filter query which limits the data
+       shown on most screens.  While editing, you can use typical command-line
+       edit keys, and press enter to set the new filter, or escape to  cancel.
+       Note queries which filter by account name may not work well in the reg-
+       ister screen.
+
+       Additional screen-specific keys are described below.
 
 SSCCRREEEENNSS
    AAccccoouunnttss ssccrreeeenn

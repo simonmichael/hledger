@@ -92,7 +92,13 @@ screens). With large journal files, there can be a noticeable pause.
 
 `q` quits the application.
 
-Some screens have additional key bindings, described below.
+`f` lets you add or change the current
+[filter query](/journal.html#queries) which limits the data shown on
+most screens. While editing, you can use typical command-line edit keys,
+and press enter to set the new filter, or escape to cancel. Note queries
+which filter by account name may not work well in the register screen.
+
+Additional screen-specific keys are described below.
 
 # SCREENS
 

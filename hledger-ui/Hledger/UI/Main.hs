@@ -115,6 +115,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
                    ,ajournal=j
                    ,aScreen=asSetSelectedAccount acct AS.screen
                    ,aPrevScreens=[]
+                   ,aMinibuffer=Nothing
                    }
   
     st = (sInitFn scr) d
@@ -123,6 +124,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
            ,ajournal=j
            ,aScreen=scr
            ,aPrevScreens=prevscrs
+           ,aMinibuffer=Nothing
            }
          
     app :: App (AppState) V.Event
