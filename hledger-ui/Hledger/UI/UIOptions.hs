@@ -33,7 +33,7 @@ uiflags = [
   -- ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
   -- ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
   ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't compress empty parent accounts on one line"
-  ,flagNone ["value","V"] (setboolopt "value") "show amounts as their market value in their default valuation commodity (accounts screen)"
+  ,flagNone ["value","V"] (setboolopt "value") "show amounts as their current market value in their default valuation commodity (accounts screen)"
  ]
 
 --uimode :: Mode [([Char], [Char])]
