@@ -220,17 +220,10 @@ handleRegisterScreen st@AppState{
         Right j' -> continue $ reload j' d st
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
 
-    Vty.EvKey (Vty.KChar 'E') [] -> do
-      -- encourage a more stable scroll position when toggling items.
-      -- We scroll to the beginning, then the viewport automatically
-      -- scrolls down just far enough to reveal the selection.
-      vScrollToBeginning $ viewportScroll "register"
-      continue $ reload j d $ stToggleEmpty st
-
-    Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
-    Vty.EvKey (Vty.KChar 'R') [] -> continue $ reload j d $ stToggleReal st
-
-    Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
+    Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ reload j d $ stToggleEmpty st)
+    Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ reload j d $ stToggleCleared st)
+    Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ reload j d $ stToggleReal st)
+    Vty.EvKey (Vty.KLeft)     [] -> continue $ popScreen st
 
     Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
       case listSelectedElement l of
@@ -248,5 +241,8 @@ handleRegisterScreen st@AppState{
                                  l' <- handleEvent ev l
                                  continue st{aScreen=s{rsState=(l',acct)}}
                                  -- continue =<< handleEventLensed st someLens ev
+  where
+    -- Encourage a more stable scroll position when toggling list items (cf AccountsScreen.hs)
+    scrollTop = vScrollToBeginning $ viewportScroll "register"
 
 handleRegisterScreen _ _ = error "event handler called with wrong screen type, should not happen"

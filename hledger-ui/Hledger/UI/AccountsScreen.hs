@@ -260,15 +260,15 @@ handleAccountsScreen st@AppState{
         Vty.EvKey (Vty.KChar '9') [] -> continue $ reload j d $ setDepth 9 st'
         Vty.EvKey (Vty.KChar '0') [] -> continue $ reload j d $ setDepth 0 st'
         Vty.EvKey (Vty.KChar 'F') [] -> continue $ reload j d $ stToggleFlat st'
-        Vty.EvKey (Vty.KChar 'E') [] -> continue $ reload j d $ stToggleEmpty st'
-        Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st'
-        Vty.EvKey (Vty.KChar 'R') [] -> continue $ reload j d $ stToggleReal st'
+        Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ reload j d $ stToggleEmpty st')
+        Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ reload j d $ stToggleCleared st')
+        Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ reload j d $ stToggleReal st')
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
         Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
           let
             scr = RS.rsSetCurrentAccount selacct' RS.screen
             st'' = screenEnter d scr st'
-          vScrollToBeginning $ viewportScroll "register"
+          scrollTopRegister
           continue st''
 
         -- fall through to the list's event handler (handles up/down)
@@ -276,6 +276,15 @@ handleAccountsScreen st@AppState{
                                      l' <- handleEvent ev l
                                      continue $ st'{aScreen=scr{asState=(l',selacct')}}
                                  -- continue =<< handleEventLensed st' someLens ev
+  where
+    -- Encourage a more stable scroll position when toggling list items.
+    -- We scroll to the top, and the viewport will automatically
+    -- scroll down just far enough to reveal the selection, which
+    -- usually leaves it at bottom of screen).
+    -- XXX better: scroll so selection is in middle of screen ?
+    scrollTop         = vScrollToBeginning $ viewportScroll "accounts"
+    scrollTopRegister = vScrollToBeginning $ viewportScroll "register"
+
 handleAccountsScreen _ _ = error "event handler called with wrong screen type, should not happen"
 
 -- | Get the maximum account depth in the current journal.
