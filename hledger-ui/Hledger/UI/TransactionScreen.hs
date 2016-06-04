@@ -9,7 +9,7 @@ where
 
 -- import Lens.Micro ((^.))
 import Control.Monad.IO.Class (liftIO)
--- import Data.List
+import Data.List
 -- import Data.List.Split (splitOn)
 -- import Data.Ord
 import Data.Monoid
@@ -22,7 +22,7 @@ import Graphics.Vty as Vty
 -- import Safe (headDef, lastDef)
 import Brick
 import Brick.Widgets.List (listMoveTo)
--- import Brick.Widgets.Border (borderAttr)
+import Brick.Widgets.Border (borderAttr)
 -- import Brick.Widgets.Border.Style
 -- import Brick.Widgets.Center
 -- import Text.Printf
@@ -51,7 +51,7 @@ initTransactionScreen _d st@AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_
 initTransactionScreen _ _ = error "init function called with wrong screen type, should not happen"
 
 drawTransactionScreen :: AppState -> [Widget]
-drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
+drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                               ,aScreen=TransactionScreen{tsState=((i,t),nts,acct)}} = [ui]
   where
     -- datedesc = show (tdate t) ++ " " ++ tdescription t
@@ -62,16 +62,17 @@ drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}
       <+> (str $ "#" ++ show (tindex t))
       <+> str " ("
       <+> withAttr ("border" <> "bold") (str $ show i)
-      <+> str (" of "++show (length nts)++" in "++T.unpack acct++")")
--- on this screen we will ignore real/cleared/empty and always show all postings
---       <+> togglefilters
---     togglefilters =
---       case concat [
---            if cleared_ ropts then ["cleared"] else []
---           ,if real_ ropts then ["real"] else []
---           ] of
---         [] -> str ""
---         fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs) <+> str " postings"
+      <+> str (" of "++show (length nts))
+      <+> togglefilters
+      <+> str (" in "++T.unpack acct++")")
+    togglefilters =
+      case concat [
+           if cleared_ ropts then ["cleared"] else []
+          ,if real_ ropts then ["real"] else []
+          ,if empty_ ropts then [] else ["nonzero"]
+          ] of
+        [] -> str ""
+        fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs)
     bottomlabel = borderKeysStr [
        ("left", "back")
       ,("up/down", "prev/next")
@@ -130,8 +131,10 @@ handleTransactionScreen st@AppState{
 
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
 
---     Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
---     Vty.EvKey (Vty.KChar 'R') [] -> continue $ reload j d $ stToggleReal st
+    -- if allowing toggling here, we should refresh the txn list from the parent register screen
+    -- Vty.EvKey (Vty.KChar 'E') [] -> continue $ reload j d $ stToggleEmpty st
+    -- Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
+    -- Vty.EvKey (Vty.KChar 'R') [] -> continue $ reload j d $ stToggleReal st
 
     Vty.EvKey (Vty.KUp) []       -> continue $ reload j d st{aScreen=s{tsState=((iprev,tprev),nts,acct)}}
     Vty.EvKey (Vty.KDown) []     -> continue $ reload j d st{aScreen=s{tsState=((inext,tnext),nts,acct)}}
