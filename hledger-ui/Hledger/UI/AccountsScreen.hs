@@ -127,6 +127,8 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
       togglefilters =
         case concat [
              if cleared_ ropts then ["cleared"] else []
+            ,if uncleared_ ropts then ["uncleared"] else []
+            ,if pending_ ropts then ["pending"] else []
             ,if real_ ropts then ["real"] else []
             ] of
           [] -> str ""
@@ -144,6 +146,7 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
         ,("F", "flat?")
         ,("E", "nonzero?")
         ,("C", "cleared?")
+        ,("U", "uncleared?")
         ,("R", "real?")
         ,("right/enter", "register")
         ,("g", "reload")
@@ -262,6 +265,7 @@ handleAccountsScreen st@AppState{
         Vty.EvKey (Vty.KChar 'F') [] -> continue $ reload j d $ stToggleFlat st'
         Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ reload j d $ stToggleEmpty st')
         Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ reload j d $ stToggleCleared st')
+        Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ reload j d $ stToggleUncleared st')
         Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ reload j d $ stToggleReal st')
         Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
         Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do

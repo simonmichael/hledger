@@ -68,6 +68,8 @@ drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
     togglefilters =
       case concat [
            if cleared_ ropts then ["cleared"] else []
+          ,if uncleared_ ropts then ["uncleared"] else []
+          ,if pending_ ropts then ["pending"] else []
           ,if real_ ropts then ["real"] else []
           ,if empty_ ropts then [] else ["nonzero"]
           ] of
@@ -77,6 +79,7 @@ drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
        ("left", "back")
       ,("up/down", "prev/next")
 --       ,("C", "cleared?")
+--       ,("U", "uncleared?")
 --       ,("R", "real?")
       ,("g", "reload")
       ,("q", "quit")

@@ -201,8 +201,9 @@ limit.
 balances are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 
-   `C' toggles cleared mode, in which uncleared transactions (and
-postings) are ignored.
+   `C' toggles cleared mode, in which uncleared transactions and
+postings are not shown. `U' toggles uncleared mode, in which only
+uncleared transactions/postings are shown.
 
    `R' toggles real mode, in which virtual postings are ignored.
 
@@ -251,8 +252,9 @@ individual postings), in hledger-ui's register:
 nonzero change are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 
-   `C' toggles cleared mode, in which uncleared transactions (and
-postings) are ignored.
+   `C' toggles cleared mode, in which uncleared transactions and
+postings are not shown. `U' toggles uncleared mode, in which only
+uncleared transactions/postings are shown.
 
    `R' toggles real mode, in which virtual postings are ignored.
 
@@ -305,11 +307,11 @@ Node: SCREENS4209
 Ref: #screens4296
 Node: Accounts screen4386
 Ref: #accounts-screen4516
-Node: Register screen5535
-Ref: #register-screen5692
-Node: Transaction screen7264
-Ref: #transaction-screen7424
-Node: Error screen8291
-Ref: #error-screen8415
+Node: Register screen5620
+Ref: #register-screen5777
+Node: Transaction screen7434
+Ref: #transaction-screen7594
+Node: Error screen8461
+Ref: #error-screen8585
 
 End Tag Table

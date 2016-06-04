@@ -115,8 +115,9 @@ are shown (hledger-ui shows zero items by default, unlike command-line
 hledger).
 
 `C` toggles cleared mode, in which
-[uncleared transactions (and postings)](/journal.html#transactions) are
-ignored.
+[uncleared transactions and postings](/journal.html#transactions) are
+not shown. `U` toggles uncleared mode, in which only uncleared
+transactions/postings are shown.
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 
@@ -162,8 +163,9 @@ change are shown (hledger-ui shows zero items by default,
 unlike command-line hledger).
 
 `C` toggles cleared mode, in which
-[uncleared transactions (and postings)](/journal.html#transactions) are
-ignored.
+[uncleared transactions and postings](/journal.html#transactions) are
+not shown. `U` toggles uncleared mode, in which only uncleared
+transactions/postings are shown.
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 

@@ -175,8 +175,9 @@ SSCCRREEEENNSS
        are shown (hledger-ui shows zero items by default, unlike  command-line
        hledger).
 
-       C  toggles cleared mode, in which uncleared transactions (and postings)
-       are ignored.
+       C  toggles  cleared  mode, in which uncleared transactions and postings
+       are not shown.  U toggles  uncleared  mode,  in  which  only  uncleared
+       transactions/postings are shown.
 
        R toggles real mode, in which virtual postings are ignored.
 
@@ -189,17 +190,17 @@ SSCCRREEEENNSS
 
        +o Each line represents a whole transaction.
 
-       +o For each transaction, it shows  the  other  account(s)  involved,  in
-         abbreviated  form.   (If there are both real and virtual postings, it
+       +o For  each  transaction,  it  shows  the other account(s) involved, in
+         abbreviated form.  (If there are both real and virtual  postings,  it
          shows only the accounts affected by real postings.)
 
-       +o It shows the overall change to the  current  account's  balance  from
-         each  transaction;  positive  for an inflow to this account, negative
+       +o It  shows  the  overall  change to the current account's balance from
+         each transaction; positive for an inflow to  this  account,  negative
          for an outflow.
 
        +o When no query other than a date limit is in effect, it shows the cur-
-         rent  account's  historic balance as of the transaction date.  Other-
-         wise it shows a running total starting from  zero.   Eg,  these  will
+         rent account's historic balance as of the transaction  date.   Other-
+         wise  it  shows  a  running total starting from zero.  Eg, these will
          show historic balances:
 
                 $ hledger-ui
@@ -213,12 +214,13 @@ SSCCRREEEENNSS
                 $ hledger-ui --begin 'this month' desc:market
                 $ hledger-ui --register checking --cleared
 
-       E toggles nonzero mode, in which only transactions  posting  a  nonzero
-       change  are  shown (hledger-ui shows zero items by default, unlike com-
+       E  toggles  nonzero  mode, in which only transactions posting a nonzero
+       change are shown (hledger-ui shows zero items by default,  unlike  com-
        mand-line hledger).
 
-       C toggles cleared mode, in which uncleared transactions (and  postings)
-       are ignored.
+       C  toggles  cleared  mode, in which uncleared transactions and postings
+       are not shown.  U toggles  uncleared  mode,  in  which  only  uncleared
+       transactions/postings are shown.
 
        R toggles real mode, in which virtual postings are ignored.
 

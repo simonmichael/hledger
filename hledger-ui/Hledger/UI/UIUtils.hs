@@ -16,6 +16,8 @@ module Hledger.UI.UIUtils (
  ,borderKeysStr
  --
  ,stToggleCleared
+ ,stTogglePending
+ ,stToggleUncleared
  ,stToggleEmpty
  ,stToggleFlat
  ,stToggleReal
@@ -42,38 +44,48 @@ import Hledger.Reports.ReportOptions
 import Hledger.Utils (applyN)
 -- import Hledger.Utils.Debug
 
+-- | Toggle between showing only cleared items or all items.
 stToggleCleared :: AppState -> AppState
 stToggleCleared st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   st{aopts=uopts{cliopts_=copts{reportopts_=toggleCleared ropts}}}
+  where
+    toggleCleared ropts = ropts{cleared_=not $ cleared_ ropts, uncleared_=False, pending_=False}
 
--- | Toggle between showing all and showing only cleared items.
-toggleCleared :: ReportOpts -> ReportOpts
-toggleCleared ropts = ropts{cleared_=not $ cleared_ ropts}
+-- | Toggle between showing only pending items or all items.
+stTogglePending :: AppState -> AppState
+stTogglePending st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  st{aopts=uopts{cliopts_=copts{reportopts_=togglePending ropts}}}
+  where
+    togglePending ropts = ropts{pending_=not $ pending_ ropts, uncleared_=False, cleared_=False}
 
+-- | Toggle between showing only uncleared items or all items.
+stToggleUncleared :: AppState -> AppState
+stToggleUncleared st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  st{aopts=uopts{cliopts_=copts{reportopts_=toggleUncleared ropts}}}
+  where
+    toggleUncleared ropts = ropts{uncleared_=not $ uncleared_ ropts, cleared_=False, pending_=False}
+
+-- | Toggle between showing all and showing only nonempty (more precisely, nonzero) items.
 stToggleEmpty :: AppState -> AppState
 stToggleEmpty st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   st{aopts=uopts{cliopts_=copts{reportopts_=toggleEmpty ropts}}}
+  where
+    toggleEmpty ropts = ropts{empty_=not $ empty_ ropts}
 
--- | Toggle between showing all and showing only empty items.
-toggleEmpty :: ReportOpts -> ReportOpts
-toggleEmpty ropts = ropts{empty_=not $ empty_ ropts}
-
+-- | Toggle between flat and tree mode. If in the third "default" mode, go to flat mode.
 stToggleFlat :: AppState -> AppState
 stToggleFlat st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   st{aopts=uopts{cliopts_=copts{reportopts_=toggleFlatMode ropts}}}
+  where
+    toggleFlatMode ropts@ReportOpts{accountlistmode_=ALFlat} = ropts{accountlistmode_=ALTree}
+    toggleFlatMode ropts = ropts{accountlistmode_=ALFlat}
 
--- | Toggle between flat and tree mode. If in the third "default" mode, go to flat mode.
-toggleFlatMode :: ReportOpts -> ReportOpts
-toggleFlatMode ropts@ReportOpts{accountlistmode_=ALFlat} = ropts{accountlistmode_=ALTree}
-toggleFlatMode ropts = ropts{accountlistmode_=ALFlat}
-
+-- | Toggle between showing all and showing only real (non-virtual) items.
 stToggleReal :: AppState -> AppState
 stToggleReal st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   st{aopts=uopts{cliopts_=copts{reportopts_=toggleReal ropts}}}
-
--- | Toggle between showing all and showing only real (non-virtual) items.
-toggleReal :: ReportOpts -> ReportOpts
-toggleReal ropts = ropts{real_=not $ real_ ropts}
+  where
+    toggleReal ropts = ropts{real_=not $ real_ ropts}
 
 -- | Regenerate the content for the current and previous screens, from a new journal and current date.
 reload :: Journal -> Day -> AppState -> AppState
