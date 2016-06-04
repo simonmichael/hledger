@@ -109,7 +109,7 @@ type AccountTransactionsReportItem =
   ,Bool        -- is this a split, ie with more than one posting to other account(s)
   ,String      -- a display string describing the other account(s), if any
   ,MixedAmount -- the amount posted to the current account(s) (or total amount posted)
-  ,MixedAmount -- the running balance for the current account(s) after this transaction
+  ,MixedAmount -- the historical balance or running total for the current account(s) after this transaction
   )
 
 accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> AccountTransactionsReport
@@ -120,16 +120,18 @@ accountTransactionsReport opts j q thisacctquery = (label, items)
     -- apply any cur:SYM filters in q
     symq  = filterQuery queryIsSym q
     ts2 = (if queryIsNull symq then id else map (filterTransactionAmounts symq)) ts1
-    -- keep just the transactions affecting this account
-    ts3 = filter (matchesTransaction thisacctquery) ts2
+    -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
+    realq = filterQuery queryIsReal q
+    statusq = filterQuery queryIsStatus q
+    ts3 = filter (matchesTransaction thisacctquery . filterTransactionPostings (And [realq, statusq])) ts2
     -- adjust the transaction dates to the dates of postings to this account
-    -- XXX can be wrong since we filter real postings later ?
     ts4 = map (setTransactionDateToPostingDate q thisacctquery) ts3
     -- sort by the new dates
     ts = sortBy (comparing tdate) ts4
 
     -- starting balance: if we are filtering by a start date and nothing else,
-    -- the sum of postings to this account before that date; otherwise zero.
+    -- this is the sum of the (possibly realness or status-filtered) postings
+    -- to this account before that date; otherwise zero.
     (startbal,label) | queryIsNull q                        = (nullmixedamt,        balancelabel)
                      | queryIsStartDateOnly (date2_ opts) q = (sumPostings priorps, balancelabel)
                      | otherwise                            = (nullmixedamt,        totallabel)
@@ -137,7 +139,7 @@ accountTransactionsReport opts j q thisacctquery = (label, items)
                        priorps = -- ltrace "priorps" $
                                  filter (matchesPosting
                                          (-- ltrace "priormatcher" $
-                                          And [thisacctquery, tostartdatequery]))
+                                          And [thisacctquery, realq, statusq, tostartdatequery]))
                                         $ transactionsPostings ts
                        tostartdatequery = Date (DateSpan Nothing startdate)
                        startdate = queryStartDate (date2_ opts) q

@@ -25,6 +25,7 @@ module Hledger.Query (
   queryIsStartDateOnly,
   queryIsSym,
   queryIsReal,
+  queryIsStatus,
   queryStartDate,
   queryEndDate,
   queryDateSpan,
@@ -459,6 +460,10 @@ queryIsSym _ = False
 queryIsReal :: Query -> Bool
 queryIsReal (Real _) = True
 queryIsReal _ = False
+
+queryIsStatus :: Query -> Bool
+queryIsStatus (Status _) = True
+queryIsStatus _ = False
 
 -- | Does this query specify a start date and nothing else (that would
 -- filter postings prior to the date) ?
