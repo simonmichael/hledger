@@ -126,15 +126,15 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
            ,aPrevScreens=prevscrs
            ,aMinibuffer=Nothing
            }
-         
-    app :: App (AppState) V.Event
-    app = App {
+
+    brickapp :: App (AppState) V.Event
+    brickapp = App {
         appLiftVtyEvent = id
       , appStartEvent   = return
       , appAttrMap      = const theme
       , appChooseCursor = showFirstCursor
       , appHandleEvent  = \st ev -> sHandleFn (aScreen st) st ev
-      , appDraw         = \st -> sDrawFn (aScreen st) st
+      , appDraw         = \st    -> sDrawFn   (aScreen st) st
          -- XXX bizarro. removing the st arg and parameter above,
          -- which according to GHCI does not change the type,
          -- causes "Exception: draw function called with wrong screen type"
@@ -142,5 +142,5 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
          -- causes an exception on exiting a register.
       }
 
-  void $ defaultMain app st
+  void $ defaultMain brickapp st
 
