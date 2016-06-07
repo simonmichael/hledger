@@ -64,6 +64,7 @@ drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
       <+> withAttr ("border" <> "bold") (str $ show i)
       <+> str (" of "++show (length nts))
       <+> togglefilters
+      <+> borderQueryStr (query_ ropts)
       <+> str (" in "++T.unpack acct++")")
     togglefilters =
       case concat [
