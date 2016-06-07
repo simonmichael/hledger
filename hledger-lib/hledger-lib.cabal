@@ -188,5 +188,7 @@ test-suite doctests
   main-is: doctests.hs
   build-depends:
       base
+    , Glob >= 0.7
     , doctest >= 0.8
+    --, hledger-lib ?
   default-language: Haskell2010

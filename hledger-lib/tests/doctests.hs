@@ -1,6 +1,9 @@
+{-# LANGUAGE PackageImports #-}
+
+import Data.List
+import "Glob" System.FilePath.Glob
 import Test.DocTest
 
-main = doctest [
-   "Hledger/Read/JournalReader.hs"
-  ,"Hledger/Data/Dates.hs"
-  ]
+main = do
+  fs <- ("Hledger.hs" :) . filter (not . isInfixOf "/.") <$> glob "Hledger/**/*.hs"
+  doctest fs
