@@ -179,7 +179,8 @@ drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           ,("C", "cleared?")
           ,("U", "uncleared?")
           ,("R", "real?")
-          ,("f", "filter")
+          ,("/", "filter")
+          ,("DEL", "unfilter")
           ,("right/enter", "transaction")
           ,("g", "reload")
           ,("q", "quit")
@@ -238,7 +239,8 @@ handleRegisterScreen st@AppState{
         Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ reload j d $ stToggleCleared st)
         Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ reload j d $ stToggleUncleared st)
         Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ reload j d $ stToggleReal st)
-        Vty.EvKey (Vty.KChar 'f') [] -> (continue $ reload j d $ stShowMinibuffer st)
+        Vty.EvKey k [] | k `elem` [Vty.KChar '/'] -> (continue $ reload j d $ stShowMinibuffer st)
+        Vty.EvKey k [] | k `elem` [Vty.KBS, Vty.KDel] -> (continue $ reload j d $ stResetFilter st)
         Vty.EvKey (Vty.KLeft)     [] -> continue $ popScreen st
 
         Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
