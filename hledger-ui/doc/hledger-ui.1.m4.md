@@ -87,10 +87,11 @@ _reportingoptions_
 Generally the cursor keys navigate; `right` (or `enter`) goes deeper, `left` returns to the previous screen,
 `up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
 
-`g` gets the latest data and refreshes the screen (and any previous
-screens). With large journal files, there can be a noticeable pause.
+`g` gets the latest data and refreshes the current screen and any
+previous screens. (With large journal files, there can be a noticeable
+pause.)
 
-`/` lets you set or change the [filter query](/journal.html#queries),
+`/` lets you set or change the [filter query](/hledger.html#queries),
 which limits the data shown on most screens (in addition to the quick
 filters described below). While editing the query you can use typical
 command-line edit keys (ctrl-a/e/k), press enter to set the new filter,
