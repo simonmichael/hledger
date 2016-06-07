@@ -33,9 +33,9 @@ screen = ErrorScreen{
   ,sHandleFn = handleErrorScreen
   }
 
-initErrorScreen :: Day -> AppState -> AppState
-initErrorScreen _ st@AppState{aScreen=ErrorScreen{}} = st
-initErrorScreen _ _ = error "init function called with wrong screen type, should not happen"
+initErrorScreen :: Day -> Bool -> AppState -> AppState
+initErrorScreen _ _ st@AppState{aScreen=ErrorScreen{}} = st
+initErrorScreen _ _ _ = error "init function called with wrong screen type, should not happen"
 
 drawErrorScreen :: AppState -> [Widget]
 drawErrorScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
@@ -103,12 +103,12 @@ handleErrorScreen st@AppState{
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   } e = do
+  d <- liftIO getCurrentDay
   case e of
-    Vty.EvKey Vty.KEsc []        -> halt st
     Vty.EvKey (Vty.KChar 'q') [] -> halt st
+    Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
 
     Vty.EvKey (Vty.KChar 'g') [] -> do
-      d <- liftIO getCurrentDay
       (ej, _) <- liftIO $ journalReloadIfChanged copts d j
       case ej of
         Left err -> continue st{aScreen=s{esState=err}} -- show latest parse error

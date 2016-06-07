@@ -45,8 +45,8 @@ screen = RegisterScreen{
 rsSetCurrentAccount a scr@RegisterScreen{rsState=(l,_)} = scr{rsState=(l,a)}
 rsSetCurrentAccount _ scr = scr
 
-initRegisterScreen :: Day -> AppState -> AppState
-initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{rsState=(oldl,acct)}} =
+initRegisterScreen :: Day -> Bool -> AppState -> AppState
+initRegisterScreen d reset st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{rsState=(oldl,acct)}} =
   st{aScreen=s{rsState=(newl',acct)}}
   where
     -- gather arguments and queries
@@ -86,12 +86,13 @@ initRegisterScreen d st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScree
     -- (eg after toggling nonzero mode), otherwise select the last element.
     newl' = listMoveTo newselidx newl
       where
-        newselidx = case listSelectedElement oldl of
-                      Nothing                                     -> endidx
-                      Just (_,(_,_,_,_,_,Transaction{tindex=ti})) -> fromMaybe endidx $ findIndex ((==ti) . tindex . sixth6) displayitems
+        newselidx = case (reset, listSelectedElement oldl) of
+                      (True, _)                                        -> 0
+                      (_, Nothing)                                     -> endidx
+                      (_, Just (_,(_,_,_,_,_,Transaction{tindex=ti}))) -> fromMaybe endidx $ findIndex ((==ti) . tindex . sixth6) displayitems
         endidx = length displayitems
 
-initRegisterScreen _ _ = error "init function called with wrong screen type, should not happen"
+initRegisterScreen _ _ _ = error "init function called with wrong screen type, should not happen"
 
 drawRegisterScreen :: AppState -> [Widget]
 drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
@@ -182,6 +183,7 @@ drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           ,("/", "filter")
           ,("DEL", "unfilter")
           ,("right/enter", "transaction")
+          ,("ESC", "cancel/top")
           ,("g", "reload")
           ,("q", "quit")
           ]
@@ -228,6 +230,7 @@ handleRegisterScreen st@AppState{
 
       case ev of
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
+        Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
 
         Vty.EvKey (Vty.KChar 'g') [] -> do
           (ej, _) <- liftIO $ journalReloadIfChanged copts d j

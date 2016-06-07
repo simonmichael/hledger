@@ -42,13 +42,13 @@ screen = TransactionScreen{
   ,sHandleFn = handleTransactionScreen
   }
 
-initTransactionScreen :: Day -> AppState -> AppState
-initTransactionScreen _d st@AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
+initTransactionScreen :: Day -> Bool -> AppState -> AppState
+initTransactionScreen _d _reset st@AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
                                     ,ajournal=_j
                                     ,aScreen=s@TransactionScreen{tsState=((n,t),nts,a)}} =
   st{aScreen=s{tsState=((n,t),nts,a)}}
 
-initTransactionScreen _ _ = error "init function called with wrong screen type, should not happen"
+initTransactionScreen _ _ _ = error "init function called with wrong screen type, should not happen"
 
 drawTransactionScreen :: AppState -> [Widget]
 drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
@@ -104,8 +104,8 @@ handleTransactionScreen st@AppState{
     (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
     (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
   case e of
-    Vty.EvKey Vty.KEsc []        -> halt st
     Vty.EvKey (Vty.KChar 'q') [] -> halt st
+    Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
 
     Vty.EvKey (Vty.KChar 'g') [] -> do
       d <- liftIO getCurrentDay

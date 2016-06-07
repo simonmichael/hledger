@@ -70,7 +70,8 @@ data Screen =
                       )
                     ,AccountName    --  full name of the currently selected account (or "")
                     )
-      ,sInitFn   :: Day -> AppState -> AppState                    -- ^ function to generate the screen's state on entry or change
+      ,sInitFn   :: Day -> Bool -> AppState -> AppState            -- ^ function to generate/update the screen's state,
+                                                                   --   takes the current date and whether to reset the selection.
       ,sDrawFn   :: AppState -> [Widget]                           -- ^ brick renderer to use for this screen
       ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)  -- ^ brick event handler to use for this screen
     }
@@ -85,22 +86,22 @@ data Screen =
                       )
                     ,AccountName    --  full name of the acct we are showing a register for
                     )
-      ,sInitFn   :: Day -> AppState -> AppState                    -- ^ function to generate the screen's state on entry or change
-      ,sDrawFn   :: AppState -> [Widget]                           -- ^ brick renderer to use for this screen
-      ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)  -- ^ brick event handler to use for this screen
+      ,sInitFn   :: Day -> Bool -> AppState -> AppState
+      ,sDrawFn   :: AppState -> [Widget]
+      ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     }
   | TransactionScreen {
        tsState   :: ((Integer, Transaction)    --  the (numbered) transaction we are currently viewing
                     ,[(Integer, Transaction)]  --  the list of numbered transactions we can step through
                     ,AccountName               --  the account whose register we entered this screen from
                     )
-      ,sInitFn   :: Day -> AppState -> AppState
+      ,sInitFn   :: Day -> Bool -> AppState -> AppState
       ,sDrawFn   :: AppState -> [Widget]
       ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     }
   | ErrorScreen {
        esState   :: String                     --  error message to display
-      ,sInitFn   :: Day -> AppState -> AppState
+      ,sInitFn   :: Day -> Bool -> AppState -> AppState
       ,sDrawFn   :: AppState -> [Widget]
       ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     }

@@ -49,8 +49,8 @@ screen = AccountsScreen{
 asSetSelectedAccount a scr@AccountsScreen{asState=(l,_)} = scr{asState=(l,a)}
 asSetSelectedAccount _ scr = scr
 
-initAccountsScreen :: Day -> AppState -> AppState
-initAccountsScreen d st@AppState{
+initAccountsScreen :: Day -> Bool -> AppState -> AppState
+initAccountsScreen d reset st@AppState{
   aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}},
   ajournal=j,
   aScreen=s@AccountsScreen{asState=(oldl,selacct)}
@@ -63,9 +63,10 @@ initAccountsScreen d st@AppState{
     -- (may need to move to the next leaf account when entering flat mode)
     newl' = listMoveTo selidx newl
       where
-        selidx = case listSelectedElement oldl of
-                   Nothing            -> 0
-                   Just (_,(_,a,_,_)) -> fromMaybe (fromMaybe 0 mprefixmatch) mexactmatch
+        selidx = case (reset, listSelectedElement oldl) of
+                   (True, _)               -> 0
+                   (_, Nothing)            -> 0
+                   (_, Just (_,(_,a,_,_))) -> fromMaybe (fromMaybe 0 mprefixmatch) mexactmatch
                      where
                        mexactmatch  = findIndex ((a ==)                      . second4) displayitems
                        mprefixmatch = findIndex ((a `isAccountNamePrefixOf`) . second4) displayitems
@@ -99,7 +100,7 @@ initAccountsScreen d st@AppState{
     displayitems = map displayitem items
 
 
-initAccountsScreen _ _ = error "init function called with wrong screen type, should not happen"
+initAccountsScreen _ _ _ = error "init function called with wrong screen type, should not happen"
 
 drawAccountsScreen :: AppState -> [Widget]
 drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
@@ -153,6 +154,7 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
         ,("/", "filter")
         ,("DEL", "unfilter")
         ,("right/enter", "register")
+        ,("ESC", "cancel/top")
         ,("g", "reload")
         ,("q", "quit")
         ]
@@ -253,6 +255,7 @@ handleAccountsScreen st@AppState{
         case ev of
             Vty.EvKey (Vty.KChar 'q') [] -> halt st'
             -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
+            Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st'
 
             Vty.EvKey (Vty.KChar 'g') [] -> do
               (ej, _) <- liftIO $ journalReloadIfChanged copts d j

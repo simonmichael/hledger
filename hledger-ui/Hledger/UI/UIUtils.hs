@@ -3,6 +3,7 @@
 module Hledger.UI.UIUtils (
   pushScreen
  ,popScreen
+ ,resetScreens
  ,screenEnter
  ,reload
  ,getViewportSize
@@ -23,6 +24,7 @@ module Hledger.UI.UIUtils (
  ,stToggleFlat
  ,stToggleReal
  ,stFilter
+ ,stResetFilter
  ,stShowMinibuffer
  ,stHideMinibuffer
  ) where
@@ -98,6 +100,22 @@ stFilter :: String -> AppState -> AppState
 stFilter s st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   st{aopts=uopts{cliopts_=copts{reportopts_=ropts{query_=s}}}}
 
+-- | Clear all filter queries/flags.
+stResetFilter :: AppState -> AppState
+stResetFilter st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  st{aopts=uopts{cliopts_=copts{reportopts_=ropts{
+     empty_=True
+    ,cleared_=False
+    ,pending_=False
+    ,uncleared_=False
+    ,real_=False
+    ,query_=""
+    }}}}
+
+stResetDepth :: AppState -> AppState
+stResetDepth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=Nothing}}}}
+
 -- | Enable the minibuffer, setting its content to the current query with the cursor at the end.
 stShowMinibuffer st = st{aMinibuffer=Just e}
   where
@@ -117,8 +135,8 @@ reload j d st@AppState{aScreen=s,aPrevScreens=ss} =
   let
     first:rest = reverse $ s:ss
     st0 = st{ajournal=j, aScreen=first, aPrevScreens=[]}
-    st1 = (sInitFn first) d st0
-    st2 = foldl' (\st s -> (sInitFn s) d $ pushScreen s st) st1 rest
+    st1 = (sInitFn first) d False st0
+    st2 = foldl' (\st s -> (sInitFn s) d False $ pushScreen s st) st1 rest
   in
     st2
 
@@ -131,13 +149,20 @@ popScreen :: AppState -> AppState
 popScreen st@AppState{aPrevScreens=s:ss} = st{aScreen=s, aPrevScreens=ss}
 popScreen st = st
 
+resetScreens :: Day -> AppState -> AppState
+resetScreens d st@AppState{aScreen=s,aPrevScreens=ss} =
+  (sInitFn topscreen) d True $ stResetDepth $ stResetFilter $ stHideMinibuffer st{aScreen=topscreen, aPrevScreens=[]}
+  where
+    topscreen = case ss of _:_ -> last ss
+                           []  -> s
+
 -- clearScreens :: AppState -> AppState
 -- clearScreens st = st{aPrevScreens=[]}
 
 -- | Enter a new screen, saving the old screen & state in the
 -- navigation history and initialising the new screen's state.
 screenEnter :: Day -> Screen -> AppState -> AppState
-screenEnter d scr st = (sInitFn scr) d $
+screenEnter d scr st = (sInitFn scr) d True $
                        pushScreen scr
                        st
 
