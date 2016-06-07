@@ -87,16 +87,20 @@ _reportingoptions_
 Generally the cursor keys navigate; `right` (or `enter`) goes deeper, `left` returns to the previous screen,
 `up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
 
-`g` gets the latest data and reloads the screen (and any previous
+`g` gets the latest data and refreshes the screen (and any previous
 screens). With large journal files, there can be a noticeable pause.
 
-`q` quits the application.
+`/` lets you set or change the [filter query](/journal.html#queries),
+which limits the data shown on most screens (in addition to the quick
+filters described below). While editing the query you can use typical
+command-line edit keys (ctrl-a/e/k), press enter to set the new filter,
+or press escape to cancel.
 
-`f` lets you add or change the current
-[filter query](/journal.html#queries) which limits the data shown on
-most screens. While editing, you can use typical command-line edit keys,
-and press enter to set the new filter, or escape to cancel. Note queries
-which filter by account name may not work well in the register screen.
+`BACKSPACE` or `DELETE` clears any filters in effect.
+
+`ESCAPE` clears any filters and jumps to the top screen.
+
+`q` quits the application.
 
 Additional screen-specific keys are described below.
 
@@ -177,6 +181,9 @@ transactions/postings are shown.
 
 Press `right` or `enter` to view the selected transaction in full
 detail.
+
+Note, filter queries which filter by account name do not yet do much
+useful on this screen.
 
 ## Transaction screen
 

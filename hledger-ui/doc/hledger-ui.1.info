@@ -157,16 +157,20 @@ Generally the cursor keys navigate; `right' (or `enter') goes deeper,
 `left' returns to the previous screen, `up'/`down'/`page up'/`page
 down'/`home'/`end' move up and down through lists.
 
-   `g' gets the latest data and reloads the screen (and any previous
+   `g' gets the latest data and refreshes the screen (and any previous
 screens). With large journal files, there can be a noticeable pause.
 
-   `q' quits the application.
+   `/' lets you set or change the filter query, which limits the data
+shown on most screens (in addition to the quick filters described
+below). While editing the query you can use typical command-line edit
+keys (ctrl-a/e/k), press enter to set the new filter, or press escape to
+cancel.
 
-   `f' lets you add or change the current filter query which limits the
-data shown on most screens. While editing, you can use typical
-command-line edit keys, and press enter to set the new filter, or escape
-to cancel. Note queries which filter by account name may not work well
-in the register screen.
+   `BACKSPACE' or `DELETE' clears any filters in effect.
+
+   `ESCAPE' clears any filters and jumps to the top screen.
+
+   `q' quits the application.
 
    Additional screen-specific keys are described below.
 
@@ -267,6 +271,9 @@ uncleared transactions/postings are shown.
    Press `right' or `enter' to view the selected transaction in full
 detail.
 
+   Note, filter queries which filter by account name do not yet do much
+useful on this screen.
+
 
 File: hledger-ui.1.info,  Node: Transaction screen,  Next: Error screen,  Prev: Register screen,  Up: SCREENS
 
@@ -309,15 +316,15 @@ Node: OPTIONS714
 Ref: #options813
 Node: KEYS3689
 Ref: #keys3786
-Node: SCREENS4506
-Ref: #screens4593
-Node: Accounts screen4683
-Ref: #accounts-screen4813
-Node: Register screen5917
-Ref: #register-screen6074
-Node: Transaction screen7731
-Ref: #transaction-screen7891
-Node: Error screen8758
-Ref: #error-screen8882
+Node: SCREENS4611
+Ref: #screens4698
+Node: Accounts screen4788
+Ref: #accounts-screen4918
+Node: Register screen6022
+Ref: #register-screen6179
+Node: Transaction screen7932
+Ref: #transaction-screen8092
+Node: Error screen8959
+Ref: #error-screen9083
 
 End Tag Table

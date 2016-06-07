@@ -226,18 +226,22 @@ goes deeper, \f[C]left\f[] returns to the previous screen,
 \f[C]up\f[]/\f[C]down\f[]/\f[C]page\ up\f[]/\f[C]page\ down\f[]/\f[C]home\f[]/\f[C]end\f[]
 move up and down through lists.
 .PP
-\f[C]g\f[] gets the latest data and reloads the screen (and any previous
-screens).
+\f[C]g\f[] gets the latest data and refreshes the screen (and any
+previous screens).
 With large journal files, there can be a noticeable pause.
 .PP
-\f[C]q\f[] quits the application.
+\f[C]/\f[] lets you set or change the filter query, which limits the
+data shown on most screens (in addition to the quick filters described
+below).
+While editing the query you can use typical command\-line edit keys
+(ctrl\-a/e/k), press enter to set the new filter, or press escape to
+cancel.
 .PP
-\f[C]f\f[] lets you add or change the current filter query which limits
-the data shown on most screens.
-While editing, you can use typical command\-line edit keys, and press
-enter to set the new filter, or escape to cancel.
-Note queries which filter by account name may not work well in the
-register screen.
+\f[C]BACKSPACE\f[] or \f[C]DELETE\f[] clears any filters in effect.
+.PP
+\f[C]ESCAPE\f[] clears any filters and jumps to the top screen.
+.PP
+\f[C]q\f[] quits the application.
 .PP
 Additional screen\-specific keys are described below.
 .SH SCREENS
@@ -330,6 +334,9 @@ transactions/postings are shown.
 .PP
 Press \f[C]right\f[] or \f[C]enter\f[] to view the selected transaction
 in full detail.
+.PP
+Note, filter queries which filter by account name do not yet do much
+useful on this screen.
 .SS Transaction screen
 .PP
 This screen shows a single transaction, as a general journal entry,

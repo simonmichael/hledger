@@ -149,16 +149,20 @@ KKEEYYSS
        returns to the previous screen, up/down/page up/page down/home/end move
        up and down through lists.
 
-       g  gets  the  latest  data  and  reloads  the  screen (and any previous
+       g  gets  the  latest  data  and  refreshes the screen (and any previous
        screens).  With large journal files, there can be a noticeable pause.
 
-       q quits the application.
+       / lets you set or change the filter query, which limits the data  shown
+       on  most  screens  (in  addition to the quick filters described below).
+       While editing the query you can  use  typical  command-line  edit  keys
+       (ctrl-a/e/k),  press  enter  to  set the new filter, or press escape to
+       cancel.
 
-       f lets you add or change the current filter query which limits the data
-       shown on most screens.  While editing, you can use typical command-line
-       edit keys, and press enter to set the new filter, or escape to  cancel.
-       Note queries which filter by account name may not work well in the reg-
-       ister screen.
+       BACKSPACE or DELETE clears any filters in effect.
+
+       ESCAPE clears any filters and jumps to the top screen.
+
+       q quits the application.
 
        Additional screen-specific keys are described below.
 
@@ -232,34 +236,37 @@ SSCCRREEEENNSS
 
        Press right or enter to view the selected transaction in full detail.
 
+       Note,  filter  queries  which filter by account name do not yet do much
+       useful on this screen.
+
    TTrraannssaaccttiioonn ssccrreeeenn
-       This  screen  shows  a  single transaction, as a general journal entry,
-       similar to hledger's print command and  journal  format  (hledger_jour-
+       This screen shows a single transaction, as  a  general  journal  entry,
+       similar  to  hledger's  print command and journal format (hledger_jour-
        nal(5)).
 
-       The  transaction's  date(s)  and  any  cleared  flag, transaction code,
-       description, comments, along with  all  of  its  account  postings  are
-       shown.   Simple  transactions  have two postings, but there can be more
+       The transaction's date(s)  and  any  cleared  flag,  transaction  code,
+       description,  comments,  along  with  all  of  its account postings are
+       shown.  Simple transactions have two postings, but there  can  be  more
        (or in certain cases, fewer).
 
-       up and down will step through all transactions listed in  the  previous
-       account  register screen.  In the title bar, the numbers in parentheses
-       show your position  within  that  account  register.   They  will  vary
+       up  and  down will step through all transactions listed in the previous
+       account register screen.  In the title bar, the numbers in  parentheses
+       show  your  position  within  that  account  register.   They will vary
        depending on which account register you came from (remember most trans-
        actions appear in multiple account registers).  The #N number preceding
        them is the transaction's position within the complete unfiltered jour-
        nal, which is a more stable id (at least until the next reload).
 
    EErrrroorr ssccrreeeenn
-       This screen will appear if there is a problem, such as a  parse  error,
+       This  screen  will appear if there is a problem, such as a parse error,
        when you press g to reload.  Once you have fixed the problem described,
        press g again to reload and restore normal operation.
 
 EENNVVIIRROONNMMEENNTT
-       LLEEDDGGEERR__FFIILLEE sets the default journal file path.   If  not  set,  it  is
+       LLEEDDGGEERR__FFIILLEE  sets  the  default  journal  file path.  If not set, it is
        ~/.hledger.journal.
 
-       CCOOLLUUMMNNSS  sets  the  screen  width  to  use  (normally the full terminal
+       CCOOLLUUMMNNSS sets the screen  width  to  use  (normally  the  full  terminal
        width).
 
 FFIILLEESS
@@ -268,7 +275,7 @@ FFIILLEESS
        file.
 
 BBUUGGSS
-       The need to precede options with -- when invoked from hledger  is  awk-
+       The  need  to precede options with -- when invoked from hledger is awk-
        ward.
 
        -f- doesn't work (hledger-ui can't read from stdin).
@@ -279,14 +286,14 @@ BBUUGGSS
        which may cause a noticeable pause.  Also there is no visual indication
        that this is in progress.
 
-       The  register  screen's  switching between historic balance and running
+       The register screen's switching between historic  balance  and  running
        total based on query arguments may be confusing, and there is no column
        heading to indicate which is being displayed.
 
 
 
 RREEPPOORRTTIINNGG BBUUGGSS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -300,7 +307,7 @@ CCOOPPYYRRIIGGHHTT
 
 
 SSEEEE AALLSSOO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
