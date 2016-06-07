@@ -4,7 +4,7 @@
 
 # cf https://github.com/commercialhaskell/stack/wiki/stack.yaml
 
-resolver: nightly-2016-05-27
+resolver: nightly-2016-06-01
 
 packages:
 - hledger-lib
