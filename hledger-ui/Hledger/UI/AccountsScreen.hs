@@ -41,36 +41,38 @@ import Hledger.UI.ErrorScreen
 
 accountsScreen :: Screen
 accountsScreen = AccountsScreen{
-   asState   = (list "accounts" V.empty 1, "")
+   asState   = AccountsScreenState{asItems=list "accounts" V.empty 1
+                                  ,asSelectedAccount=""
+                                  }
   ,sInitFn   = initAccountsScreen
   ,sDrawFn   = drawAccountsScreen
   ,sHandleFn = handleAccountsScreen
   }
 
-asSetSelectedAccount a scr@AccountsScreen{asState=(l,_)} = scr{asState=(l,a)}
+asSetSelectedAccount a scr@AccountsScreen{asState=st} = scr{asState=st{asSelectedAccount=a}}
 asSetSelectedAccount _ scr = scr
 
 initAccountsScreen :: Day -> Bool -> AppState -> AppState
 initAccountsScreen d reset st@AppState{
   aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}},
   ajournal=j,
-  aScreen=s@AccountsScreen{asState=(oldl,selacct)}
+  aScreen=s@AccountsScreen{asState=asState@AccountsScreenState{..}}
   } =
-  st{aopts=uopts', aScreen=s{asState=(newl',selacct)}}
+  st{aopts=uopts', aScreen=s{asState=asState{asItems=newitems'}}}
    where
-    newl = list (Name "accounts") (V.fromList displayitems) 1
+    newitems = list (Name "accounts") (V.fromList displayitems) 1
 
     -- keep the selection near the last selected account
     -- (may need to move to the next leaf account when entering flat mode)
-    newl' = listMoveTo selidx newl
+    newitems' = listMoveTo selidx newitems
       where
-        selidx = case (reset, listSelectedElement oldl) of
+        selidx = case (reset, listSelectedElement asItems) of
                    (True, _)               -> 0
                    (_, Nothing)            -> 0
-                   (_, Just (_,(_,a,_,_))) -> fromMaybe (fromMaybe 0 mprefixmatch) mexactmatch
+                   (_, Just (_,AccountsScreenItem{asItemAccountName=a})) -> fromMaybe (fromMaybe 0 mprefixmatch) mexactmatch
                      where
-                       mexactmatch  = findIndex ((a ==)                      . second4) displayitems
-                       mprefixmatch = findIndex ((a `isAccountNamePrefixOf`) . second4) displayitems
+                       mexactmatch  = findIndex ((a ==)                      . asItemAccountName) displayitems
+                       mprefixmatch = findIndex ((a `isAccountNamePrefixOf`) . asItemAccountName) displayitems
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
     ropts' = ropts {
       -- XXX balanceReport doesn't respect this yet
@@ -90,11 +92,11 @@ initAccountsScreen d reset st@AppState{
 
     -- pre-render the list items
     displayitem ((fullacct, shortacct, indent), bal) =
-      (indent
-      ,fullacct
-      ,if flat_ ropts' then fullacct else shortacct
-      ,map showAmountWithoutPrice amts -- like showMixedAmountOneLineWithoutPrice
-      )
+      AccountsScreenItem{asItemIndentLevel        = indent
+                        ,asItemAccountName        = fullacct
+                        ,asItemDisplayAccountName = if flat_ ropts' then fullacct else shortacct
+                        ,asItemRenderedAmounts    = map showAmountWithoutPrice amts -- like showMixedAmountOneLineWithoutPrice
+                        }
       where
         Mixed amts = normaliseMixedAmountSquashPricesForDisplay $ stripPrices bal
         stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}
@@ -106,7 +108,7 @@ initAccountsScreen _ _ _ = error "init function called with wrong screen type, s
 drawAccountsScreen :: AppState -> [Widget]
 drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                            ,ajournal=j
-                           ,aScreen=AccountsScreen{asState=(l,_)}
+                           ,aScreen=AccountsScreen{asState=AccountsScreenState{..}}
                            ,aMinibuffer=mbuf} =
   [ui]
     where
@@ -139,10 +141,10 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           fs -> str " with " <+> withAttr (borderAttr <> "query") (str $ intercalate ", " fs) <+> str " txns"
       nonzero | empty_ ropts = str ""
               | otherwise    = withAttr (borderAttr <> "query") (str " nonzero")
-      cur = str (case l^.listSelectedL of
+      cur = str (case asItems ^. listSelectedL of
                   Nothing -> "-"
                   Just i -> show (i + 1))
-      total = str $ show $ V.length $ l^.listElementsL
+      total = str $ show $ V.length $ asItems ^. listElementsL
 
       bottomlabel = borderKeysStr [
          -- ("up/down/pgup/pgdown/home/end", "move")
@@ -171,16 +173,16 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
             -- ltrace "availwidth" $
             c^.availWidthL
             - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
-          displayitems = listElements l
+          displayitems = listElements asItems
           maxacctwidthseen =
             -- ltrace "maxacctwidthseen" $
             V.maximum $
-            V.map (\(indent,_,displayacct,_) -> indent*2 + textWidth displayacct) $
+            V.map (\AccountsScreenItem{..} -> asItemIndentLevel*2 + textWidth asItemDisplayAccountName) $
             -- V.filter (\(indent,_,_,_) -> (indent-1) <= fromMaybe 99999 mdepth) $
             displayitems
           maxbalwidthseen =
             -- ltrace "maxbalwidthseen" $
-            V.maximum $ V.map (\(_,_,_,amts) -> sum (map strWidth amts) + 2 * (length amts-1)) displayitems
+            V.maximum $ V.map (\AccountsScreenItem{..} -> sum (map strWidth asItemRenderedAmounts) + 2 * (length asItemRenderedAmounts - 1)) displayitems
           maxbalwidth =
             -- ltrace "maxbalwidth" $
             max 0 (availwidth - 2 - 4) -- leave 2 whitespace plus least 4 for accts
@@ -199,20 +201,20 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
 
           colwidths = (acctwidth, balwidth)
 
-        render $ defaultLayout toplabel bottomarea $ renderList l (drawAccountsItem colwidths)
+        render $ defaultLayout toplabel bottomarea $ renderList asItems (drawAccountsItem colwidths)
 
 drawAccountsScreen _ = error "draw function called with wrong screen type, should not happen"
 
-drawAccountsItem :: (Int,Int) -> Bool -> (Int, AccountName, AccountName, [String]) -> Widget
-drawAccountsItem (acctwidth, balwidth) selected (indent, _fullacct, displayacct, balamts) =
+drawAccountsItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget
+drawAccountsItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
   Widget Greedy Fixed $ do
     -- c <- getContext
       -- let showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
     render $
-      addamts balamts $
-      str (T.unpack $ fitText (Just acctwidth) (Just acctwidth) True True $ T.replicate (2*indent) " " <> displayacct) <+>
+      addamts asItemRenderedAmounts $
+      str (T.unpack $ fitText (Just acctwidth) (Just acctwidth) True True $ T.replicate (2*asItemIndentLevel) " " <> asItemDisplayAccountName) <+>
       str "  " <+>
-      str (balspace balamts)
+      str (balspace asItemRenderedAmounts)
       where
         balspace as = replicate n ' '
           where n = max 0 (balwidth - (sum (map strWidth as) + 2 * (length as - 1)))
@@ -232,7 +234,7 @@ drawAccountsItem (acctwidth, balwidth) selected (indent, _fullacct, displayacct,
 
 handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleAccountsScreen st@AppState{
-   aScreen=scr@AccountsScreen{asState=(l,selacct)}
+   aScreen=scr@AccountsScreen{asState=asState@AccountsScreenState{..}}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   ,aMinibuffer=mbuf
@@ -245,10 +247,10 @@ handleAccountsScreen st@AppState{
     -- before we go anywhere, remember the currently selected account.
     -- (This is preserved across screen changes, unlike List's selection state)
     let
-      selacct' = case listSelectedElement l of
-                  Just (_, (_, fullacct, _, _)) -> fullacct
-                  Nothing -> selacct
-      st' = st{aScreen=scr{asState=(l,selacct')}}
+      selacct = case listSelectedElement asItems of
+                  Just (_, AccountsScreenItem{..}) -> asItemAccountName
+                  Nothing -> asSelectedAccount
+      st' = st{aScreen=scr{asState=asState{asSelectedAccount=selacct}}}
 
     case mbuf of
       Nothing ->
@@ -281,15 +283,15 @@ handleAccountsScreen st@AppState{
             Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
             Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
               let
-                scr = rsSetCurrentAccount selacct' registerScreen
+                scr = rsSetCurrentAccount selacct registerScreen
                 st'' = screenEnter d scr st'
               scrollTopRegister
               continue st''
 
             -- fall through to the list's event handler (handles up/down)
             ev                       -> do
-                                         l' <- handleEvent ev l
-                                         continue $ st'{aScreen=scr{asState=(l',selacct')}}
+                                         newitems <- handleEvent ev asItems
+                                         continue $ st'{aScreen=scr{asState=asState{asItems=newitems,asSelectedAccount=selacct}}}
                                      -- continue =<< handleEventLensed st' someLens ev
 
       Just ed ->

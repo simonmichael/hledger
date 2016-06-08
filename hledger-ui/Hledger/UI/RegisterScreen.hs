@@ -1,6 +1,6 @@
 -- The account register screen, showing transactions in an account, like hledger-web's register.
 
-{-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings, FlexibleContexts, RecordWildCards #-}
 
 module Hledger.UI.RegisterScreen
  (registerScreen
@@ -37,18 +37,20 @@ import Hledger.UI.ErrorScreen
 
 registerScreen :: Screen
 registerScreen = RegisterScreen{
-   rsState   = (list "register" V.empty 1, "")
+   rsState   = RegisterScreenState{rsItems=list "register" V.empty 1
+                                  ,rsSelectedAccount=""
+                                  }
   ,sInitFn   = initRegisterScreen
   ,sDrawFn   = drawRegisterScreen
   ,sHandleFn = handleRegisterScreen
   }
 
-rsSetCurrentAccount a scr@RegisterScreen{rsState=(l,_)} = scr{rsState=(l,a)}
+rsSetCurrentAccount a scr@RegisterScreen{..} = scr{rsState=rsState{rsSelectedAccount=a}}
 rsSetCurrentAccount _ scr = scr
 
 initRegisterScreen :: Day -> Bool -> AppState -> AppState
-initRegisterScreen d reset st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{rsState=(oldl,acct)}} =
-  st{aScreen=s{rsState=(newl',acct)}}
+initRegisterScreen d reset st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{rsState=rsState@RegisterScreenState{..}}} =
+  st{aScreen=s{rsState=rsState{rsItems=newitems'}}}
   where
     -- gather arguments and queries
     ropts = (reportopts_ $ cliopts_ opts)
@@ -57,7 +59,7 @@ initRegisterScreen d reset st@AppState{aopts=opts, ajournal=j, aScreen=s@Registe
               balancetype_=HistoricalBalance
             }
     -- XXX temp
-    thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
+    thisacctq = Acct $ accountNameToAccountRegex rsSelectedAccount -- includes subs
     q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts
 
     (_label,items) = accountTransactionsReport ropts j q thisacctq
@@ -65,43 +67,44 @@ initRegisterScreen d reset st@AppState{aopts=opts, ajournal=j, aScreen=s@Registe
              reverse  -- most recent last
              items
 
-    -- pre-render all items; these will be the List elements. This helps calculate column widths.
+    -- generate pre-rendered list items. This helps calculate column widths.
     displayitems = map displayitem items'
       where
         displayitem (t, _, _issplit, otheracctsstr, change, bal) =
-          (showDate $ tdate t
-          ,T.unpack $ tdescription t
-          ,case splitOn ", " otheracctsstr of
-            [s] -> s
-            ss  -> intercalate ", " ss
-            -- _   -> "<split>"  -- should do this if accounts field width < 30
-          ,showMixedAmountOneLineWithoutPrice change
-          ,showMixedAmountOneLineWithoutPrice bal
-          ,t
-          )
+          RegisterScreenItem{rsItemDate          = showDate $ tdate t
+                            ,rsItemDescription   = T.unpack $ tdescription t
+                            ,rsItemOtherAccounts = case splitOn ", " otheracctsstr of
+                                                     [s] -> s
+                                                     ss  -> intercalate ", " ss
+                                                     -- _   -> "<split>"  -- should do this if accounts field width < 30
+                            ,rsItemChangeAmount  = showMixedAmountOneLineWithoutPrice change
+                            ,rsItemBalanceAmount = showMixedAmountOneLineWithoutPrice bal
+                            ,rsItemTransaction   = t
+                            }
 
     -- build the List
-    newl = list (Name "register") (V.fromList displayitems) 1
+    newitems = list (Name "register") (V.fromList displayitems) 1
 
     -- keep the selection on the previously selected transaction if possible,
     -- (eg after toggling nonzero mode), otherwise select the last element.
-    newl' = listMoveTo newselidx newl
+    newitems' = listMoveTo newselidx newitems
       where
-        newselidx = case (reset, listSelectedElement oldl) of
-                      (True, _)                                        -> 0
-                      (_, Nothing)                                     -> endidx
-                      (_, Just (_,(_,_,_,_,_,Transaction{tindex=ti}))) -> fromMaybe endidx $ findIndex ((==ti) . tindex . sixth6) displayitems
+        newselidx = case (reset, listSelectedElement rsItems) of
+                      (True, _)    -> 0
+                      (_, Nothing) -> endidx
+                      (_, Just (_,RegisterScreenItem{rsItemTransaction=Transaction{tindex=ti}}))
+                                   -> fromMaybe endidx $ findIndex ((==ti) . tindex . rsItemTransaction) displayitems
         endidx = length displayitems
 
 initRegisterScreen _ _ _ = error "init function called with wrong screen type, should not happen"
 
 drawRegisterScreen :: AppState -> [Widget]
 drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
-                           ,aScreen=RegisterScreen{rsState=(l,acct)}
+                           ,aScreen=RegisterScreen{rsState=RegisterScreenState{..}}
                            ,aMinibuffer=mbuf}
   = [ui]
   where
-    toplabel = withAttr ("border" <> "bold") (str $ T.unpack acct)
+    toplabel = withAttr ("border" <> "bold") (str $ T.unpack rsSelectedAccount)
             <+> togglefilters
             <+> str " transactions"
             <+> borderQueryStr (query_ ropts)
@@ -121,11 +124,11 @@ drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           ] of
         [] -> str ""
         fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs)
-    cur = str $ case l^.listSelectedL of
+    cur = str $ case rsItems ^. listSelectedL of
                  Nothing -> "-"
                  Just i -> show (i + 1)
     total = str $ show $ length displayitems
-    displayitems = V.toList $ l^.listElementsL
+    displayitems = V.toList $ rsItems ^. listElementsL
 
     -- query = query_ $ reportopts_ $ cliopts_ opts
 
@@ -148,8 +151,8 @@ drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
         whitespacewidth = 10 -- inter-column whitespace, fixed width
         minnonamtcolswidth = datewidth + 2 + 2 -- date column plus at least 2 for desc and accts
         maxamtswidth = max 0 (totalwidth - minnonamtcolswidth - whitespacewidth)
-        maxchangewidthseen = maximum' $ map (strWidth . fourth6) displayitems
-        maxbalwidthseen = maximum' $ map (strWidth . fifth6) displayitems
+        maxchangewidthseen = maximum' $ map (strWidth . rsItemChangeAmount) displayitems
+        maxbalwidthseen = maximum' $ map (strWidth . rsItemBalanceAmount) displayitems
         changewidthproportion = fromIntegral maxchangewidthseen / fromIntegral (maxchangewidthseen + maxbalwidthseen)
         maxchangewidth = round $ changewidthproportion * fromIntegral maxamtswidth
         maxbalwidth = maxamtswidth - maxchangewidth
@@ -193,34 +196,34 @@ drawRegisterScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                       Nothing  -> bottomlabel
                       Just ed  -> minibuffer ed
 
-      render $ defaultLayout toplabel bottomarea $ renderList l (drawRegisterItem colwidths)
+      render $ defaultLayout toplabel bottomarea $ renderList rsItems (drawRegisterItem colwidths)
 
 drawRegisterScreen _ = error "draw function called with wrong screen type, should not happen"
 
-drawRegisterItem :: (Int,Int,Int,Int,Int) -> Bool -> (String,String,String,String,String,Transaction) -> Widget
-drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected (date,desc,accts,change,bal,_) =
+drawRegisterItem :: (Int,Int,Int,Int,Int) -> Bool -> RegisterScreenItem -> Widget
+drawRegisterItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected RegisterScreenItem{..} =
   Widget Greedy Fixed $ do
     render $
-      str (fitString (Just datewidth) (Just datewidth) True True date) <+>
+      str (fitString (Just datewidth) (Just datewidth) True True rsItemDate) <+>
       str "  " <+>
-      str (fitString (Just descwidth) (Just descwidth) True True desc) <+>
+      str (fitString (Just descwidth) (Just descwidth) True True rsItemDescription) <+>
       str "  " <+>
-      str (fitString (Just acctswidth) (Just acctswidth) True True accts) <+>
+      str (fitString (Just acctswidth) (Just acctswidth) True True rsItemOtherAccounts) <+>
       str "   " <+>
-      withAttr changeattr (str (fitString (Just changewidth) (Just changewidth) True False change)) <+>
+      withAttr changeattr (str (fitString (Just changewidth) (Just changewidth) True False rsItemChangeAmount)) <+>
       str "   " <+>
-      withAttr balattr (str (fitString (Just balwidth) (Just balwidth) True False bal))
+      withAttr balattr (str (fitString (Just balwidth) (Just balwidth) True False rsItemBalanceAmount))
   where
-    changeattr | '-' `elem` change = sel $ "list" <> "amount" <> "decrease"
-               | otherwise         = sel $ "list" <> "amount" <> "increase"
-    balattr    | '-' `elem` bal    = sel $ "list" <> "balance" <> "negative"
-               | otherwise         = sel $ "list" <> "balance" <> "positive"
+    changeattr | '-' `elem` rsItemChangeAmount = sel $ "list" <> "amount" <> "decrease"
+               | otherwise                     = sel $ "list" <> "amount" <> "increase"
+    balattr    | '-' `elem` rsItemBalanceAmount = sel $ "list" <> "balance" <> "negative"
+               | otherwise                      = sel $ "list" <> "balance" <> "positive"
     sel | selected  = (<> "selected")
         | otherwise = id
 
 handleRegisterScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleRegisterScreen st@AppState{
-   aScreen=s@RegisterScreen{rsState=(l,acct)}
+   aScreen=s@RegisterScreen{rsState=rsState@RegisterScreenState{..}}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   ,aMinibuffer=mbuf
@@ -242,20 +245,22 @@ handleRegisterScreen st@AppState{
         Vty.EvKey (Vty.KLeft)     [] -> continue $ popScreen st
 
         Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
-          case listSelectedElement l of
-            Just (_, (_, _, _, _, _, t)) ->
+          case listSelectedElement rsItems of
+            Just (_, RegisterScreenItem{rsItemTransaction=t}) ->
               let
-                ts = map sixth6 $ V.toList $ listElements l
+                ts = map rsItemTransaction $ V.toList $ listElements rsItems
                 numberedts = zip [1..] ts
                 i = fromIntegral $ maybe 0 (+1) $ elemIndex t ts -- XXX
               in
-                continue $ screenEnter d transactionScreen{tsState=((i,t),numberedts,acct)} st
+                continue $ screenEnter d transactionScreen{tsState=TransactionScreenState{tsTransaction=(i,t)
+                                                                                         ,tsTransactions=numberedts
+                                                                                         ,tsSelectedAccount=rsSelectedAccount}} st
             Nothing -> continue st
 
         -- fall through to the list's event handler (handles [pg]up/down)
         ev                       -> do
-                                     l' <- handleEvent ev l
-                                     continue st{aScreen=s{rsState=(l',acct)}}
+                                     newitems <- handleEvent ev rsItems
+                                     continue st{aScreen=s{rsState=rsState{rsItems=newitems}}}
                                      -- continue =<< handleEventLensed st someLens ev
 
     Just ed ->

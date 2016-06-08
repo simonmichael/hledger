@@ -1,6 +1,6 @@
 -- The error screen, showing a current error condition (such as a parse error after reloading the journal)
 
-{-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings, FlexibleContexts, RecordWildCards #-}
 
 module Hledger.UI.ErrorScreen
  (errorScreen
@@ -30,7 +30,7 @@ import Hledger.UI.UIUtils
 
 errorScreen :: Screen
 errorScreen = ErrorScreen{
-   esState  = ""
+   esState  = ErrorScreenState{esError=""}
   ,sInitFn    = initErrorScreen
   ,sDrawFn    = drawErrorScreen
   ,sHandleFn = handleErrorScreen
@@ -42,7 +42,7 @@ initErrorScreen _ _ _ = error "init function called with wrong screen type, shou
 
 drawErrorScreen :: AppState -> [Widget]
 drawErrorScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
-                             aScreen=ErrorScreen{esState=err}} = [ui]
+                             aScreen=ErrorScreen{esState=ErrorScreenState{..}}} = [ui]
   where
     toplabel = withAttr ("border" <> "bold") (str "Oops. Please fix this problem then press g to reload")
             -- <+> str " transactions"
@@ -75,7 +75,7 @@ drawErrorScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reporto
       --   totalwidth = c^.availWidthL
       --                - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
 
-      render $ defaultLayout toplabel bottomlabel $ withAttr "error" $ str err
+      render $ defaultLayout toplabel bottomlabel $ withAttr "error" $ str $ esError
 
 drawErrorScreen _ = error "draw function called with wrong screen type, should not happen"
 
@@ -114,7 +114,7 @@ handleErrorScreen st@AppState{
     Vty.EvKey (Vty.KChar 'g') [] -> do
       (ej, _) <- liftIO $ journalReloadIfChanged copts d j
       case ej of
-        Left err -> continue st{aScreen=s{esState=err}} -- show latest parse error
+        Left err -> continue st{aScreen=s{esState=ErrorScreenState{esError=err}}} -- show latest parse error
         Right j' -> continue $ regenerateScreens j' d $ popScreen st  -- return to previous screen, and reload it
 
     -- Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
@@ -133,5 +133,5 @@ stReloadJournalIfChanged copts d j st = do
   (ej, _) <- journalReloadIfChanged copts d j
   return $ case ej of
     Right j' -> regenerateScreens j' d st
-    Left err -> screenEnter d errorScreen{esState=err} st
+    Left err -> screenEnter d errorScreen{esState=ErrorScreenState{esError=err}} st
 

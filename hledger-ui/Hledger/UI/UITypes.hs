@@ -62,50 +62,74 @@ data AppState = AppState {
 -- partial functions, so take care.
 data Screen =
     AccountsScreen {
-       asState   :: (List           --  list widget holding:
-                      (Int          --   indent level
-                      ,AccountName  --   full account name
-                      ,AccountName  --   full or short account name to display
-                      ,[String]     --   rendered amounts
-                      )
-                    ,AccountName    --  full name of the currently selected account (or "")
-                    )
-      ,sInitFn   :: Day -> Bool -> AppState -> AppState            -- ^ function to generate/update the screen's state,
-                                                                   --   takes the current date and whether to reset the selection.
-      ,sDrawFn   :: AppState -> [Widget]                           -- ^ brick renderer to use for this screen
-      ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)  -- ^ brick event handler to use for this screen
+       asState   :: AccountsScreenState
+      ,sInitFn   :: Day -> Bool -> AppState -> AppState            -- ^ function to generate the screen's state on entry or change
+      ,sDrawFn   :: AppState -> [Widget]                           -- ^ brick renderer for this screen
+      ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)  -- ^ brick event handler for this screen
     }
   | RegisterScreen {
-       rsState   :: (List           --  list widget holding:
-                      (String       --   date
-                      ,String       --   description
-                      ,String       --   other accts
-                      ,String       --   change amt
-                      ,String       --   balance amt
-                      ,Transaction  --   the full transaction
-                      )
-                    ,AccountName    --  full name of the acct we are showing a register for
-                    )
+       rsState   :: RegisterScreenState
       ,sInitFn   :: Day -> Bool -> AppState -> AppState
       ,sDrawFn   :: AppState -> [Widget]
       ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     }
   | TransactionScreen {
-       tsState   :: ((Integer, Transaction)    --  the (numbered) transaction we are currently viewing
-                    ,[(Integer, Transaction)]  --  the list of numbered transactions we can step through
-                    ,AccountName               --  the account whose register we entered this screen from
-                    )
+       tsState   :: TransactionScreenState
       ,sInitFn   :: Day -> Bool -> AppState -> AppState
       ,sDrawFn   :: AppState -> [Widget]
       ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
-    }
+                                }
   | ErrorScreen {
-       esState   :: String                     --  error message to display
+       esState   :: ErrorScreenState
       ,sInitFn   :: Day -> Bool -> AppState -> AppState
       ,sDrawFn   :: AppState -> [Widget]
       ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
     }
   deriving (Show)
+
+-- | Render state for this type of screen.
+data AccountsScreenState = AccountsScreenState {
+   asItems           :: List AccountsScreenItem  -- ^ list of account names & balances
+  ,asSelectedAccount :: AccountName              -- ^ full name of the currently selected account (or "")
+  } deriving (Show)
+
+-- | An item in the accounts screen's list of accounts and balances.
+data AccountsScreenItem = AccountsScreenItem {
+   asItemIndentLevel        :: Int          -- ^ indent level
+  ,asItemAccountName        :: AccountName  -- ^ full account name
+  ,asItemDisplayAccountName :: AccountName  -- ^ full or short account name to display
+  ,asItemRenderedAmounts    :: [String]     -- ^ rendered amounts
+  }
+
+-- | Render state for this type of screen.
+data RegisterScreenState = RegisterScreenState {
+   rsItems           :: List RegisterScreenItem  -- ^ list of transactions affecting this account
+  ,rsSelectedAccount :: AccountName              -- ^ full name of the account we are showing a register for
+  } deriving (Show)
+
+-- | An item in the register screen's list of transactions in the current account.
+data RegisterScreenItem = RegisterScreenItem {
+   rsItemDate           :: String           -- ^ date
+  ,rsItemDescription    :: String           -- ^ description
+  ,rsItemOtherAccounts  :: String           -- ^ other accounts
+  ,rsItemChangeAmount   :: String           -- ^ the change to the current account from this transaction
+  ,rsItemBalanceAmount  :: String           -- ^ the balance or running total after this transaction
+  ,rsItemTransaction    :: Transaction      -- ^ the full transaction
+  }
+
+-- | Render state for this type of screen.
+data TransactionScreenState = TransactionScreenState {
+   tsTransaction     :: NumberedTransaction    -- ^ the transaction we are currently viewing, and its position in the list
+  ,tsTransactions    :: [NumberedTransaction]  -- ^ the list of transactions we can step through
+  ,tsSelectedAccount :: AccountName            -- ^ the account whose register we entered this screen from
+  } deriving (Show)
+
+type NumberedTransaction = (Integer, Transaction)
+
+-- | Render state for this type of screen.
+data ErrorScreenState = ErrorScreenState {
+   esError :: String  -- ^ error message to show
+  } deriving (Show)
 
 instance Show (List a) where show _ = "<List>"
 instance Show Editor   where show _ = "<Editor>"

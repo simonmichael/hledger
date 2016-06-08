@@ -133,10 +133,10 @@ regenerateScreens j d st@AppState{aScreen=s,aPrevScreens=ss} =
   -- remove all the screens from the appstate and then add them back
   -- one at a time, regenerating as we go.
   let
-    first:rest = reverse $ s:ss
-    st0 = st{ajournal=j, aScreen=first, aPrevScreens=[]}
-    st1 = (sInitFn first) d False st0
-    st2 = foldl' (\st s -> (sInitFn s) d False $ pushScreen s st) st1 rest
+    first:rest = reverse $ s:ss :: [Screen]
+    st0 = st{ajournal=j, aScreen=first, aPrevScreens=[]} :: AppState
+    st1 = (sInitFn first) d False st0 :: AppState
+    st2 = foldl' (\st s -> (sInitFn s) d False $ pushScreen s st) st1 rest :: AppState
   in
     st2
 
