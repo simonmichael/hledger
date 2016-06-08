@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
 
 module Hledger.UI.ErrorScreen
- (screen
+ (errorScreen
  ,stReloadJournalIfChanged
  )
 where
@@ -28,7 +28,8 @@ import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
 
-screen = ErrorScreen{
+errorScreen :: Screen
+errorScreen = ErrorScreen{
    esState  = ""
   ,sInitFn    = initErrorScreen
   ,sDrawFn    = drawErrorScreen
@@ -132,5 +133,5 @@ stReloadJournalIfChanged copts d j st = do
   (ej, _) <- journalReloadIfChanged copts d j
   return $ case ej of
     Right j' -> regenerateScreens j' d st
-    Left err -> screenEnter d screen{esState=err} st
+    Left err -> screenEnter d errorScreen{esState=err} st
 

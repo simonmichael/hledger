@@ -32,8 +32,8 @@ import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 -- import Hledger.UI.UIUtils
 import Hledger.UI.Theme
-import Hledger.UI.AccountsScreen as AS
-import Hledger.UI.RegisterScreen as RS
+import Hledger.UI.AccountsScreen
+import Hledger.UI.RegisterScreen
 
 ----------------------------------------------------------------------
 
@@ -97,11 +97,11 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
     mregister = maybestringopt "register" $ rawopts_ copts
 
     (scr, prevscrs) = case mregister of
-      Nothing   -> (AS.screen, [])
+      Nothing   -> (accountsScreen, [])
       -- with --register, start on the register screen, and also put
       -- the accounts screen on the prev screens stack so you can exit
       -- to that as usual.
-      Just apat -> (rsSetCurrentAccount acct RS.screen, [ascr'])
+      Just apat -> (rsSetCurrentAccount acct registerScreen, [ascr'])
         where
           acct = headDef
                  (error' $ "--register "++apat++" did not match any account")
@@ -109,11 +109,11 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary AppState value..
           ascr' = aScreen $
-                  AS.initAccountsScreen d True $
+                  initAccountsScreen d True $
                   AppState{
                     aopts=uopts'
                    ,ajournal=j
-                   ,aScreen=asSetSelectedAccount acct AS.screen
+                   ,aScreen=asSetSelectedAccount acct accountsScreen
                    ,aPrevScreens=[]
                    ,aMinibuffer=Nothing
                    }

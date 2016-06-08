@@ -4,7 +4,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 module Hledger.UI.AccountsScreen
- (screen
+ (accountsScreen
  ,initAccountsScreen
  ,asSetSelectedAccount
  )
@@ -36,10 +36,11 @@ import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
-import qualified Hledger.UI.RegisterScreen as RS (screen, rsSetCurrentAccount)
-import qualified Hledger.UI.ErrorScreen as ES (stReloadJournalIfChanged)
+import Hledger.UI.RegisterScreen
+import Hledger.UI.ErrorScreen
 
-screen = AccountsScreen{
+accountsScreen :: Screen
+accountsScreen = AccountsScreen{
    asState   = (list "accounts" V.empty 1, "")
   ,sInitFn   = initAccountsScreen
   ,sDrawFn   = drawAccountsScreen
@@ -256,7 +257,7 @@ handleAccountsScreen st@AppState{
             Vty.EvKey (Vty.KChar 'q') [] -> halt st'
             -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
             Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st'
-            Vty.EvKey (Vty.KChar 'g') [] -> liftIO (ES.stReloadJournalIfChanged copts d j st') >>= continue
+            Vty.EvKey (Vty.KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st') >>= continue
             Vty.EvKey (Vty.KChar '-') [] -> continue $ regenerateScreens j d $ decDepth st'
             Vty.EvKey (Vty.KChar '+') [] -> continue $ regenerateScreens j d $ incDepth st'
             Vty.EvKey (Vty.KChar '=') [] -> continue $ regenerateScreens j d $ incDepth st'
@@ -280,7 +281,7 @@ handleAccountsScreen st@AppState{
             Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
             Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
               let
-                scr = RS.rsSetCurrentAccount selacct' RS.screen
+                scr = rsSetCurrentAccount selacct' registerScreen
                 st'' = screenEnter d scr st'
               scrollTopRegister
               continue st''

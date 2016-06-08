@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
 
 module Hledger.UI.RegisterScreen
- (screen
+ (registerScreen
  ,rsSetCurrentAccount
  )
 where
@@ -32,10 +32,11 @@ import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
-import qualified Hledger.UI.TransactionScreen as TS (screen)
-import qualified Hledger.UI.ErrorScreen as ES (stReloadJournalIfChanged)
+import Hledger.UI.TransactionScreen
+import Hledger.UI.ErrorScreen
 
-screen = RegisterScreen{
+registerScreen :: Screen
+registerScreen = RegisterScreen{
    rsState   = (list "register" V.empty 1, "")
   ,sInitFn   = initRegisterScreen
   ,sDrawFn   = drawRegisterScreen
@@ -231,7 +232,7 @@ handleRegisterScreen st@AppState{
       case ev of
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
         Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
-        Vty.EvKey (Vty.KChar 'g') [] -> liftIO (ES.stReloadJournalIfChanged copts d j st) >>= continue
+        Vty.EvKey (Vty.KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
         Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
         Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)
         Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st)
@@ -248,7 +249,7 @@ handleRegisterScreen st@AppState{
                 numberedts = zip [1..] ts
                 i = fromIntegral $ maybe 0 (+1) $ elemIndex t ts -- XXX
               in
-                continue $ screenEnter d TS.screen{tsState=((i,t),numberedts,acct)} st
+                continue $ screenEnter d transactionScreen{tsState=((i,t),numberedts,acct)} st
             Nothing -> continue st
 
         -- fall through to the list's event handler (handles [pg]up/down)

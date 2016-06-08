@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings, TupleSections #-} -- , FlexibleContexts
 
 module Hledger.UI.TransactionScreen
- (screen
+ (transactionScreen
  )
 where
 
@@ -33,9 +33,10 @@ import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
-import qualified Hledger.UI.ErrorScreen as ES (screen)
+import Hledger.UI.ErrorScreen
 
-screen = TransactionScreen{
+transactionScreen :: Screen
+transactionScreen = TransactionScreen{
    tsState   = ((1,nulltransaction),[(1,nulltransaction)],"")
   ,sInitFn   = initTransactionScreen
   ,sDrawFn   = drawTransactionScreen
@@ -133,7 +134,7 @@ handleTransactionScreen st@AppState{
             st' = st{aScreen=s{tsState=((i',t'),numberedts,acct)}}
           continue $ regenerateScreens j' d st'
 
-        Left err -> continue $ screenEnter d ES.screen{esState=err} st
+        Left err -> continue $ screenEnter d errorScreen{esState=err} st
 
     -- if allowing toggling here, we should refresh the txn list from the parent register screen
     -- Vty.EvKey (Vty.KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty st
