@@ -3,7 +3,9 @@
 {-# LANGUAGE OverloadedStrings, FlexibleContexts #-}
 
 module Hledger.UI.ErrorScreen
- (screen)
+ (screen
+ ,stReloadJournalIfChanged
+ )
 where
 
 -- import Lens.Micro ((^.))
@@ -122,4 +124,13 @@ handleErrorScreen st@AppState{
                                  -- continue st{aScreen=s{rsState=is'}}
                                  -- continue =<< handleEventLensed st someLens e
 handleErrorScreen _ _ = error "event handler called with wrong screen type, should not happen"
+
+-- If journal file(s) have changed, reload the journal and regenerate all screens.
+-- This is here so it can reference the error screen.
+stReloadJournalIfChanged :: CliOpts -> Day -> Journal -> AppState -> IO AppState
+stReloadJournalIfChanged copts d j st = do
+  (ej, _) <- journalReloadIfChanged copts d j
+  return $ case ej of
+    Right j' -> regenerateScreens j' d st
+    Left err -> screenEnter d screen{esState=err} st
 

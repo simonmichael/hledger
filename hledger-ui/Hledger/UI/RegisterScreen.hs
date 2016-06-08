@@ -33,7 +33,7 @@ import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
 import qualified Hledger.UI.TransactionScreen as TS (screen)
-import qualified Hledger.UI.ErrorScreen as ES (screen)
+import qualified Hledger.UI.ErrorScreen as ES (stReloadJournalIfChanged)
 
 screen = RegisterScreen{
    rsState   = (list "register" V.empty 1, "")
@@ -231,13 +231,7 @@ handleRegisterScreen st@AppState{
       case ev of
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
         Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
-
-        Vty.EvKey (Vty.KChar 'g') [] -> do
-          (ej, _) <- liftIO $ journalReloadIfChanged copts d j
-          case ej of
-            Right j' -> continue $ regenerateScreens j' d st
-            Left err -> continue $ screenEnter d ES.screen{esState=err} st
-
+        Vty.EvKey (Vty.KChar 'g') [] -> liftIO (ES.stReloadJournalIfChanged copts d j st) >>= continue
         Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
         Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)
         Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st)
