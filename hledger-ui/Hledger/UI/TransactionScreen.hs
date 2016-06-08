@@ -131,17 +131,17 @@ handleTransactionScreen st@AppState{
                                  | i > fst (last numberedts) -> last numberedts
                                  | otherwise -> head numberedts
             st' = st{aScreen=s{tsState=((i',t'),numberedts,acct)}}
-          continue $ reload j' d st'
+          continue $ regenerateScreens j' d st'
 
         Left err -> continue $ screenEnter d ES.screen{esState=err} st
 
     -- if allowing toggling here, we should refresh the txn list from the parent register screen
-    -- Vty.EvKey (Vty.KChar 'E') [] -> continue $ reload j d $ stToggleEmpty st
-    -- Vty.EvKey (Vty.KChar 'C') [] -> continue $ reload j d $ stToggleCleared st
-    -- Vty.EvKey (Vty.KChar 'R') [] -> continue $ reload j d $ stToggleReal st
+    -- Vty.EvKey (Vty.KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty st
+    -- Vty.EvKey (Vty.KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared st
+    -- Vty.EvKey (Vty.KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal st
 
-    Vty.EvKey (Vty.KUp) []       -> continue $ reload j d st{aScreen=s{tsState=((iprev,tprev),nts,acct)}}
-    Vty.EvKey (Vty.KDown) []     -> continue $ reload j d st{aScreen=s{tsState=((inext,tnext),nts,acct)}}
+    Vty.EvKey (Vty.KUp) []       -> continue $ regenerateScreens j d st{aScreen=s{tsState=((iprev,tprev),nts,acct)}}
+    Vty.EvKey (Vty.KDown) []     -> continue $ regenerateScreens j d st{aScreen=s{tsState=((inext,tnext),nts,acct)}}
 
     Vty.EvKey (Vty.KLeft) []     -> continue st''
       where

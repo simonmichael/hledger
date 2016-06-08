@@ -112,7 +112,7 @@ handleErrorScreen st@AppState{
       (ej, _) <- liftIO $ journalReloadIfChanged copts d j
       case ej of
         Left err -> continue st{aScreen=s{esState=err}} -- show latest parse error
-        Right j' -> continue $ reload j' d $ popScreen st  -- return to previous screen, and reload it
+        Right j' -> continue $ regenerateScreens j' d $ popScreen st  -- return to previous screen, and reload it
 
     -- Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
     -- Vty.EvKey (Vty.KRight) []    -> error (show curItem) where curItem = listSelectedElement is

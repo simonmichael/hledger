@@ -5,7 +5,7 @@ module Hledger.UI.UIUtils (
  ,popScreen
  ,resetScreens
  ,screenEnter
- ,reload
+ ,regenerateScreens
  ,getViewportSize
  -- ,margin
  ,withBorderAttr
@@ -126,8 +126,8 @@ stShowMinibuffer st = st{aMinibuffer=Just e}
 stHideMinibuffer st = st{aMinibuffer=Nothing}
 
 -- | Regenerate the content for the current and previous screens, from a new journal and current date.
-reload :: Journal -> Day -> AppState -> AppState
-reload j d st@AppState{aScreen=s,aPrevScreens=ss} =
+regenerateScreens :: Journal -> Day -> AppState -> AppState
+regenerateScreens j d st@AppState{aScreen=s,aPrevScreens=ss} =
   -- XXX clumsy due to entanglement of AppState and Screen.
   -- sInitFn operates only on an appstate's current screen, so
   -- remove all the screens from the appstate and then add them back

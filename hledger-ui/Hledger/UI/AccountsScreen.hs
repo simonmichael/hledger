@@ -263,26 +263,26 @@ handleAccountsScreen st@AppState{
                 Right j' -> continue $ reload j' d st'
                 Left err -> continue $ screenEnter d ES.screen{esState=err} st'
 
-            Vty.EvKey (Vty.KChar '-') [] -> continue $ reload j d $ decDepth st'
-            Vty.EvKey (Vty.KChar '+') [] -> continue $ reload j d $ incDepth st'
-            Vty.EvKey (Vty.KChar '=') [] -> continue $ reload j d $ incDepth st'
-            Vty.EvKey (Vty.KChar '1') [] -> continue $ reload j d $ setDepth 1 st'
-            Vty.EvKey (Vty.KChar '2') [] -> continue $ reload j d $ setDepth 2 st'
-            Vty.EvKey (Vty.KChar '3') [] -> continue $ reload j d $ setDepth 3 st'
-            Vty.EvKey (Vty.KChar '4') [] -> continue $ reload j d $ setDepth 4 st'
-            Vty.EvKey (Vty.KChar '5') [] -> continue $ reload j d $ setDepth 5 st'
-            Vty.EvKey (Vty.KChar '6') [] -> continue $ reload j d $ setDepth 6 st'
-            Vty.EvKey (Vty.KChar '7') [] -> continue $ reload j d $ setDepth 7 st'
-            Vty.EvKey (Vty.KChar '8') [] -> continue $ reload j d $ setDepth 8 st'
-            Vty.EvKey (Vty.KChar '9') [] -> continue $ reload j d $ setDepth 9 st'
-            Vty.EvKey (Vty.KChar '0') [] -> continue $ reload j d $ setDepth 0 st'
-            Vty.EvKey (Vty.KChar 'F') [] -> continue $ reload j d $ stToggleFlat st'
-            Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ reload j d $ stToggleEmpty st')
-            Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ reload j d $ stToggleCleared st')
-            Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ reload j d $ stToggleUncleared st')
-            Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ reload j d $ stToggleReal st')
-            Vty.EvKey k [] | k `elem` [Vty.KChar '/'] -> continue $ reload j d $ stShowMinibuffer st'
-            Vty.EvKey k [] | k `elem` [Vty.KBS, Vty.KDel] -> (continue $ reload j d $ stResetFilter st')
+            Vty.EvKey (Vty.KChar '-') [] -> continue $ regenerateScreens j d $ decDepth st'
+            Vty.EvKey (Vty.KChar '+') [] -> continue $ regenerateScreens j d $ incDepth st'
+            Vty.EvKey (Vty.KChar '=') [] -> continue $ regenerateScreens j d $ incDepth st'
+            Vty.EvKey (Vty.KChar '1') [] -> continue $ regenerateScreens j d $ setDepth 1 st'
+            Vty.EvKey (Vty.KChar '2') [] -> continue $ regenerateScreens j d $ setDepth 2 st'
+            Vty.EvKey (Vty.KChar '3') [] -> continue $ regenerateScreens j d $ setDepth 3 st'
+            Vty.EvKey (Vty.KChar '4') [] -> continue $ regenerateScreens j d $ setDepth 4 st'
+            Vty.EvKey (Vty.KChar '5') [] -> continue $ regenerateScreens j d $ setDepth 5 st'
+            Vty.EvKey (Vty.KChar '6') [] -> continue $ regenerateScreens j d $ setDepth 6 st'
+            Vty.EvKey (Vty.KChar '7') [] -> continue $ regenerateScreens j d $ setDepth 7 st'
+            Vty.EvKey (Vty.KChar '8') [] -> continue $ regenerateScreens j d $ setDepth 8 st'
+            Vty.EvKey (Vty.KChar '9') [] -> continue $ regenerateScreens j d $ setDepth 9 st'
+            Vty.EvKey (Vty.KChar '0') [] -> continue $ regenerateScreens j d $ setDepth 0 st'
+            Vty.EvKey (Vty.KChar 'F') [] -> continue $ regenerateScreens j d $ stToggleFlat st'
+            Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st')
+            Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st')
+            Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st')
+            Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleReal st')
+            Vty.EvKey k [] | k `elem` [Vty.KChar '/'] -> continue $ regenerateScreens j d $ stShowMinibuffer st'
+            Vty.EvKey k [] | k `elem` [Vty.KBS, Vty.KDel] -> (continue $ regenerateScreens j d $ stResetFilter st')
             Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
             Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
               let
@@ -300,7 +300,7 @@ handleAccountsScreen st@AppState{
       Just ed ->
         case ev of
             Vty.EvKey Vty.KEsc   [] -> continue $ stHideMinibuffer st'
-            Vty.EvKey Vty.KEnter [] -> continue $ reload j d $ stFilter s $ stHideMinibuffer st'
+            Vty.EvKey Vty.KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stHideMinibuffer st'
                                         where s = chomp $ unlines $ getEditContents ed
             ev                      -> do ed' <- handleEvent ev ed
                                           continue $ st'{aMinibuffer=Just ed'}
