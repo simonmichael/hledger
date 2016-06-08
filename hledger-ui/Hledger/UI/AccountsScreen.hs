@@ -28,6 +28,7 @@ import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Brick.Widgets.Border (borderAttr)
 -- import Brick.Widgets.Center
+import Lens.Micro ((.~), (&))
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
@@ -41,24 +42,24 @@ import Hledger.UI.ErrorScreen
 
 accountsScreen :: Screen
 accountsScreen = AccountsScreen{
-   asState   = AccountsScreenState{asItems=list "accounts" V.empty 1
-                                  ,asSelectedAccount=""
+   _asState  = AccountsScreenState{_asItems=list "accounts" V.empty 1
+                                  ,_asSelectedAccount=""
                                   }
   ,sInitFn   = initAccountsScreen
   ,sDrawFn   = drawAccountsScreen
   ,sHandleFn = handleAccountsScreen
   }
 
-asSetSelectedAccount a scr@AccountsScreen{asState=st} = scr{asState=st{asSelectedAccount=a}}
-asSetSelectedAccount _ scr = scr
+asSetSelectedAccount a s@AccountsScreen{} = s & asState . asSelectedAccount .~ a
+asSetSelectedAccount _ s = s
 
 initAccountsScreen :: Day -> Bool -> AppState -> AppState
 initAccountsScreen d reset st@AppState{
   aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}},
   ajournal=j,
-  aScreen=s@AccountsScreen{asState=asState@AccountsScreenState{..}}
+  aScreen=s@AccountsScreen{}
   } =
-  st{aopts=uopts', aScreen=s{asState=asState{asItems=newitems'}}}
+  st{aopts=uopts', aScreen=s & asState . asItems .~ newitems'}
    where
     newitems = list (Name "accounts") (V.fromList displayitems) 1
 
@@ -66,7 +67,7 @@ initAccountsScreen d reset st@AppState{
     -- (may need to move to the next leaf account when entering flat mode)
     newitems' = listMoveTo selidx newitems
       where
-        selidx = case (reset, listSelectedElement asItems) of
+        selidx = case (reset, listSelectedElement $ s ^. asState . asItems) of
                    (True, _)               -> 0
                    (_, Nothing)            -> 0
                    (_, Just (_,AccountsScreenItem{asItemAccountName=a})) -> fromMaybe (fromMaybe 0 mprefixmatch) mexactmatch
@@ -108,7 +109,7 @@ initAccountsScreen _ _ _ = error "init function called with wrong screen type, s
 drawAccountsScreen :: AppState -> [Widget]
 drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                            ,ajournal=j
-                           ,aScreen=AccountsScreen{asState=AccountsScreenState{..}}
+                           ,aScreen=s@AccountsScreen{}
                            ,aMinibuffer=mbuf} =
   [ui]
     where
@@ -141,10 +142,10 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           fs -> str " with " <+> withAttr (borderAttr <> "query") (str $ intercalate ", " fs) <+> str " txns"
       nonzero | empty_ ropts = str ""
               | otherwise    = withAttr (borderAttr <> "query") (str " nonzero")
-      cur = str (case asItems ^. listSelectedL of
+      cur = str (case s ^. asState . asItems ^. listSelectedL of  -- XXX second ^. required here but not below..
                   Nothing -> "-"
                   Just i -> show (i + 1))
-      total = str $ show $ V.length $ asItems ^. listElementsL
+      total = str $ show $ V.length $ s ^. asState . asItems . listElementsL
 
       bottomlabel = borderKeysStr [
          -- ("up/down/pgup/pgdown/home/end", "move")
@@ -173,7 +174,7 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
             -- ltrace "availwidth" $
             c^.availWidthL
             - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
-          displayitems = listElements asItems
+          displayitems = s ^. asState . asItems . listElementsL
           maxacctwidthseen =
             -- ltrace "maxacctwidthseen" $
             V.maximum $
@@ -201,7 +202,7 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
 
           colwidths = (acctwidth, balwidth)
 
-        render $ defaultLayout toplabel bottomarea $ renderList asItems (drawAccountsItem colwidths)
+        render $ defaultLayout toplabel bottomarea $ renderList (s ^. asState . asItems) (drawAccountsItem colwidths)
 
 drawAccountsScreen _ = error "draw function called with wrong screen type, should not happen"
 
@@ -234,7 +235,7 @@ drawAccountsItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
 
 handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
 handleAccountsScreen st@AppState{
-   aScreen=scr@AccountsScreen{asState=asState@AccountsScreenState{..}}
+   aScreen=scr@AccountsScreen{..}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   ,aMinibuffer=mbuf
@@ -247,10 +248,10 @@ handleAccountsScreen st@AppState{
     -- before we go anywhere, remember the currently selected account.
     -- (This is preserved across screen changes, unlike List's selection state)
     let
-      selacct = case listSelectedElement asItems of
+      selacct = case listSelectedElement $ scr ^. asState . asItems of
                   Just (_, AccountsScreenItem{..}) -> asItemAccountName
-                  Nothing -> asSelectedAccount
-      st' = st{aScreen=scr{asState=asState{asSelectedAccount=selacct}}}
+                  Nothing -> scr ^. asState . asSelectedAccount
+      st' = st{aScreen=scr & asState . asSelectedAccount .~ selacct}
 
     case mbuf of
       Nothing ->
@@ -290,8 +291,9 @@ handleAccountsScreen st@AppState{
 
             -- fall through to the list's event handler (handles up/down)
             ev                       -> do
-                                         newitems <- handleEvent ev asItems
-                                         continue $ st'{aScreen=scr{asState=asState{asItems=newitems,asSelectedAccount=selacct}}}
+                                         newitems <- handleEvent ev (scr ^. asState . asItems)
+                                         continue $ st'{aScreen=scr & asState . asItems .~ newitems
+                                                                    & asState . asSelectedAccount .~ selacct}
                                      -- continue =<< handleEventLensed st' someLens ev
 
       Just ed ->

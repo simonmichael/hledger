@@ -30,14 +30,21 @@ Brick.defaultMain brickapp st
 -}
 
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.UI.UITypes where
 
+import Data.Monoid
 import Data.Time.Calendar (Day)
-import qualified Graphics.Vty as V
+import qualified Graphics.Vty as Vty
 import Brick
-import Brick.Widgets.List (List)
+import Brick.Widgets.List
 import Brick.Widgets.Edit (Editor)
+import qualified Data.Vector as V
+import Lens.Micro
+import Lens.Micro.TH
 import Text.Show.Functions ()
   -- import the Show instance for functions. Warning, this also re-exports it
 
@@ -62,35 +69,43 @@ data AppState = AppState {
 -- partial functions, so take care.
 data Screen =
     AccountsScreen {
-       asState   :: AccountsScreenState
+       _asState   :: AccountsScreenState
       ,sInitFn   :: Day -> Bool -> AppState -> AppState            -- ^ function to generate the screen's state on entry or change
       ,sDrawFn   :: AppState -> [Widget]                           -- ^ brick renderer for this screen
-      ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)  -- ^ brick event handler for this screen
+      ,sHandleFn :: AppState -> Vty.Event -> EventM (Next AppState)  -- ^ brick event handler for this screen
     }
   | RegisterScreen {
        rsState   :: RegisterScreenState
       ,sInitFn   :: Day -> Bool -> AppState -> AppState
       ,sDrawFn   :: AppState -> [Widget]
-      ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
+      ,sHandleFn :: AppState -> Vty.Event -> EventM (Next AppState)
     }
   | TransactionScreen {
        tsState   :: TransactionScreenState
       ,sInitFn   :: Day -> Bool -> AppState -> AppState
       ,sDrawFn   :: AppState -> [Widget]
-      ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
-                                }
+      ,sHandleFn :: AppState -> Vty.Event -> EventM (Next AppState)
+    }
   | ErrorScreen {
        esState   :: ErrorScreenState
       ,sInitFn   :: Day -> Bool -> AppState -> AppState
       ,sDrawFn   :: AppState -> [Widget]
-      ,sHandleFn :: AppState -> V.Event -> EventM (Next AppState)
+      ,sHandleFn :: AppState -> Vty.Event -> EventM (Next AppState)
     }
   deriving (Show)
 
+instance Show (List a) where show _ = "<List>"
+instance Show Editor   where show _ = "<Editor>"
+
+instance Monoid (List a)
+  where
+    mempty      = list "" V.empty 1
+    mappend a b = a & listElementsL .~ (a^.listElementsL <> b^.listElementsL)
+
 -- | Render state for this type of screen.
 data AccountsScreenState = AccountsScreenState {
-   asItems           :: List AccountsScreenItem  -- ^ list of account names & balances
-  ,asSelectedAccount :: AccountName              -- ^ full name of the currently selected account (or "")
+   _asItems           :: List AccountsScreenItem  -- ^ list of account names & balances
+  ,_asSelectedAccount :: AccountName              -- ^ full name of the currently selected account (or "")
   } deriving (Show)
 
 -- | An item in the accounts screen's list of accounts and balances.
@@ -128,9 +143,15 @@ type NumberedTransaction = (Integer, Transaction)
 
 -- | Render state for this type of screen.
 data ErrorScreenState = ErrorScreenState {
-   esError :: String  -- ^ error message to show
+                           esError :: String  -- ^ error message to show
   } deriving (Show)
 
-instance Show (List a) where show _ = "<List>"
-instance Show Editor   where show _ = "<Editor>"
+-- makeLenses ''AccountsScreenState
+concat <$> mapM makeLenses [
+   ''AccountsScreenState
+--   ,''RegisterScreenState
+--   ,''TransactionScreenState
+--   ,''ErrorScreenState
+  ,''Screen
+  ]
 
