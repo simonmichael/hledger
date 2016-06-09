@@ -68,10 +68,11 @@ data AppState = AppState {
 -- | hledger-ui screen types & instances.
 -- Each screen type has generically named initialisation, draw, and event handling functions,
 -- and zero or more uniquely named screen state fields, which hold the data for a particular
--- instance of this screen. The latter create partial functions, so take care.
+-- instance of this screen. Note the latter create partial functions, which means that some invalid
+-- cases need to be handled, and also that their lenses are traversals, not single-value getters.
 data Screen =
     AccountsScreen {
-       sInit   :: Day -> Bool -> AppState -> AppState              -- ^ function to update the screen's state
+       sInit   :: Day -> Bool -> AppState -> AppState              -- ^ function to initialise or update this screen's state
       ,sDraw   :: AppState -> [Widget]                             -- ^ brick renderer for this screen
       ,sHandle :: AppState -> Vty.Event -> EventM (Next AppState)  -- ^ brick event handler for this screen
       -- state fields. These ones have lenses:
@@ -124,7 +125,7 @@ data RegisterScreenItem = RegisterScreenItem {
 
 type NumberedTransaction = (Integer, Transaction)
 
--- needed for lenses
+-- dummy monoid instance needed for lenses for now since the List fields are not common across constructors
 instance Monoid (List a)
   where
     mempty        = list "" V.empty 1
