@@ -72,6 +72,7 @@ executables:
     dependencies:
       - hledger >= 0.28 && < 0.29
       - hledger-lib >= 0.28 && < 0.29
+      - ansi-terminal >= 0.6.2.3 && < 0.7
       - base >= 3 && < 5
       - base-compat >= 0.8.1
       - brick >= 0.2 && < 0.5

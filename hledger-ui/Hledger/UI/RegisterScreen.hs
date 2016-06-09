@@ -24,7 +24,9 @@ import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Brick.Widgets.Border (borderAttr)
 -- import Brick.Widgets.Center
+import System.Console.ANSI
 -- import Text.Printf
+
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
@@ -236,7 +238,7 @@ rsHandle st@AppState{
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
         Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
         Vty.EvKey (Vty.KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
-        Vty.EvKey (Vty.KChar 'a') [] -> suspendAndResume $ add copts j >> stReloadJournalIfChanged copts d j st
+        Vty.EvKey (Vty.KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> stReloadJournalIfChanged copts d j st
         Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
         Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)
         Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st)
