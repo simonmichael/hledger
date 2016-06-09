@@ -87,9 +87,11 @@ _reportingoptions_
 Generally the cursor keys navigate; `right` (or `enter`) goes deeper, `left` returns to the previous screen,
 `up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
 
-`g` gets the latest data and refreshes the current screen and any
-previous screens. (With large journal files, there can be a noticeable
-pause.)
+`g` reloads from the data file(s) and updates the current screen and any
+previous screens. (With large files, there can be a noticeable pause.)
+
+`a` runs command-line hledger's add command, and reloads hledger-ui.
+This allows some basic data entry. 
 
 `/` lets you set or change the [filter query](/hledger.html#queries),
 which limits the data shown on most screens (in addition to the quick

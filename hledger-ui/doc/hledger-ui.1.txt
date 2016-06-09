@@ -149,14 +149,16 @@ KKEEYYSS
        returns to the previous screen, up/down/page up/page down/home/end move
        up and down through lists.
 
-       g  gets the latest data and refreshes the current screen and any previ-
-       ous screens.  (With large journal files,  there  can  be  a  noticeable
-       pause.)
+       g  reloads from the data file(s) and updates the current screen and any
+       previous screens.  (With large files, there can be a noticeable pause.)
 
-       /  lets you set or change the filter query, which limits the data shown
-       on most screens (in addition to the  quick  filters  described  below).
-       While  editing  the  query  you  can use typical command-line edit keys
-       (ctrl-a/e/k), press enter to set the new filter,  or  press  escape  to
+       a  runs  command-line  hledger's  add  command, and reloads hledger-ui.
+       This allows some basic data entry.
+
+       / lets you set or change the filter query, which limits the data  shown
+       on  most  screens  (in  addition to the quick filters described below).
+       While editing the query you can  use  typical  command-line  edit  keys
+       (ctrl-a/e/k),  press  enter  to  set the new filter, or press escape to
        cancel.
 
        BACKSPACE or DELETE clears any filters in effect.
@@ -169,25 +171,25 @@ KKEEYYSS
 
 SSCCRREEEENNSS
    AAccccoouunnttss ssccrreeeenn
-       This  is  normally  the  first screen displayed.  It lists accounts and
-       their balances, like hledger's balance command.  By default,  it  shows
-       all  accounts and their latest ending balances.  if you specify a query
-       on the command line, it shows just the matched accounts  and  the  bal-
+       This is normally the first screen displayed.   It  lists  accounts  and
+       their  balances,  like hledger's balance command.  By default, it shows
+       all accounts and their latest ending balances.  if you specify a  query
+       on  the  command  line, it shows just the matched accounts and the bal-
        ances from matched transactions.
 
-       When  not in flat mode, indentation indicates the account hierarchy.  F
+       When not in flat mode, indentation indicates the account hierarchy.   F
        toggles flat mode on and off.
 
-       By default, all subaccounts are displayed.  To see less detail,  set  a
-       depth  limit  by  pressing  a number key, 1 to 9.  Or, adjust the depth
+       By  default,  all subaccounts are displayed.  To see less detail, set a
+       depth limit by pressing a number key, 1 to 9.   Or,  adjust  the  depth
        limit by pressing - or + (= also works).  0 removes the depth limit.
 
-       E toggles nonzero mode, in which only accounts  with  nonzero  balances
-       are  shown (hledger-ui shows zero items by default, unlike command-line
+       E  toggles  nonzero  mode, in which only accounts with nonzero balances
+       are shown (hledger-ui shows zero items by default, unlike  command-line
        hledger).
 
-       C toggles cleared mode, in which uncleared  transactions  and  postings
-       are  not  shown.   U  toggles  uncleared  mode, in which only uncleared
+       C  toggles  cleared  mode, in which uncleared transactions and postings
+       are not shown.  U toggles  uncleared  mode,  in  which  only  uncleared
        transactions/postings are shown.
 
        R toggles real mode, in which virtual postings are ignored.
@@ -201,17 +203,17 @@ SSCCRREEEENNSS
 
        +o Each line represents a whole transaction.
 
-       +o For each transaction, it shows  the  other  account(s)  involved,  in
-         abbreviated  form.   (If there are both real and virtual postings, it
+       +o For  each  transaction,  it  shows  the other account(s) involved, in
+         abbreviated form.  (If there are both real and virtual  postings,  it
          shows only the accounts affected by real postings.)
 
-       +o It shows the overall change to the  current  account's  balance  from
-         each  transaction;  positive  for an inflow to this account, negative
+       +o It  shows  the  overall  change to the current account's balance from
+         each transaction; positive for an inflow to  this  account,  negative
          for an outflow.
 
        +o When no query other than a date limit is in effect, it shows the cur-
-         rent  account's  historic balance as of the transaction date.  Other-
-         wise it shows a running total starting from  zero.   Eg,  these  will
+         rent account's historic balance as of the transaction  date.   Other-
+         wise  it  shows  a  running total starting from zero.  Eg, these will
          show historic balances:
 
                 $ hledger-ui
@@ -225,49 +227,49 @@ SSCCRREEEENNSS
                 $ hledger-ui --begin 'this month' desc:market
                 $ hledger-ui --register checking --cleared
 
-       E toggles nonzero mode, in which only transactions  posting  a  nonzero
-       change  are  shown (hledger-ui shows zero items by default, unlike com-
+       E  toggles  nonzero  mode, in which only transactions posting a nonzero
+       change are shown (hledger-ui shows zero items by default,  unlike  com-
        mand-line hledger).
 
-       C toggles cleared mode, in which uncleared  transactions  and  postings
-       are  not  shown.   U  toggles  uncleared  mode, in which only uncleared
+       C  toggles  cleared  mode, in which uncleared transactions and postings
+       are not shown.  U toggles  uncleared  mode,  in  which  only  uncleared
        transactions/postings are shown.
 
        R toggles real mode, in which virtual postings are ignored.
 
        Press right or enter to view the selected transaction in full detail.
 
-       Note, filter queries which filter by account name do not  yet  do  much
+       Note,  filter  queries  which filter by account name do not yet do much
        useful on this screen.
 
    TTrraannssaaccttiioonn ssccrreeeenn
-       This  screen  shows  a  single transaction, as a general journal entry,
-       similar to hledger's print command and  journal  format  (hledger_jour-
+       This screen shows a single transaction, as  a  general  journal  entry,
+       similar  to  hledger's  print command and journal format (hledger_jour-
        nal(5)).
 
-       The  transaction's  date(s)  and  any  cleared  flag, transaction code,
-       description, comments, along with  all  of  its  account  postings  are
-       shown.   Simple  transactions  have two postings, but there can be more
+       The transaction's date(s)  and  any  cleared  flag,  transaction  code,
+       description,  comments,  along  with  all  of  its account postings are
+       shown.  Simple transactions have two postings, but there  can  be  more
        (or in certain cases, fewer).
 
-       up and down will step through all transactions listed in  the  previous
-       account  register screen.  In the title bar, the numbers in parentheses
-       show your position  within  that  account  register.   They  will  vary
+       up  and  down will step through all transactions listed in the previous
+       account register screen.  In the title bar, the numbers in  parentheses
+       show  your  position  within  that  account  register.   They will vary
        depending on which account register you came from (remember most trans-
        actions appear in multiple account registers).  The #N number preceding
        them is the transaction's position within the complete unfiltered jour-
        nal, which is a more stable id (at least until the next reload).
 
    EErrrroorr ssccrreeeenn
-       This screen will appear if there is a problem, such as a  parse  error,
+       This  screen  will appear if there is a problem, such as a parse error,
        when you press g to reload.  Once you have fixed the problem described,
        press g again to reload and restore normal operation.
 
 EENNVVIIRROONNMMEENNTT
-       LLEEDDGGEERR__FFIILLEE sets the default journal file path.   If  not  set,  it  is
+       LLEEDDGGEERR__FFIILLEE  sets  the  default  journal  file path.  If not set, it is
        ~/.hledger.journal.
 
-       CCOOLLUUMMNNSS  sets  the  screen  width  to  use  (normally the full terminal
+       CCOOLLUUMMNNSS sets the screen  width  to  use  (normally  the  full  terminal
        width).
 
 FFIILLEESS
@@ -276,7 +278,7 @@ FFIILLEESS
        file.
 
 BBUUGGSS
-       The need to precede options with -- when invoked from hledger  is  awk-
+       The  need  to precede options with -- when invoked from hledger is awk-
        ward.
 
        -f- doesn't work (hledger-ui can't read from stdin).
@@ -287,14 +289,14 @@ BBUUGGSS
        which may cause a noticeable pause.  Also there is no visual indication
        that this is in progress.
 
-       The  register  screen's  switching between historic balance and running
+       The register screen's switching between historic  balance  and  running
        total based on query arguments may be confusing, and there is no column
        heading to indicate which is being displayed.
 
 
 
 RREEPPOORRTTIINNGG BBUUGGSS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -308,7 +310,7 @@ CCOOPPYYRRIIGGHHTT
 
 
 SSEEEE AALLSSOO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
