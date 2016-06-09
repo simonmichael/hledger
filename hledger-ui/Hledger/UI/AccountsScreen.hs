@@ -144,7 +144,8 @@ asDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
 
       bottomlabel = borderKeysStr [
          -- ("up/down/pgup/pgdown/home/end", "move")
-         ("-=1234567890", "depth")
+         ("a", "add")
+        ,("-=1234567890", "depth")
         ,("F", "flat?")
         ,("E", "nonzero?")
         ,("C", "cleared?")
@@ -255,6 +256,7 @@ asHandle st'@AppState{
             -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
             Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
             Vty.EvKey (Vty.KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
+            Vty.EvKey (Vty.KChar 'a') [] -> suspendAndResume $ add copts j >> stReloadJournalIfChanged copts d j st
             Vty.EvKey (Vty.KChar '-') [] -> continue $ regenerateScreens j d $ decDepth st
             Vty.EvKey (Vty.KChar '+') [] -> continue $ regenerateScreens j d $ incDepth st
             Vty.EvKey (Vty.KChar '=') [] -> continue $ regenerateScreens j d $ incDepth st

@@ -179,6 +179,7 @@ rsDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
         bottomlabel = borderKeysStr [
            -- ("up/down/pgup/pgdown/home/end", "move")
            ("left", "back")
+          ,("a", "add")
           ,("E", "nonzero?")
           ,("C", "cleared?")
           ,("U", "uncleared?")
@@ -235,6 +236,7 @@ rsHandle st@AppState{
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
         Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
         Vty.EvKey (Vty.KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
+        Vty.EvKey (Vty.KChar 'a') [] -> suspendAndResume $ add copts j >> stReloadJournalIfChanged copts d j st
         Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
         Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)
         Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st)
