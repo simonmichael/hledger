@@ -27,7 +27,7 @@ import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Brick.Widgets.Border (borderAttr)
 -- import Brick.Widgets.Center
-import Lens.Micro
+import Lens.Micro.Platform
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)

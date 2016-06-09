@@ -45,8 +45,7 @@ import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit (Editor)
 import qualified Data.Vector as V
-import Lens.Micro
-import Lens.Micro.TH
+import Lens.Micro.Platform
 import Text.Show.Functions ()
   -- import the Show instance for functions. Warning, this also re-exports it
 

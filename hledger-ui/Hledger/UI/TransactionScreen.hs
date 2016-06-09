@@ -8,7 +8,7 @@ module Hledger.UI.TransactionScreen
  )
 where
 
--- import Lens.Micro ((^.))
+-- import Lens.Micro.Platform ((^.))
 import Control.Monad.IO.Class (liftIO)
 import Data.List
 -- import Data.List.Split (splitOn)

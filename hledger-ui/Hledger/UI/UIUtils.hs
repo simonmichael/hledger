@@ -32,7 +32,7 @@ module Hledger.UI.UIUtils
 --  )
   where
 
-import Lens.Micro ((^.))
+import Lens.Micro.Platform ((^.))
 -- import Control.Monad
 -- import Control.Monad.IO.Class
 -- import Data.Default
