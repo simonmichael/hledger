@@ -101,7 +101,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
       -- with --register, start on the register screen, and also put
       -- the accounts screen on the prev screens stack so you can exit
       -- to that as usual.
-      Just apat -> (rsSetCurrentAccount acct registerScreen, [ascr'])
+      Just apat -> (rsSetAccount acct registerScreen, [ascr'])
         where
           acct = headDef
                  (error' $ "--register "++apat++" did not match any account")
@@ -109,7 +109,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary AppState value..
           ascr' = aScreen $
-                  initAccountsScreen d True $
+                  asInit d True $
                   AppState{
                     aopts=uopts'
                    ,ajournal=j
@@ -118,7 +118,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
                    ,aMinibuffer=Nothing
                    }
   
-    st = (sInitFn scr) d True
+    st = (sInit scr) d True
          AppState{
             aopts=uopts'
            ,ajournal=j
@@ -133,8 +133,8 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
       , appStartEvent   = return
       , appAttrMap      = const theme
       , appChooseCursor = showFirstCursor
-      , appHandleEvent  = \st ev -> sHandleFn (aScreen st) st ev
-      , appDraw         = \st    -> sDrawFn   (aScreen st) st
+      , appHandleEvent  = \st ev -> sHandle (aScreen st) st ev
+      , appDraw         = \st    -> sDraw   (aScreen st) st
          -- XXX bizarro. removing the st arg and parameter above,
          -- which according to GHCI does not change the type,
          -- causes "Exception: draw function called with wrong screen type"

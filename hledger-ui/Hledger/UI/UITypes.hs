@@ -1,9 +1,11 @@
 {- |
 Overview:
-hledger-ui's AppState holds the active screen and any previously visited screens.
-Screens have their own render state, render function, event handler,
-and app state update function (which can update the whole AppState).
-A brick App delegates event-handling and rendering to our AppState's active screen.
+hledger-ui's AppState holds the currently active screen and any previously visited
+screens (and their states).
+The brick App delegates all event-handling and rendering
+to the AppState's active screen.
+Screens have their own screen state, render function, event handler, and app state
+update function, so they have full control.
 
 @
 Brick.defaultMain brickapp st
@@ -14,15 +16,15 @@ Brick.defaultMain brickapp st
       , appStartEvent   = return
       , appAttrMap      = const theme
       , appChooseCursor = showFirstCursor
-      , appHandleEvent  = \st ev -> sHandleFn (aScreen st) st ev
-      , appDraw         = \st    -> sDrawFn   (aScreen st) st
+      , appHandleEvent  = \st ev -> sHandle (aScreen st) st ev
+      , appDraw         = \st    -> sDraw   (aScreen st) st
       }
     st :: AppState
-    st = (sInitFn scr) d
+    st = (sInit s) d
          AppState{
             aopts=uopts'
            ,ajournal=j
-           ,aScreen=scr
+           ,aScreen=s
            ,aPrevScreens=prevscrs
            ,aMinibuffer=Nothing
            }
@@ -30,9 +32,9 @@ Brick.defaultMain brickapp st
 -}
 
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE DeriveAnyClass     #-}
+{-# LANGUAGE OverloadedStrings  #-}
+{-# LANGUAGE TemplateHaskell    #-}
 
 module Hledger.UI.UITypes where
 
@@ -51,62 +53,56 @@ import Text.Show.Functions ()
 import Hledger
 import Hledger.UI.UIOptions
 
+instance Show (List a) where show _ = "<List>"
+instance Show Editor   where show _ = "<Editor>"
+
 -- | hledger-ui's application state. This holds one or more stateful screens.
 data AppState = AppState {
    aopts        :: UIOpts       -- ^ the command-line options and query arguments currently in effect
   ,ajournal     :: Journal      -- ^ the journal being viewed
   ,aScreen      :: Screen       -- ^ the currently active screen
   ,aPrevScreens :: [Screen]     -- ^ previously visited screens, most recent first
-  ,aMinibuffer  :: Maybe Editor -- ^ a compact editor used for data entry, when active
+  ,aMinibuffer  :: Maybe Editor -- ^ a compact editor, when active, used for data entry on all screens
   } deriving (Show)
 
--- | Types of screen available within hledger-ui. Each has its own
--- specific state type, and generic initialisation, event handling
--- and rendering functions.
---
--- Screen types are pattern-matched by their constructor and their
--- state field, which must have a unique name. This type causes
--- partial functions, so take care.
+-- | hledger-ui screen types & instances.
+-- Each screen type has generically named initialisation, draw, and event handling functions,
+-- and zero or more uniquely named screen state fields, which hold the data for a particular
+-- instance of this screen. The latter create partial functions, so take care.
 data Screen =
     AccountsScreen {
-       _asState   :: AccountsScreenState
-      ,sInitFn   :: Day -> Bool -> AppState -> AppState            -- ^ function to generate the screen's state on entry or change
-      ,sDrawFn   :: AppState -> [Widget]                           -- ^ brick renderer for this screen
-      ,sHandleFn :: AppState -> Vty.Event -> EventM (Next AppState)  -- ^ brick event handler for this screen
+       sInit   :: Day -> Bool -> AppState -> AppState              -- ^ function to update the screen's state
+      ,sDraw   :: AppState -> [Widget]                             -- ^ brick renderer for this screen
+      ,sHandle :: AppState -> Vty.Event -> EventM (Next AppState)  -- ^ brick event handler for this screen
+      -- state fields. These ones have lenses:
+      ,_asList            :: List AccountsScreenItem  -- ^ list widget showing account names & balances
+      ,_asSelectedAccount :: AccountName              -- ^ a backup of the account name from the list widget's selected item (or "")
     }
   | RegisterScreen {
-       rsState   :: RegisterScreenState
-      ,sInitFn   :: Day -> Bool -> AppState -> AppState
-      ,sDrawFn   :: AppState -> [Widget]
-      ,sHandleFn :: AppState -> Vty.Event -> EventM (Next AppState)
+       sInit   :: Day -> Bool -> AppState -> AppState
+      ,sDraw   :: AppState -> [Widget]
+      ,sHandle :: AppState -> Vty.Event -> EventM (Next AppState)
+      --
+      ,rsList    :: List RegisterScreenItem           -- ^ list widget showing transactions affecting this account
+      ,rsAccount :: AccountName                       -- ^ the account this register is for
     }
   | TransactionScreen {
-       tsState   :: TransactionScreenState
-      ,sInitFn   :: Day -> Bool -> AppState -> AppState
-      ,sDrawFn   :: AppState -> [Widget]
-      ,sHandleFn :: AppState -> Vty.Event -> EventM (Next AppState)
+       sInit   :: Day -> Bool -> AppState -> AppState
+      ,sDraw   :: AppState -> [Widget]
+      ,sHandle :: AppState -> Vty.Event -> EventM (Next AppState)
+      --
+      ,tsTransaction  :: NumberedTransaction          -- ^ the transaction we are currently viewing, and its position in the list
+      ,tsTransactions :: [NumberedTransaction]        -- ^ list of transactions we can step through
+      ,tsAccount      :: AccountName                  -- ^ the account whose register we entered this screen from
     }
   | ErrorScreen {
-       esState   :: ErrorScreenState
-      ,sInitFn   :: Day -> Bool -> AppState -> AppState
-      ,sDrawFn   :: AppState -> [Widget]
-      ,sHandleFn :: AppState -> Vty.Event -> EventM (Next AppState)
+       sInit   :: Day -> Bool -> AppState -> AppState
+      ,sDraw   :: AppState -> [Widget]
+      ,sHandle :: AppState -> Vty.Event -> EventM (Next AppState)
+      --
+      ,esError :: String                              -- ^ error message to show
     }
   deriving (Show)
-
-instance Show (List a) where show _ = "<List>"
-instance Show Editor   where show _ = "<Editor>"
-
-instance Monoid (List a)
-  where
-    mempty      = list "" V.empty 1
-    mappend a b = a & listElementsL .~ (a^.listElementsL <> b^.listElementsL)
-
--- | Render state for this type of screen.
-data AccountsScreenState = AccountsScreenState {
-   _asItems           :: List AccountsScreenItem  -- ^ list of account names & balances
-  ,_asSelectedAccount :: AccountName              -- ^ full name of the currently selected account (or "")
-  } deriving (Show)
 
 -- | An item in the accounts screen's list of accounts and balances.
 data AccountsScreenItem = AccountsScreenItem {
@@ -115,12 +111,6 @@ data AccountsScreenItem = AccountsScreenItem {
   ,asItemDisplayAccountName :: AccountName  -- ^ full or short account name to display
   ,asItemRenderedAmounts    :: [String]     -- ^ rendered amounts
   }
-
--- | Render state for this type of screen.
-data RegisterScreenState = RegisterScreenState {
-   rsItems           :: List RegisterScreenItem  -- ^ list of transactions affecting this account
-  ,rsSelectedAccount :: AccountName              -- ^ full name of the account we are showing a register for
-  } deriving (Show)
 
 -- | An item in the register screen's list of transactions in the current account.
 data RegisterScreenItem = RegisterScreenItem {
@@ -132,26 +122,15 @@ data RegisterScreenItem = RegisterScreenItem {
   ,rsItemTransaction    :: Transaction      -- ^ the full transaction
   }
 
--- | Render state for this type of screen.
-data TransactionScreenState = TransactionScreenState {
-   tsTransaction     :: NumberedTransaction    -- ^ the transaction we are currently viewing, and its position in the list
-  ,tsTransactions    :: [NumberedTransaction]  -- ^ the list of transactions we can step through
-  ,tsSelectedAccount :: AccountName            -- ^ the account whose register we entered this screen from
-  } deriving (Show)
-
 type NumberedTransaction = (Integer, Transaction)
 
--- | Render state for this type of screen.
-data ErrorScreenState = ErrorScreenState {
-                           esError :: String  -- ^ error message to show
-  } deriving (Show)
+-- needed for lenses
+instance Monoid (List a)
+  where
+    mempty        = list "" V.empty 1
+    mappend l1 l2 = l1 & listElementsL .~ (l1^.listElementsL <> l2^.listElementsL)
 
--- makeLenses ''AccountsScreenState
 concat <$> mapM makeLenses [
-   ''AccountsScreenState
---   ,''RegisterScreenState
---   ,''TransactionScreenState
---   ,''ErrorScreenState
-  ,''Screen
+   ''Screen
   ]
 

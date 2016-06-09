@@ -4,6 +4,7 @@
 
 module Hledger.UI.TransactionScreen
  (transactionScreen
+ ,rsSelect
  )
 where
 
@@ -37,26 +38,26 @@ import Hledger.UI.ErrorScreen
 
 transactionScreen :: Screen
 transactionScreen = TransactionScreen{
-   tsState   = TransactionScreenState{tsTransaction=(1,nulltransaction)
-                                     ,tsTransactions=[(1,nulltransaction)]
-                                     ,tsSelectedAccount=""}
-  ,sInitFn   = initTransactionScreen
-  ,sDrawFn   = drawTransactionScreen
-  ,sHandleFn = handleTransactionScreen
+   sInit   = tsInit
+  ,sDraw   = tsDraw
+  ,sHandle = tsHandle
+  ,tsTransaction  = (1,nulltransaction)
+  ,tsTransactions = [(1,nulltransaction)]
+  ,tsAccount      = ""
   }
 
-initTransactionScreen :: Day -> Bool -> AppState -> AppState
-initTransactionScreen _d _reset st@AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
+tsInit :: Day -> Bool -> AppState -> AppState
+tsInit _d _reset st@AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
                                            ,ajournal=_j
                                            ,aScreen=TransactionScreen{..}} = st
-initTransactionScreen _ _ _ = error "init function called with wrong screen type, should not happen"
+tsInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
-drawTransactionScreen :: AppState -> [Widget]
-drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+tsDraw :: AppState -> [Widget]
+tsDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                               ,aScreen=TransactionScreen{
-                                  tsState=TransactionScreenState{tsTransaction=(i,t)
-                                                                ,tsTransactions=nts
-                                                                ,tsSelectedAccount=acct}}} =
+                                   tsTransaction=(i,t)
+                                  ,tsTransactions=nts
+                                  ,tsAccount=acct}} =
   [ui]
   where
     -- datedesc = show (tdate t) ++ " " ++ tdescription t
@@ -96,13 +97,13 @@ drawTransactionScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
         -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
         t
 
-drawTransactionScreen _ = error "draw function called with wrong screen type, should not happen"
+tsDraw _ = error "draw function called with wrong screen type, should not happen"
 
-handleTransactionScreen :: AppState -> Vty.Event -> EventM (Next AppState)
-handleTransactionScreen
-  st@AppState{aScreen=s@TransactionScreen{tsState=tsState@TransactionScreenState{tsTransaction=(i,t)
-                                                                                ,tsTransactions=nts
-                                                                                ,tsSelectedAccount=acct}}
+tsHandle :: AppState -> Vty.Event -> EventM (Next AppState)
+tsHandle
+  st@AppState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
+                                         ,tsTransactions=nts
+                                         ,tsAccount=acct}
              ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
              ,ajournal=j
              }
@@ -121,7 +122,7 @@ handleTransactionScreen
       case ej of
         Right j' -> do
           -- got to redo the register screen's transactions report, to get the latest transactions list for this screen
-          -- XXX duplicates initRegisterScreen
+          -- XXX duplicates rsInit
           let
             ropts' = ropts {depth_=Nothing
                            ,balancetype_=HistoricalBalance
@@ -138,31 +139,31 @@ handleTransactionScreen
                          Nothing | null numberedts -> (0,nulltransaction)
                                  | i > fst (last numberedts) -> last numberedts
                                  | otherwise -> head numberedts
-            st' = st{aScreen=s{tsState=TransactionScreenState{tsTransaction=(i',t')
-                                                             ,tsTransactions=numberedts
-                                                             ,tsSelectedAccount=acct}}}
+            st' = st{aScreen=s{tsTransaction=(i',t')
+                              ,tsTransactions=numberedts
+                              ,tsAccount=acct}}
           continue $ regenerateScreens j' d st'
 
-        Left err -> continue $ screenEnter d errorScreen{esState=ErrorScreenState{esError=err}} st
+        Left err -> continue $ screenEnter d errorScreen{esError=err} st
 
     -- if allowing toggling here, we should refresh the txn list from the parent register screen
     -- Vty.EvKey (Vty.KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty st
     -- Vty.EvKey (Vty.KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared st
     -- Vty.EvKey (Vty.KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal st
 
-    Vty.EvKey (Vty.KUp) []       -> continue $ regenerateScreens j d st{aScreen=s{tsState=tsState{tsTransaction=(iprev,tprev)}}}
-    Vty.EvKey (Vty.KDown) []     -> continue $ regenerateScreens j d st{aScreen=s{tsState=tsState{tsTransaction=(inext,tnext)}}}
+    Vty.EvKey (Vty.KUp) []       -> continue $ regenerateScreens j d st{aScreen=s{tsTransaction=(iprev,tprev)}}
+    Vty.EvKey (Vty.KDown) []     -> continue $ regenerateScreens j d st{aScreen=s{tsTransaction=(inext,tnext)}}
 
     Vty.EvKey (Vty.KLeft) []     -> continue st''
       where
         st'@AppState{aScreen=scr} = popScreen st
-        st'' = st'{aScreen=rsSetSelectedTransaction (fromIntegral i) scr}
+        st'' = st'{aScreen=rsSelect (fromIntegral i) scr}
 
     _ev -> continue st
 
-handleTransactionScreen _ _ = error "event handler called with wrong screen type, should not happen"
+tsHandle _ _ = error "event handler called with wrong screen type, should not happen"
 
-rsSetSelectedTransaction i scr@RegisterScreen{rsState=rsState@RegisterScreenState{..}} = scr{rsState=rsState{rsItems=l'}}
-  where l' = listMoveTo (i-1) rsItems
-rsSetSelectedTransaction _ scr = scr
-
+-- | Select the nth item on the register screen.
+rsSelect i scr@RegisterScreen{..} = scr{rsList=l'}
+  where l' = listMoveTo (i-1) rsList
+rsSelect _ scr = scr

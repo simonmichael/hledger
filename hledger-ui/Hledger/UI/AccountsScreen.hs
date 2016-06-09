@@ -5,12 +5,11 @@
 
 module Hledger.UI.AccountsScreen
  (accountsScreen
- ,initAccountsScreen
+ ,asInit
  ,asSetSelectedAccount
  )
 where
 
-import Lens.Micro ((^.))
 -- import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 -- import Data.Default
@@ -28,7 +27,7 @@ import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Brick.Widgets.Border (borderAttr)
 -- import Brick.Widgets.Center
-import Lens.Micro ((.~), (&))
+import Lens.Micro
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
@@ -42,24 +41,20 @@ import Hledger.UI.ErrorScreen
 
 accountsScreen :: Screen
 accountsScreen = AccountsScreen{
-   _asState  = AccountsScreenState{_asItems=list "accounts" V.empty 1
-                                  ,_asSelectedAccount=""
-                                  }
-  ,sInitFn   = initAccountsScreen
-  ,sDrawFn   = drawAccountsScreen
-  ,sHandleFn = handleAccountsScreen
+   sInit   = asInit
+  ,sDraw   = asDraw
+  ,sHandle = asHandle
+  ,_asList            = list "accounts" V.empty 1
+  ,_asSelectedAccount = ""
   }
 
-asSetSelectedAccount a s@AccountsScreen{} = s & asState . asSelectedAccount .~ a
-asSetSelectedAccount _ s = s
-
-initAccountsScreen :: Day -> Bool -> AppState -> AppState
-initAccountsScreen d reset st@AppState{
+asInit :: Day -> Bool -> AppState -> AppState
+asInit d reset st@AppState{
   aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}},
   ajournal=j,
   aScreen=s@AccountsScreen{}
   } =
-  st{aopts=uopts', aScreen=s & asState . asItems .~ newitems'}
+  st{aopts=uopts', aScreen=s & asList .~ newitems'}
    where
     newitems = list (Name "accounts") (V.fromList displayitems) 1
 
@@ -67,7 +62,7 @@ initAccountsScreen d reset st@AppState{
     -- (may need to move to the next leaf account when entering flat mode)
     newitems' = listMoveTo selidx newitems
       where
-        selidx = case (reset, listSelectedElement $ s ^. asState . asItems) of
+        selidx = case (reset, listSelectedElement $ s ^. asList) of
                    (True, _)               -> 0
                    (_, Nothing)            -> 0
                    (_, Just (_,AccountsScreenItem{asItemAccountName=a})) -> fromMaybe (fromMaybe 0 mprefixmatch) mexactmatch
@@ -104,10 +99,10 @@ initAccountsScreen d reset st@AppState{
     displayitems = map displayitem items
 
 
-initAccountsScreen _ _ _ = error "init function called with wrong screen type, should not happen"
+asInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
-drawAccountsScreen :: AppState -> [Widget]
-drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+asDraw :: AppState -> [Widget]
+asDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                            ,ajournal=j
                            ,aScreen=s@AccountsScreen{}
                            ,aMinibuffer=mbuf} =
@@ -142,10 +137,10 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           fs -> str " with " <+> withAttr (borderAttr <> "query") (str $ intercalate ", " fs) <+> str " txns"
       nonzero | empty_ ropts = str ""
               | otherwise    = withAttr (borderAttr <> "query") (str " nonzero")
-      cur = str (case s ^. asState . asItems ^. listSelectedL of  -- XXX second ^. required here but not below..
+      cur = str (case s ^. asList ^. listSelectedL of  -- XXX second ^. required here but not below..
                   Nothing -> "-"
                   Just i -> show (i + 1))
-      total = str $ show $ V.length $ s ^. asState . asItems . listElementsL
+      total = str $ show $ V.length $ s ^. asList . listElementsL
 
       bottomlabel = borderKeysStr [
          -- ("up/down/pgup/pgdown/home/end", "move")
@@ -174,7 +169,7 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
             -- ltrace "availwidth" $
             c^.availWidthL
             - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
-          displayitems = s ^. asState . asItems . listElementsL
+          displayitems = s ^. asList . listElementsL
           maxacctwidthseen =
             -- ltrace "maxacctwidthseen" $
             V.maximum $
@@ -202,12 +197,12 @@ drawAccountsScreen AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
 
           colwidths = (acctwidth, balwidth)
 
-        render $ defaultLayout toplabel bottomarea $ renderList (s ^. asState . asItems) (drawAccountsItem colwidths)
+        render $ defaultLayout toplabel bottomarea $ renderList (s ^. asList) (asDrawItem colwidths)
 
-drawAccountsScreen _ = error "draw function called with wrong screen type, should not happen"
+asDraw _ = error "draw function called with wrong screen type, should not happen"
 
-drawAccountsItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget
-drawAccountsItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
+asDrawItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget
+asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
   Widget Greedy Fixed $ do
     -- c <- getContext
       -- let showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
@@ -233,8 +228,8 @@ drawAccountsItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
         sel | selected  = (<> "selected")
             | otherwise = id
 
-handleAccountsScreen :: AppState -> Vty.Event -> EventM (Next AppState)
-handleAccountsScreen st@AppState{
+asHandle :: AppState -> Vty.Event -> EventM (Next AppState)
+asHandle st'@AppState{
    aScreen=scr@AccountsScreen{..}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
@@ -245,55 +240,52 @@ handleAccountsScreen st@AppState{
     -- let h = c^.availHeightL
     --     moveSel n l = listMoveBy n l
 
-    -- before we go anywhere, remember the currently selected account.
-    -- (This is preserved across screen changes, unlike List's selection state)
+    -- save the currently selected account, in case we leave this screen and lose the selection
     let
-      selacct = case listSelectedElement $ scr ^. asState . asItems of
+      selacct = case listSelectedElement $ scr ^. asList of
                   Just (_, AccountsScreenItem{..}) -> asItemAccountName
-                  Nothing -> scr ^. asState . asSelectedAccount
-      st' = st{aScreen=scr & asState . asSelectedAccount .~ selacct}
+                  Nothing -> scr ^. asSelectedAccount
+      st = st'{aScreen=scr & asSelectedAccount .~ selacct}
 
     case mbuf of
       Nothing ->
 
         case ev of
-            Vty.EvKey (Vty.KChar 'q') [] -> halt st'
+            Vty.EvKey (Vty.KChar 'q') [] -> halt st
             -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
-            Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st'
-            Vty.EvKey (Vty.KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st') >>= continue
-            Vty.EvKey (Vty.KChar '-') [] -> continue $ regenerateScreens j d $ decDepth st'
-            Vty.EvKey (Vty.KChar '+') [] -> continue $ regenerateScreens j d $ incDepth st'
-            Vty.EvKey (Vty.KChar '=') [] -> continue $ regenerateScreens j d $ incDepth st'
-            Vty.EvKey (Vty.KChar '1') [] -> continue $ regenerateScreens j d $ setDepth 1 st'
-            Vty.EvKey (Vty.KChar '2') [] -> continue $ regenerateScreens j d $ setDepth 2 st'
-            Vty.EvKey (Vty.KChar '3') [] -> continue $ regenerateScreens j d $ setDepth 3 st'
-            Vty.EvKey (Vty.KChar '4') [] -> continue $ regenerateScreens j d $ setDepth 4 st'
-            Vty.EvKey (Vty.KChar '5') [] -> continue $ regenerateScreens j d $ setDepth 5 st'
-            Vty.EvKey (Vty.KChar '6') [] -> continue $ regenerateScreens j d $ setDepth 6 st'
-            Vty.EvKey (Vty.KChar '7') [] -> continue $ regenerateScreens j d $ setDepth 7 st'
-            Vty.EvKey (Vty.KChar '8') [] -> continue $ regenerateScreens j d $ setDepth 8 st'
-            Vty.EvKey (Vty.KChar '9') [] -> continue $ regenerateScreens j d $ setDepth 9 st'
-            Vty.EvKey (Vty.KChar '0') [] -> continue $ regenerateScreens j d $ setDepth 0 st'
-            Vty.EvKey (Vty.KChar 'F') [] -> continue $ regenerateScreens j d $ stToggleFlat st'
-            Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st')
-            Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st')
-            Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st')
-            Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleReal st')
-            Vty.EvKey k [] | k `elem` [Vty.KChar '/'] -> continue $ regenerateScreens j d $ stShowMinibuffer st'
-            Vty.EvKey k [] | k `elem` [Vty.KBS, Vty.KDel] -> (continue $ regenerateScreens j d $ stResetFilter st')
-            Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st'
-            Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
-              let
-                scr = rsSetCurrentAccount selacct registerScreen
-                st'' = screenEnter d scr st'
-              scrollTopRegister
-              continue st''
+            Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
+            Vty.EvKey (Vty.KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
+            Vty.EvKey (Vty.KChar '-') [] -> continue $ regenerateScreens j d $ decDepth st
+            Vty.EvKey (Vty.KChar '+') [] -> continue $ regenerateScreens j d $ incDepth st
+            Vty.EvKey (Vty.KChar '=') [] -> continue $ regenerateScreens j d $ incDepth st
+            Vty.EvKey (Vty.KChar '1') [] -> continue $ regenerateScreens j d $ setDepth 1 st
+            Vty.EvKey (Vty.KChar '2') [] -> continue $ regenerateScreens j d $ setDepth 2 st
+            Vty.EvKey (Vty.KChar '3') [] -> continue $ regenerateScreens j d $ setDepth 3 st
+            Vty.EvKey (Vty.KChar '4') [] -> continue $ regenerateScreens j d $ setDepth 4 st
+            Vty.EvKey (Vty.KChar '5') [] -> continue $ regenerateScreens j d $ setDepth 5 st
+            Vty.EvKey (Vty.KChar '6') [] -> continue $ regenerateScreens j d $ setDepth 6 st
+            Vty.EvKey (Vty.KChar '7') [] -> continue $ regenerateScreens j d $ setDepth 7 st
+            Vty.EvKey (Vty.KChar '8') [] -> continue $ regenerateScreens j d $ setDepth 8 st
+            Vty.EvKey (Vty.KChar '9') [] -> continue $ regenerateScreens j d $ setDepth 9 st
+            Vty.EvKey (Vty.KChar '0') [] -> continue $ regenerateScreens j d $ setDepth 0 st
+            Vty.EvKey (Vty.KChar 'F') [] -> continue $ regenerateScreens j d $ stToggleFlat st
+            Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
+            Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)
+            Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st)
+            Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleReal st)
+            Vty.EvKey k [] | k `elem` [Vty.KChar '/'] -> continue $ regenerateScreens j d $ stShowMinibuffer st
+            Vty.EvKey k [] | k `elem` [Vty.KBS, Vty.KDel] -> (continue $ regenerateScreens j d $ stResetFilter st)
+            Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
+            Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> scrollTopRegister >> continue (screenEnter d scr st)
+              where
+                scr = rsSetAccount selacct registerScreen
 
             -- fall through to the list's event handler (handles up/down)
             ev                       -> do
-                                         newitems <- handleEvent ev (scr ^. asState . asItems)
-                                         continue $ st'{aScreen=scr & asState . asItems .~ newitems
-                                                                    & asState . asSelectedAccount .~ selacct}
+                                         newitems <- handleEvent ev (scr ^. asList)
+                                         continue $ st'{aScreen=scr & asList .~ newitems
+                                                                    & asSelectedAccount .~ selacct
+                                                                    }
                                      -- continue =<< handleEventLensed st' someLens ev
 
       Just ed ->
@@ -313,42 +305,8 @@ handleAccountsScreen st@AppState{
     scrollTop         = vScrollToBeginning $ viewportScroll "accounts"
     scrollTopRegister = vScrollToBeginning $ viewportScroll "register"
 
-handleAccountsScreen _ _ = error "event handler called with wrong screen type, should not happen"
+asHandle _ _ = error "event handler called with wrong screen type, should not happen"
 
--- | Get the maximum account depth in the current journal.
-maxDepth :: AppState -> Int
-maxDepth AppState{ajournal=j} = maximum $ map accountNameLevel $ journalAccountNames j
-
--- | Decrement the current depth limit towards 0. If there was no depth limit,
--- set it to one less than the maximum account depth.
-decDepth :: AppState -> AppState
-decDepth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{..}}}}
-  = st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=dec depth_}}}}
-  where
-    dec (Just d) = Just $ max 0 (d-1)
-    dec Nothing  = Just $ maxDepth st - 1
-
--- | Increment the current depth limit. If this makes it equal to the
--- the maximum account depth, remove the depth limit.
-incDepth :: AppState -> AppState
-incDepth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{..}}}}
-  = st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=inc depth_}}}}
-  where
-    inc (Just d) | d < (maxDepth st - 1) = Just $ d+1
-    inc _ = Nothing
-
--- | Set the current depth limit to the specified depth, which should
--- be a positive number.  If it is zero, or equal to or greater than the
--- current maximum account depth, the depth limit will be removed.
--- (Slight inconsistency here: zero is currently a valid display depth
--- which can be reached using the - key.  But we need a key to remove
--- the depth limit, and 0 is it.)
-setDepth :: Int -> AppState -> AppState
-setDepth depth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}}
-  = st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=mdepth'}}}}
-  where
-    mdepth' | depth < 0            = depth_ ropts
-            | depth == 0           = Nothing
-            | depth >= maxDepth st = Nothing
-            | otherwise            = Just depth
+asSetSelectedAccount a s@AccountsScreen{} = s & asSelectedAccount .~ a
+asSetSelectedAccount _ s = s
 

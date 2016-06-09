@@ -1,33 +1,36 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 
-module Hledger.UI.UIUtils (
-  pushScreen
- ,popScreen
- ,resetScreens
- ,screenEnter
- ,regenerateScreens
- ,getViewportSize
- -- ,margin
- ,withBorderAttr
- ,topBottomBorderWithLabel
- ,topBottomBorderWithLabels
- ,defaultLayout
- ,borderQueryStr
- ,borderDepthStr
- ,borderKeysStr
- ,minibuffer
- --
- ,stToggleCleared
- ,stTogglePending
- ,stToggleUncleared
- ,stToggleEmpty
- ,stToggleFlat
- ,stToggleReal
- ,stFilter
- ,stResetFilter
- ,stShowMinibuffer
- ,stHideMinibuffer
- ) where
+module Hledger.UI.UIUtils
+--   (
+--   pushScreen
+--  ,popScreen
+--  ,resetScreens
+--  ,screenEnter
+--  ,regenerateScreens
+--  ,getViewportSize
+--  -- ,margin
+--  ,withBorderAttr
+--  ,topBottomBorderWithLabel
+--  ,topBottomBorderWithLabels
+--  ,defaultLayout
+--  ,borderQueryStr
+--  ,borderDepthStr
+--  ,borderKeysStr
+--  ,minibuffer
+--  --
+--  ,stToggleCleared
+--  ,stTogglePending
+--  ,stToggleUncleared
+--  ,stToggleEmpty
+--  ,stToggleFlat
+--  ,stToggleReal
+--  ,stFilter
+--  ,stResetFilter
+--  ,stShowMinibuffer
+--  ,stHideMinibuffer
+--  )
+  where
 
 import Lens.Micro ((^.))
 -- import Control.Monad
@@ -44,13 +47,10 @@ import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
 import Graphics.Vty as Vty
 
-import Hledger.UI.UITypes
-import Hledger.Data.Types (Journal)
-import Hledger.UI.UIOptions
+import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Reports.ReportOptions
-import Hledger.Utils (applyN)
--- import Hledger.Utils.Debug
+import Hledger.UI.UITypes
+import Hledger.UI.UIOptions
 
 -- | Toggle between showing only cleared items or all items.
 stToggleCleared :: AppState -> AppState
@@ -116,6 +116,43 @@ stResetDepth :: AppState -> AppState
 stResetDepth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=Nothing}}}}
 
+-- | Get the maximum account depth in the current journal.
+maxDepth :: AppState -> Int
+maxDepth AppState{ajournal=j} = maximum $ map accountNameLevel $ journalAccountNames j
+
+-- | Decrement the current depth limit towards 0. If there was no depth limit,
+-- set it to one less than the maximum account depth.
+decDepth :: AppState -> AppState
+decDepth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{..}}}}
+  = st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=dec depth_}}}}
+  where
+    dec (Just d) = Just $ max 0 (d-1)
+    dec Nothing  = Just $ maxDepth st - 1
+
+-- | Increment the current depth limit. If this makes it equal to the
+-- the maximum account depth, remove the depth limit.
+incDepth :: AppState -> AppState
+incDepth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{..}}}}
+  = st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=inc depth_}}}}
+  where
+    inc (Just d) | d < (maxDepth st - 1) = Just $ d+1
+    inc _ = Nothing
+
+-- | Set the current depth limit to the specified depth, which should
+-- be a positive number.  If it is zero, or equal to or greater than the
+-- current maximum account depth, the depth limit will be removed.
+-- (Slight inconsistency here: zero is currently a valid display depth
+-- which can be reached using the - key.  But we need a key to remove
+-- the depth limit, and 0 is it.)
+setDepth :: Int -> AppState -> AppState
+setDepth depth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}}
+  = st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=mdepth'}}}}
+  where
+    mdepth' | depth < 0            = depth_ ropts
+            | depth == 0           = Nothing
+            | depth >= maxDepth st = Nothing
+            | otherwise            = Just depth
+
 -- | Enable the minibuffer, setting its content to the current query with the cursor at the end.
 stShowMinibuffer st = st{aMinibuffer=Just e}
   where
@@ -129,14 +166,14 @@ stHideMinibuffer st = st{aMinibuffer=Nothing}
 regenerateScreens :: Journal -> Day -> AppState -> AppState
 regenerateScreens j d st@AppState{aScreen=s,aPrevScreens=ss} =
   -- XXX clumsy due to entanglement of AppState and Screen.
-  -- sInitFn operates only on an appstate's current screen, so
+  -- sInit operates only on an appstate's current screen, so
   -- remove all the screens from the appstate and then add them back
   -- one at a time, regenerating as we go.
   let
     first:rest = reverse $ s:ss :: [Screen]
     st0 = st{ajournal=j, aScreen=first, aPrevScreens=[]} :: AppState
-    st1 = (sInitFn first) d False st0 :: AppState
-    st2 = foldl' (\st s -> (sInitFn s) d False $ pushScreen s st) st1 rest :: AppState
+    st1 = (sInit first) d False st0 :: AppState
+    st2 = foldl' (\st s -> (sInit s) d False $ pushScreen s st) st1 rest :: AppState
   in
     st2
 
@@ -151,7 +188,7 @@ popScreen st = st
 
 resetScreens :: Day -> AppState -> AppState
 resetScreens d st@AppState{aScreen=s,aPrevScreens=ss} =
-  (sInitFn topscreen) d True $ stResetDepth $ stResetFilter $ stHideMinibuffer st{aScreen=topscreen, aPrevScreens=[]}
+  (sInit topscreen) d True $ stResetDepth $ stResetFilter $ stHideMinibuffer st{aScreen=topscreen, aPrevScreens=[]}
   where
     topscreen = case ss of _:_ -> last ss
                            []  -> s
@@ -162,7 +199,7 @@ resetScreens d st@AppState{aScreen=s,aPrevScreens=ss} =
 -- | Enter a new screen, saving the old screen & state in the
 -- navigation history and initialising the new screen's state.
 screenEnter :: Day -> Screen -> AppState -> AppState
-screenEnter d scr st = (sInitFn scr) d True $
+screenEnter d scr st = (sInit scr) d True $
                        pushScreen scr
                        st
 
@@ -230,7 +267,7 @@ _topBottomBorderWithLabel2 label = \wrapped ->
 -- thickness, using the current background colour or the specified
 -- colour.
 -- XXX May disrupt border style of inner widgets.
--- XXX Should reduce the available size visible to inner widget, but doesn't seem to (cf drawRegisterScreen2).
+-- XXX Should reduce the available size visible to inner widget, but doesn't seem to (cf rsDraw2).
 margin :: Int -> Int -> Maybe Color -> Widget -> Widget
 margin h v mcolour = \w ->
   Widget Greedy Greedy $ do

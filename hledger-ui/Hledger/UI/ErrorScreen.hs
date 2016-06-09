@@ -30,19 +30,19 @@ import Hledger.UI.UIUtils
 
 errorScreen :: Screen
 errorScreen = ErrorScreen{
-   esState  = ErrorScreenState{esError=""}
-  ,sInitFn    = initErrorScreen
-  ,sDrawFn    = drawErrorScreen
-  ,sHandleFn = handleErrorScreen
+   sInit    = esInit
+  ,sDraw    = esDraw
+  ,sHandle  = esHandle
+  ,esError  = ""
   }
 
-initErrorScreen :: Day -> Bool -> AppState -> AppState
-initErrorScreen _ _ st@AppState{aScreen=ErrorScreen{}} = st
-initErrorScreen _ _ _ = error "init function called with wrong screen type, should not happen"
+esInit :: Day -> Bool -> AppState -> AppState
+esInit _ _ st@AppState{aScreen=ErrorScreen{}} = st
+esInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
-drawErrorScreen :: AppState -> [Widget]
-drawErrorScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
-                             aScreen=ErrorScreen{esState=ErrorScreenState{..}}} = [ui]
+esDraw :: AppState -> [Widget]
+esDraw AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
+                             aScreen=ErrorScreen{..}} = [ui]
   where
     toplabel = withAttr ("border" <> "bold") (str "Oops. Please fix this problem then press g to reload")
             -- <+> str " transactions"
@@ -77,7 +77,7 @@ drawErrorScreen AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reporto
 
       render $ defaultLayout toplabel bottomlabel $ withAttr "error" $ str $ esError
 
-drawErrorScreen _ = error "draw function called with wrong screen type, should not happen"
+esDraw _ = error "draw function called with wrong screen type, should not happen"
 
 -- drawErrorItem :: (Int,Int,Int,Int,Int) -> Bool -> (String,String,String,String,String) -> Widget
 -- drawErrorItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected (date,desc,accts,change,bal) =
@@ -100,9 +100,9 @@ drawErrorScreen _ = error "draw function called with wrong screen type, should n
 --     sel | selected  = (<> "selected")
 --         | otherwise = id
 
-handleErrorScreen :: AppState -> Vty.Event -> EventM (Next AppState)
-handleErrorScreen st@AppState{
-   aScreen=s@ErrorScreen{esState=_err}
+esHandle :: AppState -> Vty.Event -> EventM (Next AppState)
+esHandle st@AppState{
+   aScreen=s@ErrorScreen{}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   } e = do
@@ -114,7 +114,7 @@ handleErrorScreen st@AppState{
     Vty.EvKey (Vty.KChar 'g') [] -> do
       (ej, _) <- liftIO $ journalReloadIfChanged copts d j
       case ej of
-        Left err -> continue st{aScreen=s{esState=ErrorScreenState{esError=err}}} -- show latest parse error
+        Left err -> continue st{aScreen=s{esError=err}} -- show latest parse error
         Right j' -> continue $ regenerateScreens j' d $ popScreen st  -- return to previous screen, and reload it
 
     -- Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
@@ -124,7 +124,7 @@ handleErrorScreen st@AppState{
                                  -- is' <- handleEvent ev is
                                  -- continue st{aScreen=s{rsState=is'}}
                                  -- continue =<< handleEventLensed st someLens e
-handleErrorScreen _ _ = error "event handler called with wrong screen type, should not happen"
+esHandle _ _ = error "event handler called with wrong screen type, should not happen"
 
 -- If journal file(s) have changed, reload the journal and regenerate all screens.
 -- This is here so it can reference the error screen.
@@ -133,5 +133,5 @@ stReloadJournalIfChanged copts d j st = do
   (ej, _) <- journalReloadIfChanged copts d j
   return $ case ej of
     Right j' -> regenerateScreens j' d st
-    Left err -> screenEnter d errorScreen{esState=ErrorScreenState{esError=err}} st
+    Left err -> screenEnter d errorScreen{esError=err} st
 
