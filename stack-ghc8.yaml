@@ -15,6 +15,7 @@ packages:
 flags:
 
 extra-deps:
+- brick-0.6.4
 - Decimal-0.4.2
 - control-monad-free-0.6.1
 - csv-0.1.2
