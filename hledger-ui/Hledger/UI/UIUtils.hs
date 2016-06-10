@@ -28,7 +28,7 @@ module Hledger.UI.UIUtils
 --  ,stFilter
 --  ,stResetFilter
 --  ,stShowMinibuffer
---  ,stHideMinibuffer
+--  ,stCloseMinibuffer
 --  )
   where
 
@@ -41,6 +41,7 @@ import Data.Monoid
 import Data.Text.Zipper (gotoEOL)
 import Data.Time.Calendar (Day)
 import Brick
+import Brick.Widgets.Dialog
 -- import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Brick.Widgets.Border
@@ -153,14 +154,17 @@ setDepth depth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_
             | depth >= maxDepth st = Nothing
             | otherwise            = Just depth
 
--- | Enable the minibuffer, setting its content to the current query with the cursor at the end.
-stShowMinibuffer st = st{aMode=Minibuffer e}
+-- | Open the minibuffer, setting its content to the current query with the cursor at the end.
+stShowMinibuffer st = setMode (Minibuffer e) st
   where
     e = applyEdit gotoEOL $ editor "minibuffer" (str . unlines) (Just 1) oldq
     oldq = query_ $ reportopts_ $ cliopts_ $ aopts st
 
--- | Disable the minibuffer, discarding any edit in progress.
-stHideMinibuffer st = st{aMode=Normal}
+-- | Close the minibuffer, discarding any edit in progress.
+stCloseMinibuffer = setMode Normal
+
+setMode :: Mode -> AppState -> AppState
+setMode m st = st{aMode=m}
 
 -- | Regenerate the content for the current and previous screens, from a new journal and current date.
 regenerateScreens :: Journal -> Day -> AppState -> AppState
@@ -188,7 +192,7 @@ popScreen st = st
 
 resetScreens :: Day -> AppState -> AppState
 resetScreens d st@AppState{aScreen=s,aPrevScreens=ss} =
-  (sInit topscreen) d True $ stResetDepth $ stResetFilter $ stHideMinibuffer st{aScreen=topscreen, aPrevScreens=[]}
+  (sInit topscreen) d True $ stResetDepth $ stResetFilter $ stCloseMinibuffer st{aScreen=topscreen, aPrevScreens=[]}
   where
     topscreen = case ss of _:_ -> last ss
                            []  -> s
@@ -202,6 +206,56 @@ screenEnter :: Day -> Screen -> AppState -> AppState
 screenEnter d scr st = (sInit scr) d True $
                        pushScreen scr
                        st
+
+-- | Draw the help dialog, called when help mode is active.
+helpDialog =
+  Widget Fixed Fixed $ do
+    c <- getContext
+    render $
+      renderDialog (dialog "help" (Just "Help (h/ESC to close)") Nothing (c^.availWidthL - 2)) $ -- (Just (0,[("ok",())]))
+      padTopBottom 1 $ padLeftRight 1 $
+      hBox [
+         (padLeftRight 1 $
+           vBox [
+             str "MISC"
+            ,renderKey ("h", "toggle help")
+            ,renderKey ("a", "add transaction")
+            ,renderKey ("g", "reload data")
+            ,renderKey ("q", "quit")
+            ,str " "
+            ,str "NAVIGATION"
+            ,renderKey ("UP/DOWN/PGUP/PGDN/HOME/END", "")
+            ,str "  move selection"
+            ,renderKey ("RIGHT/ENTER", "drill down")
+            ,renderKey ("LEFT", "previous screen")
+            ,renderKey ("ESC", "cancel / reset to top")
+            ]
+        )
+        ,(padLeftRight 1 $
+           vBox [
+             str "FILTERING"
+            ,renderKey ("C", "toggle cleared filter")
+            ,renderKey ("U", "toggle uncleared filter")
+            ,renderKey ("R", "toggle real filter")
+            ,renderKey ("E", "toggle nonzero filter")
+            ,renderKey ("/", "set a filter query")
+            ,renderKey ("DEL/BS", "clear filters")
+            ,str "accounts screen:"
+            ,renderKey ("F", "toggle flat mode")
+            ,renderKey ("-+=1234567890", "")
+            ,str "  adjust/set depth limit"
+            ,str "  0 means no limit"
+            ]
+        )
+      ]
+  where
+    renderKey (key,desc) = withAttr (borderAttr <> "keys") (str key) <+> str " " <+> str desc
+
+-- | Event handler used when help mode is active.
+helpHandle st ev =
+  case ev of
+    Vty.EvKey k [] | k `elem` [Vty.KEsc, Vty.KChar 'h'] -> continue $ setMode Normal st
+    _ -> continue st
 
 -- | In the EventM monad, get the named current viewport's width and height,
 -- or (0,0) if the named viewport is not found.

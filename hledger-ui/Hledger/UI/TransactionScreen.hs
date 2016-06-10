@@ -57,8 +57,12 @@ tsDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                               ,aScreen=TransactionScreen{
                                    tsTransaction=(i,t)
                                   ,tsTransactions=nts
-                                  ,tsAccount=acct}} =
-  [ui]
+                                  ,tsAccount=acct}
+                              ,aMode=mode} =
+  case mode of
+    Help       -> [helpDialog, maincontent]
+    -- Minibuffer e -> [minibuffer e, maincontent]
+    _          -> [maincontent]
   where
     -- datedesc = show (tdate t) ++ " " ++ tdescription t
     toplabel =
@@ -82,84 +86,95 @@ tsDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           ] of
         [] -> str ""
         fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs)
-    bottomlabel = borderKeysStr [
-       ("left", "back")
-      ,("up/down", "prev/next")
---       ,("C", "cleared?")
---       ,("U", "uncleared?")
---       ,("R", "real?")
-      ,("g", "reload")
-      ,("q", "quit")
-      ]
-    ui = Widget Greedy Greedy $ do
+    maincontent = Widget Greedy Greedy $ do
       render $ defaultLayout toplabel bottomlabel $ str $
         showTransactionUnelidedOneLineAmounts $
         -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
         t
+      where
+        bottomlabel = case mode of
+                        -- Minibuffer ed -> minibuffer ed
+                        _             -> quickhelp
+        quickhelp = borderKeysStr [
+           ("h", "help")
+          ,("left", "back")
+          ,("up/down", "prev/next")
+          --,("ESC", "cancel/top")
+          -- ,("a", "add")
+          ,("g", "reload")
+          ,("q", "quit")
+          ]
 
 tsDraw _ = error "draw function called with wrong screen type, should not happen"
 
 tsHandle :: AppState -> Vty.Event -> EventM (Next AppState)
-tsHandle
-  st@AppState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
-                                         ,tsTransactions=nts
-                                         ,tsAccount=acct}
-             ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
-             ,ajournal=j
-             }
-  e = do
-  d <- liftIO getCurrentDay
-  let
-    (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
-    (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
-  case e of
-    Vty.EvKey (Vty.KChar 'q') [] -> halt st
-    Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
+tsHandle st@AppState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
+                                                ,tsTransactions=nts
+                                                ,tsAccount=acct}
+                    ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
+                    ,ajournal=j
+                    ,aMode=mode
+                    }
+         ev =
+  case mode of
+    Help ->
+      case ev of
+        Vty.EvKey (Vty.KChar 'q') [] -> halt st
+        _                            -> helpHandle st ev
 
-    Vty.EvKey (Vty.KChar 'g') [] -> do
+    _ -> do
       d <- liftIO getCurrentDay
-      (ej, _) <- liftIO $ journalReloadIfChanged copts d j
-      case ej of
-        Right j' -> do
-          -- got to redo the register screen's transactions report, to get the latest transactions list for this screen
-          -- XXX duplicates rsInit
-          let
-            ropts' = ropts {depth_=Nothing
-                           ,balancetype_=HistoricalBalance
-                           }
-            q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
-            thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
-            items = reverse $ snd $ accountTransactionsReport ropts j' q thisacctq
-            ts = map first6 items
-            numberedts = zip [1..] ts
-            -- select the best current transaction from the new list
-            -- stay at the same index if possible, or if we are now past the end, select the last, otherwise select the first
-            (i',t') = case lookup i numberedts
-                      of Just t'' -> (i,t'')
-                         Nothing | null numberedts -> (0,nulltransaction)
-                                 | i > fst (last numberedts) -> last numberedts
-                                 | otherwise -> head numberedts
-            st' = st{aScreen=s{tsTransaction=(i',t')
-                              ,tsTransactions=numberedts
-                              ,tsAccount=acct}}
-          continue $ regenerateScreens j' d st'
+      let
+        (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
+        (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
+      case ev of
+        Vty.EvKey (Vty.KChar 'q') [] -> halt st
+        Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
+        Vty.EvKey k [] | k `elem` [Vty.KChar 'h', Vty.KChar '?'] -> continue $ setMode Help st
+        Vty.EvKey (Vty.KChar 'g') [] -> do
+          d <- liftIO getCurrentDay
+          (ej, _) <- liftIO $ journalReloadIfChanged copts d j
+          case ej of
+            Right j' -> do
+              -- got to redo the register screen's transactions report, to get the latest transactions list for this screen
+              -- XXX duplicates rsInit
+              let
+                ropts' = ropts {depth_=Nothing
+                               ,balancetype_=HistoricalBalance
+                               }
+                q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
+                thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
+                items = reverse $ snd $ accountTransactionsReport ropts j' q thisacctq
+                ts = map first6 items
+                numberedts = zip [1..] ts
+                -- select the best current transaction from the new list
+                -- stay at the same index if possible, or if we are now past the end, select the last, otherwise select the first
+                (i',t') = case lookup i numberedts
+                          of Just t'' -> (i,t'')
+                             Nothing | null numberedts -> (0,nulltransaction)
+                                     | i > fst (last numberedts) -> last numberedts
+                                     | otherwise -> head numberedts
+                st' = st{aScreen=s{tsTransaction=(i',t')
+                                  ,tsTransactions=numberedts
+                                  ,tsAccount=acct}}
+              continue $ regenerateScreens j' d st'
 
-        Left err -> continue $ screenEnter d errorScreen{esError=err} st
+            Left err -> continue $ screenEnter d errorScreen{esError=err} st
 
-    -- if allowing toggling here, we should refresh the txn list from the parent register screen
-    -- Vty.EvKey (Vty.KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty st
-    -- Vty.EvKey (Vty.KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared st
-    -- Vty.EvKey (Vty.KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal st
+        -- if allowing toggling here, we should refresh the txn list from the parent register screen
+        -- Vty.EvKey (Vty.KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty st
+        -- Vty.EvKey (Vty.KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared st
+        -- Vty.EvKey (Vty.KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal st
 
-    Vty.EvKey (Vty.KUp) []       -> continue $ regenerateScreens j d st{aScreen=s{tsTransaction=(iprev,tprev)}}
-    Vty.EvKey (Vty.KDown) []     -> continue $ regenerateScreens j d st{aScreen=s{tsTransaction=(inext,tnext)}}
+        Vty.EvKey (Vty.KUp) []       -> continue $ regenerateScreens j d st{aScreen=s{tsTransaction=(iprev,tprev)}}
+        Vty.EvKey (Vty.KDown) []     -> continue $ regenerateScreens j d st{aScreen=s{tsTransaction=(inext,tnext)}}
 
-    Vty.EvKey (Vty.KLeft) []     -> continue st''
-      where
-        st'@AppState{aScreen=scr} = popScreen st
-        st'' = st'{aScreen=rsSelect (fromIntegral i) scr}
+        Vty.EvKey (Vty.KLeft) []     -> continue st''
+          where
+            st'@AppState{aScreen=scr} = popScreen st
+            st'' = st'{aScreen=rsSelect (fromIntegral i) scr}
 
-    _ev -> continue st
+        _ev -> continue st
 
 tsHandle _ _ = error "event handler called with wrong screen type, should not happen"
 

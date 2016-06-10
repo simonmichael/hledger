@@ -103,8 +103,11 @@ rsDraw :: AppState -> [Widget]
 rsDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                             ,aScreen=RegisterScreen{..}
                             ,aMode=mode
-                            }
-  = [ui]
+                            } =
+  case mode of
+    Help       -> [helpDialog, maincontent]
+    -- Minibuffer e -> [minibuffer e, maincontent]
+    _          -> [maincontent]
   where
     toplabel = withAttr ("border" <> "bold") (str $ T.unpack rsAccount)
             <+> togglefilters
@@ -134,17 +137,14 @@ rsDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
 
     -- query = query_ $ reportopts_ $ cliopts_ opts
 
-    ui = Widget Greedy Greedy $ do
-
+    maincontent = Widget Greedy Greedy $ do
       -- calculate column widths, based on current available width
       c <- getContext
       let
         totalwidth = c^.availWidthL
                      - 2 -- XXX due to margin ? shouldn't be necessary (cf UIUtils)
-
         -- the date column is fixed width
         datewidth = 10
-
         -- multi-commodity amounts rendered on one line can be
         -- arbitrarily wide.  Give the two amounts as much space as
         -- they need, while reserving a minimum of space for other
@@ -160,7 +160,6 @@ rsDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
         maxbalwidth = maxamtswidth - maxchangewidth
         changewidth = min maxchangewidth maxchangewidthseen 
         balwidth = min maxbalwidth maxbalwidthseen
-
         -- assign the remaining space to the description and accounts columns
         -- maxdescacctswidth = totalwidth - (whitespacewidth - 4) - changewidth - balwidth
         maxdescacctswidth =
@@ -179,27 +178,23 @@ rsDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
         acctswidth = maxdescacctswidth - descwidth
         colwidths = (datewidth,descwidth,acctswidth,changewidth,balwidth)
 
-        bottomlabel = borderKeysStr [
-           -- ("up/down/pgup/pgdown/home/end", "move")
-           ("left", "back")
-          ,("a", "add")
-          ,("E", "nonzero?")
-          ,("C", "cleared?")
-          ,("U", "uncleared?")
-          ,("R", "real?")
+      render $ defaultLayout toplabel bottomlabel $ renderList rsList (rsDrawItem colwidths)
+
+      where
+        bottomlabel = case mode of
+                        Minibuffer ed -> minibuffer ed
+                        _             -> quickhelp
+        quickhelp = borderKeysStr [
+           ("h", "help")
+          ,("left", "back")
+          ,("right", "transaction")
           ,("/", "filter")
           ,("DEL", "unfilter")
-          ,("right/enter", "transaction")
-          ,("ESC", "cancel/top")
+          --,("ESC", "reset")
+          ,("a", "add")
           ,("g", "reload")
           ,("q", "quit")
           ]
-
-        bottomarea = case mode of
-                      Minibuffer ed -> minibuffer ed
-                      _             -> bottomlabel
-
-      render $ defaultLayout toplabel bottomarea $ renderList rsList (rsDrawItem colwidths)
 
 rsDraw _ = error "draw function called with wrong screen type, should not happen"
 
@@ -235,18 +230,23 @@ rsHandle st@AppState{
 
   case mode of
     Minibuffer ed ->
-        case ev of
-            Vty.EvKey Vty.KEsc   [] -> continue $ stHideMinibuffer st
-            Vty.EvKey Vty.KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stHideMinibuffer st
-                                        where s = chomp $ unlines $ getEditContents ed
-            ev                      -> do ed' <- handleEvent ev ed
-                                          continue $ st{aMode=Minibuffer ed'}
+      case ev of
+        Vty.EvKey Vty.KEsc   [] -> continue $ stCloseMinibuffer st
+        Vty.EvKey Vty.KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stCloseMinibuffer st
+                                    where s = chomp $ unlines $ getEditContents ed
+        ev                      -> do ed' <- handleEvent ev ed
+                                      continue $ st{aMode=Minibuffer ed'}
 
-    _ ->
+    Help ->
+      case ev of
+        Vty.EvKey (Vty.KChar 'q') [] -> halt st
+        _                            -> helpHandle st ev
 
+    Normal ->
       case ev of
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
         Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
+        Vty.EvKey k [] | k `elem` [Vty.KChar 'h', Vty.KChar '?'] -> continue $ setMode Help st
         Vty.EvKey (Vty.KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
         Vty.EvKey (Vty.KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> stReloadJournalIfChanged copts d j st
         Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
@@ -281,4 +281,3 @@ rsHandle st@AppState{
     scrollTop = vScrollToBeginning $ viewportScroll "register"
 
 rsHandle _ _ = error "event handler called with wrong screen type, should not happen"
-

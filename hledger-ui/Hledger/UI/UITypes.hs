@@ -73,7 +73,11 @@ data Mode =
     Normal
   | Help
   | Minibuffer Editor
-  deriving (Show)
+  deriving (Show,Eq)
+
+-- Ignore the editor when comparing Modes.
+instance Eq Editor where _ == _ = True
+
 
 -- | hledger-ui screen types & instances.
 -- Each screen type has generically named initialisation, draw, and event handling functions,
