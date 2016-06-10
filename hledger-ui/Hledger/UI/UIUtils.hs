@@ -113,8 +113,8 @@ stResetFilter st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=
     ,query_=""
     }}}}
 
-stResetDepth :: AppState -> AppState
-stResetDepth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+resetDepth :: AppState -> AppState
+resetDepth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=Nothing}}}}
 
 -- | Get the maximum account depth in the current journal.
@@ -139,20 +139,19 @@ incDepth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts
     inc (Just d) | d < (maxDepth st - 1) = Just $ d+1
     inc _ = Nothing
 
--- | Set the current depth limit to the specified depth, which should
--- be a positive number.  If it is zero, or equal to or greater than the
--- current maximum account depth, the depth limit will be removed.
--- (Slight inconsistency here: zero is currently a valid display depth
--- which can be reached using the - key.  But we need a key to remove
--- the depth limit, and 0 is it.)
-setDepth :: Int -> AppState -> AppState
-setDepth depth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}}
+-- | Set the current depth limit to the specified depth, or remove the depth limit.
+-- Also remove the depth limit if the specified depth is greater than the current
+-- maximum account depth. If the specified depth is negative, reset the depth limit
+-- to whatever was specified at startup.
+setDepth :: Maybe Int -> AppState -> AppState
+setDepth mdepth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}}
   = st{aopts=uopts{cliopts_=copts{reportopts_=ropts{depth_=mdepth'}}}}
   where
-    mdepth' | depth < 0            = depth_ ropts
-            | depth == 0           = Nothing
-            | depth >= maxDepth st = Nothing
-            | otherwise            = Just depth
+    mdepth' = case mdepth of
+                Nothing                   -> Nothing
+                Just d | d < 0            -> depth_ ropts
+                       | d >= maxDepth st -> Nothing
+                       | otherwise        -> mdepth
 
 -- | Open the minibuffer, setting its content to the current query with the cursor at the end.
 stShowMinibuffer st = setMode (Minibuffer e) st
@@ -192,7 +191,7 @@ popScreen st = st
 
 resetScreens :: Day -> AppState -> AppState
 resetScreens d st@AppState{aScreen=s,aPrevScreens=ss} =
-  (sInit topscreen) d True $ stResetDepth $ stResetFilter $ stCloseMinibuffer st{aScreen=topscreen, aPrevScreens=[]}
+  (sInit topscreen) d True $ resetDepth $ stResetFilter $ stCloseMinibuffer st{aScreen=topscreen, aPrevScreens=[]}
   where
     topscreen = case ss of _:_ -> last ss
                            []  -> s
@@ -243,8 +242,8 @@ helpDialog =
             ,str " "
             ,str "accounts screen:"
             ,renderKey ("F", "toggle flat mode")
-            ,renderKey ("-+=1234567890", "")
-            ,str "  adjust/set/remove depth limit"
+            ,renderKey ("-+0123456789", "")
+            ,str "  adjust/set depth limit"
             ]
         )
       ]

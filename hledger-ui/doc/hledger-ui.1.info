@@ -212,9 +212,10 @@ matched transactions.
 `F' toggles flat mode on and off.
 
    By default, all subaccounts are displayed. To see less detail, set a
-depth limit by pressing a number key, `1' to `9'. Or, adjust the depth
-limit by pressing `-' or `+' (`=' also works).  `0' removes the depth
-limit.
+depth limit by pressing a number key, `1' to `9'. `0' shows even less
+detail, collapsing all accounts to a single total.  `-' and `+'
+decrease and increase the depth limit. To remove the depth limit press
+`=', or just keep increasing it.
 
    `C' toggles cleared mode, in which uncleared transactions and
 postings are not shown. `U' toggles uncleared mode, in which only
@@ -330,11 +331,11 @@ Node: SCREENS5098
 Ref: #screens5185
 Node: Accounts screen5275
 Ref: #accounts-screen5405
-Node: Register screen6509
-Ref: #register-screen6666
-Node: Transaction screen8419
-Ref: #transaction-screen8579
-Node: Error screen9446
-Ref: #error-screen9570
+Node: Register screen6599
+Ref: #register-screen6756
+Node: Transaction screen8509
+Ref: #transaction-screen8669
+Node: Error screen9536
+Ref: #error-screen9660
 
 End Tag Table

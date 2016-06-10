@@ -192,7 +192,7 @@ asDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
            ("h", "help")
           ,("right", "register")
           ,("F", "flat?")
-          ,("-+=1234567890", "depth")
+          ,("-+0123456789", "depth")
           --,("/", "filter")
           --,("DEL", "unfilter")
           --,("ESC", "cancel/top")
@@ -271,19 +271,19 @@ asHandle st'@AppState{
         Vty.EvKey k [] | k `elem` [Vty.KChar 'h', Vty.KChar '?'] -> continue $ setMode Help st
         Vty.EvKey (Vty.KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
         Vty.EvKey (Vty.KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> stReloadJournalIfChanged copts d j st
+        Vty.EvKey (Vty.KChar '0') [] -> continue $ regenerateScreens j d $ setDepth (Just 0) st
+        Vty.EvKey (Vty.KChar '1') [] -> continue $ regenerateScreens j d $ setDepth (Just 1) st
+        Vty.EvKey (Vty.KChar '2') [] -> continue $ regenerateScreens j d $ setDepth (Just 2) st
+        Vty.EvKey (Vty.KChar '3') [] -> continue $ regenerateScreens j d $ setDepth (Just 3) st
+        Vty.EvKey (Vty.KChar '4') [] -> continue $ regenerateScreens j d $ setDepth (Just 4) st
+        Vty.EvKey (Vty.KChar '5') [] -> continue $ regenerateScreens j d $ setDepth (Just 5) st
+        Vty.EvKey (Vty.KChar '6') [] -> continue $ regenerateScreens j d $ setDepth (Just 6) st
+        Vty.EvKey (Vty.KChar '7') [] -> continue $ regenerateScreens j d $ setDepth (Just 7) st
+        Vty.EvKey (Vty.KChar '8') [] -> continue $ regenerateScreens j d $ setDepth (Just 8) st
+        Vty.EvKey (Vty.KChar '9') [] -> continue $ regenerateScreens j d $ setDepth (Just 9) st
         Vty.EvKey (Vty.KChar '-') [] -> continue $ regenerateScreens j d $ decDepth st
-        Vty.EvKey (Vty.KChar '+') [] -> continue $ regenerateScreens j d $ incDepth st
-        Vty.EvKey (Vty.KChar '=') [] -> continue $ regenerateScreens j d $ incDepth st
-        Vty.EvKey (Vty.KChar '1') [] -> continue $ regenerateScreens j d $ setDepth 1 st
-        Vty.EvKey (Vty.KChar '2') [] -> continue $ regenerateScreens j d $ setDepth 2 st
-        Vty.EvKey (Vty.KChar '3') [] -> continue $ regenerateScreens j d $ setDepth 3 st
-        Vty.EvKey (Vty.KChar '4') [] -> continue $ regenerateScreens j d $ setDepth 4 st
-        Vty.EvKey (Vty.KChar '5') [] -> continue $ regenerateScreens j d $ setDepth 5 st
-        Vty.EvKey (Vty.KChar '6') [] -> continue $ regenerateScreens j d $ setDepth 6 st
-        Vty.EvKey (Vty.KChar '7') [] -> continue $ regenerateScreens j d $ setDepth 7 st
-        Vty.EvKey (Vty.KChar '8') [] -> continue $ regenerateScreens j d $ setDepth 8 st
-        Vty.EvKey (Vty.KChar '9') [] -> continue $ regenerateScreens j d $ setDepth 9 st
-        Vty.EvKey (Vty.KChar '0') [] -> continue $ regenerateScreens j d $ setDepth 0 st
+        Vty.EvKey (Vty.KChar '_') [] -> continue $ regenerateScreens j d $ decDepth st
+        Vty.EvKey k [] | k `elem` [Vty.KChar '+', Vty.KChar '='] -> continue $ regenerateScreens j d $ incDepth st
         Vty.EvKey (Vty.KChar 'F') [] -> continue $ regenerateScreens j d $ stToggleFlat st
         Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
         Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)

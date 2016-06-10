@@ -118,8 +118,9 @@ When not in flat mode, indentation indicates the account hierarchy. `F` toggles 
 
 By default, all subaccounts are displayed.
 To see less detail, set a depth limit by pressing a number key, `1` to `9`.
-Or, adjust the depth limit by pressing `-` or `+` (`=` also works).
-`0` removes the depth limit.
+`0` shows even less detail, collapsing all accounts to a single total.
+`-` and `+` (or `=`) decrease and increase the depth limit.
+To remove the depth limit, set it higher than the maximum account depth, or press `ESCAPE`.
 
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are

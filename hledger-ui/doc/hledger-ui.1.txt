@@ -183,8 +183,10 @@ SSCCRREEEENNSS
        toggles flat mode on and off.
 
        By  default,  all subaccounts are displayed.  To see less detail, set a
-       depth limit by pressing a number key, 1 to 9.   Or,  adjust  the  depth
-       limit by pressing - or + (= also works).  0 removes the depth limit.
+       depth limit by pressing a number key,  1  to  9.   0  shows  even  less
+       detail,  collapsing  all  accounts to a single total.  - and + decrease
+       and increase the depth limit.  To remove the depth limit  press  =,  or
+       just keep increasing it.
 
        C  toggles  cleared  mode, in which uncleared transactions and postings
        are not shown.  U toggles  uncleared  mode,  in  which  only  uncleared
