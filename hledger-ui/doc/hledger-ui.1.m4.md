@@ -75,14 +75,14 @@ _reportingoptions_
 
 # KEYS
 
-Generally the cursor keys navigate; `right` (or `enter`) goes deeper, `left` returns to the previous screen,
+`h` shows a help dialog listing all keys. 
+(Some but not all of these also appear in the quick help at the bottom of each screen.) 
+Press `h` again (or `ESCAPE`) to close it.
+
+The cursor keys navigate: 
+`right` (or `enter`) goes deeper, 
+`left` returns to the previous screen,
 `up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
-
-`g` reloads from the data file(s) and updates the current screen and any
-previous screens. (With large files, there can be a noticeable pause.)
-
-`a` runs command-line hledger's add command, and reloads hledger-ui.
-This allows some basic data entry. 
 
 `/` lets you set or change the [filter query](/hledger.html#queries),
 which limits the data shown on most screens (in addition to the quick
@@ -92,7 +92,14 @@ or press escape to cancel.
 
 `BACKSPACE` or `DELETE` clears any filters in effect.
 
-`ESCAPE` clears any filters and jumps to the top screen.
+`ESCAPE` removes any filters currently in effect, and jumps to the top screen.
+Or, it cancels a minibuffer edit or help dialog if one is active.
+
+`g` reloads from the data file(s) and updates the current screen and any
+previous screens. (With large files, there can be a noticeable pause.)
+
+`a` runs command-line hledger's add command, and reloads the updated file.
+This allows some basic data entry. 
 
 `q` quits the application.
 
@@ -114,16 +121,16 @@ To see less detail, set a depth limit by pressing a number key, `1` to `9`.
 Or, adjust the depth limit by pressing `-` or `+` (`=` also works).
 `0` removes the depth limit.
 
-`E` toggles nonzero mode, in which only accounts with nonzero balances
-are shown (hledger-ui shows zero items by default, unlike command-line
-hledger).
-
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are
 not shown. `U` toggles uncleared mode, in which only uncleared
 transactions/postings are shown.
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
+
+`E` toggles nonzero mode, in which only accounts with nonzero balances
+are shown (hledger-ui shows zero items by default, unlike command-line
+hledger).
 
 Press `right` or `enter` to view an account's transactions register.
 
@@ -162,10 +169,6 @@ lists individual postings), in hledger-ui's register:
     $ hledger-ui --register checking --cleared
     ```
 
-`E` toggles nonzero mode, in which only transactions posting a nonzero
-change are shown (hledger-ui shows zero items by default,
-unlike command-line hledger).
-
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are
 not shown. `U` toggles uncleared mode, in which only uncleared
@@ -173,11 +176,15 @@ transactions/postings are shown.
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 
-Press `right` or `enter` to view the selected transaction in full
+`E` toggles nonzero mode, in which only transactions posting a nonzero
+change are shown (hledger-ui shows zero items by default,
+unlike command-line hledger).
+
+Press `right` (or `enter`) to view the selected transaction in full
 detail.
 
-Note, filter queries which filter by account name do not yet do much
-useful on this screen.
+Note, filter queries which filter by account name are not very useful 
+on this screen yet.
 
 ## Transaction screen
 
@@ -201,11 +208,11 @@ reload).
 ## Error screen
 
 This screen will appear if there is a problem, such as a parse error,
-when you press g to reload. Once you have fixed the problem described,
-press g again to reload and restore normal operation.
+when you press g to reload. Once you have fixed the problem,
+press g again to reload and resume normal operation.
+(Or, you can press escape to cancel the reload attempt.)
 
 _man_({{
-
 # ENVIRONMENT
 
 **COLUMNS**
@@ -233,5 +240,4 @@ visual indication that this is in progress.
 The register screen's switching between historic balance and running
 total based on query arguments may be confusing, and there is no
 column heading to indicate which is being displayed.
-
 }})

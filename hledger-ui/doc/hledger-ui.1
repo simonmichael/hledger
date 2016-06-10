@@ -217,18 +217,15 @@ be "TAG:multi:level:account:name".
 .RE
 .SH KEYS
 .PP
-Generally the cursor keys navigate; \f[C]right\f[] (or \f[C]enter\f[])
-goes deeper, \f[C]left\f[] returns to the previous screen,
+\f[C]h\f[] shows a help dialog listing all keys.
+(Some but not all of these also appear in the quick help at the bottom
+of each screen.) Press \f[C]h\f[] again (or \f[C]ESCAPE\f[]) to close
+it.
+.PP
+The cursor keys navigate: \f[C]right\f[] (or \f[C]enter\f[]) goes
+deeper, \f[C]left\f[] returns to the previous screen,
 \f[C]up\f[]/\f[C]down\f[]/\f[C]page\ up\f[]/\f[C]page\ down\f[]/\f[C]home\f[]/\f[C]end\f[]
 move up and down through lists.
-.PP
-\f[C]g\f[] reloads from the data file(s) and updates the current screen
-and any previous screens.
-(With large files, there can be a noticeable pause.)
-.PP
-\f[C]a\f[] runs command\-line hledger\[aq]s add command, and reloads
-hledger\-ui.
-This allows some basic data entry.
 .PP
 \f[C]/\f[] lets you set or change the filter query, which limits the
 data shown on most screens (in addition to the quick filters described
@@ -239,7 +236,17 @@ cancel.
 .PP
 \f[C]BACKSPACE\f[] or \f[C]DELETE\f[] clears any filters in effect.
 .PP
-\f[C]ESCAPE\f[] clears any filters and jumps to the top screen.
+\f[C]ESCAPE\f[] removes any filters currently in effect, and jumps to
+the top screen.
+Or, it cancels a minibuffer edit or help dialog if one is active.
+.PP
+\f[C]g\f[] reloads from the data file(s) and updates the current screen
+and any previous screens.
+(With large files, there can be a noticeable pause.)
+.PP
+\f[C]a\f[] runs command\-line hledger\[aq]s add command, and reloads the
+updated file.
+This allows some basic data entry.
 .PP
 \f[C]q\f[] quits the application.
 .PP
@@ -264,16 +271,16 @@ Or, adjust the depth limit by pressing \f[C]\-\f[] or \f[C]+\f[]
 (\f[C]=\f[] also works).
 \f[C]0\f[] removes the depth limit.
 .PP
-\f[C]E\f[] toggles nonzero mode, in which only accounts with nonzero
-balances are shown (hledger\-ui shows zero items by default, unlike
-command\-line hledger).
-.PP
 \f[C]C\f[] toggles cleared mode, in which uncleared transactions and
 postings are not shown.
 \f[C]U\f[] toggles uncleared mode, in which only uncleared
 transactions/postings are shown.
 .PP
 \f[C]R\f[] toggles real mode, in which virtual postings are ignored.
+.PP
+\f[C]E\f[] toggles nonzero mode, in which only accounts with nonzero
+balances are shown (hledger\-ui shows zero items by default, unlike
+command\-line hledger).
 .PP
 Press \f[C]right\f[] or \f[C]enter\f[] to view an account\[aq]s
 transactions register.
@@ -321,10 +328,6 @@ $\ hledger\-ui\ \-\-register\ checking\ \-\-cleared
 .fi
 .RE
 .PP
-\f[C]E\f[] toggles nonzero mode, in which only transactions posting a
-nonzero change are shown (hledger\-ui shows zero items by default,
-unlike command\-line hledger).
-.PP
 \f[C]C\f[] toggles cleared mode, in which uncleared transactions and
 postings are not shown.
 \f[C]U\f[] toggles uncleared mode, in which only uncleared
@@ -332,11 +335,15 @@ transactions/postings are shown.
 .PP
 \f[C]R\f[] toggles real mode, in which virtual postings are ignored.
 .PP
-Press \f[C]right\f[] or \f[C]enter\f[] to view the selected transaction
-in full detail.
+\f[C]E\f[] toggles nonzero mode, in which only transactions posting a
+nonzero change are shown (hledger\-ui shows zero items by default,
+unlike command\-line hledger).
 .PP
-Note, filter queries which filter by account name do not yet do much
-useful on this screen.
+Press \f[C]right\f[] (or \f[C]enter\f[]) to view the selected
+transaction in full detail.
+.PP
+Note, filter queries which filter by account name are not very useful on
+this screen yet.
 .SS Transaction screen
 .PP
 This screen shows a single transaction, as a general journal entry,
@@ -361,8 +368,9 @@ until the next reload).
 .PP
 This screen will appear if there is a problem, such as a parse error,
 when you press g to reload.
-Once you have fixed the problem described, press g again to reload and
-restore normal operation.
+Once you have fixed the problem, press g again to reload and resume
+normal operation.
+(Or, you can press escape to cancel the reload attempt.)
 .SH ENVIRONMENT
 .PP
 \f[B]COLUMNS\f[] The screen width to use.

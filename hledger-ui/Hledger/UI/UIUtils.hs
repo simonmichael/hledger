@@ -239,12 +239,12 @@ helpDialog =
             ,renderKey ("R", "toggle real filter")
             ,renderKey ("E", "toggle nonzero filter")
             ,renderKey ("/", "set a filter query")
-            ,renderKey ("DEL/BS", "clear filters")
+            ,renderKey ("DEL/BS", "remove filters")
+            ,str " "
             ,str "accounts screen:"
             ,renderKey ("F", "toggle flat mode")
             ,renderKey ("-+=1234567890", "")
-            ,str "  adjust/set depth limit"
-            ,str "  0 means no limit"
+            ,str "  adjust/set/remove depth limit"
             ]
         )
       ]
