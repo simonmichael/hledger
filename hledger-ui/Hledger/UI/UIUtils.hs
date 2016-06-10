@@ -253,7 +253,7 @@ helpDialog =
 -- | Event handler used when help mode is active.
 helpHandle st ev =
   case ev of
-    Vty.EvKey k [] | k `elem` [Vty.KEsc, Vty.KChar 'h'] -> continue $ setMode Normal st
+    EvKey k [] | k `elem` [KEsc, KChar 'h'] -> continue $ setMode Normal st
     _ -> continue st
 
 -- | In the EventM monad, get the named current viewport's width and height,

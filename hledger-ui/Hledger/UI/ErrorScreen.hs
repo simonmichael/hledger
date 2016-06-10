@@ -75,23 +75,22 @@ esHandle st@AppState{
   case mode of
     Help ->
       case ev of
-        Vty.EvKey (Vty.KChar 'q') [] -> halt st
-        _                            -> helpHandle st ev
+        EvKey (KChar 'q') [] -> halt st
+        _                    -> helpHandle st ev
 
     _ -> do
       d <- liftIO getCurrentDay
       case ev of
-        Vty.EvKey (Vty.KChar 'q') [] -> halt st
-        Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
-        Vty.EvKey k [] | k `elem` [Vty.KChar 'h', Vty.KChar '?'] -> continue $ setMode Help st
-        Vty.EvKey (Vty.KChar 'g') [] -> do
+        EvKey (KChar 'q') [] -> halt st
+        EvKey KEsc        [] -> continue $ resetScreens d st
+        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help st
+        EvKey (KChar 'g') [] -> do
           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
           case ej of
             Left err -> continue st{aScreen=s{esError=err}} -- show latest parse error
             Right j' -> continue $ regenerateScreens j' d $ popScreen st  -- return to previous screen, and reload it
-
-        -- Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
-        -- Vty.EvKey (Vty.KRight) []    -> error (show curItem) where curItem = listSelectedElement is
+        -- EvKey (KLeft) []     -> continue $ popScreen st
+        -- EvKey (KRight) []    -> error (show curItem) where curItem = listSelectedElement is
         -- fall through to the list's event handler (handles [pg]up/down)
         _                       -> do continue st
                                      -- is' <- handleEvent ev is

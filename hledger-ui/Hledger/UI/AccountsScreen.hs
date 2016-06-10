@@ -252,47 +252,47 @@ asHandle st'@AppState{
   case mode of
     Minibuffer ed ->
       case ev of
-        Vty.EvKey Vty.KEsc   [] -> continue $ stCloseMinibuffer st
-        Vty.EvKey Vty.KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stCloseMinibuffer st
-                                    where s = chomp $ unlines $ getEditContents ed
-        ev                      -> do ed' <- handleEvent ev ed
-                                      continue $ st{aMode=Minibuffer ed'}
+        EvKey KEsc   [] -> continue $ stCloseMinibuffer st
+        EvKey KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stCloseMinibuffer st
+                            where s = chomp $ unlines $ getEditContents ed
+        ev              -> do ed' <- handleEvent ev ed
+                              continue $ st{aMode=Minibuffer ed'}
 
     Help ->
       case ev of
-        Vty.EvKey (Vty.KChar 'q') [] -> halt st
-        _                            -> helpHandle st ev
+        EvKey (KChar 'q') [] -> halt st
+        _                    -> helpHandle st ev
 
     Normal ->
       case ev of
-        Vty.EvKey (Vty.KChar 'q') [] -> halt st
-        -- Vty.EvKey (Vty.KChar 'l') [Vty.MCtrl] -> do
-        Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
-        Vty.EvKey k [] | k `elem` [Vty.KChar 'h', Vty.KChar '?'] -> continue $ setMode Help st
-        Vty.EvKey (Vty.KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
-        Vty.EvKey (Vty.KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> stReloadJournalIfChanged copts d j st
-        Vty.EvKey (Vty.KChar '0') [] -> continue $ regenerateScreens j d $ setDepth (Just 0) st
-        Vty.EvKey (Vty.KChar '1') [] -> continue $ regenerateScreens j d $ setDepth (Just 1) st
-        Vty.EvKey (Vty.KChar '2') [] -> continue $ regenerateScreens j d $ setDepth (Just 2) st
-        Vty.EvKey (Vty.KChar '3') [] -> continue $ regenerateScreens j d $ setDepth (Just 3) st
-        Vty.EvKey (Vty.KChar '4') [] -> continue $ regenerateScreens j d $ setDepth (Just 4) st
-        Vty.EvKey (Vty.KChar '5') [] -> continue $ regenerateScreens j d $ setDepth (Just 5) st
-        Vty.EvKey (Vty.KChar '6') [] -> continue $ regenerateScreens j d $ setDepth (Just 6) st
-        Vty.EvKey (Vty.KChar '7') [] -> continue $ regenerateScreens j d $ setDepth (Just 7) st
-        Vty.EvKey (Vty.KChar '8') [] -> continue $ regenerateScreens j d $ setDepth (Just 8) st
-        Vty.EvKey (Vty.KChar '9') [] -> continue $ regenerateScreens j d $ setDepth (Just 9) st
-        Vty.EvKey (Vty.KChar '-') [] -> continue $ regenerateScreens j d $ decDepth st
-        Vty.EvKey (Vty.KChar '_') [] -> continue $ regenerateScreens j d $ decDepth st
-        Vty.EvKey k [] | k `elem` [Vty.KChar '+', Vty.KChar '='] -> continue $ regenerateScreens j d $ incDepth st
-        Vty.EvKey (Vty.KChar 'F') [] -> continue $ regenerateScreens j d $ stToggleFlat st
-        Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
-        Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)
-        Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st)
-        Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleReal st)
-        Vty.EvKey k [] | k `elem` [Vty.KChar '/'] -> continue $ regenerateScreens j d $ stShowMinibuffer st
-        Vty.EvKey k [] | k `elem` [Vty.KBS, Vty.KDel] -> (continue $ regenerateScreens j d $ stResetFilter st)
-        Vty.EvKey (Vty.KLeft) []     -> continue $ popScreen st
-        Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> scrollTopRegister >> continue (screenEnter d scr st)
+        EvKey (KChar 'q') [] -> halt st
+        -- EvKey (KChar 'l') [MCtrl] -> do
+        EvKey KEsc [] -> continue $ resetScreens d st
+        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help st
+        EvKey (KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
+        EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> stReloadJournalIfChanged copts d j st
+        EvKey (KChar '0') [] -> continue $ regenerateScreens j d $ setDepth (Just 0) st
+        EvKey (KChar '1') [] -> continue $ regenerateScreens j d $ setDepth (Just 1) st
+        EvKey (KChar '2') [] -> continue $ regenerateScreens j d $ setDepth (Just 2) st
+        EvKey (KChar '3') [] -> continue $ regenerateScreens j d $ setDepth (Just 3) st
+        EvKey (KChar '4') [] -> continue $ regenerateScreens j d $ setDepth (Just 4) st
+        EvKey (KChar '5') [] -> continue $ regenerateScreens j d $ setDepth (Just 5) st
+        EvKey (KChar '6') [] -> continue $ regenerateScreens j d $ setDepth (Just 6) st
+        EvKey (KChar '7') [] -> continue $ regenerateScreens j d $ setDepth (Just 7) st
+        EvKey (KChar '8') [] -> continue $ regenerateScreens j d $ setDepth (Just 8) st
+        EvKey (KChar '9') [] -> continue $ regenerateScreens j d $ setDepth (Just 9) st
+        EvKey (KChar '-') [] -> continue $ regenerateScreens j d $ decDepth st
+        EvKey (KChar '_') [] -> continue $ regenerateScreens j d $ decDepth st
+        EvKey k [] | k `elem` [KChar '+', KChar '='] -> continue $ regenerateScreens j d $ incDepth st
+        EvKey (KChar 'F') [] -> continue $ regenerateScreens j d $ stToggleFlat st
+        EvKey (KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
+        EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)
+        EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st)
+        EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleReal st)
+        EvKey k [] | k `elem` [KChar '/'] -> continue $ regenerateScreens j d $ stShowMinibuffer st
+        EvKey k [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ stResetFilter st)
+        EvKey (KLeft) []     -> continue $ popScreen st
+        EvKey (k) [] | k `elem` [KRight, KEnter] -> scrollTopRegister >> continue (screenEnter d scr st)
           where
             scr = rsSetAccount selacct registerScreen
 

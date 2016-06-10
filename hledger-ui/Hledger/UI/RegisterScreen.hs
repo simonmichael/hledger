@@ -231,33 +231,33 @@ rsHandle st@AppState{
   case mode of
     Minibuffer ed ->
       case ev of
-        Vty.EvKey Vty.KEsc   [] -> continue $ stCloseMinibuffer st
-        Vty.EvKey Vty.KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stCloseMinibuffer st
-                                    where s = chomp $ unlines $ getEditContents ed
-        ev                      -> do ed' <- handleEvent ev ed
-                                      continue $ st{aMode=Minibuffer ed'}
+        EvKey KEsc   [] -> continue $ stCloseMinibuffer st
+        EvKey KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stCloseMinibuffer st
+                            where s = chomp $ unlines $ getEditContents ed
+        ev              -> do ed' <- handleEvent ev ed
+                              continue $ st{aMode=Minibuffer ed'}
 
     Help ->
       case ev of
-        Vty.EvKey (Vty.KChar 'q') [] -> halt st
-        _                            -> helpHandle st ev
+        EvKey (KChar 'q') [] -> halt st
+        _                    -> helpHandle st ev
 
     Normal ->
       case ev of
-        Vty.EvKey (Vty.KChar 'q') [] -> halt st
-        Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
-        Vty.EvKey k [] | k `elem` [Vty.KChar 'h', Vty.KChar '?'] -> continue $ setMode Help st
-        Vty.EvKey (Vty.KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
-        Vty.EvKey (Vty.KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> stReloadJournalIfChanged copts d j st
-        Vty.EvKey (Vty.KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
-        Vty.EvKey (Vty.KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)
-        Vty.EvKey (Vty.KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st)
-        Vty.EvKey (Vty.KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleReal st)
-        Vty.EvKey k [] | k `elem` [Vty.KChar '/'] -> (continue $ regenerateScreens j d $ stShowMinibuffer st)
-        Vty.EvKey k [] | k `elem` [Vty.KBS, Vty.KDel] -> (continue $ regenerateScreens j d $ stResetFilter st)
-        Vty.EvKey (Vty.KLeft)     [] -> continue $ popScreen st
+        EvKey (KChar 'q') [] -> halt st
+        EvKey KEsc        [] -> continue $ resetScreens d st
+        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help st
+        EvKey (KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
+        EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> stReloadJournalIfChanged copts d j st
+        EvKey (KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
+        EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)
+        EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st)
+        EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleReal st)
+        EvKey k [] | k `elem` [KChar '/'] -> (continue $ regenerateScreens j d $ stShowMinibuffer st)
+        EvKey k [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ stResetFilter st)
+        EvKey (KLeft)     [] -> continue $ popScreen st
 
-        Vty.EvKey (k) [] | k `elem` [Vty.KRight, Vty.KEnter] -> do
+        EvKey (k) [] | k `elem` [KRight, KEnter] -> do
           case listSelectedElement rsList of
             Just (_, RegisterScreenItem{rsItemTransaction=t}) ->
               let
@@ -271,10 +271,9 @@ rsHandle st@AppState{
             Nothing -> continue st
 
         -- fall through to the list's event handler (handles [pg]up/down)
-        ev                       -> do
-                                     newitems <- handleEvent ev rsList
-                                     continue st{aScreen=s{rsList=newitems}}
-                                     -- continue =<< handleEventLensed st someLens ev
+        ev -> do newitems <- handleEvent ev rsList
+                 continue st{aScreen=s{rsList=newitems}}
+                 -- continue =<< handleEventLensed st someLens ev
 
   where
     -- Encourage a more stable scroll position when toggling list items (cf AccountsScreen.hs)

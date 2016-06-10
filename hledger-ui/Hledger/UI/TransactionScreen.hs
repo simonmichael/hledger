@@ -119,8 +119,8 @@ tsHandle st@AppState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
   case mode of
     Help ->
       case ev of
-        Vty.EvKey (Vty.KChar 'q') [] -> halt st
-        _                            -> helpHandle st ev
+        EvKey (KChar 'q') [] -> halt st
+        _                    -> helpHandle st ev
 
     _ -> do
       d <- liftIO getCurrentDay
@@ -128,13 +128,14 @@ tsHandle st@AppState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
         (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
         (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
       case ev of
-        Vty.EvKey (Vty.KChar 'q') [] -> halt st
-        Vty.EvKey Vty.KEsc   [] -> continue $ resetScreens d st
-        Vty.EvKey k [] | k `elem` [Vty.KChar 'h', Vty.KChar '?'] -> continue $ setMode Help st
-        Vty.EvKey (Vty.KChar 'g') [] -> do
+        EvKey (KChar 'q') [] -> halt st
+        EvKey KEsc        [] -> continue $ resetScreens d st
+        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help st
+        EvKey (KChar 'g') [] -> do
           d <- liftIO getCurrentDay
           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
           case ej of
+            Left err -> continue $ screenEnter d errorScreen{esError=err} st
             Right j' -> do
               -- got to redo the register screen's transactions report, to get the latest transactions list for this screen
               -- XXX duplicates rsInit
@@ -158,23 +159,17 @@ tsHandle st@AppState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
                                   ,tsTransactions=numberedts
                                   ,tsAccount=acct}}
               continue $ regenerateScreens j' d st'
-
-            Left err -> continue $ screenEnter d errorScreen{esError=err} st
-
         -- if allowing toggling here, we should refresh the txn list from the parent register screen
-        -- Vty.EvKey (Vty.KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty st
-        -- Vty.EvKey (Vty.KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared st
-        -- Vty.EvKey (Vty.KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal st
-
-        Vty.EvKey (Vty.KUp) []       -> continue $ regenerateScreens j d st{aScreen=s{tsTransaction=(iprev,tprev)}}
-        Vty.EvKey (Vty.KDown) []     -> continue $ regenerateScreens j d st{aScreen=s{tsTransaction=(inext,tnext)}}
-
-        Vty.EvKey (Vty.KLeft) []     -> continue st''
+        -- EvKey (KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty st
+        -- EvKey (KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared st
+        -- EvKey (KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal st
+        EvKey KUp   [] -> continue $ regenerateScreens j d st{aScreen=s{tsTransaction=(iprev,tprev)}}
+        EvKey KDown [] -> continue $ regenerateScreens j d st{aScreen=s{tsTransaction=(inext,tnext)}}
+        EvKey KLeft [] -> continue st''
           where
             st'@AppState{aScreen=scr} = popScreen st
             st'' = st'{aScreen=rsSelect (fromIntegral i) scr}
-
-        _ev -> continue st
+        _ -> continue st
 
 tsHandle _ _ = error "event handler called with wrong screen type, should not happen"
 
