@@ -101,8 +101,9 @@ rsInit _ _ _ = error "init function called with wrong screen type, should not ha
 
 rsDraw :: AppState -> [Widget]
 rsDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
-                           ,aScreen=RegisterScreen{..}
-                           ,aMinibuffer=mbuf}
+                            ,aScreen=RegisterScreen{..}
+                            ,aMode=mode
+                            }
   = [ui]
   where
     toplabel = withAttr ("border" <> "bold") (str $ T.unpack rsAccount)
@@ -194,9 +195,9 @@ rsDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           ,("q", "quit")
           ]
 
-        bottomarea = case mbuf of
-                      Nothing  -> bottomlabel
-                      Just ed  -> minibuffer ed
+        bottomarea = case mode of
+                      Minibuffer ed -> minibuffer ed
+                      _             -> bottomlabel
 
       render $ defaultLayout toplabel bottomarea $ renderList rsList (rsDrawItem colwidths)
 
@@ -228,11 +229,20 @@ rsHandle st@AppState{
    aScreen=s@RegisterScreen{..}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
-  ,aMinibuffer=mbuf
+  ,aMode=mode
   } ev = do
   d <- liftIO getCurrentDay
-  case mbuf of
-    Nothing ->
+
+  case mode of
+    Minibuffer ed ->
+        case ev of
+            Vty.EvKey Vty.KEsc   [] -> continue $ stHideMinibuffer st
+            Vty.EvKey Vty.KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stHideMinibuffer st
+                                        where s = chomp $ unlines $ getEditContents ed
+            ev                      -> do ed' <- handleEvent ev ed
+                                          continue $ st{aMode=Minibuffer ed'}
+
+    _ ->
 
       case ev of
         Vty.EvKey (Vty.KChar 'q') [] -> halt st
@@ -265,14 +275,6 @@ rsHandle st@AppState{
                                      newitems <- handleEvent ev rsList
                                      continue st{aScreen=s{rsList=newitems}}
                                      -- continue =<< handleEventLensed st someLens ev
-
-    Just ed ->
-        case ev of
-            Vty.EvKey Vty.KEsc   [] -> continue $ stHideMinibuffer st
-            Vty.EvKey Vty.KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stHideMinibuffer st
-                                        where s = chomp $ unlines $ getEditContents ed
-            ev                      -> do ed' <- handleEvent ev ed
-                                          continue $ st{aMinibuffer=Just ed'}
 
   where
     -- Encourage a more stable scroll position when toggling list items (cf AccountsScreen.hs)

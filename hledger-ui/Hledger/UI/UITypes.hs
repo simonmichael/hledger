@@ -56,13 +56,24 @@ instance Show (List a) where show _ = "<List>"
 instance Show Editor   where show _ = "<Editor>"
 
 -- | hledger-ui's application state. This holds one or more stateful screens.
+-- As you navigate through screens, the old ones are saved in a stack.
+-- The app can be in one of several modes: normal screen operation,
+-- showing a help dialog, entering data in the minibuffer etc.
 data AppState = AppState {
    aopts        :: UIOpts       -- ^ the command-line options and query arguments currently in effect
   ,ajournal     :: Journal      -- ^ the journal being viewed
-  ,aScreen      :: Screen       -- ^ the currently active screen
   ,aPrevScreens :: [Screen]     -- ^ previously visited screens, most recent first
-  ,aMinibuffer  :: Maybe Editor -- ^ a compact editor, when active, used for data entry on all screens
+  ,aScreen      :: Screen       -- ^ the currently active screen
+  ,aMode        :: Mode         -- ^ the currently active mode
   } deriving (Show)
+
+-- | The mode modifies the screen's rendering and event handling.
+-- It resets to Normal when entering a new screen.
+data Mode =
+    Normal
+  | Help
+  | Minibuffer Editor
+  deriving (Show)
 
 -- | hledger-ui screen types & instances.
 -- Each screen type has generically named initialisation, draw, and event handling functions,
@@ -74,7 +85,7 @@ data Screen =
        sInit   :: Day -> Bool -> AppState -> AppState              -- ^ function to initialise or update this screen's state
       ,sDraw   :: AppState -> [Widget]                             -- ^ brick renderer for this screen
       ,sHandle :: AppState -> Vty.Event -> EventM (Next AppState)  -- ^ brick event handler for this screen
-      -- state fields. These ones have lenses:
+      -- state fields.These ones have lenses:
       ,_asList            :: List AccountsScreenItem  -- ^ list widget showing account names & balances
       ,_asSelectedAccount :: AccountName              -- ^ a backup of the account name from the list widget's selected item (or "")
     }

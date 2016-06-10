@@ -115,7 +115,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
                    ,ajournal=j
                    ,aScreen=asSetSelectedAccount acct accountsScreen
                    ,aPrevScreens=[]
-                   ,aMinibuffer=Nothing
+                   ,aMode=Normal
                    }
   
     st = (sInit scr) d True
@@ -124,7 +124,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
            ,ajournal=j
            ,aScreen=scr
            ,aPrevScreens=prevscrs
-           ,aMinibuffer=Nothing
+           ,aMode=Normal
            }
 
     brickapp :: App (AppState) V.Event

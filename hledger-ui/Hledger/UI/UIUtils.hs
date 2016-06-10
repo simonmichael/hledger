@@ -154,13 +154,13 @@ setDepth depth st@AppState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_
             | otherwise            = Just depth
 
 -- | Enable the minibuffer, setting its content to the current query with the cursor at the end.
-stShowMinibuffer st = st{aMinibuffer=Just e}
+stShowMinibuffer st = st{aMode=Minibuffer e}
   where
     e = applyEdit gotoEOL $ editor "minibuffer" (str . unlines) (Just 1) oldq
     oldq = query_ $ reportopts_ $ cliopts_ $ aopts st
 
 -- | Disable the minibuffer, discarding any edit in progress.
-stHideMinibuffer st = st{aMinibuffer=Nothing}
+stHideMinibuffer st = st{aMode=Normal}
 
 -- | Regenerate the content for the current and previous screens, from a new journal and current date.
 regenerateScreens :: Journal -> Day -> AppState -> AppState
