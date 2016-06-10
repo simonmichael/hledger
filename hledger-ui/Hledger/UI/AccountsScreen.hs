@@ -252,11 +252,11 @@ asHandle st'@AppState{
   case mode of
     Minibuffer ed ->
       case ev of
-        Vty.EvKey Vty.KEsc   [] -> continue $ stCloseMinibuffer st'
-        Vty.EvKey Vty.KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stCloseMinibuffer st'
+        Vty.EvKey Vty.KEsc   [] -> continue $ stCloseMinibuffer st
+        Vty.EvKey Vty.KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stCloseMinibuffer st
                                     where s = chomp $ unlines $ getEditContents ed
         ev                      -> do ed' <- handleEvent ev ed
-                                      continue $ st'{aMode=Minibuffer ed'}
+                                      continue $ st{aMode=Minibuffer ed'}
 
     Help ->
       case ev of
@@ -299,10 +299,10 @@ asHandle st'@AppState{
         -- fall through to the list's event handler (handles up/down)
         ev                       -> do
                                      newitems <- handleEvent ev (scr ^. asList)
-                                     continue $ st'{aScreen=scr & asList .~ newitems
+                                     continue $ st{aScreen=scr & asList .~ newitems
                                                                 & asSelectedAccount .~ selacct
                                                                 }
-                                 -- continue =<< handleEventLensed st' someLens ev
+                                 -- continue =<< handleEventLensed st someLens ev
 
   where
     -- Encourage a more stable scroll position when toggling list items.
