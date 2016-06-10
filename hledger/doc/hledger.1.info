@@ -11,14 +11,17 @@ This is hledger's command-line interface (there are also curses and web
 interfaces). Its basic function is to read a plain text file describing
 financial transactions (in accounting terms, a general journal) and
 print useful reports on standard output, or export them as CSV. hledger
-can also read CSV files, converting them semi-automatically to journal
-format. Additionally, hledger lists other hledger-* executables found in
-the user's $PATH and can invoke them as subcommands.
+can also read some other file formats such as CSV files, translating
+them to journal format. Additionally, hledger lists other hledger-*
+executables found in the user's $PATH and can invoke them as
+subcommands.
 
-   The journal file is `~/.hledger.journal' by default, or another file
-path specified by `$LEDGER_FILE'. (This should be a real environment
-variable, not a shell variable.) You can also specify a file with `-f
-FILE', or standard input with `-f-'.
+   hledger reads data from one or more files in hledger journal,
+timeclock, timedot, or CSV format specified with `-f', or
+`$LEDGER_FILE', or `$HOME/.hledger.journal' (on windows, perhaps
+`C:/Users/USER/.hledger.journal'). If using `$LEDGER_FILE', note this
+must be a real environment variable, not a shell variable. You can
+specify standard input with `-f-'.
 
    Transactions are dated movements of money between two (or more) named
 accounts, and are recorded with journal entries like this:
@@ -28,7 +31,7 @@ accounts, and are recorded with journal entries like this:
  expenses:food          $10
  assets:cash
 
-   For more about the format, see hledger_journal(5).
+   For more about this format, see hledger_journal(5).
 
    Most users use a text editor to edit the journal, usually with an
 editor mode such as ledger-mode for added convenience. hledger's
@@ -2039,99 +2042,99 @@ in hledger add.
 
 Tag Table:
 Node: Top82
-Node: EXAMPLES1748
-Ref: #examples1850
-Node: OPTIONS3854
-Ref: #options3958
-Node: Multiple files7267
-Ref: #multiple-files7392
-Node: Repeated options7657
-Ref: #repeated-options7809
-Node: Depth limiting7929
-Ref: #depth-limiting8074
-Node: Smart dates8275
-Ref: #smart-dates8416
-Node: Reporting interval9413
-Ref: #reporting-interval9572
-Node: Period expressions9915
-Ref: #period-expressions10082
-Node: Regular Expressions12128
-Ref: #regular-expressions12270
-Node: QUERIES13753
-Ref: #queries13857
-Node: COMMANDS17159
-Ref: #commands17273
-Node: accounts17946
-Ref: #accounts18046
-Node: activity19028
-Ref: #activity19140
-Node: add19499
-Ref: #add19600
-Node: balance22259
-Ref: #balance22372
-Node: Flat mode25088
-Ref: #flat-mode25215
-Node: Depth limited balance reports25634
-Ref: #depth-limited-balance-reports25837
-Node: Multicolumn balance reports26258
-Ref: #multicolumn-balance-reports26460
-Node: Market value31109
-Ref: #market-value31273
-Node: Custom balance output31766
-Ref: #custom-balance-output31939
-Node: Output destination34043
-Ref: #output-destination34208
-Node: CSV output34478
-Ref: #csv-output34597
-Node: balancesheet34994
-Ref: #balancesheet35122
-Node: cashflow35774
-Ref: #cashflow35891
-Node: help36581
-Ref: #help36693
-Node: incomestatement37530
-Ref: #incomestatement37660
-Node: info38387
-Ref: #info38494
-Node: man38856
-Ref: #man38953
-Node: print39356
-Ref: #print39461
-Node: register40812
-Ref: #register40925
-Node: Custom register output45266
-Ref: #custom-register-output45397
-Node: stats46694
-Ref: #stats46800
-Node: test47681
-Ref: #test47768
-Node: ADD-ON COMMANDS48135
-Ref: #add-on-commands48271
-Node: api49559
-Ref: #api49651
-Node: autosync49685
-Ref: #autosync49800
-Node: diff52115
-Ref: #diff52225
-Node: equity52889
-Ref: #equity53003
-Node: interest54331
-Ref: #interest54448
-Node: irr57532
-Ref: #irr57645
-Node: print-unique60020
-Ref: #print-unique60150
-Node: rewrite60408
-Ref: #rewrite60527
-Node: ui61056
-Ref: #ui61156
-Node: web61197
-Ref: #web61285
-Node: TROUBLESHOOTING61318
-Ref: #troubleshooting61437
-Node: Run-time problems61491
-Ref: #run-time-problems61634
-Node: Known limitations63578
-Ref: #known-limitations63721
+Node: EXAMPLES1875
+Ref: #examples1977
+Node: OPTIONS3981
+Ref: #options4085
+Node: Multiple files7394
+Ref: #multiple-files7519
+Node: Repeated options7784
+Ref: #repeated-options7936
+Node: Depth limiting8056
+Ref: #depth-limiting8201
+Node: Smart dates8402
+Ref: #smart-dates8543
+Node: Reporting interval9540
+Ref: #reporting-interval9699
+Node: Period expressions10042
+Ref: #period-expressions10209
+Node: Regular Expressions12255
+Ref: #regular-expressions12397
+Node: QUERIES13880
+Ref: #queries13984
+Node: COMMANDS17286
+Ref: #commands17400
+Node: accounts18073
+Ref: #accounts18173
+Node: activity19155
+Ref: #activity19267
+Node: add19626
+Ref: #add19727
+Node: balance22386
+Ref: #balance22499
+Node: Flat mode25215
+Ref: #flat-mode25342
+Node: Depth limited balance reports25761
+Ref: #depth-limited-balance-reports25964
+Node: Multicolumn balance reports26385
+Ref: #multicolumn-balance-reports26587
+Node: Market value31236
+Ref: #market-value31400
+Node: Custom balance output31893
+Ref: #custom-balance-output32066
+Node: Output destination34170
+Ref: #output-destination34335
+Node: CSV output34605
+Ref: #csv-output34724
+Node: balancesheet35121
+Ref: #balancesheet35249
+Node: cashflow35901
+Ref: #cashflow36018
+Node: help36708
+Ref: #help36820
+Node: incomestatement37657
+Ref: #incomestatement37787
+Node: info38514
+Ref: #info38621
+Node: man38983
+Ref: #man39080
+Node: print39483
+Ref: #print39588
+Node: register40939
+Ref: #register41052
+Node: Custom register output45393
+Ref: #custom-register-output45524
+Node: stats46821
+Ref: #stats46927
+Node: test47808
+Ref: #test47895
+Node: ADD-ON COMMANDS48262
+Ref: #add-on-commands48398
+Node: api49686
+Ref: #api49778
+Node: autosync49812
+Ref: #autosync49927
+Node: diff52242
+Ref: #diff52352
+Node: equity53016
+Ref: #equity53130
+Node: interest54458
+Ref: #interest54575
+Node: irr57659
+Ref: #irr57772
+Node: print-unique60147
+Ref: #print-unique60277
+Node: rewrite60535
+Ref: #rewrite60654
+Node: ui61183
+Ref: #ui61283
+Node: web61324
+Ref: #web61412
+Node: TROUBLESHOOTING61445
+Ref: #troubleshooting61564
+Node: Run-time problems61618
+Ref: #run-time-problems61761
+Node: Known limitations63705
+Ref: #known-limitations63848
 
 End Tag Table

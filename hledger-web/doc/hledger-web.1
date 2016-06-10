@@ -38,9 +38,11 @@ As a small protection against data loss when running an unprotected
 instance, it writes a numbered backup of the main journal file (only ?)
 on every edit.
 .PP
-The journal file is \f[C]~/.hledger.journal\f[], \f[C]$LEDGER_FILE\f[],
-or another file specified with \-f.
-For more about the format, see hledger(1) or hledger_journal(5).
+Like hledger, it reads data from one or more files in hledger journal,
+timeclock, timedot, or CSV format specified with \f[C]\-f\f[], or
+\f[C]$LEDGER_FILE\f[], or \f[C]$HOME/.hledger.journal\f[] (on windows,
+perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
+For more about this see hledger(1), hledger_journal(5) etc.
 .PP
 By default, hledger\-web starts the web app in "transient mode" and also
 opens it in your default web browser if possible.
@@ -266,13 +268,16 @@ be "TAG:multi:level:account:name".
 .RE
 .SH ENVIRONMENT
 .PP
-\f[B]LEDGER_FILE\f[] sets the default journal file path.
-If not set, it is \f[C]~/.hledger.journal\f[].
+\f[B]LEDGER_FILE\f[] The journal file path when not specified with
+\f[C]\-f\f[].
+Default: \f[C]~/.hledger.journal\f[] (on windows, perhaps
+\f[C]C:/Users/USER/.hledger.journal\f[]).
 .SH FILES
 .PP
-Reads data from a hledger journal file (\f[C]$LEDGER_FILE\f[] or
-\f[C]~/.hledger.journal\f[] by default), or a CSV file plus associated
-CSV rules file.
+Reads data from one or more files in hledger journal, timeclock,
+timedot, or CSV format specified with \f[C]\-f\f[], or
+\f[C]$LEDGER_FILE\f[], or \f[C]$HOME/.hledger.journal\f[] (on windows,
+perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
 .SH BUGS
 .PP
 The need to precede options with \f[C]\-\-\f[] when invoked from hledger
@@ -281,19 +286,11 @@ is awkward.
 \f[C]\-f\-\f[] doesn\[aq]t work (hledger\-web can\[aq]t read from
 stdin).
 .PP
-Query arguments and some applicable hledger options probably aren\[aq]t
-supported.
+Query arguments and some hledger options are ignored.
 .PP
 Does not work in text\-mode browsers.
 .PP
 Does not work well on small screens.
-.PP
-The auto\-exit feature was added to avoid leaving stray processes, eg on
-Windows.
-It is not well tested.
-.PP
-If you start two instances on the same port, the second one will appear
-to run normally, but you will be seeing pages served from the first one.
 
 
 .SH "REPORTING BUGS"

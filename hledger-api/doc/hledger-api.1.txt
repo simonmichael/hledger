@@ -21,9 +21,11 @@ DDEESSCCRRIIPPTTIIOONN
        web  apps  operating on hledger data.  It comes with a series of simple
        client-side app examples, which drive it's evolution.
 
-       Data is served from the usual hledger journal file: ~/.hledger.journal,
-       $LEDGER_FILE,  or  another  file specified with -f.  For more about the
-       format, see hledger(1) or hledger_journal(5).
+       Like hledger, it reads data from one or more files in hledger  journal,
+       timeclock,  timedot,  or CSV format specified with -f, or $LEDGER_FILE,
+       or       $HOME/.hledger.journal       (on       windows,        perhaps
+       C:/Users/USER/.hledger.journal).   For  more about this see hledger(1),
+       hledger_journal(5) etc.
 
        The server listens on port 8001, or  another  specified  with  -p PORT.
        Note  there  is  no  built-in  access control, so you will need to hide
@@ -77,13 +79,15 @@ OOPPTTIIOONNSS
               ignore any failing balance assertions in the journal
 
 EENNVVIIRROONNMMEENNTT
-       LLEEDDGGEERR__FFIILLEE  sets  the  default  journal  file path.  If not set, it is
-       ~/.hledger.journal.
+       LLEEDDGGEERR__FFIILLEE The journal file path when not specified with -f.  Default:
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
+       nal).
 
 FFIILLEESS
-       Reads   data   from   a   hledger   journal   file   ($LEDGER_FILE   or
-       ~/.hledger.journal by default), or a CSV file plus associated CSV rules
-       file.
+       Reads  data from one or more files in hledger journal, timeclock, time-
+       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
+       $HOME/.hledger.journal           (on          windows,          perhaps
+       C:/Users/USER/.hledger.journal).
 
 BBUUGGSS
        The need to precede options with -- when invoked from hledger  is  awk-

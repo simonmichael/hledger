@@ -6,6 +6,7 @@ _web_({{
 _versions_({{hledger-web}})
 _toc_
 }})
+
 _man_({{
 # NAME
 
@@ -28,9 +29,7 @@ hledger-web - web interface for the hledger accounting tool
 
 # DESCRIPTION
 
-hledger is a cross-platform program for tracking money, time, or any other commodity,
-using double-entry accounting and a simple, editable file format.
-hledger is inspired by and largely compatible with ledger(1).
+_hledgerdescription_
 }})
 
 hledger-web is hledger's web interface.  It starts a simple web
@@ -47,8 +46,8 @@ behind a suitable web proxy.  As a small protection against data loss
 when running an unprotected instance, it writes a numbered backup of
 the main journal file (only ?) on every edit.
 
-The journal file is `~/.hledger.journal`, `$LEDGER_FILE`, or another file specified with -f.
-For more about the format, see hledger(1) or hledger_journal(5).
+Like hledger, it reads _files_
+For more about this see hledger(1), hledger_journal(5) etc.
 
 By default, hledger-web starts the web app in "transient mode" and
 also opens it in your default web browser if possible. In this mode
@@ -133,14 +132,11 @@ _man_({{
 
 # ENVIRONMENT
 
-**LEDGER_FILE**
-sets the default journal file path. If not set, it is `~/.hledger.journal`.
+_LEDGER_FILE_
 
 # FILES
 
-Reads data from a hledger journal file (`$LEDGER_FILE` or
-`~/.hledger.journal` by default), or a CSV file plus associated CSV
-rules file.
+Reads _files_
 
 # BUGS
 
@@ -148,17 +144,10 @@ The need to precede options with `--` when invoked from hledger is awkward.
 
 `-f-` doesn't work (hledger-web can't read from stdin).
 
-Query arguments and some applicable hledger options probably aren't supported.
+Query arguments and some hledger options are ignored.
 
 Does not work in text-mode browsers.
 
 Does not work well on small screens.
-
-The auto-exit feature was added to avoid leaving stray processes, eg on Windows.
-It is not well tested.
-
-If you start two instances on the same port, the second one will
-appear to run normally, but you will be seeing pages served from the
-first one.
 
 }})

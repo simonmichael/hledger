@@ -7,18 +7,17 @@ File: hledger-ui.1.info,  Node: Top,  Up: (dir)
 hledger-ui(1) hledger-ui 0.28
 *****************************
 
-hledger-ui is hledger's curses-style interface. It reads a hledger
-journal file
+hledger-ui is hledger's curses-style interface, providing an efficient
+full-window text UI for viewing accounts and transactions, and some
+limited data entry capability. It is easier than hledger's command-line
+interface, and sometimes quicker and more convenient than the web
+interface.
 
-   and provides a simple full-screen console interface for viewing
-account balances and transactions.
-
-   It is simpler and more convenient for browsing than the command-line
-interface, but lighter and faster than hledger-web.
-
-   The journal file is `~/.hledger.journal', `$LEDGER_FILE', or another
-file specified with -f. For more about the format, see hledger(1) or
-hledger_journal(5).
+   Like hledger, it reads data from one or more files in hledger
+journal, timeclock, timedot, or CSV format specified with `-f', or
+`$LEDGER_FILE', or `$HOME/.hledger.journal' (on windows, perhaps
+`C:/Users/USER/.hledger.journal'). For more about this see hledger(1),
+hledger_journal(5) etc.
 
 * Menu:
 
@@ -316,19 +315,19 @@ press g again to reload and restore normal operation.
 
 Tag Table:
 Node: Top88
-Node: OPTIONS714
-Ref: #options813
-Node: KEYS3689
-Ref: #keys3786
-Node: SCREENS4726
-Ref: #screens4813
-Node: Accounts screen4903
-Ref: #accounts-screen5033
-Node: Register screen6137
-Ref: #register-screen6294
-Node: Transaction screen8047
-Ref: #transaction-screen8207
-Node: Error screen9074
-Ref: #error-screen9198
+Node: OPTIONS825
+Ref: #options924
+Node: KEYS3800
+Ref: #keys3897
+Node: SCREENS4837
+Ref: #screens4924
+Node: Accounts screen5014
+Ref: #accounts-screen5144
+Node: Register screen6248
+Ref: #register-screen6405
+Node: Transaction screen8158
+Ref: #transaction-screen8318
+Node: Error screen9185
+Ref: #error-screen9309
 
 End Tag Table

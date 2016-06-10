@@ -19,8 +19,8 @@ _toc_
 <a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade-cash.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade-cash.png" title="beancount example's etrade cash subaccount" /></a>
 <a href="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-ui/hledger-ui-bcexample-acc-etrade.png" title="beancount example's etrade investments, all commoditiess" /></a>
 }})
-_man_({{
 
+_man_({{
 # NAME
 
 hledger-ui - curses-style interface for the hledger accounting tool
@@ -32,25 +32,16 @@ hledger-ui - curses-style interface for the hledger accounting tool
 
 # DESCRIPTION
 
-hledger is a cross-platform program for tracking money, time, or any other commodity,
-using double-entry accounting and a simple, editable file format.
-hledger is inspired by and largely compatible with ledger(1).
-
+_hledgerdescription_
 }})
 
-hledger-ui is hledger's curses-style interface.
-It reads a hledger journal file
-_man_({{
-(~/.hledger.journal, $LEDGER_FILE, or -f FILE; see hledger(1) or hledger_journal(5))
-}})
-and provides a simple full-screen console interface for viewing account balances and transactions.
+hledger-ui is hledger's curses-style interface, providing an efficient full-window text UI
+for viewing accounts and transactions, and some limited data entry capability.
+It is easier than hledger's command-line interface, and 
+sometimes quicker and more convenient than the web interface.
 
-It is simpler and more convenient for
-browsing than the command-line interface, but lighter and faster than
-hledger-web.
-
-The journal file is `~/.hledger.journal`, `$LEDGER_FILE`, or another file specified with -f.
-For more about the format, see hledger(1) or hledger_journal(5).
+Like hledger, it reads _files_
+For more about this see hledger(1), hledger_journal(5) etc.
 
 # OPTIONS
 
@@ -217,17 +208,15 @@ _man_({{
 
 # ENVIRONMENT
 
-**LEDGER_FILE**
-sets the default journal file path. If not set, it is `~/.hledger.journal`.
-
 **COLUMNS**
-sets the screen width to use (normally the full terminal width).
+The screen width to use. 
+Default: the full terminal width.
+
+_LEDGER_FILE_
 
 # FILES
 
-Reads data from a hledger journal file (`$LEDGER_FILE` or
-`~/.hledger.journal` by default), or a CSV file plus associated CSV
-rules file.
+Reads _files_
 
 # BUGS
 

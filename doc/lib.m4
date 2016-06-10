@@ -142,3 +142,19 @@ m4_define({{_reportingoptions_}}, {{
 : The TAG will only match if it is a full-length match. The pivot will only happen if the TAG is on a posting, not if it is on the transaction. If the tag value is a multi:level:account:name the new account name will be "TAG:multi:level:account:name".
 
 }} )m4_dnl
+m4_dnl
+m4_define({{_hledgerdescription_}}, {{
+hledger is a cross-platform program for tracking money, time, or any other commodity,
+using double-entry accounting and a simple, editable file format.
+hledger is inspired by and largely compatible with ledger(1). }} )m4_dnl
+m4_dnl
+m4_define({{_files_}},
+{{data from one or more files in hledger journal, timeclock, timedot, or CSV format
+specified with `-f`, or `$LEDGER_FILE`,
+or `$HOME/.hledger.journal` (on windows, perhaps `C:/Users/USER/.hledger.journal`).}})m4_dnl
+m4_dnl
+m4_define({{_LEDGER_FILE_}}, {{
+**LEDGER_FILE**
+The journal file path when not specified with `-f`.
+Default: `~/.hledger.journal` (on windows, perhaps `C:/Users/USER/.hledger.journal`).
+}} )m4_dnl

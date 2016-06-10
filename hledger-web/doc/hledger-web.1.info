@@ -20,9 +20,11 @@ should put it behind a suitable web proxy. As a small protection against
 data loss when running an unprotected instance, it writes a numbered
 backup of the main journal file (only ?) on every edit.
 
-   The journal file is `~/.hledger.journal', `$LEDGER_FILE', or another
-file specified with -f. For more about the format, see hledger(1) or
-hledger_journal(5).
+   Like hledger, it reads data from one or more files in hledger
+journal, timeclock, timedot, or CSV format specified with `-f', or
+`$LEDGER_FILE', or `$HOME/.hledger.journal' (on windows, perhaps
+`C:/Users/USER/.hledger.journal'). For more about this see hledger(1),
+hledger_journal(5) etc.
 
    By default, hledger-web starts the web app in "transient mode" and
 also opens it in your default web browser if possible. In this mode the
@@ -188,7 +190,7 @@ before options as shown above.
 
 Tag Table:
 Node: Top90
-Node: OPTIONS2868
-Ref: #options2955
+Node: OPTIONS2999
+Ref: #options3086
 
 End Tag Table

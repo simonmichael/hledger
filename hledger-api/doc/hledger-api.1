@@ -29,10 +29,11 @@ client\-side web apps operating on hledger data.
 It comes with a series of simple client\-side app examples, which drive
 it\[aq]s evolution.
 .PP
-Data is served from the usual hledger journal file:
-\f[C]~/.hledger.journal\f[], \f[C]$LEDGER_FILE\f[], or another file
-specified with \-f.
-For more about the format, see hledger(1) or hledger_journal(5).
+Like hledger, it reads data from one or more files in hledger journal,
+timeclock, timedot, or CSV format specified with \f[C]\-f\f[], or
+\f[C]$LEDGER_FILE\f[], or \f[C]$HOME/.hledger.journal\f[] (on windows,
+perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
+For more about this see hledger(1), hledger_journal(5) etc.
 .PP
 The server listens on port 8001, or another specified with
 \f[C]\-p\ PORT\f[].
@@ -117,13 +118,16 @@ ignore any failing balance assertions in the journal
 .RE
 .SH ENVIRONMENT
 .PP
-\f[B]LEDGER_FILE\f[] sets the default journal file path.
-If not set, it is \f[C]~/.hledger.journal\f[].
+\f[B]LEDGER_FILE\f[] The journal file path when not specified with
+\f[C]\-f\f[].
+Default: \f[C]~/.hledger.journal\f[] (on windows, perhaps
+\f[C]C:/Users/USER/.hledger.journal\f[]).
 .SH FILES
 .PP
-Reads data from a hledger journal file (\f[C]$LEDGER_FILE\f[] or
-\f[C]~/.hledger.journal\f[] by default), or a CSV file plus associated
-CSV rules file.
+Reads data from one or more files in hledger journal, timeclock,
+timedot, or CSV format specified with \f[C]\-f\f[], or
+\f[C]$LEDGER_FILE\f[], or \f[C]$HOME/.hledger.journal\f[] (on windows,
+perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
 .SH BUGS
 .PP
 The need to precede options with \f[C]\-\-\f[] when invoked from hledger

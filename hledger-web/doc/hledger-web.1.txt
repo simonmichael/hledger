@@ -31,9 +31,11 @@ DDEESSCCRRIIPPTTIIOONN
        against data loss when running an unprotected  instance,  it  writes  a
        numbered backup of the main journal file (only ?)  on every edit.
 
-       The  journal  file is ~/.hledger.journal, $LEDGER_FILE, or another file
-       specified with -f.  For  more  about  the  format,  see  hledger(1)  or
-       hledger_journal(5).
+       Like  hledger, it reads data from one or more files in hledger journal,
+       timeclock, timedot, or CSV format specified with -f,  or  $LEDGER_FILE,
+       or        $HOME/.hledger.journal       (on       windows,       perhaps
+       C:/Users/USER/.hledger.journal).  For more about this  see  hledger(1),
+       hledger_journal(5) etc.
 
        By default, hledger-web starts the web app in "transient mode" and also
        opens it in your default web browser if possible.  In this mode the web
@@ -183,13 +185,15 @@ OOPPTTIIOONNSS
        name will be "TAG:multi:level:account:name".
 
 EENNVVIIRROONNMMEENNTT
-       LLEEDDGGEERR__FFIILLEE sets the default journal file path.   If  not  set,  it  is
-       ~/.hledger.journal.
+       LLEEDDGGEERR__FFIILLEE The journal file path when not specified with -f.  Default:
+       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       nal).
 
 FFIILLEESS
-       Reads   data   from   a   hledger   journal   file   ($LEDGER_FILE   or
-       ~/.hledger.journal by default), or a CSV file plus associated CSV rules
-       file.
+       Reads data from one or more files in hledger journal, timeclock,  time-
+       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
+       $HOME/.hledger.journal          (on          windows,           perhaps
+       C:/Users/USER/.hledger.journal).
 
 BBUUGGSS
        The  need  to precede options with -- when invoked from hledger is awk-
@@ -197,19 +201,11 @@ BBUUGGSS
 
        -f- doesn't work (hledger-web can't read from stdin).
 
-       Query arguments and some applicable  hledger  options  probably  aren't
-       supported.
+       Query arguments and some hledger options are ignored.
 
        Does not work in text-mode browsers.
 
        Does not work well on small screens.
-
-       The auto-exit feature was added to avoid leaving stray processes, eg on
-       Windows.  It is not well tested.
-
-       If you start two instances on the same port, the second one will appear
-       to  run  normally,  but  you will be seeing pages served from the first
-       one.
 
 
 

@@ -19,7 +19,10 @@ hledger \- a command\-line accounting tool
 hledger is a cross\-platform program for tracking money, time, or any
 other commodity, using double\-entry accounting and a simple, editable
 file format.
-It is inspired by and largely compatible with ledger(1).
+hledger is inspired by and largely compatible with ledger(1).
+.PD 0
+.P
+.PD
 Tested on unix, mac, windows, hledger aims to be a reliable, practical
 tool for daily use.
 .PP
@@ -28,16 +31,18 @@ interfaces).
 Its basic function is to read a plain text file describing financial
 transactions (in accounting terms, a general journal) and print useful
 reports on standard output, or export them as CSV.
-hledger can also read CSV files, converting them semi\-automatically to
-journal format.
+hledger can also read some other file formats such as CSV files,
+translating them to journal format.
 Additionally, hledger lists other hledger\-* executables found in the
 user's $PATH and can invoke them as subcommands.
 .PP
-The journal file is \f[C]~/.hledger.journal\f[] by default, or another
-file path specified by \f[C]$LEDGER_FILE\f[].
-(This should be a real environment variable, not a shell variable.) You
-can also specify a file with \f[C]\-f\ FILE\f[], or standard input with
-\f[C]\-f\-\f[].
+hledger reads data from one or more files in hledger journal, timeclock,
+timedot, or CSV format specified with \f[C]\-f\f[], or
+\f[C]$LEDGER_FILE\f[], or \f[C]$HOME/.hledger.journal\f[] (on windows,
+perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
+If using \f[C]$LEDGER_FILE\f[], note this must be a real environment
+variable, not a shell variable.
+You can specify standard input with \f[C]\-f\-\f[].
 .PP
 Transactions are dated movements of money between two (or more) named
 accounts, and are recorded with journal entries like this:
@@ -50,7 +55,7 @@ accounts, and are recorded with journal entries like this:
 \f[]
 .fi
 .PP
-For more about the format, see hledger_journal(5).
+For more about this format, see hledger_journal(5).
 .PP
 Most users use a text editor to edit the journal, usually with an editor
 mode such as ledger\-mode for added convenience.
@@ -2272,16 +2277,19 @@ In a windows Cygwin/MSYS/Mintty window, the tab key is not supported in
 hledger add.
 .SH ENVIRONMENT
 .PP
-\f[B]LEDGER_FILE\f[] sets the default journal file path.
-If not set, it is \f[C]~/.hledger.journal\f[].
+\f[B]COLUMNS\f[] The screen width used by the register command.
+Default: the full terminal width.
 .PP
-\f[B]COLUMNS\f[] sets the default width used by the register command
-(normally the full terminal width).
+\f[B]LEDGER_FILE\f[] The journal file path when not specified with
+\f[C]\-f\f[].
+Default: \f[C]~/.hledger.journal\f[] (on windows, perhaps
+\f[C]C:/Users/USER/.hledger.journal\f[]).
 .SH FILES
 .PP
-Reads data from a hledger journal file (\f[C]$LEDGER_FILE\f[] or
-\f[C]~/.hledger.journal\f[] by default), or a CSV file plus associated
-CSV rules file.
+Reads data from one or more files in hledger journal, timeclock,
+timedot, or CSV format specified with \f[C]\-f\f[], or
+\f[C]$LEDGER_FILE\f[], or \f[C]$HOME/.hledger.journal\f[] (on windows,
+perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
 .SH BUGS
 .PP
 The need to precede options with \f[C]\-\-\f[] when invoked from hledger

@@ -11,9 +11,11 @@ hledger-api is a simple web API server, intended to support client-side
 web apps operating on hledger data. It comes with a series of simple
 client-side app examples, which drive it's evolution.
 
-   Data is served from the usual hledger journal file:
-`~/.hledger.journal', `$LEDGER_FILE', or another file specified with
--f. For more about the format, see hledger(1) or hledger_journal(5).
+   Like hledger, it reads data from one or more files in hledger
+journal, timeclock, timedot, or CSV format specified with `-f', or
+`$LEDGER_FILE', or `$HOME/.hledger.journal' (on windows, perhaps
+`C:/Users/USER/.hledger.journal'). For more about this see hledger(1),
+hledger_journal(5) etc.
 
    The server listens on port 8001, or another specified with `-p
 PORT'. Note there is no built-in access control, so you will need to
@@ -82,7 +84,7 @@ before options as shown above.
 
 Tag Table:
 Node: Top90
-Node: OPTIONS959
-Ref: #options1046
+Node: OPTIONS1058
+Ref: #options1145
 
 End Tag Table
