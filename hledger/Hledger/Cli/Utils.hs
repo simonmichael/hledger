@@ -62,8 +62,8 @@ import Hledger.Read
 import Hledger.Utils
 
 
--- | Parse the user's specified journal file and run a hledger command on
--- it, or throw an error.
+-- | Parse the user's specified journal file, maybe apply some transformations
+-- (aliases, pivot) and run a hledger command on it, or throw an error.
 withJournalDo :: CliOpts -> (CliOpts -> Journal -> IO ()) -> IO ()
 withJournalDo opts cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
@@ -101,13 +101,15 @@ writeOutput opts s = do
 -- readJournalWithOpts :: CliOpts -> String -> IO Journal
 -- readJournalWithOpts opts s = readJournal Nothing Nothing Nothing s >>= either error' return
 
--- | Re-read the journal file(s) specified by options, or return an error string.
+-- | Re-read the journal file(s) specified by options and maybe apply some
+-- transformations (aliases, pivot), or return an error string.
 -- Reads the full journal, without filtering.
 journalReload :: CliOpts -> IO (Either String Journal)
 journalReload opts = do
   rulespath <- rulesFilePathFromOpts opts
   journalpaths <- journalFilePathFromOpts opts
-  readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpaths
+  ((pivotByOpts opts . journalApplyAliases (aliasesFromOpts opts)) <$>) <$>
+    readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpaths
 
 -- | Re-read the option-specified journal file(s), but only if any of
 -- them has changed since last read. (If the file is standard input,
