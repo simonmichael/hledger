@@ -8,25 +8,15 @@ module Hledger.UI.TransactionScreen
  )
 where
 
--- import Lens.Micro.Platform ((^.))
 import Control.Monad.IO.Class (liftIO)
 import Data.List
--- import Data.List.Split (splitOn)
--- import Data.Ord
 import Data.Monoid
--- import Data.Maybe
--- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
--- import qualified Data.Vector as V
 import Graphics.Vty
--- import Safe (headDef, lastDef)
 import Brick
 import Brick.Widgets.List (listMoveTo)
 import Brick.Widgets.Border (borderAttr)
--- import Brick.Widgets.Border.Style
--- import Brick.Widgets.Center
--- import Text.Printf
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
@@ -131,7 +121,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
       case ev of
         EvKey (KChar 'q') [] -> halt ui
         EvKey KEsc        [] -> continue $ resetScreens d ui
-        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help ui
+        EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
         EvKey (KChar 'g') [] -> do
           d <- liftIO getCurrentDay
           (ej, _) <- liftIO $ journalReloadIfChanged copts d j

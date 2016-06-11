@@ -14,7 +14,6 @@ import Data.List
 import Data.List.Split (splitOn)
 import Data.Monoid
 import Data.Maybe
--- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
@@ -23,9 +22,7 @@ import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Brick.Widgets.Border (borderAttr)
--- import Brick.Widgets.Center
 import System.Console.ANSI
--- import Text.Printf
 
 
 import Hledger
@@ -247,18 +244,17 @@ rsHandle ui@UIState{
       case ev of
         EvKey (KChar 'q') [] -> halt ui
         EvKey KEsc        [] -> continue $ resetScreens d ui
-        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help ui
+        EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
         EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
         EvKey (KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
         EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
         EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleUncleared ui)
         EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
-        EvKey k [] | k `elem` [KChar '/'] -> (continue $ regenerateScreens j d $ showMinibuffer ui)
-        EvKey k [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
+        EvKey (KChar '/') [] -> (continue $ regenerateScreens j d $ showMinibuffer ui)
+        EvKey k           [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         EvKey (KLeft)     [] -> continue $ popScreen ui
-
-        EvKey (k) [] | k `elem` [KRight, KEnter] -> do
+        EvKey k           [] | k `elem` [KRight, KEnter] -> do
           case listSelectedElement rsList of
             Just (_, RegisterScreenItem{rsItemTransaction=t}) ->
               let
@@ -270,14 +266,12 @@ rsHandle ui@UIState{
                                                           ,tsTransactions=numberedts
                                                           ,tsAccount=rsAccount} ui
             Nothing -> continue ui
-
         -- fall through to the list's event handler (handles [pg]up/down)
         ev -> do newitems <- handleEvent ev rsList
                  continue ui{aScreen=s{rsList=newitems}}
                  -- continue =<< handleEventLensed ui someLens ev
-
-  where
-    -- Encourage a more stable scroll position when toggling list items (cf AccountsScreen.hs)
-    scrollTop = vScrollToBeginning $ viewportScroll "register"
+      where
+        -- Encourage a more stable scroll position when toggling list items (cf AccountsScreen.hs)
+        scrollTop = vScrollToBeginning $ viewportScroll "register"
 
 rsHandle _ _ = error "event handler called with wrong screen type, should not happen"

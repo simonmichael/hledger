@@ -10,32 +10,25 @@ module Hledger.UI.AccountsScreen
  )
 where
 
--- import Control.Monad
-import Control.Monad.IO.Class (liftIO)
--- import Data.Default
-import Data.List
-import Data.Maybe
-import Data.Monoid
--- import Data.Text (Text)
-import qualified Data.Text as T
-import Data.Time.Calendar (Day)
-import System.FilePath (takeFileName)
-import qualified Data.Vector as V
-import Graphics.Vty
 import Brick
--- import Brick.Widgets.Center
 import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Brick.Widgets.Border (borderAttr)
--- import Brick.Widgets.Center
+import Control.Monad.IO.Class (liftIO)
+import Data.List
+import Data.Maybe
+import Data.Monoid
+import qualified Data.Text as T
+import Data.Time.Calendar (Day)
+import qualified Data.Vector as V
+import Graphics.Vty
 import Lens.Micro.Platform
 import System.Console.ANSI
+import System.FilePath (takeFileName)
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
--- import Hledger.Cli.CliOptions (defaultBalanceLineFormat)
 import Hledger.UI.UIOptions
--- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
@@ -268,8 +261,8 @@ asHandle ui0@UIState{
       case ev of
         EvKey (KChar 'q') [] -> halt ui
         -- EvKey (KChar 'l') [MCtrl] -> do
-        EvKey KEsc [] -> continue $ resetScreens d ui
-        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help ui
+        EvKey KEsc        [] -> continue $ resetScreens d ui
+        EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
         EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
         EvKey (KChar '0') [] -> continue $ regenerateScreens j d $ setDepth (Just 0) ui
@@ -284,16 +277,16 @@ asHandle ui0@UIState{
         EvKey (KChar '9') [] -> continue $ regenerateScreens j d $ setDepth (Just 9) ui
         EvKey (KChar '-') [] -> continue $ regenerateScreens j d $ decDepth ui
         EvKey (KChar '_') [] -> continue $ regenerateScreens j d $ decDepth ui
-        EvKey k [] | k `elem` [KChar '+', KChar '='] -> continue $ regenerateScreens j d $ incDepth ui
+        EvKey (KChar c)   [] | c `elem` ['+','='] -> continue $ regenerateScreens j d $ incDepth ui
         EvKey (KChar 'F') [] -> continue $ regenerateScreens j d $ toggleFlat ui
         EvKey (KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
         EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
         EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleUncleared ui)
         EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
-        EvKey k [] | k `elem` [KChar '/'] -> continue $ regenerateScreens j d $ showMinibuffer ui
-        EvKey k [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
+        EvKey (KChar '/') [] -> continue $ regenerateScreens j d $ showMinibuffer ui
+        EvKey k           [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         EvKey (KLeft) []     -> continue $ popScreen ui
-        EvKey (k) [] | k `elem` [KRight, KEnter] -> scrollTopRegister >> continue (screenEnter d scr ui)
+        EvKey k           [] | k `elem` [KRight, KEnter] -> scrollTopRegister >> continue (screenEnter d scr ui)
           where
             scr = rsSetAccount selacct registerScreen
 
