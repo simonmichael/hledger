@@ -4,7 +4,7 @@
 
 module Hledger.UI.ErrorScreen
  (errorScreen
- ,stReloadJournalIfChanged
+ ,uiReloadJournalIfChanged
  )
 where
 
@@ -13,7 +13,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Monoid
 -- import Data.Maybe
 import Data.Time.Calendar (Day)
-import Graphics.Vty as Vty
+import Graphics.Vty
 import Brick
 -- import Brick.Widgets.List
 -- import Brick.Widgets.Border
@@ -26,6 +26,7 @@ import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
+import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 
 errorScreen :: Screen
@@ -36,12 +37,12 @@ errorScreen = ErrorScreen{
   ,esError  = ""
   }
 
-esInit :: Day -> Bool -> AppState -> AppState
-esInit _ _ st@AppState{aScreen=ErrorScreen{}} = st
+esInit :: Day -> Bool -> UIState -> UIState
+esInit _ _ ui@UIState{aScreen=ErrorScreen{}} = ui
 esInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
-esDraw :: AppState -> [Widget]
-esDraw AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
+esDraw :: UIState -> [Widget]
+esDraw UIState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
                              aScreen=ErrorScreen{..}
                              ,aMode=mode} =
   case mode of
@@ -65,8 +66,8 @@ esDraw AppState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_rop
 
 esDraw _ = error "draw function called with wrong screen type, should not happen"
 
-esHandle :: AppState -> Vty.Event -> EventM (Next AppState)
-esHandle st@AppState{
+esHandle :: UIState -> Event -> EventM (Next UIState)
+esHandle ui@UIState{
    aScreen=s@ErrorScreen{}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
@@ -75,35 +76,35 @@ esHandle st@AppState{
   case mode of
     Help ->
       case ev of
-        EvKey (KChar 'q') [] -> halt st
-        _                    -> helpHandle st ev
+        EvKey (KChar 'q') [] -> halt ui
+        _                    -> helpHandle ui ev
 
     _ -> do
       d <- liftIO getCurrentDay
       case ev of
-        EvKey (KChar 'q') [] -> halt st
-        EvKey KEsc        [] -> continue $ resetScreens d st
-        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help st
+        EvKey (KChar 'q') [] -> halt ui
+        EvKey KEsc        [] -> continue $ resetScreens d ui
+        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help ui
         EvKey (KChar 'g') [] -> do
           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
           case ej of
-            Left err -> continue st{aScreen=s{esError=err}} -- show latest parse error
-            Right j' -> continue $ regenerateScreens j' d $ popScreen st  -- return to previous screen, and reload it
-        -- EvKey (KLeft) []     -> continue $ popScreen st
+            Left err -> continue ui{aScreen=s{esError=err}} -- show latest parse error
+            Right j' -> continue $ regenerateScreens j' d $ popScreen ui  -- return to previous screen, and reload it
+        -- EvKey (KLeft) []     -> continue $ popScreen ui
         -- EvKey (KRight) []    -> error (show curItem) where curItem = listSelectedElement is
         -- fall through to the list's event handler (handles [pg]up/down)
-        _                       -> do continue st
+        _                       -> do continue ui
                                      -- is' <- handleEvent ev is
-                                     -- continue st{aScreen=s{rsState=is'}}
-                                     -- continue =<< handleEventLensed st someLens e
+                                     -- continue ui{aScreen=s{rsState=is'}}
+                                     -- continue =<< handleEventLensed ui someLens e
 esHandle _ _ = error "event handler called with wrong screen type, should not happen"
 
 -- If journal file(s) have changed, reload the journal and regenerate all screens.
 -- This is here so it can reference the error screen.
-stReloadJournalIfChanged :: CliOpts -> Day -> Journal -> AppState -> IO AppState
-stReloadJournalIfChanged copts d j st = do
+uiReloadJournalIfChanged :: CliOpts -> Day -> Journal -> UIState -> IO UIState
+uiReloadJournalIfChanged copts d j ui = do
   (ej, _) <- journalReloadIfChanged copts d j
   return $ case ej of
-    Right j' -> regenerateScreens j' d st
-    Left err -> screenEnter d errorScreen{esError=err} st
+    Right j' -> regenerateScreens j' d ui
+    Left err -> screenEnter d errorScreen{esError=err} ui
 

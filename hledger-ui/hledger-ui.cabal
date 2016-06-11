@@ -92,6 +92,7 @@ executable hledger-ui
       Hledger.UI.Main
       Hledger.UI.UIOptions
       Hledger.UI.Theme
+      Hledger.UI.UIState
       Hledger.UI.UITypes
       Hledger.UI.UIUtils
       Hledger.UI.AccountsScreen

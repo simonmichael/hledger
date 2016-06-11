@@ -18,7 +18,7 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
-import Graphics.Vty as Vty
+import Graphics.Vty
 import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit
@@ -33,6 +33,7 @@ import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
+import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.TransactionScreen
 import Hledger.UI.ErrorScreen
@@ -49,9 +50,9 @@ registerScreen = RegisterScreen{
 rsSetAccount a scr@RegisterScreen{} = scr{rsAccount=a}
 rsSetAccount _ scr = scr
 
-rsInit :: Day -> Bool -> AppState -> AppState
-rsInit d reset st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{..}} =
-  st{aScreen=s{rsList=newitems'}}
+rsInit :: Day -> Bool -> UIState -> UIState
+rsInit d reset ui@UIState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{..}} =
+  ui{aScreen=s{rsList=newitems'}}
   where
     -- gather arguments and queries
     ropts = (reportopts_ $ cliopts_ opts)
@@ -99,8 +100,8 @@ rsInit d reset st@AppState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{..}}
 
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
-rsDraw :: AppState -> [Widget]
-rsDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+rsDraw :: UIState -> [Widget]
+rsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                             ,aScreen=RegisterScreen{..}
                             ,aMode=mode
                             } =
@@ -219,8 +220,8 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
     sel | selected  = (<> "selected")
         | otherwise = id
 
-rsHandle :: AppState -> Vty.Event -> EventM (Next AppState)
-rsHandle st@AppState{
+rsHandle :: UIState -> Event -> EventM (Next UIState)
+rsHandle ui@UIState{
    aScreen=s@RegisterScreen{..}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
@@ -231,31 +232,31 @@ rsHandle st@AppState{
   case mode of
     Minibuffer ed ->
       case ev of
-        EvKey KEsc   [] -> continue $ stCloseMinibuffer st
-        EvKey KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stCloseMinibuffer st
+        EvKey KEsc   [] -> continue $ closeMinibuffer ui
+        EvKey KEnter [] -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
                             where s = chomp $ unlines $ getEditContents ed
         ev              -> do ed' <- handleEvent ev ed
-                              continue $ st{aMode=Minibuffer ed'}
+                              continue $ ui{aMode=Minibuffer ed'}
 
     Help ->
       case ev of
-        EvKey (KChar 'q') [] -> halt st
-        _                    -> helpHandle st ev
+        EvKey (KChar 'q') [] -> halt ui
+        _                    -> helpHandle ui ev
 
     Normal ->
       case ev of
-        EvKey (KChar 'q') [] -> halt st
-        EvKey KEsc        [] -> continue $ resetScreens d st
-        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help st
-        EvKey (KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
-        EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> stReloadJournalIfChanged copts d j st
-        EvKey (KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
-        EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)
-        EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st)
-        EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleReal st)
-        EvKey k [] | k `elem` [KChar '/'] -> (continue $ regenerateScreens j d $ stShowMinibuffer st)
-        EvKey k [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ stResetFilter st)
-        EvKey (KLeft)     [] -> continue $ popScreen st
+        EvKey (KChar 'q') [] -> halt ui
+        EvKey KEsc        [] -> continue $ resetScreens d ui
+        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help ui
+        EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
+        EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
+        EvKey (KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
+        EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
+        EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleUncleared ui)
+        EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
+        EvKey k [] | k `elem` [KChar '/'] -> (continue $ regenerateScreens j d $ showMinibuffer ui)
+        EvKey k [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
+        EvKey (KLeft)     [] -> continue $ popScreen ui
 
         EvKey (k) [] | k `elem` [KRight, KEnter] -> do
           case listSelectedElement rsList of
@@ -267,13 +268,13 @@ rsHandle st@AppState{
               in
                 continue $ screenEnter d transactionScreen{tsTransaction=(i,t)
                                                           ,tsTransactions=numberedts
-                                                          ,tsAccount=rsAccount} st
-            Nothing -> continue st
+                                                          ,tsAccount=rsAccount} ui
+            Nothing -> continue ui
 
         -- fall through to the list's event handler (handles [pg]up/down)
         ev -> do newitems <- handleEvent ev rsList
-                 continue st{aScreen=s{rsList=newitems}}
-                 -- continue =<< handleEventLensed st someLens ev
+                 continue ui{aScreen=s{rsList=newitems}}
+                 -- continue =<< handleEventLensed ui someLens ev
 
   where
     -- Encourage a more stable scroll position when toggling list items (cf AccountsScreen.hs)

@@ -21,7 +21,7 @@ import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import System.FilePath (takeFileName)
 import qualified Data.Vector as V
-import Graphics.Vty as Vty
+import Graphics.Vty
 import Brick
 -- import Brick.Widgets.Center
 import Brick.Widgets.List
@@ -37,6 +37,7 @@ import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes
+import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.RegisterScreen
 import Hledger.UI.ErrorScreen
@@ -50,13 +51,13 @@ accountsScreen = AccountsScreen{
   ,_asSelectedAccount = ""
   }
 
-asInit :: Day -> Bool -> AppState -> AppState
-asInit d reset st@AppState{
+asInit :: Day -> Bool -> UIState -> UIState
+asInit d reset ui@UIState{
   aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}},
   ajournal=j,
   aScreen=s@AccountsScreen{}
   } =
-  st{aopts=uopts', aScreen=s & asList .~ newitems'}
+  ui{aopts=uopts', aScreen=s & asList .~ newitems'}
    where
     newitems = list (Name "accounts") (V.fromList displayitems) 1
 
@@ -103,8 +104,8 @@ asInit d reset st@AppState{
 
 asInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
-asDraw :: AppState -> [Widget]
-asDraw AppState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+asDraw :: UIState -> [Widget]
+asDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                            ,ajournal=j
                            ,aScreen=s@AccountsScreen{}
                            ,aMode=mode
@@ -230,8 +231,8 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
         sel | selected  = (<> "selected")
             | otherwise = id
 
-asHandle :: AppState -> Vty.Event -> EventM (Next AppState)
-asHandle st'@AppState{
+asHandle :: UIState -> Event -> EventM (Next UIState)
+asHandle ui0@UIState{
    aScreen=scr@AccountsScreen{..}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
@@ -247,62 +248,62 @@ asHandle st'@AppState{
     selacct = case listSelectedElement $ scr ^. asList of
                 Just (_, AccountsScreenItem{..}) -> asItemAccountName
                 Nothing -> scr ^. asSelectedAccount
-    st = st'{aScreen=scr & asSelectedAccount .~ selacct}
+    ui = ui0{aScreen=scr & asSelectedAccount .~ selacct}
 
   case mode of
     Minibuffer ed ->
       case ev of
-        EvKey KEsc   [] -> continue $ stCloseMinibuffer st
-        EvKey KEnter [] -> continue $ regenerateScreens j d $ stFilter s $ stCloseMinibuffer st
+        EvKey KEsc   [] -> continue $ closeMinibuffer ui
+        EvKey KEnter [] -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
                             where s = chomp $ unlines $ getEditContents ed
         ev              -> do ed' <- handleEvent ev ed
-                              continue $ st{aMode=Minibuffer ed'}
+                              continue $ ui{aMode=Minibuffer ed'}
 
     Help ->
       case ev of
-        EvKey (KChar 'q') [] -> halt st
-        _                    -> helpHandle st ev
+        EvKey (KChar 'q') [] -> halt ui
+        _                    -> helpHandle ui ev
 
     Normal ->
       case ev of
-        EvKey (KChar 'q') [] -> halt st
+        EvKey (KChar 'q') [] -> halt ui
         -- EvKey (KChar 'l') [MCtrl] -> do
-        EvKey KEsc [] -> continue $ resetScreens d st
-        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help st
-        EvKey (KChar 'g') [] -> liftIO (stReloadJournalIfChanged copts d j st) >>= continue
-        EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> stReloadJournalIfChanged copts d j st
-        EvKey (KChar '0') [] -> continue $ regenerateScreens j d $ setDepth (Just 0) st
-        EvKey (KChar '1') [] -> continue $ regenerateScreens j d $ setDepth (Just 1) st
-        EvKey (KChar '2') [] -> continue $ regenerateScreens j d $ setDepth (Just 2) st
-        EvKey (KChar '3') [] -> continue $ regenerateScreens j d $ setDepth (Just 3) st
-        EvKey (KChar '4') [] -> continue $ regenerateScreens j d $ setDepth (Just 4) st
-        EvKey (KChar '5') [] -> continue $ regenerateScreens j d $ setDepth (Just 5) st
-        EvKey (KChar '6') [] -> continue $ regenerateScreens j d $ setDepth (Just 6) st
-        EvKey (KChar '7') [] -> continue $ regenerateScreens j d $ setDepth (Just 7) st
-        EvKey (KChar '8') [] -> continue $ regenerateScreens j d $ setDepth (Just 8) st
-        EvKey (KChar '9') [] -> continue $ regenerateScreens j d $ setDepth (Just 9) st
-        EvKey (KChar '-') [] -> continue $ regenerateScreens j d $ decDepth st
-        EvKey (KChar '_') [] -> continue $ regenerateScreens j d $ decDepth st
-        EvKey k [] | k `elem` [KChar '+', KChar '='] -> continue $ regenerateScreens j d $ incDepth st
-        EvKey (KChar 'F') [] -> continue $ regenerateScreens j d $ stToggleFlat st
-        EvKey (KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleEmpty st)
-        EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleCleared st)
-        EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleUncleared st)
-        EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ stToggleReal st)
-        EvKey k [] | k `elem` [KChar '/'] -> continue $ regenerateScreens j d $ stShowMinibuffer st
-        EvKey k [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ stResetFilter st)
-        EvKey (KLeft) []     -> continue $ popScreen st
-        EvKey (k) [] | k `elem` [KRight, KEnter] -> scrollTopRegister >> continue (screenEnter d scr st)
+        EvKey KEsc [] -> continue $ resetScreens d ui
+        EvKey k [] | k `elem` [KChar 'h', KChar '?'] -> continue $ setMode Help ui
+        EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
+        EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
+        EvKey (KChar '0') [] -> continue $ regenerateScreens j d $ setDepth (Just 0) ui
+        EvKey (KChar '1') [] -> continue $ regenerateScreens j d $ setDepth (Just 1) ui
+        EvKey (KChar '2') [] -> continue $ regenerateScreens j d $ setDepth (Just 2) ui
+        EvKey (KChar '3') [] -> continue $ regenerateScreens j d $ setDepth (Just 3) ui
+        EvKey (KChar '4') [] -> continue $ regenerateScreens j d $ setDepth (Just 4) ui
+        EvKey (KChar '5') [] -> continue $ regenerateScreens j d $ setDepth (Just 5) ui
+        EvKey (KChar '6') [] -> continue $ regenerateScreens j d $ setDepth (Just 6) ui
+        EvKey (KChar '7') [] -> continue $ regenerateScreens j d $ setDepth (Just 7) ui
+        EvKey (KChar '8') [] -> continue $ regenerateScreens j d $ setDepth (Just 8) ui
+        EvKey (KChar '9') [] -> continue $ regenerateScreens j d $ setDepth (Just 9) ui
+        EvKey (KChar '-') [] -> continue $ regenerateScreens j d $ decDepth ui
+        EvKey (KChar '_') [] -> continue $ regenerateScreens j d $ decDepth ui
+        EvKey k [] | k `elem` [KChar '+', KChar '='] -> continue $ regenerateScreens j d $ incDepth ui
+        EvKey (KChar 'F') [] -> continue $ regenerateScreens j d $ toggleFlat ui
+        EvKey (KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
+        EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
+        EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleUncleared ui)
+        EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
+        EvKey k [] | k `elem` [KChar '/'] -> continue $ regenerateScreens j d $ showMinibuffer ui
+        EvKey k [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
+        EvKey (KLeft) []     -> continue $ popScreen ui
+        EvKey (k) [] | k `elem` [KRight, KEnter] -> scrollTopRegister >> continue (screenEnter d scr ui)
           where
             scr = rsSetAccount selacct registerScreen
 
         -- fall through to the list's event handler (handles up/down)
         ev                       -> do
                                      newitems <- handleEvent ev (scr ^. asList)
-                                     continue $ st{aScreen=scr & asList .~ newitems
+                                     continue $ ui{aScreen=scr & asList .~ newitems
                                                                 & asSelectedAccount .~ selacct
                                                                 }
-                                 -- continue =<< handleEventLensed st someLens ev
+                                 -- continue =<< handleEventLensed ui someLens ev
 
   where
     -- Encourage a more stable scroll position when toggling list items.

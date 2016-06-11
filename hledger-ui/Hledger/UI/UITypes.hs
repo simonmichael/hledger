@@ -1,16 +1,16 @@
 {- |
 Overview:
-hledger-ui's AppState holds the currently active screen and any previously visited
+hledger-ui's UIState holds the currently active screen and any previously visited
 screens (and their states).
 The brick App delegates all event-handling and rendering
-to the AppState's active screen.
+to the UIState's active screen.
 Screens have their own screen state, render function, event handler, and app state
 update function, so they have full control.
 
 @
 Brick.defaultMain brickapp st
   where
-    brickapp :: App (AppState) V.Event
+    brickapp :: App (UIState) V.Event
     brickapp = App {
         appLiftVtyEvent = id
       , appStartEvent   = return
@@ -19,9 +19,9 @@ Brick.defaultMain brickapp st
       , appHandleEvent  = \st ev -> sHandle (aScreen st) st ev
       , appDraw         = \st    -> sDraw   (aScreen st) st
       }
-    st :: AppState
+    st :: UIState
     st = (sInit s) d
-         AppState{
+         UIState{
             aopts=uopts'
            ,ajournal=j
            ,aScreen=s
@@ -40,7 +40,7 @@ module Hledger.UI.UITypes where
 
 import Data.Monoid
 import Data.Time.Calendar (Day)
-import qualified Graphics.Vty as Vty
+import Graphics.Vty
 import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit (Editor)
@@ -59,12 +59,12 @@ instance Show Editor   where show _ = "<Editor>"
 -- As you navigate through screens, the old ones are saved in a stack.
 -- The app can be in one of several modes: normal screen operation,
 -- showing a help dialog, entering data in the minibuffer etc.
-data AppState = AppState {
-   aopts        :: UIOpts       -- ^ the command-line options and query arguments currently in effect
-  ,ajournal     :: Journal      -- ^ the journal being viewed
-  ,aPrevScreens :: [Screen]     -- ^ previously visited screens, most recent first
-  ,aScreen      :: Screen       -- ^ the currently active screen
-  ,aMode        :: Mode         -- ^ the currently active mode
+data UIState = UIState {
+   aopts        :: UIOpts    -- ^ the command-line options and query arguments currently in effect
+  ,ajournal     :: Journal   -- ^ the journal being viewed
+  ,aPrevScreens :: [Screen]  -- ^ previously visited screens, most recent first
+  ,aScreen      :: Screen    -- ^ the currently active screen
+  ,aMode        :: Mode      -- ^ the currently active mode
   } deriving (Show)
 
 -- | The mode modifies the screen's rendering and event handling.
@@ -86,34 +86,34 @@ instance Eq Editor where _ == _ = True
 -- cases need to be handled, and also that their lenses are traversals, not single-value getters.
 data Screen =
     AccountsScreen {
-       sInit   :: Day -> Bool -> AppState -> AppState              -- ^ function to initialise or update this screen's state
-      ,sDraw   :: AppState -> [Widget]                             -- ^ brick renderer for this screen
-      ,sHandle :: AppState -> Vty.Event -> EventM (Next AppState)  -- ^ brick event handler for this screen
+       sInit   :: Day -> Bool -> UIState -> UIState              -- ^ function to initialise or update this screen's state
+      ,sDraw   :: UIState -> [Widget]                             -- ^ brick renderer for this screen
+      ,sHandle :: UIState -> Event -> EventM (Next UIState)  -- ^ brick event handler for this screen
       -- state fields.These ones have lenses:
       ,_asList            :: List AccountsScreenItem  -- ^ list widget showing account names & balances
       ,_asSelectedAccount :: AccountName              -- ^ a backup of the account name from the list widget's selected item (or "")
     }
   | RegisterScreen {
-       sInit   :: Day -> Bool -> AppState -> AppState
-      ,sDraw   :: AppState -> [Widget]
-      ,sHandle :: AppState -> Vty.Event -> EventM (Next AppState)
+       sInit   :: Day -> Bool -> UIState -> UIState
+      ,sDraw   :: UIState -> [Widget]
+      ,sHandle :: UIState -> Event -> EventM (Next UIState)
       --
       ,rsList    :: List RegisterScreenItem           -- ^ list widget showing transactions affecting this account
       ,rsAccount :: AccountName                       -- ^ the account this register is for
     }
   | TransactionScreen {
-       sInit   :: Day -> Bool -> AppState -> AppState
-      ,sDraw   :: AppState -> [Widget]
-      ,sHandle :: AppState -> Vty.Event -> EventM (Next AppState)
+       sInit   :: Day -> Bool -> UIState -> UIState
+      ,sDraw   :: UIState -> [Widget]
+      ,sHandle :: UIState -> Event -> EventM (Next UIState)
       --
       ,tsTransaction  :: NumberedTransaction          -- ^ the transaction we are currently viewing, and its position in the list
       ,tsTransactions :: [NumberedTransaction]        -- ^ list of transactions we can step through
       ,tsAccount      :: AccountName                  -- ^ the account whose register we entered this screen from
     }
   | ErrorScreen {
-       sInit   :: Day -> Bool -> AppState -> AppState
-      ,sDraw   :: AppState -> [Widget]
-      ,sHandle :: AppState -> Vty.Event -> EventM (Next AppState)
+       sInit   :: Day -> Bool -> UIState -> UIState
+      ,sDraw   :: UIState -> [Widget]
+      ,sHandle :: UIState -> Event -> EventM (Next UIState)
       --
       ,esError :: String                              -- ^ error message to show
     }
@@ -139,7 +139,7 @@ data RegisterScreenItem = RegisterScreenItem {
 
 type NumberedTransaction = (Integer, Transaction)
 
--- dummy monoid instance needed for lenses for now since the List fields are not common across constructors
+-- dummy monoid instance needed make lenses work with List fields not common across constructors
 instance Monoid (List a)
   where
     mempty        = list "" V.empty 1

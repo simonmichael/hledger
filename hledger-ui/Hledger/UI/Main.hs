@@ -107,10 +107,10 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
                  (error' $ "--register "++apat++" did not match any account")
                  $ filter (regexMatches apat . T.unpack) $ journalAccountNames j
           -- Initialising the accounts screen is awkward, requiring
-          -- another temporary AppState value..
+          -- another temporary UIState value..
           ascr' = aScreen $
                   asInit d True $
-                  AppState{
+                  UIState{
                     aopts=uopts'
                    ,ajournal=j
                    ,aScreen=asSetSelectedAccount acct accountsScreen
@@ -118,8 +118,8 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
                    ,aMode=Normal
                    }
   
-    st = (sInit scr) d True
-         AppState{
+    ui = (sInit scr) d True
+         UIState{
             aopts=uopts'
            ,ajournal=j
            ,aScreen=scr
@@ -127,20 +127,15 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
            ,aMode=Normal
            }
 
-    brickapp :: App (AppState) V.Event
+    brickapp :: App (UIState) V.Event
     brickapp = App {
         appLiftVtyEvent = id
       , appStartEvent   = return
       , appAttrMap      = const theme
       , appChooseCursor = showFirstCursor
-      , appHandleEvent  = \st ev -> sHandle (aScreen st) st ev
-      , appDraw         = \st    -> sDraw   (aScreen st) st
-         -- XXX bizarro. removing the st arg and parameter above,
-         -- which according to GHCI does not change the type,
-         -- causes "Exception: draw function called with wrong screen type"
-         -- on entering a register. Likewise, removing the st ev args and parameters
-         -- causes an exception on exiting a register.
+      , appHandleEvent  = \ui ev -> sHandle (aScreen ui) ui ev
+      , appDraw         = \ui    -> sDraw   (aScreen ui) ui
       }
 
-  void $ defaultMain brickapp st
+  void $ defaultMain brickapp ui
 
