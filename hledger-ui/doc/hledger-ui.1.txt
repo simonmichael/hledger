@@ -184,9 +184,9 @@ SSCCRREEEENNSS
 
        By  default,  all subaccounts are displayed.  To see less detail, set a
        depth limit by pressing a number key,  1  to  9.   0  shows  even  less
-       detail,  collapsing  all  accounts to a single total.  - and + decrease
-       and increase the depth limit.  To remove the depth limit  press  =,  or
-       just keep increasing it.
+       detail,  collapsing  all  accounts  to  a single total.  - and + (or =)
+       decrease and increase the depth limit.  To remove the depth limit,  set
+       it higher than the maximum account depth, or press ESCAPE.
 
        C  toggles  cleared  mode, in which uncleared transactions and postings
        are not shown.  U toggles  uncleared  mode,  in  which  only  uncleared
