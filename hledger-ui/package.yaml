@@ -30,7 +30,6 @@ maintainer  : Simon Michael <simon@joyful.com>
 github      : simonmichael/hledger
 homepage    : http://hledger.org
 bug-reports : http://bugs.hledger.org
-# XXX not supported
 tested-with : GHC==7.8.4, GHC==7.10.3, GHC==8.0
 
 extra-source-files:
@@ -42,22 +41,18 @@ data-files:
   - doc/hledger-ui.1.txt
   - doc/hledger-ui.1.info
 
-# XXX not supported
-# flag:
-#   old-locale:
-#     - default: False
-#     - description:
-#         A compatibility flag, set automatically by cabal.
-#         If false then depend on time >= 1.5,
-#         if true then depend on time < 1.5 together with old-locale.
-
-ghc-options:
-  -Wall
-  -fno-warn-unused-do-bind
-  -fno-warn-name-shadowing
-  -fno-warn-missing-signatures
-  -fno-warn-type-defaults
-  -fno-warn-orphans
+flags:
+  threaded:
+    description: Build with support for multithreaded execution
+    manual: false
+    default: true
+  old-locale:
+    description: >
+        A compatibility flag, set automatically by cabal.
+        If false then depend on time >= 1.5,
+        if true then depend on time < 1.5 together with old-locale.
+    manual: false
+    default: false
 
 cpp-options: -DVERSION="0.28"
 
@@ -65,17 +60,20 @@ executables:
   hledger-ui:
     source-dirs: .
     main: hledger-ui.hs
-    # if flag(threaded)
-    #   ghc-options:   -threaded
     ghc-options:
-      -threaded
+      -Wall
+      -fno-warn-unused-do-bind
+      -fno-warn-name-shadowing
+      -fno-warn-missing-signatures
+      -fno-warn-type-defaults
+      -fno-warn-orphans
     dependencies:
       - hledger >= 0.28 && < 0.29
       - hledger-lib >= 0.28 && < 0.29
       - ansi-terminal >= 0.6.2.3 && < 0.7
       - base >= 3 && < 5
       - base-compat >= 0.8.1
-      - brick >= 0.2 && < 0.5
+      - brick >= 0.2 && < 0.7
       - cmdargs >= 0.8
       - containers
       - data-default
@@ -89,34 +87,18 @@ executables:
       - text-zipper >= 0.4 && < 0.5
       - transformers
       - vector
-      - vty >= 5.2 && < 5.5
-      # XXX not supported
-      # if impl(ghc >= 7.4)
-      #   build-depends: pretty-show >= 1.6.4
-      - pretty-show >= 1.6.4
-      # if flag(old-locale)
-      #   build-depends: time < 1.5, old-locale
-      # else
-      #   build-depends: time >= 1.5
-      - time >= 1.5
-
-# tests:
-#   test:
-#     source-dirs: test
-#     main: test.hs
-#     dependencies:
-#       - hledger-ui
-#       - test-framework
-#       - test-framework-hunit
-
-# XXX not supported
-# benchmarks:
-#   bench:
-#     source-dirs: bench
-#     main: bench.hs
-#     other-modules: SimpleBench
-#     dependencies:
-#       - hledger-ui
-#       - criterion
-#       - html
-#       - timeit
+      - vty >= 5.2 && < 5.6
+    when:
+      - condition: flag(threaded)
+        ghc-options: -threaded
+      - condition: flag(old-locale)
+        then:
+          dependencies:
+            - time < 1.5
+            - old-locale
+        else:
+          dependencies:
+            - time >= 1.5
+      - condition: impl(ghc >= 7.4)
+        dependencies:
+          - pretty-show >= 1.6.4
