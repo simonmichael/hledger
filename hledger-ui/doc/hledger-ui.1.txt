@@ -231,8 +231,6 @@ SCREENS
                 $ hledger-ui --begin 'this month' desc:market
                 $ hledger-ui --register checking --cleared
 
-       Filtering by account name is not very useful on this screen yet.
-
        C  toggles  cleared  mode, in which uncleared transactions and postings
        are not shown.  U toggles  uncleared  mode,  in  which  only  uncleared
        transactions/postings are shown.

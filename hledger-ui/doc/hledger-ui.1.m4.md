@@ -170,8 +170,6 @@ lists individual postings), in hledger-ui's register:
     $ hledger-ui --register checking --cleared
     ```
 
-Filtering by account name is not very useful on this screen yet.
-
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are
 not shown. `U` toggles uncleared mode, in which only uncleared
