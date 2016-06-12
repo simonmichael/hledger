@@ -1,32 +1,66 @@
 # OPTIONS
 
-To see general usage and the command list: `hledger -h` or just `hledger`
+To see general usage and the command list: `hledger -h` or just `hledger`.
+To see usage for a specific command: `hledger COMMAND -h`.
 
-To see usage for a specific command: `hledger COMMAND -h`
+hledger has several kinds of options:
 
-Except for the General options below, options must be written after
-COMMAND, not before it.
+- General options are always available and can appear anywhere on the command line.
+  `hledger -h` shows these. Eg: `hledger --version`.
 
-Also, when invoking external add-on commands, their options must be
-written after a double hyphen. (Or, you can invoke the external command
-directly.) Eg:
+- Common reporting options are available with most commands. 
+  These and all other non-general options must be written after COMMAND.
+  `hledger COMMAND -h` shows these. Eg: `hledger register --cleared`.
 
-_shell_({{
-$ hledger ui -- --register cash
-$ hledger-ui --register cash
-}})
+- Command-specific options are also provided by some commands. 
+  `hledger COMMAND -h` shows these too. Eg: `hledger register --average`.
 
-Options and command arguments can be intermixed. Arguments are usually
-interpreted as a search query which filters the data, see QUERIES.
+- Some hledger commands come from separate [add-on executables](#commands),
+  which have their own options. 
+  `hledger COMMAND -h` shows these, as usual. 
+  Such options, if not also supported by hledger, 
+  should be written following a double hyphen argument (`--`)
+  so that hledger's option parser does not complain.
+  Eg: `hledger ui -- --register=checking`.
+  Or, you can just run the add-on directly:
+  `hledger-ui --register=checking`.
 
-There are three kinds of options.
-General options are always available and can appear anywhere in the command line:
+Command arguments may also follow the command name.
+In most cases these specify a [query](#queries) which filters the data. 
+Command options and arguments can be intermixed.
+
+Option and argument values containing problematic characters
+should be escaped with double quotes, backslashes, or (best) single quotes.
+This means spaces, but also characters which are significant to your 
+command shell, such as less-than/greater-than.
+Eg: `hledger register -p 'last year' "accounts receivable (receivable|payable)" amt:\>100`.
+
+Characters which are significant to the shell and also in 
+[regular expressions](#regular-expressions), like parentheses, 
+the pipe symbol and the dollar sign, must sometimes be double-escaped.
+Eg, to match the dollar symbol: `hledger balance cur:'\$'` or 
+`hledger balance cur:\\$`.
+
+There's more.. options and arguments being passed by hledger to an
+add-on executable get de-escaped once in the process. In this case you 
+might need triple-escaping.
+Eg: `hledger ui cur:'\\$'` or `hledger ui cur:\\\\$`.
+
+If in doubt, keep things simple:
+
+- write options after the command
+- enclose problematic args in single quotes
+- if needed, also add a backslash to escape regexp metacharacters
+- run add-on executables directly
+
+If you're really curious, add `--debug 2` for troubleshooting.
+
+
+**General options:**
 
 _generaloptions_
 
-Common reporting options are supported by most commands where applicable,
-and individual commands may provide additional command-specific options.
-Both of these must be written after the command name.
+**Common reporting options:**
 
 _reportingoptions_
 

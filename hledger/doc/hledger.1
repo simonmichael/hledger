@@ -171,31 +171,74 @@ $\ hledger\ bal\ \-\-pivot\ member
 .SH OPTIONS
 .PP
 To see general usage and the command list: \f[C]hledger\ \-h\f[] or just
-\f[C]hledger\f[]
+\f[C]hledger\f[].
+To see usage for a specific command: \f[C]hledger\ COMMAND\ \-h\f[].
 .PP
-To see usage for a specific command: \f[C]hledger\ COMMAND\ \-h\f[]
+hledger has several kinds of options:
+.IP \[bu] 2
+General options are always available and can appear anywhere on the
+command line.
+\f[C]hledger\ \-h\f[] shows these.
+Eg: \f[C]hledger\ \-\-version\f[].
+.IP \[bu] 2
+Common reporting options are available with most commands.
+These and all other non\-general options must be written after COMMAND.
+\f[C]hledger\ COMMAND\ \-h\f[] shows these.
+Eg: \f[C]hledger\ register\ \-\-cleared\f[].
+.IP \[bu] 2
+Command\-specific options are also provided by some commands.
+\f[C]hledger\ COMMAND\ \-h\f[] shows these too.
+Eg: \f[C]hledger\ register\ \-\-average\f[].
+.IP \[bu] 2
+Some hledger commands come from separate add\-on executables, which have
+their own options.
+\f[C]hledger\ COMMAND\ \-h\f[] shows these, as usual.
+Such options, if not also supported by hledger, should be written
+following a double hyphen argument (\f[C]\-\-\f[]) so that hledger\[aq]s
+option parser does not complain.
+Eg: \f[C]hledger\ ui\ \-\-\ \-\-register=checking\f[].
+Or, you can just run the add\-on directly:
+\f[C]hledger\-ui\ \-\-register=checking\f[].
 .PP
-Except for the General options below, options must be written after
-COMMAND, not before it.
+Command arguments may also follow the command name.
+In most cases these specify a query which filters the data.
+Command options and arguments can be intermixed.
 .PP
-Also, when invoking external add\-on commands, their options must be
-written after a double hyphen.
-(Or, you can invoke the external command directly.) Eg:
-.IP
-.nf
-\f[C]
-$\ hledger\ ui\ \-\-\ \-\-register\ cash
-$\ hledger\-ui\ \-\-register\ cash
-\f[]
-.fi
+Option and argument values containing problematic characters should be
+escaped with double quotes, backslashes, or (best) single quotes.
+This means spaces, but also characters which are significant to your
+command shell, such as less\-than/greater\-than.
+Eg:
+\f[C]hledger\ register\ \-p\ \[aq]last\ year\[aq]\ "accounts\ receivable\ (receivable|payable)"\ amt:\\>100\f[].
 .PP
-Options and command arguments can be intermixed.
-Arguments are usually interpreted as a search query which filters the
-data, see QUERIES.
+Characters which are significant to the shell and also in regular
+expressions, like parentheses, the pipe symbol and the dollar sign, must
+sometimes be double\-escaped.
+Eg, to match the dollar symbol:
+\f[C]hledger\ balance\ cur:\[aq]\\$\[aq]\f[] or
+\f[C]hledger\ balance\ cur:\\\\$\f[].
 .PP
-There are three kinds of options.
-General options are always available and can appear anywhere in the
-command line:
+There\[aq]s more..
+options and arguments being passed by hledger to an add\-on executable
+get de\-escaped once in the process.
+In this case you might need triple\-escaping.
+Eg: \f[C]hledger\ ui\ cur:\[aq]\\\\$\[aq]\f[] or
+\f[C]hledger\ ui\ cur:\\\\\\\\$\f[].
+.PP
+If in doubt, keep things simple:
+.IP \[bu] 2
+write options after the command
+.IP \[bu] 2
+enclose problematic args in single quotes
+.IP \[bu] 2
+if needed, also add a backslash to escape regexp metacharacters
+.IP \[bu] 2
+run add\-on executables directly
+.PP
+If you\[aq]re really curious, add \f[C]\-\-debug\ 2\f[] for
+troubleshooting.
+.PP
+\f[B]General options:\f[]
 .TP
 .B \f[C]\-h\f[]
 show general usage (or after COMMAND, the command\[aq]s usage)
@@ -249,10 +292,7 @@ ignore any failing balance assertions in the journal
 .RS
 .RE
 .PP
-Common reporting options are supported by most commands where
-applicable, and individual commands may provide additional
-command\-specific options.
-Both of these must be written after the command name.
+\f[B]Common reporting options:\f[]
 .TP
 .B \f[C]\-b\ \-\-begin=DATE\f[]
 include postings/txns on or after this date
