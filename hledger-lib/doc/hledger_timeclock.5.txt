@@ -3,10 +3,10 @@ hledger_timeclock(5)         hledger User Manuals         hledger_timeclock(5)
 
 
 
-NNAAMMEE
+NAME
        Timeclock - the time logging format of timeclock.el, as read by hledger
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
        hledger can read timeclock files.  As with Ledger, these are (a  subset
        of) timeclock.el's format, containing clock-in and clock-out entries as
        in the example below.  The date is a simple date.  The time  format  is
@@ -42,35 +42,35 @@ DDEESSCCRRIIPPTTIIOONN
 
        To generate time logs, ie to clock in and clock out, you could:
 
-       +o use emacs and  the  built-in  timeclock.el,  or  the  extended  time-
+       o use emacs and  the  built-in  timeclock.el,  or  the  extended  time-
          clock-x.el and perhaps the extras in ledgerutils.el
 
-       +o at the command line, use these bash aliases:
+       o at the command line, use these bash aliases:
 
                 alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
                 alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
 
-       +o or use the old ti and to scripts in the ledger 2.x repository.  These
+       o or use the old ti and to scripts in the ledger 2.x repository.  These
          rely on a "timeclock" executable which I think is just the  ledger  2
          executable renamed.
 
 
 
-RREEPPOORRTTIINNGG BBUUGGSS
+REPORTING BUGS
        Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
-AAUUTTHHOORRSS
+AUTHORS
        Simon Michael <simon@joyful.com> and contributors
 
 
-CCOOPPYYRRIIGGHHTT
+COPYRIGHT
        Copyright (C) 2007-2016 Simon Michael.
        Released under GNU GPL v3 or later.
 
 
-SSEEEE AALLSSOO
+SEE ALSO
        hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)

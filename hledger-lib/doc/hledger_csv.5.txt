@@ -3,10 +3,10 @@ hledger_csv(5)               hledger User Manuals               hledger_csv(5)
 
 
 
-NNAAMMEE
+NAME
        CSV - how hledger reads CSV data, and the CSV rules file format
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
        hledger  can  read CSV files, converting each CSV record into a journal
        entry (transaction), if you provide some conversion hints in  a  "rules
        file".   This file should be named like the CSV file with an additional
@@ -16,14 +16,14 @@ DDEESSCCRRIIPPTTIIOONN
        must  specify  the  date and amount fields.  For an example, see How to
        read CSV files.
 
-       To learn about _e_x_p_o_r_t_i_n_g CSV, see CSV output.
+       To learn about exporting CSV, see CSV output.
 
-CCSSVV RRUULLEESS
+CSV RULES
        The following six kinds of rule can appear in the rules  file,  in  any
        order.  Blank lines and lines beginning with # or ; are ignored.
 
-   sskkiipp
-       skip_N
+   skip
+       skipN
 
        Skip  this  number  of  CSV records at the beginning.  You'll need this
        whenever your CSV data contains header lines.  Eg:
@@ -31,8 +31,8 @@ CCSSVV RRUULLEESS
               # ignore the first CSV line
               skip 1
 
-   ddaattee--ffoorrmmaatt
-       date-format_D_A_T_E_F_M_T
+   date-format
+       date-formatDATEFMT
 
        When your CSV  date  fields  are  not  formatted  like  YYYY/MM/DD  (or
        YYYY-MM-DD  or YYYY.MM.DD), you'll need to specify the format.  DATEFMT
@@ -51,8 +51,8 @@ CCSSVV RRUULLEESS
               # for dates like "11/6/2013 11:32 PM":
               date-format %-m/%-d/%Y %l:%M %p
 
-   ffiieelldd lliisstt
-       fields_F_I_E_L_D_N_A_M_E_1_, _F_I_E_L_D_N_A_M_E_2_._._.
+   field list
+       fieldsFIELDNAME1, FIELDNAME2...
 
        This  (a)  names the CSV fields, in order (names may not contain white-
        space, but may be omitted), and  (b)  assigns  them  to  journal  entry
@@ -68,8 +68,8 @@ CCSSVV RRUULLEESS
               # entry field:
               fields date, description, , amount, , , somefield, anotherfield
 
-   ffiieelldd aassssiiggnnmmeenntt
-       _E_N_T_R_Y_F_I_E_L_D_N_A_M_E _F_I_E_L_D_V_A_L_U_E
+   field assignment
+       ENTRYFIELDNAME FIELDVALUE
 
        This  sets  a  journal entry field (one of the standard names above) to
        the given text value, which can include CSV field  values  interpolated
@@ -85,14 +85,14 @@ CCSSVV RRUULLEESS
        Field  assignments  can  be  used  instead of or in addition to a field
        list.
 
-   ccoonnddiittiioonnaall bblloocckk
-       if _P_A_T_T_E_R_N
-           _F_I_E_L_D_A_S_S_I_G_N_M_E_N_T_S_._._.
+   conditional block
+       if PATTERN
+           FIELDASSIGNMENTS...
 
        if
-       _P_A_T_T_E_R_N
-       _P_A_T_T_E_R_N_._._.
-           _F_I_E_L_D_A_S_S_I_G_N_M_E_N_T_S_._._.
+       PATTERN
+       PATTERN...
+           FIELDASSIGNMENTS...
 
        This applies one or more field assignments, only to those  CSV  records
        matched by one of the PATTERNs.  The patterns are case-insensitive reg-
@@ -114,8 +114,8 @@ CCSSVV RRUULLEESS
                account2 expenses:business:banking
                comment  XXX deductible ? check it
 
-   iinncclluuddee
-       include_R_U_L_E_S_F_I_L_E
+   include
+       includeRULESFILE
 
        Include another rules file at this point.  RULESFILE is either an abso-
        lute file path or a path relative to the current file's directory.  Eg:
@@ -123,7 +123,7 @@ CCSSVV RRUULLEESS
               # rules reused with several CSV files
               include common.rules
 
-TTIIPPSS
+TIPS
        Each generated journal entry will have two postings,  to  account1  and
        account2 respectively.  Currently it's not possible to generate entries
        with more than two postings.
@@ -143,21 +143,21 @@ TTIIPPSS
 
 
 
-RREEPPOORRTTIINNGG BBUUGGSS
+REPORTING BUGS
        Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
-AAUUTTHHOORRSS
+AUTHORS
        Simon Michael <simon@joyful.com> and contributors
 
 
-CCOOPPYYRRIIGGHHTT
+COPYRIGHT
        Copyright (C) 2007-2016 Simon Michael.
        Released under GNU GPL v3 or later.
 
 
-SSEEEE AALLSSOO
+SEE ALSO
        hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)

@@ -3,10 +3,10 @@ hledger_journal(5)           hledger User Manuals           hledger_journal(5)
 
 
 
-NNAAMMEE
+NAME
        Journal - hledger's default file format, representing a General Journal
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
        hledger's usual data source is a plain  text  file  containing  journal
        entries  in  hledger  journal  format.  This file represents a standard
        accounting general journal.  I use file names ending in  .journal,  but
@@ -51,37 +51,37 @@ DDEESSCCRRIIPPTTIIOONN
                   liabilities:debts     $1
                   assets:bank:checking
 
-FFIILLEE FFOORRMMAATT
-   TTrraannssaaccttiioonnss
+FILE FORMAT
+   Transactions
        Transactions  are  represented  by journal entries.  Each begins with a
        simple date in column 0, followed by three optional fields with  spaces
        between them:
 
-       +o a  status  flag,  which  can be empty or ! or * (meaning "uncleared",
+       o a  status  flag,  which  can be empty or ! or * (meaning "uncleared",
          "pending" and "cleared", or whatever you want)
 
-       +o a transaction code (eg a check number),
+       o a transaction code (eg a check number),
 
-       +o and/or a description
+       o and/or a description
 
        then some number of postings, of some amount  to  some  account.   Each
        posting is on its own line, consisting of:
 
-       +o indentation of one or more spaces (or tabs)
+       o indentation of one or more spaces (or tabs)
 
-       +o optionally, a ! or * status flag followed by a space
+       o optionally, a ! or * status flag followed by a space
 
-       +o an account name, optionally containing single spaces
+       o an account name, optionally containing single spaces
 
-       +o optionally, two or more spaces or tabs followed by an amount
+       o optionally, two or more spaces or tabs followed by an amount
 
        Usually there are two or more postings, though one or none is also pos-
        sible.  The posting amounts within a transaction must  always  balance,
        ie add up to 0.  Optionally one amount can be left blank, in which case
        it will be inferred.
 
-   DDaatteess
-   SSiimmppllee ddaatteess
+   Dates
+   Simple dates
        Within a journal file, transaction dates use Y/M/D (or Y-M-D or  Y.M.D)
        Leading  zeros are optional.  The year may be omitted, in which case it
        will be inferred from  the  context  -  the  current  transaction,  the
@@ -89,7 +89,7 @@ FFIILLEE FFOORRMMAATT
        when the command is run.  Some examples: 2010/01/31, 1/31,  2010-01-31,
        2010.1.31.
 
-   SSeeccoonnddaarryy ddaatteess
+   Secondary dates
        Real-life  transactions  sometimes  involve more than one date - eg the
        date you write a cheque, and the date it clears in your bank.  When you
        want  to  model  this,  eg  for more accurate balances, you can specify
@@ -125,7 +125,7 @@ FFIILLEE FFOORRMMAATT
        ibility,  but  posting  dates  are  a  more powerful and less confusing
        alternative.
 
-   PPoossttiinngg ddaatteess
+   Posting dates
        You can give individual postings a different  date  from  their  parent
        transaction,  by  adding a posting comment containing a tag (see below)
        like date:DATE.  This is probably the best way to control posting dates
@@ -155,21 +155,21 @@ FFIILLEE FFOORRMMAATT
        With this syntax, DATE infers its year from the transaction  and  DATE2
        infers its year from DATE.
 
-   AAccccoouunntt nnaammeess
+   Account names
        Account  names  typically have several parts separated by a full colon,
        from which hledger derives a hierarchical chart of accounts.  They  can
        be  anything  you  like,  but  in  finance there are traditionally five
        top-level accounts: assets, liabilities, income, expenses, and  equity.
 
        Account  names  may  contain single spaces, eg: assets:accounts receiv-
-       able.  Because of this, they must always be followed  by  ttwwoo  oorr  mmoorree
-       ssppaacceess (or newline).
+       able.  Because of this, they must always be followed  by  two  or  more
+       spaces (or newline).
 
        Account names can be aliased.
 
-   AAmmoouunnttss
+   Amounts
        After the account name, there is usually an amount.  Important: between
-       account name and amount, there must be ttwwoo oorr mmoorree ssppaacceess.
+       account name and amount, there must be two or more spaces.
 
        Amounts consist of a number and (usually) a currency symbol or  commod-
        ity name.  Some examples:
@@ -184,16 +184,16 @@ FFIILLEE FFOORRMMAATT
 
        As you can see, the amount format is somewhat flexible:
 
-       +o amounts  are a number (the "quantity") and optionally a currency sym-
+       o amounts  are a number (the "quantity") and optionally a currency sym-
          bol/commodity name (the "commodity").
 
-       +o the commodity is a symbol, word, or double-quoted phrase, on the left
+       o the commodity is a symbol, word, or double-quoted phrase, on the left
          or right, with or without a separating space
 
-       +o negative amounts with a commodity on the left can have the minus sign
+       o negative amounts with a commodity on the left can have the minus sign
          before or after it
 
-       +o digit groups (thousands, or any other grouping) can be  separated  by
+       o digit groups (thousands, or any other grouping) can be  separated  by
          commas  (in  which  case period is used for decimal point) or periods
          (in which case comma is used for decimal point)
 
@@ -202,14 +202,14 @@ FFIILLEE FFOORRMMAATT
        commodity.  (Except for price amounts, which are  always  formatted  as
        written).  The display format is chosen as follows:
 
-       +o if there is a commodity directive specifying the format, that is used
+       o if there is a commodity directive specifying the format, that is used
 
-       +o otherwise the format is inferred from the  first  posting  amount  in
+       o otherwise the format is inferred from the  first  posting  amount  in
          that  commodity  in the journal, and the precision (number of decimal
          places) will be the maximum from all posting amounts in that commmod-
          ity
 
-       +o or  if  there are no such amounts in the journal, a default format is
+       o or  if  there are no such amounts in the journal, a default format is
          used (like $1000.00).
 
        Price amounts and amounts in D directives usually don't  affect  amount
@@ -219,13 +219,13 @@ FFIILLEE FFOORRMMAATT
        when -V is used.) If you find this causing problems,  set  the  desired
        format with a commodity directive.
 
-   VViirrttuuaall PPoossttiinnggss
+   Virtual Postings
        When  you  parenthesise  the  account name in a posting, we call that a
-       _v_i_r_t_u_a_l _p_o_s_t_i_n_g, which means:
+       virtual posting, which means:
 
-       +o it is ignored when checking that the transaction is balanced
+       o it is ignored when checking that the transaction is balanced
 
-       +o it is excluded from reports when the --real/-R flag is used,  or  the
+       o it is excluded from reports when the --real/-R flag is used,  or  the
          real:1 query.
 
        You  could  use  this,  eg, to set an account's opening balance without
@@ -234,8 +234,8 @@ FFIILLEE FFOORRMMAATT
               1/1 special unbalanced posting to set initial balance
                 (assets:checking)   $1000
 
-       When the account name is bracketed, we call it a _b_a_l_a_n_c_e_d _v_i_r_t_u_a_l _p_o_s_t_-
-       _i_n_g.  This is like an ordinary virtual posting except the balanced vir-
+       When the account name is bracketed, we call it a balanced virtual post-
+       ing.  This is like an ordinary virtual posting except the balanced vir-
        tual postings in a transaction must balance to 0, like the  real  post-
        ings  (but  separately  from them).  Balanced virtual postings are also
        excluded by --real/-R or real:1.
@@ -250,7 +250,7 @@ FFIILLEE FFOORRMMAATT
        usually  find an equivalent journal entry using real postings, which is
        more correct and provides better error checking.
 
-   BBaallaannccee AAsssseerrttiioonnss
+   Balance Assertions
        hledger supports ledger-style  balance  assertions  in  journal  files.
        These  look  like =EXPECTEDBALANCE following a posting's amount.  Eg in
        this example we assert the expected dollar balance in accounts a and  b
@@ -271,7 +271,7 @@ FFIILLEE FFOORRMMAATT
        --ignore-assertions  flag,  which  can be useful for troubleshooting or
        for reading Ledger files.
 
-   AAsssseerrttiioonnss aanndd oorrddeerriinngg
+   Assertions and ordering
        hledger sorts an account's postings and assertions first  by  date  and
        then  (for postings on the same day) by parse order.  Note this is dif-
        ferent from Ledger, which sorts assertions only by parse order.  (Also,
@@ -291,7 +291,7 @@ FFIILLEE FFOORRMMAATT
        files, and you also want to assert the account's balance  on  the  same
        day, you'll have to put the assertion in the right file.
 
-   AAsssseerrttiioonnss aanndd ccoommmmooddiittiieess
+   Assertions and commodities
        The  asserted  balance must be a simple single-commodity amount, and in
        fact the assertion checks only  this  commodity's  balance  within  the
        (possibly  multi-commodity) account balance.  We could call this a par-
@@ -305,7 +305,7 @@ FFIILLEE FFOORRMMAATT
        account does not contain some unexpected commodity.  (We'll add support
        for this kind of total balance assertion if there's demand.)
 
-   AAsssseerrttiioonnss aanndd ssuubbaaccccoouunnttss
+   Assertions and subaccounts
        Balance assertions do not count  the  balance  from  subaccounts;  they
        check the posted account's exclusive balance.  For example:
 
@@ -323,12 +323,12 @@ FFIILLEE FFOORRMMAATT
               --------------------
                                  2
 
-   AAsssseerrttiioonnss aanndd vviirrttuuaall ppoossttiinnggss
+   Assertions and virtual postings
        Balance assertions are checked against all postings, both real and vir-
        tual.  They are not affected by the --real/-R flag or real: query.
 
-   PPrriicceess
-   TTrraannssaaccttiioonn pprriicceess
+   Prices
+   Transaction prices
        When  recording a transaction, you can also record an amount's price in
        another commodity.  This documents the exchange rate, cost (of  a  pur-
        chase),  or  selling  price  (of a sale) that was in effect within this
@@ -345,13 +345,13 @@ FFIILLEE FFOORRMMAATT
           amount:
 
                   2009/1/1
-                    assets:foreign currency   ^a~100 @ $1.35  ; one hundred euros at $1.35 each
+                    assets:foreign currency   100 @ $1.35  ; one hundred euros at $1.35 each
                     assets:cash
 
        2. Or write the total price, as @@ TOTALPRICE after the amount:
 
                   2009/1/1
-                    assets:foreign currency   ^a~100 @@ $135  ; one hundred euros at $135 for the lot
+                    assets:foreign currency   100 @@ $135  ; one hundred euros at $135 for the lot
                     assets:cash
 
        3. Or let hledger infer the price so as to balance the transaction.  To
@@ -359,7 +359,7 @@ FFIILLEE FFOORRMMAATT
           sum must have a non-zero amount in exactly two commodities:
 
                   2009/1/1
-                    assets:foreign currency   ^a~100          ; one hundred euros
+                    assets:foreign currency   100          ; one hundred euros
                     assets:cash              $-135          ; exchanged for $135
 
        With any of the above examples we get:
@@ -372,7 +372,7 @@ FFIILLEE FFOORRMMAATT
        Example use for transaction prices: recording the effective  conversion
        rate of purchases made in a foreign currency.
 
-   MMaarrkkeett pprriicceess
+   Market prices
        Market  prices are not tied to a particular transaction; they represent
        historical exchange rates between two commodities,  usually  from  some
        public market which publishes such rates.
@@ -392,12 +392,12 @@ FFIILLEE FFOORRMMAATT
        was  1.35  US  dollars  during  2009,  and  $1.40 from 2010 onward (and
        unknown before 2009).
 
-              P 2009/1/1 ^a~ $1.35
-              P 2010/1/1 ^a~ $1.40
+              P 2009/1/1  $1.35
+              P 2010/1/1  $1.40
 
        Example use for market prices: tracking the value of stocks.
 
-   CCoommmmeennttss
+   Comments
        Lines in the journal beginning with a semicolon  (;)  or  hash  (#)  or
        asterisk  (*)  are  comments,  and will be ignored.  (Asterisk comments
        make it easy to treat your journal like an org-mode outline in  emacs.)
@@ -432,8 +432,8 @@ FFIILLEE FFOORRMMAATT
                   ; another comment line for posting 2
               ; a journal comment (because not indented)
 
-   TTaaggss
-       A _t_a_g is a word followed by a full colon inside a transaction or  post-
+   Tags
+       A tag is a word followed by a full colon inside a transaction or  post-
        ing  comment.   You  can  write  multiple  tags,  comma separated.  Eg:
        ; a comment containing sometag:, anothertag:.  You can search for  tags
        with the tag: query.
@@ -454,25 +454,25 @@ FFIILLEE FFOORRMMAATT
        Tags are like Ledger's metadata feature, except  hledger's  tag  values
        are simple strings.
 
-   DDiirreeccttiivveess
-   AAccccoouunntt aalliiaasseess
+   Directives
+   Account aliases
        You  can define aliases which rewrite your account names (after reading
        the journal, before generating reports).  hledger's account aliases can
        be useful for:
 
-       +o expanding shorthand account names to their full form, allowing easier
+       o expanding shorthand account names to their full form, allowing easier
          data entry and a less verbose journal
 
-       +o adapting old journals to your current chart of accounts
+       o adapting old journals to your current chart of accounts
 
-       +o experimenting with new account organisations, like a new hierarchy or
+       o experimenting with new account organisations, like a new hierarchy or
          combining two accounts into one
 
-       +o customising reports
+       o customising reports
 
        See also How to use account aliases.
 
-   BBaassiicc aalliiaasseess
+   Basic aliases
        To  set an account alias, use the alias directive in your journal file.
        This affects all subsequent journal entries in the current file or  its
        included files.  The spaces around the = are optional:
@@ -489,7 +489,7 @@ FFIILLEE FFOORRMMAATT
               alias checking = assets:bank:wells fargo:checking
               # rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
 
-   RReeggeexx aalliiaasseess
+   Regex aliases
        There  is  also a more powerful variant that uses a regular expression,
        indicated by the forward slashes.  (This was the default  behaviour  in
        hledger 0.24-0.25):
@@ -508,7 +508,7 @@ FFIILLEE FFOORRMMAATT
               alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
               # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 
-   MMuullttiippllee aalliiaasseess
+   Multiple aliases
        You  can  define  as  many aliases as you like using directives or com-
        mand-line options.  Aliases are recursive - each alias sees the  result
        of  applying  previous  ones.   (This  is  different from Ledger, where
@@ -520,13 +520,13 @@ FFIILLEE FFOORRMMAATT
 
        2. alias options, in the order they appear on the command line
 
-   eenndd aalliiaasseess
+   end aliases
        You  can  clear  (forget)  all  currently  defined  aliases  with   the
        end aliases directive:
 
               end aliases
 
-   aaccccoouunntt ddiirreeccttiivvee
+   account directive
        The  account directive predefines account names, as in Ledger and Bean-
        count.  This may be useful for your own documentation; hledger  doesn't
        make use of it yet.
@@ -542,7 +542,7 @@ FFIILLEE FFOORRMMAATT
 
               ; etc.
 
-   aappppllyy aaccccoouunntt ddiirreeccttiivvee
+   apply account directive
        You  can  specify  a  parent  account  which  will  be prepended to all
        accounts within a section of the journal.  Use  the  apply account  and
        end apply account directives like so:
@@ -573,11 +573,11 @@ FFIILLEE FFOORRMMAATT
        Prior to hledger 0.28, legacy account and end spellings were also  sup-
        ported.
 
-   MMuullttii--lliinnee ccoommmmeennttss
+   Multi-line comments
        A  line containing just comment starts a multi-line comment, and a line
        containing just end comment ends it.  See comments.
 
-   ccoommmmooddiittyy ddiirreeccttiivvee
+   commodity directive
        The commodity directive predefines commodities (currently this is  just
        informational),  and  also it may define the display format for amounts
        in this commodity (overriding the automatically inferred format).
@@ -604,14 +604,14 @@ FFIILLEE FFOORRMMAATT
               commodity INR
                 format INR 9,99,99,999.00
 
-   DDeeffaauulltt ccoommmmooddiittyy
+   Default commodity
        You can set a default commodity, to be used for  amounts  without  one.
        Use  the D directive with a sample amount.  The commodity (and the sam-
        ple amount's display format) will be applied to all subsequent  commod-
        ity-less  amounts, up to the next D directive.  (Note this is different
        from Ledger's default commodity directive.)
 
-   DDeeffaauulltt yyeeaarr
+   Default year
        You can set a default year to be used for subsequent dates which  don't
        specify  a year.  This is a line beginning with Y followed by the year.
        Eg:
@@ -632,7 +632,7 @@ FFIILLEE FFOORRMMAATT
                 expenses  1
                 assets
 
-   IInncclluuddiinngg ootthheerr ffiilleess
+   Including other files
        You can pull in the content of additional journal files by  writing  an
        include directive, like this:
 
@@ -644,7 +644,7 @@ FFIILLEE FFOORRMMAATT
        The include directive can only  be  used  in  journal  files.   It  can
        include journal, timeclock or timedot files, but not CSV files.
 
-EEDDIITTOORR SSUUPPPPOORRTT
+EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
        nal files easier.  They add colour, navigation aids  and  helpful  com-
        mands.   For  hledger  users  who  edit  the journal file directly (the
@@ -654,33 +654,34 @@ EEDDIITTOORR SSUUPPPPOORRTT
        files:
 
 
-       tab(@);       lw(16.5n)       lw(51.5n).       T{      Emacs      T}@T{
-       http://www.ledger-cli.org/3.0/doc/ledger-mode.html  T}  T{  Vim   T}@T{
-       https://github.com/ledger/ledger/wiki/Getting-started   T}  T{  Sublime
-       Text T}@T{ https://github.com/ledger/ledger/wiki/Using-Sublime-Text  T}
-       T{   Textmate  T}@T{  https://github.com/ledger/ledger/wiki/Using-Text-
-       Mate-2       T}       T{       Text       Wrangler                T}@T{
-       https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-Tex-
-       tWrangler T}
+       Emacs              http://www.ledger-cli.org/3.0/doc/ledger-mode.html
+       Vim                https://github.com/ledger/ledger/wiki/Get-
+                          ting-started
+       Sublime Text       https://github.com/ledger/ledger/wiki/Using-Sub-
+                          lime-Text
+       Textmate           https://github.com/ledger/ledger/wiki/Using-Text-
+                          Mate-2
+       Text Wrangler      https://github.com/ledger/ledger/wiki/Edit-
+                          ing-Ledger-files-with-TextWrangler
 
 
 
-RREEPPOORRTTIINNGG BBUUGGSS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+REPORTING BUGS
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
-AAUUTTHHOORRSS
+AUTHORS
        Simon Michael <simon@joyful.com> and contributors
 
 
-CCOOPPYYRRIIGGHHTT
+COPYRIGHT
        Copyright (C) 2007-2016 Simon Michael.
        Released under GNU GPL v3 or later.
 
 
-SSEEEE AALLSSOO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+SEE ALSO
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

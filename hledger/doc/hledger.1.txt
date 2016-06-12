@@ -3,14 +3,14 @@ hledger(1)                   hledger User Manuals                   hledger(1)
 
 
 
-NNAAMMEE
+NAME
        hledger - a command-line accounting tool
 
-SSYYNNOOPPSSIISS
+SYNOPSIS
        hledger [-f FILE] COMMAND [OPTIONS] [CMDARGS]
        hledger [-f FILE] ADDONCMD -- [OPTIONS] [CMDARGS]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
        hledger  is  a  cross-platform program for tracking money, time, or any
        other commodity, using double-entry accounting and a  simple,  editable
        file  format.   hledger  is  inspired  by  and  largely compatible with
@@ -53,7 +53,7 @@ DDEESSCCRRIIPPTTIIOONN
        try  some commands like hledger print or hledger balance.  See COMMANDS
        and EXAMPLES below.
 
-EEXXAAMMPPLLEESS
+EXAMPLES
        Two simple transactions in hledger journal format:
 
               2015/9/30 gift received
@@ -120,109 +120,145 @@ EEXXAAMMPPLLEESS
                   2 EUR  assets:bank account
                  -2 EUR  member:John Doe
 
-OOPPTTIIOONNSS
-       To see general usage and the command list: hledger -h or just hledger
+OPTIONS
+       To see general usage and the command list: hledger -h or just  hledger.
+       To see usage for a specific command: hledger COMMAND -h.
 
-       To see usage for a specific command: hledger COMMAND -h
+       hledger has several kinds of options:
 
-       Except for the General options below, options  must  be  written  after
-       COMMAND, not before it.
+       o General  options  are always available and can appear anywhere on the
+         command line.  hledger -h shows these.  Eg: hledger --version.
 
-       Also,  when  invoking  external  add-on commands, their options must be
-       written after a double hyphen.  (Or, you can invoke the  external  com-
-       mand directly.) Eg:
+       o Common reporting options are available with most commands.  These and
+         all   other  non-general  options  must  be  written  after  COMMAND.
+         hledger COMMAND -h shows these.  Eg: hledger register --cleared.
 
-              $ hledger ui -- --register cash
-              $ hledger-ui --register cash
+       o Command-specific  options  are  also  provided  by   some   commands.
+         hledger COMMAND -h  shows these too.  Eg: hledger register --average.
 
-       Options and command arguments can be intermixed.  Arguments are usually
-       interpreted as a search query which filters the data, see QUERIES.
+       o Some hledger commands come from separate  add-on  executables,  which
+         have  their  own  options.  hledger COMMAND -h shows these, as usual.
+         Such options, if not also supported by  hledger,  should  be  written
+         following  a  double  hyphen  argument  (--) so that hledger's option
+         parser does  not  complain.   Eg:  hledger ui -- --register=checking.
+         Or,  you  can  just  run  the  add-on  directly:  hledger-ui --regis-
+         ter=checking.
 
-       There are three kinds of options.  General options are always available
-       and can appear anywhere in the command line:
+       Command arguments may also follow the  command  name.   In  most  cases
+       these  specify  a  query  which  filters the data.  Command options and
+       arguments can be intermixed.
 
-       --hh     show general usage (or after COMMAND, the command's usage)
+       Option and argument values containing problematic characters should  be
+       escaped with double quotes, backslashes, or (best) single quotes.  This
+       means spaces, but also characters which are significant to your command
+       shell,    such    as    less-than/greater-than.    Eg:   hledger regis-
+       ter -p 'last year' "accounts receivable (receiv-
+       able|payable)" amt:\>100.
 
-       ----hheellpp show  the  current  program's  manual as plain text (or after an
+       Characters  which  are  significant  to  the  shell and also in regular
+       expressions, like parentheses, the pipe symbol  and  the  dollar  sign,
+       must  sometimes  be  double-escaped.   Eg,  to match the dollar symbol:
+       hledger balance cur:'\$' or hledger balance cur:\\$.
+
+       There's more..  options and arguments being passed  by  hledger  to  an
+       add-on executable get de-escaped once in the process.  In this case you
+       might    need    triple-escaping.     Eg:    hledger ui cur:'\\$'    or
+       hledger ui cur:\\\\$.
+
+       If in doubt, keep things simple:
+
+       o write options after the command
+
+       o enclose problematic args in single quotes
+
+       o if needed, also add a backslash to escape regexp metacharacters
+
+       o run add-on executables directly
+
+       If you're really curious, add --debug 2 for troubleshooting.
+
+       General options:
+
+       -h     show general usage (or after COMMAND, the command's usage)
+
+       --help show  the  current  program's  manual as plain text (or after an
               add-on COMMAND, the add-on's manual)
 
-       ----mmaann  show the current program's manual with man
+       --man  show the current program's manual with man
 
-       ----iinnffoo show the current program's manual with info
+       --info show the current program's manual with info
 
-       ----vveerrssiioonn
+       --version
               show version
 
-       ----ddeebbuugg==NN
+       --debug=N
               show debug output if N is 1-9 (default: 0)
 
-       --ff FFIILLEE ----ffiillee==FFIILLEE
+       -f FILE --file=FILE
               use a different input file.  For stdin, use -
 
-       ----rruulleess--ffiillee==RRUULLEESSFFIILLEE
+       --rules-file=RULESFILE
               Conversion  rules  file  to  use  when  reading  CSV   (default:
               FILE.rules)
 
-       ----aalliiaass==OOLLDD==NNEEWW
+       --alias=OLD=NEW
               display accounts named OLD as NEW
 
-       ----iiggnnoorree--aasssseerrttiioonnss
+       --ignore-assertions
               ignore any failing balance assertions in the journal
 
-       Common  reporting options are supported by most commands where applica-
-       ble, and individual commands may  provide  additional  command-specific
-       options.  Both of these must be written after the command name.
+       Common reporting options:
 
-       --bb ----bbeeggiinn==DDAATTEE
+       -b --begin=DATE
               include postings/txns on or after this date
 
-       --ee ----eenndd==DDAATTEE
+       -e --end=DATE
               include postings/txns before this date
 
-       --DD ----ddaaiillyy
+       -D --daily
               multiperiod/multicolumn report by day
 
-       --WW ----wweeeekkllyy
+       -W --weekly
               multiperiod/multicolumn report by week
 
-       --MM ----mmoonntthhllyy
+       -M --monthly
               multiperiod/multicolumn report by month
 
-       --QQ ----qquuaarrtteerrllyy
+       -Q --quarterly
               multiperiod/multicolumn report by quarter
 
-       --YY ----yyeeaarrllyy
+       -Y --yearly
               multiperiod/multicolumn report by year
 
-       --pp ----ppeerriioodd==PPEERRIIOODDEEXXPP
+       -p --period=PERIODEXP
               set  start date, end date, and/or reporting interval all at once
               (overrides the flags above)
 
-       ----ddaattee22
+       --date2
               show, and match with -b/-e/-p/date:, secondary dates instead
 
-       --CC ----cclleeaarreedd
+       -C --cleared
               include only cleared postings/txns
 
-       ----ppeennddiinngg
+       --pending
               include only pending postings/txns
 
-       --UU ----uunncclleeaarreedd
+       -U --uncleared
               include only uncleared (and pending) postings/txns
 
-       --RR ----rreeaall
+       -R --real
               include only non-virtual postings
 
-       ----ddeepptthh==NN
+       --depth=N
               hide accounts/postings deeper than N
 
-       --EE ----eemmppttyy
+       -E --empty
               show items with zero amount, normally hidden
 
-       --BB ----ccoosstt
+       -B --cost
               show amounts in their cost price's commodity
 
-       ----ppiivvoott TTAAGG
+       --pivot TAG
               will transform  the  journal  before  any  other  processing  by
               replacing  the  account name of every posting having the tag TAG
               with content VALUE by the account name "TAG:VALUE".
@@ -231,22 +267,22 @@ OOPPTTIIOONNSS
        tion.  If the tag value is a multi:level:account:name the  new  account
        name will be "TAG:multi:level:account:name".
 
-   MMuullttiippllee ffiilleess
+   Multiple files
        You  can specify multiple -f/--file FILE options.  This is like combin-
        ing all the files into one, except they  can  have  different  formats.
        Also  directives and aliases in one file do not affect subsequent files
        (if you need that, use the include directive instead).
 
-   RReeppeeaatteedd ooppttiioonnss
+   Repeated options
        Otherwise, if a reporting option is repeated, the last one takes prece-
        dence.  Eg -p jan -p feb is equivalent to -p feb.
 
-   DDeepptthh lliimmiittiinngg
+   Depth limiting
        With  the --depth N option, commands like account, balance and register
        will show only the uppermost accounts in  the  account  tree,  down  to
        level N.  Use this when you want a summary with less detail.
 
-   SSmmaarrtt ddaatteess
+   Smart dates
        hledger's user interfaces accept a flexible "smart date" syntax (unlike
        dates in the journal file).  Smart dates allow some english words,  can
        be  relative  to today's date, and can have less-significant date parts
@@ -255,24 +291,30 @@ OOPPTTIIOONNSS
        Examples:
 
 
-       tab(@); l l.  T{ 2009/1/1, 2009/01/01, 2009-1-1, 2009.1.1 T}@T{  simple
-       dates,  several  separators  allowed  T}  T{ 2009/1, 2009 T}@T{ same as
-       above - a missing day or month defaults to 1 T} T{ 1/1,  january,  jan,
-       this year  T}@T{  relative dates, meaning january 1 of the current year
-       T} T{ next year T}@T{ january 1 of next year T} T{ this month T}@T{ the
-       1st  of  the current month T} T{ this week T}@T{ the most recent monday
-       T} T{ last week T}@T{ the monday of the week  before  this  one  T}  T{
-       lastweek  T}@T{  spaces  are  optional T} T{ today, yesterday, tomorrow
-       T}@T{ T}
+       2009/1/1,      2009/01/01,   simple dates, several sep-
+       2009-1-1, 2009.1.1           arators allowed
+       2009/1, 2009                 same as above - a  missing
+                                    day or month defaults to 1
+       1/1,     january,     jan,   relative   dates,  meaning
+       this year                    january 1 of  the  current
+                                    year
+       next year                    january 1 of next year
+       this month                   the  1st  of  the  current
+                                    month
+       this week                    the most recent monday
+       last week                    the  monday  of  the  week
+                                    before this one
+       lastweek                     spaces are optional
+       today, yesterday, tomorrow
 
-   RReeppoorrttiinngg iinntteerrvvaall
+   Reporting interval
        A reporting interval can be specified so that commands  like  register,
        balance  and  activity  will  divide their reports into multiple report
        periods.  The basic intervals can be selected with one  of  -D/--daily,
        -W/--weekly,  -M/--monthly,  -Q/--quarterly, or -Y/--yearly.  More com-
        plex intervals may be specified with a period expression.
 
-   PPeerriioodd eexxpprreessssiioonnss
+   Period expressions
        The -p/--period option accepts period expressions, a shorthand  way  of
        expressing  a  start  date,  end date, and or reporting interval all at
        once.  Note a period expression on the  command  line  will  cause  any
@@ -290,88 +332,100 @@ OOPPTTIIOONNSS
        "-".  These are equivalent to the above:
 
 
-       tab(@); l.  T{ -p "2009/1/1 2009/4/1" T} T{ -p2009/1/1to2009/4/1 T}  T{
-       -p2009/1/1-2009/4/1 T}
+       -p "2009/1/1 2009/4/1"
+       -p2009/1/1to2009/4/1
+       -p2009/1/1-2009/4/1
 
-       Dates  are  smart  dates, so if the current year is 2009, the above can
+       Dates are smart dates, so if the current year is 2009,  the  above  can
        also be written as:
 
 
-       tab(@);  l.    T{   -p "1/1 4/1"   T}   T{   -p "january-apr"   T}   T{
-       -p "this year to 4/1" T}
+       -p "1/1 4/1"
+       -p "january-apr"
+       -p "this year to 4/1"
 
        If you specify only one date, the missing start or end date will be the
        earliest or latest transaction in your journal:
 
 
-       tab(@); l l.  T{ -p "from 2009/1/1" T}@T{ everything after  january  1,
-       2009  T}  T{ -p "from 2009/1" T}@T{ the same T} T{ -p "from 2009" T}@T{
-       the same T} T{ -p "to 2009" T}@T{ everything before january 1, 2009 T}
+       -p "from 2009/1/1"   everything  after  january
+                            1, 2009
+       -p "from 2009/1"     the same
+       -p "from 2009"       the same
+       -p "to 2009"         everything  before january
+                            1, 2009
 
        A single date with no "from" or "to" defines both  the  start  and  end
        date like so:
 
 
-       tab(@); l l.  T{ -p "2009" T}@T{ the year 2009; equivalent to "2009/1/1
-       to 2010/1/1" T} T{ -p "2009/1" T}@T{ the month of  jan;  equivalent  to
-       "2009/1/1 to 2009/2/1" T} T{ -p "2009/1/1" T}@T{ just that day; equiva-
-       lent to "2009/1/1 to 2009/1/2" T}
+       -p "2009"       the  year 2009; equivalent
+                       to "2009/1/1 to 2010/1/1"
+       -p "2009/1"     the month of jan;  equiva-
+                       lent   to   "2009/1/1   to
+                       2009/2/1"
+       -p "2009/1/1"   just that day;  equivalent
+                       to "2009/1/1 to 2009/1/2"
 
-       Period expressions can also start with (or be)  a  reporting  interval:
-       daily,  weekly,  monthly,  quarterly,  yearly,  or one of the every ...
-       expressions below.  Optionally the  word  in  may  appear  between  the
+       Period  expressions  can  also start with (or be) a reporting interval:
+       daily, weekly, monthly, quarterly, yearly,  or  one  of  the  every ...
+       expressions  below.   Optionally  the  word  in  may appear between the
        reporting interval and the start/end dates.  Examples:
 
 
-       tab(@);    l.     T{    -p "weekly from 2009/1/1 to 2009/4/1"   T}   T{
-       -p "monthly in 2008" T} T{  -p "bimonthly from 2008"  T}  T{  -p "quar-
-       terly"  T} T{ -p "every 2 weeks" T} T{ -p "every 5 days from 1/3" T} T{
-       -p "every 15th day of month" T} T{ -p "every 4th day of week" T}
+       -p "weekly from 2009/1/1 to 2009/4/1"
+       -p "monthly in 2008"
+       -p "bimonthly from 2008"
+       -p "quarterly"
+       -p "every 2 weeks"
+       -p "every 5 days from 1/3"
+       -p "every 15th day of month"
+       -p "every 4th day of week"
 
-   RReegguullaarr EExxpprreessssiioonnss
+   Regular Expressions
        hledger uses regular expressions in a number of places:
 
-       +o query terms, on the command line and in the hledger-web search  form:
+       o query terms, on the command line and in the hledger-web search  form:
          REGEX, desc:REGEX, cur:REGEX, tag:...=REGEX
 
-       +o CSV rules conditional blocks: if REGEX ...
+       o CSV rules conditional blocks: if REGEX ...
 
-       +o account  alias  directives  and options: alias /REGEX/ = REPLACEMENT,
+       o account  alias  directives  and options: alias /REGEX/ = REPLACEMENT,
          --alias /REGEX/=REPLACEMENT
 
        hledger's regular expressions come from  the  regex-tdfa  library.   In
        general they:
 
-       +o are case insensitive
+       o are case insensitive
 
-       +o are  infix  matching  (do  not  need  to match the entire thing being
+       o are  infix  matching  (do  not  need  to match the entire thing being
          matched)
 
-       +o are POSIX extended regular expressions
+       o are POSIX extended regular expressions
 
-       +o also support GNU word boundaries (\<, \>, \b, \B)
+       o also support GNU word boundaries (\<, \>, \b, \B)
 
-       +o and parenthesised capturing  groups  and  numeric  backreferences  in
+       o and parenthesised capturing  groups  and  numeric  backreferences  in
          replacement strings
 
-       +o do not support mode modifiers like (?s)
+       o do not support mode modifiers like (?s)
 
        Some things to note:
 
-       +o In  the  alias directive and --alias option, regular expressions must
+       o In  the  alias directive and --alias option, regular expressions must
          be enclosed in forward  slashes  (/REGEX/).   Elsewhere  in  hledger,
          these are not required.
 
-       +o To match a regular expression metacharacter like $ as a literal char-
+       o To match a regular expression metacharacter like $ as a literal char-
          acter, prepend a backslash.  Eg to search for amounts with the dollar
          sign in hledger-web, write cur:\$.
 
-       +o On  the command line, some metacharacters like $ have a special mean-
+       o On  the command line, some metacharacters like $ have a special mean-
          ing to the shell and so must be escaped a second time, with single or
          double  quotes  or  another backslash.  Eg, to match amounts with the
          dollar sign from the command line, write cur:'\$' or cur:\\$.
 
-QQUUEERRIIEESS
+QUERIES
        One of hledger's strengths is being able to quickly report  on  precise
        subsets  of  your data.  Most commands accept an optional query expres-
        sion, written as arguments after the command name, to filter  the  data
@@ -383,30 +437,30 @@ QQUUEERRIIEESS
        All commands except print:  show  transactions/postings/accounts  which
        match (or negatively match)
 
-       +o any of the description terms AND
+       o any of the description terms AND
 
-       +o any of the account terms AND
+       o any of the account terms AND
 
-       +o all the other terms.
+       o all the other terms.
 
        The print command: show transactions which
 
-       +o match any of the description terms AND
+       o match any of the description terms AND
 
-       +o have any postings matching any of the positive account terms AND
+       o have any postings matching any of the positive account terms AND
 
-       +o have no postings matching any of the negative account terms AND
+       o have no postings matching any of the negative account terms AND
 
-       +o match all the other terms.
+       o match all the other terms.
 
        The following kinds of search terms can be used:
 
-       RREEGGEEXX  match account names by this regular expression
+       REGEX  match account names by this regular expression
 
-       aacccctt::RREEGGEEXX
+       acct:REGEX
               same as above
 
-       aammtt::NN,, aammtt::<<NN,, aammtt::<<==NN,, aammtt::>>NN,, aammtt::>>==NN
+       amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N
               match  postings with a single-commodity amount that is equal to,
               less than, or greater than N.  (Multi-commodity amounts are  not
               tested, and will always match.) The comparison has two modes: if
@@ -414,10 +468,10 @@ QQUUEERRIIEESS
               are  compared.  Otherwise, the absolute magnitudes are compared,
               ignoring sign.
 
-       ccooddee::RREEGGEEXX
+       code:REGEX
               match by transaction code (eg check number)
 
-       ccuurr::RREEGGEEXX
+       cur:REGEX
               match postings or transactions including any amounts whose  cur-
               rency/commodity  symbol  is fully matched by REGEX.  (For a par-
               tial match, use .*REGEX.*).  Note, to match characters which are
@@ -426,44 +480,44 @@ QQUUEERRIIEESS
               level  of  quoting  to  hide  it  from  the  shell,  so  eg  do:
               hledger print cur:'\$' or hledger print cur:\\$.
 
-       ddeesscc::RREEGGEEXX
+       desc:REGEX
               match transaction descriptions
 
-       ddaattee::PPEERRIIOODDEEXXPPRR
+       date:PERIODEXPR
               match dates within the specified period.  PERIODEXPR should  not
               include  a  reporting  interval.   The command-line --date2 flag
               makes this match secondary  dates  instead  (like  the  -b/-e/-p
               options).
 
-       ddaattee22::PPEERRIIOODDEEXXPPRR
+       date2:PERIODEXPR
               match  secondary  dates within the specified period.  PERIODEXPR
               should not include a reporting interval.
 
-       ddeepptthh::NN
+       depth:N
               match (or display, depending on command) accounts  at  or  above
               this depth
 
-       rreeaall::,, rreeaall::00
+       real:, real:0
               match real or virtual postings respectively
 
-       ssttaattuuss::**,, ssttaattuuss::!!,, ssttaattuuss::
+       status:*, status:!, status:
               match   cleared,   pending,  or  uncleared/pending  transactions
               respectively
 
-       ttaagg::RREEGGEEXX[[==RREEGGEEXX]]
+       tag:REGEX[=REGEX]
               match by tag name, and optionally also by  tag  value.   Note  a
               tag:  query  is  considered to match a transaction if it matches
               any of the postings.  Also remember that  postings  inherit  the
               tags of their parent transaction.
 
-       nnoott::   before any of the above negates the match.
+       not:   before any of the above negates the match.
 
        Some of these can also be expressed as command-line options (eg depth:2
        is equivalent to --depth 2).  Generally you can mix options  and  query
        arguments,  and the resulting query will be their intersection (perhaps
        excluding the -p/--period option).
 
-CCOOMMMMAANNDDSS
+COMMANDS
        hledger provides a number of subcommands;  hledger  with  no  arguments
        shows a list.
 
@@ -476,14 +530,14 @@ CCOOMMMMAANNDDSS
        a command name (hledger inc), or one of the standard short aliases dis-
        played in the command list (hledger is).
 
-   aaccccoouunnttss
+   accounts
        Show account names.
 
-       ----ttrreeee show short account names, as a tree
+       --tree show short account names, as a tree
 
-       ----ffllaatt show full account names, as a list (default)
+       --flat show full account names, as a list (default)
 
-       ----ddrroopp==NN
+       --drop=N
               in flat mode: omit N leading account name parts
 
        This command lists all account names that  are  in  use  (ie,  all  the
@@ -533,7 +587,7 @@ CCOOMMMMAANNDDSS
               income:salary
               liabilities:debts
 
-   aaccttiivviittyy
+   activity
        Show an ascii barchart of posting counts per interval.
 
        The activity command displays an ascii  histogram  showing  transaction
@@ -546,10 +600,10 @@ CCOOMMMMAANNDDSS
               2008-07-01
               2008-10-01 **
 
-   aadddd
+   add
        Prompt for transactions and add them to the journal.
 
-       ----nnoo--nneeww--aaccccoouunnttss
+       --no-new-accounts
               don't allow creating new  accounts;  helps  prevent  typos  when
               entering account names
 
@@ -567,28 +621,28 @@ CCOOMMMMAANNDDSS
 
        Features:
 
-       +o add  tries  to provide useful defaults, using the most similar recent
+       o add  tries  to provide useful defaults, using the most similar recent
          transaction (by description) as a template.
 
-       +o You can also set the initial defaults with command line arguments.
+       o You can also set the initial defaults with command line arguments.
 
-       +o Readline-style edit keys can be used during data entry.
+       o Readline-style edit keys can be used during data entry.
 
-       +o The tab key will auto-complete whenever possible - accounts, descrip-
+       o The tab key will auto-complete whenever possible - accounts, descrip-
          tions,  dates  (yesterday,  today,  tomorrow).   If the input area is
          empty, it will insert the default value.
 
-       +o If the journal defines a default commodity, it will be added  to  any
+       o If the journal defines a default commodity, it will be added  to  any
          bare numbers entered.
 
-       +o A parenthesised transaction code may be entered following a date.
+       o A parenthesised transaction code may be entered following a date.
 
-       +o Comments and tags may be entered following a description or amount.
+       o Comments and tags may be entered following a description or amount.
 
-       +o If  you make a mistake, enter < at any prompt to restart the transac-
+       o If  you make a mistake, enter < at any prompt to restart the transac-
          tion.
 
-       +o Input prompts are displayed in a different colour when  the  terminal
+       o Input prompts are displayed in a different colour when  the  terminal
          supports it.
 
        Example (see the tutorial for a detailed explanation):
@@ -618,46 +672,46 @@ CCOOMMMMAANNDDSS
               Starting the next transaction (. or ctrl-D/ctrl-C to quit)
               Date [2015/05/22]: <CTRL-D> $
 
-   bbaallaannccee
+   balance
        Show accounts and their balances.  Alias: bal.
 
-       ----ttrreeee show short account names, as a tree
+       --tree show short account names, as a tree
 
-       ----ffllaatt show full account names, as a list (default)
+       --flat show full account names, as a list (default)
 
-       ----ddrroopp==NN
+       --drop=N
               in flat mode: omit N leading account name parts
 
-       ----ffoorrmmaatt==LLIINNEEFFOORRMMAATT
+       --format=LINEFORMAT
               in single-column balance reports: use this custom line format
 
-       ----nnoo--eelliiddee
+       --no-elide
               in tree mode: don't squash boring parent accounts
 
-       --HH ----hhiissttoorriiccaall
+       -H --historical
               in multicolumn mode: show historical ending balances
 
-       ----ccuummuullaattiivvee
+       --cumulative
               in multicolumn mode: show accumulated ending balances
 
-       --AA ----aavveerraaggee
+       -A --average
               in multicolumn mode: show a row average column
 
-       --TT ----rrooww--ttoottaall
+       -T --row-total
               in multicolumn mode: show a row total column
 
-       --NN ----nnoo--ttoottaall
+       -N --no-total
               don't show the final total row
 
-       --VV ----vvaalluuee
+       -V --value
               show amounts as their current market value in their default val-
               uation commodity
 
-       --oo FFIILLEE[[..FFMMTT]] ----oouuttppuutt--ffiillee==FFIILLEE[[..FFMMTT]]
+       -o FILE[.FMT] --output-file=FILE[.FMT]
               write output to FILE instead of stdout.  A recognised FMT suffix
               influences the format.
 
-       --OO FFMMTT ----oouuttppuutt--ffoorrmmaatt==FFMMTT
+       -O FMT --output-format=FMT
               select the output format.  Supported formats: txt, csv.
 
        The  balance  command  displays accounts and balances.  It is hledger's
@@ -677,7 +731,7 @@ CCOOMMMMAANNDDSS
               --------------------
                                  0
 
-       More precisely, the balance command shows the _c_h_a_n_g_e to each  account's
+       More precisely, the balance command shows the change to each  account's
        balance caused by all (matched) postings.  In the common case where you
        do not filter by date and your journal sets the  correct  opening  bal-
        ances, this is the same as the account's ending balance.
@@ -702,7 +756,7 @@ CCOOMMMMAANNDDSS
                                 $1    food
                                 $1    supplies
 
-   FFllaatt mmooddee
+   Flat mode
        To see a flat list of full account names instead of the default hierar-
        chical   display,   use   --flat.    In  this  mode,  accounts  (unless
        depth-clipped) show their "exclusive" balance, excluding any subaccount
@@ -713,7 +767,7 @@ CCOOMMMMAANNDDSS
                                 $1  food
                                 $1  supplies
 
-   DDeepptthh lliimmiitteedd bbaallaannccee rreeppoorrttss
+   Depth limited balance reports
        With --depth N, balance shows accounts only  to  the  specified  depth.
        This  is  very  useful  to  show  a  complex charts of accounts in less
        detail.  In flat mode, balances from accounts  below  the  depth  limit
@@ -725,7 +779,7 @@ CCOOMMMMAANNDDSS
                                $-2  income
                                 $1  liabilities
 
-   MMuullttiiccoolluummnn bbaallaannccee rreeppoorrttss
+   Multicolumn balance reports
        With  a reporting interval, multiple balance columns will be shown, one
        for each report period.  There are three types of multi-column  balance
        report, showing different information:
@@ -820,7 +874,7 @@ CCOOMMMMAANNDDSS
 
               # Average is rounded to the dollar here since all journal amounts are
 
-   MMaarrkkeett vvaalluuee
+   Market value
        The -V/--value flag converts all the reported amounts to their "current
        market value" using their default market price.   That  is  the  latest
        market  price (P directive) found in the journal (or an included file),
@@ -830,7 +884,7 @@ CCOOMMMMAANNDDSS
        directives,  ignoring  transaction  prices  recorded as part of posting
        amounts (which -B/--cost uses).  Using -B and -V together is allowed.
 
-   CCuussttoomm bbaallaannccee oouuttppuutt
+   Custom balance output
        In simple (non-multi-column) balance reports,  you  can  customise  the
        output with --format FMT:
 
@@ -854,27 +908,27 @@ CCOOMMMMAANNDDSS
 
        %[MIN][.MAX](FIELDNAME)
 
-       +o MIN pads with spaces to at least this width (optional)
+       o MIN pads with spaces to at least this width (optional)
 
-       +o MAX truncates at this width (optional)
+       o MAX truncates at this width (optional)
 
-       +o FIELDNAME must be enclosed in parentheses, and can be one of:
+       o FIELDNAME must be enclosed in parentheses, and can be one of:
 
-         +o depth_spacer  - a number of spaces equal to the account's depth, or
+         o depth_spacer  - a number of spaces equal to the account's depth, or
            if MIN is specified, MIN * depth spaces.
 
-         +o account - the account's name
+         o account - the account's name
 
-         +o total - the account's balance/posted total, right justified
+         o total - the account's balance/posted total, right justified
 
        Also, FMT can begin with an optional prefix to control  how  multi-com-
        modity amounts are rendered:
 
-       +o %_ - render on multiple lines, bottom-aligned (the default)
+       o %_ - render on multiple lines, bottom-aligned (the default)
 
-       +o %^ - render on multiple lines, top-aligned
+       o %^ - render on multiple lines, top-aligned
 
-       +o %, - render on one line, comma-separated
+       o %, - render on one line, comma-separated
 
        There  are  some  quirks.   Eg in one-line mode, %(depth_spacer) has no
        effect, instead %(account) has indentation built in.
@@ -882,19 +936,19 @@ CCOOMMMMAANNDDSS
 
        Some example formats:
 
-       +o %(total) - the account's total
+       o %(total) - the account's total
 
-       +o %-20.20(account) - the account's name, left justified, padded  to  20
+       o %-20.20(account) - the account's name, left justified, padded  to  20
          characters and clipped at 20 characters
 
-       +o %,%-50(account)  %25(total)  -  account name padded to 50 characters,
+       o %,%-50(account)  %25(total)  -  account name padded to 50 characters,
          total padded to 20 characters, with multiple commodities rendered  on
          one line
 
-       +o %20(total)  %2(depth_spacer)%-(account)  - the default format for the
+       o %20(total)  %2(depth_spacer)%-(account)  - the default format for the
          single-column balance report
 
-   OOuuttppuutt ddeessttiinnaattiioonn
+   Output destination
        The balance, print, register and stats commands can write their  output
        to  a  destination  other  than the console.  This is controlled by the
        -o/--output-file option.
@@ -902,7 +956,7 @@ CCOOMMMMAANNDDSS
               $ hledger balance -o -     # write to stdout (the default)
               $ hledger balance -o FILE  # write to FILE
 
-   CCSSVV oouuttppuutt
+   CSV output
        The balance, print and register commands can write their output as CSV.
        This  is  useful  for  exporting data to other applications, eg to make
        charts in a spreadsheet.  This is controlled by the  -O/--output-format
@@ -911,12 +965,12 @@ CCOOMMMMAANNDDSS
               $ hledger balance -O csv       # write CSV to stdout
               $ hledger balance -o FILE.csv  # write CSV to FILE.csv
 
-   bbaallaanncceesshheeeett
+   balancesheet
        Show a balance sheet.  Alias: bs.
 
-       ----ffllaatt show full account names, as a list (default)
+       --flat show full account names, as a list (default)
 
-       ----ddrroopp==NN
+       --drop=N
               in flat mode: omit N leading account name parts
 
        This  command  displays  a  simple balance sheet.  It currently assumes
@@ -942,12 +996,12 @@ CCOOMMMMAANNDDSS
               --------------------
                                  0
 
-   ccaasshhffllooww
+   cashflow
        Show a cashflow statement.  Alias: cf.
 
-       ----ffllaatt show full account names, as a list (default)
+       --flat show full account names, as a list (default)
 
-       ----ddrroopp==NN
+       --drop=N
               in flat mode: omit N leading account name parts
 
        This  command  displays a simple cashflow statement It shows the change
@@ -969,7 +1023,7 @@ CCOOMMMMAANNDDSS
               --------------------
                                $-1
 
-   hheellpp
+   help
        Show any of the hledger manuals.
 
        The  help  command displays any of the main hledger man pages.  (Unlike
@@ -997,12 +1051,12 @@ CCOOMMMMAANNDDSS
                      hledger [-f FILE] ADDONCMD -- [OPTIONS] [CMDARGS]
               :
 
-   iinnccoommeessttaatteemmeenntt
+   incomestatement
        Show an income statement.  Alias: is.
 
-       ----ffllaatt show full account names, as a list (default)
+       --flat show full account names, as a list (default)
 
-       ----ddrroopp==NN
+       --drop=N
               in flat mode: omit N leading account name parts
 
        This command displays a simple income statement.  It currently  assumes
@@ -1030,7 +1084,7 @@ CCOOMMMMAANNDDSS
               --------------------
                                  0
 
-   iinnffoo
+   info
        Show any of the hledger manuals using info.
 
        The info command displays any of the hledger  reference  manuals  using
@@ -1041,7 +1095,7 @@ CCOOMMMMAANNDDSS
        As  with help, run it with no arguments to list available topics (manu-
        als).
 
-   mmaann
+   man
        Show any of the hledger manuals using man.
 
        The man command displays any of the  hledger  reference  manuals  using
@@ -1052,18 +1106,18 @@ CCOOMMMMAANNDDSS
        As  with help, run it with no arguments to list available topics (manu-
        als).
 
-   pprriinntt
+   print
        Show transactions from the journal.
 
-       --mm SSTTRR ----mmaattcchh==SSTTRR
+       -m STR --match=STR
               show the transaction whose description is most similar  to  STR,
               and is most recent
 
-       --oo FFIILLEE[[..FFMMTT]] ----oouuttppuutt--ffiillee==FFIILLEE[[..FFMMTT]]
+       -o FILE[.FMT] --output-file=FILE[.FMT]
               write output to FILE instead of stdout.  A recognised FMT suffix
               influences the format.
 
-       --OO FFMMTT ----oouuttppuutt--ffoorrmmaatt==FFMMTT
+       -O FMT --output-format=FMT
               select the output format.  Supported formats: txt, csv.
 
               $ hledger print
@@ -1098,28 +1152,28 @@ CCOOMMMMAANNDDSS
 
        The print command also supports output destination and CSV output.
 
-   rreeggiisstteerr
+   register
        Show postings and their running total.  Alias: reg.
 
-       --HH ----hhiissttoorriiccaall
+       -H --historical
               include prior postings in the running total
 
-       --AA ----aavveerraaggee
+       -A --average
               show a running average instead of  the  running  total  (implies
               --empty)
 
-       --rr ----rreellaatteedd
+       -r --related
               show postings' siblings instead
 
-       --ww NN ----wwiiddtthh==NN
+       -w N --width=N
               set  output  width  (default:  terminal width or COLUMNS.  -wN,M
               sets description width as well)
 
-       --oo FFIILLEE[[..FFMMTT]] ----oouuttppuutt--ffiillee==FFIILLEE[[..FFMMTT]]
+       -o FILE[.FMT] --output-file=FILE[.FMT]
               write output to FILE instead of stdout.  A recognised FMT suffix
               influences the format.
 
-       --OO FFMMTT ----oouuttppuutt--ffoorrmmaatt==FFMMTT
+       -O FMT --output-format=FMT
               select the output format.  Supported formats: txt, csv.
 
        The register command displays postings, one per line, and their running
@@ -1148,7 +1202,7 @@ CCOOMMMMAANNDDSS
        the  whole  report period).  This flag implies --empty (see below).  It
        works best when showing just one account and one commodity.
 
-       The --related/-r flag shows the _o_t_h_e_r postings in the  transactions  of
+       The --related/-r flag shows the other postings in the  transactions  of
        the postings which would normally be shown.
 
        With  a  reporting  interval,  register shows summary postings, one per
@@ -1188,7 +1242,7 @@ CCOOMMMMAANNDDSS
        intervals.  This ensures that the first and  last  intervals  are  full
        length and comparable to the others in the report.
 
-   CCuussttoomm rreeggiisstteerr oouuttppuutt
+   Custom register output
        register  uses  the  full terminal width by default, except on windows.
        You can override this by setting the COLUMNS environment variable  (not
        a bash shell variable) or by using the --width/-w option.
@@ -1214,10 +1268,10 @@ CCOOMMMMAANNDDSS
        The register command also supports the -o/--output-file  and  -O/--out-
        put-format options for controlling output destination and CSV output.
 
-   ssttaattss
+   stats
        Show some journal statistics.
 
-       --oo FFIILLEE[[..FFMMTT]] ----oouuttppuutt--ffiillee==FFIILLEE[[..FFMMTT]]
+       -o FILE[.FMT] --output-file=FILE[.FMT]
               write output to FILE instead of stdout.  A recognised FMT suffix
               influences the format.
 
@@ -1240,7 +1294,7 @@ CCOOMMMMAANNDDSS
        The stats command also supports -o/--output-file for controlling output
        destination.
 
-   tteesstt
+   test
        Run built-in unit tests.
 
               $ hledger test
@@ -1251,7 +1305,7 @@ CCOOMMMMAANNDDSS
        matching names.  It's mainly used in development, but it's also nice to
        be able to check your hledger executable for smoke at any time.
 
-AADDDD--OONN CCOOMMMMAANNDDSS
+ADD-ON COMMANDS
        Add-on commands are executables in your PATH  whose  name  starts  with
        hledger-   and   ends   with   any  of  these  file  extensions:  none,
        .hs,.lhs,.pl,.py,.rb,.rkt,.sh,.bat,.com,.exe.  Also, an  add-on's  name
@@ -1261,11 +1315,11 @@ AADDDD--OONN CCOOMMMMAANNDDSS
        you invoke them with hledger ADDONCMD.  However there are some  limita-
        tions:
 
-       +o Options appearing before ADDONCMD will be visible only to hledger and
+       o Options appearing before ADDONCMD will be visible only to hledger and
          will not be passed to the add-on.  Eg: hledger -h web shows hledger's
          usage, hledger web -h shows hledger-web's usage.
 
-       +o Options  understood only by the add-on must go after a -- argument to
+       o Options  understood only by the add-on must go after a -- argument to
          hide them from hledger,  which  would  otherwise  reject  them.   Eg:
          hledger web -- --server.
 
@@ -1279,10 +1333,10 @@ AADDDD--OONN CCOOMMMMAANNDDSS
        Here are some hledger add-ons available from Hackage, the extra  direc-
        tory in the hledger source, or elsewhere:
 
-   aappii
+   api
        Web API server, see hledger-api.
 
-   aauuttoossyynncc
+   autosync
        Download OFX bank data and/or convert OFX to hledger journal format.
 
               $ hledger autosync --help
@@ -1341,7 +1395,7 @@ AADDDD--OONN CCOOMMMMAANNDDSS
        alternative  to  hledger's built-in CSV reader, especially if your bank
        supports OFX download.
 
-   ddiiffff
+   diff
        Show transactions present in one journal file but not another
 
               $ hledger diff --help
@@ -1369,7 +1423,7 @@ AADDDD--OONN CCOOMMMMAANNDDSS
        journal file but not in the other.  This can be useful for  reconciling
        existing journals with bank statements.
 
-   eeqquuiittyy
+   equity
        Print a journal entry that resets account balances to zero.
 
               $ hledger balance --flat -E assets liabilities
@@ -1403,7 +1457,7 @@ AADDDD--OONN CCOOMMMMAANNDDSS
        correct  asset/liability  balances  whether you run hledger on just one
        file, or on several files concatenated with include.
 
-   iinntteerreesstt
+   interest
        Generate interest transactions.
 
               $ hledger interest --help
@@ -1485,10 +1539,10 @@ AADDDD--OONN CCOOMMMMAANNDDSS
        day-counting, such as act/act, 30/360, 30E/360, and  30/360isda.   Fur-
        thermore,  it  supports  a  (small)  number  of  interest schemes, i.e.
        annual interest with a fixed rate and the scheme mandated by the German
-       BGB288  (Basiszins f~A1/4r Verbrauchergesch~Aoxfte).  See the package page
-       for more.
+       BGB288  (Basiszins  fr  Verbrauchergeschfte).  See the package page for
+       more.
 
-   iirrrr
+   irr
        Calculate internal rate of return.
 
               $ hledger irr --help
@@ -1508,33 +1562,33 @@ AADDDD--OONN CCOOMMMMAANNDDSS
 
               $ cat irr.journal
               2011-01-01 Some wild speculation - I wonder if it pays off
-                 Speculation   ^a~100.00
+                 Speculation   100.00
                  Cash
 
               2011-02-01 More speculation (and adjustment of value)
-                 Cash         -^a~10.00
-                 Rate Gain     -^a~1.00
+                 Cash         -10.00
+                 Rate Gain     -1.00
                  Speculation
 
               2011-03-01 Lets pull out some money (and adjustment of value)
-                 Cash          ^a~30.00
-                 Rate Gain     -^a~3.00
+                 Cash          30.00
+                 Rate Gain     -3.00
                  Speculation
 
               2011-04-01 More speculation (and it lost some money!)
-                 Cash         -^a~50.00
-                 Rate Gain     ^a~ 5.00
+                 Cash         -50.00
+                 Rate Gain      5.00
                  Speculation
 
               2011-05-01 Getting some money out (and adjustment of value)
-                 Speculation  -^a~44.00
-                 Rate Gain    -^a~ 3.00
+                 Speculation  -44.00
+                 Rate Gain    - 3.00
                  Cash
 
               2011-06-01 Emptying the account (after adjusting the value)
-                 Speculation   -^a~85.00
-                 Cash           ^a~90.00
-                 Rate Gain     -^a~ 5.00
+                 Speculation   -85.00
+                 Cash           90.00
+                 Rate Gain     - 5.00
 
               $ hledger-irr -f irr.journal -t "Rate Gain" -i Speculation  --monthly
               2011/01/01 - 2011/02/01: 12.49%
@@ -1550,7 +1604,7 @@ AADDDD--OONN CCOOMMMMAANNDDSS
        of fixed rate investment that would have provided the exact  same  cash
        flow.  See the package page for more.
 
-   pprriinntt--uunniiqquuee
+   print-unique
        Print only only journal entries which have a unique description.
 
               $ cat unique.journal
@@ -1563,7 +1617,7 @@ AADDDD--OONN CCOOMMMMAANNDDSS
               2015/01/01 test
                   (acct:one)             1
 
-   rreewwrriittee
+   rewrite
        Prints all journal entries, adding specified custom postings to matched
        entries.
 
@@ -1576,35 +1630,35 @@ AADDDD--OONN CCOOMMMMAANNDDSS
               $ hledger rewrite -- ^income        --add-posting '(liabilities:tax)  *.33'
               $ hledger rewrite -- expenses:gifts --add-posting '(budget:gifts)  *-1"'
 
-   uuii
+   ui
        Curses-style interface, see hledger-ui.
 
-   wweebb
+   web
        Web interface, see hledger-web.
 
-TTRROOUUBBLLEESSHHOOOOTTIINNGG
-   RRuunn--ttiimmee pprroobblleemmss
+TROUBLESHOOTING
+   Run-time problems
        Here  are  some  issues  you  might encounter when you run hledger (and
        remember you can also seek help from the IRC channel, mail list or  bug
        tracker):
 
-       SSuucccceessssffuullllyy iinnssttaalllleedd,, bbuutt ""NNoo ccoommmmaanndd ''hhlleeddggeerr'' ffoouunndd""
+       Successfully installed, but "No command 'hledger' found"
        stack and cabal install binaries into a special directory, which should
        be added to your PATH environment variable.  Eg on  unix-like  systems,
        that is ~/.local/bin and ~/.cabal/bin respectively.
 
-       II sseett aa ccuussttoomm LLEEDDGGEERR__FFIILLEE,, bbuutt hhlleeddggeerr iiss ssttiillll uussiinngg tthhee ddeeffaauulltt ffiillee
+       I set a custom LEDGER_FILE, but hledger is still using the default file
        LEDGER_FILE should be a real environment variable,  not  just  a  shell
        variable.   The command env | grep LEDGER_FILE should show it.  You may
        need to use export.  Here's an explanation.
 
-       ""IIlllleeggaall bbyyttee sseeqquueennccee"" oorr ""IInnvvaalliidd oorr  iinnccoommpplleettee  mmuullttiibbyyttee  oorr  wwiiddee
-       cchhaarraacctteerr"" eerrrroorrss
-       In  order  to  handle  non-ascii letters and symbols (like ^A-L), hledger
-       needs an appropriate locale.  This is usually  configured  system-wide;
-       you  can  also configure it temporarily.  The locale may need to be one
-       that supports UTF-8, if you built hledger with GHC < 7.2  (or  possibly
-       always, I'm not sure yet).
+       "Illegal byte sequence" or "Invalid or  incomplete  multibyte  or  wide
+       character" errors
+       In order to handle non-ascii letters and symbols (like ), hledger needs
+       an appropriate locale.  This is usually configured system-wide; you can
+       also configure it temporarily.  The locale may need to be one that sup-
+       ports UTF-8, if you built hledger with GHC < 7.2 (or  possibly  always,
+       I'm not sure yet).
 
        Here's  an  example  of  setting  the  locale  temporarily,  on  ubuntu
        gnu/linux:
@@ -1640,14 +1694,14 @@ TTRROOUUBBLLEESSHHOOOOTTIINNGG
        Note some platforms allow variant locale spellings, but not all (ubuntu
        accepts fr_FR.UTF8, mac osx requires exactly fr_FR.UTF-8).
 
-   KKnnoowwnn lliimmiittaattiioonnss
-       CCoommmmaanndd lliinnee iinntteerrffaaccee
+   Known limitations
+       Command line interface
 
        Add-on command options, unless they are also  understood  by  the  main
        hledger   executable,   must   be   written   after   --,   like  this:
        hledger web -- --server
 
-       DDiiffffeerreenncceess ffrroomm LLeeddggeerr
+       Differences from Ledger
 
        Not all of Ledger's journal file syntax is supported.  See file  format
        differences.
@@ -1655,7 +1709,7 @@ TTRROOUUBBLLEESSHHOOOOTTIINNGG
        hledger  is  slower  than  Ledger,  and uses more memory, on large data
        files.
 
-       WWiinnddoowwss lliimmiittaattiioonnss
+       Windows limitations
 
        In a windows CMD window, non-ascii characters and colours are not  sup-
        ported.
@@ -1663,21 +1717,21 @@ TTRROOUUBBLLEESSHHOOOOTTIINNGG
        In a windows Cygwin/MSYS/Mintty window, the tab key is not supported in
        hledger add.
 
-EENNVVIIRROONNMMEENNTT
-       CCOOLLUUMMNNSS The screen width used by the register  command.   Default:  the
+ENVIRONMENT
+       COLUMNS The screen width used by the register  command.   Default:  the
        full terminal width.
 
-       LLEEDDGGEERR__FFIILLEE The journal file path when not specified with -f.  Default:
+       LEDGER_FILE The journal file path when not specified with -f.  Default:
        ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
-FFIILLEESS
+FILES
        Reads  data from one or more files in hledger journal, timeclock, time-
        dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
        $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
-BBUUGGSS
+BUGS
        The need to precede options with -- when invoked from hledger  is  awk-
        ward.
 
@@ -1690,21 +1744,21 @@ BBUUGGSS
 
 
 
-RREEPPOORRTTIINNGG BBUUGGSS
+REPORTING BUGS
        Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
-AAUUTTHHOORRSS
+AUTHORS
        Simon Michael <simon@joyful.com> and contributors
 
 
-CCOOPPYYRRIIGGHHTT
+COPYRIGHT
        Copyright (C) 2007-2016 Simon Michael.
        Released under GNU GPL v3 or later.
 
 
-SSEEEE AALLSSOO
+SEE ALSO
        hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)

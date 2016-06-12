@@ -3,14 +3,14 @@ hledger-ui(1)                hledger User Manuals                hledger-ui(1)
 
 
 
-NNAAMMEE
+NAME
        hledger-ui - curses-style interface for the hledger accounting tool
 
-SSYYNNOOPPSSIISS
+SYNOPSIS
        hledger-ui [OPTIONS] [QUERYARGS]
        hledger ui -- [OPTIONS] [QUERYARGS]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
        hledger  is  a  cross-platform program for tracking money, time, or any
        other commodity, using double-entry accounting and a  simple,  editable
        file  format.   hledger  is  inspired  by  and  largely compatible with
@@ -28,110 +28,110 @@ DDEESSCCRRIIPPTTIIOONN
        C:/Users/USER/.hledger.journal).   For  more about this see hledger(1),
        hledger_journal(5) etc.
 
-OOPPTTIIOONNSS
+OPTIONS
        Note: if invoking hledger-ui as a hledger subcommand, write  --  before
        options as shown above.
 
        Any  QUERYARGS  are interpreted as a hledger search query which filters
        the data.
 
-       ----ffllaatt show full account names, unindented
+       --flat show full account names, unindented
 
-       ----nnoo--eelliiddee
+       --no-elide
               don't compress empty parent accounts on one line
 
-       ----rreeggiisstteerr==AACCCCTTRREEGGEEXX
+       --register=ACCTREGEX
               start in the (first) matched account's register screen
 
-       ----tthheemmee==ddeeffaauulltt||tteerrmmiinnaall||ggrreeeenntteerrmm
+       --theme=default|terminal|greenterm
               use this custom display theme
 
-       --VV ----vvaalluuee
+       -V --value
               show amounts as their current market value in their default val-
               uation commodity (accounts screen only)
 
        hledger general options:
 
-       --hh     show general usage (or after COMMAND, the command's usage)
+       -h     show general usage (or after COMMAND, the command's usage)
 
-       ----hheellpp show  the  current  program's  manual as plain text (or after an
+       --help show  the  current  program's  manual as plain text (or after an
               add-on COMMAND, the add-on's manual)
 
-       ----mmaann  show the current program's manual with man
+       --man  show the current program's manual with man
 
-       ----iinnffoo show the current program's manual with info
+       --info show the current program's manual with info
 
-       ----vveerrssiioonn
+       --version
               show version
 
-       ----ddeebbuugg==NN
+       --debug=N
               show debug output if N is 1-9 (default: 0)
 
-       --ff FFIILLEE ----ffiillee==FFIILLEE
+       -f FILE --file=FILE
               use a different input file.  For stdin, use -
 
-       ----rruulleess--ffiillee==RRUULLEESSFFIILLEE
+       --rules-file=RULESFILE
               Conversion  rules  file  to  use  when  reading  CSV   (default:
               FILE.rules)
 
-       ----aalliiaass==OOLLDD==NNEEWW
+       --alias=OLD=NEW
               display accounts named OLD as NEW
 
-       ----iiggnnoorree--aasssseerrttiioonnss
+       --ignore-assertions
               ignore any failing balance assertions in the journal
 
        hledger reporting options:
 
-       --bb ----bbeeggiinn==DDAATTEE
+       -b --begin=DATE
               include postings/txns on or after this date
 
-       --ee ----eenndd==DDAATTEE
+       -e --end=DATE
               include postings/txns before this date
 
-       --DD ----ddaaiillyy
+       -D --daily
               multiperiod/multicolumn report by day
 
-       --WW ----wweeeekkllyy
+       -W --weekly
               multiperiod/multicolumn report by week
 
-       --MM ----mmoonntthhllyy
+       -M --monthly
               multiperiod/multicolumn report by month
 
-       --QQ ----qquuaarrtteerrllyy
+       -Q --quarterly
               multiperiod/multicolumn report by quarter
 
-       --YY ----yyeeaarrllyy
+       -Y --yearly
               multiperiod/multicolumn report by year
 
-       --pp ----ppeerriioodd==PPEERRIIOODDEEXXPP
+       -p --period=PERIODEXP
               set  start date, end date, and/or reporting interval all at once
               (overrides the flags above)
 
-       ----ddaattee22
+       --date2
               show, and match with -b/-e/-p/date:, secondary dates instead
 
-       --CC ----cclleeaarreedd
+       -C --cleared
               include only cleared postings/txns
 
-       ----ppeennddiinngg
+       --pending
               include only pending postings/txns
 
-       --UU ----uunncclleeaarreedd
+       -U --uncleared
               include only uncleared (and pending) postings/txns
 
-       --RR ----rreeaall
+       -R --real
               include only non-virtual postings
 
-       ----ddeepptthh==NN
+       --depth=N
               hide accounts/postings deeper than N
 
-       --EE ----eemmppttyy
+       -E --empty
               show items with zero amount, normally hidden
 
-       --BB ----ccoosstt
+       -B --cost
               show amounts in their cost price's commodity
 
-       ----ppiivvoott TTAAGG
+       --pivot TAG
               will transform  the  journal  before  any  other  processing  by
               replacing  the  account name of every posting having the tag TAG
               with content VALUE by the account name "TAG:VALUE".
@@ -140,7 +140,7 @@ OOPPTTIIOONNSS
        tion.  If the tag value is a multi:level:account:name the  new  account
        name will be "TAG:multi:level:account:name".
 
-KKEEYYSS
+KEYS
        h  shows  a  help  dialog listing all keys.  (Some but not all of these
        also appear in the quick help at the bottom of each  screen.)  Press  h
        again (or ESCAPE) to close it.
@@ -171,8 +171,8 @@ KKEEYYSS
 
        Additional screen-specific keys are described below.
 
-SSCCRREEEENNSS
-   AAccccoouunnttss ssccrreeeenn
+SCREENS
+   Accounts screen
        This is normally the first screen displayed.   It  lists  accounts  and
        their  balances,  like hledger's balance command.  By default, it shows
        all accounts and their latest ending balances.  if you specify a  query
@@ -200,22 +200,22 @@ SSCCRREEEENNSS
 
        Press right or enter to view an account's transactions register.
 
-   RReeggiisstteerr ssccrreeeenn
+   Register screen
        This screen lists all transactions affecting a particular account, like
        a check register.  Unlike hledger's register command (which lists indi-
        vidual postings), in hledger-ui's register:
 
-       +o Each line represents a whole transaction.
+       o Each line represents a whole transaction.
 
-       +o For  each  transaction,  it  shows  the other account(s) involved, in
+       o For  each  transaction,  it  shows  the other account(s) involved, in
          abbreviated form.  (If there are both real and virtual  postings,  it
          shows only the accounts affected by real postings.)
 
-       +o It  shows  the  overall  change to the current account's balance from
+       o It  shows  the  overall  change to the current account's balance from
          each transaction; positive for an inflow to  this  account,  negative
          for an outflow.
 
-       +o When no query other than a date limit is in effect, it shows the cur-
+       o When no query other than a date limit is in effect, it shows the cur-
          rent account's historic balance as of the transaction  date.   Other-
          wise  it  shows  a  running total starting from zero.  Eg, these will
          show historic balances:
@@ -231,6 +231,8 @@ SSCCRREEEENNSS
                 $ hledger-ui --begin 'this month' desc:market
                 $ hledger-ui --register checking --cleared
 
+       Filtering by account name is not very useful on this screen yet.
+
        C  toggles  cleared  mode, in which uncleared transactions and postings
        are not shown.  U toggles  uncleared  mode,  in  which  only  uncleared
        transactions/postings are shown.
@@ -241,12 +243,9 @@ SSCCRREEEENNSS
        change are shown (hledger-ui shows zero items by default,  unlike  com-
        mand-line hledger).
 
-       Press right (or enter) to view the selected transaction in full detail.
+       Press right (or enter) to view the selected transaction in detail.
 
-       Note, filter queries which filter by account name are not  very  useful
-       on this screen yet.
-
-   TTrraannssaaccttiioonn ssccrreeeenn
+   Transaction screen
        This  screen  shows  a  single transaction, as a general journal entry,
        similar to hledger's print command and  journal  format  (hledger_jour-
        nal(5)).
@@ -264,26 +263,26 @@ SSCCRREEEENNSS
        them is the transaction's position within the complete unfiltered jour-
        nal, which is a more stable id (at least until the next reload).
 
-   EErrrroorr ssccrreeeenn
+   Error screen
        This screen will appear if there is a problem, such as a  parse  error,
        when  you  press g to reload.  Once you have fixed the problem, press g
        again to reload and resume normal operation.  (Or, you can press escape
        to cancel the reload attempt.)
 
-EENNVVIIRROONNMMEENNTT
-       CCOOLLUUMMNNSS The screen width to use.  Default: the full terminal width.
+ENVIRONMENT
+       COLUMNS The screen width to use.  Default: the full terminal width.
 
-       LLEEDDGGEERR__FFIILLEE The journal file path when not specified with -f.  Default:
+       LEDGER_FILE The journal file path when not specified with -f.  Default:
        ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
-FFIILLEESS
+FILES
        Reads  data from one or more files in hledger journal, timeclock, time-
        dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
        $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
-BBUUGGSS
+BUGS
        The need to precede options with -- when invoked from hledger  is  awk-
        ward.
 
@@ -301,21 +300,21 @@ BBUUGGSS
 
 
 
-RREEPPOORRTTIINNGG BBUUGGSS
+REPORTING BUGS
        Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
-AAUUTTHHOORRSS
+AUTHORS
        Simon Michael <simon@joyful.com> and contributors
 
 
-CCOOPPYYRRIIGGHHTT
+COPYRIGHT
        Copyright (C) 2007-2016 Simon Michael.
        Released under GNU GPL v3 or later.
 
 
-SSEEEE AALLSSOO
+SEE ALSO
        hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)

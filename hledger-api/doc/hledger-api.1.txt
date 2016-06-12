@@ -3,15 +3,15 @@ hledger-api(1)               hledger User Manuals               hledger-api(1)
 
 
 
-NNAAMMEE
+NAME
        hledger-api - web API server for the hledger accounting tool
 
-SSYYNNOOPPSSIISS
+SYNOPSIS
        hledger-api [OPTIONS]
        hledger-api --swagger
        hledger api -- [OPTIONS]
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
        hledger  is  a  cross-platform program for tracking money, time, or any
        other commodity, using double-entry accounting and a  simple,  editable
        file  format.   hledger  is  inspired  by  and  largely compatible with
@@ -35,81 +35,81 @@ DDEESSCCRRIIPPTTIIOONN
        If  invoked  as hledger-api --swagger, instead of starting a server the
        API docs will be printed in Swagger 2.0 format.
 
-OOPPTTIIOONNSS
+OPTIONS
        Note: if invoking hledger-api as a hledger subcommand, write --  before
        options as shown above.
 
-       --dd ----ssttaattiicc--ddiirr==DDIIRR
+       -d --static-dir=DIR
               serve files from a different directory (default: .)
 
-       --pp ----ppoorrtt==PPOORRTT
+       -p --port=PORT
               use a different TCP port (default: 8001)
 
-       ----sswwaaggggeerr
+       --swagger
               print API docs in Swagger 2.0 format, and exit
 
        hledger general options:
 
-       --hh     show general usage (or after COMMAND, the command's usage)
+       -h     show general usage (or after COMMAND, the command's usage)
 
-       ----hheellpp show  the  current  program's  manual as plain text (or after an
+       --help show  the  current  program's  manual as plain text (or after an
               add-on COMMAND, the add-on's manual)
 
-       ----mmaann  show the current program's manual with man
+       --man  show the current program's manual with man
 
-       ----iinnffoo show the current program's manual with info
+       --info show the current program's manual with info
 
-       ----vveerrssiioonn
+       --version
               show version
 
-       ----ddeebbuugg==NN
+       --debug=N
               show debug output if N is 1-9 (default: 0)
 
-       --ff FFIILLEE ----ffiillee==FFIILLEE
+       -f FILE --file=FILE
               use a different input file.  For stdin, use -
 
-       ----rruulleess--ffiillee==RRUULLEESSFFIILLEE
+       --rules-file=RULESFILE
               Conversion  rules  file  to  use  when  reading  CSV   (default:
               FILE.rules)
 
-       ----aalliiaass==OOLLDD==NNEEWW
+       --alias=OLD=NEW
               display accounts named OLD as NEW
 
-       ----iiggnnoorree--aasssseerrttiioonnss
+       --ignore-assertions
               ignore any failing balance assertions in the journal
 
-EENNVVIIRROONNMMEENNTT
-       LLEEDDGGEERR__FFIILLEE The journal file path when not specified with -f.  Default:
+ENVIRONMENT
+       LEDGER_FILE The journal file path when not specified with -f.  Default:
        ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
-FFIILLEESS
+FILES
        Reads  data from one or more files in hledger journal, timeclock, time-
        dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
        $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
-BBUUGGSS
+BUGS
        The need to precede options with -- when invoked from hledger  is  awk-
        ward.
 
 
 
-RREEPPOORRTTIINNGG BBUUGGSS
+REPORTING BUGS
        Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
-AAUUTTHHOORRSS
+AUTHORS
        Simon Michael <simon@joyful.com> and contributors
 
 
-CCOOPPYYRRIIGGHHTT
+COPYRIGHT
        Copyright (C) 2007-2016 Simon Michael.
        Released under GNU GPL v3 or later.
 
 
-SSEEEE AALLSSOO
+SEE ALSO
        hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)

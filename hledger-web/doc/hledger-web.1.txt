@@ -3,16 +3,16 @@ hledger-web(1)               hledger User Manuals               hledger-web(1)
 
 
 
-NNAAMMEE
+NAME
        hledger-web - web interface for the hledger accounting tool
 
-SSYYNNOOPPSSIISS
+SYNOPSIS
        hledger-web [OPTIONS]
        hledger web -- [OPTIONS]
 
 
 
-DDEESSCCRRIIPPTTIIOONN
+DESCRIPTION
        hledger  is  a  cross-platform program for tracking money, time, or any
        other commodity, using double-entry accounting and a  simple,  editable
        file  format.   hledger  is  inspired  by  and  largely compatible with
@@ -72,23 +72,23 @@ DDEESSCCRRIIPPTTIIOONN
        the next request.  If a change makes the file unparseable,  hledger-web
        will show an error until the file has been fixed.
 
-OOPPTTIIOONNSS
+OPTIONS
        Note:  if invoking hledger-web as a hledger subcommand, write -- before
        options as shown above.
 
-       ----sseerrvveerr
+       --server
               disable  browser-opening  and  auto-exit-on-idle,  and  log  all
               requests to stdout
 
-       ----ppoorrtt==PPOORRTT
+       --port=PORT
               set the TCP port to listen on (default: 5000)
 
-       ----bbaassee--uurrll==UURRLL
+       --base-url=URL
               set  the  base  url (default: http://localhost:PORT).  You would
               change this when sharing over the network, or integrating within
               a larger website.
 
-       ----ffiillee--uurrll==UURRLL
+       --file-url=URL
               set the static files url (default: BASEURL/static).  hledger-web
               normally serves static files itself, but if you wanted to  serve
               them  from  another server for efficiency, you would set the url
@@ -96,86 +96,86 @@ OOPPTTIIOONNSS
 
        hledger general options:
 
-       --hh     show general usage (or after COMMAND, the command's usage)
+       -h     show general usage (or after COMMAND, the command's usage)
 
-       ----hheellpp show the current program's manual as plain  text  (or  after  an
+       --help show the current program's manual as plain  text  (or  after  an
               add-on COMMAND, the add-on's manual)
 
-       ----mmaann  show the current program's manual with man
+       --man  show the current program's manual with man
 
-       ----iinnffoo show the current program's manual with info
+       --info show the current program's manual with info
 
-       ----vveerrssiioonn
+       --version
               show version
 
-       ----ddeebbuugg==NN
+       --debug=N
               show debug output if N is 1-9 (default: 0)
 
-       --ff FFIILLEE ----ffiillee==FFIILLEE
+       -f FILE --file=FILE
               use a different input file.  For stdin, use -
 
-       ----rruulleess--ffiillee==RRUULLEESSFFIILLEE
+       --rules-file=RULESFILE
               Conversion   rules  file  to  use  when  reading  CSV  (default:
               FILE.rules)
 
-       ----aalliiaass==OOLLDD==NNEEWW
+       --alias=OLD=NEW
               display accounts named OLD as NEW
 
-       ----iiggnnoorree--aasssseerrttiioonnss
+       --ignore-assertions
               ignore any failing balance assertions in the journal
 
        hledger reporting options:
 
-       --bb ----bbeeggiinn==DDAATTEE
+       -b --begin=DATE
               include postings/txns on or after this date
 
-       --ee ----eenndd==DDAATTEE
+       -e --end=DATE
               include postings/txns before this date
 
-       --DD ----ddaaiillyy
+       -D --daily
               multiperiod/multicolumn report by day
 
-       --WW ----wweeeekkllyy
+       -W --weekly
               multiperiod/multicolumn report by week
 
-       --MM ----mmoonntthhllyy
+       -M --monthly
               multiperiod/multicolumn report by month
 
-       --QQ ----qquuaarrtteerrllyy
+       -Q --quarterly
               multiperiod/multicolumn report by quarter
 
-       --YY ----yyeeaarrllyy
+       -Y --yearly
               multiperiod/multicolumn report by year
 
-       --pp ----ppeerriioodd==PPEERRIIOODDEEXXPP
+       -p --period=PERIODEXP
               set start date, end date, and/or reporting interval all at  once
               (overrides the flags above)
 
-       ----ddaattee22
+       --date2
               show, and match with -b/-e/-p/date:, secondary dates instead
 
-       --CC ----cclleeaarreedd
+       -C --cleared
               include only cleared postings/txns
 
-       ----ppeennddiinngg
+       --pending
               include only pending postings/txns
 
-       --UU ----uunncclleeaarreedd
+       -U --uncleared
               include only uncleared (and pending) postings/txns
 
-       --RR ----rreeaall
+       -R --real
               include only non-virtual postings
 
-       ----ddeepptthh==NN
+       --depth=N
               hide accounts/postings deeper than N
 
-       --EE ----eemmppttyy
+       -E --empty
               show items with zero amount, normally hidden
 
-       --BB ----ccoosstt
+       -B --cost
               show amounts in their cost price's commodity
 
-       ----ppiivvoott TTAAGG
+       --pivot TAG
               will  transform  the  journal  before  any  other  processing by
               replacing the account name of every posting having the  tag  TAG
               with content VALUE by the account name "TAG:VALUE".
@@ -184,18 +184,18 @@ OOPPTTIIOONNSS
        tion.   If  the tag value is a multi:level:account:name the new account
        name will be "TAG:multi:level:account:name".
 
-EENNVVIIRROONNMMEENNTT
-       LLEEDDGGEERR__FFIILLEE The journal file path when not specified with -f.  Default:
+ENVIRONMENT
+       LEDGER_FILE The journal file path when not specified with -f.  Default:
        ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
        nal).
 
-FFIILLEESS
+FILES
        Reads data from one or more files in hledger journal, timeclock,  time-
        dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
        $HOME/.hledger.journal          (on          windows,           perhaps
        C:/Users/USER/.hledger.journal).
 
-BBUUGGSS
+BUGS
        The  need  to precede options with -- when invoked from hledger is awk-
        ward.
 
@@ -209,21 +209,21 @@ BBUUGGSS
 
 
 
-RREEPPOORRTTIINNGG BBUUGGSS
+REPORTING BUGS
        Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
-AAUUTTHHOORRSS
+AUTHORS
        Simon Michael <simon@joyful.com> and contributors
 
 
-CCOOPPYYRRIIGGHHTT
+COPYRIGHT
        Copyright (C) 2007-2016 Simon Michael.
        Released under GNU GPL v3 or later.
 
 
-SSEEEE AALLSSOO
+SEE ALSO
        hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)

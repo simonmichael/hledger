@@ -56,7 +56,8 @@ pandoc = "pandoc"                   -- pandoc from PATH (faster)
          --  "stack exec -- pandoc" -- pandoc from project's stackage snapshot
 hakyllstd = "site/hakyll-std/hakyll-std"
 makeinfo = "makeinfo"
-nroff = "nroff"
+-- nroff = "nroff"
+groff = "groff"
 
 main = do
 
@@ -164,7 +165,7 @@ main = do
     txtmanpages |%> \out -> do  -- hledger/doc/hledger.1.txt
       let src = dropExtension out
       need [src]
-      cmd Shell nroff "-man" src ">" out
+      cmd Shell groff "-t -e -mandoc -Tascii" src  "| col -bx >" out -- http://www.tldp.org/HOWTO/Man-Page/q10.html
 
     -- use m4 and pandoc to process macros, filter content, and convert to info, suitable for info viewing
     phony "infomanpages" $ need infomanpages
