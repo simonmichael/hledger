@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.5.4.
+-- This file has been generated from package.yaml by hpack version 0.14.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -7,16 +7,15 @@ version:        0.28
 stability:      beta
 category:       Finance, Console
 synopsis:       Curses-style user interface for the hledger accounting tool
-description:
-    This is hledger's curses-style interface.
-    It is simpler and more convenient for browsing data than the command-line interface,
-    but lighter and faster than hledger-web.
-    hledger is a cross-platform program for tracking money, time, or
-    any other commodity, using double-entry accounting and a simple,
-    editable file format. It is inspired by and largely compatible
-    with ledger(1).  hledger provides command-line, curses and web
-    interfaces, and aims to be a reliable, practical tool for daily
-    use.
+description:    This is hledger's curses-style interface.
+                It is simpler and more convenient for browsing data than the command-line interface,
+                but lighter and faster than hledger-web.
+                hledger is a cross-platform program for tracking money, time, or
+                any other commodity, using double-entry accounting and a simple,
+                editable file format. It is inspired by and largely compatible
+                with ledger(1).  hledger provides command-line, curses and web
+                interfaces, and aims to be a reliable, practical tool for daily
+                use.
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
@@ -33,32 +32,29 @@ extra-source-files:
 
 data-files:
     doc/hledger-ui.1
-    doc/hledger-ui.1.txt
     doc/hledger-ui.1.info
+    doc/hledger-ui.1.txt
 
 source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
-flag threaded
-  default: True
-  description:
-    Build with support for multithreaded execution
-
 flag old-locale
   default: False
-  description:
-    A compatibility flag, set automatically by cabal.
-    If false then depend on time >= 1.5,
-    if true then depend on time < 1.5 together with old-locale.
+  description: A compatibility flag, set automatically by cabal. If false then depend on time >= 1.5, if true then depend on time < 1.5 together with old-locale.
+
+  manual: False
+
+flag threaded
+  default: True
+  description: Build with support for multithreaded execution
+  manual: False
 
 executable hledger-ui
   main-is: hledger-ui.hs
   hs-source-dirs:
       .
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  if flag(threaded)
-    ghc-options: -threaded
   cpp-options: -DVERSION="0.28"
   build-depends:
       hledger >= 0.28 && < 0.29
@@ -81,22 +77,28 @@ executable hledger-ui
     , transformers
     , vector
     , vty >= 5.2 && < 5.6
-  if impl(ghc >= 7.4)
-    build-depends: pretty-show >= 1.6.4
+  if flag(threaded)
+    ghc-options: -threaded
   if flag(old-locale)
-    build-depends: time < 1.5, old-locale
+    build-depends:
+        time < 1.5
+      , old-locale
   else
-    build-depends: time >= 1.5
+    build-depends:
+        time >= 1.5
+  if impl(ghc >= 7.4)
+    build-depends:
+        pretty-show >= 1.6.4
   other-modules:
       Hledger.UI
+      Hledger.UI.AccountsScreen
+      Hledger.UI.ErrorScreen
       Hledger.UI.Main
-      Hledger.UI.UIOptions
+      Hledger.UI.RegisterScreen
       Hledger.UI.Theme
+      Hledger.UI.TransactionScreen
+      Hledger.UI.UIOptions
       Hledger.UI.UIState
       Hledger.UI.UITypes
       Hledger.UI.UIUtils
-      Hledger.UI.AccountsScreen
-      Hledger.UI.ErrorScreen
-      Hledger.UI.RegisterScreen
-      Hledger.UI.TransactionScreen
   default-language: Haskell2010
