@@ -113,8 +113,11 @@ type AccountTransactionsReportItem =
   )
 
 accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> AccountTransactionsReport
-accountTransactionsReport opts j q thisacctquery = (label, items)
+accountTransactionsReport opts j reportq thisacctquery = (label, items)
   where
+    -- a depth limit does not affect the account transactions report
+    q  = -- filterQuery (not . queryIsDepth) -- seems unnecessary for some reason XXX
+         reportq
     -- get all transactions, with amounts converted to cost basis if -B
     ts1 = jtxns $ journalSelectingAmountFromOpts opts j
     -- apply any cur:SYM filters in q
