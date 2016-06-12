@@ -268,6 +268,8 @@ individual postings), in hledger-ui's register:
      $ hledger-ui --register checking --cleared
 
 
+   Filtering by account name is not very useful on this screen yet.
+
    `C' toggles cleared mode, in which uncleared transactions and
 postings are not shown. `U' toggles uncleared mode, in which only
 uncleared transactions/postings are shown.
@@ -278,11 +280,8 @@ uncleared transactions/postings are shown.
 nonzero change are shown (hledger-ui shows zero items by default, unlike
 command-line hledger).
 
-   Press `right' (or `enter') to view the selected transaction in full
+   Press `right' (or `enter') to view the selected transaction in
 detail.
-
-   Note, filter queries which filter by account name are not very
-useful on this screen yet.
 
 
 File: hledger-ui.1.info,  Node: Transaction screen,  Next: Error screen,  Prev: Register screen,  Up: SCREENS
@@ -333,9 +332,9 @@ Node: Accounts screen5275
 Ref: #accounts-screen5405
 Node: Register screen6635
 Ref: #register-screen6792
-Node: Transaction screen8545
-Ref: #transaction-screen8705
-Node: Error screen9572
-Ref: #error-screen9696
+Node: Transaction screen8515
+Ref: #transaction-screen8675
+Node: Error screen9542
+Ref: #error-screen9666
 
 End Tag Table
