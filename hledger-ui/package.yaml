@@ -1,12 +1,6 @@
 # hpack specification for generating the cabal file
 # https://github.com/sol/hpack#readme
 # http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
-#
-# as of hpack 0.5.4 these must be added manually:
-# - tested-with
-# - flags
-# - benchmarks
-# - conditional blocks
 
 name        : hledger-ui
 version     : '0.28'
