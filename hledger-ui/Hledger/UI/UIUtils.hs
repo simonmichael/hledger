@@ -104,6 +104,16 @@ borderKeysStr keydescs =
     -- sep = str " | "
     sep = str " "
 
+-- temporary shenanigans:
+
+-- | Convert the special account name "*" (from balance report with depth limit 0) to something clearer.
+replaceHiddenAccountsNameWith :: AccountName -> AccountName -> AccountName
+replaceHiddenAccountsNameWith anew a | a == hiddenAccountsName = anew
+                                     | a == "*"                = anew
+                                     | otherwise               = a
+
+hiddenAccountsName = "..." -- for now
+
 -- generic
 
 topBottomBorderWithLabel :: Widget -> Widget -> Widget

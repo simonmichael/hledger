@@ -86,7 +86,7 @@ asInit d reset ui@UIState{
     displayitem ((fullacct, shortacct, indent), bal) =
       AccountsScreenItem{asItemIndentLevel        = indent
                         ,asItemAccountName        = fullacct
-                        ,asItemDisplayAccountName = if flat_ ropts' then fullacct else shortacct
+                        ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if flat_ ropts' then fullacct else shortacct
                         ,asItemRenderedAmounts    = map showAmountWithoutPrice amts -- like showMixedAmountOneLineWithoutPrice
                         }
       where

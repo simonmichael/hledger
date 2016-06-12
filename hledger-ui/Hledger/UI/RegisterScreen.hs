@@ -44,7 +44,7 @@ registerScreen = RegisterScreen{
   ,rsAccount = ""
   }
 
-rsSetAccount a scr@RegisterScreen{} = scr{rsAccount=a}
+rsSetAccount a scr@RegisterScreen{} = scr{rsAccount=replaceHiddenAccountsNameWith "*" a}
 rsSetAccount _ scr = scr
 
 rsInit :: Day -> Bool -> UIState -> UIState
@@ -107,7 +107,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
-    toplabel = withAttr ("border" <> "bold") (str $ T.unpack rsAccount)
+    toplabel = withAttr ("border" <> "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
             <+> togglefilters
             <+> str " transactions"
             <+> borderQueryStr (query_ ropts)

@@ -66,7 +66,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
       <+> str (" of "++show (length nts))
       <+> togglefilters
       <+> borderQueryStr (query_ ropts)
-      <+> str (" in "++T.unpack acct++")")
+      <+> str (" in "++T.unpack (replaceHiddenAccountsNameWith "All" acct)++")")
     togglefilters =
       case concat [
            if cleared_ ropts then ["cleared"] else []
