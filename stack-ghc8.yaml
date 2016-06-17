@@ -4,7 +4,7 @@
 
 # cf https://github.com/commercialhaskell/stack/wiki/stack.yaml
 
-resolver: nightly-2016-06-01
+resolver: nightly-2016-06-17
 
 packages:
 - hledger-lib
@@ -15,17 +15,17 @@ packages:
 flags:
 
 extra-deps:
-- brick-0.6.4
-- Decimal-0.4.2
+# hledger
 - control-monad-free-0.6.1
-- csv-0.1.2
-- html-1.0.1.2
-- json-0.9.1
 - tabular-0.2.2.7
-- timeit-1.0.0.0
-- uglymemo-0.1.0.1
-- wai-handler-launch-3.0.2.1
 - wizards-1.0.2
+# hledger --bench
+- timeit-1.0.0.0
+# hledger-ui
+- brick-0.6.4
+# hledger-web
+- json-0.9.1
+- wai-handler-launch-3.0.2.1
 
 # ghc-options:
 #     # All packages
