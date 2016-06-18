@@ -48,12 +48,12 @@ helpDialog =
            vBox [
              str "FILTERING"
             ,renderKey ("/", "set a filter query")
-            ,renderKey ("DEL/BS", "remove filters")
             ,renderKey ("C", "toggle cleared filter")
             ,renderKey ("U", "toggle uncleared filter")
             ,renderKey ("R", "toggle real filter")
-            ,renderKey ("E", "toggle nonzero filter")
+            ,renderKey ("Z", "toggle nonzero filter")
             ,renderKey ("F", "toggle flat/exclusive mode")
+            ,renderKey ("DEL/BS", "remove filters")
             ,str "accounts screen:"
             ,renderKey ("-+0123456789", "set depth limit")
             ]

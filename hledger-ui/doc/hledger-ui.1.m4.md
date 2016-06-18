@@ -130,7 +130,7 @@ transactions/postings are shown.
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 
-`E` toggles nonzero mode, in which only accounts with nonzero balances
+`Z` toggles nonzero mode, in which only accounts with nonzero balances
 are shown (hledger-ui shows zero items by default, unlike command-line
 hledger).
 
@@ -179,7 +179,7 @@ transactions/postings are shown.
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 
-`E` toggles nonzero mode, in which only transactions posting a nonzero
+`Z` toggles nonzero mode, in which only transactions posting a nonzero
 change are shown (hledger-ui shows zero items by default,
 unlike command-line hledger).
 
