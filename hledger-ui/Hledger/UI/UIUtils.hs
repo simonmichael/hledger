@@ -91,7 +91,7 @@ borderQueryStr qry = str " matching " <+> withAttr (borderAttr <> "query") (str 
 
 borderDepthStr :: Maybe Int -> Widget
 borderDepthStr Nothing  = str ""
-borderDepthStr (Just d) = str " to " <+> withAttr (borderAttr <> "depth") (str $ "depth "++show d)
+borderDepthStr (Just d) = str " to " <+> withAttr (borderAttr <> "query") (str $ "depth "++show d)
 
 borderKeysStr :: [(String,String)] -> Widget
 borderKeysStr keydescs =
