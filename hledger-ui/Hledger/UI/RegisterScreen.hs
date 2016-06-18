@@ -35,21 +35,22 @@ import Hledger.UI.UIUtils
 import Hledger.UI.TransactionScreen
 import Hledger.UI.ErrorScreen
 
-registerScreen :: Screen
+registerScreen :: RegisterScreen
 registerScreen = RegisterScreen{
-   sInit   = rsInit
-  ,sDraw   = rsDraw
-  ,sHandle = rsHandle
+   rsInit   = rsInit_
+  ,rsDraw   = rsDraw_
+  ,rsHandle = rsHandle_
   ,rsList    = list "register" V.empty 1
   ,rsAccount = ""
   }
 
-rsSetAccount a scr@RegisterScreen{} = scr{rsAccount=replaceHiddenAccountsNameWith "*" a}
+rsSetAccount :: AccountName -> Screen -> Screen
+rsSetAccount a (RegScreen scr@RegisterScreen{}) = RegScreen (scr{rsAccount=replaceHiddenAccountsNameWith "*" a})
 rsSetAccount _ scr = scr
 
-rsInit :: Day -> Bool -> UIState -> UIState
-rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
-  ui{aScreen=s{rsList=newitems'}}
+rsInit_ :: Day -> Bool -> UIState -> UIState
+rsInit_ d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajournal=j, aScreen=RegScreen(s@RegisterScreen{..})} =
+  ui{aScreen=RegScreen(s{rsList=newitems'})}
   where
     -- gather arguments and queries
     ropts' = ropts{
@@ -94,11 +95,11 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
                                    -> fromMaybe endidx $ findIndex ((==ti) . tindex . rsItemTransaction) displayitems
         endidx = length displayitems
 
-rsInit _ _ _ = error "init function called with wrong screen type, should not happen"
+rsInit_ _ _ _ = error "init function called with wrong screen type, should not happen"
 
-rsDraw :: UIState -> [Widget]
-rsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
-                            ,aScreen=RegisterScreen{..}
+rsDraw_ :: UIState -> [Widget]
+rsDraw_ UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+                            ,aScreen=RegScreen RegisterScreen{..}
                             ,aMode=mode
                             } =
   case mode of
@@ -157,7 +158,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
         changewidthproportion = fromIntegral maxchangewidthseen / fromIntegral (maxchangewidthseen + maxbalwidthseen)
         maxchangewidth = round $ changewidthproportion * fromIntegral maxamtswidth
         maxbalwidth = maxamtswidth - maxchangewidth
-        changewidth = min maxchangewidth maxchangewidthseen 
+        changewidth = min maxchangewidth maxchangewidthseen
         balwidth = min maxbalwidth maxbalwidthseen
         -- assign the remaining space to the description and accounts columns
         -- maxdescacctswidth = totalwidth - (whitespacewidth - 4) - changewidth - balwidth
@@ -170,7 +171,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
         -- descwidthproportion = (descwidth' + acctswidth') / descwidth'
         -- maxdescwidth = min (maxdescacctswidth - 7) (maxdescacctswidth / descwidthproportion)
         -- maxacctswidth = maxdescacctswidth - maxdescwidth
-        -- descwidth = min maxdescwidth descwidth' 
+        -- descwidth = min maxdescwidth descwidth'
         -- acctswidth = min maxacctswidth acctswidth'
         -- allocating equally.
         descwidth = maxdescacctswidth `div` 2
@@ -195,7 +196,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           ,("q", "quit")
           ]
 
-rsDraw _ = error "draw function called with wrong screen type, should not happen"
+rsDraw_ _ = error "draw function called with wrong screen type, should not happen"
 
 rsDrawItem :: (Int,Int,Int,Int,Int) -> Bool -> RegisterScreenItem -> Widget
 rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected RegisterScreenItem{..} =
@@ -218,9 +219,9 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
     sel | selected  = (<> "selected")
         | otherwise = id
 
-rsHandle :: UIState -> Event -> EventM (Next UIState)
-rsHandle ui@UIState{
-   aScreen=s@RegisterScreen{..}
+rsHandle_ :: UIState -> Event -> EventM (Next UIState)
+rsHandle_ ui@UIState{
+   aScreen=RegScreen(s@RegisterScreen{..})
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   ,aMode=mode
@@ -264,16 +265,16 @@ rsHandle ui@UIState{
                 numberedts = zip [1..] ts
                 i = fromIntegral $ maybe 0 (+1) $ elemIndex t ts -- XXX
               in
-                continue $ screenEnter d transactionScreen{tsTransaction=(i,t)
-                                                          ,tsTransactions=numberedts
-                                                          ,tsAccount=rsAccount} ui
+                continue $ screenEnter d (TransScreen (transactionScreen{tsTransaction=(i,t)
+                                                                        ,tsTransactions=numberedts
+                                                                        ,tsAccount=rsAccount})) ui
             Nothing -> continue ui
         -- fall through to the list's event handler (handles [pg]up/down)
         ev -> do newitems <- handleEvent ev rsList
-                 continue ui{aScreen=s{rsList=newitems}}
+                 continue ui{aScreen=RegScreen(s{rsList=newitems})}
                  -- continue =<< handleEventLensed ui someLens ev
       where
         -- Encourage a more stable scroll position when toggling list items (cf AccountsScreen.hs)
         scrollTop = vScrollToBeginning $ viewportScroll "register"
 
-rsHandle _ _ = error "event handler called with wrong screen type, should not happen"
+rsHandle_ _ _ = error "event handler called with wrong screen type, should not happen"

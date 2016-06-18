@@ -82,42 +82,77 @@ instance Eq Editor where _ == _ = True
 -- | hledger-ui screen types & instances.
 -- Each screen type has generically named initialisation, draw, and event handling functions,
 -- and zero or more uniquely named screen state fields, which hold the data for a particular
--- instance of this screen. Note the latter create partial functions, which means that some invalid
--- cases need to be handled, and also that their lenses are traversals, not single-value getters.
-data Screen =
-    AccountsScreen {
-       sInit   :: Day -> Bool -> UIState -> UIState              -- ^ function to initialise or update this screen's state
-      ,sDraw   :: UIState -> [Widget]                             -- ^ brick renderer for this screen
-      ,sHandle :: UIState -> Event -> EventM (Next UIState)  -- ^ brick event handler for this screen
-      -- state fields.These ones have lenses:
-      ,_asList            :: List AccountsScreenItem  -- ^ list widget showing account names & balances
-      ,_asSelectedAccount :: AccountName              -- ^ a backup of the account name from the list widget's selected item (or "")
-    }
-  | RegisterScreen {
-       sInit   :: Day -> Bool -> UIState -> UIState
-      ,sDraw   :: UIState -> [Widget]
-      ,sHandle :: UIState -> Event -> EventM (Next UIState)
-      --
-      ,rsList    :: List RegisterScreenItem           -- ^ list widget showing transactions affecting this account
-      ,rsAccount :: AccountName                       -- ^ the account this register is for
-    }
-  | TransactionScreen {
-       sInit   :: Day -> Bool -> UIState -> UIState
-      ,sDraw   :: UIState -> [Widget]
-      ,sHandle :: UIState -> Event -> EventM (Next UIState)
-      --
-      ,tsTransaction  :: NumberedTransaction          -- ^ the transaction we are currently viewing, and its position in the list
-      ,tsTransactions :: [NumberedTransaction]        -- ^ list of transactions we can step through
-      ,tsAccount      :: AccountName                  -- ^ the account whose register we entered this screen from
-    }
-  | ErrorScreen {
-       sInit   :: Day -> Bool -> UIState -> UIState
-      ,sDraw   :: UIState -> [Widget]
-      ,sHandle :: UIState -> Event -> EventM (Next UIState)
-      --
-      ,esError :: String                              -- ^ error message to show
-    }
+-- instance of this screen.
+data Screen
+  = AcctsScreen AccountsScreen
+  | RegScreen   RegisterScreen
+  | TransScreen TransactionScreen
+  | ErrScreen   ErrorScreen
   deriving (Show)
+
+-- | function to initialise or update this screen's state
+sInit :: Screen -> Day -> Bool -> UIState -> UIState
+sInit s day reset state =
+  case aScreen state of
+    AcctsScreen s' -> asInit s' day reset state
+    RegScreen   s' -> rsInit s' day reset state
+    TransScreen s' -> tsInit s' day reset state
+    ErrScreen   s' -> esInit s' day reset state
+
+-- | brick renderer for this screen
+sDraw :: Screen -> UIState -> [Widget]
+sDraw s state =
+  case aScreen state of
+    AcctsScreen s' -> asDraw s' state
+    RegScreen   s' -> rsDraw s' state
+    TransScreen s' -> tsDraw s' state
+    ErrScreen   s' -> esDraw s' state
+
+-- | brick event handler for this screen
+sHandle :: Screen -> UIState -> Event -> EventM (Next UIState)
+sHandle screen state event =
+  case aScreen state of
+    AcctsScreen s' -> asHandle s' state event
+    RegScreen   s' -> rsHandle s' state event
+    TransScreen s' -> tsHandle s' state event
+    ErrScreen   s' -> esHandle s' state event
+
+
+data AccountsScreen = AccountsScreen
+  { asInit   :: Day -> Bool -> UIState -> UIState
+  , asDraw   :: UIState -> [Widget]
+  , asHandle :: UIState -> Event -> EventM (Next UIState)
+  -- state fields.These ones have lenses:
+  ,_asList            :: List AccountsScreenItem  -- ^ list widget showing account names & balances
+  ,_asSelectedAccount :: AccountName              -- ^ a backup of the account name from the list widget's selected item (or "")
+  } deriving (Show)
+
+data RegisterScreen = RegisterScreen
+  { rsInit   :: Day -> Bool -> UIState -> UIState
+  , rsDraw   :: UIState -> [Widget]
+  , rsHandle :: UIState -> Event -> EventM (Next UIState)
+    --
+  , rsList    :: List RegisterScreenItem           -- ^ list widget showing transactions affecting this account
+  , rsAccount :: AccountName                       -- ^ the account this register is for
+  } deriving (Show)
+
+data TransactionScreen = TransactionScreen
+  { tsInit   :: Day -> Bool -> UIState -> UIState
+  , tsDraw   :: UIState -> [Widget]
+  , tsHandle :: UIState -> Event -> EventM (Next UIState)
+    --
+  , tsTransaction  :: NumberedTransaction          -- ^ the transaction we are currently viewing, and its position in the list
+  , tsTransactions :: [NumberedTransaction]        -- ^ list of transactions we can step through
+  , tsAccount      :: AccountName                  -- ^ the account whose register we entered this screen from
+  } deriving (Show)
+
+data ErrorScreen = ErrorScreen
+  { esInit   :: Day -> Bool -> UIState -> UIState
+  , esDraw   :: UIState -> [Widget]
+  , esHandle :: UIState -> Event -> EventM (Next UIState)
+    --
+  , esError :: String                              -- ^ error message to show
+  } deriving (Show)
 
 -- | An item in the accounts screen's list of accounts and balances.
 data AccountsScreenItem = AccountsScreenItem {
@@ -145,7 +180,4 @@ instance Monoid (List a)
     mempty        = list "" V.empty 1
     mappend l1 l2 = l1 & listElementsL .~ (l1^.listElementsL <> l2^.listElementsL)
 
-concat <$> mapM makeLenses [
-   ''Screen
-  ]
-
+makeLenses ''AccountsScreen
