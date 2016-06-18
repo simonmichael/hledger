@@ -89,7 +89,7 @@ rsInit d reset ui@UIState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{..}} 
     newitems' = listMoveTo newselidx newitems
       where
         newselidx = case (reset, listSelectedElement rsList) of
-                      (True, _)    -> 0
+                      (True, _)    -> endidx
                       (_, Nothing) -> endidx
                       (_, Just (_,RegisterScreenItem{rsItemTransaction=Transaction{tindex=ti}}))
                                    -> fromMaybe endidx $ findIndex ((==ti) . tindex . rsItemTransaction) displayitems
