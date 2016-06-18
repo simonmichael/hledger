@@ -20,21 +20,21 @@ import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 
-errorScreen :: Screen
+errorScreen :: ErrorScreen
 errorScreen = ErrorScreen{
-   sInit    = esInit
-  ,sDraw    = esDraw
-  ,sHandle  = esHandle
+   esInit    = esInit_
+  ,esDraw    = esDraw_
+  ,esHandle  = esHandle_
   ,esError  = ""
   }
 
-esInit :: Day -> Bool -> UIState -> UIState
-esInit _ _ ui@UIState{aScreen=ErrorScreen{}} = ui
-esInit _ _ _ = error "init function called with wrong screen type, should not happen"
+esInit_ :: Day -> Bool -> UIState -> UIState
+esInit_ _ _ ui@UIState{aScreen=ErrScreen{}} = ui
+esInit_ _ _ _ = error "init function called with wrong screen type, should not happen"
 
-esDraw :: UIState -> [Widget]
-esDraw UIState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
-                             aScreen=ErrorScreen{..}
+esDraw_ :: UIState -> [Widget]
+esDraw_ UIState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
+                             aScreen=ErrScreen (ErrorScreen{..})
                              ,aMode=mode} =
   case mode of
     Help       -> [helpDialog, maincontent]
@@ -55,11 +55,11 @@ esDraw UIState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropt
           ,("q", "quit")
           ]
 
-esDraw _ = error "draw function called with wrong screen type, should not happen"
+esDraw_ _ = error "draw function called with wrong screen type, should not happen"
 
-esHandle :: UIState -> Event -> EventM (Next UIState)
-esHandle ui@UIState{
-   aScreen=s@ErrorScreen{}
+esHandle_ :: UIState -> Event -> EventM (Next UIState)
+esHandle_ ui@UIState{
+   aScreen=ErrScreen(s@ErrorScreen{})
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   ,aMode=mode
@@ -79,11 +79,11 @@ esHandle ui@UIState{
         EvKey (KChar 'g') [] -> do
           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
           case ej of
-            Left err -> continue ui{aScreen=s{esError=err}} -- show latest parse error
+            Left err -> continue ui{aScreen=ErrScreen(s{esError=err})} -- show latest parse error
             Right j' -> continue $ regenerateScreens j' d $ popScreen ui  -- return to previous screen, and reload it
         _ -> continue ui
 
-esHandle _ _ = error "event handler called with wrong screen type, should not happen"
+esHandle_ _ _ = error "event handler called with wrong screen type, should not happen"
 
 -- If journal file(s) have changed, reload the journal and regenerate all screens.
 -- This is here so it can reference the error screen.
@@ -92,5 +92,5 @@ uiReloadJournalIfChanged copts d j ui = do
   (ej, _) <- journalReloadIfChanged copts d j
   return $ case ej of
     Right j' -> regenerateScreens j' d ui
-    Left err -> screenEnter d errorScreen{esError=err} ui
+    Left err -> screenEnter d (ErrScreen errorScreen{esError=err}) ui
 

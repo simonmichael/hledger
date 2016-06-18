@@ -27,28 +27,28 @@ import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.ErrorScreen
 
-transactionScreen :: Screen
+transactionScreen :: TransactionScreen
 transactionScreen = TransactionScreen{
-   sInit   = tsInit
-  ,sDraw   = tsDraw
-  ,sHandle = tsHandle
+   tsInit   = tsInit_
+  ,tsDraw   = tsDraw_
+  ,tsHandle = tsHandle_
   ,tsTransaction  = (1,nulltransaction)
   ,tsTransactions = [(1,nulltransaction)]
   ,tsAccount      = ""
   }
 
-tsInit :: Day -> Bool -> UIState -> UIState
-tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
+tsInit_ :: Day -> Bool -> UIState -> UIState
+tsInit_ _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
                                            ,ajournal=_j
-                                           ,aScreen=TransactionScreen{..}} = ui
-tsInit _ _ _ = error "init function called with wrong screen type, should not happen"
+                                           ,aScreen=TransScreen(TransactionScreen{..})} = ui
+tsInit_ _ _ _ = error "init function called with wrong screen type, should not happen"
 
-tsDraw :: UIState -> [Widget]
-tsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
-                              ,aScreen=TransactionScreen{
+tsDraw_ :: UIState -> [Widget]
+tsDraw_ UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+                              ,aScreen=TransScreen(TransactionScreen{
                                    tsTransaction=(i,t)
                                   ,tsTransactions=nts
-                                  ,tsAccount=acct}
+                                  ,tsAccount=acct})
                               ,aMode=mode} =
   case mode of
     Help       -> [helpDialog, maincontent]
@@ -96,12 +96,12 @@ tsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           ,("q", "quit")
           ]
 
-tsDraw _ = error "draw function called with wrong screen type, should not happen"
+tsDraw_ _ = error "draw function called with wrong screen type, should not happen"
 
-tsHandle :: UIState -> Event -> EventM (Next UIState)
-tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
-                                                ,tsTransactions=nts
-                                                ,tsAccount=acct}
+tsHandle_ :: UIState -> Event -> EventM (Next UIState)
+tsHandle_ ui@UIState{aScreen=TransScreen(s@TransactionScreen{tsTransaction=(i,t)
+                                                            ,tsTransactions=nts
+                                                            ,tsAccount=acct})
                     ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                     ,ajournal=j
                     ,aMode=mode
@@ -126,7 +126,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
           d <- liftIO getCurrentDay
           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
           case ej of
-            Left err -> continue $ screenEnter d errorScreen{esError=err} ui
+            Left err -> continue $ screenEnter d (ErrScreen errorScreen{esError=err}) ui
             Right j' -> do
               -- got to redo the register screen's transactions report, to get the latest transactions list for this screen
               -- XXX duplicates rsInit
@@ -146,25 +146,26 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
                              Nothing | null numberedts -> (0,nulltransaction)
                                      | i > fst (last numberedts) -> last numberedts
                                      | otherwise -> head numberedts
-                ui' = ui{aScreen=s{tsTransaction=(i',t')
-                                  ,tsTransactions=numberedts
-                                  ,tsAccount=acct}}
+                ui' = ui{aScreen=TransScreen(s{tsTransaction=(i',t')
+                                              ,tsTransactions=numberedts
+                                              ,tsAccount=acct})}
               continue $ regenerateScreens j' d ui'
         -- if allowing toggling here, we should refresh the txn list from the parent register screen
         -- EvKey (KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty ui
         -- EvKey (KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared ui
         -- EvKey (KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal ui
-        EvKey KUp   [] -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(iprev,tprev)}}
-        EvKey KDown [] -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(inext,tnext)}}
+        EvKey KUp   [] -> continue $ regenerateScreens j d ui{aScreen=TransScreen(s{tsTransaction=(iprev,tprev)})}
+        EvKey KDown [] -> continue $ regenerateScreens j d ui{aScreen=TransScreen(s{tsTransaction=(inext,tnext)})}
         EvKey KLeft [] -> continue ui''
           where
             ui'@UIState{aScreen=scr} = popScreen ui
             ui'' = ui'{aScreen=rsSelect (fromIntegral i) scr}
         _ -> continue ui
 
-tsHandle _ _ = error "event handler called with wrong screen type, should not happen"
+tsHandle_ _ _ = error "event handler called with wrong screen type, should not happen"
 
 -- | Select the nth item on the register screen.
-rsSelect i scr@RegisterScreen{..} = scr{rsList=l'}
+rsSelect :: Int -> Screen -> Screen
+rsSelect i (RegScreen (scr@RegisterScreen{..})) = RegScreen (scr{rsList=l'})
   where l' = listMoveTo (i-1) rsList
 rsSelect _ scr = scr
