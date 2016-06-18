@@ -111,6 +111,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
     toplabel = files
             <+> nonzero
             <+> str " accounts"
+            <+> withAttr (borderAttr <> "query") (str (if flat_ ropts then " (flat)" else ""))
             <+> borderQueryStr querystr
             <+> togglefilters
             <+> borderDepthStr mdepth

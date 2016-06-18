@@ -261,10 +261,7 @@ By default, it shows all accounts and their latest ending balances.
 if you specify a query on the command line, it shows just the matched
 accounts and the balances from matched transactions.
 .PP
-When not in flat mode, indentation indicates the account hierarchy.
-\f[C]F\f[] toggles flat mode on and off.
-.PP
-By default, all subaccounts are displayed.
+Account names are normally indented to show the hierarchy (tree mode).
 To see less detail, set a depth limit by pressing a number key,
 \f[C]1\f[] to \f[C]9\f[].
 \f[C]0\f[] shows even less detail, collapsing all accounts to a single
@@ -273,6 +270,10 @@ total.
 depth limit.
 To remove the depth limit, set it higher than the maximum account depth,
 or press \f[C]ESCAPE\f[].
+.PP
+\f[C]F\f[] toggles flat mode on and off.
+In flat mode, accounts are listed without indentation (and account
+registers will exclude subaccounts, see below).
 .PP
 \f[C]C\f[] toggles cleared mode, in which uncleared transactions and
 postings are not shown.
@@ -289,25 +290,23 @@ Press \f[C]right\f[] or \f[C]enter\f[] to view an account\[aq]s
 transactions register.
 .SS Register screen
 .PP
-This screen lists all transactions affecting a particular account, like
+This screen shows the transactions affecting a particular account, like
 a check register.
-Unlike hledger\[aq]s register command (which lists individual postings),
-in hledger\-ui\[aq]s register:
+Each line represents one transaction and shows:
 .IP \[bu] 2
-Each line represents a whole transaction.
-.IP \[bu] 2
-For each transaction, it shows the other account(s) involved, in
-abbreviated form.
+the other account(s) involved, in abbreviated form.
 (If there are both real and virtual postings, it shows only the accounts
 affected by real postings.)
 .IP \[bu] 2
-It shows the overall change to the current account\[aq]s balance from
-each transaction; positive for an inflow to this account, negative for
-an outflow.
+the overall change to the current account\[aq]s balance; positive for an
+inflow to this account, negative for an outflow.
 .IP \[bu] 2
-When no query other than a date limit is in effect, it shows the current
-account\[aq]s historic balance as of the transaction date.
-Otherwise it shows a running total starting from zero.
+the current account\[aq]s historic balance (if no query other than a
+date limit is in effect) or the running total starting from zero
+(otherwise), after the transaction.
+.PD 0
+.P
+.PD
 Eg, these will show historic balances:
 .RS 2
 .IP
@@ -330,6 +329,13 @@ $\ hledger\-ui\ \-\-register\ checking\ \-\-cleared
 \f[]
 .fi
 .RE
+.PP
+Normally the register screen shows transactions in the current account
+and any of its subaccounts (inclusive mode).
+If it was entered from accounts screen in flat mode, it shows
+transactions affecting this account specifically, without considering
+subaccounts (exclusive mode).
+As on the accounts screen you can toggle this with the \f[C]F\f[] key.
 .PP
 \f[C]C\f[] toggles cleared mode, in which uncleared transactions and
 postings are not shown.

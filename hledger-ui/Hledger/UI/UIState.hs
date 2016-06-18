@@ -65,11 +65,12 @@ setFilter :: String -> UIState -> UIState
 setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{query_=s}}}}
 
--- | Clear all filter queries/flags.
+-- | Clear all filters/flags.
 resetFilter :: UIState -> UIState
 resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{
-     empty_=True
+     accountlistmode_=ALTree
+    ,empty_=True
     ,cleared_=False
     ,pending_=False
     ,uncleared_=False

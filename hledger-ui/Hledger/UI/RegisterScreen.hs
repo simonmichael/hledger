@@ -48,21 +48,20 @@ rsSetAccount a scr@RegisterScreen{} = scr{rsAccount=replaceHiddenAccountsNameWit
 rsSetAccount _ scr = scr
 
 rsInit :: Day -> Bool -> UIState -> UIState
-rsInit d reset ui@UIState{aopts=opts, ajournal=j, aScreen=s@RegisterScreen{..}} =
+rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
   ui{aScreen=s{rsList=newitems'}}
   where
     -- gather arguments and queries
-    ropts = (reportopts_ $ cliopts_ opts)
-            {
-              depth_=Nothing,
-              balancetype_=HistoricalBalance
-            }
+    ropts' = ropts{
+               depth_=Nothing
+              ,balancetype_=HistoricalBalance
+              }
     -- XXX temp
-    thisacctq = Acct $ accountNameToAccountRegex rsAccount -- includes subs
-    q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts
+    thisacctq = Acct $ (if flat_ ropts then accountNameToAccountOnlyRegex else accountNameToAccountRegex) rsAccount
+    q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
 
-    (_label,items) = accountTransactionsReport ropts j q thisacctq
-    items' = (if empty_ ropts then id else filter (not . isZeroMixedAmount . fifth6)) $  -- without --empty, exclude no-change txns
+    (_label,items) = accountTransactionsReport ropts' j q thisacctq
+    items' = (if empty_ ropts' then id else filter (not . isZeroMixedAmount . fifth6)) $  -- without --empty, exclude no-change txns
              reverse  -- most recent last
              items
 
@@ -107,16 +106,18 @@ rsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
-    toplabel = withAttr ("border" <> "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
-            <+> togglefilters
-            <+> str " transactions"
-            <+> borderQueryStr (query_ ropts)
-            -- <+> str " and subs"
-            <+> str " ("
-            <+> cur
-            <+> str "/"
-            <+> total
-            <+> str ")"
+    toplabel =
+          withAttr ("border" <> "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
+      <+> withAttr (borderAttr <> "query") (str $ if flat_ ropts then " (exclusive)" else "")
+      <+> togglefilters
+      <+> str " transactions"
+      <+> borderQueryStr (query_ ropts)
+      -- <+> str " and subs"
+      <+> str " ("
+      <+> cur
+      <+> str "/"
+      <+> total
+      <+> str ")"
     togglefilters =
       case concat [
            if cleared_ ropts then ["cleared"] else []
@@ -247,6 +248,7 @@ rsHandle ui@UIState{
         EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
         EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
+        EvKey (KChar 'F') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleFlat ui)
         EvKey (KChar 'E') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
         EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
         EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleUncleared ui)

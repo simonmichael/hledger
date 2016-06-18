@@ -41,23 +41,21 @@ helpDialog =
             ,str "  move selection"
             ,renderKey ("RIGHT/ENTER", "drill down")
             ,renderKey ("LEFT", "previous screen")
-            ,renderKey ("ESC", "cancel / reset to top")
+            ,renderKey ("ESC", "cancel / reset")
             ]
         )
         ,(padLeftRight 1 $
            vBox [
              str "FILTERING"
+            ,renderKey ("/", "set a filter query")
+            ,renderKey ("DEL/BS", "remove filters")
             ,renderKey ("C", "toggle cleared filter")
             ,renderKey ("U", "toggle uncleared filter")
             ,renderKey ("R", "toggle real filter")
             ,renderKey ("E", "toggle nonzero filter")
-            ,renderKey ("/", "set a filter query")
-            ,renderKey ("DEL/BS", "remove filters")
-            ,str " "
+            ,renderKey ("F", "toggle flat/exclusive mode")
             ,str "accounts screen:"
-            ,renderKey ("F", "toggle flat mode")
-            ,renderKey ("-+0123456789", "")
-            ,str "  adjust/set depth limit"
+            ,renderKey ("-+0123456789", "set depth limit")
             ]
         )
       ]

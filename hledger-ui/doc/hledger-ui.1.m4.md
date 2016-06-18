@@ -114,13 +114,14 @@ It lists accounts and their balances, like hledger's balance command.
 By default, it shows all accounts and their latest ending balances.
 if you specify a query on the command line, it shows just the matched accounts and the balances from matched transactions.
 
-When not in flat mode, indentation indicates the account hierarchy. `F` toggles flat mode on and off.
-
-By default, all subaccounts are displayed.
+Account names are normally indented to show the hierarchy (tree mode).
 To see less detail, set a depth limit by pressing a number key, `1` to `9`.
 `0` shows even less detail, collapsing all accounts to a single total.
 `-` and `+` (or `=`) decrease and increase the depth limit.
 To remove the depth limit, set it higher than the maximum account depth, or press `ESCAPE`.
+
+`F` toggles flat mode on and off. In flat mode, accounts are listed without indentation
+(and account registers will exclude subaccounts, see below).
 
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are
@@ -137,24 +138,19 @@ Press `right` or `enter` to view an account's transactions register.
 
 ## Register screen
 
-This screen lists all transactions affecting a particular account, like
-a check register. Unlike hledger's register command (which
-lists individual postings), in hledger-ui's register:
+This screen shows the transactions affecting a particular account, like a check register. 
+Each line represents one transaction and shows:
 
-- Each line represents a whole transaction.
-
-- For each transaction, it shows the other account(s) involved, in
-  abbreviated form. (If there are both real and virtual postings, it
+- the other account(s) involved, in abbreviated form. 
+  (If there are both real and virtual postings, it
   shows only the accounts affected by real postings.)
 
-- It shows the overall change to the current account's balance from
-  each transaction; positive for an inflow to this account, negative
-  for an outflow.
+- the overall change to the current account's balance; 
+  positive for an inflow to this account, negative for an outflow.
 
-- When no query other than a date limit is in effect, it shows the
-  current account's historic balance as of the transaction date.
-  Otherwise it shows a running total starting from zero.  Eg, these
-  will show historic balances:
+- the current account's historic balance (if no query other than a date limit is in effect)
+  or the running total starting from zero (otherwise), after the transaction.  
+  Eg, these will show historic balances:
 
     ```
     $ hledger-ui
@@ -169,6 +165,12 @@ lists individual postings), in hledger-ui's register:
     $ hledger-ui --begin 'this month' desc:market
     $ hledger-ui --register checking --cleared
     ```
+
+Normally the register screen shows transactions in the current account and any of its subaccounts
+(inclusive mode). If it was entered from accounts screen in flat mode, 
+it shows transactions affecting this account specifically, without 
+considering subaccounts (exclusive mode).
+As on the accounts screen you can toggle this with the `F` key.
 
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are
