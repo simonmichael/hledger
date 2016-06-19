@@ -14,7 +14,7 @@ module Hledger.UI.Main where
 import Control.Monad
 -- import Control.Monad.IO.Class (liftIO)
 -- import Data.Default
--- import Data.Monoid              -- 
+-- import Data.Monoid              --
 import Data.List
 import Data.Maybe
 -- import Data.Text (Text)
@@ -97,11 +97,11 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
     mregister = maybestringopt "register" $ rawopts_ copts
 
     (scr, prevscrs) = case mregister of
-      Nothing   -> (accountsScreen, [])
+      Nothing   -> (AcctsScreen accountsScreen, [])
       -- with --register, start on the register screen, and also put
       -- the accounts screen on the prev screens stack so you can exit
       -- to that as usual.
-      Just apat -> (rsSetAccount acct registerScreen, [ascr'])
+      Just apat -> (rsSetAccount acct (RegScreen registerScreen), [ascr'])
         where
           acct = headDef
                  (error' $ "--register "++apat++" did not match any account")
@@ -109,16 +109,16 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary UIState value..
           ascr' = aScreen $
-                  asInit d True $
+                  asInit_ d True $
                   UIState{
                     aopts=uopts'
                    ,ajournal=j
-                   ,aScreen=asSetSelectedAccount acct accountsScreen
+                   ,aScreen=asSetSelectedAccount acct (AcctsScreen accountsScreen)
                    ,aPrevScreens=[]
                    ,aMode=Normal
                    }
-  
-    ui = (sInit scr) d True
+
+    ui = sInit d True
          UIState{
             aopts=uopts'
            ,ajournal=j
@@ -133,8 +133,8 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
       , appStartEvent   = return
       , appAttrMap      = const theme
       , appChooseCursor = showFirstCursor
-      , appHandleEvent  = \ui ev -> sHandle (aScreen ui) ui ev
-      , appDraw         = \ui    -> sDraw   (aScreen ui) ui
+      , appHandleEvent  = \ui ev -> sHandle ui ev
+      , appDraw         = \ui    -> sDraw   ui
       }
 
   void $ defaultMain brickapp ui

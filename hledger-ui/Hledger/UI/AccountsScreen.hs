@@ -5,7 +5,7 @@
 
 module Hledger.UI.AccountsScreen
  (accountsScreen
- ,asInit
+ ,asInit_
  ,asSetSelectedAccount
  )
 where
@@ -35,22 +35,22 @@ import Hledger.UI.UIUtils
 import Hledger.UI.RegisterScreen
 import Hledger.UI.ErrorScreen
 
-accountsScreen :: Screen
+accountsScreen :: AccountsScreen
 accountsScreen = AccountsScreen{
-   sInit   = asInit
-  ,sDraw   = asDraw
-  ,sHandle = asHandle
+   asInit   = asInit_
+  ,asDraw   = asDraw_
+  ,asHandle = asHandle_
   ,_asList            = list "accounts" V.empty 1
   ,_asSelectedAccount = ""
   }
 
-asInit :: Day -> Bool -> UIState -> UIState
-asInit d reset ui@UIState{
+asInit_ :: Day -> Bool -> UIState -> UIState
+asInit_ d reset ui@UIState{
   aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}},
   ajournal=j,
-  aScreen=s@AccountsScreen{}
+  aScreen=AcctsScreen(s@AccountsScreen{})
   } =
-  ui{aopts=uopts', aScreen=s & asList .~ newitems'}
+  ui{aopts=uopts', aScreen=AcctsScreen (s & asList .~ newitems')}
    where
     newitems = list (Name "accounts") (V.fromList displayitems) 1
 
@@ -95,14 +95,14 @@ asInit d reset ui@UIState{
     displayitems = map displayitem items
 
 
-asInit _ _ _ = error "init function called with wrong screen type, should not happen"
+asInit_ _ _ _ = error "init function called with wrong screen type, should not happen"
 
-asDraw :: UIState -> [Widget]
-asDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
-                           ,ajournal=j
-                           ,aScreen=s@AccountsScreen{}
-                           ,aMode=mode
-                           } =
+asDraw_ :: UIState -> [Widget]
+asDraw_ UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+                            ,ajournal=j
+                            ,aScreen=AcctsScreen(s@AccountsScreen{})
+                            ,aMode=mode
+                            } =
   case mode of
     Help       -> [helpDialog, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
@@ -196,7 +196,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           ,("q", "quit")
           ]
 
-asDraw _ = error "draw function called with wrong screen type, should not happen"
+asDraw_ _ = error "draw function called with wrong screen type, should not happen"
 
 asDrawItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget
 asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
@@ -225,9 +225,9 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
         sel | selected  = (<> "selected")
             | otherwise = id
 
-asHandle :: UIState -> Event -> EventM (Next UIState)
-asHandle ui0@UIState{
-   aScreen=scr@AccountsScreen{..}
+asHandle_ :: UIState -> Event -> EventM (Next UIState)
+asHandle_ ui0@UIState{
+   aScreen=AcctsScreen(scr@AccountsScreen{..})
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   ,aMode=mode
@@ -242,7 +242,7 @@ asHandle ui0@UIState{
     selacct = case listSelectedElement $ scr ^. asList of
                 Just (_, AccountsScreenItem{..}) -> asItemAccountName
                 Nothing -> scr ^. asSelectedAccount
-    ui = ui0{aScreen=scr & asSelectedAccount .~ selacct}
+    ui = ui0{aScreen=AcctsScreen (scr & asSelectedAccount .~ selacct)}
 
   case mode of
     Minibuffer ed ->
@@ -289,14 +289,14 @@ asHandle ui0@UIState{
         EvKey (KLeft) []     -> continue $ popScreen ui
         EvKey k           [] | k `elem` [KRight, KEnter] -> scrollTopRegister >> continue (screenEnter d scr ui)
           where
-            scr = rsSetAccount selacct registerScreen
+            scr = rsSetAccount selacct (RegScreen registerScreen)
 
         -- fall through to the list's event handler (handles up/down)
         ev                       -> do
                                      newitems <- handleEvent ev (scr ^. asList)
-                                     continue $ ui{aScreen=scr & asList .~ newitems
-                                                                & asSelectedAccount .~ selacct
-                                                                }
+                                     continue $ ui{aScreen=AcctsScreen (scr & asList .~ newitems
+                                                                            & asSelectedAccount .~ selacct
+                                                                       )}
                                  -- continue =<< handleEventLensed ui someLens ev
 
   where
@@ -308,8 +308,9 @@ asHandle ui0@UIState{
     scrollTop         = vScrollToBeginning $ viewportScroll "accounts"
     scrollTopRegister = vScrollToBeginning $ viewportScroll "register"
 
-asHandle _ _ = error "event handler called with wrong screen type, should not happen"
+asHandle_ _ _ = error "event handler called with wrong screen type, should not happen"
 
-asSetSelectedAccount a s@AccountsScreen{} = s & asSelectedAccount .~ a
+asSetSelectedAccount :: AccountName -> Screen -> Screen
+asSetSelectedAccount a (AcctsScreen s@AccountsScreen{}) = AcctsScreen (s & asSelectedAccount .~ a)
 asSetSelectedAccount _ s = s
 
