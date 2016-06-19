@@ -124,7 +124,9 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
         EvKey (KChar 'q') [] -> halt ui
         EvKey KEsc        [] -> continue $ resetScreens d ui
         EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
-        EvKey (KChar 'E') [] -> suspendAndResume $ void (journalRunEditor endPos j) >> uiReloadJournalIfChanged copts d j ui
+        EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
+          where
+            (pos,f) = let GenericSourcePos f l c = tsourcepos t in (Just (l, Just c),f)
         EvKey (KChar 'g') [] -> do
           d <- liftIO getCurrentDay
           (ej, _) <- liftIO $ journalReloadIfChanged copts d j

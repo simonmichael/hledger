@@ -8,12 +8,13 @@ module Hledger.UI.ErrorScreen
  )
 where
 
+import Brick
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.Monoid
 import Data.Time.Calendar (Day)
-import Graphics.Vty
-import Brick
+import Graphics.Vty hiding (char, string)-- (Event(..))
+import Text.Parsec
 
 import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.UIOptions
@@ -61,7 +62,7 @@ esDraw _ = error "draw function called with wrong screen type, should not happen
 
 esHandle :: UIState -> Event -> EventM (Next UIState)
 esHandle ui@UIState{
-   aScreen=ErrorScreen{}
+   aScreen=ErrorScreen{..}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   ,aMode=mode
@@ -78,7 +79,11 @@ esHandle ui@UIState{
         EvKey (KChar 'q') [] -> halt ui
         EvKey KEsc        [] -> continue $ resetScreens d ui
         EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
-        EvKey (KChar 'E') [] -> suspendAndResume $ void (journalRunEditor endPos j) >> uiReloadJournalIfChanged copts d j (popScreen ui)
+        EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j (popScreen ui)
+          where
+            (pos,f) = case parsewith hledgerparseerrorpositionp esError of
+                        Right (f,l,c) -> (Just (l, Just c),f)
+                        Left  _       -> (endPos, journalFilePath j)
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j (popScreen ui)) >>= continue
 --           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
 --           case ej of
@@ -87,6 +92,17 @@ esHandle ui@UIState{
         _ -> continue ui
 
 esHandle _ _ = error "event handler called with wrong screen type, should not happen"
+
+-- | Parse the file name, line and column number from a hledger parse error message, if possible.
+-- Temporary, we should keep the original parse error location. XXX
+hledgerparseerrorpositionp = do
+  anyChar `manyTill` char '"'
+  f <- anyChar `manyTill` (oneOf ['"','\n'])
+  string " (line "
+  l <- read <$> many1 digit
+  string ", column "
+  c <- read <$> many1 digit
+  return (f, l, c)
 
 -- If journal file(s) have changed, reload the journal and regenerate all screens.
 -- This is here so it can reference the error screen.

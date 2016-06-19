@@ -29,9 +29,8 @@ endPos = Just (-1,Nothing)
 -- | Try running the user's preferred text editor, or a default edit command,
 -- on the main journal file, blocking until it exits, and returning the exit code;
 -- or raise an error.
-journalRunEditor :: Maybe TextPosition -> Journal -> IO ExitCode
-journalRunEditor mpos j =
-  editorOpenPositionCommand mpos (journalFilePath j) >>= runCommand >>= waitForProcess
+runEditor :: Maybe TextPosition -> FilePath -> IO ExitCode
+runEditor mpos f = editorOpenPositionCommand mpos f >>= runCommand >>= waitForProcess
 
 -- Get the basic shell command to start the user's preferred text editor.
 -- This is the value of environment variable $HLEDGER_UI_EDITOR, or $EDITOR, or
@@ -64,12 +63,15 @@ editorOpenPositionCommand mpos f = do
   let f' = singleQuoteIfNeeded f
   return $
    case (identifyEditor cmd, mpos) of
-    (Emacs, Just (line,_))    | line < 0  -> cmd ++ " " ++ f' ++ " -f end-of-buffer"
-    (Emacs, Just (line,mcol)) | line >= 0 -> cmd ++ " " ++ posopt ++ " " ++ f'
-      where posopt = "+" ++ show line ++ maybe "" ((":"++).show) mcol
-    (Vi, Just (line,_))                   -> cmd ++ " " ++ posopt ++ " " ++ f'
-      where posopt = "+" ++ if line >= 0 then show line else ""
-    _                                     -> cmd ++ " " ++ f'
+    (EmacsClient, Just (l,mc)) | l >= 0 -> cmd ++ " " ++ emacsposopt l mc ++ " " ++ f'
+    (EmacsClient, Just (l,mc)) | l < 0  -> cmd ++ " " ++ emacsposopt 999999999 mc ++ " " ++ f'
+    (Emacs, Just (l,mc))       | l >= 0 -> cmd ++ " " ++ emacsposopt l mc ++ " " ++ f'
+    (Emacs, Just (l,_))        | l < 0  -> cmd ++ " " ++ f' ++ " -f end-of-buffer"
+    (Vi, Just (l,_))                    -> cmd ++ " " ++ viposopt l ++ " " ++ f'
+    _                                   -> cmd ++ " " ++ f'
+    where
+      emacsposopt l mc = "+" ++ show l ++ maybe "" ((":"++).show) mc
+      viposopt l       = "+" ++ if l >= 0 then show l else ""
 
 -- Identify which text editor is used in the basic editor command, if possible.
 identifyEditor :: String -> EditorType
