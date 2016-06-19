@@ -143,8 +143,8 @@ regenerateScreens j d ui@UIState{aScreen=s,aPrevScreens=ss} =
     first:rest = reverse $ s:ss :: [Screen]
     ui0 = ui{ajournal=j, aScreen=first, aPrevScreens=[]} :: UIState
 
-    ui1 = (sInit first) d False ui0 :: UIState
-    ui2 = foldl' (\ui s -> (sInit s) d False $ pushScreen s ui) ui1 rest :: UIState
+    ui1 = sInit d False ui0 :: UIState
+    ui2 = foldl' (\ui s -> sInit d False $ pushScreen s ui) ui1 rest :: UIState
   in
     ui2
 
@@ -159,7 +159,7 @@ popScreen ui = ui
 
 resetScreens :: Day -> UIState -> UIState
 resetScreens d ui@UIState{aScreen=s,aPrevScreens=ss} =
-  (sInit topscreen) d True $ resetDepth $ resetFilter $ closeMinibuffer ui{aScreen=topscreen, aPrevScreens=[]}
+  sInit d True $ resetDepth $ resetFilter $ closeMinibuffer ui{aScreen=topscreen, aPrevScreens=[]}
   where
     topscreen = case ss of _:_ -> last ss
                            []  -> s
@@ -167,7 +167,7 @@ resetScreens d ui@UIState{aScreen=s,aPrevScreens=ss} =
 -- | Enter a new screen, saving the old screen & state in the
 -- navigation history and initialising the new screen's state.
 screenEnter :: Day -> Screen -> UIState -> UIState
-screenEnter d scr ui = (sInit scr) d True $
+screenEnter d scr ui = sInit d True $
                        pushScreen scr
                        ui
 

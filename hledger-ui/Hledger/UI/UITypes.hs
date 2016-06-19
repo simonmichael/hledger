@@ -20,7 +20,7 @@ Brick.defaultMain brickapp st
       , appDraw         = \st    -> sDraw   (aScreen st) st
       }
     st :: UIState
-    st = (sInit s) d
+    st = sInit d
          UIState{
             aopts=uopts'
            ,ajournal=j
@@ -91,31 +91,31 @@ data Screen
   deriving (Show)
 
 -- | function to initialise or update this screen's state
-sInit :: Screen -> Day -> Bool -> UIState -> UIState
-sInit s day reset state =
+sInit :: Day -> Bool -> UIState -> UIState
+sInit day reset state =
   case aScreen state of
-    AcctsScreen s' -> asInit s' day reset state
-    RegScreen   s' -> rsInit s' day reset state
-    TransScreen s' -> tsInit s' day reset state
-    ErrScreen   s' -> esInit s' day reset state
+    AcctsScreen s -> asInit s day reset state
+    RegScreen   s -> rsInit s day reset state
+    TransScreen s -> tsInit s day reset state
+    ErrScreen   s -> esInit s day reset state
 
 -- | brick renderer for this screen
-sDraw :: Screen -> UIState -> [Widget]
-sDraw s state =
+sDraw :: UIState -> [Widget]
+sDraw state =
   case aScreen state of
-    AcctsScreen s' -> asDraw s' state
-    RegScreen   s' -> rsDraw s' state
-    TransScreen s' -> tsDraw s' state
-    ErrScreen   s' -> esDraw s' state
+    AcctsScreen s -> asDraw s state
+    RegScreen   s -> rsDraw s state
+    TransScreen s -> tsDraw s state
+    ErrScreen   s -> esDraw s state
 
 -- | brick event handler for this screen
-sHandle :: Screen -> UIState -> Event -> EventM (Next UIState)
-sHandle screen state event =
+sHandle :: UIState -> Event -> EventM (Next UIState)
+sHandle state event =
   case aScreen state of
-    AcctsScreen s' -> asHandle s' state event
-    RegScreen   s' -> rsHandle s' state event
-    TransScreen s' -> tsHandle s' state event
-    ErrScreen   s' -> esHandle s' state event
+    AcctsScreen s -> asHandle s state event
+    RegScreen   s -> rsHandle s state event
+    TransScreen s -> tsHandle s state event
+    ErrScreen   s -> esHandle s state event
 
 
 data AccountsScreen = AccountsScreen

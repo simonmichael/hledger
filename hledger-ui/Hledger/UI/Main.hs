@@ -118,7 +118,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
                    ,aMode=Normal
                    }
 
-    ui = (sInit scr) d True
+    ui = sInit d True
          UIState{
             aopts=uopts'
            ,ajournal=j
@@ -133,8 +133,8 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
       , appStartEvent   = return
       , appAttrMap      = const theme
       , appChooseCursor = showFirstCursor
-      , appHandleEvent  = \ui ev -> sHandle (aScreen ui) ui ev
-      , appDraw         = \ui    -> sDraw   (aScreen ui) ui
+      , appHandleEvent  = \ui ev -> sHandle ui ev
+      , appDraw         = \ui    -> sDraw   ui
       }
 
   void $ defaultMain brickapp ui
