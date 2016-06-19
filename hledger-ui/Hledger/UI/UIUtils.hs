@@ -19,6 +19,8 @@ import Hledger
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 
+-- ui
+
 -- | Draw the help dialog, called when help mode is active.
 helpDialog :: Widget
 helpDialog =
@@ -33,6 +35,7 @@ helpDialog =
              str "MISC"
             ,renderKey ("h", "toggle help")
             ,renderKey ("a", "add transaction")
+            ,renderKey ("E", "open editor")
             ,renderKey ("g", "reload data")
             ,renderKey ("q", "quit")
             ,str " "

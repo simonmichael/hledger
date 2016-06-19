@@ -14,6 +14,7 @@ import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Brick.Widgets.Border (borderAttr)
+import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.Maybe
@@ -32,6 +33,7 @@ import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
+import Hledger.UI.Editor
 import Hledger.UI.RegisterScreen
 import Hledger.UI.ErrorScreen
 
@@ -266,6 +268,7 @@ asHandle ui0@UIState{
         EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
         EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
+        EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor endPos j) >> uiReloadJournalIfChanged copts d j ui
         EvKey (KChar '0') [] -> continue $ regenerateScreens j d $ setDepth (Just 0) ui
         EvKey (KChar '1') [] -> continue $ regenerateScreens j d $ setDepth (Just 1) ui
         EvKey (KChar '2') [] -> continue $ regenerateScreens j d $ setDepth (Just 2) ui

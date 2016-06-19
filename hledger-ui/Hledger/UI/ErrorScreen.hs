@@ -8,6 +8,7 @@ module Hledger.UI.ErrorScreen
  )
 where
 
+import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.Monoid
 import Data.Time.Calendar (Day)
@@ -19,6 +20,7 @@ import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
+import Hledger.UI.Editor
 
 errorScreen :: Screen
 errorScreen = ErrorScreen{
@@ -59,7 +61,7 @@ esDraw _ = error "draw function called with wrong screen type, should not happen
 
 esHandle :: UIState -> Event -> EventM (Next UIState)
 esHandle ui@UIState{
-   aScreen=s@ErrorScreen{}
+   aScreen=ErrorScreen{}
   ,aopts=UIOpts{cliopts_=copts}
   ,ajournal=j
   ,aMode=mode
@@ -76,11 +78,12 @@ esHandle ui@UIState{
         EvKey (KChar 'q') [] -> halt ui
         EvKey KEsc        [] -> continue $ resetScreens d ui
         EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
-        EvKey (KChar 'g') [] -> do
-          (ej, _) <- liftIO $ journalReloadIfChanged copts d j
-          case ej of
-            Left err -> continue ui{aScreen=s{esError=err}} -- show latest parse error
-            Right j' -> continue $ regenerateScreens j' d $ popScreen ui  -- return to previous screen, and reload it
+        EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor endPos j) >> uiReloadJournalIfChanged copts d j (popScreen ui)
+        EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j (popScreen ui)) >>= continue
+--           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
+--           case ej of
+--             Left err -> continue ui{aScreen=s{esError=err}} -- show latest parse error
+--             Right j' -> continue $ regenerateScreens j' d $ popScreen ui  -- return to previous screen, and reload it
         _ -> continue ui
 
 esHandle _ _ = error "event handler called with wrong screen type, should not happen"

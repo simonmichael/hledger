@@ -8,6 +8,7 @@ module Hledger.UI.TransactionScreen
  )
 where
 
+import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.Monoid
@@ -25,6 +26,7 @@ import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
+import Hledger.UI.Editor
 import Hledger.UI.ErrorScreen
 
 transactionScreen :: Screen
@@ -122,6 +124,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
         EvKey (KChar 'q') [] -> halt ui
         EvKey KEsc        [] -> continue $ resetScreens d ui
         EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
+        EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor endPos j) >> uiReloadJournalIfChanged copts d j ui
         EvKey (KChar 'g') [] -> do
           d <- liftIO getCurrentDay
           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
