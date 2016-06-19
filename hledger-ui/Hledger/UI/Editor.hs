@@ -15,61 +15,69 @@ import System.Process
 
 import Hledger
 
--- | A shell command line for invoking an editor, containing one placeholder ("FILE")
--- which will be replaced with a quoted file path. This exists because some desirable
--- editor commands do not fit the simple "$EDITOR FILE" pattern.
-type EditorCommandTemplate = String
-
 -- | Editors we know how to create more specific command lines for.
-data EditorType = Emacs | Other
+data EditorType = Emacs | EmacsClient | Vi | Other
 
--- | A position we can move to in a text editor: a line number
--- and optionally character number. 1 (or 0) means the first; a negative number
--- counts back from the end (so -1 means the last line, -2 the second last etc.)
+-- | A position we can move to in a text editor: a line and optional column number.
+-- 1 (or 0) means the first and -1 means the last (and -2 means the second last, etc.
+-- though this may not be well supported.)
 type TextPosition = (Int, Maybe Int)
 
 endPos :: Maybe TextPosition
-endPos = Just (1,Nothing)
+endPos = Just (-1,Nothing)
 
--- | Construct a shell command template for starting the user's preferred text editor,
--- optionally at a given position.
--- XXX The position parameter is currently ignored and assumed to be end-of-file.
---
--- The basic editor command will be the value of environment variable $HLEDGER_UI_EDITOR,
--- or $EDITOR, or "emacs -nw". If a position is specified, and the command looks like one of
--- the editors we know (currently only emacs and emacsclient), it is modified so as to jump
--- to that position.
---
--- Some examples:
--- $EDITOR=vi            -> "vi FILE"
--- $EDITOR=emacs         -> "emacs FILE -f end-of-buffer"
--- $EDITOR not set       -> "emacs -nw FILE -f end-of-buffer"
---
-editorCommandTemplate :: Maybe TextPosition -> IO EditorCommandTemplate
-editorCommandTemplate mpos = do
+-- | Try running the user's preferred text editor, or a default edit command,
+-- on the main journal file, blocking until it exits, and returning the exit code;
+-- or raise an error.
+journalRunEditor :: Maybe TextPosition -> Journal -> IO ExitCode
+journalRunEditor mpos j =
+  editorOpenPositionCommand mpos (journalFilePath j) >>= runCommand >>= waitForProcess
+
+-- Get the basic shell command to start the user's preferred text editor.
+-- This is the value of environment variable $HLEDGER_UI_EDITOR, or $EDITOR, or
+-- a default (emacsclient -a '' -nw, start/connect to an emacs daemon in terminal mode).
+editorCommand :: IO String
+editorCommand = do
   hledger_ui_editor_env <- lookupEnv "HLEDGER_UI_EDITOR"
   editor_env            <- lookupEnv "EDITOR"
-  let Just exe = hledger_ui_editor_env <|> editor_env <|> Just "emacs -nw"
-  return $
-   case (identifyEditor exe, mpos) of
-    (Emacs,_) -> exe ++ " FILE -f end-of-buffer"
-    _         -> exe ++ " FILE"
+  let Just cmd =
+        hledger_ui_editor_env
+        <|> editor_env
+        <|> Just "emacsclient -a '' -nw"
+  return cmd
 
--- Identify the editor type, if we know it, from the value of $HLEDGER_EDITOR_UI or $EDITOR.
+-- | Get a shell command to start the user's preferred text editor, or a default,
+-- and optionally jump to a given position in the file. This will be the basic
+-- editor command, with the appropriate options added, if we know how.
+-- Currently we know how to do this for emacs and vi.
+-- Some examples:
+-- $EDITOR=notepad         -> "notepad FILE"
+-- $EDITOR=vi              -> "vi +LINE FILE"
+-- $EDITOR=vi, line -1     -> "vi + FILE"
+-- $EDITOR=emacs           -> "emacs +LINE:COL FILE"
+-- $EDITOR=emacs, line -1  -> "emacs FILE -f end-of-buffer"
+-- $EDITOR not set         -> "emacs -nw FILE -f end-of-buffer"
+--
+editorOpenPositionCommand :: Maybe TextPosition -> FilePath -> IO String
+editorOpenPositionCommand mpos f = do
+  cmd <- editorCommand
+  let f' = singleQuoteIfNeeded f
+  return $
+   case (identifyEditor cmd, mpos) of
+    (Emacs, Just (line,_))    | line < 0  -> cmd ++ " " ++ f' ++ " -f end-of-buffer"
+    (Emacs, Just (line,mcol)) | line >= 0 -> cmd ++ " " ++ posopt ++ " " ++ f'
+      where posopt = "+" ++ show line ++ maybe "" ((":"++).show) mcol
+    (Vi, Just (line,_))                   -> cmd ++ " " ++ posopt ++ " " ++ f'
+      where posopt = "+" ++ if line >= 0 then show line else ""
+    _                                     -> cmd ++ " " ++ f'
+
+-- Identify which text editor is used in the basic editor command, if possible.
 identifyEditor :: String -> EditorType
 identifyEditor cmd
-  | "emacs" `isPrefixOf` exe = Emacs
-  | otherwise = Other
+  | "emacsclient" `isPrefixOf` exe = EmacsClient
+  | "emacs" `isPrefixOf` exe       = Emacs
+  | exe `elem` ["vi","vim","ex","view","gvim","gview","evim","eview","rvim","rview","rgvim","rgview"]
+                                   = Vi
+  | otherwise                      = Other
   where
     exe = lowercase $ takeFileName $ headDef "" $ words' cmd
-
-fillEditorCommandTemplate :: FilePath -> EditorCommandTemplate -> String
-fillEditorCommandTemplate f t = regexReplace "FILE" (singleQuoteIfNeeded f) t
-
--- | Try running $EDITOR, or a default edit command, on the main journal file,
--- blocking until it exits, and returning the exit code; or raise an error.
-runEditor :: Maybe TextPosition -> Journal -> IO ExitCode
-runEditor mpos j = do
-  fillEditorCommandTemplate (journalFilePath j) <$> editorCommandTemplate mpos
-  >>= runCommand
-  >>= waitForProcess

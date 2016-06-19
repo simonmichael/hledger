@@ -78,7 +78,7 @@ esHandle ui@UIState{
         EvKey (KChar 'q') [] -> halt ui
         EvKey KEsc        [] -> continue $ resetScreens d ui
         EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
-        EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor endPos j) >> uiReloadJournalIfChanged copts d j (popScreen ui)
+        EvKey (KChar 'E') [] -> suspendAndResume $ void (journalRunEditor endPos j) >> uiReloadJournalIfChanged copts d j (popScreen ui)
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j (popScreen ui)) >>= continue
 --           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
 --           case ej of

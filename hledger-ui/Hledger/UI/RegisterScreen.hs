@@ -250,7 +250,7 @@ rsHandle ui@UIState{
         EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
         EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
-        EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor endPos j) >> uiReloadJournalIfChanged copts d j ui
+        EvKey (KChar 'E') [] -> suspendAndResume $ void (journalRunEditor endPos j) >> uiReloadJournalIfChanged copts d j ui
         EvKey (KChar 'F') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleFlat ui)
         EvKey (KChar 'Z') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
         EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
