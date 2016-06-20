@@ -167,6 +167,12 @@ KEYS
        a  runs  command-line  hledger's  add  command, and reloads the updated
        file.  This allows some basic data entry.
 
+       E runs $HLEDGER_UI_EDITOR, or $EDITOR, or  a  default  (emacs)  on  the
+       journal  file.  When invoked from the register and transaction screens,
+       the cursor will be positioned at the current transaction.  When invoked
+       from  the  error  screen,  the cursor will be at the error location (if
+       possible).
+
        q quits the application.
 
        Additional screen-specific keys are described below.
