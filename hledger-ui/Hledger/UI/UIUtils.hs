@@ -8,16 +8,23 @@ where
 import Brick
 import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
+import Brick.Widgets.Center
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
 import Data.List
 import Data.Monoid
 import Graphics.Vty
 import Lens.Micro.Platform
+import System.Process
 
 import Hledger
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
+
+
+runInfo = runCommand "hledger-ui --info" >>= waitForProcess
+runMan  = runCommand "hledger-ui --man" >>= waitForProcess
+runHelp = runCommand "hledger-ui --help | less" >>= waitForProcess
 
 -- ui
 
@@ -29,39 +36,52 @@ helpDialog =
     render $
       renderDialog (dialog "help" (Just "Help (h/ESC to close)") Nothing (c^.availWidthL - 2)) $ -- (Just (0,[("ok",())]))
       padTopBottom 1 $ padLeftRight 1 $
-      hBox [
-         (padLeftRight 1 $
-           vBox [
-             str "MISC"
-            ,renderKey ("h", "toggle help")
-            ,renderKey ("a", "add transaction")
-            ,renderKey ("E", "open editor")
-            ,renderKey ("g", "reload data")
-            ,renderKey ("q", "quit")
-            ,str " "
-            ,str "NAVIGATION"
-            ,renderKey ("UP/DOWN/PGUP/PGDN/HOME/END", "")
-            ,str "  move selection"
-            ,renderKey ("RIGHT/ENTER", "drill down")
-            ,renderKey ("LEFT", "previous screen")
-            ,renderKey ("ESC", "cancel / reset")
+        vBox [
+           hBox [
+              padLeftRight 1 $
+                vBox [
+                   str "MISC"
+                  ,renderKey ("h", "toggle help")
+                  ,renderKey ("a", "add transaction")
+                  ,renderKey ("E", "open editor")
+                  ,renderKey ("g", "reload data")
+                  ,renderKey ("q", "quit")
+                  ,str " "
+                  ,str "NAVIGATION"
+                  ,renderKey ("UP/DOWN/PGUP/PGDN/HOME/END", "")
+                  ,str "  move selection"
+                  ,renderKey ("RIGHT/ENTER", "drill down")
+                  ,renderKey ("LEFT", "previous screen")
+                  ,renderKey ("ESC", "cancel / reset")
+                  ]
+             ,padLeftRight 1 $
+                vBox [
+                   str "FILTERING"
+                  ,renderKey ("/", "set a filter query")
+                  ,renderKey ("C", "toggle cleared filter")
+                  ,renderKey ("U", "toggle uncleared filter")
+                  ,renderKey ("R", "toggle real filter")
+                  ,renderKey ("Z", "toggle nonzero filter")
+                  ,renderKey ("F", "toggle flat/exclusive mode")
+                  ,renderKey ("DEL/BS", "remove filters")
+                  ,str "accounts screen:"
+                  ,renderKey ("-+0123456789", "set depth limit")
+                ]
+             ]
+          ,vBox [
+             str " "
+            ,hCenter $ padLeftRight 1 $
+              hCenter (str "MANUAL")
+              <=>
+              hCenter (hBox [
+                 renderKey ("t", "text")
+                ,str " "
+                ,renderKey ("m", "man page")
+                ,str " "
+                ,renderKey ("i", "info")
+                ])
             ]
-        )
-        ,(padLeftRight 1 $
-           vBox [
-             str "FILTERING"
-            ,renderKey ("/", "set a filter query")
-            ,renderKey ("C", "toggle cleared filter")
-            ,renderKey ("U", "toggle uncleared filter")
-            ,renderKey ("R", "toggle real filter")
-            ,renderKey ("Z", "toggle nonzero filter")
-            ,renderKey ("F", "toggle flat/exclusive mode")
-            ,renderKey ("DEL/BS", "remove filters")
-            ,str "accounts screen:"
-            ,renderKey ("-+0123456789", "set depth limit")
-            ]
-        )
-      ]
+          ]
   where
     renderKey (key,desc) = withAttr (borderAttr <> "keys") (str key) <+> str " " <+> str desc
 
@@ -69,7 +89,10 @@ helpDialog =
 helpHandle :: UIState -> Event -> EventM (Next UIState)
 helpHandle ui ev =
   case ev of
-    EvKey k [] | k `elem` [KEsc, KChar 'h'] -> continue $ setMode Normal ui
+    EvKey k [] | k `elem` [KEsc, KChar 'h', KChar '?'] -> continue $ setMode Normal ui
+    EvKey (KChar 't') [] -> suspendAndResume $ runHelp >> return (setMode Normal ui)
+    EvKey (KChar 'm') [] -> suspendAndResume $ runMan  >> return (setMode Normal ui)
+    EvKey (KChar 'i') [] -> suspendAndResume $ runInfo >> return (setMode Normal ui)
     _ -> continue ui
 
 -- | Draw the minibuffer.
