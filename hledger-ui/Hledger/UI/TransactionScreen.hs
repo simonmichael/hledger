@@ -94,6 +94,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
           ,("up/down", "prev/next")
           --,("ESC", "cancel/top")
           -- ,("a", "add")
+          ,("E", "editor")
           ,("g", "reload")
           ,("q", "quit")
           ]

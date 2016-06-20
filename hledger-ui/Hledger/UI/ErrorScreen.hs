@@ -54,6 +54,7 @@ esDraw UIState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropt
         quickhelp = borderKeysStr [
            ("h", "help")
           ,("ESC", "cancel/top")
+          ,("E", "editor")
           ,("g", "reload")
           ,("q", "quit")
           ]
