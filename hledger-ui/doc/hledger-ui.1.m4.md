@@ -88,8 +88,9 @@ Vi-style `h`/`j`/`k`/`l` movement keys are also supported.
 `/` lets you set or change the [filter query](/hledger.html#queries),
 which limits the data shown on most screens (in addition to the quick
 filters described below). While editing the query you can use typical
-command-line edit keys (ctrl-a/e/k), press enter to set the new filter,
-or press escape to cancel.
+command-line edit keys 
+([CTRL-a/e/d/k, cursor keys etc.](http://hackage.haskell.org/package/brick-0.7/docs/Brick-Widgets-Edit.html#t:Editor)), 
+and `ENTER`to set the new filter or `ESCAPE`to cancel.
 
 `BACKSPACE` or `DELETE` clears any filters in effect.
 
