@@ -103,9 +103,10 @@ previous screens. (With large files, there can be a noticeable pause.)
 `a` runs command-line hledger's add command, and reloads the updated file.
 This allows some basic data entry. 
 
-`E` runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default (emacs) on the journal file.
-When invoked from the register and transaction screens, the cursor will be positioned at the current transaction.
-When invoked from the error screen, the cursor will be at the error location (if possible).
+`E` runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default (`emacsclient -a "" -nw`) on the journal file.
+With some editors (emacs, vi), the cursor will be positioned at the current transaction
+when invoked from the register and transaction screens, and at the error location (if possible)
+when invoked from the error screen. 
 
 `q` quits the application.
 

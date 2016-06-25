@@ -250,12 +250,12 @@ and any previous screens.
 updated file.
 This allows some basic data entry.
 .PP
-\f[C]E\f[] runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default (emacs) on
-the journal file.
-When invoked from the register and transaction screens, the cursor will
-be positioned at the current transaction.
-When invoked from the error screen, the cursor will be at the error
-location (if possible).
+\f[C]E\f[] runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default
+(\f[C]emacsclient\ \-a\ ""\ \-nw\f[]) on the journal file.
+With some editors (emacs, vi), the cursor will be positioned at the
+current transaction when invoked from the register and transaction
+screens, and at the error location (if possible) when invoked from the
+error screen.
 .PP
 \f[C]q\f[] quits the application.
 .PP
