@@ -186,7 +186,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                         Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
         quickhelp = borderKeysStr [
-           ("h", "help")
+           ("?", "help")
           ,("right", "register")
           ,("F", "flat?")
           ,("-+0123456789", "depth")
@@ -265,7 +265,7 @@ asHandle ui0@UIState{
         EvKey (KChar 'q') [] -> halt ui
         -- EvKey (KChar 'l') [MCtrl] -> do
         EvKey KEsc        [] -> continue $ resetScreens d ui
-        EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
+        EvKey (KChar c)   [] | c `elem` ['?'] -> continue $ setMode Help ui
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
         EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
         EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor endPos (journalFilePath j)) >> uiReloadJournalIfChanged copts d j ui
@@ -289,18 +289,22 @@ asHandle ui0@UIState{
         EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
         EvKey (KChar '/') [] -> continue $ regenerateScreens j d $ showMinibuffer ui
         EvKey k           [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
-        EvKey (KLeft) []     -> continue $ popScreen ui
-        EvKey k           [] | k `elem` [KRight, KEnter] -> scrollTopRegister >> continue (screenEnter d scr ui)
+        EvKey k           [] | k `elem` [KLeft, KChar 'h']     -> continue $ popScreen ui
+        EvKey k           [] | k `elem` [KRight, KChar 'l', KEnter] -> scrollTopRegister >> continue (screenEnter d scr ui)
           where
             scr = rsSetAccount selacct registerScreen
 
         -- fall through to the list's event handler (handles up/down)
-        ev                       -> do
-                                     newitems <- handleEvent ev (scr ^. asList)
-                                     continue $ ui{aScreen=scr & asList .~ newitems
-                                                                & asSelectedAccount .~ selacct
-                                                                }
-                                 -- continue =<< handleEventLensed ui someLens ev
+        ev -> do
+                let ev' = case ev of
+                            EvKey (KChar 'k') [] -> EvKey (KUp) []
+                            EvKey (KChar 'j') [] -> EvKey (KDown) []
+                            _                    -> ev
+                newitems <- handleEvent ev' (scr ^. asList)
+                continue $ ui{aScreen=scr & asList .~ newitems
+                                          & asSelectedAccount .~ selacct
+                                          }
+                -- continue =<< handleEventLensed ui someLens ev
 
   where
     -- Encourage a more stable scroll position when toggling list items.

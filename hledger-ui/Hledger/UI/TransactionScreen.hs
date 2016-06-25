@@ -89,7 +89,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
                         -- Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
         quickhelp = borderKeysStr [
-           ("h", "help")
+           ("?", "help")
           ,("left", "back")
           ,("up/down", "prev/next")
           --,("ESC", "cancel/top")
@@ -124,7 +124,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
       case ev of
         EvKey (KChar 'q') [] -> halt ui
         EvKey KEsc        [] -> continue $ resetScreens d ui
-        EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
+        EvKey (KChar c)   [] | c `elem` ['?'] -> continue $ setMode Help ui
         EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
           where
             (pos,f) = let GenericSourcePos f l c = tsourcepos t in (Just (l, Just c),f)
@@ -160,9 +160,9 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
         -- EvKey (KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty ui
         -- EvKey (KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared ui
         -- EvKey (KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal ui
-        EvKey KUp   [] -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(iprev,tprev)}}
-        EvKey KDown [] -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(inext,tnext)}}
-        EvKey KLeft [] -> continue ui''
+        EvKey k           [] | k `elem` [KUp, KChar 'k']   -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(iprev,tprev)}}
+        EvKey k           [] | k `elem` [KDown, KChar 'j'] -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(inext,tnext)}}
+        EvKey k           [] | k `elem` [KLeft, KChar 'h'] -> continue ui''
           where
             ui'@UIState{aScreen=scr} = popScreen ui
             ui'' = ui'{aScreen=rsSelect (fromIntegral i) scr}

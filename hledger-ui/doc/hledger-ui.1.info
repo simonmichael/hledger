@@ -152,13 +152,14 @@ File: hledger-ui.1.info,  Node: KEYS,  Next: SCREENS,  Prev: OPTIONS,  Up: Top
 2 KEYS
 ******
 
-`h' shows a help dialog listing all keys. (Some but not all of these
-also appear in the quick help at the bottom of each screen.) Press `h'
-again (or `ESCAPE') to close it.
+`?' shows a help dialog listing all keys. (Some but not all of these
+also appear in the quick help at the bottom of each screen.) Press `?'
+again (or `ESCAPE', or `LEFT') to close it.
 
    The cursor keys navigate: `right' (or `enter') goes deeper, `left'
 returns to the previous screen, `up'/`down'/`page up'/`page
-down'/`home'/`end' move up and down through lists.
+down'/`home'/`end' move up and down through lists. Vi-style
+`h'/`j'/`k'/`l' movement keys are also supported.
 
    `/' lets you set or change the filter query, which limits the data
 shown on most screens (in addition to the quick filters described
@@ -334,15 +335,15 @@ Node: OPTIONS825
 Ref: #options924
 Node: KEYS3800
 Ref: #keys3897
-Node: SCREENS5391
-Ref: #screens5478
-Node: Accounts screen5568
-Ref: #accounts-screen5698
-Node: Register screen7003
-Ref: #register-screen7160
-Node: Transaction screen8981
-Ref: #transaction-screen9141
-Node: Error screen10008
-Ref: #error-screen10132
+Node: SCREENS5461
+Ref: #screens5548
+Node: Accounts screen5638
+Ref: #accounts-screen5768
+Node: Register screen7073
+Ref: #register-screen7230
+Node: Transaction screen9051
+Ref: #transaction-screen9211
+Node: Error screen10078
+Ref: #error-screen10202
 
 End Tag Table

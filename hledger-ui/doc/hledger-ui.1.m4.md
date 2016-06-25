@@ -75,14 +75,15 @@ _reportingoptions_
 
 # KEYS
 
-`h` shows a help dialog listing all keys. 
+`?` shows a help dialog listing all keys. 
 (Some but not all of these also appear in the quick help at the bottom of each screen.) 
-Press `h` again (or `ESCAPE`) to close it.
+Press `?` again (or `ESCAPE`, or `LEFT`) to close it.
 
 The cursor keys navigate: 
 `right` (or `enter`) goes deeper, 
 `left` returns to the previous screen,
 `up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
+Vi-style `h`/`j`/`k`/`l` movement keys are also supported. 
 
 `/` lets you set or change the [filter query](/hledger.html#queries),
 which limits the data shown on most screens (in addition to the quick

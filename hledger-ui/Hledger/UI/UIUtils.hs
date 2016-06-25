@@ -34,25 +34,25 @@ helpDialog =
   Widget Fixed Fixed $ do
     c <- getContext
     render $
-      renderDialog (dialog "help" (Just "Help (h/ESC to close)") Nothing (c^.availWidthL - 2)) $ -- (Just (0,[("ok",())]))
+      renderDialog (dialog "help" (Just "Help (?/LEFT/ESC to close)") Nothing (c^.availWidthL - 2)) $ -- (Just (0,[("ok",())]))
       padTopBottom 1 $ padLeftRight 1 $
         vBox [
            hBox [
               padLeftRight 1 $
                 vBox [
-                   str "MISC"
-                  ,renderKey ("h", "toggle help")
+                   str "NAVIGATION"
+                  ,renderKey ("UP/DOWN/k/j/PGUP/PGDN/HOME/END", "")
+                  ,str "  move selection"
+                  ,renderKey ("RIGHT/l/ENTER", "drill down")
+                  ,renderKey ("LEFT/h", "previous screen")
+                  ,renderKey ("ESC", "cancel / reset")
+                  ,str " "
+                  ,str "MISC"
+                  ,renderKey ("?", "toggle help")
                   ,renderKey ("a", "add transaction")
                   ,renderKey ("E", "open editor")
                   ,renderKey ("g", "reload data")
                   ,renderKey ("q", "quit")
-                  ,str " "
-                  ,str "NAVIGATION"
-                  ,renderKey ("UP/DOWN/PGUP/PGDN/HOME/END", "")
-                  ,str "  move selection"
-                  ,renderKey ("RIGHT/ENTER", "drill down")
-                  ,renderKey ("LEFT", "previous screen")
-                  ,renderKey ("ESC", "cancel / reset")
                   ]
              ,padLeftRight 1 $
                 vBox [
@@ -89,7 +89,7 @@ helpDialog =
 helpHandle :: UIState -> Event -> EventM (Next UIState)
 helpHandle ui ev =
   case ev of
-    EvKey k [] | k `elem` [KEsc, KChar 'h', KChar '?'] -> continue $ setMode Normal ui
+    EvKey k [] | k `elem` [KEsc, KLeft, KChar 'h', KChar '?'] -> continue $ setMode Normal ui
     EvKey (KChar 't') [] -> suspendAndResume $ runHelp >> return (setMode Normal ui)
     EvKey (KChar 'm') [] -> suspendAndResume $ runMan  >> return (setMode Normal ui)
     EvKey (KChar 'i') [] -> suspendAndResume $ runInfo >> return (setMode Normal ui)
