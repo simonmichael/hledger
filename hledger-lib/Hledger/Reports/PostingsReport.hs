@@ -9,6 +9,7 @@ module Hledger.Reports.PostingsReport (
   PostingsReport,
   PostingsReportItem,
   postingsReport,
+  postingsReportValue,
   mkpostingsReportItem,
 
   -- * Tests
@@ -28,6 +29,7 @@ import Test.HUnit
 import Hledger.Data
 import Hledger.Query
 import Hledger.Utils
+import Hledger.Reports.BalanceReport
 import Hledger.Reports.ReportOptions
 
 
@@ -77,6 +79,31 @@ postingsReport opts q j = (totallabel, items)
                       | otherwise     = \_ bal amt -> bal + amt                                              -- running total
 
 totallabel = "Total"
+
+-- | Convert all the amounts in a postings report to
+-- their value on the given date in their default valuation
+-- commodities.
+postingsReportValue :: Journal -> Day -> PostingsReport -> PostingsReport
+postingsReportValue j d r = r'
+  where
+    (label,items) = r
+    r' = dbg8 "postingsReportValue" $
+         (label,[(pb,pe,pd,postingValue j d pp,mixedAmountValue j d a) | (pb,pe,pd,pp,a) <- items])
+
+postingValue :: Journal -> Day -> Posting -> Posting
+postingValue j d p = p'
+  where
+    Posting {pamount = pa, pbalanceassertion = pb, ptransaction = pt} = p
+    p' = p{pamount = mixedAmountValue j d pa
+          ,pbalanceassertion = mixedAmountValue j d <$> pb
+          ,ptransaction = transactionValue j d <$> pt
+          }
+
+transactionValue :: Journal -> Day -> Transaction -> Transaction
+transactionValue j d t = t'
+  where
+    Transaction {tpostings = tp} = t
+    t' = t{tpostings = map (postingValue j d) tp}
 
 -- | Adjust report start/end dates to more useful ones based on
 -- journal data and report intervals. Ie:
