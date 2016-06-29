@@ -23,6 +23,7 @@ extra-deps:
 - timeit-1.0.0.0
 # hledger-ui
 - brick-0.6.4
+- text-zipper-0.4
 # hledger-web
 - json-0.9.1
 - wai-handler-launch-3.0.2.1
