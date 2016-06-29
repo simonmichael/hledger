@@ -1,10 +1,11 @@
+#!/usr/bin/env bash
 # Run this script to install all hledger packages using cabal
 # (if you prefer using cabal to stack)
 
-# use a sandbox in this directory to avoid build problems
+# make a sandbox in this directory to avoid build problems
 cabal sandbox init
 
-# maybe useful for some developers..
+# might be useful for some developers..
 cabal sandbox add-source ./hledger-lib
 cabal sandbox add-source ./hledger
 cabal sandbox add-source ./hledger-ui
