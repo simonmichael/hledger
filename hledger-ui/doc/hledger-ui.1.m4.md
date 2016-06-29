@@ -84,6 +84,9 @@ The cursor keys navigate:
 `left` returns to the previous screen,
 `up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
 Vi-style `h`/`j`/`k`/`l` movement keys are also supported. 
+A tip: movement speed is limited by your keyboard repeat rate, 
+to move faster you may want to adjust that.
+(On a mac, the Karabiner app is one way to do that).
 
 `/` lets you set or change the [filter query](/hledger.html#queries),
 which limits the data shown on most screens (in addition to the quick
