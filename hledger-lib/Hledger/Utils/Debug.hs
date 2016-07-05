@@ -181,11 +181,11 @@ tracePrettyAtIO lvl lbl x = liftIO $ tracePrettyAt lvl lbl x `seq` return ()
 -- tracePrettyAtM lvl lbl x = tracePrettyAt lvl lbl x `seq` return x
 
 -- | print this string to the console before evaluating the expression,
--- if the global debug level is non-zero.  Uses unsafePerformIO.
-dbgtrace :: String -> a -> a
-dbgtrace
-    | debugLevel > 0 = trace
-    | otherwise      = flip const
+-- if the global debug level is at or above the specified level.  Uses unsafePerformIO.
+dbgtrace :: Int -> String -> a -> a
+dbgtrace level
+    | debugLevel >= level = trace
+    | otherwise           = flip const
 
 -- | Print a showable value to the console, with a message, if the
 -- debug level is at or above the specified level (uses
