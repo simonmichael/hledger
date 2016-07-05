@@ -18,7 +18,7 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
-import Graphics.Vty
+import Graphics.Vty (Event(..),Key(..))
 import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit

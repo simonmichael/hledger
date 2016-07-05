@@ -13,7 +13,7 @@ import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.Monoid
 import Data.Time.Calendar (Day)
-import Graphics.Vty hiding (char, string)-- (Event(..))
+import Graphics.Vty (Event(..),Key(..))
 import Text.Parsec
 
 import Hledger.Cli hiding (progname,prognameandversion,green)

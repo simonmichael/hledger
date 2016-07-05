@@ -78,7 +78,7 @@ executable hledger-ui
     , text-zipper >= 0.4 && < 0.5
     , transformers
     , vector
-    , vty >= 5.2 && < 5.6
+    , vty >= 5.2 && < 5.8
   if flag(threaded)
     ghc-options: -threaded
   if flag(old-locale)
