@@ -13,7 +13,7 @@ import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
 import Data.List
 import Data.Monoid
-import Graphics.Vty
+import Graphics.Vty (Event(..),Key(..),Color,Attr,currentAttr)
 import Lens.Micro.Platform
 import System.Process
 

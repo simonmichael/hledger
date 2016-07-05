@@ -22,7 +22,7 @@ import Data.Monoid
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
-import Graphics.Vty
+import Graphics.Vty (Event(..),Key(..))
 import Lens.Micro.Platform
 import System.Console.ANSI
 import System.FilePath (takeFileName)

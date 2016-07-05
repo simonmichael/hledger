@@ -14,7 +14,7 @@ import Data.List
 import Data.Monoid
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
-import Graphics.Vty
+import Graphics.Vty (Event(..),Key(..))
 import Brick
 import Brick.Widgets.List (listMoveTo)
 import Brick.Widgets.Border (borderAttr)

@@ -40,7 +40,7 @@ module Hledger.UI.UITypes where
 
 import Data.Monoid
 import Data.Time.Calendar (Day)
-import Graphics.Vty
+import Graphics.Vty (Event)
 import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit (Editor)
