@@ -500,42 +500,47 @@ checkBalanceAssertionsForAccount ps
 checkBalanceAssertion :: ([String],MixedAmount) -> [Posting] -> ([String],MixedAmount)
 checkBalanceAssertion (errs,startbal) ps
   | null ps = (errs,startbal)
-  | isNothing assertion = (errs,startbal)
-  | -- bal' /= assertedbal  -- MixedAmount's Eq instance currently gets confused by different precisions
-    not $ isReallyZeroMixedAmount (actualbal - assertedbal) = (errs++[err], finalfullbal)
+  | isNothing $ pbalanceassertion p = (errs,startbal)
+  | iswrong = (errs++[err], finalfullbal)
   | otherwise = (errs,finalfullbal)
   where
     p = last ps
-    assertion = pbalanceassertion p
-    Just assertedbal = dbg2 "assertedbal" assertion
-    assertedcomm = dbg2 "assertedcomm" $ maybe "" acommodity $ headMay $ amounts assertedbal
-    finalfullbal = dbg2 "finalfullbal" $ sum $ [dbg2 "startbal" startbal] ++ map pamount ps
-    finalsinglebal = dbg2 "finalsinglebal" $ filterMixedAmount (\a -> acommodity a == assertedcomm) finalfullbal
+    Just assertedbal = pbalanceassertion p
+    assertedcomm = maybe "" acommodity $ headMay $ amounts assertedbal
+    finalfullbal = sum $ [startbal] ++ map pamount (dbg2 "ps" ps)
+    finalsinglebal = filterMixedAmount (\a -> acommodity a == assertedcomm) finalfullbal
     actualbal = finalsinglebal -- just check the single-commodity balance, like Ledger; maybe add ==FULLBAL later
-    diff = actualbal - assertedbal
+    iswrong = dbgtrace 2 debugmsg $
+      not (isReallyZeroMixedAmount (actualbal - assertedbal))
+      -- bal' /= assertedbal  -- MixedAmount's Eq instance currently gets confused by different precisions
+      where
+        debugmsg = "assertions: on " ++ show (postingDate p) ++ " balance of " ++ show assertedcomm
+                    ++ " in " ++ T.unpack (paccount p) ++ " should be " ++ show assertedbal
+    diff = assertedbal - actualbal
     diffplus | isNegativeMixedAmount diff == Just False = "+"
              | otherwise = ""
     err = printf (unlines [
-                      "a balance assertion failed on %s",
-                      "in account %s",
-                      "in commodity %s",
-                      "asserted balance is %s, calculated balance is %s (difference: %s)",
+                      "balance assertion error%s",
                       "after posting:",
                       "%s",
-                      "%s"
+                      "balance assertion details:",
+                      "date:       %s",
+                      "account:    %s",
+                      "commodity:  %s",
+                      "calculated: %s",
+                      "asserted:   %s (difference: %s)"
                       ])
+                 (case ptransaction p of
+                    Nothing -> ":" -- shouldn't happen
+                    Just t ->  printf " in \"%s\" (line %d, column %d):\nin transaction:\n%s" f l c (chomp $ show t) :: String
+                      where GenericSourcePos f l c = tsourcepos t)
+                 (showPostingLine p)
                  (showDate $ postingDate p)
                  (T.unpack $ paccount p) -- XXX pack
                  assertedcomm
-                 (showMixedAmount assertedbal)
                  (showMixedAmount finalsinglebal)
+                 (showMixedAmount assertedbal)
                  (diffplus ++ showMixedAmount diff)
-                 (showPostingLine p)
-                 (case ptransaction p of
-                    Nothing -> ""
-                    Just t -> printf "in transaction at %s line %d:\n%s" f l (show t) :: String
-                              where GenericSourcePos f l _ = tsourcepos t
-                 )
 
 -- Given a sequence of postings to a single account, split it into
 -- sub-sequences consisting of ordinary postings followed by a single
