@@ -117,7 +117,7 @@ inputflags = [
   flagReq ["file","f"]  (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different input file. For stdin, use -"
  ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "RFILE" "CSV conversion rules file (default: FILE.rules)"
  ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "display accounts named OLD as NEW"
- ,flagNone ["ignore-assertions"] (setboolopt "ignore-assertions") "ignore any balance assertions in the journal"
+ ,flagNone ["ignore-assertions","I"] (setboolopt "ignore-assertions") "ignore any balance assertions in the journal"
  ,flagReq ["pivot"]  (\s opts -> Right $ setopt "pivot" s opts)  "TAG" "Replace the accounts of postings with TAG by TAG:<value>"
  ]
 

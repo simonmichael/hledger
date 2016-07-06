@@ -82,7 +82,7 @@ m4_define({{_generaloptions_}}, {{
 `--alias=OLD=NEW`
 : display accounts named OLD as NEW
 
-`--ignore-assertions`
+`-I --ignore-assertions`
 : ignore any failing balance assertions in the journal
 
 }} )m4_dnl
