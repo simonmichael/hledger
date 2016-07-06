@@ -135,9 +135,9 @@ or [balance assertions](manual.html#assertions-and-ordering).
 - hledger shows start and end dates of the intervals requested,
   not just the span containing data
 
-- hledger always shows timeclock balances in hours
+- hledger always shows time balances (from the timeclock/timedot formats) in hours, with two decimal places
 
-- hledger splits multi-day timeclock sessions at midnight by default (Ledger does this with an option)
+- hledger splits multi-day time sessions at midnight by default (Ledger does this with an option)
 
 - hledger's output follows the decimal point character, digit grouping,
   and digit group separator character used in the journal.
@@ -156,24 +156,21 @@ or [balance assertions](manual.html#assertions-and-ordering).
   seen. Ledger uses D only for commodity display settings and for the
   entry command.
 
-- hledger generates a description for timeclock sessions, instead of
-  taking it from the clock-out entry
-
 - hledger's [include directive](manual.html#including-other-files) does not support
-  shell glob patterns (eg `include *.journal` ), which Ledger's does.
-
-- hledger's include directive works only in journal files, and currently can only include
-  journal files, not eg timeclock or CSV files
+  shell glob patterns (eg `include *.journal` ), as Ledger's does.
 
 - when checking [balance assertions](manual.html#balance-assertions)
   hledger sorts the account's postings first by date and then (for
-  postings with the same date) by parse order. Ledger goes strictly by
-  parse order.
+  postings with the same date) by parse order. Ledger checks assertions 
+  in parse order, ignoring dates.
 
 - Ledger allows amounts to have a fixed lot price (the {} syntax ?)
   and a regular price in any order (and uses whichever appears
   first). hledger requires the fixed lot price to come last (and
   ignores it).
+
+- hledger uses --ignore-assertions/-I to disable balance assertions. 
+  Ledger uses --permissive, and -I means something else (--prices).  
 
 ### Future ?
 
