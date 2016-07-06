@@ -105,12 +105,34 @@ hledgerparseerrorpositionp = do
   c <- read <$> many1 digit
   return (f, l, c)
 
--- If journal file(s) have changed, reload the journal and regenerate all screens.
--- This is here so it can reference the error screen.
+-- Unconditionally reload the journal, regenerating the current screen
+-- and all previous screens in the history.
+-- If reloading fails, enter the error screen, or if we're already
+-- on the error screen, update the error displayed.
+-- The provided CliOpts are used for reloading, and then saved
+-- in the UIState if reloading is successful (otherwise the
+-- ui state keeps its old cli opts.)
+-- Defined here so it can reference the error screen.
+uiReloadJournal :: CliOpts -> Day -> UIState -> IO UIState
+uiReloadJournal copts d ui = do
+  ej <- journalReload copts
+  return $ case ej of
+    Right j  -> regenerateScreens j d ui{aopts=(aopts ui){cliopts_=copts}}
+    Left err ->
+      case ui of
+        UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
+        _                                -> screenEnter d errorScreen{esError=err} ui
+
+-- Like uiReloadJournal, but does not bother re-parsing the journal if
+-- the file(s) have not changed since last loaded. Always regenerates
+-- the current and previous screens though, since opts or date may have changed.
 uiReloadJournalIfChanged :: CliOpts -> Day -> Journal -> UIState -> IO UIState
 uiReloadJournalIfChanged copts d j ui = do
-  (ej, _) <- journalReloadIfChanged copts d j
+  (ej, _changed) <- journalReloadIfChanged copts d j
   return $ case ej of
-    Right j' -> regenerateScreens j' d ui
-    Left err -> screenEnter d errorScreen{esError=err} ui
+    Right j' -> regenerateScreens j' d ui{aopts=(aopts ui){cliopts_=copts}}
+    Left err ->
+      case ui of
+        UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
+        _                                -> screenEnter d errorScreen{esError=err} ui
 
