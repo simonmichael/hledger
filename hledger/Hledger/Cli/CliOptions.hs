@@ -103,7 +103,7 @@ helpflags = [
  ,flagNone ["man"]  (setboolopt "man")  "show the current program's manual with man"
  ,flagNone ["info"] (setboolopt "info") "show the current program's manual with info"
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
- ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "N" "show increasing amounts of debug output if N is 1-9. With no argument, show level 1"
+ ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
  ,flagNone ["version"] (setboolopt "version") "show version information"
  ]
 

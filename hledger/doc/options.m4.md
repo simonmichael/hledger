@@ -53,7 +53,7 @@ If in doubt, keep things simple:
 - if needed, also add a backslash to escape regexp metacharacters
 - run add-on executables directly
 
-If you're really curious, add `--debug 2` for troubleshooting.
+If you're really curious, add `--debug=2` for troubleshooting.
 
 
 **General options:**

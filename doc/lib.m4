@@ -70,8 +70,8 @@ m4_define({{_generaloptions_}}, {{
 `--version`
 : show version
 
-`--debug=N`
-: show debug output if N is 1-9 (default: 0)
+`--debug[=N]`
+: show debug output (levels 1-9, default: 1)
 
 `-f FILE --file=FILE`
 : use a different input file. For stdin, use -
