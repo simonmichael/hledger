@@ -99,7 +99,7 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
 rsDraw :: UIState -> [Widget]
-rsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                             ,aScreen=RegisterScreen{..}
                             ,aMode=mode
                             } =
@@ -120,6 +120,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
       <+> str "/"
       <+> total
       <+> str ")"
+      <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
     togglefilters =
       case concat [
            if cleared_ ropts then ["cleared"] else []

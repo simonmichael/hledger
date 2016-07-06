@@ -46,7 +46,7 @@ tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
 tsInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
 tsDraw :: UIState -> [Widget]
-tsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                               ,aScreen=TransactionScreen{
                                    tsTransaction=(i,t)
                                   ,tsTransactions=nts
@@ -69,6 +69,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
       <+> togglefilters
       <+> borderQueryStr (query_ ropts)
       <+> str (" in "++T.unpack (replaceHiddenAccountsNameWith "All" acct)++")")
+      <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
     togglefilters =
       case concat [
            if cleared_ ropts then ["cleared"] else []

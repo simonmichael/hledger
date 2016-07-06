@@ -100,7 +100,7 @@ asInit d reset ui@UIState{
 asInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
 asDraw :: UIState -> [Widget]
-asDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
+asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                            ,ajournal=j
                            ,aScreen=s@AccountsScreen{}
                            ,aMode=mode
@@ -110,18 +110,22 @@ asDraw UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
-    toplabel = files
-            <+> nonzero
-            <+> str " accounts"
-            <+> withAttr (borderAttr <> "query") (str (if flat_ ropts then " (flat)" else ""))
-            <+> borderQueryStr querystr
-            <+> togglefilters
-            <+> borderDepthStr mdepth
-            <+> str " ("
-            <+> cur
-            <+> str "/"
-            <+> total
-            <+> str ")"
+    toplabel =
+          files
+      <+> nonzero
+      <+> str " accounts"
+      <+> withAttr (borderAttr <> "query") (str (if flat_ ropts then " (flat)" else ""))
+      <+> borderQueryStr querystr
+      <+> togglefilters
+      <+> borderDepthStr mdepth
+      <+> str " ("
+      <+> cur
+      <+> str "/"
+      <+> total
+      <+> str ")"
+      <+> (if ignore_assertions_ copts
+           then withAttr (borderAttr <> "query") (str " ignoring balance assertions")
+           else str "")
     files = case journalFilePaths j of
                    [] -> str ""
                    f:_ -> withAttr ("border" <> "bold") $ str $ takeFileName f

@@ -9,6 +9,7 @@ module Hledger.UI.ErrorScreen
 where
 
 import Brick
+-- import Brick.Widgets.Border (borderAttr)
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.Monoid
@@ -36,15 +37,18 @@ esInit _ _ ui@UIState{aScreen=ErrorScreen{}} = ui
 esInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
 esDraw :: UIState -> [Widget]
-esDraw UIState{ -- aopts=_uopts@UIOpts{cliopts_=_copts@CliOpts{reportopts_=_ropts@ReportOpts{query_=querystr}}},
-                             aScreen=ErrorScreen{..}
-                             ,aMode=mode} =
+esDraw UIState{ --aopts=UIOpts{cliopts_=copts@CliOpts{}}
+               aScreen=ErrorScreen{..}
+              ,aMode=mode} =
   case mode of
     Help       -> [helpDialog, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
-    toplabel = withAttr ("border" <> "bold") (str "Oops. Please fix this problem then press g to reload")
+    toplabel =
+          withAttr ("border" <> "bold") (str "Oops. Please fix this problem then press g to reload")
+--       <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring") else str " not ignoring")
+
     maincontent = Widget Greedy Greedy $ do
       render $ defaultLayout toplabel bottomlabel $ withAttr "error" $ str $ esError
       where
