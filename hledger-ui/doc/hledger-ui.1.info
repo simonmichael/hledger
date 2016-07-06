@@ -71,8 +71,8 @@ the data.
 `--version'
      show version
 
-`--debug=N'
-     show debug output if N is 1-9 (default: 0)
+`--debug[=N]'
+     show debug output (levels 1-9, default: 1)
 
 `-f FILE --file=FILE'
      use a different input file. For stdin, use -
@@ -83,7 +83,7 @@ the data.
 `--alias=OLD=NEW'
      display accounts named OLD as NEW
 
-`--ignore-assertions'
+`-I --ignore-assertions'
      ignore any failing balance assertions in the journal
 
    hledger reporting options:
@@ -159,7 +159,9 @@ again (or `ESCAPE', or `LEFT') to close it.
    The cursor keys navigate: `right' (or `enter') goes deeper, `left'
 returns to the previous screen, `up'/`down'/`page up'/`page
 down'/`home'/`end' move up and down through lists. Vi-style
-`h'/`j'/`k'/`l' movement keys are also supported.
+`h'/`j'/`k'/`l' movement keys are also supported. A tip: movement speed
+is limited by your keyboard repeat rate, to move faster you may want to
+adjust that. (On a mac, the Karabiner app is one way to do that).
 
    `/' lets you set or change the filter query, which limits the data
 shown on most screens (in addition to the quick filters described
@@ -176,6 +178,9 @@ active.
    `g' reloads from the data file(s) and updates the current screen and
 any previous screens. (With large files, there can be a noticeable
 pause.)
+
+   `I' toggles balance assertion checking. Disabling balance assertions
+temporarily can be useful for troubleshooting.
 
    `a' runs command-line hledger's add command, and reloads the updated
 file. This allows some basic data entry.
@@ -333,17 +338,17 @@ Tag Table:
 Node: Top88
 Node: OPTIONS825
 Ref: #options924
-Node: KEYS3800
-Ref: #keys3897
-Node: SCREENS5506
-Ref: #screens5593
-Node: Accounts screen5683
-Ref: #accounts-screen5813
-Node: Register screen7118
-Ref: #register-screen7275
-Node: Transaction screen9096
-Ref: #transaction-screen9256
-Node: Error screen10123
-Ref: #error-screen10247
+Node: KEYS3805
+Ref: #keys3902
+Node: SCREENS5791
+Ref: #screens5878
+Node: Accounts screen5968
+Ref: #accounts-screen6098
+Node: Register screen7403
+Ref: #register-screen7560
+Node: Transaction screen9381
+Ref: #transaction-screen9541
+Node: Error screen10408
+Ref: #error-screen10532
 
 End Tag Table

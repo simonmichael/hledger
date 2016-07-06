@@ -108,8 +108,8 @@ OPTIONS
        --version
               show version
 
-       --debug=N
-              show debug output if N is 1-9 (default: 0)
+       --debug[=N]
+              show debug output (levels 1-9, default: 1)
 
        -f FILE --file=FILE
               use a different input file.  For stdin, use -
@@ -121,7 +121,7 @@ OPTIONS
        --alias=OLD=NEW
               display accounts named OLD as NEW
 
-       --ignore-assertions
+       -I --ignore-assertions
               ignore any failing balance assertions in the journal
 
        hledger reporting options:

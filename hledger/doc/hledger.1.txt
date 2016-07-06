@@ -175,7 +175,7 @@ OPTIONS
 
        o run add-on executables directly
 
-       If you're really curious, add --debug 2 for troubleshooting.
+       If you're really curious, add --debug=2 for troubleshooting.
 
        General options:
 
@@ -191,8 +191,8 @@ OPTIONS
        --version
               show version
 
-       --debug=N
-              show debug output if N is 1-9 (default: 0)
+       --debug[=N]
+              show debug output (levels 1-9, default: 1)
 
        -f FILE --file=FILE
               use a different input file.  For stdin, use -
@@ -204,7 +204,7 @@ OPTIONS
        --alias=OLD=NEW
               display accounts named OLD as NEW
 
-       --ignore-assertions
+       -I --ignore-assertions
               ignore any failing balance assertions in the journal
 
        Common reporting options:

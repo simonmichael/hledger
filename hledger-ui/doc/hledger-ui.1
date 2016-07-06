@@ -93,8 +93,8 @@ show version
 .RS
 .RE
 .TP
-.B \f[C]\-\-debug=N\f[]
-show debug output if N is 1\-9 (default: 0)
+.B \f[C]\-\-debug[=N]\f[]
+show debug output (levels 1\-9, default: 1)
 .RS
 .RE
 .TP
@@ -114,7 +114,7 @@ display accounts named OLD as NEW
 .RS
 .RE
 .TP
-.B \f[C]\-\-ignore\-assertions\f[]
+.B \f[C]\-I\ \-\-ignore\-assertions\f[]
 ignore any failing balance assertions in the journal
 .RS
 .RE
@@ -228,6 +228,9 @@ deeper, \f[C]left\f[] returns to the previous screen,
 move up and down through lists.
 Vi\-style \f[C]h\f[]/\f[C]j\f[]/\f[C]k\f[]/\f[C]l\f[] movement keys are
 also supported.
+A tip: movement speed is limited by your keyboard repeat rate, to move
+faster you may want to adjust that.
+(On a mac, the Karabiner app is one way to do that).
 .PP
 \f[C]/\f[] lets you set or change the filter query, which limits the
 data shown on most screens (in addition to the quick filters described
@@ -245,6 +248,10 @@ Or, it cancels a minibuffer edit or help dialog if one is active.
 \f[C]g\f[] reloads from the data file(s) and updates the current screen
 and any previous screens.
 (With large files, there can be a noticeable pause.)
+.PP
+\f[C]I\f[] toggles balance assertion checking.
+Disabling balance assertions temporarily can be useful for
+troubleshooting.
 .PP
 \f[C]a\f[] runs command\-line hledger\[aq]s add command, and reloads the
 updated file.

@@ -235,7 +235,7 @@ if needed, also add a backslash to escape regexp metacharacters
 .IP \[bu] 2
 run add\-on executables directly
 .PP
-If you\[aq]re really curious, add \f[C]\-\-debug\ 2\f[] for
+If you\[aq]re really curious, add \f[C]\-\-debug=2\f[] for
 troubleshooting.
 .PP
 \f[B]General options:\f[]
@@ -266,8 +266,8 @@ show version
 .RS
 .RE
 .TP
-.B \f[C]\-\-debug=N\f[]
-show debug output if N is 1\-9 (default: 0)
+.B \f[C]\-\-debug[=N]\f[]
+show debug output (levels 1\-9, default: 1)
 .RS
 .RE
 .TP
@@ -287,7 +287,7 @@ display accounts named OLD as NEW
 .RS
 .RE
 .TP
-.B \f[C]\-\-ignore\-assertions\f[]
+.B \f[C]\-I\ \-\-ignore\-assertions\f[]
 ignore any failing balance assertions in the journal
 .RS
 .RE
