@@ -4,6 +4,8 @@
 
 module Hledger.UI.ErrorScreen
  (errorScreen
+ ,uiCheckBalanceAssertions
+ ,uiReloadJournal
  ,uiReloadJournalIfChanged
  )
 where
@@ -82,18 +84,19 @@ esHandle ui@UIState{
       d <- liftIO getCurrentDay
       case ev of
         EvKey (KChar 'q') [] -> halt ui
-        EvKey KEsc        [] -> continue $ resetScreens d ui
+        EvKey KEsc        [] -> continue $ uiCheckBalanceAssertions d $ resetScreens d ui
         EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
         EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j (popScreen ui)
           where
             (pos,f) = case parsewith hledgerparseerrorpositionp esError of
                         Right (f,l,c) -> (Just (l, Just c),f)
                         Left  _       -> (endPos, journalFilePath j)
-        EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j (popScreen ui)) >>= continue
+        EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j (popScreen ui)) >>= continue . uiCheckBalanceAssertions d
 --           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
 --           case ej of
 --             Left err -> continue ui{aScreen=s{esError=err}} -- show latest parse error
 --             Right j' -> continue $ regenerateScreens j' d $ popScreen ui  -- return to previous screen, and reload it
+        EvKey (KChar 'I') [] -> continue $ uiCheckBalanceAssertions d (popScreen $ toggleIgnoreBalanceAssertions ui)
         _ -> continue ui
 
 esHandle _ _ = error "event handler called with wrong screen type, should not happen"
@@ -140,3 +143,16 @@ uiReloadJournalIfChanged copts d j ui = do
         UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
         _                                -> screenEnter d errorScreen{esError=err} ui
 
+-- Re-check any balance assertions in the current journal, and if any
+-- fail, enter (or update) the error screen. Or if balance assertions
+-- are disabled, do nothing.
+uiCheckBalanceAssertions :: Day -> UIState -> UIState
+uiCheckBalanceAssertions d ui@UIState{aopts=UIOpts{cliopts_=copts}, ajournal=j}
+  | ignore_assertions_ copts = ui
+  | otherwise =
+    case journalCheckBalanceAssertions j of
+      Right _  -> ui
+      Left err ->
+        case ui of
+          UIState{aScreen=s@ErrorScreen{}} -> ui{aScreen=s{esError=err}}
+          _                                -> screenEnter d errorScreen{esError=err} ui

@@ -157,6 +157,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
                                   ,tsTransactions=numberedts
                                   ,tsAccount=acct}}
               continue $ regenerateScreens j' d ui'
+        EvKey (KChar 'I') [] -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
         -- if allowing toggling here, we should refresh the txn list from the parent register screen
         -- EvKey (KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty ui
         -- EvKey (KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared ui

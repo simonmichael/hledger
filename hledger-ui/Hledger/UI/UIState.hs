@@ -60,6 +60,11 @@ toggleReal ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropt
   where
     toggleReal ropts = ropts{real_=not $ real_ ropts}
 
+-- | Toggle the ignoring of balance assertions.
+toggleIgnoreBalanceAssertions :: UIState -> UIState
+toggleIgnoreBalanceAssertions ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{}}} =
+  ui{aopts=uopts{cliopts_=copts{ignore_assertions_=not $ ignore_assertions_ copts}}}
+
 -- | Apply a new filter query.
 setFilter :: String -> UIState -> UIState
 setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =

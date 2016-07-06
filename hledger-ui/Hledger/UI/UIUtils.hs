@@ -52,6 +52,7 @@ helpDialog =
                   ,renderKey ("a", "add transaction")
                   ,renderKey ("E", "open editor")
                   ,renderKey ("g", "reload data")
+                  ,renderKey ("I", "toggle balance assertions")
                   ,renderKey ("q", "quit")
                   ]
              ,padLeftRight 1 $

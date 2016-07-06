@@ -103,6 +103,9 @@ Or, it cancels a minibuffer edit or help dialog if one is active.
 `g` reloads from the data file(s) and updates the current screen and any
 previous screens. (With large files, there can be a noticeable pause.)
 
+`I` toggles balance assertion checking. 
+Disabling balance assertions temporarily can be useful for troubleshooting. 
+
 `a` runs command-line hledger's add command, and reloads the updated file.
 This allows some basic data entry. 
 

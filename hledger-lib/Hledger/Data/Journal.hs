@@ -53,6 +53,7 @@ module Hledger.Data.Journal (
   canonicalStyleFrom,
   matchpats,
   nulljournal,
+  journalCheckBalanceAssertions,
   -- * Tests
   samplejournal,
   tests_Hledger_Data_Journal,
