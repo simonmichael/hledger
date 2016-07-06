@@ -41,7 +41,7 @@ helpDialog =
               padLeftRight 1 $
                 vBox [
                    str "NAVIGATION"
-                  ,renderKey ("UP/DOWN/k/j/PGUP/PGDN/HOME/END", "")
+                  ,renderKey ("UP/k/DOWN/j/PGUP/PGDN/HOME/END", "")
                   ,str "  move selection"
                   ,renderKey ("RIGHT/l/ENTER", "drill down")
                   ,renderKey ("LEFT/h", "previous screen")
