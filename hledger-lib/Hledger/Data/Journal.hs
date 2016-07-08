@@ -143,7 +143,6 @@ instance Monoid Journal where
   mempty = nulljournal
   mappend j1 j2 = Journal {
      jparsedefaultyear          = jparsedefaultyear          j2
-    ,jparsedefaultmonth         = jparsedefaultmonth         j2
     ,jparsedefaultcommodity     = jparsedefaultcommodity     j2
     ,jparseparentaccounts       = jparseparentaccounts       j2
     ,jparsealiases              = jparsealiases              j2
@@ -164,7 +163,6 @@ instance Monoid Journal where
 nulljournal :: Journal
 nulljournal = Journal {
    jparsedefaultyear          = Nothing
-  ,jparsedefaultmonth         = Nothing
   ,jparsedefaultcommodity     = Nothing
   ,jparseparentaccounts       = []
   ,jparsealiases              = []

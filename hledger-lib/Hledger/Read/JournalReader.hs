@@ -215,7 +215,6 @@ includedirectivep = do
 newJournalWithParseStateFrom :: Journal -> Journal
 newJournalWithParseStateFrom j = mempty{
    jparsedefaultyear      = jparsedefaultyear j
-  ,jparsedefaultmonth     = jparsedefaultmonth j
   ,jparsedefaultcommodity = jparsedefaultcommodity j
   ,jparseparentaccounts   = jparseparentaccounts j
   ,jparsealiases          = jparsealiases j
@@ -364,13 +363,11 @@ defaultyeardirectivep = do
   y <- many1 digit
   m <- optionMaybe $ char '/' >> many1 digit
   let y' = read y
+  let m' = fmap read m
   failIfInvalidYear y
-  setYear y'
-  case m of Just mval -> (do
-                           let m' = read mval
-                           failIfInvalidMonth mval
-                           setMonth m')
+  case m of Just mval -> failIfInvalidMonth mval
             Nothing   -> sequence_ []
+  setYear (y',m')
 
 defaultcommoditydirectivep :: ErroringJournalParser ()
 defaultcommoditydirectivep = do

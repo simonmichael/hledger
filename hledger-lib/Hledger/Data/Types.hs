@@ -238,8 +238,7 @@ type Month = Int
 --
 data Journal = Journal {
   -- parsing-related data
-   jparsedefaultyear      :: (Maybe Year)                          -- ^ the current default year, specified by the most recent Y directive (or current date)
-  ,jparsedefaultmonth     :: (Maybe Month)                         -- ^ the current default month, specified by the most recent Y directive containing month part (or current date)
+   jparsedefaultyear      :: (Maybe (Year,Maybe Month))            -- ^ the current default year/month, specified by the most recent Y directive (or current date)
   ,jparsedefaultcommodity :: (Maybe (CommoditySymbol,AmountStyle)) -- ^ the current default commodity and its format, specified by the most recent D directive
   ,jparseparentaccounts   :: [AccountName]                         -- ^ the current stack of parent account names, specified by apply account directives
   ,jparsealiases          :: [AccountAlias]                        -- ^ the current account name aliases in effect, specified by alias directives (& options ?)

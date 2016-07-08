@@ -85,24 +85,18 @@ parseAndFinaliseJournal parser assrt f txt = do
   t <- liftIO getClockTime
   y <- liftIO getCurrentYear
   m <- liftIO getCurrentMonth
-  ep <- runParserT parser nulljournal{jparsedefaultyear=Just y, jparsedefaultmonth=Just m} f txt
+  ep <- runParserT parser nulljournal{jparsedefaultyear=Just (y,Just m)} f txt
   case ep of
     Right pj -> case journalFinalise t f txt assrt pj of
                         Right j -> return j
                         Left e  -> throwError e
     Left e   -> throwError $ show e
 
-setYear :: Monad m => Integer -> JournalParser m ()
-setYear y = modifyState (\j -> j{jparsedefaultyear=Just y})
+setYear :: Monad m => (Integer,Maybe Int) -> JournalParser m ()
+setYear (y,m) = modifyState (\j -> j{jparsedefaultyear=Just (y,m)})
 
-getYear :: Monad m => JournalParser m (Maybe Integer)
+getYear :: Monad m => JournalParser m (Maybe (Integer,Maybe Int))
 getYear = fmap jparsedefaultyear getState
-
-setMonth :: Monad m => Int -> JournalParser m ()
-setMonth m = modifyState (\j -> j{jparsedefaultmonth=Just m})
-
-getMonth :: Monad m => JournalParser m (Maybe Int)
-getMonth = fmap jparsedefaultmonth getState
 
 setDefaultCommodityAndStyle :: Monad m => (CommoditySymbol,AmountStyle) -> JournalParser m ()
 setDefaultCommodityAndStyle cs = modifyState (\j -> j{jparsedefaultcommodity=Just cs})
@@ -201,13 +195,14 @@ datep = do
   when (length sepchars > 1) $ fail $ "bad date, different separators used: " ++ datestr
   let dateparts = wordsBy (`elem` datesepchars) datestr
   currentyear <- getYear
-  currentmonth <- getMonth
-  [y,m,d] <- case (dateparts,currentyear,currentmonth) of
-              ([d],Just y,Just m) -> return [show y,show m,d]
-              ([m,d],Just y,_)    -> return [show y,m,d]
-              ([_,_],Nothing,_)   -> fail $ "partial date "++datestr++" found, but the current year is unknown"
-              ([y,m,d],_,_)       -> return [y,m,d]
-              _                   -> fail $ "bad date: " ++ datestr
+  [y,m,d] <- case (dateparts,currentyear) of
+              ([d],Just (y,Just m))  -> return [show y,show m,d]
+              ([m,d],Just (y,_))     -> return [show y,m,d]
+              ([_,_],Nothing)        -> fail $ "partial date "++datestr++" found, but the current year is unknown"
+              ([_],Nothing)          -> fail $ "partial date "++datestr++" found, but the current year is unknown"
+              ([_],Just (_,Nothing)) -> fail $ "partial date "++datestr++" found, but the current month is unknown"
+              ([y,m,d],_)            -> return [y,m,d]
+              _                      -> fail $ "bad date: " ++ datestr
   let maybedate = fromGregorianValid (read y) (read m) (read d)
   case maybedate of
     Nothing   -> fail $ "bad date: " ++ datestr
@@ -254,12 +249,9 @@ secondarydatep primarydate = do
   -- kludgy way to use primary date for default year/month
   let withDefaultYear d p = do
         y <- getYear
-        m <- getMonth
-        let (y',m',_) = toGregorian d in (do setYear y'
-                                             setMonth m')
+        let (y',m',_) = toGregorian d in setYear (y',Just m')
         r <- p
         when (isJust y) $ setYear $ fromJust y -- XXX
-        when (isJust m) $ setMonth $ fromJust m
         -- mapM setYear <$> y
         return r
   withDefaultYear primarydate datep
@@ -760,9 +752,8 @@ datetagp mdefdate = do
   v <- tagvaluep
   -- re-parse value as a date.
   j <- getState 
-  let g = toGregorian <$> mdefdate
   ep <- parseWithState
-    j{jparsedefaultyear=first3 <$> g, jparsedefaultmonth=second3 <$> g}
+    j{jparsedefaultyear=(\(y,m,_) -> (y,Just m)).toGregorian <$> mdefdate}
     -- The value extends to a comma, newline, or end of file.
     -- It seems like ignoring any extra stuff following a date
     -- gives better errors here.
@@ -820,14 +811,12 @@ bracketeddatetagsp mdefdate = do
   -- looks sufficiently like a bracketed date, now we
   -- re-parse as dates and throw any errors
   j <- getState
-  let g = toGregorian <$> mdefdate
   ep <- parseWithState
-    j{jparsedefaultyear=first3 <$> g, jparsedefaultmonth=second3 <$> g}
+    j{jparsedefaultyear=(\(y,m,_) -> (y,Just m)).toGregorian <$> mdefdate}
     (do
         setPosition startpos
         md1 <- optionMaybe datep
-        maybe (return ()) (setYear.first3.toGregorian) md1
-        maybe (return ()) (setMonth.second3.toGregorian) md1
+        maybe (return ()) (setYear.(\(y,m,_) -> (y,Just m)).toGregorian) md1
         md2 <- optionMaybe $ char '=' >> datep
         eof
         return (md1,md2)
