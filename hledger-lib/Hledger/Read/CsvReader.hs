@@ -25,6 +25,7 @@ import Prelude.Compat hiding (getContents)
 import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Except
+import Control.Monad.State (StateT, get, modify',evalState)
 -- import Test.HUnit
 import Data.Char (toLower, isDigit, isSpace)
 import Data.List.Compat
@@ -45,9 +46,10 @@ import System.FilePath
 import System.IO (stderr)
 import Test.HUnit
 import Text.CSV (parseCSV, CSV)
-import Text.Parsec hiding (parse)
-import Text.Parsec.Pos
-import Text.Parsec.Error
+import Text.Megaparsec hiding (parse)
+import Text.Megaparsec.Pos
+import Text.Megaparsec.Error
+import qualified Text.Parsec as Parsec
 import Text.Printf (hPrintf,printf)
 
 import Hledger.Data
@@ -136,14 +138,14 @@ readJournalFromCsv mrulesfile csvfile csvdata =
             | otherwise = txns
   return $ Right nulljournal{jtxns=sortBy (comparing tdate) txns'}
 
-parseCsv :: FilePath -> String -> IO (Either ParseError CSV)
+parseCsv :: FilePath -> String -> IO (Either Parsec.ParseError CSV)
 parseCsv path csvdata =
   case path of
     "-" -> liftM (parseCSV "(stdin)") getContents
     _   -> return $ parseCSV path csvdata
 
 -- | Return the cleaned up and validated CSV data, or an error.
-validateCsv :: Int -> Either ParseError CSV -> Either String [CsvRecord]
+validateCsv :: Int -> Either Parsec.ParseError CSV -> Either String [CsvRecord]
 validateCsv _ (Left e) = Left $ show e
 validateCsv numhdrlines (Right rs) = validate $ drop numhdrlines $ filternulls rs
   where
@@ -373,7 +375,7 @@ expandIncludes basedir content = do
 parseCsvRules :: FilePath -> String -> Either ParseError CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
 parseCsvRules rulesfile s =
-  runParser rulesp rules rulesfile s
+  flip evalState rules $ runParserT rulesp rulesfile s
 
 -- | Return the validated rules, or an error.
 validateRules :: CsvRules -> ExceptT String IO CsvRules
@@ -391,39 +393,39 @@ validateRules rules = do
 
 -- parsers
 
-rulesp :: Stream [Char] m t => ParsecT [Char] CsvRules m CsvRules
+rulesp :: Monad m => Stream s Char => ParsecT s (StateT CsvRules m) CsvRules
 rulesp = do
   many $ choice'
-    [blankorcommentlinep                                                    <?> "blank or comment line"
-    ,(directivep        >>= modifyState . addDirective)                     <?> "directive"
-    ,(fieldnamelistp    >>= modifyState . setIndexesAndAssignmentsFromList) <?> "field name list"
-    ,(fieldassignmentp  >>= modifyState . addAssignment)                    <?> "field assignment"
-    ,(conditionalblockp >>= modifyState . addConditionalBlock)              <?> "conditional block"
+    [blankorcommentlinep                                                <?> "blank or comment line"
+    ,(directivep        >>= modify' . addDirective)                     <?> "directive"
+    ,(fieldnamelistp    >>= modify' . setIndexesAndAssignmentsFromList) <?> "field name list"
+    ,(fieldassignmentp  >>= modify' . addAssignment)                    <?> "field assignment"
+    ,(conditionalblockp >>= modify' . addConditionalBlock)              <?> "conditional block"
     ]
   eof
-  r <- getState
+  r <- get
   return r{rdirectives=reverse $ rdirectives r
           ,rassignments=reverse $ rassignments r
           ,rconditionalblocks=reverse $ rconditionalblocks r
           }
 
-blankorcommentlinep :: Stream [Char] m t => ParsecT [Char] CsvRules m ()
+blankorcommentlinep :: Stream s Char => ParsecT s (StateT CsvRules m) ()
 blankorcommentlinep = pdbg 3 "trying blankorcommentlinep" >> choice' [blanklinep, commentlinep]
 
-blanklinep :: Stream [Char] m t => ParsecT [Char] CsvRules m ()
+blanklinep :: Stream s Char => ParsecT s (StateT CsvRules m) ()
 blanklinep = many spacenonewline >> newline >> return () <?> "blank line"
 
-commentlinep :: Stream [Char] m t => ParsecT [Char] CsvRules m ()
+commentlinep :: Stream s Char => ParsecT s (StateT CsvRules m) ()
 commentlinep = many spacenonewline >> commentcharp >> restofline >> return () <?> "comment line"
 
-commentcharp :: Stream [Char] m t => ParsecT [Char] CsvRules m Char
+commentcharp :: Stream s Char => ParsecT s (StateT CsvRules m) Char
 commentcharp = oneOf ";#*"
 
-directivep :: Stream [Char] m t => ParsecT [Char] CsvRules m (DirectiveName, String)
+directivep :: Stream s Char => ParsecT s (StateT CsvRules m) (DirectiveName, String)
 directivep = (do
   pdbg 3 "trying directive"
   d <- choice' $ map string directives
-  v <- (((char ':' >> many spacenonewline) <|> many1 spacenonewline) >> directivevalp)
+  v <- (((char ':' >> many spacenonewline) <|> some spacenonewline) >> directivevalp)
        <|> (optional (char ':') >> many spacenonewline >> eolof >> return "")
   return (d,v)
   ) <?> "directive"
@@ -438,45 +440,45 @@ directives =
    -- ,"base-currency"
   ]
 
-directivevalp :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
+directivevalp :: Stream s Char => ParsecT s (StateT CsvRules m) String
 directivevalp = anyChar `manyTill` eolof
 
-fieldnamelistp :: Stream [Char] m t => ParsecT [Char] CsvRules m [CsvFieldName]
+fieldnamelistp :: Stream s Char => ParsecT s (StateT CsvRules m) [CsvFieldName]
 fieldnamelistp = (do
   pdbg 3 "trying fieldnamelist"
   string "fields"
   optional $ char ':'
-  many1 spacenonewline
+  some spacenonewline
   let separator = many spacenonewline >> char ',' >> many spacenonewline
-  f <- fromMaybe "" <$> optionMaybe fieldnamep
-  fs <- many1 $ (separator >> fromMaybe "" <$> optionMaybe fieldnamep)
+  f <- fromMaybe "" <$> optional fieldnamep
+  fs <- some $ (separator >> fromMaybe "" <$> optional fieldnamep)
   restofline
   return $ map (map toLower) $ f:fs
   ) <?> "field name list"
 
-fieldnamep :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
+fieldnamep :: Stream s Char => ParsecT s (StateT CsvRules m) String
 fieldnamep = quotedfieldnamep <|> barefieldnamep
 
-quotedfieldnamep :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
+quotedfieldnamep :: Stream s Char => ParsecT s (StateT CsvRules m) String
 quotedfieldnamep = do
   char '"'
-  f <- many1 $ noneOf "\"\n:;#~"
+  f <- some $ noneOf "\"\n:;#~"
   char '"'
   return f
 
-barefieldnamep :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
-barefieldnamep = many1 $ noneOf " \t\n,;#~"
+barefieldnamep :: Stream s Char => ParsecT s m String
+barefieldnamep = some $ noneOf " \t\n,;#~"
 
-fieldassignmentp :: Stream [Char] m t => ParsecT [Char] CsvRules m (JournalFieldName, FieldTemplate)
+fieldassignmentp :: Stream s Char => ParsecT s (StateT CsvRules m) (JournalFieldName, FieldTemplate)
 fieldassignmentp = do
-  pdbg 3 "trying fieldassignment"
+  pdbg 3 "trying fieldassignmentp"
   f <- journalfieldnamep
   assignmentseparatorp
   v <- fieldvalp
   return (f,v)
   <?> "field assignment"
 
-journalfieldnamep :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
+journalfieldnamep :: Stream s Char => ParsecT s (StateT CsvRules m) String
 journalfieldnamep = pdbg 2 "trying journalfieldnamep" >> choice' (map string journalfieldnames)
 
 journalfieldnames =
@@ -496,34 +498,34 @@ journalfieldnames =
   ,"comment"
   ]
 
-assignmentseparatorp :: Stream [Char] m t => ParsecT [Char] CsvRules m ()
+assignmentseparatorp :: Stream s Char => ParsecT s (StateT CsvRules m) ()
 assignmentseparatorp = do
   pdbg 3 "trying assignmentseparatorp"
   choice [
     -- try (many spacenonewline >> oneOf ":="),
-    try (many spacenonewline >> char ':'),
+    try (void $ many spacenonewline >> char ':'),
     space
     ]
   _ <- many spacenonewline
   return ()
 
-fieldvalp :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
+fieldvalp :: Stream s Char => ParsecT s (StateT CsvRules m) String
 fieldvalp = do
-  pdbg 2 "trying fieldval"
+  pdbg 2 "trying fieldvalp"
   anyChar `manyTill` eolof
 
-conditionalblockp :: Stream [Char] m t => ParsecT [Char] CsvRules m ConditionalBlock
+conditionalblockp :: Stream s Char => ParsecT s (StateT CsvRules m) ConditionalBlock
 conditionalblockp = do
   pdbg 3 "trying conditionalblockp"
   string "if" >> many spacenonewline >> optional newline
-  ms <- many1 recordmatcherp
-  as <- many (many1 spacenonewline >> fieldassignmentp)
+  ms <- some recordmatcherp
+  as <- many (some spacenonewline >> fieldassignmentp)
   when (null as) $
     fail "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)\n"
   return (ms, as)
   <?> "conditional block"
 
-recordmatcherp :: Stream [Char] m t => ParsecT [Char] CsvRules m [[Char]]
+recordmatcherp :: Stream s Char => ParsecT s (StateT CsvRules m) [String]
 recordmatcherp = do
   pdbg 2 "trying recordmatcherp"
   -- pos <- currentPos
@@ -534,7 +536,7 @@ recordmatcherp = do
   return ps
   <?> "record matcher"
 
-matchoperatorp :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
+matchoperatorp :: Stream s Char => ParsecT s (StateT CsvRules m) String
 matchoperatorp = choice' $ map string
   ["~"
   -- ,"!~"
@@ -542,13 +544,13 @@ matchoperatorp = choice' $ map string
   -- ,"!="
   ]
 
-patternsp :: Stream [Char] m t => ParsecT [Char] CsvRules m [[Char]]
+patternsp :: Stream s Char => ParsecT s (StateT CsvRules m) [String]
 patternsp = do
   pdbg 3 "trying patternsp"
   ps <- many regexp
   return ps
 
-regexp :: Stream [Char] m t => ParsecT [Char] CsvRules m [Char]
+regexp :: Stream s Char => ParsecT s (StateT CsvRules m) String
 regexp = do
   pdbg 3 "trying regexp"
   notFollowedBy matchoperatorp
@@ -558,7 +560,7 @@ regexp = do
 
 -- fieldmatcher = do
 --   pdbg 2 "trying fieldmatcher"
---   f <- fromMaybe "all" `fmap` (optionMaybe $ do
+--   f <- fromMaybe "all" `fmap` (optional $ do
 --          f' <- fieldname
 --          many spacenonewline
 --          return f')
@@ -607,7 +609,9 @@ transactionFromCsvRecord sourcepos rules record = t
     status      =
       case mfieldtemplate "status" of
         Nothing  -> Uncleared
-        Just str -> either statuserror id $ runParser (statusp <* eof) mempty "" $ T.pack $ render str
+        Just str -> either statuserror id .
+                    runParser (statusp <* eof) "" .
+                    T.pack $ render str
           where
             statuserror err = error' $ unlines
               ["error: could not parse \""++str++"\" as a cleared status (should be *, ! or empty)"
@@ -619,7 +623,7 @@ transactionFromCsvRecord sourcepos rules record = t
     precomment  = maybe "" render $ mfieldtemplate "precomment"
     currency    = maybe (fromMaybe "" mdefaultcurrency) render $ mfieldtemplate "currency"
     amountstr   = (currency++) $ negateIfParenthesised $ getAmountStr rules record
-    amount      = either amounterror (Mixed . (:[])) $ runParser (amountp <* eof) mempty "" $ T.pack amountstr
+    amount      = either amounterror (Mixed . (:[])) $ flip evalState mempty $ runParserT (amountp <* eof) "" $ T.pack amountstr
     amounterror err = error' $ unlines
       ["error: could not parse \""++amountstr++"\" as an amount"
       ,showRecord record
@@ -782,20 +786,20 @@ test_parser =  [
     assertParseEqual (parseCsvRules "unknown" "") rules
 
   -- ,"convert rules parsing: accountrule" ~: do
-  --    assertParseEqual (parseWithState rules accountrule "A\na\n") -- leading blank line required
+  --    assertParseEqual (parseWithCtx rules accountrule "A\na\n") -- leading blank line required
   --                ([("A",Nothing)], "a")
 
   ,"convert rules parsing: trailing comments" ~: do
-     assertParse (parseWithState rules rulesp "skip\n# \n#\n")
+     assertParse (parseWithCtx rules rulesp "skip\n# \n#\n")
 
   ,"convert rules parsing: trailing blank lines" ~: do
-     assertParse (parseWithState rules rulesp "skip\n\n  \n")
+     assertParse (parseWithCtx rules rulesp "skip\n\n  \n")
 
   -- not supported
   -- ,"convert rules parsing: no final newline" ~: do
-  --    assertParse (parseWithState rules csvrulesfile "A\na")
-  --    assertParse (parseWithState rules csvrulesfile "A\na\n# \n#")
-  --    assertParse (parseWithState rules csvrulesfile "A\na\n\n  ")
+  --    assertParse (parseWithCtx rules csvrulesfile "A\na")
+  --    assertParse (parseWithCtx rules csvrulesfile "A\na\n# \n#")
+  --    assertParse (parseWithCtx rules csvrulesfile "A\na\n\n  ")
 
                  -- (rules{
                  --   -- dateField=Maybe FieldPosition,

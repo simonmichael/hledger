@@ -100,7 +100,7 @@ library
     , mtl
     , mtl-compat
     , old-time
-    , parsec >= 3
+    , megaparsec >= 4
     , process
     , regex-tdfa
     , safe >= 0.2

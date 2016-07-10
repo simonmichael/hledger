@@ -18,13 +18,13 @@ where
 
 import Control.Monad (when)
 import Control.Monad.IO.Class
-import Data.List
+import Data.List hiding (uncons)
 import Debug.Trace
 import Safe (readDef)
 import System.Environment (getArgs)
 import System.Exit
 import System.IO.Unsafe (unsafePerformIO)
-import Text.Parsec
+import Text.Megaparsec
 import Text.Printf
 
 #if __GLASGOW_HASKELL__ >= 704
@@ -56,12 +56,19 @@ mtrace a = strace a `seq` return a
 traceWith :: (a -> String) -> a -> a
 traceWith f e = trace (f e) e
 
+-- | Convert a stream to a list of tokens
+streamToList :: Stream s a => s -> [a]
+streamToList s =
+  case uncons s of
+    Nothing -> []
+    Just (a,s') -> a : streamToList s'
+
 -- | Parsec trace - show the current parsec position and next input,
 -- and the provided label if it's non-null.
-ptrace :: Stream [Char] m t => String -> ParsecT [Char] st m ()
+ptrace :: Stream s Char => String -> ParsecT s m ()
 ptrace msg = do
   pos <- getPosition
-  next <- take peeklength `fmap` getInput
+  next <- (take peeklength . streamToList) `fmap` getInput
   let (l,c) = (sourceLine pos, sourceColumn pos)
       s  = printf "at line %2d col %2d: %s" l c (show next) :: String
       s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
@@ -233,7 +240,7 @@ dbgExit msg = const (unsafePerformIO exitFailure) . dbg msg
 -- input) to the console when the debug level is at or above
 -- this level. Uses unsafePerformIO.
 -- pdbgAt :: GenParser m => Float -> String -> m ()
-pdbg :: Stream [Char] m t => Int -> String -> ParsecT [Char] st m ()
+pdbg :: Stream s Char => Int -> String -> ParsecT s m ()
 pdbg level msg = when (level <= debugLevel) $ ptrace msg
 
 

@@ -101,7 +101,8 @@ library
         , http-client
         , HUnit
         , conduit-extra      >= 1.1
-        , parsec             >= 3
+        , megaparsec         >= 4
+        , mtl
         , safe               >= 0.2
         , shakespeare        >= 2.0
         , template-haskell

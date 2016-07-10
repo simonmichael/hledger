@@ -17,7 +17,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Monoid
 import Data.Time.Calendar (Day)
 import Graphics.Vty (Event(..),Key(..))
-import Text.Parsec
+import Text.Megaparsec
 
 import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.UIOptions
@@ -107,9 +107,9 @@ hledgerparseerrorpositionp = do
   anyChar `manyTill` char '"'
   f <- anyChar `manyTill` (oneOf ['"','\n'])
   string " (line "
-  l <- read <$> many1 digit
+  l <- read <$> some digitChar
   string ", column "
-  c <- read <$> many1 digit
+  c <- read <$> some digitChar
   return (f, l, c)
 
 -- Unconditionally reload the journal, regenerating the current screen

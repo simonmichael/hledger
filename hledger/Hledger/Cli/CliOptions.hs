@@ -86,7 +86,7 @@ import System.Environment
 import System.Exit (exitSuccess)
 import System.FilePath
 import Test.HUnit
-import Text.Parsec
+import Text.Megaparsec
 
 import Hledger
 import Hledger.Cli.DocFiles
@@ -387,7 +387,7 @@ getCliOpts mode' = do
 
 -- | Get the account name aliases from options, if any.
 aliasesFromOpts :: CliOpts -> [AccountAlias]
-aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp () ("--alias "++quoteIfNeeded a) $ T.pack a)
+aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++quoteIfNeeded a) $ T.pack a)
                   . alias_
 
 -- | Get the (tilde-expanded, absolute) journal file path from
@@ -453,7 +453,7 @@ rulesFilePathFromOpts opts = do
 widthFromOpts :: CliOpts -> Int
 widthFromOpts CliOpts{width_=Nothing, available_width_=w} = w
 widthFromOpts CliOpts{width_=Just s}  =
-    case runParser (read `fmap` many1 digit <* eof) () "(unknown)" s of
+    case runParser (read `fmap` some digitChar <* eof) "(unknown)" s of
         Left e   -> optserror $ "could not parse width option: "++show e
         Right w  -> w
 
@@ -471,14 +471,14 @@ widthFromOpts CliOpts{width_=Just s}  =
 registerWidthsFromOpts :: CliOpts -> (Int, Maybe Int)
 registerWidthsFromOpts CliOpts{width_=Nothing, available_width_=w} = (w, Nothing)
 registerWidthsFromOpts CliOpts{width_=Just s}  =
-    case runParser registerwidthp () "(unknown)" s of
+    case runParser registerwidthp "(unknown)" s of
         Left e   -> optserror $ "could not parse width option: "++show e
         Right ws -> ws
     where
-        registerwidthp :: Stream [Char] m t => ParsecT [Char] st m (Int, Maybe Int)
+        registerwidthp :: Stream s Char => ParsecT s m (Int, Maybe Int)
         registerwidthp = do
-          totalwidth <- read `fmap` many1 digit
-          descwidth <- optionMaybe (char ',' >> read `fmap` many1 digit)
+          totalwidth <- read `fmap` some digitChar
+          descwidth <- optional (char ',' >> read `fmap` some digitChar)
           eof
           return (totalwidth, descwidth)
 
@@ -561,7 +561,7 @@ isHledgerExeName = isRight . parsewith hledgerexenamep
       hledgerexenamep = do
         _ <- string progname
         _ <- char '-'
-        _ <- many1 (noneOf ".")
+        _ <- some (noneOf ".")
         optional (string "." >> choice' (map string addonExtensions))
         eof
 

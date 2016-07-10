@@ -54,7 +54,7 @@ module Hledger.Utils.String (
 
 import Data.Char
 import Data.List
-import Text.Parsec
+import Text.Megaparsec
 import Text.Printf (printf)
 
 import Hledger.Utils.Parse
@@ -146,7 +146,7 @@ words' :: String -> [String]
 words' "" = []
 words' s  = map stripquotes $ fromparse $ parsewith p s
     where
-      p = do ss <- (singleQuotedPattern <|> doubleQuotedPattern <|> pattern) `sepBy` many1 spacenonewline
+      p = do ss <- (singleQuotedPattern <|> doubleQuotedPattern <|> pattern) `sepBy` some spacenonewline
              -- eof
              return ss
       pattern = many (noneOf whitespacechars)

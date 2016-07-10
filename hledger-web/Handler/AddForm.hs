@@ -10,13 +10,14 @@ import Import
 #if !MIN_VERSION_base(4,8,0)
 import Control.Applicative
 #endif
+import Control.Monad.State (evalState)
 import Data.Either (lefts,rights)
 import Data.List (sort)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
 import Data.Text (append, pack, unpack)
 import qualified Data.Text as T
 import Data.Time.Calendar
-import Text.Parsec (digit, eof, many1, string, runParser)
+import Text.Megaparsec (digitChar, eof, some, string, runParser, runParserT)
 
 import Hledger.Utils
 import Hledger.Data hiding (num)
@@ -87,7 +88,7 @@ postAddForm = do
                     , isRight en
                     , let Right n = en
                     ]
-            where paramnamep s = do {string s; n <- many1 digit; eof; return (read n :: Int)}
+            where paramnamep s = do {string s; n <- some digitChar; eof; return (read n :: Int)}
           acctparams = numberedParams "account"
           amtparams  = numberedParams "amount"
           num = length acctparams
@@ -95,8 +96,8 @@ postAddForm = do
                     | map fst acctparams == [1..num] &&
                       map fst amtparams `elem` [[1..num], [1..num-1]] = []
                     | otherwise = ["the posting parameters are malformed"]
-          eaccts = map (runParser (accountnamep <* eof) () "" . textstrip  . snd) acctparams
-          eamts  = map (runParser (amountp <* eof) mempty "" . textstrip . snd) amtparams
+          eaccts = map (runParser (accountnamep <* eof) "" . textstrip  . snd) acctparams
+          eamts  = map (flip evalState mempty . runParserT (amountp <* eof) "" . textstrip . snd) amtparams
           (accts, acctErrs) = (rights eaccts, map show $ lefts eaccts)
           (amts', amtErrs)  = (rights eamts, map show $ lefts eamts)
           amts | length amts' == num = amts'

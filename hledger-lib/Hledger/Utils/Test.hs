@@ -1,7 +1,7 @@
 module Hledger.Utils.Test where
 
 import Test.HUnit
-import Text.Parsec
+import Text.Megaparsec
 
 -- | Get a Test's label, or the empty string.
 testName :: Test -> String

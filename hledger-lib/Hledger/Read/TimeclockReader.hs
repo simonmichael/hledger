@@ -54,13 +54,13 @@ where
 import Prelude ()
 import Prelude.Compat
 import Control.Monad
-import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Except (ExceptT)
+import Control.Monad.State
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.HUnit
-import Text.Parsec hiding (parse)
+import Text.Megaparsec hiding (parse)
 import System.FilePath
 
 import Hledger.Data
@@ -90,7 +90,7 @@ parse _ = parseAndFinaliseJournal timeclockfilep
 timeclockfilep :: ErroringJournalParser ParsedJournal
 timeclockfilep = do many timeclockitemp
                     eof
-                    j@Journal{jtxns=ts, jparsetimeclockentries=es} <- getState
+                    j@Journal{jtxns=ts, jparsetimeclockentries=es} <- get
                     -- Convert timeclock entries in this journal to transactions, closing any unfinished sessions.
                     -- Doing this here rather than in journalFinalise means timeclock sessions can't span file boundaries,
                     -- but it simplifies code above.
@@ -103,7 +103,7 @@ timeclockfilep = do many timeclockitemp
       -- comment-only) lines, can use choice w/o try
       timeclockitemp = choice [ 
                             void emptyorcommentlinep
-                          , timeclockentryp >>= \e -> modifyState (\j -> j{jparsetimeclockentries = e : jparsetimeclockentries j})
+                          , timeclockentryp >>= \e -> modify' (\j -> j{jparsetimeclockentries = e : jparsetimeclockentries j})
                           ] <?> "timeclock entry, or default year or historical price directive"
 
 -- | Parse a timeclock entry.
@@ -111,10 +111,10 @@ timeclockentryp :: ErroringJournalParser TimeclockEntry
 timeclockentryp = do
   sourcepos <- genericSourcePos <$> getPosition
   code <- oneOf "bhioO"
-  many1 spacenonewline
+  some spacenonewline
   datetime <- datetimep
-  account <- fromMaybe "" <$> optionMaybe (many1 spacenonewline >> modifiedaccountnamep)
-  description <- T.pack . fromMaybe "" <$> optionMaybe (many1 spacenonewline >> restofline)
+  account <- fromMaybe "" <$> optional (some spacenonewline >> modifiedaccountnamep)
+  description <- T.pack . fromMaybe "" <$> optional (some spacenonewline >> restofline)
   return $ TimeclockEntry sourcepos (read [code]) datetime account description
 
 tests_Hledger_Read_TimeclockReader = TestList [

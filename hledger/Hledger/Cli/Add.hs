@@ -12,6 +12,7 @@ import Prelude ()
 import Prelude.Compat
 import Control.Exception as E
 import Control.Monad
+import Control.Monad.State (evalState,MonadState)
 import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper, toLower)
 import Data.List.Compat
@@ -28,7 +29,7 @@ import System.Console.Haskeline.Completion
 import System.Console.Wizard
 import System.Console.Wizard.Haskeline
 import System.IO ( stderr, hPutStr, hPutStrLn )
-import Text.Parsec
+import Text.Megaparsec
 import Text.Printf
 
 import Hledger
@@ -183,11 +184,11 @@ dateAndCodeWizard EntryState{..} = do
     where
       parseSmartDateAndCode refdate s = either (const Nothing) (\(d,c) -> return (fixSmartDate refdate d, c)) edc
           where
-            edc = runParser (dateandcodep <* eof) mempty "" $ T.pack $ lowercase s
-            dateandcodep :: Monad m => JournalParser m (SmartDate, Text)
+            edc = runParser (dateandcodep <* eof) "" $ T.pack $ lowercase s
+            dateandcodep :: Monad m => TextParser m (SmartDate, Text)
             dateandcodep = do
                 d <- smartdate
-                c <- optionMaybe codep
+                c <- optional codep
                 many spacenonewline
                 eof
                 return (d, T.pack $ fromMaybe "" c)
@@ -250,7 +251,7 @@ accountWizard EntryState{..} = do
       parseAccountOrDotOrNull def@(_:_) _ "" = dbg1 $ Just def -- when there's a default, "" means use that
       parseAccountOrDotOrNull _ _ s          = dbg1 $ fmap T.unpack $
         either (const Nothing) validateAccount $
-          runParser (accountnamep <* eof) esJournal "" (T.pack s) -- otherwise, try to parse the input as an accountname
+          flip evalState esJournal $ runParserT (accountnamep <* eof) "" (T.pack s) -- otherwise, try to parse the input as an accountname
         where
           validateAccount :: Text -> Maybe Text
           validateAccount t | no_new_accounts_ esOpts && not (t `elem` journalAccountNames esJournal) = Nothing
@@ -276,13 +277,15 @@ amountAndCommentWizard EntryState{..} = do
    maybeRestartTransaction $
    line $ green $ printf "Amount  %d%s: " pnum (showDefault def)
     where
-      parseAmountAndComment = either (const Nothing) Just . runParser (amountandcommentp <* eof) nodefcommodityj "" . T.pack
+      parseAmountAndComment = either (const Nothing) Just .
+                              flip evalState nodefcommodityj .
+                              runParserT (amountandcommentp <* eof) "" . T.pack
       nodefcommodityj = esJournal{jparsedefaultcommodity=Nothing}
-      amountandcommentp :: Monad m => JournalParser m (Amount, Text)
+      amountandcommentp :: MonadState Journal m => TextParser m (Amount, Text)
       amountandcommentp = do
         a <- amountp
         many spacenonewline
-        c <- T.pack <$> fromMaybe "" `fmap` optionMaybe (char ';' >> many anyChar)
+        c <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anyChar)
         -- eof
         return (a,c)
       balancingamt = negate $ sum $ map pamount realps where realps = filter isReal esPostings

@@ -69,7 +69,7 @@ executable hledger-ui
     , HUnit
     , microlens >= 0.4 && < 0.5
     , microlens-platform >= 0.2.3.1 && < 0.4
-    , parsec >= 3
+    , megaparsec >= 4
     , process >= 1.2
     , safe >= 0.2
     , split >= 0.1 && < 0.3

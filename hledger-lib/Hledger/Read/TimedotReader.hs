@@ -36,13 +36,14 @@ import Prelude ()
 import Prelude.Compat
 import Control.Monad
 import Control.Monad.Except (ExceptT)
+import Control.Monad.State
 import Data.Char (isSpace)
 import Data.List (foldl')
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.HUnit
-import Text.Parsec hiding (parse)
+import Text.Megaparsec hiding (parse)
 import System.FilePath
 
 import Hledger.Data
@@ -73,13 +74,13 @@ parse _ = parseAndFinaliseJournal timedotfilep
 timedotfilep :: ErroringJournalParser ParsedJournal
 timedotfilep = do many timedotfileitemp
                   eof
-                  getState
+                  get
     where
       timedotfileitemp = do
         ptrace "timedotfileitemp"
         choice [
           void emptyorcommentlinep
-         ,timedotdayp >>= \ts -> modifyState (addTransactions ts)
+         ,timedotdayp >>= \ts -> modify' (addTransactions ts)
          ] <?> "timedot day entry, or default year or comment line or blank line"
 
 addTransactions :: [Transaction] -> Journal -> Journal
