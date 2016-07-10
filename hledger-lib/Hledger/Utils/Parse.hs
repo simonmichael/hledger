@@ -18,8 +18,8 @@ choice' = choice . map Text.Megaparsec.try
 parsewith :: Stream s Char => Parsec s a -> s -> Either ParseError a
 parsewith p = runParser p ""
 
-parseWithCtx :: (Monad m, Stream s t) => st -> ParsecT s (StateT st m) a -> s -> m (Either ParseError a)
-parseWithCtx ctx p s = evalStateT (runParserT p "" s) ctx
+parseWithState :: (Monad m, Stream s t) => st -> ParsecT s (StateT st m) a -> s -> m (Either ParseError a)
+parseWithState ctx p s = evalStateT (runParserT p "" s) ctx
 
 fromparse :: Either ParseError a -> a
 fromparse = either parseerror id

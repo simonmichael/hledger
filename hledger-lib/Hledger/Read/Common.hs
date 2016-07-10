@@ -749,7 +749,7 @@ datetagp mdefdate = do
   v <- tagvaluep
   -- re-parse value as a date.
   j <- get
-  ep <- parseWithCtx
+  ep <- parseWithState
     j{jparsedefaultyear=first3.toGregorian <$> mdefdate}
     -- The value extends to a comma, newline, or end of file.
     -- It seems like ignoring any extra stuff following a date
@@ -808,7 +808,7 @@ bracketeddatetagsp mdefdate = do
   -- looks sufficiently like a bracketed date, now we
   -- re-parse as dates and throw any errors
   j <- get
-  ep <- parseWithCtx
+  ep <- parseWithState
     j{jparsedefaultyear=first3.toGregorian <$> mdefdate}
     (do
         setPosition startpos
