@@ -717,7 +717,7 @@ lastthisnextthing = do
   return ("",r,p)
 
 -- |
--- >>> let p = parsewith (periodexpr (parsedate "2008/11/26"))
+-- >>> let p = parsewith (periodexpr (parsedate "2008/11/26")) :: String -> Either ParseError (Interval, DateSpan)
 -- >>> p "from aug to oct"
 -- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
 -- >>> p "aug to oct"
