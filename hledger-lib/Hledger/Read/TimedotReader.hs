@@ -36,7 +36,7 @@ import Prelude ()
 import Prelude.Compat
 import Control.Monad
 import Control.Monad.Except (ExceptT)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.List (foldl')
 import Data.Maybe
@@ -150,7 +150,7 @@ timedotnumberp = do
 -- @
 timedotdotsp :: ErroringJournalParser Quantity
 timedotdotsp = do
-  dots <- filter (not.isSpace) <$> many (oneOf ". ")
+  dots <- filter (not.isSpace) <$> many (oneOf (". " :: [Char]))
   return $ (/4) $ fromIntegral $ length dots
 
 tests_Hledger_Read_TimedotReader = TestList [

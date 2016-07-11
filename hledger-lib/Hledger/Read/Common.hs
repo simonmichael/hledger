@@ -22,10 +22,11 @@ import Prelude ()
 import Prelude.Compat hiding (readFile)
 import Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Char (isNumber)
 import Data.Functor.Identity
 import Data.List.Compat
+import Data.List.NonEmpty (NonEmpty(..))
 import Data.List.Split (wordsBy)
 import Data.Maybe
 import Data.Monoid
@@ -44,27 +45,19 @@ import Hledger.Utils
 
 --- * parsing utils
 
--- | A parser of strings with generic user state, monad and return type.
-type StringParser m a = ParsecT String m a
-
 -- | A parser of strict text with generic user state, monad and return type.
-type TextParser m a = ParsecT Text m a
+type TextParser m a = ParsecT Dec Text m a
 
 -- | A journal parser that runs in IO and can throw an error mid-parse.
 type ErroringJournalParser a = TextParser (StateT Journal (ExceptT String IO)) a
 
 -- | Run a string parser with no state in the identity monad.
-runStringParser, rsp :: StringParser Identity a -> String -> Either ParseError a
-runStringParser p s = runParser p "" s
-rsp = runStringParser
-
--- | Run a string parser with no state in the identity monad.
-runTextParser, rtp :: TextParser Identity a -> Text -> Either ParseError a
+runTextParser, rtp :: TextParser Identity a -> Text -> Either (ParseError Char Dec) a
 runTextParser p t =  runParser p "" t
 rtp = runTextParser
 
 -- | Run a journal parser with a null journal-parsing state.
-runJournalParser, rjp :: Monad m => TextParser m a -> Text -> m (Either ParseError a)
+runJournalParser, rjp :: Monad m => TextParser m a -> Text -> m (Either (ParseError Char Dec) a)
 runJournalParser p t = runParserT p "" t
 rjp = runJournalParser
 
@@ -73,11 +66,11 @@ runErroringJournalParser, rejp :: ErroringJournalParser a -> Text -> IO (Either 
 runErroringJournalParser p t =
   runExceptT $
   flip evalStateT mempty $
-  runJournalParser p t >>= either (throwError . show) return
+  runJournalParser p t >>= either (throwError . parseErrorPretty) return
 rejp = runErroringJournalParser
 
 genericSourcePos :: SourcePos -> GenericSourcePos
-genericSourcePos p = GenericSourcePos (sourceName p) (sourceLine p) (sourceColumn p)
+genericSourcePos p = GenericSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p) (fromIntegral . unPos $ sourceColumn p)
 
 -- | Given a parsec ParsedJournal parser, file path and data string,
 -- parse and post-process a ready-to-use Journal, or give an error.
@@ -114,7 +107,7 @@ popParentAccount :: MonadState Journal m => TextParser m ()
 popParentAccount = do
   j <- get
   case jparseparentaccounts j of
-    []       -> unexpected "End of apply account block with no beginning"
+    []       -> unexpected (Tokens ('E' :| "nd of apply account block with no beginning"))
     (_:rest) -> put j{jparseparentaccounts=rest}
 
 getParentAccount :: MonadState Journal m => m AccountName
@@ -161,7 +154,7 @@ parserErrorAt pos s = throwError $ show pos ++ ":\n" ++ s
 --- * parsers
 --- ** transaction bits
 
-statusp :: Monad m => TextParser m ClearedStatus
+statusp :: TextParser m ClearedStatus
 statusp =
   choice'
     [ many spacenonewline >> char '*' >> return Cleared
@@ -170,11 +163,11 @@ statusp =
     ]
     <?> "cleared status"
 
-codep :: Monad m => TextParser m String
+codep :: TextParser m String
 codep = try (do { some spacenonewline; char '(' <?> "codep"; anyChar `manyTill` char ')' } ) <|> return ""
 
-descriptionp :: Monad m => TextParser m String
-descriptionp = many (noneOf ";\n")
+descriptionp :: TextParser m String
+descriptionp = many (noneOf (";\n" :: [Char]))
 
 --- ** dates
 
@@ -229,7 +222,7 @@ datetimep = do
   guard $ s' >= 0 && s' <= 59
   {- tz <- -}
   optional $ do
-                   plusminus <- oneOf "-+"
+                   plusminus <- oneOf ("-+" :: [Char])
                    d1 <- digitChar
                    d2 <- digitChar
                    d3 <- digitChar
@@ -282,7 +275,7 @@ modifiedaccountnamep = do
 -- spaces (or end of input). Also they have one or more components of
 -- at least one character, separated by the account separator char.
 -- (This parser will also consume one following space, if present.)
-accountnamep :: Monad m => TextParser m AccountName
+accountnamep :: TextParser m AccountName
 accountnamep = do
     astr <- do
       c <- nonspace
@@ -357,9 +350,9 @@ amountp' s =
 mamountp' :: String -> MixedAmount
 mamountp' = Mixed . (:[]) . amountp'
 
-signp :: Monad m => TextParser m String
+signp :: TextParser m String
 signp = do
-  sign <- optional $ oneOf "+-"
+  sign <- optional $ oneOf ("+-" :: [Char])
   return $ case sign of Just '-' -> "-"
                         _        -> ""
 
@@ -397,17 +390,17 @@ nosymbolamountp = do
   return $ Amount c q p s
   <?> "no-symbol amount"
 
-commoditysymbolp :: Monad m => TextParser m CommoditySymbol
+commoditysymbolp :: TextParser m CommoditySymbol
 commoditysymbolp = (quotedcommoditysymbolp <|> simplecommoditysymbolp) <?> "commodity symbol"
 
-quotedcommoditysymbolp :: Monad m => TextParser m CommoditySymbol
+quotedcommoditysymbolp :: TextParser m CommoditySymbol
 quotedcommoditysymbolp = do
   char '"'
-  s <- some $ noneOf ";\n\""
+  s <- some $ noneOf (";\n\"" :: [Char])
   char '"'
   return $ T.pack s
 
-simplecommoditysymbolp :: Monad m => TextParser m CommoditySymbol
+simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = T.pack <$> some (noneOf nonsimplecommoditychars)
 
 priceamountp :: MonadState Journal m => TextParser m Price
@@ -473,7 +466,7 @@ fixedlotpricep =
 -- seen following the decimal point), the decimal point character used if any,
 -- and the digit group style if any.
 --
-numberp :: Monad m => TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+numberp :: TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
 numberp = do
   -- a number is an optional sign followed by a sequence of digits possibly
   -- interspersed with periods, commas, or both
@@ -547,7 +540,7 @@ numberp = do
 
 --- ** comments
 
-multilinecommentp :: Monad m => TextParser m ()
+multilinecommentp :: TextParser m ()
 multilinecommentp = do
   string "comment" >> many spacenonewline >> newline
   go
@@ -556,13 +549,13 @@ multilinecommentp = do
          <|> (anyLine >> go)
     anyLine = anyChar `manyTill` newline
 
-emptyorcommentlinep :: Monad m => TextParser m ()
+emptyorcommentlinep :: TextParser m ()
 emptyorcommentlinep = do
   many spacenonewline >> (commentp <|> (many spacenonewline >> newline >> return ""))
   return ()
 
 -- | Parse a possibly multi-line comment following a semicolon.
-followingcommentp :: Monad m => TextParser m Text
+followingcommentp :: TextParser m Text
 followingcommentp =
   -- ptrace "followingcommentp"
   do samelinecomment <- many spacenonewline >> (try semicoloncommentp <|> (newline >> return ""))
@@ -581,7 +574,7 @@ followingcommentp =
 --
 -- Year unspecified and no default provided -> unknown year error, at correct position:
 -- >>> rejp (followingcommentandtagsp Nothing) "  ;    xxx   date:3/4\n  ; second line"
--- Left ...1:22...partial date 3/4 found, but the current year is unknown...
+-- Left "ParseError {errorPos = SourcePos {sourceName = \"\", sourceLine = Pos 1, sourceColumn = Pos 22} :| [], errorUnexpected = fromList [], errorExpected = fromList [], errorCustom = fromList [DecFail \"partial date 3/4 found, but the current year is unknown\"]}"
 --
 -- Date tag value contains trailing text - forgot the comma, confused:
 -- the syntaxes ?  We'll accept the leading date anyway
@@ -623,16 +616,16 @@ followingcommentandtagsp mdefdate = do
 
   return (comment, tags, mdate, mdate2)
 
-commentp :: Monad m => TextParser m Text
+commentp :: TextParser m Text
 commentp = commentStartingWithp commentchars
 
 commentchars :: [Char]
 commentchars = "#;*"
 
-semicoloncommentp :: Monad m => TextParser m Text
+semicoloncommentp :: TextParser m Text
 semicoloncommentp = commentStartingWithp ";"
 
-commentStartingWithp :: Monad m => [Char] -> TextParser m Text
+commentStartingWithp :: [Char] -> TextParser m Text
 commentStartingWithp cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
@@ -663,7 +656,7 @@ commentTags s =
     Left _  -> [] -- shouldn't happen
 
 -- | Parse all tags found in a string.
-tagsp :: Monad m => TextParser m [Tag]
+tagsp :: TextParser m [Tag]
 tagsp = -- do
   -- pdbg 0 $ "tagsp"
   many (try (nontagp >> tagp))
@@ -672,7 +665,7 @@ tagsp = -- do
 --
 -- >>> rtp nontagp "\na b:, \nd:e, f"
 -- Right "\na "
-nontagp :: Monad m => TextParser m String
+nontagp :: TextParser m String
 nontagp = -- do
   -- pdbg 0 "nontagp"
   -- anyChar `manyTill` (lookAhead (try (tagorbracketeddatetagsp Nothing >> return ()) <|> eof))
@@ -686,7 +679,7 @@ nontagp = -- do
 -- >>> rtp tagp "a:b b , c AuxDate: 4/2"
 -- Right ("a","b b")
 --
-tagp :: Monad m => TextParser m Tag
+tagp :: TextParser m Tag
 tagp = do
   -- pdbg 0 "tagp"
   n <- tagnamep
@@ -696,12 +689,12 @@ tagp = do
 -- |
 -- >>> rtp tagnamep "a:"
 -- Right "a"
-tagnamep :: Monad m => TextParser m Text
+tagnamep :: TextParser m Text
 tagnamep = -- do
   -- pdbg 0 "tagnamep"
-  T.pack <$> some (noneOf ": \t\n") <* char ':'
+  T.pack <$> some (noneOf (": \t\n" :: [Char])) <* char ':'
 
-tagvaluep :: Monad m => TextParser m Text
+tagvaluep :: TextParser m Text
 tagvaluep = do
   -- ptrace "tagvalue"
   v <- anyChar `manyTill` (void (try (char ',')) <|> eolof)
@@ -737,7 +730,7 @@ postingdatesp mdefdate = do
 -- Right ("date2",2001-03-04)
 --
 -- >>> rejp (datetagp Nothing) "date:  3/4"
--- Left ...1:9...partial date 3/4 found, but the current year is unknown...
+-- Left "ParseError {errorPos = SourcePos {sourceName = \"\", sourceLine = Pos 1, sourceColumn = Pos 9} :| [], errorUnexpected = fromList [], errorExpected = fromList [], errorCustom = fromList [DecFail \"partial date 3/4 found, but the current year is unknown\"]}"
 --
 datetagp :: Maybe Day -> ErroringJournalParser (TagName,Day)
 datetagp mdefdate = do
@@ -786,13 +779,13 @@ datetagp mdefdate = do
 -- Left ...not a bracketed date...
 --
 -- >>> rejp (bracketeddatetagsp Nothing) "[2016/1/32]"
--- Left ...1:11:...bad date: 2016/1/32...
+-- Left "ParseError {errorPos = SourcePos {sourceName = \"\", sourceLine = Pos 1, sourceColumn = Pos 11} :| [], errorUnexpected = fromList [], errorExpected = fromList [], errorCustom = fromList [DecFail \"bad date: 2016/1/32\"]}"
 --
 -- >>> rejp (bracketeddatetagsp Nothing) "[1/31]"
--- Left ...1:6:...partial date 1/31 found, but the current year is unknown...
+-- Left "ParseError {errorPos = SourcePos {sourceName = \"\", sourceLine = Pos 1, sourceColumn = Pos 6} :| [], errorUnexpected = fromList [], errorExpected = fromList [], errorCustom = fromList [DecFail \"partial date 1/31 found, but the current year is unknown\"]}"
 --
 -- >>> rejp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
--- Left ...1:15:...bad date, different separators...
+-- Left "ParseError {errorPos = SourcePos {sourceName = \"\", sourceLine = Pos 1, sourceColumn = Pos 15} :| [], errorUnexpected = fromList [], errorExpected = fromList [], errorCustom = fromList [DecFail \"bad date, different separators used: 0123456789/-.\"]}"
 --
 bracketeddatetagsp :: Maybe Day -> ErroringJournalParser [(TagName, Day)]
 bracketeddatetagsp mdefdate = do

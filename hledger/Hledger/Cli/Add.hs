@@ -12,7 +12,7 @@ import Prelude ()
 import Prelude.Compat
 import Control.Exception as E
 import Control.Monad
-import Control.Monad.State (evalState,MonadState)
+import Control.Monad.State.Strict (evalState,MonadState)
 import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper, toLower)
 import Data.List.Compat
@@ -185,7 +185,7 @@ dateAndCodeWizard EntryState{..} = do
       parseSmartDateAndCode refdate s = either (const Nothing) (\(d,c) -> return (fixSmartDate refdate d, c)) edc
           where
             edc = runParser (dateandcodep <* eof) "" $ T.pack $ lowercase s
-            dateandcodep :: Monad m => TextParser m (SmartDate, Text)
+            dateandcodep :: TextParser m (SmartDate, Text)
             dateandcodep = do
                 d <- smartdate
                 c <- optional codep

@@ -6,6 +6,7 @@ A reader for CSV data, using an extra rules file to help interpret the data.
 -}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Hledger.Read.CsvReader (
   -- * Reader
@@ -25,12 +26,13 @@ import Prelude.Compat hiding (getContents)
 import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Except
-import Control.Monad.State (StateT, get, modify',evalState)
+import Control.Monad.State.Strict (StateT, get, modify',evalState)
 -- import Test.HUnit
 import Data.Char (toLower, isDigit, isSpace)
 import Data.List.Compat
 import Data.Maybe
 import Data.Ord
+import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
@@ -47,8 +49,6 @@ import System.IO (stderr)
 import Test.HUnit
 import Text.CSV (parseCSV, CSV)
 import Text.Megaparsec hiding (parse)
-import Text.Megaparsec.Pos
-import Text.Megaparsec.Error
 import qualified Text.Parsec as Parsec
 import Text.Printf (hPrintf,printf)
 
@@ -128,7 +128,12 @@ readJournalFromCsv mrulesfile csvfile csvdata =
 
   -- convert to transactions and return as a journal
   let txns = snd $ mapAccumL
-                     (\pos r -> (pos, transactionFromCsvRecord (incSourceLine pos 1) rules r))
+                     (\pos r -> (pos,
+                                 transactionFromCsvRecord
+                                   (let SourcePos name line col =  pos in
+                                    SourcePos name (unsafePos $ unPos line + 1) col)
+                                   rules
+                                    r))
                      (initialPos parsecfilename) records
 
   -- heuristic: if the records appear to have been in reverse date order,
@@ -356,7 +361,8 @@ parseRulesFile f = do
                  Left e -> return $ Left $ show $ toParseError e
                  Right r -> return $ Right r
   where
-    toParseError s = newErrorMessage (Message s) (initialPos "")
+    toParseError :: forall s. Ord s => s -> ParseError Char s
+    toParseError s = (mempty :: ParseError Char s) { errorCustom = S.singleton s}
 
 -- | Pre-parse csv rules to interpolate included files, recursively.
 -- This is a cheap hack to avoid rewriting the existing parser.
@@ -372,7 +378,7 @@ expandIncludes basedir content = do
       return $ unlines [unlines ls, included, unlines ls']
     ls' -> return $ unlines $ ls ++ ls'   -- should never get here
 
-parseCsvRules :: FilePath -> String -> Either ParseError CsvRules
+parseCsvRules :: FilePath -> String -> Either (ParseError Char Dec) CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
 parseCsvRules rulesfile s =
   flip evalState rules $ runParserT rulesp rulesfile s
@@ -393,7 +399,7 @@ validateRules rules = do
 
 -- parsers
 
-rulesp :: Monad m => Stream s Char => ParsecT s (StateT CsvRules m) CsvRules
+rulesp :: (Monad m, Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) CsvRules
 rulesp = do
   many $ choice'
     [blankorcommentlinep                                                <?> "blank or comment line"
@@ -409,19 +415,19 @@ rulesp = do
           ,rconditionalblocks=reverse $ rconditionalblocks r
           }
 
-blankorcommentlinep :: Stream s Char => ParsecT s (StateT CsvRules m) ()
+blankorcommentlinep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) ()
 blankorcommentlinep = pdbg 3 "trying blankorcommentlinep" >> choice' [blanklinep, commentlinep]
 
-blanklinep :: Stream s Char => ParsecT s (StateT CsvRules m) ()
+blanklinep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) ()
 blanklinep = many spacenonewline >> newline >> return () <?> "blank line"
 
-commentlinep :: Stream s Char => ParsecT s (StateT CsvRules m) ()
+commentlinep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) ()
 commentlinep = many spacenonewline >> commentcharp >> restofline >> return () <?> "comment line"
 
-commentcharp :: Stream s Char => ParsecT s (StateT CsvRules m) Char
+commentcharp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) Char
 commentcharp = oneOf ";#*"
 
-directivep :: Stream s Char => ParsecT s (StateT CsvRules m) (DirectiveName, String)
+directivep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) (DirectiveName, String)
 directivep = (do
   pdbg 3 "trying directive"
   d <- choice' $ map string directives
@@ -440,10 +446,10 @@ directives =
    -- ,"base-currency"
   ]
 
-directivevalp :: Stream s Char => ParsecT s (StateT CsvRules m) String
+directivevalp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
 directivevalp = anyChar `manyTill` eolof
 
-fieldnamelistp :: Stream s Char => ParsecT s (StateT CsvRules m) [CsvFieldName]
+fieldnamelistp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) [CsvFieldName]
 fieldnamelistp = (do
   pdbg 3 "trying fieldnamelist"
   string "fields"
@@ -456,20 +462,20 @@ fieldnamelistp = (do
   return $ map (map toLower) $ f:fs
   ) <?> "field name list"
 
-fieldnamep :: Stream s Char => ParsecT s (StateT CsvRules m) String
+fieldnamep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
 fieldnamep = quotedfieldnamep <|> barefieldnamep
 
-quotedfieldnamep :: Stream s Char => ParsecT s (StateT CsvRules m) String
+quotedfieldnamep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
 quotedfieldnamep = do
   char '"'
   f <- some $ noneOf "\"\n:;#~"
   char '"'
   return f
 
-barefieldnamep :: Stream s Char => ParsecT s m String
+barefieldnamep :: (Stream s, Char ~ Token s) => ParsecT Dec s m String
 barefieldnamep = some $ noneOf " \t\n,;#~"
 
-fieldassignmentp :: Stream s Char => ParsecT s (StateT CsvRules m) (JournalFieldName, FieldTemplate)
+fieldassignmentp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) (JournalFieldName, FieldTemplate)
 fieldassignmentp = do
   pdbg 3 "trying fieldassignmentp"
   f <- journalfieldnamep
@@ -478,7 +484,7 @@ fieldassignmentp = do
   return (f,v)
   <?> "field assignment"
 
-journalfieldnamep :: Stream s Char => ParsecT s (StateT CsvRules m) String
+journalfieldnamep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
 journalfieldnamep = pdbg 2 "trying journalfieldnamep" >> choice' (map string journalfieldnames)
 
 journalfieldnames =
@@ -498,7 +504,7 @@ journalfieldnames =
   ,"comment"
   ]
 
-assignmentseparatorp :: Stream s Char => ParsecT s (StateT CsvRules m) ()
+assignmentseparatorp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) ()
 assignmentseparatorp = do
   pdbg 3 "trying assignmentseparatorp"
   choice [
@@ -509,12 +515,12 @@ assignmentseparatorp = do
   _ <- many spacenonewline
   return ()
 
-fieldvalp :: Stream s Char => ParsecT s (StateT CsvRules m) String
+fieldvalp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
 fieldvalp = do
   pdbg 2 "trying fieldvalp"
   anyChar `manyTill` eolof
 
-conditionalblockp :: Stream s Char => ParsecT s (StateT CsvRules m) ConditionalBlock
+conditionalblockp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) ConditionalBlock
 conditionalblockp = do
   pdbg 3 "trying conditionalblockp"
   string "if" >> many spacenonewline >> optional newline
@@ -525,7 +531,7 @@ conditionalblockp = do
   return (ms, as)
   <?> "conditional block"
 
-recordmatcherp :: Stream s Char => ParsecT s (StateT CsvRules m) [String]
+recordmatcherp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) [String]
 recordmatcherp = do
   pdbg 2 "trying recordmatcherp"
   -- pos <- currentPos
@@ -536,7 +542,7 @@ recordmatcherp = do
   return ps
   <?> "record matcher"
 
-matchoperatorp :: Stream s Char => ParsecT s (StateT CsvRules m) String
+matchoperatorp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
 matchoperatorp = choice' $ map string
   ["~"
   -- ,"!~"
@@ -544,13 +550,13 @@ matchoperatorp = choice' $ map string
   -- ,"!="
   ]
 
-patternsp :: Stream s Char => ParsecT s (StateT CsvRules m) [String]
+patternsp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) [String]
 patternsp = do
   pdbg 3 "trying patternsp"
   ps <- many regexp
   return ps
 
-regexp :: Stream s Char => ParsecT s (StateT CsvRules m) String
+regexp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
 regexp = do
   pdbg 3 "trying regexp"
   notFollowedBy matchoperatorp
@@ -790,10 +796,10 @@ test_parser =  [
   --                ([("A",Nothing)], "a")
 
   ,"convert rules parsing: trailing comments" ~: do
-     assertParse (parseWithState rules rulesp "skip\n# \n#\n")
+     assertParse (parseWithState' rules rulesp "skip\n# \n#\n")
 
   ,"convert rules parsing: trailing blank lines" ~: do
-     assertParse (parseWithState rules rulesp "skip\n\n  \n")
+     assertParse (parseWithState' rules rulesp "skip\n\n  \n")
 
   -- not supported
   -- ,"convert rules parsing: no final newline" ~: do

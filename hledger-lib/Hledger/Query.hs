@@ -189,9 +189,9 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
         let prefix = not' ++ next
         p <- singleQuotedPattern <|> doubleQuotedPattern
         return $ prefix ++ stripquotes p
-      singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf "'") >>= return . stripquotes
-      doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf "\"") >>= return . stripquotes
-      pattern = many (noneOf " \n\r")
+      singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf ("'" :: [Char])) >>= return . stripquotes
+      doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf ("\"" :: [Char])) >>= return . stripquotes
+      pattern = many (noneOf (" \n\r" :: [Char]))
 
 tests_words'' = [
    "words''" ~: do

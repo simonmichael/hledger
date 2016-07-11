@@ -40,8 +40,6 @@ module Hledger.Read.JournalReader (
   -- * Parsing utils
   genericSourcePos,
   parseAndFinaliseJournal,
-  runStringParser,
-  rsp,
   runJournalParser,
   rjp,
   runErroringJournalParser,
@@ -79,7 +77,7 @@ import Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import qualified Data.Map.Strict as M
 import Data.Monoid
 import Data.Text (Text)
@@ -194,7 +192,7 @@ includedirectivep = do
       let curdir = takeDirectory (sourceName parentpos)
       filepath <- expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
       txt      <- readFileAnyLineEnding filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
-      (ej1::Either ParseError ParsedJournal) <-
+      (ej1::Either (ParseError Char Dec) ParsedJournal) <-
         flip evalStateT childj $
         runParserT
            (choice' [journalp
@@ -315,23 +313,23 @@ aliasdirectivep = do
   alias <- accountaliasp
   addAccountAlias alias
 
-accountaliasp :: Monad m => TextParser m AccountAlias
+accountaliasp :: TextParser m AccountAlias
 accountaliasp = regexaliasp <|> basicaliasp
 
-basicaliasp :: Monad m => TextParser m AccountAlias
+basicaliasp :: TextParser m AccountAlias
 basicaliasp = do
   -- pdbg 0 "basicaliasp"
-  old <- rstrip <$> (some $ noneOf "=")
+  old <- rstrip <$> (some $ noneOf ("=" :: [Char]))
   char '='
   many spacenonewline
   new <- rstrip <$> anyChar `manyTill` eolof  -- don't require a final newline, good for cli options
   return $ BasicAlias (T.pack old) (T.pack new)
 
-regexaliasp :: Monad m => TextParser m AccountAlias
+regexaliasp :: TextParser m AccountAlias
 regexaliasp = do
   -- pdbg 0 "regexaliasp"
   char '/'
-  re <- some $ noneOf "/\n\r" -- paranoid: don't try to read past line end
+  re <- some $ noneOf ("/\n\r" :: [Char]) -- paranoid: don't try to read past line end
   char '/'
   many spacenonewline
   char '='

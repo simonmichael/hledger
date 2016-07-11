@@ -101,7 +101,7 @@ library
         , http-client
         , HUnit
         , conduit-extra      >= 1.1
-        , megaparsec         >= 4
+        , megaparsec         >= 5
         , mtl
         , safe               >= 0.2
         , shakespeare        >= 2.0

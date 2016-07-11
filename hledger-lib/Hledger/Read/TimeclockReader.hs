@@ -55,7 +55,7 @@ import Prelude ()
 import Prelude.Compat
 import Control.Monad
 import Control.Monad.Except (ExceptT)
-import Control.Monad.State
+import Control.Monad.State.Strict
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -110,7 +110,7 @@ timeclockfilep = do many timeclockitemp
 timeclockentryp :: ErroringJournalParser TimeclockEntry
 timeclockentryp = do
   sourcepos <- genericSourcePos <$> getPosition
-  code <- oneOf "bhioO"
+  code <- oneOf ("bhioO" :: [Char])
   some spacenonewline
   datetime <- datetimep
   account <- fromMaybe "" <$> optional (some spacenonewline >> modifiedaccountnamep)

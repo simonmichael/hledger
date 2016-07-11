@@ -5,7 +5,7 @@ related utilities used by hledger commands.
 
 -}
 
-{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts, TypeFamilies #-}
 
 module Hledger.Cli.CliOptions (
 
@@ -69,6 +69,7 @@ import Control.Monad (when)
 #if !MIN_VERSION_base(4,8,0)
 import Data.Functor.Compat ((<$>))
 #endif
+import Data.Functor.Identity (Identity)
 import Data.List.Compat
 import Data.List.Split (splitOneOf)
 import Data.Maybe
@@ -453,7 +454,7 @@ rulesFilePathFromOpts opts = do
 widthFromOpts :: CliOpts -> Int
 widthFromOpts CliOpts{width_=Nothing, available_width_=w} = w
 widthFromOpts CliOpts{width_=Just s}  =
-    case runParser (read `fmap` some digitChar <* eof) "(unknown)" s of
+    case runParser (read `fmap` some digitChar <* eof :: ParsecT Dec String Identity Int) "(unknown)" s of
         Left e   -> optserror $ "could not parse width option: "++show e
         Right w  -> w
 
@@ -475,7 +476,7 @@ registerWidthsFromOpts CliOpts{width_=Just s}  =
         Left e   -> optserror $ "could not parse width option: "++show e
         Right ws -> ws
     where
-        registerwidthp :: Stream s Char => ParsecT s m (Int, Maybe Int)
+        registerwidthp :: (Stream s, Char ~ Token s) => ParsecT Dec s m (Int, Maybe Int)
         registerwidthp = do
           totalwidth <- read `fmap` some digitChar
           descwidth <- optional (char ',' >> read `fmap` some digitChar)

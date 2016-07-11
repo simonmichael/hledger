@@ -25,15 +25,16 @@ is :: (Eq a, Show a) => a -> a -> Assertion
 a `is` e = assertEqual "" e a
 
 -- | Assert a parse result is successful, printing the parse error on failure.
-assertParse :: (Either ParseError a) -> Assertion
+assertParse :: (Show t, Show e) => (Either (ParseError t e) a) -> Assertion
 assertParse parse = either (assertFailure.show) (const (return ())) parse
 
+
 -- | Assert a parse result is successful, printing the parse error on failure.
-assertParseFailure :: (Either ParseError a) -> Assertion
+assertParseFailure :: (Either (ParseError t e) a) -> Assertion
 assertParseFailure parse = either (const $ return ()) (const $ assertFailure "parse should not have succeeded") parse
 
 -- | Assert a parse result is some expected value, printing the parse error on failure.
-assertParseEqual :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
+assertParseEqual :: (Show a, Eq a, Show t, Show e) => (Either (ParseError t e) a) -> a -> Assertion
 assertParseEqual parse expected = either (assertFailure.show) (`is` expected) parse
 
 printParseError :: (Show a) => a -> IO ()

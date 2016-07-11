@@ -2,7 +2,7 @@
 -- hledger's report item fields. The formats are used by
 -- report-specific renderers like renderBalanceReportItem.
 
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, TypeFamilies #-}
 
 module Hledger.Data.StringFormat (
           parseStringFormat
@@ -85,7 +85,7 @@ parseStringFormat input = case (runParser (stringformatp <* eof) "(unknown)") in
 
 defaultStringFormatStyle = BottomAligned
 
-stringformatp :: Stream s Char => ParsecT s m StringFormat
+stringformatp :: (Stream s, Char ~ Token s) => ParsecT Dec s m StringFormat
 stringformatp = do
   alignspec <- optional (try $ char '%' >> oneOf "^_,")
   let constructor =
@@ -96,10 +96,10 @@ stringformatp = do
           _        -> defaultStringFormatStyle
   constructor <$> many componentp
 
-componentp :: Stream s Char => ParsecT s m StringFormatComponent
+componentp :: (Stream s, Char ~ Token s) => ParsecT Dec s m StringFormatComponent
 componentp = formatliteralp <|> formatfieldp
 
-formatliteralp :: Stream s Char => ParsecT s m StringFormatComponent
+formatliteralp :: (Stream s, Char ~ Token s) => ParsecT Dec s m StringFormatComponent
 formatliteralp = do
     s <- some c
     return $ FormatLiteral s
@@ -108,7 +108,7 @@ formatliteralp = do
       c =     (satisfy isPrintableButNotPercentage <?> "printable character")
           <|> try (string "%%" >> return '%')
 
-formatfieldp :: Stream s Char => ParsecT s m StringFormatComponent
+formatfieldp :: (Stream s, Char ~ Token s) => ParsecT Dec s m StringFormatComponent
 formatfieldp = do
     char '%'
     leftJustified <- optional (char '-')
@@ -123,7 +123,7 @@ formatfieldp = do
         Just text -> Just m where ((m,_):_) = readDec text
         _ -> Nothing
 
-fieldp :: Stream s Char => ParsecT s m ReportItemField
+fieldp :: (Stream s, Char ~ Token s) => ParsecT Dec s m ReportItemField
 fieldp = do
         try (string "account" >> return AccountField)
     <|> try (string "depth_spacer" >> return DepthSpacerField)

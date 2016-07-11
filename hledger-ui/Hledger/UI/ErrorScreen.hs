@@ -103,6 +103,7 @@ esHandle _ _ = error "event handler called with wrong screen type, should not ha
 
 -- | Parse the file name, line and column number from a hledger parse error message, if possible.
 -- Temporary, we should keep the original parse error location. XXX
+hledgerparseerrorpositionp :: ParsecT Dec String t (String, Int, Int)
 hledgerparseerrorpositionp = do
   anyChar `manyTill` char '"'
   f <- anyChar `manyTill` (oneOf ['"','\n'])

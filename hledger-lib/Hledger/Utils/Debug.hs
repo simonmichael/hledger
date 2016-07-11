@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, FlexibleContexts #-}
+{-# LANGUAGE CPP, FlexibleContexts, TypeFamilies #-}
 -- | Debugging helpers
 
 -- more:
@@ -57,7 +57,7 @@ traceWith :: (a -> String) -> a -> a
 traceWith f e = trace (f e) e
 
 -- | Convert a stream to a list of tokens
-streamToList :: Stream s a => s -> [a]
+streamToList :: Stream s => s -> [Token s]
 streamToList s =
   case uncons s of
     Nothing -> []
@@ -65,12 +65,12 @@ streamToList s =
 
 -- | Parsec trace - show the current parsec position and next input,
 -- and the provided label if it's non-null.
-ptrace :: Stream s Char => String -> ParsecT s m ()
+ptrace :: (Stream s, Char ~ Token s) => String -> ParsecT Dec s m ()
 ptrace msg = do
   pos <- getPosition
   next <- (take peeklength . streamToList) `fmap` getInput
   let (l,c) = (sourceLine pos, sourceColumn pos)
-      s  = printf "at line %2d col %2d: %s" l c (show next) :: String
+      s  = printf "at line %2d col %2d: %s" (unPos l) (unPos c) (show next) :: String
       s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
   trace s' $ return ()
   where
@@ -240,7 +240,7 @@ dbgExit msg = const (unsafePerformIO exitFailure) . dbg msg
 -- input) to the console when the debug level is at or above
 -- this level. Uses unsafePerformIO.
 -- pdbgAt :: GenParser m => Float -> String -> m ()
-pdbg :: Stream s Char => Int -> String -> ParsecT s m ()
+pdbg :: (Stream s, Char ~ Token s) => Int -> String -> ParsecT Dec s m ()
 pdbg level msg = when (level <= debugLevel) $ ptrace msg
 
 
