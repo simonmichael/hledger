@@ -20,6 +20,7 @@ import Data.Char (isPrint)
 import Data.Maybe
 import Test.HUnit
 import Text.Megaparsec
+import Text.Megaparsec.String
 
 import Hledger.Utils.String (formatString)
 
@@ -85,7 +86,7 @@ parseStringFormat input = case (runParser (stringformatp <* eof) "(unknown)") in
 
 defaultStringFormatStyle = BottomAligned
 
-stringformatp :: (Stream s, Char ~ Token s) => ParsecT Dec s m StringFormat
+stringformatp :: Parser StringFormat
 stringformatp = do
   alignspec <- optional (try $ char '%' >> oneOf "^_,")
   let constructor =
@@ -96,10 +97,10 @@ stringformatp = do
           _        -> defaultStringFormatStyle
   constructor <$> many componentp
 
-componentp :: (Stream s, Char ~ Token s) => ParsecT Dec s m StringFormatComponent
+componentp :: Parser StringFormatComponent
 componentp = formatliteralp <|> formatfieldp
 
-formatliteralp :: (Stream s, Char ~ Token s) => ParsecT Dec s m StringFormatComponent
+formatliteralp :: Parser StringFormatComponent
 formatliteralp = do
     s <- some c
     return $ FormatLiteral s
@@ -108,7 +109,7 @@ formatliteralp = do
       c =     (satisfy isPrintableButNotPercentage <?> "printable character")
           <|> try (string "%%" >> return '%')
 
-formatfieldp :: (Stream s, Char ~ Token s) => ParsecT Dec s m StringFormatComponent
+formatfieldp :: Parser StringFormatComponent
 formatfieldp = do
     char '%'
     leftJustified <- optional (char '-')
@@ -123,7 +124,7 @@ formatfieldp = do
         Just text -> Just m where ((m,_):_) = readDec text
         _ -> Nothing
 
-fieldp :: (Stream s, Char ~ Token s) => ParsecT Dec s m ReportItemField
+fieldp :: Parser ReportItemField
 fieldp = do
         try (string "account" >> return AccountField)
     <|> try (string "depth_spacer" >> return DepthSpacerField)

@@ -88,7 +88,7 @@ esHandle ui@UIState{
         EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
         EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j (popScreen ui)
           where
-            (pos,f) = case parsewith hledgerparseerrorpositionp esError of
+            (pos,f) = case parsewithString hledgerparseerrorpositionp esError of
                         Right (f,l,c) -> (Just (l, Just c),f)
                         Left  _       -> (endPos, journalFilePath j)
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j (popScreen ui)) >>= continue . uiCheckBalanceAssertions d

@@ -56,7 +56,7 @@ postAddForm = do
 
       validateDate :: Text -> Handler (Either FormMessage Day)
       validateDate s = return $
-        case fixSmartDateStrEither' today $ strip $ unpack s of
+        case fixSmartDateStrEither' today $ T.pack $ strip $ unpack s of
           Right d  -> Right d
           Left _   -> Left $ MsgInvalidEntry $ pack "could not parse date \"" `append` s `append` pack "\":" -- ++ show e)
 
@@ -84,7 +84,7 @@ postAddForm = do
       let numberedParams s =
             reverse $ dropWhile (T.null . snd) $ reverse $ sort
             [ (n,v) | (k,v) <- params
-                    , let en = parsewith (paramnamep s) $ T.unpack k :: Either (ParseError Char Dec) Int
+                    , let en = parsewith (paramnamep s) k :: Either (ParseError Char Dec) Int
                     , isRight en
                     , let Right n = en
                     ]

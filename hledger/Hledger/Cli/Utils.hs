@@ -27,6 +27,7 @@ import Data.List
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Data.Time (Day)
 import Safe (readMay)
 import System.Console.CmdArgs
@@ -186,19 +187,19 @@ openBrowserOn u = trybrowsers browsers u
 -- overwrite it with this new text, or give an error, but only if the text
 -- is different from the current file contents, and return a flag
 -- indicating whether we did anything.
-writeFileWithBackupIfChanged :: FilePath -> String -> IO Bool
+writeFileWithBackupIfChanged :: FilePath -> T.Text -> IO Bool
 writeFileWithBackupIfChanged f t = do
   s <- readFile' f
   if t == s then return False
-            else backUpFile f >> writeFile f t >> return True
+            else backUpFile f >> T.writeFile f t >> return True
 
 -- | Back up this file with a (incrementing) numbered suffix, then
 -- overwrite it with this new text, or give an error.
 writeFileWithBackup :: FilePath -> String -> IO ()
 writeFileWithBackup f t = backUpFile f >> writeFile f t
 
-readFileStrictly :: FilePath -> IO String
-readFileStrictly f = readFile' f >>= \s -> C.evaluate (length s) >> return s
+readFileStrictly :: FilePath -> IO T.Text
+readFileStrictly f = readFile' f >>= \s -> C.evaluate (T.length s) >> return s
 
 -- | Back up this file with a (incrementing) numbered suffix, or give an error.
 backUpFile :: FilePath -> IO ()

@@ -16,19 +16,21 @@ module Hledger.Utils.Debug (
 )
 where
 
-import Control.Monad (when)
-import Control.Monad.IO.Class
-import Data.List hiding (uncons)
-import Debug.Trace
-import Safe (readDef)
-import System.Environment (getArgs)
-import System.Exit
-import System.IO.Unsafe (unsafePerformIO)
-import Text.Megaparsec
-import Text.Printf
+import           Control.Monad (when)
+import           Control.Monad.IO.Class
+import           Data.List hiding (uncons)
+import qualified Data.Text as T
+import           Debug.Trace
+import           Hledger.Utils.Parse
+import           Safe (readDef)
+import           System.Environment (getArgs)
+import           System.Exit
+import           System.IO.Unsafe (unsafePerformIO)
+import           Text.Megaparsec
+import           Text.Printf
 
 #if __GLASGOW_HASKELL__ >= 704
-import Text.Show.Pretty (ppShow)
+import           Text.Show.Pretty (ppShow)
 #else
 -- the required pretty-show version requires GHC >= 7.4
 ppShow :: Show a => a -> String
@@ -56,19 +58,12 @@ mtrace a = strace a `seq` return a
 traceWith :: (a -> String) -> a -> a
 traceWith f e = trace (f e) e
 
--- | Convert a stream to a list of tokens
-streamToList :: Stream s => s -> [Token s]
-streamToList s =
-  case uncons s of
-    Nothing -> []
-    Just (a,s') -> a : streamToList s'
-
 -- | Parsec trace - show the current parsec position and next input,
 -- and the provided label if it's non-null.
-ptrace :: (Stream s, Char ~ Token s) => String -> ParsecT Dec s m ()
+ptrace :: String -> TextParser m ()
 ptrace msg = do
   pos <- getPosition
-  next <- (take peeklength . streamToList) `fmap` getInput
+  next <- (T.take peeklength) `fmap` getInput
   let (l,c) = (sourceLine pos, sourceColumn pos)
       s  = printf "at line %2d col %2d: %s" (unPos l) (unPos c) (show next) :: String
       s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
@@ -240,7 +235,7 @@ dbgExit msg = const (unsafePerformIO exitFailure) . dbg msg
 -- input) to the console when the debug level is at or above
 -- this level. Uses unsafePerformIO.
 -- pdbgAt :: GenParser m => Float -> String -> m ()
-pdbg :: (Stream s, Char ~ Token s) => Int -> String -> ParsecT Dec s m ()
+pdbg :: Int -> String -> TextParser m ()
 pdbg level msg = when (level <= debugLevel) $ ptrace msg
 
 

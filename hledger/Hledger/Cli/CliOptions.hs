@@ -335,11 +335,11 @@ rawOptsToCliOpts rawopts = checkCliOpts <$> do
   return defcliopts {
               rawopts_         = rawopts
              ,command_         = stringopt "command" rawopts
-             ,file_            = map stripquotes $ listofstringopt "file" rawopts
+             ,file_            = map (T.unpack . stripquotes . T.pack) $ listofstringopt "file" rawopts
              ,rules_file_      = maybestringopt "rules-file" rawopts
              ,output_file_     = maybestringopt "output-file" rawopts
              ,output_format_   = maybestringopt "output-format" rawopts
-             ,alias_           = map stripquotes $ listofstringopt "alias" rawopts
+             ,alias_           = map (T.unpack . stripquotes . T.pack) $ listofstringopt "alias" rawopts
              ,debug_           = intopt "debug" rawopts
              ,ignore_assertions_ = boolopt "ignore-assertions" rawopts
              ,no_new_accounts_ = boolopt "no-new-accounts" rawopts -- add
@@ -557,7 +557,7 @@ hledgerExecutablesInPath = do
 -- isExecutable f = getPermissions f >>= (return . executable)
 
 isHledgerExeName :: String -> Bool
-isHledgerExeName = isRight . parsewith hledgerexenamep
+isHledgerExeName = isRight . parsewith hledgerexenamep . T.pack
     where
       hledgerexenamep = do
         _ <- string progname

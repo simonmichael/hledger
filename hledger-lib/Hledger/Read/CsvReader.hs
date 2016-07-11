@@ -7,6 +7,8 @@ A reader for CSV data, using an extra rules file to help interpret the data.
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Hledger.Read.CsvReader (
   -- * Reader
@@ -26,7 +28,7 @@ import Prelude.Compat hiding (getContents)
 import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Except
-import Control.Monad.State.Strict (StateT, get, modify',evalState)
+import Control.Monad.State.Strict (StateT, State, get, modify',evalState)
 -- import Test.HUnit
 import Data.Char (toLower, isDigit, isSpace)
 import Data.List.Compat
@@ -46,9 +48,9 @@ import Safe
 import System.Directory (doesFileExist)
 import System.FilePath
 import System.IO (stderr)
-import Test.HUnit
+import Test.HUnit hiding (State)
 import Text.CSV (parseCSV, CSV)
-import Text.Megaparsec hiding (parse)
+import Text.Megaparsec hiding (parse, State)
 import qualified Text.Parsec as Parsec
 import Text.Printf (hPrintf,printf)
 
@@ -305,6 +307,8 @@ data CsvRules = CsvRules {
   rconditionalblocks :: [ConditionalBlock]
 } deriving (Show, Eq)
 
+type CsvRulesParser a = TextParser (State CsvRules) a
+
 type DirectiveName    = String
 type CsvFieldName     = String
 type CsvFieldIndex    = Int
@@ -366,19 +370,19 @@ parseRulesFile f = do
 
 -- | Pre-parse csv rules to interpolate included files, recursively.
 -- This is a cheap hack to avoid rewriting the existing parser.
-expandIncludes :: FilePath -> String -> IO String
+expandIncludes :: FilePath -> T.Text -> IO T.Text
 expandIncludes basedir content = do
-  let (ls,rest) = break (isPrefixOf "include") $ lines content
+  let (ls,rest) = break (T.isPrefixOf "include") $ T.lines content
   case rest of
-    [] -> return $ unlines ls
-    (('i':'n':'c':'l':'u':'d':'e':f):ls') -> do
-      let f'       = basedir </> dropWhile isSpace f
+    [] -> return $ T.unlines ls
+    ((T.stripPrefix "include" -> Just f):ls') -> do
+      let f'       = basedir </> dropWhile isSpace (T.unpack f)
           basedir' = takeDirectory f'
-      included <- readFile f' >>= expandIncludes basedir'
-      return $ unlines [unlines ls, included, unlines ls']
-    ls' -> return $ unlines $ ls ++ ls'   -- should never get here
+      included <- readFile' f' >>= expandIncludes basedir'
+      return $ T.unlines [T.unlines ls, included, T.unlines ls']
+    ls' -> return $ T.unlines $ ls ++ ls'   -- should never get here
 
-parseCsvRules :: FilePath -> String -> Either (ParseError Char Dec) CsvRules
+parseCsvRules :: FilePath -> T.Text -> Either (ParseError Char Dec) CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
 parseCsvRules rulesfile s =
   flip evalState rules $ runParserT rulesp rulesfile s
@@ -399,7 +403,7 @@ validateRules rules = do
 
 -- parsers
 
-rulesp :: (Monad m, Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) CsvRules
+rulesp :: CsvRulesParser CsvRules
 rulesp = do
   many $ choice'
     [blankorcommentlinep                                                <?> "blank or comment line"
@@ -415,19 +419,19 @@ rulesp = do
           ,rconditionalblocks=reverse $ rconditionalblocks r
           }
 
-blankorcommentlinep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) ()
+blankorcommentlinep :: CsvRulesParser ()
 blankorcommentlinep = pdbg 3 "trying blankorcommentlinep" >> choice' [blanklinep, commentlinep]
 
-blanklinep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) ()
+blanklinep :: CsvRulesParser ()
 blanklinep = many spacenonewline >> newline >> return () <?> "blank line"
 
-commentlinep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) ()
+commentlinep :: CsvRulesParser ()
 commentlinep = many spacenonewline >> commentcharp >> restofline >> return () <?> "comment line"
 
-commentcharp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) Char
-commentcharp = oneOf ";#*"
+commentcharp :: CsvRulesParser Char
+commentcharp = oneOf (";#*" :: [Char])
 
-directivep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) (DirectiveName, String)
+directivep :: CsvRulesParser (DirectiveName, String)
 directivep = (do
   pdbg 3 "trying directive"
   d <- choice' $ map string directives
@@ -446,10 +450,10 @@ directives =
    -- ,"base-currency"
   ]
 
-directivevalp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
+directivevalp :: CsvRulesParser String
 directivevalp = anyChar `manyTill` eolof
 
-fieldnamelistp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) [CsvFieldName]
+fieldnamelistp :: CsvRulesParser [CsvFieldName]
 fieldnamelistp = (do
   pdbg 3 "trying fieldnamelist"
   string "fields"
@@ -462,20 +466,20 @@ fieldnamelistp = (do
   return $ map (map toLower) $ f:fs
   ) <?> "field name list"
 
-fieldnamep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
+fieldnamep :: CsvRulesParser String
 fieldnamep = quotedfieldnamep <|> barefieldnamep
 
-quotedfieldnamep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
+quotedfieldnamep :: CsvRulesParser String
 quotedfieldnamep = do
   char '"'
-  f <- some $ noneOf "\"\n:;#~"
+  f <- some $ noneOf ("\"\n:;#~" :: [Char])
   char '"'
   return f
 
-barefieldnamep :: (Stream s, Char ~ Token s) => ParsecT Dec s m String
-barefieldnamep = some $ noneOf " \t\n,;#~"
+barefieldnamep :: CsvRulesParser String
+barefieldnamep = some $ noneOf (" \t\n,;#~" :: [Char])
 
-fieldassignmentp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) (JournalFieldName, FieldTemplate)
+fieldassignmentp :: CsvRulesParser (JournalFieldName, FieldTemplate)
 fieldassignmentp = do
   pdbg 3 "trying fieldassignmentp"
   f <- journalfieldnamep
@@ -484,7 +488,7 @@ fieldassignmentp = do
   return (f,v)
   <?> "field assignment"
 
-journalfieldnamep :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
+journalfieldnamep :: CsvRulesParser String
 journalfieldnamep = pdbg 2 "trying journalfieldnamep" >> choice' (map string journalfieldnames)
 
 journalfieldnames =
@@ -504,7 +508,7 @@ journalfieldnames =
   ,"comment"
   ]
 
-assignmentseparatorp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) ()
+assignmentseparatorp :: CsvRulesParser ()
 assignmentseparatorp = do
   pdbg 3 "trying assignmentseparatorp"
   choice [
@@ -515,12 +519,12 @@ assignmentseparatorp = do
   _ <- many spacenonewline
   return ()
 
-fieldvalp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
+fieldvalp :: CsvRulesParser String
 fieldvalp = do
   pdbg 2 "trying fieldvalp"
   anyChar `manyTill` eolof
 
-conditionalblockp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) ConditionalBlock
+conditionalblockp :: CsvRulesParser ConditionalBlock
 conditionalblockp = do
   pdbg 3 "trying conditionalblockp"
   string "if" >> many spacenonewline >> optional newline
@@ -531,7 +535,7 @@ conditionalblockp = do
   return (ms, as)
   <?> "conditional block"
 
-recordmatcherp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) [String]
+recordmatcherp :: CsvRulesParser [String]
 recordmatcherp = do
   pdbg 2 "trying recordmatcherp"
   -- pos <- currentPos
@@ -542,7 +546,7 @@ recordmatcherp = do
   return ps
   <?> "record matcher"
 
-matchoperatorp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
+matchoperatorp :: CsvRulesParser String
 matchoperatorp = choice' $ map string
   ["~"
   -- ,"!~"
@@ -550,13 +554,13 @@ matchoperatorp = choice' $ map string
   -- ,"!="
   ]
 
-patternsp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) [String]
+patternsp :: CsvRulesParser [String]
 patternsp = do
   pdbg 3 "trying patternsp"
   ps <- many regexp
   return ps
 
-regexp :: (Stream s, Char ~ Token s) => ParsecT Dec s (StateT CsvRules m) String
+regexp :: CsvRulesParser String
 regexp = do
   pdbg 3 "trying regexp"
   notFollowedBy matchoperatorp

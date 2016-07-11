@@ -215,8 +215,8 @@ nullviewdata = viewdataWithDateAndParams nulldate "" "" ""
 -- | Make a ViewData using the given date and request parameters, and defaults elsewhere.
 viewdataWithDateAndParams :: Day -> String -> String -> String -> ViewData
 viewdataWithDateAndParams d q a p =
-    let (querymatcher,queryopts) = parseQuery d q
-        (acctsmatcher,acctsopts) = parseQuery d a
+    let (querymatcher,queryopts) = parseQuery d (pack q)
+        (acctsmatcher,acctsopts) = parseQuery d (pack a)
     in VD {
            opts         = defwebopts
           ,j            = nulljournal

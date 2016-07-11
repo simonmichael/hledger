@@ -76,6 +76,7 @@ timedotfilep = do many timedotfileitemp
                   eof
                   get
     where
+      timedotfileitemp :: ErroringJournalParser ()
       timedotfileitemp = do
         ptrace "timedotfileitemp"
         choice [

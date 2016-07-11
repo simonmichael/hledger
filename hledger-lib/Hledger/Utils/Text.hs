@@ -114,6 +114,14 @@ textElideRight width t =
 --             | last s == '\n' = s
 --             | otherwise = s ++ "\n"
 
+-- | Wrap a string in double quotes, and \-prefix any embedded single
+-- quotes, if it contains whitespace and is not already single- or
+-- double-quoted.
+quoteIfSpaced :: T.Text -> T.Text
+quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
+                | not $ any (`elem` (T.unpack s)) whitespacechars = s
+                | otherwise = "'"<>escapeSingleQuotes s<>"'"
+
 -- -- | Wrap a string in double quotes, and \-prefix any embedded single
 -- -- quotes, if it contains whitespace and is not already single- or
 -- -- double-quoted.
@@ -124,8 +132,8 @@ textElideRight width t =
 
 -- -- | Double-quote this string if it contains whitespace, single quotes
 -- -- or double-quotes, escaping the quotes as needed.
--- quoteIfNeeded :: String -> String
--- quoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars) = "\"" ++ escapeDoubleQuotes s ++ "\""
+-- quoteIfNeeded :: T.Text -> T.Text
+-- quoteIfNeeded s | any (`elem` T.unpack s) (quotechars++whitespacechars) = "\"" <> escapeDoubleQuotes s <> "\""
 --                 | otherwise = s
 
 -- -- | Single-quote this string if it contains whitespace or double-quotes.
@@ -134,15 +142,15 @@ textElideRight width t =
 -- singleQuoteIfNeeded s | any (`elem` s) whitespacechars = "'"++s++"'"
 --                       | otherwise = s
 
--- quotechars, whitespacechars :: [Char]
--- quotechars      = "'\""
--- whitespacechars = " \t\n\r"
+quotechars, whitespacechars :: [Char]
+quotechars      = "'\""
+whitespacechars = " \t\n\r"
 
--- escapeDoubleQuotes :: String -> String
--- escapeDoubleQuotes = regexReplace "\"" "\""
+escapeDoubleQuotes :: T.Text -> T.Text
+escapeDoubleQuotes = T.replace "\"" "\""
 
--- escapeSingleQuotes :: String -> String
--- escapeSingleQuotes = regexReplace "'" "\'"
+escapeSingleQuotes :: T.Text -> T.Text
+escapeSingleQuotes = T.replace "'" "\'"
 
 -- escapeQuotes :: String -> String
 -- escapeQuotes = regexReplace "([\"'])" "\\1"
@@ -161,18 +169,20 @@ textElideRight width t =
 --       doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf "\"")
 
 -- -- | Quote-aware version of unwords - single-quote strings which contain whitespace
--- unwords' :: [String] -> String
--- unwords' = unwords . map quoteIfNeeded
+-- unwords' :: [Text] -> Text
+-- unwords' = T.unwords . map quoteIfNeeded
 
--- -- | Strip one matching pair of single or double quotes on the ends of a string.
--- stripquotes :: String -> String
--- stripquotes s = if isSingleQuoted s || isDoubleQuoted s then init $ tail s else s
+-- | Strip one matching pair of single or double quotes on the ends of a string.
+stripquotes :: Text -> Text
+stripquotes s = if isSingleQuoted s || isDoubleQuoted s then T.init $ T.tail s else s
 
--- isSingleQuoted s@(_:_:_) = head s == '\'' && last s == '\''
--- isSingleQuoted _ = False
+isSingleQuoted :: Text -> Bool
+isSingleQuoted s =
+  T.length (T.take 2 s) == 2 && T.head s == '\'' && T.last s == '\''
 
--- isDoubleQuoted s@(_:_:_) = head s == '"' && last s == '"'
--- isDoubleQuoted _ = False
+isDoubleQuoted :: Text -> Bool
+isDoubleQuoted s =
+  T.length (T.take 2 s) == 2 && T.head s == '"' && T.last s == '"'
 
 textUnbracket :: Text -> Text
 textUnbracket s

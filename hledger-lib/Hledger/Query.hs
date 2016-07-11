@@ -5,7 +5,7 @@ transactions..)  by various criteria, and a parser for query expressions.
 
 -}
 
-{-# LANGUAGE DeriveDataTypeable, OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable, OverloadedStrings, ViewPatterns #-}
 
 module Hledger.Query (
   -- * Query and QueryOpt
@@ -47,15 +47,18 @@ where
 import Data.Data
 import Data.Either
 import Data.List
+import Data.Functor.Identity (Identity)
 import Data.Maybe
+import Data.Monoid ((<>))
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe (readDef, headDef)
 import Test.HUnit
 import Text.Megaparsec
+import Text.Megaparsec.Text
 
-import Hledger.Utils
+import Hledger.Utils hiding (words')
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount (amount, nullamt, usd)
@@ -153,7 +156,7 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- 1. multiple account patterns are OR'd together
 -- 2. multiple description patterns are OR'd together
 -- 3. then all terms are AND'd together
-parseQuery :: Day -> String -> (Query,[QueryOpt])
+parseQuery :: Day -> T.Text -> (Query,[QueryOpt])
 parseQuery d s = (q, opts)
   where
     terms = words'' prefixes s
@@ -177,21 +180,27 @@ tests_parseQuery = [
 -- | Quote-and-prefix-aware version of words - don't split on spaces which
 -- are inside quotes, including quotes which may have one of the specified
 -- prefixes in front, and maybe an additional not: prefix in front of that.
-words'' :: [String] -> String -> [String]
+words'' :: [T.Text] -> T.Text -> [T.Text]
 words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
     where
+      maybeprefixedquotedphrases :: Parser [T.Text]
       maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, pattern] `sepBy` some spacenonewline
+      prefixedQuotedPattern :: Parser T.Text
       prefixedQuotedPattern = do
         not' <- fromMaybe "" `fmap` (optional $ string "not:")
         let allowednexts | null not' = prefixes
                          | otherwise = prefixes ++ [""]
-        next <- choice' $ map string allowednexts
-        let prefix = not' ++ next
+        next <- fmap T.pack $ choice' $ map (string . T.unpack) allowednexts
+        let prefix :: T.Text
+            prefix = T.pack not' <> next
         p <- singleQuotedPattern <|> doubleQuotedPattern
-        return $ prefix ++ stripquotes p
-      singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf ("'" :: [Char])) >>= return . stripquotes
-      doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf ("\"" :: [Char])) >>= return . stripquotes
-      pattern = many (noneOf (" \n\r" :: [Char]))
+        return $ prefix <> stripquotes p
+      singleQuotedPattern :: Parser T.Text
+      singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf ("'" :: [Char])) >>= return . stripquotes . T.pack
+      doubleQuotedPattern :: Parser T.Text
+      doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf ("\"" :: [Char])) >>= return . stripquotes . T.pack
+      pattern :: Parser T.Text
+      pattern = fmap T.pack $ many (noneOf (" \n\r" :: [Char]))
 
 tests_words'' = [
    "words''" ~: do
@@ -208,7 +217,8 @@ tests_words'' = [
 
 -- XXX
 -- keep synced with patterns below, excluding "not"
-prefixes = map (++":") [
+prefixes :: [T.Text]
+prefixes = map (<>":") [
      "inacctonly"
     ,"inacct"
     ,"amt"
@@ -225,6 +235,7 @@ prefixes = map (++":") [
     ,"tag"
     ]
 
+defaultprefix :: T.Text
 defaultprefix = "acct"
 
 -- -- | Parse the query string as a boolean tree of match patterns.
@@ -239,36 +250,37 @@ defaultprefix = "acct"
 
 -- | Parse a single query term as either a query or a query option,
 -- or raise an error if it has invalid syntax.
-parseQueryTerm :: Day -> String -> Either Query QueryOpt
-parseQueryTerm _ ('i':'n':'a':'c':'c':'t':'o':'n':'l':'y':':':s) = Right $ QueryOptInAcctOnly $ T.pack s
-parseQueryTerm _ ('i':'n':'a':'c':'c':'t':':':s) = Right $ QueryOptInAcct $ T.pack s
-parseQueryTerm d ('n':'o':'t':':':s) = case parseQueryTerm d s of
-                                       Left m  -> Left $ Not m
-                                       Right _ -> Left Any -- not:somequeryoption will be ignored
-parseQueryTerm _ ('c':'o':'d':'e':':':s) = Left $ Code s
-parseQueryTerm _ ('d':'e':'s':'c':':':s) = Left $ Desc s
-parseQueryTerm _ ('a':'c':'c':'t':':':s) = Left $ Acct s
-parseQueryTerm d ('d':'a':'t':'e':'2':':':s) =
-        case parsePeriodExpr d s of Left e         -> error' $ "\"date2:"++s++"\" gave a "++showDateParseError e
+parseQueryTerm :: Day -> T.Text -> Either Query QueryOpt
+parseQueryTerm _ (T.stripPrefix "inacctonly:" -> Just s) = Right $ QueryOptInAcctOnly s
+parseQueryTerm _ (T.stripPrefix "inacct:" -> Just s) = Right $ QueryOptInAcct s
+parseQueryTerm d (T.stripPrefix "not:" -> Just s) =
+  case parseQueryTerm d s of
+    Left m -> Left $ Not m
+    Right _ -> Left Any -- not:somequeryoption will be ignored
+parseQueryTerm _ (T.stripPrefix "code:" -> Just s) = Left $ Code $ T.unpack s
+parseQueryTerm _ (T.stripPrefix "desc:" -> Just s) = Left $ Desc $ T.unpack s
+parseQueryTerm _ (T.stripPrefix "acct:" -> Just s) = Left $ Acct $ T.unpack s
+parseQueryTerm d (T.stripPrefix "date2:" -> Just s) =
+        case parsePeriodExpr d s of Left e         -> error' $ "\"date2:"++T.unpack s++"\" gave a "++showDateParseError e
                                     Right (_,span) -> Left $ Date2 span
-parseQueryTerm d ('d':'a':'t':'e':':':s) =
-        case parsePeriodExpr d s of Left e         -> error' $ "\"date:"++s++"\" gave a "++showDateParseError e
+parseQueryTerm d (T.stripPrefix "date:" -> Just s) =
+        case parsePeriodExpr d s of Left e         -> error' $ "\"date:"++T.unpack s++"\" gave a "++showDateParseError e
                                     Right (_,span) -> Left $ Date span
-parseQueryTerm _ ('s':'t':'a':'t':'u':'s':':':s) = 
-        case parseStatus s of Left e   -> error' $ "\"status:"++s++"\" gave a parse error: " ++ e
+parseQueryTerm _ (T.stripPrefix "status:" -> Just s) =
+        case parseStatus s of Left e   -> error' $ "\"status:"++T.unpack s++"\" gave a parse error: " ++ e
                               Right st -> Left $ Status st
-parseQueryTerm _ ('r':'e':'a':'l':':':s) = Left $ Real $ parseBool s || null s
-parseQueryTerm _ ('a':'m':'t':':':s) = Left $ Amt ord q where (ord, q) = parseAmountQueryTerm s
-parseQueryTerm _ ('e':'m':'p':'t':'y':':':s) = Left $ Empty $ parseBool s
-parseQueryTerm _ ('d':'e':'p':'t':'h':':':s)
+parseQueryTerm _ (T.stripPrefix "real:" -> Just s) = Left $ Real $ parseBool s || T.null s
+parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = Left $ Amt ord q where (ord, q) = parseAmountQueryTerm s
+parseQueryTerm _ (T.stripPrefix "empty:" -> Just s) = Left $ Empty $ parseBool s
+parseQueryTerm _ (T.stripPrefix "depth:" -> Just s)
   | n >= 0    = Left $ Depth n
   | otherwise = error' "depth: should have a positive number"
-  where n = readDef 0 s
+  where n = readDef 0 (T.unpack s)
 
-parseQueryTerm _ ('c':'u':'r':':':s) = Left $ Sym s -- support cur: as an alias
-parseQueryTerm _ ('t':'a':'g':':':s) = Left $ Tag n v where (n,v) = parseTag s
+parseQueryTerm _ (T.stripPrefix "cur:" -> Just s) = Left $ Sym (T.unpack s) -- support cur: as an alias
+parseQueryTerm _ (T.stripPrefix "tag:" -> Just s) = Left $ Tag n v where (n,v) = parseTag s
 parseQueryTerm _ "" = Left $ Any
-parseQueryTerm d s = parseQueryTerm d $ defaultprefix++":"++s
+parseQueryTerm d s = parseQueryTerm d $ defaultprefix<>":"<>s
 
 tests_parseQueryTerm = [
   "parseQueryTerm" ~: do
@@ -297,35 +309,40 @@ data OrdPlus = Lt | LtEq | Gt | GtEq | Eq | AbsLt | AbsLtEq | AbsGt | AbsGtEq | 
  deriving (Show,Eq,Data,Typeable)
 
 -- can fail
-parseAmountQueryTerm :: String -> (OrdPlus, Quantity)
+parseAmountQueryTerm :: T.Text -> (OrdPlus, Quantity)
 parseAmountQueryTerm s' =
   case s' of
     -- feel free to do this a smarter way
     ""              -> err
-    '<':'+':s       -> (Lt, readDef err s)
-    '<':'=':'+':s   -> (LtEq, readDef err s)
-    '>':'+':s       -> (Gt, readDef err s)
-    '>':'=':'+':s   -> (GtEq, readDef err s)
-    '=':'+':s       -> (Eq, readDef err s)
-    '+':s           -> (Eq, readDef err s)
-    '<':'-':s       -> (Lt, negate $ readDef err s)
-    '<':'=':'-':s   -> (LtEq, negate $ readDef err s)
-    '>':'-':s       -> (Gt, negate $ readDef err s)
-    '>':'=':'-':s   -> (GtEq, negate $ readDef err s)
-    '=':'-':s       -> (Eq, negate $ readDef err s)
-    '-':s           -> (Eq, negate $ readDef err s)
-    '<':'=':s       -> let n = readDef err s in case n of 0 -> (LtEq, 0)
-                                                          _ -> (AbsLtEq, n)
-    '<':s           -> let n = readDef err s in case n of 0 -> (Lt, 0)
-                                                          _ -> (AbsLt, n)
-    '>':'=':s       -> let n = readDef err s in case n of 0 -> (GtEq, 0)
-                                                          _ -> (AbsGtEq, n)
-    '>':s           -> let n = readDef err s in case n of 0 -> (Gt, 0)
-                                                          _ -> (AbsGt, n)
-    '=':s           -> (AbsEq, readDef err s)
-    s               -> (AbsEq, readDef err s)
+    (T.stripPrefix "<+" -> Just s)  -> (Lt, readDef err (T.unpack s))
+    (T.stripPrefix "<=+" -> Just s) -> (LtEq, readDef err (T.unpack s))
+    (T.stripPrefix ">+" -> Just s)  -> (Gt, readDef err (T.unpack s))
+    (T.stripPrefix ">=+" -> Just s) -> (GtEq, readDef err (T.unpack s))
+    (T.stripPrefix "=+" -> Just s)  -> (Eq, readDef err (T.unpack s))
+    (T.stripPrefix "+" -> Just s)   -> (Eq, readDef err (T.unpack s))
+    (T.stripPrefix "<-" -> Just s)  -> (Lt, negate $ readDef err (T.unpack s))
+    (T.stripPrefix "<=-" -> Just s) -> (LtEq, negate $ readDef err (T.unpack s))
+    (T.stripPrefix ">-" -> Just s)  -> (Gt, negate $ readDef err (T.unpack s))
+    (T.stripPrefix ">=-" -> Just s) -> (GtEq, negate $ readDef err (T.unpack s))
+    (T.stripPrefix "=-" -> Just s)  -> (Eq, negate $ readDef err (T.unpack s))
+    (T.stripPrefix "-" -> Just s)   -> (Eq, negate $ readDef err (T.unpack s))
+    (T.stripPrefix "<=" -> Just s)  -> let n = readDef err (T.unpack s) in
+                                         case n of
+                                           0 -> (LtEq, 0)
+                                           _ -> (AbsLtEq, n)
+    (T.stripPrefix "<" -> Just s)   -> let n = readDef err (T.unpack s) in
+                                         case n of 0 -> (Lt, 0)
+                                                   _ -> (AbsLt, n)
+    (T.stripPrefix ">=" -> Just s)  -> let n = readDef err (T.unpack s) in
+                                         case n of 0 -> (GtEq, 0)
+                                                   _ -> (AbsGtEq, n)
+    (T.stripPrefix ">" -> Just s)   -> let n = readDef err (T.unpack s) in
+                                         case n of 0 -> (Gt, 0)
+                                                   _ -> (AbsGt, n)
+    (T.stripPrefix "=" -> Just s)           -> (AbsEq, readDef err (T.unpack s))
+    s               -> (AbsEq, readDef err (T.unpack s))
   where
-    err = error' $ "could not parse as '=', '<', or '>' (optional) followed by a (optionally signed) numeric quantity: " ++ s'
+    err = error' $ "could not parse as '=', '<', or '>' (optional) followed by a (optionally signed) numeric quantity: " ++ T.unpack s'
 
 tests_parseAmountQueryTerm = [
   "parseAmountQueryTerm" ~: do
@@ -339,13 +356,13 @@ tests_parseAmountQueryTerm = [
     "-0.23" `gives` (Eq,(-0.23))
   ]
 
-parseTag :: String -> (Regexp, Maybe Regexp)
-parseTag s | '=' `elem` s = (n, Just $ tail v)
-           | otherwise    = (s, Nothing)
-           where (n,v) = break (=='=') s
+parseTag :: T.Text -> (Regexp, Maybe Regexp)
+parseTag s | "=" `T.isInfixOf` s = (T.unpack n, Just $ tail $ T.unpack v)
+           | otherwise    = (T.unpack s, Nothing)
+           where (n,v) = T.break (=='=') s
 
 -- | Parse the value part of a "status:" query, or return an error.
-parseStatus :: String -> Either String ClearedStatus
+parseStatus :: T.Text -> Either String ClearedStatus
 parseStatus s | s `elem` ["*","1"] = Right Cleared
               | s `elem` ["!"]     = Right Pending
               | s `elem` ["","0"]  = Right Uncleared
@@ -353,10 +370,10 @@ parseStatus s | s `elem` ["*","1"] = Right Cleared
 
 -- | Parse the boolean value part of a "status:" query. "1" means true,
 -- anything else will be parsed as false without error.
-parseBool :: String -> Bool
+parseBool :: T.Text -> Bool
 parseBool s = s `elem` truestrings
 
-truestrings :: [String]
+truestrings :: [T.Text]
 truestrings = ["1"]
 
 simplifyQuery :: Query -> Query

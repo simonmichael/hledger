@@ -51,22 +51,22 @@ module Hledger.Read.TimeclockReader (
   tests_Hledger_Read_TimeclockReader
 )
 where
-import Prelude ()
-import Prelude.Compat
-import Control.Monad
-import Control.Monad.Except (ExceptT)
-import Control.Monad.State.Strict
-import Data.Maybe (fromMaybe)
-import Data.Text (Text)
+import           Prelude ()
+import           Prelude.Compat
+import           Control.Monad
+import           Control.Monad.Except (ExceptT)
+import           Control.Monad.State.Strict
+import           Data.Maybe (fromMaybe)
+import           Data.Text (Text)
 import qualified Data.Text as T
-import Test.HUnit
-import Text.Megaparsec hiding (parse)
-import System.FilePath
+import           Test.HUnit
+import           Text.Megaparsec hiding (parse)
+import           System.FilePath
 
-import Hledger.Data
+import           Hledger.Data
 -- XXX too much reuse ?
-import Hledger.Read.Common
-import Hledger.Utils
+import           Hledger.Read.Common
+import           Hledger.Utils
 
 
 reader :: Reader

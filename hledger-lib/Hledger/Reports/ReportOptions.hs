@@ -34,6 +34,7 @@ import Data.Data (Data)
 #if !MIN_VERSION_base(4,8,0)
 import Data.Functor.Compat ((<$>))
 #endif
+import qualified Data.Text as T
 import Data.Typeable (Typeable)
 import Data.Time.Calendar
 import System.Console.CmdArgs.Default  -- some additional default stuff
@@ -194,7 +195,7 @@ maybesmartdateopt d name rawopts =
           Just s -> either
                     (\e -> optserror $ "could not parse "++name++" date: "++show e)
                     Just
-                    $ fixSmartDateStrEither' d s
+                    $ fixSmartDateStrEither' d (T.pack s)
 
 type DisplayExp = String
 
@@ -203,7 +204,7 @@ maybedisplayopt d rawopts =
     maybe Nothing (Just . regexReplaceBy "\\[.+?\\]" fixbracketeddatestr) $ maybestringopt "display" rawopts
     where
       fixbracketeddatestr "" = ""
-      fixbracketeddatestr s = "[" ++ fixSmartDateStr d (init $ tail s) ++ "]"
+      fixbracketeddatestr s = "[" ++ fixSmartDateStr d (T.pack $ init $ tail s) ++ "]"
 
 maybeperiodopt :: Day -> RawOpts -> Maybe (Interval,DateSpan)
 maybeperiodopt d rawopts =
@@ -212,7 +213,7 @@ maybeperiodopt d rawopts =
       Just s -> either
                 (\e -> optserror $ "could not parse period option: "++show e)
                 Just
-                $ parsePeriodExpr d s
+                $ parsePeriodExpr d (T.pack s)
 
 -- | Legacy-compatible convenience aliases for accountlistmode_.
 tree_ :: ReportOpts -> Bool
@@ -283,7 +284,7 @@ queryFromOpts d opts@ReportOpts{..} = simplifyQuery $ And $ [flagsq, argsq]
               ++ (if empty_ then [Empty True] else []) -- ?
               ++ (maybe [] ((:[]) . Status) (clearedValueFromOpts opts))
               ++ (maybe [] ((:[]) . Depth) depth_)
-    argsq = fst $ parseQuery d query_
+    argsq = fst $ parseQuery d (T.pack query_)
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
 queryFromOptsOnly :: Day -> ReportOpts -> Query
@@ -317,7 +318,7 @@ queryOptsFromOpts :: Day -> ReportOpts -> [QueryOpt]
 queryOptsFromOpts d ReportOpts{..} = flagsqopts ++ argsqopts
   where
     flagsqopts = []
-    argsqopts = snd $ parseQuery d query_
+    argsqopts = snd $ parseQuery d (T.pack query_)
 
 tests_queryOptsFromOpts :: [Test]
 tests_queryOptsFromOpts = [

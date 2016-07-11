@@ -226,10 +226,10 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
        acctonlyquery = (RegisterR, [("q", T.pack $ accountOnlyQuery acct)])
 
 accountQuery :: AccountName -> String
-accountQuery a = "inacct:" ++ quoteIfSpaced (T.unpack a) -- (accountNameToAccountRegex a)
+accountQuery a = "inacct:" ++ T.unpack (quoteIfSpaced a) -- (accountNameToAccountRegex a)
 
 accountOnlyQuery :: AccountName -> String
-accountOnlyQuery a = "inacctonly:" ++ quoteIfSpaced (T.unpack a) -- (accountNameToAccountRegex a)
+accountOnlyQuery a = "inacctonly:" ++ T.unpack (quoteIfSpaced a ) -- (accountNameToAccountRegex a)
 
 accountUrl :: AppRoute -> AccountName -> (AppRoute, [(Text, Text)])
 accountUrl r a = (r, [("q", T.pack $ accountQuery a)])

@@ -36,7 +36,8 @@ import Data.Time.Calendar
 import Data.Time.LocalTime
 import Safe
 import System.Time (getClockTime)
-import Text.Megaparsec hiding (parse)
+import Text.Megaparsec hiding (parse,State)
+import Text.Megaparsec.Text
 
 import Hledger.Data
 import Hledger.Utils
@@ -44,12 +45,6 @@ import Hledger.Utils
 -- $setup
 
 --- * parsing utils
-
--- | A parser of strict text with generic user state, monad and return type.
-type TextParser m a = ParsecT Dec Text m a
-
--- | A journal parser that runs in IO and can throw an error mid-parse.
-type ErroringJournalParser a = TextParser (StateT Journal (ExceptT String IO)) a
 
 -- | Run a string parser with no state in the identity monad.
 runTextParser, rtp :: TextParser Identity a -> Text -> Either (ParseError Char Dec) a
@@ -85,32 +80,43 @@ parseAndFinaliseJournal parser assrt f txt = do
                         Left e  -> throwError e
     Left e   -> throwError $ show e
 
-setYear :: MonadState Journal m => Integer -> m ()
+parseAndFinaliseJournal' :: JournalParser ParsedJournal -> Bool -> FilePath -> Text -> ExceptT String IO Journal
+parseAndFinaliseJournal' parser assrt f txt = do
+  t <- liftIO getClockTime
+  y <- liftIO getCurrentYear
+  let ep = flip evalState nulljournal{jparsedefaultyear=Just y} $ runParserT parser f txt
+  case ep of
+    Right pj -> case journalFinalise t f txt assrt pj of
+                        Right j -> return j
+                        Left e  -> throwError e
+    Left e   -> throwError $ show e
+
+setYear :: Monad m => Year -> TextParser (StateT Journal m) ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
 
-getYear :: MonadState Journal m => m (Maybe Integer)
+getYear :: Monad m => TextParser (StateT Journal m) (Maybe Year)
 getYear = fmap jparsedefaultyear get
 
-setDefaultCommodityAndStyle :: MonadState Journal m => (CommoditySymbol,AmountStyle) -> m ()
+setDefaultCommodityAndStyle :: (CommoditySymbol,AmountStyle) -> ErroringJournalParser ()
 setDefaultCommodityAndStyle cs = modify' (\j -> j{jparsedefaultcommodity=Just cs})
 
-getDefaultCommodityAndStyle :: MonadState Journal m => m (Maybe (CommoditySymbol,AmountStyle))
+getDefaultCommodityAndStyle :: Monad m => TextParser (StateT Journal m) (Maybe (CommoditySymbol,AmountStyle))
 getDefaultCommodityAndStyle = jparsedefaultcommodity `fmap` get
 
-pushAccount :: MonadState Journal m => AccountName -> m ()
+pushAccount :: AccountName -> ErroringJournalParser ()
 pushAccount acct = modify' (\j -> j{jaccounts = acct : jaccounts j})
 
-pushParentAccount :: MonadState Journal m => AccountName -> m ()
+pushParentAccount :: AccountName -> ErroringJournalParser ()
 pushParentAccount acct = modify' (\j -> j{jparseparentaccounts = acct : jparseparentaccounts j})
 
-popParentAccount :: MonadState Journal m => TextParser m ()
+popParentAccount :: ErroringJournalParser ()
 popParentAccount = do
   j <- get
   case jparseparentaccounts j of
     []       -> unexpected (Tokens ('E' :| "nd of apply account block with no beginning"))
     (_:rest) -> put j{jparseparentaccounts=rest}
 
-getParentAccount :: MonadState Journal m => m AccountName
+getParentAccount :: ErroringJournalParser AccountName
 getParentAccount = fmap (concatAccountNames . reverse . jparseparentaccounts) get
 
 addAccountAlias :: MonadState Journal m => AccountAlias -> m ()
@@ -166,7 +172,7 @@ statusp =
 codep :: TextParser m String
 codep = try (do { some spacenonewline; char '(' <?> "codep"; anyChar `manyTill` char ')' } ) <|> return ""
 
-descriptionp :: TextParser m String
+descriptionp :: ErroringJournalParser String
 descriptionp = many (noneOf (";\n" :: [Char]))
 
 --- ** dates
@@ -175,7 +181,7 @@ descriptionp = many (noneOf (";\n" :: [Char]))
 -- Hyphen (-) and period (.) are also allowed as separators.
 -- The year may be omitted if a default year has been set.
 -- Leading zeroes may be omitted.
-datep :: MonadState Journal m => TextParser m Day
+datep :: Monad m => TextParser (StateT Journal m) Day
 datep = do
   -- hacky: try to ensure precise errors for invalid dates
   -- XXX reported error position is not too good
@@ -205,7 +211,7 @@ datep = do
 -- Seconds are optional.
 -- The timezone is optional and ignored (the time is always interpreted as a local time).
 -- Leading zeroes may be omitted (except in a timezone).
-datetimep :: MonadState Journal m => TextParser m LocalTime
+datetimep :: ErroringJournalParser LocalTime
 datetimep = do
   day <- datep
   some spacenonewline
@@ -233,7 +239,7 @@ datetimep = do
   -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
   return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
 
-secondarydatep :: MonadState Journal m => Day -> TextParser m Day
+secondarydatep :: Day -> ErroringJournalParser Day
 secondarydatep primarydate = do
   char '='
   -- kludgy way to use primary date for default year
@@ -259,7 +265,7 @@ secondarydatep primarydate = do
 --- ** account names
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
-modifiedaccountnamep :: MonadState Journal m => TextParser m AccountName
+modifiedaccountnamep :: ErroringJournalParser AccountName
 modifiedaccountnamep = do
   parent <- getParentAccount
   aliases <- getAccountAliases
@@ -298,7 +304,7 @@ accountnamep = do
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
 -- "missing" marker amount.
-spaceandamountormissingp :: MonadState Journal m => TextParser m MixedAmount
+spaceandamountormissingp :: ErroringJournalParser MixedAmount
 spaceandamountormissingp =
   try (do
         some spacenonewline
@@ -322,7 +328,7 @@ test_spaceandamountormissingp = do
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
-amountp :: MonadState Journal m => TextParser m Amount
+amountp :: Monad m => TextParser (StateT Journal m) Amount
 amountp = try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
 
 #ifdef TESTS
@@ -356,7 +362,7 @@ signp = do
   return $ case sign of Just '-' -> "-"
                         _        -> ""
 
-leftsymbolamountp :: MonadState Journal m => TextParser m Amount
+leftsymbolamountp :: Monad m => TextParser (StateT Journal m) Amount
 leftsymbolamountp = do
   sign <- signp
   c <- commoditysymbolp
@@ -368,7 +374,7 @@ leftsymbolamountp = do
   return $ applysign $ Amount c q p s
   <?> "left-symbol amount"
 
-rightsymbolamountp :: MonadState Journal m => TextParser m Amount
+rightsymbolamountp :: Monad m => TextParser (StateT Journal m) Amount
 rightsymbolamountp = do
   (q,prec,mdec,mgrps) <- numberp
   sp <- many spacenonewline
@@ -378,7 +384,7 @@ rightsymbolamountp = do
   return $ Amount c q p s
   <?> "right-symbol amount"
 
-nosymbolamountp :: MonadState Journal m => TextParser m Amount
+nosymbolamountp :: Monad m => TextParser (StateT Journal m) Amount
 nosymbolamountp = do
   (q,prec,mdec,mgrps) <- numberp
   p <- priceamountp
@@ -403,7 +409,7 @@ quotedcommoditysymbolp = do
 simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = T.pack <$> some (noneOf nonsimplecommoditychars)
 
-priceamountp :: MonadState Journal m => TextParser m Price
+priceamountp :: Monad m => TextParser (StateT Journal m) Price
 priceamountp =
     try (do
           many spacenonewline
@@ -419,7 +425,7 @@ priceamountp =
             return $ UnitPrice a))
          <|> return NoPrice
 
-partialbalanceassertionp :: MonadState Journal m => TextParser m (Maybe MixedAmount)
+partialbalanceassertionp :: ErroringJournalParser (Maybe MixedAmount)
 partialbalanceassertionp =
     try (do
           many spacenonewline
@@ -440,7 +446,7 @@ partialbalanceassertionp =
 --          <|> return Nothing
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
-fixedlotpricep :: MonadState Journal m => TextParser m (Maybe Amount)
+fixedlotpricep :: ErroringJournalParser (Maybe Amount)
 fixedlotpricep =
     try (do
           many spacenonewline
@@ -540,7 +546,7 @@ numberp = do
 
 --- ** comments
 
-multilinecommentp :: TextParser m ()
+multilinecommentp :: ErroringJournalParser ()
 multilinecommentp = do
   string "comment" >> many spacenonewline >> newline
   go
@@ -549,13 +555,13 @@ multilinecommentp = do
          <|> (anyLine >> go)
     anyLine = anyChar `manyTill` newline
 
-emptyorcommentlinep :: TextParser m ()
+emptyorcommentlinep :: ErroringJournalParser ()
 emptyorcommentlinep = do
   many spacenonewline >> (commentp <|> (many spacenonewline >> newline >> return ""))
   return ()
 
 -- | Parse a possibly multi-line comment following a semicolon.
-followingcommentp :: TextParser m Text
+followingcommentp :: ErroringJournalParser Text
 followingcommentp =
   -- ptrace "followingcommentp"
   do samelinecomment <- many spacenonewline >> (try semicoloncommentp <|> (newline >> return ""))
@@ -616,16 +622,16 @@ followingcommentandtagsp mdefdate = do
 
   return (comment, tags, mdate, mdate2)
 
-commentp :: TextParser m Text
+commentp :: ErroringJournalParser Text
 commentp = commentStartingWithp commentchars
 
 commentchars :: [Char]
 commentchars = "#;*"
 
-semicoloncommentp :: TextParser m Text
+semicoloncommentp :: ErroringJournalParser Text
 semicoloncommentp = commentStartingWithp ";"
 
-commentStartingWithp :: [Char] -> TextParser m Text
+commentStartingWithp :: [Char] -> ErroringJournalParser Text
 commentStartingWithp cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
@@ -656,7 +662,7 @@ commentTags s =
     Left _  -> [] -- shouldn't happen
 
 -- | Parse all tags found in a string.
-tagsp :: TextParser m [Tag]
+tagsp :: Parser [Tag]
 tagsp = -- do
   -- pdbg 0 $ "tagsp"
   many (try (nontagp >> tagp))
@@ -665,7 +671,7 @@ tagsp = -- do
 --
 -- >>> rtp nontagp "\na b:, \nd:e, f"
 -- Right "\na "
-nontagp :: TextParser m String
+nontagp :: Parser String
 nontagp = -- do
   -- pdbg 0 "nontagp"
   -- anyChar `manyTill` (lookAhead (try (tagorbracketeddatetagsp Nothing >> return ()) <|> eof))
@@ -679,7 +685,7 @@ nontagp = -- do
 -- >>> rtp tagp "a:b b , c AuxDate: 4/2"
 -- Right ("a","b b")
 --
-tagp :: TextParser m Tag
+tagp :: Parser Tag
 tagp = do
   -- pdbg 0 "tagp"
   n <- tagnamep
@@ -689,7 +695,7 @@ tagp = do
 -- |
 -- >>> rtp tagnamep "a:"
 -- Right "a"
-tagnamep :: TextParser m Text
+tagnamep :: Parser Text
 tagnamep = -- do
   -- pdbg 0 "tagnamep"
   T.pack <$> some (noneOf (": \t\n" :: [Char])) <* char ':'
@@ -742,15 +748,16 @@ datetagp mdefdate = do
   v <- tagvaluep
   -- re-parse value as a date.
   j <- get
-  ep <- parseWithState
-    j{jparsedefaultyear=first3.toGregorian <$> mdefdate}
-    -- The value extends to a comma, newline, or end of file.
-    -- It seems like ignoring any extra stuff following a date
-    -- gives better errors here.
-    (do
-        setPosition startpos
-        datep) -- <* eof)
-    v
+  let ep :: Either (ParseError Char Dec) Day
+      ep = parseWithState'
+             j{jparsedefaultyear=first3.toGregorian <$> mdefdate}
+             -- The value extends to a comma, newline, or end of file.
+             -- It seems like ignoring any extra stuff following a date
+             -- gives better errors here.
+             (do
+                 setPosition startpos
+                 datep) -- <* eof)
+             v
   case ep
     of Left e  -> throwError $ show e
        Right d -> return ("date"<>n, d)
@@ -801,17 +808,18 @@ bracketeddatetagsp mdefdate = do
   -- looks sufficiently like a bracketed date, now we
   -- re-parse as dates and throw any errors
   j <- get
-  ep <- parseWithState
-    j{jparsedefaultyear=first3.toGregorian <$> mdefdate}
-    (do
-        setPosition startpos
-        md1 <- optional datep
-        maybe (return ()) (setYear.first3.toGregorian) md1
-        md2 <- optional $ char '=' >> datep
-        eof
-        return (md1,md2)
-    )
-    (T.pack s)
+  let ep :: Either (ParseError Char Dec) (Maybe Day, Maybe Day)
+      ep = parseWithState'
+             j{jparsedefaultyear=first3.toGregorian <$> mdefdate}
+             (do
+               setPosition startpos
+               md1 <- optional datep
+               maybe (return ()) (setYear.first3.toGregorian) md1
+               md2 <- optional $ char '=' >> datep
+               eof
+               return (md1,md2)
+             )
+             (T.pack s)
   case ep
     of Left e          -> throwError $ show e
        Right (md1,md2) -> return $ catMaybes

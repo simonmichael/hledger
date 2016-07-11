@@ -12,7 +12,7 @@ import Prelude ()
 import Prelude.Compat
 import Control.Exception as E
 import Control.Monad
-import Control.Monad.State.Strict (evalState,MonadState)
+import Control.Monad.State.Strict (evalState)
 import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper, toLower)
 import Data.List.Compat
@@ -30,6 +30,7 @@ import System.Console.Wizard
 import System.Console.Wizard.Haskeline
 import System.IO ( stderr, hPutStr, hPutStrLn )
 import Text.Megaparsec
+import Text.Megaparsec.Text
 import Text.Printf
 
 import Hledger
@@ -87,7 +88,7 @@ add opts j
         showHelp
         today <- getCurrentDay
         let es = defEntryState{esOpts=opts
-                              ,esArgs=map stripquotes $ listofstringopt "args" $ rawopts_ opts
+                              ,esArgs=map (T.unpack . stripquotes . T.pack) $ listofstringopt "args" $ rawopts_ opts
                               ,esToday=today
                               ,esDefDate=today
                               ,esJournal=j
@@ -185,7 +186,7 @@ dateAndCodeWizard EntryState{..} = do
       parseSmartDateAndCode refdate s = either (const Nothing) (\(d,c) -> return (fixSmartDate refdate d, c)) edc
           where
             edc = runParser (dateandcodep <* eof) "" $ T.pack $ lowercase s
-            dateandcodep :: TextParser m (SmartDate, Text)
+            dateandcodep :: Parser (SmartDate, Text)
             dateandcodep = do
                 d <- smartdate
                 c <- optional codep
@@ -281,7 +282,7 @@ amountAndCommentWizard EntryState{..} = do
                               flip evalState nodefcommodityj .
                               runParserT (amountandcommentp <* eof) "" . T.pack
       nodefcommodityj = esJournal{jparsedefaultcommodity=Nothing}
-      amountandcommentp :: MonadState Journal m => TextParser m (Amount, Text)
+      amountandcommentp :: JournalParser (Amount, Text)
       amountandcommentp = do
         a <- amountp
         many spacenonewline
