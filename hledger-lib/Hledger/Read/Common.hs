@@ -78,7 +78,7 @@ parseAndFinaliseJournal parser assrt f txt = do
     Right pj -> case journalFinalise t f txt assrt pj of
                         Right j -> return j
                         Left e  -> throwError e
-    Left e   -> throwError $ show e
+    Left e   -> throwError $ parseErrorPretty e
 
 parseAndFinaliseJournal' :: JournalParser ParsedJournal -> Bool -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal' parser assrt f txt = do
@@ -89,7 +89,7 @@ parseAndFinaliseJournal' parser assrt f txt = do
     Right pj -> case journalFinalise t f txt assrt pj of
                         Right j -> return j
                         Left e  -> throwError e
-    Left e   -> throwError $ show e
+    Left e   -> throwError $ parseErrorPretty e
 
 setYear :: Monad m => Year -> TextParser (StateT Journal m) ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
@@ -155,7 +155,7 @@ journalAddFile f j@Journal{jfiles=fs} = j{jfiles=fs++[f]}
 -- | Terminate parsing entirely, returning the given error message
 -- with the given parse position prepended.
 parserErrorAt :: SourcePos -> String -> ErroringJournalParser a
-parserErrorAt pos s = throwError $ show pos ++ ":\n" ++ s
+parserErrorAt pos s = throwError $ sourcePosPretty pos ++ ":\n" ++ s
 
 --- * parsers
 --- ** transaction bits
@@ -580,7 +580,7 @@ followingcommentp =
 --
 -- Year unspecified and no default provided -> unknown year error, at correct position:
 -- >>> rejp (followingcommentandtagsp Nothing) "  ;    xxx   date:3/4\n  ; second line"
--- Left "ParseError {errorPos = SourcePos {sourceName = \"\", sourceLine = Pos 1, sourceColumn = Pos 22} :| [], errorUnexpected = fromList [], errorExpected = fromList [], errorCustom = fromList [DecFail \"partial date 3/4 found, but the current year is unknown\"]}"
+-- Left ...1:22...partial date 3/4 found, but the current year is unknown...
 --
 -- Date tag value contains trailing text - forgot the comma, confused:
 -- the syntaxes ?  We'll accept the leading date anyway
@@ -608,7 +608,7 @@ followingcommentandtagsp mdefdate = do
   -- Reparse the comment for any tags.
   tags <- case runTextParser (setPosition startpos >> tagsp) $ T.pack commentandwhitespace of
             Right ts -> return ts
-            Left e   -> throwError $ show e
+            Left e   -> throwError $ parseErrorPretty e
   -- pdbg 0 $ "tags: "++show tags
 
   -- Reparse the comment for any posting dates. Use the transaction date for defaults, if provided.
@@ -736,7 +736,7 @@ postingdatesp mdefdate = do
 -- Right ("date2",2001-03-04)
 --
 -- >>> rejp (datetagp Nothing) "date:  3/4"
--- Left "ParseError {errorPos = SourcePos {sourceName = \"\", sourceLine = Pos 1, sourceColumn = Pos 9} :| [], errorUnexpected = fromList [], errorExpected = fromList [], errorCustom = fromList [DecFail \"partial date 3/4 found, but the current year is unknown\"]}"
+-- Left ...1:9...partial date 3/4 found, but the current year is unknown...
 --
 datetagp :: Maybe Day -> ErroringJournalParser (TagName,Day)
 datetagp mdefdate = do
@@ -759,7 +759,7 @@ datetagp mdefdate = do
                  datep) -- <* eof)
              v
   case ep
-    of Left e  -> throwError $ show e
+    of Left e  -> throwError $ parseErrorPretty e
        Right d -> return ("date"<>n, d)
 
 --- ** bracketed dates
@@ -786,13 +786,13 @@ datetagp mdefdate = do
 -- Left ...not a bracketed date...
 --
 -- >>> rejp (bracketeddatetagsp Nothing) "[2016/1/32]"
--- Left "ParseError {errorPos = SourcePos {sourceName = \"\", sourceLine = Pos 1, sourceColumn = Pos 11} :| [], errorUnexpected = fromList [], errorExpected = fromList [], errorCustom = fromList [DecFail \"bad date: 2016/1/32\"]}"
+-- Left ...1:11:...bad date: 2016/1/32...
 --
 -- >>> rejp (bracketeddatetagsp Nothing) "[1/31]"
--- Left "ParseError {errorPos = SourcePos {sourceName = \"\", sourceLine = Pos 1, sourceColumn = Pos 6} :| [], errorUnexpected = fromList [], errorExpected = fromList [], errorCustom = fromList [DecFail \"partial date 1/31 found, but the current year is unknown\"]}"
+-- Left ...1:6:...partial date 1/31 found, but the current year is unknown...
 --
 -- >>> rejp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
--- Left "ParseError {errorPos = SourcePos {sourceName = \"\", sourceLine = Pos 1, sourceColumn = Pos 15} :| [], errorUnexpected = fromList [], errorExpected = fromList [], errorCustom = fromList [DecFail \"bad date, different separators used: 0123456789/-.\"]}"
+-- Left ...1:15:...bad date, different separators...
 --
 bracketeddatetagsp :: Maybe Day -> ErroringJournalParser [(TagName, Day)]
 bracketeddatetagsp mdefdate = do
@@ -821,7 +821,7 @@ bracketeddatetagsp mdefdate = do
              )
              (T.pack s)
   case ep
-    of Left e          -> throwError $ show e
+    of Left e          -> throwError $ parseErrorPretty e
        Right (md1,md2) -> return $ catMaybes
          [("date",) <$> md1, ("date2",) <$> md2]
 
