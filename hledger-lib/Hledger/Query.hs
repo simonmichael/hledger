@@ -47,7 +47,6 @@ where
 import Data.Data
 import Data.Either
 import Data.List
-import Data.Functor.Identity (Identity)
 import Data.Maybe
 import Data.Monoid ((<>))
 -- import Data.Text (Text)

@@ -109,12 +109,12 @@ timeclockfilep = do many timeclockitemp
 -- | Parse a timeclock entry.
 timeclockentryp :: ErroringJournalParser TimeclockEntry
 timeclockentryp = do
-  sourcepos <- genericSourcePos <$> getPosition
+  sourcepos <- genericSourcePos <$> lift getPosition
   code <- oneOf ("bhioO" :: [Char])
-  some spacenonewline
+  lift (some spacenonewline)
   datetime <- datetimep
-  account <- fromMaybe "" <$> optional (some spacenonewline >> modifiedaccountnamep)
-  description <- T.pack . fromMaybe "" <$> optional (some spacenonewline >> restofline)
+  account <- fromMaybe "" <$> optional (lift (some spacenonewline) >> modifiedaccountnamep)
+  description <- T.pack . fromMaybe "" <$> lift (optional (some spacenonewline >> restofline))
   return $ TimeclockEntry sourcepos (read [code]) datetime account description
 
 tests_Hledger_Read_TimeclockReader = TestList [

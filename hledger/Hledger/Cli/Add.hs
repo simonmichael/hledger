@@ -12,7 +12,8 @@ import Prelude ()
 import Prelude.Compat
 import Control.Exception as E
 import Control.Monad
-import Control.Monad.State.Strict (evalState)
+import Control.Monad.Trans.Class
+import Control.Monad.State.Strict (evalState, evalStateT)
 import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper, toLower)
 import Data.List.Compat
@@ -278,14 +279,16 @@ amountAndCommentWizard EntryState{..} = do
    maybeRestartTransaction $
    line $ green $ printf "Amount  %d%s: " pnum (showDefault def)
     where
-      parseAmountAndComment = either (const Nothing) Just .
-                              flip evalState nodefcommodityj .
-                              runParserT (amountandcommentp <* eof) "" . T.pack
+      parseAmountAndComment s = either (const Nothing) Just $
+                                runParser
+                                  (evalStateT (amountandcommentp <* eof) nodefcommodityj)
+                                  ""
+                                  (T.pack s)
       nodefcommodityj = esJournal{jparsedefaultcommodity=Nothing}
       amountandcommentp :: JournalParser (Amount, Text)
       amountandcommentp = do
         a <- amountp
-        many spacenonewline
+        lift (many spacenonewline)
         c <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anyChar)
         -- eof
         return (a,c)

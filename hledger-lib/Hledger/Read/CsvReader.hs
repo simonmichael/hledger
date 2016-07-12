@@ -28,7 +28,7 @@ import Prelude.Compat hiding (getContents)
 import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Except
-import Control.Monad.State.Strict (StateT, State, get, modify',evalState)
+import Control.Monad.State.Strict (StateT, State, get, modify', evalStateT)
 -- import Test.HUnit
 import Data.Char (toLower, isDigit, isSpace)
 import Data.List.Compat
@@ -51,6 +51,7 @@ import System.IO (stderr)
 import Test.HUnit hiding (State)
 import Text.CSV (parseCSV, CSV)
 import Text.Megaparsec hiding (parse, State)
+import Text.Megaparsec.Text
 import qualified Text.Parsec as Parsec
 import Text.Printf (hPrintf,printf)
 
@@ -307,7 +308,7 @@ data CsvRules = CsvRules {
   rconditionalblocks :: [ConditionalBlock]
 } deriving (Show, Eq)
 
-type CsvRulesParser a = TextParser (State CsvRules) a
+type CsvRulesParser a = StateT CsvRules Parser a
 
 type DirectiveName    = String
 type CsvFieldName     = String
@@ -385,7 +386,7 @@ expandIncludes basedir content = do
 parseCsvRules :: FilePath -> T.Text -> Either (ParseError Char Dec) CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
 parseCsvRules rulesfile s =
-  flip evalState rules $ runParserT rulesp rulesfile s
+  runParser (evalStateT rulesp rules) rulesfile s
 
 -- | Return the validated rules, or an error.
 validateRules :: CsvRules -> ExceptT String IO CsvRules
@@ -405,7 +406,7 @@ validateRules rules = do
 
 rulesp :: CsvRulesParser CsvRules
 rulesp = do
-  many $ choice'
+  many $ choiceInState
     [blankorcommentlinep                                                <?> "blank or comment line"
     ,(directivep        >>= modify' . addDirective)                     <?> "directive"
     ,(fieldnamelistp    >>= modify' . setIndexesAndAssignmentsFromList) <?> "field name list"
@@ -420,23 +421,23 @@ rulesp = do
           }
 
 blankorcommentlinep :: CsvRulesParser ()
-blankorcommentlinep = pdbg 3 "trying blankorcommentlinep" >> choice' [blanklinep, commentlinep]
+blankorcommentlinep = lift (pdbg 3 "trying blankorcommentlinep") >> choiceInState [blanklinep, commentlinep]
 
 blanklinep :: CsvRulesParser ()
-blanklinep = many spacenonewline >> newline >> return () <?> "blank line"
+blanklinep = lift (many spacenonewline) >> newline >> return () <?> "blank line"
 
 commentlinep :: CsvRulesParser ()
-commentlinep = many spacenonewline >> commentcharp >> restofline >> return () <?> "comment line"
+commentlinep = lift (many spacenonewline) >> commentcharp >> lift restofline >> return () <?> "comment line"
 
 commentcharp :: CsvRulesParser Char
 commentcharp = oneOf (";#*" :: [Char])
 
 directivep :: CsvRulesParser (DirectiveName, String)
 directivep = (do
-  pdbg 3 "trying directive"
-  d <- choice' $ map string directives
-  v <- (((char ':' >> many spacenonewline) <|> some spacenonewline) >> directivevalp)
-       <|> (optional (char ':') >> many spacenonewline >> eolof >> return "")
+  lift $ pdbg 3 "trying directive"
+  d <- choiceInState $ map string directives
+  v <- (((char ':' >> lift (many spacenonewline)) <|> lift (some spacenonewline)) >> directivevalp)
+       <|> (optional (char ':') >> lift (many spacenonewline) >> lift eolof >> return "")
   return (d,v)
   ) <?> "directive"
 
@@ -451,18 +452,18 @@ directives =
   ]
 
 directivevalp :: CsvRulesParser String
-directivevalp = anyChar `manyTill` eolof
+directivevalp = anyChar `manyTill` lift eolof
 
 fieldnamelistp :: CsvRulesParser [CsvFieldName]
 fieldnamelistp = (do
-  pdbg 3 "trying fieldnamelist"
+  lift $ pdbg 3 "trying fieldnamelist"
   string "fields"
   optional $ char ':'
-  some spacenonewline
-  let separator = many spacenonewline >> char ',' >> many spacenonewline
+  lift (some spacenonewline)
+  let separator = lift (many spacenonewline) >> char ',' >> lift (many spacenonewline)
   f <- fromMaybe "" <$> optional fieldnamep
   fs <- some $ (separator >> fromMaybe "" <$> optional fieldnamep)
-  restofline
+  lift restofline
   return $ map (map toLower) $ f:fs
   ) <?> "field name list"
 
@@ -481,7 +482,7 @@ barefieldnamep = some $ noneOf (" \t\n,;#~" :: [Char])
 
 fieldassignmentp :: CsvRulesParser (JournalFieldName, FieldTemplate)
 fieldassignmentp = do
-  pdbg 3 "trying fieldassignmentp"
+  lift $ pdbg 3 "trying fieldassignmentp"
   f <- journalfieldnamep
   assignmentseparatorp
   v <- fieldvalp
@@ -489,7 +490,7 @@ fieldassignmentp = do
   <?> "field assignment"
 
 journalfieldnamep :: CsvRulesParser String
-journalfieldnamep = pdbg 2 "trying journalfieldnamep" >> choice' (map string journalfieldnames)
+journalfieldnamep = lift (pdbg 2 "trying journalfieldnamep") >> choiceInState (map string journalfieldnames)
 
 journalfieldnames =
   [-- pseudo fields:
@@ -510,26 +511,26 @@ journalfieldnames =
 
 assignmentseparatorp :: CsvRulesParser ()
 assignmentseparatorp = do
-  pdbg 3 "trying assignmentseparatorp"
+  lift $ pdbg 3 "trying assignmentseparatorp"
   choice [
-    -- try (many spacenonewline >> oneOf ":="),
-    try (void $ many spacenonewline >> char ':'),
+    -- try (lift (many spacenonewline) >> oneOf ":="),
+    try (void $ lift (many spacenonewline) >> char ':'),
     space
     ]
-  _ <- many spacenonewline
+  _ <- lift (many spacenonewline)
   return ()
 
 fieldvalp :: CsvRulesParser String
 fieldvalp = do
-  pdbg 2 "trying fieldvalp"
-  anyChar `manyTill` eolof
+  lift $ pdbg 2 "trying fieldvalp"
+  anyChar `manyTill` lift eolof
 
 conditionalblockp :: CsvRulesParser ConditionalBlock
 conditionalblockp = do
-  pdbg 3 "trying conditionalblockp"
-  string "if" >> many spacenonewline >> optional newline
+  lift $ pdbg 3 "trying conditionalblockp"
+  string "if" >> lift (many spacenonewline) >> optional newline
   ms <- some recordmatcherp
-  as <- many (some spacenonewline >> fieldassignmentp)
+  as <- many (lift (some spacenonewline) >> fieldassignmentp)
   when (null as) $
     fail "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)\n"
   return (ms, as)
@@ -537,9 +538,9 @@ conditionalblockp = do
 
 recordmatcherp :: CsvRulesParser [String]
 recordmatcherp = do
-  pdbg 2 "trying recordmatcherp"
+  lift $ pdbg 2 "trying recordmatcherp"
   -- pos <- currentPos
-  _  <- optional (matchoperatorp >> many spacenonewline >> optional newline)
+  _  <- optional (matchoperatorp >> lift (many spacenonewline) >> optional newline)
   ps <- patternsp
   when (null ps) $
     fail "start of record matcher found, but no patterns afterward\n(patterns should not be indented)\n"
@@ -547,7 +548,7 @@ recordmatcherp = do
   <?> "record matcher"
 
 matchoperatorp :: CsvRulesParser String
-matchoperatorp = choice' $ map string
+matchoperatorp = choiceInState $ map string
   ["~"
   -- ,"!~"
   -- ,"="
@@ -556,26 +557,26 @@ matchoperatorp = choice' $ map string
 
 patternsp :: CsvRulesParser [String]
 patternsp = do
-  pdbg 3 "trying patternsp"
+  lift $ pdbg 3 "trying patternsp"
   ps <- many regexp
   return ps
 
 regexp :: CsvRulesParser String
 regexp = do
-  pdbg 3 "trying regexp"
+  lift $ pdbg 3 "trying regexp"
   notFollowedBy matchoperatorp
-  c <- nonspace
-  cs <- anyChar `manyTill` eolof
+  c <- lift nonspace
+  cs <- anyChar `manyTill` lift eolof
   return $ strip $ c:cs
 
 -- fieldmatcher = do
 --   pdbg 2 "trying fieldmatcher"
 --   f <- fromMaybe "all" `fmap` (optional $ do
 --          f' <- fieldname
---          many spacenonewline
+--          lift (many spacenonewline)
 --          return f')
 --   char '~'
---   many spacenonewline
+--   lift (many spacenonewline)
 --   ps <- patterns
 --   let r = "(" ++ intercalate "|" ps ++ ")"
 --   return (f,r)
@@ -633,7 +634,7 @@ transactionFromCsvRecord sourcepos rules record = t
     precomment  = maybe "" render $ mfieldtemplate "precomment"
     currency    = maybe (fromMaybe "" mdefaultcurrency) render $ mfieldtemplate "currency"
     amountstr   = (currency++) $ negateIfParenthesised $ getAmountStr rules record
-    amount      = either amounterror (Mixed . (:[])) $ flip evalState mempty $ runParserT (amountp <* eof) "" $ T.pack amountstr
+    amount      = either amounterror (Mixed . (:[])) $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack amountstr
     amounterror err = error' $ unlines
       ["error: could not parse \""++amountstr++"\" as an amount"
       ,showRecord record

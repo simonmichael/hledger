@@ -10,7 +10,7 @@ import Import
 #if !MIN_VERSION_base(4,8,0)
 import Control.Applicative
 #endif
-import Control.Monad.State.Strict (evalState)
+import Control.Monad.State.Strict (evalStateT)
 import Data.Either (lefts,rights)
 import Data.List (sort)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
@@ -97,7 +97,7 @@ postAddForm = do
                       map fst amtparams `elem` [[1..num], [1..num-1]] = []
                     | otherwise = ["the posting parameters are malformed"]
           eaccts = map (runParser (accountnamep <* eof) "" . textstrip  . snd) acctparams
-          eamts  = map (flip evalState mempty . runParserT (amountp <* eof) "" . textstrip . snd) amtparams
+          eamts  = map (runParser (evalStateT (amountp <* eof) mempty) "" . textstrip . snd) amtparams
           (accts, acctErrs) = (rights eaccts, map show $ lefts eaccts)
           (amts', amtErrs)  = (rights eamts, map show $ lefts eamts)
           amts | length amts' == num = amts'
