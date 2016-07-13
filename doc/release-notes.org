@@ -1,0 +1,223 @@
+# -*- mode:org -*-
+
+* 2016/mm/dd 0.28
+** general
+*** docs
+   * All of the hledger executables' manuals now include the full list of general and reporting
+     options; the assumption is that these options are harmlessly ignored when not supported.
+   * docs have been reorganised and are now also provided as built-in help, in plain text, man and
+     info formats, generated from the same source by a new Shake-based docs build system. (#292)
+   * misc documentation updates - layout/style cleanups, LEDGER_FILE, accounts, include directive,
+     CSV, timeclock, how to use dotted account names
+   * minor copyedits (jungle-boogie)
+   * The website is simpler, clearer, and more mobile-friendly.  Docs are now collected on a single
+     page and separated by type: getting started, reference, more.  Also separate web manuals are
+     available for each executable and file format. This should make it easier to see what's
+     available, and to read just what you need.
+   * add beancount's nice example journal, hledgerised This is the synthetic, somewhat realistic
+     example journal from Martin Blais' beancount project (of a few months ago), slightly tweaked
+     for hledger. It makes a nice example, eg for trying out hledger-ui.
+
+*** cli
+   * The hledger executables have a new help system, making their manuals available for local
+     reading.
+     #+BEGIN_EXAMPLE
+     PROG -h              shows PROG's command-line usage
+     PROG --help          shows PROG's manual (fixed width)
+     PROG --man           shows PROG's manual with man (formatted/paged)
+     PROG --info          shows PROG's manual with info (hypertext)
+     hledger help [TOPIC] shows any manual
+     hledger man  [TOPIC] shows any manual with man
+     hledger info [TOPIC] shows any manual with info
+     #+END_EXAMPLE
+
+   * When multiple files are specified with multiple -f options, we now parse each one individually,
+     rather than just concatenating them, so they can have different formats (#320).  Note this also
+     means that directives (like `Y` or `alias`) no longer carry over from one file to the next.
+
+   * Parsing an argument-less --debug option is more robust.
+
+** hledger-lib 0.28
+*** journal format
+   * try to parse standard input as journal format always, not just most of the time
+   * can now include timeclock/timedot files (#320)
+     journal files can now include journal, timeclock or timedot files
+     (but not yet CSV files). Also timeclock/timedot files no longer
+     support default year directives.
+   * support commodity directive and format subdirective, allowing full control of commodity style (#295)
+     The commodity directive's format subdirective can now be used to
+     override the inferred style for a commodity, eg to increase or
+     decrease the precision. This is at least a good workaround for #295.
+   * lib: after reloading a journal, also refilter it (#314)
+   * lib: fix bracketed posting dates, parser cleanup (#304)
+     Bracketed posting dates were fragile; they worked only if you
+     wrote full 10-character dates. Also some semantics were a bit
+     unclear. Now they should be robust, and have been documented more
+     clearly. This is a legacy undocumented Ledger syntax, but it
+     improves compatibility and might be preferable to the more
+     verbose "date:" tags if you write posting dates often (as I do).
+     Internally, bracketed posting dates are no longer considered to
+     be tags.  Journal comment, tag, and posting date parsers have
+     been reworked, all with doctests.
+   * parse "account" directives
+     We now parse account directives, like Ledger's. We don't do
+     anything with them yet. The default parent account feature must
+     now be spelled "apply account"/"end apply account".
+   * support ledger3-compatible "apply account"
+   * lib: show txn's file position in assertion errors
+   * lib: more ergonomic balance assertion errors
+   * fixed an issue with ordering of included same-date transactions
+
+*** timeclock format
+   * renamed timelog format to "timeclock", matching the emacs package
+   * sessions can no longer span file boundaries (unclocked-out
+     sessions will be auto-closed at the end of the file).
+
+*** timedot format
+   * new "timedot" format for retroactive/approximate time logging
+     Timedot is a plain text format for logging dated, categorised
+     quantities (eg time), supported by hledger.  It is convenient for
+     approximate and retroactive time logging, eg when the real-time
+     clock-in/out required with a timeclock file is too precise or too
+     interruptive.  It can be formatted like a bar chart, making clear at a
+     glance where time was spent.
+
+*** misc
+   * lib: clarify balance assertion error again
+     "calculated" is better, "actual" implies the account's actual real-world
+     balance which might be something else again.
+   * Use hpack in hledger-ui (#356)
+   * always try parsing stdin as journal
+   * reduced memory usage by 30%+ on large files
+   * bump default stackage snapshot to lts-6.0
+   * git clone of the hledger repo on windows now works (#345)
+   * added missing benchmark file (#342)
+   * Add --pivot option with tests and docs (#323) (Malte Brandy)
+   * GHC 8.0.1 compatibility (except hledger-api)
+     Note we seem to have lost GHC 7.4 compatibility.
+   * more tests, start using doctests
+   * require stackage nightly, for newer pandoc/swagger
+     Move to a newer stackage snapshot. This helps ensure a new-enough pandoc
+     will more be available for doc building without needing extra
+     compilation. Also we get to use the latest swagger and servant-swagger
+     for hledger-api, but we have to go to stackage nightly. With luck there
+     will be a lts 6 before next hledger release.
+   * lib: slightly better file format detection
+     The Journal, Timelog and Timedot readers' detectors now check
+     each line in the sample data, not just the first one. I think
+     the sample data is only about 30 chars right now, but even so
+     this fixed a format detection issue I was seeing.
+   * make stack config more compatible across stack versions (#300)
+   * journalReloadIfChanged now reloads the full journal without filtering, like journalReload
+   * Reloading a journal should now reload all included files as well.
+   * lib: make Journal a monoid
+   * lib: The Hledger.Read.* modules have been reorganised for better reuse.
+     Hledger.Read.Utils has been renamed Hledger.Read.Common and holds
+     low-level parsers & utilities; high-level read utilities have moved to
+     Hledger.Read.
+   * use new file-embed to fix ghci cwd dependence, see
+     https://github.com/snoyberg/file-embed/issues/18
+   * lib: refactor amount canonicalisation
+     Amount display style canonicalisation code and terminology has
+     been clarified a bit. Individual amounts still have styles; from
+     these we derive the standard "commodity styles". In user docs, we
+     might call these "commodity formats" since a Ledger-compatible
+     commodity directive would use the "format" keyword.
+   * Most hledger types have been converted from String to (strict)
+     Text.  This reduces maximum residency (~30-50%) on large data
+     files and gives a slight speed increase.
+   * lib: simplify parsers; cleanups (#275)
+     The journal/timeclock/timedot parsers, instead of constructing
+     (opaque) journal update functions which are later applied to
+     build the journal, now construct the journal directly (by
+     modifying the parser state). This is easier to understand and
+     debug. It also removes any possibility of the journal updates
+     being a space leak. (They weren't, in fact memory usage is now
+     slightly higher, but that will be addressed in other ways.)
+     Also:
+   * Journal data and journal parse info have been merged into one
+     type (for now), and field names are more consistent.
+   * The ParsedJournal type alias has been added to distinguish
+     being-parsed and finalised journals.
+   * Journal is now a monoid.
+   * expandPath now throws a proper IO error (and requires the IO monad).
+
+** hledger 0.28
+*** balance
+   * output CSV item amounts on one line #336
+
+*** register
+   * fix sorting regression with --date2 (#326)
+
+*** stats
+   * fixed an issue with ordering of include files ?
+
+** hledger-ui 0.28
+  * add vi-style movement keys, use ? for help (#357)
+  * basic manual integration
+  * E key runs editor, jumping to current txn or error location (emacs/vi)
+      The E key (on all screens) edits the journal file using
+      $HLEDGER_UI_EDITOR or $EDITOR or a default (emacsclient -a "" -nw).
+  * flat mode affects register too; doc updates
+  * at depth 0 call account "All" (and fix register)
+  * 0 now limits depth to 0 instead of resetting it
+  * briefer on-screen help, and a more detailed help dialog
+  * a key runs the addcommand
+  * ESC key cancels minibuffer/help or clears filter and jumps to top
+  * / key sets the filter query; backspace/delete clears it
+      I was planning to use this for search, but I can't help it, my hands
+      want to use / to adjust the filter.
+  * U key shows only uncleared transactions/postings
+  * accounts, register: Z key toggles zero items (--empty), and they are shown by default
+      -E/--empty is now the default for hledger-ui, so accounts with 0 balance
+      and transactions posting 0 change are shown by default.  The Z key
+      toggles this, entering "nonzero" mode which hides zero items.
+  * accounts, register: R key toggles --real
+  * register transactions are filtered by realness and status (#354)
+
+      Two fixes for the account transactions report when --real/--cleared/real:/status: 
+      are in effect, affecting hledger-ui and hledger-web:
+    
+     1. exclude transactions which affect the current account via an excluded posting type.
+         Eg when --real is in effect, a transaction posting to the current account with only
+         virtual postings will not appear in the report.
+    
+     2. when showing historical balances, don't count excluded posting types in the
+         starting balance. Eg with --real, the starting balance will be the sum of only the
+         non-virtual prior postings.
+    
+     This is complicated and there might be some ways to confuse it still, causing
+     wrongly included/excluded transactions or wrong historical balances/running totals
+     (transactions with both real and virtual postings to the current account, perhaps ?)
+  * ui, web: when reloading a journal, keep aliases and pivot in effect
+  * preserve --ignore-assertions & flags on reload
+  * switch to the quicker-building microlens
+
+** hledger-web 0.28
+  * update wai-handler-launch for better startup (fixes #226)
+  * show a proper not found page on 404
+  * focus the first field after clicking add a transaction (fixes #338)
+  * fix the add a transaction link's tooltip
+  * preserve initial command-line query when journal file is changed (#314)
+    The initial query specified by command line arguments is now preserved
+    when the journal is reloaded. This does not appear in the web UI, it's
+    like an invisible extra filter.
+  * leave date field blank, avoid problems with tab clearing it (#322)
+  * exit if something is already using the specified port (#226)
+  * don't open a browser page until the app is ready (#226)
+  * Terminate the server thread more carefully on exit, eg on control-C
+    in GHCI. May prevent stray background threads on windows.
+  * show the sidebar by default (#310)
+  * after following a link to a transaction, highlight it (Thomas R. Koll)
+  * use numeric id instead of date for linking to transactions #308 (Thomas R. Koll)
+  * misc. HTML/CSS/file cleanups/fixes (Thomas R. Koll)
+
+** hledger-api 0.28
+  * add a web API server with examples (#316)
+  * start an AngularJS API client app (#316) (Thomas R. Koll)
+
+* notes
+release commits by time
+git ll 0.27..
+release commits by component:
+git ll 0.27.. | sort -k3 -f, sort --reverse each part
