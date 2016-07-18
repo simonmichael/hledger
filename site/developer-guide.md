@@ -32,7 +32,7 @@ tr {
 | hledger-web demo&nbsp;&nbsp;        | [demo.hledger.org](http://demo.hledger.org) |
 | hledger-api demo        | [demo.hledger.org/api](http://demo.hledger.org/api/swagger.json), [in swagger editor](http://editor.swagger.io/#/?import=demo.hledger.org/api/swagger.json&no-proxy)
 | Trello                  | [backlog/wishlist planning board](http://hledger.org/trello) |
-| Github                  | [simonmichael/hledger](http://github.com/simonmichael/hledger) (code.hledger.org) <br> [commits](http://github.com/simonmichael/hledger/commits), <!-- [unreleased commits](https://github.com/simonmichael/hledger/compare/0.23...master), [release branch commits](https://github.com/simonmichael/hledger/compare/master...0.23), --> [COMMITS!](http://starlogs.net/#simonmichael/hledger), [travis build status](https://travis-ci.org/simonmichael/hledger) [![](https://img.shields.io/travis/simonmichael/hledger.svg?label=travis+build+status){width=164 height=20}](https://travis-ci.org/simonmichael/hledger) <br> [open bugs](https://github.com/simonmichael/hledger/issues?direction=desc&labels=BUG&page=1&sort=created&state=open), [open wishes (scheduled)](https://github.com/simonmichael/hledger/issues?utf8=%E2%9C%93&q=is%3Aopen+milestone%3A1.0+-label%3ABUG+sort%3Acreated-desc), [open  wishes (unscheduled)](https://github.com/simonmichael/hledger/issues?utf8=%E2%9C%93&q=is%3Aopen+sort%3Acreated-desc++no%3Amilestone+), <a href="https://github.com/simonmichael/hledger/issues?q=label:bounty">issues with bounties</a>, [all issues](https://github.com/simonmichael/hledger/issues?direction=desc&labels=&page=1&sort=created) <br> [most-starred haskell projects](https://github.com/search?utf8=✓&q=stars%3A%3E200+language%3AHaskell&type=Repositories&ref=searchresults) (hledger is #99 (of 47k haskell projects) as of 2016/04/05) |
+| Github                  | [simonmichael/hledger](http://github.com/simonmichael/hledger) (code.hledger.org) <br> [commits](http://github.com/simonmichael/hledger/commits), <!-- [unreleased commits](https://github.com/simonmichael/hledger/compare/0.23...master), [release branch commits](https://github.com/simonmichael/hledger/compare/master...0.23), --> [COMMITS!](http://starlogs.net/#simonmichael/hledger), [travis build status](https://travis-ci.org/simonmichael/hledger) [![](https://img.shields.io/travis/simonmichael/hledger.svg?label=travis+build+status){width=164 height=20}](https://travis-ci.org/simonmichael/hledger) <br> [open bugs](http://bugs.hledger.org), [open wishes](http://wishes.hledger.org), [open pull requests](http://prs.hledger.org), [all issues](https://github.com/simonmichael/hledger/issues?q=) <br> [most-starred haskell projects](https://github.com/search?utf8=✓&q=stars%3A%3E200+language%3AHaskell&type=Repositories&ref=searchresults) (hledger is #99 (of 47k haskell projects) as of 2016/04/05) |
 | Hackage                 | packages: [hledger-lib](http://hackage.haskell.org/package/hledger-lib), [hledger](http://hackage.haskell.org/package/hledger), [hledger-ui](http://hackage.haskell.org/package/hledger-ui), [hledger-web](http://hackage.haskell.org/package/hledger-web), [hledger-diff](http://hackage.haskell.org/package/hledger-diff), [hledger-interest](http://hackage.haskell.org/package/hledger-interest), [hledger-irr](http://hackage.haskell.org/package/hledger-irr), [\*hledger\*](http://hackage.haskell.org/packages/search?terms=hledger) <!-- [![](https://img.shields.io/hackage/v/hledger.svg?label=current+release)](http://hackage.haskell.org/package/hledger) --> <br> GHC compatibility: [hledger-lib](http://matrix.hackage.haskell.org/package/hledger-lib), [hledger](http://matrix.hackage.haskell.org/package/hledger), [hledger-ui](http://matrix.hackage.haskell.org/package/hledger-ui), [hledger-web](http://matrix.hackage.haskell.org/package/hledger-web) <br> reverse deps: [hledger-lib](http://packdeps.haskellers.com/reverse/hledger-lib), [hledger](http://packdeps.haskellers.com/reverse/hledger), [hledger-ui](http://packdeps.haskellers.com/reverse/hledger-ui), [hledger-web](http://packdeps.haskellers.com/reverse/hledger-web) <br>  newer deps: [hledger-lib](http://packdeps.haskellers.com/feed/?needle=hledger-lib), [hledger](http://packdeps.haskellers.com/feed/?needle=hledger), [hledger-ui](http://packdeps.haskellers.com/feed/?needle=hledger-ui), [hledger-web](http://packdeps.haskellers.com/feed/?needle=hledger-web) [![](https://img.shields.io/hackage-deps/v/hledger-lib.svg?label=upper+bounds){width=158 height=20}](http://packdeps.haskellers.com/feed?needle=hledger-lib) [![](https://img.shields.io/hackage-deps/v/hledger.svg?label=upper+bounds){width=158 height=20}](http://packdeps.haskellers.com/feed?needle=hledger) [![](https://img.shields.io/hackage-deps/v/hledger-ui.svg?label=upper+bounds){width=158 height=20}](http://packdeps.haskellers.com/feed?needle=hledger-ui) [![](https://img.shields.io/hackage-deps/v/hledger-web.svg?label=upper+bounds){width=158 height=20}](http://packdeps.haskellers.com/feed?needle=hledger-web) |
 | Stackage                | [hledger entry](https://github.com/fpco/stackage/blob/master/build-constraints.yaml#L626-629), [issues](https://github.com/fpco/stackage/search?q=hledger&ref=cmdform&type=Issues) <br> [jenkins build status](http://jenkins.stackage.org/job/Stackage/), last build output: [7.4](http://jenkins.stackage.org/job/Stackage/ghcversion=7.4.2/lastBuild/console), [7.6](http://jenkins.stackage.org/job/Stackage/ghcversion=7.6.3/lastBuild/console), [7.8](http://jenkins.stackage.org/job/Stackage/ghcversion=7.8.2/lastBuild/console), [7.10](http://jenkins.stackage.org/job/Stackage/ghcversion=7.10.1/lastBuild/console) |
 | Debian                  | source packages: [haskell-hledger-lib](http://tracker.debian.org/pkg/haskell-hledger-lib), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-lib), [haskell-hledger](http://tracker.debian.org/pkg/haskell-hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger), [haskell-hledger-ui](http://tracker.debian.org/pkg/haskell-hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-ui), [haskell-hledger-web](http://tracker.debian.org/pkg/haskell-hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-web) <br> binary packages: <br>&nbsp;stable [hledger](https://packages.debian.org/stable/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=stable), <!-- [hledger-ui](https://packages.debian.org/stable/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=stable), --> [hledger-web](https://packages.debian.org/stable/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=stable) <br>&nbsp;testing [hledger](https://packages.debian.org/testing/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=testing), <!-- [hledger-ui](https://packages.debian.org/testing/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=testing), --> [hledger-web](https://packages.debian.org/testing/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=testing) <br>&nbsp;unstable [hledger](https://packages.debian.org/unstable/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=unstable), [hledger-ui](https://packages.debian.org/unstable/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=unstable), [hledger-web](https://packages.debian.org/unstable/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=unstable) <br>&nbsp;experimental [hledger](https://packages.debian.org/experimental/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=experimental), [hledger-ui](https://packages.debian.org/experimental/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=experimental), [hledger-web](https://packages.debian.org/experimental/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=experimental) <br>&nbsp;all [\*hledger\*](https://packages.debian.org/search?searchon=names&keywords=hledger) <br> popularity stats: [hledger](https://qa.debian.org/popcon.php?package=haskell-hledger), [hledger-ui](https://qa.debian.org/popcon.php?package=haskell-hledger-ui), [hledger-web](https://qa.debian.org/popcon.php?package=haskell-hledger-web) <br> [PTS help](https://www.debian.org/doc/manuals/developers-reference/resources.html#pkg-tracking-system) |
@@ -86,6 +86,65 @@ libghc-hledger-lib-prof
 
 ## How to..
 
+### Get help
+
+For quick help or support, ask on the [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel.
+If you don't get an answer quickly (depends on time of day), you can leave the window open and check back later, type "sm:" to alert me, and/or leave your email address.
+
+For slightly less quick help, but more eyeballs, ask on the [mail list](http://list.hledger.org) (list.hledger.org).
+  
+Also, always search the issue tracker<!--](#search-the-issue-tracker)-->.
+You may find an explanation or workaround, or when the fix will be released.
+
+<!-- - test and share problem journal snippets at paste . hledger.org -->
+
+### Search the issue tracker
+
+The hledger project's issue tracker is on github. It contains:
+
+- BUG issues - failures in some part of the hledger project (the main hledger packages, docs, website..)
+- WISH issues - feature proposals, enhancement requests
+- uncategorised issues - we don't know what these are yet
+- pull requests - proposed changes to code and docs
+
+Use these shortcut urls for quick access:
+
+- <http://bugs.hledger.org>     - show open BUG issues
+- <http://wishes.hledger.org>   - show open WISH issues
+- <http://issues.hledger.org>   - show all issues, open or closed
+- <http://prs.hledger.org>      - show open pull requests
+- <http://bugs.hledger.org/N>   - show issue number N
+- <http://bugs.hledger.org/new> - create a new issue
+
+Labels are used to categorise:
+
+- the issue's type: "A BUG" or "A WISH", in shades of red (The A makes it appear as first label)
+- relevant subsystems/topics, in light blue
+- relevant platforms, in light purple
+- resolution if not fixed: "closed:cant-reproduce/duplicate/invalid/wont-fix", in dark grey
+- "bounty", in bright yellow: issues with bountysource funding
+- "easy?", in dim yellow: issues which are probably relatively easy to fix
+- "imported" etc., in white: miscellaneous information
+
+Clicking blue topic labels is a good way to review issues in a topic you're interested in.
+
+Milestones are used to organise releases. Click a milestone to see issues fixed in/planned for that release.
+
+### Report bugs
+
+If you found a similar bug report already in the tracker, add any new information there.
+Otherwise, open a new bug by clicking "New issue", or <http://bugs.hledger.org/new>.
+
+### Suggest enhancements
+
+Some enhancement requests land in the bug tracker; these will get the WISH tag to avoid obscuring bugs. 
+But for general brainstorming and idea capture, consider using
+
+- The [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel on freenode
+  and the [mail list](http://list.hledger.org) (list.hledger.org) are excellent places for discussing and refining ideas.
+  Both are archived and linkable, so the idea won't be lost. The IRC channel is quick, the mail list has more readers.
+- The [trello board](http://trello.hledger.org) (trello.hledger.org) is a categorised collection of wishlist items.
+
 ### Do user testing
 
 - review and critique our documentation and web presence
@@ -93,42 +152,6 @@ libghc-hledger-lib-prof
 - check that the hledger binaries run your platform, and `hledger test` reports no failures
 - test the hledger tools' functionality, usability, browser compatibility, ui layout etc.
 - discuss/report problems via irc/mail list/bug tracker
-
-### Get help
-
-- for quick help or if you're not sure about the problem,
-  you can ask on the [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel
-  or the [mail list](http://list.hledger.org) (list.hledger.org).
-  If #hledger does not respond quickly, you can leave the window open and check back later, or leave your email address.
-- check the open and closed issues in the [bug tracker](http://bugs.hledger.org) (bugs.hledger.org). Sometimes the problem has been fixed in git but not yet released.
-
-<!-- - test and share problem journal snippets at paste . hledger.org -->
-
-### Suggest enhancements
-
-Suggestions and feature requests are welcome, but we don't want them to pile up in the issue tracker obscuring higher-priority tasks.
-So consider these alternatives:
-
-1. The [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel on freenode
-   and the [mail list](http://list.hledger.org) (list.hledger.org) are excellent places for discussing and refining ideas.
-   Both are archived and linkable, so the idea won't be lost. IRC is quick (if I'm not online, leave a comment anyway),
-   while the mail list has the most readers.
-2. The [trello board](http://trello.hledger.org) (trello.hledger.org) is a good place
-   for storing and prioritising backlog and wishlist items of all kinds.
-3. The [bug tracker](http:///bugs.hledger.org) (bugs.hledger.org) on github
-   is mostly used for reporting problems with the existing product or docs.
-   If you're not sure if it's a problem or not, it's fine to report it.
-   When enhancement requests land in the bug tracker, they get the WISH label, and are excluded from the default view at [bugs.hledger.org](http://bugs.hledger.org).
-
-
-### Report bugs
-
-- get to know the bug tracker (on github) and its contents.
-  Some convenient url shortcuts:\
-  [`bugs.hledger.org`](http://bugs.hledger.org)   - show non-wishlist issues \
-  `bugs.hledger.org/N`   - jump to issue #N
-- research and update existing issues
-- report a bug: [`bugs.hledger.org/new`](http://bugs.hledger.org/new)
 
 ### Install stack and git
 
