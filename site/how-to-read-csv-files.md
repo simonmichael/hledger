@@ -1,6 +1,6 @@
 # How to read CSV files
 
-Here's a quick example of [converting a CSV file](manual.html#csv).
+Here's a quick example of [converting a CSV file](manual.html#csv-format).
 
 Say we have downloaded `checking.csv` from a bank for the first time:
 ```csv
@@ -9,7 +9,7 @@ Say we have downloaded `checking.csv` from a bank for the first time:
 "2012/3/23","TRANSFER TO SAVINGS","-10.00"
 ```
 
-We tell hledger how to intepret this with a file named `checking.csv.rules`, using the [CSV rules syntax](manual.html#csv). Eg:
+We tell hledger how to intepret this with a file named `checking.csv.rules`, using the [CSV rules syntax](manual.html#csv-format). Eg:
 ```rules
 # skip the first CSV line (headings)
 skip 1
