@@ -130,6 +130,20 @@ Clicking blue topic labels is a good way to review issues in a topic you're inte
 
 Milestones are used to organise releases. Click a milestone to see issues fixed in/planned for that release.
 
+Time annotations: some issue names might have a suffix noting estimated and spent time.
+Basic format: [ESTIMATEDTOTALTASKTIME|TIMESPENTSOFAR]. Examples:
+```
+[2]       two hours estimated, no time spent
+[..]      half an hour estimated (a dot is ~a quarter hour, as in timedot format)
+[1d]      one day estimated (a day is ~4 hours)
+[1w]      one week estimated (a week is ~5 days or ~20 hours)
+[3|2]     three hours estimated, about two hours spent so far  
+[1|1w|2d] first estimate one hour, second estimate one week, about two days spent so far 
+```
+Estimates are always for the total time cost (not time remaining).
+Estimates are not usually changed, a new estimate is added instead.
+Numbers are very approximate, but better than nothing.
+
 ### Report bugs
 
 If you found a similar bug report already in the tracker, add any new information there.
