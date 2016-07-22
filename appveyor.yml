@@ -14,5 +14,4 @@ environment:
     STACK_ROOT: "c:\\sr"
 
 test_script:
-- stack setup > nul
 - echo "" | stack --no-terminal build --test hledger hledger-web hledger-api # hledger-ui not supported
