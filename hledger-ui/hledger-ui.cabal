@@ -79,6 +79,8 @@ executable hledger-ui
     , transformers
     , vector
     , vty >= 5.2 && < 5.8
+  if os(windows)
+    buildable: False
   if flag(threaded)
     ghc-options: -threaded
   if flag(old-locale)

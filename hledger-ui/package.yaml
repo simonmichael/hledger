@@ -48,6 +48,17 @@ flags:
     manual: false
     default: false
 
+# curses is required to build terminfo for vty for hledger-ui.
+# On POSIX systems it might be not present.
+# On windows it's very likely not present, but possibly it could be.
+# Ideally we'd like to
+# on POSIX: give a clear error ("install your system libcurses-dev package") if not present
+# on windows: quietly skip building if not present, build if it is present
+#  curses
+#    default: True
+#    description:
+# For now, just don't build hledger-ui on windows
+
 cpp-options: -DVERSION="0.28"
 
 executables:
@@ -85,6 +96,8 @@ executables:
       - vector
       - vty >= 5.2 && < 5.8
     when:
+      - condition: os(windows)
+        buildable: false
       - condition: flag(threaded)
         ghc-options: -threaded
       - condition: flag(old-locale)
