@@ -82,7 +82,7 @@ date-format %-m/%-d/%Y %l:%M %p
 
 `fields `*`FIELDNAME1`*, *`FIELDNAME2`*...
 
-This (a) names the CSV fields, in order (names may not contain whitespace, but may be omitted),
+This (a) names the CSV fields, in order (names may not contain whitespace; uninteresting names may be left blank),
 and (b) assigns them to journal entry fields if you use any of these standard field names:
 `date`, `date2`, `status`, `code`, `description`, `comment`, `account1`, `account2`, `amount`, `amount-in`, `amount-out`, `currency`.
 Eg:
@@ -127,7 +127,7 @@ Field assignments can be used instead of or in addition to a field list.
 This applies one or more field assignments, only to those CSV records matched by one of the PATTERNs.
 The patterns are case-insensitive regular expressions which match anywhere
 within the whole CSV record (it's not yet possible to match within a
-specific field).  When there are multiple patterns they should be written
+specific field).  When there are multiple patterns they can be written
 on separate lines, unindented.
 The field assignments are on separate lines indented by at least one space.
 Examples:
