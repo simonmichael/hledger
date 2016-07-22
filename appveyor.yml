@@ -13,7 +13,6 @@ environment:
     STACK_ROOT: "c:\\sr"
 
 test_script:
-- stack init
 - stack setup > nul
 - echo "" | stack --no-terminal build
 - echo "" | stack --no-terminal test
