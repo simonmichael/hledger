@@ -1,0 +1,19 @@
+cache:
+- "c:\\sr -> appveyor.yml" #
+
+build: off
+
+before_test:
+- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
+- 7z x stack.zip stack.exe
+
+clone_folder: "c:\\project"
+environment:
+  global:
+    STACK_ROOT: "c:\\sr"
+
+test_script:
+- stack init
+- stack setup > nul
+- echo "" | stack --no-terminal build
+- echo "" | stack --no-terminal test
