@@ -172,6 +172,12 @@ or [balance assertions](manual.html#assertions-and-ordering).
 - hledger uses --ignore-assertions/-I to disable balance assertions. 
   Ledger uses --permissive, and -I means something else (--prices).  
 
+- hledger's -p option doesn't combine nicely with -b/-e/-D/-W/-M/-Q/-Y.
+  Basically if there's a -p, all those others are ignored.
+  There's an open issue.
+  With hledger you can also specify start and/or end dates with a query argument,
+  date:START-END, which probably doesn't combine perfectly with the options.
+
 ### Future ?
 
 There is a [ledger4](https://github.com/ledger/ledger4) repo on
