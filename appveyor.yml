@@ -1,5 +1,6 @@
 cache:
 - "c:\\sr -> appveyor.yml" #
+- "%LOCALAPPDATA%\\Programs\\stack"
 
 build: off
 
