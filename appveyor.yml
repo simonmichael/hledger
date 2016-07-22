@@ -16,3 +16,29 @@ environment:
 
 test_script:
 - echo "" | stack --no-terminal --install-ghc test
+- stack --local-bin-path . install
+
+artifacts:
+- path: hledger.exe
+- path: hledger-web.exe
+- path: hledger-api.exe
+
+#deployment stuff for later
+#
+#- cmd: for /f %%i in ('.\\hledger --version') do set HLEDGER_VERSION=%%i
+#- cmd: for /f %%i in ('.\\hledger-web --version') do set HLEDGER_WEB_VERSION=%%i
+#- cmd: for /f %%i in ('.\\hledger-api --version') do set HLEDGER_API_VERSION=%%i
+#
+#skip_tags: true
+#
+#deploy:
+#  - provider: GitHub
+#    tag: 'hledger-$(HLEDGER_VERSION)'
+#    release: 'Release hledger-$(HLEDGER_VERSION)'
+#    auth_token:
+#      secure: #FZXhwa1ucQwyFtswv/XNUJkclAxoz4YGGu69dSOEEkwG7Rlh/Gho66SJtOUJ57kN
+#    artifact: hledger.exe
+#    on:
+#      branch: master
+
+# cf https://silky.github.io/posts/2016-01-05-build-windows-haskell-app-with-stack-and-appveyor.html
