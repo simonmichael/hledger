@@ -15,7 +15,7 @@ environment:
     STACK_ROOT: "c:\\sr"
 
 test_script:
-- echo "" | stack --no-terminal --install-ghc test hledger hledger-web hledger-api
+- echo "" | stack --no-terminal --install-ghc test
 - stack --local-bin-path . install hledger hledger-web hledger-api
 
 artifacts:
