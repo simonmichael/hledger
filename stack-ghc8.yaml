@@ -1,26 +1,18 @@
-# stack config for building with GHC 8, tested 2016/5/27
-# https://ghc.haskell.org/trac/ghc/wiki/Migration/8.0
+# stack config for building with GHC 8, tested 2016/7/22
 # $ stack --stack-yaml stack-ghc8.yaml install
 
-# cf https://github.com/commercialhaskell/stack/wiki/stack.yaml
-
-resolver: nightly-2016-06-17
+resolver: nightly-2016-07-19
 
 packages:
 - hledger-lib
 - hledger
 - hledger-ui
 - hledger-web
+- hledger-api
 
 flags:
 
 extra-deps:
-# hledger
-- control-monad-free-0.6.1
-- tabular-0.2.2.7
-- wizards-1.0.2
-# hledger --bench
-- timeit-1.0.0.0
 # hledger-ui
 - brick-0.6.4
 - text-zipper-0.4
@@ -28,9 +20,4 @@ extra-deps:
 - json-0.9.1
 - wai-handler-launch-3.0.2.1
 
-# ghc-options:
-#     # All packages
-#     "*": -Wall -auto-all
-# rebuild-ghc-options: true
-# apply-ghc-options: everything
-
+# cf https://github.com/commercialhaskell/stack/wiki/stack.yaml
