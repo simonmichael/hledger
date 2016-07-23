@@ -78,7 +78,6 @@ executables:
       - ansi-terminal >= 0.6.2.3 && < 0.7
       - base >= 3 && < 5
       - base-compat >= 0.8.1
-      - brick >= 0.2 && < 0.7
       - cmdargs >= 0.8
       - containers
       - data-default
@@ -94,10 +93,14 @@ executables:
       - text-zipper >= 0.4 && < 0.5
       - transformers
       - vector
-      - vty >= 5.2 && < 5.8
     when:
       - condition: os(windows)
-        buildable: false
+        then:
+          buildable: false
+        else:
+          dependencies:
+            - brick >= 0.2 && < 0.7
+            - vty >= 5.2 && < 5.8
       - condition: flag(threaded)
         ghc-options: -threaded
       - condition: flag(old-locale)
