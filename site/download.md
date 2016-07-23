@@ -27,7 +27,7 @@ a { white-space:nowrap; }
 <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.exe)) -->
 and/or
 [hledger-web-0.26-win64.exe](http://hledger.org/downloads/hledger-web-0.26-win64.exe)
-<em>(The current release is 0.27. To contribute binaries for windows or mac, please <a href="mailto:simon@joyful.com">get in touch</a>.)</em>
+<em>(not the latest release. You can get the latest development builds from Appveyor CI [here](developer-guide.html). Note hledger-ui is not supported on Windows.)</em>
 </td></tr>
 
 <tr><td>
@@ -90,6 +90,7 @@ This is a quick way to help the project and your fellow users!
 2. `stack setup`
     (if you need GHC installed. If you're not sure, run the next command and it will tell you.)
 3. `stack install hledger [hledger-ui] [hledger-web]`
+   (hledger-ui is not supported on Windows)
 4. Ensure `~/.local/bin` or the Windows equivalent is in your `$PATH`,
    so that you can just type `hledger` to run it.
    (stack will show the proper directory and will tell you if it is not in $PATH).
