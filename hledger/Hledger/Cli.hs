@@ -36,7 +36,7 @@ import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
-import System.Console.CmdArgs.Explicit
+import System.Console.CmdArgs.Explicit hiding (Name) -- don't clash with hledger-ui
 import Test.HUnit
 
 import Hledger

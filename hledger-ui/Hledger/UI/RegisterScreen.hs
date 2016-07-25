@@ -42,7 +42,7 @@ registerScreen = RegisterScreen{
    sInit   = rsInit
   ,sDraw   = rsDraw
   ,sHandle = rsHandle
-  ,rsList    = list "register" V.empty 1
+  ,rsList    = list RegisterList V.empty 1
   ,rsAccount = ""
   }
 
@@ -83,7 +83,7 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
                             }
 
     -- build the List
-    newitems = list (Name "register") (V.fromList displayitems) 1
+    newitems = list RegisterList (V.fromList displayitems) 1
 
     -- keep the selection on the previously selected transaction if possible,
     -- (eg after toggling nonzero mode), otherwise select the last element.
@@ -98,7 +98,7 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
 
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
-rsDraw :: UIState -> [Widget]
+rsDraw :: UIState -> [Widget Name]
 rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                             ,aScreen=RegisterScreen{..}
                             ,aMode=mode
@@ -180,7 +180,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
         acctswidth = maxdescacctswidth - descwidth
         colwidths = (datewidth,descwidth,acctswidth,changewidth,balwidth)
 
-      render $ defaultLayout toplabel bottomlabel $ renderList rsList (rsDrawItem colwidths)
+      render $ defaultLayout toplabel bottomlabel $ renderList (rsDrawItem colwidths) True rsList
 
       where
         bottomlabel = case mode of
@@ -200,7 +200,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 
 rsDraw _ = error "draw function called with wrong screen type, should not happen"
 
-rsDrawItem :: (Int,Int,Int,Int,Int) -> Bool -> RegisterScreenItem -> Widget
+rsDrawItem :: (Int,Int,Int,Int,Int) -> Bool -> RegisterScreenItem -> Widget Name
 rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected RegisterScreenItem{..} =
   Widget Greedy Fixed $ do
     render $
@@ -221,7 +221,7 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
     sel | selected  = (<> "selected")
         | otherwise = id
 
-rsHandle :: UIState -> Event -> EventM (Next UIState)
+rsHandle :: UIState -> Event -> EventM Name (Next UIState)
 rsHandle ui@UIState{
    aScreen=s@RegisterScreen{..}
   ,aopts=UIOpts{cliopts_=copts}
@@ -236,7 +236,7 @@ rsHandle ui@UIState{
         EvKey KEsc   [] -> continue $ closeMinibuffer ui
         EvKey KEnter [] -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
                             where s = chomp $ unlines $ getEditContents ed
-        ev              -> do ed' <- handleEvent ev ed
+        ev              -> do ed' <- handleEditorEvent ev ed
                               continue $ ui{aMode=Minibuffer ed'}
 
     Help ->
@@ -283,11 +283,11 @@ rsHandle ui@UIState{
                             EvKey (KChar 'k') [] -> EvKey (KUp) []
                             EvKey (KChar 'j') [] -> EvKey (KDown) []
                             _                    -> ev
-                newitems <- handleEvent ev' rsList
+                newitems <- handleListEvent ev' rsList
                 continue ui{aScreen=s{rsList=newitems}}
                 -- continue =<< handleEventLensed ui someLens ev
       where
         -- Encourage a more stable scroll position when toggling list items (cf AccountsScreen.hs)
-        scrollTop = vScrollToBeginning $ viewportScroll "register"
+        scrollTop = vScrollToBeginning $ viewportScroll RegisterViewport
 
 rsHandle _ _ = error "event handler called with wrong screen type, should not happen"

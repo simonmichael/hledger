@@ -45,7 +45,7 @@ tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
                                            ,aScreen=TransactionScreen{..}} = ui
 tsInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
-tsDraw :: UIState -> [Widget]
+tsDraw :: UIState -> [Widget Name]
 tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                               ,aScreen=TransactionScreen{
                                    tsTransaction=(i,t)
@@ -102,7 +102,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 
 tsDraw _ = error "draw function called with wrong screen type, should not happen"
 
-tsHandle :: UIState -> Event -> EventM (Next UIState)
+tsHandle :: UIState -> Event -> EventM Name (Next UIState)
 tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
                                                 ,tsTransactions=nts
                                                 ,tsAccount=acct}

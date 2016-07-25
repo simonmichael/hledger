@@ -11,5 +11,6 @@ packages:
 #flags:
 
 extra-deps:
+- brick-0.8
 
 # https://docs.haskellstack.org/en/stable/yaml_configuration/

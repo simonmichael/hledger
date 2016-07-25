@@ -38,13 +38,11 @@ Brick.defaultMain brickapp st
 
 module Hledger.UI.UITypes where
 
-import Data.Monoid
 import Data.Time.Calendar (Day)
 import Graphics.Vty (Event)
 import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit (Editor)
-import qualified Data.Vector as V
 import Lens.Micro.Platform
 import Text.Show.Functions ()
   -- import the Show instance for functions. Warning, this also re-exports it
@@ -52,8 +50,8 @@ import Text.Show.Functions ()
 import Hledger
 import Hledger.UI.UIOptions
 
-instance Show (List a) where show _ = "<List>"
-instance Show Editor   where show _ = "<Editor>"
+instance Show (List n a) where show _ = "<List>"
+instance Show (Editor n) where show _ = "<Editor>"
 
 -- | hledger-ui's application state. This holds one or more stateful screens.
 -- As you navigate through screens, the old ones are saved in a stack.
@@ -72,12 +70,21 @@ data UIState = UIState {
 data Mode =
     Normal
   | Help
-  | Minibuffer Editor
+  | Minibuffer (Editor Name)
   deriving (Show,Eq)
 
 -- Ignore the editor when comparing Modes.
-instance Eq Editor where _ == _ = True
+instance Eq (Editor n) where _ == _ = True
 
+-- Unique names required for widgets, viewports, cursor locations etc.
+data Name =
+    HelpDialog
+  | MinibufferEditor
+  | AccountsViewport
+  | AccountsList
+  | RegisterViewport
+  | RegisterList
+  deriving (Ord, Show, Eq)
 
 -- | hledger-ui screen types & instances.
 -- Each screen type has generically named initialisation, draw, and event handling functions,
@@ -87,24 +94,24 @@ instance Eq Editor where _ == _ = True
 data Screen =
     AccountsScreen {
        sInit   :: Day -> Bool -> UIState -> UIState              -- ^ function to initialise or update this screen's state
-      ,sDraw   :: UIState -> [Widget]                             -- ^ brick renderer for this screen
-      ,sHandle :: UIState -> Event -> EventM (Next UIState)  -- ^ brick event handler for this screen
+      ,sDraw   :: UIState -> [Widget Name]                             -- ^ brick renderer for this screen
+      ,sHandle :: UIState -> Event -> EventM Name (Next UIState)  -- ^ brick event handler for this screen
       -- state fields.These ones have lenses:
-      ,_asList            :: List AccountsScreenItem  -- ^ list widget showing account names & balances
+      ,_asList            :: List Name AccountsScreenItem  -- ^ list widget showing account names & balances
       ,_asSelectedAccount :: AccountName              -- ^ a backup of the account name from the list widget's selected item (or "")
     }
   | RegisterScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
-      ,sDraw   :: UIState -> [Widget]
-      ,sHandle :: UIState -> Event -> EventM (Next UIState)
+      ,sDraw   :: UIState -> [Widget Name]
+      ,sHandle :: UIState -> Event -> EventM Name (Next UIState)
       --
-      ,rsList    :: List RegisterScreenItem           -- ^ list widget showing transactions affecting this account
+      ,rsList    :: List Name RegisterScreenItem           -- ^ list widget showing transactions affecting this account
       ,rsAccount :: AccountName                       -- ^ the account this register is for
     }
   | TransactionScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
-      ,sDraw   :: UIState -> [Widget]
-      ,sHandle :: UIState -> Event -> EventM (Next UIState)
+      ,sDraw   :: UIState -> [Widget Name]
+      ,sHandle :: UIState -> Event -> EventM Name (Next UIState)
       --
       ,tsTransaction  :: NumberedTransaction          -- ^ the transaction we are currently viewing, and its position in the list
       ,tsTransactions :: [NumberedTransaction]        -- ^ list of transactions we can step through
@@ -112,8 +119,8 @@ data Screen =
     }
   | ErrorScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
-      ,sDraw   :: UIState -> [Widget]
-      ,sHandle :: UIState -> Event -> EventM (Next UIState)
+      ,sDraw   :: UIState -> [Widget Name]
+      ,sHandle :: UIState -> Event -> EventM Name (Next UIState)
       --
       ,esError :: String                              -- ^ error message to show
     }
@@ -140,10 +147,10 @@ data RegisterScreenItem = RegisterScreenItem {
 type NumberedTransaction = (Integer, Transaction)
 
 -- dummy monoid instance needed make lenses work with List fields not common across constructors
-instance Monoid (List a)
-  where
-    mempty        = list "" V.empty 1
-    mappend l1 l2 = l1 & listElementsL .~ (l1^.listElementsL <> l2^.listElementsL)
+--instance Monoid (List n a)
+--  where
+--    mempty        = list "" V.empty 1  -- XXX problem in 0.7, every list requires a unique Name
+--    mappend l1 l2 = l1 & listElementsL .~ (l1^.listElementsL <> l2^.listElementsL)
 
 concat <$> mapM makeLenses [
    ''Screen

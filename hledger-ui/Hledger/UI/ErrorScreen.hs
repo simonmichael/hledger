@@ -38,7 +38,7 @@ esInit :: Day -> Bool -> UIState -> UIState
 esInit _ _ ui@UIState{aScreen=ErrorScreen{}} = ui
 esInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
-esDraw :: UIState -> [Widget]
+esDraw :: UIState -> [Widget Name]
 esDraw UIState{ --aopts=UIOpts{cliopts_=copts@CliOpts{}}
                aScreen=ErrorScreen{..}
               ,aMode=mode} =
@@ -67,7 +67,7 @@ esDraw UIState{ --aopts=UIOpts{cliopts_=copts@CliOpts{}}
 
 esDraw _ = error "draw function called with wrong screen type, should not happen"
 
-esHandle :: UIState -> Event -> EventM (Next UIState)
+esHandle :: UIState -> Event -> EventM Name (Next UIState)
 esHandle ui@UIState{
    aScreen=ErrorScreen{..}
   ,aopts=UIOpts{cliopts_=copts}

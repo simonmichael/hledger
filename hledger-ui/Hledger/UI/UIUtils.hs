@@ -29,12 +29,12 @@ runHelp = runCommand "hledger-ui --help | less" >>= waitForProcess
 -- ui
 
 -- | Draw the help dialog, called when help mode is active.
-helpDialog :: Widget
+helpDialog :: Widget Name
 helpDialog =
   Widget Fixed Fixed $ do
     c <- getContext
     render $
-      renderDialog (dialog "help" (Just "Help (?/LEFT/ESC to close)") Nothing (c^.availWidthL - 2)) $ -- (Just (0,[("ok",())]))
+      renderDialog (dialog (Just "Help (?/LEFT/ESC to close)") Nothing (c^.availWidthL - 2)) $ -- (Just (0,[("ok",())]))
       padTopBottom 1 $ padLeftRight 1 $
         vBox [
            hBox [
@@ -87,7 +87,7 @@ helpDialog =
     renderKey (key,desc) = withAttr (borderAttr <> "keys") (str key) <+> str " " <+> str desc
 
 -- | Event handler used when help mode is active.
-helpHandle :: UIState -> Event -> EventM (Next UIState)
+helpHandle :: UIState -> Event -> EventM Name (Next UIState)
 helpHandle ui ev =
   case ev of
     EvKey k [] | k `elem` [KEsc, KLeft, KChar 'h', KChar '?'] -> continue $ setMode Normal ui
@@ -97,14 +97,14 @@ helpHandle ui ev =
     _ -> continue ui
 
 -- | Draw the minibuffer.
-minibuffer :: Editor -> Widget
+minibuffer :: Editor Name -> Widget Name
 minibuffer ed =
   forceAttr (borderAttr <> "minibuffer") $
   hBox $
-  [txt "filter: ", renderEditor ed]
+  [txt "filter: ", renderEditor True ed]
 
 -- | Wrap a widget in the default hledger-ui screen layout.
-defaultLayout :: Widget -> Widget -> Widget -> Widget
+defaultLayout :: Widget Name -> Widget Name -> Widget Name -> Widget Name
 defaultLayout toplabel bottomlabel =
   topBottomBorderWithLabels (str " "<+>toplabel<+>str " ") (str " "<+>bottomlabel<+>str " ") .
   margin 1 0 Nothing
@@ -112,15 +112,15 @@ defaultLayout toplabel bottomlabel =
   -- padLeftRight 1 -- XXX should reduce inner widget's width by 2, but doesn't
                     -- "the layout adjusts... if you use the core combinators"
 
-borderQueryStr :: String -> Widget
+borderQueryStr :: String -> Widget Name
 borderQueryStr ""  = str ""
 borderQueryStr qry = str " matching " <+> withAttr (borderAttr <> "query") (str qry)
 
-borderDepthStr :: Maybe Int -> Widget
+borderDepthStr :: Maybe Int -> Widget Name
 borderDepthStr Nothing  = str ""
 borderDepthStr (Just d) = str " to " <+> withAttr (borderAttr <> "query") (str $ "depth "++show d)
 
-borderKeysStr :: [(String,String)] -> Widget
+borderKeysStr :: [(String,String)] -> Widget Name
 borderKeysStr keydescs =
   hBox $
   intersperse sep $
@@ -141,7 +141,7 @@ hiddenAccountsName = "..." -- for now
 
 -- generic
 
-topBottomBorderWithLabel :: Widget -> Widget -> Widget
+topBottomBorderWithLabel :: Widget Name -> Widget Name -> Widget Name
 topBottomBorderWithLabel label = \wrapped ->
   Widget Greedy Greedy $ do
     c <- getContext
@@ -158,7 +158,7 @@ topBottomBorderWithLabel label = \wrapped ->
       <=>
       hBorder
 
-topBottomBorderWithLabels :: Widget -> Widget -> Widget -> Widget
+topBottomBorderWithLabels :: Widget Name -> Widget Name -> Widget Name -> Widget Name
 topBottomBorderWithLabels toplabel bottomlabel = \wrapped ->
   Widget Greedy Greedy $ do
     c <- getContext
@@ -176,7 +176,7 @@ topBottomBorderWithLabels toplabel bottomlabel = \wrapped ->
       hBorderWithLabel bottomlabel
 
 -- XXX should be equivalent to the above, but isn't (page down goes offscreen)
-_topBottomBorderWithLabel2 :: Widget -> Widget -> Widget
+_topBottomBorderWithLabel2 :: Widget Name -> Widget Name -> Widget Name
 _topBottomBorderWithLabel2 label = \wrapped ->
  let debugmsg = ""
  in hBorderWithLabel (label <+> str debugmsg)
@@ -191,7 +191,7 @@ _topBottomBorderWithLabel2 label = \wrapped ->
 -- colour.
 -- XXX May disrupt border style of inner widgets.
 -- XXX Should reduce the available size visible to inner widget, but doesn't seem to (cf rsDraw2).
-margin :: Int -> Int -> Maybe Color -> Widget -> Widget
+margin :: Int -> Int -> Maybe Color -> Widget Name -> Widget Name
 margin h v mcolour = \w ->
   Widget Greedy Greedy $ do
     c <- getContext
@@ -210,6 +210,6 @@ margin h v mcolour = \w ->
    -- withBorderStyle (borderStyleFromChar ' ') .
    -- applyN n border
 
-withBorderAttr :: Attr -> Widget -> Widget
+withBorderAttr :: Attr -> Widget Name -> Widget Name
 withBorderAttr attr = updateAttrMap (applyAttrMappings [(borderAttr, attr)])
 

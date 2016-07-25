@@ -77,12 +77,12 @@ executable hledger-ui
     , text-zipper >= 0.4 && < 0.5
     , transformers
     , vector
-  if !os(windows)
-    build-depends:
-      brick >= 0.2 && < 0.7
-     ,vty >= 5.2 && < 5.8
-  else
+  if os(windows)
     buildable: False
+  else
+    build-depends:
+        brick >= 0.7 && < 0.9
+      , vty >= 5.5 && < 5.8
   if flag(threaded)
     ghc-options: -threaded
   if flag(old-locale)

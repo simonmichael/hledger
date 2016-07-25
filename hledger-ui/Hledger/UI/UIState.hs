@@ -127,7 +127,7 @@ setDepth mdepth ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_
 showMinibuffer :: UIState -> UIState
 showMinibuffer ui = setMode (Minibuffer e) ui
   where
-    e = applyEdit gotoEOL $ editor "minibuffer" (str . unlines) (Just 1) oldq
+    e = applyEdit gotoEOL $ editor MinibufferEditor (str . unlines) (Just 1) oldq
     oldq = query_ $ reportopts_ $ cliopts_ $ aopts ui
 
 -- | Close the minibuffer, discarding any edit in progress.

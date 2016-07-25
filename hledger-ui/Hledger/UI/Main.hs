@@ -127,7 +127,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
            ,aMode=Normal
            }
 
-    brickapp :: App (UIState) V.Event
+    brickapp :: App (UIState) V.Event Name
     brickapp = App {
         appLiftVtyEvent = id
       , appStartEvent   = return

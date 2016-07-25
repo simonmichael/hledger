@@ -14,7 +14,7 @@ flags:
 
 extra-deps:
 # hledger-ui
-- brick-0.6.4
+- brick-0.8
 - text-zipper-0.4
 # hledger-web
 - json-0.9.1

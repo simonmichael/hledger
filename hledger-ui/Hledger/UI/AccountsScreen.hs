@@ -42,7 +42,7 @@ accountsScreen = AccountsScreen{
    sInit   = asInit
   ,sDraw   = asDraw
   ,sHandle = asHandle
-  ,_asList            = list "accounts" V.empty 1
+  ,_asList            = list AccountsList V.empty 1
   ,_asSelectedAccount = ""
   }
 
@@ -54,13 +54,13 @@ asInit d reset ui@UIState{
   } =
   ui{aopts=uopts', aScreen=s & asList .~ newitems'}
    where
-    newitems = list (Name "accounts") (V.fromList displayitems) 1
+    newitems = list AccountsList (V.fromList displayitems) 1
 
     -- keep the selection near the last selected account
     -- (may need to move to the next leaf account when entering flat mode)
     newitems' = listMoveTo selidx newitems
       where
-        selidx = case (reset, listSelectedElement $ s ^. asList) of
+        selidx = case (reset, listSelectedElement $ _asList s) of
                    (True, _)               -> 0
                    (_, Nothing)            -> 0
                    (_, Just (_,AccountsScreenItem{asItemAccountName=a})) -> fromMaybe (fromMaybe 0 mprefixmatch) mexactmatch
@@ -99,7 +99,7 @@ asInit d reset ui@UIState{
 
 asInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
-asDraw :: UIState -> [Widget]
+asDraw :: UIState -> [Widget Name]
 asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                            ,ajournal=j
                            ,aScreen=s@AccountsScreen{}
@@ -144,7 +144,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
         fs -> str " with " <+> withAttr (borderAttr <> "query") (str $ intercalate ", " fs) <+> str " txns"
     nonzero | empty_ ropts = str ""
             | otherwise    = withAttr (borderAttr <> "query") (str " nonzero")
-    cur = str (case s ^. asList ^. listSelectedL of  -- XXX second ^. required here but not below..
+    cur = str (case _asList s ^. listSelectedL of
                 Nothing -> "-"
                 Just i -> show (i + 1))
     total = str $ show $ V.length $ s ^. asList . listElementsL
@@ -183,7 +183,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 
         colwidths = (acctwidth, balwidth)
 
-      render $ defaultLayout toplabel bottomlabel $ renderList (s ^. asList) (asDrawItem colwidths)
+      render $ defaultLayout toplabel bottomlabel $ renderList (asDrawItem colwidths) True (_asList s)
 
       where
         bottomlabel = case mode of
@@ -204,7 +204,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 
 asDraw _ = error "draw function called with wrong screen type, should not happen"
 
-asDrawItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget
+asDrawItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget Name
 asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
   Widget Greedy Fixed $ do
     -- c <- getContext
@@ -217,21 +217,21 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
       where
         balspace as = replicate n ' '
           where n = max 0 (balwidth - (sum (map strWidth as) + 2 * (length as - 1)))
-        addamts :: [String] -> Widget -> Widget
+        addamts :: [String] -> Widget Name -> Widget Name
         addamts [] w = w
         addamts [a] w = (<+> renderamt a) w
         -- foldl' :: (b -> a -> b) -> b -> t a -> b
         -- foldl' (Widget -> String -> Widget) -> Widget -> [String] -> Widget
         addamts (a:as) w = foldl' addamt (addamts [a] w) as
-        addamt :: Widget -> String -> Widget
+        addamt :: Widget Name -> String -> Widget Name
         addamt w a = ((<+> renderamt a) . (<+> str ", ")) w
-        renderamt :: String -> Widget
+        renderamt :: String -> Widget Name
         renderamt a | '-' `elem` a = withAttr (sel $ "list" <> "balance" <> "negative") $ str a
                     | otherwise    = withAttr (sel $ "list" <> "balance" <> "positive") $ str a
         sel | selected  = (<> "selected")
             | otherwise = id
 
-asHandle :: UIState -> Event -> EventM (Next UIState)
+asHandle :: UIState -> Event -> EventM Name (Next UIState)
 asHandle ui0@UIState{
    aScreen=scr@AccountsScreen{..}
   ,aopts=UIOpts{cliopts_=copts}
@@ -245,7 +245,7 @@ asHandle ui0@UIState{
 
   -- save the currently selected account, in case we leave this screen and lose the selection
   let
-    selacct = case listSelectedElement $ scr ^. asList of
+    selacct = case listSelectedElement _asList of
                 Just (_, AccountsScreenItem{..}) -> asItemAccountName
                 Nothing -> scr ^. asSelectedAccount
     ui = ui0{aScreen=scr & asSelectedAccount .~ selacct}
@@ -256,7 +256,7 @@ asHandle ui0@UIState{
         EvKey KEsc   [] -> continue $ closeMinibuffer ui
         EvKey KEnter [] -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
                             where s = chomp $ unlines $ getEditContents ed
-        ev              -> do ed' <- handleEvent ev ed
+        ev              -> do ed' <- handleEditorEvent ev ed
                               continue $ ui{aMode=Minibuffer ed'}
 
     Help ->
@@ -305,7 +305,7 @@ asHandle ui0@UIState{
                             EvKey (KChar 'k') [] -> EvKey (KUp) []
                             EvKey (KChar 'j') [] -> EvKey (KDown) []
                             _                    -> ev
-                newitems <- handleEvent ev' (scr ^. asList)
+                newitems <- handleListEvent ev' _asList
                 continue $ ui{aScreen=scr & asList .~ newitems
                                           & asSelectedAccount .~ selacct
                                           }
@@ -317,8 +317,8 @@ asHandle ui0@UIState{
     -- scroll down just far enough to reveal the selection, which
     -- usually leaves it at bottom of screen).
     -- XXX better: scroll so selection is in middle of screen ?
-    scrollTop         = vScrollToBeginning $ viewportScroll "accounts"
-    scrollTopRegister = vScrollToBeginning $ viewportScroll "register"
+    scrollTop         = vScrollToBeginning $ viewportScroll AccountsViewport
+    scrollTopRegister = vScrollToBeginning $ viewportScroll RegisterViewport
 
 asHandle _ _ = error "event handler called with wrong screen type, should not happen"
 
