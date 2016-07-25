@@ -78,8 +78,8 @@ data-files:
 #   default: False
 
 dependencies:
-  - hledger-lib == 0.28
-  - hledger == 0.28
+  - hledger-lib >= 0.28 && < 0.29
+  - hledger     >= 0.28 && < 0.29
   - base               >= 4 && < 5
   - base-compat        >= 0.8.1
   - blaze-html

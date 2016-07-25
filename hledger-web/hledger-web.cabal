@@ -84,8 +84,8 @@ library
     if flag(dev) || flag(library-only)
         cpp-options: -DDEVELOPMENT
     build-depends:
-          hledger-lib == 0.28
-        , hledger == 0.28
+          hledger-lib >= 0.28 && < 0.29
+        , hledger     >= 0.28 && < 0.29
         , base               >= 4 && < 5
         , base-compat        >= 0.8.1
         , blaze-html
@@ -157,8 +157,8 @@ executable hledger-web
     if flag(dev)
       cpp-options: -DDEVELOPMENT
     build-depends:
-          hledger-lib == 0.28
-        , hledger == 0.28
+          hledger-lib >= 0.28 && < 0.29
+        , hledger     >= 0.28 && < 0.29
         , base               >= 4 && < 5
         , base-compat        >= 0.8.1
         , blaze-html
@@ -210,8 +210,8 @@ test-suite test
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
     cpp-options: -DVERSION="0.28"
     build-depends:
-          hledger-lib == 0.28
-        , hledger == 0.28
+          hledger-lib >= 0.28 && < 0.29
+        , hledger     >= 0.28 && < 0.29
         , base               >= 4 && < 5
         , base-compat        >= 0.8.1
         , blaze-html
