@@ -123,6 +123,9 @@ setDepth mdepth ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_
                        | d >= maxDepth ui -> Nothing
                        | otherwise        -> mdepth
 
+getDepth :: UIState -> Maybe Int
+getDepth UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}} = depth_ ropts
+
 -- | Open the minibuffer, setting its content to the current query with the cursor at the end.
 showMinibuffer :: UIState -> UIState
 showMinibuffer ui = setMode (Minibuffer e) ui

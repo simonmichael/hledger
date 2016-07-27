@@ -124,7 +124,7 @@ Additional screen-specific keys are described below.
 
 This is normally the first screen displayed.
 It lists accounts and their balances, like hledger's balance command.
-By default, it shows all accounts and their latest ending balances.
+By default, it shows all accounts and their latest ending balances (including the balances of subaccounts).
 if you specify a query on the command line, it shows just the matched accounts and the balances from matched transactions.
 
 Account names are normally indented to show the hierarchy (tree mode).
@@ -133,8 +133,9 @@ To see less detail, set a depth limit by pressing a number key, `1` to `9`.
 `-` and `+` (or `=`) decrease and increase the depth limit.
 To remove the depth limit, set it higher than the maximum account depth, or press `ESCAPE`.
 
-`F` toggles flat mode on and off. In flat mode, accounts are listed without indentation
-(and account registers will exclude subaccounts, see below).
+`F` toggles flat mode on and off. In flat mode, accounts are listed without indentation,
+and show their subaccount-excluding balances, except for accounts which have been clipped 
+by a depth limit, which show their inclusive balances (as with hledger's balance command). 
 
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are
@@ -179,11 +180,14 @@ Each line represents one transaction and shows:
     $ hledger-ui --register checking --cleared
     ```
 
-Normally the register screen shows transactions in the current account and any of its subaccounts
-(inclusive mode). If it was entered from accounts screen in flat mode, 
-it shows transactions affecting this account specifically, without 
-considering subaccounts (exclusive mode).
-As on the accounts screen you can toggle this with the `F` key.
+The register screen normally shows transactions in the current account 
+and any of its subaccounts (inclusive mode). 
+If it was entered from the accounts screen in flat mode, where the 
+selected account was not depth-clipped and therefore was showing its 
+subaccount-excluding balance, the register too will omit the transactions 
+of subaccounts (exclusive mode). This means the register always shows
+the transactions responsible for the balance being displayed on the 
+accounts screen.
 
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are

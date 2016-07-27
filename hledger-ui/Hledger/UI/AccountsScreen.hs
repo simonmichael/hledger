@@ -297,7 +297,10 @@ asHandle ui0@UIState{
         EvKey k           [] | k `elem` [KLeft, KChar 'h']     -> continue $ popScreen ui
         EvKey k           [] | k `elem` [KRight, KChar 'l', KEnter] -> scrollTopRegister >> continue (screenEnter d scr ui)
           where
-            scr = rsSetAccount selacct registerScreen
+            scr = rsSetAccount selacct isdepthclipped registerScreen
+            isdepthclipped = case getDepth ui of
+                                Just d  -> accountNameLevel selacct >= d
+                                Nothing -> False
 
         -- fall through to the list's event handler (handles up/down)
         ev -> do

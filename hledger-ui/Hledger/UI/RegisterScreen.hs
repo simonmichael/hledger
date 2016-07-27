@@ -44,23 +44,28 @@ registerScreen = RegisterScreen{
   ,sHandle = rsHandle
   ,rsList    = list RegisterList V.empty 1
   ,rsAccount = ""
+  ,rsForceInclusive = False
   }
 
-rsSetAccount a scr@RegisterScreen{} = scr{rsAccount=replaceHiddenAccountsNameWith "*" a}
-rsSetAccount _ scr = scr
+rsSetAccount :: AccountName -> Bool -> Screen -> Screen
+rsSetAccount a forceinclusive scr@RegisterScreen{} =
+  scr{rsAccount=replaceHiddenAccountsNameWith "*" a, rsForceInclusive=forceinclusive}
+rsSetAccount _ _ scr = scr
 
 rsInit :: Day -> Bool -> UIState -> UIState
 rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajournal=j, aScreen=s@RegisterScreen{..}} =
   ui{aScreen=s{rsList=newitems'}}
   where
     -- gather arguments and queries
+    -- XXX temp
+    inclusive = not (flat_ ropts) || rsForceInclusive
+    thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) rsAccount
     ropts' = ropts{
                depth_=Nothing
               ,balancetype_=HistoricalBalance
               }
-    -- XXX temp
-    thisacctq = Acct $ (if flat_ ropts then accountNameToAccountOnlyRegex else accountNameToAccountRegex) rsAccount
-    q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
+    q = queryFromOpts d ropts'
+--    reportq = filterQuery (not . queryIsDepth) q
 
     (_label,items) = accountTransactionsReport ropts' j q thisacctq
     items' = (if empty_ ropts' then id else filter (not . isZeroMixedAmount . fifth6)) $  -- without --empty, exclude no-change txns
@@ -108,9 +113,10 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
+    inclusive = not (flat_ ropts) || rsForceInclusive
     toplabel =
           withAttr ("border" <> "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
-      <+> withAttr (borderAttr <> "query") (str $ if flat_ ropts then " (exclusive)" else "")
+      <+> withAttr (borderAttr <> "query") (str $ if inclusive then "" else " (exclusive)")
       <+> togglefilters
       <+> str " transactions"
       <+> borderQueryStr (query_ ropts)

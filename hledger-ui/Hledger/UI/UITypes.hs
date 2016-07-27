@@ -105,8 +105,11 @@ data Screen =
       ,sDraw   :: UIState -> [Widget Name]
       ,sHandle :: UIState -> Event -> EventM Name (Next UIState)
       --
-      ,rsList    :: List Name RegisterScreenItem           -- ^ list widget showing transactions affecting this account
+      ,rsList    :: List Name RegisterScreenItem      -- ^ list widget showing transactions affecting this account
       ,rsAccount :: AccountName                       -- ^ the account this register is for
+      ,rsForceInclusive :: Bool                       -- ^ should this register always include subaccount transactions,
+                                                      --   even when in flat mode ? (ie because entered from a
+                                                      --   depth-clipped accounts screen item)
     }
   | TransactionScreen {
        sInit   :: Day -> Bool -> UIState -> UIState

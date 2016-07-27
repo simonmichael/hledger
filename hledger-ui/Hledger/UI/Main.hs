@@ -101,7 +101,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
       -- with --register, start on the register screen, and also put
       -- the accounts screen on the prev screens stack so you can exit
       -- to that as usual.
-      Just apat -> (rsSetAccount acct registerScreen, [ascr'])
+      Just apat -> (rsSetAccount acct False registerScreen, [ascr'])
         where
           acct = headDef
                  (error' $ "--register "++apat++" did not match any account")
