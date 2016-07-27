@@ -76,7 +76,7 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
     displayitems = map displayitem items'
       where
         displayitem (t, _, _issplit, otheracctsstr, change, bal) =
-          RegisterScreenItem{rsItemDate          = showDate $ tdate t
+          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate q thisacctq t
                             ,rsItemDescription   = T.unpack $ tdescription t
                             ,rsItemOtherAccounts = case splitOn ", " otheracctsstr of
                                                      [s] -> s

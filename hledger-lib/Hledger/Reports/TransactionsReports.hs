@@ -21,7 +21,8 @@ module Hledger.Reports.TransactionsReports (
   triCommodityBalance,
   journalTransactionsReport,
   accountTransactionsReport,
-  transactionsReportByCommodity
+  transactionsReportByCommodity,
+  transactionRegisterDate
 
   -- -- * Tests
   -- tests_Hledger_Reports_TransactionsReports
@@ -32,12 +33,13 @@ import Data.List
 import Data.Ord
 -- import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time.Calendar
 -- import Test.HUnit
 
 import Hledger.Data
 import Hledger.Query
 import Hledger.Reports.ReportOptions
--- import Hledger.Utils.Debug
+--import Hledger.Utils.Debug
 
 
 -- | A transactions report includes a list of transactions
@@ -83,19 +85,34 @@ journalTransactionsReport opts j q = (totallabel, items)
 
 -- | An account transactions report represents transactions affecting
 -- a particular account (or possibly several accounts, but we don't
--- use that). It is used by hledger-web's (and hledger-ui's) account
--- register view, where we want to show one row per journal
--- transaction, with:
+-- use that). It is used eg by hledger-ui's and hledger-web's account
+-- register view, where we want to show one row per transaction, in
+-- the context of the current account. Report items consist of:
+--
+-- - the transaction, unmodified
+--
+-- - the transaction as seen in the context of the current account and query,
+--   which means:
+--
+--   - the transaction date is set to the "transaction context date",
+--     which can be different from the transaction's general date:
+--     if postings to the current account (and matched by the report query)
+--     have their own dates, it's the earliest of these dates.
+--
+--   - the transaction's postings are filtered, excluding any which are not
+--     matched by the report query
+--
+-- - a text description of the other account(s) posted to/from
+--
+-- - a flag indicating whether there's more than one other account involved
 --
 -- - the total increase/decrease to the current account
 --
--- - the names of the other account(s) posted to/from
+-- - the register's running total after this transaction, or
+--   the current account's historical balance after this transaction
 --
--- - transaction dates, adjusted to the date of the earliest posting to
---   the current account if those postings have their own dates
---
--- Currently, reporting intervals are not supported, and report items
--- are most recent first.
+-- Items are sorted by transaction context date, most recent first.
+-- Reporting intervals are currently ignored.
 --
 type AccountTransactionsReport =
   (String                          -- label for the balance column, eg "balance" or "total"
@@ -104,16 +121,16 @@ type AccountTransactionsReport =
 
 type AccountTransactionsReportItem =
   (
-   Transaction -- the original journal transaction
-  ,Transaction -- the adjusted account transaction
-  ,Bool        -- is this a split, ie with more than one posting to other account(s)
+   Transaction -- the transaction, unmodified
+  ,Transaction -- the transaction, as seen from the current account
+  ,Bool        -- is this a split (more than one posting to other accounts) ?
   ,String      -- a display string describing the other account(s), if any
   ,MixedAmount -- the amount posted to the current account(s) (or total amount posted)
-  ,MixedAmount -- the historical balance or running total for the current account(s) after this transaction
+  ,MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
   )
 
 accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> AccountTransactionsReport
-accountTransactionsReport opts j reportq thisacctquery = (label, items)
+accountTransactionsReport opts j reportq thisacctq = (label, items)
   where
     -- a depth limit does not affect the account transactions report
     q  = -- filterQuery (not . queryIsDepth) -- seems unnecessary for some reason XXX
@@ -126,11 +143,9 @@ accountTransactionsReport opts j reportq thisacctquery = (label, items)
     -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
     realq = filterQuery queryIsReal q
     statusq = filterQuery queryIsStatus q
-    ts3 = filter (matchesTransaction thisacctquery . filterTransactionPostings (And [realq, statusq])) ts2
-    -- adjust the transaction dates to the dates of postings to this account
-    ts4 = map (setTransactionDateToPostingDate q thisacctquery) ts3
-    -- sort by the new dates
-    ts = sortBy (comparing tdate) ts4
+    ts3 = filter (matchesTransaction thisacctq . filterTransactionPostings (And [realq, statusq])) ts2
+    -- better sort by the transaction's register date, for accurate starting balance
+    ts = sortBy (comparing (transactionRegisterDate reportq thisacctq)) ts3
 
     -- starting balance: if we are filtering by a start date and nothing else,
     -- this is the sum of the (possibly realness or status-filtered) postings
@@ -142,29 +157,13 @@ accountTransactionsReport opts j reportq thisacctquery = (label, items)
                        priorps = -- ltrace "priorps" $
                                  filter (matchesPosting
                                          (-- ltrace "priormatcher" $
-                                          And [thisacctquery, realq, statusq, tostartdatequery]))
+                                          And [thisacctq, realq, statusq, tostartdatequery]))
                                         $ transactionsPostings ts
                        tostartdatequery = Date (DateSpan Nothing startdate)
                        startdate = queryStartDate (date2_ opts) q
 
     items = reverse $ -- see also registerChartHtml
-            accountTransactionsReportItems q thisacctquery startbal negate ts
-
--- | Adjust a transaction's date to the earliest date of postings to a
--- particular account, if any, after filtering with a certain query.
-setTransactionDateToPostingDate :: Query -> Query -> Transaction -> Transaction
-setTransactionDateToPostingDate query thisacctquery t = t'
-  where
-    queryps = tpostings $ filterTransactionPostings query t
-    thisacctps = filter (matchesPosting thisacctquery) queryps
-    t' = case thisacctps of
-          [] -> t
-          _  -> t{tdate=d}
-            where
-              d | null ds   = tdate t
-                | otherwise = minimum ds
-              ds = map postingDate thisacctps
-                   -- no opts here, don't even bother with that date/date2 rigmarole
+            accountTransactionsReportItems q thisacctq startbal negate ts
 
 totallabel = "Running Total"
 balancelabel = "Historical Balance"
@@ -183,7 +182,8 @@ accountTransactionsReportItems reportq thisacctq bal signfn (torig:ts) =
     -- 201407: I've lost my grip on this, let's just hope for the best
     -- 201606: we now calculate change and balance from filtered postings, check this still works well for all callers XXX
     where
-      tacct@Transaction{tpostings=reportps} = filterTransactionPostings reportq torig
+      tfiltered@Transaction{tpostings=reportps} = filterTransactionPostings reportq torig
+      tacct = tfiltered{tdate=transactionRegisterDate reportq thisacctq tfiltered}
       (i,bal') = case reportps of
            [] -> (Nothing,bal)  -- no matched postings in this transaction, skip it
            _  -> (Just (torig, tacct, numotheraccts > 1, otheracctstr, a, b), b)
@@ -196,6 +196,20 @@ accountTransactionsReportItems reportq thisacctq bal signfn (torig:ts) =
                   a = signfn $ negate $ sum $ map pamount thisacctps
                   b = bal + a
       is = accountTransactionsReportItems reportq thisacctq bal' signfn ts
+
+-- | What is the transaction's date in the context of a particular account
+-- (specified with a query) and report query, as in an account register ?
+-- It's normally the transaction's general date, but if any posting(s)
+-- matched by the report query and affecting the matched account(s) have
+-- their own earlier dates, it's the earliest of these dates.
+-- Secondary transaction/posting dates are ignored.
+transactionRegisterDate :: Query -> Query -> Transaction -> Day
+transactionRegisterDate reportq thisacctq t
+  | null thisacctps = tdate t
+  | otherwise       = minimum $ map postingDate thisacctps
+  where
+    reportps   = tpostings $ filterTransactionPostings reportq t
+    thisacctps = filter (matchesPosting thisacctq) reportps
 
 -- -- | Generate a short readable summary of some postings, like
 -- -- "from (negatives) to (positives)".
