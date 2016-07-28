@@ -131,6 +131,11 @@ tests_Hledger_Cli = TestList
     tdate (head $ jtxns j) `is` fromGregorian 2009 1 1
     return ()
 
+  ,"default year and month" ~: do
+    j <- readJournal Nothing Nothing True Nothing defaultyearmonth_journal_txt >>= either error' return
+    tdate (head $ jtxns j) `is` fromGregorian 2009 7 1
+    return ()
+
   ,"show dollars" ~: showAmount (usd 1) ~?= "$1.00"
 
   ,"show hours" ~: showAmount (hrs 1) ~?= "1.00h"
@@ -195,6 +200,15 @@ defaultyear_journal_txt = T.unlines
  ["Y2009"
  ,""
  ,"01/01 A"
+ ,"    a  $1"
+ ,"    b"
+ ]
+
+defaultyearmonth_journal_txt :: Text
+defaultyearmonth_journal_txt = T.unlines
+ ["Y2009/07"
+ ,""
+ ,"01 A"
  ,"    a  $1"
  ,"    b"
  ]

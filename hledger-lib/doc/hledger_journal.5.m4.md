@@ -93,9 +93,9 @@ it will be inferred.
 
 Within a journal file, transaction dates use Y/M/D (or Y-M-D or Y.M.D)
 Leading zeros are optional.
-The year may be omitted, in which case it will be inferred from the context - the current transaction, the default year set with a
+Year/month may be omitted, in which case they will be inferred from the context - the current transaction, default values set with a
 [default year directive](#default-year), or the current date when the command is run.
-Some examples: `2010/01/31`, `1/31`, `2010-01-31`, `2010.1.31`.
+Some examples: `2010/01/31`, `1/31`, `2010-01-31`, `2010.1.31`, `29`.
 
 ### Secondary dates
 
@@ -668,8 +668,8 @@ The commodity (and the sample amount's display format) will be applied to all su
 
 ### Default year
 
-You can set a default year to be used for subsequent dates which don't
-specify a year. This is a line beginning with `Y` followed by the year. Eg:
+You can set a default year/month to be used for subsequent dates which don't
+specify a year/month. This is a line beginning with `Y` followed by the year and optionally a month. Eg:
 
 ```journal
 Y2009      ; set default year to 2009
@@ -686,6 +686,12 @@ Y2010      ; change default year to 2010
 
 1/31       ; equivalent to 2010/1/31
   expenses  1
+  assets
+  
+Y2016/01   ; change default year to 2016 and month to 01
+
+12         ; equivalent to 2016/01/12
+  expanses  1
   assets
 ```
 
