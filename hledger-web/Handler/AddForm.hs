@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, FlexibleContexts, OverloadedStrings, QuasiQuotes, RecordWildCards #-}
+{-# LANGUAGE CPP, FlexibleContexts, OverloadedStrings, QuasiQuotes, RecordWildCards, TypeFamilies #-}
 -- | Add form data & handler. (The layout and js are defined in
 -- Foundation so that the add form can be in the default layout for
 -- all views.)
@@ -10,13 +10,14 @@ import Import
 #if !MIN_VERSION_base(4,8,0)
 import Control.Applicative
 #endif
+import Control.Monad.State.Strict (evalStateT)
 import Data.Either (lefts,rights)
 import Data.List (sort)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
 import Data.Text (append, pack, unpack)
 import qualified Data.Text as T
 import Data.Time.Calendar
-import Text.Parsec (digit, eof, many1, string, runParser)
+import Text.Megaparsec (digitChar, eof, some, string, runParser, runParserT, ParseError, Dec)
 
 import Hledger.Utils
 import Hledger.Data hiding (num)
@@ -55,7 +56,7 @@ postAddForm = do
 
       validateDate :: Text -> Handler (Either FormMessage Day)
       validateDate s = return $
-        case fixSmartDateStrEither' today $ strip $ unpack s of
+        case fixSmartDateStrEither' today $ T.pack $ strip $ unpack s of
           Right d  -> Right d
           Left _   -> Left $ MsgInvalidEntry $ pack "could not parse date \"" `append` s `append` pack "\":" -- ++ show e)
 
@@ -83,11 +84,11 @@ postAddForm = do
       let numberedParams s =
             reverse $ dropWhile (T.null . snd) $ reverse $ sort
             [ (n,v) | (k,v) <- params
-                    , let en = parsewith (paramnamep s) $ T.unpack k
+                    , let en = parsewith (paramnamep s) k :: Either (ParseError Char Dec) Int
                     , isRight en
                     , let Right n = en
                     ]
-            where paramnamep s = do {string s; n <- many1 digit; eof; return (read n :: Int)}
+            where paramnamep s = do {string s; n <- some digitChar; eof; return (read n :: Int)}
           acctparams = numberedParams "account"
           amtparams  = numberedParams "amount"
           num = length acctparams
@@ -95,8 +96,8 @@ postAddForm = do
                     | map fst acctparams == [1..num] &&
                       map fst amtparams `elem` [[1..num], [1..num-1]] = []
                     | otherwise = ["the posting parameters are malformed"]
-          eaccts = map (runParser (accountnamep <* eof) () "" . textstrip  . snd) acctparams
-          eamts  = map (runParser (amountp <* eof) mempty "" . textstrip . snd) amtparams
+          eaccts = map (runParser (accountnamep <* eof) "" . textstrip  . snd) acctparams
+          eamts  = map (runParser (evalStateT (amountp <* eof) mempty) "" . textstrip . snd) amtparams
           (accts, acctErrs) = (rights eaccts, map show $ lefts eaccts)
           (amts', amtErrs)  = (rights eamts, map show $ lefts eamts)
           amts | length amts' == num = amts'

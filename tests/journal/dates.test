@@ -40,5 +40,5 @@ hledger -f- print
 <<<
 2015/9/6*
    a  0
->>>2 /unexpected "*"/
+>>>2 /unexpected '*'/
 >>>= 1

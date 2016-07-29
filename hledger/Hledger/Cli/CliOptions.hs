@@ -5,7 +5,7 @@ related utilities used by hledger commands.
 
 -}
 
-{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts, TypeFamilies #-}
 
 module Hledger.Cli.CliOptions (
 
@@ -69,6 +69,7 @@ import Control.Monad (when)
 #if !MIN_VERSION_base(4,8,0)
 import Data.Functor.Compat ((<$>))
 #endif
+import Data.Functor.Identity (Identity)
 import Data.List.Compat
 import Data.List.Split (splitOneOf)
 import Data.Maybe
@@ -86,7 +87,7 @@ import System.Environment
 import System.Exit (exitSuccess)
 import System.FilePath
 import Test.HUnit
-import Text.Parsec
+import Text.Megaparsec
 
 import Hledger
 import Hledger.Cli.DocFiles
@@ -334,11 +335,11 @@ rawOptsToCliOpts rawopts = checkCliOpts <$> do
   return defcliopts {
               rawopts_         = rawopts
              ,command_         = stringopt "command" rawopts
-             ,file_            = map stripquotes $ listofstringopt "file" rawopts
+             ,file_            = map (T.unpack . stripquotes . T.pack) $ listofstringopt "file" rawopts
              ,rules_file_      = maybestringopt "rules-file" rawopts
              ,output_file_     = maybestringopt "output-file" rawopts
              ,output_format_   = maybestringopt "output-format" rawopts
-             ,alias_           = map stripquotes $ listofstringopt "alias" rawopts
+             ,alias_           = map (T.unpack . stripquotes . T.pack) $ listofstringopt "alias" rawopts
              ,debug_           = intopt "debug" rawopts
              ,ignore_assertions_ = boolopt "ignore-assertions" rawopts
              ,no_new_accounts_ = boolopt "no-new-accounts" rawopts -- add
@@ -387,7 +388,7 @@ getCliOpts mode' = do
 
 -- | Get the account name aliases from options, if any.
 aliasesFromOpts :: CliOpts -> [AccountAlias]
-aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp () ("--alias "++quoteIfNeeded a) $ T.pack a)
+aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++quoteIfNeeded a) $ T.pack a)
                   . alias_
 
 -- | Get the (tilde-expanded, absolute) journal file path from
@@ -453,7 +454,7 @@ rulesFilePathFromOpts opts = do
 widthFromOpts :: CliOpts -> Int
 widthFromOpts CliOpts{width_=Nothing, available_width_=w} = w
 widthFromOpts CliOpts{width_=Just s}  =
-    case runParser (read `fmap` many1 digit <* eof) () "(unknown)" s of
+    case runParser (read `fmap` some digitChar <* eof :: ParsecT Dec String Identity Int) "(unknown)" s of
         Left e   -> optserror $ "could not parse width option: "++show e
         Right w  -> w
 
@@ -471,14 +472,14 @@ widthFromOpts CliOpts{width_=Just s}  =
 registerWidthsFromOpts :: CliOpts -> (Int, Maybe Int)
 registerWidthsFromOpts CliOpts{width_=Nothing, available_width_=w} = (w, Nothing)
 registerWidthsFromOpts CliOpts{width_=Just s}  =
-    case runParser registerwidthp () "(unknown)" s of
+    case runParser registerwidthp "(unknown)" s of
         Left e   -> optserror $ "could not parse width option: "++show e
         Right ws -> ws
     where
-        registerwidthp :: Stream [Char] m t => ParsecT [Char] st m (Int, Maybe Int)
+        registerwidthp :: (Stream s, Char ~ Token s) => ParsecT Dec s m (Int, Maybe Int)
         registerwidthp = do
-          totalwidth <- read `fmap` many1 digit
-          descwidth <- optionMaybe (char ',' >> read `fmap` many1 digit)
+          totalwidth <- read `fmap` some digitChar
+          descwidth <- optional (char ',' >> read `fmap` some digitChar)
           eof
           return (totalwidth, descwidth)
 
@@ -556,12 +557,12 @@ hledgerExecutablesInPath = do
 -- isExecutable f = getPermissions f >>= (return . executable)
 
 isHledgerExeName :: String -> Bool
-isHledgerExeName = isRight . parsewith hledgerexenamep
+isHledgerExeName = isRight . parsewith hledgerexenamep . T.pack
     where
       hledgerexenamep = do
         _ <- string progname
         _ <- char '-'
-        _ <- many1 (noneOf ".")
+        _ <- some (noneOf ".")
         optional (string "." >> choice' (map string addonExtensions))
         eof
 

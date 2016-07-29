@@ -100,11 +100,12 @@ library
     , mtl
     , mtl-compat
     , old-time
-    , parsec >= 3
+    , megaparsec >= 5
     , process
     , regex-tdfa
     , safe >= 0.2
     , split >= 0.1 && < 0.3
+    , transformers
     , temporary
     , text >= 0.11
     , tabular >= 0.2 && < 0.3

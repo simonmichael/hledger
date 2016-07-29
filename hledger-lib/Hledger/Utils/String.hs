@@ -8,19 +8,13 @@ module Hledger.Utils.String (
  stripbrackets,
  unbracket,
  -- quoting
- quoteIfSpaced,
  quoteIfNeeded,
  singleQuoteIfNeeded,
  -- quotechars,
  -- whitespacechars,
- escapeDoubleQuotes,
- escapeSingleQuotes,
  escapeQuotes,
  words',
  unwords',
- stripquotes,
- isSingleQuoted,
- isDoubleQuoted,
  -- * single-line layout
  strip,
  lstrip,
@@ -54,7 +48,7 @@ module Hledger.Utils.String (
 
 import Data.Char
 import Data.List
-import Text.Parsec
+import Text.Megaparsec
 import Text.Printf (printf)
 
 import Hledger.Utils.Parse
@@ -107,20 +101,11 @@ underline s = s' ++ replicate (length s) '-' ++ "\n"
             | last s == '\n' = s
             | otherwise = s ++ "\n"
 
--- | Wrap a string in double quotes, and \-prefix any embedded single
--- quotes, if it contains whitespace and is not already single- or
--- double-quoted.
-quoteIfSpaced :: String -> String
-quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
-                | not $ any (`elem` s) whitespacechars = s
-                | otherwise = "'"++escapeSingleQuotes s++"'"
-
 -- | Double-quote this string if it contains whitespace, single quotes
 -- or double-quotes, escaping the quotes as needed.
 quoteIfNeeded :: String -> String
 quoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars) = "\"" ++ escapeDoubleQuotes s ++ "\""
                 | otherwise = s
-
 -- | Single-quote this string if it contains whitespace or double-quotes.
 -- No good for strings containing single quotes.
 singleQuoteIfNeeded :: String -> String
@@ -134,9 +119,6 @@ whitespacechars = " \t\n\r"
 escapeDoubleQuotes :: String -> String
 escapeDoubleQuotes = regexReplace "\"" "\""
 
-escapeSingleQuotes :: String -> String
-escapeSingleQuotes = regexReplace "'" "\'"
-
 escapeQuotes :: String -> String
 escapeQuotes = regexReplace "([\"'])" "\\1"
 
@@ -144,9 +126,9 @@ escapeQuotes = regexReplace "([\"'])" "\\1"
 -- NB correctly handles "a'b" but not "''a''". Can raise an error if parsing fails.
 words' :: String -> [String]
 words' "" = []
-words' s  = map stripquotes $ fromparse $ parsewith p s
+words' s  = map stripquotes $ fromparse $ parsewithString p s
     where
-      p = do ss <- (singleQuotedPattern <|> doubleQuotedPattern <|> pattern) `sepBy` many1 spacenonewline
+      p = do ss <- (singleQuotedPattern <|> doubleQuotedPattern <|> pattern) `sepBy` some spacenonewline
              -- eof
              return ss
       pattern = many (noneOf whitespacechars)

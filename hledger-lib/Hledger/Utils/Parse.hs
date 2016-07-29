@@ -1,47 +1,71 @@
-{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleContexts, TypeFamilies #-}
 module Hledger.Utils.Parse where
 
+import Control.Monad.Except
 import Data.Char
 import Data.List
--- import Data.Text (Text)
--- import qualified Data.Text as T
-import Text.Parsec
+import Data.Text (Text)
+import Text.Megaparsec hiding (State)
+import Data.Functor.Identity (Identity(..))
 import Text.Printf
 
+import Control.Monad.State.Strict (StateT, evalStateT)
+
+import Hledger.Data.Types
 import Hledger.Utils.UTF8IOCompat (error')
+
+-- | A parser of strict text with generic user state, monad and return type.
+type TextParser m a = ParsecT Dec Text m a
+
+type JournalStateParser m a = StateT Journal (ParsecT Dec Text m) a
+
+type JournalParser a = StateT Journal (ParsecT Dec Text Identity) a
+
+-- | A journal parser that runs in IO and can throw an error mid-parse.
+type ErroringJournalParser a = StateT Journal (ParsecT Dec Text (ExceptT String IO)) a
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.
-choice' :: Stream s m t => [ParsecT s u m a] -> ParsecT s u m a
-choice' = choice . map Text.Parsec.try
+choice' :: [TextParser m a] -> TextParser m a
+choice' = choice . map Text.Megaparsec.try
 
-parsewith :: Parsec [Char] () a -> String -> Either ParseError a
-parsewith p = runParser p () ""
+-- | Backtracking choice, use this when alternatives share a prefix.
+-- Consumes no input if all choices fail.
+choiceInState :: [StateT s (ParsecT Dec Text m) a] -> StateT s (ParsecT Dec Text m) a
+choiceInState = choice . map Text.Megaparsec.try
 
-parseWithState :: Stream s m t => u -> ParsecT s u m a -> s -> m (Either ParseError a)
-parseWithState jps p = runParserT p jps ""
+parsewith :: Parsec e Text a -> Text -> Either (ParseError Char e) a
+parsewith p = runParser p ""
 
-fromparse :: Either ParseError a -> a
+parsewithString :: Parsec e String a -> String -> Either (ParseError Char e) a
+parsewithString p = runParser p ""
+
+parseWithState :: Monad m => st -> StateT st (ParsecT Dec Text m) a -> Text -> m (Either (ParseError Char Dec) a)
+parseWithState ctx p s = runParserT (evalStateT p ctx) "" s
+
+parseWithState' :: (Stream s, ErrorComponent e) => st -> StateT st (ParsecT e s Identity) a -> s -> (Either (ParseError (Token s) e) a)
+parseWithState' ctx p s = runParser (evalStateT p ctx) "" s
+
+fromparse :: (Show t, Show e) => Either (ParseError t e) a -> a
 fromparse = either parseerror id
 
-parseerror :: ParseError -> a
+parseerror :: (Show t, Show e) => ParseError t e -> a
 parseerror e = error' $ showParseError e
 
-showParseError :: ParseError -> String
+showParseError :: (Show t, Show e) => ParseError t e -> String
 showParseError e = "parse error at " ++ show e
 
-showDateParseError :: ParseError -> String
+showDateParseError :: (Show t, Show e) => ParseError t e -> String
 showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tail $ lines $ show e)
 
-nonspace :: (Stream s m Char) => ParsecT s st m Char
+nonspace :: TextParser m Char
 nonspace = satisfy (not . isSpace)
 
-spacenonewline :: (Stream s m Char) => ParsecT s st m Char
+spacenonewline :: (Stream s, Char ~ Token s) => ParsecT Dec s m Char
 spacenonewline = satisfy (`elem` " \v\f\t")
 
-restofline :: (Stream s m Char) => ParsecT s st m String
+restofline :: TextParser m String
 restofline = anyChar `manyTill` newline
 
-eolof :: (Stream s m Char) => ParsecT s st m ()
+eolof :: TextParser m ()
 eolof = (newline >> return ()) <|> eof
-

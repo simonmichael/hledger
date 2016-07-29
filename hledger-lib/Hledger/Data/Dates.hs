@@ -1,6 +1,8 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE NoMonoLocalBinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-|
 
 Date parsing and utilities for hledger.
@@ -68,6 +70,8 @@ import Prelude.Compat
 import Control.Monad
 import Data.List.Compat
 import Data.Maybe
+import Data.Text (Text)
+import qualified Data.Text as T
 #if MIN_VERSION_time(1,5,0)
 import Data.Time.Format hiding (months)
 #else
@@ -80,7 +84,8 @@ import Data.Time.Calendar.WeekDate
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Safe (headMay, lastMay, readMay)
-import Text.Parsec
+import Text.Megaparsec
+import Text.Megaparsec.Text
 import Text.Printf
 
 import Hledger.Data.Types
@@ -298,10 +303,10 @@ earliest (Just d1) (Just d2) = Just $ min d1 d2
 
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
-parsePeriodExpr :: Day -> String -> Either ParseError (Interval, DateSpan)
+parsePeriodExpr :: Day -> Text -> Either (ParseError Char Dec) (Interval, DateSpan)
 parsePeriodExpr refdate = parsewith (periodexpr refdate <* eof)
 
-maybePeriod :: Day -> String -> Maybe (Interval,DateSpan)
+maybePeriod :: Day -> Text -> Maybe (Interval,DateSpan)
 maybePeriod refdate = either (const Nothing) Just . parsePeriodExpr refdate
 
 -- | Show a DateSpan as a human-readable pseudo-period-expression string.
@@ -354,18 +359,18 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
 
 -- | Convert a smart date string to an explicit yyyy\/mm\/dd string using
 -- the provided reference date, or raise an error.
-fixSmartDateStr :: Day -> String -> String
+fixSmartDateStr :: Day -> Text -> String
 fixSmartDateStr d s = either
                        (\e->error' $ printf "could not parse date %s %s" (show s) (show e))
                        id
-                       $ fixSmartDateStrEither d s
+                       $ (fixSmartDateStrEither d s :: Either (ParseError Char Dec) String)
 
 -- | A safe version of fixSmartDateStr.
-fixSmartDateStrEither :: Day -> String -> Either ParseError String
+fixSmartDateStrEither :: Day -> Text -> Either (ParseError Char Dec) String
 fixSmartDateStrEither d = either Left (Right . showDate) . fixSmartDateStrEither' d
 
-fixSmartDateStrEither' :: Day -> String -> Either ParseError Day
-fixSmartDateStrEither' d s = case parsewith smartdateonly (lowercase s) of
+fixSmartDateStrEither' :: Day -> Text -> Either (ParseError Char Dec) Day
+fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
                                Right sd -> Right $ fixSmartDate d sd
                                Left e -> Left e
 
@@ -591,22 +596,23 @@ and maybe some others:
 Returns a SmartDate, to be converted to a full date later (see fixSmartDate).
 Assumes any text in the parse stream has been lowercased.
 -}
-smartdate :: Stream s m Char => ParsecT s st m SmartDate
+smartdate :: Parser SmartDate
 smartdate = do
   -- XXX maybe obscures date errors ? see ledgerdate
   (y,m,d) <- choice' [yyyymmdd, ymd, ym, md, y, d, month, mon, today, yesterday, tomorrow, lastthisnextthing]
   return (y,m,d)
 
 -- | Like smartdate, but there must be nothing other than whitespace after the date.
-smartdateonly :: Stream s m Char => ParsecT s st m SmartDate
+smartdateonly :: Parser SmartDate
 smartdateonly = do
   d <- smartdate
   many spacenonewline
   eof
   return d
 
+datesepchars :: [Char]
 datesepchars = "/-."
-datesepchar :: Stream s m Char => ParsecT s st m Char
+datesepchar :: TextParser m Char
 datesepchar = oneOf datesepchars
 
 validYear, validMonth, validDay :: String -> Bool
@@ -619,54 +625,54 @@ failIfInvalidYear s  = unless (validYear s)  $ fail $ "bad year number: " ++ s
 failIfInvalidMonth s = unless (validMonth s) $ fail $ "bad month number: " ++ s
 failIfInvalidDay s   = unless (validDay s)   $ fail $ "bad day number: " ++ s
 
-yyyymmdd :: Stream s m Char => ParsecT s st m SmartDate
+yyyymmdd :: Parser SmartDate
 yyyymmdd = do
-  y <- count 4 digit
-  m <- count 2 digit
+  y <- count 4 digitChar
+  m <- count 2 digitChar
   failIfInvalidMonth m
-  d <- count 2 digit
+  d <- count 2 digitChar
   failIfInvalidDay d
   return (y,m,d)
 
-ymd :: Stream s m Char => ParsecT s st m SmartDate
+ymd :: Parser SmartDate
 ymd = do
-  y <- many1 digit
+  y <- some digitChar
   failIfInvalidYear y
   sep <- datesepchar
-  m <- many1 digit
+  m <- some digitChar
   failIfInvalidMonth m
   char sep
-  d <- many1 digit
+  d <- some digitChar
   failIfInvalidDay d
   return $ (y,m,d)
 
-ym :: Stream s m Char => ParsecT s st m SmartDate
+ym :: Parser SmartDate
 ym = do
-  y <- many1 digit
+  y <- some digitChar
   failIfInvalidYear y
   datesepchar
-  m <- many1 digit
+  m <- some digitChar
   failIfInvalidMonth m
   return (y,m,"")
 
-y :: Stream s m Char => ParsecT s st m SmartDate
+y :: Parser SmartDate
 y = do
-  y <- many1 digit
+  y <- some digitChar
   failIfInvalidYear y
   return (y,"","")
 
-d :: Stream s m Char => ParsecT s st m SmartDate
+d :: Parser SmartDate
 d = do
-  d <- many1 digit
+  d <- some digitChar
   failIfInvalidDay d
   return ("","",d)
 
-md :: Stream s m Char => ParsecT s st m SmartDate
+md :: Parser SmartDate
 md = do
-  m <- many1 digit
+  m <- some digitChar
   failIfInvalidMonth m
   datesepchar
-  d <- many1 digit
+  d <- some digitChar
   failIfInvalidDay d
   return ("",m,d)
 
@@ -679,24 +685,24 @@ monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","n
 monthIndex s = maybe 0 (+1) $ lowercase s `elemIndex` months
 monIndex s   = maybe 0 (+1) $ lowercase s `elemIndex` monthabbrevs
 
-month :: Stream s m Char => ParsecT s st m SmartDate
+month :: Parser SmartDate
 month = do
   m <- choice $ map (try . string) months
   let i = monthIndex m
   return ("",show i,"")
 
-mon :: Stream s m Char => ParsecT s st m SmartDate
+mon :: Parser SmartDate
 mon = do
   m <- choice $ map (try . string) monthabbrevs
   let i = monIndex m
   return ("",show i,"")
 
-today,yesterday,tomorrow :: Stream s m Char => ParsecT s st m SmartDate
+today,yesterday,tomorrow :: Parser SmartDate
 today     = string "today"     >> return ("","","today")
 yesterday = string "yesterday" >> return ("","","yesterday")
 tomorrow  = string "tomorrow"  >> return ("","","tomorrow")
 
-lastthisnextthing :: Stream s m Char => ParsecT s st m SmartDate
+lastthisnextthing :: Parser SmartDate
 lastthisnextthing = do
   r <- choice [
         string "last"
@@ -717,7 +723,7 @@ lastthisnextthing = do
   return ("",r,p)
 
 -- |
--- >>> let p = parsewith (periodexpr (parsedate "2008/11/26")) 
+-- >>> let p = parsewith (periodexpr (parsedate "2008/11/26")) :: T.Text -> Either (ParseError Char Dec) (Interval, DateSpan)
 -- >>> p "from aug to oct"
 -- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
 -- >>> p "aug to oct"
@@ -728,7 +734,7 @@ lastthisnextthing = do
 -- Right (Days 1,DateSpan 2008/08/01-)
 -- >>> p "every week to 2009"
 -- Right (Weeks 1,DateSpan -2008/12/31)
-periodexpr :: Stream s m Char => Day -> ParsecT s st m (Interval, DateSpan)
+periodexpr :: Day -> Parser (Interval, DateSpan)
 periodexpr rdate = choice $ map try [
                     intervalanddateperiodexpr rdate,
                     intervalperiodexpr,
@@ -736,7 +742,7 @@ periodexpr rdate = choice $ map try [
                     (return (NoInterval,DateSpan Nothing Nothing))
                    ]
 
-intervalanddateperiodexpr :: Stream s m Char => Day -> ParsecT s st m (Interval, DateSpan)
+intervalanddateperiodexpr :: Day -> Parser (Interval, DateSpan)
 intervalanddateperiodexpr rdate = do
   many spacenonewline
   i <- reportinginterval
@@ -744,20 +750,20 @@ intervalanddateperiodexpr rdate = do
   s <- periodexprdatespan rdate
   return (i,s)
 
-intervalperiodexpr :: Stream s m Char => ParsecT s st m (Interval, DateSpan)
+intervalperiodexpr :: Parser (Interval, DateSpan)
 intervalperiodexpr = do
   many spacenonewline
   i <- reportinginterval
   return (i, DateSpan Nothing Nothing)
 
-dateperiodexpr :: Stream s m Char => Day -> ParsecT s st m (Interval, DateSpan)
+dateperiodexpr :: Day -> Parser (Interval, DateSpan)
 dateperiodexpr rdate = do
   many spacenonewline
   s <- periodexprdatespan rdate
   return (NoInterval, s)
 
 -- Parse a reporting interval.
-reportinginterval :: Stream s m Char => ParsecT s st m Interval
+reportinginterval :: Parser Interval
 reportinginterval = choice' [
                        tryinterval "day"     "daily"     Days,
                        tryinterval "week"    "weekly"    Weeks,
@@ -770,7 +776,7 @@ reportinginterval = choice' [
                           return $ Months 2,
                        do string "every"
                           many spacenonewline
-                          n <- fmap read $ many1 digit
+                          n <- fmap read $ some digitChar
                           thsuffix
                           many spacenonewline
                           string "day"
@@ -781,7 +787,7 @@ reportinginterval = choice' [
                           return $ DayOfWeek n,
                        do string "every"
                           many spacenonewline
-                          n <- fmap read $ many1 digit
+                          n <- fmap read $ some digitChar
                           thsuffix
                           many spacenonewline
                           string "day"
@@ -797,7 +803,7 @@ reportinginterval = choice' [
       thsuffix = choice' $ map string ["st","nd","rd","th"]
 
       -- Parse any of several variants of a basic interval, eg "daily", "every day", "every N days".
-      tryinterval :: Stream s m Char => String -> String -> (Int -> Interval) -> ParsecT s st m Interval
+      tryinterval :: String -> String -> (Int -> Interval) -> Parser Interval
       tryinterval singular compact intcons =
           choice' [
            do string compact
@@ -808,14 +814,14 @@ reportinginterval = choice' [
               return $ intcons 1,
            do string "every"
               many spacenonewline
-              n <- fmap read $ many1 digit
+              n <- fmap read $ some digitChar
               many spacenonewline
               string plural
               return $ intcons n
            ]
           where plural = singular ++ "s"
 
-periodexprdatespan :: Stream s m Char => Day -> ParsecT s st m DateSpan
+periodexprdatespan :: Day -> Parser DateSpan
 periodexprdatespan rdate = choice $ map try [
                             doubledatespan rdate,
                             fromdatespan rdate,
@@ -823,7 +829,7 @@ periodexprdatespan rdate = choice $ map try [
                             justdatespan rdate
                            ]
 
-doubledatespan :: Stream s m Char => Day -> ParsecT s st m DateSpan
+doubledatespan :: Day -> Parser DateSpan
 doubledatespan rdate = do
   optional (string "from" >> many spacenonewline)
   b <- smartdate
@@ -832,7 +838,7 @@ doubledatespan rdate = do
   e <- smartdate
   return $ DateSpan (Just $ fixSmartDate rdate b) (Just $ fixSmartDate rdate e)
 
-fromdatespan :: Stream s m Char => Day -> ParsecT s st m DateSpan
+fromdatespan :: Day -> Parser DateSpan
 fromdatespan rdate = do
   b <- choice [
     do
@@ -846,13 +852,13 @@ fromdatespan rdate = do
     ]
   return $ DateSpan (Just $ fixSmartDate rdate b) Nothing
 
-todatespan :: Stream s m Char => Day -> ParsecT s st m DateSpan
+todatespan :: Day -> Parser DateSpan
 todatespan rdate = do
   choice [string "to", string "-"] >> many spacenonewline
   e <- smartdate
   return $ DateSpan Nothing (Just $ fixSmartDate rdate e)
 
-justdatespan :: Stream s m Char => Day -> ParsecT s st m DateSpan
+justdatespan :: Day -> Parser DateSpan
 justdatespan rdate = do
   optional (string "in" >> many spacenonewline)
   d <- smartdate

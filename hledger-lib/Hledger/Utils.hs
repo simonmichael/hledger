@@ -137,11 +137,11 @@ firstJust ms = case dropWhile (==Nothing) ms of
     (md:_) -> md
 
 -- | Read a file in universal newline mode, handling any of the usual line ending conventions.
-readFile' :: FilePath -> IO String
+readFile' :: FilePath -> IO Text
 readFile' name =  do
   h <- openFile name ReadMode
   hSetNewlineMode h universalNewlineMode
-  hGetContents h
+  T.hGetContents h
 
 -- | Read a file in universal newline mode, handling any of the usual line ending conventions.
 readFileAnyLineEnding :: FilePath -> IO Text

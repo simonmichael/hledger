@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, FlexibleContexts #-}
+{-# LANGUAGE CPP, FlexibleContexts, TypeFamilies #-}
 -- | Debugging helpers
 
 -- more:
@@ -16,19 +16,21 @@ module Hledger.Utils.Debug (
 )
 where
 
-import Control.Monad (when)
-import Control.Monad.IO.Class
-import Data.List
-import Debug.Trace
-import Safe (readDef)
-import System.Environment (getArgs)
-import System.Exit
-import System.IO.Unsafe (unsafePerformIO)
-import Text.Parsec
-import Text.Printf
+import           Control.Monad (when)
+import           Control.Monad.IO.Class
+import           Data.List hiding (uncons)
+import qualified Data.Text as T
+import           Debug.Trace
+import           Hledger.Utils.Parse
+import           Safe (readDef)
+import           System.Environment (getArgs)
+import           System.Exit
+import           System.IO.Unsafe (unsafePerformIO)
+import           Text.Megaparsec
+import           Text.Printf
 
 #if __GLASGOW_HASKELL__ >= 704
-import Text.Show.Pretty (ppShow)
+import           Text.Show.Pretty (ppShow)
 #else
 -- the required pretty-show version requires GHC >= 7.4
 ppShow :: Show a => a -> String
@@ -58,12 +60,12 @@ traceWith f e = trace (f e) e
 
 -- | Parsec trace - show the current parsec position and next input,
 -- and the provided label if it's non-null.
-ptrace :: Stream [Char] m t => String -> ParsecT [Char] st m ()
+ptrace :: String -> TextParser m ()
 ptrace msg = do
   pos <- getPosition
-  next <- take peeklength `fmap` getInput
+  next <- (T.take peeklength) `fmap` getInput
   let (l,c) = (sourceLine pos, sourceColumn pos)
-      s  = printf "at line %2d col %2d: %s" l c (show next) :: String
+      s  = printf "at line %2d col %2d: %s" (unPos l) (unPos c) (show next) :: String
       s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
   trace s' $ return ()
   where
@@ -233,7 +235,7 @@ dbgExit msg = const (unsafePerformIO exitFailure) . dbg msg
 -- input) to the console when the debug level is at or above
 -- this level. Uses unsafePerformIO.
 -- pdbgAt :: GenParser m => Float -> String -> m ()
-pdbg :: Stream [Char] m t => Int -> String -> ParsecT [Char] st m ()
+pdbg :: Int -> String -> TextParser m ()
 pdbg level msg = when (level <= debugLevel) $ ptrace msg
 
 

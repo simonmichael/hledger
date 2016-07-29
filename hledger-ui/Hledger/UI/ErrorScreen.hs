@@ -17,7 +17,7 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Monoid
 import Data.Time.Calendar (Day)
 import Graphics.Vty (Event(..),Key(..))
-import Text.Parsec
+import Text.Megaparsec
 
 import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.UIOptions
@@ -88,7 +88,7 @@ esHandle ui@UIState{
         EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
         EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j (popScreen ui)
           where
-            (pos,f) = case parsewith hledgerparseerrorpositionp esError of
+            (pos,f) = case parsewithString hledgerparseerrorpositionp esError of
                         Right (f,l,c) -> (Just (l, Just c),f)
                         Left  _       -> (endPos, journalFilePath j)
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j (popScreen ui)) >>= continue . uiCheckBalanceAssertions d
@@ -103,13 +103,14 @@ esHandle _ _ = error "event handler called with wrong screen type, should not ha
 
 -- | Parse the file name, line and column number from a hledger parse error message, if possible.
 -- Temporary, we should keep the original parse error location. XXX
+hledgerparseerrorpositionp :: ParsecT Dec String t (String, Int, Int)
 hledgerparseerrorpositionp = do
   anyChar `manyTill` char '"'
   f <- anyChar `manyTill` (oneOf ['"','\n'])
   string " (line "
-  l <- read <$> many1 digit
+  l <- read <$> some digitChar
   string ", column "
-  c <- read <$> many1 digit
+  c <- read <$> some digitChar
   return (f, l, c)
 
 -- Unconditionally reload the journal, regenerating the current screen

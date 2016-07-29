@@ -40,8 +40,6 @@ module Hledger.Read.JournalReader (
   -- * Parsing utils
   genericSourcePos,
   parseAndFinaliseJournal,
-  runStringParser,
-  rsp,
   runJournalParser,
   rjp,
   runErroringJournalParser,
@@ -78,7 +76,8 @@ import Prelude ()
 import Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
 import Control.Monad
-import Control.Monad.Except (ExceptT(..), liftIO, runExceptT, throwError)
+import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
+import Control.Monad.State.Strict
 import qualified Data.Map.Strict as M
 import Data.Monoid
 import Data.Text (Text)
@@ -89,9 +88,9 @@ import Safe
 import Test.HUnit
 #ifdef TESTS
 import Test.Framework
-import Text.Parsec.Error
+import Text.Megaparsec.Error
 #endif
-import Text.Parsec hiding (parse)
+import Text.Megaparsec hiding (parse)
 import Text.Printf
 import System.FilePath
 
@@ -137,7 +136,7 @@ journalp :: ErroringJournalParser ParsedJournal
 journalp = do
   many addJournalItemP
   eof
-  getState
+  get
 
 -- | A side-effecting parser; parses any kind of journal item
 -- and updates the parse state accordingly.
@@ -147,10 +146,10 @@ addJournalItemP =
   -- character, can use choice without backtracking
   choice [
       directivep
-    , transactionp          >>= modifyState . addTransaction
-    , modifiertransactionp  >>= modifyState . addModifierTransaction
-    , periodictransactionp  >>= modifyState . addPeriodicTransaction
-    , marketpricedirectivep >>= modifyState . addMarketPrice
+    , transactionp          >>= modify' . addTransaction
+    , modifiertransactionp  >>= modify' . addModifierTransaction
+    , periodictransactionp  >>= modify' . addPeriodicTransaction
+    , marketpricedirectivep >>= modify' . addMarketPrice
     , void emptyorcommentlinep
     , void multilinecommentp
     ] <?> "transaction or directive"
@@ -163,7 +162,7 @@ addJournalItemP =
 directivep :: ErroringJournalParser ()
 directivep = (do
   optional $ char '!'
-  choice' [
+  choiceInState [
     includedirectivep
    ,aliasdirectivep
    ,endaliasesdirectivep
@@ -183,24 +182,27 @@ directivep = (do
 includedirectivep :: ErroringJournalParser ()
 includedirectivep = do
   string "include"
-  many1 spacenonewline
-  filename  <- restofline
+  lift (some spacenonewline)
+  filename  <- lift restofline
   parentpos <- getPosition
-  parentj   <- getState
+  parentj   <- get
   let childj = newJournalWithParseStateFrom parentj
   (ej :: Either String ParsedJournal) <-
     liftIO $ runExceptT $ do
       let curdir = takeDirectory (sourceName parentpos)
       filepath <- expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
       txt      <- readFileAnyLineEnding filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
-      (ej1::Either ParseError ParsedJournal) <-
-        runParserT 
-           (choice' [journalp
-                    ,timeclockfilep
-                    ,timedotfilep
-                    -- can't include a csv file yet, that reader is special
-                    ])
-           childj filepath txt
+      (ej1::Either (ParseError Char Dec) ParsedJournal) <-
+        runParserT
+           (evalStateT
+              (choiceInState
+                 [journalp
+                 ,timeclockfilep
+                 ,timedotfilep
+                 -- can't include a csv file yet, that reader is special
+                 ])
+              childj)
+           filepath txt
       either
         (throwError
           . ((show parentpos ++ " in included file " ++ show filename ++ ":\n") ++)
@@ -209,7 +211,7 @@ includedirectivep = do
         ej1
   case ej of
     Left e       -> throwError e
-    Right childj -> modifyState (\parentj -> childj <> parentj)
+    Right childj -> modify' (\parentj -> childj <> parentj)
     -- discard child's parse info, prepend its (reversed) list data, combine other fields
 
 newJournalWithParseStateFrom :: Journal -> Journal
@@ -233,13 +235,13 @@ orRethrowIOError io msg =
 accountdirectivep :: ErroringJournalParser ()
 accountdirectivep = do
   string "account"
-  many1 spacenonewline
-  acct <- accountnamep
+  lift (some spacenonewline)
+  acct <- lift accountnamep
   newline
   _ <- many indentedlinep
-  modifyState (\j -> j{jaccounts = acct : jaccounts j})
+  modify' (\j -> j{jaccounts = acct : jaccounts j})
 
-indentedlinep = many1 spacenonewline >> (rstrip <$> restofline)
+indentedlinep = lift (some spacenonewline) >> (rstrip <$> lift restofline)
 
 -- | Parse a one-line or multi-line commodity directive.
 --
@@ -257,12 +259,12 @@ commoditydirectivep = try commoditydirectiveonelinep <|> commoditydirectivemulti
 commoditydirectiveonelinep :: ErroringJournalParser ()
 commoditydirectiveonelinep = do
   string "commodity"
-  many1 spacenonewline
+  lift (some spacenonewline)
   Amount{acommodity,astyle} <- amountp
-  many spacenonewline
-  _ <- followingcommentp <|> (eolof >> return "")
+  lift (many spacenonewline)
+  _ <- followingcommentp <|> (lift eolof >> return "")
   let comm = Commodity{csymbol=acommodity, cformat=Just astyle}
-  modifyState (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
+  modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
 
 -- | Parse a multi-line commodity directive, containing 0 or more format subdirectives.
 --
@@ -270,24 +272,24 @@ commoditydirectiveonelinep = do
 commoditydirectivemultilinep :: ErroringJournalParser ()
 commoditydirectivemultilinep = do
   string "commodity"
-  many1 spacenonewline
-  sym <- commoditysymbolp
-  _ <- followingcommentp <|> (eolof >> return "")
+  lift (some spacenonewline)
+  sym <- lift commoditysymbolp
+  _ <- followingcommentp <|> (lift eolof >> return "")
   mformat <- lastMay <$> many (indented $ formatdirectivep sym)
   let comm = Commodity{csymbol=sym, cformat=mformat}
-  modifyState (\j -> j{jcommodities=M.insert sym comm $ jcommodities j})
+  modify' (\j -> j{jcommodities=M.insert sym comm $ jcommodities j})
   where
-    indented = (many1 spacenonewline >>)
+    indented = (lift (some spacenonewline) >>)
 
 -- | Parse a format (sub)directive, throwing a parse error if its
 -- symbol does not match the one given.
 formatdirectivep :: CommoditySymbol -> ErroringJournalParser AmountStyle
 formatdirectivep expectedsym = do
   string "format"
-  many1 spacenonewline
+  lift (some spacenonewline)
   pos <- getPosition
   Amount{acommodity,astyle} <- amountp
-  _ <- followingcommentp <|> (eolof >> return "")
+  _ <- followingcommentp <|> (lift eolof >> return "")
   if acommodity==expectedsym
     then return astyle
     else parserErrorAt pos $
@@ -295,41 +297,41 @@ formatdirectivep expectedsym = do
 
 applyaccountdirectivep :: ErroringJournalParser ()
 applyaccountdirectivep = do
-  string "apply" >> many1 spacenonewline >> string "account"
-  many1 spacenonewline
-  parent <- accountnamep
+  string "apply" >> lift (some spacenonewline) >> string "account"
+  lift (some spacenonewline)
+  parent <- lift accountnamep
   newline
   pushParentAccount parent
 
 endapplyaccountdirectivep :: ErroringJournalParser ()
 endapplyaccountdirectivep = do
-  string "end" >> many1 spacenonewline >> string "apply" >> many1 spacenonewline >> string "account"
+  string "end" >> lift (some spacenonewline) >> string "apply" >> lift (some spacenonewline) >> string "account"
   popParentAccount
 
 aliasdirectivep :: ErroringJournalParser ()
 aliasdirectivep = do
   string "alias"
-  many1 spacenonewline
-  alias <- accountaliasp
+  lift (some spacenonewline)
+  alias <- lift accountaliasp
   addAccountAlias alias
 
-accountaliasp :: Monad m => TextParser u m AccountAlias
+accountaliasp :: TextParser m AccountAlias
 accountaliasp = regexaliasp <|> basicaliasp
 
-basicaliasp :: Monad m => TextParser u m AccountAlias
+basicaliasp :: TextParser m AccountAlias
 basicaliasp = do
   -- pdbg 0 "basicaliasp"
-  old <- rstrip <$> many1 (noneOf "=")
+  old <- rstrip <$> (some $ noneOf ("=" :: [Char]))
   char '='
   many spacenonewline
   new <- rstrip <$> anyChar `manyTill` eolof  -- don't require a final newline, good for cli options
   return $ BasicAlias (T.pack old) (T.pack new)
 
-regexaliasp :: Monad m => TextParser u m AccountAlias
+regexaliasp :: TextParser m AccountAlias
 regexaliasp = do
   -- pdbg 0 "regexaliasp"
   char '/'
-  re <- many1 $ noneOf "/\n\r" -- paranoid: don't try to read past line end
+  re <- some $ noneOf ("/\n\r" :: [Char]) -- paranoid: don't try to read past line end
   char '/'
   many spacenonewline
   char '='
@@ -345,22 +347,22 @@ endaliasesdirectivep = do
 tagdirectivep :: ErroringJournalParser ()
 tagdirectivep = do
   string "tag" <?> "tag directive"
-  many1 spacenonewline
-  _ <- many1 nonspace
-  restofline
+  lift (some spacenonewline)
+  _ <- lift $ some nonspace
+  lift restofline
   return ()
 
 endtagdirectivep :: ErroringJournalParser ()
 endtagdirectivep = do
   (string "end tag" <|> string "pop") <?> "end tag or pop directive"
-  restofline
+  lift restofline
   return ()
 
 defaultyeardirectivep :: ErroringJournalParser ()
 defaultyeardirectivep = do
   char 'Y' <?> "default year"
-  many spacenonewline
-  y <- many1 digit
+  lift (many spacenonewline)
+  y <- some digitChar
   let y' = read y
   failIfInvalidYear y
   setYear y'
@@ -368,41 +370,41 @@ defaultyeardirectivep = do
 defaultcommoditydirectivep :: ErroringJournalParser ()
 defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
-  many1 spacenonewline
+  lift (some spacenonewline)
   Amount{..} <- amountp
-  restofline
+  lift restofline
   setDefaultCommodityAndStyle (acommodity, astyle)
 
 marketpricedirectivep :: ErroringJournalParser MarketPrice
 marketpricedirectivep = do
   char 'P' <?> "market price"
-  many spacenonewline
+  lift (many spacenonewline)
   date <- try (do {LocalTime d _ <- datetimep; return d}) <|> datep -- a time is ignored
-  many1 spacenonewline
-  symbol <- commoditysymbolp
-  many spacenonewline
+  lift (some spacenonewline)
+  symbol <- lift commoditysymbolp
+  lift (many spacenonewline)
   price <- amountp
-  restofline
+  lift restofline
   return $ MarketPrice date symbol price
 
 ignoredpricecommoditydirectivep :: ErroringJournalParser ()
 ignoredpricecommoditydirectivep = do
   char 'N' <?> "ignored-price commodity"
-  many1 spacenonewline
-  commoditysymbolp
-  restofline
+  lift (some spacenonewline)
+  lift commoditysymbolp
+  lift restofline
   return ()
 
 commodityconversiondirectivep :: ErroringJournalParser ()
 commodityconversiondirectivep = do
   char 'C' <?> "commodity conversion"
-  many1 spacenonewline
+  lift (some spacenonewline)
   amountp
-  many spacenonewline
+  lift (many spacenonewline)
   char '='
-  many spacenonewline
+  lift (many spacenonewline)
   amountp
-  restofline
+  lift restofline
   return ()
 
 --- ** transactions
@@ -410,16 +412,16 @@ commodityconversiondirectivep = do
 modifiertransactionp :: ErroringJournalParser ModifierTransaction
 modifiertransactionp = do
   char '=' <?> "modifier transaction"
-  many spacenonewline
-  valueexpr <- T.pack <$> restofline
+  lift (many spacenonewline)
+  valueexpr <- T.pack <$> lift restofline
   postings <- postingsp Nothing
   return $ ModifierTransaction valueexpr postings
 
 periodictransactionp :: ErroringJournalParser PeriodicTransaction
 periodictransactionp = do
   char '~' <?> "periodic transaction"
-  many spacenonewline
-  periodexpr <- T.pack <$> restofline
+  lift (many spacenonewline)
+  periodexpr <- T.pack <$> lift restofline
   postings <- postingsp Nothing
   return $ PeriodicTransaction periodexpr postings
 
@@ -429,10 +431,10 @@ transactionp = do
   -- ptrace "transactionp"
   sourcepos <- genericSourcePos <$> getPosition
   date <- datep <?> "transaction"
-  edate <- optionMaybe (secondarydatep date) <?> "secondary date"
-  lookAhead (spacenonewline <|> newline) <?> "whitespace or newline"
-  status <- statusp <?> "cleared status"
-  code <- T.pack <$> codep <?> "transaction code"
+  edate <- optional (secondarydatep date) <?> "secondary date"
+  lookAhead (lift spacenonewline <|> newline) <?> "whitespace or newline"
+  status <- lift statusp <?> "cleared status"
+  code <- T.pack <$> lift codep <?> "transaction code"
   description <- T.pack . strip <$> descriptionp
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = commentTags comment
@@ -542,23 +544,23 @@ postingsp mdate = many (try $ postingp mdate) <?> "postings"
 
 -- linebeginningwithspaces :: Monad m => JournalParser m String
 -- linebeginningwithspaces = do
---   sp <- many1 spacenonewline
+--   sp <- lift (some spacenonewline)
 --   c <- nonspace
---   cs <- restofline
+--   cs <- lift restofline
 --   return $ sp ++ (c:cs) ++ "\n"
 
 postingp :: Maybe Day -> ErroringJournalParser Posting
 postingp mtdate = do
   -- pdbg 0 "postingp"
-  many1 spacenonewline
-  status <- statusp
-  many spacenonewline
+  lift (some spacenonewline)
+  status <- lift statusp
+  lift (many spacenonewline)
   account <- modifiedaccountnamep
   let (ptype, account') = (accountNamePostingType account, textUnbracket account)
   amount <- spaceandamountormissingp
   massertion <- partialbalanceassertionp
   _ <- fixedlotpricep
-  many spacenonewline
+  lift (many spacenonewline)
   (comment,tags,mdate,mdate2) <-
     try (followingcommentandtagsp mtdate) <|> (newline >> return ("",[],Nothing,Nothing))
   return posting

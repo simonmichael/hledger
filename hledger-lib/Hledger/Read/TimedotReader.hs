@@ -36,13 +36,14 @@ import Prelude ()
 import Prelude.Compat
 import Control.Monad
 import Control.Monad.Except (ExceptT)
+import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.List (foldl')
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import Test.HUnit
-import Text.Parsec hiding (parse)
+import Text.Megaparsec hiding (parse)
 import System.FilePath
 
 import Hledger.Data
@@ -73,13 +74,14 @@ parse _ = parseAndFinaliseJournal timedotfilep
 timedotfilep :: ErroringJournalParser ParsedJournal
 timedotfilep = do many timedotfileitemp
                   eof
-                  getState
+                  get
     where
+      timedotfileitemp :: ErroringJournalParser ()
       timedotfileitemp = do
         ptrace "timedotfileitemp"
         choice [
           void emptyorcommentlinep
-         ,timedotdayp >>= \ts -> modifyState (addTransactions ts)
+         ,timedotdayp >>= \ts -> modify' (addTransactions ts)
          ] <?> "timedot day entry, or default year or comment line or blank line"
 
 addTransactions :: [Transaction] -> Journal -> Journal
@@ -95,7 +97,7 @@ addTransactions ts j = foldl' (flip ($)) j (map addTransaction ts)
 timedotdayp :: ErroringJournalParser [Transaction]
 timedotdayp = do
   ptrace " timedotdayp"
-  d <- datep <* eolof
+  d <- datep <* lift eolof
   es <- catMaybes <$> many (const Nothing <$> try emptyorcommentlinep <|>
                             Just <$> (notFollowedBy datep >> timedotentryp))
   return $ map (\t -> t{tdate=d}) es -- <$> many timedotentryp
@@ -108,9 +110,9 @@ timedotentryp :: ErroringJournalParser Transaction
 timedotentryp = do
   ptrace "  timedotentryp"
   pos <- genericSourcePos <$> getPosition
-  many spacenonewline
+  lift (many spacenonewline)
   a <- modifiedaccountnamep
-  many spacenonewline
+  lift (many spacenonewline)
   hours <-
     try (followingcommentp >> return 0)
     <|> (timedotdurationp <*
@@ -137,10 +139,10 @@ timedotdurationp = try timedotnumberp <|> timedotdotsp
 -- @
 timedotnumberp :: ErroringJournalParser Quantity
 timedotnumberp = do
-   (q, _, _, _) <- numberp
-   many spacenonewline
+   (q, _, _, _) <- lift numberp
+   lift (many spacenonewline)
    optional $ char 'h'
-   many spacenonewline
+   lift (many spacenonewline)
    return q
 
 -- | Parse a quantity written as a line of dots, each representing 0.25.
@@ -149,7 +151,7 @@ timedotnumberp = do
 -- @
 timedotdotsp :: ErroringJournalParser Quantity
 timedotdotsp = do
-  dots <- filter (not.isSpace) <$> many (oneOf ". ")
+  dots <- filter (not.isSpace) <$> many (oneOf (". " :: [Char]))
   return $ (/4) $ fromIntegral $ length dots
 
 tests_Hledger_Read_TimedotReader = TestList [
