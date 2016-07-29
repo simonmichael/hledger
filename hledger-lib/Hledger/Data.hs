@@ -15,6 +15,7 @@ module Hledger.Data (
                module Hledger.Data.Dates,
                module Hledger.Data.Journal,
                module Hledger.Data.Ledger,
+               module Hledger.Data.Period,
                module Hledger.Data.Posting,
                module Hledger.Data.RawOptions,
                module Hledger.Data.StringFormat,
@@ -33,6 +34,7 @@ import Hledger.Data.Commodity
 import Hledger.Data.Dates
 import Hledger.Data.Journal
 import Hledger.Data.Ledger
+import Hledger.Data.Period
 import Hledger.Data.Posting
 import Hledger.Data.RawOptions
 import Hledger.Data.StringFormat

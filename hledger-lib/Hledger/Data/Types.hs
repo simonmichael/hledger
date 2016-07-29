@@ -45,11 +45,57 @@ data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Ord,Data,Generic,T
 
 instance NFData DateSpan
 
-data Interval = NoInterval
-              | Days Int | Weeks Int | Months Int | Quarters Int | Years Int
-              | DayOfMonth Int | DayOfWeek Int
-              -- WeekOfYear Int | MonthOfYear Int | QuarterOfYear Int
-                deriving (Eq,Show,Ord,Data,Generic,Typeable)
+-- synonyms for various date-related scalars
+type Year = Integer
+type Month = Int     -- 1-12
+type Quarter = Int   -- 1-4
+type YearWeek = Int  -- 1-52
+type MonthWeek = Int -- 1-5
+type YearDay = Int   -- 1-366
+type MonthDay = Int  -- 1-31
+type WeekDay = Int   -- 1-7
+
+-- Typical report periods (spans of time), both finite and open-ended.
+-- A richer abstraction than DateSpan.
+data Period =
+    DayPeriod Day
+  | WeekPeriod Day
+  | MonthPeriod Year Month
+  | QuarterPeriod Year Quarter
+  | YearPeriod Year
+  | PeriodBetween Day Day
+  | PeriodFrom Day
+  | PeriodTo Day
+  | PeriodAll
+  deriving (Eq,Ord,Show,Data,Generic,Typeable)
+
+instance Default Period where def = PeriodAll
+
+---- Typical report period/subperiod durations, from a day to a year.
+--data Duration =
+--    DayLong
+--   WeekLong
+--   MonthLong
+--   QuarterLong
+--   YearLong
+--  deriving (Eq,Ord,Show,Data,Generic,Typeable)
+
+-- Ways in which a period can be divided into subperiods.
+data Interval =
+    NoInterval
+  | Days Int
+  | Weeks Int
+  | Months Int
+  | Quarters Int
+  | Years Int
+  | DayOfMonth Int
+  | DayOfWeek Int
+  -- WeekOfYear Int
+  -- MonthOfYear Int
+  -- QuarterOfYear Int
+  deriving (Eq,Show,Ord,Data,Generic,Typeable)
+
+instance Default Interval where def = NoInterval
 
 instance NFData Interval
 
@@ -222,8 +268,6 @@ data MarketPrice = MarketPrice {
     } deriving (Eq,Ord,Typeable,Data,Generic) -- & Show (in Amount.hs)
 
 instance NFData MarketPrice
-
-type Year = Integer
 
 -- | A Journal, containing transactions and various other things.
 -- The basic data model for hledger.
