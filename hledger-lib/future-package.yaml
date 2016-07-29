@@ -120,9 +120,10 @@ library:
     - Hledger.Data.Dates
     - Hledger.Data.Journal
     - Hledger.Data.Ledger
-    - Hledger.Data.StringFormat
+    - Hledger.Data.Period
     - Hledger.Data.Posting
     - Hledger.Data.RawOptions
+    - Hledger.Data.StringFormat
     - Hledger.Data.Timeclock
     - Hledger.Data.Transaction
     - Hledger.Data.Types

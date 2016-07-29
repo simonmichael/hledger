@@ -1,7 +1,7 @@
 {-|
 
-Manipulating the time periods typically used for reports
-using Period, a richer abstraction than DateSpan.
+Manipulate the time periods typically used for reports with Period,
+a richer abstraction that will probably replace DateSpan.
 See also Types and Dates.
 
 -}
@@ -11,9 +11,10 @@ where
 
 import Data.Time.Calendar
 import Data.Time.Calendar.WeekDate
+import Data.Time.Format
+import Text.Printf
 
 import Hledger.Data.Types
-import Hledger.Data.Dates () -- DateSpan Show instance
 
 -- | Convert Periods to DateSpans.
 --
@@ -115,4 +116,19 @@ isLastDayOfMonth y m d =
     11 -> d==30
     12 -> d==31
     _ -> False
+
+-- | Render a period as a compact display string suitable for user output.
+--
+-- >>> showPeriod (WeekPeriod (fromGregorian 2016 7 25))
+-- "2016/07/25w30"
+showPeriod (DayPeriod b)       = formatTime defaultTimeLocale "%0C%y/%m/%dd" b    -- DATEd
+showPeriod (WeekPeriod b)      = formatTime defaultTimeLocale "%0C%y/%m/%dw%V" b  -- STARTDATEwYEARWEEK
+showPeriod (MonthPeriod y m)   = printf "%04d/%02d" y m                           -- YYYY/MM
+showPeriod (QuarterPeriod y q) = printf "%04dq%d" y q                             -- YYYYqN
+showPeriod (YearPeriod y)      = printf "%04d" y                                  -- YYYY
+showPeriod (PeriodBetween b e) = formatTime defaultTimeLocale "%0C%y/%m/%d" b
+                                 ++ formatTime defaultTimeLocale "-%0C%y/%m/%d" (addDays (-1) e) -- STARTDATE-INCLUSIVEENDDATE
+showPeriod (PeriodFrom b)      = formatTime defaultTimeLocale "%0C%y/%m/%d-" b                   -- STARTDATE-
+showPeriod (PeriodTo e)        = formatTime defaultTimeLocale "-%0C%y/%m/%d" (addDays (-1) e)    -- -INCLUSIVEENDDATE
+showPeriod PeriodAll           = "-"
 

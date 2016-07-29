@@ -21,6 +21,8 @@ with both ends unspecified matches all dates.)
 An 'Interval' is ledger's \"reporting interval\" - weekly, monthly,
 quarterly, etc.
 
+'Period' will probably replace DateSpan in due course.
+
 -}
 
 -- XXX fromGregorian silently clips bad dates, use fromGregorianValid instead ?
@@ -80,7 +82,6 @@ import System.Locale (TimeLocale, defaultTimeLocale)
 #endif
 import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate
-import Data.Time.Calendar.WeekDate
 import Data.Time.Clock
 import Data.Time.LocalTime
 import Safe (headMay, lastMay, readMay)
@@ -89,6 +90,7 @@ import Text.Megaparsec.Text
 import Text.Printf
 
 import Hledger.Data.Types
+import Hledger.Data.Period
 import Hledger.Utils
 
 
@@ -100,65 +102,10 @@ instance Show DateSpan where
 showDate :: Day -> String
 showDate = formatTime defaultTimeLocale "%0C%y/%m/%d"
 
--- XXX review for more boundary crossing issues
 -- | Render a datespan as a display string, abbreviating into a
 -- compact form if possible.
-showDateSpan ds@(DateSpan (Just from) (Just to)) =
-  case (toGregorian from, toGregorian to) of
-    -- special cases we can abbreviate:
-    -- a year, YYYY
-    ((fy,1,1), (ty,1,1))   | fy+1==ty           -> formatTime defaultTimeLocale "%0C%y" from
-    -- a half, YYYYhN
-    ((fy,1,1), (ty,7,1))   | fy==ty             -> formatTime defaultTimeLocale "%0C%yh1" from
-    ((fy,7,1), (ty,1,1))   | fy+1==ty           -> formatTime defaultTimeLocale "%0C%yh2" from
-    -- a quarter, YYYYqN
-    ((fy,1,1), (ty,4,1))   | fy==ty             -> formatTime defaultTimeLocale "%0C%yq1" from
-    ((fy,4,1), (ty,7,1))   | fy==ty             -> formatTime defaultTimeLocale "%0C%yq2" from
-    ((fy,7,1), (ty,10,1))  | fy==ty             -> formatTime defaultTimeLocale "%0C%yq3" from
-    ((fy,10,1), (ty,1,1))  | fy+1==ty           -> formatTime defaultTimeLocale "%0C%yq4" from
-    -- a month, YYYY/MM
-    ((fy,fm,1), (ty,tm,1)) | fy==ty && fm+1==tm -> formatTime defaultTimeLocale "%0C%y/%m" from
-    ((fy,12,1), (ty,1,1))  | fy+1==ty           -> formatTime defaultTimeLocale "%0C%y/%m" from
-    -- a week (two successive mondays),
-    -- YYYYwN ("week N of year YYYY")
-    -- _ | let ((fy,fw,fd), (ty,tw,td)) = (toWeekDate from, toWeekDate to) in fy==ty && fw+1==tw && fd==1 && td==1
-    --                                             -> formatTime defaultTimeLocale "%0f%gw%V" from
-    -- YYYY/MM/DDwN ("week N, starting on YYYY/MM/DD")
-    _ | let ((fy,fw,fd), (ty,tw,td)) = (toWeekDate from, toWeekDate (addDays (-1) to)) in fy==ty && fw==tw && fd==1 && td==7
-                                                -> formatTime defaultTimeLocale "%0C%y/%m/%dw%V" from
-    -- a day, YYYY/MM/DDd (d suffix is to distinguish from a regular date in register)
-    ((fy,fm,fd), (ty,tm,td)) | fy==ty && fm==tm && fd+1==td -> formatTime defaultTimeLocale "%0C%y/%m/%dd" from
-    -- ((fy,fm,fd), (ty,tm,td)) | fy==ty && fm==tm && fd+1==td -> formatTime defaultTimeLocale "%0C%y/%m/%d" from -- try without the d
-    -- crossing a year boundary
-    ((fy,fm,fd), (ty,tm,td)) | fy+1==ty && fm==12 && tm==1 && fd==31 && td==1 -> formatTime defaultTimeLocale "%0C%y/%m/%dd" from
-    -- crossing a month boundary XXX wrongly shows LEAPYEAR/2/28-LEAPYEAR/3/1 as LEAPYEAR/2/28
-    ((fy,fm,fd), (ty,tm,td)) | fy==ty && fm+1==tm && fd `elem` fromMaybe [] (lookup fm lastdayofmonth) && td==1 -> formatTime defaultTimeLocale "%0C%y/%m/%dd" from
-    -- otherwise, YYYY/MM/DD-YYYY/MM/DD
-    _                                           -> showDateSpan' ds
-  where lastdayofmonth = [(1,[31])
-                         ,(2,[28,29])
-                         ,(3,[31])
-                         ,(4,[30])
-                         ,(5,[31])
-                         ,(6,[30])
-                         ,(7,[31])
-                         ,(8,[31])
-                         ,(9,[30])
-                         ,(10,[31])
-                         ,(11,[30])
-                         ,(12,[31])
-                         ]
-
-showDateSpan ds = showDateSpan' ds
-
--- | Render a datespan as a display string like [START]-[ENDINCL]
--- (optional start date, hyphen, optional inclusive end date).
-showDateSpan' (DateSpan from to) =
-  concat
-    [maybe "" showDate from
-    ,"-"
-    ,maybe "" (showDate . prevday) to
-    ]
+showDateSpan :: DateSpan -> String
+showDateSpan = showPeriod . dateSpanAsPeriod
 
 -- | Get the current local date.
 getCurrentDay :: IO Day
