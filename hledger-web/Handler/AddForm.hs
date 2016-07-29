@@ -17,7 +17,7 @@ import qualified Data.List as L (head) -- qualified keeps dev & prod builds warn
 import Data.Text (append, pack, unpack)
 import qualified Data.Text as T
 import Data.Time.Calendar
-import Text.Megaparsec (digitChar, eof, some, string, runParser, runParserT, ParseError, Dec)
+import Text.Megaparsec (digitChar, eof, some, string, runParser, ParseError, Dec)
 
 import Hledger.Utils
 import Hledger.Data hiding (num)
