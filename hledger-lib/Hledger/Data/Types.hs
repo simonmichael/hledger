@@ -25,6 +25,7 @@ import Control.DeepSeq (NFData)
 import Control.Monad.Except (ExceptT)
 import Data.Data
 import Data.Decimal
+import Data.Default
 import Text.Blaze (ToMarkup(..))
 import qualified Data.Map as M
 import Data.Text (Text)

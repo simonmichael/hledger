@@ -73,6 +73,7 @@ dependencies:
   - unordered-containers
   - cmdargs >= 0.10 && < 0.11
   - csv
+  - data-default >= 0.5
   - directory
   - file-embed >= 0.0.10 && < 0.1
   - filepath

@@ -37,7 +37,7 @@ import Data.Functor.Compat ((<$>))
 import qualified Data.Text as T
 import Data.Typeable (Typeable)
 import Data.Time.Calendar
-import System.Console.CmdArgs.Default  -- some additional default stuff
+import Data.Default
 import Test.HUnit
 
 import Hledger.Data
@@ -97,6 +97,7 @@ data ReportOpts = ReportOpts {
  } deriving (Show, Data, Typeable)
 
 instance Default ReportOpts where def = defreportopts
+instance Default Bool where def = False
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts

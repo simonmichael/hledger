@@ -71,6 +71,7 @@ library
     , cmdargs >= 0.10 && < 0.11
     , containers
     , csv
+    , data-default >= 0.5
     , Decimal
     , deepseq
     , directory
@@ -154,6 +155,7 @@ test-suite hunittests
     , cmdargs >= 0.10 && < 0.11
     , containers
     , csv
+    , data-default >= 0.5
     , Decimal
     , deepseq
     , directory

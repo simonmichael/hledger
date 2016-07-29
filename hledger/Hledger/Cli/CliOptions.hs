@@ -66,6 +66,7 @@ import Prelude ()
 import Prelude.Compat
 import qualified Control.Exception as C
 import Control.Monad (when)
+import Data.Default
 #if !MIN_VERSION_base(4,8,0)
 import Data.Functor.Compat ((<$>))
 #endif
@@ -76,7 +77,7 @@ import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Safe
-import System.Console.CmdArgs
+import System.Console.CmdArgs hiding (Default,def)
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
 #ifndef mingw32_HOST_OS
