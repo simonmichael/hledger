@@ -72,9 +72,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
       <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
     togglefilters =
       case concat [
-           if cleared_ ropts then ["cleared"] else []
-          ,if uncleared_ ropts then ["uncleared"] else []
-          ,if pending_ ropts then ["pending"] else []
+           uiShowClearedStatus $ clearedstatus_ ropts
           ,if real_ ropts then ["real"] else []
           ,if empty_ ropts then [] else ["nonzero"]
           ] of

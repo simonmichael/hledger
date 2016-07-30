@@ -49,7 +49,7 @@ stats opts@CliOpts{reportopts_=reportopts_} j = do
   let q = queryFromOpts d reportopts_
       l = ledgerFromJournal q j
       reportspan = (ledgerDateSpan l) `spanDefaultsFrom` (queryDateSpan False q)
-      intervalspans = splitSpan (intervalFromOpts reportopts_) reportspan
+      intervalspans = splitSpan (interval_ reportopts_) reportspan
       showstats = showLedgerStats l d
       s = intercalate "\n" $ map showstats intervalspans
   writeOutput opts s

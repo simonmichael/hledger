@@ -84,7 +84,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
       precedingq = dbg1 "precedingq" $ And [datelessq, dateqcons $ DateSpan Nothing (spanStart reportspan)]
       requestedspan  = dbg1 "requestedspan"  $ queryDateSpan (date2_ opts) q                              -- span specified by -b/-e/-p options and query args
       requestedspan' = dbg1 "requestedspan'" $ requestedspan `spanDefaultsFrom` journalDateSpan (date2_ opts) j  -- if open-ended, close it using the journal's end dates
-      intervalspans  = dbg1 "intervalspans"  $ splitSpan (intervalFromOpts opts) requestedspan'           -- interval spans enclosing it
+      intervalspans  = dbg1 "intervalspans"  $ splitSpan (interval_ opts) requestedspan'           -- interval spans enclosing it
       reportspan     = dbg1 "reportspan"     $ DateSpan (maybe Nothing spanStart $ headMay intervalspans) -- the requested span enlarged to a whole number of intervals
                                                        (maybe Nothing spanEnd   $ lastMay intervalspans)
       newdatesq = dbg1 "newdateq" $ dateqcons reportspan
@@ -97,7 +97,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
           filterJournalPostings reportq $        -- remove postings not matched by (adjusted) query
           journalSelectingAmountFromOpts opts j
 
-      displayspans = dbg1 "displayspans" $ splitSpan (intervalFromOpts opts) displayspan
+      displayspans = dbg1 "displayspans" $ splitSpan (interval_ opts) displayspan
         where
           displayspan
             | empty_ opts = dbg1 "displayspan (-E)" $ reportspan                                -- all the requested intervals

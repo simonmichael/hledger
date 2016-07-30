@@ -43,7 +43,7 @@ histogram CliOpts{reportopts_=ropts} j = do
 showHistogram :: ReportOpts -> Query -> Journal -> String
 showHistogram opts q j = concatMap (printDayWith countBar) spanps
     where
-      i = intervalFromOpts opts
+      i = interval_ opts
       interval | i == NoInterval = Days 1
                | otherwise = i
       span' = queryDateSpan (date2_ opts) q `spanDefaultsFrom` journalDateSpan (date2_ opts) j

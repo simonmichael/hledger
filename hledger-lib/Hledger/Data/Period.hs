@@ -132,3 +132,12 @@ showPeriod (PeriodFrom b)      = formatTime defaultTimeLocale "%0C%y/%m/%d-" b  
 showPeriod (PeriodTo e)        = formatTime defaultTimeLocale "-%0C%y/%m/%d" (addDays (-1) e)    -- -INCLUSIVEENDDATE
 showPeriod PeriodAll           = "-"
 
+periodStart :: Period -> Maybe Day
+periodStart p = mb
+  where
+    DateSpan mb _ = periodAsDateSpan p
+
+periodEnd :: Period -> Maybe Day
+periodEnd p = me
+  where
+    DateSpan _ me = periodAsDateSpan p

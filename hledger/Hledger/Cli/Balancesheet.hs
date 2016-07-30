@@ -56,9 +56,10 @@ Total:
 |]
 
 withoutBeginDate :: ReportOpts -> ReportOpts
-withoutBeginDate ropts@ReportOpts{..} = ropts{begin_=Nothing, period_=p}
-  where p = case period_ of Nothing -> Nothing
-                            Just (i, DateSpan _ e) -> Just (i, DateSpan Nothing e)
+withoutBeginDate ropts@ReportOpts{..} = ropts{period_=p}
+  where
+    p = dateSpanAsPeriod $ DateSpan Nothing e
+    e = periodEnd p
 
 tests_Hledger_Cli_Balancesheet :: Test
 tests_Hledger_Cli_Balancesheet = TestList

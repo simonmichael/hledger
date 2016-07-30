@@ -180,13 +180,13 @@ type TagValue = Text
 type Tag = (TagName, TagValue)  -- ^ A tag name and (possibly empty) value.
 
 data ClearedStatus = Uncleared | Pending | Cleared
-                   deriving (Eq,Ord,Typeable,Data,Generic)
+  deriving (Eq,Ord,Typeable,Data,Generic)
 
 instance NFData ClearedStatus
 
-instance Show ClearedStatus where -- custom show
-  show Uncleared = ""             -- a bad idea
-  show Pending   = "!"            -- don't do it
+instance Show ClearedStatus where -- custom show.. bad idea.. don't do it..
+  show Uncleared = ""
+  show Pending   = "!"
   show Cleared   = "*"
 
 data Posting = Posting {

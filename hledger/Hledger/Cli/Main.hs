@@ -70,7 +70,7 @@ import Hledger.Cli.Utils
 import Hledger.Cli.Version
 import Hledger.Data.Dates (getCurrentDay)
 import Hledger.Data.RawOptions (RawOpts, optserror)
-import Hledger.Reports.ReportOptions (dateSpanFromOpts, intervalFromOpts, queryFromOpts)
+import Hledger.Reports.ReportOptions (period_, interval_, queryFromOpts)
 import Hledger.Utils
 
 
@@ -272,8 +272,8 @@ main = do
   dbgIO "isExternalCommand" isExternalCommand
   dbgIO "isBadCommand" isBadCommand
   d <- getCurrentDay
-  dbgIO "date span from opts" (dateSpanFromOpts d $ reportopts_ opts)
-  dbgIO "interval from opts" (intervalFromOpts $ reportopts_ opts)
+  dbgIO "period from opts" (period_ $ reportopts_ opts)
+  dbgIO "interval from opts" (interval_ $ reportopts_ opts)
   dbgIO "query from opts & args" (queryFromOpts d $ reportopts_ opts)
   let
     runHledgerCommand

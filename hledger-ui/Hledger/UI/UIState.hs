@@ -22,21 +22,24 @@ toggleCleared :: UIState -> UIState
 toggleCleared ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=toggleCleared ropts}}}
   where
-    toggleCleared ropts = ropts{cleared_=not $ cleared_ ropts, uncleared_=False, pending_=False}
+    toggleCleared ropts@ReportOpts{clearedstatus_=Just Cleared} = ropts{clearedstatus_=Nothing}
+    toggleCleared ropts = ropts{clearedstatus_=Just Cleared}
 
 -- | Toggle between showing only pending items or all items.
 togglePending :: UIState -> UIState
 togglePending ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=togglePending ropts}}}
   where
-    togglePending ropts = ropts{pending_=not $ pending_ ropts, uncleared_=False, cleared_=False}
+    togglePending ropts@ReportOpts{clearedstatus_=Just Pending} = ropts{clearedstatus_=Nothing}
+    togglePending ropts = ropts{clearedstatus_=Just Pending}
 
 -- | Toggle between showing only uncleared items or all items.
 toggleUncleared :: UIState -> UIState
 toggleUncleared ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=toggleUncleared ropts}}}
   where
-    toggleUncleared ropts = ropts{uncleared_=not $ uncleared_ ropts, cleared_=False, pending_=False}
+    toggleUncleared ropts@ReportOpts{clearedstatus_=Just Uncleared} = ropts{clearedstatus_=Nothing}
+    toggleUncleared ropts = ropts{clearedstatus_=Just Uncleared}
 
 -- | Toggle between showing all and showing only nonempty (more precisely, nonzero) items.
 toggleEmpty :: UIState -> UIState
@@ -76,9 +79,7 @@ resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=rop
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{
      accountlistmode_=ALTree
     ,empty_=True
-    ,cleared_=False
-    ,pending_=False
-    ,uncleared_=False
+    ,clearedstatus_=Nothing
     ,real_=False
     ,query_=""
     }}}}

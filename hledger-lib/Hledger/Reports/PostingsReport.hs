@@ -66,7 +66,7 @@ postingsReport opts q j = (totallabel, items)
       displayps | interval == NoInterval = map (,Nothing) reportps
                 | otherwise              = summarisePostingsByInterval interval whichdate depth showempty reportspan reportps
         where
-          interval = intervalFromOpts opts -- XXX
+          interval = interval_ opts -- XXX
           showempty = empty_ opts || average_ opts
 
       -- posting report items ready for display
@@ -93,7 +93,7 @@ adjustReportDates opts q j = reportspan
         dates  = journalDateSpan False j
         date2s = journalDateSpan True  j
     requestedspanclosed = dbg1 "requestedspanclosed" $ requestedspan `spanDefaultsFrom` journalspan           -- if open-ended, close it using the journal's dates (if any)
-    intervalspans       = dbg1 "intervalspans"       $ splitSpan (intervalFromOpts opts) requestedspanclosed  -- get the whole intervals enclosing that
+    intervalspans       = dbg1 "intervalspans"       $ splitSpan (interval_ opts) requestedspanclosed  -- get the whole intervals enclosing that
     mreportstart        = dbg1 "reportstart"         $ maybe Nothing spanStart $ headMay intervalspans        -- start of the first interval, or open ended
     mreportend          = dbg1 "reportend"           $ maybe Nothing spanEnd   $ lastMay intervalspans        -- end of the last interval, or open ended
     reportspan          = dbg1 "reportspan"          $ DateSpan mreportstart mreportend                       -- the requested span enlarged to whole intervals if possible
@@ -262,8 +262,8 @@ tests_postingsReport = [
 
    -- with query and/or command-line options
    assertEqual "" 11 (length $ snd $ postingsReport defreportopts Any samplejournal)
-   assertEqual ""  9 (length $ snd $ postingsReport defreportopts{monthly_=True} Any samplejournal)
-   assertEqual "" 19 (length $ snd $ postingsReport defreportopts{monthly_=True, empty_=True} Any samplejournal)
+   assertEqual ""  9 (length $ snd $ postingsReport defreportopts{interval_=Months 1} Any samplejournal)
+   assertEqual "" 19 (length $ snd $ postingsReport defreportopts{interval_=Months 1, empty_=True} Any samplejournal)
    assertEqual ""  4 (length $ snd $ postingsReport defreportopts (Acct "assets:bank:checking") samplejournal)
 
    -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0

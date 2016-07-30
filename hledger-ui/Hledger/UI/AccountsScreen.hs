@@ -135,9 +135,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
     mdepth = depth_ ropts
     togglefilters =
       case concat [
-           if cleared_ ropts then ["cleared"] else []
-          ,if uncleared_ ropts then ["uncleared"] else []
-          ,if pending_ ropts then ["pending"] else []
+           uiShowClearedStatus $ clearedstatus_ ropts
           ,if real_ ropts then ["real"] else []
           ] of
         [] -> str ""

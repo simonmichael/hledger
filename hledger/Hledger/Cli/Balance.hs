@@ -294,7 +294,7 @@ balance opts@CliOpts{reportopts_=ropts} j = do
     Left err -> error' $ unlines [err]
     Right _ -> do
       let format   = outputFormatFromOpts opts
-          interval = intervalFromOpts ropts
+          interval = interval_ ropts
           baltype  = balancetype_ ropts
           valuedate = fromMaybe d $ queryEndDate False $ queryFromOpts d ropts
       case interval of
