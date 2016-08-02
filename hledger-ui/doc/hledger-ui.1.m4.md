@@ -90,7 +90,7 @@ On a mac, the Karabiner app is one way to do that.)
 
 On most screens,
 `/` lets you set or change the [filter query](/hledger.html#queries),
-which limits the data shown on most screens (in addition to the quick
+which limits the data shown (this filter is in addition to the quick
 filters described below). While editing the query you can use typical
 command-line edit keys 
 ([CTRL-a/e/d/k, cursor keys etc.](http://hackage.haskell.org/package/brick-0.7/docs/Brick-Widgets-Edit.html#t:Editor)), 
@@ -100,7 +100,7 @@ and `ENTER`to set the new filter or `ESCAPE`to cancel.
 day, week, month, quarter, year, and unlimited (the default).
 When the report duration is limited in this way, `n` and `p`
 step to the next or previous day/week/month/etc.
-(To set arbitrary start/end dates, you can use `/` and a `date:` query.)
+(To set arbitrary start/end dates, you can use `/` to set a [`date:` query](manual.html#queries).)
 
 `BACKSPACE` or `DELETE` clears any filters in effect.
 

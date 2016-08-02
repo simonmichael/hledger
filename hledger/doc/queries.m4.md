@@ -57,12 +57,12 @@ or `hledger print cur:\\$`.
 
 **`date:PERIODEXPR`**
 : match dates within the specified period.
-PERIODEXPR should not include a reporting interval.
-The command-line `--date2` flag makes this match secondary dates instead (like the `-b`/`-e`/`-p` options).
+PERIODEXPR is a [period expression](#period-expressions) (with no report interval).
+Examples: `date:2016`, `date:thismonth`, `date:2000/2/1-2/15`, date:`lastweek-`.
+The command-line `--date2` flag makes `date:` match [secondary dates](manual.html#secondary-dates) instead.
 
 **`date2:PERIODEXPR`**
 : match secondary dates within the specified period.
-PERIODEXPR should not include a reporting interval.
 
 **`depth:N`**
 : match (or display, depending on command) accounts at or above this depth
