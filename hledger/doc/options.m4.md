@@ -101,7 +101,7 @@ Examples:
 `today`, `yesterday`, `tomorrow`
 ---
 
-## Report interval
+## Report intervals
 
 A report interval can be specified so that commands like
 [register](#register), [balance](#balance) and [activity](#activity) will divide their
@@ -159,7 +159,7 @@ like so:
 `-p "2009/1/1"`       just that day;    equivalent to "2009/1/1 to 2009/1/2"
 --------------------- ------------------------------------------------------
 
-The argument of `-p` can also begin with, or be, a [report interval](#report-interval) expression.
+The argument of `-p` can also begin with, or be, a [report interval](#report-intervals) expression.
 The basic report intervals are `daily`, `weekly`, `monthly`, `quarterly`, or `yearly`, 
 which have the same effect as the `-D`,`-W`,`-M`,`-Q`, or `-Y` flags.
 Between report interval and start/end dates (if any), the word `in` is optional.
@@ -194,7 +194,7 @@ Group postings from start of wednesday to end of next tuesday (N is start date a
 
 `hledger register checking -p "every 3rd day of week"`   
 
-## Regular Expressions
+## Regular expressions
 
 hledger uses [regular expressions](http://www.regular-expressions.info) in a number of places:
 
