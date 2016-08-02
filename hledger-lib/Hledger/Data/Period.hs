@@ -10,6 +10,8 @@ module Hledger.Data.Period
 where
 
 import Data.Time.Calendar
+import Data.Time.Calendar.MonthDay
+import Data.Time.Calendar.OrdinalDate
 import Data.Time.Calendar.WeekDate
 import Data.Time.Format
 import Text.Printf
@@ -141,3 +143,50 @@ periodEnd :: Period -> Maybe Day
 periodEnd p = me
   where
     DateSpan _ me = periodAsDateSpan p
+
+-- | Enlarge a period to the next larger common duration, if there is one.
+-- The new period will enclose the old one. A day becomes a week,
+-- a week becomes a month (whichever month the week's middle day,
+-- ie thursday, falls into), etc. A year is the largest duration
+-- and growing that has no effect.
+periodGrow :: Period -> Period
+periodGrow (DayPeriod b) = WeekPeriod $ mondayBefore b
+periodGrow (WeekPeriod b) = MonthPeriod y m
+  where (y,m) = yearMonthContainingWeek b
+periodGrow (MonthPeriod y m) = QuarterPeriod y ((m-1) `div` 3 + 1)
+periodGrow (QuarterPeriod y _) = YearPeriod y
+periodGrow (YearPeriod _) = PeriodAll
+periodGrow p = p
+
+mondayBefore d = addDays (fromIntegral (1 - wd)) d
+  where
+    (_,_,wd) = toWeekDate d
+
+yearMonthContainingWeek weekstart = (y,m)
+  where
+    thu = addDays 3 weekstart
+    (y,yd) = toOrdinalDate thu
+    (m,_) = dayOfYearToMonthAndDay (isLeapYear y) yd
+
+-- | Move a period to the following period of same duration.
+periodNext :: Period -> Period
+periodNext (DayPeriod b) = DayPeriod (addDays 1 b)
+periodNext (WeekPeriod b) = WeekPeriod (addDays 7 b)
+periodNext (MonthPeriod y 12) = MonthPeriod (y+1) 1
+periodNext (MonthPeriod y m) = MonthPeriod y (m+1)
+periodNext (QuarterPeriod y 4) = QuarterPeriod (y+1) 1
+periodNext (QuarterPeriod y q) = QuarterPeriod y (q+1)
+periodNext (YearPeriod y) = YearPeriod (y+1)
+periodNext p = p
+
+-- | Move a period to the preceding period of same duration.
+periodPrevious :: Period -> Period
+periodPrevious (DayPeriod b) = DayPeriod (addDays (-1) b)
+periodPrevious (WeekPeriod b) = WeekPeriod (addDays (-7) b)
+periodPrevious (MonthPeriod y 1) = MonthPeriod (y-1) 12
+periodPrevious (MonthPeriod y m) = MonthPeriod y (m-1)
+periodPrevious (QuarterPeriod y 1) = QuarterPeriod (y-1) 4
+periodPrevious (QuarterPeriod y q) = QuarterPeriod y (q-1)
+periodPrevious (YearPeriod y) = YearPeriod (y-1)
+periodPrevious p = p
+
