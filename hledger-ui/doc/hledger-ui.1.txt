@@ -148,15 +148,21 @@ KEYS
        The cursor keys navigate: right (or enter) goes deeper, left returns to
        the previous screen,  up/down/page up/page down/home/end  move  up  and
        down through lists.  Vi-style h/j/k/l movement keys are also supported.
-       A tip: movement speed is limited by your keyboard repeat rate, to  move
-       faster  you  may  want to adjust that.  (On a mac, the Karabiner app is
-       one way to do that).
+       (A tip: movement speed is limited by your keyboard repeat rate, to move
+       faster you may want to adjust that.  On a mac, the Karabiner app is one
+       way to do that.)
 
-       / lets you set or change the filter query, which limits the data  shown
-       on  most  screens  (in  addition to the quick filters described below).
-       While editing the query you can  use  typical  command-line  edit  keys
-       (CTRL-a/e/d/k,  cursor  keys  etc.),  and ENTERto set the new filter or
-       ESCAPEto cancel.
+       On most screens, / lets you set or change the filter query, which  lim-
+       its  the  data  shown  (this filter is in addition to the quick filters
+       described below).  While editing the query you  can  use  typical  com-
+       mand-line  edit  keys (CTRL-a/e/d/k, cursor keys etc.), and ENTERto set
+       the new filter or ESCAPEto cancel.
+
+       d cycles through the common report period durations: day, week,  month,
+       quarter,  year,  and unlimited (the default).  When the report duration
+       is limited in  this  way,  n  and  p  step  to  the  next  or  previous
+       day/week/month/etc.   (To  set arbitrary start/end dates, you can use /
+       to set a date: query.)
 
        BACKSPACE or DELETE clears any filters in effect.
 
@@ -187,9 +193,9 @@ SCREENS
    Accounts screen
        This is normally the first screen displayed.   It  lists  accounts  and
        their  balances,  like hledger's balance command.  By default, it shows
-       all accounts and their latest ending balances.  if you specify a  query
-       on  the  command  line, it shows just the matched accounts and the bal-
-       ances from matched transactions.
+       all accounts and their latest ending balances (including  the  balances
+       of  subaccounts).  if you specify a query on the command line, it shows
+       just the matched accounts and the balances from matched transactions.
 
        Account names are normally indented to show the hierarchy (tree  mode).
        To see less detail, set a depth limit by pressing a number key, 1 to 9.
@@ -199,17 +205,18 @@ SCREENS
        ESCAPE.
 
        F  toggles  flat  mode  on  and off.  In flat mode, accounts are listed
-       without indentation (and account registers  will  exclude  subaccounts,
-       see below).
+       without indentation,  and  show  their  subaccount-excluding  balances,
+       except  for  accounts  which  have been clipped by a depth limit, which
+       show their inclusive balances (as with hledger's balance command).
 
-       C  toggles  cleared  mode, in which uncleared transactions and postings
-       are not shown.  U toggles  uncleared  mode,  in  which  only  uncleared
+       C toggles cleared mode, in which uncleared  transactions  and  postings
+       are  not  shown.   U  toggles  uncleared  mode, in which only uncleared
        transactions/postings are shown.
 
        R toggles real mode, in which virtual postings are ignored.
 
-       Z  toggles  nonzero  mode, in which only accounts with nonzero balances
-       are shown (hledger-ui shows zero items by default, unlike  command-line
+       Z toggles nonzero mode, in which only accounts  with  nonzero  balances
+       are  shown (hledger-ui shows zero items by default, unlike command-line
        hledger).
 
        Press right or enter to view an account's transactions register.
@@ -218,15 +225,15 @@ SCREENS
        This screen shows the transactions affecting a particular account, like
        a check register.  Each line represents one transaction and shows:
 
-       o the other account(s) involved, in abbreviated form.   (If  there  are
-         both  real  and virtual postings, it shows only the accounts affected
+       o the  other  account(s)  involved, in abbreviated form.  (If there are
+         both real and virtual postings, it shows only the  accounts  affected
          by real postings.)
 
-       o the overall change to the current account's balance; positive for  an
+       o the  overall change to the current account's balance; positive for an
          inflow to this account, negative for an outflow.
 
        o the current account's historic balance (if no query other than a date
-         limit is in effect) or the running total starting from  zero  (other-
+         limit  is  in effect) or the running total starting from zero (other-
          wise), after the transaction.
        Eg, these will show historic balances:
 
@@ -241,11 +248,14 @@ SCREENS
                 $ hledger-ui --begin 'this month' desc:market
                 $ hledger-ui --register checking --cleared
 
-       Normally the register screen shows transactions in the current  account
-       and  any  of  its subaccounts (inclusive mode).  If it was entered from
-       accounts screen in flat mode,  it  shows  transactions  affecting  this
-       account specifically, without considering subaccounts (exclusive mode).
-       As on the accounts screen you can toggle this with the F key.
+       The  register screen normally shows transactions in the current account
+       and any of its subaccounts (inclusive mode).  If it  was  entered  from
+       the  accounts  screen  in flat mode, where the selected account was not
+       depth-clipped and therefore was showing its  subaccount-excluding  bal-
+       ance,  the  register  too  will  omit  the  transactions of subaccounts
+       (exclusive mode).  This means the register always  shows  the  transac-
+       tions  responsible  for  the  balance  being  displayed on the accounts
+       screen.
 
        C toggles cleared mode, in which uncleared  transactions  and  postings
        are  not  shown.   U  toggles  uncleared  mode, in which only uncleared

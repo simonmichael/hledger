@@ -159,15 +159,21 @@ again (or `ESCAPE', or `LEFT') to close it.
    The cursor keys navigate: `right' (or `enter') goes deeper, `left'
 returns to the previous screen, `up'/`down'/`page up'/`page
 down'/`home'/`end' move up and down through lists. Vi-style
-`h'/`j'/`k'/`l' movement keys are also supported. A tip: movement speed
-is limited by your keyboard repeat rate, to move faster you may want to
-adjust that. (On a mac, the Karabiner app is one way to do that).
+`h'/`j'/`k'/`l' movement keys are also supported. (A tip: movement
+speed is limited by your keyboard repeat rate, to move faster you may
+want to adjust that. On a mac, the Karabiner app is one way to do that.)
 
-   `/' lets you set or change the filter query, which limits the data
-shown on most screens (in addition to the quick filters described
-below). While editing the query you can use typical command-line edit
-keys (CTRL-a/e/d/k, cursor keys etc.), and `ENTER'to set the new filter
-or `ESCAPE'to cancel.
+   On most screens, `/' lets you set or change the filter query, which
+limits the data shown (this filter is in addition to the quick filters
+described below). While editing the query you can use typical
+command-line edit keys (CTRL-a/e/d/k, cursor keys etc.), and `ENTER'to
+set the new filter or `ESCAPE'to cancel.
+
+   `d' cycles through the common report period durations: day, week,
+month, quarter, year, and unlimited (the default). When the report
+duration is limited in this way, `n' and `p' step to the next or
+previous day/week/month/etc. (To set arbitrary start/end dates, you can
+use `/' to set a `date:' query.)
 
    `BACKSPACE' or `DELETE' clears any filters in effect.
 
@@ -216,9 +222,9 @@ File: hledger-ui.1.info,  Node: Accounts screen,  Next: Register screen,  Up: SC
 
 This is normally the first screen displayed. It lists accounts and their
 balances, like hledger's balance command. By default, it shows all
-accounts and their latest ending balances. if you specify a query on the
-command line, it shows just the matched accounts and the balances from
-matched transactions.
+accounts and their latest ending balances (including the balances of
+subaccounts). if you specify a query on the command line, it shows just
+the matched accounts and the balances from matched transactions.
 
    Account names are normally indented to show the hierarchy (tree
 mode).  To see less detail, set a depth limit by pressing a number key,
@@ -228,8 +234,9 @@ limit. To remove the depth limit, set it higher than the maximum
 account depth, or press `ESCAPE'.
 
    `F' toggles flat mode on and off. In flat mode, accounts are listed
-without indentation (and account registers will exclude subaccounts, see
-below).
+without indentation, and show their subaccount-excluding balances,
+except for accounts which have been clipped by a depth limit, which show
+their inclusive balances (as with hledger's balance command).
 
    `C' toggles cleared mode, in which uncleared transactions and
 postings are not shown. `U' toggles uncleared mode, in which only
@@ -278,11 +285,13 @@ a check register. Each line represents one transaction and shows:
      $ hledger-ui --register checking --cleared
 
 
-   Normally the register screen shows transactions in the current
+   The register screen normally shows transactions in the current
 account and any of its subaccounts (inclusive mode). If it was entered
-from accounts screen in flat mode, it shows transactions affecting this
-account specifically, without considering subaccounts (exclusive mode).
-As on the accounts screen you can toggle this with the `F' key.
+from the accounts screen in flat mode, where the selected account was
+not depth-clipped and therefore was showing its subaccount-excluding
+balance, the register too will omit the transactions of subaccounts
+(exclusive mode). This means the register always shows the transactions
+responsible for the balance being displayed on the accounts screen.
 
    `C' toggles cleared mode, in which uncleared transactions and
 postings are not shown. `U' toggles uncleared mode, in which only
@@ -340,15 +349,15 @@ Node: OPTIONS825
 Ref: #options924
 Node: KEYS3805
 Ref: #keys3902
-Node: SCREENS5791
-Ref: #screens5878
-Node: Accounts screen5968
-Ref: #accounts-screen6098
-Node: Register screen7403
-Ref: #register-screen7560
-Node: Transaction screen9381
-Ref: #transaction-screen9541
-Node: Error screen10408
-Ref: #error-screen10532
+Node: SCREENS6114
+Ref: #screens6201
+Node: Accounts screen6291
+Ref: #accounts-screen6421
+Node: Register screen7887
+Ref: #register-screen8044
+Node: Transaction screen10004
+Ref: #transaction-screen10164
+Node: Error screen11031
+Ref: #error-screen11155
 
 End Tag Table

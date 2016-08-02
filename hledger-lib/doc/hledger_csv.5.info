@@ -94,10 +94,11 @@ File: hledger_csv.5.info,  Node: field list,  Next: field assignment,  Prev: dat
 `fields'_`FIELDNAME1'_, _`FIELDNAME2'_...
 
    This (a) names the CSV fields, in order (names may not contain
-whitespace, but may be omitted), and (b) assigns them to journal entry
-fields if you use any of these standard field names: `date', `date2',
-`status', `code', `description', `comment', `account1', `account2',
-`amount', `amount-in', `amount-out', `currency'. Eg:
+whitespace; uninteresting names may be left blank), and (b) assigns them
+to journal entry fields if you use any of these standard field names:
+`date', `date2', `status', `code', `description', `comment',
+`account1', `account2', `amount', `amount-in', `amount-out',
+`currency'. Eg:
 
 
 # use the 1st, 2nd and 4th CSV fields as the entry's date, description and amount,
@@ -149,9 +150,9 @@ _`FIELDASSIGNMENTS'_...
 matched by one of the PATTERNs. The patterns are case-insensitive
 regular expressions which match anywhere within the whole CSV record
 (it's not yet possible to match within a specific field). When there are
-multiple patterns they should be written on separate lines, unindented.
-The field assignments are on separate lines indented by at least one
-space. Examples:
+multiple patterns they can be written on separate lines, unindented. The
+field assignments are on separate lines indented by at least one space.
+Examples:
 
 
 # if the CSV record contains "groceries", set account2 to "expenses:groceries"
@@ -218,13 +219,13 @@ Node: date-format1413
 Ref: #date-format1542
 Node: field list2051
 Ref: #field-list2190
-Node: field assignment2866
-Ref: #field-assignment3023
-Node: conditional block3528
-Ref: #conditional-block3684
-Node: include4574
-Ref: #include4685
-Node: TIPS4916
-Ref: #tips5000
+Node: field assignment2885
+Ref: #field-assignment3042
+Node: conditional block3547
+Ref: #conditional-block3703
+Node: include4590
+Ref: #include4701
+Node: TIPS4932
+Ref: #tips5016
 
 End Tag Table

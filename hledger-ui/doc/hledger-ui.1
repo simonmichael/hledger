@@ -228,16 +228,23 @@ deeper, \f[C]left\f[] returns to the previous screen,
 move up and down through lists.
 Vi\-style \f[C]h\f[]/\f[C]j\f[]/\f[C]k\f[]/\f[C]l\f[] movement keys are
 also supported.
-A tip: movement speed is limited by your keyboard repeat rate, to move
+(A tip: movement speed is limited by your keyboard repeat rate, to move
 faster you may want to adjust that.
-(On a mac, the Karabiner app is one way to do that).
+On a mac, the Karabiner app is one way to do that.)
 .PP
-\f[C]/\f[] lets you set or change the filter query, which limits the
-data shown on most screens (in addition to the quick filters described
-below).
+On most screens, \f[C]/\f[] lets you set or change the filter query,
+which limits the data shown (this filter is in addition to the quick
+filters described below).
 While editing the query you can use typical command\-line edit keys
 (CTRL\-a/e/d/k, cursor keys etc.), and \f[C]ENTER\f[]to set the new
 filter or \f[C]ESCAPE\f[]to cancel.
+.PP
+\f[C]d\f[] cycles through the common report period durations: day, week,
+month, quarter, year, and unlimited (the default).
+When the report duration is limited in this way, \f[C]n\f[] and
+\f[C]p\f[] step to the next or previous day/week/month/etc.
+(To set arbitrary start/end dates, you can use \f[C]/\f[] to set a
+\f[C]date:\f[] query.)
 .PP
 \f[C]BACKSPACE\f[] or \f[C]DELETE\f[] clears any filters in effect.
 .PP
@@ -273,7 +280,8 @@ Additional screen\-specific keys are described below.
 This is normally the first screen displayed.
 It lists accounts and their balances, like hledger\[aq]s balance
 command.
-By default, it shows all accounts and their latest ending balances.
+By default, it shows all accounts and their latest ending balances
+(including the balances of subaccounts).
 if you specify a query on the command line, it shows just the matched
 accounts and the balances from matched transactions.
 .PP
@@ -288,8 +296,10 @@ To remove the depth limit, set it higher than the maximum account depth,
 or press \f[C]ESCAPE\f[].
 .PP
 \f[C]F\f[] toggles flat mode on and off.
-In flat mode, accounts are listed without indentation (and account
-registers will exclude subaccounts, see below).
+In flat mode, accounts are listed without indentation, and show their
+subaccount\-excluding balances, except for accounts which have been
+clipped by a depth limit, which show their inclusive balances (as with
+hledger\[aq]s balance command).
 .PP
 \f[C]C\f[] toggles cleared mode, in which uncleared transactions and
 postings are not shown.
@@ -346,12 +356,14 @@ $\ hledger\-ui\ \-\-register\ checking\ \-\-cleared
 .fi
 .RE
 .PP
-Normally the register screen shows transactions in the current account
+The register screen normally shows transactions in the current account
 and any of its subaccounts (inclusive mode).
-If it was entered from accounts screen in flat mode, it shows
-transactions affecting this account specifically, without considering
-subaccounts (exclusive mode).
-As on the accounts screen you can toggle this with the \f[C]F\f[] key.
+If it was entered from the accounts screen in flat mode, where the
+selected account was not depth\-clipped and therefore was showing its
+subaccount\-excluding balance, the register too will omit the
+transactions of subaccounts (exclusive mode).
+This means the register always shows the transactions responsible for
+the balance being displayed on the accounts screen.
 .PP
 \f[C]C\f[] toggles cleared mode, in which uncleared transactions and
 postings are not shown.

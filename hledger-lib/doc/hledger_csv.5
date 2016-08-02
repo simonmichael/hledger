@@ -85,11 +85,12 @@ date\-format\ %\-m/%\-d/%Y\ %l:%M\ %p
 \f[I]\f[C]FIELDNAME2\f[]\f[]...
 .PP
 This (a) names the CSV fields, in order (names may not contain
-whitespace, but may be omitted), and (b) assigns them to journal entry
-fields if you use any of these standard field names: \f[C]date\f[],
-\f[C]date2\f[], \f[C]status\f[], \f[C]code\f[], \f[C]description\f[],
-\f[C]comment\f[], \f[C]account1\f[], \f[C]account2\f[], \f[C]amount\f[],
-\f[C]amount\-in\f[], \f[C]amount\-out\f[], \f[C]currency\f[].
+whitespace; uninteresting names may be left blank), and (b) assigns them
+to journal entry fields if you use any of these standard field names:
+\f[C]date\f[], \f[C]date2\f[], \f[C]status\f[], \f[C]code\f[],
+\f[C]description\f[], \f[C]comment\f[], \f[C]account1\f[],
+\f[C]account2\f[], \f[C]amount\f[], \f[C]amount\-in\f[],
+\f[C]amount\-out\f[], \f[C]currency\f[].
 Eg:
 .IP
 .nf
@@ -154,8 +155,8 @@ matched by one of the PATTERNs.
 The patterns are case\-insensitive regular expressions which match
 anywhere within the whole CSV record (it\[aq]s not yet possible to match
 within a specific field).
-When there are multiple patterns they should be written on separate
-lines, unindented.
+When there are multiple patterns they can be written on separate lines,
+unindented.
 The field assignments are on separate lines indented by at least one
 space.
 Examples:
