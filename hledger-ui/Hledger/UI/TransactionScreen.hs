@@ -57,46 +57,48 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
-    -- datedesc = show (tdate t) ++ " " ++ tdescription t
-    toplabel =
-      str "Transaction "
-      -- <+> withAttr ("border" <> "bold") (str $ "#" ++ show (tindex t))
-      -- <+> str (" ("++show i++" of "++show (length nts)++" in "++acct++")")
-      <+> (str $ "#" ++ show (tindex t))
-      <+> str " ("
-      <+> withAttr ("border" <> "bold") (str $ show i)
-      <+> str (" of "++show (length nts))
-      <+> togglefilters
-      <+> borderQueryStr (query_ ropts)
-      <+> str (" in "++T.unpack (replaceHiddenAccountsNameWith "All" acct)++")")
-      <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
-    togglefilters =
-      case concat [
-           uiShowClearedStatus $ clearedstatus_ ropts
-          ,if real_ ropts then ["real"] else []
-          ,if empty_ ropts then [] else ["nonzero"]
-          ] of
-        [] -> str ""
-        fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs)
     maincontent = Widget Greedy Greedy $ do
       render $ defaultLayout toplabel bottomlabel $ str $
         showTransactionUnelidedOneLineAmounts $
         -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
         t
       where
+        toplabel =
+          str "Transaction "
+          -- <+> withAttr ("border" <> "bold") (str $ "#" ++ show (tindex t))
+          -- <+> str (" ("++show i++" of "++show (length nts)++" in "++acct++")")
+          <+> (str $ "#" ++ show (tindex t))
+          <+> str " ("
+          <+> withAttr ("border" <> "bold") (str $ show i)
+          <+> str (" of "++show (length nts))
+          <+> togglefilters
+          <+> borderQueryStr (query_ ropts)
+          <+> str (" in "++T.unpack (replaceHiddenAccountsNameWith "All" acct)++")")
+          <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
+          where
+            togglefilters =
+              case concat [
+                   uiShowClearedStatus $ clearedstatus_ ropts
+                  ,if real_ ropts then ["real"] else []
+                  ,if empty_ ropts then [] else ["nonzero"]
+                  ] of
+                [] -> str ""
+                fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs)
+
         bottomlabel = case mode of
                         -- Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
-        quickhelp = borderKeysStr [
-           ("?", "help")
-          ,("left", "back")
-          ,("up/down", "prev/next")
-          --,("ESC", "cancel/top")
-          -- ,("a", "add")
-          ,("E", "editor")
-          ,("g", "reload")
-          ,("q", "quit")
-          ]
+          where
+            quickhelp = borderKeysStr [
+               ("?", "help")
+              ,("left", "back")
+              ,("up/down", "prev/next")
+              --,("ESC", "cancel/top")
+              -- ,("a", "add")
+              ,("E", "editor")
+              ,("g", "reload")
+              ,("q", "quit")
+              ]
 
 tsDraw _ = error "draw function called with wrong screen type, should not happen"
 

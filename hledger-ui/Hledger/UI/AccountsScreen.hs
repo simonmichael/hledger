@@ -110,42 +110,6 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
-    toplabel =
-          files
-      <+> nonzero
-      <+> str " accounts"
-      <+> withAttr (borderAttr <> "query") (str (if flat_ ropts then " (flat)" else ""))
-      <+> borderQueryStr querystr
-      <+> togglefilters
-      <+> borderDepthStr mdepth
-      <+> str " ("
-      <+> cur
-      <+> str "/"
-      <+> total
-      <+> str ")"
-      <+> (if ignore_assertions_ copts
-           then withAttr (borderAttr <> "query") (str " ignoring balance assertions")
-           else str "")
-    files = case journalFilePaths j of
-                   [] -> str ""
-                   f:_ -> withAttr ("border" <> "bold") $ str $ takeFileName f
-                   -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
-                   -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
-    querystr = query_ ropts
-    mdepth = depth_ ropts
-    togglefilters =
-      case concat [
-           uiShowClearedStatus $ clearedstatus_ ropts
-          ,if real_ ropts then ["real"] else []
-          ] of
-        [] -> str ""
-        fs -> str " with " <+> withAttr (borderAttr <> "query") (str $ intercalate ", " fs) <+> str " txns"
-    nonzero | empty_ ropts = str ""
-            | otherwise    = withAttr (borderAttr <> "query") (str " nonzero")
-    cur = str (case _asList s ^. listSelectedL of
-                Nothing -> "-"
-                Just i -> show (i + 1))
-    total = str $ show $ V.length $ s ^. asList . listElementsL
     maincontent = Widget Greedy Greedy $ do
       c <- getContext
       let
@@ -184,21 +148,60 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
       render $ defaultLayout toplabel bottomlabel $ renderList (asDrawItem colwidths) True (_asList s)
 
       where
+        toplabel =
+              files
+          <+> nonzero
+          <+> str " accounts"
+          <+> withAttr (borderAttr <> "query") (str (if flat_ ropts then " (flat)" else ""))
+          <+> borderQueryStr querystr
+          <+> togglefilters
+          <+> borderDepthStr mdepth
+          <+> str " ("
+          <+> cur
+          <+> str "/"
+          <+> total
+          <+> str ")"
+          <+> (if ignore_assertions_ copts
+               then withAttr (borderAttr <> "query") (str " ignoring balance assertions")
+               else str "")
+          where
+            files = case journalFilePaths j of
+                           [] -> str ""
+                           f:_ -> withAttr ("border" <> "bold") $ str $ takeFileName f
+                           -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
+                           -- f:fs  -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str (" (& " ++ show (length fs) ++ " included files)")
+            querystr = query_ ropts
+            mdepth = depth_ ropts
+            togglefilters =
+              case concat [
+                   uiShowClearedStatus $ clearedstatus_ ropts
+                  ,if real_ ropts then ["real"] else []
+                  ] of
+                [] -> str ""
+                fs -> str " with " <+> withAttr (borderAttr <> "query") (str $ intercalate ", " fs) <+> str " txns"
+            nonzero | empty_ ropts = str ""
+                    | otherwise    = withAttr (borderAttr <> "query") (str " nonzero")
+            cur = str (case _asList s ^. listSelectedL of
+                        Nothing -> "-"
+                        Just i -> show (i + 1))
+            total = str $ show $ V.length $ s ^. asList . listElementsL
+
         bottomlabel = case mode of
                         Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
-        quickhelp = borderKeysStr [
-           ("?", "help")
-          ,("right", "register")
-          ,("F", "flat?")
-          ,("-+0123456789", "depth")
-          --,("/", "filter")
-          --,("DEL", "unfilter")
-          --,("ESC", "cancel/top")
-          ,("a", "add")
-          ,("g", "reload")
-          ,("q", "quit")
-          ]
+          where
+            quickhelp = borderKeysStr [
+               ("?", "help")
+              ,("right", "register")
+              ,("F", "flat?")
+              ,("-+0123456789", "depth")
+              --,("/", "filter")
+              --,("DEL", "unfilter")
+              --,("ESC", "cancel/top")
+              ,("a", "add")
+              ,("g", "reload")
+              ,("q", "quit")
+              ]
 
 asDraw _ = error "draw function called with wrong screen type, should not happen"
 

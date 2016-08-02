@@ -47,23 +47,24 @@ esDraw UIState{ --aopts=UIOpts{cliopts_=copts@CliOpts{}}
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
-    toplabel =
-          withAttr ("border" <> "bold") (str "Oops. Please fix this problem then press g to reload")
---       <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring") else str " not ignoring")
-
     maincontent = Widget Greedy Greedy $ do
       render $ defaultLayout toplabel bottomlabel $ withAttr "error" $ str $ esError
       where
+        toplabel =
+              withAttr ("border" <> "bold") (str "Oops. Please fix this problem then press g to reload")
+              -- <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring") else str " not ignoring")
+
         bottomlabel = case mode of
                         -- Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
-        quickhelp = borderKeysStr [
-           ("h", "help")
-          ,("ESC", "cancel/top")
-          ,("E", "editor")
-          ,("g", "reload")
-          ,("q", "quit")
-          ]
+          where
+            quickhelp = borderKeysStr [
+               ("h", "help")
+              ,("ESC", "cancel/top")
+              ,("E", "editor")
+              ,("g", "reload")
+              ,("q", "quit")
+              ]
 
 esDraw _ = error "draw function called with wrong screen type, should not happen"
 

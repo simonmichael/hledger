@@ -113,36 +113,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
-    inclusive = not (flat_ ropts) || rsForceInclusive
-    toplabel =
-          withAttr ("border" <> "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
-      <+> withAttr (borderAttr <> "query") (str $ if inclusive then "" else " (exclusive)")
-      <+> togglefilters
-      <+> str " transactions"
-      <+> borderQueryStr (query_ ropts)
-      -- <+> str " and subs"
-      <+> str " ("
-      <+> cur
-      <+> str "/"
-      <+> total
-      <+> str ")"
-      <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
-    togglefilters =
-      case concat [
-           uiShowClearedStatus $ clearedstatus_ ropts
-          ,if real_ ropts then ["real"] else []
-          ,if empty_ ropts then [] else ["nonzero"]
-          ] of
-        [] -> str ""
-        fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs)
-    cur = str $ case rsList ^. listSelectedL of
-                 Nothing -> "-"
-                 Just i -> show (i + 1)
-    total = str $ show $ length displayitems
     displayitems = V.toList $ rsList ^. listElementsL
-
-    -- query = query_ $ reportopts_ $ cliopts_ opts
-
     maincontent = Widget Greedy Greedy $ do
       -- calculate column widths, based on current available width
       c <- getContext
@@ -187,20 +158,51 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
       render $ defaultLayout toplabel bottomlabel $ renderList (rsDrawItem colwidths) True rsList
 
       where
+        toplabel =
+              withAttr ("border" <> "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
+          <+> withAttr (borderAttr <> "query") (str $ if inclusive then "" else " (exclusive)")
+          <+> togglefilters
+          <+> str " transactions"
+          <+> borderQueryStr (query_ ropts)
+          -- <+> str " and subs"
+          <+> str " ("
+          <+> cur
+          <+> str "/"
+          <+> total
+          <+> str ")"
+          <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
+          where
+            inclusive = not (flat_ ropts) || rsForceInclusive
+            togglefilters =
+              case concat [
+                   uiShowClearedStatus $ clearedstatus_ ropts
+                  ,if real_ ropts then ["real"] else []
+                  ,if empty_ ropts then [] else ["nonzero"]
+                  ] of
+                [] -> str ""
+                fs -> withAttr (borderAttr <> "query") (str $ " " ++ intercalate ", " fs)
+            cur = str $ case rsList ^. listSelectedL of
+                         Nothing -> "-"
+                         Just i -> show (i + 1)
+            total = str $ show $ length displayitems
+
+            -- query = query_ $ reportopts_ $ cliopts_ opts
+
         bottomlabel = case mode of
                         Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
-        quickhelp = borderKeysStr [
-           ("?", "help")
-          ,("left", "back")
-          ,("right", "transaction")
-          ,("/", "filter")
-          ,("DEL", "unfilter")
-          --,("ESC", "reset")
-          ,("a", "add")
-          ,("g", "reload")
-          ,("q", "quit")
-          ]
+          where
+            quickhelp = borderKeysStr [
+               ("?", "help")
+              ,("left", "back")
+              ,("right", "transaction")
+              ,("/", "filter")
+              ,("DEL", "unfilter")
+              --,("ESC", "reset")
+              ,("a", "add")
+              ,("g", "reload")
+              ,("q", "quit")
+              ]
 
 rsDraw _ = error "draw function called with wrong screen type, should not happen"
 
