@@ -177,7 +177,7 @@ tests_summarisePostingsByInterval = [
 -- interval's end date attached with a tuple.
 type SummaryPosting = (Posting, Maybe Day)
 
--- | Given a date span (representing a reporting interval) and a list of
+-- | Given a date span (representing a report interval) and a list of
 -- postings within it, aggregate the postings into one summary posting per
 -- account.
 --

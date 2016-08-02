@@ -33,7 +33,7 @@ activitymode = (defCommandMode $ ["activity"] ++ aliases) {
 barchar :: Char
 barchar = '*'
 
--- | Print a histogram of some statistic per reporting interval, such as
+-- | Print a histogram of some statistic per report interval, such as
 -- number of postings per day.
 histogram :: CliOpts -> Journal -> IO ()
 histogram CliOpts{reportopts_=ropts} j = do

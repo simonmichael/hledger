@@ -101,11 +101,11 @@ Examples:
 `today`, `yesterday`, `tomorrow`
 ---
 
-## Reporting interval
+## Report interval
 
-A reporting interval can be specified so that commands like
+A report interval can be specified so that commands like
 [register](#register), [balance](#balance) and [activity](#activity) will divide their
-reports into multiple report periods.  The basic intervals can be
+reports into multiple subperiods.  The basic intervals can be
 selected with one of `-D/--daily`, `-W/--weekly`, `-M/--monthly`,
 `-Q/--quarterly`, or `-Y/--yearly`.  More complex intervals may be
 specified with a period expression.
@@ -113,11 +113,9 @@ specified with a period expression.
 ## Period expressions
 
 The `-p/--period` option accepts period expressions, a shorthand way
-of expressing a start date, end date, and or reporting interval all at
-once. Note a period expression on the command line will cause any other date
-flags (`-b`/`-e`/`-D`/`-W`/`-M`/`-Q`/`-Y`) to be ignored.
+of expressing a start date, end date, and/or report interval all at
+once.
 
-hledger's period expressions are similar to Ledger's, though not identical.
 Here's a basic period expression specifying the first quarter of 2009. Note,
 hledger always treats start dates as inclusive and end dates as exclusive:
 
@@ -161,22 +159,40 @@ like so:
 `-p "2009/1/1"`       just that day;    equivalent to "2009/1/1 to 2009/1/2"
 --------------------- ------------------------------------------------------
 
-Period expressions can also start with (or be) a reporting interval:
-`daily`, `weekly`, `monthly`, `quarterly`, `yearly`, or one of the
-`every ...` expressions below. Optionally the word `in` may appear
-between the reporting interval and the start/end dates.
-Examples:
+The argument of `-p` can also begin with, or be, a [report interval](#report-interval) expression.
+The basic report intervals are `daily`, `weekly`, `monthly`, `quarterly`, or `yearly`, 
+which have the same effect as the `-D`,`-W`,`-M`,`-Q`, or `-Y` flags.
+Between report interval and start/end dates (if any), the word `in` is optional.
+Examples: 
 
 ------------------------------------------
 `-p "weekly from 2009/1/1 to 2009/4/1"`
-`-p "monthly in 2008"`
-`-p "bimonthly from 2008"`
+`-p "monthly in 2008"`                          
 `-p "quarterly"`
+------------------------------------------
+
+The following more complex report intervals are also supported:
+`biweekly`, 
+`bimonthly`,
+`every N days|weeks|months|quarters|years`,
+`every Nth day [of month]`,
+`every Nth day of week`.
+
+Examples:
+
+------------------------------------------
+`-p "bimonthly from 2008"`
 `-p "every 2 weeks"`
 `-p "every 5 days from 1/3"`
-`-p "every 15th day of month"`
-`-p "every 4th day of week"`
 ------------------------------------------
+
+Show historical balances at end of 15th each month (N is exclusive end date):
+
+`hledger balance -H -p "every 16th day"`
+
+Group postings from start of wednesday to end of next tuesday (N is start date and exclusive end date):
+
+`hledger register checking -p "every 3rd day of week"`   
 
 ## Regular Expressions
 

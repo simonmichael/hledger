@@ -111,7 +111,7 @@ tests_postingsReportAsText = [
 -- If description's width is specified, account will use the remaining space.
 -- Otherwise, description and account divide up the space equally.
 --
--- With a reporting interval, the layout is like so:
+-- With a report interval, the layout is like so:
 -- @
 -- <---------------- width (specified, terminal width, or 80) -------------------->
 -- date (21)              account                        amount (12)   balance (12)

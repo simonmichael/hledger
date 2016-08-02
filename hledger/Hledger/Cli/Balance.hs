@@ -9,7 +9,7 @@ Here is a description/specification for the balance command.  See also
 
 /Basic balance report/
 
-With no reporting interval (@--monthly@ etc.), hledger's balance
+With no report interval (@--monthly@ etc.), hledger's balance
 command emulates ledger's, showing accounts indented according to
 hierarchy, along with their total amount posted (including subaccounts).
 
