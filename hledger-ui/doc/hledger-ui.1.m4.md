@@ -84,16 +84,23 @@ The cursor keys navigate:
 `left` returns to the previous screen,
 `up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
 Vi-style `h`/`j`/`k`/`l` movement keys are also supported. 
-A tip: movement speed is limited by your keyboard repeat rate, 
+(A tip: movement speed is limited by your keyboard repeat rate, 
 to move faster you may want to adjust that.
-(On a mac, the Karabiner app is one way to do that).
+On a mac, the Karabiner app is one way to do that.)
 
+On most screens,
 `/` lets you set or change the [filter query](/hledger.html#queries),
 which limits the data shown on most screens (in addition to the quick
 filters described below). While editing the query you can use typical
 command-line edit keys 
 ([CTRL-a/e/d/k, cursor keys etc.](http://hackage.haskell.org/package/brick-0.7/docs/Brick-Widgets-Edit.html#t:Editor)), 
 and `ENTER`to set the new filter or `ESCAPE`to cancel.
+
+`d` cycles through the common report period durations: 
+day, week, month, quarter, year, and unlimited (the default).
+When the report duration is limited in this way, `n` and `p`
+step to the next or previous day/week/month/etc.
+(To set arbitrary start/end dates, you can use `/` and a `date:` query.)
 
 `BACKSPACE` or `DELETE` clears any filters in effect.
 

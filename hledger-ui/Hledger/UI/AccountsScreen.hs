@@ -155,6 +155,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           <+> withAttr (borderAttr <> "query") (str (if flat_ ropts then " (flat)" else ""))
           <+> borderQueryStr querystr
           <+> togglefilters
+          <+> borderPeriodStr (period_ ropts)
           <+> borderDepthStr mdepth
           <+> str " ("
           <+> cur
@@ -288,6 +289,9 @@ asHandle ui0@UIState{
         EvKey (KChar '-') [] -> continue $ regenerateScreens j d $ decDepth ui
         EvKey (KChar '_') [] -> continue $ regenerateScreens j d $ decDepth ui
         EvKey (KChar c)   [] | c `elem` ['+','='] -> continue $ regenerateScreens j d $ incDepth ui
+        EvKey (KChar 'd') [] -> continue $ regenerateScreens j d $ cycleReportDuration d ui
+        EvKey (KChar 'n') [] -> continue $ regenerateScreens j d $ nextReportPeriod ui
+        EvKey (KChar 'p') [] -> continue $ regenerateScreens j d $ previousReportPeriod ui
         EvKey (KChar 'F') [] -> continue $ regenerateScreens j d $ toggleFlat ui
         EvKey (KChar 'Z') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
         EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)

@@ -160,11 +160,12 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
       where
         toplabel =
               withAttr ("border" <> "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
-          <+> withAttr (borderAttr <> "query") (str $ if inclusive then "" else " (exclusive)")
+          <+> withAttr (borderAttr <> "query") (str $ if inclusive then "" else " exclusive")
           <+> togglefilters
           <+> str " transactions"
           <+> borderQueryStr (query_ ropts)
           -- <+> str " and subs"
+          <+> borderPeriodStr (period_ ropts)
           <+> str " ("
           <+> cur
           <+> str "/"
@@ -258,6 +259,9 @@ rsHandle ui@UIState{
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
         EvKey (KChar 'I') [] -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
         EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
+        EvKey (KChar 'd') [] -> continue $ regenerateScreens j d $ cycleReportDuration d ui
+        EvKey (KChar 'n') [] -> continue $ regenerateScreens j d $ nextReportPeriod ui
+        EvKey (KChar 'p') [] -> continue $ regenerateScreens j d $ previousReportPeriod ui
         EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
           where
             (pos,f) = case listSelectedElement rsList of

@@ -68,6 +68,36 @@ toggleIgnoreBalanceAssertions :: UIState -> UIState
 toggleIgnoreBalanceAssertions ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{}}} =
   ui{aopts=uopts{cliopts_=copts{ignore_assertions_=not $ ignore_assertions_ copts}}}
 
+-- | Cycle through increasingly larger report periods enclosing the current one.
+cycleReportDuration :: Day -> UIState -> UIState
+cycleReportDuration d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsCycleDuration d ropts}}}
+
+-- | Cycle through increasingly larger report periods.
+-- Simple periods (a specific day, monday-starting week, month, quarter, year)
+-- become the next larger enclosing period.
+-- Other periods (between two arbitrary dates, or unbounded on one or both ends)
+-- become today.
+reportOptsCycleDuration :: Day -> ReportOpts -> ReportOpts
+reportOptsCycleDuration d ropts@ReportOpts{period_=p} = ropts{period_=p'}
+  where
+    p' = case p of
+           PeriodAll         -> DayPeriod d
+           PeriodFrom _      -> DayPeriod d
+           PeriodTo _        -> DayPeriod d
+           PeriodBetween _ _ -> DayPeriod d
+           _                 -> periodGrow p
+
+-- | Step the report start/end dates to the next period of same duration.
+nextReportPeriod :: UIState -> UIState
+nextReportPeriod ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodNext p}}}}
+
+-- | Step the report start/end dates to the next period of same duration.
+previousReportPeriod :: UIState -> UIState
+previousReportPeriod ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodPrevious p}}}}
+
 -- | Apply a new filter query.
 setFilter :: String -> UIState -> UIState
 setFilter s ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
@@ -82,6 +112,7 @@ resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=rop
     ,clearedstatus_=Nothing
     ,real_=False
     ,query_=""
+    ,period_=PeriodAll
     }}}}
 
 resetDepth :: UIState -> UIState

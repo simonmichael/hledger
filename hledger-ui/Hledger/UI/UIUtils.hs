@@ -127,6 +127,10 @@ borderDepthStr :: Maybe Int -> Widget Name
 borderDepthStr Nothing  = str ""
 borderDepthStr (Just d) = str " to " <+> withAttr (borderAttr <> "query") (str $ "depth "++show d)
 
+borderPeriodStr :: Period -> Widget Name
+borderPeriodStr PeriodAll = str ""
+borderPeriodStr p         = str " in " <+> withAttr (borderAttr <> "query") (str $ showPeriod p)
+
 borderKeysStr :: [(String,String)] -> Widget Name
 borderKeysStr keydescs =
   hBox $
