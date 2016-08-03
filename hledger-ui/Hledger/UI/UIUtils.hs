@@ -71,9 +71,13 @@ helpDialog =
                   ,renderKey ("R", "toggle real filter")
                   ,renderKey ("Z", "toggle nonzero filter")
                   ,renderKey ("F", "toggle flat/exclusive mode")
-                  ,renderKey ("DEL/BS", "remove filters")
+                  ,renderKey ("d", "change report period duration")
+                  ,str "when duration set:"
+                  ,renderKey ("n/p", "next/previous report period")
                   ,str "accounts screen:"
                   ,renderKey ("-+0123456789", "set depth limit")
+                  ,str " "
+                  ,renderKey ("DEL/BS", "remove filters")
                 ]
              ]
           ,vBox [
