@@ -242,7 +242,7 @@ rsHandle ui@UIState{
       case ev of
         EvKey KEsc   [] -> continue $ closeMinibuffer ui
         EvKey KEnter [] -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
-                            where s = chomp $ unlines $ getEditContents ed
+                            where s = chomp $ unlines $ map strip $ getEditContents ed
         ev              -> do ed' <- handleEditorEvent ev ed
                               continue $ ui{aMode=Minibuffer ed'}
 
