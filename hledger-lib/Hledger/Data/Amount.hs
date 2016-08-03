@@ -434,9 +434,9 @@ sumSimilarAmountsUsingFirstPrice :: [Amount] -> Amount
 sumSimilarAmountsUsingFirstPrice [] = nullamt
 sumSimilarAmountsUsingFirstPrice as = (sum as){aprice=aprice $ head as}
 
--- | Sum same-commodity amounts. If there were different prices, set
--- the price to a special marker indicating "various". Only used as a
--- rendering helper.
+-- -- | Sum same-commodity amounts. If there were different prices, set
+-- -- the price to a special marker indicating "various". Only used as a
+-- -- rendering helper.
 -- sumSimilarAmountsNotingPriceDifference :: [Amount] -> Amount
 -- sumSimilarAmountsNotingPriceDifference [] = nullamt
 -- sumSimilarAmountsNotingPriceDifference as = undefined
