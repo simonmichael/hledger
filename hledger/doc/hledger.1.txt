@@ -307,7 +307,7 @@ OPTIONS
        lastweek                     spaces are optional
        today, yesterday, tomorrow
 
-   Report interval
+   Report intervals
        A report interval can be specified so that commands like register, bal-
        ance  and  activity will divide their reports into multiple subperiods.
        The  basic  intervals  can  be  selected  with   one   of   -D/--daily,
@@ -397,7 +397,7 @@ OPTIONS
 
        hledger register checking -p "every 3rd day of week"
 
-   Regular Expressions
+   Regular expressions
        hledger uses regular expressions in a number of places:
 
        o query  terms, on the command line and in the hledger-web search form:
@@ -501,9 +501,9 @@ QUERIES
        date:PERIODEXPR
               match dates within the specified period.  PERIODEXPR is a period
               expression (with  no  report  interval).   Examples:  date:2016,
-              date:thismonth,  date:2000/2/1-2/15,  date:lastweek-.   The com-
-              mand-line  --date2  flag  makes  date:  match  secondary   dates
-              instead.
+              date:thismonth,   date:2000/2/1-2/15,  date:lastweek-.   If  the
+              --date2 command line flag is  present,  this  matches  secondary
+              dates instead.
 
        date2:PERIODEXPR
               match secondary dates within the specified period.

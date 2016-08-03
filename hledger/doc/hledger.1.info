@@ -294,9 +294,9 @@ cur:\\\\$'.
 * Repeated options::
 * Depth limiting::
 * Smart dates::
-* Report interval::
+* Report intervals::
 * Period expressions::
-* Regular Expressions::
+* Regular expressions::
 
 
 File: hledger.1.info,  Node: Multiple files,  Next: Repeated options,  Up: OPTIONS
@@ -329,7 +329,7 @@ register will show only the uppermost accounts in the account tree, down
 to level N. Use this when you want a summary with less detail.
 
 
-File: hledger.1.info,  Node: Smart dates,  Next: Report interval,  Prev: Depth limiting,  Up: OPTIONS
+File: hledger.1.info,  Node: Smart dates,  Next: Report intervals,  Prev: Depth limiting,  Up: OPTIONS
 
 2.4 Smart dates
 ===============
@@ -352,10 +352,10 @@ omitted (defaulting to 1).
 `today', `yesterday', `tomorrow'                   
 
 
-File: hledger.1.info,  Node: Report interval,  Next: Period expressions,  Prev: Smart dates,  Up: OPTIONS
+File: hledger.1.info,  Node: Report intervals,  Next: Period expressions,  Prev: Smart dates,  Up: OPTIONS
 
-2.5 Report interval
-===================
+2.5 Report intervals
+====================
 
 A report interval can be specified so that commands like register,
 balance and activity will divide their reports into multiple subperiods.
@@ -364,7 +364,7 @@ The basic intervals can be selected with one of `-D/--daily',
 complex intervals may be specified with a period expression.
 
 
-File: hledger.1.info,  Node: Period expressions,  Next: Regular Expressions,  Prev: Report interval,  Up: OPTIONS
+File: hledger.1.info,  Node: Period expressions,  Next: Regular expressions,  Prev: Report intervals,  Up: OPTIONS
 
 2.6 Period expressions
 ======================
@@ -439,9 +439,9 @@ start date and exclusive end date):
    `hledger register checking -p "every 3rd day of week"'
 
 
-File: hledger.1.info,  Node: Regular Expressions,  Prev: Period expressions,  Up: OPTIONS
+File: hledger.1.info,  Node: Regular expressions,  Prev: Period expressions,  Up: OPTIONS
 
-2.7 Regular Expressions
+2.7 Regular expressions
 =======================
 
 hledger uses regular expressions in a number of places:
@@ -555,9 +555,9 @@ match (or negatively match)
 *`date:PERIODEXPR'*
      match dates within the specified period. PERIODEXPR is a period
      expression (with no report interval). Examples: `date:2016',
-     `date:thismonth', `date:2000/2/1-2/15', date:`lastweek-'.  The
-     command-line `--date2' flag makes `date:' match secondary dates
-     instead.
+     `date:thismonth', `date:2000/2/1-2/15', `date:lastweek-'.  If the
+     `--date2' command line flag is present, this matches secondary
+     dates instead.
 
 *`date2:PERIODEXPR'*
      match secondary dates within the specified period.
@@ -2092,95 +2092,95 @@ Node: EXAMPLES1875
 Ref: #examples1977
 Node: OPTIONS3981
 Ref: #options4085
-Node: Multiple files8958
-Ref: #multiple-files9083
-Node: Repeated options9348
-Ref: #repeated-options9500
-Node: Depth limiting9620
-Ref: #depth-limiting9765
-Node: Smart dates9966
-Ref: #smart-dates10104
-Node: Report interval11101
-Ref: #report-interval11251
-Node: Period expressions11587
-Ref: #period-expressions11751
-Node: Regular Expressions14086
-Ref: #regular-expressions14228
-Node: QUERIES15711
-Ref: #queries15815
-Node: COMMANDS19125
-Ref: #commands19239
-Node: accounts19912
-Ref: #accounts20012
-Node: activity20994
-Ref: #activity21106
-Node: add21465
-Ref: #add21566
-Node: balance24225
-Ref: #balance24338
-Node: Flat mode27054
-Ref: #flat-mode27181
-Node: Depth limited balance reports27600
-Ref: #depth-limited-balance-reports27803
-Node: Multicolumn balance reports28224
-Ref: #multicolumn-balance-reports28426
-Node: Market value33075
-Ref: #market-value33239
-Node: Custom balance output33732
-Ref: #custom-balance-output33905
-Node: Output destination36009
-Ref: #output-destination36174
-Node: CSV output36444
-Ref: #csv-output36563
-Node: balancesheet36960
-Ref: #balancesheet37088
-Node: cashflow37740
-Ref: #cashflow37857
-Node: help38547
-Ref: #help38659
-Node: incomestatement39496
-Ref: #incomestatement39626
-Node: info40353
-Ref: #info40460
-Node: man40822
-Ref: #man40919
-Node: print41322
-Ref: #print41427
-Node: register42778
-Ref: #register42891
-Node: Custom register output47232
-Ref: #custom-register-output47363
-Node: stats48660
-Ref: #stats48766
-Node: test49647
-Ref: #test49734
-Node: ADD-ON COMMANDS50101
-Ref: #add-on-commands50237
-Node: api51525
-Ref: #api51617
-Node: autosync51651
-Ref: #autosync51766
-Node: diff54081
-Ref: #diff54191
-Node: equity54855
-Ref: #equity54969
-Node: interest56297
-Ref: #interest56414
-Node: irr59498
-Ref: #irr59611
-Node: print-unique61986
-Ref: #print-unique62116
-Node: rewrite62374
-Ref: #rewrite62493
-Node: ui63022
-Ref: #ui63122
-Node: web63163
-Ref: #web63251
-Node: TROUBLESHOOTING63284
-Ref: #troubleshooting63403
-Node: Run-time problems63457
-Ref: #run-time-problems63600
-Node: Known limitations65544
-Ref: #known-limitations65687
+Node: Multiple files8959
+Ref: #multiple-files9084
+Node: Repeated options9349
+Ref: #repeated-options9501
+Node: Depth limiting9621
+Ref: #depth-limiting9766
+Node: Smart dates9967
+Ref: #smart-dates10106
+Node: Report intervals11103
+Ref: #report-intervals11256
+Node: Period expressions11592
+Ref: #period-expressions11757
+Node: Regular expressions14092
+Ref: #regular-expressions14234
+Node: QUERIES15717
+Ref: #queries15821
+Node: COMMANDS19139
+Ref: #commands19253
+Node: accounts19926
+Ref: #accounts20026
+Node: activity21008
+Ref: #activity21120
+Node: add21479
+Ref: #add21580
+Node: balance24239
+Ref: #balance24352
+Node: Flat mode27068
+Ref: #flat-mode27195
+Node: Depth limited balance reports27614
+Ref: #depth-limited-balance-reports27817
+Node: Multicolumn balance reports28238
+Ref: #multicolumn-balance-reports28440
+Node: Market value33089
+Ref: #market-value33253
+Node: Custom balance output33746
+Ref: #custom-balance-output33919
+Node: Output destination36023
+Ref: #output-destination36188
+Node: CSV output36458
+Ref: #csv-output36577
+Node: balancesheet36974
+Ref: #balancesheet37102
+Node: cashflow37754
+Ref: #cashflow37871
+Node: help38561
+Ref: #help38673
+Node: incomestatement39510
+Ref: #incomestatement39640
+Node: info40367
+Ref: #info40474
+Node: man40836
+Ref: #man40933
+Node: print41336
+Ref: #print41441
+Node: register42792
+Ref: #register42905
+Node: Custom register output47246
+Ref: #custom-register-output47377
+Node: stats48674
+Ref: #stats48780
+Node: test49661
+Ref: #test49748
+Node: ADD-ON COMMANDS50115
+Ref: #add-on-commands50251
+Node: api51539
+Ref: #api51631
+Node: autosync51665
+Ref: #autosync51780
+Node: diff54095
+Ref: #diff54205
+Node: equity54869
+Ref: #equity54983
+Node: interest56311
+Ref: #interest56428
+Node: irr59512
+Ref: #irr59625
+Node: print-unique62000
+Ref: #print-unique62130
+Node: rewrite62388
+Ref: #rewrite62507
+Node: ui63036
+Ref: #ui63136
+Node: web63177
+Ref: #web63265
+Node: TROUBLESHOOTING63298
+Ref: #troubleshooting63417
+Node: Run-time problems63471
+Ref: #run-time-problems63614
+Node: Known limitations65558
+Ref: #known-limitations65701
 
 End Tag Table

@@ -465,7 +465,7 @@ T{
 T}@T{
 T}
 .TE
-.SS Report interval
+.SS Report intervals
 .PP
 A report interval can be specified so that commands like register,
 balance and activity will divide their reports into multiple subperiods.
@@ -628,7 +628,7 @@ Group postings from start of wednesday to end of next tuesday (N is
 start date and exclusive end date):
 .PP
 \f[C]hledger\ register\ checking\ \-p\ "every\ 3rd\ day\ of\ week"\f[]
-.SS Regular Expressions
+.SS Regular expressions
 .PP
 hledger uses regular expressions in a number of places:
 .IP \[bu] 2
@@ -754,8 +754,8 @@ match transaction descriptions
 match dates within the specified period.
 PERIODEXPR is a period expression (with no report interval).
 Examples: \f[C]date:2016\f[], \f[C]date:thismonth\f[],
-\f[C]date:2000/2/1\-2/15\f[], date:\f[C]lastweek\-\f[].
-The command\-line \f[C]\-\-date2\f[] flag makes \f[C]date:\f[] match
+\f[C]date:2000/2/1\-2/15\f[], \f[C]date:lastweek\-\f[].
+If the \f[C]\-\-date2\f[] command line flag is present, this matches
 secondary dates instead.
 .RS
 .RE
