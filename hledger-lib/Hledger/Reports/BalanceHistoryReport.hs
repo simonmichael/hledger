@@ -22,7 +22,7 @@ import Hledger.Reports.ReportOptions
 import Hledger.Reports.TransactionsReports
 
 
--- | Get the historical running inclusive balance of a particular account,
+-- | Get the historical inclusive balance of a particular account over time,
 -- from earliest to latest posting date.
 accountBalanceHistory :: ReportOpts -> Journal -> Account -> [(Day, MixedAmount)]
 accountBalanceHistory ropts j a = [(getdate t, bal) | (t,_,_,_,_,bal) <- items]
