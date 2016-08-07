@@ -1,11 +1,12 @@
-4a5,12
+4a4,5
+> <a name="hledger" />
+> 
+6a7,12
 > <div class="versions">
 > This doc is for version **0.27**.
 > Other versions:
-> <a href="manual.html">0.28dev</a>
+> <a href="/manual.html">0.28dev</a>
 > </div>
-> 
-> <a name="hledger" />
 > 
 2198a2207,2208
 > <a name="hledger-ui" />
