@@ -25,7 +25,7 @@ account1 assets:bank:checking
 
 # if the CSV record contains ‘SAVINGS’, set the second account to assets:bank:savings
 # (if not set, it will be expenses:unknown or income:unknown)
-if ~ SAVINGS
+if SAVINGS
   account2 assets:bank:savings
 ```
 
