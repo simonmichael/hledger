@@ -82,7 +82,9 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
             query_=unwords $ -- as in ReportOptions, with same limitations
                    [v | (k,v) <- rawopts_ copts, k=="args", not $ "depth" `isPrefixOf` v],
             -- show items with zero amount by default, unlike the CLI
-            empty_=True
+            empty_=True,
+            -- always disable boring account name eliding, unlike the CLI, for a more regular tree
+            no_elide_=True
             }
          }
       }

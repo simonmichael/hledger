@@ -52,9 +52,6 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `--flat`
 : show full account names, unindented
 
-`--no-elide`
-: don't compress empty parent accounts on one line
-
 `--register=ACCTREGEX`
 : start in the (first) matched account's register screen
 
