@@ -5,13 +5,6 @@ Balance report, used by the balance command.
 
 -}
 
-
-
-
-
-
-
-
 module Hledger.Reports.BalanceReport (
   BalanceReport,
   BalanceReportItem,
@@ -36,12 +29,6 @@ import Hledger.Read (mamountp')
 import Hledger.Query
 import Hledger.Utils
 import Hledger.Reports.ReportOptions
-
-
-
-
-
-
 
 
 -- | A simple single-column balance report. It has:
@@ -154,8 +141,8 @@ mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
 mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
 
 -- | Find the market value of this amount on the given date, in it's
--- default valuation commodity, based on recorded market prices.
--- If no default valuation commodity can be found, the amount is left
+-- default valuation commodity, based on historical prices. If no
+-- default valuation commodity can be found, the amount is left
 -- unchanged.
 amountValue :: Journal -> Day -> Amount -> Amount
 amountValue j d a =
@@ -168,20 +155,13 @@ amountValue j d a =
 -- | Find the market value, if known, of one unit of this commodity on
 -- the given date, in the commodity in which it has most recently been
 -- market-priced (ie the commodity mentioned in the most recent
--- applicable market price directive before this date).
+-- applicable historical price directive before this date).
 commodityValue :: Journal -> Day -> CommoditySymbol -> Maybe Amount
 commodityValue j d c
     | null applicableprices = Nothing
     | otherwise             = Just $ mpamount $ last applicableprices
   where
     applicableprices = [p | p <- sort $ jmarketprices j, mpcommodity p == c, mpdate p <= d]
-
-
-
-
-
-
-
 
 tests_balanceReport =
   let

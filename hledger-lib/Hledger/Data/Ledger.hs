@@ -18,11 +18,9 @@ import Text.Printf
 
 import Hledger.Data.Types
 import Hledger.Data.Account
-import Hledger.Data.Dates
 import Hledger.Data.Journal
 import Hledger.Data.Posting
 import Hledger.Query
-import Hledger.Utils.Debug
 
 
 instance Show Ledger where
@@ -41,33 +39,16 @@ nullledger = Ledger {
 
 -- | Filter a journal's transactions with the given query, then derive
 -- a ledger containing the chart of accounts and balances. If the
--- query includes a depth limit, that will affect the ledger's
+-- query includes a depth limit, that will affect the this ledger's
 -- journal but not the ledger's account tree.
 ledgerFromJournal :: Query -> Journal -> Ledger
-ledgerFromJournal q j = nullledger{ljournal=depthclippedperiodj, laccounts=as}
+ledgerFromJournal q j = nullledger{ljournal=j'', laccounts=as}
   where
-    symq        = filterQuery queryIsSym q
-    depthq      = filterQuery queryIsDepth q
-    periodq     = filterQuery (not . queryIsDepth) q
-    -- get account totals before and during report period
-    datelessq   = filterQuery (not . queryIsDateOrDate2) periodq
-    dateqcons  = Date -- if date2_ opts then Date2 else Date  -- import cycle, don't bother supporting date2
-    reportspan = queryDateSpan False {-(date2_ opts)-} q   -- date span specified by -b/-e/-p options and query args
-    mstartdate = dbg1 "mstartdate" $ spanStart reportspan
-    menddate   = dbg1 "menddate"   $ spanEnd   reportspan
-    precedingq = dbg1 "precedingq" $
-                 case mstartdate of
-                   Just _  -> And [datelessq, dateqcons $ DateSpan Nothing mstartdate]
-                   Nothing -> None
-
-    -- remove amount parts which the query's sym: terms would exclude
-    precedingj  = filterJournalAmounts symq $ filterJournalPostings precedingq j
-    periodj     = filterJournalAmounts symq $ filterJournalPostings periodq j
-    precedingas = accountsFromPostings $ journalPostings precedingj
-    as          = accountsFromPostings $ journalPostings periodj
-    depthclippedperiodj = filterJournalPostings depthq periodj
-
---     j' = journalSelectingAmountFromOpts opts j
+    (q',depthq)  = (filterQuery (not . queryIsDepth) q, filterQuery queryIsDepth q)
+    j'  = filterJournalAmounts (filterQuery queryIsSym q) $ -- remove amount parts which the query's sym: terms would exclude
+          filterJournalPostings q' j
+    as  = accountsFromPostings $ journalPostings j'
+    j'' = filterJournalPostings depthq j'
 
 -- | List a ledger's account names.
 ledgerAccountNames :: Ledger -> [AccountName]

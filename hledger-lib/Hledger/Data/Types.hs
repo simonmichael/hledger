@@ -281,8 +281,8 @@ instance NFData MarketPrice
 --
 data Journal = Journal {
   -- parsing-related data
-   jparsedefaultyear      :: Maybe Year                            -- ^ the current default year, specified by the most recent Y directive (or current date)
-  ,jparsedefaultcommodity :: Maybe (CommoditySymbol,AmountStyle)   -- ^ the current default commodity and its format, specified by the most recent D directive
+   jparsedefaultyear      :: (Maybe Year)                          -- ^ the current default year, specified by the most recent Y directive (or current date)
+  ,jparsedefaultcommodity :: (Maybe (CommoditySymbol,AmountStyle)) -- ^ the current default commodity and its format, specified by the most recent D directive
   ,jparseparentaccounts   :: [AccountName]                         -- ^ the current stack of parent account names, specified by apply account directives
   ,jparsealiases          :: [AccountAlias]                        -- ^ the current account name aliases in effect, specified by alias directives (& options ?)
   ,jparsetransactioncount :: Integer                               -- ^ the current count of transactions parsed so far (only journal format txns, currently)
@@ -329,23 +329,15 @@ data Reader = Reader {
 
 instance Show Reader where show r = rFormat r ++ " reader"
 
--- | An account, with name, links to parent/subaccounts
--- which let you walk up or down the account tree, and
--- and start/end balances and balance change amount relative to
--- some report period.
+-- | An account, with name, balances and links to parent/subaccounts
+-- which let you walk up or down the account tree.
 data Account = Account {
   aname                     :: AccountName,   -- ^ this account's full name
   aebalance                 :: MixedAmount,   -- ^ this account's balance, excluding subaccounts
-  aestartbalance            :: MixedAmount,   -- ^ this account's balance at start of report period, excluding subaccounts
-  aeperiodchange            :: MixedAmount,   -- ^ the change in this account's balance during the report period, excluding subaccounts
-  aeendbalance              :: MixedAmount,   -- ^ this account's balance at end of report period, excluding subaccounts
   asubs                     :: [Account],     -- ^ sub-accounts
   anumpostings              :: Int,           -- ^ number of postings to this account
   -- derived from the above :
   aibalance                 :: MixedAmount,   -- ^ this account's balance, including subaccounts
-  aistartbalance            :: MixedAmount,   -- ^ this account's balance at start of report period, excluding subaccounts
-  aiperiodchange            :: MixedAmount,   -- ^ the change in this account's balance during the report period, excluding subaccounts
-  aiendbalance              :: MixedAmount,   -- ^ this account's balance at end of report period, excluding subaccounts
   aparent                   :: Maybe Account, -- ^ parent account
   aboring                   :: Bool           -- ^ used in the accounts report to label elidable parents
   } deriving (Typeable, Data, Generic)
