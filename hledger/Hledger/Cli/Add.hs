@@ -270,7 +270,7 @@ amountAndCommentWizard EntryState{..} = do
       def = case (esArgs, mhistoricalp, followedhistoricalsofar) of
               (d:_,_,_)                                             -> d
               (_,Just hp,True)                                      -> showamt $ pamount hp
-              _  | pnum > 1 && not (isZeroMixedAmount balancingamt) -> showamt balancingamt
+              _  | pnum > 1 && not (isZeroMixedAmount balancingamt) -> showamt balancingamtfirstcommodity
               _                                                     -> ""
   retryMsg "A valid hledger amount is required. Eg: 1, $2, 3 EUR, \"4 red apples\"." $
    parser parseAmountAndComment $
@@ -293,7 +293,9 @@ amountAndCommentWizard EntryState{..} = do
         -- eof
         return (a,c)
       balancingamt = negate $ sum $ map pamount realps where realps = filter isReal esPostings
-      showamt = showMixedAmountWithPrecision
+      balancingamtfirstcommodity = Mixed $ take 1 $ amounts balancingamt
+      showamt =
+        showMixedAmountWithPrecision
                   -- what should this be ?
                   -- 1 maxprecision (show all decimal places or none) ?
                   -- 2 maxprecisionwithpoint (show all decimal places or .0 - avoids some but not all confusion with thousands separators) ?
