@@ -244,7 +244,9 @@ main = do
     phony "releasemanual0.27" $ do
       -- XXX under doc so hakyll-std will render it
       cmd "mkdir -p site/doc/0.27" :: Action ExitCode
-      cmd Shell "git show 0.27:doc/manual.md >site/doc/0.27/manual.md"
+      cmd Shell "git show 0.27:doc/manual.md >site/doc/0.27/manual.md" :: Action ExitCode
+      cmd Shell "patch site/doc/0.27/manual.md doc/manual0.27.diff "
+
 
     -- build standard hakyll script used for site rendering
     hakyllstd %> \out -> do

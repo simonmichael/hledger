@@ -3,11 +3,7 @@
 % _monthyear_
 
 _web_({{
-m4_dnl _versions_({{hledger-api}})
-<div class="versions">
-version:
-<a href="$1.html">dev</a>
-</div>
+_versions_({{hledger-api}})
 _toc_
 }})
 
