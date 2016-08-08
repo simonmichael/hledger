@@ -281,8 +281,8 @@ instance NFData MarketPrice
 --
 data Journal = Journal {
   -- parsing-related data
-   jparsedefaultyear      :: (Maybe Year)                          -- ^ the current default year, specified by the most recent Y directive (or current date)
-  ,jparsedefaultcommodity :: (Maybe (CommoditySymbol,AmountStyle)) -- ^ the current default commodity and its format, specified by the most recent D directive
+   jparsedefaultyear      :: Maybe Year                            -- ^ the current default year, specified by the most recent Y directive (or current date)
+  ,jparsedefaultcommodity :: Maybe (CommoditySymbol,AmountStyle)   -- ^ the current default commodity and its format, specified by the most recent D directive
   ,jparseparentaccounts   :: [AccountName]                         -- ^ the current stack of parent account names, specified by apply account directives
   ,jparsealiases          :: [AccountAlias]                        -- ^ the current account name aliases in effect, specified by alias directives (& options ?)
   ,jparsetransactioncount :: Integer                               -- ^ the current count of transactions parsed so far (only journal format txns, currently)
