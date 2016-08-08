@@ -4,8 +4,8 @@ This is hledger-ui/doc/hledger-ui.1.info, produced by makeinfo version
 
 File: hledger-ui.1.info,  Node: Top,  Up: (dir)
 
-hledger-ui(1) hledger-ui 0.28
-*****************************
+hledger-ui(1) hledger-ui 0.28dev
+********************************
 
 hledger-ui is hledger's curses-style interface, providing an efficient
 full-window text UI for viewing accounts and transactions, and some
@@ -39,9 +39,6 @@ the data.
 
 `--flat'
      show full account names, unindented
-
-`--no-elide'
-     don't compress empty parent accounts on one line
 
 `--register=ACCTREGEX'
      start in the (first) matched account's register screen
@@ -345,19 +342,19 @@ to cancel the reload attempt.)
 
 Tag Table:
 Node: Top88
-Node: OPTIONS825
-Ref: #options924
-Node: KEYS3805
-Ref: #keys3902
-Node: SCREENS6114
-Ref: #screens6201
-Node: Accounts screen6291
-Ref: #accounts-screen6421
-Node: Register screen7887
-Ref: #register-screen8044
-Node: Transaction screen10004
-Ref: #transaction-screen10164
-Node: Error screen11031
-Ref: #error-screen11155
+Node: OPTIONS831
+Ref: #options930
+Node: KEYS3743
+Ref: #keys3840
+Node: SCREENS6052
+Ref: #screens6139
+Node: Accounts screen6229
+Ref: #accounts-screen6359
+Node: Register screen7825
+Ref: #register-screen7982
+Node: Transaction screen9942
+Ref: #transaction-screen10102
+Node: Error screen10969
+Ref: #error-screen11093
 
 End Tag Table

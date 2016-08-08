@@ -37,9 +37,6 @@ OPTIONS
 
        --flat show full account names, unindented
 
-       --no-elide
-              don't compress empty parent accounts on one line
-
        --register=ACCTREGEX
               start in the (first) matched account's register screen
 
@@ -347,4 +344,4 @@ SEE ALSO
 
 
 
-hledger-ui 0.28                    May 2016                      hledger-ui(1)
+hledger-ui 0.28dev                 May 2016                      hledger-ui(1)

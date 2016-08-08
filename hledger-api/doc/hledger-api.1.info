@@ -4,8 +4,8 @@ version 4.8 from stdin.
 
 File: hledger-api.1.info,  Node: Top,  Up: (dir)
 
-hledger-api(1) hledger-api 0.28
-*******************************
+hledger-api(1) hledger-api 0.28dev
+**********************************
 
 hledger-api is a simple web API server, intended to support client-side
 web apps operating on hledger data. It comes with a series of simple
@@ -84,7 +84,7 @@ before options as shown above.
 
 Tag Table:
 Node: Top90
-Node: OPTIONS1058
-Ref: #options1145
+Node: OPTIONS1064
+Ref: #options1151
 
 End Tag Table

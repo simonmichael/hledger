@@ -232,4 +232,4 @@ SEE ALSO
 
 
 
-hledger-web 0.28                   May 2016                     hledger-web(1)
+hledger-web 0.28dev                May 2016                     hledger-web(1)

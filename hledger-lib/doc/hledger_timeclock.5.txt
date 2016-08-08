@@ -79,4 +79,4 @@ SEE ALSO
 
 
 
-hledger 0.28                       May 2016               hledger_timeclock(5)
+hledger 0.28dev                    May 2016               hledger_timeclock(5)

@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "May 2016" "hledger 0.28" "hledger User Manuals"
+.TH "hledger" "1" "May 2016" "hledger 0.28dev" "hledger User Manuals"
 
 
 
@@ -791,6 +791,15 @@ transaction.
 .TP
 .B \f[B]\f[C]not:\f[]\f[]
 before any of the above negates the match.
+.RS
+.RE
+.TP
+.B \f[B]\f[C]inacct:ACCTNAME\f[]\f[]
+a special term used automatically when you click an account name in
+hledger\-web, specifying the account register we are currently in
+(selects the transactions of that account and how to show them, can be
+filtered further with \f[C]acct\f[] etc).
+Not supported elsewhere in hledger.
 .RS
 .RE
 .PP
