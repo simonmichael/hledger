@@ -52,10 +52,12 @@ nullacct = Account
   , aboring = False
   }
 
--- | Derive 1. an account tree and 2. their total changes from a list of postings.
--- (ledger's core feature). The accounts are returned in a list, but
---- also reference each other as a tree structure; the first account is
---- the root of the tree.
+-- | Derive 1. an account tree and 2. each account's total exclusive
+-- and inclusive changes from a list of postings.
+-- This is the core of the balance command (and of *ledger).
+-- The accounts are returned as a list in flattened tree order,
+-- and also reference each other as a tree.
+-- (The first account is the root of the tree.)
 accountsFromPostings :: [Posting] -> [Account]
 accountsFromPostings ps =
   let

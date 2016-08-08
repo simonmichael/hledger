@@ -32,32 +32,34 @@ import Hledger.Reports.BalanceReport
 
 -- | A multi balance report is a balance report with one or more columns. It has:
 --
--- 1. a list of each column's date span
+-- 1. a list of each column's period (date span)
 --
--- 2. a list of rows, each containing a renderable account name and the amounts to show in each column
+-- 2. a list of row items, each containing:
 --
--- 3. a list of each column's final total
+--   * the full account name
+--
+--   * the leaf account name
+--
+--   * the account's depth
+--
+--   * the amounts to show in each column
+--
+--   * the total of the row's amounts
+--
+--   * the average of the row's amounts
+--
+-- 3. the column totals and the overall total and average
 --
 -- The meaning of the amounts depends on the type of multi balance
 -- report, of which there are three: periodic, cumulative and historical
 -- (see 'BalanceType' and "Hledger.Cli.Balance").
-newtype MultiBalanceReport = MultiBalanceReport ([DateSpan]
-                                                ,[MultiBalanceReportRow]
-                                                ,MultiBalanceTotalsRow
-                                                )
-
--- | A row in a multi balance report has
---
--- * An account name, with rendering hints
---
--- * A list of amounts to be shown in each of the report's columns.
---
--- * The total of the row amounts.
---
--- * The average of the row amounts.
-type MultiBalanceReportRow = (RenderableAccountName, [MixedAmount], MixedAmount, MixedAmount)
-
-type MultiBalanceTotalsRow = ([MixedAmount], MixedAmount, MixedAmount)
+newtype MultiBalanceReport =
+  MultiBalanceReport ([DateSpan]
+                     ,[MultiBalanceReportRow]
+                     ,MultiBalanceReportTotals
+                     )
+type MultiBalanceReportRow    = (AccountName, AccountName, Int, [MixedAmount], MixedAmount, MixedAmount)
+type MultiBalanceReportTotals = ([MixedAmount], MixedAmount, MixedAmount)
 
 instance Show MultiBalanceReport where
     -- use ppShow to break long lists onto multiple lines
@@ -125,7 +127,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
       postedAccts :: [AccountName] = dbg1 "postedAccts" $ sort $ accountNamesFromPostings ps
 
       -- starting balances and accounts from transactions before the report start date
-      startacctbals = dbg1 "startacctbals" $ map (\((a,_,_),b) -> (a,b)) startbalanceitems
+      startacctbals = dbg1 "startacctbals" $ map (\(a,_,_,b) -> (a,b)) startbalanceitems
           where
             (startbalanceitems,_) = dbg1 "starting balance report" $ balanceReport opts' precedingq j
                                     where
@@ -152,7 +154,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
 
       items :: [MultiBalanceReportRow] =
           dbg1 "items"
-          [((a, accountLeafName a, accountNameLevel a), displayedBals, rowtot, rowavg)
+          [(a, accountLeafName a, accountNameLevel a, displayedBals, rowtot, rowavg)
            | (a,changes) <- acctBalChanges
            , let displayedBals = case balancetype_ opts of
                                   HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
@@ -167,12 +169,12 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
           -- dbg1 "totals" $
           map sum balsbycol
           where
-            balsbycol = transpose [bs | ((a,_,_),bs,_,_) <- items, not (tree_ opts) || a `elem` highestlevelaccts]
+            balsbycol = transpose [bs | (a,_,_,bs,_,_) <- items, not (tree_ opts) || a `elem` highestlevelaccts]
             highestlevelaccts     =
                 dbg1 "highestlevelaccts"
                 [a | a <- displayedAccts, not $ any (`elem` displayedAccts) $ init $ expandAccountName a]
 
-      totalsrow :: MultiBalanceTotalsRow =
+      totalsrow :: MultiBalanceReportTotals =
           dbg1 "totalsrow"
           (totals, sum totals, averageMixedAmounts totals)
 
@@ -188,7 +190,7 @@ multiBalanceReportValue j d r = r'
     MultiBalanceReport (spans, rows, (coltotals, rowtotaltotal, rowavgtotal)) = r
     r' = MultiBalanceReport
          (spans,
-          [(n, map convert rowamts, convert rowtotal, convert rowavg) | (n, rowamts, rowtotal, rowavg) <- rows],
+          [(acct, acct', depth, map convert rowamts, convert rowtotal, convert rowavg) | (acct, acct', depth, rowamts, rowtotal, rowavg) <- rows],
           (map convert coltotals, convert rowtotaltotal, convert rowavgtotal))
     convert = mixedAmountValue j d
 

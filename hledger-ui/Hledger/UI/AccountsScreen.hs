@@ -85,7 +85,7 @@ asInit d reset ui@UIState{
     (items,_total) = convert $ balanceReport ropts' q j
 
     -- pre-render the list items
-    displayitem ((fullacct, shortacct, indent), bal) =
+    displayitem (fullacct, shortacct, indent, bal) =
       AccountsScreenItem{asItemIndentLevel        = indent
                         ,asItemAccountName        = fullacct
                         ,asItemDisplayAccountName = replaceHiddenAccountsNameWith "All" $ if flat_ ropts' then fullacct else shortacct

@@ -332,7 +332,7 @@ balance opts@CliOpts{reportopts_=ropts} j = do
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[T.unpack a, showMixedAmountOneLineWithoutPrice b] | ((a, _, _), b) <- items]
+  [[T.unpack a, showMixedAmountOneLineWithoutPrice b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
@@ -353,7 +353,7 @@ balanceReportAsText opts ((items, total)) = unlines $ concat lines ++ t
                Right fmt ->
                 let
                   -- abuse renderBalanceReportItem to render the total with similar format
-                  acctcolwidth = maximum' [T.length fullname | ((fullname, _, _), _) <- items]
+                  acctcolwidth = maximum' [T.length fullname | (fullname, _, _, _) <- items]
                   totallines = map rstrip $ renderBalanceReportItem fmt (T.replicate (acctcolwidth+1) " ", 0, total)
                   -- with a custom format, extend the line to the full report width;
                   -- otherwise show the usual 20-char line for compatibility
@@ -393,7 +393,7 @@ This implementation turned out to be a bit convoluted but implements the followi
 -- differently-priced quantities of the same commodity will appear merged.
 -- The output will be one or more lines depending on the format and number of commodities.
 balanceReportItemAsText :: ReportOpts -> StringFormat -> BalanceReportItem -> [String]
-balanceReportItemAsText opts fmt ((_, accountName, depth), amt) =
+balanceReportItemAsText opts fmt (_, accountName, depth, amt) =
   renderBalanceReportItem fmt (
     maybeAccountNameDrop opts accountName,
     depth,
@@ -455,7 +455,7 @@ multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,to
    (amts
     ++ (if row_total_ opts then [rowtot] else [])
     ++ (if average_ opts then [rowavg] else []))
-  | ((a,a',i), amts, rowtot, rowavg) <- items]
+  | (a,a',i, amts, rowtot, rowavg) <- items]
   ++
   if no_total_ opts
   then []
@@ -486,11 +486,11 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotal
     items' | empty_ opts = items
            | otherwise   = items -- dbg1 "2" $ filter (any (not . isZeroMixedAmount) . snd) $ dbg1 "1" items
     accts = map renderacct items'
-    renderacct ((a,a',i),_,_,_)
+    renderacct (a,a',i,_,_,_)
       | tree_ opts = T.replicate ((i-1)*2) " " <> a'
       | otherwise  = maybeAccountNameDrop opts a
     acctswidth = maximum' $ map textWidth accts
-    rowvals (_,as,rowtot,rowavg) = as
+    rowvals (_,_,_,as,rowtot,rowavg) = as
                                    ++ (if row_total_ opts then [rowtot] else [])
                                    ++ (if average_ opts then [rowavg] else [])
     addtotalrow | no_total_ opts = id
@@ -518,11 +518,11 @@ cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (colt
                   ++ (if row_total_ opts then ["  Total"] else [])
                   ++ (if average_ opts then ["Average"] else [])
     accts = map renderacct items
-    renderacct ((a,a',i),_,_,_)
+    renderacct (a,a',i,_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack a'
       | otherwise  = T.unpack $ maybeAccountNameDrop opts a
     acctswidth = maximum' $ map strWidth accts
-    rowvals (_,as,rowtot,rowavg) = as
+    rowvals (_,_,_,as,rowtot,rowavg) = as
                                    ++ (if row_total_ opts then [rowtot] else [])
                                    ++ (if average_ opts then [rowavg] else [])
     addtotalrow | no_total_ opts = id
@@ -550,11 +550,11 @@ historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (colt
                   ++ (if row_total_ opts then ["  Total"] else [])
                   ++ (if average_ opts then ["Average"] else [])
     accts = map renderacct items
-    renderacct ((a,a',i),_,_,_)
+    renderacct (a,a',i,_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack a'
       | otherwise  = T.unpack $ maybeAccountNameDrop opts a
     acctswidth = maximum' $ map strWidth accts
-    rowvals (_,as,rowtot,rowavg) = as
+    rowvals (_,_,_,as,rowtot,rowavg) = as
                              ++ (if row_total_ opts then [rowtot] else [])
                              ++ (if average_ opts then [rowavg] else [])
     addtotalrow | no_total_ opts = id

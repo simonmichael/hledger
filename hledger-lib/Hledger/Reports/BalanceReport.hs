@@ -1,4 +1,3 @@
-{-# LANGUAGE FlexibleInstances, ScopedTypeVariables, OverloadedStrings #-}
 {-|
 
 Balance report, used by the balance command.
@@ -12,10 +11,11 @@ Balance report, used by the balance command.
 
 
 
+{-# LANGUAGE FlexibleInstances, ScopedTypeVariables, OverloadedStrings #-}
+
 module Hledger.Reports.BalanceReport (
   BalanceReport,
   BalanceReportItem,
-  RenderableAccountName,
   balanceReport,
   balanceReportValue,
   mixedAmountValue,
@@ -46,22 +46,23 @@ import Hledger.Reports.ReportOptions
 
 -- | A simple single-column balance report. It has:
 --
--- 1. a list of rows, each containing a renderable account name and a corresponding amount
+-- 1. a list of items, one per account, each containing:
 --
--- 2. the final total of the amounts
+--   * the full account name
+--
+--   * the Ledger-style elided short account name
+--     (the leaf account name, prefixed by any boring parents immediately above);
+--     or with --flat, the full account name again
+--
+--   * the number of indentation steps for rendering a Ledger-style account tree,
+--     taking into account elided boring parents, --no-elide and --flat
+--
+--   * an amount
+--
+-- 2. the total of all amounts
+--
 type BalanceReport = ([BalanceReportItem], MixedAmount)
-type BalanceReportItem = (RenderableAccountName, MixedAmount)
-
--- | A renderable account name includes some additional hints for rendering accounts in a balance report.
--- It has:
---
--- * The full account name
---
--- * The ledger-style short elided account name (the leaf name, prefixed by any boring parents immediately above)
---
--- * The number of indentation steps to use when rendering a ledger-style account tree
---   (normally the 0-based depth of this account excluding boring parents, or 0 with --flat).
-type RenderableAccountName = (AccountName, AccountName, Int)
+type BalanceReportItem = (AccountName, AccountName, Int, MixedAmount)
 
 -- | When true (the default), this makes balance --flat reports and their implementation clearer.
 -- Single/multi-col balance reports currently aren't all correct if this is false.
@@ -104,10 +105,10 @@ balanceReport opts q j = (items, total)
             prunezeros  = if empty_ opts then id else fromMaybe nullacct . pruneAccounts (isZeroMixedAmount . balance)
             markboring  = if no_elide_ opts then id else markBoringParentAccounts
       items = dbg1 "items" $ map (balanceReportItem opts q) accts'
-      total | not (flat_ opts) = dbg1 "total" $ sum [amt | ((_,_,indent),amt) <- items, indent == 0]
+      total | not (flat_ opts) = dbg1 "total" $ sum [amt | (_,_,indent,amt) <- items, indent == 0]
             | otherwise        = dbg1 "total" $
                                  if flatShowsExclusiveBalance
-                                 then sum $ map snd items
+                                 then sum $ map fourth4 items
                                  else sum $ map aebalance $ clipAccountsAndAggregate 1 accts'
 
 -- | In an account tree with zero-balance leaves removed, mark the
@@ -121,8 +122,8 @@ markBoringParentAccounts = tieAccountParents . mapAccounts mark
 
 balanceReportItem :: ReportOpts -> Query -> Account -> BalanceReportItem
 balanceReportItem opts q a
-  | flat_ opts = ((name, name,       0),      (if flatShowsExclusiveBalance then aebalance else aibalance) a)
-  | otherwise  = ((name, elidedname, indent), aibalance a)
+  | flat_ opts = (name, name,       0,      (if flatShowsExclusiveBalance then aebalance else aibalance) a)
+  | otherwise  = (name, elidedname, indent, aibalance a)
   where
     name | queryDepth q > 0 = aname a
          | otherwise        = "..."
@@ -148,7 +149,7 @@ balanceReportValue j d r = r'
   where
     (items,total) = r
     r' = dbg8 "balanceReportValue"
-         ([(n, mixedAmountValue j d a) |(n,a) <- items], mixedAmountValue j d total)
+         ([(n, n', i, mixedAmountValue j d a) |(n,n',i,a) <- items], mixedAmountValue j d total)
 
 mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
 mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
@@ -188,7 +189,7 @@ tests_balanceReport =
     (opts,journal) `gives` r = do
       let (eitems, etotal) = r
           (aitems, atotal) = balanceReport opts (queryFromOpts nulldate opts) journal
-          showw (acct,amt) = (acct, showMixedAmountDebug amt)
+          showw (acct,acct',indent,amt) = (acct, acct', indent, showMixedAmountDebug amt)
       assertEqual "items" (map showw eitems) (map showw aitems)
       assertEqual "total" (showMixedAmountDebug etotal) (showMixedAmountDebug atotal)
     usd0 = usd 0
@@ -200,36 +201,36 @@ tests_balanceReport =
   ,"balanceReport with no args on sample journal" ~: do
    (defreportopts, samplejournal) `gives`
     ([
-      (("assets","assets",0), mamountp' "$-1.00")
-     ,(("assets:bank:saving","bank:saving",1), mamountp' "$1.00")
-     ,(("assets:cash","cash",1), mamountp' "$-2.00")
-     ,(("expenses","expenses",0), mamountp' "$2.00")
-     ,(("expenses:food","food",1), mamountp' "$1.00")
-     ,(("expenses:supplies","supplies",1), mamountp' "$1.00")
-     ,(("income","income",0), mamountp' "$-2.00")
-     ,(("income:gifts","gifts",1), mamountp' "$-1.00")
-     ,(("income:salary","salary",1), mamountp' "$-1.00")
-     ,(("liabilities:debts","liabilities:debts",0), mamountp' "$1.00")
+      ("assets","assets",0, mamountp' "$-1.00")
+     ,("assets:bank:saving","bank:saving",1, mamountp' "$1.00")
+     ,("assets:cash","cash",1, mamountp' "$-2.00")
+     ,("expenses","expenses",0, mamountp' "$2.00")
+     ,("expenses:food","food",1, mamountp' "$1.00")
+     ,("expenses:supplies","supplies",1, mamountp' "$1.00")
+     ,("income","income",0, mamountp' "$-2.00")
+     ,("income:gifts","gifts",1, mamountp' "$-1.00")
+     ,("income:salary","salary",1, mamountp' "$-1.00")
+     ,("liabilities:debts","liabilities:debts",0, mamountp' "$1.00")
      ],
      Mixed [usd0])
 
   ,"balanceReport with --depth=N" ~: do
    (defreportopts{depth_=Just 1}, samplejournal) `gives`
     ([
-      (("assets",      "assets",      0), mamountp' "$-1.00")
-     ,(("expenses",    "expenses",    0), mamountp'  "$2.00")
-     ,(("income",      "income",      0), mamountp' "$-2.00")
-     ,(("liabilities", "liabilities", 0), mamountp'  "$1.00")
+      ("assets",      "assets",      0, mamountp' "$-1.00")
+     ,("expenses",    "expenses",    0, mamountp'  "$2.00")
+     ,("income",      "income",      0, mamountp' "$-2.00")
+     ,("liabilities", "liabilities", 0, mamountp'  "$1.00")
      ],
      Mixed [usd0])
 
   ,"balanceReport with depth:N" ~: do
    (defreportopts{query_="depth:1"}, samplejournal) `gives`
     ([
-      (("assets",      "assets",      0), mamountp' "$-1.00")
-     ,(("expenses",    "expenses",    0), mamountp'  "$2.00")
-     ,(("income",      "income",      0), mamountp' "$-2.00")
-     ,(("liabilities", "liabilities", 0), mamountp'  "$1.00")
+      ("assets",      "assets",      0, mamountp' "$-1.00")
+     ,("expenses",    "expenses",    0, mamountp'  "$2.00")
+     ,("income",      "income",      0, mamountp' "$-2.00")
+     ,("liabilities", "liabilities", 0, mamountp'  "$1.00")
      ],
      Mixed [usd0])
 
@@ -239,32 +240,32 @@ tests_balanceReport =
      Mixed [nullamt])
    (defreportopts{query_="date2:'in 2009'"}, samplejournal2) `gives`
     ([
-      (("assets:bank:checking","assets:bank:checking",0),mamountp' "$1.00")
-     ,(("income:salary","income:salary",0),mamountp' "$-1.00")
+      ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
+     ,("income:salary","income:salary",0,mamountp' "$-1.00")
      ],
      Mixed [usd0])
 
   ,"balanceReport with desc:" ~: do
    (defreportopts{query_="desc:income"}, samplejournal) `gives`
     ([
-      (("assets:bank:checking","assets:bank:checking",0),mamountp' "$1.00")
-     ,(("income:salary","income:salary",0), mamountp' "$-1.00")
+      ("assets:bank:checking","assets:bank:checking",0,mamountp' "$1.00")
+     ,("income:salary","income:salary",0, mamountp' "$-1.00")
      ],
      Mixed [usd0])
 
   ,"balanceReport with not:desc:" ~: do
    (defreportopts{query_="not:desc:income"}, samplejournal) `gives`
     ([
-      (("assets","assets",0), mamountp' "$-2.00")
-     ,(("assets:bank","bank",1), Mixed [usd0])
-     ,(("assets:bank:checking","checking",2),mamountp' "$-1.00")
-     ,(("assets:bank:saving","saving",2), mamountp' "$1.00")
-     ,(("assets:cash","cash",1), mamountp' "$-2.00")
-     ,(("expenses","expenses",0), mamountp' "$2.00")
-     ,(("expenses:food","food",1), mamountp' "$1.00")
-     ,(("expenses:supplies","supplies",1), mamountp' "$1.00")
-     ,(("income:gifts","income:gifts",0), mamountp' "$-1.00")
-     ,(("liabilities:debts","liabilities:debts",0), mamountp' "$1.00")
+      ("assets","assets",0, mamountp' "$-2.00")
+     ,("assets:bank","bank",1, Mixed [usd0])
+     ,("assets:bank:checking","checking",2,mamountp' "$-1.00")
+     ,("assets:bank:saving","saving",2, mamountp' "$1.00")
+     ,("assets:cash","cash",1, mamountp' "$-2.00")
+     ,("expenses","expenses",0, mamountp' "$2.00")
+     ,("expenses:food","food",1, mamountp' "$1.00")
+     ,("expenses:supplies","supplies",1, mamountp' "$1.00")
+     ,("income:gifts","income:gifts",0, mamountp' "$-1.00")
+     ,("liabilities:debts","liabilities:debts",0, mamountp' "$1.00")
      ],
      Mixed [usd0])
 

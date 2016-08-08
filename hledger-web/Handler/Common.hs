@@ -201,7 +201,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
    inacctmatcher = inAccountQuery qopts
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> BalanceReportItem -> HtmlUrl AppRoute
-   itemAsHtml _ ((acct, adisplay, aindent), abal) = [hamlet|
+   itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
 <tr.item.#{inacctclass}>
  <td.account.#{depthclass}>
   \#{indent}
