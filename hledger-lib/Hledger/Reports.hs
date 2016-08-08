@@ -15,7 +15,7 @@ module Hledger.Reports (
   module Hledger.Reports.TransactionsReports,
   module Hledger.Reports.BalanceReport,
   module Hledger.Reports.MultiBalanceReports,
-  module Hledger.Reports.BalanceHistoryReport,
+--   module Hledger.Reports.BalanceHistoryReport,
 
   -- * Tests
   tests_Hledger_Reports
@@ -30,7 +30,7 @@ import Hledger.Reports.PostingsReport
 import Hledger.Reports.TransactionsReports
 import Hledger.Reports.BalanceReport
 import Hledger.Reports.MultiBalanceReports
-import Hledger.Reports.BalanceHistoryReport
+-- import Hledger.Reports.BalanceHistoryReport
 
 tests_Hledger_Reports :: Test
 tests_Hledger_Reports = TestList $

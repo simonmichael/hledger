@@ -4,6 +4,7 @@
 Account balance history report.
 
 -}
+-- XXX not used
 
 module Hledger.Reports.BalanceHistoryReport (
   accountBalanceHistory
