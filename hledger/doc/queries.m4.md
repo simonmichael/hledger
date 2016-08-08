@@ -82,6 +82,12 @@ parent transaction.
 **`not:`**
 : before any of the above negates the match.
 
+**`inacct:ACCTNAME`**
+: a special term used automatically when you click an account name in hledger-web, 
+specifying the account register we are currently in
+(selects the transactions of that account and how to show them, can be filtered further with `acct` etc).
+Not supported elsewhere in hledger.
+
 Some of these can also be expressed as command-line options (eg `depth:2` is equivalent to `--depth 2`).
 Generally you can mix options and query arguments, and the resulting query will be their intersection
 (perhaps excluding the `-p/--period` option).
