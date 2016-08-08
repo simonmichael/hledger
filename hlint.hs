@@ -19,4 +19,5 @@ import "hlint" HLint.Builtin.All
 -- import "hlint" HLint.Default
 
 ignore "Use camelCase" = ""
+ignore "Redundant do" = ""
 

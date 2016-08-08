@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances, ScopedTypeVariables #-}
 {-|
 
 Multi-column balance reports, used by the balance command.
@@ -100,12 +100,12 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
       displayspans = dbg1 "displayspans" $ splitSpan (interval_ opts) displayspan
         where
           displayspan
-            | empty_ opts = dbg1 "displayspan (-E)" $ reportspan                                -- all the requested intervals
+            | empty_ opts = dbg1 "displayspan (-E)" reportspan                                -- all the requested intervals
             | otherwise   = dbg1 "displayspan"      $ requestedspan `spanIntersect` matchedspan -- exclude leading/trailing empty intervals
           matchedspan = dbg1 "matchedspan" $ postingsDateSpan' (whichDateFromOpts opts) ps
 
       psPerSpan :: [[Posting]] =
-          dbg1 "psPerSpan" $
+          dbg1 "psPerSpan"
           [filter (isPostingInDateSpan' (whichDateFromOpts opts) s) ps | s <- displayspans]
 
       postedAcctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
@@ -141,17 +141,17 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
           if empty_ opts then nub $ sort $ startAccts ++ postedAccts else postedAccts
 
       acctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
-          dbg1 "acctBalChangesPerSpan" $
+          dbg1 "acctBalChangesPerSpan"
           [sortBy (comparing fst) $ unionBy (\(a,_) (a',_) -> a == a') postedacctbals zeroes
            | postedacctbals <- postedAcctBalChangesPerSpan]
           where zeroes = [(a, nullmixedamt) | a <- displayedAccts]
 
       acctBalChanges :: [(ClippedAccountName, [MixedAmount])] =
-          dbg1 "acctBalChanges" $
+          dbg1 "acctBalChanges"
           [(a, map snd abs) | abs@((a,_):_) <- transpose acctBalChangesPerSpan] -- never null, or used when null...
 
       items :: [MultiBalanceReportRow] =
-          dbg1 "items" $
+          dbg1 "items"
           [((a, accountLeafName a, accountNameLevel a), displayedBals, rowtot, rowavg)
            | (a,changes) <- acctBalChanges
            , let displayedBals = case balancetype_ opts of
@@ -169,11 +169,11 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
           where
             balsbycol = transpose [bs | ((a,_,_),bs,_,_) <- items, not (tree_ opts) || a `elem` highestlevelaccts]
             highestlevelaccts     =
-                dbg1 "highestlevelaccts" $
+                dbg1 "highestlevelaccts"
                 [a | a <- displayedAccts, not $ any (`elem` displayedAccts) $ init $ expandAccountName a]
 
       totalsrow :: MultiBalanceTotalsRow =
-          dbg1 "totalsrow" $
+          dbg1 "totalsrow"
           (totals, sum totals, averageMixedAmounts totals)
 
       dbg1 s = let p = "multiBalanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in this function's debug output

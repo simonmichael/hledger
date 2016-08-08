@@ -1,4 +1,4 @@
-{-# LANGUAGE RecordWildCards, DeriveDataTypeable, FlexibleInstances, ScopedTypeVariables, OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances, ScopedTypeVariables, OverloadedStrings #-}
 {-|
 
 Balance report, used by the balance command.
@@ -127,7 +127,7 @@ balanceReportItem opts q a
     name | queryDepth q > 0 = aname a
          | otherwise        = "..."
     elidedname = accountNameFromComponents (adjacentboringparentnames ++ [accountLeafName name])
-    adjacentboringparentnames = reverse $ map (accountLeafName.aname) $ takeWhile aboring $ parents
+    adjacentboringparentnames = reverse $ map (accountLeafName.aname) $ takeWhile aboring parents
     indent = length $ filter (not.aboring) parents
     -- parents exclude the tree's root node
     parents = case parentAccounts a of [] -> []
@@ -147,7 +147,7 @@ balanceReportValue :: Journal -> Day -> BalanceReport -> BalanceReport
 balanceReportValue j d r = r'
   where
     (items,total) = r
-    r' = dbg8 "balanceReportValue" $
+    r' = dbg8 "balanceReportValue"
          ([(n, mixedAmountValue j d a) |(n,a) <- items], mixedAmountValue j d total)
 
 mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
@@ -385,27 +385,28 @@ tests_balanceReport =
 -}
  ]
 
-Right samplejournal2 = journalBalanceTransactions $
-         nulljournal
-         {jtxns = [
-           txnTieKnot $ Transaction {
-             tindex=0,
-             tsourcepos=nullsourcepos,
-             tdate=parsedate "2008/01/01",
-             tdate2=Just $ parsedate "2009/01/01",
-             tstatus=Uncleared,
-             tcode="",
-             tdescription="income",
-             tcomment="",
-             ttags=[],
-             tpostings=
-                 [posting {paccount="assets:bank:checking", pamount=Mixed [usd 1]}
-                 ,posting {paccount="income:salary", pamount=missingmixedamt}
-                 ],
-             tpreceding_comment_lines=""
-           }
-          ]
-         }
+Right samplejournal2 =
+  journalBalanceTransactions
+    nulljournal{
+      jtxns = [
+        txnTieKnot Transaction{
+          tindex=0,
+          tsourcepos=nullsourcepos,
+          tdate=parsedate "2008/01/01",
+          tdate2=Just $ parsedate "2009/01/01",
+          tstatus=Uncleared,
+          tcode="",
+          tdescription="income",
+          tcomment="",
+          ttags=[],
+          tpostings=
+            [posting {paccount="assets:bank:checking", pamount=Mixed [usd 1]}
+            ,posting {paccount="income:salary", pamount=missingmixedamt}
+            ],
+          tpreceding_comment_lines=""
+        }
+      ]
+    }
 
 -- tests_isInterestingIndented = [
 --   "isInterestingIndented" ~: do
@@ -416,5 +417,5 @@ Right samplejournal2 = journalBalanceTransactions $
 --  ]
 
 tests_Hledger_Reports_BalanceReport :: Test
-tests_Hledger_Reports_BalanceReport = TestList $
-    tests_balanceReport
+tests_Hledger_Reports_BalanceReport = TestList
+  tests_balanceReport
