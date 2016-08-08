@@ -39,7 +39,7 @@ nullledger = Ledger {
 
 -- | Filter a journal's transactions with the given query, then derive
 -- a ledger containing the chart of accounts and balances. If the
--- query includes a depth limit, that will affect the this ledger's
+-- query includes a depth limit, that will affect the ledger's
 -- journal but not the ledger's account tree.
 ledgerFromJournal :: Query -> Journal -> Ledger
 ledgerFromJournal q j = nullledger{ljournal=j'', laccounts=as}
