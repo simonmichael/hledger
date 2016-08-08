@@ -1,9 +1,10 @@
 {-
 hlint configuration for hledger
 
-manual: http://community.haskell.org/~ndm/darcs/hlint/hlint.htm
+https://github.com/ndmitchell/hlint#readme
+https://github.com/ndmitchell/hlint/issues/256
 
-examples:
+Examples:
 ignore "Eta reduce"   = ""                - suppress all eta reduction suggestions.
 ignore "Eta reduce"   = Data.List Prelude - suppress eta reduction hints in the Prelude and Data.List modules.
 ignore                = Data.List.map     - don't give any hints in the function Data.List.map.
@@ -13,5 +14,9 @@ warn "Use concatMap"  = ""                - the hint to use concatMap is a warni
 
 -}
 
-import HLint.Default
+{-# PackageImports #-}
+import "hlint" HLint.Builtin.All
+-- import "hlint" HLint.Default
+
 ignore "Use camelCase" = ""
+
