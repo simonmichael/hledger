@@ -11,15 +11,39 @@ description: |
   interfaces, and aims to be a reliable, practical tool for daily
   use.
 category: Finance
+license: GPL
 author: Simon Michael <simon@joyful.com>
 maintainer: Simon Michael <simon@joyful.com>
-license: GPL
 github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
 extra-source-files:
 - CHANGES
 - README
+data-files:
+- doc/hledger_csv.5
+- doc/hledger_csv.5.txt
+- doc/hledger_csv.5.info
+- doc/hledger_journal.5
+- doc/hledger_journal.5.txt
+- doc/hledger_journal.5.info
+- doc/hledger_timedot.5
+- doc/hledger_timedot.5.txt
+- doc/hledger_timedot.5.info
+- doc/hledger_timeclock.5
+- doc/hledger_timeclock.5.txt
+- doc/hledger_timeclock.5.info
+flags:
+  double:
+    description: Use old Double number representation (instead of Decimal), for testing/benchmarking.
+    manual: true
+    default: false
+  old-locale:
+    description: ! 'A compatibility flag, set automatically by cabal.
+      If false then depend on time >= 1.5,
+      if true then depend on time < 1.5 together with old-locale.'
+    manual: false
+    default: false
 dependencies:
 - base >=4.3 && <5
 - base-compat >=0.8.1
@@ -137,29 +161,5 @@ tests:
       else:
         dependencies:
         - time >=1.5
-flags:
-  double:
-    description: Use old Double number representation (instead of Decimal), for testing/benchmarking.
-    manual: true
-    default: false
-  old-locale:
-    description: ! 'A compatibility flag, set automatically by cabal.
-      If false then depend on time >= 1.5,
-      if true then depend on time < 1.5 together with old-locale.'
-    manual: false
-    default: false
-data-files:
-- doc/hledger_csv.5
-- doc/hledger_csv.5.txt
-- doc/hledger_csv.5.info
-- doc/hledger_journal.5
-- doc/hledger_journal.5.txt
-- doc/hledger_journal.5.info
-- doc/hledger_timedot.5
-- doc/hledger_timedot.5.txt
-- doc/hledger_timedot.5.info
-- doc/hledger_timeclock.5
-- doc/hledger_timeclock.5.txt
-- doc/hledger_timeclock.5.info
 stability: stable
 tested-with: GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0

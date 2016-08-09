@@ -12,9 +12,9 @@ description: |
   interfaces, and aims to be a reliable, practical tool for daily
   use.
 category: Finance
+license: GPL
 author: Simon Michael <simon@joyful.com>
 maintainer: Simon Michael <simon@joyful.com>
-license: GPL
 github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
@@ -22,6 +22,10 @@ extra-source-files:
 - CHANGES
 - README
 - examples/*.html
+data-files:
+- doc/hledger-api.1
+- doc/hledger-api.1.txt
+- doc/hledger-api.1.info
 dependencies:
 - hledger-lib ==0.28
 - hledger ==0.28
@@ -47,9 +51,5 @@ executables:
     main: hledger-api.hs
     ghc-options: -threaded
     cpp-options: -DVERSION="0.28"
-data-files:
-- doc/hledger-api.1
-- doc/hledger-api.1.txt
-- doc/hledger-api.1.info
 stability: alpha
 tested-with: GHC==7.10.3, GHC==8.0

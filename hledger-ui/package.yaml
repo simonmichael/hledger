@@ -1,7 +1,5 @@
 name        : hledger-ui
 version     : '0.28'
-stability   : beta
-category    : Finance, Console
 synopsis    : Curses-style user interface for the hledger accounting tool
 description : |
   This is hledger's curses-style interface.
@@ -14,23 +12,20 @@ description : |
   with ledger(1).  hledger provides command-line, curses and web
   interfaces, and aims to be a reliable, practical tool for daily
   use.
+category    : Finance, Console
 license     : GPL
 author      : Simon Michael <simon@joyful.com>
 maintainer  : Simon Michael <simon@joyful.com>
 github      : simonmichael/hledger
 homepage    : http://hledger.org
 bug-reports : http://bugs.hledger.org
-tested-with : GHC==7.8.4, GHC==7.10.3, GHC==8.0
-
 extra-source-files:
   - CHANGES
   - README
-
 data-files:
   - doc/hledger-ui.1
   - doc/hledger-ui.1.txt
   - doc/hledger-ui.1.info
-
 flags:
   threaded:
     description: Build with support for multithreaded execution
@@ -43,7 +38,6 @@ flags:
         if true then depend on time < 1.5 together with old-locale.
     manual: false
     default: false
-
 # curses is required to build terminfo for vty for hledger-ui.
 # On POSIX systems it might be not present.
 # On windows it's very likely not present, but possibly it could be.
@@ -54,9 +48,7 @@ flags:
 #    default: True
 #    description:
 # For now, just don't build hledger-ui on windows
-
 cpp-options: -DVERSION="0.28"
-
 executables:
   hledger-ui:
     source-dirs: .
@@ -110,3 +102,5 @@ executables:
       - condition: impl(ghc >= 7.4)
         dependencies:
           - pretty-show >= 1.6.4
+stability   : beta
+tested-with : GHC==7.8.4, GHC==7.10.3, GHC==8.0

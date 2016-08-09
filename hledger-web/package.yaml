@@ -13,9 +13,9 @@ description: |
   interfaces, and aims to be a reliable, practical tool for daily
   use.
 category: Finance
+license: GPL
 author: Simon Michael <simon@joyful.com>
 maintainer: Simon Michael <simon@joyful.com>
-license: GPL
 github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
@@ -38,13 +38,29 @@ extra-source-files:
 - static/hledger.js
 - static/js/*.js
 - templates/*.hamlet
-ghc-options:
-- -Wall
-- -fno-warn-unused-do-bind
-- -fno-warn-name-shadowing
-- -fno-warn-missing-signatures
-- -fno-warn-type-defaults
-- -fno-warn-orphans
+data-files:
+- doc/hledger-web.1
+- doc/hledger-web.1.txt
+- doc/hledger-web.1.info
+flags:
+  library-only:
+    description: Build for use with "yesod devel"
+    manual: false
+    default: false
+  dev:
+    description: Turn on development settings, like auto-reload templates.
+    manual: false
+    default: false
+  threaded:
+    description: Build with support for multithreaded execution.
+    manual: false
+    default: true
+  old-locale:
+    description: ! 'A compatibility flag, set automatically by cabal.
+      If false then depend on time >= 1.5,
+      if true then depend on time < 1.5 together with old-locale.'
+    manual: false
+    default: false
 dependencies:
 - hledger-lib >=0.28 && <0.29
 - hledger >=0.28 && <0.29
@@ -78,6 +94,13 @@ dependencies:
 - yesod-form
 - yesod-static
 - json
+ghc-options:
+- -Wall
+- -fno-warn-unused-do-bind
+- -fno-warn-name-shadowing
+- -fno-warn-missing-signatures
+- -fno-warn-type-defaults
+- -fno-warn-orphans
 library:
   cpp-options: -DVERSION="0.28"
   exposed-modules:
@@ -155,28 +178,5 @@ tests:
       else:
         dependencies:
         - time >=1.5
-flags:
-  library-only:
-    description: Build for use with "yesod devel"
-    manual: false
-    default: false
-  dev:
-    description: Turn on development settings, like auto-reload templates.
-    manual: false
-    default: false
-  threaded:
-    description: Build with support for multithreaded execution.
-    manual: false
-    default: true
-  old-locale:
-    description: ! 'A compatibility flag, set automatically by cabal.
-      If false then depend on time >= 1.5,
-      if true then depend on time < 1.5 together with old-locale.'
-    manual: false
-    default: false
-data-files:
-- doc/hledger-web.1
-- doc/hledger-web.1.txt
-- doc/hledger-web.1.info
 stability: stable
 tested-with: GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0

@@ -13,9 +13,9 @@ description: |
   interfaces, and aims to be a reliable, practical tool for daily
   use.
 category: Finance, Console
+license: GPL
 author: Simon Michael <simon@joyful.com>
 maintainer: Simon Michael <simon@joyful.com>
-license: GPL
 github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
@@ -24,13 +24,47 @@ extra-source-files:
 - README.md
 - test/test.hs
 - bench/10000x1000x10.journal
-ghc-options:
-- -Wall
-- -fno-warn-unused-do-bind
-- -fno-warn-name-shadowing
-- -fno-warn-missing-signatures
-- -fno-warn-type-defaults
-- -fno-warn-orphans
+data-files:
+- doc/hledger.1
+- doc/hledger.1.txt
+- doc/hledger.1.info
+- doc/other/hledger-api.1
+- doc/other/hledger-api.1.txt
+- doc/other/hledger-api.1.info
+- doc/other/hledger-ui.1
+- doc/other/hledger-ui.1.txt
+- doc/other/hledger-ui.1.info
+- doc/other/hledger-web.1
+- doc/other/hledger-web.1.txt
+- doc/other/hledger-web.1.info
+- doc/other/hledger_journal.5
+- doc/other/hledger_journal.5.txt
+- doc/other/hledger_journal.5.info
+- doc/other/hledger_csv.5
+- doc/other/hledger_csv.5.txt
+- doc/other/hledger_csv.5.info
+- doc/other/hledger_timeclock.5
+- doc/other/hledger_timeclock.5.txt
+- doc/other/hledger_timeclock.5.info
+- doc/other/hledger_timedot.5
+- doc/other/hledger_timedot.5.txt
+- doc/other/hledger_timedot.5.info
+flags:
+  curses:
+    description: On POSIX systems, enable curses support for auto-detecting terminal
+      width.
+    manual: false
+    default: true
+  threaded:
+    description: Build with support for multithreaded execution
+    manual: false
+    default: true
+  old-locale:
+    description: ! 'A compatibility flag, set automatically by cabal.
+      If false then depend on time >= 1.5,
+      if true then depend on time < 1.5 together with old-locale.'
+    manual: false
+    default: false
 dependencies:
 - base >=4.3 && <5
 - base-compat >=0.8.1
@@ -40,6 +74,13 @@ dependencies:
 - process
 - temporary
 - tabular >=0.2 && <0.3
+ghc-options:
+- -Wall
+- -fno-warn-unused-do-bind
+- -fno-warn-name-shadowing
+- -fno-warn-missing-signatures
+- -fno-warn-type-defaults
+- -fno-warn-orphans
 library:
   cpp-options: -DVERSION="0.28"
   exposed-modules:
@@ -229,46 +270,5 @@ benchmarks:
       else:
         dependencies:
         - time >=1.5
-flags:
-  curses:
-    description: On POSIX systems, enable curses support for auto-detecting terminal
-      width.
-    manual: false
-    default: true
-  threaded:
-    description: Build with support for multithreaded execution
-    manual: false
-    default: true
-  old-locale:
-    description: ! 'A compatibility flag, set automatically by cabal.
-      If false then depend on time >= 1.5,
-      if true then depend on time < 1.5 together with old-locale.'
-    manual: false
-    default: false
-data-files:
-- doc/hledger.1
-- doc/hledger.1.txt
-- doc/hledger.1.info
-- doc/other/hledger-api.1
-- doc/other/hledger-api.1.txt
-- doc/other/hledger-api.1.info
-- doc/other/hledger-ui.1
-- doc/other/hledger-ui.1.txt
-- doc/other/hledger-ui.1.info
-- doc/other/hledger-web.1
-- doc/other/hledger-web.1.txt
-- doc/other/hledger-web.1.info
-- doc/other/hledger_journal.5
-- doc/other/hledger_journal.5.txt
-- doc/other/hledger_journal.5.info
-- doc/other/hledger_csv.5
-- doc/other/hledger_csv.5.txt
-- doc/other/hledger_csv.5.info
-- doc/other/hledger_timeclock.5
-- doc/other/hledger_timeclock.5.txt
-- doc/other/hledger_timeclock.5.info
-- doc/other/hledger_timedot.5
-- doc/other/hledger_timedot.5.txt
-- doc/other/hledger_timedot.5.info
 stability: stable
 tested-with: GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0
