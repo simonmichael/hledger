@@ -174,9 +174,8 @@ test-suite doctests
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
-    , base
-    , Glob >=0.7
     , doctest >=0.8
+    , Glob >=0.7
   default-language: Haskell2010
 
 test-suite hunittests

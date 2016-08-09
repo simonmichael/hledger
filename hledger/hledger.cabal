@@ -172,6 +172,7 @@ executable hledger
     , temporary
     , tabular >=0.2 && <0.3
     , hledger-lib ==0.28
+    , hledger ==0.28
     , bytestring
     , containers
     , unordered-containers
@@ -190,7 +191,6 @@ executable hledger
     , text >=0.11
     , utf8-string >=0.3.5 && <1.1
     , wizards ==1.0.*
-    , hledger ==0.28
   if flag(threaded)
     ghc-options: -threaded
   if impl(ghc >=7.10)
@@ -232,6 +232,7 @@ test-suite test
     , temporary
     , tabular >=0.2 && <0.3
     , hledger-lib ==0.28
+    , hledger
     , bytestring
     , containers
     , unordered-containers
@@ -250,7 +251,6 @@ test-suite test
     , text >=0.11
     , utf8-string >=0.3.5 && <1.1
     , wizards ==1.0.*
-    , hledger
     , test-framework
     , test-framework-hunit
   if impl(ghc >=7.10)

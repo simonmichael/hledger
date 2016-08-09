@@ -139,9 +139,8 @@ tests:
     main: doctests.hs
     source-dirs: tests
     dependencies:
-    - base
-    - Glob >=0.7
     - doctest >=0.8
+    - Glob >=0.7
   hunittests:
     main: hunittests.hs
     source-dirs: tests

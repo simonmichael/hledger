@@ -165,7 +165,6 @@ tests:
     source-dirs: tests
     cpp-options: -DVERSION="0.28"
     dependencies:
-    - parsec >=3
     - hledger-web
     - hspec
     - yesod-test

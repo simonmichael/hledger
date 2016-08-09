@@ -292,7 +292,6 @@ test-suite test
         , yesod-form
         , yesod-static
         , json
-        , parsec >=3
         , hledger-web
         , hspec
         , yesod-test

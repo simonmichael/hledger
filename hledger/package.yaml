@@ -156,6 +156,7 @@ executables:
     cpp-options: -DVERSION="0.28"
     dependencies:
     - hledger-lib ==0.28
+    - hledger ==0.28
     - bytestring
     - containers
     - unordered-containers
@@ -174,7 +175,6 @@ executables:
     - text >=0.11
     - utf8-string >=0.3.5 && <1.1
     - wizards ==1.0.*
-    - hledger ==0.28
     when:
     - condition: flag(threaded)
       ghc-options: -threaded
@@ -207,6 +207,7 @@ tests:
     cpp-options: -DVERSION="0.28"
     dependencies:
     - hledger-lib ==0.28
+    - hledger
     - bytestring
     - containers
     - unordered-containers
@@ -225,7 +226,6 @@ tests:
     - text >=0.11
     - utf8-string >=0.3.5 && <1.1
     - wizards ==1.0.*
-    - hledger
     - test-framework
     - test-framework-hunit
     when:
