@@ -32,7 +32,7 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
   modeHelp = "show postings and running total" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
-      flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "include prior postings in the running total"
+      flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "show historical running balance, reflecting prior postings"
      ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a running average instead of the running total (implies --empty)"
      ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show postings' siblings instead"
      ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"

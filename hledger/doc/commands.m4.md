@@ -377,7 +377,7 @@ and
 Show postings and their running total. Alias: reg.
 
 `-H --historical`
-: include prior postings in the running total
+: show historical running balance, reflecting prior postings
 
 `-A --average`
 : show a running average instead of the running total (implies --empty)
