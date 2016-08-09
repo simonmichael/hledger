@@ -149,9 +149,9 @@ accountTransactionsReport opts j reportq thisacctq = (label, items)
 
     -- starting balance: if we are filtering by a start date and nothing else,
     -- this is the sum of the (possibly realness or status-filtered) postings
-    -- to this account before that date; otherwise zero.
+    -- to this account before that date; otherwise start from zero.
     (startbal,label) | queryIsNull q                        = (nullmixedamt,        balancelabel)
-                     | queryIsStartDateOnly (date2_ opts) q = (sumPostings priorps, balancelabel)
+                     | queryIsStartBalancePreserving opts q = (sumPostings priorps, balancelabel)
                      | otherwise                            = (nullmixedamt,        totallabel)
                      where
                        priorps = -- ltrace "priorps" $
@@ -164,6 +164,20 @@ accountTransactionsReport opts j reportq thisacctq = (label, items)
 
     items = reverse $ -- see also registerChartHtml
             accountTransactionsReportItems q thisacctq startbal negate ts
+
+-- Assuming this query specifies a start date, if we switch that to
+-- an end date, will the resulting query calculate an accurate
+-- starting balance ?
+-- XXX WIP, probably misses many balance-preserving cases,
+-- not sure how this should work.
+queryIsStartBalancePreserving :: ReportOpts -> Query -> Bool
+queryIsStartBalancePreserving opts q =
+  queryIsStartDateOnly (date2_ opts) $
+  filterQuery (\q -> not (
+                         queryIsEmpty q
+                      || queryIsSym q
+                      -- || queryIsReal q))
+                      )) q
 
 totallabel = "Running Total"
 balancelabel = "Historical Balance"
