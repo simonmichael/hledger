@@ -71,6 +71,7 @@ executables:
       - microlens >= 0.4 && < 0.5
       - microlens-platform >= 0.2.3.1 && < 0.4
       - megaparsec >= 5
+      - pretty-show >=1.6.4
       - process >= 1.2
       - safe >= 0.2
       - split >= 0.1 && < 0.3
@@ -96,8 +97,5 @@ executables:
         else:
           dependencies:
             - time >= 1.5
-      - condition: impl(ghc >= 7.4)
-        dependencies:
-          - pretty-show >= 1.6.4
 stability   : beta
 tested-with : GHC==7.8.4, GHC==7.10.3, GHC==8.0

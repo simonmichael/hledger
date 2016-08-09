@@ -50,9 +50,8 @@ data-files:
 - doc/other/hledger_timedot.5.txt
 - doc/other/hledger_timedot.5.info
 flags:
-  curses:
-    description: On POSIX systems, enable curses support for auto-detecting terminal
-      width.
+  terminfo:
+    description: On POSIX systems, build with the terminfo lib for detecting terminal width.
     manual: false
     default: true
   threaded:
@@ -69,6 +68,7 @@ dependencies:
 - directory
 - file-embed >=0.0.10 && <0.1
 - filepath
+- pretty-show >=1.6.4
 - process
 - temporary
 - tabular >=0.2 && <0.3
@@ -141,10 +141,7 @@ library:
     else:
       dependencies:
       - time >=1.5
-  - condition: impl(ghc >=7.4)
-    dependencies:
-    - pretty-show >=1.6.4
-  - condition: (!(os(windows))) && (flag(curses))
+  - condition: (!(os(windows))) && (flag(terminfo))
     dependencies:
     - terminfo
 executables:
@@ -192,10 +189,7 @@ executables:
       else:
         dependencies:
         - time >=1.5
-    - condition: impl(ghc >=7.4)
-      dependencies:
-      - pretty-show >=1.6.4
-    - condition: (!(os(windows))) && (flag(curses))
+    - condition: (!(os(windows))) && (flag(terminfo))
       dependencies:
       - terminfo
 tests:
@@ -235,9 +229,6 @@ tests:
         dependencies:
         - shakespeare >=1.0 && <2.1
         - shakespeare-text >=1.0 && <1.2
-    - condition: impl(ghc >=7.4)
-      dependencies:
-      - pretty-show >=1.6.4
     - condition: flag(oldtime)
       then:
         dependencies:
@@ -246,7 +237,7 @@ tests:
       else:
         dependencies:
         - time >=1.5
-    - condition: (!(os(windows))) && (flag(curses))
+    - condition: (!(os(windows))) && (flag(terminfo))
       dependencies:
       - terminfo
 benchmarks:

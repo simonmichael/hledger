@@ -52,10 +52,11 @@ dependencies:
 - deepseq
 - directory
 - filepath
+- megaparsec >=5
 - mtl
 - mtl-compat
 - old-time
-- megaparsec >=5
+- pretty-show >=1.6.4
 - regex-tdfa
 - safe >=0.2
 - split >=0.1 && <0.3
@@ -117,9 +118,6 @@ library:
   - parsec
   - semigroups
   when:
-  - condition: impl(ghc >=7.4)
-    dependencies:
-    - pretty-show >=1.6.4
   - condition: flag(oldtime)
     then:
       dependencies:
@@ -143,9 +141,6 @@ tests:
     - test-framework
     - test-framework-hunit
     when:
-    - condition: impl(ghc >=7.4)
-      dependencies:
-      - pretty-show >=1.6.4
     - condition: flag(oldtime)
       then:
         dependencies:

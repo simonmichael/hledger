@@ -68,10 +68,11 @@ library
     , deepseq
     , directory
     , filepath
+    , megaparsec >=5
     , mtl
     , mtl-compat
     , old-time
-    , megaparsec >=5
+    , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
     , split >=0.1 && <0.3
@@ -82,9 +83,6 @@ library
     , HUnit
     , parsec
     , semigroups
-  if impl(ghc >=7.4)
-    build-depends:
-        pretty-show >=1.6.4
   if flag(oldtime)
     build-depends:
         time <1.5
@@ -157,10 +155,11 @@ test-suite doctests
     , deepseq
     , directory
     , filepath
+    , megaparsec >=5
     , mtl
     , mtl-compat
     , old-time
-    , megaparsec >=5
+    , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
     , split >=0.1 && <0.3
@@ -193,10 +192,11 @@ test-suite hunittests
     , deepseq
     , directory
     , filepath
+    , megaparsec >=5
     , mtl
     , mtl-compat
     , old-time
-    , megaparsec >=5
+    , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
     , split >=0.1 && <0.3
@@ -208,9 +208,6 @@ test-suite hunittests
     , hledger-lib
     , test-framework
     , test-framework-hunit
-  if impl(ghc >=7.4)
-    build-depends:
-        pretty-show >=1.6.4
   if flag(oldtime)
     build-depends:
         time <1.5

@@ -63,15 +63,15 @@ source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
-flag curses
-  default: True
-  description: On POSIX systems, enable curses support for auto-detecting terminal width.
-  manual: False
-
 flag oldtime
   description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
   manual: False
   default: False
+
+flag terminfo
+  description: On POSIX systems, build with the terminfo lib for detecting terminal width.
+  manual: False
+  default: True
 
 flag threaded
   default: True
@@ -87,6 +87,7 @@ library
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
+    , pretty-show >=1.6.4
     , process
     , temporary
     , tabular >=0.2 && <0.3
@@ -124,10 +125,7 @@ library
   else
     build-depends:
         time >=1.5
-  if impl(ghc >=7.4)
-    build-depends:
-        pretty-show >=1.6.4
-  if (!(os(windows))) && (flag(curses))
+  if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
   exposed-modules:
@@ -168,6 +166,7 @@ executable hledger
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
+    , pretty-show >=1.6.4
     , process
     , temporary
     , tabular >=0.2 && <0.3
@@ -207,10 +206,7 @@ executable hledger
   else
     build-depends:
         time >=1.5
-  if impl(ghc >=7.4)
-    build-depends:
-        pretty-show >=1.6.4
-  if (!(os(windows))) && (flag(curses))
+  if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
   default-language: Haskell2010
@@ -228,6 +224,7 @@ test-suite test
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
+    , pretty-show >=1.6.4
     , process
     , temporary
     , tabular >=0.2 && <0.3
@@ -260,9 +257,6 @@ test-suite test
     build-depends:
         shakespeare >=1.0 && <2.1
       , shakespeare-text >=1.0 && <1.2
-  if impl(ghc >=7.4)
-    build-depends:
-        pretty-show >=1.6.4
   if flag(oldtime)
     build-depends:
         time <1.5
@@ -270,7 +264,7 @@ test-suite test
   else
     build-depends:
         time >=1.5
-  if (!(os(windows))) && (flag(curses))
+  if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
   default-language: Haskell2010
@@ -290,6 +284,7 @@ benchmark bench
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
+    , pretty-show >=1.6.4
     , process
     , temporary
     , tabular >=0.2 && <0.3
