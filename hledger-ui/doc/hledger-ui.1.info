@@ -166,12 +166,12 @@ described below). While editing the query you can use typical
 command-line edit keys (CTRL-a/e/d/k, cursor keys etc.), and `ENTER'to
 set the new filter or `ESCAPE'to cancel.
 
-   `t' sets the report period to today, while `d' and `u' cycle
-downward and upward through standard report periods - day, week, month,
-quarter, year, and unlimited. This is useful on the register screen, to
-limit the transaction history. When a standard report period is
-selected in this way, `n' and `p' step to the next or previous period.
-(For non-standard periods, you can use `/' to set a `date:' query.)
+   `d' and `u' cycle downward and upward through standard report
+periods - year, quarter, month, week, day. When a standard report period
+is selected, `n' and `p' step it to the next or previous period.
+`Shift-down/up/right/left' can also be used for this.  `t' sets the
+report period to today. For non-standard periods, you can use `/' to
+set a `date:' query.
 
    `BACKSPACE' or `DELETE' clears any filters in effect.
 
@@ -347,15 +347,15 @@ Node: OPTIONS831
 Ref: #options930
 Node: KEYS3743
 Ref: #keys3840
-Node: SCREENS6157
-Ref: #screens6244
-Node: Accounts screen6334
-Ref: #accounts-screen6464
-Node: Register screen7930
-Ref: #register-screen8087
-Node: Transaction screen10047
-Ref: #transaction-screen10207
-Node: Error screen11074
-Ref: #error-screen11198
+Node: SCREENS6107
+Ref: #screens6194
+Node: Accounts screen6284
+Ref: #accounts-screen6414
+Node: Register screen7880
+Ref: #register-screen8037
+Node: Transaction screen9997
+Ref: #transaction-screen10157
+Node: Error screen11024
+Ref: #error-screen11148
 
 End Tag Table
