@@ -1,7 +1,8 @@
 name: hledger-api
 version: '0.28'
 synopsis: Web API server for the hledger accounting tool
-description: ! 'This is a simple web API server for hledger data.
+description: |
+  This is a simple web API server for hledger data.
   It comes with a series of simple client-side web app examples.
 
   hledger is a cross-platform program for tracking money, time, or
@@ -9,7 +10,7 @@ description: ! 'This is a simple web API server for hledger data.
   editable file format. It is inspired by and largely compatible
   with ledger(1).  hledger provides command-line, curses and web
   interfaces, and aims to be a reliable, practical tool for daily
-  use.'
+  use.
 category: Finance
 author: Simon Michael <simon@joyful.com>
 maintainer: Simon Michael <simon@joyful.com>

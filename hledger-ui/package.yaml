@@ -1,23 +1,19 @@
-# hpack specification for generating the cabal file
-# https://github.com/sol/hpack#readme
-# http://www.haskell.org/cabal/release/cabal-latest/doc/users-guide/authors.html
-
 name        : hledger-ui
 version     : '0.28'
 stability   : beta
 category    : Finance, Console
 synopsis    : Curses-style user interface for the hledger accounting tool
 description : |
-    This is hledger's curses-style interface.
-    It is simpler and more convenient for browsing data than the command-line interface,
-    but lighter and faster than hledger-web.
-    hledger is a cross-platform program for tracking money, time, or
-    any other commodity, using double-entry accounting and a simple,
-    editable file format. It is inspired by and largely compatible
-    with ledger(1).  hledger provides command-line, curses and web
-    interfaces, and aims to be a reliable, practical tool for daily
-    use.
+  This is hledger's curses-style interface.
+  It is simpler and more convenient for browsing data than the command-line interface,
+  but lighter and faster than hledger-web.
 
+  hledger is a cross-platform program for tracking money, time, or
+  any other commodity, using double-entry accounting and a simple,
+  editable file format. It is inspired by and largely compatible
+  with ledger(1).  hledger provides command-line, curses and web
+  interfaces, and aims to be a reliable, practical tool for daily
+  use.
 license     : GPL
 author      : Simon Michael <simon@joyful.com>
 maintainer  : Simon Michael <simon@joyful.com>
