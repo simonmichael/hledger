@@ -47,11 +47,6 @@ source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
-flag double
-  manual: True
-  default: False
-  description: Use old Double number representation (instead of Decimal), for testing/benchmarking.
-
 flag oldtime
   description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
   manual: False

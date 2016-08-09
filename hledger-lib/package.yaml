@@ -34,10 +34,6 @@ data-files:
 - doc/hledger_timeclock.5.txt
 - doc/hledger_timeclock.5.info
 flags:
-  double:
-    description: Use old Double number representation (instead of Decimal), for testing/benchmarking.
-    manual: true
-    default: false
   oldtime:
     description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
     manual: false
