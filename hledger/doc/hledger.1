@@ -1029,12 +1029,13 @@ in tree mode: don\[aq]t squash boring parent accounts
 .RE
 .TP
 .B \f[C]\-H\ \-\-historical\f[]
-in multicolumn mode: show historical ending balances
+show historical ending balances, reflecting postings before report start
 .RS
 .RE
 .TP
 .B \f[C]\-\-cumulative\f[]
-in multicolumn mode: show accumulated ending balances
+in multicolumn mode: show ending balances accumulated from 0 at report
+start
 .RS
 .RE
 .TP
@@ -1635,7 +1636,7 @@ Show postings and their running total.
 Alias: reg.
 .TP
 .B \f[C]\-H\ \-\-historical\f[]
-include prior postings in the running total
+show historical running balance, reflecting prior postings
 .RS
 .RE
 .TP

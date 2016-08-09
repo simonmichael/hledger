@@ -817,10 +817,12 @@ Show accounts and their balances. Alias: bal.
      in tree mode: don't squash boring parent accounts
 
 `-H --historical'
-     in multicolumn mode: show historical ending balances
+     show historical ending balances, reflecting postings before report
+     start
 
 `--cumulative'
-     in multicolumn mode: show accumulated ending balances
+     in multicolumn mode: show ending balances accumulated from 0 at
+     report start
 
 `-A --average'
      in multicolumn mode: show a row average column
@@ -1396,7 +1398,7 @@ File: hledger.1.info,  Node: register,  Next: stats,  Prev: print,  Up: COMMANDS
 Show postings and their running total. Alias: reg.
 
 `-H --historical'
-     include prior postings in the running total
+     show historical running balance, reflecting prior postings
 
 `-A --average'
      show a running average instead of the running total (implies
@@ -2125,69 +2127,69 @@ Node: add21806
 Ref: #add21907
 Node: balance24566
 Ref: #balance24679
-Node: Flat mode27395
-Ref: #flat-mode27522
-Node: Depth limited balance reports27941
-Ref: #depth-limited-balance-reports28144
-Node: Multicolumn balance reports28565
-Ref: #multicolumn-balance-reports28767
-Node: Market value33416
-Ref: #market-value33580
-Node: Custom balance output34073
-Ref: #custom-balance-output34246
-Node: Output destination36350
-Ref: #output-destination36515
-Node: CSV output36785
-Ref: #csv-output36904
-Node: balancesheet37301
-Ref: #balancesheet37429
-Node: cashflow38081
-Ref: #cashflow38198
-Node: help38888
-Ref: #help39000
-Node: incomestatement39837
-Ref: #incomestatement39967
-Node: info40694
-Ref: #info40801
-Node: man41163
-Ref: #man41260
-Node: print41663
-Ref: #print41768
-Node: register43119
-Ref: #register43232
-Node: Custom register output47573
-Ref: #custom-register-output47704
-Node: stats49001
-Ref: #stats49107
-Node: test49988
-Ref: #test50075
-Node: ADD-ON COMMANDS50442
-Ref: #add-on-commands50578
-Node: api51866
-Ref: #api51958
-Node: autosync51992
-Ref: #autosync52107
-Node: diff54422
-Ref: #diff54532
-Node: equity55196
-Ref: #equity55310
-Node: interest56638
-Ref: #interest56755
-Node: irr59839
-Ref: #irr59952
-Node: print-unique62327
-Ref: #print-unique62457
-Node: rewrite62715
-Ref: #rewrite62834
-Node: ui63363
-Ref: #ui63463
-Node: web63504
-Ref: #web63592
-Node: TROUBLESHOOTING63625
-Ref: #troubleshooting63744
-Node: Run-time problems63798
-Ref: #run-time-problems63941
-Node: Known limitations65885
-Ref: #known-limitations66028
+Node: Flat mode27448
+Ref: #flat-mode27575
+Node: Depth limited balance reports27994
+Ref: #depth-limited-balance-reports28197
+Node: Multicolumn balance reports28618
+Ref: #multicolumn-balance-reports28820
+Node: Market value33469
+Ref: #market-value33633
+Node: Custom balance output34126
+Ref: #custom-balance-output34299
+Node: Output destination36403
+Ref: #output-destination36568
+Node: CSV output36838
+Ref: #csv-output36957
+Node: balancesheet37354
+Ref: #balancesheet37482
+Node: cashflow38134
+Ref: #cashflow38251
+Node: help38941
+Ref: #help39053
+Node: incomestatement39890
+Ref: #incomestatement40020
+Node: info40747
+Ref: #info40854
+Node: man41216
+Ref: #man41313
+Node: print41716
+Ref: #print41821
+Node: register43172
+Ref: #register43285
+Node: Custom register output47641
+Ref: #custom-register-output47772
+Node: stats49069
+Ref: #stats49175
+Node: test50056
+Ref: #test50143
+Node: ADD-ON COMMANDS50510
+Ref: #add-on-commands50646
+Node: api51934
+Ref: #api52026
+Node: autosync52060
+Ref: #autosync52175
+Node: diff54490
+Ref: #diff54600
+Node: equity55264
+Ref: #equity55378
+Node: interest56706
+Ref: #interest56823
+Node: irr59907
+Ref: #irr60020
+Node: print-unique62395
+Ref: #print-unique62525
+Node: rewrite62783
+Ref: #rewrite62902
+Node: ui63431
+Ref: #ui63531
+Node: web63572
+Ref: #web63660
+Node: TROUBLESHOOTING63693
+Ref: #troubleshooting63812
+Node: Run-time problems63866
+Ref: #run-time-problems64009
+Node: Known limitations65953
+Ref: #known-limitations66096
 
 End Tag Table

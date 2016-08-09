@@ -711,10 +711,12 @@ COMMANDS
               in tree mode: don't squash boring parent accounts
 
        -H --historical
-              in multicolumn mode: show historical ending balances
+              show historical  ending  balances,  reflecting  postings  before
+              report start
 
        --cumulative
-              in multicolumn mode: show accumulated ending balances
+              in  multicolumn mode: show ending balances accumulated from 0 at
+              report start
 
        -A --average
               in multicolumn mode: show a row average column
@@ -1178,7 +1180,7 @@ COMMANDS
        Show postings and their running total.  Alias: reg.
 
        -H --historical
-              include prior postings in the running total
+              show historical running balance, reflecting prior postings
 
        -A --average
               show  a  running  average  instead of the running total (implies

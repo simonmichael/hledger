@@ -234,11 +234,13 @@ While editing the query you can use typical command\-line edit keys
 (CTRL\-a/e/d/k, cursor keys etc.), and \f[C]ENTER\f[]to set the new
 filter or \f[C]ESCAPE\f[]to cancel.
 .PP
-\f[C]d\f[] cycles through the common report period durations: day, week,
-month, quarter, year, and unlimited (the default).
-When the report duration is limited in this way, \f[C]n\f[] and
-\f[C]p\f[] step to the next or previous day/week/month/etc.
-(To set arbitrary start/end dates, you can use \f[C]/\f[] to set a
+\f[C]t\f[] sets the report period to today, while \f[C]d\f[] and
+\f[C]u\f[] cycle downward and upward through standard report periods \-
+day, week, month, quarter, year, and unlimited.
+This is useful on the register screen, to limit the transaction history.
+When a standard report period is selected in this way, \f[C]n\f[] and
+\f[C]p\f[] step to the next or previous period.
+(For non\-standard periods, you can use \f[C]/\f[] to set a
 \f[C]date:\f[] query.)
 .PP
 \f[C]BACKSPACE\f[] or \f[C]DELETE\f[] clears any filters in effect.
