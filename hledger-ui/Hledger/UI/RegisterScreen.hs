@@ -259,7 +259,9 @@ rsHandle ui@UIState{
         EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
         EvKey (KChar 'I') [] -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
         EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
-        EvKey (KChar 'd') [] -> continue $ regenerateScreens j d $ cycleReportDuration d ui
+        EvKey (KChar 'd') [] -> continue $ regenerateScreens j d $ cycleReportDurationDown d ui
+        EvKey (KChar 'u') [] -> continue $ regenerateScreens j d $ cycleReportDurationUp d ui
+        EvKey (KChar 't') [] -> continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
         EvKey (KChar 'n') [] -> continue $ regenerateScreens j d $ nextReportPeriod ui
         EvKey (KChar 'p') [] -> continue $ regenerateScreens j d $ previousReportPeriod ui
         EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui

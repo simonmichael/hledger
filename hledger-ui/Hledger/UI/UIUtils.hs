@@ -71,9 +71,11 @@ helpDialog =
                   ,renderKey ("R", "toggle real filter")
                   ,renderKey ("Z", "toggle nonzero filter")
                   ,renderKey ("F", "toggle flat/exclusive mode")
-                  ,renderKey ("d", "change report period duration")
-                  ,str "when duration set:"
+                  ,str " "
+                  ,renderKey ("t", "  set report period to today")
+                  ,renderKey ("d/u", "decrease/increase report period")
                   ,renderKey ("n/p", "next/previous report period")
+                  ,str " "
                   ,str "accounts screen:"
                   ,renderKey ("-+0123456789", "set depth limit")
                   ,str " "

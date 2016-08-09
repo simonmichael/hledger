@@ -93,11 +93,13 @@ command-line edit keys
 ([CTRL-a/e/d/k, cursor keys etc.](http://hackage.haskell.org/package/brick-0.7/docs/Brick-Widgets-Edit.html#t:Editor)), 
 and `ENTER`to set the new filter or `ESCAPE`to cancel.
 
-`d` cycles through the common report period durations: 
-day, week, month, quarter, year, and unlimited (the default).
-When the report duration is limited in this way, `n` and `p`
-step to the next or previous day/week/month/etc.
-(To set arbitrary start/end dates, you can use `/` to set a [`date:` query](manual.html#queries).)
+`t` sets the report period to today,
+while `d` and `u` cycle downward and upward through standard report periods
+- day, week, month, quarter, year, and unlimited. 
+This is useful on the register screen, to limit the transaction history.
+When a standard report period is selected in this way, 
+`n` and `p` step to the next or previous period.
+(For non-standard periods, you can use `/` to set a [`date:` query](manual.html#queries).)
 
 `BACKSPACE` or `DELETE` clears any filters in effect.
 

@@ -1,8 +1,7 @@
 {-|
 
 Manipulate the time periods typically used for reports with Period,
-a richer abstraction that will probably replace DateSpan.
-See also Types and Dates.
+a richer abstraction than DateSpan. See also Types and Dates.
 
 -}
 
@@ -144,30 +143,6 @@ periodEnd p = me
   where
     DateSpan _ me = periodAsDateSpan p
 
--- | Enlarge a period to the next larger common duration, if there is one.
--- The new period will enclose the old one. A day becomes a week,
--- a week becomes a month (whichever month the week's middle day,
--- ie thursday, falls into), etc. A year is the largest duration
--- and growing that has no effect.
-periodGrow :: Period -> Period
-periodGrow (DayPeriod b) = WeekPeriod $ mondayBefore b
-periodGrow (WeekPeriod b) = MonthPeriod y m
-  where (y,m) = yearMonthContainingWeek b
-periodGrow (MonthPeriod y m) = QuarterPeriod y ((m-1) `div` 3 + 1)
-periodGrow (QuarterPeriod y _) = YearPeriod y
-periodGrow (YearPeriod _) = PeriodAll
-periodGrow p = p
-
-mondayBefore d = addDays (fromIntegral (1 - wd)) d
-  where
-    (_,_,wd) = toWeekDate d
-
-yearMonthContainingWeek weekstart = (y,m)
-  where
-    thu = addDays 3 weekstart
-    (y,yd) = toOrdinalDate thu
-    (m,_) = dayOfYearToMonthAndDay (isLeapYear y) yd
-
 -- | Move a period to the following period of same duration.
 periodNext :: Period -> Period
 periodNext (DayPeriod b) = DayPeriod (addDays 1 b)
@@ -189,4 +164,77 @@ periodPrevious (QuarterPeriod y 1) = QuarterPeriod (y-1) 4
 periodPrevious (QuarterPeriod y q) = QuarterPeriod y (q-1)
 periodPrevious (YearPeriod y) = YearPeriod (y-1)
 periodPrevious p = p
+
+-- | Enlarge a standard period to the next larger enclosing standard period, if there is one.
+-- Eg, a day becomes the enclosing week.
+-- A week becomes whichever month the week's thursday falls into.
+-- A year becomes all (unlimited).
+-- Growing an unlimited period, or a non-standard period (arbitrary dates) has no effect.
+periodGrow :: Period -> Period
+periodGrow (DayPeriod b) = WeekPeriod $ mondayBefore b
+periodGrow (WeekPeriod b) = MonthPeriod y m
+  where (y,m) = yearMonthContainingWeekStarting b
+periodGrow (MonthPeriod y m) = QuarterPeriod y (quarterContainingMonth m)
+periodGrow (QuarterPeriod y _) = YearPeriod y
+periodGrow (YearPeriod _) = PeriodAll
+periodGrow p = p
+
+-- | Shrink a period to the next smaller standard period inside it,
+-- choosing the subperiod which contains today's date if possible,
+-- otherwise the first subperiod. It goes like this:
+-- unbounded periods and nonstandard periods (between two arbitrary dates) ->
+-- current year ->
+-- current quarter if it's in selected year, otherwise first quarter of selected year ->
+-- current month if it's in selected quarter, otherwise first month of selected quarter ->
+-- current week if it's in selected month, otherwise first week of selected month ->
+-- today if it's in selected week, otherwise first day of selected week,
+--  unless that's in previous month, in which case first day of month containing selected week.
+-- Shrinking a day has no effect.
+periodShrink :: Day -> Period -> Period
+periodShrink _     p@(DayPeriod _) = p
+periodShrink today (WeekPeriod b)
+  | today >= b && diffDays today b < 7 = DayPeriod today
+  | m /= weekmonth                     = DayPeriod $ fromGregorian weekyear weekmonth 1
+  | otherwise                          = DayPeriod b
+  where
+    (_,m,_) = toGregorian b
+    (weekyear,weekmonth) = yearMonthContainingWeekStarting b
+periodShrink today (MonthPeriod y m)
+  | (y',m') == (y,m) = WeekPeriod $ mondayBefore today
+  | otherwise        = WeekPeriod $ startOfFirstWeekInMonth y m
+  where (y',m',_) = toGregorian today
+periodShrink today (QuarterPeriod y q)
+  | quarterContainingMonth thismonth == q = MonthPeriod y thismonth
+  | otherwise                             = MonthPeriod y (firstMonthOfQuarter q)
+  where (_,thismonth,_) = toGregorian today
+periodShrink today (YearPeriod y)
+  | y == thisyear = QuarterPeriod y thisquarter
+  | otherwise     = QuarterPeriod y 1
+  where
+    (thisyear,thismonth,_) = toGregorian today
+    thisquarter = quarterContainingMonth thismonth
+periodShrink today _ = YearPeriod y
+  where (y,_,_) = toGregorian today
+
+mondayBefore d = addDays (fromIntegral (1 - wd)) d
+  where
+    (_,_,wd) = toWeekDate d
+
+yearMonthContainingWeekStarting weekstart = (y,m)
+  where
+    thu = addDays 3 weekstart
+    (y,yd) = toOrdinalDate thu
+    (m,_) = dayOfYearToMonthAndDay (isLeapYear y) yd
+
+quarterContainingMonth m = (m-1) `div` 3 + 1
+
+firstMonthOfQuarter q = (q-1)*3 + 1
+
+startOfFirstWeekInMonth y m
+  | monthstartday <= 4 = mon
+  | otherwise          = addDays 7 mon  -- month starts with a fri/sat/sun
+  where
+    monthstart = fromGregorian y m 1
+    mon = mondayBefore monthstart
+    (_,_,monthstartday) = toWeekDate monthstart
 
