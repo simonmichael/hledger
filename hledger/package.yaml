@@ -1,7 +1,7 @@
 name: hledger
 version: '0.28'
 synopsis: Command-line interface for the hledger accounting tool
-description: ! 'This is hledger’s command-line interface.
+description: ! 'This is hledger''s command-line interface.
   Its basic function is to read a plain text file describing
   financial transactions and produce useful reports.
   hledger is a cross-platform program for tracking money, time, or

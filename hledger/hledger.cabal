@@ -7,7 +7,7 @@ version:        0.28
 stability:      stable
 category:       Finance, Console
 synopsis:       Command-line interface for the hledger accounting tool
-description:    This is hledger’s command-line interface. Its basic function is to read a plain text file describing financial transactions and produce useful reports. hledger is a cross-platform program for tracking money, time, or any other commodity, using double-entry accounting and a simple, editable file format. It is inspired by and largely compatible with ledger(1).  hledger provides command-line, curses and web interfaces, and aims to be a reliable, practical tool for daily use.
+description:    This is hledger's command-line interface. Its basic function is to read a plain text file describing financial transactions and produce useful reports. hledger is a cross-platform program for tracking money, time, or any other commodity, using double-entry accounting and a simple, editable file format. It is inspired by and largely compatible with ledger(1).  hledger provides command-line, curses and web interfaces, and aims to be a reliable, practical tool for daily use.
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
