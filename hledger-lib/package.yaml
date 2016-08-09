@@ -118,6 +118,9 @@ library:
   - parsec
   - semigroups
   when:
+  - condition: impl(ghc <7.6)
+    dependencies:
+    - ghc-prim
   - condition: flag(oldtime)
     then:
       dependencies:
@@ -133,6 +136,10 @@ tests:
     dependencies:
     - doctest >=0.8
     - Glob >=0.7
+    when:
+    - condition: impl(ghc <7.6)
+      dependencies:
+      - ghc-prim
   hunittests:
     main: hunittests.hs
     source-dirs: tests
@@ -141,6 +148,9 @@ tests:
     - test-framework
     - test-framework-hunit
     when:
+    - condition: impl(ghc <7.6)
+      dependencies:
+      - ghc-prim
     - condition: flag(oldtime)
       then:
         dependencies:

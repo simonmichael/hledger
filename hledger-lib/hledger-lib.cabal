@@ -83,6 +83,9 @@ library
     , HUnit
     , parsec
     , semigroups
+  if impl(ghc <7.6)
+    build-depends:
+        ghc-prim
   if flag(oldtime)
     build-depends:
         time <1.5
@@ -170,6 +173,9 @@ test-suite doctests
     , HUnit
     , doctest >=0.8
     , Glob >=0.7
+  if impl(ghc <7.6)
+    build-depends:
+        ghc-prim
   default-language: Haskell2010
 
 test-suite hunittests
@@ -208,6 +214,9 @@ test-suite hunittests
     , hledger-lib
     , test-framework
     , test-framework-hunit
+  if impl(ghc <7.6)
+    build-depends:
+        ghc-prim
   if flag(oldtime)
     build-depends:
         time <1.5

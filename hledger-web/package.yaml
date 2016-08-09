@@ -132,6 +132,9 @@ library:
     else:
       dependencies:
       - time >=1.5
+  - condition: impl(ghc <7.6)
+    dependencies:
+    - ghc-prim
 executables:
   hledger-web:
     main: main.hs
@@ -157,6 +160,9 @@ executables:
       else:
         dependencies:
         - time >=1.5
+    - condition: impl(ghc <7.6)
+      dependencies:
+      - ghc-prim
 tests:
   test:
     main: main.hs
@@ -175,5 +181,8 @@ tests:
       else:
         dependencies:
         - time >=1.5
+    - condition: impl(ghc <7.6)
+      dependencies:
+      - ghc-prim
 stability: stable
 tested-with: GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0

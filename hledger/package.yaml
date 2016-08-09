@@ -125,6 +125,9 @@ library:
   - utf8-string >=0.3.5 && <1.1
   - wizards ==1.0.*
   when:
+  - condition: impl(ghc <7.6)
+    dependencies:
+    - ghc-prim
   - condition: impl(ghc >=7.10)
     then:
       dependencies:
@@ -173,6 +176,9 @@ executables:
     when:
     - condition: flag(threaded)
       ghc-options: -threaded
+    - condition: impl(ghc <7.6)
+      dependencies:
+      - ghc-prim
     - condition: impl(ghc >=7.10)
       then:
         dependencies:
@@ -221,6 +227,9 @@ tests:
     - test-framework
     - test-framework-hunit
     when:
+    - condition: impl(ghc <7.6)
+      dependencies:
+      - ghc-prim
     - condition: impl(ghc >=7.10)
       then:
         dependencies:

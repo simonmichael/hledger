@@ -170,6 +170,9 @@ library
     else
         build-depends:
               time >=1.5
+    if impl(ghc <7.6)
+        build-depends:
+              ghc-prim
     exposed-modules:
           Application
           Foundation
@@ -247,6 +250,9 @@ executable hledger-web
     else
         build-depends:
               time >=1.5
+    if impl(ghc <7.6)
+        build-depends:
+              ghc-prim
     default-language: Haskell2010
 
 test-suite test
@@ -302,4 +308,7 @@ test-suite test
     else
         build-depends:
               time >=1.5
+    if impl(ghc <7.6)
+        build-depends:
+              ghc-prim
     default-language: Haskell2010
