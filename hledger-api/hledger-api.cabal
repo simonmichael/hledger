@@ -17,7 +17,7 @@ license:        GPL
 license-file:   LICENSE
 build-type:     Simple
 cabal-version:  >= 1.10
-tested-with:    ghc ==7.10.3
+tested-with:    GHC==7.10.3, GHC==8.0
 
 extra-source-files:
     CHANGES

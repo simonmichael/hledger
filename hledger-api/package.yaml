@@ -51,4 +51,4 @@ data-files:
 - doc/hledger-api.1.txt
 - doc/hledger-api.1.info
 stability: alpha
-tested-with: ghc ==7.10.3
+tested-with: GHC==7.10.3, GHC==8.0

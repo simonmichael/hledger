@@ -269,4 +269,4 @@ data-files:
 - doc/other/hledger_timedot.5.txt
 - doc/other/hledger_timedot.5.info
 stability: stable
-tested-with: ghc ==7.6.3 ghc ==7.8.4 ghc ==7.10.3 ghc ==8.0
+tested-with: GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0
