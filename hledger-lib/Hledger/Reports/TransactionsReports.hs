@@ -176,7 +176,6 @@ queryIsStartBalancePreserving opts q =
   filterQuery (\q -> not (
                          queryIsEmpty q
                       || queryIsSym q
-                      -- || queryIsReal q))
                       )) q
 
 totallabel = "Running Total"
