@@ -1,0 +1,54 @@
+name: hledger-api
+version: '0.28'
+synopsis: Web API server for the hledger accounting tool
+description: ! 'This is a simple web API server for hledger data.
+  It comes with a series of simple client-side web app examples.
+
+  hledger is a cross-platform program for tracking money, time, or
+  any other commodity, using double-entry accounting and a simple,
+  editable file format. It is inspired by and largely compatible
+  with ledger(1).  hledger provides command-line, curses and web
+  interfaces, and aims to be a reliable, practical tool for daily
+  use.'
+category: Finance
+author: Simon Michael <simon@joyful.com>
+maintainer: Simon Michael <simon@joyful.com>
+license: GPL
+github: simonmichael/hledger
+homepage: http://hledger.org
+bug-reports: http://bugs.hledger.org
+extra-source-files:
+- CHANGES
+- README
+- examples/*.html
+dependencies:
+- hledger-lib ==0.28
+- hledger ==0.28
+- base >=4 && <5
+- aeson
+- bytestring
+- containers
+- Decimal
+- docopt
+- either
+- microlens >=0.4 && <0.5
+- microlens-platform >=0.2.3.1 && <0.4
+- safe
+- servant-server
+- servant-swagger
+- swagger2
+- text
+- transformers
+- wai
+- warp
+executables:
+  hledger-api:
+    main: hledger-api.hs
+    ghc-options: -threaded
+    cpp-options: -DVERSION="0.28"
+data-files:
+- doc/hledger-api.1
+- doc/hledger-api.1.txt
+- doc/hledger-api.1.info
+stability: alpha
+tested-with: ghc ==7.10.3

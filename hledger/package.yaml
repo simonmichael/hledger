@@ -1,0 +1,272 @@
+name: hledger
+version: '0.28'
+synopsis: Command-line interface for the hledger accounting tool
+description: ! 'This is hledger’s command-line interface.
+  Its basic function is to read a plain text file describing
+  financial transactions and produce useful reports.
+  hledger is a cross-platform program for tracking money, time, or
+  any other commodity, using double-entry accounting and a simple,
+  editable file format. It is inspired by and largely compatible
+  with ledger(1).  hledger provides command-line, curses and web
+  interfaces, and aims to be a reliable, practical tool for daily
+  use.'
+category: Finance, Console
+author: Simon Michael <simon@joyful.com>
+maintainer: Simon Michael <simon@joyful.com>
+license: GPL
+github: simonmichael/hledger
+homepage: http://hledger.org
+bug-reports: http://bugs.hledger.org
+extra-source-files:
+- CHANGES
+- README.md
+- test/test.hs
+- bench/10000x1000x10.journal
+ghc-options:
+- -Wall
+- -fno-warn-unused-do-bind
+- -fno-warn-name-shadowing
+- -fno-warn-missing-signatures
+- -fno-warn-type-defaults
+- -fno-warn-orphans
+dependencies:
+- base >=4.3 && <5
+- base-compat >=0.8.1
+- directory
+- file-embed >=0.0.10 && <0.1
+- filepath
+- process
+- temporary
+- tabular >=0.2 && <0.3
+library:
+  cpp-options: -DVERSION="0.28"
+  exposed-modules:
+  - Hledger.Cli
+  - Hledger.Cli.Main
+  - Hledger.Cli.CliOptions
+  - Hledger.Cli.DocFiles
+  - Hledger.Cli.Tests
+  - Hledger.Cli.Utils
+  - Hledger.Cli.Version
+  - Hledger.Cli.Add
+  - Hledger.Cli.Accounts
+  - Hledger.Cli.Balance
+  - Hledger.Cli.Balancesheet
+  - Hledger.Cli.Cashflow
+  - Hledger.Cli.Help
+  - Hledger.Cli.Histogram
+  - Hledger.Cli.Incomestatement
+  - Hledger.Cli.Info
+  - Hledger.Cli.Man
+  - Hledger.Cli.Print
+  - Hledger.Cli.Register
+  - Hledger.Cli.Stats
+  - Text.Tabular.AsciiWide
+  dependencies:
+  - hledger-lib ==0.28
+  - bytestring
+  - containers
+  - unordered-containers
+  - cmdargs >=0.10 && <0.11
+  - csv
+  - data-default >=0.5
+  - haskeline >=0.6 && <=0.8
+  - HUnit
+  - mtl
+  - mtl-compat
+  - old-time
+  - megaparsec >=5
+  - regex-tdfa
+  - safe >=0.2
+  - split >=0.1 && <0.3
+  - transformers
+  - text >=0.11
+  - utf8-string >=0.3.5 && <1.1
+  - wizards ==1.0.*
+  when:
+  - condition: impl(ghc >=7.10)
+    then:
+      dependencies:
+      - shakespeare >=2.0.2.2 && <2.1
+    else:
+      dependencies:
+      - shakespeare >=1.0 && <2.1
+      - shakespeare-text >=1.0 && <1.2
+  - condition: flag(old-locale)
+    then:
+      dependencies:
+      - time <1.5
+      - old-locale
+    else:
+      dependencies:
+      - time >=1.5
+  - condition: impl(ghc >=7.4)
+    dependencies:
+    - pretty-show >=1.6.4
+  - condition: (!(os(windows))) && (flag(curses))
+    dependencies:
+    - terminfo
+executables:
+  hledger:
+    main: hledger-cli.hs
+    source-dirs: app
+    cpp-options: -DVERSION="0.28"
+    dependencies:
+    - hledger-lib ==0.28
+    - bytestring
+    - containers
+    - unordered-containers
+    - cmdargs >=0.10 && <0.11
+    - csv
+    - data-default >=0.5
+    - haskeline >=0.6 && <=0.8
+    - HUnit
+    - mtl
+    - mtl-compat
+    - old-time
+    - parsec >=3
+    - regex-tdfa
+    - safe >=0.2
+    - split >=0.1 && <0.3
+    - text >=0.11
+    - utf8-string >=0.3.5 && <1.1
+    - wizards ==1.0.*
+    - hledger ==0.28
+    when:
+    - condition: flag(threaded)
+      ghc-options: -threaded
+    - condition: impl(ghc >=7.10)
+      then:
+        dependencies:
+        - shakespeare >=2.0.2.2 && <2.1
+      else:
+        dependencies:
+        - shakespeare >=1.0 && <2.1
+        - shakespeare-text >=1.0 && <1.2
+    - condition: flag(old-locale)
+      then:
+        dependencies:
+        - time <1.5
+        - old-locale
+      else:
+        dependencies:
+        - time >=1.5
+    - condition: impl(ghc >=7.4)
+      dependencies:
+      - pretty-show >=1.6.4
+    - condition: (!(os(windows))) && (flag(curses))
+      dependencies:
+      - terminfo
+tests:
+  test:
+    main: test.hs
+    source-dirs: test
+    cpp-options: -DVERSION="0.28"
+    dependencies:
+    - hledger-lib ==0.28
+    - bytestring
+    - containers
+    - unordered-containers
+    - cmdargs >=0.10 && <0.11
+    - csv
+    - data-default >=0.5
+    - haskeline >=0.6 && <=0.8
+    - HUnit
+    - mtl
+    - mtl-compat
+    - old-time
+    - parsec >=3
+    - regex-tdfa
+    - safe >=0.2
+    - split >=0.1 && <0.3
+    - text >=0.11
+    - utf8-string >=0.3.5 && <1.1
+    - wizards ==1.0.*
+    - hledger
+    - test-framework
+    - test-framework-hunit
+    when:
+    - condition: impl(ghc >=7.10)
+      then:
+        dependencies:
+        - shakespeare >=2.0.2.2 && <2.1
+      else:
+        dependencies:
+        - shakespeare >=1.0 && <2.1
+        - shakespeare-text >=1.0 && <1.2
+    - condition: impl(ghc >=7.4)
+      dependencies:
+      - pretty-show >=1.6.4
+    - condition: flag(old-locale)
+      then:
+        dependencies:
+        - time <1.5
+        - old-locale
+      else:
+        dependencies:
+        - time >=1.5
+    - condition: (!(os(windows))) && (flag(curses))
+      dependencies:
+      - terminfo
+benchmarks:
+  bench:
+    main: bench.hs
+    source-dirs: bench
+    dependencies:
+    - hledger-lib
+    - hledger
+    - criterion
+    - html
+    - timeit
+    when:
+    - condition: flag(old-locale)
+      then:
+        dependencies:
+        - time <1.5
+        - old-locale
+      else:
+        dependencies:
+        - time >=1.5
+flags:
+  curses:
+    description: On POSIX systems, enable curses support for auto-detecting terminal
+      width.
+    manual: false
+    default: true
+  threaded:
+    description: Build with support for multithreaded execution
+    manual: false
+    default: true
+  old-locale:
+    description: ! 'A compatibility flag, set automatically by cabal.
+      If false then depend on time >= 1.5,
+      if true then depend on time < 1.5 together with old-locale.'
+    manual: false
+    default: false
+data-files:
+- doc/hledger.1
+- doc/hledger.1.txt
+- doc/hledger.1.info
+- doc/other/hledger-api.1
+- doc/other/hledger-api.1.txt
+- doc/other/hledger-api.1.info
+- doc/other/hledger-ui.1
+- doc/other/hledger-ui.1.txt
+- doc/other/hledger-ui.1.info
+- doc/other/hledger-web.1
+- doc/other/hledger-web.1.txt
+- doc/other/hledger-web.1.info
+- doc/other/hledger_journal.5
+- doc/other/hledger_journal.5.txt
+- doc/other/hledger_journal.5.info
+- doc/other/hledger_csv.5
+- doc/other/hledger_csv.5.txt
+- doc/other/hledger_csv.5.info
+- doc/other/hledger_timeclock.5
+- doc/other/hledger_timeclock.5.txt
+- doc/other/hledger_timeclock.5.info
+- doc/other/hledger_timedot.5
+- doc/other/hledger_timedot.5.txt
+- doc/other/hledger_timedot.5.info
+stability: stable
+tested-with: ghc ==7.6.3 ghc ==7.8.4 ghc ==7.10.3 ghc ==8.0

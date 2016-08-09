@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.5.4.
+-- This file has been generated from package.yaml by hpack version 0.14.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -7,16 +7,7 @@ version:        0.28
 stability:      stable
 category:       Finance, Console
 synopsis:       Command-line interface for the hledger accounting tool
-description:
-    This is hledger’s command-line interface.
-    Its basic function is to read a plain text file describing
-    financial transactions and produce useful reports.
-    hledger is a cross-platform program for tracking money, time, or
-    any other commodity, using double-entry accounting and a simple,
-    editable file format. It is inspired by and largely compatible
-    with ledger(1).  hledger provides command-line, curses and web
-    interfaces, and aims to be a reliable, practical tool for daily
-    use.
+description:    This is hledger’s command-line interface. Its basic function is to read a plain text file describing financial transactions and produce useful reports. hledger is a cross-platform program for tracking money, time, or any other commodity, using double-entry accounting and a simple, editable file format. It is inspired by and largely compatible with ledger(1).  hledger provides command-line, curses and web interfaces, and aims to be a reliable, practical tool for daily use.
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
@@ -25,115 +16,111 @@ homepage:       http://hledger.org
 bug-reports:    http://bugs.hledger.org
 cabal-version:  >= 1.10
 build-type:     Simple
-tested-with:    GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0
+tested-with:    ghc ==7.6.3 ghc ==7.8.4 ghc ==7.10.3 ghc ==8.0
 
 extra-source-files:
+    bench/10000x1000x10.journal
     CHANGES
     README.md
     test/test.hs
-    bench/10000x1000x10.journal
 
 data-files:
     doc/hledger.1
-    doc/hledger.1.txt
     doc/hledger.1.info
+    doc/hledger.1.txt
     doc/other/hledger-api.1
-    doc/other/hledger-api.1.txt
     doc/other/hledger-api.1.info
+    doc/other/hledger-api.1.txt
     doc/other/hledger-ui.1
-    doc/other/hledger-ui.1.txt
     doc/other/hledger-ui.1.info
+    doc/other/hledger-ui.1.txt
     doc/other/hledger-web.1
-    doc/other/hledger-web.1.txt
     doc/other/hledger-web.1.info
-    doc/other/hledger_journal.5
-    doc/other/hledger_journal.5.txt
-    doc/other/hledger_journal.5.info
+    doc/other/hledger-web.1.txt
     doc/other/hledger_csv.5
-    doc/other/hledger_csv.5.txt
     doc/other/hledger_csv.5.info
+    doc/other/hledger_csv.5.txt
+    doc/other/hledger_journal.5
+    doc/other/hledger_journal.5.info
+    doc/other/hledger_journal.5.txt
     doc/other/hledger_timeclock.5
-    doc/other/hledger_timeclock.5.txt
     doc/other/hledger_timeclock.5.info
+    doc/other/hledger_timeclock.5.txt
     doc/other/hledger_timedot.5
-    doc/other/hledger_timedot.5.txt
     doc/other/hledger_timedot.5.info
+    doc/other/hledger_timedot.5.txt
 
 source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
-flag threaded
-  default: True
-  description:
-    Build with support for multithreaded execution
-
 flag curses
   default: True
-  description:   
-    On POSIX systems, enable curses support for auto-detecting terminal width.
+  description: On POSIX systems, enable curses support for auto-detecting terminal width.
+  manual: False
 
 flag old-locale
   default: False
-  description: 
-    A compatibility flag, set automatically by cabal.
-    If false then depend on time >= 1.5, 
-    if true then depend on time < 1.5 together with old-locale.
+  description: A compatibility flag, set automatically by cabal. If false then depend on time >= 1.5, if true then depend on time < 1.5 together with old-locale.
+  manual: False
+
+flag threaded
+  default: True
+  description: Build with support for multithreaded execution
+  manual: False
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   cpp-options: -DVERSION="0.28"
   build-depends:
-      hledger-lib == 0.28
-    , base >= 4.3 && < 5
-    , base-compat >= 0.8.1
+      base >=4.3 && <5
+    , base-compat >=0.8.1
+    , directory
+    , file-embed >=0.0.10 && <0.1
+    , filepath
+    , process
+    , temporary
+    , tabular >=0.2 && <0.3
+    , hledger-lib ==0.28
     , bytestring
     , containers
     , unordered-containers
-    , cmdargs >= 0.10 && < 0.11
+    , cmdargs >=0.10 && <0.11
     , csv
-    , data-default >= 0.5
-    , directory
-    , file-embed >= 0.0.10 && < 0.1
-    , filepath
-    , haskeline >= 0.6 && <= 0.8
+    , data-default >=0.5
+    , haskeline >=0.6 && <=0.8
     , HUnit
     , mtl
     , mtl-compat
     , old-time
-    , megaparsec >= 5
-    , process
+    , megaparsec >=5
     , regex-tdfa
-    , safe >= 0.2
-    , split >= 0.1 && < 0.3
+    , safe >=0.2
+    , split >=0.1 && <0.3
     , transformers
-    , temporary
-    , text >= 0.11
-    , tabular >= 0.2 && < 0.3
-    , utf8-string >= 0.3.5 && < 1.1
-    , wizards == 1.0.*
-
-  if impl(ghc >= 7.10)
-    -- ghc 7.10 requires shakespeare 2.0.2.2+
-    build-depends: shakespeare      >= 2.0.2.2 && < 2.1
-  else
-    -- for older ghcs, allow shakespeare 1.x (which also requires shakespeare-text)
-    -- http://www.yesodweb.com/blog/2014/04/consolidation-progress
+    , text >=0.11
+    , utf8-string >=0.3.5 && <1.1
+    , wizards ==1.0.*
+  if impl(ghc >=7.10)
     build-depends:
-                  shakespeare      >= 1.0 && < 2.1
-                 ,shakespeare-text >= 1.0 && < 1.2
-
-  if flag(old-locale)
-    build-depends: time < 1.5, old-locale
+        shakespeare >=2.0.2.2 && <2.1
   else
-    build-depends: time >= 1.5
-
-  if impl(ghc >= 7.4)
-    build-depends: pretty-show >= 1.6.4
-
-  if !os(windows) && flag(curses)
-    build-depends: terminfo
-
+    build-depends:
+        shakespeare >=1.0 && <2.1
+      , shakespeare-text >=1.0 && <1.2
+  if flag(old-locale)
+    build-depends:
+        time <1.5
+      , old-locale
+  else
+    build-depends:
+        time >=1.5
+  if impl(ghc >=7.4)
+    build-depends:
+        pretty-show >=1.6.4
+  if (!(os(windows))) && (flag(curses))
+    build-depends:
+        terminfo
   exposed-modules:
       Hledger.Cli
       Hledger.Cli.Main
@@ -156,6 +143,8 @@ library
       Hledger.Cli.Register
       Hledger.Cli.Stats
       Text.Tabular.AsciiWide
+  other-modules:
+      Paths_hledger
   default-language: Haskell2010
 
 executable hledger
@@ -163,57 +152,58 @@ executable hledger
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  if flag(threaded)
-    ghc-options: -threaded
   cpp-options: -DVERSION="0.28"
   build-depends:
-      hledger-lib == 0.28
-    , base >= 4.3 && < 5
-    , base-compat >= 0.8.1
+      base >=4.3 && <5
+    , base-compat >=0.8.1
+    , directory
+    , file-embed >=0.0.10 && <0.1
+    , filepath
+    , process
+    , temporary
+    , tabular >=0.2 && <0.3
+    , hledger-lib ==0.28
     , bytestring
     , containers
     , unordered-containers
-    , cmdargs >= 0.10 && < 0.11
+    , cmdargs >=0.10 && <0.11
     , csv
-    , data-default >= 0.5
-    , directory
-    , file-embed >= 0.0.10 && < 0.1
-    , filepath
-    , haskeline >= 0.6 && <= 0.8
+    , data-default >=0.5
+    , haskeline >=0.6 && <=0.8
     , HUnit
     , mtl
     , mtl-compat
     , old-time
-    , parsec >= 3
-    , process
+    , parsec >=3
     , regex-tdfa
-    , safe >= 0.2
-    , split >= 0.1 && < 0.3
-    , temporary
-    , text >= 0.11
-    , tabular >= 0.2 && < 0.3
-    , utf8-string >= 0.3.5 && < 1.1
-    , wizards == 1.0.*
-    , hledger == 0.28
-
-  if impl(ghc >= 7.10)
-    build-depends: shakespeare      >= 2.0.2.2 && < 2.1
+    , safe >=0.2
+    , split >=0.1 && <0.3
+    , text >=0.11
+    , utf8-string >=0.3.5 && <1.1
+    , wizards ==1.0.*
+    , hledger ==0.28
+  if flag(threaded)
+    ghc-options: -threaded
+  if impl(ghc >=7.10)
+    build-depends:
+        shakespeare >=2.0.2.2 && <2.1
   else
     build-depends:
-                  shakespeare      >= 1.0 && < 2.1
-                 ,shakespeare-text >= 1.0 && < 1.2
-
+        shakespeare >=1.0 && <2.1
+      , shakespeare-text >=1.0 && <1.2
   if flag(old-locale)
-    build-depends: time < 1.5, old-locale
+    build-depends:
+        time <1.5
+      , old-locale
   else
-    build-depends: time >= 1.5
-
-  if impl(ghc >= 7.4)
-    build-depends: pretty-show >= 1.6.4
-
-  if !os(windows) && flag(curses)
-    build-depends: terminfo
-
+    build-depends:
+        time >=1.5
+  if impl(ghc >=7.4)
+    build-depends:
+        pretty-show >=1.6.4
+  if (!(os(windows))) && (flag(curses))
+    build-depends:
+        terminfo
   default-language: Haskell2010
 
 test-suite test
@@ -224,81 +214,85 @@ test-suite test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   cpp-options: -DVERSION="0.28"
   build-depends:
-      hledger-lib == 0.28
-    , base >= 4.3 && < 5
-    , base-compat >= 0.8.1
+      base >=4.3 && <5
+    , base-compat >=0.8.1
+    , directory
+    , file-embed >=0.0.10 && <0.1
+    , filepath
+    , process
+    , temporary
+    , tabular >=0.2 && <0.3
+    , hledger-lib ==0.28
     , bytestring
     , containers
     , unordered-containers
-    , cmdargs >= 0.10 && < 0.11
+    , cmdargs >=0.10 && <0.11
     , csv
-    , data-default >= 0.5
-    , directory
-    , file-embed >= 0.0.10 && < 0.1
-    , filepath
-    , haskeline >= 0.6 && <= 0.8
+    , data-default >=0.5
+    , haskeline >=0.6 && <=0.8
     , HUnit
     , mtl
     , mtl-compat
     , old-time
-    , parsec >= 3
-    , process
+    , parsec >=3
     , regex-tdfa
-    , safe >= 0.2
-    , split >= 0.1 && < 0.3
-    , temporary
-    , text >= 0.11
-    , tabular >= 0.2 && < 0.3
-    , utf8-string >= 0.3.5 && < 1.1
-    , wizards == 1.0.*
+    , safe >=0.2
+    , split >=0.1 && <0.3
+    , text >=0.11
+    , utf8-string >=0.3.5 && <1.1
+    , wizards ==1.0.*
     , hledger
     , test-framework
     , test-framework-hunit
-
-  if impl(ghc >= 7.10)
-    build-depends: shakespeare      >= 2.0.2.2 && < 2.1
+  if impl(ghc >=7.10)
+    build-depends:
+        shakespeare >=2.0.2.2 && <2.1
   else
     build-depends:
-                  shakespeare      >= 1.0 && < 2.1
-                 ,shakespeare-text >= 1.0 && < 1.2
-
-  if impl(ghc >= 7.4)
-    build-depends: pretty-show >= 1.6.4
-
+        shakespeare >=1.0 && <2.1
+      , shakespeare-text >=1.0 && <1.2
+  if impl(ghc >=7.4)
+    build-depends:
+        pretty-show >=1.6.4
   if flag(old-locale)
-    build-depends: time < 1.5, old-locale
+    build-depends:
+        time <1.5
+      , old-locale
   else
-    build-depends: time >= 1.5
-
-  if !os(windows) && flag(curses)
-    build-depends: terminfo
-
+    build-depends:
+        time >=1.5
+  if (!(os(windows))) && (flag(curses))
+    build-depends:
+        terminfo
   default-language: Haskell2010
 
 benchmark bench
-  type:             exitcode-stdio-1.0
-  hs-source-dirs:   bench
-  main-is:          bench.hs
-  other-modules:    SimpleBench
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures
-  ghc-options: -fno-warn-type-defaults -fno-warn-orphans
+  type: exitcode-stdio-1.0
+  hs-source-dirs:
+      bench
+  main-is: bench.hs
+  other-modules:
+      SimpleBench
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   default-language: Haskell2010
-  build-depends:    hledger-lib,
-                    hledger,
-                    base >= 4.3 && < 5,
-                    base-compat >= 0.8.1,
-                    criterion,
-                    html,
-                    tabular >= 0.2 && < 0.3,
-                    temporary,
-                    timeit,
-                    process,
-                    file-embed >= 0.0.10 && < 0.1,
-                    filepath,
-                    directory
-
+  build-depends:
+      base >=4.3 && <5
+    , base-compat >=0.8.1
+    , directory
+    , file-embed >=0.0.10 && <0.1
+    , filepath
+    , process
+    , temporary
+    , tabular >=0.2 && <0.3
+    , hledger-lib
+    , hledger
+    , criterion
+    , html
+    , timeit
   if flag(old-locale)
-    build-depends: time < 1.5, old-locale
+    build-depends:
+        time <1.5
+      , old-locale
   else
-    build-depends: time >= 1.5
-  
+    build-depends:
+        time >=1.5

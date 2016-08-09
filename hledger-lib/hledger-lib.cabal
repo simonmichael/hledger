@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.5.4.
+-- This file has been generated from package.yaml by hpack version 0.14.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -7,14 +7,7 @@ version:        0.28
 stability:      stable
 category:       Finance
 synopsis:       Core data types, parsers and functionality for the hledger accounting tools
-description:    
-    This is a reusable library containing hledger's core functionality.
-    hledger is a cross-platform program for tracking money, time, or
-    any other commodity, using double-entry accounting and a simple,
-    editable file format. It is inspired by and largely compatible
-    with ledger(1).  hledger provides command-line, curses and web
-    interfaces, and aims to be a reliable, practical tool for daily
-    use.
+description:    This is a reusable library containing hledger's core functionality. hledger is a cross-platform program for tracking money, time, or any other commodity, using double-entry accounting and a simple, editable file format. It is inspired by and largely compatible with ledger(1).  hledger provides command-line, curses and web interfaces, and aims to be a reliable, practical tool for daily use.
 license:        GPL
 license-file:   LICENSE
 author:         Simon Michael <simon@joyful.com>
@@ -23,25 +16,25 @@ homepage:       http://hledger.org
 bug-reports:    http://bugs.hledger.org
 cabal-version:  >= 1.10
 build-type:     Simple
-tested-with:    GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0
+tested-with:    ghc ==7.6.3 ghc ==7.8.4 ghc ==7.10.3 ghc ==8.0
 
 extra-source-files:
-    CHANGES 
+    CHANGES
     README
 
 data-files:
     doc/hledger_csv.5
-    doc/hledger_csv.5.txt
     doc/hledger_csv.5.info
+    doc/hledger_csv.5.txt
     doc/hledger_journal.5
-    doc/hledger_journal.5.txt
     doc/hledger_journal.5.info
-    doc/hledger_timedot.5
-    doc/hledger_timedot.5.txt
-    doc/hledger_timedot.5.info
+    doc/hledger_journal.5.txt
     doc/hledger_timeclock.5
-    doc/hledger_timeclock.5.txt
     doc/hledger_timeclock.5.info
+    doc/hledger_timeclock.5.txt
+    doc/hledger_timedot.5
+    doc/hledger_timedot.5.info
+    doc/hledger_timedot.5.txt
 
 source-repository head
   type: git
@@ -50,28 +43,25 @@ source-repository head
 flag double
   manual: True
   default: False
-  description:
-    Use old Double number representation (instead of Decimal), for testing/benchmarking.
+  description: Use old Double number representation (instead of Decimal), for testing/benchmarking.
 
 flag old-locale
   default: False
-  description: 
-    A compatibility flag, set automatically by cabal.
-    If false then depend on time >= 1.5, 
-    if true then depend on time < 1.5 together with old-locale.
+  description: A compatibility flag, set automatically by cabal. If false then depend on time >= 1.5, if true then depend on time < 1.5 together with old-locale.
+  manual: False
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-      base >= 4.3 && < 5
-    , base-compat >= 0.8.1
+      base >=4.3 && <5
+    , base-compat >=0.8.1
     , array
-    , blaze-markup >= 0.5.1
+    , blaze-markup >=0.5.1
     , bytestring
-    , cmdargs >= 0.10 && < 0.11
+    , cmdargs >=0.10 && <0.11
     , containers
     , csv
-    , data-default >= 0.5
+    , data-default >=0.5
     , Decimal
     , deepseq
     , directory
@@ -79,26 +69,27 @@ library
     , mtl
     , mtl-compat
     , old-time
-    , megaparsec >= 5
-    , parsec
+    , megaparsec >=5
     , regex-tdfa
-    , safe >= 0.2
-    , semigroups
-    , split >= 0.1 && < 0.3
-    , text >= 1.2 && < 1.3
-    , transformers >= 0.2 && < 0.6
+    , safe >=0.2
+    , split >=0.1 && <0.3
+    , text >=1.2 && <1.3
+    , transformers >=0.2 && <0.6
     , uglymemo
-    , utf8-string >= 0.3.5 && < 1.1
+    , utf8-string >=0.3.5 && <1.1
     , HUnit
-
-  if impl(ghc >= 7.4)
-    build-depends: pretty-show >= 1.6.4
-
+    , parsec
+    , semigroups
+  if impl(ghc >=7.4)
+    build-depends:
+        pretty-show >=1.6.4
   if flag(old-locale)
-    build-depends: time < 1.5, old-locale
+    build-depends:
+        time <1.5
+      , old-locale
   else
-    build-depends: time >= 1.5
-
+    build-depends:
+        time >=1.5
   exposed-modules:
       Hledger
       Hledger.Data
@@ -140,23 +131,26 @@ library
       Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
+  other-modules:
+      Paths_hledger_lib
   default-language: Haskell2010
 
-test-suite hunittests
+test-suite doctests
   type: exitcode-stdio-1.0
-  main-is: hunittests.hs
-  hs-source-dirs: tests
+  hs-source-dirs:
+      tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  main-is: doctests.hs
   build-depends:
-      base >= 4.3 && < 5
-    , base-compat >= 0.8.1
+      base >=4.3 && <5
+    , base-compat >=0.8.1
     , array
-    , blaze-markup >= 0.5.1
+    , blaze-markup >=0.5.1
     , bytestring
-    , cmdargs >= 0.10 && < 0.11
+    , cmdargs >=0.10 && <0.11
     , containers
     , csv
-    , data-default >= 0.5
+    , data-default >=0.5
     , Decimal
     , deepseq
     , directory
@@ -164,36 +158,63 @@ test-suite hunittests
     , mtl
     , mtl-compat
     , old-time
-    , megaparsec >= 5
+    , megaparsec >=5
     , regex-tdfa
-    , safe >= 0.2
-    , split >= 0.1 && < 0.3
-    , text >= 1.2 && < 1.3
-    , transformers >= 0.2 && < 0.6
+    , safe >=0.2
+    , split >=0.1 && <0.3
+    , text >=1.2 && <1.3
+    , transformers >=0.2 && <0.6
     , uglymemo
-    , utf8-string >= 0.3.5 && < 1.1
+    , utf8-string >=0.3.5 && <1.1
+    , HUnit
+    , base
+    , Glob >=0.7
+    , doctest >=0.8
+  default-language: Haskell2010
+
+test-suite hunittests
+  type: exitcode-stdio-1.0
+  main-is: hunittests.hs
+  hs-source-dirs:
+      tests
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  build-depends:
+      base >=4.3 && <5
+    , base-compat >=0.8.1
+    , array
+    , blaze-markup >=0.5.1
+    , bytestring
+    , cmdargs >=0.10 && <0.11
+    , containers
+    , csv
+    , data-default >=0.5
+    , Decimal
+    , deepseq
+    , directory
+    , filepath
+    , mtl
+    , mtl-compat
+    , old-time
+    , megaparsec >=5
+    , regex-tdfa
+    , safe >=0.2
+    , split >=0.1 && <0.3
+    , text >=1.2 && <1.3
+    , transformers >=0.2 && <0.6
+    , uglymemo
+    , utf8-string >=0.3.5 && <1.1
     , HUnit
     , hledger-lib
     , test-framework
     , test-framework-hunit
-
-  if impl(ghc >= 7.4)
-    build-depends: pretty-show >= 1.6.4
-
+  if impl(ghc >=7.4)
+    build-depends:
+        pretty-show >=1.6.4
   if flag(old-locale)
-    build-depends: time < 1.5, old-locale
+    build-depends:
+        time <1.5
+      , old-locale
   else
-    build-depends: time >= 1.5
-
-  default-language: Haskell2010
-
-test-suite doctests
-  type: exitcode-stdio-1.0
-  hs-source-dirs: tests
-  main-is: doctests.hs
-  build-depends:
-      base
-    , Glob >= 0.7
-    , doctest >= 0.8
-    --, hledger-lib ?
+    build-depends:
+        time >=1.5
   default-language: Haskell2010

@@ -1,19 +1,12 @@
--- This file has been generated from package.yaml by hpack version 0.5.4.
+-- This file has been generated from package.yaml by hpack version 0.14.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:           hledger-api
 version:        0.28
 synopsis:       Web API server for the hledger accounting tool
-description:    This is a simple web API server for hledger data.
-                It comes with a series of simple client-side web app examples.
-                .
-                hledger is a cross-platform program for tracking money, time, or
-                any other commodity, using double-entry accounting and a simple,
-                editable file format. It is inspired by and largely compatible
-                with ledger(1).  hledger provides command-line, curses and web
-                interfaces, and aims to be a reliable, practical tool for daily
-                use.
+description:    This is a simple web API server for hledger data. It comes with a series of simple client-side web app examples.
+                hledger is a cross-platform program for tracking money, time, or any other commodity, using double-entry accounting and a simple, editable file format. It is inspired by and largely compatible with ledger(1).  hledger provides command-line, curses and web interfaces, and aims to be a reliable, practical tool for daily use.
 category:       Finance
 stability:      alpha
 homepage:       http://hledger.org
@@ -24,17 +17,18 @@ license:        GPL
 license-file:   LICENSE
 build-type:     Simple
 cabal-version:  >= 1.10
-tested-with:    GHC==7.10.3
+tested-with:    ghc ==7.10.3
 
 extra-source-files:
     CHANGES
+    examples/01.html
+    examples/02.html
     README
-    examples/*.html
 
 data-files:
     doc/hledger-api.1
-    doc/hledger-api.1.txt
     doc/hledger-api.1.info
+    doc/hledger-api.1.txt
 
 source-repository head
   type: git
@@ -45,17 +39,17 @@ executable hledger-api
   ghc-options: -threaded
   cpp-options: -DVERSION="0.28"
   build-depends:
-      hledger-lib      == 0.28
-    , hledger          == 0.28
-    , base             >= 4 && < 5
+      hledger-lib ==0.28
+    , hledger ==0.28
+    , base >=4 && <5
     , aeson
     , bytestring
     , containers
     , Decimal
     , docopt
     , either
-    , microlens >= 0.4 && < 0.5
-    , microlens-platform >= 0.2.3.1 && < 0.4
+    , microlens >=0.4 && <0.5
+    , microlens-platform >=0.2.3.1 && <0.4
     , safe
     , servant-server
     , servant-swagger
