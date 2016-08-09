@@ -68,10 +68,7 @@ asInit d reset ui@UIState{
                        mexactmatch  = findIndex ((a ==)                      . asItemAccountName) displayitems
                        mprefixmatch = findIndex ((a `isAccountNamePrefixOf`) . asItemAccountName) displayitems
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
-    ropts' = ropts {
-      -- XXX balanceReport doesn't respect this yet
-      balancetype_=HistoricalBalance
-      }
+    ropts' = ropts{accountlistmode_=if flat_ ropts then ALFlat else ALTree}
 
     q = queryFromOpts d ropts
 
@@ -82,7 +79,7 @@ asInit d reset ui@UIState{
         valuedate = fromMaybe d $ queryEndDate False q
 
     -- run the report
-    (items,_total) = convert $ balanceReport ropts' q j
+    (items,_total) = convert $ singleBalanceReport ropts' q j
 
     -- pre-render the list items
     displayitem (fullacct, shortacct, indent, bal) =

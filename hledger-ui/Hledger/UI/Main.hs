@@ -84,7 +84,9 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
             -- show items with zero amount by default, unlike the CLI
             empty_=True,
             -- always disable boring account name eliding, unlike the CLI, for a more regular tree
-            no_elide_=True
+            no_elide_=True,
+            -- always show historical balances, regardless of report start date
+            balancetype_=HistoricalBalance
             }
          }
       }
