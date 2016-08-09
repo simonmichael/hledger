@@ -59,10 +59,8 @@ flags:
     description: Build with support for multithreaded execution
     manual: false
     default: true
-  old-locale:
-    description: ! 'A compatibility flag, set automatically by cabal.
-      If false then depend on time >= 1.5,
-      if true then depend on time < 1.5 together with old-locale.'
+  oldtime:
+    description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
     manual: false
     default: false
 dependencies:
@@ -135,7 +133,7 @@ library:
       dependencies:
       - shakespeare >=1.0 && <2.1
       - shakespeare-text >=1.0 && <1.2
-  - condition: flag(old-locale)
+  - condition: flag(oldtime)
     then:
       dependencies:
       - time <1.5
@@ -186,11 +184,11 @@ executables:
         dependencies:
         - shakespeare >=1.0 && <2.1
         - shakespeare-text >=1.0 && <1.2
-    - condition: flag(old-locale)
+    - condition: flag(oldtime)
       then:
         dependencies:
         - time <1.5
-        - old-locale
+        - oldtime
       else:
         dependencies:
         - time >=1.5
@@ -240,11 +238,11 @@ tests:
     - condition: impl(ghc >=7.4)
       dependencies:
       - pretty-show >=1.6.4
-    - condition: flag(old-locale)
+    - condition: flag(oldtime)
       then:
         dependencies:
         - time <1.5
-        - old-locale
+        - oldtime
       else:
         dependencies:
         - time >=1.5
@@ -262,11 +260,11 @@ benchmarks:
     - html
     - timeit
     when:
-    - condition: flag(old-locale)
+    - condition: flag(oldtime)
       then:
         dependencies:
         - time <1.5
-        - old-locale
+        - oldtime
       else:
         dependencies:
         - time >=1.5

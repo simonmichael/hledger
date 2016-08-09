@@ -52,10 +52,10 @@ flag double
   default: False
   description: Use old Double number representation (instead of Decimal), for testing/benchmarking.
 
-flag old-locale
-  default: False
-  description: A compatibility flag, set automatically by cabal. If false then depend on time >= 1.5, if true then depend on time < 1.5 together with old-locale.
+flag oldtime
+  description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
   manual: False
+  default: False
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
@@ -90,7 +90,7 @@ library
   if impl(ghc >=7.4)
     build-depends:
         pretty-show >=1.6.4
-  if flag(old-locale)
+  if flag(oldtime)
     build-depends:
         time <1.5
       , old-locale
@@ -216,7 +216,7 @@ test-suite hunittests
   if impl(ghc >=7.4)
     build-depends:
         pretty-show >=1.6.4
-  if flag(old-locale)
+  if flag(oldtime)
     build-depends:
         time <1.5
       , old-locale

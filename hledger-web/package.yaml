@@ -55,10 +55,8 @@ flags:
     description: Build with support for multithreaded execution.
     manual: false
     default: true
-  old-locale:
-    description: ! 'A compatibility flag, set automatically by cabal.
-      If false then depend on time >= 1.5,
-      if true then depend on time < 1.5 together with old-locale.'
+  oldtime:
+    description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
     manual: false
     default: false
 dependencies:
@@ -126,7 +124,7 @@ library:
   when:
   - condition: (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
-  - condition: flag(old-locale)
+  - condition: flag(oldtime)
     then:
       dependencies:
       - time <1.5
@@ -151,7 +149,7 @@ executables:
       ghc-options: -O0
     - condition: flag(dev)
       cpp-options: -DDEVELOPMENT
-    - condition: flag(old-locale)
+    - condition: flag(oldtime)
       then:
         dependencies:
         - time <1.5
@@ -169,7 +167,7 @@ tests:
     - hspec
     - yesod-test
     when:
-    - condition: flag(old-locale)
+    - condition: flag(oldtime)
       then:
         dependencies:
         - time <1.5

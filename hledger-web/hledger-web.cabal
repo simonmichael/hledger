@@ -113,10 +113,10 @@ flag library-only
     description: Build for use with "yesod devel"
     manual: False
 
-flag old-locale
-    default: False
-    description: A compatibility flag, set automatically by cabal. If false then depend on time >= 1.5, if true then depend on time < 1.5 together with old-locale.
+flag oldtime
+    description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
     manual: False
+    default: False
 
 flag threaded
     default: True
@@ -163,7 +163,7 @@ library
         , mtl
     if (flag(dev)) || (flag(library-only))
         cpp-options: -DDEVELOPMENT
-    if flag(old-locale)
+    if flag(oldtime)
         build-depends:
               time <1.5
             , old-locale
@@ -240,7 +240,7 @@ executable hledger-web
         ghc-options: -O0
     if flag(dev)
         cpp-options: -DDEVELOPMENT
-    if flag(old-locale)
+    if flag(oldtime)
         build-depends:
               time <1.5
             , old-locale
@@ -295,7 +295,7 @@ test-suite test
         , hledger-web
         , hspec
         , yesod-test
-    if flag(old-locale)
+    if flag(oldtime)
         build-depends:
               time <1.5
             , old-locale

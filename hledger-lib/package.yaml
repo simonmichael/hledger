@@ -38,10 +38,8 @@ flags:
     description: Use old Double number representation (instead of Decimal), for testing/benchmarking.
     manual: true
     default: false
-  old-locale:
-    description: ! 'A compatibility flag, set automatically by cabal.
-      If false then depend on time >= 1.5,
-      if true then depend on time < 1.5 together with old-locale.'
+  oldtime:
+    description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
     manual: false
     default: false
 dependencies:
@@ -126,7 +124,7 @@ library:
   - condition: impl(ghc >=7.4)
     dependencies:
     - pretty-show >=1.6.4
-  - condition: flag(old-locale)
+  - condition: flag(oldtime)
     then:
       dependencies:
       - time <1.5
@@ -152,7 +150,7 @@ tests:
     - condition: impl(ghc >=7.4)
       dependencies:
       - pretty-show >=1.6.4
-    - condition: flag(old-locale)
+    - condition: flag(oldtime)
       then:
         dependencies:
         - time <1.5

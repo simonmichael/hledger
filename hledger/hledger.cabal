@@ -68,10 +68,10 @@ flag curses
   description: On POSIX systems, enable curses support for auto-detecting terminal width.
   manual: False
 
-flag old-locale
-  default: False
-  description: A compatibility flag, set automatically by cabal. If false then depend on time >= 1.5, if true then depend on time < 1.5 together with old-locale.
+flag oldtime
+  description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
   manual: False
+  default: False
 
 flag threaded
   default: True
@@ -117,7 +117,7 @@ library
     build-depends:
         shakespeare >=1.0 && <2.1
       , shakespeare-text >=1.0 && <1.2
-  if flag(old-locale)
+  if flag(oldtime)
     build-depends:
         time <1.5
       , old-locale
@@ -200,10 +200,10 @@ executable hledger
     build-depends:
         shakespeare >=1.0 && <2.1
       , shakespeare-text >=1.0 && <1.2
-  if flag(old-locale)
+  if flag(oldtime)
     build-depends:
         time <1.5
-      , old-locale
+      , oldtime
   else
     build-depends:
         time >=1.5
@@ -263,10 +263,10 @@ test-suite test
   if impl(ghc >=7.4)
     build-depends:
         pretty-show >=1.6.4
-  if flag(old-locale)
+  if flag(oldtime)
     build-depends:
         time <1.5
-      , old-locale
+      , oldtime
   else
     build-depends:
         time >=1.5
@@ -298,10 +298,10 @@ benchmark bench
     , criterion
     , html
     , timeit
-  if flag(old-locale)
+  if flag(oldtime)
     build-depends:
         time <1.5
-      , old-locale
+      , oldtime
   else
     build-depends:
         time >=1.5
