@@ -17,10 +17,10 @@ Show accounts and their balances. Alias: bal.
 : in tree mode: don't squash boring parent accounts
 
 `-H --historical`
-: in multicolumn mode: show historical ending balances
+: show historical ending balances, reflecting postings before report start
 
 `--cumulative`
-: in multicolumn mode: show accumulated ending balances
+: in multicolumn mode: show ending balances accumulated from 0 at report start
 
 `-A --average`
 : in multicolumn mode: show a row average column

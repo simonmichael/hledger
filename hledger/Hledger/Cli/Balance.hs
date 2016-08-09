@@ -272,8 +272,8 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "singlecolumn mode: use this custom line format"
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "tree mode: don't squash boring parent accounts"
-     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "multicolumn mode: show historical ending balances"
-     ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "multicolumn mode: show accumulated ending balances"
+     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "show historical ending balances, reflecting postings before report start"
+     ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "in multicolumn mode: show ending balances accumulated from 0 at report start"
      ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "multicolumn mode: show a row average column"
      ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "multicolumn mode: show a row total column"
      ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "don't show the final total row"
@@ -297,9 +297,19 @@ balance opts@CliOpts{reportopts_=ropts} j = do
           interval = interval_ ropts
           baltype  = balancetype_ ropts
           valuedate = fromMaybe d $ queryEndDate False $ queryFromOpts d ropts
+      -- shenanigans: use single/multiBalanceReport when we must,
+      -- ie when there's a report interval, or --historical or -- cumulative.
+      -- Otherwise prefer the older balanceReport since it can elide boring parents.
       case interval of
         NoInterval -> do
-          let report = balanceReport ropts (queryFromOpts d ropts) j
+          let report
+                -- For --historical/--cumulative, we must use multiBalanceReport.
+                -- (This forces --no-elide.)
+                | balancetype_ ropts `elem` [HistoricalBalance, CumulativeBalance]
+                  = let ropts' | flat_ ropts = ropts
+                               | otherwise   = ropts{accountlistmode_=ALTree}
+                    in singleBalanceReport ropts' (queryFromOpts d ropts) j
+                | otherwise = balanceReport ropts (queryFromOpts d ropts) j
               convert | value_ ropts = balanceReportValue j valuedate
                       | otherwise    = id
               render = case format of
