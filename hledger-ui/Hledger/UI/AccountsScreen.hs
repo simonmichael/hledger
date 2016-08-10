@@ -287,19 +287,15 @@ asHandle ui0@UIState{
         EvKey (KChar '_') [] -> continue $ regenerateScreens j d $ decDepth ui
         EvKey (KChar c)   [] | c `elem` ['+','='] -> continue $ regenerateScreens j d $ incDepth ui
         EvKey (KChar 't') []    -> continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
-        EvKey (KChar 'd') []    -> continue $ regenerateScreens j d $ cycleReportDurationDown d ui
-        EvKey (KChar 'u') []    -> continue $ regenerateScreens j d $ cycleReportDurationUp d ui
-        EvKey (KDown)  [MShift] -> continue $ regenerateScreens j d $ cycleReportDurationDown d ui
-        EvKey (KUp)    [MShift] -> continue $ regenerateScreens j d $ cycleReportDurationUp d ui
-        EvKey (KChar 'n') []    -> continue $ regenerateScreens j d $ nextReportPeriod ui
-        EvKey (KChar 'p') []    -> continue $ regenerateScreens j d $ previousReportPeriod ui
-        EvKey (KRight) [MShift] -> continue $ regenerateScreens j d $ nextReportPeriod ui
-        EvKey (KLeft)  [MShift] -> continue $ regenerateScreens j d $ previousReportPeriod ui
         EvKey (KChar 'F') [] -> continue $ regenerateScreens j d $ toggleFlat ui
         EvKey (KChar 'Z') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
         EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
         EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleUncleared ui)
         EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
+        EvKey (KDown)     [MShift] -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
+        EvKey (KUp)       [MShift] -> continue $ regenerateScreens j d $ growReportPeriod d ui
+        EvKey (KRight)    [MShift] -> continue $ regenerateScreens j d $ nextReportPeriod ui
+        EvKey (KLeft)     [MShift] -> continue $ regenerateScreens j d $ previousReportPeriod ui
         EvKey (KChar '/') [] -> continue $ regenerateScreens j d $ showMinibuffer ui
         EvKey k           [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         EvKey k           [] | k `elem` [KLeft, KChar 'h']     -> continue $ popScreen ui

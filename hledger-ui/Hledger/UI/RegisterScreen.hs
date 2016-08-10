@@ -260,14 +260,6 @@ rsHandle ui@UIState{
         EvKey (KChar 'I') [] -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
         EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
         EvKey (KChar 't') []    -> continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
-        EvKey (KChar 'd') []    -> continue $ regenerateScreens j d $ cycleReportDurationDown d ui
-        EvKey (KChar 'u') []    -> continue $ regenerateScreens j d $ cycleReportDurationUp d ui
-        EvKey (KDown)  [MShift] -> continue $ regenerateScreens j d $ cycleReportDurationDown d ui
-        EvKey (KUp)    [MShift] -> continue $ regenerateScreens j d $ cycleReportDurationUp d ui
-        EvKey (KChar 'n') []    -> continue $ regenerateScreens j d $ nextReportPeriod ui
-        EvKey (KChar 'p') []    -> continue $ regenerateScreens j d $ previousReportPeriod ui
-        EvKey (KRight) [MShift] -> continue $ regenerateScreens j d $ nextReportPeriod ui
-        EvKey (KLeft)  [MShift] -> continue $ regenerateScreens j d $ previousReportPeriod ui
         EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
           where
             (pos,f) = case listSelectedElement rsList of
@@ -279,6 +271,10 @@ rsHandle ui@UIState{
         EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleUncleared ui)
         EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
         EvKey (KChar '/') [] -> (continue $ regenerateScreens j d $ showMinibuffer ui)
+        EvKey (KDown)     [MShift] -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
+        EvKey (KUp)       [MShift] -> continue $ regenerateScreens j d $ growReportPeriod d ui
+        EvKey (KRight)    [MShift] -> continue $ regenerateScreens j d $ nextReportPeriod ui
+        EvKey (KLeft)     [MShift] -> continue $ regenerateScreens j d $ previousReportPeriod ui
         EvKey k           [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         EvKey k           [] | k `elem` [KLeft, KChar 'h'] -> continue $ popScreen ui
         EvKey k           [] | k `elem` [KRight, KChar 'l', KEnter] -> do

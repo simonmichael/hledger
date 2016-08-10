@@ -68,36 +68,15 @@ toggleIgnoreBalanceAssertions :: UIState -> UIState
 toggleIgnoreBalanceAssertions ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{}}} =
   ui{aopts=uopts{cliopts_=copts{ignore_assertions_=not $ ignore_assertions_ copts}}}
 
--- | Cycle through larger report periods.
-cycleReportDurationUp :: Day -> UIState -> UIState
-cycleReportDurationUp d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsCycleDurationUp d ropts}}}
+-- | Step through larger report periods, up to all.
+growReportPeriod :: Day -> UIState -> UIState
+growReportPeriod _d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodGrow $ period_ ropts}}}}
 
--- | Cycle through smaller report periods.
-cycleReportDurationDown :: Day -> UIState -> UIState
-cycleReportDurationDown d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsCycleDurationDown d ropts}}}
-
--- | Cycle through increasingly large report periods using periodGrow,
--- then start again at today.
-reportOptsCycleDurationUp :: Day -> ReportOpts -> ReportOpts
-reportOptsCycleDurationUp d ropts@ReportOpts{period_=p} = ropts{period_=p'}
-  where
-    p' = case p of
-           PeriodAll         -> DayPeriod d
-           PeriodFrom _      -> DayPeriod d
-           PeriodTo _        -> DayPeriod d
-           PeriodBetween _ _ -> DayPeriod d
-           _                 -> periodGrow p
-
--- | Cycle through increasingly small report periods using periodShrink,
--- then start again at unlimited.
-reportOptsCycleDurationDown :: Day -> ReportOpts -> ReportOpts
-reportOptsCycleDurationDown d ropts@ReportOpts{period_=p} = ropts{period_=p'}
-  where
-    p' = case p of
-           DayPeriod _ -> PeriodAll
-           _           -> periodShrink d p
+-- | Step through smaller report periods, down to a day.
+shrinkReportPeriod :: Day -> UIState -> UIState
+shrinkReportPeriod d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodShrink d $ period_ ropts}}}}
 
 -- | Step the report start/end dates to the next period of same duration.
 nextReportPeriod :: UIState -> UIState
