@@ -213,9 +213,10 @@ be "TAG:multi:level:account:name".
 .SH KEYS
 .PP
 \f[C]?\f[] shows a help dialog listing all keys.
-(Some but not all of these also appear in the quick help at the bottom
-of each screen.) Press \f[C]?\f[] again (or \f[C]ESCAPE\f[], or
-\f[C]LEFT\f[]) to close it.
+(Some of these also appear in the quick help at the bottom of each
+screen.) Press \f[C]?\f[] again (or \f[C]ESCAPE\f[], or \f[C]LEFT\f[])
+to close it.
+The following keys work on most screens:
 .PP
 The cursor keys navigate: \f[C]right\f[] (or \f[C]enter\f[]) goes
 deeper, \f[C]left\f[] returns to the previous screen,
@@ -223,35 +224,34 @@ deeper, \f[C]left\f[] returns to the previous screen,
 move up and down through lists.
 Vi\-style \f[C]h\f[]/\f[C]j\f[]/\f[C]k\f[]/\f[C]l\f[] movement keys are
 also supported.
-(A tip: movement speed is limited by your keyboard repeat rate, to move
-faster you may want to adjust that.
-On a mac, the Karabiner app is one way to do that.)
+A tip: movement speed is limited by your keyboard repeat rate, to move
+faster you may want to adjust it.
+(If you\[aq]re on a mac, the Karabiner app is one way to do that.)
 .PP
-On most screens, \f[C]/\f[] lets you set or change the filter query,
-which limits the data shown (this filter is in addition to the quick
-filters described below).
-While editing the query you can use typical command\-line edit keys
-(CTRL\-a/e/d/k, cursor keys etc.), and \f[C]ENTER\f[]to set the new
-filter or \f[C]ESCAPE\f[]to cancel.
-.PP
-\f[C]d\f[] and \f[C]u\f[] cycle downward and upward through standard
-report periods \- year, quarter, month, week, day.
-When a standard report period is selected, \f[C]n\f[] and \f[C]p\f[]
-step it to the next or previous period.
-\f[C]Shift\-down/up/right/left\f[] can also be used for this.
+With shift pressed, the cursor keys adjust the report period, limiting
+the transactions to be shown (by default, all are shown).
+\f[C]shift\-down/up\f[] steps downward and upward through these standard
+report period durations: year, quarter, month, week, day.
+Then, \f[C]shift\-left/right\f[] moves to the previous/next period.
 \f[C]t\f[] sets the report period to today.
-For non\-standard periods, you can use \f[C]/\f[] to set a
-\f[C]date:\f[] query.
+(To set a non\-standard period, you can use \f[C]/\f[] and a
+\f[C]date:\f[] query).
 .PP
-\f[C]BACKSPACE\f[] or \f[C]DELETE\f[] clears any filters in effect.
+\f[C]/\f[] lets you set a general filter query limiting the data shown,
+using the same query terms as in hledger and hledger\-web.
+While editing the query, you can use CTRL\-a/e/d/k, BS, cursor keys;
+press \f[C]ENTER\f[] to set it, or \f[C]ESCAPE\f[]to cancel.
+There are also keys for quickly adjusting some common filters like
+account depth and cleared/uncleared (see below).
+\f[C]BACKSPACE\f[] or \f[C]DELETE\f[] removes all filters, showing all
+transactions.
 .PP
-\f[C]ESCAPE\f[] removes any filters currently in effect, and jumps to
-the top screen.
-Or, it cancels a minibuffer edit or help dialog if one is active.
+\f[C]ESCAPE\f[] removes all filters and jumps back to the top screen.
+Or, it cancels a minibuffer edit or help dialog in progress.
 .PP
 \f[C]g\f[] reloads from the data file(s) and updates the current screen
 and any previous screens.
-(With large files, there can be a noticeable pause.)
+(With large files, this could cause a noticeable pause.)
 .PP
 \f[C]I\f[] toggles balance assertion checking.
 Disabling balance assertions temporarily can be useful for

@@ -73,39 +73,39 @@ _reportingoptions_
 # KEYS
 
 `?` shows a help dialog listing all keys. 
-(Some but not all of these also appear in the quick help at the bottom of each screen.) 
+(Some of these also appear in the quick help at the bottom of each screen.) 
 Press `?` again (or `ESCAPE`, or `LEFT`) to close it.
+The following keys work on most screens:
 
 The cursor keys navigate: 
 `right` (or `enter`) goes deeper, 
 `left` returns to the previous screen,
 `up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
 Vi-style `h`/`j`/`k`/`l` movement keys are also supported. 
-(A tip: movement speed is limited by your keyboard repeat rate, 
-to move faster you may want to adjust that.
-On a mac, the Karabiner app is one way to do that.)
+A tip: movement speed is limited by your keyboard repeat rate, 
+to move faster you may want to adjust it.
+(If you're on a mac, the Karabiner app is one way to do that.)
 
-On most screens,
-`/` lets you set or change the [filter query](/hledger.html#queries),
-which limits the data shown (this filter is in addition to the quick
-filters described below). While editing the query you can use typical
-command-line edit keys 
-([CTRL-a/e/d/k, cursor keys etc.](http://hackage.haskell.org/package/brick-0.7/docs/Brick-Widgets-Edit.html#t:Editor)), 
-and `ENTER`to set the new filter or `ESCAPE`to cancel.
-
-`d` and `u` cycle downward and upward through standard report periods - year, quarter, month, week, day. 
-When a standard report period is selected, `n` and `p` step it to the next or previous period.
-`Shift-down/up/right/left` can also be used for this.
+With shift pressed, the cursor keys adjust the report period, 
+limiting the transactions to be shown (by default, all are shown). 
+`shift-down/up` steps downward and upward through these standard report period durations:
+year, quarter, month, week, day.
+Then, `shift-left/right` moves to the previous/next period.
 `t` sets the report period to today.
-For non-standard periods, you can use `/` to set a [`date:` query](manual.html#queries).
+(To set a non-standard period, you can use `/` and a `date:` query).
 
-`BACKSPACE` or `DELETE` clears any filters in effect.
+`/` lets you set a general filter query limiting the data shown,
+using the same [query terms](/hledger.html#queries) as in hledger and hledger-web.
+While editing the query, you can use [CTRL-a/e/d/k, BS, cursor keys](http://hackage.haskell.org/package/brick-0.7/docs/Brick-Widgets-Edit.html#t:Editor); 
+press `ENTER` to set it, or `ESCAPE`to cancel.
+There are also keys for quickly adjusting some common filters like account depth and cleared/uncleared (see below).
+`BACKSPACE` or `DELETE` removes all filters, showing all transactions.
 
-`ESCAPE` removes any filters currently in effect, and jumps to the top screen.
-Or, it cancels a minibuffer edit or help dialog if one is active.
+`ESCAPE` removes all filters and jumps back to the top screen.
+Or, it cancels a minibuffer edit or help dialog in progress.
 
 `g` reloads from the data file(s) and updates the current screen and any
-previous screens. (With large files, there can be a noticeable pause.)
+previous screens. (With large files, this could cause a noticeable pause.)
 
 `I` toggles balance assertion checking. 
 Disabling balance assertions temporarily can be useful for troubleshooting. 
