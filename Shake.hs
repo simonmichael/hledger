@@ -252,7 +252,8 @@ main = do
     hakyllstd %> \out -> do
       let dir = takeDirectory out
       need [out <.> "hs", dir </> "TableOfContents.hs"] -- XXX hard-coded dep
-      cmd (Cwd dir) "stack ghc hakyll-std"
+      unit $ cmd (Cwd dir) "./hakyll-std.hs --version"  -- ensure libs are up to date
+      cmd (Cwd dir) "stack ghc hakyll-std"              -- compile for speed
 
     -- cleanup
 
