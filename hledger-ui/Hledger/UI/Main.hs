@@ -76,16 +76,17 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
     uopts' = uopts{
       cliopts_=copts{
          reportopts_= ropts{
-            -- ensure depth_ also reflects depth: args
-            depth_=depthfromoptsandargs,
-            -- remove depth: args from query_
-            query_=unwords $ -- as in ReportOptions, with same limitations
-                   [v | (k,v) <- rawopts_ copts, k=="args", not $ "depth" `isPrefixOf` v],
-            -- show items with zero amount by default, unlike the CLI
-            empty_=True,
+            -- incorporate any depth: query args into depth_,
+            -- any date: query args into period_
+            depth_ =depthfromoptsandargs,
+            period_=periodfromoptsandargs,
+            query_ =unwords -- as in ReportOptions, with same limitations
+                    [v | (k,v) <- rawopts_ copts, k=="args", not $ any (`isPrefixOf` v) ["depth","date"]],
             -- always disable boring account name eliding, unlike the CLI, for a more regular tree
             no_elide_=True,
-            -- always show historical balances, regardless of report start date
+            -- show items with zero amount by default, unlike the CLI
+            empty_=True,
+            -- show historical balances by default, unlike the CLI
             balancetype_=HistoricalBalance
             }
          }
@@ -94,6 +95,9 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
         q = queryFromOpts d ropts
         depthfromoptsandargs = case queryDepth q of 99999 -> Nothing
                                                     d     -> Just d
+        datespanfromargs = queryDateSpan (date2_ ropts) $ fst $ parseQuery d (T.pack $ query_ ropts)
+        periodfromoptsandargs =
+          dateSpanAsPeriod $ spansIntersect [periodAsDateSpan $ period_ ropts, datespanfromargs]
 
     -- XXX move this stuff into Options, UIOpts
     theme = maybe defaultTheme (fromMaybe defaultTheme . getTheme) $
