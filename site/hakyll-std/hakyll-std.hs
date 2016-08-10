@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack runghc --verbosity info --package hakyll --package pandoc-1.17.0.3 -}
+{- stack runghc --verbosity info --package hakyll --package pandoc -}  -- pandoc-1.17.0.3
 {-# LANGUAGE OverloadedStrings #-}
 {- |
 
