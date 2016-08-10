@@ -1,7 +1,7 @@
 # stack config for building with GHC 8, tested 2016/7/22
 # $ stack --stack-yaml stack-ghc8.yaml install
 
-resolver: nightly-2016-07-19
+resolver: nightly-2016-08-01
 
 packages:
 - hledger-lib
