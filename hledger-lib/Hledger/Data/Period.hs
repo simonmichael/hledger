@@ -122,7 +122,7 @@ isLastDayOfMonth y m d =
 --
 -- >>> showPeriod (WeekPeriod (fromGregorian 2016 7 25))
 -- "2016/07/25w30"
-showPeriod (DayPeriod b)       = formatTime defaultTimeLocale "%0C%y/%m/%dd" b    -- DATEd
+showPeriod (DayPeriod b)       = formatTime defaultTimeLocale "%0C%y/%m/%d" b     -- DATE
 showPeriod (WeekPeriod b)      = formatTime defaultTimeLocale "%0C%y/%m/%dw%V" b  -- STARTDATEwYEARWEEK
 showPeriod (MonthPeriod y m)   = printf "%04d/%02d" y m                           -- YYYY/MM
 showPeriod (QuarterPeriod y q) = printf "%04dq%d" y q                             -- YYYYqN
