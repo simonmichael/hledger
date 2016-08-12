@@ -1,45 +1,48 @@
 ## balance
 Show accounts and their balances. Alias: bal.
 
-`--tree`
-: show short account names, as a tree
-
-`--flat`
-: show full account names, as a list (default)
-
-`--drop=N`
-: in flat mode: omit N leading account name parts
-
-`--format=LINEFORMAT`
-: in single-column balance reports: use this custom line format
-
-`--no-elide`
-: in tree mode: don't squash boring parent accounts
-
-`-H --historical`
-: show historical ending balances, reflecting postings before report start
+`--change`
+: show balance change in each period (default)
 
 `--cumulative`
-: in multicolumn mode: show ending balances accumulated from 0 at report start
+: show balance change accumulated across periods (in multicolumn reports)
+
+`-H --historical`
+: show historical ending balance in each period (includes postings before report start date)
+
+`--tree`
+: show accounts as a tree; amounts include subaccounts (default in simple reports)
+
+`--flat`
+: show accounts as a list; amounts exclude subaccounts except when account is depth-clipped (default in multicolumn reports)
+
+`-V --value`
+: convert amounts to current market value in their default valuation commodity
 
 `-A --average`
-: in multicolumn mode: show a row average column
+: show a row average column (in multicolumn mode)
 
 `-T --row-total`
-: in multicolumn mode: show a row total column
+: show a row total column (in multicolumn mode)
 
 `-N --no-total`
 : don't show the final total row
 
-`-V --value`
-: show amounts as their current market value in their default valuation commodity
+`--drop=N`
+: omit N leading account name parts (in flat mode)
 
-`-o FILE[.FMT] --output-file=FILE[.FMT]`
-: write output to FILE instead of stdout. A recognised FMT suffix influences the format.
+`--no-elide`
+: don't squash boring parent accounts (in tree mode)
+
+`--format=LINEFORMAT`
+: in single-column balance reports: use this custom line format
 
 `-O FMT --output-format=FMT     `
 : select the output format. Supported formats:
 txt, csv.
+
+`-o FILE --output-file=FILE`
+: write output to FILE.  A file extension matching one of the above formats selects that format.
 
 The balance command displays accounts and balances.
 It is hledger's most featureful and most useful command.

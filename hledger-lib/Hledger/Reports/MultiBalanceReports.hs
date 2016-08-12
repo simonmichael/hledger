@@ -173,7 +173,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
            | (a,changes) <- acctBalChanges
            , let displayedBals = case balancetype_ opts of
                                   HistoricalBalance -> drop 1 $ scanl (+) (startingBalanceFor a) changes
-                                  CumulativeBalance -> drop 1 $ scanl (+) nullmixedamt changes
+                                  CumulativeChange -> drop 1 $ scanl (+) nullmixedamt changes
                                   _                 -> changes
            , let rowtot = sum displayedBals
            , let rowavg = averageMixedAmounts displayedBals

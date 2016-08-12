@@ -75,7 +75,7 @@ flatShowsExclusiveBalance    = True
 
 -- | Generate a simple balance report, containing the matched accounts and
 -- their balances (change of balance) during the specified period.
--- This is like periodBalanceReport with a single column (but more mature,
+-- This is like PeriodChangeReport with a single column (but more mature,
 -- eg this can do hierarchical display).
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 balanceReport opts q j = (items, total)
@@ -137,7 +137,7 @@ balanceReportItem opts q a
 -- -- the above using the newer multi balance report code:
 -- balanceReport' opts q j = (items, total)
 --   where
---     MultiBalanceReport (_,mbrrows,mbrtotals) = periodBalanceReport opts q j
+--     MultiBalanceReport (_,mbrrows,mbrtotals) = PeriodChangeReport opts q j
 --     items = [(a,a',n, headDef 0 bs) | ((a,a',n), bs) <- mbrrows]
 --     total = headDef 0 mbrtotals
 

@@ -329,12 +329,12 @@ Show transactions from the journal.
 `-m STR --match=STR             `
 : show the transaction whose description is most similar to STR, and is most recent
 
-`-o FILE[.FMT] --output-file=FILE[.FMT]`
-: write output to FILE instead of stdout. A recognised FMT suffix influences the format.
-
 `-O FMT --output-format=FMT     `
 : select the output format. Supported formats:
 txt, csv.
+
+`-o FILE --output-file=FILE`
+: write output to FILE.  A file extension matching one of the above formats selects that format.
 
 ```shell
 $ hledger print
@@ -376,11 +376,14 @@ and
 ## register
 Show postings and their running total. Alias: reg.
 
+`--cumulative`
+: show running total from report start date (default)
+
 `-H --historical`
-: show historical running balance, reflecting prior postings
+: show historical running total/balance (includes postings before report start date)
 
 `-A --average`
-: show a running average instead of the running total (implies --empty)
+: show running average of posting amounts instead of total (implies --empty)
 
 `-r --related`
 : show postings' siblings instead
@@ -388,12 +391,12 @@ Show postings and their running total. Alias: reg.
 `-w N --width=N`
 : set output width (default: terminal width or COLUMNS. -wN,M sets description width as well)
 
-`-o FILE[.FMT] --output-file=FILE[.FMT]`
-: write output to FILE instead of stdout. A recognised FMT suffix influences the format.
-
 `-O FMT --output-format=FMT     `
 : select the output format. Supported formats:
 txt, csv.
+
+`-o FILE --output-file=FILE`
+: write output to FILE.  A file extension matching one of the above formats selects that format.
 
 The register command displays postings, one per line, and their
 running total.  This is typically used with a [query](#queries)
@@ -423,6 +426,7 @@ The `--depth` option limits the amount of sub-account detail displayed.
 The `--average`/`-A` flag shows the running average posting amount
 instead of the running total (so, the final number displayed is the
 average for the whole report period). This flag implies `--empty` (see below).
+It is affected by `--historical`.
 It works best when showing just one account and one commodity.
 
 The `--related`/`-r` flag shows the *other* postings in the transactions
@@ -502,8 +506,8 @@ The register command also supports the
 ## stats
 Show some journal statistics.
 
-`-o FILE[.FMT] --output-file=FILE[.FMT]`
-: write output to FILE instead of stdout. A recognised FMT suffix influences the format.
+`-o FILE --output-file=FILE`
+: write output to FILE.  A file extension matching one of the above formats selects that format.
 
 ```shell
 $ hledger stats

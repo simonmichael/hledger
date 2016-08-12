@@ -46,13 +46,15 @@ import Hledger.Utils
 
 type FormatStr = String
 
--- | Which balance is being shown in a multi-column balance report.
-data BalanceType = PeriodBalance     -- ^ The change of balance in each period.
-                 | CumulativeBalance -- ^ The accumulated balance at each period's end, starting from zero at the report start date.
-                 | HistoricalBalance -- ^ The historical balance at each period's end, starting from the account balances at the report start date.
+-- | Which "balance" is being shown in a balance report.
+data BalanceType = PeriodChange      -- ^ The change of balance in each period.
+                 | CumulativeChange  -- ^ The accumulated change across multiple periods.
+                 | HistoricalBalance -- ^ The historical ending balance, including the effect of
+                                     --   all postings before the report period. Unless altered by,
+                                     --   a query, this is what you would see on a bank statement.
   deriving (Eq,Show,Data,Typeable)
 
-instance Default BalanceType where def = PeriodBalance
+instance Default BalanceType where def = PeriodChange
 
 -- | Should accounts be displayed: in the command's default style, hierarchically, or as a flat list ?
 data AccountListMode = ALDefault | ALTree | ALFlat deriving (Eq, Show, Data, Typeable)
@@ -116,30 +118,46 @@ defreportopts = ReportOpts
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = checkReportOpts <$> do
   d <- getCurrentDay
+  let rawopts' = checkRawOpts rawopts
   return defreportopts{
-     period_      = periodFromRawOpts d rawopts
-    ,interval_    = intervalFromRawOpts rawopts
-    ,clearedstatus_ = clearedStatusFromRawOpts rawopts
-    ,cost_        = boolopt "cost" rawopts
-    ,depth_       = maybeintopt "depth" rawopts
-    ,display_     = maybedisplayopt d rawopts
-    ,date2_       = boolopt "date2" rawopts
-    ,empty_       = boolopt "empty" rawopts
-    ,no_elide_    = boolopt "no-elide" rawopts
-    ,real_        = boolopt "real" rawopts
-    ,format_      = maybestringopt "format" rawopts -- XXX move to CliOpts or move validation from Cli.CliOptions to here
-    ,query_       = unwords $ listofstringopt "args" rawopts -- doesn't handle an arg like "" right
-    ,average_     = boolopt "average" rawopts
-    ,related_     = boolopt "related" rawopts
-    ,balancetype_ = balancetypeopt rawopts
-    ,accountlistmode_ = accountlistmodeopt rawopts
-    ,drop_        = intopt "drop" rawopts
-    ,row_total_   = boolopt "row-total" rawopts
-    ,no_total_    = boolopt "no-total" rawopts
-    ,value_       = boolopt "value" rawopts
+     period_      = periodFromRawOpts d rawopts'
+    ,interval_    = intervalFromRawOpts rawopts'
+    ,clearedstatus_ = clearedStatusFromRawOpts rawopts'
+    ,cost_        = boolopt "cost" rawopts'
+    ,depth_       = maybeintopt "depth" rawopts'
+    ,display_     = maybedisplayopt d rawopts'
+    ,date2_       = boolopt "date2" rawopts'
+    ,empty_       = boolopt "empty" rawopts'
+    ,no_elide_    = boolopt "no-elide" rawopts'
+    ,real_        = boolopt "real" rawopts'
+    ,format_      = maybestringopt "format" rawopts' -- XXX move to CliOpts or move validation from Cli.CliOptions to here
+    ,query_       = unwords $ listofstringopt "args" rawopts' -- doesn't handle an arg like "" right
+    ,average_     = boolopt "average" rawopts'
+    ,related_     = boolopt "related" rawopts'
+    ,balancetype_ = balancetypeopt rawopts'
+    ,accountlistmode_ = accountlistmodeopt rawopts'
+    ,drop_        = intopt "drop" rawopts'
+    ,row_total_   = boolopt "row-total" rawopts'
+    ,no_total_    = boolopt "no-total" rawopts'
+    ,value_       = boolopt "value" rawopts'
     }
 
--- | Do extra validation of opts, raising an error if there is trouble.
+-- | Do extra validation of raw option values, raising an error if there's a problem.
+checkRawOpts :: RawOpts -> RawOpts
+checkRawOpts rawopts
+-- our standard behaviour is to accept conflicting options actually,
+-- using the last one - more forgiving for overriding command-line aliases
+--   | countopts ["change","cumulative","historical"] > 1
+--     = optserror "please specify at most one of --change, --cumulative, --historical"
+--   | countopts ["flat","tree"] > 1
+--     = optserror "please specify at most one of --flat, --tree"
+--   | countopts ["daily","weekly","monthly","quarterly","yearly"] > 1
+--     = optserror "please specify at most one of --daily, "
+  | otherwise = rawopts
+--   where
+--     countopts = length . filter (`boolopt` rawopts)
+
+-- | Do extra validation of report options, raising an error if there's a problem.
 checkReportOpts :: ReportOpts -> ReportOpts
 checkReportOpts ropts@ReportOpts{..} =
   either optserror (const ropts) $ do
@@ -155,14 +173,11 @@ accountlistmodeopt rawopts =
     _          -> ALDefault
 
 balancetypeopt :: RawOpts -> BalanceType
-balancetypeopt rawopts
-    | length [o | o <- ["cumulative","historical"], isset o] > 1
-                         = optserror "please specify at most one of --cumulative and --historical"
-    | isset "cumulative" = CumulativeBalance
-    | isset "historical" = HistoricalBalance
-    | otherwise          = PeriodBalance
-    where
-      isset = flip boolopt rawopts
+balancetypeopt rawopts =
+  case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst rawopts of
+    ("historical":_) -> HistoricalBalance
+    ("cumulative":_) -> CumulativeChange
+    _                -> PeriodChange
 
 -- Get the period specified by the intersection of -b/--begin, -e/--end and/or
 -- -p/--period options, using the given date to interpret relative date expressions.

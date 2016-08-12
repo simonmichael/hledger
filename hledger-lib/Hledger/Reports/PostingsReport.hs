@@ -47,7 +47,10 @@ type PostingsReportItem = (Maybe Day    -- The posting date, if this is the firs
                                         -- the interval.
                           ,Maybe String -- The posting's transaction's description, if this is the first posting in the transaction.
                           ,Posting      -- The posting, possibly with the account name depth-clipped.
-                          ,MixedAmount  -- The running total after this posting (or with --average, the running average).
+                          ,MixedAmount  -- The running total after this posting, or with --average,
+                                        -- the running average posting amount. With --historical,
+                                        -- postings before the report start date are included in
+                                        -- the running total/average.
                           )
 
 -- | Select postings from the journal and add running balance and other
@@ -70,9 +73,15 @@ postingsReport opts q j = (totallabel, items)
           showempty = empty_ opts || average_ opts
 
       -- posting report items ready for display
-      items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth startbal runningcalc 1
+      items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth startbal runningcalc startnum
         where
-          startbal = if balancetype_ opts == HistoricalBalance then sumPostings precedingps else 0
+          historical = balancetype_ opts == HistoricalBalance
+          precedingsum = sumPostings precedingps
+          precedingavg | null precedingps = 0
+                       | otherwise        = precedingsum `divideMixedAmount` (fromIntegral $ length precedingps)
+          startbal | average_ opts = if historical then precedingavg else 0
+                   | otherwise     = if historical then precedingsum else 0
+          startnum = if historical then length precedingps + 1 else 1
           runningcalc | average_ opts = \i avg amt -> avg + (amt - avg) `divideMixedAmount` (fromIntegral i) -- running average
                       | otherwise     = \_ bal amt -> bal + amt                                              -- running total
 

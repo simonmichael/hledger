@@ -147,8 +147,8 @@ reportflags = [
 
 -- | Common output-related flags: --output-file, --output-format...
 outputflags = [
-   flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE[.FMT]" "write output to FILE instead of stdout. A recognised FMT suffix influences the format."
-  ,flagReq  ["output-format","O"] (\s opts -> Right $ setopt "output-format" s opts) "FMT" "select the output format. Supported formats: txt, csv."
+   flagReq  ["output-format","O"] (\s opts -> Right $ setopt "output-format" s opts) "FMT" "select the output format. Supported formats:\ntxt, csv."
+  ,flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE. A file extension matching one of the above formats selects that format."
   ]
 
 argsFlag :: FlagHelp -> Arg RawOpts

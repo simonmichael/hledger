@@ -33,7 +33,7 @@ statsmode = (defCommandMode $ ["stats"] ++ aliases) {
   modeHelp = "show some journal statistics" `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
-        flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE[.FMT]" "write output to FILE instead of stdout. A recognised FMT suffix influences the format."
+        flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE.  A file extension matching one of the above formats selects that format."
         ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]

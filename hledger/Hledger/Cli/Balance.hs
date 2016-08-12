@@ -239,8 +239,8 @@ module Hledger.Cli.Balance (
  ,balance
  ,balanceReportAsText
  ,balanceReportItemAsText
- ,periodBalanceReportAsText
- ,cumulativeBalanceReportAsText
+ ,periodChangeReportAsText
+ ,cumulativeChangeReportAsText
  ,historicalBalanceReportAsText
  ,tests_Hledger_Cli_Balance
 ) where
@@ -267,17 +267,21 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
   modeHelp = "show accounts and balances" `withAliases` aliases
  ,modeGroupFlags = C.Group {
      groupUnnamed = [
-      flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree (default in simple reports)"
-     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list (default in multicolumn mode)"
-     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "singlecolumn mode: use this custom line format"
-     ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "tree mode: don't squash boring parent accounts"
-     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts) "show historical ending balances, reflecting postings before report start"
-     ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts) "in multicolumn mode: show ending balances accumulated from 0 at report start"
-     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "multicolumn mode: show a row average column"
-     ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "multicolumn mode: show a row total column"
-     ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "don't show the final total row"
-     ,flagNone ["value","V"] (setboolopt "value") "show amounts as their current market value in their default valuation commodity"
+      flagNone ["change"] (\opts -> setboolopt "change" opts)
+        "show balance change in each period (default)"
+     ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
+        "show balance change accumulated across periods (in multicolumn reports)"
+     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
+        "show historical ending balance in each period (includes postings before report start date)\n "
+     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree; amounts include subaccounts (default in simple reports)"
+     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list; amounts exclude subaccounts except when account is depth-clipped (default in multicolumn reports)\n "
+     ,flagNone ["value","V"] (setboolopt "value") "convert amounts to current market value in their default valuation commodity"
+     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a row average column (in multicolumn reports)"
+     ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "show a row total column (in multicolumn reports)"
+     ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"
+     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
+     ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
+     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
      ]
      ++ outputflags
     ,groupHidden = []
@@ -305,7 +309,7 @@ balance opts@CliOpts{reportopts_=ropts} j = do
           let report
                 -- For --historical/--cumulative, we must use multiBalanceReport.
                 -- (This forces --no-elide.)
-                | balancetype_ ropts `elem` [HistoricalBalance, CumulativeBalance]
+                | balancetype_ ropts `elem` [HistoricalBalance, CumulativeChange]
                   = let ropts' | flat_ ropts = ropts
                                | otherwise   = ropts{accountlistmode_=ALTree}
                     in singleBalanceReport ropts' (queryFromOpts d ropts) j
@@ -323,8 +327,8 @@ balance opts@CliOpts{reportopts_=ropts} j = do
               render = case format of
                 "csv" -> \ropts r -> (++ "\n") $ printCSV $ multiBalanceReportAsCsv ropts r
                 _     -> case baltype of
-                  PeriodBalance     -> periodBalanceReportAsText
-                  CumulativeBalance -> cumulativeBalanceReportAsText
+                  PeriodChange     -> periodChangeReportAsText
+                  CumulativeChange -> cumulativeChangeReportAsText
                   HistoricalBalance -> historicalBalanceReportAsText
           writeOutput opts $ render ropts $ convert report
 
@@ -389,6 +393,7 @@ tests_balanceReportAsText = [
  ]
 
 {-
+:r
 This implementation turned out to be a bit convoluted but implements the following algorithm for formatting:
 
 - If there is a single amount, print it with the account name directly:
@@ -477,8 +482,8 @@ multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,to
            )]
 
 -- | Render a multi-column period balance report as plain text suitable for console output.
-periodBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
-periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+periodChangeReportAsText :: ReportOpts -> MultiBalanceReport -> String
+periodChangeReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
   unlines $
   ([printf "Balance changes in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
@@ -511,8 +516,8 @@ periodBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotal
                                     ))
 
 -- | Render a multi-column cumulative balance report as plain text suitable for console output.
-cumulativeBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
-cumulativeBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+cumulativeChangeReportAsText :: ReportOpts -> MultiBalanceReport -> String
+cumulativeChangeReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
   unlines $
   ([printf "Ending balances (cumulative) in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
   trimborder $ lines $
