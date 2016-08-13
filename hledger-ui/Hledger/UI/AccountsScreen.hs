@@ -312,8 +312,8 @@ asHandle ui0@UIState{
         EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
         EvKey (KDown)     [MShift] -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
         EvKey (KUp)       [MShift] -> continue $ regenerateScreens j d $ growReportPeriod d ui
-        EvKey (KRight)    [MShift] -> continue $ regenerateScreens j d $ nextReportPeriod ui
-        EvKey (KLeft)     [MShift] -> continue $ regenerateScreens j d $ previousReportPeriod ui
+        EvKey (KRight)    [MShift] -> continue $ regenerateScreens j d $ nextReportPeriod journalspan ui
+        EvKey (KLeft)     [MShift] -> continue $ regenerateScreens j d $ previousReportPeriod journalspan ui
         EvKey (KChar '/') [] -> continue $ regenerateScreens j d $ showMinibuffer ui
         EvKey k           [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         EvKey k           [] | k `elem` [KLeft, KChar 'h']  -> continue $ popScreen ui
@@ -344,6 +344,7 @@ asHandle ui0@UIState{
     -- XXX better: scroll so selection is in middle of screen ?
     scrollTop         = vScrollToBeginning $ viewportScroll AccountsViewport
     scrollTopRegister = vScrollToBeginning $ viewportScroll RegisterViewport
+    journalspan = journalDateSpan False j
 
 asHandle _ _ = error "event handler called with wrong screen type, should not happen"
 

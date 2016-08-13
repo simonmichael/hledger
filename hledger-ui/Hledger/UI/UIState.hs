@@ -87,14 +87,14 @@ shrinkReportPeriod d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{report
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodShrink d $ period_ ropts}}}}
 
 -- | Step the report start/end dates to the next period of same duration.
-nextReportPeriod :: UIState -> UIState
-nextReportPeriod ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodNext p}}}}
+nextReportPeriod :: DateSpan -> UIState -> UIState
+nextReportPeriod journalspan ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodNextIn journalspan p}}}}
 
 -- | Step the report start/end dates to the next period of same duration.
-previousReportPeriod :: UIState -> UIState
-previousReportPeriod ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodPrevious p}}}}
+previousReportPeriod :: DateSpan -> UIState -> UIState
+previousReportPeriod journalspan ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodPreviousIn journalspan p}}}}
 
 -- | Set the report period.
 setReportPeriod :: Period -> UIState -> UIState
@@ -115,7 +115,7 @@ resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=rop
     ,clearedstatus_=Nothing
     ,real_=False
     ,query_=""
-    ,period_=PeriodAll
+    --,period_=PeriodAll
     }}}}
 
 resetDepth :: UIState -> UIState

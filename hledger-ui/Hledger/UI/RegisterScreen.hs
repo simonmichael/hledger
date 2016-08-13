@@ -282,8 +282,8 @@ rsHandle ui@UIState{
         EvKey (KChar '/') [] -> (continue $ regenerateScreens j d $ showMinibuffer ui)
         EvKey (KDown)     [MShift] -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
         EvKey (KUp)       [MShift] -> continue $ regenerateScreens j d $ growReportPeriod d ui
-        EvKey (KRight)    [MShift] -> continue $ regenerateScreens j d $ nextReportPeriod ui
-        EvKey (KLeft)     [MShift] -> continue $ regenerateScreens j d $ previousReportPeriod ui
+        EvKey (KRight)    [MShift] -> continue $ regenerateScreens j d $ nextReportPeriod journalspan ui
+        EvKey (KLeft)     [MShift] -> continue $ regenerateScreens j d $ previousReportPeriod journalspan ui
         EvKey k           [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         EvKey k           [] | k `elem` [KLeft, KChar 'h']  -> continue $ popScreen ui
         EvKey k           [] | k `elem` [KRight, KChar 'l'] -> do
@@ -310,5 +310,6 @@ rsHandle ui@UIState{
       where
         -- Encourage a more stable scroll position when toggling list items (cf AccountsScreen.hs)
         scrollTop = vScrollToBeginning $ viewportScroll RegisterViewport
+        journalspan = journalDateSpan False j
 
 rsHandle _ _ = error "event handler called with wrong screen type, should not happen"

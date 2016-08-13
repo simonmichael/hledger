@@ -165,6 +165,28 @@ periodPrevious (QuarterPeriod y q) = QuarterPeriod y (q-1)
 periodPrevious (YearPeriod y) = YearPeriod (y-1)
 periodPrevious p = p
 
+-- | Move a period to the following period of same duration, staying within enclosing dates.
+periodNextIn :: DateSpan -> Period -> Period
+periodNextIn (DateSpan _ (Just e)) p =
+  case mb of
+    Just b -> if b < e then p' else p
+    _      -> p
+  where
+    p' = periodNext p
+    mb = periodStart p'
+periodNextIn _ p = periodNext p
+
+-- | Move a period to the preceding period of same duration, staying within enclosing dates.
+periodPreviousIn :: DateSpan -> Period -> Period
+periodPreviousIn (DateSpan (Just b) _) p =
+  case me of
+    Just e -> if e > b then p' else p
+    _      -> p
+  where
+    p' = periodPrevious p
+    me = periodEnd p'
+periodPreviousIn _ p = periodPrevious p
+
 -- | Enlarge a standard period to the next larger enclosing standard period, if there is one.
 -- Eg, a day becomes the enclosing week.
 -- A week becomes whichever month the week's thursday falls into.
