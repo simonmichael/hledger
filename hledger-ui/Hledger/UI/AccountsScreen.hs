@@ -204,7 +204,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
               ,("H"
                ,if ishistorical
                 then selectedstr "historical" <+> str "/period"
-                else str "historical" <+> selectedstr "/period")
+                else str "historical/" <+> selectedstr "period")
               ,("F"
                ,if flat_ ropts
                 then str "tree/" <+> selectedstr "flat"
