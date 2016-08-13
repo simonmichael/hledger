@@ -57,7 +57,9 @@ type TransactionsReportItem = (Transaction -- the original journal transaction, 
                               ,Bool        -- is this a split, ie more than one other account posting
                               ,String      -- a display string describing the other account(s), if any
                               ,MixedAmount -- the amount posted to the current account(s) by the filtered postings (or total amount posted)
-                              ,MixedAmount -- the running balance for the current account(s) after the above
+                              ,MixedAmount -- the running total of item amounts, starting from zero;
+                                           -- or with --historical, the running total including items
+                                           -- (matched by the report query) preceding the report period
                               )
 
 triOrigTransaction (torig,_,_,_,_,_) = torig
@@ -108,8 +110,10 @@ journalTransactionsReport opts j q = (totallabel, items)
 --
 -- - the total increase/decrease to the current account
 --
--- - the register's running total after this transaction, or
---   the current account's historical balance after this transaction
+-- - the report transactions' running total after this transaction;
+--   or if historical balance is requested, the historical running total,
+--   including transactions (filtered by the report query) from before
+--   the report start date
 --
 -- Items are sorted by transaction context date, most recent first.
 -- Reporting intervals are currently ignored.
@@ -147,39 +151,24 @@ accountTransactionsReport opts j reportq thisacctq = (label, items)
     -- better sort by the transaction's register date, for accurate starting balance
     ts = sortBy (comparing (transactionRegisterDate reportq thisacctq)) ts3
 
-    -- starting balance: if we are filtering by a start date and nothing else,
-    -- this is the sum of the (possibly realness or status-filtered) postings
-    -- to this account before that date; otherwise start from zero.
-    (startbal,label) | queryIsNull q                        = (nullmixedamt,        balancelabel)
-                     | queryIsStartBalancePreserving opts q = (sumPostings priorps, balancelabel)
-                     | otherwise                            = (nullmixedamt,        totallabel)
-                     where
-                       priorps = -- ltrace "priorps" $
-                                 filter (matchesPosting
-                                         (-- ltrace "priormatcher" $
-                                          And [thisacctq, realq, statusq, tostartdatequery]))
-                                        $ transactionsPostings ts
-                       tostartdatequery = Date (DateSpan Nothing startdate)
-                       startdate = queryStartDate (date2_ opts) q
+    (startbal,label)
+      -- queryIsNull q                            = (nullmixedamt,        balancelabel)
+      | balancetype_ opts == HistoricalBalance = (sumPostings priorps, balancelabel)
+      | otherwise                              = (nullmixedamt,        totallabel)
+      where
+        priorps = -- ltrace "priorps" $
+                  filter (matchesPosting
+                          (-- ltrace "priormatcher" $
+                           And [thisacctq, realq, statusq, tostartdatequery]))
+                         $ transactionsPostings ts
+        tostartdatequery = Date (DateSpan Nothing startdate)
+        startdate = queryStartDate (date2_ opts) q
 
     items = reverse $ -- see also registerChartHtml
             accountTransactionsReportItems q thisacctq startbal negate ts
 
--- Assuming this query specifies a start date, if we switch that to
--- an end date, will the resulting query calculate an accurate
--- starting balance ?
--- XXX WIP, probably misses many balance-preserving cases,
--- not sure how this should work.
-queryIsStartBalancePreserving :: ReportOpts -> Query -> Bool
-queryIsStartBalancePreserving opts q =
-  queryIsStartDateOnly (date2_ opts) $
-  filterQuery (\q -> not (
-                         queryIsEmpty q
-                      || queryIsSym q
-                      )) q
-
-totallabel = "Running Total"
-balancelabel = "Historical Balance"
+totallabel = "Period Total"
+balancelabel = "Historical Total"
 
 -- | Generate transactions report items from a list of transactions,
 -- using the provided user-specified report query, a query specifying
