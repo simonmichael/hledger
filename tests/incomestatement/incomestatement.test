@@ -1,0 +1,23 @@
+# 1.
+hledger -f - incomestatement
+<<<
+2016/1/1
+  income  1
+  b
+>>>
+Income Statement
+
+Revenues:
+                   1  income
+--------------------
+                   1
+
+Expenses:
+--------------------
+                   0
+
+Total:
+--------------------
+                   1
+>>>2
+>>>= 0

@@ -1,0 +1,23 @@
+# 1.
+hledger -f - balancesheet
+<<<
+2016/1/1
+  assets  1
+  b
+>>>
+Balance Sheet
+
+Assets:
+                   1  assets
+--------------------
+                   1
+
+Liabilities:
+--------------------
+                   0
+
+Total:
+--------------------
+                   1
+>>>2
+>>>= 0

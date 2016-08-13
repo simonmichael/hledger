@@ -1,0 +1,19 @@
+# 1.
+hledger -f - cashflow
+<<<
+2016/1/1
+  assets  1
+  b
+>>>
+Cashflow Statement
+
+Cash flows:
+                   1  assets
+--------------------
+                   1
+
+Total:
+--------------------
+                   1
+>>>2
+>>>= 0
