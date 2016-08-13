@@ -1003,49 +1003,47 @@ Date\ [2015/05/22]:\ <CTRL\-D>\ $
 Show accounts and their balances.
 Alias: bal.
 .TP
-.B \f[C]\-\-tree\f[]
-show short account names, as a tree
-.RS
-.RE
-.TP
-.B \f[C]\-\-flat\f[]
-show full account names, as a list (default)
-.RS
-.RE
-.TP
-.B \f[C]\-\-drop=N\f[]
-in flat mode: omit N leading account name parts
-.RS
-.RE
-.TP
-.B \f[C]\-\-format=LINEFORMAT\f[]
-in single\-column balance reports: use this custom line format
-.RS
-.RE
-.TP
-.B \f[C]\-\-no\-elide\f[]
-in tree mode: don\[aq]t squash boring parent accounts
-.RS
-.RE
-.TP
-.B \f[C]\-H\ \-\-historical\f[]
-show historical ending balances, reflecting postings before report start
+.B \f[C]\-\-change\f[]
+show balance change in each period (default)
 .RS
 .RE
 .TP
 .B \f[C]\-\-cumulative\f[]
-in multicolumn mode: show ending balances accumulated from 0 at report
-start
+show balance change accumulated across periods (in multicolumn reports)
+.RS
+.RE
+.TP
+.B \f[C]\-H\ \-\-historical\f[]
+show historical ending balance in each period (includes postings before
+report start date)
+.RS
+.RE
+.TP
+.B \f[C]\-\-tree\f[]
+show accounts as a tree; amounts include subaccounts (default in simple
+reports)
+.RS
+.RE
+.TP
+.B \f[C]\-\-flat\f[]
+show accounts as a list; amounts exclude subaccounts except when account
+is depth\-clipped (default in multicolumn reports)
+.RS
+.RE
+.TP
+.B \f[C]\-V\ \-\-value\f[]
+convert amounts to current market value in their default valuation
+commodity
 .RS
 .RE
 .TP
 .B \f[C]\-A\ \-\-average\f[]
-in multicolumn mode: show a row average column
+show a row average column (in multicolumn mode)
 .RS
 .RE
 .TP
 .B \f[C]\-T\ \-\-row\-total\f[]
-in multicolumn mode: show a row total column
+show a row total column (in multicolumn mode)
 .RS
 .RE
 .TP
@@ -1054,21 +1052,30 @@ don\[aq]t show the final total row
 .RS
 .RE
 .TP
-.B \f[C]\-V\ \-\-value\f[]
-show amounts as their current market value in their default valuation
-commodity
+.B \f[C]\-\-drop=N\f[]
+omit N leading account name parts (in flat mode)
 .RS
 .RE
 .TP
-.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
-write output to FILE instead of stdout.
-A recognised FMT suffix influences the format.
+.B \f[C]\-\-no\-elide\f[]
+don\[aq]t squash boring parent accounts (in tree mode)
+.RS
+.RE
+.TP
+.B \f[C]\-\-format=LINEFORMAT\f[]
+in single\-column balance reports: use this custom line format
 .RS
 .RE
 .TP
 .B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
 select the output format.
 Supported formats: txt, csv.
+.RS
+.RE
+.TP
+.B \f[C]\-o\ FILE\ \-\-output\-file=FILE\f[]
+write output to FILE.
+A file extension matching one of the above formats selects that format.
 .RS
 .RE
 .PP
@@ -1583,15 +1590,15 @@ most recent
 .RS
 .RE
 .TP
-.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
-write output to FILE instead of stdout.
-A recognised FMT suffix influences the format.
-.RS
-.RE
-.TP
 .B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
 select the output format.
 Supported formats: txt, csv.
+.RS
+.RE
+.TP
+.B \f[C]\-o\ FILE\ \-\-output\-file=FILE\f[]
+write output to FILE.
+A file extension matching one of the above formats selects that format.
 .RS
 .RE
 .IP
@@ -1635,13 +1642,20 @@ The print command also supports output destination and CSV output.
 Show postings and their running total.
 Alias: reg.
 .TP
+.B \f[C]\-\-cumulative\f[]
+show running total from report start date (default)
+.RS
+.RE
+.TP
 .B \f[C]\-H\ \-\-historical\f[]
-show historical running balance, reflecting prior postings
+show historical running total/balance (includes postings before report
+start date)
 .RS
 .RE
 .TP
 .B \f[C]\-A\ \-\-average\f[]
-show a running average instead of the running total (implies \-\-empty)
+show running average of posting amounts instead of total (implies
+\-\-empty)
 .RS
 .RE
 .TP
@@ -1656,15 +1670,15 @@ set output width (default: terminal width or COLUMNS.
 .RS
 .RE
 .TP
-.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
-write output to FILE instead of stdout.
-A recognised FMT suffix influences the format.
-.RS
-.RE
-.TP
 .B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
 select the output format.
 Supported formats: txt, csv.
+.RS
+.RE
+.TP
+.B \f[C]\-o\ FILE\ \-\-output\-file=FILE\f[]
+write output to FILE.
+A file extension matching one of the above formats selects that format.
 .RS
 .RE
 .PP
@@ -1704,6 +1718,7 @@ The \f[C]\-\-average\f[]/\f[C]\-A\f[] flag shows the running average
 posting amount instead of the running total (so, the final number
 displayed is the average for the whole report period).
 This flag implies \f[C]\-\-empty\f[] (see below).
+It is affected by \f[C]\-\-historical\f[].
 It works best when showing just one account and one commodity.
 .PP
 The \f[C]\-\-related\f[]/\f[C]\-r\f[] flag shows the \f[I]other\f[]
@@ -1802,9 +1817,9 @@ destination and CSV output.
 .PP
 Show some journal statistics.
 .TP
-.B \f[C]\-o\ FILE[.FMT]\ \-\-output\-file=FILE[.FMT]\f[]
-write output to FILE instead of stdout.
-A recognised FMT suffix influences the format.
+.B \f[C]\-o\ FILE\ \-\-output\-file=FILE\f[]
+write output to FILE.
+A file extension matching one of the above formats selects that format.
 .RS
 .RE
 .IP

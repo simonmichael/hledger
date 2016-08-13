@@ -801,48 +801,53 @@ File: hledger.1.info,  Node: balance,  Next: balancesheet,  Prev: add,  Up: COMM
 
 Show accounts and their balances. Alias: bal.
 
-`--tree'
-     show short account names, as a tree
-
-`--flat'
-     show full account names, as a list (default)
-
-`--drop=N'
-     in flat mode: omit N leading account name parts
-
-`--format=LINEFORMAT'
-     in single-column balance reports: use this custom line format
-
-`--no-elide'
-     in tree mode: don't squash boring parent accounts
-
-`-H --historical'
-     show historical ending balances, reflecting postings before report
-     start
+`--change'
+     show balance change in each period (default)
 
 `--cumulative'
-     in multicolumn mode: show ending balances accumulated from 0 at
-     report start
+     show balance change accumulated across periods (in multicolumn
+     reports)
+
+`-H --historical'
+     show historical ending balance in each period (includes postings
+     before report start date)
+
+`--tree'
+     show accounts as a tree; amounts include subaccounts (default in
+     simple reports)
+
+`--flat'
+     show accounts as a list; amounts exclude subaccounts except when
+     account is depth-clipped (default in multicolumn reports)
+
+`-V --value'
+     convert amounts to current market value in their default valuation
+     commodity
 
 `-A --average'
-     in multicolumn mode: show a row average column
+     show a row average column (in multicolumn mode)
 
 `-T --row-total'
-     in multicolumn mode: show a row total column
+     show a row total column (in multicolumn mode)
 
 `-N --no-total'
      don't show the final total row
 
-`-V --value'
-     show amounts as their current market value in their default
-     valuation commodity
+`--drop=N'
+     omit N leading account name parts (in flat mode)
 
-`-o FILE[.FMT] --output-file=FILE[.FMT]'
-     write output to FILE instead of stdout. A recognised FMT suffix
-     influences the format.
+`--no-elide'
+     don't squash boring parent accounts (in tree mode)
+
+`--format=LINEFORMAT'
+     in single-column balance reports: use this custom line format
 
 `-O FMT --output-format=FMT'
      select the output format. Supported formats: txt, csv.
+
+`-o FILE --output-file=FILE'
+     write output to FILE. A file extension matching one of the above
+     formats selects that format.
 
    The balance command displays accounts and balances. It is hledger's
 most featureful and most useful command.
@@ -1349,12 +1354,12 @@ Show transactions from the journal.
      show the transaction whose description is most similar to STR, and
      is most recent
 
-`-o FILE[.FMT] --output-file=FILE[.FMT]'
-     write output to FILE instead of stdout. A recognised FMT suffix
-     influences the format.
-
 `-O FMT --output-format=FMT'
      select the output format. Supported formats: txt, csv.
+
+`-o FILE --output-file=FILE'
+     write output to FILE. A file extension matching one of the above
+     formats selects that format.
 
 
 $ hledger print
@@ -1397,11 +1402,15 @@ File: hledger.1.info,  Node: register,  Next: stats,  Prev: print,  Up: COMMANDS
 
 Show postings and their running total. Alias: reg.
 
+`--cumulative'
+     show running total from report start date (default)
+
 `-H --historical'
-     show historical running balance, reflecting prior postings
+     show historical running total/balance (includes postings before
+     report start date)
 
 `-A --average'
-     show a running average instead of the running total (implies
+     show running average of posting amounts instead of total (implies
      -empty)
 
 `-r --related'
@@ -1411,12 +1420,12 @@ Show postings and their running total. Alias: reg.
      set output width (default: terminal width or COLUMNS. -wN,M sets
      description width as well)
 
-`-o FILE[.FMT] --output-file=FILE[.FMT]'
-     write output to FILE instead of stdout. A recognised FMT suffix
-     influences the format.
-
 `-O FMT --output-format=FMT'
      select the output format. Supported formats: txt, csv.
+
+`-o FILE --output-file=FILE'
+     write output to FILE. A file extension matching one of the above
+     formats selects that format.
 
    The register command displays postings, one per line, and their
 running total. This is typically used with a query selecting a
@@ -1445,7 +1454,8 @@ displayed.
    The `--average'/`-A' flag shows the running average posting amount
 instead of the running total (so, the final number displayed is the
 average for the whole report period). This flag implies `--empty' (see
-below). It works best when showing just one account and one commodity.
+below). It is affected by `--historical'. It works best when showing
+just one account and one commodity.
 
    The `--related'/`-r' flag shows the _other_ postings in the
 transactions of the postings which would normally be shown.
@@ -1536,9 +1546,9 @@ File: hledger.1.info,  Node: stats,  Next: test,  Prev: register,  Up: COMMANDS
 
 Show some journal statistics.
 
-`-o FILE[.FMT] --output-file=FILE[.FMT]'
-     write output to FILE instead of stdout. A recognised FMT suffix
-     influences the format.
+`-o FILE --output-file=FILE'
+     write output to FILE. A file extension matching one of the above
+     formats selects that format.
 
 
 $ hledger stats
@@ -2127,69 +2137,69 @@ Node: add21806
 Ref: #add21907
 Node: balance24566
 Ref: #balance24679
-Node: Flat mode27448
-Ref: #flat-mode27575
-Node: Depth limited balance reports27994
-Ref: #depth-limited-balance-reports28197
-Node: Multicolumn balance reports28618
-Ref: #multicolumn-balance-reports28820
-Node: Market value33469
-Ref: #market-value33633
-Node: Custom balance output34126
-Ref: #custom-balance-output34299
-Node: Output destination36403
-Ref: #output-destination36568
-Node: CSV output36838
-Ref: #csv-output36957
-Node: balancesheet37354
-Ref: #balancesheet37482
-Node: cashflow38134
-Ref: #cashflow38251
-Node: help38941
-Ref: #help39053
-Node: incomestatement39890
-Ref: #incomestatement40020
-Node: info40747
-Ref: #info40854
-Node: man41216
-Ref: #man41313
-Node: print41716
-Ref: #print41821
-Node: register43172
-Ref: #register43285
-Node: Custom register output47641
-Ref: #custom-register-output47772
-Node: stats49069
-Ref: #stats49175
-Node: test50056
-Ref: #test50143
-Node: ADD-ON COMMANDS50510
-Ref: #add-on-commands50646
-Node: api51934
-Ref: #api52026
-Node: autosync52060
-Ref: #autosync52175
-Node: diff54490
-Ref: #diff54600
-Node: equity55264
-Ref: #equity55378
-Node: interest56706
-Ref: #interest56823
-Node: irr59907
-Ref: #irr60020
-Node: print-unique62395
-Ref: #print-unique62525
-Node: rewrite62783
-Ref: #rewrite62902
-Node: ui63431
-Ref: #ui63531
-Node: web63572
-Ref: #web63660
-Node: TROUBLESHOOTING63693
-Ref: #troubleshooting63812
-Node: Run-time problems63866
-Ref: #run-time-problems64009
-Node: Known limitations65953
-Ref: #known-limitations66096
+Node: Flat mode27652
+Ref: #flat-mode27779
+Node: Depth limited balance reports28198
+Ref: #depth-limited-balance-reports28401
+Node: Multicolumn balance reports28822
+Ref: #multicolumn-balance-reports29024
+Node: Market value33673
+Ref: #market-value33837
+Node: Custom balance output34330
+Ref: #custom-balance-output34503
+Node: Output destination36607
+Ref: #output-destination36772
+Node: CSV output37042
+Ref: #csv-output37161
+Node: balancesheet37558
+Ref: #balancesheet37686
+Node: cashflow38338
+Ref: #cashflow38455
+Node: help39145
+Ref: #help39257
+Node: incomestatement40094
+Ref: #incomestatement40224
+Node: info40951
+Ref: #info41058
+Node: man41420
+Ref: #man41517
+Node: print41920
+Ref: #print42025
+Node: register43371
+Ref: #register43484
+Node: Custom register output47976
+Ref: #custom-register-output48107
+Node: stats49404
+Ref: #stats49510
+Node: test50386
+Ref: #test50473
+Node: ADD-ON COMMANDS50840
+Ref: #add-on-commands50976
+Node: api52264
+Ref: #api52356
+Node: autosync52390
+Ref: #autosync52505
+Node: diff54820
+Ref: #diff54930
+Node: equity55594
+Ref: #equity55708
+Node: interest57036
+Ref: #interest57153
+Node: irr60237
+Ref: #irr60350
+Node: print-unique62725
+Ref: #print-unique62855
+Node: rewrite63113
+Ref: #rewrite63232
+Node: ui63761
+Ref: #ui63861
+Node: web63902
+Ref: #web63990
+Node: TROUBLESHOOTING64023
+Ref: #troubleshooting64142
+Node: Run-time problems64196
+Ref: #run-time-problems64339
+Node: Known limitations66283
+Ref: #known-limitations66426
 
 End Tag Table
