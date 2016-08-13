@@ -56,6 +56,14 @@ toggleFlat ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropt
     toggleFlatMode ropts@ReportOpts{accountlistmode_=ALFlat} = ropts{accountlistmode_=ALTree}
     toggleFlatMode ropts = ropts{accountlistmode_=ALFlat}
 
+-- | Toggle between historical balances and period balances.
+toggleHistorical :: UIState -> UIState
+toggleHistorical ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{balancetype_=b}}}}
+  where
+    b | balancetype_ ropts == HistoricalBalance = PeriodChange
+      | otherwise                               = HistoricalBalance
+
 -- | Toggle between showing all and showing only real (non-virtual) items.
 toggleReal :: UIState -> UIState
 toggleReal ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =

@@ -62,7 +62,6 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) rsAccount
     ropts' = ropts{
                depth_=Nothing
-              ,balancetype_=HistoricalBalance
               }
     q = queryFromOpts d ropts'
 --    reportq = filterQuery (not . queryIsDepth) q
@@ -158,14 +157,18 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
       render $ defaultLayout toplabel bottomlabel $ renderList (rsDrawItem colwidths) True rsList
 
       where
+        ishistorical = balancetype_ ropts == HistoricalBalance
+        inclusive = not (flat_ ropts) || rsForceInclusive
+
         toplabel =
               withAttr ("border" <> "bold") (str $ T.unpack $ replaceHiddenAccountsNameWith "All" rsAccount)
-          <+> withAttr (borderAttr <> "query") (str $ if inclusive then "" else " exclusive")
+--           <+> withAttr (borderAttr <> "query") (str $ if inclusive then "" else " exclusive")
           <+> togglefilters
           <+> str " transactions"
+          -- <+> str (if ishistorical then " historical total" else " period total")
           <+> borderQueryStr (query_ ropts)
           -- <+> str " and subs"
-          <+> borderPeriodStr (period_ ropts)
+          <+> borderPeriodStr "in" (period_ ropts)
           <+> str " ("
           <+> cur
           <+> str "/"
@@ -173,7 +176,6 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           <+> str ")"
           <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
           where
-            inclusive = not (flat_ ropts) || rsForceInclusive
             togglefilters =
               case concat [
                    uiShowClearedStatus $ clearedstatus_ ropts
@@ -193,16 +195,22 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                         Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
           where
-            quickhelp = borderKeysStr [
-               ("?", "help")
-              ,("left", "back")
-              ,("right", "transaction")
-              ,("/", "filter")
-              ,("DEL", "unfilter")
-              --,("ESC", "reset")
-              ,("a", "add")
-              ,("g", "reload")
-              ,("q", "quit")
+            selectedstr = withAttr (borderAttr <> "query") . str
+            quickhelp = borderKeysStr' [
+               ("?", str "help")
+              ,("left", str "back")
+              ,("right", str "transaction")
+              ,("H"
+               ,if ishistorical
+                then selectedstr "historical" <+> str "/period"
+                else str "historical" <+> selectedstr "/period")
+              ,("F"
+               ,if inclusive
+                then selectedstr "inclusive" <+> str "/exclusive"
+                else str "inclusive/" <+> selectedstr "exclusive")
+--               ,("a", "add")
+--               ,("g", "reload")
+--               ,("q", "quit")
               ]
 
 rsDraw _ = error "draw function called with wrong screen type, should not happen"
@@ -265,6 +273,7 @@ rsHandle ui@UIState{
             (pos,f) = case listSelectedElement rsList of
                         Nothing -> (endPos, journalFilePath j)
                         Just (_, RegisterScreenItem{rsItemTransaction=Transaction{tsourcepos=GenericSourcePos f l c}}) -> (Just (l, Just c),f)
+        EvKey (KChar 'H') [] -> continue $ regenerateScreens j d $ toggleHistorical ui
         EvKey (KChar 'F') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleFlat ui)
         EvKey (KChar 'Z') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
         EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
@@ -276,8 +285,8 @@ rsHandle ui@UIState{
         EvKey (KRight)    [MShift] -> continue $ regenerateScreens j d $ nextReportPeriod ui
         EvKey (KLeft)     [MShift] -> continue $ regenerateScreens j d $ previousReportPeriod ui
         EvKey k           [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
-        EvKey k           [] | k `elem` [KLeft, KChar 'h'] -> continue $ popScreen ui
-        EvKey k           [] | k `elem` [KRight, KChar 'l', KEnter] -> do
+        EvKey k           [] | k `elem` [KLeft, KChar 'h']  -> continue $ popScreen ui
+        EvKey k           [] | k `elem` [KRight, KChar 'l'] -> do
           case listSelectedElement rsList of
             Just (_, RegisterScreenItem{rsItemTransaction=t}) ->
               let

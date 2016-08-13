@@ -79,7 +79,13 @@ asInit d reset ui@UIState{
         valuedate = fromMaybe d $ queryEndDate False q
 
     -- run the report
-    (items,_total) = convert $ singleBalanceReport ropts' q j
+    (items,_total) = convert $ report ropts' q j
+      where
+        -- still using the old balanceReport for change reports as it
+        -- does not include every account from before the report period
+        report | balancetype_ ropts == HistoricalBalance = singleBalanceReport
+               | otherwise                               = balanceReport
+
 
     -- pre-render the list items
     displayitem (fullacct, shortacct, indent, bal) =
@@ -118,7 +124,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
         maxacctwidthseen =
           -- ltrace "maxacctwidthseen" $
           V.maximum $
-          V.map (\AccountsScreenItem{..} -> asItemIndentLevel*2 + textWidth asItemDisplayAccountName) $
+          V.map (\AccountsScreenItem{..} -> asItemIndentLevel + textWidth asItemDisplayAccountName) $
           -- V.filter (\(indent,_,_,_) -> (indent-1) <= fromMaybe 99999 mdepth) $
           displayitems
         maxbalwidthseen =
@@ -145,14 +151,17 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
       render $ defaultLayout toplabel bottomlabel $ renderList (asDrawItem colwidths) True (_asList s)
 
       where
+        ishistorical = balancetype_ ropts == HistoricalBalance
+
         toplabel =
               files
+          -- <+> withAttr (borderAttr <> "query") (str (if flat_ ropts then " flat" else ""))
           <+> nonzero
-          <+> str " accounts"
-          <+> withAttr (borderAttr <> "query") (str (if flat_ ropts then " (flat)" else ""))
+          <+> str (if ishistorical then " accounts" else " account changes")
+          -- <+> str (if ishistorical then " balances" else " changes")
+          <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
           <+> borderQueryStr querystr
           <+> togglefilters
-          <+> borderPeriodStr (period_ ropts)
           <+> borderDepthStr mdepth
           <+> str " ("
           <+> cur
@@ -176,7 +185,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                   ,if real_ ropts then ["real"] else []
                   ] of
                 [] -> str ""
-                fs -> str " with " <+> withAttr (borderAttr <> "query") (str $ intercalate ", " fs) <+> str " txns"
+                fs -> str " from " <+> withAttr (borderAttr <> "query") (str $ intercalate ", " fs) <+> str " txns"
             nonzero | empty_ ropts = str ""
                     | otherwise    = withAttr (borderAttr <> "query") (str " nonzero")
             cur = str (case _asList s ^. listSelectedL of
@@ -188,17 +197,25 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                         Minibuffer ed -> minibuffer ed
                         _             -> quickhelp
           where
-            quickhelp = borderKeysStr [
-               ("?", "help")
-              ,("right", "register")
-              ,("F", "flat?")
-              ,("-+0123456789", "depth")
+            selectedstr = withAttr (borderAttr <> "query") . str
+            quickhelp = borderKeysStr' [
+               ("?", str "help")
+              ,("right", str "register")
+              ,("H"
+               ,if ishistorical
+                then selectedstr "historical" <+> str "/period"
+                else str "historical" <+> selectedstr "/period")
+              ,("F"
+               ,if flat_ ropts
+                then str "tree/" <+> selectedstr "flat"
+                else selectedstr "tree" <+> str "/flat")
+              ,("-+", str "depth")
               --,("/", "filter")
               --,("DEL", "unfilter")
               --,("ESC", "cancel/top")
-              ,("a", "add")
-              ,("g", "reload")
-              ,("q", "quit")
+              ,("a", str "add")
+--               ,("g", "reload")
+              ,("q", str "quit")
               ]
 
 asDraw _ = error "draw function called with wrong screen type, should not happen"
@@ -210,7 +227,7 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
       -- let showitem = intercalate "\n" . balanceReportItemAsText defreportopts fmt
     render $
       addamts asItemRenderedAmounts $
-      str (T.unpack $ fitText (Just acctwidth) (Just acctwidth) True True $ T.replicate (2*asItemIndentLevel) " " <> asItemDisplayAccountName) <+>
+      str (T.unpack $ fitText (Just acctwidth) (Just acctwidth) True True $ T.replicate (asItemIndentLevel) " " <> asItemDisplayAccountName) <+>
       str "  " <+>
       str (balspace asItemRenderedAmounts)
       where
@@ -287,6 +304,7 @@ asHandle ui0@UIState{
         EvKey (KChar '_') [] -> continue $ regenerateScreens j d $ decDepth ui
         EvKey (KChar c)   [] | c `elem` ['+','='] -> continue $ regenerateScreens j d $ incDepth ui
         EvKey (KChar 't') []    -> continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+        EvKey (KChar 'H') [] -> continue $ regenerateScreens j d $ toggleHistorical ui
         EvKey (KChar 'F') [] -> continue $ regenerateScreens j d $ toggleFlat ui
         EvKey (KChar 'Z') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
         EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
@@ -298,8 +316,8 @@ asHandle ui0@UIState{
         EvKey (KLeft)     [MShift] -> continue $ regenerateScreens j d $ previousReportPeriod ui
         EvKey (KChar '/') [] -> continue $ regenerateScreens j d $ showMinibuffer ui
         EvKey k           [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
-        EvKey k           [] | k `elem` [KLeft, KChar 'h']     -> continue $ popScreen ui
-        EvKey k           [] | k `elem` [KRight, KChar 'l', KEnter] -> scrollTopRegister >> continue (screenEnter d scr ui)
+        EvKey k           [] | k `elem` [KLeft, KChar 'h']  -> continue $ popScreen ui
+        EvKey k           [] | k `elem` [KRight, KChar 'l'] -> scrollTopRegister >> continue (screenEnter d scr ui)
           where
             scr = rsSetAccount selacct isdepthclipped registerScreen
             isdepthclipped = case getDepth ui of

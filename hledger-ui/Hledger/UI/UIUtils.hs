@@ -8,7 +8,7 @@ where
 import Brick
 import Brick.Widgets.Border
 import Brick.Widgets.Border.Style
-import Brick.Widgets.Center
+-- import Brick.Widgets.Center
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
 import Data.List
@@ -48,9 +48,9 @@ helpDialog =
               padLeftRight 1 $
                 vBox [
                    str "NAVIGATION"
-                  ,renderKey ("UP/k/DOWN/j/PGUP/PGDN/HOME/END", "")
+                  ,renderKey ("UP/DOWN/k/j/PGUP/PGDN/HOME/END", "")
                   ,str "  move selection"
-                  ,renderKey ("RIGHT/l/ENTER", "drill down")
+                  ,renderKey ("RIGHT/l", "more detail")
                   ,renderKey ("LEFT/h", "previous screen")
                   ,renderKey ("ESC", "cancel / reset")
                   ,str " "
@@ -61,40 +61,50 @@ helpDialog =
                   ,renderKey ("g", "reload data")
                   ,renderKey ("I", "toggle balance assertions")
                   ,renderKey ("q", "quit")
-                  ]
+                  ,str " "
+                  ,str "MANUAL"
+                  ,str "from help dialog:"
+                  ,renderKey ("t", "text")
+                  ,renderKey ("m", "man page")
+                  ,renderKey ("i", "info")
+                ]
              ,padLeftRight 1 $
                 vBox [
                    str "FILTERING"
-                  ,renderKey ("/", "set a filter query")
-                  ,renderKey ("C", "toggle cleared filter")
-                  ,renderKey ("U", "toggle uncleared filter")
-                  ,renderKey ("R", "toggle real filter")
-                  ,renderKey ("Z", "toggle nonzero filter")
-                  ,renderKey ("F", "toggle flat/exclusive mode")
+                  ,renderKey ("SHIFT-DOWN/UP", "shrink/grow report period")
+                  ,renderKey ("SHIFT-RIGHT/LEFT", "next/previous report period")
+                  ,renderKey ("t", "set report period to today")
                   ,str " "
-                  ,renderKey ("t", "  set report period to today")
-                  ,renderKey ("d/u", "decrease/increase report period")
-                  ,renderKey ("n/p", "next/previous report period")
+                  ,renderKey ("/", "set a filter query")
+                  ,renderKey ("C", "toggle cleared/all")
+                  ,renderKey ("U", "toggle uncleared/all")
+                  ,renderKey ("R", "toggle real/all")
+                  ,renderKey ("Z", "toggle nonzero/all")
+                  ,renderKey ("DEL/BS", "remove filters")
                   ,str " "
                   ,str "accounts screen:"
                   ,renderKey ("-+0123456789", "set depth limit")
+                  ,renderKey ("H", "toggle period balance (shows change) or\nhistorical balance (includes older postings)")
+                  ,renderKey ("F", "toggle tree (amounts include subaccounts) or\nflat mode (amounts exclude subaccounts\nexcept when account is depth-clipped)")
                   ,str " "
-                  ,renderKey ("DEL/BS", "remove filters")
+                  ,str "register screen:"
+                  ,renderKey ("H", "toggle period or historical total")
+                  ,renderKey ("F", "toggle subaccount transaction inclusion\n(and tree/flat mode)")
                 ]
              ]
-          ,vBox [
-             str " "
-            ,hCenter $ padLeftRight 1 $
-              hCenter (str "MANUAL")
-              <=>
-              hCenter (hBox [
-                 renderKey ("t", "text")
-                ,str " "
-                ,renderKey ("m", "man page")
-                ,str " "
-                ,renderKey ("i", "info")
-                ])
-            ]
+--           ,vBox [
+--              str " "
+--             ,hCenter $ padLeftRight 1 $
+--               hCenter (str "MANUAL")
+--               <=>
+--               hCenter (hBox [
+--                  renderKey ("t", "text")
+--                 ,str " "
+--                 ,renderKey ("m", "man page")
+--                 ,str " "
+--                 ,renderKey ("i", "info")
+--                 ])
+--             ]
           ]
   where
     renderKey (key,desc) = withAttr (borderAttr <> "keys") (str key) <+> str " " <+> str desc
@@ -104,10 +114,12 @@ helpHandle :: UIState -> Event -> EventM Name (Next UIState)
 helpHandle ui ev =
   case ev of
     EvKey k [] | k `elem` [KEsc, KLeft, KChar 'h', KChar '?'] -> continue $ setMode Normal ui
-    EvKey (KChar 't') [] -> suspendAndResume $ runHelp >> return (setMode Normal ui)
-    EvKey (KChar 'm') [] -> suspendAndResume $ runMan  >> return (setMode Normal ui)
-    EvKey (KChar 'i') [] -> suspendAndResume $ runInfo >> return (setMode Normal ui)
+    EvKey (KChar 't') [] -> suspendAndResume $ runHelp >> return ui'
+    EvKey (KChar 'm') [] -> suspendAndResume $ runMan  >> return ui'
+    EvKey (KChar 'i') [] -> suspendAndResume $ runInfo >> return ui'
     _ -> continue ui
+  where
+    ui' = setMode Normal ui
 
 -- | Draw the minibuffer.
 minibuffer :: Editor Name -> Widget Name
@@ -133,15 +145,18 @@ borderDepthStr :: Maybe Int -> Widget Name
 borderDepthStr Nothing  = str ""
 borderDepthStr (Just d) = str " to " <+> withAttr (borderAttr <> "query") (str $ "depth "++show d)
 
-borderPeriodStr :: Period -> Widget Name
-borderPeriodStr PeriodAll = str ""
-borderPeriodStr p         = str " in " <+> withAttr (borderAttr <> "query") (str $ showPeriod p)
+borderPeriodStr :: String -> Period -> Widget Name
+borderPeriodStr _           PeriodAll = str ""
+borderPeriodStr preposition p         = str (" "++preposition++" ") <+> withAttr (borderAttr <> "query") (str $ showPeriod p)
 
 borderKeysStr :: [(String,String)] -> Widget Name
-borderKeysStr keydescs =
+borderKeysStr = borderKeysStr' . map (\(a,b) -> (a, str b))
+
+borderKeysStr' :: [(String,Widget Name)] -> Widget Name
+borderKeysStr' keydescs =
   hBox $
   intersperse sep $
-  [withAttr (borderAttr <> "keys") (str keys) <+> str ":" <+> str desc | (keys, desc) <- keydescs]
+  [withAttr (borderAttr <> "keys") (str keys) <+> str ":" <+> desc | (keys, desc) <- keydescs]
   where
     -- sep = str " | "
     sep = str " "

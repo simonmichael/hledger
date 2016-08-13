@@ -137,9 +137,17 @@ To see less detail, set a depth limit by pressing a number key, `1` to `9`.
 `-` and `+` (or `=`) decrease and increase the depth limit.
 To remove the depth limit, set it higher than the maximum account depth, or press `ESCAPE`.
 
-`F` toggles flat mode on and off. In flat mode, accounts are listed without indentation,
-and show their subaccount-excluding balances, except for accounts which have been clipped 
-by a depth limit, which show their inclusive balances (as with hledger's balance command). 
+`F` toggles flat mode, in which accounts are shown as a flat list, with their full names.
+In this mode, account balances exclude subaccounts, except for accounts at the depth limit 
+(as with hledger's balance command). 
+
+`H` toggles between showing historical balances or period balances.
+Historical balances (the default) are ending balances at the end of the report period, 
+taking into account all transactions before that date (filtered by the filter query if any),
+including transactions before the start of the report period. In other words, historical
+balances are what you would see on a bank statement for that account (unless disturbed by
+a filter query). Period balances ignore transactions before the report start date, so they
+show the change in balance during the report period. They are more useful eg when viewing a time log.
 
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are
@@ -166,32 +174,20 @@ Each line represents one transaction and shows:
 - the overall change to the current account's balance; 
   positive for an inflow to this account, negative for an outflow.
 
-- the current account's historic balance (if no query other than a date limit is in effect)
-  or the running total starting from zero (otherwise), after the transaction.  
-  Eg, these will show historic balances:
+- the running historical total or period total for the current account, after the transaction.
+This can be toggled with `H`.
+Similar to the accounts screen, the historical total is affected by transactions
+(filtered by the filter query) before the report start date, while the period total is not.
+If the historical total is not disturbed by a filter query, it will be the
+running historical balance you would see on a bank register for the current account. 
 
-    ```
-    $ hledger-ui
-    $ hledger-ui --begin 'this month'
-    $ hledger-ui --register checking date:2015/10
-    ```
-
-    while these will show a running total, since the queries are not just date limits:
-
-    ```
-    $ hledger-ui checking
-    $ hledger-ui --begin 'this month' desc:market
-    $ hledger-ui --register checking --cleared
-    ```
-
-The register screen normally shows transactions in the current account 
-and any of its subaccounts (inclusive mode). 
-If it was entered from the accounts screen in flat mode, where the 
-selected account was not depth-clipped and therefore was showing its 
-subaccount-excluding balance, the register too will omit the transactions 
-of subaccounts (exclusive mode). This means the register always shows
-the transactions responsible for the balance being displayed on the 
-accounts screen.
+If the accounts screen was in tree mode,
+the register screen will include transactions from both the current account and its subaccounts.
+If the accounts screen was in flat mode, and a non-depth-clipped account was selected,
+the register screen will exclude transactions from subaccounts.
+In other words, the register always shows the transactions responsible for the period balance 
+shown on the accounts screen.
+As on the accounts screen, this can be toggled with `F`.
 
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are
