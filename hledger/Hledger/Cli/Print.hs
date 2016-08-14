@@ -14,7 +14,6 @@ module Hledger.Cli.Print (
 )
 where
 
-import Data.List
 import Data.Text (Text)
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
@@ -106,16 +105,18 @@ entriesReportAsText items = concatMap showTransactionUnelided items
 --  ]
 
 entriesReportAsCsv :: EntriesReport -> CSV
-entriesReportAsCsv items =
-  concat $
-  ([["nth","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","status","posting-comment"]]:).snd $
-  mapAccumL (\n e -> (n + 1, transactionToCSV n e)) 0 items
+entriesReportAsCsv txns =
+  ["txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","status","posting-comment"] :
+  concatMap transactionToCSV txns
 
-transactionToCSV :: Integer -> Transaction -> CSV
-transactionToCSV n t =
-  map (\p -> show n:date:date2:status:code:description:comment:p)
+-- | Generate one CSV record per posting, duplicating the common transaction fields.
+-- The txnidx field (transaction index) allows postings to be grouped back into transactions.
+transactionToCSV :: Transaction -> CSV
+transactionToCSV t =
+  map (\p -> show idx:date:date2:status:code:description:comment:p)
    (concatMap postingToCSV $ tpostings t)
   where
+    idx = tindex t
     description = T.unpack $ tdescription t
     date = showDate (tdate t)
     date2 = maybe "" showDate (tdate2 t)
