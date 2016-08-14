@@ -90,12 +90,15 @@ parse _ = parseAndFinaliseJournal timeclockfilep
 timeclockfilep :: ErroringJournalParser ParsedJournal
 timeclockfilep = do many timeclockitemp
                     eof
-                    j@Journal{jtxns=ts, jparsetimeclockentries=es} <- get
+                    j@Journal{jparsetimeclockentries=es} <- get
                     -- Convert timeclock entries in this journal to transactions, closing any unfinished sessions.
                     -- Doing this here rather than in journalFinalise means timeclock sessions can't span file boundaries,
                     -- but it simplifies code above.
                     now <- liftIO getCurrentLocalTime
-                    let j' = j{jtxns = ts ++ timeclockEntriesToTransactions now (reverse es), jparsetimeclockentries = []}
+                    -- entries have been parsed in reverse order. timeclockEntriesToTransactions
+                    -- expects them to be in normal order, then we must reverse again since
+                    -- journalFinalise expects them in reverse order
+                    let j' = j{jtxns = reverse $ timeclockEntriesToTransactions now $ reverse es, jparsetimeclockentries = []}
                     return j'
     where
       -- As all ledger line types can be distinguished by the first
