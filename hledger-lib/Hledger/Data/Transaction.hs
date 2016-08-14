@@ -15,8 +15,6 @@ module Hledger.Data.Transaction (
   nulltransaction,
   txnTieKnot,
   txnUntieKnot,
-  journalUntieKnots,
-  -- settxn,
   -- * operations
   showAccountName,
   hasRealPostings,
@@ -422,21 +420,16 @@ transactionDate2 t = fromMaybe (tdate t) $ tdate2 t
 -- | Ensure a transaction's postings refer back to it, so that eg
 -- relatedPostings works right.
 txnTieKnot :: Transaction -> Transaction
-txnTieKnot t@Transaction{tpostings=ps} = t{tpostings=map (settxn t) ps}
+txnTieKnot t@Transaction{tpostings=ps} = t{tpostings=map (postingSetTransaction t) ps}
 
 -- | Ensure a transaction's postings do not refer back to it, so that eg
 -- recursiveSize and GHCI's :sprint work right.
 txnUntieKnot :: Transaction -> Transaction
 txnUntieKnot t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{ptransaction=Nothing}) ps}
 
--- | Untie all transaction-posting knots in this journal, so that eg
--- recursiveSize and GHCI's :sprint can work on it.
-journalUntieKnots :: Transaction -> Transaction
-journalUntieKnots t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{ptransaction=Nothing}) ps}
-
 -- | Set a posting's parent transaction.
-settxn :: Transaction -> Posting -> Posting
-settxn t p = p{ptransaction=Just t}
+postingSetTransaction :: Transaction -> Posting -> Posting
+postingSetTransaction t p = p{ptransaction=Just t}
 
 tests_Hledger_Data_Transaction = TestList $ concat [
   tests_postingAsLines,

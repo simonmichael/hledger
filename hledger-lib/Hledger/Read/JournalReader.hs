@@ -220,7 +220,7 @@ newJournalWithParseStateFrom j = mempty{
   ,jparsedefaultcommodity = jparsedefaultcommodity j
   ,jparseparentaccounts   = jparseparentaccounts j
   ,jparsealiases          = jparsealiases j
-  ,jparsetransactioncount = jparsetransactioncount j
+  -- ,jparsetransactioncount = jparsetransactioncount j
   ,jparsetimeclockentries = jparsetimeclockentries j
   }
 
@@ -439,8 +439,7 @@ transactionp = do
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = commentTags comment
   postings <- postingsp (Just date)
-  n <- incrementTransactionCount
-  return $ txnTieKnot $ Transaction n sourcepos date edate status code description comment tags postings ""
+  return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
 
 #ifdef TESTS
 test_transactionp = do

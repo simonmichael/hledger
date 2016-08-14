@@ -129,17 +129,17 @@ getAccountAliases = fmap jparsealiases get
 clearAccountAliases :: MonadState Journal m => m ()
 clearAccountAliases = modify' (\(j@Journal{..}) -> j{jparsealiases=[]})
 
-getTransactionCount :: MonadState Journal m =>  m Integer
-getTransactionCount = fmap jparsetransactioncount get
-
-setTransactionCount :: MonadState Journal m => Integer -> m ()
-setTransactionCount i = modify' (\j -> j{jparsetransactioncount=i})
-
--- | Increment the transaction index by one and return the new value.
-incrementTransactionCount :: MonadState Journal m => m Integer
-incrementTransactionCount = do
-  modify' (\j -> j{jparsetransactioncount=jparsetransactioncount j + 1})
-  getTransactionCount
+-- getTransactionCount :: MonadState Journal m =>  m Integer
+-- getTransactionCount = fmap jparsetransactioncount get
+--
+-- setTransactionCount :: MonadState Journal m => Integer -> m ()
+-- setTransactionCount i = modify' (\j -> j{jparsetransactioncount=i})
+--
+-- -- | Increment the transaction index by one and return the new value.
+-- incrementTransactionCount :: MonadState Journal m => m Integer
+-- incrementTransactionCount = do
+--   modify' (\j -> j{jparsetransactioncount=jparsetransactioncount j + 1})
+--   getTransactionCount
 
 journalAddFile :: (FilePath,Text) -> Journal -> Journal
 journalAddFile f j@Journal{jfiles=fs} = j{jfiles=fs++[f]}

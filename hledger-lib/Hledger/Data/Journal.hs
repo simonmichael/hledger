@@ -54,6 +54,8 @@ module Hledger.Data.Journal (
   matchpats,
   nulljournal,
   journalCheckBalanceAssertions,
+  journalNumberAndTieTransactions,
+  journalUntieTransactions,
   -- * Tests
   samplejournal,
   tests_Hledger_Data_Journal,
@@ -147,7 +149,7 @@ instance Monoid Journal where
     ,jparsedefaultcommodity     = jparsedefaultcommodity     j2
     ,jparseparentaccounts       = jparseparentaccounts       j2
     ,jparsealiases              = jparsealiases              j2
-    ,jparsetransactioncount     = jparsetransactioncount     j1 +  jparsetransactioncount     j2
+    -- ,jparsetransactioncount     = jparsetransactioncount     j1 +  jparsetransactioncount     j2
     ,jparsetimeclockentries = jparsetimeclockentries j1 <> jparsetimeclockentries j2
     ,jaccounts                  = jaccounts                  j1 <> jaccounts                  j2
     ,jcommodities               = jcommodities               j1 <> jcommodities               j2
@@ -167,7 +169,7 @@ nulljournal = Journal {
   ,jparsedefaultcommodity     = Nothing
   ,jparseparentaccounts       = []
   ,jparsealiases              = []
-  ,jparsetransactioncount     = 0
+  -- ,jparsetransactioncount     = 0
   ,jparsetimeclockentries = []
   ,jaccounts                  = []
   ,jcommodities               = M.fromList []
@@ -461,7 +463,8 @@ journalApplyAliases aliases j@Journal{jtxns=ts} =
 -- check balance assertions.
 journalFinalise :: ClockTime -> FilePath -> Text -> Bool -> ParsedJournal -> Either String Journal
 journalFinalise t path txt assrt j@Journal{jfiles=fs} = do
-  (journalBalanceTransactions $
+  (journalNumberAndTieTransactions <$>
+    (journalBalanceTransactions $
     journalApplyCommodityStyles $
     j{ jfiles        = (path,txt) : reverse fs
      , jlastreadtime = t
@@ -469,8 +472,24 @@ journalFinalise t path txt assrt j@Journal{jfiles=fs} = do
      , jmodifiertxns = reverse $ jmodifiertxns j -- NOTE: see addModifierTransaction
      , jperiodictxns = reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
      , jmarketprices = reverse $ jmarketprices j -- NOTE: see addMarketPrice
-     })
+     }))
   >>= if assrt then journalCheckBalanceAssertions else return
+
+journalNumberAndTieTransactions = journalTieTransactions . journalNumberTransactions
+
+-- | Number (set the tindex field) this journal's transactions, counting upward from 1.
+journalNumberTransactions :: Journal -> Journal
+journalNumberTransactions j@Journal{jtxns=ts} = j{jtxns=map (\(i,t) -> t{tindex=i}) $ zip [1..] ts}
+
+-- | Tie the knot in all of this journal's transactions, ensuring their postings
+-- refer to them. This should be done last, after any other transaction-modifying operations.
+journalTieTransactions :: Journal -> Journal
+journalTieTransactions j@Journal{jtxns=ts} = j{jtxns=map txnTieKnot ts}
+
+-- | Untie all transaction-posting knots in this journal, so that eg
+-- recursiveSize and GHCI's :sprint can work on it.
+journalUntieTransactions :: Transaction -> Transaction
+journalUntieTransactions t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{ptransaction=Nothing}) ps}
 
 -- | Check any balance assertions in the journal and return an error
 -- message if any of them fail.
@@ -556,11 +575,11 @@ splitAssertions ps
 
 -- | Fill in any missing amounts and check that all journal transactions
 -- balance, or return an error message. This is done after parsing all
--- amounts and working out the canonical commodities, since balancing
+-- amounts and applying canonical commodity styles, since balancing
 -- depends on display precision. Reports only the first error encountered.
 journalBalanceTransactions :: Journal -> Either String Journal
 journalBalanceTransactions j@Journal{jtxns=ts, jinferredcommodities=ss} =
-  case sequence $ map balance ts of Right ts' -> Right j{jtxns=map txnTieKnot ts'}
+  case sequence $ map balance ts of Right ts' -> Right j{jtxns=ts'}
                                     Left e    -> Left e
       where balance = balanceTransaction (Just ss)
 

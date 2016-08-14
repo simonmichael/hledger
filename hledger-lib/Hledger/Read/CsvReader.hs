@@ -79,7 +79,8 @@ parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
 parse rulesfile _ f t = do
   r <- liftIO $ readJournalFromCsv rulesfile f t
   case r of Left e -> throwError e
-            Right j -> return j
+            Right j -> return $ journalNumberAndTieTransactions j
+-- XXX does not use parseAndFinaliseJournal like the other readers
 
 -- | Read a Journal from the given CSV data (and filename, used for error
 -- messages), or return an error. Proceed as follows:
