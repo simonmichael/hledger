@@ -1,8 +1,0 @@
-date-field 0
-description-field 1
-amount-field 2
-currency $
-base-account assets:bank:checking
-
-SAVINGS
-assets:bank:savings
