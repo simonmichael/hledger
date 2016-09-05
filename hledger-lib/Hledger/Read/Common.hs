@@ -92,16 +92,16 @@ parseAndFinaliseJournal' parser assrt f txt = do
                         Left e  -> throwError e
     Left e   -> throwError $ parseErrorPretty e
 
-setYear :: Monad m => Year -> JournalStateParser m ()
+setYear :: Year -> JournalStateParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
 
-getYear :: Monad m => JournalStateParser m (Maybe Year)
+getYear :: JournalStateParser m (Maybe Year)
 getYear = fmap jparsedefaultyear get
 
 setDefaultCommodityAndStyle :: (CommoditySymbol,AmountStyle) -> ErroringJournalParser ()
 setDefaultCommodityAndStyle cs = modify' (\j -> j{jparsedefaultcommodity=Just cs})
 
-getDefaultCommodityAndStyle :: Monad m => JournalStateParser m (Maybe (CommoditySymbol,AmountStyle))
+getDefaultCommodityAndStyle :: JournalStateParser m (Maybe (CommoditySymbol,AmountStyle))
 getDefaultCommodityAndStyle = jparsedefaultcommodity `fmap` get
 
 pushAccount :: AccountName -> ErroringJournalParser ()
@@ -182,7 +182,7 @@ descriptionp = many (noneOf (";\n" :: [Char]))
 -- Hyphen (-) and period (.) are also allowed as separators.
 -- The year may be omitted if a default year has been set.
 -- Leading zeroes may be omitted.
-datep :: Monad m => JournalStateParser m Day
+datep :: JournalStateParser m Day
 datep = do
   -- hacky: try to ensure precise errors for invalid dates
   -- XXX reported error position is not too good
