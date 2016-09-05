@@ -161,8 +161,11 @@ accountTransactionsReport opts j reportq thisacctq = (label, items)
                           (-- ltrace "priormatcher" $
                            And [thisacctq, realq, statusq, tostartdatequery]))
                          $ transactionsPostings ts
-        tostartdatequery = Date (DateSpan Nothing startdate)
-        startdate = queryStartDate (date2_ opts) q
+        tostartdatequery =
+          case mstartdate of
+            Just _  -> Date (DateSpan Nothing mstartdate)
+            Nothing -> None  -- no start date specified, don't add up any prior postings
+        mstartdate = queryStartDate (date2_ opts) q
 
     items = reverse $ -- see also registerChartHtml
             accountTransactionsReportItems q thisacctq startbal negate ts
