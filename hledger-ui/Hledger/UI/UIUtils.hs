@@ -52,7 +52,7 @@ helpDialog =
                   ,str "  move selection"
                   ,renderKey ("RIGHT/l", "more detail")
                   ,renderKey ("LEFT/h", "previous screen")
-                  ,renderKey ("ESC", "cancel / reset")
+                  ,renderKey ("ESC", "cancel / reset to top")
                   ,str " "
                   ,str "MISC"
                   ,renderKey ("?", "toggle help")
