@@ -41,7 +41,7 @@ helpDialog =
   Widget Fixed Fixed $ do
     c <- getContext
     render $
-      renderDialog (dialog (Just "Help (?/LEFT/ESC to close)") Nothing (c^.availWidthL - 2)) $ -- (Just (0,[("ok",())]))
+      renderDialog (dialog (Just "Help (?/LEFT/ESC to close)") Nothing (c^.availWidthL)) $ -- (Just (0,[("ok",())]))
       padTopBottom 1 $ padLeftRight 1 $
         vBox [
            hBox [
