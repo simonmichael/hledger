@@ -40,23 +40,9 @@ ppShow = show
 pprint :: Show a => a -> IO ()
 pprint = putStrLn . ppShow
 
-
--- | Trace (print on stdout at runtime) a showable value.
--- (for easily tracing in the middle of a complex expression)
-strace :: Show a => a -> a
-strace a = trace (show a) a
-
--- | Labelled trace - like strace, with a label prepended.
-ltrace :: Show a => String -> a -> a
-ltrace l a = trace (l ++ ": " ++ show a) a
-
--- | Monadic trace - like strace, but works as a standalone line in a monad.
-mtrace :: (Monad m, Show a) => a -> m a
-mtrace a = strace a `seq` return a
-
--- | Custom trace - like strace, with a custom show function.
+-- | Trace (print to stderr) a showable value using a custom show function.
 traceWith :: (a -> String) -> a -> a
-traceWith f e = trace (f e) e
+traceWith f a = trace (f a) a
 
 -- | Parsec trace - show the current parsec position and next input,
 -- and the provided label if it's non-null.
@@ -164,11 +150,9 @@ dbg9IO = tracePrettyAtIO 9
 tracePrettyAt :: Show a => Int -> String -> a -> a
 tracePrettyAt lvl = dbgppshow lvl
 
-tracePrettyAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
-tracePrettyAtIO lvl lbl x = liftIO $ tracePrettyAt lvl lbl x `seq` return ()
-
--- XXX
--- Could not deduce (a ~ ())
+-- tracePrettyAtM :: (Monad m, Show a) => Int -> String -> a -> m a
+-- tracePrettyAtM lvl lbl x = tracePrettyAt lvl lbl x `seq` return x
+-- XXX Could not deduce (a ~ ())
 -- from the context (Show a)
 --   bound by the type signature for
 --              dbgM :: Show a => String -> a -> IO ()
@@ -178,25 +162,25 @@ tracePrettyAtIO lvl lbl x = liftIO $ tracePrettyAt lvl lbl x `seq` return ()
 --       at hledger/Hledger/Cli/Main.hs:200:13
 -- Expected type: String -> a -> IO ()
 --   Actual type: String -> a -> IO a
---
--- tracePrettyAtM :: (Monad m, Show a) => Int -> String -> a -> m a
--- tracePrettyAtM lvl lbl x = tracePrettyAt lvl lbl x `seq` return x
+
+tracePrettyAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
+tracePrettyAtIO lvl lbl x = liftIO $ tracePrettyAt lvl lbl x `seq` return ()
 
 -- | print this string to the console before evaluating the expression,
 -- if the global debug level is at or above the specified level.  Uses unsafePerformIO.
-dbgtrace :: Int -> String -> a -> a
-dbgtrace level
-    | debugLevel >= level = trace
-    | otherwise           = flip const
+-- dbgtrace :: Int -> String -> a -> a
+-- dbgtrace level
+--     | debugLevel >= level = trace
+--     | otherwise           = flip const
 
 -- | Print a showable value to the console, with a message, if the
 -- debug level is at or above the specified level (uses
 -- unsafePerformIO).
 -- Values are displayed with show, all on one line, which is hard to read.
-dbgshow :: Show a => Int -> String -> a -> a
-dbgshow level
-    | debugLevel >= level = ltrace
-    | otherwise           = flip const
+-- dbgshow :: Show a => Int -> String -> a -> a
+-- dbgshow level
+--     | debugLevel >= level = ltrace
+--     | otherwise           = flip const
 
 -- | Print a showable value to the console, with a message, if the
 -- debug level is at or above the specified level (uses
@@ -226,7 +210,6 @@ dbgppshow level
 --                               return a
 --     | otherwise           = a
 
-
 -- | Like dbg, then exit the program. Uses unsafePerformIO.
 dbgExit :: Show a => String -> a -> a
 dbgExit msg = const (unsafePerformIO exitFailure) . dbg msg
@@ -238,4 +221,11 @@ dbgExit msg = const (unsafePerformIO exitFailure) . dbg msg
 pdbg :: Int -> String -> TextParser m ()
 pdbg level msg = when (level <= debugLevel) $ ptrace msg
 
-
+-- | Like dbg, but writes the output to "debug.log" in the current directory.
+-- Uses unsafePerformIO. Can fail due to log file contention if called too quickly
+-- ("*** Exception: debug.log: openFile: resource busy (file is locked)").
+dbglog :: Show a => String -> a -> a
+dbglog label a =
+  (unsafePerformIO $
+    appendFile "debug.log" $ label ++ ": " ++ ppShow a ++ "\n")
+  `seq` a

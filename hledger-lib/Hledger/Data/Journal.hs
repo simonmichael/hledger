@@ -530,7 +530,7 @@ checkBalanceAssertion (errs,startbal) ps
     finalfullbal = sum $ [startbal] ++ map pamount (dbg2 "ps" ps)
     finalsinglebal = filterMixedAmount (\a -> acommodity a == assertedcomm) finalfullbal
     actualbal = finalsinglebal -- just check the single-commodity balance, like Ledger; maybe add ==FULLBAL later
-    iswrong = dbgtrace 2 debugmsg $
+    iswrong = dbg2 debugmsg $
       not (isReallyZeroMixedAmount (actualbal - assertedbal))
       -- bal' /= assertedbal  -- MixedAmount's Eq instance currently gets confused by different precisions
       where
