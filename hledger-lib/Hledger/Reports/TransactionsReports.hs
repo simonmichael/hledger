@@ -39,7 +39,7 @@ import Data.Time.Calendar
 import Hledger.Data
 import Hledger.Query
 import Hledger.Reports.ReportOptions
---import Hledger.Utils.Debug
+import Hledger.Utils.Debug
 
 
 -- | A transactions report includes a list of transactions
@@ -111,11 +111,14 @@ journalTransactionsReport opts j q = (totallabel, items)
 -- - the total increase/decrease to the current account
 --
 -- - the report transactions' running total after this transaction;
---   or if historical balance is requested, the historical running total,
---   including transactions (filtered by the report query) from before
---   the report start date
+--   or if historical balance is requested (-H), the historical running total.
+--   The historical running total includes transactions from before the
+--   report start date if one is specified, filtered by the report query.
+--   The historical running total may or may not be the account's historical
+--   running balance, depending on the report query.
 --
--- Items are sorted by transaction context date, most recent first.
+-- Items are sorted by transaction register date (the earliest date the transaction
+-- posts to the current account), most recent first.
 -- Reporting intervals are currently ignored.
 --
 type AccountTransactionsReport =
@@ -137,38 +140,39 @@ accountTransactionsReport :: ReportOpts -> Journal -> Query -> Query -> AccountT
 accountTransactionsReport opts j reportq thisacctq = (label, items)
   where
     -- a depth limit does not affect the account transactions report
-    q  = -- filterQuery (not . queryIsDepth) -- seems unnecessary for some reason XXX
-         reportq
+    -- seems unnecessary for some reason XXX
+    reportq' = -- filterQuery (not . queryIsDepth)
+               reportq
     -- get all transactions, with amounts converted to cost basis if -B
     ts1 = jtxns $ journalSelectingAmountFromOpts opts j
-    -- apply any cur:SYM filters in q
-    symq  = filterQuery queryIsSym q
+    -- apply any cur:SYM filters in reportq'
+    symq  = filterQuery queryIsSym reportq'
     ts2 = (if queryIsNull symq then id else map (filterTransactionAmounts symq)) ts1
     -- keep just the transactions affecting this account (via possibly realness or status-filtered postings)
-    realq = filterQuery queryIsReal q
-    statusq = filterQuery queryIsStatus q
+    realq = filterQuery queryIsReal reportq'
+    statusq = filterQuery queryIsStatus reportq'
     ts3 = filter (matchesTransaction thisacctq . filterTransactionPostings (And [realq, statusq])) ts2
-    -- better sort by the transaction's register date, for accurate starting balance
-    ts = sortBy (comparing (transactionRegisterDate reportq thisacctq)) ts3
+    -- sort by the transaction's register date, for accurate starting balance
+    ts = sortBy (comparing (transactionRegisterDate reportq' thisacctq)) ts3
 
     (startbal,label)
-      -- queryIsNull q                            = (nullmixedamt,        balancelabel)
       | balancetype_ opts == HistoricalBalance = (sumPostings priorps, balancelabel)
       | otherwise                              = (nullmixedamt,        totallabel)
       where
-        priorps = -- ltrace "priorps" $
+        priorps = dbg1 "priorps" $
                   filter (matchesPosting
-                          (-- ltrace "priormatcher" $
-                           And [thisacctq, realq, statusq, tostartdatequery]))
+                          (dbg1 "priorq" $
+                           And [thisacctq, tostartdateq, datelessreportq]))
                          $ transactionsPostings ts
-        tostartdatequery =
+        tostartdateq =
           case mstartdate of
             Just _  -> Date (DateSpan Nothing mstartdate)
-            Nothing -> None  -- no start date specified, don't add up any prior postings
-        mstartdate = queryStartDate (date2_ opts) q
+            Nothing -> None  -- no start date specified, there are no prior postings
+        mstartdate = queryStartDate (date2_ opts) reportq'
+        datelessreportq = filterQuery (not . queryIsDateOrDate2) reportq'
 
     items = reverse $ -- see also registerChartHtml
-            accountTransactionsReportItems q thisacctq startbal negate ts
+            accountTransactionsReportItems reportq' thisacctq startbal negate ts
 
 totallabel = "Period Total"
 balancelabel = "Historical Total"
