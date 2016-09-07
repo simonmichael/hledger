@@ -5,8 +5,9 @@
   --package megaparsec
   --package text
 -}
--- To compile this script:  cd hledger; stack ghc extra/hledger-rewrite.hs
--- To run it "interpreted": cd hledger; extra/hledger-rewrite.hs ARGS
+-- To run or compile this script, it's easiest to be in the hledger source tree. Then:
+-- To run it directly: extra/hledger-rewrite.hs ARGS
+-- To compile it: stack build hledger --only-dependencies && stack ghc extra/hledger-rewrite.hs
 
 {-|
 hledger-rewrite [PATTERNS] --add-posting "ACCT  AMTEXPR" ...
