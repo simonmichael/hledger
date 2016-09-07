@@ -17,19 +17,20 @@ See the command-line help for more details.
 Currently does not work when invoked via hledger, run hledger-rewrite[.hs] directly.
 
 Needs to work on unbalanced entries, eg while editing one.
-
+/
 Tested-with: hledger HEAD ~ 2016/3/2
 
 |-}
 
+import qualified Data.Text as T
 -- hledger lib, cli and cmdargs utils
 import Hledger.Cli
 -- more utils for parsing
 -- #if !MIN_VERSION_base(4,8,0)
 -- import Control.Applicative.Compat ((<*))
 -- #endif
-import Text.Parsec
-
+import Text.Megaparsec
+import Text.Megaparsec.Text
 
 cmdmode :: Mode RawOpts
 cmdmode = (defCommandMode ["hledger-rewrite"]) {
@@ -51,11 +52,11 @@ type PostingExpr = (AccountName, AmountExpr)
 data AmountExpr = AmountLiteral String | AmountMultiplier Quantity deriving (Show)
 
 addPostingExprsFromOpts :: RawOpts -> [PostingExpr]
-addPostingExprsFromOpts = map (either parseerror id . runParser (postingexprp <* eof) nulljps "") . map stripquotes . listofstringopt "add-posting"
+addPostingExprsFromOpts = map (either parseerror id . runParser (postingexprp <* eof) "") . map (stripquotes . T.pack) . listofstringopt "add-posting"
 
 postingexprp = do
   a <- accountnamep
-  spacenonewline >> many1 spacenonewline
+  spacenonewline >> some spacenonewline
   aex <- amountexprp
   many spacenonewline
   return (a,aex)
@@ -98,4 +99,3 @@ main = do
     let j' = j{jtxns=map (\t -> if q `matchesTransaction` t then rewriteTransaction t addps else t) ts}
     -- run the print command, showing all transactions
     print' opts{reportopts_=ropts{query_=""}} j'
-
