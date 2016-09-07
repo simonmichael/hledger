@@ -1,5 +1,13 @@
-#!/usr/bin/env runhaskell
--- {-# LANGUAGE CPP #-}
+#!/usr/bin/env stack
+{- stack runghc --verbosity info
+  --package hledger-lib
+  --package hledger
+  --package megaparsec
+  --package text
+-}
+-- To compile this script:  cd hledger; stack ghc extra/hledger-rewrite.hs
+-- To run it "interpreted": cd hledger; extra/hledger-rewrite.hs ARGS
+
 {-|
 hledger-rewrite [PATTERNS] --add-posting "ACCT  AMTEXPR" ...
 
