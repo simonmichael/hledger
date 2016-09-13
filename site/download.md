@@ -15,52 +15,17 @@
 <style>
 tr { vertical-align:top; }
 td { padding-bottom:.5em; padding-right:1em; }
-a { white-space:nowrap; }
+td:first-of-type, a { white-space:nowrap; }
 </style>
 
-<table>
-
-<tr><td>
-**on Windows**
-</td><td>
-Download and run [hledger-0.26-win64.exe](http://hledger.org/downloads/hledger-0.26-win64.exe)
-<!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.exe)) -->
-&
-[hledger-web-0.26-win64.exe](http://hledger.org/downloads/hledger-web-0.26-win64.exe)
-(old), or the [latest development builds](developer-guide.html). hledger-ui does not run on Windows.
-</td></tr>
-
-<tr><td>
-**on Mac**
-</td><td>
-`brew install hledger`
-</td></tr>
-
-<tr><td style="white-space:nowrap;">
-**on Debian or Ubuntu**
-</td><td>
-`sudo apt install hledger hledger-web`
-</td></tr>
-
-<tr><td>
-**on Fedora or RHEL**
-</td><td>
-`sudo dnf install hledger`
-</td></tr>
-
-<tr><td>
-**on Gentoo**
-</td><td>
-`sudo (layman -a haskell && emerge hledger hledger-web)`
-</td></tr>
-
-<tr><td>
-**on NixOS**
-</td><td>
-`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-web`
-</td></tr>
-
-</table>
+|
+|-------------------------|------------------------------------------------------------------------------------------------
+| **on Windows**          | Download and run [hledger-0.26-win64.exe](http://hledger.org/downloads/hledger-0.26-win64.exe) <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.exe)) --> & [hledger-web-0.26-win64.exe](http://hledger.org/downloads/hledger-web-0.26-win64.exe) (old), or the [latest development builds](developer-guide.html). hledger-ui does not run on Windows.
+| **on Mac**              | `brew install hledger`
+| **on Debian or Ubuntu** | `sudo apt install hledger hledger-web`
+| **on Fedora or RHEL**   | `sudo dnf install hledger`
+| **on Gentoo**           | `sudo (layman -a haskell && emerge hledger hledger-web)`
+| **on NixOS**            | `nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-web`
 
 <!--
 **on another GNU/Linux\<small>(or can run Linux binaries)</small>**
