@@ -23,11 +23,11 @@ a { white-space:nowrap; }
 <tr><td>
 **on Windows**
 </td><td>
-[hledger-0.26-win64.exe](http://hledger.org/downloads/hledger-0.26-win64.exe)
+Download and run [hledger-0.26-win64.exe](http://hledger.org/downloads/hledger-0.26-win64.exe)
 <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.exe)) -->
-and/or
+&
 [hledger-web-0.26-win64.exe](http://hledger.org/downloads/hledger-web-0.26-win64.exe)
-<em>(not the latest release. You can get the latest development builds from Appveyor CI [here](developer-guide.html). Note hledger-ui is not supported on Windows.)</em>
+(old), or the [latest development builds](developer-guide.html). hledger-ui does not run on Windows.
 </td></tr>
 
 <tr><td>
@@ -39,7 +39,7 @@ and/or
 <tr><td style="white-space:nowrap;">
 **on Debian or Ubuntu**
 </td><td>
-`sudo apt-get install hledger hledger-web`
+`sudo apt install hledger hledger-web`
 </td></tr>
 
 <tr><td>
@@ -83,18 +83,19 @@ This is a quick way to help the project and your fellow users!
 ## I want to build the latest released version
 
 The latest release may be newer than your OS's packaged version. 
-(Here are the latest [release notes](release-notes.html).)
+Here are the latest [release notes](release-notes.html).
 
-1. Install [`stack`](http://haskellstack.org).
-   On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275).
+1. Install [`stack`](http://haskellstack.org) to make building easier.
+   On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-2. `stack setup` to ensure you have the required version of [GHC](https://www.haskell.org/ghc).
+2. `stack setup`\
+   to ensure you have a suitable version of [GHC](https://www.haskell.org/ghc).
 
 3. `stack install hledger [hledger-ui] [hledger-web]`\
    hledger-ui and hledger-web take longer to build. hledger-ui is not buildable on Windows.
 
 4. If stack warns that `~/.local/bin` or the Windows equivalent is not in your `$PATH`,
-   configure that, so that the command `hledger` will work.
+   configure that, so that commands like `hledger` will work.
    Eg if you're a bash user:\
    `echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
 
@@ -102,11 +103,11 @@ Or use [`cabal`](https://www.haskell.org/cabal/) if you prefer and know how.
 It's harder to use and to support, so these docs focus on stack.
 
 **Note:** Haskell builds can fail due to missing C libraries or headers, which stack/cabal can not install.
-If you have this problem, here are some C libs you might need (updates welcome):
+If you have this problem, here are some C libs you might need (please send updates):
 
 |
 |-------------------------|-----------------------------------
-| **on Debian or Ubuntu** | 
+| **on Debian or Ubuntu** | `sudo apt install ...` 
 | **on Fedora or RHEL**   | `sudo dnf install ncurses-devel`
 
 
