@@ -39,19 +39,19 @@ and/or
 <tr><td style="white-space:nowrap;">
 **on Debian or Ubuntu**
 </td><td>
-`apt-get install hledger hledger-web`
+`sudo apt-get install hledger hledger-web`
+</td></tr>
+
+<tr><td>
+**on Fedora or RHEL**
+</td><td>
+`sudo dnf install hledger`
 </td></tr>
 
 <tr><td>
 **on Gentoo**
 </td><td>
-`layman -a haskell && emerge hledger hledger-web`
-</td></tr>
-
-<tr><td>
-**on Fedora**
-</td><td>
-`yum install hledger`
+`sudo (layman -a haskell && emerge hledger hledger-web)`
 </td></tr>
 
 <tr><td>
@@ -82,22 +82,49 @@ This is a quick way to help the project and your fellow users!
 
 ## I want to build the latest released version
 
-<!-- **with stack** (recommended; or, you can use cabal) -->
+The latest release may be newer than your OS's packaged version. 
+(Here are the latest [release notes](release-notes.html).)
 
-1. Install [`stack`](http://haskellstack.org)
-    (On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275).)
-    <!-- needed if you will be processing >50,000 transactions at once -->
-2. `stack setup`
-    (if you need GHC installed. If you're not sure, run the next command and it will tell you.)
-3. `stack install hledger [hledger-ui] [hledger-web]`
-   (hledger-ui is not supported on Windows)
-4. Ensure `~/.local/bin` or the Windows equivalent is in your `$PATH`,
-   so that you can just type `hledger` to run it.
-   (stack will show the proper directory and will tell you if it is not in $PATH).
+1. Install [`stack`](http://haskellstack.org).
+   On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275).
+
+2. `stack setup` to ensure you have the required version of [GHC](https://www.haskell.org/ghc).
+
+3. `stack install hledger [hledger-ui] [hledger-web]`\
+   hledger-ui and hledger-web take longer to build. hledger-ui is not buildable on Windows.
+
+4. If stack warns that `~/.local/bin` or the Windows equivalent is not in your `$PATH`,
+   configure that, so that the command `hledger` will work.
+   Eg if you're a bash user:\
+   `echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
+
+Or use [`cabal`](https://www.haskell.org/cabal/) if you prefer and know how. 
+It's harder to use and to support, so these docs focus on stack.
+
+**Note:** Haskell builds can fail due to missing C libraries or headers, which stack/cabal can not install.
+If you have this problem, here are some C libs you might need (updates welcome):
+
+|
+|-------------------------|-----------------------------------
+| **on Debian or Ubuntu** | 
+| **on Fedora or RHEL**   | `sudo dnf install ncurses-devel`
+
+
+<a name="unreleased"></a>
+
+## I want to build the [latest development version](https://github.com/simonmichael/hledger/commits/master)
+
+This includes the latest features and is normally stable enough for daily use; recommended.
+<!-- See also the [Developer Guide](http://hledger.org/developer-guide.html). -->
+
+1. `git clone http://code.hledger.org hledger`
+2. `cd hledger`
+3. `stack install [hledger] [hledger-ui] [hledger-web] [hledger-api]`
+
+cabal users, try `./cabal-install.sh` instead.
 
 <!--
-**with cabal** (results will vary, recommended only if you can't install stack):
-
+Detailed cabal instructions:
 1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html) if needed.
 2. Ensure `~/.cabal/bin` or the Windows equivalent is in your `$PATH`.
 3. `cabal update`
@@ -107,21 +134,9 @@ This is a quick way to help the project and your fellow users!
 7. `cabal sandbox init`
 8. `cabal install hledger[-ui|-web]` (On Windows, hledger-ui is [not yet supported](https://github.com/coreyoconnor/vty/pull/1).)
 9. Ensure this `.../hledger-sandbox/.cabal-sandbox/bin` is in your `$PATH` (or move its contents to ~/.cabal/bin).
-
+-->
+<!--
 **in a VM**
 
 - if stack or cabal can't run on your OS, maybe this [vagrant image](https://github.com/sciurus/hledger-vagrant) can ?
 -->
-Here are the [release notes](release-notes.html).
-
-<a name="unreleased"></a>
-
-## I want to build the [latest development version](https://github.com/simonmichael/hledger/commits/master)
-
-1. `git clone http://code.hledger.org hledger`
-2. `cd hledger`
-3. `stack install [hledger] [hledger-ui] [hledger-web] [hledger-api]`
-
-This is what I use day to day. Includes the latest features, recommended.
-<!-- See also the [Developer Guide](http://hledger.org/developer-guide.html). -->
-
