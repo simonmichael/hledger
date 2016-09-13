@@ -661,10 +661,19 @@ commodity INR
 
 ### Default commodity
 
-You can set a default commodity, to be used for amounts without one.
-Use the D directive with a sample amount.
-The commodity (and the sample amount's display format) will be applied to all subsequent commodity-less amounts, up to the next D directive.
-(Note this is different from Ledger's default commodity directive.)
+The D directive sets a default commodity (and display format), to be used for amounts without a commodity symbol (ie, plain numbers).
+(Note this differs from Ledger's default commodity directive.)
+The commodity and display format will be applied to all subsequent commodity-less amounts, or until the next D directive.
+
+```journal
+# commodity-less amounts should be treated as dollars
+# (and displayed with symbol on the left, thousands separators and two decimal places)
+D $1,000.00
+
+1/1
+  a     5    # <- commodity-less amount, becomes $1
+  b
+```
 
 ### Default year
 
