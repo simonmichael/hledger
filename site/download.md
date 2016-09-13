@@ -15,17 +15,21 @@
 <style>
 tr { vertical-align:top; }
 td { padding-bottom:.5em; padding-right:1em; }
-td:first-of-type, a { white-space:nowrap; }
+td:first-of-type { 
+  /* white-space:nowrap; */
+  /* width:1%; */
+}
+a { white-space:nowrap; }
 </style>
 
 |
-|-------------------------|------------------------------------------------------------------------------------------------
-| **on Windows**          | Download and run [hledger-0.26-win64.exe](http://hledger.org/downloads/hledger-0.26-win64.exe) <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.exe)) --> & [hledger-web-0.26-win64.exe](http://hledger.org/downloads/hledger-web-0.26-win64.exe) (old), or the [latest development builds](developer-guide.html). hledger-ui does not run on Windows.
-| **on Mac**              | `brew install hledger`
-| **on Debian or Ubuntu** | `sudo apt install hledger hledger-web`
-| **on Fedora or RHEL**   | `sudo dnf install hledger`
-| **on Gentoo**           | `sudo (layman -a haskell && emerge hledger hledger-web)`
-| **on NixOS**            | `nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-web`
+|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| **Windows**        | Download and run [hledger-0.26-win64.exe](http://hledger.org/downloads/hledger-0.26-win64.exe) <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.exe)) --> & [hledger-web-0.26-win64.exe](http://hledger.org/downloads/hledger-web-0.26-win64.exe) (old), or the [latest development builds](developer-guide.html). hledger-ui does not run on Windows.
+| **Mac**            | `brew install hledger`<br>hledger-ui/hledger-web have not yet been added to homebrew.
+| **Debian, Ubuntu** | `sudo apt install hledger hledger-ui hledger-web`
+| **Fedora, RHEL**   | `sudo dnf install hledger`<br>hledger-ui/hledger-web have not yet been added to Fedora.
+| **Gentoo**         | `sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`
+| **NixOS**          | `nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`
 
 <!--
 **on another GNU/Linux\<small>(or can run Linux binaries)</small>**
@@ -67,20 +71,20 @@ Here are the latest [release notes](release-notes.html).
 Or use [`cabal`](https://www.haskell.org/cabal/) if you prefer and know how. 
 It's harder to use and to support, so these docs focus on stack.
 
-**Note:** Haskell builds can fail due to missing C libraries or headers, which stack/cabal can not install.
+Haskell builds can fail due to missing C libraries or headers, which stack/cabal can not install.
 If you have this problem, here are some C libs you might need (please send updates):
 
 |
-|-------------------------|-----------------------------------
-| **on Debian or Ubuntu** | `sudo apt install ...` 
-| **on Fedora or RHEL**   | `sudo dnf install ncurses-devel`
+|--------------------|-----------------------------------
+| **Debian, Ubuntu** | `sudo apt install ... ?` 
+| **Fedora, RHEL**   | `sudo dnf install ncurses-devel`
 
 
 <a name="unreleased"></a>
 
 ## I want to build the [latest development version](https://github.com/simonmichael/hledger/commits/master)
 
-This includes the latest features and is normally stable enough for daily use; recommended.
+This includes the latest features and is normally stable enough for daily use (it's what I use).
 <!-- See also the [Developer Guide](http://hledger.org/developer-guide.html). -->
 
 1. `git clone http://code.hledger.org hledger`
