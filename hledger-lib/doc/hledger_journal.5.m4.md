@@ -102,7 +102,7 @@ Some examples: `2010/01/31`, `1/31`, `2010-01-31`, `2010.1.31`.
 Real-life transactions sometimes involve more than one date - eg the date
 you write a cheque, and the date it clears in your bank.  When you want to
 model this, eg for more accurate balances, you can specify individual
-[#posting-dates](posting dates), which I recommend. Or, you can use the
+[posting dates](#posting-dates), which I recommend. Or, you can use the
 secondary dates (aka auxiliary/effective dates) feature, supported for compatibility
 with Ledger.
 
