@@ -9,7 +9,7 @@
 # Download
 <a name="packaged"></a>
 
-## I want to download a packaged version
+## A. I want to download a packaged version
 <!-- <sub>(If the download is out of date or doesn't run on my system, I might troubleshoot or donate to fund improvements)</sub> -->
 
 <style>
@@ -49,7 +49,7 @@ This is a quick way to help the project and your fellow users!
 
 <a name="released"></a>
 
-## I want to build the latest released version
+## B. I want to build the latest released version
 
 The latest release may be newer than your OS's packaged version. 
 Here are the latest [release notes](release-notes.html).
@@ -82,14 +82,15 @@ If you have this problem, here are some C libs you might need (please send updat
 
 <a name="unreleased"></a>
 
-## I want to build the [latest development version](https://github.com/simonmichael/hledger/commits/master)
+## C. I want to build the [latest development version](https://github.com/simonmichael/hledger/commits/master)
 
 This includes the latest features and is normally stable enough for daily use (it's what I use).
 <!-- See also the [Developer Guide](http://hledger.org/developer-guide.html). -->
 
-1. `git clone http://code.hledger.org hledger`
-2. `cd hledger`
-3. `stack install [hledger] [hledger-ui] [hledger-web] [hledger-api]`
+1. Install stack and GHC (steps 1 and 2 above) and [git](https://en.wikipedia.org/wiki/Git)
+2. `git clone http://code.hledger.org hledger`
+3. `cd hledger`
+4. `stack install [hledger] [hledger-ui] [hledger-web] [hledger-api]`
 
 cabal users, try `./cabal-install.sh` instead.
 
