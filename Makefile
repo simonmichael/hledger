@@ -140,7 +140,6 @@ DOCFILES:= \
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
 	$(HPACKFILES) \
-	site/manual-start.md \
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs

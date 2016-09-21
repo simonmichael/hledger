@@ -546,7 +546,7 @@ tools/generatejournal 3 5 5 --chinese >data/chinese.journal
 tools/generatejournal 3 5 5 --mixed >data/mixed.journal
 ```
 
-### Run developer tests
+### Run tests
 
 This command will install haskell dependencies (you might need to
 install additional system dependencies yourself) and run the package
