@@ -1,5 +1,5 @@
 # this or a newer snapshot is suggested (hledger-api/servant/aeson requires > lts-5)
-resolver: lts-6.10
+resolver: lts-6.18
 
 packages:
 - hledger-lib

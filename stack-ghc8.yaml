@@ -1,7 +1,6 @@
-# stack config for building with GHC 8, tested 2016/7/22
 # $ stack --stack-yaml stack-ghc8.yaml install
 
-resolver: nightly-2016-08-01
+resolver: lts-7.0
 
 packages:
 - hledger-lib
@@ -16,8 +15,8 @@ extra-deps:
 # hledger-ui
 - brick-0.8
 - text-zipper-0.4
+- vty-5.7.1
 # hledger-web
-- json-0.9.1
 - wai-handler-launch-3.0.2.1
 
 # cf https://github.com/commercialhaskell/stack/wiki/stack.yaml
