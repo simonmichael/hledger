@@ -1,6 +1,5 @@
 .*
 _*
-[0-9]*
 bin/*
 cabal-dev*
 cabal.sandbox.config
