@@ -22,6 +22,7 @@ import           Data.Swagger
 import           Data.Text hiding (map,reverse)
 import           Network.Wai as Wai
 import           Network.Wai.Handler.Warp as Warp
+import           Network.Wai.Middleware.RequestLogger
 import           Safe
 import           Servant
 import           Servant.Swagger
@@ -96,7 +97,9 @@ serveApi p d f j = do
   printf "Starting web api http://localhost:%d/api/v1 for %s\n" p f
   printf "and file server  http://localhost:%d        for %s/\n" p d
   printf "Press ctrl-c to quit\n"
-  Warp.run p $ hledgerApiApp d j
+  Warp.run p $
+    logStdout $
+    hledgerApiApp d j
 
 type HledgerApi =
   "api" :> "v1" :>

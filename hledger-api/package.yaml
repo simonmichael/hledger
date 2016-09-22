@@ -45,6 +45,7 @@ dependencies:
 - text
 - transformers
 - wai
+- wai-extra
 - warp
 executables:
   hledger-api:

@@ -64,5 +64,6 @@ executable hledger-api
     , text
     , transformers
     , wai
+    , wai-extra
     , warp
   default-language: Haskell2010
