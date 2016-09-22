@@ -25,7 +25,7 @@ _hledgerdescription_
 
 hledger-api is a simple web API server, intended to support
 client-side web apps operating on hledger data. It comes with a series
-of simple client-side app examples, which drive it's evolution.
+of simple client-side app examples, which drive its evolution.
 
 Like hledger, it reads _files_
 For more about this see hledger(1), hledger_journal(5) etc.
