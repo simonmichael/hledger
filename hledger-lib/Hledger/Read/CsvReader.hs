@@ -519,8 +519,8 @@ assignmentseparatorp = do
   lift $ pdbg 3 "trying assignmentseparatorp"
   choice [
     -- try (lift (many spacenonewline) >> oneOf ":="),
-    try (void $ lift (many spacenonewline) >> char ':'),
-    space
+    try (lift (many spacenonewline) >> char ':'),
+    spaceChar
     ]
   _ <- lift (many spacenonewline)
   return ()
@@ -810,6 +810,9 @@ test_parser =  [
 
   ,"convert rules parsing: trailing blank lines" ~: do
      assertParse (parseWithState' rules rulesp "skip\n\n  \n")
+
+  ,"convert rules parsing: empty field value" ~: do
+     assertParse (parseWithState' rules rulesp "account1 \nif foo\n  account2 foo\n")
 
   -- not supported
   -- ,"convert rules parsing: no final newline" ~: do
