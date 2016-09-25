@@ -9,6 +9,8 @@ A reader for CSV data, using an extra rules file to help interpret the data.
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Hledger.Read.CsvReader (
   -- * Reader
@@ -108,7 +110,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   rules_ <- liftIO $ runExceptT $ parseRulesFile rulesfile
   let rules = case rules_ of
               Right (t::CsvRules) -> t
-              Left err -> throwerr $ show err
+              Left err -> throwerr err
   dbg2IO "rules" rules
 
   -- apply skip directive
@@ -354,17 +356,19 @@ addConditionalBlock b r = r{rconditionalblocks=b:rconditionalblocks r}
 getDirective :: DirectiveName -> CsvRules -> Maybe FieldTemplate
 getDirective directivename = lookup directivename . rdirectives
 
+instance ShowErrorComponent String where
+  showErrorComponent = id
 
 parseRulesFile :: FilePath -> ExceptT String IO CsvRules
 parseRulesFile f = do
   s <- liftIO $ (readFile' f >>= expandIncludes (takeDirectory f))
   let rules = parseCsvRules f s
   case rules of
-    Left e -> ExceptT $ return $ Left $ show e
+    Left e -> ExceptT $ return $ Left $ parseErrorPretty e
     Right r -> do
                r_ <- liftIO $ runExceptT $ validateRules r
                ExceptT $ case r_ of
-                 Left e -> return $ Left $ show $ toParseError e
+                 Left e -> return $ Left $ parseErrorPretty $ toParseError e
                  Right r -> return $ Right r
   where
     toParseError :: forall s. Ord s => s -> ParseError Char s
@@ -515,8 +519,8 @@ assignmentseparatorp = do
   lift $ pdbg 3 "trying assignmentseparatorp"
   choice [
     -- try (lift (many spacenonewline) >> oneOf ":="),
-    try (void $ lift (many spacenonewline) >> char ':'),
-    space
+    try (lift (many spacenonewline) >> char ':'),
+    spaceChar
     ]
   _ <- lift (many spacenonewline)
   return ()
@@ -806,6 +810,9 @@ test_parser =  [
 
   ,"convert rules parsing: trailing blank lines" ~: do
      assertParse (parseWithState' rules rulesp "skip\n\n  \n")
+
+  ,"convert rules parsing: empty field value" ~: do
+     assertParse (parseWithState' rules rulesp "account1 \nif foo\n  account2 foo\n")
 
   -- not supported
   -- ,"convert rules parsing: no final newline" ~: do
