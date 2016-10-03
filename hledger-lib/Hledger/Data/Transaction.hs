@@ -391,7 +391,7 @@ priceInferrerFor t pt = inferprice
     pmixedamounts  = map pamount postings
     pamounts       = concatMap amounts pmixedamounts
     pcommodities   = map acommodity pamounts
-    sumamounts     = amounts $ sum pmixedamounts -- sum normalises to one amount per commodity & price
+    sumamounts     = amounts $ sumMixedAmounts pmixedamounts -- sum normalises to one amount per commodity & price
     sumcommodities = map acommodity sumamounts
     sumprices      = filter (/=NoPrice) $ map aprice sumamounts
     caninferprices = length sumcommodities == 2 && null sumprices

@@ -121,7 +121,7 @@ accountNamesFromPostings :: [Posting] -> [AccountName]
 accountNamesFromPostings = nub . map paccount
 
 sumPostings :: [Posting] -> MixedAmount
-sumPostings = sum . map pamount
+sumPostings = sumMixedAmounts . map pamount
 
 -- | Get a posting's (primary) date - it's own primary date if specified,
 -- otherwise the parent transaction's primary date, or the null date if

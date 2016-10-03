@@ -86,6 +86,7 @@ module Hledger.Data.Amount (
   isZeroMixedAmount,
   isReallyZeroMixedAmount,
   isReallyZeroMixedAmountCost,
+  sumMixedAmounts,
   -- ** rendering
   showMixedAmount,
   showMixedAmountOneLine,
@@ -102,6 +103,7 @@ module Hledger.Data.Amount (
 ) where
 
 import Data.Char (isDigit)
+import Data.Coerce (coerce)
 import Data.Decimal (roundTo)
 import Data.Function (on)
 import Data.List
@@ -358,6 +360,13 @@ missingmixedamt = Mixed [missingamt]
 -- | Convert amounts in various commodities into a normalised MixedAmount.
 mixed :: [Amount] -> MixedAmount
 mixed = normaliseMixedAmount . Mixed
+
+-- | This is a more efficient version of sum
+sumMixedAmounts :: [MixedAmount] -> MixedAmount
+sumMixedAmounts = normaliseMixedAmount . combineMixedAmounts
+  where combineMixedAmounts :: [MixedAmount] -> MixedAmount
+        combineMixedAmounts =
+          Mixed . concat . (coerce :: [MixedAmount] -> [[Amount]])
 
 -- | Simplify a mixed amount's component amounts:
 --
