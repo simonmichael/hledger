@@ -32,3 +32,4 @@ shake
 test.hs
 */doc/*.[0-9].md
 */doc/*.info
+dist-newstyle/
