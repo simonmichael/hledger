@@ -86,30 +86,39 @@ dbg :: Show a => String -> a -> a
 dbg = tracePrettyAt 0
 
 -- | Pretty-print a message and the showable value to the console when the debug level is >= 1, then return it. Uses unsafePerformIO.
+{-# INLINABLE dbg1 #-}
 dbg1 :: Show a => String -> a -> a
 dbg1 = tracePrettyAt 1
 
+{-# INLINABLE dbg2 #-}
 dbg2 :: Show a => String -> a -> a
 dbg2 = tracePrettyAt 2
 
+{-# INLINABLE dbg3 #-}
 dbg3 :: Show a => String -> a -> a
 dbg3 = tracePrettyAt 3
 
+{-# INLINABLE dbg4 #-}
 dbg4 :: Show a => String -> a -> a
 dbg4 = tracePrettyAt 4
 
+{-# INLINABLE dbg5 #-}
 dbg5 :: Show a => String -> a -> a
 dbg5 = tracePrettyAt 5
 
+{-# INLINABLE dbg6 #-}
 dbg6 :: Show a => String -> a -> a
 dbg6 = tracePrettyAt 6
 
+{-# INLINABLE dbg7 #-}
 dbg7 :: Show a => String -> a -> a
 dbg7 = tracePrettyAt 7
 
+{-# INLINABLE dbg8 #-}
 dbg8 :: Show a => String -> a -> a
 dbg8 = tracePrettyAt 8
 
+{-# INLINABLE dbg9 #-}
 dbg9 :: Show a => String -> a -> a
 dbg9 = tracePrettyAt 9
 
@@ -147,6 +156,7 @@ dbg9IO = tracePrettyAtIO 9
 
 -- | Pretty-print a message and a showable value to the console if the debug level is at or above the specified level.
 -- dbtAt 0 always prints. Otherwise, uses unsafePerformIO.
+{-# INLINABLe tracePrettyAt #-}
 tracePrettyAt :: Show a => Int -> String -> a -> a
 tracePrettyAt lvl = dbgppshow lvl
 

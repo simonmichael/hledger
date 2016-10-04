@@ -192,6 +192,7 @@ journalFilePaths = map fst . jfiles
 mainfile :: Journal -> (FilePath, Text)
 mainfile = headDef ("", "") . jfiles
 
+{-# INLINABLE addTransaction #-}
 addTransaction :: Transaction -> Journal -> Journal
 addTransaction t j = j { jtxns = t : jtxns j }
 

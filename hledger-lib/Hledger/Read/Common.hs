@@ -95,6 +95,7 @@ parseAndFinaliseJournal' parser assrt f txt = do
 setYear :: Year -> JournalStateParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
 
+{-# INLINABLE getYear #-}
 getYear :: JournalStateParser m (Maybe Year)
 getYear = fmap jparsedefaultyear get
 
@@ -117,12 +118,14 @@ popParentAccount = do
     []       -> unexpected (Tokens ('E' :| "nd of apply account block with no beginning"))
     (_:rest) -> put j{jparseparentaccounts=rest}
 
+{-# INLINABLE getParentAccount #-}
 getParentAccount :: ErroringJournalParser AccountName
 getParentAccount = fmap (concatAccountNames . reverse . jparseparentaccounts) get
 
 addAccountAlias :: MonadState Journal m => AccountAlias -> m ()
 addAccountAlias a = modify' (\(j@Journal{..}) -> j{jparsealiases=a:jparsealiases})
 
+{-# INLINABLE getAccountAliases #-}
 getAccountAliases :: MonadState Journal m => m [AccountAlias]
 getAccountAliases = fmap jparsealiases get
 
@@ -161,18 +164,23 @@ parserErrorAt pos s = throwError $ sourcePosPretty pos ++ ":\n" ++ s
 --- * parsers
 --- ** transaction bits
 
+{-# INLINABLe statusp #-}
 statusp :: TextParser m ClearedStatus
 statusp =
-  choice'
-    [ many spacenonewline >> char '*' >> return Cleared
-    , many spacenonewline >> char '!' >> return Pending
-    , return Uncleared
-    ]
-    <?> "cleared status"
+  try
+    (do many spacenonewline
+        (char '*' >> return Cleared) <|> (char '!' >> return Pending)) <|>
+  return Uncleared <?> "statusp"
 
+{-# INLINABLE codep #-}
 codep :: TextParser m String
-codep = try (do { some spacenonewline; char '(' <?> "codep"; anyChar `manyTill` char ')' } ) <|> return ""
+codep =
+  try
+    (do some spacenonewline
+        between (char '(') (char ')') (many (noneOf [')']))) <|>
+  return "" <?> "codep"
 
+{-# INLINABLE descriptionp #-}
 descriptionp :: ErroringJournalParser String
 descriptionp = many (noneOf (";\n" :: [Char]))
 
@@ -182,6 +190,7 @@ descriptionp = many (noneOf (";\n" :: [Char]))
 -- Hyphen (-) and period (.) are also allowed as separators.
 -- The year may be omitted if a default year has been set.
 -- Leading zeroes may be omitted.
+{-# INLINABLE datep #-}
 datep :: JournalStateParser m Day
 datep = do
   -- hacky: try to ensure precise errors for invalid dates
@@ -189,9 +198,10 @@ datep = do
   -- pos <- genericSourcePos <$> getPosition
   datestr <- do
     c <- digitChar
-    cs <- lift $ many $ choice' [digitChar, datesepchar]
+    cs <- lift $ many $ digitChar <|> datesepchar
     return $ c:cs
-  let sepchars = nub $ sort $ filter (`elem` datesepchars) datestr
+  -- TODO this can easily be made more efficient
+  let sepchars = nub $ filter (`elem` datesepchars) datestr
   when (length sepchars /= 1) $ fail $ "bad date, different separators used: " ++ datestr
   let dateparts = wordsBy (`elem` datesepchars) datestr
   currentyear <- getYear
@@ -266,6 +276,7 @@ secondarydatep primarydate = do
 --- ** account names
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
+{-# INLINABLE modifiedaccountnamep #-}
 modifiedaccountnamep :: ErroringJournalParser AccountName
 modifiedaccountnamep = do
   parent <- getParentAccount
@@ -282,20 +293,21 @@ modifiedaccountnamep = do
 -- spaces (or end of input). Also they have one or more components of
 -- at least one character, separated by the account separator char.
 -- (This parser will also consume one following space, if present.)
+{-# INLINABLE accountnamep #-}
 accountnamep :: TextParser m AccountName
 accountnamep = do
     astr <- do
       c <- nonspace
-      cs <- striptrailingspace <$> many (nonspace <|> singlespace)
-      return $ c:cs
-    let a = T.pack astr
+      cs <- many (nonspace <|> singlespace)
+      return . T.pack  $ c:cs
+    let a = striptrailingspace astr
     when (accountNameFromComponents (accountNameComponents a) /= a)
-         (fail $ "account name seems ill-formed: "++astr)
+         (fail $ "account name seems ill-formed: "++ T.unpack astr)
     return a
     where
       singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})
       striptrailingspace "" = ""
-      striptrailingspace s  = if last s == ' ' then init s else s
+      striptrailingspace s  = if T.last s == ' ' then T.init s else s
 
 -- accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
 --     <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
@@ -357,12 +369,14 @@ amountp' s =
 mamountp' :: String -> MixedAmount
 mamountp' = Mixed . (:[]) . amountp'
 
+{-# INLINABLE signp #-}
 signp :: TextParser m String
 signp = do
   sign <- optional $ oneOf ("+-" :: [Char])
   return $ case sign of Just '-' -> "-"
                         _        -> ""
 
+{-# INLINABLE leftsymbolamountp #-}
 leftsymbolamountp :: Monad m => JournalStateParser m Amount
 leftsymbolamountp = do
   sign <- lift signp
@@ -375,6 +389,7 @@ leftsymbolamountp = do
   return $ applysign $ Amount c q p s
   <?> "left-symbol amount"
 
+{-# INLINABLE rightsymbolamountp #-}
 rightsymbolamountp :: Monad m => JournalStateParser m Amount
 rightsymbolamountp = do
   (q,prec,mdec,mgrps) <- lift numberp
@@ -397,9 +412,11 @@ nosymbolamountp = do
   return $ Amount c q p s
   <?> "no-symbol amount"
 
+{-# INLINABLE commoditysymbolp #-}
 commoditysymbolp :: TextParser m CommoditySymbol
 commoditysymbolp = (quotedcommoditysymbolp <|> simplecommoditysymbolp) <?> "commodity symbol"
 
+{-# INLINABLE quotedcommoditysymbolp #-}
 quotedcommoditysymbolp :: TextParser m CommoditySymbol
 quotedcommoditysymbolp = do
   char '"'
@@ -407,23 +424,22 @@ quotedcommoditysymbolp = do
   char '"'
   return $ T.pack s
 
+{-# INLINABLE simplecommoditysymbolp #-}
 simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = T.pack <$> some (noneOf nonsimplecommoditychars)
 
+{-# INLINABLE priceamountp #-}
 priceamountp :: Monad m => JournalStateParser m Price
 priceamountp =
     try (do
           lift (many spacenonewline)
           char '@'
-          try (do
-                char '@'
-                lift (many spacenonewline)
-                a <- amountp -- XXX can parse more prices ad infinitum, shouldn't
-                return $ TotalPrice a)
-           <|> (do
-            lift (many spacenonewline)
-            a <- amountp -- XXX can parse more prices ad infinitum, shouldn't
-            return $ UnitPrice a))
+          total <- optional (char '@')
+          lift (many spacenonewline)
+          a <- amountp -- XXX can parse more prices ad infinitum, shouldn't
+          case total of
+            Just _ -> return $ TotalPrice a
+            Nothing -> return $ UnitPrice a)
          <|> return NoPrice
 
 partialbalanceassertionp :: ErroringJournalParser (Maybe MixedAmount)
@@ -473,13 +489,14 @@ fixedlotpricep =
 -- seen following the decimal point), the decimal point character used if any,
 -- and the digit group style if any.
 --
+{-# INLINABLE numberp #-}
 numberp :: TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
 numberp = do
   -- a number is an optional sign followed by a sequence of digits possibly
   -- interspersed with periods, commas, or both
   -- ptrace "numberp"
   sign <- signp
-  parts <- some $ choice' [some digitChar, some $ char ',', some $ char '.']
+  parts <- some $ choice [some digitChar, some $ char ',', some $ char '.']
   dbg8 "numberp parsed" (sign,parts) `seq` return ()
 
   -- check the number is well-formed and identify the decimal point and digit
@@ -629,6 +646,7 @@ commentp = commentStartingWithp commentchars
 commentchars :: [Char]
 commentchars = "#;*"
 
+{-# INLINABLE semicoloncommentp #-}
 semicoloncommentp :: ErroringJournalParser Text
 semicoloncommentp = commentStartingWithp ";"
 

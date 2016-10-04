@@ -31,6 +31,7 @@ choice' = choice . map Text.Megaparsec.try
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.
+{-# INLINABLE choiceInState #-}
 choiceInState :: [StateT s (ParsecT Dec Text m) a] -> StateT s (ParsecT Dec Text m) a
 choiceInState = choice . map Text.Megaparsec.try
 
@@ -58,14 +59,18 @@ showParseError e = "parse error at " ++ show e
 showDateParseError :: (Show t, Show e) => ParseError t e -> String
 showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tail $ lines $ show e)
 
+{-# INLINABLE nonspace #-}
 nonspace :: TextParser m Char
 nonspace = satisfy (not . isSpace)
 
+{-# INLINABLE spacenonewline #-}
 spacenonewline :: (Stream s, Char ~ Token s) => ParsecT Dec s m Char
-spacenonewline = satisfy (`elem` " \v\f\t")
+spacenonewline = oneOf " \v\f\t"
 
+{-# INLINABLE restofline #-}
 restofline :: TextParser m String
 restofline = anyChar `manyTill` newline
 
+{-# INLINABLE eolof #-}
 eolof :: TextParser m ()
 eolof = (newline >> return ()) <|> eof

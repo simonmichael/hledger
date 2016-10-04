@@ -195,6 +195,7 @@ postingsDateSpan' wd ps = DateSpan (Just $ postingdate $ head ps') (Just $ addDa
 
 -- AccountName stuff that depends on PostingType
 
+{-# INLINABLe accountNamePostingType #-}
 accountNamePostingType :: AccountName -> PostingType
 accountNamePostingType a
     | T.null a = RegularPosting
@@ -221,17 +222,20 @@ joinAccountNames a b = concatAccountNames $ filter (not . T.null) [a,b]
 -- | Join account names into one. If any of them has () or [] posting type
 -- indicators, these (the first type encountered) will also be applied to
 -- the resulting account name.
+{-# INLINABLE concatAccountNames #-}
 concatAccountNames :: [AccountName] -> AccountName
 concatAccountNames as = accountNameWithPostingType t $ T.intercalate ":" $ map accountNameWithoutPostingType as
     where t = headDef RegularPosting $ filter (/= RegularPosting) $ map accountNamePostingType as
 
 -- | Rewrite an account name using all matching aliases from the given list, in sequence.
 -- Each alias sees the result of applying the previous aliases.
+{-# INLINABLE accountNameApplyAliases #-}
 accountNameApplyAliases :: [AccountAlias] -> AccountName -> AccountName
+accountNameApplyAliases [] a = a
 accountNameApplyAliases aliases a = accountNameWithPostingType atype aname'
   where
     (aname,atype) = (accountNameWithoutPostingType a, accountNamePostingType a)
-    aname' = foldl
+    aname' = foldl'
              (\acct alias -> dbg6 "result" $ aliasReplace (dbg6 "alias" alias) (dbg6 "account" acct))
              aname
              aliases

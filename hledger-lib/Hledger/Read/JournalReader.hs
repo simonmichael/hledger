@@ -145,8 +145,8 @@ addJournalItemP =
   -- all journal line types can be distinguished by the first
   -- character, can use choice without backtracking
   choice [
-      directivep
-    , transactionp          >>= modify' . addTransaction
+      transactionp          >>= modify' . addTransaction
+    , directivep
     , modifiertransactionp  >>= modify' . addModifierTransaction
     , periodictransactionp  >>= modify' . addPeriodicTransaction
     , marketpricedirectivep >>= modify' . addMarketPrice
@@ -432,7 +432,7 @@ transactionp = do
   sourcepos <- genericSourcePos <$> getPosition
   date <- datep <?> "transaction"
   edate <- optional (secondarydatep date) <?> "secondary date"
-  lookAhead (lift spacenonewline <|> newline) <?> "whitespace or newline"
+  lookAhead spaceChar <?> "whitespace or newline"
   status <- lift statusp <?> "cleared status"
   code <- T.pack <$> lift codep <?> "transaction code"
   description <- T.pack . strip <$> descriptionp

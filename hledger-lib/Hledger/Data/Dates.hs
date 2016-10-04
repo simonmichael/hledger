@@ -559,6 +559,8 @@ smartdateonly = do
 
 datesepchars :: [Char]
 datesepchars = "/-."
+
+{-# INLINABLE datesepchar #-}
 datesepchar :: TextParser m Char
 datesepchar = oneOf datesepchars
 
