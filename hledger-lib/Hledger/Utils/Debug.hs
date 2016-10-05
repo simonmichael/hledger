@@ -156,7 +156,7 @@ dbg9IO = tracePrettyAtIO 9
 
 -- | Pretty-print a message and a showable value to the console if the debug level is at or above the specified level.
 -- dbtAt 0 always prints. Otherwise, uses unsafePerformIO.
-{-# INLINABLe tracePrettyAt #-}
+{-# INLINABLE tracePrettyAt #-}
 tracePrettyAt :: Show a => Int -> String -> a -> a
 tracePrettyAt lvl = dbgppshow lvl
 

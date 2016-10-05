@@ -195,7 +195,7 @@ postingsDateSpan' wd ps = DateSpan (Just $ postingdate $ head ps') (Just $ addDa
 
 -- AccountName stuff that depends on PostingType
 
-{-# INLINABLe accountNamePostingType #-}
+{-# INLINABLE accountNamePostingType #-}
 accountNamePostingType :: AccountName -> PostingType
 accountNamePostingType a
     | T.null a = RegularPosting

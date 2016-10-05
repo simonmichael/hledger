@@ -164,7 +164,7 @@ parserErrorAt pos s = throwError $ sourcePosPretty pos ++ ":\n" ++ s
 --- * parsers
 --- ** transaction bits
 
-{-# INLINABLe statusp #-}
+{-# INLINABLE statusp #-}
 statusp :: TextParser m ClearedStatus
 statusp =
   try
