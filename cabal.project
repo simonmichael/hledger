@@ -1,0 +1,5 @@
+packages: hledger-lib
+          hledger
+          hledger-ui
+          hledger-web
+          hledger-api
