@@ -170,7 +170,7 @@ statusp =
   try
     (do many spacenonewline
         (char '*' >> return Cleared) <|> (char '!' >> return Pending)) <|>
-  return Uncleared <?> "statusp"
+  return Uncleared <?> "cleared status"
 
 {-# INLINABLE codep #-}
 codep :: TextParser m String
