@@ -98,6 +98,7 @@ library
     , cmdargs >=0.10 && <0.11
     , csv
     , data-default >=0.5
+    , hashable >=1.2.4
     , haskeline >=0.6 && <=0.8
     , HUnit
     , mtl
