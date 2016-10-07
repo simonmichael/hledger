@@ -143,6 +143,7 @@ reportflags = [
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/postings deeper than N"
  ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden"
  ,flagNone ["cost","B"]      (setboolopt "cost") "show amounts in their cost price's commodity"
+ ,flagNone ["anon"]              (setboolopt "anon") "output ledger with anonymized accounts and payees."
  ]
 
 -- | Common output-related flags: --output-file, --output-format...
