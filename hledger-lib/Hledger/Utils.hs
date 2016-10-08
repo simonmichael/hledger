@@ -34,7 +34,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
 where
 import Control.Monad (liftM)
 -- import Data.Char
--- import Data.List
+import Data.List
 -- import Data.Maybe
 -- import Data.PPrint
 import Data.Text (Text)
@@ -173,4 +173,39 @@ readFileOrStdinAnyLineEnding f = do
 -- | Total version of maximum, for integral types, giving 0 for an empty list.
 maximum' :: Integral a => [a] -> a
 maximum' [] = 0
-maximum' xs = maximum xs
+maximum' xs = maximumStrict xs
+
+-- | Strict version of sum that doesn’t leak space
+{-# INLINABLE sumStrict #-}
+sumStrict :: Num a => [a] -> a
+sumStrict = foldl' (+) 0
+
+-- | Strict version of maximum that doesn’t leak space
+{-# INLINABLE maximumStrict #-}
+maximumStrict :: Ord a => [a] -> a
+maximumStrict = foldl1' max
+
+-- | Strict version of minimum that doesn’t leak space
+{-# INLINABLE minimumStrict #-}
+minimumStrict :: Ord a => [a] -> a
+minimumStrict = foldl1' min
+
+-- | This is a version of sequence based on difference lists. It is
+-- slightly faster but we mostly use it because it uses the heap
+-- instead of the stack. This has the advantage that Neil Mitchell’s
+-- trick of limiting the stack size to discover space leaks doesn’t
+-- show this as a false positive.
+{-# INLINABLE sequence' #-}
+sequence' :: Monad f => [f a] -> f [a]
+sequence' ms = do
+  h <- go id ms
+  return (h [])
+  where
+    go h [] = return h
+    go h (m:ms) = do
+      x <- m
+      go (h . (x :)) ms
+
+{-# INLINABLE mapM' #-}
+mapM' :: Monad f => (a -> f b) -> [a] -> f [b]
+mapM' f = sequence' . map f

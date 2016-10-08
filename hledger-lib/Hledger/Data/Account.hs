@@ -64,7 +64,7 @@ accountsFromPostings ps =
     acctamts = [(paccount p,pamount p) | p <- ps]
     grouped = groupBy (\a b -> fst a == fst b) $ sort $ acctamts
     counted = [(a, length acctamts) | acctamts@((a,_):_) <- grouped]
-    summed = map (\as@((aname,_):_) -> (aname, sum $ map snd as)) grouped -- always non-empty
+    summed = map (\as@((aname,_):_) -> (aname, sumStrict $ map snd as)) grouped -- always non-empty
     nametree = treeFromPaths $ map (expandAccountName . fst) summed
     acctswithnames = nameTreeToAccount "root" nametree
     acctswithnumps = mapAccounts setnumps    acctswithnames where setnumps    a = a{anumpostings=fromMaybe 0 $ lookup (aname a) counted}
