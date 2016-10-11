@@ -1,6 +1,6 @@
 # commands to be run by simplebench (executable is specified separately)
 
+#-f bench/10000x1000x10.journal stats
 -f bench/10000x1000x10.journal print
 -f bench/10000x1000x10.journal register
 -f bench/10000x1000x10.journal balance
--f bench/10000x1000x10.journal stats

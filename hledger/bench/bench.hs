@@ -36,8 +36,7 @@ benchWithTimeit = do
   (t1,_) <- timeit ("print") $ print' opts j
   (t2,_) <- timeit ("register") $ register opts j
   (t3,_) <- timeit ("balance") $ balance  opts j
-  (t4,_) <- timeit ("stats") $ stats opts j
-  printf "Total: %0.2fs\n" (sum [t0,t1,t2,t3,t4])
+  printf "Total: %0.2fs\n" (sum [t0,t1,t2,t3])
 
 timeit :: String -> IO a -> IO (Double, a)
 timeit name action = do
