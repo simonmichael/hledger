@@ -114,8 +114,8 @@ searchform VD{..} = [hamlet|
       <a role=button .btn .close style="position:absolute; right:0; padding-right:.1em; padding-left:.1em; margin-right:.1em; margin-left:.1em; font-size:24px;" href="@{here}" title="Clear search terms">&times;
      <input .form-control style="font-size:18px; padding-bottom:2px;" name=q value=#{q} title="Enter hledger search patterns to filter the data below">
     <td width="1%" style="white-space:nowrap;">
-     <button .btn style="font-size:18px;" type=submit title="Apply search terms">Search
-     <button .btn style="font-size:18px;" type=button data-toggle="modal" data-target="#helpmodal" title="Show search and general help">?
+     <button .btn .btn-default style="font-size:18px;" type=submit title="Apply search terms">Search
+     <button .btn .btn-default style="font-size:18px;" type=button data-toggle="modal" data-target="#helpmodal" title="Show search and general help">?
 |]
  where
   filtering = not $ null q
