@@ -382,7 +382,7 @@ addform _ vd@VD{..} = [hamlet|
          |]
        | otherwise = [hamlet|
           <td #addbtncell style="text-align:right;">
-           <button type=submit .btn .btn-lg name=submit>add
+           <button type=submit .btn .btn-default .btn-lg name=submit>add
            $if length filepaths > 1
             <br>
             <span class="input-lg">to:
