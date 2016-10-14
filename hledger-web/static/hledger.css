@@ -145,6 +145,11 @@ ul {
     border-top: 1px solid black;
 }
 
+#sidebar-menu .main-menu .inacct {
+    font-weight: bold;
+	  color: #11427D;
+}
+
 .transactionsreport .nonhead {
     border: none !important;
 }
