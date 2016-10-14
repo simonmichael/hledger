@@ -37,7 +37,7 @@ getRegisterR = do
                  s2 = if filtering then ", filtered" else ""
       maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
   hledgerLayout vd "register" [hamlet|
-       <h2#contenttitle>#{title}
+       <h2 #contenttitle>#{title}
        <!-- p>Transactions affecting this account, with running balance. -->
        ^{maincontent}
      |]
@@ -79,14 +79,14 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
    itemAsHtml VD{..} (n, newd, newm, _, (torig, tacct, split, acct, amt, bal)) = [hamlet|
 
 <tr ##{tindex torig} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show torig}" style="vertical-align:top;">
- <td.date>
+ <td .date>
   <a href="@{JournalR}##{tindex torig}">#{date}
- <td.description title="#{show torig}">#{textElideRight 30 desc}
- <td.account>#{elideRight 40 acct}
- <td.amount style="text-align:right; white-space:nowrap;">
+ <td .description title="#{show torig}">#{textElideRight 30 desc}
+ <td .account>#{elideRight 40 acct}
+ <td .amount style="text-align:right; white-space:nowrap;">
   $if showamt
    \#{mixedAmountAsHtml amt}
- <td.balance style="text-align:right;">#{mixedAmountAsHtml bal}
+ <td .balance style="text-align:right;">#{mixedAmountAsHtml bal}
 |]
 
      where
@@ -109,8 +109,8 @@ registerChartHtml percommoditytxnreports =
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  [hamlet|
-<label#register-chart-label style=""><br>
-<div#register-chart style="height:150px; margin-bottom:1em; display:block;">
+<label #register-chart-label style=""><br>
+<div #register-chart style="height:150px; margin-bottom:1em; display:block;">
 <script type=text/javascript>
  \$(document).ready(function() {
    var $chartdiv = $('#register-chart');
