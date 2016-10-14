@@ -175,7 +175,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
    itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
 <li>
  \#{indent}
- <a href="@?{acctquery}" title="Show transactions affecting this account and subaccounts">#{adisplay}
+ <a href="@?{acctquery}" .#{inacctclass} title="Show transactions affecting this account and subaccounts">#{adisplay}
  $if hassubs
   <a href="@?{acctonlyquery}" .only title="Show transactions affecting this account but not subaccounts">only
  <span .balance>#{mixedAmountAsHtml abal}
@@ -186,7 +186,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
        -- numpostings = maybe 0 (length.apostings) $ ledgerAccount l acct
        depthclass = "depth"++show aindent
        inacctclass = case inacctmatcher of
-                       Just m' -> if m' `matchesAccount` acct then "inacct" else "notinacct"
+                       Just m' -> if m' `matchesAccount` acct then "inacct" else ""
                        Nothing -> "" :: String
        indent = preEscapedString $ concat $ replicate (2 * (1+aindent)) "&nbsp;"
        acctquery = (RegisterR, [("q", T.pack $ accountQuery acct)])
