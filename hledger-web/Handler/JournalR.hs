@@ -35,9 +35,9 @@ getJournalR = do
       maincontent = journalTransactionsReportAsHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
   hledgerLayout vd "journal" [hamlet|
        <div .row>
-        <h2#contenttitle>#{title}
+        <h2 #contenttitle>#{title}
         <!-- p>Journal entries record movements of commodities between accounts. -->
-        <a#addformlink role="button" style="cursor:pointer; margin-top:1em;" data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal" >Add a transaction
+        <a #addformlink role="button" style="cursor:pointer; margin-top:1em;" data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal" >Add a transaction
        <div .table-responsive>
         ^{maincontent}
      |]
@@ -50,11 +50,11 @@ journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> 
 journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
 <table .transactionsreport .table .table-condensed>
  <thead>
-  <th.date style="text-align:left;">
+  <th .date style="text-align:left;">
    Date
-  <th.description style="text-align:left;">Description
-  <th.account style="text-align:left;">Account
-  <th.amount style="text-align:right;">Amount
+  <th .description style="text-align:left;">Description
+  <th .account style="text-align:left;">Account
+  <th .amount style="text-align:right;">Amount
  $forall i <- numberTransactionsReportItems items
   ^{itemAsHtml vd i}
  |]
@@ -75,7 +75,7 @@ $forall p' <- tpostings torig
   <td .nonhead>
    &nbsp;
    <a href="@?{acctlink (paccount p')}##{tindex torig}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
-  <td.amount .nonhead style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
+  <td .amount .nonhead style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
 |]
      where
        acctlink a = (RegisterR, [("q", T.pack $ accountQuery a)])
