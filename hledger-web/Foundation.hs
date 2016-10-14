@@ -337,23 +337,20 @@ addform _ vd@VD{..} = [hamlet|
 
   });
 
-<form#addform method=POST style="position:relative;">
-  <table.form style="width:100%; white-space:nowrap;">
-   <tr>
-    <td colspan=4>
-     <table style="width:100%;">
-      <tr#descriptionrow>
-       <td>
-        <input #date        .typeahead .form-control .input-lg type=text size=15 name=date placeholder="Date" value="#{defdate}">
-       <td>
-        <input #description .typeahead .form-control .input-lg type=text size=40 name=description placeholder="Description">
-   $forall n <- postingnums
-    ^{postingfields vd n}
-  <span style="padding-left:2em;">
-   <span .small>
-     Tab in last field for
-     <a href="#" onclick="addformAddPosting(); return false;">more
-     (or ctrl +, ctrl -)
+<form#addform method=POST .form>
+ <div .form-group>
+  <div .row>
+   <div .col-md-2 .col-xs-2 .col-sm-2>
+    <input #date        .typeahead .form-control .input-lg type=text size=15 name=date placeholder="Date" value="#{defdate}">
+   <div .col-md-10 .col-xs-10 .col-sm-10>
+    <input #description .typeahead .form-control .input-lg type=text size=40 name=description placeholder="Description">
+ $forall n <- postingnums
+   ^{postingfields vd n}
+ <span style="padding-left:2em;">
+  <span .small>
+    Tab in last field for
+    <a href="#" onclick="addformAddPosting(); return false;">more
+    (or ctrl +, ctrl -)
 |]
  where
   defdate = "" :: String -- #322 don't set a default, typeahead(?) clears it on tab. See also hledger.js
@@ -366,10 +363,11 @@ addform _ vd@VD{..} = [hamlet|
   postingnums = [1..numpostings]
   postingfields :: ViewData -> Int -> HtmlUrl AppRoute
   postingfields _ n = [hamlet|
-<tr .posting>
- <td style="padding-left:2em;">
+<div .form-group .row>
+ <div .col-md-8 .col-xs-8 .col-sm-8>
   <input ##{acctvar} .account-input .typeahead .form-control .input-lg style="width:100%;" type=text name=#{acctvar} placeholder="#{acctph}">
- ^{amtfieldorsubmitbtn}
+ <div .col-md-4 .col-xs-4 .col-sm-4>
+  ^{amtfieldorsubmitbtn}
 |]
    where
     islast = n == numpostings

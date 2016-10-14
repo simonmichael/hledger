@@ -48,24 +48,27 @@ postRegisterR = postAddForm
 -- Generate html for an account register, including a balance chart and transaction list.
 registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 registerReportHtml opts vd r = [hamlet|
- ^{registerChartHtml $ transactionsReportByCommodity r}
+ <div .hidden-xs>
+  ^{registerChartHtml $ transactionsReportByCommodity r}
  ^{registerItemsHtml opts vd r}
 |]
 
 -- Generate html for a transaction list from an "TransactionsReport".
 registerItemsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 registerItemsHtml _ vd (balancelabel,items) = [hamlet|
-<table.registerreport>
- <tr.headings>
-  <th.date style="text-align:left;">
-   Date
-   <span .glyphicon .glyphicon-chevron-up>
-  <th.description style="text-align:left;">Description
-  <th.account style="text-align:left;">To/From Account(s)
-  <th.amount style="text-align:right; white-space:normal;">Amount Out/In
-  <th.balance style="text-align:right; white-space:normal;">#{balancelabel'}
- $forall i <- numberTransactionsReportItems items
-  ^{itemAsHtml vd i}
+<div .table-responsive>
+ <table.registerreport .table .table-striped .table-condensed>
+  <thead>
+   <tr>
+    <th style="text-align:left;">
+     Date
+     <span .glyphicon .glyphicon-chevron-up>
+    <th style="text-align:left;">Description
+    <th style="text-align:left;">To/From Account(s)
+    <th style="text-align:right; white-space:normal;">Amount Out/In
+    <th style="text-align:right; white-space:normal;">#{balancelabel'}
+  $forall i <- numberTransactionsReportItems items
+   ^{itemAsHtml vd i}
  |]
  where
    insomeacct = isJust $ inAccount $ qopts vd
@@ -107,7 +110,7 @@ registerChartHtml percommoditytxnreports =
  -- is hidden, eg with add form toggled
  [hamlet|
 <label#register-chart-label style=""><br>
-<div#register-chart style="width:85%; height:150px; margin-bottom:1em; display:block;">
+<div#register-chart style="height:150px; margin-bottom:1em; display:block;">
 <script type=text/javascript>
  \$(document).ready(function() {
    var $chartdiv = $('#register-chart');

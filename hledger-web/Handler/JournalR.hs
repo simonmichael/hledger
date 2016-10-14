@@ -34,10 +34,12 @@ getJournalR = do
                   s2 = if filtering then ", filtered" else ""
       maincontent = journalTransactionsReportAsHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
   hledgerLayout vd "journal" [hamlet|
-       <h2#contenttitle>#{title}
-       <!-- p>Journal entries record movements of commodities between accounts. -->
-       <a#addformlink role="button" style="cursor:pointer; margin-top:1em;" data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal" >Add a transaction
-       ^{maincontent}
+       <div .row>
+        <h2#contenttitle>#{title}
+        <!-- p>Journal entries record movements of commodities between accounts. -->
+        <a#addformlink role="button" style="cursor:pointer; margin-top:1em;" data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal" >Add a transaction
+       <div .table-responsive>
+        ^{maincontent}
      |]
 
 postJournalR :: Handler Html
@@ -46,11 +48,10 @@ postJournalR = postAddForm
 -- | Render a "TransactionsReport" as html for the formatted journal view.
 journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
-<table.transactionsreport>
- <tr.headings>
+<table .transactionsreport .table .table-condensed>
+ <thead>
   <th.date style="text-align:left;">
    Date
-   <span .glyphicon .glyphicon-chevron-up>
   <th.description style="text-align:left;">Description
   <th.account style="text-align:left;">Account
   <th.amount style="text-align:right;">Amount
@@ -61,26 +62,20 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
 -- .#{datetransition}
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
-<tbody ##{tindex torig}>
-  <tr .item.#{evenodd}.#{firstposting} style="vertical-align:top;" title="#{show torig}">
-   <td.date>#{date}
-   <td.description colspan=2>#{textElideRight 60 desc}
-   <td.amount style="text-align:right;">
-    $if showamt
-     \#{mixedAmountAsHtml amt}
-  $forall p' <- tpostings torig
-   <tr .item.#{evenodd}.posting title="#{show torig}">
-    <td.date>
-    <td.description>
-    <td.account>
-     &nbsp;
-     <a href="@?{acctlink (paccount p')}##{tindex torig}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
-    <td.amount style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
-  <tr.#{evenodd}>
-   <td>&nbsp;
-   <td>
-   <td>
-   <td>
+<tr .title>
+ <td .date>#{date}
+ <td .description colspan=2>#{textElideRight 60 desc}
+ <td .amount style="text-align:right;">
+  $if showamt
+   \#{mixedAmountAsHtml amt}
+$forall p' <- tpostings torig
+ <tr .item.#{evenodd}.posting title="#{show torig}">
+  <td .nonhead>
+  <td .nonhead>
+  <td .nonhead>
+   &nbsp;
+   <a href="@?{acctlink (paccount p')}##{tindex torig}" title="#{paccount p'}">#{elideAccountName 40 $ paccount p'}
+  <td.amount .nonhead style="text-align:right;">#{mixedAmountAsHtml $ pamount p'}
 |]
      where
        acctlink a = (RegisterR, [("q", T.pack $ accountQuery a)])

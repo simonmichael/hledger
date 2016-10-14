@@ -34,29 +34,19 @@ hledgerLayout vd title content = do
   defaultLayout $ do
       setTitle $ toHtml $ title ++ " - hledger-web"
       toWidget [hamlet|
-        <div#content>
-         $if showsidebar vd
-          <div#sidebar>
-           <div#sidebar-spacer>
-           <div#sidebar-body>
-            ^{sidebar vd}
-         $else
-          <div#sidebar style="display:none;">
-           <div#sidebar-spacer>
-           <div#sidebar-body>
-         <div#main>
-          ^{topbar vd}
-          <div#maincontent>
-           ^{searchform vd}
-           ^{content}
+         ^{topbar vd}
+         ^{sidebar vd}
+         <div .col-md-8 .col-xs-12 .col-sm-12>
+          ^{searchform vd}
+          ^{content}
       |]
 
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
 topbar VD{..} = [hamlet|
-<nav class="navbar" role="navigation">
- <div#topbar>
-  <h1>#{title}
+<div#spacer .col-md-4 .hidden-xs .hidden-sm>
+<div#topbar .col-md-8 .col-sm-12 .col-xs-12>
+ <h1>#{title}
 |]
   where
     title = takeFileName $ journalFilePath j
@@ -65,21 +55,14 @@ topbar VD{..} = [hamlet|
 sidebar :: ViewData -> HtmlUrl AppRoute
 sidebar vd@VD{..} =
  [hamlet|
- <a href=@{JournalR} title="Go back to top">
-  hledger-web
-
- <p>
- <!--
- <a#sidebartogglebtn role="button" style="cursor:pointer;" onclick="sidebarToggle()" title="Show/hide sidebar">
-  <span class="glyphicon glyphicon-expand"></span>
- -->
- <br>
- <div#sidebar-content>
-  <p style="margin-top:1em;">
-   <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first" style="white-space:nowrap;">Journal
-  <div#accounts style="margin-top:1em;">
+ <div #sidebar-menu .col-md-4 .hidden-xs .hidden-sm>
+  <ul .main-menu .nav .nav-stacked .affix-top>
+   <li .top>
+    <a href=@{JournalR} title="Show general journal entries, most recent first">Journal
    ^{accounts}
 |]
+--   <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first" style="white-space:nowrap;">Journal
+--  <p style="margin-top:1em;">
  where
   journalcurrent = if here == JournalR then "current" else "" :: String
   accounts = balanceReportAsHtml opts vd $ balanceReport (reportopts_ $ cliopts_ opts){empty_=True} am j
@@ -105,17 +88,12 @@ sidebar vd@VD{..} =
 -- | Search form for entering custom queries to filter journal data.
 searchform :: ViewData -> HtmlUrl AppRoute
 searchform VD{..} = [hamlet|
-<div#searchformdiv>
- <form#searchform.form method=GET>
-  <table width="100%">
-   <tr>
-    <td width="99%" style="position:relative;">
-     $if filtering
-      <a role=button .btn .close style="position:absolute; right:0; padding-right:.1em; padding-left:.1em; margin-right:.1em; margin-left:.1em; font-size:24px;" href="@{here}" title="Clear search terms">&times;
-     <input .form-control style="font-size:18px; padding-bottom:2px;" name=q value=#{q} title="Enter hledger search patterns to filter the data below">
-    <td width="1%" style="white-space:nowrap;">
-     <button .btn .btn-default style="font-size:18px;" type=submit title="Apply search terms">Search
-     <button .btn .btn-default style="font-size:18px;" type=button data-toggle="modal" data-target="#helpmodal" title="Show search and general help">?
+<div#searchformdiv .row>
+ <form#searchform .form-inline method=GET>
+  <div .form-group .col-md-12>
+   <input .form-control name=q value=#{q} title="Enter hledger search patterns to filter the data below" placeholder="Search">
+   <button .btn .btn-default type=submit title="Apply search terms">Search
+   <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal" title="Show search and general help">?
 |]
  where
   filtering = not $ null q
@@ -184,17 +162,10 @@ nulltemplate = [hamlet||]
 balanceReportAsHtml :: WebOpts -> ViewData -> BalanceReport -> HtmlUrl AppRoute
 balanceReportAsHtml _ vd@VD{..} (items',total) =
  [hamlet|
- <table.balancereport>
-  <tr>
-   <td>Account
-   <td style="padding-left:1em; text-align:right;">Balance
   $forall i <- items
    ^{itemAsHtml vd i}
-  <tr.totalrule>
-   <td colspan=2>
-  <tr>
-   <td>
-   <td.balance>#{mixedAmountAsHtml total}
+  <li .total>
+    <span .balance>#{mixedAmountAsHtml total}
 |]
  where
    l = ledgerFromJournal Any j
@@ -202,16 +173,12 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> BalanceReportItem -> HtmlUrl AppRoute
    itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
-<tr.item.#{inacctclass}>
- <td.account.#{depthclass}>
-  \#{indent}
-   <a href="@?{acctquery}" title="Show transactions affecting this account and subaccounts">#{adisplay}
-   <span.hoverlinks>
-    $if hassubs
-     &nbsp;
-     <a href="@?{acctonlyquery}" title="Show transactions affecting this account but not subaccounts">only
-
- <td.balance>#{mixedAmountAsHtml abal}
+<li>
+ \#{indent}
+ <a href="@?{acctquery}" title="Show transactions affecting this account and subaccounts">#{adisplay}
+ $if hassubs
+  <a href="@?{acctonlyquery}" .only title="Show transactions affecting this account but not subaccounts">only
+ <span .balance>#{mixedAmountAsHtml abal}
 |]
      where
        hassubs = not $ maybe False (null.asubs) $ ledgerAccount l acct
