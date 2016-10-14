@@ -4,182 +4,6 @@
 /* 1. colours */
 
 /* green */
-body                                                                 { background-color:white; color:black; }
-.registerreport .odd                                                 { background-color:#ded; }
-/* .transactionsreport .odd                                             { background-color:#eee; } */
-.filtering                                                           { background-color:#e0e0e0; }
-a:link, a:visited { color:#00e !important; }
-/* a:link:hover, a:visited:hover { color:red; } */
-/* #main                                                                { border-color:#e0e0e0; } see below */
-/* .journalreport td                                                    { border-color:thin solid #e0e0e0; } see below */
-
-/* white */
-/* body                                                                 { background-color:#fff; } */
-/* .registerreport .odd                                                 { background-color:#eee; } */
-/* .filtering                                                           { background-color:#ddd; } */
-/* #main                                                                { border-color:#eee; } see below */
-/* .journalreport td                                                    { border-color:thin solid #eee; } see below */
-
-#message                                                             { color:red; background-color:#fee; }
-/* #addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list { /\*background-color:#eee;*\/ } */
-#editform textarea                                                   { background-color:#eee; }
-.negative                                                            { color:#800; }
-.help                                                                {  }
-.highlighted {
-  background-color: #F4F466 !important;
-}
-
-#sidebar .hoverlinks { visibility:hidden; }
-/* #sidebar .mouseover { background-color:rgba(208,208,208,0.5); } */
-#sidebar .mouseover .hoverlinks { visibility:visible; }
-
-#sidebar .balancereport .hoverlinks { margin-left:0em; font-weight:normal; /*font-size:smaller;*/ display:inline-block; text-align:right; }
-#sidebar .balancereport .hoverlinks a { margin-left:0.5em; }
-/* #sidebar .notinacct, .notinacct :link, .notinacct :visited { color:#888; } */
-#sidebar .notinacct .negative { color:#b77; }
-#sidebar .balancereport .inacct { font-weight:bold; }
-/* #sidebar .balancereport .inacct { background-color:#e0e0e0; } */
-#sidebar .balancereport .numpostings                                          { padding-left:1em; color:#aaa; }
-#sidebar .current { font-weight:bold; }
-
-/*------------------------------------------------------------------------------------------*/
-/* 2. font families & sizes */
-/* overspecified for cross-browser robustness */
-body { font-size:16px; }
-/*
-body                                               { font-family:helvetica,arial,sans-serif; }
-pre                                                { font-family:courier,"courier new",monospace; }
-.dhx_combo_input, .dhx_combo_list { font-size:small; }
-#editform textarea                                 { font-family:courier,"courier new",monospace; font-size:small; }
-.nav2                                              { font-size:small; }
-#searchform                                        { font-size:small; }
-.topleftlink                                       { font-size:small; }
-.toprightlink                                      { font-size:small; }
-#journaldesc                                       { font-size:small; }
-.togglelink                                        { font-size:smaller; white-space:nowrap }
-.help                                              { font-size:smaller; }
-.form                                              { font-size:small; }
-.transactionsreport                                { font-size:small; }
-.entriesreport                                     { font-size:small; }
-.balancereport                                     { font-size:small; }
-.registerreport                                    { font-size:small; }
-.showall                                           { font-size:small; }
-*/
-/* #addformlink                                    { font-size:small; } */
-/* #editformlink                                   { font-size:small; } */
-/*
-#contenttitle                                    { font-size:1.2em; }
-*/
-
-/*------------------------------------------------------------------------------------------*/
-/* 3. layout */
-
-body                        { margin:0; }
-
-
-#topbar                     { padding:2px; }
-.topleftlink                { float:left; margin-right:1em; padding:2px; }
-.toprightlink               { float:right; margin-left:1em; padding:2px; }
-#topbar h1                  { display:inline-block; vertical-align:top; margin:0; }
-#journalinfo                { vertical-align:middle; margin:0; }
-/* #topbar                  { padding:4px; border-bottom:2px solid #ddd; } */
-
-#message                    { margin:0.5em;}
-.help                       { font-style: italic; }
-.helprow td                 { padding-bottom:8px; }
-
-#outermain { overflow:auto; }
-#main { overflow:auto; padding-left:1em; }
-
-#sidebar {
-  float:left;
-  padding-right:1em; 
-  border-right:thin solid #e0e0e0;
-  margin-bottom:5em;
-}
-/* #sidebar.affix { */
-/*     position: fixed; */
-/*     top: 20px; */
-/* } */
-
-.balancereport .item { border-top:thin solid #e0e0e0; }
-
-#navlinks                   { margin-bottom:1em; }
-.navlink                    { }
-.navlinkcurrent             { font-weight:bold; }
-.form                       { margin:0em; }
-
-#searchformdiv              { margin:0 0 1em 0; }
-#searchform                 { margin:0; }
-#searchform span            { padding:4px; }
-#stopfilterlink             { font-weight:bold; }
-.filtering                  { font-weight:bold; }
-
-#main .journal { }
-#main .register { }
-.current                    { font-weight:bold; }
-.date                       { padding-left:0em; }
-.description                { padding-left:1em; white-space:normal; }
-.account                    { padding-left:1em; white-space:normal; }
-.amount                     { padding-left:1em; white-space:nowrap; }
-.balance                    { padding-left:1em; white-space:nowrap; }
-tr td:last-child { padding-right:0.3em; }
-tr td:first-child { padding-left:0.3em; }
-.amount, .balance { width:2em; }  /* minimise width */
-.positive                   { }
-
-td.balance, td.numpostings {
-  text-align: right;
-}
-/* table.transactionsreport         { border-spacing: 0; } */
-/* .transactionsreport td           {  } */
-/* .transactionsreport pre          { margin-top:0; } */
-
-/* table.entriesreport         { border-spacing: 0; } */
-/* .entriesreport td           {  } */
-/* .entriesreport pre          { margin-top:0; } */
-
-.balancereport              { border-spacing:0; }
-.balancereport tr           { vertical-align:bottom; border-spacing:0; }
-.balancereport .title       { white-space:nowrap; }
-.balancereport .item        { }
-/* .balancereport .depth0      { padding-top:1em; } */
-.balancereport td           { padding:0; }
-.totalrule td               { border-top:thin solid black; }
-.balancereport .account     { white-space:nowrap; }
-
-.hidden { display:none; }
-table.registerreport        { border-spacing:0; }
-table.registerreport tr     { vertical-align:top; }
-table.registerreport td     { padding-bottom:0.2em; }
-table.registerreport .date  { white-space:nowrap; }
-table.registerreport tr.posting { font-size:smaller; }
-table.registerreport tr.posting .account  { padding-left:1.5em; }
-table.registerreport tr.posting .amount  { padding-right:0.5em; }
-tr.firstposting td          { }
-/* tr.newday td                { border-top: 1px solid #797; } */
-/* tr.newday .date             { font-weight:bold; } */
-/* tr.newmonth td              { border-top: 2px solid #464; } */
-/* tr.newyear td               { border-top: 3px solid black; } */
-#accountsheading            { white-space:nowrap; }
-
-
-#addform {
-  /* margin:0 0 2em; */
-  /* padding:.5em 0; */
-  /* border-top:thin solid #e0e0e0; */
-  /* border-bottom:thin solid #e0e0e0; */
-}
-#addform tr {
-  vertical-align:top;
-}
-/* #addform input.textinput, #addform .dhx_combo_input, .dhx_combo_list   { padding:4px; } */
-/* #addform table              { } */
-/* #addform #addbuttonrow      { text-align:right; } */
-/* #editform                   { width:95%; } */
-#editform textarea          { width:100%; padding:4px; }
-/* #searchform table           { border-spacing:0; padding-left:0em; } */
-
 ::-moz-placeholder {
   font-style:italic;
 }
@@ -272,4 +96,59 @@ tr.firstposting td          { }
 code {
   font-weight: bold;
   color: black;
+}
+ul {
+    list-style-type: none;
+	  padding: 0;
+}
+
+#sidebar-menu .main-menu li {
+    border-top: 1px solid #ebebeb;
+}
+#sidebar-menu .main-menu .top {
+    border: none !important;
+}
+
+#sidebar-menu .main-menu a {
+    display: inline;
+	  font-size: 13px;
+	  font-weight: 500;
+	  color: #999;
+	  padding: 4px 20px;
+}
+
+#sidebar-menu .main-menu a:hover {
+	  color: #11427D;
+	  text-decoration: none;
+	  background-color: transparent;
+}
+
+#sidebar-menu .main-menu .only{
+    visibility: hidden;
+}
+
+#sidebar-menu .main-menu li:hover > .only {
+    visibility: visible;
+}
+
+#sidebar-menu .main-menu .only:hover{
+    border-left: none;
+}
+#sidebar-menu .main-menu .balance {
+    float: right;
+}
+
+#sidebar-menu .main-menu .total {
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid black;
+}
+
+.transactionsreport .nonhead {
+    border: none !important;
+}
+
+.negative {
+    color: #a94442;
 }

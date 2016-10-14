@@ -44,7 +44,6 @@ postAddForm = do
                     $forall e<-errs
                      \#{e}<br>
                    |]
-                                
   -- 1. process the fixed fields with yesod-form
 
   VD{..} <- getViewData
