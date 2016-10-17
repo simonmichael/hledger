@@ -103,7 +103,7 @@ main = do
       nroffmanpages = [manpageDir m </> m | m <- manpageNames]
       --    manuals rendered to text, ready for embedding (hledger/doc/hledger.1.txt)
       txtmanpages = [manpageDir m </> m <.> "txt" | m <- manpageNames]
-      --    manuals rendered to info, ready for info (hledger/doc/hledger.info)
+      --    manuals rendered to info, ready for info (hledger/doc/hledger.1.info)
       infomanpages = [manpageDir m </> m <.> "info" | m <- manpageNames]
       --   manuals rendered to markdown, ready for web output by hakyll (site/hledger.md)
       webmanpages = ["site" </> manpageNameToUri m <.>"md" | m <- manpageNames]
@@ -170,7 +170,7 @@ main = do
     -- use m4 and pandoc to process macros, filter content, and convert to info, suitable for info viewing
     phony "infomanpages" $ need infomanpages
 
-    infomanpages |%> \out -> do -- hledger/doc/hledger.info
+    infomanpages |%> \out -> do -- hledger/doc/hledger.1.info
       let src = out -<.> "m4.md"
           lib = "doc/lib.m4"
           dir = takeDirectory out
