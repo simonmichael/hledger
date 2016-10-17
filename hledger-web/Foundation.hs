@@ -340,15 +340,23 @@ addform _ vd@VD{..} = [hamlet|
 <form#addform method=POST .form>
  <div .form-group>
   <div .row>
-   <div .col-md-2 .col-xs-2 .col-sm-2>
-    <input #date        .typeahead .form-control .input-lg type=text size=15 name=date placeholder="Date" value="#{defdate}">
-   <div .col-md-10 .col-xs-10 .col-sm-10>
+   <div .col-md-2 .col-xs-6 .col-sm-6>
+    <input #date .typeahead .form-control .input-lg type=text size=15 name=date placeholder="Date" value="#{defdate}">
+   <div .col-md-10 .col-xs-6 .col-sm-6>
     <input #description .typeahead .form-control .input-lg type=text size=40 name=description placeholder="Description">
- $forall n <- postingnums
-   ^{postingfields vd n}
+ <div .account-postings>
+  $forall n <- postingnums
+    ^{postingfields vd n}
+ <div .col-md-8 .col-xs-8 .col-sm-8>
+ <div .col-md-4 .col-xs-4 .col-sm-4>
+  <button type=submit .btn .btn-default .btn-lg name=submit>add
+ $if length filepaths > 1
+  <br>
+  <span class="input-lg">to:
+   ^{journalselect filepaths}
  <span style="padding-left:2em;">
   <span .small>
-    Tab in last field for
+    Enter a value in the last field for
     <a href="#" onclick="addformAddPosting(); return false;">more
     (or ctrl +, ctrl -)
 |]
@@ -361,37 +369,22 @@ addform _ vd@VD{..} = [hamlet|
   listToJsonValueObjArrayStr as  = preEscapedString $ escapeJSSpecialChars $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("value", showJSON a)]) as
   numpostings = 4
   postingnums = [1..numpostings]
+  filepaths = map fst $ jfiles j
   postingfields :: ViewData -> Int -> HtmlUrl AppRoute
   postingfields _ n = [hamlet|
-<div .form-group .row>
+<div .form-group .row .account-group ##{grpvar}>
  <div .col-md-8 .col-xs-8 .col-sm-8>
-  <input ##{acctvar} .account-input .typeahead .form-control .input-lg style="width:100%;" type=text name=#{acctvar} placeholder="#{acctph}">
+  <input ##{acctvar} .account-input .typeahead .form-control .input-lg type=text name=#{acctvar} placeholder="#{acctph}">
  <div .col-md-4 .col-xs-4 .col-sm-4>
-  ^{amtfieldorsubmitbtn}
+  <input ##{amtvar} .amount-input .form-control .input-lg type=text name=#{amtvar} placeholder="#{amtph}">
 |]
    where
     islast = n == numpostings
     acctvar = "account" ++ show n
     acctph = "Account " ++ show n
-    amtfieldorsubmitbtn
-       | not islast = [hamlet|
-          <td>
-           <input ##{amtvar} .amount-input .form-control .input-lg type=text size=10 name=#{amtvar} placeholder="#{amtph}">
-         |]
-       | otherwise = [hamlet|
-          <td #addbtncell style="text-align:right;">
-           <button type=submit .btn .btn-default .btn-lg name=submit>add
-           $if length filepaths > 1
-            <br>
-            <span class="input-lg">to:
-            ^{journalselect filepaths}
-         |]
-       where
-        amtvar = "amount" ++ show n
-        amtph = "Amount " ++ show n
-        filepaths = map fst $ jfiles j
-
-           -- <button .btn style="font-size:18px;" type=submit title="Add this transaction">Add
+    amtvar = "amount" ++ show n
+    amtph = "Amount " ++ show n
+    grpvar = "grp" ++ show n
 
 journalselect :: [FilePath] -> HtmlUrl AppRoute
 journalselect journalfilepaths = [hamlet|
