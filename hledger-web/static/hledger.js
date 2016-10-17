@@ -30,7 +30,7 @@ $(document).ready(function() {
   $('body, #addform input, #addform select').bind('keydown', 'ctrl+shift+=', addformAddPosting);
   $('body, #addform input, #addform select').bind('keydown', 'ctrl+=',       addformAddPosting);
   $('body, #addform input, #addform select').bind('keydown', 'ctrl+-',       addformDeletePosting);
-  $('#addform tr.posting:last > td:first input').bind('keydown', 'tab', addformAddPostingWithTab);
+  $('.amount-input:last').keypress(addformAddPosting);
 
 
   // highlight the entry from the url hash
@@ -156,44 +156,21 @@ function focus($el) {
 
 // Insert another posting row in the add form.
 function addformAddPosting() {
+  $('.amount-input:last').off('keypress');
   // do nothing if it's not currently visible
   if (!$('#addform').is(':visible')) return;
   // save a copy of last row
-  var lastrow = $('#addform tr.posting:last').clone();
+  var lastrow = $('#addform .form-group:last').clone();
 
   // replace the submit button with an amount field, clear and renumber it, add the keybindings
-  $('#addform tr.posting:last > td:last')
-    .html( $('#addform tr.posting:first > td:last').html() );
-  var num = $('#addform tr.posting').length;
-  $('#addform tr.posting:last > td:last input:last') // input:last here and elsewhere is to avoid autocomplete's extra input
-    .val('')
-    .prop('id','amount'+num)
-    .prop('name','amount'+num)
-    .prop('placeholder','Amount '+num)
-    .bind('keydown', 'ctrl+shift+=', addformAddPosting)
-    .bind('keydown', 'ctrl+=', addformAddPosting)
-    .bind('keydown', 'ctrl+-', addformDeletePosting);
-
-  // set up the new last row's account field.
-  // First typehead, it's hard to enable on new DOM elements
-  var $acctinput = lastrow.find('.account-input:last');
-  // XXX nothing works
-  // $acctinput.typeahead('destroy'); //,'NoCached');
-  // lastrow.on("DOMNodeInserted", function () {
-  //   //$(this).find(".typeahead").typeahead();
-  //   console.log('DOMNodeInserted');
-  //  // infinite loop
-  //  console.log($(this).find('.typeahead'));
-  //   //enableTypeahead($(this).find('.typeahead'), accountsSuggester);
-  // });
-  // setTimeout(function (){
-  //   $('#addform tr.posting:last input.account-input').typeahead('destroy');
-  //   enableTypeahead($('#addform tr.posting:last input.account-input:last'), accountsSuggester);
-  // }, 1000);
+  var num = $('#addform .account-group').length;
 
   // insert the new last row
-  $('#addform > table > tbody').append(lastrow);
+  $('#addform .account-postings').append(lastrow);
+  // TODO: Enable typehead on dynamically created inputs
 
+  var $acctinput = $('.account-input:last');
+  var $amntinput = $('.amount-input:last');
   // clear and renumber the field, add keybindings
   $acctinput
     .val('')
@@ -204,43 +181,37 @@ function addformAddPosting() {
   $acctinput
     .bind('keydown', 'ctrl+shift+=', addformAddPosting)
     .bind('keydown', 'ctrl+=', addformAddPosting)
-    .bind('keydown', 'ctrl+-', addformDeletePosting)
-    .bind('keydown', 'tab', addformAddPostingWithTab);
-}
+    .bind('keydown', 'ctrl+-', addformDeletePosting);
 
-// Insert another posting row by tabbing within the last field, also advancing the focus.
-function addformAddPostingWithTab(ev) {
-  // do nothing if called from a non-last row (don't know how to remove keybindings)
-  if ($(ev.target).is('#addform input.account-input:last')) {
-    addformAddPosting();
-    focus($('#addform input.amount-input:last')); // help FF
-    return false;
-  }
-  else
-    return true;
+  $amntinput
+    .val('')
+    .prop('id','amount'+(num+1))
+    .prop('name','amount'+(num+1))
+    .prop('placeholder','Amount '+(num+1))
+    .keypress(addformAddPosting);
+
+  $acctinput
+    .bind('keydown', 'ctrl+shift+=', addformAddPosting)
+    .bind('keydown', 'ctrl+=', addformAddPosting)
+    .bind('keydown', 'ctrl+-', addformDeletePosting);
+
 }
 
 // Remove the add form's last posting row, if empty, keeping at least two.
 function addformDeletePosting() {
-  var num = $('#addform tr.posting').length;
-  if (num <= 2
-      || $('#addform tr.posting:last > td:first input:last').val() != ''
-     ) return;
-  // copy submit button
-  var btn = $('#addform tr.posting:last > td:last').html();
+  var num = $('#addform .account-group').length;
+  if (num <= 2) return;
   // remember if the last row's field or button had focus
   var focuslost =
-    $('#addform tr.posting:last > td:first input:last').is(':focus')
-    || $('#addform tr.posting:last button').is(':focus');
+    $('.account-input:last').is(':focus')
+    || $('.amount-input:last').is(':focus');
   // delete last row
-  $('#addform tr.posting:last').remove();
-  // remember if the last amount field had focus
-  focuslost = focuslost || 
-    $('#addform tr.posting:last > td:last input:last').is(':focus');
-  // replace new last row's amount field with the button
-  $('#addform tr.posting:last > td:last').css('text-align','right').html(btn);
-  // if deleted row had focus, focus the new last row
-  if (focuslost) $('#addform tr.posting:last > td:first input:last').focus();
+  $('#addform .account-group:last').remove();
+  if(focuslost){
+    focus($('account-input:last'));
+  }
+  // Rebind keypress
+  $('.amount-input:last').keypress(addformAddPosting);
 }
 
 //----------------------------------------------------------------------
