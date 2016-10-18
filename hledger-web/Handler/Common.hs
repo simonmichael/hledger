@@ -36,7 +36,7 @@ hledgerLayout vd title content = do
       toWidget [hamlet|
          ^{topbar vd}
          ^{sidebar vd}
-         <div .col-md-8 .col-xs-12 .col-sm-12>
+         <div #main-content .col-md-8 .col-xs-12 .col-sm-12>
           ^{searchform vd}
           ^{content}
       |]
