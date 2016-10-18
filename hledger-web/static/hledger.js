@@ -218,21 +218,8 @@ function addformDeletePosting() {
 // SIDEBAR
 
 function sidebarToggle() {
-  var visible = $('#sidebar').is(':visible');
-  // if opening sidebar, start an ajax fetch of its content
-  if (!visible) {
-    $.get("sidebar"
-         ,null
-         ,function(data) {
-            $("#sidebar-body" ).html(data);
-          })
-          .fail(function() {
-            alert("Loading the sidebar did fail");
-          });
-  }
-  // set a cookie to communicate the new sidebar state to the server
-  $.cookie('showsidebar', visible ? '0' : '1');
-  $('#sidebar').animate({'width': visible ? 'hide' : 'show'});
+  $('#sidebar-menu').toggleClass('col-md-4 col-any-0');
+  $('#main-content').toggleClass('col-md-8 col-md-12');
 }
 
 //----------------------------------------------------------------------
