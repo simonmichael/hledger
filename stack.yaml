@@ -1,5 +1,5 @@
-# this or a newer snapshot is suggested (hledger-api/servant/aeson requires > lts-5)
-resolver: lts-6.18
+# some older and newer lts-7 snapshots will also work here
+resolver: lts-7.4
 
 packages:
 - hledger-lib
@@ -8,10 +8,12 @@ packages:
 - hledger-web
 - hledger-api
 
-#flags:
-
 extra-deps:
+# for hledger-ui:
 - brick-0.8
-- megaparsec-5.0.1
+- text-zipper-0.4
+- vty-5.7.1
+# for hledger-web:
+- wai-handler-launch-3.0.2.1
 
-# https://docs.haskellstack.org/en/stable/yaml_configuration/
+# cf https://github.com/commercialhaskell/stack/wiki/stack.yaml

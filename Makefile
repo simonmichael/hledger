@@ -75,7 +75,7 @@ GHCI=ghci #-package ghc-datasize #-package ghc-heap-view
 # CABAL=cabal
 # CABALINSTALL=cabal install -w $(GHC)
 STACK=stack
-#STACK=stack --stack-yaml=stack-ghc8.yaml
+#STACK=stack --stack-yaml=stack-ghc7.yaml
 
 # -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
 SHELLTESTOPTS=--execdir -- -j16 --hide-successes
