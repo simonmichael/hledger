@@ -19,7 +19,7 @@ DESCRIPTION
 
        hledger-api is a simple web API server, intended to support client-side
        web  apps  operating on hledger data.  It comes with a series of simple
-       client-side app examples, which drive it's evolution.
+       client-side app examples, which drive its evolution.
 
        Like hledger, it reads data from one or more files in hledger  journal,
        timeclock,  timedot,  or CSV format specified with -f, or $LEDGER_FILE,

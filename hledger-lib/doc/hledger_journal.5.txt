@@ -93,7 +93,7 @@ FILE FORMAT
        Real-life  transactions  sometimes  involve more than one date - eg the
        date you write a cheque, and the date it clears in your bank.  When you
        want  to  model  this,  eg  for more accurate balances, you can specify
-       individual #posting-dates, which I recommend.  Or, you can use the sec-
+       individual posting dates, which I recommend.  Or, you can use the  sec-
        ondary  dates  (aka  auxiliary/effective  dates) feature, supported for
        compatibility with Ledger.
 
