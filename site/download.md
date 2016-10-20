@@ -90,7 +90,8 @@ This includes the latest features and is normally stable enough for daily use (i
 1. Install stack and GHC (steps 1 and 2 above) and [git](https://en.wikipedia.org/wiki/Git)
 2. `git clone http://code.hledger.org hledger`
 3. `cd hledger`
-4. `stack install [hledger] [hledger-ui] [hledger-web] [hledger-api]`
+4. `stack setup`
+5. `stack install [hledger] [hledger-ui] [hledger-web] [hledger-api]`
 
 cabal users, try `./cabal-install.sh` instead.
 
