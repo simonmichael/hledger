@@ -36,7 +36,7 @@ hledgerLayout vd title content = do
       toWidget [hamlet|
          ^{topbar vd}
          ^{sidebar vd}
-         <div #main-content .col-md-8 .col-xs-12 .col-sm-12>
+         <div #main-content .col-md-8 .col-xs-12 .col-sm-8>
           ^{searchform vd}
           ^{content}
       |]
@@ -57,7 +57,7 @@ topbar VD{..} = [hamlet|
 sidebar :: ViewData -> HtmlUrl AppRoute
 sidebar vd@VD{..} =
  [hamlet|
- <div #sidebar-menu .col-md-4 .sidebar-offcanvas>
+ <div #sidebar-menu .col-md-4 .col-sm-4 .sidebar-offcanvas>
   <ul .main-menu .nav .nav-stacked .affix-top>
    <li .top>
     <a href=@{JournalR} title="Show general journal entries, most recent first">Journal
@@ -179,7 +179,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
  \#{indent}
  <a href="@?{acctquery}" .#{inacctclass} title="Show transactions affecting this account and subaccounts">#{adisplay}
  $if hassubs
-  <a href="@?{acctonlyquery}" .only title="Show transactions affecting this account but not subaccounts">only
+  <a href="@?{acctonlyquery}" .only .hidden-sm .hidden-xs title="Show transactions affecting this account but not subaccounts">only
  <span .balance>#{mixedAmountAsHtml abal}
 |]
      where
