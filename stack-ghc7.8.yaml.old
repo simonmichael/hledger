@@ -1,0 +1,25 @@
+# GHC 7.8 support has bitrotted; patches welcome.
+
+# stack build plan WIP:
+
+#resolver: lts-2.22
+#
+#packages:
+#- hledger-lib
+##- hledger
+##- hledger-ui
+##- hledger-web
+##- hledger-api
+#
+#extra-deps:
+#- base-compat-0.8.1
+#- time-1.5
+#- megaparsec-5.0.1
+#- uglymemo-0.1.0.1
+#- fail-4.9.0.0
+#- semigroups-0.18.2
+#- transformers-0.4.1.0
+#- transformers-compat-0.4.0.4
+#- mtl-2.2.1
+#- mtl-compat-0.2.1.3
+##- brick-0.8

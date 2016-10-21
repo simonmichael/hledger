@@ -1,0 +1,15 @@
+# Last-tested stack build plan using GHC 7.10.3.
+# Older/newer snapshots in this series will likely work also.
+
+resolver: lts-6.22
+
+packages:
+- hledger-lib
+- hledger
+- hledger-ui
+- hledger-web
+- hledger-api
+
+extra-deps:
+- brick-0.8
+- megaparsec-5.0.1

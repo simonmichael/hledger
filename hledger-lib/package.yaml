@@ -160,4 +160,4 @@ tests:
         dependencies:
         - time >=1.5
 stability: stable
-tested-with: GHC==7.6.3, GHC==7.8.4, GHC==7.10.3, GHC==8.0
+tested-with: GHC==7.10.3, GHC==8.0
