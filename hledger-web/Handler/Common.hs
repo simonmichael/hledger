@@ -62,13 +62,11 @@ sidebar vd@VD{..} =
  <div #sidebar-menu .col-md-4 .col-sm-4 .sidebar-offcanvas>
   <ul .main-menu .nav .nav-stacked .affix-top>
    <li .top>
-    <a href=@{JournalR} title="Show general journal entries, most recent first">Journal
+    <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first">Journal
    ^{accounts}
 |]
---   <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first" style="white-space:nowrap;">Journal
---  <p style="margin-top:1em;">
  where
-  journalcurrent = if here == JournalR then "current" else "" :: String
+  journalcurrent = if here == JournalR then "inacct" else "" :: String
   accounts = balanceReportAsHtml opts vd $ balanceReport (reportopts_ $ cliopts_ opts){empty_=True} am j
 
 -- -- | Navigation link, preserving parameters and possibly highlighted.
@@ -98,6 +96,9 @@ searchform VD{..} = [hamlet|
     <div #searchbar .input-group>
      <input .form-control name=q value=#{q} title="Enter hledger search patterns to filter the data below" placeholder="Search">
      <div .input-group-btn>
+      $if filtering
+       <a href=@{here} .btn .btn-default title="Clear search terms">
+        <span .glyphicon .glyphicon-remove-circle>
       <button .btn .btn-default type=submit title="Apply search terms">
        <span .glyphicon .glyphicon-search>
       <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal" title="Show search and general help">?
