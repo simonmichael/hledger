@@ -62,14 +62,14 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
 -- .#{datetransition}
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
-<tr .title>
+<tr .title #transaction-#{tindex torig}>
  <td .date>#{date}
  <td .description colspan=2>#{textElideRight 60 desc}
  <td .amount style="text-align:right;">
   $if showamt
    \#{mixedAmountAsHtml amt}
 $forall p' <- tpostings torig
- <tr .item.#{evenodd}.posting title="#{show torig}">
+ <tr .item .posting title="#{show torig}">
   <td .nonhead>
   <td .nonhead>
   <td .nonhead>
@@ -79,7 +79,6 @@ $forall p' <- tpostings torig
 |]
      where
        acctlink a = (RegisterR, [("q", T.pack $ accountQuery a)])
-       evenodd = if even n then "even" else "odd" :: String
        -- datetransition | newm = "newmonth"
        --                | newd = "newday"
        --                | otherwise = "" :: String
