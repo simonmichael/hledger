@@ -178,6 +178,14 @@ ul {
     float: left;
 }
 
+.tgl-icon {
+    font-size:large;
+}
+
+#searchbar {
+    width: 100% !important;
+}
+
 @media screen and (max-width: 768px) {
     .row-offcanvas {
         position: relative;

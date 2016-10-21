@@ -44,11 +44,13 @@ hledgerLayout vd title content = do
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
 topbar VD{..} = [hamlet|
-<div#spacer .col-md-4 .col-sm-2 .col-xs-2>
- <p .visible-xs .visible-sm>
-  <button .btn .btn-default type="button" data-toggle="offcanvas"><span class="glyphicon glyphicon-align-left">
-<div#topbar .col-md-8 .col-sm-10 .col-xs-10>
+<div#spacer .col-md-4 .col-sm-4 .col-xs-2>
+ <h1>
+  <button .visible-xs .btn .btn-default type="button" data-toggle="offcanvas">
+   <span .glyphicon .glyphicon-align-left .tgl-icon>
+<div#topbar .col-md-8 .col-sm-8 .col-xs-10>
  <h1>#{title}
+
 |]
   where
     title = takeFileName $ journalFilePath j
@@ -92,10 +94,13 @@ searchform :: ViewData -> HtmlUrl AppRoute
 searchform VD{..} = [hamlet|
 <div#searchformdiv .row>
  <form#searchform .form-inline method=GET>
-  <div .form-group .col-md-12>
-   <input .form-control name=q value=#{q} title="Enter hledger search patterns to filter the data below" placeholder="Search">
-   <button .btn .btn-default type=submit title="Apply search terms">Search
-   <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal" title="Show search and general help">?
+  <div .form-group .col-md-12 .col-sm-12 .col-xs-12>
+    <div #searchbar .input-group>
+     <input .form-control name=q value=#{q} title="Enter hledger search patterns to filter the data below" placeholder="Search">
+     <div .input-group-btn>
+      <button .btn .btn-default type=submit title="Apply search terms">
+       <span .glyphicon .glyphicon-search>
+      <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal" title="Show search and general help">?
 |]
  where
   filtering = not $ null q
