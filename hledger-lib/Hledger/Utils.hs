@@ -107,6 +107,12 @@ getCurrentLocalTime = do
   tz <- getCurrentTimeZone
   return $ utcToLocalTime tz t
 
+getCurrentZonedTime :: IO ZonedTime
+getCurrentZonedTime = do
+  t <- getCurrentTime
+  tz <- getCurrentTimeZone
+  return $ utcToZonedTime tz t
+
 -- misc
 
 isLeft :: Either a b -> Bool
