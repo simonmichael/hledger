@@ -41,6 +41,9 @@ $(document).ready(function() {
     $('.highlighted').removeClass('highlighted');
     $(window.location.hash).addClass('highlighted');
   });
+  $('[data-toggle="offcanvas"]').click(function () {
+      $('.row-offcanvas').toggleClass('active');
+  });
 });
 
 //----------------------------------------------------------------------

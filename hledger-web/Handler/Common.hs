@@ -44,8 +44,10 @@ hledgerLayout vd title content = do
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
 topbar VD{..} = [hamlet|
-<div#spacer .col-md-4 .hidden-xs .hidden-sm>
-<div#topbar .col-md-8 .col-sm-12 .col-xs-12>
+<div#spacer .col-md-4 .col-sm-2 .col-xs-2>
+ <p .visible-xs .visible-sm>
+  <button .btn .btn-default type="button" data-toggle="offcanvas"><span class="glyphicon glyphicon-align-left">
+<div#topbar .col-md-8 .col-sm-10 .col-xs-10>
  <h1>#{title}
 |]
   where
@@ -55,7 +57,7 @@ topbar VD{..} = [hamlet|
 sidebar :: ViewData -> HtmlUrl AppRoute
 sidebar vd@VD{..} =
  [hamlet|
- <div #sidebar-menu .col-md-4 .hidden-xs .hidden-sm>
+ <div #sidebar-menu .col-md-4 .sidebar-offcanvas>
   <ul .main-menu .nav .nav-stacked .affix-top>
    <li .top>
     <a href=@{JournalR} title="Show general journal entries, most recent first">Journal
