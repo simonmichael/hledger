@@ -61,7 +61,7 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
  where
 -- .#{datetransition}
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml VD{..} (n, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
+   itemAsHtml VD{..} (_, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
 <tr .title #transaction-#{tindex torig}>
  <td .date>#{date}
  <td .description colspan=2>#{textElideRight 60 desc}
@@ -82,7 +82,7 @@ $forall p' <- tpostings torig
        -- datetransition | newm = "newmonth"
        --                | newd = "newday"
        --                | otherwise = "" :: String
-       (firstposting, date, desc) = (False, show $ tdate torig, tdescription torig)
+       (date, desc) = (show $ tdate torig, tdescription torig)
        -- acctquery = (here, [("q", T.pack $ accountQuery acct)])
        showamt = not split || not (isZeroMixedAmount amt)
 
