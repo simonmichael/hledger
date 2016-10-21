@@ -47,7 +47,7 @@ topbar VD{..} = [hamlet|
 <div#spacer .col-md-4 .col-sm-4 .col-xs-2>
  <h1>
   <button .visible-xs .btn .btn-default type="button" data-toggle="offcanvas">
-   <span .glyphicon .glyphicon-align-left .tgl-icon>
+   <span .glyphicon .glyphicon-abootstrap link buttonlign-left .tgl-icon>
 <div#topbar .col-md-8 .col-sm-8 .col-xs-10>
  <h1>#{title}
 
@@ -190,9 +190,6 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
 |]
      where
        hassubs = not $ maybe False (null.asubs) $ ledgerAccount l acct
- -- <td.numpostings title="#{numpostings} transactions in this account">(#{numpostings})
-       -- numpostings = maybe 0 (length.apostings) $ ledgerAccount l acct
-       depthclass = "depth"++show aindent
        inacctclass = case inacctmatcher of
                        Just m' -> if m' `matchesAccount` acct then "inacct" else ""
                        Nothing -> "" :: String

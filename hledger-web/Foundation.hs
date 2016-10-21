@@ -379,7 +379,6 @@ addform _ vd@VD{..} = [hamlet|
   <input ##{amtvar} .amount-input .form-control .input-lg type=text name=#{amtvar} placeholder="#{amtph}">
 |]
    where
-    islast = n == numpostings
     acctvar = "account" ++ show n
     acctph = "Account " ++ show n
     amtvar = "amount" ++ show n
