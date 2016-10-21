@@ -46,15 +46,15 @@
 >>>=0
 
 # 5. this should infer display styles correctly
-hledger --rules-file minimal.csv.rules -f- balance --no-total
-<<<
-"2016/1/1","$1"
-"2016/2/2","$1,000.00"
->>>
-          $-1,001.00  income:unknown
-           $1,001.00  unknown
->>>=0
-# XXX but doesn't:
-# Got stdout:      
+# XXX but doesn't: (#415)
+# Got stdout:
 #            $-1001.00  income:unknown
 #            $1,001.00  unknown
+#hledger --rules-file minimal.csv.rules -f- balance --no-total
+#<<<
+#"2016/1/1","$1"
+#"2016/2/2","$1,000.00"
+#>>>
+#          $-1,001.00  income:unknown
+#           $1,001.00  unknown
+#>>>=0
