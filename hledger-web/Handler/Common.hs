@@ -47,7 +47,7 @@ topbar VD{..} = [hamlet|
 <div#spacer .col-md-4 .col-sm-4 .col-xs-2>
  <h1>
   <button .visible-xs .btn .btn-default type="button" data-toggle="offcanvas">
-   <span .glyphicon .glyphicon-abootstrap link buttonlign-left .tgl-icon>
+   <span .glyphicon .glyphicon-align-left .tgl-icon>
 <div#topbar .col-md-8 .col-sm-8 .col-xs-10>
  <h1>#{title}
 

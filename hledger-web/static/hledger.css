@@ -176,6 +176,7 @@ ul {
 .col-any-0 {
     width:0 !important;
     float: left;
+    display: none;
 }
 
 .tgl-icon {
