@@ -283,8 +283,6 @@ benchmark bench
   hs-source-dirs:
       bench
   main-is: bench.hs
-  other-modules:
-      SimpleBench
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   default-language: Haskell2010
   build-depends:

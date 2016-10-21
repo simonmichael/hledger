@@ -1,10 +1,10 @@
 -- bench
 -- By default, show approximate times for some standard hledger operations on a sample journal.
 -- With --criterion, show accurate times (slow).
--- With --simplebench, show approximate times for the commands in default.bench, using the first hledger executable on $PATH.
+-- TODO With --quickbench, show approximate times for the commands in default.bench, using the first hledger executable on $PATH.
 
 import Criterion.Main     (defaultMainWith, defaultConfig, bench, nfIO)
-import SimpleBench        (defaultMain)
+-- import QuickBench        (defaultMain)
 import System.Directory   (getCurrentDirectory)
 import System.Environment (getArgs, withArgs)
 import System.Info        (os)
@@ -20,13 +20,13 @@ outputfile = "/dev/null" -- hide output of benchmarked commands (XXX unixism)
 -- outputfile = "-" -- show output of benchmarked commands
 
 main = do
- -- withArgs ["--simplebench"] $ do
+ -- withArgs ["--quickbench"] $ do
  -- withArgs ["--criterion"] $ do
   args <- getArgs
   if "--criterion" `elem` args
     then withArgs [] benchWithCriterion
-    else if "--simplebench" `elem` args
-         then benchWithSimplebench
+    else if "--quickbench" `elem` args
+         then benchWithQuickbench
          else benchWithTimeit
 
 benchWithTimeit = do
@@ -57,12 +57,12 @@ benchWithCriterion = do
     bench ("stats")            $ nfIO $ stats    opts j
     ]
 
-benchWithSimplebench = do
+benchWithQuickbench = do
   let whichcmd = if os == "mingw32" then "where" else "which"
   exe <- init <$> readProcess whichcmd ["hledger"] ""
   pwd <- getCurrentDirectory
-  printf "Benchmarking %s in %s with simplebench and shell\n" exe pwd
-  flip withArgs SimpleBench.defaultMain [
+  printf "Benchmarking %s in %s with quickbench and shell\n" exe pwd
+  flip withArgs QuickBench.defaultMain [
      "-fbench/default.bench"
     ,"-v"
     ,"hledger"

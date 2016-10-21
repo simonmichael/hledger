@@ -13,6 +13,7 @@
 #
 # - stack, installs dependencies and drives cabal & ghc
 # - shelltestrunner (latest version from hackage or possibly git), runs functional tests
+# - quickbench (from git), runs benchmarks
 # - hasktags, generates tag files for code navigation
 # - profiteur, renders profiles as interactive html
 # - hpack, generates cabal files from package.yaml files
@@ -57,9 +58,6 @@ PROFRTSFLAGS=-P
 # # command to run during "make coverage"
 # COVCMD=test
 # COVCMD=-f test-wf.csv print
-
-# executables to run during "make quickbench"
-BENCHEXES=hledger-0.27 hledger-journalupdate hledger-parsedjournal hledger
 
 # misc. system tools
 BROWSE=open
@@ -504,10 +502,6 @@ dev-heap-upload:
 # 	)
 # 	$(GHC) tools/doctest.hs
 
-tools/simplebench: tools/simplebench.hs \
-		$(call def-help,tools/simplebench, build the standalone generic benchmark runner. Requires libs installed by stack build --bench. )
-	$(STACK) exec -- $(GHC) tools/simplebench.hs
-
 # tools/criterionbench: tools/criterionbench.hs \
 # 	$(call def-help,tools/criterionbench,\
 # 	build the criterion-based benchmark runner. Requires criterion.\
@@ -678,13 +672,14 @@ cabalfiletest: \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 # #		&& cabal upload dist/$$p-$(VERSION).tar.gz --check -v3 \
 
-quickbench: samplejournals bench.tests tools/simplebench \
+BENCHEXES=hledger-0.27,hledger
+
+quickbench: samplejournals bench.sh \
 	$(call def-help,quickbench,\
 	run simple performance benchmarks without saving results\
-	Requires some commands defined in bench.tests and some BENCHEXES defined above.\
+	Requires some commands defined in bench.sh\
 	)
-	tools/simplebench -v -fbench.tests $(BENCHEXES)
-	@rm -f benchresults.*
+	quickbench -v -w $(BENCHEXES)
 
 # bench: samplejournals tests/bench.tests tools/simplebench \
 # 	$(call def-help,bench,\
@@ -1169,9 +1164,6 @@ $(call def-help-subsection,RELEASING:)
 # #
 # # - The .version file must be updated manually before a release.
 # #
-# # - "make simplebench" depends on version numbers in BENCHEXES, these also
-# #   must be updated manually.
-# #
 # # - "make" updates the version in most other places, and defines PATCHES.
 # #   Note "cabal build" should also do this but doesn't yet.
 # #
@@ -1303,7 +1295,6 @@ tagrelease: \
 # 	$(call def-help,showreleasestats stats,\
 # 	show project stats useful for release notes\
 # 	)
-# #	simplebench
 # #	showerrors
 
 # FROMTAG=.
