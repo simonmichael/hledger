@@ -36,10 +36,13 @@ hledgerLayout vd title content = do
       toWidget [hamlet|
          ^{topbar vd}
          ^{sidebar vd}
-         <div #main-content .col-md-8 .col-xs-12 .col-sm-8>
+         <div #main-content .col-xs-12 .#{showmd} .#{showsm}>
           ^{searchform vd}
           ^{content}
       |]
+  where
+    showmd = if showsidebar vd then "col-md-8" else "col-md-12" :: String
+    showsm = if showsidebar vd then "col-sm-8" else "col-sm-12" :: String
 
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
@@ -59,7 +62,7 @@ topbar VD{..} = [hamlet|
 sidebar :: ViewData -> HtmlUrl AppRoute
 sidebar vd@VD{..} =
  [hamlet|
- <div #sidebar-menu .col-md-4 .col-sm-4 .sidebar-offcanvas>
+ <div #sidebar-menu .#{showmd} .#{showsm} .sidebar-offcanvas>
   <ul .main-menu .nav .nav-stacked .affix-top>
    <li .top>
     <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first">Journal
@@ -68,6 +71,8 @@ sidebar vd@VD{..} =
  where
   journalcurrent = if here == JournalR then "inacct" else "" :: String
   accounts = balanceReportAsHtml opts vd $ balanceReport (reportopts_ $ cliopts_ opts){empty_=True} am j
+  showmd = if showsidebar then "col-md-4" else "col-any-0" :: String
+  showsm = if showsidebar then "col-sm-4" else "" :: String
 
 -- -- | Navigation link, preserving parameters and possibly highlighted.
 -- navlink :: ViewData -> String -> AppRoute -> String -> HtmlUrl AppRoute

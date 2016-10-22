@@ -221,8 +221,9 @@ function addformDeletePosting() {
 // SIDEBAR
 
 function sidebarToggle() {
-  $('#sidebar-menu').toggleClass('col-md-4 col-any-0');
-  $('#main-content').toggleClass('col-md-8 col-md-12');
+  $('#sidebar-menu').toggleClass('col-md-4 col-sm-4 col-any-0');
+  $('#main-content').toggleClass('col-md-8 col-sm-8 col-md-12 col-sm-12');
+  $.cookie('showsidebar', $('#sidebar-menu').hasClass('col-any-0') ? '0' : '1');
 }
 
 //----------------------------------------------------------------------
