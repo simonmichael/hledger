@@ -48,28 +48,15 @@ This is a quick way to help the project and your fellow users!
 -->
 
 <a name="released"></a>
-
-## B. I want to build the latest released version
-
-The latest release may be newer than your OS's packaged version. 
-Here are the latest [release notes](release-notes.html).
+## B. Build/install a version
+Using the [`stack`](https://docs.haskellstack.org/en/stable/README/) tool favored by hledger. Or use [`cabal`](https://www.haskell.org/cabal/) if you prefer and know how. 
 
 1. Install [`stack`](http://haskellstack.org) to make building easier.
    On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-2. `stack setup`\
-   to ensure you have a suitable version of [GHC](https://www.haskell.org/ghc).
+If stack warns that ~/.local/bin or the Windows equivalent is not in your $PATH, configure that, so that commands like hledger will work. Eg if you're a bash user:
 
-3. `stack install hledger [hledger-ui] [hledger-web]`\
-   hledger-ui and hledger-web take longer to build. hledger-ui is not buildable on Windows.
-
-4. If stack warns that `~/.local/bin` or the Windows equivalent is not in your `$PATH`,
-   configure that, so that commands like `hledger` will work.
-   Eg if you're a bash user:\
-   `echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
-
-Or use [`cabal`](https://www.haskell.org/cabal/) if you prefer and know how. 
-It's harder to use and to support, so these docs focus on stack.
+    echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc
 
 Haskell builds can fail due to missing C libraries or headers, which stack/cabal can not install.
 If you have this problem, here are some C libs you might need (please send updates):
@@ -79,21 +66,31 @@ If you have this problem, here are some C libs you might need (please send updat
 | **Debian, Ubuntu** | `sudo apt install ... ?` 
 | **Fedora, RHEL**   | `sudo dnf install ncurses-devel`
 
+### B.1. I want to build the latest released version
 
-<a name="unreleased"></a>
+The latest release may be newer than your OS's packaged version. 
+Here are the latest [release notes](release-notes.html).
 
-## C. I want to build the [latest development version](https://github.com/simonmichael/hledger/commits/master)
+2. `stack setup 7.10.3`\
+   to ensure you have a suitable version of [GHC](https://www.haskell.org/ghc).
+
+3. `stack install hledger [hledger-ui] [hledger-web]`\
+   hledger-ui and hledger-web take longer to build. hledger-ui is not buildable on Windows.
+
+## B.2. I want to build the [latest development version](https://github.com/simonmichael/hledger/commits/master)
 
 This includes the latest features and is normally stable enough for daily use (it's what I use).
 <!-- See also the [Developer Guide](http://hledger.org/developer-guide.html). -->
 
-1. Install stack and GHC (steps 1 and 2 above) and [git](https://en.wikipedia.org/wiki/Git)
+1.a. Install [git](https://en.wikipedia.org/wiki/Git)
 2. `git clone http://code.hledger.org hledger`
 3. `cd hledger`
 4. `stack setup`
 5. `stack install [hledger] [hledger-ui] [hledger-web] [hledger-api]`
 
 cabal users, try `./cabal-install.sh` instead.
+
+<a name="unreleased"></a>
 
 <!--
 Detailed cabal instructions:
