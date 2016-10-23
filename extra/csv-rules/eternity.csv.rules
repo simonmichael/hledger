@@ -1,0 +1,12 @@
+# hledger CSV conversion rules for the Eternity iphone app's emailed time log report
+# cf http://hledger.org/MANUAL.html#convert
+
+base-account assets:personal:time
+date-field 0
+date-format %-m/%-d/%y
+amount-field 3
+account2-field 5
+description-field %(4)%(5) - %(6)
+
+.*
+expenses:personal:time

@@ -1,0 +1,29 @@
+# hledger csv conversion rules for bank of ireland
+
+# sample of CSV being converted
+# Date,Details,Debit,Credit,Balance
+# 07/12/2012,LODGMENT       529898,,10.0,131.21
+# 07/12/2012,PAYMENT,5,,126
+# 1    2       3     4      5 
+
+# skip the header line
+skip
+
+# name the csv fields, and assign some of them as journal entry fields
+fields  date, description, amount-out, amount-in, balance
+
+# date is in UK/Ireland format
+date-format  %d/%m/%Y
+
+# set the currency
+currency  EUR
+
+# set the base account for all txns
+account1  assets:personal:bank:bank of ireland:checking
+
+# alternative way of handling two amount fields:
+# use one field by default, if it's empty override with the other
+# amount  -%3
+# if ~
+# ^[^,]*,[^,]*,,
+#  amount  %4

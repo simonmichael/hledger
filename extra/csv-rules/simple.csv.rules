@@ -1,0 +1,10 @@
+# Date,Recorded at,Scheduled for,Amount,Activity,Pending,Raw description,Description,Category folder,Category,Street address,City,State,Zip,Latitude,Longitude,Memo
+# 2013/07/24,2013-07-24 08:17:56 AM -0700,,100.00,ACH,false,FUNDS TRANSFER,Funds Transfer,Financial,Money Transfer,,,,,,,
+
+account1    assets:personal:bank:simple
+skip        1
+fields      date,recorded_at,scheduled,amount,activity,pending,raw_description,description,category1,category2,,,,,,,comment
+#date-format %Y-%-m-%-d %T %p %z
+currency    $
+include     .common.rules
+status      *

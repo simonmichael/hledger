@@ -1,0 +1,13 @@
+# hledger CSV conversion rules for YNAB 4's register export format
+
+account1     assets:personal:ynab
+
+# "Account","Flag","Check Number","Date","Payee","Category","Master Category","Sub Category","Memo","Outflow","Inflow","Cleared","Running Balance"
+fields account,flag,code,date,payee,category,mastercategory,subcategory,memo,outflow,inflow,cleared,balance
+
+date-format  %d/%m/%Y
+description  %payee
+comment      %memo
+account2     expenses:personal:%category
+amount-out   %10
+amount-in    %11

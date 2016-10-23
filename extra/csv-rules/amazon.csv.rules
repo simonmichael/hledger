@@ -1,0 +1,31 @@
+# sample of CSV being converted
+# "Date","Type","To/From","Name","Status","Amount","Fees","Transaction ID"
+# "Oct 28, 2012","Payment","To","Adapteva, Inc.","Completed","$25.00","$0.00","17AL58JSK6RPD4HDGLNJPQI1PB98NDKPVHL"
+#  1              2         3    4                5           6        7       8
+
+# skip the header line
+skip: 1
+
+# name the csv fields, and assign some of them as entry fields
+fields: date, type, toorfrom, name, status_, payment, fees, code
+
+# parse the date
+date-format: %b %-d, %Y
+
+# combine these fields as the description
+description: %toorfrom %name
+
+# save these fields as tags
+comment:     status:%status_, fees:%fees
+
+# flip the sign on the payment amount
+amount:      -%payment
+
+# set the base account for all txns
+account1:    assets:personal:online:amazon
+
+# set a more specific account2 for txns matching these patterns:
+
+#if INTEREST PAYMENT
+# account2:  revenues:personal:interest
+

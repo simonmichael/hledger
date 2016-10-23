@@ -1,0 +1,28 @@
+# western federal credit union checking
+# 1       2    3      4       5        6           7    8
+# account,date,amount,balance,category,description,memo,notes
+# 000XXXXXXX-S0002,11/16/2012,($19.47),$75.24,Household,AMAZON MKTPLACE PMAMZN.CO AMZN.COM/BILL WA,Date 11/15/12 XXXXXXXX XXXX|Card Withdrawal Debit Card,
+# memo can be "Date %M/%D/%y %M%D%h%m ...." or some other informative info (Amazon)
+
+# ACCOUNT,DATE,AMOUNT,balance,category,DESCRIPTION,memo,notes
+# account,date,amount,,,description,,
+
+skip        1
+fields      account,date,amount,balance,category,description,memo,notes
+date-format %-m/%-d/%Y
+status      *
+account1    assets:bank:western federal:checking
+include     .common.rules
+
+# account-field 0
+#  0003351165-S0001 = assets:bank:western federal:savings
+#  0003351165-S0002 = assets:bank:western federal:checking
+#  0003351165-S0051 = assets:bank:western federal:clubsavings
+
+if ~
+(To|From) Share 0001
+ account2 assets:bank:western federal:savings
+
+if ~
+(To|From) Share 0051
+ account2 assets:bank:western federal:clubsavings
