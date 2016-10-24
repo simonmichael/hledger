@@ -102,9 +102,22 @@ ul {
 	  padding: 0;
 }
 
-#sidebar-menu .main-menu li {
-    border-top: 1px solid #ebebeb;
+#sidebar-menu {
+    overflow:hidden;
 }
+
+#sidebar-menu .main-menu td {
+    border-top: 1px solid #ebebeb;
+    overflow-x:auto;
+    white-space:nowrap;
+/*    text-overflow:ellipsis;*/
+    max-width:200px;
+}
+
+#sidebar-menu .main-menu .ff-wrapper { /* This wrapper is needed because firefox won't apply overflow to a td-tag */
+    overflow-x:auto;
+}
+
 #sidebar-menu .main-menu .top {
     border: none !important;
 }
@@ -127,7 +140,7 @@ ul {
     visibility: hidden;
 }
 
-#sidebar-menu .main-menu li:hover > .only {
+#sidebar-menu .main-menu tr:hover > td > .only {
     visibility: visible;
 }
 
@@ -163,22 +176,26 @@ ul {
 }
 
 #main-content {
+   /* 
     -webkit-transition: width 0.3s ease, margin 0.3s ease;
     -moz-transition: width 0.3s ease, margin 0.3s ease;
     -o-transition: width 0.3s ease, margin 0.3s ease;
     transition: width 0.3s ease, margin 0.3s ease;
+*/
 }
 
 #sidebar-menu {
-    -webkit-transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease;
-    -moz-transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease;
-    -o-transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease;
-    transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease;
-    overflow:hidden;
+    /*
+    -webkit-transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease,height 1s ease 1s;
+    -moz-transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease,height 1s ease 1s;
+    -o-transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease,height 1s ease 1s;
+    transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease,height 1s ease 1s;
+*/
 }
 
 .col-any-0 {
     width:0 !important;
+    height:0 !important;
     float: left;
     opacity:0;
 }

@@ -62,9 +62,11 @@ sidebar :: ViewData -> HtmlUrl AppRoute
 sidebar vd@VD{..} =
  [hamlet|
  <div #sidebar-menu .#{showmd} .#{showsm} .sidebar-offcanvas>
-  <ul .main-menu .nav .nav-stacked .affix-top>
-   <li .top>
-    <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first">Journal
+  <table .main-menu .table>
+   <tr>
+    <td .top>
+     <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first">Journal
+    <td .top>
    ^{accounts}
 |]
  where
@@ -176,7 +178,9 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
  [hamlet|
   $forall i <- items
    ^{itemAsHtml vd i}
-  <li .total>
+  <tr .total>
+   <td>
+   <td>
     #{mixedAmountAsHtml total}
 |]
  where
@@ -185,12 +189,15 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> BalanceReportItem -> HtmlUrl AppRoute
    itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
-<li>
- \#{indent}
- <a href="@?{acctquery}" .#{inacctclass} title="Show transactions affecting this account and subaccounts">#{adisplay}
- $if hassubs
-  <a href="@?{acctonlyquery}" .only .hidden-sm .hidden-xs title="Show transactions affecting this account but not subaccounts">only
- #{mixedAmountAsHtml abal}
+<tr>
+ <td>
+  <div .ff-wrapper>
+   \#{indent}
+   <a href="@?{acctquery}" .#{inacctclass} title="Show transactions affecting this account and subaccounts">#{adisplay}
+  $if hassubs
+   <a href="@?{acctonlyquery}" .only .hidden-sm .hidden-xs title="Show transactions affecting this account but not subaccounts">only
+ <td>
+  #{mixedAmountAsHtml abal}
 |]
      where
        hassubs = not $ maybe False (null.asubs) $ ledgerAccount l acct
