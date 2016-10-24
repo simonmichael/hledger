@@ -66,7 +66,7 @@ sidebar vd@VD{..} =
  <div #sidebar-menu .#{showmd} .#{showsm} .sidebar-offcanvas>
   <table .main-menu .table>
    <tr>
-    <td .top>
+    <td .top .acct>
      <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first">Journal
     <td .top>
    ^{accounts}
@@ -198,7 +198,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
    <a href="@?{acctquery}" .#{inacctclass} title="Show transactions affecting this account and subaccounts">#{adisplay}
    $if hassubs
     <a href="@?{acctonlyquery}" .only .hidden-sm .hidden-xs title="Show transactions affecting this account but not subaccounts">only
- <td .amnt>
+ <td>
   #{mixedAmountAsHtml abal}
 |]
      where
