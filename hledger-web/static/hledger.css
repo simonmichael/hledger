@@ -113,6 +113,7 @@ ul {
 }
 #sidebar-menu .main-menu {
     table-layout: fixed;
+    word-wrap: break-word;
 }
 
 #sidebar-menu .main-menu td {
@@ -181,12 +182,8 @@ ul {
 }
 
 #sidebar-menu .main-menu .acct {
-    width:80%;
+    width:60%;
     vertical-align:bottom;
-}
-
-#sidebar-menu .main-menu .amnt {
-    width:20%;
 }
 
 .transactionsreport .nonhead {
