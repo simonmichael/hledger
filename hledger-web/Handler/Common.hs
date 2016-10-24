@@ -6,7 +6,6 @@ module Handler.Common where
 
 import Import
 
-import Data.List
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
