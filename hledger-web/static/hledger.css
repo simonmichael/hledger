@@ -121,14 +121,9 @@ ul {
     overflow: hidden;
     white-space:nowrap;
     text-overflow:ellipsis;
-    max-width:200px;
     font-size: 16px;
 }
-@media(max-width:992px){
-    #sidebar-menu .main-menu td {
-        max-width: 150px;
-    }
-}
+
 #sidebar-menu .main-menu .ff-wrapper { /* This wrapper is needed because firefox won't apply overflow to a td-tag */
     overflow:hidden;
     text-overflow:ellipsis;
@@ -183,6 +178,15 @@ ul {
 #sidebar-menu .main-menu .amount {
     float: right;
     overflow-x:auto;
+}
+
+#sidebar-menu .main-menu .acct {
+    width:80%;
+    vertical-align:bottom;
+}
+
+#sidebar-menu .main-menu .amnt {
+    width:20%;
 }
 
 .transactionsreport .nonhead {
