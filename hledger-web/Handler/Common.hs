@@ -192,13 +192,13 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
    itemAsHtml :: ViewData -> BalanceReportItem -> HtmlUrl AppRoute
    itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
 <tr>
- <td>
+ <td .acct>
   <div .ff-wrapper>
    \#{indent}
    <a href="@?{acctquery}" .#{inacctclass} title="Show transactions affecting this account and subaccounts">#{adisplay}
    $if hassubs
     <a href="@?{acctonlyquery}" .only .hidden-sm .hidden-xs title="Show transactions affecting this account but not subaccounts">only
- <td>
+ <td .amnt>
   #{mixedAmountAsHtml abal}
 |]
      where
