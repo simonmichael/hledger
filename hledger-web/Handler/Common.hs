@@ -178,7 +178,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
   $forall i <- items
    ^{itemAsHtml vd i}
   <li .total>
-    <span .balance>#{mixedAmountAsHtml total}
+    #{mixedAmountAsHtml total}
 |]
  where
    l = ledgerFromJournal Any j
@@ -191,7 +191,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
  <a href="@?{acctquery}" .#{inacctclass} title="Show transactions affecting this account and subaccounts">#{adisplay}
  $if hassubs
   <a href="@?{acctonlyquery}" .only .hidden-sm .hidden-xs title="Show transactions affecting this account but not subaccounts">only
- <span .balance>#{mixedAmountAsHtml abal}
+ #{mixedAmountAsHtml abal}
 |]
      where
        hassubs = not $ maybe False (null.asubs) $ ledgerAccount l acct
@@ -229,8 +229,8 @@ numberTransactionsReportItems items = number 0 nulldate items
           (prevdy,prevdm,_) = toGregorian prevd
 
 mixedAmountAsHtml :: MixedAmount -> Html
-mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ showMixedAmountWithoutPrice b
-    where addclass = printf "<span class=\"%s\">%s</span>" (c :: String)
+mixedAmountAsHtml b = preEscapedString $ unlines $ map addclass $ lines $ showMixedAmountWithoutPrice b
+    where addclass = printf "<span class=\"%s\">%s</span><br/>" (c :: String)
           c = case isNegativeMixedAmount b of Just True -> "negative amount"
                                               _         -> "positive amount"
 
