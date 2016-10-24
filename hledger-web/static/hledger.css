@@ -107,15 +107,22 @@ ul {
 }
 
 #sidebar-menu .main-menu td {
+    padding: 1px !important;
     border-top: 1px solid #ebebeb;
-    overflow-x:auto;
+    overflow: hidden;
     white-space:nowrap;
-/*    text-overflow:ellipsis;*/
+    text-overflow:ellipsis;
     max-width:200px;
+    font-size: 16px;
 }
-
+@media(max-width:992px){
+    #sidebar-menu .main-menu td {
+        max-width: 150px;
+    }
+}
 #sidebar-menu .main-menu .ff-wrapper { /* This wrapper is needed because firefox won't apply overflow to a td-tag */
-    overflow-x:auto;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
 #sidebar-menu .main-menu .top {
@@ -124,9 +131,9 @@ ul {
 
 #sidebar-menu .main-menu a {
     display: inline;
-	  font-size: 13px;
+	  font-size: 16px;
 	  font-weight: 500;
-	  color: #999;
+	  color: #2F2F2F;
 	  padding: 4px 20px;
 }
 
@@ -140,7 +147,7 @@ ul {
     visibility: hidden;
 }
 
-#sidebar-menu .main-menu tr:hover > td > .only {
+#sidebar-menu .main-menu tr:hover > td > div > .only {
     visibility: visible;
 }
 
@@ -246,5 +253,9 @@ ul {
         position: absolute;
         top: 0;
         width: 90%;
+    }
+
+    #sidebar-menu .main-menu td {
+        max-width: 200px;
     }
 }

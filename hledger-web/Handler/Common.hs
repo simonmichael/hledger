@@ -194,8 +194,8 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
   <div .ff-wrapper>
    \#{indent}
    <a href="@?{acctquery}" .#{inacctclass} title="Show transactions affecting this account and subaccounts">#{adisplay}
-  $if hassubs
-   <a href="@?{acctonlyquery}" .only .hidden-sm .hidden-xs title="Show transactions affecting this account but not subaccounts">only
+   $if hassubs
+    <a href="@?{acctonlyquery}" .only .hidden-sm .hidden-xs title="Show transactions affecting this account but not subaccounts">only
  <td>
   #{mixedAmountAsHtml abal}
 |]
