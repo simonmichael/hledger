@@ -223,6 +223,7 @@ function addformDeletePosting() {
 function sidebarToggle() {
   $('#sidebar-menu').toggleClass('col-md-4 col-sm-4 col-any-0');
   $('#main-content').toggleClass('col-md-8 col-sm-8 col-md-12 col-sm-12');
+  $('#spacer').toggleClass('col-md-4 col-sm-4 col-any-0');
   $.cookie('showsidebar', $('#sidebar-menu').hasClass('col-any-0') ? '0' : '1');
 }
 
