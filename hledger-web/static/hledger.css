@@ -97,13 +97,22 @@ code {
   font-weight: bold;
   color: black;
 }
+
 ul {
     list-style-type: none;
 	  padding: 0;
 }
 
+#main-content {
+    padding-left: 30px;
+}
+
 #sidebar-menu {
     overflow:hidden;
+    border-right: 1px solid #ebebeb;
+}
+#sidebar-menu .main-menu {
+    table-layout: fixed;
 }
 
 #sidebar-menu .main-menu td {
@@ -145,6 +154,7 @@ ul {
 
 #sidebar-menu .main-menu .only{
     visibility: hidden;
+    padding: 1px;
 }
 
 #sidebar-menu .main-menu tr:hover > td > div > .only {
@@ -172,6 +182,7 @@ ul {
 
 #sidebar-menu .main-menu .amount {
     float: right;
+    overflow-x:auto;
 }
 
 .transactionsreport .nonhead {
