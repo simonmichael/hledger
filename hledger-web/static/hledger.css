@@ -150,6 +150,10 @@ ul {
 	  color: #11427D;
 }
 
+#sidebar-menu .main-menu .amount {
+    float: right;
+}
+
 .transactionsreport .nonhead {
     border: none !important;
 }
