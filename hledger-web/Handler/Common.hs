@@ -46,7 +46,7 @@ hledgerLayout vd title content = do
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
 topbar VD{..} = [hamlet|
-<div#spacer .col-md-4 .col-sm-4 .col-xs-2>
+<div#spacer .#{showsm} .#{showmd} .col-xs-2>
  <h1>
   <button .visible-xs .btn .btn-default type="button" data-toggle="offcanvas">
    <span .glyphicon .glyphicon-align-left .tgl-icon>
@@ -56,6 +56,8 @@ topbar VD{..} = [hamlet|
 |]
   where
     title = takeFileName $ journalFilePath j
+    showmd = if showsidebar then "col-md-4" else "col-any-0" :: String
+    showsm = if showsidebar then "col-sm-4" else "" :: String
 
 -- | The sidebar used on most views.
 sidebar :: ViewData -> HtmlUrl AppRoute
