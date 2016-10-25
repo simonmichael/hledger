@@ -65,7 +65,7 @@ sidebar vd@VD{..} =
  [hamlet|
  <div #sidebar-menu .#{showmd} .#{showsm} .sidebar-offcanvas>
   <table .main-menu .table>
-   <tr>
+   <tr .#{journalcurrent}>
     <td .top .acct>
      <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first">Journal
     <td .top>
@@ -191,7 +191,7 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> BalanceReportItem -> HtmlUrl AppRoute
    itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
-<tr>
+<tr .#{inacctclass}>
  <td .acct>
   <div .ff-wrapper>
    \#{indent}
