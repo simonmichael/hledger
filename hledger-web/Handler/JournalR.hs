@@ -63,7 +63,7 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (_, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
 <tr .title #transaction-#{tindex torig}>
- <td .date>#{date}
+ <td .date nowrap>#{date}
  <td .description colspan=2>#{textElideRight 60 desc}
  <td .amount style="text-align:right;">
   $if showamt
