@@ -174,11 +174,13 @@ ul {
 #sidebar-menu .main-menu .inacct {
     font-weight: bold;
 	  color: #11427D;
+    background-color: #f9f9f9;
 }
 
 #sidebar-menu .main-menu .amount {
     float: right;
     overflow-x:auto;
+	  font-weight: 500 !important;
 }
 
 #sidebar-menu .main-menu .acct {
