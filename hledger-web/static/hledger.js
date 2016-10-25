@@ -4,12 +4,13 @@
 // STARTUP
 
 $(document).ready(function() {
-
+  // format all amounts
+  $('span.amount').each((k,el) => el.textContent=formatAmount(el.textContent));
   // ensure add form always focusses its first field
   $('#addmodal')
     .on('shown.bs.modal', function (e) {
       addformFocus();
-    })
+    });
 
   // show add form if ?add=1
   if ($.url.param('add')) { addformShow(true); }
@@ -225,6 +226,28 @@ function sidebarToggle() {
   $('#main-content').toggleClass('col-md-8 col-sm-8 col-md-12 col-sm-12');
   $('#spacer').toggleClass('col-md-4 col-sm-4 col-any-0');
   $.cookie('showsidebar', $('#sidebar-menu').hasClass('col-any-0') ? '0' : '1');
+}
+
+function abbreviate(n) {
+  var exp = n.toExponential().split('e+').map(function(el) {return +el;}); // split into base and exponent
+  if(exp[1] <= 3 || (n < 1 && n > -1)){
+    return n.toFixed(2);
+  }
+  var zeroes = exp[1] - 2; // 2 because substring is exclusive
+  if(n < 0){
+    zeroes++; // increase counter because of the '-' char
+  }
+  return n.toString().substr(0,zeroes) + 'k';
+}
+
+function formatAmount(n) {
+  var splt = n.trim().split(' ');
+  if(splt.length == 1){
+    return n; // Do not format native currencies
+  }
+  var currency = splt[1];
+  var formNum = abbreviate(parseFloat(splt[0]));
+  return formNum + ' ' + currency;
 }
 
 //----------------------------------------------------------------------
