@@ -196,6 +196,10 @@ ul {
     color: #a94442;
 }
 
+.date {
+    whitespace: nowrap;
+}
+
 #main-content {
    /* 
     -webkit-transition: width 0.3s ease, margin 0.3s ease;
