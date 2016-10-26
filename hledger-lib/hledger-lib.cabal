@@ -68,7 +68,7 @@ library
     , deepseq
     , directory
     , filepath
-    , megaparsec >=5
+    , megaparsec >=5 && < 5.1
     , mtl
     , mtl-compat
     , old-time
@@ -158,7 +158,7 @@ test-suite doctests
     , deepseq
     , directory
     , filepath
-    , megaparsec >=5
+    , megaparsec >=5 && < 5.1
     , mtl
     , mtl-compat
     , old-time
@@ -198,7 +198,7 @@ test-suite hunittests
     , deepseq
     , directory
     , filepath
-    , megaparsec >=5
+    , megaparsec >=5 && < 5.1
     , mtl
     , mtl-compat
     , old-time

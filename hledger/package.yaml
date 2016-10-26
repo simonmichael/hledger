@@ -117,7 +117,7 @@ library:
   - mtl
   - mtl-compat
   - old-time
-  - megaparsec >=5
+  - megaparsec >=5 && < 5.1
   - regex-tdfa
   - safe >=0.2
   - split >=0.1 && <0.3

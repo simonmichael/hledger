@@ -52,7 +52,7 @@ dependencies:
 - deepseq
 - directory
 - filepath
-- megaparsec >=5
+- megaparsec >=5 && < 5.1
 - mtl
 - mtl-compat
 - old-time
