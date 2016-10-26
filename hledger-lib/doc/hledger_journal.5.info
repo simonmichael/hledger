@@ -4,8 +4,8 @@ version 4.8 from stdin.
 
 File: hledger_journal.5.info,  Node: Top,  Up: (dir)
 
-hledger_journal(5) hledger 0.28dev
-**********************************
+hledger_journal(5) hledger 1.0
+******************************
 
 hledger's usual data source is a plain text file containing journal
 entries in hledger journal format. This file represents a standard
@@ -788,8 +788,8 @@ end apply account
 apply account personal
 include personal.journal
 
-   Prior to hledger 0.28, legacy `account' and `end' spellings were
-also supported.
+   Prior to hledger 1.0, legacy `account' and `end' spellings were also
+supported.
 
 
 File: hledger_journal.5.info,  Node: Multi-line comments,  Next: commodity directive,  Prev: apply account directive,  Up: Directives
@@ -925,71 +925,71 @@ Text Wrangler     https://github.com/ledger/ledger/wiki/Editing-Ledger-files-wit
 
 Tag Table:
 Node: Top94
-Node: FILE FORMAT2292
-Ref: #file-format2418
-Node: Transactions2577
-Ref: #transactions2697
-Node: Dates3640
-Ref: #dates3768
-Node: Simple dates3833
-Ref: #simple-dates3961
-Node: Secondary dates4325
-Ref: #secondary-dates4481
-Node: Posting dates6041
-Ref: #posting-dates6172
-Node: Account names7543
-Ref: #account-names7682
-Node: Amounts8167
-Ref: #amounts8305
-Node: Virtual Postings10303
-Ref: #virtual-postings10464
-Node: Balance Assertions11684
-Ref: #balance-assertions11848
-Node: Assertions and ordering12670
-Ref: #assertions-and-ordering12855
-Node: Assertions and commodities13886
-Ref: #assertions-and-commodities14112
-Node: Assertions and subaccounts14804
-Ref: #assertions-and-subaccounts15038
-Node: Assertions and virtual postings15560
-Ref: #assertions-and-virtual-postings15769
-Node: Prices15910
-Ref: #prices16042
-Node: Transaction prices16093
-Ref: #transaction-prices16238
-Node: Market prices17845
-Ref: #market-prices17980
-Node: Comments18868
-Ref: #comments18990
-Node: Tags20102
-Ref: #tags20220
-Node: Directives21143
-Ref: #directives21258
-Node: Account aliases21451
-Ref: #account-aliases21597
-Node: Basic aliases22199
-Ref: #basic-aliases22344
-Node: Regex aliases23032
-Ref: #regex-aliases23202
-Node: Multiple aliases23972
-Ref: #multiple-aliases24146
-Node: end aliases24642
-Ref: #end-aliases24784
-Node: account directive24886
-Ref: #account-directive25068
-Node: apply account directive25364
-Ref: #apply-account-directive25562
-Node: Multi-line comments26223
-Ref: #multi-line-comments26415
-Node: commodity directive26542
-Ref: #commodity-directive26728
-Node: Default commodity27601
-Ref: #default-commodity27776
-Node: Default year28312
-Ref: #default-year28479
-Node: Including other files28902
-Ref: #including-other-files29061
-Node: EDITOR SUPPORT29457
-Ref: #editor-support29577
+Node: FILE FORMAT2284
+Ref: #file-format2410
+Node: Transactions2569
+Ref: #transactions2689
+Node: Dates3632
+Ref: #dates3760
+Node: Simple dates3825
+Ref: #simple-dates3953
+Node: Secondary dates4317
+Ref: #secondary-dates4473
+Node: Posting dates6033
+Ref: #posting-dates6164
+Node: Account names7535
+Ref: #account-names7674
+Node: Amounts8159
+Ref: #amounts8297
+Node: Virtual Postings10295
+Ref: #virtual-postings10456
+Node: Balance Assertions11676
+Ref: #balance-assertions11840
+Node: Assertions and ordering12662
+Ref: #assertions-and-ordering12847
+Node: Assertions and commodities13878
+Ref: #assertions-and-commodities14104
+Node: Assertions and subaccounts14796
+Ref: #assertions-and-subaccounts15030
+Node: Assertions and virtual postings15552
+Ref: #assertions-and-virtual-postings15761
+Node: Prices15902
+Ref: #prices16034
+Node: Transaction prices16085
+Ref: #transaction-prices16230
+Node: Market prices17837
+Ref: #market-prices17972
+Node: Comments18860
+Ref: #comments18982
+Node: Tags20094
+Ref: #tags20212
+Node: Directives21135
+Ref: #directives21250
+Node: Account aliases21443
+Ref: #account-aliases21589
+Node: Basic aliases22191
+Ref: #basic-aliases22336
+Node: Regex aliases23024
+Ref: #regex-aliases23194
+Node: Multiple aliases23964
+Ref: #multiple-aliases24138
+Node: end aliases24634
+Ref: #end-aliases24776
+Node: account directive24878
+Ref: #account-directive25060
+Node: apply account directive25356
+Ref: #apply-account-directive25554
+Node: Multi-line comments26214
+Ref: #multi-line-comments26406
+Node: commodity directive26533
+Ref: #commodity-directive26719
+Node: Default commodity27592
+Ref: #default-commodity27767
+Node: Default year28303
+Ref: #default-year28470
+Node: Including other files28893
+Ref: #including-other-files29052
+Node: EDITOR SUPPORT29448
+Ref: #editor-support29568
 
 End Tag Table

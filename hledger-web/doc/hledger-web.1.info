@@ -4,8 +4,8 @@ version 4.8 from stdin.
 
 File: hledger-web.1.info,  Node: Top,  Up: (dir)
 
-hledger-web(1) hledger-web 0.28dev
-**********************************
+hledger-web(1) hledger-web 1.0
+******************************
 
 hledger-web is hledger's web interface. It starts a simple web
 application for browsing and adding transactions, and optionally opens
@@ -186,11 +186,14 @@ before options as shown above.
      If the tag value is a multi:level:account:name the new account
      name will be "TAG:multi:level:account:name".
 
+`--anon'
+     show anonymized accounts and payees
+
 
 
 Tag Table:
 Node: Top90
-Node: OPTIONS3005
-Ref: #options3092
+Node: OPTIONS2997
+Ref: #options3084
 
 End Tag Table

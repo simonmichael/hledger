@@ -1,5 +1,5 @@
 name: hledger
-version: '0.28'
+version: '1.0'
 synopsis: Command-line interface for the hledger accounting tool
 description: |
   This is hledger's command-line interface.
@@ -80,7 +80,7 @@ ghc-options:
 - -fno-warn-type-defaults
 - -fno-warn-orphans
 library:
-  cpp-options: -DVERSION="0.28"
+  cpp-options: -DVERSION="1.0"
   exposed-modules:
   - Hledger.Cli
   - Hledger.Cli.Main
@@ -104,7 +104,7 @@ library:
   - Hledger.Cli.Stats
   - Text.Tabular.AsciiWide
   dependencies:
-  - hledger-lib ==0.28
+  - hledger-lib ==1.0
   - bytestring
   - containers
   - unordered-containers
@@ -152,10 +152,10 @@ executables:
   hledger:
     main: hledger-cli.hs
     source-dirs: app
-    cpp-options: -DVERSION="0.28"
+    cpp-options: -DVERSION="1.0"
     dependencies:
-    - hledger-lib ==0.28
-    - hledger ==0.28
+    - hledger-lib >= 1.0 && < 1.1
+    - hledger >= 1.0 && < 1.1
     - bytestring
     - containers
     - unordered-containers
@@ -203,9 +203,9 @@ tests:
   test:
     main: test.hs
     source-dirs: test
-    cpp-options: -DVERSION="0.28"
+    cpp-options: -DVERSION="1.0"
     dependencies:
-    - hledger-lib ==0.28
+    - hledger-lib ==1.0
     - hledger
     - bytestring
     - containers

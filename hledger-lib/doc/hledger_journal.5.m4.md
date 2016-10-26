@@ -622,7 +622,7 @@ apply account personal
 include personal.journal
 ```
 
-Prior to hledger 0.28, legacy `account` and `end` spellings were also supported.
+Prior to hledger 1.0, legacy `account` and `end` spellings were also supported.
 
 ### Multi-line comments
 

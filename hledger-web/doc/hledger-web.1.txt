@@ -184,6 +184,8 @@ OPTIONS
        tion.   If  the tag value is a multi:level:account:name the new account
        name will be "TAG:multi:level:account:name".
 
+       --anon show anonymized accounts and payees
+
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:
        ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
@@ -232,4 +234,4 @@ SEE ALSO
 
 
 
-hledger-web 0.28dev                May 2016                     hledger-web(1)
+hledger-web 1.0                  October 2016                   hledger-web(1)

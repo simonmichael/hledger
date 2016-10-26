@@ -137,6 +137,8 @@ OPTIONS
        tion.  If the tag value is a multi:level:account:name the  new  account
        name will be "TAG:multi:level:account:name".
 
+       --anon show anonymized accounts and payees
+
 KEYS
        ?  shows a help dialog listing all keys.  (Some of these also appear in
        the quick help at the bottom of each screen.) Press ? again (or ESCAPE,
@@ -346,4 +348,4 @@ SEE ALSO
 
 
 
-hledger-ui 0.28dev                 May 2016                      hledger-ui(1)
+hledger-ui 1.0                   October 2016                    hledger-ui(1)

@@ -4,8 +4,8 @@ This is hledger-ui/doc/hledger-ui.1.info, produced by makeinfo version
 
 File: hledger-ui.1.info,  Node: Top,  Up: (dir)
 
-hledger-ui(1) hledger-ui 0.28dev
-********************************
+hledger-ui(1) hledger-ui 1.0
+****************************
 
 hledger-ui is hledger's curses-style interface, providing an efficient
 full-window text UI for viewing accounts and transactions, and some
@@ -142,6 +142,9 @@ the data.
      happen if the TAG is on a posting, not if it is on the transaction.
      If the tag value is a multi:level:account:name the new account
      name will be "TAG:multi:level:account:name".
+
+`--anon'
+     show anonymized accounts and payees
 
 
 File: hledger-ui.1.info,  Node: KEYS,  Next: SCREENS,  Prev: OPTIONS,  Up: Top
@@ -346,19 +349,19 @@ to cancel the reload attempt.)
 
 Tag Table:
 Node: Top88
-Node: OPTIONS831
-Ref: #options930
-Node: KEYS3743
-Ref: #keys3840
-Node: SCREENS6241
-Ref: #screens6328
-Node: Accounts screen6418
-Ref: #accounts-screen6548
-Node: Register screen8586
-Ref: #register-screen8743
-Node: Transaction screen10631
-Ref: #transaction-screen10791
-Node: Error screen11658
-Ref: #error-screen11782
+Node: OPTIONS823
+Ref: #options922
+Node: KEYS3786
+Ref: #keys3883
+Node: SCREENS6284
+Ref: #screens6371
+Node: Accounts screen6461
+Ref: #accounts-screen6591
+Node: Register screen8629
+Ref: #register-screen8786
+Node: Transaction screen10674
+Ref: #transaction-screen10834
+Node: Error screen11701
+Ref: #error-screen11825
 
 End Tag Table

@@ -570,7 +570,7 @@ FILE FORMAT
               apply account personal
               include personal.journal
 
-       Prior to hledger 0.28, legacy account and end spellings were also  sup-
+       Prior to hledger 1.0, legacy account and end spellings were  also  sup-
        ported.
 
    Multi-line comments
@@ -697,4 +697,4 @@ SEE ALSO
 
 
 
-hledger 0.28dev                    May 2016                 hledger_journal(5)
+hledger 1.0                      October 2016               hledger_journal(5)

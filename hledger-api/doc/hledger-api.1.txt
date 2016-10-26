@@ -118,4 +118,4 @@ SEE ALSO
 
 
 
-hledger-api 0.28dev                May 2016                     hledger-api(1)
+hledger-api 1.0                  October 2016                   hledger-api(1)

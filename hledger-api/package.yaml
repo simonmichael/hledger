@@ -1,5 +1,5 @@
 name: hledger-api
-version: '0.28'
+version: '1.0'
 synopsis: Web API server for the hledger accounting tool
 description: |
   This is a simple web API server for hledger data.
@@ -27,8 +27,8 @@ data-files:
 - doc/hledger-api.1.txt
 - doc/hledger-api.1.info
 dependencies:
-- hledger-lib ==0.28
-- hledger ==0.28
+- hledger-lib >= 1.0 && < 1.1
+- hledger >= 1.0 && < 1.1
 - base >=4 && <5
 - aeson
 - bytestring
@@ -51,6 +51,6 @@ executables:
   hledger-api:
     main: hledger-api.hs
     ghc-options: -threaded
-    cpp-options: -DVERSION="0.28"
+    cpp-options: -DVERSION="1.0"
 stability: alpha
 tested-with: GHC==7.10.3, GHC==8.0

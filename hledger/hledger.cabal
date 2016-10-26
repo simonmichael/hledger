@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           hledger
-version:        0.28
+version:        1.0
 stability:      stable
 category:       Finance, Console
 synopsis:       Command-line interface for the hledger accounting tool
@@ -80,7 +80,7 @@ flag threaded
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="0.28"
+  cpp-options: -DVERSION="1.0"
   build-depends:
       base >=4.3 && <5
     , base-compat >=0.8.1
@@ -91,7 +91,7 @@ library
     , process
     , temporary
     , tabular >=0.2 && <0.3
-    , hledger-lib ==0.28
+    , hledger-lib ==1.0
     , bytestring
     , containers
     , unordered-containers
@@ -163,7 +163,7 @@ executable hledger
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="0.28"
+  cpp-options: -DVERSION="1.0"
   build-depends:
       base >=4.3 && <5
     , base-compat >=0.8.1
@@ -174,8 +174,8 @@ executable hledger
     , process
     , temporary
     , tabular >=0.2 && <0.3
-    , hledger-lib ==0.28
-    , hledger ==0.28
+    , hledger-lib >= 1.0 && < 1.1
+    , hledger >= 1.0 && < 1.1
     , bytestring
     , containers
     , unordered-containers
@@ -224,7 +224,7 @@ test-suite test
   hs-source-dirs:
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="0.28"
+  cpp-options: -DVERSION="1.0"
   build-depends:
       base >=4.3 && <5
     , base-compat >=0.8.1
@@ -235,7 +235,7 @@ test-suite test
     , process
     , temporary
     , tabular >=0.2 && <0.3
-    , hledger-lib ==0.28
+    , hledger-lib ==1.0
     , hledger
     , bytestring
     , containers
