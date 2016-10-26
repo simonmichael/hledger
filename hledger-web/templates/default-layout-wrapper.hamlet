@@ -25,9 +25,8 @@ $newline never
           document.hledgerWebBaseurl = '#{base_url_ opts}'; // save for binding keys later
 
     <body>
-        <div class="container">
-            <header>
-            <div id="outermain" role="main">
+        <div .container-fluid>
+            <div .row .row-offcanvas .row-offcanvas-left>
               ^{pageBody pc}
             <footer>
                 #{extraCopyright $ appExtra $ settings master}

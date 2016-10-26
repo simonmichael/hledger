@@ -6,7 +6,6 @@ module Handler.Common where
 
 import Import
 
-import Data.List
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
@@ -34,55 +33,49 @@ hledgerLayout vd title content = do
   defaultLayout $ do
       setTitle $ toHtml $ title ++ " - hledger-web"
       toWidget [hamlet|
-        <div#content>
-         $if showsidebar vd
-          <div#sidebar>
-           <div#sidebar-spacer>
-           <div#sidebar-body>
-            ^{sidebar vd}
-         $else
-          <div#sidebar style="display:none;">
-           <div#sidebar-spacer>
-           <div#sidebar-body>
-         <div#main>
-          ^{topbar vd}
-          <div#maincontent>
-           ^{searchform vd}
-           ^{content}
+         ^{topbar vd}
+         ^{sidebar vd}
+         <div #main-content .col-xs-12 .#{showmd} .#{showsm}>
+          ^{searchform vd}
+          ^{content}
       |]
+  where
+    showmd = if showsidebar vd then "col-md-8" else "col-md-12" :: String
+    showsm = if showsidebar vd then "col-sm-8" else "col-sm-12" :: String
 
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
 topbar VD{..} = [hamlet|
-<nav class="navbar" role="navigation">
- <div#topbar>
-  <h1>#{title}
+<div#spacer .#{showsm} .#{showmd} .col-xs-2>
+ <h1>
+  <button .visible-xs .btn .btn-default type="button" data-toggle="offcanvas">
+   <span .glyphicon .glyphicon-align-left .tgl-icon>
+<div#topbar .col-md-8 .col-sm-8 .col-xs-10>
+ <h1>#{title}
+
 |]
   where
     title = takeFileName $ journalFilePath j
+    showmd = if showsidebar then "col-md-4" else "col-any-0" :: String
+    showsm = if showsidebar then "col-sm-4" else "" :: String
 
 -- | The sidebar used on most views.
 sidebar :: ViewData -> HtmlUrl AppRoute
 sidebar vd@VD{..} =
  [hamlet|
- <a href=@{JournalR} title="Go back to top">
-  hledger-web
-
- <p>
- <!--
- <a#sidebartogglebtn role="button" style="cursor:pointer;" onclick="sidebarToggle()" title="Show/hide sidebar">
-  <span class="glyphicon glyphicon-expand"></span>
- -->
- <br>
- <div#sidebar-content>
-  <p style="margin-top:1em;">
-   <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first" style="white-space:nowrap;">Journal
-  <div#accounts style="margin-top:1em;">
+ <div #sidebar-menu .#{showmd} .#{showsm} .sidebar-offcanvas>
+  <table .main-menu .table>
+   <tr .#{journalcurrent}>
+    <td .top .acct>
+     <a href=@{JournalR} .#{journalcurrent} title="Show general journal entries, most recent first">Journal
+    <td .top>
    ^{accounts}
 |]
  where
-  journalcurrent = if here == JournalR then "current" else "" :: String
+  journalcurrent = if here == JournalR then "inacct" else "" :: String
   accounts = balanceReportAsHtml opts vd $ balanceReport (reportopts_ $ cliopts_ opts){empty_=True} am j
+  showmd = if showsidebar then "col-md-4" else "col-any-0" :: String
+  showsm = if showsidebar then "col-sm-4" else "" :: String
 
 -- -- | Navigation link, preserving parameters and possibly highlighted.
 -- navlink :: ViewData -> String -> AppRoute -> String -> HtmlUrl AppRoute
@@ -105,17 +98,18 @@ sidebar vd@VD{..} =
 -- | Search form for entering custom queries to filter journal data.
 searchform :: ViewData -> HtmlUrl AppRoute
 searchform VD{..} = [hamlet|
-<div#searchformdiv>
- <form#searchform.form method=GET>
-  <table width="100%">
-   <tr>
-    <td width="99%" style="position:relative;">
-     $if filtering
-      <a role=button .btn .close style="position:absolute; right:0; padding-right:.1em; padding-left:.1em; margin-right:.1em; margin-left:.1em; font-size:24px;" href="@{here}" title="Clear search terms">&times;
-     <input .form-control style="font-size:18px; padding-bottom:2px;" name=q value=#{q} title="Enter hledger search patterns to filter the data below">
-    <td width="1%" style="white-space:nowrap;">
-     <button .btn .btn-default style="font-size:18px;" type=submit title="Apply search terms">Search
-     <button .btn .btn-default style="font-size:18px;" type=button data-toggle="modal" data-target="#helpmodal" title="Show search and general help">?
+<div#searchformdiv .row>
+ <form#searchform .form-inline method=GET>
+  <div .form-group .col-md-12 .col-sm-12 .col-xs-12>
+    <div #searchbar .input-group>
+     <input .form-control name=q value=#{q} title="Enter hledger search patterns to filter the data below" placeholder="Search">
+     <div .input-group-btn>
+      $if filtering
+       <a href=@{here} .btn .btn-default title="Clear search terms">
+        <span .glyphicon .glyphicon-remove-circle>
+      <button .btn .btn-default type=submit title="Apply search terms">
+       <span .glyphicon .glyphicon-search>
+      <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal" title="Show search and general help">?
 |]
  where
   filtering = not $ null q
@@ -184,17 +178,12 @@ nulltemplate = [hamlet||]
 balanceReportAsHtml :: WebOpts -> ViewData -> BalanceReport -> HtmlUrl AppRoute
 balanceReportAsHtml _ vd@VD{..} (items',total) =
  [hamlet|
- <table.balancereport>
-  <tr>
-   <td>Account
-   <td style="padding-left:1em; text-align:right;">Balance
   $forall i <- items
    ^{itemAsHtml vd i}
-  <tr.totalrule>
-   <td colspan=2>
-  <tr>
+  <tr .total>
    <td>
-   <td.balance>#{mixedAmountAsHtml total}
+   <td>
+    #{mixedAmountAsHtml total}
 |]
  where
    l = ledgerFromJournal Any j
@@ -202,24 +191,20 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
    items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
    itemAsHtml :: ViewData -> BalanceReportItem -> HtmlUrl AppRoute
    itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
-<tr.item.#{inacctclass}>
- <td.account.#{depthclass}>
-  \#{indent}
-   <a href="@?{acctquery}" title="Show transactions affecting this account and subaccounts">#{adisplay}
-   <span.hoverlinks>
-    $if hassubs
-     &nbsp;
-     <a href="@?{acctonlyquery}" title="Show transactions affecting this account but not subaccounts">only
-
- <td.balance>#{mixedAmountAsHtml abal}
+<tr .#{inacctclass}>
+ <td .acct>
+  <div .ff-wrapper>
+   \#{indent}
+   <a href="@?{acctquery}" .#{inacctclass} title="Show transactions affecting this account and subaccounts">#{adisplay}
+   $if hassubs
+    <a href="@?{acctonlyquery}" .only .hidden-sm .hidden-xs title="Show transactions affecting this account but not subaccounts">only
+ <td>
+  #{mixedAmountAsHtml abal}
 |]
      where
        hassubs = not $ maybe False (null.asubs) $ ledgerAccount l acct
- -- <td.numpostings title="#{numpostings} transactions in this account">(#{numpostings})
-       -- numpostings = maybe 0 (length.apostings) $ ledgerAccount l acct
-       depthclass = "depth"++show aindent
        inacctclass = case inacctmatcher of
-                       Just m' -> if m' `matchesAccount` acct then "inacct" else "notinacct"
+                       Just m' -> if m' `matchesAccount` acct then "inacct" else ""
                        Nothing -> "" :: String
        indent = preEscapedString $ concat $ replicate (2 * (1+aindent)) "&nbsp;"
        acctquery = (RegisterR, [("q", T.pack $ accountQuery acct)])
@@ -252,8 +237,8 @@ numberTransactionsReportItems items = number 0 nulldate items
           (prevdy,prevdm,_) = toGregorian prevd
 
 mixedAmountAsHtml :: MixedAmount -> Html
-mixedAmountAsHtml b = preEscapedString $ addclass $ intercalate "<br>" $ lines $ showMixedAmountWithoutPrice b
-    where addclass = printf "<span class=\"%s\">%s</span>" (c :: String)
+mixedAmountAsHtml b = preEscapedString $ unlines $ map addclass $ lines $ showMixedAmountWithoutPrice b
+    where addclass = printf "<span class=\"%s\">%s</span><br/>" (c :: String)
           c = case isNegativeMixedAmount b of Just True -> "negative amount"
                                               _         -> "positive amount"
 

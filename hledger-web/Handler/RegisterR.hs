@@ -37,7 +37,7 @@ getRegisterR = do
                  s2 = if filtering then ", filtered" else ""
       maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
   hledgerLayout vd "register" [hamlet|
-       <h2#contenttitle>#{title}
+       <h2 #contenttitle>#{title}
        <!-- p>Transactions affecting this account, with running balance. -->
        ^{maincontent}
      |]
@@ -48,24 +48,27 @@ postRegisterR = postAddForm
 -- Generate html for an account register, including a balance chart and transaction list.
 registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 registerReportHtml opts vd r = [hamlet|
- ^{registerChartHtml $ transactionsReportByCommodity r}
+ <div .hidden-xs>
+  ^{registerChartHtml $ transactionsReportByCommodity r}
  ^{registerItemsHtml opts vd r}
 |]
 
 -- Generate html for a transaction list from an "TransactionsReport".
 registerItemsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 registerItemsHtml _ vd (balancelabel,items) = [hamlet|
-<table.registerreport>
- <tr.headings>
-  <th.date style="text-align:left;">
-   Date
-   <span .glyphicon .glyphicon-chevron-up>
-  <th.description style="text-align:left;">Description
-  <th.account style="text-align:left;">To/From Account(s)
-  <th.amount style="text-align:right; white-space:normal;">Amount Out/In
-  <th.balance style="text-align:right; white-space:normal;">#{balancelabel'}
- $forall i <- numberTransactionsReportItems items
-  ^{itemAsHtml vd i}
+<div .table-responsive>
+ <table.registerreport .table .table-striped .table-condensed>
+  <thead>
+   <tr>
+    <th style="text-align:left;">
+     Date
+     <span .glyphicon .glyphicon-chevron-up>
+    <th style="text-align:left;">Description
+    <th style="text-align:left;">To/From Account(s)
+    <th style="text-align:right; white-space:normal;">Amount Out/In
+    <th style="text-align:right; white-space:normal;">#{balancelabel'}
+  $forall i <- numberTransactionsReportItems items
+   ^{itemAsHtml vd i}
  |]
  where
    insomeacct = isJust $ inAccount $ qopts vd
@@ -76,14 +79,14 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
    itemAsHtml VD{..} (n, newd, newm, _, (torig, tacct, split, acct, amt, bal)) = [hamlet|
 
 <tr ##{tindex torig} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show torig}" style="vertical-align:top;">
- <td.date>
-  <a href="@{JournalR}##{tindex torig}">#{date}
- <td.description title="#{show torig}">#{textElideRight 30 desc}
- <td.account>#{elideRight 40 acct}
- <td.amount style="text-align:right; white-space:nowrap;">
+ <td .date>
+  <a href="@{JournalR}#transaction-#{tindex torig}">#{date}
+ <td .description title="#{show torig}">#{textElideRight 30 desc}
+ <td .account>#{elideRight 40 acct}
+ <td .amount style="text-align:right; white-space:nowrap;">
   $if showamt
    \#{mixedAmountAsHtml amt}
- <td.balance style="text-align:right;">#{mixedAmountAsHtml bal}
+ <td .balance style="text-align:right;">#{mixedAmountAsHtml bal}
 |]
 
      where
@@ -106,8 +109,8 @@ registerChartHtml percommoditytxnreports =
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  [hamlet|
-<label#register-chart-label style=""><br>
-<div#register-chart style="width:85%; height:150px; margin-bottom:1em; display:block;">
+<label #register-chart-label style=""><br>
+<div #register-chart style="height:150px; margin-bottom:1em; display:block;">
 <script type=text/javascript>
  \$(document).ready(function() {
    var $chartdiv = $('#register-chart');
