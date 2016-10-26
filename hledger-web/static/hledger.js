@@ -4,8 +4,6 @@
 // STARTUP
 
 $(document).ready(function() {
-  // format all amounts
-  $('span.amount').each(function(k,el){el.textContent=formatAmount(el.textContent);});
   // ensure add form always focusses its first field
   $('#addmodal')
     .on('shown.bs.modal', function (e) {
