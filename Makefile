@@ -90,14 +90,16 @@ PACKAGES=\
 	hledger-lib \
 	hledger \
 	hledger-ui \
-	hledger-web
+	hledger-web \
+	hledger-api \
 
 INCLUDEPATHS=\
 	-ihledger-lib \
 	-ihledger \
 	-ihledger-ui \
 	-ihledger-web \
-	-ihledger-web/app
+	-ihledger-web/app \
+	-ihledger-api \
 
 MAIN=hledger/app/hledger-cli.hs
 
