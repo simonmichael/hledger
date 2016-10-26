@@ -119,7 +119,8 @@ ul {
 #sidebar-menu .main-menu td {
     padding: 1px !important;
     border-top: 1px solid #ebebeb;
-    overflow: hidden;
+    overflow-y: hidden;
+    overflow-x: auto;
     white-space:nowrap;
     text-overflow:ellipsis;
     font-size: 16px;
@@ -179,12 +180,13 @@ ul {
 
 #sidebar-menu .main-menu .amount {
     float: right;
-    overflow-x:auto;
+    overflow-x: auto;
+    max-width:100%;
 	  font-weight: 500 !important;
 }
 
 #sidebar-menu .main-menu .acct {
-    width:60%;
+    max-width:100%;
     vertical-align:bottom;
 }
 
