@@ -13,8 +13,8 @@ packages:
 extra-deps:
 # for hledger-ui:
 - brick-0.8
-- text-zipper-0.4
-- vty-5.7.1
+- text-zipper-0.8.1
+- vty-5.11.3
 # for hledger-web:
 - wai-handler-launch-3.0.2.1
 
