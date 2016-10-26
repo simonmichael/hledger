@@ -147,6 +147,9 @@ m4_define({{_reportingoptions_}}, {{
 : will transform the journal before any other processing by replacing the account name of every posting having the tag TAG with content VALUE by the  account name "TAG:VALUE".
 : The TAG will only match if it is a full-length match. The pivot will only happen if the TAG is on a posting, not if it is on the transaction. If the tag value is a multi:level:account:name the new account name will be "TAG:multi:level:account:name".
 
+`--anon`
+: show anonymized accounts and payees
+
 }} )m4_dnl
 m4_dnl
 m4_define({{_hledgerdescription_}}, {{

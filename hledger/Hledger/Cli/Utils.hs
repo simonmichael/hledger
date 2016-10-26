@@ -23,12 +23,15 @@ module Hledger.Cli.Utils
     )
 where
 import Control.Exception as C
+import Data.Hashable (hash)
 import Data.List
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Time (Day)
+import Data.Word
+import Numeric
 import Safe (readMay)
 import System.Console.CmdArgs
 import System.Directory (getModificationTime, getDirectoryContents, copyFile)
@@ -73,7 +76,7 @@ withJournalDo opts cmd = do
   rulespath <- rulesFilePathFromOpts opts
   journalpaths <- journalFilePathFromOpts opts
   ej <- readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpaths
-  either error' (cmd opts . pivotByOpts opts . journalApplyAliases (aliasesFromOpts opts)) ej
+  either error' (cmd opts . pivotByOpts opts . anonymiseByOpts opts . journalApplyAliases (aliasesFromOpts opts)) ej
 
 -- | Apply the pivot transformation on a journal, if option is present.
 pivotByOpts :: CliOpts -> Journal -> Journal
@@ -91,6 +94,30 @@ pivot tag j = j{jtxns = map pivotTrans . jtxns $ j}
     | Just (_ , value) <- tagTuple = p{paccount = joinAccountNames tag value}
     | _                <- tagTuple = p
    where tagTuple = find ((tag ==) . fst) . ptags $ p
+
+-- | Apply the anonymisation transformation on a journal, if option is present
+anonymiseByOpts :: CliOpts -> Journal -> Journal
+anonymiseByOpts opts =
+  case maybestringopt "anon" . rawopts_ $ opts of
+    Just _  -> anonymise
+    Nothing -> id
+
+-- | Apply the anonymisation transformation on a journal
+anonymise :: Journal -> Journal
+anonymise j
+  = let
+      pAnons p = p { paccount = T.intercalate (T.pack ":") . map anon . T.splitOn (T.pack ":") . paccount $ p
+                   , pcomment = T.empty
+                   , ptransaction = fmap tAnons . ptransaction $ p
+                   }
+      tAnons txn = txn { tpostings = map pAnons . tpostings $ txn
+                       , tdescription = anon . tdescription $ txn
+                       , tcomment = T.empty
+                       }
+    in
+      j { jtxns = map tAnons . jtxns $ j }
+  where
+    anon = T.pack . flip showHex "" . (fromIntegral :: Int -> Word32) . hash
 
 -- | Write some output to stdout or to a file selected by --output-file.
 writeOutput :: CliOpts -> String -> IO ()
