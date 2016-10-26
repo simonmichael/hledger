@@ -1,5 +1,155 @@
-API-ish changes in hledger-lib.
-For user-visible changes, see hledger's change log.
+API-ish changes in the hledger-lib package.
+(For user-visible changes, see hledger's change log.)
+
+
+# 1.0 (2016/10/26)
+
+## timedot format
+
+-   new "timedot" format for retroactive/approximate time logging.
+
+    Timedot is a plain text format for logging dated, categorised
+    quantities (eg time), supported by hledger.  It is convenient
+    for approximate and retroactive time logging, eg when the
+    real-time clock-in/out required with a timeclock file is too
+    precise or too interruptive.  It can be formatted like a bar
+    chart, making clear at a glance where time was spent.
+
+## timeclock format
+
+-   renamed "timelog" format to "timeclock", matching the emacs package
+
+-   sessions can no longer span file boundaries (unclocked-out
+
+    sessions will be auto-closed at the end of the file).
+
+-   transaction ids now count up rather than down (#394)
+
+-   timeclock files no longer support default year directives
+
+-   removed old code for appending timeclock transactions to journal transactions.
+
+    A holdover from the days when both were allowed in one file.
+
+## csv format
+
+-   fix empty field assignment parsing, rule parse errors after megaparsec port (#407) (Hans-Peter Deifel)
+
+## journal format
+
+-   journal files can now include timeclock or timedot files (#320)
+
+    (but not yet CSV files).
+
+-   fixed an issue with ordering of same-date transactions included from other files
+
+-   the "commodity" directive and "format" subdirective are now supported, allowing
+
+    full control of commodity style (#295) The commodity directive's
+    format subdirective can now be used to override the inferred
+    style for a commodity, eg to increase or decrease the
+    precision. This is at least a good workaround for #295.
+
+-   Ledger-style "apply account"/"end apply account" directives are now used to set a default parent account.
+
+-   the Ledger-style "account" directive is now accepted (and ignored).
+
+-   bracketed posting dates are more robust (#304)
+
+    Bracketed posting dates were fragile; they worked only if you
+    wrote full 10-character dates. Also some semantics were a bit
+    unclear. Now they should be robust, and have been documented
+    more clearly. This is a legacy undocumented Ledger syntax, but
+    it improves compatibility and might be preferable to the more
+    verbose "date:" tags if you write posting dates often (as I do).
+    Internally, bracketed posting dates are no longer considered to
+    be tags.  Journal comment, tag, and posting date parsers have
+    been reworked, all with doctests.
+
+-   balance assertion failure messages are clearer
+
+-   with --debug=2, more detail about balance assertions is shown.
+
+## misc
+
+-   file parsers have been ported from Parsec to Megaparsec \o/ (#289, #366) (Alexey Shmalko, Moritz Kiefer)
+
+-   most hledger types have been converted from String to Text, reducing memory usage by 30%+ on large files and giving a slight speed increase
+
+-   file parsers have been simplified for easier troubleshooting (#275).
+
+    The journal/timeclock/timedot parsers, instead of constructing
+    opaque journal update functions which are later applied to build
+    the journal, now construct the journal directly by modifying the
+    parser state. This is easier to understand and debug. It also
+    rules out the possibility of journal updates being a space
+    leak. (They weren't, in fact this change increased memory usage
+    slightly, but that has been addressed in other ways).  The
+    ParsedJournal type alias has been added to distinguish
+    "being-parsed" journals and "finalised" journals.
+
+-   file format detection is more robust.
+
+    The Journal, Timelog and Timedot readers' detectors now check
+    each line in the sample data, not just the first one. I think the
+    sample data is only about 30 chars right now, but even so this
+    fixed a format detection issue I was seeing. 
+    Also, we now always try parsing stdin as journal format (not just sometimes).
+
+-   all file formats now produce transaction ids, not just journal (#394)
+
+-   git clone of the hledger repo on windows now works (#345)
+
+-   added missing benchmark file (#342)
+
+-   our stack.yaml files are more compatible across stack versions (#300)
+
+-   use newer file-embed to fix ghci working directory dependence (<https://github.com/snoyberg/file-embed/issues/18>)
+
+-   report more accurate dates in account transaction report when postings have their own dates
+
+    (affects hledger-ui and hledger-web registers).
+    The newly-named "transaction register date" is the date to be
+    displayed for that transaction in a transaction register, for
+    some current account and filter query.  It is either the
+    transaction date from the journal ("transaction general date"),
+    or if postings to the current account and matched by the
+    register's filter query have their own dates, the earliest of
+    those posting dates.
+
+-   simplify account transactions report's running total.
+
+    The account transactions report used for hledger-ui and -web
+    registers now gives either the "period total" or "historical
+    total", depending strictly on the --historical flag. It doesn't
+    try to indicate whether the historical total is the accurate
+    historical balance (which depends on the user's report query).
+
+-   reloading a file now preserves the effect of options, query arguments etc.
+
+-   reloading a journal should now reload all included files as well.
+
+-   the Hledger.Read.\* modules have been reorganised for better reuse.
+
+    Hledger.Read.Utils has been renamed Hledger.Read.Common
+    and holds low-level parsers & utilities; high-level read
+    utilities are now in Hledger.Read.
+
+-   clarify amount display style canonicalisation code and terminology a bit.
+
+    Individual amounts still have styles; from these we derive
+    the standard "commodity styles". In user docs, we might call
+    these "commodity formats" since they can be controlled by the
+    "format" subdirective in journal files.
+
+-   Journal is now a monoid
+
+-   expandPath now throws a proper IO error
+
+-   more unit tests, start using doctest
+
+
+
 
 0.27 (2015/10/30)
 

@@ -1,6 +1,113 @@
 User-visible changes in hledger-ui.
 See also hledger's change log.
 
+
+# 1.0 (2016/10/26)
+
+## accounts screen
+
+-   at depth 0, show accounts on one "All" line and show all transactions in the register
+
+-   0 now sets depth limit to 0 instead of clearing it
+
+-   always use --no-elide for a more regular accounts tree
+
+## register screen
+
+-   registers can now include/exclude subaccount transactions.
+
+    The register screen now includes subaccounts' transactions if the
+    accounts screen was in tree mode, or when showing an account
+    which was at the depth limit. Ie, it always shows the
+    transactions contributing to the balance displayed on the
+    accounts screen. As on the accounts screen, F toggles between
+    tree mode/subaccount txns included by default and flat
+    mode/subaccount txns excluded by default. (At least, it does when
+    it would make a difference.)
+
+-   register transactions are filtered by realness and status (#354).
+
+    Two fixes for the account transactions report when --real/--cleared/real:/status: 
+    are in effect, affecting hledger-ui and hledger-web:
+    
+    1.  exclude transactions which affect the current account via an excluded posting type.
+        Eg when --real is in effect, a transaction posting to the current account with only
+        virtual postings will not appear in the report.
+    
+    2.  when showing historical balances, don't count excluded posting types in the
+        starting balance. Eg with --real, the starting balance will be the sum of only the
+        non-virtual prior postings.
+        
+        This is complicated and there might be some ways to confuse it still, causing
+        wrongly included/excluded transactions or wrong historical balances/running totals
+        (transactions with both real and virtual postings to the current account, perhaps ?)
+
+-   show more accurate dates when postings have their own dates.
+
+    If postings to the register account matched by the register's
+    filter query have their own dates, we show the earliest of these
+    as the transaction date.
+
+## misc
+
+-   H toggles between showing "historical" or "period" balances (#392).
+
+    By default hledger-ui now shows historical balances, which
+    include transactions before the report start date (like hledger
+    balance --historical). Use the H key to toggle to "period" mode,
+    where balances start from 0 on the report start date.
+
+-   shift arrow keys allow quick period browsing
+
+    -   shift-down narrows to the next smaller standard period
+        (year/quarter/month/week/day), shift-up does the reverse
+    -   when narrowed to a standard period, shift-right/left moves to
+        the next/previous period
+    -   \`t\` sets the period to today.
+
+-   a runs the add command
+
+-   E runs $HLEDGER_UI_EDITOR or $EDITOR or a default editor (vi) on the journal file.
+
+    When using emacs or vi, if a transaction is selected the cursor will be positioned at its journal entry.
+
+-   / key sets the filter query; BACKSPACE/DELETE clears it
+
+-   Z toggles display of zero items (like --empty), and they are shown by default.
+
+    -E/--empty is now the default for hledger-ui, so accounts with 0 balance
+    and transactions posting 0 change are shown by default.  The Z key
+    toggles this, entering "nonzero" mode which hides zero items.
+
+-   R toggles inclusion of only real (non-virtual) postings
+
+-   U toggles inclusion of only uncleared transactions/postings
+
+-   I toggles balance assertions checking, useful for troubleshooting
+
+-   vi-style movement keys are now supported (for help, you must now use ? not h) (#357)
+
+-   ESC cancels minibuffer/help or clears the filter query and jumps to top screen
+
+-   ENTER has been reserved for later use
+
+-   reloading now preserves any options and modes in effect
+
+-   reloading on the error screen now updates the message rather than entering a new error screen
+
+-   the help dialog is more detailed, includes the hledger-ui manual, and uses the full terminal width if needed
+
+-   the header/footer content is more efficient; historical/period and tree/flat modes are now indicated in the footer
+
+-   date: query args on the command line now affect the report period.
+
+    A date2: arg or --date2 flag might also affect it (untested).
+
+-   hledger-ui now uses the quicker-building microlens
+
+
+
+
 0.27.3 (2016/1/12)
 
 - allow brick 0.4

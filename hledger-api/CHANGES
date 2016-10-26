@@ -1,3 +1,11 @@
 User-visible changes in hledger-api.
 See also hledger's change log.
 
+
+# 1.0 (2016/10/26)
+
+## misc
+
+-   new hledger-api tool: a simple web API server with example clients (#316)
+
+-   start an Angular-based API example client (#316) (Thomas R. Koll)

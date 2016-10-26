@@ -1,6 +1,53 @@
 User-visible changes in hledger-web.
 See also hledger's change log.
 
+
+# 1.0 (2016/10/26)
+
+## ui
+
+-   show the sidebar by default (#310)
+
+-   fix the add link's tooltip
+
+-   when the add form opens, focus the first field (#338)
+
+-   leave the add form's date field blank, avoiding a problem with tab clearing it (#322)
+
+-   use transaction id instead of date in transaction urls (#308) (Thomas R. Koll)
+
+-   after following a link to a transaction, highlight it (Thomas R. Koll)
+
+-   misc. HTML/CSS/file cleanups/fixes (Thomas R. Koll)
+
+-   added .btn-default for consistent button styling across browsers (#418) (Dominik Süß)
+
+## misc
+
+-   startup is more robust (#226).
+
+    Now we exit if something is already using the specified port,
+    and we don't open a browser page before the app is ready.
+
+-   termination is more robust, avoiding stray background threads.
+
+    We terminate the server thread more carefully on exit, eg on control-C in GHCI.
+
+-   more robust register dates and filtering in some situations (see hledger-ui notes)
+
+-   reloading the journal preserves options, arguments in effect (#314).
+
+    The initial query specified by command line arguments is now preserved
+    when the journal is reloaded. This does not appear in the web UI, it's
+    like an invisible extra filter.
+
+-   show a proper not found page on 404
+
+-   document the special \`inacct:\` query (#390)
+
+
+
+
 0.27 (2015/10/30)
 
 - Fix keyboard shortcut for adding a transaction (Carlos Lopez-Camey)

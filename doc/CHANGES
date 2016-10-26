@@ -1,6 +1,87 @@
-Miscellaneous changes in the hledger project, as of each release.
+Project-wide changes in the hledger project. 
+See also the package change logs.
 
-(For package-specific changes, see the package changelogs.)
+
+# 1.0 (2016/10/26)
+
+## misc
+
+-   added GHC 8 support, dropped GHC 7.6 and 7.8 support.
+
+    GHC 7.8 support could be restored with small code changes and a maintainer.
+
+-   a cabal.project file has been added (Moritz Kiefer)
+
+-   use hpack for maintaining cabal files (#371).
+
+    Instead of editing cabal files directly, we now edit the less
+    verbose and less redundant package.yaml files and let stack (or
+    hpack) update the cabal files. We commit both the .yaml and
+    .cabal files.
+
+-   clean up some old cabal flags
+
+-   tools/simplebench has been spun off as the quickbench package.
+
+-   add Appveyor CI builds, provide up-to-date binaries for Windows
+
+-   extra: add a bunch of CSV rules examples
+
+## docs
+
+-   the website is simpler, clearer, and more mobile-friendly.
+
+    Docs are now collected on a single page and organised by type: getting started, reference, more.
+
+-   reference docs have been split into one manual for each executable and file format.
+
+    This helps with maintenance and packaging and also should make it
+    easier to see what's available and to read just what you need.
+
+-   manuals are now provided in html, plain text, man and info formats
+
+    generated from the same source by a new Shake-based docs build system. (#292)
+
+-   versioned manuals are provided on the website, covering recent releases and the latest dev version (#385, #387)
+
+-   manuals are built in to the hledger executables, allowing easy offline reading on all platforms.
+
+        PROG -h              shows PROG's command-line usage
+        PROG --help          shows PROG's manual (fixed width)
+        PROG --man           shows PROG's manual with man (formatted/paged)
+        PROG --info          shows PROG's manual with info (hypertext)
+        hledger help [TOPIC] shows any manual
+        hledger man  [TOPIC] shows any manual with man
+        hledger info [TOPIC] shows any manual with info
+
+-   the general and reporting options are now listed in all executable manuals.
+
+    We assume any of them which are unsupported are harmlessly ignored.
+
+-   demo.hledger.org is using beancount's example journal.
+
+    This is the somewhat realistic example journal from the beancount
+    project, tweaked for hledger.
+
+-   minor copyedits (jungle-boogie)
+
+## cli
+
+-   parsing multiple input files is now robust.
+
+    When multiple -f options are provided, we now parse each file
+    individually rather than just concatenating them, so they can
+    have different formats (#320).  Note this also means that
+    directives (like \`Y\` or \`alias\`) no longer carry over from one
+    file to the next.
+
+-   -I has been added as the short flag for --ignore-assertions
+
+    (this is different from Ledger's CLI, but useful for hledger-ui).
+
+-   parsing an argument-less --debug option is more robust
+
+
 
 0.27 (2015/10/31)
 

@@ -1,4 +1,61 @@
-User-visible changes in hledger and hledger-lib.
+User-visible changes in the hledger and hledger-lib packages.
+
+
+# 1.0 (2016/10/26)
+
+## add
+
+-   suggest only one commodity at a time as default amount (#383)
+
+    (since we currently can't input more than one at a time)
+
+## balance
+
+-   added --change flag for consistency
+
+-   -H/--historical now also affects single-column balance reports with a start date (#392).
+
+    This has the same effect as just omitting the start date, but adds consistency.
+
+-   in CSV output, render amounts in one-line format (#336)
+
+## balancesheet
+
+-   fix an infinite loop (#393)
+
+## print
+
+-   in CSV output, fix and rename the transaction id field
+
+## register
+
+-   fix a sorting regression with --date2 (#326)
+
+-   --average/-A is now affected by --historical/-H
+
+-   added --cumulative flag for consistency
+
+-   in CSV output, include the transaction id and rename the total field (#391)
+
+## stats
+
+-   fixed an issue with ordering of include files
+
+## misc
+
+-   --pivot option added, groups postings by tag instead of account (#323) (Malte Brandy)
+
+-   try to clarify balance/register's various report modes,
+
+    kinds of "balance" displayed, and related options and language.
+
+-   with multiple --change/--cumulative/--historical flags, use the last one instead of complaining
+
+-   don't add the "d" suffix when displaying day periods
+
+-   stack-ify extra/hledger-rewrite.hs
+
+
 
 
 0.27 (2015/10/30)

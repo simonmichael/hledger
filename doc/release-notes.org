@@ -1,9 +1,13 @@
 # -*- mode:org -*-
-
 #+OPTIONS: num:0
 
-* 2016/mm/dd 0.28
-** general
+Since 1.0, this is the master source for package and project change logs
+({hledger*,doc}/CHANGES) and web release notes (site/release-notes.md).
+In principle, only this file should be edited directly; after 1.0 perhaps
+those others will be generated fully automatically.
+
+* 2016/10/26 1.0
+** project-wide changes
 *** misc
 **** added GHC 8 support, dropped GHC 7.6 and 7.8 support.
      GHC 7.8 support could be restored with small code changes and a maintainer.
@@ -55,7 +59,7 @@
 
 **** parsing an argument-less --debug option is more robust
 
-** hledger-lib 0.28
+** hledger-lib 1.0
 *** timedot format
 **** new "timedot" format for retroactive/approximate time logging.
      Timedot is a plain text format for logging dated, categorised
@@ -152,7 +156,7 @@
 **** Journal is now a monoid
 **** expandPath now throws a proper IO error
 **** more unit tests, start using doctest
-** hledger 0.28
+** hledger 1.0
 *** add
 **** suggest only one commodity at a time as default amount (#383)
      (since we currently can't input more than one at a time)
@@ -179,7 +183,7 @@
 **** with multiple --change/--cumulative/--historical flags, use the last one instead of complaining
 **** don't add the "d" suffix when displaying day periods
 **** stack-ify extra/hledger-rewrite.hs
-** hledger-ui 0.28
+** hledger-ui 1.0
 *** accounts screen
 **** at depth 0, show accounts on one "All" line and show all transactions in the register
 **** 0 now sets depth limit to 0 instead of clearing it
@@ -248,7 +252,7 @@
 **** date: query args on the command line now affect the report period.
      A date2: arg or --date2 flag might also affect it (untested).
 **** hledger-ui now uses the quicker-building microlens
-** hledger-web 0.28
+** hledger-web 1.0
 *** ui
 **** show the sidebar by default (#310)
 **** fix the add link's tooltip
@@ -271,7 +275,7 @@
      like an invisible extra filter.
 **** show a proper not found page on 404
 **** document the special `inacct:` query (#390)
-** hledger-api 0.28
+** hledger-api 1.0
 *** misc
 **** new hledger-api tool: a simple web API server with example clients (#316)
 **** start an Angular-based API example client (#316) (Thomas R. Koll)
