@@ -12,4 +12,4 @@ packages:
 
 extra-deps:
 - brick-0.8
-- megaparsec-5.0.1
+- megaparsec-5.1.2
