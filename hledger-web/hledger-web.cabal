@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           hledger-web
-version:        1.0
+version:        1.0.1
 stability:      stable
 category:       Finance
 synopsis:       Web interface for the hledger accounting tool
@@ -125,10 +125,10 @@ flag threaded
 
 library
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-    cpp-options: -DVERSION="1.0"
+    cpp-options: -DVERSION="1.0.1"
     build-depends:
-          hledger-lib >= 1.0 && < 1.1
-        , hledger >= 1.0 && < 1.1
+          hledger-lib >= 1.0.1
+        , hledger >= 1.0.1
         , base >=4 && <5
         , base-compat >=0.8.1
         , blaze-html
@@ -199,10 +199,10 @@ executable hledger-web
     hs-source-dirs:
           app
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-    cpp-options: -DVERSION="1.0"
+    cpp-options: -DVERSION="1.0.1"
     build-depends:
-          hledger-lib >= 1.0 && < 1.1
-        , hledger >= 1.0 && < 1.1
+          hledger-lib >= 1.0.1
+        , hledger >= 1.0.1
         , base >=4 && <5
         , base-compat >=0.8.1
         , blaze-html
@@ -234,7 +234,7 @@ executable hledger-web
         , yesod-static
         , json
         , parsec >=3
-        , hledger-web == 1.0
+        , hledger-web == 1.0.1
     if flag(library-only)
         buildable: False
     if flag(threaded)
@@ -264,10 +264,10 @@ test-suite test
     hs-source-dirs:
           tests
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-    cpp-options: -DVERSION="1.0"
+    cpp-options: -DVERSION="1.0.1"
     build-depends:
-          hledger-lib >= 1.0 && < 1.1
-        , hledger >= 1.0 && < 1.1
+          hledger-lib >= 1.0.1
+        , hledger >= 1.0.1
         , base >=4 && <5
         , base-compat >=0.8.1
         , blaze-html

@@ -1,5 +1,5 @@
 name: hledger-lib
-version: '1.0'
+version: '1.0.1'
 synopsis: Core data types, parsers and functionality for the hledger accounting tools
 description: |
   This is a reusable library containing hledger's core functionality.
