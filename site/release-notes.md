@@ -127,11 +127,11 @@ h4 { margin-top:2em; }
     directives (like \`Y\` or \`alias\`) no longer carry over from one
     file to the next.
 
--   I has been added as the short flag for &#x2013;ignore-assertions
+-   I has been added as the short flag for --ignore-assertions
 
     (this is different from Ledger's CLI, but useful for hledger-ui).
 
--   parsing an argument-less &#x2013;debug option is more robust
+-   parsing an argument-less --debug option is more robust
 
 ### hledger-lib 1.0
 
@@ -199,7 +199,7 @@ h4 { margin-top:2em; }
 
 -   balance assertion failure messages are clearer
 
--   with &#x2013;debug=2, more detail about balance assertions is shown.
+-   with --debug=2, more detail about balance assertions is shown.
 
 #### misc
 
@@ -252,7 +252,7 @@ h4 { margin-top:2em; }
 
     The account transactions report used for hledger-ui and -web
     registers now gives either the "period total" or "historical
-    total", depending strictly on the &#x2013;historical flag. It doesn't
+    total", depending strictly on the --historical flag. It doesn't
     try to indicate whether the historical total is the accurate
     historical balance (which depends on the user's report query).
 
@@ -289,9 +289,9 @@ h4 { margin-top:2em; }
 
 #### balance
 
--   added &#x2013;change flag for consistency
+-   added --change flag for consistency
 
--   H/&#x2013;historical now also affects single-column balance reports with a start date (#392).
+-   H/--historical now also affects single-column balance reports with a start date (#392).
 
     This has the same effect as just omitting the start date, but adds consistency.
 
@@ -307,11 +307,11 @@ h4 { margin-top:2em; }
 
 #### register
 
--   fix a sorting regression with &#x2013;date2 (#326)
+-   fix a sorting regression with --date2 (#326)
 
--   &#x2013;average/-A is now affected by &#x2013;historical/-H
+-   --average/-A is now affected by --historical/-H
 
--   added &#x2013;cumulative flag for consistency
+-   added --cumulative flag for consistency
 
 -   in CSV output, include the transaction id and rename the total field (#391)
 
@@ -321,13 +321,17 @@ h4 { margin-top:2em; }
 
 #### misc
 
--   &#x2013;pivot option added, groups postings by tag instead of account (#323) (Malte Brandy)
+-   --pivot option added, groups postings by tag instead of account (#323) (Malte Brandy)
+
+-   --anon option added, obfuscates account names and descriptions (#265) (Brian Scott)
+
+    (Only affects the hledger tool, for now.)
 
 -   try to clarify balance/register's various report modes,
 
     kinds of "balance" displayed, and related options and language.
 
--   with multiple &#x2013;change/&#x2013;cumulative/&#x2013;historical flags, use the last one instead of complaining
+-   with multiple --change/--cumulative/--historical flags, use the last one instead of complaining
 
 -   don't add the "d" suffix when displaying day periods
 
@@ -341,7 +345,7 @@ h4 { margin-top:2em; }
 
 -   0 now sets depth limit to 0 instead of clearing it
 
--   always use &#x2013;no-elide for a more regular accounts tree
+-   always use --no-elide for a more regular accounts tree
 
 #### register screen
 
@@ -358,15 +362,15 @@ h4 { margin-top:2em; }
 
 -   register transactions are filtered by realness and status (#354).
 
-    Two fixes for the account transactions report when &#x2013;real/&#x2013;cleared/real:/status: 
+    Two fixes for the account transactions report when --real/--cleared/real:/status: 
     are in effect, affecting hledger-ui and hledger-web:
     
     1.  exclude transactions which affect the current account via an excluded posting type.
-        Eg when &#x2013;real is in effect, a transaction posting to the current account with only
+        Eg when --real is in effect, a transaction posting to the current account with only
         virtual postings will not appear in the report.
     
     2.  when showing historical balances, don't count excluded posting types in the
-        starting balance. Eg with &#x2013;real, the starting balance will be the sum of only the
+        starting balance. Eg with --real, the starting balance will be the sum of only the
         non-virtual prior postings.
         
         This is complicated and there might be some ways to confuse it still, causing
@@ -385,7 +389,7 @@ h4 { margin-top:2em; }
 
     By default hledger-ui now shows historical balances, which
     include transactions before the report start date (like hledger
-    balance &#x2013;historical). Use the H key to toggle to "period" mode,
+    balance --historical). Use the H key to toggle to "period" mode,
     where balances start from 0 on the report start date.
 
 -   shift arrow keys allow quick period browsing
@@ -404,9 +408,9 @@ h4 { margin-top:2em; }
 
 -   / key sets the filter query; BACKSPACE/DELETE clears it
 
--   Z toggles display of zero items (like &#x2013;empty), and they are shown by default.
+-   Z toggles display of zero items (like --empty), and they are shown by default.
 
-    -E/&#x2013;empty is now the default for hledger-ui, so accounts with 0 balance
+    -E/--empty is now the default for hledger-ui, so accounts with 0 balance
     and transactions posting 0 change are shown by default.  The Z key
     toggles this, entering "nonzero" mode which hides zero items.
 
@@ -432,13 +436,15 @@ h4 { margin-top:2em; }
 
 -   date: query args on the command line now affect the report period.
 
-    A date2: arg or &#x2013;date2 flag might also affect it (untested).
+    A date2: arg or --date2 flag might also affect it (untested).
 
 -   hledger-ui now uses the quicker-building microlens
 
 ### hledger-web 1.0
 
 #### ui
+
+-   use full width on large screens, hide sidebar on small screens, more standard bootstrap styling (#418, #422) (Dominik Süß)
 
 -   show the sidebar by default (#310)
 
@@ -453,8 +459,6 @@ h4 { margin-top:2em; }
 -   after following a link to a transaction, highlight it (Thomas R. Koll)
 
 -   misc. HTML/CSS/file cleanups/fixes (Thomas R. Koll)
-
--   added .btn-default for consistent button styling across browsers (#418) (Dominik Süß)
 
 #### misc
 

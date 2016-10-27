@@ -1,10 +1,12 @@
 User-visible changes in hledger-web.
-See also hledger's change log.
+See also the hledger and the project change logs.
 
 
 # 1.0 (2016/10/26)
 
 ## ui
+
+-   use full width on large screens, hide sidebar on small screens, more standard bootstrap styling (#418, #422) (Dominik Süß)
 
 -   show the sidebar by default (#310)
 
@@ -19,8 +21,6 @@ See also hledger's change log.
 -   after following a link to a transaction, highlight it (Thomas R. Koll)
 
 -   misc. HTML/CSS/file cleanups/fixes (Thomas R. Koll)
-
--   added .btn-default for consistent button styling across browsers (#418) (Dominik Süß)
 
 ## misc
 

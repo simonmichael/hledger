@@ -1,4 +1,5 @@
 User-visible changes in the hledger and hledger-lib packages.
+See also the project change log.
 
 
 # 1.0 (2016/10/26)
@@ -44,6 +45,10 @@ User-visible changes in the hledger and hledger-lib packages.
 ## misc
 
 -   --pivot option added, groups postings by tag instead of account (#323) (Malte Brandy)
+
+-   --anon option added, obfuscates account names and descriptions (#265) (Brian Scott)
+
+    (Only affects the hledger tool, for now.)
 
 -   try to clarify balance/register's various report modes,
 

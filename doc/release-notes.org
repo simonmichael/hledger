@@ -178,6 +178,8 @@ those others will be generated fully automatically.
 **** fixed an issue with ordering of include files
 *** misc
 **** --pivot option added, groups postings by tag instead of account (#323) (Malte Brandy)
+**** --anon option added, obfuscates account names and descriptions (#265) (Brian Scott)
+     (Only affects the hledger tool, for now.)
 **** try to clarify balance/register's various report modes,
      kinds of "balance" displayed, and related options and language.
 **** with multiple --change/--cumulative/--historical flags, use the last one instead of complaining
@@ -254,6 +256,7 @@ those others will be generated fully automatically.
 **** hledger-ui now uses the quicker-building microlens
 ** hledger-web 1.0
 *** ui
+**** use full width on large screens, hide sidebar on small screens, more standard bootstrap styling (#418, #422) (Dominik Süß)
 **** show the sidebar by default (#310)
 **** fix the add link's tooltip
 **** when the add form opens, focus the first field (#338)
@@ -261,7 +264,6 @@ those others will be generated fully automatically.
 **** use transaction id instead of date in transaction urls (#308) (Thomas R. Koll)
 **** after following a link to a transaction, highlight it (Thomas R. Koll)
 **** misc. HTML/CSS/file cleanups/fixes (Thomas R. Koll)
-**** added .btn-default for consistent button styling across browsers (#418) (Dominik Süß)
 *** misc
 **** startup is more robust (#226).
      Now we exit if something is already using the specified port,
