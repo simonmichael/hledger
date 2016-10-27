@@ -81,9 +81,11 @@ debugLevel = case snd $ break (=="--debug") args of
       args = unsafePerformIO getArgs
 
 -- | Convenience aliases for tracePrettyAt.
--- Pretty-print a message and the showable value to the console, then return it.
-dbg :: Show a => String -> a -> a
-dbg = tracePrettyAt 0
+
+-- Always pretty-print a message and the showable value to the console, then return it.
+-- ("dbg" without the 0 clashes with megaparsec 5.1).
+dbg0 :: Show a => String -> a -> a
+dbg0 = tracePrettyAt 0
 
 -- | Pretty-print a message and the showable value to the console when the debug level is >= 1, then return it. Uses unsafePerformIO.
 dbg1 :: Show a => String -> a -> a
@@ -212,7 +214,7 @@ dbgppshow level
 
 -- | Like dbg, then exit the program. Uses unsafePerformIO.
 dbgExit :: Show a => String -> a -> a
-dbgExit msg = const (unsafePerformIO exitFailure) . dbg msg
+dbgExit msg = const (unsafePerformIO exitFailure) . dbg0 msg
 
 -- | Print a message and parsec debug info (parse position and next
 -- input) to the console when the debug level is at or above

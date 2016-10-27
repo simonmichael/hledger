@@ -119,7 +119,7 @@ library:
   - Settings.Development
   - Settings.StaticFiles
   dependencies:
-  - megaparsec >=5 && < 5.1
+  - megaparsec >=5.0 && < 5.2
   - mtl
   when:
   - condition: (flag(dev)) || (flag(library-only))
