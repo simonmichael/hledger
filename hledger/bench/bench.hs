@@ -24,10 +24,14 @@ main = do
  -- withArgs ["--criterion"] $ do
   args <- getArgs
   if "--criterion" `elem` args
-    then withArgs [] benchWithCriterion
-    else if "--quickbench" `elem` args
-         then benchWithQuickbench
-         else benchWithTimeit
+  then
+    withArgs [] benchWithCriterion
+  else
+--     if "--quickbench" `elem` args
+--     then
+--       benchWithQuickbench
+--     else
+      benchWithTimeit
 
 benchWithTimeit = do
   getCurrentDirectory >>= printf "Benchmarking hledger in %s with timeit\n"
@@ -57,13 +61,13 @@ benchWithCriterion = do
     bench ("stats")            $ nfIO $ stats    opts j
     ]
 
-benchWithQuickbench = do
-  let whichcmd = if os == "mingw32" then "where" else "which"
-  exe <- init <$> readProcess whichcmd ["hledger"] ""
-  pwd <- getCurrentDirectory
-  printf "Benchmarking %s in %s with quickbench and shell\n" exe pwd
-  flip withArgs QuickBench.defaultMain [
-     "-fbench/default.bench"
-    ,"-v"
-    ,"hledger"
-    ] 
+-- benchWithQuickbench = do
+--   let whichcmd = if os == "mingw32" then "where" else "which"
+--   exe <- init <$> readProcess whichcmd ["hledger"] ""
+--   pwd <- getCurrentDirectory
+--   printf "Benchmarking %s in %s with quickbench and shell\n" exe pwd
+--   flip withArgs QuickBench.defaultMain [
+--      "-fbench/default.bench"
+--     ,"-v"
+--     ,"hledger"
+--     ]
