@@ -122,7 +122,7 @@ helpHandle ui ev =
     ui' = setMode Normal ui
 
 -- | Draw the minibuffer.
-minibuffer :: Editor Name -> Widget Name
+minibuffer :: Editor String Name -> Widget Name
 minibuffer ed =
   forceAttr (borderAttr <> "minibuffer") $
   hBox $

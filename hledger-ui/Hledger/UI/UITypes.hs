@@ -50,8 +50,8 @@ import Text.Show.Functions ()
 import Hledger
 import Hledger.UI.UIOptions
 
-instance Show (List n a) where show _ = "<List>"
-instance Show (Editor n) where show _ = "<Editor>"
+instance Show (List n e) where show _ = "<List>"
+instance Show (Editor l n) where show _ = "<Editor>"
 
 -- | hledger-ui's application state. This holds one or more stateful screens.
 -- As you navigate through screens, the old ones are saved in a stack.
@@ -70,11 +70,11 @@ data UIState = UIState {
 data Mode =
     Normal
   | Help
-  | Minibuffer (Editor Name)
+  | Minibuffer (Editor String Name)
   deriving (Show,Eq)
 
 -- Ignore the editor when comparing Modes.
-instance Eq (Editor n) where _ == _ = True
+instance Eq (Editor l n) where _ == _ = True
 
 -- Unique names required for widgets, viewports, cursor locations etc.
 data Name =
