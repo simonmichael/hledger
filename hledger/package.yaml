@@ -104,7 +104,7 @@ library:
   - Hledger.Cli.Stats
   - Text.Tabular.AsciiWide
   dependencies:
-  - hledger-lib ==1.0.1
+  - hledger-lib >= 1.0.1 && < 1.1
   - bytestring
   - containers
   - unordered-containers
@@ -154,8 +154,8 @@ executables:
     source-dirs: app
     cpp-options: -DVERSION="1.0.1"
     dependencies:
-    - hledger-lib >= 1.0.1
-    - hledger >= 1.0.1
+    - hledger-lib >= 1.0.1 && < 1.1
+    - hledger == 1.0.1
     - bytestring
     - containers
     - unordered-containers
@@ -205,8 +205,8 @@ tests:
     source-dirs: test
     cpp-options: -DVERSION="1.0.1"
     dependencies:
-    - hledger-lib ==1.0.1
-    - hledger
+    - hledger-lib >= 1.0.1 && < 1.1
+    - hledger == 1.0.1
     - bytestring
     - containers
     - unordered-containers
@@ -255,8 +255,8 @@ benchmarks:
     main: bench.hs
     source-dirs: bench
     dependencies:
-    - hledger-lib
-    - hledger
+    - hledger-lib >= 1.0.1 && < 1.1
+    - hledger == 1.0.1
     - criterion
     - html
     - timeit

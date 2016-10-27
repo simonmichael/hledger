@@ -60,8 +60,8 @@ flags:
     manual: false
     default: false
 dependencies:
-- hledger-lib >= 1.0.1
-- hledger >= 1.0.1
+- hledger-lib >= 1.0.1 && < 1.1
+- hledger >= 1.0.1 && < 1.1
 - base >=4 && <5
 - base-compat >=0.8.1
 - blaze-html
@@ -169,7 +169,7 @@ tests:
     source-dirs: tests
     cpp-options: -DVERSION="1.0.1"
     dependencies:
-    - hledger-web
+    - hledger-web == 1.0.1
     - hspec
     - yesod-test
     when:

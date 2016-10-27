@@ -127,8 +127,8 @@ library
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
     cpp-options: -DVERSION="1.0.1"
     build-depends:
-          hledger-lib >= 1.0.1
-        , hledger >= 1.0.1
+          hledger-lib >= 1.0.1 && < 1.1
+        , hledger >= 1.0.1 && < 1.1
         , base >=4 && <5
         , base-compat >=0.8.1
         , blaze-html
@@ -201,8 +201,8 @@ executable hledger-web
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
     cpp-options: -DVERSION="1.0.1"
     build-depends:
-          hledger-lib >= 1.0.1
-        , hledger >= 1.0.1
+          hledger-lib >= 1.0.1 && < 1.1
+        , hledger >= 1.0.1 && < 1.1
         , base >=4 && <5
         , base-compat >=0.8.1
         , blaze-html
@@ -266,8 +266,8 @@ test-suite test
     ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
     cpp-options: -DVERSION="1.0.1"
     build-depends:
-          hledger-lib >= 1.0.1
-        , hledger >= 1.0.1
+          hledger-lib >= 1.0.1 && < 1.1
+        , hledger >= 1.0.1 && < 1.1
         , base >=4 && <5
         , base-compat >=0.8.1
         , blaze-html
@@ -298,7 +298,7 @@ test-suite test
         , yesod-form
         , yesod-static
         , json
-        , hledger-web
+        , hledger-web == 1.0.1
         , hspec
         , yesod-test
     if flag(oldtime)
