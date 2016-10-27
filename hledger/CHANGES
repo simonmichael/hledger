@@ -2,6 +2,13 @@ User-visible changes in the hledger and hledger-lib packages.
 See also the project change log.
 
 
+# 1.0.1 (2016/10/27)
+
+- allow megaparsec 5.0 or 5.1
+
+- fix benchmark build failure (#423)
+
+
 # 1.0 (2016/10/26)
 
 ## add

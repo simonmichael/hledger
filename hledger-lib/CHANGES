@@ -2,6 +2,11 @@ API-ish changes in the hledger-lib package.
 See also the hledger and project change logs (for user-visible changes).
 
 
+# 1.0.1 (2016/10/27)
+
+- allow megaparsec 5.0 or 5.1
+
+
 # 1.0 (2016/10/26)
 
 ## timedot format

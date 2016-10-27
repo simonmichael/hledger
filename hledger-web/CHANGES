@@ -2,6 +2,11 @@ User-visible changes in hledger-web.
 See also the hledger and the project change logs.
 
 
+# 1.0.1 (2016/10/27)
+
+- allow megaparsec 5.0 or 5.1
+
+
 # 1.0 (2016/10/26)
 
 ## ui
