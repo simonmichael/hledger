@@ -6,6 +6,9 @@ Since 1.0, this is the master source for package and project change logs
 In principle, only this file should be edited directly; after 1.0 perhaps
 those others will be generated fully automatically.
 
+* 2016/10/27 1.0.2
+** hledger-ui 1.0.2
+*** use latest brick 0.11
 * 2016/10/27 1.0.1
 ** project-wide changes
 *** change log/release note fixes
