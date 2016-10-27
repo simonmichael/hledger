@@ -1,7 +1,7 @@
 # Last-tested stack build plan using GHC 8.0.
 # Older/newer snapshots in this series will likely work also.
 
-resolver: lts-7.4
+resolver: lts-7.5
 
 packages:
 - hledger-lib
