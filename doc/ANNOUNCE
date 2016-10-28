@@ -1,30 +1,91 @@
-I'm pleased to announce hledger 0.27!
+Attention, attention hledger-folk! Once again, Happy Hallowe'en. After
+almost 10 years of steady development, I am very pleased to announce:
+hledger's 1.0 release!
 
-hledger is a cross-platform program for tracking money, time, or any
-other commodity, using double-entry accounting and a simple, editable
-file format.  It can also read CSV or timelog files, and export CSV.
-It provides command-line, curses and web interfaces, and aims to be a
-reliable, practical tool for daily use.  It is inspired by and largely
-compatible with ledger(1).
+     _     _          _                   _   ___    _ 
+    | |__ | | ___  __| | __ _  ___ _ __  / | / _ \  | |
+    | '_ \| |/ _ \/ _` |/ _` |/ _ \ '__| | || | | | | |
+    | | | | |  __/ (_| | (_| |  __/ |    | || |_| | |_|
+    |_| |_|_|\___|\__,_|\__, |\___|_|    |_(_)___/  (_)
+                        |___/                          
 
-This release introduces hledger-ui, a new curses-style interface that
-I'm quite pleased with (not yet available on Windows). Built on vty
-and the new brick library, it lets you review account balances and
-transactions with fewer keystrokes and less effort.
+About the project: hledger is a cross-platform program for tracking
+money, time, or any other commodity using double-entry accounting and
+a simple plain text file format. Inspired by Ledger CLI, hledger
+provides command-line, curses and web interfaces, and aims to be a
+reliable, practical tool for daily use.
 
-Also, we can now report current value based on market prices (hurrah);
-wide characters are displayed properly; regular expression account
-aliases are fast; and unix man pages are provided. You can see all
-changes at http://hledger.org/release-notes#hledger-0.27 .
+Contributors to this release, one year in the making, include: 
+Simon Michael, Dominik Süß, Thomas R. Koll, Moritz Kiefer,
+jungle-boogie, Sergei Trofimovich, Malte Brandy, Sam Doshi, 
+Mitchell Rosen, Hans-Peter Deifel, Brian Scott, and Andrew Jones.
 
-Release contributors: 
-Simon Michael,
-Carlos Lopez-Camey.
+Notable changes since 0.27:
 
-hledger can be installed with cabal or stack; see
-http://hledger.org/download .
-If you'd like to contribute Windows or Mac binaries, please get in
-touch.
+- the hledger.org website is simpler, clearer, and more
+  mobile-friendly
 
-Happy Hallowe'en!
+- docs have been reorganized, with more focussed manuals available in
+  multiple versions, formats and as built-in help
+
+- we support the latest GHC (8 and 7.10), stackage snapshots, and
+  libs.  (GHC 7.8 and 7.6 support are not currently supported,
+  maintainers welcome.)
+
+- hledger has migrated from parsec to megaparsec and from String to
+  Text, parsers have been simplified, memory usage is ~30% less on
+  large files, speed is slightly improved all around
+
+- --pivot (group by arbitrary tag instead of account) and --anon
+  (obfuscate account names) are now supported
+
+- hledger-ui has acquired many new features making it more useful
+  (file editing, filtering, historical/period modes, quick period
+  browsing..)
+
+- hledger-web is more robust and more mobile-friendly
+
+- hledger-api, a simple web API server, has been added
+
+- a new "timedot" file format allows retroactive/approximate time
+  logging
+
+- the project continues to grow. A call for help was sent out last
+  month, and contributor activity is increasing
+
+- the website http://plaintextaccounting.org was created as a portal
+  and knowledge base for hledger, Ledger, beancount and related tools
+  and practices.
+
+For full release notes see http://hledger.org/release-notes#hledger-1.0
+
+How to install hledger:
+
+See http://hledger.org/download for all links and install options,
+including Windows binaries. For example,
+
+$ stack install hledger [hledger-ui] [hledger-web] [hledger-api]
+$ ~/.local/bin/hledger --version
+
+or:
+
+$ cabal sandbox init
+$ cabal install hledger [hledger-ui] [hledger-web] [hledger-api]
+$ .cabal-sandbox/bin/hledger --version
+
+or:
+
+$ apt install hledger [hledger-ui] [hledger-web] [hledger-api]
+$ hledger --version
+
+or:
+
+$ brew install hledger
+$ hledger --version
+
+
+I hope you enjoy these tools and resources, and find them helpful in
+achieving your goals. If you like hledger, your participation and
+support is welcome. Onward and upward!
+
 -Simon
