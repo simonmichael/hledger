@@ -4,8 +4,9 @@
 6a7,12
 > <div class="versions">
 > This doc is for version **0.27**.
-> Other versions:
-> <a href="/manual.html">0.28dev</a>
+> Available versions:
+> <a href="/manual.html">1.0</a>
+> | <a href="doc/0.27/manual.html">0.27</a>
 > </div>
 > 
 2198a2207,2208

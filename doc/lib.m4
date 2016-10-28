@@ -17,7 +17,7 @@ m4_dnl
 m4_define({{_versions_}},
 <div class="versions">
 This doc is for version **_version_**.
-Other versions:
+Available versions:
 <a href="$1.html">_version_</a>
 | <a href="doc/0.27/manual.html{{#}}$1">0.27</a>
 </div>)m4_dnl

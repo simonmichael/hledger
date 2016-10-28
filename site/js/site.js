@@ -6,15 +6,16 @@ function highlightDocVersion() {
   $('.versions').each( function() {
     var parts = window.location.pathname.split('/');
     var dir = parts.length > 1 ? parts[parts.length-2] : '';
-    var ver = $.isNumeric(dir) ? dir : '0.28dev';
+    var ver = $.isNumeric(dir) ? dir : '1.0';
     $(this).find('a').each( function() {
       if ($(this).html() == ver)
         $(this)
-        .removeAttr('href')
-        .css('text-decoration', 'none')
-        .css('color', 'initial')
-        // .css('font-weight','bold');
-        .hide()
+        // .removeAttr('href')
+        // .css('text-decoration', 'none')
+        // .css('color', 'initial')
+        .css('font-weight','bold')
+        // .hide()
+        ;
     });
   });
 }
