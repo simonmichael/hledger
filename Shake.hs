@@ -3,54 +3,61 @@
    --package base-prelude
    --package directory
    --package extra
-   --package here
+   --package pandoc
    --package safe
    --package shake
    --package time
-   --package pandoc
 -}
 {-
-Usage: see below.
-Shake.hs is a more powerful Makefile, providing a number of commands
-for performing useful tasks. Compiling this script is suggested, so that
-it runs quicker and will not be affected eg when exploring old code versions.
-More about Shake: http://shakebuild.com/manual
-Requires: https://www.haskell.org/downloads#stack
+One of two project scripts files (Makefile, Shake.hs).
+This one provides a stronger programming language and more
+platform independence than Make. It will build needed packages (above)
+on first run and whenever the resolver in stack.yaml changes.
+To minimise such startup delays, and reduce sensitivity to git checkout,
+compiling is recommended: ./Shake.hs compile
 
-Shake notes:
- wishlist:
-  just one shake import
-  wildcards in phony rules
-  multiple individually accessible wildcards
-  not having to write :: Action ExitCode after a non-final cmd
+It requires stack (https://haskell-lang.org/get-started) and
+auto-installs the packages above. Also, some rules require:
+- groff
+- m4
+- makeinfo
+- site/hakyll-std/hakyll-std
+
+Usage: see below.
+
+Shake wishes:
+just one shake import
+wildcards in phony rules
+multiple individually accessible wildcards
+not having to write :: Action ExitCode after a non-final cmd
 -}
 
-{-# LANGUAGE PackageImports, QuasiQuotes #-}
-
+{-# LANGUAGE PackageImports #-}
 import                Prelude ()
 import "base-prelude" BasePrelude
--- import "base"         System.Console.GetOpt
 import "extra"        Data.List.Extra
-import "here"         Data.String.Here
 import "safe"         Safe
 import "shake"        Development.Shake
 import "shake"        Development.Shake.FilePath
 import "time"         Data.Time
 import "directory"    System.Directory as S (getDirectoryContents)
 
-usage = [i|Usage:
- ./Shake.hs compile       # compile this script (optional)
- ./Shake --help           # show options, eg --color
- ./Shake                  # show commands
- ./Shake all              # generate everything
- ./Shake docs             # generate general docs
- ./Shake website          # generate the web site
- ./Shake manpages         # generate nroff files for man
- ./Shake txtmanpages      # generate text man pages for embedding
- ./Shake infomanpages     # generate info files for info
- ./Shake webmanpages      # generate web man pages for hakyll
- ./Shake webmanual        # generate combined web man page for hakyll
-|]
+usage = unlines
+  ["Usage:"
+  ,"./Shake.hs compile       # compile this script (recommended)"
+  ,"./Shake                  # show commands"
+  ,"./Shake all              # generate everything"
+  ,"./Shake docs             # generate general docs"
+  ,"./Shake website          # generate the web site"
+  ,"./Shake manpages         # generate nroff files for man"
+  ,"./Shake txtmanpages      # generate text man pages for embedding"
+  ,"./Shake infomanpages     # generate info files for info"
+  ,"./Shake webmanpages      # generate web man pages for hakyll"
+  ,"./Shake webmanual        # generate combined web man page for hakyll"
+  ,"./Shake clean            # clean generated files"
+  ,"./Shake Clean            # clean harder"
+  ,"./Shake --help           # show options, eg --color"
+  ]
 
 pandoc = "pandoc"                   -- pandoc from PATH (faster)
          --  "stack exec -- pandoc" -- pandoc from project's stackage snapshot
@@ -80,7 +87,7 @@ main = do
     "Shake" %> \out -> do
       need [out <.> "hs"]
       cmd "stack ghc Shake.hs" :: Action ExitCode
-      putLoud "Compiled ./Shake, you can now use this instead of ./Shake.hs"
+      putLoud "You can now run ./Shake instead of ./Shake.hs"
 
     phony "all" $ need ["docs", "website"]
 
@@ -191,7 +198,7 @@ main = do
     -- web site
 
     phony "website" $ do
-      need $ 
+      need $
         webmanpages ++
         [webmanual
         ,"releasemanual"
@@ -226,7 +233,7 @@ main = do
     -- adjust and combine man page mds for single-page web output, using pandoc
     phony "webmanual" $ need [ webmanual ]
 
-    webmanual %> \out -> do 
+    webmanual %> \out -> do
       need webmanpages
       liftIO $ writeFile webmanual "* toc\n\n"
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md

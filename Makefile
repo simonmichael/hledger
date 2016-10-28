@@ -1,24 +1,20 @@
-###############################################################################
-# hledger project makefile
-#
-# This is a reboot of Makefile.old. The old rules are commented out below,
+# One of two project scripts files (Makefile, Shake.hs).
+# This one is usually the simplest to use.
+# It requires GNU Make (https://www.gnu.org/software/make/).
+# Also, some rules require:
+# - stack (http://haskell-lang.org/get-started, installs libs and runs ghc)
+# - shelltestrunner (hackage, runs functional tests)
+# - quickbench (hackage/stackage, runs benchmarks)
+# - hasktags (hackage, generates tag files for code navigation)
+# - profiteur (hackage/stackage, renders profiles as html)
+# - hpack (hackage/stackage, generates cabal files from package.yaml files)
+# - site/hakyll-std/hakyll-std (generic site-building hakyll script)
+# - perl
+
+# This was a reboot of Makefile.old. The old rules were commented out below,
 # to be removed or updated over the next while.
 #
-# Users of this makefile: hledger developers, contributors, probably not end-users.
-#
-# Every user-relevant rule in this makefile should use def-help to define
-# a help string. Use "make help" to see the available rules.
-#
-# Supplementary tools used:
-#
-# - stack, installs dependencies and drives cabal & ghc
-# - shelltestrunner (latest version from hackage or possibly git), runs functional tests
-# - quickbench (from git), runs benchmarks
-# - hasktags, generates tag files for code navigation
-# - profiteur, renders profiles as interactive html
-# - hpack, generates cabal files from package.yaml files
-# - hakyll-std, my generic site-building hakyll script
-# - perl, currently used by a few rules (setversion)
+# Target users: hledger developers, contributors, probably not end-users.
 #
 # Kinds of hledger builds:
 #
@@ -33,6 +29,9 @@
 # This makefile mostly uses stack to get things done (slow but robust).
 # Secondarily it uses ghc directly to do some developer tasks (faster).
 # # Also if needed it uses cabal directly for a few tasks.
+#
+# Every user-relevant rule in this makefile should use def-help to define
+# a help string. Use "make help" to see the available rules.
 
 # def-help* functions for documenting make rules. See the file for usage.
 include help-system.mk
