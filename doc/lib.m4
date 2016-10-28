@@ -8,7 +8,6 @@ m4_define({{_webcombined_}}, m4_ifdef({{WEB && COMBINED}},{{$1}}) )m4_dnl
 m4_dnl
 m4_define({{_author_}}, {{}})m4_dnl
 m4_define({{_monthyear_}}, {{October 2016}})m4_dnl
-m4_define({{_currentrelease_}}, {{1.0}})m4_dnl
 m4_define({{_version_}}, {{1.0}})m4_dnl
 m4_dnl
 m4_dnl Links to dev and recent release versions of a manual.
@@ -20,7 +19,7 @@ m4_define({{_versions_}},
 This doc is for version **_version_**.
 Other versions:
 <a href="$1.html">_version_</a>
-| <a href="doc/_currentrelease_()/manual.html{{#}}$1">_currentrelease_()</a>
+| <a href="doc/0.27/manual.html{{#}}$1">0.27</a>
 </div>)m4_dnl
 m4_dnl
 m4_define({{_toc_}}, {{* toc}})m4_dnl
