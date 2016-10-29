@@ -83,9 +83,9 @@ h4 { margin-top:2em; }
 
 -   clean up some old cabal flags
 
--   tools/simplebench has been spun off as the quickbench package.
+-   tools/simplebench has been spun off as the [quickbench](http://hackage.haskell.org/package/quickbench) package.
 
--   add Appveyor CI builds, provide up-to-date binaries for Windows
+-   add Appveyor CI builds, provide [more up-to-date Windows binaries](http://hledger.org/developer-guide.html#quick-links)
 
 -   extra: add a bunch of CSV rules examples
 
