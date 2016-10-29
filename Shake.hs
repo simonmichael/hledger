@@ -271,8 +271,6 @@ main = do
 
     phony "Clean" $ do
       need ["clean"]
-      putNormal "Cleaning generated man page nroffs"
-      removeFilesAfter "." nroffmanpages
       putNormal "Cleaning all hakyll generated files"
       removeFilesAfter "site" ["_*"]
       putNormal "Cleaning executables"
