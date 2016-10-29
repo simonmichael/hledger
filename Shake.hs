@@ -35,7 +35,8 @@ multiple individually accessible wildcards
 not having to write :: Action ExitCode after a non-final cmd
 -}
 
-{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE PackageImports, ScopedTypeVariables #-}
+
 import                Prelude ()
 import "base-prelude" BasePrelude
 import "extra"        Data.List.Extra
@@ -263,8 +264,19 @@ main = do
     hakyllstd %> \out -> do
       let dir = takeDirectory out
       need [out <.> "hs", dir </> "TableOfContents.hs"] -- XXX hard-coded dep
-      unit $ cmd (Cwd dir) "./hakyll-std.hs --version"  -- ensure libs are up to date
-      cmd (Cwd dir) "stack ghc hakyll-std"              -- compile for speed
+      -- install libs via shebang line
+      -- XXX 2016/10/29 why has this started giving
+      -- "./hakyll-std.hs: createProcess: runInteractiveProcess: exec: does not exist (No such file or directory))"
+      unit $ liftIO $
+        cmd (Cwd dir) "./hakyll-std.hs --version"
+        `catch` (\(e::IOException) -> putStr $ unlines $
+          ["I could not run ./hakyll-std.hs in "++dir++" to install Hakyll."
+          ,"If you see a hakyll-std build error after this, please do it manually:"
+          ,"$ (cd site/hakyll-std; ./hakyll-std.hs --version)"
+          ,"and try again."
+          ])
+      -- compile
+      cmd (Cwd dir) "stack ghc hakyll-std"
 
     -- cleanup
 
