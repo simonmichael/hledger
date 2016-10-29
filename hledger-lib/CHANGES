@@ -79,7 +79,7 @@ See also the hledger and project change logs (for user-visible changes).
 
 -   file parsers have been ported from Parsec to Megaparsec \o/ (#289, #366) (Alexey Shmalko, Moritz Kiefer)
 
--   most hledger types have been converted from String to Text, reducing memory usage by 30%+ on large files and giving a slight speed increase
+-   most hledger types have been converted from String to Text, reducing memory usage by 30%+ on large files
 
 -   file parsers have been simplified for easier troubleshooting (#275).
 

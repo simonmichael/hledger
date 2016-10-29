@@ -56,10 +56,9 @@ change logs.
 
 ***More hledger-ui features, 
 better hledger-web layout,
-new web API server, 
+new hledger-api server, 
 new timedot format, 
 --pivot & --anon, 
-performance improvements,
 reorganized multi-format docs,
 built-in help. 
 ***
@@ -229,7 +228,7 @@ Mitchell Rosen, Hans-Peter Deifel, Brian Scott, and Andrew Jones.
 
 -   file parsers have been ported from Parsec to Megaparsec \o/ ([#289](http://bugs.hledger.org/289), [#366](http://bugs.hledger.org/366)) (Alexey Shmalko, Moritz Kiefer)
 
--   most hledger types have been converted from String to Text, reducing memory usage by 30%+ on large files and giving a slight speed increase
+-   most hledger types have been converted from String to Text, reducing memory usage by 30%+ on large files
 
 -   file parsers have been simplified for easier troubleshooting ([#275](http://bugs.hledger.org/275)).
 
