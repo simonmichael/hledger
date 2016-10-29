@@ -71,7 +71,7 @@ h4 { margin-top:2em; }
 
 -   a cabal.project file has been added (Moritz Kiefer)
 
--   use hpack for maintaining cabal files (#371).
+-   use hpack for maintaining cabal files ([#371](http://bugs.hledger.org/371)).
 
     Instead of editing cabal files directly, we now edit the less
     verbose and less redundant package.yaml files and let stack (or
@@ -99,9 +99,9 @@ h4 { margin-top:2em; }
 
 -   manuals are now provided in html, plain text, man and info formats
 
-    generated from the same source by a new Shake-based docs build system. (#292)
+    generated from the same source by a new Shake-based docs build system. ([#292](http://bugs.hledger.org/292))
 
--   versioned manuals are provided on the website, covering recent releases and the latest dev version (#385, #387)
+-   versioned manuals are provided on the website, covering recent releases and the latest dev version ([#385](http://bugs.hledger.org/385), [#387](http://bugs.hledger.org/387))
 
 -   manuals are built in to the hledger executables, allowing easy offline reading on all platforms.
 
@@ -130,7 +130,7 @@ h4 { margin-top:2em; }
 
     When multiple -f options are provided, we now parse each file
     individually rather than just concatenating them, so they can
-    have different formats (#320).  Note this also means that
+    have different formats ([#320](http://bugs.hledger.org/320)).  Note this also means that
     directives (like \`Y\` or \`alias\`) no longer carry over from one
     file to the next.
 
@@ -161,7 +161,7 @@ h4 { margin-top:2em; }
 
     sessions will be auto-closed at the end of the file).
 
--   transaction ids now count up rather than down (#394)
+-   transaction ids now count up rather than down ([#394](http://bugs.hledger.org/394))
 
 -   timeclock files no longer support default year directives
 
@@ -171,11 +171,11 @@ h4 { margin-top:2em; }
 
 #### csv format
 
--   fix empty field assignment parsing, rule parse errors after megaparsec port (#407) (Hans-Peter Deifel)
+-   fix empty field assignment parsing, rule parse errors after megaparsec port ([#407](http://bugs.hledger.org/407)) (Hans-Peter Deifel)
 
 #### journal format
 
--   journal files can now include timeclock or timedot files (#320)
+-   journal files can now include timeclock or timedot files ([#320](http://bugs.hledger.org/320))
 
     (but not yet CSV files).
 
@@ -183,16 +183,16 @@ h4 { margin-top:2em; }
 
 -   the "commodity" directive and "format" subdirective are now supported, allowing
 
-    full control of commodity style (#295) The commodity directive's
+    full control of commodity style ([#295](http://bugs.hledger.org/295)) The commodity directive's
     format subdirective can now be used to override the inferred
     style for a commodity, eg to increase or decrease the
-    precision. This is at least a good workaround for #295.
+    precision. This is at least a good workaround for [#295](http://bugs.hledger.org/295).
 
 -   Ledger-style "apply account"/"end apply account" directives are now used to set a default parent account.
 
 -   the Ledger-style "account" directive is now accepted (and ignored).
 
--   bracketed posting dates are more robust (#304)
+-   bracketed posting dates are more robust ([#304](http://bugs.hledger.org/304))
 
     Bracketed posting dates were fragile; they worked only if you
     wrote full 10-character dates. Also some semantics were a bit
@@ -210,11 +210,11 @@ h4 { margin-top:2em; }
 
 #### misc
 
--   file parsers have been ported from Parsec to Megaparsec \o/ (#289, #366) (Alexey Shmalko, Moritz Kiefer)
+-   file parsers have been ported from Parsec to Megaparsec \o/ ([#289](http://bugs.hledger.org/289), [#366](http://bugs.hledger.org/366)) (Alexey Shmalko, Moritz Kiefer)
 
 -   most hledger types have been converted from String to Text, reducing memory usage by 30%+ on large files and giving a slight speed increase
 
--   file parsers have been simplified for easier troubleshooting (#275).
+-   file parsers have been simplified for easier troubleshooting ([#275](http://bugs.hledger.org/275)).
 
     The journal/timeclock/timedot parsers, instead of constructing
     opaque journal update functions which are later applied to build
@@ -234,15 +234,15 @@ h4 { margin-top:2em; }
     fixed a format detection issue I was seeing. 
     Also, we now always try parsing stdin as journal format (not just sometimes).
 
--   all file formats now produce transaction ids, not just journal (#394)
+-   all file formats now produce transaction ids, not just journal ([#394](http://bugs.hledger.org/394))
 
--   git clone of the hledger repo on windows now works (#345)
+-   git clone of the hledger repo on windows now works ([#345](http://bugs.hledger.org/345))
 
--   added missing benchmark file (#342)
+-   added missing benchmark file ([#342](http://bugs.hledger.org/342))
 
--   our stack.yaml files are more compatible across stack versions (#300)
+-   our stack.yaml files are more compatible across stack versions ([#300](http://bugs.hledger.org/300))
 
--   use newer file-embed to fix ghci working directory dependence (<https://github.com/snoyberg/file-embed/issues/18>)
+-   use [newer file-embed](https://github.com/snoyberg/file-embed/issues/18) to fix ghci working directory dependence
 
 -   report more accurate dates in account transaction report when postings have their own dates
 
@@ -290,7 +290,7 @@ h4 { margin-top:2em; }
 
 #### add
 
--   suggest only one commodity at a time as default amount (#383)
+-   suggest only one commodity at a time as default amount ([#383](http://bugs.hledger.org/383))
 
     (since we currently can't input more than one at a time)
 
@@ -298,15 +298,15 @@ h4 { margin-top:2em; }
 
 -   added --change flag for consistency
 
--   H/--historical now also affects single-column balance reports with a start date (#392).
+-   H/--historical now also affects single-column balance reports with a start date ([#392](http://bugs.hledger.org/392)).
 
     This has the same effect as just omitting the start date, but adds consistency.
 
--   in CSV output, render amounts in one-line format (#336)
+-   in CSV output, render amounts in one-line format ([#336](http://bugs.hledger.org/336))
 
 #### balancesheet
 
--   fix an infinite loop (#393)
+-   fix an infinite loop ([#393](http://bugs.hledger.org/393))
 
 #### print
 
@@ -314,13 +314,13 @@ h4 { margin-top:2em; }
 
 #### register
 
--   fix a sorting regression with --date2 (#326)
+-   fix a sorting regression with --date2 ([#326](http://bugs.hledger.org/326))
 
 -   --average/-A is now affected by --historical/-H
 
 -   added --cumulative flag for consistency
 
--   in CSV output, include the transaction id and rename the total field (#391)
+-   in CSV output, include the transaction id and rename the total field ([#391](http://bugs.hledger.org/391))
 
 #### stats
 
@@ -328,9 +328,9 @@ h4 { margin-top:2em; }
 
 #### misc
 
--   --pivot option added, groups postings by tag instead of account (#323) (Malte Brandy)
+-   --pivot option added, groups postings by tag instead of account ([#323](http://bugs.hledger.org/323)) (Malte Brandy)
 
--   --anon option added, obfuscates account names and descriptions (#265) (Brian Scott)
+-   --anon option added, obfuscates account names and descriptions ([#265](http://bugs.hledger.org/265)) (Brian Scott)
 
     (Only affects the hledger tool, for now.)
 
@@ -367,7 +367,7 @@ h4 { margin-top:2em; }
     mode/subaccount txns excluded by default. (At least, it does when
     it would make a difference.)
 
--   register transactions are filtered by realness and status (#354).
+-   register transactions are filtered by realness and status ([#354](http://bugs.hledger.org/354)).
 
     Two fixes for the account transactions report when --real/--cleared/real:/status: 
     are in effect, affecting hledger-ui and hledger-web:
@@ -392,7 +392,7 @@ h4 { margin-top:2em; }
 
 #### misc
 
--   H toggles between showing "historical" or "period" balances (#392).
+-   H toggles between showing "historical" or "period" balances ([#392](http://bugs.hledger.org/392)).
 
     By default hledger-ui now shows historical balances, which
     include transactions before the report start date (like hledger
@@ -427,7 +427,7 @@ h4 { margin-top:2em; }
 
 -   I toggles balance assertions checking, useful for troubleshooting
 
--   vi-style movement keys are now supported (for help, you must now use ? not h) (#357)
+-   vi-style movement keys are now supported (for help, you must now use ? not h) ([#357](http://bugs.hledger.org/357))
 
 -   ESC cancels minibuffer/help or clears the filter query and jumps to top screen
 
@@ -451,17 +451,17 @@ h4 { margin-top:2em; }
 
 #### ui
 
--   use full width on large screens, hide sidebar on small screens, more standard bootstrap styling (#418, #422) (Dominik Süß)
+-   use full width on large screens, hide sidebar on small screens, more standard bootstrap styling ([#418](http://bugs.hledger.org/418), [#422](http://bugs.hledger.org/422)) (Dominik Süß)
 
--   show the sidebar by default (#310)
+-   show the sidebar by default ([#310](http://bugs.hledger.org/310))
 
 -   fix the add link's tooltip
 
--   when the add form opens, focus the first field (#338)
+-   when the add form opens, focus the first field ([#338](http://bugs.hledger.org/338))
 
--   leave the add form's date field blank, avoiding a problem with tab clearing it (#322)
+-   leave the add form's date field blank, avoiding a problem with tab clearing it ([#322](http://bugs.hledger.org/322))
 
--   use transaction id instead of date in transaction urls (#308) (Thomas R. Koll)
+-   use transaction id instead of date in transaction urls ([#308](http://bugs.hledger.org/308)) (Thomas R. Koll)
 
 -   after following a link to a transaction, highlight it (Thomas R. Koll)
 
@@ -469,7 +469,7 @@ h4 { margin-top:2em; }
 
 #### misc
 
--   startup is more robust (#226).
+-   startup is more robust ([#226](http://bugs.hledger.org/226)).
 
     Now we exit if something is already using the specified port,
     and we don't open a browser page before the app is ready.
@@ -480,7 +480,7 @@ h4 { margin-top:2em; }
 
 -   more robust register dates and filtering in some situations (see hledger-ui notes)
 
--   reloading the journal preserves options, arguments in effect (#314).
+-   reloading the journal preserves options, arguments in effect ([#314](http://bugs.hledger.org/314)).
 
     The initial query specified by command line arguments is now preserved
     when the journal is reloaded. This does not appear in the web UI, it's
@@ -488,15 +488,15 @@ h4 { margin-top:2em; }
 
 -   show a proper not found page on 404
 
--   document the special \`inacct:\` query (#390)
+-   document the special \`inacct:\` query ([#390](http://bugs.hledger.org/390))
 
 ### hledger-api 1.0
 
 #### misc
 
--   new hledger-api tool: a simple web API server with example clients (#316)
+-   new hledger-api tool: a simple web API server with example clients ([#316](http://bugs.hledger.org/316))
 
--   start an Angular-based API example client (#316) (Thomas R. Koll)
+-   start an Angular-based API example client ([#316](http://bugs.hledger.org/316)) (Thomas R. Koll)
 
 
 
