@@ -146,7 +146,7 @@ pre.shell {
 #toc > ol > li > ol li {
 		padding-left:1em;
 }
-/* embolden/separate top items */
+/* embolden and top-pad top-level items */
 #toc > ol > li {
   padding-top:1em;
   font-weight:bold;

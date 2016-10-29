@@ -1,5 +1,8 @@
 <!-- Web release notes. Content since 1.0 comes from doc/release-notes.org. -->
 <!-- Putting the dates last is preferred for readability, but they are first in the headings below since that nicely keeps them out of the anchor urls. -->
+<style>
+#toc > ol > li { padding-top:0; }
+</style>
 <nav id="toc">
 <p>Major releases:</p>
 <ol>
