@@ -86,7 +86,8 @@ main = do
 
     "Shake" %> \out -> do
       need [out <.> "hs"]
-      cmd "stack ghc Shake.hs" :: Action ExitCode
+      unit $ cmd "./Shake.hs --version"  -- install libs via shebang line
+      unit $ cmd "stack ghc Shake.hs"
       putLoud "You can now run ./Shake instead of ./Shake.hs"
 
     phony "all" $ need ["docs", "website"]
