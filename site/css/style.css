@@ -31,9 +31,11 @@ pre.shell::first-line {
 .clear {
 		clear:both;
 }
+/*
 h4, h5, h6 {
 		clear:both;
 }
+*/
 .display-table {
 		display:table;
 }
