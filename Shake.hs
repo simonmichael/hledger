@@ -18,10 +18,13 @@ compiling is recommended: ./Shake.hs compile
 
 It requires stack (https://haskell-lang.org/get-started) and
 auto-installs the packages above. Also, some rules require:
+- site/hakyll-std/hakyll-std
+- runhaskell
 - groff
 - m4
 - makeinfo
-- site/hakyll-std/hakyll-std
+- git
+- patch
 
 Usage: see below.
 
@@ -276,8 +279,8 @@ main = do
       removeFilesAfter "site" ["_*"]
       putNormal "Cleaning executables"
       removeFilesAfter "." $ hakyllstd : pandocFilters
-      putNormal "Cleaning object files"
-      removeFilesAfter "doc"  ["*.o","*.p_o","*.hi"] -- forces rebuild of exes ?
+      putNormal "Cleaning object files" -- also forces rebuild of executables
+      removeFilesAfter "doc"  ["*.o","*.p_o","*.hi"]
       removeFilesAfter "site" ["*.o","*.p_o","*.hi"]
       putNormal "Cleaning shake build files"
       removeFilesAfter ".shake" ["//*"]
