@@ -2,6 +2,7 @@
 <!-- Putting the dates last is preferred for readability, but they are first in the headings below since that nicely keeps them out of the anchor urls. -->
 <style>
 #toc > ol > li { padding-top:0; }
+h4 { margin-top:2em; }
 </style>
 <nav id="toc">
 <p>Major releases:</p>
@@ -50,12 +51,25 @@ Based on the
 change logs.
 -->
 
-<style>
-h4 { margin-top:2em; }
-</style>
-
 
 ## 2016/10/26 hledger 1.0
+
+***More hledger-ui features, 
+better hledger-web layout,
+new web API server, 
+new timedot format, 
+--pivot & --anon, 
+performance improvements,
+reorganized multi-format docs,
+built-in help. 
+***
+<!-- ([announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1267)) -->
+<!-- [announcement](https://groups.google.com/forum/#!topic/hledger/3w7G0H9e7aE) -->
+
+Release contributors:
+Simon Michael, Dominik Süß, Thomas R. Koll, Moritz Kiefer,
+jungle-boogie, Sergei Trofimovich, Malte Brandy, Sam Doshi, 
+Mitchell Rosen, Hans-Peter Deifel, Brian Scott, and Andrew Jones.
 
   [project-wide](#project-wide-changes)
 | [hledger-lib](#hledger-lib-1.0)
