@@ -54,6 +54,13 @@ h4 { margin-top:2em; }
 
 ## 2016/10/26 hledger 1.0
 
+  [project-wide](#project-wide-changes)
+| [hledger-lib](#hledger-lib-1.0)
+| [hledger](#hledger-1.0-1)
+| [hledger-ui](#hledger-ui-1.0)
+| [hledger-web](#hledger-web-1.0)
+| [hledger-api](#hledger-api-1.0)
+
 ### project-wide changes
 
 #### misc
