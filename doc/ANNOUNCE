@@ -1,6 +1,6 @@
-Attention, attention hledger-folk! Once again, Happy Hallowe'en. After
-almost 10 years of steady development, I am very pleased to announce:
-hledger's 1.0 release!
+Attention, attention hledger-folk! Once again, Happy Hallowe'en.
+After almost ten years of steady development, and one year since
+our last major release, I am very pleased to announce..
 
      _     _          _                   _   ___    _ 
     | |__ | | ___  __| | __ _  ___ _ __  / | / _ \  | |
@@ -9,21 +9,18 @@ hledger's 1.0 release!
     |_| |_|_|\___|\__,_|\__, |\___|_|    |_(_)___/  (_)
                         |___/                          
 
-About the project: hledger is a cross-platform program for tracking
-money, time, or any other commodity using double-entry accounting and
-a simple plain text file format. Inspired by Ledger CLI, hledger
-provides command-line, curses and web interfaces, and aims to be a
-reliable, practical tool for daily use.
+hledger's 1.0 release! It's about time!
 
-Contributors to this release, one year in the making, include: 
-Simon Michael, Dominik Süß, Thomas R. Koll, Moritz Kiefer,
-jungle-boogie, Sergei Trofimovich, Malte Brandy, Sam Doshi, 
-Mitchell Rosen, Hans-Peter Deifel, Brian Scott, and Andrew Jones.
+hledger (http://hledger.org) is a cross-platform program for tracking
+money, time, or any other commodity using double-entry accounting
+and a simple plain text file format.
+Inspired by Ledger CLI, hledger provides command-line, curses
+and web interfaces, and aims to be a reliable, practical tool
+for daily use.
 
 Notable changes since 0.27:
 
-- the hledger.org website is simpler, clearer, and more
-  mobile-friendly
+- the hledger.org website is simpler, clearer, and more mobile-friendly
 
 - docs have been reorganized, with more focussed manuals available in
   multiple versions, formats and as built-in help
@@ -53,39 +50,27 @@ Notable changes since 0.27:
 - the project continues to grow. A call for help was sent out last
   month, and contributor activity is increasing
 
-- the website http://plaintextaccounting.org was created as a portal
-  and knowledge base for hledger, Ledger, beancount and related tools
-  and practices.
+- a new website, http://plaintextaccounting.org, has been created as a
+  portal and knowledge base for hledger, Ledger, beancount and related
+  tools and practices.
 
-For full release notes see http://hledger.org/release-notes#hledger-1.0
+Full release notes: http://hledger.org/release-notes#hledger-1.0
 
-How to install hledger:
+Contributors to this release include:
+Simon Michael, Dominik Süß, Thomas R. Koll, Moritz Kiefer,
+jungle-boogie, Sergei Trofimovich, Malte Brandy, Sam Doshi,
+Mitchell Rosen, Hans-Peter Deifel, Brian Scott, and Andrew Jones.
 
-See http://hledger.org/download for all links and install options,
-including Windows binaries. For example,
+How to install:
 
-$ stack install hledger [hledger-ui] [hledger-web] [hledger-api]
+(Get stack, eg from http://haskell-lang.org/get-started)
+$ stack install --resolver=nightly hledger [hledger-ui] [hledger-web] [hledger-api]
 $ ~/.local/bin/hledger --version
 
-or:
+or see http://hledger.org/download for more install options,
+including cabal, OS packages and Windows binaries.
 
-$ cabal sandbox init
-$ cabal install hledger [hledger-ui] [hledger-web] [hledger-api]
-$ .cabal-sandbox/bin/hledger --version
-
-or:
-
-$ apt install hledger [hledger-ui] [hledger-web] [hledger-api]
-$ hledger --version
-
-or:
-
-$ brew install hledger
-$ hledger --version
-
-
-I hope you enjoy these tools and resources, and find them helpful in
-achieving your goals. If you like hledger, your participation and
-support is welcome. Onward and upward!
+I hope you find these tools helpful in achieving your goals.
+If you like hledger, your support and participation is welcome!
 
 -Simon

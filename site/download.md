@@ -7,10 +7,9 @@
 <a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt=""></a> &nbsp;
 </div>
 # Download
-<a name="packaged"></a>
+<a name="a"></a>
 
 ## A. I want to download a packaged version
-<!-- <sub>(If the download is out of date or doesn't run on my system, I might troubleshoot or donate to fund improvements)</sub> -->
 
 <style>
 tr { vertical-align:top; }
@@ -22,92 +21,92 @@ td:first-of-type {
 a { white-space:nowrap; }
 </style>
 
+Packaged versions may lag behind the latest release, but are the quickest to install.
+
 |
-|--------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| **Windows**        | Download and run [hledger-0.26-win64.exe](http://hledger.org/downloads/hledger-0.26-win64.exe) <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.exe)) --> & [hledger-web-0.26-win64.exe](http://hledger.org/downloads/hledger-web-0.26-win64.exe) (old), or the [latest development builds](developer-guide.html). hledger-ui does not run on Windows.
-| **Mac**            | `brew install hledger`<br>hledger-ui/hledger-web have not yet been added to homebrew.
-| **Debian, Ubuntu** | `sudo apt install hledger hledger-ui hledger-web`
-| **Fedora, RHEL**   | `sudo dnf install hledger`<br>hledger-ui/hledger-web have not yet been added to Fedora.
-| **Gentoo**         | `sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`
-| **NixOS**          | `nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`
+|---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+| **Windows:**        | Download and run [hledger-0.26-win64.exe](http://hledger.org/downloads/hledger-0.26-win64.exe) <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.exe)) --> & [hledger-web-0.26-win64.exe](http://hledger.org/downloads/hledger-web-0.26-win64.exe) (old), or the [latest development builds](developer-guide.html). hledger-ui does not run on Windows.
+| **Mac:**            | `brew install hledger`<br>hledger-ui/web/api have not yet been added to homebrew.
+| **Debian, Ubuntu:** | `sudo apt install hledger hledger-ui hledger-web`
+| **Fedora, RHEL:**   | `sudo dnf install hledger`<br>hledger-ui/web/api have not yet been added to Fedora.
+| **Gentoo:**         | `sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`
+| **NixOS:**          | `nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`
 
-<!--
-**on another GNU/Linux\<small>(or can run Linux binaries)</small>**
-[hledger.linux-32.zip]()
-[hledger-web.linux-32.zip]()
-[hledger.linux-64.zip]()
-[hledger-web.linux-64.zip]()
-Use cabal
--->
+<a name="b"></a>
 
-<!--
-Building and supporting Windows and Mac binaries is costly, so
-it's demand-driven - you can indicate demand by making a project
-donation of any size. Binaries funded in this way will be linked here.
-This is a quick way to help the project and your fellow users!
--->
+## B. I want to build the latest release
 
-<a name="released"></a>
+The latest release (see [release notes](release-notes.html)) is a good choice. 
+You have to build it, but that's pretty easy. 
 
-## B. I want to build the latest released version
-
-The latest release may be newer than your OS's packaged version. 
-Here are the latest [release notes](release-notes.html).
-
-1. Install [`stack`](http://haskellstack.org) to make building easier.
+1. Install [`stack`](http://haskell-lang.org/get-started).
    On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-2. `stack setup`\
-   to ensure you have a suitable version of [GHC](https://www.haskell.org/ghc).
+2. `stack install --resolver=nightly hledger [hledger-ui] [hledger-web] [hledger-api]`\
+   On Windows, hledger-ui is [not yet available](https://github.com/coreyoconnor/vty/pull/1).\
+   If stack says you need to run `stack setup`, do that first.\
+   Warnings about "No packages found in snapshot which provide a "hsc2hs" executable" can be ignored.\
+   If required C libraries (like curses) are not installed, you might need to install those manually and try again, eg:
 
-3. `stack install hledger [hledger-ui] [hledger-web]`\
-   hledger-ui and hledger-web take longer to build. hledger-ui is not buildable on Windows.
+    |
+    |--------------------|-----------------------------------
+    | **Debian, Ubuntu:** | `sudo apt install libncurses5-dev` 
+    | **Fedora, RHEL:**   | `sudo dnf install ncurses-devel`
 
-4. If stack warns that `~/.local/bin` or the Windows equivalent is not in your `$PATH`,
-   configure that, so that commands like `hledger` will work.
+3. If stack warns that `~/.local/bin` (or the Windows equivalent) is not in `$PATH`, fix that.
    Eg if you're a bash user:\
-   `echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
+   `echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`\
+   Now you can run `hledger --version`, `hledger-ui --version` etc.
 
-Or use [`cabal`](https://www.haskell.org/cabal/) if you prefer and know how. 
-It's harder to use and to support, so these docs focus on stack.
-
-Haskell builds can fail due to missing C libraries or headers, which stack/cabal can not install.
-If you have this problem, here are some C libs you might need (please send updates):
-
-|
-|--------------------|-----------------------------------
-| **Debian, Ubuntu** | `sudo apt install ... ?` 
-| **Fedora, RHEL**   | `sudo dnf install ncurses-devel`
-
-
-<a name="unreleased"></a>
-
-## C. I want to build the [latest development version](https://github.com/simonmichael/hledger/commits/master)
-
-This includes the latest features and is normally stable enough for daily use (it's what I use).
-<!-- See also the [Developer Guide](http://hledger.org/developer-guide.html). -->
-
-1. Install stack and GHC (steps 1 and 2 above) and [git](https://en.wikipedia.org/wiki/Git)
-2. `git clone http://code.hledger.org hledger`
-3. `cd hledger`
-4. `stack install [hledger] [hledger-ui] [hledger-web] [hledger-api]`
-
-cabal users, try `./cabal-install.sh` instead.
-
+Installing with [`cabal`](https://www.haskell.org/cabal/) is similar, if you're familiar with that. 
+<!--(The exact steps depend on your OS, cabal version and expertise.)-->
 <!--
-Detailed cabal instructions:
-1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html) if needed.
-2. Ensure `~/.cabal/bin` or the Windows equivalent is in your `$PATH`.
+Short version:\
+`cabal update && cabal install hledger [hledger-ui] [hledger-web] [hledger-api]`
+-->
+<!--
+If you're brand new to cabal, these steps should work on unix-like systems 
+(on Windows, adjust commands and paths as needed):
+
+1. Install [GHC](http://haskell.org/ghc) and [cabal](http://haskell.org/cabal/download.html) if needed,
+   eg from [https://www.haskell.org/downloads](https://www.haskell.org/downloads)
+2. Ensure `~/.cabal/bin` or the Windows equivalent is in your `$PATH`,
+   eg `echo "export PATH=$PATH:~/.cabal/bin" >> ~/.bashrc && source ~/.bashrc`
 3. `cabal update`
 4. `cabal install alex happy`
 5. `mkdir hledger-sandbox`
 6. `cd hledger-sandbox`
 7. `cabal sandbox init`
-8. `cabal install hledger[-ui|-web]` (On Windows, hledger-ui is [not yet supported](https://github.com/coreyoconnor/vty/pull/1).)
-9. Ensure this `.../hledger-sandbox/.cabal-sandbox/bin` is in your `$PATH` (or move its contents to ~/.cabal/bin).
+8. `cabal install hledger-1.0.1 [hledger-ui-1.0.2] [hledger-web-1.0.1] [hledger-api-1.0]``
+   On Windows, hledger-ui is [not yet available](https://github.com/coreyoconnor/vty/pull/1).
+9. `mv .cabal-sandbox/bin/hledger* ~/.cabal/bin`
+10. `cd ..; rm -rf hledger-sandbox`
 -->
+
+
+<a name="c"></a>
+
+## C. I want to build the [development version](https://github.com/simonmichael/hledger/commits/master)
+
+The dev version includes not-yet-released features and is stable enough for daily use.
+
+1. Install [`stack`](http://haskell-lang.org/get-started) and [git](https://en.wikipedia.org/wiki/Git)
+2. `git clone http://code.hledger.org hledger`
+3. `cd hledger`
+4. `stack install`
+
+cabal users can use the `./cabal-install.sh` or `cabal.project` instead.
+
+The same caveats as above apply:
+
+- if stack says you need to run `stack setup`, do that first,
+- if building fails due to missing C libs, install those first 
+- if stack warns that `~/.local/bin` (or the Windows equivalent) is not in `$PATH`, fix that
+- warnings about "No packages found in snapshot which provide a hsc2hs executable" can be ignored
+
+
 <!--
-**in a VM**
+VM instructions:
 
 - if stack or cabal can't run on your OS, maybe this [vagrant image](https://github.com/sciurus/hledger-vagrant) can ?
 -->
