@@ -25,12 +25,15 @@ Packaged versions may lag behind the latest release, but are the quickest to ins
 
 |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| **Windows:**        | Download and run the [latest development builds](developer-guide.html) (-> Appveyor CI)<br>(hledger-ui is not available on Windows)
-| **Mac:**            | `brew install hledger` (hledger-ui/web/api are not yet in homebrew)
+| **Windows:**        | Download and run the [latest development builds](developer-guide.html) (-> Appveyor CI)
+| **Mac:**            | `brew install hledger`
 | **Debian,&nbsp;Ubuntu:** | `sudo apt install hledger hledger-ui hledger-web`
-| **Fedora,&nbsp;RHEL:**   | `sudo dnf install hledger` (hledger-ui/web/api are not yet in Fedora)
+| **Fedora,&nbsp;RHEL:**   | `sudo dnf install hledger`
 | **Gentoo:**         | `sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`
 | **NixOS:**          | `nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`
+
+Only some of the hledger tools may be available, eg Homebrew does not yet include 
+hledger-ui, hledger-web or hledger-api (packagers welcome!).
 
 <a name="b"></a>
 
@@ -77,8 +80,7 @@ If you're brand new to cabal, these steps should work on unix-like systems
 5. `mkdir hledger-sandbox`
 6. `cd hledger-sandbox`
 7. `cabal sandbox init`
-8. `cabal install hledger-1.0.1 [hledger-ui-1.0.2] [hledger-web-1.0.1] [hledger-api-1.0]``
-   On Windows, hledger-ui is [not yet available](https://github.com/coreyoconnor/vty/pull/1).
+8. `cabal install hledger-1.0.1 [hledger-ui-1.0.2] [hledger-web-1.0.1] [hledger-api-1.0]`
 9. `mv .cabal-sandbox/bin/hledger* ~/.cabal/bin`
 10. `cd ..; rm -rf hledger-sandbox`
 -->
@@ -93,16 +95,15 @@ The dev version includes not-yet-released features and is stable enough for dail
 1. Install [`stack`](http://haskell-lang.org/get-started) and [git](https://en.wikipedia.org/wiki/Git)
 2. `git clone http://code.hledger.org hledger`
 3. `cd hledger`
-4. `stack install`
+4. `stack install`\
+   with the same caveats as mentioned above:
+    
+    - if stack says you need to run `stack setup`, do that first,
+    - if building fails due to missing C libs, install those first 
+    - if stack warns that `~/.local/bin` (or the Windows equivalent) is not in `$PATH`, fix that
+    - warnings about "No packages found in snapshot which provide a hsc2hs executable" can be ignored
 
-cabal users can use the `./cabal-install.sh` or `cabal.project` instead.
-
-The caveats mentioned above also apply here:
-
-- if stack says you need to run `stack setup`, do that first,
-- if building fails due to missing C libs, install those first 
-- if stack warns that `~/.local/bin` (or the Windows equivalent) is not in `$PATH`, fix that
-- warnings about "No packages found in snapshot which provide a hsc2hs executable" can be ignored
+Cabal users can use the `cabal-install.sh` or the `cabal.project` files instead.
 
 
 <!--
