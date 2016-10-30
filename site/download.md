@@ -25,10 +25,10 @@ Packaged versions may lag behind the latest release, but are the quickest to ins
 
 |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| **Windows:**        | Download and run [hledger-0.26-win64.exe](http://hledger.org/downloads/hledger-0.26-win64.exe) <!-- (or the [32-bit build](http://hledger.org/downloads/hledger-0.26-win32.exe)) --> & [hledger-web-0.26-win64.exe](http://hledger.org/downloads/hledger-web-0.26-win64.exe) (old), or the [latest development builds](developer-guide.html). hledger-ui does not run on Windows.
-| **Mac:**            | `brew install hledger`<br>hledger-ui/web/api have not yet been added to homebrew.
-| **Debian, Ubuntu:** | `sudo apt install hledger hledger-ui hledger-web`
-| **Fedora, RHEL:**   | `sudo dnf install hledger`<br>hledger-ui/web/api have not yet been added to Fedora.
+| **Windows:**        | Download and run the [latest development builds](developer-guide.html) (-> Appveyor CI)<br>(hledger-ui is not available on Windows)
+| **Mac:**            | `brew install hledger` (hledger-ui/web/api are not yet in homebrew)
+| **Debian,&nbsp;Ubuntu:** | `sudo apt install hledger hledger-ui hledger-web`
+| **Fedora,&nbsp;RHEL:**   | `sudo dnf install hledger` (hledger-ui/web/api are not yet in Fedora)
 | **Gentoo:**         | `sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`
 | **NixOS:**          | `nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`
 
@@ -97,7 +97,7 @@ The dev version includes not-yet-released features and is stable enough for dail
 
 cabal users can use the `./cabal-install.sh` or `cabal.project` instead.
 
-The same caveats as above apply:
+The caveats mentioned above also apply here:
 
 - if stack says you need to run `stack setup`, do that first,
 - if building fails due to missing C libs, install those first 
