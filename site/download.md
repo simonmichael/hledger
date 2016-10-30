@@ -103,7 +103,7 @@ The dev version includes not-yet-released features and is stable enough for dail
     - if stack warns that `~/.local/bin` (or the Windows equivalent) is not in `$PATH`, fix that
     - warnings about "No packages found in snapshot which provide a hsc2hs executable" can be ignored
 
-Cabal users can use the `cabal-install.sh` or the `cabal.project` files instead.
+Cabal users can use the `cabal-install.sh` or `cabal.project` files instead.
 
 
 <!--

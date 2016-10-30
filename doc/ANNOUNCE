@@ -1,13 +1,14 @@
 Attention, attention hledger-folk! Once again, Happy Hallowe'en.
+
 After almost ten years of steady development, and one year since
 our last major release, I am very pleased to announce..
 
-     _     _          _                   _   ___    _ 
-    | |__ | | ___  __| | __ _  ___ _ __  / | / _ \  | |
-    | '_ \| |/ _ \/ _` |/ _` |/ _ \ '__| | || | | | | |
-    | | | | |  __/ (_| | (_| |  __/ |    | || |_| | |_|
-    |_| |_|_|\___|\__,_|\__, |\___|_|    |_(_)___/  (_)
-                        |___/                          
+  _     _          _                   _   ___    _ 
+ | |__ | | ___  __| | __ _  ___ _ __  / | / _ \  | |
+ | '_ \| |/ _ \/ _` |/ _` |/ _ \ '__| | || | | | | |
+ | | | | |  __/ (_| | (_| |  __/ |    | || |_| | |_|
+ |_| |_|_|\___|\__,_|\__, |\___|_|    |_(_)___/  (_)
+                     |___/                          
 
 hledger's 1.0 release! It's about time!
 
@@ -56,11 +57,6 @@ Notable changes since 0.27:
 
 Full release notes: http://hledger.org/release-notes#hledger-1.0
 
-Contributors to this release include:
-Simon Michael, Dominik Süß, Thomas R. Koll, Moritz Kiefer,
-jungle-boogie, Sergei Trofimovich, Malte Brandy, Sam Doshi,
-Mitchell Rosen, Hans-Peter Deifel, Brian Scott, and Andrew Jones.
-
 How to install:
 
 (Get stack, eg from http://haskell-lang.org/get-started)
@@ -70,7 +66,19 @@ $ ~/.local/bin/hledger --version
 or see http://hledger.org/download for more install options,
 including cabal, OS packages and Windows binaries.
 
-I hope you find these tools helpful in achieving your goals.
-If you like hledger, your support and participation is welcome!
+Contributors to this release:
 
+Simon Michael, Dominik Süß, Thomas R. Koll, Moritz Kiefer,
+jungle-boogie, Sergei Trofimovich, Malte Brandy, Sam Doshi,
+Mitchell Rosen, Hans-Peter Deifel, Brian Scott, and Andrew Jones.
+
+How to get and give help:
+
+I hope you enjoy these tools and that they help you achieve your goals.
+The hledger project is too large for one person to do it justice, 
+so it's great to see our developer community growing.  If you like
+hledger, your support and participation is welcome! Our IRC channel is 
+#hledger on Freenode, and you can find out more at http://hledger.org.
+
+Best,
 -Simon

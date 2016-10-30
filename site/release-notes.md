@@ -63,7 +63,7 @@ reorganized multi-format docs,
 built-in help. 
 ***
 <!-- ([announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1267)) -->
-<!-- [announcement](https://groups.google.com/forum/#!topic/hledger/3w7G0H9e7aE) -->
+([announcement](https://groups.google.com/d/topic/hledger/WgdTy3-a6sc/discussion)) 
 
 Release contributors:
 Simon Michael, Dominik Süß, Thomas R. Koll, Moritz Kiefer,
