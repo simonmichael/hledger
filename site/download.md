@@ -21,7 +21,7 @@ td:first-of-type {
 a { white-space:nowrap; }
 </style>
 
-Packaged versions may lag behind the latest release, but are the quickest to install.
+Packaged versions are the quickest to install, but may lag behind the latest release. 
 
 |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -31,6 +31,7 @@ Packaged versions may lag behind the latest release, but are the quickest to ins
 | **Fedora,&nbsp;RHEL:**   | `sudo dnf install hledger`
 | **Gentoo:**         | `sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`
 | **NixOS:**          | `nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`
+| **Sandstorm:**      | [hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo<br>(your own fully-functional private/public hledger-web instance in 3 clicks)
 
 Only some of the hledger tools may be available, eg Homebrew does not yet include 
 hledger-ui, hledger-web or hledger-api (packagers welcome!).
@@ -88,9 +89,9 @@ If you're brand new to cabal, these steps should work on unix-like systems
 
 <a name="c"></a>
 
-## C. I want to build the [development version](https://github.com/simonmichael/hledger/commits/master)
+## C. I want to build the development version
 
-The dev version includes not-yet-released features and is stable enough for daily use.
+The [dev version](https://github.com/simonmichael/hledger/commits/master) includes not-yet-released features and is stable enough for daily use.
 
 1. Install [`stack`](http://haskell-lang.org/get-started) and [git](https://en.wikipedia.org/wiki/Git)
 2. `git clone http://code.hledger.org hledger`
