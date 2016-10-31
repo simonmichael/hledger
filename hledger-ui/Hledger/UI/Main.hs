@@ -137,8 +137,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
 
     brickapp :: App (UIState) V.Event Name
     brickapp = App {
-        appLiftVtyEvent = id
-      , appStartEvent   = return
+        appStartEvent   = return
       , appAttrMap      = const theme
       , appChooseCursor = showFirstCursor
       , appHandleEvent  = \ui ev -> sHandle (aScreen ui) ui ev

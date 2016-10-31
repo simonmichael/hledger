@@ -247,7 +247,7 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
         sel | selected  = (<> "selected")
             | otherwise = id
 
-asHandle :: UIState -> Event -> EventM Name (Next UIState)
+asHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
 asHandle ui0@UIState{
    aScreen=scr@AccountsScreen{..}
   ,aopts=UIOpts{cliopts_=copts}
@@ -269,55 +269,58 @@ asHandle ui0@UIState{
   case mode of
     Minibuffer ed ->
       case ev of
-        EvKey KEsc   [] -> continue $ closeMinibuffer ui
-        EvKey KEnter [] -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
+        VtyEvent (EvKey KEsc   []) -> continue $ closeMinibuffer ui
+        VtyEvent (EvKey KEnter []) -> continue $ regenerateScreens j d $ setFilter s $ closeMinibuffer ui
                             where s = chomp $ unlines $ map strip $ getEditContents ed
-        ev              -> do ed' <- handleEditorEvent ev ed
-                              continue $ ui{aMode=Minibuffer ed'}
+        VtyEvent ev        -> do ed' <- handleEditorEvent ev ed
+                                 continue $ ui{aMode=Minibuffer ed'}
+        AppEvent _        -> continue ui
+        MouseDown _ _ _ _ -> continue ui
+        MouseUp _ _ _     -> continue ui
 
     Help ->
       case ev of
-        EvKey (KChar 'q') [] -> halt ui
+        VtyEvent (EvKey (KChar 'q') []) -> halt ui
         _                    -> helpHandle ui ev
 
     Normal ->
       case ev of
-        EvKey (KChar 'q') [] -> halt ui
+        VtyEvent (EvKey (KChar 'q') []) -> halt ui
         -- EvKey (KChar 'l') [MCtrl] -> do
-        EvKey KEsc        [] -> continue $ resetScreens d ui
-        EvKey (KChar c)   [] | c `elem` ['?'] -> continue $ setMode Help ui
-        EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
-        EvKey (KChar 'I') [] -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
-        EvKey (KChar 'a') [] -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
-        EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor endPos (journalFilePath j)) >> uiReloadJournalIfChanged copts d j ui
-        EvKey (KChar '0') [] -> continue $ regenerateScreens j d $ setDepth (Just 0) ui
-        EvKey (KChar '1') [] -> continue $ regenerateScreens j d $ setDepth (Just 1) ui
-        EvKey (KChar '2') [] -> continue $ regenerateScreens j d $ setDepth (Just 2) ui
-        EvKey (KChar '3') [] -> continue $ regenerateScreens j d $ setDepth (Just 3) ui
-        EvKey (KChar '4') [] -> continue $ regenerateScreens j d $ setDepth (Just 4) ui
-        EvKey (KChar '5') [] -> continue $ regenerateScreens j d $ setDepth (Just 5) ui
-        EvKey (KChar '6') [] -> continue $ regenerateScreens j d $ setDepth (Just 6) ui
-        EvKey (KChar '7') [] -> continue $ regenerateScreens j d $ setDepth (Just 7) ui
-        EvKey (KChar '8') [] -> continue $ regenerateScreens j d $ setDepth (Just 8) ui
-        EvKey (KChar '9') [] -> continue $ regenerateScreens j d $ setDepth (Just 9) ui
-        EvKey (KChar '-') [] -> continue $ regenerateScreens j d $ decDepth ui
-        EvKey (KChar '_') [] -> continue $ regenerateScreens j d $ decDepth ui
-        EvKey (KChar c)   [] | c `elem` ['+','='] -> continue $ regenerateScreens j d $ incDepth ui
-        EvKey (KChar 't') []    -> continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
-        EvKey (KChar 'H') [] -> continue $ regenerateScreens j d $ toggleHistorical ui
-        EvKey (KChar 'F') [] -> continue $ regenerateScreens j d $ toggleFlat ui
-        EvKey (KChar 'Z') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
-        EvKey (KChar 'C') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
-        EvKey (KChar 'U') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleUncleared ui)
-        EvKey (KChar 'R') [] -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
-        EvKey (KDown)     [MShift] -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
-        EvKey (KUp)       [MShift] -> continue $ regenerateScreens j d $ growReportPeriod d ui
-        EvKey (KRight)    [MShift] -> continue $ regenerateScreens j d $ nextReportPeriod journalspan ui
-        EvKey (KLeft)     [MShift] -> continue $ regenerateScreens j d $ previousReportPeriod journalspan ui
-        EvKey (KChar '/') [] -> continue $ regenerateScreens j d $ showMinibuffer ui
-        EvKey k           [] | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
-        EvKey k           [] | k `elem` [KLeft, KChar 'h']  -> continue $ popScreen ui
-        EvKey k           [] | k `elem` [KRight, KChar 'l'] -> scrollTopRegister >> continue (screenEnter d scr ui)
+        VtyEvent (EvKey KEsc        []) -> continue $ resetScreens d ui
+        VtyEvent (EvKey (KChar c)   []) | c `elem` ['?'] -> continue $ setMode Help ui
+        VtyEvent (EvKey (KChar 'g') []) -> liftIO (uiReloadJournalIfChanged copts d j ui) >>= continue
+        VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
+        VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add copts j >> uiReloadJournalIfChanged copts d j ui
+        VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor endPos (journalFilePath j)) >> uiReloadJournalIfChanged copts d j ui
+        VtyEvent (EvKey (KChar '0') []) -> continue $ regenerateScreens j d $ setDepth (Just 0) ui
+        VtyEvent (EvKey (KChar '1') []) -> continue $ regenerateScreens j d $ setDepth (Just 1) ui
+        VtyEvent (EvKey (KChar '2') []) -> continue $ regenerateScreens j d $ setDepth (Just 2) ui
+        VtyEvent (EvKey (KChar '3') []) -> continue $ regenerateScreens j d $ setDepth (Just 3) ui
+        VtyEvent (EvKey (KChar '4') []) -> continue $ regenerateScreens j d $ setDepth (Just 4) ui
+        VtyEvent (EvKey (KChar '5') []) -> continue $ regenerateScreens j d $ setDepth (Just 5) ui
+        VtyEvent (EvKey (KChar '6') []) -> continue $ regenerateScreens j d $ setDepth (Just 6) ui
+        VtyEvent (EvKey (KChar '7') []) -> continue $ regenerateScreens j d $ setDepth (Just 7) ui
+        VtyEvent (EvKey (KChar '8') []) -> continue $ regenerateScreens j d $ setDepth (Just 8) ui
+        VtyEvent (EvKey (KChar '9') []) -> continue $ regenerateScreens j d $ setDepth (Just 9) ui
+        VtyEvent (EvKey (KChar '-') []) -> continue $ regenerateScreens j d $ decDepth ui
+        VtyEvent (EvKey (KChar '_') []) -> continue $ regenerateScreens j d $ decDepth ui
+        VtyEvent (EvKey (KChar c)   []) | c `elem` ['+','='] -> continue $ regenerateScreens j d $ incDepth ui
+        VtyEvent (EvKey (KChar 't') [])    -> continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+        VtyEvent (EvKey (KChar 'H') []) -> continue $ regenerateScreens j d $ toggleHistorical ui
+        VtyEvent (EvKey (KChar 'F') []) -> continue $ regenerateScreens j d $ toggleFlat ui
+        VtyEvent (EvKey (KChar 'Z') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
+        VtyEvent (EvKey (KChar 'C') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
+        VtyEvent (EvKey (KChar 'U') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleUncleared ui)
+        VtyEvent (EvKey (KChar 'R') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
+        VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
+        VtyEvent (EvKey (KUp)       [MShift]) -> continue $ regenerateScreens j d $ growReportPeriod d ui
+        VtyEvent (EvKey (KRight)    [MShift]) -> continue $ regenerateScreens j d $ nextReportPeriod journalspan ui
+        VtyEvent (EvKey (KLeft)     [MShift]) -> continue $ regenerateScreens j d $ previousReportPeriod journalspan ui
+        VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
+        VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
+        VtyEvent (EvKey k           []) | k `elem` [KLeft, KChar 'h']  -> continue $ popScreen ui
+        VtyEvent (EvKey k           []) | k `elem` [KRight, KChar 'l'] -> scrollTopRegister >> continue (screenEnter d scr ui)
           where
             scr = rsSetAccount selacct isdepthclipped registerScreen
             isdepthclipped = case getDepth ui of
@@ -325,7 +328,8 @@ asHandle ui0@UIState{
                                 Nothing -> False
 
         -- fall through to the list's event handler (handles up/down)
-        ev -> do
+        VtyEvent ev ->
+              do
                 let ev' = case ev of
                             EvKey (KChar 'k') [] -> EvKey (KUp) []
                             EvKey (KChar 'j') [] -> EvKey (KDown) []
@@ -335,6 +339,9 @@ asHandle ui0@UIState{
                                           & asSelectedAccount .~ selacct
                                           }
                 -- continue =<< handleEventLensed ui someLens ev
+        AppEvent _        -> continue ui
+        MouseDown _ _ _ _ -> continue ui
+        MouseUp _ _ _     -> continue ui
 
   where
     -- Encourage a more stable scroll position when toggling list items.

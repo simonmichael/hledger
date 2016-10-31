@@ -68,7 +68,7 @@ esDraw UIState{ --aopts=UIOpts{cliopts_=copts@CliOpts{}}
 
 esDraw _ = error "draw function called with wrong screen type, should not happen"
 
-esHandle :: UIState -> Event -> EventM Name (Next UIState)
+esHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
 esHandle ui@UIState{
    aScreen=ErrorScreen{..}
   ,aopts=UIOpts{cliopts_=copts}
@@ -78,26 +78,26 @@ esHandle ui@UIState{
   case mode of
     Help ->
       case ev of
-        EvKey (KChar 'q') [] -> halt ui
+        VtyEvent (EvKey (KChar 'q') []) -> halt ui
         _                    -> helpHandle ui ev
 
     _ -> do
       d <- liftIO getCurrentDay
       case ev of
-        EvKey (KChar 'q') [] -> halt ui
-        EvKey KEsc        [] -> continue $ uiCheckBalanceAssertions d $ resetScreens d ui
-        EvKey (KChar c)   [] | c `elem` ['h','?'] -> continue $ setMode Help ui
-        EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j (popScreen ui)
+        VtyEvent (EvKey (KChar 'q') []) -> halt ui
+        VtyEvent (EvKey KEsc        []) -> continue $ uiCheckBalanceAssertions d $ resetScreens d ui
+        VtyEvent (EvKey (KChar c)   []) | c `elem` ['h','?'] -> continue $ setMode Help ui
+        VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j (popScreen ui)
           where
             (pos,f) = case parsewithString hledgerparseerrorpositionp esError of
                         Right (f,l,c) -> (Just (l, Just c),f)
                         Left  _       -> (endPos, journalFilePath j)
-        EvKey (KChar 'g') [] -> liftIO (uiReloadJournalIfChanged copts d j (popScreen ui)) >>= continue . uiCheckBalanceAssertions d
+        VtyEvent (EvKey (KChar 'g') []) -> liftIO (uiReloadJournalIfChanged copts d j (popScreen ui)) >>= continue . uiCheckBalanceAssertions d
 --           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
 --           case ej of
 --             Left err -> continue ui{aScreen=s{esError=err}} -- show latest parse error
 --             Right j' -> continue $ regenerateScreens j' d $ popScreen ui  -- return to previous screen, and reload it
-        EvKey (KChar 'I') [] -> continue $ uiCheckBalanceAssertions d (popScreen $ toggleIgnoreBalanceAssertions ui)
+        VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (popScreen $ toggleIgnoreBalanceAssertions ui)
         _ -> continue ui
 
 esHandle _ _ = error "event handler called with wrong screen type, should not happen"

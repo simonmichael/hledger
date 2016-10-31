@@ -102,7 +102,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
 
 tsDraw _ = error "draw function called with wrong screen type, should not happen"
 
-tsHandle :: UIState -> Event -> EventM Name (Next UIState)
+tsHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
 tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
                                                 ,tsTransactions=nts
                                                 ,tsAccount=acct}
@@ -114,7 +114,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
   case mode of
     Help ->
       case ev of
-        EvKey (KChar 'q') [] -> halt ui
+        VtyEvent (EvKey (KChar 'q') []) -> halt ui
         _                    -> helpHandle ui ev
 
     _ -> do
@@ -123,13 +123,13 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
         (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
         (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
       case ev of
-        EvKey (KChar 'q') [] -> halt ui
-        EvKey KEsc        [] -> continue $ resetScreens d ui
-        EvKey (KChar c)   [] | c `elem` ['?'] -> continue $ setMode Help ui
-        EvKey (KChar 'E') [] -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
+        VtyEvent (EvKey (KChar 'q') []) -> halt ui
+        VtyEvent (EvKey KEsc        []) -> continue $ resetScreens d ui
+        VtyEvent (EvKey (KChar c)   []) | c `elem` ['?'] -> continue $ setMode Help ui
+        VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
           where
             (pos,f) = let GenericSourcePos f l c = tsourcepos t in (Just (l, Just c),f)
-        EvKey (KChar 'g') [] -> do
+        VtyEvent (EvKey (KChar 'g') []) -> do
           d <- liftIO getCurrentDay
           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
           case ej of
@@ -157,14 +157,14 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
                                   ,tsTransactions=numberedts
                                   ,tsAccount=acct}}
               continue $ regenerateScreens j' d ui'
-        EvKey (KChar 'I') [] -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
+        VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
         -- if allowing toggling here, we should refresh the txn list from the parent register screen
         -- EvKey (KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty ui
         -- EvKey (KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared ui
         -- EvKey (KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal ui
-        EvKey k           [] | k `elem` [KUp, KChar 'k']   -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(iprev,tprev)}}
-        EvKey k           [] | k `elem` [KDown, KChar 'j'] -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(inext,tnext)}}
-        EvKey k           [] | k `elem` [KLeft, KChar 'h'] -> continue ui''
+        VtyEvent (EvKey k           []) | k `elem` [KUp, KChar 'k']   -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(iprev,tprev)}}
+        VtyEvent (EvKey k           []) | k `elem` [KDown, KChar 'j'] -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(inext,tnext)}}
+        VtyEvent (EvKey k           []) | k `elem` [KLeft, KChar 'h'] -> continue ui''
           where
             ui'@UIState{aScreen=scr} = popScreen ui
             ui'' = ui'{aScreen=rsSelect (fromIntegral i) scr}

@@ -50,9 +50,6 @@ import Text.Show.Functions ()
 import Hledger
 import Hledger.UI.UIOptions
 
-instance Show (List n e) where show _ = "<List>"
-instance Show (Editor l n) where show _ = "<Editor>"
-
 -- | hledger-ui's application state. This holds one or more stateful screens.
 -- As you navigate through screens, the old ones are saved in a stack.
 -- The app can be in one of several modes: normal screen operation,
@@ -95,7 +92,7 @@ data Screen =
     AccountsScreen {
        sInit   :: Day -> Bool -> UIState -> UIState              -- ^ function to initialise or update this screen's state
       ,sDraw   :: UIState -> [Widget Name]                             -- ^ brick renderer for this screen
-      ,sHandle :: UIState -> Event -> EventM Name (Next UIState)  -- ^ brick event handler for this screen
+      ,sHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)  -- ^ brick event handler for this screen
       -- state fields.These ones have lenses:
       ,_asList            :: List Name AccountsScreenItem  -- ^ list widget showing account names & balances
       ,_asSelectedAccount :: AccountName              -- ^ a backup of the account name from the list widget's selected item (or "")
@@ -103,7 +100,7 @@ data Screen =
   | RegisterScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
       ,sDraw   :: UIState -> [Widget Name]
-      ,sHandle :: UIState -> Event -> EventM Name (Next UIState)
+      ,sHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
       --
       ,rsList    :: List Name RegisterScreenItem      -- ^ list widget showing transactions affecting this account
       ,rsAccount :: AccountName                       -- ^ the account this register is for
@@ -114,7 +111,7 @@ data Screen =
   | TransactionScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
       ,sDraw   :: UIState -> [Widget Name]
-      ,sHandle :: UIState -> Event -> EventM Name (Next UIState)
+      ,sHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
       --
       ,tsTransaction  :: NumberedTransaction          -- ^ the transaction we are currently viewing, and its position in the list
       ,tsTransactions :: [NumberedTransaction]        -- ^ list of transactions we can step through
@@ -123,7 +120,7 @@ data Screen =
   | ErrorScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
       ,sDraw   :: UIState -> [Widget Name]
-      ,sHandle :: UIState -> Event -> EventM Name (Next UIState)
+      ,sHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
       --
       ,esError :: String                              -- ^ error message to show
     }
@@ -136,6 +133,7 @@ data AccountsScreenItem = AccountsScreenItem {
   ,asItemDisplayAccountName :: AccountName  -- ^ full or short account name to display
   ,asItemRenderedAmounts    :: [String]     -- ^ rendered amounts
   }
+  deriving (Show)
 
 -- | An item in the register screen's list of transactions in the current account.
 data RegisterScreenItem = RegisterScreenItem {
@@ -146,6 +144,7 @@ data RegisterScreenItem = RegisterScreenItem {
   ,rsItemBalanceAmount  :: String           -- ^ the balance or running total after this transaction
   ,rsItemTransaction    :: Transaction      -- ^ the full transaction
   }
+  deriving (Show)
 
 type NumberedTransaction = (Integer, Transaction)
 
