@@ -82,7 +82,7 @@ executable hledger-ui
     buildable: False
   else
     build-depends:
-        brick >= 0.12 && < 0.13
+        brick >= 0.12 && < 0.14
       , vty >= 5.5 && < 5.12
   if flag(threaded)
     ghc-options: -threaded
