@@ -2,6 +2,11 @@ User-visible changes in hledger-ui.
 See also the hledger and project change logs.
 
 
+# 1.0.4 (2016/11/2)
+
+- allow brick 0.13
+
+
 # 1.0.3 (2016/10/31)
 
 - use brick 0.12
