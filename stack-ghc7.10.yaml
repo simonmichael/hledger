@@ -11,6 +11,7 @@ packages:
 - hledger-api
 
 extra-deps:
-- brick-0.12
+- brick-0.13
 - text-zipper-0.8.1
+- vty-5.11.3
 - megaparsec-5.1.2
