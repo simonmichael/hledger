@@ -68,8 +68,8 @@ rejp = runErroringJournalParser
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p) (fromIntegral . unPos $ sourceColumn p)
 
--- | Given a parsec ParsedJournal parser, file path and data string,
--- parse and post-process a ready-to-use Journal, or give an error.
+-- | Given a megaparsec ParsedJournal parser, balance assertion flag, file
+-- path and file content: parse and post-process a Journal, or give an error.
 parseAndFinaliseJournal :: ErroringJournalParser ParsedJournal -> Bool -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal parser assrt f txt = do
   t <- liftIO getClockTime
