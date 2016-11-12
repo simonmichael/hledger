@@ -273,6 +273,7 @@ test-suite hunittests
     , system-filepath
     , trifecta >= 0.91
     , hledger-lib
+    , parsec
     , test-framework
     , test-framework-hunit
   if impl(ghc <7.6)

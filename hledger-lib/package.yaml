@@ -153,6 +153,7 @@ tests:
     source-dirs: tests
     dependencies:
     - hledger-lib
+    - parsec
     - test-framework
     - test-framework-hunit
     when:
