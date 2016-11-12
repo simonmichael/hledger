@@ -53,6 +53,9 @@ flag oldtime
   default: False
 
 library
+  hs-source-dirs:
+      other/ledger-parse
+    , .
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       base >=4.3 && <5
@@ -81,6 +84,9 @@ library
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
+    , parsers >= 0.5
+    , system-filepath
+    , trifecta >= 0.91
     , parsec
     , semigroups
   if impl(ghc <7.6)
@@ -135,13 +141,16 @@ library
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
   other-modules:
+      Ledger.Parser.Text
       Paths_hledger_lib
   default-language: Haskell2010
 
 test-suite doctests
   type: exitcode-stdio-1.0
   hs-source-dirs:
-      tests
+      other/ledger-parse
+    , .
+    , tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   main-is: doctests.hs
   build-depends:
@@ -171,18 +180,65 @@ test-suite doctests
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
+    , parsers >= 0.5
+    , system-filepath
+    , trifecta >= 0.91
     , doctest >=0.8
     , Glob >=0.7
   if impl(ghc <7.6)
     build-depends:
         ghc-prim
+  other-modules:
+      Ledger.Parser.Text
+      Hledger
+      Hledger.Data
+      Hledger.Data.Account
+      Hledger.Data.AccountName
+      Hledger.Data.Amount
+      Hledger.Data.Commodity
+      Hledger.Data.Dates
+      Hledger.Data.Journal
+      Hledger.Data.Ledger
+      Hledger.Data.Period
+      Hledger.Data.Posting
+      Hledger.Data.RawOptions
+      Hledger.Data.StringFormat
+      Hledger.Data.Timeclock
+      Hledger.Data.Transaction
+      Hledger.Data.Types
+      Hledger.Query
+      Hledger.Read
+      Hledger.Read.Common
+      Hledger.Read.CsvReader
+      Hledger.Read.JournalReader
+      Hledger.Read.TimeclockReader
+      Hledger.Read.TimedotReader
+      Hledger.Reports
+      Hledger.Reports.BalanceHistoryReport
+      Hledger.Reports.BalanceReport
+      Hledger.Reports.EntriesReport
+      Hledger.Reports.MultiBalanceReports
+      Hledger.Reports.PostingsReport
+      Hledger.Reports.ReportOptions
+      Hledger.Reports.TransactionsReports
+      Hledger.Utils
+      Hledger.Utils.Debug
+      Hledger.Utils.Parse
+      Hledger.Utils.Regex
+      Hledger.Utils.String
+      Hledger.Utils.Test
+      Hledger.Utils.Text
+      Hledger.Utils.Tree
+      Hledger.Utils.UTF8IOCompat
   default-language: Haskell2010
 
 test-suite hunittests
   type: exitcode-stdio-1.0
   main-is: hunittests.hs
   hs-source-dirs:
-      tests
+      other/ledger-parse
+    , .
+    , tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       base >=4.3 && <5
@@ -211,6 +267,9 @@ test-suite hunittests
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
+    , parsers >= 0.5
+    , system-filepath
+    , trifecta >= 0.91
     , hledger-lib
     , test-framework
     , test-framework-hunit
@@ -224,4 +283,46 @@ test-suite hunittests
   else
     build-depends:
         time >=1.5
+  other-modules:
+      Ledger.Parser.Text
+      Hledger
+      Hledger.Data
+      Hledger.Data.Account
+      Hledger.Data.AccountName
+      Hledger.Data.Amount
+      Hledger.Data.Commodity
+      Hledger.Data.Dates
+      Hledger.Data.Journal
+      Hledger.Data.Ledger
+      Hledger.Data.Period
+      Hledger.Data.Posting
+      Hledger.Data.RawOptions
+      Hledger.Data.StringFormat
+      Hledger.Data.Timeclock
+      Hledger.Data.Transaction
+      Hledger.Data.Types
+      Hledger.Query
+      Hledger.Read
+      Hledger.Read.Common
+      Hledger.Read.CsvReader
+      Hledger.Read.JournalReader
+      Hledger.Read.TimeclockReader
+      Hledger.Read.TimedotReader
+      Hledger.Reports
+      Hledger.Reports.BalanceHistoryReport
+      Hledger.Reports.BalanceReport
+      Hledger.Reports.EntriesReport
+      Hledger.Reports.MultiBalanceReports
+      Hledger.Reports.PostingsReport
+      Hledger.Reports.ReportOptions
+      Hledger.Reports.TransactionsReports
+      Hledger.Utils
+      Hledger.Utils.Debug
+      Hledger.Utils.Parse
+      Hledger.Utils.Regex
+      Hledger.Utils.String
+      Hledger.Utils.Test
+      Hledger.Utils.Text
+      Hledger.Utils.Tree
+      Hledger.Utils.UTF8IOCompat
   default-language: Haskell2010

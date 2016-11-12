@@ -1,0 +1,4 @@
+This is the parser code from John W's
+https://github.com/ledger/ledger4/tree/master/ledger-parse , 
+revision 8fb414c + updates for latest parsers lib.
+Later, perhaps it will be a published lib and we can remove this copy.

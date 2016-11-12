@@ -65,6 +65,10 @@ dependencies:
 - uglymemo
 - utf8-string >=0.3.5 && <1.1
 - HUnit
+# for ledger-parse:
+- parsers >= 0.5
+- system-filepath
+- trifecta >= 0.91
 ghc-options:
 - -Wall
 - -fno-warn-unused-do-bind
@@ -72,6 +76,9 @@ ghc-options:
 - -fno-warn-missing-signatures
 - -fno-warn-type-defaults
 - -fno-warn-orphans
+source-dirs: 
+- other/ledger-parse
+- .
 library:
   exposed-modules:
   - Hledger
