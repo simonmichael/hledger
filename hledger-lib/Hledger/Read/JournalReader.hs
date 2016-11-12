@@ -114,8 +114,8 @@ format = "journal"
 -- | Does the given file path and data look like it might be hledger's journal format ?
 detect :: FilePath -> Text -> Bool
 detect f _t
-  | f /= "-"  = takeExtension f `elem` ['.':format, ".j"] -- from a known file name: yes if the extension is this format's name or .j
-  | otherwise = True                                      -- from stdin: yes, always attempt to parse stdin as journal data
+  | f /= "-"  = takeExtension f `elem` ['.':format, ".j", ".hledger"] -- from a known file name: yes if the extension is .hledger or .journal or .j
+  | otherwise = True                                      -- from stdin: yes, always attempt to parse stdin as hledger journal data
   -- otherwise = regexMatches "(^|\n)[0-9]+.*\n[ \t]+" $ T.unpack t   -- from stdin: yes if we can see something that looks like a journal entry (digits in column 0 with the next line indented)
 
 -- | Parse and post-process a "Journal" from hledger's journal file
