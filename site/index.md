@@ -164,11 +164,12 @@ that lets you review account balances and transactions quickly and without fuss.
 
 <a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
 
-And, a zero-setup [web&nbsp;interface](manual.html#web)
-([demo](http://demo.hledger.org); press `s` to open the sidebar),
-for assisted data entry and a more point-and-click experience.
-You can set up your own private or shared web instance with a few
-clicks at [Sandstorm](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90).
+And, a zero-setup
+[web&nbsp;interface](manual.html#web) (
+[demo](http://demo.hledger.org)) for a more point-and-click experience.
+You can also set up your own public/private web instance in a few clicks
+at
+[Sandstorm](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90).
 </div>
 
 <div class="indent3">

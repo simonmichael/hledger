@@ -21,7 +21,8 @@ td:first-of-type {
 a { white-space:nowrap; }
 </style>
 
-Packaged versions are the quickest to install, but may lag behind the latest release. 
+Packaged versions are the quickest to install, but they sometimes lag behind the
+latest release, or provide only some of the hledger tools. (Packagers welcome!)
 
 |
 |---------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -33,8 +34,6 @@ Packaged versions are the quickest to install, but may lag behind the latest rel
 | **NixOS:**          | `nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`
 | **Sandstorm:**      | [hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo<br>(your own fully-functional private/public hledger-web instance in 3 clicks)
 
-Only some of the hledger tools may be available, eg Homebrew does not yet include 
-hledger-ui, hledger-web or hledger-api (packagers welcome!).
 
 <a name="b"></a>
 
