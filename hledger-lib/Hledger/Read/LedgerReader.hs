@@ -41,7 +41,7 @@ import qualified Filesystem.Path.CurrentOS as F
 
 import Hledger.Data
 import Hledger.Read.Common
--- import Hledger.Utils
+import Hledger.Utils
 import Ledger.Parser.Text
 import Text.Trifecta.Result (Result(..))
 
@@ -73,17 +73,15 @@ parse _mrulespath assrt path txt = do
   case r of
     Failure ei -> throwError $ show ei
     Success res -> do
-      -- liftIO $ putStrLn $ show res
+      -- dbg7IO "raw entities" res
       pj <- liftIO $ foldM journalAddRawEntityInSitu nulljournal res
-      -- journalFinalise :: ClockTime -> FilePath -> Text -> Bool -> ParsedJournal -> Either String Journal
       t <- liftIO getClockTime
-      either throwError return $
-        journalFinalise t path txt assrt pj
+      either throwError return $ journalFinalise t path txt assrt pj
 
 journalAddRawEntityInSitu :: ParsedJournal -> RawEntityInSitu -> IO ParsedJournal
 journalAddRawEntityInSitu
   j
-  RawEntityInSitu{rawEntity=RawTransactionEntity (RawTransaction{
+  RawEntityInSitu{rawEntity=RawTransactionEntity (rt@RawTransaction{
       rawTxnDate    = date -- :: !String
     , rawTxnDateAux = mdate2 -- :: Maybe String
     , rawTxnState   = _mstatus -- :: Maybe Char
@@ -107,6 +105,8 @@ journalAddRawEntityInSitu
       , tpostings = ps               -- :: [Posting], -- ^ this transaction's postings
       -- tpreceding_comment_lines -- :: Text       -- ^ any comment lines immediately preceding this transaction
       }
+    dbg7IO "raw transaction" rt
+    dbg7IO "cooked transaction" t
     return $ addTransaction t j
 
 journalAddRawEntityInSitu j _ = return j
