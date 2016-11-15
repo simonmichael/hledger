@@ -1,0 +1,1 @@
+hledger is a lightweight accounting program for tracking money, time, or other commodities, on unix, mac and windows. With simple yet powerful functionality accessed from command line, terminal or web browser, it is a reliable, cross-platform alternative to Quicken, GnuCash, spreadsheets etc.
