@@ -26,9 +26,7 @@ set -euo pipefail
 #     to think about such things.
 #   * Launching other daemons your app needs (e.g. mysqld, redis-server, etc.)
 
-# By default, this script does nothing.  You'll have to modify it as
-# appropriate for your application.
 mkdir -p /var/lib/hledger
-touch /var/lib/hledger/ledger.dat
+touch /var/lib/hledger/Ledger
 cd /var
-hledger-web --server -f /var/lib/hledger/ledger.dat --port 8000
+hledger-web --server --base-url='' -f /var/lib/hledger/Ledger --port 8000
