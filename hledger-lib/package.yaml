@@ -39,7 +39,7 @@ flags:
     manual: false
     default: false
 dependencies:
-- base >=4.3 && <5
+- base >=4.8 && <5
 - base-compat >=0.8.1
 - array
 - blaze-markup >=0.5.1

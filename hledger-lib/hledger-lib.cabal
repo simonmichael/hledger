@@ -58,7 +58,7 @@ library
     , .
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-      base >=4.3 && <5
+      base >=4.8 && <5
     , base-compat >=0.8.1
     , array
     , blaze-markup >=0.5.1
@@ -155,7 +155,7 @@ test-suite doctests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   main-is: doctests.hs
   build-depends:
-      base >=4.3 && <5
+      base >=4.8 && <5
     , base-compat >=0.8.1
     , array
     , blaze-markup >=0.5.1
@@ -243,7 +243,7 @@ test-suite hunittests
     , tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-      base >=4.3 && <5
+      base >=4.8 && <5
     , base-compat >=0.8.1
     , array
     , blaze-markup >=0.5.1

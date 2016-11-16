@@ -29,7 +29,7 @@ data-files:
 dependencies:
 - hledger-lib >= 1.0 && < 1.1
 - hledger >= 1.0 && < 1.1
-- base >=4 && <5
+- base >=4.8 && <5
 - aeson
 - bytestring
 - containers
