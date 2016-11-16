@@ -63,7 +63,7 @@ flags:
     manual: false
     default: false
 dependencies:
-- base >=4.3 && <5
+- base >=4.8 && <5
 - base-compat >=0.8.1
 - directory
 - file-embed >=0.0.10 && <0.1

@@ -4,7 +4,7 @@
 
 name:           hledger-ui
 version:        1.0.4
-stability:      beta
+stability:      stable
 category:       Finance, Console
 synopsis:       Curses-style user interface for the hledger accounting tool
 description:    This is hledger's curses-style interface.
@@ -60,7 +60,7 @@ executable hledger-ui
       hledger >= 1.0.1 && < 1.1
     , hledger-lib >= 1.0.1 && < 1.1
     , ansi-terminal >= 0.6.2.3 && < 0.7
-    , base >= 3 && < 5
+    , base >= 4.8 && < 5
     , base-compat >= 0.8.1
     , cmdargs >= 0.8
     , containers
