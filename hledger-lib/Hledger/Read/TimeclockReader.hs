@@ -75,11 +75,13 @@ reader = Reader format detect parse
 format :: String
 format = "timeclock"
 
--- | Does the given file path and data look like it might be timeclock.el's timeclock format ?
+-- | Does the given file path and data look like something this reader can handle ?
 detect :: FilePath -> Text -> Bool
-detect f t
-  | f /= "-"  = takeExtension f == '.':format -- from a known file name: yes if the extension is this format's name
-  | otherwise = regexMatches "(^|\n)[io] " $ T.unpack t  -- from stdin: yes if any line starts with "i " or "o "
+detect f excerpt
+  -- file name known: try this reader if it has any of these extensions
+  | f /= "-"  = takeExtension f `elem` ['.':format]
+  -- file name unknown: try this reader if a line starts with "i " or "o " in excerpt
+  | otherwise = regexMatches "(^|\n)[io] " $ T.unpack excerpt
 
 -- | Parse and post-process a "Journal" from timeclock.el's timeclock
 -- format, saving the provided file path and the current time, or give an

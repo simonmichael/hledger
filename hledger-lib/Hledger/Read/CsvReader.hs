@@ -69,11 +69,13 @@ reader = Reader format detect parse
 format :: String
 format = "csv"
 
--- | Does the given file path and data look like it might be CSV ?
+-- | Does the given file path and data look like something this reader can handle ?
 detect :: FilePath -> Text -> Bool
-detect f t
-  | f /= "-"  = takeExtension f == '.':format  -- from a file: yes if the extension is .csv
-  | otherwise = T.length (T.filter (==',') t) >= 2 -- from stdin: yes if there are two or more commas
+detect f excerpt
+  -- file name known: try this reader if it has any of these extensions
+  | f /= "-"  = takeExtension f `elem` ['.':format]
+  -- file name unknown: try this reader if excerpt contains two or more commas
+  | otherwise = T.length (T.filter (==',') excerpt) >= 2
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.
 -- XXX currently ignores the string and reads from the file path

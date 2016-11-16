@@ -61,11 +61,13 @@ reader = Reader format detect parse
 format :: String
 format = "timedot"
 
--- | Does the given file path and data look like it might contain this format ?
+-- | Does the given file path and data look like something this reader can handle ?
 detect :: FilePath -> Text -> Bool
-detect f t
-  | f /= "-"  = takeExtension f == '.':format -- from a file: yes if the extension matches the format name
-  | otherwise = regexMatches "(^|\n)[0-9]" $ T.unpack t  -- from stdin: yes if we can see a possible timedot day entry (digits in column 0)
+detect f excerpt
+  -- file name known: try this reader if it has any of these extensions
+  | f /= "-"  = takeExtension f `elem` ['.':format]
+  -- file name unknown: try this reader if a line starts with a number in excerpt
+  | otherwise = regexMatches "(^|\n)[0-9]" $ T.unpack excerpt
 
 -- | Parse and post-process a "Journal" from the timedot format, or give an error.
 parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal

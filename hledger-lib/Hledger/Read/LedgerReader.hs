@@ -56,12 +56,13 @@ reader = Reader format detect parse
 format :: String
 format = "ledger"
 
--- | Does the given file path and data look like it might be ledger's journal format ?
+-- | Does the given file path and data look like something this reader can handle ?
 detect :: FilePath -> Text -> Bool
-detect f _t
-  | f /= "-"  = takeExtension f `elem` ['.':format, ".l"] -- from a known file name: yes if the extension is .ledger or .l
-  | otherwise = False                                      -- from stdin: yes, always attempt to parse stdin as a ledger journal
-  -- otherwise = regexMatches "(^|\n)[0-9]+.*\n[ \t]+" $ T.unpack t   -- from stdin: yes if we can see something that looks like a journal entry (digits in column 0 with the next line indented)
+detect f _
+  -- file name known: try this reader if it has any of these extensions
+  | f /= "-"  = takeExtension f `elem` ['.':format, ".l"]
+  -- file name unknown: don't try this reader
+  | otherwise = False
 
 -- | Parse and post-process a "Journal" from ledger's journal format, or give an error.
 parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
