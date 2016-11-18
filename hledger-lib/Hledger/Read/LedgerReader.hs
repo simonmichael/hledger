@@ -33,7 +33,7 @@ import Test.HUnit
 -- import Test.Framework
 -- import Text.Megaparsec.Error
 -- #endif
--- import Text.Megaparsec hiding (parse)
+import Text.Megaparsec (eof)
 -- import Text.Printf
 import System.FilePath
 import System.Time
@@ -75,60 +75,82 @@ parse _mrulespath assrt path txt = do
     Failure ei -> throwError $ show ei
     Success res -> do
       -- dbg7IO "raw entities" res
-      pj <- liftIO $ foldM journalAddRawEntityInSitu nulljournal res
-      t <- liftIO getClockTime
-      either throwError return $ journalFinalise t path txt assrt pj
+      ejus <- liftIO $ sequence <$> mapM rawEntityInSituToJournalUpdate res
+      case ejus of
+        Left err  -> throwError err
+        Right jus -> do
+          let pj = foldr (flip (.)) id jus nulljournal
+          t <- liftIO getClockTime
+          either throwError return $ journalFinalise t path txt assrt pj
 
-journalAddRawEntityInSitu :: ParsedJournal -> RawEntityInSitu -> IO ParsedJournal
-journalAddRawEntityInSitu
-  j
-  RawEntityInSitu{rawEntity=RawTransactionEntity (rt@RawTransaction{
-      rawTxnDate    = date -- :: !String
-    , rawTxnDateAux = mdate2 -- :: Maybe String
-    , rawTxnState   = _mstatus -- :: Maybe Char
-    , rawTxnCode    = _mcode -- :: Maybe String
-    , rawTxnDesc    = desc -- :: !String
-    , rawTxnNote    = _mnote -- :: Maybe String
-    , rawTxnPosts   = rps -- :: ![RawPosting]
-    })}
+-- (I'm not too fond of journal update functions, but ok..)
+-- | Convert a ledger4 RawEntityInSitu - representing a parsed transaction,
+-- directive, comment etc. - into either a journal update function or an error.
+-- Currently converts only transactions, and ignores some transaction fields.
+-- Runs in IO because it uses some hledger parsers that have some need for that.
+rawEntityInSituToJournalUpdate :: RawEntityInSitu -> IO (Either String (ParsedJournal -> ParsedJournal))
+rawEntityInSituToJournalUpdate RawEntityInSitu{rawEntity=RawTransactionEntity (rt@RawTransaction{
+    rawTxnDate    = date     -- :: !String
+  , rawTxnDateAux = mdate2   -- :: Maybe String
+  , rawTxnState   = _mstatus -- :: Maybe Char
+  , rawTxnCode    = _mcode   -- :: Maybe String
+  , rawTxnDesc    = desc     -- :: !String
+  , rawTxnNote    = _mnote   -- :: Maybe String
+  , rawTxnPosts   = rps      -- :: ![RawPosting]
+  })}
   = do
-    ps <- catMaybes <$> mapM rawPostingToPosting rps
-    let t = nulltransaction{
-      -- tindex                   -- :: Integer,   -- ^ this transaction's 1-based position in the input stream, or 0 when not available
-      -- tsourcepos               -- :: GenericSourcePos,
-        tdate = parsedate date -- XXX                   -- :: Day,
-      , tdate2 = parsedate <$> mdate2 -- XXX                  -- :: Maybe Day,
-      -- tstatus                  -- :: ClearedStatus,
-      -- tcode                    -- :: Text,
-      , tdescription = pack desc            -- :: Text,
-      -- tcomment                 -- :: Text,      -- ^ this transaction's comment lines, as a single non-indented multi-line string
-      -- ttags                    -- :: [Tag],     -- ^ tag names and values, extracted from the comment
-      , tpostings = ps               -- :: [Posting], -- ^ this transaction's postings
-      -- tpreceding_comment_lines -- :: Text       -- ^ any comment lines immediately preceding this transaction
-      }
-    dbg7IO "raw transaction" rt
-    dbg7IO "cooked transaction" t
-    return $ addTransaction t j
+    let md = parsedateM date
+        md2 = mdate2 >>= parsedateM
+        dateerr = return . Left . ("could not parse date "++)
+    case (md, mdate2, md2) of
+      (Nothing, _, _)          -> dateerr date
+      (_, Just date2, Nothing) -> dateerr date2
+      (Just d, _, _)           -> do
+        eps <- sequence . catMaybes <$> mapM rawPostingToPosting rps
+        case eps of
+          Left err -> return $ Left err
+          Right ps -> do
+            let t = nulltransaction{
+              -- XXX TODO more complete transaction parsing
+              -- tindex                   -- :: Integer,   -- ^ this transaction's 1-based position in the input stream, or 0 when not available
+              -- tsourcepos               -- :: GenericSourcePos,
+                tdate = d                 -- :: Day
+              , tdate2 = md2              -- :: Maybe Day
+              -- tstatus                  -- :: ClearedStatus,
+              -- tcode                    -- :: Text,
+              , tdescription = pack desc  -- :: Text,
+              -- tcomment                 -- :: Text,      -- ^ this transaction's comment lines, as a single non-indented multi-line string
+              -- ttags                    -- :: [Tag],     -- ^ tag names and values, extracted from the comment
+              , tpostings = ps            -- :: [Posting], -- ^ this transaction's postings
+              -- tpreceding_comment_lines -- :: Text       -- ^ any comment lines immediately preceding this transaction
+              }
+            dbg7IO "raw transaction" rt
+            dbg7IO "cooked transaction" t
+            return $ Right $ addTransaction t
+-- TODO convert other entities
+rawEntityInSituToJournalUpdate _ = return $ Right id
 
-journalAddRawEntityInSitu j _ = return j
-
-rawPostingToPosting :: RawPosting -> IO (Maybe Posting)
+-- | Convert a ledger4 RawPosting to a hledger Posting or an error message.
+-- Currently ignores some posting fields, and the RawPostingNote variant
+-- (which represents a comment line, not a posting; returns Nothing for these).
+rawPostingToPosting :: RawPosting -> IO (Maybe (Either String Posting))
 rawPostingToPosting RawPosting{
+    -- TODO
     rawPostState   = _mstatus -- :: Maybe Char
-  , rawPostAccount = acct -- :: !String
-  , rawPostAmount  = mamtstr -- :: Maybe String
-  , rawPostNote    = _mnote -- :: Maybe String
+  , rawPostAccount = acct     -- :: !String
+  , rawPostAmount  = mamtstr  -- :: Maybe String
+  , rawPostNote    = _mnote   -- :: Maybe String
   } = do
-    eamt <- runErroringJournalParser spaceandamountormissingp $ pack $ maybe "" (' ':) mamtstr
+    eamt <- runErroringJournalParser (spaceandamountormissingp <* eof) $ pack $ maybe "" (' ':) mamtstr
     case eamt of
-      Left _err -> return Nothing -- XXX should throw error
+      Left err -> return $ Just $ Left err
       Right (amt :: MixedAmount) -> do
-        return $ Just nullposting{
+        return $ Just $ Right nullposting{
         --   pdate             -- :: Maybe Day,         -- ^ this posting's date, if different from the transaction's
         -- , pdate2            -- :: Maybe Day,         -- ^ this posting's secondary date, if different from the transaction's
         -- , pstatus           -- :: ClearedStatus,
-          paccount = pack acct         -- :: AccountName,
-        , pamount = amt          -- :: MixedAmount,
+          paccount = pack acct -- :: AccountName,
+        , pamount = amt        -- :: MixedAmount,
         -- , pcomment          -- :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
         -- , ptype             -- :: PostingType,
         -- , ptags             -- :: [Tag],             -- ^ tag names and values, extracted from the comment
@@ -137,7 +159,8 @@ rawPostingToPosting RawPosting{
         }
 rawPostingToPosting (RawPostingNote _) = return Nothing
 
--- raw parse example:
+
+-- A raw parse example:
 --
 -- 2010/01/01 * T1
 --     Accounts:Hub    30.00 USD
@@ -162,10 +185,7 @@ rawPostingToPosting (RawPostingNote _) = return Nothing
 -- ]
 
 
-
-
 --- * hunit tests
 
 tests_Hledger_Read_LedgerReader = TestList $ concat [
-    -- test_numberp
  ]
