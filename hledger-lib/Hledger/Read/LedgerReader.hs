@@ -14,19 +14,11 @@ where
 --- * imports
 import Prelude ()
 import Prelude.Compat hiding (readFile)
--- import qualified Control.Exception as C
-import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Except (ExceptT(..), throwError)
--- import Control.Monad.State.Strict
--- import qualified Data.Map.Strict as M
 import Data.Maybe
--- import Data.List
 import Data.Text (Text, pack)
 import Data.Text.Encoding (encodeUtf8)
--- import qualified Data.Text as T
--- import Data.Time.Calendar
--- import Data.Time.LocalTime
 -- import Safe
 import Test.HUnit
 -- #ifdef TESTS
@@ -35,7 +27,6 @@ import Test.HUnit
 -- #endif
 import Text.Megaparsec (eof)
 -- import Text.Printf
-import System.FilePath
 import System.Time
 import qualified Filesystem.Path.CurrentOS as F
 
@@ -51,20 +42,14 @@ import Text.Trifecta.Result (Result(..))
 --- * reader
 
 reader :: Reader
-reader = Reader format detect parse
+reader = Reader
+  {rFormat     = "ledger"
+  ,rExtensions = []
+  ,rParser     = parse
+  }
 
-format :: String
-format = "ledger"
-
--- | Does the given file path and data look like something this reader can handle ?
-detect :: FilePath -> Text -> Bool
-detect f _
-  -- file name known: try this reader if it has any of these extensions
-  | f /= "-"  = takeExtension f `elem` ['.':format, ".l"]
-  -- file name unknown: don't try this reader
-  | otherwise = False
-
--- | Parse and post-process a "Journal" from ledger's journal format, or give an error.
+-- | Generate an action that parses and post-processes a "Journal" from a
+-- C++ Ledger journal, or raises an error.
 parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
 parse _mrulespath assrt path txt = do
   let

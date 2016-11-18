@@ -12,9 +12,7 @@ readJournalFiles
  readJournalFile
   requireJournalFileExists
   readJournal
-   readersFor
-    readerForStorageFormat
-    readersForPathAndData
+   findReader
    tryReaders
 @
 
@@ -34,20 +32,9 @@ module Hledger.Read (
 
   -- * Journal parsing
   readJournal,
-  readersFor,
-  readerForStorageFormat,
-  readersForPathAndData,
-  tryReaders,
   readJournal',
-  readFormatNames,
 
   -- * Re-exported
-  -- accountnamep,
-  -- amountp,
-  -- amountp',
-  -- mamountp',
-  -- numberp,
-  -- codep,
   accountaliasp,
   postingp,
   module Hledger.Read.Common,
@@ -64,10 +51,11 @@ import Data.List
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
+import Safe
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
-import System.FilePath ((</>))
+import System.FilePath ((</>), takeExtension)
 import System.IO (stderr)
 import Test.HUnit
 import Text.Printf
@@ -85,19 +73,15 @@ import Prelude hiding (getContents, writeFile)
 import Hledger.Utils.UTF8IOCompat (writeFile)
 
 
--- The available data file readers, each one handling a particular data
--- format. The first is also used as the default for unknown formats.
+-- The available journal readers, each one handling a particular data format.
 readers :: [Reader]
 readers = [
   JournalReader.reader
- ,LedgerReader.reader
  ,TimeclockReader.reader
  ,TimedotReader.reader
  ,CsvReader.reader
+ ,LedgerReader.reader
  ]
-
-readFormatNames :: [StorageFormat]
-readFormatNames = map rFormat readers
 
 journalEnvVar           = "LEDGER_FILE"
 journalEnvVar2          = "LEDGER"
@@ -192,44 +176,28 @@ tests_readJournal' = [
 
 -- | @readJournal mformat mrulesfile assrt mpath t@
 --
--- Read a journal from this string, trying whatever readers seem appropriate:
---
--- - if a format is specified, try that reader only
---
--- - or if one or more readers recognises the file path and data, try those
---
--- - otherwise, try them all.
---
--- A CSV conversion rules file may also be specified for use by the CSV reader.
--- Also there is a flag specifying whether to check or ignore balance assertions in the journal.
+-- Try to read a Journal from some text.
+-- If a format is specified (mformat), try only that reader.
+-- Otherwise if the file path is provided (mpath), and it specifies a format, try only that reader.
+-- Otherwise try all readers in turn until one succeeds, or return the first error if none of them succeed.
+-- A CSV conversion rules file may be specified (mrulesfile) for use by the CSV reader.
+-- If the assrt flag is true, also check and enforce balance assertions in the journal.
 readJournal :: Maybe StorageFormat -> Maybe FilePath -> Bool -> Maybe FilePath -> Text -> IO (Either String Journal)
 readJournal mformat mrulesfile assrt mpath t =
-  let rs = readersFor (mformat, mpath, t)
-  in tryReaders rs mrulesfile assrt mpath t
+  let rs = maybe readers (:[]) $ findReader mformat mpath
+  in  tryReaders rs mrulesfile assrt mpath t
 
--- | @readersFor (format,path,t)@
+-- | @findReader mformat mpath@
 --
--- Which readers are worth trying for this (possibly unspecified) format, filepath, and data ?
-readersFor :: (Maybe StorageFormat, Maybe FilePath, Text) -> [Reader]
-readersFor (format,path,t) =
-    dbg1 ("possible readers for "++show (format,path,textElideRight 30 t)) $
-    case format of
-     Just f  -> case readerForStorageFormat f of Just r  -> [r]
-                                                 Nothing -> []
-     Nothing -> case path of Nothing  -> readers
-                             Just p   -> case readersForPathAndData (p,t) of [] -> readers
-                                                                             rs -> rs
-
--- | Find the (first) reader which can handle the given format, if any.
-readerForStorageFormat :: StorageFormat -> Maybe Reader
-readerForStorageFormat s | null rs = Nothing
-                  | otherwise = Just $ head rs
-    where
-      rs = filter ((s==).rFormat) readers :: [Reader]
-
--- | Find the readers which think they can handle the given file path and data, if any.
-readersForPathAndData :: (FilePath,Text) -> [Reader]
-readersForPathAndData (f,t) = filter (\r -> dbg1 ("try "++rFormat r++" format") $ (rDetector r) f t) readers
+-- Find the reader for the given format (mformat), if any.
+-- Or if no format is provided, find the first reader that handles the
+-- file name's extension, if any.
+findReader :: Maybe StorageFormat -> Maybe FilePath -> Maybe Reader
+findReader Nothing Nothing     = Nothing
+findReader (Just fmt) _        = headMay [r | r <- readers, fmt == rFormat r]
+findReader Nothing (Just path) = headMay [r | r <- readers, ext `elem` rExtensions r]
+  where
+    ext = drop 1 $ takeExtension path
 
 -- | @tryReaders readers mrulesfile assrt path t@
 --

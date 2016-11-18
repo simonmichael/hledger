@@ -319,12 +319,19 @@ type StorageFormat = String
 -- | A hledger journal reader is a triple of storage format name, a
 -- detector of that format, and a parser from that format to Journal.
 data Reader = Reader {
-     -- name of the format this reader handles
+
+     -- The canonical name of the format handled by this reader
      rFormat   :: StorageFormat
-     -- quickly check if this reader can probably handle the given file path and file content
-    ,rDetector :: FilePath -> Text -> Bool
-     -- parse the given string, using the given parse rules file if any, returning a journal or error aware of the given file path
+
+     -- The file extensions recognised as containing this format
+    ,rExtensions :: [String]
+
+     -- A text parser for this format, accepting an optional rules file,
+     -- assertion-checking flag, and file path for error messages,
+     -- producing an exception-raising IO action that returns a journal
+     -- or error message.
     ,rParser   :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
+
     }
 
 instance Show Reader where show r = rFormat r ++ " reader"

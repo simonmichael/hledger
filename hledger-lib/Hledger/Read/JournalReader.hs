@@ -106,21 +106,11 @@ import Hledger.Utils
 --- * reader
 
 reader :: Reader
-reader = Reader format detect parse
-
-format :: String
-format = "journal"
-
--- | Does the given file path and data look like something this reader can handle ?
-detect :: FilePath -> Text -> Bool
-detect f _
-  -- file name known: try this reader if it has any of these extensions
-  | f /= "-"  = takeExtension f `elem` ['.':format, ".j", ".hledger", ".ledger", ".l"]
-  -- file name unknown: always try this reader
-  | otherwise = True
-  -- file name unknown: try this reader if we can see something like a journal entry
-  -- (digits in column 0 with the next line indented)
-  -- otherwise = regexMatches "(^|\n)[0-9]+.*\n[ \t]+" $ T.unpack excerpt
+reader = Reader
+  {rFormat     = "journal"
+  ,rExtensions = ["journal", "j", "hledger", "ledger"]
+  ,rParser     = parse
+  }
 
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.

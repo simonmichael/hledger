@@ -61,7 +61,6 @@ import           Data.Text (Text)
 import qualified Data.Text as T
 import           Test.HUnit
 import           Text.Megaparsec hiding (parse)
-import           System.FilePath
 
 import           Hledger.Data
 -- XXX too much reuse ?
@@ -70,18 +69,11 @@ import           Hledger.Utils
 
 
 reader :: Reader
-reader = Reader format detect parse
-
-format :: String
-format = "timeclock"
-
--- | Does the given file path and data look like something this reader can handle ?
-detect :: FilePath -> Text -> Bool
-detect f excerpt
-  -- file name known: try this reader if it has any of these extensions
-  | f /= "-"  = takeExtension f `elem` ['.':format]
-  -- file name unknown: try this reader if a line starts with "i " or "o " in excerpt
-  | otherwise = regexMatches "(^|\n)[io] " $ T.unpack excerpt
+reader = Reader
+  {rFormat     = "timeclock"
+  ,rExtensions = ["timeclock"]
+  ,rParser     = parse
+  }
 
 -- | Parse and post-process a "Journal" from timeclock.el's timeclock
 -- format, saving the provided file path and the current time, or give an

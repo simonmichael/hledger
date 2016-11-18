@@ -41,10 +41,8 @@ import Data.Char (isSpace)
 import Data.List (foldl')
 import Data.Maybe
 import Data.Text (Text)
-import qualified Data.Text as T
 import Test.HUnit
 import Text.Megaparsec hiding (parse)
-import System.FilePath
 
 import Hledger.Data
 import Hledger.Read.Common
@@ -56,18 +54,11 @@ import Hledger.Utils hiding (ptrace)
 ptrace = return
 
 reader :: Reader
-reader = Reader format detect parse
-
-format :: String
-format = "timedot"
-
--- | Does the given file path and data look like something this reader can handle ?
-detect :: FilePath -> Text -> Bool
-detect f excerpt
-  -- file name known: try this reader if it has any of these extensions
-  | f /= "-"  = takeExtension f `elem` ['.':format]
-  -- file name unknown: try this reader if a line starts with a number in excerpt
-  | otherwise = regexMatches "(^|\n)[0-9]" $ T.unpack excerpt
+reader = Reader
+  {rFormat     = "timedot"
+  ,rExtensions = ["timedot"]
+  ,rParser     = parse
+  }
 
 -- | Parse and post-process a "Journal" from the timedot format, or give an error.
 parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
