@@ -195,7 +195,24 @@ cur:\\\\$'.
 
    If you're really curious, add `--debug=2' for troubleshooting.
 
-   *General options:*
+* Menu:
+
+* General options::
+* Reporting options::
+* Input files::
+* Depth limiting::
+* Smart dates::
+* Report intervals::
+* Period expressions::
+* Regular expressions::
+
+
+File: hledger.1.info,  Node: General options,  Next: Reporting options,  Up: OPTIONS
+
+2.1 General options
+===================
+
+Always available, can be written before or after COMMAND.
 
 `-h'
      show general usage (or after COMMAND, the command's usage)
@@ -228,7 +245,13 @@ cur:\\\\$'.
 `-I --ignore-assertions'
      ignore any failing balance assertions in the journal
 
-   *Common reporting options:*
+
+File: hledger.1.info,  Node: Reporting options,  Next: Input files,  Prev: General options,  Up: OPTIONS
+
+2.2 Reporting options
+=====================
+
+Common reporting options, must be written after COMMAND.
 
 `-b --begin=DATE'
      include postings/txns on or after this date
@@ -291,40 +314,62 @@ cur:\\\\$'.
 `--anon'
      show anonymized accounts and payees
 
-* Menu:
-
-* Multiple files::
-* Repeated options::
-* Depth limiting::
-* Smart dates::
-* Report intervals::
-* Period expressions::
-* Regular expressions::
+   If a reporting option occurs more than once on the command line, the
+last one takes precedence. Eg -p jan -p feb is equivalent to -p feb.
 
 
-File: hledger.1.info,  Node: Multiple files,  Next: Repeated options,  Up: OPTIONS
+File: hledger.1.info,  Node: Input files,  Next: Depth limiting,  Prev: Reporting options,  Up: OPTIONS
 
-2.1 Multiple files
-==================
+2.3 Input files
+===============
 
-You can specify multiple `-f/--file FILE' options. This is like
-combining all the files into one, except they can have different
-formats. Also directives and aliases in one file do not affect
-subsequent files (if you need that, use the include directive instead).
+hledger reads transactions from a data file (and the add command writes
+to it). Usually this is in hledger's journal format, but it can also be
+one of the other supported file types, such as timeclock, timedot, CSV,
+or a C++ Ledger journal (partial support).
+
+   By default this file is `$HOME/.hledger.journal' (or on Windows,
+something like `C:/Users/USER/.hledger.journal'). You can override this
+with the `$LEDGER_FILE' environment variable:
+
+
+$ setenv LEDGER_FILE ~/finance/2016.journal
+$ hledger stats
+
+   or with the `-f/--file' option:
+
+
+$ hledger -f some/file.ext stats
+
+   hledger tries to identify the file format based on the file
+extension, as follows:
+
+File extension:                           Use format:
+-------------------------------------------------------- 
+`.journal', `.j', `.hledger', `.ledger'   journal
+`.timeclock'                              timeclock
+`.timedot'                                timedot
+`.csv'                                    CSV
+
+   If the file name has some other extension, or none, hledger tries
+each of these formats in turn. (Plus one more: the experimental "ledger"
+format, an alternate parser for C++ Ledger journals, which we try only
+as a last resort as it's new and hledger's journal parser works better
+for now.)
+
+   The file name `-' (hyphen) means standard input, as usual:
+
+
+$ cat some.journal | hledger -f-
+
+   You can specify multiple `-f' options, to read multiple files as one
+big journal. Directives in one file will not affect subsequent files in
+this case (if you need that, use the include directive instead).
 
 
-File: hledger.1.info,  Node: Repeated options,  Next: Depth limiting,  Prev: Multiple files,  Up: OPTIONS
+File: hledger.1.info,  Node: Depth limiting,  Next: Smart dates,  Prev: Input files,  Up: OPTIONS
 
-2.2 Repeated options
-====================
-
-Otherwise, if a reporting option is repeated, the last one takes
-precedence. Eg -p jan -p feb is equivalent to -p feb.
-
-
-File: hledger.1.info,  Node: Depth limiting,  Next: Smart dates,  Prev: Repeated options,  Up: OPTIONS
-
-2.3 Depth limiting
+2.4 Depth limiting
 ==================
 
 With the `--depth N' option, commands like account, balance and
@@ -334,7 +379,7 @@ to level N. Use this when you want a summary with less detail.
 
 File: hledger.1.info,  Node: Smart dates,  Next: Report intervals,  Prev: Depth limiting,  Up: OPTIONS
 
-2.4 Smart dates
+2.5 Smart dates
 ===============
 
 hledger's user interfaces accept a flexible "smart date" syntax (unlike
@@ -357,7 +402,7 @@ omitted (defaulting to 1).
 
 File: hledger.1.info,  Node: Report intervals,  Next: Period expressions,  Prev: Smart dates,  Up: OPTIONS
 
-2.5 Report intervals
+2.6 Report intervals
 ====================
 
 A report interval can be specified so that commands like register,
@@ -369,7 +414,7 @@ complex intervals may be specified with a period expression.
 
 File: hledger.1.info,  Node: Period expressions,  Next: Regular expressions,  Prev: Report intervals,  Up: OPTIONS
 
-2.6 Period expressions
+2.7 Period expressions
 ======================
 
 The `-p/--period' option accepts period expressions, a shorthand way of
@@ -444,7 +489,7 @@ start date and exclusive end date):
 
 File: hledger.1.info,  Node: Regular expressions,  Prev: Period expressions,  Up: OPTIONS
 
-2.7 Regular expressions
+2.8 Regular expressions
 =======================
 
 hledger uses regular expressions in a number of places:
@@ -2114,95 +2159,97 @@ Node: EXAMPLES1873
 Ref: #examples1975
 Node: OPTIONS3979
 Ref: #options4083
-Node: Multiple files9008
-Ref: #multiple-files9133
-Node: Repeated options9398
-Ref: #repeated-options9550
-Node: Depth limiting9670
-Ref: #depth-limiting9815
-Node: Smart dates10016
-Ref: #smart-dates10155
-Node: Report intervals11152
-Ref: #report-intervals11305
-Node: Period expressions11641
-Ref: #period-expressions11806
-Node: Regular expressions14141
-Ref: #regular-expressions14283
-Node: QUERIES15766
-Ref: #queries15870
-Node: COMMANDS19509
-Ref: #commands19623
-Node: accounts20296
-Ref: #accounts20396
-Node: activity21378
-Ref: #activity21490
-Node: add21849
-Ref: #add21950
-Node: balance24609
-Ref: #balance24722
-Node: Flat mode27695
-Ref: #flat-mode27822
-Node: Depth limited balance reports28241
-Ref: #depth-limited-balance-reports28444
-Node: Multicolumn balance reports28865
-Ref: #multicolumn-balance-reports29067
-Node: Market value33716
-Ref: #market-value33880
-Node: Custom balance output34373
-Ref: #custom-balance-output34546
-Node: Output destination36650
-Ref: #output-destination36815
-Node: CSV output37085
-Ref: #csv-output37204
-Node: balancesheet37601
-Ref: #balancesheet37729
-Node: cashflow38381
-Ref: #cashflow38498
-Node: help39188
-Ref: #help39300
-Node: incomestatement40137
-Ref: #incomestatement40267
-Node: info40994
-Ref: #info41101
-Node: man41463
-Ref: #man41560
-Node: print41963
-Ref: #print42068
-Node: register43414
-Ref: #register43527
-Node: Custom register output48019
-Ref: #custom-register-output48150
-Node: stats49447
-Ref: #stats49553
-Node: test50429
-Ref: #test50516
-Node: ADD-ON COMMANDS50883
-Ref: #add-on-commands51019
-Node: api52307
-Ref: #api52399
-Node: autosync52433
-Ref: #autosync52548
-Node: diff54863
-Ref: #diff54973
-Node: equity55637
-Ref: #equity55751
-Node: interest57079
-Ref: #interest57196
-Node: irr60280
-Ref: #irr60393
-Node: print-unique62768
-Ref: #print-unique62898
-Node: rewrite63156
-Ref: #rewrite63275
-Node: ui63804
-Ref: #ui63904
-Node: web63945
-Ref: #web64033
-Node: TROUBLESHOOTING64066
-Ref: #troubleshooting64185
-Node: Run-time problems64239
-Ref: #run-time-problems64382
-Node: Known limitations66326
-Ref: #known-limitations66469
+Node: General options6683
+Ref: #general-options6812
+Node: Reporting options7583
+Ref: #reporting-options7736
+Node: Input files9512
+Ref: #input-files9652
+Node: Depth limiting11233
+Ref: #depth-limiting11373
+Node: Smart dates11574
+Ref: #smart-dates11713
+Node: Report intervals12710
+Ref: #report-intervals12863
+Node: Period expressions13199
+Ref: #period-expressions13364
+Node: Regular expressions15699
+Ref: #regular-expressions15841
+Node: QUERIES17324
+Ref: #queries17428
+Node: COMMANDS21067
+Ref: #commands21181
+Node: accounts21854
+Ref: #accounts21954
+Node: activity22936
+Ref: #activity23048
+Node: add23407
+Ref: #add23508
+Node: balance26167
+Ref: #balance26280
+Node: Flat mode29253
+Ref: #flat-mode29380
+Node: Depth limited balance reports29799
+Ref: #depth-limited-balance-reports30002
+Node: Multicolumn balance reports30423
+Ref: #multicolumn-balance-reports30625
+Node: Market value35274
+Ref: #market-value35438
+Node: Custom balance output35931
+Ref: #custom-balance-output36104
+Node: Output destination38208
+Ref: #output-destination38373
+Node: CSV output38643
+Ref: #csv-output38762
+Node: balancesheet39159
+Ref: #balancesheet39287
+Node: cashflow39939
+Ref: #cashflow40056
+Node: help40746
+Ref: #help40858
+Node: incomestatement41695
+Ref: #incomestatement41825
+Node: info42552
+Ref: #info42659
+Node: man43021
+Ref: #man43118
+Node: print43521
+Ref: #print43626
+Node: register44972
+Ref: #register45085
+Node: Custom register output49577
+Ref: #custom-register-output49708
+Node: stats51005
+Ref: #stats51111
+Node: test51987
+Ref: #test52074
+Node: ADD-ON COMMANDS52441
+Ref: #add-on-commands52577
+Node: api53865
+Ref: #api53957
+Node: autosync53991
+Ref: #autosync54106
+Node: diff56421
+Ref: #diff56531
+Node: equity57195
+Ref: #equity57309
+Node: interest58637
+Ref: #interest58754
+Node: irr61838
+Ref: #irr61951
+Node: print-unique64326
+Ref: #print-unique64456
+Node: rewrite64714
+Ref: #rewrite64833
+Node: ui65362
+Ref: #ui65462
+Node: web65503
+Ref: #web65591
+Node: TROUBLESHOOTING65624
+Ref: #troubleshooting65743
+Node: Run-time problems65797
+Ref: #run-time-problems65940
+Node: Known limitations67884
+Ref: #known-limitations68027
 
 End Tag Table

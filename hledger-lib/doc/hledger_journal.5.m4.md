@@ -207,7 +207,8 @@ Amounts consist of a number and (usually) a currency symbol or commodity name. S
 As you can see, the amount format is somewhat flexible:
 
 - amounts are a number (the "quantity") and optionally a currency symbol/commodity name (the "commodity").
-- the commodity is a symbol, word, or double-quoted phrase, on the left or right, with or without a separating space
+- the commodity is a symbol, word, or phrase, on the left or right, with or without a separating space.
+  If the commodity contains numbers, spaces or non-word punctuation it must be enclosed in double quotes.
 - negative amounts with a commodity on the left can have the minus sign before or after it
 - digit groups (thousands, or any other grouping) can be separated by commas (in which case period is used for decimal point) or periods (in which case comma is used for decimal point)
 

@@ -177,7 +177,8 @@ OPTIONS
 
        If you're really curious, add --debug=2 for troubleshooting.
 
-       General options:
+   General options
+       Always available, can be written before or after COMMAND.
 
        -h     show general usage (or after COMMAND, the command's usage)
 
@@ -207,7 +208,8 @@ OPTIONS
        -I --ignore-assertions
               ignore any failing balance assertions in the journal
 
-       Common reporting options:
+   Reporting options
+       Common reporting options, must be written after COMMAND.
 
        -b --begin=DATE
               include postings/txns on or after this date
@@ -269,15 +271,51 @@ OPTIONS
 
        --anon show anonymized accounts and payees
 
-   Multiple files
-       You  can specify multiple -f/--file FILE options.  This is like combin-
-       ing all the files into one, except they  can  have  different  formats.
-       Also  directives and aliases in one file do not affect subsequent files
-       (if you need that, use the include directive instead).
+       If  a  reporting  option occurs more than once on the command line, the
+       last one takes precedence.  Eg -p jan -p feb is equivalent to -p feb.
 
-   Repeated options
-       Otherwise, if a reporting option is repeated, the last one takes prece-
-       dence.  Eg -p jan -p feb is equivalent to -p feb.
+   Input files
+       hledger reads transactions from a data file (and the add command writes
+       to  it).   Usually this is in hledger's journal format, but it can also
+       be one of the other supported file types, such as  timeclock,  timedot,
+       CSV, or a C++ Ledger journal (partial support).
+
+       By  default  this  file is $HOME/.hledger.journal (or on Windows, some-
+       thing like C:/Users/USER/.hledger.journal).  You can override this with
+       the $LEDGER_FILE environment variable:
+
+              $ setenv LEDGER_FILE ~/finance/2016.journal
+              $ hledger stats
+
+       or with the -f/--file option:
+
+              $ hledger -f some/file.ext stats
+
+       hledger  tries to identify the file format based on the file extension,
+       as follows:
+
+
+       File extension:              Use format:
+       -----------------------------------------
+       .journal,  .j,   .hledger,   journal
+       .ledger
+       .timeclock                   timeclock
+       .timedot                     timedot
+       .csv                         CSV
+
+       If  the file name has some other extension, or none, hledger tries each
+       of these formats in turn.  (Plus one more:  the  experimental  "ledger"
+       format,  an alternate parser for C++ Ledger journals, which we try only
+       as a last resort as it's new and hledger's journal parser works  better
+       for now.)
+
+       The file name - (hyphen) means standard input, as usual:
+
+              $ cat some.journal | hledger -f-
+
+       You  can specify multiple -f options, to read multiple files as one big
+       journal.  Directives in one file will not affect  subsequent  files  in
+       this case (if you need that, use the include directive instead).
 
    Depth limiting
        With  the --depth N option, commands like account, balance and register
@@ -291,6 +329,7 @@ OPTIONS
        omitted (defaulting to 1).
 
        Examples:
+
 
 
        2009/1/1,      2009/01/01,   simple dates, several sep-
@@ -356,6 +395,8 @@ OPTIONS
 
        A single date with no "from" or "to" defines both  the  start  and  end
        date like so:
+
+
 
 
        -p "2009"       the  year 2009; equivalent

@@ -187,8 +187,10 @@ FILE FORMAT
        o amounts  are a number (the "quantity") and optionally a currency sym-
          bol/commodity name (the "commodity").
 
-       o the commodity is a symbol, word, or double-quoted phrase, on the left
-         or right, with or without a separating space
+       o the commodity is a symbol, word, or phrase, on  the  left  or  right,
+         with  or  without a separating space.  If the commodity contains num-
+         bers, spaces or non-word punctuation it must be  enclosed  in  double
+         quotes.
 
        o negative amounts with a commodity on the left can have the minus sign
          before or after it

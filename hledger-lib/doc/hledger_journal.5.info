@@ -257,8 +257,10 @@ commodity name. Some examples:
    * amounts are a number (the "quantity") and optionally a currency
      symbol/commodity name (the "commodity").
 
-   * the commodity is a symbol, word, or double-quoted phrase, on the
-     left or right, with or without a separating space
+   * the commodity is a symbol, word, or phrase, on the left or right,
+     with or without a separating space. If the commodity contains
+     numbers, spaces or non-word punctuation it must be enclosed in
+     double quotes.
 
    * negative amounts with a commodity on the left can have the minus
      sign before or after it
@@ -941,55 +943,55 @@ Node: Account names7535
 Ref: #account-names7674
 Node: Amounts8159
 Ref: #amounts8297
-Node: Virtual Postings10295
-Ref: #virtual-postings10456
-Node: Balance Assertions11676
-Ref: #balance-assertions11840
-Node: Assertions and ordering12662
-Ref: #assertions-and-ordering12847
-Node: Assertions and commodities13878
-Ref: #assertions-and-commodities14104
-Node: Assertions and subaccounts14796
-Ref: #assertions-and-subaccounts15030
-Node: Assertions and virtual postings15552
-Ref: #assertions-and-virtual-postings15761
-Node: Prices15902
-Ref: #prices16034
-Node: Transaction prices16085
-Ref: #transaction-prices16230
-Node: Market prices17837
-Ref: #market-prices17972
-Node: Comments18860
-Ref: #comments18982
-Node: Tags20094
-Ref: #tags20212
-Node: Directives21135
-Ref: #directives21250
-Node: Account aliases21443
-Ref: #account-aliases21589
-Node: Basic aliases22191
-Ref: #basic-aliases22336
-Node: Regex aliases23024
-Ref: #regex-aliases23194
-Node: Multiple aliases23964
-Ref: #multiple-aliases24138
-Node: end aliases24634
-Ref: #end-aliases24776
-Node: account directive24878
-Ref: #account-directive25060
-Node: apply account directive25356
-Ref: #apply-account-directive25554
-Node: Multi-line comments26214
-Ref: #multi-line-comments26406
-Node: commodity directive26533
-Ref: #commodity-directive26719
-Node: Default commodity27592
-Ref: #default-commodity27767
-Node: Default year28303
-Ref: #default-year28470
-Node: Including other files28893
-Ref: #including-other-files29052
-Node: EDITOR SUPPORT29448
-Ref: #editor-support29568
+Node: Virtual Postings10396
+Ref: #virtual-postings10557
+Node: Balance Assertions11777
+Ref: #balance-assertions11941
+Node: Assertions and ordering12763
+Ref: #assertions-and-ordering12948
+Node: Assertions and commodities13979
+Ref: #assertions-and-commodities14205
+Node: Assertions and subaccounts14897
+Ref: #assertions-and-subaccounts15131
+Node: Assertions and virtual postings15653
+Ref: #assertions-and-virtual-postings15862
+Node: Prices16003
+Ref: #prices16135
+Node: Transaction prices16186
+Ref: #transaction-prices16331
+Node: Market prices17938
+Ref: #market-prices18073
+Node: Comments18961
+Ref: #comments19083
+Node: Tags20195
+Ref: #tags20313
+Node: Directives21236
+Ref: #directives21351
+Node: Account aliases21544
+Ref: #account-aliases21690
+Node: Basic aliases22292
+Ref: #basic-aliases22437
+Node: Regex aliases23125
+Ref: #regex-aliases23295
+Node: Multiple aliases24065
+Ref: #multiple-aliases24239
+Node: end aliases24735
+Ref: #end-aliases24877
+Node: account directive24979
+Ref: #account-directive25161
+Node: apply account directive25457
+Ref: #apply-account-directive25655
+Node: Multi-line comments26315
+Ref: #multi-line-comments26507
+Node: commodity directive26634
+Ref: #commodity-directive26820
+Node: Default commodity27693
+Ref: #default-commodity27868
+Node: Default year28404
+Ref: #default-year28571
+Node: Including other files28994
+Ref: #including-other-files29153
+Node: EDITOR SUPPORT29549
+Ref: #editor-support29669
 
 End Tag Table

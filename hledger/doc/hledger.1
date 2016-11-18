@@ -237,8 +237,9 @@ run add\-on executables directly
 .PP
 If you\[aq]re really curious, add \f[C]\-\-debug=2\f[] for
 troubleshooting.
+.SS General options
 .PP
-\f[B]General options:\f[]
+Always available, can be written before or after COMMAND.
 .TP
 .B \f[C]\-h\f[]
 show general usage (or after COMMAND, the command\[aq]s usage)
@@ -291,8 +292,9 @@ display accounts named OLD as NEW
 ignore any failing balance assertions in the journal
 .RS
 .RE
+.SS Reporting options
 .PP
-\f[B]Common reporting options:\f[]
+Common reporting options, must be written after COMMAND.
 .TP
 .B \f[C]\-b\ \-\-begin=DATE\f[]
 include postings/txns on or after this date
@@ -393,18 +395,91 @@ be "TAG:multi:level:account:name".
 show anonymized accounts and payees
 .RS
 .RE
-.SS Multiple files
 .PP
-You can specify multiple \f[C]\-f/\-\-file\ FILE\f[] options.
-This is like combining all the files into one, except they can have
-different formats.
-Also directives and aliases in one file do not affect subsequent files
-(if you need that, use the include directive instead).
-.SS Repeated options
-.PP
-Otherwise, if a reporting option is repeated, the last one takes
-precedence.
+If a reporting option occurs more than once on the command line, the
+last one takes precedence.
 Eg \-p jan \-p feb is equivalent to \-p feb.
+.SS Input files
+.PP
+hledger reads transactions from a data file (and the add command writes
+to it).
+Usually this is in hledger\[aq]s journal format, but it can also be one
+of the other supported file types, such as timeclock, timedot, CSV, or a
+C++ Ledger journal (partial support).
+.PP
+By default this file is \f[C]$HOME/.hledger.journal\f[] (or on Windows,
+something like \f[C]C:/Users/USER/.hledger.journal\f[]).
+You can override this with the \f[C]$LEDGER_FILE\f[] environment
+variable:
+.IP
+.nf
+\f[C]
+$\ setenv\ LEDGER_FILE\ ~/finance/2016.journal
+$\ hledger\ stats
+\f[]
+.fi
+.PP
+or with the \f[C]\-f/\-\-file\f[] option:
+.IP
+.nf
+\f[C]
+$\ hledger\ \-f\ some/file.ext\ stats
+\f[]
+.fi
+.PP
+hledger tries to identify the file format based on the file extension,
+as follows:
+.PP
+.TS
+tab(@);
+l l.
+T{
+File extension:
+T}@T{
+Use format:
+T}
+_
+T{
+\f[C]\&.journal\f[], \f[C]\&.j\f[], \f[C]\&.hledger\f[],
+\f[C]\&.ledger\f[]
+T}@T{
+journal
+T}
+T{
+\f[C]\&.timeclock\f[]
+T}@T{
+timeclock
+T}
+T{
+\f[C]\&.timedot\f[]
+T}@T{
+timedot
+T}
+T{
+\f[C]\&.csv\f[]
+T}@T{
+CSV
+T}
+.TE
+.PP
+If the file name has some other extension, or none, hledger tries each
+of these formats in turn.
+(Plus one more: the experimental "ledger" format, an alternate parser
+for C++ Ledger journals, which we try only as a last resort as it\[aq]s
+new and hledger\[aq]s journal parser works better for now.)
+.PP
+The file name \f[C]\-\f[] (hyphen) means standard input, as usual:
+.IP
+.nf
+\f[C]
+$\ cat\ some.journal\ |\ hledger\ \-f\-
+\f[]
+.fi
+.PP
+You can specify multiple \f[C]\-f\f[] options, to read multiple files as
+one big journal.
+Directives in one file will not affect subsequent files in this case (if
+you need that, use the include directive instead).
 .SS Depth limiting
 .PP
 With the \f[C]\-\-depth\ N\f[] option, commands like account, balance

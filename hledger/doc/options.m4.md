@@ -56,26 +56,68 @@ If in doubt, keep things simple:
 If you're really curious, add `--debug=2` for troubleshooting.
 
 
-**General options:**
+## General options
+
+Always available, can be written before or after COMMAND. 
 
 _generaloptions_
 
-**Common reporting options:**
+## Reporting options
+
+Common reporting options, must be written after COMMAND.
 
 _reportingoptions_
 
-## Multiple files
+If a reporting option occurs more than once on the command line, 
+the last one takes precedence.
+Eg -p jan -p feb is equivalent to -p feb.
 
-You can specify multiple `-f/--file FILE` options. This is like
-combining all the files into one, except they can have different formats.
-Also directives and aliases in one file do not affect subsequent files
-(if you need that, use the [include directive](#including-other-files)
-instead).
+## Input files
 
-## Repeated options
+hledger reads transactions from a data file (and the add command writes to it).
+Usually this is in hledger's journal format, 
+but it can also be one of the other supported file types, such as
+timeclock, 
+timedot, 
+CSV, 
+or a C++ Ledger journal (partial support).
 
-Otherwise, if a reporting option is repeated, the last one takes precedence. Eg -p jan -p
-feb is equivalent to -p feb.
+By default this file is `$HOME/.hledger.journal` 
+(or on Windows, something like `C:/Users/USER/.hledger.journal`).
+You can override this with the `$LEDGER_FILE` environment variable:
+```bash
+$ setenv LEDGER_FILE ~/finance/2016.journal
+$ hledger stats
+```
+or with the `-f/--file` option:
+```bash
+$ hledger -f some/file.ext stats
+```
+
+hledger tries to identify the file format based on the file extension, 
+as follows:
+
+| File extension:                           | Use format:
+|-------------------------------------------|----------------
+| `.journal`, `.j`, `.hledger`, `.ledger`   | journal
+| `.timeclock`                              | timeclock
+| `.timedot`                                | timedot
+| `.csv`                                    | CSV
+
+If the file name has some other extension, or none, 
+hledger tries each of these formats in turn.
+(Plus one more: the experimental "ledger" format, an alternate
+ parser for C++ Ledger journals, which we try only as a last resort
+ as it's new and hledger's journal parser works better for now.)
+
+The file name `-` (hyphen) means standard input, as usual:
+```bash
+$ cat some.journal | hledger -f-
+```
+
+You can specify multiple `-f` options, to read multiple files as one big journal.
+Directives in one file will not affect subsequent files in this case (if you need that, 
+use the [include directive](#including-other-files) instead).
 
 ## Depth limiting
 
