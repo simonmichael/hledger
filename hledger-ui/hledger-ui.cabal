@@ -75,15 +75,15 @@ executable hledger-ui
     , safe >= 0.2
     , split >= 0.1 && < 0.3
     , text >= 1.2 && < 1.3
-    , text-zipper >= 0.4 && < 0.9
+    , text-zipper >= 0.4 && < 0.10
     , transformers
     , vector
   if os(windows)
     buildable: False
   else
     build-depends:
-        brick >= 0.12 && < 0.14
-      , vty >= 5.5 && < 5.12
+        brick >= 0.12 && < 0.15
+      , vty >= 5.5 && < 5.13
   if flag(threaded)
     ghc-options: -threaded
   if flag(oldtime)

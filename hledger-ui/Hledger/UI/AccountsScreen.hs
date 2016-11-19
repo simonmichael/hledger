@@ -124,7 +124,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
         maxacctwidthseen =
           -- ltrace "maxacctwidthseen" $
           V.maximum $
-          V.map (\AccountsScreenItem{..} -> asItemIndentLevel + textWidth asItemDisplayAccountName) $
+          V.map (\AccountsScreenItem{..} -> asItemIndentLevel + Hledger.Cli.textWidth asItemDisplayAccountName) $
           -- V.filter (\(indent,_,_,_) -> (indent-1) <= fromMaybe 99999 mdepth) $
           displayitems
         maxbalwidthseen =
