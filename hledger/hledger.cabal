@@ -209,7 +209,7 @@ executable hledger
   if flag(oldtime)
     build-depends:
         time <1.5
-      , oldtime
+      , old-locale
   else
     build-depends:
         time >=1.5
@@ -270,7 +270,7 @@ test-suite test
   if flag(oldtime)
     build-depends:
         time <1.5
-      , oldtime
+      , old-locale
   else
     build-depends:
         time >=1.5
@@ -304,7 +304,7 @@ benchmark bench
   if flag(oldtime)
     build-depends:
         time <1.5
-      , oldtime
+      , old-locale
   else
     build-depends:
         time >=1.5
