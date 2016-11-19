@@ -1,5 +1,5 @@
 name        : hledger-ui
-version     : '1.0.4'
+version     : '1.0.5'
 synopsis    : Curses-style user interface for the hledger accounting tool
 description : |
   This is hledger's curses-style interface.
@@ -35,7 +35,7 @@ flags:
     description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
     manual: false
     default: false
-cpp-options: -DVERSION="1.0.4"
+cpp-options: -DVERSION="1.0.5"
 executables:
   hledger-ui:
     source-dirs: .
