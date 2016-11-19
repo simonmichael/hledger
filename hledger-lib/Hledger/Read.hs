@@ -4,18 +4,6 @@ This is the entry point to hledger's reading system, which can read
 Journals from various data formats. Use this module if you want to parse
 journal data or read journal files. Generally it should not be necessary
 to import modules below this one.
-
-Here's how most of these functions fit together:
-
-@
-readJournalFiles
- readJournalFile
-  requireJournalFileExists
-  readJournal
-   findReader
-   tryReaders
-@
-
 -}
 
 {-# LANGUAGE ScopedTypeVariables, OverloadedStrings #-}
@@ -127,11 +115,12 @@ readJournalFiles mformat mrulesfile assrt fs = do
 
 -- | @readJournalFile mformat mrulesfile assrt f@
 --
--- Read a Journal from this file (or stdin if the filename is -) or give
--- an error message, using the specified data format or trying all known
--- formats. A CSV conversion rules file may be specified for better
--- conversion of that format. Also there is a flag specifying whether
--- to check or ignore balance assertions in the journal.
+-- Read a Journal from this file (or stdin if the file path is -).
+-- Assume the specified data format, or a format identified from the file path,
+-- or try all readers.
+-- A CSV conversion rules file may be specified for better conversion of CSV.
+-- Also optionally check any balance assertions in the journal.
+-- If parsing or balance assertions fail, return an error message instead.
 readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> FilePath -> IO (Either String Journal)
 readJournalFile mformat mrulesfile assrt f = do
   requireJournalFileExists f
