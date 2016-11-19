@@ -192,7 +192,7 @@ executables:
       then:
         dependencies:
         - time <1.5
-        - oldtime
+        - old-locale
       else:
         dependencies:
         - time >=1.5
@@ -243,7 +243,7 @@ tests:
       then:
         dependencies:
         - time <1.5
-        - oldtime
+        - old-locale
       else:
         dependencies:
         - time >=1.5
@@ -265,7 +265,7 @@ benchmarks:
       then:
         dependencies:
         - time <1.5
-        - oldtime
+        - old-locale
       else:
         dependencies:
         - time >=1.5
