@@ -13,8 +13,7 @@ module Ledger.Parser.Text
        ) where
 
 import           Control.Applicative
-import           Data.ByteString as B hiding (pack, unpack, singleton,
-                                              zipWith, concat)
+import           Data.ByteString (ByteString)
 import           Data.Maybe
 import qualified Data.Text.Encoding as E
 import           Filesystem.Path.CurrentOS hiding (concat)
