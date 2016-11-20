@@ -324,13 +324,9 @@ File: hledger.1.info,  Node: Input files,  Next: Depth limiting,  Prev: Reportin
 ===============
 
 hledger reads transactions from a data file (and the add command writes
-to it). Usually this is in hledger's journal format, but it can also be
-one of the other supported file types, such as timeclock, timedot, CSV,
-or a C++ Ledger journal (partial support).
-
-   By default this file is `$HOME/.hledger.journal' (or on Windows,
-something like `C:/Users/USER/.hledger.journal'). You can override this
-with the `$LEDGER_FILE' environment variable:
+to it). By default this file is `$HOME/.hledger.journal' (or on
+Windows, something like `C:/Users/USER/.hledger.journal'). You can
+override this with the `$LEDGER_FILE' environment variable:
 
 
 $ setenv LEDGER_FILE ~/finance/2016.journal
@@ -339,28 +335,42 @@ $ hledger stats
    or with the `-f/--file' option:
 
 
-$ hledger -f some/file.ext stats
-
-   hledger tries to identify the file format based on the file
-extension, as follows:
-
-File extension:                           Use format:
--------------------------------------------------------- 
-`.journal', `.j', `.hledger', `.ledger'   journal
-`.timeclock'                              timeclock
-`.timedot'                                timedot
-`.csv'                                    CSV
-
-   If the file name has some other extension, or none, hledger tries
-each of these formats in turn. (Plus one more: the experimental "ledger"
-format, an alternate parser for C++ Ledger journals, which we try only
-as a last resort as it's new and hledger's journal parser works better
-for now.)
+$ hledger -f /some/file stats
 
    The file name `-' (hyphen) means standard input, as usual:
 
 
 $ cat some.journal | hledger -f-
+
+   Usually this file is in hledger's journal format, but it can also be
+one of several other formats, shown below. hledger tries to identify the
+format based on the file extension, as follows:
+
+Format:     Description:                                File extensions:
+-------------------------------------------------------------------------------------------------- 
+journal     hledger's journal format                    `.journal', `.j', `.hledger', `.ledger'
+timeclock   timeclock files (precise time logging)      `.timeclock'
+timedot     timedot files (approximate time logging)    `.timedot'
+CSV         comma-separated values (data interchange)   `.csv'
+
+   hledger identifies the format based on the file extension if
+possible.  If that does not identify a known format, it tries each
+format in turn.
+
+   If needed, eg to ensure correct error messages, you can force a
+specific format by prepending it to the file path with a colon.
+Examples:
+
+
+$ hledger -f csv:/some/csv-file.dat stats
+$ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
+
+   Some other experimental formats are available but not yet used by
+default:
+
+Format:   Description:                           File extensions:
+-------------------------------------------------------------------- 
+ledger    Ledger's journal format (incomplete)   
 
    You can specify multiple `-f' options, to read multiple files as one
 big journal. Directives in one file will not affect subsequent files in
@@ -2165,91 +2175,91 @@ Node: Reporting options7583
 Ref: #reporting-options7736
 Node: Input files9512
 Ref: #input-files9652
-Node: Depth limiting11233
-Ref: #depth-limiting11373
-Node: Smart dates11574
-Ref: #smart-dates11713
-Node: Report intervals12710
-Ref: #report-intervals12863
-Node: Period expressions13199
-Ref: #period-expressions13364
-Node: Regular expressions15699
-Ref: #regular-expressions15841
-Node: QUERIES17324
-Ref: #queries17428
-Node: COMMANDS21067
-Ref: #commands21181
-Node: accounts21854
-Ref: #accounts21954
-Node: activity22936
-Ref: #activity23048
-Node: add23407
-Ref: #add23508
-Node: balance26167
-Ref: #balance26280
-Node: Flat mode29253
-Ref: #flat-mode29380
-Node: Depth limited balance reports29799
-Ref: #depth-limited-balance-reports30002
-Node: Multicolumn balance reports30423
-Ref: #multicolumn-balance-reports30625
-Node: Market value35274
-Ref: #market-value35438
-Node: Custom balance output35931
-Ref: #custom-balance-output36104
-Node: Output destination38208
-Ref: #output-destination38373
-Node: CSV output38643
-Ref: #csv-output38762
-Node: balancesheet39159
-Ref: #balancesheet39287
-Node: cashflow39939
-Ref: #cashflow40056
-Node: help40746
-Ref: #help40858
-Node: incomestatement41695
-Ref: #incomestatement41825
-Node: info42552
-Ref: #info42659
-Node: man43021
-Ref: #man43118
-Node: print43521
-Ref: #print43626
-Node: register44972
-Ref: #register45085
-Node: Custom register output49577
-Ref: #custom-register-output49708
-Node: stats51005
-Ref: #stats51111
-Node: test51987
-Ref: #test52074
-Node: ADD-ON COMMANDS52441
-Ref: #add-on-commands52577
-Node: api53865
-Ref: #api53957
-Node: autosync53991
-Ref: #autosync54106
-Node: diff56421
-Ref: #diff56531
-Node: equity57195
-Ref: #equity57309
-Node: interest58637
-Ref: #interest58754
-Node: irr61838
-Ref: #irr61951
-Node: print-unique64326
-Ref: #print-unique64456
-Node: rewrite64714
-Ref: #rewrite64833
-Node: ui65362
-Ref: #ui65462
-Node: web65503
-Ref: #web65591
-Node: TROUBLESHOOTING65624
-Ref: #troubleshooting65743
-Node: Run-time problems65797
-Ref: #run-time-problems65940
-Node: Known limitations67884
-Ref: #known-limitations68027
+Node: Depth limiting11677
+Ref: #depth-limiting11817
+Node: Smart dates12018
+Ref: #smart-dates12157
+Node: Report intervals13154
+Ref: #report-intervals13307
+Node: Period expressions13643
+Ref: #period-expressions13808
+Node: Regular expressions16143
+Ref: #regular-expressions16285
+Node: QUERIES17768
+Ref: #queries17872
+Node: COMMANDS21511
+Ref: #commands21625
+Node: accounts22298
+Ref: #accounts22398
+Node: activity23380
+Ref: #activity23492
+Node: add23851
+Ref: #add23952
+Node: balance26611
+Ref: #balance26724
+Node: Flat mode29697
+Ref: #flat-mode29824
+Node: Depth limited balance reports30243
+Ref: #depth-limited-balance-reports30446
+Node: Multicolumn balance reports30867
+Ref: #multicolumn-balance-reports31069
+Node: Market value35718
+Ref: #market-value35882
+Node: Custom balance output36375
+Ref: #custom-balance-output36548
+Node: Output destination38652
+Ref: #output-destination38817
+Node: CSV output39087
+Ref: #csv-output39206
+Node: balancesheet39603
+Ref: #balancesheet39731
+Node: cashflow40383
+Ref: #cashflow40500
+Node: help41190
+Ref: #help41302
+Node: incomestatement42139
+Ref: #incomestatement42269
+Node: info42996
+Ref: #info43103
+Node: man43465
+Ref: #man43562
+Node: print43965
+Ref: #print44070
+Node: register45416
+Ref: #register45529
+Node: Custom register output50021
+Ref: #custom-register-output50152
+Node: stats51449
+Ref: #stats51555
+Node: test52431
+Ref: #test52518
+Node: ADD-ON COMMANDS52885
+Ref: #add-on-commands53021
+Node: api54309
+Ref: #api54401
+Node: autosync54435
+Ref: #autosync54550
+Node: diff56865
+Ref: #diff56975
+Node: equity57639
+Ref: #equity57753
+Node: interest59081
+Ref: #interest59198
+Node: irr62282
+Ref: #irr62395
+Node: print-unique64770
+Ref: #print-unique64900
+Node: rewrite65158
+Ref: #rewrite65277
+Node: ui65806
+Ref: #ui65906
+Node: web65947
+Ref: #web66035
+Node: TROUBLESHOOTING66068
+Ref: #troubleshooting66187
+Node: Run-time problems66241
+Ref: #run-time-problems66384
+Node: Known limitations68328
+Ref: #known-limitations68471
 
 End Tag Table

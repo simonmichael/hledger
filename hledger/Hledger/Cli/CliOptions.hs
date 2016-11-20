@@ -397,14 +397,22 @@ aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++qu
 -- 1. options, 2. an environment variable, or 3. the default.
 -- Actually, returns one or more file paths. There will be more
 -- than one if multiple -f options were provided.
+-- File paths can have a READER: prefix naming a reader/data format.
 journalFilePathFromOpts :: CliOpts -> IO [String]
 journalFilePathFromOpts opts = do
   f <- defaultJournalPath
   d <- getCurrentDirectory
-  mapM (expandPath d) $ ifEmpty (file_ opts) [f]
- where
-    ifEmpty [] d = d
-    ifEmpty l _ = l
+  case file_ opts of
+    [] -> return [f]
+    fs -> mapM (expandPathPreservingPrefix d) fs
+
+expandPathPreservingPrefix :: FilePath -> PrefixedFilePath -> IO PrefixedFilePath
+expandPathPreservingPrefix d prefixedf = do
+  let (p,f) = splitReaderPrefix prefixedf
+  f' <- expandPath d f
+  return $ case p of
+    Just p  -> p ++ ":" ++ f'
+    Nothing -> f'
 
 -- | Get the expanded, absolute output file path from options,
 -- or the default (-, meaning stdout).

@@ -11,12 +11,14 @@ to import modules below this one.
 module Hledger.Read (
 
   -- * Journal files
+  PrefixedFilePath,
   defaultJournal,
   defaultJournalPath,
   readJournalFiles,
   readJournalFile,
   requireJournalFileExists,
   ensureJournalFileExists,
+  splitReaderPrefix,
 
   -- * Journal parsing
   readJournal,
@@ -33,6 +35,7 @@ module Hledger.Read (
 
 ) where
 
+import Control.Applicative ((<|>))
 import qualified Control.Exception as C
 import Control.Monad.Except
 import Data.List
@@ -61,6 +64,10 @@ import Prelude hiding (getContents, writeFile)
 import Hledger.Utils.UTF8IOCompat (writeFile)
 
 
+journalEnvVar           = "LEDGER_FILE"
+journalEnvVar2          = "LEDGER"
+journalDefaultFilename  = ".hledger.journal"
+
 -- The available journal readers, each one handling a particular data format.
 readers :: [Reader]
 readers = [
@@ -71,9 +78,12 @@ readers = [
  ,LedgerReader.reader
  ]
 
-journalEnvVar           = "LEDGER_FILE"
-journalEnvVar2          = "LEDGER"
-journalDefaultFilename  = ".hledger.journal"
+readerNames :: [String]
+readerNames = map rFormat readers
+
+-- | A file path optionally prefixed by a reader name and colon
+-- (journal:, csv:, timedot:, etc.).
+type PrefixedFilePath = FilePath
 
 -- | Read the default journal file specified by the environment, or raise an error.
 defaultJournal :: IO Journal
@@ -99,34 +109,58 @@ defaultJournalPath = do
                   home <- getHomeDirectory `C.catch` (\(_::C.IOException) -> return "")
                   return $ home </> journalDefaultFilename
 
--- | @readJournalFiles mformat mrulesfile assrt fs@
+-- | @readJournalFiles mformat mrulesfile assrt prefixedfiles@
 --
--- Call readJournalFile on each specified file path, and combine the
--- resulting journals into one. If there are any errors, the first is
--- returned, otherwise they are combined per Journal's monoid instance
--- (concatenated, basically). Parse context (eg directives & aliases)
--- is not maintained across file boundaries, it resets at the start of
--- each file (though the final parse state saved in the resulting
--- journal is the combination of parse states from all files).
-readJournalFiles :: Maybe StorageFormat -> Maybe FilePath -> Bool -> [FilePath] -> IO (Either String Journal)
-readJournalFiles mformat mrulesfile assrt fs = do
+-- Read a Journal from each specified file path and combine them into one.
+-- Or, return the first error message.
+--
+-- Combining Journals means concatenating them, basically.
+-- The parse state resets at the start of each file, which means that
+-- directives & aliases do not cross file boundaries.
+-- (The final parse state saved in the Journal does span all files, however.)
+--
+-- As with readJournalFile,
+-- file paths can optionally have a READER: prefix,
+-- and the @mformat@, @mrulesfile, and @assrt@ arguments are supported
+-- (and these are applied to all files).
+--
+readJournalFiles :: Maybe StorageFormat -> Maybe FilePath -> Bool -> [PrefixedFilePath] -> IO (Either String Journal)
+readJournalFiles mformat mrulesfile assrt prefixedfiles = do
   (either Left (Right . mconcat) . sequence)
-    <$> mapM (readJournalFile mformat mrulesfile assrt) fs
+    <$> mapM (readJournalFile mformat mrulesfile assrt) prefixedfiles
 
--- | @readJournalFile mformat mrulesfile assrt f@
+-- | @readJournalFile mformat mrulesfile assrt prefixedfile@
 --
--- Read a Journal from this file (or stdin if the file path is -).
--- Assume the specified data format, or a format identified from the file path,
--- or try all readers.
--- A CSV conversion rules file may be specified for better conversion of CSV.
--- Also optionally check any balance assertions in the journal.
--- If parsing or balance assertions fail, return an error message instead.
-readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> FilePath -> IO (Either String Journal)
-readJournalFile mformat mrulesfile assrt f = do
+-- Read a Journal from this file, or from stdin if the file path is -,
+-- or return an error message. The file path can have a READER: prefix.
+--
+-- The reader (data format) is chosen based on (in priority order):
+-- the @mformat@ argument;
+-- the file path's READER: prefix, if any;
+-- a recognised file name extension (in readJournal);
+-- if none of these identify a known reader, all built-in readers are tried in turn.
+--
+-- A CSV conversion rules file (@mrulesfiles@) can be specified to help convert CSV data.
+--
+-- Optionally, any balance assertions in the journal can be checked (@assrt@).
+--
+readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> PrefixedFilePath -> IO (Either String Journal)
+readJournalFile mformat mrulesfile assrt prefixedfile = do
+  let
+    (mprefixformat, f) = splitReaderPrefix prefixedfile
+    mfmt = mformat <|> mprefixformat
   requireJournalFileExists f
-  readFileOrStdinAnyLineEnding f >>= readJournal mformat mrulesfile assrt (Just f)
+  readFileOrStdinAnyLineEnding f >>= readJournal mfmt mrulesfile assrt (Just f)
 
--- | If the specified journal file does not exist, give a helpful error and quit.
+-- | If a filepath is prefixed by one of the reader names and a colon,
+-- split that off. Eg "csv:-" -> (Just "csv", "-").
+splitReaderPrefix :: PrefixedFilePath -> (Maybe String, FilePath)
+splitReaderPrefix f =
+  headDef (Nothing, f)
+  [(Just r, drop (length r + 1) f) | r <- readerNames, (r++":") `isPrefixOf` f]
+
+-- | If the specified journal file does not exist (and is not "-"),
+-- give a helpful error and quit.
 requireJournalFileExists :: FilePath -> IO ()
 requireJournalFileExists "-" = return ()
 requireJournalFileExists f = do
@@ -153,7 +187,7 @@ newJournalContent = do
   d <- getCurrentDay
   return $ printf "; journal created %s by hledger\n" (show d)
 
--- | Read a journal from the given text, trying all known formats, or simply throw an error.
+-- | Read a Journal from the given text trying all readers in turn, or throw an error.
 readJournal' :: Text -> IO Journal
 readJournal' t = readJournal Nothing Nothing True Nothing t >>= either error' return
 
@@ -163,30 +197,42 @@ tests_readJournal' = [
      assertBool "" True
  ]
 
--- | @readJournal mformat mrulesfile assrt mpath t@
+-- | @readJournal mformat mrulesfile assrt mfile txt@
 --
--- Try to read a Journal from some text.
--- If a format is specified (mformat), try only that reader.
--- Otherwise if the file path is provided (mpath), and it specifies a format, try only that reader.
--- Otherwise try all readers in turn until one succeeds, or return the first error if none of them succeed.
--- A CSV conversion rules file may be specified (mrulesfile) for use by the CSV reader.
--- If the assrt flag is true, also check and enforce balance assertions in the journal.
+-- Read a Journal from some text, or return an error message.
+--
+-- The reader (data format) is chosen based on (in priority order):
+-- the @mformat@ argument;
+-- a recognised file name extension in @mfile@ (if provided).
+-- If none of these identify a known reader, all built-in readers are tried in turn
+-- (returning the first one's error message if none of them succeed).
+--
+-- A CSV conversion rules file (@mrulesfiles@) can be specified to help convert CSV data.
+--
+-- Optionally, any balance assertions in the journal can be checked (@assrt@).
+--
 readJournal :: Maybe StorageFormat -> Maybe FilePath -> Bool -> Maybe FilePath -> Text -> IO (Either String Journal)
-readJournal mformat mrulesfile assrt mpath t =
-  let rs = maybe readers (:[]) $ findReader mformat mpath
-  in  tryReaders rs mrulesfile assrt mpath t
+readJournal mformat mrulesfile assrt mfile txt =
+  let
+    rs = maybe readers (:[]) $ findReader mformat mfile
+  in
+    tryReaders rs mrulesfile assrt mfile txt
 
 -- | @findReader mformat mpath@
 --
--- Find the reader for the given format (mformat), if any.
--- Or if no format is provided, find the first reader that handles the
--- file name's extension, if any.
+-- Find the reader named by @mformat@, if provided.
+-- Or, if a file path is provided, find the first reader that handles
+-- its file extension, if any.
 findReader :: Maybe StorageFormat -> Maybe FilePath -> Maybe Reader
 findReader Nothing Nothing     = Nothing
-findReader (Just fmt) _        = headMay [r | r <- readers, fmt == rFormat r]
-findReader Nothing (Just path) = headMay [r | r <- readers, ext `elem` rExtensions r]
+findReader (Just fmt) _        = headMay [r | r <- readers, rFormat r == fmt]
+findReader Nothing (Just path) =
+  case prefix of
+    Just fmt -> headMay [r | r <- readers, rFormat r == fmt]
+    Nothing  -> headMay [r | r <- readers, ext `elem` rExtensions r]
   where
-    ext = drop 1 $ takeExtension path
+    (prefix,path') = splitReaderPrefix path
+    ext            = drop 1 $ takeExtension path'
 
 -- | @tryReaders readers mrulesfile assrt path t@
 --

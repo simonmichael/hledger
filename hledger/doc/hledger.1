@@ -403,10 +403,6 @@ Eg \-p jan \-p feb is equivalent to \-p feb.
 .PP
 hledger reads transactions from a data file (and the add command writes
 to it).
-Usually this is in hledger\[aq]s journal format, but it can also be one
-of the other supported file types, such as timeclock, timedot, CSV, or a
-C++ Ledger journal (partial support).
-.PP
 By default this file is \f[C]$HOME/.hledger.journal\f[] (or on Windows,
 something like \f[C]C:/Users/USER/.hledger.journal\f[]).
 You can override this with the \f[C]$LEDGER_FILE\f[] environment
@@ -423,50 +419,9 @@ or with the \f[C]\-f/\-\-file\f[] option:
 .IP
 .nf
 \f[C]
-$\ hledger\ \-f\ some/file.ext\ stats
+$\ hledger\ \-f\ /some/file\ stats
 \f[]
 .fi
-.PP
-hledger tries to identify the file format based on the file extension,
-as follows:
-.PP
-.TS
-tab(@);
-l l.
-T{
-File extension:
-T}@T{
-Use format:
-T}
-_
-T{
-\f[C]\&.journal\f[], \f[C]\&.j\f[], \f[C]\&.hledger\f[],
-\f[C]\&.ledger\f[]
-T}@T{
-journal
-T}
-T{
-\f[C]\&.timeclock\f[]
-T}@T{
-timeclock
-T}
-T{
-\f[C]\&.timedot\f[]
-T}@T{
-timedot
-T}
-T{
-\f[C]\&.csv\f[]
-T}@T{
-CSV
-T}
-.TE
-.PP
-If the file name has some other extension, or none, hledger tries each
-of these formats in turn.
-(Plus one more: the experimental "ledger" format, an alternate parser
-for C++ Ledger journals, which we try only as a last resort as it\[aq]s
-new and hledger\[aq]s journal parser works better for now.)
 .PP
 The file name \f[C]\-\f[] (hyphen) means standard input, as usual:
 .IP
@@ -475,6 +430,89 @@ The file name \f[C]\-\f[] (hyphen) means standard input, as usual:
 $\ cat\ some.journal\ |\ hledger\ \-f\-
 \f[]
 .fi
+.PP
+Usually this file is in hledger\[aq]s journal format, but it can also be
+one of several other formats, shown below.
+hledger tries to identify the format based on the file extension, as
+follows:
+.PP
+.TS
+tab(@);
+l l l.
+T{
+Format:
+T}@T{
+Description:
+T}@T{
+File extensions:
+T}
+_
+T{
+journal
+T}@T{
+hledger\[aq]s journal format
+T}@T{
+\f[C]\&.journal\f[], \f[C]\&.j\f[], \f[C]\&.hledger\f[],
+\f[C]\&.ledger\f[]
+T}
+T{
+timeclock
+T}@T{
+timeclock files (precise time logging)
+T}@T{
+\f[C]\&.timeclock\f[]
+T}
+T{
+timedot
+T}@T{
+timedot files (approximate time logging)
+T}@T{
+\f[C]\&.timedot\f[]
+T}
+T{
+CSV
+T}@T{
+comma\-separated values (data interchange)
+T}@T{
+\f[C]\&.csv\f[]
+T}
+.TE
+.PP
+hledger identifies the format based on the file extension if possible.
+If that does not identify a known format, it tries each format in turn.
+.PP
+If needed, eg to ensure correct error messages, you can force a specific
+format by prepending it to the file path with a colon.
+Examples:
+.IP
+.nf
+\f[C]
+$\ hledger\ \-f\ csv:/some/csv\-file.dat\ stats
+$\ echo\ \[aq]i\ 2009/13/1\ 08:00:00\[aq]\ |\ hledger\ print\ \-ftimeclock:\-
+\f[]
+.fi
+.PP
+Some other experimental formats are available but not yet used by
+default:
+.PP
+.TS
+tab(@);
+l l l.
+T{
+Format:
+T}@T{
+Description:
+T}@T{
+File extensions:
+T}
+_
+T{
+ledger
+T}@T{
+Ledger\[aq]s journal format (incomplete)
+T}@T{
+T}
+.TE
 .PP
 You can specify multiple \f[C]\-f\f[] options, to read multiple files as
 one big journal.
