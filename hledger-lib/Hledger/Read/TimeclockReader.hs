@@ -73,6 +73,7 @@ reader = Reader
   {rFormat     = "timeclock"
   ,rExtensions = ["timeclock"]
   ,rParser     = parse
+  ,rExperimental = False
   }
 
 -- | Parse and post-process a "Journal" from timeclock.el's timeclock

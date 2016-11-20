@@ -68,6 +68,7 @@ reader = Reader
   {rFormat     = "csv"
   ,rExtensions = ["csv"]
   ,rParser     = parse
+  ,rExperimental = False
   }
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.

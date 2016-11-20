@@ -46,6 +46,7 @@ reader = Reader
   {rFormat     = "ledger"
   ,rExtensions = []
   ,rParser     = parse
+  ,rExperimental = True
   }
 
 -- | Generate an action that parses and post-processes a "Journal" from a

@@ -58,6 +58,7 @@ reader = Reader
   {rFormat     = "timedot"
   ,rExtensions = ["timedot"]
   ,rParser     = parse
+  ,rExperimental = False
   }
 
 -- | Parse and post-process a "Journal" from the timedot format, or give an error.

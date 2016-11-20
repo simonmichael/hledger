@@ -332,6 +332,8 @@ data Reader = Reader {
      -- or error message.
     ,rParser   :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
 
+     -- Experimental readers are never tried automatically.
+    ,rExperimental :: Bool
     }
 
 instance Show Reader where show r = rFormat r ++ " reader"

@@ -214,7 +214,8 @@ tests_readJournal' = [
 readJournal :: Maybe StorageFormat -> Maybe FilePath -> Bool -> Maybe FilePath -> Text -> IO (Either String Journal)
 readJournal mformat mrulesfile assrt mfile txt =
   let
-    rs = maybe readers (:[]) $ findReader mformat mfile
+    stablereaders = filter (not.rExperimental) readers
+    rs = maybe stablereaders (:[]) $ findReader mformat mfile
   in
     tryReaders rs mrulesfile assrt mfile txt
 

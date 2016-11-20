@@ -110,6 +110,7 @@ reader = Reader
   {rFormat     = "journal"
   ,rExtensions = ["journal", "j", "hledger", "ledger"]
   ,rParser     = parse
+  ,rExperimental = False
   }
 
 -- | Parse and post-process a "Journal" from hledger's journal file
