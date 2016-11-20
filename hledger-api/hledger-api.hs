@@ -97,7 +97,8 @@ serveApi p d f j = do
   printf "Starting web api http://localhost:%d/api/v1 for %s\n" p f
   printf "and file server  http://localhost:%d        for %s/\n" p d
   printf "Press ctrl-c to quit\n"
-  Warp.run p $
+  let settings = setPort p $ setHost "127.0.0.1" defaultSettings
+  Warp.runSettings settings $
     logStdout $
     hledgerApiApp d j
 
