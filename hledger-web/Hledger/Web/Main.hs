@@ -71,7 +71,7 @@ web opts j = do
   d <- getCurrentDay
   let initq = queryFromOpts d $ reportopts_ $ cliopts_ opts
       j' = filterJournalTransactions initq j
-      h = "127.0.0.1"
+      h = "0.0.0.0"
       p = port_ opts
       u = base_url_ opts
       staticRoot = pack <$> file_url_ opts
