@@ -44,6 +44,7 @@ You have to build it, but that's pretty easy.
 
 1. Install [`stack`](http://haskell-lang.org/get-started).
    On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
+   On Arch, you [may need to also install GHC manually](https://github.com/simonmichael/hledger/issues/434).
 
 2. `stack install --resolver=nightly hledger [hledger-ui] [hledger-web] [hledger-api]`\
    On Windows, hledger-ui is [not yet available](https://github.com/coreyoconnor/vty/pull/1).\
