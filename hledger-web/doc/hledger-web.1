@@ -71,10 +71,11 @@ Similarly, use \f[C]\-\-port\f[] to set a TCP port other than 5000, eg
 if you are running multiple hledger\-web instances.
 .PP
 You can use \f[C]\-\-base\-url\f[] to change the protocol, hostname,
-port and path that appear in hyperlinks, useful for integrating
+port and path that appear in hyperlinks, useful eg for integrating
 hledger\-web within a larger website.
 The default is \f[C]http://HOST:PORT/\f[] using the server\[aq]s
-configured host address and TCP port.
+configured host address and TCP port (or \f[C]http://HOST\f[] if PORT is
+80).
 .PP
 With \f[C]\-\-file\-url\f[] you can set a different base url for static
 files, eg for better caching or cookie\-less serving on high performance

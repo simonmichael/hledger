@@ -35,11 +35,14 @@ timeclock, timedot, or CSV format specified with \f[C]\-f\f[], or
 perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
 For more about this see hledger(1), hledger_journal(5) etc.
 .PP
-The server listens on port 8001, or another specified with
-\f[C]\-p\ PORT\f[].
-Note there is no built\-in access control, so you will need to hide
+The server listens on IP address 127.0.0.1, accessible only to local
+requests, by default.
+You can change this with \f[C]\-\-host\f[], eg
+\f[C]\-\-host\ 0.0.0.0\f[] to listen on all addresses.
+Note there is no other access control, so you will need to hide
 hledger\-api behind an authenticating proxy if you want to restrict
 access.
+You can change the TCP port (default: 8001) with \f[C]\-p\ PORT\f[].
 .PP
 If invoked as \f[C]hledger\-api\ \-\-swagger\f[], instead of starting a
 server the API docs will be printed in Swagger 2.0 format.

@@ -49,9 +49,10 @@ only to local requests. You can use `--host' to change this, eg `--host
 are running multiple hledger-web instances.
 
    You can use `--base-url' to change the protocol, hostname, port and
-path that appear in hyperlinks, useful for integrating hledger-web
+path that appear in hyperlinks, useful eg for integrating hledger-web
 within a larger website. The default is `http://HOST:PORT/' using the
-server's configured host address and TCP port.
+server's configured host address and TCP port (or `http://HOST' if PORT
+is 80).
 
    With `--file-url' you can set a different base url for static files,
 eg for better caching or cookie-less serving on high performance
@@ -202,7 +203,7 @@ before options as shown above.
 
 Tag Table:
 Node: Top90
-Node: OPTIONS3307
-Ref: #options3394
+Node: OPTIONS3343
+Ref: #options3430
 
 End Tag Table

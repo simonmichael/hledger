@@ -18,6 +18,7 @@ import qualified Data.ByteString.Lazy.Char8 as BL8
 import           Data.Decimal
 import qualified Data.Map as M
 import           Data.Proxy
+import           Data.String (fromString)
 import           Data.Swagger
 import           Data.Text hiding (map,reverse)
 import           Network.Wai as Wai
@@ -52,16 +53,17 @@ Usage:
   hledger-api -h|--help|--info
 
 Options:
-  -f --file FILE  use a different input file
-                  (default: $LEDGER_FILE or ~/.hledger.journal)
-  -d --static-dir DIR  serve files from a different directory
-                  (default: .)
-  -p --port PORT  use a different TCP port (default: 8001)
-     --version    show version
-  -h              show usage
-     --help       show manual
-     --man        show manual with man
-     --info       show manual with info
+  -f --file FILE   use a different input file
+                   (default: $LEDGER_FILE or ~/.hledger.journal)
+  -d --static-dir  DIR  serve files from a different directory
+                   (default: .)
+     --host IPADDR listen on this IP address (default: 127.0.0.1)
+  -p --port PORT   listen on this TCP port (default: 8001)
+     --version     show version
+  -h               show usage
+     --help        show manual
+     --man         show manual with man
+     --info        show manual with info
 |]
 
 swaggerSpec :: Swagger
@@ -80,7 +82,10 @@ main = do
   when (isPresent args (longOption "info")) $ runInfoForTopic "api" >> exitSuccess
   when (isPresent args (longOption "version")) $ putStrLn hledgerApiVersion >> exitSuccess
   when (isPresent args (longOption "swagger")) $ BL8.putStrLn (encode swaggerSpec) >> exitSuccess
-  let defp = "8001"
+  let
+    defh = "127.0.0.1"
+    h = getArgWithDefault args defh (longOption "host")
+    defp = "8001"
   p <- case readMay $ getArgWithDefault args defp (longOption "port") of
         Nothing -> exitWithUsage doc
         Just n  -> return n
@@ -90,14 +95,17 @@ main = do
   let
     defd = "."
     d = getArgWithDefault args defd (longOption "static-dir")
-  readJournalFile Nothing Nothing True f >>= either error' (serveApi p d f)
+  readJournalFile Nothing Nothing True f >>= either error' (serveApi h p d f)
 
-serveApi :: Int -> FilePath -> FilePath -> Journal -> IO ()
-serveApi p d f j = do
-  printf "Starting web api http://localhost:%d/api/v1 for %s\n" p f
-  printf "and file server  http://localhost:%d        for %s/\n" p d
+serveApi :: String -> Int -> FilePath -> FilePath -> Journal -> IO ()
+serveApi h p d f j = do
+  printf "Starting web api http://%s:%d/api/v1 for %s\n" h p f
+  printf "and file server  http://%s:%d        for %s/\n" h p d
   printf "Press ctrl-c to quit\n"
-  Warp.run p $
+  let warpsettings = defaultSettings
+        & setHost (fromString h)
+        & setPort p
+  Warp.runSettings warpsettings $
     logStdout $
     hledgerApiApp d j
 

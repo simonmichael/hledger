@@ -30,10 +30,11 @@ of simple client-side app examples, which drive its evolution.
 Like hledger, it reads _files_
 For more about this see hledger(1), hledger_journal(5) etc.
 
-The server listens on port 8001, or another specified with `-p PORT`.
-Note there is no built-in access control, so you will need to hide
-hledger-api behind an authenticating proxy if you want to restrict
-access.
+The server listens on IP address 127.0.0.1, accessible only to local requests, by default.
+You can change this with `--host`, eg `--host 0.0.0.0` to listen on all addresses.
+Note there is no other access control, so you will need to hide
+hledger-api behind an authenticating proxy if you want to restrict access.
+You can change the TCP port (default: 8001) with `-p PORT`.
 
 If invoked as `hledger-api --swagger`, instead of starting a server
 the API docs will be printed in Swagger 2.0 format.

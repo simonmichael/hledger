@@ -59,9 +59,9 @@ DESCRIPTION
        running multiple hledger-web instances.
 
        You  can use --base-url to change the protocol, hostname, port and path
-       that appear in hyperlinks, useful for integrating hledger-web within  a
-       larger  website.   The  default is http://HOST:PORT/ using the server's
-       configured host address and TCP port.
+       that appear in hyperlinks, useful eg for integrating hledger-web within
+       a  larger website.  The default is http://HOST:PORT/ using the server's
+       configured host address and TCP port (or http://HOST if PORT is 80).
 
        With --file-url you can set a different base url for static  files,  eg
        for better caching or cookie-less serving on high performance websites.
