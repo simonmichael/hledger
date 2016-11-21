@@ -21,14 +21,12 @@ version = ""
 prognameandversion :: String
 prognameandversion = progname ++ " " ++ version :: String
 
-defbaseurlexample :: String
-defbaseurlexample = (reverse $ drop 4 $ reverse $ defbaseurl defport) ++ "PORT"
-
 webflags :: [Flag [([Char], [Char])]]
 webflags = [
-  flagNone ["server"]   (setboolopt "server") ("log requests, and don't browse or auto-exit")
- ,flagReq  ["port"]     (\s opts -> Right $ setopt "port" s opts) "PORT" ("set the tcp port (default: "++show defport++")")
- ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "BASEURL" ("set the base url (default: "++defbaseurlexample++")")
+  flagNone ["serve","server"]   (setboolopt "serve") ("serve and log requests, don't browse or auto-exit")
+ ,flagReq  ["host"]     (\s opts -> Right $ setopt "host" s opts) "IPADDR" ("listen on this IP address (default: "++defhost++")")
+ ,flagReq  ["port"]     (\s opts -> Right $ setopt "port" s opts) "PORT" ("listen on this TCP port (default: "++show defport++")")
+ ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "BASEURL" ("set the base url (default: http://IPADDR:PORT)")
  ,flagReq  ["file-url"] (\s opts -> Right $ setopt "file-url" s opts) "FILEURL" ("set the static files url (default: BASEURL/static)")
  ]
 
@@ -48,7 +46,8 @@ webmode =  (mode "hledger-web" [("command","web")]
 
 -- hledger-web options, used in hledger-web and above
 data WebOpts = WebOpts {
-     server_   :: Bool
+     serve_    :: Bool
+    ,host_     :: String
     ,port_     :: Int
     ,base_url_ :: String
     ,file_url_ :: Maybe String
@@ -62,17 +61,22 @@ defwebopts = WebOpts
     def
     def
     def
+    def
 
 -- instance Default WebOpts where def = defwebopts
 
 rawOptsToWebOpts :: RawOpts -> IO WebOpts
 rawOptsToWebOpts rawopts = checkWebOpts <$> do
   cliopts <- rawOptsToCliOpts rawopts
-  let p = fromMaybe defport $ maybeintopt "port" rawopts
+  let
+    h = fromMaybe defhost $ maybestringopt "host" rawopts
+    p = fromMaybe defport $ maybeintopt "port" rawopts
+    b = maybe (defbaseurl h p) stripTrailingSlash $ maybestringopt "base-url" rawopts
   return defwebopts {
-              port_ = p
-             ,server_ = boolopt "server" rawopts
-             ,base_url_ = maybe (defbaseurl p) stripTrailingSlash $ maybestringopt "base-url" rawopts
+              serve_ = boolopt "serve" rawopts
+             ,host_ = h
+             ,port_ = p
+             ,base_url_ = b
              ,file_url_ = stripTrailingSlash <$> maybestringopt "file-url" rawopts
              ,cliopts_   = cliopts
              }
@@ -80,7 +84,12 @@ rawOptsToWebOpts rawopts = checkWebOpts <$> do
     stripTrailingSlash = reverse . dropWhile (=='/') . reverse -- yesod don't like it
 
 checkWebOpts :: WebOpts -> WebOpts
-checkWebOpts = id
+checkWebOpts wopts =
+  either optserror (const wopts) $ do
+    let h = host_ wopts
+    if any (not . (`elem` ".0123456789")) h
+    then Left $ "--host requires an IP address, not "++show h
+    else Right ()
 
 getHledgerWebOpts :: IO WebOpts
 getHledgerWebOpts = processArgs webmode >>= return . decodeRawOpts >>= rawOptsToWebOpts

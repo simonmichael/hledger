@@ -62,19 +62,25 @@ Starting web browser if possible
 Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)
 ```
 
-With `--server`, it starts the web app in non-transient mode and logs
-requests to the console.  Typically when running hledger web as part
-of a website you'll want to use `--base-url` to set the
-protocol/hostname/port/path to be used in hyperlinks.  The
-`--file-url` option allows static files to be served from a different
-url, eg for better caching or cookie-less serving.
+With `--serve`, it starts the web app in non-transient mode and logs
+requests to the console.
 
-You can use `--port` to listen on a different TCP port, eg if you are
-running multiple hledger-web instances.  This need not be the same as
-the PORT in the base url.
+By default the server listens on IP address 127.0.0.1, accessible only to local requests.
+You can use `--host` to change this, eg `--host 0.0.0.0` to listen on all configured addresses. 
 
-Note there is no built-in access control, so you will need to hide
-hledger-web behind an authenticating proxy (such as apache or nginx)
+Similarly, use `--port` to set a TCP port other than 5000, eg if you are
+running multiple hledger-web instances.
+
+You can use `--base-url` to change the protocol, hostname, port and path that appear in hyperlinks,
+useful eg for integrating hledger-web within a larger website. 
+The default is `http://HOST:PORT/` using the server's configured host address and TCP port
+(or `http://HOST` if PORT is 80).
+
+With `--file-url` you can set a different base url for static files,
+eg for better caching or cookie-less serving on high performance websites. 
+
+Note there is no built-in access control (aside from listening on 127.0.0.1 by default). 
+So you will need to hide hledger-web behind an authenticating proxy (such as apache or nginx)
 if you want to restrict who can see and add entries to your journal.
 
 Command-line options and arguments may be used to set an initial

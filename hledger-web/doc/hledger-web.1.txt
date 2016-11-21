@@ -48,32 +48,40 @@ DESCRIPTION
               Starting web browser if possible
               Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)
 
-       With  --server,  it  starts  the web app in non-transient mode and logs
-       requests to the console.  Typically when running hledger web as part of
-       a  website  you'll  want  to  use  --base-url to set the protocol/host-
-       name/port/path to be used in hyperlinks.  The --file-url option  allows
-       static  files  to be served from a different url, eg for better caching
-       or cookie-less serving.
+       With  --serve,  it  starts  the  web app in non-transient mode and logs
+       requests to the console.
 
-       You can use --port to listen on a different TCP port,  eg  if  you  are
-       running  multiple  hledger-web instances.  This need not be the same as
-       the PORT in the base url.
+       By default the server listens on IP address 127.0.0.1, accessible  only
+       to   local   requests.    You   can  use  --host  to  change  this,  eg
+       --host 0.0.0.0 to listen on all configured addresses.
 
-       Note there is no built-in access control, so  you  will  need  to  hide
-       hledger-web behind an authenticating proxy (such as apache or nginx) if
-       you want to restrict who can see and add entries to your journal.
+       Similarly, use --port to set a TCP port other than 5000, eg if you  are
+       running multiple hledger-web instances.
+
+       You  can use --base-url to change the protocol, hostname, port and path
+       that appear in hyperlinks, useful for integrating hledger-web within  a
+       larger  website.   The  default is http://HOST:PORT/ using the server's
+       configured host address and TCP port.
+
+       With --file-url you can set a different base url for static  files,  eg
+       for better caching or cookie-less serving on high performance websites.
+
+       Note there is no built-in  access  control  (aside  from  listening  on
+       127.0.0.1  by default).  So you will need to hide hledger-web behind an
+       authenticating proxy (such as apache or nginx) if you want to  restrict
+       who can see and add entries to your journal.
 
        Command-line options and arguments may be used to set an initial filter
-       on  the  data.  This is not shown in the web UI, but it will be applied
+       on the data.  This is not shown in the web UI, but it will  be  applied
        in addition to any search query entered there.
 
        With journal and timeclock files (but not CSV files, currently) the web
-       app  detects  changes made by other means and will show the new data on
-       the next request.  If a change makes the file unparseable,  hledger-web
+       app detects changes made by other means and will show the new  data  on
+       the  next request.  If a change makes the file unparseable, hledger-web
        will show an error until the file has been fixed.
 
 OPTIONS
-       Note:  if invoking hledger-web as a hledger subcommand, write -- before
+       Note: if invoking hledger-web as a hledger subcommand, write --  before
        options as shown above.
 
        --server
@@ -84,21 +92,21 @@ OPTIONS
               set the TCP port to listen on (default: 5000)
 
        --base-url=URL
-              set  the  base  url (default: http://localhost:PORT).  You would
+              set the base url (default:  http://localhost:PORT).   You  would
               change this when sharing over the network, or integrating within
               a larger website.
 
        --file-url=URL
               set the static files url (default: BASEURL/static).  hledger-web
-              normally serves static files itself, but if you wanted to  serve
-              them  from  another server for efficiency, you would set the url
+              normally  serves static files itself, but if you wanted to serve
+              them from another server for efficiency, you would set  the  url
               with this.
 
        hledger general options:
 
        -h     show general usage (or after COMMAND, the command's usage)
 
-       --help show the current program's manual as plain  text  (or  after  an
+       --help show  the  current  program's  manual as plain text (or after an
               add-on COMMAND, the add-on's manual)
 
        --man  show the current program's manual with man
@@ -115,7 +123,7 @@ OPTIONS
               use a different input file.  For stdin, use -
 
        --rules-file=RULESFILE
-              Conversion   rules  file  to  use  when  reading  CSV  (default:
+              Conversion  rules  file  to  use  when  reading  CSV   (default:
               FILE.rules)
 
        --alias=OLD=NEW
@@ -148,7 +156,7 @@ OPTIONS
               multiperiod/multicolumn report by year
 
        -p --period=PERIODEXP
-              set start date, end date, and/or reporting interval all at  once
+              set  start date, end date, and/or reporting interval all at once
               (overrides the flags above)
 
        --date2
@@ -176,29 +184,29 @@ OPTIONS
               show amounts in their cost price's commodity
 
        --pivot TAG
-              will  transform  the  journal  before  any  other  processing by
-              replacing the account name of every posting having the  tag  TAG
+              will transform  the  journal  before  any  other  processing  by
+              replacing  the  account name of every posting having the tag TAG
               with content VALUE by the account name "TAG:VALUE".
-       The  TAG  will only match if it is a full-length match.  The pivot will
-       only happen if the TAG is on a posting, not if it is  on  the  transac-
-       tion.   If  the tag value is a multi:level:account:name the new account
+       The TAG will only match if it is a full-length match.  The  pivot  will
+       only  happen  if  the TAG is on a posting, not if it is on the transac-
+       tion.  If the tag value is a multi:level:account:name the  new  account
        name will be "TAG:multi:level:account:name".
 
        --anon show anonymized accounts and payees
 
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
 FILES
-       Reads data from one or more files in hledger journal, timeclock,  time-
-       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
-       $HOME/.hledger.journal          (on          windows,           perhaps
+       Reads  data from one or more files in hledger journal, timeclock, time-
+       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
+       $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The  need  to precede options with -- when invoked from hledger is awk-
+       The need to precede options with -- when invoked from hledger  is  awk-
        ward.
 
        -f- doesn't work (hledger-web can't read from stdin).
@@ -212,7 +220,7 @@ BUGS
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -226,7 +234,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

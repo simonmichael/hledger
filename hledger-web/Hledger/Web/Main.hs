@@ -71,7 +71,7 @@ web opts j = do
   d <- getCurrentDay
   let initq = queryFromOpts d $ reportopts_ $ cliopts_ opts
       j' = filterJournalTransactions initq j
-      h = "127.0.0.1"
+      h = host_ opts
       p = port_ opts
       u = base_url_ opts
       staticRoot = pack <$> file_url_ opts
@@ -82,8 +82,9 @@ web opts j = do
                            ,appExtra = Extra "" Nothing staticRoot
                            }
   app <- makeApplication opts j' appconfig
-  _ <- printf "Starting web app on host %s port %d with base url %s\n" h p u
-  if server_ opts
+  -- XXX would like to allow a host name not just an IP address here
+  _ <- printf "Starting web app on IP address %s port %d with base url %s\n" h p u
+  if serve_ opts
     then do
       putStrLn "Press ctrl-c to quit"
       hFlush stdout

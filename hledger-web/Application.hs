@@ -59,7 +59,7 @@ makeApplication opts j conf = do
     return $ logWare app
   where
     logWare | development  = logStdoutDev
-            | server_ opts = logStdout
+            | serve_ opts  = logStdout
             | otherwise    = id
 
 makeFoundation :: AppConfig DefaultEnv Extra -> WebOpts -> IO App

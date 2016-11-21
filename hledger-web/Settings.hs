@@ -20,22 +20,22 @@ import Settings.Development
 import Data.Default (def)
 import Text.Hamlet
 
-import Text.Printf (printf)
-
 
 hledgerorgurl, manualurl :: String
 hledgerorgurl     = "http://hledger.org"
 manualurl         = hledgerorgurl++"/manual"
 
+-- | The default IP address to listen on. May be overridden with --host.
+defhost :: String
+defhost = "127.0.0.1"
+
 -- | The default TCP port to listen on. May be overridden with --port.
 defport :: Int
 defport = 5000
 
-defbaseurl :: Int -> String
-defbaseurl port = printf "http://localhost:%d" port
-
-
-
+defbaseurl :: String -> Int -> String
+defbaseurl host port =
+  "http://" ++ host ++ if port /= 80 then ":" ++ show port else ""
 
 -- Static setting below. Changing these requires a recompile
 
