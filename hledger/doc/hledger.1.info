@@ -337,44 +337,38 @@ $ hledger stats
 
 $ hledger -f /some/file stats
 
-   The file name `-' (hyphen) means standard input, as usual:
+   The file name `-' (hyphen) means standard input:
 
 
 $ cat some.journal | hledger -f-
 
-   Usually this file is in hledger's journal format, but it can also be
-one of several other formats, shown below. hledger tries to identify the
-format based on the file extension, as follows:
+   Usually the data file is in hledger's journal format, but it can
+also be one of several other formats, listed below. hledger detects the
+format automatically based on the file extension, or if that is not
+recognised, by trying each built-in "reader" in turn:
 
-Format:     Description:                                File extensions:
--------------------------------------------------------------------------------------------------- 
-journal     hledger's journal format                    `.journal', `.j', `.hledger', `.ledger'
-timeclock   timeclock files (precise time logging)      `.timeclock'
-timedot     timedot files (approximate time logging)    `.timedot'
-CSV         comma-separated values (data interchange)   `.csv'
+Reader:     Reads:                             Used for file extensions:
+--------------------------------------------------------------------------- 
+`journal'   hledger's journal format, also     `.journal' `.j' `.hledger'
+            some Ledger journals               `.ledger'
+`timeclock' timeclock files (precise time      `.timeclock'
+            logging)                           
+`timedot'   timedot files (approximate time    `.timedot'
+            logging)                           
+`csv'       comma-separated values (data       `.csv'
+            interchange)                       
 
-   hledger identifies the format based on the file extension if
-possible.  If that does not identify a known format, it tries each
-format in turn.
-
-   If needed, eg to ensure correct error messages, you can force a
-specific format by prepending it to the file path with a colon.
-Examples:
+   If needed (eg to ensure correct error messages when a file has the
+"wrong" extension), you can force a specific reader/format by prepending
+it to the file path with a colon. Examples:
 
 
 $ hledger -f csv:/some/csv-file.dat stats
 $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 
-   Some other experimental formats are available but not yet used by
-default:
-
-Format:   Description:                           File extensions:
--------------------------------------------------------------------- 
-ledger    Ledger's journal format (incomplete)   
-
-   You can specify multiple `-f' options, to read multiple files as one
-big journal. Directives in one file will not affect subsequent files in
-this case (if you need that, use the include directive instead).
+   You can also specify multiple `-f' options, to read multiple files
+as one big journal. (Directives in one file will not affect the other
+files. If you need that, use the include directive instead.)
 
 
 File: hledger.1.info,  Node: Depth limiting,  Next: Smart dates,  Prev: Input files,  Up: OPTIONS
@@ -2175,91 +2169,91 @@ Node: Reporting options7583
 Ref: #reporting-options7736
 Node: Input files9512
 Ref: #input-files9652
-Node: Depth limiting11677
-Ref: #depth-limiting11817
-Node: Smart dates12018
-Ref: #smart-dates12157
-Node: Report intervals13154
-Ref: #report-intervals13307
-Node: Period expressions13643
-Ref: #period-expressions13808
-Node: Regular expressions16143
-Ref: #regular-expressions16285
-Node: QUERIES17768
-Ref: #queries17872
-Node: COMMANDS21511
-Ref: #commands21625
-Node: accounts22298
-Ref: #accounts22398
-Node: activity23380
-Ref: #activity23492
-Node: add23851
-Ref: #add23952
-Node: balance26611
-Ref: #balance26724
-Node: Flat mode29697
-Ref: #flat-mode29824
-Node: Depth limited balance reports30243
-Ref: #depth-limited-balance-reports30446
-Node: Multicolumn balance reports30867
-Ref: #multicolumn-balance-reports31069
-Node: Market value35718
-Ref: #market-value35882
-Node: Custom balance output36375
-Ref: #custom-balance-output36548
-Node: Output destination38652
-Ref: #output-destination38817
-Node: CSV output39087
-Ref: #csv-output39206
-Node: balancesheet39603
-Ref: #balancesheet39731
-Node: cashflow40383
-Ref: #cashflow40500
-Node: help41190
-Ref: #help41302
-Node: incomestatement42139
-Ref: #incomestatement42269
-Node: info42996
-Ref: #info43103
-Node: man43465
-Ref: #man43562
-Node: print43965
-Ref: #print44070
-Node: register45416
-Ref: #register45529
-Node: Custom register output50021
-Ref: #custom-register-output50152
-Node: stats51449
-Ref: #stats51555
-Node: test52431
-Ref: #test52518
-Node: ADD-ON COMMANDS52885
-Ref: #add-on-commands53021
-Node: api54309
-Ref: #api54401
-Node: autosync54435
-Ref: #autosync54550
-Node: diff56865
-Ref: #diff56975
-Node: equity57639
-Ref: #equity57753
-Node: interest59081
-Ref: #interest59198
-Node: irr62282
-Ref: #irr62395
-Node: print-unique64770
-Ref: #print-unique64900
-Node: rewrite65158
-Ref: #rewrite65277
-Node: ui65806
-Ref: #ui65906
-Node: web65947
-Ref: #web66035
-Node: TROUBLESHOOTING66068
-Ref: #troubleshooting66187
-Node: Run-time problems66241
-Ref: #run-time-problems66384
-Node: Known limitations68328
-Ref: #known-limitations68471
+Node: Depth limiting11489
+Ref: #depth-limiting11629
+Node: Smart dates11830
+Ref: #smart-dates11969
+Node: Report intervals12966
+Ref: #report-intervals13119
+Node: Period expressions13455
+Ref: #period-expressions13620
+Node: Regular expressions15955
+Ref: #regular-expressions16097
+Node: QUERIES17580
+Ref: #queries17684
+Node: COMMANDS21323
+Ref: #commands21437
+Node: accounts22110
+Ref: #accounts22210
+Node: activity23192
+Ref: #activity23304
+Node: add23663
+Ref: #add23764
+Node: balance26423
+Ref: #balance26536
+Node: Flat mode29509
+Ref: #flat-mode29636
+Node: Depth limited balance reports30055
+Ref: #depth-limited-balance-reports30258
+Node: Multicolumn balance reports30679
+Ref: #multicolumn-balance-reports30881
+Node: Market value35530
+Ref: #market-value35694
+Node: Custom balance output36187
+Ref: #custom-balance-output36360
+Node: Output destination38464
+Ref: #output-destination38629
+Node: CSV output38899
+Ref: #csv-output39018
+Node: balancesheet39415
+Ref: #balancesheet39543
+Node: cashflow40195
+Ref: #cashflow40312
+Node: help41002
+Ref: #help41114
+Node: incomestatement41951
+Ref: #incomestatement42081
+Node: info42808
+Ref: #info42915
+Node: man43277
+Ref: #man43374
+Node: print43777
+Ref: #print43882
+Node: register45228
+Ref: #register45341
+Node: Custom register output49833
+Ref: #custom-register-output49964
+Node: stats51261
+Ref: #stats51367
+Node: test52243
+Ref: #test52330
+Node: ADD-ON COMMANDS52697
+Ref: #add-on-commands52833
+Node: api54121
+Ref: #api54213
+Node: autosync54247
+Ref: #autosync54362
+Node: diff56677
+Ref: #diff56787
+Node: equity57451
+Ref: #equity57565
+Node: interest58893
+Ref: #interest59010
+Node: irr62094
+Ref: #irr62207
+Node: print-unique64582
+Ref: #print-unique64712
+Node: rewrite64970
+Ref: #rewrite65089
+Node: ui65618
+Ref: #ui65718
+Node: web65759
+Ref: #web65847
+Node: TROUBLESHOOTING65880
+Ref: #troubleshooting65999
+Node: Run-time problems66053
+Ref: #run-time-problems66196
+Node: Known limitations68140
+Ref: #known-limitations68283
 
 End Tag Table

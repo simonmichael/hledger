@@ -87,34 +87,34 @@ or with the `-f/--file` option:
 $ hledger -f /some/file stats
 ```
 
-The file name `-` (hyphen) means standard input, as usual:
+The file name `-` (hyphen) means standard input:
 ```bash
 $ cat some.journal | hledger -f-
 ```
 
-Usually this file is in hledger's journal format, 
-but it can also be one of several other formats.
-Each one is handled by a built-in "reader", as follows:
+Usually the data file is in hledger's journal format, 
+but it can also be one of several other formats, listed below.
+hledger detects the format automatically based on the file extension,
+or if that is not recognised, by trying each built-in "reader" in turn:
 
-| Reader:&nbsp;       | Reads:                                              | Used for file extensions:                          
-|---------------------|-----------------------------------------------------|-------------------------------------------
-| `journal`           | hledger's journal format, also some Ledger journals | `.journal` `.j` `.hledger` `.ledger`   
-| `timeclock`         | timeclock files (precise time logging)              | `.timeclock`                              
-| `timedot`           | timedot files (approximate time logging)            | `.timedot`                                
-| `csv`               | comma-separated values (data interchange)           | `.csv`                                    
+| Reader:         | Reads:                                                | Used for file extensions:                          
+|-----------------|-------------------------------------------------------|-------------------------------------------
+| `journal`       | hledger's journal format, also some Ledger journals   | `.journal` `.j` `.hledger` `.ledger`   
+| `timeclock`     | timeclock files (precise time logging)                | `.timeclock`                              
+| `timedot`       | timedot files (approximate time logging)              | `.timedot`                                
+| `csv`           | comma-separated values (data interchange)             | `.csv`                                    
 
-Usually hledger detects the format automatically based on the file extension,
-or if that does not work, by trying each reader in turn.
-If needed, eg to ensure correct error messages, you can force a specific reader/format 
-by prepending it to the file path with a colon. Examples:
+If needed (eg to ensure correct error messages when a file has the "wrong" extension), 
+you can force a specific reader/format by prepending it to the file path with a colon. 
+Examples:
 ```bash
 $ hledger -f csv:/some/csv-file.dat stats
 $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 ```
 
-You can specify multiple `-f` options, to read multiple files as one big journal.
-Directives in one file will not affect the other files - if you need that, 
-use the [include directive](#including-other-files) instead.
+You can also specify multiple `-f` options, to read multiple files as one big journal.
+(Directives in one file will not affect the other files. If you need that, 
+use the [include directive](#including-other-files) instead.)
 
 ## Depth limiting
 
