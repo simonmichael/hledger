@@ -1,4 +1,4 @@
--- {-# LANGUAGE CPP #-}
+{-# LANGUAGE CPP #-}
 {- |
 
 UTF-8 aware string IO functions that will work across multiple platforms
@@ -119,7 +119,13 @@ toSystemString = id
 
 -- | A SystemString-aware version of error.
 error' :: String -> a
-error' = error . toSystemString
+error' =
+#if __GLASGOW_HASKELL__ < 800
+-- (easier than if base < 4.9)
+  error . toSystemString
+#else
+  errorWithoutStackTrace . toSystemString
+#endif
 
 -- | A SystemString-aware version of userError.
 userError' :: String -> IOError
