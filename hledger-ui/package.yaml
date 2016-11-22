@@ -86,7 +86,7 @@ executables:
         else:
           dependencies:
             - brick >= 0.12 && < 0.15
-            - vty >= 5.5 && < 5.13
+            - vty >= 5.5 && < 5.14
       - condition: flag(threaded)
         ghc-options: -threaded
       - condition: flag(oldtime)
