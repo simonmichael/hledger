@@ -99,14 +99,12 @@ readJournalFromCsv mrulesfile csvfile csvdata =
 
   -- parse rules
   let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
-  created <- ensureRulesFileExists rulesfile
-  if created
-   then hPrintf stderr "creating default conversion rules file %s, edit this file for better results\n" rulesfile
-   else hPrintf stderr "using conversion rules file %s\n" rulesfile
-  rules_ <- liftIO $ runExceptT $ parseRulesFile rulesfile
-  let rules = case rules_ of
-              Right (t::CsvRules) -> t
-              Left err -> throwerr err
+  rulesfileexists <- doesFileExist rulesfile
+  when rulesfileexists $ hPrintf stderr "using conversion rules file %s\n" rulesfile
+  rules <-
+    if rulesfileexists
+    then liftIO (runExceptT $ parseRulesFile rulesfile) >>= either throwerr return
+    else return defaultRules
   dbg2IO "rules" rules
 
   -- apply skip directive
@@ -143,6 +141,11 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   -- so that same-day txns' original order is preserved
       txns' | length txns > 1 && tdate (head txns) > tdate (last txns) = reverse txns
             | otherwise = txns
+
+  when (not rulesfileexists) $ do
+    hPrintf stderr "created default conversion rules file %s, edit this for better results\n" rulesfile
+    writeFile rulesfile $ T.unpack $ defaultRulesText rulesfile
+
   return $ Right nulljournal{jtxns=sortBy (comparing tdate) txns'}
 
 parseCsv :: FilePath -> String -> IO (Either Parsec.ParseError CSV)
@@ -192,22 +195,9 @@ rulesFileFor = (++ ".rules")
 csvFileFor :: FilePath -> FilePath
 csvFileFor = reverse . drop 6 . reverse
 
--- | Ensure there is a conversion rules file at the given path, creating a
--- default one if needed and returning True in this case.
-ensureRulesFileExists :: FilePath -> IO Bool
-ensureRulesFileExists f = do
-  exists <- doesFileExist f
-  if exists
-   then return False
-   else do
-     -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
-     -- we currently require unix line endings on all platforms.
-     writeFile f $ newRulesFileContent f
-     return True
-
-newRulesFileContent :: FilePath -> String
-newRulesFileContent f = unlines
-  ["# hledger csv conversion rules for " ++ csvFileFor (takeFileName f)
+defaultRulesText :: FilePath -> Text
+defaultRulesText csvfile = T.pack $ unlines
+  ["# hledger csv conversion rules for " ++ csvFileFor (takeFileName csvfile)
   ,"# cf http://hledger.org/manual#csv-files"
   ,""
   ,"account1 assets:bank:checking"
@@ -229,6 +219,12 @@ newRulesFileContent f = unlines
   ," account2 assets:bank:savings\n"
   ]
 
+defaultRules :: CsvRules
+defaultRules =
+  either
+    (error' "Could not parse the default CSV rules, this should not happen")
+    id
+    $ parseCsvRules "" $ defaultRulesText ""
 
 --------------------------------------------------------------------------------
 -- Conversion rules parsing
