@@ -58,6 +58,9 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `--register=ACCTREGEX`
 : start in the (first) matched account's register screen
 
+`--change`
+: show period balances (changes) at startup
+
 `--flat`
 : show full account names, unindented
 

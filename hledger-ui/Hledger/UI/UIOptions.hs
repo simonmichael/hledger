@@ -29,6 +29,12 @@ uiflags = [
    flagNone ["watch"] (\opts -> setboolopt "watch" opts) "watch for data changes and reload automatically"
   ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
   ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in the (first) matched account's register"
+  ,flagNone ["change"] (\opts -> setboolopt "change" opts)
+    "show period balances (changes) at startup"
+  -- ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
+  --   "show balance change accumulated across periods (in multicolumn reports)"
+  -- ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
+  --   "show historical ending balance in each period (includes postings before report start date)\n "
   ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
   -- ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
   -- ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
@@ -52,11 +58,13 @@ uimode =  (mode "hledger-ui" [("command","ui")]
 
 -- hledger-ui options, used in hledger-ui and above
 data UIOpts = UIOpts {
-     watch_ :: Bool
-    ,cliopts_   :: CliOpts
+     watch_   :: Bool
+    ,change_  :: Bool
+    ,cliopts_ :: CliOpts
  } deriving (Show)
 
 defuiopts = UIOpts
+    def
     def
     def
 
@@ -67,6 +75,7 @@ rawOptsToUIOpts rawopts = checkUIOpts <$> do
   cliopts <- rawOptsToCliOpts rawopts
   return defuiopts {
               watch_   = boolopt "watch" rawopts
+             ,change_  = boolopt "change" rawopts
              ,cliopts_ = cliopts
              }
 

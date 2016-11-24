@@ -46,6 +46,9 @@ the data.
 `--register=ACCTREGEX'
      start in the (first) matched account's register screen
 
+`--change'
+     show period balances (changes) at startup
+
 `--flat'
      show full account names, unindented
 
@@ -354,17 +357,17 @@ Tag Table:
 Node: Top88
 Node: OPTIONS823
 Ref: #options922
-Node: KEYS3850
-Ref: #keys3947
-Node: SCREENS6348
-Ref: #screens6435
-Node: Accounts screen6525
-Ref: #accounts-screen6655
-Node: Register screen8693
-Ref: #register-screen8850
-Node: Transaction screen10738
-Ref: #transaction-screen10898
-Node: Error screen11765
-Ref: #error-screen11889
+Node: KEYS3909
+Ref: #keys4006
+Node: SCREENS6407
+Ref: #screens6494
+Node: Accounts screen6584
+Ref: #accounts-screen6714
+Node: Register screen8752
+Ref: #register-screen8909
+Node: Transaction screen10797
+Ref: #transaction-screen10957
+Node: Error screen11824
+Ref: #error-screen11948
 
 End Tag Table

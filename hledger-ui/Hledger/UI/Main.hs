@@ -33,7 +33,7 @@ import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
--- import Hledger.UI.UIUtils
+import Hledger.UI.UIState (toggleHistorical)
 import Hledger.UI.Theme
 import Hledger.UI.AccountsScreen
 import Hledger.UI.RegisterScreen
@@ -129,14 +129,16 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
                    ,aMode=Normal
                    }
   
-    ui = (sInit scr) d True
-         UIState{
-            aopts=uopts'
-           ,ajournal=j
-           ,aScreen=scr
-           ,aPrevScreens=prevscrs
-           ,aMode=Normal
-           }
+    ui =
+      (sInit scr) d True $
+        (if change_ uopts' then toggleHistorical else id) $ -- XXX
+        UIState{
+          aopts=uopts'
+         ,ajournal=j
+         ,aScreen=scr
+         ,aPrevScreens=prevscrs
+         ,aMode=Normal
+         }
 
     brickapp :: App (UIState) AppEvent Name
     brickapp = App {
