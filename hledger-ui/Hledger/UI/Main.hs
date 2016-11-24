@@ -23,7 +23,6 @@ import qualified Data.Text as T
 import Safe
 import System.Exit
 
-import qualified Graphics.Vty as V
 import Brick
 
 import Hledger
@@ -135,7 +134,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
            ,aMode=Normal
            }
 
-    brickapp :: App (UIState) V.Event Name
+    brickapp :: App (UIState) AppEvent Name
     brickapp = App {
         appStartEvent   = return
       , appAttrMap      = const theme

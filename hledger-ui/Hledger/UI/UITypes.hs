@@ -39,7 +39,6 @@ Brick.defaultMain brickapp st
 module Hledger.UI.UITypes where
 
 import Data.Time.Calendar (Day)
-import Graphics.Vty (Event)
 import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit (Editor)
@@ -83,6 +82,8 @@ data Name =
   | RegisterList
   deriving (Ord, Show, Eq)
 
+data AppEvent = DummyEvent
+
 -- | hledger-ui screen types & instances.
 -- Each screen type has generically named initialisation, draw, and event handling functions,
 -- and zero or more uniquely named screen state fields, which hold the data for a particular
@@ -92,7 +93,7 @@ data Screen =
     AccountsScreen {
        sInit   :: Day -> Bool -> UIState -> UIState              -- ^ function to initialise or update this screen's state
       ,sDraw   :: UIState -> [Widget Name]                             -- ^ brick renderer for this screen
-      ,sHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)  -- ^ brick event handler for this screen
+      ,sHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)  -- ^ brick event handler for this screen
       -- state fields.These ones have lenses:
       ,_asList            :: List Name AccountsScreenItem  -- ^ list widget showing account names & balances
       ,_asSelectedAccount :: AccountName              -- ^ a backup of the account name from the list widget's selected item (or "")
@@ -100,7 +101,7 @@ data Screen =
   | RegisterScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
       ,sDraw   :: UIState -> [Widget Name]
-      ,sHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
+      ,sHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
       --
       ,rsList    :: List Name RegisterScreenItem      -- ^ list widget showing transactions affecting this account
       ,rsAccount :: AccountName                       -- ^ the account this register is for
@@ -111,7 +112,7 @@ data Screen =
   | TransactionScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
       ,sDraw   :: UIState -> [Widget Name]
-      ,sHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
+      ,sHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
       --
       ,tsTransaction  :: NumberedTransaction          -- ^ the transaction we are currently viewing, and its position in the list
       ,tsTransactions :: [NumberedTransaction]        -- ^ list of transactions we can step through
@@ -120,7 +121,7 @@ data Screen =
   | ErrorScreen {
        sInit   :: Day -> Bool -> UIState -> UIState
       ,sDraw   :: UIState -> [Widget Name]
-      ,sHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
+      ,sHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
       --
       ,esError :: String                              -- ^ error message to show
     }

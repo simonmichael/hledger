@@ -247,7 +247,7 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
         sel | selected  = (<> "selected")
             | otherwise = id
 
-asHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
+asHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 asHandle ui0@UIState{
    aScreen=scr@AccountsScreen{..}
   ,aopts=UIOpts{cliopts_=copts}

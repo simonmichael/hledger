@@ -236,7 +236,7 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
     sel | selected  = (<> "selected")
         | otherwise = id
 
-rsHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
+rsHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 rsHandle ui@UIState{
    aScreen=s@RegisterScreen{..}
   ,aopts=UIOpts{cliopts_=copts}

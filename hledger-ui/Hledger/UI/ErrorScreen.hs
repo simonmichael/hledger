@@ -68,7 +68,7 @@ esDraw UIState{ --aopts=UIOpts{cliopts_=copts@CliOpts{}}
 
 esDraw _ = error "draw function called with wrong screen type, should not happen"
 
-esHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
+esHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 esHandle ui@UIState{
    aScreen=ErrorScreen{..}
   ,aopts=UIOpts{cliopts_=copts}

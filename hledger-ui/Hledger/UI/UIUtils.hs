@@ -110,7 +110,7 @@ helpDialog =
     renderKey (key,desc) = withAttr (borderAttr <> "keys") (str key) <+> str " " <+> str desc
 
 -- | Event handler used when help mode is active.
-helpHandle :: UIState -> BrickEvent Name Event -> EventM Name (Next UIState)
+helpHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 helpHandle ui ev =
   case ev of
     VtyEvent (EvKey k []) | k `elem` [KEsc, KLeft, KChar 'h', KChar '?'] -> continue $ setMode Normal ui
