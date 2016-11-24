@@ -117,8 +117,8 @@ dbg9 = tracePrettyAt 9
 
 -- | Convenience aliases for tracePrettyAtIO.
 -- Like dbg, but convenient to insert in an IO monad.
-dbgIO :: (MonadIO m, Show a) => String -> a -> m ()
-dbgIO = tracePrettyAtIO 0
+dbg0IO :: (MonadIO m, Show a) => String -> a -> m ()
+dbg0IO = tracePrettyAtIO 0
 
 dbg1IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg1IO = tracePrettyAtIO 1
