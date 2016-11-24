@@ -1,6 +1,86 @@
 Project-wide changes in the hledger project. 
 See also the package change logs.
 
+# 1.1 (unreleased)
+
+All 1.1 changes (move package-specific changes to package changelogs before release):
+
+## misc
+
+-   fix non-existent "oldtime" dependency in hledger package (#431)
+
+-   update base lower bound to enforce GHC 7.10+
+    
+    hledger-lib had a valid install plan with GHC 7.8, but currently requires GHC 7.10 to compile.
+    Now we require base 4.8+ everywhere to ensure the right GHC version at the start.
+    
+-   Hledger.Read api cleanups
+
+## cli
+
+-   more predictable file format detection
+    
+    When we don't recognise a file's extension, instead of choosing a subset of
+    readers to try based on content sniffing, now we just try them all.
+    Also, this can be overridden by prepending the reader name and a
+    colon to the file path (eg timedot:file.dat, csv:-).
+
+-   don't show stack trace details in errors with GHC 8+
+
+## ui
+
+-   mark hledger-ui as "stable"
+
+-   allow brick 0.14, vty 5.13, text-zipper 0.9
+
+## web
+
+-   add --host option (#429)
+    
+    This came up in the context of Docker, but it seems it wasn't
+    possible for hledger-web to serve remote clients directly (without
+    a proxy) because of 127.0.0.1 being hardcoded. That can now be
+    changed with --host=IPADDR. Also, the default base url uses this
+    address rather than a hard-coded "localhost".
+    
+-   rename --server to --serve
+
+    The --server flag sounded too close in meaning to --host so
+    I've renamed it to --serve. The old spelling is still accepted,
+    but deprecated and will be removed in the next release.
+
+## api
+
+-   serves on 127.0.0.1 by default, --host option added (#432)
+    
+    Consistent with hledger-web: serves only local requests by default,
+    use --host=IPADDR to change this.
+
+-   fixed the version string in command-line help and swagger info
+
+## csv format
+
+-   create default rules file only if CSV reader succeeds
+
+## journal format
+
+-   also recognise `*.hledger` files as hledger journal format
+
+## ledger format
+
+-   add an alternate reader for C++ Ledger journals, based on ledger-parse from the ledger4 project.
+    
+    This reader is not used automatically, you must select it with a `ledger:` prefix.
+    Currently only the bare minimum of the raw parsed data is used:
+    transaction dates/descriptions and posting accounts/amounts,
+    with the rest being ignored.
+    
+    Amounts are parsed the same way as in the hledger journal format.
+    Malformed amounts might be ignored instead of error-reported.
+
+    This adds some or all of these as new dependencies for hledger-lib:
+    parsers, parsec, attoparsec, trifecta
+
 
 # 1.0.1 (2016/10/27)
 
