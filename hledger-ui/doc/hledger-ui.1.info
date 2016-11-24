@@ -37,14 +37,17 @@ options as shown above.
    Any QUERYARGS are interpreted as a hledger search query which filters
 the data.
 
-`--flat'
-     show full account names, unindented
+`--watch'
+     watch for data changes and reload automatically
+
+`--theme=default|terminal|greenterm'
+     use this custom display theme
 
 `--register=ACCTREGEX'
      start in the (first) matched account's register screen
 
-`--theme=default|terminal|greenterm'
-     use this custom display theme
+`--flat'
+     show full account names, unindented
 
 `-V --value'
      show amounts as their current market value in their default
@@ -351,17 +354,17 @@ Tag Table:
 Node: Top88
 Node: OPTIONS823
 Ref: #options922
-Node: KEYS3786
-Ref: #keys3883
-Node: SCREENS6284
-Ref: #screens6371
-Node: Accounts screen6461
-Ref: #accounts-screen6591
-Node: Register screen8629
-Ref: #register-screen8786
-Node: Transaction screen10674
-Ref: #transaction-screen10834
-Node: Error screen11701
-Ref: #error-screen11825
+Node: KEYS3850
+Ref: #keys3947
+Node: SCREENS6348
+Ref: #screens6435
+Node: Accounts screen6525
+Ref: #accounts-screen6655
+Node: Register screen8693
+Ref: #register-screen8850
+Node: Transaction screen10738
+Ref: #transaction-screen10898
+Node: Error screen11765
+Ref: #error-screen11889
 
 End Tag Table

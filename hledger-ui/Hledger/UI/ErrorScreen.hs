@@ -92,7 +92,8 @@ esHandle ui@UIState{
             (pos,f) = case parsewithString hledgerparseerrorpositionp esError of
                         Right (f,l,c) -> (Just (l, Just c),f)
                         Left  _       -> (endPos, journalFilePath j)
-        VtyEvent (EvKey (KChar 'g') []) -> liftIO (uiReloadJournalIfChanged copts d j (popScreen ui)) >>= continue . uiCheckBalanceAssertions d
+        e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
+          liftIO (uiReloadJournalIfChanged copts d j (popScreen ui)) >>= continue . uiCheckBalanceAssertions d
 --           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
 --           case ej of
 --             Left err -> continue ui{aScreen=s{esError=err}} -- show latest parse error

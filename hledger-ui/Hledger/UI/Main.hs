@@ -11,18 +11,22 @@ module Hledger.UI.Main where
 
 -- import Control.Applicative
 -- import Lens.Micro.Platform ((^.))
+import Control.Concurrent
 import Control.Monad
 -- import Control.Monad.IO.Class (liftIO)
--- import Data.Default
+import Data.Default (def)
 -- import Data.Monoid              -- 
 import Data.List
 import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
 -- import Data.Time.Calendar
+import Graphics.Vty (mkVty)
 import Safe
 import System.Exit
-
+import System.Directory
+import System.FilePath
+import System.FSNotify
 import Brick
 
 import Hledger
@@ -143,5 +147,36 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
       , appDraw         = \ui    -> sDraw   (aScreen ui) ui
       }
 
-  void $ defaultMain brickapp ui
+  -- start one or more background jobs reporting changes in the directories of our files
+  -- XXX misses quick successive saves (then refuses to reload manually)
+  --   withManagerConf defaultConfig{confDebounce=Debounce 1000} $ \mgr -> do
+  eventChan <- newChan
+  withManager $ \mgr -> do
+    dbg1IO "fsnotify using polling ?" $ isPollingManager mgr
+    files <- mapM canonicalizePath $ map fst $ jfiles j
+    let directories = nub $ sort $ map takeDirectory files
+    dbg1IO "files" files
+    dbg1IO "directories to watch" directories
 
+    forM_ directories $ \d -> watchDir
+      mgr
+      d
+      -- predicate: ignore changes not involving our files
+      (\fev -> case fev of
+        Added    f _ -> f `elem` files
+        Modified f _ -> f `elem` files
+        Removed  f _ -> f `elem` files
+        )
+      -- action: send event to app
+      (\fev -> do
+        -- return $ dbglog "fsnotify" $ showFSNEvent fev -- not working
+        dbg1IO "fsnotify" $ showFSNEvent fev
+        writeChan eventChan FileChange
+        )
+
+    -- start the brick app. Must be inside the withManager block.
+    void $ customMain (mkVty def) (Just eventChan) brickapp ui
+
+showFSNEvent (Added    f _) = "Added "    ++ show f
+showFSNEvent (Modified f _) = "Modified " ++ show f
+showFSNEvent (Removed  f _) = "Removed "  ++ show f

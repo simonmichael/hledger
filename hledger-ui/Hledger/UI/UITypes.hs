@@ -82,7 +82,9 @@ data Name =
   | RegisterList
   deriving (Ord, Show, Eq)
 
-data AppEvent = DummyEvent
+data AppEvent =
+  FileChange
+  deriving (Eq, Show)
 
 -- | hledger-ui screen types & instances.
 -- Each screen type has generically named initialisation, draw, and event handling functions,

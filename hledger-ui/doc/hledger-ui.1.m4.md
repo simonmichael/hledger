@@ -49,14 +49,17 @@ Note: if invoking hledger-ui as a hledger subcommand, write `--` before options 
 
 Any QUERYARGS are interpreted as a hledger search query which filters the data.
 
-`--flat`
-: show full account names, unindented
+`--watch`
+: watch for data changes and reload automatically
+
+`--theme=default|terminal|greenterm`
+: use this custom display theme
 
 `--register=ACCTREGEX`
 : start in the (first) matched account's register screen
 
-`--theme=default|terminal|greenterm`
-: use this custom display theme
+`--flat`
+: show full account names, unindented
 
 `-V --value`
 : show amounts as their current market value in their default valuation commodity

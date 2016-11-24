@@ -39,8 +39,13 @@ Note: if invoking hledger\-ui as a hledger subcommand, write
 Any QUERYARGS are interpreted as a hledger search query which filters
 the data.
 .TP
-.B \f[C]\-\-flat\f[]
-show full account names, unindented
+.B \f[C]\-\-watch\f[]
+watch for data changes and reload automatically
+.RS
+.RE
+.TP
+.B \f[C]\-\-theme=default|terminal|greenterm\f[]
+use this custom display theme
 .RS
 .RE
 .TP
@@ -49,8 +54,8 @@ start in the (first) matched account\[aq]s register screen
 .RS
 .RE
 .TP
-.B \f[C]\-\-theme=default|terminal|greenterm\f[]
-use this custom display theme
+.B \f[C]\-\-flat\f[]
+show full account names, unindented
 .RS
 .RE
 .TP

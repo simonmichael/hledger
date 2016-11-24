@@ -26,7 +26,8 @@ prognameandversion = progname ++ " " ++ version :: String
 
 uiflags = [
   -- flagNone ["debug-ui"]  (\opts -> setboolopt "rules-file" opts) "run with no terminal output, showing console"
-   flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
+   flagNone ["watch"] (\opts -> setboolopt "watch" opts) "watch for data changes and reload automatically"
+  ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
   ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in the (first) matched account's register"
   ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
   -- ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
@@ -51,7 +52,7 @@ uimode =  (mode "hledger-ui" [("command","ui")]
 
 -- hledger-ui options, used in hledger-ui and above
 data UIOpts = UIOpts {
-     debug_ui_ :: Bool
+     watch_ :: Bool
     ,cliopts_   :: CliOpts
  } deriving (Show)
 
@@ -65,8 +66,8 @@ rawOptsToUIOpts :: RawOpts -> IO UIOpts
 rawOptsToUIOpts rawopts = checkUIOpts <$> do
   cliopts <- rawOptsToCliOpts rawopts
   return defuiopts {
-              debug_ui_ = boolopt "debug-ui" rawopts
-             ,cliopts_   = cliopts
+              watch_   = boolopt "watch" rawopts
+             ,cliopts_ = cliopts
              }
 
 checkUIOpts :: UIOpts -> UIOpts

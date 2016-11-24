@@ -129,7 +129,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
         VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
           where
             (pos,f) = let GenericSourcePos f l c = tsourcepos t in (Just (l, Just c),f)
-        VtyEvent (EvKey (KChar 'g') []) -> do
+        e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
           d <- liftIO getCurrentDay
           (ej, _) <- liftIO $ journalReloadIfChanged copts d j
           case ej of
