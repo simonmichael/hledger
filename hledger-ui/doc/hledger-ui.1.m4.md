@@ -59,7 +59,7 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 : start in the (first) matched account's register screen
 
 `--change`
-: show period balances (changes) at startup
+: show period balances (changes) at startup instead of historical balances 
 
 `--flat`
 : show full account names, unindented

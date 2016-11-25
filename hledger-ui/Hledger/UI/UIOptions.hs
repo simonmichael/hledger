@@ -30,7 +30,7 @@ uiflags = [
   ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
   ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in the (first) matched account's register"
   ,flagNone ["change"] (\opts -> setboolopt "change" opts)
-    "show period balances (changes) at startup"
+    "show period balances (changes) at startup instead of historical balances"
   -- ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
   --   "show balance change accumulated across periods (in multicolumn reports)"
   -- ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)

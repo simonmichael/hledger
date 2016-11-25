@@ -47,7 +47,8 @@ the data.
      start in the (first) matched account's register screen
 
 `--change'
-     show period balances (changes) at startup
+     show period balances (changes) at startup instead of historical
+     balances
 
 `--flat'
      show full account names, unindented
@@ -357,17 +358,17 @@ Tag Table:
 Node: Top88
 Node: OPTIONS823
 Ref: #options922
-Node: KEYS3909
-Ref: #keys4006
-Node: SCREENS6407
-Ref: #screens6494
-Node: Accounts screen6584
-Ref: #accounts-screen6714
-Node: Register screen8752
-Ref: #register-screen8909
-Node: Transaction screen10797
-Ref: #transaction-screen10957
-Node: Error screen11824
-Ref: #error-screen11948
+Node: KEYS3945
+Ref: #keys4042
+Node: SCREENS6443
+Ref: #screens6530
+Node: Accounts screen6620
+Ref: #accounts-screen6750
+Node: Register screen8788
+Ref: #register-screen8945
+Node: Transaction screen10833
+Ref: #transaction-screen10993
+Node: Error screen11860
+Ref: #error-screen11984
 
 End Tag Table
