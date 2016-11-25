@@ -131,7 +131,7 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
             (pos,f) = let GenericSourcePos f l c = tsourcepos t in (Just (l, Just c),f)
         e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
           d <- liftIO getCurrentDay
-          (ej, _) <- liftIO $ journalReloadIfChanged copts d j
+          ej <- liftIO $ journalReload copts
           case ej of
             Left err -> continue $ screenEnter d errorScreen{esError=err} ui
             Right j' -> do
