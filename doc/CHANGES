@@ -16,6 +16,8 @@ All 1.1 changes (move package-specific changes to package changelogs before rele
     
 -   Hledger.Read api cleanups
 
+-   rename dbgIO to dbg0IO, consistent with dbg0
+
 ## cli
 
 -   more predictable file format detection
@@ -32,6 +34,19 @@ All 1.1 changes (move package-specific changes to package changelogs before rele
 -   mark hledger-ui as "stable"
 
 -   allow brick 0.14, vty 5.13, text-zipper 0.9
+
+-   --change shows period balances (changes) at startup
+
+-   with --watch, react to file changes in real time
+    
+    Experimental, tested on OSX so far.
+    Rapid successive file changes can cause it to get stuck.
+
+-   always reload when g is pressed
+
+    Previously it would check the modification time and reload only if
+    it looked newer than the last reload, but this was interacting badly
+    with --watch.
 
 ## web
 
