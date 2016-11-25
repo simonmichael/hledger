@@ -149,35 +149,42 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
       , appDraw         = \ui    -> sDraw   (aScreen ui) ui
       }
 
-  -- start one or more background jobs reporting changes in the directories of our files
-  -- XXX misses quick successive saves (then refuses to reload manually)
-  --   withManagerConf defaultConfig{confDebounce=Debounce 1000} $ \mgr -> do
-  eventChan <- newChan
-  withManager $ \mgr -> do
-    dbg1IO "fsnotify using polling ?" $ isPollingManager mgr
-    files <- mapM canonicalizePath $ map fst $ jfiles j
-    let directories = nub $ sort $ map takeDirectory files
-    dbg1IO "files" files
-    dbg1IO "directories to watch" directories
+  if not (watch_ uopts')
+  then
+    void $ defaultMain brickapp ui
 
-    forM_ directories $ \d -> watchDir
-      mgr
-      d
-      -- predicate: ignore changes not involving our files
-      (\fev -> case fev of
-        Added    f _ -> f `elem` files
-        Modified f _ -> f `elem` files
-        Removed  f _ -> f `elem` files
-        )
-      -- action: send event to app
-      (\fev -> do
-        -- return $ dbglog "fsnotify" $ showFSNEvent fev -- not working
-        dbg1IO "fsnotify" $ showFSNEvent fev
-        writeChan eventChan FileChange
-        )
+  else
+    -- start one or more background jobs reporting changes in the directories of our files
+    -- XXX misses quick successive saves (still ? hard to reproduce now)
+    -- XXX then refuses to reload manually (should be fixed now ?)
+    --   withManagerConf defaultConfig{confDebounce=Debounce 1000} $ \mgr -> do
+    withManager $ \mgr -> do
+      dbg1IO "fsnotify using polling ?" $ isPollingManager mgr
+      files <- mapM canonicalizePath $ map fst $ jfiles j
+      let directories = nub $ sort $ map takeDirectory files
+      dbg1IO "files" files
+      dbg1IO "directories to watch" directories
 
-    -- start the brick app. Must be inside the withManager block.
-    void $ customMain (mkVty def) (Just eventChan) brickapp ui
+      eventChan <- newChan
+
+      forM_ directories $ \d -> watchDir
+        mgr
+        d
+        -- predicate: ignore changes not involving our files
+        (\fev -> case fev of
+          Added    f _ -> f `elem` files
+          Modified f _ -> f `elem` files
+          Removed  f _ -> f `elem` files
+          )
+        -- action: send event to app
+        (\fev -> do
+          -- return $ dbglog "fsnotify" $ showFSNEvent fev -- not working
+          dbg1IO "fsnotify" $ showFSNEvent fev
+          writeChan eventChan FileChange
+          )
+
+      -- must be inside the withManager block
+      void $ customMain (mkVty def) (Just eventChan) brickapp ui
 
 showFSNEvent (Added    f _) = "Added "    ++ show f
 showFSNEvent (Modified f _) = "Modified " ++ show f
