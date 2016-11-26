@@ -20,7 +20,7 @@ import Hledger.Cli
 
 
 -- | Handle a post from any of the edit forms.
-handlePost :: Handler RepHtml
+handlePost :: Handler Html
 handlePost = do
   action <- lookupPostParam  "action"
   case action of Just "add"    -> handleAdd
@@ -29,7 +29,7 @@ handlePost = do
                  _             -> invalidArgs ["invalid action"]
 
 -- | Handle a post from the transaction add form.
-handleAdd :: Handler RepHtml
+handleAdd :: Handler Html
 handleAdd = do
   VD{..} <- getViewData
   -- get form input values. M means a Maybe value.
@@ -91,7 +91,7 @@ handleAdd = do
   redirect (RegisterR, [("add","1")])
 
 -- | Handle a post from the journal edit form.
-handleEdit :: Handler RepHtml
+handleEdit :: Handler Html
 handleEdit = do
   VD{..} <- getViewData
   -- get form input values, or validation errors.
@@ -137,7 +137,7 @@ handleEdit = do
        jE
 
 -- | Handle a post from the journal import form.
-handleImport :: Handler RepHtml
+handleImport :: Handler Html
 handleImport = do
   setMessage "can't handle file upload yet"
   redirect JournalR

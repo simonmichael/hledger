@@ -14,7 +14,7 @@ import Hledger.Cli.Options
 import Hledger.Web.Options
 
 -- | The formatted journal view, with sidebar.
-getJournalR :: Handler RepHtml
+getJournalR :: Handler Html
 getJournalR = do
   vd@VD{..} <- getViewData
   staticRootUrl <- (staticRoot . settings) <$> getYesod
@@ -48,6 +48,6 @@ getJournalR = do
   ^{importform}
 |]
 
-postJournalR :: Handler RepHtml
+postJournalR :: Handler Html
 postJournalR = handlePost
 

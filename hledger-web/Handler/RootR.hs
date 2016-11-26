@@ -4,5 +4,5 @@ module Handler.RootR where
 
 import Import
 
-getRootR :: Handler RepHtml
+getRootR :: Handler Html
 getRootR = redirect defaultroute where defaultroute = RegisterR

@@ -181,7 +181,7 @@ addform _ vd@VD{..} = [hamlet|
   acctnames = sort $ journalAccountNamesUsed j
   -- Construct data for select2. Text must be quoted in a json string.
   toSelectData as  = preEscapedString $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("text", showJSON a)]) as
-  manyfiles = (length $ files j) > 1
+  manyfiles = length (files j) > 1
   postingfields :: ViewData -> Int -> HtmlUrl AppRoute
   postingfields _ n = [hamlet|
 <tr#postingrow>
@@ -247,7 +247,7 @@ editform VD{..} = [hamlet|
 |]
   where
     title = "Edit journal" :: String
-    manyfiles = (length $ files j) > 1
+    manyfiles = length (files j) > 1
     formathelp = helplink "file-format" "file format help"
 
 -- | Import journal form.
@@ -293,10 +293,10 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
  <a#accounts-toggle-link.togglelink href="#" title="Toggle sidebar">[+]
 <div#accounts>
  <table.balancereport>
-  <tr>
-   <td.add colspan=3>
+  <tr.item :allaccts:.inacct>
+   <td.register colspan=3>
     <br>
-    <a#addformlink href="#" onclick="return addformToggle(event)" title="Add a new transaction to the journal">Add a transaction..
+    <a href=@{RegisterR} title="Show current register">Register
 
   <tr.item :allaccts:.inacct>
    <td.journal colspan=3>
@@ -308,6 +308,11 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
      &nbsp;
      <a#editformlink href="#" onclick="return editformToggle(event)" title="Edit the journal">
       edit
+
+  <tr>
+   <td.add colspan=3>
+    <br>
+    <a#addformlink href="#" onclick="return addformToggle(event)" title="Add a new transaction to the journal">Add a transaction..
 
   <tr>
    <td colspan=3>
@@ -527,7 +532,7 @@ numberTransactionsReportItems items = number 0 nulldate items
   where
     number :: Int -> Day -> [TransactionsReportItem] -> [(Int,Bool,Bool,Bool,TransactionsReportItem)]
     number _ _ [] = []
-    number n prevd (i@(Transaction{tdate=d},_,_,_,_,_):rest)  = (n+1,newday,newmonth,newyear,i):(number (n+1) d rest)
+    number n prevd (i@(Transaction{tdate=d},_,_,_,_,_):rest)  = (n+1,newday,newmonth,newyear,i): number (n+1) d rest
         where
           newday = d/=prevd
           newmonth = dm/=prevdm || dy/=prevdy
