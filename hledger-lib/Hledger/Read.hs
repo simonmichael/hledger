@@ -36,6 +36,7 @@ module Hledger.Read (
 ) where
 
 import Control.Applicative ((<|>))
+import Control.Arrow (right)
 import qualified Control.Exception as C
 import Control.Monad.Except
 import Data.List
@@ -126,8 +127,11 @@ defaultJournalPath = do
 --
 readJournalFiles :: Maybe StorageFormat -> Maybe FilePath -> Bool -> [PrefixedFilePath] -> IO (Either String Journal)
 readJournalFiles mformat mrulesfile assrt prefixedfiles = do
-  (either Left (Right . mconcat) . sequence)
+  (right mconcat1 . sequence)
     <$> mapM (readJournalFile mformat mrulesfile assrt) prefixedfiles
+  where mconcat1 :: Monoid t => [t] -> t
+        mconcat1 [] = mempty
+        mconcat1 x = foldr1 mappend x
 
 -- | @readJournalFile mformat mrulesfile assrt prefixedfile@
 --
