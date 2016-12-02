@@ -83,8 +83,8 @@ data Name =
   deriving (Ord, Show, Eq)
 
 data AppEvent =
-    FileChange
-  | DateChange
+    FileChange          -- one of the Journal's files has been added/modified/removed
+  | DateChange Day Day  -- the current date has changed since last checked (with the old and new values)
   deriving (Eq, Show)
 
 -- | hledger-ui screen types & instances.

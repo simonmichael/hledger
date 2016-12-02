@@ -161,13 +161,14 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
     -- start a background thread reporting changes in the current date
     -- use async for proper child termination in GHCI
     let
-      watchDate lastd = do
+      watchDate old = do
         threadDelay 1000000 -- 1s
-        d <- getCurrentDay
-        when (d /= lastd) $ do
-          -- dbg1IO "datechange" DateChange -- XXX don't uncomment until dbg*IO fixed to use traceIO, GHC may block/end thread
-          writeChan eventChan DateChange
-        watchDate d
+        new <- getCurrentDay
+        when (new /= old) $ do
+          let dc = DateChange old new
+          -- dbg1IO "datechange" dc -- XXX don't uncomment until dbg*IO fixed to use traceIO, GHC may block/end thread
+          writeChan eventChan dc
+        watchDate new
 
     withAsync
       (getCurrentDay >>= watchDate)

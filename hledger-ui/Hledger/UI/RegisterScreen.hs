@@ -267,7 +267,8 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KChar 'q') []) -> halt ui
         VtyEvent (EvKey KEsc        []) -> continue $ resetScreens d ui
         VtyEvent (EvKey (KChar c)   []) | c `elem` ['?'] -> continue $ setMode Help ui
-        AppEvent DateChange             -> continue $ regenerateScreens j d ui
+        AppEvent (DateChange old _) | periodContainsDate (reportPeriod ui) old ->
+          continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
         e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
           liftIO (uiReloadJournal copts d ui) >>= continue
         VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)

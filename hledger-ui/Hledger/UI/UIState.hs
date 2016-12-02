@@ -104,6 +104,11 @@ moveReportPeriodToDate :: Day -> UIState -> UIState
 moveReportPeriodToDate d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodMoveTo d p}}}}
 
+-- | Get the report period.
+reportPeriod :: UIState -> Period
+reportPeriod UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ReportOpts{period_=p}}}} =
+  p
+
 -- | Set the report period.
 setReportPeriod :: Period -> UIState -> UIState
 setReportPeriod p ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =

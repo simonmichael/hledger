@@ -34,6 +34,7 @@ module Hledger.Data.Dates (
   getCurrentYear,
   nulldate,
   spanContainsDate,
+  periodContainsDate,
   parsedateM,
   parsedate,
   showDate,
@@ -211,6 +212,11 @@ spanContainsDate (DateSpan Nothing Nothing)   _ = True
 spanContainsDate (DateSpan Nothing (Just e))  d = d < e
 spanContainsDate (DateSpan (Just b) Nothing)  d = d >= b
 spanContainsDate (DateSpan (Just b) (Just e)) d = d >= b && d < e
+
+-- | Does the period include the given date ?
+-- (Here to avoid import cycle).
+periodContainsDate :: Period -> Day -> Bool
+periodContainsDate p = spanContainsDate (periodAsDateSpan p)
 
 -- | Calculate the intersection of a number of datespans.
 spansIntersect [] = nulldatespan
