@@ -50,7 +50,7 @@ Note: if invoking hledger-ui as a hledger subcommand, write `--` before options 
 Any QUERYARGS are interpreted as a hledger search query which filters the data.
 
 `--watch`
-: watch for data changes and reload automatically
+: watch for data (and time) changes and reload automatically
 
 `--theme=default|terminal|greenterm`
 : use this custom display theme
@@ -98,7 +98,10 @@ limiting the transactions to be shown (by default, all are shown).
 year, quarter, month, week, day.
 Then, `shift-left/right` moves to the previous/next period.
 `t` sets the report period to today.
-(To set a non-standard period, you can use `/` and a `date:` query).
+With the `--watch` option, when viewing a "current" period 
+(the current day, week, month, quarter, or year),
+the period will move automatically to track the current date.
+To set a non-standard period, you can use `/` and a `date:` query.
 
 `/` lets you set a general filter query limiting the data shown,
 using the same [query terms](/hledger.html#queries) as in hledger and hledger-web.

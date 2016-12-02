@@ -86,15 +86,23 @@ shrinkReportPeriod :: Day -> UIState -> UIState
 shrinkReportPeriod d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodShrink d $ period_ ropts}}}}
 
--- | Step the report start/end dates to the next period of same duration.
+-- | Step the report start/end dates to the next period of same duration,
+-- remaining inside the given enclosing span.
 nextReportPeriod :: DateSpan -> UIState -> UIState
-nextReportPeriod journalspan ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodNextIn journalspan p}}}}
+nextReportPeriod enclosingspan ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodNextIn enclosingspan p}}}}
 
--- | Step the report start/end dates to the next period of same duration.
+-- | Step the report start/end dates to the next period of same duration,
+-- remaining inside the given enclosing span.
 previousReportPeriod :: DateSpan -> UIState -> UIState
-previousReportPeriod journalspan ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodPreviousIn journalspan p}}}}
+previousReportPeriod enclosingspan ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodPreviousIn enclosingspan p}}}}
+
+-- | If a standard report period is set, step it forward/backward if needed so that
+-- it encloses the given date.
+moveReportPeriodToDate :: Day -> UIState -> UIState
+moveReportPeriodToDate d ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts@ReportOpts{period_=p}}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{period_=periodMoveTo d p}}}}
 
 -- | Set the report period.
 setReportPeriod :: Period -> UIState -> UIState

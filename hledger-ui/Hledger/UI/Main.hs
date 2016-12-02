@@ -12,6 +12,7 @@ module Hledger.UI.Main where
 -- import Control.Applicative
 -- import Lens.Micro.Platform ((^.))
 import Control.Concurrent
+import Control.Concurrent.Async
 import Control.Monad
 -- import Control.Monad.IO.Class (liftIO)
 import Data.Default (def)
@@ -153,38 +154,54 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
   then
     void $ defaultMain brickapp ui
 
-  else
-    -- start one or more background jobs reporting changes in the directories of our files
-    -- XXX misses quick successive saves (still ? hard to reproduce now)
-    -- XXX then refuses to reload manually (should be fixed now ?)
-    --   withManagerConf defaultConfig{confDebounce=Debounce 1000} $ \mgr -> do
-    withManager $ \mgr -> do
-      dbg1IO "fsnotify using polling ?" $ isPollingManager mgr
-      files <- mapM canonicalizePath $ map fst $ jfiles j
-      let directories = nub $ sort $ map takeDirectory files
-      dbg1IO "files" files
-      dbg1IO "directories to watch" directories
+  else do
+    -- a channel for sending misc. events to the app
+    eventChan <- newChan
 
-      eventChan <- newChan
+    -- start a background thread reporting changes in the current date
+    -- use async for proper child termination in GHCI
+    let
+      watchDate lastd = do
+        threadDelay 1000000 -- 1s
+        d <- getCurrentDay
+        when (d /= lastd) $ do
+          -- dbg1IO "datechange" DateChange -- XXX don't uncomment until dbg*IO fixed to use traceIO, GHC may block/end thread
+          writeChan eventChan DateChange
+        watchDate d
 
-      forM_ directories $ \d -> watchDir
-        mgr
-        d
-        -- predicate: ignore changes not involving our files
-        (\fev -> case fev of
-          Added    f _ -> f `elem` files
-          Modified f _ -> f `elem` files
-          Removed  f _ -> f `elem` files
-          )
-        -- action: send event to app
-        (\fev -> do
-          -- return $ dbglog "fsnotify" $ showFSNEvent fev -- not working
-          dbg1IO "fsnotify" $ showFSNEvent fev
-          writeChan eventChan FileChange
-          )
+    withAsync
+      (getCurrentDay >>= watchDate)
+      $ \_ -> do
 
-      -- must be inside the withManager block
-      void $ customMain (mkVty def) (Just eventChan) brickapp ui
+      -- start one or more background threads reporting changes in the directories of our files
+      -- XXX misses quick successive saves (still ? hard to reproduce now)
+      -- XXX then refuses to reload manually (should be fixed now ?)
+      --   withManagerConf defaultConfig{confDebounce=Debounce 1000} $ \mgr -> do
+      withManager $ \mgr -> do
+        dbg1IO "fsnotify using polling ?" $ isPollingManager mgr
+        files <- mapM canonicalizePath $ map fst $ jfiles j
+        let directories = nub $ sort $ map takeDirectory files
+        dbg1IO "files" files
+        dbg1IO "directories to watch" directories
+
+        forM_ directories $ \d -> watchDir
+          mgr
+          d
+          -- predicate: ignore changes not involving our files
+          (\fev -> case fev of
+            Added    f _ -> f `elem` files
+            Modified f _ -> f `elem` files
+            Removed  f _ -> f `elem` files
+            )
+          -- action: send event to app
+          (\fev -> do
+            -- return $ dbglog "fsnotify" $ showFSNEvent fev -- not working
+            dbg1IO "fsnotify" $ showFSNEvent fev
+            writeChan eventChan FileChange
+            )
+
+        -- and start the app. Must be inside the withManager block
+        void $ customMain (mkVty def) (Just eventChan) brickapp ui
 
 showFSNEvent (Added    f _) = "Added "    ++ show f
 showFSNEvent (Modified f _) = "Modified " ++ show f

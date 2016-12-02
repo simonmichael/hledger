@@ -38,7 +38,7 @@ options as shown above.
 the data.
 
 `--watch'
-     watch for data changes and reload automatically
+     watch for data (and time) changes and reload automatically
 
 `--theme=default|terminal|greenterm'
      use this custom display theme
@@ -177,8 +177,10 @@ limiting the transactions to be shown (by default, all are shown).
 `shift-down/up' steps downward and upward through these standard report
 period durations: year, quarter, month, week, day. Then,
 `shift-left/right' moves to the previous/next period. `t' sets the
-report period to today. (To set a non-standard period, you can use `/'
-and a `date:' query).
+report period to today. With the `--watch' option, when viewing a
+"current" period (the current day, week, month, quarter, or year), the
+period will move automatically to track the current date. To set a
+non-standard period, you can use `/' and a `date:' query.
 
    `/' lets you set a general filter query limiting the data shown,
 using the same query terms as in hledger and hledger-web. While editing
@@ -358,17 +360,17 @@ Tag Table:
 Node: Top88
 Node: OPTIONS823
 Ref: #options922
-Node: KEYS3945
-Ref: #keys4042
-Node: SCREENS6443
-Ref: #screens6530
-Node: Accounts screen6620
-Ref: #accounts-screen6750
-Node: Register screen8788
-Ref: #register-screen8945
-Node: Transaction screen10833
-Ref: #transaction-screen10993
-Node: Error screen11860
-Ref: #error-screen11984
+Node: KEYS3956
+Ref: #keys4053
+Node: SCREENS6623
+Ref: #screens6710
+Node: Accounts screen6800
+Ref: #accounts-screen6930
+Node: Register screen8968
+Ref: #register-screen9125
+Node: Transaction screen11013
+Ref: #transaction-screen11173
+Node: Error screen12040
+Ref: #error-screen12164
 
 End Tag Table

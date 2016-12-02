@@ -187,6 +187,18 @@ periodPreviousIn (DateSpan (Just b) _) p =
     me = periodEnd p'
 periodPreviousIn _ p = periodPrevious p
 
+-- | Move a period stepwise so that it encloses the given date.
+periodMoveTo :: Day -> Period -> Period
+periodMoveTo d (DayPeriod _) = DayPeriod d
+periodMoveTo d (WeekPeriod _) = WeekPeriod $ mondayBefore d
+periodMoveTo d (MonthPeriod _ _) = MonthPeriod y m where (y,m,_) = toGregorian d
+periodMoveTo d (QuarterPeriod _ _) = QuarterPeriod y q
+  where
+    (y,m,_) = toGregorian d
+    q = quarterContainingMonth m
+periodMoveTo d (YearPeriod _) = YearPeriod y where (y,_,_) = toGregorian d
+periodMoveTo _ p = p
+
 -- | Enlarge a standard period to the next larger enclosing standard period, if there is one.
 -- Eg, a day becomes the enclosing week.
 -- A week becomes whichever month the week's thursday falls into.

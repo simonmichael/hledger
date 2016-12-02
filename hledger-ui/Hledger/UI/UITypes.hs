@@ -83,7 +83,8 @@ data Name =
   deriving (Ord, Show, Eq)
 
 data AppEvent =
-  FileChange
+    FileChange
+  | DateChange
   deriving (Eq, Show)
 
 -- | hledger-ui screen types & instances.

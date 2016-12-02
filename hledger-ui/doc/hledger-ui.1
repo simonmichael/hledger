@@ -40,7 +40,7 @@ Any QUERYARGS are interpreted as a hledger search query which filters
 the data.
 .TP
 .B \f[C]\-\-watch\f[]
-watch for data changes and reload automatically
+watch for data (and time) changes and reload automatically
 .RS
 .RE
 .TP
@@ -249,8 +249,11 @@ the transactions to be shown (by default, all are shown).
 report period durations: year, quarter, month, week, day.
 Then, \f[C]shift\-left/right\f[] moves to the previous/next period.
 \f[C]t\f[] sets the report period to today.
-(To set a non\-standard period, you can use \f[C]/\f[] and a
-\f[C]date:\f[] query).
+With the \f[C]\-\-watch\f[] option, when viewing a "current" period (the
+current day, week, month, quarter, or year), the period will move
+automatically to track the current date.
+To set a non\-standard period, you can use \f[C]/\f[] and a
+\f[C]date:\f[] query.
 .PP
 \f[C]/\f[] lets you set a general filter query limiting the data shown,
 using the same query terms as in hledger and hledger\-web.
