@@ -143,7 +143,8 @@ periodEnd p = me
   where
     DateSpan _ me = periodAsDateSpan p
 
--- | Move a period to the following period of same duration.
+-- | Move a standard period (day, week, month etc.) to the following period of same duration.
+-- Non-standard periods are unaffected.
 periodNext :: Period -> Period
 periodNext (DayPeriod b) = DayPeriod (addDays 1 b)
 periodNext (WeekPeriod b) = WeekPeriod (addDays 7 b)
@@ -154,7 +155,8 @@ periodNext (QuarterPeriod y q) = QuarterPeriod y (q+1)
 periodNext (YearPeriod y) = YearPeriod (y+1)
 periodNext p = p
 
--- | Move a period to the preceding period of same duration.
+-- | Move a standard period (day, week, month etc.) to the preceding period of same duration.
+-- Non-standard periods are unaffected.
 periodPrevious :: Period -> Period
 periodPrevious (DayPeriod b) = DayPeriod (addDays (-1) b)
 periodPrevious (WeekPeriod b) = WeekPeriod (addDays (-7) b)
@@ -165,7 +167,8 @@ periodPrevious (QuarterPeriod y q) = QuarterPeriod y (q-1)
 periodPrevious (YearPeriod y) = YearPeriod (y-1)
 periodPrevious p = p
 
--- | Move a period to the following period of same duration, staying within enclosing dates.
+-- | Move a standard period to the following period of same duration, staying within enclosing dates.
+-- Non-standard periods are unaffected.
 periodNextIn :: DateSpan -> Period -> Period
 periodNextIn (DateSpan _ (Just e)) p =
   case mb of
@@ -176,7 +179,8 @@ periodNextIn (DateSpan _ (Just e)) p =
     mb = periodStart p'
 periodNextIn _ p = periodNext p
 
--- | Move a period to the preceding period of same duration, staying within enclosing dates.
+-- | Move a standard period to the preceding period of same duration, staying within enclosing dates.
+-- Non-standard periods are unaffected.
 periodPreviousIn :: DateSpan -> Period -> Period
 periodPreviousIn (DateSpan (Just b) _) p =
   case me of
@@ -187,7 +191,8 @@ periodPreviousIn (DateSpan (Just b) _) p =
     me = periodEnd p'
 periodPreviousIn _ p = periodPrevious p
 
--- | Move a period stepwise so that it encloses the given date.
+-- | Move a standard period stepwise so that it encloses the given date.
+-- Non-standard periods are unaffected.
 periodMoveTo :: Day -> Period -> Period
 periodMoveTo d (DayPeriod _) = DayPeriod d
 periodMoveTo d (WeekPeriod _) = WeekPeriod $ mondayBefore d
@@ -203,7 +208,7 @@ periodMoveTo _ p = p
 -- Eg, a day becomes the enclosing week.
 -- A week becomes whichever month the week's thursday falls into.
 -- A year becomes all (unlimited).
--- Growing an unlimited period, or a non-standard period (arbitrary dates) has no effect.
+-- Non-standard periods (arbitrary dates, or open-ended) are unaffected.
 periodGrow :: Period -> Period
 periodGrow (DayPeriod b) = WeekPeriod $ mondayBefore b
 periodGrow (WeekPeriod b) = MonthPeriod y m
