@@ -291,8 +291,10 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KChar c)   []) | c `elem` ['?'] -> continue $ setMode Help ui
         -- XXX AppEvents currently handled only in Normal mode
         -- XXX be sure we don't leave unconsumed events piling up
-        AppEvent (DateChange old _) | periodContainsDate (reportPeriod ui) old ->
+        AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
           continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+          where
+            p = reportPeriod ui
         e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
           liftIO (uiReloadJournal copts d ui) >>= continue
         VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)

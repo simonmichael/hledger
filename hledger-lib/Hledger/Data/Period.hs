@@ -118,6 +118,17 @@ isLastDayOfMonth y m d =
     12 -> d==31
     _ -> False
 
+-- | Is this period a "standard" period, referencing a particular day, week, month, quarter, or year ?
+-- Periods of other durations, or infinite duration, or not starting on a standard period boundary, are not.
+isStandardPeriod = isStandardPeriod' . simplifyPeriod
+  where
+    isStandardPeriod' (DayPeriod _) = True
+    isStandardPeriod' (WeekPeriod _) = True
+    isStandardPeriod' (MonthPeriod _ _) = True
+    isStandardPeriod' (QuarterPeriod _ _) = True
+    isStandardPeriod' (YearPeriod _) = True
+    isStandardPeriod' _ = False
+
 -- | Render a period as a compact display string suitable for user output.
 --
 -- >>> showPeriod (WeekPeriod (fromGregorian 2016 7 25))
@@ -143,7 +154,7 @@ periodEnd p = me
   where
     DateSpan _ me = periodAsDateSpan p
 
--- | Move a standard period (day, week, month etc.) to the following period of same duration.
+-- | Move a standard period to the following period of same duration.
 -- Non-standard periods are unaffected.
 periodNext :: Period -> Period
 periodNext (DayPeriod b) = DayPeriod (addDays 1 b)
@@ -155,7 +166,7 @@ periodNext (QuarterPeriod y q) = QuarterPeriod y (q+1)
 periodNext (YearPeriod y) = YearPeriod (y+1)
 periodNext p = p
 
--- | Move a standard period (day, week, month etc.) to the preceding period of same duration.
+-- | Move a standard period to the preceding period of same duration.
 -- Non-standard periods are unaffected.
 periodPrevious :: Period -> Period
 periodPrevious (DayPeriod b) = DayPeriod (addDays (-1) b)
