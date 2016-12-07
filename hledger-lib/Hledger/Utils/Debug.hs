@@ -117,6 +117,9 @@ dbg9 = tracePrettyAt 9
 
 -- | Convenience aliases for tracePrettyAtIO.
 -- Like dbg, but convenient to insert in an IO monad.
+-- XXX These have a bug; they should use traceIO, not trace,
+-- otherwise GHC can occasionally over-optimise
+-- (cf lpaste a few days ago where it killed/blocked a child thread).
 dbg0IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg0IO = tracePrettyAtIO 0
 
