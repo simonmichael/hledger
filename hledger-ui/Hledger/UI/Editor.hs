@@ -26,6 +26,11 @@ type TextPosition = (Int, Maybe Int)
 endPos :: Maybe TextPosition
 endPos = Just (-1,Nothing)
 
+-- | Run the hledger-iadd executable (an alternative to the built-in add command),
+-- or raise an error.
+runIadd :: FilePath -> IO ExitCode
+runIadd f = runCommand ("hledger-iadd -f " ++ f) >>= waitForProcess
+
 -- | Try running the user's preferred text editor, or a default edit command,
 -- on the main journal file, blocking until it exits, and returning the exit code;
 -- or raise an error.
