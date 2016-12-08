@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-|
 
 A 'Transaction' represents a movement of some commodity(ies) between two
@@ -30,6 +31,7 @@ module Hledger.Data.Transaction (
   -- * arithmetic
   transactionPostingBalances,
   balanceTransaction,
+  balanceTransactionUpdate,
   -- * rendering
   showTransaction,
   showTransactionUnelided,
@@ -40,6 +42,8 @@ module Hledger.Data.Transaction (
 )
 where
 import Data.List
+import Control.Monad.Except
+import Control.Monad.Identity
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -296,25 +300,41 @@ isTransactionBalanced styles t =
 -- amount or conversion price(s), or return an error message.
 -- Balancing is affected by commodity display precisions, so those can
 -- (optionally) be provided.
-balanceTransaction :: Maybe (Map.Map CommoditySymbol AmountStyle) -> Transaction -> Either String Transaction
-balanceTransaction styles t =
-  case inferBalancingAmount t of
-    Left err -> Left err
-    Right t' -> let t'' = inferBalancingPrices t'
-                in if isTransactionBalanced styles t''
-                   then Right $ txnTieKnot t''
-                   else Left $ printerr $ nonzerobalanceerror t''
-     where
-      printerr s = intercalate "\n" [s, showTransactionUnelided t]
-      nonzerobalanceerror :: Transaction -> String
-      nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
-          where
-            (rsum, _, bvsum) = transactionPostingBalances t
-            rmsg | isReallyZeroMixedAmountCost rsum = ""
-                 | otherwise = "real postings are off by " ++ showMixedAmount (costOfMixedAmount rsum)
-            bvmsg | isReallyZeroMixedAmountCost bvsum = ""
-                  | otherwise = "balanced virtual postings are off by " ++ showMixedAmount (costOfMixedAmount bvsum)
-            sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
+-- 
+-- this fails for example, if there are several missing amounts
+-- (possibly with balance assignments)
+balanceTransaction :: Maybe (Map.Map CommoditySymbol AmountStyle)
+                   -> Transaction -> Either String Transaction
+balanceTransaction stylemap = runIdentity . runExceptT
+  . balanceTransactionUpdate (\_ _ -> return ()) stylemap
+
+
+-- | More general version of 'balanceTransaction' that takes an update
+-- function
+balanceTransactionUpdate :: MonadError String m
+  => (AccountName -> MixedAmount -> m ())
+     -- ^ update function
+  -> Maybe (Map.Map CommoditySymbol AmountStyle)
+  -> Transaction -> m Transaction
+balanceTransactionUpdate update styles t =
+  finalize =<< inferBalancingAmount update t
+  where
+    finalize t' = let t'' = inferBalancingPrices t'
+                  in if isTransactionBalanced styles t''
+                     then return $ txnTieKnot t''
+                     else throwError $ printerr $ nonzerobalanceerror t''
+    printerr s = intercalate "\n" [s, showTransactionUnelided t]
+    nonzerobalanceerror :: Transaction -> String
+    nonzerobalanceerror t = printf "could not balance this transaction (%s%s%s)" rmsg sep bvmsg
+        where
+          (rsum, _, bvsum) = transactionPostingBalances t
+          rmsg | isReallyZeroMixedAmountCost rsum = ""
+               | otherwise = "real postings are off by "
+                 ++ showMixedAmount (costOfMixedAmount rsum)
+          bvmsg | isReallyZeroMixedAmountCost bvsum = ""
+                | otherwise = "balanced virtual postings are off by "
+                  ++ showMixedAmount (costOfMixedAmount bvsum)
+          sep = if not (null rmsg) && not (null bvmsg) then "; " else "" :: String
 
 -- | Infer up to one missing amount for this transactions's real postings, and
 -- likewise for its balanced virtual postings, if needed; or return an error
@@ -323,61 +343,70 @@ balanceTransaction styles t =
 -- We can infer a missing amount when there are multiple postings and exactly
 -- one of them is amountless. If the amounts had price(s) the inferred amount
 -- have the same price(s), and will be converted to the price commodity.
--- 
-inferBalancingAmount :: Transaction -> Either String Transaction
-inferBalancingAmount t@Transaction{tpostings=ps}
+inferBalancingAmount :: MonadError String m
+                     => (AccountName -> MixedAmount -> m ())
+                     -- ^ update function
+                     -> Transaction -> m Transaction
+inferBalancingAmount update t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
-      = Left $ printerr "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
+      = throwError $ printerr "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
   | length amountlessbvps > 1
-      = Left $ printerr "could not balance this transaction - can't have more than one balanced virtual posting with no amount (remember to put 2 or more spaces before amounts)"
+      = throwError $ printerr "could not balance this transaction - can't have more than one balanced virtual posting with no amount (remember to put 2 or more spaces before amounts)"
   | otherwise
-      = Right t{tpostings=map inferamount ps}
+      = do postings <- mapM inferamount ps
+           return t{tpostings=postings}
   where
     printerr s = intercalate "\n" [s, showTransactionUnelided t]
-    ((amountfulrealps, amountlessrealps), realsum) = (partition hasAmount (realPostings t), sum $ map pamount amountfulrealps)
-    ((amountfulbvps, amountlessbvps), bvsum)       = (partition hasAmount (balancedVirtualPostings t), sum $ map pamount amountfulbvps)
-    inferamount p@Posting{ptype=RegularPosting}         | not (hasAmount p) = p{pamount=costOfMixedAmount (-realsum)}
-    inferamount p@Posting{ptype=BalancedVirtualPosting} | not (hasAmount p) = p{pamount=costOfMixedAmount (-bvsum)}
-    inferamount p = p
+    ((amountfulrealps, amountlessrealps), realsum) =
+      (partition hasAmount (realPostings t), sum $ map pamount amountfulrealps)
+    ((amountfulbvps, amountlessbvps), bvsum)       =
+      (partition hasAmount (balancedVirtualPostings t), sum $ map pamount amountfulbvps)
+    inferamount p@Posting{ptype=RegularPosting}
+     | not (hasAmount p) = updateAmount p realsum
+    inferamount p@Posting{ptype=BalancedVirtualPosting}
+     | not (hasAmount p) = updateAmount p bvsum
+    inferamount p = return p
+    updateAmount p amt = update (paccount p) amt' >> return p { pamount=amt' }
+      where amt' = costOfMixedAmount (-amt)
 
 -- | Infer prices for this transaction's posting amounts, if needed to make
 -- the postings balance, and if possible. This is done once for the real
 -- postings and again (separately) for the balanced virtual postings. When
 -- it's not possible, the transaction is left unchanged.
--- 
+--
 -- The simplest example is a transaction with two postings, each in a
 -- different commodity, with no prices specified. In this case we'll add a
 -- price to the first posting such that it can be converted to the commodity
 -- of the second posting (with -B), and such that the postings balance.
--- 
+--
 -- In general, we can infer a conversion price when the sum of posting amounts
 -- contains exactly two different commodities and no explicit prices.  Also
 -- all postings are expected to contain an explicit amount (no missing
 -- amounts) in a single commodity. Otherwise no price inferring is attempted.
--- 
+--
 -- The transaction itself could contain more than two commodities, and/or
 -- prices, if they cancel out; what matters is that the sum of posting amounts
 -- contains exactly two commodities and zero prices.
--- 
+--
 -- There can also be more than two postings in either of the commodities.
--- 
+--
 -- We want to avoid excessive display of digits when the calculated price is
 -- an irrational number, while hopefully also ensuring the displayed numbers
 -- make sense if the user does a manual calculation. This is (mostly) achieved
 -- in two ways:
--- 
+--
 -- - when there is only one posting in the "from" commodity, a total price
 --   (@@) is used, and all available decimal digits are shown
--- 
+--
 -- - otherwise, a suitable averaged unit price (@) is applied to the relevant
 --   postings, with display precision equal to the summed display precisions
 --   of the two commodities being converted between, or 2, whichever is larger.
--- 
+--
 -- (We don't always calculate a good-looking display precision for unit prices
 -- when the commodity display precisions are low, eg when a journal doesn't
 -- use any decimal places. The minimum of 2 helps make the prices shown by the
 -- print command a bit less surprising in this case. Could do better.)
--- 
+--
 inferBalancingPrices :: Transaction -> Transaction
 inferBalancingPrices t@Transaction{tpostings=ps} = t{tpostings=ps'}
   where
