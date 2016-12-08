@@ -190,8 +190,8 @@ postingAsLines elideamount onelineamounts ps p =
     postinglines
     ++ newlinecomments
   where
-    postinglines = map rstrip $ lines $ concatTopPadded [account, "  ", amount, samelinecomment]
-
+    postinglines = map rstrip $ lines $ concatTopPadded [account, "  ", amount, assertion, samelinecomment]
+    assertion = maybe "" ((" = " ++) . showAmount) $ pbalanceassertion p
     account =
       indent $
         showstatus p ++ fitString (Just acctwidth) Nothing False True (showAccountName Nothing (ptype p) (paccount p))
