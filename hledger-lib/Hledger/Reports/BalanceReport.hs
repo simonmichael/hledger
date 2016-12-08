@@ -387,7 +387,7 @@ tests_balanceReport =
  ]
 
 Right samplejournal2 =
-  journalBalanceTransactions
+  journalBalanceTransactions False
     nulljournal{
       jtxns = [
         txnTieKnot Transaction{
