@@ -558,7 +558,7 @@ type BalanceState s = R.ReaderT (Env s) (ExceptT String (ST s))
 -- depends on display precision. Reports only the first error encountered.
 journalBalanceTransactions :: Bool -> Journal -> Either String Journal
 journalBalanceTransactions assrt j =
-  runST $ journalBalanceTransactions' assrt j
+  runST $ journalBalanceTransactions' assrt (journalNumberTransactions j)
   (newArray_ (1, genericLength $ jtxns j)
    :: forall s. ST s (STArray s Integer Transaction))
   (\arr tx -> writeArray arr (tindex tx) tx)
@@ -584,7 +584,7 @@ journalBalanceTransactions' assrt j createStore storeIn extract =
     flip R.runReaderT (Env bals (storeIn txStore) assrt $
                        Just $ jinferredcommodities j) $ do
       dated <- fmap snd . sortBy (comparing fst) . concat
-             <$> mapM toDated (jtxns $ journalNumberTransactions j)
+             <$> mapM toDated (jtxns j)
       mapM handleObject dated
     lift $ extract txStore
   where size = genericLength $ journalPostings j
