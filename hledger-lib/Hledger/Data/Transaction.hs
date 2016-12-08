@@ -19,6 +19,7 @@ module Hledger.Data.Transaction (
   showAccountName,
   hasRealPostings,
   realPostings,
+  assignmentPostings,
   virtualPostings,
   balancedVirtualPostings,
   transactionsPostings,
@@ -259,6 +260,9 @@ hasRealPostings = not . null . realPostings
 
 realPostings :: Transaction -> [Posting]
 realPostings = filter isReal . tpostings
+
+assignmentPostings :: Transaction -> [Posting]
+assignmentPostings = filter isAssignment . tpostings
 
 virtualPostings :: Transaction -> [Posting]
 virtualPostings = filter isVirtual . tpostings
