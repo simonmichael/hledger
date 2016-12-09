@@ -25,6 +25,7 @@ module Hledger.Data.Posting (
   postingAllTags,
   transactionAllTags,
   relatedPostings,
+  removePrices,
   -- * date operations
   postingDate,
   postingDate2,
@@ -126,6 +127,11 @@ accountNamesFromPostings = nub . map paccount
 
 sumPostings :: [Posting] -> MixedAmount
 sumPostings = sum . map pamount
+
+-- | Remove all prices of a posting
+removePrices :: Posting -> Posting
+removePrices p = p{ pamount = Mixed $ remove <$> amounts (pamount p) }
+  where remove a = a { aprice = NoPrice }
 
 -- | Get a posting's (primary) date - it's own primary date if specified,
 -- otherwise the parent transaction's primary date, or the null date if
