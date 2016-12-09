@@ -56,3 +56,5 @@ hledger print -f personal.journal -f a.timeclock -f b.timedot
     (b.bb)          1.00
 
 >>>=0
+
+u
