@@ -606,14 +606,20 @@ toDated tx
       balanced <- lift $ ExceptT $ return
         $ balanceTransaction styles tx
       storeTransaction balanced
-      return $ fmap (postingDate &&& Left) $ tpostings $ balanced
+      return $ fmap (postingDate &&& (Left . removePrices))
+        $ tpostings $ balanced
   | True                         = do
       when (any (isJust . pdate) $ tpostings tx) $
         throwError $ unlines $
         ["Not supported: Transactions with balance assignments "
         ,"AND dated postings without amount:\n"
         , showTransaction tx]
-      return [(tdate tx, Right tx)]
+      return [(tdate tx, Right
+                $ tx { tpostings = removePrices <$> tpostings tx })]
+
+removePrices :: Posting -> Posting
+removePrices p = p{ pamount = Mixed $ remove <$> amounts (pamount p) }
+  where remove a = a { aprice = NoPrice }
 
 -- | 'Left Posting': Check the balance assertion and update the
 --  account balance. If the amount is empty do nothing.  this can be

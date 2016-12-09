@@ -273,3 +273,38 @@ hledger -f - stats
 >>> /Transactions/
 >>>2
 >>>=0
+
+# 15. Mix different commodities
+hledger -f - stats
+<<<
+2016/1/1
+    a      $1
+    b      -1 zorkmids
+
+2016/1/2
+    a     $-1 = $0
+    b
+>>> /Transactions/
+>>>2
+>>>=0
+
+# 16. Mix different commodities and assignments
+hledger -f - stats
+<<<
+2016/1/1
+    a      $1
+    b      -1 zorkmids
+
+2016/1/4
+    [a]    = $1
+
+
+2016/1/5
+    [a]    = -1 zorkmids
+
+2016/1/2
+    a
+    b      = 0 zorkmids
+>>> /Transactions/
+>>>2
+>>>=0
