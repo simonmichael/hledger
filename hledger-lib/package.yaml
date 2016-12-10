@@ -52,6 +52,7 @@ dependencies:
 - deepseq
 - directory
 - filepath
+- hashtables >= 1.2
 - megaparsec >=5.0 && < 5.2
 - mtl
 - mtl-compat

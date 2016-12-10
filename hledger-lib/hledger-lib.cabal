@@ -71,6 +71,7 @@ library
     , deepseq
     , directory
     , filepath
+    , hashtables >= 1.2
     , megaparsec >=5.0 && < 5.2
     , mtl
     , mtl-compat
@@ -168,6 +169,7 @@ test-suite doctests
     , deepseq
     , directory
     , filepath
+    , hashtables >= 1.2
     , megaparsec >=5.0 && < 5.2
     , mtl
     , mtl-compat
@@ -256,6 +258,7 @@ test-suite hunittests
     , deepseq
     , directory
     , filepath
+    , hashtables >= 1.2
     , megaparsec >=5.0 && < 5.2
     , mtl
     , mtl-compat

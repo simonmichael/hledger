@@ -198,7 +198,7 @@ data Posting = Posting {
       pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
       ptype             :: PostingType,
       ptags             :: [Tag],             -- ^ tag names and values, extracted from the comment
-      pbalanceassertion :: Maybe MixedAmount, -- ^ optional: the expected balance in the account after this posting
+      pbalanceassertion :: Maybe Amount,      -- ^ optional: the expected balance in this commodity in the account after this posting
       ptransaction      :: Maybe Transaction  -- ^ this posting's parent transaction (co-recursive types).
                                               -- Tying this knot gets tedious, Maybe makes it easier/optional.
     } deriving (Typeable,Data,Generic)

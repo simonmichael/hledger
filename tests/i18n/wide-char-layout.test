@@ -31,6 +31,7 @@ hledger -f - print
     㐀:㐁:㐂:㐃:㐄             1
     㐀                        -1
 
+>>>2
 >>>=0
 
 # 2.
@@ -42,6 +43,7 @@ hledger -f chinese.journal register --width 80
                                 㐀:㐁:㐂:㐃                     -1             0
 2014/01/03 transaction 3        㐀:㐁:㐂:㐃:㐄                   1             1
                                 㐀                              -1             0
+>>>2
 >>>=0
 
 # 3.
@@ -53,6 +55,7 @@ hledger -f chinese.journal balance
                    1        㐄
 --------------------
                    0
+>>>2
 >>>=0
 
 # 4.
@@ -69,6 +72,7 @@ Balance changes in 2014:
 ----------------++-------
                 ||     0 
 
+>>>2
 >>>=0
 
 # 5.

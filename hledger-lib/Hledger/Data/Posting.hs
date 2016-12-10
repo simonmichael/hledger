@@ -20,10 +20,12 @@ module Hledger.Data.Posting (
   isVirtual,
   isBalancedVirtual,
   isEmptyPosting,
+  isAssignment,
   hasAmount,
   postingAllTags,
   transactionAllTags,
   relatedPostings,
+  removePrices,
   -- * date operations
   postingDate,
   postingDate2,
@@ -117,11 +119,19 @@ isBalancedVirtual p = ptype p == BalancedVirtualPosting
 hasAmount :: Posting -> Bool
 hasAmount = (/= missingmixedamt) . pamount
 
+isAssignment :: Posting -> Bool
+isAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)
+
 accountNamesFromPostings :: [Posting] -> [AccountName]
 accountNamesFromPostings = nub . map paccount
 
 sumPostings :: [Posting] -> MixedAmount
 sumPostings = sum . map pamount
+
+-- | Remove all prices of a posting
+removePrices :: Posting -> Posting
+removePrices p = p{ pamount = Mixed $ remove <$> amounts (pamount p) }
+  where remove a = a { aprice = NoPrice }
 
 -- | Get a posting's (primary) date - it's own primary date if specified,
 -- otherwise the parent transaction's primary date, or the null date if
