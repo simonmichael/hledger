@@ -70,6 +70,7 @@ File: hledger_journal.5.info,  Node: FILE FORMAT,  Next: EDITOR SUPPORT,  Prev: 
 * Amounts::
 * Virtual Postings::
 * Balance Assertions::
+* Balance Assignments::
 * Prices::
 * Comments::
 * Tags::
@@ -331,12 +332,12 @@ can usually find an equivalent journal entry using real postings, which
 is more correct and provides better error checking.
 
 
-File: hledger_journal.5.info,  Node: Balance Assertions,  Next: Prices,  Prev: Virtual Postings,  Up: FILE FORMAT
+File: hledger_journal.5.info,  Node: Balance Assertions,  Next: Balance Assignments,  Prev: Virtual Postings,  Up: FILE FORMAT
 
 1.6 Balance Assertions
 ======================
 
-hledger supports ledger-style balance assertions in journal files. These
+hledger supports Ledger-style balance assertions in journal files. These
 look like `=EXPECTEDBALANCE' following a posting's amount. Eg in this
 example we assert the expected dollar balance in accounts a and b after
 each posting:
@@ -442,9 +443,44 @@ Balance assertions are checked against all postings, both real and
 virtual. They are not affected by the `--real/-R' flag or `real:' query.
 
 
-File: hledger_journal.5.info,  Node: Prices,  Next: Comments,  Prev: Balance Assertions,  Up: FILE FORMAT
+File: hledger_journal.5.info,  Node: Balance Assignments,  Next: Prices,  Prev: Balance Assertions,  Up: FILE FORMAT
 
-1.7 Prices
+1.7 Balance Assignments
+=======================
+
+Ledger-style balance assignments are also supported. These are like
+balance assertions, but with no posting amount on the left side of the
+equals sign; instead it is calculated automatically so as to satisfy the
+assertion. This can be a convenience during data entry, eg when setting
+opening balances:
+
+
+; starting a new journal, set asset account balances
+2016/1/1 opening balances
+  assets:checking            = $409.32
+  assets:savings             = $735.24
+  assets:cash                 = $42
+  equity:opening balances
+
+   or when adjusting a balance to reality:
+
+
+; no cash left; update balance, record any untracked spending as a generic expense
+2016/1/15
+  assets:cash    = $0
+  expenses:misc
+
+   The calculated amount depends on the account's balance in the
+commodity at that point (which depends on the previously-dated postings
+of the commodity to that account since the last balance assertion or
+assignment). Note that using balance assignments makes your journal a
+little less explicit; to know the exact amount posted, you have to run
+hledger or do the calculations yourself, instead of just reading it.
+
+
+File: hledger_journal.5.info,  Node: Prices,  Next: Comments,  Prev: Balance Assignments,  Up: FILE FORMAT
+
+1.8 Prices
 ==========
 
 * Menu:
@@ -455,7 +491,7 @@ File: hledger_journal.5.info,  Node: Prices,  Next: Comments,  Prev: Balance Ass
 
 File: hledger_journal.5.info,  Node: Transaction prices,  Next: Market prices,  Up: Prices
 
-1.7.1 Transaction prices
+1.8.1 Transaction prices
 ------------------------
 
 When recording a transaction, you can also record an amount's price in
@@ -509,7 +545,7 @@ conversion rate of purchases made in a foreign currency.
 
 File: hledger_journal.5.info,  Node: Market prices,  Prev: Transaction prices,  Up: Prices
 
-1.7.2 Market prices
+1.8.2 Market prices
 -------------------
 
 Market prices are not tied to a particular transaction; they represent
@@ -540,7 +576,7 @@ P 2010/1/1 € $1.40
 
 File: hledger_journal.5.info,  Node: Comments,  Next: Tags,  Prev: Prices,  Up: FILE FORMAT
 
-1.8 Comments
+1.9 Comments
 ============
 
 Lines in the journal beginning with a semicolon (`;') or hash (`#') or
@@ -581,8 +617,8 @@ end comment
 
 File: hledger_journal.5.info,  Node: Tags,  Next: Directives,  Prev: Comments,  Up: FILE FORMAT
 
-1.9 Tags
-========
+1.10 Tags
+=========
 
 A _tag_ is a word followed by a full colon inside a transaction or
 posting comment. You can write multiple tags, comma separated. Eg: `; a
@@ -609,7 +645,7 @@ are simple strings.
 
 File: hledger_journal.5.info,  Node: Directives,  Prev: Tags,  Up: FILE FORMAT
 
-1.10 Directives
+1.11 Directives
 ===============
 
 * Menu:
@@ -626,7 +662,7 @@ File: hledger_journal.5.info,  Node: Directives,  Prev: Tags,  Up: FILE FORMAT
 
 File: hledger_journal.5.info,  Node: Account aliases,  Next: account directive,  Up: Directives
 
-1.10.1 Account aliases
+1.11.1 Account aliases
 ----------------------
 
 You can define aliases which rewrite your account names (after reading
@@ -655,7 +691,7 @@ be useful for:
 
 File: hledger_journal.5.info,  Node: Basic aliases,  Next: Regex aliases,  Up: Account aliases
 
-1.10.1.1 Basic aliases
+1.11.1.1 Basic aliases
 ......................
 
 To set an account alias, use the `alias' directive in your journal
@@ -680,7 +716,7 @@ alias checking = assets:bank:wells fargo:checking
 
 File: hledger_journal.5.info,  Node: Regex aliases,  Next: Multiple aliases,  Prev: Basic aliases,  Up: Account aliases
 
-1.10.1.2 Regex aliases
+1.11.1.2 Regex aliases
 ......................
 
 There is also a more powerful variant that uses a regular expression,
@@ -706,7 +742,7 @@ alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
 
 File: hledger_journal.5.info,  Node: Multiple aliases,  Next: end aliases,  Prev: Regex aliases,  Up: Account aliases
 
-1.10.1.3 Multiple aliases
+1.11.1.3 Multiple aliases
 .........................
 
 You can define as many aliases as you like using directives or
@@ -723,7 +759,7 @@ order:
 
 File: hledger_journal.5.info,  Node: end aliases,  Prev: Multiple aliases,  Up: Account aliases
 
-1.10.1.4 end aliases
+1.11.1.4 end aliases
 ....................
 
 You can clear (forget) all currently defined aliases with the `end
@@ -735,7 +771,7 @@ end aliases
 
 File: hledger_journal.5.info,  Node: account directive,  Next: apply account directive,  Prev: Account aliases,  Up: Directives
 
-1.10.2 account directive
+1.11.2 account directive
 ------------------------
 
 The `account' directive predefines account names, as in Ledger and
@@ -757,7 +793,7 @@ account expenses:food
 
 File: hledger_journal.5.info,  Node: apply account directive,  Next: Multi-line comments,  Prev: account directive,  Up: Directives
 
-1.10.3 apply account directive
+1.11.3 apply account directive
 ------------------------------
 
 You can specify a parent account which will be prepended to all accounts
@@ -796,7 +832,7 @@ supported.
 
 File: hledger_journal.5.info,  Node: Multi-line comments,  Next: commodity directive,  Prev: apply account directive,  Up: Directives
 
-1.10.4 Multi-line comments
+1.11.4 Multi-line comments
 --------------------------
 
 A line containing just `comment' starts a multi-line comment, and a
@@ -805,7 +841,7 @@ line containing just `end comment' ends it. See comments.
 
 File: hledger_journal.5.info,  Node: commodity directive,  Next: Default commodity,  Prev: Multi-line comments,  Up: Directives
 
-1.10.5 commodity directive
+1.11.5 commodity directive
 --------------------------
 
 The `commodity' directive predefines commodities (currently this is
@@ -840,7 +876,7 @@ commodity INR
 
 File: hledger_journal.5.info,  Node: Default commodity,  Next: Default year,  Prev: commodity directive,  Up: Directives
 
-1.10.6 Default commodity
+1.11.6 Default commodity
 ------------------------
 
 The D directive sets a default commodity (and display format), to be
@@ -861,7 +897,7 @@ D $1,000.00
 
 File: hledger_journal.5.info,  Node: Default year,  Next: Including other files,  Prev: Default commodity,  Up: Directives
 
-1.10.7 Default year
+1.11.7 Default year
 -------------------
 
 You can set a default year to be used for subsequent dates which don't
@@ -888,7 +924,7 @@ Y2010      ; change default year to 2010
 
 File: hledger_journal.5.info,  Node: Including other files,  Prev: Default year,  Up: Directives
 
-1.10.8 Including other files
+1.11.8 Including other files
 ----------------------------
 
 You can pull in the content of additional journal files by writing an
@@ -929,69 +965,71 @@ Tag Table:
 Node: Top94
 Node: FILE FORMAT2284
 Ref: #file-format2410
-Node: Transactions2569
-Ref: #transactions2689
-Node: Dates3632
-Ref: #dates3760
-Node: Simple dates3825
-Ref: #simple-dates3953
-Node: Secondary dates4317
-Ref: #secondary-dates4473
-Node: Posting dates6033
-Ref: #posting-dates6164
-Node: Account names7535
-Ref: #account-names7674
-Node: Amounts8159
-Ref: #amounts8297
-Node: Virtual Postings10396
-Ref: #virtual-postings10557
-Node: Balance Assertions11777
-Ref: #balance-assertions11941
-Node: Assertions and ordering12763
-Ref: #assertions-and-ordering12948
-Node: Assertions and commodities13979
-Ref: #assertions-and-commodities14205
-Node: Assertions and subaccounts14897
-Ref: #assertions-and-subaccounts15131
-Node: Assertions and virtual postings15653
-Ref: #assertions-and-virtual-postings15862
-Node: Prices16003
-Ref: #prices16135
-Node: Transaction prices16186
-Ref: #transaction-prices16331
-Node: Market prices17938
-Ref: #market-prices18073
-Node: Comments18961
-Ref: #comments19083
-Node: Tags20195
-Ref: #tags20313
-Node: Directives21236
-Ref: #directives21351
-Node: Account aliases21544
-Ref: #account-aliases21690
-Node: Basic aliases22292
-Ref: #basic-aliases22437
-Node: Regex aliases23125
-Ref: #regex-aliases23295
-Node: Multiple aliases24065
-Ref: #multiple-aliases24239
-Node: end aliases24735
-Ref: #end-aliases24877
-Node: account directive24979
-Ref: #account-directive25161
-Node: apply account directive25457
-Ref: #apply-account-directive25655
-Node: Multi-line comments26315
-Ref: #multi-line-comments26507
-Node: commodity directive26634
-Ref: #commodity-directive26820
-Node: Default commodity27693
-Ref: #default-commodity27868
-Node: Default year28404
-Ref: #default-year28571
-Node: Including other files28994
-Ref: #including-other-files29153
-Node: EDITOR SUPPORT29549
-Ref: #editor-support29669
+Node: Transactions2593
+Ref: #transactions2713
+Node: Dates3656
+Ref: #dates3784
+Node: Simple dates3849
+Ref: #simple-dates3977
+Node: Secondary dates4341
+Ref: #secondary-dates4497
+Node: Posting dates6057
+Ref: #posting-dates6188
+Node: Account names7559
+Ref: #account-names7698
+Node: Amounts8183
+Ref: #amounts8321
+Node: Virtual Postings10420
+Ref: #virtual-postings10581
+Node: Balance Assertions11801
+Ref: #balance-assertions11978
+Node: Assertions and ordering12800
+Ref: #assertions-and-ordering12985
+Node: Assertions and commodities14016
+Ref: #assertions-and-commodities14242
+Node: Assertions and subaccounts14934
+Ref: #assertions-and-subaccounts15168
+Node: Assertions and virtual postings15690
+Ref: #assertions-and-virtual-postings15899
+Node: Balance Assignments16040
+Ref: #balance-assignments16209
+Node: Prices17327
+Ref: #prices17460
+Node: Transaction prices17511
+Ref: #transaction-prices17656
+Node: Market prices19263
+Ref: #market-prices19398
+Node: Comments20286
+Ref: #comments20408
+Node: Tags21520
+Ref: #tags21640
+Node: Directives22563
+Ref: #directives22678
+Node: Account aliases22871
+Ref: #account-aliases23017
+Node: Basic aliases23619
+Ref: #basic-aliases23764
+Node: Regex aliases24452
+Ref: #regex-aliases24622
+Node: Multiple aliases25392
+Ref: #multiple-aliases25566
+Node: end aliases26062
+Ref: #end-aliases26204
+Node: account directive26306
+Ref: #account-directive26488
+Node: apply account directive26784
+Ref: #apply-account-directive26982
+Node: Multi-line comments27642
+Ref: #multi-line-comments27834
+Node: commodity directive27961
+Ref: #commodity-directive28147
+Node: Default commodity29020
+Ref: #default-commodity29195
+Node: Default year29731
+Ref: #default-year29898
+Node: Including other files30321
+Ref: #including-other-files30480
+Node: EDITOR SUPPORT30876
+Ref: #editor-support30996
 
 End Tag Table

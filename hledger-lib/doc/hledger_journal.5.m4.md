@@ -251,8 +251,8 @@ Virtual postings have some legitimate uses, but those are few. You can usually f
 
 ## Balance Assertions
 
-hledger supports ledger-style
-[balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions)
+hledger supports 
+[Ledger-style balance assertions](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assertions)
 in journal files.
 These look like `=EXPECTEDBALANCE` following a posting's amount. Eg in
 this example we assert the expected dollar balance in accounts a and b after
@@ -337,6 +337,36 @@ $ hledger bal checking --flat
 Balance assertions are checked against all postings, both real and
 [virtual](#virtual-postings). They are not affected by the `--real/-R`
 flag or `real:` query.
+
+
+## Balance Assignments
+
+[Ledger-style balance assignments](http://ledger-cli.org/3.0/doc/ledger3.html#Balance-assignments) are also supported.
+These are like [balance assertions](#balance-assertions), but with no posting amount on the left side of the equals sign;
+instead it is calculated automatically so as to satisfy the assertion.
+This can be a convenience during data entry, eg when setting opening balances:
+```journal
+; starting a new journal, set asset account balances 
+2016/1/1 opening balances
+  assets:checking            = $409.32
+  assets:savings             = $735.24
+  assets:cash                 = $42
+  equity:opening balances
+```
+or when adjusting a balance to reality:
+```journal
+; no cash left; update balance, record any untracked spending as a generic expense
+2016/1/15
+  assets:cash    = $0
+  expenses:misc
+```
+
+The calculated amount depends on the account's balance in the commodity at that point 
+(which depends on the previously-dated postings of the commodity to that account
+since the last balance assertion or assignment).
+Note that using balance assignments makes your journal a little less explicit;
+to know the exact amount posted, you have to run hledger or do the calculations yourself,
+instead of just reading it.
 
 
 ## Prices

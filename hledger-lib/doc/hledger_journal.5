@@ -327,7 +327,7 @@ You can usually find an equivalent journal entry using real postings,
 which is more correct and provides better error checking.
 .SS Balance Assertions
 .PP
-hledger supports ledger\-style balance assertions in journal files.
+hledger supports Ledger\-style balance assertions in journal files.
 These look like \f[C]=EXPECTEDBALANCE\f[] following a posting\[aq]s
 amount.
 Eg in this example we assert the expected dollar balance in accounts a
@@ -423,6 +423,44 @@ Balance assertions are checked against all postings, both real and
 virtual.
 They are not affected by the \f[C]\-\-real/\-R\f[] flag or
 \f[C]real:\f[] query.
+.SS Balance Assignments
+.PP
+Ledger\-style balance assignments are also supported.
+These are like balance assertions, but with no posting amount on the
+left side of the equals sign; instead it is calculated automatically so
+as to satisfy the assertion.
+This can be a convenience during data entry, eg when setting opening
+balances:
+.IP
+.nf
+\f[C]
+;\ starting\ a\ new\ journal,\ set\ asset\ account\ balances\ 
+2016/1/1\ opening\ balances
+\ \ assets:checking\ \ \ \ \ \ \ \ \ \ \ \ =\ $409.32
+\ \ assets:savings\ \ \ \ \ \ \ \ \ \ \ \ \ =\ $735.24
+\ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ =\ $42
+\ \ equity:opening\ balances
+\f[]
+.fi
+.PP
+or when adjusting a balance to reality:
+.IP
+.nf
+\f[C]
+;\ no\ cash\ left;\ update\ balance,\ record\ any\ untracked\ spending\ as\ a\ generic\ expense
+2016/1/15
+\ \ assets:cash\ \ \ \ =\ $0
+\ \ expenses:misc
+\f[]
+.fi
+.PP
+The calculated amount depends on the account\[aq]s balance in the
+commodity at that point (which depends on the previously\-dated postings
+of the commodity to that account since the last balance assertion or
+assignment).
+Note that using balance assignments makes your journal a little less
+explicit; to know the exact amount posted, you have to run hledger or do
+the calculations yourself, instead of just reading it.
 .SS Prices
 .SS Transaction prices
 .PP
