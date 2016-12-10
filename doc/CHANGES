@@ -3,7 +3,7 @@ See also the package change logs.
 
 # 1.1 (unreleased)
 
-All 1.1 changes (move package-specific changes to package changelogs before release):
+(Changes in all packages - move to package changelogs before release:)
 
 ## misc
 
@@ -16,7 +16,11 @@ All 1.1 changes (move package-specific changes to package changelogs before rele
     
 -   Hledger.Read api cleanups
 
--   rename dbgIO to dbg0IO, consistent with dbg0
+-   rename dbgIO to dbg0IO, consistent with dbg0, and document a bug in dbg*IO
+
+-   make readJournalFiles [f] equivalent to readJournalFile f (#437)
+
+-   more general parser types enabling reuse outside of IO (#439)
 
 ## cli
 
@@ -33,20 +37,22 @@ All 1.1 changes (move package-specific changes to package changelogs before rele
 
 -   mark hledger-ui as "stable"
 
--   allow brick 0.14, vty 5.13, text-zipper 0.9
+-   allow brick 0.15, vty 5.14, text-zipper 0.9
 
--   --change shows period balances (changes) at startup
+-   with --watch, the display updates automatically to show file or date changes
 
--   with --watch, react to file changes in real time
-    
-    Experimental, tested on OSX so far.
-    Rapid successive file changes can cause it to get stuck.
+    hledger-ui --watch will reload data when the journal file (or any included file) changes.
+    Also, when viewing a current standard period (ie this day/week/month/quarter/year),
+    the period will move as needed to track the current system date.
+
+-   the --change flag shows period changes at startup instead of historical ending balances
+
+-   the A key runs the hledger-iadd tool, if installed
 
 -   always reload when g is pressed
 
     Previously it would check the modification time and reload only if
-    it looked newer than the last reload, but this was interacting badly
-    with --watch.
+    it looked newer than the last reload.
 
 ## web
 
@@ -78,6 +84,11 @@ All 1.1 changes (move package-specific changes to package changelogs before rele
 -   create default rules file only if CSV reader succeeds
 
 ## journal format
+
+-   balance assignments are now supported (#438, #129, #157, #288)
+
+    This feature also brings a slight performance drop (~5%);
+    optimisations welcome.
 
 -   also recognise `*.hledger` files as hledger journal format
 
