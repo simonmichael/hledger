@@ -51,6 +51,7 @@ import Hledger.Utils hiding (ptrace)
 -- easier to toggle this here sometimes
 -- import qualified Hledger.Utils (ptrace)
 -- ptrace = Hledger.Utils.ptrace
+ptrace :: Monad m => a -> m a
 ptrace = return
 
 reader :: Reader
@@ -65,12 +66,12 @@ reader = Reader
 parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal timedotfilep
 
-timedotfilep :: ErroringJournalParser ParsedJournal
+timedotfilep :: JournalStateParser m ParsedJournal
 timedotfilep = do many timedotfileitemp
                   eof
                   get
     where
-      timedotfileitemp :: ErroringJournalParser ()
+      timedotfileitemp :: JournalStateParser m ()
       timedotfileitemp = do
         ptrace "timedotfileitemp"
         choice [
@@ -88,7 +89,7 @@ addTransactions ts j = foldl' (flip ($)) j (map addTransaction ts)
 -- biz.research .
 -- inc.client1  .... .... .... .... .... ....
 -- @
-timedotdayp :: ErroringJournalParser [Transaction]
+timedotdayp :: JournalStateParser m [Transaction]
 timedotdayp = do
   ptrace " timedotdayp"
   d <- datep <* lift eolof
@@ -100,7 +101,7 @@ timedotdayp = do
 -- @
 -- fos.haskell  .... ..
 -- @
-timedotentryp :: ErroringJournalParser Transaction
+timedotentryp :: JournalStateParser m Transaction
 timedotentryp = do
   ptrace "  timedotentryp"
   pos <- genericSourcePos <$> getPosition
@@ -124,14 +125,14 @@ timedotentryp = do
         }
   return t
 
-timedotdurationp :: ErroringJournalParser Quantity
+timedotdurationp :: JournalStateParser m Quantity
 timedotdurationp = try timedotnumberp <|> timedotdotsp
 
 -- | Parse a duration written as a decimal number of hours (optionally followed by the letter h).
 -- @
 -- 1.5h
 -- @
-timedotnumberp :: ErroringJournalParser Quantity
+timedotnumberp :: JournalStateParser m Quantity
 timedotnumberp = do
    (q, _, _, _) <- lift numberp
    lift (many spacenonewline)
@@ -143,7 +144,7 @@ timedotnumberp = do
 -- @
 -- .... ..
 -- @
-timedotdotsp :: ErroringJournalParser Quantity
+timedotdotsp :: JournalStateParser m Quantity
 timedotdotsp = do
   dots <- filter (not.isSpace) <$> many (oneOf (". " :: [Char]))
   return $ (/4) $ fromIntegral $ length dots

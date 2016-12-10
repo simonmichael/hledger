@@ -82,7 +82,7 @@ reader = Reader
 parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal timeclockfilep
 
-timeclockfilep :: ErroringJournalParser ParsedJournal
+timeclockfilep :: ErroringJournalParser IO ParsedJournal
 timeclockfilep = do many timeclockitemp
                     eof
                     j@Journal{jparsetimeclockentries=es} <- get
@@ -105,7 +105,7 @@ timeclockfilep = do many timeclockitemp
                           ] <?> "timeclock entry, or default year or historical price directive"
 
 -- | Parse a timeclock entry.
-timeclockentryp :: ErroringJournalParser TimeclockEntry
+timeclockentryp :: JournalStateParser m TimeclockEntry
 timeclockentryp = do
   sourcepos <- genericSourcePos <$> lift getPosition
   code <- oneOf ("bhioO" :: [Char])

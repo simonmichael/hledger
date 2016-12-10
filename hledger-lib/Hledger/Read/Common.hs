@@ -57,7 +57,7 @@ runJournalParser p t = runParserT p "" t
 rjp = runJournalParser
 
 -- | Run an error-raising journal parser with a null journal-parsing state.
-runErroringJournalParser, rejp :: ErroringJournalParser a -> Text -> IO (Either String a)
+runErroringJournalParser, rejp :: Monad m => ErroringJournalParser m a -> Text -> m (Either String a)
 runErroringJournalParser p t =
   runExceptT $
   runJournalParser (evalStateT p mempty)
@@ -70,7 +70,8 @@ genericSourcePos p = GenericSourcePos (sourceName p) (fromIntegral . unPos $ sou
 
 -- | Given a megaparsec ParsedJournal parser, balance assertion flag, file
 -- path and file content: parse and post-process a Journal, or give an error.
-parseAndFinaliseJournal :: ErroringJournalParser ParsedJournal -> Bool -> FilePath -> Text -> ExceptT String IO Journal
+parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> Bool
+                        -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal parser assrt f txt = do
   t <- liftIO getClockTime
   y <- liftIO getCurrentYear
@@ -98,26 +99,26 @@ setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
 getYear :: JournalStateParser m (Maybe Year)
 getYear = fmap jparsedefaultyear get
 
-setDefaultCommodityAndStyle :: (CommoditySymbol,AmountStyle) -> ErroringJournalParser ()
+setDefaultCommodityAndStyle :: (CommoditySymbol,AmountStyle) -> JournalStateParser m ()
 setDefaultCommodityAndStyle cs = modify' (\j -> j{jparsedefaultcommodity=Just cs})
 
 getDefaultCommodityAndStyle :: JournalStateParser m (Maybe (CommoditySymbol,AmountStyle))
 getDefaultCommodityAndStyle = jparsedefaultcommodity `fmap` get
 
-pushAccount :: AccountName -> ErroringJournalParser ()
+pushAccount :: AccountName -> JournalStateParser m ()
 pushAccount acct = modify' (\j -> j{jaccounts = acct : jaccounts j})
 
-pushParentAccount :: AccountName -> ErroringJournalParser ()
+pushParentAccount :: AccountName -> JournalStateParser m ()
 pushParentAccount acct = modify' (\j -> j{jparseparentaccounts = acct : jparseparentaccounts j})
 
-popParentAccount :: ErroringJournalParser ()
+popParentAccount :: JournalStateParser m ()
 popParentAccount = do
   j <- get
   case jparseparentaccounts j of
     []       -> unexpected (Tokens ('E' :| "nd of apply account block with no beginning"))
     (_:rest) -> put j{jparseparentaccounts=rest}
 
-getParentAccount :: ErroringJournalParser AccountName
+getParentAccount :: JournalStateParser m AccountName
 getParentAccount = fmap (concatAccountNames . reverse . jparseparentaccounts) get
 
 addAccountAlias :: MonadState Journal m => AccountAlias -> m ()
@@ -155,7 +156,7 @@ journalAddFile f j@Journal{jfiles=fs} = j{jfiles=fs++[f]}
 
 -- | Terminate parsing entirely, returning the given error message
 -- with the given parse position prepended.
-parserErrorAt :: SourcePos -> String -> ErroringJournalParser a
+parserErrorAt :: Monad m => SourcePos -> String -> ErroringJournalParser m a
 parserErrorAt pos s = throwError $ sourcePosPretty pos ++ ":\n" ++ s
 
 --- * parsers
@@ -173,7 +174,7 @@ statusp =
 codep :: TextParser m String
 codep = try (do { some spacenonewline; char '(' <?> "codep"; anyChar `manyTill` char ')' } ) <|> return ""
 
-descriptionp :: ErroringJournalParser String
+descriptionp :: JournalStateParser m String
 descriptionp = many (noneOf (";\n" :: [Char]))
 
 --- ** dates
@@ -212,7 +213,7 @@ datep = do
 -- Seconds are optional.
 -- The timezone is optional and ignored (the time is always interpreted as a local time).
 -- Leading zeroes may be omitted (except in a timezone).
-datetimep :: ErroringJournalParser LocalTime
+datetimep :: JournalStateParser m LocalTime
 datetimep = do
   day <- datep
   lift $ some spacenonewline
@@ -240,7 +241,7 @@ datetimep = do
   -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
   return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
 
-secondarydatep :: Day -> ErroringJournalParser Day
+secondarydatep :: Day -> JournalStateParser m Day
 secondarydatep primarydate = do
   char '='
   -- kludgy way to use primary date for default year
@@ -266,7 +267,7 @@ secondarydatep primarydate = do
 --- ** account names
 
 -- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
-modifiedaccountnamep :: ErroringJournalParser AccountName
+modifiedaccountnamep :: JournalStateParser m AccountName
 modifiedaccountnamep = do
   parent <- getParentAccount
   aliases <- getAccountAliases
@@ -305,7 +306,7 @@ accountnamep = do
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
 -- "missing" marker amount.
-spaceandamountormissingp :: ErroringJournalParser MixedAmount
+spaceandamountormissingp :: Monad m => JournalStateParser m MixedAmount
 spaceandamountormissingp =
   try (do
         lift $ some spacenonewline
@@ -426,7 +427,7 @@ priceamountp =
             return $ UnitPrice a))
          <|> return NoPrice
 
-partialbalanceassertionp :: ErroringJournalParser (Maybe Amount)
+partialbalanceassertionp :: Monad m => JournalStateParser m (Maybe Amount)
 partialbalanceassertionp =
     try (do
           lift (many spacenonewline)
@@ -447,7 +448,7 @@ partialbalanceassertionp =
 --          <|> return Nothing
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
-fixedlotpricep :: ErroringJournalParser (Maybe Amount)
+fixedlotpricep :: Monad m => JournalStateParser m (Maybe Amount)
 fixedlotpricep =
     try (do
           lift (many spacenonewline)
@@ -547,7 +548,7 @@ numberp = do
 
 --- ** comments
 
-multilinecommentp :: ErroringJournalParser ()
+multilinecommentp :: JournalStateParser m ()
 multilinecommentp = do
   string "comment" >> lift (many spacenonewline) >> newline
   go
@@ -556,13 +557,13 @@ multilinecommentp = do
          <|> (anyLine >> go)
     anyLine = anyChar `manyTill` newline
 
-emptyorcommentlinep :: ErroringJournalParser ()
+emptyorcommentlinep :: JournalStateParser m ()
 emptyorcommentlinep = do
   lift (many spacenonewline) >> (commentp <|> (lift (many spacenonewline) >> newline >> return ""))
   return ()
 
 -- | Parse a possibly multi-line comment following a semicolon.
-followingcommentp :: ErroringJournalParser Text
+followingcommentp :: JournalStateParser m Text
 followingcommentp =
   -- ptrace "followingcommentp"
   do samelinecomment <- lift (many spacenonewline) >> (try semicoloncommentp <|> (newline >> return ""))
@@ -588,7 +589,8 @@ followingcommentp =
 -- >>> rejp (followingcommentandtagsp (Just $ fromGregorian 2000 1 2)) "; date:3/4=5/6"
 -- Right ("date:3/4=5/6\n",[("date","3/4=5/6")],Just 2000-03-04,Nothing)
 --
-followingcommentandtagsp :: Maybe Day -> ErroringJournalParser (Text, [Tag], Maybe Day, Maybe Day)
+followingcommentandtagsp :: MonadIO m => Maybe Day
+                         -> ErroringJournalParser m (Text, [Tag], Maybe Day, Maybe Day)
 followingcommentandtagsp mdefdate = do
   -- pdbg 0 "followingcommentandtagsp"
 
@@ -623,16 +625,16 @@ followingcommentandtagsp mdefdate = do
 
   return (comment, tags, mdate, mdate2)
 
-commentp :: ErroringJournalParser Text
+commentp :: JournalStateParser m Text
 commentp = commentStartingWithp commentchars
 
 commentchars :: [Char]
 commentchars = "#;*"
 
-semicoloncommentp :: ErroringJournalParser Text
+semicoloncommentp :: JournalStateParser m Text
 semicoloncommentp = commentStartingWithp ";"
 
-commentStartingWithp :: [Char] -> ErroringJournalParser Text
+commentStartingWithp :: [Char] -> JournalStateParser m Text
 commentStartingWithp cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
@@ -714,7 +716,7 @@ tagvaluep = do
 -- are parsed fully to give useful errors. Missing years can be
 -- inferred only if a default date is provided.
 --
-postingdatesp :: Maybe Day -> ErroringJournalParser [(TagName,Day)]
+postingdatesp :: Monad m => Maybe Day -> ErroringJournalParser m [(TagName,Day)]
 postingdatesp mdefdate = do
   -- pdbg 0 $ "postingdatesp"
   let p = ((:[]) <$> datetagp mdefdate) <|> bracketeddatetagsp mdefdate
@@ -739,7 +741,7 @@ postingdatesp mdefdate = do
 -- >>> rejp (datetagp Nothing) "date:  3/4"
 -- Left ...1:9...partial date 3/4 found, but the current year is unknown...
 --
-datetagp :: Maybe Day -> ErroringJournalParser (TagName,Day)
+datetagp :: Monad m => Maybe Day -> ErroringJournalParser m (TagName,Day)
 datetagp mdefdate = do
   -- pdbg 0 "datetagp"
   string "date"
@@ -795,7 +797,7 @@ datetagp mdefdate = do
 -- >>> rejp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
 -- Left ...1:15:...bad date, different separators...
 --
-bracketeddatetagsp :: Maybe Day -> ErroringJournalParser [(TagName, Day)]
+bracketeddatetagsp :: Monad m => Maybe Day -> ErroringJournalParser m [(TagName, Day)]
 bracketeddatetagsp mdefdate = do
   -- pdbg 0 "bracketeddatetagsp"
   char '['

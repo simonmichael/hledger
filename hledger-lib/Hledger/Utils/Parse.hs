@@ -22,7 +22,7 @@ type JournalStateParser m a = StateT Journal (ParsecT Dec Text m) a
 type JournalParser a = StateT Journal (ParsecT Dec Text Identity) a
 
 -- | A journal parser that runs in IO and can throw an error mid-parse.
-type ErroringJournalParser a = StateT Journal (ParsecT Dec Text (ExceptT String IO)) a
+type ErroringJournalParser m a = StateT Journal (ParsecT Dec Text (ExceptT String m)) a
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.

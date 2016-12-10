@@ -56,7 +56,8 @@ helpDialog =
                   ,str " "
                   ,str "MISC"
                   ,renderKey ("?", "toggle help")
-                  ,renderKey ("a", "add transaction")
+                  ,renderKey ("a", "add transaction (hledger add)")
+                  ,renderKey ("A", "add transaction (hledger-iadd)")
                   ,renderKey ("E", "open editor")
                   ,renderKey ("g", "reload data")
                   ,renderKey ("I", "toggle balance assertions")

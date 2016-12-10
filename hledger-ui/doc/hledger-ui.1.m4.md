@@ -262,7 +262,4 @@ When you press `g`, the current and all previous screens are
 regenerated, which may cause a noticeable pause. Also there is no
 visual indication that this is in progress.
 
-The register screen's switching between historic balance and running
-total based on query arguments may be confusing, and there is no
-column heading to indicate which is being displayed.
 }})
