@@ -94,18 +94,15 @@ See also the package change logs.
 
 ## ledger format
 
--   add an alternate reader for C++ Ledger journals, based on ledger-parse from the ledger4 project.
+-   use ledger-parse from the ledger4 project as an alternate reader for C++ Ledger journals
     
-    This reader is not used automatically, you must select it with a `ledger:` prefix.
-    Currently only the bare minimum of the raw parsed data is used:
-    transaction dates/descriptions and posting accounts/amounts,
-    with the rest being ignored.
-    
-    Amounts are parsed the same way as in the hledger journal format.
-    Malformed amounts might be ignored instead of error-reported.
+    The idea is that some day we might get better compatibility with Ledger files this way.
+    Right now this reader is not very useful and will be used only if you explicitly select it with a `ledger:` prefix.
+    It parses transaction dates, descriptions, accounts and amounts, and ignores everything else.
+    Amount parsing is delegated to hledger's journal parser, and malformed amounts might be silently ignored.
 
-    This adds some or all of these as new dependencies for hledger-lib:
-    parsers, parsec, attoparsec, trifecta
+    This adds at least some of the following as new dependencies for hledger-lib:
+    parsers, parsec, attoparsec, trifecta.
 
 
 # 1.0.1 (2016/10/27)
