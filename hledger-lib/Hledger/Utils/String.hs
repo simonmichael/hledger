@@ -64,7 +64,7 @@ strip = lstrip . rstrip
 
 -- | Remove leading whitespace.
 lstrip :: String -> String
-lstrip = dropWhile (`elem` " \t") :: String -> String -- XXX isSpace ?
+lstrip = dropWhile isSpace
 
 -- | Remove trailing whitespace.
 rstrip :: String -> String
