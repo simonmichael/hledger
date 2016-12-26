@@ -46,7 +46,7 @@ You have to build it, but that's pretty easy.
    On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
    On Arch, you [may need to also install GHC manually](https://github.com/simonmichael/hledger/issues/434).
 
-2. `stack install hledger [hledger-ui] [hledger-web] [hledger-api]`\
+2. `stack install --resolver=nightly hledger [hledger-ui] [hledger-web] [hledger-api]`\
    On Windows, hledger-ui is [not yet available](https://github.com/coreyoconnor/vty/pull/1).\
    If stack says you need to run `stack setup`, do that first.\
    Warnings about "No packages found in snapshot which provide a "hsc2hs" executable" can be ignored.\
