@@ -125,6 +125,9 @@ isRight = not . isLeft
 -- | Apply a function the specified number of times. Possibly uses O(n) stack ?
 applyN :: Int -> (a -> a) -> a -> a
 applyN n f = (!! n) . iterate f
+-- from protolude, compare
+-- applyN :: Int -> (a -> a) -> a -> a
+-- applyN n f = X.foldr (.) identity (X.replicate n f)
 
 -- | Convert a possibly relative, possibly tilde-containing file path to an absolute one,
 -- given the current directory. ~username is not supported. Leave "-" unchanged.
