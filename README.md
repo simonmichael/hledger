@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/simonmichael/hledger.png?label=ready&title=Ready)](https://waffle.io/simonmichael/hledger)
 #  hledger
 
 ## lightweight, portable, dependable accounting tools
