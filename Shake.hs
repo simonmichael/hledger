@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack runghc --verbosity info
+{- stack exec --verbosity info
    --package base-prelude
    --package directory
    --package extra
@@ -7,6 +7,7 @@
    --package safe
    --package shake
    --package time
+   -- ghc
 -}
 {-
 One of two project scripts files (Makefile, Shake.hs).
@@ -14,7 +15,7 @@ This one provides a stronger programming language and more
 platform independence than Make. It will build needed packages (above)
 on first run and whenever the resolver in stack.yaml changes.
 To minimise such startup delays, and reduce sensitivity to git checkout,
-compiling is recommended: ./Shake.hs compile
+compiling is recommended; run the script in interpreted mode to do that.
 
 It requires stack (https://haskell-lang.org/get-started) and
 auto-installs the packages above. Also, some rules require:
@@ -48,7 +49,7 @@ import "directory"    System.Directory as S (getDirectoryContents)
 
 usage = unlines
   ["Usage:"
-  ,"./Shake.hs compile       # compile this script (recommended)"
+  ,"./Shake.hs               # compile this script"
   ,"./Shake                  # show commands"
   ,"./Shake all              # generate everything"
   ,"./Shake docs             # generate general docs"
@@ -86,13 +87,13 @@ main = do
 
     phony "help" $ liftIO $ putStrLn usage
 
-    phony "compile" $ need ["Shake"]
-
-    "Shake" %> \out -> do
-      need [out <.> "hs"]
-      unit $ cmd "./Shake.hs --version"  -- install libs via shebang line
-      unit $ cmd "stack ghc Shake.hs"
-      putLoud "You can now run ./Shake instead of ./Shake.hs"
+--     phony "compile" $ need ["Shake"]
+--
+--     "Shake" %> \out -> do
+--       need [out <.> "hs"]
+--       unit $ cmd "./Shake.hs --version"  -- install libs via shebang line
+--       unit $ cmd "stack ghc Shake.hs"
+--       putLoud "You can now run ./Shake instead of ./Shake.hs"
 
     phony "all" $ need ["docs", "website"]
 
