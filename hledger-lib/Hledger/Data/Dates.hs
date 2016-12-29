@@ -330,6 +330,7 @@ fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
 -- | Convert a SmartDate to an absolute date using the provided reference date.
 --
 -- ==== Examples:
+-- >>> :set -XOverloadedStrings
 -- >>> let t = fixSmartDateStr (parsedate "2008/11/26")
 -- >>> t "0000-01-01"
 -- "0000/01/01"
