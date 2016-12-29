@@ -43,7 +43,7 @@ tr {
 | Fedora                  | [hledger](https://apps.fedoraproject.org/packages/hledger), [\*hledger\*](https://apps.fedoraproject.org/packages/s/hledger), [hledger (package db)](https://admin.fedoraproject.org/pkgdb/package/hledger/), [Haskell SIG](http://fedoraproject.org/wiki/Haskell_SIG) |
 | Nix                     | [hydra build status](http://hydra.nixos.org/search?query=hledger) |
 | Homebrew                | [hledger](https://github.com/Homebrew/homebrew-core/blob/master/Formula/hledger.rb) |
-| Sandstorm               | [hledger-web](https://dev.thewordnerd.info/nolan/hledger), [app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90)
+| Sandstorm               | [hledger web app & reviews](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90), [issues](https://github.com/simonmichael/hledger/issues?utf8=✓&q=label%3A%22platform%3A%20sandstorm%22%20)
 | Reference               | [GHC Can I Use](http://damianfral.github.io/ghcaniuse/) |
 
 <!-- list the debian packages for clarity:
