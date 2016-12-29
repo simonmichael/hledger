@@ -124,7 +124,9 @@ tree, down to level N. Use this when you want a summary with less detail.
 
 ## Smart dates
 
-hledger's user interfaces accept a flexible "smart date" syntax (unlike dates in the journal file). Smart dates allow some english words, can be relative to today's date, and can have less-significant date parts omitted (defaulting to 1).
+hledger's user interfaces accept a flexible "smart date" syntax (unlike dates in the journal file). 
+Smart dates allow some english words, can be relative to today's date, 
+and can have less-significant date parts omitted (defaulting to 1).
 
 Examples:
 
@@ -140,14 +142,43 @@ Examples:
 `today`, `yesterday`, `tomorrow`
 ---
 
-## Report intervals
+## Report start & end date
+
+Most hledger reports show the full span of time represented by the journal data, by default.
+So, the effective report start and end dates will be the earliest and latest transaction or posting dates found in the journal.
+
+Often you will want to see a shorter time span, such as the current month.
+You can specify a start and/or end date using 
+[`-b/--begin`](#reporting-options), 
+[`-e/--end`](#reporting-options), 
+[`-p/--period`](#period-expressions) 
+or a [`date:` query](#queries) (described below).
+All of these accept the [smart date](#smart-dates) syntax.
+One important thing to be aware of when specifying end dates: as in Ledger, end dates are exclusive, 
+so you need to write the date *after* the last day you want to include.
+
+Examples:
+
+-----------------------------------  ------------------------------------------------------
+`-b 2016/3/17`                       begin on St. Patrick's day 2016
+`-e 12/1`                            end at the start of december 1st of the current year (11/30 will be the last date included)
+`-b thismonth`                       all transactions on or after the 1st of the current month
+`-p thismonth`                       all transactions in the current month  
+`date:2016/3/17-`                    the above written as queries instead
+`date:-12/1`   
+`date:thismonth-`
+`date:thismonth`
+---
+
+##  Report intervals
 
 A report interval can be specified so that commands like
 [register](#register), [balance](#balance) and [activity](#activity) will divide their
 reports into multiple subperiods.  The basic intervals can be
 selected with one of `-D/--daily`, `-W/--weekly`, `-M/--monthly`,
 `-Q/--quarterly`, or `-Y/--yearly`.  More complex intervals may be
-specified with a period expression.
+specified with a [period expression](#period-expressions). 
+Report intervals can not be specified with a [query](#queries), currently. 
 
 ## Period expressions
 
