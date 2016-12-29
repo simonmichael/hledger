@@ -1,6 +1,11 @@
 #!/usr/bin/env stack
-{- stack runghc --verbosity info --package hakyll --package pandoc -}  -- pandoc-1.17.0.3
-{-# LANGUAGE OverloadedStrings #-}
+{- stack exec --verbosity info
+   --resolver nightly
+   --package hakyll
+   --package pandoc
+   -- ghc
+-}
+
 {- |
 
 A simple hakyll website builder suitable for software project sites,
@@ -30,6 +35,8 @@ Usage:
 $ hakyll-std [--help|clean|build|preview|...]   # standard hakyll options
 
 -}
+
+{-# LANGUAGE OverloadedStrings #-}
 
 import Control.Monad
 import Data.Default

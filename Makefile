@@ -875,7 +875,7 @@ hakyll-std site/hakyll-std/hakyll-std: \
 	site/hakyll-std/hakyll-std.hs \
 	site/hakyll-std/TableOfContents.hs \
 		$(call def-help,hakyll-std, build a generic hakyll site builder script )
-	cd site/hakyll-std; ./hakyll-std.hs >/dev/null && stack ghc hakyll-std.hs
+	cd site/hakyll-std; ./hakyll-std.hs
 
 site-build: site/hakyll-std/hakyll-std site/manual.md \
 	$(call def-help,site-build, generate the hledger.org website with hakyll-std )
