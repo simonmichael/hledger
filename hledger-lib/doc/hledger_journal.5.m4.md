@@ -424,18 +424,17 @@ rate of purchases made in a foreign currency.
 ### Market prices
 
 Market prices are not tied to a particular transaction; they represent
-historical exchange rates between two commodities, usually from some
-public market which publishes such rates.
+historical exchange rates between two commodities. For example, the prices 
+published by a [stock exchange](https://en.wikipedia.org/wiki/Stock_exchange)
+or the [foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
 
-When market prices are known, the `-V/--value` option will use them to
-convert reported amounts to their market value as of the report end
-date. This option is currently available only with the
-[balance](#balance) command.
+When market prices are known and in effect at the 
+[report end date](hledger.html#report-start-end-date) (see hledger -> Report start & end date), 
+the balance command's `-V/--value` option will show balances as their market value on that date. 
+(This option is currently available only with the [balance](#balance) command.)
 
-You record market prices (Ledger calls them historical prices) with a
-P directive, in the journal or perhaps in a separate
-[included](#including-other-files) file.  Market price directives have
-the format:
+To record market prices (Ledger calls them historical prices), use P directives, 
+in the journal or an [included](#including-other-files) file. Their format is:
 ```journal
 P DATE COMMODITYSYMBOL UNITPRICE
 ```
@@ -446,8 +445,6 @@ For example, the following directives say that the euro's exchange rate was 1.35
 P 2009/1/1 € $1.35
 P 2010/1/1 € $1.40
 ```
-
-Example use for market prices: tracking the value of stocks.
 
 <!--
 This is different from Ledger, where transaction prices fluctuate by
