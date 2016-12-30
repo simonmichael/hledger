@@ -369,7 +369,7 @@ reportStartDate j ropts = (fst <$>) <$> reportStartEndDates j ropts
 -- otherwise (for an empty journal) nothing.
 -- Needs IO to parse smart dates in options/queries.
 reportEndDate :: Journal -> ReportOpts -> IO (Maybe Day)
-reportEndDate j ropts = (fst <$>) <$> reportStartEndDates j ropts
+reportEndDate j ropts = (snd <$>) <$> reportStartEndDates j ropts
 
 reportStartEndDates :: Journal -> ReportOpts -> IO (Maybe (Day,Day))
 reportStartEndDates j ropts = do
