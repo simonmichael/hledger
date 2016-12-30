@@ -202,6 +202,7 @@ cur:\\\\$'.
 * Input files::
 * Depth limiting::
 * Smart dates::
+* Report start & end date::
 * Report intervals::
 * Period expressions::
 * Regular expressions::
@@ -300,16 +301,17 @@ Common reporting options, must be written after COMMAND.
      show items with zero amount, normally hidden
 
 `-B --cost'
-     show amounts in their cost price's commodity
+     convert amounts to their cost at transaction time (using the
+     transaction price, if any)
 
 `--pivot TAG'
      will transform the journal before any other processing by
      replacing the account name of every posting having the tag TAG
-     with content VALUE by the account name "TAG:VALUE".  The TAG will
+     with content VALUE by the account name "TAG:VALUE". The TAG will
      only match if it is a full-length match. The pivot will only
-     happen if the TAG is on a posting, not if it is on the transaction.
-     If the tag value is a multi:level:account:name the new account
-     name will be "TAG:multi:level:account:name".
+     happen if the TAG is on a posting, not if it is on the
+     transaction. If the tag value is a multi:level:account:name the
+     new account name will be "TAG:multi:level:account:name".
 
 `--anon'
      show anonymized accounts and payees
@@ -381,7 +383,7 @@ register will show only the uppermost accounts in the account tree, down
 to level N. Use this when you want a summary with less detail.
 
 
-File: hledger.1.info,  Node: Smart dates,  Next: Report intervals,  Prev: Depth limiting,  Up: OPTIONS
+File: hledger.1.info,  Node: Smart dates,  Next: Report start & end date,  Prev: Depth limiting,  Up: OPTIONS
 
 2.5 Smart dates
 ===============
@@ -404,21 +406,51 @@ omitted (defaulting to 1).
 `today', `yesterday', `tomorrow'                   
 
 
-File: hledger.1.info,  Node: Report intervals,  Next: Period expressions,  Prev: Smart dates,  Up: OPTIONS
+File: hledger.1.info,  Node: Report start & end date,  Next: Report intervals,  Prev: Smart dates,  Up: OPTIONS
 
-2.6 Report intervals
+2.6 Report start & end date
+===========================
+
+Most hledger reports show the full span of time represented by the
+journal data, by default. So, the effective report start and end dates
+will be the earliest and latest transaction or posting dates found in
+the journal.
+
+   Often you will want to see a shorter time span, such as the current
+month. You can specify a start and/or end date using `-b/--begin',
+`-e/--end', `-p/--period' or a `date:' query (described below). All of
+these accept the smart date syntax. One important thing to be aware of
+when specifying end dates: as in Ledger, end dates are exclusive, so
+you need to write the date _after_ the last day you want to include.
+
+   Examples:
+
+`-b 2016/3/17'      begin on St. Patrick's day 2016
+`-e 12/1'           end at the start of december 1st of the current year (11/30 will be the last date included)
+`-b thismonth'      all transactions on or after the 1st of the current month
+`-p thismonth'      all transactions in the current month
+`date:2016/3/17-'   the above written as queries instead
+`date:-12/1'        
+`date:thismonth-'   
+`date:thismonth'    
+
+
+File: hledger.1.info,  Node: Report intervals,  Next: Period expressions,  Prev: Report start & end date,  Up: OPTIONS
+
+2.7 Report intervals
 ====================
 
 A report interval can be specified so that commands like register,
 balance and activity will divide their reports into multiple subperiods.
 The basic intervals can be selected with one of `-D/--daily',
 `-W/--weekly', `-M/--monthly', `-Q/--quarterly', or `-Y/--yearly'. More
-complex intervals may be specified with a period expression.
+complex intervals may be specified with a period expression. Report
+intervals can not be specified with a query, currently.
 
 
 File: hledger.1.info,  Node: Period expressions,  Next: Regular expressions,  Prev: Report intervals,  Up: OPTIONS
 
-2.7 Period expressions
+2.8 Period expressions
 ======================
 
 The `-p/--period' option accepts period expressions, a shorthand way of
@@ -493,7 +525,7 @@ start date and exclusive end date):
 
 File: hledger.1.info,  Node: Regular expressions,  Prev: Period expressions,  Up: OPTIONS
 
-2.8 Regular expressions
+2.9 Regular expressions
 =======================
 
 hledger uses regular expressions in a number of places:
@@ -873,8 +905,8 @@ Show accounts and their balances. Alias: bal.
      account is depth-clipped (default in multicolumn reports)
 
 `-V --value'
-     convert amounts to current market value in their default valuation
-     commodity
+     convert amounts to their market value on the report end date
+     (using the most recent applicable market price, if any)
 
 `-A --average'
      show a row average column (in multicolumn mode)
@@ -1101,16 +1133,52 @@ File: hledger.1.info,  Node: Market value,  Next: Custom balance output,  Prev: 
 4.4.4 Market value
 ------------------
 
-The `-V/--value' flag converts all the reported amounts to their
-"current market value" using their default market price. That is the
-latest market price (P directive) found in the journal (or an included
-file), for the amount's commodity, dated on or before the report end
-date.
+The `-V/--value' flag converts the reported amounts to their market
+value on the report end date, using the most recent applicable market
+prices, when known. Specifically, when there is a market price (P
+directive) for the amount's commodity, dated on or before the report end
+date (see hledger -> Report start & end date), the amount will be
+converted to the price's commodity. If multiple applicable prices are
+defined, the latest-dated one is used (and if dates are equal, the one
+last parsed).
 
-   Unlike Ledger, hledger's -V only uses the market prices recorded
-with P directives, ignoring transaction prices recorded as part of
-posting amounts (which -B/-cost uses). Using -B and -V together is
-allowed.
+   For example:
+
+
+# one euro is worth this many dollars from nov 1
+P 2016/11/01 € $1.10
+
+# purchase some euros on nov 3
+2016/11/3
+    assets:euros        €100
+    assets:checking
+
+# the euro is worth fewer dollars by dec 21
+P 2016/12/21 € $1.03
+
+   How many euros do I have ?
+
+
+$ hledger -f t.j bal euros
+                €100  assets:euros
+
+   What are they worth on nov 3 ? (no report end date specified,
+defaults to the last date in the journal)
+
+
+$ hledger -f t.j bal euros -V
+             $110.00  assets:euros
+
+   What are they worth on dec 21 ?
+
+
+$ hledger -f t.j bal euros -V -e 2016/12/21
+             $103.00  assets:euros
+
+   Currently, hledger's -V only uses market prices recorded with P
+directives, not transaction prices (unlike Ledger).
+
+   Using -B and -V together is allowed.
 
 
 File: hledger.1.info,  Node: Custom balance output,  Next: Output destination,  Prev: Market value,  Up: balance
@@ -2163,97 +2231,99 @@ Node: EXAMPLES1873
 Ref: #examples1975
 Node: OPTIONS3979
 Ref: #options4083
-Node: General options6683
-Ref: #general-options6812
-Node: Reporting options7583
-Ref: #reporting-options7736
-Node: Input files9512
-Ref: #input-files9652
-Node: Depth limiting11489
-Ref: #depth-limiting11629
-Node: Smart dates11830
-Ref: #smart-dates11969
-Node: Report intervals12966
-Ref: #report-intervals13119
-Node: Period expressions13455
-Ref: #period-expressions13620
-Node: Regular expressions15955
-Ref: #regular-expressions16097
-Node: QUERIES17580
-Ref: #queries17684
-Node: COMMANDS21323
-Ref: #commands21437
-Node: accounts22110
-Ref: #accounts22210
-Node: activity23192
-Ref: #activity23304
-Node: add23663
-Ref: #add23764
-Node: balance26423
-Ref: #balance26536
-Node: Flat mode29509
-Ref: #flat-mode29636
-Node: Depth limited balance reports30055
-Ref: #depth-limited-balance-reports30258
-Node: Multicolumn balance reports30679
-Ref: #multicolumn-balance-reports30881
-Node: Market value35530
-Ref: #market-value35694
-Node: Custom balance output36187
-Ref: #custom-balance-output36360
-Node: Output destination38464
-Ref: #output-destination38629
-Node: CSV output38899
-Ref: #csv-output39018
-Node: balancesheet39415
-Ref: #balancesheet39543
-Node: cashflow40195
-Ref: #cashflow40312
-Node: help41002
-Ref: #help41114
-Node: incomestatement41951
-Ref: #incomestatement42081
-Node: info42808
-Ref: #info42915
-Node: man43277
-Ref: #man43374
-Node: print43777
-Ref: #print43882
-Node: register45228
-Ref: #register45341
-Node: Custom register output49833
-Ref: #custom-register-output49964
-Node: stats51261
-Ref: #stats51367
-Node: test52243
-Ref: #test52330
-Node: ADD-ON COMMANDS52697
-Ref: #add-on-commands52833
-Node: api54121
-Ref: #api54213
-Node: autosync54247
-Ref: #autosync54362
-Node: diff56677
-Ref: #diff56787
-Node: equity57451
-Ref: #equity57565
-Node: interest58893
-Ref: #interest59010
-Node: irr62094
-Ref: #irr62207
-Node: print-unique64582
-Ref: #print-unique64712
-Node: rewrite64970
-Ref: #rewrite65089
-Node: ui65618
-Ref: #ui65718
-Node: web65759
-Ref: #web65847
-Node: TROUBLESHOOTING65880
-Ref: #troubleshooting65999
-Node: Run-time problems66053
-Ref: #run-time-problems66196
-Node: Known limitations68140
-Ref: #known-limitations68283
+Node: General options6711
+Ref: #general-options6840
+Node: Reporting options7611
+Ref: #reporting-options7764
+Node: Input files9587
+Ref: #input-files9727
+Node: Depth limiting11564
+Ref: #depth-limiting11704
+Node: Smart dates11905
+Ref: #smart-dates12051
+Node: Report start & end date13048
+Ref: #report-start-end-date13220
+Node: Report intervals14296
+Ref: #report-intervals14461
+Node: Period expressions14860
+Ref: #period-expressions15025
+Node: Regular expressions17360
+Ref: #regular-expressions17502
+Node: QUERIES18985
+Ref: #queries19089
+Node: COMMANDS22728
+Ref: #commands22842
+Node: accounts23515
+Ref: #accounts23615
+Node: activity24597
+Ref: #activity24709
+Node: add25068
+Ref: #add25169
+Node: balance27828
+Ref: #balance27941
+Node: Flat mode30954
+Ref: #flat-mode31081
+Node: Depth limited balance reports31500
+Ref: #depth-limited-balance-reports31703
+Node: Multicolumn balance reports32124
+Ref: #multicolumn-balance-reports32326
+Node: Market value36975
+Ref: #market-value37139
+Node: Custom balance output38440
+Ref: #custom-balance-output38613
+Node: Output destination40717
+Ref: #output-destination40882
+Node: CSV output41152
+Ref: #csv-output41271
+Node: balancesheet41668
+Ref: #balancesheet41796
+Node: cashflow42448
+Ref: #cashflow42565
+Node: help43255
+Ref: #help43367
+Node: incomestatement44204
+Ref: #incomestatement44334
+Node: info45061
+Ref: #info45168
+Node: man45530
+Ref: #man45627
+Node: print46030
+Ref: #print46135
+Node: register47481
+Ref: #register47594
+Node: Custom register output52086
+Ref: #custom-register-output52217
+Node: stats53514
+Ref: #stats53620
+Node: test54496
+Ref: #test54583
+Node: ADD-ON COMMANDS54950
+Ref: #add-on-commands55086
+Node: api56374
+Ref: #api56466
+Node: autosync56500
+Ref: #autosync56615
+Node: diff58930
+Ref: #diff59040
+Node: equity59704
+Ref: #equity59818
+Node: interest61146
+Ref: #interest61263
+Node: irr64347
+Ref: #irr64460
+Node: print-unique66835
+Ref: #print-unique66965
+Node: rewrite67223
+Ref: #rewrite67342
+Node: ui67871
+Ref: #ui67971
+Node: web68012
+Ref: #web68100
+Node: TROUBLESHOOTING68133
+Ref: #troubleshooting68252
+Node: Run-time problems68306
+Ref: #run-time-problems68449
+Node: Known limitations70393
+Ref: #known-limitations70536
 
 End Tag Table

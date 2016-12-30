@@ -359,17 +359,17 @@ FILE FORMAT
 
    Prices
    Transaction prices
-       When recording a transaction, you can also record an amount's price  in
-       another  commodity.   This documents the exchange rate, cost (of a pur-
-       chase), or selling price (of a sale) that was  in  effect  within  this
-       particular  transaction (or more precisely, within the particular post-
-       ing).  These transaction prices are fixed, and do not change.
+       Within a transaction posting, you  can  record  an  amount's  price  in
+       another  commodity.   This can be used to document the cost (for a pur-
+       chase), or selling price (for a sale), or the exchange  rate  that  was
+       used, for this transaction.  These transaction prices are fixed, and do
+       not change over time.
 
-       Such priced amounts can be displayed in their transaction price's  com-
-       modity,  by using the --cost/-B flag (B for "cost Basis"), supported by
-       most hledger commands.
+       Amounts with transaction prices can be  displayed  in  the  transaction
+       price's  commodity,  by  using  the  --cost/-B  flag  supported by most
+       hledger commands (mnemonic: "cost Basis").
 
-       There are three ways to specify a transaction price:
+       There are several ways to record a transaction price:
 
        1. Write the unit price (aka exchange rate), as @ UNITPRICE  after  the
           amount:
@@ -404,28 +404,28 @@ FILE FORMAT
 
    Market prices
        Market prices are not tied to a particular transaction; they  represent
-       historical  exchange  rates  between two commodities, usually from some
-       public market which publishes such rates.
+       historical  exchange rates between two commodities.  (Ledger calls them
+       historical prices.) For  example,  the  prices  published  by  a  stock
+       exchange  or the foreign exchange market.  Some commands (balance, cur-
+       rently) can use this information to show the market value of things  at
+       a given date.
 
-       When market prices are known, the -V/--value option will  use  them  to
-       convert  reported  amounts  to  their market value as of the report end
-       date.  This option is currently available only with  the  balance  com-
-       mand.
+       To  record market prices, use P directives in the main journal or in an
+       included file.  Their format is:
 
-       You record market prices (Ledger calls them historical prices) with a P
-       directive, in the journal or perhaps in a separate included file.  Mar-
-       ket price directives have the format:
+              P DATE COMMODITYBEINGPRICED UNITPRICE
 
-              P DATE COMMODITYSYMBOL UNITPRICE
+       DATE is a simple date as usual.  COMMODITYBEINGPRICED is the symbol  of
+       the  commodity  being priced (just the symbol, no quantity).  UNITPRICE
+       is an ordinary amount (symbol and  quantity)  in  a  second  commodity,
+       specifying the unit price or conversion rate for the first commodity in
+       terms of the second, on the given date.
 
-       For example, the following directives say that the euro's exchange rate
-       was 1.35 US dollars during  2009,  and  $1.40  from  2010  onward  (and
-       unknown before 2009).
+       For example, the following directives say that one euro was worth  1.35
+       US dollars during 2009, and $1.40 from 2010 onward:
 
               P 2009/1/1  $1.35
               P 2010/1/1  $1.40
-
-       Example use for market prices: tracking the value of stocks.
 
    Comments
        Lines  in  the  journal  beginning  with a semicolon (;) or hash (#) or

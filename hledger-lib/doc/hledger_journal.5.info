@@ -494,17 +494,17 @@ File: hledger_journal.5.info,  Node: Transaction prices,  Next: Market prices,  
 1.8.1 Transaction prices
 ------------------------
 
-When recording a transaction, you can also record an amount's price in
-another commodity. This documents the exchange rate, cost (of a
-purchase), or selling price (of a sale) that was in effect within this
-particular transaction (or more precisely, within the particular
-posting). These transaction prices are fixed, and do not change.
+Within a transaction posting, you can record an amount's price in
+another commodity. This can be used to document the cost (for a
+purchase), or selling price (for a sale), or the exchange rate that was
+used, for this transaction. These transaction prices are fixed, and do
+not change over time.
 
-   Such priced amounts can be displayed in their transaction price's
-commodity, by using the `--cost/-B' flag (B for "cost Basis"),
-supported by most hledger commands.
+   Amounts with transaction prices can be displayed in the transaction
+price's commodity, by using the `--cost/-B' flag supported by most
+hledger commands (mnemonic: "cost Basis").
 
-   There are three ways to specify a transaction price:
+   There are several ways to record a transaction price:
 
   1. Write the unit price (aka exchange rate), as `@ UNITPRICE' after
      the amount:
@@ -549,29 +549,30 @@ File: hledger_journal.5.info,  Node: Market prices,  Prev: Transaction prices,  
 -------------------
 
 Market prices are not tied to a particular transaction; they represent
-historical exchange rates between two commodities, usually from some
-public market which publishes such rates.
+historical exchange rates between two commodities. (Ledger calls them
+historical prices.) For example, the prices published by a stock
+exchange or the foreign exchange market. Some commands (balance,
+currently) can use this information to show the market value of things
+at a given date.
 
-   When market prices are known, the `-V/--value' option will use them
-to convert reported amounts to their market value as of the report end
-date. This option is currently available only with the balance command.
-
-   You record market prices (Ledger calls them historical prices) with
-a P directive, in the journal or perhaps in a separate included file.
-Market price directives have the format:
+   To record market prices, use P directives in the main journal or in
+an included file. Their format is:
 
 
-P DATE COMMODITYSYMBOL UNITPRICE
+P DATE COMMODITYBEINGPRICED UNITPRICE
 
-   For example, the following directives say that the euro's exchange
-rate was 1.35 US dollars during 2009, and $1.40 from 2010 onward (and
-unknown before 2009).
+   DATE is a simple date as usual. COMMODITYBEINGPRICED is the symbol of
+the commodity being priced (just the symbol, no quantity). UNITPRICE is
+an ordinary amount (symbol and quantity) in a second commodity,
+specifying the unit price or conversion rate for the first commodity in
+terms of the second, on the given date.
+
+   For example, the following directives say that one euro was worth
+1.35 US dollars during 2009, and $1.40 from 2010 onward:
 
 
 P 2009/1/1 € $1.35
 P 2010/1/1 € $1.40
-
-   Example use for market prices: tracking the value of stocks.
 
 
 File: hledger_journal.5.info,  Node: Comments,  Next: Tags,  Prev: Prices,  Up: FILE FORMAT
@@ -997,39 +998,39 @@ Node: Prices17327
 Ref: #prices17460
 Node: Transaction prices17511
 Ref: #transaction-prices17656
-Node: Market prices19263
-Ref: #market-prices19398
-Node: Comments20286
-Ref: #comments20408
-Node: Tags21520
-Ref: #tags21640
-Node: Directives22563
-Ref: #directives22678
-Node: Account aliases22871
-Ref: #account-aliases23017
-Node: Basic aliases23619
-Ref: #basic-aliases23764
-Node: Regex aliases24452
-Ref: #regex-aliases24622
-Node: Multiple aliases25392
-Ref: #multiple-aliases25566
-Node: end aliases26062
-Ref: #end-aliases26204
-Node: account directive26306
-Ref: #account-directive26488
-Node: apply account directive26784
-Ref: #apply-account-directive26982
-Node: Multi-line comments27642
-Ref: #multi-line-comments27834
-Node: commodity directive27961
-Ref: #commodity-directive28147
-Node: Default commodity29020
-Ref: #default-commodity29195
-Node: Default year29731
-Ref: #default-year29898
-Node: Including other files30321
-Ref: #including-other-files30480
-Node: EDITOR SUPPORT30876
-Ref: #editor-support30996
+Node: Market prices19236
+Ref: #market-prices19371
+Node: Comments20371
+Ref: #comments20493
+Node: Tags21605
+Ref: #tags21725
+Node: Directives22648
+Ref: #directives22763
+Node: Account aliases22956
+Ref: #account-aliases23102
+Node: Basic aliases23704
+Ref: #basic-aliases23849
+Node: Regex aliases24537
+Ref: #regex-aliases24707
+Node: Multiple aliases25477
+Ref: #multiple-aliases25651
+Node: end aliases26147
+Ref: #end-aliases26289
+Node: account directive26391
+Ref: #account-directive26573
+Node: apply account directive26869
+Ref: #apply-account-directive27067
+Node: Multi-line comments27727
+Ref: #multi-line-comments27919
+Node: commodity directive28046
+Ref: #commodity-directive28232
+Node: Default commodity29105
+Ref: #default-commodity29280
+Node: Default year29816
+Ref: #default-year29983
+Node: Including other files30406
+Ref: #including-other-files30565
+Node: EDITOR SUPPORT30961
+Ref: #editor-support31081
 
 End Tag Table

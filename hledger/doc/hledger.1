@@ -373,7 +373,8 @@ show items with zero amount, normally hidden
 .RE
 .TP
 .B \f[C]\-B\ \-\-cost\f[]
-show amounts in their cost price\[aq]s commodity
+convert amounts to their cost at transaction time (using the transaction
+price, if any)
 .RS
 .RE
 .TP
@@ -381,8 +382,6 @@ show amounts in their cost price\[aq]s commodity
 will transform the journal before any other processing by replacing the
 account name of every posting having the tag TAG with content VALUE by
 the account name "TAG:VALUE".
-.RS
-.RE
 The TAG will only match if it is a full\-length match.
 The pivot will only happen if the TAG is on a posting, not if it is on
 the transaction.
@@ -558,6 +557,68 @@ T{
 T}@T{
 T}
 .TE
+.SS Report start & end date
+.PP
+Most hledger reports show the full span of time represented by the
+journal data, by default.
+So, the effective report start and end dates will be the earliest and
+latest transaction or posting dates found in the journal.
+.PP
+Often you will want to see a shorter time span, such as the current
+month.
+You can specify a start and/or end date using \f[C]\-b/\-\-begin\f[],
+\f[C]\-e/\-\-end\f[], \f[C]\-p/\-\-period\f[] or a \f[C]date:\f[] query
+(described below).
+All of these accept the smart date syntax.
+One important thing to be aware of when specifying end dates: as in
+Ledger, end dates are exclusive, so you need to write the date
+\f[I]after\f[] the last day you want to include.
+.PP
+Examples:
+.PP
+.TS
+tab(@);
+l l.
+T{
+\f[C]\-b\ 2016/3/17\f[]
+T}@T{
+begin on St.
+Patrick\[aq]s day 2016
+T}
+T{
+\f[C]\-e\ 12/1\f[]
+T}@T{
+end at the start of december 1st of the current year (11/30 will be the
+last date included)
+T}
+T{
+\f[C]\-b\ thismonth\f[]
+T}@T{
+all transactions on or after the 1st of the current month
+T}
+T{
+\f[C]\-p\ thismonth\f[]
+T}@T{
+all transactions in the current month
+T}
+T{
+\f[C]date:2016/3/17\-\f[]
+T}@T{
+the above written as queries instead
+T}
+T{
+\f[C]date:\-12/1\f[]
+T}@T{
+T}
+T{
+\f[C]date:thismonth\-\f[]
+T}@T{
+T}
+T{
+\f[C]date:thismonth\f[]
+T}@T{
+T}
+.TE
 .SS Report intervals
 .PP
 A report interval can be specified so that commands like register,
@@ -566,6 +627,7 @@ The basic intervals can be selected with one of \f[C]\-D/\-\-daily\f[],
 \f[C]\-W/\-\-weekly\f[], \f[C]\-M/\-\-monthly\f[],
 \f[C]\-Q/\-\-quarterly\f[], or \f[C]\-Y/\-\-yearly\f[].
 More complex intervals may be specified with a period expression.
+Report intervals can not be specified with a query, currently.
 .SS Period expressions
 .PP
 The \f[C]\-p/\-\-period\f[] option accepts period expressions, a
@@ -1125,8 +1187,8 @@ is depth\-clipped (default in multicolumn reports)
 .RE
 .TP
 .B \f[C]\-V\ \-\-value\f[]
-convert amounts to current market value in their default valuation
-commodity
+convert amounts to their market value on the report end date (using the
+most recent applicable market price, if any)
 .RS
 .RE
 .TP
@@ -1380,15 +1442,64 @@ Balance\ changes\ in\ 2008:
 .fi
 .SS Market value
 .PP
-The \f[C]\-V/\-\-value\f[] flag converts all the reported amounts to
-their "current market value" using their default market price.
-That is the latest market price (P directive) found in the journal (or
-an included file), for the amount\[aq]s commodity, dated on or before
-the report end date.
+The \f[C]\-V/\-\-value\f[] flag converts the reported amounts to their
+market value on the report end date, using the most recent applicable
+market prices, when known.
+Specifically, when there is a market price (P directive) for the
+amount\[aq]s commodity, dated on or before the report end date (see
+hledger \-> Report start & end date), the amount will be converted to
+the price\[aq]s commodity.
+If multiple applicable prices are defined, the latest\-dated one is used
+(and if dates are equal, the one last parsed).
 .PP
-Unlike Ledger, hledger\[aq]s \-V only uses the market prices recorded
-with P directives, ignoring transaction prices recorded as part of
-posting amounts (which \-B/\-\-cost uses).
+For example:
+.IP
+.nf
+\f[C]
+#\ one\ euro\ is\ worth\ this\ many\ dollars\ from\ nov\ 1
+P\ 2016/11/01\ €\ $1.10
+
+#\ purchase\ some\ euros\ on\ nov\ 3
+2016/11/3
+\ \ \ \ assets:euros\ \ \ \ \ \ \ \ €100
+\ \ \ \ assets:checking
+
+#\ the\ euro\ is\ worth\ fewer\ dollars\ by\ dec\ 21
+P\ 2016/12/21\ €\ $1.03
+\f[]
+.fi
+.PP
+How many euros do I have ?
+.IP
+.nf
+\f[C]
+$\ hledger\ \-f\ t.j\ bal\ euros
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ €100\ \ assets:euros
+\f[]
+.fi
+.PP
+What are they worth on nov 3 ?
+(no report end date specified, defaults to the last date in the journal)
+.IP
+.nf
+\f[C]
+$\ hledger\ \-f\ t.j\ bal\ euros\ \-V
+\ \ \ \ \ \ \ \ \ \ \ \ \ $110.00\ \ assets:euros
+\f[]
+.fi
+.PP
+What are they worth on dec 21 ?
+.IP
+.nf
+\f[C]
+$\ hledger\ \-f\ t.j\ bal\ euros\ \-V\ \-e\ 2016/12/21
+\ \ \ \ \ \ \ \ \ \ \ \ \ $103.00\ \ assets:euros
+\f[]
+.fi
+.PP
+Currently, hledger\[aq]s \-V only uses market prices recorded with P
+directives, not transaction prices (unlike Ledger).
+.PP
 Using \-B and \-V together is allowed.
 .SS Custom balance output
 .PP

@@ -261,7 +261,8 @@ show items with zero amount, normally hidden
 .RE
 .TP
 .B \f[C]\-B\ \-\-cost\f[]
-show amounts in their cost price\[aq]s commodity
+convert amounts to their cost at transaction time (using the transaction
+price, if any)
 .RS
 .RE
 .TP
@@ -269,8 +270,6 @@ show amounts in their cost price\[aq]s commodity
 will transform the journal before any other processing by replacing the
 account name of every posting having the tag TAG with content VALUE by
 the account name "TAG:VALUE".
-.RS
-.RE
 The TAG will only match if it is a full\-length match.
 The pivot will only happen if the TAG is on a posting, not if it is on
 the transaction.

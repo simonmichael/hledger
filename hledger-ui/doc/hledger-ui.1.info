@@ -139,16 +139,17 @@ the data.
      show items with zero amount, normally hidden
 
 `-B --cost'
-     show amounts in their cost price's commodity
+     convert amounts to their cost at transaction time (using the
+     transaction price, if any)
 
 `--pivot TAG'
      will transform the journal before any other processing by
      replacing the account name of every posting having the tag TAG
-     with content VALUE by the account name "TAG:VALUE".  The TAG will
+     with content VALUE by the account name "TAG:VALUE". The TAG will
      only match if it is a full-length match. The pivot will only
-     happen if the TAG is on a posting, not if it is on the transaction.
-     If the tag value is a multi:level:account:name the new account
-     name will be "TAG:multi:level:account:name".
+     happen if the TAG is on a posting, not if it is on the
+     transaction. If the tag value is a multi:level:account:name the
+     new account name will be "TAG:multi:level:account:name".
 
 `--anon'
      show anonymized accounts and payees
@@ -360,17 +361,17 @@ Tag Table:
 Node: Top88
 Node: OPTIONS823
 Ref: #options922
-Node: KEYS3956
-Ref: #keys4053
-Node: SCREENS6623
-Ref: #screens6710
-Node: Accounts screen6800
-Ref: #accounts-screen6930
-Node: Register screen8968
-Ref: #register-screen9125
-Node: Transaction screen11013
-Ref: #transaction-screen11173
-Node: Error screen12040
-Ref: #error-screen12164
+Node: KEYS4003
+Ref: #keys4100
+Node: SCREENS6670
+Ref: #screens6757
+Node: Accounts screen6847
+Ref: #accounts-screen6977
+Node: Register screen9015
+Ref: #register-screen9172
+Node: Transaction screen11060
+Ref: #transaction-screen11220
+Node: Error screen12087
+Ref: #error-screen12211
 
 End Tag Table
