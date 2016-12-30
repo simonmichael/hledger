@@ -1,34 +1,80 @@
-# . Market prices are ignored by -B/--cost.
-hledger -f- print -B
+# http://hledger.org/journal.html#market-prices
+# http://hledger.org/hledger.html#market-value
+
+# 1. Market prices are ignored by -B.
+hledger -f- bal -NB
 <<<
 P 2011/01/01 € $1.35
 
 2011/01/01
-    expenses:foreign currency       €100
+    expenses:foreign       €100
     assets
-
 >>>
-2011/01/01
-    expenses:foreign currency          €100
-    assets                            €-100
-
+               €-100  assets
+                €100  expenses:foreign
 >>>=0
 
-# # 14b. market price used in balancing - this should balance
-# hledger -f - balance
-# <<<
-# P 2011/11/15 EUR CHF 1.234
-# 2011/11/19
-#     a                             EUR 1000.00
-#     b                             USD 1000.00
-#     c                             CHF -1254
-# >>>= 0
+# 2. Market prices are used by bal -V. 
+# Market prices for other commodities are not used.
+# Nor are transaction prices.
+hledger -f- bal -N -V
+<<<
+P 2011/01/01 € $1.35
+P 2011/01/01 GBP $1.35
 
-# . Market prices are used by -V/--value.
-# They are affected by D directives, currently.
-# They contribute to amount style canonicalisation.
-# (https://github.com/simonmichael/hledger/issues/131#issuecomment-133545140)
+2011/01/01
+    (expenses:foreign)       €100 @ $1.20
+>>>
+             $135.00  expenses:foreign
+>>>=0
 
+# 3. Market prices in the future are not ignored. #453
+hledger -f- bal -N -V
+<<<
+P 2000/1/1 $ €1.20
+P 3000/1/1 $ €1.30
+
+3000/01/02
+  (a)    $100
+>>>
+             €130.00  a
+>>>=0
+
+# 4. The market prices in effect at the report end date are used.
+# The location of price directives does not matter.
+# If multiple directives have the same date, the last parsed is used.
+hledger -f- bal -N -V a -e 3000/2
+<<<
+P 3000/3/1 $ €1.40
+
+3000/01/01
+  (a)    $100
+
+3000/03/03
+  (b)    $100
+
+P 2000/1/1 $ €1.20
+P 3000/1/1 $ €1.35
+P 3000/1/1 $ €1.30
+>>>
+             €130.00  a
+>>>=0
+
+# 5. Again, this time there are prices later than the journal data and
+# an explicit report end date brings them into play.
+hledger -f- bal -N -V a -e 3000/2
+<<<
+P 3000/1/1 $ €1.10
+P 3000/2/1 $ €1.30
+
+3000/01/01
+  (a)    $100
+
+>>>
+             €130.00  a
+>>>=0
+
+# 6. Market prices interact with D directives and with amount style canonicalisation. #131
 hledger -f- balance -V
 <<<
 
@@ -49,3 +95,4 @@ P 2015/08/14 GGGG  32.39
 --------------------
               0.48 H
 >>>=0
+
