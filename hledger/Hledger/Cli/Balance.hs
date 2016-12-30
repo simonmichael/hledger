@@ -246,7 +246,7 @@ module Hledger.Cli.Balance (
 ) where
 
 import Data.List (intercalate)
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe
 import Data.Monoid
 -- import Data.Text (Text)
 import qualified Data.Text as T
@@ -300,7 +300,7 @@ balance opts@CliOpts{reportopts_=ropts} j = do
       let format   = outputFormatFromOpts opts
           interval = interval_ ropts
           baltype  = balancetype_ ropts
-          valuedate = fromMaybe d $ queryEndDate False $ queryFromOpts d ropts
+      mvaluedate <- reportEndDate j ropts
       -- shenanigans: use single/multiBalanceReport when we must,
       -- ie when there's a report interval, or --historical or -- cumulative.
       -- Otherwise prefer the older balanceReport since it can elide boring parents.
@@ -314,16 +314,16 @@ balance opts@CliOpts{reportopts_=ropts} j = do
                                | otherwise   = ropts{accountlistmode_=ALTree}
                     in singleBalanceReport ropts' (queryFromOpts d ropts) j
                 | otherwise = balanceReport ropts (queryFromOpts d ropts) j
-              convert | value_ ropts = balanceReportValue j valuedate
-                      | otherwise    = id
+              convert | value_ ropts = maybe id (balanceReportValue j) mvaluedate
+                      | otherwise = id
               render = case format of
                 "csv" -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
                 _     -> balanceReportAsText
           writeOutput opts $ render ropts $ convert report
         _ -> do
           let report = multiBalanceReport ropts (queryFromOpts d ropts) j
-              convert | value_ ropts = multiBalanceReportValue j valuedate
-                      | otherwise    = id
+              convert | value_ ropts = maybe id (multiBalanceReportValue j) mvaluedate
+                      | otherwise = id
               render = case format of
                 "csv" -> \ropts r -> (++ "\n") $ printCSV $ multiBalanceReportAsCsv ropts r
                 _     -> case baltype of
