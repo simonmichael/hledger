@@ -7,7 +7,7 @@
    --package safe
    --package shake
    --package time
-   -- ghc -threaded  # threaded needed for entr
+   -- ghc -threaded
 -}
 {-
 One of two project scripts files (Makefile, Shake.hs).
