@@ -26,7 +26,8 @@ module Hledger.Reports.BalanceReport (
 )
 where
 
-import Data.List (sort)
+import Data.List
+import Data.Ord
 import Data.Maybe
 import Data.Time.Calendar
 import Test.HUnit
@@ -169,17 +170,23 @@ amountValue j d a =
                 }
     Nothing -> a
 
--- | Find the market value, if known, of one unit of this commodity on
--- the given date, in the commodity in which it has most recently been
--- market-priced (ie the commodity mentioned in the most recent
--- applicable market price directive before this date).
+-- | Find the market value, if known, of one unit of this commodity (A) on
+-- the given valuation date, in the commodity (B) mentioned in the latest
+-- applicable market price. The latest applicable market price is the market
+-- price directive for commodity A with the latest date that is on or before
+-- the valuation date; or if there are multiple such prices with the same date,
+-- the last parsed.
 commodityValue :: Journal -> Day -> CommoditySymbol -> Maybe Amount
-commodityValue j d c
+commodityValue j valuationdate c
     | null applicableprices = dbg Nothing
     | otherwise             = dbg $ Just $ mpamount $ last applicableprices
   where
-    applicableprices = [p | p <- sort $ jmarketprices j, mpcommodity p == c, mpdate p <= d]
     dbg = dbg8 ("using market price for "++T.unpack c)
+    applicableprices =
+      [p | p <- sortBy (comparing mpdate) $ jmarketprices j
+      , mpcommodity p == c
+      , mpdate p <= valuationdate
+      ]
 
 
 
