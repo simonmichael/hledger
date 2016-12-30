@@ -30,6 +30,7 @@ import Data.List (sort)
 import Data.Maybe
 import Data.Time.Calendar
 import Test.HUnit
+import qualified Data.Text as T
 
 import Hledger.Data
 import Hledger.Read (mamountp')
@@ -148,8 +149,10 @@ balanceReportValue :: Journal -> Day -> BalanceReport -> BalanceReport
 balanceReportValue j d r = r'
   where
     (items,total) = r
-    r' = dbg8 "balanceReportValue"
-         ([(n, n', i, mixedAmountValue j d a) |(n,n',i,a) <- items], mixedAmountValue j d total)
+    r' =
+      dbg9 "known market prices" (jmarketprices j) `seq`
+      dbg8 "balanceReportValue"
+        ([(n, n', i, mixedAmountValue j d a) |(n,n',i,a) <- items], mixedAmountValue j d total)
 
 mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
 mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
@@ -172,11 +175,11 @@ amountValue j d a =
 -- applicable market price directive before this date).
 commodityValue :: Journal -> Day -> CommoditySymbol -> Maybe Amount
 commodityValue j d c
-    | null applicableprices = Nothing
-    | otherwise             = Just $ mpamount $ last applicableprices
+    | null applicableprices = dbg Nothing
+    | otherwise             = dbg $ Just $ mpamount $ last applicableprices
   where
     applicableprices = [p | p <- sort $ jmarketprices j, mpcommodity p == c, mpdate p <= d]
-
+    dbg = dbg8 ("using market price for "++T.unpack c)
 
 
 
