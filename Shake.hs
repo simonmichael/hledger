@@ -7,7 +7,7 @@
    --package safe
    --package shake
    --package time
-   -- ghc
+   -- ghc -threaded  # threaded needed for entr
 -}
 {-
 One of two project scripts files (Makefile, Shake.hs).
@@ -27,7 +27,9 @@ auto-installs the packages above. Also, some rules require:
 - git
 - patch
 
-Usage: see below.
+Usage: see below. Also:
+
+$ find hledger-lib hledger | entr ./Shake website    # rebuild web files on changes in these dirs
 
 Shake wishes:
 just one shake import
