@@ -151,7 +151,8 @@ balanceReportValue j d r = r'
   where
     (items,total) = r
     r' =
-      dbg9 "known market prices" (jmarketprices j) `seq`
+      dbg8 "known market prices" (jmarketprices j) `seq`
+      dbg8 "report end date" d `seq`
       dbg8 "balanceReportValue"
         ([(n, n', i, mixedAmountValue j d a) |(n,n',i,a) <- items], mixedAmountValue j d total)
 
