@@ -130,7 +130,7 @@ and can have less-significant date parts omitted (defaulting to 1).
 
 Examples:
 
-------------------------------------------------- ------------------------------------------------------
+------------------------------------------------- -----------------------------------------------------------------------------
 `2009/1/1`, `2009/01/01`, `2009-1-1`, `2009.1.1`  simple dates, several separators allowed
 `2009/1`, `2009`                                  same as above - a missing day or month defaults to 1
 `1/1`, `january`, `jan`, `this year`              relative dates, meaning january 1 of the current year
@@ -159,7 +159,7 @@ so you need to write the date *after* the last day you want to include.
 
 Examples:
 
------------------------------------  ------------------------------------------------------
+-----------------------------------  -------------------------------------------------------------------------------------------
 `-b 2016/3/17`                       begin on St. Patrick's day 2016
 `-e 12/1`                            end at the start of december 1st of the current year (11/30 will be the last date included)
 `-b thismonth`                       all transactions on or after the 1st of the current month

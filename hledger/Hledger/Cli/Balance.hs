@@ -275,7 +275,7 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
         "show historical ending balance in each period (includes postings before report start date)\n "
      ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree; amounts include subaccounts (default in simple reports)"
      ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list; amounts exclude subaccounts except when account is depth-clipped (default in multicolumn reports)\n "
-     ,flagNone ["value","V"] (setboolopt "value") "convert amounts to current market value in their default valuation commodity"
+     ,flagNone ["value","V"] (setboolopt "value") "convert amounts to their market value on the report end date (using the most recent applicable market price, if any)"
      ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a row average column (in multicolumn reports)"
      ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "show a row total column (in multicolumn reports)"
      ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"

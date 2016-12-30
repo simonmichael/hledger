@@ -142,7 +142,7 @@ reportflags = [
  ,flagNone ["real","R"]      (setboolopt "real") "include only non-virtual postings"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/postings deeper than N"
  ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden"
- ,flagNone ["cost","B"]      (setboolopt "cost") "show amounts in their cost price's commodity"
+ ,flagNone ["cost","B"]      (setboolopt "cost") "convert amounts to their cost at transaction time (using the transaction price, if any)"
  ,flagNone ["anon"]              (setboolopt "anon") "output ledger with anonymized accounts and payees."
  ]
 

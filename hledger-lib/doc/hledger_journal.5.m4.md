@@ -373,15 +373,23 @@ instead of just reading it.
 
 ### Transaction prices
 
-When recording a transaction, you can also record an amount's price in another commodity.
-This documents the exchange rate, cost (of a purchase), or selling price (of a sale) that was in effect within this particular transaction (or more precisely, within the particular posting).
-These transaction prices are fixed, and do not change.
+Within a transaction posting, you can record an amount's price in another commodity.
+This can be used to document the cost (for a purchase), or selling price (for a sale),
+or the exchange rate that was used, for this transaction.
+These transaction prices are fixed, and do not change over time.
+<!--
+This is different from Ledger, where transaction prices fluctuate by
+default.  Ledger has a different syntax for specifying
+[fixed prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices):
+`{=PRICE}`.  hledger parses that syntax, and (currently) ignores it.
+-->
+<!-- hledger treats this as an alternate spelling of `@ PRICE`, for greater compatibility with Ledger files. -->
 
-Such priced amounts can be displayed in their transaction price's
-commodity, by using the `--cost/-B` flag (B for "cost Basis"),
-supported by most hledger commands.
+Amounts with transaction prices can be displayed in the transaction price's
+commodity, by using the [`--cost/-B`](hledger.html#reporting-options) flag
+supported by most hledger commands (mnemonic: "cost Basis").
 
-There are three ways to specify a transaction price:
+There are several ways to record a transaction price:
 
 1. Write the unit price (aka exchange rate), as `@ UNITPRICE` after the amount:
 
@@ -423,36 +431,29 @@ rate of purchases made in a foreign currency.
 
 ### Market prices
 
-Market prices are not tied to a particular transaction; they represent
-historical exchange rates between two commodities. For example, the prices 
-published by a [stock exchange](https://en.wikipedia.org/wiki/Stock_exchange)
+Market prices are not tied to a particular transaction; they represent historical exchange rates between two commodities.
+(Ledger calls them historical prices.)
+For example, the prices published by a [stock exchange](https://en.wikipedia.org/wiki/Stock_exchange)
 or the [foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
+Some commands ([balance](hledger.html#market-value), currently) can use this information to show the market value of things at a given date.
 
-When market prices are known and in effect at the 
-[report end date](hledger.html#report-start-end-date) (see hledger -> Report start & end date), 
-the balance command's `-V/--value` option will show balances as their market value on that date. 
-(This option is currently available only with the [balance](#balance) command.)
-
-To record market prices (Ledger calls them historical prices), use P directives, 
-in the journal or an [included](#including-other-files) file. Their format is:
+To record market prices, use P directives in the main journal or
+in an [included](#including-other-files) file. Their format is:
 ```journal
-P DATE COMMODITYSYMBOL UNITPRICE
+P DATE COMMODITYBEINGPRICED UNITPRICE
 ```
 <!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
+DATE is a [simple date](#simple-dates) as usual.
+COMMODITYBEINGPRICED is the symbol of the commodity being priced (just the symbol, no quantity).
+UNITPRICE is an ordinary [amount](#amounts) (symbol and quantity) in a second commodity,
+specifying the unit price or conversion rate for the first commodity in terms of the second, on the given date.
 
-For example, the following directives say that the euro's exchange rate was 1.35 US dollars during 2009, and $1.40 from 2010 onward (and unknown before 2009).
+For example, the following directives say that one euro was worth 1.35 US dollars during 2009, 
+and $1.40 from 2010 onward:
 ```journal
 P 2009/1/1 € $1.35
 P 2010/1/1 € $1.40
 ```
-
-<!--
-This is different from Ledger, where transaction prices fluctuate by
-default.  Ledger has a different syntax for specifying
-[fixed prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices):
-`{=PRICE}`.  hledger parses that syntax, and (currently) ignores it.
--->
-<!-- hledger treats this as an alternate spelling of `@ PRICE`, for greater compatibility with Ledger files. -->
 
 ## Comments
 
