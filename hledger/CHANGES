@@ -2,6 +2,21 @@ User-visible changes in the hledger and hledger-lib packages.
 See also the project change log.
 
 
+# 1.1 (2016/12/31)
+
+## balance
+
+-   with -V, don't ignore market prices in the future (#453, #403)
+
+-   with -V and multiple same-date market prices, use the last parsed not the highest price (#403)
+
+## misc
+
+-   fix non-existent "oldtime" dependency (#431)
+
+-   extra/hledger-equity.hs now generates valid journal format when there are multiple commodities
+
+
 # 1.0.1 (2016/10/27)
 
 - allow megaparsec 5.0 or 5.1

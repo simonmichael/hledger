@@ -2,6 +2,45 @@ API-ish changes in the hledger-lib package.
 See also the hledger and project change logs (for user-visible changes).
 
 
+# 1.1 (2016/12/31)
+
+## journal format
+
+-   balance assignments are now supported (#438, #129, #157, #288)
+
+    This feature also brings a slight performance drop (~5%);
+    optimisations welcome.
+
+-   also recognise `*.hledger` files as hledger journal format
+
+## ledger format
+
+-   use ledger-parse from the ledger4 project as an alternate reader for C++ Ledger journals
+    
+    The idea is that some day we might get better compatibility with Ledger files this way.
+    Right now this reader is not very useful and will be used only if you explicitly select it with a `ledger:` prefix.
+    It parses transaction dates, descriptions, accounts and amounts, and ignores everything else.
+    Amount parsing is delegated to hledger's journal parser, and malformed amounts might be silently ignored.
+
+    This adds at least some of the following as new dependencies for hledger-lib:
+    parsers, parsec, attoparsec, trifecta.
+
+## misc
+
+-   update base lower bound to enforce GHC 7.10+
+    
+    hledger-lib had a valid install plan with GHC 7.8, but currently requires GHC 7.10 to compile.
+    Now we require base 4.8+ everywhere to ensure the right GHC version at the start.
+    
+-   Hledger.Read api cleanups
+
+-   rename dbgIO to dbg0IO, consistent with dbg0, and document a bug in dbg*IO
+
+-   make readJournalFiles [f] equivalent to readJournalFile f (#437)
+
+-   more general parser types enabling reuse outside of IO (#439)
+
+
 # 1.0.1 (2016/10/27)
 
 - allow megaparsec 5.0 or 5.1

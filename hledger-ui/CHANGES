@@ -2,6 +2,28 @@ User-visible changes in hledger-ui.
 See also the hledger and project change logs.
 
 
+# 1.1 (2016/12/31)
+
+-   with --watch, the display updates automatically to show file or date changes
+
+    hledger-ui --watch will reload data when the journal file (or any included file) changes.
+    Also, when viewing a current standard period (ie this day/week/month/quarter/year),
+    the period will move as needed to track the current system date.
+
+-   the --change flag shows period changes at startup instead of historical ending balances
+
+-   the A key runs the hledger-iadd tool, if installed
+
+-   always reload when g is pressed
+
+    Previously it would check the modification time and reload only if
+    it looked newer than the last reload.
+
+-   mark hledger-ui as "stable"
+
+-   allow brick 0.15, vty 5.14, text-zipper 0.9
+
+
 # 1.0.4 (2016/11/2)
 
 - allow brick 0.13

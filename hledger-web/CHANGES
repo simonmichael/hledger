@@ -2,6 +2,23 @@ User-visible changes in hledger-web.
 See also the hledger and the project change logs.
 
 
+# 1.1 (2016/12/31)
+
+-   add --host option (#429)
+    
+    This came up in the context of Docker, but it seems it wasn't
+    possible for hledger-web to serve remote clients directly (without
+    a proxy) because of 127.0.0.1 being hardcoded. That can now be
+    changed with --host=IPADDR. Also, the default base url uses this
+    address rather than a hard-coded "localhost".
+    
+-   rename --server to --serve
+
+    The --server flag sounded too close in meaning to --host so
+    I've renamed it to --serve. The old spelling is still accepted,
+    but deprecated and will be removed in the next release.
+
+
 # 1.0.1 (2016/10/27)
 
 - allow megaparsec 5.0 or 5.1
