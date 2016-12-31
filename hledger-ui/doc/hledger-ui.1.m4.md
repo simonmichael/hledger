@@ -259,7 +259,15 @@ The need to precede options with `--` when invoked from hledger is awkward.
 `-V` affects only the accounts screen.
 
 When you press `g`, the current and all previous screens are
-regenerated, which may cause a noticeable pause. Also there is no
-visual indication that this is in progress.
+regenerated, which may cause a noticeable pause with large files.
+Also there is no visual indication that this is in progress.
+
+`--watch` is not yet fully robust. It works well for normal usage,
+but many file changes in a short time (eg saving the file thousands of
+times with an editor macro) can cause problems at least on OSX.
+Symptoms include: unresponsive UI, periodic resetting of the cursor
+position, momentary display of parse errors, high CPU usage eventually
+subsiding, and possibly a small but persistent build-up of CPU usage
+until the program is restarted.
 
 }})
