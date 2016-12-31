@@ -25,9 +25,6 @@ the report end date, which you should specify with -e or date: (and
 the closing transaction is dated one day earlier). If a report end
 date is not specified, it defaults to today.
 
-If any matched account directly contains multiple commodities, the
-output may not be valid journal syntax, and will need some editing.
-
 Example:
 $ hledger equity -f 2015.journal -e 2016/1/1 assets liabilities >>2015.journal
 move opening balances txn to 2016.journal
@@ -73,11 +70,11 @@ main = do
         let ropts_ = ropts{accountlistmode_=ALFlat}
             q = queryFromOpts today ropts_
             (acctbals,_) = balanceReport ropts_ q j
-            balancingamt = negate $ sum $ map (\((_,_,_),b) -> b) acctbals
-            ps = [posting{paccount=a, pamount=b} | ((a,_,_),b) <- acctbals]
+            balancingamt = negate $ sum $ map (\(_,_,_,b) -> b) acctbals
+            ps = [posting{paccount=a, pamount=Mixed [b]} | (a,_,_,Mixed bs) <- acctbals, b <- bs]
                  ++ [posting{paccount="equity:opening balances", pamount=balancingamt}]
             enddate = fromMaybe today $ queryEndDate (date2_ ropts_) q
-            nps = [posting{paccount=a, pamount=negate b} | ((a,_,_),b) <- acctbals]
+            nps = [posting{paccount=a, pamount=negate (Mixed [b])} | (a,_,_,Mixed bs) <- acctbals, b <- bs]
                  ++ [posting{paccount="equity:closing balances", pamount=negate balancingamt}]
         putStr $ showTransaction (nulltransaction{tdate=addDays (-1) enddate, tdescription="closing balances", tpostings=nps})
         putStr $ showTransaction (nulltransaction{tdate=enddate, tdescription="opening balances", tpostings=ps})
