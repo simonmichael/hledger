@@ -162,11 +162,12 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
     -- use async for proper child termination in GHCI
     let
       watchDate old = do
-        threadDelay 1000000 -- 1s
+        threadDelay 1000000 -- 1 s
         new <- getCurrentDay
         when (new /= old) $ do
           let dc = DateChange old new
           -- dbg1IO "datechange" dc -- XXX don't uncomment until dbg*IO fixed to use traceIO, GHC may block/end thread
+          -- traceIO $ show dc
           writeChan eventChan dc
         watchDate new
 
@@ -190,9 +191,13 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
           d
           -- predicate: ignore changes not involving our files
           (\fev -> case fev of
-            Added    f _ -> f `elem` files
             Modified f _ -> f `elem` files
-            Removed  f _ -> f `elem` files
+            -- Added    f _ -> f `elem` files
+            -- Removed  f _ -> f `elem` files
+            -- we don't handle adding/removing journal files right now
+            -- and there might be some of those events from tmp files
+            -- clogging things up so let's ignore them
+            _ -> False
             )
           -- action: send event to app
           (\fev -> do
