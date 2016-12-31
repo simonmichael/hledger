@@ -1,6 +1,6 @@
 #!/usr/bin/env stack
 {- stack exec --verbosity info
-   --resolver nightly
+   --resolver nightly-2016-12-30
    --package hakyll
    --package pandoc
    -- ghc
