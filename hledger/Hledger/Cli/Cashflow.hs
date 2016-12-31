@@ -14,7 +14,6 @@ module Hledger.Cli.Cashflow (
  ,tests_Hledger_Cli_Cashflow
 ) where
 
-import Data.Maybe (fromMaybe)
 import qualified Data.Text.Lazy.IO as LT
 import System.Console.CmdArgs.Explicit
 import Test.HUnit
@@ -32,7 +31,6 @@ cashflowmode = (defCommandMode ["cashflow","cf"]) {
      groupUnnamed = [
       flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-     ,flagNone ["value","V"] (setboolopt "value") "show amounts as their current market value in their default valuation commodity"
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
@@ -45,23 +43,18 @@ cashflow CliOpts{reportopts_=ropts} j = do
   -- let lines = case lineFormatFromOpts ropts of Left err, Right ...
   d <- getCurrentDay
   let q = queryFromOpts d ropts
-      valuedate = fromMaybe d $ queryEndDate False $ queryFromOpts d ropts
       cashreport@(_,total) = balanceReport ropts (And [q, journalCashAccountQuery j]) j
       -- operatingreport@(_,operating) = balanceReport ropts (And [q, journalOperatingAccountMatcher j]) j
       -- investingreport@(_,investing) = balanceReport ropts (And [q, journalInvestingAccountMatcher j]) j
       -- financingreport@(_,financing) = balanceReport ropts (And [q, journalFinancingAccountMatcher j]) j
       -- total = operating + investing + financing
-      convertReport | value_ ropts = balanceReportValue j valuedate
-                    | otherwise    = id
-      convertTotal  | value_ ropts = mixedAmountValue j valuedate
-                    | otherwise    = id
   LT.putStr $ [lt|Cashflow Statement
 
 Cash flows:
-#{balanceReportAsText ropts (convertReport cashreport)}
+#{balanceReportAsText ropts cashreport}
 Total:
 --------------------
-#{padleft 20 $ showMixedAmountWithoutPrice (convertTotal total)}
+#{padleft 20 $ showMixedAmountWithoutPrice total}
 |]
 
 tests_Hledger_Cli_Cashflow :: Test
