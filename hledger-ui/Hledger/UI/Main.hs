@@ -176,9 +176,12 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
       $ \_ -> do
 
       -- start one or more background threads reporting changes in the directories of our files
-      -- XXX misses quick successive saves (still ? hard to reproduce now)
-      -- XXX then refuses to reload manually (should be fixed now ?)
-      --   withManagerConf defaultConfig{confDebounce=Debounce 1000} $ \mgr -> do
+      -- XXX many quick successive saves causes the problems listed in BUGS
+      -- with Debounce increased to 1s it easily gets stuck on an error or blank screen
+      -- until you press g, but it becomes responsive again quickly.
+      -- withManagerConf defaultConfig{confDebounce=Debounce 1} $ \mgr -> do
+      -- with Debounce at the default 1ms it clears transient errors itself
+      -- but gets tied up for ages
       withManager $ \mgr -> do
         dbg1IO "fsnotify using polling ?" $ isPollingManager mgr
         files <- mapM canonicalizePath $ map fst $ jfiles j
