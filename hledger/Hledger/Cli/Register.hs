@@ -39,6 +39,7 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
      ,flagNone ["average","A"] (\opts -> setboolopt "average" opts)
         "show running average of posting amounts instead of total (implies --empty)"
      ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show postings' siblings instead"
+     ,flagNone ["value","V"] (setboolopt "value") "show amounts as their current market value in their default valuation commodity"
      ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
       ("set output width (default: " ++
 #ifdef mingw32_HOST_OS
@@ -61,9 +62,12 @@ register :: CliOpts -> Journal -> IO ()
 register opts@CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let fmt = outputFormatFromOpts opts
-      render | fmt=="csv" = const ((++"\n") . printCSV . postingsReportAsCsv)
-             | otherwise  = postingsReportAsText
-  writeOutput opts $ render opts $ postingsReport ropts (queryFromOpts d ropts) j
+      valuedate = fromMaybe d $ queryEndDate False $ queryFromOpts d ropts
+      convert | value_ ropts = postingsReportValue j valuedate
+              | otherwise    = id
+      render  | fmt=="csv" = const ((++"\n") . printCSV . postingsReportAsCsv)
+              | otherwise  = postingsReportAsText
+  writeOutput opts $ render opts $ convert $ postingsReport ropts (queryFromOpts d ropts) j
 
 postingsReportAsCsv :: PostingsReport -> CSV
 postingsReportAsCsv (_,is) =

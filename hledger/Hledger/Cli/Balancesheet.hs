@@ -11,6 +11,7 @@ module Hledger.Cli.Balancesheet (
  ,tests_Hledger_Cli_Balancesheet
 ) where
 
+import Data.Maybe (fromMaybe)
 import qualified Data.Text.Lazy.IO as LT
 import System.Console.CmdArgs.Explicit
 import Test.HUnit
@@ -28,6 +29,7 @@ balancesheetmode = (defCommandMode $ ["balancesheet"]++aliases) {
      groupUnnamed = [
       flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
+     ,flagNone ["value","V"] (setboolopt "value") "show amounts as their current market value in their default valuation commodity"
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
@@ -41,18 +43,23 @@ balancesheet CliOpts{reportopts_=ropts} j = do
   -- let lines = case lineFormatFromOpts ropts of Left err, Right ...
   d <- getCurrentDay
   let q = queryFromOpts d (withoutBeginDate ropts)
+      valuedate = fromMaybe d $ queryEndDate False $ queryFromOpts d ropts
       assetreport@(_,assets)          = balanceReport ropts (And [q, journalAssetAccountQuery j]) j
       liabilityreport@(_,liabilities) = balanceReport ropts (And [q, journalLiabilityAccountQuery j]) j
       total = assets + liabilities
+      convertReport | value_ ropts = balanceReportValue j valuedate
+                    | otherwise    = id
+      convertTotal  | value_ ropts = mixedAmountValue j valuedate
+                    | otherwise    = id
   LT.putStr $ [lt|Balance Sheet
 
 Assets:
-#{balanceReportAsText ropts assetreport}
+#{balanceReportAsText ropts (convertReport assetreport)}
 Liabilities:
-#{balanceReportAsText ropts liabilityreport}
+#{balanceReportAsText ropts (convertReport liabilityreport)}
 Total:
 --------------------
-#{padleft 20 $ showMixedAmountWithoutPrice total}
+#{padleft 20 $ showMixedAmountWithoutPrice (convertTotal total)}
 |]
 
 withoutBeginDate :: ReportOpts -> ReportOpts
