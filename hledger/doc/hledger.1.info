@@ -4,7 +4,7 @@ from stdin.
 
 File: hledger.1.info,  Node: Top,  Up: (dir)
 
-hledger(1) hledger 1.0
+hledger(1) hledger 1.1
 **********************
 
 This is hledger's command-line interface (there are also curses and web

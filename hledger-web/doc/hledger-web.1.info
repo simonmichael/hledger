@@ -4,7 +4,7 @@ version 4.8 from stdin.
 
 File: hledger-web.1.info,  Node: Top,  Up: (dir)
 
-hledger-web(1) hledger-web 1.0
+hledger-web(1) hledger-web 1.1
 ******************************
 
 hledger-web is hledger's web interface. It starts a simple web

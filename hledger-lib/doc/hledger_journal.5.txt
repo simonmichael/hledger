@@ -727,4 +727,4 @@ SEE ALSO
 
 
 
-hledger 1.0                      October 2016               hledger_journal(5)
+hledger 1.1                      December 2016              hledger_journal(5)

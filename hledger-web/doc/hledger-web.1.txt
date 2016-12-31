@@ -243,4 +243,4 @@ SEE ALSO
 
 
 
-hledger-web 1.0                  October 2016                   hledger-web(1)
+hledger-web 1.1                  December 2016                  hledger-web(1)

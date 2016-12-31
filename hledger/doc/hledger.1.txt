@@ -1910,4 +1910,4 @@ SEE ALSO
 
 
 
-hledger 1.0                      October 2016                       hledger(1)
+hledger 1.1                      December 2016                      hledger(1)

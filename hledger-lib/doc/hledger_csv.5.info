@@ -4,7 +4,7 @@ version 4.8 from stdin.
 
 File: hledger_csv.5.info,  Node: Top,  Up: (dir)
 
-hledger_csv(5) hledger 1.0
+hledger_csv(5) hledger 1.1
 **************************
 
 hledger can read CSV files, converting each CSV record into a journal
