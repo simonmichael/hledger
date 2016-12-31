@@ -1,9 +1,9 @@
--- This file has been generated from package.yaml by hpack version 0.14.0.
+-- This file has been generated from package.yaml by hpack version 0.15.0.
 --
 -- see: https://github.com/sol/hpack
 
 name:           hledger-api
-version:        1.0
+version:        1.1
 synopsis:       Web API server for the hledger accounting tool
 description:    This is a simple web API server for hledger data.
                 It comes with a series of simple client-side web app examples.
@@ -44,10 +44,10 @@ source-repository head
 executable hledger-api
   main-is: hledger-api.hs
   ghc-options: -threaded
-  cpp-options: -DVERSION="1.0"
+  cpp-options: -DVERSION="1.1"
   build-depends:
-      hledger-lib >= 1.0 && < 1.1
-    , hledger >= 1.0 && < 1.1
+      hledger-lib >= 1.1 && < 1.2
+    , hledger >= 1.1 && < 1.2
     , base >=4.8 && <5
     , aeson
     , bytestring
