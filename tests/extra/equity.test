@@ -1,0 +1,97 @@
+# Tests for equity addon
+
+# Simple case
+runghc ../../extra/hledger-equity.hs -f- -p 2016 assets liabilities
+<<<
+2016/1/1 open
+    assets:bank         $100
+    assets:cash         $20
+    equity:opening
+
+2016/1/15 spend
+    expenses:sweets     $5
+    assets:cash
+
+2016/1/19 withdraw
+    assets:cash         $20
+    assets:bank
+
+2016/1/20 lend
+    liabilities         $25
+    assets:cash
+>>>
+2016/12/31 closing balances
+    assets:bank                      $-80
+    assets:cash                      $-10
+    liabilities                      $-25
+    equity:closing balances
+
+2017/01/01 opening balances
+    assets:bank                       $80
+    assets:cash                       $10
+    liabilities                       $25
+    equity:opening balances
+
+>>>=0
+
+# Verify effect of period
+runghc ../../extra/hledger-equity.hs -f- -p 2016 assets liabilities
+<<<
+2015/12/31 open
+    assets:bank         $100
+    assets:cash         $20
+    equity:opening
+
+2016/1/15 spend
+    expenses:sweets     $5
+    assets:cash
+
+2016/1/19 withdraw
+    assets:cash         $20
+    assets:bank
+
+2017/1/1 lend
+    liabilities         $25
+    assets:cash
+>>>
+2016/12/31 closing balances
+    assets:bank                       $20
+    assets:cash                      $-15
+    equity:closing balances
+
+2017/01/01 opening balances
+    assets:bank                      $-20
+    assets:cash                       $15
+    equity:opening balances
+
+>>>=0
+
+# # Tear transaction across periods
+# # TODO: clarify what should we see for this case
+# runghc ../../extra/hledger-equity.hs -f- -p 2016 assets liabilities
+# <<<
+# 2016/1/1 open
+#     assets:bank         $100
+#     assets:cash         $20
+#     equity:opening
+#
+# 2016/1/15 spend
+#     expenses:sweets     $5
+#     assets:cash
+#
+# 2017/1/1 withdraw and lend
+#     liabilities         $25
+#     assets:cash         $-5
+#     assets:bank         $-20    ; date:2016/12/31
+# >>>
+# 2016/12/31 closing balances
+#     assets:bank                      $-80
+#     assets:cash                      $-15
+#     equity:closing balances
+#
+# 2017/01/01 opening balances
+#     assets:bank                       $80
+#     assets:cash                       $15
+#     equity:opening balances
+#
+# >>>=0
