@@ -14,7 +14,7 @@ m4_dnl Links to dev and recent release versions of a manual.
 m4_dnl $1 is the manual's web slug: hledger, hledger-ui, journal, csv etc.
 m4_dnl The current version is hidden (or whatever) by highlightDocVersion in site.js.
 m4_dnl
-m4_define({{_versions_}},
+m4_define({{_docversionlinks_}},
 <div class="versions">
 This doc is for version **_version_**.
 Available versions:

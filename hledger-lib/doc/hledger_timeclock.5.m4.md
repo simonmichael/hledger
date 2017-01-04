@@ -3,7 +3,7 @@
 % _monthyear_
 
 _web_({{
-_versions_({{timeclock}})
+_docversionlinks_({{timeclock}})
 _toc_
 }})
 _man_({{

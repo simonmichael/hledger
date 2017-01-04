@@ -3,7 +3,7 @@
 % _monthyear_
 
 _web_({{
-_versions_({{hledger}})
+_docversionlinks_({{hledger}})
 _toc_
 }})
 

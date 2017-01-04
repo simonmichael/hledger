@@ -3,7 +3,7 @@
 % _monthyear_
 
 _web_({{
-_versions_({{journal}})
+_docversionlinks_({{journal}})
 _toc_
 }})
 _man_({{

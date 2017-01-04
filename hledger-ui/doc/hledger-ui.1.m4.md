@@ -3,7 +3,7 @@
 % _monthyear_
 
 _web_({{
-_versions_({{hledger-ui}})
+_docversionlinks_({{hledger-ui}})
 _toc_
 <style>
 .highslide img {max-width:250px; float:right; margin:0 0 1em 1em;}
