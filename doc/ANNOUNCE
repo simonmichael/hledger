@@ -1,84 +1,38 @@
-Attention, attention hledger-folk! Once again, Happy Hallowe'en.
+Two months since last release, I'm pleased to announce hledger 1.1 !
+Thank you to contributors Johannes Gerer, Nikolay Orlyuk, and Shubham
+Lagwankar, along with all others who contributed in other ways.
 
-After almost ten years of steady development, and one year since
-our last major release, I am very pleased to announce..
+hledger (http://hledger.org) is a dependable, precise, cross-platform
+program for tracking money, time, or any other commodity, using
+double-entry accounting and a simple plain text file format.  Inspired
+by the Ledger project, hledger provides command-line, curses and web
+interfaces, and aims to be a robust, practical tool for daily use.
 
-  _     _          _                   _   ___    _ 
- | |__ | | ___  __| | __ _  ___ _ __  / | / _ \  | |
- | '_ \| |/ _ \/ _` |/ _` |/ _ \ '__| | || | | | | |
- | | | | |  __/ (_| | (_| |  __/ |    | || |_| | |_|
- |_| |_|_|\___|\__,_|\__, |\___|_|    |_(_)___/  (_)
-                     |___/                          
+Notable user-visible changes in this release:
 
-hledger's 1.0 release! It's about time!
+- hledger-ui --watch live-updates as files or the current date change,
+  useful eg when reconciling or for a time log dashboard
 
-hledger (http://hledger.org) is a cross-platform program for tracking
-money, time, or any other commodity using double-entry accounting
-and a simple plain text file format.
-Inspired by Ledger CLI, hledger provides command-line, curses
-and web interfaces, and aims to be a reliable, practical tool
-for daily use.
+- Ledger-style balance assignments are now supported in journal files
 
-Notable changes since 0.27:
+Full release notes: http://hledger.org/release-notes#hledger-1.1
 
-- the hledger.org website is simpler, clearer, and more mobile-friendly
+To install this release:
 
-- docs have been reorganized, with more focussed manuals available in
-  multiple versions, formats and as built-in help
-
-- we support the latest GHC (8 and 7.10), stackage snapshots, and
-  libs.  (GHC 7.8 and 7.6 support are not currently supported,
-  maintainers welcome.)
-
-- hledger has migrated from parsec to megaparsec and from String to
-  Text, parsers have been simplified, memory usage is ~30% less on
-  large files, speed is slightly improved all around
-
-- --pivot (group by arbitrary tag instead of account) and --anon
-  (obfuscate account names) are now supported
-
-- hledger-ui has acquired many new features making it more useful
-  (file editing, filtering, historical/period modes, quick period
-  browsing..)
-
-- hledger-web is more robust and more mobile-friendly
-
-- hledger-api, a simple web API server, has been added
-
-- a new "timedot" file format allows retroactive/approximate time
-  logging
-
-- the project continues to grow. A call for help was sent out last
-  month, and contributor activity is increasing
-
-- a new website, http://plaintextaccounting.org, has been created as a
-  portal and knowledge base for hledger, Ledger, beancount and related
-  tools and practices.
-
-Full release notes: http://hledger.org/release-notes#hledger-1.0
-
-How to install:
-
-(Get stack, eg from http://haskell-lang.org/get-started)
+Get stack, eg from http://haskell-lang.org/get-started
 $ stack install --resolver=nightly hledger [hledger-ui] [hledger-web] [hledger-api]
-$ ~/.local/bin/hledger --version
+$ ~/.local/bin/hledger
 
-or see http://hledger.org/download for more install options,
-including cabal, OS packages and Windows binaries.
-
-Contributors to this release:
-
-Simon Michael, Dominik Süß, Thomas R. Koll, Moritz Kiefer,
-jungle-boogie, Sergei Trofimovich, Malte Brandy, Sam Doshi,
-Mitchell Rosen, Hans-Peter Deifel, Brian Scott, and Andrew Jones.
-
-How to get and give help:
+or see http://hledger.org/download for more installation options.
+Our IRC channel is #hledger on Freenode, and you can find out more at
+http://hledger.org.
 
 I hope you enjoy these tools and that they help you achieve your goals.
-The hledger project is too large for one person to do it justice, 
-so it's great to see our developer community growing.  If you like
-hledger, your support and participation is welcome! Our IRC channel is 
-#hledger on Freenode, and you can find out more at http://hledger.org.
+If you like hledger, your support and participation is appreciated! 
+Fund us on Gratipay or Bountysource, give feedback, report bugs, send
+pull requests, write about it, etc.
+
+Happy 2017! 
 
 Best,
 -Simon
