@@ -53,3 +53,72 @@ hledger -f- --pivot TAG reg '^Account2$' '^TAG:fun$' not:hidden
 2016/02/16 Test Transaction     TAG:fun                      2 EUR         2 EUR
                                 TAG:value                   -1 EUR         1 EUR
 >>>=0
+
+# pivot for implicit tag desc (technical sample)
+hledger -f- --pivot desc reg -M
+<<<
+2016/02/16 Freifunk
+    assets:bank account                                   2 EUR  ; date:03/01
+    income:donations                                  -2 EUR
+>>>
+2016/02                 desc:Freifunk                       -2 EUR        -2 EUR
+2016/03                 desc:Freifunk                        2 EUR             0
+>>>=0
+
+# pivot for implicit tag code (technical sample)
+hledger -f- --pivot code reg -M
+<<<
+2016/02/16 (Freifunk) Donation Freifunk
+    assets:bank account                                   2 EUR  ; date:03/01
+    income:donations                                  -2 EUR
+>>>
+2016/02                 code:Freifunk                       -2 EUR        -2 EUR
+2016/03                 code:Freifunk                        2 EUR             0
+>>>=0
+
+# use of pivot with code-based budgeting
+hledger -f- --pivot code reg ^income
+<<<
+2016/02/16 (Freifunk) Donation Freifunk
+    assets:bank account                                   2 EUR
+    income:donations                                  -2 EUR
+>>>
+2016/02/16 Donation Freifunk    code:Freifunk               -2 EUR        -2 EUR
+>>>=0
+
+# get expenses balance by description/payee
+hledger -f- --pivot desc bal --no-total --flat ^expense
+<<<
+2016/02/16 (1138) Auchan
+    assets:bank account
+    expense:snacks                      2 EUR
+    expense:grocery                    20 EUR
+
+2016/02/16 StarBars
+    assets:bank account
+    expense:coffee                     5 EUR
+>>>
+              22 EUR  desc:Auchan
+               5 EUR  desc:StarBars
+>>>=0
+
+# get daily expenses by description/payee
+hledger -f- --pivot desc reg -D ^expense
+<<<
+2016/02/16 (1138) Auchan
+    assets:bank account
+    expense:snacks                      2 EUR
+    expense:grocery                    20 EUR
+
+2016/02/16 StarBars
+    assets:bank account
+    expense:coffee                     5 EUR
+
+2016/02/17 (1139) Auchan
+    assets:bank account
+    expense:grocery                    30 EUR
+>>>
+2016/02/16              desc:Auchan                         22 EUR        22 EUR
+                        desc:StarBars                        5 EUR        27 EUR
+2016/02/17              desc:Auchan                         30 EUR        57 EUR
+>>>=0
