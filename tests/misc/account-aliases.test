@@ -121,3 +121,16 @@ alias E=F
 
 >>>2
 >>>=0
+
+# query will search both origin and substitution in alias
+hledger -f- reg '^a$' '^b$'
+<<<
+alias a = b
+1/1
+    a  1
+    b  -1
+>>>
+2017/01/01                      b                                1             1
+                                b                               -1             0
+>>>2
+>>>=0

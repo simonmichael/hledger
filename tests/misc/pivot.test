@@ -38,3 +38,18 @@ hledger -f- --pivot budget bal --no-total
                2 EUR  assets:bank account
               -2 EUR  budget:Freifunk
 >>>=0
+
+# query on account will find either effective name or original one
+hledger -f- --pivot TAG reg '^Account2$' '^TAG:fun$' not:hidden
+<<<
+2016/02/16 Test Transaction
+    Account1                                   2 EUR
+    ; TAG: fun
+    Account2                                  -1 EUR
+    ; TAG: value
+    Account2                                  -1 EUR
+    ; TAG: hidden
+>>>
+2016/02/16 Test Transaction     TAG:fun                      2 EUR         2 EUR
+                                TAG:value                   -1 EUR         1 EUR
+>>>=0
