@@ -4,7 +4,7 @@ This is hledger-ui/doc/hledger-ui.1.info, produced by makeinfo version
 
 File: hledger-ui.1.info,  Node: Top,  Up: (dir)
 
-hledger-ui(1) hledger-ui 1.1
+hledger-ui(1) hledger-ui dev
 ****************************
 
 hledger-ui is hledger's curses-style interface, providing an efficient

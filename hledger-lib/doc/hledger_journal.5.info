@@ -4,7 +4,7 @@ version 4.8 from stdin.
 
 File: hledger_journal.5.info,  Node: Top,  Up: (dir)
 
-hledger_journal(5) hledger 1.1
+hledger_journal(5) hledger dev
 ******************************
 
 hledger's usual data source is a plain text file containing journal

@@ -120,4 +120,4 @@ SEE ALSO
 
 
 
-hledger-api 1.1                  December 2016                  hledger-api(1)
+hledger-api dev                  January 2017                   hledger-api(1)
