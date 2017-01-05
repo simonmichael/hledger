@@ -29,32 +29,32 @@ Small, guided exercises introducing data entry, reporting, and accounting.
 </div>
 <div class="col-sm-3">
 
-## Reference
+## Manuals
 
-#### [All-in-one manual](manual.html)
-All the below on one page. 
+#### [Big Manual](manual.html)
+All manuals combined on one page.
 
+<div style="padding-left:1em;">
 
-### User Interfaces
+**Tools:**
 
 #### [`hledger`](hledger.html)
 The main command-line UI.
-Good for data entry, control and scriptability. 
+Good for precision, flexibility and automation.
 
 #### [`hledger-ui`](hledger-ui.html)
 A curses-style UI
-, for quick review. 
+, for quick review and monitoring.
 
 #### [`hledger-web`](hledger-web.html)
 A web UI
-, for browsing, data entry and sharing. 
+, for browsing, sharing, and collaboration.
 
 #### [`hledger-api`](hledger-api.html)
 A basic web API
 , for building client-side apps. 
 
-
-### File formats
+**File formats:**
 
 #### [Journal](journal.html)
 hledger's native data format, representing an accounting journal. 
@@ -66,7 +66,9 @@ Comma Separated Values, used for import/export.
 For time logging, with clock-in/clock-out records. 
 
 #### [Timedot](timedot.html)
-A more human-editable time logging format. 
+A more human-friendly time logging format.
+
+</div>
 
 </div>
 <div class="col-sm-3">
