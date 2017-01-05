@@ -1,0 +1,5 @@
+Snapshots of past versions of the web content.
+These are in the "doc/" subdirectory so that hakyll-std will see them.
+At each release, a new snapshot should be generated and committed.
+Major releases should also be added to the "available
+versions" links in site.js.

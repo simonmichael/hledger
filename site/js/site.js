@@ -1,12 +1,28 @@
 $(document).ready( function() {
-  highlightDocVersion();
+  addDocVersions();
+  highlightCurrentDocVersion();
 });
 
-function highlightDocVersion() {
-  $('.versions').each( function() {
+function addDocVersions() {
+  var parts = window.location.pathname.split('/');
+  var page = parts.length > 0 ? parts[parts.length-1].slice(0,-5) : '';
+  var hash = window.location.hash.slice(1);
+  var topic = (page=='manual' && hash) ? hash : page;
+  var newhash = (page=='manual' && topic!='manual') ? ('#'+topic) : '';
+  var newpage = page=='manual' ? page : topic;
+  $('.docversions').html('Available versions: \
+<a href="/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">dev</a> \
+| <a href="/doc/1.1/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.1</a> \
+| <a href="/doc/1.0/'+newpage+'.html'+(page=='manual' ? newhash : '')+'">1.0</a> \
+| <a href="/doc/0.27/manual.html'+(topic=='manual' ? '' : ('#'+topic))+'">0.27</a> \
+');
+}
+
+function highlightCurrentDocVersion() {
+  $('.docversions').each( function() {
     var parts = window.location.pathname.split('/');
     var dir = parts.length > 1 ? parts[parts.length-2] : '';
-    var ver = $.isNumeric(dir) ? dir : '1.1';
+    var ver = $.isNumeric(dir) ? dir : 'dev';
     $(this).find('a').each( function() {
       if ($(this).html() == ver)
         $(this)

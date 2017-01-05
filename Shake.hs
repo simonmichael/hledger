@@ -53,14 +53,15 @@ usage = unlines
   ["Usage:"
   ,"./Shake.hs               # compile this script"
   ,"./Shake                  # show commands"
+  ,"./Shake docs             # generate built-in manuals (plaintext, man, info)"
+  ,"./Shake website          # generate the web site (web manuals, web pages)"
+--   ,"./Shake manpages         # generate nroff files for man"
+--   ,"./Shake txtmanpages      # generate text man pages for embedding"
+--   ,"./Shake infomanpages     # generate info files for info"
+--   ,"./Shake webmanpages      # generate individual web man pages for hakyll"
+--   ,"./Shake webmanall        # generate all-in-one web manual for hakyll"
+  ,"./Shake site/doc/VER/.snapshot   # generate and save a versioned web site snapshot"
   ,"./Shake all              # generate everything"
-  ,"./Shake docs             # generate general docs"
-  ,"./Shake website          # generate the web site"
-  ,"./Shake manpages         # generate nroff files for man"
-  ,"./Shake txtmanpages      # generate text man pages for embedding"
-  ,"./Shake infomanpages     # generate info files for info"
-  ,"./Shake webmanpages      # generate web man pages for hakyll"
-  ,"./Shake webmanual        # generate combined web man page for hakyll"
   ,"./Shake clean            # clean generated files"
   ,"./Shake Clean            # clean harder"
   ,"./Shake --help           # show options, eg --color"
@@ -93,8 +94,7 @@ main = do
 --
 --     "Shake" %> \out -> do
 --       need [out <.> "hs"]
---       unit $ cmd "./Shake.hs --version"  -- install libs via shebang line
---       unit $ cmd "stack ghc Shake.hs"
+--       unit $ cmd "./Shake.hs"  -- running as stack script installs deps and compiles
 --       putLoud "You can now run ./Shake instead of ./Shake.hs"
 
     phony "all" $ need ["docs", "website"]
@@ -123,7 +123,7 @@ main = do
       --   manuals rendered to markdown, ready for web output by hakyll (site/hledger.md)
       webmanpages = ["site" </> manpageNameToUri m <.>"md" | m <- manpageNames]
       --    manuals rendered to markdown and combined, ready for web output by hakyll
-      webmanual = "site/manual.md"
+      webmanall = "site/manual.md"
 
       -- hledger.1 -> hledger/doc, hledger_journal.5 -> hledger-lib/doc
       manpageDir m
@@ -208,11 +208,12 @@ main = do
     phony "website" $ do
       need $
         webmanpages ++
-        [webmanual
-        ,"releasemanual"
+        [webmanall
         ,hakyllstd
         ]
       cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
+    -- website also links to old manuals, which are generated manually
+    -- with ./Shake websnapshot and committed
 
     -- use m4 and pandoc to process macros and filter content, leaving markdown suitable for web output
     phony "webmanpages" $ need webmanpages
@@ -239,29 +240,30 @@ main = do
         ">>" out
 
     -- adjust and combine man page mds for single-page web output, using pandoc
-    phony "webmanual" $ need [ webmanual ]
+    phony "webmanall" $ need [ webmanall ]
 
-    webmanual %> \out -> do
+    webmanall %> \out -> do
       need webmanpages
-      liftIO $ writeFile webmanual "* toc\n\n"
+      liftIO $ writeFile webmanall "* toc\n\n"
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
-        cmd Shell ("printf '\\n\\n' >>") webmanual :: Action ExitCode
+        cmd Shell ("printf '\\n\\n' >>") webmanall :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown --atx-headers"
           -- "--filter doc/pandoc-drop-man-blocks"
           "--filter doc/pandoc-drop-toc"
           -- "--filter doc/pandoc-capitalize-headers"
           "--filter doc/pandoc-demote-headers"
-          ">>" webmanual :: Action ExitCode
+          ">>" webmanall :: Action ExitCode
 
-    -- check out and render manual pages for the current release also
-    phony "releasemanual" $ need [ "releasemanual0.27" ]
-
-    phony "releasemanual0.27" $ do
-      -- XXX under doc so hakyll-std will render it
-      cmd "mkdir -p site/doc/0.27" :: Action ExitCode
-      cmd Shell "git show 0.27:doc/manual.md >site/doc/0.27/manual.md" :: Action ExitCode
-      cmd Shell "patch site/doc/0.27/manual.md doc/manual0.27.diff "
-
+    -- build the currently checked out web docs and save as a named snapshot
+    "site/doc/*/.snapshot" %> \out -> do
+      need [ webmanall ]
+      let snapshot = takeDirectory out
+      cmd Shell "mkdir -p" snapshot :: Action ExitCode
+      forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
+        cmd Shell "cp" f (snapshot </> takeFileName f) :: Action ExitCode
+      cmd Shell "cp" "site/manual.md" snapshot :: Action ExitCode
+      cmd Shell "cp -r site/images" snapshot :: Action ExitCode
+      cmd Shell "touch" out -- :: Action ExitCode
 
     -- build standard hakyll script used for site rendering
     hakyllstd %> \out -> do
@@ -281,7 +283,9 @@ main = do
     phony "clean" $ do
       putNormal "Cleaning generated files"
       removeFilesAfter "." webmanpages
-      removeFilesAfter "." [webmanual]
+      removeFilesAfter "." [webmanall]
+      -- removeFilesAfter "." ["site/doc/[0-9]*"]
+      cmd Shell "rm -rf site/doc/[0-9]*"
 
     phony "Clean" $ do
       need ["clean"]
