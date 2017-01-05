@@ -657,7 +657,7 @@ checkInferAndRegisterAmounts (Right oldTx) = do
   where
     inferFromAssignment :: Posting -> CurrentBalancesModifier s Posting
     inferFromAssignment p = maybe (return p)
-      (fmap (\a -> p { pamount = a }) . setBalance (paccount p))
+      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . setBalance (paccount p))
       $ pbalanceassertion p
 
 -- | Adds a posting's amonut to the posting's account balance and

@@ -15,6 +15,7 @@ module Hledger.Data.Posting (
   posting,
   post,
   -- * operations
+  originalPosting,
   postingStatus,
   isReal,
   isVirtual,
@@ -83,11 +84,15 @@ nullposting = Posting
                 ,ptags=[]
                 ,pbalanceassertion=Nothing
                 ,ptransaction=Nothing
+                ,porigin=Nothing
                 }
 posting = nullposting
 
 post :: AccountName -> Amount -> Posting
 post acct amt = posting {paccount=acct, pamount=Mixed [amt]}
+
+originalPosting :: Posting -> Posting
+originalPosting p = fromMaybe p $ porigin p
 
 -- XXX once rendered user output, but just for debugging now; clean up
 showPosting :: Posting -> String
