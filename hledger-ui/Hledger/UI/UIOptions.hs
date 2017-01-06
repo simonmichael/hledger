@@ -26,7 +26,7 @@ prognameandversion = progname ++ " " ++ version :: String
 
 uiflags = [
   -- flagNone ["debug-ui"]  (\opts -> setboolopt "rules-file" opts) "run with no terminal output, showing console"
-   flagNone ["watch"] (\opts -> setboolopt "watch" opts) "watch for data changes and reload automatically"
+   flagNone ["watch"] (\opts -> setboolopt "watch" opts) "watch for data and date changes and reload automatically"
   ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
   ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in the (first) matched account's register"
   ,flagNone ["change"] (\opts -> setboolopt "change" opts)
@@ -38,7 +38,7 @@ uiflags = [
   ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, unindented"
   -- ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
   -- ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
-  ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't compress empty parent accounts on one line"
+  -- ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't compress empty parent accounts on one line"
   ,flagNone ["value","V"] (setboolopt "value") "show amounts as their current market value in their default valuation commodity (accounts screen)"
  ]
 

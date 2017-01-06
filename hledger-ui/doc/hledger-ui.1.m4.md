@@ -50,7 +50,7 @@ Note: if invoking hledger-ui as a hledger subcommand, write `--` before options 
 Any QUERYARGS are interpreted as a hledger search query which filters the data.
 
 `--watch`
-: watch for data (and time) changes and reload automatically
+: watch for data and date changes and reload automatically
 
 `--theme=default|terminal|greenterm`
 : use this custom display theme

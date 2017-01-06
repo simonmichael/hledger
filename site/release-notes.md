@@ -61,7 +61,7 @@ change logs.
 <!-- ([announcement](https://groups.google.com/d/topic/hledger/WgdTy3-a6sc/discussion))  -->
 
 Release contributors:
-Simon Michael, Johannes Gerer, Nikolay Orlyuk, Shubham Lagwankar. <!-- Justin Le -->
+Simon Michael, Johannes Gerer, Nikolay Orlyuk, Shubham Lagwankar.
 
   [project-wide](#project-wide-changes)
 | [hledger-lib](#hledger-lib-1.1)
@@ -76,7 +76,7 @@ Simon Michael, Johannes Gerer, Nikolay Orlyuk, Shubham Lagwankar. <!-- Justin Le
 
 -   don't show stack trace details in errors
 
--   more predictable file format detection
+-   more predictable [file format detection](/hledger.html#input-files)
     
     When we don't recognise a file's extension, instead of choosing a subset of
     readers to try based on content sniffing, now we just try them all.
@@ -86,13 +86,13 @@ Simon Michael, Johannes Gerer, Nikolay Orlyuk, Shubham Lagwankar. <!-- Justin Le
 -   avoid creating junk CSV rules files when trying alternate readers.
     We now create it only after successfully reading a file as CSV.
 
--   improvements to -B and -V docs: clearer descriptions, more linkage (#403)
+-   improvements to [-B](/journal.html#transaction-prices) and [-V](/hledger.html#market-value) docs: clearer descriptions, more linkage ([#403](http://bugs.hledger.org/403))
 
 ### hledger-lib 1.1
 
 #### journal format
 
--   balance assignments are now supported (#438, #129, #157, #288)
+-   [balance assignments](/journal.html#balance-assignments) are now supported ([#438](http://bugs.hledger.org/438), [#129](http://bugs.hledger.org/129), [#157](http://bugs.hledger.org/157), [#288](http://bugs.hledger.org/288))
 
     This feature also brings a slight performance drop (~5%);
     optimisations welcome.
@@ -122,33 +122,33 @@ Simon Michael, Johannes Gerer, Nikolay Orlyuk, Shubham Lagwankar. <!-- Justin Le
 
 -   rename dbgIO to dbg0IO, consistent with dbg0, and document a bug in dbg*IO
 
--   make readJournalFiles [f] equivalent to readJournalFile f (#437)
+-   make readJournalFiles [f] equivalent to readJournalFile f ([#437](http://bugs.hledger.org/437))
 
--   more general parser types enabling reuse outside of IO (#439)
+-   more general parser types enabling reuse outside of IO ([#439](http://bugs.hledger.org/439))
 
 ### hledger 1.1
 
 #### balance
 
--   with -V, don't ignore market prices in the future (#453, #403)
+-   with -V, don't ignore market prices in the future ([#453](http://bugs.hledger.org/453), [#403](http://bugs.hledger.org/403))
 
--   with -V and multiple same-date market prices, use the last parsed not the highest price (#403)
+-   with -V and multiple same-date market prices, use the last parsed not the highest price ([#403](http://bugs.hledger.org/403))
 
 #### misc
 
--   fix non-existent "oldtime" dependency (#431)
+-   fix non-existent "oldtime" dependency ([#431](http://bugs.hledger.org/431))
 
--   extra/hledger-equity.hs now generates valid journal format when there are multiple commodities
+-   [hledger-equity.hs](https://github.com/simonmichael/hledger/blob/master/extra/hledger-equity.hs) now generates valid journal format when there are multiple commodities
 
 ### hledger-ui 1.1
 
--   with --watch, the display updates automatically to show file or date changes
+-   with [--watch](/hledger-ui.html#options), the display updates automatically to show file or date changes
 
     hledger-ui --watch will reload data when the journal file (or any included file) changes.
     Also, when viewing a current standard period (ie this day/week/month/quarter/year),
     the period will move as needed to track the current system date.
 
--   the --change flag shows period changes at startup instead of historical ending balances
+-   the [--change](/hledger-ui.html#options) flag shows period changes at startup instead of historical ending balances
 
 -   the A key runs the hledger-iadd tool, if installed
 
@@ -163,7 +163,7 @@ Simon Michael, Johannes Gerer, Nikolay Orlyuk, Shubham Lagwankar. <!-- Justin Le
 
 ### hledger-web 1.1
 
--   add --host option (#429)
+-   add [--host](/hledger-web.html#options) option ([#429](http://bugs.hledger.org/429))
     
     This came up in the context of Docker, but it seems it wasn't
     possible for hledger-web to serve remote clients directly (without
@@ -179,7 +179,7 @@ Simon Michael, Johannes Gerer, Nikolay Orlyuk, Shubham Lagwankar. <!-- Justin Le
 
 ### hledger-api 1.1
 
--   serves on 127.0.0.1 by default, --host option added (#432)
+-   serves on 127.0.0.1 by default, [--host](/hledger-api.html#options) option added ([#432](http://bugs.hledger.org/432))
     
     Consistent with hledger-web: serves only local requests by default,
     use --host=IPADDR to change this.

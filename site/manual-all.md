@@ -4,7 +4,15 @@
 
 ## hledger
 
-This doc is for version **dev**. <span class="docversions"></span>
+<div class="versions">
+
+This doc is for version **1.1**. Available versions:
+<a href="/hledger.html">dev</a> |
+<a href="/doc/1.1/hledger.html">1.1</a> |
+<a href="/doc/1.0/hledger.html">1.0</a> |
+<a href="/doc/0.27/manual.html#hledger">0.27</a>
+
+</div>
 
 ### NAME
 
@@ -2114,7 +2122,15 @@ set LANG to something other than C.
 
 ## hledger-ui
 
-This doc is for version **dev**. <span class="docversions"></span>
+<div class="versions">
+
+This doc is for version **1.1**. Available versions:
+<a href="/hledger-ui.html">dev</a> |
+<a href="/doc/1.1/hledger-ui.html">1.1</a> |
+<a href="/doc/1.0/hledger-ui.html">1.0</a> |
+<a href="/doc/0.27/manual.html#hledger-ui">0.27</a>
+
+</div>
 
 -   <style>
     .highslide img {max-width:250px; float:right; margin:0 0 1em 1em;}
@@ -2167,7 +2183,7 @@ Any QUERYARGS are interpreted as a hledger search query which filters
 the data.
 
 `--watch`
-:   watch for data and date changes and reload automatically
+:   watch for data (and time) changes and reload automatically
 
 `--theme=default|terminal|greenterm`
 :   use this custom display theme
@@ -2493,7 +2509,15 @@ program is restarted.
 
 ## hledger-web
 
-This doc is for version **dev**. <span class="docversions"></span>
+<div class="versions">
+
+This doc is for version **1.1**. Available versions:
+<a href="/hledger-web.html">dev</a> |
+<a href="/doc/1.1/hledger-web.html">1.1</a> |
+<a href="/doc/1.0/hledger-web.html">1.0</a> |
+<a href="/doc/0.27/manual.html#hledger-web">0.27</a>
+
+</div>
 
 ### NAME
 
@@ -2590,17 +2614,15 @@ will show an error until the file has been fixed.
 Note: if invoking hledger-web as a hledger subcommand, write `--` before
 options as shown above.
 
-`--serve`
-:   serve and log requests, don't browse or auto-exit
-
-`--host=IPADDR`
-:   listen on this IP address (default: 127.0.0.1)
+`--server`
+:   disable browser-opening and auto-exit-on-idle, and log all requests
+    to stdout
 
 `--port=PORT`
-:   listen on this TCP port (default: 5000)
+:   set the TCP port to listen on (default: 5000)
 
 `--base-url=URL`
-:   set the base url (default: http://IPADDR:PORT). You would change
+:   set the base url (default: http://localhost:PORT). You would change
     this when sharing over the network, or integrating within a
     larger website.
 
@@ -2735,7 +2757,15 @@ Does not work well on small screens.
 
 ## hledger-api
 
-This doc is for version **dev**. <span class="docversions"></span>
+<div class="versions">
+
+This doc is for version **1.1**. Available versions:
+<a href="/hledger-api.html">dev</a> |
+<a href="/doc/1.1/hledger-api.html">1.1</a> |
+<a href="/doc/1.0/hledger-api.html">1.0</a> |
+<a href="/doc/0.27/manual.html#hledger-api">0.27</a>
+
+</div>
 
 ### NAME
 
@@ -2842,7 +2872,15 @@ awkward.
 
 ## journal format
 
-This doc is for version **dev**. <span class="docversions"></span>
+<div class="versions">
+
+This doc is for version **1.1**. Available versions:
+<a href="/journal.html">dev</a> |
+<a href="/doc/1.1/journal.html">1.1</a> |
+<a href="/doc/1.0/journal.html">1.0</a> |
+<a href="/doc/0.27/manual.html#journal">0.27</a>
+
+</div>
 
 ### NAME
 
@@ -3676,7 +3714,14 @@ https://twitter.com/LedgerTips/status/501767602067472384
 
 ## csv format
 
-This doc is for version **dev**. <span class="docversions"></span>
+<div class="versions">
+
+This doc is for version **1.1**. Available versions:
+<a href="/csv.html">dev</a> | <a href="/doc/1.1/csv.html">1.1</a> |
+<a href="/doc/1.0/csv.html">1.0</a> |
+<a href="/doc/0.27/manual.html#csv">0.27</a>
+
+</div>
 
 ### NAME
 
@@ -3859,7 +3904,15 @@ of same-day entries will be preserved, usually.
 
 ## timeclock format
 
-This doc is for version **dev**. <span class="docversions"></span>
+<div class="versions">
+
+This doc is for version **1.1**. Available versions:
+<a href="/timeclock.html">dev</a> |
+<a href="/doc/1.1/timeclock.html">1.1</a> |
+<a href="/doc/1.0/timeclock.html">1.0</a> |
+<a href="/doc/0.27/manual.html#timeclock">0.27</a>
+
+</div>
 
 ### NAME
 
@@ -3935,7 +3988,15 @@ To generate time logs, ie to clock in and clock out, you could:
 
 ## timedot format
 
-This doc is for version **dev**. <span class="docversions"></span>
+<div class="versions">
+
+This doc is for version **1.1**. Available versions:
+<a href="/timedot.html">dev</a> |
+<a href="/doc/1.1/timedot.html">1.1</a> |
+<a href="/doc/1.0/timedot.html">1.0</a> |
+<a href="/doc/0.27/manual.html#timedot">0.27</a>
+
+</div>
 
 ### NAME
 
