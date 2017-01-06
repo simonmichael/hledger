@@ -4,7 +4,7 @@ This is hledger-ui/doc/hledger-ui.1.info, produced by makeinfo version
 
 File: hledger-ui.1.info,  Node: Top,  Up: (dir)
 
-hledger-ui(1) hledger-ui 1.1
+hledger-ui(1) hledger-ui dev
 ****************************
 
 hledger-ui is hledger's curses-style interface, providing an efficient
@@ -38,7 +38,7 @@ options as shown above.
 the data.
 
 `--watch'
-     watch for data (and time) changes and reload automatically
+     watch for data and date changes and reload automatically
 
 `--theme=default|terminal|greenterm'
      use this custom display theme
@@ -361,17 +361,17 @@ Tag Table:
 Node: Top88
 Node: OPTIONS823
 Ref: #options922
-Node: KEYS4003
-Ref: #keys4100
-Node: SCREENS6670
-Ref: #screens6757
-Node: Accounts screen6847
-Ref: #accounts-screen6977
-Node: Register screen9015
-Ref: #register-screen9172
-Node: Transaction screen11060
-Ref: #transaction-screen11220
-Node: Error screen12087
-Ref: #error-screen12211
+Node: KEYS4001
+Ref: #keys4098
+Node: SCREENS6668
+Ref: #screens6755
+Node: Accounts screen6845
+Ref: #accounts-screen6975
+Node: Register screen9013
+Ref: #register-screen9170
+Node: Transaction screen11058
+Ref: #transaction-screen11218
+Node: Error screen12085
+Ref: #error-screen12209
 
 End Tag Table

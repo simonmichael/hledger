@@ -4,7 +4,7 @@ version 4.8 from stdin.
 
 File: hledger-web.1.info,  Node: Top,  Up: (dir)
 
-hledger-web(1) hledger-web 1.1
+hledger-web(1) hledger-web dev
 ******************************
 
 hledger-web is hledger's web interface. It starts a simple web
@@ -85,17 +85,19 @@ File: hledger-web.1.info,  Node: OPTIONS,  Prev: Top,  Up: Top
 Note: if invoking hledger-web as a hledger subcommand, write `--'
 before options as shown above.
 
-`--server'
-     disable browser-opening and auto-exit-on-idle, and log all
-     requests to stdout
+`--serve'
+     serve and log requests, don't browse or auto-exit
+
+`--host=IPADDR'
+     listen on this IP address (default: 127.0.0.1)
 
 `--port=PORT'
-     set the TCP port to listen on (default: 5000)
+     listen on this TCP port (default: 5000)
 
 `--base-url=URL'
-     set the base url (default: http://localhost:PORT). You would
-     change this when sharing over the network, or integrating within a
-     larger website.
+     set the base url (default: http://IPADDR:PORT). You would change
+     this when sharing over the network, or integrating within a larger
+     website.
 
 `--file-url=URL'
      set the static files url (default: BASEURL/static). hledger-web

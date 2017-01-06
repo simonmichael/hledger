@@ -36,7 +36,7 @@ OPTIONS
        the data.
 
        --watch
-              watch for data (and time) changes and reload automatically
+              watch for data and date changes and reload automatically
 
        --theme=default|terminal|greenterm
               use this custom display theme
@@ -362,4 +362,4 @@ SEE ALSO
 
 
 
-hledger-ui 1.1                   December 2016                   hledger-ui(1)
+hledger-ui dev                   December 2016                   hledger-ui(1)
