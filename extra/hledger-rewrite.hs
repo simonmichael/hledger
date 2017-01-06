@@ -25,9 +25,14 @@ Note the single quotes to protect the dollar sign from bash, and the two spaces 
 See the command-line help for more details.
 Currently does not work when invoked via hledger, run hledger-rewrite[.hs] directly.
 
-Needs to work on unbalanced entries, eg while editing one.
-/
 Tested-with: hledger HEAD ~ 2016/3/2
+
+Related: https://github.com/simonmichael/hledger/issues/99
+
+TODO:
+- should allow regex matching and interpolating matched name in replacement
+- should apply the rule for each matched posting within a transaction, if there's more than one
+- should be possible to use this on unbalanced entries, eg while editing one
 
 |-}
 
