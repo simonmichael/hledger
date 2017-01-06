@@ -102,19 +102,23 @@ until the file has been fixed.
 Note: if invoking hledger\-web as a hledger subcommand, write
 \f[C]\-\-\f[] before options as shown above.
 .TP
-.B \f[C]\-\-server\f[]
-disable browser\-opening and auto\-exit\-on\-idle, and log all requests
-to stdout
+.B \f[C]\-\-serve\f[]
+serve and log requests, don\[aq]t browse or auto\-exit
+.RS
+.RE
+.TP
+.B \f[C]\-\-host=IPADDR\f[]
+listen on this IP address (default: 127.0.0.1)
 .RS
 .RE
 .TP
 .B \f[C]\-\-port=PORT\f[]
-set the TCP port to listen on (default: 5000)
+listen on this TCP port (default: 5000)
 .RS
 .RE
 .TP
 .B \f[C]\-\-base\-url=URL\f[]
-set the base url (default: http://localhost:PORT).
+set the base url (default: http://IPADDR:PORT).
 You would change this when sharing over the network, or integrating
 within a larger website.
 .RS
