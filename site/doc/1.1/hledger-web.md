@@ -1,6 +1,6 @@
 # hledger-web
 
-This doc is for version **1.1**. <span class="docversions"></span>
+This doc is for version **dev**. <span class="docversions"></span>
 
 -   toc
 
@@ -99,15 +99,17 @@ will show an error until the file has been fixed.
 Note: if invoking hledger-web as a hledger subcommand, write `--` before
 options as shown above.
 
-`--server`
-:   disable browser-opening and auto-exit-on-idle, and log all requests
-    to stdout
+`--serve`
+:   serve and log requests, don't browse or auto-exit
+
+`--host=IPADDR`
+:   listen on this IP address (default: 127.0.0.1)
 
 `--port=PORT`
-:   set the TCP port to listen on (default: 5000)
+:   listen on this TCP port (default: 5000)
 
 `--base-url=URL`
-:   set the base url (default: http://localhost:PORT). You would change
+:   set the base url (default: http://IPADDR:PORT). You would change
     this when sharing over the network, or integrating within a
     larger website.
 

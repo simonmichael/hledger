@@ -1,6 +1,6 @@
 # hledger-ui
 
-This doc is for version **1.1**. <span class="docversions"></span>
+This doc is for version **dev**. <span class="docversions"></span>
 
 -   toc
     <style>
@@ -54,7 +54,7 @@ Any QUERYARGS are interpreted as a hledger search query which filters
 the data.
 
 `--watch`
-:   watch for data (and time) changes and reload automatically
+:   watch for data and date changes and reload automatically
 
 `--theme=default|terminal|greenterm`
 :   use this custom display theme
