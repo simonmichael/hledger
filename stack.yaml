@@ -1,5 +1,4 @@
 # Last-tested stack build plan using GHC 8.0.
-# Older/newer snapshots in this series will likely work also.
 
 resolver: lts-7.14
 
@@ -12,7 +11,7 @@ packages:
 
 extra-deps:
 # for hledger-ui:
-- brick-0.15
+- brick-0.15.2
 - vty-5.14
 - text-zipper-0.8.1
 # for hledger-web:

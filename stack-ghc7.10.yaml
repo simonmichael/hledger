@@ -1,5 +1,5 @@
 # Last-tested stack build plan using GHC 7.10.3.
-# Older/newer snapshots in this series will likely work also.
+# This one is not tested as often as stack.yaml.
 
 resolver: lts-6.27
 
