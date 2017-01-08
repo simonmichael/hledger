@@ -96,13 +96,13 @@ See also the two Twitter feeds:
 - [ledger-autosync](https://bitbucket.org/egh/ledger-autosync) downloads/converts/deduplicates OFX data
 - [hledger-chart](http://hackage.haskell.org/package/hledger-chart) generates simple pie charts (unmaintained)
 - [hledger-vty](http://hackage.haskell.org/package/hledger-vty) a simple curses-style UI (unmaintained)
-- More in [extra/](https://github.com/simonmichael/hledger/tree/master/extra/)
+- More in [bin/](https://github.com/simonmichael/hledger/tree/master/bin/)
 
 ## Scripting examples
 
 - <https://gist.github.com/4172604> printing average expenses by month
 - <https://gist.github.com/4210558> calculating historical account balances
-- More in [extra/](https://github.com/simonmichael/hledger/tree/master/extra/)
+- More in [bin/](https://github.com/simonmichael/hledger/tree/master/bin/)
 
 ## Similar projects
 

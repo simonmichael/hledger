@@ -1,7 +1,7 @@
 # Tests for equity addon
 
 # Simple case
-runghc ../../extra/hledger-equity.hs -f- -p 2016 assets liabilities
+runghc ../../bin/hledger-equity.hs -f- -p 2016 assets liabilities
 <<<
 2016/1/1 open
     assets:bank         $100
@@ -35,7 +35,7 @@ runghc ../../extra/hledger-equity.hs -f- -p 2016 assets liabilities
 >>>=0
 
 # Verify effect of period
-runghc ../../extra/hledger-equity.hs -f- -p 2016 assets liabilities
+runghc ../../bin/hledger-equity.hs -f- -p 2016 assets liabilities
 <<<
 2015/12/31 open
     assets:bank         $100
@@ -68,7 +68,7 @@ runghc ../../extra/hledger-equity.hs -f- -p 2016 assets liabilities
 
 # # Tear transaction across periods
 # # TODO: clarify what should we see for this case
-# runghc ../../extra/hledger-equity.hs -f- -p 2016 assets liabilities
+# runghc ../../bin/hledger-equity.hs -f- -p 2016 assets liabilities
 # <<<
 # 2016/1/1 open
 #     assets:bank         $100

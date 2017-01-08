@@ -316,7 +316,7 @@ $ make test -n
 		&& echo pkgtest PASSED) || echo pkgtest FAILED
 (stack exec hledger test \
 		&& echo builtintest PASSED) || echo builtintest FAILED
-(COLUMNS=80 PATH=`pwd`/bin:/home/simon/src/hledger/bin:/home/simon/src/hledger/extra:/home/simon/.local/bin:/home/simon/.cabal/bin:/opt/ghc/7.10.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/var/lib/gems/1.9.1/bin stack exec -- shelltest --execdir -- -j16 --hide-successes tests \
+(COLUMNS=80 PATH=`pwd`/bin:/home/simon/src/hledger/bin:/home/simon/.local/bin:/home/simon/.cabal/bin:/opt/ghc/7.10.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/var/lib/gems/1.9.1/bin stack exec -- shelltest --execdir -- -j16 --hide-successes tests \
 		&& echo functest PASSED) || echo functest FAILED
 ```
 

@@ -1,6 +1,5 @@
 .*
 _*
-bin/*
 cabal-dev*
 cabal.sandbox.config
 */dist/

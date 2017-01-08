@@ -6,8 +6,8 @@
   --package text
 -}
 -- To run or compile this script, it's easiest to be in the hledger source tree. Then:
--- To run it directly: extra/hledger-rewrite.hs ARGS
--- To compile it: stack build hledger --only-dependencies && stack ghc extra/hledger-rewrite.hs
+-- To run it directly: bin/hledger-rewrite.hs ARGS
+-- To compile it: stack build hledger --only-dependencies && stack ghc bin/hledger-rewrite.hs
 
 {-|
 hledger-rewrite [PATTERNS] --add-posting "ACCT  AMTEXPR" ...
@@ -31,6 +31,7 @@ Related: https://github.com/simonmichael/hledger/issues/99
 
 TODO:
 - should allow regex matching and interpolating matched name in replacement
+- should apply all matching rules to a transaction, not just one
 - should apply the rule for each matched posting within a transaction, if there's more than one
 - should be possible to use this on unbalanced entries, eg while editing one
 

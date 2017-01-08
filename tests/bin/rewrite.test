@@ -1,7 +1,7 @@
 # Tests for rewrite addon
 
 # Add proportional income tax (from documentation)
-runghc ../../extra/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:tax)  *.33'
+runghc ../../bin/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:tax)  *.33'
 <<<
 2016/1/1 paycheck
     income:remuneration     $-100
@@ -23,7 +23,7 @@ runghc ../../extra/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:ta
 >>>=0
 
 # Duplicate posting for budgeting (from documentation)
-runghc ../../extra/hledger-rewrite.hs -f- expenses:gifts --add-posting '(budget:gifts)  *-1'
+runghc ../../bin/hledger-rewrite.hs -f- expenses:gifts --add-posting '(budget:gifts)  *-1'
 <<<
 2016/1/1 withdraw
     assets:cash     $20
@@ -45,7 +45,7 @@ runghc ../../extra/hledger-rewrite.hs -f- expenses:gifts --add-posting '(budget:
 >>>=0
 
 # Add absolute bank processing fee
-runghc ../../extra/hledger-rewrite.hs -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
+runghc ../../bin/hledger-rewrite.hs -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
 <<<
 2016/1/1 withdraw
     assets:cash     $20

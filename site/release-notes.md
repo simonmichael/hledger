@@ -138,7 +138,7 @@ Simon Michael, Johannes Gerer, Nikolay Orlyuk, Shubham Lagwankar.
 
 -   fix non-existent "oldtime" dependency ([#431](http://bugs.hledger.org/431))
 
--   [hledger-equity.hs](https://github.com/simonmichael/hledger/blob/master/extra/hledger-equity.hs) now generates valid journal format when there are multiple commodities
+-   [hledger-equity.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-equity.hs) now generates valid journal format when there are multiple commodities
 
 ### hledger-ui 1.1
 
