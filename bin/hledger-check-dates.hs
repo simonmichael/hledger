@@ -3,6 +3,8 @@
    --package hledger-lib
    --package hledger
 -}
+-- You can compile this script for speed:
+-- stack build hledger && stack ghc bin/hledger-check-dates.hs
 
 {-|
 hledger-check-dates [--strict] [--date2] [-f JOURNALFILE]

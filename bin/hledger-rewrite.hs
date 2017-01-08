@@ -5,9 +5,8 @@
   --package megaparsec
   --package text
 -}
--- To run or compile this script, it's easiest to be in the hledger source tree. Then:
--- To run it directly: bin/hledger-rewrite.hs ARGS
--- To compile it: stack build hledger --only-dependencies && stack ghc bin/hledger-rewrite.hs
+-- You can compile this script for speed:
+-- stack build hledger && stack ghc bin/hledger-rewrite.hs
 
 {-|
 hledger-rewrite [PATTERNS] --add-posting "ACCT  AMTEXPR" ...
@@ -23,9 +22,7 @@ hledger-rewrite.hs expenses:gifts --add-posting '(reserve:gifts)  *-1"'
 
 Note the single quotes to protect the dollar sign from bash, and the two spaces between account and amount.
 See the command-line help for more details.
-Currently does not work when invoked via hledger, run hledger-rewrite[.hs] directly.
-
-Tested-with: hledger HEAD ~ 2016/3/2
+Currently does not work when invoked via hledger, run it directly instead.
 
 Related: https://github.com/simonmichael/hledger/issues/99
 
