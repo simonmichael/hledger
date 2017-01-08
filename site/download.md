@@ -44,7 +44,9 @@ You have to build it, but that's pretty easy.
 
 1. Install [`stack`](http://haskell-lang.org/get-started).
    On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
-   On Arch, you [may need to also install GHC manually](https://github.com/simonmichael/hledger/issues/434).
+   On Arch, you [may need to also install GHC manually](https://github.com/simonmichael/hledger/issues/434).\
+   <small>(If you're a [`cabal`](https://www.haskell.org/cabal/) expert, feel free to use that instead, adapting these instructions appropriately.)</small>
+
 
 2. `stack install --resolver=nightly hledger [hledger-ui] [hledger-web] [hledger-api]`\
    On Windows, hledger-ui is [not yet available](https://github.com/coreyoconnor/vty/pull/1).\
@@ -62,7 +64,6 @@ You have to build it, but that's pretty easy.
    `echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`\
    Now you can run `hledger --version`, `hledger-ui --version` etc.
 
-Installing with [`cabal`](https://www.haskell.org/cabal/) is similar, if you're familiar with that. 
 <!--(The exact steps depend on your OS, cabal version and expertise.)-->
 <!--
 Short version:\
@@ -111,14 +112,16 @@ Cabal users can use the `cabal-install.sh` or `cabal.project` files instead.
 
 ## D. I want to install all add-on commands
 
-Some experimental hledger commands are not built in, but included in the source as
-[add-on commands](http://hledger.org/hledger.html#add-on-commands). These include:
-`hledger-check-dates`.
+Some experimental commands are not built in to hledger, but
+[included in the source](https://github.com/simonmichael/hledger/tree/master/bin) as
+[add-on commands](http://hledger.org/hledger.html#add-on-commands):\
+`hledger-check-dates`,
 `hledger-equity`,
 `hledger-print-unique`,
 `hledger-register-match`,
-`hledger-rewrite`,
-You can install these as follows:
+`hledger-rewrite`.
+
+To install these and make them available in hledger's commands list:
 
 1. Install [`stack`](http://haskell-lang.org/get-started) and [git](https://en.wikipedia.org/wiki/Git) (see above)
 2. `git clone http://code.hledger.org hledger` (as above)
@@ -126,18 +129,20 @@ You can install these as follows:
 4. `bin/compile.sh` (optional, makes them start faster)
 5. add the hledger `bin/` directory to your `$PATH`
 
-Now the add-on commands will appear in the commands listed by `hledger`.
-(In addition, there is a `hledger-autosync` symbolic link showing how to make
+There is also a `hledger-autosync` symbolic link showing how to make
 the [ledger-autosync](https://gitlab.com/egh/ledger-autosync) tool available
-as a hledger command, if installed.)
+as a hledger command.
 
-Other hledger commands are provided as separate packages, such as:
-`hledger-diff`, `hledger-iadd`, `hledger-interest`, `hledger-irr`.
-Some of these are available in Stackage and can be installed with stack as in B above, eg:
+Other commands are published as separate packages:\
+`hledger-diff`,
+`hledger-iadd`,
+`hledger-interest`,
+`hledger-irr`.
 
-`stack install --resolver nightly hledger-interest`
+Some are available in Stackage and can be installed with stack as in B above:
 
-Others may be available only on Hackage, in which case you should specify
-the version number displayed [there](http://hackage.haskell.org/package/hledger-diff). Eg:
+`stack install --resolver nightly hledger-iadd hledger-interest`
 
-`stack install hledger-diff-0.2.0.7`
+Others are available only on Hackage, so you must specify the Hackage version number. Eg:
+
+`stack install hledger-diff-0.2.0.7 hledger-irr-0.1.1.10`
