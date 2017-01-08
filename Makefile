@@ -49,7 +49,7 @@ help2: \
 export LANG?=en_US.UTF-8
 
 # command to run during profiling (time and heap)
-PROFCMD=stack exec -- hledgerprof balance -f data/10000x1000x10.journal >/dev/null
+PROFCMD=stack exec -- hledgerprof balance -f examples/10000x1000x10.journal >/dev/null
 
 #PROFRTSFLAGS=-p
 PROFRTSFLAGS=-P
@@ -722,7 +722,7 @@ quickbench: samplejournals bench.sh \
 
 quickprof-%: hledgerprof samplejournals \
 		$(call def-help,quickprof-"CMD", run some command against a sample journal and display the execution profile )
-	$(STACK) exec -- hledgerprof +RTS $(PROFRTSFLAGS) -RTS $* -f data/10000x1000x10.journal >/dev/null
+	$(STACK) exec -- hledgerprof +RTS $(PROFRTSFLAGS) -RTS $* -f examples/10000x1000x10.journal >/dev/null
 	profiteur hledgerprof.prof
 	@echo
 	@head -20 hledgerprof.prof
@@ -748,7 +748,7 @@ quickprof-%: hledgerprof samplejournals \
 
 quickheap-%: hledgerprof samplejournals \
 		$(call def-help,quickheap-"CMD", run some command against a sample journal and display the heap profile )
-	$(STACK) exec -- hledgerprof +RTS -hc -RTS $* -f data/10000x1000x10.journal >/dev/null
+	$(STACK) exec -- hledgerprof +RTS -hc -RTS $* -f examples/10000x1000x10.journal >/dev/null
 	hp2ps hledgerprof.hp
 	@echo generated hledgerprof.ps
 	$(VIEWPS) hledgerprof.ps
@@ -812,50 +812,50 @@ ghcid-lib-doctest:
 	ghcid --command 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
 
 samplejournals: \
-	data/sample.journal \
-	data/100x100x10.journal \
-	data/1000x1000x10.journal \
-	data/1000x10000x10.journal \
-	data/10000x1000x10.journal \
-	data/10000x10000x10.journal \
-	data/100000x1000x10.journal \
-	data/1000000x1000x10.journal \
-	data/ascii.journal \
-	data/chinese.journal \
-	data/mixed.journal \
-	$(call def-help,samplejournals, regenerate standard sample journals in data/ )
+	examples/sample.journal \
+	examples/100x100x10.journal \
+	examples/1000x1000x10.journal \
+	examples/1000x10000x10.journal \
+	examples/10000x1000x10.journal \
+	examples/10000x10000x10.journal \
+	examples/100000x1000x10.journal \
+	examples/1000000x1000x10.journal \
+	examples/ascii.journal \
+	examples/chinese.journal \
+	examples/mixed.journal \
+	$(call def-help,samplejournals, regenerate standard sample journals in examples/ )
 
-data/sample.journal:
+examples/sample.journal:
 	true # XXX should probably regenerate this
 
-data/100x100x10.journal: tools/generatejournal
+examples/100x100x10.journal: tools/generatejournal
 	tools/generatejournal 100 100 10 >$@
 
-data/1000x1000x10.journal: tools/generatejournal
+examples/1000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 1000 1000 10 >$@
 
-data/1000x10000x10.journal: tools/generatejournal
+examples/1000x10000x10.journal: tools/generatejournal
 	tools/generatejournal 1000 10000 10 >$@
 
-data/10000x1000x10.journal: tools/generatejournal
+examples/10000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 10000 1000 10 >$@
 
-data/10000x10000x10.journal: tools/generatejournal
+examples/10000x10000x10.journal: tools/generatejournal
 	tools/generatejournal 10000 10000 10 >$@
 
-data/100000x1000x10.journal: tools/generatejournal
+examples/100000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 100000 1000 10 >$@
 
-data/1000000x1000x10.journal: tools/generatejournal
+examples/1000000x1000x10.journal: tools/generatejournal
 	tools/generatejournal 1000000 1000 10 >$@
 
-data/ascii.journal: tools/generatejournal
+examples/ascii.journal: tools/generatejournal
 	tools/generatejournal 3 5 5 >$@
 
-data/chinese.journal: tools/generatejournal
+examples/chinese.journal: tools/generatejournal
 	tools/generatejournal 3 5 5 --chinese >$@
 
-data/mixed.journal: tools/generatejournal
+examples/mixed.journal: tools/generatejournal
 	tools/generatejournal 3 5 5 --mixed >$@
 
 ###############################################################################

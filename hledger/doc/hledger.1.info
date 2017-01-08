@@ -853,7 +853,7 @@ or press control-d or control-c to exit.
 
 
 $ hledger add
-Adding transactions to journal file /src/hledger/data/sample.journal
+Adding transactions to journal file /src/hledger/examples/sample.journal
 Any command line arguments will be used as defaults.
 Use tab key to complete, readline keys to edit, enter to accept defaults.
 An optional (CODE) may follow transaction dates.
@@ -1672,7 +1672,7 @@ Show some journal statistics.
 
 
 $ hledger stats
-Main journal file        : /src/hledger/data/sample.journal
+Main journal file        : /src/hledger/examples/sample.journal
 Included journal files   :
 Transactions span        : 2008-01-01 to 2009-01-01 (366 days)
 Last transaction         : 2008-12-31 (2333 days ago)
@@ -2259,71 +2259,71 @@ Node: activity24597
 Ref: #activity24709
 Node: add25068
 Ref: #add25169
-Node: balance27828
-Ref: #balance27941
-Node: Flat mode30954
-Ref: #flat-mode31081
-Node: Depth limited balance reports31500
-Ref: #depth-limited-balance-reports31703
-Node: Multicolumn balance reports32124
-Ref: #multicolumn-balance-reports32326
-Node: Market value36975
-Ref: #market-value37139
-Node: Custom balance output38440
-Ref: #custom-balance-output38613
-Node: Output destination40717
-Ref: #output-destination40882
-Node: CSV output41152
-Ref: #csv-output41271
-Node: balancesheet41668
-Ref: #balancesheet41796
-Node: cashflow42448
-Ref: #cashflow42565
-Node: help43255
-Ref: #help43367
-Node: incomestatement44204
-Ref: #incomestatement44334
-Node: info45061
-Ref: #info45168
-Node: man45530
-Ref: #man45627
-Node: print46030
-Ref: #print46135
-Node: register47481
-Ref: #register47594
-Node: Custom register output52086
-Ref: #custom-register-output52217
-Node: stats53514
-Ref: #stats53620
-Node: test54496
-Ref: #test54583
-Node: ADD-ON COMMANDS54950
-Ref: #add-on-commands55086
-Node: api56374
-Ref: #api56466
-Node: autosync56500
-Ref: #autosync56615
-Node: diff58930
-Ref: #diff59040
-Node: equity59704
-Ref: #equity59818
-Node: interest61146
-Ref: #interest61263
-Node: irr64347
-Ref: #irr64460
-Node: print-unique66835
-Ref: #print-unique66965
-Node: rewrite67223
-Ref: #rewrite67342
-Node: ui67871
-Ref: #ui67971
-Node: web68012
-Ref: #web68100
-Node: TROUBLESHOOTING68133
-Ref: #troubleshooting68252
-Node: Run-time problems68306
-Ref: #run-time-problems68449
-Node: Known limitations70393
-Ref: #known-limitations70536
+Node: balance27832
+Ref: #balance27945
+Node: Flat mode30958
+Ref: #flat-mode31085
+Node: Depth limited balance reports31504
+Ref: #depth-limited-balance-reports31707
+Node: Multicolumn balance reports32128
+Ref: #multicolumn-balance-reports32330
+Node: Market value36979
+Ref: #market-value37143
+Node: Custom balance output38444
+Ref: #custom-balance-output38617
+Node: Output destination40721
+Ref: #output-destination40886
+Node: CSV output41156
+Ref: #csv-output41275
+Node: balancesheet41672
+Ref: #balancesheet41800
+Node: cashflow42452
+Ref: #cashflow42569
+Node: help43259
+Ref: #help43371
+Node: incomestatement44208
+Ref: #incomestatement44338
+Node: info45065
+Ref: #info45172
+Node: man45534
+Ref: #man45631
+Node: print46034
+Ref: #print46139
+Node: register47485
+Ref: #register47598
+Node: Custom register output52090
+Ref: #custom-register-output52221
+Node: stats53518
+Ref: #stats53624
+Node: test54504
+Ref: #test54591
+Node: ADD-ON COMMANDS54958
+Ref: #add-on-commands55094
+Node: api56382
+Ref: #api56474
+Node: autosync56508
+Ref: #autosync56623
+Node: diff58938
+Ref: #diff59048
+Node: equity59712
+Ref: #equity59826
+Node: interest61154
+Ref: #interest61271
+Node: irr64355
+Ref: #irr64468
+Node: print-unique66843
+Ref: #print-unique66973
+Node: rewrite67231
+Ref: #rewrite67350
+Node: ui67879
+Ref: #ui67979
+Node: web68020
+Ref: #web68108
+Node: TROUBLESHOOTING68141
+Ref: #troubleshooting68260
+Node: Run-time problems68314
+Ref: #run-time-problems68457
+Node: Known limitations70401
+Ref: #known-limitations70544
 
 End Tag Table

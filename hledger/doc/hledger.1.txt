@@ -746,7 +746,7 @@ COMMANDS
        Example (see the tutorial for a detailed explanation):
 
               $ hledger add
-              Adding transactions to journal file /src/hledger/data/sample.journal
+              Adding transactions to journal file /src/hledger/examples/sample.journal
               Any command line arguments will be used as defaults.
               Use tab key to complete, readline keys to edit, enter to accept defaults.
               An optional (CODE) may follow transaction dates.
@@ -1419,7 +1419,7 @@ COMMANDS
               above formats selects that format.
 
               $ hledger stats
-              Main journal file        : /src/hledger/data/sample.journal
+              Main journal file        : /src/hledger/examples/sample.journal
               Included journal files   :
               Transactions span        : 2008-01-01 to 2009-01-01 (366 days)
               Last transaction         : 2008-12-31 (2333 days ago)

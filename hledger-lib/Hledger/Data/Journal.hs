@@ -889,7 +889,7 @@ abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
 
 -- tests
 
--- A sample journal for testing, similar to data/sample.journal:
+-- A sample journal for testing, similar to examples/sample.journal:
 --
 -- 2008/01/01 income
 --     assets:bank:checking  $1

@@ -139,7 +139,7 @@ Example (see the [tutorial](step-by-step.html#record-a-transaction-with-hledger-
 
 _shell_({{
 $ hledger add
-Adding transactions to journal file /src/hledger/data/sample.journal
+Adding transactions to journal file /src/hledger/examples/sample.journal
 Any command line arguments will be used as defaults.
 Use tab key to complete, readline keys to edit, enter to accept defaults.
 An optional (CODE) may follow transaction dates.
@@ -511,7 +511,7 @@ Show some journal statistics.
 
 ```shell
 $ hledger stats
-Main journal file        : /src/hledger/data/sample.journal
+Main journal file        : /src/hledger/examples/sample.journal
 Included journal files   : 
 Transactions span        : 2008-01-01 to 2009-01-01 (366 days)
 Last transaction         : 2008-12-31 (2333 days ago)

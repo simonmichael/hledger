@@ -13,7 +13,7 @@ With no report interval (@--monthly@ etc.), hledger's balance
 command emulates ledger's, showing accounts indented according to
 hierarchy, along with their total amount posted (including subaccounts).
 
-Here's an example. With @data/sample.journal@, which defines the following account tree:
+Here's an example. With @examples/sample.journal@, which defines the following account tree:
 
 @
  assets

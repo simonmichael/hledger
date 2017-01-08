@@ -33,10 +33,10 @@ import Hledger
 -- instance NFData Regex
 
 journal =
-  -- "data/10000x1000x10.journal"
-  "data/10000x1000x10.journal"
+  -- "examples/10000x1000x10.journal"
+  "examples/10000x1000x10.journal"
 
-timeclock = "data/sample.timeclock"
+timeclock = "examples/sample.timeclock"
 
 timeit :: String -> IO a -> IO (Double, a)
 timeit name action = do
