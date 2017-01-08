@@ -3,10 +3,8 @@
    --package hledger-lib
    --package hledger
 -}
--- You can compile this script for speed:
--- stack build hledger && stack ghc bin/hledger-print-unique.hs
-
 {-
+
 hledger-print-unique [-f JOURNALFILE | -f-]
 
 Print only journal entries which are unique by description (or

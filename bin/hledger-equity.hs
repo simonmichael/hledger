@@ -4,10 +4,8 @@
    --package hledger
    --package time
 -}
--- You can compile this script for speed:
--- stack build hledger && stack ghc bin/hledger-equity.hs
-
 {-
+
 hledger-equity [HLEDGEROPTS] [QUERY]
 
 Show a "closing balances" transaction that brings the balance of the

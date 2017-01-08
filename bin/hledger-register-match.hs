@@ -4,10 +4,8 @@
    --package hledger
    --package text
 -}
--- You can compile this script for speed:
--- stack build hledger && stack ghc bin/hledger-register-match.hs
+{-
 
-{-|
 hledger-register-match DESC
 
 A helper for ledger-autosync. This prints the one posting whose transaction
@@ -15,7 +13,7 @@ description is closest to DESC, in the style of the register command.
 If there are multiple equally good matches, it shows the most recent.
 Query options (options, not arguments) can be used to restrict the search space.
 
-|-}
+-}
 
 {-# LANGUAGE OverloadedStrings #-}
 

@@ -3,15 +3,16 @@
    --package hledger-lib
    --package hledger
 -}
--- You can compile this script for speed:
--- stack build hledger && stack ghc bin/hledger-check-dates.hs
+{-
 
-{-|
 hledger-check-dates [--strict] [--date2] [-f JOURNALFILE]
 
 Check that transactions' date are monotonically increasing.
-Reads the default or specified journal.
-|-}
+With --strict, dates must also be unique.
+With --date2, checks transactions' secondary dates.
+Reads the default journal file, or another specified with -f.
+
+-}
 
 import Hledger
 import Hledger.Cli

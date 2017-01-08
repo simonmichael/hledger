@@ -5,10 +5,8 @@
   --package megaparsec
   --package text
 -}
--- You can compile this script for speed:
--- stack build hledger && stack ghc bin/hledger-rewrite.hs
+{-
 
-{-|
 hledger-rewrite [PATTERNS] --add-posting "ACCT  AMTEXPR" ...
 
 A start at a generic rewriter of journal entries.
@@ -32,7 +30,7 @@ TODO:
 - should apply the rule for each matched posting within a transaction, if there's more than one
 - should be possible to use this on unbalanced entries, eg while editing one
 
-|-}
+-}
 
 import qualified Data.Text as T
 -- hledger lib, cli and cmdargs utils
