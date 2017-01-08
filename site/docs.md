@@ -29,14 +29,14 @@ Small, guided exercises introducing data entry, reporting, and accounting.
 </div>
 <div class="col-sm-3">
 
-## Manuals
+## Reference
 
 #### [Big Manual](manual.html)
 All manuals combined on one page.
 
 <div style="padding-left:1em;">
 
-**Tools:**
+**Tool manuals**
 
 #### [`hledger`](hledger.html)
 The main command-line UI.
@@ -54,16 +54,16 @@ A web UI
 A basic web API
 , for building client-side apps. 
 
-**File formats:**
+**File format manuals**
 
 #### [Journal](journal.html)
-hledger's native data format, representing an accounting journal. 
+hledger's native data format, representing an accounting journal.
 
 #### [CSV](csv.html)
-Comma Separated Values, used for import/export. 
+Comma Separated Values, used for import/export.
 
 #### [Timeclock](timeclock.html)
-For time logging, with clock-in/clock-out records. 
+For time logging, with clock-in/clock-out records.
 
 #### [Timedot](timedot.html)
 A more human-friendly time logging format.
