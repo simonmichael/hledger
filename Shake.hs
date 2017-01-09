@@ -77,8 +77,8 @@ groff = "groff"
 main = do
 
   pandocFilters <-
-    map ("doc" </>). nub . sort . map (-<.> "") . filter ("pandoc-" `isPrefixOf`)
-    <$> S.getDirectoryContents "doc"
+    map ("tools" </>). nub . sort . map (-<.> "") . filter ("pandoc-" `isPrefixOf`)
+    <$> S.getDirectoryContents "tools"
 
   shakeArgs
     shakeOptions{
@@ -167,11 +167,11 @@ main = do
       cmd Shell
         "m4 -P -DMAN -I" dir lib src "|"
         pandoc "-f markdown -s --template" tmpl
-        -- "--filter doc/pandoc-drop-web-blocks"
-        "--filter doc/pandoc-drop-html-blocks"
-        "--filter doc/pandoc-drop-html-inlines"
-        "--filter doc/pandoc-drop-links"
-        "--filter doc/pandoc-drop-notes"
+        -- "--filter tools/pandoc-drop-web-blocks"
+        "--filter tools/pandoc-drop-html-blocks"
+        "--filter tools/pandoc-drop-html-inlines"
+        "--filter tools/pandoc-drop-links"
+        "--filter tools/pandoc-drop-notes"
         "-o" out
 
     -- render man page nroffs to fixed-width text for embedding in executables, with nroff
@@ -195,11 +195,11 @@ main = do
       cmd Shell
         "m4 -P -I" dir lib src "|"
         pandoc "-f markdown"
-        -- "--filter doc/pandoc-drop-web-blocks"
-        "--filter doc/pandoc-drop-html-blocks"
-        "--filter doc/pandoc-drop-html-inlines"
-        "--filter doc/pandoc-drop-links"
-        "--filter doc/pandoc-drop-notes"
+        -- "--filter tools/pandoc-drop-web-blocks"
+        "--filter tools/pandoc-drop-html-blocks"
+        "--filter tools/pandoc-drop-html-inlines"
+        "--filter tools/pandoc-drop-links"
+        "--filter tools/pandoc-drop-notes"
         "-t texinfo |"
         makeinfo "--force --no-split -o" out
 
@@ -234,9 +234,9 @@ main = do
       cmd Shell
         "m4 -P -DMAN -DWEB -I" dir lib src "|"
         pandoc "-f markdown -t markdown --atx-headers"
-        "--filter doc/pandoc-demote-headers"
-        -- "--filter doc/pandoc-add-toc"
-        -- "--filter doc/pandoc-drop-man-blocks"
+        "--filter tools/pandoc-demote-headers"
+        -- "--filter tools/pandoc-add-toc"
+        -- "--filter tools/pandoc-drop-man-blocks"
         ">>" out
 
     -- adjust and combine man page mds for single-page web output, using pandoc
@@ -248,10 +248,10 @@ main = do
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
         cmd Shell ("printf '\\n\\n' >>") webmanall :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown --atx-headers"
-          -- "--filter doc/pandoc-drop-man-blocks"
-          "--filter doc/pandoc-drop-toc"
-          -- "--filter doc/pandoc-capitalize-headers"
-          "--filter doc/pandoc-demote-headers"
+          -- "--filter tools/pandoc-drop-man-blocks"
+          "--filter tools/pandoc-drop-toc"
+          -- "--filter tools/pandoc-capitalize-headers"
+          "--filter tools/pandoc-demote-headers"
           ">>" webmanall :: Action ExitCode
 
     -- build the currently checked out web docs and save as a named snapshot
