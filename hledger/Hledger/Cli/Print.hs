@@ -106,7 +106,7 @@ entriesReportAsText items = concatMap showTransactionUnelided items
 
 entriesReportAsCsv :: EntriesReport -> CSV
 entriesReportAsCsv txns =
-  ["txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","status","posting-comment"] :
+  ["txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"] :
   concatMap transactionToCSV txns
 
 -- | Generate one CSV record per posting, duplicating the common transaction fields.
