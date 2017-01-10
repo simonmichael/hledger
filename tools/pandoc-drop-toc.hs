@@ -1,6 +1,7 @@
 #!/usr/bin/env stack
 {- stack runghc --verbosity info
    --package pandoc
+   --package split
 -}
 -- Remove a table of contents marker
 -- (a bullet list item containing "toc[-N[-M]]")
