@@ -164,7 +164,7 @@ Starting the next transaction (. or ctrl-D/ctrl-C to quit)
 Date [2015/05/22]: <CTRL-D> $
 }})
 
-_include_({{commands-balance.m4.md}})
+_include_({{balance.m4.md}})
 
 ## balancesheet
 Show a balance sheet. Alias: bs.
