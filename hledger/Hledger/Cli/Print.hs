@@ -60,8 +60,11 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
         _     -> (entriesReportAsText,                      ropts)
   writeOutput opts $ render $ entriesReport ropts' q j
 
+-- | Render journal entries (transactions) as a string, which should be valid journal format.
 entriesReportAsText :: EntriesReport -> String
-entriesReportAsText items = concatMap showTransactionUnelided items
+entriesReportAsText items = concatMap showtxn items
+  where
+    showtxn = showTransaction
 
 -- XXX
 -- tests_showTransactions = [
