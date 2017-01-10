@@ -10,7 +10,7 @@ hledger -f - print
 2010/01/01
     a         EUR 1    ; a euro
     b         USD 1    ; a dollar
-             EUR -1
+    c        EUR -1    ; a euro and a dollar
     c        USD -1    ; a euro and a dollar
 
 >>>=0
