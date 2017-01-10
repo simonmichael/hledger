@@ -1514,6 +1514,38 @@ original content exactly (eg directives).
 
    The print command also supports output destination and CSV output.
 
+   Here's an example of print's CSV output:
+
+
+"txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"
+"1","2008/01/01","","","","income","","assets:bank:checking","1","$","","1","",""
+"1","2008/01/01","","","","income","","income:salary","-1","$","1","","",""
+"2","2008/06/01","","","","gift","","assets:bank:checking","1","$","","1","",""
+"2","2008/06/01","","","","gift","","income:gifts","-1","$","1","","",""
+"3","2008/06/02","","","","save","","assets:bank:saving","1","$","","1","",""
+"3","2008/06/02","","","","save","","assets:bank:checking","-1","$","1","","",""
+"4","2008/06/03","","*","","eat & shop","","expenses:food","1","$","","1","",""
+"4","2008/06/03","","*","","eat & shop","","expenses:supplies","1","$","","1","",""
+"4","2008/06/03","","*","","eat & shop","","assets:cash","-2","$","2","","",""
+"5","2008/12/31","","*","","pay off","","liabilities:debts","1","$","","1","",""
+"5","2008/12/31","","*","","pay off","","assets:bank:checking","-1","$","1","","",""
+
+   * There is one CSV record per posting, with the parent transaction's
+     fields repeated.
+
+   * The "txnidx" (transaction index) field shows which postings belong
+     to the same transaction. (This number might change if transactions
+     are reordered within the file, files are parsed/included in a
+     different order, etc.)
+
+   * The amount is separated into "commodity" (the symbol) and "amount"
+     (numeric quantity) fields.
+
+   * The numeric amount is repeated in either the "credit" or "debit"
+     column, for convenience. (Those names are not accurate in the
+     accounting sense; it just puts negative amounts under credit and
+     zero or greater amounts under debit.)
+
 
 File: hledger.1.info,  Node: register,  Next: stats,  Prev: print,  Up: COMMANDS
 
@@ -2289,41 +2321,41 @@ Node: man45534
 Ref: #man45631
 Node: print46034
 Ref: #print46139
-Node: register47485
-Ref: #register47598
-Node: Custom register output52090
-Ref: #custom-register-output52221
-Node: stats53518
-Ref: #stats53624
-Node: test54504
-Ref: #test54591
-Node: ADD-ON COMMANDS54958
-Ref: #add-on-commands55094
-Node: api56382
-Ref: #api56474
-Node: autosync56508
-Ref: #autosync56623
-Node: diff58938
-Ref: #diff59048
-Node: equity59712
-Ref: #equity59826
-Node: interest61154
-Ref: #interest61271
-Node: irr64355
-Ref: #irr64468
-Node: print-unique66843
-Ref: #print-unique66973
-Node: rewrite67231
-Ref: #rewrite67350
-Node: ui67879
-Ref: #ui67979
-Node: web68020
-Ref: #web68108
-Node: TROUBLESHOOTING68141
-Ref: #troubleshooting68260
-Node: Run-time problems68314
-Ref: #run-time-problems68457
-Node: Known limitations70401
-Ref: #known-limitations70544
+Node: register49249
+Ref: #register49362
+Node: Custom register output53854
+Ref: #custom-register-output53985
+Node: stats55282
+Ref: #stats55388
+Node: test56268
+Ref: #test56355
+Node: ADD-ON COMMANDS56722
+Ref: #add-on-commands56858
+Node: api58146
+Ref: #api58238
+Node: autosync58272
+Ref: #autosync58387
+Node: diff60702
+Ref: #diff60812
+Node: equity61476
+Ref: #equity61590
+Node: interest62918
+Ref: #interest63035
+Node: irr66119
+Ref: #irr66232
+Node: print-unique68607
+Ref: #print-unique68737
+Node: rewrite68995
+Ref: #rewrite69114
+Node: ui69643
+Ref: #ui69743
+Node: web69784
+Ref: #web69872
+Node: TROUBLESHOOTING69905
+Ref: #troubleshooting70024
+Node: Run-time problems70078
+Ref: #run-time-problems70221
+Node: Known limitations72165
+Ref: #known-limitations72308
 
 End Tag Table
