@@ -2,6 +2,16 @@
 % _author_
 % _monthyear_
 
+m4_dnl This man page is currently broken into smaller files as follows:
+m4_dnl
+m4_dnl hledger.1.m4.md
+m4_dnl  examples.m4.md
+m4_dnl  options.m4.md
+m4_dnl  queries.m4.md
+m4_dnl  commands.m4.md
+m4_dnl   commands-balance.m4.md
+m4_dnl  troubleshooting.m4.md
+
 _web_({{
 _docversionlinks_({{hledger}})
 _toc_
