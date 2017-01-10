@@ -131,7 +131,7 @@ postingToCSV p =
     let amount = showAmount a_ in
     let commodity = T.unpack c in
     let credit = if q < 0 then showAmount $ negate a_ else "" in
-    let debit  = if q > 0 then showAmount a_ else "" in
+    let debit  = if q >= 0 then showAmount a_ else "" in
     account:amount:commodity:credit:debit:status:comment:[])
    amounts
   where
