@@ -132,7 +132,8 @@ tests_showTransactionUnelided = [
       `gives` unlines [
       "2012/05/14=2012/05/15 (code) desc    ; tcomment1",
       "    ; tcomment2",
-      "                $1.00",
+      "    * a         $1.00",
+      "    ; pcomment2",
       "    * a         2.00h",
       "    ; pcomment2",
       ""
@@ -186,11 +187,12 @@ postingsAsLines elide onelineamounts t ps
     | otherwise = concatMap (postingAsLines False onelineamounts ps) ps
 
 postingAsLines :: Bool -> Bool -> [Posting] -> Posting -> [String]
-postingAsLines elideamount onelineamounts ps p =
-    postinglines
+postingAsLines elideamount onelineamounts ps p = concat [
+    postingblock
     ++ newlinecomments
+    | postingblock <- postingblocks]
   where
-    postinglines = map rstrip $ lines $ concatTopPadded [account, "  ", amount, assertion, samelinecomment]
+    postingblocks = [map rstrip $ lines $ concatTopPadded [account, "  ", amount, assertion, samelinecomment] | amount <- shownAmounts]
     assertion = maybe "" ((" = " ++) . showAmount) $ pbalanceassertion p
     account =
       indent $
@@ -200,10 +202,10 @@ postingAsLines elideamount onelineamounts ps p =
           acctwidth = maximum $ map (textWidth . paccount) ps
 
     -- currently prices are considered part of the amount string when right-aligning amounts
-    amount
-      | elideamount    = ""
-      | onelineamounts = fitString (Just amtwidth) Nothing False False $ showMixedAmountOneLine $ pamount p
-      | otherwise      = fitStringMulti (Just amtwidth) Nothing False False $ showMixedAmount $ pamount p
+    shownAmounts
+      | elideamount    = [""]
+      | onelineamounts = [fitString (Just amtwidth) Nothing False False $ showMixedAmountOneLine $ pamount p]
+      | otherwise      = map (fitStringMulti (Just amtwidth) Nothing False False . showAmount ) . amounts $ pamount p
       where
         amtwidth = maximum $ 12 : map (strWidth . showMixedAmount . pamount) ps  -- min. 12 for backwards compatibility
 
@@ -222,8 +224,8 @@ showPostingLine p =
 
 tests_postingAsLines = [
    "postingAsLines" ~: do
-    let p `gives` ls = assertEqual "" ls (postingAsLines False False [p] p)
-    posting `gives` ["                 0"]
+    let p `gives` ls = assertEqual (show p) ls (postingAsLines False False [p] p)
+    posting `gives` []
     posting{
       pstatus=Cleared,
       paccount="a",
@@ -233,7 +235,9 @@ tests_postingAsLines = [
       ptags=[("ptag1","val1"),("ptag2","val2")]
       }
      `gives` [
-      "                $1.00",
+      "    * a         $1.00    ; pcomment1",
+      "    ; pcomment2",
+      "    ;   tag3: val3  ",
       "    * a         2.00h    ; pcomment1",
       "    ; pcomment2",
       "    ;   tag3: val3  "
