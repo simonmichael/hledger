@@ -32,3 +32,18 @@ hledger -f- balance
 --------------------
                    0
 >>>=0
+
+# 4. autobalance with prices
+hledger -f- print
+<<<
+2016/1/1
+    saving-card  $-105
+    snacks  95 EUR @@ $100
+    Equity:Unbalanced
+>>>
+2016/01/01
+    saving-card                 $-105
+    snacks             95 EUR @@ $100
+    Equity:Unbalanced              $5
+
+>>>=0

@@ -244,6 +244,38 @@ tests_postingAsLines = [
       ]
  ]
 
+tests_inference = [
+    "inferBalancingAmount" ~: do
+    let p `gives` p' = assertEqual (show p) (Right p') $ inferTransaction p
+        inferTransaction :: Transaction -> Either String Transaction
+        inferTransaction = runIdentity . runExceptT . inferBalancingAmount (\_ _ -> return ())
+    nulltransaction `gives` nulltransaction
+    nulltransaction{
+      tpostings=[
+        "a" `post` usd (-5),
+        "b" `post` missingamt
+      ]}
+      `gives`
+      nulltransaction{
+        tpostings=[
+          "a" `post` usd (-5),
+          "b" `post` usd 5
+        ]}
+    nulltransaction{
+      tpostings=[
+        "a" `post` usd (-5),
+        "b" `post` (eur 3 @@ usd 4),
+        "c" `post` missingamt
+      ]}
+      `gives`
+      nulltransaction{
+        tpostings=[
+          "a" `post` usd (-5),
+          "b" `post` (eur 3 @@ usd 4),
+          "c" `post` usd 1
+        ]}
+ ]
+
 indent :: String -> String
 indent = ("    "++)
 
@@ -371,7 +403,7 @@ inferBalancingAmount update t@Transaction{tpostings=ps}
      | not (hasAmount p) = updateAmount p bvsum
     inferamount p = return p
     updateAmount p amt = update (paccount p) amt' >> return p { pamount=amt' }
-      where amt' = costOfMixedAmount (-amt)
+      where amt' = normaliseMixedAmount $ costOfMixedAmount (-amt)
 
 -- | Infer prices for this transaction's posting amounts, if needed to make
 -- the postings balance, and if possible. This is done once for the real
@@ -471,6 +503,7 @@ postingSetTransaction t p = p{ptransaction=Just t}
 tests_Hledger_Data_Transaction = TestList $ concat [
   tests_postingAsLines,
   tests_showTransactionUnelided,
+  tests_inference,
   [
   "showTransaction" ~: do
      assertEqual "show a balanced transaction, eliding last amount"
