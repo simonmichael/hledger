@@ -34,6 +34,42 @@ runghc ../../bin/hledger-equity.hs -f- -p 2016 assets liabilities
 
 >>>=0
 
+# Test aggregation of postings with prices
+runghc ../../bin/hledger-equity.hs -f- -p 2016 assets liabilities
+<<<
+Y2016
+01/31
+	liabilities:employer  $5,000.00
+	income:salary
+
+02/05
+	liabilities:employer  -$5,000.00 @ 0.95 EUR
+	expenses:tax  1,852.50 EUR
+	assets:bank  2,897.00 EUR
+	liabilities:employer
+
+02/29
+	liabilities:employer  $5,000.00
+	income:salary
+
+03/04
+	liabilities:employer  -$5,000.0 @ 0.93 EUR
+	expenses:tax  1,813.50 EUR
+	assets:bank  2,836.00 EUR
+	liabilities:employer
+>>>
+2016/12/31 closing balances
+    assets:bank              -5,733.00 EUR
+    liabilities:employer         -1.00 EUR
+    equity:closing balances
+
+2017/01/01 opening balances
+    assets:bank               5,733.00 EUR
+    liabilities:employer          1.00 EUR
+    equity:opening balances
+
+>>>=0
+
 # Verify effect of period
 runghc ../../bin/hledger-equity.hs -f- -p 2016 assets liabilities
 <<<
