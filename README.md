@@ -27,6 +27,76 @@ For some, it is a simpler, less distracting, more future-proof alternative to Qu
 
 For more, see http://hledger.org.
 
+##Support
+
+### Backers
+Support us with a monthly donation and help us continue our activities. [[Become a backer](https://opencollective.com/hledger#backer)]
+
+<a href="https://opencollective.com/hledger/backer/0/website" target="_blank"><img src="https://opencollective.com/hledger/backer/0/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/1/website" target="_blank"><img src="https://opencollective.com/hledger/backer/1/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/2/website" target="_blank"><img src="https://opencollective.com/hledger/backer/2/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/3/website" target="_blank"><img src="https://opencollective.com/hledger/backer/3/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/4/website" target="_blank"><img src="https://opencollective.com/hledger/backer/4/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/5/website" target="_blank"><img src="https://opencollective.com/hledger/backer/5/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/6/website" target="_blank"><img src="https://opencollective.com/hledger/backer/6/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/7/website" target="_blank"><img src="https://opencollective.com/hledger/backer/7/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/8/website" target="_blank"><img src="https://opencollective.com/hledger/backer/8/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/9/website" target="_blank"><img src="https://opencollective.com/hledger/backer/9/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/10/website" target="_blank"><img src="https://opencollective.com/hledger/backer/10/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/11/website" target="_blank"><img src="https://opencollective.com/hledger/backer/11/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/12/website" target="_blank"><img src="https://opencollective.com/hledger/backer/12/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/13/website" target="_blank"><img src="https://opencollective.com/hledger/backer/13/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/14/website" target="_blank"><img src="https://opencollective.com/hledger/backer/14/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/15/website" target="_blank"><img src="https://opencollective.com/hledger/backer/15/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/16/website" target="_blank"><img src="https://opencollective.com/hledger/backer/16/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/17/website" target="_blank"><img src="https://opencollective.com/hledger/backer/17/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/18/website" target="_blank"><img src="https://opencollective.com/hledger/backer/18/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/19/website" target="_blank"><img src="https://opencollective.com/hledger/backer/19/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/20/website" target="_blank"><img src="https://opencollective.com/hledger/backer/20/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/21/website" target="_blank"><img src="https://opencollective.com/hledger/backer/21/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/22/website" target="_blank"><img src="https://opencollective.com/hledger/backer/22/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/23/website" target="_blank"><img src="https://opencollective.com/hledger/backer/23/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/24/website" target="_blank"><img src="https://opencollective.com/hledger/backer/24/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/25/website" target="_blank"><img src="https://opencollective.com/hledger/backer/25/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/26/website" target="_blank"><img src="https://opencollective.com/hledger/backer/26/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/27/website" target="_blank"><img src="https://opencollective.com/hledger/backer/27/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/28/website" target="_blank"><img src="https://opencollective.com/hledger/backer/28/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/backer/29/website" target="_blank"><img src="https://opencollective.com/hledger/backer/29/avatar.svg"></a>
+
+### Sponsors
+Become a sponsor and get your logo on our README on Github with a link to your site. [[Become a sponsor](https://opencollective.com/hledger#sponsor)]
+
+<a href="https://opencollective.com/hledger/sponsor/0/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/0/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/1/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/1/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/2/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/2/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/3/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/3/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/4/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/4/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/5/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/5/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/6/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/6/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/7/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/7/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/8/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/8/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/9/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/9/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/10/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/10/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/11/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/11/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/12/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/12/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/13/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/13/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/14/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/14/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/15/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/15/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/16/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/16/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/17/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/17/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/18/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/18/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/19/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/19/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/20/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/20/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/21/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/21/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/22/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/22/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/23/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/23/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/24/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/24/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/25/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/25/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/26/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/26/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/27/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/27/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/28/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/28/avatar.svg"></a>
+<a href="https://opencollective.com/hledger/sponsor/29/website" target="_blank"><img src="https://opencollective.com/hledger/sponsor/29/avatar.svg"></a>
+
 [![license](https://img.shields.io/badge/license-GPLv3+-brightgreen.svg)](http://www.gnu.org/licenses/gpl.html)
 [![hackage release](https://img.shields.io/hackage/v/hledger.svg?label=current+release)](http://hackage.haskell.org/package/hledger)
 [![stackage LTS package](http://stackage.org/package/hledger/badge/lts)](http://stackage.org/lts/package/hledger)
@@ -41,4 +111,7 @@ downloads](https://img.shields.io/github/downloads/simonmichael/hledger/latest/t
 [![hackage upper bounds](https://img.shields.io/hackage-deps/v/hledger.svg?label=hackage+bounds)](http://packdeps.haskellers.com/feed?needle=hledger)
 [![github issues](https://img.shields.io/github/issues/simonmichael/hledger.svg)](http://bugs.hledger.org)
 [![bountysource](https://api.bountysource.com/badge/team?team_id=75979&style=bounties_received)](https://github.com/simonmichael/hledger/issues?q=label:bounty)
+[![OpenCollective](https://opencollective.com/hledger/backers/badge.svg)](#backers) 
+[![OpenCollective](https://opencollective.com/hledger/sponsors/badge.svg)](#sponsors)
+
 
