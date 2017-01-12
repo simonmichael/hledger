@@ -13,7 +13,7 @@ hledger -f - print
     ; transaction comment 1
     ; transaction comment 2
     a             1
-    b            -1
+    b
 
 >>>=0
 
@@ -27,7 +27,7 @@ hledger -f - print
 >>>
 2009/01/01 x
     a             1
-    b            -1
+    b
 
 >>>=0
 
@@ -51,7 +51,7 @@ hledger -f - print
     ; transaction new line comment
     a             1    ; posting 1 same line comment
     ; posting 1 new line comment
-    b            -1
+    b
     ; posting 2 new line comment
 
 >>>2

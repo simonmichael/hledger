@@ -1,6 +1,6 @@
 # price-related tests
 # 1. print a transaction with an explicit unit price
-hledger -f- print
+hledger -f- print --explicit
 <<<
 2011/01/01
     expenses:foreign currency       €100 @ $1.35
@@ -13,7 +13,7 @@ hledger -f- print
 >>>=0
 
 # 2. -B/--cost converts to the price's commodity ("cost")
-hledger -f- print --cost
+hledger -f- print --explicit --cost
 <<<
 2011/01/01
     expenses:foreign currency       €100 @ $1.35
@@ -26,7 +26,7 @@ hledger -f- print --cost
 >>>=0
 
 # 3. print a transaction with a total price
-hledger -f - print
+hledger -f - print --explicit
 <<<
 2011/01/01
     expenses:foreign currency       €100 @@ $135
@@ -40,7 +40,7 @@ hledger -f - print
 
 # 4. when the balance has exactly two commodities, both unpriced, infer an
 # implicit conversion price for the first one in terms of the second.
-hledger -f - print
+hledger -f - print --explicit
 <<<
 2011/01/01
     expenses:foreign currency       €100
@@ -61,7 +61,7 @@ hledger -f - print
 >>>=0
 
 ## 5. another, from ledger tests. Just one posting to price so uses @@.
-hledger -f - print
+hledger -f - print --explicit
 <<<
 2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
     c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG
