@@ -24,7 +24,7 @@ hledger -f- print
 >>>
 2000/02/29 x
     a             1
-    b            -1
+    b
 
 >>>= 0
 # 4. 29th feb on non-leap year should fail

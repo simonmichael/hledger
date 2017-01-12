@@ -8,7 +8,7 @@ hledger -f- print
 >>>2 /unexpected/
 >>>= 1
 # 2. with quotes, ok; quotes appear in print output
-hledger -f- print
+hledger -f- print --explicit
 <<<
 2010-04-05 x
    a   10 "DE 0002 635307"
@@ -34,7 +34,7 @@ hledger -f- balance
 >>>=0
 
 # 4. autobalance with prices
-hledger -f- print
+hledger -f- print --explicit
 <<<
 2016/1/1
     saving-card  $-105
