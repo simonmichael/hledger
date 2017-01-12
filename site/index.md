@@ -60,11 +60,14 @@ tr {
 <script data-gratipay-teamslug="hledger" src="https://grtp.co/v2.js" async></script>
 </div>
 <div style="float:right; text-align:right; white-space:nowrap; margin-top:5px;">
+<span style="position:relative; top:6px;">
+<a class="github-button" href="https://github.com/simonmichael/hledger" data-icon="octicon-star" data-count-href="/simonmichael/hledger/stargazers" data-count-api="/repos/simonmichael/hledger#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star simonmichael/hledger on GitHub"></a>
+</span>
 <a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt=""></a>
 <a style="margin-left:3px;" href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="" title="Flattr this" border="0"></a> 
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img width=62 height=31 border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt=""></a> 
 <!--<a href="https://gratipay.com/hledger/"><img border=0 src="http://img.shields.io/gratipay/hledger.svg"></a>-->
-</div> 
+</div>
 <!-- end of donate buttons -->
 
 <!-- main content -->
@@ -234,3 +237,5 @@ or maybe **[look deeper](developer-guide.html)**.
 #### Tweets (#hledger OR #plaintextaccounting OR #ledgercli):
 <a class="twitter-timeline" data-chrome="noheader" data-dnt="true" href="https://twitter.com/search?q=%23hledger%20OR%20%23plaintextaccounting%20OR%20%23ledgercli%20-RT%20-%23TheJoker" data-widget-id="707934052225945600">Tweets about #hledger OR #plaintextaccounting OR #ledgercli -RT -#TheJoker</a> <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 </div>
+
+<script async defer src="https://buttons.github.io/buttons.js"></script>
