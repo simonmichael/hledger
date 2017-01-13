@@ -5,6 +5,7 @@
   --package megaparsec
   --package text
 -}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 {-
 
 hledger-rewrite [PATTERNS] --add-posting "ACCT  AMTEXPR" ...
@@ -27,11 +28,11 @@ Related: https://github.com/simonmichael/hledger/issues/99
 TODO:
 - should allow regex matching and interpolating matched name in replacement
 - should apply all matching rules to a transaction, not just one
-- should apply the rule for each matched posting within a transaction, if there's more than one
 - should be possible to use this on unbalanced entries, eg while editing one
 
 -}
 
+import Data.Monoid
 import qualified Data.Text as T
 -- hledger lib, cli and cmdargs utils
 import Hledger.Cli
@@ -57,55 +58,53 @@ cmdmode = (defCommandMode ["hledger-rewrite"]) {
     }
   }
 
-type PostingExpr = (AccountName, AmountExpr)
+postingp' :: T.Text -> IO Posting
+postingp' t = runErroringJournalParser (postingp Nothing <* eof) t' >>= \case
+        Left err -> fail err
+        Right p -> return p
+    where t' = " " <> t <> "\n" -- inject space and newline for proper parsing
 
-data AmountExpr = AmountLiteral String | AmountMultiplier Quantity deriving (Show)
+modifierTransactionFromOpts :: RawOpts -> IO ModifierTransaction
+modifierTransactionFromOpts opts = do
+    postings <- mapM (postingp' . stripquotes . T.pack) $ listofstringopt "add-posting" opts
+    return
+        ModifierTransaction { mtvalueexpr = T.empty, mtpostings = postings }
 
-addPostingExprsFromOpts :: RawOpts -> [PostingExpr]
-addPostingExprsFromOpts = map (either parseerror id . runParser (postingexprp <* eof) "") . map (stripquotes . T.pack) . listofstringopt "add-posting"
+post' :: AccountName -> Amount -> Posting
+post' acct amt = (accountNameWithoutPostingType acct `post` amt) { ptype = accountNamePostingType acct }
 
-postingexprp = do
-  a <- accountnamep
-  spacenonewline >> some spacenonewline
-  aex <- amountexprp
-  many spacenonewline
-  return (a,aex)
+-- mtvaluequery :: ModifierTransaction -> Day -> Query
+mtvaluequery mod = fst . flip parseQuery (mtvalueexpr mod)
 
-amountexprp =
-  choice [
-     AmountMultiplier <$> (do char '*'
-                              many spacenonewline
-                              (q,_,_,_) <- numberp
-                              return q)
-    ,AmountLiteral <$> many anyChar
-    ]
+postingScale :: Posting -> Maybe Quantity
+postingScale p =
+    case amounts $ pamount p of
+        [a] | acommodity a == "*" -> Just $ aquantity a
+        _ -> Nothing
 
-amountExprRenderer :: Query -> AmountExpr -> (Transaction -> MixedAmount)
-amountExprRenderer q aex =
-  case aex of
-    AmountLiteral s    -> const (mamountp' s)
-    AmountMultiplier n -> (`divideMixedAmount` (1 / n)) . (`firstAmountMatching` q)
-  where
-    firstAmountMatching :: Transaction -> Query -> MixedAmount
-    firstAmountMatching t q = pamount $ head $ filter (q `matchesPosting`) $ tpostings t
+runModifierPosting :: Posting -> (Posting -> Posting)
+runModifierPosting p' =
+    case postingScale p' of
+        Nothing -> \p -> p' { ptransaction = ptransaction p }
+        Just n -> \p -> p' { pamount = pamount p `divideMixedAmount` (1/n), ptransaction = ptransaction p }
 
-rewriteTransaction :: Transaction -> [(AccountName, Transaction -> MixedAmount)] -> Transaction
-rewriteTransaction t addps = t{tpostings=tpostings t ++ map (uncurry (generatePosting t)) addps}
-  where
-    generatePosting :: Transaction -> AccountName -> (Transaction -> MixedAmount) -> Posting
-    generatePosting t acct amtfn = nullposting{paccount     = accountNameWithoutPostingType acct
-                                              ,ptype        = accountNamePostingType acct
-                                              ,pamount      = amtfn t
-                                              ,ptransaction = Just t
-                                              }
+runModifierTransaction :: Query -> ModifierTransaction -> (Transaction -> Transaction)
+runModifierTransaction q mod = modifier where
+    q' = simplifyQuery $ And [q, mtvaluequery mod (error "query cannot depend on current time")]
+    mods = map runModifierPosting $ mtpostings mod
+    generatePostings ps = [mod p | p <- ps, q' `matchesPosting` p, mod <- mods]
+    modifier t@Transaction{ tpostings = ps } = t { tpostings = ps ++ generatePostings ps }
 
 main = do
   opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} <- getCliOpts cmdmode
   d <- getCurrentDay
   let q = queryFromOpts d ropts
-      addps = [(a, amountExprRenderer q aex) | (a, aex) <- addPostingExprsFromOpts rawopts]
+  mod <- modifierTransactionFromOpts rawopts
   withJournalDo opts $ \opts j@Journal{jtxns=ts} -> do
+    -- create re-writer
+    let mods = jmodifiertxns j ++ [mod]
+        modifier = foldr (.) id $ map (runModifierTransaction q) mods
     -- rewrite matched transactions
-    let j' = j{jtxns=map (\t -> if q `matchesTransaction` t then rewriteTransaction t addps else t) ts}
+    let j' = j{jtxns=map modifier ts}
     -- run the print command, showing all transactions
     print' opts{reportopts_=ropts{query_=""}} j'

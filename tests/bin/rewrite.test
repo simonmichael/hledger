@@ -1,10 +1,11 @@
 # Tests for rewrite addon
 
 # Add proportional income tax (from documentation)
-runghc ../../bin/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:tax)  *.33'
+runghc ../../bin/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax'
 <<<
 2016/1/1 paycheck
     income:remuneration     $-100
+    income:donations         $-15
     assets:bank
 
 2016/1/1 withdraw
@@ -13,8 +14,10 @@ runghc ../../bin/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:tax)
 >>>
 2016/01/01 paycheck
     income:remuneration         $-100
+    income:donations             $-15
     assets:bank
-    (liabilities:tax)            $-33
+    (liabilities:tax)            $-33    ; income tax
+    (liabilities:tax)             $-5    ; income tax
 
 2016/01/01 withdraw
     assets:cash           $20
@@ -73,6 +76,72 @@ runghc ../../bin/hledger-rewrite.hs -f- assets:bank and 'amt:<0' --add-posting '
     assets:bank           $-30
     expenses:fee            $5
     assets:bank            $-5
+
+>>>2
+>>>=0
+
+# Rewrite rule within journal
+runghc ../../bin/hledger-rewrite.hs -f- date:2017/1  --add-posting 'Here comes Santa  $0'
+<<<
+= ^expenses:housing
+    (budget:housing)  *-1
+= ^expenses:grocery or ^expenses:food
+    (budget:food)  *-1
+
+2016/12/31
+    expenses:housing  $600
+    assets:cash
+
+2017/1/1
+    expenses:food  $20
+    expenses:leisure  $15
+    expenses:grocery  $30
+    assets:cash
+
+2017/1/2
+    assets:cash  $200.00
+    assets:bank
+
+2017/2/1
+    assets:cash  $100.00
+    assets:bank
+
+= ^expenses not:housing not:grocery not:food
+    (budget:misc)  *-1
+
+= ^assets:bank$ date:2017/1 amt:<0
+    assets:bank  *0.008
+    expenses:fee  *-0.008  ; cash withdraw fee
+>>>
+2016/12/31
+    expenses:housing       $600.00
+    assets:cash
+
+2017/01/01
+    expenses:food           $20.00
+    expenses:leisure        $15.00
+    expenses:grocery        $30.00
+    assets:cash
+    Here comes Santa             0
+    Here comes Santa             0
+    Here comes Santa             0
+    Here comes Santa             0
+    (budget:misc)          $-15.00
+    (budget:food)          $-20.00
+    (budget:food)          $-30.00
+
+2017/01/02
+    assets:cash            $200.00
+    assets:bank
+    Here comes Santa             0
+    Here comes Santa             0
+    assets:bank             $-1.60
+    expenses:fee             $1.60    ; cash withdraw fee
+    (budget:misc)           $-1.60
+
+2017/02/01
+    assets:cash       $100.00
+    assets:bank
 
 >>>2
 >>>=0
