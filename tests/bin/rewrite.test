@@ -1,7 +1,7 @@
 # Tests for rewrite addon
 
 # Add proportional income tax (from documentation)
-runghc ../../bin/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:tax)  *.33'
+runghc ../../bin/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax'
 <<<
 2016/1/1 paycheck
     income:remuneration     $-100
@@ -16,8 +16,8 @@ runghc ../../bin/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:tax)
     income:remuneration         $-100
     income:donations             $-15
     assets:bank
-    (liabilities:tax)            $-33
-    (liabilities:tax)             $-5
+    (liabilities:tax)            $-33    ; income tax
+    (liabilities:tax)             $-5    ; income tax
 
 2016/01/01 withdraw
     assets:cash           $20

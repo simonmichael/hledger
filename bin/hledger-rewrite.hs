@@ -5,7 +5,7 @@
   --package megaparsec
   --package text
 -}
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 {-
 
 hledger-rewrite [PATTERNS] --add-posting "ACCT  AMTEXPR" ...
@@ -32,6 +32,7 @@ TODO:
 
 -}
 
+import Data.Monoid
 import qualified Data.Text as T
 -- hledger lib, cli and cmdargs utils
 import Hledger.Cli
@@ -57,45 +58,26 @@ cmdmode = (defCommandMode ["hledger-rewrite"]) {
     }
   }
 
-modifierTransactionFromOpts :: RawOpts -> ModifierTransaction
-modifierTransactionFromOpts opts = txn where
-    exprs = addPostingExprsFromOpts opts :: [PostingExpr]
-    postings = flip map exprs $ \case
-        (acct, AmountLiteral s) -> acct `post'`  amountp' s
-        (acct, AmountMultiplier n) -> acct `post'` amount { acommodity = T.pack "*", aquantity = n }
-    txn = ModifierTransaction { mtvalueexpr = T.empty, mtpostings = postings }
+postingp' :: T.Text -> IO Posting
+postingp' t = runErroringJournalParser (postingp Nothing <* eof) t' >>= \case
+        Left err -> fail err
+        Right p -> return p
+    where t' = " " <> t <> "\n" -- inject space and newline for proper parsing
+
+modifierTransactionFromOpts :: RawOpts -> IO ModifierTransaction
+modifierTransactionFromOpts opts = do
+    postings <- mapM (postingp' . stripquotes . T.pack) $ listofstringopt "add-posting" opts
+    return
+        ModifierTransaction { mtvalueexpr = T.empty, mtpostings = postings }
 
 post' :: AccountName -> Amount -> Posting
 post' acct amt = (accountNameWithoutPostingType acct `post` amt) { ptype = accountNamePostingType acct }
-
-type PostingExpr = (AccountName, AmountExpr)
-
-data AmountExpr = AmountLiteral String | AmountMultiplier Quantity deriving (Show)
-
-addPostingExprsFromOpts :: RawOpts -> [PostingExpr]
-addPostingExprsFromOpts = map (either parseerror id . runParser (postingexprp <* eof) "") . map (stripquotes . T.pack) . listofstringopt "add-posting"
-
-postingexprp = do
-  a <- accountnamep
-  spacenonewline >> some spacenonewline
-  aex <- amountexprp
-  many spacenonewline
-  return (a,aex)
-
-amountexprp =
-  choice [
-     AmountMultiplier <$> (do char '*'
-                              many spacenonewline
-                              (q,_,_,_) <- numberp
-                              return q)
-    ,AmountLiteral <$> many anyChar
-    ]
 
 
 postingScale :: Posting -> Maybe Quantity
 postingScale p =
     case amounts $ pamount p of
-        [a] | acommodity a == T.pack "*" -> Just $ aquantity a
+        [a] | acommodity a == "*" -> Just $ aquantity a
         _ -> Nothing
 
 runModifierPosting :: Posting -> (Posting -> Posting)
@@ -114,7 +96,7 @@ main = do
   opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} <- getCliOpts cmdmode
   d <- getCurrentDay
   let q = queryFromOpts d ropts
-      mod = modifierTransactionFromOpts rawopts
+  mod <- modifierTransactionFromOpts rawopts
   withJournalDo opts $ \opts j@Journal{jtxns=ts} -> do
     -- rewrite matched transactions
     let j' = j{jtxns=map (runModifierTransaction q mod) ts}
