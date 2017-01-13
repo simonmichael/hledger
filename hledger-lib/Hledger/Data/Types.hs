@@ -130,7 +130,7 @@ instance NFData Price
 data AmountStyle = AmountStyle {
       ascommodityside   :: Side,                 -- ^ does the symbol appear on the left or the right ?
       ascommodityspaced :: Bool,                 -- ^ space between symbol and quantity ?
-      asprecision       :: Int,                  -- ^ number of digits displayed after the decimal point
+      asprecision       :: !Int,                 -- ^ number of digits displayed after the decimal point
       asdecimalpoint    :: Maybe Char,           -- ^ character used as decimal point: period or comma. Nothing means "unspecified, use default"
       asdigitgroups     :: Maybe DigitGroupStyle -- ^ style for displaying digit groups, if any
 } deriving (Eq,Ord,Read,Show,Typeable,Data,Generic)

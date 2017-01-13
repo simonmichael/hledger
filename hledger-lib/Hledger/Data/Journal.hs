@@ -584,8 +584,8 @@ journalBalanceTransactionsST assrt j createStore storeIn extract =
     flip R.runReaderT (Env bals (storeIn txStore) assrt $
                        Just $ jinferredcommodities j) $ do
       dated <- fmap snd . sortBy (comparing fst) . concat
-             <$> mapM discriminateByDate (jtxns j)
-      mapM checkInferAndRegisterAmounts dated
+             <$> mapM' discriminateByDate (jtxns j)
+      mapM' checkInferAndRegisterAmounts dated
     lift $ extract txStore
   where size = genericLength $ journalPostings j
 
@@ -759,7 +759,7 @@ canonicalStyleFrom ss@(first:_) =
   where
     mgrps = maybe Nothing Just $ headMay $ catMaybes $ map asdigitgroups ss
     -- precision is maximum of all precisions
-    prec = maximum $ map asprecision ss
+    prec = maximumStrict $ map asprecision ss
     mdec  = Just $ headDef '.' $ catMaybes $ map asdecimalpoint ss
     -- precision is that of first amount with a decimal point
     -- (mdec, prec) =
@@ -842,8 +842,8 @@ journalDateSpan secondary j
     | null ts   = DateSpan Nothing Nothing
     | otherwise = DateSpan (Just earliest) (Just $ addDays 1 latest)
     where
-      earliest = minimum dates
-      latest   = maximum dates
+      earliest = minimumStrict dates
+      latest   = maximumStrict dates
       dates    = pdates ++ tdates
       tdates   = map (if secondary then transactionDate2 else tdate) ts
       pdates   = concatMap (catMaybes . map (if secondary then (Just . postingDate2) else pdate) . tpostings) ts

@@ -90,8 +90,8 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,desc,acct,amt,bal]
 postingsReportAsText :: CliOpts -> PostingsReport -> String
 postingsReportAsText opts (_,items) = unlines $ map (postingsReportItemAsText opts amtwidth balwidth) items
   where
-    amtwidth = maximum $ 12 : map (strWidth . showMixedAmount . itemamt) items
-    balwidth = maximum $ 12 : map (strWidth . showMixedAmount . itembal) items
+    amtwidth = maximumStrict $ 12 : map (strWidth . showMixedAmount . itemamt) items
+    balwidth = maximumStrict $ 12 : map (strWidth . showMixedAmount . itembal) items
     itemamt (_,_,_,Posting{pamount=a},_) = a
     itembal (_,_,_,_,a) = a
 
