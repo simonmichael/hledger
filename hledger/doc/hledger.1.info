@@ -1470,6 +1470,9 @@ File: hledger.1.info,  Node: print,  Next: register,  Prev: man,  Up: COMMANDS
 
 Show transactions from the journal.
 
+`--explicit'
+     show all amounts explicitly
+
 `-m STR --match=STR'
      show the transaction whose description is most similar to STR, and
      is most recent
@@ -1505,18 +1508,31 @@ $ hledger print
     assets:bank:checking           $-1
 
    The print command displays full transactions from the journal file,
-tidily formatted and showing all amounts explicitly. The output of print
-is always a valid hledger journal, but it does always not preserve all
-original content exactly (eg directives).
+tidily formatted. As of hledger 1.2, print always produces valid hledger
+journal format. However it may not preserve all original content, eg it
+does not print directives or inter-transaction comments.
 
-   hledger's print command also shows all unit prices in effect, or
-(with -B/-cost) shows cost amounts.
+   Normally, transactions' implicit/explicit amount style is preserved:
+when an amount is omitted in the journal, it will be omitted in the
+output.
+
+   You can use the `--explicit' flag to make all amounts explicit,
+which can be useful for troubleshooting or for making your journal more
+readable and robust against data entry errors. Note, in this mode
+postings with a multi-commodity amount (possible with an implicit amount
+in a multi-commodity transaction) will be split into multiple
+single-commodity postings (valid journal format).
+
+   print also shows any balance assertions/assignments or transaction
+prices. With -B/-cost, amounts are converted to cost (using the
+transaction price).
 
    The print command also supports output destination and CSV output.
 
    Here's an example of print's CSV output:
 
 
+$ hledger print -Ocsv
 "txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"
 "1","2008/01/01","","","","income","","assets:bank:checking","1","$","","1","",""
 "1","2008/01/01","","","","income","","income:salary","-1","$","1","","",""
@@ -2321,41 +2337,41 @@ Node: man45534
 Ref: #man45631
 Node: print46034
 Ref: #print46139
-Node: register49249
-Ref: #register49362
-Node: Custom register output53854
-Ref: #custom-register-output53985
-Node: stats55282
-Ref: #stats55388
-Node: test56268
-Ref: #test56355
-Node: ADD-ON COMMANDS56722
-Ref: #add-on-commands56858
-Node: api58146
-Ref: #api58238
-Node: autosync58272
-Ref: #autosync58387
-Node: diff60702
-Ref: #diff60812
-Node: equity61476
-Ref: #equity61590
-Node: interest62918
-Ref: #interest63035
-Node: irr66119
-Ref: #irr66232
-Node: print-unique68607
-Ref: #print-unique68737
-Node: rewrite68995
-Ref: #rewrite69114
-Node: ui69643
-Ref: #ui69743
-Node: web69784
-Ref: #web69872
-Node: TROUBLESHOOTING69905
-Ref: #troubleshooting70024
-Node: Run-time problems70078
-Ref: #run-time-problems70221
-Node: Known limitations72165
-Ref: #known-limitations72308
+Node: register49924
+Ref: #register50037
+Node: Custom register output54529
+Ref: #custom-register-output54660
+Node: stats55957
+Ref: #stats56063
+Node: test56943
+Ref: #test57030
+Node: ADD-ON COMMANDS57397
+Ref: #add-on-commands57533
+Node: api58821
+Ref: #api58913
+Node: autosync58947
+Ref: #autosync59062
+Node: diff61377
+Ref: #diff61487
+Node: equity62151
+Ref: #equity62265
+Node: interest63593
+Ref: #interest63710
+Node: irr66794
+Ref: #irr66907
+Node: print-unique69282
+Ref: #print-unique69412
+Node: rewrite69670
+Ref: #rewrite69789
+Node: ui70318
+Ref: #ui70418
+Node: web70459
+Ref: #web70547
+Node: TROUBLESHOOTING70580
+Ref: #troubleshooting70699
+Node: Run-time problems70753
+Ref: #run-time-problems70896
+Node: Known limitations72840
+Ref: #known-limitations72983
 
 End Tag Table
