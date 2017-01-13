@@ -73,6 +73,8 @@ modifierTransactionFromOpts opts = do
 post' :: AccountName -> Amount -> Posting
 post' acct amt = (accountNameWithoutPostingType acct `post` amt) { ptype = accountNamePostingType acct }
 
+-- mtvaluequery :: ModifierTransaction -> Day -> Query
+mtvaluequery mod = fst . flip parseQuery (mtvalueexpr mod)
 
 postingScale :: Posting -> Maybe Quantity
 postingScale p =
@@ -88,8 +90,9 @@ runModifierPosting p' =
 
 runModifierTransaction :: Query -> ModifierTransaction -> (Transaction -> Transaction)
 runModifierTransaction q mod = modifier where
+    q' = simplifyQuery $ And [q, mtvaluequery mod (error "query cannot depend on current time")]
     mods = map runModifierPosting $ mtpostings mod
-    generatePostings ps = [mod p | p <- ps, q `matchesPosting` p, mod <- mods]
+    generatePostings ps = [mod p | p <- ps, q' `matchesPosting` p, mod <- mods]
     modifier t@Transaction{ tpostings = ps } = t { tpostings = ps ++ generatePostings ps }
 
 main = do
@@ -98,7 +101,10 @@ main = do
   let q = queryFromOpts d ropts
   mod <- modifierTransactionFromOpts rawopts
   withJournalDo opts $ \opts j@Journal{jtxns=ts} -> do
+    -- create re-writer
+    let mods = jmodifiertxns j ++ [mod]
+        modifier = foldr (.) id $ map (runModifierTransaction q) mods
     -- rewrite matched transactions
-    let j' = j{jtxns=map (runModifierTransaction q mod) ts}
+    let j' = j{jtxns=map modifier ts}
     -- run the print command, showing all transactions
     print' opts{reportopts_=ropts{query_=""}} j'
