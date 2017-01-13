@@ -177,6 +177,7 @@ transactionImplicitTags :: Transaction -> [Tag]
 transactionImplicitTags t = filter (not . T.null . snd) [("code", tcode t)
                                                         ,("description", tdescription t)
                                                         ,("payee", transactionPayee t)
+                                                        ,("note", transactionNote t)
                                                         ]
 
 transactionPayee :: Transaction -> Text
