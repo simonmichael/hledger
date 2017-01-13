@@ -172,7 +172,7 @@ postingStatus Posting{pstatus=s, ptransaction=mt}
 -- | Implicit tags for this transaction.
 transactionImplicitTags :: Transaction -> [Tag]
 transactionImplicitTags t = filter (not . T.null . snd) [("code", tcode t)
-                                                        ,("desc", tdescription t)
+                                                        ,("description", tdescription t)
                                                         ,("payee", tdescription t)
                                                         ]
 
