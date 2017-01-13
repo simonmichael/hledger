@@ -15,6 +15,7 @@ module Hledger.Data.Posting (
   posting,
   post,
   -- * operations
+  originalPosting,
   postingStatus,
   isReal,
   isVirtual,
@@ -42,6 +43,10 @@ module Hledger.Data.Posting (
   concatAccountNames,
   accountNameApplyAliases,
   accountNameApplyAliasesMemo,
+  -- * transaction description operations
+  transactionPayee,
+  transactionNote,
+  payeeAndNoteFromDescription,
   -- * arithmetic
   sumPostings,
   -- * rendering
@@ -83,11 +88,15 @@ nullposting = Posting
                 ,ptags=[]
                 ,pbalanceassertion=Nothing
                 ,ptransaction=Nothing
+                ,porigin=Nothing
                 }
 posting = nullposting
 
 post :: AccountName -> Amount -> Posting
 post acct amt = posting {paccount=acct, pamount=Mixed [amt]}
+
+originalPosting :: Posting -> Posting
+originalPosting p = fromMaybe p $ porigin p
 
 -- XXX once rendered user output, but just for debugging now; clean up
 showPosting :: Posting -> String
@@ -163,9 +172,33 @@ postingStatus Posting{pstatus=s, ptransaction=mt}
                                 Nothing -> Uncleared
   | otherwise = s
 
--- | Tags for this posting including any inherited from its parent transaction.
+-- | Implicit tags for this transaction.
+transactionImplicitTags :: Transaction -> [Tag]
+transactionImplicitTags t = filter (not . T.null . snd) [("code", tcode t)
+                                                        ,("description", tdescription t)
+                                                        ,("payee", transactionPayee t)
+                                                        ,("note", transactionNote t)
+                                                        ]
+
+transactionPayee :: Transaction -> Text
+transactionPayee = fst . payeeAndNoteFromDescription . tdescription
+
+transactionNote :: Transaction -> Text
+transactionNote = fst . payeeAndNoteFromDescription . tdescription
+
+-- | Parse a transaction's description into payee and note (aka narration) fields,
+-- assuming a convention of separating these with | (like Beancount).
+-- Ie, everything up to the first | is the payee, everything after it is the note.
+-- When there's no |, payee == note == description.
+payeeAndNoteFromDescription :: Text -> (Text,Text)
+payeeAndNoteFromDescription t = (textstrip p, textstrip $ T.tail n)
+  where
+    (p,n) = T.breakOn "|" t
+
+-- | Tags for this posting including implicit and any inherited from its parent transaction.
 postingAllTags :: Posting -> [Tag]
-postingAllTags p = ptags p ++ maybe [] ttags (ptransaction p)
+postingAllTags p = ptags p ++ maybe [] transactionTags (ptransaction p)
+    where transactionTags t = ttags t ++ transactionImplicitTags t
 
 -- | Tags for this transaction including any from its postings.
 transactionAllTags :: Transaction -> [Tag]

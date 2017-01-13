@@ -32,7 +32,7 @@ hledger -f - print
 
 # 2. and here the price should be printed with its original precision, not
 # the canonical display precision
-hledger -f - print
+hledger -f - print --explicit
 <<<
 2010/1/1
    a  $0.00
@@ -130,7 +130,7 @@ D $1000.0
 # the max precisions of the commodities being converted (#262).
 # Here the (irrational) price should be displayed with just precision 4
 # (C's precision 2 + D's precision 2).
-hledger -f- print
+hledger -f- print --explicit
 <<<
 2015/1/1
     c    C 10.00
@@ -147,7 +147,7 @@ hledger -f- print
 
 ## 8. Here the price should be displayed with precision 7
 # (E's precision 4 + F's precision 3).
-hledger -f- print
+hledger -f- print --explicit
 <<<
 2015/1/1
     e    E 10.0000

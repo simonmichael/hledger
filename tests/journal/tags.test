@@ -93,3 +93,36 @@ hledger -f - register tag:foo=bar
 >>>2
 >>>=0
 
+# 5. look for transactions without tags
+hledger -f - print not:tag:.
+<<<
+2010/01/01 desc
+  a             1
+  b            -1
+
+2010/01/02
+  ; foo:some tag
+  c             2
+  d            -2
+
+2010/01/03
+    e             3
+    f            -3
+
+2010/01/04 (code)
+    g             4
+    h            -4
+>>>
+2010/01/01 desc
+    a             1
+    b            -1
+
+2010/01/03
+    e             3
+    f            -3
+
+2010/01/04 (code)
+    g             4
+    h            -4
+
+>>>=0

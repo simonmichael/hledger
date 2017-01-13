@@ -91,9 +91,9 @@ pivot tag j = j{jtxns = map pivotTrans . jtxns $ j}
  where
   pivotTrans t = t{tpostings = map pivotPosting . tpostings $ t}
   pivotPosting p
-    | Just (_ , value) <- tagTuple = p{paccount = joinAccountNames tag value}
+    | Just (_ , value) <- tagTuple = p{paccount = value, porigin = Just $ originalPosting p}
     | _                <- tagTuple = p
-   where tagTuple = find ((tag ==) . fst) . ptags $ p
+   where tagTuple = find ((tag ==) . fst) . postingAllTags $ p
 
 -- | Apply the anonymisation transformation on a journal, if option is present
 anonymiseByOpts :: CliOpts -> Journal -> Journal

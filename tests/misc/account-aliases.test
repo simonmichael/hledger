@@ -73,12 +73,12 @@ alias /A (.)/=\1
 2011/01/01
     b b             1
     b b             2
-    c              -3
+    c
 
 2011/01/01
     b             1
     b             2
-    c            -3
+    c
 
 >>>=0
 
@@ -98,7 +98,7 @@ hledger -f- print --alias '/A (.)/=a' --alias /a/=b
 2011/01/01
     b             1
     b             2
-    c            -3
+    c
 
 >>>=0
 
@@ -117,7 +117,20 @@ alias E=F
 >>>
 2011/01/01
     [E:x]             1
-    [x:A:x]            -1
+    [x:A:x]
 
+>>>2
+>>>=0
+
+# query will search both origin and substitution in alias
+hledger -f- reg '^a$' '^b$'
+<<<
+alias a = b
+1/1
+    a  1
+    b  -1
+>>>
+2017/01/01                      b                                1             1
+                                b                               -1             0
 >>>2
 >>>=0

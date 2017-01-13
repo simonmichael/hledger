@@ -659,6 +659,8 @@ compareAmount ord q Amount{aquantity=aq} = case ord of Lt      -> aq <  q
                                                        AbsEq   -> abs aq == abs q
 
 -- | Does the match expression match this posting ?
+--
+-- Note that for account match we try both original and effective account
 matchesPosting :: Query -> Posting -> Bool
 matchesPosting (Not q) p = not $ q `matchesPosting` p
 matchesPosting (Any) _ = True
@@ -667,7 +669,8 @@ matchesPosting (Or qs) p = any (`matchesPosting` p) qs
 matchesPosting (And qs) p = all (`matchesPosting` p) qs
 matchesPosting (Code r) p = regexMatchesCI r $ maybe "" (T.unpack . tcode) $ ptransaction p
 matchesPosting (Desc r) p = regexMatchesCI r $ maybe "" (T.unpack . tdescription) $ ptransaction p
-matchesPosting (Acct r) p = regexMatchesCI r $ T.unpack $ paccount p -- XXX pack
+matchesPosting (Acct r) p = matchesPosting p || matchesPosting (originalPosting p)
+    where matchesPosting p = regexMatchesCI r $ T.unpack $ paccount p -- XXX pack
 matchesPosting (Date span) p = span `spanContainsDate` postingDate p
 matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
 matchesPosting (Status Uncleared) p = postingStatus p /= Cleared

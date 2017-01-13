@@ -25,15 +25,15 @@ hledger print -f personal.journal -f business.journal -f alias.journal -f person
 >>>
 2014/01/01
     expenses:office supplies            $1
-    assets:business checking           $-1
+    assets:business checking
 
 2014/01/02
     expenses:food            $1
-    assets:cash             $-1
+    assets:cash
 
 2014/01/02
     expenses:food            $1
-    assets:cash             $-1
+    assets:cash
 
 >>>2
 >>>=0
@@ -47,7 +47,7 @@ hledger print -f personal.journal -f ../journal/a.timeclock -f ../journal/b.time
 >>>
 2014/01/02
     expenses:food            $1
-    assets:cash             $-1
+    assets:cash
 
 2016/01/01 * 12:00-16:00
     (a:aa)         4.00h

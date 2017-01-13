@@ -34,7 +34,9 @@ printmode = (defCommandMode $ ["print"] ++ aliases) {
         in
          flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) matcharg
          ("show the transaction whose description is most similar to "++matcharg
-          ++ ", and is most recent")
+          ++ ", and is most recent"),
+        flagNone ["explicit"] (setboolopt "explicit")
+         "make output more explicit than original transactions"
         ]
         ++ outputflags
     ,groupHidden = []
@@ -42,6 +44,17 @@ printmode = (defCommandMode $ ["print"] ++ aliases) {
     }
  }
   where aliases = []
+
+showTransaction' :: CliOpts -> Transaction -> String
+showTransaction' opts
+    | boolopt "explicit" $ rawopts_ opts = showTransactionUnelided
+    | otherwise = showTransactionUnelided . originalTransaction
+
+originalTransaction :: Transaction -> Transaction
+originalTransaction t = t { tpostings = map originalPosting' $ tpostings t } where
+    -- We don't want plain original postings because print wouldn't issue alias
+    -- directives. Thus we are going to print effective account name.
+    originalPosting' p = (originalPosting p) { paccount = paccount p }
 
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()
@@ -57,11 +70,14 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
       fmt = outputFormatFromOpts opts
       (render, ropts') = case fmt of
         "csv" -> ((++"\n") . printCSV . entriesReportAsCsv, ropts{accountlistmode_=ALFlat})
-        _     -> (entriesReportAsText,                      ropts)
+        _     -> (entriesReportAsText' opts,                ropts)
   writeOutput opts $ render $ entriesReport ropts' q j
 
 entriesReportAsText :: EntriesReport -> String
 entriesReportAsText items = concatMap showTransactionUnelided items
+
+entriesReportAsText' :: CliOpts -> EntriesReport -> String
+entriesReportAsText' = concatMap . showTransaction'
 
 -- XXX
 -- tests_showTransactions = [

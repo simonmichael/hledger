@@ -13,13 +13,14 @@ runghc ../../bin/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:tax)
 >>>
 2016/01/01 paycheck
     income:remuneration         $-100
-    assets:bank                  $100
+    assets:bank
     (liabilities:tax)            $-33
 
 2016/01/01 withdraw
     assets:cash           $20
-    assets:bank          $-20
+    assets:bank
 
+>>>2
 >>>=0
 
 # Duplicate posting for budgeting (from documentation)
@@ -35,13 +36,14 @@ runghc ../../bin/hledger-rewrite.hs -f- expenses:gifts --add-posting '(budget:gi
 >>>
 2016/01/01 withdraw
     assets:cash           $20
-    assets:bank          $-20
+    assets:bank
 
 2016/01/01 gift
     assets:cash             $-15
-    expenses:gifts           $15
+    expenses:gifts
     (budget:gifts)          $-15
 
+>>>2
 >>>=0
 
 # Add absolute bank processing fee
@@ -62,14 +64,15 @@ runghc ../../bin/hledger-rewrite.hs -f- assets:bank and 'amt:<0' --add-posting '
 >>>
 2016/01/01 withdraw
     assets:cash            $20
-    assets:bank           $-20
+    assets:bank
     expenses:fee            $5
     assets:bank            $-5
 
 2016/01/02 withdraw
-    assets:cash            $30
+    assets:cash
     assets:bank           $-30
     expenses:fee            $5
     assets:bank            $-5
 
+>>>2
 >>>=0
