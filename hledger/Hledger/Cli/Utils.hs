@@ -92,7 +92,7 @@ pivot tag j = j{jtxns = map pivotTrans . jtxns $ j}
   pivotTrans t = t{tpostings = map pivotPosting . tpostings $ t}
   pivotPosting p
     | Just (_ , value) <- tagTuple = p{paccount = value, porigin = Just $ originalPosting p}
-    | _                <- tagTuple = p
+    | _                <- tagTuple = p{paccount = T.pack ""}
    where tagTuple = find ((tag ==) . fst) . postingAllImplicitTags $ p
 
 -- | Apply the anonymisation transformation on a journal, if option is present

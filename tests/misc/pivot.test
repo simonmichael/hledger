@@ -9,8 +9,8 @@ hledger -f- --pivot TAG print
     ; TAG: value
 >>>
 2016/02/16 Test Transaction
-    Account1         2 EUR
-    value           -2 EUR
+                  2 EUR
+    value        -2 EUR
     ; TAG: value
 
 >>>=0
@@ -23,8 +23,8 @@ hledger -f- --pivot member bal --no-total
     income:member fees                                  -2 EUR
       ; member: John Doe
 >>>
+               2 EUR  
               -2 EUR  John Doe
-               2 EUR  assets:bank account
 >>>=0
 
 # check with another example
@@ -35,8 +35,8 @@ hledger -f- --pivot budget bal --no-total
     income:donations                                  -2 EUR
       ; budget: Freifunk
 >>>
+               2 EUR  
               -2 EUR  Freifunk
-               2 EUR  assets:bank account
 >>>=0
 
 # query on account will find either effective name or original one
