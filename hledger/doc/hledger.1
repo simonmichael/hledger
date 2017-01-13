@@ -1837,30 +1837,27 @@ $\ hledger\ print
 \f[]
 .fi
 .PP
-The print command displays full transactions from the journal file,
-tidily formatted.
-As of hledger 1.2, print always produces valid hledger journal format.
+The print command displays full journal entries (transactions) from the
+journal file, tidily formatted.
+.PP
+As of hledger 1.2, print\[aq]s output is always a valid hledger journal.
 However it may not preserve all original content, eg it does not print
 directives or inter\-transaction comments.
 .PP
 Normally, transactions\[aq] implicit/explicit amount style is preserved:
 when an amount is omitted in the journal, it will be omitted in the
 output.
-.PP
 You can use the \f[C]\-\-explicit\f[] flag to make all amounts explicit,
 which can be useful for troubleshooting or for making your journal more
 readable and robust against data entry errors.
 Note, in this mode postings with a multi\-commodity amount (possible
 with an implicit amount in a multi\-commodity transaction) will be split
-into multiple single\-commodity postings (valid journal format).
+into multiple single\-commodity postings, for valid journal output.
 .PP
-print also shows any balance assertions/assignments or transaction
-prices.
-With \-B/\-\-cost, amounts are converted to cost (using the transaction
-price).
+With \-B/\-\-cost, amounts with transaction prices are converted to cost
+(using the transaction price).
 .PP
 The print command also supports output destination and CSV output.
-.PP
 Here\[aq]s an example of print\[aq]s CSV output:
 .IP
 .nf

@@ -1507,29 +1507,27 @@ $ hledger print
     liabilities:debts               $1
     assets:bank:checking           $-1
 
-   The print command displays full transactions from the journal file,
-tidily formatted. As of hledger 1.2, print always produces valid hledger
-journal format. However it may not preserve all original content, eg it
-does not print directives or inter-transaction comments.
+   The print command displays full journal entries (transactions) from
+the journal file, tidily formatted.
+
+   As of hledger 1.2, print's output is always a valid hledger journal.
+However it may not preserve all original content, eg it does not print
+directives or inter-transaction comments.
 
    Normally, transactions' implicit/explicit amount style is preserved:
 when an amount is omitted in the journal, it will be omitted in the
-output.
-
-   You can use the `--explicit' flag to make all amounts explicit,
+output. You can use the `--explicit' flag to make all amounts explicit,
 which can be useful for troubleshooting or for making your journal more
 readable and robust against data entry errors. Note, in this mode
-postings with a multi-commodity amount (possible with an implicit amount
-in a multi-commodity transaction) will be split into multiple
-single-commodity postings (valid journal format).
+postings with a multi-commodity amount (possible with an implicit
+amount in a multi-commodity transaction) will be split into multiple
+single-commodity postings, for valid journal output.
 
-   print also shows any balance assertions/assignments or transaction
-prices. With -B/-cost, amounts are converted to cost (using the
-transaction price).
+   With -B/-cost, amounts with transaction prices are converted to cost
+(using the transaction price).
 
    The print command also supports output destination and CSV output.
-
-   Here's an example of print's CSV output:
+Here's an example of print's CSV output:
 
 
 $ hledger print -Ocsv
@@ -2337,41 +2335,41 @@ Node: man45534
 Ref: #man45631
 Node: print46034
 Ref: #print46139
-Node: register49924
-Ref: #register50037
-Node: Custom register output54529
-Ref: #custom-register-output54660
-Node: stats55957
-Ref: #stats56063
-Node: test56943
-Ref: #test57030
-Node: ADD-ON COMMANDS57397
-Ref: #add-on-commands57533
-Node: api58821
-Ref: #api58913
-Node: autosync58947
-Ref: #autosync59062
-Node: diff61377
-Ref: #diff61487
-Node: equity62151
-Ref: #equity62265
-Node: interest63593
-Ref: #interest63710
-Node: irr66794
-Ref: #irr66907
-Node: print-unique69282
-Ref: #print-unique69412
-Node: rewrite69670
-Ref: #rewrite69789
-Node: ui70318
-Ref: #ui70418
-Node: web70459
-Ref: #web70547
-Node: TROUBLESHOOTING70580
-Ref: #troubleshooting70699
-Node: Run-time problems70753
-Ref: #run-time-problems70896
-Node: Known limitations72840
-Ref: #known-limitations72983
+Node: register49888
+Ref: #register50001
+Node: Custom register output54493
+Ref: #custom-register-output54624
+Node: stats55921
+Ref: #stats56027
+Node: test56907
+Ref: #test56994
+Node: ADD-ON COMMANDS57361
+Ref: #add-on-commands57497
+Node: api58785
+Ref: #api58877
+Node: autosync58911
+Ref: #autosync59026
+Node: diff61341
+Ref: #diff61451
+Node: equity62115
+Ref: #equity62229
+Node: interest63557
+Ref: #interest63674
+Node: irr66758
+Ref: #irr66871
+Node: print-unique69246
+Ref: #print-unique69376
+Node: rewrite69634
+Ref: #rewrite69753
+Node: ui70282
+Ref: #ui70382
+Node: web70423
+Ref: #web70511
+Node: TROUBLESHOOTING70544
+Ref: #troubleshooting70663
+Node: Run-time problems70717
+Ref: #run-time-problems70860
+Node: Known limitations72804
+Ref: #known-limitations72947
 
 End Tag Table
