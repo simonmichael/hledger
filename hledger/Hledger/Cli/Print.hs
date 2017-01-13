@@ -36,7 +36,7 @@ printmode = (defCommandMode $ ["print"] ++ aliases) {
          ("show the transaction whose description is most similar to "++matcharg
           ++ ", and is most recent"),
         flagNone ["explicit"] (setboolopt "explicit")
-         "make output more explicit than original transactions"
+         "show all amounts explicitly"
         ]
         ++ outputflags
     ,groupHidden = []

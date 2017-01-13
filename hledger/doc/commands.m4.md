@@ -326,6 +326,9 @@ As with [help](#help), run it with no arguments to list available topics (manual
 ## print
 Show transactions from the journal.
 
+`       --explicit`
+: show all amounts explicitly
+
 `-m STR --match=STR             `
 : show the transaction whose description is most similar to STR, and is most recent
 
@@ -360,13 +363,23 @@ $ hledger print
     assets:bank:checking           $-1
 ```
 
-The print command displays full transactions from the journal file,
-tidily formatted and showing all amounts explicitly. The output of
-print is always a valid hledger journal, but it does always not
-preserve all original content exactly (eg directives).
+The print command displays full transactions from the journal file, tidily formatted.
+As of hledger 1.2, print always produces valid [hledger journal format](/journal.html).
+However it may not preserve all original content, eg it does not print directives or inter-transaction comments.
 
-hledger's print command also shows all unit prices in effect, or (with
--B/--cost) shows cost amounts.
+Normally, transactions' implicit/explicit amount style is preserved:
+when an amount is omitted in the journal, it will be omitted in the output.
+
+You can use the `--explicit` flag to make all amounts explicit, which can be
+useful for troubleshooting or for making your journal more readable and
+robust against data entry errors.
+Note, in this mode postings with a multi-commodity amount
+(possible with an implicit amount in a multi-commodity transaction)
+will be split into multiple single-commodity postings (valid journal format).
+
+print also shows any [balance assertions/assignments](/journal.html#balance-assertions)
+or [transaction prices](/journal.html#transaction-prices).
+With -B/--cost, amounts are converted to cost (using the transaction price).
 
 The print command also supports 
 [output destination](#output-destination)
