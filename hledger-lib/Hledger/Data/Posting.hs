@@ -43,6 +43,10 @@ module Hledger.Data.Posting (
   concatAccountNames,
   accountNameApplyAliases,
   accountNameApplyAliasesMemo,
+  -- * transaction description operations
+  transactionPayee,
+  transactionNote,
+  payeeAndNoteFromDescription,
   -- * arithmetic
   sumPostings,
   -- * rendering
@@ -172,8 +176,23 @@ postingStatus Posting{pstatus=s, ptransaction=mt}
 transactionImplicitTags :: Transaction -> [Tag]
 transactionImplicitTags t = filter (not . T.null . snd) [("code", tcode t)
                                                         ,("description", tdescription t)
-                                                        ,("payee", tdescription t)
+                                                        ,("payee", transactionPayee t)
                                                         ]
+
+transactionPayee :: Transaction -> Text
+transactionPayee = fst . payeeAndNoteFromDescription . tdescription
+
+transactionNote :: Transaction -> Text
+transactionNote = fst . payeeAndNoteFromDescription . tdescription
+
+-- | Parse a transaction's description into payee and note (aka narration) fields,
+-- assuming a convention of separating these with | (like Beancount).
+-- Ie, everything up to the first | is the payee, everything after it is the note.
+-- When there's no |, payee == note == description.
+payeeAndNoteFromDescription :: Text -> (Text,Text)
+payeeAndNoteFromDescription t = (textstrip p, textstrip $ T.tail n)
+  where
+    (p,n) = T.breakOn "|" t
 
 -- | Tags for this posting including implicit and any inherited from its parent transaction.
 postingAllTags :: Posting -> [Tag]
