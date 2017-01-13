@@ -1,14 +1,11 @@
 -- bench
 -- By default, show approximate times for some standard hledger operations on a sample journal.
 -- With --criterion, show accurate times (slow).
--- TODO With --quickbench, show approximate times for the commands in default.bench, using the first hledger executable on $PATH.
 
 import Criterion.Main     (defaultMainWith, defaultConfig, bench, nfIO)
 -- import QuickBench        (defaultMain)
 import System.Directory   (getCurrentDirectory)
 import System.Environment (getArgs, withArgs)
-import System.Info        (os)
-import System.Process     (readProcess)
 import System.TimeIt      (timeItT)
 import Text.Printf
 import Hledger.Cli
@@ -60,14 +57,3 @@ benchWithCriterion = do
     bench ("balance")          $ nfIO $ balance  opts j,
     bench ("stats")            $ nfIO $ stats    opts j
     ]
-
--- benchWithQuickbench = do
---   let whichcmd = if os == "mingw32" then "where" else "which"
---   exe <- init <$> readProcess whichcmd ["hledger"] ""
---   pwd <- getCurrentDirectory
---   printf "Benchmarking %s in %s with quickbench and shell\n" exe pwd
---   flip withArgs QuickBench.defaultMain [
---      "-fbench/default.bench"
---     ,"-v"
---     ,"hledger"
---     ]
