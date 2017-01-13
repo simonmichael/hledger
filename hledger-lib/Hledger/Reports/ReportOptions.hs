@@ -41,6 +41,7 @@ import Data.Time.Calendar
 import Data.Default
 import Safe
 import Test.HUnit
+import Text.Megaparsec.Error
 
 import Hledger.Data
 import Hledger.Query
@@ -207,11 +208,11 @@ beginDatesFromRawOpts d = catMaybes . map (begindatefromrawopt d)
   where
     begindatefromrawopt d (n,v)
       | n == "begin" =
-          either (\e -> optserror $ "could not parse "++n++" date: "++show e) Just $
+          either (\e -> optserror $ "could not parse "++n++" date: "++parseErrorPretty e) Just $
           fixSmartDateStrEither' d (T.pack v)
       | n == "period" =
         case
-          either (\e -> optserror $ "could not parse period option: "++show e) id $
+          either (\e -> optserror $ "could not parse period option: "++parseErrorPretty e) id $
           parsePeriodExpr d (stripquotes $ T.pack v)
         of
           (_, DateSpan (Just b) _) -> Just b
@@ -225,11 +226,11 @@ endDatesFromRawOpts d = catMaybes . map (enddatefromrawopt d)
   where
     enddatefromrawopt d (n,v)
       | n == "end" =
-          either (\e -> optserror $ "could not parse "++n++" date: "++show e) Just $
+          either (\e -> optserror $ "could not parse "++n++" date: "++parseErrorPretty e) Just $
           fixSmartDateStrEither' d (T.pack v)
       | n == "period" =
         case
-          either (\e -> optserror $ "could not parse period option: "++show e) id $
+          either (\e -> optserror $ "could not parse period option: "++parseErrorPretty e) id $
           parsePeriodExpr d (stripquotes $ T.pack v)
         of
           (_, DateSpan _ (Just e)) -> Just e
@@ -243,7 +244,7 @@ intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
   where
     intervalfromrawopt (n,v)
       | n == "period" =
-          either (\e -> optserror $ "could not parse period option: "++show e) (Just . fst) $
+          either (\e -> optserror $ "could not parse period option: "++parseErrorPretty e) (Just . fst) $
           parsePeriodExpr nulldate (stripquotes $ T.pack v) -- reference date does not affect the interval
       | n == "daily"     = Just $ Days 1
       | n == "weekly"    = Just $ Weeks 1
