@@ -1,3 +1,7 @@
+m4_dnl Quick examples included early in the manual
+m4_dnl TODO make these and all the command examples pasteable/doctestable ?
+m4_dnl   eg include -f FILE or $LEDGER_FILE details
+
 # EXAMPLES
 
 Two simple transactions in hledger journal format:

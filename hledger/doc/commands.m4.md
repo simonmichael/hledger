@@ -388,6 +388,7 @@ and
 
 Here's an example of print's CSV output:
 ```shell
+$ hledger print -Ocsv
 "txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"
 "1","2008/01/01","","","","income","","assets:bank:checking","1","$","","1","",""
 "1","2008/01/01","","","","income","","income:salary","-1","$","1","","",""
