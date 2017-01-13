@@ -5,6 +5,7 @@ runghc ../../bin/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:tax)
 <<<
 2016/1/1 paycheck
     income:remuneration     $-100
+    income:donations         $-15
     assets:bank
 
 2016/1/1 withdraw
@@ -13,8 +14,10 @@ runghc ../../bin/hledger-rewrite.hs -f- ^income --add-posting '(liabilities:tax)
 >>>
 2016/01/01 paycheck
     income:remuneration         $-100
+    income:donations             $-15
     assets:bank
     (liabilities:tax)            $-33
+    (liabilities:tax)             $-5
 
 2016/01/01 withdraw
     assets:cash           $20
