@@ -3,6 +3,7 @@ hledger-ui - a hledger add-on providing a curses-style interface.
 Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 -}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -11,12 +12,12 @@ module Hledger.UI.Main where
 
 -- import Control.Applicative
 -- import Lens.Micro.Platform ((^.))
-import Control.Concurrent
+import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async
 import Control.Monad
 -- import Control.Monad.IO.Class (liftIO)
 import Data.Default (def)
--- import Data.Monoid              -- 
+-- import Data.Monoid              --
 import Data.List
 import Data.Maybe
 -- import Data.Text (Text)
@@ -30,6 +31,12 @@ import System.FilePath
 import System.FSNotify
 import Brick
 
+#if MIN_VERSION_brick(0,16,0)
+import qualified Brick.BChan as BC
+#else
+import Control.Concurrent.Chan (newChan, writeChan)
+#endif
+
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion,green)
 import Hledger.UI.UIOptions
@@ -40,6 +47,15 @@ import Hledger.UI.AccountsScreen
 import Hledger.UI.RegisterScreen
 
 ----------------------------------------------------------------------
+
+#if MIN_VERSION_brick(0,16,0)
+newChan :: IO (BC.BChan a)
+newChan = BC.newBChan 10
+
+writeChan :: BC.BChan a -> a -> IO ()
+writeChan = BC.writeBChan
+#endif
+
 
 main :: IO ()
 main = do
@@ -129,7 +145,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
                    ,aPrevScreens=[]
                    ,aMode=Normal
                    }
-  
+
     ui =
       (sInit scr) d True $
         (if change_ uopts' then toggleHistorical else id) $ -- XXX
