@@ -11,7 +11,7 @@ packages:
 
 extra-deps:
 # for hledger-ui:
-- brick-0.15.2
+- brick-0.16
 - vty-5.14
 - text-zipper-0.8.1
 # for hledger-web:
