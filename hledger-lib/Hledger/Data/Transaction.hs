@@ -193,7 +193,7 @@ postingAsLines elideamount onelineamounts ps p = concat [
     | postingblock <- postingblocks]
   where
     postingblocks = [map rstrip $ lines $ concatTopPadded [account, "  ", amount, assertion, samelinecomment] | amount <- shownAmounts]
-    assertion = maybe "" ((" = " ++) . showAmount) $ pbalanceassertion p
+    assertion = maybe "" ((" = " ++) . showAmountWithZeroCommodity) $ pbalanceassertion p
     account =
       indent $
         showstatus p ++ fitString (Just acctwidth) Nothing False True (showAccountName Nothing (ptype p) (paccount p))
