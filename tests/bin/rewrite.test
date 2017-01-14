@@ -35,7 +35,7 @@ runghc ../../bin/hledger-rewrite.hs -f- expenses:gifts --add-posting '(budget:gi
 
 2016/1/1 gift
     assets:cash     $-15
-    expenses:gifts
+    expenses:gifts  ; [1/2]
 >>>
 2016/01/01 withdraw
     assets:cash           $20
@@ -43,8 +43,8 @@ runghc ../../bin/hledger-rewrite.hs -f- expenses:gifts --add-posting '(budget:gi
 
 2016/01/01 gift
     assets:cash             $-15
-    expenses:gifts
-    (budget:gifts)          $-15
+    expenses:gifts      ; [1/2]
+    (budget:gifts)          $-15    ; [2016/01/02]
 
 >>>2
 >>>=0
@@ -83,9 +83,12 @@ runghc ../../bin/hledger-rewrite.hs -f- assets:bank and 'amt:<0' --add-posting '
 # Rewrite rule within journal
 runghc ../../bin/hledger-rewrite.hs -f- date:2017/1  --add-posting 'Here comes Santa  $0'
 <<<
+= ^assets:bank$ date:2017/1 amt:<0
+    assets:bank  *0.008
+    expenses:fee  *-0.008  ; cash withdraw fee
 = ^expenses:housing
     (budget:housing)  *-1
-= ^expenses:grocery or ^expenses:food
+= ^expenses:grocery ^expenses:food
     (budget:food)  *-1
 
 2016/12/31
@@ -106,12 +109,10 @@ runghc ../../bin/hledger-rewrite.hs -f- date:2017/1  --add-posting 'Here comes S
     assets:cash  $100.00
     assets:bank
 
+; order with normal entries doesn't matter
+; but relative order matters to refer-rewritten transactions
 = ^expenses not:housing not:grocery not:food
     (budget:misc)  *-1
-
-= ^assets:bank$ date:2017/1 amt:<0
-    assets:bank  *0.008
-    expenses:fee  *-0.008  ; cash withdraw fee
 >>>
 2016/12/31
     expenses:housing       $600.00
@@ -126,9 +127,9 @@ runghc ../../bin/hledger-rewrite.hs -f- date:2017/1  --add-posting 'Here comes S
     Here comes Santa             0
     Here comes Santa             0
     Here comes Santa             0
-    (budget:misc)          $-15.00
     (budget:food)          $-20.00
     (budget:food)          $-30.00
+    (budget:misc)          $-15.00
 
 2017/01/02
     assets:cash            $200.00
