@@ -361,12 +361,14 @@ for reading Ledger files.
 * Menu:
 
 * Assertions and ordering::
+* Assertions and included files::
+* Assertions and multiple -f options::
 * Assertions and commodities::
 * Assertions and subaccounts::
 * Assertions and virtual postings::
 
 
-File: hledger_journal.5.info,  Node: Assertions and ordering,  Next: Assertions and commodities,  Up: Balance Assertions
+File: hledger_journal.5.info,  Node: Assertions and ordering,  Next: Assertions and included files,  Up: Balance Assertions
 
 1.6.1 Assertions and ordering
 -----------------------------
@@ -384,16 +386,31 @@ updating. This order dependence does bring an advantage: precise control
 over the order of postings and assertions within a day, so you can
 assert intra-day balances.
 
-   With included files, things are a little more complicated. Including
+
+File: hledger_journal.5.info,  Node: Assertions and included files,  Next: Assertions and multiple -f options,  Prev: Assertions and ordering,  Up: Balance Assertions
+
+1.6.2 Assertions and included files
+-----------------------------------
+
+With included files, things are a little more complicated. Including
 preserves the ordering of postings and assertions. If you have multiple
 postings to an account on the same day, split across different files,
 and you also want to assert the account's balance on the same day,
 you'll have to put the assertion in the right file.
 
 
-File: hledger_journal.5.info,  Node: Assertions and commodities,  Next: Assertions and subaccounts,  Prev: Assertions and ordering,  Up: Balance Assertions
+File: hledger_journal.5.info,  Node: Assertions and multiple -f options,  Next: Assertions and commodities,  Prev: Assertions and included files,  Up: Balance Assertions
 
-1.6.2 Assertions and commodities
+1.6.3 Assertions and multiple -f options
+----------------------------------------
+
+Balance assertions don't work well across files specified with multiple
+-f options. Use include or concatenate the files instead.
+
+
+File: hledger_journal.5.info,  Node: Assertions and commodities,  Next: Assertions and subaccounts,  Prev: Assertions and multiple -f options,  Up: Balance Assertions
+
+1.6.4 Assertions and commodities
 --------------------------------
 
 The asserted balance must be a simple single-commodity amount, and in
@@ -411,7 +428,7 @@ for this kind of total balance assertion if there's demand.)
 
 File: hledger_journal.5.info,  Node: Assertions and subaccounts,  Next: Assertions and virtual postings,  Prev: Assertions and commodities,  Up: Balance Assertions
 
-1.6.3 Assertions and subaccounts
+1.6.5 Assertions and subaccounts
 --------------------------------
 
 Balance assertions do not count the balance from subaccounts; they check
@@ -436,7 +453,7 @@ $ hledger bal checking --flat
 
 File: hledger_journal.5.info,  Node: Assertions and virtual postings,  Prev: Assertions and subaccounts,  Up: Balance Assertions
 
-1.6.4 Assertions and virtual postings
+1.6.6 Assertions and virtual postings
 -------------------------------------
 
 Balance assertions are checked against all postings, both real and
@@ -984,53 +1001,57 @@ Node: Virtual Postings10420
 Ref: #virtual-postings10581
 Node: Balance Assertions11801
 Ref: #balance-assertions11978
-Node: Assertions and ordering12800
-Ref: #assertions-and-ordering12985
-Node: Assertions and commodities14016
-Ref: #assertions-and-commodities14242
-Node: Assertions and subaccounts14934
-Ref: #assertions-and-subaccounts15168
-Node: Assertions and virtual postings15690
-Ref: #assertions-and-virtual-postings15899
-Node: Balance Assignments16040
-Ref: #balance-assignments16209
-Node: Prices17327
-Ref: #prices17460
-Node: Transaction prices17511
-Ref: #transaction-prices17656
-Node: Market prices19236
-Ref: #market-prices19371
-Node: Comments20371
-Ref: #comments20493
-Node: Tags21605
-Ref: #tags21725
-Node: Directives22648
-Ref: #directives22763
-Node: Account aliases22956
-Ref: #account-aliases23102
-Node: Basic aliases23704
-Ref: #basic-aliases23849
-Node: Regex aliases24537
-Ref: #regex-aliases24707
-Node: Multiple aliases25477
-Ref: #multiple-aliases25651
-Node: end aliases26147
-Ref: #end-aliases26289
-Node: account directive26391
-Ref: #account-directive26573
-Node: apply account directive26869
-Ref: #apply-account-directive27067
-Node: Multi-line comments27727
-Ref: #multi-line-comments27919
-Node: commodity directive28046
-Ref: #commodity-directive28232
-Node: Default commodity29105
-Ref: #default-commodity29280
-Node: Default year29816
-Ref: #default-year29983
-Node: Including other files30406
-Ref: #including-other-files30565
-Node: EDITOR SUPPORT30961
-Ref: #editor-support31081
+Node: Assertions and ordering12873
+Ref: #assertions-and-ordering13061
+Node: Assertions and included files13758
+Ref: #assertions-and-included-files14001
+Node: Assertions and multiple -f options14332
+Ref: #assertions-and-multiple--f-options14588
+Node: Assertions and commodities14719
+Ref: #assertions-and-commodities14956
+Node: Assertions and subaccounts15648
+Ref: #assertions-and-subaccounts15882
+Node: Assertions and virtual postings16404
+Ref: #assertions-and-virtual-postings16613
+Node: Balance Assignments16754
+Ref: #balance-assignments16923
+Node: Prices18041
+Ref: #prices18174
+Node: Transaction prices18225
+Ref: #transaction-prices18370
+Node: Market prices19950
+Ref: #market-prices20085
+Node: Comments21085
+Ref: #comments21207
+Node: Tags22319
+Ref: #tags22439
+Node: Directives23362
+Ref: #directives23477
+Node: Account aliases23670
+Ref: #account-aliases23816
+Node: Basic aliases24418
+Ref: #basic-aliases24563
+Node: Regex aliases25251
+Ref: #regex-aliases25421
+Node: Multiple aliases26191
+Ref: #multiple-aliases26365
+Node: end aliases26861
+Ref: #end-aliases27003
+Node: account directive27105
+Ref: #account-directive27287
+Node: apply account directive27583
+Ref: #apply-account-directive27781
+Node: Multi-line comments28441
+Ref: #multi-line-comments28633
+Node: commodity directive28760
+Ref: #commodity-directive28946
+Node: Default commodity29819
+Ref: #default-commodity29994
+Node: Default year30530
+Ref: #default-year30697
+Node: Including other files31120
+Ref: #including-other-files31279
+Node: EDITOR SUPPORT31675
+Ref: #editor-support31795
 
 End Tag Table

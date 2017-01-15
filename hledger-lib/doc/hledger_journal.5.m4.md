@@ -290,6 +290,8 @@ updating. This order dependence does bring an advantage: precise
 control over the order of postings and assertions within a day, so you
 can assert intra-day balances.
 
+### Assertions and included files
+
 With [included files](#including-other-files), things are a little
 more complicated. Including preserves the ordering of postings and
 assertions. If you have multiple postings to an account on the same
@@ -297,6 +299,11 @@ day, split across different files, and you also want to assert the
 account's balance on the same day, you'll have to put the assertion
 in the right file.
 
+### Assertions and multiple -f options
+
+Balance assertions don't work well across files specified
+with multiple -f options. Use include or [concatenate the files](/hledger.html#input-files)
+instead.
 
 ### Assertions and commodities
 

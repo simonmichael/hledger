@@ -368,6 +368,7 @@ might break and require updating.
 This order dependence does bring an advantage: precise control over the
 order of postings and assertions within a day, so you can assert
 intra\-day balances.
+.SS Assertions and included files
 .PP
 With included files, things are a little more complicated.
 Including preserves the ordering of postings and assertions.
@@ -375,6 +376,11 @@ If you have multiple postings to an account on the same day, split
 across different files, and you also want to assert the account\[aq]s
 balance on the same day, you\[aq]ll have to put the assertion in the
 right file.
+.SS Assertions and multiple \-f options
+.PP
+Balance assertions don\[aq]t work well across files specified with
+multiple \-f options.
+Use include or concatenate the files instead.
 .SS Assertions and commodities
 .PP
 The asserted balance must be a simple single\-commodity amount, and in

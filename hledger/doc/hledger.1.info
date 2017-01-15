@@ -369,8 +369,15 @@ $ hledger -f csv:/some/csv-file.dat stats
 $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 
    You can also specify multiple `-f' options, to read multiple files
-as one big journal. (Directives in one file will not affect the other
-files. If you need that, use the include directive instead.)
+as one big journal. There are some limitations with this:
+
+   * directives in one file will not affect the other files
+
+   * balance assertions will not see any account balances from previous
+     files
+
+   If you need those, either use the include directive, or concatenate
+the files, eg: `cat a.journal b.journal | hledger -f- CMD'.
 
 
 File: hledger.1.info,  Node: Depth limiting,  Next: Smart dates,  Prev: Input files,  Up: OPTIONS
@@ -2283,93 +2290,93 @@ Node: Reporting options7611
 Ref: #reporting-options7764
 Node: Input files9587
 Ref: #input-files9727
-Node: Depth limiting11564
-Ref: #depth-limiting11704
-Node: Smart dates11905
-Ref: #smart-dates12051
-Node: Report start & end date13048
-Ref: #report-start-end-date13220
-Node: Report intervals14296
-Ref: #report-intervals14461
-Node: Period expressions14860
-Ref: #period-expressions15025
-Node: Regular expressions17360
-Ref: #regular-expressions17502
-Node: QUERIES18985
-Ref: #queries19089
-Node: COMMANDS22728
-Ref: #commands22842
-Node: accounts23515
-Ref: #accounts23615
-Node: activity24597
-Ref: #activity24709
-Node: add25068
-Ref: #add25169
-Node: balance27832
-Ref: #balance27945
-Node: Flat mode30958
-Ref: #flat-mode31085
-Node: Depth limited balance reports31504
-Ref: #depth-limited-balance-reports31707
-Node: Multicolumn balance reports32128
-Ref: #multicolumn-balance-reports32330
-Node: Market value36979
-Ref: #market-value37143
-Node: Custom balance output38444
-Ref: #custom-balance-output38617
-Node: Output destination40721
-Ref: #output-destination40886
-Node: CSV output41156
-Ref: #csv-output41275
-Node: balancesheet41672
-Ref: #balancesheet41800
-Node: cashflow42452
-Ref: #cashflow42569
-Node: help43259
-Ref: #help43371
-Node: incomestatement44208
-Ref: #incomestatement44338
-Node: info45065
-Ref: #info45172
-Node: man45534
-Ref: #man45631
-Node: print46034
-Ref: #print46139
-Node: register49888
-Ref: #register50001
-Node: Custom register output54493
-Ref: #custom-register-output54624
-Node: stats55921
-Ref: #stats56027
-Node: test56907
-Ref: #test56994
-Node: ADD-ON COMMANDS57361
-Ref: #add-on-commands57497
-Node: api58785
-Ref: #api58877
-Node: autosync58911
-Ref: #autosync59026
-Node: diff61341
-Ref: #diff61451
-Node: equity62115
-Ref: #equity62229
-Node: interest63557
-Ref: #interest63674
-Node: irr66758
-Ref: #irr66871
-Node: print-unique69246
-Ref: #print-unique69376
-Node: rewrite69634
-Ref: #rewrite69753
-Node: ui70282
-Ref: #ui70382
-Node: web70423
-Ref: #web70511
-Node: TROUBLESHOOTING70544
-Ref: #troubleshooting70663
-Node: Run-time problems70717
-Ref: #run-time-problems70860
-Node: Known limitations72804
-Ref: #known-limitations72947
+Node: Depth limiting11768
+Ref: #depth-limiting11908
+Node: Smart dates12109
+Ref: #smart-dates12255
+Node: Report start & end date13252
+Ref: #report-start-end-date13424
+Node: Report intervals14500
+Ref: #report-intervals14665
+Node: Period expressions15064
+Ref: #period-expressions15229
+Node: Regular expressions17564
+Ref: #regular-expressions17706
+Node: QUERIES19189
+Ref: #queries19293
+Node: COMMANDS22932
+Ref: #commands23046
+Node: accounts23719
+Ref: #accounts23819
+Node: activity24801
+Ref: #activity24913
+Node: add25272
+Ref: #add25373
+Node: balance28036
+Ref: #balance28149
+Node: Flat mode31162
+Ref: #flat-mode31289
+Node: Depth limited balance reports31708
+Ref: #depth-limited-balance-reports31911
+Node: Multicolumn balance reports32332
+Ref: #multicolumn-balance-reports32534
+Node: Market value37183
+Ref: #market-value37347
+Node: Custom balance output38648
+Ref: #custom-balance-output38821
+Node: Output destination40925
+Ref: #output-destination41090
+Node: CSV output41360
+Ref: #csv-output41479
+Node: balancesheet41876
+Ref: #balancesheet42004
+Node: cashflow42656
+Ref: #cashflow42773
+Node: help43463
+Ref: #help43575
+Node: incomestatement44412
+Ref: #incomestatement44542
+Node: info45269
+Ref: #info45376
+Node: man45738
+Ref: #man45835
+Node: print46238
+Ref: #print46343
+Node: register50092
+Ref: #register50205
+Node: Custom register output54697
+Ref: #custom-register-output54828
+Node: stats56125
+Ref: #stats56231
+Node: test57111
+Ref: #test57198
+Node: ADD-ON COMMANDS57565
+Ref: #add-on-commands57701
+Node: api58989
+Ref: #api59081
+Node: autosync59115
+Ref: #autosync59230
+Node: diff61545
+Ref: #diff61655
+Node: equity62319
+Ref: #equity62433
+Node: interest63761
+Ref: #interest63878
+Node: irr66962
+Ref: #irr67075
+Node: print-unique69450
+Ref: #print-unique69580
+Node: rewrite69838
+Ref: #rewrite69957
+Node: ui70486
+Ref: #ui70586
+Node: web70627
+Ref: #web70715
+Node: TROUBLESHOOTING70748
+Ref: #troubleshooting70867
+Node: Run-time problems70921
+Ref: #run-time-problems71064
+Node: Known limitations73008
+Ref: #known-limitations73151
 
 End Tag Table

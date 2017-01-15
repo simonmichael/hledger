@@ -490,8 +490,14 @@ $\ echo\ \[aq]i\ 2009/13/1\ 08:00:00\[aq]\ |\ hledger\ print\ \-ftimeclock:\-
 .PP
 You can also specify multiple \f[C]\-f\f[] options, to read multiple
 files as one big journal.
-(Directives in one file will not affect the other files.
-If you need that, use the include directive instead.)
+There are some limitations with this:
+.IP \[bu] 2
+directives in one file will not affect the other files
+.IP \[bu] 2
+balance assertions will not see any account balances from previous files
+.PP
+If you need those, either use the include directive, or concatenate the
+files, eg: \f[C]cat\ a.journal\ b.journal\ |\ hledger\ \-f\-\ CMD\f[].
 .SS Depth limiting
 .PP
 With the \f[C]\-\-depth\ N\f[] option, commands like account, balance

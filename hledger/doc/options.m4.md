@@ -113,8 +113,13 @@ $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 ```
 
 You can also specify multiple `-f` options, to read multiple files as one big journal.
-(Directives in one file will not affect the other files. If you need that, 
-use the [include directive](#including-other-files) instead.)
+There are some limitations with this:
+
+- directives in one file will not affect the other files
+- [balance assertions](/journal.html#balance-assertions) will not see any account balances from previous files
+
+If you need those, either use the [include directive](/journal.html#including-other-files),
+or concatenate the files, eg: `cat a.journal b.journal | hledger -f- CMD`.
 
 ## Depth limiting
 
