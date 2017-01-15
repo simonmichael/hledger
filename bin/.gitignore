@@ -1,4 +1,6 @@
+hledger-chart
 hledger-check-dates
+hledger-dupes
 hledger-equity
 hledger-print-unique
 hledger-register-match
