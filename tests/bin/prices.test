@@ -1,0 +1,42 @@
+# Test prices addon
+
+# by default only market prices are reported
+runghc ../../bin/hledger-prices.hs -f-
+<<<
+P 2016/1/1 EUR $1.06
+P 2016/2/1 EUR $1.05
+
+2016/1/1 paycheck
+    income:remuneration     $-100
+    income:donations         $-15
+    assets:bank
+
+2016/1/2 spend
+    expenses             20 EUR @ $1.07
+    assets:bank
+>>>
+P 2016-01-01 EUR $1.06
+P 2016-02-01 EUR $1.05
+>>>2
+>>>=0
+
+# costs from postings can be included also
+runghc ../../bin/hledger-prices.hs -f- --costs
+<<<
+P 2016/1/1 EUR $1.06
+P 2016/2/1 EUR $1.05
+
+2016/1/1 paycheck
+    income:remuneration     $-100
+    income:donations         $-15
+    assets:bank
+
+2016/1/2 spend
+    expenses             20 EUR @ $1.07
+    assets:bank
+>>>
+P 2016-01-02 EUR $1.07
+P 2016-01-01 EUR $1.06
+P 2016-02-01 EUR $1.05
+>>>2
+>>>=0

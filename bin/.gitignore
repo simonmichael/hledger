@@ -2,6 +2,7 @@ hledger-chart
 hledger-check-dates
 hledger-dupes
 hledger-equity
+hledger-prices
 hledger-print-unique
 hledger-register-match
 hledger-rewrite
