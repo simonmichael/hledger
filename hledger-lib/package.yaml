@@ -123,6 +123,8 @@ library:
   - Hledger.Utils.Text
   - Hledger.Utils.Tree
   - Hledger.Utils.UTF8IOCompat
+  other-modules:
+  - Ledger.Parser.Text
   dependencies:
   - parsec
   - semigroups
