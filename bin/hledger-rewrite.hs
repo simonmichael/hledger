@@ -5,7 +5,7 @@
   --package megaparsec
   --package text
 -}
-{-# LANGUAGE OverloadedStrings, LambdaCase, ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 {-
 
 hledger-rewrite [PATTERNS] --add-posting "ACCT  AMTEXPR" ...
@@ -41,7 +41,6 @@ TODO:
 -}
 
 import Data.Monoid
-import Data.Maybe
 import qualified Data.Text as T
 -- hledger lib, cli and cmdargs utils
 import Hledger.Cli
@@ -50,7 +49,7 @@ import Hledger.Cli
 -- import Control.Applicative.Compat ((<*))
 -- #endif
 import Text.Megaparsec
-import Text.Megaparsec.Text
+import Hledger.Data.AutoTransaction (runModifierTransaction)
 
 cmdmode :: Mode RawOpts
 cmdmode = (defCommandMode ["hledger-rewrite"]) {
@@ -79,56 +78,19 @@ modifierTransactionFromOpts opts = do
     return
         ModifierTransaction { mtvalueexpr = T.empty, mtpostings = postings }
 
-post' :: AccountName -> Amount -> Posting
-post' acct amt = (accountNameWithoutPostingType acct `post` amt) { ptype = accountNamePostingType acct }
-
--- mtvaluequery :: ModifierTransaction -> Day -> Query
-mtvaluequery mod = fst . flip parseQuery (mtvalueexpr mod)
-
-postingScale :: Posting -> Maybe Quantity
-postingScale p =
-    case amounts $ pamount p of
-        [a] | acommodity a == "*" -> Just $ aquantity a
-        _ -> Nothing
-
-runModifierPosting :: Posting -> (Posting -> Posting)
-runModifierPosting p' = modifier where
-    modifier p = renderPostingCommentDates $ p'
-        { ptransaction = ptransaction p
-        , pdate = pdate p
-        , pdate2 = pdate2 p
-        , pamount = amount p
-        }
-    amount =
-        case postingScale p' of
-            Nothing -> const $ pamount p'
-            Just n -> \p -> pamount p `divideMixedAmount` (1/n)
-
-runModifierTransaction :: Query -> ModifierTransaction -> (Transaction -> Transaction)
-runModifierTransaction q mod = modifier where
-    q' = simplifyQuery $ And [q, mtvaluequery mod (error "query cannot depend on current time")]
-    mods = map runModifierPosting $ mtpostings mod
-    generatePostings ps = [mod p | p <- ps, q' `matchesPosting` p, mod <- mods]
-    modifier t@(tpostings -> ps) = t { tpostings = ps ++ generatePostings ps }
-
-renderPostingCommentDates :: Posting -> Posting
-renderPostingCommentDates p = p { pcomment = comment' }
-    where
-        datesComment = T.concat $ catMaybes [T.pack . showDate <$> pdate p, ("=" <>) . T.pack . showDate <$> pdate2 p]
-        comment'
-            | T.null datesComment = pcomment p
-            | otherwise = T.intercalate "\n" $ filter (not . T.null) [T.strip $ pcomment p, "[" <> datesComment <> "]"]
-
+main :: IO ()
 main = do
   opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} <- getCliOpts cmdmode
   d <- getCurrentDay
   let q = queryFromOpts d ropts
-  mod <- modifierTransactionFromOpts rawopts
-  withJournalDo opts $ \opts j@Journal{jtxns=ts} -> do
+  modifier <- modifierTransactionFromOpts rawopts
+  withJournalDo opts $ \opts' j@Journal{jtxns=ts} -> do
     -- create re-writer
-    let mods = mod : jmodifiertxns j
-        modifier = foldr (flip (.) . runModifierTransaction q) id mods
+    let modifiers = modifier : jmodifiertxns j
+        -- Note that some query matches require transaction. Thus modifiers
+        -- pipeline should include txnTieKnot on every step.
+        modifier' = foldr (flip (.) . fmap txnTieKnot . runModifierTransaction q) id modifiers
     -- rewrite matched transactions
-    let j' = j{jtxns=map modifier ts}
+    let j' = j{jtxns=map modifier' ts}
     -- run the print command, showing all transactions
-    print' opts{reportopts_=ropts{query_=""}} j'
+    print' opts'{reportopts_=ropts{query_=""}} j'

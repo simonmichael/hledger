@@ -97,6 +97,7 @@ library:
   - Hledger.Data.RawOptions
   - Hledger.Data.Timeclock
   - Hledger.Data.Transaction
+  - Hledger.Data.AutoTransaction
   - Hledger.Data.Types
   - Hledger.Query
   - Hledger.Read
