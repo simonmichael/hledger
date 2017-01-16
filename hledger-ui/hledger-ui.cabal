@@ -4,8 +4,6 @@
 
 name:           hledger-ui
 version:        1.1.98
-stability:      stable
-category:       Finance, Console
 synopsis:       Curses-style user interface for the hledger accounting tool
 description:    This is hledger's curses-style interface.
                 It is simpler and more convenient for browsing data than the command-line interface,
@@ -17,15 +15,17 @@ description:    This is hledger's curses-style interface.
                 with ledger(1).  hledger provides command-line, curses and web
                 interfaces, and aims to be a reliable, practical tool for daily
                 use.
-license:        GPL
-license-file:   LICENSE
-author:         Simon Michael <simon@joyful.com>
-maintainer:     Simon Michael <simon@joyful.com>
+category:       Finance, Console
+stability:      stable
 homepage:       http://hledger.org
 bug-reports:    http://bugs.hledger.org
-cabal-version:  >= 1.10
-build-type:     Simple
+author:         Simon Michael <simon@joyful.com>
+maintainer:     Simon Michael <simon@joyful.com>
+license:        GPL
+license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0
+build-type:     Simple
+cabal-version:  >= 1.10
 
 extra-source-files:
     CHANGES
@@ -46,9 +46,9 @@ flag oldtime
   default: False
 
 flag threaded
-  default: True
   description: Build with support for multithreaded execution
   manual: False
+  default: True
 
 executable hledger-ui
   main-is: hledger-ui.hs

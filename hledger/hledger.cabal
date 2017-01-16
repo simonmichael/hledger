@@ -4,8 +4,6 @@
 
 name:           hledger
 version:        1.1.98
-stability:      stable
-category:       Finance, Console
 synopsis:       Command-line interface for the hledger accounting tool
 description:    This is hledger's command-line interface.
                 Its basic function is to read a plain text file describing
@@ -17,15 +15,17 @@ description:    This is hledger's command-line interface.
                 with ledger(1).  hledger provides command-line, curses and web
                 interfaces, and aims to be a reliable, practical tool for daily
                 use.
-license:        GPL
-license-file:   LICENSE
-author:         Simon Michael <simon@joyful.com>
-maintainer:     Simon Michael <simon@joyful.com>
+category:       Finance, Console
+stability:      stable
 homepage:       http://hledger.org
 bug-reports:    http://bugs.hledger.org
-cabal-version:  >= 1.10
-build-type:     Simple
+author:         Simon Michael <simon@joyful.com>
+maintainer:     Simon Michael <simon@joyful.com>
+license:        GPL
+license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0
+build-type:     Simple
+cabal-version:  >= 1.10
 
 extra-source-files:
     bench/10000x1000x10.journal
@@ -74,9 +74,9 @@ flag terminfo
   default: True
 
 flag threaded
-  default: True
   description: Build with support for multithreaded execution
   manual: False
+  default: True
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
@@ -281,11 +281,10 @@ test-suite test
 
 benchmark bench
   type: exitcode-stdio-1.0
+  main-is: bench.hs
   hs-source-dirs:
       bench
-  main-is: bench.hs
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  default-language: Haskell2010
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
@@ -308,3 +307,4 @@ benchmark bench
   else
     build-depends:
         time >=1.5
+  default-language: Haskell2010
