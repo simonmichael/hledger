@@ -114,12 +114,14 @@ Cabal users can use the `cabal-install.sh` or `cabal.project` files instead.
 
 Some experimental commands are not built in to hledger, but
 [included in the source](https://github.com/simonmichael/hledger/tree/master/bin) as
-[add-on commands](http://hledger.org/hledger.html#add-on-commands):\
-`hledger-check-dates`,
-`hledger-equity`,
-`hledger-print-unique`,
-`hledger-register-match`,
-`hledger-rewrite`.
+[add-on commands](http://hledger.org/hledger.html#add-on-commands), such as:\
+`chart`,
+`check-dates`,
+`dupes`,
+`equity`,
+`print-unique`,
+`register-match`,
+`rewrite`.
 
 To install these and make them available in hledger's commands list:
 
