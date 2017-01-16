@@ -40,11 +40,21 @@ journalBalanceTransactions' opts j = do
 
 withJournalDo' :: CliOpts -> (CliOpts -> Journal -> IO ()) -> IO ()
 withJournalDo' opts = withJournalDo opts . wrapper where
-    wrapper f opts' j = f opts' =<< journalBalanceTransactions' opts' j{ jtxns = ts' } where
+    wrapper f opts' j = do
         -- use original transactions as input for journalBalanceTransactions to re-infer balances/prices
-        modifier = originalTransaction . foldr (flip (.) . fmap txnTieKnot . runModifierTransaction Any) id mtxns
-        mtxns = jmodifiertxns j
-        ts' = map modifier $ jtxns j
+        let modifier = originalTransaction . foldr (flip (.) . runModifierTransaction') id mtxns
+            runModifierTransaction' = fmap txnTieKnot . runModifierTransaction Any
+            mtxns = jmodifiertxns j
+            dates = jdatespan j
+            ts' = map modifier $ jtxns j
+            ts'' = [makeBudget t | pt <- jperiodictxns j, t <- runPeriodicTransaction pt dates] ++ ts'
+            makeBudget t = txnTieKnot $ t
+                { tdescription = "Budget transaction"
+                , tpostings = map makeBudgetPosting $ tpostings t
+                }
+            makeBudgetPosting p = p { pamount = negate $ pamount p }
+        j' <- journalBalanceTransactions' opts' j{ jtxns = ts'' }
+        f opts' j'
 
 main :: IO ()
 main = do
