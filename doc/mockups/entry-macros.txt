@@ -1,0 +1,69 @@
+Journal entry macro/template mockups  -*- org -*-
+
+
+* hledger-entry
+$ hledger-entry --help
+hledger-entry NAME [ARGS..]
+Generates a journal entry using the named template, interpolating any ARGS.
+
+$ ls *.entry
+laundry.entry  date.entry
+
+$ hledger entry laundry 20
+2015-05-06 laundry    ;  household:$20
+    expenses:personal:home:laundry                            $10
+    liabilities:personal:accounts payable:household           $10
+    assets:personal:cash:wallet                              $-20
+
+$ hledger entry date 5/3 23.24
+2015/05/03 date  ; date:$23.24
+    expenses:personal:food:dining                  $11.62
+    expenses:personal:gifts:eleonore               $11.62
+    assets:personal:bank:wf:checking:food         $-11.62
+    assets:personal:bank:wf:checking:gifts        $-11.62
+
+
+* hledger-expand
+$ hledger-expand --help
+hledger-expand ... < STDIN
+Expands any entry macros in the journal data provided on stdin.
+
+$ cat t.j
+2015/04/29 * trader joes personal  0 1 18 2.07 50
+
+$ hledger expand < t.j
+2015/04/29 * trader joes
+    expenses:personal:food:snacks                      $1.00
+    expenses:personal:gifts:eleonore                  $18.00
+    expenses:personal:spiritual:lodge                  $2.07
+    assets:personal:cash:wallet                       $50.00
+    assets:personal:bank:wf:checking:food             $-1.00
+    assets:personal:bank:wf:checking:gifts           $-20.07
+    assets:personal:bank:wf:checking:available       $-50.00
+
+
+* entry macros defined in the journal
+
+$ cat t.j
+entry trader joes personal  GROCERIES SNACKS ELEONORE LODGE CASH
+%DATE %STATUS (%CODE) %NAME
+    expenses:personal:food:groceries                 $%GROCERIES
+    expenses:personal:food:snacks                    $%SNACKS
+    expenses:personal:gifts:eleonore                 $%ELEONORE
+    expenses:personal:spiritual:lodge                $%LODGE
+    assets:personal:cash:wallet                      $%CASH
+    assets:personal:bank:wf:checking:food            $-%(GROCERIES+SNACKS)
+    assets:personal:bank:wf:checking:gifts           $-%(ELEONORE+LODGE)
+    assets:personal:bank:wf:checking:available       $-%CASH
+
+2015/04/29 * trader joes personal  0 1 18 2.07 50
+
+$ hledger print -f t.j
+2015/04/29 * trader joes personal
+    expenses:personal:gifts:eleonore                  $18.00
+    expenses:personal:spiritual:lodge                  $2.07
+    expenses:personal:food:snacks                      $1.00
+    assets:personal:cash:wallet                       $50.00
+    assets:personal:bank:wf:checking:gifts           $-20.07
+    assets:personal:bank:wf:checking:food             $-1.00
+    assets:personal:bank:wf:checking:available       $-50.00

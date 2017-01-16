@@ -1,0 +1,48 @@
+
+2014/5/11: new read system spec.
+--------------------------------
+
+Reading a journal from some data source conceptually consists of:
+
+1. Parse the data records into fields providing some or all of the standard
+   journal transaction fields - at least date, description and amount.
+
+2. Expand (if needed) these partial journal transactions into
+   complete ones.
+
+In practical terms, it happens in one of these ways:
+
+1. the data source is a file or stdin
+
+2. 
+   If FILE.rules (or other file specified with --rules-file)
+   exists, it can define rules which help with parsing. Eg the skip,
+   fields, and date-format rules.
+
+2. Expansion: partial transactions are fleshed out into complete ones.
+   Eg partial transactions from CSV records need to have an account and
+   a balancing posting added. Expansion is done in several ways:
+
+   1a. Rules: if FILE.rules (or other file specified with --rules-file)
+       exists, it can define rules which help with expansion. Eg field
+       assignments and conditional blocks.
+
+       Pro: easy, somewhat backward compatible, built in, cross platform.
+       Con: limited flexibility.
+
+   1b. Filter: or, if FILE-read (or other file specified with --read-filter)
+       exists, it is used as a filter to translate FILE into (partial) journal
+       format, which is then parsed with the (partial) journal reader.
+       Pro: powerful, flexible.
+       Con: requires programming & tools, data is parsed twice.
+
+   2a. History: if a transaction is still not complete, the best recent match
+       for it among existing transactions is used as a template to fill out
+       missing fields/postings (as with hledger add or ledger-autosync).
+       Pro: no rules or programming required, learns from past manual corrections.
+       Con: less precise, more likely to require manual correction, requires existing data.
+
+   2b. Guess: or, if there is no existing data or no acceptable match (or
+       history matching has been disabled with --no-history-match), we guess
+       default values for the missing fields.
+
