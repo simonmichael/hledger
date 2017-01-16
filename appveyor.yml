@@ -16,7 +16,8 @@ environment:
 
 test_script:
 - echo "" | stack --no-terminal --install-ghc test hledger hledger-web hledger-api
-- stack --local-bin-path . install hledger hledger-web hledger-api
+- stack --local-bin-path . -j1 install hledger hledger-web hledger-api
+# -j1 temporary workaround for https://github.com/commercialhaskell/stack/issues/2617
 
 artifacts:
 - path: hledger.exe
