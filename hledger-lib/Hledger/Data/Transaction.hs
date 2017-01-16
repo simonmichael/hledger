@@ -489,7 +489,8 @@ transactionDate2 t = fromMaybe (tdate t) $ tdate2 t
 -- | Ensure a transaction's postings refer back to it, so that eg
 -- relatedPostings works right.
 txnTieKnot :: Transaction -> Transaction
-txnTieKnot t@Transaction{tpostings=ps} = t{tpostings=map (postingSetTransaction t) ps}
+txnTieKnot t@Transaction{tpostings=ps} = t' where
+    t' = t{tpostings=map (postingSetTransaction t') ps}
 
 -- | Ensure a transaction's postings do not refer back to it, so that eg
 -- recursiveSize and GHCI's :sprint work right.
