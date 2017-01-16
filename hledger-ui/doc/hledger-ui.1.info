@@ -142,14 +142,8 @@ the data.
      convert amounts to their cost at transaction time (using the
      transaction price, if any)
 
-`--pivot TAG'
-     will transform the journal before any other processing by
-     replacing the account name of every posting having the tag TAG
-     with content VALUE by the account name "TAG:VALUE". The TAG will
-     only match if it is a full-length match. The pivot will only
-     happen if the TAG is on a posting, not if it is on the
-     transaction. If the tag value is a multi:level:account:name the
-     new account name will be "TAG:multi:level:account:name".
+`--pivot TAGNAME'
+     organize reports by some tag's value instead of by account
 
 `--anon'
      show anonymized accounts and payees
@@ -361,17 +355,17 @@ Tag Table:
 Node: Top88
 Node: OPTIONS823
 Ref: #options922
-Node: KEYS4001
-Ref: #keys4098
-Node: SCREENS6668
-Ref: #screens6755
-Node: Accounts screen6845
-Ref: #accounts-screen6975
-Node: Register screen9013
-Ref: #register-screen9170
-Node: Transaction screen11058
-Ref: #transaction-screen11218
-Node: Error screen12085
-Ref: #error-screen12209
+Node: KEYS3611
+Ref: #keys3708
+Node: SCREENS6278
+Ref: #screens6365
+Node: Accounts screen6455
+Ref: #accounts-screen6585
+Node: Register screen8623
+Ref: #register-screen8780
+Node: Transaction screen10668
+Ref: #transaction-screen10828
+Node: Error screen11695
+Ref: #error-screen11819
 
 End Tag Table

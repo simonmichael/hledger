@@ -121,12 +121,6 @@ There are some limitations with this:
 If you need those, either use the [include directive](/journal.html#including-other-files),
 or concatenate the files, eg: `cat a.journal b.journal | hledger -f- CMD`.
 
-## Depth limiting
-
-With the `--depth N` option, commands like [account](#account), [balance](#balance)
-and [register](#register) will show only the uppermost accounts in the account
-tree, down to level N. Use this when you want a summary with less detail.
-
 ## Smart dates
 
 hledger's user interfaces accept a flexible "smart date" syntax (unlike dates in the journal file). 
@@ -268,6 +262,65 @@ Show historical balances at end of 15th each month (N is exclusive end date):
 Group postings from start of wednesday to end of next tuesday (N is start date and exclusive end date):
 
 `hledger register checking -p "every 3rd day of week"`   
+
+## Depth limiting
+
+With the `--depth N` option, commands like [account](#account), [balance](#balance)
+and [register](#register) will show only the uppermost accounts in the account
+tree, down to level N. Use this when you want a summary with less detail.
+
+## Pivoting
+
+Normally hledger sums amounts, and organizes them in a hierarchy, based on account name.
+The `--pivot TAGNAME` option causes it to sum and organize hierarchy based on some other field instead.
+
+TAGNAME is the full, case-insensitive name of a [tag](/journal.html#tags) you have defined,
+or one of the built-in implicit tags (like `code` or `payee`).
+As with account names, when tag values have `multiple:colon-separated:parts` hledger will build hierarchy,
+displayed in tree-mode reports, summarisable with a depth limit, and so on.
+
+`--pivot` affects all reports, and is one of those options you can write before the command name if you wish.
+You can think of hledger transforming the journal before any other processing,
+replacing every posting's account name with the value of the specified tag on that posting,
+inheriting it from the transaction or using a blank value if it's not present.
+
+An example:
+
+```journal
+2016/02/16 Member Fee Payment
+    assets:bank account                    2 EUR
+    income:member fees                    -2 EUR  ; member: John Doe
+```
+Normal balance report showing account names:
+```shell
+$ hledger balance
+               2 EUR  assets:bank account
+              -2 EUR  income:member fees
+--------------------
+                   0
+```
+Pivoted balance report, using member: tag values instead:
+```shell
+$ hledger balance --pivot member
+               2 EUR
+              -2 EUR  John Doe
+--------------------
+                   0
+```
+One way to show only amounts with a member: value (using a [query](#queries), described below):
+```shell
+$ hledger balance --pivot member tag:member=.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+```
+Another way (the acct: query matches against the pivoted "account name"):
+```
+$ hledger balance --pivot member acct:.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+```
 
 ## Regular expressions
 

@@ -117,21 +117,6 @@ $ hledger reg 'assets:some bank:checking' # show postings to/from this checking 
 $ hledger print desc:shop                 # show transactions with shop in the description
 $ hledger activity -W                     # show transaction counts per week as a bar chart
 
-   With the journal
-
-
-2016/02/16 Member Fee Payment John Doe
-    assets:bank account                                   2 EUR
-    income:member fees                                  -2 EUR
-      ; member: John Doe
-
-   the -pivot comand will output the following:
-
-
-$ hledger bal --pivot member
-    2 EUR  assets:bank account
-   -2 EUR  member:John Doe
-
 
 File: hledger.1.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 
@@ -200,11 +185,12 @@ cur:\\\\$'.
 * General options::
 * Reporting options::
 * Input files::
-* Depth limiting::
 * Smart dates::
 * Report start & end date::
 * Report intervals::
 * Period expressions::
+* Depth limiting::
+* Pivoting::
 * Regular expressions::
 
 
@@ -304,14 +290,8 @@ Common reporting options, must be written after COMMAND.
      convert amounts to their cost at transaction time (using the
      transaction price, if any)
 
-`--pivot TAG'
-     will transform the journal before any other processing by
-     replacing the account name of every posting having the tag TAG
-     with content VALUE by the account name "TAG:VALUE". The TAG will
-     only match if it is a full-length match. The pivot will only
-     happen if the TAG is on a posting, not if it is on the
-     transaction. If the tag value is a multi:level:account:name the
-     new account name will be "TAG:multi:level:account:name".
+`--pivot TAGNAME'
+     organize reports by some tag's value instead of by account
 
 `--anon'
      show anonymized accounts and payees
@@ -320,7 +300,7 @@ Common reporting options, must be written after COMMAND.
 last one takes precedence. Eg -p jan -p feb is equivalent to -p feb.
 
 
-File: hledger.1.info,  Node: Input files,  Next: Depth limiting,  Prev: Reporting options,  Up: OPTIONS
+File: hledger.1.info,  Node: Input files,  Next: Smart dates,  Prev: Reporting options,  Up: OPTIONS
 
 2.3 Input files
 ===============
@@ -380,19 +360,9 @@ as one big journal. There are some limitations with this:
 the files, eg: `cat a.journal b.journal | hledger -f- CMD'.
 
 
-File: hledger.1.info,  Node: Depth limiting,  Next: Smart dates,  Prev: Input files,  Up: OPTIONS
+File: hledger.1.info,  Node: Smart dates,  Next: Report start & end date,  Prev: Input files,  Up: OPTIONS
 
-2.4 Depth limiting
-==================
-
-With the `--depth N' option, commands like account, balance and
-register will show only the uppermost accounts in the account tree, down
-to level N. Use this when you want a summary with less detail.
-
-
-File: hledger.1.info,  Node: Smart dates,  Next: Report start & end date,  Prev: Depth limiting,  Up: OPTIONS
-
-2.5 Smart dates
+2.4 Smart dates
 ===============
 
 hledger's user interfaces accept a flexible "smart date" syntax (unlike
@@ -415,7 +385,7 @@ omitted (defaulting to 1).
 
 File: hledger.1.info,  Node: Report start & end date,  Next: Report intervals,  Prev: Smart dates,  Up: OPTIONS
 
-2.6 Report start & end date
+2.5 Report start & end date
 ===========================
 
 Most hledger reports show the full span of time represented by the
@@ -444,7 +414,7 @@ you need to write the date _after_ the last day you want to include.
 
 File: hledger.1.info,  Node: Report intervals,  Next: Period expressions,  Prev: Report start & end date,  Up: OPTIONS
 
-2.7 Report intervals
+2.6 Report intervals
 ====================
 
 A report interval can be specified so that commands like register,
@@ -455,9 +425,9 @@ complex intervals may be specified with a period expression. Report
 intervals can not be specified with a query, currently.
 
 
-File: hledger.1.info,  Node: Period expressions,  Next: Regular expressions,  Prev: Report intervals,  Up: OPTIONS
+File: hledger.1.info,  Node: Period expressions,  Next: Depth limiting,  Prev: Report intervals,  Up: OPTIONS
 
-2.8 Period expressions
+2.7 Period expressions
 ======================
 
 The `-p/--period' option accepts period expressions, a shorthand way of
@@ -530,10 +500,87 @@ start date and exclusive end date):
    `hledger register checking -p "every 3rd day of week"'
 
 
-File: hledger.1.info,  Node: Regular expressions,  Prev: Period expressions,  Up: OPTIONS
+File: hledger.1.info,  Node: Depth limiting,  Next: Pivoting,  Prev: Period expressions,  Up: OPTIONS
 
-2.9 Regular expressions
-=======================
+2.8 Depth limiting
+==================
+
+With the `--depth N' option, commands like account, balance and
+register will show only the uppermost accounts in the account tree, down
+to level N. Use this when you want a summary with less detail.
+
+
+File: hledger.1.info,  Node: Pivoting,  Next: Regular expressions,  Prev: Depth limiting,  Up: OPTIONS
+
+2.9 Pivoting
+============
+
+Normally hledger sums amounts, and organizes them in a hierarchy, based
+on account name. The `--pivot TAGNAME' option causes it to sum and
+organize hierarchy based on some other field instead.
+
+   TAGNAME is the full, case-insensitive name of a tag you have
+defined, or one of the built-in implicit tags (like `code' or `payee').
+As with account names, when tag values have
+`multiple:colon-separated:parts' hledger will build hierarchy,
+displayed in tree-mode reports, summarisable with a depth limit, and so
+on.
+
+   `--pivot' affects all reports, and is one of those options you can
+write before the command name if you wish. You can think of hledger
+transforming the journal before any other processing, replacing every
+posting's account name with the value of the specified tag on that
+posting, inheriting it from the transaction or using a blank value if
+it's not present.
+
+   An example:
+
+
+2016/02/16 Member Fee Payment
+    assets:bank account                    2 EUR
+    income:member fees                    -2 EUR  ; member: John Doe
+
+   Normal balance report showing account names:
+
+
+$ hledger balance
+               2 EUR  assets:bank account
+              -2 EUR  income:member fees
+--------------------
+                   0
+
+   Pivoted balance report, using member: tag values instead:
+
+
+$ hledger balance --pivot member
+               2 EUR
+              -2 EUR  John Doe
+--------------------
+                   0
+
+   One way to show only amounts with a member: value (using a query,
+described below):
+
+
+$ hledger balance --pivot member tag:member=.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+
+   Another way (the acct: query matches against the pivoted "account
+name"):
+
+
+$ hledger balance --pivot member acct:.
+              -2 EUR  John Doe
+--------------------
+              -2 EUR
+
+
+File: hledger.1.info,  Node: Regular expressions,  Prev: Pivoting,  Up: OPTIONS
+
+2.10 Regular expressions
+========================
 
 hledger uses regular expressions in a number of places:
 
@@ -2282,101 +2329,103 @@ Tag Table:
 Node: Top82
 Node: EXAMPLES1873
 Ref: #examples1975
-Node: OPTIONS3979
-Ref: #options4083
-Node: General options6711
-Ref: #general-options6840
-Node: Reporting options7611
-Ref: #reporting-options7764
-Node: Input files9587
-Ref: #input-files9727
-Node: Depth limiting11768
-Ref: #depth-limiting11908
-Node: Smart dates12109
-Ref: #smart-dates12255
-Node: Report start & end date13252
-Ref: #report-start-end-date13424
-Node: Report intervals14500
-Ref: #report-intervals14665
-Node: Period expressions15064
-Ref: #period-expressions15229
-Node: Regular expressions17564
-Ref: #regular-expressions17706
-Node: QUERIES19189
-Ref: #queries19293
-Node: COMMANDS22932
-Ref: #commands23046
-Node: accounts23719
-Ref: #accounts23819
-Node: activity24801
-Ref: #activity24913
-Node: add25272
-Ref: #add25373
-Node: balance28036
-Ref: #balance28149
-Node: Flat mode31162
-Ref: #flat-mode31289
-Node: Depth limited balance reports31708
-Ref: #depth-limited-balance-reports31911
-Node: Multicolumn balance reports32332
-Ref: #multicolumn-balance-reports32534
-Node: Market value37183
-Ref: #market-value37347
-Node: Custom balance output38648
-Ref: #custom-balance-output38821
-Node: Output destination40925
-Ref: #output-destination41090
-Node: CSV output41360
-Ref: #csv-output41479
-Node: balancesheet41876
-Ref: #balancesheet42004
-Node: cashflow42656
-Ref: #cashflow42773
-Node: help43463
-Ref: #help43575
-Node: incomestatement44412
-Ref: #incomestatement44542
-Node: info45269
-Ref: #info45376
-Node: man45738
-Ref: #man45835
-Node: print46238
-Ref: #print46343
-Node: register50092
-Ref: #register50205
-Node: Custom register output54697
-Ref: #custom-register-output54828
-Node: stats56125
-Ref: #stats56231
-Node: test57111
-Ref: #test57198
-Node: ADD-ON COMMANDS57565
-Ref: #add-on-commands57701
-Node: api58989
-Ref: #api59081
-Node: autosync59115
-Ref: #autosync59230
-Node: diff61545
-Ref: #diff61655
-Node: equity62319
-Ref: #equity62433
-Node: interest63761
-Ref: #interest63878
-Node: irr66962
-Ref: #irr67075
-Node: print-unique69450
-Ref: #print-unique69580
-Node: rewrite69838
-Ref: #rewrite69957
-Node: ui70486
-Ref: #ui70586
-Node: web70627
-Ref: #web70715
-Node: TROUBLESHOOTING70748
-Ref: #troubleshooting70867
-Node: Run-time problems70921
-Ref: #run-time-problems71064
-Node: Known limitations73008
-Ref: #known-limitations73151
+Node: OPTIONS3627
+Ref: #options3731
+Node: General options6372
+Ref: #general-options6501
+Node: Reporting options7272
+Ref: #reporting-options7425
+Node: Input files8858
+Ref: #input-files8995
+Node: Smart dates11036
+Ref: #smart-dates11179
+Node: Report start & end date12176
+Ref: #report-start-end-date12348
+Node: Report intervals13424
+Ref: #report-intervals13589
+Node: Period expressions13988
+Ref: #period-expressions14148
+Node: Depth limiting16483
+Ref: #depth-limiting16627
+Node: Pivoting16828
+Ref: #pivoting16961
+Node: Regular expressions18792
+Ref: #regular-expressions18926
+Node: QUERIES20409
+Ref: #queries20513
+Node: COMMANDS24152
+Ref: #commands24266
+Node: accounts24939
+Ref: #accounts25039
+Node: activity26021
+Ref: #activity26133
+Node: add26492
+Ref: #add26593
+Node: balance29256
+Ref: #balance29369
+Node: Flat mode32382
+Ref: #flat-mode32509
+Node: Depth limited balance reports32928
+Ref: #depth-limited-balance-reports33131
+Node: Multicolumn balance reports33552
+Ref: #multicolumn-balance-reports33754
+Node: Market value38403
+Ref: #market-value38567
+Node: Custom balance output39868
+Ref: #custom-balance-output40041
+Node: Output destination42145
+Ref: #output-destination42310
+Node: CSV output42580
+Ref: #csv-output42699
+Node: balancesheet43096
+Ref: #balancesheet43224
+Node: cashflow43876
+Ref: #cashflow43993
+Node: help44683
+Ref: #help44795
+Node: incomestatement45632
+Ref: #incomestatement45762
+Node: info46489
+Ref: #info46596
+Node: man46958
+Ref: #man47055
+Node: print47458
+Ref: #print47563
+Node: register51312
+Ref: #register51425
+Node: Custom register output55917
+Ref: #custom-register-output56048
+Node: stats57345
+Ref: #stats57451
+Node: test58331
+Ref: #test58418
+Node: ADD-ON COMMANDS58785
+Ref: #add-on-commands58921
+Node: api60209
+Ref: #api60301
+Node: autosync60335
+Ref: #autosync60450
+Node: diff62765
+Ref: #diff62875
+Node: equity63539
+Ref: #equity63653
+Node: interest64981
+Ref: #interest65098
+Node: irr68182
+Ref: #irr68295
+Node: print-unique70670
+Ref: #print-unique70800
+Node: rewrite71058
+Ref: #rewrite71177
+Node: ui71706
+Ref: #ui71806
+Node: web71847
+Ref: #web71935
+Node: TROUBLESHOOTING71968
+Ref: #troubleshooting72087
+Node: Run-time problems72141
+Ref: #run-time-problems72284
+Node: Known limitations74228
+Ref: #known-limitations74371
 
 End Tag Table

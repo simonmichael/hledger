@@ -504,8 +504,9 @@ end comment
 
 A *tag* is a word followed by a full colon inside a transaction or
 posting [comment](#comments).  You can write multiple tags, comma
-separated. Eg: `; a comment containing sometag:, anothertag:`.  You can search for tags
-with the [`tag:` query](manual#queries).
+separated. Eg: `; a comment containing sometag:, anothertag:`.  
+You can search for tags with the [`tag:` query](/hledger.html#queries),
+or pivot on them with [`--pivot TAG`](/hledger.html#pivoting).
 
 A tag can also have a value, which is any text between the colon and
 the next comma or newline, excluding leading/trailing whitespace.
@@ -525,6 +526,19 @@ and the posting has four (A, TAG2, third-tag, posting-tag):
 Tags are like Ledger's
 [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
 feature, except hledger's tag values are simple strings.
+
+### Implicit tags
+
+Some predefined "implicit" tags are also provided:
+
+- `code`        - the transaction's code field
+- `description` - the transaction's description
+- `payee`       - the part of description before `|`, or all of it
+- `note`        - the part of description after `|`, or all of it
+
+`payee` and `note` support descriptions written in a special `PAYEE | NOTE` format,
+accessing the parts before and after the pipe character respectively.
+For descriptions not containing a pipe character they are the same as `description`.
 
 ## Directives
 

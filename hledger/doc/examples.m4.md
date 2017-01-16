@@ -68,20 +68,3 @@ $ hledger reg 'assets:some bank:checking' # show postings to/from this checking 
 $ hledger print desc:shop                 # show transactions with shop in the description
 $ hledger activity -W                     # show transaction counts per week as a bar chart
 ```
-
-With the journal
-
-```journal
-2016/02/16 Member Fee Payment John Doe
-    assets:bank account                                   2 EUR
-    income:member fees                                  -2 EUR
-      ; member: John Doe
-```
-
-the --pivot comand will output the following:
-
-```shells
-$ hledger bal --pivot member
-    2 EUR  assets:bank account
-   -2 EUR  member:John Doe
-```

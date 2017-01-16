@@ -147,27 +147,6 @@ $\ hledger\ print\ desc:shop\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ transacti
 $\ hledger\ activity\ \-W\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ transaction\ counts\ per\ week\ as\ a\ bar\ chart
 \f[]
 .fi
-.PP
-With the journal
-.IP
-.nf
-\f[C]
-2016/02/16\ Member\ Fee\ Payment\ John\ Doe
-\ \ \ \ assets:bank\ account\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2\ EUR
-\ \ \ \ income:member\ fees\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \-2\ EUR
-\ \ \ \ \ \ ;\ member:\ John\ Doe
-\f[]
-.fi
-.PP
-the \-\-pivot comand will output the following:
-.IP
-.nf
-\f[C]
-$\ hledger\ bal\ \-\-pivot\ member
-\ \ \ \ 2\ EUR\ \ assets:bank\ account
-\ \ \ \-2\ EUR\ \ member:John\ Doe
-\f[]
-.fi
 .SH OPTIONS
 .PP
 To see general usage and the command list: \f[C]hledger\ \-h\f[] or just
@@ -378,15 +357,8 @@ price, if any)
 .RS
 .RE
 .TP
-.B \f[C]\-\-pivot\ TAG\f[]
-will transform the journal before any other processing by replacing the
-account name of every posting having the tag TAG with content VALUE by
-the account name "TAG:VALUE".
-The TAG will only match if it is a full\-length match.
-The pivot will only happen if the TAG is on a posting, not if it is on
-the transaction.
-If the tag value is a multi:level:account:name the new account name will
-be "TAG:multi:level:account:name".
+.B \f[C]\-\-pivot\ TAGNAME\f[]
+organize reports by some tag\[aq]s value instead of by account
 .RS
 .RE
 .TP
@@ -498,12 +470,6 @@ balance assertions will not see any account balances from previous files
 .PP
 If you need those, either use the include directive, or concatenate the
 files, eg: \f[C]cat\ a.journal\ b.journal\ |\ hledger\ \-f\-\ CMD\f[].
-.SS Depth limiting
-.PP
-With the \f[C]\-\-depth\ N\f[] option, commands like account, balance
-and register will show only the uppermost accounts in the account tree,
-down to level N.
-Use this when you want a summary with less detail.
 .SS Smart dates
 .PP
 hledger\[aq]s user interfaces accept a flexible "smart date" syntax
@@ -789,6 +755,91 @@ Group postings from start of wednesday to end of next tuesday (N is
 start date and exclusive end date):
 .PP
 \f[C]hledger\ register\ checking\ \-p\ "every\ 3rd\ day\ of\ week"\f[]
+.SS Depth limiting
+.PP
+With the \f[C]\-\-depth\ N\f[] option, commands like account, balance
+and register will show only the uppermost accounts in the account tree,
+down to level N.
+Use this when you want a summary with less detail.
+.SS Pivoting
+.PP
+Normally hledger sums amounts, and organizes them in a hierarchy, based
+on account name.
+The \f[C]\-\-pivot\ TAGNAME\f[] option causes it to sum and organize
+hierarchy based on some other field instead.
+.PP
+TAGNAME is the full, case\-insensitive name of a tag you have defined,
+or one of the built\-in implicit tags (like \f[C]code\f[] or
+\f[C]payee\f[]).
+As with account names, when tag values have
+\f[C]multiple:colon\-separated:parts\f[] hledger will build hierarchy,
+displayed in tree\-mode reports, summarisable with a depth limit, and so
+on.
+.PP
+\f[C]\-\-pivot\f[] affects all reports, and is one of those options you
+can write before the command name if you wish.
+You can think of hledger transforming the journal before any other
+processing, replacing every posting\[aq]s account name with the value of
+the specified tag on that posting, inheriting it from the transaction or
+using a blank value if it\[aq]s not present.
+.PP
+An example:
+.IP
+.nf
+\f[C]
+2016/02/16\ Member\ Fee\ Payment
+\ \ \ \ assets:bank\ account\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2\ EUR
+\ \ \ \ income:member\ fees\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \-2\ EUR\ \ ;\ member:\ John\ Doe
+\f[]
+.fi
+.PP
+Normal balance report showing account names:
+.IP
+.nf
+\f[C]
+$\ hledger\ balance
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2\ EUR\ \ assets:bank\ account
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-2\ EUR\ \ income:member\ fees
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
+.PP
+Pivoted balance report, using member: tag values instead:
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-\-pivot\ member
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2\ EUR
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-2\ EUR\ \ John\ Doe
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
+.PP
+One way to show only amounts with a member: value (using a query,
+described below):
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-\-pivot\ member\ tag:member=.
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-2\ EUR\ \ John\ Doe
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-2\ EUR
+\f[]
+.fi
+.PP
+Another way (the acct: query matches against the pivoted "account
+name"):
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-\-pivot\ member\ acct:.
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-2\ EUR\ \ John\ Doe
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-2\ EUR
+\f[]
+.fi
 .SS Regular expressions
 .PP
 hledger uses regular expressions in a number of places:
