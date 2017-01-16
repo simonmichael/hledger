@@ -9,9 +9,11 @@ module Hledger.Data.AutoTransaction
     (
     -- * Transaction processors
       runModifierTransaction
+    , runPeriodicTransaction
 
     -- * Accessors
     , mtvaluequery
+    , jdatespan
     )
 where
 
@@ -22,12 +24,15 @@ import qualified Data.Text as T
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Amount
+import Hledger.Data.Transaction
+import Hledger.Utils.Parse
+import Hledger.Utils.UTF8IOCompat (error')
 import Hledger.Query
 
 -- $setup
 -- >>> :set -XOverloadedStrings
 -- >>> import Hledger.Data.Posting
--- >>> import Hledger.Data.Transaction
+-- >>> import Hledger.Data.Journal
 
 -- | Builds a 'Transaction' transformer based on 'ModifierTransaction'.
 --
@@ -76,6 +81,29 @@ runModifierTransaction q mt = modifier where
 mtvaluequery :: ModifierTransaction -> (Day -> Query)
 mtvaluequery mt = fst . flip parseQuery (mtvalueexpr mt)
 
+-- | 'DateSpan' of all dates mentioned in 'Journal'
+--
+-- >>> jdatespan nulljournal
+-- DateSpan -
+-- >>> jdatespan nulljournal{jtxns=[nulltransaction{tdate=read "2016-01-01"}] }
+-- DateSpan 2016/01/01
+-- >>> jdatespan nulljournal{jtxns=[nulltransaction{tdate=read "2016-01-01", tpostings=[nullposting{pdate=Just $ read "2016-02-01"}]}] }
+-- DateSpan 2016/01/01-2016/02/01
+jdatespan :: Journal -> DateSpan
+jdatespan j
+        | null dates = nulldatespan
+        | otherwise = DateSpan (Just $ minimum dates) (Just $ 1 `addDays` maximum dates)
+    where
+        dates = concatMap tdates $ jtxns j
+
+-- | 'DateSpan' of all dates mentioned in 'Transaction'
+--
+-- >>> tdates nulltransaction
+-- [0000-01-01]
+tdates :: Transaction -> [Day]
+tdates t = tdate t : concatMap pdates (tpostings t) ++ maybeToList (tdate2 t) where
+    pdates p = catMaybes [pdate p, pdate2 p]
+
 postingScale :: Posting -> Maybe Quantity
 postingScale p =
     case amounts $ pamount p of
@@ -101,3 +129,28 @@ renderPostingCommentDates p = p { pcomment = comment' }
         comment'
             | T.null datesComment = pcomment p
             | otherwise = T.intercalate "\n" $ filter (not . T.null) [T.strip $ pcomment p, "[" <> datesComment <> "]"]
+
+-- | Generate transactions from 'PeriodicTransaction' within a 'DateSpan'
+--
+-- Note that new transactions require 'txnTieKnot' post-processing.
+--
+-- >>> mapM_ (putStr . show) $ runPeriodicTransaction (PeriodicTransaction "monthly from 2017/1 to 2017/4" ["hi" `post` usd 1]) nulldatespan
+-- 2017/01/01
+--     hi         $1.00
+-- <BLANKLINE>
+-- 2017/02/01
+--     hi         $1.00
+-- <BLANKLINE>
+-- 2017/03/01
+--     hi         $1.00
+-- <BLANKLINE>
+runPeriodicTransaction :: PeriodicTransaction -> (DateSpan -> [Transaction])
+runPeriodicTransaction pt = generate where
+    base = nulltransaction { tpostings = ptpostings pt }
+    periodExpr = ptperiodicexpr pt
+    errCurrent = error' $ "Current date cannot be referenced in " ++ show (T.unpack periodExpr)
+    (interval, effectspan) =
+        case parsePeriodExpr errCurrent periodExpr of
+            Left e -> error' $ "Failed to parse " ++ show (T.unpack periodExpr) ++ ": " ++ showDateParseError e
+            Right x -> x
+    generate jspan = [base {tdate=date} | span <- interval `splitSpan` spanIntersect effectspan jspan, let Just date = spanStart span]
