@@ -115,6 +115,7 @@ runghc ../../bin/hledger-budget.hs reg -f -
 >>>=0
 
 # Periodical transactions within journal being applied with inverted sign in amounts
+# As well, accounts from periodic transaction being used for bucketing
 runghc ../../bin/hledger-budget.hs bal -f - --no-total -DH expenses
 <<<
 ~ daily from 2016/12/31
@@ -133,7 +134,7 @@ runghc ../../bin/hledger-budget.hs bal -f - --no-total -DH expenses
     expenses:fee  *-0.008  ; cash withdraw fee
 
 2016/12/31
-    expenses:housing  $600
+    expenses:housing:rent  $600
     assets:cash
 
 2017/1/1
@@ -159,6 +160,106 @@ Ending balances (historical) in 2016/12/26-2017/01/04:
  expenses:grocery ||        $-50        $-50        $-50        $-50        $-50        $-50     $-20.00     $-70.00     $-70.00     $-70.00 
  expenses:housing ||       $-250       $-250       $-250       $-250       $-250     $350.00     $350.00     $100.00     $100.00     $100.00 
  expenses:leisure ||        $-20        $-20        $-20        $-20        $-20        $-20      $-5.00     $-25.00     $-25.00     $-25.00 
+
+>>>2
+>>>=0
+
+# We still can disable bucketing keeping rewrites and budget offset
+runghc ../../bin/hledger-budget.hs bal -f - --no-total --no-buckets -DH expenses
+<<<
+~ daily from 2016/12/31
+    expenses:food  $8
+    assets
+
+= ^assets:bank$ date:2017/1 amt:<0
+    assets:bank  *0.008
+    expenses:fee  *-0.008  ; cash withdraw fee
+
+2016/12/31
+    expenses:housing:rent  $600
+    assets:bank
+
+2017/1/1
+    expenses:food  $20
+    expenses:leisure  $15
+    expenses:grocery  $30
+    assets:bank
+>>>
+Ending balances (historical) in 2016/12/31-2017/01/01:
+
+                       ||  2016/12/31  2017/01/01 
+=======================++=========================
+ expenses:fee          ||           0          $1 
+ expenses:food         ||         $-8          $4 
+ expenses:grocery      ||           0         $30 
+ expenses:housing:rent ||        $600        $600 
+ expenses:leisure      ||           0         $15 
+
+>>>2
+>>>=0
+
+# We can disable offset keeping rewrites and bucketing
+# Note that original account names used for query
+runghc ../../bin/hledger-budget.hs bal -f - --no-total --no-offset -DH expenses
+<<<
+~ daily from 2016/12/31
+    expenses:food  $8
+    assets
+
+= ^assets:bank$ date:2017/1 amt:<0
+    assets:bank  *0.008
+    expenses:fee  *-0.008  ; cash withdraw fee
+
+2016/12/31
+    expenses:housing:rent  $600
+    assets:bank
+
+2017/1/1
+    expenses:food  $20
+    expenses:leisure  $15
+    expenses:grocery  $30
+    assets:bank
+>>>
+Ending balances (historical) in 2016/12/31-2017/01/01:
+
+               ||  2016/12/31  2017/01/01 
+===============++=========================
+ <unbucketed>  ||        $600        $646 
+ expenses:food ||           0         $20 
+
+>>>2
+>>>=0
+
+# We can keep just rewrites
+runghc ../../bin/hledger-budget.hs bal -f - --no-total --no-buckets --no-offset -DH expenses
+<<<
+~ daily from 2016/12/31
+    expenses:food  $8
+    assets
+
+= ^assets:bank$ date:2017/1 amt:<0
+    assets:bank  *0.008
+    expenses:fee  *-0.008  ; cash withdraw fee
+
+2016/12/31
+    expenses:housing:rent  $600
+    assets:bank
+
+2017/1/1
+    expenses:food  $20
+    expenses:leisure  $15
+    expenses:grocery  $30
+    assets:bank
+>>>
+Ending balances (historical) in 2016/12/31-2017/01/01:
+
+                       ||  2016/12/31  2017/01/01 
+=======================++=========================
+ expenses:fee          ||           0          $1 
+ expenses:food         ||           0         $20 
+ expenses:grocery      ||           0         $30 
+ expenses:housing:rent ||        $600        $600 
+ expenses:leisure      ||           0         $15 
 
 >>>2
 >>>=0
