@@ -1,0 +1,115 @@
+# Test budget addon
+
+# Rewrite rules within journal always applied
+runghc ../../bin/hledger-budget.hs bal -f - --no-total -DH budget
+<<<
+= ^assets:bank$ date:2017/1 amt:<0
+    assets:bank  *0.008
+    expenses:fee  *-0.008  ; cash withdraw fee
+= ^expenses:housing
+    (budget:housing)  *-1
+= ^expenses:grocery ^expenses:food
+    (budget:food)  *-1
+
+2016/12/31
+    expenses:housing  $600
+    assets:cash
+
+2017/1/1
+    expenses:food  $20
+    expenses:leisure  $15
+    expenses:grocery  $30
+    assets:cash
+
+2017/1/2
+    assets:cash  $200.00
+    assets:bank
+
+2017/2/1
+    assets:cash  $100.00
+    assets:bank
+
+; order with normal entries doesn't matter
+; but relative order matters to refer-rewritten transactions
+= ^expenses not:housing not:grocery not:food
+    (budget:misc)  *-1
+>>>
+Ending balances (historical) in 2016/12/31-2017/01/02:
+
+                ||  2016/12/31  2017/01/01  2017/01/02 
+================++=====================================
+ budget:food    ||           0     $-50.00     $-50.00 
+ budget:housing ||    $-600.00    $-600.00    $-600.00 
+ budget:misc    ||           0     $-15.00     $-16.60 
+
+>>>2
+>>>=0
+
+# Rewrite rules can chain one another according to order of definition
+runghc ../../bin/hledger-budget.hs reg -f -
+<<<
+
+; unfortunately date override in posting comment doesn't work
+
+= liabilities:credit amt:<0 date:2016/12
+    liabilities:credit  *-1  ; [2017/1/1]
+    assets:bank  *1  ; [2017/1/1]
+
+= liabilities:credit amt:<0 date:2017/1
+    liabilities:credit  *-1  ; [2017/2/1]
+    assets:bank  *1  ; [2017/2/1]
+
+= liabilities:credit amt:<0 date:2017/2
+    liabilities:credit  *-1  ; [2017/3/1]
+    assets:bank  *1  ; [2017/3/1]
+
+= assets:bank date:2017/2 amt:<0
+    assets:bank  *0.008
+    expenses:fee  *-0.008  ; :salary-card: cash withdraw fee
+
+= expenses:fee tag:salary-card date:2017-2017/12/26
+    income:compensate  *-0.5
+    assets:bank  *0.5  ; compensation from employer
+
+2016/12/31
+    expenses:housing  $600
+    liabilities:credit
+
+2017/1/1
+    expenses:food  $20
+    expenses:leisure  $15
+    expenses:grocery  $30
+    liabilities:credit
+
+2017/1/2
+    assets:cash  $200.00
+    liabilities:credit
+
+2017/2/1
+    assets:cash  $100.00
+    liabilities:credit
+>>>
+2016/12/31                      expenses:housing           $600.00       $600.00
+                                liabilities:credit        $-600.00             0
+                                liabilities:credit         $600.00       $600.00
+                                assets:bank               $-600.00             0
+2017/01/01                      expenses:food               $20.00        $20.00
+                                expenses:leisure            $15.00        $35.00
+                                expenses:grocery            $30.00        $65.00
+                                liabilities:credit         $-65.00             0
+                                liabilities:credit          $65.00        $65.00
+                                assets:bank                $-65.00             0
+2017/01/02                      assets:cash                $200.00       $200.00
+                                liabilities:credit        $-200.00             0
+                                liabilities:credit         $200.00       $200.00
+                                assets:bank               $-200.00             0
+2017/02/01                      assets:cash                $100.00       $100.00
+                                liabilities:credit        $-100.00             0
+                                liabilities:credit         $100.00       $100.00
+                                assets:bank               $-100.00             0
+                                assets:bank                 $-0.80        $-0.80
+                                expenses:fee                 $0.80             0
+                                income:compensate           $-0.40        $-0.40
+                                assets:bank                  $0.40             0
+>>>2
+>>>=0
