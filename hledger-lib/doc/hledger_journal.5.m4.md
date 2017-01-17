@@ -502,24 +502,39 @@ end comment
 
 ## Tags
 
-A *tag* is a word followed by a full colon inside a transaction or
-posting [comment](#comments).  You can write multiple tags, comma
-separated. Eg: `; a comment containing sometag:, anothertag:`.  
-You can search for tags with the [`tag:` query](/hledger.html#queries),
-or pivot on them with [`--pivot TAG`](/hledger.html#pivoting).
+Tags are a way to add extra labels or labelled data to postings and transactions,
+which you can then [search](/journal.html#queries) or [pivot](/hledger.html#pivoting) on.
 
-A tag can also have a value, which is any text between the colon and
-the next comma or newline, excluding leading/trailing whitespace.
-(So hledger tag values can not contain commas or newlines).
+A simple tag is a word (which may contain hyphens) followed by a full colon,
+written inside a transaction or posting [comment](#comments) line:
+```journal
+2017/1/16 bought groceries    ; sometag:
+```
+
+Tags can have a value, which is the text after the colon, up to the next comma or end of line, with leading/trailing whitespace removed:
+```journal
+    expenses:food    $10   ; a-posting-tag: the tag value
+```
+
+Note this means hledger's tag values can not contain commas or newlines.
+Ending at commas means you can write multiple short tags on one line, comma separated:
+```journal
+    assets:checking       ; a comment containing tag1:, tag2: some value ...
+```
+Here,
+
+- "`a comment containing `" is just comment text, not a tag
+- "`tag1`" is a tag with no value
+- "`tag2`" is another tag, whose value is "`some value ...`"
 
 Tags in a transaction comment affect the transaction and all of its postings,
 while tags in a posting comment affect only that posting.
-For example, the following transaction has three tags (A, TAG2, third-tag)
-and the posting has four (A, TAG2, third-tag, posting-tag):
+For example, the following transaction has three tags (`A`, `TAG2`, `third-tag`)
+and the posting has four (those plus `posting-tag`):
 
 ```journal
 1/1 a transaction  ; A:, TAG2:
-    ; third-tag: a third transaction tag, this time with a value
+    ; third-tag: a third transaction tag, <- with a value
     (a)  $1  ; posting-tag:
 ```
 

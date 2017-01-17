@@ -638,24 +638,44 @@ File: hledger_journal.5.info,  Node: Tags,  Next: Directives,  Prev: Comments,  
 1.10 Tags
 =========
 
-A _tag_ is a word followed by a full colon inside a transaction or
-posting comment. You can write multiple tags, comma separated. Eg: `; a
-comment containing sometag:, anothertag:'.
-You can search for tags with the `tag:' query, or pivot on them with
-`--pivot TAG'.
+Tags are a way to add extra labels or labelled data to postings and
+transactions, which you can then search or pivot on.
 
-   A tag can also have a value, which is any text between the colon and
-the next comma or newline, excluding leading/trailing whitespace. (So
-hledger tag values can not contain commas or newlines).
+   A simple tag is a word (which may contain hyphens) followed by a full
+colon, written inside a transaction or posting comment line:
+
+
+2017/1/16 bought groceries    ; sometag:
+
+   Tags can have a value, which is the text after the colon, up to the
+next comma or end of line, with leading/trailing whitespace removed:
+
+
+    expenses:food    $10   ; a-posting-tag: the tag value
+
+   Note this means hledger's tag values can not contain commas or
+newlines.  Ending at commas means you can write multiple short tags on
+one line, comma separated:
+
+
+    assets:checking       ; a comment containing tag1:, tag2: some value ...
+
+   Here,
+
+   * "`a comment containing'" is just comment text, not a tag
+
+   * "`tag1'" is a tag with no value
+
+   * "`tag2'" is another tag, whose value is "`some value ...'"
 
    Tags in a transaction comment affect the transaction and all of its
 postings, while tags in a posting comment affect only that posting. For
-example, the following transaction has three tags (A, TAG2, third-tag)
-and the posting has four (A, TAG2, third-tag, posting-tag):
+example, the following transaction has three tags (`A', `TAG2',
+`third-tag') and the posting has four (those plus `posting-tag'):
 
 
 1/1 a transaction  ; A:, TAG2:
-    ; third-tag: a third transaction tag, this time with a value
+    ; third-tag: a third transaction tag, <- with a value
     (a)  $1  ; posting-tag:
 
    Tags are like Ledger's metadata feature, except hledger's tag values
@@ -1051,35 +1071,35 @@ Node: Comments21085
 Ref: #comments21207
 Node: Tags22319
 Ref: #tags22439
-Node: Implicit tags23427
-Ref: #implicit-tags23535
-Node: Directives24054
-Ref: #directives24169
-Node: Account aliases24362
-Ref: #account-aliases24508
-Node: Basic aliases25110
-Ref: #basic-aliases25255
-Node: Regex aliases25943
-Ref: #regex-aliases26113
-Node: Multiple aliases26883
-Ref: #multiple-aliases27057
-Node: end aliases27553
-Ref: #end-aliases27695
-Node: account directive27797
-Ref: #account-directive27979
-Node: apply account directive28275
-Ref: #apply-account-directive28473
-Node: Multi-line comments29133
-Ref: #multi-line-comments29325
-Node: commodity directive29452
-Ref: #commodity-directive29638
-Node: Default commodity30511
-Ref: #default-commodity30686
-Node: Default year31222
-Ref: #default-year31389
-Node: Including other files31812
-Ref: #including-other-files31971
-Node: EDITOR SUPPORT32367
-Ref: #editor-support32487
+Node: Implicit tags23874
+Ref: #implicit-tags23982
+Node: Directives24501
+Ref: #directives24616
+Node: Account aliases24809
+Ref: #account-aliases24955
+Node: Basic aliases25557
+Ref: #basic-aliases25702
+Node: Regex aliases26390
+Ref: #regex-aliases26560
+Node: Multiple aliases27330
+Ref: #multiple-aliases27504
+Node: end aliases28000
+Ref: #end-aliases28142
+Node: account directive28244
+Ref: #account-directive28426
+Node: apply account directive28722
+Ref: #apply-account-directive28920
+Node: Multi-line comments29580
+Ref: #multi-line-comments29772
+Node: commodity directive29899
+Ref: #commodity-directive30085
+Node: Default commodity30958
+Ref: #default-commodity31133
+Node: Default year31669
+Ref: #default-year31836
+Node: Including other files32259
+Ref: #including-other-files32418
+Node: EDITOR SUPPORT32814
+Ref: #editor-support32934
 
 End Tag Table

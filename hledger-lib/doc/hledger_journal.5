@@ -613,30 +613,57 @@ end\ comment
 .fi
 .SS Tags
 .PP
-A \f[I]tag\f[] is a word followed by a full colon inside a transaction
-or posting comment.
-You can write multiple tags, comma separated.
-Eg: \f[C];\ a\ comment\ containing\ sometag:,\ anothertag:\f[].
-.PD 0
-.P
-.PD
-You can search for tags with the \f[C]tag:\f[] query, or pivot on them
-with \f[C]\-\-pivot\ TAG\f[].
+Tags are a way to add extra labels or labelled data to postings and
+transactions, which you can then search or pivot on.
 .PP
-A tag can also have a value, which is any text between the colon and the
-next comma or newline, excluding leading/trailing whitespace.
-(So hledger tag values can not contain commas or newlines).
+A simple tag is a word (which may contain hyphens) followed by a full
+colon, written inside a transaction or posting comment line:
+.IP
+.nf
+\f[C]
+2017/1/16\ bought\ groceries\ \ \ \ ;\ sometag:
+\f[]
+.fi
+.PP
+Tags can have a value, which is the text after the colon, up to the next
+comma or end of line, with leading/trailing whitespace removed:
+.IP
+.nf
+\f[C]
+\ \ \ \ expenses:food\ \ \ \ $10\ \ \ ;\ a\-posting\-tag:\ the\ tag\ value
+\f[]
+.fi
+.PP
+Note this means hledger\[aq]s tag values can not contain commas or
+newlines.
+Ending at commas means you can write multiple short tags on one line,
+comma separated:
+.IP
+.nf
+\f[C]
+\ \ \ \ assets:checking\ \ \ \ \ \ \ ;\ a\ comment\ containing\ tag1:,\ tag2:\ some\ value\ ...
+\f[]
+.fi
+.PP
+Here,
+.IP \[bu] 2
+"\f[C]a\ comment\ containing\f[]" is just comment text, not a tag
+.IP \[bu] 2
+"\f[C]tag1\f[]" is a tag with no value
+.IP \[bu] 2
+"\f[C]tag2\f[]" is another tag, whose value is
+"\f[C]some\ value\ ...\f[]"
 .PP
 Tags in a transaction comment affect the transaction and all of its
 postings, while tags in a posting comment affect only that posting.
-For example, the following transaction has three tags (A, TAG2,
-third\-tag) and the posting has four (A, TAG2, third\-tag,
-posting\-tag):
+For example, the following transaction has three tags (\f[C]A\f[],
+\f[C]TAG2\f[], \f[C]third\-tag\f[]) and the posting has four (those plus
+\f[C]posting\-tag\f[]):
 .IP
 .nf
 \f[C]
 1/1\ a\ transaction\ \ ;\ A:,\ TAG2:
-\ \ \ \ ;\ third\-tag:\ a\ third\ transaction\ tag,\ this\ time\ with\ a\ value
+\ \ \ \ ;\ third\-tag:\ a\ third\ transaction\ tag,\ <\-\ with\ a\ value
 \ \ \ \ (a)\ \ $1\ \ ;\ posting\-tag:
 \f[]
 .fi
