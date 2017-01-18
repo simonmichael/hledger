@@ -531,7 +531,7 @@ numberp = do
   -- interspersed with periods, commas, or both
   -- ptrace "numberp"
   sign <- signp
-  parts <- some $ choice' [some digitChar, some $ char ',', some $ char '.']
+  parts <- some $ choice' [some digitChar, some $ oneOf ['.', ',']]
   dbg8 "numberp parsed" (sign,parts) `seq` return ()
 
   -- check the number is well-formed and identify the decimal point and digit
