@@ -10,6 +10,7 @@ module Hledger.Cli.Print (
   printmode
  ,print'
  ,entriesReportAsText
+ ,originalTransaction
  ,tests_Hledger_Cli_Print
 )
 where

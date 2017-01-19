@@ -37,6 +37,7 @@ module Hledger.Data.Transaction (
   showTransactionUnelided,
   showTransactionUnelidedOneLineAmounts,
   showPostingLine,
+  showPostingLines,
   -- * GenericSourcePos
   sourceFilePath,
   sourceFirstLine,
@@ -240,6 +241,12 @@ showPostingLine p =
   showAccountName Nothing (ptype p) (paccount p) ++
   "    " ++
   showMixedAmountOneLine (pamount p)
+
+-- | Produce posting line with all comment lines associated with it
+showPostingLines :: Posting -> [String]
+showPostingLines p = postingAsLines False False ps p where
+    ps | Just t <- ptransaction p = tpostings t
+       | otherwise = [p]
 
 tests_postingAsLines = [
    "postingAsLines" ~: do

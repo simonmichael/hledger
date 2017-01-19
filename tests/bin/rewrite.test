@@ -146,3 +146,31 @@ runghc ../../bin/hledger-rewrite.hs -f- date:2017/1  --add-posting 'Here comes S
 
 >>>2
 >>>=0
+
+# Rewrite using diff output
+runghc ../../bin/hledger-rewrite.hs --diff -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
+<<<
+2016/01/01 withdraw
+    assets:cash            $20
+    assets:bank
+
+2016/01/02 withdraw
+    assets:cash
+    assets:bank           $-30
+>>>
+--- -
++++ -
+@@ -1,3 +1,5 @@
+ 2016/01/01 withdraw
+     assets:cash            $20
+     assets:bank
++    expenses:fee            $5
++    assets:bank            $-5
+@@ -5,3 +7,5 @@
+ 2016/01/02 withdraw
+     assets:cash
+     assets:bank           $-30
++    expenses:fee            $5
++    assets:bank            $-5
+>>>2
+>>>=0
