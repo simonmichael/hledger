@@ -529,9 +529,8 @@ checkBalanceAssertion p@Posting{ pbalanceassertion = Just ass} amt
                         ])
             (case ptransaction p of
                Nothing -> ":" -- shouldn't happen
-               Just t ->  printf " in \"%s\" (line %d, column %d):\nin transaction:\n%s"
-                          f l c (chomp $ show t) :: String
-                 where GenericSourcePos f l c = tsourcepos t)
+               Just t ->  printf " in %s:\nin transaction:\n%s"
+                          (showGenericSourcePos $ tsourcepos t) (chomp $ show t) :: String)
             (showPostingLine p)
             (showDate $ postingDate p)
             (T.unpack $ paccount p) -- XXX pack

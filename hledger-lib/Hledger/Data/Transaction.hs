@@ -8,7 +8,7 @@ tags.
 
 -}
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 
 module Hledger.Data.Transaction (
   -- * Transaction
@@ -37,6 +37,10 @@ module Hledger.Data.Transaction (
   showTransactionUnelided,
   showTransactionUnelidedOneLineAmounts,
   showPostingLine,
+  -- * GenericSourcePos
+  sourceFilePath,
+  sourceFirstLine,
+  showGenericSourcePos,
   -- * misc.
   tests_Hledger_Data_Transaction
 )
@@ -65,6 +69,21 @@ instance Show ModifierTransaction where
 
 instance Show PeriodicTransaction where
     show t = "~ " ++ T.unpack (ptperiodicexpr t) ++ "\n" ++ unlines (map show (ptpostings t))
+
+sourceFilePath :: GenericSourcePos -> FilePath
+sourceFilePath = \case
+    GenericSourcePos fp _ _ -> fp
+    JournalSourcePos fp _ -> fp
+
+sourceFirstLine :: GenericSourcePos -> Int
+sourceFirstLine = \case
+    GenericSourcePos _ line _ -> line
+    JournalSourcePos _ (line, _) -> line
+
+showGenericSourcePos :: GenericSourcePos -> String
+showGenericSourcePos = \case
+    GenericSourcePos fp line column -> show fp ++ " (line " ++ show line ++ ", column " ++ show column ++ ")"
+    JournalSourcePos fp (line, line') -> show fp ++ " (lines " ++ show line ++ "-" ++ show line' ++ ")"
 
 nullsourcepos :: GenericSourcePos
 nullsourcepos = GenericSourcePos "" 1 1
