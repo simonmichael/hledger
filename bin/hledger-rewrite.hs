@@ -5,7 +5,7 @@
   --package megaparsec
   --package text
 -}
-{-# LANGUAGE OverloadedStrings, LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase, ViewPatterns #-}
 {-
 
 hledger-rewrite [PATTERNS] --add-posting "ACCT  AMTEXPR" ...
@@ -16,8 +16,16 @@ but adds the specified postings to any entries matching PATTERNS.
 
 Examples:
 
-hledger-rewrite.hs ^income --add-posting '(liabilities:tax)  *.33' --add-posting '(reserve:gifts)  $100'
+hledger-rewrite.hs ^income --add-posting '(liabilities:tax)  *.33  ; income tax' --add-posting '(reserve:gifts)  $100'
 hledger-rewrite.hs expenses:gifts --add-posting '(reserve:gifts)  *-1"'
+hledger-rewrite.hs -f rewrites.hledger
+
+rewrites.hledger may consist of entries like:
+= ^income amt:<0 date:2017
+  (liabilities:tax)  *0.33  ; tax on income
+  (reserve:grocery)  *0.25  ; reserve 25% for grocery
+  (reserve:)  *0.25  ; reserve 25% for grocery
+
 
 Note the single quotes to protect the dollar sign from bash, and the two spaces between account and amount.
 See the command-line help for more details.
@@ -33,6 +41,7 @@ TODO:
 -}
 
 import Data.Monoid
+import Data.Maybe
 import qualified Data.Text as T
 -- hledger lib, cli and cmdargs utils
 import Hledger.Cli
@@ -83,17 +92,32 @@ postingScale p =
         _ -> Nothing
 
 runModifierPosting :: Posting -> (Posting -> Posting)
-runModifierPosting p' =
-    case postingScale p' of
-        Nothing -> \p -> p' { ptransaction = ptransaction p }
-        Just n -> \p -> p' { pamount = pamount p `divideMixedAmount` (1/n), ptransaction = ptransaction p }
+runModifierPosting p' = modifier where
+    modifier p = renderPostingCommentDates $ p'
+        { ptransaction = ptransaction p
+        , pdate = pdate p
+        , pdate2 = pdate2 p
+        , pamount = amount p
+        }
+    amount =
+        case postingScale p' of
+            Nothing -> const $ pamount p'
+            Just n -> \p -> pamount p `divideMixedAmount` (1/n)
 
 runModifierTransaction :: Query -> ModifierTransaction -> (Transaction -> Transaction)
 runModifierTransaction q mod = modifier where
     q' = simplifyQuery $ And [q, mtvaluequery mod (error "query cannot depend on current time")]
     mods = map runModifierPosting $ mtpostings mod
     generatePostings ps = [mod p | p <- ps, q' `matchesPosting` p, mod <- mods]
-    modifier t@Transaction{ tpostings = ps } = t { tpostings = ps ++ generatePostings ps }
+    modifier t@(tpostings -> ps) = t { tpostings = ps ++ generatePostings ps }
+
+renderPostingCommentDates :: Posting -> Posting
+renderPostingCommentDates p = p { pcomment = comment' }
+    where
+        datesComment = T.concat $ catMaybes [T.pack . showDate <$> pdate p, ("=" <>) . T.pack . showDate <$> pdate2 p]
+        comment'
+            | T.null datesComment = pcomment p
+            | otherwise = T.intercalate "\n" $ filter (not . T.null) [T.strip $ pcomment p, "[" <> datesComment <> "]"]
 
 main = do
   opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} <- getCliOpts cmdmode
@@ -102,8 +126,8 @@ main = do
   mod <- modifierTransactionFromOpts rawopts
   withJournalDo opts $ \opts j@Journal{jtxns=ts} -> do
     -- create re-writer
-    let mods = jmodifiertxns j ++ [mod]
-        modifier = foldr (.) id $ map (runModifierTransaction q) mods
+    let mods = mod : jmodifiertxns j
+        modifier = foldr (flip (.) . runModifierTransaction q) id mods
     -- rewrite matched transactions
     let j' = j{jtxns=map modifier ts}
     -- run the print command, showing all transactions
