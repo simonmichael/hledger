@@ -47,7 +47,9 @@ import Hledger.Cli
 
 argsmode :: Mode RawOpts
 argsmode = (defCommandMode ["equity"])
-  { modeHelp = "print a journal entry posting the total balance of all accounts"
+  { modeHelp = ("print a \"closing balances\" transaction that brings the balance of the"
+++ " accounts matched by QUERY (or all accounts) to zero, and an opposite"
+++ "\"opening balances\" transaction that restores the balances from zero.")
     ++ " (or the specified account and its subaccounts)"
     , modeGroupFlags = Group
       { groupNamed =
