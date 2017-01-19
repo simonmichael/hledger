@@ -54,6 +54,20 @@ hledger -f- --pivot TAG reg '^Account2$' '^fun$' not:hidden
                                 value                       -1 EUR         1 EUR
 >>>=0
 
+# We should be able to query on original account names
+hledger -f- --pivot expenses reg not:liabilities
+<<<
+2017/1/1 prepay
+    assets           $1500  ; expenses:a
+    assets            $100  ; expenses:b
+    assets              $5  ; expenses:c
+    liabilities     $-1605
+>>>
+2017/01/01 prepay               a                            $1500         $1500
+                                b                             $100         $1600
+                                c                               $5         $1605
+>>>=0
+
 # pivot for implicit tag desc (technical sample)
 hledger -f- --pivot description reg -M
 <<<
