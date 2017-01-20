@@ -5,6 +5,17 @@
   --package text
 -}
 {-# LANGUAGE OverloadedStrings #-}
+{-
+
+hledger-budget REPORT-COMMAND [--no-offset] [--no-buckets] [OPTIONS...]
+
+Perform some subset of reports available in core hledger but process automated
+and periodic transactions. Also simplify tree of accounts to ease view of
+"budget buckets".
+
+This addon tries to simulate behavior of "ledger --budget".
+
+-}
 import Control.Arrow (first)
 import Data.Maybe
 import Data.List
