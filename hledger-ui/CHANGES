@@ -2,6 +2,12 @@ User-visible changes in hledger-ui.
 See also the hledger and project change logs.
 
 
+# 1.1.1 (2017/1/20)
+
+-   allow brick 0.16 (Joshua Chia)
+
+-   drop obsolete --no-elide flag
+
 # 1.1 (2016/12/31)
 
 -   with --watch, the display updates automatically to show file or date changes
