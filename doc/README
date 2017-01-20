@@ -4,3 +4,17 @@ See also:
 - the project readme in the top directory
 - the package changelogs and man pages in hledger-lib/, hledger/ etc.
 - the website content in site/
+
+Some doc notes, until a better place is found:
+
+In site/release-notes.md, we stopped mentioning minor releases
+around 0.27. The old minor releases should probably be removed
+or promoted to the same heading level as major releases.
+
+Changelogs started mentioning committer names from 2017/1,
+for hledger-ui-1.1.1 (because they won't appear on the release notes).
+Could do it just for minor releases but might as well do it for all.
+Could do it for past releases but no pressing need.
+
+Changelogs are plain text, but started including some markdown formatting
+from 1.0, for ease of pasting from release notes ? Should make consistent.
