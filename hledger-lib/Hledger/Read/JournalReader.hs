@@ -426,7 +426,7 @@ periodictransactionp = do
 transactionp :: MonadIO m => ErroringJournalParser m Transaction
 transactionp = do
   -- ptrace "transactionp"
-  sourcepos <- genericSourcePos <$> getPosition
+  pos <- getPosition
   date <- datep <?> "transaction"
   edate <- optional (secondarydatep date) <?> "secondary date"
   lookAhead (lift spacenonewline <|> newline) <?> "whitespace or newline"
@@ -436,6 +436,8 @@ transactionp = do
   comment <- try followingcommentp <|> (newline >> return "")
   let tags = commentTags comment
   postings <- postingsp (Just date)
+  pos' <-  getPosition
+  let sourcepos = journalSourcePos pos pos'
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
 
 #ifdef TESTS

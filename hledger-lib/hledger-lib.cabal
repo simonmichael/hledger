@@ -116,6 +116,7 @@ library
       Hledger.Data.RawOptions
       Hledger.Data.Timeclock
       Hledger.Data.Transaction
+      Hledger.Data.AutoTransaction
       Hledger.Data.Types
       Hledger.Query
       Hledger.Read
@@ -197,6 +198,7 @@ test-suite doctests
       Hledger.Data.Account
       Hledger.Data.AccountName
       Hledger.Data.Amount
+      Hledger.Data.AutoTransaction
       Hledger.Data.Commodity
       Hledger.Data.Dates
       Hledger.Data.Journal
@@ -295,6 +297,7 @@ test-suite hunittests
       Hledger.Data.Account
       Hledger.Data.AccountName
       Hledger.Data.Amount
+      Hledger.Data.AutoTransaction
       Hledger.Data.Commodity
       Hledger.Data.Dates
       Hledger.Data.Journal

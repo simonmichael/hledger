@@ -68,6 +68,13 @@ rejp = runErroringJournalParser
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p) (fromIntegral . unPos $ sourceColumn p)
 
+journalSourcePos :: SourcePos -> SourcePos -> GenericSourcePos
+journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p, fromIntegral $ line')
+    where line'
+            | (unPos $ sourceColumn p') == 1 = unPos (sourceLine p') - 1
+            | otherwise = unPos $ sourceLine p' -- might be at end of file withat last new-line
+
+
 -- | Given a megaparsec ParsedJournal parser, balance assertion flag, file
 -- path and file content: parse and post-process a Journal, or give an error.
 parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> Bool
