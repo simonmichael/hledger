@@ -191,7 +191,7 @@ defCommandMode :: [Name] -> Mode RawOpts
 defCommandMode names = defMode {
    modeNames=names
   ,modeValue=[("command", headDef "" names)]
-  ,modeArgs = ([], Just $ argsFlag "[PATTERNS]")
+  ,modeArgs = ([], Just $ argsFlag "[QUERY]")
   }
 
 -- | A basic subcommand mode suitable for an add-on command.
