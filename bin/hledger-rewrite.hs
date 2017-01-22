@@ -155,7 +155,7 @@ diffTxn j t t' =
                 --       suffix .ledger (generated). I.e. move transaction from one file to another.
                 diffs :: [DiffLine String]
                 diffs = concat . map (traverse showPostingLines . mapDiff) $ D.getDiff (tpostings t) (tpostings t')
-            pos@(LedgerSourcePos fp (line, line')) -> (pos, diffs) where
+            pos@(JournalSourcePos fp (line, line')) -> (pos, diffs) where
                 -- We do diff for original lines vs generated ones. Often leads
                 -- to big diff because of re-format effect.
                 diffs :: [DiffLine String]
