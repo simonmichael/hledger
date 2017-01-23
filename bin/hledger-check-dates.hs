@@ -2,24 +2,37 @@
 {- stack runghc --verbosity info
    --package hledger-lib
    --package hledger
--}
-{-
-
-hledger-check-dates [--strict] [--date2] [-f JOURNALFILE]
-
-Check that transactions' date are monotonically increasing.
-With --strict, dates must also be unique.
-With --date2, checks transactions' secondary dates.
-Reads the default journal file, or another specified with -f.
-
+   --package here
 -}
 
+{-# LANGUAGE QuasiQuotes #-}
+
+import Data.String.Here
 import Hledger
 import Hledger.Cli
 import Text.Printf
 
+------------------------------------------------------------------------------
+doc = [here|
+
+$ hledger-check-dates -h
+check-dates [OPTIONS] [ARGS]
+  check that transactions' date are monotonically increasing
+
+Flags:
+     --strict             makes date comparing strict
+
+...common hledger options...
+
+With --strict, dates must also be unique.
+With --date2, checks transactions' secondary dates.
+Reads the default journal file, or another specified with -f.
+
+|]
+------------------------------------------------------------------------------
+
 argsmode :: Mode RawOpts
-argsmode = (defCommandMode ["check-dates"])
+argsmode = (defAddonCommandMode "check-dates")
   { modeHelp = "check that transactions' date are monotonically increasing"
   , modeGroupFlags = Group
     { groupNamed =
@@ -59,7 +72,7 @@ checkTransactions compare ts =
 
 main :: IO ()
 main = do
-  opts <- getCliOpts argsmode
+  opts <- getHledgerOptsOrShowHelp argsmode doc
   withJournalDo opts $
    \CliOpts{rawopts_=opts,reportopts_=ropts} j -> do
     d <- getCurrentDay

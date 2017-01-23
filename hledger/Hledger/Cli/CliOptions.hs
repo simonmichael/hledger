@@ -28,7 +28,7 @@ module Hledger.Cli.CliOptions (
   -- * CLI options
   CliOpts(..),
   defcliopts,
-  getCliOpts,
+  getHledgerOptsOrShowHelp,
   decodeRawOpts,
   rawOptsToCliOpts,
   checkCliOpts,
@@ -165,13 +165,14 @@ generalflagsgroup3 = (generalflagstitle, helpflags)
 
 -- cmdargs mode constructors
 
--- | A basic mode template.
+-- | A basic cmdargs mode template with a single flag: -h.
 defMode :: Mode RawOpts
 defMode =   Mode {
   modeNames = []
  ,modeHelp = ""
  ,modeHelpSuffix = []
  ,modeValue = []
+ ,modeArgs = ([], Nothing)
  ,modeCheck = Right
  ,modeReform = const Nothing
  ,modeExpandAt = True
@@ -179,14 +180,16 @@ defMode =   Mode {
      groupNamed = []
     ,groupUnnamed = [
         flagNone ["h"] (setboolopt "h") "Show command usage."
+        -- ,flagNone ["help"] (setboolopt "help") "Show long help."
         ]
     ,groupHidden = []
     }
- ,modeArgs = ([], Nothing)
  ,modeGroupModes = toGroup []
  }
 
--- | A basic subcommand mode with the given command name(s).
+-- | A cmdargs mode suitable for a hledger built-in command
+-- with the given names (primary name + optional aliases).
+-- The usage message shows [QUERY] as argument.
 defCommandMode :: [Name] -> Mode RawOpts
 defCommandMode names = defMode {
    modeNames=names
@@ -194,22 +197,20 @@ defCommandMode names = defMode {
   ,modeArgs = ([], Just $ argsFlag "[QUERY]")
   }
 
--- | A basic subcommand mode suitable for an add-on command.
+-- | A cmdargs mode suitable for a hledger add-on command with the given name.
+-- Like defCommandMode, but adds a appropriate short help message if the addon name
+-- is recognised, and includes hledger's general flags (input + reporting + help flags) as default.
 defAddonCommandMode :: Name -> Mode RawOpts
-defAddonCommandMode addon = defMode {
-   modeNames = [addon]
-  ,modeHelp = fromMaybe "" $ lookup (stripAddonExtension addon) standardAddonsHelp
-  ,modeValue=[("command",addon)]
+defAddonCommandMode name = (defCommandMode [name]) {
+   modeHelp = fromMaybe "" $ lookup (stripAddonExtension name) standardAddonsHelp
   ,modeGroupFlags = Group {
       groupUnnamed = []
      ,groupHidden = []
      ,groupNamed = [generalflagsgroup1]
      }
-  ,modeArgs = ([], Just $ argsFlag "[ARGS]")
   }
 
--- | Built-in descriptions for some of the known external addons,
--- since we don't currently have any way to ask them.
+-- | Built-in descriptions for some of the known addons.
 standardAddonsHelp :: [(String,String)]
 standardAddonsHelp = [
    ("chart", "generate simple balance pie charts")
@@ -360,21 +361,32 @@ checkCliOpts opts =
       Right _  -> Right ()
   -- XXX check registerWidthsFromOpts opts
 
--- Currently only used by some extras/ scripts:
--- | Parse hledger CLI options from the command line using the given
--- cmdargs mode, and either return them or, if a help flag is present,
--- print the mode help and exit the program.
-getCliOpts :: Mode RawOpts -> IO CliOpts
-getCliOpts mode' = do
+-- | Parse common hledger options from the command line using the given
+-- hledger-style cmdargs mode and return them as a CliOpts.
+-- Or, when -h or --help is present, print the mode's usage message
+-- or the provided long help and exit the program.
+--
+-- When --debug is present, also prints some debug output.
+--
+-- The long help is assumed to possibly contain markdown literal blocks
+-- delimited by lines beginning with ``` - these delimiters are removed.
+-- Also it is assumed to lack a terminating newline, which is added.
+--
+-- This is useful for addon commands.
+getHledgerOptsOrShowHelp :: Mode RawOpts -> String -> IO CliOpts
+getHledgerOptsOrShowHelp mode' longhelp = do
   args' <- getArgs
   let rawopts = decodeRawOpts $ processValue mode' args'
   opts <- rawOptsToCliOpts rawopts
   debugArgs args' opts
-  -- if any (`elem` args) ["--help","-h","-?"]
+  when ("help" `inRawOpts` rawopts_ opts) $ putStrLn longhelp' >> exitSuccess
   when ("h" `inRawOpts` rawopts_ opts) $ putStr (showModeUsage mode') >> exitSuccess
-  when ("help" `inRawOpts` rawopts_ opts) $ printHelpForTopic (topicForMode mode') >> exitSuccess
   return opts
   where
+    longhelp' = unlines $ map hideBlockDelimiters $ lines longhelp
+      where
+        hideBlockDelimiters ('`':'`':'`':_) = ""
+        hideBlockDelimiters l = l
     -- | Print debug info about arguments and options if --debug is present.
     debugArgs :: [String] -> CliOpts -> IO ()
     debugArgs args' opts =

@@ -1,28 +1,39 @@
 #!/usr/bin/env stack
 {- stack runghc --verbosity info
    --package hledger-lib
+   --package here
    --package safe
    --package text
 -}
-{-
 
-hledger-dupes [FILE]
+{-# LANGUAGE QuasiQuotes #-}
 
+import Hledger
+import Hledger.Cli
+import Text.Printf (printf)
+import System.Environment (getArgs)
+import Safe (headDef)
+import Data.List
+import Data.Function
+import Data.String.Here
+import qualified Data.Text as T
+
+doc = [here|
+
+Usage:
+```
+$ hledger-dupes [FILE]
+
+...common hledger options...
+```
 Reports duplicates in the account tree: account names having the same leaf
 but different prefixes. In other words, two or more leaves that are
 categorized differently.
 Reads the default journal file, or another specified as an argument.
 
 http://stefanorodighiero.net/software/hledger-dupes.html
--}
 
-import Hledger
-import Text.Printf (printf)
-import System.Environment (getArgs)
-import Safe (headDef)
-import Data.List
-import Data.Function
-import qualified Data.Text as T
+|]
 
 accountsNames :: Journal -> [(String, AccountName)]
 accountsNames j = map leafAndAccountName as
@@ -44,8 +55,6 @@ render :: (String, [AccountName]) -> IO ()
 render (leafName, accountNameL) = printf "%s as %s\n" leafName (concat $ intersperse ", " (map T.unpack accountNameL))
 
 main = do
-  args <- getArgs
-  deffile <- defaultJournalPath
-  let file = headDef deffile args
-  j <- readJournalFile Nothing Nothing True file >>= either error' return
-  mapM_ render $ dupes $ accountsNames j
+  opts <- getHledgerOptsOrShowHelp (defAddonCommandMode "dupes") doc
+  withJournalDo opts $ \CliOpts{rawopts_=opts,reportopts_=ropts} j -> do
+    mapM_ render $ dupes $ accountsNames j

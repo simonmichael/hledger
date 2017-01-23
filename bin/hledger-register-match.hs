@@ -2,25 +2,17 @@
 {- stack runghc --verbosity info
    --package hledger-lib
    --package hledger
+   --package here
    --package text
--}
-{-
-
-hledger-register-match DESC
-
-A helper for ledger-autosync. This prints the one posting whose transaction
-description is closest to DESC, in the style of the register command.
-If there are multiple equally good matches, it shows the most recent.
-Query options (options, not arguments) can be used to restrict the search space.
-
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 import Data.Char (toUpper)
 import Data.List
+import Data.String.Here
 import qualified Data.Text as T
-
 import System.Console.CmdArgs
 import System.Console.CmdArgs.Explicit
 
@@ -28,7 +20,28 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli ( withJournalDo, postingsReportAsText )
 
-main = getCliOpts (defCommandMode ["hledger-register-match"]) >>= flip withJournalDo match
+------------------------------------------------------------------------------
+doc = [here|
+
+Usage:
+```
+$ hledger-register-match -h
+hledger-register-match [OPTIONS] [ARGS]
+
+...common hledger options...
+```
+
+A helper for ledger-autosync. This prints the one posting whose transaction
+description is closest to DESC, in the style of the register command.
+If there are multiple equally good matches, it shows the most recent.
+Query options (options, not arguments) can be used to restrict the search space.
+
+|]
+------------------------------------------------------------------------------
+
+main = do
+  opts <- getHledgerOptsOrShowHelp (defAddonCommandMode "hledger-register-match") doc
+  withJournalDo opts match
       
 match :: CliOpts -> Journal -> IO ()
 match opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do

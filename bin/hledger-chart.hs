@@ -7,21 +7,12 @@
    --package cmdargs
    --package colour
    --package data-default
+   --package here
    --package safe
--}
-{-
-
-hledger-chart
-
-Generates primitive pie charts, based on the old hledger-chart package.
-Supposed to show only balances of one sign, but this might be broke.
-
-Copyright (c) 2007-2017 Simon Michael <simon@joyful.com>
-Released under GPL version 3 or later.
-
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 import Control.Monad
 import Data.Colour
@@ -33,6 +24,7 @@ import Data.Default
 import Data.List
 import Data.Maybe
 import Data.Ord
+import Data.String.Here
 import qualified Data.Text as T
 import Data.Tree
 import Graphics.Rendering.Chart
@@ -46,6 +38,24 @@ import Text.Printf
 import Hledger
 import Hledger.Cli hiding (progname,progversion)
 
+doc = [here|
+
+Usage:
+```
+$ hledger-chart [FILE]
+Generates primitive pie charts of account balances, in SVG format.
+
+...common hledger options...
+```
+
+Based on the old hledger-chart package, this is not yet useful.
+It's supposed to show only balances of one sign, but this might be broken.
+
+Copyright (c) 2007-2017 Simon Michael <simon@joyful.com>
+Released under GPL version 3 or later.
+
+|]
+
 -- options
 
 -- progname    = "hledger-chart"
@@ -55,8 +65,9 @@ defchartoutput   = "hledger.svg"
 defchartitems    = 10
 defchartsize     = "600x400"
 
-chartmode = (defCommandMode ["hledger-chart"]) {
-   modeArgs = ([], Just $ argsFlag "[PATTERNS] --add-posting \"ACCT  AMTEXPR\" ...")
+chartmode :: Mode RawOpts
+chartmode = (defAddonCommandMode "hledger-chart") {
+   modeArgs = ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
   ,modeHelp = "generate a pie chart image for the top account balances (of one sign only)"
   ,modeHelpSuffix=[]
   ,modeGroupFlags = Group {
@@ -70,7 +81,6 @@ chartmode = (defCommandMode ["hledger-chart"]) {
     }
   }
 
--- hledger-chart options, used in hledger-chart and above
 data ChartOpts = ChartOpts {
      chart_output_ :: FilePath
     ,chart_items_ :: Int
@@ -84,24 +94,15 @@ defchartopts = ChartOpts
     def
     defcliopts
 
--- instance Default CliOpts where def = defcliopts
-
-toChartOpts :: RawOpts -> IO ChartOpts
-toChartOpts rawopts = do
-  cliopts <- rawOptsToCliOpts rawopts
+getHledgerChartOpts :: IO ChartOpts
+getHledgerChartOpts = do
+  cliopts <- getHledgerOptsOrShowHelp chartmode doc
   return defchartopts {
-              chart_output_ = fromMaybe defchartoutput $ maybestringopt "debug-chart" rawopts
-             ,chart_items_ = fromMaybe defchartitems $ maybeintopt "debug-items" rawopts
-             ,chart_size_ = fromMaybe defchartsize $ maybestringopt "debug-size" rawopts
+              chart_output_ = fromMaybe defchartoutput $ maybestringopt "debug-chart" $ rawopts_ cliopts
+             ,chart_items_ = fromMaybe defchartitems $ maybeintopt "debug-items" $ rawopts_ cliopts
+             ,chart_size_ = fromMaybe defchartsize $ maybestringopt "debug-size" $ rawopts_ cliopts
              ,cliopts_   = cliopts
              }
-
-checkChartOpts :: ChartOpts -> IO ChartOpts
-checkChartOpts opts = do
-  (checkCliOpts $ cliopts_ opts) `seq` return opts
-
-getHledgerChartOpts :: IO ChartOpts
-getHledgerChartOpts = processArgs chartmode >>= return . decodeRawOpts >>= toChartOpts >>= checkChartOpts
 
 -- main
 

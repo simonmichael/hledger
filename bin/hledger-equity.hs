@@ -2,15 +2,33 @@
 {- stack runghc --verbosity info
    --package hledger-lib
    --package hledger
+   --package here
    --package time
 -}
-{-
 
-hledger-equity [HLEDGEROPTS] [QUERY]
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
-Show a "closing balances" transaction that brings the balance of the
-accounts matched by QUERY (or all accounts) to zero, and an opposite
-"opening balances" transaction that restores the balances from zero.
+import Data.Maybe
+import Data.String.Here
+import Data.Time.Calendar
+import Hledger.Cli
+
+------------------------------------------------------------------------------
+doc = [here|
+
+Usage:
+```
+$ hledger-equity -h
+equity [OPTIONS] [QUERY]
+  print a "closing balances" transaction that brings all accounts (or with
+  query arguments, just the matched accounts) to a zero balance, followed by an
+  opposite "opening balances" transaction that restores the balances from zero.
+  Such transactions can be useful, eg, for bringing account balances across
+  file boundaries.
+
+...common hledger options...
+```
 
 The opening balances transaction is useful to carry over
 asset/liability balances if you choose to start a new journal file,
@@ -26,46 +44,39 @@ the closing transaction is dated one day earlier). If a report end
 date is not specified, it defaults to today.
 
 Example:
+```
 $ hledger equity -f 2015.journal -e 2016/1/1 assets liabilities >>2015.journal
-move opening balances txn to 2016.journal
+# & move the opening balances transaction to 2016.journal
+```
 
 Open question: how to handle txns spanning a file boundary ? Eg:
+```journal
 2015/12/30 * food
     expenses:food:dining   $10
     assets:bank:checking  -$10  ; date:2016/1/4
+```
 
-This might or might not have some connection to the concept of
+This command might or might not have some connection to the concept of
 "closing the books" in accounting.
 
--}
+|]
+------------------------------------------------------------------------------
 
-{-# LANGUAGE OverloadedStrings #-}
-
-import Data.Maybe (fromMaybe)
-import Data.Time.Calendar (addDays)
-import Hledger.Cli
-
-argsmode :: Mode RawOpts
-argsmode = (defCommandMode ["equity"])
-  { modeHelp = ("print a \"closing balances\" transaction that brings the balance of the"
-++ " accounts matched by QUERY (or all accounts) to zero, and an opposite"
-++ "\"opening balances\" transaction that restores the balances from zero.")
-    ++ " (or the specified account and its subaccounts)"
-    , modeGroupFlags = Group
-      { groupNamed =
-          -- XXX update to match hledger
-         [ ("Input",inputflags)
-         , ("Reporting",reportflags)
-         , ("Misc",helpflags)
-         ]
-      , groupUnnamed = []
-      , groupHidden = []
-      }
-    }
+equitymode :: Mode RawOpts
+equitymode =
+  (defAddonCommandMode "equity")
+  { modeHelp =
+       "print a \"closing balances\" transaction that brings all accounts"
+    ++ " (or with query arguments, just the matched accounts) to a zero balance,"
+    ++ " followed by an opposite \"opening balances\" transaction that"
+    ++ " restores the balances from zero."
+    ++ " Such transactions can be useful, eg, for bringing account balances across file boundaries."
+  ,modeArgs = ([], Just $ argsFlag "[QUERY]")
+  }
 
 main :: IO ()
 main = do
-  opts <- getCliOpts argsmode
+  opts <- getHledgerOptsOrShowHelp equitymode doc
   withJournalDo opts $
    \CliOpts{reportopts_=ropts} j -> do
         today <- getCurrentDay

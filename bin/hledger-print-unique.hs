@@ -2,23 +2,36 @@
 {- stack runghc --verbosity info
    --package hledger-lib
    --package hledger
+   --package here
 -}
-{-
 
-hledger-print-unique [-f JOURNALFILE | -f-]
+{-# LANGUAGE QuasiQuotes #-}
+
+import Data.List
+import Data.Ord
+import Data.String.Here
+import Hledger.Cli
+
+------------------------------------------------------------------------------
+doc = [here|
+
+Usage:
+```
+$ hledger-print-unique -h
+hledger-print-unique [OPTIONS] [ARGS]
+
+...common hledger options...
+```
 
 Print only journal entries which are unique by description (or
 something else). Reads the default or specified journal, or stdin.
 
--}
-
-import Data.List
-import Data.Ord
-import Hledger.Cli
+|]
+------------------------------------------------------------------------------
 
 main = do
   putStrLn "(-f option not supported)"
-  opts <- getCliOpts (defCommandMode ["hledger-print-unique"])
+  opts <- getHledgerOptsOrShowHelp (defAddonCommandMode "hledger-print-unique") doc
   withJournalDo opts $
     \opts j@Journal{jtxns=ts} -> print' opts j{jtxns=uniquify ts}
     where
