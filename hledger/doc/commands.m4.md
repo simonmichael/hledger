@@ -622,197 +622,23 @@ Web interface, see [hledger-web](hledger-web.html).
 These are maintained separately from hledger, and usually updated shortly after a hledger release.
 
 ### diff
-Show transactions present in one journal file but not another
-
-```shell
-$ hledger diff --help
-Usage: hledger-diff account:name left.journal right.journal
-$ cat a.journal
-1/1
- (acct:one)  1
-
-$ cat b.journal
-1/1
- (acct:one)  1
-2/2
- (acct:two)  2
-
-$ hledger diff acct:two a.journal b.journal
-Unmatched transactions in the first journal:
-
-Unmatched transactions in the second journal:
-
-2015/02/02
-    (acct:two)            $2
-
-```
 
 [hledger-diff](http://hackage.haskell.org/package/hledger-diff)
-compares two journal files. Given an account name, it prints out the
-transactions affecting that account which are in one journal file but
-not in the other.  This can be useful for reconciling existing
-journals with bank statements.
+Shows differences in an account's transactions between one journal file and another.
+
+### iadd
+
+[hledger-iadd](http://hackage.haskell.org/package/hledger-iadd)
+A curses-style, more interactive replacement for the [add command](/hledger.html#add). 
 
 ### interest
-Generate interest transactions.
-
-```shell
-$ hledger interest --help
-Usage: hledger-interest [OPTION...] ACCOUNT
-  -h          --help            print this message and exit
-  -V          --version         show version number and exit
-  -v          --verbose         echo input ledger to stdout (default)
-  -q          --quiet           don't echo input ledger to stdout
-              --today           compute interest up until today
-  -f FILE     --file=FILE       input ledger file (pass '-' for stdin)
-  -s ACCOUNT  --source=ACCOUNT  interest source account
-  -t ACCOUNT  --target=ACCOUNT  interest target account
-              --act             use 'act' day counting convention
-              --30-360          use '30/360' day counting convention
-              --30E-360         use '30E/360' day counting convention
-              --30E-360isda     use '30E/360isda' day counting convention
-              --constant=RATE   constant interest rate
-              --annual=RATE     annual interest rate
-              --bgb288          compute interest according to German BGB288
-              --ing-diba        compute interest according for Ing-Diba Tagesgeld account
-```
-
-```shell
-$ cat interest.journal
-2008/09/26 Loan
-     Assets:Bank          EUR 10000.00
-     Liabilities:Bank
-
-2008/11/27 Payment
-     Assets:Bank          EUR -3771.12
-     Liabilities:Bank
-
-2009/05/03 Payment
-     Assets:Bank          EUR -1200.00
-     Liabilities:Bank
-
-2010/12/10 Payment
-     Assets:Bank          EUR -3700.00
-     Liabilities:Bank
-```
-
-```shell
-$ hledger interest -- -f interest.journal --source=Expenses:Interest \
-    --target=Liabilities:Bank --30-360 --annual=0.05 Liabilities:Bank
-2008/09/26 Loan
-    Assets:Bank       EUR 10000.00
-    Liabilities:Bank  EUR -10000.00
-
-2008/11/27 0.05% interest for EUR -10000.00 over 61 days
-    Liabilities:Bank     EUR -84.72
-    Expenses:Interest     EUR 84.72
-
-2008/11/27 Payment
-    Assets:Bank       EUR -3771.12
-    Liabilities:Bank   EUR 3771.12
-
-2008/12/31 0.05% interest for EUR -6313.60 over 34 days
-    Liabilities:Bank     EUR -29.81
-    Expenses:Interest     EUR 29.81
-
-2009/05/03 0.05% interest for EUR -6343.42 over 123 days
-    Liabilities:Bank    EUR -108.37
-    Expenses:Interest    EUR 108.37
-
-2009/05/03 Payment
-    Assets:Bank       EUR -1200.00
-    Liabilities:Bank   EUR 1200.00
-
-2009/12/31 0.05% interest for EUR -5251.78 over 238 days
-    Liabilities:Bank    EUR -173.60
-    Expenses:Interest    EUR 173.60
-
-2010/12/10 0.05% interest for EUR -5425.38 over 340 days
-    Liabilities:Bank    EUR -256.20
-    Expenses:Interest    EUR 256.20
-
-2010/12/10 Payment
-    Assets:Bank       EUR -3700.00
-    Liabilities:Bank   EUR 3700.00
-
-```
 
 [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
-computes interests for a given account. Using command line flags,
-the program can be configured to use various schemes for day-counting,
-such as act/act, 30/360, 30E/360, and 30/360isda. Furthermore, it
-supports a (small) number of interest schemes, i.e. annual interest
-with a fixed rate and the scheme mandated by the German BGB288
-(Basiszins für Verbrauchergeschäfte). See the package page for more.
+Generates interest transactions for an account according to various schemes. 
 
 ### irr
-Calculate internal rate of return.
-
-```shell
-$ hledger irr --help
-Usage: hledger-irr [OPTION...]
-  -h          --help                        print this message and exit
-  -V          --version                     show version number and exit
-  -c          --cashflow                    also show all revant transactions
-  -f FILE     --file=FILE                   input ledger file (pass '-' for stdin)
-  -i ACCOUNT  --investment-account=ACCOUNT  investment account
-  -t ACCOUNT  --interest-account=ACCOUNT    interest/gain/fees/losses account
-  -b DATE     --begin=DATE                  calculate interest from this date
-  -e DATE     --end=DATE                    calculate interest until this date
-  -D          --daily                       calculate interest for each day
-  -W          --weekly                      calculate interest for each week
-  -M          --monthly                     calculate interest for each month
-  -Y          --yearly                      calculate interest for each year
-```
-
-```shell
-$ cat irr.journal 
-2011-01-01 Some wild speculation – I wonder if it pays off
-   Speculation   €100.00
-   Cash
-
-2011-02-01 More speculation (and adjustment of value)
-   Cash         -€10.00
-   Rate Gain     -€1.00
-   Speculation
-
-2011-03-01 Lets pull out some money (and adjustment of value)
-   Cash          €30.00
-   Rate Gain     -€3.00
-   Speculation
-
-2011-04-01 More speculation (and it lost some money!)
-   Cash         -€50.00
-   Rate Gain     € 5.00
-   Speculation
-
-2011-05-01 Getting some money out (and adjustment of value)
-   Speculation  -€44.00
-   Rate Gain    -€ 3.00
-   Cash
-
-2011-06-01 Emptying the account (after adjusting the value)
-   Speculation   -€85.00
-   Cash           €90.00
-   Rate Gain     -€ 5.00
-```
-
-```shell
-$ hledger-irr -f irr.journal -t "Rate Gain" -i Speculation  --monthly
-2011/01/01 - 2011/02/01: 12.49%
-2011/02/01 - 2011/03/01: 41.55%
-2011/03/01 - 2011/04/01: -51.44%
-2011/04/01 - 2011/05/01: 32.24%
-2011/05/01 - 2011/06/01: 95.92%
-```
-
 [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
-computes the internal rate of return, also known as the effective
-interest rate, of a given investment. After specifying what account
-holds the investment, and what account stores the gains (or losses, or
-fees, or cost), it calculates the hypothetical annual rate of fixed
-rate investment that would have provided the exact same cash flow.
-See the package page for more.
+Calculates the internal rate of return of an investment account.
 
 ## Experimental add-ons
   
@@ -848,8 +674,8 @@ Prints balance-resetting transactions useful for bringing account balances acros
 
 ### print-unique
 
-[print-unique](https://github.com/simonmichael/hledger/blob/master/bin/hledger-print-unique.hs#L15)
-Remove transactions which reuse an already-seen description.
+[hledger-print-unique.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-print-unique.hs#L15)
+Prints transactions which do not reuse an already-seen description.
 
 ### register-match
 

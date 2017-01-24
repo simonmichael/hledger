@@ -1,4 +1,5 @@
 #!/bin/sh
+# helper script, compiles all addons in this directory
 cd "$(dirname "$0")"
 echo "building dependencies"
 stack build hledger

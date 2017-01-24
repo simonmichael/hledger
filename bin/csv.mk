@@ -1,4 +1,4 @@
-# some hledger-related make scripts
+# some CSV-related make scripts
 
 HLEDGER=hledger
 
