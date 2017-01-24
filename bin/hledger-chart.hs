@@ -38,38 +38,22 @@ import Text.Printf
 import Hledger
 import Hledger.Cli hiding (progname,progversion)
 
-doc = [here|
-
-Usage:
-```
-$ hledger-chart [FILE]
-Generates primitive pie charts of account balances, in SVG format.
-
-...common hledger options...
-```
-
-Based on the old hledger-chart package, this is not yet useful.
-It's supposed to show only balances of one sign, but this might be broken.
-
-Copyright (c) 2007-2017 Simon Michael <simon@joyful.com>
-Released under GPL version 3 or later.
-
-|]
-
--- options
-
--- progname    = "hledger-chart"
--- progversion = progname ++ " dev"
-
 defchartoutput   = "hledger.svg"
 defchartitems    = 10
 defchartsize     = "600x400"
 
-chartmode :: Mode RawOpts
-chartmode = (defAddonCommandMode "hledger-chart") {
-   modeArgs = ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
-  ,modeHelp = "generate a pie chart image for the top account balances (of one sign only)"
-  ,modeHelpSuffix=[]
+------------------------------------------------------------------------------
+cmdmode :: Mode RawOpts
+cmdmode = (defAddonCommandMode "hledger-chart") {
+   modeHelp = [here|
+generate a pie chart for the top account balances with the same sign,
+in SVG format.
+ 
+Based on the old hledger-chart package, this is not yet useful.
+It's supposed to show only balances of one sign, but this might be broken.
+  |]
+  ,modeHelpSuffix=lines [here|
+  |]
   ,modeGroupFlags = Group {
      groupNamed = [generalflagsgroup1]
     ,groupUnnamed = [
@@ -79,7 +63,9 @@ chartmode = (defAddonCommandMode "hledger-chart") {
         ]
     ,groupHidden = []
     }
+  ,modeArgs = ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
   }
+------------------------------------------------------------------------------
 
 data ChartOpts = ChartOpts {
      chart_output_ :: FilePath
@@ -96,15 +82,13 @@ defchartopts = ChartOpts
 
 getHledgerChartOpts :: IO ChartOpts
 getHledgerChartOpts = do
-  cliopts <- getHledgerOptsOrShowHelp chartmode doc
+  cliopts <- getHledgerCliOpts cmdmode
   return defchartopts {
               chart_output_ = fromMaybe defchartoutput $ maybestringopt "debug-chart" $ rawopts_ cliopts
              ,chart_items_ = fromMaybe defchartitems $ maybeintopt "debug-items" $ rawopts_ cliopts
              ,chart_size_ = fromMaybe defchartsize $ maybestringopt "debug-size" $ rawopts_ cliopts
              ,cliopts_   = cliopts
              }
-
--- main
 
 main :: IO ()
 main = do

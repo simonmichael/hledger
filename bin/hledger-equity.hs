@@ -15,21 +15,16 @@ import Data.Time.Calendar
 import Hledger.Cli
 
 ------------------------------------------------------------------------------
-doc = [here|
-
-Usage:
-```
-$ hledger-equity -h
-equity [OPTIONS] [QUERY]
-  print a "closing balances" transaction that brings all accounts (or with
-  query arguments, just the matched accounts) to a zero balance, followed by an
-  opposite "opening balances" transaction that restores the balances from zero.
-  Such transactions can be useful, eg, for bringing account balances across
-  file boundaries.
-
-...common hledger options...
-```
-
+cmdmode :: Mode RawOpts
+cmdmode = (defAddonCommandMode "equity") {
+   modeHelp = [here|
+Print a "closing balances" transaction that brings all accounts (or with
+query arguments, just the matched accounts) to a zero balance, followed by an
+opposite "opening balances" transaction that restores the balances from zero.
+Such transactions can be useful, eg, for bringing account balances across
+file boundaries.
+  |]
+  ,modeHelpSuffix=lines [here|
 The opening balances transaction is useful to carry over
 asset/liability balances if you choose to start a new journal file,
 eg at the beginning of the year.
@@ -58,25 +53,14 @@ Open question: how to handle txns spanning a file boundary ? Eg:
 
 This command might or might not have some connection to the concept of
 "closing the books" in accounting.
-
-|]
-------------------------------------------------------------------------------
-
-equitymode :: Mode RawOpts
-equitymode =
-  (defAddonCommandMode "equity")
-  { modeHelp =
-       "print a \"closing balances\" transaction that brings all accounts"
-    ++ " (or with query arguments, just the matched accounts) to a zero balance,"
-    ++ " followed by an opposite \"opening balances\" transaction that"
-    ++ " restores the balances from zero."
-    ++ " Such transactions can be useful, eg, for bringing account balances across file boundaries."
+  |]
   ,modeArgs = ([], Just $ argsFlag "[QUERY]")
   }
+------------------------------------------------------------------------------
 
 main :: IO ()
 main = do
-  opts <- getHledgerOptsOrShowHelp equitymode doc
+  opts <- getHledgerCliOpts cmdmode
   withJournalDo opts $
    \CliOpts{reportopts_=ropts} j -> do
         today <- getCurrentDay

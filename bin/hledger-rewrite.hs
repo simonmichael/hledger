@@ -26,25 +26,16 @@ import qualified Data.Algorithm.Diff as D
 import Hledger.Data.AutoTransaction (runModifierTransaction)
 
 ------------------------------------------------------------------------------
-doc = [here|
+cmdmode = 
+  let m = (defAddonCommandMode "hledger-rewrite")
+  in m {
+   modeHelp = [here|
 
-Usage:
-```
-$ hledger-rewrite -h
-hledger-rewrite [OPTIONS] [QUERY] --add-posting "ACCT  AMTEXPR" ...
-  print all journal entries, with custom postings added to the matched ones
+Print all journal entries, with custom postings added to the matched ones
 
-Flags:
-     --add-posting='ACCT  AMTEXPR'  add a posting to ACCT, which may be
-                                    parenthesised. AMTEXPR is either a literal
-                                    amount, or *N which means the transaction's
-                                    first matched amount multiplied by N (a
-                                    decimal number). Two spaces separate ACCT
-                                    and AMTEXPR.
-     --diff                         generate diff suitable as an input for
-
-...common hledger options...
-```
+  |]
+  ,modeHelpSuffix=lines [here|
+  
 A start at a generic rewriter of journal entries.
 Reads the default journal and prints the entries, like print,
 but adds the specified postings to any entries matching PATTERNS.
@@ -62,7 +53,8 @@ rewrites.hledger may consist of entries like:
   (reserve:grocery)  *0.25  ; reserve 25% for grocery
   (reserve:)  *0.25  ; reserve 25% for grocery
 ```
-Note the single quotes to protect the dollar sign from bash, and the two spaces between account and amount.
+Note the single quotes to protect the dollar sign from bash, 
+and the two spaces between account and amount.
 See the command-line help for more details.
 Currently does not work when invoked via hledger, run it directly instead.
 
@@ -72,27 +64,38 @@ TODO:
 - should allow regex matching and interpolating matched name in replacement
 - should apply all matching rules to a transaction, not just one
 - should be possible to use this on unbalanced entries, eg while editing one
-|]
-------------------------------------------------------------------------------
 
-cmdmode :: Mode RawOpts
-cmdmode = (defAddonCommandMode "hledger-rewrite") {
-   modeArgs = ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
-  ,modeHelp = "print all journal entries, with custom postings added to the matched ones"
-  ,modeGroupFlags = Group {
-     groupNamed = [("Input",     inputflags)
-                  ,("Output",    outputflags)
-                  ,("Reporting", reportflags)
-                  ,("Misc",      helpflags)
-                 ]
-    ,groupUnnamed = [flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
-                     "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."]
-    ,groupHidden = []
+  |]
+  ,modeArgs = ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
+  ,modeGroupFlags = (modeGroupFlags m) {
+    groupUnnamed = [
+       flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
+               "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."
+      ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"
+      ]
     }
   }
+------------------------------------------------------------------------------
 
 outputflags :: [Flag RawOpts]
 outputflags = [flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"]
+
+main :: IO ()
+main = do
+  opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} <- getHledgerCliOpts cmdmode
+  d <- getCurrentDay
+  let q = queryFromOpts d ropts
+  modifier <- modifierTransactionFromOpts rawopts
+  withJournalDo opts $ \opts' j@Journal{jtxns=ts} -> do
+    -- create re-writer
+    let modifiers = modifier : jmodifiertxns j
+        -- Note that some query matches require transaction. Thus modifiers
+        -- pipeline should include txnTieKnot on every step.
+        modifier' = foldr (flip (.) . fmap txnTieKnot . runModifierTransaction q) id modifiers
+    -- rewrite matched transactions
+    let j' = j{jtxns=map modifier' ts}
+    -- run the print command, showing all transactions
+    outputFromOpts rawopts opts'{reportopts_=ropts{query_=""}} j j'
 
 postingp' :: T.Text -> IO Posting
 postingp' t = runErroringJournalParser (postingp Nothing <* eof) t' >>= \case
@@ -195,20 +198,3 @@ mapDiff = \case
     D.First x -> Del x
     D.Second x -> Add x
     D.Both x _ -> Ctx x
-
-main :: IO ()
-main = do
-  opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} <- getHledgerOptsOrShowHelp cmdmode doc
-  d <- getCurrentDay
-  let q = queryFromOpts d ropts
-  modifier <- modifierTransactionFromOpts rawopts
-  withJournalDo opts $ \opts' j@Journal{jtxns=ts} -> do
-    -- create re-writer
-    let modifiers = modifier : jmodifiertxns j
-        -- Note that some query matches require transaction. Thus modifiers
-        -- pipeline should include txnTieKnot on every step.
-        modifier' = foldr (flip (.) . fmap txnTieKnot . runModifierTransaction q) id modifiers
-    -- rewrite matched transactions
-    let j' = j{jtxns=map modifier' ts}
-    -- run the print command, showing all transactions
-    outputFromOpts rawopts opts'{reportopts_=ropts{query_=""}} j j'

@@ -18,22 +18,25 @@ import Data.Function
 import Data.String.Here
 import qualified Data.Text as T
 
-doc = [here|
-
-Usage:
-```
-$ hledger-dupes [FILE]
-
-...common hledger options...
-```
+------------------------------------------------------------------------------
+cmdmode = (defAddonCommandMode "dupes") {
+   modeHelp = [here|
 Reports duplicates in the account tree: account names having the same leaf
 but different prefixes. In other words, two or more leaves that are
 categorized differently.
 Reads the default journal file, or another specified as an argument.
-
+ 
 http://stefanorodighiero.net/software/hledger-dupes.html
+  |]
+  ,modeHelpSuffix=lines [here|
+  |]
+  }
+------------------------------------------------------------------------------
 
-|]
+main = do
+  opts <- getHledgerCliOpts cmdmode
+  withJournalDo opts $ \CliOpts{rawopts_=opts,reportopts_=ropts} j -> do
+    mapM_ render $ dupes $ accountsNames j
 
 accountsNames :: Journal -> [(String, AccountName)]
 accountsNames j = map leafAndAccountName as
@@ -53,8 +56,3 @@ dupes l = zip dupLeafs dupAccountNames
 
 render :: (String, [AccountName]) -> IO ()
 render (leafName, accountNameL) = printf "%s as %s\n" leafName (concat $ intersperse ", " (map T.unpack accountNameL))
-
-main = do
-  opts <- getHledgerOptsOrShowHelp (defAddonCommandMode "dupes") doc
-  withJournalDo opts $ \CliOpts{rawopts_=opts,reportopts_=ropts} j -> do
-    mapM_ render $ dupes $ accountsNames j

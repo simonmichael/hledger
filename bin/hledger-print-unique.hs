@@ -13,25 +13,18 @@ import Data.String.Here
 import Hledger.Cli
 
 ------------------------------------------------------------------------------
-doc = [here|
-
-Usage:
-```
-$ hledger-print-unique -h
-hledger-print-unique [OPTIONS] [ARGS]
-
-...common hledger options...
-```
-
+cmdmode = (defAddonCommandMode "print-unique") {
+   modeHelp = [here|
 Print only journal entries which are unique by description (or
 something else). Reads the default or specified journal, or stdin.
-
-|]
+  |]
+  ,modeHelpSuffix=lines [here|
+  |]
+  }
 ------------------------------------------------------------------------------
 
 main = do
-  putStrLn "(-f option not supported)"
-  opts <- getHledgerOptsOrShowHelp (defAddonCommandMode "hledger-print-unique") doc
+  opts <- getHledgerCliOpts cmdmode
   withJournalDo opts $
     \opts j@Journal{jtxns=ts} -> print' opts j{jtxns=uniquify ts}
     where

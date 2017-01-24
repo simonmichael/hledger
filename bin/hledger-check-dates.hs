@@ -13,66 +13,29 @@ import Hledger.Cli
 import Text.Printf
 
 ------------------------------------------------------------------------------
-doc = [here|
-
-$ hledger-check-dates -h
-check-dates [OPTIONS] [ARGS]
-  check that transactions' date are monotonically increasing
-
-Flags:
-     --strict             makes date comparing strict
-
-...common hledger options...
-
+cmdmode = 
+  let m = defAddonCommandMode "check-dates"
+  in m {
+   modeHelp = [here|
+Check that transactions' dates are monotonically increasing.
+With --date2, checks secondary dates instead.
 With --strict, dates must also be unique.
-With --date2, checks transactions' secondary dates.
+With a query, only matched transactions' dates are checked.
 Reads the default journal file, or another specified with -f.
-
-|]
-------------------------------------------------------------------------------
-
-argsmode :: Mode RawOpts
-argsmode = (defAddonCommandMode "check-dates")
-  { modeHelp = "check that transactions' date are monotonically increasing"
-  , modeGroupFlags = Group
-    { groupNamed =
-      [ ("Input",inputflags)
-      , ("Reporting",reportflags)
-      , ("Misc",helpflags)
-      ]
-    ,groupUnnamed = [
+  |]
+  ,modeHelpSuffix=lines [here|
+  |]
+  ,modeGroupFlags = (modeGroupFlags m) {
+     groupUnnamed = [
       flagNone ["strict"] (\opts -> setboolopt "strict" opts) "makes date comparing strict"
      ]
-    , groupHidden = []
-    }
   }
-
-data FoldAcc a b = FoldAcc
- { fa_error    :: Maybe a
- , fa_previous :: Maybe b
- }
-
-foldWhile :: (a -> FoldAcc a b -> FoldAcc a b) -> FoldAcc a b -> [a] -> FoldAcc a b
-foldWhile _ acc [] = acc
-foldWhile fold acc (a:as) =
-  case fold a acc of
-   acc@FoldAcc{fa_error=Just _} -> acc
-   acc -> foldWhile fold acc as
-
-checkTransactions :: (Transaction -> Transaction -> Bool)
- -> [Transaction] -> FoldAcc Transaction Transaction
-checkTransactions compare ts =
-  foldWhile fold FoldAcc{fa_error=Nothing, fa_previous=Nothing} ts
-  where
-    fold current acc@FoldAcc{fa_previous=Nothing} = acc{fa_previous=Just current}
-    fold current acc@FoldAcc{fa_previous=Just previous} =
-      if compare previous current
-      then acc{fa_previous=Just current}
-      else acc{fa_error=Just current}
+  }
+------------------------------------------------------------------------------
 
 main :: IO ()
 main = do
-  opts <- getHledgerOptsOrShowHelp argsmode doc
+  opts <- getHledgerCliOpts cmdmode
   withJournalDo opts $
    \CliOpts{rawopts_=opts,reportopts_=ropts} j -> do
     d <- getCurrentDay
@@ -100,3 +63,27 @@ main = do
        (show $ date error)
        (show $ tsourcepos error)
        (showTransactionUnelided error)
+
+data FoldAcc a b = FoldAcc
+ { fa_error    :: Maybe a
+ , fa_previous :: Maybe b
+ }
+
+foldWhile :: (a -> FoldAcc a b -> FoldAcc a b) -> FoldAcc a b -> [a] -> FoldAcc a b
+foldWhile _ acc [] = acc
+foldWhile fold acc (a:as) =
+  case fold a acc of
+   acc@FoldAcc{fa_error=Just _} -> acc
+   acc -> foldWhile fold acc as
+
+checkTransactions :: (Transaction -> Transaction -> Bool)
+ -> [Transaction] -> FoldAcc Transaction Transaction
+checkTransactions compare ts =
+  foldWhile fold FoldAcc{fa_error=Nothing, fa_previous=Nothing} ts
+  where
+    fold current acc@FoldAcc{fa_previous=Nothing} = acc{fa_previous=Just current}
+    fold current acc@FoldAcc{fa_previous=Just previous} =
+      if compare previous current
+      then acc{fa_previous=Just current}
+      else acc{fa_error=Just current}
+
