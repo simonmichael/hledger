@@ -18,13 +18,16 @@ import Hledger.Cli
 cmdmode :: Mode RawOpts
 cmdmode = (defAddonCommandMode "equity") {
    modeHelp = [here|
+   
 Print a "closing balances" transaction that brings all accounts (or with
 query arguments, just the matched accounts) to a zero balance, followed by an
 opposite "opening balances" transaction that restores the balances from zero.
 Such transactions can be useful, eg, for bringing account balances across
 file boundaries.
+
   |]
   ,modeHelpSuffix=lines [here|
+  
 The opening balances transaction is useful to carry over
 asset/liability balances if you choose to start a new journal file,
 eg at the beginning of the year.
@@ -39,20 +42,22 @@ the closing transaction is dated one day earlier). If a report end
 date is not specified, it defaults to today.
 
 Example:
-```
+```shell
 $ hledger equity -f 2015.journal -e 2016/1/1 assets liabilities >>2015.journal
-# & move the opening balances transaction to 2016.journal
+# move the opening balances transaction to 2016.journal
+$ hledger -f 2015.journal bal assets liabilities not:desc:closing # shows correct 2015 balances
+$ hledger -f 2016.journal bal assets liabilities                  # shows correct 2016 balances
+$ hledger -f 2015.journal -f 2016.journal bal assets liabilities  # still shows correct 2016 balances
 ```
-
 Open question: how to handle txns spanning a file boundary ? Eg:
 ```journal
 2015/12/30 * food
     expenses:food:dining   $10
     assets:bank:checking  -$10  ; date:2016/1/4
 ```
-
 This command might or might not have some connection to the concept of
 "closing the books" in accounting.
+
   |]
   ,modeArgs = ([], Just $ argsFlag "[QUERY]")
   }

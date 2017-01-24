@@ -604,74 +604,24 @@ Here are some hledger add-ons available from Hackage,
 the [extra](https://github.com/simonmichael/hledger/tree/master/extra) directory in the hledger source,
 or elsewhere:
 
-## api
+## Official add-ons
+
+These are maintained and released along with hledger.   
+
+### api
 Web API server, see [hledger-api](hledger-api.html).
 
-## autosync
-Download OFX bank data and/or convert OFX to hledger journal format.
+### ui
+Curses-style interface, see [hledger-ui](hledger-ui.html).
 
-```shell
-$ hledger autosync --help
-usage: hledger-autosync [-h] [-m MAX] [-r] [-a ACCOUNT] [-l LEDGER] [-i INDENT]
-                        [--initial] [--fid FID] [--assertions] [-d] [--hledger]
-                        [--slow] [--which]
-                        [PATH]
+### web
+Web interface, see [hledger-web](hledger-web.html).
 
-Synchronize ledger.
+## Third party add-ons
 
-positional arguments:
-  PATH                  do not sync; import from OFX file
+These are maintained separately from hledger, and usually updated shortly after a hledger release.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -m MAX, --max MAX     maximum number of days to process
-  -r, --resync          do not stop until max days reached
-  -a ACCOUNT, --account ACCOUNT
-                        set account name for import
-  -l LEDGER, --ledger LEDGER
-                        specify ledger file to READ for syncing
-  -i INDENT, --indent INDENT
-                        number of spaces to use for indentation
-  --initial             create initial balance entries
-  --fid FID             pass in fid value for OFX files that do not supply it
-  --assertions          create balance assertion entries
-  -d, --debug           enable debug logging
-  --hledger             force use of hledger (on by default if invoked as hledger-
-                        autosync)
-  --slow                use slow, but possibly more robust, method of calling ledger
-                        (no subprocess)
-  --which               display which version of ledger/hledger/ledger-python will
-                        be used by ledger-autosync to check for previous
-                        transactions
-$ head acct1.ofx
-OFXHEADER:100
-DATA:OFXSGML
-VERSION:102
-SECURITY:NONE
-ENCODING:USASCII
-CHARSET:1252
-COMPRESSION:NONE
-OLDFILEUID:NONE
-NEWFILEUIDe:8509488b59d1bb45
-
-$ hledger autosync acct1.ofx
-2013/08/30 MONTHLY SERVICE FEE
-    ; ofxid: 3000.4303001832.201308301
-    WF:4303001832                               -$6.00
-    [assets:business:bank:wf:bchecking:banking]  $6.00
-
-```
-
-[ledger-autosync](https://bitbucket.org/egh/ledger-autosync/commits/all),
-which includes a `hledger-autosync` alias, downloads transactions
-from your bank(s) via OFX, and prints just the new ones as journal
-entries which you can add to your journal. It can also operate on .OFX
-files which you've downloaded manually. It can be a nice alternative
-to hledger's built-in CSV reader, especially if your bank supports OFX
-download.
-
-
-## diff
+### diff
 Show transactions present in one journal file but not another
 
 ```shell
@@ -703,45 +653,7 @@ transactions affecting that account which are in one journal file but
 not in the other.  This can be useful for reconciling existing
 journals with bank statements.
 
-## equity
-Print a journal entry that resets account balances to zero.
-
-```shell
-$ hledger balance --flat -E assets liabilities
-                   0  assets:bank:checking
-                  $1  assets:bank:saving
-                 $-2  assets:cash
-                  $1  liabilities:debts
---------------------
-                   0
-$ hledger equity assets liabilities
-2015/05/23
-    assets:bank:saving                $-1
-    assets:cash                        $2
-    liabilities:debts                 $-1
-    equity:closing balances             0
-
-2015/05/23
-    assets:bank:saving                 $1
-    assets:cash                       $-2
-    liabilities:debts                  $1
-    equity:opening balances             0
-
-```
-
-This prints a journal entry which zeroes out the specified accounts
-(or all accounts) with a transfer to/from "equity:closing balances"
-(like Ledger's equity command). Also, it prints an similar entry with
-opposite sign for restoring the balances from "equity:opening
-balances".
-
-These can be useful for ending one journal file and starting a new
-one, respectively. By zeroing your asset and liability accounts at the
-end of a file and restoring them at the start of the next one, you
-will see correct asset/liability balances whether you run hledger on
-just one file, or on several files concatenated with [include](#include).
-
-## interest
+### interest
 Generate interest transactions.
 
 ```shell
@@ -833,7 +745,7 @@ supports a (small) number of interest schemes, i.e. annual interest
 with a fixed rate and the scheme mandated by the German BGB288
 (Basiszins für Verbrauchergeschäfte). See the package page for more.
 
-## irr
+### irr
 Calculate internal rate of return.
 
 ```shell
@@ -902,248 +814,50 @@ fees, or cost), it calculates the hypothetical annual rate of fixed
 rate investment that would have provided the exact same cash flow.
 See the package page for more.
 
-## print-unique
-Print only only journal entries which have a unique description.
+## Experimental add-ons
+  
+These add-ons are available in source form 
+[in the hledger repo](https://github.com/simonmichael/hledger/tree/master/bin). 
+Installing them is [pretty easy](/download.html#d).
+Reading and copying these is a good way to start making your own add-ons.
 
-```shell
-$ cat unique.journal
-1/1 test
- (acct:one)  1
-2/2 test
- (acct:two)  2
-$ LEDGER_FILE=unique.journal hledger print-unique
-(-f option not supported)
-2015/01/01 test
-    (acct:one)             1
+### budget
 
-```
+[hledger-budget.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-budget.hs#L10)
+A tool adding more budget-tracking features to hledger.
 
-## rewrite
-Prints all journal entries, adding specified custom postings to matched entries.
+### chart
 
-[hledger-rewrite.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-rewrite.hs),
-in hledger's extra directory (compilation optional), adds postings to existing transactions,
-optionally with an amount based on the existing transaction's first amount. See the script for more details.
+[hledger-chart.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-chart.hs#L47)
+An old pie chart generator, in need of some love.
 
-```shell
-$ hledger rewrite -- [QUERY]        --add-posting "ACCT  AMTEXPR" ...
-$ hledger rewrite -- ^income        --add-posting '(liabilities:tax)  *.33'
-$ hledger rewrite -- expenses:gifts --add-posting '(budget:gifts)  *-1"'
-```
+### check-dates
 
-Argument for `--add-posting` option is a usual posting of transaction with an
-exception for amount specification. More precisely you can use `'*'` (star
-symbol) in place of currency to indicate that that this is a factor for an
-amount of original matched posting.
+[hledger-check-dates.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-dates.hs#L15)
+Checks that journal entries are ordered by date.
 
-### Re-write rules in a file
+### dupes
 
-During the run this tool will execute so called
-["Automated Transactions"](http://ledger-cli.org/3.0/doc/ledger3.html#Automated-Transactions)
-found in any journal it process. I.e instead of specifying this operations in
-command line you can put them in a journal file.
+[hledger-dupes.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-dupes.hs#L21)
+Checks for account names sharing the same leaf name.
 
-```shell
-$ rewrite-rules.journal
-```
+### equity
 
-Make contents look like this:
+[hledger-equity.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-equity.hs#L17)
+Prints balance-resetting transactions useful for bringing account balances across file boundaries. 
 
-```journal
-= ^income
-    (liabilities:tax)  *.33
+### print-unique
 
-= expenses:gifts
-    budget:gifts  *-1
-    assets:budget  *1
-```
+[print-unique](https://github.com/simonmichael/hledger/blob/master/bin/hledger-print-unique.hs#L15)
+Remove transactions which reuse an already-seen description.
 
-Note that `'='` (equality symbol) that is used instead of date in transactions
-you usually write. It indicates the query by which you want to match the
-posting to add new ones.
+### register-match
 
-```shell
-$ hledger rewrite -- -f input.journal -f rewrite-rules.journal > rewritten-tidy-output.journal
-```
+[hledger-register-match.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-register-match.hs#L23)
+Helps ledger-autosync recognise already-imported transactions.
 
-This is something similar to the commands pipeline:
+### rewrite
 
-```shell
-$ hledger rewrite -- -f input.journal '^income' --add-posting '(liabilities:tax)  *.33' \
-  | hledger rewrite -- -f - expenses:gifts      --add-posting 'budget:gifts  *-1'       \
-                                                --add-posting 'assets:budget  *1'       \
-  > rewritten-tidy-output.journal
-```
-
-It is important to understand that relative order of such entries in journal is
-important. You can re-use result of previously added postings.
-
-### Diff output format
-
-To use this tool for batch modification of your journal files you may find
-useful output in form of unified diff.
-
-```shell
-$ hledger rewrite -- --diff -f examples/sample.journal '^income' --add-posting '(liabilities:tax)  *.33'
-```
-
-Output might look like:
-
-```diff
---- /tmp/examples/sample.journal
-+++ /tmp/examples/sample.journal
-@@ -18,3 +18,4 @@
- 2008/01/01 income
--    assets:bank:checking  $1
-+    assets:bank:checking            $1
-     income:salary
-+    (liabilities:tax)                0
-@@ -22,3 +23,4 @@
- 2008/06/01 gift
--    assets:bank:checking  $1
-+    assets:bank:checking            $1
-     income:gifts
-+    (liabilities:tax)                0
-```
-
-If you'll pass this through `patch` tool you'll get transactions containing the
-posting that matches your query be updated. Note that multiple files might be
-update according to list of input files specified via `--file` options and
-`include` directives inside of these files.
-
-Be careful. Whole transaction being re-formatted in a style of output from
-`hledger print`.
-
-## budget
-This tool helps to get reports useful for planning and tracking the budget.
-
-For people familiar with [`ledger`
-budgeting](http://www.ledger-cli.org/3.0/doc/ledger3.html#Budgeting) may
-consider this tool as an alias to `ledger --budget`.
-
-With this tool you may either use so called periodic transactions that being
-issued with each new period or use a family of approaches with automated
-transactions. You may want to look at [budgeting section of
-plaintextaccounting](http://plaintextaccounting.org/#budgeting).
-
-Periodic transaction that being interpreted by this tool may look like:
-
-```ledger
-~ monthly from 2017/3
-    income:salary  $-4,000.00
-    expenses:taxes  $1,000
-    expenses:housing:rent  $1,200
-    expenses:grocery  $400
-    expenses:leisure  $200
-    expenses:health  $200
-    expenses  $100
-    assets:savings
-```
-
-Header of such entries starts with `'~'` (tilde symbol) following by an
-interval with an effect period when transactions should be injected.
-
-Effect of declaring such periodic transaction is:
-
-- Transactions will be injected at the beginning of each period. I.e. for
-  monthly it will always refer to 1st day of month.
-- Injected transaction will have inverted amounts to offset existing associated
-  expenses. I.e. for this example negative balance indicates how much you have
-  within your budget and positive amounts indicates how far you off from your
-  budget.
-- Set of accounts across of all periodic transactions will form kinda buckets
-  where rest of the accounts will be sorted into. Each account not mentioned in
-  any of periodic transaction will be dropped without changing of balance for
-  parent account. I.e. for this example postings for `expenses:leisure:movie`
-  will contribute to the  balance of `expenses:leisure` only in reports.
-
-Note that beside a periodic transaction all automated transactions will be
-handled in a similar way how they are handled in `rewrite` command.
-
-### Bucketing
-It is very common to have more expense accounts than budget
-"envelopes"/"buckets". For this reason all periodic transactions are treated as
-a source of information about your budget "buckets".
-
-I.e. example from previous section will build a sub-tree of accounts that look like
-
-```
-assets:savings
-expenses
-  taxes
-  housing:rent
-  grocery
-  leisure
-  health
-income:salary
-```
-
-All accounts used in your transactions journal files will be classified
-according to that tree to contribute to an appropriate bucket of budget.
-
-Everything else will be collected under virtual account `<unbucketed>` to give
-you an idea of what parts of your accounts tree is not budgeted. For example
-`liabilities` will contributed to that entry.
-
-### Reports
-You can use `budget` command to produce next reports:
-
-- `balance` - the most important one to track how you follow your budget. If
-  you use month-based budgeting you may want to use `--monthly` and
-  `--row-total` option to see how you are doing through the months. You also
-  may find it useful to add `--tree` option to see aggregated totals per
-  intermediate node of accounts tree.
-- `register` - might be useful if you want to see long history (ex. `--weekly`)
-  that is too wide to fit into your terminal.
-- `print` - this is mostly to check what actually happens. But you may use it
-  if you prefer to generate budget transactions and store it in a separate
-  journal for some less popular budgeting scheme.
-
-### Extra options for reports
-You may tweak behavior of this command with additional options `--no-offset` and `--no-bucketing`.
-
-- Don't use these options if your budgeting schema includes both periodic
-  transactions, and "bucketing". Unless you want to figure out how your
-  budgeting might look like. You may find helpful values of average column from
-  report
-
-```shell
-$ hledger budget -- bal --period 'monthly to last month' --no-offset --average
-```
-
-- Use `--no-offset` and `--no-bucketing` if your schema fully relies on
-  automated transactions and hand-crafted budgeting transactions. In this mode
-  only automated transactions will be processed. I.e. when you journal looks
-  something like
-
-```ledger
-= ^expenses:food
-  budget:gifts  *-1
-  assets:budget  *1
-
-2017/1/1 Budget for Jan
-  assets:bank  $-1000
-  budget:gifts  $200
-  budget:misc
-```
-
-- Use `--no-bucketing` only if you want to produce a valid journal. For example
-  when you want to pass it as an input for other `hledger` command. Most people
-  will find this useless.
-
-### Recommendations
-- Automated transaction should follow same rules that usual transactions follow
-  (i.e. keep balance for real and balanced virtual postings).
-- Don't change the balance of real asset and liability accounts for which you
-  usually put assertions. Keep in mind that `hledger` do not apply modification
-  transactions.
-- In periodic transactions to offset your budget use either top-level account
-  like `Assets` or introduce a "virtual" one like `Assets:Bank:Budget` that
-  will be a child to the one you want to offset.
-
-## ui
-Curses-style interface, see [hledger-ui](hledger-ui.html).
-
-## web
-Web interface, see [hledger-web](hledger-web.html).
+[hledger-rewrite.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-rewrite.hs#L28)
+Adds one or more custom postings to matched transactions.
 

@@ -31,14 +31,15 @@ cmdmode =
   in m {
    modeHelp = [here|
 
-Print all journal entries, with custom postings added to the matched ones
+Print all transactions, adding custom postings to the matched ones.
 
   |]
   ,modeHelpSuffix=lines [here|
   
-A start at a generic rewriter of journal entries.
-Reads the default journal and prints the entries, like print,
-but adds the specified postings to any entries matching PATTERNS.
+This is a start at a generic rewriter of transaction entries.
+It reads the default journal and prints the transactions, like print,
+but adds one or more specified postings to any transactions matching QUERY.
+The posting amounts can be fixed, or a multiplier of the existing transaction's first posting amount. 
 
 Examples:
 ```
@@ -55,15 +56,101 @@ rewrites.hledger may consist of entries like:
 ```
 Note the single quotes to protect the dollar sign from bash, 
 and the two spaces between account and amount.
-See the command-line help for more details.
-Currently does not work when invoked via hledger, run it directly instead.
 
-Related: https://github.com/simonmichael/hledger/issues/99
+More:
 
-TODO:
-- should allow regex matching and interpolating matched name in replacement
-- should apply all matching rules to a transaction, not just one
-- should be possible to use this on unbalanced entries, eg while editing one
+```shell
+$ hledger rewrite -- [QUERY]        --add-posting "ACCT  AMTEXPR" ...
+$ hledger rewrite -- ^income        --add-posting '(liabilities:tax)  *.33'
+$ hledger rewrite -- expenses:gifts --add-posting '(budget:gifts)  *-1"'
+```
+
+Argument for `--add-posting` option is a usual posting of transaction with an
+exception for amount specification. More precisely you can use `'*'` (star
+symbol) in place of currency to indicate that that this is a factor for an
+amount of original matched posting.
+
+#### Re-write rules in a file
+
+During the run this tool will execute so called
+["Automated Transactions"](http://ledger-cli.org/3.0/doc/ledger3.html#Automated-Transactions)
+found in any journal it process. I.e instead of specifying this operations in
+command line you can put them in a journal file.
+
+```shell
+$ rewrite-rules.journal
+```
+
+Make contents look like this:
+
+```journal
+= ^income
+    (liabilities:tax)  *.33
+
+= expenses:gifts
+    budget:gifts  *-1
+    assets:budget  *1
+```
+
+Note that `'='` (equality symbol) that is used instead of date in transactions
+you usually write. It indicates the query by which you want to match the
+posting to add new ones.
+
+```shell
+$ hledger rewrite -- -f input.journal -f rewrite-rules.journal > rewritten-tidy-output.journal
+```
+
+This is something similar to the commands pipeline:
+
+```shell
+$ hledger rewrite -- -f input.journal '^income' --add-posting '(liabilities:tax)  *.33' \
+  | hledger rewrite -- -f - expenses:gifts      --add-posting 'budget:gifts  *-1'       \
+                                                --add-posting 'assets:budget  *1'       \
+  > rewritten-tidy-output.journal
+```
+
+It is important to understand that relative order of such entries in journal is
+important. You can re-use result of previously added postings.
+
+#### Diff output format
+
+To use this tool for batch modification of your journal files you may find
+useful output in form of unified diff.
+
+```shell
+$ hledger rewrite -- --diff -f examples/sample.journal '^income' --add-posting '(liabilities:tax)  *.33'
+```
+
+Output might look like:
+
+```diff
+--- /tmp/examples/sample.journal
++++ /tmp/examples/sample.journal
+@@ -18,3 +18,4 @@
+ 2008/01/01 income
+-    assets:bank:checking  $1
++    assets:bank:checking            $1
+     income:salary
++    (liabilities:tax)                0
+@@ -22,3 +23,4 @@
+ 2008/06/01 gift
+-    assets:bank:checking  $1
++    assets:bank:checking            $1
+     income:gifts
++    (liabilities:tax)                0
+```
+
+If you'll pass this through `patch` tool you'll get transactions containing the
+posting that matches your query be updated. Note that multiple files might be
+update according to list of input files specified via `--file` options and
+`include` directives inside of these files.
+
+Be careful. Whole transaction being re-formatted in a style of output from
+`hledger print`.
+
+See also: 
+
+https://github.com/simonmichael/hledger/issues/99
 
   |]
   ,modeArgs = ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
@@ -76,6 +163,10 @@ TODO:
     }
   }
 ------------------------------------------------------------------------------
+
+-- TODO regex matching and interpolating matched name in replacement
+-- TODO interpolating match groups in replacement
+-- TODO allow using this on unbalanced entries, eg to rewrite while editing
 
 outputflags :: [Flag RawOpts]
 outputflags = [flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"]

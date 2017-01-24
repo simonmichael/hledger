@@ -15,10 +15,23 @@ import Hledger.Cli
 ------------------------------------------------------------------------------
 cmdmode = (defAddonCommandMode "print-unique") {
    modeHelp = [here|
-Print only journal entries which are unique by description (or
-something else). Reads the default or specified journal, or stdin.
+Remove transactions which reuse an already-seen description.
   |]
   ,modeHelpSuffix=lines [here|
+
+Example:
+```shell
+$ cat unique.journal
+1/1 test
+ (acct:one)  1
+2/2 test
+ (acct:two)  2
+$ LEDGER_FILE=unique.journal hledger print-unique
+(-f option not supported)
+2015/01/01 test
+    (acct:one)             1
+```
+
   |]
   }
 ------------------------------------------------------------------------------
