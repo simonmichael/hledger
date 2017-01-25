@@ -1,30 +1,35 @@
 #!/usr/bin/env stack
 {- stack runghc --verbosity info
-  --package hledger
+   --package hledger
+   --package here
 -}
 
+{-# LANGUAGE QuasiQuotes #-}
+
 import Data.Maybe
+import Data.String.Here
 import Data.Time
 import qualified Data.Text as T
 import Control.Monad
 import Hledger.Cli
 
-cmdmode :: Mode RawOpts
-cmdmode = (defCommandMode ["hledger-prices"]) {
-     modeArgs = ([], Nothing)
-    ,modeHelp = "print all prices from journal"
-    ,modeGroupFlags = Group {
-         groupNamed = [
-             ("Input",     inputflags)
-            ,("Misc",      helpflags)
-            ]
-        ,groupHidden = []
-        ,groupUnnamed = [
-             flagNone ["costs"] (setboolopt "costs")
-                "collect prices from postings"
-            ]
-        }
-    }
+------------------------------------------------------------------------------
+cmdmode =
+  let m = defAddonCommandMode "hledger-prices"
+  in m {
+   modeHelp = [here|
+Print all prices from the journal.
+  |]
+  ,modeHelpSuffix=lines [here|
+  |]
+  ,modeArgs = ([], Nothing)
+  ,modeGroupFlags = (modeGroupFlags m) {
+     groupUnnamed = [
+      flagNone ["costs"] (setboolopt "costs") "print transaction prices from postings instead of market prices"
+     ]
+  }
+  }
+------------------------------------------------------------------------------
 
 showPrice :: MarketPrice -> String
 showPrice mp = unwords ["P", show $ mpdate mp, T.unpack . quoteCommoditySymbolIfNeeded $ mpcommodity mp, showAmountWithZeroCommodity $ mpamount mp]
@@ -47,7 +52,7 @@ allPostsings = concatMap tpostings . jtxns
 
 main :: IO ()
 main = do
-    opts <- getCliOpts cmdmode
+    opts <- getHledgerCliOpts cmdmode
     withJournalDo opts{ ignore_assertions_ = True } $ \_ j -> do
         let cprices = concatMap postingCosts . allPostsings $ j
             printPrices = mapM_ (putStrLn . showPrice)
