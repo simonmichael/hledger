@@ -248,3 +248,55 @@
 +    assets:bank              $-5
 >>>2
 >>>=0
+
+# Split price with VAT
+runghc ../../bin/hledger-rewrite.hs -f- ^expenses:food --replace --add-posting 'expense:food  *0.8  ; VAT:none' --add-posting 'expenses:taxes  *0.2  ; VAT:explicit'
+<<<
+2016/1/1
+    expenses:food  $10
+    assets:bank
+
+2016/1/2
+    expenses:food
+    assets:bank  $-20
+>>>
+2016/01/01
+    assets:bank
+    expense:food                $8    ; VAT:none
+    expenses:taxes              $2    ; VAT:explicit
+
+2016/01/02
+    assets:bank               $-20
+    expense:food               $16    ; VAT:none
+    expenses:taxes              $4    ; VAT:explicit
+
+>>>2
+>>>=0
+
+# Comment transaction
+runghc ../../bin/hledger-rewrite.hs -f- desc:Starbucks 'amt:>0' --txn-comment 'discounts:10%' --add-posting 'expenses:discount  *-0.2' --add-posting 'assets:bank  *0.2'
+<<<
+2016/1/1 Starbucks
+    expenses:snacks  $5
+    assets:bank
+
+2016/1/2 Starbucks
+    expenses:snacks
+    assets:bank  $-15
+>>>
+2016/01/01 Starbucks
+    ; discounts:10%
+    expenses:snacks                $5
+    assets:bank
+    expenses:discount             $-1
+    assets:bank                    $1
+
+2016/01/02 Starbucks
+    ; discounts:10%
+    expenses:snacks
+    assets:bank                  $-15
+    expenses:discount             $-3
+    assets:bank                    $3
+
+>>>2
+>>>=0

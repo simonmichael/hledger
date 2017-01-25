@@ -39,44 +39,63 @@ import Hledger.Query
 -- 'Query' parameter allows injection of additional restriction on posting
 -- match. Don't forget to call 'txnTieKnot'.
 --
--- >>> runModifierTransaction Any (ModifierTransaction "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
+-- >>> runModifierTransaction Any (ModifierTransaction "" "" False ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
 --     ping           $1.00
 --     pong           $2.00
 -- <BLANKLINE>
 -- <BLANKLINE>
--- >>> runModifierTransaction Any (ModifierTransaction "miss" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
+-- >>> runModifierTransaction Any (ModifierTransaction "miss" "" False ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
 --     ping           $1.00
 -- <BLANKLINE>
 -- <BLANKLINE>
--- >>> runModifierTransaction None (ModifierTransaction "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
+-- >>> runModifierTransaction None (ModifierTransaction "" "" False ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
 --     ping           $1.00
 -- <BLANKLINE>
 -- <BLANKLINE>
--- >>> runModifierTransaction Any (ModifierTransaction "ping" ["pong" `post` amount{amultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
+-- >>> runModifierTransaction Any (ModifierTransaction "ping" "" False ["pong" `post` amount{amultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
 -- 0000/01/01
 --     ping           $2.00
 --     pong           $6.00
+-- <BLANKLINE>
+-- <BLANKLINE>
+-- >>> runModifierTransaction Any (ModifierTransaction "ping" "" True ["pong" `post` amount{amultiplier=True, aquantity=1}]) nulltransaction{tpostings=["ping" `post` usd 2]}
+-- 0000/01/01
+--     pong           $2.00
+-- <BLANKLINE>
+-- <BLANKLINE>
+-- >>> runModifierTransaction Any (ModifierTransaction "ping" "review" False []) nulltransaction{tpostings=["ping" `post` usd 2, "ping" `post` usd 1]}
+-- 0000/01/01
+--     ; review
+--     ping           $2.00
+--     ping           $1.00
 -- <BLANKLINE>
 -- <BLANKLINE>
 runModifierTransaction :: Query -> ModifierTransaction -> (Transaction -> Transaction)
 runModifierTransaction q mt = modifier where
     q' = simplifyQuery $ And [q, mtvaluequery mt (error "query cannot depend on current time")]
     mods = map runModifierPosting $ mtpostings mt
+    modifyComment | T.null $ mtcomment mt = id
+                  | otherwise = \c -> T.unlines [T.stripEnd c, mtcomment mt]
+    filterPostings | mtreplace mt = filter (not . (q `matchesPosting`))
+                   | otherwise = id
     generatePostings ps = [m p | p <- ps, q' `matchesPosting` p, m <- mods]
-    modifier t@(tpostings -> ps) = t { tpostings = ps ++ generatePostings ps }
+    modifier t@(tpostings -> ps) = t { tpostings = filterPostings ps ++
+                                                     generatePostings ps
+                                     , tcomment = modifyComment $ tcomment t
+                                     }
 
 -- | Extract 'Query' equivalent of 'mtvalueexpr' from 'ModifierTransaction'
 --
--- >>> mtvaluequery (ModifierTransaction "" []) undefined
+-- >>> mtvaluequery (ModifierTransaction "" undefined undefined []) undefined
 -- Any
--- >>> mtvaluequery (ModifierTransaction "ping" []) undefined
+-- >>> mtvaluequery (ModifierTransaction "ping" undefined undefined []) undefined
 -- Acct "ping"
--- >>> mtvaluequery (ModifierTransaction "date:2016" []) undefined
+-- >>> mtvaluequery (ModifierTransaction "date:2016" undefined undefined []) undefined
 -- Date (DateSpan 2016)
--- >>> mtvaluequery (ModifierTransaction "date:today" []) (read "2017-01-01")
+-- >>> mtvaluequery (ModifierTransaction "date:today" undefined undefined []) (read "2017-01-01")
 -- Date (DateSpan 2017/01/01)
 mtvaluequery :: ModifierTransaction -> (Day -> Query)
 mtvaluequery mt = fst . flip parseQuery (mtvalueexpr mt)

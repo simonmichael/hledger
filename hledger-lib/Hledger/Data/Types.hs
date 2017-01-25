@@ -240,6 +240,8 @@ instance NFData Transaction
 
 data ModifierTransaction = ModifierTransaction {
       mtvalueexpr :: Text,
+      mtcomment   :: Text,      -- ^ transaction's comment lines to be added
+      mtreplace   :: Bool,      -- ^ 'True' for replacing matched postings
       mtpostings  :: [Posting]
     } deriving (Eq,Typeable,Data,Generic)
 

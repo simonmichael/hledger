@@ -412,7 +412,7 @@ modifiertransactionp = do
   lift (many spacenonewline)
   valueexpr <- T.pack <$> lift restofline
   postings <- postingsp Nothing
-  return $ ModifierTransaction valueexpr postings
+  return $ ModifierTransaction valueexpr "" False postings
 
 periodictransactionp :: MonadIO m => ErroringJournalParser m PeriodicTransaction
 periodictransactionp = do
