@@ -21,15 +21,15 @@ runghc ../../bin/hledger-equity.hs -f- -p 2016 assets liabilities
     assets:cash
 >>>
 2016/12/31 closing balances
-    assets:bank                      $-80
-    assets:cash                      $-10
-    liabilities                      $-25
+    assets:bank                      $-80 = $0
+    assets:cash                      $-10 = $0
+    liabilities                      $-25 = $0
     equity:closing balances
 
 2017/01/01 opening balances
-    assets:bank                       $80
-    assets:cash                       $10
-    liabilities                       $25
+    assets:bank                       $80 = $80
+    assets:cash                       $10 = $10
+    liabilities                       $25 = $25
     equity:opening balances
 
 >>>=0
@@ -59,13 +59,13 @@ Y2016
 	liabilities:employer
 >>>
 2016/12/31 closing balances
-    assets:bank              -5,733.00 EUR
-    liabilities:employer         -1.00 EUR
+    assets:bank              -5,733.00 EUR = 0.00 EUR
+    liabilities:employer         -1.00 EUR = 0.00 EUR
     equity:closing balances
 
 2017/01/01 opening balances
-    assets:bank               5,733.00 EUR
-    liabilities:employer          1.00 EUR
+    assets:bank               5,733.00 EUR = 5,733.00 EUR
+    liabilities:employer          1.00 EUR = 1.00 EUR
     equity:opening balances
 
 >>>=0
@@ -91,13 +91,13 @@ runghc ../../bin/hledger-equity.hs -f- -p 2016 assets liabilities
     assets:cash
 >>>
 2016/12/31 closing balances
-    assets:bank                       $20
-    assets:cash                      $-15
+    assets:bank                       $20 = $0
+    assets:cash                      $-15 = $0
     equity:closing balances
 
 2017/01/01 opening balances
-    assets:bank                      $-20
-    assets:cash                       $15
+    assets:bank                      $-20 = $-20
+    assets:cash                       $15 = $15
     equity:opening balances
 
 >>>=0
