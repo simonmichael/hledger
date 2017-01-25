@@ -281,7 +281,10 @@ rsHandle ui@UIState{
           where
             (pos,f) = case listSelectedElement rsList of
                         Nothing -> (endPos, journalFilePath j)
-                        Just (_, RegisterScreenItem{rsItemTransaction=Transaction{tsourcepos=GenericSourcePos f l c}}) -> (Just (l, Just c),f)
+                        Just (_, RegisterScreenItem{
+                          rsItemTransaction=Transaction{tsourcepos=GenericSourcePos f l c}}) -> (Just (l, Just c),f)
+                        Just (_, RegisterScreenItem{
+                          rsItemTransaction=Transaction{tsourcepos=JournalSourcePos f (l,_)}}) -> (Just (l, Nothing),f)
         VtyEvent (EvKey (KChar 'H') []) -> continue $ regenerateScreens j d $ toggleHistorical ui
         VtyEvent (EvKey (KChar 'F') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleFlat ui)
         VtyEvent (EvKey (KChar 'Z') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
