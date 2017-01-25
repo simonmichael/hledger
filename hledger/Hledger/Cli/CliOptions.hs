@@ -552,34 +552,34 @@ defaultBalanceLineFormat = BottomAligned [
 -- Other utils
 
 -- | Get the sorted unique precise names and display names of hledger
--- add-ons found in the current user's PATH. The precise names are the
--- add-on's filename with the "hledger-" prefix removed. The display
--- names have the file extension removed also, except when it's needed
--- for disambiguation.
---
--- -- Also when there are exactly two similar names, one with the .hs or
--- -- .lhs extension and the other with the .exe extension or no
--- -- extension - presumably source and compiled versions of a haskell
--- -- script - we exclude the source version.
---
--- This function can return add-on names which shadow built-in command
--- names, but hledger will ignore these.
+-- add-on executables found in the current user's PATH. 
+-- Precise names are the file names with the "hledger-" prefix removed. 
+-- Display names also have the file extension removed, except when it's 
+-- needed to disambiguate multiple add-ons with similar filenames.
+-- When there are exactly two similar names that look like a source 
+-- and compiled version (.exe, .com, or no extension), the source
+-- version is excluded (even if it happens to be newer). 
+-- Add-on names matching built-in command names could be returned
+-- by this function, though hledger will ignore them.
 --
 hledgerAddons :: IO ([String],[String])
 hledgerAddons = do
   exes <- hledgerExecutablesInPath
-  let precisenames = -- concatMap dropRedundant $
-                     -- groupBy (\a b -> dropExtension a == dropExtension b) $
+  let precisenames = concatMap dropRedundant $
+                     groupBy (\a b -> dropExtension a == dropExtension b) $
                      map stripprefix exes
   let displaynames = concatMap stripext $
                      groupBy (\a b -> dropExtension a == dropExtension b) precisenames
   return (precisenames, displaynames)
   where
     stripprefix = drop (length progname + 1)
-    -- dropRedundant [f,f2] | takeExtension f `elem` ["",".exe"] && takeExtension f2 `elem` [".hs",".lhs"] = [f]
-    -- dropRedundant fs = fs
     stripext [f] = [dropExtension f]
     stripext fs  = fs
+    compiledExts = ["",".com",".exe"] 
+    dropRedundant [f,g]
+      | takeExtension f `elem` compiledExts = [f]
+      | takeExtension g `elem` compiledExts = [g]
+    dropRedundant fs = fs
 
 -- | Get the sorted unique filenames of all hledger-* executables in
 -- the current user's PATH. Currently these are: files in any of the
