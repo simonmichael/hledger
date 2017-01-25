@@ -2,6 +2,10 @@ User-visible changes in hledger-ui.
 See also the hledger and project change logs.
 
 
+# 1.1.2 (2017/1/25)
+
+-  allow vty 0.15, brick 0.17 (#494)
+
 # 1.1.1 (2017/1/20)
 
 -   allow brick 0.16 (Joshua Chia)
