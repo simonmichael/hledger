@@ -226,7 +226,12 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
             )
 
         -- and start the app. Must be inside the withManager block
-        void $ customMain (mkVty def) (Just eventChan) brickapp ui
+#if MIN_VERSION_vty(0,15,0)
+        let myVty = mkVty mempty
+#else
+        let myVty = mkVty def
+#endif
+        void $ customMain myVty (Just eventChan) brickapp ui
 
 showFSNEvent (Added    f _) = "Added "    ++ show f
 showFSNEvent (Modified f _) = "Modified " ++ show f
