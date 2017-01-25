@@ -16,7 +16,9 @@ import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async
 import Control.Monad
 -- import Control.Monad.IO.Class (liftIO)
+#if !MIN_VERSION_vty(0,15,0)
 import Data.Default (def)
+#endif
 -- import Data.Monoid              --
 import Data.List
 import Data.Maybe
