@@ -1,4 +1,4 @@
-# How to use account aliases
+# Rewrite account names
 
 Here's an example of using [account aliases](manual.html#account-aliases).
 

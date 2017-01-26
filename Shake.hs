@@ -133,8 +133,12 @@ main = do
 
       -- cookbook pages in markdown, ready for web output by hakyll (site/csv-import.md).
       -- Keeping these in the main site directory allows hakyll-std to see them (and simpler urls).
-      -- These should be ordered like the links on the docs page, so that the combined
-      -- cookbook follows the same order.
+      -- These should be kept ordered like the links on the docs page, so that the 
+      -- combined cookbook follows the same order.
+      -- XXX This, as well as keeping page link, heading, and filename synced, will be a bit tricky.
+      -- Current policy:
+      -- filenames are simple and stable as possible, beginning with TOPIC- prefix when appropriate
+      -- titles are succinct and practical/action-oriented 
       cookbookpages = [
          "site/entries.md"
         ,"site/csv-import.md"
@@ -265,7 +269,8 @@ main = do
 
     webmanall %> \out -> do
       need webmanpages
-      liftIO $ writeFile webmanall "# Big Manual\n\n* toc\n\n"
+      -- avoid # Big Manual\n\n heading which will throw off the TOC style
+      liftIO $ writeFile webmanall "* toc\n\n"
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
         cmd Shell ("printf '\\n\\n' >>") webmanall :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown --atx-headers"
@@ -279,7 +284,7 @@ main = do
     phony "cookbookall" $ need [ cookbookall ]
 
     cookbookall %> \out -> do
-      need cookbookpages
+      need cookbookpages  -- XXX seems not to work, not rebuilt when a recipe changes 
       liftIO $ writeFile cookbookall "# User Cookbook\n\n* toc\n\n"
       forM_ cookbookpages $ \f -> do -- site/csv-import.md, site/account-aliases.md, ...
         cmd Shell ("printf '\\n\\n' >>") cookbookall :: Action ExitCode

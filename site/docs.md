@@ -90,9 +90,9 @@ Practical recipes on one page, including:
 <div style="padding-left:0em;">
 
 [Common journal entries](entries.html)\
-[How to read CSV files](csv-import.html)\
-[How to use account aliases](account-aliases.html)\
-[How to use another account separator character](account-separator.html)\
+[Convert CSV files](csv-import.html)\
+[Rewrite account names](account-aliases.html)\
+[Use another account separator character](account-separator.html)\
 
 </div>
 

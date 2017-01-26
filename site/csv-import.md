@@ -1,4 +1,4 @@
-# How to read CSV files
+# Convert CSV files
 
 Here's a quick example of [converting a CSV file](manual.html#csv-format).
 
