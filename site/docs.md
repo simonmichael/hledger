@@ -32,47 +32,49 @@ A few links not yet moved to...
 #### [plaintextaccounting.org](http://plaintextaccounting.org)
 More overview, tips and tools from the plain text accounting community
 
+\
+To get started as a developer, see [Contribute](developer-guide.html)!
+
 </div>
 <div class="col-sm-3">
 
 ## Reference
 
 #### [Big Manual](manual.html)
-All manuals combined on one page,
-including:
+All manuals on one page, including:
 
-<div style="padding-left:1em;">
+<div style="padding-left:0em;">
 
-**Tool manuals**
+**Tools**
 
-##### [`hledger`](hledger.html)
+**[`hledger`](hledger.html)**\
 The command-line UI
 , for flexibility and automation.
 
-##### [`hledger-ui`](hledger-ui.html)
+**[`hledger-ui`](hledger-ui.html)**\
 A curses-style UI
 , for quick review and monitoring.
 
-##### [`hledger-web`](hledger-web.html)
+**[`hledger-web`](hledger-web.html)**\
 A web UI
 , for browsing, sharing, and collaboration.
 
-##### [`hledger-api`](hledger-api.html)
+**[`hledger-api`](hledger-api.html)**\
 A basic web API
 , for building client-side apps. 
 
-**File format manuals**
+**File formats**
 
-##### [Journal](journal.html)
+**[Journal](journal.html)**\
 hledger's native data format, representing an accounting journal.
 
-##### [CSV](csv.html)
+**[CSV](csv.html)**\
 Comma Separated Values, used for import/export.
 
-##### [Timeclock](timeclock.html)
+**[Timeclock](timeclock.html)**\
 For time logging, with clock-in/clock-out records.
 
-##### [Timedot](timedot.html)
+**[Timedot](timedot.html)**\
 A more human-friendly time logging format.
 
 </div>
@@ -80,18 +82,16 @@ A more human-friendly time logging format.
 </div>
 <div class="col-sm-3">
 
-## More
+## Day-to-day use
 
 #### [User Cookbook](cookbook.html)
-Practical day-to-day recipes combined on one page, including:
+Practical recipes on one page, including:
 
-<div style="padding-left:1em;">
+<div style="padding-left:0em;">
 
-##### [How to read CSV files](csv-import.html)
-
-##### [How to use account aliases](account-aliases.html)
-
-##### [How to use another account separator character](account-separator.html)
+[How to read CSV files](csv-import.html)\
+[How to use account aliases](account-aliases.html)\
+[How to use another account separator character](account-separator.html)\
 
 </div>
 
