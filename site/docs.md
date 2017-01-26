@@ -26,46 +26,53 @@ Small, guided exercises introducing data entry, reporting, and accounting.
 
 #### [FAQ](faq.html)
 
+#### [Misc. links](more-docs.html)
+A few links not yet moved to... 
+
+#### [plaintextaccounting.org](http://plaintextaccounting.org)
+More overview, tips and tools from the plain text accounting community
+
 </div>
 <div class="col-sm-3">
 
 ## Reference
 
 #### [Big Manual](manual.html)
-All manuals combined on one page.
+All manuals combined on one page,
+including:
 
 <div style="padding-left:1em;">
 
 **Tool manuals**
 
-#### [`hledger`](hledger.html)
-The main command-line UI.
-Good for precision, flexibility and automation.
+##### [`hledger`](hledger.html)
+The command-line UI
+, for flexibility and automation.
 
-#### [`hledger-ui`](hledger-ui.html)
+##### [`hledger-ui`](hledger-ui.html)
 A curses-style UI
 , for quick review and monitoring.
 
-#### [`hledger-web`](hledger-web.html)
+##### [`hledger-web`](hledger-web.html)
 A web UI
 , for browsing, sharing, and collaboration.
 
-#### [`hledger-api`](hledger-api.html)
+##### [`hledger-api`](hledger-api.html)
 A basic web API
 , for building client-side apps. 
 
 **File format manuals**
 
-#### [Journal](journal.html)
+##### [Journal](journal.html)
 hledger's native data format, representing an accounting journal.
 
-#### [CSV](csv.html)
+##### [CSV](csv.html)
 Comma Separated Values, used for import/export.
 
-#### [Timeclock](timeclock.html)
+##### [Timeclock](timeclock.html)
 For time logging, with clock-in/clock-out records.
 
-#### [Timedot](timedot.html)
+##### [Timedot](timedot.html)
 A more human-friendly time logging format.
 
 </div>
@@ -75,17 +82,18 @@ A more human-friendly time logging format.
 
 ## More
 
-#### [How to read CSV files](how-to-read-csv-files.html)
+#### [User Cookbook](cookbook.html)
+Practical day-to-day recipes combined on one page, including:
 
-#### [How to use account aliases](how-to-use-account-aliases.html)
+<div style="padding-left:1em;">
 
-#### [How to use another account separator character](how-to-use-another-account-separator-character.html)
+##### [How to read CSV files](csv-import.html)
 
-#### [More docs](more-docs.html)
-Some useful links not yet moved to..
+##### [How to use account aliases](account-aliases.html)
 
-#### [plaintextaccounting.org](http://plaintextaccounting.org)
-More tips and tools from the plain text accounting community
+##### [How to use another account separator character](account-separator.html)
+
+</div>
 
 </div>
 </div>

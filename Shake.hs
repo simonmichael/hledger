@@ -60,6 +60,7 @@ usage = unlines
 --   ,"./Shake infomanpages     # generate info files for info"
 --   ,"./Shake webmanpages      # generate individual web man pages for hakyll"
 --   ,"./Shake webmanall        # generate all-in-one web manual for hakyll"
+--   ,"./Shake cookbookall      # generate all-in-one web cookbook for hakyll"
   ,"./Shake site/doc/VER/.snapshot   # generate and save a versioned web site snapshot"
   ,"./Shake all              # generate everything"
   ,"./Shake clean            # clean generated files"
@@ -114,16 +115,32 @@ main = do
         ]
       -- manuals m4 source, may include other files (hledger/doc/hledger.1.m4.md)
       m4manpages = [manpageDir m </> m <.> "m4.md" | m <- manpageNames]
-      --   manuals rendered to nroff, ready for man (hledger/doc/hledger.1)
+
+      -- manuals rendered to nroff, ready for man (hledger/doc/hledger.1)
       nroffmanpages = [manpageDir m </> m | m <- manpageNames]
-      --    manuals rendered to text, ready for embedding (hledger/doc/hledger.1.txt)
+
+      -- manuals rendered to text, ready for embedding (hledger/doc/hledger.1.txt)
       txtmanpages = [manpageDir m </> m <.> "txt" | m <- manpageNames]
-      --    manuals rendered to info, ready for info (hledger/doc/hledger.1.info)
+
+      -- manuals rendered to info, ready for info (hledger/doc/hledger.1.info)
       infomanpages = [manpageDir m </> m <.> "info" | m <- manpageNames]
-      --   manuals rendered to markdown, ready for web output by hakyll (site/hledger.md)
+
+      -- manuals rendered to markdown, ready for web output by hakyll (site/hledger.md)
       webmanpages = ["site" </> manpageNameToUri m <.>"md" | m <- manpageNames]
-      --    manuals rendered to markdown and combined, ready for web output by hakyll
+
+      -- manuals rendered to markdown and combined, ready for web output by hakyll
       webmanall = "site/manual.md"
+
+      -- cookbook pages in markdown, ready for web output by hakyll (site/csv-import.md)
+      -- keeping these in the main site directory allows hakyll-std to see them (and simpler urls)
+      cookbookpages = [
+         "site/account-aliases.md"
+        ,"site/account-separator.md"
+        ,"site/csv-import.md"
+        ]
+
+      -- cookbook pages combined, ready for web output by hakyll
+      cookbookall = "site/cookbook.md"
 
       -- hledger.1 -> hledger/doc, hledger_journal.5 -> hledger-lib/doc
       manpageDir m
@@ -209,6 +226,7 @@ main = do
       need $
         webmanpages ++
         [webmanall
+        ,cookbookall
         ,hakyllstd
         ]
       cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
@@ -254,6 +272,21 @@ main = do
           "--filter tools/pandoc-demote-headers"
           ">>" webmanall :: Action ExitCode
 
+    -- adjust and combine recipe mds for single-page web output, using pandoc
+    phony "cookbookall" $ need [ cookbookall ]
+
+    cookbookall %> \out -> do
+      need cookbookpages
+      liftIO $ writeFile cookbookall "* toc\n\n"
+      forM_ cookbookpages $ \f -> do -- site/csv-import.md, site/account-aliases.md, ...
+        cmd Shell ("printf '\\n\\n' >>") cookbookall :: Action ExitCode
+        cmd Shell "pandoc" f "-t markdown --atx-headers"
+          -- "--filter tools/pandoc-drop-man-blocks"
+          "--filter tools/pandoc-drop-toc"
+          -- "--filter tools/pandoc-capitalize-headers"
+          "--filter tools/pandoc-demote-headers"
+          ">>" cookbookall :: Action ExitCode
+
     -- build the currently checked out web docs and save as a named snapshot
     "site/doc/*/.snapshot" %> \out -> do
       need [ webmanall ]
@@ -283,7 +316,7 @@ main = do
     phony "clean" $ do
       putNormal "Cleaning generated files"
       removeFilesAfter "." webmanpages
-      removeFilesAfter "." [webmanall]
+      removeFilesAfter "." [webmanall, cookbookall]
       -- removeFilesAfter "." ["site/doc/[0-9]*"]
       cmd Shell "rm -rf site/doc/[0-9]*"
 
