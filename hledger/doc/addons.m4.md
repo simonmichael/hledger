@@ -27,13 +27,13 @@ Here are some hledger add-ons available:
 These are maintained and released along with hledger.   
 
 ### api
-Web API server, see [hledger-api](hledger-api.html).
+[hledger-api](hledger-api.html) serves hledger data as a JSON web API. 
 
 ### ui
-Curses-style interface, see [hledger-ui](hledger-ui.html).
+[hledger-ui](hledger-ui.html) provides an efficient curses-style interface. 
 
 ### web
-Web interface, see [hledger-web](hledger-web.html).
+[hledger-web](hledger-web.html) provides a simple web interface.
 
 ## Third party add-ons
 
@@ -42,21 +42,21 @@ These are maintained separately, and usually updated shortly after a hledger rel
 ### diff
 
 [hledger-diff](http://hackage.haskell.org/package/hledger-diff)
-Shows differences in an account's transactions between one journal file and another.
+shows differences in an account's transactions between one journal file and another.
 
 ### iadd
 
 [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd)
-A curses-style, more interactive replacement for the [add command](/hledger.html#add). 
+is a curses-style, more interactive replacement for the [add command](/hledger.html#add). 
 
 ### interest
 
 [hledger-interest](http://hackage.haskell.org/package/hledger-interest)
-Generates interest transactions for an account according to various schemes. 
+generates interest transactions for an account according to various schemes. 
 
 ### irr
 [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
-Calculates the internal rate of return of an investment account.
+calculates the internal rate of return of an investment account.
 
 ## Experimental add-ons
   
