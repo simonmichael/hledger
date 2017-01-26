@@ -1,3 +1,5 @@
+<span style="float:right; font-size:small;">[improve this page](http://code.hledger.org/blob/master/site/docs.md)</span>
+
 # Documentation
 
 <style>
@@ -89,6 +91,8 @@ Practical recipes on one page, including:
 
 <div style="padding-left:0em;">
 
+[Start a journal](start-journal.html)\
+[Track changes with version control](version-control.html)\
 [Common journal entries](entries.html)\
 [Convert CSV files](csv-import.html)\
 [Rewrite account names](account-aliases.html)\

@@ -140,7 +140,9 @@ main = do
       -- filenames are simple and stable as possible, beginning with TOPIC- prefix when appropriate
       -- titles are succinct and practical/action-oriented 
       cookbookpages = [
-         "site/entries.md"
+         "site/start-journal.md"
+        ,"site/version-control.md"
+        ,"site/entries.md"
         ,"site/csv-import.md"
         ,"site/account-aliases.md"
         ,"site/account-separator.md"
