@@ -17,6 +17,7 @@ hledger-web - web interface for the hledger accounting tool
 `hledger-web [OPTIONS]`\
 `hledger web -- [OPTIONS]`
 
+_web_({{
 <style>
 .highslide img {max-width:250px; float:right; margin:0 0 1em 1em;}
 .highslide-caption {color:white; background-color:black;}
@@ -26,6 +27,7 @@ hledger-web - web interface for the hledger accounting tool
 
 <a href="images/hledger-web/normal/help.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/help.png" title="Help dialog" /></a>
 <a href="images/hledger-web/normal/add.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/add.png" title="Add form" /></a>
+}})
 
 # DESCRIPTION
 
