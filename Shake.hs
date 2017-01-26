@@ -131,13 +131,15 @@ main = do
       -- manuals rendered to markdown and combined, ready for web output by hakyll
       webmanall = "site/manual.md"
 
-      -- cookbook pages in markdown, ready for web output by hakyll (site/csv-import.md)
-      -- keeping these in the main site directory allows hakyll-std to see them (and simpler urls)
+      -- cookbook pages in markdown, ready for web output by hakyll (site/csv-import.md).
+      -- Keeping these in the main site directory allows hakyll-std to see them (and simpler urls).
+      -- These should be ordered like the links on the docs page, so that the combined
+      -- cookbook follows the same order.
       cookbookpages = [
-         "site/account-aliases.md"
-        ,"site/account-separator.md"
+         "site/entries.md"
         ,"site/csv-import.md"
-        ,"site/entries.md"
+        ,"site/account-aliases.md"
+        ,"site/account-separator.md"
         ]
 
       -- cookbook pages combined, ready for web output by hakyll
