@@ -89,6 +89,7 @@ Practical recipes on one page, including:
 
 <div style="padding-left:0em;">
 
+[Common journal entries](entries.html)\
 [How to read CSV files](csv-import.html)\
 [How to use account aliases](account-aliases.html)\
 [How to use another account separator character](account-separator.html)\

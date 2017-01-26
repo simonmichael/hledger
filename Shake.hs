@@ -137,6 +137,7 @@ main = do
          "site/account-aliases.md"
         ,"site/account-separator.md"
         ,"site/csv-import.md"
+        ,"site/entries.md"
         ]
 
       -- cookbook pages combined, ready for web output by hakyll
