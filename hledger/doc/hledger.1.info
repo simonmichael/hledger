@@ -1813,33 +1813,33 @@ File: hledger.1.info,  Node: ADD-ON COMMANDS,  Next: TROUBLESHOOTING,  Prev: COM
 5 ADD-ON COMMANDS
 *****************
 
-Add-on commands are executables in your PATH whose name starts with
-`hledger-' and ends with any of these file extensions: none,
-`.hs',`.lhs',`.pl',`.py',`.rb',`.rkt',`.sh',`.bat',`.com',`.exe'.
-Also, an add-on's name may not be the same as any built-in command or
-alias.
+hledger also searches for external add-on commands, and will include
+these in the commands list. These are programs or scripts in your PATH
+whose name starts with `hledger-' and ends with a recognised file
+extension (currently: no extension, `bat',`com',`exe',
+`hs',`lhs',`pl',`py',`rb',`rkt',`sh').
 
-   hledger will detect these and include them in the command list and
-let you invoke them with `hledger ADDONCMD'. However there are some
-limitations:
+   Add-ons can be invoked like any hledger command, but there are a few
+things to be aware of. Eg if the `hledger-web' add-on is installed,
 
-   * Options appearing before ADDONCMD will be visible only to hledger
-     and will not be passed to the add-on. Eg: `hledger -h web' shows
-     hledger's usage, `hledger web -h' shows hledger-web's usage.
+   * `hledger -h web' shows hledger's help, while `hledger web -h'
+     shows hledger-web's help.
 
-   * Options understood only by the add-on must go after a `--' argument
-     to hide them from hledger, which would otherwise reject them. Eg:
-     `hledger web -- --server'.
+   * Flags specific to the add-on must have a preceding `--' to hide
+     them from hledger. So `hledger web --serve --port 9000' will be
+     rejected; you must use `hledger web -- --serve --port 9000'.
 
-   Sometimes it may be more convenient to just run the add-on directly,
-eg: `hledger-web --server'.
+   * You can always run add-ons directly if preferred: `hledger-web
+     --serve --port 9000'.
 
-   Add-ons which are written in haskell can take advantage of the
-hledger-lib library for journal parsing, reporting, command-line
-options, etc.
 
-   Here are some hledger add-ons available from Hackage, the extra
-directory in the hledger source, or elsewhere:
+   Add-ons are a relatively easy way to add local features or experiment
+with new ideas. They can be written in any language, but haskell scripts
+have a big advantage: they can use the same hledger (and haskell)
+library functions that built-in commands do, for command-line options,
+journal parsing, reporting, etc.
+
+   Here are some hledger add-ons available:
 
 * Menu:
 
@@ -1867,7 +1867,7 @@ File: hledger.1.info,  Node: api,  Next: ui,  Up: Official add-ons
 5.1.1 api
 ---------
 
-Web API server, see hledger-api.
+hledger-api serves hledger data as a JSON web API.
 
 
 File: hledger.1.info,  Node: ui,  Next: web,  Prev: api,  Up: Official add-ons
@@ -1875,7 +1875,7 @@ File: hledger.1.info,  Node: ui,  Next: web,  Prev: api,  Up: Official add-ons
 5.1.2 ui
 --------
 
-Curses-style interface, see hledger-ui.
+hledger-ui provides an efficient curses-style interface.
 
 
 File: hledger.1.info,  Node: web,  Prev: ui,  Up: Official add-ons
@@ -1883,7 +1883,7 @@ File: hledger.1.info,  Node: web,  Prev: ui,  Up: Official add-ons
 5.1.3 web
 ---------
 
-Web interface, see hledger-web.
+hledger-web provides a simple web interface.
 
 
 File: hledger.1.info,  Node: Third party add-ons,  Next: Experimental add-ons,  Prev: Official add-ons,  Up: ADD-ON COMMANDS
@@ -1891,8 +1891,8 @@ File: hledger.1.info,  Node: Third party add-ons,  Next: Experimental add-ons,  
 5.2 Third party add-ons
 =======================
 
-These are maintained separately from hledger, and usually updated
-shortly after a hledger release.
+These are maintained separately, and usually updated shortly after a
+hledger release.
 
 * Menu:
 
@@ -1907,7 +1907,7 @@ File: hledger.1.info,  Node: diff,  Next: iadd,  Up: Third party add-ons
 5.2.1 diff
 ----------
 
-hledger-diff Shows differences in an account's transactions between one
+hledger-diff shows differences in an account's transactions between one
 journal file and another.
 
 
@@ -1916,7 +1916,7 @@ File: hledger.1.info,  Node: iadd,  Next: interest,  Prev: diff,  Up: Third part
 5.2.2 iadd
 ----------
 
-hledger-iadd A curses-style, more interactive replacement for the add
+hledger-iadd is a curses-style, more interactive replacement for the add
 command.
 
 
@@ -1925,7 +1925,7 @@ File: hledger.1.info,  Node: interest,  Next: irr,  Prev: iadd,  Up: Third party
 5.2.3 interest
 --------------
 
-hledger-interest Generates interest transactions for an account
+hledger-interest generates interest transactions for an account
 according to various schemes.
 
 
@@ -1934,7 +1934,7 @@ File: hledger.1.info,  Node: irr,  Prev: interest,  Up: Third party add-ons
 5.2.4 irr
 ---------
 
-hledger-irr Calculates the internal rate of return of an investment
+hledger-irr calculates the internal rate of return of an investment
 account.
 
 
@@ -1943,13 +1943,14 @@ File: hledger.1.info,  Node: Experimental add-ons,  Prev: Third party add-ons,  
 5.3 Experimental add-ons
 ========================
 
-These add-ons are available in source form in the hledger repo.
-Installing them is pretty easy. Reading and copying these is a good way
-to start making your own add-ons. These are typically more experimental
-and less documented than built-in commands.
+These are available in source form in the hledger repo's bin/ directory;
+installing them is pretty easy. They may be less mature and documented
+than built-in commands. Reading and tweaking these is a good way to
+start making your own!
 
 * Menu:
 
+* autosync::
 * budget::
 * chart::
 * check::
@@ -1962,86 +1963,95 @@ and less documented than built-in commands.
 * rewrite::
 
 
-File: hledger.1.info,  Node: budget,  Next: chart,  Up: Experimental add-ons
+File: hledger.1.info,  Node: autosync,  Next: budget,  Up: Experimental add-ons
 
-5.3.1 budget
+5.3.1 autosync
+--------------
+
+hledger-autosync is a symbolic link for easily running ledger-autosync,
+if installed. ledger-autosync does deduplicating conversion of OFX data
+and some CSV formats, and can also download the data if your bank offers
+OFX Direct Connect.
+
+
+File: hledger.1.info,  Node: budget,  Next: chart,  Prev: autosync,  Up: Experimental add-ons
+
+5.3.2 budget
 ------------
 
-hledger-budget.hs A tool adding more budget-tracking features to
-hledger.
+hledger-budget.hs adds more budget-tracking features to hledger.
 
 
 File: hledger.1.info,  Node: chart,  Next: check,  Prev: budget,  Up: Experimental add-ons
 
-5.3.2 chart
+5.3.3 chart
 -----------
 
-hledger-chart.hs An old pie chart generator, in need of some love.
+hledger-chart.hs is an old pie chart generator, in need of some love.
 
 
 File: hledger.1.info,  Node: check,  Next: check-dates,  Prev: chart,  Up: Experimental add-ons
 
-5.3.3 check
+5.3.4 check
 -----------
 
-hledger-check.hs More powerful account balance assertions.
+hledger-check.hs checks more powerful account balance assertions.
 
 
 File: hledger.1.info,  Node: check-dates,  Next: dupes,  Prev: check,  Up: Experimental add-ons
 
-5.3.4 check-dates
+5.3.5 check-dates
 -----------------
 
-hledger-check-dates.hs Checks that journal entries are ordered by date.
+hledger-check-dates.hs checks that journal entries are ordered by date.
 
 
 File: hledger.1.info,  Node: dupes,  Next: equity,  Prev: check-dates,  Up: Experimental add-ons
 
-5.3.5 dupes
+5.3.6 dupes
 -----------
 
-hledger-dupes.hs Checks for account names sharing the same leaf name.
+hledger-dupes.hs checks for account names sharing the same leaf name.
 
 
 File: hledger.1.info,  Node: equity,  Next: prices,  Prev: dupes,  Up: Experimental add-ons
 
-5.3.6 equity
+5.3.7 equity
 ------------
 
-hledger-equity.hs Prints balance-resetting transactions useful for
+hledger-equity.hs prints balance-resetting transactions, useful for
 bringing account balances across file boundaries.
 
 
 File: hledger.1.info,  Node: prices,  Next: print-unique,  Prev: equity,  Up: Experimental add-ons
 
-5.3.7 prices
+5.3.8 prices
 ------------
 
-hledger-prices.hs Prints transactions which do not reuse an already-seen
-description.
+hledger-prices.hs prints all prices from the journal.
 
 
 File: hledger.1.info,  Node: print-unique,  Next: register-match,  Prev: prices,  Up: Experimental add-ons
 
-5.3.8 print-unique
+5.3.9 print-unique
 ------------------
 
-hledger-print-unique.hs Prints transactions which do not reuse an
+hledger-print-unique.hs prints transactions which do not reuse an
 already-seen description.
 
 
 File: hledger.1.info,  Node: register-match,  Next: rewrite,  Prev: print-unique,  Up: Experimental add-ons
 
-5.3.9 register-match
---------------------
+5.3.10 register-match
+---------------------
 
-hledger-register-match.hs Helps ledger-autosync recognise
-already-imported transactions.
+hledger-register-match.hs helps ledger-autosync detect already-seen
+transactions when importing.
 
 
 File: hledger.1.info,  Node: rewrite,  Prev: register-match,  Up: Experimental add-ons
 
-5.3.10 rewrite
+5.3.11 rewrite
 --------------
 
 hledger-rewrite.hs Adds one or more custom postings to matched
@@ -2230,51 +2240,53 @@ Node: test58331
 Ref: #test58418
 Node: ADD-ON COMMANDS58785
 Ref: #add-on-commands58921
-Node: Official add-ons60173
-Ref: #official-add-ons60315
-Node: api60403
-Ref: #api60494
-Node: ui60528
-Ref: #ui60629
-Node: web60670
-Ref: #web60761
-Node: Third party add-ons60794
-Ref: #third-party-add-ons60971
-Node: diff61120
-Ref: #diff61219
-Node: iadd61318
-Ref: #iadd61434
-Node: interest61514
-Ref: #interest61637
-Node: irr61732
-Ref: #irr61832
-Node: Experimental add-ons61910
-Ref: #experimental-add-ons62064
-Node: budget62454
-Ref: #budget62561
-Node: chart62636
-Ref: #chart62755
-Node: check62823
-Ref: #check62947
-Node: check-dates63007
-Ref: #check-dates63143
-Node: dupes63216
-Ref: #dupes63341
-Node: equity63412
-Ref: #equity63534
-Node: prices63652
-Ref: #prices63781
-Node: print-unique63868
-Ref: #print-unique64017
-Node: register-match64110
-Ref: #register-match64264
-Node: rewrite64354
-Ref: #rewrite64475
-Node: TROUBLESHOOTING64553
-Ref: #troubleshooting64672
-Node: Run-time problems64726
-Ref: #run-time-problems64869
-Node: Known limitations66813
-Ref: #known-limitations66956
+Node: Official add-ons60206
+Ref: #official-add-ons60348
+Node: api60436
+Ref: #api60527
+Node: ui60579
+Ref: #ui60680
+Node: web60738
+Ref: #web60829
+Node: Third party add-ons60875
+Ref: #third-party-add-ons61052
+Node: diff61188
+Ref: #diff61287
+Node: iadd61386
+Ref: #iadd61502
+Node: interest61585
+Ref: #interest61708
+Node: irr61803
+Ref: #irr61903
+Node: Experimental add-ons61981
+Ref: #experimental-add-ons62135
+Node: autosync62521
+Ref: #autosync62635
+Node: budget62873
+Ref: #budget62997
+Node: chart63063
+Ref: #chart63182
+Node: check63253
+Ref: #check63377
+Node: check-dates63444
+Ref: #check-dates63580
+Node: dupes63653
+Ref: #dupes63778
+Node: equity63849
+Ref: #equity63971
+Node: prices64090
+Ref: #prices64219
+Node: print-unique64274
+Ref: #print-unique64423
+Node: register-match64516
+Ref: #register-match64672
+Node: rewrite64770
+Ref: #rewrite64891
+Node: TROUBLESHOOTING64969
+Ref: #troubleshooting65088
+Node: Run-time problems65142
+Ref: #run-time-problems65285
+Node: Known limitations67229
+Ref: #known-limitations67372
 
 End Tag Table

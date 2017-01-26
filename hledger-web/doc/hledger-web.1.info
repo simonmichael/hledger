@@ -30,16 +30,8 @@ hledger_journal(5) etc.
 also opens it in your default web browser if possible. In this mode the
 web app will keep running for as long as you have it open in a browser
 window, and will exit after two minutes of inactivity (no requests and
-no browser windows viewing it).
-
-
-$ hledger web
-Starting web app on port 5000 with base url http://localhost:5000
-Starting web browser if possible
-Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)
-
-   With `--serve', it starts the web app in non-transient mode and logs
-requests to the console.
+no browser windows viewing it). With `--serve', it just runs the web
+app without exiting, and logs requests to the console.
 
    By default the server listens on IP address 127.0.0.1, accessible
 only to local requests. You can use `--host' to change this, eg `--host
@@ -200,7 +192,7 @@ before options as shown above.
 
 Tag Table:
 Node: Top90
-Node: OPTIONS3343
-Ref: #options3430
+Node: OPTIONS3144
+Ref: #options3231
 
 End Tag Table

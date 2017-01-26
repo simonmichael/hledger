@@ -2177,107 +2177,112 @@ It\[aq]s mainly used in development, but it\[aq]s also nice to be able
 to check your hledger executable for smoke at any time.
 .SH ADD\-ON COMMANDS
 .PP
-Add\-on commands are executables in your PATH whose name starts with
-\f[C]hledger\-\f[] and ends with any of these file extensions: none,
-\f[C]\&.hs\f[],\f[C]\&.lhs\f[],\f[C]\&.pl\f[],\f[C]\&.py\f[],\f[C]\&.rb\f[],\f[C]\&.rkt\f[],\f[C]\&.sh\f[],\f[C]\&.bat\f[],\f[C]\&.com\f[],\f[C]\&.exe\f[].
-Also, an add\-on\[aq]s name may not be the same as any built\-in command
-or alias.
+hledger also searches for external add\-on commands, and will include
+these in the commands list.
+These are programs or scripts in your PATH whose name starts with
+\f[C]hledger\-\f[] and ends with a recognised file extension (currently:
+no extension, \f[C]bat\f[],\f[C]com\f[],\f[C]exe\f[],
+\f[C]hs\f[],\f[C]lhs\f[],\f[C]pl\f[],\f[C]py\f[],\f[C]rb\f[],\f[C]rkt\f[],\f[C]sh\f[]).
 .PP
-hledger will detect these and include them in the command list and let
-you invoke them with \f[C]hledger\ ADDONCMD\f[].
-However there are some limitations:
+Add\-ons can be invoked like any hledger command, but there are a few
+things to be aware of.
+Eg if the \f[C]hledger\-web\f[] add\-on is installed,
 .IP \[bu] 2
-Options appearing before ADDONCMD will be visible only to hledger and
-will not be passed to the add\-on.
-Eg: \f[C]hledger\ \-h\ web\f[] shows hledger\[aq]s usage,
-\f[C]hledger\ web\ \-h\f[] shows hledger\-web\[aq]s usage.
+\f[C]hledger\ \-h\ web\f[] shows hledger\[aq]s help, while
+\f[C]hledger\ web\ \-h\f[] shows hledger\-web\[aq]s help.
 .IP \[bu] 2
-Options understood only by the add\-on must go after a \f[C]\-\-\f[]
-argument to hide them from hledger, which would otherwise reject them.
-Eg: \f[C]hledger\ web\ \-\-\ \-\-server\f[].
+Flags specific to the add\-on must have a preceding \f[C]\-\-\f[] to
+hide them from hledger.
+So \f[C]hledger\ web\ \-\-serve\ \-\-port\ 9000\f[] will be rejected;
+you must use \f[C]hledger\ web\ \-\-\ \-\-serve\ \-\-port\ 9000\f[].
+.IP \[bu] 2
+You can always run add\-ons directly if preferred:
+\f[C]hledger\-web\ \-\-serve\ \-\-port\ 9000\f[].
 .PP
-Sometimes it may be more convenient to just run the add\-on directly,
-eg: \f[C]hledger\-web\ \-\-server\f[].
+Add\-ons are a relatively easy way to add local features or experiment
+with new ideas.
+They can be written in any language, but haskell scripts have a big
+advantage: they can use the same hledger (and haskell) library functions
+that built\-in commands do, for command\-line options, journal parsing,
+reporting, etc.
 .PP
-Add\-ons which are written in haskell can take advantage of the
-hledger\-lib library for journal parsing, reporting, command\-line
-options, etc.
-.PP
-Here are some hledger add\-ons available from Hackage, the extra
-directory in the hledger source, or elsewhere:
+Here are some hledger add\-ons available:
 .SS Official add\-ons
 .PP
 These are maintained and released along with hledger.
 .SS api
 .PP
-Web API server, see hledger\-api.
+hledger\-api serves hledger data as a JSON web API.
 .SS ui
 .PP
-Curses\-style interface, see hledger\-ui.
+hledger\-ui provides an efficient curses\-style interface.
 .SS web
 .PP
-Web interface, see hledger\-web.
+hledger\-web provides a simple web interface.
 .SS Third party add\-ons
 .PP
-These are maintained separately from hledger, and usually updated
-shortly after a hledger release.
+These are maintained separately, and usually updated shortly after a
+hledger release.
 .SS diff
 .PP
-hledger\-diff Shows differences in an account\[aq]s transactions between
+hledger\-diff shows differences in an account\[aq]s transactions between
 one journal file and another.
 .SS iadd
 .PP
-hledger\-iadd A curses\-style, more interactive replacement for the add
-command.
+hledger\-iadd is a curses\-style, more interactive replacement for the
+add command.
 .SS interest
 .PP
-hledger\-interest Generates interest transactions for an account
+hledger\-interest generates interest transactions for an account
 according to various schemes.
 .SS irr
 .PP
-hledger\-irr Calculates the internal rate of return of an investment
+hledger\-irr calculates the internal rate of return of an investment
 account.
 .SS Experimental add\-ons
 .PP
-These add\-ons are available in source form in the hledger repo.
-Installing them is pretty easy.
-Reading and copying these is a good way to start making your own
-add\-ons.
-These are typically more experimental and less documented than built\-in
-commands.
+These are available in source form in the hledger repo\[aq]s bin/
+directory; installing them is pretty easy.
+They may be less mature and documented than built\-in commands.
+Reading and tweaking these is a good way to start making your own!
+.SS autosync
+.PP
+hledger\-autosync is a symbolic link for easily running
+ledger\-autosync, if installed.
+ledger\-autosync does deduplicating conversion of OFX data and some CSV
+formats, and can also download the data if your bank offers OFX Direct
+Connect.
 .SS budget
 .PP
-hledger\-budget.hs A tool adding more budget\-tracking features to
-hledger.
+hledger\-budget.hs adds more budget\-tracking features to hledger.
 .SS chart
 .PP
-hledger\-chart.hs An old pie chart generator, in need of some love.
+hledger\-chart.hs is an old pie chart generator, in need of some love.
 .SS check
 .PP
-hledger\-check.hs More powerful account balance assertions.
+hledger\-check.hs checks more powerful account balance assertions.
 .SS check\-dates
 .PP
-hledger\-check\-dates.hs Checks that journal entries are ordered by
+hledger\-check\-dates.hs checks that journal entries are ordered by
 date.
 .SS dupes
 .PP
-hledger\-dupes.hs Checks for account names sharing the same leaf name.
+hledger\-dupes.hs checks for account names sharing the same leaf name.
 .SS equity
 .PP
-hledger\-equity.hs Prints balance\-resetting transactions useful for
+hledger\-equity.hs prints balance\-resetting transactions, useful for
 bringing account balances across file boundaries.
 .SS prices
 .PP
-hledger\-prices.hs Prints transactions which do not reuse an
-already\-seen description.
+hledger\-prices.hs prints all prices from the journal.
 .SS print\-unique
 .PP
-hledger\-print\-unique.hs Prints transactions which do not reuse an
+hledger\-print\-unique.hs prints transactions which do not reuse an
 already\-seen description.
 .SS register\-match
 .PP
-hledger\-register\-match.hs Helps ledger\-autosync recognise
-already\-imported transactions.
+hledger\-register\-match.hs helps ledger\-autosync detect already\-seen
+transactions when importing.
 .SS rewrite
 .PP
 hledger\-rewrite.hs Adds one or more custom postings to matched
