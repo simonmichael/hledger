@@ -7,6 +7,10 @@
 The simplest possible journal is just an empty file:\
 `echo >2017.journal`
 
+The name doesn't matter much and can be changed later. 
+One file per year is common, 
+and so is a `.journal` or `.hledger` extension.
+
 Record a transaction, using [journal format](/journal.html):
 ```shell
 $ cat >>2017.journal
@@ -25,7 +29,7 @@ perhaps with one extra subcategory as above.
 
 ## by text editor
 
-Use a [text editor](/journal.html#editor-support) to add transactions and save the file.
+Write transactions in a [text editor](/journal.html#editor-support) and save the file.
 
 ## by add
 

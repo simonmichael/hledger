@@ -271,8 +271,7 @@ main = do
 
     webmanall %> \out -> do
       need webmanpages
-      -- avoid # Big Manual\n\n heading which will throw off the TOC style
-      liftIO $ writeFile webmanall "* toc\n\n"
+      liftIO $ writeFile webmanall "* toc\n\n" -- # Big Manual\n\n -- TOC style is better without main heading,
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
         cmd Shell ("printf '\\n\\n' >>") webmanall :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown --atx-headers"
@@ -287,7 +286,7 @@ main = do
 
     cookbookall %> \out -> do
       need cookbookpages  -- XXX seems not to work, not rebuilt when a recipe changes 
-      liftIO $ writeFile cookbookall "# User Cookbook\n\n* toc\n\n"
+      liftIO $ writeFile cookbookall "* toc\n\n"  -- # User Cookbook\n\n -- TOC style is better without main heading, 
       forM_ cookbookpages $ \f -> do -- site/csv-import.md, site/account-aliases.md, ...
         cmd Shell ("printf '\\n\\n' >>") cookbookall :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown --atx-headers"

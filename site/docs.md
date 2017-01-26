@@ -42,8 +42,8 @@ To get started as a developer, see [Contribute](developer-guide.html)!
 
 ## Reference
 
-#### [Big Manual](manual.html)
-All manuals on one page, including:
+#### [Manuals](manual.html)
+AKA The Law. One big page, including:
 
 <div style="padding-left:0em;">
 
@@ -84,10 +84,10 @@ A more human-friendly time logging format.
 </div>
 <div class="col-sm-3">
 
-## Day-to-day use
+## Doing stuff
 
-#### [User Cookbook](cookbook.html)
-Practical recipes on one page, including:
+#### [The Cookbook](cookbook.html)
+Practical user recipes, including:
 
 <div style="padding-left:0em;">
 
