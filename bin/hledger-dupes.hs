@@ -19,8 +19,8 @@ import Data.String.Here
 import qualified Data.Text as T
 
 ------------------------------------------------------------------------------
-cmdmode = (defAddonCommandMode "dupes") {
-   modeHelp = [here|
+cmdmode = hledgerCommandMode
+  [here| dupes
 Reports duplicates in the account tree: account names having the same leaf
 but different prefixes. In other words, two or more leaves that are
 categorized differently.
@@ -28,9 +28,10 @@ Reads the default journal file, or another specified as an argument.
  
 http://stefanorodighiero.net/software/hledger-dupes.html
   |]
-  ,modeHelpSuffix=lines [here|
-  |]
-  }
+  []
+  [generalflagsgroup1]
+  []
+  ([], Nothing)
 ------------------------------------------------------------------------------
 
 main = do

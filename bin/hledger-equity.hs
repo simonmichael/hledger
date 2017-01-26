@@ -16,18 +16,16 @@ import Hledger.Cli
 
 ------------------------------------------------------------------------------
 cmdmode :: Mode RawOpts
-cmdmode = (defAddonCommandMode "equity") {
-   modeHelp = [here|
-   
+cmdmode = hledgerCommandMode
+  [here| equity
 Print a "closing balances" transaction that brings all accounts (or with
 query arguments, just the matched accounts) to a zero balance, followed by an
 opposite "opening balances" transaction that restores the balances from zero.
 Such transactions can be useful, eg, for bringing account balances across
 file boundaries.
 
-  |]
-  ,modeHelpSuffix=lines [here|
-  
+FLAGS
+
 The opening balances transaction is useful to carry over
 asset/liability balances if you choose to start a new journal file,
 eg at the beginning of the year.
@@ -57,10 +55,11 @@ Open question: how to handle txns spanning a file boundary ? Eg:
 ```
 This command might or might not have some connection to the concept of
 "closing the books" in accounting.
-
   |]
-  ,modeArgs = ([], Just $ argsFlag "[QUERY]")
-  }
+  []
+  [generalflagsgroup1]
+  []
+  ([], Just $ argsFlag "[QUERY]")
 ------------------------------------------------------------------------------
 
 main :: IO ()

@@ -43,28 +43,20 @@ defchartitems    = 10
 defchartsize     = "600x400"
 
 ------------------------------------------------------------------------------
-cmdmode :: Mode RawOpts
-cmdmode = (defAddonCommandMode "hledger-chart") {
-   modeHelp = [here|
-generate a pie chart for the top account balances with the same sign,
+cmdmode = hledgerCommandMode
+  [here| chart
+Generate a pie chart for the top account balances with the same sign,
 in SVG format.
  
 Based on the old hledger-chart package, this is not yet useful.
 It's supposed to show only balances of one sign, but this might be broken.
   |]
-  ,modeHelpSuffix=lines [here|
-  |]
-  ,modeGroupFlags = Group {
-     groupNamed = [generalflagsgroup1]
-    ,groupUnnamed = [
-         flagReq ["chart-output","o"]  (\s opts -> Right $ setopt "chart-output" s opts) "IMGFILE" ("output filename (default: "++defchartoutput++")")
-        ,flagReq ["chart-items"]  (\s opts -> Right $ setopt "chart-items" s opts) "N" ("number of accounts to show (default: "++show defchartitems++")")
-        ,flagReq ["chart-size"]  (\s opts -> Right $ setopt "chart-size" s opts) "WIDTHxHEIGHT" ("image size (default: "++defchartsize++")")
-        ]
-    ,groupHidden = []
-    }
-  ,modeArgs = ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
-  }
+  [flagReq ["chart-output","o"]  (\s opts -> Right $ setopt "chart-output" s opts) "IMGFILE" ("output filename (default: "++defchartoutput++")")
+  ,flagReq ["chart-items"]  (\s opts -> Right $ setopt "chart-items" s opts) "N" ("number of accounts to show (default: "++show defchartitems++")")
+  ,flagReq ["chart-size"]  (\s opts -> Right $ setopt "chart-size" s opts) "WIDTHxHEIGHT" ("image size (default: "++defchartsize++")")
+  ]  [generalflagsgroup1]
+  []
+  ([], Just $ argsFlag "[QUERY]")
 ------------------------------------------------------------------------------
 
 data ChartOpts = ChartOpts {

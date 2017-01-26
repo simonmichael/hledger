@@ -13,24 +13,19 @@ import Hledger.Cli
 import Text.Printf
 
 ------------------------------------------------------------------------------
-cmdmode = 
-  let m = defAddonCommandMode "check-dates"
-  in m {
-   modeHelp = [here|
+cmdmode = hledgerCommandMode
+  [here| check-dates
 Check that transactions' dates are monotonically increasing.
 With --date2, checks secondary dates instead.
 With --strict, dates must also be unique.
 With a query, only matched transactions' dates are checked.
 Reads the default journal file, or another specified with -f.
+FLAGS
   |]
-  ,modeHelpSuffix=lines [here|
-  |]
-  ,modeGroupFlags = (modeGroupFlags m) {
-     groupUnnamed = [
-      flagNone ["strict"] (\opts -> setboolopt "strict" opts) "makes date comparing strict"
-     ]
-  }
-  }
+  [flagNone ["strict"] (\opts -> setboolopt "strict" opts) "makes date comparing strict"]
+  [generalflagsgroup1]
+  []
+  ([], Just $ argsFlag "[QUERY]")
 ------------------------------------------------------------------------------
 
 main :: IO ()

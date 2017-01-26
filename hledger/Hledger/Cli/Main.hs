@@ -99,7 +99,7 @@ mainmode addons = defMode {
        ])
      ]
      ++ case addons of [] -> []
-                       cs -> [("\nAdd-on commands", map defAddonCommandMode cs)]
+                       cs -> [("\nAdd-on commands", map quickAddonCommandMode cs)]
     -- modes in the unnamed group, shown first without a heading:
    ,groupUnnamed = [
         helpmode

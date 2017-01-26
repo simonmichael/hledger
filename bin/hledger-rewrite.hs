@@ -26,16 +26,12 @@ import qualified Data.Algorithm.Diff as D
 import Hledger.Data.AutoTransaction (runModifierTransaction)
 
 ------------------------------------------------------------------------------
-cmdmode = 
-  let m = (defAddonCommandMode "hledger-rewrite")
-  in m {
-   modeHelp = [here|
-
+cmdmode = hledgerCommandMode
+  [here| rewrite
 Print all transactions, adding custom postings to the matched ones.
 
-  |]
-  ,modeHelpSuffix=lines [here|
-  
+FLAGS
+
 This is a start at a generic rewriter of transaction entries.
 It reads the default journal and prints the transactions, like print,
 but adds one or more specified postings to any transactions matching QUERY.
@@ -153,23 +149,18 @@ See also:
 https://github.com/simonmichael/hledger/issues/99
 
   |]
-  ,modeArgs = ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
-  ,modeGroupFlags = (modeGroupFlags m) {
-    groupUnnamed = [
-       flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
-               "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."
-      ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"
-      ]
-    }
-  }
+  [flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
+           "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."
+  ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"
+  ]
+  [generalflagsgroup1]
+  []
+  ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
 ------------------------------------------------------------------------------
 
 -- TODO regex matching and interpolating matched name in replacement
 -- TODO interpolating match groups in replacement
 -- TODO allow using this on unbalanced entries, eg to rewrite while editing
-
-outputflags :: [Flag RawOpts]
-outputflags = [flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"]
 
 main :: IO ()
 main = do

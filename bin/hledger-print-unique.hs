@@ -13,11 +13,11 @@ import Data.String.Here
 import Hledger.Cli
 
 ------------------------------------------------------------------------------
-cmdmode = (defAddonCommandMode "print-unique") {
-   modeHelp = [here|
+cmdmode = hledgerCommandMode
+  [here| print-unique
 Remove transactions which reuse an already-seen description.
-  |]
-  ,modeHelpSuffix=lines [here|
+
+FLAGS
 
 Example:
 ```shell
@@ -31,9 +31,11 @@ $ LEDGER_FILE=unique.journal hledger print-unique
 2015/01/01 test
     (acct:one)             1
 ```
-
   |]
-  }
+  []
+  [generalflagsgroup1]
+  []
+  ([], Nothing)
 ------------------------------------------------------------------------------
 
 main = do

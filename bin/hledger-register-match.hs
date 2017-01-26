@@ -21,16 +21,17 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli ( withJournalDo, postingsReportAsText )
 
 ------------------------------------------------------------------------------
-cmdmode = (defAddonCommandMode "register-match") {
-   modeHelp = [here|
+cmdmode = hledgerCommandMode
+  [here| register-match
 A helper for ledger-autosync. This prints the one posting whose transaction
 description is closest to DESC, in the style of the register command.
 If there are multiple equally good matches, it shows the most recent.
 Query options (options, not arguments) can be used to restrict the search space.
   |]
-  ,modeHelpSuffix=lines [here|
-  |]
-  }
+  []
+  [generalflagsgroup1]
+  []
+  ([], Nothing)
 ------------------------------------------------------------------------------
 
 main = do

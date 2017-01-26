@@ -14,21 +14,14 @@ import Control.Monad
 import Hledger.Cli
 
 ------------------------------------------------------------------------------
-cmdmode =
-  let m = defAddonCommandMode "hledger-prices"
-  in m {
-   modeHelp = [here|
+cmdmode = hledgerCommandMode
+  [here| prices
 Print all prices from the journal.
   |]
-  ,modeHelpSuffix=lines [here|
-  |]
-  ,modeArgs = ([], Nothing)
-  ,modeGroupFlags = (modeGroupFlags m) {
-     groupUnnamed = [
-      flagNone ["costs"] (setboolopt "costs") "print transaction prices from postings instead of market prices"
-     ]
-  }
-  }
+  [flagNone ["costs"] (setboolopt "costs") "print transaction prices from postings instead of market prices"]
+  [generalflagsgroup1]
+  []
+  ([], Nothing)
 ------------------------------------------------------------------------------
 
 showPrice :: MarketPrice -> String
