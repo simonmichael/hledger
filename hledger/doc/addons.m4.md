@@ -1,26 +1,26 @@
 # ADD-ON COMMANDS
 
-Add-on commands are executables in your PATH whose name starts with
-`hledger-` and ends with any of these file extensions:
-none, `.hs`,`.lhs`,`.pl`,`.py`,`.rb`,`.rkt`,`.sh`,`.bat`,`.com`,`.exe`.
-Also, an add-on's name may not be the same as any built-in command or alias.
+hledger also searches for external add-on commands, and will include these in the commands list.
+These are programs or scripts in your PATH whose name starts with `hledger-`
+and ends with a recognised file extension 
+(currently: no extension, `bat`,`com`,`exe`, `hs`,`lhs`,`pl`,`py`,`rb`,`rkt`,`sh`).
 
-hledger will detect these and include them in the command list and let
-you invoke them with `hledger ADDONCMD`. However there are some limitations:
+Add-ons can be invoked like any hledger command, but there are a few things to be aware of.
+Eg if the `hledger-web` add-on is installed,
 
-- Options appearing before ADDONCMD will be visible only to hledger and will not be passed to the add-on.
-  Eg: `hledger -h web` shows hledger's usage, `hledger web -h` shows hledger-web's usage.
-- Options understood only by the add-on must go after a `--` argument to hide them from hledger, which would otherwise reject them.
-  Eg: `hledger web -- --server`.
+- `hledger -h web` shows hledger's help, while `hledger web -h` shows hledger-web's help.
+  
+- Flags specific to the add-on must have a preceding `--` to hide them from hledger.
+  So `hledger web --serve --port 9000` will be rejected; you must use `hledger web -- --serve --port 9000`.
 
-Sometimes it may be more convenient to just run the add-on directly, eg: `hledger-web --server`.
+- You can always run add-ons directly if preferred: `hledger-web --serve --port 9000`.
 
-Add-ons which are written in haskell can take advantage of the hledger-lib library
-for journal parsing, reporting, command-line options, etc.
+Add-ons are a relatively easy way to add local features or experiment with new ideas.
+They can be written in any language, but haskell scripts have a big advantage:
+they can use the same hledger (and haskell) library functions that built-in commands do,
+for command-line options, journal parsing, reporting, etc.
 
-Here are some hledger add-ons available from Hackage, 
-the [extra](https://github.com/simonmichael/hledger/tree/master/extra) directory in the hledger source,
-or elsewhere:
+Here are some hledger add-ons available:
 
 ## Official add-ons
 
@@ -37,7 +37,7 @@ Web interface, see [hledger-web](hledger-web.html).
 
 ## Third party add-ons
 
-These are maintained separately from hledger, and usually updated shortly after a hledger release.
+These are maintained separately, and usually updated shortly after a hledger release.
 
 ### diff
 
@@ -60,11 +60,10 @@ Calculates the internal rate of return of an investment account.
 
 ## Experimental add-ons
   
-These add-ons are available in source form 
-[in the hledger repo](https://github.com/simonmichael/hledger/tree/master/bin). 
-Installing them is [pretty easy](/download.html#d).
-Reading and copying these is a good way to start making your own add-ons.
-These may be less mature and documented than built-in commands.
+These are available in source form in the hledger repo's bin/ directory; 
+installing them is [pretty easy](/download.html#d).
+They may be less mature and documented than built-in commands.
+Reading and tweaking these is a good way to start making your own!
 
 ### autosync
 
