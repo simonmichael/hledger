@@ -2205,358 +2205,74 @@ options, etc.
 .PP
 Here are some hledger add\-ons available from Hackage, the extra
 directory in the hledger source, or elsewhere:
+.SS Official add\-ons
+.PP
+These are maintained and released along with hledger.
 .SS api
 .PP
 Web API server, see hledger\-api.
-.SS autosync
-.PP
-Download OFX bank data and/or convert OFX to hledger journal format.
-.IP
-.nf
-\f[C]
-$\ hledger\ autosync\ \-\-help
-usage:\ hledger\-autosync\ [\-h]\ [\-m\ MAX]\ [\-r]\ [\-a\ ACCOUNT]\ [\-l\ LEDGER]\ [\-i\ INDENT]
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [\-\-initial]\ [\-\-fid\ FID]\ [\-\-assertions]\ [\-d]\ [\-\-hledger]
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [\-\-slow]\ [\-\-which]
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [PATH]
-
-Synchronize\ ledger.
-
-positional\ arguments:
-\ \ PATH\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ do\ not\ sync;\ import\ from\ OFX\ file
-
-optional\ arguments:
-\ \ \-h,\ \-\-help\ \ \ \ \ \ \ \ \ \ \ \ show\ this\ help\ message\ and\ exit
-\ \ \-m\ MAX,\ \-\-max\ MAX\ \ \ \ \ maximum\ number\ of\ days\ to\ process
-\ \ \-r,\ \-\-resync\ \ \ \ \ \ \ \ \ \ do\ not\ stop\ until\ max\ days\ reached
-\ \ \-a\ ACCOUNT,\ \-\-account\ ACCOUNT
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ set\ account\ name\ for\ import
-\ \ \-l\ LEDGER,\ \-\-ledger\ LEDGER
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ specify\ ledger\ file\ to\ READ\ for\ syncing
-\ \ \-i\ INDENT,\ \-\-indent\ INDENT
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ number\ of\ spaces\ to\ use\ for\ indentation
-\ \ \-\-initial\ \ \ \ \ \ \ \ \ \ \ \ \ create\ initial\ balance\ entries
-\ \ \-\-fid\ FID\ \ \ \ \ \ \ \ \ \ \ \ \ pass\ in\ fid\ value\ for\ OFX\ files\ that\ do\ not\ supply\ it
-\ \ \-\-assertions\ \ \ \ \ \ \ \ \ \ create\ balance\ assertion\ entries
-\ \ \-d,\ \-\-debug\ \ \ \ \ \ \ \ \ \ \ enable\ debug\ logging
-\ \ \-\-hledger\ \ \ \ \ \ \ \ \ \ \ \ \ force\ use\ of\ hledger\ (on\ by\ default\ if\ invoked\ as\ hledger\-
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ autosync)
-\ \ \-\-slow\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ use\ slow,\ but\ possibly\ more\ robust,\ method\ of\ calling\ ledger
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (no\ subprocess)
-\ \ \-\-which\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ display\ which\ version\ of\ ledger/hledger/ledger\-python\ will
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ be\ used\ by\ ledger\-autosync\ to\ check\ for\ previous
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ transactions
-$\ head\ acct1.ofx
-OFXHEADER:100
-DATA:OFXSGML
-VERSION:102
-SECURITY:NONE
-ENCODING:USASCII
-CHARSET:1252
-COMPRESSION:NONE
-OLDFILEUID:NONE
-NEWFILEUIDe:8509488b59d1bb45
-
-$\ hledger\ autosync\ acct1.ofx
-2013/08/30\ MONTHLY\ SERVICE\ FEE
-\ \ \ \ ;\ ofxid:\ 3000.4303001832.201308301
-\ \ \ \ WF:4303001832\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \-$6.00
-\ \ \ \ [assets:business:bank:wf:bchecking:banking]\ \ $6.00
-\f[]
-.fi
-.PP
-ledger\-autosync, which includes a \f[C]hledger\-autosync\f[] alias,
-downloads transactions from your bank(s) via OFX, and prints just the
-new ones as journal entries which you can add to your journal.
-It can also operate on .OFX files which you\[aq]ve downloaded manually.
-It can be a nice alternative to hledger\[aq]s built\-in CSV reader,
-especially if your bank supports OFX download.
-.SS diff
-.PP
-Show transactions present in one journal file but not another
-.IP
-.nf
-\f[C]
-$\ hledger\ diff\ \-\-help
-Usage:\ hledger\-diff\ account:name\ left.journal\ right.journal
-$\ cat\ a.journal
-1/1
-\ (acct:one)\ \ 1
-
-$\ cat\ b.journal
-1/1
-\ (acct:one)\ \ 1
-2/2
-\ (acct:two)\ \ 2
-
-$\ hledger\ diff\ acct:two\ a.journal\ b.journal
-Unmatched\ transactions\ in\ the\ first\ journal:
-
-Unmatched\ transactions\ in\ the\ second\ journal:
-
-2015/02/02
-\ \ \ \ (acct:two)\ \ \ \ \ \ \ \ \ \ \ \ $2
-\f[]
-.fi
-.PP
-hledger\-diff compares two journal files.
-Given an account name, it prints out the transactions affecting that
-account which are in one journal file but not in the other.
-This can be useful for reconciling existing journals with bank
-statements.
-.SS equity
-.PP
-Print a journal entry that resets account balances to zero.
-.IP
-.nf
-\f[C]
-$\ hledger\ balance\ \-\-flat\ \-E\ assets\ liabilities
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ assets:bank:checking
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ assets:bank:saving
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2\ \ assets:cash
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ liabilities:debts
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
-$\ hledger\ equity\ assets\ liabilities
-2015/05/23
-\ \ \ \ assets:bank:saving\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1
-\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $2
-\ \ \ \ liabilities:debts\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1
-\ \ \ \ equity:closing\ balances\ \ \ \ \ \ \ \ \ \ \ \ \ 0
-
-2015/05/23
-\ \ \ \ assets:bank:saving\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1
-\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2
-\ \ \ \ liabilities:debts\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1
-\ \ \ \ equity:opening\ balances\ \ \ \ \ \ \ \ \ \ \ \ \ 0
-\f[]
-.fi
-.PP
-This prints a journal entry which zeroes out the specified accounts (or
-all accounts) with a transfer to/from "equity:closing balances" (like
-Ledger\[aq]s equity command).
-Also, it prints an similar entry with opposite sign for restoring the
-balances from "equity:opening balances".
-.PP
-These can be useful for ending one journal file and starting a new one,
-respectively.
-By zeroing your asset and liability accounts at the end of a file and
-restoring them at the start of the next one, you will see correct
-asset/liability balances whether you run hledger on just one file, or on
-several files concatenated with include.
-.SS interest
-.PP
-Generate interest transactions.
-.IP
-.nf
-\f[C]
-$\ hledger\ interest\ \-\-help
-Usage:\ hledger\-interest\ [OPTION...]\ ACCOUNT
-\ \ \-h\ \ \ \ \ \ \ \ \ \ \-\-help\ \ \ \ \ \ \ \ \ \ \ \ print\ this\ message\ and\ exit
-\ \ \-V\ \ \ \ \ \ \ \ \ \ \-\-version\ \ \ \ \ \ \ \ \ show\ version\ number\ and\ exit
-\ \ \-v\ \ \ \ \ \ \ \ \ \ \-\-verbose\ \ \ \ \ \ \ \ \ echo\ input\ ledger\ to\ stdout\ (default)
-\ \ \-q\ \ \ \ \ \ \ \ \ \ \-\-quiet\ \ \ \ \ \ \ \ \ \ \ don\[aq]t\ echo\ input\ ledger\ to\ stdout
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-today\ \ \ \ \ \ \ \ \ \ \ compute\ interest\ up\ until\ today
-\ \ \-f\ FILE\ \ \ \ \ \-\-file=FILE\ \ \ \ \ \ \ input\ ledger\ file\ (pass\ \[aq]\-\[aq]\ for\ stdin)
-\ \ \-s\ ACCOUNT\ \ \-\-source=ACCOUNT\ \ interest\ source\ account
-\ \ \-t\ ACCOUNT\ \ \-\-target=ACCOUNT\ \ interest\ target\ account
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-act\ \ \ \ \ \ \ \ \ \ \ \ \ use\ \[aq]act\[aq]\ day\ counting\ convention
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-30\-360\ \ \ \ \ \ \ \ \ \ use\ \[aq]30/360\[aq]\ day\ counting\ convention
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-30E\-360\ \ \ \ \ \ \ \ \ use\ \[aq]30E/360\[aq]\ day\ counting\ convention
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-30E\-360isda\ \ \ \ \ use\ \[aq]30E/360isda\[aq]\ day\ counting\ convention
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-constant=RATE\ \ \ constant\ interest\ rate
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-annual=RATE\ \ \ \ \ annual\ interest\ rate
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-bgb288\ \ \ \ \ \ \ \ \ \ compute\ interest\ according\ to\ German\ BGB288
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \-\-ing\-diba\ \ \ \ \ \ \ \ compute\ interest\ according\ for\ Ing\-Diba\ Tagesgeld\ account
-\f[]
-.fi
-.IP
-.nf
-\f[C]
-$\ cat\ interest.journal
-2008/09/26\ Loan
-\ \ \ \ \ Assets:Bank\ \ \ \ \ \ \ \ \ \ EUR\ 10000.00
-\ \ \ \ \ Liabilities:Bank
-
-2008/11/27\ Payment
-\ \ \ \ \ Assets:Bank\ \ \ \ \ \ \ \ \ \ EUR\ \-3771.12
-\ \ \ \ \ Liabilities:Bank
-
-2009/05/03\ Payment
-\ \ \ \ \ Assets:Bank\ \ \ \ \ \ \ \ \ \ EUR\ \-1200.00
-\ \ \ \ \ Liabilities:Bank
-
-2010/12/10\ Payment
-\ \ \ \ \ Assets:Bank\ \ \ \ \ \ \ \ \ \ EUR\ \-3700.00
-\ \ \ \ \ Liabilities:Bank
-\f[]
-.fi
-.IP
-.nf
-\f[C]
-$\ hledger\ interest\ \-\-\ \-f\ interest.journal\ \-\-source=Expenses:Interest\ \\
-\ \ \ \ \-\-target=Liabilities:Bank\ \-\-30\-360\ \-\-annual=0.05\ Liabilities:Bank
-2008/09/26\ Loan
-\ \ \ \ Assets:Bank\ \ \ \ \ \ \ EUR\ 10000.00
-\ \ \ \ Liabilities:Bank\ \ EUR\ \-10000.00
-
-2008/11/27\ 0.05%\ interest\ for\ EUR\ \-10000.00\ over\ 61\ days
-\ \ \ \ Liabilities:Bank\ \ \ \ \ EUR\ \-84.72
-\ \ \ \ Expenses:Interest\ \ \ \ \ EUR\ 84.72
-
-2008/11/27\ Payment
-\ \ \ \ Assets:Bank\ \ \ \ \ \ \ EUR\ \-3771.12
-\ \ \ \ Liabilities:Bank\ \ \ EUR\ 3771.12
-
-2008/12/31\ 0.05%\ interest\ for\ EUR\ \-6313.60\ over\ 34\ days
-\ \ \ \ Liabilities:Bank\ \ \ \ \ EUR\ \-29.81
-\ \ \ \ Expenses:Interest\ \ \ \ \ EUR\ 29.81
-
-2009/05/03\ 0.05%\ interest\ for\ EUR\ \-6343.42\ over\ 123\ days
-\ \ \ \ Liabilities:Bank\ \ \ \ EUR\ \-108.37
-\ \ \ \ Expenses:Interest\ \ \ \ EUR\ 108.37
-
-2009/05/03\ Payment
-\ \ \ \ Assets:Bank\ \ \ \ \ \ \ EUR\ \-1200.00
-\ \ \ \ Liabilities:Bank\ \ \ EUR\ 1200.00
-
-2009/12/31\ 0.05%\ interest\ for\ EUR\ \-5251.78\ over\ 238\ days
-\ \ \ \ Liabilities:Bank\ \ \ \ EUR\ \-173.60
-\ \ \ \ Expenses:Interest\ \ \ \ EUR\ 173.60
-
-2010/12/10\ 0.05%\ interest\ for\ EUR\ \-5425.38\ over\ 340\ days
-\ \ \ \ Liabilities:Bank\ \ \ \ EUR\ \-256.20
-\ \ \ \ Expenses:Interest\ \ \ \ EUR\ 256.20
-
-2010/12/10\ Payment
-\ \ \ \ Assets:Bank\ \ \ \ \ \ \ EUR\ \-3700.00
-\ \ \ \ Liabilities:Bank\ \ \ EUR\ 3700.00
-\f[]
-.fi
-.PP
-hledger\-interest computes interests for a given account.
-Using command line flags, the program can be configured to use various
-schemes for day\-counting, such as act/act, 30/360, 30E/360, and
-30/360isda.
-Furthermore, it supports a (small) number of interest schemes, i.e.
-annual interest with a fixed rate and the scheme mandated by the German
-BGB288 (Basiszins für Verbrauchergeschäfte).
-See the package page for more.
-.SS irr
-.PP
-Calculate internal rate of return.
-.IP
-.nf
-\f[C]
-$\ hledger\ irr\ \-\-help
-Usage:\ hledger\-irr\ [OPTION...]
-\ \ \-h\ \ \ \ \ \ \ \ \ \ \-\-help\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ print\ this\ message\ and\ exit
-\ \ \-V\ \ \ \ \ \ \ \ \ \ \-\-version\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ show\ version\ number\ and\ exit
-\ \ \-c\ \ \ \ \ \ \ \ \ \ \-\-cashflow\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ also\ show\ all\ revant\ transactions
-\ \ \-f\ FILE\ \ \ \ \ \-\-file=FILE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ input\ ledger\ file\ (pass\ \[aq]\-\[aq]\ for\ stdin)
-\ \ \-i\ ACCOUNT\ \ \-\-investment\-account=ACCOUNT\ \ investment\ account
-\ \ \-t\ ACCOUNT\ \ \-\-interest\-account=ACCOUNT\ \ \ \ interest/gain/fees/losses\ account
-\ \ \-b\ DATE\ \ \ \ \ \-\-begin=DATE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ from\ this\ date
-\ \ \-e\ DATE\ \ \ \ \ \-\-end=DATE\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ until\ this\ date
-\ \ \-D\ \ \ \ \ \ \ \ \ \ \-\-daily\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ for\ each\ day
-\ \ \-W\ \ \ \ \ \ \ \ \ \ \-\-weekly\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ for\ each\ week
-\ \ \-M\ \ \ \ \ \ \ \ \ \ \-\-monthly\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ for\ each\ month
-\ \ \-Y\ \ \ \ \ \ \ \ \ \ \-\-yearly\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ calculate\ interest\ for\ each\ year
-\f[]
-.fi
-.IP
-.nf
-\f[C]
-$\ cat\ irr.journal\ 
-2011\-01\-01\ Some\ wild\ speculation\ \[en]\ I\ wonder\ if\ it\ pays\ off
-\ \ \ Speculation\ \ \ €100.00
-\ \ \ Cash
-
-2011\-02\-01\ More\ speculation\ (and\ adjustment\ of\ value)
-\ \ \ Cash\ \ \ \ \ \ \ \ \ \-€10.00
-\ \ \ Rate\ Gain\ \ \ \ \ \-€1.00
-\ \ \ Speculation
-
-2011\-03\-01\ Lets\ pull\ out\ some\ money\ (and\ adjustment\ of\ value)
-\ \ \ Cash\ \ \ \ \ \ \ \ \ \ €30.00
-\ \ \ Rate\ Gain\ \ \ \ \ \-€3.00
-\ \ \ Speculation
-
-2011\-04\-01\ More\ speculation\ (and\ it\ lost\ some\ money!)
-\ \ \ Cash\ \ \ \ \ \ \ \ \ \-€50.00
-\ \ \ Rate\ Gain\ \ \ \ \ €\ 5.00
-\ \ \ Speculation
-
-2011\-05\-01\ Getting\ some\ money\ out\ (and\ adjustment\ of\ value)
-\ \ \ Speculation\ \ \-€44.00
-\ \ \ Rate\ Gain\ \ \ \ \-€\ 3.00
-\ \ \ Cash
-
-2011\-06\-01\ Emptying\ the\ account\ (after\ adjusting\ the\ value)
-\ \ \ Speculation\ \ \ \-€85.00
-\ \ \ Cash\ \ \ \ \ \ \ \ \ \ \ €90.00
-\ \ \ Rate\ Gain\ \ \ \ \ \-€\ 5.00
-\f[]
-.fi
-.IP
-.nf
-\f[C]
-$\ hledger\-irr\ \-f\ irr.journal\ \-t\ "Rate\ Gain"\ \-i\ Speculation\ \ \-\-monthly
-2011/01/01\ \-\ 2011/02/01:\ 12.49%
-2011/02/01\ \-\ 2011/03/01:\ 41.55%
-2011/03/01\ \-\ 2011/04/01:\ \-51.44%
-2011/04/01\ \-\ 2011/05/01:\ 32.24%
-2011/05/01\ \-\ 2011/06/01:\ 95.92%
-\f[]
-.fi
-.PP
-hledger\-irr computes the internal rate of return, also known as the
-effective interest rate, of a given investment.
-After specifying what account holds the investment, and what account
-stores the gains (or losses, or fees, or cost), it calculates the
-hypothetical annual rate of fixed rate investment that would have
-provided the exact same cash flow.
-See the package page for more.
-.SS print\-unique
-.PP
-Print only only journal entries which have a unique description.
-.IP
-.nf
-\f[C]
-$\ cat\ unique.journal
-1/1\ test
-\ (acct:one)\ \ 1
-2/2\ test
-\ (acct:two)\ \ 2
-$\ LEDGER_FILE=unique.journal\ hledger\ print\-unique
-(\-f\ option\ not\ supported)
-2015/01/01\ test
-\ \ \ \ (acct:one)\ \ \ \ \ \ \ \ \ \ \ \ \ 1
-\f[]
-.fi
-.SS rewrite
-.PP
-Prints all journal entries, adding specified custom postings to matched
-entries.
-.PP
-hledger\-rewrite.hs, in hledger\[aq]s extra directory (compilation
-optional), adds postings to existing transactions, optionally with an
-amount based on the existing transaction\[aq]s first amount.
-See the script for more details.
-.IP
-.nf
-\f[C]
-$\ hledger\ rewrite\ \-\-\ [QUERY]\ \ \ \ \ \ \ \ \-\-add\-posting\ "ACCT\ \ AMTEXPR"\ ...
-$\ hledger\ rewrite\ \-\-\ ^income\ \ \ \ \ \ \ \ \-\-add\-posting\ \[aq](liabilities:tax)\ \ *.33\[aq]
-$\ hledger\ rewrite\ \-\-\ expenses:gifts\ \-\-add\-posting\ \[aq](budget:gifts)\ \ *\-1"\[aq]
-\f[]
-.fi
 .SS ui
 .PP
 Curses\-style interface, see hledger\-ui.
 .SS web
 .PP
 Web interface, see hledger\-web.
+.SS Third party add\-ons
+.PP
+These are maintained separately from hledger, and usually updated
+shortly after a hledger release.
+.SS diff
+.PP
+hledger\-diff Shows differences in an account\[aq]s transactions between
+one journal file and another.
+.SS iadd
+.PP
+hledger\-iadd A curses\-style, more interactive replacement for the add
+command.
+.SS interest
+.PP
+hledger\-interest Generates interest transactions for an account
+according to various schemes.
+.SS irr
+.PP
+hledger\-irr Calculates the internal rate of return of an investment
+account.
+.SS Experimental add\-ons
+.PP
+These add\-ons are available in source form in the hledger repo.
+Installing them is pretty easy.
+Reading and copying these is a good way to start making your own
+add\-ons.
+.SS budget
+.PP
+hledger\-budget.hs A tool adding more budget\-tracking features to
+hledger.
+.SS chart
+.PP
+hledger\-chart.hs An old pie chart generator, in need of some love.
+.SS check\-dates
+.PP
+hledger\-check\-dates.hs Checks that journal entries are ordered by
+date.
+.SS dupes
+.PP
+hledger\-dupes.hs Checks for account names sharing the same leaf name.
+.SS equity
+.PP
+hledger\-equity.hs Prints balance\-resetting transactions useful for
+bringing account balances across file boundaries.
+.SS print\-unique
+.PP
+hledger\-print\-unique.hs Prints transactions which do not reuse an
+already\-seen description.
+.SS register\-match
+.PP
+hledger\-register\-match.hs Helps ledger\-autosync recognise
+already\-imported transactions.
+.SS rewrite
+.PP
+hledger\-rewrite.hs Adds one or more custom postings to matched
+transactions.
 .SH TROUBLESHOOTING
 .SS Run\-time problems
 .PP
