@@ -12,5 +12,6 @@ journal.md
 timeclock.md
 timedot.md
 manual.md
+cookbook.md
 [0-9].*
 .snapshot
