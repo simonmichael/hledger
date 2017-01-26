@@ -17,21 +17,22 @@ hledger-web - web interface for the hledger accounting tool
 `hledger-web [OPTIONS]`\
 `hledger web -- [OPTIONS]`
 
-_web_({{
-<style>
-.highslide img {max-width:250px; float:right; margin:0 0 1em 1em;}
-.highslide-caption {color:white; background-color:black;}
-</style>
-<a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
-<a href="images/hledger-web/normal/journal.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/journal.png" title="Journal view" /></a>
-
-<a href="images/hledger-web/normal/help.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/help.png" title="Help dialog" /></a>
-<a href="images/hledger-web/normal/add.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/add.png" title="Add form" /></a>
-}})
-
 # DESCRIPTION
 
 _hledgerdescription_
+}})
+
+_web_({{
+<style>
+.highslide img {max-width:200px; border:thin grey solid; margin:0 0 1em 1em; }
+.highslide-caption {color:white; background-color:black;}
+</style>
+<div style="float:right; max-width:200px; text-align:right;">
+<a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
+<a href="images/hledger-web/normal/journal.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/journal.png" title="Journal view" /></a>
+<a href="images/hledger-web/normal/help.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/help.png" title="Help dialog" /></a>
+<a href="images/hledger-web/normal/add.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/add.png" title="Add form" /></a>
+</div>
 }})
 
 hledger-web is hledger's web interface.  It starts a simple web
@@ -56,15 +57,7 @@ also opens it in your default web browser if possible. In this mode
 the web app will keep running for as long as you have it open in a
 browser window, and will exit after two minutes of inactivity (no
 requests and no browser windows viewing it).
-
-```shell
-$ hledger web
-Starting web app on port 5000 with base url http://localhost:5000
-Starting web browser if possible
-Web app will auto-exit after a few minutes with no browsers (or press ctrl-c)
-```
-
-With `--serve`, it starts the web app in non-transient mode and logs
+With `--serve`, it just runs the web app without exiting, and logs
 requests to the console.
 
 By default the server listens on IP address 127.0.0.1, accessible only to local requests.
