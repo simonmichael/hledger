@@ -579,10 +579,9 @@ an included file. Their format is:
 P DATE COMMODITYBEINGPRICED UNITPRICE
 
    DATE is a simple date as usual. COMMODITYBEINGPRICED is the symbol of
-the commodity being priced (just the symbol, no quantity). UNITPRICE is
-an ordinary amount (symbol and quantity) in a second commodity,
-specifying the unit price or conversion rate for the first commodity in
-terms of the second, on the given date.
+the commodity being priced. UNITPRICE is an ordinary amount (symbol and
+quantity) in a second commodity, specifying the unit price or conversion
+rate for the first commodity in terms of the second, on the given date.
 
    For example, the following directives say that one euro was worth
 1.35 US dollars during 2009, and $1.40 from 2010 onward:
@@ -1067,39 +1066,39 @@ Node: Transaction prices18225
 Ref: #transaction-prices18370
 Node: Market prices19950
 Ref: #market-prices20085
-Node: Comments21085
-Ref: #comments21207
-Node: Tags22319
-Ref: #tags22439
-Node: Implicit tags23874
-Ref: #implicit-tags23982
-Node: Directives24501
-Ref: #directives24616
-Node: Account aliases24809
-Ref: #account-aliases24955
-Node: Basic aliases25557
-Ref: #basic-aliases25702
-Node: Regex aliases26390
-Ref: #regex-aliases26560
-Node: Multiple aliases27330
-Ref: #multiple-aliases27504
-Node: end aliases28000
-Ref: #end-aliases28142
-Node: account directive28244
-Ref: #account-directive28426
-Node: apply account directive28722
-Ref: #apply-account-directive28920
-Node: Multi-line comments29580
-Ref: #multi-line-comments29772
-Node: commodity directive29899
-Ref: #commodity-directive30085
-Node: Default commodity30958
-Ref: #default-commodity31133
-Node: Default year31669
-Ref: #default-year31836
-Node: Including other files32259
-Ref: #including-other-files32418
-Node: EDITOR SUPPORT32814
-Ref: #editor-support32934
+Node: Comments21054
+Ref: #comments21176
+Node: Tags22288
+Ref: #tags22408
+Node: Implicit tags23843
+Ref: #implicit-tags23951
+Node: Directives24470
+Ref: #directives24585
+Node: Account aliases24778
+Ref: #account-aliases24924
+Node: Basic aliases25526
+Ref: #basic-aliases25671
+Node: Regex aliases26359
+Ref: #regex-aliases26529
+Node: Multiple aliases27299
+Ref: #multiple-aliases27473
+Node: end aliases27969
+Ref: #end-aliases28111
+Node: account directive28213
+Ref: #account-directive28395
+Node: apply account directive28691
+Ref: #apply-account-directive28889
+Node: Multi-line comments29549
+Ref: #multi-line-comments29741
+Node: commodity directive29868
+Ref: #commodity-directive30054
+Node: Default commodity30927
+Ref: #default-commodity31102
+Node: Default year31638
+Ref: #default-year31805
+Node: Including other files32228
+Ref: #including-other-files32387
+Node: EDITOR SUPPORT32783
+Ref: #editor-support32903
 
 End Tag Table

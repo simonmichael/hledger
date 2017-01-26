@@ -421,10 +421,10 @@ FILE FORMAT
               P DATE COMMODITYBEINGPRICED UNITPRICE
 
        DATE  is a simple date as usual.  COMMODITYBEINGPRICED is the symbol of
-       the commodity being priced (just the symbol, no  quantity).   UNITPRICE
-       is  an  ordinary  amount  (symbol  and quantity) in a second commodity,
-       specifying the unit price or conversion rate for the first commodity in
-       terms of the second, on the given date.
+       the commodity being priced.  UNITPRICE is an  ordinary  amount  (symbol
+       and  quantity) in a second commodity, specifying the unit price or con-
+       version rate for the first commodity in terms of  the  second,  on  the
+       given date.
 
        For  example, the following directives say that one euro was worth 1.35
        US dollars during 2009, and $1.40 from 2010 onward:

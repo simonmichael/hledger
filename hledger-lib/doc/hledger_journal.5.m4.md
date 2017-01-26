@@ -451,7 +451,7 @@ P DATE COMMODITYBEINGPRICED UNITPRICE
 ```
 <!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
 DATE is a [simple date](#simple-dates) as usual.
-COMMODITYBEINGPRICED is the symbol of the commodity being priced (just the symbol, no quantity).
+COMMODITYBEINGPRICED is the symbol of the commodity being priced.
 UNITPRICE is an ordinary [amount](#amounts) (symbol and quantity) in a second commodity,
 specifying the unit price or conversion rate for the first commodity in terms of the second, on the given date.
 
