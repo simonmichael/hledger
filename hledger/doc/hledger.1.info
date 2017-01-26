@@ -1945,15 +1945,18 @@ File: hledger.1.info,  Node: Experimental add-ons,  Prev: Third party add-ons,  
 
 These add-ons are available in source form in the hledger repo.
 Installing them is pretty easy. Reading and copying these is a good way
-to start making your own add-ons.
+to start making your own add-ons. These are typically more experimental
+and less documented than built-in commands.
 
 * Menu:
 
 * budget::
 * chart::
+* check::
 * check-dates::
 * dupes::
 * equity::
+* prices::
 * print-unique::
 * register-match::
 * rewrite::
@@ -1968,7 +1971,7 @@ hledger-budget.hs A tool adding more budget-tracking features to
 hledger.
 
 
-File: hledger.1.info,  Node: chart,  Next: check-dates,  Prev: budget,  Up: Experimental add-ons
+File: hledger.1.info,  Node: chart,  Next: check,  Prev: budget,  Up: Experimental add-ons
 
 5.3.2 chart
 -----------
@@ -1976,9 +1979,17 @@ File: hledger.1.info,  Node: chart,  Next: check-dates,  Prev: budget,  Up: Expe
 hledger-chart.hs An old pie chart generator, in need of some love.
 
 
-File: hledger.1.info,  Node: check-dates,  Next: dupes,  Prev: chart,  Up: Experimental add-ons
+File: hledger.1.info,  Node: check,  Next: check-dates,  Prev: chart,  Up: Experimental add-ons
 
-5.3.3 check-dates
+5.3.3 check
+-----------
+
+hledger-check.hs More powerful account balance assertions.
+
+
+File: hledger.1.info,  Node: check-dates,  Next: dupes,  Prev: check,  Up: Experimental add-ons
+
+5.3.4 check-dates
 -----------------
 
 hledger-check-dates.hs Checks that journal entries are ordered by date.
@@ -1986,24 +1997,33 @@ hledger-check-dates.hs Checks that journal entries are ordered by date.
 
 File: hledger.1.info,  Node: dupes,  Next: equity,  Prev: check-dates,  Up: Experimental add-ons
 
-5.3.4 dupes
+5.3.5 dupes
 -----------
 
 hledger-dupes.hs Checks for account names sharing the same leaf name.
 
 
-File: hledger.1.info,  Node: equity,  Next: print-unique,  Prev: dupes,  Up: Experimental add-ons
+File: hledger.1.info,  Node: equity,  Next: prices,  Prev: dupes,  Up: Experimental add-ons
 
-5.3.5 equity
+5.3.6 equity
 ------------
 
 hledger-equity.hs Prints balance-resetting transactions useful for
 bringing account balances across file boundaries.
 
 
-File: hledger.1.info,  Node: print-unique,  Next: register-match,  Prev: equity,  Up: Experimental add-ons
+File: hledger.1.info,  Node: prices,  Next: print-unique,  Prev: equity,  Up: Experimental add-ons
 
-5.3.6 print-unique
+5.3.7 prices
+------------
+
+hledger-prices.hs Prints transactions which do not reuse an already-seen
+description.
+
+
+File: hledger.1.info,  Node: print-unique,  Next: register-match,  Prev: prices,  Up: Experimental add-ons
+
+5.3.8 print-unique
 ------------------
 
 hledger-print-unique.hs Prints transactions which do not reuse an
@@ -2012,7 +2032,7 @@ already-seen description.
 
 File: hledger.1.info,  Node: register-match,  Next: rewrite,  Prev: print-unique,  Up: Experimental add-ons
 
-5.3.7 register-match
+5.3.9 register-match
 --------------------
 
 hledger-register-match.hs Helps ledger-autosync recognise
@@ -2021,8 +2041,8 @@ already-imported transactions.
 
 File: hledger.1.info,  Node: rewrite,  Prev: register-match,  Up: Experimental add-ons
 
-5.3.8 rewrite
--------------
+5.3.10 rewrite
+--------------
 
 hledger-rewrite.hs Adds one or more custom postings to matched
 transactions.
@@ -2230,27 +2250,31 @@ Node: irr61732
 Ref: #irr61832
 Node: Experimental add-ons61910
 Ref: #experimental-add-ons62064
-Node: budget62351
-Ref: #budget62458
-Node: chart62533
-Ref: #chart62658
-Node: check-dates62726
-Ref: #check-dates62862
-Node: dupes62935
-Ref: #dupes63060
-Node: equity63131
-Ref: #equity63259
-Node: print-unique63377
-Ref: #print-unique63526
-Node: register-match63619
-Ref: #register-match63773
-Node: rewrite63863
-Ref: #rewrite63982
-Node: TROUBLESHOOTING64060
-Ref: #troubleshooting64179
-Node: Run-time problems64233
-Ref: #run-time-problems64376
-Node: Known limitations66320
-Ref: #known-limitations66463
+Node: budget62454
+Ref: #budget62561
+Node: chart62636
+Ref: #chart62755
+Node: check62823
+Ref: #check62947
+Node: check-dates63007
+Ref: #check-dates63143
+Node: dupes63216
+Ref: #dupes63341
+Node: equity63412
+Ref: #equity63534
+Node: prices63652
+Ref: #prices63781
+Node: print-unique63868
+Ref: #print-unique64017
+Node: register-match64110
+Ref: #register-match64264
+Node: rewrite64354
+Ref: #rewrite64475
+Node: TROUBLESHOOTING64553
+Ref: #troubleshooting64672
+Node: Run-time problems64726
+Ref: #run-time-problems64869
+Node: Known limitations66813
+Ref: #known-limitations66956
 
 End Tag Table

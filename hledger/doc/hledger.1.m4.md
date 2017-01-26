@@ -10,6 +10,7 @@ m4_dnl  options.m4.md
 m4_dnl  queries.m4.md
 m4_dnl  commands.m4.md
 m4_dnl   balance.m4.md
+m4_dnl  addons.m4.md
 m4_dnl  troubleshooting.m4.md
 
 _web_({{

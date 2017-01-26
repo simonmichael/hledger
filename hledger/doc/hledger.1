@@ -2243,6 +2243,8 @@ These add\-ons are available in source form in the hledger repo.
 Installing them is pretty easy.
 Reading and copying these is a good way to start making your own
 add\-ons.
+These are typically more experimental and less documented than built\-in
+commands.
 .SS budget
 .PP
 hledger\-budget.hs A tool adding more budget\-tracking features to
@@ -2250,6 +2252,9 @@ hledger.
 .SS chart
 .PP
 hledger\-chart.hs An old pie chart generator, in need of some love.
+.SS check
+.PP
+hledger\-check.hs More powerful account balance assertions.
 .SS check\-dates
 .PP
 hledger\-check\-dates.hs Checks that journal entries are ordered by
@@ -2261,6 +2266,10 @@ hledger\-dupes.hs Checks for account names sharing the same leaf name.
 .PP
 hledger\-equity.hs Prints balance\-resetting transactions useful for
 bringing account balances across file boundaries.
+.SS prices
+.PP
+hledger\-prices.hs Prints transactions which do not reuse an
+already\-seen description.
 .SS print\-unique
 .PP
 hledger\-print\-unique.hs Prints transactions which do not reuse an
