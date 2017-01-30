@@ -149,15 +149,22 @@ clipOrEllipsifyAccountName :: Int -> AccountName -> AccountName
 clipOrEllipsifyAccountName 0 = const "..."
 clipOrEllipsifyAccountName n = accountNameFromComponents . take n . accountNameComponents
 
+-- | Escape an AccountName for use within a regular expression.
+-- >>> putStr $ escapeName "First?!#$*?$(*) !@^#*? %)*!@#"
+-- First\?!#\$\*\?\$\(\*\) !@\^#\*\? %\)\*!@#
+escapeName :: AccountName -> Regexp
+escapeName = regexReplaceBy "[[?+|()*\\\\^$]" ("\\" <>)
+           . T.unpack
+
 -- | Convert an account name to a regular expression matching it and its subaccounts.
 accountNameToAccountRegex :: AccountName -> Regexp
 accountNameToAccountRegex "" = ""
-accountNameToAccountRegex a = printf "^%s(:|$)" (T.unpack a)
+accountNameToAccountRegex a = printf "^%s(:|$)" (escapeName a)
 
 -- | Convert an account name to a regular expression matching it but not its subaccounts.
 accountNameToAccountOnlyRegex :: AccountName -> Regexp
 accountNameToAccountOnlyRegex "" = ""
-accountNameToAccountOnlyRegex a = printf "^%s$"  $ T.unpack a -- XXX pack
+accountNameToAccountOnlyRegex a = printf "^%s$"  $ escapeName a -- XXX pack
 
 -- | Convert an exact account-matching regular expression to a plain account name.
 accountRegexToAccountName :: Regexp -> AccountName
