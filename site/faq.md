@@ -236,7 +236,7 @@ $ hledger -f t.j balance
 --------------------
                    0
 ```
-while the `register` command shows (top-aligned, this time) a multi-commodity running total after the second posting,
+while the `register` command shows (top-aligned, this time!) a multi-commodity running total after the second posting,
 and a multi-commodity amount in the third posting:
 ```shell
 $ hledger -f t.j register --width 50

@@ -49,6 +49,8 @@ You have to build it, but that's pretty easy.
 
 
 2. `stack install --resolver=nightly hledger [hledger-ui] [hledger-web] [hledger-api]`\
+   Note you don't type the square brackets; they mean "this bit is optional".
+   So eg if you don't care about the web tools, you would type `stack install --resolver=nightly hledger hledger-ui`\
    On Windows, hledger-ui is [not yet available](https://github.com/coreyoconnor/vty/pull/1).\
    If stack says you need to run `stack setup`, do that first.\
    Warnings about "No packages found in snapshot which provide a "hsc2hs" executable" can be ignored.\

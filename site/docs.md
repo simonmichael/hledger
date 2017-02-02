@@ -1,5 +1,3 @@
-<span style="float:right; font-size:small;">[improve this page](http://code.hledger.org/blob/master/site/docs.md)</span>
-
 # Documentation
 
 <style>
@@ -93,7 +91,7 @@ Practical user recipes, including:
 
 [Start a journal](start-journal.html)\
 [Track changes with version control](version-control.html)\
-[Common journal entries](entries.html)\
+[Example journal entries](entries.html)\
 [Convert CSV files](csv-import.html)\
 [Rewrite account names](account-aliases.html)\
 [Use another account separator character](account-separator.html)\

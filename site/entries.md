@@ -1,4 +1,4 @@
-# Common journal entries
+# Example journal entries
 
 Example hledger journal entries for various kinds of transaction.
  
