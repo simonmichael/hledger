@@ -53,7 +53,7 @@ dependencies:
 - directory
 - filepath
 - hashtables >= 1.2
-- megaparsec >=5.0 && < 5.2
+- megaparsec >=5.0 && < 5.3
 - mtl
 - mtl-compat
 - old-time
