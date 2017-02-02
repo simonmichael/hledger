@@ -146,6 +146,7 @@ main = do
         ,"site/csv-import.md"
         ,"site/account-aliases.md"
         ,"site/account-separator.md"
+        ,"site/investments.md"
         ]
 
       -- cookbook pages combined, ready for web output by hakyll

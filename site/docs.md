@@ -97,6 +97,7 @@ Practical user recipes, including:
 [Convert CSV files](csv-import.html)\
 [Rewrite account names](account-aliases.html)\
 [Use another account separator character](account-separator.html)\
+[Track investments](investments.html)\
 
 </div>
 
