@@ -12,18 +12,22 @@ are thousands separated by comma, significant decimal places and so on.
 
 -}
 
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings, LambdaCase #-}
 
 module Hledger.Data.MarketPrice
 where
 import qualified Data.Text as T
--- import Test.HUnit
+import Test.HUnit
 
 import Hledger.Data.Amount
-import Hledger.Data.Types
 import Hledger.Data.Dates
+import Hledger.Data.Types
+-- import Hledger.Read.JournalReader
 import Hledger.Utils
+import Hledger.Utils.Parse
 
+-- | Get the string representation of an market price, based on its
+-- commodity's display settings.
 showMarketPrice :: MarketPrice -> String
 showMarketPrice mp = unwords
     [ "P"
@@ -31,3 +35,12 @@ showMarketPrice mp = unwords
     , T.unpack (mpcommodity mp)
     , (showAmount . setAmountPrecision maxprecision) (mpamount mp)
     ]
+
+tests_Hledger_Data_MarketPrice = TestList $
+  [
+    -- this test needs Hledger.Read.JournalReader, which causes cyclic imports?
+    -- "showParsedMarketPrice" ~: do
+    --   let mp = parseWithState mempty marketpricedirectivep "P 2017/01/30 BTC $922.83"
+    --       mpString = (fmap . fmap) showMarketPrice mp
+    --   mpString `is` (Just (Right "P 2017/01/30 BTC $922.83"))
+  ]
