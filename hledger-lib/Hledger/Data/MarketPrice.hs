@@ -16,18 +16,18 @@ are thousands separated by comma, significant decimal places and so on.
 
 module Hledger.Data.MarketPrice
 where
-import Data.Time.Format
 import qualified Data.Text as T
 -- import Test.HUnit
 
 import Hledger.Data.Amount
 import Hledger.Data.Types
+import Hledger.Data.Dates
 import Hledger.Utils
 
 showMarketPrice :: MarketPrice -> String
 showMarketPrice mp = unwords
     [ "P"
-    , formatTime defaultTimeLocale "%0Y/%m/%d" (mpdate mp)
+    , showDate (mpdate mp)
     , T.unpack (mpcommodity mp)
     , (showAmount . setAmountPrecision maxprecision) (mpamount mp)
     ]
