@@ -15,6 +15,7 @@ module Hledger.Data (
                module Hledger.Data.Dates,
                module Hledger.Data.Journal,
                module Hledger.Data.Ledger,
+               module Hledger.Data.MarketPrice,
                module Hledger.Data.Period,
                module Hledger.Data.Posting,
                module Hledger.Data.RawOptions,
@@ -34,6 +35,7 @@ import Hledger.Data.Commodity
 import Hledger.Data.Dates
 import Hledger.Data.Journal
 import Hledger.Data.Ledger
+import Hledger.Data.MarketPrice
 import Hledger.Data.Period
 import Hledger.Data.Posting
 import Hledger.Data.RawOptions
@@ -50,6 +52,7 @@ tests_Hledger_Data = TestList
     ,tests_Hledger_Data_Amount
     ,tests_Hledger_Data_Commodity
     ,tests_Hledger_Data_Journal
+    ,tests_Hledger_Data_MarketPrice
     ,tests_Hledger_Data_Ledger
     ,tests_Hledger_Data_Posting
     -- ,tests_Hledger_Data_RawOptions

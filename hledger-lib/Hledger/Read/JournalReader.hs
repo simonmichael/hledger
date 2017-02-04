@@ -624,6 +624,12 @@ test_postingp = do
 
 tests_Hledger_Read_JournalReader = TestList $ concat [
     -- test_numberp
+    [
+    "showParsedMarketPrice" ~: do
+      let mp = parseWithState mempty marketpricedirectivep "P 2017/01/30 BTC $922.83\n"
+          mpString = (fmap . fmap) showMarketPrice mp
+      mpString `is` (Just (Right "P 2017/01/30 BTC $922.83"))
+    ]
  ]
 
 {- old hunit tests
