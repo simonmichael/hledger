@@ -275,7 +275,6 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
         "show historical ending balance in each period (includes postings before report start date)\n "
      ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree; amounts include subaccounts (default in simple reports)"
      ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list; amounts exclude subaccounts except when account is depth-clipped (default in multicolumn reports)\n "
-     ,flagNone ["value","V"] (setboolopt "value") "convert amounts to their market value on the report end date (using the most recent applicable market price, if any)"
      ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a row average column (in multicolumn reports)"
      ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "show a row total column (in multicolumn reports)"
      ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"
@@ -314,23 +313,19 @@ balance opts@CliOpts{reportopts_=ropts} j = do
                                | otherwise   = ropts{accountlistmode_=ALTree}
                     in singleBalanceReport ropts' (queryFromOpts d ropts) j
                 | otherwise = balanceReport ropts (queryFromOpts d ropts) j
-              convert | value_ ropts = maybe id (balanceReportValue j) mvaluedate
-                      | otherwise = id
               render = case format of
                 "csv" -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
                 _     -> balanceReportAsText
-          writeOutput opts $ render ropts $ convert report
+          writeOutput opts $ render ropts report
         _ -> do
           let report = multiBalanceReport ropts (queryFromOpts d ropts) j
-              convert | value_ ropts = maybe id (multiBalanceReportValue j) mvaluedate
-                      | otherwise = id
               render = case format of
                 "csv" -> \ropts r -> (++ "\n") $ printCSV $ multiBalanceReportAsCsv ropts r
                 _     -> case baltype of
                   PeriodChange     -> periodChangeReportAsText
                   CumulativeChange -> cumulativeChangeReportAsText
                   HistoricalBalance -> historicalBalanceReportAsText
-          writeOutput opts $ render ropts $ convert report
+          writeOutput opts $ render ropts report
 
 -- single-column balance reports
 
