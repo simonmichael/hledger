@@ -69,10 +69,6 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `--flat`
 : show full account names, unindented
 
-`-V --value`
-: show amounts as their current market value in their default valuation commodity
-(accounts screen only)
-
 hledger general options:
 
 _generaloptions_
