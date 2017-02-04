@@ -144,6 +144,7 @@ reportflags = [
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/postings deeper than N"
  ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden"
  ,flagNone ["cost","B"]      (setboolopt "cost") "convert amounts to their cost at transaction time (using the transaction price, if any)"
+ ,flagNone ["value","V"]     (setboolopt "value") "convert amounts to their market value on the report end date (using the most recent applicable market price, if any)"
  ,flagNone ["anon"]              (setboolopt "anon") "output ledger with anonymized accounts and payees."
  ]
 

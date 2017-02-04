@@ -23,6 +23,7 @@ module Hledger.Cli.Utils
     )
 where
 import Control.Exception as C
+import Control.Monad ((<=<))
 import Data.Hashable (hash)
 import Data.List
 import Data.Maybe
@@ -63,6 +64,7 @@ import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
 import Hledger.Cli.CliOptions
 import Hledger.Data
 import Hledger.Read
+import Hledger.Reports
 import Hledger.Utils
 
 
@@ -76,7 +78,12 @@ withJournalDo opts cmd = do
   rulespath <- rulesFilePathFromOpts opts
   journalpaths <- journalFilePathFromOpts opts
   ej <- readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpaths
-  either error' (cmd opts . pivotByOpts opts . anonymiseByOpts opts . journalApplyAliases (aliasesFromOpts opts)) ej
+  let f   = cmd opts
+          . pivotByOpts opts
+          . anonymiseByOpts opts
+          . journalApplyAliases (aliasesFromOpts opts)
+        <=< journalApplyValue (reportopts_ opts)
+  either error' f ej
 
 -- | Apply the pivot transformation on a journal, if option is present.
 pivotByOpts :: CliOpts -> Journal -> Journal
@@ -118,6 +125,16 @@ anonymise j
       j { jtxns = map tAnons . jtxns $ j }
   where
     anon = T.pack . flip showHex "" . (fromIntegral :: Int -> Word32) . hash
+
+journalApplyValue :: ReportOpts -> Journal -> IO Journal
+journalApplyValue ropts j = do
+    mvaluedate <- reportEndDate j ropts
+    let convert | value_ ropts
+                , Just d <- mvaluedate
+                = overJournalAmounts (amountValue j d)
+                | otherwise
+                = id
+    return $ convert j
 
 -- | Write some output to stdout or to a file selected by --output-file.
 writeOutput :: CliOpts -> String -> IO ()
