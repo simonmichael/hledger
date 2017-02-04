@@ -148,6 +148,10 @@ m4_define({{_reportingoptions_}}, {{
 : convert amounts to their cost at transaction time
 (using the [transaction price](journal.html#transaction-prices), if any)
 
+`-V --value`
+: convert amounts to their market value on the report end date
+(using the most recent applicable [market price](journal.html#market-prices), if any)
+
 `--pivot TAGNAME`
 : organize reports by some tag's value instead of by account
 

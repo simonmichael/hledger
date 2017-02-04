@@ -172,8 +172,17 @@ Show a balance sheet. Alias: bs.
 `--flat`
 : show full account names, as a list (default)
 
+`-N --no-total`
+: don't show the final total row
+
 `--drop=N`
 : in flat mode: omit N leading account name parts
+
+`--no-elide`
+: don't squash boring parent accounts (in tree mode)
+
+`--format=LINEFORMAT`
+: in single-column balance reports: use this custom line format
 
 This command displays a simple
 [balance sheet](http://en.wikipedia.org/wiki/Balance_sheet). It currently
@@ -207,8 +216,17 @@ Show a cashflow statement. Alias: cf.
 `--flat`
 : show full account names, as a list (default)
 
+`-N --no-total`
+: don't show the final total row
+
 `--drop=N`
 : in flat mode: omit N leading account name parts
+
+`--no-elide`
+: don't squash boring parent accounts (in tree mode)
+
+`--format=LINEFORMAT`
+: in single-column balance reports: use this custom line format
 
 This command displays a simple
 [cashflow statement](http://en.wikipedia.org/wiki/Cash_flow_statement)
@@ -272,8 +290,17 @@ Show an income statement. Alias: is.
 `--flat`
 : show full account names, as a list (default)
 
+`-N --no-total`
+: don't show the final total row
+
 `--drop=N`
 : in flat mode: omit N leading account name parts
+
+`--no-elide`
+: don't squash boring parent accounts (in tree mode)
+
+`--format=LINEFORMAT`
+: in single-column balance reports: use this custom line format
 
 This command displays a simple
 [income statement](http://en.wikipedia.org/wiki/Income_statement).  It
