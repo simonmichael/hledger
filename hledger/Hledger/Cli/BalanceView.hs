@@ -2,21 +2,38 @@
 
 module Hledger.Cli.BalanceView (
   BalanceView(..)
+ ,balanceviewmode
  ,balanceviewReport
 ) where
 
-import Data.Time.Calendar
-import Data.List
+import Data.Time.Calendar (Day)
+import Data.List (intercalate)
 import Data.Monoid (Sum(..), (<>))
-import qualified Data.Text as T
+import System.Console.CmdArgs.Explicit
 
 import Hledger
 import Hledger.Cli.Balance
 import Hledger.Cli.CliOptions
 
-data BalanceView = BV { bvname    :: String
+data BalanceView = BV { bvmode    :: String
+                      , bvaliases :: [String]
+                      , bvhelp    :: String
+                      , bvname    :: String
                       , bvqueries :: [(String, Journal -> Query)]
                       }
+
+balanceviewmode :: BalanceView -> Mode RawOpts
+balanceviewmode bv@BV{..} = (defCommandMode $ bvmode : bvaliases) {
+  modeHelp = bvhelp `withAliases` bvaliases
+ ,modeGroupFlags = Group {
+     groupUnnamed = [
+      flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
+     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
+     ]
+    ,groupHidden = []
+    ,groupNamed = [generalflagsgroup1]
+    }
+ }
 
 balanceviewQueryReport
     :: ReportOpts

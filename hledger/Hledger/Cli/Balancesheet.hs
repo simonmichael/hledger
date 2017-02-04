@@ -11,38 +11,26 @@ module Hledger.Cli.Balancesheet (
  ,tests_Hledger_Cli_Balancesheet
 ) where
 
-import qualified Data.Text.Lazy.IO as LT
 import System.Console.CmdArgs.Explicit
 import Test.HUnit
-import Text.Shakespeare.Text
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Balance
 import Hledger.Cli.BalanceView
 
+bsBV = BV "balancesheet"
+          ["bs"]
+          "show a balance sheet"
+          "Balance Sheet"
+          [ ("Assets", journalAssetAccountQuery)
+          , ("Liabilities", journalLiabilityAccountQuery)
+          ]
 
 balancesheetmode :: Mode RawOpts
-balancesheetmode = (defCommandMode $ ["balancesheet"]++aliases) {
-  modeHelp = "show a balance sheet" `withAliases` aliases
- ,modeGroupFlags = Group {
-     groupUnnamed = [
-      flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
-     ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-     ]
-    ,groupHidden = []
-    ,groupNamed = [generalflagsgroup1]
-    }
- }
-  where aliases = ["bs"]
+balancesheetmode = balanceviewmode bsBV
 
 balancesheet :: CliOpts -> Journal -> IO ()
-balancesheet = balanceviewReport bv
-  where
-    bv = BV "Balance Sheet"
-            [ ("Assets", journalAssetAccountQuery)
-            , ("Liabilities", journalLiabilityAccountQuery)
-            ]
+balancesheet = balanceviewReport bsBV
 
 tests_Hledger_Cli_Balancesheet :: Test
 tests_Hledger_Cli_Balancesheet = TestList
