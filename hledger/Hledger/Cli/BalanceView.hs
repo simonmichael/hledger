@@ -62,7 +62,7 @@ balanceviewReport BV{..} CliOpts{reportopts_=ropts} j = do
            bvqueries
   mapM_ putStrLn (bvname : "" : views)
 
-  unless (no_total_ ropts) .  putStrLn . unlines $
+  unless (no_total_ ropts) . mapM_ putStrLn $
     [ "Total:"
     , "--------------------"
     , padleft 20 $ showMixedAmountWithoutPrice (getSum amt)
