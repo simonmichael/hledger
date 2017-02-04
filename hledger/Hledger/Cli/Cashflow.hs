@@ -21,12 +21,13 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.BalanceView
 
-cfBV = BV "cashflow"
-          ["cf"]
-          "show a cashflow statement statement"
-          "Cashflow Statement"
-          [ ("Cash flows", journalCashAccountQuery)
-          ]
+cfBV = BalanceView {
+         bvmode    = "cashflow",
+         bvaliases = ["cf"],
+         bvhelp    = "show a cashflow statement",
+         bvtitle   = "Cashflow Statement",
+         bvqueries = [("Cash flows", journalCashAccountQuery)]
+      }
 
 cashflowmode :: Mode RawOpts
 cashflowmode = balanceviewmode cfBV

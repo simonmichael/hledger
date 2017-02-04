@@ -1,4 +1,12 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+{-|
+
+This module is used by the 'balancesheet', 'incomestatement', and
+'cashflow' commands to print out acocunt balances based on a specific
+"view", which consists of a title and multiple named queries that are
+aggregated and totaled.
+
+-}
 
 module Hledger.Cli.BalanceView (
   BalanceView(..)
@@ -16,15 +24,18 @@ import Hledger
 import Hledger.Cli.Balance
 import Hledger.Cli.CliOptions
 
-data BalanceView = BV { bvmode    :: String
-                      , bvaliases :: [String]
-                      , bvhelp    :: String
-                      , bvname    :: String
-                      , bvqueries :: [(String, Journal -> Query)]
-                      }
+-- | Describes a view for the balance, which can consist of multiple
+-- separate named queries that are aggregated and totaled.
+data BalanceView = BalanceView {
+      bvmode    :: String,                        -- ^ command line mode of the view
+      bvaliases :: [String],                      -- ^ command line aliases
+      bvhelp    :: String,                        -- ^ command line help message
+      bvtitle   :: String,                        -- ^ title of the view
+      bvqueries :: [(String, Journal -> Query)]   -- ^ named queries that make up the view
+}
 
 balanceviewmode :: BalanceView -> Mode RawOpts
-balanceviewmode bv@BV{..} = (defCommandMode $ bvmode : bvaliases) {
+balanceviewmode BalanceView{..} = (defCommandMode $ bvmode : bvaliases) {
   modeHelp = bvhelp `withAliases` bvaliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
@@ -42,25 +53,24 @@ balanceviewmode bv@BV{..} = (defCommandMode $ bvmode : bvaliases) {
 balanceviewQueryReport
     :: ReportOpts
     -> Day
-    -> Maybe Day
     -> Journal
     -> String
     -> (Journal -> Query)
     -> ([String], Sum MixedAmount)
-balanceviewQueryReport ropts currDay reportEnd j t q = ([view], Sum amt)
+balanceviewQueryReport ropts currDay j t q = ([view], Sum amt)
     where
       q' = And [queryFromOpts currDay (withoutBeginDate ropts), q j]
       rep@(_ , amt) = balanceReport ropts q' j
       view = intercalate "\n" [t <> ":", balanceReportAsText ropts rep]
 
+-- | Prints out a balance report according to a given view
 balanceviewReport :: BalanceView -> CliOpts -> Journal -> IO ()
-balanceviewReport BV{..} CliOpts{reportopts_=ropts} j = do
+balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts} j = do
   currDay   <- getCurrentDay
-  reportEnd <- reportEndDate j ropts
   let (views, amt) =
-        foldMap (uncurry (balanceviewQueryReport ropts currDay reportEnd j))
+        foldMap (uncurry (balanceviewQueryReport ropts currDay j))
            bvqueries
-  mapM_ putStrLn (bvname : "" : views)
+  mapM_ putStrLn (bvtitle : "" : views)
 
   unless (no_total_ ropts) . mapM_ putStrLn $
     [ "Total:"
