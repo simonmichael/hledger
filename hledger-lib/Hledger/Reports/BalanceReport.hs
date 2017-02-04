@@ -19,6 +19,7 @@ module Hledger.Reports.BalanceReport (
   balanceReport,
   balanceReportValue,
   mixedAmountValue,
+  amountValue,
   flatShowsExclusiveBalance,
 
   -- * Tests
