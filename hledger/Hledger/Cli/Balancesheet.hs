@@ -19,6 +19,7 @@ import Text.Shakespeare.Text
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Balance
+import Hledger.Cli.BalanceView
 
 
 balancesheetmode :: Mode RawOpts
@@ -35,30 +36,13 @@ balancesheetmode = (defCommandMode $ ["balancesheet"]++aliases) {
  }
   where aliases = ["bs"]
 
--- | Print a simple balance sheet.
 balancesheet :: CliOpts -> Journal -> IO ()
-balancesheet CliOpts{reportopts_=ropts} j = do
-  -- let lines = case lineFormatFromOpts ropts of Left err, Right ...
-  d <- getCurrentDay
-  let q = queryFromOpts d (withoutBeginDate ropts)
-      assetreport@(_,assets)          = balanceReport ropts (And [q, journalAssetAccountQuery j]) j
-      liabilityreport@(_,liabilities) = balanceReport ropts (And [q, journalLiabilityAccountQuery j]) j
-      total = assets + liabilities
-  LT.putStr $ [lt|Balance Sheet
-
-Assets:
-#{balanceReportAsText ropts assetreport}
-Liabilities:
-#{balanceReportAsText ropts liabilityreport}
-Total:
---------------------
-#{padleft 20 $ showMixedAmountWithoutPrice total}
-|]
-
-withoutBeginDate :: ReportOpts -> ReportOpts
-withoutBeginDate ropts@ReportOpts{..} = ropts{period_=p}
+balancesheet = balanceviewReport bv
   where
-    p = dateSpanAsPeriod $ DateSpan Nothing (periodEnd period_)
+    bv = BV "Balance Sheet"
+            [ ("Assets", journalAssetAccountQuery)
+            , ("Liabilities", journalLiabilityAccountQuery)
+            ]
 
 tests_Hledger_Cli_Balancesheet :: Test
 tests_Hledger_Cli_Balancesheet = TestList
