@@ -16,10 +16,6 @@ Show accounts and their balances. Alias: bal.
 `--flat`
 : show accounts as a list; amounts exclude subaccounts except when account is depth-clipped (default in multicolumn reports)
 
-`-V --value`
-: convert amounts to their market value on the report end date
-(using the most recent applicable [market price](journal.html#market-prices), if any)
-
 `-A --average`
 : show a row average column (in multicolumn mode)
 
