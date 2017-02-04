@@ -6,6 +6,7 @@ module Hledger.Cli.BalanceView (
  ,balanceviewReport
 ) where
 
+import Control.Monad (unless)
 import Data.Time.Calendar (Day)
 import Data.List (intercalate)
 import Data.Monoid (Sum(..), (<>))
@@ -29,6 +30,10 @@ balanceviewmode bv@BV{..} = (defCommandMode $ bvmode : bvaliases) {
      groupUnnamed = [
       flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
+     ,flagNone ["value","V"] (setboolopt "value") "convert amounts to their market value on the report end date (using the most recent applicable market price, if any)"
+     ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"
+     ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
+     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
@@ -38,22 +43,29 @@ balanceviewmode bv@BV{..} = (defCommandMode $ bvmode : bvaliases) {
 balanceviewQueryReport
     :: ReportOpts
     -> Day
+    -> Maybe Day
     -> Journal
     -> String
     -> (Journal -> Query)
     -> ([String], Sum MixedAmount)
-balanceviewQueryReport ropts d j t q = ([view], Sum amt)
+balanceviewQueryReport ropts currDay reportEnd j t q = ([view], Sum amt)
     where
-      q' = And [queryFromOpts d (withoutBeginDate ropts), q j]
-      rep@(_ , amt) = balanceReport ropts q' j
+      q' = And [queryFromOpts currDay (withoutBeginDate ropts), q j]
+      convert | value_ ropts = maybe id (balanceReportValue j) reportEnd
+              | otherwise    = id
+      rep@(_ , amt) = convert $ balanceReport ropts q' j
       view = intercalate "\n" [t <> ":", balanceReportAsText ropts rep]
 
 balanceviewReport :: BalanceView -> CliOpts -> Journal -> IO ()
 balanceviewReport BV{..} CliOpts{reportopts_=ropts} j = do
-  d <- getCurrentDay
-  let (views, amt) = foldMap (uncurry (balanceviewQueryReport ropts d j)) bvqueries
+  currDay   <- getCurrentDay
+  reportEnd <- reportEndDate j ropts
+  let (views, amt) =
+        foldMap (uncurry (balanceviewQueryReport ropts currDay reportEnd j))
+           bvqueries
   mapM_ putStrLn (bvname : "" : views)
-  putStrLn . unlines $
+
+  unless (no_total_ ropts) .  putStrLn . unlines $
     [ "Total:"
     , "--------------------"
     , padleft 20 $ showMixedAmountWithoutPrice (getSum amt)
