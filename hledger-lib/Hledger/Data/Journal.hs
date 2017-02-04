@@ -32,6 +32,8 @@ module Hledger.Data.Journal (
   journalAccountNamesUsed,
   -- journalAmountAndPriceCommodities,
   journalAmounts,
+  overJournalAmounts,
+  traverseJournalAmounts,
   -- journalCanonicalCommodities,
   journalDateSpan,
   journalDescriptions,
@@ -62,12 +64,14 @@ module Hledger.Data.Journal (
   tests_Hledger_Data_Journal,
 )
 where
+import Control.Applicative (Const(..))
 import Control.Arrow
 import Control.Monad
 import Control.Monad.Except
 import qualified Control.Monad.Reader as R
 import Control.Monad.ST
 import Data.Array.ST
+import Data.Functor.Identity (Identity(..))
 import qualified Data.HashTable.ST.Cuckoo as HT
 import Data.List
 -- import Data.Map (findWithDefault)
@@ -826,12 +830,28 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
 -- Amounts in posting prices are not used for canonicalisation.
 --
 journalAmounts :: Journal -> [Amount]
-journalAmounts j =
-  concat
-   [map mpamount $ jmarketprices j
-   ,concatMap flatten $ map pamount $ journalPostings j
-   ]
-  where flatten (Mixed as) = as
+journalAmounts = getConst . traverseJournalAmounts (Const . (:[]))
+
+-- | Maps over all of the amounts in the journal
+overJournalAmounts :: (Amount -> Amount) -> Journal -> Journal
+overJournalAmounts f = runIdentity . traverseJournalAmounts (Identity . f)
+
+-- | Traverses over all ofthe amounts in the journal, in the order
+-- indicated by 'journalAmounts'.
+traverseJournalAmounts
+    :: Applicative f
+    => (Amount -> f Amount)
+    -> Journal -> f Journal
+traverseJournalAmounts f j =
+    recombine <$> (traverse . mpa) f (jmarketprices j)
+              <*> (traverse . tp . traverse . pamt . maa . traverse) f (jtxns j)
+  where
+    recombine mps txns = j { jmarketprices = mps, jtxns = txns }
+    -- a bunch of traversals
+    mpa  g mp = (\amt -> mp { mpamount  = amt }) <$> g (mpamount mp)
+    tp   g t  = (\ps  -> t  { tpostings = ps  }) <$> g (tpostings t)
+    pamt g p  = (\amt -> p  { pamount   = amt }) <$> g (pamount p)
+    maa  g (Mixed as) = Mixed <$> g as
 
 -- | The fully specified date span enclosing the dates (primary or secondary)
 -- of all this journal's transactions and postings, or DateSpan Nothing Nothing
