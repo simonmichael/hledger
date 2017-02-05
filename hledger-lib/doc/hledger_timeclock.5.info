@@ -1,5 +1,5 @@
-This is hledger-lib/doc/hledger_timeclock.5.info, produced by makeinfo
-version 4.8 from stdin.
+This is hledger_timeclock.5.info, produced by makeinfo version 5.2 from
+stdin.
 
 
 File: hledger_timeclock.5.info,  Node: Top,  Up: (dir)
@@ -7,13 +7,12 @@ File: hledger_timeclock.5.info,  Node: Top,  Up: (dir)
 hledger_timeclock(5) hledger dev
 ********************************
 
-hledger can read timeclock files. As with Ledger, these are (a subset
+hledger can read timeclock files.  As with Ledger, these are (a subset
 of) timeclock.el's format, containing clock-in and clock-out entries as
-in the example below. The date is a simple date. The time format is
-HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional. The timezone, if
+in the example below.  The date is a simple date.  The time format is
+HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional.  The timezone, if
 present, must be four digits and is ignored (currently the time is
 always interpreted as a local time).
-
 
 i 2015/03/30 09:00:00 some:account name  optional description after two spaces
 o 2015/03/30 09:20:00
@@ -21,10 +20,9 @@ i 2015/03/31 22:21:45 another account
 o 2015/04/01 02:00:34
 
    hledger treats each clock-in/clock-out pair as a transaction posting
-some number of hours to an account. Or if the session spans more than
-one day, it is split into several transactions, one for each day. For
-the above time log, `hledger print' generates these journal entries:
-
+some number of hours to an account.  Or if the session spans more than
+one day, it is split into several transactions, one for each day.  For
+the above time log, 'hledger print' generates these journal entries:
 
 $ hledger -f t.timeclock print
 2015/03/30 * optional description after two spaces
@@ -38,7 +36,6 @@ $ hledger -f t.timeclock print
 
    Here is a sample.timeclock to download and some queries to try:
 
-
 $ hledger -f sample.timeclock balance                               # current time balances
 $ hledger -f sample.timeclock register -p 2009/3                    # sessions in march 2009
 $ hledger -f sample.timeclock register -p weekly --depth 1 --empty  # time summary by week
@@ -50,18 +47,16 @@ $ hledger -f sample.timeclock register -p weekly --depth 1 --empty  # time summa
 
    * at the command line, use these bash aliases:
 
-
      alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
      alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
 
-   * or use the old `ti' and `to' scripts in the ledger 2.x repository.
+   * or use the old 'ti' and 'to' scripts in the ledger 2.x repository.
      These rely on a "timeclock" executable which I think is just the
      ledger 2 executable renamed.
 
 
-
 
 Tag Table:
-Node: Top96
+Node: Top80
 
 End Tag Table

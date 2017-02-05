@@ -1,31 +1,29 @@
-This is hledger/doc/hledger.1.info, produced by makeinfo version 4.8
-from stdin.
+This is hledger.1.info, produced by makeinfo version 5.2 from stdin.
 
 
-File: hledger.1.info,  Node: Top,  Up: (dir)
+File: hledger.1.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
 hledger(1) hledger dev
 **********************
 
 This is hledger's command-line interface (there are also curses and web
-interfaces). Its basic function is to read a plain text file describing
+interfaces).  Its basic function is to read a plain text file describing
 financial transactions (in accounting terms, a general journal) and
 print useful reports on standard output, or export them as CSV. hledger
 can also read some other file formats such as CSV files, translating
-them to journal format. Additionally, hledger lists other hledger-*
+them to journal format.  Additionally, hledger lists other hledger-*
 executables found in the user's $PATH and can invoke them as
 subcommands.
 
    hledger reads data from one or more files in hledger journal,
-timeclock, timedot, or CSV format specified with `-f', or
-`$LEDGER_FILE', or `$HOME/.hledger.journal' (on windows, perhaps
-`C:/Users/USER/.hledger.journal'). If using `$LEDGER_FILE', note this
-must be a real environment variable, not a shell variable. You can
-specify standard input with `-f-'.
+timeclock, timedot, or CSV format specified with '-f', or
+'$LEDGER_FILE', or '$HOME/.hledger.journal' (on windows, perhaps
+'C:/Users/USER/.hledger.journal').  If using '$LEDGER_FILE', note this
+must be a real environment variable, not a shell variable.  You can
+specify standard input with '-f-'.
 
    Transactions are dated movements of money between two (or more) named
 accounts, and are recorded with journal entries like this:
-
 
 2015/10/16 bought food
  expenses:food          $10
@@ -34,15 +32,14 @@ accounts, and are recorded with journal entries like this:
    For more about this format, see hledger_journal(5).
 
    Most users use a text editor to edit the journal, usually with an
-editor mode such as ledger-mode for added convenience. hledger's
+editor mode such as ledger-mode for added convenience.  hledger's
 interactive add command is another way to record new transactions.
 hledger never changes existing transactions.
 
    To get started, you can either save some entries like the above in
-`~/.hledger.journal', or run `hledger add' and follow the prompts. Then
-try some commands like `hledger print' or `hledger balance'. See
+'~/.hledger.journal', or run 'hledger add' and follow the prompts.  Then
+try some commands like 'hledger print' or 'hledger balance'.  See
 COMMANDS and EXAMPLES below.
-
 * Menu:
 
 * EXAMPLES::
@@ -60,7 +57,6 @@ File: hledger.1.info,  Node: EXAMPLES,  Next: OPTIONS,  Prev: Top,  Up: Top
 
 Two simple transactions in hledger journal format:
 
-
 2015/9/30 gift received
   assets:cash   $20
   income:gifts
@@ -71,7 +67,6 @@ Two simple transactions in hledger journal format:
 
    Some basic reports:
 
-
 $ hledger print
 2015/09/30 gift received
     assets:cash            $20
@@ -81,7 +76,6 @@ $ hledger print
     expenses:food           $10
     assets:cash            $-10
 
-
 $ hledger accounts --tree
 assets
   cash
@@ -90,7 +84,6 @@ expenses
 income
   gifts
 
-
 $ hledger balance
                  $10  assets:cash
                  $10  expenses:food
@@ -98,13 +91,11 @@ $ hledger balance
 --------------------
                    0
 
-
 $ hledger register cash
 2015/09/30 gift received   assets:cash               $20           $20
 2015/10/16 farmers market  assets:cash              $-10           $10
 
    More commands:
-
 
 $ hledger                                 # show available commands
 $ hledger add                             # add more transactions to the journal file
@@ -123,63 +114,59 @@ File: hledger.1.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 2 OPTIONS
 *********
 
-To see general usage and the command list: `hledger -h' or just
-`hledger'. To see usage for a specific command: `hledger COMMAND -h'.
+To see general usage and the command list: 'hledger -h' or just
+'hledger'.  To see usage for a specific command: 'hledger COMMAND -h'.
 
    hledger has several kinds of options:
 
    * General options are always available and can appear anywhere on the
-     command line. `hledger -h' shows these. Eg: `hledger --version'.
+     command line.  'hledger -h' shows these.  Eg: 'hledger --version'.
 
-   * Common reporting options are available with most commands. These
+   * Common reporting options are available with most commands.  These
      and all other non-general options must be written after COMMAND.
-     `hledger COMMAND -h' shows these. Eg: `hledger register --cleared'.
+     'hledger COMMAND -h' shows these.  Eg: 'hledger register
+     --cleared'.
 
    * Command-specific options are also provided by some commands.
-     `hledger COMMAND -h' shows these too. Eg: `hledger register
+     'hledger COMMAND -h' shows these too.  Eg: 'hledger register
      --average'.
 
    * Some hledger commands come from separate add-on executables, which
-     have their own options. `hledger COMMAND -h' shows these, as
-     usual. Such options, if not also supported by hledger, should be
-     written following a double hyphen argument (`--') so that
-     hledger's option parser does not complain. Eg: `hledger ui --
-     --register=checking'. Or, you can just run the add-on directly:
-     `hledger-ui --register=checking'.
+     have their own options.  'hledger COMMAND -h' shows these, as
+     usual.  Such options, if not also supported by hledger, should be
+     written following a double hyphen argument ('--') so that hledger's
+     option parser does not complain.  Eg: 'hledger ui --
+     --register=checking'.  Or, you can just run the add-on directly:
+     'hledger-ui --register=checking'.
 
-
-   Command arguments may also follow the command name. In most cases
-these specify a query which filters the data. Command options and
+   Command arguments may also follow the command name.  In most cases
+these specify a query which filters the data.  Command options and
 arguments can be intermixed.
 
    Option and argument values containing problematic characters should
 be escaped with double quotes, backslashes, or (best) single quotes.
 This means spaces, but also characters which are significant to your
-command shell, such as less-than/greater-than. Eg: `hledger register -p
+command shell, such as less-than/greater-than.  Eg: 'hledger register -p
 'last year' "accounts receivable (receivable|payable)" amt:\>100'.
 
    Characters which are significant to the shell and also in regular
 expressions, like parentheses, the pipe symbol and the dollar sign, must
-sometimes be double-escaped. Eg, to match the dollar symbol: `hledger
-balance cur:'\$'' or `hledger balance cur:\\$'.
+sometimes be double-escaped.  Eg, to match the dollar symbol: 'hledger
+balance cur:'\$'' or 'hledger balance cur:\\$'.
 
-   There's more.. options and arguments being passed by hledger to an
-add-on executable get de-escaped once in the process. In this case you
-might need triple-escaping. Eg: `hledger ui cur:'\\$'' or `hledger ui
+   There's more..  options and arguments being passed by hledger to an
+add-on executable get de-escaped once in the process.  In this case you
+might need triple-escaping.  Eg: 'hledger ui cur:'\\$'' or 'hledger ui
 cur:\\\\$'.
 
    If in doubt, keep things simple:
 
    * write options after the command
-
    * enclose problematic args in single quotes
-
    * if needed, also add a backslash to escape regexp metacharacters
-
    * run add-on executables directly
 
-   If you're really curious, add `--debug=2' for troubleshooting.
-
+   If you're really curious, add '--debug=2' for troubleshooting.
 * Menu:
 
 * General options::
@@ -201,35 +188,36 @@ File: hledger.1.info,  Node: General options,  Next: Reporting options,  Up: OPT
 
 Always available, can be written before or after COMMAND.
 
-`-h'
-     show general usage (or after COMMAND, the command's usage)
+'-h'
 
-`--help'
+     show general usage (or after COMMAND, the command's usage)
+'--help'
+
      show the current program's manual as plain text (or after an add-on
      COMMAND, the add-on's manual)
+'--man'
 
-`--man'
      show the current program's manual with man
+'--info'
 
-`--info'
      show the current program's manual with info
+'--version'
 
-`--version'
      show version
+'--debug[=N]'
 
-`--debug[=N]'
      show debug output (levels 1-9, default: 1)
+'-f FILE --file=FILE'
 
-`-f FILE --file=FILE'
-     use a different input file. For stdin, use -
+     use a different input file.  For stdin, use -
+'--rules-file=RULESFILE'
 
-`--rules-file=RULESFILE'
      Conversion rules file to use when reading CSV (default: FILE.rules)
+'--alias=OLD=NEW'
 
-`--alias=OLD=NEW'
      display accounts named OLD as NEW
+'-I --ignore-assertions'
 
-`-I --ignore-assertions'
      ignore any failing balance assertions in the journal
 
 
@@ -240,64 +228,69 @@ File: hledger.1.info,  Node: Reporting options,  Next: Input files,  Prev: Gener
 
 Common reporting options, must be written after COMMAND.
 
-`-b --begin=DATE'
+'-b --begin=DATE'
+
      include postings/txns on or after this date
+'-e --end=DATE'
 
-`-e --end=DATE'
      include postings/txns before this date
+'-D --daily'
 
-`-D --daily'
      multiperiod/multicolumn report by day
+'-W --weekly'
 
-`-W --weekly'
      multiperiod/multicolumn report by week
+'-M --monthly'
 
-`-M --monthly'
      multiperiod/multicolumn report by month
+'-Q --quarterly'
 
-`-Q --quarterly'
      multiperiod/multicolumn report by quarter
+'-Y --yearly'
 
-`-Y --yearly'
      multiperiod/multicolumn report by year
+'-p --period=PERIODEXP'
 
-`-p --period=PERIODEXP'
      set start date, end date, and/or reporting interval all at once
      (overrides the flags above)
+'--date2'
 
-`--date2'
      show, and match with -b/-e/-p/date:, secondary dates instead
+'-C --cleared'
 
-`-C --cleared'
      include only cleared postings/txns
+'--pending'
 
-`--pending'
      include only pending postings/txns
+'-U --uncleared'
 
-`-U --uncleared'
      include only uncleared (and pending) postings/txns
+'-R --real'
 
-`-R --real'
      include only non-virtual postings
+'--depth=N'
 
-`--depth=N'
      hide accounts/postings deeper than N
+'-E --empty'
 
-`-E --empty'
      show items with zero amount, normally hidden
+'-B --cost'
 
-`-B --cost'
      convert amounts to their cost at transaction time (using the
      transaction price, if any)
+'-V --value'
 
-`--pivot TAGNAME'
+     convert amounts to their market value on the report end date (using
+     the most recent applicable market price, if any)
+'--pivot TAGNAME'
+
      organize reports by some tag's value instead of by account
+'--anon'
 
-`--anon'
      show anonymized accounts and payees
 
    If a reporting option occurs more than once on the command line, the
-last one takes precedence. Eg -p jan -p feb is equivalent to -p feb.
+last one takes precedence.  Eg -p jan -p feb is equivalent to -p feb.
 
 
 File: hledger.1.info,  Node: Input files,  Next: Smart dates,  Prev: Reporting options,  Up: OPTIONS
@@ -306,58 +299,53 @@ File: hledger.1.info,  Node: Input files,  Next: Smart dates,  Prev: Reporting o
 ===============
 
 hledger reads transactions from a data file (and the add command writes
-to it). By default this file is `$HOME/.hledger.journal' (or on
-Windows, something like `C:/Users/USER/.hledger.journal'). You can
-override this with the `$LEDGER_FILE' environment variable:
-
+to it).  By default this file is '$HOME/.hledger.journal' (or on
+Windows, something like 'C:/Users/USER/.hledger.journal').  You can
+override this with the '$LEDGER_FILE' environment variable:
 
 $ setenv LEDGER_FILE ~/finance/2016.journal
 $ hledger stats
 
-   or with the `-f/--file' option:
-
+   or with the '-f/--file' option:
 
 $ hledger -f /some/file stats
 
-   The file name `-' (hyphen) means standard input:
-
+   The file name '-' (hyphen) means standard input:
 
 $ cat some.journal | hledger -f-
 
-   Usually the data file is in hledger's journal format, but it can
-also be one of several other formats, listed below. hledger detects the
+   Usually the data file is in hledger's journal format, but it can also
+be one of several other formats, listed below.  hledger detects the
 format automatically based on the file extension, or if that is not
 recognised, by trying each built-in "reader" in turn:
 
 Reader:     Reads:                             Used for file extensions:
---------------------------------------------------------------------------- 
-`journal'   hledger's journal format, also     `.journal' `.j' `.hledger'
-            some Ledger journals               `.ledger'
-`timeclock' timeclock files (precise time      `.timeclock'
-            logging)                           
-`timedot'   timedot files (approximate time    `.timedot'
-            logging)                           
-`csv'       comma-separated values (data       `.csv'
-            interchange)                       
+---------------------------------------------------------------------------
+'journal'   hledger's journal format, also     '.journal' '.j'
+            some Ledger journals               '.hledger' '.ledger'
+'timeclock' timeclock files (precise time      '.timeclock'
+            logging)
+'timedot'   timedot files (approximate time    '.timedot'
+            logging)
+'csv'       comma-separated values (data       '.csv'
+            interchange)
 
    If needed (eg to ensure correct error messages when a file has the
 "wrong" extension), you can force a specific reader/format by prepending
-it to the file path with a colon. Examples:
-
+it to the file path with a colon.  Examples:
 
 $ hledger -f csv:/some/csv-file.dat stats
 $ echo 'i 2009/13/1 08:00:00' | hledger print -ftimeclock:-
 
-   You can also specify multiple `-f' options, to read multiple files
-as one big journal. There are some limitations with this:
+   You can also specify multiple '-f' options, to read multiple files as
+one big journal.  There are some limitations with this:
 
    * directives in one file will not affect the other files
-
    * balance assertions will not see any account balances from previous
      files
 
    If you need those, either use the include directive, or concatenate
-the files, eg: `cat a.journal b.journal | hledger -f- CMD'.
+the files, eg: 'cat a.journal b.journal | hledger -f- CMD'.
 
 
 File: hledger.1.info,  Node: Smart dates,  Next: Report start & end date,  Prev: Input files,  Up: OPTIONS
@@ -366,21 +354,21 @@ File: hledger.1.info,  Node: Smart dates,  Next: Report start & end date,  Prev:
 ===============
 
 hledger's user interfaces accept a flexible "smart date" syntax (unlike
-dates in the journal file). Smart dates allow some english words, can be
-relative to today's date, and can have less-significant date parts
+dates in the journal file).  Smart dates allow some english words, can
+be relative to today's date, and can have less-significant date parts
 omitted (defaulting to 1).
 
    Examples:
 
-`2009/1/1', `2009/01/01', `2009-1-1', `2009.1.1'   simple dates, several separators allowed
-`2009/1', `2009'                                   same as above - a missing day or month defaults to 1
-`1/1', `january', `jan', `this year'               relative dates, meaning january 1 of the current year
-`next year'                                        january 1 of next year
-`this month'                                       the 1st of the current month
-`this week'                                        the most recent monday
-`last week'                                        the monday of the week before this one
-`lastweek'                                         spaces are optional
-`today', `yesterday', `tomorrow'                   
+'2009/1/1', '2009/01/01', '2009-1-1', '2009.1.1'   simple dates, several separators allowed
+'2009/1', '2009'                                   same as above - a missing day or month defaults to 1
+'1/1', 'january', 'jan', 'this year'               relative dates, meaning january 1 of the current year
+'next year'                                        january 1 of next year
+'this month'                                       the 1st of the current month
+'this week'                                        the most recent monday
+'last week'                                        the monday of the week before this one
+'lastweek'                                         spaces are optional
+'today', 'yesterday', 'tomorrow'
 
 
 File: hledger.1.info,  Node: Report start & end date,  Next: Report intervals,  Prev: Smart dates,  Up: OPTIONS
@@ -389,27 +377,27 @@ File: hledger.1.info,  Node: Report start & end date,  Next: Report intervals,  
 ===========================
 
 Most hledger reports show the full span of time represented by the
-journal data, by default. So, the effective report start and end dates
+journal data, by default.  So, the effective report start and end dates
 will be the earliest and latest transaction or posting dates found in
 the journal.
 
    Often you will want to see a shorter time span, such as the current
-month. You can specify a start and/or end date using `-b/--begin',
-`-e/--end', `-p/--period' or a `date:' query (described below). All of
-these accept the smart date syntax. One important thing to be aware of
-when specifying end dates: as in Ledger, end dates are exclusive, so
-you need to write the date _after_ the last day you want to include.
+month.  You can specify a start and/or end date using '-b/--begin',
+'-e/--end', '-p/--period' or a 'date:' query (described below).  All of
+these accept the smart date syntax.  One important thing to be aware of
+when specifying end dates: as in Ledger, end dates are exclusive, so you
+need to write the date _after_ the last day you want to include.
 
    Examples:
 
-`-b 2016/3/17'      begin on St. Patrick's day 2016
-`-e 12/1'           end at the start of december 1st of the current year (11/30 will be the last date included)
-`-b thismonth'      all transactions on or after the 1st of the current month
-`-p thismonth'      all transactions in the current month
-`date:2016/3/17-'   the above written as queries instead
-`date:-12/1'        
-`date:thismonth-'   
-`date:thismonth'    
+'-b 2016/3/17'      begin on St.  Patrick's day 2016
+'-e 12/1'           end at the start of december 1st of the current year (11/30 will be the last date included)
+'-b thismonth'      all transactions on or after the 1st of the current month
+'-p thismonth'      all transactions in the current month
+'date:2016/3/17-'   the above written as queries instead
+'date:-12/1'
+'date:thismonth-'
+'date:thismonth'
 
 
 File: hledger.1.info,  Node: Report intervals,  Next: Period expressions,  Prev: Report start & end date,  Up: OPTIONS
@@ -419,9 +407,9 @@ File: hledger.1.info,  Node: Report intervals,  Next: Period expressions,  Prev:
 
 A report interval can be specified so that commands like register,
 balance and activity will divide their reports into multiple subperiods.
-The basic intervals can be selected with one of `-D/--daily',
-`-W/--weekly', `-M/--monthly', `-Q/--quarterly', or `-Y/--yearly'. More
-complex intervals may be specified with a period expression. Report
+The basic intervals can be selected with one of '-D/--daily',
+'-W/--weekly', '-M/--monthly', '-Q/--quarterly', or '-Y/--yearly'.  More
+complex intervals may be specified with a period expression.  Report
 intervals can not be specified with a query, currently.
 
 
@@ -430,74 +418,74 @@ File: hledger.1.info,  Node: Period expressions,  Next: Depth limiting,  Prev: R
 2.7 Period expressions
 ======================
 
-The `-p/--period' option accepts period expressions, a shorthand way of
+The '-p/--period' option accepts period expressions, a shorthand way of
 expressing a start date, end date, and/or report interval all at once.
 
    Here's a basic period expression specifying the first quarter of
 2009.  Note, hledger always treats start dates as inclusive and end
 dates as exclusive:
 
-   `-p "from 2009/1/1 to 2009/4/1"'
+   '-p "from 2009/1/1 to 2009/4/1"'
 
    Keywords like "from" and "to" are optional, and so are the spaces, as
-long as you don't run two dates together. "to" can also be written as
-"-". These are equivalent to the above:
+long as you don't run two dates together.  "to" can also be written as
+"-".  These are equivalent to the above:
 
-`-p "2009/1/1 2009/4/1"'
-`-p2009/1/1to2009/4/1'
-`-p2009/1/1-2009/4/1'
+'-p "2009/1/1 2009/4/1"'
+'-p2009/1/1to2009/4/1'
+'-p2009/1/1-2009/4/1'
 
    Dates are smart dates, so if the current year is 2009, the above can
 also be written as:
 
-`-p "1/1 4/1"'
-`-p "january-apr"'
-`-p "this year to 4/1"'
+'-p "1/1 4/1"'
+'-p "january-apr"'
+'-p "this year to 4/1"'
 
    If you specify only one date, the missing start or end date will be
 the earliest or latest transaction in your journal:
 
-`-p "from 2009/1/1"'   everything after january 1, 2009
-`-p "from 2009/1"'     the same
-`-p "from 2009"'       the same
-`-p "to 2009"'         everything before january 1, 2009
+'-p "from 2009/1/1"'   everything after january 1, 2009
+'-p "from 2009/1"'     the same
+'-p "from 2009"'       the same
+'-p "to 2009"'         everything before january 1, 2009
 
    A single date with no "from" or "to" defines both the start and end
 date like so:
 
-`-p "2009"'       the year 2009; equivalent to "2009/1/1 to 2010/1/1"
-`-p "2009/1"'     the month of jan; equivalent to "2009/1/1 to 2009/2/1"
-`-p "2009/1/1"'   just that day; equivalent to "2009/1/1 to 2009/1/2"
+'-p "2009"'       the year 2009; equivalent to "2009/1/1 to 2010/1/1"
+'-p "2009/1"'     the month of jan; equivalent to "2009/1/1 to 2009/2/1"
+'-p "2009/1/1"'   just that day; equivalent to "2009/1/1 to 2009/1/2"
 
-   The argument of `-p' can also begin with, or be, a report interval
-expression. The basic report intervals are `daily', `weekly',
-`monthly', `quarterly', or `yearly', which have the same effect as the
-`-D',`-W',`-M',`-Q', or `-Y' flags. Between report interval and
-start/end dates (if any), the word `in' is optional. Examples:
+   The argument of '-p' can also begin with, or be, a report interval
+expression.  The basic report intervals are 'daily', 'weekly',
+'monthly', 'quarterly', or 'yearly', which have the same effect as the
+'-D','-W','-M','-Q', or '-Y' flags.  Between report interval and
+start/end dates (if any), the word 'in' is optional.  Examples:
 
-`-p "weekly from 2009/1/1 to 2009/4/1"'
-`-p "monthly in 2008"'
-`-p "quarterly"'
+'-p "weekly from 2009/1/1 to 2009/4/1"'
+'-p "monthly in 2008"'
+'-p "quarterly"'
 
    The following more complex report intervals are also supported:
-`biweekly', `bimonthly', `every N days|weeks|months|quarters|years',
-`every Nth day [of month]', `every Nth day of week'.
+'biweekly', 'bimonthly', 'every N days|weeks|months|quarters|years',
+'every Nth day [of month]', 'every Nth day of week'.
 
    Examples:
 
-`-p "bimonthly from 2008"'
-`-p "every 2 weeks"'
-`-p "every 5 days from 1/3"'
+'-p "bimonthly from 2008"'
+'-p "every 2 weeks"'
+'-p "every 5 days from 1/3"'
 
    Show historical balances at end of 15th each month (N is exclusive
 end date):
 
-   `hledger balance -H -p "every 16th day"'
+   'hledger balance -H -p "every 16th day"'
 
    Group postings from start of wednesday to end of next tuesday (N is
 start date and exclusive end date):
 
-   `hledger register checking -p "every 3rd day of week"'
+   'hledger register checking -p "every 3rd day of week"'
 
 
 File: hledger.1.info,  Node: Depth limiting,  Next: Pivoting,  Prev: Period expressions,  Up: OPTIONS
@@ -505,9 +493,9 @@ File: hledger.1.info,  Node: Depth limiting,  Next: Pivoting,  Prev: Period expr
 2.8 Depth limiting
 ==================
 
-With the `--depth N' option, commands like account, balance and
-register will show only the uppermost accounts in the account tree, down
-to level N. Use this when you want a summary with less detail.
+With the '--depth N' option, commands like account, balance and register
+will show only the uppermost accounts in the account tree, down to level
+N. Use this when you want a summary with less detail.
 
 
 File: hledger.1.info,  Node: Pivoting,  Next: Regular expressions,  Prev: Depth limiting,  Up: OPTIONS
@@ -516,18 +504,17 @@ File: hledger.1.info,  Node: Pivoting,  Next: Regular expressions,  Prev: Depth 
 ============
 
 Normally hledger sums amounts, and organizes them in a hierarchy, based
-on account name. The `--pivot TAGNAME' option causes it to sum and
+on account name.  The '--pivot TAGNAME' option causes it to sum and
 organize hierarchy based on some other field instead.
 
-   TAGNAME is the full, case-insensitive name of a tag you have
-defined, or one of the built-in implicit tags (like `code' or `payee').
-As with account names, when tag values have
-`multiple:colon-separated:parts' hledger will build hierarchy,
-displayed in tree-mode reports, summarisable with a depth limit, and so
-on.
+   TAGNAME is the full, case-insensitive name of a tag you have defined,
+or one of the built-in implicit tags (like 'code' or 'payee').  As with
+account names, when tag values have 'multiple:colon-separated:parts'
+hledger will build hierarchy, displayed in tree-mode reports,
+summarisable with a depth limit, and so on.
 
-   `--pivot' affects all reports, and is one of those options you can
-write before the command name if you wish. You can think of hledger
+   '--pivot' affects all reports, and is one of those options you can
+write before the command name if you wish.  You can think of hledger
 transforming the journal before any other processing, replacing every
 posting's account name with the value of the specified tag on that
 posting, inheriting it from the transaction or using a blank value if
@@ -535,13 +522,11 @@ it's not present.
 
    An example:
 
-
 2016/02/16 Member Fee Payment
     assets:bank account                    2 EUR
     income:member fees                    -2 EUR  ; member: John Doe
 
    Normal balance report showing account names:
-
 
 $ hledger balance
                2 EUR  assets:bank account
@@ -550,7 +535,6 @@ $ hledger balance
                    0
 
    Pivoted balance report, using member: tag values instead:
-
 
 $ hledger balance --pivot member
                2 EUR
@@ -561,7 +545,6 @@ $ hledger balance --pivot member
    One way to show only amounts with a member: value (using a query,
 described below):
 
-
 $ hledger balance --pivot member tag:member=.
               -2 EUR  John Doe
 --------------------
@@ -569,7 +552,6 @@ $ hledger balance --pivot member tag:member=.
 
    Another way (the acct: query matches against the pivoted "account
 name"):
-
 
 $ hledger balance --pivot member acct:.
               -2 EUR  John Doe
@@ -585,46 +567,38 @@ File: hledger.1.info,  Node: Regular expressions,  Prev: Pivoting,  Up: OPTIONS
 hledger uses regular expressions in a number of places:
 
    * query terms, on the command line and in the hledger-web search
-     form: `REGEX', `desc:REGEX', `cur:REGEX', `tag:...=REGEX'
+     form: 'REGEX', 'desc:REGEX', 'cur:REGEX', 'tag:...=REGEX'
+   * CSV rules conditional blocks: 'if REGEX ...'
+   * account alias directives and options: 'alias /REGEX/ =
+     REPLACEMENT', '--alias /REGEX/=REPLACEMENT'
 
-   * CSV rules conditional blocks: `if REGEX ...'
-
-   * account alias directives and options: `alias /REGEX/ =
-     REPLACEMENT', `--alias /REGEX/=REPLACEMENT'
-
-   hledger's regular expressions come from the regex-tdfa library. In
+   hledger's regular expressions come from the regex-tdfa library.  In
 general they:
 
    * are case insensitive
-
    * are infix matching (do not need to match the entire thing being
      matched)
-
    * are POSIX extended regular expressions
-
    * also support GNU word boundaries (\<, \>, \b, \B)
-
    * and parenthesised capturing groups and numeric backreferences in
      replacement strings
-
    * do not support mode modifiers like (?s)
 
    Some things to note:
 
-   * In the `alias' directive and `--alias' option, regular expressions
-     must be enclosed in forward slashes (`/REGEX/').  Elsewhere in
+   * In the 'alias' directive and '--alias' option, regular expressions
+     must be enclosed in forward slashes ('/REGEX/').  Elsewhere in
      hledger, these are not required.
 
-   * To match a regular expression metacharacter like `$' as a literal
-     character, prepend a backslash. Eg to search for amounts with the
-     dollar sign in hledger-web, write `cur:\$'.
+   * To match a regular expression metacharacter like '$' as a literal
+     character, prepend a backslash.  Eg to search for amounts with the
+     dollar sign in hledger-web, write 'cur:\$'.
 
-   * On the command line, some metacharacters like `$' have a special
+   * On the command line, some metacharacters like '$' have a special
      meaning to the shell and so must be escaped a second time, with
-     single or double quotes or another backslash. Eg, to match amounts
-     with the dollar sign from the command line, write `cur:'\$'' or
-     `cur:\\$'.
-
+     single or double quotes or another backslash.  Eg, to match amounts
+     with the dollar sign from the command line, write 'cur:'\$'' or
+     'cur:\\$'.
 
 
 File: hledger.1.info,  Node: QUERIES,  Next: COMMANDS,  Prev: OPTIONS,  Up: Top
@@ -633,104 +607,100 @@ File: hledger.1.info,  Node: QUERIES,  Next: COMMANDS,  Prev: OPTIONS,  Up: Top
 *********
 
 One of hledger's strengths is being able to quickly report on precise
-subsets of your data. Most commands accept an optional query expression,
-written as arguments after the command name, to filter the data by date,
-account name or other criteria. The syntax is similar to a web search:
-one or more space-separated search terms, quotes to enclose whitespace,
-optional prefixes to match specific fields. Multiple search terms are
-combined as follows:
+subsets of your data.  Most commands accept an optional query
+expression, written as arguments after the command name, to filter the
+data by date, account name or other criteria.  The syntax is similar to
+a web search: one or more space-separated search terms, quotes to
+enclose whitespace, optional prefixes to match specific fields.
+Multiple search terms are combined as follows:
 
    All commands except print: show transactions/postings/accounts which
 match (or negatively match)
 
    * any of the description terms AND
-
    * any of the account terms AND
-
    * all the other terms.
 
    The print command: show transactions which
 
    * match any of the description terms AND
-
    * have any postings matching any of the positive account terms AND
-
    * have no postings matching any of the negative account terms AND
-
    * match all the other terms.
 
    The following kinds of search terms can be used:
 
-*`REGEX'*
+*'REGEX'*
+
      match account names by this regular expression
+*'acct:REGEX'*
 
-*`acct:REGEX'*
      same as above
+*'amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N'*
 
-*`amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N'*
      match postings with a single-commodity amount that is equal to,
      less than, or greater than N. (Multi-commodity amounts are not
-     tested, and will always match.) The comparison has two modes: if N
+     tested, and will always match.)  The comparison has two modes: if N
      is preceded by a + or - sign (or is 0), the two signed numbers are
-     compared. Otherwise, the absolute magnitudes are compared,
+     compared.  Otherwise, the absolute magnitudes are compared,
      ignoring sign.
+*'code:REGEX'*
 
-*`code:REGEX'*
      match by transaction code (eg check number)
+*'cur:REGEX'*
 
-*`cur:REGEX'*
      match postings or transactions including any amounts whose
      currency/commodity symbol is fully matched by REGEX. (For a partial
-     match, use `.*REGEX.*'). Note, to match characters which are
-     regex-significant, like the dollar sign (`$'), you need to prepend
-     `\'. And when using the command line you need to add one more level
-     of quoting to hide it from the shell, so eg do: `hledger print
-     cur:'\$'' or `hledger print cur:\\$'.
+     match, use '.*REGEX.*').  Note, to match characters which are
+     regex-significant, like the dollar sign ('$'), you need to prepend
+     '\'.  And when using the command line you need to add one more
+     level of quoting to hide it from the shell, so eg do: 'hledger
+     print cur:'\$'' or 'hledger print cur:\\$'.
+*'desc:REGEX'*
 
-*`desc:REGEX'*
      match transaction descriptions
+*'date:PERIODEXPR'*
 
-*`date:PERIODEXPR'*
-     match dates within the specified period. PERIODEXPR is a period
-     expression (with no report interval). Examples: `date:2016',
-     `date:thismonth', `date:2000/2/1-2/15', `date:lastweek-'.  If the
-     `--date2' command line flag is present, this matches secondary
+     match dates within the specified period.  PERIODEXPR is a period
+     expression (with no report interval).  Examples: 'date:2016',
+     'date:thismonth', 'date:2000/2/1-2/15', 'date:lastweek-'.  If the
+     '--date2' command line flag is present, this matches secondary
      dates instead.
+*'date2:PERIODEXPR'*
 
-*`date2:PERIODEXPR'*
      match secondary dates within the specified period.
+*'depth:N'*
 
-*`depth:N'*
      match (or display, depending on command) accounts at or above this
      depth
+*'real:, real:0'*
 
-*`real:, real:0'*
      match real or virtual postings respectively
+*'status:*, status:!, status:'*
 
-*`status:*, status:!, status:'*
      match cleared, pending, or uncleared/pending transactions
      respectively
+*'tag:REGEX[=REGEX]'*
 
-*`tag:REGEX[=REGEX]'*
-     match by tag name, and optionally also by tag value. Note a tag:
-     query is considered to match a transaction if it matches any of
-     the postings.  Also remember that postings inherit the tags of
-     their parent transaction.
+     match by tag name, and optionally also by tag value.  Note a tag:
+     query is considered to match a transaction if it matches any of the
+     postings.  Also remember that postings inherit the tags of their
+     parent transaction.
+*'not:'*
 
-*`not:'*
      before any of the above negates the match.
+*'inacct:ACCTNAME'*
 
-*`inacct:ACCTNAME'*
      a special term used automatically when you click an account name in
      hledger-web, specifying the account register we are currently in
-     (selects the transactions of that account and how to show them,
-     can be filtered further with `acct' etc). Not supported elsewhere
-     in hledger.
+     (selects the transactions of that account and how to show them, can
+     be filtered further with 'acct' etc).  Not supported elsewhere in
+     hledger.
 
    Some of these can also be expressed as command-line options (eg
-`depth:2' is equivalent to `--depth 2'). Generally you can mix options
+'depth:2' is equivalent to '--depth 2').  Generally you can mix options
 and query arguments, and the resulting query will be their intersection
-(perhaps excluding the `-p/--period' option).
+(perhaps excluding the '-p/--period' option).
 
 
 File: hledger.1.info,  Node: COMMANDS,  Next: ADD-ON COMMANDS,  Prev: QUERIES,  Up: Top
@@ -738,18 +708,17 @@ File: hledger.1.info,  Node: COMMANDS,  Next: ADD-ON COMMANDS,  Prev: QUERIES,  
 4 COMMANDS
 **********
 
-hledger provides a number of subcommands; `hledger' with no arguments
+hledger provides a number of subcommands; 'hledger' with no arguments
 shows a list.
 
-   If you install additional `hledger-*' packages, or if you put
-programs or scripts named `hledger-NAME' in your PATH, these will also
+   If you install additional 'hledger-*' packages, or if you put
+programs or scripts named 'hledger-NAME' in your PATH, these will also
 be listed as subcommands.
 
-   Run a subcommand by writing its name as first argument (eg `hledger
-incomestatement'). You can also write any unambiguous prefix of a
-command name (`hledger inc'), or one of the standard short aliases
-displayed in the command list (`hledger is').
-
+   Run a subcommand by writing its name as first argument (eg 'hledger
+incomestatement').  You can also write any unambiguous prefix of a
+command name ('hledger inc'), or one of the standard short aliases
+displayed in the command list ('hledger is').
 * Menu:
 
 * accounts::
@@ -775,27 +744,27 @@ File: hledger.1.info,  Node: accounts,  Next: activity,  Up: COMMANDS
 
 Show account names.
 
-`--tree'
+'--tree'
+
      show short account names, as a tree
+'--flat'
 
-`--flat'
      show full account names, as a list (default)
+'--drop=N'
 
-`--drop=N'
      in flat mode: omit N leading account name parts
 
    This command lists all account names that are in use (ie, all the
-accounts which have at least one transaction posting to them). With
+accounts which have at least one transaction posting to them).  With
 query arguments, only matched account names are shown.
 
-   It shows a flat list by default. With `--tree', it uses indentation
+   It shows a flat list by default.  With '--tree', it uses indentation
 to show the account hierarchy.
 
-   In flat mode you can add `--drop N' to omit the first few account
+   In flat mode you can add '--drop N' to omit the first few account
 name components.
 
    Examples:
-
 
 $ hledger accounts --tree
 assets
@@ -812,7 +781,6 @@ income
 liabilities
   debts
 
-
 $ hledger accounts --drop 1
 bank:checking
 bank:saving
@@ -822,7 +790,6 @@ supplies
 gifts
 salary
 debts
-
 
 $ hledger accounts
 assets:bank:checking
@@ -844,8 +811,7 @@ Show an ascii barchart of posting counts per interval.
 
    The activity command displays an ascii histogram showing transaction
 counts by day, week, month or other reporting interval (by day is the
-default). With query arguments, it counts only matched transactions.
-
+default).  With query arguments, it counts only matched transactions.
 
 $ hledger activity --quarterly
 2008-01-01 **
@@ -861,50 +827,42 @@ File: hledger.1.info,  Node: add,  Next: balance,  Prev: activity,  Up: COMMANDS
 
 Prompt for transactions and add them to the journal.
 
-`--no-new-accounts'
+'--no-new-accounts'
+
      don't allow creating new accounts; helps prevent typos when
      entering account names
 
    Many hledger users edit their journals directly with a text editor,
 or generate them from CSV. For more interactive data entry, there is the
-`add' command, which prompts interactively on the console for new
+'add' command, which prompts interactively on the console for new
 transactions, and appends them to the journal file (if there are
-multiple `-f FILE' options, the first file is used.) Existing
-transactions are not changed. This is the only hledger command that
+multiple '-f FILE' options, the first file is used.)  Existing
+transactions are not changed.  This is the only hledger command that
 writes to the journal file.
 
-   To use it, just run `hledger add' and follow the prompts. You can
-add as many transactions as you like; when you are finished, enter `.'
+   To use it, just run 'hledger add' and follow the prompts.  You can
+add as many transactions as you like; when you are finished, enter '.'
 or press control-d or control-c to exit.
 
    Features:
 
    * add tries to provide useful defaults, using the most similar recent
      transaction (by description) as a template.
-
    * You can also set the initial defaults with command line arguments.
-
    * Readline-style edit keys can be used during data entry.
-
    * The tab key will auto-complete whenever possible - accounts,
-     descriptions, dates (`yesterday', `today', `tomorrow').  If the
+     descriptions, dates ('yesterday', 'today', 'tomorrow').  If the
      input area is empty, it will insert the default value.
-
-   * If the journal defines a default commodity, it will be added to
-     any bare numbers entered.
-
+   * If the journal defines a default commodity, it will be added to any
+     bare numbers entered.
    * A parenthesised transaction code may be entered following a date.
-
    * Comments and tags may be entered following a description or amount.
-
-   * If you make a mistake, enter `<' at any prompt to restart the
+   * If you make a mistake, enter '<' at any prompt to restart the
      transaction.
-
    * Input prompts are displayed in a different colour when the terminal
      supports it.
 
    Example (see the tutorial for a detailed explanation):
-
 
 $ hledger add
 Adding transactions to journal file /src/hledger/examples/sample.journal
@@ -937,59 +895,55 @@ File: hledger.1.info,  Node: balance,  Next: balancesheet,  Prev: add,  Up: COMM
 4.4 balance
 ===========
 
-Show accounts and their balances. Alias: bal.
+Show accounts and their balances.  Alias: bal.
 
-`--change'
+'--change'
+
      show balance change in each period (default)
+'--cumulative'
 
-`--cumulative'
      show balance change accumulated across periods (in multicolumn
      reports)
+'-H --historical'
 
-`-H --historical'
      show historical ending balance in each period (includes postings
      before report start date)
+'--tree'
 
-`--tree'
      show accounts as a tree; amounts include subaccounts (default in
      simple reports)
+'--flat'
 
-`--flat'
      show accounts as a list; amounts exclude subaccounts except when
      account is depth-clipped (default in multicolumn reports)
+'-A --average'
 
-`-V --value'
-     convert amounts to their market value on the report end date
-     (using the most recent applicable market price, if any)
-
-`-A --average'
      show a row average column (in multicolumn mode)
+'-T --row-total'
 
-`-T --row-total'
      show a row total column (in multicolumn mode)
+'-N --no-total'
 
-`-N --no-total'
      don't show the final total row
+'--drop=N'
 
-`--drop=N'
      omit N leading account name parts (in flat mode)
+'--no-elide'
 
-`--no-elide'
      don't squash boring parent accounts (in tree mode)
+'--format=LINEFORMAT'
 
-`--format=LINEFORMAT'
      in single-column balance reports: use this custom line format
+'-O FMT --output-format=FMT'
 
-`-O FMT --output-format=FMT'
-     select the output format. Supported formats: txt, csv.
+     select the output format.  Supported formats: txt, csv.
+'-o FILE --output-file=FILE'
 
-`-o FILE --output-file=FILE'
      write output to FILE. A file extension matching one of the above
      formats selects that format.
 
-   The balance command displays accounts and balances. It is hledger's
+   The balance command displays accounts and balances.  It is hledger's
 most featureful and most useful command.
-
 
 $ hledger balance
                  $-1  assets
@@ -1006,25 +960,24 @@ $ hledger balance
                    0
 
    More precisely, the balance command shows the _change_ to each
-account's balance caused by all (matched) postings. In the common case
+account's balance caused by all (matched) postings.  In the common case
 where you do not filter by date and your journal sets the correct
 opening balances, this is the same as the account's ending balance.
 
    By default, accounts are displayed hierarchically, with subaccounts
-indented below their parent. "Boring" accounts, which contain a single
+indented below their parent.  "Boring" accounts, which contain a single
 interesting subaccount and no balance of their own, are elided into the
-following line for more compact output. (Use `--no-elide' to prevent
+following line for more compact output.  (Use '--no-elide' to prevent
 this.)
 
    Each account's balance is the "inclusive" balance - it includes the
 balances of any subaccounts.
 
    Accounts which have zero balance (and no non-zero subaccounts) are
-omitted. Use `-E/--empty' to show them.
+omitted.  Use '-E/--empty' to show them.
 
-   A final total is displayed by default; use `-N/--no-total' to
+   A final total is displayed by default; use '-N/--no-total' to
 suppress it:
-
 
 $ hledger balance -p 2008/6 expenses --no-total
                   $2  expenses
@@ -1048,11 +1001,10 @@ File: hledger.1.info,  Node: Flat mode,  Next: Depth limited balance reports,  U
 ---------------
 
 To see a flat list of full account names instead of the default
-hierarchical display, use `--flat'. In this mode, accounts (unless
+hierarchical display, use '--flat'.  In this mode, accounts (unless
 depth-clipped) show their "exclusive" balance, excluding any subaccount
-balances. In this mode, you can also use `--drop N' to omit the first
+balances.  In this mode, you can also use '--drop N' to omit the first
 few account name components.
-
 
 $ hledger balance -p 2008/6 expenses -N --flat --drop 1
                   $1  food
@@ -1064,11 +1016,10 @@ File: hledger.1.info,  Node: Depth limited balance reports,  Next: Multicolumn b
 4.4.2 Depth limited balance reports
 -----------------------------------
 
-With `--depth N', balance shows accounts only to the specified depth.
-This is very useful to show a complex charts of accounts in less
-detail. In flat mode, balances from accounts below the depth limit will
-be shown as part of a parent account at the depth limit.
-
+With '--depth N', balance shows accounts only to the specified depth.
+This is very useful to show a complex charts of accounts in less detail.
+In flat mode, balances from accounts below the depth limit will be shown
+as part of a parent account at the depth limit.
 
 $ hledger balance -N --depth 1
                  $-1  assets
@@ -1083,13 +1034,12 @@ File: hledger.1.info,  Node: Multicolumn balance reports,  Next: Market value,  
 ---------------------------------
 
 With a reporting interval, multiple balance columns will be shown, one
-for each report period. There are three types of multi-column balance
+for each report period.  There are three types of multi-column balance
 report, showing different information:
 
   1. By default: each column shows the sum of postings in that period,
-     ie the account's change of balance in that period. This is useful
+     ie the account's change of balance in that period.  This is useful
      eg for a monthly income statement:
-
 
      $ hledger balance --quarterly income expenses -E
      Balance changes in 2008:
@@ -1103,10 +1053,9 @@ report, showing different information:
      -------------------++---------------------------------
                         ||     $-1      $1       0       0
 
-  2. With `--cumulative': each column shows the ending balance for that
-     period, accumulating the changes across periods, starting from 0
-     at the report start date:
-
+  2. With '--cumulative': each column shows the ending balance for that
+     period, accumulating the changes across periods, starting from 0 at
+     the report start date:
 
      $ hledger balance --quarterly income expenses -E --cumulative
      Ending balances (cumulative) in 2008:
@@ -1120,12 +1069,11 @@ report, showing different information:
      -------------------++-------------------------------------------------
                         ||         $-1           0           0           0
 
-  3. With `--historical/-H': each column shows the actual historical
+  3. With '--historical/-H': each column shows the actual historical
      ending balance for that period, accumulating the changes across
-     periods, starting from the actual balance at the report start
-     date. This is useful eg for a multi-period balance sheet, and when
-     you are showing only the data after a certain start date:
-
+     periods, starting from the actual balance at the report start date.
+     This is useful eg for a multi-period balance sheet, and when you
+     are showing only the data after a certain start date:
 
      $ hledger balance ^assets ^liabilities --quarterly --historical --begin 2008/4/1
      Ending balances (historical) in 2008/04/01-2008/12/31:
@@ -1139,31 +1087,29 @@ report, showing different information:
      ----------------------++-------------------------------------
                            ||           0           0           0
 
-
    Multi-column balance reports display accounts in flat mode by
-default; to see the hierarchy, use `--tree'.
+default; to see the hierarchy, use '--tree'.
 
-   With a reporting interval (like `--quarterly' above), the report
+   With a reporting interval (like '--quarterly' above), the report
 start/end dates will be adjusted if necessary so that they encompass the
-displayed report periods. This is so that the first and last periods
+displayed report periods.  This is so that the first and last periods
 will be "full" and comparable to the others.
 
-   The `-E/--empty' flag does two things in multicolumn balance
-reports: first, the report will show all columns within the specified
-report period (without -E, leading and trailing columns with all zeroes
-are not shown). Second, all accounts which existed at the report start
-date will be considered, not just the ones with activity during the
-report period (use -E to include low-activity accounts which would
-otherwise would be omitted).
+   The '-E/--empty' flag does two things in multicolumn balance reports:
+first, the report will show all columns within the specified report
+period (without -E, leading and trailing columns with all zeroes are not
+shown).  Second, all accounts which existed at the report start date
+will be considered, not just the ones with activity during the report
+period (use -E to include low-activity accounts which would otherwise
+would be omitted).
 
-   The `-T/--row-total' flag adds an additional column showing the
-total for each row.
+   The '-T/--row-total' flag adds an additional column showing the total
+for each row.
 
-   The `-A/--average' flag adds a column showing the average value in
+   The '-A/--average' flag adds a column showing the average value in
 each row.
 
    Here's an example of all three:
-
 
 $ hledger balance -Q income expenses --tree -ETA
 Balance changes in 2008:
@@ -1187,17 +1133,16 @@ File: hledger.1.info,  Node: Market value,  Next: Custom balance output,  Prev: 
 4.4.4 Market value
 ------------------
 
-The `-V/--value' flag converts the reported amounts to their market
+The '-V/--value' flag converts the reported amounts to their market
 value on the report end date, using the most recent applicable market
-prices, when known. Specifically, when there is a market price (P
+prices, when known.  Specifically, when there is a market price (P
 directive) for the amount's commodity, dated on or before the report end
 date (see hledger -> Report start & end date), the amount will be
-converted to the price's commodity. If multiple applicable prices are
+converted to the price's commodity.  If multiple applicable prices are
 defined, the latest-dated one is used (and if dates are equal, the one
 last parsed).
 
    For example:
-
 
 # one euro is worth this many dollars from nov 1
 P 2016/11/01 € $1.10
@@ -1212,19 +1157,16 @@ P 2016/12/21 € $1.03
 
    How many euros do I have ?
 
-
 $ hledger -f t.j bal euros
                 €100  assets:euros
 
-   What are they worth on nov 3 ? (no report end date specified,
+   What are they worth on nov 3 ?  (no report end date specified,
 defaults to the last date in the journal)
-
 
 $ hledger -f t.j bal euros -V
              $110.00  assets:euros
 
    What are they worth on dec 21 ?
-
 
 $ hledger -f t.j bal euros -V -e 2016/12/21
              $103.00  assets:euros
@@ -1241,8 +1183,7 @@ File: hledger.1.info,  Node: Custom balance output,  Next: Output destination,  
 ---------------------------
 
 In simple (non-multi-column) balance reports, you can customise the
-output with `--format FMT':
-
+output with '--format FMT':
 
 $ hledger balance --format "%20(account) %12(total)"
               assets          $-1
@@ -1259,50 +1200,40 @@ $ hledger balance --format "%20(account) %12(total)"
                                 0
 
    The FMT format string (plus a newline) specifies the formatting
-applied to each account/balance pair. It may contain any suitable text,
+applied to each account/balance pair.  It may contain any suitable text,
 with data fields interpolated like so:
 
-   `%[MIN][.MAX](FIELDNAME)'
+   '%[MIN][.MAX](FIELDNAME)'
 
    * MIN pads with spaces to at least this width (optional)
-
    * MAX truncates at this width (optional)
-
    * FIELDNAME must be enclosed in parentheses, and can be one of:
 
-        * `depth_spacer' - a number of spaces equal to the account's
+        * 'depth_spacer' - a number of spaces equal to the account's
           depth, or if MIN is specified, MIN * depth spaces.
-
-        * `account' - the account's name
-
-        * `total' - the account's balance/posted total, right justified
-
+        * 'account' - the account's name
+        * 'total' - the account's balance/posted total, right justified
 
    Also, FMT can begin with an optional prefix to control how
 multi-commodity amounts are rendered:
 
-   * `%_' - render on multiple lines, bottom-aligned (the default)
+   * '%_' - render on multiple lines, bottom-aligned (the default)
+   * '%^' - render on multiple lines, top-aligned
+   * '%,' - render on one line, comma-separated
 
-   * `%^' - render on multiple lines, top-aligned
-
-   * `%,' - render on one line, comma-separated
-
-   There are some quirks. Eg in one-line mode, `%(depth_spacer)' has no
-effect, instead `%(account)' has indentation built in.  Experimentation
+   There are some quirks.  Eg in one-line mode, '%(depth_spacer)' has no
+effect, instead '%(account)' has indentation built in.  Experimentation
 may be needed to get pleasing results.
 
    Some example formats:
 
-   * `%(total)' - the account's total
-
-   * `%-20.20(account)' - the account's name, left justified, padded to
+   * '%(total)' - the account's total
+   * '%-20.20(account)' - the account's name, left justified, padded to
      20 characters and clipped at 20 characters
-
-   * `%,%-50(account)  %25(total)' - account name padded to 50
+   * '%,%-50(account) %25(total)' - account name padded to 50
      characters, total padded to 20 characters, with multiple
      commodities rendered on one line
-
-   * `%20(total)  %2(depth_spacer)%-(account)' - the default format for
+   * '%20(total) %2(depth_spacer)%-(account)' - the default format for
      the single-column balance report
 
 
@@ -1312,9 +1243,8 @@ File: hledger.1.info,  Node: Output destination,  Next: CSV output,  Prev: Custo
 ------------------------
 
 The balance, print, register and stats commands can write their output
-to a destination other than the console. This is controlled by the
-`-o/--output-file' option.
-
+to a destination other than the console.  This is controlled by the
+'-o/--output-file' option.
 
 $ hledger balance -o -     # write to stdout (the default)
 $ hledger balance -o FILE  # write to FILE
@@ -1327,10 +1257,9 @@ File: hledger.1.info,  Node: CSV output,  Prev: Output destination,  Up: balance
 
 The balance, print and register commands can write their output as CSV.
 This is useful for exporting data to other applications, eg to make
-charts in a spreadsheet. This is controlled by the `-O/--output-format'
-option, or by specifying a `.csv' file extension with
-`-o/--output-file'.
-
+charts in a spreadsheet.  This is controlled by the '-O/--output-format'
+option, or by specifying a '.csv' file extension with
+'-o/--output-file'.
 
 $ hledger balance -O csv       # write CSV to stdout
 $ hledger balance -o FILE.csv  # write CSV to FILE.csv
@@ -1341,18 +1270,27 @@ File: hledger.1.info,  Node: balancesheet,  Next: cashflow,  Prev: balance,  Up:
 4.5 balancesheet
 ================
 
-Show a balance sheet. Alias: bs.
+Show a balance sheet.  Alias: bs.
 
-`--flat'
+'--flat'
+
      show full account names, as a list (default)
+'-N --no-total'
 
-`--drop=N'
+     don't show the final total row
+'--drop=N'
+
      in flat mode: omit N leading account name parts
+'--no-elide'
 
-   This command displays a simple balance sheet. It currently assumes
-that you have top-level accounts named `asset' and `liability' (plural
+     don't squash boring parent accounts (in tree mode)
+'--format=LINEFORMAT'
+
+     in single-column balance reports: use this custom line format
+
+   This command displays a simple balance sheet.  It currently assumes
+that you have top-level accounts named 'asset' and 'liability' (plural
 forms also allowed.)
-
 
 $ hledger balancesheet
 Balance Sheet
@@ -1379,20 +1317,28 @@ File: hledger.1.info,  Node: cashflow,  Next: help,  Prev: balancesheet,  Up: CO
 4.6 cashflow
 ============
 
-Show a cashflow statement. Alias: cf.
+Show a cashflow statement.  Alias: cf.
 
-`--flat'
+'--flat'
+
      show full account names, as a list (default)
+'-N --no-total'
 
-`--drop=N'
+     don't show the final total row
+'--drop=N'
+
      in flat mode: omit N leading account name parts
+'--no-elide'
 
-   This command displays a simple cashflow statement It shows the
-change in all "cash" (ie, liquid assets) accounts for the period. It
-currently assumes that cash accounts are under a top-level account named
-`asset' and do not contain `receivable' or `A/R' (plural forms also
-allowed.)
+     don't squash boring parent accounts (in tree mode)
+'--format=LINEFORMAT'
 
+     in single-column balance reports: use this custom line format
+
+   This command displays a simple cashflow statement It shows the change
+in all "cash" (ie, liquid assets) accounts for the period.  It currently
+assumes that cash accounts are under a top-level account named 'asset'
+and do not contain 'receivable' or 'A/R' (plural forms also allowed.)
 
 $ hledger cashflow
 Cashflow Statement
@@ -1416,18 +1362,16 @@ File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: cashflow,  Up:
 
 Show any of the hledger manuals.
 
-   The `help' command displays any of the main hledger man pages.
-(Unlike `hledger --help', which displays only the hledger man page.)
+   The 'help' command displays any of the main hledger man pages.
+(Unlike 'hledger --help', which displays only the hledger man page.)
 Run it with no arguments to list available topics (their names are
-shortened for easier typing), and run `hledger help TOPIC' to select
-one. The output is similar to a man page, but fixed width. It may be
-long, so you may wish to pipe it into a pager. See also info and man.
-
+shortened for easier typing), and run 'hledger help TOPIC' to select
+one.  The output is similar to a man page, but fixed width.  It may be
+long, so you may wish to pipe it into a pager.  See also info and man.
 
 $ hledger help
 Choose a topic, eg: hledger help cli
 cli, ui, web, api, journal, csv, timeclock, timedot
-
 
 $ hledger help cli | less
 
@@ -1449,18 +1393,27 @@ File: hledger.1.info,  Node: incomestatement,  Next: info,  Prev: help,  Up: COM
 4.8 incomestatement
 ===================
 
-Show an income statement. Alias: is.
+Show an income statement.  Alias: is.
 
-`--flat'
+'--flat'
+
      show full account names, as a list (default)
+'-N --no-total'
 
-`--drop=N'
+     don't show the final total row
+'--drop=N'
+
      in flat mode: omit N leading account name parts
+'--no-elide'
 
-   This command displays a simple income statement. It currently assumes
-that you have top-level accounts named `income' (or `revenue') and
-`expense' (plural forms also allowed.)
+     don't squash boring parent accounts (in tree mode)
+'--format=LINEFORMAT'
 
+     in single-column balance reports: use this custom line format
+
+   This command displays a simple income statement.  It currently
+assumes that you have top-level accounts named 'income' (or 'revenue')
+and 'expense' (plural forms also allowed.)
 
 $ hledger incomestatement
 Income Statement
@@ -1491,10 +1444,10 @@ File: hledger.1.info,  Node: info,  Next: man,  Prev: incomestatement,  Up: COMM
 
 Show any of the hledger manuals using info.
 
-   The `info' command displays any of the hledger reference manuals
-using the info hypertextual documentation viewer. This can be a very
-efficient way to browse large manuals. It requires the "info" program to
-be available in your PATH.
+   The 'info' command displays any of the hledger reference manuals
+using the info hypertextual documentation viewer.  This can be a very
+efficient way to browse large manuals.  It requires the "info" program
+to be available in your PATH.
 
    As with help, run it with no arguments to list available topics
 (manuals).
@@ -1507,10 +1460,10 @@ File: hledger.1.info,  Node: man,  Next: print,  Prev: info,  Up: COMMANDS
 
 Show any of the hledger manuals using man.
 
-   The `man' command displays any of the hledger reference manuals
-using man, the standard documentation viewer on unix systems. This will
-fit the text to your terminal width, and probably invoke a pager
-automatically. It requires the "man" program to be available in your
+   The 'man' command displays any of the hledger reference manuals using
+man, the standard documentation viewer on unix systems.  This will fit
+the text to your terminal width, and probably invoke a pager
+automatically.  It requires the "man" program to be available in your
 PATH.
 
    As with help, run it with no arguments to list available topics
@@ -1524,20 +1477,20 @@ File: hledger.1.info,  Node: print,  Next: register,  Prev: man,  Up: COMMANDS
 
 Show transactions from the journal.
 
-`--explicit'
-     show all amounts explicitly
+'--explicit'
 
-`-m STR --match=STR'
+     show all amounts explicitly
+'-m STR --match=STR'
+
      show the transaction whose description is most similar to STR, and
      is most recent
+'-O FMT --output-format=FMT'
 
-`-O FMT --output-format=FMT'
-     select the output format. Supported formats: txt, csv.
+     select the output format.  Supported formats: txt, csv.
+'-o FILE --output-file=FILE'
 
-`-o FILE --output-file=FILE'
      write output to FILE. A file extension matching one of the above
      formats selects that format.
-
 
 $ hledger print
 2008/01/01 income
@@ -1570,11 +1523,11 @@ directives or inter-transaction comments.
 
    Normally, transactions' implicit/explicit amount style is preserved:
 when an amount is omitted in the journal, it will be omitted in the
-output. You can use the `--explicit' flag to make all amounts explicit,
+output.  You can use the '--explicit' flag to make all amounts explicit,
 which can be useful for troubleshooting or for making your journal more
-readable and robust against data entry errors. Note, in this mode
-postings with a multi-commodity amount (possible with an implicit
-amount in a multi-commodity transaction) will be split into multiple
+readable and robust against data entry errors.  Note, in this mode
+postings with a multi-commodity amount (possible with an implicit amount
+in a multi-commodity transaction) will be split into multiple
 single-commodity postings, for valid journal output.
 
    With -B/-cost, amounts with transaction prices are converted to cost
@@ -1582,7 +1535,6 @@ single-commodity postings, for valid journal output.
 
    The print command also supports output destination and CSV output.
 Here's an example of print's CSV output:
-
 
 $ hledger print -Ocsv
 "txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"
@@ -1600,17 +1552,14 @@ $ hledger print -Ocsv
 
    * There is one CSV record per posting, with the parent transaction's
      fields repeated.
-
    * The "txnidx" (transaction index) field shows which postings belong
-     to the same transaction. (This number might change if transactions
+     to the same transaction.  (This number might change if transactions
      are reordered within the file, files are parsed/included in a
      different order, etc.)
-
    * The amount is separated into "commodity" (the symbol) and "amount"
      (numeric quantity) fields.
-
    * The numeric amount is repeated in either the "credit" or "debit"
-     column, for convenience. (Those names are not accurate in the
+     column, for convenience.  (Those names are not accurate in the
      accounting sense; it just puts negative amounts under credit and
      zero or greater amounts under debit.)
 
@@ -1620,37 +1569,37 @@ File: hledger.1.info,  Node: register,  Next: stats,  Prev: print,  Up: COMMANDS
 4.12 register
 =============
 
-Show postings and their running total. Alias: reg.
+Show postings and their running total.  Alias: reg.
 
-`--cumulative'
+'--cumulative'
+
      show running total from report start date (default)
+'-H --historical'
 
-`-H --historical'
      show historical running total/balance (includes postings before
      report start date)
+'-A --average'
 
-`-A --average'
      show running average of posting amounts instead of total (implies
      -empty)
+'-r --related'
 
-`-r --related'
      show postings' siblings instead
+'-w N --width=N'
 
-`-w N --width=N'
      set output width (default: terminal width or COLUMNS. -wN,M sets
      description width as well)
+'-O FMT --output-format=FMT'
 
-`-O FMT --output-format=FMT'
-     select the output format. Supported formats: txt, csv.
+     select the output format.  Supported formats: txt, csv.
+'-o FILE --output-file=FILE'
 
-`-o FILE --output-file=FILE'
      write output to FILE. A file extension matching one of the above
      formats selects that format.
 
    The register command displays postings, one per line, and their
-running total. This is typically used with a query selecting a
+running total.  This is typically used with a query selecting a
 particular account, to see that account's activity:
-
 
 $ hledger register checking
 2008/01/01 income               assets:bank:checking            $1            $1
@@ -1658,39 +1607,36 @@ $ hledger register checking
 2008/06/02 save                 assets:bank:checking           $-1            $1
 2008/12/31 pay off              assets:bank:checking           $-1             0
 
-   The `--historical'/`-H' flag adds the balance from any undisplayed
-prior postings to the running total. This is useful when you want to
+   The '--historical'/'-H' flag adds the balance from any undisplayed
+prior postings to the running total.  This is useful when you want to
 see only recent activity, with a historically accurate running balance:
-
 
 $ hledger register checking -b 2008/6 --historical
 2008/06/01 gift                 assets:bank:checking            $1            $2
 2008/06/02 save                 assets:bank:checking           $-1            $1
 2008/12/31 pay off              assets:bank:checking           $-1             0
 
-   The `--depth' option limits the amount of sub-account detail
+   The '--depth' option limits the amount of sub-account detail
 displayed.
 
-   The `--average'/`-A' flag shows the running average posting amount
+   The '--average'/'-A' flag shows the running average posting amount
 instead of the running total (so, the final number displayed is the
-average for the whole report period). This flag implies `--empty' (see
-below). It is affected by `--historical'. It works best when showing
+average for the whole report period).  This flag implies '--empty' (see
+below).  It is affected by '--historical'.  It works best when showing
 just one account and one commodity.
 
-   The `--related'/`-r' flag shows the _other_ postings in the
+   The '--related'/'-r' flag shows the _other_ postings in the
 transactions of the postings which would normally be shown.
 
    With a reporting interval, register shows summary postings, one per
 interval, aggregating the postings to each account:
-
 
 $ hledger register --monthly income
 2008/01                 income:salary                          $-1           $-1
 2008/06                 income:gifts                           $-1           $-2
 
    Periods with no activity, and summary postings with a zero amount,
-are not shown by default; use the `--empty'/`-E' flag to see them:
-
+are not shown by default; use the '--empty'/'-E' flag to see them:
 
 $ hledger register --monthly income -E
 2008/01                 income:salary                          $-1           $-1
@@ -1706,9 +1652,8 @@ $ hledger register --monthly income -E
 2008/11                                                          0           $-2
 2008/12                                                          0           $-2
 
-   Often, you'll want to see just one line per interval. The `--depth'
+   Often, you'll want to see just one line per interval.  The '--depth'
 option helps with this, causing subaccounts to be aggregated:
-
 
 $ hledger register --monthly assets --depth 1h
 2008/01                 assets                                  $1            $1
@@ -1717,9 +1662,8 @@ $ hledger register --monthly assets --depth 1h
 
    Note when using report intervals, if you specify start/end dates
 these will be adjusted outward if necessary to contain a whole number of
-intervals. This ensures that the first and last intervals are full
+intervals.  This ensures that the first and last intervals are full
 length and comparable to the others in the report.
-
 * Menu:
 
 * Custom register output::
@@ -1730,22 +1674,20 @@ File: hledger.1.info,  Node: Custom register output,  Up: register
 4.12.1 Custom register output
 -----------------------------
 
-register uses the full terminal width by default, except on windows. You
-can override this by setting the `COLUMNS' environment variable (not a
-bash shell variable) or by using the `--width'/`-w' option.
+register uses the full terminal width by default, except on windows.
+You can override this by setting the 'COLUMNS' environment variable (not
+a bash shell variable) or by using the '--width'/'-w' option.
 
    The description and account columns normally share the space equally
-(about half of (width - 40) each). You can adjust this by adding a
+(about half of (width - 40) each).  You can adjust this by adding a
 description width as part of -width's argument, comma-separated:
-`--width W,D' . Here's a diagram:
-
+'--width W,D' .  Here's a diagram:
 
 <--------------------------------- width (W) ---------------------------------->
 date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
 DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
 
    and some examples:
-
 
 $ hledger reg                     # use terminal width (or 80 on windows)
 $ hledger reg -w 100              # use width 100
@@ -1754,8 +1696,8 @@ $ export COLUMNS=100; hledger reg # set till session end (or window resize)
 $ hledger reg -w 100,40           # set overall width 100, description width 40
 $ hledger reg -w $COLUMNS,40      # use terminal width, and set description width
 
-   The register command also supports the `-o/--output-file' and
-`-O/--output-format' options for controlling output destination and CSV
+   The register command also supports the '-o/--output-file' and
+'-O/--output-format' options for controlling output destination and CSV
 output.
 
 
@@ -1766,10 +1708,10 @@ File: hledger.1.info,  Node: stats,  Next: test,  Prev: register,  Up: COMMANDS
 
 Show some journal statistics.
 
-`-o FILE --output-file=FILE'
+'-o FILE --output-file=FILE'
+
      write output to FILE. A file extension matching one of the above
      formats selects that format.
-
 
 $ hledger stats
 Main journal file        : /src/hledger/examples/sample.journal
@@ -1783,11 +1725,11 @@ Payees/descriptions      : 5
 Accounts                 : 8 (depth 3)
 Commodities              : 1 ($)
 
-   The stats command displays summary information for the whole
-journal, or a matched part of it. With a reporting interval, it shows a
-report for each report period.
+   The stats command displays summary information for the whole journal,
+or a matched part of it.  With a reporting interval, it shows a report
+for each report period.
 
-   The stats command also supports `-o/--output-file' for controlling
+   The stats command also supports '-o/--output-file' for controlling
 output destination.
 
 
@@ -1798,13 +1740,12 @@ File: hledger.1.info,  Node: test,  Prev: stats,  Up: COMMANDS
 
 Run built-in unit tests.
 
-
 $ hledger test
 Cases: 74  Tried: 74  Errors: 0  Failures: 0
 
    This command runs hledger's built-in unit tests and displays a quick
-report. With a regular expression argument, it selects only tests with
-matching names. It's mainly used in development, but it's also nice to
+report.  With a regular expression argument, it selects only tests with
+matching names.  It's mainly used in development, but it's also nice to
 be able to check your hledger executable for smoke at any time.
 
 
@@ -1814,33 +1755,31 @@ File: hledger.1.info,  Node: ADD-ON COMMANDS,  Next: TROUBLESHOOTING,  Prev: COM
 *****************
 
 hledger also searches for external add-on commands, and will include
-these in the commands list. These are programs or scripts in your PATH
-whose name starts with `hledger-' and ends with a recognised file
-extension (currently: no extension, `bat',`com',`exe',
-`hs',`lhs',`pl',`py',`rb',`rkt',`sh').
+these in the commands list.  These are programs or scripts in your PATH
+whose name starts with 'hledger-' and ends with a recognised file
+extension (currently: no extension, 'bat','com','exe',
+'hs','lhs','pl','py','rb','rkt','sh').
 
    Add-ons can be invoked like any hledger command, but there are a few
-things to be aware of. Eg if the `hledger-web' add-on is installed,
+things to be aware of.  Eg if the 'hledger-web' add-on is installed,
 
-   * `hledger -h web' shows hledger's help, while `hledger web -h'
-     shows hledger-web's help.
+   * 'hledger -h web' shows hledger's help, while 'hledger web -h' shows
+     hledger-web's help.
 
-   * Flags specific to the add-on must have a preceding `--' to hide
-     them from hledger. So `hledger web --serve --port 9000' will be
-     rejected; you must use `hledger web -- --serve --port 9000'.
+   * Flags specific to the add-on must have a preceding '--' to hide
+     them from hledger.  So 'hledger web --serve --port 9000' will be
+     rejected; you must use 'hledger web -- --serve --port 9000'.
 
-   * You can always run add-ons directly if preferred: `hledger-web
+   * You can always run add-ons directly if preferred: 'hledger-web
      --serve --port 9000'.
 
-
    Add-ons are a relatively easy way to add local features or experiment
-with new ideas. They can be written in any language, but haskell scripts
-have a big advantage: they can use the same hledger (and haskell)
-library functions that built-in commands do, for command-line options,
-journal parsing, reporting, etc.
+with new ideas.  They can be written in any language, but haskell
+scripts have a big advantage: they can use the same hledger (and
+haskell) library functions that built-in commands do, for command-line
+options, journal parsing, reporting, etc.
 
    Here are some hledger add-ons available:
-
 * Menu:
 
 * Official add-ons::
@@ -1854,7 +1793,6 @@ File: hledger.1.info,  Node: Official add-ons,  Next: Third party add-ons,  Up: 
 ====================
 
 These are maintained and released along with hledger.
-
 * Menu:
 
 * api::
@@ -1893,7 +1831,6 @@ File: hledger.1.info,  Node: Third party add-ons,  Next: Experimental add-ons,  
 
 These are maintained separately, and usually updated shortly after a
 hledger release.
-
 * Menu:
 
 * diff::
@@ -1944,10 +1881,9 @@ File: hledger.1.info,  Node: Experimental add-ons,  Prev: Third party add-ons,  
 ========================
 
 These are available in source form in the hledger repo's bin/ directory;
-installing them is pretty easy. They may be less mature and documented
-than built-in commands. Reading and tweaking these is a good way to
+installing them is pretty easy.  They may be less mature and documented
+than built-in commands.  Reading and tweaking these is a good way to
 start making your own!
-
 * Menu:
 
 * autosync::
@@ -1969,7 +1905,7 @@ File: hledger.1.info,  Node: autosync,  Next: budget,  Up: Experimental add-ons
 --------------
 
 hledger-autosync is a symbolic link for easily running ledger-autosync,
-if installed. ledger-autosync does deduplicating conversion of OFX data
+if installed.  ledger-autosync does deduplicating conversion of OFX data
 and some CSV formats, and can also download the data if your bank offers
 OFX Direct Connect.
 
@@ -2080,26 +2016,25 @@ tracker):
 
    *Successfully installed, but "No command 'hledger' found"*
 stack and cabal install binaries into a special directory, which should
-be added to your PATH environment variable. Eg on unix-like systems,
+be added to your PATH environment variable.  Eg on unix-like systems,
 that is ~/.local/bin and ~/.cabal/bin respectively.
 
    *I set a custom LEDGER_FILE, but hledger is still using the default
 file*
-`LEDGER_FILE' should be a real environment variable, not just a shell
-variable. The command `env | grep LEDGER_FILE' should show it. You may
-need to use `export'. Here's an explanation.
+'LEDGER_FILE' should be a real environment variable, not just a shell
+variable.  The command 'env | grep LEDGER_FILE' should show it.  You may
+need to use 'export'.  Here's an explanation.
 
    *"Illegal byte sequence" or "Invalid or incomplete multibyte or wide
 character" errors*
 In order to handle non-ascii letters and symbols (like £), hledger
-needs an appropriate locale. This is usually configured system-wide;
-you can also configure it temporarily. The locale may need to be one
+needs an appropriate locale.  This is usually configured system-wide;
+you can also configure it temporarily.  The locale may need to be one
 that supports UTF-8, if you built hledger with GHC < 7.2 (or possibly
 always, I'm not sure yet).
 
    Here's an example of setting the locale temporarily, on ubuntu
 gnu/linux:
-
 
 $ file my.journal
 my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
@@ -2111,13 +2046,11 @@ $ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
 
    Here's one way to set it permanently, there are probably better ways:
 
-
 $ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
 $ bash --login
 
-   If we preferred to use eg `fr_FR.utf8', we might have to install
-that first:
-
+   If we preferred to use eg 'fr_FR.utf8', we might have to install that
+first:
 
 $ apt-get install language-pack-fr
 $ locale -a
@@ -2132,7 +2065,7 @@ POSIX
 $ LANG=fr_FR.utf8 hledger -f my.journal print
 
    Note some platforms allow variant locale spellings, but not all
-(ubuntu accepts `fr_FR.UTF8', mac osx requires exactly `fr_FR.UTF-8').
+(ubuntu accepts 'fr_FR.UTF8', mac osx requires exactly 'fr_FR.UTF-8').
 
 
 File: hledger.1.info,  Node: Known limitations,  Prev: Run-time problems,  Up: TROUBLESHOOTING
@@ -2143,13 +2076,13 @@ File: hledger.1.info,  Node: Known limitations,  Prev: Run-time problems,  Up: T
 *Command line interface*
 
    Add-on command options, unless they are also understood by the main
-hledger executable, must be written after `--', like this: `hledger web
+hledger executable, must be written after '--', like this: 'hledger web
 -- --server'
 
    *Differences from Ledger*
 
-   Not all of Ledger's journal file syntax is supported. See file format
-differences.
+   Not all of Ledger's journal file syntax is supported.  See file
+format differences.
 
    hledger is slower than Ledger, and uses more memory, on large data
 files.
@@ -2162,131 +2095,130 @@ supported.
    In a windows Cygwin/MSYS/Mintty window, the tab key is not supported
 in hledger add.
 
-
 
 Tag Table:
-Node: Top82
-Node: EXAMPLES1873
-Ref: #examples1975
-Node: OPTIONS3627
-Ref: #options3731
-Node: General options6372
-Ref: #general-options6501
-Node: Reporting options7272
-Ref: #reporting-options7425
-Node: Input files8858
-Ref: #input-files8995
-Node: Smart dates11036
-Ref: #smart-dates11179
-Node: Report start & end date12176
-Ref: #report-start-end-date12348
-Node: Report intervals13424
-Ref: #report-intervals13589
-Node: Period expressions13988
-Ref: #period-expressions14148
-Node: Depth limiting16483
-Ref: #depth-limiting16627
-Node: Pivoting16828
-Ref: #pivoting16961
-Node: Regular expressions18792
-Ref: #regular-expressions18926
-Node: QUERIES20409
-Ref: #queries20513
-Node: COMMANDS24152
-Ref: #commands24266
-Node: accounts24939
-Ref: #accounts25039
-Node: activity26021
-Ref: #activity26133
-Node: add26492
-Ref: #add26593
-Node: balance29256
-Ref: #balance29369
-Node: Flat mode32382
-Ref: #flat-mode32509
-Node: Depth limited balance reports32928
-Ref: #depth-limited-balance-reports33131
-Node: Multicolumn balance reports33552
-Ref: #multicolumn-balance-reports33754
-Node: Market value38403
-Ref: #market-value38567
-Node: Custom balance output39868
-Ref: #custom-balance-output40041
-Node: Output destination42145
-Ref: #output-destination42310
-Node: CSV output42580
-Ref: #csv-output42699
-Node: balancesheet43096
-Ref: #balancesheet43224
-Node: cashflow43876
-Ref: #cashflow43993
-Node: help44683
-Ref: #help44795
-Node: incomestatement45632
-Ref: #incomestatement45762
-Node: info46489
-Ref: #info46596
-Node: man46958
-Ref: #man47055
-Node: print47458
-Ref: #print47563
-Node: register51312
-Ref: #register51425
-Node: Custom register output55917
-Ref: #custom-register-output56048
-Node: stats57345
-Ref: #stats57451
-Node: test58331
-Ref: #test58418
-Node: ADD-ON COMMANDS58785
-Ref: #add-on-commands58921
-Node: Official add-ons60206
-Ref: #official-add-ons60348
-Node: api60436
-Ref: #api60527
-Node: ui60579
-Ref: #ui60680
-Node: web60738
-Ref: #web60829
-Node: Third party add-ons60875
-Ref: #third-party-add-ons61052
-Node: diff61188
-Ref: #diff61287
-Node: iadd61386
-Ref: #iadd61502
-Node: interest61585
-Ref: #interest61708
-Node: irr61803
-Ref: #irr61903
-Node: Experimental add-ons61981
-Ref: #experimental-add-ons62135
-Node: autosync62521
-Ref: #autosync62635
-Node: budget62873
-Ref: #budget62997
-Node: chart63063
-Ref: #chart63182
-Node: check63253
-Ref: #check63377
-Node: check-dates63444
-Ref: #check-dates63580
-Node: dupes63653
-Ref: #dupes63778
-Node: equity63849
-Ref: #equity63971
-Node: prices64090
-Ref: #prices64219
-Node: print-unique64274
-Ref: #print-unique64423
-Node: register-match64516
-Ref: #register-match64672
-Node: rewrite64770
-Ref: #rewrite64891
-Node: TROUBLESHOOTING64969
-Ref: #troubleshooting65088
-Node: Run-time problems65142
-Ref: #run-time-problems65285
-Node: Known limitations67229
-Ref: #known-limitations67372
+Node: Top70
+Node: EXAMPLES1883
+Ref: #examples1985
+Node: OPTIONS3631
+Ref: #options3735
+Node: General options6393
+Ref: #general-options6522
+Node: Reporting options7295
+Ref: #reporting-options7448
+Node: Input files9024
+Ref: #input-files9161
+Node: Smart dates11124
+Ref: #smart-dates11267
+Node: Report start & end date12246
+Ref: #report-start-end-date12418
+Node: Report intervals13484
+Ref: #report-intervals13649
+Node: Period expressions14050
+Ref: #period-expressions14210
+Node: Depth limiting16550
+Ref: #depth-limiting16694
+Node: Pivoting16895
+Ref: #pivoting17028
+Node: Regular expressions18857
+Ref: #regular-expressions18991
+Node: QUERIES20469
+Ref: #queries20573
+Node: COMMANDS24219
+Ref: #commands24333
+Node: accounts25006
+Ref: #accounts25106
+Node: activity26088
+Ref: #activity26200
+Node: add26559
+Ref: #add26660
+Node: balance29318
+Ref: #balance29431
+Node: Flat mode32309
+Ref: #flat-mode32436
+Node: Depth limited balance reports32856
+Ref: #depth-limited-balance-reports33059
+Node: Multicolumn balance reports33479
+Ref: #multicolumn-balance-reports33681
+Node: Market value38329
+Ref: #market-value38493
+Node: Custom balance output39793
+Ref: #custom-balance-output39966
+Node: Output destination42059
+Ref: #output-destination42224
+Node: CSV output42494
+Ref: #csv-output42613
+Node: balancesheet43010
+Ref: #balancesheet43138
+Node: cashflow44005
+Ref: #cashflow44122
+Node: help45027
+Ref: #help45139
+Node: incomestatement45977
+Ref: #incomestatement46107
+Node: info47049
+Ref: #info47156
+Node: man47520
+Ref: #man47617
+Node: print48022
+Ref: #print48127
+Node: register51877
+Ref: #register51990
+Node: Custom register output56486
+Ref: #custom-register-output56617
+Node: stats57914
+Ref: #stats58020
+Node: test58901
+Ref: #test58988
+Node: ADD-ON COMMANDS59356
+Ref: #add-on-commands59492
+Node: Official add-ons60779
+Ref: #official-add-ons60921
+Node: api61008
+Ref: #api61099
+Node: ui61151
+Ref: #ui61252
+Node: web61310
+Ref: #web61401
+Node: Third party add-ons61447
+Ref: #third-party-add-ons61624
+Node: diff61759
+Ref: #diff61858
+Node: iadd61957
+Ref: #iadd62073
+Node: interest62156
+Ref: #interest62279
+Node: irr62374
+Ref: #irr62474
+Node: Experimental add-ons62552
+Ref: #experimental-add-ons62706
+Node: autosync63093
+Ref: #autosync63207
+Node: budget63446
+Ref: #budget63570
+Node: chart63636
+Ref: #chart63755
+Node: check63826
+Ref: #check63950
+Node: check-dates64017
+Ref: #check-dates64153
+Node: dupes64226
+Ref: #dupes64351
+Node: equity64422
+Ref: #equity64544
+Node: prices64663
+Ref: #prices64792
+Node: print-unique64847
+Ref: #print-unique64996
+Node: register-match65089
+Ref: #register-match65245
+Node: rewrite65343
+Ref: #rewrite65464
+Node: TROUBLESHOOTING65542
+Ref: #troubleshooting65661
+Node: Run-time problems65715
+Ref: #run-time-problems65858
+Node: Known limitations67805
+Ref: #known-limitations67948
 
 End Tag Table

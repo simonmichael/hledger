@@ -357,6 +357,12 @@ price, if any)
 .RS
 .RE
 .TP
+.B \f[C]\-V\ \-\-value\f[]
+convert amounts to their market value on the report end date (using the
+most recent applicable market price, if any)
+.RS
+.RE
+.TP
 .B \f[C]\-\-pivot\ TAGNAME\f[]
 organize reports by some tag\[aq]s value instead of by account
 .RS
@@ -1243,12 +1249,6 @@ is depth\-clipped (default in multicolumn reports)
 .RS
 .RE
 .TP
-.B \f[C]\-V\ \-\-value\f[]
-convert amounts to their market value on the report end date (using the
-most recent applicable market price, if any)
-.RS
-.RE
-.TP
 .B \f[C]\-A\ \-\-average\f[]
 show a row average column (in multicolumn mode)
 .RS
@@ -1667,8 +1667,23 @@ show full account names, as a list (default)
 .RS
 .RE
 .TP
+.B \f[C]\-N\ \-\-no\-total\f[]
+don\[aq]t show the final total row
+.RS
+.RE
+.TP
 .B \f[C]\-\-drop=N\f[]
 in flat mode: omit N leading account name parts
+.RS
+.RE
+.TP
+.B \f[C]\-\-no\-elide\f[]
+don\[aq]t squash boring parent accounts (in tree mode)
+.RS
+.RE
+.TP
+.B \f[C]\-\-format=LINEFORMAT\f[]
+in single\-column balance reports: use this custom line format
 .RS
 .RE
 .PP
@@ -1708,8 +1723,23 @@ show full account names, as a list (default)
 .RS
 .RE
 .TP
+.B \f[C]\-N\ \-\-no\-total\f[]
+don\[aq]t show the final total row
+.RS
+.RE
+.TP
 .B \f[C]\-\-drop=N\f[]
 in flat mode: omit N leading account name parts
+.RS
+.RE
+.TP
+.B \f[C]\-\-no\-elide\f[]
+don\[aq]t squash boring parent accounts (in tree mode)
+.RS
+.RE
+.TP
+.B \f[C]\-\-format=LINEFORMAT\f[]
+in single\-column balance reports: use this custom line format
 .RS
 .RE
 .PP
@@ -1784,8 +1814,23 @@ show full account names, as a list (default)
 .RS
 .RE
 .TP
+.B \f[C]\-N\ \-\-no\-total\f[]
+don\[aq]t show the final total row
+.RS
+.RE
+.TP
 .B \f[C]\-\-drop=N\f[]
 in flat mode: omit N leading account name parts
+.RS
+.RE
+.TP
+.B \f[C]\-\-no\-elide\f[]
+don\[aq]t squash boring parent accounts (in tree mode)
+.RS
+.RE
+.TP
+.B \f[C]\-\-format=LINEFORMAT\f[]
+in single\-column balance reports: use this custom line format
 .RS
 .RE
 .PP
