@@ -63,12 +63,6 @@ show period balances (changes) at startup instead of historical balances
 show full account names, unindented
 .RS
 .RE
-.TP
-.B \f[C]\-V\ \-\-value\f[]
-show amounts as their current market value in their default valuation
-commodity (accounts screen only)
-.RS
-.RE
 .PP
 hledger general options:
 .TP
@@ -205,6 +199,12 @@ show items with zero amount, normally hidden
 .B \f[C]\-B\ \-\-cost\f[]
 convert amounts to their cost at transaction time (using the transaction
 price, if any)
+.RS
+.RE
+.TP
+.B \f[C]\-V\ \-\-value\f[]
+convert amounts to their market value on the report end date (using the
+most recent applicable market price, if any)
 .RS
 .RE
 .TP

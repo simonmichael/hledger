@@ -1,32 +1,30 @@
-This is hledger-api/doc/hledger-api.1.info, produced by makeinfo
-version 4.8 from stdin.
+This is hledger-api.1.info, produced by makeinfo version 5.2 from stdin.
 
 
-File: hledger-api.1.info,  Node: Top,  Up: (dir)
+File: hledger-api.1.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
 hledger-api(1) hledger-api dev
 ******************************
 
 hledger-api is a simple web API server, intended to support client-side
-web apps operating on hledger data. It comes with a series of simple
+web apps operating on hledger data.  It comes with a series of simple
 client-side app examples, which drive its evolution.
 
    Like hledger, it reads data from one or more files in hledger
-journal, timeclock, timedot, or CSV format specified with `-f', or
-`$LEDGER_FILE', or `$HOME/.hledger.journal' (on windows, perhaps
-`C:/Users/USER/.hledger.journal'). For more about this see hledger(1),
+journal, timeclock, timedot, or CSV format specified with '-f', or
+'$LEDGER_FILE', or '$HOME/.hledger.journal' (on windows, perhaps
+'C:/Users/USER/.hledger.journal').  For more about this see hledger(1),
 hledger_journal(5) etc.
 
    The server listens on IP address 127.0.0.1, accessible only to local
-requests, by default. You can change this with `--host', eg `--host
-0.0.0.0' to listen on all addresses. Note there is no other access
+requests, by default.  You can change this with '--host', eg '--host
+0.0.0.0' to listen on all addresses.  Note there is no other access
 control, so you will need to hide hledger-api behind an authenticating
-proxy if you want to restrict access. You can change the TCP port
-(default: 8001) with `-p PORT'.
+proxy if you want to restrict access.  You can change the TCP port
+(default: 8001) with '-p PORT'.
 
-   If invoked as `hledger-api --swagger', instead of starting a server
+   If invoked as 'hledger-api --swagger', instead of starting a server
 the API docs will be printed in Swagger 2.0 format.
-
 * Menu:
 
 * OPTIONS::
@@ -37,56 +35,57 @@ File: hledger-api.1.info,  Node: OPTIONS,  Prev: Top,  Up: Top
 1 OPTIONS
 *********
 
-Note: if invoking hledger-api as a hledger subcommand, write `--'
-before options as shown above.
+Note: if invoking hledger-api as a hledger subcommand, write '--' before
+options as shown above.
 
-`-d --static-dir=DIR'
-     serve files from a different directory (default: `.')
+'-d --static-dir=DIR'
 
-`-p --port=PORT'
+     serve files from a different directory (default: '.')
+'-p --port=PORT'
+
      use a different TCP port (default: 8001)
+'--swagger'
 
-`--swagger'
      print API docs in Swagger 2.0 format, and exit
 
    hledger general options:
 
-`-h'
-     show general usage (or after COMMAND, the command's usage)
+'-h'
 
-`--help'
+     show general usage (or after COMMAND, the command's usage)
+'--help'
+
      show the current program's manual as plain text (or after an add-on
      COMMAND, the add-on's manual)
+'--man'
 
-`--man'
      show the current program's manual with man
+'--info'
 
-`--info'
      show the current program's manual with info
+'--version'
 
-`--version'
      show version
+'--debug[=N]'
 
-`--debug[=N]'
      show debug output (levels 1-9, default: 1)
+'-f FILE --file=FILE'
 
-`-f FILE --file=FILE'
-     use a different input file. For stdin, use -
+     use a different input file.  For stdin, use -
+'--rules-file=RULESFILE'
 
-`--rules-file=RULESFILE'
      Conversion rules file to use when reading CSV (default: FILE.rules)
+'--alias=OLD=NEW'
 
-`--alias=OLD=NEW'
      display accounts named OLD as NEW
+'-I --ignore-assertions'
 
-`-I --ignore-assertions'
      ignore any failing balance assertions in the journal
-
 
 
 Tag Table:
-Node: Top90
-Node: OPTIONS1216
-Ref: #options1303
+Node: Top74
+Node: OPTIONS1220
+Ref: #options1307
 
 End Tag Table

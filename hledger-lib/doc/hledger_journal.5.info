@@ -1,32 +1,31 @@
-This is hledger-lib/doc/hledger_journal.5.info, produced by makeinfo
-version 4.8 from stdin.
+This is hledger_journal.5.info, produced by makeinfo version 5.2 from
+stdin.
 
 
-File: hledger_journal.5.info,  Node: Top,  Up: (dir)
+File: hledger_journal.5.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
 hledger_journal(5) hledger dev
 ******************************
 
 hledger's usual data source is a plain text file containing journal
-entries in hledger journal format. This file represents a standard
-accounting general journal. I use file names ending in `.journal', but
-that's not required. The journal file contains a number of transaction
+entries in hledger journal format.  This file represents a standard
+accounting general journal.  I use file names ending in '.journal', but
+that's not required.  The journal file contains a number of transaction
 entries, each describing a transfer of money (or any commodity) between
 two or more named accounts, in a simple format readable by both hledger
 and humans.
 
    hledger's journal format is a compatible subset, mostly, of ledger's
 journal format, so hledger can work with compatible ledger journal files
-as well. It's safe, and encouraged, to run both hledger and ledger on
+as well.  It's safe, and encouraged, to run both hledger and ledger on
 the same journal file, eg to validate the results you're getting.
 
    You can use hledger without learning any more about this file; just
-use the add or web commands to create and update it. Many users, though,
-also edit the journal file directly with a text editor, perhaps assisted
-by the helper modes for emacs or vim.
+use the add or web commands to create and update it.  Many users,
+though, also edit the journal file directly with a text editor, perhaps
+assisted by the helper modes for emacs or vim.
 
    Here's an example:
-
 
 ; A sample journal file. This is a comment.
 
@@ -82,31 +81,26 @@ File: hledger_journal.5.info,  Node: Transactions,  Next: Dates,  Up: FILE FORMA
 1.1 Transactions
 ================
 
-Transactions are represented by journal entries. Each begins with a
+Transactions are represented by journal entries.  Each begins with a
 simple date in column 0, followed by three optional fields with spaces
 between them:
 
-   * a status flag, which can be empty or `!' or `*' (meaning
+   * a status flag, which can be empty or '!' or '*' (meaning
      "uncleared", "pending" and "cleared", or whatever you want)
-
    * a transaction code (eg a check number),
-
    * and/or a description
 
-   then some number of postings, of some amount to some account. Each
+   then some number of postings, of some amount to some account.  Each
 posting is on its own line, consisting of:
 
    * indentation of one or more spaces (or tabs)
-
-   * optionally, a `!' or `*' status flag followed by a space
-
+   * optionally, a '!' or '*' status flag followed by a space
    * an account name, optionally containing single spaces
-
    * optionally, two or more spaces or tabs followed by an amount
 
    Usually there are two or more postings, though one or none is also
-possible. The posting amounts within a transaction must always balance,
-ie add up to 0. Optionally one amount can be left blank, in which case
+possible.  The posting amounts within a transaction must always balance,
+ie add up to 0.  Optionally one amount can be left blank, in which case
 it will be inferred.
 
 
@@ -128,11 +122,11 @@ File: hledger_journal.5.info,  Node: Simple dates,  Next: Secondary dates,  Up: 
 ------------------
 
 Within a journal file, transaction dates use Y/M/D (or Y-M-D or Y.M.D)
-Leading zeros are optional. The year may be omitted, in which case it
+Leading zeros are optional.  The year may be omitted, in which case it
 will be inferred from the context - the current transaction, the default
 year set with a default year directive, or the current date when the
-command is run. Some examples: `2010/01/31', `1/31', `2010-01-31',
-`2010.1.31'.
+command is run.  Some examples: '2010/01/31', '1/31', '2010-01-31',
+'2010.1.31'.
 
 
 File: hledger_journal.5.info,  Node: Secondary dates,  Next: Posting dates,  Prev: Simple dates,  Up: Dates
@@ -141,40 +135,37 @@ File: hledger_journal.5.info,  Node: Secondary dates,  Next: Posting dates,  Pre
 ---------------------
 
 Real-life transactions sometimes involve more than one date - eg the
-date you write a cheque, and the date it clears in your bank. When you
+date you write a cheque, and the date it clears in your bank.  When you
 want to model this, eg for more accurate balances, you can specify
-individual posting dates, which I recommend. Or, you can use the
+individual posting dates, which I recommend.  Or, you can use the
 secondary dates (aka auxiliary/effective dates) feature, supported for
 compatibility with Ledger.
 
    A secondary date can be written after the primary date, separated by
-an equals sign. The primary date, on the left, is used by default; the
-secondary date, on the right, is used when the `--date2' flag is
-specified (`--aux-date' or `--effective' also work).
+an equals sign.  The primary date, on the left, is used by default; the
+secondary date, on the right, is used when the '--date2' flag is
+specified ('--aux-date' or '--effective' also work).
 
    The meaning of secondary dates is up to you, but it's best to follow
-a consistent rule. Eg write the bank's clearing date as primary, and
+a consistent rule.  Eg write the bank's clearing date as primary, and
 when needed, the date the transaction was initiated as secondary.
 
-   Here's an example. Note that a secondary date will use the year of
+   Here's an example.  Note that a secondary date will use the year of
 the primary date if unspecified.
-
 
 2010/2/23=2/19 movie ticket
   expenses:cinema                   $10
   assets:checking
 
-
 $ hledger register checking
 2010/02/23 movie ticket         assets:checking                $-10         $-10
-
 
 $ hledger register checking --date2
 2010/02/19 movie ticket         assets:checking                $-10         $-10
 
    Secondary dates require some effort; you must use them consistently
 in your journal entries and remember whether to use or not use the
-`--date2' flag for your reports. They are included in hledger for
+'--date2' flag for your reports.  They are included in hledger for
 Ledger compatibility, but posting dates are a more powerful and less
 confusing alternative.
 
@@ -186,34 +177,31 @@ File: hledger_journal.5.info,  Node: Posting dates,  Prev: Secondary dates,  Up:
 
 You can give individual postings a different date from their parent
 transaction, by adding a posting comment containing a tag (see below)
-like `date:DATE'. This is probably the best way to control posting
-dates precisely. Eg in this example the expense should appear in May
+like 'date:DATE'.  This is probably the best way to control posting
+dates precisely.  Eg in this example the expense should appear in May
 reports, and the deduction from checking should be reported on 6/1 for
 easy bank reconciliation:
-
 
 2015/5/30
     expenses:food     $10   ; food purchased on saturday 5/30
     assets:checking         ; bank cleared it on monday, date:6/1
 
-
 $ hledger -f t.j register food
 2015/05/30                      expenses:food                  $10           $10
-
 
 $ hledger -f t.j register checking
 2015/06/01                      assets:checking               $-10          $-10
 
    DATE should be a simple date; if the year is not specified it will
-use the year of the transaction's date. You can set the secondary date
-similarly, with `date2:DATE2'. The `date:' or `date2:' tags must have a
-valid simple date value if they are present, eg a `date:' tag with no
+use the year of the transaction's date.  You can set the secondary date
+similarly, with 'date2:DATE2'.  The 'date:' or 'date2:' tags must have a
+valid simple date value if they are present, eg a 'date:' tag with no
 value is not allowed.
 
    Ledger's earlier, more compact bracketed date syntax is also
-supported: `[DATE]', `[DATE=DATE2]' or `[=DATE2]'. hledger will attempt
-to parse any square-bracketed sequence of the `0123456789/-.='
-characters in this way. With this syntax, DATE infers its year from the
+supported: '[DATE]', '[DATE=DATE2]' or '[=DATE2]'.  hledger will attempt
+to parse any square-bracketed sequence of the '0123456789/-.='
+characters in this way.  With this syntax, DATE infers its year from the
 transaction and DATE2 infers its year from DATE.
 
 
@@ -223,12 +211,13 @@ File: hledger_journal.5.info,  Node: Account names,  Next: Amounts,  Prev: Dates
 =================
 
 Account names typically have several parts separated by a full colon,
-from which hledger derives a hierarchical chart of accounts. They can be
-anything you like, but in finance there are traditionally five top-level
-accounts: `assets', `liabilities', `income', `expenses', and `equity'.
+from which hledger derives a hierarchical chart of accounts.  They can
+be anything you like, but in finance there are traditionally five
+top-level accounts: 'assets', 'liabilities', 'income', 'expenses', and
+'equity'.
 
-   Account names may contain single spaces, eg: `assets:accounts
-receivable'. Because of this, they must always be followed by *two or
+   Account names may contain single spaces, eg: 'assets:accounts
+receivable'.  Because of this, they must always be followed by *two or
 more spaces* (or newline).
 
    Account names can be aliased.
@@ -239,58 +228,53 @@ File: hledger_journal.5.info,  Node: Amounts,  Next: Virtual Postings,  Prev: Ac
 1.4 Amounts
 ===========
 
-After the account name, there is usually an amount. Important: between
+After the account name, there is usually an amount.  Important: between
 account name and amount, there must be *two or more spaces*.
 
    Amounts consist of a number and (usually) a currency symbol or
-commodity name. Some examples:
+commodity name.  Some examples:
 
-   `2.00001'
-`$1'
-`4000 AAPL'
-`3 "green apples"'
-`-$1,000,000.00'
-`INR 9,99,99,999.00'
-`EUR -2.000.000,00'
+   '2.00001'
+'$1'
+'4000 AAPL'
+'3 "green apples"'
+'-$1,000,000.00'
+'INR 9,99,99,999.00'
+'EUR -2.000.000,00'
 
    As you can see, the amount format is somewhat flexible:
 
    * amounts are a number (the "quantity") and optionally a currency
      symbol/commodity name (the "commodity").
-
    * the commodity is a symbol, word, or phrase, on the left or right,
-     with or without a separating space. If the commodity contains
+     with or without a separating space.  If the commodity contains
      numbers, spaces or non-word punctuation it must be enclosed in
      double quotes.
-
    * negative amounts with a commodity on the left can have the minus
      sign before or after it
-
    * digit groups (thousands, or any other grouping) can be separated by
      commas (in which case period is used for decimal point) or periods
      (in which case comma is used for decimal point)
 
    You can use any of these variations when recording data, but when
 hledger displays amounts, it will choose a consistent format for each
-commodity. (Except for price amounts, which are always formatted as
-written). The display format is chosen as follows:
+commodity.  (Except for price amounts, which are always formatted as
+written).  The display format is chosen as follows:
 
    * if there is a commodity directive specifying the format, that is
      used
-
    * otherwise the format is inferred from the first posting amount in
-     that commodity in the journal, and the precision (number of
-     decimal places) will be the maximum from all posting amounts in
-     that commmodity
-
-   * or if there are no such amounts in the journal, a default format
-     is used (like `$1000.00').
+     that commodity in the journal, and the precision (number of decimal
+     places) will be the maximum from all posting amounts in that
+     commmodity
+   * or if there are no such amounts in the journal, a default format is
+     used (like '$1000.00').
 
    Price amounts and amounts in D directives usually don't affect amount
-format inference, but in some situations they can do so indirectly. (Eg
+format inference, but in some situations they can do so indirectly.  (Eg
 when D's default commodity is applied to a commodity-less amount, or
 when an amountless posting is balanced using a price's commodity, or
-when -V is used.) If you find this causing problems, set the desired
+when -V is used.)  If you find this causing problems, set the desired
 format with a commodity directive.
 
 
@@ -303,23 +287,20 @@ When you parenthesise the account name in a posting, we call that a
 _virtual posting_, which means:
 
    * it is ignored when checking that the transaction is balanced
-
-   * it is excluded from reports when the `--real/-R' flag is used, or
-     the `real:1' query.
+   * it is excluded from reports when the '--real/-R' flag is used, or
+     the 'real:1' query.
 
    You could use this, eg, to set an account's opening balance without
-needing to use the `equity:opening balances' account:
-
+needing to use the 'equity:opening balances' account:
 
 1/1 special unbalanced posting to set initial balance
   (assets:checking)   $1000
 
    When the account name is bracketed, we call it a _balanced virtual
-posting_. This is like an ordinary virtual posting except the balanced
+posting_.  This is like an ordinary virtual posting except the balanced
 virtual postings in a transaction must balance to 0, like the real
-postings (but separately from them). Balanced virtual postings are also
-excluded by `--real/-R' or `real:1'.
-
+postings (but separately from them).  Balanced virtual postings are also
+excluded by '--real/-R' or 'real:1'.
 
 1/1 buy food with cash, and update some budget-tracking subaccounts elsewhere
   expenses:food                   $10
@@ -327,7 +308,7 @@ excluded by `--real/-R' or `real:1'.
   [assets:checking:available]     $10
   [assets:checking:budget:food]  $-10
 
-   Virtual postings have some legitimate uses, but those are few. You
+   Virtual postings have some legitimate uses, but those are few.  You
 can usually find an equivalent journal entry using real postings, which
 is more correct and provides better error checking.
 
@@ -337,11 +318,10 @@ File: hledger_journal.5.info,  Node: Balance Assertions,  Next: Balance Assignme
 1.6 Balance Assertions
 ======================
 
-hledger supports Ledger-style balance assertions in journal files. These
-look like `=EXPECTEDBALANCE' following a posting's amount. Eg in this
-example we assert the expected dollar balance in accounts a and b after
-each posting:
-
+hledger supports Ledger-style balance assertions in journal files.
+These look like '=EXPECTEDBALANCE' following a posting's amount.  Eg in
+this example we assert the expected dollar balance in accounts a and b
+after each posting:
 
 2013/1/1
   a   $1  =$1
@@ -352,12 +332,11 @@ each posting:
   b  $-1  =$-2
 
    After reading a journal file, hledger will check all balance
-assertions and report an error if any of them fail. Balance assertions
+assertions and report an error if any of them fail.  Balance assertions
 can protect you from, eg, inadvertently disrupting reconciled balances
-while cleaning up old entries. You can disable them temporarily with the
-`--ignore-assertions' flag, which can be useful for troubleshooting or
-for reading Ledger files.
-
+while cleaning up old entries.  You can disable them temporarily with
+the '--ignore-assertions' flag, which can be useful for troubleshooting
+or for reading Ledger files.
 * Menu:
 
 * Assertions and ordering::
@@ -374,17 +353,17 @@ File: hledger_journal.5.info,  Node: Assertions and ordering,  Next: Assertions 
 -----------------------------
 
 hledger sorts an account's postings and assertions first by date and
-then (for postings on the same day) by parse order. Note this is
+then (for postings on the same day) by parse order.  Note this is
 different from Ledger, which sorts assertions only by parse order.
 (Also, Ledger assertions do not see the accumulated effect of repeated
 postings to the same account within a transaction.)
 
    So, hledger balance assertions keep working if you reorder
-differently-dated transactions within the journal. But if you reorder
+differently-dated transactions within the journal.  But if you reorder
 same-dated transactions or postings, assertions might break and require
-updating. This order dependence does bring an advantage: precise control
-over the order of postings and assertions within a day, so you can
-assert intra-day balances.
+updating.  This order dependence does bring an advantage: precise
+control over the order of postings and assertions within a day, so you
+can assert intra-day balances.
 
 
 File: hledger_journal.5.info,  Node: Assertions and included files,  Next: Assertions and multiple -f options,  Prev: Assertions and ordering,  Up: Balance Assertions
@@ -392,8 +371,8 @@ File: hledger_journal.5.info,  Node: Assertions and included files,  Next: Asser
 1.6.2 Assertions and included files
 -----------------------------------
 
-With included files, things are a little more complicated. Including
-preserves the ordering of postings and assertions. If you have multiple
+With included files, things are a little more complicated.  Including
+preserves the ordering of postings and assertions.  If you have multiple
 postings to an account on the same day, split across different files,
 and you also want to assert the account's balance on the same day,
 you'll have to put the assertion in the right file.
@@ -405,7 +384,7 @@ File: hledger_journal.5.info,  Node: Assertions and multiple -f options,  Next: 
 ----------------------------------------
 
 Balance assertions don't work well across files specified with multiple
--f options. Use include or concatenate the files instead.
+-f options.  Use include or concatenate the files instead.
 
 
 File: hledger_journal.5.info,  Node: Assertions and commodities,  Next: Assertions and subaccounts,  Prev: Assertions and multiple -f options,  Up: Balance Assertions
@@ -415,14 +394,15 @@ File: hledger_journal.5.info,  Node: Assertions and commodities,  Next: Assertio
 
 The asserted balance must be a simple single-commodity amount, and in
 fact the assertion checks only this commodity's balance within the
-(possibly multi-commodity) account balance. We could call this a partial
-balance assertion. This is compatible with Ledger, and makes it possible
-to make assertions about accounts containing multiple commodities.
+(possibly multi-commodity) account balance.  We could call this a
+partial balance assertion.  This is compatible with Ledger, and makes it
+possible to make assertions about accounts containing multiple
+commodities.
 
    To assert each commodity's balance in such a multi-commodity account,
-you can add multiple postings (with amount 0 if necessary). But note
+you can add multiple postings (with amount 0 if necessary).  But note
 that no matter how many assertions you add, you can't be sure the
-account does not contain some unexpected commodity. (We'll add support
+account does not contain some unexpected commodity.  (We'll add support
 for this kind of total balance assertion if there's demand.)
 
 
@@ -432,8 +412,7 @@ File: hledger_journal.5.info,  Node: Assertions and subaccounts,  Next: Assertio
 --------------------------------
 
 Balance assertions do not count the balance from subaccounts; they check
-the posted account's exclusive balance. For example:
-
+the posted account's exclusive balance.  For example:
 
 1/1
   checking:fund   1 = 1  ; post to this subaccount, its balance is now 1
@@ -442,7 +421,6 @@ the posted account's exclusive balance. For example:
 
    The balance report's flat mode shows these exclusive balances more
 clearly:
-
 
 $ hledger bal checking --flat
                    1  checking
@@ -457,7 +435,8 @@ File: hledger_journal.5.info,  Node: Assertions and virtual postings,  Prev: Ass
 -------------------------------------
 
 Balance assertions are checked against all postings, both real and
-virtual. They are not affected by the `--real/-R' flag or `real:' query.
+virtual.  They are not affected by the '--real/-R' flag or 'real:'
+query.
 
 
 File: hledger_journal.5.info,  Node: Balance Assignments,  Next: Prices,  Prev: Balance Assertions,  Up: FILE FORMAT
@@ -465,12 +444,11 @@ File: hledger_journal.5.info,  Node: Balance Assignments,  Next: Prices,  Prev: 
 1.7 Balance Assignments
 =======================
 
-Ledger-style balance assignments are also supported. These are like
+Ledger-style balance assignments are also supported.  These are like
 balance assertions, but with no posting amount on the left side of the
 equals sign; instead it is calculated automatically so as to satisfy the
-assertion. This can be a convenience during data entry, eg when setting
+assertion.  This can be a convenience during data entry, eg when setting
 opening balances:
-
 
 ; starting a new journal, set asset account balances
 2016/1/1 opening balances
@@ -481,7 +459,6 @@ opening balances:
 
    or when adjusting a balance to reality:
 
-
 ; no cash left; update balance, record any untracked spending as a generic expense
 2016/1/15
   assets:cash    = $0
@@ -490,7 +467,7 @@ opening balances:
    The calculated amount depends on the account's balance in the
 commodity at that point (which depends on the previously-dated postings
 of the commodity to that account since the last balance assertion or
-assignment). Note that using balance assignments makes your journal a
+assignment).  Note that using balance assignments makes your journal a
 little less explicit; to know the exact amount posted, you have to run
 hledger or do the calculations yourself, instead of just reading it.
 
@@ -512,44 +489,39 @@ File: hledger_journal.5.info,  Node: Transaction prices,  Next: Market prices,  
 ------------------------
 
 Within a transaction posting, you can record an amount's price in
-another commodity. This can be used to document the cost (for a
+another commodity.  This can be used to document the cost (for a
 purchase), or selling price (for a sale), or the exchange rate that was
-used, for this transaction. These transaction prices are fixed, and do
+used, for this transaction.  These transaction prices are fixed, and do
 not change over time.
 
    Amounts with transaction prices can be displayed in the transaction
-price's commodity, by using the `--cost/-B' flag supported by most
+price's commodity, by using the '--cost/-B' flag supported by most
 hledger commands (mnemonic: "cost Basis").
 
    There are several ways to record a transaction price:
 
-  1. Write the unit price (aka exchange rate), as `@ UNITPRICE' after
+  1. Write the unit price (aka exchange rate), as '@ UNITPRICE' after
      the amount:
-
 
      2009/1/1
        assets:foreign currency   €100 @ $1.35  ; one hundred euros at $1.35 each
        assets:cash
 
-  2. Or write the total price, as `@@ TOTALPRICE' after the amount:
-
+  2. Or write the total price, as '@@ TOTALPRICE' after the amount:
 
      2009/1/1
        assets:foreign currency   €100 @@ $135  ; one hundred euros at $135 for the lot
        assets:cash
 
-  3. Or let hledger infer the price so as to balance the transaction. To
-     permit this, you must fully specify all posting amounts, and their
-     sum must have a non-zero amount in exactly two commodities:
-
+  3. Or let hledger infer the price so as to balance the transaction.
+     To permit this, you must fully specify all posting amounts, and
+     their sum must have a non-zero amount in exactly two commodities:
 
      2009/1/1
        assets:foreign currency   €100          ; one hundred euros
        assets:cash              $-135          ; exchanged for $135
 
-
    With any of the above examples we get:
-
 
 $ hledger print -B
 2009/01/01
@@ -566,26 +538,25 @@ File: hledger_journal.5.info,  Node: Market prices,  Prev: Transaction prices,  
 -------------------
 
 Market prices are not tied to a particular transaction; they represent
-historical exchange rates between two commodities. (Ledger calls them
-historical prices.) For example, the prices published by a stock
-exchange or the foreign exchange market. Some commands (balance,
+historical exchange rates between two commodities.  (Ledger calls them
+historical prices.)  For example, the prices published by a stock
+exchange or the foreign exchange market.  Some commands (balance,
 currently) can use this information to show the market value of things
 at a given date.
 
    To record market prices, use P directives in the main journal or in
-an included file. Their format is:
-
+an included file.  Their format is:
 
 P DATE COMMODITYBEINGPRICED UNITPRICE
 
-   DATE is a simple date as usual. COMMODITYBEINGPRICED is the symbol of
-the commodity being priced. UNITPRICE is an ordinary amount (symbol and
-quantity) in a second commodity, specifying the unit price or conversion
-rate for the first commodity in terms of the second, on the given date.
+   DATE is a simple date as usual.  COMMODITYBEINGPRICED is the symbol
+of the commodity being priced.  UNITPRICE is an ordinary amount (symbol
+and quantity) in a second commodity, specifying the unit price or
+conversion rate for the first commodity in terms of the second, on the
+given date.
 
    For example, the following directives say that one euro was worth
 1.35 US dollars during 2009, and $1.40 from 2010 onward:
-
 
 P 2009/1/1 € $1.35
 P 2010/1/1 € $1.40
@@ -596,21 +567,20 @@ File: hledger_journal.5.info,  Node: Comments,  Next: Tags,  Prev: Prices,  Up: 
 1.9 Comments
 ============
 
-Lines in the journal beginning with a semicolon (`;') or hash (`#') or
-asterisk (`*') are comments, and will be ignored.  (Asterisk comments
+Lines in the journal beginning with a semicolon (';') or hash ('#') or
+asterisk ('*') are comments, and will be ignored.  (Asterisk comments
 make it easy to treat your journal like an org-mode outline in emacs.)
 
-   Also, anything between `comment' and `end comment' directives is a
-(multi-line) comment. If there is no `end comment', the comment extends
+   Also, anything between 'comment' and 'end comment' directives is a
+(multi-line) comment.  If there is no 'end comment', the comment extends
 to the end of the file.
 
    You can attach comments to a transaction by writing them after the
 description and/or indented on the following lines (before the
-postings). Similarly, you can attach comments to an individual posting
+postings).  Similarly, you can attach comments to an individual posting
 by writing them after the amount and/or indented on the following lines.
 
    Some examples:
-
 
 # a journal comment
 
@@ -643,12 +613,10 @@ transactions, which you can then search or pivot on.
    A simple tag is a word (which may contain hyphens) followed by a full
 colon, written inside a transaction or posting comment line:
 
-
 2017/1/16 bought groceries    ; sometag:
 
    Tags can have a value, which is the text after the colon, up to the
 next comma or end of line, with leading/trailing whitespace removed:
-
 
     expenses:food    $10   ; a-posting-tag: the tag value
 
@@ -656,22 +624,18 @@ next comma or end of line, with leading/trailing whitespace removed:
 newlines.  Ending at commas means you can write multiple short tags on
 one line, comma separated:
 
-
     assets:checking       ; a comment containing tag1:, tag2: some value ...
 
    Here,
 
-   * "`a comment containing'" is just comment text, not a tag
-
-   * "`tag1'" is a tag with no value
-
-   * "`tag2'" is another tag, whose value is "`some value ...'"
+   * "'a comment containing'" is just comment text, not a tag
+   * "'tag1'" is a tag with no value
+   * "'tag2'" is another tag, whose value is "'some value ...'"
 
    Tags in a transaction comment affect the transaction and all of its
-postings, while tags in a posting comment affect only that posting. For
-example, the following transaction has three tags (`A', `TAG2',
-`third-tag') and the posting has four (those plus `posting-tag'):
-
+postings, while tags in a posting comment affect only that posting.  For
+example, the following transaction has three tags ('A', 'TAG2',
+'third-tag') and the posting has four (those plus 'posting-tag'):
 
 1/1 a transaction  ; A:, TAG2:
     ; third-tag: a third transaction tag, <- with a value
@@ -679,7 +643,6 @@ example, the following transaction has three tags (`A', `TAG2',
 
    Tags are like Ledger's metadata feature, except hledger's tag values
 are simple strings.
-
 * Menu:
 
 * Implicit tags::
@@ -692,18 +655,15 @@ File: hledger_journal.5.info,  Node: Implicit tags,  Up: Tags
 
 Some predefined "implicit" tags are also provided:
 
-   * `code' - the transaction's code field
+   * 'code' - the transaction's code field
+   * 'description' - the transaction's description
+   * 'payee' - the part of description before '|', or all of it
+   * 'note' - the part of description after '|', or all of it
 
-   * `description' - the transaction's description
-
-   * `payee' - the part of description before `|', or all of it
-
-   * `note' - the part of description after `|', or all of it
-
-   `payee' and `note' support descriptions written in a special `PAYEE
-| NOTE' format, accessing the parts before and after the pipe character
-respectively. For descriptions not containing a pipe character they are
-the same as `description'.
+   'payee' and 'note' support descriptions written in a special 'PAYEE |
+NOTE' format, accessing the parts before and after the pipe character
+respectively.  For descriptions not containing a pipe character they are
+the same as 'description'.
 
 
 File: hledger_journal.5.info,  Node: Directives,  Prev: Tags,  Up: FILE FORMAT
@@ -729,21 +689,17 @@ File: hledger_journal.5.info,  Node: Account aliases,  Next: account directive, 
 ----------------------
 
 You can define aliases which rewrite your account names (after reading
-the journal, before generating reports). hledger's account aliases can
+the journal, before generating reports).  hledger's account aliases can
 be useful for:
 
    * expanding shorthand account names to their full form, allowing
      easier data entry and a less verbose journal
-
    * adapting old journals to your current chart of accounts
-
    * experimenting with new account organisations, like a new hierarchy
      or combining two accounts into one
-
    * customising reports
 
    See also How to use account aliases.
-
 * Menu:
 
 * Basic aliases::
@@ -757,21 +713,19 @@ File: hledger_journal.5.info,  Node: Basic aliases,  Next: Regex aliases,  Up: A
 1.11.1.1 Basic aliases
 ......................
 
-To set an account alias, use the `alias' directive in your journal
-file. This affects all subsequent journal entries in the current file or
-its included files. The spaces around the = are optional:
-
+To set an account alias, use the 'alias' directive in your journal file.
+This affects all subsequent journal entries in the current file or its
+included files.  The spaces around the = are optional:
 
 alias OLD = NEW
 
-   Or, you can use the `--alias 'OLD=NEW'' option on the command line.
-This affects all entries. It's useful for trying out aliases
+   Or, you can use the '--alias 'OLD=NEW'' option on the command line.
+This affects all entries.  It's useful for trying out aliases
 interactively.
 
-   OLD and NEW are full account names. hledger will replace any
-occurrence of the old account name with the new one. Subaccounts are
+   OLD and NEW are full account names.  hledger will replace any
+occurrence of the old account name with the new one.  Subaccounts are
 also affected.  Eg:
-
 
 alias checking = assets:bank:wells fargo:checking
 # rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
@@ -783,21 +737,19 @@ File: hledger_journal.5.info,  Node: Regex aliases,  Next: Multiple aliases,  Pr
 ......................
 
 There is also a more powerful variant that uses a regular expression,
-indicated by the forward slashes. (This was the default behaviour in
+indicated by the forward slashes.  (This was the default behaviour in
 hledger 0.24-0.25):
-
 
 alias /REGEX/ = REPLACEMENT
 
-   or `--alias '/REGEX/=REPLACEMENT''.
+   or '--alias '/REGEX/=REPLACEMENT''.
 
-   REGEX is a case-insensitive regular expression. Anywhere it matches
+   REGEX is a case-insensitive regular expression.  Anywhere it matches
 inside an account name, the matched part will be replaced by
 REPLACEMENT. If REGEX contains parenthesised match groups, these can be
 referenced by the usual numeric backreferences in REPLACEMENT. Note,
 currently regular expression aliases may cause noticeable slow-downs.
-(And if you use Ledger on your hledger file, they will be ignored.) Eg:
-
+(And if you use Ledger on your hledger file, they will be ignored.)  Eg:
 
 alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
 # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
@@ -809,14 +761,13 @@ File: hledger_journal.5.info,  Node: Multiple aliases,  Next: end aliases,  Prev
 .........................
 
 You can define as many aliases as you like using directives or
-command-line options. Aliases are recursive - each alias sees the result
-of applying previous ones. (This is different from Ledger, where aliases
-are non-recursive by default). Aliases are applied in the following
-order:
+command-line options.  Aliases are recursive - each alias sees the
+result of applying previous ones.  (This is different from Ledger, where
+aliases are non-recursive by default).  Aliases are applied in the
+following order:
 
   1. alias directives, most recently seen first (recent directives take
      precedence over earlier ones; directives not yet seen are ignored)
-
   2. alias options, in the order they appear on the command line
 
 
@@ -825,9 +776,8 @@ File: hledger_journal.5.info,  Node: end aliases,  Prev: Multiple aliases,  Up: 
 1.11.1.4 end aliases
 ....................
 
-You can clear (forget) all currently defined aliases with the `end
+You can clear (forget) all currently defined aliases with the 'end
 aliases' directive:
-
 
 end aliases
 
@@ -837,10 +787,9 @@ File: hledger_journal.5.info,  Node: account directive,  Next: apply account dir
 1.11.2 account directive
 ------------------------
 
-The `account' directive predefines account names, as in Ledger and
-Beancount. This may be useful for your own documentation; hledger
+The 'account' directive predefines account names, as in Ledger and
+Beancount.  This may be useful for your own documentation; hledger
 doesn't make use of it yet.
-
 
 ; account ACCT
 ;   OPTIONAL COMMENTS/TAGS...
@@ -860,9 +809,8 @@ File: hledger_journal.5.info,  Node: apply account directive,  Next: Multi-line 
 ------------------------------
 
 You can specify a parent account which will be prepended to all accounts
-within a section of the journal. Use the `apply account' and `end apply
+within a section of the journal.  Use the 'apply account' and 'end apply
 account' directives like so:
-
 
 apply account home
 
@@ -874,14 +822,12 @@ end apply account
 
    which is equivalent to:
 
-
 2010/01/01
     home:food           $10
     home:cash          $-10
 
-   If `end apply account' is omitted, the effect lasts to the end of
-the file. Included files are also affected, eg:
-
+   If 'end apply account' is omitted, the effect lasts to the end of the
+file.  Included files are also affected, eg:
 
 apply account business
 include biz.journal
@@ -889,7 +835,7 @@ end apply account
 apply account personal
 include personal.journal
 
-   Prior to hledger 1.0, legacy `account' and `end' spellings were also
+   Prior to hledger 1.0, legacy 'account' and 'end' spellings were also
 supported.
 
 
@@ -898,8 +844,8 @@ File: hledger_journal.5.info,  Node: Multi-line comments,  Next: commodity direc
 1.11.4 Multi-line comments
 --------------------------
 
-A line containing just `comment' starts a multi-line comment, and a
-line containing just `end comment' ends it. See comments.
+A line containing just 'comment' starts a multi-line comment, and a line
+containing just 'end comment' ends it.  See comments.
 
 
 File: hledger_journal.5.info,  Node: commodity directive,  Next: Default commodity,  Prev: Multi-line comments,  Up: Directives
@@ -907,13 +853,11 @@ File: hledger_journal.5.info,  Node: commodity directive,  Next: Default commodi
 1.11.5 commodity directive
 --------------------------
 
-The `commodity' directive predefines commodities (currently this is
-just informational), and also it may define the display format for
-amounts in this commodity (overriding the automatically inferred
-format).
+The 'commodity' directive predefines commodities (currently this is just
+informational), and also it may define the display format for amounts in
+this commodity (overriding the automatically inferred format).
 
    It may be written on a single line, like this:
-
 
 ; commodity EXAMPLEAMOUNT
 
@@ -922,10 +866,9 @@ format).
 ; separating thousands with comma.
 commodity 1,000.0000 AAAA
 
-   or on multiple lines, using the "format" subdirective. In this case
+   or on multiple lines, using the "format" subdirective.  In this case
 the commodity symbol appears twice and should be the same in both
 places:
-
 
 ; commodity SYMBOL
 ;   format EXAMPLEAMOUNT
@@ -943,11 +886,10 @@ File: hledger_journal.5.info,  Node: Default commodity,  Next: Default year,  Pr
 ------------------------
 
 The D directive sets a default commodity (and display format), to be
-used for amounts without a commodity symbol (ie, plain numbers). (Note
-this differs from Ledger's default commodity directive.) The commodity
+used for amounts without a commodity symbol (ie, plain numbers).  (Note
+this differs from Ledger's default commodity directive.)  The commodity
 and display format will be applied to all subsequent commodity-less
 amounts, or until the next D directive.
-
 
 # commodity-less amounts should be treated as dollars
 # (and displayed with symbol on the left, thousands separators and two decimal places)
@@ -964,9 +906,8 @@ File: hledger_journal.5.info,  Node: Default year,  Next: Including other files,
 -------------------
 
 You can set a default year to be used for subsequent dates which don't
-specify a year. This is a line beginning with `Y' followed by the year.
+specify a year.  This is a line beginning with 'Y' followed by the year.
 Eg:
-
 
 Y2009      ; set default year to 2009
 
@@ -993,13 +934,12 @@ File: hledger_journal.5.info,  Node: Including other files,  Prev: Default year,
 You can pull in the content of additional journal files by writing an
 include directive, like this:
 
-
 include path/to/file.journal
 
    If the path does not begin with a slash, it is relative to the
-current file. Glob patterns (`*') are not currently supported.
+current file.  Glob patterns ('*') are not currently supported.
 
-   The `include' directive can only be used in journal files. It can
+   The 'include' directive can only be used in journal files.  It can
 include journal, timeclock or timedot files, but not CSV files.
 
 
@@ -1009,8 +949,8 @@ File: hledger_journal.5.info,  Node: EDITOR SUPPORT,  Prev: FILE FORMAT,  Up: To
 ****************
 
 Add-on modes exist for various text editors, to make working with
-journal files easier. They add colour, navigation aids and helpful
-commands. For hledger users who edit the journal file directly (the
+journal files easier.  They add colour, navigation aids and helpful
+commands.  For hledger users who edit the journal file directly (the
 majority), using one of these modes is quite recommended.
 
    These were written with Ledger in mind, but also work with hledger
@@ -1022,83 +962,82 @@ Sublime Text      https://github.com/ledger/ledger/wiki/Using-Sublime-Text
 Textmate          https://github.com/ledger/ledger/wiki/Using-TextMate-2
 Text Wrangler     https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler
 
-
 
 Tag Table:
-Node: Top94
-Node: FILE FORMAT2284
-Ref: #file-format2410
-Node: Transactions2593
-Ref: #transactions2713
-Node: Dates3656
-Ref: #dates3784
-Node: Simple dates3849
-Ref: #simple-dates3977
-Node: Secondary dates4341
-Ref: #secondary-dates4497
-Node: Posting dates6057
-Ref: #posting-dates6188
-Node: Account names7559
-Ref: #account-names7698
-Node: Amounts8183
-Ref: #amounts8321
-Node: Virtual Postings10420
-Ref: #virtual-postings10581
-Node: Balance Assertions11801
-Ref: #balance-assertions11978
-Node: Assertions and ordering12873
-Ref: #assertions-and-ordering13061
-Node: Assertions and included files13758
-Ref: #assertions-and-included-files14001
-Node: Assertions and multiple -f options14332
-Ref: #assertions-and-multiple--f-options14588
-Node: Assertions and commodities14719
-Ref: #assertions-and-commodities14956
-Node: Assertions and subaccounts15648
-Ref: #assertions-and-subaccounts15882
-Node: Assertions and virtual postings16404
-Ref: #assertions-and-virtual-postings16613
-Node: Balance Assignments16754
-Ref: #balance-assignments16923
-Node: Prices18041
-Ref: #prices18174
-Node: Transaction prices18225
-Ref: #transaction-prices18370
-Node: Market prices19950
-Ref: #market-prices20085
-Node: Comments21054
-Ref: #comments21176
-Node: Tags22288
-Ref: #tags22408
-Node: Implicit tags23843
-Ref: #implicit-tags23951
-Node: Directives24470
-Ref: #directives24585
-Node: Account aliases24778
-Ref: #account-aliases24924
-Node: Basic aliases25526
-Ref: #basic-aliases25671
-Node: Regex aliases26359
-Ref: #regex-aliases26529
-Node: Multiple aliases27299
-Ref: #multiple-aliases27473
-Node: end aliases27969
-Ref: #end-aliases28111
-Node: account directive28213
-Ref: #account-directive28395
-Node: apply account directive28691
-Ref: #apply-account-directive28889
-Node: Multi-line comments29549
-Ref: #multi-line-comments29741
-Node: commodity directive29868
-Ref: #commodity-directive30054
-Node: Default commodity30927
-Ref: #default-commodity31102
-Node: Default year31638
-Ref: #default-year31805
-Node: Including other files32228
-Ref: #including-other-files32387
-Node: EDITOR SUPPORT32783
-Ref: #editor-support32903
+Node: Top78
+Node: FILE FORMAT2292
+Ref: #file-format2418
+Node: Transactions2601
+Ref: #transactions2721
+Node: Dates3663
+Ref: #dates3791
+Node: Simple dates3856
+Ref: #simple-dates3984
+Node: Secondary dates4350
+Ref: #secondary-dates4506
+Node: Posting dates6069
+Ref: #posting-dates6200
+Node: Account names7574
+Ref: #account-names7713
+Node: Amounts8200
+Ref: #amounts8338
+Node: Virtual Postings10439
+Ref: #virtual-postings10600
+Node: Balance Assertions11820
+Ref: #balance-assertions11997
+Node: Assertions and ordering12893
+Ref: #assertions-and-ordering13081
+Node: Assertions and included files13781
+Ref: #assertions-and-included-files14024
+Node: Assertions and multiple -f options14357
+Ref: #assertions-and-multiple--f-options14613
+Node: Assertions and commodities14745
+Ref: #assertions-and-commodities14982
+Node: Assertions and subaccounts15678
+Ref: #assertions-and-subaccounts15912
+Node: Assertions and virtual postings16433
+Ref: #assertions-and-virtual-postings16642
+Node: Balance Assignments16784
+Ref: #balance-assignments16953
+Node: Prices18072
+Ref: #prices18205
+Node: Transaction prices18256
+Ref: #transaction-prices18401
+Node: Market prices19978
+Ref: #market-prices20113
+Node: Comments21086
+Ref: #comments21208
+Node: Tags22321
+Ref: #tags22441
+Node: Implicit tags23870
+Ref: #implicit-tags23978
+Node: Directives24495
+Ref: #directives24610
+Node: Account aliases24803
+Ref: #account-aliases24949
+Node: Basic aliases25548
+Ref: #basic-aliases25693
+Node: Regex aliases26383
+Ref: #regex-aliases26553
+Node: Multiple aliases27324
+Ref: #multiple-aliases27498
+Node: end aliases27996
+Ref: #end-aliases28138
+Node: account directive28239
+Ref: #account-directive28421
+Node: apply account directive28717
+Ref: #apply-account-directive28915
+Node: Multi-line comments29574
+Ref: #multi-line-comments29766
+Node: commodity directive29894
+Ref: #commodity-directive30080
+Node: Default commodity30952
+Ref: #default-commodity31127
+Node: Default year31664
+Ref: #default-year31831
+Node: Including other files32254
+Ref: #including-other-files32413
+Node: EDITOR SUPPORT32810
+Ref: #editor-support32930
 
 End Tag Table

@@ -50,15 +50,11 @@ OPTIONS
 
        --flat show full account names, unindented
 
-       -V --value
-              show amounts as their current market value in their default val-
-              uation commodity (accounts screen only)
-
        hledger general options:
 
        -h     show general usage (or after COMMAND, the command's usage)
 
-       --help show the current program's manual as plain  text  (or  after  an
+       --help show  the  current  program's  manual as plain text (or after an
               add-on COMMAND, the add-on's manual)
 
        --man  show the current program's manual with man
@@ -75,7 +71,7 @@ OPTIONS
               use a different input file.  For stdin, use -
 
        --rules-file=RULESFILE
-              Conversion   rules  file  to  use  when  reading  CSV  (default:
+              Conversion  rules  file  to  use  when  reading  CSV   (default:
               FILE.rules)
 
        --alias=OLD=NEW
@@ -108,7 +104,7 @@ OPTIONS
               multiperiod/multicolumn report by year
 
        -p --period=PERIODEXP
-              set start date, end date, and/or reporting interval all at  once
+              set  start date, end date, and/or reporting interval all at once
               (overrides the flags above)
 
        --date2
@@ -133,8 +129,12 @@ OPTIONS
               show items with zero amount, normally hidden
 
        -B --cost
-              convert  amounts  to  their  cost at transaction time (using the
+              convert amounts to their cost at  transaction  time  (using  the
               transaction price, if any)
+
+       -V --value
+              convert  amounts  to  their  market value on the report end date
+              (using the most recent applicable market price, if any)
 
        --pivot TAGNAME
               organize reports by some tag's value instead of by account
