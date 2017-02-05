@@ -1,6 +1,6 @@
-# Last-tested stack build plan using GHC 8.0.
+# Last-tested stack build plan using GHC 8
 
-resolver: lts-7.14
+resolver: lts-7.19
 
 packages:
 - hledger-lib
@@ -11,11 +11,11 @@ packages:
 
 extra-deps:
 # for hledger-ui:
-- brick-0.16
-- vty-5.14
-- text-zipper-0.8.1
+- vty-5.15
+- brick-0.17
+- text-zipper-0.10
 # for hledger-web:
-- wai-handler-launch-3.0.2.1
-- yesod-auth-1.4.13.5
+- wai-handler-launch-3.0.2.2
+- yesod-auth-1.4.16
 
 # cf https://github.com/commercialhaskell/stack/wiki/stack.yaml

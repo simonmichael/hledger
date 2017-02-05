@@ -1,5 +1,4 @@
-# Last-tested stack build plan using GHC 7.10.3.
-# This one is not tested as often as stack.yaml.
+# Last-tested stack build plan using GHC 7.10.3
 
 resolver: lts-6.27
 
@@ -15,3 +14,19 @@ extra-deps:
 - text-zipper-0.8.1
 - vty-5.11.3
 - megaparsec-5.1.2
+
+# latest as of 2017/2/4, untested:
+#resolver: lts-6.30
+#
+#packages:
+#- hledger-lib
+#- hledger
+#- hledger-ui
+#- hledger-web
+#- hledger-api
+#
+#extra-deps:
+#- megaparsec-5.2.0
+#- vty-5.15
+#- brick-0.17
+#- text-zipper-0.10
