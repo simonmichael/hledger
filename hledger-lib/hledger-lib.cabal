@@ -204,6 +204,7 @@ test-suite doctests
       Hledger.Data.Dates
       Hledger.Data.Journal
       Hledger.Data.Ledger
+      Hledger.Data.MarketPrice
       Hledger.Data.Period
       Hledger.Data.Posting
       Hledger.Data.RawOptions
@@ -303,6 +304,7 @@ test-suite hunittests
       Hledger.Data.Dates
       Hledger.Data.Journal
       Hledger.Data.Ledger
+      Hledger.Data.MarketPrice
       Hledger.Data.Period
       Hledger.Data.Posting
       Hledger.Data.RawOptions
