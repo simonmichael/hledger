@@ -211,6 +211,7 @@ instance NFData Posting
 instance Eq Posting where
     (==) (Posting a1 b1 c1 d1 e1 f1 g1 h1 i1 _ _) (Posting a2 b2 c2 d2 e2 f2 g2 h2 i2 _ _) =  a1==a2 && b1==b2 && c1==c2 && d1==d2 && e1==e2 && f1==f2 && g1==g2 && h1==h2 && i1==i2
 
+-- TODO: needs renaming, or removal if no longer needed. See also TextPosition in Hledger.UI.Editor
 -- | The position of parse errors (eg), like parsec's SourcePos but generic.
 data GenericSourcePos = GenericSourcePos FilePath Int Int    -- ^ name, 1-based line number and 1-based column number.
                       | JournalSourcePos FilePath (Int, Int) -- ^ file name, inclusive range of 1-based line numbers (first, last).
