@@ -20,6 +20,8 @@ module Hledger.Read.CsvReader (
   -- rules,
   rulesFileFor,
   parseRulesFile,
+  parseAndValidateCsvRules,
+  expandIncludes,
   transactionFromCsvRecord,
   -- * Tests
   tests_Hledger_Read_CsvReader
@@ -100,11 +102,13 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   -- parse rules
   let rulesfile = fromMaybe (rulesFileFor csvfile) mrulesfile
   rulesfileexists <- doesFileExist rulesfile
-  when rulesfileexists $ hPrintf stderr "using conversion rules file %s\n" rulesfile
-  rules <-
+  rulestext <-
     if rulesfileexists
-    then liftIO (runExceptT $ parseRulesFile rulesfile) >>= either throwerr return
-    else return defaultRules
+    then do
+      hPrintf stderr "using conversion rules file %s\n" rulesfile
+      liftIO $ (readFile' rulesfile >>= expandIncludes (takeDirectory rulesfile))
+    else return $ defaultRulesText rulesfile
+  rules <- liftIO (runExceptT $ parseAndValidateCsvRules rulesfile rulestext) >>= either throwerr return 
   dbg2IO "rules" rules
 
   -- apply skip directive
@@ -114,7 +118,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
           oneorerror s  = readDef (throwerr $ "could not parse skip value: " ++ show s) s
 
   -- parse csv
-  -- parsec seems to fail if you pass it "-" here
+  -- parsec seems to fail if you pass it "-" here XXX try again with megaparsec
   let parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
   records <- (either throwerr id .
               dbg2 "validateCsv" . validateCsv skip .
@@ -144,7 +148,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
 
   when (not rulesfileexists) $ do
     hPrintf stderr "created default conversion rules file %s, edit this for better results\n" rulesfile
-    writeFile rulesfile $ T.unpack $ defaultRulesText rulesfile
+    writeFile rulesfile $ T.unpack rulestext
 
   return $ Right nulljournal{jtxns=sortBy (comparing tdate) txns'}
 
@@ -218,13 +222,6 @@ defaultRulesText csvfile = T.pack $ unlines
   ,"if (TO|FROM) SAVINGS"
   ," account2 assets:bank:savings\n"
   ]
-
-defaultRules :: CsvRules
-defaultRules =
-  either
-    (error' "Could not parse the default CSV rules, this should not happen")
-    id
-    $ parseCsvRules "" $ defaultRulesText ""
 
 --------------------------------------------------------------------------------
 -- Conversion rules parsing
@@ -351,23 +348,18 @@ getDirective directivename = lookup directivename . rdirectives
 instance ShowErrorComponent String where
   showErrorComponent = id
 
+-- | An error-throwing action that parses this file's content 
+-- as CSV conversion rules, interpolating any included files first, 
+-- and runs some extra validation checks.
 parseRulesFile :: FilePath -> ExceptT String IO CsvRules
-parseRulesFile f = do
-  s <- liftIO $ (readFile' f >>= expandIncludes (takeDirectory f))
-  let rules = parseCsvRules f s
-  case rules of
-    Left e -> ExceptT $ return $ Left $ parseErrorPretty e
-    Right r -> do
-               r_ <- liftIO $ runExceptT $ validateRules r
-               ExceptT $ case r_ of
-                 Left e -> return $ Left $ parseErrorPretty $ toParseError e
-                 Right r -> return $ Right r
-  where
-    toParseError :: forall s. Ord s => s -> ParseError Char s
-    toParseError s = (mempty :: ParseError Char s) { errorCustom = S.singleton s}
+parseRulesFile f = 
+  liftIO (readFile' f >>= expandIncludes (takeDirectory f)) >>= parseAndValidateCsvRules f
 
--- | Pre-parse csv rules to interpolate included files, recursively.
--- This is a cheap hack to avoid rewriting the existing parser.
+-- | Look for hledger rules file-style include directives in this text,
+-- and interpolate the included files, recursively.
+-- Included file paths may be relative to the directory of the
+-- provided file path.
+-- This is a cheap hack to avoid rewriting the CSV rules parser.
 expandIncludes :: FilePath -> T.Text -> IO T.Text
 expandIncludes basedir content = do
   let (ls,rest) = break (T.isPrefixOf "include") $ T.lines content
@@ -380,6 +372,23 @@ expandIncludes basedir content = do
       return $ T.unlines [T.unlines ls, included, T.unlines ls']
     ls' -> return $ T.unlines $ ls ++ ls'   -- should never get here
 
+-- | An error-throwing action that parses this text as CSV conversion rules 
+-- and runs some extra validation checks. The file path is for error messages.
+parseAndValidateCsvRules :: FilePath -> T.Text -> ExceptT String IO CsvRules
+parseAndValidateCsvRules rulesfile s = do
+  let rules = parseCsvRules rulesfile s
+  case rules of
+    Left e -> ExceptT $ return $ Left $ parseErrorPretty e
+    Right r -> do
+               r_ <- liftIO $ runExceptT $ validateRules r
+               ExceptT $ case r_ of
+                 Left e -> return $ Left $ parseErrorPretty $ toParseError e
+                 Right r -> return $ Right r
+  where
+    toParseError :: forall s. Ord s => s -> ParseError Char s
+    toParseError s = (mempty :: ParseError Char s) { errorCustom = S.singleton s}
+
+-- | Parse this text as CSV conversion rules. The file path is for error messages.
 parseCsvRules :: FilePath -> T.Text -> Either (ParseError Char Dec) CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
 parseCsvRules rulesfile s =
