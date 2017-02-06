@@ -83,13 +83,13 @@ parse rulesfile _ f t = do
 -- | Read a Journal from the given CSV data (and filename, used for error
 -- messages), or return an error. Proceed as follows:
 -- @
--- 1. parse the CSV data
--- 2. identify the name of a file specifying conversion rules: either use
--- the name provided, derive it from the CSV filename, or raise an error
--- if the CSV filename is -.
--- 3. auto-create the rules file with default rules if it doesn't exist
--- 4. parse the rules file
--- 5. convert the CSV records to a journal using the rules
+-- 1. parse CSV conversion rules from the specified rules file, or from
+--    the default rules file for the specified CSV file, if it exists,
+--    or throw a parse error; if it doesn't exist, use built-in default rules
+-- 2. parse the CSV data, or throw a parse error
+-- 3. convert the CSV records to transactions using the rules
+-- 4. if the rules file didn't exist, create it with the default rules and filename
+-- 5. return the transactions as a Journal 
 -- @
 readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
 readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
