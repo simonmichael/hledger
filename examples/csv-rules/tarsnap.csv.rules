@@ -1,0 +1,23 @@
+# tarsnap.com's "Recent activity (all machines)", aka "Recent account activity (verbose)"
+#
+# RECTYPE,DATE,MACHINE,TYPE,QUANTITY,AMOUNT,BALANCE
+# Balance,2016-12-28,,,,,28.396910846961952530
+# Usage,2016-12-28,machine1,Client->Server bandwidth,729977109,0.182494277250000000,
+# Usage,2016-12-28,machine1,Daily storage,94917624870,0.765464704446112920,
+# Usage,2016-12-28,machine1,Server->Client bandwidth,132739070,0.033184767500000000,
+
+skip 1
+fields rectype,date,machine,type,quantity,amount,balance
+
+account1 assets:tarsnap
+
+if ^Balance,
+ description %rectype: $%balance
+ account2 dummy
+ amount $0
+  ## TODO zero amount is always rendered without commodity symbol
+
+if ^Usage,
+ description %machine %type
+ account2 expenses:tarsnap:%machine:%type
+ amount -%quantity bytes @@ $%amount
