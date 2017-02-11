@@ -1,4 +1,4 @@
-# tarsnap.com's "Recent activity (all machines)", aka "Recent account activity (verbose)"
+# hledger CSV conversion rules for tarsnap.com's "Recent activity (all machines)"
 #
 # RECTYPE,DATE,MACHINE,TYPE,QUANTITY,AMOUNT,BALANCE
 # Balance,2016-12-28,,,,,28.396910846961952530
@@ -13,9 +13,10 @@ account1 assets:tarsnap
 
 if ^Balance,
  description %rectype: $%balance
+ account1 dummy
  account2 dummy
  amount $0
-  ## TODO zero amount is always rendered without commodity symbol
+# TODO zero amount is always rendered without commodity symbol
 
 if ^Usage,
  description %machine %type
@@ -23,8 +24,8 @@ if ^Usage,
  amount -%quantity bytes @@ $%amount
 
 # sample output:
-# $ hledger -f .tarsnap.csv bal -B cur:\\$ -MAT expenses
-# using conversion rules file .tarsnap.csv.rules
+# $ hledger -f tarsnap.csv bal -B cur:\\$ -MAT expenses
+# using conversion rules file tarsnap.csv.rules
 # Balance changes in 2016/12/01-2017/02/28:
 #
 #                                                     ||               2016/12                2017/01                2017/02                  Total                Average 
