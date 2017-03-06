@@ -65,7 +65,9 @@ tr {
 &nbsp;
 <a href="https://gratipay.com/hledger/"><img border=0 src="http://img.shields.io/gratipay/hledger.svg"></a>
 &nbsp;
-<span style="border:thin solid #eee; border-radius:3px; position:relative; top:2px; padding:0 3px;"><a href="http://opencollective.com/hledger">open&nbsp;collective</a></span>
+<a href="https://opencollective.com/hledger#support"><img src="https://opencollective.com/hledger/backers/badge.svg" border="0"></a>
+&nbsp;
+<a href="https://opencollective.com/hledger#support"><img src="https://opencollective.com/hledger/sponsors/badge.svg" border="0"></a>
 &nbsp;
 <a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt=""></a>
 &nbsp;
