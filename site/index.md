@@ -56,17 +56,22 @@ tr {
 
 <!-- </div> <\!-- end of top-right area -\-> -->
 
-<div style="float:right; margin-left:3px; width:116px; height:76px; ">
-<script data-gratipay-teamslug="hledger" src="https://grtp.co/v2.js" async></script>
-</div>
+<!--<div style="float:right; margin-left:3px; width:116px; height:76px; ">-->
+<!--<script data-gratipay-teamslug="hledger" src="https://grtp.co/v2.js" async></script>-->
+<!--</div>-->
 <div style="float:right; text-align:right; white-space:nowrap; margin-top:5px;">
-<span style="position:relative; top:6px;">
-<a class="github-button" href="https://github.com/simonmichael/hledger" data-icon="octicon-star" data-count-href="/simonmichael/hledger/stargazers" data-count-api="/repos/simonmichael/hledger#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star simonmichael/hledger on GitHub"></a>
-</span>
+&nbsp;
+<span style="position:relative; top:6px;"><a class="github-button" href="https://github.com/simonmichael/hledger" data-icon="octicon-star" data-count-href="/simonmichael/hledger/stargazers" data-count-api="/repos/simonmichael/hledger#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star simonmichael/hledger on GitHub"></a></span>
+&nbsp;
+<a href="https://gratipay.com/hledger/"><img border=0 src="http://img.shields.io/gratipay/hledger.svg"></a>
+&nbsp;
+<span style="border:thin solid #eee; border-radius:3px; position:relative; top:2px; padding:0 3px;"><a href="http://opencollective.com/hledger">open&nbsp;collective</a></span>
+&nbsp;
 <a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt=""></a>
+&nbsp;
 <a style="margin-left:3px;" href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="" title="Flattr this" border="0"></a> 
+&nbsp;
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img width=62 height=31 border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt=""></a> 
-<!--<a href="https://gratipay.com/hledger/"><img border=0 src="http://img.shields.io/gratipay/hledger.svg"></a>-->
 </div>
 <!-- end of donate buttons -->
 
