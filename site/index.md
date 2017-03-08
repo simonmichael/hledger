@@ -57,11 +57,13 @@ tr {
 <!-- </div> <\!-- end of top-right area -\-> -->
 
 <div style="float:right; text-align:right; margin-top:5px;">
-[![hledger github stars](https://img.shields.io/github/stars/simonmichael/hledger.svg?style=social&label=Github)](https://github.com/simonmichael/hledger/)
+<!--[![NetflixOSS Lifecycle](https://img.shields.io/osslifecycle/Netflix/osstracker.svg)](http://hledger.org)-->
+[![github stars](https://img.shields.io/github/stars/simonmichael/hledger.svg?style=social&label=Github)](https://github.com/simonmichael/hledger/)
 <a href="https://gratipay.com/hledger/"><img border=0 src="http://img.shields.io/gratipay/hledger.svg"></a>
 <a href="https://opencollective.com/hledger#support"><img src="https://opencollective.com/hledger/backers/badge.svg" border="0"></a>
 <a href="https://opencollective.com/hledger#support"><img src="https://opencollective.com/hledger/sponsors/badge.svg" border="0"></a>
 <a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt=""></a>
+<!-- shorter shields.io version (also counts awarded bounties): [![bountysource](https://img.shields.io/bountysource/team/hledger/activity.svg)](https://github.com/simonmichael/hledger/issues?q=label:bounty)-->
 <a href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="" title="Flattr this" border="0"></a> 
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img width=62 height=31 border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt=""></a> 
 </div>
