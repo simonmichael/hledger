@@ -20,7 +20,7 @@ homepage:       http://hledger.org
 bug-reports:    http://bugs.hledger.org
 author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
-license:        GPL
+license:        GPL-3
 license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0
 build-type:     Simple
