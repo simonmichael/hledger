@@ -12,7 +12,7 @@ description: |
   interfaces, and aims to be a reliable, practical tool for daily
   use.
 category: Finance
-license: GPL
+license: GPL-3
 author: Simon Michael <simon@joyful.com>
 maintainer: Simon Michael <simon@joyful.com>
 github: simonmichael/hledger

@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.15.0.
+-- This file has been generated from package.yaml by hpack version 0.17.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -19,7 +19,7 @@ homepage:       http://hledger.org
 bug-reports:    http://bugs.hledger.org
 author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
-license:        GPL
+license:        GPL-3
 license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0
 build-type:     Simple
@@ -55,7 +55,7 @@ flag oldtime
 library
   hs-source-dirs:
       other/ledger-parse
-    , .
+      ./.
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       base >=4.8 && <5
@@ -153,8 +153,8 @@ test-suite doctests
   main-is: doctests.hs
   hs-source-dirs:
       other/ledger-parse
-    , .
-    , tests
+      ./.
+      tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       base >=4.8 && <5
@@ -244,8 +244,8 @@ test-suite hunittests
   main-is: hunittests.hs
   hs-source-dirs:
       other/ledger-parse
-    , .
-    , tests
+      ./.
+      tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       base >=4.8 && <5
