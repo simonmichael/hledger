@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.15.0.
+-- This file has been generated from package.yaml by hpack version 0.17.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -53,7 +53,7 @@ flag threaded
 executable hledger-ui
   main-is: hledger-ui.hs
   hs-source-dirs:
-      .
+      ./.
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   cpp-options: -DVERSION="1.1.98"
   build-depends:
