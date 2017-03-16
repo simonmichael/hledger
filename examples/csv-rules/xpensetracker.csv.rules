@@ -1,0 +1,9 @@
+# hledger CSV conversion rules for XpenseTracker iphone app
+
+# XXX seems like it should have been skip 6.. why 4 needed ?
+skip 4
+fields Date,Description,_Currency,amount,account2,account1,Mileage,Receipt
+date-format %-m/%-d/%y
+account1 assets:%account1
+account2 expenses:%account2
+amount $%amount
