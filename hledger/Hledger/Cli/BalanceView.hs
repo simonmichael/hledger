@@ -15,7 +15,6 @@ module Hledger.Cli.BalanceView (
 ) where
 
 import Control.Monad (unless)
-import Data.Time.Calendar (Day)
 import Data.List (intercalate)
 import Data.Monoid (Sum(..), (<>))
 import System.Console.CmdArgs.Explicit
