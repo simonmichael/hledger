@@ -19,13 +19,14 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.BalanceView
 
 bsBV = BalanceView {
-         bvmode    = "balancesheet",
-         bvaliases = ["bs"],
-         bvhelp    = "show a balance sheet",
-         bvtitle   = "Balance Sheet",
-         bvqueries = [ ("Assets"     , journalAssetAccountQuery),
-                       ("Liabilities", journalLiabilityAccountQuery)
-                     ]
+         bvmode     = "balancesheet",
+         bvaliases  = ["bs"],
+         bvhelp     = "show a balance sheet",
+         bvtitle    = "Balance Sheet",
+         bvqueries  = [ ("Assets"     , journalAssetAccountQuery),
+                        ("Liabilities", journalLiabilityAccountQuery)
+                      ],
+         bvsnapshot = True
       }
 
 balancesheetmode :: Mode RawOpts

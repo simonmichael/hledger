@@ -19,13 +19,14 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.BalanceView
 
 isBV = BalanceView {
-         bvmode    = "incomestatement",
-         bvaliases = ["is"],
-         bvhelp    = "show an income statement",
-         bvtitle   = "Income Statement",
-         bvqueries = [ ("Revenues", journalIncomeAccountQuery),
-                       ("Expenses", journalExpenseAccountQuery)
-                     ]
+         bvmode     = "incomestatement",
+         bvaliases  = ["is"],
+         bvhelp     = "show an income statement",
+         bvtitle    = "Income Statement",
+         bvqueries  = [ ("Revenues", journalIncomeAccountQuery),
+                        ("Expenses", journalExpenseAccountQuery)
+                      ],
+         bvsnapshot = False
       }
 
 incomestatementmode :: Mode RawOpts
