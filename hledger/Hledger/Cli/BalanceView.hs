@@ -27,11 +27,13 @@ import Hledger.Cli.CliOptions
 -- | Describes a view for the balance, which can consist of multiple
 -- separate named queries that are aggregated and totaled.
 data BalanceView = BalanceView {
-      bvmode    :: String,                        -- ^ command line mode of the view
-      bvaliases :: [String],                      -- ^ command line aliases
-      bvhelp    :: String,                        -- ^ command line help message
-      bvtitle   :: String,                        -- ^ title of the view
-      bvqueries :: [(String, Journal -> Query)]   -- ^ named queries that make up the view
+      bvmode     :: String,                        -- ^ command line mode of the view
+      bvaliases  :: [String],                      -- ^ command line aliases
+      bvhelp     :: String,                        -- ^ command line help message
+      bvtitle    :: String,                        -- ^ title of the view
+      bvqueries  :: [(String, Journal -> Query)],  -- ^ named queries that make up the view
+      bvsnapshot :: Bool                           -- ^ whether or not the view is a snapshot,
+                                                   --   ignoring begin date in reporting period
 }
 
 balanceviewmode :: BalanceView -> Mode RawOpts
@@ -52,14 +54,14 @@ balanceviewmode BalanceView{..} = (defCommandMode $ bvmode : bvaliases) {
 
 balanceviewQueryReport
     :: ReportOpts
-    -> Day
+    -> Query
     -> Journal
     -> String
     -> (Journal -> Query)
     -> ([String], Sum MixedAmount)
-balanceviewQueryReport ropts currDay j t q = ([view], Sum amt)
+balanceviewQueryReport ropts q0 j t q = ([view], Sum amt)
     where
-      q' = And [queryFromOpts currDay (withoutBeginDate ropts), q j]
+      q' = And [q0, q j]
       rep@(_ , amt) = balanceReport ropts q' j
       view = intercalate "\n" [t <> ":", balanceReportAsText ropts rep]
 
@@ -67,8 +69,10 @@ balanceviewQueryReport ropts currDay j t q = ([view], Sum amt)
 balanceviewReport :: BalanceView -> CliOpts -> Journal -> IO ()
 balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts} j = do
   currDay   <- getCurrentDay
-  let (views, amt) =
-        foldMap (uncurry (balanceviewQueryReport ropts currDay j))
+  let q0 | bvsnapshot = queryFromOpts currDay (withoutBeginDate ropts)
+         | otherwise  = queryFromOpts currDay ropts
+      (views, amt) =
+        foldMap (uncurry (balanceviewQueryReport ropts q0 j))
            bvqueries
   mapM_ putStrLn (bvtitle : "" : views)
 
