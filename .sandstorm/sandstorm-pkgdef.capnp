@@ -19,9 +19,9 @@ const pkgdef :Spk.PackageDefinition = (
 
     appTitle = (defaultText = "HLedger Web"),
 
-    appVersion = 1,  # Increment this for every release.
+    appVersion = 2,  # Increment this for every release.
 
-    appMarketingVersion = (defaultText = "1.0.1-sandstorm1"),
+    appMarketingVersion = (defaultText = "1.1-sandstorm2"),
     # Human-readable representation of appVersion. Should match the way you
     # identify versions of your app in documentation and marketing.
 
