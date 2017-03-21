@@ -19,19 +19,23 @@ cache:
     # - "$HOME/.stack-work/"
 
 before_install:
+  # install stack
   - mkdir -p ~/.local/bin
   - export PATH=~/.local/bin:$PATH
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
   - chmod a+x ~/.local/bin/stack
+  - stack --version
 
 install:
+  # install GHC
   - stack +RTS -N2 -RTS setup
+  # install deps
   - stack +RTS -N2 -RTS build --only-snapshot
 
 script:
-  - git --version
-  - stack --version
-  - stack +RTS -N2 -RTS build --test --haddock --no-haddock-deps --ghc-options=-Werror
+  # build all packages, ensuring no warnings, no haddock failures, per-package test suites passing 
+  - stack +RTS -N2 -RTS build --ghc-options=-Werror --haddock --no-haddock-deps --test
+  # run functional tests
   - COLUMNS=80 stack exec -- shelltest --execdir -- -j16 tests
 
 # coveralls.io coverage reports
