@@ -57,7 +57,7 @@ const pkgdef :Spk.PackageDefinition = (
       website = "http://hledger.org",
       # This should be the app's main website url.
 
-      codeUrl = "https://dev.thewordnerd.info/nolan/hledger-sandstorm",
+      codeUrl = "https://github.com/ndarilek/hledger-sandstorm",
       # URL of the app's source code repository, e.g. a GitHub URL.
       # Required if you specify a license requiring redistributing code, but optional otherwise.
 
