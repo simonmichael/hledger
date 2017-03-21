@@ -474,9 +474,9 @@ multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,to
 -- | Render a multi-column balance report as plain text suitable for console output.
 multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
 multiBalanceReportAsText opts r =
-    unlines [ printf "%s in %s:" typeStr (showDateSpan $ multiBalanceReportSpan r)
-            , renderBalanceReportTable tabl
-            ]
+    printf "%s in %s:" typeStr (showDateSpan $ multiBalanceReportSpan r)
+      ++ "\n"
+      ++ renderBalanceReportTable tabl
   where
     tabl = balanceReportAsTable opts r
     typeStr :: String
