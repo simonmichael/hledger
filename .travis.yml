@@ -31,7 +31,7 @@ install:
 script:
   - git --version
   - stack --version
-  - stack +RTS -N2 -RTS build --test --haddock --no-haddock-deps
+  - stack +RTS -N2 -RTS build --test --haddock --no-haddock-deps --ghc-options=-Werror
 
 # coveralls.io coverage reports
 # after_script:
