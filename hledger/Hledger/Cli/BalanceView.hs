@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards, ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 {-|
 
 This module is used by the 'balancesheet', 'incomestatement', and
