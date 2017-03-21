@@ -240,6 +240,9 @@ module Hledger.Cli.Balance (
  ,balanceReportAsText
  ,balanceReportItemAsText
  ,multiBalanceReportAsText
+ ,renderBalanceReportTable
+ ,balanceReportAsTable
+ ,alignBalanceReportTable
  ,tests_Hledger_Cli_Balance
 ) where
 
@@ -520,6 +523,12 @@ balanceReportAsTable opts r@(MultiBalanceReport (colspans, items, (coltotals,tot
                                     ++ (if row_total_ opts then [tot] else [])
                                     ++ (if average_ opts then [avg] else [])
                                     ))
+
+alignBalanceReportTable :: Table String a b -> Table String a b
+alignBalanceReportTable (Table l t d) = Table l' t d
+  where
+    acctswidth = maximum' $ map (strWidth . unwords . words) (headerContents l)
+    l'         = padRightWide acctswidth . unwords . words <$> l
 
 -- | Figure out the overall date span of a multicolumn balance report.
 multiBalanceReportSpan :: MultiBalanceReport -> DateSpan
