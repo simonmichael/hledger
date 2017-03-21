@@ -496,8 +496,8 @@ renderBalanceReportTable = unlines . trimborder . lines
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
     align (Table l t d) = Table l' t d
       where
-        acctswidth = maximum' $ map (strWidth . unwords . words) (headerContents l)
-        l'         = padRightWide acctswidth . unwords . words <$> l
+        acctswidth = maximum' $ map strWidth (headerContents l)
+        l'         = padRightWide acctswidth <$> l
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
