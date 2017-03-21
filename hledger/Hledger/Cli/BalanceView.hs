@@ -44,6 +44,9 @@ balanceviewmode BalanceView{..} = (defCommandMode $ bvmode : bvaliases) {
       flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
      ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"
+     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree; amounts include subaccounts (default in simple reports)"
+     ,flagNone ["average","A"] (\opts -> setboolopt "average" opts) "show a row average column (in multicolumn reports)"
+     ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "show a row total column (in multicolumn reports)"
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
      ]
@@ -71,13 +74,14 @@ multiBalanceviewQueryReport
     -> Journal
     -> String
     -> (Journal -> Query)
-    -> ([Table String String MixedAmount], [[MixedAmount]], Sum MixedAmount, Sum MixedAmount)
-multiBalanceviewQueryReport ropts q0 j t q = ([tabl], [coltotals], Sum tot, Sum avg)
+    -> ([Table String String MixedAmount], [[MixedAmount]], Sum MixedAmount)
+multiBalanceviewQueryReport ropts q0 j t q = ([tabl], [coltotals], Sum tot)
     where
+      ropts' = ropts { no_total_ = False }
       q' = And [q0, q j]
-      r@(MultiBalanceReport (_, _, (coltotals,tot,avg))) =
-          multiBalanceReport ropts q' j
-      Table hLeft hTop dat = balanceReportAsTable ropts r
+      r@(MultiBalanceReport (_, _, (coltotals,tot,_))) =
+          multiBalanceReport ropts' q' j
+      Table hLeft hTop dat = balanceReportAsTable ropts' r
       tabl = Table (T.Group SingleLine [Header t, hLeft]) hTop ([]:dat)
 
 -- | Prints out a balance report according to a given view
@@ -100,7 +104,7 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts} j = do
           , padleft 20 $ showMixedAmountWithoutPrice (getSum amt)
           ]
       _ -> do
-        let (tabls, amts, Sum totsum, Sum totavg)
+        let (tabls, amts, Sum totsum)
               = foldMap (uncurry (multiBalanceviewQueryReport ropts' q0 j)) bvqueries
             sumAmts = case amts of
               a1:as -> foldl' (zipWith (+)) a1 as
@@ -113,11 +117,9 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts} j = do
                 mergedTabl
                 +====+
                 row "Total"
-                    (sumAmts ++ if row_total_ ropts' then [totsum] else []
-                             ++ if average_   ropts' then [totavg] else []
-                    )
+                    (sumAmts ++ if row_total_ ropts' then [totsum] else [])
         putStrLn bvtitle
-        putStrLn $ renderBalanceReportTable (alignBalanceReportTable totTabl)
+        putStrLn $ renderBalanceReportTable totTabl
   where
     ropts' = ropts { balancetype_ = bvtype }
     merging (Table hLeft hTop dat) (Table hLeft' _ dat') =

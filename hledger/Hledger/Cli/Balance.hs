@@ -242,7 +242,6 @@ module Hledger.Cli.Balance (
  ,multiBalanceReportAsText
  ,renderBalanceReportTable
  ,balanceReportAsTable
- ,alignBalanceReportTable
  ,tests_Hledger_Cli_Balance
 ) where
 
@@ -492,14 +491,19 @@ multiBalanceReportAsText opts r =
 renderBalanceReportTable :: Table String String MixedAmount -> String
 renderBalanceReportTable = unlines . trimborder . lines
                          . render id (" " ++) showMixedAmountOneLineWithoutPrice
+                         . align
   where
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
+    align (Table l t d) = Table l' t d
+      where
+        acctswidth = maximum' $ map (strWidth . unwords . words) (headerContents l)
+        l'         = padRightWide acctswidth . unwords . words <$> l
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
 balanceReportAsTable opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
    addtotalrow $ Table
-     (T.Group NoLine $ map (Header . padRightWide acctswidth) accts)
+     (T.Group NoLine $ map Header accts)
      (T.Group NoLine $ map Header colheadings)
      (map rowvals items)
   where
@@ -513,7 +517,6 @@ balanceReportAsTable opts r@(MultiBalanceReport (colspans, items, (coltotals,tot
     renderacct (a,a',i,_,_,_)
       | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack a'
       | otherwise  = T.unpack $ maybeAccountNameDrop opts a
-    acctswidth = maximum' $ map strWidth accts
     rowvals (_,_,_,as,rowtot,rowavg) = as
                              ++ (if row_total_ opts then [rowtot] else [])
                              ++ (if average_ opts then [rowavg] else [])
@@ -523,12 +526,6 @@ balanceReportAsTable opts r@(MultiBalanceReport (colspans, items, (coltotals,tot
                                     ++ (if row_total_ opts then [tot] else [])
                                     ++ (if average_ opts then [avg] else [])
                                     ))
-
-alignBalanceReportTable :: Table String a b -> Table String a b
-alignBalanceReportTable (Table l t d) = Table l' t d
-  where
-    acctswidth = maximum' $ map (strWidth . unwords . words) (headerContents l)
-    l'         = padRightWide acctswidth . unwords . words <$> l
 
 -- | Figure out the overall date span of a multicolumn balance report.
 multiBalanceReportSpan :: MultiBalanceReport -> DateSpan
