@@ -247,7 +247,7 @@ module Hledger.Cli.Balance (
 
 import Data.List (intercalate)
 import Data.Maybe
-import Data.Monoid
+-- import Data.Monoid
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit as C
 import Text.CSV
@@ -297,7 +297,6 @@ balance opts@CliOpts{reportopts_=ropts} j = do
     Right _ -> do
       let format   = outputFormatFromOpts opts
           interval = interval_ ropts
-          baltype  = balancetype_ ropts
       -- shenanigans: use single/multiBalanceReport when we must,
       -- ie when there's a report interval, or --historical or -- cumulative.
       -- Otherwise prefer the older balanceReport since it can elide boring parents.
@@ -501,7 +500,7 @@ renderBalanceReportTable = unlines . trimborder . lines
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
-balanceReportAsTable opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+balanceReportAsTable opts (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
    addtotalrow $ Table
      (T.Group NoLine $ map Header accts)
      (T.Group NoLine $ map Header colheadings)
