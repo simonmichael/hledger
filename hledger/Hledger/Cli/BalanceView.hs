@@ -41,7 +41,17 @@ balanceviewmode BalanceView{..} = (defCommandMode $ bvmode : bvaliases) {
   modeHelp = bvhelp `withAliases` bvaliases
  ,modeGroupFlags = C.Group {
      groupUnnamed = [
-      flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
+      flagNone ["change"] (\opts -> setboolopt "change" opts)
+        ("show balance change in each period" ++ defType PeriodChange)
+     ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
+        ("show balance change accumulated across periods (in multicolumn reports)"
+            ++ defType CumulativeChange
+        )
+     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
+        ("show historical ending balance in each period (includes postings before report start date)"
+            ++ defType HistoricalBalance
+        )
+     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
      ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"
      ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree; amounts include subaccounts (default in simple reports)"
@@ -54,6 +64,10 @@ balanceviewmode BalanceView{..} = (defCommandMode $ bvmode : bvaliases) {
     ,groupNamed = [generalflagsgroup1]
     }
  }
+ where
+   defType :: BalanceType -> String
+   defType bt | bt == bvtype = " (default)"
+              | otherwise    = ""
 
 balanceviewQueryReport
     :: ReportOpts
@@ -86,11 +100,9 @@ multiBalanceviewQueryReport ropts q0 j t q = ([tabl], [coltotals], Sum tot)
 
 -- | Prints out a balance report according to a given view
 balanceviewReport :: BalanceView -> CliOpts -> Journal -> IO ()
-balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts} j = do
+balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = do
     currDay   <- getCurrentDay
-    let q0 = case bvtype of
-               HistoricalBalance -> queryFromOpts currDay (withoutBeginDate ropts')
-               _                 -> queryFromOpts currDay ropts
+    let q0 = queryFromOpts currDay ropts'
     case interval_ ropts' of
       NoInterval -> do
         let (views, amt) =
@@ -121,13 +133,15 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts} j = do
         putStrLn bvtitle
         putStrLn $ renderBalanceReportTable totTabl
   where
-    ropts' = ropts { balancetype_ = bvtype }
+    balancetype =
+      case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst raw of
+        "historical":_ -> HistoricalBalance
+        "cumulative":_ -> CumulativeChange
+        "change":_     -> PeriodChange
+        _              -> bvtype
+    ropts' = ropts { balancetype_ = balancetype }
     merging (Table hLeft hTop dat) (Table hLeft' _ dat') =
         Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
-
-
--- multiBalanceviewReport :: BalanceView -> CliOpts -> Journal -> IO ()
--- multiBalanceviewReport BalanceView{..} CliOpts{reportopts_=ropts} j = do
 
 
 withoutBeginDate :: ReportOpts -> ReportOpts
