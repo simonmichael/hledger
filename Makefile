@@ -606,9 +606,9 @@ builtintest: \
 # 	@(run$(GHC) $(MAIN) test \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 
+# assumes hledger is built and uses whatever build is there, avoiding excessive rebuilding
 functest: tests/addons/hledger-addon \
 	$(call def-help,functest, run the functional tests for hledger )
-	@$(STACK) build hledger
 	@(COLUMNS=80 $(SHELLTESTSTK) tests \
 		&& echo $@ PASSED) || echo $@ FAILED
 
