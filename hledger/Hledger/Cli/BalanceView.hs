@@ -31,8 +31,8 @@ data BalanceView = BalanceView {
       bvhelp     :: String,                        -- ^ command line help message
       bvtitle    :: String,                        -- ^ title of the view
       bvqueries  :: [(String, Journal -> Query)],  -- ^ named queries that make up the view
-      bvsnapshot :: Bool                           -- ^ whether or not the view is a snapshot,
-                                                   --   ignoring begin date in reporting period
+      bvtype     :: BalanceType                    -- ^ the type of balance this view shows.
+                                                   --   This overrides user input.
 }
 
 balanceviewmode :: BalanceView -> Mode RawOpts
@@ -61,15 +61,24 @@ balanceviewQueryReport
 balanceviewQueryReport ropts q0 j t q = ([view], Sum amt)
     where
       q' = And [q0, q j]
-      rep@(_ , amt) = balanceReport ropts q' j
-      view = intercalate "\n" [t <> ":", balanceReportAsText ropts rep]
+      (rep, amt) = case interval_ ropts of
+        NoInterval ->
+          let r@(_,a) = balanceReport ropts q' j
+          in  (balanceReportAsText ropts r, a)
+        -- _ -> 
+        --   let MultiBalanceReport (_,_,(_,a,_)) = multiBalanceReport ropts q' j
+  -- MultiBalanceReport ([DateSpan]
+        --   in  (_, _)
+      -- rep@(_ , amt) = balanceReport ropts q' j
+      view = intercalate "\n" [t <> ":", rep]
 
 -- | Prints out a balance report according to a given view
 balanceviewReport :: BalanceView -> CliOpts -> Journal -> IO ()
 balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts} j = do
   currDay   <- getCurrentDay
-  let q0 | bvsnapshot = queryFromOpts currDay (withoutBeginDate ropts)
-         | otherwise  = queryFromOpts currDay ropts
+  let q0 = case bvtype of
+             HistoricalBalance -> queryFromOpts currDay (withoutBeginDate ropts)
+             _                 -> queryFromOpts currDay ropts
       (views, amt) =
         foldMap (uncurry (balanceviewQueryReport ropts q0 j))
            bvqueries

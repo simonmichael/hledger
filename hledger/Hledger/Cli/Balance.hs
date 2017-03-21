@@ -239,16 +239,13 @@ module Hledger.Cli.Balance (
  ,balance
  ,balanceReportAsText
  ,balanceReportItemAsText
- ,periodChangeReportAsText
- ,cumulativeChangeReportAsText
- ,historicalBalanceReportAsText
+ ,multiBalanceReportAsText
  ,tests_Hledger_Cli_Balance
 ) where
 
 import Data.List (intercalate)
 import Data.Maybe
 import Data.Monoid
--- import Data.Text (Text)
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit as C
 import Text.CSV
@@ -320,10 +317,7 @@ balance opts@CliOpts{reportopts_=ropts} j = do
           let report = multiBalanceReport ropts (queryFromOpts d ropts) j
               render = case format of
                 "csv" -> \ropts r -> (++ "\n") $ printCSV $ multiBalanceReportAsCsv ropts r
-                _     -> case baltype of
-                  PeriodChange     -> periodChangeReportAsText
-                  CumulativeChange -> cumulativeChangeReportAsText
-                  HistoricalBalance -> historicalBalanceReportAsText
+                _     -> multiBalanceReportAsText
           writeOutput opts $ render ropts report
 
 -- single-column balance reports
@@ -475,87 +469,41 @@ multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,to
            ++ (if average_ opts then [avg] else [])
            )]
 
--- | Render a multi-column period balance report as plain text suitable for console output.
-periodChangeReportAsText :: ReportOpts -> MultiBalanceReport -> String
-periodChangeReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
-  unlines $
-  ([printf "Balance changes in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
-  trimborder $ lines $
-   render id (" "++) showMixedAmountOneLineWithoutPrice $
-    addtotalrow $
-     Table
-     (T.Group NoLine $ map (Header . padRightWide acctswidth . T.unpack) accts)
+-- | Render a multi-column balance report as plain text suitable for console output.
+multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
+multiBalanceReportAsText opts r =
+    unlines [ printf "%s in %s:" typeStr (showDateSpan $ multiBalanceReportSpan r)
+            , renderBalanceReportTable tabl
+            ]
+  where
+    tabl = balanceReportAsTable opts r
+    typeStr :: String
+    typeStr = case balancetype_ opts of
+        PeriodChange -> "Balance changes"
+        CumulativeChange -> "Ending balances (cumulative)"
+        HistoricalBalance -> "Ending balances (historical)"
+
+-- | Given a table representing a multi-column balance report (for example,
+-- made using 'balanceReportAsTable'), render it in a format suitable for
+-- console output.
+renderBalanceReportTable :: Table String String MixedAmount -> String
+renderBalanceReportTable = unlines . trimborder . lines
+                         . render id (" " ++) showMixedAmountOneLineWithoutPrice
+  where
+    trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
+
+-- | Build a 'Table' from a multi-column balance report.
+balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
+balanceReportAsTable opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
+   addtotalrow $ Table
+     (T.Group NoLine $ map (Header . padRightWide acctswidth) accts)
      (T.Group NoLine $ map Header colheadings)
-     (map rowvals items')
+     (map rowvals items)
   where
-    trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
-    colheadings = map showDateSpan colspans
-                  ++ (if row_total_ opts then ["  Total"] else [])
-                  ++ (if average_ opts then ["Average"] else [])
-    items' | empty_ opts = items
-           | otherwise   = items -- dbg1 "2" $ filter (any (not . isZeroMixedAmount) . snd) $ dbg1 "1" items
-    accts = map renderacct items'
-    renderacct (a,a',i,_,_,_)
-      | tree_ opts = T.replicate ((i-1)*2) " " <> a'
-      | otherwise  = maybeAccountNameDrop opts a
-    acctswidth = maximum' $ map textWidth accts
-    rowvals (_,_,_,as,rowtot,rowavg) = as
-                                   ++ (if row_total_ opts then [rowtot] else [])
-                                   ++ (if average_ opts then [rowavg] else [])
-    addtotalrow | no_total_ opts = id
-                | otherwise      = (+----+ (row "" $
-                                    coltotals
-                                    ++ (if row_total_ opts then [tot] else [])
-                                    ++ (if average_ opts then [avg] else [])
-                                    ))
-
--- | Render a multi-column cumulative balance report as plain text suitable for console output.
-cumulativeChangeReportAsText :: ReportOpts -> MultiBalanceReport -> String
-cumulativeChangeReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
-  unlines $
-  ([printf "Ending balances (cumulative) in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
-  trimborder $ lines $
-   render id (" "++) showMixedAmountOneLineWithoutPrice $
-    addtotalrow $
-     Table
-       (T.Group NoLine $ map (Header . padRightWide acctswidth) accts)
-       (T.Group NoLine $ map Header colheadings)
-       (map rowvals items)
-  where
-    trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
-    colheadings = map (maybe "" (showDate . prevday) . spanEnd) colspans
-                  ++ (if row_total_ opts then ["  Total"] else [])
-                  ++ (if average_ opts then ["Average"] else [])
-    accts = map renderacct items
-    renderacct (a,a',i,_,_,_)
-      | tree_ opts = replicate ((i-1)*2) ' ' ++ T.unpack a'
-      | otherwise  = T.unpack $ maybeAccountNameDrop opts a
-    acctswidth = maximum' $ map strWidth accts
-    rowvals (_,_,_,as,rowtot,rowavg) = as
-                                   ++ (if row_total_ opts then [rowtot] else [])
-                                   ++ (if average_ opts then [rowavg] else [])
-    addtotalrow | no_total_ opts = id
-                | otherwise      = (+----+ (row "" $
-                                    coltotals
-                                    ++ (if row_total_ opts then [tot] else [])
-                                    ++ (if average_ opts then [avg] else [])
-                                    ))
-
--- | Render a multi-column historical balance report as plain text suitable for console output.
-historicalBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
-historicalBalanceReportAsText opts r@(MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
-  unlines $
-  ([printf "Ending balances (historical) in %s:" (showDateSpan $ multiBalanceReportSpan r)] ++) $
-  trimborder $ lines $
-   render id (" "++) showMixedAmountOneLineWithoutPrice $
-    addtotalrow $
-     Table
-       (T.Group NoLine $ map (Header . padRightWide acctswidth) accts)
-       (T.Group NoLine $ map Header colheadings)
-       (map rowvals items)
-  where
-    trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
-    colheadings = map (maybe "" (showDate . prevday) . spanEnd) colspans
+    mkDate = case balancetype_ opts of
+       PeriodChange -> showDateSpan
+       _            -> maybe "" (showDate . prevday) . spanEnd
+    colheadings = map mkDate colspans
                   ++ (if row_total_ opts then ["  Total"] else [])
                   ++ (if average_ opts then ["Average"] else [])
     accts = map renderacct items
