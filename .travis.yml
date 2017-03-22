@@ -75,7 +75,7 @@ install: # ignores command failures, completed commands are collapsed in log
   - stack --no-terminal exec -- ghc --version
 
   # hledger dependencies
-  - stack --no-terminal build --only-dependencies --test #hledger hledger-ui #hledger-web hledger-api
+  - stack --no-terminal build --only-dependencies --test hledger hledger-ui #hledger-web hledger-api
     # TODO: does this build some hledger packages, which get rebuilt later with -Werror ?
 
   # hledger addon dependencies
@@ -89,7 +89,7 @@ install: # ignores command failures, completed commands are collapsed in log
 script:  # all commands must succeed
 
   # build hledger packages, ensuring no warnings, no haddock failures, package test suites passing 
-  - stack --no-terminal build --ghc-options=-Werror --test --haddock --no-haddock-deps #hledger hledger-ui #hledger-web hledger-api
+  - stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger hledger-ui #hledger-web hledger-api
 
   # build hledger addons, ensuring no warnings
   - sh -e bin/compile.sh
