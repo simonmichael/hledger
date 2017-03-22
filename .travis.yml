@@ -17,6 +17,7 @@ cache:
   directories:
     - $HOME/.stack/
     # - "$HOME/.stack-work/"
+    - $HOME/shelltestrunner/
 
 before_install:
   # install stack
@@ -31,8 +32,9 @@ install:
   - stack +RTS -N2 -RTS setup
   # install deps
   - stack +RTS -N2 -RTS build --only-snapshot
-  # install shelltestrunner (and older GHC, for now)
-  - stack +RTS -N2 -RTS --resolver=lts-7 --install-ghc install shelltestrunner
+  # install shelltestrunner
+  - git clone http://github.com/simonmichael/shelltestrunner
+  - stack +RTS -N2 -RTS install --stack-yaml=shelltestrunner/stack.yaml 
 
 script:
   # build all packages, ensuring no warnings, no haddock failures, per-package test suites passing 
