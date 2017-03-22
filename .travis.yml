@@ -5,6 +5,7 @@ language: haskell
 branches:
   only:
     - master
+    - travis
 
 sudo: false
 
