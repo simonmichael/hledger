@@ -28,10 +28,9 @@ before_install:
   - stack --version
 
 install:
-  # install GHC and deps
-  - stack +RTS -N2 -RTS build --install-ghc --only-snapshot
+  # install GHC and most deps
+  - stack +RTS -N2 -RTS build --install-ghc --test --only-snapshot
   - stack exec -- ghc --version
-  # install GHC and deps
   # install tools
   - git clone http://github.com/simonmichael/shelltestrunner
   - stack +RTS -N2 -RTS install --install-ghc --stack-yaml=shelltestrunner/stack.yaml --resolver=lts
