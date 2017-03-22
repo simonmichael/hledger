@@ -82,7 +82,7 @@ install: # ignores command failures, completed commands are collapsed in log
   - stack build Chart Chart-diagrams colour Diff here
 
   # shelltestrunner, need unreleased installable version
-  - git clone http://github.com/simonmichael/shelltestrunner
+  - [ -d shelltestrunner ] || git clone http://github.com/simonmichael/shelltestrunner
   - stack install --stack-yaml=shelltestrunner/stack.yaml --resolver=lts-8.2 --install-ghc
   - shelltest --version
 
