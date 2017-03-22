@@ -139,10 +139,13 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
         "cumulative":_ -> CumulativeChange
         "change":_     -> PeriodChange
         _              -> bvtype
-    ropts' = stripBeginDate $ ropts { balancetype_ = balancetype }
+    ropts' = emptyMulti . stripBeginDate $ ropts { balancetype_ = balancetype }
     stripBeginDate = case (balancetype, interval_ ropts) of
       (HistoricalBalance, NoInterval) -> withoutBeginDate
       _                               -> id
+    emptyMulti = case interval_ ropts of
+      NoInterval -> id
+      _          -> \o -> o { empty_ = True }
     merging (Table hLeft hTop dat) (Table hLeft' _ dat') =
         Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
 
