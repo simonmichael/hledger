@@ -1,4 +1,29 @@
 # http://docs.haskellstack.org/en/stable/travis_ci.html
+# https://docs.travis-ci.com/user/languages/haskell/
+# https://docs.travis-ci.com/user/customizing-the-build
+#
+# The Build Lifecycle #
+# A build on Travis CI is made up of two steps:
+# install: install any dependencies required
+# script: run the build script
+# You can run custom commands before the installation step (before_install), and before (before_script) or after (after_script) the script step.
+# In a before_install step, you can install additional dependencies required by your project such as Ubuntu packages or custom services.
+# You can perform additional steps when your build succeeds or fails using the after_success (such as building documentation, or deploying to a custom server) or after_failure (such as uploading log files) options. In both after_failure and after_success, you can access the build result using the $TRAVIS_TEST_RESULT environment variable.
+# The complete build lifecycle, including three optional deployment steps and after checking out the git repository and changing to the repository directory, is:
+#
+# OPTIONAL Install apt addons
+# OPTIONAL Install cache components
+# before_install
+# install
+# before_script
+# script
+# OPTIONAL before_cache (for cleaning up cache)
+# after_success or after_failure
+# OPTIONAL before_deploy
+# OPTIONAL deploy
+# OPTIONAL after_deploy
+# after_script
+
 
 language: haskell
 
@@ -7,7 +32,6 @@ sudo: false
 cache:
   directories:
     - $HOME/.stack/
-    # - "$HOME/.stack-work/"
     - $HOME/shelltestrunner/
 
 # addons:
@@ -24,6 +48,8 @@ branches:
 #   include:
 #   - env: ARGS=""
 #   - env: ARGS="--stack-yaml stack-7.10.yaml"
+#   - ghc: 7.10.3
+#   - ghc: 8.0.2
 
 install:
   # install stack
@@ -32,7 +58,7 @@ install:
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
   - chmod a+x ~/.local/bin/stack
   - stack --version
-  # install GHC and most deps
+  # install GHC and hledger deps
   - stack +RTS -N2 -RTS build --install-ghc --test --only-snapshot
   - stack exec -- ghc --version
   # install tools
@@ -41,6 +67,9 @@ install:
   - shelltest --version
 
 script:
+  # build hledger only, for testing config
+  # - stack +RTS -N2 -RTS build --ghc-options=-Werror hledger
+
   # build all packages, ensuring no warnings, no haddock failures, per-package test suites passing 
   - stack +RTS -N2 -RTS build --ghc-options=-Werror --haddock --no-haddock-deps --test
   # install hledger addon deps, build addons
@@ -97,28 +126,3 @@ notifications:
   #     - other@example.com
   #   on_success: [always|never|change] # default: change
   #   on_failure: [always|never|change] # default: always
-
-
-# https://docs.travis-ci.com/user/customizing-the-build
-#
-# The Build Lifecycle #
-# A build on Travis CI is made up of two steps:
-# install: install any dependencies required
-# script: run the build script
-# You can run custom commands before the installation step (before_install), and before (before_script) or after (after_script) the script step.
-# In a before_install step, you can install additional dependencies required by your project such as Ubuntu packages or custom services.
-# You can perform additional steps when your build succeeds or fails using the after_success (such as building documentation, or deploying to a custom server) or after_failure (such as uploading log files) options. In both after_failure and after_success, you can access the build result using the $TRAVIS_TEST_RESULT environment variable.
-# The complete build lifecycle, including three optional deployment steps and after checking out the git repository and changing to the repository directory, is:
-#
-# OPTIONAL Install apt addons
-# OPTIONAL Install cache components
-# before_install
-# install
-# before_script
-# script
-# OPTIONAL before_cache (for cleaning up cache)
-# after_success or after_failure
-# OPTIONAL before_deploy
-# OPTIONAL deploy
-# OPTIONAL after_deploy
-# after_script
