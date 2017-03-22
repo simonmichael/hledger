@@ -11,12 +11,13 @@
    --package safe
 -}
 
+{-# OPTIONS_GHC -Wno-missing-signatures -Wno-unused-do-bind #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 import Control.Monad
 import Data.Colour
-import Data.Colour.Names
+import Data.Colour.Names hiding (red,green)
 import Data.Colour.RGBSpace
 import Data.Colour.RGBSpace.HSL (hsl)
 import Data.Colour.SRGB.Linear (rgb)
@@ -26,17 +27,13 @@ import Data.Maybe
 import Data.Ord
 import Data.String.Here
 import qualified Data.Text as T
-import Data.Tree
 import Graphics.Rendering.Chart
 import Graphics.Rendering.Chart.Backend.Diagrams
 import Safe
-import System.Console.CmdArgs hiding (def)
 import System.Console.CmdArgs.Explicit
 import System.Exit
-import Text.Printf
 
-import Hledger
-import Hledger.Cli hiding (progname,progversion)
+import Hledger.Cli hiding (num,green,is,balance)
 
 defchartoutput   = "hledger.svg"
 defchartitems    = 10
@@ -104,7 +101,7 @@ withJournalAndChartOptsDo opts cmd = do
 -- | Generate an image with the pie chart and write it to a file
 writeChart :: BalanceReport -> ChartOpts -> Journal -> IO ()
 writeChart balreport opts j = do
-  d <- getCurrentDay
+--   d <- getCurrentDay
   if null $ jtxns j
    then putStrLn "This journal has no transactions, can't make a chart." >> exitFailure
    else do
@@ -114,19 +111,19 @@ writeChart balreport opts j = do
      return ()
       where
         filename = chart_output_ opts
-        (w,h) = parseSize $ chart_size_ opts
-        ropts = reportopts_ $ cliopts_ opts
+--         (w,h) = parseSize $ chart_size_ opts
+--         ropts = reportopts_ $ cliopts_ opts
 
 -- | Parse image size from a command-line option
-parseSize :: String -> (Int,Int)
-parseSize str = (read w, read h)
-    where
-    x = fromMaybe (error' "Size should be in WIDTHxHEIGHT format") $ findIndex (=='x') str
-    (w,_:h) = splitAt x str
+-- parseSize :: String -> (Int,Int)
+-- parseSize str = (read w, read h)
+--     where
+--     x = fromMaybe (error' "Size should be in WIDTHxHEIGHT format") $ findIndex (=='x') str
+--     (w,_:h) = splitAt x str
 
 -- | Generate pie chart
 genPie :: ChartOpts -> BalanceReport -> PieLayout
-genPie opts (items, total) = def { _pie_background = solidFillStyle $ opaque $ white
+genPie opts (items, _total) = def { _pie_background = solidFillStyle $ opaque $ white
                                  , _pie_plot = pie_chart }
     where
       pie_chart = def { _pie_data = map (uncurry accountPieItem) chartitems
@@ -142,8 +139,8 @@ genPie opts (items, total) = def { _pie_background = solidFillStyle $ opaque $ w
             other = ("other", sum $ map snd rest)
       num = chart_items_ opts
       hue = if sign > 0 then red else green where (red, green) = (0, 110)
-      copts = cliopts_ opts
-      ropts = reportopts_ copts
+--       copts = cliopts_ opts
+--       ropts = reportopts_ copts
 
 -- | Select the nonzero items with same sign as the first, and make
 -- them positive. Also return a 1 or -1 corresponding to the original sign.

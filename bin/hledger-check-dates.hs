@@ -5,6 +5,7 @@
    --package here
 -}
 
+{-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 import Data.String.Here
@@ -32,13 +33,13 @@ main :: IO ()
 main = do
   opts <- getHledgerCliOpts cmdmode
   withJournalDo opts $
-   \CliOpts{rawopts_=opts,reportopts_=ropts} j -> do
+   \CliOpts{rawopts_=rawopts,reportopts_=ropts} j -> do
     d <- getCurrentDay
     let ropts_ = ropts{accountlistmode_=ALFlat}
     let q = queryFromOpts d ropts_
     let ts = filter (q `matchesTransaction`) $
              jtxns $ journalSelectingAmountFromOpts ropts j
-    let strict = boolopt "strict" opts
+    let strict = boolopt "strict" rawopts
     let date = transactionDateFn ropts
     let compare a b =
           if strict

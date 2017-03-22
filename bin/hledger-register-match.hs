@@ -6,6 +6,7 @@
    --package text
 -}
 
+{-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
@@ -13,8 +14,8 @@ import Data.Char (toUpper)
 import Data.List
 import Data.String.Here
 import qualified Data.Text as T
-import System.Console.CmdArgs
-import System.Console.CmdArgs.Explicit
+-- import System.Console.CmdArgs
+-- import System.Console.CmdArgs.Explicit
 
 import Hledger
 import Hledger.Cli.CliOptions

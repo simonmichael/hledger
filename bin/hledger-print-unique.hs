@@ -5,7 +5,8 @@
    --package here
 -}
 
-{-# LANGUAGE QuasiQuotes #-}
+ {-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
+ {-# LANGUAGE QuasiQuotes #-}
 
 import Data.List
 import Data.Ord

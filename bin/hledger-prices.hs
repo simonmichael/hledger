@@ -4,6 +4,7 @@
    --package here
 -}
 
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 import Data.Maybe

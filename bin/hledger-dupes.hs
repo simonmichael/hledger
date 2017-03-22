@@ -6,13 +6,13 @@
    --package text
 -}
 
+{-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 import Hledger
 import Hledger.Cli
 import Text.Printf (printf)
-import System.Environment (getArgs)
-import Safe (headDef)
+-- import System.Environment (getArgs)
 import Data.List
 import Data.Function
 import Data.String.Here
@@ -36,7 +36,7 @@ http://stefanorodighiero.net/software/hledger-dupes.html
 
 main = do
   opts <- getHledgerCliOpts cmdmode
-  withJournalDo opts $ \CliOpts{rawopts_=opts,reportopts_=ropts} j -> do
+  withJournalDo opts $ \CliOpts{rawopts_=_opts,reportopts_=_ropts} j -> do
     mapM_ render $ dupes $ accountsNames j
 
 accountsNames :: Journal -> [(String, AccountName)]

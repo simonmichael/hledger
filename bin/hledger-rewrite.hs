@@ -8,6 +8,7 @@
   --package Diff
 -}
 
+{-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
 {-# LANGUAGE OverloadedStrings, LambdaCase, DeriveTraversable, ViewPatterns, QuasiQuotes #-}
 
 import Control.Monad.Writer
