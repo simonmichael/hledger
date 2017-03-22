@@ -31,8 +31,8 @@ install:
   - stack +RTS -N2 -RTS setup
   # install deps
   - stack +RTS -N2 -RTS build --only-snapshot
-  # install shelltestrunner
-  - stack +RTS -N2 -RTS --resolver=lts-7 install shelltestrunner
+  # install shelltestrunner (and older GHC, for now)
+  - stack +RTS -N2 -RTS --resolver=lts-7 --install-ghc install shelltestrunner
 
 script:
   # build all packages, ensuring no warnings, no haddock failures, per-package test suites passing 
