@@ -299,7 +299,6 @@ balance opts@CliOpts{reportopts_=ropts} j = do
       let format   = outputFormatFromOpts opts
           interval = interval_ ropts
           baltype  = balancetype_ ropts
-      mvaluedate <- reportEndDate j ropts
       -- shenanigans: use single/multiBalanceReport when we must,
       -- ie when there's a report interval, or --historical or -- cumulative.
       -- Otherwise prefer the older balanceReport since it can elide boring parents.
