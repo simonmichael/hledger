@@ -75,12 +75,12 @@ STACK=stack
 #STACK=stack --stack-yaml=stack-ghc7.yaml
 
 # -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
-SHELLTESTOPTS=--execdir -- -j16 --hide-successes
+SHELLTESTOPTS=--execdir -- -j16 #--hide-successes
 # run shell tests using the executable specified in tests
-SHELLTEST=shelltest $(SHELLTESTOPTS)
+# SHELLTEST=COLUMNS=80 PATH=~/.local/bin:/usr/bin:/bin shelltest $(SHELLTESTOPTS)
 # run shell tests using the stack build
 #SHELLTESTSTK=shelltest -w `stack exec which hledger` $(SHELLTESTOPTS)
-SHELLTESTSTK=$(STACK) exec -- shelltest $(SHELLTESTOPTS)
+SHELLTESTSTK=COLUMNS=80 PATH=~/.local/bin:/usr/bin:/bin $(STACK) exec -- shelltest $(SHELLTESTOPTS)
 
 # # used for make auto, http://joyful.com/repos/searchpath
 # SP=sp
@@ -609,7 +609,7 @@ builtintest: \
 # assumes hledger is built and uses whatever build is there, avoiding excessive rebuilding
 functest: tests/addons/hledger-addon \
 	$(call def-help,functest, run the functional tests for hledger )
-	@(COLUMNS=80 $(SHELLTESTSTK) tests \
+	@($(SHELLTESTSTK) tests \
 		&& echo $@ PASSED) || echo $@ FAILED
 
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
