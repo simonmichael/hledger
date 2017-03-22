@@ -34,7 +34,7 @@ install:
   - stack +RTS -N2 -RTS build --only-snapshot
   # install shelltestrunner
   - git clone http://github.com/simonmichael/shelltestrunner
-  - stack +RTS -N2 -RTS install --stack-yaml=shelltestrunner/stack.yaml 
+  - stack +RTS -N2 -RTS install --install-ghc --stack-yaml=shelltestrunner/stack.yaml --resolver=lts
 
 script:
   # build all packages, ensuring no warnings, no haddock failures, per-package test suites passing 
