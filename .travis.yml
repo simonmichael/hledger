@@ -1,6 +1,10 @@
-# http://docs.haskellstack.org/en/stable/travis_ci.html
-# https://docs.travis-ci.com/user/languages/haskell/
 # https://docs.travis-ci.com/user/customizing-the-build
+# https://docs.travis-ci.com/user/caching/
+# https://docs.travis-ci.com/user/languages/haskell/
+# http://docs.haskellstack.org/en/stable/travis_ci.html
+# https://raw.githubusercontent.com/commercialhaskell/stack/master/doc/travis-simple.yml
+# https://raw.githubusercontent.com/commercialhaskell/stack/master/doc/travis-complex.yml
+# https://github.com/hvr/multi-ghc-travis#user-content-travisyml-template-for-non-container-based-infrastructure
 #
 # The Build Lifecycle #
 # A build on Travis CI is made up of two steps:
@@ -18,6 +22,8 @@
 # before_script
 # script
 # OPTIONAL before_cache (for cleaning up cache)
+#  Travis CI uploads the cache after the script phase of the build, but before either after_success or after_failure.
+#  Failure to upload the cache does not mark the job as failed.
 # after_success or after_failure
 # OPTIONAL before_deploy
 # OPTIONAL deploy
@@ -25,16 +31,18 @@
 # after_script
 
 
-language: haskell
-
 sudo: false
 
+dist: trusty
+
+language: generic
+
 cache:
+  timeout: 1000
   directories:
     - $HOME/.stack/
     - $HOME/.local/bin/
-    - $HOME/shelltestrunner/
-    - $HOME/shelltestrunner/.stack-work/
+    - shelltestrunner/
 
 # addons:
 #   apt:
@@ -53,41 +61,52 @@ branches:
 #   - ghc: 7.10.3
 #   - ghc: 8.0.2
 
-install:
-  # install stack
+install: # ignores command failures, completed commands are collapsed in log
+
+  # stack
   - mkdir -p ~/.local/bin
-  - export PATH=~/.local/bin:$PATH
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
   - chmod a+x ~/.local/bin/stack
+  - export PATH=~/.local/bin:$PATH
   - stack --version
-  # install GHC and hledger deps
-  - stack +RTS -N2 -RTS build --install-ghc --test --only-snapshot
-  - stack exec -- ghc --version
-  # install tools
+
+  # GHC
+  - stack --no-terminal setup
+  - stack --no-terminal exec -- ghc --version
+
+  # hledger dependencies
+  - stack --no-terminal build --only-dependencies --test #hledger hledger-ui #hledger-web hledger-api
+    # TODO: does this build some hledger packages, which get rebuilt later with -Werror ?
+
+  # hledger addon dependencies
+  - stack --no-terminal build Chart Chart-diagrams colour Diff here
+
+  # shelltestrunner, need unreleased installable version
   - git clone http://github.com/simonmichael/shelltestrunner
-  - stack +RTS -N2 -RTS install --install-ghc --stack-yaml=shelltestrunner/stack.yaml --resolver=lts
+  - stack --no-terminal install --stack-yaml=shelltestrunner/stack.yaml --resolver=lts-8.2 --install-ghc
   - shelltest --version
 
-script:
-  # build hledger only, for testing config
-  # - stack +RTS -N2 -RTS build --ghc-options=-Werror hledger
+script:  # all commands must succeed
 
-  # build all packages, ensuring no warnings, no haddock failures, all package test suites passing 
-  - stack +RTS -N2 -RTS build --ghc-options=-Werror --haddock --no-haddock-deps --test
-  # install hledger addon deps, build addons ensuring no warnings
-  # TODO: prevent reinstallation of addon-deps
+  # build hledger packages, ensuring no warnings, no haddock failures, package test suites passing 
+  - stack --no-terminal build --ghc-options=-Werror --test --haddock --no-haddock-deps #hledger hledger-ui #hledger-web hledger-api
+
+  # build hledger addons, ensuring no warnings
   - sh -e bin/compile.sh
+
   # run functional tests
   - make functest
 
-  # run only some functional tests
-  # - make tests/addons/hledger-addon
-  # - PATH=~/.local/bin:/usr/bin:/bin COLUMNS=80 stack exec -- shelltest --execdir -x bin/equity -- -j16 tests
+after_script:
 
-# coveralls.io coverage reports
-# after_script:
-#   - "cabal install hpc-coveralls"
-#   - "hpc-coveralls count-von-count-tests --exclude-dir=tests --exclude-dir=src/Gyrid --display-report"
+  # list directory contents
+  - ls -ladF $HOME
+  - ls -ladF
+  - pwd
+
+  # coveralls.io coverage reports
+  # - stack --no-terminal install hpc-coveralls
+  # - hpc-coveralls count-von-count-tests --exclude-dir=tests --exclude-dir=src/Gyrid --display-report
 
 notifications:
   irc:
