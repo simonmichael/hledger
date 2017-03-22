@@ -26,7 +26,7 @@ isBV = BalanceView {
          bvqueries  = [ ("Revenues", journalIncomeAccountQuery),
                         ("Expenses", journalExpenseAccountQuery)
                       ],
-         bvsnapshot = False
+         bvtype     = PeriodChange
       }
 
 incomestatementmode :: Mode RawOpts

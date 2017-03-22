@@ -26,7 +26,7 @@ bsBV = BalanceView {
          bvqueries  = [ ("Assets"     , journalAssetAccountQuery),
                         ("Liabilities", journalLiabilityAccountQuery)
                       ],
-         bvsnapshot = True
+         bvtype     = HistoricalBalance
       }
 
 balancesheetmode :: Mode RawOpts
