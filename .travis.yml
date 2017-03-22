@@ -28,19 +28,25 @@ before_install:
   - stack --version
 
 install:
-  # install GHC
-  - stack +RTS -N2 -RTS setup
-  # install deps
-  - stack +RTS -N2 -RTS build --only-snapshot
-  # install shelltestrunner
+  # install GHC and deps
+  - stack +RTS -N2 -RTS build --install-ghc --only-snapshot
+  - stack exec -- ghc --version
+  # install GHC and deps
+  # install tools
   - git clone http://github.com/simonmichael/shelltestrunner
   - stack +RTS -N2 -RTS install --install-ghc --stack-yaml=shelltestrunner/stack.yaml --resolver=lts
+  - shelltest --version
 
 script:
   # build all packages, ensuring no warnings, no haddock failures, per-package test suites passing 
   - stack +RTS -N2 -RTS build --ghc-options=-Werror --haddock --no-haddock-deps --test
+  # likewise for addons
+  #- bin/compile.sh
   # run functional tests
-  - COLUMNS=80 stack exec -- shelltest --execdir -- -j16 tests
+  # - make functest
+  # run most functional tests, excluding some not yet working on travis
+  - make tests/addons/hledger-addon
+  - PATH=~/.local/bin:/usr/bin:/bin COLUMNS=80 stack exec -- shelltest --execdir -- -j16 tests
 
 # coveralls.io coverage reports
 # after_script:
