@@ -71,25 +71,25 @@ install: # ignores command failures, completed commands are collapsed in log
   - stack --version
 
   # GHC
-  - stack --no-terminal setup
-  - stack --no-terminal exec -- ghc --version
+  - stack setup
+  - stack exec -- ghc --version
 
   # hledger dependencies
-  - stack --no-terminal build --only-dependencies --test hledger hledger-ui #hledger-web hledger-api
+  - stack build --only-dependencies --test #hledger-lib hledger hledger-ui #hledger-web hledger-api
     # TODO: does this build some hledger packages, which get rebuilt later with -Werror ?
 
   # hledger addon dependencies
-  - stack --no-terminal build Chart Chart-diagrams colour Diff here
+  - stack build Chart Chart-diagrams colour Diff here
 
   # shelltestrunner, need unreleased installable version
   - git clone http://github.com/simonmichael/shelltestrunner
-  - stack --no-terminal install --stack-yaml=shelltestrunner/stack.yaml --resolver=lts-8.2 --install-ghc
+  - stack install --stack-yaml=shelltestrunner/stack.yaml --resolver=lts-8.2 --install-ghc
   - shelltest --version
 
 script:  # all commands must succeed
 
   # build hledger packages, ensuring no warnings, no haddock failures, package test suites passing 
-  - stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger hledger-ui #hledger-web hledger-api
+  - stack build --ghc-options=-Werror --test --haddock --no-haddock-deps #hledger-lib hledger hledger-ui #hledger-web hledger-api
 
   # build hledger addons, ensuring no warnings
   - sh -e bin/compile.sh
@@ -100,12 +100,16 @@ script:  # all commands must succeed
 after_script:
 
   # list directory contents
-  - ls -ladF $HOME
-  - ls -ladF
   - pwd
+  - ls -laF /
+  - ls -laF /home
+  - ls -laF $HOME
+  - ls -laF $HOME/build
+  - ls -laF $HOME/build/simonmichael
+  - ls -laF
 
   # coveralls.io coverage reports
-  # - stack --no-terminal install hpc-coveralls
+  # - stack install hpc-coveralls
   # - hpc-coveralls count-von-count-tests --exclude-dir=tests --exclude-dir=src/Gyrid --display-report
 
 notifications:
