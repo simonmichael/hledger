@@ -2,17 +2,7 @@
 
 language: haskell
 
-branches:
-  only:
-    - master
-    - travis
-
 sudo: false
-
-# addons:
-#   apt:
-#     packages:
-#     - libgmp-dev
 
 cache:
   directories:
@@ -20,15 +10,28 @@ cache:
     # - "$HOME/.stack-work/"
     - $HOME/shelltestrunner/
 
-before_install:
+# addons:
+#   apt:
+#     packages:
+#     - libgmp-dev
+
+branches:
+  only:
+    - master
+    - travis
+
+# matrix:
+#   include:
+#   - env: ARGS=""
+#   - env: ARGS="--stack-yaml stack-7.10.yaml"
+
+install:
   # install stack
   - mkdir -p ~/.local/bin
   - export PATH=~/.local/bin:$PATH
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
   - chmod a+x ~/.local/bin/stack
   - stack --version
-
-install:
   # install GHC and most deps
   - stack +RTS -N2 -RTS build --install-ghc --test --only-snapshot
   - stack exec -- ghc --version
@@ -92,3 +95,28 @@ notifications:
   #     - other@example.com
   #   on_success: [always|never|change] # default: change
   #   on_failure: [always|never|change] # default: always
+
+
+# https://docs.travis-ci.com/user/customizing-the-build
+#
+# The Build Lifecycle #
+# A build on Travis CI is made up of two steps:
+# install: install any dependencies required
+# script: run the build script
+# You can run custom commands before the installation step (before_install), and before (before_script) or after (after_script) the script step.
+# In a before_install step, you can install additional dependencies required by your project such as Ubuntu packages or custom services.
+# You can perform additional steps when your build succeeds or fails using the after_success (such as building documentation, or deploying to a custom server) or after_failure (such as uploading log files) options. In both after_failure and after_success, you can access the build result using the $TRAVIS_TEST_RESULT environment variable.
+# The complete build lifecycle, including three optional deployment steps and after checking out the git repository and changing to the repository directory, is:
+#
+# OPTIONAL Install apt addons
+# OPTIONAL Install cache components
+# before_install
+# install
+# before_script
+# script
+# OPTIONAL before_cache (for cleaning up cache)
+# after_success or after_failure
+# OPTIONAL before_deploy
+# OPTIONAL deploy
+# OPTIONAL after_deploy
+# after_script
