@@ -74,8 +74,9 @@ script:
 
   # build all packages, ensuring no warnings, no haddock failures, all package test suites passing 
   - stack +RTS -N2 -RTS build --ghc-options=-Werror --haddock --no-haddock-deps --test
-  # install hledger addon deps, build addons (TODO: require successful warning-free builds)
-  - bin/compile.sh
+  # install hledger addon deps, build addons ensuring no warnings
+  # TODO: prevent reinstallation of addon-deps
+  - sh -e bin/compile.sh
   # run functional tests
   - make functest
 
