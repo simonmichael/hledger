@@ -62,6 +62,7 @@ tr {
 <a href="https://gratipay.com/hledger/"><img border=0 src="http://img.shields.io/gratipay/hledger.svg"></a>
 <a href="https://opencollective.com/hledger#support"><img src="https://opencollective.com/hledger/backers/badge.svg" border="0"></a>
 <a href="https://opencollective.com/hledger#support"><img src="https://opencollective.com/hledger/sponsors/badge.svg" border="0"></a>
+<a href="http://www.codefund.io/issues.php?g=simonmichael&repo=hledger" style="border:thin solid #eee; border-radius:4px; padding:3px; font-size:small; font-family:helvetica;">codefund</a>
 <a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt=""></a>
 <!-- shorter shields.io version (also counts awarded bounties): [![bountysource](https://img.shields.io/bountysource/team/hledger/activity.svg)](https://github.com/simonmichael/hledger/issues?q=label:bounty)-->
 <a href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="" title="Flattr this" border="0"></a> 
