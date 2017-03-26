@@ -121,15 +121,21 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
             sumAmts = case amts of
               a1:as -> foldl' (zipWith (+)) a1 as
               []    -> []
+            totavg  = totsum `divideMixedAmount`
+                        fromIntegral (length sumAmts)
             mergedTabl = case tabls of
               t1:ts -> foldl' merging t1 ts
               []    -> T.empty
-            totTabl | no_total_ ropts' = mergedTabl
-                    | otherwise        =
-                mergedTabl
-                +====+
-                row "Total"
-                    (sumAmts ++ if row_total_ ropts' then [totsum] else [])
+            totTabl
+              | no_total_ ropts' || length bvqueries == 1 =
+                  mergedTabl
+              | otherwise =
+                  mergedTabl
+                  +====+
+                  row "Total"
+                      (sumAmts ++ if row_total_ ropts' then [totsum] else []
+                               ++ if average_ ropts'   then [totavg] else []
+                      )
         putStrLn bvtitle
         putStrLn $ renderBalanceReportTable totTabl
   where
