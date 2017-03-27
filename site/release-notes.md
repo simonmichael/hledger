@@ -7,6 +7,7 @@ h4 { margin-top:2em; }
 <nav id="toc">
 <p>Major releases:</p>
 <ol>
+<li><a href="#hledger-1.2">hledger 1.2 (2017/3/31)</a>
 <li><a href="#hledger-1.1">hledger 1.1 (2016/12/31)</a>
 <li><a href="#hledger-1.0">hledger 1.0 (2016/10/26)</a>
 <li><a href="#hledger-0.27">hledger 0.27 (2015/10/30)</a>
@@ -51,6 +52,234 @@ Based on the
 [hledger project](https://github.com/simonmichael/hledger/blob/master/doc/CHANGES)
 change logs.
 -->
+
+
+## 2017/3/31 hledger 1.2
+
+<!-- ([announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1267)) -->
+<!-- ([announcement](https://groups.google.com/d/topic/hledger/WgdTy3-a6sc/discussion))  -->
+
+Release contributors:
+Simon Michael,
+Nikolay Orlyuk,
+Justin Le,
+Peter Simons,
+Stefano Rodighiero,
+Moritz Kiefer,
+Pia Mancini,
+Bryan Richter,
+Steven R. Baker,
+Hans-Peter Deifel,
+Joshua Chia,
+Joshua Kehn,
+Michael Walker.
+
+  [project](#project-wide-changes)
+| [hledger-lib](#hledger-lib-1.2)
+| [hledger](#hledger-1.2-1)
+| [hledger-ui](#hledger-ui-1.2)
+| [hledger-web](#hledger-web-1.2)
+| [hledger-api](#hledger-api-1.2)
+
+### project-wide changes
+
+#### Packaging
+
+bump stack config to latest lts,
+bump brick to 0.15.2 to allow hledger-iadd install in hledger dir,
+update cabal files to latest hpack 0.17.0/stack 1.4 format (#512),
+use more accurate license tag in Cabal file (Peter Simons).
+
+#### Finance
+
+set up a hledger open collective (http://opencollective.com/hledger),
+more devguide links to issues with bounties,
+codefund link,
+start tracking and publishing project finances (dogfooding!).
+
+#### Documentation and website
+
+docs page cleanups, 
+begin organising a cookbook,
+update addons list,
+move detailed addon docs out of hledger manual,
+document addons installation,
+explain print's CSV output,
+note an issue with balance assertions & multiple -f options,
+clarify tags,
+add github stars widget to home and devguide,
+improve market price docs,
+ui & web screenshots layout fixes,
+fix extra whitespace after synopsis in hledger-web text manuals,
+update accounts directive/budget/rewrite/read-related mockups,
+drop old org notes.
+
+#### Examples
+
+consolidate extra/ and data/ in examples/,
+tarsnap csv rules & reporting example,
+xpensetracker csv rules.
+
+#### Tools
+
+Travis CI now checks functional tests/build warnings/addons,
+temporary workaround for Appveyor CI failures,
+remove accidentally committed pandoc executables,
+some pandoc filter fixes,
+mailmap file to clean up git log authors,
+bench.hs cleanup,
+fix gitignore of generated manuals,
+avoid excessive rebuilding with make [func]test,
+run functional tests more verbosely,
+add alex/happy update step to cabal-install.sh.
+
+### hledger-lib 1.2
+
+#### journal format
+
+A pipe character can optionally be used to delimit payee names in
+transaction descriptions, for more accurate querying and pivoting by
+payee.  Eg, for a description like `payee name | additional notes`,
+the two parts will be accessible as pseudo-fields/tags named `payee`
+and `note`.
+<!-- (When descriptions do not contain a pipe character, `payee` and `note` are synonyms for `description`.) -->
+
+Some journal parse errors now show the range of lines involved, not just the first.
+
+#### Misc
+
+Fix a bug when tying the knot between postings and their parent transaction, reducing memory usage by about 10% (#483) (Mykola Orliuk)
+
+Fix a few spaceleaks (#413) (Moritz Kiefer)
+
+Add Ledger.Parse.Text to package.yaml, fixing a potential build failure.
+
+Allow megaparsec 5.2 (#503)
+
+### hledger 1.2
+
+#### CLI
+
+The -V/--value flag is now a global report flag, so it works with
+balance, print, register, balancesheet, incomestatement, cashflow,
+etc. (Justin Le)
+
+A new global reporting option, `--pivot`, replaces all account names
+with the value of some other field or tag.  This is like Ledger's
+pivot feature, with some improvements:
+
+- we don't add the field/tag name name as a prefix
+- when pivoting on a tag, if the tag is missing we show a blank 
+  (rather than showing mixed tag values and account names)
+- a pipe character delimiter may be used in descriptions to get a more accurate
+  and useful payee report (`hledger balance --pivot payee`)
+
+#### Addons
+
+Easier installation:
+move add-ons and example scripts to bin/, 
+convert to stack scripts,
+add a build script to install all deps,
+add some functional tests,
+test add-ons with Travis CI,
+add installation docs to download page.
+
+Improved docs: 
+all addons now contain their own documentation. Most of them (all but
+hledger-budget) use a new reduced-boilerplate declaration format
+and can show short (-h) and long (--help) command line help.
+(Long help is declared with pre and postambles to the generated
+options help, short help is that truncated at the start of the hledger
+common flags.)
+
+`hledger` now shows a cleaner list of addon commands, showing only the
+compiled version of an addon when both source and compiled versions
+are in $PATH. (Addons with .exe extension or no extension are
+considered compiled.  Modification time is not checked, ie, an old
+compiled addon will override a newer source version.  If there are
+three or more versions of an addon, all are shown.  )
+
+New addons added/included:
+
+- autosync - example symlink to ledger-autosync
+- budget - experimental budget reporting command supporting Ledger-like periodic transactions and automated transactions (Mykola Orliuk)
+- chart - pie-chart-generating prototype, a repackaging of the old hledger-chart tool
+- check - more powerful balance assertions (Michael Walker)
+- dupes - find accounts sharing the same leaf name (Stefano Rodighiero)
+- prices - show all market price records (Mykola Orliuk)
+- register-match - a helper for ledger-autosync's deduplication, finds best match for a transaction description
+
+The equity command now always generates a valid journal transaction,
+handles prices better, and adds balance assertions (Nikolay Orlyuk).
+
+The rewrite command is more robust and powerful (Mykola Orliuk):
+
+- in addition to command-line rewrite options, it understands rewrite rules
+  defined in the journal, similar to Ledger's automated transactions (#99).
+  Eg:
+    ```journal
+    = ^income
+        (liabilities:tax)  *.33
+
+    = expenses:gifts
+        budget:gifts  *-1
+        assets:budget  *1
+    ```
+
+- it can generate diff output, allowing easier review of the proposed
+  changes, and safe modification of original journal files (preserving
+  file-level comments and directives). Eg:
+    ```
+    hledger-rewrite --diff Agency --add-posting 'Expenses:Taxes  *0.17' | patch
+    ```
+
+- rewrites can affect multiple postings in a transaction, not just one.
+
+- posting-specific dates are handled better
+
+#### balancesheet/cashflow/incomestatement
+
+These commands are now more powerful, able to show multicolumn reports
+and generally having the same features as the balance command. (Justin Le)
+
+#### print
+
+The output of print is now always a valid journal (fixes #465) (Nikolay Orlyuk).
+
+print now tries to preserves the format of implicit/explicit balancing
+amounts and prices, by default. To print with all amounts explicit,
+use the new `--explicit/-x` flag (fixes #442). (Mykola Orliuk)
+    
+Don't lose the commodity of zero amounts/zero balance assertions (fixes #475) (Mykola Orliuk)
+
+#### Misc
+
+Fix a regression in the readability of option parsing errors (#478) (Hans-Peter Deifel)
+
+Fix an example in Cli/Main.hs (Steven R. Baker)
+
+Allow megaparsec 5.2 (#503)
+
+### hledger-ui 1.2
+
+Fix a pattern match failure when pressing E on the transaction screen (fixes #508)
+
+Accounts with ? in name had empty registers (fixes #498) (Bryan Richter)
+
+Allow brick 0.16 (Joshua Chia) and brick 0.17/vty 0.15 (Peter Simons)
+
+Allow megaparsec 5.2 (fixes #503)
+
+Allow text-zipper 0.10
+
+### hledger-web 1.2
+
+Accounts with ? in name had empty registers (fixes #498) (Bryan Richter)
+
+Allow megaparsec 5.2 (fixes #503)
+
+<!-- ### hledger-api 1.2 -->
+
 
 
 ## 2016/12/31 hledger 1.1
