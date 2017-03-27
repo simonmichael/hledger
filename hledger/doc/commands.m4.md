@@ -261,6 +261,9 @@ Show a cashflow statement. Alias: cf.
 `-T --row-total`
 : show a row total column (in multicolumn mode)
 
+`-N --no-total`
+: don't show the final total row (in simple reports)
+
 `--drop=N`
 : omit N leading account name parts (in flat mode)
 
