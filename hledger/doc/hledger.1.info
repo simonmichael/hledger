@@ -1477,7 +1477,7 @@ File: hledger.1.info,  Node: print,  Next: register,  Prev: man,  Up: COMMANDS
 
 Show transactions from the journal.
 
-'--explicit'
+'-x --explicit'
 
      show all amounts explicitly
 '-m STR --match=STR'
@@ -1523,12 +1523,12 @@ directives or inter-transaction comments.
 
    Normally, transactions' implicit/explicit amount style is preserved:
 when an amount is omitted in the journal, it will be omitted in the
-output.  You can use the '--explicit' flag to make all amounts explicit,
-which can be useful for troubleshooting or for making your journal more
-readable and robust against data entry errors.  Note, in this mode
-postings with a multi-commodity amount (possible with an implicit amount
-in a multi-commodity transaction) will be split into multiple
-single-commodity postings, for valid journal output.
+output.  You can use the '-x/--explicit' flag to make all amounts
+explicit, which can be useful for troubleshooting or for making your
+journal more readable and robust against data entry errors.  Note, in
+this mode postings with a multi-commodity amount (possible with an
+implicit amount in a multi-commodity transaction) will be split into
+multiple single-commodity postings, for valid journal output.
 
    With -B/-cost, amounts with transaction prices are converted to cost
 (using the transaction price).
@@ -2162,63 +2162,63 @@ Node: man47520
 Ref: #man47617
 Node: print48022
 Ref: #print48127
-Node: register51877
-Ref: #register51990
-Node: Custom register output56486
-Ref: #custom-register-output56617
-Node: stats57914
-Ref: #stats58020
-Node: test58901
-Ref: #test58988
-Node: ADD-ON COMMANDS59356
-Ref: #add-on-commands59492
-Node: Official add-ons60779
-Ref: #official-add-ons60921
-Node: api61008
-Ref: #api61099
-Node: ui61151
-Ref: #ui61252
-Node: web61310
-Ref: #web61401
-Node: Third party add-ons61447
-Ref: #third-party-add-ons61624
-Node: diff61759
-Ref: #diff61858
-Node: iadd61957
-Ref: #iadd62073
-Node: interest62156
-Ref: #interest62279
-Node: irr62374
-Ref: #irr62474
-Node: Experimental add-ons62552
-Ref: #experimental-add-ons62706
-Node: autosync63093
-Ref: #autosync63207
-Node: budget63446
-Ref: #budget63570
-Node: chart63636
-Ref: #chart63755
-Node: check63826
-Ref: #check63950
-Node: check-dates64017
-Ref: #check-dates64153
-Node: dupes64226
-Ref: #dupes64351
-Node: equity64422
-Ref: #equity64544
-Node: prices64663
-Ref: #prices64792
-Node: print-unique64847
-Ref: #print-unique64996
-Node: register-match65089
-Ref: #register-match65245
-Node: rewrite65343
-Ref: #rewrite65464
-Node: TROUBLESHOOTING65542
-Ref: #troubleshooting65661
-Node: Run-time problems65715
-Ref: #run-time-problems65858
-Node: Known limitations67805
-Ref: #known-limitations67948
+Node: register51883
+Ref: #register51996
+Node: Custom register output56492
+Ref: #custom-register-output56623
+Node: stats57920
+Ref: #stats58026
+Node: test58907
+Ref: #test58994
+Node: ADD-ON COMMANDS59362
+Ref: #add-on-commands59498
+Node: Official add-ons60785
+Ref: #official-add-ons60927
+Node: api61014
+Ref: #api61105
+Node: ui61157
+Ref: #ui61258
+Node: web61316
+Ref: #web61407
+Node: Third party add-ons61453
+Ref: #third-party-add-ons61630
+Node: diff61765
+Ref: #diff61864
+Node: iadd61963
+Ref: #iadd62079
+Node: interest62162
+Ref: #interest62285
+Node: irr62380
+Ref: #irr62480
+Node: Experimental add-ons62558
+Ref: #experimental-add-ons62712
+Node: autosync63099
+Ref: #autosync63213
+Node: budget63452
+Ref: #budget63576
+Node: chart63642
+Ref: #chart63761
+Node: check63832
+Ref: #check63956
+Node: check-dates64023
+Ref: #check-dates64159
+Node: dupes64232
+Ref: #dupes64357
+Node: equity64428
+Ref: #equity64550
+Node: prices64669
+Ref: #prices64798
+Node: print-unique64853
+Ref: #print-unique65002
+Node: register-match65095
+Ref: #register-match65251
+Node: rewrite65349
+Ref: #rewrite65470
+Node: TROUBLESHOOTING65548
+Ref: #troubleshooting65667
+Node: Run-time problems65721
+Ref: #run-time-problems65864
+Node: Known limitations67811
+Ref: #known-limitations67954
 
 End Tag Table

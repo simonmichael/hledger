@@ -353,7 +353,7 @@ As with [help](#help), run it with no arguments to list available topics (manual
 ## print
 Show transactions from the journal.
 
-`       --explicit`
+`-x     --explicit`
 : show all amounts explicitly
 
 `-m STR --match=STR             `
@@ -397,7 +397,7 @@ However it may not preserve all original content, eg it does not print directive
 
 Normally, transactions' implicit/explicit amount style is preserved:
 when an amount is omitted in the journal, it will be omitted in the output.
-You can use the `--explicit` flag to make all amounts explicit, which can be
+You can use the `-x/--explicit` flag to make all amounts explicit, which can be
 useful for troubleshooting or for making your journal more readable and
 robust against data entry errors.
 Note, in this mode postings with a multi-commodity amount

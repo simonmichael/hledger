@@ -1320,7 +1320,7 @@ COMMANDS
    print
        Show transactions from the journal.
 
-       --explicit
+       -x     --explicit
               show all amounts explicitly
 
        -m STR --match=STR
@@ -1365,12 +1365,12 @@ COMMANDS
 
        Normally,  transactions'  implicit/explicit  amount style is preserved:
        when an amount is omitted in the journal, it will  be  omitted  in  the
-       output.   You can use the --explicit flag to make all amounts explicit,
-       which can be useful for troubleshooting or for making your journal more
-       readable  and  robust  against  data  entry errors.  Note, in this mode
-       postings with a  multi-commodity  amount  (possible  with  an  implicit
-       amount  in  a  multi-commodity transaction) will be split into multiple
-       single-commodity postings, for valid journal output.
+       output.   You  can  use  the  -x/--explicit  flag  to  make all amounts
+       explicit, which can be useful for troubleshooting or  for  making  your
+       journal  more  readable and robust against data entry errors.  Note, in
+       this mode postings with a  multi-commodity  amount  (possible  with  an
+       implicit  amount  in  a multi-commodity transaction) will be split into
+       multiple single-commodity postings, for valid journal output.
 
        With -B/--cost, amounts with transaction prices are converted  to  cost
        (using the transaction price).

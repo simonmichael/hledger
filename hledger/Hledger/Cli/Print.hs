@@ -36,7 +36,7 @@ printmode = (defCommandMode $ ["print"] ++ aliases) {
          flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) matcharg
          ("show the transaction whose description is most similar to "++matcharg
           ++ ", and is most recent"),
-        flagNone ["explicit"] (setboolopt "explicit")
+        flagNone ["explicit","x"] (setboolopt "explicit")
          "show all amounts explicitly"
         ]
         ++ outputflags

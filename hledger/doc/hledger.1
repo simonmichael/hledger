@@ -1890,7 +1890,7 @@ As with help, run it with no arguments to list available topics
 .PP
 Show transactions from the journal.
 .TP
-.B \f[C]\-\-explicit\f[]
+.B \f[C]\-x\ \ \ \ \ \-\-explicit\f[]
 show all amounts explicitly
 .RS
 .RE
@@ -1949,9 +1949,9 @@ directives or inter\-transaction comments.
 Normally, transactions\[aq] implicit/explicit amount style is preserved:
 when an amount is omitted in the journal, it will be omitted in the
 output.
-You can use the \f[C]\-\-explicit\f[] flag to make all amounts explicit,
-which can be useful for troubleshooting or for making your journal more
-readable and robust against data entry errors.
+You can use the \f[C]\-x/\-\-explicit\f[] flag to make all amounts
+explicit, which can be useful for troubleshooting or for making your
+journal more readable and robust against data entry errors.
 Note, in this mode postings with a multi\-commodity amount (possible
 with an implicit amount in a multi\-commodity transaction) will be split
 into multiple single\-commodity postings, for valid journal output.
