@@ -172,9 +172,8 @@ The -V/--value flag is now a global report flag, so it works with
 balance, print, register, balancesheet, incomestatement, cashflow,
 etc. (Justin Le)
 
-A new global reporting option, `--pivot`, replaces all account names
-with the value of some other field or tag.  This is like Ledger's
-pivot feature, with some improvements:
+The `--pivot` global reporting option replaces all account names with
+the value of some other field or tag. It has been improved, eg:
 
 - we don't add the field/tag name name as a prefix
 - when pivoting on a tag, if the tag is missing we show a blank 
