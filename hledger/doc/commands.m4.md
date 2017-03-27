@@ -169,14 +169,32 @@ _include_({{balance.m4.md}})
 ## balancesheet
 Show a balance sheet. Alias: bs.
 
+`--change`
+: show balance change in each period, instead of historical ending balances
+
+`--cumulative`
+: show balance change accumulated across periods (in multicolumn reports), instead of historical ending balances
+
+`-H --historical`
+: show historical ending balance in each period (includes postings before report start date) (default)
+
+`--tree`
+: show accounts as a tree; amounts include subaccounts (default in simple reports)
+
 `--flat`
-: show full account names, as a list (default)
+: show accounts as a list; amounts exclude subaccounts except when account is depth-clipped (default in multicolumn reports)
+
+`-A --average`
+: show a row average column (in multicolumn mode)
+
+`-T --row-total`
+: show a row total column (in multicolumn mode)
 
 `-N --no-total`
 : don't show the final total row
 
 `--drop=N`
-: in flat mode: omit N leading account name parts
+: omit N leading account name parts (in flat mode)
 
 `--no-elide`
 : don't squash boring parent accounts (in tree mode)
@@ -184,10 +202,10 @@ Show a balance sheet. Alias: bs.
 `--format=LINEFORMAT`
 : in single-column balance reports: use this custom line format
 
-This command displays a simple
-[balance sheet](http://en.wikipedia.org/wiki/Balance_sheet). It currently
-assumes that you have top-level accounts named `asset` and `liability`
-(plural forms also allowed.)
+This command displays a simple [balance
+sheet](http://en.wikipedia.org/wiki/Balance_sheet). It currently assumes that
+you have top-level accounts named `asset` and `liability` (plural forms also
+allowed.)
 
 ```shell
 $ hledger balancesheet
@@ -210,17 +228,41 @@ Total:
                    0
 ```
 
+If given a period flag, renders a multi-column balance with the same format as
+`balance`, with asset and liability totals as well as an overall total if
+desired.
+
+This command shows normally historical end-balance reports, but for flexibility, also
+accepts `--cumulative` and `--change` to display cumulative ending balances and
+changes in reporting periods.
+
+
 ## cashflow
 Show a cashflow statement. Alias: cf.
 
-`--flat`
-: show full account names, as a list (default)
+`--change`
+: show balance change in each period (default)
 
-`-N --no-total`
-: don't show the final total row
+`--cumulative`
+: show balance change accumulated across periods (in multicolumn reports), instead of changes during periods
+
+`-H --historical`
+: show historical ending balance in each period (includes postings before report start date), instead of changes during each period
+
+`--tree`
+: show accounts as a tree; amounts include subaccounts (default in simple reports)
+
+`--flat`
+: show accounts as a list; amounts exclude subaccounts except when account is depth-clipped (default in multicolumn reports)
+
+`-A --average`
+: show a row average column (in multicolumn mode)
+
+`-T --row-total`
+: show a row total column (in multicolumn mode)
 
 `--drop=N`
-: in flat mode: omit N leading account name parts
+: omit N leading account name parts (in flat mode)
 
 `--no-elide`
 : don't squash boring parent accounts (in tree mode)
@@ -250,6 +292,13 @@ Total:
 --------------------
                  $-1
 ```
+
+If given a period flag, renders a multi-column balance with the same format as
+`balance`.
+
+This command normally shows period change reports, but for flexibility, also
+accepts `--cumulative` and `--historical` to display cumulative ending balances and
+historical ending balances, as well.
 
 ## help
 Show any of the hledger manuals.
@@ -287,14 +336,32 @@ SYNOPSIS
 ## incomestatement
 Show an income statement. Alias: is.
 
+`--change`
+: show balance change in each period (default)
+
+`--cumulative`
+: show balance change accumulated across periods (in multicolumn reports), instead of changes during periods
+
+`-H --historical`
+: show historical ending balance in each period (includes postings before report start date), instead of changes during each period
+
+`--tree`
+: show accounts as a tree; amounts include subaccounts (default in simple reports)
+
 `--flat`
-: show full account names, as a list (default)
+: show accounts as a list; amounts exclude subaccounts except when account is depth-clipped (default in multicolumn reports)
+
+`-A --average`
+: show a row average column (in multicolumn mode)
+
+`-T --row-total`
+: show a row total column (in multicolumn mode)
 
 `-N --no-total`
 : don't show the final total row
 
 `--drop=N`
-: in flat mode: omit N leading account name parts
+: omit N leading account name parts (in flat mode)
 
 `--no-elide`
 : don't squash boring parent accounts (in tree mode)
@@ -329,6 +396,13 @@ Total:
 --------------------
                    0
 ```
+
+If given a period flag, renders a multi-column balance with the same format as
+`balance`.
+
+This command normally shows period change reports, but for flexibility, also
+accepts `--cumulative` and `--historical` to display cumulative ending balances and
+historical ending balances, as well.
 
 ## info
 Show any of the hledger manuals using info.
