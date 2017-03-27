@@ -14,8 +14,9 @@ module Hledger.Cli.BalanceView (
  ,balanceviewReport
 ) where
 
-import Control.Monad (unless)
+import Control.Monad (unless, forM_)
 import Data.List (intercalate, foldl')
+import Data.Maybe (fromMaybe)
 import Data.Monoid (Sum(..), (<>))
 import System.Console.CmdArgs.Explicit as C
 import Text.Tabular as T
@@ -144,15 +145,22 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
                                ++ (if average_ ropts'   then [totavg] else [])
                       )
         putStrLn bvtitle
+        forM_ overwriteBalanceType $ \t ->
+          putStrLn $ case t of
+            PeriodChange      -> "(Balance Changes)"
+            CumulativeChange  -> "(Cumulative Ending Balances)"
+            HistoricalBalance -> "(Historical Ending Balances)"
         putStrLn $ renderBalanceReportTable totTabl
   where
-    balancetype =
+    overwriteBalanceType =
       case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst raw of
-        "historical":_ -> HistoricalBalance
-        "cumulative":_ -> CumulativeChange
-        "change":_     -> PeriodChange
-        _              -> bvtype
-    ropts' = emptyMulti . treeIfNotChange $ ropts { balancetype_ = balancetype }
+        "historical":_ -> Just HistoricalBalance
+        "cumulative":_ -> Just CumulativeChange
+        "change":_     -> Just PeriodChange
+        _              -> Nothing
+    balancetype = fromMaybe bvtype overwriteBalanceType
+    ropts' = emptyMulti . treeIfNotChange $
+               ropts { balancetype_ = balancetype }
     treeIfNotChange = case (balancetype, interval_ ropts) of
         -- For --historical/--cumulative, we must use multiBalanceReport.
         -- (This forces --no-elide.)
