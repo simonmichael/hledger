@@ -56,6 +56,14 @@ change logs.
 
 ## 2017/3/31 hledger 1.2
 
+***more powerful bs/is/cf commands,
+more robust print command,
+account name pivoting, 
+basic automated postings and periodic transactions support,
+more and easier addons,
+bugfixes
+***
+
 <!-- ([announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1267)) -->
 <!-- ([announcement](https://groups.google.com/d/topic/hledger/WgdTy3-a6sc/discussion))  -->
 
@@ -284,7 +292,13 @@ Allow megaparsec 5.2 (fixes #503)
 
 ## 2016/12/31 hledger 1.1
 
-******
+***more robust file format detection,
+integration of WIP ledger4 parser,
+balance assignments,
+hledger-ui --watch,
+hledger-iadd integration,
+bugfixes
+***
 
 <!-- ([announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1267)) -->
 <!-- ([announcement](https://groups.google.com/d/topic/hledger/WgdTy3-a6sc/discussion))  -->
