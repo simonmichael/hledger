@@ -242,6 +242,8 @@ main = do
       cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
     -- website also links to old manuals, which are generated manually
     -- with ./Shake websnapshot and committed
+    -- TODO: when pandoc filters are missing, ./Shake website complains about them before building them 
+    --   ./Shake.hs && ./Shake Clean && (cd site/hakyll-std; ./hakyll-std.hs) && ./Shake website
 
     -- use m4 and pandoc to process macros and filter content, leaving markdown suitable for web output
     phony "webmanpages" $ need webmanpages
