@@ -335,7 +335,7 @@ main = do
       putNormal "Cleaning executables"
       removeFilesAfter "." $ hakyllstd : pandocFilters
       putNormal "Cleaning object files" -- also forces rebuild of executables
-      removeFilesAfter "doc"  ["*.o","*.p_o","*.hi"]
+      removeFilesAfter "tools"  ["*.o","*.p_o","*.hi"]
       removeFilesAfter "site" ["*.o","*.p_o","*.hi"]
       putNormal "Cleaning shake build files"
       removeFilesAfter ".shake" ["//*"]
