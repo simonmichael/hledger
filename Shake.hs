@@ -327,8 +327,6 @@ main = do
       putNormal "Cleaning generated files"
       removeFilesAfter "." webmanpages
       removeFilesAfter "." [webmanall, cookbookall]
-      -- removeFilesAfter "." ["site/doc/[0-9]*"]
-      cmd Shell "rm -rf site/doc/[0-9]*"
 
     phony "Clean" $ do
       need ["clean"]
