@@ -61,7 +61,7 @@ branches:
 #   - ghc: 7.10.3
 #   - ghc: 8.0.2
 
-install: # ignores command failures, completed commands are collapsed in log
+install: # completed commands' output is collapsed in log
 
   # stack
   - mkdir -p ~/.local/bin
@@ -87,7 +87,10 @@ install: # ignores command failures, completed commands are collapsed in log
   - stack install --stack-yaml=shelltestrunner/stack.yaml --resolver=lts-8.2 --install-ghc
   - shelltest --version
 
-script:  # all commands must succeed
+script:  # all commands' output is shown in log, all commands must succeed for travis success
+
+  # if any of the following commands fail, end the travis run
+  - set -e
 
   # build hledger packages, ensuring no warnings, no haddock failures, package test suites passing 
   - stack build --ghc-options=-Werror --test --haddock --no-haddock-deps #hledger-lib hledger hledger-ui #hledger-web hledger-api
