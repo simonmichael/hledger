@@ -14,7 +14,7 @@ module Hledger.Cli.BalanceView (
  ,balanceviewReport
 ) where
 
-import Control.Monad (unless, forM_)
+import Control.Monad (unless)
 import Data.List (intercalate, foldl')
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Sum(..), (<>))
@@ -99,10 +99,15 @@ multiBalanceviewQueryReport
     -> ([Table String String MixedAmount], [[MixedAmount]], Sum MixedAmount)
 multiBalanceviewQueryReport ropts q0 j t q = ([tabl], [coltotals], Sum tot)
     where
-      ropts' = ropts { no_total_ = False }
+      ropts' = ropts { no_total_ = False, empty_ = True }
       q' = And [q0, q j]
-      r@(MultiBalanceReport (_, _, (coltotals,tot,_))) =
+      MultiBalanceReport (dates, rows, (coltotals,tot,avg)) =
           multiBalanceReport ropts' q' j
+      rows' | empty_ ropts = rows
+            | otherwise    = filter (not . emptyRow) rows
+        where
+          emptyRow (_,_,_,amts,_,_) = all isZeroMixedAmount amts
+      r = MultiBalanceReport (dates, rows', (coltotals, tot, avg))
       Table hLeft hTop dat = balanceReportAsTable ropts' r
       tabl = Table (T.Group SingleLine [Header t, hLeft]) hTop ([]:dat)
 
@@ -117,6 +122,7 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
               foldMap (uncurry (balanceviewQueryReport ropts' q0 j))
                  bvqueries
         mapM_ putStrLn (bvtitle : "" : views)
+        mapM_ putStrLn balanceclarification
 
         unless (no_total_ ropts') . mapM_ putStrLn $
           [ "Total:"
@@ -145,11 +151,7 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
                                ++ (if average_ ropts'   then [totavg] else [])
                       )
         putStrLn bvtitle
-        forM_ overwriteBalanceType $ \t ->
-          putStrLn $ case t of
-            PeriodChange      -> "(Balance Changes)"
-            CumulativeChange  -> "(Cumulative Ending Balances)"
-            HistoricalBalance -> "(Historical Ending Balances)"
+        mapM_ putStrLn balanceclarification
         putStrLn $ renderBalanceReportTable totTabl
   where
     overwriteBalanceType =
@@ -159,9 +161,16 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
         "change":_     -> Just PeriodChange
         _              -> Nothing
     balancetype = fromMaybe bvtype overwriteBalanceType
-    ropts' = emptyMulti . treeIfNotChange $
+    -- we must clarify that the statements aren't actual income statements,
+    -- etc. if the user overrides the balance type
+    balanceclarification = flip fmap overwriteBalanceType $ \t ->
+      case t of
+        PeriodChange      -> "(Balance Changes)"
+        CumulativeChange  -> "(Cumulative Ending Balances)"
+        HistoricalBalance -> "(Historical Ending Balances)"
+    ropts' = treeIfNotPeriod $
                ropts { balancetype_ = balancetype }
-    treeIfNotChange = case (balancetype, interval_ ropts) of
+    treeIfNotPeriod = case (balancetype, interval_ ropts) of
         -- For --historical/--cumulative, we must use multiBalanceReport.
         -- (This forces --no-elide.)
         -- These settings format the output in a way that we can convert to
@@ -170,9 +179,6 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
       (HistoricalBalance, NoInterval) -> \o -> o { accountlistmode_ = ALTree }
       (CumulativeChange , NoInterval) -> \o -> o { accountlistmode_ = ALTree }
       _                               -> id
-    emptyMulti = case interval_ ropts of
-      NoInterval -> id
-      _          -> \o -> o { empty_ = True }
     merging (Table hLeft hTop dat) (Table hLeft' _ dat') =
         Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
 
