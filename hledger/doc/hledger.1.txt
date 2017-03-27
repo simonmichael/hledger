@@ -121,33 +121,33 @@ OPTIONS
          hledger COMMAND -h shows these.  Eg: hledger register --cleared.
 
        o Command-specific  options  are  also  provided  by   some   commands.
-         hledger COMMAND -h shows these too.  Eg: hledger register --average.
+         hledger COMMAND -h  shows these too.  Eg: hledger register --average.
 
-       o Some  hledger  commands  come from separate add-on executables, which
-         have their own options.  hledger COMMAND -h shows  these,  as  usual.
-         Such  options,  if  not  also supported by hledger, should be written
-         following a double hyphen argument  (--)  so  that  hledger's  option
-         parser  does  not  complain.   Eg: hledger ui -- --register=checking.
+       o Some hledger commands come from separate  add-on  executables,  which
+         have  their  own  options.  hledger COMMAND -h shows these, as usual.
+         Such options, if not also supported by  hledger,  should  be  written
+         following  a  double  hyphen  argument  (--) so that hledger's option
+         parser does  not  complain.   Eg:  hledger ui -- --register=checking.
          Or,  you  can  just  run  the  add-on  directly:  hledger-ui --regis-
          ter=checking.
 
-       Command  arguments  may  also  follow  the command name.  In most cases
-       these specify a query which filters  the  data.   Command  options  and
+       Command arguments may also follow the  command  name.   In  most  cases
+       these  specify  a  query  which  filters the data.  Command options and
        arguments can be intermixed.
 
-       Option  and argument values containing problematic characters should be
+       Option and argument values containing problematic characters should  be
        escaped with double quotes, backslashes, or (best) single quotes.  This
        means spaces, but also characters which are significant to your command
-       shell,   such   as    less-than/greater-than.     Eg:    hledger regis-
+       shell,    such    as    less-than/greater-than.    Eg:   hledger regis-
        ter -p 'last year' "accounts receivable (receiv-
        able|payable)" amt:\>100.
 
-       Characters which are significant to  the  shell  and  also  in  regular
-       expressions,  like  parentheses,  the  pipe symbol and the dollar sign,
-       must sometimes be double-escaped.  Eg,  to  match  the  dollar  symbol:
+       Characters  which  are  significant  to  the  shell and also in regular
+       expressions, like parentheses, the pipe symbol  and  the  dollar  sign,
+       must  sometimes  be  double-escaped.   Eg,  to match the dollar symbol:
        hledger balance cur:'\$' or hledger balance cur:\\$.
 
-       There's  more..   options  and  arguments being passed by hledger to an
+       There's more..  options and arguments being passed  by  hledger  to  an
        add-on executable get de-escaped once in the process.  In this case you
        might    need    triple-escaping.     Eg:    hledger ui cur:'\\$'    or
        hledger ui cur:\\\\$.
@@ -169,7 +169,7 @@ OPTIONS
 
        -h     show general usage (or after COMMAND, the command's usage)
 
-       --help show the current program's manual as plain  text  (or  after  an
+       --help show  the  current  program's  manual as plain text (or after an
               add-on COMMAND, the add-on's manual)
 
        --man  show the current program's manual with man
@@ -186,7 +186,7 @@ OPTIONS
               use a different input file.  For stdin, use -
 
        --rules-file=RULESFILE
-              Conversion   rules  file  to  use  when  reading  CSV  (default:
+              Conversion  rules  file  to  use  when  reading  CSV   (default:
               FILE.rules)
 
        --alias=OLD=NEW
@@ -220,7 +220,7 @@ OPTIONS
               multiperiod/multicolumn report by year
 
        -p --period=PERIODEXP
-              set start date, end date, and/or reporting interval all at  once
+              set  start date, end date, and/or reporting interval all at once
               (overrides the flags above)
 
        --date2
@@ -245,11 +245,11 @@ OPTIONS
               show items with zero amount, normally hidden
 
        -B --cost
-              convert  amounts  to  their  cost at transaction time (using the
+              convert amounts to their cost at  transaction  time  (using  the
               transaction price, if any)
 
        -V --value
-              convert amounts to their market value on  the  report  end  date
+              convert  amounts  to  their  market value on the report end date
               (using the most recent applicable market price, if any)
 
        --pivot TAGNAME
@@ -257,13 +257,13 @@ OPTIONS
 
        --anon show anonymized accounts and payees
 
-       If  a  reporting  option occurs more than once on the command line, the
+       If a reporting option occurs more than once on the  command  line,  the
        last one takes precedence.  Eg -p jan -p feb is equivalent to -p feb.
 
    Input files
        hledger reads transactions from a data file (and the add command writes
        to it).  By default this file is $HOME/.hledger.journal (or on Windows,
-       something like C:/Users/USER/.hledger.journal).  You can override  this
+       something  like C:/Users/USER/.hledger.journal).  You can override this
        with the $LEDGER_FILE environment variable:
 
               $ setenv LEDGER_FILE ~/finance/2016.journal
@@ -277,24 +277,25 @@ OPTIONS
 
               $ cat some.journal | hledger -f-
 
-       Usually  the  data file is in hledger's journal format, but it can also
-       be one of several other formats, listed  below.   hledger  detects  the
-       format  automatically  based  on  the file extension, or if that is not
+       Usually the data file is in hledger's journal format, but it  can  also
+       be  one  of  several  other formats, listed below.  hledger detects the
+       format automatically based on the file extension, or  if  that  is  not
        recognised, by trying each built-in "reader" in turn:
+
 
        Reader:       Reads:                              Used for file extensions:
        -----------------------------------------------------------------------------
        journal       hledger's  journal  format,  also   .journal    .j    .hledger
                      some Ledger journals                .ledger
-       timeclock     timeclock  files  (precise   time   .timeclock
+       timeclock     timeclock   files  (precise  time   .timeclock
                      logging)
-       timedot       timedot  files  (approximate time   .timedot
+       timedot       timedot files  (approximate  time   .timedot
                      logging)
-       csv           comma-separated   values    (data   .csv
+       csv           comma-separated    values   (data   .csv
                      interchange)
 
-       If  needed  (eg  to  ensure  correct error messages when a file has the
-       "wrong" extension), you can force a specific reader/format by  prepend-
+       If needed (eg to ensure correct error messages  when  a  file  has  the
+       "wrong"  extension), you can force a specific reader/format by prepend-
        ing it to the file path with a colon.  Examples:
 
               $ hledger -f csv:/some/csv-file.dat stats
@@ -305,7 +306,7 @@ OPTIONS
 
        o directives in one file will not affect the other files
 
-       o balance assertions will not see any account  balances  from  previous
+       o balance  assertions  will  not see any account balances from previous
          files
 
        If you need those, either use the include directive, or concatenate the
@@ -313,15 +314,16 @@ OPTIONS
 
    Smart dates
        hledger's user interfaces accept a flexible "smart date" syntax (unlike
-       dates  in the journal file).  Smart dates allow some english words, can
-       be relative to today's date, and can have less-significant  date  parts
+       dates in the journal file).  Smart dates allow some english words,  can
+       be  relative  to today's date, and can have less-significant date parts
        omitted (defaulting to 1).
 
        Examples:
 
+
        2009/1/1,      2009/01/01,   simple dates, several sep-
        2009-1-1, 2009.1.1           arators allowed
-       2009/1, 2009                 same  as above - a missing
+       2009/1, 2009                 same as above - a  missing
                                     day or month defaults to 1
        1/1,     january,     jan,   relative   dates,  meaning
        this year                    january 1 of  the  current
@@ -330,35 +332,37 @@ OPTIONS
        this month                   the  1st  of  the  current
                                     month
        this week                    the most recent monday
+
+
        last week                    the  monday  of  the  week
                                     before this one
        lastweek                     spaces are optional
-
        today, yesterday, tomorrow
 
    Report start & end date
-       Most  hledger  reports  show  the  full span of time represented by the
+       Most hledger reports show the full span  of  time  represented  by  the
        journal data, by default.  So, the effective report start and end dates
-       will  be  the earliest and latest transaction or posting dates found in
+       will be the earliest and latest transaction or posting dates  found  in
        the journal.
 
-       Often you will want to see a shorter time span,  such  as  the  current
-       month.   You  can  specify  a  start  and/or end date using -b/--begin,
+       Often  you  will  want  to see a shorter time span, such as the current
+       month.  You can specify a  start  and/or  end  date  using  -b/--begin,
        -e/--end, -p/--period or a date: query (described below).  All of these
-       accept  the smart date syntax.  One important thing to be aware of when
-       specifying end dates: as in Ledger, end dates  are  exclusive,  so  you
+       accept the smart date syntax.  One important thing to be aware of  when
+       specifying  end  dates:  as  in Ledger, end dates are exclusive, so you
        need to write the date after the last day you want to include.
 
        Examples:
+
 
        -b 2016/3/17      begin  on  St.   Patrick's
                          day 2016
        -e 12/1           end at the start of decem-
                          ber  1st  of  the  current
-                         year (11/30  will  be  the
+                         year  (11/30  will  be the
                          last date included)
-       -b thismonth      all   transactions  on  or
-                         after the 1st of the  cur-
+       -b thismonth      all  transactions  on   or
+                         after  the 1st of the cur-
                          rent month
        -p thismonth      all  transactions  in  the
                          current month
@@ -370,15 +374,15 @@ OPTIONS
 
    Report intervals
        A report interval can be specified so that commands like register, bal-
-       ance and activity will divide their reports into  multiple  subperiods.
-       The   basic   intervals   can  be  selected  with  one  of  -D/--daily,
-       -W/--weekly, -M/--monthly, -Q/--quarterly, or -Y/--yearly.   More  com-
-       plex  intervals  may  be  specified  with  a period expression.  Report
+       ance  and  activity will divide their reports into multiple subperiods.
+       The  basic  intervals  can  be  selected  with   one   of   -D/--daily,
+       -W/--weekly,  -M/--monthly,  -Q/--quarterly, or -Y/--yearly.  More com-
+       plex intervals may be  specified  with  a  period  expression.   Report
        intervals can not be specified with a query, currently.
 
    Period expressions
-       The -p/--period option accepts period expressions, a shorthand  way  of
-       expressing a start date, end date, and/or report interval all at once.
+       The  -p/--period  option accepts period expressions, a shorthand way of
+       expressing a start date, end date, and/or report interval all at  once.
 
        Here's  a basic period expression specifying the first quarter of 2009.
        Note, hledger always treats start dates as inclusive and end  dates  as
@@ -390,6 +394,7 @@ OPTIONS
        long as you don't run two dates together.  "to" can also be written  as
        "-".  These are equivalent to the above:
 
+
        -p "2009/1/1 2009/4/1"
        -p2009/1/1to2009/4/1
        -p2009/1/1-2009/4/1
@@ -397,12 +402,14 @@ OPTIONS
        Dates  are  smart  dates, so if the current year is 2009, the above can
        also be written as:
 
+
        -p "1/1 4/1"
        -p "january-apr"
        -p "this year to 4/1"
 
        If you specify only one date, the missing start or end date will be the
        earliest or latest transaction in your journal:
+
 
        -p "from 2009/1/1"   everything  after  january
                             1, 2009
@@ -413,6 +420,7 @@ OPTIONS
 
        A  single  date  with  no "from" or "to" defines both the start and end
        date like so:
+
 
        -p "2009"       the year 2009;  equivalent
                        to "2009/1/1 to 2010/1/1"
@@ -428,6 +436,7 @@ OPTIONS
        -Y  flags.   Between  report interval and start/end dates (if any), the
        word in is optional.  Examples:
 
+
        -p "weekly from 2009/1/1 to 2009/4/1"
        -p "monthly in 2008"
        -p "quarterly"
@@ -437,6 +446,7 @@ OPTIONS
        every Nth day [of month], every Nth day of week.
 
        Examples:
+
 
        -p "bimonthly from 2008"
        -p "every 2 weeks"
@@ -1053,13 +1063,13 @@ COMMANDS
               $ hledger -f t.j bal euros -V -e 2016/12/21
                            $103.00  assets:euros
 
-       Currently, hledger's -V only uses market prices recorded with P  direc-
+       Currently,  hledger's -V only uses market prices recorded with P direc-
        tives, not transaction prices (unlike Ledger).
 
        Using -B and -V together is allowed.
 
    Custom balance output
-       In  simple  (non-multi-column)  balance  reports, you can customise the
+       In simple (non-multi-column) balance reports,  you  can  customise  the
        output with --format FMT:
 
               $ hledger balance --format "%20(account) %12(total)"
@@ -1077,7 +1087,7 @@ COMMANDS
                                               0
 
        The FMT format string (plus a newline) specifies the formatting applied
-       to  each  account/balance pair.  It may contain any suitable text, with
+       to each account/balance pair.  It may contain any suitable  text,  with
        data fields interpolated like so:
 
        %[MIN][.MAX](FIELDNAME)
@@ -1088,14 +1098,14 @@ COMMANDS
 
        o FIELDNAME must be enclosed in parentheses, and can be one of:
 
-         o depth_spacer - a number of spaces equal to the account's depth,  or
+         o depth_spacer  - a number of spaces equal to the account's depth, or
            if MIN is specified, MIN * depth spaces.
 
          o account - the account's name
 
          o total - the account's balance/posted total, right justified
 
-       Also,  FMT  can begin with an optional prefix to control how multi-com-
+       Also, FMT can begin with an optional prefix to control  how  multi-com-
        modity amounts are rendered:
 
        o %_ - render on multiple lines, bottom-aligned (the default)
@@ -1104,7 +1114,7 @@ COMMANDS
 
        o %, - render on one line, comma-separated
 
-       There are some quirks.  Eg in one-line  mode,  %(depth_spacer)  has  no
+       There  are  some  quirks.   Eg in one-line mode, %(depth_spacer) has no
        effect, instead %(account) has indentation built in.
         Experimentation may be needed to get pleasing results.
 
@@ -1112,19 +1122,19 @@ COMMANDS
 
        o %(total) - the account's total
 
-       o %-20.20(account)  -  the account's name, left justified, padded to 20
+       o %-20.20(account) - the account's name, left justified, padded  to  20
          characters and clipped at 20 characters
 
-       o %,%-50(account)  %25(total) - account name padded to  50  characters,
-         total  padded to 20 characters, with multiple commodities rendered on
+       o %,%-50(account)  %25(total)  -  account name padded to 50 characters,
+         total padded to 20 characters, with multiple commodities rendered  on
          one line
 
-       o %20(total)  %2(depth_spacer)%-(account) - the default format for  the
+       o %20(total)  %2(depth_spacer)%-(account)  - the default format for the
          single-column balance report
 
    Output destination
-       The  balance, print, register and stats commands can write their output
-       to a destination other than the console.  This  is  controlled  by  the
+       The balance, print, register and stats commands can write their  output
+       to  a  destination  other  than the console.  This is controlled by the
        -o/--output-file option.
 
               $ hledger balance -o -     # write to stdout (the default)
@@ -1132,8 +1142,8 @@ COMMANDS
 
    CSV output
        The balance, print and register commands can write their output as CSV.
-       This is useful for exporting data to other  applications,  eg  to  make
-       charts  in a spreadsheet.  This is controlled by the -O/--output-format
+       This  is  useful  for  exporting data to other applications, eg to make
+       charts in a spreadsheet.  This is controlled by the  -O/--output-format
        option, or by specifying a .csv file extension with -o/--output-file.
 
               $ hledger balance -O csv       # write CSV to stdout
@@ -1156,8 +1166,8 @@ COMMANDS
        --format=LINEFORMAT
               in single-column balance reports: use this custom line format
 
-       This command displays a simple balance  sheet.   It  currently  assumes
-       that  you  have  top-level  accounts  named asset and liability (plural
+       This  command  displays  a  simple balance sheet.  It currently assumes
+       that you have top-level accounts  named  asset  and  liability  (plural
        forms also allowed.)
 
               $ hledger balancesheet
@@ -1196,9 +1206,9 @@ COMMANDS
        --format=LINEFORMAT
               in single-column balance reports: use this custom line format
 
-       This command displays a simple cashflow statement It shows  the  change
-       in  all  "cash"  (ie,  liquid assets) accounts for the period.  It cur-
-       rently assumes that cash accounts are under a top-level  account  named
+       This  command  displays a simple cashflow statement It shows the change
+       in all "cash" (ie, liquid assets) accounts for  the  period.   It  cur-
+       rently  assumes  that cash accounts are under a top-level account named
        asset and do not contain receivable or A/R (plural forms also allowed.)
 
               $ hledger cashflow
@@ -1643,14 +1653,14 @@ ADD-ON COMMANDS
        hledger-dupes.hs checks for account names sharing the same leaf name.
 
    equity
-       hledger-equity.hs  prints  balance-resetting  transactions,  useful for
+       hledger-equity.hs prints  balance-resetting  transactions,  useful  for
        bringing account balances across file boundaries.
 
    prices
        hledger-prices.hs prints all prices from the journal.
 
    print-unique
-       hledger-print-unique.hs prints  transactions  which  do  not  reuse  an
+       hledger-print-unique.hs  prints  transactions  which  do  not  reuse an
        already-seen description.
 
    register-match
@@ -1663,13 +1673,13 @@ ADD-ON COMMANDS
 
 TROUBLESHOOTING
    Run-time problems
-       Here  are  some  issues  you  might encounter when you run hledger (and
-       remember you can also seek help from the IRC channel, mail list or  bug
+       Here are some issues you might encounter  when  you  run  hledger  (and
+       remember  you can also seek help from the IRC channel, mail list or bug
        tracker):
 
        Successfully installed, but "No command 'hledger' found"
        stack and cabal install binaries into a special directory, which should
-       be added to your PATH environment variable.  Eg on  unix-like  systems,
+       be  added  to your PATH environment variable.  Eg on unix-like systems,
        that is ~/.local/bin and ~/.cabal/bin respectively.
 
        I set a custom LEDGER_FILE, but hledger is still using the default file

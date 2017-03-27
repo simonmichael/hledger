@@ -124,27 +124,27 @@ CSV RULES
               include common.rules
 
 TIPS
-       Each  generated  journal  entry will have two postings, to account1 and
+       Each generated journal entry will have two postings,  to  account1  and
        account2 respectively.  Currently it's not possible to generate entries
        with more than two postings.
 
-       If  the  CSV has debit/credit amounts in separate fields, assign to the
+       If the CSV has debit/credit amounts in separate fields, assign  to  the
        amount-in and amount-out pseudo fields instead of amount.
 
-       If the CSV has the currency in a separate field,  assign  that  to  the
-       currency  pseudo  field  which  will  be automatically prepended to the
+       If  the  CSV  has  the currency in a separate field, assign that to the
+       currency pseudo field which will  be  automatically  prepended  to  the
        amount.  (Or you can do the same thing with a field assignment.)
 
-       If an amount value is parenthesised, it will  be  de-parenthesised  and
+       If  an  amount  value is parenthesised, it will be de-parenthesised and
        sign-flipped automatically.
 
-       The  generated  journal  entries  will be sorted by date.  The original
+       The generated journal entries will be sorted  by  date.   The  original
        order of same-day entries will be preserved, usually.
 
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -158,7 +158,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
