@@ -79,7 +79,14 @@ balanceviewQueryReport
 balanceviewQueryReport ropts q0 j t q = ([view], Sum amt)
     where
       q' = And [q0, q j]
-      rep@(_ , amt) = balanceReport ropts q' j
+      rep@(_ , amt)
+        -- For --historical/--cumulative, we must use multiBalanceReport.
+        -- (This forces --no-elide.)
+        -- See Balance.hs's implementation of 'balance' for more information
+        | balancetype_ ropts `elem` [HistoricalBalance, CumulativeChange]
+            = singleBalanceReport ropts q' j
+        | otherwise
+            = balanceReport ropts q' j
       view = intercalate "\n" [t <> ":", balanceReportAsText ropts rep]
 
 multiBalanceviewQueryReport
@@ -145,9 +152,15 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
         "cumulative":_ -> CumulativeChange
         "change":_     -> PeriodChange
         _              -> bvtype
-    ropts' = emptyMulti . stripBeginDate $ ropts { balancetype_ = balancetype }
-    stripBeginDate = case (balancetype, interval_ ropts) of
-      (HistoricalBalance, NoInterval) -> withoutBeginDate
+    ropts' = emptyMulti . treeIfNotChange $ ropts { balancetype_ = balancetype }
+    treeIfNotChange = case (balancetype, interval_ ropts) of
+        -- For --historical/--cumulative, we must use multiBalanceReport.
+        -- (This forces --no-elide.)
+        -- These settings format the output in a way that we can convert to
+        -- a normal balance report using singleBalanceReport.  See
+        -- Balance.hs for more information.
+      (HistoricalBalance, NoInterval) -> \o -> o { accountlistmode_ = ALTree }
+      (CumulativeChange , NoInterval) -> \o -> o { accountlistmode_ = ALTree }
       _                               -> id
     emptyMulti = case interval_ ropts of
       NoInterval -> id
@@ -157,7 +170,8 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
 
 
 withoutBeginDate :: ReportOpts -> ReportOpts
-withoutBeginDate ropts@ReportOpts{..} = ropts{period_=p}
-  where
-    p = dateSpanAsPeriod $ DateSpan Nothing (periodEnd period_)
+withoutBeginDate = id
+-- withoutBeginDate ropts@ReportOpts{..} = ropts{period_=p}
+--   where
+--     p = dateSpanAsPeriod $ DateSpan Nothing (periodEnd period_)
 
