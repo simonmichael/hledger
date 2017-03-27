@@ -69,7 +69,7 @@ bugfixes
 
 Release contributors:
 Simon Michael,
-Nikolay Orlyuk,
+Mykola Orliuk,
 Justin Le,
 Peter Simons,
 Stefano Rodighiero,
@@ -218,7 +218,7 @@ New addons added/included:
 - register-match - a helper for ledger-autosync's deduplication, finds best match for a transaction description
 
 The equity command now always generates a valid journal transaction,
-handles prices better, and adds balance assertions (Nikolay Orlyuk).
+handles prices better, and adds balance assertions (Mykola Orliuk).
 
 The rewrite command is more robust and powerful (Mykola Orliuk):
 
@@ -252,7 +252,7 @@ and generally having the same features as the balance command. (Justin Le)
 
 #### print
 
-The output of print is now always a valid journal (fixes #465) (Nikolay Orlyuk).
+The output of print is now always a valid journal (fixes #465) (Mykola Orliuk).
 
 print now tries to preserves the format of implicit/explicit balancing
 amounts and prices, by default. To print with all amounts explicit,
@@ -304,7 +304,7 @@ bugfixes
 <!-- ([announcement](https://groups.google.com/d/topic/hledger/WgdTy3-a6sc/discussion))  -->
 
 Release contributors:
-Simon Michael, Johannes Gerer, Nikolay Orlyuk, Shubham Lagwankar.
+Simon Michael, Johannes Gerer, Mykola Orliuk, Shubham Lagwankar.
 
   [project-wide](#project-wide-changes)
 | [hledger-lib](#hledger-lib-1.1)
