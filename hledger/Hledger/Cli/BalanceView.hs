@@ -133,8 +133,8 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
                   mergedTabl
                   +====+
                   row "Total"
-                      (sumAmts ++ if row_total_ ropts' then [totsum] else []
-                               ++ if average_ ropts'   then [totavg] else []
+                      (sumAmts ++ (if row_total_ ropts' then [totsum] else [])
+                               ++ (if average_ ropts'   then [totavg] else [])
                       )
         putStrLn bvtitle
         putStrLn $ renderBalanceReportTable totTabl
