@@ -63,6 +63,9 @@ branches:
 
 install: # completed commands' output is collapsed in log
 
+  # if any command fails, end the travis run
+  - set -e
+
   # stack
   - mkdir -p ~/.local/bin
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
@@ -88,9 +91,6 @@ install: # completed commands' output is collapsed in log
   - shelltest --version
 
 script:  # all commands' output is shown in log, all commands must succeed for travis success
-
-  # if any of the following commands fail, end the travis run
-  - set -e
 
   # build hledger packages, ensuring no warnings, no haddock failures, package test suites passing 
   - stack build --ghc-options=-Werror --test --haddock --no-haddock-deps #hledger-lib hledger hledger-ui #hledger-web hledger-api
