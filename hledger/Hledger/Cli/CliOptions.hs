@@ -74,6 +74,7 @@ import Data.Functor.Compat ((<$>))
 import Data.Functor.Identity (Identity)
 import Data.List.Compat
 import Data.List.Split (splitOneOf)
+import Data.Ord
 import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
@@ -599,35 +600,41 @@ defaultBalanceLineFormat = BottomAligned [
 
 -- Other utils
 
--- | Get the sorted unique precise names and display names of hledger
--- add-on executables found in the current user's PATH. 
--- Precise names are the file names with the "hledger-" prefix removed. 
--- Display names also have the file extension removed, except when it's 
--- needed to disambiguate multiple add-ons with similar filenames.
--- When there are exactly two similar names that look like a source 
--- and compiled version (.exe, .com, or no extension), the source
--- version is excluded (even if it happens to be newer). 
--- Add-on names matching built-in command names could be returned
--- by this function, though hledger will ignore them.
+-- | Get the sorted unique canonical names of hledger addon commands
+-- found in the current user's PATH. These are used in command line
+-- parsing and to display the commands list.
 --
-hledgerAddons :: IO ([String],[String])
+-- Canonical addon names are the filenames of hledger-* executables in
+-- PATH, without the "hledger-" prefix, and without the file extension
+-- except when it's needed for disambiguation (see below).
+--
+-- When there are exactly two versions of an executable (same base
+-- name, different extensions) that look like a source and compiled
+-- pair (one has .exe, .com, or no extension), the source version will
+-- be excluded (even if it happens to be newer). When there are three
+-- or more versions (or two versions that don't look like a
+-- source/compiled pair), they are all included, with file extensions
+-- intact.
+-- 
+hledgerAddons :: IO [String]
 hledgerAddons = do
-  exes <- hledgerExecutablesInPath
-  let precisenames = concatMap dropRedundant $
-                     groupBy (\a b -> dropExtension a == dropExtension b) $
-                     map stripprefix exes
-  let displaynames = concatMap stripext $
-                     groupBy (\a b -> dropExtension a == dropExtension b) precisenames
-  return (precisenames, displaynames)
-  where
-    stripprefix = drop (length progname + 1)
-    stripext [f] = [dropExtension f]
-    stripext fs  = fs
-    compiledExts = ["",".com",".exe"] 
-    dropRedundant [f,g]
-      | takeExtension f `elem` compiledExts = [f]
-      | takeExtension g `elem` compiledExts = [g]
-    dropRedundant fs = fs
+  -- past bug generator
+  as1 <- hledgerExecutablesInPath                                  -- ["hledger-check","hledger-check-dates","hledger-check-dates.hs","hledger-check.hs","hledger-check.py"]
+  let as2 = map stripPrognamePrefix as1                            -- ["check","check-dates","check-dates.hs","check.hs","check.py"]
+  let as3 = sortBy (comparing takeBaseName) as2                    -- ["check","check.hs","check.py","check-dates","check-dates.hs"]
+  let as4 = groupBy (\a b -> takeBaseName a == takeBaseName b) as3 -- [["check","check.hs","check.py"],["check-dates","check-dates.hs"]]
+  let as5 = concatMap dropRedundantSourceVersion as4               -- ["check","check.hs","check.py","check-dates"]
+  return as5
+
+stripPrognamePrefix = drop (length progname + 1)
+
+dropRedundantSourceVersion [f,g]
+  | takeExtension f `elem` compiledExts = [f]
+  | takeExtension g `elem` compiledExts = [g]
+dropRedundantSourceVersion fs = fs
+
+compiledExts = ["",".com",".exe"] 
+
 
 -- | Get the sorted unique filenames of all hledger-* executables in
 -- the current user's PATH. Currently these are: files in any of the

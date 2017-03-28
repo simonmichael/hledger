@@ -233,25 +233,22 @@ main = do
   dbgIO "raw args before command" argsbeforecmd
   dbgIO "raw args after command" argsaftercmd
 
-  -- Search PATH for add-ons, excluding any that match built-in names.
-  -- The precise addon names (including file extension) are used for command
-  -- parsing, and the display names are used for displaying the commands list.
-  (addonPreciseNames', addonDisplayNames') <- hledgerAddons
-  let addonPreciseNames = filter (not . (`elem` builtinCommandNames) . dropExtension) addonPreciseNames'
-  let addonDisplayNames = filter (not . (`elem` builtinCommandNames)) addonDisplayNames'
+  -- Search PATH for add-ons, excluding any that match built-in command names
+  addonNames' <- hledgerAddons
+  let addonNames = filter (not . (`elem` builtinCommandNames) . dropExtension) addonNames'
 
   -- parse arguments with cmdargs
-  opts <- argsToCliOpts args addonPreciseNames
+  opts <- argsToCliOpts args addonNames
 
   -- select an action and run it.
   let
     cmd                  = command_ opts -- the full matched internal or external command name, if any
     isInternalCommand    = cmd `elem` builtinCommandNames -- not (null cmd) && not (cmd `elem` addons)
-    isExternalCommand    = not (null cmd) && cmd `elem` addonPreciseNames -- probably
+    isExternalCommand    = not (null cmd) && cmd `elem` addonNames -- probably
     isBadCommand         = not (null rawcmd) && null cmd
     hasVersion           = ("--version" `elem`)
     hasDetailedVersion   = ("--version+" `elem`)
-    printUsage           = putStr $ showModeUsage $ mainmode addonDisplayNames
+    printUsage           = putStr $ showModeUsage $ mainmode addonNames
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
     hasShortHelpFlag args = any (`elem` args) ["-h"]
     hasLongHelpFlag args = any (`elem` args) ["--help"]
@@ -279,9 +276,9 @@ main = do
     runHledgerCommand
       -- high priority flags and situations. -h, then --help, then --info are highest priority.
       | hasShortHelpFlag argsbeforecmd = dbgIO "" "-h before command, showing general usage" >> printUsage
-      | hasLongHelpFlag  argsbeforecmd = dbgIO "" "--help before command, showing general manual" >> printHelpForTopic (topicForMode $ mainmode addonDisplayNames)
-      | hasManFlag       argsbeforecmd = dbgIO "" "--man before command, showing general manual with man" >> runManForTopic (topicForMode $ mainmode addonDisplayNames)
-      | hasInfoFlag      argsbeforecmd = dbgIO "" "--info before command, showing general manual with info" >> runInfoForTopic (topicForMode $ mainmode addonDisplayNames)
+      | hasLongHelpFlag  argsbeforecmd = dbgIO "" "--help before command, showing general manual" >> printHelpForTopic (topicForMode $ mainmode addonNames)
+      | hasManFlag       argsbeforecmd = dbgIO "" "--man before command, showing general manual with man" >> runManForTopic (topicForMode $ mainmode addonNames)
+      | hasInfoFlag      argsbeforecmd = dbgIO "" "--info before command, showing general manual with info" >> runInfoForTopic (topicForMode $ mainmode addonNames)
       | not (hasSomeHelpFlag argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameandversion
       | not (hasSomeHelpFlag argsaftercmd) && (hasDetailedVersion argsbeforecmd || (hasDetailedVersion argsaftercmd && isInternalCommand))
