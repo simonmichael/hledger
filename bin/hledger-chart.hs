@@ -1,6 +1,5 @@
 #!/usr/bin/env stack
 {- stack runghc --verbosity info
-   --package hledger-lib
    --package hledger
    --package Chart
    --package Chart-diagrams
@@ -9,6 +8,7 @@
    --package data-default
    --package here
    --package safe
+   --package text
 -}
 
 {-# OPTIONS_GHC -Wno-missing-signatures -Wno-unused-do-bind #-}

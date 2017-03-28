@@ -2,6 +2,7 @@
 {- stack runghc --verbosity info
   --package hledger-lib
   --package hledger
+  --package cmdargs
   --package text
 -}
 {-# LANGUAGE OverloadedStrings #-}

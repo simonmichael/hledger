@@ -2,6 +2,8 @@
 {- stack runghc --verbosity info
    --package hledger
    --package here
+   --package text
+   --package time
 -}
 
 {-# OPTIONS_GHC -Wno-missing-signatures #-}

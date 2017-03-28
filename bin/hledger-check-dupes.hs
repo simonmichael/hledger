@@ -2,7 +2,6 @@
 {- stack runghc --verbosity info
    --package hledger-lib
    --package here
-   --package safe
    --package text
 -}
 
