@@ -280,6 +280,7 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
+     ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode when displaying tables"
      ]
      ++ outputflags
     ,groupHidden = []
@@ -475,7 +476,7 @@ multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
 multiBalanceReportAsText opts r =
     printf "%s in %s:" typeStr (showDateSpan $ multiBalanceReportSpan r)
       ++ "\n"
-      ++ renderBalanceReportTable tabl
+      ++ renderBalanceReportTable opts tabl
   where
     tabl = balanceReportAsTable opts r
     typeStr :: String
@@ -487,9 +488,9 @@ multiBalanceReportAsText opts r =
 -- | Given a table representing a multi-column balance report (for example,
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output.
-renderBalanceReportTable :: Table String String MixedAmount -> String
-renderBalanceReportTable = unlines . trimborder . lines
-                         . render id (" " ++) showMixedAmountOneLineWithoutPrice
+renderBalanceReportTable :: ReportOpts -> Table String String MixedAmount -> String
+renderBalanceReportTable (ReportOpts { pretty_tables_ = pretty }) = unlines . trimborder . lines
+                         . render pretty id (" " ++) showMixedAmountOneLineWithoutPrice
                          . align
   where
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)

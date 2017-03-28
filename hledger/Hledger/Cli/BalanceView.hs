@@ -152,7 +152,7 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
                       )
         putStrLn bvtitle
         mapM_ putStrLn balanceclarification
-        putStrLn $ renderBalanceReportTable totTabl
+        putStrLn $ renderBalanceReportTable ropts totTabl
   where
     overwriteBalanceType =
       case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst raw of
