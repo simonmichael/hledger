@@ -94,9 +94,9 @@ checks more powerful account balance assertions.
 [hledger-check-dates.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-dates.hs#L15)
 checks that journal entries are ordered by date.
 
-### dupes
+### check-dupes
 
-[hledger-dupes.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-dupes.hs#L21)
+[hledger-check-dupes.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-dupes.hs#L21)
 checks for account names sharing the same leaf name.
 
 ### equity

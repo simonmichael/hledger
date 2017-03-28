@@ -20,7 +20,7 @@ import qualified Data.Text as T
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
-  [here| dupes
+  [here| check-dupes
 Reports duplicates in the account tree: account names having the same leaf
 but different prefixes. In other words, two or more leaves that are
 categorized differently.
@@ -37,7 +37,7 @@ http://stefanorodighiero.net/software/hledger-dupes.html
 main = do
   opts <- getHledgerCliOpts cmdmode
   withJournalDo opts $ \CliOpts{rawopts_=_opts,reportopts_=_ropts} j -> do
-    mapM_ render $ dupes $ accountsNames j
+    mapM_ render $ checkdupes $ accountsNames j
 
 accountsNames :: Journal -> [(String, AccountName)]
 accountsNames j = map leafAndAccountName as
@@ -46,8 +46,8 @@ accountsNames j = map leafAndAccountName as
         as = nub $ sort $ map paccount ps
 
 
-dupes :: (Ord k, Eq k) => [(k, v)] -> [(k, [v])]
-dupes l = zip dupLeafs dupAccountNames
+checkdupes :: (Ord k, Eq k) => [(k, v)] -> [(k, [v])]
+checkdupes l = zip dupLeafs dupAccountNames
   where dupLeafs = map (fst . head) d
         dupAccountNames = map (map snd) d
         d = dupes' l

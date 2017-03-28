@@ -119,7 +119,7 @@ Some experimental commands are not built in to hledger, but
 [add-on commands](http://hledger.org/hledger.html#add-on-commands), such as:\
 `chart`,
 `check-dates`,
-`dupes`,
+`check-dupes`,
 `equity`,
 `print-unique`,
 `register-match`,
