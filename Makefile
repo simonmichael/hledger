@@ -113,7 +113,7 @@ SOURCEFILES:= \
 	hledger-*/*hs \
 	hledger-*/Hledger/*hs \
 	hledger-*/Hledger/*/*hs \
-	hledger-lib/other/ledger-parse/Ledger/Parse/*hs \
+	hledger-lib/other/ledger-parse/Ledger/Parser/*hs \
 	hledger-web/app/*.hs \
 	hledger-web/tests/*.hs \
 	hledger-web/Handler/*.hs \
