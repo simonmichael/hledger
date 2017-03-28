@@ -1,6 +1,6 @@
 -*- org -*-
 
-* 0.27's command-line help
+* 0.27
 
 $ hledger --help
 hledger [COMMAND] ... [OPTIONS] [ARGS]
@@ -268,8 +268,7 @@ General flags:
      --debug=N                 show debug output if N is 1-9 (default: 0)
      --version                 show version information
 
-* ideas for shorter help
-
+* 201511 ideas for shorter help
 ** general help: Flags moved to top, -h and --help split:
 
 $ hledger --help
@@ -430,3 +429,278 @@ stats [-o --output-file=FILE[.FMT] -f --file=FILE --rules-file=RFILE
 
 
 (for more detail, use --help)
+
+* 1.1
+$ hledger
+hledger [COMMAND] ... [OPTIONS] [ARGS]
+
+Commands:
+  help             show any of the hledger manuals
+  man              show any of the hledger manuals with man
+  info             show any of the hledger manuals with info
+Data entry commands:
+  add              prompt for transactions and add them to the journal
+
+Reporting commands:
+  print            show transaction entries
+  accounts         show account names
+  balance          show accounts and balances (bal)
+  register         show postings and running total (reg)
+  incomestatement  show an income statement (is)
+  balancesheet     show a balance sheet (bs)
+  cashflow         show a cashflow statement (cf)
+  activity         show an ascii barchart of posting counts per interval
+                   (default: daily)
+  stats            show some journal statistics
+
+Add-on commands:
+  api            
+  autosync       
+  budget         
+  chart            generate simple balance pie charts
+  check          
+  check-dates    
+  check          
+  dupes          
+  equity           show a transaction entry zeroing all accounts
+  estimatedtax   
+  iadd           
+  interest         generate interest transaction entries
+  invariant      
+  prices         
+  print-unique     print only transactions with unique descriptions
+  register-match 
+  rewrite          add specified postings to matched transaction entries
+  ui             
+  web              start the web interface
+
+
+General flags:
+  -h              show general usage or (after COMMAND, the command's usage
+     --help       show the current program's manual as plain text (or after
+                  an add-on COMMAND, the add-on's manual)
+     --man        show the current program's manual with man
+     --info       show the current program's manual with info
+     --debug=[N]  show debug output (levels 1-9, default: 1)
+     --version    show version information
+
+* 201703 ideas
+** wishes
+*** short help that fits more easily on a single screen
+*** avoid surprise due to difference between -h and -help
+*** avoid unexpected/excessive output/scrolling
+*** adapt to current terminal, pager, tools
+**** use pager if available and supported by terminal and output is long
+**** use man (or info) if available and supported by terminal
+*** clear intuitive consistent maintainable UI without confusion/over-complexity
+*** organise commands by topic, usefulness, maturity, location
+*** use colour
+** commands list help section
+*** a
+Get help:
+ -h                   show general short help
+ CMD -h               show command's short help
+ --help               show manual
+ --info               show manual with info
+ --man                show manual with man
+ help                 show any of the hledger manuals
+ info                 show any of the hledger manuals with info
+ man                  show any of the hledger manuals with man
+*** b
+Get help: (see also hledger -h, hledger CMD -h, hledger --help|--man|--info)
+ help                 show any of the hledger manuals
+ info                 show any of the hledger manuals with info
+ man                  show any of the hledger manuals with man
+*** c
+Get help:
+ help|man|info        show any of the hledger manuals in text/info/man format
+                      see also -h, CMD -h, --help|--man|--info
+*** d
+Get help: (see also -h, CMD -h, --help|---man|--info)
+ help|man|info        show any of the hledger manuals in text/info/man format
+
+** hledger (commands list)
+Commands available:
+
+Standard reports:
+ accounts             show chart of accounts
+ balancesheet (bs)    show a balance sheet
+ cashflow (cf)        show a cashflow statement
+ incomestatement (is) show an income statement
+ transactions (txns)  show transactions in some account
+
+General reporting:
+ activity             show a bar chart of posting counts per interval
+ balance (bal)        show accounts and balances
+ budget               add automated postings/txns/bucket accts (experimental)
+ chart                generate simple balance pie charts (experimental)
+ check                check more powerful balance assertions
+ check-dates          check transactions are ordered by date
+ check-dupes          check for accounts with the same leaf name
+ estimatedtax         calculate estimated tax amounts for some revenue
+ irr                  calculate internal rate of return of an investment
+ prices               show market price records
+ print                show transaction journal entries
+ print-unique         show only transactions with unique descriptions
+ register (reg)       show postings and running total
+ register-match       show best matching transaction for a description
+ stats                show some journal statistics
+
+Interfaces:
+ add                  console ui for adding transactions
+ api                  web api server
+ iadd                 curses ui for adding transactions
+ ui                   curses ui
+ web                  web ui
+
+Misc:
+ autosync             download/deduplicate/convert OFX data
+ equity               generate transactions to zero & restore account balances
+ interest             generate interest transactions
+ rewrite              add automated postings to certain transactions
+
+Help: (see also -h, CMD -h, --help|---man|--info)
+ help|man|info        show any of the hledger manuals in text/man/info format
+
+** hledger -h (usage/short help)
+hledger [CMD] [OPTS] [ARGS]
+  hledger's command line interface
+
+General input flags:
+  -f --file=FILE          use a different input file. For stdin, use -
+     --rules-file=RFILE   CSV conversion rules file (default: FILE.rules)
+     --alias=OLD=NEW      rename accounts named OLD to NEW
+     --anon               anonymize accounts and payees
+     --pivot=TAGNAME      use some other field/tag for account names
+  -I --ignore-assertions  ignore any balance assertions
+
+General reporting flags:
+  -b --begin=DATE         include postings/txns on or after this date
+  -e --end=DATE           include postings/txns before this date
+  -D --daily              multiperiod/multicolumn report by day
+  -W --weekly             multiperiod/multicolumn report by week
+  -M --monthly            multiperiod/multicolumn report by month
+  -Q --quarterly          multiperiod/multicolumn report by quarter
+  -Y --yearly             multiperiod/multicolumn report by year
+  -p --period=PERIODEXP   set start date, end date, and/or report interval
+                          all at once (overrides the flags above)
+     --date2              show and match on secondary dates instead
+  -C --cleared            include only cleared postings/txns
+     --pending            include only pending postings/txns
+  -U --uncleared          include only uncleared (and pending) postings/txns
+  -R --real               include only non-virtual postings
+     --depth=N            hide accounts/postings deeper than N
+  -E --empty              show items with zero amount, normally hidden
+  -B --cost               convert amounts to their cost at transaction time
+                          (using the transaction price, if any)
+  -V --value              convert amounts to their market value on the report
+                          end date (using the most recent applicable market
+                          price, if any)
+
+General flags:
+  -h --usage      show general usage or (after COMMAND, the command's usage
+     --help       show this program's manual (or after an add-on command, 
+                  the add-on's manual)
+     --man        show the manual with man
+     --info       show the manual with info
+     --debug=[N]  show debug output (levels 1-9, default: 1)
+     --version    show version information
+
+Examples:
+| hledger                        | list commands                                                                     |
+| hledger CMD [--] [OPTS] [ARGS] | run a command. command-specific options must go after CMD, and -- if its an addon |
+| hledger-CMD [OPTS] [ARGS]      | or run an addon command directly                                                  |
+| hledger -h                     | hledger usage                                                                     |
+| hledger CMD -h                 | command usage                                                                     |
+| hledger --help                 | hledger manual                                                                    |
+| hledger --man                  | hledger manual as man page                                                        |
+| hledger --info                 | hledger manual as info manual                                                     |
+| hledger help                   | list help topics                                                                  |
+| hledger help TOPIC             | TOPIC manual                                                                      |
+| hledger man  TOPIC             | TOPIC manual as man page                                                          |
+| hledger info TOPIC             | TOPIC manual as info manual                                                       |
+** hledger print -h (command usage)
+print [OPTS] [QUERYARGS]
+  show transaction journal entries
+
+Flags:
+  -m --match=STR          show the transaction whose description is most
+                          similar to STR, and is most recent
+  -x --explicit           show all amounts explicitly
+  -O --output-format=FMT  select the output format. Supported formats:
+                          txt, csv.
+  -o --output-file=FILE   write output to FILE. A file extension matching one
+                          of the above formats selects that format.
+
+plus general flags, see "hledger -h" or "hledger print -hh".
+** hledger print -hh (command full usage)
+print [OPTIONS] [QUERY]
+  show transaction journal entries
+
+Flags:
+  -m --match=STR          show the transaction whose description is most
+                          similar to STR, and is most recent
+  -x --explicit           show all amounts explicitly
+  -O --output-format=FMT  select the output format. Supported formats:
+                          txt, csv.
+  -o --output-file=FILE   write output to FILE. A file extension matching one
+                          of the above formats selects that format.
+
+General input flags:
+  -f --file=FILE          use a different input file. For stdin, use -
+     --rules-file=RFILE   CSV conversion rules file (default: FILE.rules)
+     --alias=OLD=NEW      rename accounts named OLD to NEW
+     --anon               anonymize accounts and payees
+     --pivot=TAGNAME      use some other field/tag for account names
+  -I --ignore-assertions  ignore any balance assertions
+
+General reporting flags:
+  -b --begin=DATE         include postings/txns on or after this date
+  -e --end=DATE           include postings/txns before this date
+  -D --daily              multiperiod/multicolumn report by day
+  -W --weekly             multiperiod/multicolumn report by week
+  -M --monthly            multiperiod/multicolumn report by month
+  -Q --quarterly          multiperiod/multicolumn report by quarter
+  -Y --yearly             multiperiod/multicolumn report by year
+  -p --period=PERIODEXP   set start date, end date, and/or report interval
+                          all at once (overrides the flags above)
+     --date2              show and match on secondary dates instead
+  -C --cleared            include only cleared postings/txns
+     --pending            include only pending postings/txns
+  -U --uncleared          include only uncleared (and pending) postings/txns
+  -R --real               include only non-virtual postings
+     --depth=N            hide accounts/postings deeper than N
+  -E --empty              show items with zero amount, normally hidden
+  -B --cost               convert amounts to their cost at transaction time
+                          (using the transaction price, if any)
+  -V --value              convert amounts to their market value on the report
+                          end date (using the most recent applicable market
+                          price, if any)
+
+General flags:
+  -h --usage      show general usage or (after COMMAND, the command's usage
+     --help       show this program's manual (or after an add-on command, 
+                  the add-on's manual)
+     --man        show the current program's manual with man
+     --info       show the current program's manual with info
+     --debug=[N]  show debug output (levels 1-9, default: 1)
+     --version    show version information
+
+** hledger --help (manual/long help)
+
+hledger(1)                   hledger User Manuals                   hledger(1)
+
+
+
+NAME
+       hledger - a command-line accounting tool
+
+SYNOPSIS
+       hledger [-f FILE] COMMAND [OPTIONS] [CMDARGS]
+       hledger [-f FILE] ADDONCMD -- [OPTIONS] [CMDARGS]
+
+DESCRIPTION
+       hledger  is  a  cross-platform program for tracking money, time, or any
+       other commodity, using double-entry accounting and a  simple,  editable
+       file  format.   hledger  is  inspired  by  and  largely compatible with
+....
