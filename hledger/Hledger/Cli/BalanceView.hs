@@ -181,11 +181,3 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
       _                               -> id
     merging (Table hLeft hTop dat) (Table hLeft' _ dat') =
         Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
-
-
-withoutBeginDate :: ReportOpts -> ReportOpts
-withoutBeginDate = id
--- withoutBeginDate ropts@ReportOpts{..} = ropts{period_=p}
---   where
---     p = dateSpanAsPeriod $ DateSpan Nothing (periodEnd period_)
-
