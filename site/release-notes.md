@@ -58,7 +58,7 @@ change logs.
 
 ***more powerful bs/is/cf commands,
 more robust print command,
-account name pivoting, 
+better --pivot, 
 basic automated postings and periodic transactions support,
 more and easier addons,
 bugfixes
