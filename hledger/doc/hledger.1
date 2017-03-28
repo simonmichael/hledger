@@ -1662,8 +1662,43 @@ $\ hledger\ balance\ \-o\ FILE.csv\ \ #\ write\ CSV\ to\ FILE.csv
 Show a balance sheet.
 Alias: bs.
 .TP
+.B \f[C]\-\-change\f[]
+show balance change in each period, instead of historical ending
+balances
+.RS
+.RE
+.TP
+.B \f[C]\-\-cumulative\f[]
+show balance change accumulated across periods (in multicolumn reports),
+instead of historical ending balances
+.RS
+.RE
+.TP
+.B \f[C]\-H\ \-\-historical\f[]
+show historical ending balance in each period (includes postings before
+report start date) (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-tree\f[]
+show accounts as a tree; amounts include subaccounts (default in simple
+reports)
+.RS
+.RE
+.TP
 .B \f[C]\-\-flat\f[]
-show full account names, as a list (default)
+show accounts as a list; amounts exclude subaccounts except when account
+is depth\-clipped (default in multicolumn reports)
+.RS
+.RE
+.TP
+.B \f[C]\-A\ \-\-average\f[]
+show a row average column (in multicolumn mode)
+.RS
+.RE
+.TP
+.B \f[C]\-T\ \-\-row\-total\f[]
+show a row total column (in multicolumn mode)
 .RS
 .RE
 .TP
@@ -1673,7 +1708,7 @@ don\[aq]t show the final total row
 .RE
 .TP
 .B \f[C]\-\-drop=N\f[]
-in flat mode: omit N leading account name parts
+omit N leading account name parts (in flat mode)
 .RS
 .RE
 .TP
@@ -1713,23 +1748,66 @@ Total:
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
 \f[]
 .fi
+.PP
+If given a period flag, renders a multi\-column balance with the same
+format as \f[C]balance\f[], with asset and liability totals as well as
+an overall total if desired.
+.PP
+This command shows normally historical end\-balance reports, but for
+flexibility, also accepts \f[C]\-\-cumulative\f[] and
+\f[C]\-\-change\f[] to display cumulative ending balances and changes in
+reporting periods.
 .SS cashflow
 .PP
 Show a cashflow statement.
 Alias: cf.
 .TP
+.B \f[C]\-\-change\f[]
+show balance change in each period (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-cumulative\f[]
+show balance change accumulated across periods (in multicolumn reports),
+instead of changes during periods
+.RS
+.RE
+.TP
+.B \f[C]\-H\ \-\-historical\f[]
+show historical ending balance in each period (includes postings before
+report start date), instead of changes during each period
+.RS
+.RE
+.TP
+.B \f[C]\-\-tree\f[]
+show accounts as a tree; amounts include subaccounts (default in simple
+reports)
+.RS
+.RE
+.TP
 .B \f[C]\-\-flat\f[]
-show full account names, as a list (default)
+show accounts as a list; amounts exclude subaccounts except when account
+is depth\-clipped (default in multicolumn reports)
+.RS
+.RE
+.TP
+.B \f[C]\-A\ \-\-average\f[]
+show a row average column (in multicolumn mode)
+.RS
+.RE
+.TP
+.B \f[C]\-T\ \-\-row\-total\f[]
+show a row total column (in multicolumn mode)
 .RS
 .RE
 .TP
 .B \f[C]\-N\ \-\-no\-total\f[]
-don\[aq]t show the final total row
+don\[aq]t show the final total row (in simple reports)
 .RS
 .RE
 .TP
 .B \f[C]\-\-drop=N\f[]
-in flat mode: omit N leading account name parts
+omit N leading account name parts (in flat mode)
 .RS
 .RE
 .TP
@@ -1766,6 +1844,14 @@ Total:
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-1
 \f[]
 .fi
+.PP
+If given a period flag, renders a multi\-column balance with the same
+format as \f[C]balance\f[].
+.PP
+This command normally shows period change reports, but for flexibility,
+also accepts \f[C]\-\-cumulative\f[] and \f[C]\-\-historical\f[] to
+display cumulative ending balances and historical ending balances, as
+well.
 .SS help
 .PP
 Show any of the hledger manuals.
@@ -1809,8 +1895,42 @@ SYNOPSIS
 Show an income statement.
 Alias: is.
 .TP
+.B \f[C]\-\-change\f[]
+show balance change in each period (default)
+.RS
+.RE
+.TP
+.B \f[C]\-\-cumulative\f[]
+show balance change accumulated across periods (in multicolumn reports),
+instead of changes during periods
+.RS
+.RE
+.TP
+.B \f[C]\-H\ \-\-historical\f[]
+show historical ending balance in each period (includes postings before
+report start date), instead of changes during each period
+.RS
+.RE
+.TP
+.B \f[C]\-\-tree\f[]
+show accounts as a tree; amounts include subaccounts (default in simple
+reports)
+.RS
+.RE
+.TP
 .B \f[C]\-\-flat\f[]
-show full account names, as a list (default)
+show accounts as a list; amounts exclude subaccounts except when account
+is depth\-clipped (default in multicolumn reports)
+.RS
+.RE
+.TP
+.B \f[C]\-A\ \-\-average\f[]
+show a row average column (in multicolumn mode)
+.RS
+.RE
+.TP
+.B \f[C]\-T\ \-\-row\-total\f[]
+show a row total column (in multicolumn mode)
 .RS
 .RE
 .TP
@@ -1820,7 +1940,7 @@ don\[aq]t show the final total row
 .RE
 .TP
 .B \f[C]\-\-drop=N\f[]
-in flat mode: omit N leading account name parts
+omit N leading account name parts (in flat mode)
 .RS
 .RE
 .TP
@@ -1863,6 +1983,14 @@ Total:
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
 \f[]
 .fi
+.PP
+If given a period flag, renders a multi\-column balance with the same
+format as \f[C]balance\f[].
+.PP
+This command normally shows period change reports, but for flexibility,
+also accepts \f[C]\-\-cumulative\f[] and \f[C]\-\-historical\f[] to
+display cumulative ending balances and historical ending balances, as
+well.
 .SS info
 .PP
 Show any of the hledger manuals using info.
@@ -2310,9 +2438,10 @@ hledger\-check.hs checks more powerful account balance assertions.
 .PP
 hledger\-check\-dates.hs checks that journal entries are ordered by
 date.
-.SS dupes
+.SS check\-dupes
 .PP
-hledger\-dupes.hs checks for account names sharing the same leaf name.
+hledger\-check\-dupes.hs checks for account names sharing the same leaf
+name.
 .SS equity
 .PP
 hledger\-equity.hs prints balance\-resetting transactions, useful for

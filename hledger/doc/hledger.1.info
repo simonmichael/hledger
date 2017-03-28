@@ -1272,15 +1272,38 @@ File: hledger.1.info,  Node: balancesheet,  Next: cashflow,  Prev: balance,  Up:
 
 Show a balance sheet.  Alias: bs.
 
+'--change'
+
+     show balance change in each period, instead of historical ending
+     balances
+'--cumulative'
+
+     show balance change accumulated across periods (in multicolumn
+     reports), instead of historical ending balances
+'-H --historical'
+
+     show historical ending balance in each period (includes postings
+     before report start date) (default)
+'--tree'
+
+     show accounts as a tree; amounts include subaccounts (default in
+     simple reports)
 '--flat'
 
-     show full account names, as a list (default)
+     show accounts as a list; amounts exclude subaccounts except when
+     account is depth-clipped (default in multicolumn reports)
+'-A --average'
+
+     show a row average column (in multicolumn mode)
+'-T --row-total'
+
+     show a row total column (in multicolumn mode)
 '-N --no-total'
 
      don't show the final total row
 '--drop=N'
 
-     in flat mode: omit N leading account name parts
+     omit N leading account name parts (in flat mode)
 '--no-elide'
 
      don't squash boring parent accounts (in tree mode)
@@ -1311,6 +1334,14 @@ Total:
 --------------------
                    0
 
+   If given a period flag, renders a multi-column balance with the same
+format as 'balance', with asset and liability totals as well as an
+overall total if desired.
+
+   This command shows normally historical end-balance reports, but for
+flexibility, also accepts '--cumulative' and '--change' to display
+cumulative ending balances and changes in reporting periods.
+
 
 File: hledger.1.info,  Node: cashflow,  Next: help,  Prev: balancesheet,  Up: COMMANDS
 
@@ -1319,15 +1350,37 @@ File: hledger.1.info,  Node: cashflow,  Next: help,  Prev: balancesheet,  Up: CO
 
 Show a cashflow statement.  Alias: cf.
 
+'--change'
+
+     show balance change in each period (default)
+'--cumulative'
+
+     show balance change accumulated across periods (in multicolumn
+     reports), instead of changes during periods
+'-H --historical'
+
+     show historical ending balance in each period (includes postings
+     before report start date), instead of changes during each period
+'--tree'
+
+     show accounts as a tree; amounts include subaccounts (default in
+     simple reports)
 '--flat'
 
-     show full account names, as a list (default)
+     show accounts as a list; amounts exclude subaccounts except when
+     account is depth-clipped (default in multicolumn reports)
+'-A --average'
+
+     show a row average column (in multicolumn mode)
+'-T --row-total'
+
+     show a row total column (in multicolumn mode)
 '-N --no-total'
 
-     don't show the final total row
+     don't show the final total row (in simple reports)
 '--drop=N'
 
-     in flat mode: omit N leading account name parts
+     omit N leading account name parts (in flat mode)
 '--no-elide'
 
      don't squash boring parent accounts (in tree mode)
@@ -1353,6 +1406,13 @@ Cash flows:
 Total:
 --------------------
                  $-1
+
+   If given a period flag, renders a multi-column balance with the same
+format as 'balance'.
+
+   This command normally shows period change reports, but for
+flexibility, also accepts '--cumulative' and '--historical' to display
+cumulative ending balances and historical ending balances, as well.
 
 
 File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: cashflow,  Up: COMMANDS
@@ -1395,15 +1455,37 @@ File: hledger.1.info,  Node: incomestatement,  Next: info,  Prev: help,  Up: COM
 
 Show an income statement.  Alias: is.
 
+'--change'
+
+     show balance change in each period (default)
+'--cumulative'
+
+     show balance change accumulated across periods (in multicolumn
+     reports), instead of changes during periods
+'-H --historical'
+
+     show historical ending balance in each period (includes postings
+     before report start date), instead of changes during each period
+'--tree'
+
+     show accounts as a tree; amounts include subaccounts (default in
+     simple reports)
 '--flat'
 
-     show full account names, as a list (default)
+     show accounts as a list; amounts exclude subaccounts except when
+     account is depth-clipped (default in multicolumn reports)
+'-A --average'
+
+     show a row average column (in multicolumn mode)
+'-T --row-total'
+
+     show a row total column (in multicolumn mode)
 '-N --no-total'
 
      don't show the final total row
 '--drop=N'
 
-     in flat mode: omit N leading account name parts
+     omit N leading account name parts (in flat mode)
 '--no-elide'
 
      don't squash boring parent accounts (in tree mode)
@@ -1435,6 +1517,13 @@ Expenses:
 Total:
 --------------------
                    0
+
+   If given a period flag, renders a multi-column balance with the same
+format as 'balance'.
+
+   This command normally shows period change reports, but for
+flexibility, also accepts '--cumulative' and '--historical' to display
+cumulative ending balances and historical ending balances, as well.
 
 
 File: hledger.1.info,  Node: info,  Next: man,  Prev: incomestatement,  Up: COMMANDS
@@ -1891,7 +1980,7 @@ start making your own!
 * chart::
 * check::
 * check-dates::
-* dupes::
+* check-dupes::
 * equity::
 * prices::
 * print-unique::
@@ -1934,7 +2023,7 @@ File: hledger.1.info,  Node: check,  Next: check-dates,  Prev: chart,  Up: Exper
 hledger-check.hs checks more powerful account balance assertions.
 
 
-File: hledger.1.info,  Node: check-dates,  Next: dupes,  Prev: check,  Up: Experimental add-ons
+File: hledger.1.info,  Node: check-dates,  Next: check-dupes,  Prev: check,  Up: Experimental add-ons
 
 5.3.5 check-dates
 -----------------
@@ -1942,15 +2031,16 @@ File: hledger.1.info,  Node: check-dates,  Next: dupes,  Prev: check,  Up: Exper
 hledger-check-dates.hs checks that journal entries are ordered by date.
 
 
-File: hledger.1.info,  Node: dupes,  Next: equity,  Prev: check-dates,  Up: Experimental add-ons
+File: hledger.1.info,  Node: check-dupes,  Next: equity,  Prev: check-dates,  Up: Experimental add-ons
 
-5.3.6 dupes
------------
+5.3.6 check-dupes
+-----------------
 
-hledger-dupes.hs checks for account names sharing the same leaf name.
+hledger-check-dupes.hs checks for account names sharing the same leaf
+name.
 
 
-File: hledger.1.info,  Node: equity,  Next: prices,  Prev: dupes,  Up: Experimental add-ons
+File: hledger.1.info,  Node: equity,  Next: prices,  Prev: check-dupes,  Up: Experimental add-ons
 
 5.3.7 equity
 ------------
@@ -2150,75 +2240,75 @@ Node: CSV output42494
 Ref: #csv-output42613
 Node: balancesheet43010
 Ref: #balancesheet43138
-Node: cashflow44005
-Ref: #cashflow44122
-Node: help45027
-Ref: #help45139
-Node: incomestatement45977
-Ref: #incomestatement46107
-Node: info47049
-Ref: #info47156
-Node: man47520
-Ref: #man47617
-Node: print48022
-Ref: #print48127
-Node: register51883
-Ref: #register51996
-Node: Custom register output56492
-Ref: #custom-register-output56623
-Node: stats57920
-Ref: #stats58026
-Node: test58907
-Ref: #test58994
-Node: ADD-ON COMMANDS59362
-Ref: #add-on-commands59498
-Node: Official add-ons60785
-Ref: #official-add-ons60927
-Node: api61014
-Ref: #api61105
-Node: ui61157
-Ref: #ui61258
-Node: web61316
-Ref: #web61407
-Node: Third party add-ons61453
-Ref: #third-party-add-ons61630
-Node: diff61765
-Ref: #diff61864
-Node: iadd61963
-Ref: #iadd62079
-Node: interest62162
-Ref: #interest62285
-Node: irr62380
-Ref: #irr62480
-Node: Experimental add-ons62558
-Ref: #experimental-add-ons62712
-Node: autosync63099
-Ref: #autosync63213
-Node: budget63452
-Ref: #budget63576
-Node: chart63642
-Ref: #chart63761
-Node: check63832
-Ref: #check63956
-Node: check-dates64023
-Ref: #check-dates64159
-Node: dupes64232
-Ref: #dupes64357
-Node: equity64428
-Ref: #equity64550
-Node: prices64669
-Ref: #prices64798
-Node: print-unique64853
-Ref: #print-unique65002
-Node: register-match65095
-Ref: #register-match65251
-Node: rewrite65349
-Ref: #rewrite65470
-Node: TROUBLESHOOTING65548
-Ref: #troubleshooting65667
-Node: Run-time problems65721
-Ref: #run-time-problems65864
-Node: Known limitations67811
-Ref: #known-limitations67954
+Node: cashflow45057
+Ref: #cashflow45174
+Node: help47072
+Ref: #help47184
+Node: incomestatement48022
+Ref: #incomestatement48152
+Node: info50067
+Ref: #info50174
+Node: man50538
+Ref: #man50635
+Node: print51040
+Ref: #print51145
+Node: register54901
+Ref: #register55014
+Node: Custom register output59510
+Ref: #custom-register-output59641
+Node: stats60938
+Ref: #stats61044
+Node: test61925
+Ref: #test62012
+Node: ADD-ON COMMANDS62380
+Ref: #add-on-commands62516
+Node: Official add-ons63803
+Ref: #official-add-ons63945
+Node: api64032
+Ref: #api64123
+Node: ui64175
+Ref: #ui64276
+Node: web64334
+Ref: #web64425
+Node: Third party add-ons64471
+Ref: #third-party-add-ons64648
+Node: diff64783
+Ref: #diff64882
+Node: iadd64981
+Ref: #iadd65097
+Node: interest65180
+Ref: #interest65303
+Node: irr65398
+Ref: #irr65498
+Node: Experimental add-ons65576
+Ref: #experimental-add-ons65730
+Node: autosync66123
+Ref: #autosync66237
+Node: budget66476
+Ref: #budget66600
+Node: chart66666
+Ref: #chart66785
+Node: check66856
+Ref: #check66980
+Node: check-dates67047
+Ref: #check-dates67189
+Node: check-dupes67262
+Ref: #check-dupes67405
+Node: equity67482
+Ref: #equity67610
+Node: prices67729
+Ref: #prices67858
+Node: print-unique67913
+Ref: #print-unique68062
+Node: register-match68155
+Ref: #register-match68311
+Node: rewrite68409
+Ref: #rewrite68530
+Node: TROUBLESHOOTING68608
+Ref: #troubleshooting68727
+Node: Run-time problems68781
+Ref: #run-time-problems68924
+Node: Known limitations70871
+Ref: #known-limitations71014
 
 End Tag Table
