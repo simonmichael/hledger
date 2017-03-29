@@ -107,7 +107,7 @@ start tracking and publishing project finances (dogfooding!).
 
 #### Documentation and website
 
-docs page cleanups, 
+docs page & manual cleanups, 
 begin organising a cookbook,
 update addons list,
 move detailed addon docs out of hledger manual,
@@ -164,9 +164,20 @@ Add Ledger.Parse.Text to package.yaml, fixing a potential build failure.
 
 Allow megaparsec 5.2 (#503)
 
+Rename optserror -> usageError, consolidate with other error functions
+
 ### hledger 1.2
 
 #### CLI
+
+"hledger" and "hledger -h" now print a better organised commands list
+and general usage message respectively (#297).
+
+The common reporting flags can now be used anywhere on the command line.
+
+Fixed deduplication of addons in commands list.
+
+Fixed ugly stack traces in command line parse error messages.
 
 The -V/--value flag is now a global report flag, so it works with
 balance, print, register, balancesheet, incomestatement, cashflow,
@@ -180,6 +191,8 @@ the value of some other field or tag. It has been improved, eg:
   (rather than showing mixed tag values and account names)
 - a pipe character delimiter may be used in descriptions to get a more accurate
   and useful payee report (`hledger balance --pivot payee`)
+
+options cleanups
 
 #### Addons
 
@@ -212,7 +225,7 @@ New addons added/included:
 - budget - experimental budget reporting command supporting Ledger-like periodic transactions and automated transactions (Mykola Orliuk)
 - chart - pie-chart-generating prototype, a repackaging of the old hledger-chart tool
 - check - more powerful balance assertions (Michael Walker)
-- dupes - find accounts sharing the same leaf name (Stefano Rodighiero)
+- check-dupes - find accounts sharing the same leaf name (Stefano Rodighiero)
 - prices - show all market price records (Mykola Orliuk)
 - register-match - a helper for ledger-autosync's deduplication, finds best match for a transaction description
 
@@ -243,6 +256,11 @@ The rewrite command is more robust and powerful (Mykola Orliuk):
 - rewrites can affect multiple postings in a transaction, not just one.
 
 - posting-specific dates are handled better
+
+#### balance
+
+A new --pretty-tables option uses unicode characters for rendering
+table borders in multicolumn reports (#522) (Moritz Kiefer)
 
 #### balancesheet/cashflow/incomestatement
 
