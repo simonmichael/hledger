@@ -62,11 +62,13 @@
 # 1. --version shows version
 hledger --version
 >>> /^hledger [0-9]/
+>>>2
 >>>=0
 
 # 2. --version also works after a command, if it's internal
 hledger balance --version
 >>> /^hledger [0-9]/
+>>>2
 >>>=0
 
 # help
@@ -74,31 +76,37 @@ hledger balance --version
 # 3. with no command, show commands list
 hledger
 >>> /^Commands available/
+>>>2
 >>>=0
 
 # 4. no-command help still works if there are flags, at least the common ones
 hledger -fsomefile
 >>> /^Commands available/
+>>>2
 >>>=0
 
 # 5. and also with a space between flag and value
 hledger -f somefile
 >>> /^Commands available/
+>>>2
 >>>=0
 
 # 6. with -h, and possibly other common flags present, show general usage
 hledger -h --version -f /dev/null
 >>> /^hledger \[CMD\]/
+>>>2
 >>>=0
 
 # 7. with -h before COMMAND, show general usage
 hledger -h balance --cost
 >>> /^hledger \[CMD\]/
+>>>2
 >>>=0
 
 # 8. with -h after command, show command usage
 hledger balance -h
 >>> /balance \[OPTIONS\]/
+>>>2
 >>>=0
 
 # 9. with an unrecognised command, give an error and non-zero exit status
@@ -112,21 +120,25 @@ hledger nosuchcommand
 # 10. general flags can go before command
 hledger -f /dev/null --alias somealiases --rules-file -h --help --version --debug 1 --daily register
 >>> /^hledger \[CMD\]/
+>>>2
 >>>=0
 
 # 11. or after it, and spaces in options are optional
 hledger register -f/dev/null --alias=somealiases --rules-file -h --version --debug 1 --daily
 >>> /^register \[OPTIONS\]/
+>>>2
 >>>=0
 
 # 12. general flags before command should work
 hledger -f /dev/null --daily register
 >>>
+>>>2
 >>>=0
 
 # 13. command-specific flags can go after command
 hledger -f /dev/null register --daily
 >>>
+>>>2
 >>>=0
 
 # 14. but not before it
