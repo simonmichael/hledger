@@ -68,6 +68,7 @@ dependencies:
 - directory
 - file-embed >=0.0.10 && <0.1
 - filepath
+- here
 - pretty-show >=1.6.4
 - process
 - temporary

@@ -102,8 +102,8 @@ import Hledger.Cli.Version
 -- | Common help flags: --help, --debug, --version...
 helpflags :: [Flag RawOpts]
 helpflags = [
-  flagNone ["h"]    (setboolopt "h")    "show general usage or (after COMMAND, the command's usage"
- ,flagNone ["help"] (setboolopt "help") "show the current program's manual as plain text (or after an add-on COMMAND, the add-on's manual)"
+  flagNone ["h"]    (setboolopt "h")    "show general usage or (after CMD, the command's usage"
+ ,flagNone ["help"] (setboolopt "help") "show the current program's manual as plain text (or after an addon CMD, the add-on's manual)"
  ,flagNone ["man"]  (setboolopt "man")  "show the current program's manual with man"
  ,flagNone ["info"] (setboolopt "info") "show the current program's manual with info"
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"

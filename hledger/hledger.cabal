@@ -87,6 +87,7 @@ library
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
+    , here
     , pretty-show >=1.6.4
     , process
     , temporary
@@ -171,6 +172,7 @@ executable hledger
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
+    , here
     , pretty-show >=1.6.4
     , process
     , temporary
@@ -232,6 +234,7 @@ test-suite test
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
+    , here
     , pretty-show >=1.6.4
     , process
     , temporary
@@ -292,6 +295,7 @@ benchmark bench
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
+    , here
     , pretty-show >=1.6.4
     , process
     , temporary

@@ -36,11 +36,15 @@ See "Hledger.Data.Ledger" for more examples.
 
 -}
 
+{-# LANGUAGE QuasiQuotes #-}
+
 module Hledger.Cli.Main where
 
 -- import Control.Monad
 import Data.Char (isDigit)
+import Data.String.Here
 import Data.List
+import Data.List.Split (splitOn)
 import Safe
 import System.Console.CmdArgs.Explicit as C
 import System.Environment
@@ -76,52 +80,63 @@ import Hledger.Utils
 
 -- | The overall cmdargs mode describing command-line options for hledger.
 mainmode addons = defMode {
-  modeNames = [progname]
- ,modeHelp = unlines []
- ,modeHelpSuffix = [""]
+  modeNames = [progname ++ " [CMD]"]
  ,modeArgs = ([], Just $ argsFlag "[ARGS]")
+ ,modeHelp = unlines ["hledger's command line interface"]
  ,modeGroupModes = Group {
-    -- modes (commands) in named groups:
-    groupNamed = [
-      ("Data entry commands", [
-        addmode
-       ])
-     ,("\nReporting commands", [
-        printmode
-       ,accountsmode
-       ,balancemode
-       ,registermode
-       ,incomestatementmode
-       ,balancesheetmode
-       ,cashflowmode
-       ,activitymode
-       ,statsmode
-       ])
+    -- subcommands in the unnamed group, shown first:
+    groupUnnamed = [
      ]
-     ++ case addons of [] -> []
-                       cs -> [("\nAdd-on commands", map quickAddonCommandMode cs)]
-    -- modes in the unnamed group, shown first without a heading:
-   ,groupUnnamed = [
-        helpmode
-       ,manmode
-       ,infomode
+    -- subcommands in named groups:
+   ,groupNamed = [
      ]
-    -- modes handled but not shown
+    -- subcommands handled but not shown in the help:
    ,groupHidden = [
-        testmode
-       ,oldconvertmode
-     ]
+      oldconvertmode
+     ,accountsmode
+     ,activitymode
+     ,addmode
+     ,balancemode
+     ,balancesheetmode
+     ,cashflowmode
+     ,helpmode
+     ,incomestatementmode
+     ,infomode
+     ,manmode
+     ,printmode
+     ,registermode
+     ,statsmode
+     ,testmode
+     ] ++ map quickAddonCommandMode addons
    }
  ,modeGroupFlags = Group {
      -- flags in named groups:
-     groupNamed = [generalflagsgroup3]
-     -- flags in the unnamed group, shown last without a heading:
+     groupNamed = [
+        (  "General input flags",     inputflags)
+       ,("\nGeneral reporting flags", reportflags)
+       ,("\nGeneral help flags",      helpflags)
+       ]
+     -- flags in the unnamed group, shown last:
     ,groupUnnamed = []
-     -- flags accepted but not shown in the help:
+     -- flags handled but not shown in the help:
     ,groupHidden =
-        detailedversionflag :
-        inputflags -- included here so they'll not raise a confusing error if present with no COMMAND
+        [detailedversionflag]
+        -- ++ inputflags -- included here so they'll not raise a confusing error if present with no COMMAND
     }
+ ,modeHelpSuffix = lines $ regexReplace "PROGNAME" progname [here|Examples:
+PROGNAME                         list commands
+PROGNAME CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)
+PROGNAME-CMD [OPTS] [ARGS]       or run addon commands directly
+PROGNAME -h                      hledger usage
+PROGNAME CMD -h                  command usage
+PROGNAME --help                  PROGNAME manual
+PROGNAME --man                   PROGNAME manual as man page
+PROGNAME --info                  PROGNAME manual as info manual
+PROGNAME help                    list help topics
+PROGNAME help TOPIC              TOPIC manual
+PROGNAME man  TOPIC              TOPIC manual as man page
+PROGNAME info TOPIC              TOPIC manual as info manual
+|]
  }
 
 oldconvertmode = (defCommandMode ["convert"]) {
@@ -160,8 +175,8 @@ argsToCliOpts args addons = do
 --
 -- Since we're not parsing flags as precisely as cmdargs here, this is
 -- imperfect. We make a decent effort to:
--- - move all no-argument help and input flags
--- - move all required-argument help and input flags along with their values, space-separated or not
+-- - move all no-argument help/input/report flags
+-- - move all required-argument help/input/report flags along with their values, space-separated or not
 -- - not confuse things further or cause misleading errors.
 moveFlagsAfterCommand :: [String] -> [String]
 moveFlagsAfterCommand args = moveArgs $ ensureDebugHasArg args
@@ -197,10 +212,92 @@ isValue "-"     = True
 isValue ('-':_) = False
 isValue _       = True
 
-flagstomove = inputflags ++ helpflags
+flagstomove = inputflags ++ reportflags ++ helpflags
 noargflagstomove  = concatMap flagNames $ filter ((==FlagNone).flagInfo) flagstomove
 reqargflagstomove = -- filter (/= "debug") $
                     concatMap flagNames $ filter ((==FlagReq ).flagInfo) flagstomove
+
+-- | Template for the commands list. Includes an entry for known (or
+-- hypothetical) builtin and addon commands; these will be filtered
+-- based on the commands found at runtime.  COUNT is replaced with the
+-- number of commands found.  OTHERCMDS is replaced with an entry for
+-- each unknown addon command found. The command descriptions here
+-- should be synced with the commands' builtin help and the command
+-- list in the hledger manual.
+commandsListTemplate :: String
+commandsListTemplate = [here|Commands available (COUNT):
+
+Standard reports:
+ accounts             show chart of accounts
+ balancesheet (bs)    show a balance sheet
+ cashflow (cf)        show a cashflow statement
+ incomestatement (is) show an income statement
+ transactions (txns)  show transactions in some account
+
+General reporting:
+ activity             show a bar chart of posting counts per interval
+ balance (bal)        show accounts and balances
+ budget               add automated postings/txns/bucket accts (experimental)
+ chart                generate simple balance pie charts (experimental)
+ check                check more powerful balance assertions
+ check-dates          check transactions are ordered by date
+ check-dupes          check for accounts with the same leaf name
+ irr                  calculate internal rate of return of an investment
+ prices               show market price records
+ print                show transaction journal entries
+ print-unique         show only transactions with unique descriptions
+ register (reg)       show postings and running total
+ register-match       show best matching transaction for a description
+ stats                show some journal statistics
+
+Interfaces:
+ add                  console ui for adding transactions
+ api                  web api server
+ iadd                 curses ui for adding transactions
+ ui                   curses ui
+ web                  web ui
+
+Misc:
+ autosync             download/deduplicate/convert OFX data
+ equity               generate transactions to zero & restore account balances
+ interest             generate interest transactions
+ rewrite              add automated postings to certain transactions
+ test                 run some self tests
+OTHERCMDS
+
+Help: (see also -h, CMD -h, --help|---man|--info)
+ help|man|info        show any of the hledger manuals in text/man/info format
+|]
+
+knownCommands :: [String]
+knownCommands = sort $ commandsFromCommandsList commandsListTemplate
+
+-- | Extract the command names from a commands list like the above:
+-- the first word (or words separated by |) of lines beginning with a space.
+commandsFromCommandsList :: String -> [String]
+commandsFromCommandsList s = concatMap (splitOn "|") [w | ' ':l <- lines s, let w:_ = words l]
+
+-- | Print the commands list, modifying the template above based on
+-- the currently available addons. Missing addons will be removed, and
+-- extra addons will be added under Misc.
+printCommandsList :: [String] -> IO ()
+printCommandsList addonsFound = putStr commandsList
+  where
+    commandsFound = builtinCommandNames ++ addonsFound
+    unknownCommandsFound = addonsFound \\ knownCommands
+
+    adjustline (' ':l) | not $ w `elem` commandsFound = []
+      where w = takeWhile (not . (`elem` "| ")) l
+    adjustline l = [l]
+
+    commandsList1 =
+      regexReplace "OTHERCMDS" (init $ unlines [' ':w | w <- unknownCommandsFound]) $
+      unlines $ concatMap adjustline $ lines commandsListTemplate
+
+    commandsList =
+      regexReplace "COUNT" (show $ length $ commandsFromCommandsList commandsList1)
+      commandsList1
+
 
 -- | Let's go.
 main :: IO ()
@@ -234,21 +331,21 @@ main = do
   dbgIO "raw args after command" argsaftercmd
 
   -- Search PATH for add-ons, excluding any that match built-in command names
-  addonNames' <- hledgerAddons
-  let addonNames = filter (not . (`elem` builtinCommandNames) . dropExtension) addonNames'
+  addons' <- hledgerAddons
+  let addons = filter (not . (`elem` builtinCommandNames) . dropExtension) addons'
 
   -- parse arguments with cmdargs
-  opts <- argsToCliOpts args addonNames
+  opts <- argsToCliOpts args addons
 
   -- select an action and run it.
   let
     cmd                  = command_ opts -- the full matched internal or external command name, if any
     isInternalCommand    = cmd `elem` builtinCommandNames -- not (null cmd) && not (cmd `elem` addons)
-    isExternalCommand    = not (null cmd) && cmd `elem` addonNames -- probably
+    isExternalCommand    = not (null cmd) && cmd `elem` addons -- probably
     isBadCommand         = not (null rawcmd) && null cmd
     hasVersion           = ("--version" `elem`)
     hasDetailedVersion   = ("--version+" `elem`)
-    printUsage           = putStr $ showModeUsage $ mainmode addonNames
+    printUsage           = putStr $ showModeUsage $ mainmode addons
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
     hasShortHelpFlag args = any (`elem` args) ["-h"]
     hasLongHelpFlag args = any (`elem` args) ["--help"]
@@ -276,16 +373,16 @@ main = do
     runHledgerCommand
       -- high priority flags and situations. -h, then --help, then --info are highest priority.
       | hasShortHelpFlag argsbeforecmd = dbgIO "" "-h before command, showing general usage" >> printUsage
-      | hasLongHelpFlag  argsbeforecmd = dbgIO "" "--help before command, showing general manual" >> printHelpForTopic (topicForMode $ mainmode addonNames)
-      | hasManFlag       argsbeforecmd = dbgIO "" "--man before command, showing general manual with man" >> runManForTopic (topicForMode $ mainmode addonNames)
-      | hasInfoFlag      argsbeforecmd = dbgIO "" "--info before command, showing general manual with info" >> runInfoForTopic (topicForMode $ mainmode addonNames)
+      | hasLongHelpFlag  argsbeforecmd = dbgIO "" "--help before command, showing general manual" >> printHelpForTopic (topicForMode $ mainmode addons)
+      | hasManFlag       argsbeforecmd = dbgIO "" "--man before command, showing general manual with man" >> runManForTopic (topicForMode $ mainmode addons)
+      | hasInfoFlag      argsbeforecmd = dbgIO "" "--info before command, showing general manual with info" >> runInfoForTopic (topicForMode $ mainmode addons)
       | not (hasSomeHelpFlag argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameandversion
       | not (hasSomeHelpFlag argsaftercmd) && (hasDetailedVersion argsbeforecmd || (hasDetailedVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameanddetailedversion
       -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
       -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
-      | isNullCommand            = dbgIO "" "no command, showing general usage" >> printUsage
+      | isNullCommand            = dbgIO "" "no command, showing commands list" >> printCommandsList addons
       | isBadCommand             = badCommandError
 
       -- internal commands

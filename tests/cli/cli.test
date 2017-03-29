@@ -71,63 +71,67 @@ hledger balance --version
 
 # help
 
-# 3. with no command, show general help
+# 3. with no command, show commands list
 hledger
->>> /^hledger \[COMMAND\]/
+>>> /^Commands available/
 >>>=0
 
 # 4. no-command help still works if there are flags, at least the common ones
 hledger -fsomefile
->>> /^hledger \[COMMAND\]/
+>>> /^Commands available/
 >>>=0
 
 # 5. and also with a space between flag and value
 hledger -f somefile
->>> /^hledger \[COMMAND\]/
+>>> /^Commands available/
 >>>=0
 
 # 6. with -h, and possibly other common flags present, show general usage
 hledger -h --version -f /dev/null
->>> /^hledger \[COMMAND\]/
+>>> /^hledger \[CMD\]/
 >>>=0
 
 # 7. with -h before COMMAND, show general usage
 hledger -h balance --cost
->>> /^hledger \[COMMAND\]/
+>>> /^hledger \[CMD\]/
 >>>=0
 
 # 8. with -h after command, show command usage
 hledger balance -h
->>> /^balance \[OPTIONS\]/
+>>> /balance \[OPTIONS\]/
 >>>=0
 
-# 9. should work with deprecated commands too
-hledger convert -h
->>>
->>>2 /no longer needed/
->>>=1
-
-# 10. with an unrecognised command, give general usage and non-zero exit status
+# 9. with an unrecognised command, give an error and non-zero exit status
 hledger nosuchcommand
 >>>
->>>2 /not recognized/
+>>>2 /not recognized.*to see a list/
 >>>=1
 
 # flag positions
 
-# 11. most flags can not go before command
-hledger --daily register
->>>
->>>2 /Unknown flag: --daily/
->>>=1
-
-# 12. help and input flags can go before command
-hledger -f /dev/null --alias somealiases --rules-file -h --help --version --debug 1 register --daily
->>> /^hledger \[COMMAND\]/
+# 10. general flags can go before command
+hledger -f /dev/null --alias somealiases --rules-file -h --help --version --debug 1 --daily register
+>>> /^hledger \[CMD\]/
 >>>=0
 
-# 13. or after it, and spaces in options are optional
+# 11. or after it, and spaces in options are optional
 hledger register -f/dev/null --alias=somealiases --rules-file -h --version --debug 1 --daily
 >>> /^register \[OPTIONS\]/
 >>>=0
+
+# 12. general flags before command should work
+hledger -f /dev/null --daily register
+>>>
+>>>=0
+
+# 13. command-specific flags can go after command
+hledger -f /dev/null register --daily
+>>>
+>>>=0
+
+# 14. but not before it
+hledger --related register
+>>>
+>>>2 /Unknown flag: --related/
+>>>=1
 
