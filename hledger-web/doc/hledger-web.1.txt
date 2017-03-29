@@ -95,35 +95,26 @@ OPTIONS
               them  from  another server for efficiency, you would set the url
               with this.
 
-       hledger general options:
-
-       -h     show general usage (or after COMMAND, the command's usage)
-
-       --help show the current program's manual as plain  text  (or  after  an
-              add-on COMMAND, the add-on's manual)
-
-       --man  show the current program's manual with man
-
-       --info show the current program's manual with info
-
-       --version
-              show version
-
-       --debug[=N]
-              show debug output (levels 1-9, default: 1)
+       hledger input options:
 
        -f FILE --file=FILE
-              use a different input file.  For stdin, use -
+              use  a  different  input  file.   For  stdin,  use  -  (default:
+              $LEDGER_FILE or $HOME/.hledger.journal)
 
        --rules-file=RULESFILE
               Conversion   rules  file  to  use  when  reading  CSV  (default:
               FILE.rules)
 
        --alias=OLD=NEW
-              display accounts named OLD as NEW
+              rename accounts named OLD to NEW
+
+       --anon anonymize accounts and payees
+
+       --pivot TAGNAME
+              use some other field/tag for account names
 
        -I --ignore-assertions
-              ignore any failing balance assertions in the journal
+              ignore any failing balance assertions
 
        hledger reporting options:
 
@@ -181,24 +172,36 @@ OPTIONS
               convert amounts to their market value on  the  report  end  date
               (using the most recent applicable market price, if any)
 
-       --pivot TAGNAME
-              organize reports by some tag's value instead of by account
+       hledger help options:
 
-       --anon show anonymized accounts and payees
+       -h     show general usage (or after COMMAND, the command's usage)
+
+       --help show  the  current  program's  manual as plain text (or after an
+              add-on COMMAND, the add-on's manual)
+
+       --man  show the current program's manual with man
+
+       --info show the current program's manual with info
+
+       --version
+              show version
+
+       --debug[=N]
+              show debug output (levels 1-9, default: 1)
 
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
        nal).
 
 FILES
-       Reads  data from one or more files in hledger journal, timeclock, time-
-       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
-       $HOME/.hledger.journal           (on          windows,          perhaps
+       Reads data from one or more files in hledger journal, timeclock,  time-
+       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
+       $HOME/.hledger.journal          (on          windows,           perhaps
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The need to precede options with -- when invoked from hledger  is  awk-
+       The  need  to precede options with -- when invoked from hledger is awk-
        ward.
 
        -f- doesn't work (hledger-web can't read from stdin).
@@ -212,7 +215,7 @@ BUGS
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -226,7 +229,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

@@ -64,42 +64,12 @@ show full account names, unindented
 .RS
 .RE
 .PP
-hledger general options:
-.TP
-.B \f[C]\-h\f[]
-show general usage (or after COMMAND, the command\[aq]s usage)
-.RS
-.RE
-.TP
-.B \f[C]\-\-help\f[]
-show the current program\[aq]s manual as plain text (or after an add\-on
-COMMAND, the add\-on\[aq]s manual)
-.RS
-.RE
-.TP
-.B \f[C]\-\-man\f[]
-show the current program\[aq]s manual with man
-.RS
-.RE
-.TP
-.B \f[C]\-\-info\f[]
-show the current program\[aq]s manual with info
-.RS
-.RE
-.TP
-.B \f[C]\-\-version\f[]
-show version
-.RS
-.RE
-.TP
-.B \f[C]\-\-debug[=N]\f[]
-show debug output (levels 1\-9, default: 1)
-.RS
-.RE
+hledger input options:
 .TP
 .B \f[C]\-f\ FILE\ \-\-file=FILE\f[]
 use a different input file.
-For stdin, use \-
+For stdin, use \- (default: \f[C]$LEDGER_FILE\f[] or
+\f[C]$HOME/.hledger.journal\f[])
 .RS
 .RE
 .TP
@@ -109,12 +79,22 @@ Conversion rules file to use when reading CSV (default: FILE.rules)
 .RE
 .TP
 .B \f[C]\-\-alias=OLD=NEW\f[]
-display accounts named OLD as NEW
+rename accounts named OLD to NEW
+.RS
+.RE
+.TP
+.B \f[C]\-\-anon\f[]
+anonymize accounts and payees
+.RS
+.RE
+.TP
+.B \f[C]\-\-pivot\ TAGNAME\f[]
+use some other field/tag for account names
 .RS
 .RE
 .TP
 .B \f[C]\-I\ \-\-ignore\-assertions\f[]
-ignore any failing balance assertions in the journal
+ignore any failing balance assertions
 .RS
 .RE
 .PP
@@ -207,14 +187,37 @@ convert amounts to their market value on the report end date (using the
 most recent applicable market price, if any)
 .RS
 .RE
+.PP
+hledger help options:
 .TP
-.B \f[C]\-\-pivot\ TAGNAME\f[]
-organize reports by some tag\[aq]s value instead of by account
+.B \f[C]\-h\f[]
+show general usage (or after COMMAND, the command\[aq]s usage)
 .RS
 .RE
 .TP
-.B \f[C]\-\-anon\f[]
-show anonymized accounts and payees
+.B \f[C]\-\-help\f[]
+show the current program\[aq]s manual as plain text (or after an add\-on
+COMMAND, the add\-on\[aq]s manual)
+.RS
+.RE
+.TP
+.B \f[C]\-\-man\f[]
+show the current program\[aq]s manual with man
+.RS
+.RE
+.TP
+.B \f[C]\-\-info\f[]
+show the current program\[aq]s manual with info
+.RS
+.RE
+.TP
+.B \f[C]\-\-version\f[]
+show version
+.RS
+.RE
+.TP
+.B \f[C]\-\-debug[=N]\f[]
+show debug output (levels 1\-9, default: 1)
 .RS
 .RE
 .SH KEYS

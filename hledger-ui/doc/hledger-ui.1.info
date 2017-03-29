@@ -52,39 +52,27 @@ the data.
 
      show full account names, unindented
 
-   hledger general options:
+   hledger input options:
 
-'-h'
-
-     show general usage (or after COMMAND, the command's usage)
-'--help'
-
-     show the current program's manual as plain text (or after an add-on
-     COMMAND, the add-on's manual)
-'--man'
-
-     show the current program's manual with man
-'--info'
-
-     show the current program's manual with info
-'--version'
-
-     show version
-'--debug[=N]'
-
-     show debug output (levels 1-9, default: 1)
 '-f FILE --file=FILE'
 
-     use a different input file.  For stdin, use -
+     use a different input file.  For stdin, use - (default:
+     '$LEDGER_FILE' or '$HOME/.hledger.journal')
 '--rules-file=RULESFILE'
 
      Conversion rules file to use when reading CSV (default: FILE.rules)
 '--alias=OLD=NEW'
 
-     display accounts named OLD as NEW
+     rename accounts named OLD to NEW
+'--anon'
+
+     anonymize accounts and payees
+'--pivot TAGNAME'
+
+     use some other field/tag for account names
 '-I --ignore-assertions'
 
-     ignore any failing balance assertions in the journal
+     ignore any failing balance assertions
 
    hledger reporting options:
 
@@ -142,12 +130,28 @@ the data.
 
      convert amounts to their market value on the report end date (using
      the most recent applicable market price, if any)
-'--pivot TAGNAME'
 
-     organize reports by some tag's value instead of by account
-'--anon'
+   hledger help options:
 
-     show anonymized accounts and payees
+'-h'
+
+     show general usage (or after COMMAND, the command's usage)
+'--help'
+
+     show the current program's manual as plain text (or after an add-on
+     COMMAND, the add-on's manual)
+'--man'
+
+     show the current program's manual with man
+'--info'
+
+     show the current program's manual with info
+'--version'
+
+     show version
+'--debug[=N]'
+
+     show debug output (levels 1-9, default: 1)
 
 
 File: hledger-ui.1.info,  Node: KEYS,  Next: SCREENS,  Prev: OPTIONS,  Up: Top
@@ -353,17 +357,17 @@ Tag Table:
 Node: Top73
 Node: OPTIONS825
 Ref: #options924
-Node: KEYS3631
-Ref: #keys3728
-Node: SCREENS6316
-Ref: #screens6403
-Node: Accounts screen6493
-Ref: #accounts-screen6623
-Node: Register screen8672
-Ref: #register-screen8829
-Node: Transaction screen10718
-Ref: #transaction-screen10878
-Node: Error screen11748
-Ref: #error-screen11872
+Node: KEYS3677
+Ref: #keys3774
+Node: SCREENS6362
+Ref: #screens6449
+Node: Accounts screen6539
+Ref: #accounts-screen6669
+Node: Register screen8718
+Ref: #register-screen8875
+Node: Transaction screen10764
+Ref: #transaction-screen10924
+Node: Error screen11794
+Ref: #error-screen11918
 
 End Tag Table

@@ -149,76 +149,60 @@ $\ hledger\ activity\ \-W\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ tran
 .fi
 .SH OPTIONS
 .PP
-To see general usage and the command list: \f[C]hledger\ \-h\f[] or just
-\f[C]hledger\f[].
-To see usage for a specific command: \f[C]hledger\ COMMAND\ \-h\f[].
+To see general usage help, including general options which are supported
+by most hledger commands, run \f[C]hledger\ \-h\f[].
+(Note \-h and \-\-help are different, like git.) These options can
+appear anywhere on the command line, and are listed below.
 .PP
-hledger has several kinds of options:
-.IP \[bu] 2
-General options are always available and can appear anywhere on the
-command line.
-\f[C]hledger\ \-h\f[] shows these.
-Eg: \f[C]hledger\ \-\-version\f[].
-.IP \[bu] 2
-Common reporting options are available with most commands.
-These and all other non\-general options must be written after COMMAND.
-\f[C]hledger\ COMMAND\ \-h\f[] shows these.
-Eg: \f[C]hledger\ register\ \-\-cleared\f[].
-.IP \[bu] 2
-Command\-specific options are also provided by some commands.
-\f[C]hledger\ COMMAND\ \-h\f[] shows these too.
-Eg: \f[C]hledger\ register\ \-\-average\f[].
-.IP \[bu] 2
-Some hledger commands come from separate add\-on executables, which have
-their own options.
-\f[C]hledger\ COMMAND\ \-h\f[] shows these, as usual.
-Such options, if not also supported by hledger, should be written
-following a double hyphen argument (\f[C]\-\-\f[]) so that hledger\[aq]s
-option parser does not complain.
-Eg: \f[C]hledger\ ui\ \-\-\ \-\-register=checking\f[].
-Or, you can just run the add\-on directly:
-\f[C]hledger\-ui\ \-\-register=checking\f[].
+To see usage for a specific command, run:
+\f[C]hledger\ COMMAND\ \-h\f[].
+Command\-specific options must be written after the command name, eg:
+\f[C]hledger\ print\ \-x\f[].
 .PP
-Command arguments may also follow the command name.
-In most cases these specify a query which filters the data.
-Command options and arguments can be intermixed.
+Additionally, if the command is an add\-on, you may need to put its
+options after a double\-hyphen, eg:
+\f[C]hledger\ ui\ \-\-\ \-\-watch\f[].
+Or, you can run the add\-on executable directly, eg:
+\f[C]hledger\-ui\ \-\-watch\f[].
 .PP
-Option and argument values containing problematic characters should be
-escaped with double quotes, backslashes, or (best) single quotes.
-This means spaces, but also characters which are significant to your
-command shell, such as less\-than/greater\-than.
+Most commands also accept arguments, which are often a query filtering
+the data in some way.
+.SS Special characters
+.PP
+Option and argument values which contain problematic characters should
+be escaped with double quotes, backslashes, or (best) single quotes.
+Problematic characters means spaces, and also characters which are
+significant to your command shell, such as less\-than/greater\-than.
 Eg:
 \f[C]hledger\ register\ \-p\ \[aq]last\ year\[aq]\ "accounts\ receivable\ (receivable|payable)"\ amt:\\>100\f[].
 .PP
-Characters which are significant to the shell and also in regular
-expressions, like parentheses, the pipe symbol and the dollar sign, must
-sometimes be double\-escaped.
-Eg, to match the dollar symbol:
+Characters which are significant both to the shell and in regular
+expressions sometimes need to be double\-escaped.
+These include parentheses, the pipe symbol and the dollar sign.
+Eg, to match the dollar symbol, bash users should do:
 \f[C]hledger\ balance\ cur:\[aq]\\$\[aq]\f[] or
 \f[C]hledger\ balance\ cur:\\\\$\f[].
 .PP
 There\[aq]s more..
-options and arguments being passed by hledger to an add\-on executable
-get de\-escaped once in the process.
-In this case you might need triple\-escaping.
+options and arguments get de\-escaped when hledger is passing them to an
+addon executable.
+In this case you might need \f[I]triple\f[]\-escaping.
 Eg: \f[C]hledger\ ui\ cur:\[aq]\\\\$\[aq]\f[] or
 \f[C]hledger\ ui\ cur:\\\\\\\\$\f[].
 .PP
 If in doubt, keep things simple:
+.IP \[bu] 2
+run add\-on executables directly
 .IP \[bu] 2
 write options after the command
 .IP \[bu] 2
 enclose problematic args in single quotes
 .IP \[bu] 2
 if needed, also add a backslash to escape regexp metacharacters
-.IP \[bu] 2
-run add\-on executables directly
 .PP
-If you\[aq]re really curious, add \f[C]\-\-debug=2\f[] for
-troubleshooting.
+If you\[aq]re really stumped, add \f[C]\-\-debug=2\f[] to troubleshoot.
 .SS General options
-.PP
-Always available, can be written before or after COMMAND.
+.SS General help options
 .TP
 .B \f[C]\-h\f[]
 show general usage (or after COMMAND, the command\[aq]s usage)
@@ -250,10 +234,12 @@ show version
 show debug output (levels 1\-9, default: 1)
 .RS
 .RE
+.SS General input options
 .TP
 .B \f[C]\-f\ FILE\ \-\-file=FILE\f[]
 use a different input file.
-For stdin, use \-
+For stdin, use \- (default: \f[C]$LEDGER_FILE\f[] or
+\f[C]$HOME/.hledger.journal\f[])
 .RS
 .RE
 .TP
@@ -263,17 +249,25 @@ Conversion rules file to use when reading CSV (default: FILE.rules)
 .RE
 .TP
 .B \f[C]\-\-alias=OLD=NEW\f[]
-display accounts named OLD as NEW
+rename accounts named OLD to NEW
+.RS
+.RE
+.TP
+.B \f[C]\-\-anon\f[]
+anonymize accounts and payees
+.RS
+.RE
+.TP
+.B \f[C]\-\-pivot\ TAGNAME\f[]
+use some other field/tag for account names
 .RS
 .RE
 .TP
 .B \f[C]\-I\ \-\-ignore\-assertions\f[]
-ignore any failing balance assertions in the journal
+ignore any failing balance assertions
 .RS
 .RE
-.SS Reporting options
-.PP
-Common reporting options, must be written after COMMAND.
+.SS General reporting options
 .TP
 .B \f[C]\-b\ \-\-begin=DATE\f[]
 include postings/txns on or after this date
@@ -362,20 +356,12 @@ convert amounts to their market value on the report end date (using the
 most recent applicable market price, if any)
 .RS
 .RE
-.TP
-.B \f[C]\-\-pivot\ TAGNAME\f[]
-organize reports by some tag\[aq]s value instead of by account
-.RS
-.RE
-.TP
-.B \f[C]\-\-anon\f[]
-show anonymized accounts and payees
-.RS
-.RE
 .PP
-If a reporting option occurs more than once on the command line, the
-last one takes precedence.
-Eg \-p jan \-p feb is equivalent to \-p feb.
+Note when multiple similar reporting options are provided, the last one
+takes precedence.
+Eg \f[C]\-p\ feb\ \-p\ mar\f[] is equivalent to \f[C]\-p\ mar\f[].
+.PP
+Some of these can also be written as queries.
 .SS Input files
 .PP
 hledger reads transactions from a data file (and the add command writes
@@ -1288,6 +1274,11 @@ Supported formats: txt, csv.
 .B \f[C]\-o\ FILE\ \-\-output\-file=FILE\f[]
 write output to FILE.
 A file extension matching one of the above formats selects that format.
+.RS
+.RE
+.TP
+.B \f[C]\-\-pretty\-tables\f[]
+Use unicode to display prettier tables.
 .RS
 .RE
 .PP

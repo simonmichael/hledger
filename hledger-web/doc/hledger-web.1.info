@@ -97,39 +97,27 @@ options as shown above.
      them from another server for efficiency, you would set the url with
      this.
 
-   hledger general options:
+   hledger input options:
 
-'-h'
-
-     show general usage (or after COMMAND, the command's usage)
-'--help'
-
-     show the current program's manual as plain text (or after an add-on
-     COMMAND, the add-on's manual)
-'--man'
-
-     show the current program's manual with man
-'--info'
-
-     show the current program's manual with info
-'--version'
-
-     show version
-'--debug[=N]'
-
-     show debug output (levels 1-9, default: 1)
 '-f FILE --file=FILE'
 
-     use a different input file.  For stdin, use -
+     use a different input file.  For stdin, use - (default:
+     '$LEDGER_FILE' or '$HOME/.hledger.journal')
 '--rules-file=RULESFILE'
 
      Conversion rules file to use when reading CSV (default: FILE.rules)
 '--alias=OLD=NEW'
 
-     display accounts named OLD as NEW
+     rename accounts named OLD to NEW
+'--anon'
+
+     anonymize accounts and payees
+'--pivot TAGNAME'
+
+     use some other field/tag for account names
 '-I --ignore-assertions'
 
-     ignore any failing balance assertions in the journal
+     ignore any failing balance assertions
 
    hledger reporting options:
 
@@ -187,12 +175,28 @@ options as shown above.
 
      convert amounts to their market value on the report end date (using
      the most recent applicable market price, if any)
-'--pivot TAGNAME'
 
-     organize reports by some tag's value instead of by account
-'--anon'
+   hledger help options:
 
-     show anonymized accounts and payees
+'-h'
+
+     show general usage (or after COMMAND, the command's usage)
+'--help'
+
+     show the current program's manual as plain text (or after an add-on
+     COMMAND, the add-on's manual)
+'--man'
+
+     show the current program's manual with man
+'--info'
+
+     show the current program's manual with info
+'--version'
+
+     show version
+'--debug[=N]'
+
+     show debug output (levels 1-9, default: 1)
 
 
 Tag Table:

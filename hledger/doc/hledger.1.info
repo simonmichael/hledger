@@ -114,63 +114,25 @@ File: hledger.1.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 2 OPTIONS
 *********
 
-To see general usage and the command list: 'hledger -h' or just
-'hledger'.  To see usage for a specific command: 'hledger COMMAND -h'.
+To see general usage help, including general options which are supported
+by most hledger commands, run 'hledger -h'.  (Note -h and -help are
+different, like git.)  These options can appear anywhere on the command
+line, and are listed below.
 
-   hledger has several kinds of options:
+   To see usage for a specific command, run: 'hledger COMMAND -h'.
+Command-specific options must be written after the command name, eg:
+'hledger print -x'.
 
-   * General options are always available and can appear anywhere on the
-     command line.  'hledger -h' shows these.  Eg: 'hledger --version'.
+   Additionally, if the command is an add-on, you may need to put its
+options after a double-hyphen, eg: 'hledger ui -- --watch'.  Or, you can
+run the add-on executable directly, eg: 'hledger-ui --watch'.
 
-   * Common reporting options are available with most commands.  These
-     and all other non-general options must be written after COMMAND.
-     'hledger COMMAND -h' shows these.  Eg: 'hledger register
-     --cleared'.
-
-   * Command-specific options are also provided by some commands.
-     'hledger COMMAND -h' shows these too.  Eg: 'hledger register
-     --average'.
-
-   * Some hledger commands come from separate add-on executables, which
-     have their own options.  'hledger COMMAND -h' shows these, as
-     usual.  Such options, if not also supported by hledger, should be
-     written following a double hyphen argument ('--') so that hledger's
-     option parser does not complain.  Eg: 'hledger ui --
-     --register=checking'.  Or, you can just run the add-on directly:
-     'hledger-ui --register=checking'.
-
-   Command arguments may also follow the command name.  In most cases
-these specify a query which filters the data.  Command options and
-arguments can be intermixed.
-
-   Option and argument values containing problematic characters should
-be escaped with double quotes, backslashes, or (best) single quotes.
-This means spaces, but also characters which are significant to your
-command shell, such as less-than/greater-than.  Eg: 'hledger register -p
-'last year' "accounts receivable (receivable|payable)" amt:\>100'.
-
-   Characters which are significant to the shell and also in regular
-expressions, like parentheses, the pipe symbol and the dollar sign, must
-sometimes be double-escaped.  Eg, to match the dollar symbol: 'hledger
-balance cur:'\$'' or 'hledger balance cur:\\$'.
-
-   There's more..  options and arguments being passed by hledger to an
-add-on executable get de-escaped once in the process.  In this case you
-might need triple-escaping.  Eg: 'hledger ui cur:'\\$'' or 'hledger ui
-cur:\\\\$'.
-
-   If in doubt, keep things simple:
-
-   * write options after the command
-   * enclose problematic args in single quotes
-   * if needed, also add a backslash to escape regexp metacharacters
-   * run add-on executables directly
-
-   If you're really curious, add '--debug=2' for troubleshooting.
+   Most commands also accept arguments, which are often a query
+filtering the data in some way.
 * Menu:
 
+* Special characters::
 * General options::
-* Reporting options::
 * Input files::
 * Smart dates::
 * Report start & end date::
@@ -181,12 +143,55 @@ cur:\\\\$'.
 * Regular expressions::
 
 
-File: hledger.1.info,  Node: General options,  Next: Reporting options,  Up: OPTIONS
+File: hledger.1.info,  Node: Special characters,  Next: General options,  Up: OPTIONS
 
-2.1 General options
+2.1 Special characters
+======================
+
+Option and argument values which contain problematic characters should
+be escaped with double quotes, backslashes, or (best) single quotes.
+Problematic characters means spaces, and also characters which are
+significant to your command shell, such as less-than/greater-than.  Eg:
+'hledger register -p 'last year' "accounts receivable
+(receivable|payable)" amt:\>100'.
+
+   Characters which are significant both to the shell and in regular
+expressions sometimes need to be double-escaped.  These include
+parentheses, the pipe symbol and the dollar sign.  Eg, to match the
+dollar symbol, bash users should do: 'hledger balance cur:'\$'' or
+'hledger balance cur:\\$'.
+
+   There's more..  options and arguments get de-escaped when hledger is
+passing them to an addon executable.  In this case you might need
+_triple_-escaping.  Eg: 'hledger ui cur:'\\$'' or 'hledger ui
+cur:\\\\$'.
+
+   If in doubt, keep things simple:
+
+   * run add-on executables directly
+   * write options after the command
+   * enclose problematic args in single quotes
+   * if needed, also add a backslash to escape regexp metacharacters
+
+   If you're really stumped, add '--debug=2' to troubleshoot.
+
+
+File: hledger.1.info,  Node: General options,  Next: Input files,  Prev: Special characters,  Up: OPTIONS
+
+2.2 General options
 ===================
 
-Always available, can be written before or after COMMAND.
+* Menu:
+
+* General help options::
+* General input options::
+* General reporting options::
+
+
+File: hledger.1.info,  Node: General help options,  Next: General input options,  Up: General options
+
+2.2.1 General help options
+--------------------------
 
 '-h'
 
@@ -207,26 +212,38 @@ Always available, can be written before or after COMMAND.
 '--debug[=N]'
 
      show debug output (levels 1-9, default: 1)
+
+
+File: hledger.1.info,  Node: General input options,  Next: General reporting options,  Prev: General help options,  Up: General options
+
+2.2.2 General input options
+---------------------------
+
 '-f FILE --file=FILE'
 
-     use a different input file.  For stdin, use -
+     use a different input file.  For stdin, use - (default:
+     '$LEDGER_FILE' or '$HOME/.hledger.journal')
 '--rules-file=RULESFILE'
 
      Conversion rules file to use when reading CSV (default: FILE.rules)
 '--alias=OLD=NEW'
 
-     display accounts named OLD as NEW
+     rename accounts named OLD to NEW
+'--anon'
+
+     anonymize accounts and payees
+'--pivot TAGNAME'
+
+     use some other field/tag for account names
 '-I --ignore-assertions'
 
-     ignore any failing balance assertions in the journal
+     ignore any failing balance assertions
 
 
-File: hledger.1.info,  Node: Reporting options,  Next: Input files,  Prev: General options,  Up: OPTIONS
+File: hledger.1.info,  Node: General reporting options,  Prev: General input options,  Up: General options
 
-2.2 Reporting options
-=====================
-
-Common reporting options, must be written after COMMAND.
+2.2.3 General reporting options
+-------------------------------
 
 '-b --begin=DATE'
 
@@ -282,18 +299,14 @@ Common reporting options, must be written after COMMAND.
 
      convert amounts to their market value on the report end date (using
      the most recent applicable market price, if any)
-'--pivot TAGNAME'
 
-     organize reports by some tag's value instead of by account
-'--anon'
+   Note when multiple similar reporting options are provided, the last
+one takes precedence.  Eg '-p feb -p mar' is equivalent to '-p mar'.
 
-     show anonymized accounts and payees
-
-   If a reporting option occurs more than once on the command line, the
-last one takes precedence.  Eg -p jan -p feb is equivalent to -p feb.
+   Some of these can also be written as queries.
 
 
-File: hledger.1.info,  Node: Input files,  Next: Smart dates,  Prev: Reporting options,  Up: OPTIONS
+File: hledger.1.info,  Node: Input files,  Next: Smart dates,  Prev: General options,  Up: OPTIONS
 
 2.3 Input files
 ===============
@@ -941,6 +954,9 @@ Show accounts and their balances.  Alias: bal.
 
      write output to FILE. A file extension matching one of the above
      formats selects that format.
+'--pretty-tables'
+
+     Use unicode to display prettier tables.
 
    The balance command displays accounts and balances.  It is hledger's
 most featureful and most useful command.
@@ -2192,123 +2208,129 @@ Node: EXAMPLES1883
 Ref: #examples1985
 Node: OPTIONS3631
 Ref: #options3735
-Node: General options6393
-Ref: #general-options6522
-Node: Reporting options7295
-Ref: #reporting-options7448
-Node: Input files9024
-Ref: #input-files9161
-Node: Smart dates11124
-Ref: #smart-dates11267
-Node: Report start & end date12246
-Ref: #report-start-end-date12418
-Node: Report intervals13484
-Ref: #report-intervals13649
-Node: Period expressions14050
-Ref: #period-expressions14210
-Node: Depth limiting16550
-Ref: #depth-limiting16694
-Node: Pivoting16895
-Ref: #pivoting17028
-Node: Regular expressions18857
-Ref: #regular-expressions18991
-Node: QUERIES20469
-Ref: #queries20573
-Node: COMMANDS24219
-Ref: #commands24333
-Node: accounts25006
-Ref: #accounts25106
-Node: activity26088
-Ref: #activity26200
-Node: add26559
-Ref: #add26660
-Node: balance29318
-Ref: #balance29431
-Node: Flat mode32309
-Ref: #flat-mode32436
-Node: Depth limited balance reports32856
-Ref: #depth-limited-balance-reports33059
-Node: Multicolumn balance reports33479
-Ref: #multicolumn-balance-reports33681
-Node: Market value38329
-Ref: #market-value38493
-Node: Custom balance output39793
-Ref: #custom-balance-output39966
-Node: Output destination42059
-Ref: #output-destination42224
-Node: CSV output42494
-Ref: #csv-output42613
-Node: balancesheet43010
-Ref: #balancesheet43138
-Node: cashflow45057
-Ref: #cashflow45174
-Node: help47072
-Ref: #help47184
-Node: incomestatement48022
-Ref: #incomestatement48152
-Node: info50067
-Ref: #info50174
-Node: man50538
-Ref: #man50635
-Node: print51040
-Ref: #print51145
-Node: register54901
-Ref: #register55014
-Node: Custom register output59510
-Ref: #custom-register-output59641
-Node: stats60938
-Ref: #stats61044
-Node: test61925
-Ref: #test62012
-Node: ADD-ON COMMANDS62380
-Ref: #add-on-commands62516
-Node: Official add-ons63803
-Ref: #official-add-ons63945
-Node: api64032
-Ref: #api64123
-Node: ui64175
-Ref: #ui64276
-Node: web64334
-Ref: #web64425
-Node: Third party add-ons64471
-Ref: #third-party-add-ons64648
-Node: diff64783
-Ref: #diff64882
-Node: iadd64981
-Ref: #iadd65097
-Node: interest65180
-Ref: #interest65303
-Node: irr65398
-Ref: #irr65498
-Node: Experimental add-ons65576
-Ref: #experimental-add-ons65730
-Node: autosync66123
-Ref: #autosync66237
-Node: budget66476
-Ref: #budget66600
-Node: chart66666
-Ref: #chart66785
-Node: check66856
-Ref: #check66980
-Node: check-dates67047
-Ref: #check-dates67189
-Node: check-dupes67262
-Ref: #check-dupes67405
-Node: equity67482
-Ref: #equity67610
-Node: prices67729
-Ref: #prices67858
-Node: print-unique67913
-Ref: #print-unique68062
-Node: register-match68155
-Ref: #register-match68311
-Node: rewrite68409
-Ref: #rewrite68530
-Node: TROUBLESHOOTING68608
-Ref: #troubleshooting68727
-Node: Run-time problems68781
-Ref: #run-time-problems68924
-Node: Known limitations70871
-Ref: #known-limitations71014
+Node: Special characters4649
+Ref: #special-characters4785
+Node: General options5953
+Ref: #general-options6103
+Node: General help options6194
+Ref: #general-help-options6354
+Node: General input options6753
+Ref: #general-input-options6949
+Node: General reporting options7420
+Ref: #general-reporting-options7595
+Node: Input files9027
+Ref: #input-files9162
+Node: Smart dates11125
+Ref: #smart-dates11268
+Node: Report start & end date12247
+Ref: #report-start-end-date12419
+Node: Report intervals13485
+Ref: #report-intervals13650
+Node: Period expressions14051
+Ref: #period-expressions14211
+Node: Depth limiting16551
+Ref: #depth-limiting16695
+Node: Pivoting16896
+Ref: #pivoting17029
+Node: Regular expressions18858
+Ref: #regular-expressions18992
+Node: QUERIES20470
+Ref: #queries20574
+Node: COMMANDS24220
+Ref: #commands24334
+Node: accounts25007
+Ref: #accounts25107
+Node: activity26089
+Ref: #activity26201
+Node: add26560
+Ref: #add26661
+Node: balance29319
+Ref: #balance29432
+Node: Flat mode32374
+Ref: #flat-mode32501
+Node: Depth limited balance reports32921
+Ref: #depth-limited-balance-reports33124
+Node: Multicolumn balance reports33544
+Ref: #multicolumn-balance-reports33746
+Node: Market value38394
+Ref: #market-value38558
+Node: Custom balance output39858
+Ref: #custom-balance-output40031
+Node: Output destination42124
+Ref: #output-destination42289
+Node: CSV output42559
+Ref: #csv-output42678
+Node: balancesheet43075
+Ref: #balancesheet43203
+Node: cashflow45122
+Ref: #cashflow45239
+Node: help47137
+Ref: #help47249
+Node: incomestatement48087
+Ref: #incomestatement48217
+Node: info50132
+Ref: #info50239
+Node: man50603
+Ref: #man50700
+Node: print51105
+Ref: #print51210
+Node: register54966
+Ref: #register55079
+Node: Custom register output59575
+Ref: #custom-register-output59706
+Node: stats61003
+Ref: #stats61109
+Node: test61990
+Ref: #test62077
+Node: ADD-ON COMMANDS62445
+Ref: #add-on-commands62581
+Node: Official add-ons63868
+Ref: #official-add-ons64010
+Node: api64097
+Ref: #api64188
+Node: ui64240
+Ref: #ui64341
+Node: web64399
+Ref: #web64490
+Node: Third party add-ons64536
+Ref: #third-party-add-ons64713
+Node: diff64848
+Ref: #diff64947
+Node: iadd65046
+Ref: #iadd65162
+Node: interest65245
+Ref: #interest65368
+Node: irr65463
+Ref: #irr65563
+Node: Experimental add-ons65641
+Ref: #experimental-add-ons65795
+Node: autosync66188
+Ref: #autosync66302
+Node: budget66541
+Ref: #budget66665
+Node: chart66731
+Ref: #chart66850
+Node: check66921
+Ref: #check67045
+Node: check-dates67112
+Ref: #check-dates67254
+Node: check-dupes67327
+Ref: #check-dupes67470
+Node: equity67547
+Ref: #equity67675
+Node: prices67794
+Ref: #prices67923
+Node: print-unique67978
+Ref: #print-unique68127
+Node: register-match68220
+Ref: #register-match68376
+Node: rewrite68474
+Ref: #rewrite68595
+Node: TROUBLESHOOTING68673
+Ref: #troubleshooting68792
+Node: Run-time problems68846
+Ref: #run-time-problems68989
+Node: Known limitations70936
+Ref: #known-limitations71079
 
 End Tag Table

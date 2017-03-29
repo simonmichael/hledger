@@ -12,10 +12,6 @@ hledger\-api \- web API server for the hledger accounting tool
 .PD 0
 .P
 .PD
-\f[C]hledger\-api\ \-\-swagger\f[]
-.PD 0
-.P
-.PD
 \f[C]hledger\ api\ \-\-\ [OPTIONS]\f[]
 .SH DESCRIPTION
 .PP
@@ -51,41 +47,30 @@ server the API docs will be printed in Swagger 2.0 format.
 Note: if invoking hledger\-api as a hledger subcommand, write
 \f[C]\-\-\f[] before options as shown above.
 .TP
+.B \f[C]\-f\ \-\-file=FILE\f[]
+use a different input file.
+For stdin, use \- (default: \f[C]$LEDGER_FILE\f[] or
+\f[C]$HOME/.hledger.journal\f[])
+.RS
+.RE
+.TP
 .B \f[C]\-d\ \-\-static\-dir=DIR\f[]
 serve files from a different directory (default: \f[C]\&.\f[])
 .RS
 .RE
 .TP
+.B \f[C]\-\-host=IPADDR\f[]
+listen on this IP address (default: 127.0.0.1)
+.RS
+.RE
+.TP
 .B \f[C]\-p\ \-\-port=PORT\f[]
-use a different TCP port (default: 8001)
+listen on this TCP port (default: 8001)
 .RS
 .RE
 .TP
 .B \f[C]\-\-swagger\f[]
 print API docs in Swagger 2.0 format, and exit
-.RS
-.RE
-.PP
-hledger general options:
-.TP
-.B \f[C]\-h\f[]
-show general usage (or after COMMAND, the command\[aq]s usage)
-.RS
-.RE
-.TP
-.B \f[C]\-\-help\f[]
-show the current program\[aq]s manual as plain text (or after an add\-on
-COMMAND, the add\-on\[aq]s manual)
-.RS
-.RE
-.TP
-.B \f[C]\-\-man\f[]
-show the current program\[aq]s manual with man
-.RS
-.RE
-.TP
-.B \f[C]\-\-info\f[]
-show the current program\[aq]s manual with info
 .RS
 .RE
 .TP
@@ -94,29 +79,23 @@ show version
 .RS
 .RE
 .TP
-.B \f[C]\-\-debug[=N]\f[]
-show debug output (levels 1\-9, default: 1)
+.B \f[C]\-h\f[]
+show usage
 .RS
 .RE
 .TP
-.B \f[C]\-f\ FILE\ \-\-file=FILE\f[]
-use a different input file.
-For stdin, use \-
+.B \f[C]\-\-help\f[]
+show manual as plain text
 .RS
 .RE
 .TP
-.B \f[C]\-\-rules\-file=RULESFILE\f[]
-Conversion rules file to use when reading CSV (default: FILE.rules)
+.B \f[C]\-\-man\f[]
+show manual with man
 .RS
 .RE
 .TP
-.B \f[C]\-\-alias=OLD=NEW\f[]
-display accounts named OLD as NEW
-.RS
-.RE
-.TP
-.B \f[C]\-I\ \-\-ignore\-assertions\f[]
-ignore any failing balance assertions in the journal
+.B \f[C]\-\-info\f[]
+show manual with info
 .RS
 .RE
 .SH ENVIRONMENT
