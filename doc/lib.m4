@@ -66,16 +66,16 @@ m4_dnl
 m4_define({{_helpoptions_}}, {{
 
 `-h`
-: show general usage (or after COMMAND, the command's usage)
+: show general usage (or after COMMAND, command usage)
 
 `--help`
-: show the current program's manual as plain text (or after an add-on COMMAND, the add-on's manual)
+: show this program's manual as plain text (or after an add-on COMMAND, the add-on's manual)
 
 `--man`
-: show the current program's manual with man
+: show this program's manual with man
 
 `--info`
-: show the current program's manual with info
+: show this program's manual with info
 
 `--version`
 : show version

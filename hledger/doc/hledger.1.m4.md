@@ -26,8 +26,9 @@ hledger - a command-line accounting tool
 
 # SYNOPSIS
 
-`hledger [-f FILE] COMMAND [OPTIONS] [CMDARGS]`\
-`hledger [-f FILE] ADDONCMD -- [OPTIONS] [CMDARGS]`
+`hledger [-f FILE] COMMAND [OPTIONS] [ARGS]`\
+`hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]`\
+`hledger`
 
 # DESCRIPTION
 
@@ -67,9 +68,9 @@ changes existing transactions.
 
 To get started, you can either save some entries like the above in
 `~/.hledger.journal`, or run `hledger add` and follow the prompts. Then
-try some commands like `hledger print` or `hledger balance`. See
-COMMANDS and EXAMPLES below.
-
+try some commands like `hledger print` or `hledger balance`.
+Run `hledger` with no arguments for a list of commands.
+ 
 _include_(examples.m4.md)
 _include_(options.m4.md)
 _include_(queries.m4.md)

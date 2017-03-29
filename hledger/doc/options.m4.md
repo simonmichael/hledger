@@ -1,19 +1,42 @@
 # OPTIONS
 
+## General options
+
 To see general usage help, including general options 
 which are supported by most hledger commands, run `hledger -h`.
 (Note -h and --help are different, like git.)
-These options can appear anywhere on the command line, and are listed below.
 
-To see usage for a specific command, run: `hledger COMMAND -h`.
+General help options:
+
+_helpoptions_
+
+General input options:
+
+_inputoptions_
+
+General reporting options:
+
+_reportingoptions_
+
+Note when multiple similar reporting options are provided, the last one takes precedence.
+Eg `-p feb -p mar` is equivalent to `-p mar`.
+
+Some of these can also be written as [queries](#queries).
+
+## Command options
+
+To see options for a particular command, including command-specific options, run: `hledger COMMAND -h`.
+
 Command-specific options must be written after the command name, eg: `hledger print -x`.
 
-Additionally, if the command is an [add-on](#commands), 
+Additionally, if the command is an [addon](#commands), 
 you may need to put its options after a double-hyphen, eg: `hledger ui -- --watch`.
-Or, you can run the add-on executable directly, eg: `hledger-ui --watch`.
+Or, you can run the addon executable directly: `hledger-ui --watch`.
 
-Most commands also accept arguments, which are often 
-a [query](#queries) filtering the data in some way. 
+## Command arguments
+
+Most hledger commands accept arguments after the command name, 
+which are often a [query](#queries), filtering the data in some way. 
 
 ## Special characters
 
@@ -41,26 +64,6 @@ If in doubt, keep things simple:
 - if needed, also add a backslash to escape regexp metacharacters
 
 If you're really stumped, add `--debug=2` to troubleshoot.
-
-
-## General options
-
-### General help options
-
-_helpoptions_
-
-### General input options
-
-_inputoptions_
-
-### General reporting options
-
-_reportingoptions_
-
-Note when multiple similar reporting options are provided, the last one takes precedence.
-Eg `-p feb -p mar` is equivalent to `-p mar`.
-
-Some of these can also be written as [queries](#queries).
 
 ## Input files
 
