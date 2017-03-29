@@ -1,76 +1,66 @@
 # OPTIONS
 
-To see general usage and the command list: `hledger -h` or just `hledger`.
-To see usage for a specific command: `hledger COMMAND -h`.
+To see general usage help, including general options 
+which are supported by most hledger commands, run `hledger -h`.
+(Note -h and --help are different, like git.)
+These options can appear anywhere on the command line, and are listed below.
 
-hledger has several kinds of options:
+To see usage for a specific command, run: `hledger COMMAND -h`.
+Command-specific options must be written after the command name, eg: `hledger print -x`.
 
-- General options are always available and can appear anywhere on the command line.
-  `hledger -h` shows these. Eg: `hledger --version`.
+Additionally, if the command is an [add-on](#commands), 
+you may need to put its options after a double-hyphen, eg: `hledger ui -- --watch`.
+Or, you can run the add-on executable directly, eg: `hledger-ui --watch`.
 
-- Common reporting options are available with most commands. 
-  These and all other non-general options must be written after COMMAND.
-  `hledger COMMAND -h` shows these. Eg: `hledger register --cleared`.
+Most commands also accept arguments, which are often 
+a [query](#queries) filtering the data in some way. 
 
-- Command-specific options are also provided by some commands. 
-  `hledger COMMAND -h` shows these too. Eg: `hledger register --average`.
+## Special characters
 
-- Some hledger commands come from separate [add-on executables](#commands),
-  which have their own options. 
-  `hledger COMMAND -h` shows these, as usual. 
-  Such options, if not also supported by hledger, 
-  should be written following a double hyphen argument (`--`)
-  so that hledger's option parser does not complain.
-  Eg: `hledger ui -- --register=checking`.
-  Or, you can just run the add-on directly:
-  `hledger-ui --register=checking`.
-
-Command arguments may also follow the command name.
-In most cases these specify a [query](#queries) which filters the data. 
-Command options and arguments can be intermixed.
-
-Option and argument values containing problematic characters
+Option and argument values which contain problematic characters
 should be escaped with double quotes, backslashes, or (best) single quotes.
-This means spaces, but also characters which are significant to your 
+Problematic characters means spaces, and also characters which are significant to your 
 command shell, such as less-than/greater-than.
 Eg: `hledger register -p 'last year' "accounts receivable (receivable|payable)" amt:\>100`.
 
-Characters which are significant to the shell and also in 
-[regular expressions](#regular-expressions), like parentheses, 
-the pipe symbol and the dollar sign, must sometimes be double-escaped.
-Eg, to match the dollar symbol: `hledger balance cur:'\$'` or 
+Characters which are significant both to the shell and in 
+[regular expressions](#regular-expressions) sometimes need to be double-escaped.
+These include parentheses, the pipe symbol and the dollar sign.
+Eg, to match the dollar symbol, bash users should do: `hledger balance cur:'\$'` or 
 `hledger balance cur:\\$`.
 
-There's more.. options and arguments being passed by hledger to an
-add-on executable get de-escaped once in the process. In this case you 
-might need triple-escaping.
+There's more.. options and arguments get de-escaped when hledger 
+is passing them to an addon executable. In this case you might need *triple*-escaping.
 Eg: `hledger ui cur:'\\$'` or `hledger ui cur:\\\\$`.
 
 If in doubt, keep things simple:
 
+- run add-on executables directly
 - write options after the command
 - enclose problematic args in single quotes
 - if needed, also add a backslash to escape regexp metacharacters
-- run add-on executables directly
 
-If you're really curious, add `--debug=2` for troubleshooting.
+If you're really stumped, add `--debug=2` to troubleshoot.
 
 
 ## General options
 
-Always available, can be written before or after COMMAND. 
+### General help options
 
-_generaloptions_
+_helpoptions_
 
-## Reporting options
+### General input options
 
-Common reporting options, must be written after COMMAND.
+_inputoptions_
+
+### General reporting options
 
 _reportingoptions_
 
-If a reporting option occurs more than once on the command line, 
-the last one takes precedence.
-Eg -p jan -p feb is equivalent to -p feb.
+Note when multiple similar reporting options are provided, the last one takes precedence.
+Eg `-p feb -p mar` is equivalent to `-p mar`.
+
+Some of these can also be written as [queries](#queries).
 
 ## Input files
 

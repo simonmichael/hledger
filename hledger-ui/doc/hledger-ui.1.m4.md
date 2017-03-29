@@ -69,13 +69,17 @@ Any QUERYARGS are interpreted as a hledger search query which filters the data.
 `--flat`
 : show full account names, unindented
 
-hledger general options:
+hledger input options:
 
-_generaloptions_
+_inputoptions_
 
 hledger reporting options:
 
 _reportingoptions_
+
+hledger help options:
+
+_helpoptions_
 
 # KEYS
 

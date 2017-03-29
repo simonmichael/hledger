@@ -63,7 +63,7 @@ m4_define({{_rules_}},     {{```rules$1```}}          )m4_dnl
 m4_define({{_timeclock_}}, {{```timeclock$1```}}      )m4_dnl
 m4_define({{_timedot_}},   {{```timedot$1```}}        )m4_dnl
 m4_dnl
-m4_define({{_generaloptions_}}, {{
+m4_define({{_helpoptions_}}, {{
 
 `-h`
 : show general usage (or after COMMAND, the command's usage)
@@ -83,17 +83,27 @@ m4_define({{_generaloptions_}}, {{
 `--debug[=N]`
 : show debug output (levels 1-9, default: 1)
 
+}} )m4_dnl
+m4_dnl
+m4_define({{_inputoptions_}}, {{
+
 `-f FILE --file=FILE`
-: use a different input file. For stdin, use -
+: use a different input file. For stdin, use - (default: `$LEDGER_FILE` or `$HOME/.hledger.journal`)
 
 `--rules-file=RULESFILE`
 : Conversion rules file to use when reading CSV (default: FILE.rules)
 
 `--alias=OLD=NEW`
-: display accounts named OLD as NEW
+: rename accounts named OLD to NEW
+
+`--anon`
+: anonymize accounts and payees
+
+`--pivot TAGNAME`
+: use some other field/tag for account names
 
 `-I --ignore-assertions`
-: ignore any failing balance assertions in the journal
+: ignore any failing balance assertions
 
 }} )m4_dnl
 m4_dnl
@@ -152,11 +162,15 @@ m4_define({{_reportingoptions_}}, {{
 : convert amounts to their market value on the report end date
 (using the most recent applicable [market price](journal.html#market-prices), if any)
 
-`--pivot TAGNAME`
-: organize reports by some tag's value instead of by account
+}} )m4_dnl
+m4_dnl
+m4_define({{_generaloptions_}}, {{
 
-`--anon`
-: show anonymized accounts and payees
+_inputoptions_
+
+_reportingoptions_
+
+_helpoptions_
 
 }} )m4_dnl
 m4_dnl

@@ -15,7 +15,6 @@ hledger-api - web API server for the hledger accounting tool
 # SYNOPSIS
 
 `hledger-api [OPTIONS]`\
-`hledger-api --swagger`\
 `hledger api -- [OPTIONS]`
 
 # DESCRIPTION
@@ -43,18 +42,36 @@ the API docs will be printed in Swagger 2.0 format.
 
 Note: if invoking hledger-api as a hledger subcommand, write `--` before options as shown above.
 
+`-f --file=FILE`
+: use a different input file. For stdin, use - (default: `$LEDGER_FILE` or `$HOME/.hledger.journal`)
+
 `-d --static-dir=DIR`
 : serve files from a different directory (default: `.`)
 
+`--host=IPADDR`
+: listen on this IP address (default: 127.0.0.1)
+
 `-p --port=PORT`
-: use a different TCP port (default: 8001)
+: listen on this TCP port (default: 8001)
 
 `--swagger`
 : print API docs in Swagger 2.0 format, and exit
 
-hledger general options:
+`--version`
+: show version
 
-_generaloptions_
+`-h`
+: show usage
+
+`--help`
+: show manual as plain text
+
+`--man`
+: show manual with man
+
+`--info`
+: show manual with info
+
 
 _man_({{
 

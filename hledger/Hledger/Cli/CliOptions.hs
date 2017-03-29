@@ -118,11 +118,12 @@ detailedversionflag = flagNone ["version+"] (setboolopt "version+") "show versio
 -- | Common input-related flags: --file, --rules-file, --alias...
 inputflags :: [Flag RawOpts]
 inputflags = [
-  flagReq ["file","f"]  (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different input file. For stdin, use -"
- ,flagReq ["rules-file"]  (\s opts -> Right $ setopt "rules-file" s opts) "RFILE" "CSV conversion rules file (default: FILE.rules)"
- ,flagReq ["alias"]  (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "display accounts named OLD as NEW"
- ,flagNone ["ignore-assertions","I"] (setboolopt "ignore-assertions") "ignore any balance assertions in the journal"
- ,flagReq ["pivot"]  (\s opts -> Right $ setopt "pivot" s opts)  "TAGNAME" "organize reports by some tag's value, not by account"
+  flagReq  ["file","f"]      (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different input file. For stdin, use - (default: $LEDGER_FILE or $HOME/.hledger.journal)"
+ ,flagReq  ["rules-file"]    (\s opts -> Right $ setopt "rules-file" s opts) "RFILE" "CSV conversion rules file (default: FILE.rules)"
+ ,flagReq  ["alias"]         (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "rename accounts named OLD to NEW"
+ ,flagNone ["anon"]          (setboolopt "anon") "anonymize accounts and payees"
+ ,flagReq  ["pivot"]         (\s opts -> Right $ setopt "pivot" s opts)  "TAGNAME" "use some other field/tag for account names"
+ ,flagNone ["ignore-assertions","I"] (setboolopt "ignore-assertions") "ignore any balance assertions"
  ]
 
 -- | Common report-related flags: --period, --cost, etc.
@@ -146,7 +147,6 @@ reportflags = [
  ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden"
  ,flagNone ["cost","B"]      (setboolopt "cost") "convert amounts to their cost at transaction time (using the transaction price, if any)"
  ,flagNone ["value","V"]     (setboolopt "value") "convert amounts to their market value on the report end date (using the most recent applicable market price, if any)"
- ,flagNone ["anon"]              (setboolopt "anon") "output ledger with anonymized accounts and payees."
  ]
 
 -- | Common output-related flags: --output-file, --output-format...

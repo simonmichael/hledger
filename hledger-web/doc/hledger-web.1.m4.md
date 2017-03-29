@@ -124,13 +124,17 @@ You would change this when sharing over the network, or integrating within a lar
 hledger-web normally serves static files itself, but if you wanted to
 serve them from another server for efficiency, you would set the url with this.
 
-hledger general options:
+hledger input options:
 
-_generaloptions_
+_inputoptions_
 
 hledger reporting options:
 
 _reportingoptions_
+
+hledger help options:
+
+_helpoptions_
 
 _man_({{
 

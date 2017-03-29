@@ -127,7 +127,7 @@ mainmode addons = defMode {
 PROGNAME                         list commands
 PROGNAME CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)
 PROGNAME-CMD [OPTS] [ARGS]       or run addon commands directly
-PROGNAME -h                      hledger usage
+PROGNAME -h                      general usage
 PROGNAME CMD -h                  command usage
 PROGNAME --help                  PROGNAME manual
 PROGNAME --man                   PROGNAME manual as man page

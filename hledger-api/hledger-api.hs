@@ -50,7 +50,7 @@ Usage:
   hledger-api --swagger
     print API docs in Swagger 2.0 format
   hledger-api --version
-  hledger-api -h|--help|--info
+  hledger-api -h|--help|--man|--info
 
 Options:
   -f --file FILE   use a different input file
