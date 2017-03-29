@@ -42,6 +42,7 @@ cache:
   directories:
     - $HOME/.stack/
     - $HOME/.local/bin/
+    - .stack-work/
     # - shelltestrunner/
 
 # addons:
