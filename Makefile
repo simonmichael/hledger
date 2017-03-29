@@ -80,7 +80,7 @@ SHELLTESTOPTS=--execdir -- -j16 #--hide-successes
 # SHELLTEST=COLUMNS=80 PATH=~/.local/bin:/usr/bin:/bin shelltest $(SHELLTESTOPTS)
 # run shell tests using the stack build
 #SHELLTESTSTK=shelltest -w `stack exec which hledger` $(SHELLTESTOPTS)
-SHELLTESTSTK=COLUMNS=80 PATH=~/.local/bin:/usr/bin:/bin $(STACK) exec -- shelltest $(SHELLTESTOPTS)
+SHELLTESTSTK=COLUMNS=80 $(STACK) exec -- shelltest $(SHELLTESTOPTS)
 
 # # used for make auto, http://joyful.com/repos/searchpath
 # SP=sp
