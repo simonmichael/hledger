@@ -264,7 +264,6 @@ Misc:
  rewrite              add automated postings to certain transactions
  test                 run some self tests
 OTHERCMDS
-
 Help: (see also -h, CMD -h, --help|---man|--info)
  help|man|info        show any of the hledger manuals in text/man/info format
 |]
@@ -291,7 +290,7 @@ printCommandsList addonsFound = putStr commandsList
     adjustline l = [l]
 
     commandsList1 =
-      regexReplace "OTHERCMDS" (init $ unlines [' ':w | w <- unknownCommandsFound]) $
+      regexReplace "OTHERCMDS" (unlines [' ':w | w <- unknownCommandsFound]) $
       unlines $ concatMap adjustline $ lines commandsListTemplate
 
     commandsList =
