@@ -75,7 +75,6 @@ _include_(examples.m4.md)
 _include_(options.m4.md)
 _include_(queries.m4.md)
 _include_(commands.m4.md)
-_include_(troubleshooting.m4.md)
 _man_({{
 
 # ENVIRONMENT
@@ -92,11 +91,19 @@ Reads _files_
 
 # BUGS
 
-The need to precede options with `--` when invoked from hledger is awkward.
-
-hledger can't render non-ascii characters when run from a Windows command prompt (up to Windows 7 at least).
+The need to precede addon command options with `--` when invoked from hledger is awkward.
 
 When input data contains non-ascii characters, a suitable system locale must be configured (or there will be an unhelpful error).
 Eg on POSIX, set LANG to something other than C.
+
+In a Microsoft Windows CMD window, non-ascii characters and colours are not supported.
+
+In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger add.
+
+Not all of Ledger's journal file syntax is supported. See [file format differences](faq#file-format-differences).
+
+On large data files, hledger is slower and uses more memory than Ledger.
+
+_include_(troubleshooting.m4.md)
 
 }})

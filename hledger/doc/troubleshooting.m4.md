@@ -1,7 +1,5 @@
 # TROUBLESHOOTING
 
-## Run-time problems
-
 Here are some issues you might encounter when you run hledger
 (and remember you can also seek help from the
 [IRC channel](http://irc.hledger.org),
@@ -63,23 +61,3 @@ $ LANG=fr_FR.utf8 hledger -f my.journal print
 Note some platforms allow variant locale spellings, but not all (ubuntu
 accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
 
-
-## Known limitations
-
-**Command line interface**
-
-Add-on command options, unless they are also understood by the main
-hledger executable, must be written after `--`, like this:
-`hledger web -- --server`
-
-**Differences from Ledger**
-
-Not all of Ledger's journal file syntax is supported. See [file format differences](faq#file-format-differences).
-
-hledger is slower than Ledger, and uses more memory, on large data files.
-
-**Windows limitations**
-
-In a windows CMD window, non-ascii characters and colours are not supported.
-
-In a windows Cygwin/MSYS/Mintty window, the tab key is not supported in hledger add.
