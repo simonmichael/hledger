@@ -152,11 +152,11 @@ checkRawOpts rawopts
 -- our standard behaviour is to accept conflicting options actually,
 -- using the last one - more forgiving for overriding command-line aliases
 --   | countopts ["change","cumulative","historical"] > 1
---     = optserror "please specify at most one of --change, --cumulative, --historical"
+--     = usageError "please specify at most one of --change, --cumulative, --historical"
 --   | countopts ["flat","tree"] > 1
---     = optserror "please specify at most one of --flat, --tree"
+--     = usageError "please specify at most one of --flat, --tree"
 --   | countopts ["daily","weekly","monthly","quarterly","yearly"] > 1
---     = optserror "please specify at most one of --daily, "
+--     = usageError "please specify at most one of --daily, "
   | otherwise = rawopts
 --   where
 --     countopts = length . filter (`boolopt` rawopts)
@@ -164,7 +164,7 @@ checkRawOpts rawopts
 -- | Do extra validation of report options, raising an error if there's a problem.
 checkReportOpts :: ReportOpts -> ReportOpts
 checkReportOpts ropts@ReportOpts{..} =
-  either optserror (const ropts) $ do
+  either usageError (const ropts) $ do
     case depth_ of
       Just d | d < 0 -> Left "--depth should have a positive number"
       _              -> Right ()
@@ -208,11 +208,11 @@ beginDatesFromRawOpts d = catMaybes . map (begindatefromrawopt d)
   where
     begindatefromrawopt d (n,v)
       | n == "begin" =
-          either (\e -> optserror $ "could not parse "++n++" date: "++parseErrorPretty e) Just $
+          either (\e -> usageError $ "could not parse "++n++" date: "++parseErrorPretty e) Just $
           fixSmartDateStrEither' d (T.pack v)
       | n == "period" =
         case
-          either (\e -> optserror $ "could not parse period option: "++parseErrorPretty e) id $
+          either (\e -> usageError $ "could not parse period option: "++parseErrorPretty e) id $
           parsePeriodExpr d (stripquotes $ T.pack v)
         of
           (_, DateSpan (Just b) _) -> Just b
@@ -226,11 +226,11 @@ endDatesFromRawOpts d = catMaybes . map (enddatefromrawopt d)
   where
     enddatefromrawopt d (n,v)
       | n == "end" =
-          either (\e -> optserror $ "could not parse "++n++" date: "++parseErrorPretty e) Just $
+          either (\e -> usageError $ "could not parse "++n++" date: "++parseErrorPretty e) Just $
           fixSmartDateStrEither' d (T.pack v)
       | n == "period" =
         case
-          either (\e -> optserror $ "could not parse period option: "++parseErrorPretty e) id $
+          either (\e -> usageError $ "could not parse period option: "++parseErrorPretty e) id $
           parsePeriodExpr d (stripquotes $ T.pack v)
         of
           (_, DateSpan _ (Just e)) -> Just e
@@ -244,7 +244,7 @@ intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
   where
     intervalfromrawopt (n,v)
       | n == "period" =
-          either (\e -> optserror $ "could not parse period option: "++parseErrorPretty e) (Just . fst) $
+          either (\e -> usageError $ "could not parse period option: "++parseErrorPretty e) (Just . fst) $
           parsePeriodExpr nulldate (stripquotes $ T.pack v) -- reference date does not affect the interval
       | n == "daily"     = Just $ Days 1
       | n == "weekly"    = Just $ Weeks 1

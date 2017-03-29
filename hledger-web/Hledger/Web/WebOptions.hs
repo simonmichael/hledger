@@ -85,7 +85,7 @@ rawOptsToWebOpts rawopts = checkWebOpts <$> do
 
 checkWebOpts :: WebOpts -> WebOpts
 checkWebOpts wopts =
-  either optserror (const wopts) $ do
+  either usageError (const wopts) $ do
     let h = host_ wopts
     if any (not . (`elem` ".0123456789")) h
     then Left $ "--host requires an IP address, not "++show h

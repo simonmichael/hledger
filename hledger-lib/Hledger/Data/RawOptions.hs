@@ -17,8 +17,7 @@ module Hledger.Data.RawOptions (
   maybestringopt,
   listofstringopt,
   intopt,
-  maybeintopt,
-  optserror
+  maybeintopt
 )
 where
 
@@ -58,12 +57,8 @@ maybeintopt :: String -> RawOpts -> Maybe Int
 maybeintopt name rawopts =
     let ms = maybestringopt name rawopts in
     case ms of Nothing -> Nothing
-               Just s -> Just $ readDef (optserror $ "could not parse "++name++" number: "++s) s
+               Just s -> Just $ readDef (usageError $ "could not parse "++name++" number: "++s) s
 
 intopt :: String -> RawOpts -> Int
 intopt name = fromMaybe 0 . maybeintopt name
-
--- | Raise an error, showing the specified message plus a hint about --help.
-optserror :: String -> a
-optserror = error' . (++ " (run with --help for usage)")
 

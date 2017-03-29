@@ -73,7 +73,7 @@ import Hledger.Cli.Tests
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
 import Hledger.Data.Dates (getCurrentDay)
-import Hledger.Data.RawOptions (RawOpts, optserror)
+import Hledger.Data.RawOptions (RawOpts)
 import Hledger.Reports.ReportOptions (period_, interval_, queryFromOpts)
 import Hledger.Utils
 
@@ -164,7 +164,7 @@ argsToCliOpts :: [String] -> [String] -> IO CliOpts
 argsToCliOpts args addons = do
   let
     args'        = moveFlagsAfterCommand args
-    cmdargsopts  = either optserror id $ process (mainmode addons) args'
+    cmdargsopts  = either usageError id $ process (mainmode addons) args'
     cmdargsopts' = decodeRawOpts cmdargsopts
   rawOptsToCliOpts cmdargsopts'
 
@@ -414,7 +414,7 @@ main = do
       | cmd == "convert"         = error' (modeHelp oldconvertmode) >> exitFailure
 
       -- shouldn't reach here
-      | otherwise                = optserror ("could not understand the arguments "++show args) >> exitFailure
+      | otherwise                = usageError ("could not understand the arguments "++show args) >> exitFailure
 
   runHledgerCommand
 

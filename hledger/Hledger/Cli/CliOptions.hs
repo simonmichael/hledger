@@ -412,7 +412,7 @@ rawOptsToCliOpts rawopts = checkCliOpts <$> do
 -- | Do final validation of processed opts, raising an error if there is trouble.
 checkCliOpts :: CliOpts -> CliOpts
 checkCliOpts opts =
-  either optserror (const opts) $ do
+  either usageError (const opts) $ do
     -- XXX move to checkReportOpts or move _format to CliOpts
     case lineFormatFromOpts $ reportopts_ opts of
       Left err -> Left $ "could not parse format option: "++err
@@ -444,7 +444,7 @@ checkCliOpts opts =
 getHledgerCliOpts :: Mode RawOpts -> IO CliOpts
 getHledgerCliOpts mode' = do
   args' <- getArgs
-  let rawopts = either optserror decodeRawOpts $ process mode' args'
+  let rawopts = either usageError decodeRawOpts $ process mode' args'
   opts <- rawOptsToCliOpts rawopts
   debugArgs args' opts
   when ("help" `inRawOpts` rawopts_ opts) $ putStr longhelp  >> exitSuccess
@@ -549,7 +549,7 @@ widthFromOpts :: CliOpts -> Int
 widthFromOpts CliOpts{width_=Nothing, available_width_=w} = w
 widthFromOpts CliOpts{width_=Just s}  =
     case runParser (read `fmap` some digitChar <* eof :: ParsecT Dec String Identity Int) "(unknown)" s of
-        Left e   -> optserror $ "could not parse width option: "++show e
+        Left e   -> usageError $ "could not parse width option: "++show e
         Right w  -> w
 
 -- for register:
@@ -567,7 +567,7 @@ registerWidthsFromOpts :: CliOpts -> (Int, Maybe Int)
 registerWidthsFromOpts CliOpts{width_=Nothing, available_width_=w} = (w, Nothing)
 registerWidthsFromOpts CliOpts{width_=Just s}  =
     case runParser registerwidthp "(unknown)" s of
-        Left e   -> optserror $ "could not parse width option: "++show e
+        Left e   -> usageError $ "could not parse width option: "++show e
         Right ws -> ws
     where
         registerwidthp :: (Stream s, Char ~ Token s) => ParsecT Dec s m (Int, Maybe Int)

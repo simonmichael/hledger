@@ -28,7 +28,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           -- Debug.Trace.trace,
                           -- module Data.PPrint,
                           -- module Hledger.Utils.UTF8IOCompat
-                          SystemString,fromSystemString,toSystemString,error',userError',
+                          SystemString,fromSystemString,toSystemString,error',userError',usageError,
                           -- the rest need to be done in each module I think
                           )
 where
@@ -58,7 +58,7 @@ import Hledger.Utils.Test
 import Hledger.Utils.Tree
 -- import Prelude hiding (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
 -- import Hledger.Utils.UTF8IOCompat   (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
-import Hledger.Utils.UTF8IOCompat (SystemString,fromSystemString,toSystemString,error',userError')
+import Hledger.Utils.UTF8IOCompat (SystemString,fromSystemString,toSystemString,error',userError',usageError)
 
 
 -- tuples
