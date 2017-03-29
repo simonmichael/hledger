@@ -91,6 +91,7 @@ data ReportOpts = ReportOpts {
     ,row_total_      :: Bool
     ,no_total_       :: Bool
     ,value_          :: Bool
+    ,pretty_tables_  :: Bool
  } deriving (Show, Data, Typeable)
 
 instance Default ReportOpts where def = defreportopts
@@ -98,6 +99,7 @@ instance Default Bool where def = False
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
+    def
     def
     def
     def
@@ -144,6 +146,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,row_total_   = boolopt "row-total" rawopts'
     ,no_total_    = boolopt "no-total" rawopts'
     ,value_       = boolopt "value" rawopts'
+    ,pretty_tables_ = boolopt "pretty-tables" rawopts'
     }
 
 -- | Do extra validation of raw option values, raising an error if there's a problem.

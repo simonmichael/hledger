@@ -41,6 +41,9 @@ txt, csv.
 `-o FILE --output-file=FILE`
 : write output to FILE.  A file extension matching one of the above formats selects that format.
 
+`--pretty-tables`
+: Use unicode to display prettier tables.
+
 The balance command displays accounts and balances.
 It is hledger's most featureful and most useful command.
 

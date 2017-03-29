@@ -60,6 +60,7 @@ balanceviewmode BalanceView{..} = (defCommandMode $ bvmode : bvaliases) {
      ,flagNone ["row-total","T"] (\opts -> setboolopt "row-total" opts) "show a row total column (in multicolumn reports)"
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
+     ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode when displaying tables"
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
@@ -152,7 +153,7 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
                       )
         putStrLn bvtitle
         mapM_ putStrLn balanceclarification
-        putStrLn $ renderBalanceReportTable totTabl
+        putStrLn $ renderBalanceReportTable ropts totTabl
   where
     overwriteBalanceType =
       case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst raw of
