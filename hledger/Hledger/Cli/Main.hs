@@ -164,7 +164,7 @@ argsToCliOpts :: [String] -> [String] -> IO CliOpts
 argsToCliOpts args addons = do
   let
     args'        = moveFlagsAfterCommand args
-    cmdargsopts  = processValue (mainmode addons) args'
+    cmdargsopts  = either optserror id $ process (mainmode addons) args'
     cmdargsopts' = decodeRawOpts cmdargsopts
   rawOptsToCliOpts cmdargsopts'
 

@@ -444,7 +444,7 @@ checkCliOpts opts =
 getHledgerCliOpts :: Mode RawOpts -> IO CliOpts
 getHledgerCliOpts mode' = do
   args' <- getArgs
-  let rawopts = decodeRawOpts $ processValue mode' args'
+  let rawopts = either optserror decodeRawOpts $ process mode' args'
   opts <- rawOptsToCliOpts rawopts
   debugArgs args' opts
   when ("help" `inRawOpts` rawopts_ opts) $ putStr longhelp  >> exitSuccess
