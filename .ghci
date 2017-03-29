@@ -1,0 +1,39 @@
+:set prompt "ghci> "
+
+-- ghci commands to be run once at ghci startup
+-- http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/ghci-commands.html
+
+-- set up context (handled by make ghci/stack ghci/cabal repl now)
+-- :set -ihledger-lib -ihledger -ihledger-web
+-- :l hledger/hledger-cli.hs
+-- import Hledger
+
+-- -- :reload and run commands in .ghci2
+-- :def R \_ -> return ":reload\n:script .ghci2"
+
+-- -- run commands from a file, .ghci2 by default
+-- :def s \f -> readFile $ if null f then ".ghci2" else f
+
+-- -- reset hledger's sticky global debug level flag so :main --debug=N works
+-- :def resetdebug \_ -> return ":!touch hledger-lib/Hledger/Utils.hs\n:reload\n"
+
+-- -- http://www.reddit.com/r/haskell/comments/24kpyu/watching_for_changes_and_rerunning_tests_in_ghci/
+-- :{
+-- {-
+-- import System.FSNotify
+-- import Data.String
+-- import Control.Concurrent.MVar
+-- import Control.Concurrent
+
+-- :def test const (withManager (\manager ->
+--      do putStrLn "Listening to changes, press any key to stop..."
+--         lock <- newEmptyMVar
+--         watchTree manager (fromString ".") (const True) (const $ putMVar lock True)
+--         forkIO (getLine >> putMVar lock False)
+--         rerun <- readMVar lock
+--         return $ if rerun
+--           then ":reload \n :main \n :test"
+--           else ""
+--      ))
+-- -}
+-- :}
