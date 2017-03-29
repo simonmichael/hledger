@@ -272,10 +272,10 @@ or one of the built-in implicit tags (like `code` or `payee`).
 As with account names, when tag values have `multiple:colon-separated:parts` hledger will build hierarchy,
 displayed in tree-mode reports, summarisable with a depth limit, and so on.
 
-`--pivot` affects all reports, and is one of those options you can write before the command name if you wish.
-You can think of hledger transforming the journal before any other processing,
-replacing every posting's account name with the value of the specified tag on that posting,
-inheriting it from the transaction or using a blank value if it's not present.
+`--pivot` is a general option affecting all reports; you can think of hledger transforming 
+the journal before any other processing, replacing every posting's account name with 
+the value of the specified tag on that posting, inheriting it from the transaction 
+or using a blank value if it's not present.
 
 An example:
 
@@ -340,13 +340,12 @@ Some things to note:
 must be enclosed in forward slashes (`/REGEX/`). Elsewhere in hledger,
 these are not required.
 
-- To match a regular expression metacharacter like `$` as a literal
-character, prepend a backslash. Eg to search for amounts with the
+- In queries, to match a regular expression metacharacter like `$` 
+as a literal character, prepend a backslash. Eg to search for amounts with the
 dollar sign in hledger-web, write `cur:\$`.
 
 - On the command line, some metacharacters like `$` have a special
-meaning to the shell and so must be escaped a second time, with single
-or double quotes or another backslash.  Eg, to match amounts with the
-dollar sign from the command line, write `cur:'\$'` or `cur:\\$`.
+meaning to the shell and so must be escaped at least once more.
+See [Special characters](#special-characters). 
 
 
