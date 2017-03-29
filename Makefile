@@ -579,14 +579,14 @@ test: pkgtest builtintest functest \
 pkgtest: \
 	$(call def-help,pkgtest, run the test suites for each package )
 	@($(STACK) test \
-		&& echo $@ PASSED) || echo $@ FAILED
+		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 # NB ensure hledger executable is current (eg do pkgtest first)
 #@echo "built-in tests (hledger cli unit tests)":
 builtintest: \
 	$(call def-help,builtintest, run tests built in to the hledger executable (subset of pkg tests) )
 	@($(STACK) exec hledger test \
-		&& echo $@ PASSED) || echo $@ FAILED
+		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 # builtintestghc: bin/hledgerdev \
 # 	$(call def-help,builtintest, run built-in unit tests with ghc build )
@@ -610,7 +610,7 @@ builtintest: \
 functest: tests/addons/hledger-addon \
 	$(call def-help,functest, run the functional tests for hledger )
 	@($(SHELLTESTSTK) tests \
-		&& echo $@ PASSED) || echo $@ FAILED
+		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
 tests/addons/hledger-addon: \
@@ -638,7 +638,7 @@ tests/addons/hledger-addon: \
 haddocktest: \
 	$(call def-help,haddocktest, run haddock and make sure it succeeds )
 	@(make --quiet haddock \
-		&& echo $@ PASSED) || echo $@ FAILED
+		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 # warningstest: \
 # 	$(call def-help,warningstest,\
@@ -651,7 +651,7 @@ haddocktest: \
 cabalfiletest: \
 	$(call def-help,cabalfiletest, run cabal check to test cabal file syntax )
 	@(make --no-print-directory cabalcheck \
-		&& echo $@ PASSED) || echo $@ FAILED
+		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 # quickcabaltest: \
 # 	$(call def-help,quickcabaltest,\
