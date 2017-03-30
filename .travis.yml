@@ -43,7 +43,7 @@ cache:
     - $HOME/.stack/
     - $HOME/.local/bin/
     - .stack-work/
-    # - shelltestrunner/
+    - shelltestrunner/
 
 # addons:
 #   apt:
@@ -88,7 +88,7 @@ install: # completed commands' output is collapsed in log
   # shelltestrunner, need unreleased installable version
   #- if [ ! -d shelltestrunner ]; then git clone http://github.com/simonmichael/shelltestrunner; fi
   - git clone http://github.com/simonmichael/shelltestrunner
-  - stack install --stack-yaml=shelltestrunner/stack.yaml --resolver=lts-8.2 --install-ghc
+  - stack install --stack-yaml=shelltestrunner/stack.yaml --resolver=lts-8.6 --install-ghc
   - shelltest --version
 
 script:  # all commands' output is shown in log, all commands must succeed for travis success
@@ -97,25 +97,25 @@ script:  # all commands' output is shown in log, all commands must succeed for t
   - stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib hledger hledger-ui #hledger-web hledger-api
 
   # build hledger addons, ensuring no warnings
-  - sh -e bin/compile.sh
+  #- sh -e bin/compile.sh
 
   # run functional tests
-  - make functest
+  #- make functest
 
-after_script:
-
-  # list directory contents
-  - pwd
-  - ls -laF /
-  - ls -laF /home
-  - ls -laF $HOME
-  - ls -laF $HOME/build
-  - ls -laF $HOME/build/simonmichael
-  - ls -laF
-
-  # coveralls.io coverage reports
-  # - stack install hpc-coveralls
-  # - hpc-coveralls count-von-count-tests --exclude-dir=tests --exclude-dir=src/Gyrid --display-report
+#after_script:
+#
+#  # list directory contents
+#  - pwd
+#  - ls -laF /
+#  - ls -laF /home
+#  - ls -laF $HOME
+#  - ls -laF $HOME/build
+#  - ls -laF $HOME/build/simonmichael
+#  - ls -laF
+#
+#  # coveralls.io coverage reports
+#  # - stack install hpc-coveralls
+#  # - hpc-coveralls count-von-count-tests --exclude-dir=tests --exclude-dir=src/Gyrid --display-report
 
 notifications:
   irc:
