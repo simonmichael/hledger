@@ -154,6 +154,11 @@ and `note`.
 
 Some journal parse errors now show the range of lines involved, not just the first.
 
+#### ledger format
+
+The experimental `ledger:` reader based on the WIP ledger4 project has
+been disabled, reducing build dependencies.
+
 #### Misc
 
 Fix a bug when tying the knot between postings and their parent transaction, reducing memory usage by about 10% (#483) (Mykola Orliuk)
