@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack runghc --verbosity info --package pandoc-types-1.16.1 -}
+{- stack runghc --verbosity info --package pandoc-types -}
 
 import Text.Pandoc.Builder
 import Text.Pandoc.JSON

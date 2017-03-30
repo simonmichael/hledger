@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack runghc --verbosity info --package pandoc-types-1.16.1 -}
+{- stack runghc --verbosity info --package pandoc-types -}
 -- Ensure level 1 and 2 headings are first-letter-capitalised.
 
 import Data.Char
