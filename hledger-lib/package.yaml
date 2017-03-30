@@ -67,9 +67,9 @@ dependencies:
 - utf8-string >=0.3.5 && <1.1
 - HUnit
 # for ledger-parse:
-- parsers >= 0.5
-- system-filepath
-- trifecta >= 0.91
+#- parsers >= 0.5
+#- system-filepath
+#- trifecta >= 0.91
 ghc-options:
 - -Wall
 - -fno-warn-unused-do-bind
@@ -78,7 +78,7 @@ ghc-options:
 - -fno-warn-type-defaults
 - -fno-warn-orphans
 source-dirs: 
-- other/ledger-parse
+#- other/ledger-parse
 - .
 library:
   exposed-modules:
@@ -105,7 +105,7 @@ library:
   - Hledger.Read.Common
   - Hledger.Read.CsvReader
   - Hledger.Read.JournalReader
-  - Hledger.Read.LedgerReader
+#  - Hledger.Read.LedgerReader
   - Hledger.Read.TimedotReader
   - Hledger.Read.TimeclockReader
   - Hledger.Reports
@@ -125,8 +125,8 @@ library:
   - Hledger.Utils.Text
   - Hledger.Utils.Tree
   - Hledger.Utils.UTF8IOCompat
-  other-modules:
-  - Ledger.Parser.Text
+#  other-modules:
+#  - Ledger.Parser.Text
   dependencies:
   - parsec
   - semigroups

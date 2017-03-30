@@ -54,7 +54,6 @@ flag oldtime
 
 library
   hs-source-dirs:
-      other/ledger-parse
       ./.
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
@@ -85,9 +84,6 @@ library
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
-    , parsers >= 0.5
-    , system-filepath
-    , trifecta >= 0.91
     , parsec
     , semigroups
   if impl(ghc <7.6)
@@ -124,7 +120,6 @@ library
       Hledger.Read.Common
       Hledger.Read.CsvReader
       Hledger.Read.JournalReader
-      Hledger.Read.LedgerReader
       Hledger.Read.TimedotReader
       Hledger.Read.TimeclockReader
       Hledger.Reports
@@ -145,14 +140,13 @@ library
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
   other-modules:
-      Ledger.Parser.Text
+      Paths_hledger_lib
   default-language: Haskell2010
 
 test-suite doctests
   type: exitcode-stdio-1.0
   main-is: doctests.hs
   hs-source-dirs:
-      other/ledger-parse
       ./.
       tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
@@ -184,16 +178,12 @@ test-suite doctests
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
-    , parsers >= 0.5
-    , system-filepath
-    , trifecta >= 0.91
     , doctest >=0.8
     , Glob >=0.7
   if impl(ghc <7.6)
     build-depends:
         ghc-prim
   other-modules:
-      Ledger.Parser.Text
       Hledger
       Hledger.Data
       Hledger.Data.Account
@@ -217,7 +207,6 @@ test-suite doctests
       Hledger.Read.Common
       Hledger.Read.CsvReader
       Hledger.Read.JournalReader
-      Hledger.Read.LedgerReader
       Hledger.Read.TimeclockReader
       Hledger.Read.TimedotReader
       Hledger.Reports
@@ -243,7 +232,6 @@ test-suite hunittests
   type: exitcode-stdio-1.0
   main-is: hunittests.hs
   hs-source-dirs:
-      other/ledger-parse
       ./.
       tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
@@ -275,9 +263,6 @@ test-suite hunittests
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
-    , parsers >= 0.5
-    , system-filepath
-    , trifecta >= 0.91
     , hledger-lib
     , parsec
     , test-framework
@@ -293,7 +278,6 @@ test-suite hunittests
     build-depends:
         time >=1.5
   other-modules:
-      Ledger.Parser.Text
       Hledger
       Hledger.Data
       Hledger.Data.Account
@@ -317,7 +301,6 @@ test-suite hunittests
       Hledger.Read.Common
       Hledger.Read.CsvReader
       Hledger.Read.JournalReader
-      Hledger.Read.LedgerReader
       Hledger.Read.TimeclockReader
       Hledger.Read.TimedotReader
       Hledger.Reports

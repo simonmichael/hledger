@@ -56,7 +56,7 @@ import Hledger.Data.Dates (getCurrentDay)
 import Hledger.Data.Types
 import Hledger.Read.Common
 import qualified Hledger.Read.JournalReader   as JournalReader
-import qualified Hledger.Read.LedgerReader    as LedgerReader
+-- import qualified Hledger.Read.LedgerReader    as LedgerReader
 import qualified Hledger.Read.TimedotReader   as TimedotReader
 import qualified Hledger.Read.TimeclockReader as TimeclockReader
 import qualified Hledger.Read.CsvReader       as CsvReader
@@ -76,7 +76,7 @@ readers = [
  ,TimeclockReader.reader
  ,TimedotReader.reader
  ,CsvReader.reader
- ,LedgerReader.reader
+--  ,LedgerReader.reader
  ]
 
 readerNames :: [String]
@@ -293,7 +293,7 @@ tests_Hledger_Read = TestList $
   tests_readJournal'
   ++ [
    JournalReader.tests_Hledger_Read_JournalReader,
-   LedgerReader.tests_Hledger_Read_LedgerReader,
+--    LedgerReader.tests_Hledger_Read_LedgerReader,
    TimeclockReader.tests_Hledger_Read_TimeclockReader,
    TimedotReader.tests_Hledger_Read_TimedotReader,
    CsvReader.tests_Hledger_Read_CsvReader,
