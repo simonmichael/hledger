@@ -108,7 +108,12 @@ downloads](https://img.shields.io/github/downloads/simonmichael/hledger/latest/t
 -->
 
 [![travis build status](https://img.shields.io/travis/simonmichael/hledger.svg)](https://travis-ci.org/simonmichael/hledger)
-[![hackage upper bounds](https://img.shields.io/hackage-deps/v/hledger.svg?label=hackage+bounds)](http://packdeps.haskellers.com/feed?needle=hledger)
+[![](https://img.shields.io/hackage-deps/v/hledger-lib.svg?label=hledger-lib+upper+bounds){width=158 height=20}](http://packdeps.haskellers.com/feed?needle=hledger-lib)
+[![](https://img.shields.io/hackage-deps/v/hledger.svg?label=hledger+upper+bounds){width=158 height=20}](http://packdeps.haskellers.com/feed?needle=hledger)
+[![](https://img.shields.io/hackage-deps/v/hledger-ui.svg?label=hledger-ui+upper+bounds){width=158 height=20}](http://packdeps.haskellers.com/feed?needle=hledger-ui)
+[![](https://img.shields.io/hackage-deps/v/hledger-web.svg?label=hledger-web+upper+bounds){width=158 height=20}](http://packdeps.haskellers.com/feed?needle=hledger-web)
+[![](https://img.shields.io/hackage-deps/v/hledger-api.svg?label=hledger-api+upper+bounds){width=158 height=20}](http://packdeps.haskellers.com/feed?needle=hledger-api)
+
 [![github issues](https://img.shields.io/github/issues/simonmichael/hledger.svg)](http://bugs.hledger.org)
 [![bountysource](https://api.bountysource.com/badge/team?team_id=75979&style=bounties_received)](https://github.com/simonmichael/hledger/issues?q=label:bounty)
 [![OpenCollective](https://opencollective.com/hledger/backers/badge.svg)](#backers) 
