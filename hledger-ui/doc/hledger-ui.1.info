@@ -135,17 +135,17 @@ the data.
 
 '-h'
 
-     show general usage (or after COMMAND, the command's usage)
+     show general usage (or after COMMAND, command usage)
 '--help'
 
-     show the current program's manual as plain text (or after an add-on
+     show this program's manual as plain text (or after an add-on
      COMMAND, the add-on's manual)
 '--man'
 
-     show the current program's manual with man
+     show this program's manual with man
 '--info'
 
-     show the current program's manual with info
+     show this program's manual with info
 '--version'
 
      show version
@@ -357,17 +357,17 @@ Tag Table:
 Node: Top73
 Node: OPTIONS825
 Ref: #options924
-Node: KEYS3677
-Ref: #keys3774
-Node: SCREENS6362
-Ref: #screens6449
-Node: Accounts screen6539
-Ref: #accounts-screen6669
-Node: Register screen8718
-Ref: #register-screen8875
-Node: Transaction screen10764
-Ref: #transaction-screen10924
-Node: Error screen11794
-Ref: #error-screen11918
+Node: KEYS3650
+Ref: #keys3747
+Node: SCREENS6335
+Ref: #screens6422
+Node: Accounts screen6512
+Ref: #accounts-screen6642
+Node: Register screen8691
+Ref: #register-screen8848
+Node: Transaction screen10737
+Ref: #transaction-screen10897
+Node: Error screen11767
+Ref: #error-screen11891
 
 End Tag Table

@@ -38,8 +38,8 @@ hledger never changes existing transactions.
 
    To get started, you can either save some entries like the above in
 '~/.hledger.journal', or run 'hledger add' and follow the prompts.  Then
-try some commands like 'hledger print' or 'hledger balance'.  See
-COMMANDS and EXAMPLES below.
+try some commands like 'hledger print' or 'hledger balance'.  Run
+'hledger' with no arguments for a list of commands.
 * Menu:
 
 * EXAMPLES::
@@ -47,7 +47,6 @@ COMMANDS and EXAMPLES below.
 * QUERIES::
 * COMMANDS::
 * ADD-ON COMMANDS::
-* TROUBLESHOOTING::
 
 
 File: hledger.1.info,  Node: EXAMPLES,  Next: OPTIONS,  Prev: Top,  Up: Top
@@ -114,25 +113,12 @@ File: hledger.1.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 2 OPTIONS
 *********
 
-To see general usage help, including general options which are supported
-by most hledger commands, run 'hledger -h'.  (Note -h and -help are
-different, like git.)  These options can appear anywhere on the command
-line, and are listed below.
-
-   To see usage for a specific command, run: 'hledger COMMAND -h'.
-Command-specific options must be written after the command name, eg:
-'hledger print -x'.
-
-   Additionally, if the command is an add-on, you may need to put its
-options after a double-hyphen, eg: 'hledger ui -- --watch'.  Or, you can
-run the add-on executable directly, eg: 'hledger-ui --watch'.
-
-   Most commands also accept arguments, which are often a query
-filtering the data in some way.
 * Menu:
 
-* Special characters::
 * General options::
+* Command options::
+* Command arguments::
+* Special characters::
 * Input files::
 * Smart dates::
 * Report start & end date::
@@ -143,69 +129,30 @@ filtering the data in some way.
 * Regular expressions::
 
 
-File: hledger.1.info,  Node: Special characters,  Next: General options,  Up: OPTIONS
+File: hledger.1.info,  Node: General options,  Next: Command options,  Up: OPTIONS
 
-2.1 Special characters
-======================
-
-Option and argument values which contain problematic characters should
-be escaped with double quotes, backslashes, or (best) single quotes.
-Problematic characters means spaces, and also characters which are
-significant to your command shell, such as less-than/greater-than.  Eg:
-'hledger register -p 'last year' "accounts receivable
-(receivable|payable)" amt:\>100'.
-
-   Characters which are significant both to the shell and in regular
-expressions sometimes need to be double-escaped.  These include
-parentheses, the pipe symbol and the dollar sign.  Eg, to match the
-dollar symbol, bash users should do: 'hledger balance cur:'\$'' or
-'hledger balance cur:\\$'.
-
-   There's more..  options and arguments get de-escaped when hledger is
-passing them to an addon executable.  In this case you might need
-_triple_-escaping.  Eg: 'hledger ui cur:'\\$'' or 'hledger ui
-cur:\\\\$'.
-
-   If in doubt, keep things simple:
-
-   * run add-on executables directly
-   * write options after the command
-   * enclose problematic args in single quotes
-   * if needed, also add a backslash to escape regexp metacharacters
-
-   If you're really stumped, add '--debug=2' to troubleshoot.
-
-
-File: hledger.1.info,  Node: General options,  Next: Input files,  Prev: Special characters,  Up: OPTIONS
-
-2.2 General options
+2.1 General options
 ===================
 
-* Menu:
+To see general usage help, including general options which are supported
+by most hledger commands, run 'hledger -h'.  (Note -h and -help are
+different, like git.)
 
-* General help options::
-* General input options::
-* General reporting options::
-
-
-File: hledger.1.info,  Node: General help options,  Next: General input options,  Up: General options
-
-2.2.1 General help options
---------------------------
+   General help options:
 
 '-h'
 
-     show general usage (or after COMMAND, the command's usage)
+     show general usage (or after COMMAND, command usage)
 '--help'
 
-     show the current program's manual as plain text (or after an add-on
+     show this program's manual as plain text (or after an add-on
      COMMAND, the add-on's manual)
 '--man'
 
-     show the current program's manual with man
+     show this program's manual with man
 '--info'
 
-     show the current program's manual with info
+     show this program's manual with info
 '--version'
 
      show version
@@ -213,11 +160,7 @@ File: hledger.1.info,  Node: General help options,  Next: General input options,
 
      show debug output (levels 1-9, default: 1)
 
-
-File: hledger.1.info,  Node: General input options,  Next: General reporting options,  Prev: General help options,  Up: General options
-
-2.2.2 General input options
----------------------------
+   General input options:
 
 '-f FILE --file=FILE'
 
@@ -239,11 +182,7 @@ File: hledger.1.info,  Node: General input options,  Next: General reporting opt
 
      ignore any failing balance assertions
 
-
-File: hledger.1.info,  Node: General reporting options,  Prev: General input options,  Up: General options
-
-2.2.3 General reporting options
--------------------------------
+   General reporting options:
 
 '-b --begin=DATE'
 
@@ -306,9 +245,67 @@ one takes precedence.  Eg '-p feb -p mar' is equivalent to '-p mar'.
    Some of these can also be written as queries.
 
 
-File: hledger.1.info,  Node: Input files,  Next: Smart dates,  Prev: General options,  Up: OPTIONS
+File: hledger.1.info,  Node: Command options,  Next: Command arguments,  Prev: General options,  Up: OPTIONS
 
-2.3 Input files
+2.2 Command options
+===================
+
+To see options for a particular command, including command-specific
+options, run: 'hledger COMMAND -h'.
+
+   Command-specific options must be written after the command name, eg:
+'hledger print -x'.
+
+   Additionally, if the command is an addon, you may need to put its
+options after a double-hyphen, eg: 'hledger ui -- --watch'.  Or, you can
+run the addon executable directly: 'hledger-ui --watch'.
+
+
+File: hledger.1.info,  Node: Command arguments,  Next: Special characters,  Prev: Command options,  Up: OPTIONS
+
+2.3 Command arguments
+=====================
+
+Most hledger commands accept arguments after the command name, which are
+often a query, filtering the data in some way.
+
+
+File: hledger.1.info,  Node: Special characters,  Next: Input files,  Prev: Command arguments,  Up: OPTIONS
+
+2.4 Special characters
+======================
+
+Option and argument values which contain problematic characters should
+be escaped with double quotes, backslashes, or (best) single quotes.
+Problematic characters means spaces, and also characters which are
+significant to your command shell, such as less-than/greater-than.  Eg:
+'hledger register -p 'last year' "accounts receivable
+(receivable|payable)" amt:\>100'.
+
+   Characters which are significant both to the shell and in regular
+expressions sometimes need to be double-escaped.  These include
+parentheses, the pipe symbol and the dollar sign.  Eg, to match the
+dollar symbol, bash users should do: 'hledger balance cur:'\$'' or
+'hledger balance cur:\\$'.
+
+   There's more..  options and arguments get de-escaped when hledger is
+passing them to an addon executable.  In this case you might need
+_triple_-escaping.  Eg: 'hledger ui cur:'\\$'' or 'hledger ui
+cur:\\\\$'.
+
+   If in doubt, keep things simple:
+
+   * run add-on executables directly
+   * write options after the command
+   * enclose problematic args in single quotes
+   * if needed, also add a backslash to escape regexp metacharacters
+
+   If you're really stumped, add '--debug=2' to troubleshoot.
+
+
+File: hledger.1.info,  Node: Input files,  Next: Smart dates,  Prev: Special characters,  Up: OPTIONS
+
+2.5 Input files
 ===============
 
 hledger reads transactions from a data file (and the add command writes
@@ -363,7 +360,7 @@ the files, eg: 'cat a.journal b.journal | hledger -f- CMD'.
 
 File: hledger.1.info,  Node: Smart dates,  Next: Report start & end date,  Prev: Input files,  Up: OPTIONS
 
-2.4 Smart dates
+2.6 Smart dates
 ===============
 
 hledger's user interfaces accept a flexible "smart date" syntax (unlike
@@ -386,7 +383,7 @@ omitted (defaulting to 1).
 
 File: hledger.1.info,  Node: Report start & end date,  Next: Report intervals,  Prev: Smart dates,  Up: OPTIONS
 
-2.5 Report start & end date
+2.7 Report start & end date
 ===========================
 
 Most hledger reports show the full span of time represented by the
@@ -415,7 +412,7 @@ need to write the date _after_ the last day you want to include.
 
 File: hledger.1.info,  Node: Report intervals,  Next: Period expressions,  Prev: Report start & end date,  Up: OPTIONS
 
-2.6 Report intervals
+2.8 Report intervals
 ====================
 
 A report interval can be specified so that commands like register,
@@ -428,7 +425,7 @@ intervals can not be specified with a query, currently.
 
 File: hledger.1.info,  Node: Period expressions,  Next: Depth limiting,  Prev: Report intervals,  Up: OPTIONS
 
-2.7 Period expressions
+2.9 Period expressions
 ======================
 
 The '-p/--period' option accepts period expressions, a shorthand way of
@@ -503,8 +500,8 @@ start date and exclusive end date):
 
 File: hledger.1.info,  Node: Depth limiting,  Next: Pivoting,  Prev: Period expressions,  Up: OPTIONS
 
-2.8 Depth limiting
-==================
+2.10 Depth limiting
+===================
 
 With the '--depth N' option, commands like account, balance and register
 will show only the uppermost accounts in the account tree, down to level
@@ -513,8 +510,8 @@ N. Use this when you want a summary with less detail.
 
 File: hledger.1.info,  Node: Pivoting,  Next: Regular expressions,  Prev: Depth limiting,  Up: OPTIONS
 
-2.9 Pivoting
-============
+2.11 Pivoting
+=============
 
 Normally hledger sums amounts, and organizes them in a hierarchy, based
 on account name.  The '--pivot TAGNAME' option causes it to sum and
@@ -526,10 +523,9 @@ account names, when tag values have 'multiple:colon-separated:parts'
 hledger will build hierarchy, displayed in tree-mode reports,
 summarisable with a depth limit, and so on.
 
-   '--pivot' affects all reports, and is one of those options you can
-write before the command name if you wish.  You can think of hledger
-transforming the journal before any other processing, replacing every
-posting's account name with the value of the specified tag on that
+   '--pivot' is a general option affecting all reports; you can think of
+hledger transforming the journal before any other processing, replacing
+every posting's account name with the value of the specified tag on that
 posting, inheriting it from the transaction or using a blank value if
 it's not present.
 
@@ -574,7 +570,7 @@ $ hledger balance --pivot member acct:.
 
 File: hledger.1.info,  Node: Regular expressions,  Prev: Pivoting,  Up: OPTIONS
 
-2.10 Regular expressions
+2.12 Regular expressions
 ========================
 
 hledger uses regular expressions in a number of places:
@@ -603,15 +599,13 @@ general they:
      must be enclosed in forward slashes ('/REGEX/').  Elsewhere in
      hledger, these are not required.
 
-   * To match a regular expression metacharacter like '$' as a literal
-     character, prepend a backslash.  Eg to search for amounts with the
-     dollar sign in hledger-web, write 'cur:\$'.
+   * In queries, to match a regular expression metacharacter like '$' as
+     a literal character, prepend a backslash.  Eg to search for amounts
+     with the dollar sign in hledger-web, write 'cur:\$'.
 
    * On the command line, some metacharacters like '$' have a special
-     meaning to the shell and so must be escaped a second time, with
-     single or double quotes or another backslash.  Eg, to match amounts
-     with the dollar sign from the command line, write 'cur:'\$'' or
-     'cur:\\$'.
+     meaning to the shell and so must be escaped at least once more.
+     See Special characters.
 
 
 File: hledger.1.info,  Node: QUERIES,  Next: COMMANDS,  Prev: OPTIONS,  Up: Top
@@ -1854,7 +1848,7 @@ matching names.  It's mainly used in development, but it's also nice to
 be able to check your hledger executable for smoke at any time.
 
 
-File: hledger.1.info,  Node: ADD-ON COMMANDS,  Next: TROUBLESHOOTING,  Prev: COMMANDS,  Up: Top
+File: hledger.1.info,  Node: ADD-ON COMMANDS,  Prev: COMMANDS,  Up: Top
 
 5 ADD-ON COMMANDS
 *****************
@@ -2100,237 +2094,127 @@ hledger-rewrite.hs Adds one or more custom postings to matched
 transactions.
 
 
-File: hledger.1.info,  Node: TROUBLESHOOTING,  Prev: ADD-ON COMMANDS,  Up: Top
-
-6 TROUBLESHOOTING
-*****************
-
-* Menu:
-
-* Run-time problems::
-* Known limitations::
-
-
-File: hledger.1.info,  Node: Run-time problems,  Next: Known limitations,  Up: TROUBLESHOOTING
-
-6.1 Run-time problems
-=====================
-
-Here are some issues you might encounter when you run hledger (and
-remember you can also seek help from the IRC channel, mail list or bug
-tracker):
-
-   *Successfully installed, but "No command 'hledger' found"*
-stack and cabal install binaries into a special directory, which should
-be added to your PATH environment variable.  Eg on unix-like systems,
-that is ~/.local/bin and ~/.cabal/bin respectively.
-
-   *I set a custom LEDGER_FILE, but hledger is still using the default
-file*
-'LEDGER_FILE' should be a real environment variable, not just a shell
-variable.  The command 'env | grep LEDGER_FILE' should show it.  You may
-need to use 'export'.  Here's an explanation.
-
-   *"Illegal byte sequence" or "Invalid or incomplete multibyte or wide
-character" errors*
-In order to handle non-ascii letters and symbols (like £), hledger
-needs an appropriate locale.  This is usually configured system-wide;
-you can also configure it temporarily.  The locale may need to be one
-that supports UTF-8, if you built hledger with GHC < 7.2 (or possibly
-always, I'm not sure yet).
-
-   Here's an example of setting the locale temporarily, on ubuntu
-gnu/linux:
-
-$ file my.journal
-my.journal: UTF-8 Unicode text                 # <- the file is UTF8-encoded
-$ locale -a
-C
-en_US.utf8                             # <- a UTF8-aware locale is available
-POSIX
-$ LANG=en_US.utf8 hledger -f my.journal print   # <- use it for this command
-
-   Here's one way to set it permanently, there are probably better ways:
-
-$ echo "export LANG=en_US.UTF-8" >>~/.bash_profile
-$ bash --login
-
-   If we preferred to use eg 'fr_FR.utf8', we might have to install that
-first:
-
-$ apt-get install language-pack-fr
-$ locale -a
-C
-en_US.utf8
-fr_BE.utf8
-fr_CA.utf8
-fr_CH.utf8
-fr_FR.utf8
-fr_LU.utf8
-POSIX
-$ LANG=fr_FR.utf8 hledger -f my.journal print
-
-   Note some platforms allow variant locale spellings, but not all
-(ubuntu accepts 'fr_FR.UTF8', mac osx requires exactly 'fr_FR.UTF-8').
-
-
-File: hledger.1.info,  Node: Known limitations,  Prev: Run-time problems,  Up: TROUBLESHOOTING
-
-6.2 Known limitations
-=====================
-
-*Command line interface*
-
-   Add-on command options, unless they are also understood by the main
-hledger executable, must be written after '--', like this: 'hledger web
--- --server'
-
-   *Differences from Ledger*
-
-   Not all of Ledger's journal file syntax is supported.  See file
-format differences.
-
-   hledger is slower than Ledger, and uses more memory, on large data
-files.
-
-   *Windows limitations*
-
-   In a windows CMD window, non-ascii characters and colours are not
-supported.
-
-   In a windows Cygwin/MSYS/Mintty window, the tab key is not supported
-in hledger add.
-
-
 Tag Table:
 Node: Top70
-Node: EXAMPLES1883
-Ref: #examples1985
-Node: OPTIONS3631
-Ref: #options3735
-Node: Special characters4649
-Ref: #special-characters4785
-Node: General options5953
-Ref: #general-options6103
-Node: General help options6194
-Ref: #general-help-options6354
-Node: General input options6753
-Ref: #general-input-options6949
-Node: General reporting options7420
-Ref: #general-reporting-options7595
-Node: Input files9027
-Ref: #input-files9162
-Node: Smart dates11125
-Ref: #smart-dates11268
-Node: Report start & end date12247
-Ref: #report-start-end-date12419
-Node: Report intervals13485
-Ref: #report-intervals13650
-Node: Period expressions14051
-Ref: #period-expressions14211
-Node: Depth limiting16551
-Ref: #depth-limiting16695
-Node: Pivoting16896
-Ref: #pivoting17029
-Node: Regular expressions18858
-Ref: #regular-expressions18992
-Node: QUERIES20470
-Ref: #queries20574
-Node: COMMANDS24220
-Ref: #commands24334
-Node: accounts25007
-Ref: #accounts25107
-Node: activity26089
-Ref: #activity26201
-Node: add26560
-Ref: #add26661
-Node: balance29319
-Ref: #balance29432
-Node: Flat mode32374
-Ref: #flat-mode32501
-Node: Depth limited balance reports32921
-Ref: #depth-limited-balance-reports33124
-Node: Multicolumn balance reports33544
-Ref: #multicolumn-balance-reports33746
-Node: Market value38394
-Ref: #market-value38558
-Node: Custom balance output39858
-Ref: #custom-balance-output40031
-Node: Output destination42124
-Ref: #output-destination42289
-Node: CSV output42559
-Ref: #csv-output42678
-Node: balancesheet43075
-Ref: #balancesheet43203
-Node: cashflow45122
-Ref: #cashflow45239
-Node: help47137
-Ref: #help47249
-Node: incomestatement48087
-Ref: #incomestatement48217
-Node: info50132
-Ref: #info50239
-Node: man50603
-Ref: #man50700
-Node: print51105
-Ref: #print51210
-Node: register54966
-Ref: #register55079
-Node: Custom register output59575
-Ref: #custom-register-output59706
-Node: stats61003
-Ref: #stats61109
-Node: test61990
-Ref: #test62077
-Node: ADD-ON COMMANDS62445
-Ref: #add-on-commands62581
-Node: Official add-ons63868
-Ref: #official-add-ons64010
-Node: api64097
-Ref: #api64188
-Node: ui64240
-Ref: #ui64341
-Node: web64399
-Ref: #web64490
-Node: Third party add-ons64536
-Ref: #third-party-add-ons64713
-Node: diff64848
-Ref: #diff64947
-Node: iadd65046
-Ref: #iadd65162
-Node: interest65245
-Ref: #interest65368
-Node: irr65463
-Ref: #irr65563
-Node: Experimental add-ons65641
-Ref: #experimental-add-ons65795
-Node: autosync66188
-Ref: #autosync66302
-Node: budget66541
-Ref: #budget66665
-Node: chart66731
-Ref: #chart66850
-Node: check66921
-Ref: #check67045
-Node: check-dates67112
-Ref: #check-dates67254
-Node: check-dupes67327
-Ref: #check-dupes67470
-Node: equity67547
-Ref: #equity67675
-Node: prices67794
-Ref: #prices67923
-Node: print-unique67978
-Ref: #print-unique68127
-Node: register-match68220
-Ref: #register-match68376
-Node: rewrite68474
-Ref: #rewrite68595
-Node: TROUBLESHOOTING68673
-Ref: #troubleshooting68792
-Node: Run-time problems68846
-Ref: #run-time-problems68989
-Node: Known limitations70936
-Ref: #known-limitations71079
+Node: EXAMPLES1886
+Ref: #examples1988
+Node: OPTIONS3634
+Ref: #options3738
+Node: General options3993
+Ref: #general-options4120
+Node: Command options6643
+Ref: #command-options6796
+Node: Command arguments7194
+Ref: #command-arguments7354
+Node: Special characters7475
+Ref: #special-characters7633
+Node: Input files8801
+Ref: #input-files8939
+Node: Smart dates10902
+Ref: #smart-dates11045
+Node: Report start & end date12024
+Ref: #report-start-end-date12196
+Node: Report intervals13262
+Ref: #report-intervals13427
+Node: Period expressions13828
+Ref: #period-expressions13988
+Node: Depth limiting16328
+Ref: #depth-limiting16474
+Node: Pivoting16675
+Ref: #pivoting16810
+Node: Regular expressions18581
+Ref: #regular-expressions18715
+Node: QUERIES20076
+Ref: #queries20180
+Node: COMMANDS23826
+Ref: #commands23940
+Node: accounts24613
+Ref: #accounts24713
+Node: activity25695
+Ref: #activity25807
+Node: add26166
+Ref: #add26267
+Node: balance28925
+Ref: #balance29038
+Node: Flat mode31980
+Ref: #flat-mode32107
+Node: Depth limited balance reports32527
+Ref: #depth-limited-balance-reports32730
+Node: Multicolumn balance reports33150
+Ref: #multicolumn-balance-reports33352
+Node: Market value38000
+Ref: #market-value38164
+Node: Custom balance output39464
+Ref: #custom-balance-output39637
+Node: Output destination41730
+Ref: #output-destination41895
+Node: CSV output42165
+Ref: #csv-output42284
+Node: balancesheet42681
+Ref: #balancesheet42809
+Node: cashflow44728
+Ref: #cashflow44845
+Node: help46743
+Ref: #help46855
+Node: incomestatement47693
+Ref: #incomestatement47823
+Node: info49738
+Ref: #info49845
+Node: man50209
+Ref: #man50306
+Node: print50711
+Ref: #print50816
+Node: register54572
+Ref: #register54685
+Node: Custom register output59181
+Ref: #custom-register-output59312
+Node: stats60609
+Ref: #stats60715
+Node: test61596
+Ref: #test61683
+Node: ADD-ON COMMANDS62051
+Ref: #add-on-commands62163
+Node: Official add-ons63450
+Ref: #official-add-ons63592
+Node: api63679
+Ref: #api63770
+Node: ui63822
+Ref: #ui63923
+Node: web63981
+Ref: #web64072
+Node: Third party add-ons64118
+Ref: #third-party-add-ons64295
+Node: diff64430
+Ref: #diff64529
+Node: iadd64628
+Ref: #iadd64744
+Node: interest64827
+Ref: #interest64950
+Node: irr65045
+Ref: #irr65145
+Node: Experimental add-ons65223
+Ref: #experimental-add-ons65377
+Node: autosync65770
+Ref: #autosync65884
+Node: budget66123
+Ref: #budget66247
+Node: chart66313
+Ref: #chart66432
+Node: check66503
+Ref: #check66627
+Node: check-dates66694
+Ref: #check-dates66836
+Node: check-dupes66909
+Ref: #check-dupes67052
+Node: equity67129
+Ref: #equity67257
+Node: prices67376
+Ref: #prices67505
+Node: print-unique67560
+Ref: #print-unique67709
+Node: register-match67802
+Ref: #register-match67958
+Node: rewrite68056
+Ref: #rewrite68177
 
 End Tag Table
