@@ -6,5 +6,5 @@ import Test.DocTest
 
 main = do
   fs1 <- filter (not . isInfixOf "/.") <$> glob "Hledger/**/*.hs"
-  fs2 <- filter (not . isInfixOf "/.") <$> glob "other/ledger-parse/**/*.hs"
-  doctest $ ["Hledger.hs"] ++ fs1 ++ fs2
+  -- fs2 <- filter (not . isInfixOf "/.") <$> glob "other/ledger-parse/**/*.hs"
+  doctest $ ["Hledger.hs"] ++ fs1 -- ++ fs2
