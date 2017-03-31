@@ -567,7 +567,7 @@ before generating reports). hledger's account aliases can be useful for:
 - experimenting with new account organisations, like a new hierarchy or combining two accounts into one
 - customising reports
 
-See also [How to use account aliases](how-to-use-account-aliases.html).
+See also [Cookbook: rewrite account names](account-aliases.html).
 
 #### Basic aliases
 
