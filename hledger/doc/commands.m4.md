@@ -169,14 +169,11 @@ _include_({{balance.m4.md}})
 ## balancesheet
 Show a balance sheet. Alias: bs.
 
-`--change`
-: show balance change in each period, instead of historical ending balances
-
-`--cumulative`
-: show balance change accumulated across periods (in multicolumn reports), instead of historical ending balances
-
 `-H --historical`
 : show historical ending balance in each period (includes postings before report start date) (default)
+
+`--change`
+: show balance change in each period, instead of historical ending balances
 
 `--tree`
 : show accounts as a tree; amounts include subaccounts (default in simple reports)
