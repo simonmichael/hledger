@@ -73,8 +73,11 @@ branches:
 
 install: # command output is hidden as they complete
 
-  # if any command fails, end the travis script; warn about nulls
-  - set -eu
+  # if any command fails, end the travis script
+  - set -e
+
+  # warn about nulls ? no, breaks travis
+  #- set -u
 
   # stack
   - mkdir -p ~/.local/bin
