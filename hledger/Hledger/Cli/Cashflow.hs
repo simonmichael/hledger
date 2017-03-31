@@ -27,7 +27,8 @@ cfBV = BalanceView {
          bvhelp     = "show a cashflow statement",
          bvtitle    = "Cashflow Statement",
          bvqueries  = [("Cash flows", journalCashAccountQuery)],
-         bvtype     = PeriodChange
+         bvdeftype  = PeriodChange,
+         bvtypes    = [CumulativeChange, HistoricalBalance]
       }
 
 cashflowmode :: Mode RawOpts

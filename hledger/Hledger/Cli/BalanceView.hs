@@ -33,8 +33,8 @@ data BalanceView = BalanceView {
       bvhelp     :: String,                        -- ^ command line help message
       bvtitle    :: String,                        -- ^ title of the view
       bvqueries  :: [(String, Journal -> Query)],  -- ^ named queries that make up the view
-      bvtype     :: BalanceType                    -- ^ the type of balance this view shows.
-                                                   --   This overrides user input.
+      bvdeftype  :: BalanceType,                   -- ^ the type of balance this view shows.
+      bvtypes    :: [BalanceType]                  -- ^ alternatively allowed types
 }
 
 balanceviewmode :: BalanceView -> Mode RawOpts
@@ -68,8 +68,8 @@ balanceviewmode BalanceView{..} = (defCommandMode $ bvmode : bvaliases) {
  }
  where
    defType :: BalanceType -> String
-   defType bt | bt == bvtype = " (default)"
-              | otherwise    = ""
+   defType bt | bt == bvdeftype = " (default)"
+              | otherwise       = ""
 
 balanceviewQueryReport
     :: ReportOpts
@@ -160,7 +160,7 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
         "cumulative":_ -> Just CumulativeChange
         "change":_     -> Just PeriodChange
         _              -> Nothing
-    balancetype = fromMaybe bvtype overwriteBalanceType
+    balancetype = fromMaybe bvdeftype overwriteBalanceType
     -- we must clarify that the statements aren't actual income statements,
     -- etc. if the user overrides the balance type
     balanceclarification = flip fmap overwriteBalanceType $ \t ->
