@@ -73,14 +73,14 @@ instance Show MultiBalanceReport where
 type ClippedAccountName = AccountName
 
 -- | Generates a single column BalanceReport like balanceReport, but uses
--- multiBalanceReport, so supports --historical. Does not support
--- boring parent eliding yet.
+-- multiBalanceReport, so supports --historical. 
+-- TODO Does not support boring parent eliding or --flat yet.
 singleBalanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
 singleBalanceReport opts q j = (rows', total)
   where
     MultiBalanceReport (_, rows, (totals, _, _)) = multiBalanceReport opts q j
     rows' = [(a
-             ,if tree_ opts then a' else a   -- BalanceReport expects full account name here with --flat
+             ,if flat_ opts then a else a'   -- BalanceReport expects full account name here with --flat
              ,if tree_ opts then d-1 else 0  -- BalanceReport uses 0-based account depths
              , headDef nullmixedamt amts     -- 0 columns is illegal, should not happen, return zeroes if it does
              ) | (a,a',d, amts, _, _) <- rows]
