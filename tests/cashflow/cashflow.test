@@ -12,9 +12,6 @@ Cash flows:
 --------------------
                    1
 
-Total:
---------------------
-                   1
 >>>2
 >>>= 0
 
@@ -48,9 +45,6 @@ Cash flows:
 --------------------
              $-40.00
 
-Total:
---------------------
-             $-40.00
 >>>2
 >>>= 0
 
@@ -84,9 +78,6 @@ Cash flows:
 --------------------
            $9,960.00
 
-Total:
---------------------
-           $9,960.00
 >>>2
 >>>= 0
 
@@ -120,9 +111,6 @@ Cash flows:
 --------------------
           $10,000.00
 
-Total:
---------------------
-          $10,000.00
 >>>2
 >>>= 0
 
@@ -155,9 +143,6 @@ Cash flows:
 --------------------
                    0
 
-Total:
---------------------
-                   0
 >>>2
 >>>= 0
 
@@ -179,7 +164,7 @@ Cashflow Statement
 
 >>>= 0
 
-# 6. Multicolumn test (historical)
+# 7. Multicolumn test (historical)
 hledger -f sample.journal cashflow -p 'monthly in 2008' -A --historical
 >>>
 Cashflow Statement (Historical Ending Balances)
@@ -196,3 +181,65 @@ Cashflow Statement (Historical Ending Balances)
 
 
 >>>= 0
+
+# 8. without -N/--no-total (single column)
+hledger -f sample.journal cf 
+>>>
+Cashflow Statement
+
+Cash flows:
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+--------------------
+                 $-1
+
+>>>2
+>>>=
+
+# 9. with -N (single column)
+hledger -f sample.journal cf -N
+>>>
+Cashflow Statement
+
+Cash flows:
+                 $-1  assets
+                  $1    bank:saving
+                 $-2    cash
+
+>>>2
+>>>=
+
+# 10. without -N (multi column)
+hledger -f sample.journal cf -Y
+>>>
+Cashflow Statement
+
+                    ||  2008 
+====================++=======
+ Cash flows         ||       
+--------------------++-------
+ assets:bank:saving ||    $1 
+ assets:cash        ||   $-2 
+--------------------++-------
+                    ||   $-1 
+
+
+>>>2
+>>>=
+
+# 11. with -N (multi column)
+hledger -f sample.journal cf -Y -N
+>>>
+Cashflow Statement
+
+                    ||  2008 
+====================++=======
+ Cash flows         ||       
+--------------------++-------
+ assets:bank:saving ||    $1 
+ assets:cash        ||   $-2 
+
+
+>>>2
+>>>=

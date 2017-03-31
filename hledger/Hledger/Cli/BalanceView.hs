@@ -15,7 +15,7 @@ module Hledger.Cli.BalanceView (
 ) where
 
 import Control.Monad (unless)
-import Data.List (intercalate, foldl')
+import Data.List (intercalate, foldl', isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Sum(..), (<>))
 import System.Console.CmdArgs.Explicit as C
@@ -100,7 +100,8 @@ multiBalanceviewQueryReport
     -> ([Table String String MixedAmount], [[MixedAmount]], Sum MixedAmount)
 multiBalanceviewQueryReport ropts q0 j t q = ([tabl], [coltotals], Sum tot)
     where
-      ropts' = ropts { no_total_ = False, empty_ = True }
+      singlesection = "Cash" `isPrefixOf` t -- TODO temp 
+      ropts' = ropts { no_total_ = singlesection && no_total_ ropts, empty_ = True }
       q' = And [q0, q j]
       MultiBalanceReport (dates, rows, (coltotals,tot,avg)) =
           multiBalanceReport ropts' q' j
@@ -114,7 +115,7 @@ multiBalanceviewQueryReport ropts q0 j t q = ([tabl], [coltotals], Sum tot)
 
 -- | Prints out a balance report according to a given view
 balanceviewReport :: BalanceView -> CliOpts -> Journal -> IO ()
-balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = do
+balanceviewReport BalanceView{..} CliOpts{command_=cmd, reportopts_=ropts, rawopts_=raw} j = do
     currDay   <- getCurrentDay
     let q0 = queryFromOpts currDay ropts'
     let title = bvtitle ++ maybe "" (' ':) balanceclarification
@@ -125,7 +126,7 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
                  bvqueries
         mapM_ putStrLn (title : "" : views)
 
-        unless (no_total_ ropts') . mapM_ putStrLn $
+        unless (no_total_ ropts' || cmd=="cashflow") . mapM_ putStrLn $ -- TODO temp
           [ "Total:"
           , "--------------------"
           , padleft 20 $ showMixedAmountWithoutPrice (getSum amt)
