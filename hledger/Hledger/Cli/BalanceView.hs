@@ -117,13 +117,13 @@ balanceviewReport :: BalanceView -> CliOpts -> Journal -> IO ()
 balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = do
     currDay   <- getCurrentDay
     let q0 = queryFromOpts currDay ropts'
+    let title = bvtitle ++ maybe "" (' ':) balanceclarification
     case interval_ ropts' of
       NoInterval -> do
         let (views, amt) =
               foldMap (uncurry (balanceviewQueryReport ropts' q0 j))
                  bvqueries
-        mapM_ putStrLn (bvtitle : "" : views)
-        mapM_ putStrLn balanceclarification
+        mapM_ putStrLn (title : "" : views)
 
         unless (no_total_ ropts') . mapM_ putStrLn $
           [ "Total:"
@@ -151,8 +151,7 @@ balanceviewReport BalanceView{..} CliOpts{reportopts_=ropts, rawopts_=raw} j = d
                       (sumAmts ++ (if row_total_ ropts' then [totsum] else [])
                                ++ (if average_ ropts'   then [totavg] else [])
                       )
-        putStrLn bvtitle
-        mapM_ putStrLn balanceclarification
+        putStrLn title
         putStrLn $ renderBalanceReportTable ropts totTabl
   where
     overwriteBalanceType =
