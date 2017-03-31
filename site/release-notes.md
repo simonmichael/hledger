@@ -272,6 +272,10 @@ table borders in multicolumn reports (#522) (Moritz Kiefer)
 These commands are now more powerful, able to show multicolumn reports
 and generally having the same features as the balance command. (Justin Le)
 
+balancesheet has always ignored a begin date specified with a `-b` or
+`-p` option; now it also ignores a begin date specified with a `date:`
+query. (Related discussion at #531)
+
 #### print
 
 The output of print is now always a valid journal (fixes #465) (Mykola Orliuk).
