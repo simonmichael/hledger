@@ -32,7 +32,13 @@
 # OPTIONAL deploy
 # OPTIONAL after_deploy
 # after_script
-
+#
+# we limit the `make` to 40 min
+# to ensure that slow builds still upload their
+# cache results and therefore should be faster
+# (and might work) for the next build
+# - DURATION=2400
+# - scripts/travis-command-wrapper.py -s "date" -i 120 --deadline=$(( $(date +%s) + ${DURATION} )) make
 
 sudo: false
 
@@ -65,10 +71,10 @@ branches:
 #   - ghc: 7.10.3
 #   - ghc: 8.0.2
 
-install: # completed commands' output is collapsed in log
+install: # command output is hidden as they complete
 
-  # if any command fails, end the travis run
-  - set -e
+  # if any command fails, end the travis script; warn about nulls
+  - set -eu
 
   # stack
   - mkdir -p ~/.local/bin
@@ -80,15 +86,14 @@ install: # completed commands' output is collapsed in log
   - stack setup
   - stack exec -- ghc --version
 
-  # hledger dependencies, or at least some of them, built separately to reduce memory usage
+  # hledger dependencies, or at least some of them, built separately to use less memory
   # - stack build --only-dependencies hledger-lib #hledger hledger-ui # --test
     # TODO does this build hledger-lib & hledger, then rebuild them later with -Werror ?
   # - stack build cryptohash
   # - stack build --only-dependencies hledger-web # --test
   # - stack build --only-dependencies hledger-api # --test
-
-  # hledger addon dependencies
-  #- stack build Chart Chart-diagrams colour Diff here
+  # addon dependencies
+  #- stack build Chart Chart-diagrams colour Diff
 
   # shelltestrunner, need unreleased installable version
   #- git clone http://github.com/simonmichael/shelltestrunner
@@ -96,9 +101,12 @@ install: # completed commands' output is collapsed in log
   - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install --stack-yaml=shelltestrunner/stack.yaml --resolver=lts-8.6; fi
   - shelltest --version
 
-script:  # all commands' output is shown in log, all commands must succeed for travis success
+script:  # command output is not hidden
 
-  # build hledger packages, ensuring no warnings, and any deps not already cached, separately to reduce memory
+  # less slow
+
+  # build hledger packages, ensuring no warnings, 
+  # and any deps not already cached, separately to use less memory
   - stack build --ghc-options=-Werror hledger-lib
   - stack build --ghc-options=-Werror hledger
   - stack build --ghc-options=-Werror hledger-ui
@@ -108,19 +116,23 @@ script:  # all commands' output is shown in log, all commands must succeed for t
   # run functional tests, skipping the ones for addons
   - COLUMNS=80 stack exec -- shelltest --execdir -j16 tests -x /bin -x /addons
 
-  # we limit the `make` to 40 min
-  # to ensure that slow builds still upload their
-  # cache results and therefore should be faster
-  # (and might work) for the next build
-  # - DURATION=2400
-  # - scripts/travis-command-wrapper.py -s "date" -i 120 --deadline=$(( $(date +%s) + ${DURATION} )) make
+  # more slow
 
-  # build hledger packages, ensuring no warnings, no haddock failures, package test suites passing 
-  #- stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib hledger hledger-ui
+  # build hledger packages, ensuring no warnings, no haddock failures, package test suites passing,
+  # and any deps not already cached, separately to use less memory
+  #- stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib
+  #- stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger
+  #- stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-ui
   #- stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-web
   #- stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-api
+
   # build hledger addons, ensuring no warnings
+  #- stack build Diff
+  #- stack build Chart 
+  #- stack build diagrams-lib
+  #- stack build Chart-diagrams
   #- sh -e bin/compile.sh
+
   # run functional tests
   #- make functest
 
@@ -129,10 +141,7 @@ script:  # all commands' output is shown in log, all commands must succeed for t
 #  # list directory contents
 #  - pwd
 #  - ls -laF /
-#  - ls -laF /home
 #  - ls -laF $HOME
-#  - ls -laF $HOME/build
-#  - ls -laF $HOME/build/simonmichael
 #  - ls -laF
 #
 #  # coveralls.io coverage reports
