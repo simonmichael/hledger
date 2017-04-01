@@ -56,8 +56,9 @@ change logs.
 
 ## 2017/3/31 hledger 1.2
 
-***more powerful bs/is/cf commands,
-more robust print command,
+***new commands list,
+more powerful balancesheet/incomestatement/cashflow commands,
+more parseable print output,
 better --pivot, 
 basic automated postings and periodic transactions support,
 more and easier addons,

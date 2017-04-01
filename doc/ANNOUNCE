@@ -1,21 +1,26 @@
-Two months since last release, I'm pleased to announce hledger 1.1 !
-Thank you to contributors Johannes Gerer, Nikolay Orlyuk, and Shubham
-Lagwankar, along with all others who contributed in other ways.
+I'm pleased to announce hledger 1.2, on schedule.  Thank you to
+release contributors Peter Simons, Stefano Rodighiero, Moritz Kiefer,
+Pia Mancini, Bryan Richter, Steven R. Baker, Hans-Peter Deifel, Joshua
+Chia, Joshua Kehn, Michael Walker, and especially Mykola Orliuk and
+Justin Le!
+
+Notable user-visible changes in this release:
+new commands list,
+more powerful balancesheet/incomestatement/cashflow commands,
+more parseable print output,
+better --pivot, 
+basic automated postings and periodic transactions support,
+more and easier addons,
+bugfixes.
+
+Full release notes: http://hledger.org/release-notes#hledger-1.2
+The next major release is scheduled for June 30.
 
 hledger (http://hledger.org) is a dependable, precise, cross-platform
 program for tracking money, time, or any other commodity, using
-double-entry accounting and a simple plain text file format.  Inspired
-by the Ledger project, hledger provides command-line, curses and web
-interfaces, and aims to be a robust, practical tool for daily use.
-
-Notable user-visible changes in this release:
-
-- hledger-ui --watch live-updates as files or the current date change,
-  useful eg when reconciling or for a time log dashboard
-
-- Ledger-style balance assignments are now supported in journal files
-
-Full release notes: http://hledger.org/release-notes#hledger-1.1
+double-entry accounting and a simple plain text file format.  It is a
+haskell reimplementation of Ledger, provides command-line, curses and
+web interfaces, and aims to be a robust, practical tool for daily use.
 
 To install this release:
 
@@ -27,12 +32,10 @@ or see http://hledger.org/download for more installation options.
 Our IRC channel is #hledger on Freenode, and you can find out more at
 http://hledger.org.
 
-I hope you enjoy these tools and that they help you achieve your goals.
-If you like hledger, your support and participation is appreciated! 
-Fund us on Gratipay or Bountysource, give feedback, report bugs, send
-pull requests, write about it, etc.
+I hope you enjoy hledger and that it helps you achieve your goals.
+If you have benefitted from hledger, please give back and make it stronger!
+Donate using one of the funding links on the home page, give feedback,
+report bugs, send pull requests, write about it, etc.
 
-Happy 2017! 
-
-Best,
+Best!
 -Simon
