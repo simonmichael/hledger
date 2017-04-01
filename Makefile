@@ -1258,11 +1258,9 @@ tagrelease: \
 # 	)
 # 	for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v2 --check; done
 
-# hackageupload: \
-# 	$(call def-help,hackageupload,\
-# 	upload all packages to hackage\
-# 	)
-# 	for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v2; done
+hackageupload: \
+	$(call def-help,hackageupload, upload all packages to hackage	)
+	for p in $(PACKAGES); do stack upload $$p; done
 
 # RSYNC=rsync
 
