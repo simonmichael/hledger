@@ -11,6 +11,7 @@ module Hledger.Cli.Balancesheet (
  ,tests_Hledger_Cli_Balancesheet
 ) where
 
+import Data.String.Here
 import System.Console.CmdArgs.Explicit
 import Test.HUnit
 
@@ -21,7 +22,11 @@ import Hledger.Cli.BalanceView
 bsBV = BalanceView {
          bvmode     = "balancesheet",
          bvaliases  = ["bs"],
-         bvhelp     = "show a balance sheet",
+         bvhelp     = [here|This command displays a simple balance sheet, showing historical ending
+balances of asset and liability accounts (ignoring any report begin date). 
+It assumes that these accounts are under a top-level `asset` or `liability`
+account (plural forms also  allowed).
+          |],
          bvtitle    = "Balance Sheet",
          bvqueries  = [ ("Assets"     , journalAssetAccountQuery),
                         ("Liabilities", journalLiabilityAccountQuery)

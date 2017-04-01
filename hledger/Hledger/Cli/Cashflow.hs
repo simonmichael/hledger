@@ -14,6 +14,7 @@ module Hledger.Cli.Cashflow (
  ,tests_Hledger_Cli_Cashflow
 ) where
 
+import Data.String.Here
 import System.Console.CmdArgs.Explicit
 import Test.HUnit
 
@@ -24,7 +25,11 @@ import Hledger.Cli.BalanceView
 cfBV = BalanceView {
          bvmode     = "cashflow",
          bvaliases  = ["cf"],
-         bvhelp     = "show a cashflow statement",
+         bvhelp     = [here|This command displays a simple cashflow statement, showing changes
+in "cash" accounts. It assumes that these accounts are under a top-level 
+`asset` account and do not contain `receivable` or `A/R` in their name 
+(plural forms also allowed). 
+          |],
          bvtitle    = "Cashflow Statement",
          bvqueries  = [("Cash flows", journalCashAccountQuery)],
          bvtype     = PeriodChange
