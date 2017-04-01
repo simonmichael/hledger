@@ -442,7 +442,7 @@ Market prices are not tied to a particular transaction; they represent historica
 (Ledger calls them historical prices.)
 For example, the prices published by a [stock exchange](https://en.wikipedia.org/wiki/Stock_exchange)
 or the [foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
-Some commands ([balance](hledger.html#market-value), currently) can use this information to show the market value of things at a given date.
+hledger can use these prices to show the market value of things at a given date, see [market value](#market-value).
 
 To record market prices, use P directives in the main journal or
 in an [included](#including-other-files) file. Their format is:

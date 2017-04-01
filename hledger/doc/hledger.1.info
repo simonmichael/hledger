@@ -126,6 +126,8 @@ File: hledger.1.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 * Period expressions::
 * Depth limiting::
 * Pivoting::
+* Cost::
+* Market value::
 * Regular expressions::
 
 
@@ -508,7 +510,7 @@ will show only the uppermost accounts in the account tree, down to level
 N. Use this when you want a summary with less detail.
 
 
-File: hledger.1.info,  Node: Pivoting,  Next: Regular expressions,  Prev: Depth limiting,  Up: OPTIONS
+File: hledger.1.info,  Node: Pivoting,  Next: Cost,  Prev: Depth limiting,  Up: OPTIONS
 
 2.11 Pivoting
 =============
@@ -568,9 +570,67 @@ $ hledger balance --pivot member acct:.
               -2 EUR
 
 
-File: hledger.1.info,  Node: Regular expressions,  Prev: Pivoting,  Up: OPTIONS
+File: hledger.1.info,  Node: Cost,  Next: Market value,  Prev: Pivoting,  Up: OPTIONS
 
-2.12 Regular expressions
+2.12 Cost
+=========
+
+The '-B/--cost' flag converts amounts to their cost at transaction time,
+if they have a transaction price specified.
+
+
+File: hledger.1.info,  Node: Market value,  Next: Regular expressions,  Prev: Cost,  Up: OPTIONS
+
+2.13 Market value
+=================
+
+The '-V/--value' flag converts the reported amounts to their market
+value on the report end date, using the most recent applicable market
+prices, when known.  Specifically, when there is a market price (P
+directive) for the amount's commodity, dated on or before the report end
+date (see hledger -> Report start & end date), the amount will be
+converted to the price's commodity.  If multiple applicable prices are
+defined, the latest-dated one is used (and if dates are equal, the one
+last parsed).
+
+   For example:
+
+# one euro is worth this many dollars from nov 1
+P 2016/11/01 € $1.10
+
+# purchase some euros on nov 3
+2016/11/3
+    assets:euros        €100
+    assets:checking
+
+# the euro is worth fewer dollars by dec 21
+P 2016/12/21 € $1.03
+
+   How many euros do I have ?
+
+$ hledger -f t.j bal euros
+                €100  assets:euros
+
+   What are they worth on nov 3 ?  (no report end date specified,
+defaults to the last date in the journal)
+
+$ hledger -f t.j bal euros -V
+             $110.00  assets:euros
+
+   What are they worth on dec 21 ?
+
+$ hledger -f t.j bal euros -V -e 2016/12/21
+             $103.00  assets:euros
+
+   Currently, hledger's -V only uses market prices recorded with P
+directives, not transaction prices (unlike Ledger).
+
+   Using -B and -V together is allowed.
+
+
+File: hledger.1.info,  Node: Regular expressions,  Prev: Market value,  Up: OPTIONS
+
+2.14 Regular expressions
 ========================
 
 hledger uses regular expressions in a number of places:
@@ -999,7 +1059,6 @@ $ hledger balance -p 2008/6 expenses --no-total
 * Flat mode::
 * Depth limited balance reports::
 * Multicolumn balance reports::
-* Market value::
 * Custom balance output::
 * Output destination::
 * CSV output::
@@ -1038,7 +1097,7 @@ $ hledger balance -N --depth 1
                   $1  liabilities
 
 
-File: hledger.1.info,  Node: Multicolumn balance reports,  Next: Market value,  Prev: Depth limited balance reports,  Up: balance
+File: hledger.1.info,  Node: Multicolumn balance reports,  Next: Custom balance output,  Prev: Depth limited balance reports,  Up: balance
 
 4.4.3 Multicolumn balance reports
 ---------------------------------
@@ -1138,58 +1197,9 @@ Balance changes in 2008:
 # Average is rounded to the dollar here since all journal amounts are
 
 
-File: hledger.1.info,  Node: Market value,  Next: Custom balance output,  Prev: Multicolumn balance reports,  Up: balance
+File: hledger.1.info,  Node: Custom balance output,  Next: Output destination,  Prev: Multicolumn balance reports,  Up: balance
 
-4.4.4 Market value
-------------------
-
-The '-V/--value' flag converts the reported amounts to their market
-value on the report end date, using the most recent applicable market
-prices, when known.  Specifically, when there is a market price (P
-directive) for the amount's commodity, dated on or before the report end
-date (see hledger -> Report start & end date), the amount will be
-converted to the price's commodity.  If multiple applicable prices are
-defined, the latest-dated one is used (and if dates are equal, the one
-last parsed).
-
-   For example:
-
-# one euro is worth this many dollars from nov 1
-P 2016/11/01 € $1.10
-
-# purchase some euros on nov 3
-2016/11/3
-    assets:euros        €100
-    assets:checking
-
-# the euro is worth fewer dollars by dec 21
-P 2016/12/21 € $1.03
-
-   How many euros do I have ?
-
-$ hledger -f t.j bal euros
-                €100  assets:euros
-
-   What are they worth on nov 3 ?  (no report end date specified,
-defaults to the last date in the journal)
-
-$ hledger -f t.j bal euros -V
-             $110.00  assets:euros
-
-   What are they worth on dec 21 ?
-
-$ hledger -f t.j bal euros -V -e 2016/12/21
-             $103.00  assets:euros
-
-   Currently, hledger's -V only uses market prices recorded with P
-directives, not transaction prices (unlike Ledger).
-
-   Using -B and -V together is allowed.
-
-
-File: hledger.1.info,  Node: Custom balance output,  Next: Output destination,  Prev: Market value,  Up: balance
-
-4.4.5 Custom balance output
+4.4.4 Custom balance output
 ---------------------------
 
 In simple (non-multi-column) balance reports, you can customise the
@@ -1249,7 +1259,7 @@ may be needed to get pleasing results.
 
 File: hledger.1.info,  Node: Output destination,  Next: CSV output,  Prev: Custom balance output,  Up: balance
 
-4.4.6 Output destination
+4.4.5 Output destination
 ------------------------
 
 The balance, print, register and stats commands can write their output
@@ -1262,7 +1272,7 @@ $ hledger balance -o FILE  # write to FILE
 
 File: hledger.1.info,  Node: CSV output,  Prev: Output destination,  Up: balance
 
-4.4.7 CSV output
+4.4.6 CSV output
 ----------------
 
 The balance, print and register commands can write their output as CSV.
@@ -2094,121 +2104,123 @@ Node: EXAMPLES1886
 Ref: #examples1988
 Node: OPTIONS3634
 Ref: #options3738
-Node: General options3993
-Ref: #general-options4120
-Node: Command options6643
-Ref: #command-options6796
-Node: Command arguments7194
-Ref: #command-arguments7354
-Node: Special characters7475
-Ref: #special-characters7633
-Node: Input files8801
-Ref: #input-files8939
-Node: Smart dates10902
-Ref: #smart-dates11045
-Node: Report start & end date12024
-Ref: #report-start-end-date12196
-Node: Report intervals13262
-Ref: #report-intervals13427
-Node: Period expressions13828
-Ref: #period-expressions13988
-Node: Depth limiting16328
-Ref: #depth-limiting16474
-Node: Pivoting16675
-Ref: #pivoting16810
-Node: Regular expressions18581
-Ref: #regular-expressions18715
-Node: QUERIES20076
-Ref: #queries20180
-Node: COMMANDS23826
-Ref: #commands23940
-Node: accounts24613
-Ref: #accounts24713
-Node: activity25695
-Ref: #activity25807
-Node: add26166
-Ref: #add26267
-Node: balance28925
-Ref: #balance29038
-Node: Flat mode31980
-Ref: #flat-mode32107
-Node: Depth limited balance reports32527
-Ref: #depth-limited-balance-reports32730
-Node: Multicolumn balance reports33150
-Ref: #multicolumn-balance-reports33352
-Node: Market value38000
-Ref: #market-value38164
-Node: Custom balance output39464
-Ref: #custom-balance-output39637
-Node: Output destination41730
-Ref: #output-destination41895
-Node: CSV output42165
-Ref: #csv-output42284
-Node: balancesheet42681
-Ref: #balancesheet42809
-Node: cashflow44716
-Ref: #cashflow44833
-Node: help46701
-Ref: #help46813
-Node: incomestatement47651
-Ref: #incomestatement47781
-Node: info49673
-Ref: #info49780
-Node: man50144
-Ref: #man50241
-Node: print50646
-Ref: #print50751
-Node: register54507
-Ref: #register54620
-Node: Custom register output59116
-Ref: #custom-register-output59247
-Node: stats60544
-Ref: #stats60650
-Node: test61531
-Ref: #test61618
-Node: ADD-ON COMMANDS61986
-Ref: #add-on-commands62098
-Node: Official add-ons63385
-Ref: #official-add-ons63527
-Node: api63614
-Ref: #api63705
-Node: ui63757
-Ref: #ui63858
-Node: web63916
-Ref: #web64007
-Node: Third party add-ons64053
-Ref: #third-party-add-ons64230
-Node: diff64365
-Ref: #diff64464
-Node: iadd64563
-Ref: #iadd64679
-Node: interest64762
-Ref: #interest64885
-Node: irr64980
-Ref: #irr65080
-Node: Experimental add-ons65158
-Ref: #experimental-add-ons65312
-Node: autosync65705
-Ref: #autosync65819
-Node: budget66058
-Ref: #budget66182
-Node: chart66248
-Ref: #chart66367
-Node: check66438
-Ref: #check66562
-Node: check-dates66629
-Ref: #check-dates66771
-Node: check-dupes66844
-Ref: #check-dupes66987
-Node: equity67064
-Ref: #equity67192
-Node: prices67311
-Ref: #prices67440
-Node: print-unique67495
-Ref: #print-unique67644
-Node: register-match67737
-Ref: #register-match67893
-Node: rewrite67991
-Ref: #rewrite68112
+Node: General options4019
+Ref: #general-options4146
+Node: Command options6669
+Ref: #command-options6822
+Node: Command arguments7220
+Ref: #command-arguments7380
+Node: Special characters7501
+Ref: #special-characters7659
+Node: Input files8827
+Ref: #input-files8965
+Node: Smart dates10928
+Ref: #smart-dates11071
+Node: Report start & end date12050
+Ref: #report-start-end-date12222
+Node: Report intervals13288
+Ref: #report-intervals13453
+Node: Period expressions13854
+Ref: #period-expressions14014
+Node: Depth limiting16354
+Ref: #depth-limiting16500
+Node: Pivoting16701
+Ref: #pivoting16821
+Node: Cost18592
+Ref: #cost18702
+Node: Market value18820
+Ref: #market-value18957
+Node: Regular expressions20257
+Ref: #regular-expressions20395
+Node: QUERIES21756
+Ref: #queries21860
+Node: COMMANDS25506
+Ref: #commands25620
+Node: accounts26293
+Ref: #accounts26393
+Node: activity27375
+Ref: #activity27487
+Node: add27846
+Ref: #add27947
+Node: balance30605
+Ref: #balance30718
+Node: Flat mode33643
+Ref: #flat-mode33770
+Node: Depth limited balance reports34190
+Ref: #depth-limited-balance-reports34393
+Node: Multicolumn balance reports34813
+Ref: #multicolumn-balance-reports35024
+Node: Custom balance output39672
+Ref: #custom-balance-output39860
+Node: Output destination41953
+Ref: #output-destination42118
+Node: CSV output42388
+Ref: #csv-output42507
+Node: balancesheet42904
+Ref: #balancesheet43032
+Node: cashflow44939
+Ref: #cashflow45056
+Node: help46924
+Ref: #help47036
+Node: incomestatement47874
+Ref: #incomestatement48004
+Node: info49896
+Ref: #info50003
+Node: man50367
+Ref: #man50464
+Node: print50869
+Ref: #print50974
+Node: register54730
+Ref: #register54843
+Node: Custom register output59339
+Ref: #custom-register-output59470
+Node: stats60767
+Ref: #stats60873
+Node: test61754
+Ref: #test61841
+Node: ADD-ON COMMANDS62209
+Ref: #add-on-commands62321
+Node: Official add-ons63608
+Ref: #official-add-ons63750
+Node: api63837
+Ref: #api63928
+Node: ui63980
+Ref: #ui64081
+Node: web64139
+Ref: #web64230
+Node: Third party add-ons64276
+Ref: #third-party-add-ons64453
+Node: diff64588
+Ref: #diff64687
+Node: iadd64786
+Ref: #iadd64902
+Node: interest64985
+Ref: #interest65108
+Node: irr65203
+Ref: #irr65303
+Node: Experimental add-ons65381
+Ref: #experimental-add-ons65535
+Node: autosync65928
+Ref: #autosync66042
+Node: budget66281
+Ref: #budget66405
+Node: chart66471
+Ref: #chart66590
+Node: check66661
+Ref: #check66785
+Node: check-dates66852
+Ref: #check-dates66994
+Node: check-dupes67067
+Ref: #check-dupes67210
+Node: equity67287
+Ref: #equity67415
+Node: prices67534
+Ref: #prices67663
+Node: print-unique67718
+Ref: #print-unique67867
+Node: register-match67960
+Ref: #register-match68116
+Node: rewrite68214
+Ref: #rewrite68335
 
 End Tag Table

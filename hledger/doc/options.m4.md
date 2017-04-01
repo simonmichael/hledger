@@ -315,6 +315,58 @@ $ hledger balance --pivot member acct:.
               -2 EUR
 ```
 
+## Cost
+
+The `-B/--cost` flag converts amounts to their cost at transaction time, 
+if they have a [transaction price](/journal.html#transaction-prices) specified.
+
+## Market value
+
+The `-V/--value` flag converts the reported amounts to their market value
+on the report end date, using the most recent applicable market prices,
+when known.
+Specifically, when there is a [market price](journal.html#market-prices) (P directive)
+for the amount's commodity, dated on or before the
+[report end date](hledger.html#report-start-end-date) (see hledger -> Report start & end date), 
+the amount will be converted to the price's commodity.
+If multiple applicable prices are defined, the latest-dated one is used
+(and if dates are equal, the one last parsed).
+
+For example:
+
+```journal
+# one euro is worth this many dollars from nov 1
+P 2016/11/01 € $1.10
+
+# purchase some euros on nov 3
+2016/11/3
+    assets:euros        €100
+    assets:checking
+
+# the euro is worth fewer dollars by dec 21
+P 2016/12/21 € $1.03
+```
+How many euros do I have ?
+```
+$ hledger -f t.j bal euros
+                €100  assets:euros
+```
+What are they worth on nov 3 ? (no report end date specified, defaults to the last date in the journal)
+```
+$ hledger -f t.j bal euros -V
+             $110.00  assets:euros
+```
+What are they worth on dec 21 ?
+```
+$ hledger -f t.j bal euros -V -e 2016/12/21
+             $103.00  assets:euros
+```
+
+Currently, hledger's -V only uses market prices recorded with P directives,
+not [transaction prices](journal.html#transaction-prices) (unlike Ledger).
+
+Using -B and -V together is allowed.
+
 ## Regular expressions
 
 hledger uses [regular expressions](http://www.regular-expressions.info) in a number of places:
