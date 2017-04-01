@@ -4,7 +4,7 @@ stdin.
 
 File: hledger_journal.5.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
-hledger_journal(5) hledger dev
+hledger_journal(5) hledger 1.2
 ******************************
 
 hledger's usual data source is a plain text file containing journal
@@ -699,7 +699,7 @@ be useful for:
      or combining two accounts into one
    * customising reports
 
-   See also How to use account aliases.
+   See also Cookbook: rewrite account names.
 * Menu:
 
 * Basic aliases::
@@ -1015,29 +1015,29 @@ Node: Directives24495
 Ref: #directives24610
 Node: Account aliases24803
 Ref: #account-aliases24949
-Node: Basic aliases25548
-Ref: #basic-aliases25693
-Node: Regex aliases26383
-Ref: #regex-aliases26553
-Node: Multiple aliases27324
-Ref: #multiple-aliases27498
-Node: end aliases27996
-Ref: #end-aliases28138
-Node: account directive28239
-Ref: #account-directive28421
-Node: apply account directive28717
-Ref: #apply-account-directive28915
-Node: Multi-line comments29574
-Ref: #multi-line-comments29766
-Node: commodity directive29894
-Ref: #commodity-directive30080
-Node: Default commodity30952
-Ref: #default-commodity31127
-Node: Default year31664
-Ref: #default-year31831
-Node: Including other files32254
-Ref: #including-other-files32413
-Node: EDITOR SUPPORT32810
-Ref: #editor-support32930
+Node: Basic aliases25553
+Ref: #basic-aliases25698
+Node: Regex aliases26388
+Ref: #regex-aliases26558
+Node: Multiple aliases27329
+Ref: #multiple-aliases27503
+Node: end aliases28001
+Ref: #end-aliases28143
+Node: account directive28244
+Ref: #account-directive28426
+Node: apply account directive28722
+Ref: #apply-account-directive28920
+Node: Multi-line comments29579
+Ref: #multi-line-comments29771
+Node: commodity directive29899
+Ref: #commodity-directive30085
+Node: Default commodity30957
+Ref: #default-commodity31132
+Node: Default year31669
+Ref: #default-year31836
+Node: Including other files32259
+Ref: #including-other-files32418
+Node: EDITOR SUPPORT32815
+Ref: #editor-support32935
 
 End Tag Table

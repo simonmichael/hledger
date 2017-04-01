@@ -3,7 +3,7 @@ This is hledger.1.info, produced by makeinfo version 6.0 from stdin.
 
 File: hledger.1.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
-hledger(1) hledger dev
+hledger(1) hledger 1.2
 **********************
 
 This is hledger's command-line interface (there are also curses and web
@@ -1344,13 +1344,11 @@ Total:
 --------------------
                    0
 
-   If given a period flag, renders a multi-column balance with the same
-format as 'balance', with asset and liability totals as well as an
-overall total if desired.
-
-   This command shows normally historical end-balance reports, but for
-flexibility, also accepts '--cumulative' and '--change' to display
-cumulative ending balances and changes in reporting periods.
+   With a reporting interval, multiple columns will be shown, one for
+each report period.  As with multicolumn balance reports, you can alter
+the report mode with '--change'/'--cumulative'/'--historical'.  Normally
+balancesheet shows historical ending balances, which is what you need
+for a balance sheet; note this means it ignores report begin dates.
 
 
 File: hledger.1.info,  Node: cashflow,  Next: help,  Prev: balancesheet,  Up: COMMANDS
@@ -1417,12 +1415,10 @@ Total:
 --------------------
                  $-1
 
-   If given a period flag, renders a multi-column balance with the same
-format as 'balance'.
-
-   This command normally shows period change reports, but for
-flexibility, also accepts '--cumulative' and '--historical' to display
-cumulative ending balances and historical ending balances, as well.
+   With a reporting interval, multiple columns will be shown, one for
+each report period.  Normally cashflow shows changes in assets per
+period, though as with multicolumn balance reports you can alter the
+report mode with '--change'/'--cumulative'/'--historical'.
 
 
 File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: cashflow,  Up: COMMANDS
@@ -1528,12 +1524,10 @@ Total:
 --------------------
                    0
 
-   If given a period flag, renders a multi-column balance with the same
-format as 'balance'.
-
-   This command normally shows period change reports, but for
-flexibility, also accepts '--cumulative' and '--historical' to display
-cumulative ending balances and historical ending balances, as well.
+   With a reporting interval, multiple columns will be shown, one for
+each report period.  Normally incomestatement shows revenues/expenses
+per period, though as with multicolumn balance reports you can alter the
+report mode with '--change'/'--cumulative'/'--historical'.
 
 
 File: hledger.1.info,  Node: info,  Next: man,  Prev: incomestatement,  Up: COMMANDS
@@ -2152,69 +2146,69 @@ Node: CSV output42165
 Ref: #csv-output42284
 Node: balancesheet42681
 Ref: #balancesheet42809
-Node: cashflow44728
-Ref: #cashflow44845
-Node: help46743
-Ref: #help46855
-Node: incomestatement47693
-Ref: #incomestatement47823
-Node: info49738
-Ref: #info49845
-Node: man50209
-Ref: #man50306
-Node: print50711
-Ref: #print50816
-Node: register54572
-Ref: #register54685
-Node: Custom register output59181
-Ref: #custom-register-output59312
-Node: stats60609
-Ref: #stats60715
-Node: test61596
-Ref: #test61683
-Node: ADD-ON COMMANDS62051
-Ref: #add-on-commands62163
-Node: Official add-ons63450
-Ref: #official-add-ons63592
-Node: api63679
-Ref: #api63770
-Node: ui63822
-Ref: #ui63923
-Node: web63981
-Ref: #web64072
-Node: Third party add-ons64118
-Ref: #third-party-add-ons64295
-Node: diff64430
-Ref: #diff64529
-Node: iadd64628
-Ref: #iadd64744
-Node: interest64827
-Ref: #interest64950
-Node: irr65045
-Ref: #irr65145
-Node: Experimental add-ons65223
-Ref: #experimental-add-ons65377
-Node: autosync65770
-Ref: #autosync65884
-Node: budget66123
-Ref: #budget66247
-Node: chart66313
-Ref: #chart66432
-Node: check66503
-Ref: #check66627
-Node: check-dates66694
-Ref: #check-dates66836
-Node: check-dupes66909
-Ref: #check-dupes67052
-Node: equity67129
-Ref: #equity67257
-Node: prices67376
-Ref: #prices67505
-Node: print-unique67560
-Ref: #print-unique67709
-Node: register-match67802
-Ref: #register-match67958
-Node: rewrite68056
-Ref: #rewrite68177
+Node: cashflow44716
+Ref: #cashflow44833
+Node: help46701
+Ref: #help46813
+Node: incomestatement47651
+Ref: #incomestatement47781
+Node: info49673
+Ref: #info49780
+Node: man50144
+Ref: #man50241
+Node: print50646
+Ref: #print50751
+Node: register54507
+Ref: #register54620
+Node: Custom register output59116
+Ref: #custom-register-output59247
+Node: stats60544
+Ref: #stats60650
+Node: test61531
+Ref: #test61618
+Node: ADD-ON COMMANDS61986
+Ref: #add-on-commands62098
+Node: Official add-ons63385
+Ref: #official-add-ons63527
+Node: api63614
+Ref: #api63705
+Node: ui63757
+Ref: #ui63858
+Node: web63916
+Ref: #web64007
+Node: Third party add-ons64053
+Ref: #third-party-add-ons64230
+Node: diff64365
+Ref: #diff64464
+Node: iadd64563
+Ref: #iadd64679
+Node: interest64762
+Ref: #interest64885
+Node: irr64980
+Ref: #irr65080
+Node: Experimental add-ons65158
+Ref: #experimental-add-ons65312
+Node: autosync65705
+Ref: #autosync65819
+Node: budget66058
+Ref: #budget66182
+Node: chart66248
+Ref: #chart66367
+Node: check66438
+Ref: #check66562
+Node: check-dates66629
+Ref: #check-dates66771
+Node: check-dupes66844
+Ref: #check-dupes66987
+Node: equity67064
+Ref: #equity67192
+Node: prices67311
+Ref: #prices67440
+Node: print-unique67495
+Ref: #print-unique67644
+Node: register-match67737
+Ref: #register-match67893
+Node: rewrite67991
+Ref: #rewrite68112
 
 End Tag Table

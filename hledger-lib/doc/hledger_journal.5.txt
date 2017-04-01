@@ -539,7 +539,7 @@ FILE FORMAT
 
        o customising reports
 
-       See also How to use account aliases.
+       See also Cookbook: rewrite account names.
 
    Basic aliases
        To set an account alias, use the alias directive in your journal  file.
@@ -766,4 +766,4 @@ SEE ALSO
 
 
 
-hledger dev                      January 2017               hledger_journal(5)
+hledger 1.2                       March 2017                hledger_journal(5)
