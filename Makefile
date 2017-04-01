@@ -1250,7 +1250,7 @@ site/manual-start.md: $(VERSIONFILE) \
 
 tagrelease: \
 	$(call def-help,tagrelease, commit a release tag based on $(VERSIONFILE) for each package )
-	for p in $(PACKAGES); do git tag $$p-$(VERSION); done
+	for p in $(PACKAGES); do git tag -f $$p-$(VERSION); done
 
 # hackageupload-dry: \
 # 	$(call def-help,hackageupload-dry,\
