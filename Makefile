@@ -533,6 +533,17 @@ $(call def-help-subsection,TESTING:)
 test: pkgtest builtintest functest \
 	$(call def-help,test, run default tests )
 
+travistest: \
+	$(call def-help,travistest, run tests similar to the most thorough travis tests)
+	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib
+	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger
+	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-ui
+	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-web
+	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-api
+	sh -e bin/compile.sh
+	make functest
+
+
 # test-ghc-%: # bin/hledgerdev.ghc-$* \
 # 	$(call def-help,test-ghc-%,\
 # 	run default tests with a specific GHC version\
