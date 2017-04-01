@@ -2,6 +2,19 @@ User-visible changes in hledger-ui.
 See also the hledger and project change logs.
 
 
+# 1.2 (2016/3/31)
+
+Fix a pattern match failure when pressing E on the transaction screen (fixes #508)
+
+Accounts with ? in name had empty registers (fixes #498) (Bryan Richter)
+
+Allow brick 0.16 (Joshua Chia) and brick 0.17/vty 0.15 (Peter Simons)
+
+Allow megaparsec 5.2 (fixes #503)
+
+Allow text-zipper 0.10
+
+
 # 1.1.1 (2017/1/20)
 
 -   allow brick 0.16 (Joshua Chia)

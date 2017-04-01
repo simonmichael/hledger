@@ -2,6 +2,37 @@ API-ish changes in the hledger-lib package.
 See also the hledger and project change logs (for user-visible changes).
 
 
+# 1.2 (2016/3/31)
+
+## journal format
+
+A pipe character can optionally be used to delimit payee names in
+transaction descriptions, for more accurate querying and pivoting by
+payee.  Eg, for a description like `payee name | additional notes`,
+the two parts will be accessible as pseudo-fields/tags named `payee`
+and `note`.
+
+Some journal parse errors now show the range of lines involved, not just the first.
+
+## ledger format
+
+The experimental `ledger:` reader based on the WIP ledger4 project has
+been disabled, reducing build dependencies.
+
+## Misc
+
+Fix a bug when tying the knot between postings and their parent transaction, reducing memory usage by about 10% (#483) (Mykola Orliuk)
+
+Fix a few spaceleaks (#413) (Moritz Kiefer)
+
+Add Ledger.Parse.Text to package.yaml, fixing a potential build failure.
+
+Allow megaparsec 5.2 (#503)
+
+Rename optserror -> usageError, consolidate with other error functions
+
+
+
 # 1.1 (2016/12/31)
 
 ## journal format

@@ -2,6 +2,130 @@ User-visible changes in the hledger and hledger-lib packages.
 See also the project change log.
 
 
+# 1.2 (2016/3/31)
+
+## CLI
+
+"hledger" and "hledger -h" now print a better organised commands list
+and general usage message respectively (#297).
+
+The common reporting flags can now be used anywhere on the command line.
+
+Fixed deduplication of addons in commands list.
+
+Fixed ugly stack traces in command line parse error messages.
+
+The -V/--value flag is now a global report flag, so it works with
+balance, print, register, balancesheet, incomestatement, cashflow,
+etc. (Justin Le)
+
+The `--pivot` global reporting option replaces all account names with
+the value of some other field or tag. It has been improved, eg:
+
+- we don't add the field/tag name name as a prefix
+- when pivoting on a tag, if the tag is missing we show a blank 
+  (rather than showing mixed tag values and account names)
+- a pipe character delimiter may be used in descriptions to get a more accurate
+  and useful payee report (`hledger balance --pivot payee`)
+
+options cleanups
+
+## Addons
+
+Easier installation:
+move add-ons and example scripts to bin/, 
+convert to stack scripts,
+add a build script to install all deps,
+add some functional tests,
+test add-ons with Travis CI,
+add installation docs to download page.
+
+Improved docs: 
+all addons now contain their own documentation. Most of them (all but
+hledger-budget) use a new reduced-boilerplate declaration format
+and can show short (-h) and long (--help) command line help.
+(Long help is declared with pre and postambles to the generated
+options help, short help is that truncated at the start of the hledger
+common flags.)
+
+`hledger` now shows a cleaner list of addon commands, showing only the
+compiled version of an addon when both source and compiled versions
+are in $PATH. (Addons with .exe extension or no extension are
+considered compiled.  Modification time is not checked, ie, an old
+compiled addon will override a newer source version.  If there are
+three or more versions of an addon, all are shown.  )
+
+New addons added/included:
+
+- autosync - example symlink to ledger-autosync
+- budget - experimental budget reporting command supporting Ledger-like periodic transactions and automated transactions (Mykola Orliuk)
+- chart - pie-chart-generating prototype, a repackaging of the old hledger-chart tool
+- check - more powerful balance assertions (Michael Walker)
+- check-dupes - find accounts sharing the same leaf name (Stefano Rodighiero)
+- prices - show all market price records (Mykola Orliuk)
+- register-match - a helper for ledger-autosync's deduplication, finds best match for a transaction description
+
+The equity command now always generates a valid journal transaction,
+handles prices better, and adds balance assertions (Mykola Orliuk).
+
+The rewrite command is more robust and powerful (Mykola Orliuk):
+
+- in addition to command-line rewrite options, it understands rewrite rules
+  defined in the journal, similar to Ledger's automated transactions (#99).
+  Eg:
+    ```journal
+    = ^income
+        (liabilities:tax)  *.33
+
+    = expenses:gifts
+        budget:gifts  *-1
+        assets:budget  *1
+    ```
+
+- it can generate diff output, allowing easier review of the proposed
+  changes, and safe modification of original journal files (preserving
+  file-level comments and directives). Eg:
+    ```
+    hledger-rewrite --diff Agency --add-posting 'Expenses:Taxes  *0.17' | patch
+    ```
+
+- rewrites can affect multiple postings in a transaction, not just one.
+
+- posting-specific dates are handled better
+
+## balance
+
+A new --pretty-tables option uses unicode characters for rendering
+table borders in multicolumn reports (#522) (Moritz Kiefer)
+
+## balancesheet/cashflow/incomestatement
+
+These commands are now more powerful, able to show multicolumn reports
+and generally having the same features as the balance command. (Justin Le)
+
+balancesheet has always ignored a begin date specified with a `-b` or
+`-p` option; now it also ignores a begin date specified with a `date:`
+query. (Related discussion at #531)
+
+## print
+
+The output of print is now always a valid journal (fixes #465) (Mykola Orliuk).
+
+print now tries to preserves the format of implicit/explicit balancing
+amounts and prices, by default. To print with all amounts explicit,
+use the new `--explicit/-x` flag (fixes #442). (Mykola Orliuk)
+    
+Don't lose the commodity of zero amounts/zero balance assertions (fixes #475) (Mykola Orliuk)
+
+## Misc
+
+Fix a regression in the readability of option parsing errors (#478) (Hans-Peter Deifel)
+
+Fix an example in Cli/Main.hs (Steven R. Baker)
+
+Allow megaparsec 5.2 (#503)
+
+
 # 1.1 (2016/12/31)
 
 ## balance
