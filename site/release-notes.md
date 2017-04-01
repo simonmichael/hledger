@@ -82,14 +82,14 @@ Joshua Chia,
 Joshua Kehn,
 Michael Walker.
 
-  [project](#project-wide-changes)
+  [project](#project-wide-changes-for-1.2)
 | [hledger-lib](#hledger-lib-1.2)
 | [hledger](#hledger-1.2-1)
 | [hledger-ui](#hledger-ui-1.2)
 | [hledger-web](#hledger-web-1.2)
 | [hledger-api](#hledger-api-1.2)
 
-### project-wide changes
+### project-wide changes for 1.2
 
 #### Packaging
 
@@ -332,14 +332,14 @@ bugfixes
 Release contributors:
 Simon Michael, Johannes Gerer, Mykola Orliuk, Shubham Lagwankar.
 
-  [project-wide](#project-wide-changes)
+  [project-wide](#project-wide-changes-for-1.1)
 | [hledger-lib](#hledger-lib-1.1)
 | [hledger](#hledger-1.1-1)
 | [hledger-ui](#hledger-ui-1.1)
 | [hledger-web](#hledger-web-1.1)
 | [hledger-api](#hledger-api-1.1)
 
-### project-wide changes
+### project-wide changes for 1.1
 
 #### misc
 
@@ -475,14 +475,14 @@ Simon Michael, Dominik Süß, Thomas R. Koll, Moritz Kiefer,
 jungle-boogie, Sergei Trofimovich, Malte Brandy, Sam Doshi, 
 Mitchell Rosen, Hans-Peter Deifel, Brian Scott, and Andrew Jones.
 
-  [project-wide](#project-wide-changes)
+  [project-wide](#project-wide-changes-for-1.0)
 | [hledger-lib](#hledger-lib-1.0)
 | [hledger](#hledger-1.0-1)
 | [hledger-ui](#hledger-ui-1.0)
 | [hledger-web](#hledger-web-1.0)
 | [hledger-api](#hledger-api-1.0)
 
-### project-wide changes
+### project-wide changes for 1.0
 
 #### misc
 
