@@ -228,14 +228,13 @@ Total:
                    0
 ```
 
-If given a period flag, renders a multi-column balance with the same format as
-`balance`, with asset and liability totals as well as an overall total if
-desired.
-
-This command shows normally historical end-balance reports, but for flexibility, also
-accepts `--cumulative` and `--change` to display cumulative ending balances and
-changes in reporting periods.
-
+With a [reporting interval](#reporting-interval), multiple columns
+will be shown, one for each report period.
+As with [multicolumn balance reports](#multicolumn-balance-reports),
+you can alter the report mode with `--change`/`--cumulative`/`--historical`.
+Normally balancesheet shows historical ending balances, which is what
+you need for a balance sheet; note this means it ignores report begin
+dates.
 
 ## cashflow
 Show a cashflow statement. Alias: cf.
@@ -296,12 +295,11 @@ Total:
                  $-1
 ```
 
-If given a period flag, renders a multi-column balance with the same format as
-`balance`.
-
-This command normally shows period change reports, but for flexibility, also
-accepts `--cumulative` and `--historical` to display cumulative ending balances and
-historical ending balances, as well.
+With a [reporting interval](#reporting-interval), multiple columns
+will be shown, one for each report period.
+Normally cashflow shows changes in assets per period, though
+as with [multicolumn balance reports](#multicolumn-balance-reports)
+you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 
 ## help
 Show any of the hledger manuals.
@@ -400,12 +398,11 @@ Total:
                    0
 ```
 
-If given a period flag, renders a multi-column balance with the same format as
-`balance`.
-
-This command normally shows period change reports, but for flexibility, also
-accepts `--cumulative` and `--historical` to display cumulative ending balances and
-historical ending balances, as well.
+With a [reporting interval](#reporting-interval), multiple columns
+will be shown, one for each report period.
+Normally incomestatement shows revenues/expenses per period, though
+as with [multicolumn balance reports](#multicolumn-balance-reports)
+you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 
 ## info
 Show any of the hledger manuals using info.
