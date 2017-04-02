@@ -119,20 +119,22 @@ Cabal users can use the `cabal-install.sh` or `cabal.project` files instead.
 
 <a name="d"></a>
 
-## D. I want to install all add-on commands
+## D. I want to install more commands
 
-Additional [add-on commands](http://hledger.org/hledger.html#add-on-commands) can be installed with stack 
+Additional [add-on commands](http://hledger.org/hledger.html#add-on-commands) 
 (hledger-diff,
 hledger-iadd,
 hledger-interest,
-hledger-irr), as in B above.
-Eg: `stack install hledger-iadd-1.2.1` or `stack install --resolver nightly hledger-iadd`.
+hledger-irr)
+can be installed, as in B above.
+Eg:\
+`stack install hledger-iadd-1.2.1` or `stack install --resolver nightly hledger-iadd`.
 
 Others, more experimental, are [included](https://github.com/simonmichael/hledger/tree/master/bin)
 in the hledger source repo; to install these:
 
 1. **Download the hledger source code** (as in C above)
-2. **In the hledger directory, run `bin/compile.sh`** (installs dependencies, compiles for speed)
-3. **Add the `hledger/bin/` directory to your `$PATH`** (as in B above)
+2. **In the hledger directory, run `bin/compile.sh`** (installs dependencies & compiles for speed)
+3. **Add the `hledger/bin/` directory to your `$PATH`** (as in B above) 
 
 Now you should be able to run `hledger iadd --version`, `hledger check --help` etc.
