@@ -1,4 +1,4 @@
-#!/usr/bin/env hledger bal -MEAT revenues expenses -f
+#!/usr/bin/env hledger incomestatement -MAT -f
 
 ; hledger project finances in hledger (and Ledger) format.
 ; Arbitrarily starting 2017/1/1.
@@ -67,12 +67,12 @@
 
 ** example reports
 
-; # monthly income statement in dollars
+; # monthly income statement
 ; # ./hledger.journal, or:
-; $ hledger -f hledger.journal bal -MEAT revenues expenses
+; $ hledger -f hledger.journal is -MAT
 
 ; # monthly balance sheet
-; $ hledger -f hledger.journal bal -MHE assets liabilities
+; $ hledger -f hledger.journal bs -M
 
 ; # to include work time, add -f hledger-work.journal [-V]
 
