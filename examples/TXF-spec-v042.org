@@ -1,0 +1,1796 @@
+Latest Intuit TXF file spec from https://turbotax.intuit.com/txf as of 2017,
+converted to org outline.
+
+* TXF Spec Version 042
+
+Topic:          Tax Exchange Format
+Change Date:    11/30/11
+File:           TXF
+Version:        042
+
+____________________________________________________________
+TABLE OF CONTENTS BY SECTION HEADINGS
+
+I.     CONTACTS
+
+II.    REVISION HISTORY
+
+III.   W-2 SPOUSE TOKENS
+
+IV.    CHANGES
+
+V.     NEW TOKEN SUGGESTIONS
+
+VI.    QUESTIONS
+
+VII.  TAX LINE ITEM MAINTENANCE FILE DESCRIPTION
+       A.   Description
+       B.   Codes and Definitions of Fields
+
+VIII. EXAMPLE FILE
+
+IX.   TABLE FORMAT
+       A.   Table Column Header Descriptions
+
+X.    CATEGORIES
+
+
+** I.    CONTACTS
+
+The following list contains the names and contact people for
+companies interested in the Tax Exchange Format.  The most
+recent version of this spec can be obtained by contacting
+Intuit.
+
+*** Company : Intuit
+Product : TurboTax
+Contact : Kathy Eusepi : Maintains TXF at Intuit
+ Email  : IDESupport@intuit.com
+
+*** Company : Block Financial Corporation
+Product : TaxCut
+Address :
+  51 York Terrace
+  Brookline, MA 02146
+
+*** Company : Meca Software LLC
+Product : Managing Your Money
+Address :
+  115 Corporate Drive
+  Trumbull, CT 06611-1386
+
+*** Company : Checkfree Corporation
+Product : Checkfree
+Address :
+  8275 N. High Street
+  Columbus, OH 43235
+
+*** Company : MicroSoft
+Product : MicroSoft Money
+Address :
+  1 MicroSoft Way
+  Redmond, WA 98052-6339
+
+*** Company : PrioSoft
+Product : Priority One Plus
+Address : 1816 Rambling Ridge Lane
+	    Suite 301
+          Baltimore, MD 21209
+
+*** Company : Universal Tax Systems
+Product : TaxWise
+Address :
+  215 Broad Street
+  Rome GA 30161
+
+*** Company : Computer Associates
+Product : CA-Simply Money
+Address :
+  10505 Sorrento Valley Road
+  San Diego, CA 92121
+
+*** Company : Charles Schwab Co., Inc.
+Address :
+  101 Montgomery Street
+  San Francisco, CA 94104
+
+*** Company : Financial Navigator Int'l
+Product : Financial Navigator
+Address :
+  254 Polaris Ave.
+  Mountain View, CA 94043
+
+*** Company : Peachtree Software
+Address :
+  1506 Pavilion Place
+  Norcross, GA 30093
+
+*** Company : Price Waterhouse
+Address :
+  55 E. Monroe
+  Chicago, IL 60603
+
+*** Company : Financial Microsystems, Inc.
+Address :
+  3000 Langford Rd. Suite 2500
+  Norcross, GA 30071
+
+*** Company : Professional Design Systems, Inc.
+Address :
+  1975 Linden Blvd.
+  Elmont, NY 11003-4004
+
+*** Company : State of the Art, Inc.
+Address :
+  56 Technology
+  Irvine, CA 92718
+
+*** Company : Boardroom Accounting Software
+Product : Boardroom Accounting
+Address :
+  1488 Sandbridge Road
+  Virginia Beach, VA 23456-4024
+
+*** Company : Chicago Soft Works
+Address :
+  4050 West North Ave. Suite 200
+  Chicago, IL 60639
+
+*** Company : HMS Companies
+Address :
+  507 N. Sam Houston Pkwy E.
+  Houston, TX 77060-0000
+
+*** Company : RDS Software, Inc.
+Product : Boldline Finance
+Address :
+  35 Fallen Arrow Drive
+  Hilton Head Island, SC 29926
+
+*** Company : Solutions Unlimited
+Address :
+  3140 K South Peoria St. #268
+  Aurora, CO 80014
+
+*** Company : Farallon Communications, Inc.
+Address :
+  2470 Mariner Square Loop
+  Alameda, CA 94501-1010
+
+*** Company : Tax Track Inc.
+Address :
+  P.O. Box 270126
+  Corpus Christi, TX 78427
+
+*** Company : Tax$imple:AJV Computerized Data Management
+Product : Tax Simple
+Address :
+  8 Emory Ave
+  Randolph, New Jersey 07869
+
+*** Company : Axcent Software
+Address :
+  4635 S. Lakeshore
+  Tempe, AZ 85282
+
+*** Company : Spinoza Limited
+Product : unnamed (Visual Basic Tool)
+Address :
+  11333 Iowa Ave., 1st floor
+  West Los Angeles, CA 90025
+
+*** Company : Ernst & Young
+Address :
+  6550 Rock Spring Drive, Suite 400
+  Bethesda, MD 20817
+
+*** Company : Audisys Software
+Product : TAXi
+Address :
+  12505 NW Cornell Road
+  Portland, OR 97229
+
+*** Company : Computer Language Research
+Product : Fasttax
+Address :
+  2395 Midway Road
+  Carrollton, Texas 75006
+
+*** Company : CCH Inc.
+Product : ProSystems fx
+Address :
+  555 North Woodland, Bldg 4
+  Wichita, Kansas 67208
+
+*** Company : Prodata
+Product : MJA Accounting for Windows
+Address :
+  12101 Menaul Blvd NE
+  Albuquerque, NM 87122-2403
+
+*** Company : SmartTax Limited
+Product : SmartTax
+Address :
+  600 Hawthorn Road
+  East Brighton. 3187.
+  Victoria, Australia
+
+*** Company : Fidelity Investments
+Address :
+  82 Devonshire Street, MS R20E
+  Boston, MA 02109
+
+*** Company:	Fidelity Investments
+Product: 	TLA - Tax Lot Accounting
+Address:
+		82 Devonshire Street, Mailzone V11D
+		Boston, MA 02109
+
+*** Company : Kask Software
+Product : Childcare Professional
+          Farm Professional
+Address :
+  P.O. Box 1143
+  Minot, ND 58702-1143
+
+*** Company : Specialty SoftwareWorks, Ltd 
+Product : Custom financial nicheware
+Address : 
+  7350 Taos Drive
+  Colorado Springs, CO  80920
+
+*** Company : Which? Software 
+Product : TaxCalc
+Address : 
+  2 Marylebone Road
+  London, England NW1 4DF 
+ 
+*** Company : E*Trade Group, Inc. 
+
+*** Company : MultiWare Inc 
+
+*** Company : SofTech Computer Systems, Inc.
+Product : Option Money 
+Address : 307 Clearview Dr
+          Hollidaysburg, PA  16648
+
+*** Company : Sync Essentials
+Product : Trade Accountant
+Address : P.O. Box 250
+          Mountain View, CA 94042
+
+
+____________________________________________________
+** II.   REVISION HISTORY
+*** 11/30/2011 042 KEusepi (Intuit) Added 7 new taxrefs to supplement cost basis reporting and Form 8949 copy issues.
+                                See Section IV for more info. Updated examples for sales.
+
+*** 08/25/2011 042 Keusepi (Intuit) Extend Record Format 5 to allow sending Disallowed Wash Sale amount for taxrefs
+                                321,323,682,673; bumped to version 042; updated examples and dates;
+                                updated forms for 2011;
+*** 10/25/2004 041 KEusepi (Intuit) Removed obsolete PostMay5 gain references 684(Div),677(Div),675(K1P.
+                                Renamed 1099-MSA to 1099-SA. 
+*** 11/10/2003 040 kEusepi (Intuit) Removed/updated contact info
+*** 10/9/2003  040 KEusepi (Intuit) Updated tax forms for TY03. Added 683 Qualified Dividend (see Schedule B)
+                                                                  684 PostMay5CapGain (see Schedule B)
+                                                                  685 Contract Labor (Schedule C)
+*** 1/9/2003   039 KEusepi (Intuit) Fixed typo in Section VIII Example 2C Wash Sale. Replaced N679 with N682
+                        Thank you to Henry Gage for the catch.
+*** 10/4/2002  039 KEusepi (Intuit) Added K1 Total Foreign Tax (taxref 679);
+                                      1040 Educator Expenses for self and spouse (taxref 680,681)
+                                      Schedule D - wash sale (taxref 682) - see Section IV and VIII below
+*** 10/1/2002  039 KEusepi (Intuit) updated the tax forms for 2002. Removed outdated Contacts
+*** 8/28/2002  039 KEusepi(Intuit) bumped version to 039. Added new IRS form 1099-Q (taxref 678). Moved taxref number
+           672 from the 1099G to the new 1099-Q. Updated the examples.
+
+*** 10/2/2001  038 KEusepi (Intuit) added 674,675 and 676 to the K1 Partnership.
+                                added 677 for Qualified 5-year Gain.
+*** 9/8/2001   038 KEusepi (Intuit) updated forms for 2001. Bumped version to 038
+           Removed obsolete taxref numbers from the old form 2119 - 396,397,399.
+           Removed obsolete taxref 482, IRA contrib,Non-working spouse.
+*** 9/13/2000  037 KEusepi (Intuit) updated forms for 2000 
+
+*** 2/6/2000   037 KEusepi (Intuit)
+          Updated addresses info. Bumped version number to 037
+
+*** 11/11/1999 036 KEusepi (Intuit)
+         Due to overwhelming vendor request, added new taxref for the following: 
+         Token 673 - SchD: Short/Long gain or loss. This was requested by vendors
+                   for the situation where the date acquired may not be available,
+                   so the type of gain/loss (short or long) cannot be determined. 
+
+         Added token 672 (Qualified State Tuition) to the 1099-G
+
+         Updated the Example section (VIII) to use version 036, and to
+         show how to use the new SchD token.         
+      
+         Updated the contact list
+  
+ 9/26/1999 035 Kathy Eusepi (Intuit)
+             Changed date format to mm/dd/yyyy. This will
+             effect the following:
+              . the export date in the TXF header
+              . the dates in record format 4, 5 and 6
+              . the date in the 'X' detail line
+             
+             Updated the vendor list
+             Added new tokens for 1099Div and 1099Int
+                1099OID, 1099R
+             Updated the tax form lime numbers for 1999
+ 8/01/1998 034 Kathy Eusepi (Intuit)
+             Added new tokens for education credits
+             Form 8863 is not in yet. Place holders for 637,638,639 
+ 7/07/1998 034 Kathy Eusepi (Intuit)
+             Updated the tax form line numbers for 1998
+             Changed line numbers for 268;521;323;402;421;424;
+             Added new tokens:
+             636 - Student loan interest (1040:L24)  
+
+*** 10/17/97 034 Georgia Taft (Intuit)
+            Removed AlleyCat Software from Contacts
+            Updated Contacts with email addresses
+
+*** 9/23/97  033 Georgia Taft (Intuit)
+            Corrected phone numbers of some contacts
+            Updated Section VIII, Example File
+
+*** 9/09/97  032 Georgia Taft (Intuit)
+            Added Form 1099-G, Certain Government Payments
+            Moved tokens #260, #479, #605, #606 to Form 1099-G
+              to accommodate multiple payers
+
+*** 8/20/97  031 Georgia Taft (Intuit)
+            Added five companies to Contacts section
+            Removed Parsons from Contacts section; contact is now Intuit
+            Added tokens:
+              Form 1040: #605-#614
+              Schedule B: #615-#616
+              Form 8839 Adoption Credit (new form): #617-#622
+              Form 1099-R: #623-#628
+              Form 1099-MSA Medical Savings Account Distributions
+                 (new form) #629-#633
+
+*** 9/15/96  030 Georgia Taft (Intuit)
+            Per notation in version 027 (last year) under Section IV. Changes,
+             token #459, Spouse for W-2 has been removed
+            Section IV. Changes - see note re: parsing of 'X' field in detail
+             records
+            Corrected copy code for Schedule H tokens to 'N'
+            Added 'spouse' to description of token #546
+            Corrected duplication of token #562
+            Removed token #566, Spouse, for Schedule H
+            Added to I. Contacts
+
+*** 8/13/96  029 Georgia Taft (Intuit)
+            Section IV. Changes - see note re: Spouse tokens for W-2
+            Section X. Categories:
+              Added tokens #603 and #604 for Payer to Form 1099-R
+              Corrected token #302 sorting code to 'C'
+
+*** 6/28/96  028 Georgia Taft (Intuit)
+            Section I. Contacts: updated/corrected contact names
+            Section X. Categories:
+              Corrected the sign to 'S' for tokens 292, 447, 459, 474, 498,
+                504, 514, 515, 525, 526
+              Updated tax form line numbers for 1995 forms
+              Removed the word 'gambling' from token 259
+              Added Form W-2G, tokens 547-552
+              Moved token 267 from Form 1040 to Form W-2
+              Added new token 546 for Spouse moving exp. reimbursement
+                to Form W-2, spouse
+              Added Form 1099-MISC, tokens 553-564
+              Added Schedule H, tokens 565-568
+              Added Form 4835, tokens 569-602
+
+*** 8/16/95  027 Georgia Taft (Intuit)
+            Corrected/added contact names.
+
+*** 8/10/95  026 Georgia Taft (Intuit)
+            Added token #545 "Home mortgage int. (no 1098)" to Schedule A
+            Edited description of token #544 to "Home mortgage int. (1098)"
+
+*** 7/26/95  025 Georgia Taft (Intuit)
+            Updated Contact names
+            Updated Tax Form line numbers with 1994 references
+            Updated VIII. Example File; added Schedule D example
+            Removed tokens for Form 3903, Moving Expenses:
+               #404, #405, #408-411
+            Added tokens for Form 8829, Home Office Expenses:
+               #536 Form 8829
+               #537 Deductible mortgage interest
+               #538 Real estate taxes
+               #539 Insurance
+               #540 Repairs and maintenance
+               #541 Utilities
+               #542 Other expenses
+            Added token #543 for Schedule F, Car and truck expense
+            Added token #544 for Schedule A, Local taxes;
+               removed word 'local' from token #275
+            Corrected token #277; record format 3, not 1
+            Corrected token #515; record format 0, not 1
+            Section IV. Changes - added notation
+            Section V. New Token Suggestions - added notation
+            Section VI. Questions - answered questions and added question
+               regarding International numbers
+
+*** 8/10/94  024 Georgia Taft (Intuit)
+            Added names of companies using TXF
+            Edited new 1099R tokens to identify type of income to which
+               the withholding is associated:
+               Form 1099R:
+                 #529 Pension federal withholding
+                 #530 Pension state withholding
+                 #531 Pension local withholding
+            Added new 1099R tokens for withholding for IRA's:
+                 #532 IRA federal withholding
+                 #533 IRA state withholding
+                 #534 IRA local withholding
+            Added new token for new line on 1994 Schedule A:
+                 #535 Personal property taxes
+            Edited description of token #445
+            Wanted to update the examples and include examples of
+              capital gain record format, but ran out of time.  Will place
+              on enhancement list for next version.
+
+*** 7/22/94  023 Georgia Taft (Intuit)
+            Assigned each Section a Roman numeral
+            Added Table of Contents, by Section heading
+            Delimited end of file with 
+            Section VII, A. Description
+               added adviso that set of common fields are in recommended
+               order added new Record Format 6 to be used for estimated tax
+               payments
+               NOTE: if using new Record Format 6, use corresponding new
+                     token numbers
+                          #521 fed est. tax, qrtrly;
+                          #522 state est. tax, qrtrly
+               bumped number of record formats to 7
+               advised record format 1 'amount' placed before 'X' detail line
+            Section VII, B. Codes and Definitions of Fields
+               corrected heading of 'P' Detail to 'X' Detail
+               corrected heading of 'X' Description to 'P' Description.  Also
+                     removed reference to this line being valid only for
+                     multi-line items.
+               added description for "D" Date Paid, for new Record Format 6
+            Section IX, A. Table Column Header Descriptions:
+               removed reference to '(type 4)'
+            Section X, Categories
+               last refnum used = 531
+               updated line references to 1993 tax forms
+               tokens removed:
+                     Schedule C:
+                       295 Cost of goods sold
+                     Schedule D:
+                       322 ST gain/loss - other
+                       324 LT gain/loss - other
+                     NOTE: moving expense tokens not removed at this time
+               tokens added:
+                     Form 1040:
+                       516 Keogh Deduction, Spouse
+                       517 SEP Deduction
+                       518 SEP Deduction, Spouse
+                       519 RR Retirement income
+                       520 RR Retirement inc, Spouse
+                       521 Fed est. tax, qrtrly
+                     Schedule A:
+                       522 State est. tax, qrtrly
+                       523 Misc. (not subject to 2%)
+                     Schedule B:
+                       524 Seller financed mtge int.
+                     Form 2119:
+                       525 Spouse
+                     Form 3903:
+                       526 Spouse
+                     Schedule K-1:
+                       527 Royalties
+                       528 Tax-exempt interest
+                     Form 1099R:
+                       529 Federal Withholding
+                       530 State Withholding
+                       531 Local Withholding
+                edited tokens:
+                       319 changed "Description" to "Principal Business/Prof"
+                       501 changed "Description" to "Principal Business/Prof"
+                       355 changed "Vet fees and medicine" to "Vet, breeding,
+                            and medicine"
+                       368 changed "Sales of livestock raised" to
+                            "Sales livestock/crops raised"
+                       379 changed "Principal Business/Prof" to
+                            "Principal Product"
+                       445, 475, 476, 477, 478  changed 'FRM'
+                            from a '3' to a '1'
+                       all Form 2119 tokens changed to multiple copy
+                       all Form 3903 tokens changed to multiple copy
+                       all Form 4684 tokens changed to multiple copy
+            NOTE: The TXF file generated by future versions of Quicken (Dos 8,
+                  Mac 5,Win 4)will follow the spec for the location of 'sales net'
+                  "cost basis" in Record Format 4 for capital gains.  However,
+                  previous version did have the locations of these fields reversed
+                  and must be taken into consideration when imported by tax
+                  preparation software.
+
+*** 8/10/93  022 Georgia Taft(ChipSoft)
+            Added Pencil Pushers to list of TXF users.
+
+*** 8/9/93   021 Wendell Smith (LKS)
+            fix to layout in table at end and replaced tab's with spaces
+              in this file.
+
+*** 7/30/93  020 Georgia Taft(ChipSoft)
+            Added, deleted, updated company contacts.
+            Updated federal form line references for 1992 forms.
+            Edited:
+              RNum 290 changed to multiple copy
+              RNum 302 changed to Record Format 3
+              RNum 321-324 modified category name
+              RNum 321-324 'Sgn' has been changed to 'I'
+              RNum 340 deleted (no longer on Sch E)
+              RNum 380-391 changed to multiple copy
+              RNum 412-417 changed to single copy
+              RNum 418-424 changed to single copy
+              RNum 425 changed to single copy
+              RNum 437-440 changed to multiple copy
+            Added:
+              RNum 514 Spouse designation for Schedule F
+              RNum 515 Spouse designation for Form 8606
+
+            NOTE: Intuit's Quicken products will continue to reverse the
+            Record Format 4 for capital gains this year - the 'sales net'
+            precedes the 'cost basis'.  All other users of the TXF have
+            indicated theywill follow the Format 4 that is included in this
+            spec (the 'cost basis' precedes the 'sales net').
+
+*** 6/3/93   019 Wendell Smith
+            Reviewed and integrated new tokens entered by Georgia Taft.
+            New tokens are #482 - #513 and mostly are for new fields.
+            THE MAJOR EXCEPTION is new fields for W2-Spouse!!! see
+            a note below the revision history as to how these must be
+            used.
+
+            THIS SET OF TOKENS IS TO BE VIEWED AS THE 1993 SET
+
+            The expectation is that we will NOT make major changes as of
+            this version.
+
+*** 6/2/93   018 Georgia Taft
+            Updated ChipSoft contact people.
+            Modified spec to add 32 new tokens.
+            Removed #354 Breeding Fees, no longer a separate line on Sch F
+            (now included in Veterinary and medicine, line 33).
+            Requesting that reference numbers 1000 and above be
+            reserved for international use.
+
+*** 4/1/93   017 Wendell Smith
+
+*** 2/1/93   016 Wendell Smith
+            Update line numbers for 1992 forms - no spec changes
+            Some of the line numbers still refer to 1990 -- I ran out
+            of time and passed this file back to Alex before finishing
+            the update... next time.
+
+*** 11/6/92  015 Wendell Smith
+            New Tokens being considered:
+
+              Support for Cap Gains in Dividends
+              Purchases on Sched C
+
+            Tokens to remove:
+
+              340 : Schedule E has changed.
+
+*** 8/9/92   014 Wendell Smith
+            added note about the meaning of "default" for fields
+
+*** 4/23/92  013 Wendell Smith
+            Modified some of the contact names and phone numbers.
+            - Clarified various areas of the spec. (no changes to spec)
+            - Removed W2-P categories.  This form was not used in 1991.
+            For future reference categories removed will be moved to
+            a section at the end of the document.
+            - Modified spec for Sched D items (format 4) the spec was in
+            error, the first amount should be the cost and the second the
+            sale price.
+            - Removed EFN column in the table.  If we need this later we
+            can add it in, currently it was not filled in and was unused.
+            - The line number references in the table must be updated to
+            1991.
+
+*** 9/16/91  011 Craig Carlson     Added Rod Costler from
+            Checkfree Corp.  Also merged in file that describes line
+            items so that they all are together in a nice, neat
+            package.
+
+*** 9/8/91   010 Wendell Smith (lks)
+            480 Added new category for W2 "Medicare Tax Withholding"
+            462 "FICA" changed to "Soc Sec Tax Withholding"
+            262 changed to "IRA Contribution Self"
+                NOTE: this is the total not the deductible portion.
+            481 "IRA Contribution Spouse"
+            263 "Keogh Payments" -> "Keogh Deduction"
+
+*** 8/29/91  009 Wendell Smith (lks)
+            Modification to category names
+
+            419  "LT dep. loss - business"
+            420  "LT dep. gain - business"
+            422  "LT dep. loss - res. rent."
+            423  "LT dep. gain - res. rent."
+
+            Removal of categories
+
+            278  "Credit card interest"
+            279  "Other personal interest"
+
+
+*** 6/24/91  008 Craig Carlson (intuit)
+            Added contact names.
+
+*** 6/19/91  007 Wendell Smith (lks)
+            Merged in changed from Jim and started RefNum at 256 as per
+            discussion with Craig.  Also merged in modifications to Types
+
+*** 6/19/91  006 Jim Calvin (lks)
+            Reviewed.  Changed Pension/IRA income categories.  Changed
+            Form 4797 categories.  Sched F description.  Form 6252 Gross
+            Profit Percentage.  Form 8815, deleted line 6 (goes to an IRS
+            worksheet or TaxCut worksheet, not line 6).
+
+*** 6/18/91  005 Wendell Smith (lks)
+            Modified format to match spec dated 5/28 from Intuit
+            Added two new formats, 4 and 5 and commented on spec from 5/28
+
+
+____________________________________________________________
+** III.  W2-SPOUSE tokens 6/3/93
+
+A set of tokens for W2-Spouse have been added to support Quicken products.
+The tokens were added to avoid the need to use the "spouse"
+token for W2's.  It is critical that the copy numbers be managed
+correctly with these new tokens as the copy number passed with
+the refnum will NOT be the copy number of the W-2 in the tax program.
+The copy number with the W2-Spouse tokens must be kept separate
+from the copy numbers for the W2-Self tokens.
+
+SO if there were 3 w2-spouse copies and 2 w2-self copies
+the resulting tax return will have 5 copies but the copy numbers
+may be mixed so the matchup might look like:
+
+Finance Program       Tax Program
+  w2-spouse (1)   ->  w2 (1)
+  w2-self (1)     ->  w2 (2)
+  w2-spouse (2)   ->  w2 (3)
+  w2-spouse (3)   ->  w2 (4)
+  w2-self (2)     ->  w2 (5)
+
+____________________________________________________________
+** IV.   CHANGES
+*** 11/30/2011 - added seven new taxrefs to supplement existing taxrefs (321,323,673 and 682) used for reporting sales of securities.
+  Sales get reported on Copy A, B or C of the new Form 8949, and then flow to the Sch D.
+  These new taxrefs will allow you to indicate which copy of Form 8949 a sale belongs on:
+  Form 8949 Copy A : (you repored cost basis for this sale to the IRS using Form 1099B Box 3)
+      321 (Short term holding period); 323 (long term holding period); 673 (you don't know the holding period); 682 (wash);
+
+  Form 8949 Copy B : (you provide cost basis to customer, but you do NOT report it to the IRS using Form 1099B Box 3)
+      711 (short term, Copy B); 713 (long term, Copy B); 715 (unknown holding period, Copy B); 718 (wash, Copy B)
+
+  Form 8949 Copy C : (no 1099B issued customer or IRS)
+      712 (short term, Copy C); 714 (long term, Copy C); 716 (unknown holding period, Copy C)
+   
+*** 08/25/2011 - expanded the use for Record Format 5 to support new
+   Cost Basis requirements. Record Format 5 will now allow sending Disallowed Cost Basis amount for
+   tax refs 321,323, 673,682. 
+
+*** 10/04/2002 - added a taxref for the reporting of wash sales (taxref 682)
+   682 will use record format 4 - the same as short term gain/loss (321) and
+   long term gain/loss (323).
+
+*** 10/02/2001 - Clarification:  the "Line" indicator in the layout of the
+  table is used for the IRS line location. This may cause confusion when 
+  looking for taxrefs in the Spec. Example: a new taxref (677) was 
+  added to version 038 for 'Qualified 5-year gain' - this amount may get reported 
+  on a 1099-Div, but ends up on the Schedule D when filing the return. So,
+  677 is located in the SchD section of the Spec. Historically, the Spec has
+  always put the taxref in the section of the form/schedule where the 
+  data will actually get reported. Another example would be the 
+  taxref's for Interest. Interest may get reported on a 1099-Int, but it
+  ends up getting reported on the Sch B, so those taxrefs are in the Schedule B
+  section of the Spec.
+  
+*** 11/11/1999 - Added a new token (673) to SchD for Short/Long term gain
+          or loss. This token can be used when you cannot accurately 
+          determine whether the gain/loss from a sale is short or long term.
+
+          Note: As is the case with any token in this TXF spec, you may
+                want to verify that the software you are creating the
+                TXF file for supports this token.
+
+*** 6/26/1999 - Changed all date formats to mm/dd/yyyy 
+   
+*** 9/10/96 - 'X' detail line proposal: Some financial programs export detail
+information in the 'X' line of a detail (TD) record format.  To facilitate
+parsing this information, for those tax programs who wish to import all
+or some of the string, it is recommended that a standard columnar separation
+be followed:
+
+      X identifier        1 char        Position 0:0
+      Date                8 chars       Position 1:8
+      Account            30 chars       Position 10:39
+      Check Number        6 chars       Position 41:46
+      Payee              40 chars       Position 48:87
+      Memo               40 chars       Position 89:128
+      Category           15 chars       Position 130:144
+
+The upcoming versions of Quicken Win 6.0 and Quicken Mac 7.0 will follow these
+guidelines to test the feasibility of this columnar separation.  Please contact
+Georgia Taft @ Intuit with your suggestions, comments, and/or objections
+to this proposed standard.
+
+*** 8/13/96 - Since we have implemented a separate set of W-2 tokens strictly for
+the spouse, token #459 will be removed in the next version of the spec (summer
+*** 1997).  Please contact Georgia Taft @ Intuit if you are using the spouse
+token #459.
+
+*** 2/1/93 - Perhaps we should modify the spec to indicate that the purchase
+amount for cap gains should be reported as positive (This is how quicken and
+MYM are currently set up.)  7/26/95(GT) - spec was never updated with this
+information, but appears industry has followed.
+
+Should we revise the spec to have purchase amount after selling amount?
+this is how quicken is currently setup. (MYM9 has reversed this)
+7/26/95(GT) - In 1994, Quicken reversed output to follow the spec.
+____________________________________________________________
+** V.    NEW TOKENS
+
+11/07/92 - tokens for Keogh Self/Spouse (replace single keogh token)
+7/26/95 - these tokens added to version 024
+
+____________________________________________________________
+** VI.   QUESTIONS
+
+What should the "sort" category for the Schedule D items be?  The Tax forms
+require each transaction (sale) to be reported as a separate item.  This is
+also true for form 4797. 7/26/95(GT) - this question must have been posed
+when the spec was being written.  There is no special sorting for
+Schedule D.
+
+Should the "type" for items such as SchedE "Other expenses" be "2"?
+7/26/95(GT) - Other expenses are usually record format 3; the type is either
+S or D for Type Detail or Type Summary.
+
+7/26/95
+We originally set aside token numbers 1000 and above
+for International use. There is some concern that we could run out of
+available numbers for U.S. programs.  Has anyone begun using the 1000
+and above refnums for International?  Does anyone have a problem with
+increasing these to 2000 and above?
+
+____________________________________________________________
+** VII.  TAX LINE ITEM MAINTENANCE FILE DESCRIPTION.
+*** A. Description
+
+This file is used for maintenance of the tax items available to accounting
+software for export to tax preparation software.  Intuit will maintain
+this file and make it available to all interested parties (accounting and
+tax software providers), but the tax software companies are to provide
+updates to the information as it becomes available to them.
+
+The file will be maintained as an ascii file with no tabs.
+
+The "Tax Export Format" specifies the format of a file containing records
+of tax data where each record defines the critical information required by
+the tax products to process the record.  The record format is defined as
+an ascii file where each record is separated by a marker line which has one
+character "^".  Each field in the exchange record is a separate line with
+a single character at start of the line defining the field in the record
+the line is referring to.
+
+For each type of record there are two flavors.  The first and most
+important is the summary record.  Each tax item should have one summary
+record for each line on the tax form.  Preceding a summary record, there
+may be one or many detail records that provide supporting detail for the
+summary record.  In all cases these detail record may be safely ignored by
+the tax software.  However, they may be useful as supporting information.
+
+There will be a header at the top of the file with several items to help
+synchronize this file with tax programs.
+
+All Tax Exchange Files should have a header which defines what version
+of this spec was used as well as what program was used to create
+the import file.
+
+The fields for the Header of the file are:
+
+  V version
+  A accounting program name/version
+  D export date
+
+For each exchange record there are a set of common fields. This is the
+recommended order:
+
+  T type
+  N refnum
+  C copy
+  L line
+  X detail
+
+There are 7 record formats, labeled 0 through 6 with various
+additional fields.
+
+The fields for these record formats are:
+
+Record Format 0
+  
+
+  Note: used for boolean records such as "spouse" indicator
+
+Record Format 1 (placed before the 'X' detail line in the record)
+  $ amount
+
+Record Format 2
+  P Text value
+
+  Note: String value used for "description" fields such as Sched C Line A
+
+Record Format 3
+  $ amount
+  P description
+
+  Note: used for fields such as interest where bank name/account#
+        and $ amount required.
+
+Record Format 4
+  P security
+  D date acquired
+  D date sold
+  $ cost basis
+  $ sales net (net of commission)
+
+Record Format 5
+  P security
+  D date acquired
+  D date sold
+  $ cost basis
+  $ sales net
+  $ Depreciation Allowed OR Disallowed wash sale amount (added for TY11)
+
+  Note: expanded Format 5 to use for new TY11 cost basis reporting rules. Format 5 will
+   be used with Taxrefs 321,323,673,682,711,712,713,714,715,716 when reporting a disallowed wash sale amount. 
+
+Record Format 6
+  D date paid
+  $ amount paid
+  P state initials
+
+  Note: used for quarterly federal and state estimated tax payments; state
+        initials ignored for federal estimates.
+
+*** B. Codes and Definition of Fields
+
+"V" Version
+  Indicates which version of the tax line item maintenance file was used to
+  export this file. The current number can be found at the top of this file.
+
+"A" Accounting Program Name/Version
+  Indicates which program (including version) exported this file.
+
+"D" Export Date
+  Date on which this file was exported.
+
+"T" Type
+  Either S for summary or D for detail.  Default value is S.
+
+"N" Refnum
+  The tax category refnum for this item.  There is not default value (it
+  must be supplied).  This refnum should come from the tax line item
+  maintenance file.
+
+"C" Copy
+  Integer between 1 and 255.  Default value is 1.  This is the copy number
+  for multi-copy forms (such as Schedule C.)  If there is only one copy, the
+  value should be 1.
+
+"L" Line
+  A positive integer.  The default value is 1.  This is the line number for
+  multi-line items, such as interest income on Schedule B.  If there is only
+  one line item, this number should be 1.
+
+"X" Detail
+  Extra text that can be used by the tax software, if desired.  The initial
+  intent of this field is for use in a supporting statement.
+
+"$" Amount
+  This is the dollar amount for the item.  Income, gains, and money received
+  are positive numbers.  Expenses, losses, and money spent (including tax
+  payments) are negative numbers.
+
+"P" Description
+  A string describing this particular line.  This is the value that is
+  different and describes the line and therefore should appear on the line
+  on the tax form.
+
+"P" Security
+  Name of security for schedule D.
+
+"D" Date Acquired
+  Acquisition date.  It should be in the form MM/DD/YYYY.
+
+"D" Date Sold
+  Sale date.  It should be in the form MM/DD/YYYY.
+
+"D" Date Paid
+  Payment date.  It should be in the form MM/DD/YYYY.
+
+
+Default means that a line does not need to be supplied not that if the
+field is supplied with no value the "default" will be used.  So if
+NO "C" field is supplied then the default of Copy 1 is to be used.
+
+____________________________________________________________
+
+** VIII. EXAMPLE FILES
+*** EXAMPLE 1:
+  1.  The user has a Quicken category called donations.  They set the tax
+      item for this category to "Schedule A:Cash Charity Contributions".
+
+  2.  They apply "Schedule B:Interest income" to their category
+      called Interest Earned.
+
+  3.  They have expense categories called Ads:Magazine and Ads:TV.  They
+      apply the tax item "Schedule C:Advertising" to both of these
+      categories.
+
+For example given the following entries a sample export file is included.
+
+  Schedule A; Charitable Contributions          $625.00
+  Schedule B; Interest Income     Checking      $120.00
+                                  Savings       $220.00
+  Schedule C; Advertising         Ads:Magazine  $568.00
+                                  Ads:TV        $100.00
+
+------ < start of file > -------
+V042
+AQuicken 2011 for Windows R1
+D 08/20/2011
+^
+TD
+N280
+C1
+L1
+$-500.00
+X 2/20/2011 Our Checking                   1011   United Way
+^
+TD
+N280
+C1
+L1
+$-125.00
+X 2/24/2011 Our Checking                   1012   Red Cross
+^
+TS
+N280
+C1
+L1
+$-625.00
+^
+TD
+N287
+C1
+L1
+$90.00
+X 3/24/2011 Our Checking                   DEP    Interest earned
+^
+TD
+N287
+C1
+L1
+$30.00
+X 4/24/2011 Our Checking                   DEP    Interest earned
+^
+TS
+N287
+C1
+L1
+$120.00
+POur Checking
+^
+TD
+N287
+C1
+L2
+$120.00
+X 1/28/2011 Savings 1                      DEP    Interest earned
+^
+TD
+N287
+C1
+L2
+$100.00
+X 1/30/2011 Savings 1                      DEP    Interest earned
+^
+TS
+N287
+C1
+L2
+$220.00
+PSavings 1
+^
+TD
+N304
+C1
+L1
+$-568.00
+X 7/12/2011 Our Checking                   1056   Newsweek
+^
+TD
+N304
+C1
+L1
+$-100.00
+X 8/7/2011 Our Checking                   1060   CBS Airtime
+^
+TS
+N304
+C1
+L1
+$-668.00
+^
+
+------ < end of file > -------
+
+*** EXAMPLE 2: SCHEDULE D, CAPITAL GAINS AND LOSSES - Taxrefs 321,323,673,682,711,712,713,714,715,716,718:
+
+ ** New rules for reporting cost basis are in effect starting 2011. 
+    One of the new requirements is to report disallowed wash sale amount. The easiest way
+    for us to implement was to use an existing TXF record format. Record Format 5 was
+    chosen. If you are reporting a sale that has a disallowed wash amount, use Record Format 5.
+
+ * You must use record format 4 or 5 for Schedule D transactions.
+   It is imperative that you follow the format exactly so that
+   the data gets mapped correctly. If you do not have the Date Acquired
+   and/or the Cost Basis for the transaction, you still need to follow
+   the record format 4 or 5. If you cannot correctly determine whether the
+   gain/loss is short term  or long term, then use token 673. See Example 2B below.
+
+ * NOTE: you could use format 5 for all sales (321,323,673,682,711,712,713,714,715,716,718). When there is no disallowed loss amount to report,
+   simply leave the last line in the record empty:
+
+Ex: Short term sale, no disallowed wash to report: Record format 5. Will go to Copy A of 8949
+TD
+N321
+C1
+L1
+P200 Reebok
+D01/05/2011
+D10/01/2011
+$1,000.00
+$2,000.00
+$
+^
+
+**** Example 2A - using record format 4: will go to Form 8949 Copy A
+V042
+AMy Software
+D 10/27/2011
+^
+TD
+N321
+C1
+L1
+P200 Reebok
+D01/05/2011
+D10/01/2011
+$1,000.00
+$2,000.00
+^
+TD
+N323
+C1
+L1
+P400 WalMart
+D08/05/2010
+D09/05/2011
+$4,000.00
+$1,200.00
+^
+
+**** Example 2B: Schedule D, Capital Gains or Loss 
+ Reporting Schedule D when you do not have the date acquired and
+ cost basis information. Use record format 4 or 5, but leave the line
+ blank. If you are not sure whether the gain/loss is short term or long
+ term, then use the taxref 673. Using 673 will go to Copy A of Form 8949.
+^
+TD
+N673
+C1
+L1
+P200 Reebok
+D
+D1/1/2004
+$
+$2,000.00
+^
+
+**** Example 2C: Schedule D, Capital Gain or Loss - Wash Sales - Form 8949 Copy A
+^
+TD
+N682
+C1
+L1
+P50 QCOM
+D01/02/2011
+D01/15/2011
+$1500
+$1300
+^
+
+**** Example 2D: Short term sale with a disallowed wash amount, use Format 5: (goes to Copy A Form 8949)
+^
+TD
+N321
+C1
+L1
+P50 QCOM
+D01/02/2011
+D01/15/2011
+$1500
+$1300
+$200
+^
+
+**** Example 2E: SHort-term and you provide cost basis to customer, but do NOT report to IRS in Box 3 of 1099-B: (goes to Copy B Form 8949)
+^
+TD
+N711
+C1
+L1
+P100 QCOM
+D01/02/2011
+D01/15/2011
+$1700
+$2000
+$
+^
+**** Example 2F: Long-term and you provide cost basis to customer, but do NOT report to IRS in Box 3 of 1099-B: (goes to Copy B Form 8949)
+^
+TD
+N713
+C1
+L1
+P100 QCOM
+D01/02/2010
+D01/15/2011
+$1700
+$2000
+$
+^
+**** Example 2G: Long-term with a disallowed wash amount. Provided cost basis but didn't report to IRS (goes to Copy B Form 8949)
+^
+TD
+N713
+C1
+L1
+P50 QCOM
+D01/02/2010
+D01/15/2011
+$1500
+$1300
+$200
+^
+**** Example 2H: Long-term. No 1099-B issued (goes to Copy C Form 8949)
+^
+TD
+N714
+C1
+L1
+P50 QCOM
+D01/02/2010
+D01/15/2011
+$1500
+$1300
+$200
+^
+____________________________________________________________
+** IX.   TABLE FORMAT
+
+To mark the start/end of the table the strings "^ START OF TABLE" and
+"^ END OF TABLE" are used.  This is to permit developers to use this
+file to define the current set of categories.
+
+To permit both accounting packages and tax packages to recognize as needed
+categories which are no longer supported after the end of the current
+category table there is a section marked with "^ START OLD CATEGORY" and
+"^ END OLD CATEGORY"
+
+If the layout of the table needs to change then any changes MUST be noted
+so that programs using this file as input can be modified.
+
+The current data columns and lengths are as follows:
+Note that the start count is 1 based.
+
+  Id       Start Width Description
+--------------------------------
+  L        1     1     Layer
+  RNum     3     4     RefNum
+  Name     8     30    Name of category (really only 28 chars + two " marks)
+  Cpy      39    1     Copy number
+  Srt      47    1     Sort type
+  Sgn      xx    x     Sign of expected value
+  Frm      51    1     Format type
+  Line     64    15    Year:Form:Line
+
+The "RNum" 00 is used to break between forms, and make this table
+more readable.
+
+When a field has not been set then the character "-" is used to fill the
+place.
+
+
+______________________________________________________________________
+A.  Table Column Header Descriptions:
+
+"L" - Level Of Indent.
+  Valid values are 0-2.  0 represents a form or schedule
+  name.  1 represents a section on a form, and 2 is an actual line that can
+  be filled in.  Only refnums for level 2 items should be exported to tax
+  software in the export file.
+
+"RNum" - Refnum
+  Unique identifier for this tax line.  Valid values are 1-999.  This value
+  may not be reused in other years to mean different items.
+
+"Name" - Name of category
+  The name the user will see when referring to this tax line item.  This
+  field must be 30 characters or less in length, and must be enclosed in
+  quotes.  The name of the form and section should not be included in this
+  name as it is implied by the items with a lower indention level above.
+
+"Cpy" - Copy
+  Valid values are Y and N.  If Y, multiple copies of this tax item are
+  allowed.  This is useful for schedules which may be submitted with many
+  copies (like Schedule C).
+
+"Srt" - Sort
+  Valid values are N, A, C and P.  N indicates no sorting or subtotaling
+  within the tax line is necessary.  A indicates that the items within the
+  tax line should be sorted and subtotaled by the asset or liability
+  associated with the transaction (the Quicken account).  C indicates a
+  sorting and subtotaling by the income or expense associated with the
+  transaction (the Quicken category).  P indicates sorting and subtotaling
+  by the name associated with the transaction (the Quicken payee).
+
+"Sgn" - Sign
+  Valid values are I, E, B and S.  I indicates this is an income line and
+  that the normal sign for an exported value for this tax line item is '+'.
+  E indicates this is an expense line and the normal sign is '-'.
+  B indicates either + or - is expected, and 'S' indicates a string value.
+
+"Frm" - Record Format
+  Valid values are 0-6. See format descriptions in Section VII for more info.
+
+"Line" - IRS line location
+  The line indicates which year, schedule and line number on the schedule
+  this tax item represents.  It is provided to uniquely describe the line
+  number for the tax software companies and to indicate the last year this
+  item was used or updated.
+
+  More than one category can go to the same line on the tax form.  In many
+  cases a tax program may present a worksheet with each item listed or
+  the items can be just totaled into the line specified.
+
+
+____________________________________________________________
+** X.    CATEGORIES
+
+LAST REFNUM = 717
+
+When adding new categories you must update the Last Refnum so we can
+always use a new number for new categories.
+
+The lines of numbers below specify the layout of the table.  The first two
+lines are used to locate the start locations of a field and the third to see
+the length of each field.
+
+         1         2         3         4         5         6         7
+12345678901234567890123456789012345678901234567890123456789012345678901234567
+1 1234 123456789012345678901234567890 1   1   1   1            123456789012345
+
+L RNum Name                           Cpy Srt Sgn Frm          Line
+-----------------------------------------------------------------------------
+^ START OF TABLE
+0 00   ""                             -   -   -   -            -
+0 256  "Form 1040"                    N   N   I   1            2011:1040
+2 257  "Other income-misc."           N   N   I   1            2011:1040:21
+2 258  "Sick pay or disab. pay"       N   N   I   1            2011:1040:7
+2 259  "Prizes, awards"               N   N   I   1            2011:1040:21
+2 261  "Alimony received"             N   N   I   1            2011:1040:11
+2 262  "IRA contribution self"        N   N   E   1            2011:1040:32
+2 481  "IRA contribution spouse"      N   N   E   1            2011:1040:32
+2 607  "Med savings contrib, self"    N   N   E   1            2011:1040:25
+2 608  "Med savings contrib, spouse"  N   N   E   1            2011:1040:25
+2 609  "SIMPLE contrib, self"         N   N   E   1            2011:1040:28
+2 610  "SIMPLE contrib, spouse"       N   N   E   1            2011:1040:28
+2 263  "Keogh deduction"              N   N   E   1            2011:1040:28
+2 516  "Keogh deduction, spouse"      N   N   E   1            2011:1040:28
+2 517  "SEP deduction"                N   N   E   1            2011:1040:28
+2 518  "SEP deduction, spouse"        N   N   E   1            2011:1040:28
+2 264  "Alimony paid"                 N   N   E   1            2011:1040:31a
+2 265  "Early withd penalty"          N   N   E   1            2011:1040:30
+2 266  "Soc. Sec. income"             N   N   I   1            2011:1040:20a
+2 611  "Fed tax w/h, Soc. Sec. inc."  N   N   E   1            2011:1040:61
+2 483  "Soc. Sec. income, spouse"     N   N   I   1            2011:1040:20a
+2 612  "Fed tax w/h,Soc. Sec.,spouse" N   N   E   1            2011:1040:61
+2 519  "RR retirement income"         N   N   I   1            2011:1040:20a
+2 613  "Fed tax w/h, RR retire inc."  N   N   E   1            2011:1040:61
+2 520  "RR retirement inc, spouse"    N   N   I   1            2011:1040:20a
+2 614  "Fed tax w/h,RR retire,spouse" N   N   E   1            2011:1040:61
+2 268  "Fed. estimated tax"           N   N   E   1            2011:1040:62
+2 521  "Fed est. tax, qrtrly"         N   N   E   6            2011:1040:62
+2 269  "Taxable fringe benefits"      N   N   I   1            2011:1040:7
+2 636  "Student loan interest"	  N   N   E   1		   2011:1040:33
+2 680  "Educator expenses,self"       N   N   E   1            2011:1040:23
+2 681  "Educator expenses,spouse"     N   N   E   1            2011:1040:23	
+0 00   ""                             -   -   -   -            -
+0 270  "Schedule A"                   N   N   I   1            2011:A
+2 271  "Subscriptions"                N   N   E   1            2011:A:21
+2 272  "Gambling losses"              N   N   E   1            2011:A:28
+2 273  "Medicine and drugs"           N   N   E   1            2011:A:1
+2 274  "Med. transport/lodging"       N   N   E   1            2011:A:1
+2 484  "Doctors, dentists, hosp."     N   N   E   1            2011:A:1
+2 275  "State taxes"                  N   N   E   1            2011:A:5
+2 544  "Local taxes"                  N   N   E   1            2011:A:5
+2 522  "State est. tax, qrtrly"       N   N   E   6            2011:A:5
+2 276  "Real estate tax"              N   N   E   1            2011:A:6
+2 535  "Personal property taxes"      N   N   E   1            2011:A:7
+2 277  "Other taxes"                  N   N   E   3            2011:A:8
+2 280  "Cash charity contributions"   N   N   E   1            2011:A:16
+2 485  "Non-cash charity contrib"     N   N   E   1            2011:A:17
+2 281  "Tax preparation fees"         N   N   E   1            2011:A:22
+2 282  "Investment man. fees"         N   N   E   1            2011:A:23
+2 283  "Home mortgage int. (1098)"    N   N   E   1            2011:A:10
+2 545  "Home mortgage int. (no 1098)" N   N   E   1            2011:A:11
+2 284  "Points paid"                  N   N   E   1            2011:A:12
+2 486  "Misc. (subject to 2%)"        N   N   E   1            2011:A:23
+2 523  "Misc. (not subject to 2%)"    N   N   E   1            2011:A:28
+0 00   ""                             -   -   -   -            -
+0 285  "Schedule B"                   N   N   I   1            2011:B
+2 286  "Total dividend income"        Y   A   I   3            2011:1040:9a
+2 683  "Qualified dividend"           Y   A   I   3            2011:1040:9b
+2 487  "Div inc., non-taxable"        Y   A   I   3            2011:1040:8b
+2 488  "Div inc., capital gain dist"  Y   A   I   3            2011:D:13
+2 615  "Fed tax w/h, dividend income" Y   A   E   3            2011:1040:61
+2 287  "Interest income"              Y   A   I   3            2011:B:1
+2 288  "US govt. interest"            Y   A   I   3            2011:B:1
+2 289  "State and mun. bond int."     Y   A   I   3            2011:B:1
+2 290  "TE priv. act. bond int"       Y   A   I   3            2011:B:1
+2 489  "Interest inc., non-taxable"   Y   A   I   3            2011:B:1
+2 490  "Int inc., fed-tax, state-non" Y   A   I   3            2011:B:1
+2 491  "Int inc., fed-non, state-tax" Y   A   I   3            2011:B:1
+2 492  "Int inc., orig issue disc"    Y   A   I   3            2011:B:1
+2 616  "Fed tax w/h, interest income" Y   A   E   3            2011:1040:61
+2 524  "Seller financed mtge int."    Y   A   I   3            2011:B:1
+0 00   ""                             -   -   -   -            -
+0 291  "Schedule C"                   Y   N   I   1            2011:C
+2 292  "Spouse"                       Y   N   S   0            2011:C
+2 293  "Gross receipts"               Y   N   I   1            2011:C:1
+2 294  "Meals and entertainment"      Y   N   E   1            2011:C:24b
+2 493  "Purchases, cost of goods"     Y   N   E   1            2011:C:36
+2 494  "Labor, cost of goods sold"    Y   N   E   1            2011:C:37
+2 495  "Materials, cost of goods"     Y   N   E   1            2011:C:38
+2 496  "Other costs, cost of goods"   Y   N   E   1            2011:C:39
+2 296  "Returns and allowances"       Y   N   E   1            2011:C:2
+2 297  "Wages paid"                   Y   N   E   1            2011:C:26
+2 298  "Legal and professional"       Y   N   E   1            2011:C:17
+2 299  "Rent on vehicles, mach, eq"   Y   N   E   1            2011:C:20a
+2 300  "Rent on other bus prop"       Y   N   E   1            2011:C:20b
+2 301  "Supplies"                     Y   N   E   1            2011:C:22
+2 302  "Other business expense"       Y   C   E   3            2011:C:27
+2 303  "Other business income"        Y   N   I   1            2011:C:6
+2 304  "Advertising"                  Y   N   E   1            2011:C:8
+2 305  "Bad debts"                    Y   N   E   1            2011:C:27
+2 306  "Car and truck expenses"       Y   N   E   1            2011:C:9
+2 307  "Commissions and fees"         Y   N   E   1            2011:C:10
+2 685  "Contract labor"               Y   N   E   1            2011:C:11
+2 308  "Employee benefits progs."     Y   N   E   1            2011:C:14
+2 309  "Depletion"                    Y   N   E   1            2011:C:12
+2 310  "Insurance (not health)"       Y   N   E   1            2011:C:15
+2 311  "Interest expense, mortgage"   Y   N   E   1            2011:C:16a
+2 312  "Interest expense, other"      Y   N   E   1            2011:C:16b
+2 313  "Office expense"               Y   N   E   1            2011:C:18
+2 314  "Pension and profit shrg"      Y   N   E   1            2011:C:19
+2 315  "Repairs and maintenance"      Y   N   E   1            2011:C:21
+2 316  "Taxes and licenses"           Y   N   E   1            2011:C:23
+2 317  "Travel"                       Y   N   E   1            2011:C:24a
+2 318  "Utilities"                    Y   N   E   1            2011:C:25
+2 319  "Principal business/prof"      Y   N   S   2            2011:C:A
+0 00   ""                             -   -   -   -            -
+0 497  "Schedule C-EZ"                Y   N   I   1            2011:CEZ
+2 498  "Spouse"                       Y   N   S   0            2011:CEZ
+2 499  "Gross receipts"               Y   N   I   1            2011:CEZ:1
+2 500  "Total expenses"               Y   N   E   1            2011:CEZ:2
+2 501  "Principal business/prof"      Y   N   S   2            2011:CEZ:A
+0 00   ""                             -   -   -   -            -
+0 320  "Schedule D"                   Y   N   I   1            2011:D
+2 321  "ST gain/loss 8949 Copy A"     Y   N   I   4            2011:D:1
+2 711  "ST gain/loss 8949 Copy B"     Y   N   I   4            2011:D:1
+2 712  "ST gain/loss 8949 copy C"     Y   N   I   4            2011:D:1
+2 323  "LT gain/loss 8949 Copy A"     Y   N   I   4            2011:D:8
+2 713  "LT gain/loss 8949 Copy B"     Y   N   I   4            2011:D:8
+2 714  "LT gain/loss 8949 Copy C"     Y   N   I   4            2011:D:8
+2 673  "Short/Long 8949 Copy A"       Y   N   I   4            2011:D
+2 715  "Short/Long 8949 Copy B"       Y   N   I   4            2011:D
+2 716  "Short/Long 8949 Copy C"       Y   N   I   4            2011:D
+2 682  "Wash Sale - 8949 Copy A"      Y   N   I   4            2011:D
+2 718  "Wash Sale - 8949 Copy B"      Y   N   I   4            2011:D
+2 321  "ST gain/loss 8949 Copy A"     Y   N   I   5            2011:D:1
+2 711  "ST gain/loss 8949 Copy B"     Y   N   I   5            2011:D:1
+2 712  "ST gain/loss 8949 copy C"     Y   N   I   5            2011:D:1
+2 323  "LT gain/loss 8949 Copy A"     Y   N   I   5            2011:D:8
+2 713  "LT gain/loss 8949 Copy B"     Y   N   I   5            2011:D:8
+2 714  "LT gain/loss 8949 Copy C"     Y   N   I   5            2011:D:8
+2 673  "Short/Long 8949 Copy A"       Y   N   I   5            2011:D
+2 715  "Short/Long 8949 Copy B"       Y   N   I   5            2011:D
+2 716  "Short/Long 8949 Copy C"       Y   N   I   5            2011:D
+2 682  "Wash Sale - 8949 Copy A"      Y   N   I   5            2011:D
+2 718  "Wash Sale - 8949 Copy B"      Y   N   I   5            2011:D
+2 644  "28% cap gain"                 Y   A   I   3            2011:D:18
+2 645  "Unrec sec 1250"               Y   A   I   3            2011:D:19
+2 646  "Sec 1202 gain"                Y   A   I   3            2011:D:8
+0 00   ""                             -   -   -   -            -
+0 325  "Schedule E"                   Y   N   I   1            2011:E
+2 326  "Rents received"               Y   N   I   1            2011:E:3
+2 327  "Royalties received"           Y   N   I   1            2011:E:4
+2 328  "Advertising"                  Y   N   E   1            2011:E:5
+2 329  "Auto and travel"              Y   N   E   1            2011:E:6
+2 330  "Cleaning and maintenance"     Y   N   E   1            2011:E:7
+2 331  "Commissions"                  Y   N   E   1            2011:E:8
+2 332  "Insurance"                    Y   N   E   1            2011:E:9
+2 333  "Legal and professional"       Y   N   E   1            2011:E:10
+2 502  "Management fees"              Y   N   E   1            2011:E:11
+2 334  "Mortgage interest exp"        Y   N   E   1            2011:E:12
+2 335  "Other interest expense"       Y   N   E   1            2011:E:13
+2 336  "Repairs"                      Y   N   E   1            2011:E:14
+2 337  "Supplies"                     Y   N   E   1            2011:E:15
+2 338  "Taxes"                        Y   N   E   1            2011:E:16
+2 339  "Utilities"                    Y   N   E   1            2011:E:17
+2 341  "Other expenses"               Y   C   E   3            2011:E:18
+2 342  "Kind/location of property"    Y   N   S   2            2011:E:1
+0 00   ""                             -   -   -   -            -
+0 343  "Schedule F"                   Y   N   I   1            2011:F
+2 514  "Spouse"                       Y   N   S   0            2011:F
+2 543  "Car and truck expense"        Y   N   E   1            2011:F:12
+2 344  "Labor hired"                  Y   N   E   1            2011:F:24
+2 345  "Repairs and maintenance"      Y   N   E   1            2011:F:27
+2 346  "Interest expense-mort"        Y   N   E   1            2011:F:23a
+2 347  "Interest expense-other"       Y   N   E   1            2011:F:23b
+2 348  "Rent-land, animals"           Y   N   E   1            2011:F:26b
+2 349  "Rent-veh., mach., equip."     Y   N   E   1            2011:F:26a
+2 350  "Feed purchased"               Y   N   E   1            2011:F:18
+2 351  "Seed and plants purchased"    Y   N   E   1            2011:F:28
+2 352  "Fertilizers and lime"         Y   N   E   1            2011:F:19
+2 353  "Supplies purchased"           Y   N   E   1            2011:F:30
+2 355  "Vet, breeding and medicine"   Y   N   E   1            2011:F:33
+2 356  "Gasoline, fuel, oil"          Y   N   E   1            2011:F:21
+2 357  "Storage and warehousing"      Y   N   E   1            2011:F:29
+2 358  "Taxes"                        Y   N   E   1            2011:F:31
+2 359  "Insurance (not health)"       Y   N   E   1            2011:F:22
+2 360  "Utilities"                    Y   N   E   1            2011:F:32
+2 361  "Freight and trucking"         Y   N   E   1            2011:F:20
+2 362  "Conservation expense"         Y   N   E   1            2011:F:14
+2 363  "Pension and profit shrg"      Y   N   E   1            2011:F:25
+2 364  "Employee benefit prog."       Y   N   E   1            2011:F:17
+2 365  "Other farm expenses"          Y   C   E   3            2011:F:34
+2 366  "Chemicals"                    Y   N   E   1            2011:F:13
+2 367  "Custom hire (mach. work)"     Y   N   E   1            2011:F:15
+2 368  "Sales livestock/crops raised" Y   N   I   1            2011:F:4
+2 369  "Resales of livestock"         Y   N   I   1            2011:F:1
+2 370  "Custom hire (machine work)"   Y   N   I   1            2011:F:9
+2 371  "Coop. distributions"          Y   N   I   1            2011:F:5a
+2 372  "Agric. pgm payments"          Y   N   I   1            2011:F:6a
+2 373  "CCC loans-election"           Y   N   I   1            2011:F:7a
+2 374  "CCC loans-forfeited"          Y   N   I   1            2011:F:7b
+2 375  "Crop ins. proceeds-recd"      Y   N   I   1            2011:F:8a
+2 376  "Crop ins. proceeds-defd"      Y   N   I   1            2011:F:8d
+2 377  "Other farm income"            Y   N   I   1            2011:F:10
+2 378  "Cost livestock for resale"    Y   N   E   1            2011:F:2
+2 379  "Principal product"            Y   N   S   2            2011:F:A
+0 00   ""                             -   -   -   -            -
+0 565  "Schedule H"                   Y   N   I   1            2011:H
+2 567  "Cash wages paid"              Y   N   E   1            2011:H:1
+2 568  "Federal tax withheld"         Y   N   E   1            2011:H:5
+0 00   ""                             -   -   -   -            -
+0 380  "Form 2106"                    Y   N   I   1            2011:2106
+2 381  "Education expense"            Y   N   E   1            2011:2106:4
+2 382  "Automobile exp."              Y   N   E   1            2011:2106:1
+2 383  "Travel"                       Y   N   E   1            2011:2106:3
+2 384  "Local transportation"         Y   N   E   1            2011:2106:2
+2 385  "Other bus. exp."              Y   N   E   1            2011:2106:4
+2 386  "Meal and entertain. exp"      Y   N   E   1            2011:2106:5
+2 387  "Emp. expense reimb."          Y   N   I   1            2011:2106:7,A
+2 388  "Emp. meal exp reimb"          Y   N   I   1            2011:2106:7,B
+2 389  "Job seeking exp"              Y   N   E   1            2011:2106:4
+2 390  "Special clothing exp"         Y   N   E   1            2011:2106:4
+2 391  "Emp home office exp"          Y   N   E   1            2011:2106:4
+0 00   ""                             -   -   -   -            -
+0 392  "Home Sale Worksheets"         Y   N   I   1            2011:HomeWks
+2 393  "Selling price of old home"    Y   N   I   1            2011:HomeWks:1
+2 394  "Expense of sale"              Y   N   E   1            2011:HomeWks:2
+2 395  "Basis of home sold"           Y   N   E   1            2011:HomeWks:4
+2 398  "Date old home sold"           Y   N   S   2            2011:HomeWks
+0 00   ""                             -   -   -   -            -
+0 400  "Form 2441"                    N   N   I   1            2011:2441
+2 401  "Child care - day care"        N   N   E   1            2011:2441:1
+2 402  "Child care - household"       N   N   E   1            2011:2441:1
+0 00   ""                             -   -   -   -            -
+0 403  "Form 3903"                    Y   N   I   1            2011:3903
+2 526  "Spouse"                       Y   N   S   0            2011:3903
+2 406  "Trans./store hshld goods"     Y   N   E   1            2011:3903:1
+2 407  "Travel and lodging"           Y   N   E   1            2011:3903:2
+0 00   ""                             -   -   -   -            -
+0 503  "Form 4137"                    Y   N   I   1            2011:4137
+2 504  "Spouse"                       Y   N   S   0            2011:4137
+2 505  "Cash/charge tips received"    Y   N   I   1            2011:4137:1
+0 00   ""                             -   -   -   -            -
+0 412  "Form 4684"                    Y   N   I   1            2011:4684
+2 413  "Basis of casualty prop"       Y   N   E   1            2011:4684:2
+2 414  "Insurance/reimb"              Y   N   I   1            2011:4684:3
+2 415  "FMV before casualty"          Y   N   I   1            2011:4684:5
+2 416  "FMV after casualty"           Y   N   I   1            2011:4684:6
+2 417  "Description of property"      Y   N   S   2            2011:4684:1
+0 00   ""                             -   -   -   -            -
+0 418  "Form 4797"                    N   N   I   1            2011:4797
+2 419  "LT dep. loss - business"      N   N   E   5            2011:4797:2
+2 420  "LT dep. gain - business"      N   N   I   5            2011:4797:2
+2 421  "ST dep. prop. - business"     N   N   B   5            2011:4797:10
+2 422  "LT dep. loss - res. rent."    N   N   E   5            2011:4797:2
+2 423  "LT dep. gain - res. rent."    N   N   I   5            2011:4797:2
+2 424  "ST dep. prop. - res. rent."   N   N   B   5            2011:4797:10
+0 00   ""                             -   -   -   -            -
+0 569  "Form 4835"                    Y   N   I   1            2011:4835
+2 570  "Spouse"                       Y   N   S   0            2011:4835
+2 571  "Sale of livestock/produce"    Y   N   I   1            2011:4835:1
+2 572  "Total co-op distributions"    Y   N   I   1            2011:4835:2a
+2 573  "Agricultural program paymnts" Y   N   I   1            2011:4835:3a
+2 574  "CCC loans reported/election"  Y   N   I   1            2011:4835:4a
+2 575  "CCC loans forfeited/repaid"   Y   N   I   1            2011:4835:4b
+2 576  "Crop ins. proceeds rec'd"     Y   N   I   1            2011:4835:5a
+2 577  "Crop ins. proceeds deferred"  Y   N   I   1            2011:4835:5d
+2 578  "Other income"                 Y   N   I   1            2011:4835:6
+2 579  "Car and truck expenses"       Y   N   E   1            2011:4835:8
+2 580  "Chemicals"                    Y   N   E   1            2011:4835:9
+2 581  "Conservation expenses"        Y   N   E   1            2011:4835:10
+2 582  "Custom hire (machine work)"   Y   N   E   1            2011:4835:11
+2 583  "Employee benefit programs"    Y   N   E   1            2011:4835:13
+2 584  "Feed purchased"               Y   N   E   1            2011:4835:14
+2 585  "Fertilizers and lime"         Y   N   E   1            2011:4835:15
+2 586  "Freight and trucking"         Y   N   E   1            2011:4835:16
+2 587  "Gasoline, fuel, and oil"      Y   N   E   1            2011:4835:17
+2 588  "Insurance(other than health)" Y   N   E   1            2011:4835:18
+2 589  "Interest expense, mortgage"   Y   N   E   1            2011:4835:19a
+2 590  "Interest expense, other"      Y   N   E   1            2011:4835:19b
+2 591  "Labor hired"                  Y   N   E   1            2011:4835:20
+2 592  "Pension/profit-sharing plans" Y   N   E   1            2011:4835:21
+2 593  "Rent/lease vehicles, equip."  Y   N   E   1            2011:4835:22a
+2 594  "Rent/lease land, animals"     Y   N   E   1            2011:4835:22b
+2 595  "Repairs and maintenance"      Y   N   E   1            2011:4835:23
+2 596  "Seeds and plants purchased"   Y   N   E   1            2011:4835:24
+2 597  "Storage and warehousing"      Y   N   E   1            2011:4835:25
+2 598  "Supplies purchased"           Y   N   E   1            2011:4835:26
+2 599  "Taxes"                        Y   N   E   1            2011:4835:27
+2 600  "Utilities"                    Y   N   E   1            2011:4835:28
+2 601  "Vet, breeding, medicine"      Y   N   E   1            2011:4835:29
+2 602  "Other expenses"               Y   C   E   3            2011:4835:30
+0 00   ""                             -   -   -   -            -
+0 425  "Form 4952"                    N   N   I   1            2011:4952
+2 426  "Investment interest expense"  N   N   E   1            2011:4952:1
+0 00   ""                             -   -   -   -            -
+0 427  "Form 6252"                    Y   N   I   1            2011:6252
+2 428  "Selling price"                Y   N   I   1            2011:6252:5
+2 429  "Debt assumed by buyer"        Y   N   I   1            2011:6252:6
+2 430  "Basis of property sold"       Y   N   E   1            2011:6252:8
+2 431  "Depreciation allowed"         Y   N   I   1            2011:6252:9
+2 432  "Expenses of sale"             Y   N   E   1            2011:6252:11
+2 433  "Gross profit percentage"      Y   N   I   1            2011:6252:19
+2 434  "Payments recd this year"      Y   N   I   1            2011:6252:21
+2 435  "Payments recd prior years"    Y   N   I   1            2011:6252:23
+2 436  "Description of property"      Y   N   S   2            2011:6252:1
+0 00   ""                             -   -   -   -            -
+0 437  "Form 8606"                    Y   N   I   1            2011:8606
+2 515  "Spouse"                       Y   N   S   0            2011:8606
+2 438  "IRAs value at end of year"    Y   N   E   1            2011:8606:6
+2 439  "IRA contribs-nondeductible"   Y   N   E   1            2011:8606:1
+2 440  "IRA basis at beg of year"     Y   N   E   1            2011:8606:2
+0 00   ""                             -   -   -   -            -
+0 441  "Form 8815"                    N   N   I   1            2011:8815
+2 442  "Qual. higher ed. expenses"    N   N   E   1            2011:8815:2
+2 443  "Nontaxable ed. benefits"      N   N   I   1            2011:8815:3
+2 444  "EE US svgs bonds proceeds"    N   N   I   1            2011:8815:5
+2 445  "Post-89 EE bond face value"   N   N   I   1            2011:8815:6
+0 00   ""                             -   -   -   -            -
+0 536  "Form 8829"                    Y   N   I   1            2011:8829
+2 537  "Deductible mortgage interest" Y   N   E   1            2011:8829:10b
+2 538  "Real estate taxes"            Y   N   E   1            2011:8829:11b
+2 539  "Insurance"                    Y   N   E   1            2011:8829:17b
+2 540  "Repairs and maintenance"      Y   N   E   1            2011:8829:19b
+2 541  "Utilities"                    Y   N   E   1            2011:8829:20b
+2 542  "Other expenses"               Y   N   E   1            2011:8829:21b
+0 00   ""                             -   -   -   -            -
+0 617  "Form 8839"                    N   N   I   1            2011:8839
+2 618  "Adoption fees"                N   N   E   1            2011:8839:5
+2 619  "Court costs"                  N   N   E   1            2011:8839:5
+2 620  "Attorney fees"                N   N   E   1            2011:8839:5
+2 621  "Traveling expenses"           N   N   E   1            2011:8839:5
+2 622  "Other expenses"               N   N   E   1            2011:8839:5
+0 00   ""                             -   -   -   -            -
+0 639  "Form 8863"                    N   N   I   1            2011:8863
+2 637  "Hope cr. qual. expenses"      N   N   E   1            2011:8863:1c
+2 638  "Lifetime cr. qual. expenses"  N   N   E   1            2011:8863:3c
+0 00   ""                             -   -   -   -            -
+0 446  "Schedule K-1 Worksheet"       Y   N   I   1            2011:K1
+2 447  "Spouse"                       Y   N   S   0            2011:K1
+2 448  "Ordinary income/loss"         Y   N   B   1            2011:K1:1
+2 449  "Rental real est. inc/loss"    Y   N   B   1            2011:K1:2
+2 450  "Other rental income/loss"     Y   N   B   1            2011:K1:3
+2 451  "Interest income"              Y   N   I   1            2011:K1:5
+2 452  "Dividends"                    Y   N   I   1            2011:K1:6a
+2 527  "Royalties"                    Y   N   I   1            2011:K1:7
+2 453  "Net ST capital gain/loss"     Y   N   B   1            2011:K1:8
+2 454  "Net LT capital gain/loss"     Y   N   B   1            2011:K1:9a
+2 674  "28% rate gain(loss)"          Y   N   B   1            2011:K1:9b
+2 455  "Guaranteed payments"          Y   N   I   1            2011:K1:4
+2 456  "Net sec 1231 gain/loss"       Y   N   B   1            2011:K1:10
+2 676  "Other Income (loss)"          Y   N   B   1            2011:K1:11
+2 528  "Tax-exempt interest"          Y   N   I   1            2011:K1:18
+2 679  "Total Foreign Taxes"          Y   N   E   1            2011:K1:16
+2 457  "Partnership or S corp name"   Y   N   S   2            2011:K1:A
+0 00   ""                             -   -   -   -            -
+0 458  "W-2"                          Y   N   I   1            2011:W2
+2 460  "Salary"                       Y   N   I   1            2011:W2:1
+2 461  "Federal withholding"          Y   N   E   1            2011:W2:2
+2 462  "Soc Sec tax withholding"      Y   N   E   1            2011:W2:4
+2 463  "Local withholding"            Y   N   E   1            2011:W2:19
+2 480  "Medicare tax withholding"     Y   N   E   1            2011:W2:6
+2 464  "State withholding"            Y   N   E   1            2011:W2:17
+2 465  "Dependent care benefits"      Y   N   I   1            2011:W2:10
+2 267  "Moving exp. reimb."           Y   N   I   1            2011:W2:12
+2 466  "Payer"                        Y   N   S   2            2011:W2:c
+2 506  "Salary, spouse"               Y   N   I   1            2011:W2:1
+2 507  "Federal withholding,spouse"   Y   N   E   1            2011:W2:2
+2 508  "Soc Sec tax withhld, spouse"  Y   N   E   1            2011:W2:4
+2 509  "Local withholding, spouse"    Y   N   E   1            2011:W2:19
+2 510  "Medicare tax withhld, spouse" Y   N   E   1            2011:W2:6
+2 511  "State withholding, spouse"    Y   N   E   1            2011:W2:17
+2 512  "Dependent care ben., spouse"  Y   N   I   1            2011:W2:10
+2 546  "Moving exp. reimb., spouse"   Y   N   I   1            2011:W2:12
+2 513  "Payer, spouse"                Y   N   S   2            2011:W2:c
+0 00   ""                             -   -   -   -            -
+0 547  "W-2G"                         Y   N   I   1            2011:W-2G
+2 548  "Spouse"                       Y   N   S   0            2011:W-2G
+2 549  "Gross winnings"               Y   N   I   1            2011:W-2G:1
+2 550  "Federal tax withheld"         Y   N   E   1            2011:W-2G:2
+2 551  "State tax withheld"           Y   N   E   1            2011:W-2G:14
+2 552  "Payer"                        Y   N   S   2            2011:W-2G
+0 00   ""                             -   -   -   -            -
+0 553  "1099-MISC"                    Y   N   I   1            2011:1099-MISC
+2 554  "Spouse"                       Y   N   S   0            2011:1099-MISC
+2 555  "Rents"                        Y   N   I   1            2011:1099-MISC:1
+2 556  "Royalties"                    Y   N   I   1            2011:1099-MISC:2
+2 557  "Other income"                 Y   N   I   1            2011:1099-MISC:3
+2 558  "Federal tax withheld"         Y   N   E   1            2011:1099-MISC:4
+2 559  "Fishing boat proceeds"        Y   N   I   1            2011:1099-MISC:5
+2 560  "Medical/health payments"      Y   N   I   1            2011:1099-MISC:6
+2 561  "Nonemployee compensation"     Y   N   I   1            2011:1099-MISC:7
+2 562  "Crop insurance proceeds"      Y   N   I   1            2011:1099-MISC:10
+2 563  "State tax withheld"           Y   N   E   1            2011:1099-MISC:16
+2 564  "Payer"                        Y   N   S   2            2011:1099-MISC
+2 654  "State ID"                     Y   N   S   2            2011:1099-MISC:17
+2 674  "Substitute payments  "        Y   N   I   1            2011:1099-MISC:8
+2 675  "Gross proceeds to atty "      Y   N   I   1            2011:1099-MISC:14
+2 676  "Excess golden parachute"      Y   N   I   1            2011:1099-MISC:13
+0 00   ""                             -   -   -   -            -
+0 473  "1099R"                        Y   N   I   1            2011:1099R
+2 474  "Spouse"                       Y   N   S   0            2011:1099R
+2 475  "Pension total dist - gross"   Y   N   I   1            2011:1099R:1
+2 476  "Pension total dist - taxable" Y   N   I   1            2011:1099R:2a
+2 529  "Pension federal withholding"  Y   N   E   1            2011:1099R:4
+2 530  "Pension state withholding"    Y   N   E   1            2011:1099R:12
+2 531  "Pension local withholding"    Y   N   E   1            2011:1099R:15
+2 667  "Pension Distrib code 7A"      Y   N   S   2            2011:1099R:7a
+2 668  "Pension Distrib code 7b"      Y   N   S   2            2011:1099R:7b
+2 669  "Pension State ID"             Y   N   S   2            2011:1099R:13
+2 670  "Pension Tax. not determined"  Y   N   S   2            2011:1099R:2b
+2 671  "Pension Total distribution"   Y   N   S   2            2011:1099R:2b
+2 603  "Pension Payer"                Y   N   S   2            2011:1099R
+2 477  "IRA total dist - gross"       Y   N   I   1            2011:1099R:1
+2 478  "IRA total dist - taxable"     Y   N   I   1            2011:1099R:2a
+2 532  "IRA federal withholding"      Y   N   E   1            2011:1099R:4
+2 533  "IRA state withholding"        Y   N   E   1            2011:1099R:12
+2 534  "IRA local withholding"        Y   N   E   1            2011:1099R:15
+2 655  "IRA Distribution code 7A"     Y   N   S   2            2011:1099R:7a
+2 656  "IRA Distribution code 7b"     Y   N   S   2            2011:1099R:7b
+2 664  "IRA State ID"                 Y   N   S   2            2011:1099R:13
+2 665  "IRA Taxable not determined"   Y   N   S   2            2011:1099R:2b
+2 666  "IRA Total distribution"       Y   N   S   2            2011:1099R:2b
+2 604  "IRA Payer"                    Y   N   S   2            2011:1099R
+2 623  "SIMPLE total distrib-gross"   Y   N   I   1            2011:1099R:1
+2 624  "SIMPLE total distrib-taxable" Y   N   I   1            2011:1099R:2a
+2 625  "SIMPLE federal withholding"   Y   N   E   1            2011:1099R:4
+2 626  "SIMPLE state withholding"     Y   N   E   1            2011:1099R:12
+2 627  "SIMPLE local withholding"     Y   N   E   1            2011:1099R:15
+2 628  "SIMPLE Payer"                 Y   N   S   2            2011:1099R
+2 655  "Distribution code 7A"         Y   N   S   2            2011:1099R:7a
+2 656  "Distribution code 7b"         Y   N   S   2            2011:1099R:7b
+2 664  "State ID"                     Y   N   S   2            2011:1099R:13
+2 665  "Taxable not determined"       Y   N   S   2            2011:1099R:2b
+2 666  "Total distribution"           Y   N   S   2            2011:1099R:2b
+0 00   ""                             -   -   -   -            -
+0 629  "1099-SA"                      Y   N   I   1            2011:1099-SA
+2 630  "Spouse"                       Y   N   S   0            2011:1099-SA
+2 631  "gross distribution"           Y   N   I   1            2011:1099-SA:1
+2 632  "earnings-excess contrib"      Y   N   I   1            2011:1099-SA:2
+2 633  "Payer"                        Y   N   S   2            2011:1099-SA
+0 00   ""                             -   -   -   -            -
+0 634  "1099-G"                       Y   N   I   1            2011:1099-G
+2 635  "Spouse"                       Y   N   S   0            2011:1099-G
+2 479  "Unemployment comp"            Y   N   I   1            2011:1099-G:1
+2 605  "Unemployment comp repaid"     Y   N   E   1            2011:1040:19
+2 260  "State and local refunds"      y   N   I   1            2011:1099-G:2
+2 606  "Fed tax w/h,unemploymt comp"  Y   N   E   1            2011:1099-G:4
+0 00   ""                             -   -   -   -            -
+0 640  "1099 INT"                     N   N   I   1            2011:1099-INT
+2 641  "Foreign tax, int"             Y   A   E   3            2011:1099Int:6
+2 642  "Foreign country, int"         Y   A   S   2            2011:1099Int:7
+2 653  "Intestment expense, int"      Y   A   E   3            2011:1099Int:5
+0 00   ""                             -   -   -   -            -
+0 643  "1099 Div"                     N   N   I   1            2011:1099-DIV
+2 647  "NonTaxable distributions"     Y   A   I   3            2011:1099Div:3
+2 648  "Investment Expense, div"      Y   A   E   3            2011:1099Div:5
+2 649  "Foreign tax, div"             Y   A   E   3            2011:1099Div:6
+2 650  "Foreign country, div"         Y   A   S   2            2011:1099Div:7
+2 651  "Cash liquidation"             Y   A   I   3            2011:1099Div:8
+2 652  "Non-cash liquidation"         Y   A   I   3            2011:1099Div:9
+0 00   ""                             -   -   -   -            
+0 657  "1099 OID"                     N   N   I   1            2011:1099-OID
+2 658  "Other periodic int,OID"       Y   A   I   3            2011:1099OID:2
+2 659  "Early wdrawal pen, OID"       Y   A   E   3            2011:1099OID:3
+2 660  "Fed tax wheld, OID"           Y   A   E   3            2011:1099OID:4
+2 661  "Description"                  Y   A   S   2            2011:1099OID:5
+2 662  "OID, US treas obligl"         Y   A   I   3            2011:1099OID:6
+2 663  "Investment Expense, OID"      Y   A   E   3            2011:1099OID:7
+0 00   ""                             -   -   -   -            -
+0 678  "1099 Q"                       N   N   I   1            2011:1099-Q
+2 672  "Gross distribution"           Y   N   I   1            2011:1099-Q:1
+^ END OF TABLE
+
+
+^ START OLD CATEGORIES
+0 00   ""                             -   -   -   -            -
+0 467  "W-2P"                         Y   N   I   1            1990:W-2P
+2 468  "Spouse"                       Y   N   I   0            1990:W-2P:
+2 469  "Pensions and annuities-gross" Y   N   I   3            1990:W-2P:9
+2 470  "Pensions and annuities-txble" Y   N   I   3            1990:W-2P:10
+2 471  "IRA distributions - gross"    Y   N   I   3            1990:W-2P:9
+2 472  "IRA distributions - taxable"  Y   N   I   3            1990:W-2P:10
+2 354  "Breeding fees"                Y   N   E   1            1993:F:33
+2 340  "Wages paid"                   Y   N   E   1            1990:E:17
+2 295  "Cost of goods sold"           Y   N   E   1            1992:C:37
+2 322  "ST gain/loss - other"         Y   N   I   4            1992:D:1d
+2 324  "LT gain/loss - other"         Y   N   I   4            1992:D:9d
+2 404  "Meals during moving"          Y   N   E   1            1993:3903:6
+2 405  "Meals househunting & temp"    Y   N   E   1            1993:3903:11
+2 408  "Pre-moving expense"           Y   N   E   1            1993:3903:9
+2 409  "Temp. living exp."            Y   N   E   1            1993:3903:10
+2 410  "Moving sale cost"             Y   N   E   1            1993:3903:14
+2 411  "Moving purch. cost"           Y   N   E   1            1993:3903:15
+2 459  "Spouse"                       Y   N   S   0            1995:W2
+2 566  "Spouse"                       N   N   S   0            1995:H
+2 482  "IRA contrib,non-work spouse"  N   N   E   1            2000:1040:23
+2 525  "Spouse"                       Y   N   S   0            2000:HomeWks
+2 396  "Fixing-up expenses"           Y   N   E   1            2000:HomeWksPart3:8
+2 397  "Cost of new home"             Y   N   I   1            2000:HomeWksPart3:11b
+2 399  "Date moved into new home"     Y   N   S   2            2000:WksPart3:11a
+2 675  "Qualified 5-year gain"        Y   N   B   1            2003:K1:4e3
+2 677  "Qualified 5-year gain"        Y   A   I   3            2004:D:35
+2 684  "Div inc., PostMay5 cap gain"  Y   A   I   3            2004:D:13
+
+
+^ END OLD CATEGORIES
