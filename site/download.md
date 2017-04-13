@@ -9,6 +9,8 @@
 # Download
 <a name="a"></a>
 
+Choose a method:
+
 ## A. I want to download a packaged version
 
 <style>
@@ -22,7 +24,8 @@ a { white-space:nowrap; }
 </style>
 
 Packaged versions are the quickest to install, but they sometimes lag behind the
-latest release, or provide only some of the hledger tools. (Packagers welcome!)
+latest release, or provide only some of the hledger tools. 
+(Please help out by making these packages better.)
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
