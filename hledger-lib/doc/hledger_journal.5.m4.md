@@ -595,7 +595,7 @@ alias checking = assets:bank:wells fargo:checking
 #### Regex aliases
 
 There is also a more powerful variant that uses a regular expression,
-indicated by the forward slashes. (This was the default behaviour in hledger 0.24-0.25):
+indicated by the forward slashes:
 
 ```journal
 alias /REGEX/ = REPLACEMENT
