@@ -84,7 +84,7 @@ date-format %-m/%-d/%Y %l:%M %p
 
 This (a) names the CSV fields, in order (names may not contain whitespace; uninteresting names may be left blank),
 and (b) assigns them to journal entry fields if you use any of these standard field names:
-`date`, `date2`, `status`, `code`, `description`, `comment`, `account1`, `account2`, `amount`, `amount-in`, `amount-out`, `currency`.
+`date`, `date2`, `status`, `code`, `description`, `comment`, `account1`, `account2`, `amount`, `amount-in`, `amount-out`, `currency`, `balance`.
 Eg:
 ```rules
 # use the 1st, 2nd and 4th CSV fields as the entry's date, description and amount,
@@ -172,3 +172,5 @@ If an amount value is parenthesised, it will be de-parenthesised and sign-flippe
 The generated journal entries will be sorted by date.
 The original order of same-day entries will be preserved, usually.
 <!-- (by reversing the CSV entries if they seem to be in reverse date order). -->
+
+If you assign anything to the `balance` pseudo field, it would become an assertion of the balance of `account1`. If you assign empty string to it, no assertion will be generated (this can be used to omit balance assertions on some transactions).
