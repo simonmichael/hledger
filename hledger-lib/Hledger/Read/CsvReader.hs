@@ -513,6 +513,7 @@ journalfieldnames =
   ,"account1"
   ,"account2"
   ,"comment"
+  ,"balance"
   ]
 
 assignmentseparatorp :: CsvRulesParser ()
@@ -663,6 +664,17 @@ transactionFromCsvRecord sourcepos rules record = t
                    _         -> "expenses:unknown"
     account1    = T.pack $ maybe "" render (mfieldtemplate "account1") `or` defaccount1
     account2    = T.pack $ maybe "" render (mfieldtemplate "account2") `or` defaccount2
+    balance     = maybe Nothing parsebalance $ mfieldtemplate "balance"
+    parsebalance "" = Nothing
+    parsebalance str = Just $ either (balanceerror str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ negateIfParenthesised $ render str
+    balanceerror str err = error' $ unlines
+      ["error: could not parse \""++str++"\" as balance amount"
+      ,showRecord record
+      ,"the balance rule is:      "++(fromMaybe "" $ mfieldtemplate "balance")
+      ,"the currency rule is:    "++(fromMaybe "unspecified" $ mfieldtemplate "currency")
+      ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
+      ,"the parse error is:      "++show err
+      ]
 
     -- build the transaction
     t = nulltransaction{
@@ -676,7 +688,7 @@ transactionFromCsvRecord sourcepos rules record = t
       tpreceding_comment_lines = T.pack precomment,
       tpostings                =
         [posting {paccount=account2, pamount=amount2, ptransaction=Just t}
-        ,posting {paccount=account1, pamount=amount1, ptransaction=Just t}
+        ,posting {paccount=account1, pamount=amount1, ptransaction=Just t, pbalanceassertion=balance}
         ]
       }
 
