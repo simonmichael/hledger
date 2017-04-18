@@ -67,4 +67,29 @@
 
 >>>2 /using conversion rules file.*t.rules/
 >>>=0
+# 7. read CSV with blank balance field
+ rm -rf t.rules$$; printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+>>>
+2009/09/10 Flubber Co
+    income:unknown          $-50
+    assets:myacct            $50 = $123
 
+2009/09/11 Blubber Co
+    income:unknown          $-60
+    assets:myacct            $60
+
+>>>2 /using conversion rules file.*t.rules/
+>>>=0
+# 8. read CSV with empty balance field
+ rm -rf t.rules$$; printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,   ' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+>>>
+2009/09/10 Flubber Co
+    income:unknown          $-50
+    assets:myacct            $50 = $123
+
+2009/09/11 Blubber Co
+    income:unknown          $-60
+    assets:myacct            $60
+
+>>>2 /using conversion rules file.*t.rules/
+>>>=0

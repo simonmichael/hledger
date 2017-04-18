@@ -664,9 +664,10 @@ transactionFromCsvRecord sourcepos rules record = t
                    _         -> "expenses:unknown"
     account1    = T.pack $ maybe "" render (mfieldtemplate "account1") `or` defaccount1
     account2    = T.pack $ maybe "" render (mfieldtemplate "account2") `or` defaccount2
-    balance     = maybe Nothing parsebalance $ mfieldtemplate "balance"
-    parsebalance "" = Nothing
-    parsebalance str = Just $ either (balanceerror str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ negateIfParenthesised $ render str
+    balance     = maybe Nothing (parsebalance.render) $ mfieldtemplate "balance"
+    parsebalance str 
+      | all isSpace str  = Nothing
+      | otherwise = Just $ either (balanceerror str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ negateIfParenthesised str
     balanceerror str err = error' $ unlines
       ["error: could not parse \""++str++"\" as balance amount"
       ,showRecord record
