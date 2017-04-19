@@ -559,44 +559,43 @@ FILE FORMAT
 
    Regex aliases
        There  is  also a more powerful variant that uses a regular expression,
-       indicated by the forward slashes.  (This was the default  behaviour  in
-       hledger 0.24-0.25):
+       indicated by the forward slashes:
 
               alias /REGEX/ = REPLACEMENT
 
        or --alias '/REGEX/=REPLACEMENT'.
 
-       REGEX  is  a  case-insensitive regular expression.  Anywhere it matches
-       inside an account name, the matched part will be replaced  by  REPLACE-
-       MENT.   If REGEX contains parenthesised match groups, these can be ref-
+       REGEX is a case-insensitive regular expression.   Anywhere  it  matches
+       inside  an  account name, the matched part will be replaced by REPLACE-
+       MENT.  If REGEX contains parenthesised match groups, these can be  ref-
        erenced by the usual numeric backreferences in REPLACEMENT.  Note, cur-
-       rently  regular  expression  aliases  may  cause noticeable slow-downs.
+       rently regular expression  aliases  may  cause  noticeable  slow-downs.
        (And if you use Ledger on your hledger file, they will be ignored.) Eg:
 
               alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
               # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 
    Multiple aliases
-       You  can  define  as  many aliases as you like using directives or com-
-       mand-line options.  Aliases are recursive - each alias sees the  result
-       of  applying  previous  ones.   (This  is  different from Ledger, where
+       You can define as many aliases as you like  using  directives  or  com-
+       mand-line  options.  Aliases are recursive - each alias sees the result
+       of applying previous ones.   (This  is  different  from  Ledger,  where
        aliases are non-recursive by default).  Aliases are applied in the fol-
        lowing order:
 
-       1. alias  directives,  most recently seen first (recent directives take
+       1. alias directives, most recently seen first (recent  directives  take
           precedence over earlier ones; directives not yet seen are ignored)
 
        2. alias options, in the order they appear on the command line
 
    end aliases
-       You  can  clear  (forget)  all  currently  defined  aliases  with   the
+       You   can  clear  (forget)  all  currently  defined  aliases  with  the
        end aliases directive:
 
               end aliases
 
    account directive
-       The  account directive predefines account names, as in Ledger and Bean-
-       count.  This may be useful for your own documentation; hledger  doesn't
+       The account directive predefines account names, as in Ledger and  Bean-
+       count.   This may be useful for your own documentation; hledger doesn't
        make use of it yet.
 
               ; account ACCT
@@ -611,8 +610,8 @@ FILE FORMAT
               ; etc.
 
    apply account directive
-       You  can  specify  a  parent  account  which  will  be prepended to all
-       accounts within a section of the journal.  Use  the  apply account  and
+       You can specify a  parent  account  which  will  be  prepended  to  all
+       accounts  within  a  section of the journal.  Use the apply account and
        end apply account directives like so:
 
               apply account home
@@ -629,7 +628,7 @@ FILE FORMAT
                   home:food           $10
                   home:cash          $-10
 
-       If  end apply account  is  omitted,  the effect lasts to the end of the
+       If end apply account is omitted, the effect lasts to  the  end  of  the
        file.  Included files are also affected, eg:
 
               apply account business
@@ -638,16 +637,16 @@ FILE FORMAT
               apply account personal
               include personal.journal
 
-       Prior to hledger 1.0, legacy account and end spellings were  also  sup-
+       Prior  to  hledger 1.0, legacy account and end spellings were also sup-
        ported.
 
    Multi-line comments
-       A  line containing just comment starts a multi-line comment, and a line
+       A line containing just comment starts a multi-line comment, and a  line
        containing just end comment ends it.  See comments.
 
    commodity directive
-       The commodity directive predefines commodities (currently this is  just
-       informational),  and  also it may define the display format for amounts
+       The  commodity directive predefines commodities (currently this is just
+       informational), and also it may define the display format  for  amounts
        in this commodity (overriding the automatically inferred format).
 
        It may be written on a single line, like this:
@@ -659,8 +658,8 @@ FILE FORMAT
               ; separating thousands with comma.
               commodity 1,000.0000 AAAA
 
-       or on multiple lines, using the "format" subdirective.   In  this  case
-       the  commodity  symbol  appears  twice  and  should be the same in both
+       or  on  multiple  lines, using the "format" subdirective.  In this case
+       the commodity symbol appears twice and  should  be  the  same  in  both
        places:
 
               ; commodity SYMBOL
@@ -673,10 +672,10 @@ FILE FORMAT
                 format INR 9,99,99,999.00
 
    Default commodity
-       The D directive sets a default commodity (and display  format),  to  be
+       The  D  directive  sets a default commodity (and display format), to be
        used for amounts without a commodity symbol (ie, plain numbers).  (Note
-       this differs from Ledger's default commodity directive.) The  commodity
-       and  display  format  will  be applied to all subsequent commodity-less
+       this  differs from Ledger's default commodity directive.) The commodity
+       and display format will be applied  to  all  subsequent  commodity-less
        amounts, or until the next D directive.
 
               # commodity-less amounts should be treated as dollars
@@ -688,8 +687,8 @@ FILE FORMAT
                 b
 
    Default year
-       You can set a default year to be used for subsequent dates which  don't
-       specify  a year.  This is a line beginning with Y followed by the year.
+       You  can set a default year to be used for subsequent dates which don't
+       specify a year.  This is a line beginning with Y followed by the  year.
        Eg:
 
               Y2009      ; set default year to 2009
@@ -709,24 +708,24 @@ FILE FORMAT
                 assets
 
    Including other files
-       You can pull in the content of additional journal files by  writing  an
+       You  can  pull in the content of additional journal files by writing an
        include directive, like this:
 
               include path/to/file.journal
 
-       If  the path does not begin with a slash, it is relative to the current
+       If the path does not begin with a slash, it is relative to the  current
        file.  Glob patterns (*) are not currently supported.
 
-       The include directive can only  be  used  in  journal  files.   It  can
+       The  include  directive  can  only  be  used  in journal files.  It can
        include journal, timeclock or timedot files, but not CSV files.
 
 EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
-       nal files easier.  They add colour, navigation aids  and  helpful  com-
-       mands.   For  hledger  users  who  edit  the journal file directly (the
+       nal  files  easier.   They add colour, navigation aids and helpful com-
+       mands.  For hledger users who  edit  the  journal  file  directly  (the
        majority), using one of these modes is quite recommended.
 
-       These were written with Ledger in mind,  but  also  work  with  hledger
+       These  were  written  with  Ledger  in mind, but also work with hledger
        files:
 
 
@@ -743,7 +742,7 @@ EDITOR SUPPORT
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -757,7 +756,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

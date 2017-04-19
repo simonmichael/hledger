@@ -736,8 +736,7 @@ File: hledger_journal.5.info,  Node: Regex aliases,  Next: Multiple aliases,  Pr
 ......................
 
 There is also a more powerful variant that uses a regular expression,
-indicated by the forward slashes.  (This was the default behaviour in
-hledger 0.24-0.25):
+indicated by the forward slashes:
 
 alias /REGEX/ = REPLACEMENT
 
@@ -1018,25 +1017,25 @@ Node: Basic aliases25540
 Ref: #basic-aliases25685
 Node: Regex aliases26375
 Ref: #regex-aliases26545
-Node: Multiple aliases27316
-Ref: #multiple-aliases27490
-Node: end aliases27988
-Ref: #end-aliases28130
-Node: account directive28231
-Ref: #account-directive28413
-Node: apply account directive28709
-Ref: #apply-account-directive28907
-Node: Multi-line comments29566
-Ref: #multi-line-comments29758
-Node: commodity directive29886
-Ref: #commodity-directive30072
-Node: Default commodity30944
-Ref: #default-commodity31119
-Node: Default year31656
-Ref: #default-year31823
-Node: Including other files32246
-Ref: #including-other-files32405
-Node: EDITOR SUPPORT32802
-Ref: #editor-support32922
+Node: Multiple aliases27260
+Ref: #multiple-aliases27434
+Node: end aliases27932
+Ref: #end-aliases28074
+Node: account directive28175
+Ref: #account-directive28357
+Node: apply account directive28653
+Ref: #apply-account-directive28851
+Node: Multi-line comments29510
+Ref: #multi-line-comments29702
+Node: commodity directive29830
+Ref: #commodity-directive30016
+Node: Default commodity30888
+Ref: #default-commodity31063
+Node: Default year31600
+Ref: #default-year31767
+Node: Including other files32190
+Ref: #including-other-files32349
+Node: EDITOR SUPPORT32746
+Ref: #editor-support32866
 
 End Tag Table

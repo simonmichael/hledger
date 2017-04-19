@@ -18,7 +18,7 @@ hledger will create it if necessary, with some default rules which
 you\[aq]ll need to adjust.
 At minimum, the rules file must specify the \f[C]date\f[] and
 \f[C]amount\f[] fields.
-For an example, see How to read CSV files.
+For an example, see Cookbook: convert CSV files.
 .PP
 To learn about \f[I]exporting\f[] CSV, see CSV output.
 .SH CSV RULES
@@ -90,7 +90,7 @@ to journal entry fields if you use any of these standard field names:
 \f[C]date\f[], \f[C]date2\f[], \f[C]status\f[], \f[C]code\f[],
 \f[C]description\f[], \f[C]comment\f[], \f[C]account1\f[],
 \f[C]account2\f[], \f[C]amount\f[], \f[C]amount\-in\f[],
-\f[C]amount\-out\f[], \f[C]currency\f[].
+\f[C]amount\-out\f[], \f[C]currency\f[], \f[C]balance\f[].
 Eg:
 .IP
 .nf
@@ -195,7 +195,7 @@ Eg:
 include\ common.rules
 \f[]
 .fi
-.SH TIPS
+.SH CSV TIPS
 .PP
 Each generated journal entry will have two postings, to
 \f[C]account1\f[] and \f[C]account2\f[] respectively.
@@ -210,6 +210,11 @@ If the CSV has the currency in a separate field, assign that to the
 \f[C]currency\f[] pseudo field which will be automatically prepended to
 the amount.
 (Or you can do the same thing with a field assignment.)
+.PP
+If the CSV includes a running balance, you can assign that to the
+\f[C]balance\f[] pseudo field to generate a balance assertion on
+\f[C]account1\f[] whenever the balance field is non\-empty.
+(Eg to double\-check your bank\[aq]s balance calculation.)
 .PP
 If an amount value is parenthesised, it will be de\-parenthesised and
 sign\-flipped automatically.

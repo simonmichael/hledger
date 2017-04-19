@@ -13,16 +13,16 @@ file".  This file should be named like the CSV file with an additional
 with '--rules-file PATH'.  hledger will create it if necessary, with
 some default rules which you'll need to adjust.  At minimum, the rules
 file must specify the 'date' and 'amount' fields.  For an example, see
-How to read CSV files.
+Cookbook: convert CSV files.
 
    To learn about _exporting_ CSV, see CSV output.
 * Menu:
 
 * CSV RULES::
-* TIPS::
+* CSV TIPS::
 
 
-File: hledger_csv.5.info,  Node: CSV RULES,  Next: TIPS,  Prev: Top,  Up: Top
+File: hledger_csv.5.info,  Node: CSV RULES,  Next: CSV TIPS,  Prev: Top,  Up: Top
 
 1 CSV RULES
 ***********
@@ -89,7 +89,8 @@ File: hledger_csv.5.info,  Node: field list,  Next: field assignment,  Prev: dat
 whitespace; uninteresting names may be left blank), and (b) assigns them
 to journal entry fields if you use any of these standard field names:
 'date', 'date2', 'status', 'code', 'description', 'comment', 'account1',
-'account2', 'amount', 'amount-in', 'amount-out', 'currency'.  Eg:
+'account2', 'amount', 'amount-in', 'amount-out', 'currency', 'balance'.
+Eg:
 
 # use the 1st, 2nd and 4th CSV fields as the entry's date, description and amount,
 # and give the 7th and 8th fields meaningful names for later reference:
@@ -170,10 +171,10 @@ Eg:
 include common.rules
 
 
-File: hledger_csv.5.info,  Node: TIPS,  Prev: CSV RULES,  Up: Top
+File: hledger_csv.5.info,  Node: CSV TIPS,  Prev: CSV RULES,  Up: Top
 
-2 TIPS
-******
+2 CSV TIPS
+**********
 
 Each generated journal entry will have two postings, to 'account1' and
 'account2' respectively.  Currently it's not possible to generate
@@ -186,6 +187,11 @@ entries with more than two postings.
 'currency' pseudo field which will be automatically prepended to the
 amount.  (Or you can do the same thing with a field assignment.)
 
+   If the CSV includes a running balance, you can assign that to the
+'balance' pseudo field to generate a balance assertion on 'account1'
+whenever the balance field is non-empty.  (Eg to double-check your
+bank's balance calculation.)
+
    If an amount value is parenthesised, it will be de-parenthesised and
 sign-flipped automatically.
 
@@ -195,21 +201,21 @@ order of same-day entries will be preserved, usually.
 
 Tag Table:
 Node: Top74
-Node: CSV RULES800
-Ref: #csv-rules906
-Node: skip1149
-Ref: #skip1245
-Node: date-format1417
-Ref: #date-format1546
-Node: field list2052
-Ref: #field-list2191
-Node: field assignment2886
-Ref: #field-assignment3043
-Node: conditional block3547
-Ref: #conditional-block3703
-Node: include4599
-Ref: #include4710
-Node: TIPS4941
-Ref: #tips5025
+Node: CSV RULES810
+Ref: #csv-rules920
+Node: skip1163
+Ref: #skip1259
+Node: date-format1431
+Ref: #date-format1560
+Node: field list2066
+Ref: #field-list2205
+Node: field assignment2910
+Ref: #field-assignment3067
+Node: conditional block3571
+Ref: #conditional-block3727
+Node: include4623
+Ref: #include4734
+Node: CSV TIPS4965
+Ref: #csv-tips5061
 
 End Tag Table

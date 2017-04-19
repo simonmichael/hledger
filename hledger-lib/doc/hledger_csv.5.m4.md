@@ -24,7 +24,7 @@ This file should be named like the CSV file with an additional `.rules` suffix (
 or, you can specify the file with `--rules-file PATH`.
 hledger will create it if necessary, with some default rules which you'll need to adjust.
 At minimum, the rules file must specify the `date` and `amount` fields.
-For an example, see [How to read CSV files](how-to-read-csv-files.html).
+For an example, see [Cookbook: convert CSV files](csv-import.html).
 
 To learn about *exporting* CSV, see [CSV output](hledger.html#csv-output).
 
@@ -157,7 +157,7 @@ a path relative to the current file's directory. Eg:
 include common.rules
 ```
 
-# TIPS
+# CSV TIPS
 
 Each generated journal entry will have two postings, to `account1` and `account2` respectively.
 Currently it's not possible to generate entries with more than two postings.
@@ -167,10 +167,14 @@ If the CSV has debit/credit amounts in separate fields, assign to the `amount-in
 If the CSV has the currency in a separate field, assign that to the `currency` pseudo field which will be automatically prepended to the amount.
 (Or you can do the same thing with a field assignment.)
 
+If the CSV includes a running balance, you can assign that to the `balance` pseudo field 
+to generate a [balance assertion](/journal.html#balance-assertoins) on `account1` 
+whenever the balance field is non-empty.
+(Eg to double-check your bank's balance calculation.)
+
 If an amount value is parenthesised, it will be de-parenthesised and sign-flipped automatically.
 
 The generated journal entries will be sorted by date.
 The original order of same-day entries will be preserved, usually.
 <!-- (by reversing the CSV entries if they seem to be in reverse date order). -->
 
-If you assign anything to the `balance` pseudo field, it would become an assertion of the balance of `account1`. If you assign empty string to it, no assertion will be generated (this can be used to omit balance assertions on some transactions).
