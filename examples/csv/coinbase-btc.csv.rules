@@ -1,4 +1,5 @@
 # hledger conversion rules for coinbase report CSV
+# (https://www.coinbase.com/reports, type: transaction history)
 
 # sample:
 # Transactions
