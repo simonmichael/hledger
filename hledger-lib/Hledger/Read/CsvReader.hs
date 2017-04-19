@@ -498,22 +498,23 @@ fieldassignmentp = do
 journalfieldnamep :: CsvRulesParser String
 journalfieldnamep = lift (pdbg 2 "trying journalfieldnamep") >> choiceInState (map string journalfieldnames)
 
-journalfieldnames =
-  [-- pseudo fields:
-   "amount-in"
+-- Transaction fields and pseudo fields for CSV conversion. 
+-- Names must precede any other name they contain, for the parser 
+-- (amount-in before amount; date2 before date). TODO: fix
+journalfieldnames = [
+   "account1"
+  ,"account2"
+  ,"amount-in"
   ,"amount-out"
+  ,"amount"
+  ,"balance"
+  ,"code"
+  ,"comment"
   ,"currency"
-   -- standard fields:
   ,"date2"
   ,"date"
-  ,"status"
-  ,"code"
   ,"description"
-  ,"amount"
-  ,"account1"
-  ,"account2"
-  ,"comment"
-  ,"balance"
+  ,"status"
   ]
 
 assignmentseparatorp :: CsvRulesParser ()
