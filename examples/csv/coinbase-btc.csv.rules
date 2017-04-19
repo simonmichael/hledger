@@ -1,0 +1,22 @@
+# hledger conversion rules for coinbase report CSV
+
+# sample:
+# Transactions
+# User,user@example.com,1234abcd
+# Account,BTC Wallet,1111aaaa
+#
+# Timestamp,Balance,Amount,Currency,To,Notes,Instantly Exchanged,Transfer Total,Transfer Total Currency,Transfer Fee,Transfer Fee Currency,Transfer Payment Method,Transfer ID,Order Price,Order Currency,Order BTC,Order Tracking Code,Order Custom Parameter,Order Paid Out,Recurring Payment ID,Coinbase ID (visit https://www.coinbase.com/transactions/[ID] in your browser),Bitcoin Hash (visit https://www.coinbase.com/tx/[HASH] in your browser for more info)
+# 2017-04-06 17:09:04 -0700,0.04182499,0.04182499,BTC,1111aaaa,Bought 0.04182499 BTC for $52.00 USD.,false,52.0,USD,2.0,USD,Visa debit ********1234,2222bbbb,"","","","","","",3333cccc,4444dddd,""
+# 2017-04-09 10:55:56 -0700,0.04973356,0.00790857,BTC,1111aaaa,Bought 0.00790857 BTC for $10.00 USD.,false,10.0,USD,0.38,USD,Visa debit ********1234,5555eeee,"","","","","","",3333cccc,6666ffff,""
+
+skip 4
+fields date, balance, amount, currency, to, notes, instantly_exchanged, transfer_total, etc...
+date-format %Y-%m-%d %T %z
+account1 assets:online:coinbase:btc wallet
+description %notes
+# add a trailing space to currency:
+currency %currency 
+
+if Visa debit.*1234
+ account2 assets:bank:checking
+# TODO want BTC on account1 posting, $ on account2 posting
