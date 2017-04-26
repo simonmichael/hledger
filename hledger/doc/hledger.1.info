@@ -1013,7 +1013,7 @@ Show accounts and their balances.  Alias: bal.
      Use unicode to display prettier tables.
 
    The balance command displays accounts and balances.  It is hledger's
-most featureful and most useful command.
+most featureful and versatile command.
 
 $ hledger balance
                  $-1  assets
@@ -1038,7 +1038,8 @@ opening balances, this is the same as the account's ending balance.
 indented below their parent.  "Boring" accounts, which contain a single
 interesting subaccount and no balance of their own, are elided into the
 following line for more compact output.  (Use '--no-elide' to prevent
-this.)
+this.  Eliding of boring accounts is not yet supported in multicolumn
+reports.)
 
    Each account's balance is the "inclusive" balance - it includes the
 balances of any subaccounts.
@@ -1060,6 +1061,7 @@ $ hledger balance -p 2008/6 expenses --no-total
 * Depth limited balance reports::
 * Multicolumn balance reports::
 * Custom balance output::
+* Colour support::
 * Output destination::
 * CSV output::
 
@@ -1197,7 +1199,7 @@ Balance changes in 2008:
 # Average is rounded to the dollar here since all journal amounts are
 
 
-File: hledger.1.info,  Node: Custom balance output,  Next: Output destination,  Prev: Multicolumn balance reports,  Up: balance
+File: hledger.1.info,  Node: Custom balance output,  Next: Colour support,  Prev: Multicolumn balance reports,  Up: balance
 
 4.4.4 Custom balance output
 ---------------------------
@@ -1257,9 +1259,20 @@ may be needed to get pleasing results.
      the single-column balance report
 
 
-File: hledger.1.info,  Node: Output destination,  Next: CSV output,  Prev: Custom balance output,  Up: balance
+File: hledger.1.info,  Node: Colour support,  Next: Output destination,  Prev: Custom balance output,  Up: balance
 
-4.4.5 Output destination
+4.4.5 Colour support
+--------------------
+
+The balance command shows negative amounts in red, if:
+
+   * the 'TERM' environment variable is not set to 'dumb'
+   * the output is not being redirected or piped anywhere
+
+
+File: hledger.1.info,  Node: Output destination,  Next: CSV output,  Prev: Colour support,  Up: balance
+
+4.4.6 Output destination
 ------------------------
 
 The balance, print, register and stats commands can write their output
@@ -1272,7 +1285,7 @@ $ hledger balance -o FILE  # write to FILE
 
 File: hledger.1.info,  Node: CSV output,  Prev: Output destination,  Up: balance
 
-4.4.6 CSV output
+4.4.7 CSV output
 ----------------
 
 The balance, print and register commands can write their output as CSV.
@@ -2144,83 +2157,85 @@ Node: add27846
 Ref: #add27947
 Node: balance30605
 Ref: #balance30718
-Node: Flat mode33643
-Ref: #flat-mode33770
-Node: Depth limited balance reports34190
-Ref: #depth-limited-balance-reports34393
-Node: Multicolumn balance reports34813
-Ref: #multicolumn-balance-reports35024
-Node: Custom balance output39672
-Ref: #custom-balance-output39860
-Node: Output destination41953
-Ref: #output-destination42118
-Node: CSV output42388
-Ref: #csv-output42507
-Node: balancesheet42904
-Ref: #balancesheet43032
-Node: cashflow44939
-Ref: #cashflow45056
-Node: help46924
-Ref: #help47036
-Node: incomestatement47874
-Ref: #incomestatement48004
-Node: info49896
-Ref: #info50003
-Node: man50367
-Ref: #man50464
-Node: print50869
-Ref: #print50974
-Node: register54730
-Ref: #register54843
-Node: Custom register output59339
-Ref: #custom-register-output59470
-Node: stats60767
-Ref: #stats60873
-Node: test61754
-Ref: #test61841
-Node: ADD-ON COMMANDS62209
-Ref: #add-on-commands62321
-Node: Official add-ons63608
-Ref: #official-add-ons63750
-Node: api63837
-Ref: #api63928
-Node: ui63980
-Ref: #ui64081
-Node: web64139
-Ref: #web64230
-Node: Third party add-ons64276
-Ref: #third-party-add-ons64453
-Node: diff64588
-Ref: #diff64687
-Node: iadd64786
-Ref: #iadd64902
-Node: interest64985
-Ref: #interest65108
-Node: irr65203
-Ref: #irr65303
-Node: Experimental add-ons65381
-Ref: #experimental-add-ons65535
-Node: autosync65928
-Ref: #autosync66042
-Node: budget66281
-Ref: #budget66405
-Node: chart66471
-Ref: #chart66590
-Node: check66661
-Ref: #check66785
-Node: check-dates66852
-Ref: #check-dates66994
-Node: check-dupes67067
-Ref: #check-dupes67210
-Node: equity67287
-Ref: #equity67415
-Node: prices67534
-Ref: #prices67663
-Node: print-unique67718
-Ref: #print-unique67867
-Node: register-match67960
-Ref: #register-match68116
-Node: rewrite68214
-Ref: #rewrite68335
+Node: Flat mode33733
+Ref: #flat-mode33860
+Node: Depth limited balance reports34280
+Ref: #depth-limited-balance-reports34483
+Node: Multicolumn balance reports34903
+Ref: #multicolumn-balance-reports35114
+Node: Custom balance output39762
+Ref: #custom-balance-output39946
+Node: Colour support42039
+Ref: #colour-support42200
+Node: Output destination42373
+Ref: #output-destination42531
+Node: CSV output42801
+Ref: #csv-output42920
+Node: balancesheet43317
+Ref: #balancesheet43445
+Node: cashflow45352
+Ref: #cashflow45469
+Node: help47337
+Ref: #help47449
+Node: incomestatement48287
+Ref: #incomestatement48417
+Node: info50309
+Ref: #info50416
+Node: man50780
+Ref: #man50877
+Node: print51282
+Ref: #print51387
+Node: register55143
+Ref: #register55256
+Node: Custom register output59752
+Ref: #custom-register-output59883
+Node: stats61180
+Ref: #stats61286
+Node: test62167
+Ref: #test62254
+Node: ADD-ON COMMANDS62622
+Ref: #add-on-commands62734
+Node: Official add-ons64021
+Ref: #official-add-ons64163
+Node: api64250
+Ref: #api64341
+Node: ui64393
+Ref: #ui64494
+Node: web64552
+Ref: #web64643
+Node: Third party add-ons64689
+Ref: #third-party-add-ons64866
+Node: diff65001
+Ref: #diff65100
+Node: iadd65199
+Ref: #iadd65315
+Node: interest65398
+Ref: #interest65521
+Node: irr65616
+Ref: #irr65716
+Node: Experimental add-ons65794
+Ref: #experimental-add-ons65948
+Node: autosync66341
+Ref: #autosync66455
+Node: budget66694
+Ref: #budget66818
+Node: chart66884
+Ref: #chart67003
+Node: check67074
+Ref: #check67198
+Node: check-dates67265
+Ref: #check-dates67407
+Node: check-dupes67480
+Ref: #check-dupes67623
+Node: equity67700
+Ref: #equity67828
+Node: prices67947
+Ref: #prices68076
+Node: print-unique68131
+Ref: #print-unique68280
+Node: register-match68373
+Ref: #register-match68529
+Node: rewrite68627
+Ref: #rewrite68748
 
 End Tag Table

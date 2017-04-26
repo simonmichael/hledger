@@ -1354,7 +1354,7 @@ Use unicode to display prettier tables.
 .RE
 .PP
 The balance command displays accounts and balances.
-It is hledger\[aq]s most featureful and most useful command.
+It is hledger\[aq]s most featureful and versatile command.
 .IP
 .nf
 \f[C]
@@ -1385,7 +1385,8 @@ indented below their parent.
 "Boring" accounts, which contain a single interesting subaccount and no
 balance of their own, are elided into the following line for more
 compact output.
-(Use \f[C]\-\-no\-elide\f[] to prevent this.)
+(Use \f[C]\-\-no\-elide\f[] to prevent this.
+Eliding of boring accounts is not yet supported in multicolumn reports.)
 .PP
 Each account\[aq]s balance is the "inclusive" balance \- it includes the
 balances of any subaccounts.
@@ -1631,6 +1632,13 @@ rendered on one line
 .IP \[bu] 2
 \f[C]%20(total)\ \ %2(depth_spacer)%\-(account)\f[] \- the default
 format for the single\-column balance report
+.SS Colour support
+.PP
+The balance command shows negative amounts in red, if:
+.IP \[bu] 2
+the \f[C]TERM\f[] environment variable is not set to \f[C]dumb\f[]
+.IP \[bu] 2
+the output is not being redirected or piped anywhere
 .SS Output destination
 .PP
 The balance, print, register and stats commands can write their output

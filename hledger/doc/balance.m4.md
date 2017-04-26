@@ -45,7 +45,7 @@ txt, csv.
 : Use unicode to display prettier tables.
 
 The balance command displays accounts and balances.
-It is hledger's most featureful and most useful command.
+It is hledger's most featureful and versatile command.
 
 ```shell
 $ hledger balance
@@ -70,11 +70,11 @@ By default, accounts are displayed hierarchically, with subaccounts
 indented below their parent.
 "Boring" accounts, which contain a single interesting
 subaccount and no balance of their own, are elided into the following
-line for more compact output. (Use `--no-elide` to prevent this.)
+line for more compact output. (Use `--no-elide` to prevent this. 
+Eliding of boring accounts is not yet supported in multicolumn reports.)
 
 Each account's balance is the "inclusive" balance - it includes the
 balances of any subaccounts.
-
 
 Accounts which have zero balance (and no non-zero subaccounts) are
 omitted. Use `-E/--empty` to show them.
@@ -289,6 +289,13 @@ Some example formats:
 - `%-20.20(account)` - the account's name, left justified, padded to 20 characters and clipped at 20 characters
 - `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
 - `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report
+
+### Colour support
+
+The balance command shows negative amounts in red, if:
+
+- the `TERM` environment variable is not set to `dumb`
+- the output is not being redirected or piped anywhere
 
 ### Output destination
 
