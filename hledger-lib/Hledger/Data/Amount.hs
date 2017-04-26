@@ -61,6 +61,7 @@ module Hledger.Data.Amount (
   -- ** rendering
   amountstyle,
   showAmount,
+  cshowAmount,
   showAmountWithZeroCommodity,
   showAmountDebug,
   showAmountWithoutPrice,
@@ -95,6 +96,8 @@ module Hledger.Data.Amount (
   showMixedAmountDebug,
   showMixedAmountWithoutPrice,
   showMixedAmountOneLineWithoutPrice,
+  cshowMixedAmountWithoutPrice,
+  cshowMixedAmountOneLineWithoutPrice,
   showMixedAmountWithZeroCommodity,
   showMixedAmountWithPrecision,
   setMixedAmountPrecision,
@@ -239,6 +242,10 @@ showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice
 showAmountWithoutPrice :: Amount -> String
 showAmountWithoutPrice a = showAmount a{aprice=NoPrice}
 
+-- | Colour version.
+cshowAmountWithoutPrice :: Amount -> String
+cshowAmountWithoutPrice a = cshowAmount a{aprice=NoPrice}
+
 -- | Get the string representation of an amount, without any price or commodity symbol.
 showAmountWithoutPriceOrCommodity :: Amount -> String
 showAmountWithoutPriceOrCommodity a = showAmount a{acommodity="", aprice=NoPrice}
@@ -259,6 +266,13 @@ showPriceDebug (TotalPrice pa) = " @@ " ++ showAmountDebug pa
 -- displayed as the empty string.
 showAmount :: Amount -> String
 showAmount = showAmountHelper False
+
+-- | Colour version. For a negative amount, adds ANSI codes to change the colour, 
+-- currently to hard-coded red.
+cshowAmount :: Amount -> String
+cshowAmount a =
+  (if isNegativeAmount a then color Dull Red else id) $
+  showAmountHelper False a
 
 showAmountHelper :: Bool -> Amount -> String
 showAmountHelper _ Amount{acommodity="AUTO"} = ""
@@ -559,10 +573,28 @@ showMixedAmountWithoutPrice m = concat $ intersperse "\n" $ map showfixedwidth a
       width = maximum $ map (length . showAmount) as
       showfixedwidth = printf (printf "%%%ds" width) . showAmountWithoutPrice
 
+-- | Colour version.
+cshowMixedAmountWithoutPrice :: MixedAmount -> String
+cshowMixedAmountWithoutPrice m = concat $ intersperse "\n" $ map showamt as
+    where
+      (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
+      stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}
+      width = maximum $ map (length . showAmount) as
+      showamt a = 
+        (if isNegativeAmount a then color Dull Red else id) $
+        printf (printf "%%%ds" width) $ showAmountWithoutPrice a
+
 -- | Get the one-line string representation of a mixed amount, but without
 -- any \@ prices.
 showMixedAmountOneLineWithoutPrice :: MixedAmount -> String
 showMixedAmountOneLineWithoutPrice m = concat $ intersperse ", " $ map showAmountWithoutPrice as
+    where
+      (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
+      stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}
+
+-- | Colour version.
+cshowMixedAmountOneLineWithoutPrice :: MixedAmount -> String
+cshowMixedAmountOneLineWithoutPrice m = concat $ intersperse ", " $ map cshowAmountWithoutPrice as
     where
       (Mixed as) = normaliseMixedAmountSquashPricesForDisplay $ stripPrices m
       stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}

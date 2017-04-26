@@ -40,6 +40,8 @@ import Data.Typeable (Typeable)
 import Data.Time.Calendar
 import Data.Default
 import Safe
+import System.Console.ANSI (hSupportsANSI)
+import System.IO (stdout)
 import Test.HUnit
 import Text.Megaparsec.Error
 
@@ -92,6 +94,7 @@ data ReportOpts = ReportOpts {
     ,no_total_       :: Bool
     ,value_          :: Bool
     ,pretty_tables_  :: Bool
+    ,color_          :: Bool
  } deriving (Show, Data, Typeable)
 
 instance Default ReportOpts where def = defreportopts
@@ -120,11 +123,13 @@ defreportopts = ReportOpts
     def
     def
     def
+    def
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = checkReportOpts <$> do
-  d <- getCurrentDay
   let rawopts' = checkRawOpts rawopts
+  d <- getCurrentDay
+  color <- hSupportsANSI stdout
   return defreportopts{
      period_      = periodFromRawOpts d rawopts'
     ,interval_    = intervalFromRawOpts rawopts'
@@ -147,6 +152,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,no_total_    = boolopt "no-total" rawopts'
     ,value_       = boolopt "value" rawopts'
     ,pretty_tables_ = boolopt "pretty-tables" rawopts'
+    ,color_       = color
     }
 
 -- | Do extra validation of raw option values, raising an error if there's a problem.

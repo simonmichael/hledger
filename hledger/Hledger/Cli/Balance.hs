@@ -358,7 +358,7 @@ balanceReportAsText opts ((items, total)) = unlines $ concat lines ++ t
                 let
                   -- abuse renderBalanceReportItem to render the total with similar format
                   acctcolwidth = maximum' [T.length fullname | (fullname, _, _, _) <- items]
-                  totallines = map rstrip $ renderBalanceReportItem fmt (T.replicate (acctcolwidth+1) " ", 0, total)
+                  totallines = map rstrip $ renderBalanceReportItem opts fmt (T.replicate (acctcolwidth+1) " ", 0, total)
                   -- with a custom format, extend the line to the full report width;
                   -- otherwise show the usual 20-char line for compatibility
                   overlinewidth | isJust (format_ opts) = maximum' $ map length $ concat lines
@@ -399,52 +399,69 @@ This implementation turned out to be a bit convoluted but implements the followi
 -- The output will be one or more lines depending on the format and number of commodities.
 balanceReportItemAsText :: ReportOpts -> StringFormat -> BalanceReportItem -> [String]
 balanceReportItemAsText opts fmt (_, accountName, depth, amt) =
-  renderBalanceReportItem fmt (
+  renderBalanceReportItem opts fmt (
     maybeAccountNameDrop opts accountName,
     depth,
     normaliseMixedAmountSquashPricesForDisplay amt
     )
 
 -- | Render a balance report item using the given StringFormat, generating one or more lines of text.
-renderBalanceReportItem :: StringFormat -> (AccountName, Int, MixedAmount) -> [String]
-renderBalanceReportItem fmt (acctname, depth, total) =
+renderBalanceReportItem :: ReportOpts -> StringFormat -> (AccountName, Int, MixedAmount) -> [String]
+renderBalanceReportItem opts fmt (acctname, depth, total) =
   lines $
   case fmt of
     OneLine comps       -> concatOneLine      $ render1 comps
     TopAligned comps    -> concatBottomPadded $ render comps
     BottomAligned comps -> concatTopPadded    $ render comps
   where
-    render1 = map (renderComponent1 (acctname, depth, total))
-    render  = map (renderComponent (acctname, depth, total))
+    render1 = map (renderComponent1 opts (acctname, depth, total))
+    render  = map (renderComponent opts (acctname, depth, total))
 
 defaultTotalFieldWidth = 20
 
 -- | Render one StringFormat component for a balance report item.
-renderComponent :: (AccountName, Int, MixedAmount) -> StringFormatComponent -> String
-renderComponent _ (FormatLiteral s) = s
-renderComponent (acctname, depth, total) (FormatField ljust min max field) = case field of
+renderComponent :: ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> String
+renderComponent _ _ (FormatLiteral s) = s
+renderComponent opts (acctname, depth, total) (FormatField ljust min max field) = case field of
   DepthSpacerField -> formatString ljust Nothing max $ replicate d ' '
                       where d = case min of
                                  Just m  -> depth * m
                                  Nothing -> depth
   AccountField     -> formatString ljust min max (T.unpack acctname)
-  TotalField       -> fitStringMulti min max True False $ showMixedAmountWithoutPrice total
+  TotalField       ->
+    -- TODO: does not color multicommodity amounts
+--    setamtcolor $ fitStringMulti min max True False $ showMixedAmountWithoutPrice total
+    fitStringMulti min max True False $ showamt total
   _                -> ""
+  where
+    showamt | color_ opts = cshowMixedAmountWithoutPrice
+            | otherwise   = showMixedAmountWithoutPrice
+--    setamtcolor
+--      | color_ opts && isNegativeMixedAmount total == Just True = color Dull Red
+--      | otherwise = id
 
 -- | Render one StringFormat component for a balance report item.
 -- This variant is for use with OneLine string formats; it squashes
 -- any multi-line rendered values onto one line, comma-and-space separated,
 -- while still complying with the width spec.
-renderComponent1 :: (AccountName, Int, MixedAmount) -> StringFormatComponent -> String
-renderComponent1 _ (FormatLiteral s) = s
-renderComponent1 (acctname, depth, total) (FormatField ljust min max field) = case field of
+renderComponent1 :: ReportOpts -> (AccountName, Int, MixedAmount) -> StringFormatComponent -> String
+renderComponent1 _ _ (FormatLiteral s) = s
+renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field) = case field of
   AccountField     -> formatString ljust min max ((intercalate ", " . lines) (indented (T.unpack acctname)))
                       where
                         -- better to indent the account name here rather than use a DepthField component
                         -- so that it complies with width spec. Uses a fixed indent step size.
                         indented = ((replicate (depth*2) ' ')++)
-  TotalField       -> fitStringMulti min max True False $ ((intercalate ", " . map strip . lines) (showMixedAmountWithoutPrice total))
+  TotalField       -> 
+--    setamtcolor $ fitStringMulti min max True False $ ((intercalate ", " . map strip . lines) (showMixedAmountWithoutPrice total))
+    fitStringMulti min max True False $ ((intercalate ", " . map strip . lines) (showamt total))
   _                -> ""
+  where
+    showamt | color_ opts = cshowMixedAmountWithoutPrice
+            | otherwise   = showMixedAmountWithoutPrice 
+--    setamtcolor
+--      | color_ opts && isNegativeMixedAmount total == Just True = color Dull Red
+--      | otherwise = id
 
 -- multi-column balance reports
 
@@ -489,8 +506,8 @@ multiBalanceReportAsText opts r =
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output.
 renderBalanceReportTable :: ReportOpts -> Table String String MixedAmount -> String
-renderBalanceReportTable (ReportOpts { pretty_tables_ = pretty }) = unlines . trimborder . lines
-                         . render pretty id (" " ++) showMixedAmountOneLineWithoutPrice
+renderBalanceReportTable (ReportOpts { pretty_tables_ = pretty, color_=usecolor }) = unlines . trimborder . lines
+                         . render pretty id (" " ++) showamt
                          . align
   where
     trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
@@ -498,6 +515,8 @@ renderBalanceReportTable (ReportOpts { pretty_tables_ = pretty }) = unlines . tr
       where
         acctswidth = maximum' $ map strWidth (headerContents l)
         l'         = padRightWide acctswidth <$> l
+    showamt | usecolor  = cshowMixedAmountOneLineWithoutPrice
+            | otherwise = showMixedAmountOneLineWithoutPrice
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount

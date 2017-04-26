@@ -84,6 +84,7 @@ library
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
+    , ansi-terminal >= 0.6.2.3 && < 0.7
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
@@ -169,6 +170,7 @@ executable hledger
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
+    , ansi-terminal >= 0.6.2.3 && < 0.7
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
@@ -231,6 +233,7 @@ test-suite test
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
+    , ansi-terminal >= 0.6.2.3 && < 0.7
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
@@ -292,6 +295,7 @@ benchmark bench
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
+    , ansi-terminal >= 0.6.2.3 && < 0.7
     , directory
     , file-embed >=0.0.10 && <0.1
     , filepath
