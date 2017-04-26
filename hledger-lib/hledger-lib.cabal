@@ -59,6 +59,7 @@ library
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
+    , ansi-terminal >= 0.6.2.3 && < 0.7
     , array
     , blaze-markup >=0.5.1
     , bytestring
@@ -131,6 +132,7 @@ library
       Hledger.Reports.PostingsReport
       Hledger.Reports.TransactionsReports
       Hledger.Utils
+      Hledger.Utils.Color
       Hledger.Utils.Debug
       Hledger.Utils.Parse
       Hledger.Utils.Regex
@@ -153,6 +155,7 @@ test-suite doctests
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
+    , ansi-terminal >= 0.6.2.3 && < 0.7
     , array
     , blaze-markup >=0.5.1
     , bytestring
@@ -218,6 +221,7 @@ test-suite doctests
       Hledger.Reports.ReportOptions
       Hledger.Reports.TransactionsReports
       Hledger.Utils
+      Hledger.Utils.Color
       Hledger.Utils.Debug
       Hledger.Utils.Parse
       Hledger.Utils.Regex
@@ -238,6 +242,7 @@ test-suite hunittests
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
+    , ansi-terminal >= 0.6.2.3 && < 0.7
     , array
     , blaze-markup >=0.5.1
     , bytestring
@@ -312,6 +317,7 @@ test-suite hunittests
       Hledger.Reports.ReportOptions
       Hledger.Reports.TransactionsReports
       Hledger.Utils
+      Hledger.Utils.Color
       Hledger.Utils.Debug
       Hledger.Utils.Parse
       Hledger.Utils.Regex

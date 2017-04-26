@@ -15,6 +15,7 @@ module Hledger.Utils.String (
  escapeQuotes,
  words',
  unwords',
+ stripAnsi,
  -- * single-line layout
  strip,
  lstrip,
@@ -319,12 +320,17 @@ takeWidth w (c:cs) | cw <= w   = c:takeWidth (w-cw) cs
 -- from Pandoc (copyright John MacFarlane, GPL)
 -- see also http://unicode.org/reports/tr11/#Description
 
--- | Calculate the designated render width of a string, taking into
--- account wide characters and line breaks (the longest line within a
--- multi-line string determines the width ).
+-- | Calculate the render width of a string, considering
+-- wide characters (counted as double width), ANSI escape codes 
+-- (not counted), and line breaks (in a multi-line string, the longest
+-- line determines the width). 
 strWidth :: String -> Int
 strWidth "" = 0
-strWidth s = maximum $ map (foldr (\a b -> charWidth a + b) 0) $ lines s
+strWidth s = maximum $ map (foldr (\a b -> charWidth a + b) 0) $ lines s'
+  where s' = stripAnsi s
+
+stripAnsi :: String -> String
+stripAnsi = regexReplace "\ESC\\[([0-9]+;)*([0-9]+)?[ABCDHJKfmsu]" ""
 
 -- | Get the designated render width of a character: 0 for a combining
 -- character, 1 for a regular character, 2 for a wide character.

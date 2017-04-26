@@ -17,7 +17,7 @@ import Graphics.Vty (Event(..),Key(..),Color,Attr,currentAttr)
 import Lens.Micro.Platform
 import System.Process
 
-import Hledger
+import Hledger hiding (Color)
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 

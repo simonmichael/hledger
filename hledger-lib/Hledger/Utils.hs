@@ -24,6 +24,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           module Hledger.Utils.String,
                           module Hledger.Utils.Text,
                           module Hledger.Utils.Test,
+                          module Hledger.Utils.Color,
                           module Hledger.Utils.Tree,
                           -- Debug.Trace.trace,
                           -- module Data.PPrint,
@@ -55,6 +56,7 @@ import Hledger.Utils.Regex
 import Hledger.Utils.String
 import Hledger.Utils.Text
 import Hledger.Utils.Test
+import Hledger.Utils.Color
 import Hledger.Utils.Tree
 -- import Prelude hiding (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
 -- import Hledger.Utils.UTF8IOCompat   (readFile,writeFile,appendFile,getContents,putStr,putStrLn)
