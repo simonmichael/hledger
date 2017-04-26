@@ -428,17 +428,11 @@ renderComponent opts (acctname, depth, total) (FormatField ljust min max field) 
                                  Just m  -> depth * m
                                  Nothing -> depth
   AccountField     -> formatString ljust min max (T.unpack acctname)
-  TotalField       ->
-    -- TODO: does not color multicommodity amounts
---    setamtcolor $ fitStringMulti min max True False $ showMixedAmountWithoutPrice total
-    fitStringMulti min max True False $ showamt total
+  TotalField       -> fitStringMulti min max True False $ showamt total
+    where
+      showamt | color_ opts = cshowMixedAmountWithoutPrice
+              | otherwise   = showMixedAmountWithoutPrice
   _                -> ""
-  where
-    showamt | color_ opts = cshowMixedAmountWithoutPrice
-            | otherwise   = showMixedAmountWithoutPrice
---    setamtcolor
---      | color_ opts && isNegativeMixedAmount total == Just True = color Dull Red
---      | otherwise = id
 
 -- | Render one StringFormat component for a balance report item.
 -- This variant is for use with OneLine string formats; it squashes
@@ -452,16 +446,11 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
                         -- better to indent the account name here rather than use a DepthField component
                         -- so that it complies with width spec. Uses a fixed indent step size.
                         indented = ((replicate (depth*2) ' ')++)
-  TotalField       -> 
---    setamtcolor $ fitStringMulti min max True False $ ((intercalate ", " . map strip . lines) (showMixedAmountWithoutPrice total))
-    fitStringMulti min max True False $ ((intercalate ", " . map strip . lines) (showamt total))
+  TotalField       -> fitStringMulti min max True False $ ((intercalate ", " . map strip . lines) (showamt total))
+    where
+      showamt | color_ opts = cshowMixedAmountWithoutPrice
+              | otherwise   = showMixedAmountWithoutPrice 
   _                -> ""
-  where
-    showamt | color_ opts = cshowMixedAmountWithoutPrice
-            | otherwise   = showMixedAmountWithoutPrice 
---    setamtcolor
---      | color_ opts && isNegativeMixedAmount total == Just True = color Dull Red
---      | otherwise = id
 
 -- multi-column balance reports
 
