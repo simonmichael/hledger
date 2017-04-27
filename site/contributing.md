@@ -1,5 +1,3 @@
-<!-- hledger repo and http://hledger.org versions of this document are periodically bidirectionally synced -->
-
 <style>
 #toc > ol > li > a { display:none; }
 #toc > ol > li > ol > li { padding-left:0; }
@@ -8,100 +6,47 @@
 
 # Contributor guide
 
-Contributors of all levels are most welcome in the hledger project.
-This guide is action-oriented: below you'll find useful links, then procedures, then general info.
+New contributors are always welcome. Jump in! Or [ask us](/docs.html#getting-help) to help you find a task.
 
-## Quick links
+## Get started as a...
 
-<style>
-tr {
-    border-top:thin solid #bbb;
-}
-</style>
-<!-- | hledger.org&nbsp;&nbsp; | [combined release notes](release notes), [pre-compiled binaries](download) | -->
-<!-- [web ui demo](http://demo.hledger.org/register?q=inacct%3Aassets%3Abank%3Achecking+sym%3A\%24) -->
-<!-- [![travis build status](https://img.shields.io/travis/simonmichael/hledger.svg)](https://travis-ci.org/simonmichael/hledger) -->
-<!-- [![hackage deps](https://img.shields.io/hackage-deps/v/hledger.svg?label=hackage+deps)](http://packdeps.haskellers.com/feed?needle=hledger) -->
-<!-- [![github issues](https://img.shields.io/github/issues/simonmichael/hledger.svg)](http://bugs.hledger.org) -->
-<!-- [![bountysource](https://api.bountysource.com/badge/team?team_id=75979&style=bounties_received)](https://github.com/simonmichael/hledger/issues?q=label:bounty) -->
-|
-|-------------------------|----------------------------------------------------------------------------|
-| IRC                     | Join [#hledger](http://irc.hledger.org) ([chat log](http://ircbrowse.net/browse/hledger); see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1)) |
-| Mail list               | [list.hledger.org](http://list.hledger.org) ([Gmane](http://dir.gmane.org/gmane.comp.finance.ledger.hledger)) |
-| Twitter                 | [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime), see also [#ledgercli](https://twitter.com/search?q=%23ledgercli&src=typd&f=realtime), [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime), <a href="https://twitter.com/ledgertips">@LedgerTips</a> |
-| hledger-web demo&nbsp;&nbsp;        | [demo.hledger.org](http://demo.hledger.org) |
-| hledger-api demo        | [demo.hledger.org/api](http://demo.hledger.org/api/swagger.json), [in swagger editor](http://editor.swagger.io/#/?import=demo.hledger.org/api/swagger.json&no-proxy)
-| Trello                  | [old backlog/wishlist planning board](http://trello.hledger.org) |
-| Github                  | [simonmichael/hledger](http://github.com/simonmichael/hledger) (alias: code.hledger.org), [forks](http://forked.yannick.io/simonmichael/hledger) <br> [commits](http://github.com/simonmichael/hledger/commits), <!-- [unreleased commits](https://github.com/simonmichael/hledger/compare/0.23...master), [release branch commits](https://github.com/simonmichael/hledger/compare/master...0.23), --> [COMMITS!](http://starlogs.net/#simonmichael/hledger) <br> [open bugs](http://bugs.hledger.org), [open wishes](http://wishes.hledger.org), [open pull requests](http://prs.hledger.org), [all issues](https://github.com/simonmichael/hledger/issues?q=) <br> [issues with bounty tag](https://github.com/simonmichael/hledger/issues?q=label:bounty), [bountysource bounties](https://github.com/simonmichael/hledger/issues?q=%22Add%20to%20the%20bounty%20at%20Bountysource%22%20OR%20%22claim%20the%20bounty%20on%20Bountysource%22%20OR%20%22bounty%20on%20this%20issue%20has%20been%20claimed%20at%20Bountysource%22%20), [codemill bounties](https://github.com/simonmichael/hledger/issues?q=codemill), [codefund bounties](https://github.com/simonmichael/hledger/issues?utf8=✓&q=codefund) <br> stars:  <a class="github-button" href="https://github.com/simonmichael/hledger" data-icon="octicon-star" data-count-href="/simonmichael/hledger/stargazers" data-count-api="/repos/simonmichael/hledger#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star simonmichael/hledger on GitHub"></a> (#99 of ~30k [starred haskell projects](https://github.com/search?o=desc&q=language%3AHaskell+stars%3A%3E370&ref=searchresults&s=stars&type=Repositories) in 2016/04, #71 in 2016/12, #65 in 2017/3) <br> [![Throughput Graph](https://graphs.waffle.io/simonmichael/hledger/throughput.svg){width=520 height=170}](https://waffle.io/simonmichael/hledger/metrics) |
-| Travis CI               | [![travis ubuntu build status](https://img.shields.io/travis/simonmichael/hledger.svg){height=20}](https://travis-ci.org/simonmichael/hledger)
-| Appveyor CI             | [disabled](https://github.com/simonmichael/hledger/issues/424) <!-- [![appveyor windows build status](https://ci.appveyor.com/api/projects/status/5vejw0w5n5igdr42?svg=true){height=20}](https://ci.appveyor.com/project/simonmichael/hledger) latest binaries: [hledger.exe](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.exe?branch=master), [hledger-web.exe](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger-web.exe?branch=master) -->
-| Hackage                 | packages: [hledger-lib](http://hackage.haskell.org/package/hledger-lib), [hledger](http://hackage.haskell.org/package/hledger), [hledger-ui](http://hackage.haskell.org/package/hledger-ui), [hledger-web](http://hackage.haskell.org/package/hledger-web), [hledger-api](http://hackage.haskell.org/package/hledger-api), [hledger-diff](http://hackage.haskell.org/package/hledger-diff), [hledger-interest](http://hackage.haskell.org/package/hledger-interest), [hledger-irr](http://hackage.haskell.org/package/hledger-irr), [\*hledger\*](http://hackage.haskell.org/packages/search?terms=hledger) <!-- [![](https://img.shields.io/hackage/v/hledger.svg?label=current+release)](http://hackage.haskell.org/package/hledger) --> <!-- 2017/4 not updating  <br> GHC compatibility: [hledger-lib](http://matrix.hackage.haskell.org/package/hledger-lib), [hledger](http://matrix.hackage.haskell.org/package/hledger), [hledger-ui](http://matrix.hackage.haskell.org/package/hledger-ui), [hledger-web](http://matrix.hackage.haskell.org/package/hledger-web), [hledger-api](http://matrix.hackage.haskell.org/package/hledger-api) --> <br> reverse deps: [hledger-lib](http://packdeps.haskellers.com/reverse/hledger-lib), [hledger](http://packdeps.haskellers.com/reverse/hledger), [hledger-ui](http://packdeps.haskellers.com/reverse/hledger-ui), [hledger-web](http://packdeps.haskellers.com/reverse/hledger-web), [hledger-api](http://packdeps.haskellers.com/reverse/hledger-api) <br> [![](https://img.shields.io/hackage-deps/v/hledger-lib.svg?label=hledger-lib+bounds){height=20}](http://packdeps.haskellers.com/feed?needle=hledger-lib) [![](https://img.shields.io/hackage-deps/v/hledger.svg?label=hledger+bounds){height=20}](http://packdeps.haskellers.com/feed?needle=hledger) [![](https://img.shields.io/hackage-deps/v/hledger-ui.svg?label=hledger-ui+bounds){height=20}](http://packdeps.haskellers.com/feed?needle=hledger-ui) [![](https://img.shields.io/hackage-deps/v/hledger-web.svg?label=hledger-web+bounds){height=20}](http://packdeps.haskellers.com/feed?needle=hledger-web) [![](https://img.shields.io/hackage-deps/v/hledger-api.svg?label=hledger-api+bounds){height=20}](http://packdeps.haskellers.com/feed?needle=hledger-api) |
-| Stackage                | [build-constraints.yaml](https://github.com/fpco/stackage/blob/master/build-constraints.yaml), [open hledger-related issues](https://github.com/fpco/stackage/search?q=hledger+is%3Aopen&type=Issues) |
-| Debian                  | source packages: [haskell-hledger-lib](http://tracker.debian.org/pkg/haskell-hledger-lib), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-lib), [haskell-hledger](http://tracker.debian.org/pkg/haskell-hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger), [haskell-hledger-ui](http://tracker.debian.org/pkg/haskell-hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-ui), [haskell-hledger-web](http://tracker.debian.org/pkg/haskell-hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-web) <br> binary packages: <br>&nbsp;stable [hledger](https://packages.debian.org/stable/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=stable), <!-- [hledger-ui](https://packages.debian.org/stable/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=stable), --> [hledger-web](https://packages.debian.org/stable/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=stable) <br>&nbsp;testing [hledger](https://packages.debian.org/testing/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=testing), <!-- [hledger-ui](https://packages.debian.org/testing/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=testing), --> [hledger-web](https://packages.debian.org/testing/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=testing) <br>&nbsp;unstable [hledger](https://packages.debian.org/unstable/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=unstable), [hledger-ui](https://packages.debian.org/unstable/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=unstable), [hledger-web](https://packages.debian.org/unstable/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=unstable) <br>&nbsp;experimental [hledger](https://packages.debian.org/experimental/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=experimental), [hledger-ui](https://packages.debian.org/experimental/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=experimental), [hledger-web](https://packages.debian.org/experimental/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=experimental) <br>&nbsp;all [\*hledger\*](https://packages.debian.org/search?searchon=names&keywords=hledger) <br> popularity stats: [hledger](https://qa.debian.org/popcon.php?package=haskell-hledger), [hledger-ui](https://qa.debian.org/popcon.php?package=haskell-hledger-ui), [hledger-web](https://qa.debian.org/popcon.php?package=haskell-hledger-web) <br> [PTS help](https://www.debian.org/doc/manuals/developers-reference/resources.html#pkg-tracking-system) |
-| Ubuntu                  | source packages: [haskell-hledger-lib](https://launchpad.net/ubuntu/+source/haskell-hledger-lib), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-lib), [haskell-hledger](https://launchpad.net/ubuntu/+source/haskell-hledger), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger), [haskell-hledger-ui](https://launchpad.net/ubuntu/+source/haskell-hledger-ui), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-ui), [haskell-hledger-web](https://launchpad.net/ubuntu/+source/haskell-hledger-web), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-web) <br> binary packages: [\*hledger\*](http://packages.ubuntu.com/search?suite=all&searchon=names&keywords=hledger) |
-| Gentoo                  | [hledger](http://gpo.zugaina.org/dev-haskell/hledger), [hledger-web](http://gpo.zugaina.org/dev-haskell/hledger-web), [\*hledger\*](http://gpo.zugaina.org/Search?search=hledger) |
-| Fedora                  | [hledger](https://apps.fedoraproject.org/packages/hledger), [\*hledger\*](https://apps.fedoraproject.org/packages/s/hledger), [hledger (package db)](https://admin.fedoraproject.org/pkgdb/package/hledger/), [Haskell SIG](http://fedoraproject.org/wiki/Haskell_SIG) |
-| Void Linux              | [hledger\*](https://github.com/voidlinux/void-packages/search?utf8=✓&q=hledger) |
-| Nix                     | [\*hledger\*](http://hydra.nixos.org/search?query=hledger) |
-| Homebrew                | [hledger](https://github.com/Homebrew/homebrew-core/blob/master/Formula/hledger.rb) |
-| Sandstorm               | [hledger web app & reviews](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90), [issues](https://github.com/simonmichael/hledger/issues?utf8=✓&q=label%3A%22platform%3A%20sandstorm%22%20)
-| Reference               | [GHC Can I Use](http://damianfral.github.io/ghcaniuse/) |
+### Funder
 
-<!-- list the debian packages for clarity:
-3 source:
-haskell-hledger-lib
-haskell-hledger
-haskell-hledger-web
-8 binary:
-hledger
-hledger-web
-libghc-hledger-dev
-libghc-hledger-doc
-libghc-hledger-prof
-libghc-hledger-lib-dev
-libghc-hledger-lib-doc
-libghc-hledger-lib-prof
--->
+Become a financial backer to
+help sustain the project,
+influence issues you care about,
+express gratitude, 
+build your prosperity consciousness!
 
-<!-- old/future links -->
-<!-- [haddock coverage](http://hledger.org/profs/haddock-coverage), -->
-<!-- [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html), -->
-<!-- [benchmark](http://hledger.org/profs/latest.bench) -->
-<!-- [profile](http://hledger.org/profs/latest.prof), -->
-<!-- [heap](http://hledger.org/profs/latest.ps) -->
-<!-- [developer notes](http://github.com/simonmichael/hledger/NOTES.org)\ -->
-<!-- [browse dev API docs](http://hledger.org/api/frames.html) -->
-<!-- [How to clone it](contributing#set-up-for-development) -->
-<!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
+- Use the donate links on the home page
+- Configure a recurring donation
+- Contribute or pledge bounties on issues
+- Ask your organization to contribute
+- Work on project sustainability and accountability
 
-<!-- hoogle search form
-<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/jquery-1.4.2.js"></script>
-<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/hoogle.js"></script>
-<form action="http://haskell.org/hoogle/" method="get" style="display:inline; margin:0; padding:0;">
-<input type="hidden" name="prefix" value="+hledger +hledger-lib +hledger-web +hledger-vty +hledger-chart" />
-<span style="white-space:nowrap;"
-><input type="text" name="hoogle" id="hoogle" accesskey="1" size="30"
-/><input type="submit" value="search API with hoogle"
-/></span>
-</form>
--->
+### Tester
 
+- Test installation on platforms you have access to
+- Run the latest release or developer build
+- Report packaging, documentation, UX, functional bugs
+- Report and help analyse problems via irc/mail list/bug tracker
 
-## How to..
+#### Report bugs
 
-### Get help
+If you found a similar bug report already in the tracker, add any new information there.
+Otherwise, open a new bug by clicking "New issue", or <http://bugs.hledger.org/new>.
 
-For quick help or support, ask on the [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel.
-If you don't get an answer quickly (depends on time of day), you can leave the window open and check back later, type "sm:" to alert me, and/or leave your email address.
+#### Suggest enhancements
 
-For slightly less quick help, but more eyeballs, ask on the [mail list](http://list.hledger.org) (list.hledger.org).
-  
-Also, always search the issue tracker<!--](#search-the-issue-tracker)-->.
-You may find an explanation or workaround, or when the fix will be released.
+Some enhancement requests land in the bug tracker; these will get the WISH tag to avoid obscuring bugs. 
+But for general brainstorming and idea capture, consider using
 
-<!-- - test and share problem journal snippets at paste . hledger.org -->
+- The [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel on freenode
+  and the [mail list](http://list.hledger.org) (list.hledger.org) are excellent places for discussing and refining ideas.
+  Both are archived and linkable, so the idea won't be lost. The IRC channel is quick, the mail list has more readers.
+- The [trello board](http://trello.hledger.org) (trello.hledger.org) is a categorised collection of wishlist items.
 
-### Search the issue tracker
+#### Search the issue tracker
 
 The hledger project's issue tracker is on github. It contains:
 
@@ -147,234 +92,7 @@ Estimates are always for the total time cost (not time remaining).
 Estimates are not usually changed, a new estimate is added instead.
 Numbers are very approximate, but better than nothing.
 
-### Report bugs
-
-If you found a similar bug report already in the tracker, add any new information there.
-Otherwise, open a new bug by clicking "New issue", or <http://bugs.hledger.org/new>.
-
-### Suggest enhancements
-
-Some enhancement requests land in the bug tracker; these will get the WISH tag to avoid obscuring bugs. 
-But for general brainstorming and idea capture, consider using
-
-- The [#hledger](http://irc.hledger.org) (irc.hledger.org) IRC channel on freenode
-  and the [mail list](http://list.hledger.org) (list.hledger.org) are excellent places for discussing and refining ideas.
-  Both are archived and linkable, so the idea won't be lost. The IRC channel is quick, the mail list has more readers.
-- The [trello board](http://trello.hledger.org) (trello.hledger.org) is a categorised collection of wishlist items.
-
-### Do user testing
-
-- review and critique our documentation and web presence
-- test the procedures on [download](download) and on this page
-- check that the hledger binaries run your platform, and `hledger test` reports no failures
-- test the hledger tools' functionality, usability, browser compatibility, ui layout etc.
-- discuss/report problems via irc/mail list/bug tracker
-
-### Install stack and git
-
-[stack](https://github.com/commercialhaskell/stack/wiki/Downloads) is
-the recommended tool for building hledger from source.
-It builds haskell projects, installing required haskell libraries as needed.
-It can also install GHC (the compiler) and (on windows) git, if needed.
-
-You don't need to use stack, if you are already expert with the older
-cabal tool, or even just GHC, but I won't attempt to document those
-procedures; these docs assume you have downloaded and installed stack.
-
-On Windows, you should choose the 64-bit stack download if you will be
-processing >50,000 transactions at a time with hledger
-([#275](https://github.com/simonmichael/hledger/issues/275)).
-
-[git](http://git-scm.com) is the revision control tool you'll need to
-fetch the latest hledger source and submit changes. On windows, stack
-can install it for you. These docs assume you have installed git and
-know a little about how to use it.
-
-### Install other optional tools
-
-Up-to-date `alex`, `happy`, and `haddock` tools are required, but `stack` should install those for you.
-
-Here are some optional extra tools:
-
-- `shelltestrunner` is useful for running functional tests.
-- `hasktags` is an easy way to generate editor tag files for quick source code navigation.
-- `profiteur` is for reporting stack profiles.
-- `hpack` regenerates cabal files when package.yaml files have been updated.
-- `hoogle` is for searching source code.
-
-You can install them all with:
-
-```shell
-$ stack install shelltestrunner hasktags profiteur hpack hoogle
-```
-
-### Get the latest hledger source
-
-```shell
-$ git clone code.hledger.org hledger    # aka github.com/simonmichael/hledger.git
-$ cd hledger
-```
-
-<!--
-Old instructions:
-
-1. Get [GHC](https://www.haskell.org/ghc/) and [cabal-install](http://hackage.haskell.org/package/cabal-install) installed.
-   I recommend the [stackage.org install guide](http://www.stackage.org/install).
-   You can see which GHC versions are officially supported in the `tested-with` field in
-   [hledger.cabal](http://hackage.haskell.org/package/hledger/hledger.cabal),
-   [hledger-ui.cabal](http://hackage.haskell.org/package/hledger-ui/hledger-ui.cabal),
-   [hledger-web.cabal](http://hackage.haskell.org/package/hledger-web/hledger-web.cabal).
-   Older versions may also work.
-2. Get [git](http://git-scm.com) installed.
-3. Get [GNU Make](http://www.gnu.org/software/make) installed (unless you don't care about the Makefile's conveniences).
-   On some platforms the command will be eg `gmake` instead of `make`.
-4. Get the hledger repo:
-
-    ```shell
-    $ git clone https://github.com/simonmichael/hledger.git
-    ```
-
-5. You might want to install or upgrade some of these haskell developer tools.
-   If you're not sure, skip this step and return to it as needed.
-   Be sure the cabal bin directory where these are installed (eg ~/.cabal/bin) is in your PATH.
-
-    ```shell
-    $ cabal update
-    $ cabal install alex happy       # if you get alex/happy-related errors when building hledger
-    $ cabal install haddock          # needed to build hledger API docs
-    $ cabal install shelltestrunner  # needed to run hledger functional tests (may need latest git version)
-    $ cabal install hoogle hlint     # maybe useful for searching API docs and checking code
-    ```
-
-    You'll also want a comfortable code editor, preferably with Haskell support.
-    (I use emacs + [haskell-mode](https://github.com/haskell/haskell-mode),
-    or occasionally [IntelliJ IDEA](https://www.jetbrains.com/idea/download) + one of the [plugins](https://www.google.com/search?hl=en&q=intellij+plugins+haskell)).
-
-6. Install haskell libs required by hledger:
-
-    ```shell
-    $ cd hledger
-    $ cabal sandbox init   # optional
-    $ make installdeps     # or cabal install --only-dep ./hledger-lib ./hledger [./hledger-web]
-    ```
-
-    This will install the required dependencies from Hackage.
-    If you're new to cabal, you can expect problems at this stage.
-    The usual remedy is to ensure you start with a clean package db, eg by doing `cabal sandbox init`.
-    You can simplify and speed up this step a lot by commenting out
-    hledger-web in the `PACKAGES` list in the [Makefile](https://github.com/simonmichael/hledger/blob/master/Makefile#L41).
-
-7. Build with cabal:
-
-    ```shell
-    $ make cabalbuild
-    ```
-
-    (Tip: `make cabalCMD` runs `cabal CMD` in each of the hledger packages).
-
-8. Build with GHC:
-
-    ```shell
-    $ make bin/hledgerdev
-    ```
-
-    This builds hledger (and hledger-lib) with GHC directly, without using cabal,
-    and as quickly as possible, without optimizations (the "dev" suffix is a reminder of this).
-    I use and recommend this method for development, as it crosses package boundaries and ensures you are building the latest code.
-    However it needs some files generated by cabal build, which is why we did that first.
--->
-
-### Use the Makefile
-
-A Makefile is provided to make common developer tasks easy to remember,
-and to insulate us a little from the ever-evolving Haskell tools ecosystem.
-Using it is entirely optional, but recommended.
-You'll need [GNU Make](http://www.gnu.org/software/make) installed.
-
-The Makefile is self-documenting. Run `make` to see a list of the main make rules:
-
-```shell
-$ make
-Makefile:37: -------------------- hledger make rules --------------------
-Makefile:39: make [help] -- list documented rules in this makefile. make -n RULE shows more detail.
-Makefile:204: (INSTALLING:)
-Makefile:206: make install -- download dependencies and install hledger executables to ~/.local/bin or equivalent (with stack)
-Makefile:231: (BUILDING:)
-Makefile:235: make build -- download dependencies and build hledger executables (with stack)
-Makefile:304: make hledgerdev -- quickly build the hledger executable (with ghc and -DDEVELOPMENT)
-...
-```
-
-To see what a make rule will do without actually doing it, use the `-n` flag:
-
-```shell
-$ make build -n
-stack build
-```
-```shell
-$ make test -n
-(stack test \
-		&& echo pkgtest PASSED) || echo pkgtest FAILED
-(stack exec hledger test \
-		&& echo builtintest PASSED) || echo builtintest FAILED
-(COLUMNS=80 PATH=`pwd`/bin:/home/simon/src/hledger/bin:/home/simon/.local/bin:/home/simon/.cabal/bin:/opt/ghc/7.10.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/var/lib/gems/1.9.1/bin stack exec -- shelltest --execdir -- -j16 --hide-successes tests \
-		&& echo functest PASSED) || echo functest FAILED
-```
-
-### Build or install hledger
-
-Run `make` to see a list of build rules. You probably want `build` or `install`.
-
-`make build` runs stack build, which downloads required haskell
-dependencies and builds all hledger packages.
-The resulting executables will be somewhere under .stack-work, eg in
-`.stack-work/install/i386-linux/lts-3.0/7.10.2/bin/`.
-
-```shell
-$ make build
-stack build
-hledger-lib-0.27: configure
-hledger-lib-0.27: build
-hledger-lib-0.27: install
-hledger-0.27: configure
-hledger-0.27: build
-Progress: 1/4
-...
-```
-
-Note stack will install required haskell libraries, but not C
-libraries such as curses or terminfo. If you get a build error, it is
-likely because one of these is missing, in which case you must
-identify and install it yourself using your system's package
-manager. This is usually a bit harder on Windows.
-
-`make install` runs stack install, which does everything stack build does and also
-copies the executables to `~/.local/bin` or the Windows equivalent.
-You should make sure this directory is in your `$PATH`, so that you can just type
-`hledger` to run the latest.
-```shell
-$ make install
-stack install
-NOTE: the install command is functionally equivalent to 'build --copy-bins'
-hledger-0.27: build
-...
-Copied executables to /Users/simon/.local/bin/:
-- hledger-web
-- hledger-ui
-- hledger
-```
-
-You can save time and effort by building just the package(s) you're interested in.
-To install just the hledger command-line tool, but not hledger-ui or (especially costly)
-hledger-web, do:
-```shell
-$ stack install hledger
-```
-
-(This looks like the [download page](download) command for installing the latest hledger release from Stackage.
-The difference is, here we are running it inside the hledger source tree, so the source version will be installed.)
-
-### Run benchmarks
+#### Run benchmarks
 
 Benchmarks are standard performance measurements,
 which we define using `bench` declarations in cabal files.
@@ -524,7 +242,7 @@ Summary (best iteration):
 Finally, for quick, fine-grained performance measurements when troubleshooting or optimising, I use
 [dev.hs](https://github.com/simonmichael/hledger/blob/master/dev.hs).
 
-### Generate sample journal files
+#### Generate sample journal files
 
 Synthetic data files like `examples/100x100x10.journal` are useful for benchmarks and testing.
 The numbers describe the number of transactions, number of accounts, and maximum account depth respectively.
@@ -547,7 +265,7 @@ tools/generatejournal 3 5 5 --chinese >examples/chinese.journal
 tools/generatejournal 3 5 5 --mixed >examples/mixed.journal
 ```
 
-### Run tests
+#### Run tests
 
 This command will install haskell dependencies (you might need to
 install additional system dependencies yourself) and run the package
@@ -579,7 +297,221 @@ Test haddock doc generation:
 $ make haddocktest
 ```
 
-### Add a test
+
+### Developer
+
+#### Do code review
+
+- review and discuss new pull requests and commits on github
+- set up for development and test the latest changes in your own repo
+- read the existing [code docs and source](#quick-links)
+- send feedback or discuss via irc or list
+
+#### Install stack and git
+
+[stack](https://github.com/commercialhaskell/stack/wiki/Downloads) is
+the recommended tool for building hledger from source.
+It builds haskell projects, installing required haskell libraries as needed.
+It can also install GHC (the compiler) and (on windows) git, if needed.
+
+You don't need to use stack, if you are already expert with the older
+cabal tool, or even just GHC, but I won't attempt to document those
+procedures; these docs assume you have downloaded and installed stack.
+
+On Windows, you should choose the 64-bit stack download if you will be
+processing >50,000 transactions at a time with hledger
+([#275](https://github.com/simonmichael/hledger/issues/275)).
+
+[git](http://git-scm.com) is the revision control tool you'll need to
+fetch the latest hledger source and submit changes. On windows, stack
+can install it for you. These docs assume you have installed git and
+know a little about how to use it.
+
+#### Install other optional tools
+
+Up-to-date `alex`, `happy`, and `haddock` tools are required, but `stack` should install those for you.
+
+Here are some optional extra tools:
+
+- `shelltestrunner` is useful for running functional tests.
+- `hasktags` is an easy way to generate editor tag files for quick source code navigation.
+- `profiteur` is for reporting stack profiles.
+- `hpack` regenerates cabal files when package.yaml files have been updated.
+- `hoogle` is for searching source code.
+
+You can install them all with:
+
+```shell
+$ stack install shelltestrunner hasktags profiteur hpack hoogle
+```
+
+#### Get the latest hledger source
+
+```shell
+$ git clone code.hledger.org hledger    # aka github.com/simonmichael/hledger.git
+$ cd hledger
+```
+
+<!--
+Old instructions:
+
+1. Get [GHC](https://www.haskell.org/ghc/) and [cabal-install](http://hackage.haskell.org/package/cabal-install) installed.
+   I recommend the [stackage.org install guide](http://www.stackage.org/install).
+   You can see which GHC versions are officially supported in the `tested-with` field in
+   [hledger.cabal](http://hackage.haskell.org/package/hledger/hledger.cabal),
+   [hledger-ui.cabal](http://hackage.haskell.org/package/hledger-ui/hledger-ui.cabal),
+   [hledger-web.cabal](http://hackage.haskell.org/package/hledger-web/hledger-web.cabal).
+   Older versions may also work.
+2. Get [git](http://git-scm.com) installed.
+3. Get [GNU Make](http://www.gnu.org/software/make) installed (unless you don't care about the Makefile's conveniences).
+   On some platforms the command will be eg `gmake` instead of `make`.
+4. Get the hledger repo:
+
+    ```shell
+    $ git clone https://github.com/simonmichael/hledger.git
+    ```
+
+5. You might want to install or upgrade some of these haskell developer tools.
+   If you're not sure, skip this step and return to it as needed.
+   Be sure the cabal bin directory where these are installed (eg ~/.cabal/bin) is in your PATH.
+
+    ```shell
+    $ cabal update
+    $ cabal install alex happy       # if you get alex/happy-related errors when building hledger
+    $ cabal install haddock          # needed to build hledger API docs
+    $ cabal install shelltestrunner  # needed to run hledger functional tests (may need latest git version)
+    $ cabal install hoogle hlint     # maybe useful for searching API docs and checking code
+    ```
+
+    You'll also want a comfortable code editor, preferably with Haskell support.
+    (I use emacs + [haskell-mode](https://github.com/haskell/haskell-mode),
+    or occasionally [IntelliJ IDEA](https://www.jetbrains.com/idea/download) + one of the [plugins](https://www.google.com/search?hl=en&q=intellij+plugins+haskell)).
+
+6. Install haskell libs required by hledger:
+
+    ```shell
+    $ cd hledger
+    $ cabal sandbox init   # optional
+    $ make installdeps     # or cabal install --only-dep ./hledger-lib ./hledger [./hledger-web]
+    ```
+
+    This will install the required dependencies from Hackage.
+    If you're new to cabal, you can expect problems at this stage.
+    The usual remedy is to ensure you start with a clean package db, eg by doing `cabal sandbox init`.
+    You can simplify and speed up this step a lot by commenting out
+    hledger-web in the `PACKAGES` list in the [Makefile](https://github.com/simonmichael/hledger/blob/master/Makefile#L41).
+
+7. Build with cabal:
+
+    ```shell
+    $ make cabalbuild
+    ```
+
+    (Tip: `make cabalCMD` runs `cabal CMD` in each of the hledger packages).
+
+8. Build with GHC:
+
+    ```shell
+    $ make bin/hledgerdev
+    ```
+
+    This builds hledger (and hledger-lib) with GHC directly, without using cabal,
+    and as quickly as possible, without optimizations (the "dev" suffix is a reminder of this).
+    I use and recommend this method for development, as it crosses package boundaries and ensures you are building the latest code.
+    However it needs some files generated by cabal build, which is why we did that first.
+-->
+
+#### Use the Makefile
+
+A Makefile is provided to make common developer tasks easy to remember,
+and to insulate us a little from the ever-evolving Haskell tools ecosystem.
+Using it is entirely optional, but recommended.
+You'll need [GNU Make](http://www.gnu.org/software/make) installed.
+
+The Makefile is self-documenting. Run `make` to see a list of the main make rules:
+
+```shell
+$ make
+Makefile:37: -------------------- hledger make rules --------------------
+Makefile:39: make [help] -- list documented rules in this makefile. make -n RULE shows more detail.
+Makefile:204: (INSTALLING:)
+Makefile:206: make install -- download dependencies and install hledger executables to ~/.local/bin or equivalent (with stack)
+Makefile:231: (BUILDING:)
+Makefile:235: make build -- download dependencies and build hledger executables (with stack)
+Makefile:304: make hledgerdev -- quickly build the hledger executable (with ghc and -DDEVELOPMENT)
+...
+```
+
+To see what a make rule will do without actually doing it, use the `-n` flag:
+
+```shell
+$ make build -n
+stack build
+```
+```shell
+$ make test -n
+(stack test \
+		&& echo pkgtest PASSED) || echo pkgtest FAILED
+(stack exec hledger test \
+		&& echo builtintest PASSED) || echo builtintest FAILED
+(COLUMNS=80 PATH=`pwd`/bin:/home/simon/src/hledger/bin:/home/simon/.local/bin:/home/simon/.cabal/bin:/opt/ghc/7.10.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/var/lib/gems/1.9.1/bin stack exec -- shelltest --execdir -- -j16 --hide-successes tests \
+		&& echo functest PASSED) || echo functest FAILED
+```
+
+#### Build or install hledger
+
+Run `make` to see a list of build rules. You probably want `build` or `install`.
+
+`make build` runs stack build, which downloads required haskell
+dependencies and builds all hledger packages.
+The resulting executables will be somewhere under .stack-work, eg in
+`.stack-work/install/i386-linux/lts-3.0/7.10.2/bin/`.
+
+```shell
+$ make build
+stack build
+hledger-lib-0.27: configure
+hledger-lib-0.27: build
+hledger-lib-0.27: install
+hledger-0.27: configure
+hledger-0.27: build
+Progress: 1/4
+...
+```
+
+Note stack will install required haskell libraries, but not C
+libraries such as curses or terminfo. If you get a build error, it is
+likely because one of these is missing, in which case you must
+identify and install it yourself using your system's package
+manager. This is usually a bit harder on Windows.
+
+`make install` runs stack install, which does everything stack build does and also
+copies the executables to `~/.local/bin` or the Windows equivalent.
+You should make sure this directory is in your `$PATH`, so that you can just type
+`hledger` to run the latest.
+```shell
+$ make install
+stack install
+NOTE: the install command is functionally equivalent to 'build --copy-bins'
+hledger-0.27: build
+...
+Copied executables to /Users/simon/.local/bin/:
+- hledger-web
+- hledger-ui
+- hledger
+```
+
+You can save time and effort by building just the package(s) you're interested in.
+To install just the hledger command-line tool, but not hledger-ui or (especially costly)
+hledger-web, do:
+```shell
+$ stack install hledger
+```
+
+(This looks like the [download page](download) command for installing the latest hledger release from Stackage.
+The difference is, here we are running it inside the hledger source tree, so the source version will be installed.)
+
+#### Add a test
 
 - identify what to test
 - choose the test type: unit ? functional ? benchmark ?
@@ -588,7 +520,7 @@ $ make haddocktest
 - write test, verify expected result
 - get it committed
 
-### Use the REPL (GHCI)
+#### Use the REPL (GHCI)
 
 These all work from the main hledger source directory (at least).
 
@@ -641,14 +573,7 @@ $ make ghci-dev
 ```
 -->
 
-### Improve the documentation
-
-- get familiar with the website and documentation online, review and test
-- get familiar with the site/doc source files (see Makefile)
-- get the latest hledger source
-- send patches with names prefixed with "doc: " (or "site: ")
-
-### Fix a bug or add a feature
+#### Fix a bug or add a feature
 
 - research, discuss, validate the issue/feature on irc/list/bug tracker
 - look for related tests, run the tests and check they are passing
@@ -657,7 +582,7 @@ $ make ghci-dev
 - include any related issue numbers in the patch name, eg: "fix for blah blah (#NNN)"
 - get it committed
 
-### Get your changes accepted
+#### Get your changes accepted
 
 Follow the usual github workflow:
 
@@ -670,25 +595,50 @@ Follow the usual github workflow:
 
 If you're new to this process, [help.github.com](http://help.github.com) may be useful.
 
-### Become a contributor
+#### Join the contributors list
 
 - after getting one or more patches committed, read and sign the [contributor list & agreement](contributors.html)
 - or, [ask](#how-to-get-help) to be added
 
-### Do code review
+### Technical Writer
 
-- review and discuss new pull requests and commits on github
-- set up for development and test the latest changes in your own repo
-- read the existing [code docs and source](#quick-links)
-- send feedback or discuss via irc or list
+- get familiar with the website and documentation online, review and test
+- get familiar with the site/doc source files (see Makefile)
+- get the latest hledger source
+- send patches with names prefixed with "doc: " (or "site: ")
 
-### Help with packaging
+### Graphics Designer
+
+- more/better logos & graphics
+- illustrations and diagrams
+- web design mockups for home page, site, hledger-web UI
+
+### Communicator
+
+Marketing and market understanding is vital.
+
+- clarify project goals, value proposition, brand, mission, story
+- monitor product-market fit
+- identify new opportunities
+- influence developer priorities
+- spread the word!
+
+### Maintainer
+
+#### Help with issue management
+
+- watch tracker activity, report status
+- apply/update labels where needed
+- follow up on dormant issues
+- facilitate a consistently good bug-reporting & PR-contributing experience
+
+#### Help with packaging
 
 - package hledger for linux distros, macports, etc.
 - develop mac/windows installers
 - find and assist distro packagers/installer developers
 
-### Help with project management
+#### Help with project management
 
 - clarify/update goals and principles
 - monitor, report on project progress and performance
@@ -697,7 +647,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 - marketing, communication, outreach
 - release management, roadmap planning
 
-### Do a major release
+#### Do a major release
 
 - review the release how-to in the developer guide
     - and update as needed
@@ -795,7 +745,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
     - handle problem reports, support requests
 
 
-### Do a minor release
+#### Do a minor release
 
 Differences from a major release:
 work in a release branch,
@@ -921,7 +871,7 @@ Dev sprint/party #2 was on 2015/10/10.
 
 
 
-## Implementation notes
+## Code architecture
 
 ### hledger
 
@@ -1067,3 +1017,79 @@ makefile for instructions). This rebuilds automatically when haskell
 files change in any of the hledger{-lib,,-web} packages.
 
 <script async defer src="https://buttons.github.io/buttons.js"></script>
+## Quick links
+
+<style>
+tr {
+    border-top:thin solid #bbb;
+}
+</style>
+<!-- | hledger.org&nbsp;&nbsp; | [combined release notes](release notes), [pre-compiled binaries](download) | -->
+<!-- [web ui demo](http://demo.hledger.org/register?q=inacct%3Aassets%3Abank%3Achecking+sym%3A\%24) -->
+<!-- [![travis build status](https://img.shields.io/travis/simonmichael/hledger.svg)](https://travis-ci.org/simonmichael/hledger) -->
+<!-- [![hackage deps](https://img.shields.io/hackage-deps/v/hledger.svg?label=hackage+deps)](http://packdeps.haskellers.com/feed?needle=hledger) -->
+<!-- [![github issues](https://img.shields.io/github/issues/simonmichael/hledger.svg)](http://bugs.hledger.org) -->
+<!-- [![bountysource](https://api.bountysource.com/badge/team?team_id=75979&style=bounties_received)](https://github.com/simonmichael/hledger/issues?q=label:bounty) -->
+|
+|-------------------------|----------------------------------------------------------------------------|
+| IRC                     | Join [#hledger](http://irc.hledger.org) ([chat log](http://ircbrowse.net/browse/hledger); see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1)) |
+| Mail list               | [list.hledger.org](http://list.hledger.org) ([Gmane](http://dir.gmane.org/gmane.comp.finance.ledger.hledger)) |
+| Twitter                 | [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime), see also [#ledgercli](https://twitter.com/search?q=%23ledgercli&src=typd&f=realtime), [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime), <a href="https://twitter.com/ledgertips">@LedgerTips</a> |
+| hledger-web demo&nbsp;&nbsp;        | [demo.hledger.org](http://demo.hledger.org) |
+| hledger-api demo        | [demo.hledger.org/api](http://demo.hledger.org/api/swagger.json), [in swagger editor](http://editor.swagger.io/#/?import=demo.hledger.org/api/swagger.json&no-proxy)
+| Trello                  | [old backlog/wishlist planning board](http://trello.hledger.org) |
+| Github                  | [simonmichael/hledger](http://github.com/simonmichael/hledger) (alias: code.hledger.org), [forks](http://forked.yannick.io/simonmichael/hledger) <br> [commits](http://github.com/simonmichael/hledger/commits), <!-- [unreleased commits](https://github.com/simonmichael/hledger/compare/0.23...master), [release branch commits](https://github.com/simonmichael/hledger/compare/master...0.23), --> [COMMITS!](http://starlogs.net/#simonmichael/hledger) <br> [open bugs](http://bugs.hledger.org), [open wishes](http://wishes.hledger.org), [open pull requests](http://prs.hledger.org), [all issues](https://github.com/simonmichael/hledger/issues?q=) <br> [issues with bounty tag](https://github.com/simonmichael/hledger/issues?q=label:bounty), [bountysource bounties](https://github.com/simonmichael/hledger/issues?q=%22Add%20to%20the%20bounty%20at%20Bountysource%22%20OR%20%22claim%20the%20bounty%20on%20Bountysource%22%20OR%20%22bounty%20on%20this%20issue%20has%20been%20claimed%20at%20Bountysource%22%20), [codemill bounties](https://github.com/simonmichael/hledger/issues?q=codemill), [codefund bounties](https://github.com/simonmichael/hledger/issues?utf8=✓&q=codefund) <br> stars:  <a class="github-button" href="https://github.com/simonmichael/hledger" data-icon="octicon-star" data-count-href="/simonmichael/hledger/stargazers" data-count-api="/repos/simonmichael/hledger#stargazers_count" data-count-aria-label="# stargazers on GitHub" aria-label="Star simonmichael/hledger on GitHub"></a> (#99 of ~30k [starred haskell projects](https://github.com/search?o=desc&q=language%3AHaskell+stars%3A%3E370&ref=searchresults&s=stars&type=Repositories) in 2016/04, #71 in 2016/12, #65 in 2017/3) <br> [![Throughput Graph](https://graphs.waffle.io/simonmichael/hledger/throughput.svg){width=520 height=170}](https://waffle.io/simonmichael/hledger/metrics) |
+| Travis CI               | [![travis ubuntu build status](https://img.shields.io/travis/simonmichael/hledger.svg){height=20}](https://travis-ci.org/simonmichael/hledger)
+| Appveyor CI             | [disabled](https://github.com/simonmichael/hledger/issues/424) <!-- [![appveyor windows build status](https://ci.appveyor.com/api/projects/status/5vejw0w5n5igdr42?svg=true){height=20}](https://ci.appveyor.com/project/simonmichael/hledger) latest binaries: [hledger.exe](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.exe?branch=master), [hledger-web.exe](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger-web.exe?branch=master) -->
+| Hackage                 | packages: [hledger-lib](http://hackage.haskell.org/package/hledger-lib), [hledger](http://hackage.haskell.org/package/hledger), [hledger-ui](http://hackage.haskell.org/package/hledger-ui), [hledger-web](http://hackage.haskell.org/package/hledger-web), [hledger-api](http://hackage.haskell.org/package/hledger-api), [hledger-diff](http://hackage.haskell.org/package/hledger-diff), [hledger-interest](http://hackage.haskell.org/package/hledger-interest), [hledger-irr](http://hackage.haskell.org/package/hledger-irr), [\*hledger\*](http://hackage.haskell.org/packages/search?terms=hledger) <!-- [![](https://img.shields.io/hackage/v/hledger.svg?label=current+release)](http://hackage.haskell.org/package/hledger) --> <!-- 2017/4 not updating  <br> GHC compatibility: [hledger-lib](http://matrix.hackage.haskell.org/package/hledger-lib), [hledger](http://matrix.hackage.haskell.org/package/hledger), [hledger-ui](http://matrix.hackage.haskell.org/package/hledger-ui), [hledger-web](http://matrix.hackage.haskell.org/package/hledger-web), [hledger-api](http://matrix.hackage.haskell.org/package/hledger-api) --> <br> reverse deps: [hledger-lib](http://packdeps.haskellers.com/reverse/hledger-lib), [hledger](http://packdeps.haskellers.com/reverse/hledger), [hledger-ui](http://packdeps.haskellers.com/reverse/hledger-ui), [hledger-web](http://packdeps.haskellers.com/reverse/hledger-web), [hledger-api](http://packdeps.haskellers.com/reverse/hledger-api) <br> [![](https://img.shields.io/hackage-deps/v/hledger-lib.svg?label=hledger-lib+bounds){height=20}](http://packdeps.haskellers.com/feed?needle=hledger-lib) [![](https://img.shields.io/hackage-deps/v/hledger.svg?label=hledger+bounds){height=20}](http://packdeps.haskellers.com/feed?needle=hledger) [![](https://img.shields.io/hackage-deps/v/hledger-ui.svg?label=hledger-ui+bounds){height=20}](http://packdeps.haskellers.com/feed?needle=hledger-ui) [![](https://img.shields.io/hackage-deps/v/hledger-web.svg?label=hledger-web+bounds){height=20}](http://packdeps.haskellers.com/feed?needle=hledger-web) [![](https://img.shields.io/hackage-deps/v/hledger-api.svg?label=hledger-api+bounds){height=20}](http://packdeps.haskellers.com/feed?needle=hledger-api) |
+| Stackage                | [build-constraints.yaml](https://github.com/fpco/stackage/blob/master/build-constraints.yaml), [open hledger-related issues](https://github.com/fpco/stackage/search?q=hledger+is%3Aopen&type=Issues) |
+| Debian                  | source packages: [haskell-hledger-lib](http://tracker.debian.org/pkg/haskell-hledger-lib), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-lib), [haskell-hledger](http://tracker.debian.org/pkg/haskell-hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger), [haskell-hledger-ui](http://tracker.debian.org/pkg/haskell-hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-ui), [haskell-hledger-web](http://tracker.debian.org/pkg/haskell-hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=haskell-hledger-web) <br> binary packages: <br>&nbsp;stable [hledger](https://packages.debian.org/stable/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=stable), <!-- [hledger-ui](https://packages.debian.org/stable/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=stable), --> [hledger-web](https://packages.debian.org/stable/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=stable) <br>&nbsp;testing [hledger](https://packages.debian.org/testing/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=testing), <!-- [hledger-ui](https://packages.debian.org/testing/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=testing), --> [hledger-web](https://packages.debian.org/testing/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=testing) <br>&nbsp;unstable [hledger](https://packages.debian.org/unstable/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=unstable), [hledger-ui](https://packages.debian.org/unstable/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=unstable), [hledger-web](https://packages.debian.org/unstable/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=unstable) <br>&nbsp;experimental [hledger](https://packages.debian.org/experimental/hledger), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger;dist=experimental), [hledger-ui](https://packages.debian.org/experimental/hledger-ui), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-ui;dist=experimental), [hledger-web](https://packages.debian.org/experimental/hledger-web), [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=experimental) <br>&nbsp;all [\*hledger\*](https://packages.debian.org/search?searchon=names&keywords=hledger) <br> popularity stats: [hledger](https://qa.debian.org/popcon.php?package=haskell-hledger), [hledger-ui](https://qa.debian.org/popcon.php?package=haskell-hledger-ui), [hledger-web](https://qa.debian.org/popcon.php?package=haskell-hledger-web) <br> [PTS help](https://www.debian.org/doc/manuals/developers-reference/resources.html#pkg-tracking-system) |
+| Ubuntu                  | source packages: [haskell-hledger-lib](https://launchpad.net/ubuntu/+source/haskell-hledger-lib), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-lib), [haskell-hledger](https://launchpad.net/ubuntu/+source/haskell-hledger), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger), [haskell-hledger-ui](https://launchpad.net/ubuntu/+source/haskell-hledger-ui), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-ui), [haskell-hledger-web](https://launchpad.net/ubuntu/+source/haskell-hledger-web), [bugs](https://bugs.launchpad.net/ubuntu/+source/haskell-hledger-web) <br> binary packages: [\*hledger\*](http://packages.ubuntu.com/search?suite=all&searchon=names&keywords=hledger) |
+| Gentoo                  | [hledger](http://gpo.zugaina.org/dev-haskell/hledger), [hledger-web](http://gpo.zugaina.org/dev-haskell/hledger-web), [\*hledger\*](http://gpo.zugaina.org/Search?search=hledger) |
+| Fedora                  | [hledger](https://apps.fedoraproject.org/packages/hledger), [\*hledger\*](https://apps.fedoraproject.org/packages/s/hledger), [hledger (package db)](https://admin.fedoraproject.org/pkgdb/package/hledger/), [Haskell SIG](http://fedoraproject.org/wiki/Haskell_SIG) |
+| Void Linux              | [hledger\*](https://github.com/voidlinux/void-packages/search?utf8=✓&q=hledger) |
+| Nix                     | [\*hledger\*](http://hydra.nixos.org/search?query=hledger) |
+| Homebrew                | [hledger](https://github.com/Homebrew/homebrew-core/blob/master/Formula/hledger.rb) |
+| Sandstorm               | [hledger web app & reviews](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90), [issues](https://github.com/simonmichael/hledger/issues?utf8=✓&q=label%3A%22platform%3A%20sandstorm%22%20)
+| Reference               | [GHC Can I Use](http://damianfral.github.io/ghcaniuse/) |
+
+<!-- list the debian packages for clarity:
+3 source:
+haskell-hledger-lib
+haskell-hledger
+haskell-hledger-web
+8 binary:
+hledger
+hledger-web
+libghc-hledger-dev
+libghc-hledger-doc
+libghc-hledger-prof
+libghc-hledger-lib-dev
+libghc-hledger-lib-doc
+libghc-hledger-lib-prof
+-->
+
+<!-- old/future links -->
+<!-- [haddock coverage](http://hledger.org/profs/haddock-coverage), -->
+<!-- [unit test coverage](http://hledger.org/profs/coverage/hpc_index_fun.html), -->
+<!-- [benchmark](http://hledger.org/profs/latest.bench) -->
+<!-- [profile](http://hledger.org/profs/latest.prof), -->
+<!-- [heap](http://hledger.org/profs/latest.ps) -->
+<!-- [developer notes](http://github.com/simonmichael/hledger/NOTES.org)\ -->
+<!-- [browse dev API docs](http://hledger.org/api/frames.html) -->
+<!-- [How to clone it](contributing#set-up-for-development) -->
+<!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
+
+<!-- hoogle search form
+<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/jquery-1.4.2.js"></script>
+<script type="text/javascript" src="http://haskell.org/hoogle/datadir/resources/hoogle.js"></script>
+<form action="http://haskell.org/hoogle/" method="get" style="display:inline; margin:0; padding:0;">
+<input type="hidden" name="prefix" value="+hledger +hledger-lib +hledger-web +hledger-vty +hledger-chart" />
+<span style="white-space:nowrap;"
+><input type="text" name="hoogle" id="hoogle" accesskey="1" size="30"
+/><input type="submit" value="search API with hoogle"
+/></span>
+</form>
+-->
+
+
