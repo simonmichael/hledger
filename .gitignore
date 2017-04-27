@@ -12,35 +12,39 @@ _*
 tags
 TAGS
 
+# temp files
+[a-z0-9]
+[a-z0-9].*
+[a-z0-9][a-z0-9]
+[a-z0-9][a-z0-9].*
+[0-9]*
+
 # haskell stuff
 *.dyn_hi
 *.dyn_o
 *.hi
 *.p_o
+*.hp
 cabal-dev*
 cabal.project.local
 cabal.sandbox.config
 dist/
 dist-newstyle/
 /Shake
+/.shake.html
 
 # hledger stuff
-t.*
-tt.*
-ttt.*
-tttt.*
-ttttt.*
-t[0-9]*
 old
-tests/addons/hledger-*
-tools/generatejournal
-tools/simplebench
 log
 profs/*
 test.hs
+tests/addons/hledger-*
+tools/generatejournal
+tools/simplebench
 */doc/*.[0-9]
 */doc/*.[0-9].txt
 */doc/*.[0-9].info
+/hledger.org
 
 # hledger-web stuff
 /config
