@@ -31,7 +31,7 @@ latest release, or provide only some of the hledger tools.
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Windows:             | see B below <!-- Download and run the [latest development builds](contributing.html) (-> Appveyor CI) -->
 | Mac:                 | **`brew install hledger`**
-| Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`**
+| Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`** (note [#541](https://github.com/simonmichael/hledger/issues/541))
 | Fedora,&nbsp;RHEL:   | **`sudo dnf install hledger`**
 | Gentoo:              | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`**
 | Void Linux:          | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`**
