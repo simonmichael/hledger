@@ -78,7 +78,7 @@ tr {
 
 <h2 style="margin-top:0; margin-bottom:.5em;">
 <!-- Making accounting fun for techies. -->
-Simple, precise, plain text accounting.
+Robust, precise, plain text accounting.
 <!-- Plain text accounting for everyone. -->
 </h2>
 
@@ -87,7 +87,7 @@ Simple, precise, plain text accounting.
 hledger is an accounting program, for tracking money, time, or
 other commodities, on unix, mac and windows. With simple yet powerful
 functionality accessed from command line, terminal or web browser, it is a
-robust, cross-platform alternative to Quicken, GnuCash, spreadsheets etc.
+dependable, cross-platform alternative to Quicken, GnuCash, spreadsheets etc.
 
 <div class="indent0">
 ### plain text ? How does that work ?
@@ -108,8 +108,8 @@ which can be quite educational and enjoyable.
 If you'd like more background,
 we have collected many useful resources at **[plaintextaccounting.org](http://plaintextaccounting.org)**.
 
-And.. welcome back. Read on - or if you're eager to make a start, 
-**[download](download.html)** and start the **[tutorial](step-by-step.html)** now!
+Read on for more about hledger, or if you're keen to get going, 
+**[download](download.html)** it and start the **[tutorial](step-by-step.html)** now!
 
 <!-- I use it for: -->
 
