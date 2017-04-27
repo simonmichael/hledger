@@ -897,10 +897,17 @@ site-clean: site/hakyll-std/hakyll-std \
 	-cd site; hakyll-std/hakyll-std clean
 #	rm -rf site/_site/*
 
-# XXX hakyll watch & preview mostly don't live-update any more
+# regenerate html whenever markdown files change (and serve it on port 8000)
+# XXX hakyll preview/watch often fail to notice changes in large files
+# XXX can get confused when docs are generated concurrently by a Shake command
 site-preview: site/hakyll-std/hakyll-std \
 	$(call def-help,site-preview, run a hakyll server to preview the website  ) #site/site
 	-cd site; hakyll-std/hakyll-std watch # -h hledger.org
+
+# open a browser on the latest site html and reload the page whenever it changes
+site-reload:
+	(sleep 1; open http://localhost:8001) &
+	livereloadx -p 8001 --static site/_site
 
 # site-view: site \
 # 	$(call def-help,site-view,\
