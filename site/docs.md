@@ -1,4 +1,4 @@
-# Documentation
+# User guide
 
 <style>
 h2 { font-size:larger; margin-top:0.5em; }

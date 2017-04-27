@@ -6,7 +6,7 @@
 </style>
 * toc
 
-# Developer guide
+# Contributor guide
 
 Contributors of all levels are most welcome in the hledger project.
 This guide is action-oriented: below you'll find useful links, then procedures, then general info.
