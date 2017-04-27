@@ -71,7 +71,7 @@ libghc-hledger-lib-prof
 <!-- [heap](http://hledger.org/profs/latest.ps) -->
 <!-- [developer notes](http://github.com/simonmichael/hledger/NOTES.org)\ -->
 <!-- [browse dev API docs](http://hledger.org/api/frames.html) -->
-<!-- [How to clone it](developer-guide#set-up-for-development) -->
+<!-- [How to clone it](contributing#set-up-for-development) -->
 <!-- [hledger-web dev demo](http://demo.hledger.org:5001) -->
 
 <!-- hoogle search form
@@ -701,7 +701,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 
 - review the release how-to in the developer guide
     - and update as needed
-      (make site-preview, http://localhost:8000/developer-guide.html#do-a-major-release)
+      (make site-preview, http://localhost:8000/contributing.html#do-a-major-release)
 
 - clean working copy
     - commit/stash/clear any pending changes in working copy
@@ -743,7 +743,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
     - man pages
     - site/release-notes.md
     - site/manual.md (commands, options, --help, ledger compatibility..)
-    - site/developer-guide.md
+    - site/contributing.md
     - site/step-by-step.md
     - site/how-to-*
     - site/faq.md (ledger compatibility)

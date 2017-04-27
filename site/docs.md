@@ -33,7 +33,7 @@ A few links not yet moved to...
 More overview, tips and tools from the plain text accounting community
 
 \
-To get started as a developer, see [Contribute](developer-guide.html)!
+To get started as a developer, see [Contribute](contributing.html)!
 
 </div>
 <div class="col-sm-3">

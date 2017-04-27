@@ -21,7 +21,7 @@ steps give you a task with a clear goal; if not, your task is to run
 the examples and understand them.
 
 If you get stuck, find a problem, or have feedback, please report it on the
-[IRC channel or mail list](developer-guide.html#quick-links),
+[IRC channel or mail list](contributing.html#quick-links),
 or send a pull request for this page.
 
 Let's get started!

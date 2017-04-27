@@ -46,7 +46,7 @@ tr {
 -->
 <!-- (see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1)) -->
 
-<!-- | More...&nbsp;&nbsp;       | [quick links](http://hledger.org/developer-guide.html#quick-links) -->
+<!-- | More...&nbsp;&nbsp;       | [quick links](http://hledger.org/contributing.html#quick-links) -->
 
 <!-- | web UI demo             | [demo.hledger.org](http://demo.hledger.org) | -->
 <!-- [web ui demo](http://demo.hledger.org/register?q=inacct%3Aassets%3Abank%3Achecking+sym%3A\%24) -->
@@ -225,7 +225,7 @@ If you feel the same way, join us!
 ### fully documented
 
 Time to check out those **[docs](docs.html)**,
-or maybe **[look deeper](developer-guide.html)**.
+or maybe **[look deeper](contributing.html)**.
 
 </div>
 

@@ -29,7 +29,7 @@ latest release, or provide only some of the hledger tools.
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| Windows:             | see B below <!-- Download and run the [latest development builds](developer-guide.html) (-> Appveyor CI) -->
+| Windows:             | see B below <!-- Download and run the [latest development builds](contributing.html) (-> Appveyor CI) -->
 | Mac:                 | **`brew install hledger`**
 | Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`**
 | Fedora,&nbsp;RHEL:   | **`sudo dnf install hledger`**
