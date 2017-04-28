@@ -1,12 +1,13 @@
+# Contributor guide
+
 <style>
 #toc > ol > li > a { display:none; }
 #toc > ol > li > ol > li { padding-left:0; }
 </style>
 * toc
 
-# Contributor guide
-
-New contributors are always welcome. Jump in! Or [ask us](/docs.html#getting-help) to help you find a task.
+New contributors are always welcome in the hledger project. 
+Jump in! Or [ask us](/docs.html#getting-help) to help you find a task.
 
 
 ## Get started as a...
@@ -14,16 +15,17 @@ New contributors are always welcome. Jump in! Or [ask us](/docs.html#getting-hel
 ### Funder
 
 Become a financial backer to
-help sustain the project,
-influence issues you care about,
-express gratitude, 
-build your prosperity consciousness!
+sustain and grow this project,
+increase your influence,
+express gratitude,
+build prosperity consciousness,
+and help transform world finance!
 
-- Use the donate links on the home page
+- Use the donate links on the [home page](/)
 - Configure a recurring donation
-- Contribute or pledge bounties on issues
+- Contribute or pledge bounties on issues you care about
 - Ask your organization to contribute
-- Work on project sustainability and accountability
+- Work on project sustainability, accountability, fundraising
 
 ### Tester
 
@@ -313,7 +315,7 @@ tools/generatejournal 3 5 5 --mixed >examples/mixed.journal
 
 In short: get [`stack`](/download.html#b) and (except on Windows, where stack provides it) [`git`](http://git-scm.com), then:
 
-`$ git clone http://github.com/simonmichael/hledger hledger && cd hledger && stack install   # or git://...`
+`$ git clone http://github.com/simonmichael/hledger hledger && cd hledger && stack install`
 
 \
 In more detail:
@@ -353,17 +355,20 @@ $ stack install
 ```
 
 This builds all the hledger packages, and installs executables in
-`$HOME/.local/bin` (or the Windows equivalent), which you should add
-to your `$PATH`.
-
-You can build fewer packages to save time, eg just the CLI:
-`stack install hledger`.
-You can also build without installing executables: `stack build; stack exec -- hledger [ARGS]`.
+`$HOME/.local/bin/` (or the Windows equivalent), which you should 
+[add to your `$PATH`](/download.html#b).
 
 Note stack fetches most required dependencies automatically,
 but not C libraries such as curses or terminfo, which you might need
-to install yourself.
+to install yourself, using your system's package manager.
 In case of trouble, see [download](/download.html#b).
+
+Downloading and building can take a while!
+You can build fewer [packages](/manual.html#official-add-ons) to save time (recommended). Eg to build just the CLI:\
+`stack install hledger`
+
+You can also build and run in place, without installing executables:\
+`stack build; stack exec -- hledger [ARGS]`
 
 
 #### Add a test

@@ -1,11 +1,11 @@
+# User guide
+
 <style>
 h2 { font-size:x-large; margin-top:0.5em; }
 h3 { font-size:large; margin-bottom:0.2em; }
 tr { border-top:thin solid #bbb; border-bottom:thin solid #bbb; vertical-align:top; }
 td:nth-child(1) { padding-right:1em; white-space:nowrap; }
 </style>
-
-# User guide
 
 <div class="container">
 
