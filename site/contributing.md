@@ -8,6 +8,7 @@
 
 New contributors are always welcome. Jump in! Or [ask us](/docs.html#getting-help) to help you find a task.
 
+
 ## Get started as a...
 
 ### Funder
@@ -28,6 +29,7 @@ build your prosperity consciousness!
 
 - Test installation on platforms you have access to
 - Run the latest release or developer build
+- Test examples and advice in the docs
 - Report packaging, documentation, UX, functional bugs
 - Report and help analyse problems via irc/mail list/bug tracker
 
@@ -302,124 +304,84 @@ $ make haddocktest
 
 #### Do code review
 
-- review and discuss new pull requests and commits on github
+- review and discuss new [pull requests](http://prs.hledger.org) and commits on github
 - set up for development and test the latest changes in your own repo
 - read the existing [code docs and source](#quick-links)
 - send feedback or discuss via irc or list
 
-#### Install stack and git
-
-[stack](https://github.com/commercialhaskell/stack/wiki/Downloads) is
-the recommended tool for building hledger from source.
-It builds haskell projects, installing required haskell libraries as needed.
-It can also install GHC (the compiler) and (on windows) git, if needed.
-
-You don't need to use stack, if you are already expert with the older
-cabal tool, or even just GHC, but I won't attempt to document those
-procedures; these docs assume you have downloaded and installed stack.
-
-On Windows, you should choose the 64-bit stack download if you will be
-processing >50,000 transactions at a time with hledger
-([#275](https://github.com/simonmichael/hledger/issues/275)).
-
-[git](http://git-scm.com) is the revision control tool you'll need to
-fetch the latest hledger source and submit changes. On windows, stack
-can install it for you. These docs assume you have installed git and
-know a little about how to use it.
-
-#### Install other optional tools
-
-Up-to-date `alex`, `happy`, and `haddock` tools are required, but `stack` should install those for you.
-
-Here are some optional extra tools:
-
-- `shelltestrunner` is useful for running functional tests.
-- `hasktags` is an easy way to generate editor tag files for quick source code navigation.
-- `profiteur` is for reporting stack profiles.
-- `hpack` regenerates cabal files when package.yaml files have been updated.
-- `hoogle` is for searching source code.
-
-You can install them all with:
+#### Build hledger
 
 ```shell
-$ stack install shelltestrunner hasktags profiteur hpack hoogle
+$ git clone http://github.com/simonmichael/hledger hledger && cd hledger && stack install   # or git:
 ```
 
-#### Get the latest hledger source
+Or in more detail:
+
+**1. Get tools**
+
+1. [`stack`](https://github.com/commercialhaskell/stack/wiki/Downloads)
+is the recommended tool for building hledger.  It will also install
+haskell tools and libraries as needed.  You can use cabal-install
+instead of stack if you prefer, but that requires more expertise;
+the hledger docs assume stack.
+The [download](/download.html#b) page has more tips.
+
+2. [`git`](http://git-scm.com) is the version control tool needed to
+fetch the hledger source and submit changes. On Windows, stack will
+install this as well.
+
+3. Optional tools to consider:
+
+    - `alex`, `happy`, `haddock` and `hpack` - reasonably up-to-date
+    versions of these tools are required; stack ensures this automatically.
+
+    - `ghcid` is a very useful tool that gives real-time feedback as you make code changes.
+
+    - `hasktags` is an easy way to generate tag files for quick source code navigation in editors like Emacs and vi.
+
+    - `shelltestrunner` is required if you want to run hledger's functional tests.
+
+    ```shell
+    $ stack install ghcid hasktags shelltestrunner
+    ```
+
+**2. Get the source**
 
 ```shell
-$ git clone code.hledger.org hledger    # aka github.com/simonmichael/hledger.git
+$ git clone http://github.com/simonmichael/hledger hledger   # or git:
+```
+
+**3. Build/install**
+
+```shell
 $ cd hledger
+$ stack install
 ```
 
-<!--
-Old instructions:
+This builds all the hledger packages, and installs executables in
+`$HOME/.local/bin` (or the Windows equivalent), which you should add
+to your `$PATH`.
+Or you can build fewer packages to save time, eg just the CLI:
+`stack install hledger`.
 
-1. Get [GHC](https://www.haskell.org/ghc/) and [cabal-install](http://hackage.haskell.org/package/cabal-install) installed.
-   I recommend the [stackage.org install guide](http://www.stackage.org/install).
-   You can see which GHC versions are officially supported in the `tested-with` field in
-   [hledger.cabal](http://hackage.haskell.org/package/hledger/hledger.cabal),
-   [hledger-ui.cabal](http://hackage.haskell.org/package/hledger-ui/hledger-ui.cabal),
-   [hledger-web.cabal](http://hackage.haskell.org/package/hledger-web/hledger-web.cabal).
-   Older versions may also work.
-2. Get [git](http://git-scm.com) installed.
-3. Get [GNU Make](http://www.gnu.org/software/make) installed (unless you don't care about the Makefile's conveniences).
-   On some platforms the command will be eg `gmake` instead of `make`.
-4. Get the hledger repo:
+You can also build without installing (`stack build`), and then run
+executables like so: `stack exec -- hledger ...`
 
-    ```shell
-    $ git clone https://github.com/simonmichael/hledger.git
-    ```
+Note build/install will fetch most required dependencies automatically,
+but not C libraries such as curses or terminfo, which you might need
+to install yourself.
+In case of trouble, see [download](/download.html#b)).
 
-5. You might want to install or upgrade some of these haskell developer tools.
-   If you're not sure, skip this step and return to it as needed.
-   Be sure the cabal bin directory where these are installed (eg ~/.cabal/bin) is in your PATH.
+Some other options useful for developer builds are `--fast` and `--file-watch`.
 
-    ```shell
-    $ cabal update
-    $ cabal install alex happy       # if you get alex/happy-related errors when building hledger
-    $ cabal install haddock          # needed to build hledger API docs
-    $ cabal install shelltestrunner  # needed to run hledger functional tests (may need latest git version)
-    $ cabal install hoogle hlint     # maybe useful for searching API docs and checking code
-    ```
+#### Add a test
 
-    You'll also want a comfortable code editor, preferably with Haskell support.
-    (I use emacs + [haskell-mode](https://github.com/haskell/haskell-mode),
-    or occasionally [IntelliJ IDEA](https://www.jetbrains.com/idea/download) + one of the [plugins](https://www.google.com/search?hl=en&q=intellij+plugins+haskell)).
-
-6. Install haskell libs required by hledger:
-
-    ```shell
-    $ cd hledger
-    $ cabal sandbox init   # optional
-    $ make installdeps     # or cabal install --only-dep ./hledger-lib ./hledger [./hledger-web]
-    ```
-
-    This will install the required dependencies from Hackage.
-    If you're new to cabal, you can expect problems at this stage.
-    The usual remedy is to ensure you start with a clean package db, eg by doing `cabal sandbox init`.
-    You can simplify and speed up this step a lot by commenting out
-    hledger-web in the `PACKAGES` list in the [Makefile](https://github.com/simonmichael/hledger/blob/master/Makefile#L41).
-
-7. Build with cabal:
-
-    ```shell
-    $ make cabalbuild
-    ```
-
-    (Tip: `make cabalCMD` runs `cabal CMD` in each of the hledger packages).
-
-8. Build with GHC:
-
-    ```shell
-    $ make bin/hledgerdev
-    ```
-
-    This builds hledger (and hledger-lib) with GHC directly, without using cabal,
-    and as quickly as possible, without optimizations (the "dev" suffix is a reminder of this).
-    I use and recommend this method for development, as it crosses package boundaries and ensures you are building the latest code.
-    However it needs some files generated by cabal build, which is why we did that first.
--->
+- identify what to test
+- choose the test type: unit ? functional ? benchmark ?
+- currently expected to pass or fail ?
+- figure out where it goes
+- write test, verify expected result
+- get it committed
 
 #### Use the Makefile
 
@@ -457,68 +419,6 @@ $ make test -n
 (COLUMNS=80 PATH=`pwd`/bin:/home/simon/src/hledger/bin:/home/simon/.local/bin:/home/simon/.cabal/bin:/opt/ghc/7.10.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/var/lib/gems/1.9.1/bin stack exec -- shelltest --execdir -- -j16 --hide-successes tests \
 		&& echo functest PASSED) || echo functest FAILED
 ```
-
-#### Build or install hledger
-
-Run `make` to see a list of build rules. You probably want `build` or `install`.
-
-`make build` runs stack build, which downloads required haskell
-dependencies and builds all hledger packages.
-The resulting executables will be somewhere under .stack-work, eg in
-`.stack-work/install/i386-linux/lts-3.0/7.10.2/bin/`.
-
-```shell
-$ make build
-stack build
-hledger-lib-0.27: configure
-hledger-lib-0.27: build
-hledger-lib-0.27: install
-hledger-0.27: configure
-hledger-0.27: build
-Progress: 1/4
-...
-```
-
-Note stack will install required haskell libraries, but not C
-libraries such as curses or terminfo. If you get a build error, it is
-likely because one of these is missing, in which case you must
-identify and install it yourself using your system's package
-manager. This is usually a bit harder on Windows.
-
-`make install` runs stack install, which does everything stack build does and also
-copies the executables to `~/.local/bin` or the Windows equivalent.
-You should make sure this directory is in your `$PATH`, so that you can just type
-`hledger` to run the latest.
-```shell
-$ make install
-stack install
-NOTE: the install command is functionally equivalent to 'build --copy-bins'
-hledger-0.27: build
-...
-Copied executables to /Users/simon/.local/bin/:
-- hledger-web
-- hledger-ui
-- hledger
-```
-
-You can save time and effort by building just the package(s) you're interested in.
-To install just the hledger command-line tool, but not hledger-ui or (especially costly)
-hledger-web, do:
-```shell
-$ stack install hledger
-```
-
-(This looks like the [download page](download) command for installing the latest hledger release from Stackage.
-The difference is, here we are running it inside the hledger source tree, so the source version will be installed.)
-
-#### Add a test
-
-- identify what to test
-- choose the test type: unit ? functional ? benchmark ?
-- currently expected to pass or fail ?
-- figure out where it goes
-- write test, verify expected result
-- get it committed
 
 #### Use the REPL (GHCI)
 
@@ -595,10 +495,10 @@ Follow the usual github workflow:
 
 If you're new to this process, [help.github.com](http://help.github.com) may be useful.
 
-#### Join the contributors list
+#### Add yourself to the contributor list
 
-- after getting one or more patches committed, read and sign the [contributor list & agreement](contributors.html)
-- or, [ask](#how-to-get-help) to be added
+- after getting something into the master branch, read and sign the [contributor list & agreement](contributors.html)
+- or, [ask](/docs.html#get-help) to be added
 
 ### Technical Writer
 
@@ -786,8 +686,8 @@ don't run make setversion.
     - [tweet]
 
 
-## Project overview
 
+## Project overview
 ### Mission, principles, goals
 
 The hledger project aims to produce:
@@ -871,8 +771,8 @@ Dev sprint/party #2 was on 2015/10/10.
 
 
 
-## Code architecture
 
+## Code architecture
 ### hledger
 
 There are two core cabal packages:
@@ -1017,6 +917,7 @@ makefile for instructions). This rebuilds automatically when haskell
 files change in any of the hledger{-lib,,-web} packages.
 
 <script async defer src="https://buttons.github.io/buttons.js"></script>
+
 ## Quick links
 
 <style>
