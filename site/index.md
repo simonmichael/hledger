@@ -1,74 +1,31 @@
 ---
 title: home
 ...
+
 <style>
-.highslide img {max-width:200px; float:right; margin:0 0 1em 1em;}
-.highslide-caption {color:white; background-color:black;}
-a {white-space:nowrap;}
-/*div.asciicast { float:right; height:200px; }*/
+ .highslide img {max-width:200px; float:right; margin:0 0 1em 1em;}
+ .highslide-caption {color:white; background-color:black;}
+ a {white-space:nowrap;}
+ /*div.asciicast { float:right; height:200px; }*/
 </style>
 <style media="screen and (min-width:1020px) and (orientation: landscape)">
-.indent0 { margin:0 15em 0  0em; }
-.indent1 { margin:0 10em 0  5em; }
-.indent2 { margin:0  5em 0 10em; }
-.indent3 { margin:0    0 0 15em; }
+ .indent0 { margin:0 15em 0  0em; }
+ .indent1 { margin:0 10em 0  5em; }
+ .indent2 { margin:0  5em 0 10em; }
+ .indent3 { margin:0    0 0 15em; }
 </style>
 
-
-<!-- <div style="float:right; max-width:200px; margin-left:1em;"> <\!-- top-right area -\-> -->
-
-<!-- get started box 
-<div class="panel panel-primary">
-<div class="panel-heading">
-<h2 class="panel-title">Get started</h2>
+<!-- funding buttons -->
+<div style="text-align:right; width:100%;">
+[![github](https://img.shields.io/github/stars/simonmichael/hledger.svg?style=social&label=Github){style="min-width:102;" title="hledger on Github. Star us!"}](https://github.com/simonmichael/hledger/)
+<a href="https://opencollective.com/hledger#support"><img border="0" src="https://opencollective.com/hledger/backers/badge.svg" title="Back us with a monthly donation at Open Collective" alt="open collective backers"></a>
+<a href="https://opencollective.com/hledger#support"><img border="0" src="https://opencollective.com/hledger/sponsors/badge.svg" title="Sponsor us with a $100+ monthly donation at Open Collective and get your organization's logo on our README" alt="open collective sponsors"></a>
+<a href="https://gratipay.com/hledger/"><img style="min-width:111px;" border=0 src="http://img.shields.io/gratipay/hledger.svg?label=gratipay" title="Give weekly with Gratipay" alt="gratipay"></a>
+<a href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img border="0" src="//api.flattr.com/button/flattr-badge-large.png" alt="" title="Give monthly with Flattr" alt="flattr"></a> 
+<a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" title="Contribute or claim issue bounties via Bountysource" alt="bountysource"></a>
+<a href="http://www.codefund.io/issues.php?g=simonmichael&repo=hledger" style="border:thin solid #000; background:#bfb; border-radius:4px; padding:1px 3px 2px 3px; font-size:small; font-family:helvetica;" title="Contribute or claim issue bounties via CodeFund" alt="codefund">codefund</a>
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img width=62 height=31 border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" title="Give one time or recurringly with Paypal" alt="paypal"></a> 
 </div>
-<div class="panel-body">
-**[Download](download.html)**,
-read the
-**[release notes](release-notes.html)**,
-**[tutorial](step-by-step.html)**,
-or **[manual](docs.html)**,
-try the **[web UI](http://demo.hledger.org)**,
-introduce yourself and tell us what's good/bad..
-
-<style>
-tr {
-    /*vertical-align:top;*/
-    border-top:thin solid #bbb;
-}
-</style>
-|
-|---------------------------|-------------------------------------------------------------------------
-| IRC                       | [#hledger](http://irc.hledger.org) 
-| Mail list&nbsp;&nbsp;     | via [google](http://list.hledger.org) or [gmane](http://news.gmane.org/gmane.comp.finance.ledger.hledger)
-| Twitter                   | [#ledgercli](https://twitter.com/search?q=%23ledgercli&src=typd&f=realtime), <a href="https://twitter.com/ledgertips">@LedgerTips</a>
-| Github                    | [code](http://github.com/simonmichael/hledger), [bugs](http://bugs.hledger.org), [issues](http://issues.hledger.org)
--->
-<!-- (see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1)) -->
-
-<!-- | More...&nbsp;&nbsp;       | [quick links](http://hledger.org/contributing.html#quick-links) -->
-
-<!-- | web UI demo             | [demo.hledger.org](http://demo.hledger.org) | -->
-<!-- [web ui demo](http://demo.hledger.org/register?q=inacct%3Aassets%3Abank%3Achecking+sym%3A\%24) -->
-
-<!-- </div> -->
-<!-- </div> <\!-- end of get started box -\-> -->
-
-<!-- </div> <\!-- end of top-right area -\-> -->
-
-<div style="float:right; text-align:right; margin-top:5px;">
-<!--[![NetflixOSS Lifecycle](https://img.shields.io/osslifecycle/Netflix/osstracker.svg)](http://hledger.org)-->
-[![github stars](https://img.shields.io/github/stars/simonmichael/hledger.svg?style=social&label=Github)](https://github.com/simonmichael/hledger/)
-<a href="https://gratipay.com/hledger/"><img border=0 src="http://img.shields.io/gratipay/hledger.svg"></a>
-<a href="https://opencollective.com/hledger#support"><img src="https://opencollective.com/hledger/backers/badge.svg" border="0"></a>
-<a href="https://opencollective.com/hledger#support"><img src="https://opencollective.com/hledger/sponsors/badge.svg" border="0"></a>
-<a href="http://www.codefund.io/issues.php?g=simonmichael&repo=hledger" style="border:thin solid #eee; border-radius:4px; padding:3px; font-size:small; font-family:helvetica;">codefund</a>
-<a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" alt=""></a>
-<!-- shorter shields.io version (also counts awarded bounties): [![bountysource](https://img.shields.io/bountysource/team/hledger/activity.svg)](https://github.com/simonmichael/hledger/issues?q=label:bounty)-->
-<a href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img src="//api.flattr.com/button/flattr-badge-large.png" alt="" title="Flattr this" border="0"></a> 
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img width=62 height=31 border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" alt=""></a> 
-</div>
-<!-- end of donate buttons -->
 
 <!-- main content -->
 
@@ -238,4 +195,5 @@ or maybe **[look deeper](contributing.html)**.
 <a class="twitter-timeline" data-chrome="noheader" data-dnt="true" href="https://twitter.com/search?q=%23hledger%20OR%20%23plaintextaccounting%20OR%20%23ledgercli%20-RT%20-%23TheJoker" data-widget-id="707934052225945600">Tweets about #hledger OR #plaintextaccounting OR #ledgercli -RT -#TheJoker</a> <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
 </div>
 
-<script async defer src="https://buttons.github.io/buttons.js"></script>
+<!-- something to do with the github/stars button, any benefit ? -->
+<!-- <script async defer src="https://buttons.github.io/buttons.js"></script> -->
