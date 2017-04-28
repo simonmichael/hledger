@@ -29,7 +29,7 @@ build your prosperity consciousness!
 
 - Test installation on platforms you have access to
 - Run the latest release or developer build
-- Test examples and advice in the docs
+- Test examples, advice, and links in the docs
 - Report packaging, documentation, UX, functional bugs
 - Report and help analyse problems via irc/mail list/bug tracker
 
@@ -93,6 +93,39 @@ Basic format: [ESTIMATEDTOTALTASKTIME|TIMESPENTSOFAR]. Examples:
 Estimates are always for the total time cost (not time remaining).
 Estimates are not usually changed, a new estimate is added instead.
 Numbers are very approximate, but better than nothing.
+
+#### Run tests
+
+This command will install haskell dependencies (you might need to
+install additional system dependencies yourself) and run the package
+test suites.  Currently these consist of hledger-lib's unit tests,
+hledger's unit tests, and hledger-web's functional tests:
+
+```shell
+$ stack test [PKG]
+```
+
+Run the hledger-lib and hledger unit tests as a built-in hledger command:
+```shell
+$ [stack exec] hledger test
+```
+
+Run the hledger functional tests:
+```shell
+$ stack install shelltestrunner  # if not already done
+$ make functest
+```
+
+Run both unit and functional tests:
+```shell
+$ make test
+```
+
+Test haddock doc generation:
+```shell
+$ make haddocktest
+```
+
 
 #### Run benchmarks
 
@@ -267,39 +300,6 @@ tools/generatejournal 3 5 5 --chinese >examples/chinese.journal
 tools/generatejournal 3 5 5 --mixed >examples/mixed.journal
 ```
 
-#### Run tests
-
-This command will install haskell dependencies (you might need to
-install additional system dependencies yourself) and run the package
-test suites.  Currently these consist of hledger-lib's unit tests,
-hledger's unit tests, and hledger-web's functional tests:
-
-```shell
-$ stack test [PKG]
-```
-
-Run the hledger-lib and hledger unit tests as a built-in hledger command:
-```shell
-$ [stack exec] hledger test
-```
-
-Run the hledger functional tests:
-```shell
-$ stack install shelltestrunner  # if not already done
-$ make functest
-```
-
-Run both unit and functional tests:
-```shell
-$ make test
-```
-
-Test haddock doc generation:
-```shell
-$ make haddocktest
-```
-
-
 ### Developer
 
 #### Do code review
@@ -311,39 +311,33 @@ $ make haddocktest
 
 #### Build hledger
 
-```shell
-$ git clone http://github.com/simonmichael/hledger hledger && cd hledger && stack install   # or git:
-```
+In short: get [`stack`](/download.html#b) and (except on Windows, where stack provides it) [`git`](http://git-scm.com), then:
 
-Or in more detail:
+`$ git clone http://github.com/simonmichael/hledger hledger && cd hledger && stack install   # or git://...`
+
+\
+In more detail:
 
 **1. Get tools**
 
-1. [`stack`](https://github.com/commercialhaskell/stack/wiki/Downloads)
-is the recommended tool for building hledger.  It will also install
-haskell tools and libraries as needed.  You can use cabal-install
-instead of stack if you prefer, but that requires more expertise;
+[`stack`](/download.html#b)
+is the recommended tool for building hledger.  You can use cabal-install
+if you prefer, but that requires more expertise;
 the hledger docs assume stack.
-The [download](/download.html#b) page has more tips.
 
-2. [`git`](http://git-scm.com) is the version control tool needed to
+[`git`](http://git-scm.com) is the version control tool needed to
 fetch the hledger source and submit changes. On Windows, stack will
 install this as well.
 
-3. Optional tools to consider:
+Optional:
 
-    - `alex`, `happy`, `haddock` and `hpack` - reasonably up-to-date
-    versions of these tools are required; stack ensures this automatically.
+- `ghcid`: a very useful tool that gives real-time feedback as you make code changes.
+- `hasktags`: generates tag files for quick code navigation in editors like Emacs and vi.
+- `shelltestrunner`: required if you want to run hledger's functional tests.
 
-    - `ghcid` is a very useful tool that gives real-time feedback as you make code changes.
-
-    - `hasktags` is an easy way to generate tag files for quick source code navigation in editors like Emacs and vi.
-
-    - `shelltestrunner` is required if you want to run hledger's functional tests.
-
-    ```shell
-    $ stack install ghcid hasktags shelltestrunner
-    ```
+```shell
+$ stack install ghcid hasktags shelltestrunner
+```
 
 **2. Get the source**
 
@@ -361,18 +355,16 @@ $ stack install
 This builds all the hledger packages, and installs executables in
 `$HOME/.local/bin` (or the Windows equivalent), which you should add
 to your `$PATH`.
-Or you can build fewer packages to save time, eg just the CLI:
+
+You can build fewer packages to save time, eg just the CLI:
 `stack install hledger`.
+You can also build without installing executables: `stack build; stack exec -- hledger [ARGS]`.
 
-You can also build without installing (`stack build`), and then run
-executables like so: `stack exec -- hledger ...`
-
-Note build/install will fetch most required dependencies automatically,
+Note stack fetches most required dependencies automatically,
 but not C libraries such as curses or terminfo, which you might need
 to install yourself.
-In case of trouble, see [download](/download.html#b)).
+In case of trouble, see [download](/download.html#b).
 
-Some other options useful for developer builds are `--fast` and `--file-watch`.
 
 #### Add a test
 
