@@ -48,7 +48,7 @@ Some learning resources not yet moved to the above.
 
 ## Get things done
 
-### [The Cookbook](cookbook.html)
+### [hledger Cookbook](cookbook.html)
 Practical recipes and examples, including:
 
 <div style="padding-left:0em;">
