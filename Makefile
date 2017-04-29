@@ -276,34 +276,34 @@ build: \
 # 	)
 # 	$(AUTOBUILD) hledger-web/app/main.hs -o bin/hledger-webdev $(AUTOBUILDFLAGS) $(WEBLANGEXTS) --run -B --port 5001 --base-url http://localhost:5001 -f webtest.j
 
-# link-web-dirs: config messages static templates \
-# 	$(call def-help,link-web-dirs,\
-# 	\
-# 	)
+link-web-dirs: config messages static templates \
+	$(call def-help,link-web-dirs,\
+	\
+	)
 
-# config: \
-# 	$(call def-help,config,\
-# 	\
-# 	)
-# 	ln -sf hledger-web/$@
+config: \
+	$(call def-help,config,\
+	\
+	)
+	ln -sf hledger-web/$@
 
-# messages: \
-# 	$(call def-help,messages,\
-# 	\
-# 	)
-# 	ln -sf hledger-web/$@
+messages: \
+	$(call def-help,messages,\
+	\
+	)
+	ln -sf hledger-web/$@
 
-# static: \
-# 	$(call def-help,static,\
-# 	\
-# 	)
-# 	ln -sf hledger-web/$@
+static: \
+	$(call def-help,static,\
+	\
+	)
+	ln -sf hledger-web/$@
 
-# templates: \
-# 	$(call def-help,templates,\
-# 	\
-# 	)
-# 	ln -sf hledger-web/$@
+templates: \
+	$(call def-help,templates,\
+	\
+	)
+	ln -sf hledger-web/$@
 
 # sp: \
 # 	$(call def-help,sp,\
@@ -811,7 +811,7 @@ ghci-ui: \
 # 		$(call def-help,ghci-ui, start a GHCI REPL and load the hledger-lib, hledger and hledger-ui packages)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
 
-ghci-web: \
+ghci-web: link-web-dirs \
 # 		$(call def-help,ghci-web, start a GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
 
