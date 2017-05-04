@@ -148,8 +148,8 @@ balanceviewReport BalanceView{..} CliOpts{command_=cmd, reportopts_=ropts, rawop
                   mergedTabl
                   +====+
                   row "Total"
-                      (sumAmts ++ (if row_total_ ropts' then [totsum] else [])
-                               ++ (if average_ ropts'   then [totavg] else [])
+                      (sumAmts ++ (if row_total_ ropts' && not (null sumAmts) then [totsum] else [])
+                               ++ (if average_ ropts' && not (null sumAmts)   then [totavg] else [])
                       )
         putStrLn title
         putStrLn $ renderBalanceReportTable ropts totTabl
