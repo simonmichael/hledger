@@ -532,7 +532,7 @@ balanceReportAsTable opts (MultiBalanceReport (colspans, items, (coltotals,tot,a
                 | otherwise      = (+----+ (row "" $
                                     coltotals
                                     ++ (if row_total_ opts then [tot] else [])
-                                    ++ (if average_ opts then [avg] else [])
+                                    ++ (if average_ opts   then [avg] else [])
                                     ))
 
 -- | Figure out the overall date span of a multicolumn balance report.

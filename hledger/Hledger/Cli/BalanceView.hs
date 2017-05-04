@@ -137,8 +137,7 @@ balanceviewReport BalanceView{..} CliOpts{command_=cmd, reportopts_=ropts, rawop
             sumAmts = case amts of
               a1:as -> foldl' (zipWith (+)) a1 as
               []    -> []
-            totavg  = totsum `divideMixedAmount`
-                        fromIntegral (length sumAmts)
+            totavg = totsum `divideMixedAmount` fromIntegral (length sumAmts)
             mergedTabl = case tabls of
               t1:ts -> foldl' merging t1 ts
               []    -> T.empty
