@@ -56,4 +56,4 @@ using conversion rules file checking.csv.rules
                    0
 ```
 
-Here are more [CSV rules examples](http://code.hledger.org/tree/master/examples/csv).
+Here are more [CSV rules examples](https://github.com/simonmichael/hledger/tree/master/examples/csv).
