@@ -93,3 +93,16 @@
 
 >>>2 /using conversion rules file.*t.rules/
 >>>=0
+# 9. read CSV with rule double-negating column
+ rm -rf t.rules$$; printf 'skip 1\n\ncurrency $\n\nfields date, payee, payment\n\namount -%%payment\naccount1 liabilities:bank\naccount2 expense:other' >t.rules$$; echo 'date,payee,amount\n2009/10/9,Flubber Co,50\n2009/11/09,Merchant Credit,-60' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+>>>
+2009/10/09
+    expense:other              $50
+    liabilities:bank          $-50
+
+2009/11/09
+    expense:other             $-60
+    liabilities:bank           $60
+
+>>>2 /using conversion rules file.*t.rules/
+>>>=0
