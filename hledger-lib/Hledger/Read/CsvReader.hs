@@ -35,7 +35,6 @@ import Control.Monad.Except
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 -- import Test.HUnit
 import Data.Char (toLower, isDigit, isSpace)
-import Data.List (findIndices)
 import Data.List.Compat
 import Data.Maybe
 import Data.Ord
@@ -642,7 +641,7 @@ transactionFromCsvRecord sourcepos rules record = t
     comment     = maybe "" render $ mfieldtemplate "comment"
     precomment  = maybe "" render $ mfieldtemplate "precomment"
     currency    = maybe (fromMaybe "" mdefaultcurrency) render $ mfieldtemplate "currency"
-    amountstr   = (currency++) $ simplifySign $ negateIfParenthesised $ getAmountStr rules record
+    amountstr   = (currency++) $ simplifySign $ getAmountStr rules record
     amount      = either amounterror (Mixed . (:[])) $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack amountstr
     amounterror err = error' $ unlines
       ["error: could not parse \""++amountstr++"\" as an amount"
@@ -669,7 +668,7 @@ transactionFromCsvRecord sourcepos rules record = t
     balance     = maybe Nothing (parsebalance.render) $ mfieldtemplate "balance"
     parsebalance str 
       | all isSpace str  = Nothing
-      | otherwise = Just $ either (balanceerror str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ negateIfParenthesised str
+      | otherwise = Just $ either (balanceerror str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ simplifySign str
     balanceerror str err = error' $ unlines
       ["error: could not parse \""++str++"\" as balance amount"
       ,showRecord record
@@ -712,21 +711,15 @@ getAmountStr rules record =
     (Nothing, Just _,  Just _)  -> error' $ "both amount-in and amount-out have a value\n"++showRecord record
     _                           -> error' $ "found values for amount and for amount-in/amount-out - please use either amount or amount-in/amount-out\n"++showRecord record
 
--- From a String representing an Amount, simplify the sign by
--- removing '-' by pair from the left. It happens that some amount
--- strings contain 2 '-' because of CSV reading rules
-simplifySign :: String -> String
-simplifySign amount
-  | length indices < 2 = amount
-  | otherwise = simplifySign $ simplify2 amount
-  where
-    indices = findIndices (== '-') amount
-    simplify = delete '-'
-    simplify2 = simplify . simplify
+type CsvAmountString = String
 
-negateIfParenthesised :: String -> String
-negateIfParenthesised ('(':s) | lastMay s == Just ')' = negateStr $ init s
-negateIfParenthesised s                               = s
+-- | Canonicalise the sign in a CSV amount string.
+-- Such strings can be parenthesized, which is equivalent to having a minus sign.
+-- Also they can end up with a double minus sign, which cancels out.
+simplifySign :: CsvAmountString -> CsvAmountString
+simplifySign ('(':s) | lastMay s == Just ')' = simplifySign $ negateStr $ init s
+simplifySign ('-':'-':s) = s
+simplifySign s = s
 
 negateStr :: String -> String
 negateStr ('-':s) = s
