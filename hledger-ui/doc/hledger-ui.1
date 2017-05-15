@@ -157,7 +157,12 @@ include only pending postings/txns
 .RE
 .TP
 .B \f[C]\-U\ \-\-uncleared\f[]
-include only uncleared (and pending) postings/txns
+include only non\-cleared postings/txns
+.RS
+.RE
+.TP
+.B \f[C]\-X\ \-\-not\-pending\f[]
+include only non\-pending postings/txns
 .RS
 .RE
 .TP
@@ -326,6 +331,10 @@ They are more useful eg when viewing a time log.
 postings are not shown.
 \f[C]U\f[] toggles uncleared mode, in which only uncleared
 transactions/postings are shown.
+\f[C]P\f[] toggles pending mode, in which only pending
+transactions/postings are shown.
+\f[C]X\f[] toggles non\-pending mode, in which only non\-pending
+transactions/postings are shown.
 .PP
 \f[C]R\f[] toggles real mode, in which virtual postings are ignored.
 .PP
@@ -370,6 +379,10 @@ As on the accounts screen, this can be toggled with \f[C]F\f[].
 \f[C]C\f[] toggles cleared mode, in which uncleared transactions and
 postings are not shown.
 \f[C]U\f[] toggles uncleared mode, in which only uncleared
+transactions/postings are shown.
+\f[C]P\f[] toggles pending mode, in which only pending
+transactions/postings are shown.
+\f[C]X\f[] toggles non\-pending mode, in which only non\-pending
 transactions/postings are shown.
 .PP
 \f[C]R\f[] toggles real mode, in which virtual postings are ignored.

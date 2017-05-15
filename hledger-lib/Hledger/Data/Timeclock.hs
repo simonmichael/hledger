@@ -86,7 +86,7 @@ entryFromTimeclockInOut i o
             tsourcepos   = tlsourcepos i,
             tdate        = idate,
             tdate2       = Nothing,
-            tstatus      = Cleared,
+            tstatus      = Just Cleared,
             tcode        = "",
             tdescription = desc,
             tcomment     = "",

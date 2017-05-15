@@ -55,7 +55,7 @@ Here's an example:
     expenses:supplies     $1    ; <- this transaction debits two expense accounts
     assets:cash                 ; <- $-2 inferred
 
-2008/12/31 * pay off            ; <- an optional * or ! after the date means "cleared" (or anything you want)
+2008/12/31 * pay off            ; <- an optional * or ! after the date means "cleared" or "pending"
     liabilities:debts     $1
     assets:bank:checking
 ```
@@ -69,7 +69,7 @@ Transactions are movements of some quantity of commodities between named account
 Each transaction is represented by a journal entry beginning with a [simple date](#simple-dates) in column 0. 
 This can be followed by any of the following, separated by spaces:
 
-- (optional) a [status](#status) character (empty, `!`, or `*`) 
+- (optional) a [status](#status) character, `!` or `*`, meaning "pending" or "cleared"
 - (optional) a transaction code (any short number or text, eg a check number)
 - (optional) a transaction description (any remaining text until end of line)
 
@@ -188,31 +188,36 @@ the transaction and DATE2 infers its year from DATE.
 More about the status field: transactions, or individual postings within a transaction,
 can be in one of three states, represented by a single character:
 
-- empty (no status character) = uncleared
+- empty (no status character) = no explicit status
 - `!` = pending (aka "tentatively cleared")
 - `*` = cleared
 
-When reporting, you can filter by status using the `-C/--cleared` and `-U/--uncleared` flags
-or the `status:` query.
+When reporting, you can filter by status using the `-C/--cleared`, `--pending`,
+`-U/--uncleared`, and `--not-pending` flags, or the `status:` query.
 
 This feature is optional, but can be helpful for reconciling with real-world accounts.
-What "uncleared", "pending", and "cleared" actually mean is up to you.
+What "pending" and "cleared" actually mean is up to you.
 
-A suggestion: use cleared (`*`) to mark transactions that are "complete", ie: 
+A suggestion: use cleared (`*`) to mark transactions that are "complete", ie:
 
 - they have cleared with the bank, or the cash has been handed over
 - you are satisfied they are recorded accurately in the journal
-- the resulting account balance reported by hledger agrees exactly with the external source of truth, if any (eg the bank's online register or statement) 
+- the resulting account balance reported by hledger agrees exactly with the external source of truth, if any (eg the bank's online register or statement)
 
-Then, with --cleared you'll see the current balance at your bank,
-with --uncleared you'll see things which will probably hit your bank soon (eg uncashed checks),
-and with neither flag (the default) you'll see the most up-to-date state of your finances.
+Then, with --cleared you'll see the current balance at your bank, with
+--uncleared you'll see things which will probably hit your bank soon (eg
+uncashed checks), and with neither flag (the default) you'll see the most
+up-to-date state of your finances.
 
-I don't use pending (`!`), but perhaps it is useful in very tricky reconciliations,
-as a temporary marker for transactions matched so far, allowing you start over more easily. 
-Note, the --uncleared flag matches both uncleared and pending things ("everything not definitely cleared").
-Currently, to match pending things only, use `status:!`,
-and to match uncleared things only, `not:status:! not:status:*` (`status:` seems buggy). 
+I don't use pending (`!`), but perhaps it is useful in very tricky
+reconciliations, as a temporary marker for transactions matched so far,
+allowing you start over more easily.  Another use is to flag transactions that
+need to be revisted such as those related to receivables or payables.
+
+Note, the --uncleared flag matches both pending things and those with no status
+("everything not definitely cleared"), and --not-pending matches both cleared
+things and those with no status ("everything definitely not pending").  To
+match things with no status only, use `status:`.
 
 Some [editor modes](#editor-support) highlight entries differently based on their status.
 In Emacs ledger-mode, you can toggle transaction status with `C-c C-e`, or posting status with `C-c C-c`.  

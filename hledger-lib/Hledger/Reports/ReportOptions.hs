@@ -73,7 +73,7 @@ instance Default AccountListMode where def = ALDefault
 data ReportOpts = ReportOpts {
      period_         :: Period
     ,interval_       :: Interval
-    ,clearedstatus_  :: Maybe ClearedStatus
+    ,clearedstatus_  :: Maybe ClearedStatusFilter
     ,cost_           :: Bool
     ,depth_          :: Maybe Int
     ,display_        :: Maybe DisplayExp
@@ -263,15 +263,16 @@ intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
       | otherwise = Nothing
 
 -- | Get the cleared status, if any, specified by the last of -C/--cleared,
--- --pending, -U/--uncleared options.
-clearedStatusFromRawOpts :: RawOpts -> Maybe ClearedStatus
+-- --pending, -U/--uncleared, -X/--not-pending options.
+clearedStatusFromRawOpts :: RawOpts -> Maybe ClearedStatusFilter
 clearedStatusFromRawOpts = lastMay . catMaybes . map clearedstatusfromrawopt
   where
     clearedstatusfromrawopt (n,_)
-      | n == "cleared"   = Just Cleared
-      | n == "pending"   = Just Pending
-      | n == "uncleared" = Just Uncleared
-      | otherwise        = Nothing
+      | n == "cleared"    = Just ClearedFilter
+      | n == "pending"    = Just PendingFilter
+      | n == "uncleared"  = Just UnclearedFilter
+      | n == "notpending" = Just NotPendingFilter
+      | otherwise         = Nothing
 
 type DisplayExp = String
 

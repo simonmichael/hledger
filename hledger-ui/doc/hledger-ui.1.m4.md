@@ -166,7 +166,9 @@ show the change in balance during the report period. They are more useful eg whe
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are
 not shown. `U` toggles uncleared mode, in which only uncleared
-transactions/postings are shown.
+transactions/postings are shown.  `P` toggles pending mode, in which only
+pending transactions/postings are shown.  `X` toggles non-pending mode, in
+which only non-pending transactions/postings are shown.
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 
@@ -206,7 +208,10 @@ As on the accounts screen, this can be toggled with `F`.
 `C` toggles cleared mode, in which
 [uncleared transactions and postings](/journal.html#transactions) are
 not shown. `U` toggles uncleared mode, in which only uncleared
-transactions/postings are shown.
+transactions/postings are shown.  `P` toggles pending mode, in which only
+pending transactions/postings are shown.  `X` toggles non-pending mode, in
+which only non-pending transactions/postings are shown.
+
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 

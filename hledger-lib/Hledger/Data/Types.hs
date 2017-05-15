@@ -179,20 +179,31 @@ type TagName = Text
 type TagValue = Text
 type Tag = (TagName, TagValue)  -- ^ A tag name and (possibly empty) value.
 
-data ClearedStatus = Uncleared | Pending | Cleared
-  deriving (Eq,Ord,Typeable,Data,Generic)
+data ClearedStatus = Pending | Cleared
+  deriving (Eq,Typeable,Data,Generic)
+
+instance Show ClearedStatus where -- custom show.. bad idea.. don't do it..
+  show Pending = "!"
+  show Cleared = "*"
 
 instance NFData ClearedStatus
 
-instance Show ClearedStatus where -- custom show.. bad idea.. don't do it..
-  show Uncleared = ""
-  show Pending   = "!"
-  show Cleared   = "*"
+data ClearedStatusFilter = PendingFilter | ClearedFilter | UnclearedFilter | NotPendingFilter | NoStatusFilter
+  deriving (Eq,Typeable,Data,Generic)
+
+instance NFData ClearedStatusFilter
+
+instance Show ClearedStatusFilter where -- custom show.. bad idea.. don't do it..
+  show UnclearedFilter  = "not *"
+  show NotPendingFilter = "not !"
+  show PendingFilter    = "!"
+  show ClearedFilter    = "*"
+  show NoStatusFilter   = "<none>"
 
 data Posting = Posting {
       pdate             :: Maybe Day,         -- ^ this posting's date, if different from the transaction's
       pdate2            :: Maybe Day,         -- ^ this posting's secondary date, if different from the transaction's
-      pstatus           :: ClearedStatus,
+      pstatus           :: Maybe ClearedStatus,
       paccount          :: AccountName,
       pamount           :: MixedAmount,
       pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
@@ -224,7 +235,7 @@ data Transaction = Transaction {
       tsourcepos               :: GenericSourcePos,
       tdate                    :: Day,
       tdate2                   :: Maybe Day,
-      tstatus                  :: ClearedStatus,
+      tstatus                  :: Maybe ClearedStatus,
       tcode                    :: Text,
       tdescription             :: Text,
       tcomment                 :: Text,      -- ^ this transaction's comment lines, as a single non-indented multi-line string

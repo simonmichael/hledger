@@ -144,7 +144,10 @@ m4_define({{_reportingoptions_}}, {{
 : include only pending postings/txns
 
 `-U --uncleared`
-: include only uncleared (and pending) postings/txns
+: include only non-cleared postings/txns
+
+`-X --not-pending`
+: include only non-pending postings/txns
 
 `-R --real`
 : include only non-virtual postings
