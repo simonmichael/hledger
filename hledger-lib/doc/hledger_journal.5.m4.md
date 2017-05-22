@@ -503,7 +503,7 @@ end comment
 ## Tags
 
 Tags are a way to add extra labels or labelled data to postings and transactions,
-which you can then [search](/journal.html#queries) or [pivot](/hledger.html#pivoting) on.
+which you can then [search](/hledger.html#queries) or [pivot](/hledger.html#pivoting) on.
 
 A simple tag is a word (which may contain hyphens) followed by a full colon,
 written inside a transaction or posting [comment](#comments) line:
