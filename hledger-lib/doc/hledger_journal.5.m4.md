@@ -380,61 +380,72 @@ instead of just reading it.
 
 ### Transaction prices
 
-Within a transaction posting, you can record an amount's price in another commodity.
-This can be used to document the cost (for a purchase), or selling price (for a sale),
-or the exchange rate that was used, for this transaction.
-These transaction prices are fixed, and do not change over time.
-<!--
-This is different from Ledger, where transaction prices fluctuate by
-default.  Ledger has a different syntax for specifying
-[fixed prices](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices):
-`{=PRICE}`.  hledger parses that syntax, and (currently) ignores it.
--->
-<!-- hledger treats this as an alternate spelling of `@ PRICE`, for greater compatibility with Ledger files. -->
+Within a transaction, you can note an amount's price in another commodity.
+This can be used to document the cost (in a purchase) or selling price (in a sale).
+For example, transaction prices are useful to record purchases of a foreign currency.
 
-Amounts with transaction prices can be displayed in the transaction price's
-commodity, by using the [`--cost/-B`](hledger.html#reporting-options) flag
-supported by most hledger commands (mnemonic: "cost Basis").
+Transaction prices are fixed, and do not change over time.
+(Ledger users: Ledger uses a different [syntax](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices)
+for fixed prices, `{=UNITPRICE}`, which hledger currently ignores).
 
 There are several ways to record a transaction price:
 
-1. Write the unit price (aka exchange rate), as `@ UNITPRICE` after the amount:
+1. Write the price per unit, as `@ UNITPRICE` after the amount:
 
     ```journal
     2009/1/1
-      assets:foreign currency   €100 @ $1.35  ; one hundred euros at $1.35 each
-      assets:cash
+      assets:euros     €100 @ $1.35  ; one hundred euros purchased at $1.35 each
+      assets:dollars                 ; balancing amount is -$135.00
     ```
 
-2. Or write the total price, as `@@ TOTALPRICE` after the amount:
+2. Write the total price, as `@@ TOTALPRICE` after the amount:
 
     ```journal
     2009/1/1
-      assets:foreign currency   €100 @@ $135  ; one hundred euros at $135 for the lot
-      assets:cash
+      assets:euros     €100 @@ $135  ; one hundred euros purchased at $135 for the lot
+      assets:dollars
     ```
 
-3. Or let hledger infer the price so as to balance the transaction.
-   To permit this, you must fully specify all posting amounts, and
-   their sum must have a non-zero amount in exactly two commodities:
+3. Specify amounts for all postings, using exactly two commodities,
+   and let hledger infer the price that balances the transaction:
 
     ```journal
     2009/1/1
-      assets:foreign currency   €100          ; one hundred euros
-      assets:cash              $-135          ; exchanged for $135
+      assets:euros     €100          ; one hundred euros purchased
+      assets:dollars  $-135          ; for $135
     ```
 
-With any of the above examples we get:
+Amounts with transaction prices can be displayed in the transaction price's
+commodity by using the [`-B/--cost`](hledger.html#reporting-options) flag 
+(except for [#551](https://github.com/simonmichael/hledger/issues/551))
+("B" is from "cost Basis").
+Eg for the above, here is how -B affects the balance report:
 
 ```shell
-$ hledger print -B
-2009/01/01
-    assets:foreign currency       $135.00
-    assets:cash                  $-135.00
+$ hledger bal -N --flat
+               $-135  assets:dollars
+                €100  assets:euros
+$ hledger bal -N --flat -B
+               $-135  assets:dollars
+                $135  assets:euros    # <- the euros' cost
 ```
 
-Example use for transaction prices: recording the effective conversion
-rate of purchases made in a foreign currency.
+Note -B is sensitive to the order of postings when a transaction price is inferred:
+the inferred price will be in the commodity of the last amount. 
+So if example 3's postings are reversed, while the transaction
+is equivalent, -B shows something different:
+
+```journal
+2009/1/1
+  assets:dollars  $-135               ; 135 dollars sold
+  assets:euros     €100               ; for 100 euros
+```
+```shell
+$ hledger bal -N --flat -B
+               €-100  assets:dollars  # <- the dollars' selling price
+                €100  assets:euros
+```
+
 
 ### Market prices
 

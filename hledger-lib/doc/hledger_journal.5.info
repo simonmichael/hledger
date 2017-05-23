@@ -488,48 +488,60 @@ File: hledger_journal.5.info,  Node: Transaction prices,  Next: Market prices,  
 1.8.1 Transaction prices
 ------------------------
 
-Within a transaction posting, you can record an amount's price in
-another commodity.  This can be used to document the cost (for a
-purchase), or selling price (for a sale), or the exchange rate that was
-used, for this transaction.  These transaction prices are fixed, and do
-not change over time.
+Within a transaction, you can note an amount's price in another
+commodity.  This can be used to document the cost (in a purchase) or
+selling price (in a sale).  For example, transaction prices are useful
+to record purchases of a foreign currency.
 
-   Amounts with transaction prices can be displayed in the transaction
-price's commodity, by using the '--cost/-B' flag supported by most
-hledger commands (mnemonic: "cost Basis").
+   Transaction prices are fixed, and do not change over time.  (Ledger
+users: Ledger uses a different syntax for fixed prices, '{=UNITPRICE}',
+which hledger currently ignores).
 
    There are several ways to record a transaction price:
 
-  1. Write the unit price (aka exchange rate), as '@ UNITPRICE' after
-     the amount:
+  1. Write the price per unit, as '@ UNITPRICE' after the amount:
 
      2009/1/1
-       assets:foreign currency   €100 @ $1.35  ; one hundred euros at $1.35 each
-       assets:cash
+       assets:euros     €100 @ $1.35  ; one hundred euros purchased at $1.35 each
+       assets:dollars                 ; balancing amount is -$135.00
 
-  2. Or write the total price, as '@@ TOTALPRICE' after the amount:
-
-     2009/1/1
-       assets:foreign currency   €100 @@ $135  ; one hundred euros at $135 for the lot
-       assets:cash
-
-  3. Or let hledger infer the price so as to balance the transaction.
-     To permit this, you must fully specify all posting amounts, and
-     their sum must have a non-zero amount in exactly two commodities:
+  2. Write the total price, as '@@ TOTALPRICE' after the amount:
 
      2009/1/1
-       assets:foreign currency   €100          ; one hundred euros
-       assets:cash              $-135          ; exchanged for $135
+       assets:euros     €100 @@ $135  ; one hundred euros purchased at $135 for the lot
+       assets:dollars
 
-   With any of the above examples we get:
+  3. Specify amounts for all postings, using exactly two commodities,
+     and let hledger infer the price that balances the transaction:
 
-$ hledger print -B
-2009/01/01
-    assets:foreign currency       $135.00
-    assets:cash                  $-135.00
+     2009/1/1
+       assets:euros     €100          ; one hundred euros purchased
+       assets:dollars  $-135          ; for $135
 
-   Example use for transaction prices: recording the effective
-conversion rate of purchases made in a foreign currency.
+   Amounts with transaction prices can be displayed in the transaction
+price's commodity by using the '-B/--cost' flag (except for #551) ("B"
+is from "cost Basis").  Eg for the above, here is how -B affects the
+balance report:
+
+$ hledger bal -N --flat
+               $-135  assets:dollars
+                €100  assets:euros
+$ hledger bal -N --flat -B
+               $-135  assets:dollars
+                $135  assets:euros    # <- the euros' cost
+
+   Note -B is sensitive to the order of postings when a transaction
+price is inferred: the inferred price will be in the commodity of the
+last amount.  So if example 3's postings are reversed, while the
+transaction is equivalent, -B shows something different:
+
+2009/1/1
+  assets:dollars  $-135               ; 135 dollars sold
+  assets:euros     €100               ; for 100 euros
+
+$ hledger bal -N --flat -B
+               €-100  assets:dollars  # <- the dollars' selling price
+                €100  assets:euros
 
 
 File: hledger_journal.5.info,  Node: Market prices,  Prev: Transaction prices,  Up: Prices
@@ -1001,41 +1013,41 @@ Node: Prices18072
 Ref: #prices18205
 Node: Transaction prices18256
 Ref: #transaction-prices18401
-Node: Market prices19978
-Ref: #market-prices20113
-Node: Comments21073
-Ref: #comments21195
-Node: Tags22308
-Ref: #tags22428
-Node: Implicit tags23857
-Ref: #implicit-tags23965
-Node: Directives24482
-Ref: #directives24597
-Node: Account aliases24790
-Ref: #account-aliases24936
-Node: Basic aliases25540
-Ref: #basic-aliases25685
-Node: Regex aliases26375
-Ref: #regex-aliases26545
-Node: Multiple aliases27260
-Ref: #multiple-aliases27434
-Node: end aliases27932
-Ref: #end-aliases28074
-Node: account directive28175
-Ref: #account-directive28357
-Node: apply account directive28653
-Ref: #apply-account-directive28851
-Node: Multi-line comments29510
-Ref: #multi-line-comments29702
-Node: commodity directive29830
-Ref: #commodity-directive30016
-Node: Default commodity30888
-Ref: #default-commodity31063
-Node: Default year31600
-Ref: #default-year31767
-Node: Including other files32190
-Ref: #including-other-files32349
-Node: EDITOR SUPPORT32746
-Ref: #editor-support32866
+Node: Market prices20557
+Ref: #market-prices20692
+Node: Comments21652
+Ref: #comments21774
+Node: Tags22887
+Ref: #tags23007
+Node: Implicit tags24436
+Ref: #implicit-tags24544
+Node: Directives25061
+Ref: #directives25176
+Node: Account aliases25369
+Ref: #account-aliases25515
+Node: Basic aliases26119
+Ref: #basic-aliases26264
+Node: Regex aliases26954
+Ref: #regex-aliases27124
+Node: Multiple aliases27839
+Ref: #multiple-aliases28013
+Node: end aliases28511
+Ref: #end-aliases28653
+Node: account directive28754
+Ref: #account-directive28936
+Node: apply account directive29232
+Ref: #apply-account-directive29430
+Node: Multi-line comments30089
+Ref: #multi-line-comments30281
+Node: commodity directive30409
+Ref: #commodity-directive30595
+Node: Default commodity31467
+Ref: #default-commodity31642
+Node: Default year32179
+Ref: #default-year32346
+Node: Including other files32769
+Ref: #including-other-files32928
+Node: EDITOR SUPPORT33325
+Ref: #editor-support33445
 
 End Tag Table

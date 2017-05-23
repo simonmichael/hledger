@@ -470,70 +470,93 @@ the calculations yourself, instead of just reading it.
 .SS Prices
 .SS Transaction prices
 .PP
-Within a transaction posting, you can record an amount\[aq]s price in
-another commodity.
-This can be used to document the cost (for a purchase), or selling price
-(for a sale), or the exchange rate that was used, for this transaction.
-These transaction prices are fixed, and do not change over time.
+Within a transaction, you can note an amount\[aq]s price in another
+commodity.
+This can be used to document the cost (in a purchase) or selling price
+(in a sale).
+For example, transaction prices are useful to record purchases of a
+foreign currency.
 .PP
-Amounts with transaction prices can be displayed in the transaction
-price\[aq]s commodity, by using the \f[C]\-\-cost/\-B\f[] flag supported
-by most hledger commands (mnemonic: "cost Basis").
+Transaction prices are fixed, and do not change over time.
+(Ledger users: Ledger uses a different syntax for fixed prices,
+\f[C]{=UNITPRICE}\f[], which hledger currently ignores).
 .PP
 There are several ways to record a transaction price:
 .IP "1." 3
-Write the unit price (aka exchange rate), as \f[C]\@\ UNITPRICE\f[]
-after the amount:
+Write the price per unit, as \f[C]\@\ UNITPRICE\f[] after the amount:
 .RS 4
 .IP
 .nf
 \f[C]
 2009/1/1
-\ \ assets:foreign\ currency\ \ \ €100\ \@\ $1.35\ \ ;\ one\ hundred\ euros\ at\ $1.35\ each
-\ \ assets:cash
+\ \ assets:euros\ \ \ \ \ €100\ \@\ $1.35\ \ ;\ one\ hundred\ euros\ purchased\ at\ $1.35\ each
+\ \ assets:dollars\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;\ balancing\ amount\ is\ \-$135.00
 \f[]
 .fi
 .RE
 .IP "2." 3
-Or write the total price, as \f[C]\@\@\ TOTALPRICE\f[] after the amount:
+Write the total price, as \f[C]\@\@\ TOTALPRICE\f[] after the amount:
 .RS 4
 .IP
 .nf
 \f[C]
 2009/1/1
-\ \ assets:foreign\ currency\ \ \ €100\ \@\@\ $135\ \ ;\ one\ hundred\ euros\ at\ $135\ for\ the\ lot
-\ \ assets:cash
+\ \ assets:euros\ \ \ \ \ €100\ \@\@\ $135\ \ ;\ one\ hundred\ euros\ purchased\ at\ $135\ for\ the\ lot
+\ \ assets:dollars
 \f[]
 .fi
 .RE
 .IP "3." 3
-Or let hledger infer the price so as to balance the transaction.
-To permit this, you must fully specify all posting amounts, and their
-sum must have a non\-zero amount in exactly two commodities:
+Specify amounts for all postings, using exactly two commodities, and let
+hledger infer the price that balances the transaction:
 .RS 4
 .IP
 .nf
 \f[C]
 2009/1/1
-\ \ assets:foreign\ currency\ \ \ €100\ \ \ \ \ \ \ \ \ \ ;\ one\ hundred\ euros
-\ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-135\ \ \ \ \ \ \ \ \ \ ;\ exchanged\ for\ $135
+\ \ assets:euros\ \ \ \ \ €100\ \ \ \ \ \ \ \ \ \ ;\ one\ hundred\ euros\ purchased
+\ \ assets:dollars\ \ $\-135\ \ \ \ \ \ \ \ \ \ ;\ for\ $135
 \f[]
 .fi
 .RE
 .PP
-With any of the above examples we get:
+Amounts with transaction prices can be displayed in the transaction
+price\[aq]s commodity by using the \f[C]\-B/\-\-cost\f[] flag (except
+for #551) ("B" is from "cost Basis").
+Eg for the above, here is how \-B affects the balance report:
 .IP
 .nf
 \f[C]
-$\ hledger\ print\ \-B
-2009/01/01
-\ \ \ \ assets:foreign\ currency\ \ \ \ \ \ \ $135.00
-\ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-135.00
+$\ hledger\ bal\ \-N\ \-\-flat
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-135\ \ assets:dollars
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ €100\ \ assets:euros
+$\ hledger\ bal\ \-N\ \-\-flat\ \-B
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-135\ \ assets:dollars
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $135\ \ assets:euros\ \ \ \ #\ <\-\ the\ euros\[aq]\ cost
 \f[]
 .fi
 .PP
-Example use for transaction prices: recording the effective conversion
-rate of purchases made in a foreign currency.
+Note \-B is sensitive to the order of postings when a transaction price
+is inferred: the inferred price will be in the commodity of the last
+amount.
+So if example 3\[aq]s postings are reversed, while the transaction is
+equivalent, \-B shows something different:
+.IP
+.nf
+\f[C]
+2009/1/1
+\ \ assets:dollars\ \ $\-135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;\ 135\ dollars\ sold
+\ \ assets:euros\ \ \ \ \ €100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;\ for\ 100\ euros
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ bal\ \-N\ \-\-flat\ \-B
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ €\-100\ \ assets:dollars\ \ #\ <\-\ the\ dollars\[aq]\ selling\ price
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ €100\ \ assets:euros
+\f[]
+.fi
 .SS Market prices
 .PP
 Market prices are not tied to a particular transaction; they represent
