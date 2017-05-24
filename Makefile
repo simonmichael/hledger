@@ -76,9 +76,11 @@ STACK=stack
 
 # -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
 SHELLTESTOPTS=--execdir -- -j16 #--hide-successes
+
+# make sure shelltest is a released version of shelltestrunner
 # run shell tests using the executable specified in tests
 # SHELLTEST=COLUMNS=80 PATH=~/.local/bin:/usr/bin:/bin shelltest $(SHELLTESTOPTS)
-# run shell tests using the stack build
+# run shell tests using the stack build of hledger
 #SHELLTESTSTK=shelltest -w `stack exec which hledger` $(SHELLTESTOPTS)
 SHELLTESTSTK=COLUMNS=80 $(STACK) exec -- shelltest $(SHELLTESTOPTS)
 
