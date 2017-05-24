@@ -195,7 +195,7 @@ Cash flows:
                  $-1
 
 >>>2
->>>=
+>>>= 0
 
 # 9. with -N (single column)
 hledger -f sample.journal cf -N
@@ -208,7 +208,7 @@ Cash flows:
                  $-2    cash
 
 >>>2
->>>=
+>>>= 0
 
 # 10. without -N (multi column)
 hledger -f sample.journal cf -Y
@@ -226,7 +226,7 @@ Cashflow Statement
 
 
 >>>2
->>>=
+>>>= 0
 
 # 11. with -N (multi column)
 hledger -f sample.journal cf -Y -N
@@ -242,4 +242,4 @@ Cashflow Statement
 
 
 >>>2
->>>=
+>>>= 0
