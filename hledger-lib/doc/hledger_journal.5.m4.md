@@ -65,27 +65,33 @@ Here's an example:
 
 ## Transactions
 
-Transactions are represented by journal entries. Each begins with a
-[simple date](#simple-dates) in column 0, followed by three optional
-fields with spaces between them:
+Transactions are movements of some quantity of commodities between named accounts.
+Each transaction is represented by a journal entry beginning with a [simple date](#simple-dates) in column 0. 
+This can be followed by any of the following, separated by spaces:
 
-- a status flag, which can be empty or `!` or `*` (meaning "uncleared",
-  "pending" and "cleared", or whatever you want)
-- a transaction code (eg a check number),
-- and/or a description
+- (optional) a [status](#status) character (empty, `!`, or `*`) 
+- (optional) a transaction code (any short number or text, eg a check number)
+- (optional) a transaction description (any remaining text until end of line)
 
-then some number of postings, of some amount to some account. Each
-posting is on its own line, consisting of:
+Then comes zero or more (but usually at least 2) indented lines representing...
 
-- indentation of one or more spaces (or tabs)
-- optionally, a `!` or `*` status flag followed by a space
-- an account name, optionally containing single spaces
-- optionally, two or more spaces or tabs followed by an amount
+##  Postings
+ 
+A posting is an addition of some amount to, or removal of some amount from, an account. 
+Each posting line begins with at least one space or tab (2 or 4 spaces is common), followed by:
 
-Usually there are two or more postings, though one or none is also
-possible. The posting amounts within a transaction must always balance,
-ie add up to 0. Optionally one amount can be left blank, in which case
-it will be inferred.
+- (optional) a [status](#status) character (empty, `!`, or `*`), followed by a space
+- (required) an [account name](#account-names) (any text, optionally containing **single spaces**, until end of line or a double space)
+- (optional) **two or more spaces** or tabs followed by an [amount](#amounts). 
+
+Positive amounts are being added to the account, negative amounts are being removed. 
+
+The amounts within a transaction must always sum up to zero.
+As a convenience, one amount may be left blank; it will be inferred so as to balance the transaction.
+
+Be sure to note the unusual two-space delimiter between account name and amount.
+This makes it easy to write account names containing spaces.
+But if you accidentally leave only one space (or tab) before the amount, the amount will be considered part of the account name.
 
 ## Dates
 
@@ -176,6 +182,36 @@ supported: `[DATE]`, `[DATE=DATE2]` or `[=DATE2]`. hledger will
 attempt to parse any square-bracketed sequence of the `0123456789/-.=`
 characters in this way. With this syntax, DATE infers its year from
 the transaction and DATE2 infers its year from DATE.
+
+## Status
+
+More about the status field: transactions, or individual postings within a transaction,
+can be in one of three states, represented by a single character:
+
+- empty (no status character) = uncleared
+- `!` = pending (aka "tentatively cleared")
+- `*` = cleared
+
+When reporting, you can filter by status using the `-C/--cleared` and `-U/--uncleared` flags
+or the `status:` query.
+
+This feature is optional, but can be helpful for reconciling with real-world accounts.
+What "uncleared", "pending", and "cleared" actually mean is up to you.
+My recommendation: use cleared (`*`) to mark transactions that are "complete", ie: 
+
+- they have cleared with the bank, or the cash has been handed over
+- you are satisfied they are recorded accurately in the journal
+- the resulting account balance reported by hledger agrees exactly with the external source of truth, if any (eg the bank's online register or statement) 
+
+Then, with --cleared you'll see the current balance at your bank,
+with --uncleared you'll see things which will probably hit your bank soon (eg uncashed checks),
+and with neither flag (the default) you'll see the most up-to-date state of your finances.
+
+I don't use pending (`!`), but perhaps it is useful in very tricky reconciliations,
+as a temporary marker for transactions matched so far, allowing you start over more easily. 
+
+Tip: some [editor modes](#editor-support) highlight entries differently based on their status.
+In Emacs ledger-mode, you can toggle transaction status with `C-c C-e`, or posting status with `C-c C-c`.  
 
 ## Account names
 
