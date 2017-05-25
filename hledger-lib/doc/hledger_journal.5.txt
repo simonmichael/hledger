@@ -184,8 +184,10 @@ FILE FORMAT
 
        This feature is optional, but  can  be  helpful  for  reconciling  with
        real-world  accounts.  What "uncleared", "pending", and "cleared" actu-
-       ally mean is up to you.  My recommendation: use  cleared  (*)  to  mark
-       transactions that are "complete", ie:
+       ally mean is up to you.
+
+       A suggestion: use cleared (*) to mark transactions that are "complete",
+       ie:
 
        o they have cleared with the bank, or the cash has been handed over
 
@@ -202,11 +204,15 @@ FILE FORMAT
 
        I don't use pending (!), but perhaps it is useful in very tricky recon-
        ciliations,  as  a  temporary  marker  for transactions matched so far,
-       allowing you start over more easily.
+       allowing you start  over  more  easily.   Note,  the  --uncleared  flag
+       matches  both  uncleared and pending things ("everything not definitely
+       cleared").  Currently, to match pending things only, use status:!,  and
+       to  match  uncleared  things  only,  not:status:! not:status:* (status:
+       seems buggy).
 
-       Tip: some editor modes highlight entries  differently  based  on  their
-       status.   In  Emacs ledger-mode, you can toggle transaction status with
-       C-c C-e, or posting status with C-c C-c.
+       Some editor modes highlight entries differently based on their  status.
+       In  Emacs  ledger-mode, you can toggle transaction status with C-c C-e,
+       or posting status with C-c C-c.
 
    Account names
        Account names typically have several parts separated by a  full  colon,
@@ -801,7 +807,6 @@ EDITOR SUPPORT
                           lime-Text
        Textmate           https://github.com/ledger/ledger/wiki/Using-Text-
                           Mate-2
-
        Text Wrangler      https://github.com/ledger/ledger/wiki/Edit-
                           ing-Ledger-files-with-TextWrangler
 

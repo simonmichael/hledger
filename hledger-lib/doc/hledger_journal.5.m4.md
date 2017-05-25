@@ -197,7 +197,8 @@ or the `status:` query.
 
 This feature is optional, but can be helpful for reconciling with real-world accounts.
 What "uncleared", "pending", and "cleared" actually mean is up to you.
-My recommendation: use cleared (`*`) to mark transactions that are "complete", ie: 
+
+A suggestion: use cleared (`*`) to mark transactions that are "complete", ie: 
 
 - they have cleared with the bank, or the cash has been handed over
 - you are satisfied they are recorded accurately in the journal
@@ -209,8 +210,11 @@ and with neither flag (the default) you'll see the most up-to-date state of your
 
 I don't use pending (`!`), but perhaps it is useful in very tricky reconciliations,
 as a temporary marker for transactions matched so far, allowing you start over more easily. 
+Note, the --uncleared flag matches both uncleared and pending things ("everything not definitely cleared").
+Currently, to match pending things only, use `status:!`,
+and to match uncleared things only, `not:status:! not:status:*` (`status:` seems buggy). 
 
-Tip: some [editor modes](#editor-support) highlight entries differently based on their status.
+Some [editor modes](#editor-support) highlight entries differently based on their status.
 In Emacs ledger-mode, you can toggle transaction status with `C-c C-e`, or posting status with `C-c C-c`.  
 
 ## Account names

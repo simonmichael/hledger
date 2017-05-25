@@ -229,8 +229,9 @@ When reporting, you can filter by status using the
 This feature is optional, but can be helpful for reconciling with
 real\-world accounts.
 What "uncleared", "pending", and "cleared" actually mean is up to you.
-My recommendation: use cleared (\f[C]*\f[]) to mark transactions that
-are "complete", ie:
+.PP
+A suggestion: use cleared (\f[C]*\f[]) to mark transactions that are
+"complete", ie:
 .IP \[bu] 2
 they have cleared with the bank, or the cash has been handed over
 .IP \[bu] 2
@@ -248,9 +249,13 @@ you\[aq]ll see the most up\-to\-date state of your finances.
 I don\[aq]t use pending (\f[C]!\f[]), but perhaps it is useful in very
 tricky reconciliations, as a temporary marker for transactions matched
 so far, allowing you start over more easily.
+Note, the \-\-uncleared flag matches both uncleared and pending things
+("everything not definitely cleared").
+Currently, to match pending things only, use \f[C]status:!\f[], and to
+match uncleared things only, \f[C]not:status:!\ not:status:*\f[]
+(\f[C]status:\f[] seems buggy).
 .PP
-Tip: some editor modes highlight entries differently based on their
-status.
+Some editor modes highlight entries differently based on their status.
 In Emacs ledger\-mode, you can toggle transaction status with
 \f[C]C\-c\ C\-e\f[], or posting status with \f[C]C\-c\ C\-c\f[].
 .SS Account names
