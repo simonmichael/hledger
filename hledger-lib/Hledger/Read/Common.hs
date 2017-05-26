@@ -371,30 +371,39 @@ signp = do
   return $ case sign of Just '-' -> "-"
                         _        -> ""
 
+multiplierp :: TextParser m Bool
+multiplierp = do
+  multiplier <- optional $ oneOf ("*" :: [Char])
+  return $ case multiplier of Just '*' -> True
+                              _        -> False
+
 leftsymbolamountp :: Monad m => JournalStateParser m Amount
 leftsymbolamountp = do
   sign <- lift signp
+  m <- lift multiplierp
   c <- lift commoditysymbolp
   sp <- lift $ many spacenonewline
   (q,prec,mdec,mgrps) <- lift numberp
   let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   p <- priceamountp
   let applysign = if sign=="-" then negate else id
-  return $ applysign $ Amount c q p s
+  return $ applysign $ Amount c q p s m
   <?> "left-symbol amount"
 
 rightsymbolamountp :: Monad m => JournalStateParser m Amount
 rightsymbolamountp = do
+  m <- lift multiplierp
   (q,prec,mdec,mgrps) <- lift numberp
   sp <- lift $ many spacenonewline
   c <- lift commoditysymbolp
   p <- priceamountp
   let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-  return $ Amount c q p s
+  return $ Amount c q p s m
   <?> "right-symbol amount"
 
 nosymbolamountp :: Monad m => JournalStateParser m Amount
 nosymbolamountp = do
+  m <- lift multiplierp
   (q,prec,mdec,mgrps) <- lift numberp
   p <- priceamountp
   -- apply the most recently seen default commodity and style to this commodityless amount
@@ -402,7 +411,7 @@ nosymbolamountp = do
   let (c,s) = case defcs of
         Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
         Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-  return $ Amount c q p s
+  return $ Amount c q p s m
   <?> "no-symbol amount"
 
 commoditysymbolp :: TextParser m CommoditySymbol

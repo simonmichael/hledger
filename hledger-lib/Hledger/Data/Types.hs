@@ -158,10 +158,11 @@ data Commodity = Commodity {
 instance NFData Commodity
 
 data Amount = Amount {
-      acommodity :: CommoditySymbol,
-      aquantity  :: Quantity,
-      aprice     :: Price,           -- ^ the (fixed) price for this amount, if any
-      astyle     :: AmountStyle
+      acommodity  :: CommoditySymbol,
+      aquantity   :: Quantity,
+      aprice      :: Price,           -- ^ the (fixed) price for this amount, if any
+      astyle      :: AmountStyle,
+      amultiplier :: Bool             -- ^ amount is a multipier for AutoTransactions
     } deriving (Eq,Ord,Typeable,Data,Generic)
 
 instance NFData Amount
