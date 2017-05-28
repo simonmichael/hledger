@@ -68,8 +68,7 @@ usage = unlines
   ,"./Shake --help           # show options, eg --color"
   ]
 
-pandoc = "pandoc"                   -- pandoc from PATH (faster)
-         --  "stack exec -- pandoc" -- pandoc from project's stackage snapshot
+pandoc = "stack exec -- pandoc" -- pandoc from project's stackage snapshot
 hakyllstd = "site/hakyll-std/hakyll-std"
 makeinfo = "makeinfo"
 -- nroff = "nroff"
