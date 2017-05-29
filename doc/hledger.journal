@@ -96,12 +96,12 @@
 
 2017/01/05 (9GD19757FN9481716) gratipay donation
     revenues:donations:gratipay                              $-2
-    expenses:gratipay                                      $0.04
+    expenses:paypal                                        $0.04
     assets:paypal                                          $1.96
 
 2017/01/12 (49P75907GB532830X) gratipay donation
     revenues:donations:gratipay                              $-1
-    expenses:gratipay                                      $0.02
+    expenses:paypal                                        $0.02
     assets:paypal                                          $0.98
 
 2017/1/20 opencollective donation
@@ -111,7 +111,7 @@
 
 2017/01/26 (6NA0448506644053S) gratipay donation
     revenues:donations:gratipay                              $-1
-    expenses:gratipay                                      $0.02
+    expenses:paypal                                        $0.02
     assets:paypal                                          $0.98
 
 2017/2/1 hosting
@@ -120,17 +120,17 @@
 
 2017/02/02 (8H1183726F224080M) gratipay donation
     revenues:donations:gratipay                              $-1
-    expenses:gratipay                                      $0.02
+    expenses:paypal                                        $0.02
     assets:paypal                                          $0.98
 
 2017/02/09 (63370929D6122430T) gratipay donation
     revenues:donations:gratipay                              $-1
-    expenses:gratipay                                      $0.02
+    expenses:paypal                                        $0.02
     assets:paypal                                          $0.98
 
 2017/02/16 (9HS70690W1674413K) gratipay donation
     revenues:donations:gratipay                              $-1
-    expenses:gratipay                                      $0.02
+    expenses:paypal                                        $0.02
     assets:paypal                                          $0.98
 
 2017/2/20 dns
@@ -144,7 +144,7 @@
 
 2017/02/23 (7S782631JC744770V) gratipay donation
     revenues:donations:gratipay                              $-1
-    expenses:gratipay                                      $0.02
+    expenses:paypal                                        $0.02
     assets:paypal                                          $0.98
 
 2017/3/1 hosting
@@ -153,11 +153,11 @@
 
 2017/03/02 (9NV9015472065412K) gratipay donation
     revenues:donations:gratipay                              $-1
-    expenses:gratipay                                      $0.02
+    expenses:paypal                                        $0.02
     assets:paypal                                          $0.98
 
 2017/03/09 (7RH999246B701745P) gratipay donation
     revenues:donations:gratipay                              $-1
-    expenses:gratipay                                      $0.02
+    expenses:paypal                                        $0.02
     assets:paypal                                          $0.98
 
