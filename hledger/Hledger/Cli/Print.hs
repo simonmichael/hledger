@@ -9,7 +9,7 @@ A ledger-compatible @print@ command.
 module Hledger.Cli.Print (
   printmode
  ,print'
- ,entriesReportAsText
+ -- ,entriesReportAsText
  ,originalTransaction
  ,tests_Hledger_Cli_Print
 )
@@ -46,17 +46,6 @@ printmode = (defCommandMode $ ["print"] ++ aliases) {
  }
   where aliases = []
 
-showTransaction' :: CliOpts -> Transaction -> String
-showTransaction' opts
-    | boolopt "explicit" $ rawopts_ opts = showTransactionUnelided
-    | otherwise = showTransactionUnelided . originalTransaction
-
-originalTransaction :: Transaction -> Transaction
-originalTransaction t = t { tpostings = map originalPosting' $ tpostings t } where
-    -- We don't want plain original postings because print wouldn't issue alias
-    -- directives. Thus we are going to print effective account name.
-    originalPosting' p = (originalPosting p) { paccount = paccount p }
-
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()
 print' opts j = do
@@ -71,14 +60,21 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
       fmt = outputFormatFromOpts opts
       (render, ropts') = case fmt of
         "csv" -> ((++"\n") . printCSV . entriesReportAsCsv, ropts{accountlistmode_=ALFlat})
-        _     -> (entriesReportAsText' opts,                ropts)
+        _     -> (entriesReportAsText opts,                 ropts)
   writeOutput opts $ render $ entriesReport ropts' q j
 
-entriesReportAsText :: EntriesReport -> String
-entriesReportAsText items = concatMap showTransactionUnelided items
+entriesReportAsText :: CliOpts -> EntriesReport -> String
+entriesReportAsText opts = concatMap (showTransactionUnelided . gettxn) 
+  where
+    gettxn | boolopt "explicit" $ rawopts_ opts = id                   -- use the fully inferred/explicit txn
+           | otherwise                          = originalTransaction  -- use the original txn (more or less)
 
-entriesReportAsText' :: CliOpts -> EntriesReport -> String
-entriesReportAsText' = concatMap . showTransaction'
+-- Replace this transaction's postings with the original postings if any, but keep the
+-- current possibly rewritten account names.
+originalTransaction t = t { tpostings = map originalPostingPreservingAccount $ tpostings t }
+
+-- Get the original posting if any, but keep the current possibly rewritten account name.
+originalPostingPreservingAccount p = (originalPosting p) { paccount = paccount p }
 
 -- XXX
 -- tests_showTransactions = [

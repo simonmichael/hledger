@@ -96,6 +96,7 @@ posting = nullposting
 post :: AccountName -> Amount -> Posting
 post acct amt = posting {paccount=acct, pamount=Mixed [amt]}
 
+-- Get the original posting, if any.
 originalPosting :: Posting -> Posting
 originalPosting p = fromMaybe p $ porigin p
 
