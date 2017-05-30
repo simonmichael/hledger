@@ -805,6 +805,11 @@ ghci: \
 # 	 	$(call def-help,ghci, start a GHCI REPL and load the hledger-lib and hledger packages)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
 
+ghci-prof: \
+# 	 	$(call def-help,ghci, start a GHCI REPL and load the hledger-lib and hledger packages, with profiling information)
+	stack build --profile hledger --only-dependencies
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli/Main.hs
+
 ghci-dev: \
 # 	 	$(call def-help,ghci, start a GHCI REPL and load the dev.hs script plus hledger-lib and hledger)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
