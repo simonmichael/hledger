@@ -561,11 +561,13 @@ type CurrentBalancesModifier s = R.ReaderT (Env s) (ExceptT String (ST s))
 -- depends on display precision. Reports only the first error encountered.
 journalBalanceTransactions :: Bool -> Journal -> Either String Journal
 journalBalanceTransactions assrt j =
-  runST $ journalBalanceTransactionsST assrt (journalNumberTransactions j)
-  (newArray_ (1, genericLength $ jtxns j)
-   :: forall s. ST s (STArray s Integer Transaction))
-  (\arr tx -> writeArray arr (tindex tx) tx)
-  $ fmap (\txns -> j{ jtxns = txns}) . getElems
+  runST $ 
+    journalBalanceTransactionsST 
+      assrt -- check balance assertions also ?
+      (journalNumberTransactions j) -- journal to process
+      (newArray_ (1, genericLength $ jtxns j) :: forall s. ST s (STArray s Integer Transaction)) -- initialise state
+      (\arr tx -> writeArray arr (tindex tx) tx)    -- update state
+      (fmap (\txns -> j{ jtxns = txns}) . getElems) -- summarise state
 
 
 -- | Generalization used in the definition of
