@@ -430,7 +430,7 @@ $ hledger balance assets
 
 ### balance shows the sum of matched posting amounts
 
-Here's a balance report based only on the postings dated 2013/2/13:
+Here's a balance report based only on the postings dated 2015/5/26:
 ```shell
 $ hledger balance date:2015/5/26
                  $-5  assets
@@ -439,10 +439,10 @@ $ hledger balance date:2015/5/26
                    0
 ```
 
-As you can see from this, `balance` does not always report the current
-real-world account balance, rather it shows the sum of the postings
-you have selected.
-If you're not sure what those are, run a `register` report with the same arguments to see them:
+As you can see from this, `balance` does not necessarily report
+real-world account balances; rather, it shows the sum of the postings
+you have selected.  If you're not sure what those are, run a
+`register` report with the same arguments to see them:
 
 ```shell
 $ hledger register date:2015/5/26
@@ -693,3 +693,5 @@ purchase is where money moves from an asset account to an expense
 account.  Eg, buying food.
 
 -->
+
+<!-- TODO make date-independent -->
