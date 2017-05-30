@@ -49,6 +49,80 @@
 >>>2
 >>>=0
 
+# Add postings in another commodity
+../../bin/hledger-rewrite -f-
+<<<
+2017/04/24 * 09:00-09:25
+    (assets:unbilled:client1)         0.42h
+
+2017/04/25 * 10:00-11:15
+    (assets:unbilled:client1)         1.25h
+
+2017/04/25 * 14:00-15:32
+    (assets:unbilled:client2)         1.54h
+
+; billing rules
+= ^assets:unbilled:client1
+  (assets:to bill:client1)   *100.00 CAD
+
+= ^assets:unbilled:client2
+  (assets:to bill:client2)   *150.00 CAD
+>>>
+2017/04/24 * 09:00-09:25
+    (assets:unbilled:client1)         0.42h
+    (assets:to bill:client1)     42.00 CAD
+
+2017/04/25 * 10:00-11:15
+    (assets:unbilled:client1)         1.25h
+    (assets:to bill:client1)    125.00 CAD
+
+2017/04/25 * 14:00-15:32
+    (assets:unbilled:client2)         1.54h
+    (assets:to bill:client2)    231.00 CAD
+
+>>>2
+>>>=0
+
+
+# Add postings with prices
+../../bin/hledger-rewrite -f- -B
+<<<
+2017/04/24 * 09:00-09:25
+    (assets:unbilled:client1)         0.42h
+
+2017/04/25 * 10:00-11:15
+    (assets:unbilled:client1)         1.25h
+
+2017/04/25 * 14:00-15:32
+    (assets:unbilled:client2)         1.54h
+
+; billing rules
+= ^assets:unbilled:client1
+  assets:to bill:client1   *1.00 hours @ $100.00
+  income:consulting:client1
+
+= ^assets:unbilled:client2
+  assets:to bill:client2   *1.00 hours @ $150.00
+  income:consulting:client2
+>>>
+2017/04/24 * 09:00-09:25
+    (assets:unbilled:client1)         0.42h
+    assets:to bill:client1           $42.00
+    income:consulting:client1
+
+2017/04/25 * 10:00-11:15
+    (assets:unbilled:client1)         1.25h
+    assets:to bill:client1          $125.00
+    income:consulting:client1
+
+2017/04/25 * 14:00-15:32
+    (assets:unbilled:client2)         1.54h
+    assets:to bill:client2          $231.00
+    income:consulting:client2
+
+>>>2
+>>>=0
+
 # Add absolute bank processing fee
 ../../bin/hledger-rewrite -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
 <<<

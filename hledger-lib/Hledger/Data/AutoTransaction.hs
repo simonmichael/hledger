@@ -55,7 +55,7 @@ import Hledger.Query
 --     ping         $1.00
 -- <BLANKLINE>
 -- <BLANKLINE>
--- >>> runModifierTransaction Any (ModifierTransaction "ping" ["pong" `post` amount{acommodity="*", aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
+-- >>> runModifierTransaction Any (ModifierTransaction "ping" ["pong" `post` amount{amultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
 -- 0000/01/01
 --     ping         $2.00
 --     pong         $6.00
@@ -107,7 +107,7 @@ tdates t = tdate t : concatMap pdates (tpostings t) ++ maybeToList (tdate2 t) wh
 postingScale :: Posting -> Maybe Quantity
 postingScale p =
     case amounts $ pamount p of
-        [a] | acommodity a == "*" -> Just $ aquantity a
+        [a] | amultiplier a -> Just $ aquantity a
         _ -> Nothing
 
 runModifierPosting :: Posting -> (Posting -> Posting)
@@ -117,10 +117,12 @@ runModifierPosting p' = modifier where
         , pdate2 = pdate2 p
         , pamount = amount' p
         }
-    amount' =
-        case postingScale p' of
-            Nothing -> const $ pamount p'
-            Just n -> \p -> pamount p `divideMixedAmount` (1/n)
+    amount' = case postingScale p' of
+        Nothing -> const $ pamount p'
+        Just n -> \p -> withAmountType (head $ amounts $ pamount p') $ pamount p `divideMixedAmount` (1/n)
+    withAmountType amount (Mixed as) = case acommodity amount of
+        "" -> Mixed as
+        c -> Mixed [a{acommodity = c, astyle = astyle amount, aprice = aprice amount} | a <- as]
 
 renderPostingCommentDates :: Posting -> Posting
 renderPostingCommentDates p = p { pcomment = comment' }

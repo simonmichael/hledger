@@ -60,12 +60,15 @@ More:
 $ hledger rewrite -- [QUERY]        --add-posting "ACCT  AMTEXPR" ...
 $ hledger rewrite -- ^income        --add-posting '(liabilities:tax)  *.33'
 $ hledger rewrite -- expenses:gifts --add-posting '(budget:gifts)  *-1"'
+$ hledger rewrite -- ^income        --add-posting '(budget:foreign currency)  *0.25 JPY; diversify'
 ```
 
 Argument for `--add-posting` option is a usual posting of transaction with an
-exception for amount specification. More precisely you can use `'*'` (star
-symbol) in place of currency to indicate that that this is a factor for an
-amount of original matched posting.
+exception for amount specification. More precisely, you can use `'*'` (star
+symbol) before the amount to indicate that that this is a factor for an
+amount of original matched posting.  If the amount includes a commodity name,
+the new posting amount will be in the new commodity; otherwise, it will be in
+the matched posting amount's commodity.
 
 #### Re-write rules in a file
 
