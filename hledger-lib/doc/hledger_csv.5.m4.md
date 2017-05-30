@@ -168,7 +168,7 @@ If the CSV has the currency in a separate field, assign that to the `currency` p
 (Or you can do the same thing with a field assignment.)
 
 If the CSV includes a running balance, you can assign that to the `balance` pseudo field 
-to generate a [balance assertion](/journal.html#balance-assertoins) on `account1` 
+to generate a [balance assertion](/journal.html#balance-assertions) on `account1` 
 whenever the balance field is non-empty.
 (Eg to double-check your bank's balance calculation.)
 
