@@ -516,7 +516,7 @@ Get help:
  help|man|info        show any of the hledger manuals in text/info/man format
                       see also -h, CMD -h, --help|--man|--info
 *** d
-Get help: (see also -h, CMD -h, --help|---man|--info)
+Get help: (see also -h, CMD -h, --help|--man|--info)
  help|man|info        show any of the hledger manuals in text/info/man format
 
 ** hledger (commands list)
