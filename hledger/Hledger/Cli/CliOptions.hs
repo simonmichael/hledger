@@ -139,14 +139,15 @@ reportflags = [
  ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set start date, end date, and/or report interval all at once (overrides the flags above)"
  ,flagNone ["date2"]         (setboolopt "date2") "show, and make -b/-e/-p/date: match, secondary dates instead"
 
- ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only cleared postings/txns"
- ,flagNone ["pending"]       (setboolopt "pending") "include only pending postings/txns"
- ,flagNone ["uncleared","U"] (setboolopt "uncleared") "include only uncleared (and pending) postings/txns"
- ,flagNone ["real","R"]      (setboolopt "real") "include only non-virtual postings"
- ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/postings deeper than N"
- ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden"
- ,flagNone ["cost","B"]      (setboolopt "cost") "convert amounts to their cost at transaction time (using the transaction price, if any)"
- ,flagNone ["value","V"]     (setboolopt "value") "convert amounts to their market value on the report end date (using the most recent applicable market price, if any)"
+ ,flagNone ["cleared","C"]     (setboolopt "cleared") "include only cleared postings/txns"
+ ,flagNone ["pending"]         (setboolopt "pending") "include only pending postings/txns"
+ ,flagNone ["uncleared","U"]   (setboolopt "uncleared") "include only uncleared (and pending) postings/txns"
+ ,flagNone ["not-pending","X"] (setboolopt "notpending") "include only non-pending postings/txns"
+ ,flagNone ["real","R"]        (setboolopt "real") "include only non-virtual postings"
+ ,flagReq  ["depth"]           (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/postings deeper than N"
+ ,flagNone ["empty","E"]       (setboolopt "empty") "show items with zero amount, normally hidden"
+ ,flagNone ["cost","B"]        (setboolopt "cost") "convert amounts to their cost at transaction time (using the transaction price, if any)"
+ ,flagNone ["value","V"]       (setboolopt "value") "convert amounts to their market value on the report end date (using the most recent applicable market price, if any)"
  ]
 
 -- | Common output-related flags: --output-file, --output-format...

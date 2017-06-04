@@ -112,7 +112,10 @@ the data.
      include only pending postings/txns
 '-U --uncleared'
 
-     include only uncleared (and pending) postings/txns
+     include only non-cleared postings/txns
+'-X --not-pending'
+
+     include only non-pending postings/txns
 '-R --real'
 
      include only non-virtual postings
@@ -261,8 +264,10 @@ before the report start date, so they show the change in balance during
 the report period.  They are more useful eg when viewing a time log.
 
    'C' toggles cleared mode, in which uncleared transactions and
-postings are not shown.  'U' toggles uncleared mode, in which only
-uncleared transactions/postings are shown.
+postings are not shown.  'U' toggles uncleared mode, in which only uncleared
+transactions/postings are shown.  'P' toggles pending mode, in which only
+pending transactions/postings are shown.  'X' toggles non-pending mode, in
+which only non-pending transactions/postings are shown.
 
    'R' toggles real mode, in which virtual postings are ignored.
 
@@ -305,8 +310,10 @@ responsible for the period balance shown on the accounts screen.  As on
 the accounts screen, this can be toggled with 'F'.
 
    'C' toggles cleared mode, in which uncleared transactions and
-postings are not shown.  'U' toggles uncleared mode, in which only
-uncleared transactions/postings are shown.
+postings are not shown.  'U' toggles uncleared mode, in which only uncleared
+transactions/postings are shown.  'P' toggles pending mode, in which only
+pending transactions/postings are shown.  'X' toggles non-pending mode, in
+which only non-pending transactions/postings are shown.
 
    'R' toggles real mode, in which virtual postings are ignored.
 
@@ -357,17 +364,17 @@ Tag Table:
 Node: Top73
 Node: OPTIONS825
 Ref: #options924
-Node: KEYS3650
-Ref: #keys3747
-Node: SCREENS6335
-Ref: #screens6422
-Node: Accounts screen6512
-Ref: #accounts-screen6642
-Node: Register screen8691
-Ref: #register-screen8848
-Node: Transaction screen10737
-Ref: #transaction-screen10897
-Node: Error screen11767
-Ref: #error-screen11891
+Node: KEYS3702
+Ref: #keys3799
+Node: SCREENS6387
+Ref: #screens6474
+Node: Accounts screen6564
+Ref: #accounts-screen6694
+Node: Register screen8743
+Ref: #register-screen8900
+Node: Transaction screen10789
+Ref: #transaction-screen10949
+Node: Error screen11819
+Ref: #error-screen11943
 
 End Tag Table

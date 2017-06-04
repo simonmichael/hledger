@@ -169,12 +169,12 @@ parserErrorAt pos s = throwError $ sourcePosPretty pos ++ ":\n" ++ s
 --- * parsers
 --- ** transaction bits
 
-statusp :: TextParser m ClearedStatus
+statusp :: TextParser m (Maybe ClearedStatus)
 statusp =
   choice'
-    [ many spacenonewline >> char '*' >> return Cleared
-    , many spacenonewline >> char '!' >> return Pending
-    , return Uncleared
+    [ many spacenonewline >> char '*' >> return (Just Cleared)
+    , many spacenonewline >> char '!' >> return (Just Pending)
+    , return Nothing
     ]
     <?> "cleared status"
 

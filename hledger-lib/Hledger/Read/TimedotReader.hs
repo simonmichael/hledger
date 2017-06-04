@@ -114,7 +114,7 @@ timedotentryp = do
          (try followingcommentp <|> (newline >> return "")))
   let t = nulltransaction{
         tsourcepos = pos,
-        tstatus    = Cleared,
+        tstatus    = Just Cleared,
         tpostings  = [
           nullposting{paccount=a
                      ,pamount=Mixed [setAmountPrecision 2 $ num hours]  -- don't assume hours; do set precision to 2

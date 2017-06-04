@@ -53,7 +53,7 @@ Here\[aq]s an example:
 \ \ \ \ expenses:supplies\ \ \ \ \ $1\ \ \ \ ;\ <\-\ this\ transaction\ debits\ two\ expense\ accounts
 \ \ \ \ assets:cash\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;\ <\-\ $\-2\ inferred
 
-2008/12/31\ *\ pay\ off\ \ \ \ \ \ \ \ \ \ \ \ ;\ <\-\ an\ optional\ *\ or\ !\ after\ the\ date\ means\ "cleared"\ (or\ anything\ you\ want)
+2008/12/31\ *\ pay\ off\ \ \ \ \ \ \ \ \ \ \ \ ;\ <\-\ an\ optional\ *\ or\ !\ after\ the\ date\ means\ "cleared"\ or\ "pending"
 \ \ \ \ liabilities:debts\ \ \ \ \ $1
 \ \ \ \ assets:bank:checking
 \f[]
@@ -67,7 +67,8 @@ Each transaction is represented by a journal entry beginning with a
 simple date in column 0.
 This can be followed by any of the following, separated by spaces:
 .IP \[bu] 2
-(optional) a status character (empty, \f[C]!\f[], or \f[C]*\f[])
+(optional) a status character, \f[C]!\f[] or \f[C]*\f[], meaning
+"pending" or "cleared"
 .IP \[bu] 2
 (optional) a transaction code (any short number or text, eg a check
 number)
@@ -216,19 +217,20 @@ More about the status field: transactions, or individual postings within
 a transaction, can be in one of three states, represented by a single
 character:
 .IP \[bu] 2
-empty (no status character) = uncleared
+empty (no status character) = no explicit status
 .IP \[bu] 2
 \f[C]!\f[] = pending (aka "tentatively cleared")
 .IP \[bu] 2
 \f[C]*\f[] = cleared
 .PP
 When reporting, you can filter by status using the
-\f[C]\-C/\-\-cleared\f[] and \f[C]\-U/\-\-uncleared\f[] flags or the
+\f[C]\-C/\-\-cleared\f[], \f[C]\-\-pending\f[],
+\f[C]\-U/\-\-uncleared\f[], and \f[C]\-\-not\-pending\f[] flags, or the
 \f[C]status:\f[] query.
 .PP
 This feature is optional, but can be helpful for reconciling with
 real\-world accounts.
-What "uncleared", "pending", and "cleared" actually mean is up to you.
+What "pending" and "cleared" actually mean is up to you.
 .PP
 A suggestion: use cleared (\f[C]*\f[]) to mark transactions that are
 "complete", ie:
@@ -249,11 +251,14 @@ you\[aq]ll see the most up\-to\-date state of your finances.
 I don\[aq]t use pending (\f[C]!\f[]), but perhaps it is useful in very
 tricky reconciliations, as a temporary marker for transactions matched
 so far, allowing you start over more easily.
-Note, the \-\-uncleared flag matches both uncleared and pending things
-("everything not definitely cleared").
-Currently, to match pending things only, use \f[C]status:!\f[], and to
-match uncleared things only, \f[C]not:status:!\ not:status:*\f[]
-(\f[C]status:\f[] seems buggy).
+Another use is to flag transactions that need to be revisted such as
+those related to receivables or payables.
+.PP
+Note, the \-\-uncleared flag matches both pending things and those with
+no status ("everything not definitely cleared"), and \-\-not\-pending
+matches both cleared things and those with no status ("everything
+definitely not pending").
+To match things with no status only, use \f[C]status:\f[].
 .PP
 Some editor modes highlight entries differently based on their status.
 In Emacs ledger\-mode, you can toggle transaction status with

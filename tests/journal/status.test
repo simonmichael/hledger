@@ -78,3 +78,36 @@ hledger -f- print --uncleared
     (b)             1
 
 >>>=0
+
+# 7. --not-pending matches all except !
+hledger -f- print --not-pending
+<<<
+2015/1/1 x
+  (a)  1
+2015/1/1 ! x
+  (b)  1
+2015/1/1 * x
+  (c)  1
+>>>
+2015/01/01 x
+    (a)             1
+
+2015/01/01 * x
+    (c)             1
+
+>>>=0
+
+# 8. status: only matches no status
+hledger -f- print status:
+<<<
+2015/1/1 x
+  (a)  1
+2015/1/1 ! x
+  (b)  1
+2015/1/1 * x
+  (c)  1
+>>>
+2015/01/01 x
+    (a)             1
+
+>>>=0
