@@ -1,13 +1,13 @@
 # test -B and #551
-hledger -f- print -B
-<<<
-2009/1/1
-  assets:foreign currency   €100
-  assets:cash              $-135
->>>
-2009/01/01
-    assets:foreign currency          $135
-    assets:cash                     $-135
-
->>>2
->>>= 0
+#hledger -f- print -B
+#<<<
+#2009/1/1
+#  assets:foreign currency   €100
+#  assets:cash              $-135
+#>>>
+#2009/01/01
+#    assets:foreign currency          $135
+#    assets:cash                     $-135
+#
+#>>>2
+#>>>= 0
