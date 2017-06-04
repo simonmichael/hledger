@@ -10,18 +10,19 @@
 {-# LANGUAGE QuasiQuotes #-}
 
 import Data.Maybe
+import Data.List
 import Data.String.Here
 import Data.Time
 import qualified Data.Text as T
-import Control.Monad (when)
 import Hledger.Cli
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
   [here| prices
-Print all prices from the journal.
+Print all market prices from the journal.
   |]
-  [flagNone ["costs"] (setboolopt "costs") "print transaction prices from postings instead of market prices"]
+  [flagNone ["costs"] (setboolopt "costs") "print transaction prices from postings"
+  ,flagNone ["inverted-costs"] (setboolopt "inverted-costs") "print transaction inverted prices from postings also"]
   [generalflagsgroup1]
   []
   ([], Nothing)
@@ -37,6 +38,18 @@ divideAmount' a d = a' where
     extPrecision = (1+) . floor . logBase 10 $ (realToFrac d :: Double)
     precision' = extPrecision + asprecision (astyle a)
 
+invertPrice :: Amount -> Amount
+invertPrice a =
+    case aprice a of
+        NoPrice -> a
+        UnitPrice pa -> invertPrice
+            -- normalize to TotalPrice
+            a { aprice = TotalPrice pa' } where
+                pa' = (pa `divideAmount` (1 / aquantity a)) { aprice = NoPrice }
+        TotalPrice pa ->
+            a { aquantity = aquantity pa * signum (aquantity a), acommodity = acommodity pa, aprice = TotalPrice pa' } where
+                pa' = pa { aquantity = abs $ aquantity a, acommodity = acommodity a, aprice = NoPrice, astyle = astyle a }
+
 amountCost :: Day -> Amount -> Maybe MarketPrice
 amountCost d a =
     case aprice a of
@@ -50,14 +63,27 @@ postingCosts :: Posting -> [MarketPrice]
 postingCosts p = mapMaybe (amountCost date) . amounts $ pamount p  where
    date = fromMaybe (tdate . fromJust $ ptransaction p) $ pdate p
 
-allPostsings :: Journal -> [Posting]
-allPostsings = concatMap tpostings . jtxns
+allPostings :: Journal -> [Posting]
+allPostings = concatMap tpostings . jtxns
+
+mapAmount :: (Amount -> Amount) -> [Posting] -> [Posting]
+mapAmount f = map pf where
+    pf p = p { pamount = mf (pamount p) }
+    mf = mixed . map f . amounts
 
 main :: IO ()
 main = do
     opts <- getHledgerCliOpts cmdmode
     withJournalDo opts{ ignore_assertions_ = True } $ \_ j -> do
-        let cprices = concatMap postingCosts . allPostsings $ j
+        let cprices = concatMap postingCosts . allPostings $ j
+            icprices = concatMap postingCosts . mapAmount invertPrice . allPostings $ j
             printPrices = mapM_ (putStrLn . showPrice)
-        when (boolopt "costs" $ rawopts_ opts) $ printPrices cprices
-        printPrices $ jmarketprices j
+            forBoolOpt opt | boolopt opt $ rawopts_ opts = id
+                           | otherwise = const []
+            allPrices = sortOn mpdate . concat $
+                [ jmarketprices j
+                , forBoolOpt "costs" cprices
+                , forBoolOpt "inverted-costs" icprices
+                ]
+
+        printPrices allPrices
