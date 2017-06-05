@@ -168,6 +168,16 @@ balanceviewReport BalanceView{..} CliOpts{command_=cmd, reportopts_=ropts, rawop
         PeriodChange      -> "(Balance Changes)"
         CumulativeChange  -> "(Cumulative Ending Balances)"
         HistoricalBalance -> "(Historical Ending Balances)"
-    ropts' = ropts { balancetype_ = balancetype }
+    ropts' = treeIfNotPeriod $ ropts { balancetype_ = balancetype }
+        -- For --historical/--cumulative, we must use multiBalanceReport.
+        -- (This forces --no-elide.)
+        -- These settings format the output in a way that we can convert to
+        -- a normal balance report using singleBalanceReport.  See
+        -- Balance.hs for more information.
+    treeIfNotPeriod
+      | flat_ ropts = id
+      | otherwise   = case balancetype of
+          PeriodChange -> id
+          _            -> \o -> o { accountlistmode_ = ALTree }
     merging (Table hLeft hTop dat) (Table hLeft' _ dat') =
         Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
