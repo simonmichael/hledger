@@ -8,7 +8,7 @@ hledger -f - print
     assets
 >>>
 2017/01/01
-    expenses            $5
+    expenses              $5
     assets
 
 >>>2
@@ -22,8 +22,8 @@ hledger -f - print --explicit
     assets
 >>>
 2017/01/01
-    expenses            $5
-    assets             $-5
+    expenses              $5
+    assets               $-5
 
 >>>2
 >>>=0
@@ -36,8 +36,8 @@ hledger -f - print
     assets  $-5
 >>>
 2017/01/01
-    expenses         4 EUR
-    assets             $-5
+    expenses           4 EUR
+    assets               $-5
 
 >>>2
 >>>=0
@@ -50,8 +50,8 @@ hledger -f - print --explicit
     assets  $-5
 >>>
 2017/01/01
-    expenses   4 EUR @@ $5
-    assets             $-5
+    expenses     4 EUR @@ $5
+    assets               $-5
 
 >>>2
 >>>=0
@@ -64,7 +64,7 @@ hledger -f - print
     equity
 >>>
 2017/01/01
-    assets   = $100
+    assets     = $100
     equity
 
 >>>2
@@ -78,8 +78,8 @@ hledger -f - print --explicit
     equity
 >>>
 2017/01/01
-    assets          $100 = $100
-    equity         $-100
+    assets            $100 = $100
+    equity           $-100
 
 >>>2
 >>>=0
@@ -93,7 +93,7 @@ D 1000.00 EUR
     assets
 >>>
 2017/01/01
-    expenses    100.00 EUR
+    expenses      100.00 EUR
     assets
 
 >>>2
@@ -107,8 +107,8 @@ hledger -f - print --explicit
     equity
 >>>
 2017/01/01
-    assets             0
-    equity             0
+    assets               0
+    equity               0
 
 >>>2
 >>>=0

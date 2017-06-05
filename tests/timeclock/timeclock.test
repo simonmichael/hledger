@@ -10,13 +10,13 @@ i 2009/1/3 08:00:00 some:account name  and a description
 o 2009/1/3 09:00:00
 >>>
 2009/01/01 * 08:00-09:00
-    ()         1.00h
+    ()           1.00h
 
 2009/01/02 * 08:00-09:00
-    (account name)         1.00h
+    (account name)           1.00h
 
 2009/01/03 * and a description
-    (some:account name)         1.00h
+    (some:account name)           1.00h
 
 >>>2
 >>>= 0

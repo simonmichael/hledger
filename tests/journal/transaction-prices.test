@@ -7,8 +7,8 @@ hledger -f- print --explicit
     assets
 >>>
 2011/01/01
-    expenses:foreign currency  €100 @ $1.35
-    assets                         $-135.00
+    expenses:foreign currency    €100 @ $1.35
+    assets                           $-135.00
 
 >>>=0
 
@@ -20,8 +20,8 @@ hledger -f- print --explicit --cost
     assets
 >>>
 2011/01/01
-    expenses:foreign currency       $135.00
-    assets                         $-135.00
+    expenses:foreign currency         $135.00
+    assets                           $-135.00
 
 >>>=0
 
@@ -33,8 +33,8 @@ hledger -f - print --explicit
     assets
 >>>
 2011/01/01
-    expenses:foreign currency  €100 @@ $135
-    assets                            $-135
+    expenses:foreign currency    €100 @@ $135
+    assets                              $-135
 
 >>>=0
 
@@ -51,12 +51,12 @@ hledger -f - print --explicit
     misc                             $-2.1
 >>>
 2011/01/01
-    expenses:foreign currency  €100 @ $1.35
-    misc                              $2.10
-    assets                         $-135.00
-    misc                         €1 @ $1.35
-    misc                        €-1 @ $1.35
-    misc                             $-2.10
+    expenses:foreign currency    €100 @ $1.35
+    misc                                $2.10
+    assets                           $-135.00
+    misc                           €1 @ $1.35
+    misc                          €-1 @ $1.35
+    misc                               $-2.10
 
 >>>=0
 
@@ -68,8 +68,8 @@ hledger -f - print --explicit
     a35e82730cf91569c302b313780e5895f75a62b9   $-17,783.72
 >>>
 2002/09/30 * 1a1a6305d06ce4b284dba0d267c23f69d70c20be
-    c56a21d23a6535184e7152ee138c28974f14280c  866.231000 GGGGG @@ $17,783.72
-    a35e82730cf91569c302b313780e5895f75a62b9                     $-17,783.72
+    c56a21d23a6535184e7152ee138c28974f14280c    866.231000 GGGGG @@ $17,783.72
+    a35e82730cf91569c302b313780e5895f75a62b9                       $-17,783.72
 
 >>>=0
 
@@ -77,9 +77,9 @@ hledger -f - print --explicit
 hledger -f - print
 <<<
 2011/01/01
-    expenses:foreign currency       €100
-    assets                         $-135
-    expenses:other                  £200
+    expenses:foreign currency         €100
+    assets                           $-135
+    expenses:other                    £200
 >>>= !0
 
 # 7. another

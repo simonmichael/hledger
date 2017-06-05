@@ -8,10 +8,10 @@ hledger -f - print --explicit
     c           ; a euro and a dollar
 >>>
 2010/01/01
-    a         EUR 1    ; a euro
-    b         USD 1    ; a dollar
-    c        EUR -1    ; a euro and a dollar
-    c        USD -1    ; a euro and a dollar
+    a           EUR 1    ; a euro
+    b           USD 1    ; a dollar
+    c          EUR -1    ; a euro and a dollar
+    c          USD -1    ; a euro and a dollar
 
 >>>=0
 
@@ -54,8 +54,8 @@ hledger -f- print --explicit --empty
   b
 >>>
 2010/03/01 x
-    a      0 @ 3EUR
-    b             0
+    a        0 @ 3EUR
+    b               0
 
 >>>=0
 

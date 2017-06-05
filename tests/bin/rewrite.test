@@ -13,14 +13,14 @@
     assets:bank
 >>>
 2016/01/01 paycheck
-    income:remuneration         $-100
-    income:donations             $-15
+    income:remuneration           $-100
+    income:donations               $-15
     assets:bank
-    (liabilities:tax)            $-33    ; income tax
-    (liabilities:tax)             $-5    ; income tax
+    (liabilities:tax)              $-33    ; income tax
+    (liabilities:tax)               $-5    ; income tax
 
 2016/01/01 withdraw
-    assets:cash           $20
+    assets:cash             $20
     assets:bank
 
 >>>2
@@ -38,13 +38,13 @@
     expenses:gifts  ; [1/2]
 >>>
 2016/01/01 withdraw
-    assets:cash           $20
+    assets:cash             $20
     assets:bank
 
 2016/01/01 gift
-    assets:cash             $-15
-    expenses:gifts      ; [1/2]
-    (budget:gifts)          $-15    ; [2016/01/02]
+    assets:cash               $-15
+    expenses:gifts        ; [1/2]
+    (budget:gifts)            $-15    ; [2016/01/02]
 
 >>>2
 >>>=0
@@ -53,13 +53,13 @@
 ../../bin/hledger-rewrite -f-
 <<<
 2017/04/24 * 09:00-09:25
-    (assets:unbilled:client1)         0.42h
+    (assets:unbilled:client1)           0.42h
 
 2017/04/25 * 10:00-11:15
-    (assets:unbilled:client1)         1.25h
+    (assets:unbilled:client1)           1.25h
 
 2017/04/25 * 14:00-15:32
-    (assets:unbilled:client2)         1.54h
+    (assets:unbilled:client2)           1.54h
 
 ; billing rules
 = ^assets:unbilled:client1
@@ -69,16 +69,16 @@
   (assets:to bill:client2)   *150.00 CAD
 >>>
 2017/04/24 * 09:00-09:25
-    (assets:unbilled:client1)         0.42h
-    (assets:to bill:client1)      42.00 CAD
+    (assets:unbilled:client1)           0.42h
+    (assets:to bill:client1)        42.00 CAD
 
 2017/04/25 * 10:00-11:15
-    (assets:unbilled:client1)         1.25h
-    (assets:to bill:client1)     125.00 CAD
+    (assets:unbilled:client1)           1.25h
+    (assets:to bill:client1)       125.00 CAD
 
 2017/04/25 * 14:00-15:32
-    (assets:unbilled:client2)         1.54h
-    (assets:to bill:client2)     231.00 CAD
+    (assets:unbilled:client2)           1.54h
+    (assets:to bill:client2)       231.00 CAD
 
 >>>2
 >>>=0
@@ -106,18 +106,18 @@
   income:consulting:client2
 >>>
 2017/04/24 * 09:00-09:25
-    (assets:unbilled:client1)         0.42h
-    assets:to bill:client1           $42.00
+    (assets:unbilled:client1)           0.42h
+    assets:to bill:client1             $42.00
     income:consulting:client1
 
 2017/04/25 * 10:00-11:15
-    (assets:unbilled:client1)         1.25h
-    assets:to bill:client1          $125.00
+    (assets:unbilled:client1)           1.25h
+    assets:to bill:client1            $125.00
     income:consulting:client1
 
 2017/04/25 * 14:00-15:32
-    (assets:unbilled:client2)         1.54h
-    assets:to bill:client2          $231.00
+    (assets:unbilled:client2)           1.54h
+    assets:to bill:client2            $231.00
     income:consulting:client2
 
 >>>2
@@ -140,16 +140,16 @@
 #     assets:bank
 >>>
 2016/01/01 withdraw
-    assets:cash            $20
+    assets:cash              $20
     assets:bank
-    expenses:fee            $5
-    assets:bank            $-5
+    expenses:fee              $5
+    assets:bank              $-5
 
 2016/01/02 withdraw
     assets:cash
-    assets:bank           $-30
-    expenses:fee            $5
-    assets:bank            $-5
+    assets:bank             $-30
+    expenses:fee              $5
+    assets:bank              $-5
 
 >>>2
 >>>=0
@@ -189,62 +189,62 @@
     (budget:misc)  *-1
 >>>
 2016/12/31
-    expenses:housing       $600.00
+    expenses:housing         $600.00
     assets:cash
 
 2017/01/01
-    expenses:food           $20.00
-    expenses:leisure        $15.00
-    expenses:grocery        $30.00
+    expenses:food             $20.00
+    expenses:leisure          $15.00
+    expenses:grocery          $30.00
     assets:cash
-    Here comes Santa             0
-    Here comes Santa             0
-    Here comes Santa             0
-    Here comes Santa             0
-    (budget:food)          $-20.00
-    (budget:food)          $-30.00
-    (budget:misc)          $-15.00
+    Here comes Santa               0
+    Here comes Santa               0
+    Here comes Santa               0
+    Here comes Santa               0
+    (budget:food)            $-20.00
+    (budget:food)            $-30.00
+    (budget:misc)            $-15.00
 
 2017/01/02
-    assets:cash            $200.00
+    assets:cash              $200.00
     assets:bank
-    Here comes Santa             0
-    Here comes Santa             0
-    assets:bank             $-1.60
-    expenses:fee             $1.60    ; cash withdraw fee
-    (budget:misc)           $-1.60
+    Here comes Santa               0
+    Here comes Santa               0
+    assets:bank               $-1.60
+    expenses:fee               $1.60    ; cash withdraw fee
+    (budget:misc)             $-1.60
 
 2017/02/01
-    assets:cash       $100.00
+    assets:cash         $100.00
     assets:bank
 
 >>>2
 >>>=0
 
 # Rewrite using diff output
-../../bin/hledger-rewrite --diff -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
+../../bin/hledger-rewrite.hs --diff -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
 <<<
 2016/01/01 withdraw
-    assets:cash            $20
+    assets:cash              $20
     assets:bank
 
 2016/01/02 withdraw
     assets:cash
-    assets:bank           $-30
+    assets:bank             $-30
 >>>
 --- -
 +++ -
 @@ -1,3 +1,5 @@
  2016/01/01 withdraw
-     assets:cash            $20
+     assets:cash              $20
      assets:bank
-+    expenses:fee            $5
-+    assets:bank            $-5
++    expenses:fee              $5
++    assets:bank              $-5
 @@ -5,3 +7,5 @@
  2016/01/02 withdraw
      assets:cash
-     assets:bank           $-30
-+    expenses:fee            $5
-+    assets:bank            $-5
+     assets:bank             $-30
++    expenses:fee              $5
++    assets:bank              $-5
 >>>2
 >>>=0

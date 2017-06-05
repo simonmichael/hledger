@@ -6,8 +6,8 @@ hledger -f - print
   c
 >>>
 2009/01/01 x
-    a                   2
-    b (b) b            -1
+    a                     2
+    b (b) b              -1
     c
 
 >>>=0

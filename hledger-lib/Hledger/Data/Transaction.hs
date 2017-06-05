@@ -216,8 +216,8 @@ postingAsLines elideamount onelineamounts ps p = concat [
     assertion = maybe "" ((" = " ++) . showAmountWithZeroCommodity) $ pbalanceassertion p
     statusandaccount = indent $ fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
         where
-          -- pad to the maximum account name width, to keep amounts aligned  
-          minwidth = maximum $ map (textWidth . T.pack . pacctstr) ps
+          -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned  
+          minwidth = maximum $ map ((2+) . textWidth . T.pack . pacctstr) ps
           pstatusandacct p' = pstatusprefix p' ++ pacctstr p'
           pstatusprefix p' | null s    = ""
                            | otherwise = s ++ " "

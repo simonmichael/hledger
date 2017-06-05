@@ -16,11 +16,11 @@ hledger -f- print --cleared
   b
 >>>
 2010/01/02 * x
-    a             1
+    a               1
     b
 
 2010/01/03 *
-    a             1
+    a               1
     b
 
 >>>=0
@@ -41,7 +41,7 @@ hledger -f- print --uncleared
   b
 >>>
 2010/01/01 x
-    a             1
+    a               1
     b
 
 >>>=0

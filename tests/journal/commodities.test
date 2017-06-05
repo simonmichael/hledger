@@ -15,8 +15,8 @@ hledger -f- print --explicit
    b
 >>>
 2010/04/05 x
-    a   10 "DE 0002 635307"
-    b  -10 "DE 0002 635307"
+    a     10 "DE 0002 635307"
+    b    -10 "DE 0002 635307"
 
 >>>=0
 
@@ -42,8 +42,8 @@ hledger -f- print -x
     Equity:Unbalanced
 >>>
 2016/01/01
-    saving-card                 $-105
-    snacks             95 EUR @@ $100
-    Equity:Unbalanced              $5
+    saving-card                   $-105
+    snacks               95 EUR @@ $100
+    Equity:Unbalanced                $5
 
 >>>=0

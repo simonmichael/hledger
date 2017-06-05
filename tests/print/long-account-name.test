@@ -5,7 +5,7 @@ hledger -f - print
  b
 >>>
 2009/01/01 x
-    aaaaabbbbbcccccdddddeeeeefffffggggghhhhh             1
+    aaaaabbbbbcccccdddddeeeeefffffggggghhhhh               1
     b
 
 >>>=0
