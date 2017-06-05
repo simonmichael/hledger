@@ -70,15 +70,15 @@
 >>>
 2017/04/24 * 09:00-09:25
     (assets:unbilled:client1)         0.42h
-    (assets:to bill:client1)     42.00 CAD
+    (assets:to bill:client1)      42.00 CAD
 
 2017/04/25 * 10:00-11:15
     (assets:unbilled:client1)         1.25h
-    (assets:to bill:client1)    125.00 CAD
+    (assets:to bill:client1)     125.00 CAD
 
 2017/04/25 * 14:00-15:32
     (assets:unbilled:client2)         1.54h
-    (assets:to bill:client2)    231.00 CAD
+    (assets:to bill:client2)     231.00 CAD
 
 >>>2
 >>>=0

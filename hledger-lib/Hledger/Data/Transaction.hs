@@ -212,14 +212,17 @@ postingAsLines elideamount onelineamounts ps p = concat [
     ++ newlinecomments
     | postingblock <- postingblocks]
   where
-    postingblocks = [map rstrip $ lines $ concatTopPadded [account, "  ", amount, assertion, samelinecomment] | amount <- shownAmounts]
+    postingblocks = [map rstrip $ lines $ concatTopPadded [statusandaccount, "  ", amount, assertion, samelinecomment] | amount <- shownAmounts]
     assertion = maybe "" ((" = " ++) . showAmountWithZeroCommodity) $ pbalanceassertion p
-    account =
-      indent $
-        showstatus p ++ fitString (Just acctwidth) Nothing False True (showAccountName Nothing (ptype p) (paccount p))
+    statusandaccount = indent $ fitString (Just $ minwidth) Nothing False True $ pstatusandacct p
         where
-          showstatus p = if pstatus p == Cleared then "* " else ""
-          acctwidth = maximum $ map (textWidth . paccount) ps
+          -- pad to the maximum account name width, to keep amounts aligned  
+          minwidth = maximum $ map (textWidth . T.pack . pacctstr) ps
+          pstatusandacct p' = pstatusprefix p' ++ pacctstr p'
+          pstatusprefix p' | null s    = ""
+                           | otherwise = s ++ " "
+            where s = show $ pstatus p'
+          pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
 
     -- currently prices are considered part of the amount string when right-aligning amounts
     shownAmounts
