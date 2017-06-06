@@ -176,8 +176,11 @@ balanceviewReport BalanceView{..} CliOpts{command_=cmd, reportopts_=ropts, rawop
         -- Balance.hs for more information.
     treeIfNotPeriod
       | flat_ ropts = id
-      | otherwise   = case balancetype of
-          PeriodChange -> id
-          _            -> \o -> o { accountlistmode_ = ALTree }
+      | otherwise   = case (balancetype, interval_ ropts) of
+          (HistoricalBalance, NoInterval) -> \o ->
+              o { accountlistmode_ = ALTree }
+          (CumulativeChange , NoInterval) -> \o ->
+              o { accountlistmode_ = ALTree }
+          _                               -> id
     merging (Table hLeft hTop dat) (Table hLeft' _ dat') =
         Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
