@@ -539,7 +539,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
      assertEqual "show a balanced transaction, eliding last amount"
        (unlines
         ["2007/01/28 coopportunity"
-        ,"    expenses:food:groceries        $47.18"
+        ,"    expenses:food:groceries          $47.18"
         ,"    assets:checking"
         ,""
         ])
@@ -553,8 +553,8 @@ tests_Hledger_Data_Transaction = TestList $ concat [
      assertEqual "show a balanced transaction, no eliding"
        (unlines
         ["2007/01/28 coopportunity"
-        ,"    expenses:food:groceries        $47.18"
-        ,"    assets:checking               $-47.18"
+        ,"    expenses:food:groceries          $47.18"
+        ,"    assets:checking                 $-47.18"
         ,""
         ])
        (let t = Transaction 0 nullsourcepos (parsedate "2007/01/28") Nothing Uncleared "" "coopportunity" "" []
@@ -568,8 +568,8 @@ tests_Hledger_Data_Transaction = TestList $ concat [
      assertEqual "show an unbalanced transaction, should not elide"
        (unlines
         ["2007/01/28 coopportunity"
-        ,"    expenses:food:groceries        $47.18"
-        ,"    assets:checking               $-47.19"
+        ,"    expenses:food:groceries          $47.18"
+        ,"    assets:checking                 $-47.19"
         ,""
         ])
        (showTransaction
@@ -582,7 +582,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
      assertEqual "show an unbalanced transaction with one posting, should not elide"
        (unlines
         ["2007/01/28 coopportunity"
-        ,"    expenses:food:groceries        $47.18"
+        ,"    expenses:food:groceries          $47.18"
         ,""
         ])
        (showTransaction
@@ -606,7 +606,7 @@ tests_Hledger_Data_Transaction = TestList $ concat [
      assertEqual "show a transaction with a priced commodityless amount"
        (unlines
         ["2010/01/01 x"
-        ,"    a        1 @ $2"
+        ,"    a          1 @ $2"
         ,"    b"
         ,""
         ])
