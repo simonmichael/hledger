@@ -1258,6 +1258,12 @@ hledger-web/package.yaml: $(VERSIONFILE) \
 	perl -p -e "s/(hledger(-lib|-web)? *[>=]= *).*/\$${1}$(VERSION)/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
+hledger-api/package.yaml: $(VERSIONFILE) \
+	$(call def-help-hide,hledger-api/package.yaml, update the version in this file )
+	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
+	perl -p -e "s/(hledger(-lib|-api)? *[>=]= *).*/\$${1}$(VERSION)/" -i $@
+	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
+
 site/manual-start.md: $(VERSIONFILE) \
 	$(call def-help-hide,site/manual-start.md, update the version in this file )
 	perl -p -e "s/(this version documents hledger and hledger-web) +[0-9.]+/\1 $(VERSION)/" -i $@
