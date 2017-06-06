@@ -3,8 +3,8 @@ This is hledger_csv.5.info, produced by makeinfo version 6.0 from stdin.
 
 File: hledger_csv.5.info,  Node: Top,  Next: CSV RULES,  Up: (dir)
 
-hledger_csv(5) hledger 1.2
-**************************
+hledger_csv(5) hledger 1.2.98
+*****************************
 
 hledger can read CSV files, converting each CSV record into a journal
 entry (transaction), if you provide some conversion hints in a "rules
@@ -201,21 +201,21 @@ order of same-day entries will be preserved, usually.
 
 Tag Table:
 Node: Top74
-Node: CSV RULES810
-Ref: #csv-rules920
-Node: skip1163
-Ref: #skip1259
-Node: date-format1431
-Ref: #date-format1560
-Node: field list2066
-Ref: #field-list2205
-Node: field assignment2910
-Ref: #field-assignment3067
-Node: conditional block3571
-Ref: #conditional-block3727
-Node: include4623
-Ref: #include4734
-Node: CSV TIPS4965
-Ref: #csv-tips5061
+Node: CSV RULES816
+Ref: #csv-rules926
+Node: skip1169
+Ref: #skip1265
+Node: date-format1437
+Ref: #date-format1566
+Node: field list2072
+Ref: #field-list2211
+Node: field assignment2916
+Ref: #field-assignment3073
+Node: conditional block3577
+Ref: #conditional-block3733
+Node: include4629
+Ref: #include4740
+Node: CSV TIPS4971
+Ref: #csv-tips5067
 
 End Tag Table
