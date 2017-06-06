@@ -100,7 +100,7 @@ multiBalanceviewQueryReport
     -> ([Table String String MixedAmount], [[MixedAmount]], Sum MixedAmount)
 multiBalanceviewQueryReport ropts q0 j t q = ([tabl], [coltotals], Sum tot)
     where
-      singlesection = "Cash" `isPrefixOf` t -- TODO temp 
+      singlesection = "Cash" `isPrefixOf` t -- TODO temp
       ropts' = ropts { no_total_ = singlesection && no_total_ ropts, empty_ = True }
       q' = And [q0, q j]
       MultiBalanceReport (dates, rows, (coltotals,tot,avg)) =
@@ -129,7 +129,7 @@ balanceviewReport BalanceView{..} CliOpts{command_=cmd, reportopts_=ropts, rawop
         unless (no_total_ ropts' || cmd=="cashflow") . mapM_ putStrLn $ -- TODO temp
           [ "Total:"
           , "--------------------"
-          , padleft 20 $ showMixedAmountWithoutPrice (getSum amt)
+          , padLeftWide 20 $ showamt (getSum amt)
           ]
       _ -> do
         let (tabls, amts, Sum totsum)
@@ -154,6 +154,8 @@ balanceviewReport BalanceView{..} CliOpts{command_=cmd, reportopts_=ropts, rawop
         putStrLn title
         putStrLn $ renderBalanceReportTable ropts totTabl
   where
+    showamt | color_ ropts = cshowMixedAmountWithoutPrice
+            | otherwise    = showMixedAmountWithoutPrice
     overwriteBalanceType =
       case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst raw of
         "historical":_ -> Just HistoricalBalance
