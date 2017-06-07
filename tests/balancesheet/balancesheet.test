@@ -126,3 +126,28 @@ Balance Sheet
 
 
 >>>= 0
+
+# 6. Tree output still works, #565
+hledger -f- balancesheet
+<<<
+2017/1/1
+  (assets:b)  1
+>>>
+Balance Sheet
+
+Assets:
+                   1  assets
+                   1    b
+--------------------
+                   1
+
+Liabilities:
+--------------------
+                   0
+
+Total:
+--------------------
+                   1
+>>>2
+>>>=0
+
