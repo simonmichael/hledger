@@ -1,6 +1,10 @@
 import Hledger (tests_Hledger)
+import System.Environment (getArgs)
 import Test.Framework.Providers.HUnit (hUnitTestToTests)
-import Test.Framework.Runners.Console (defaultMain)
+import Test.Framework.Runners.Console (defaultMainWithArgs)
 
 main :: IO ()
-main = defaultMain $ hUnitTestToTests tests_Hledger
+main = do
+  args <- getArgs
+  let args' = "--hide-successes" : args
+  defaultMainWithArgs (hUnitTestToTests tests_Hledger) args'
