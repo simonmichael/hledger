@@ -151,3 +151,26 @@ Total:
 >>>2
 >>>=0
 
+# 7. Flat output still works, #552
+hledger -f- balancesheet --flat
+<<<
+2017/1/1
+  (assets:b)  1
+>>>
+Balance Sheet
+
+Assets:
+                   1  assets:b
+--------------------
+                   1
+
+Liabilities:
+--------------------
+                   0
+
+Total:
+--------------------
+                   1
+>>>2
+>>>=0
+
