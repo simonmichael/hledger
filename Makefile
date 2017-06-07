@@ -75,7 +75,7 @@ STACK=stack
 #STACK=stack --stack-yaml=stack-ghc7.yaml
 
 # -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
-SHELLTESTOPTS=--execdir -- -j16 #--hide-successes
+SHELLTESTOPTS=--execdir -- -j16 --hide-successes
 
 # make sure shelltest is a released version of shelltestrunner
 # run shell tests using the executable specified in tests
