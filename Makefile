@@ -532,7 +532,7 @@ $(call def-help-subsection,TESTING:)
 # 	)
 # 	for p in $(PACKAGES); do packdeps $$p/$$p.cabal; done
 
-test: pkgtest builtintest functest \
+test: pkgtest functest \
 	$(call def-help,test, run default tests )
 
 travistest: \
@@ -591,13 +591,13 @@ travistest: \
 #@echo package tests:
 pkgtest: \
 	$(call def-help,pkgtest, run the test suites for each package )
-	@($(STACK) test \
+	@($(STACK) test --silent \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 # NB ensure hledger executable is current (eg do pkgtest first)
 #@echo "built-in tests (hledger cli unit tests)":
 builtintest: \
-	$(call def-help,builtintest, run tests built in to the hledger executable (subset of pkg tests) )
+	$(call def-help,builtintest, run tests built in to the hledger executable (these are also run by pkg tests) )
 	@($(STACK) exec hledger test \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
