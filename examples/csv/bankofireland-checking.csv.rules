@@ -21,9 +21,8 @@ currency  EUR
 # set the base account for all txns
 account1  assets:personal:bank:bank of ireland:checking
 
-# alternative way of handling two amount fields:
-# use one field by default, if it's empty override with the other
+# an alternative to using amount-in & amount-out:
+# use the (sign-flipped) third field by default, or if it's empty, the fourth
 # amount  -%3
-# if ~
-# ^[^,]*,[^,]*,,
+# if ^[^,]*,[^,]*,,
 #  amount  %4
