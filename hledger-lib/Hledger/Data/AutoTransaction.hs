@@ -41,24 +41,24 @@ import Hledger.Query
 --
 -- >>> runModifierTransaction Any (ModifierTransaction "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
---     ping         $1.00
---     pong         $2.00
+--     ping           $1.00
+--     pong           $2.00
 -- <BLANKLINE>
 -- <BLANKLINE>
 -- >>> runModifierTransaction Any (ModifierTransaction "miss" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
---     ping         $1.00
+--     ping           $1.00
 -- <BLANKLINE>
 -- <BLANKLINE>
 -- >>> runModifierTransaction None (ModifierTransaction "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
---     ping         $1.00
+--     ping           $1.00
 -- <BLANKLINE>
 -- <BLANKLINE>
 -- >>> runModifierTransaction Any (ModifierTransaction "ping" ["pong" `post` amount{amultiplier=True, aquantity=3}]) nulltransaction{tpostings=["ping" `post` usd 2]}
 -- 0000/01/01
---     ping         $2.00
---     pong         $6.00
+--     ping           $2.00
+--     pong           $6.00
 -- <BLANKLINE>
 -- <BLANKLINE>
 runModifierTransaction :: Query -> ModifierTransaction -> (Transaction -> Transaction)
@@ -138,13 +138,13 @@ renderPostingCommentDates p = p { pcomment = comment' }
 --
 -- >>> mapM_ (putStr . show) $ runPeriodicTransaction (PeriodicTransaction "monthly from 2017/1 to 2017/4" ["hi" `post` usd 1]) nulldatespan
 -- 2017/01/01
---     hi         $1.00
+--     hi           $1.00
 -- <BLANKLINE>
 -- 2017/02/01
---     hi         $1.00
+--     hi           $1.00
 -- <BLANKLINE>
 -- 2017/03/01
---     hi         $1.00
+--     hi           $1.00
 -- <BLANKLINE>
 runPeriodicTransaction :: PeriodicTransaction -> (DateSpan -> [Transaction])
 runPeriodicTransaction pt = generate where
