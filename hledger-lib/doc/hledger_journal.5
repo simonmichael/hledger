@@ -212,52 +212,89 @@ With this syntax, DATE infers its year from the transaction and DATE2
 infers its year from DATE.
 .SS Status
 .PP
-More about the status field: transactions, or individual postings within
-a transaction, can be in one of three states, represented by a single
-character:
-.IP \[bu] 2
-empty (no status character) = uncleared
-.IP \[bu] 2
-\f[C]!\f[] = pending (aka "tentatively cleared")
-.IP \[bu] 2
-\f[C]*\f[] = cleared
+Transactions, or individual postings within a transaction, can have a
+status mark, which is a single character before the transaction
+description or posting account name, separated from it by a space,
+indicating one of three statuses:
 .PP
-When reporting, you can filter by status using the
-\f[C]\-C/\-\-cleared\f[] and \f[C]\-U/\-\-uncleared\f[] flags or the
-\f[C]status:\f[] query.
+.TS
+tab(@);
+l l.
+T{
+mark \ 
+T}@T{
+status
+T}
+_
+T{
+\ 
+T}@T{
+uncleared (no mark)
+T}
+T{
+\f[C]!\f[]
+T}@T{
+pending
+T}
+T{
+\f[C]*\f[]
+T}@T{
+cleared
+T}
+.TE
 .PP
-This feature is optional, but can be helpful for reconciling with
+When reporting, you can filter by status with the
+\f[C]\-U/\-\-uncleared\f[], \f[C]\-P/\-\-pending\f[], and
+\f[C]\-C/\-\-cleared\f[] flags; or the \f[C]status:\f[],
+\f[C]status:!\f[], and \f[C]status:*\f[] queries; or the U, P, C keys in
+hledger\-ui.
+.PP
+Note from hledger 1.3 onwards, \-U/\-\-uncleared matches the uncleared
+(unmarked) status only.
+To replicate Ledger and old hledger\[aq]s behaviour of also matching
+pending, combine \-U and \-P.
+.PP
+Status marks are optional, but can be helpful eg for reconciling with
 real\-world accounts.
+Some editor modes provide highlighting and shortcuts working with
+status.
+Eg in Emacs ledger\-mode, you can toggle transaction status with C\-c
+C\-e, or posting status with C\-c C\-c.
+.PP
 What "uncleared", "pending", and "cleared" actually mean is up to you.
+Here\[aq]s one suggestion:
 .PP
-A suggestion: use cleared (\f[C]*\f[]) to mark transactions that are
-"complete", ie:
-.IP \[bu] 2
-they have cleared with the bank, or the cash has been handed over
-.IP \[bu] 2
-you are satisfied they are recorded accurately in the journal
-.IP \[bu] 2
-the resulting account balance reported by hledger agrees exactly with
-the external source of truth, if any (eg the bank\[aq]s online register
-or statement)
+.TS
+tab(@);
+lw(10.7n) lw(8.8n).
+T{
+status
+T}@T{
+meaning
+T}
+_
+T{
+uncleared
+T}@T{
+recorded but not yet reconciled; needs checking
+T}
+T{
+pending
+T}@T{
+tentatively reconciled, during reconciliation (if needed); "I think I
+have matched this one"
+T}
+T{
+cleared
+T}@T{
+complete, reconciled/checked as far as possible, and considered correct.
+T}
+.TE
 .PP
-Then, with \-\-cleared you\[aq]ll see the current balance at your bank,
-with \-\-uncleared you\[aq]ll see things which will probably hit your
-bank soon (eg uncashed checks), and with neither flag (the default)
-you\[aq]ll see the most up\-to\-date state of your finances.
-.PP
-I don\[aq]t use pending (\f[C]!\f[]), but perhaps it is useful in very
-tricky reconciliations, as a temporary marker for transactions matched
-so far, allowing you start over more easily.
-Note, the \-\-uncleared flag matches both uncleared and pending things
-("everything not definitely cleared").
-Currently, to match pending things only, use \f[C]status:!\f[], and to
-match uncleared things only, \f[C]not:status:!\ not:status:*\f[]
-(\f[C]status:\f[] seems buggy).
-.PP
-Some editor modes highlight entries differently based on their status.
-In Emacs ledger\-mode, you can toggle transaction status with
-\f[C]C\-c\ C\-e\f[], or posting status with \f[C]C\-c\ C\-c\f[].
+With this scheme, you would use \f[C]\-PC\f[] to see the current balance
+at your bank, \f[C]\-U\f[] to see things which will probably hit your
+bank soon (eg uncashed checks), and no flags to see the most
+up\-to\-date state of your finances.
 .SS Account names
 .PP
 Account names typically have several parts separated by a full colon,

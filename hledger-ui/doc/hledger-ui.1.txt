@@ -104,11 +104,11 @@ OPTIONS
        -C --cleared
               include only cleared postings/txns
 
-       --pending
+       -P --pending
               include only pending postings/txns
 
        -U --uncleared
-              include only uncleared (and pending) postings/txns
+              include only unmarked postings/txns
 
        -R --real
               include only non-virtual postings
@@ -170,7 +170,7 @@ KEYS
        the  same query terms as in hledger and hledger-web.  While editing the
        query, you can use CTRL-a/e/d/k, BS, cursor keys; press  ENTER  to  set
        it, or ESCAPEto cancel.  There are also keys for quickly adjusting some
-       common filters like account depth and  cleared/uncleared  (see  below).
+       common filters like account depth and transaction status  (see  below).
        BACKSPACE or DELETE removes all filters, showing all transactions.
 
        ESCAPE  removes  all  filters and jumps back to the top screen.  Or, it
@@ -226,14 +226,15 @@ SCREENS
        before the report start date, so they show the change in balance during
        the report period.  They are more useful eg when viewing a time log.
 
-       C toggles cleared mode, in which uncleared  transactions  and  postings
-       are  not  shown.   U  toggles  uncleared  mode, in which only uncleared
-       transactions/postings are shown.
+       C toggles cleared mode, which shows balances for postings with  cleared
+       status  only.   Similarly, P toggles pending mode, which shows balances
+       for pending postings only, and U toggles uncleared  mode,  which  shows
+       balances for unmarked postings only.
 
        R toggles real mode, in which virtual postings are ignored.
 
-       Z toggles nonzero mode, in which only accounts  with  nonzero  balances
-       are  shown (hledger-ui shows zero items by default, unlike command-line
+       Z  toggles  nonzero  mode, in which only accounts with nonzero balances
+       are shown (hledger-ui shows zero items by default, unlike  command-line
        hledger).
 
        Press right or enter to view an account's transactions register.
@@ -242,32 +243,33 @@ SCREENS
        This screen shows the transactions affecting a particular account, like
        a check register.  Each line represents one transaction and shows:
 
-       o the  other  account(s)  involved, in abbreviated form.  (If there are
-         both real and virtual postings, it shows only the  accounts  affected
+       o the other account(s) involved, in abbreviated form.   (If  there  are
+         both  real  and virtual postings, it shows only the accounts affected
          by real postings.)
 
-       o the  overall change to the current account's balance; positive for an
+       o the overall change to the current account's balance; positive for  an
          inflow to this account, negative for an outflow.
 
        o the running historical total or period total for the current account,
-         after  the  transaction.  This can be toggled with H.  Similar to the
-         accounts screen, the historical total  is  affected  by  transactions
-         (filtered  by  the  filter query) before the report start date, while
+         after the transaction.  This can be toggled with H.  Similar  to  the
+         accounts  screen,  the  historical  total is affected by transactions
+         (filtered by the filter query) before the report  start  date,  while
          the period total is not.  If the historical total is not disturbed by
-         a  filter  query, it will be the running historical balance you would
+         a filter query, it will be the running historical balance  you  would
          see on a bank register for the current account.
 
-       If the accounts screen was in  tree  mode,  the  register  screen  will
+       If  the  accounts  screen  was  in  tree mode, the register screen will
        include transactions from both the current account and its subaccounts.
-       If the accounts screen  was  in  flat  mode,  and  a  non-depth-clipped
-       account  was  selected,  the  register screen will exclude transactions
+       If  the  accounts  screen  was  in  flat  mode, and a non-depth-clipped
+       account was selected, the register  screen  will  exclude  transactions
        from subaccounts.  In other words, the register always shows the trans-
-       actions  responsible  for  the  period  balance  shown  on the accounts
+       actions responsible for  the  period  balance  shown  on  the  accounts
        screen.  As on the accounts screen, this can be toggled with F.
 
-       C toggles cleared mode, in which uncleared  transactions  and  postings
-       are  not  shown.   U  toggles  uncleared  mode, in which only uncleared
-       transactions/postings are shown.
+       C  toggles  cleared  mode, which shows transactions with cleared status
+       only.  Similarly, P toggles pending  mode,  which  shows  only  pending
+       transactions,  and  U toggles uncleared mode, which shows only unmarked
+       transactions.
 
        R toggles real mode, in which virtual postings are ignored.
 
