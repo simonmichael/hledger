@@ -140,7 +140,7 @@ m4_define({{_reportingoptions_}}, {{
 `-C --cleared`
 : include only cleared postings/txns
 
-`--pending`
+`-P --pending`
 : include only pending postings/txns
 
 `-U --uncleared`
