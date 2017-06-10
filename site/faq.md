@@ -181,6 +181,8 @@ or [balance assertions](manual.html#assertions-and-ordering).
 - in hledger version 1.3 onward, -U/--uncleared does not match pending things.
   (#564)
 
+- hledger's -P flag is short for --pending. Ledger uses it for grouping by payee. 
+
 ### Future ?
 
 There is a [ledger4](https://github.com/ledger/ledger4) repo on
