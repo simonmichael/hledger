@@ -256,7 +256,7 @@ pending, combine \-U and \-P.
 .PP
 Status marks are optional, but can be helpful eg for reconciling with
 real\-world accounts.
-Some editor modes provide highlighting and shortcuts working with
+Some editor modes provide highlighting and shortcuts for working with
 status.
 Eg in Emacs ledger\-mode, you can toggle transaction status with C\-c
 C\-e, or posting status with C\-c C\-c.
@@ -266,7 +266,7 @@ Here\[aq]s one suggestion:
 .PP
 .TS
 tab(@);
-lw(10.7n) lw(8.8n).
+lw(10.5n) lw(59.5n).
 T{
 status
 T}@T{
@@ -276,24 +276,23 @@ _
 T{
 uncleared
 T}@T{
-recorded but not yet reconciled; needs checking
+recorded but not yet reconciled; needs review
 T}
 T{
 pending
 T}@T{
-tentatively reconciled, during reconciliation (if needed); "I think I
-have matched this one"
+tentatively reconciled (if needed, eg during a big reconciliation)
 T}
 T{
 cleared
 T}@T{
-complete, reconciled/checked as far as possible, and considered correct.
+complete, reconciled as far as possible, and considered correct
 T}
 .TE
 .PP
 With this scheme, you would use \f[C]\-PC\f[] to see the current balance
 at your bank, \f[C]\-U\f[] to see things which will probably hit your
-bank soon (eg uncashed checks), and no flags to see the most
+bank soon (like uncashed checks), and no flags to see the most
 up\-to\-date state of your finances.
 .SS Account names
 .PP

@@ -191,7 +191,7 @@ FILE FORMAT
 
        Status marks are optional, but can be helpful eg for  reconciling  with
        real-world accounts.  Some editor modes provide highlighting and short-
-       cuts working with status.  Eg in  Emacs  ledger-mode,  you  can  toggle
+       cuts for working with status.  Eg in Emacs ledger-mode, you can  toggle
        transaction status with C-c C-e, or posting status with C-c C-c.
 
        What  "uncleared", "pending", and "cleared" actually mean is up to you.
@@ -199,38 +199,16 @@ FILE FORMAT
 
 
 
-       status        meaning
-       ----------------------------
-       uncleared     recorded
-                     but   not
-                     yet  rec-
-                     onciled;
-                     needs
-                     checking
-       pending       tenta-
-                     tively
-                     recon-
-                     ciled,
-                     during
-                     reconcil-
-                     iation
-                     (if
-                     needed);
-                     "I  think
-                     I    have
-                     matched
-                     this one"
-       cleared       complete,
-                     recon-
-                     ciled/checked
-                     as far as
-                     possible,
-                     and  con-
-                     sidered
-                     correct.
+       status       meaning
+       --------------------------------------------------------------------------
+       uncleared    recorded but not yet reconciled; needs review
+       pending      tentatively reconciled (if needed, eg during a  big  recon-
+                    ciliation)
+       cleared      complete,  reconciled  as  far  as possible, and considered
+                    correct
 
        With this scheme, you would use -PC to see the current balance at  your
-       bank,  -U  to  see  things  which  will probably hit your bank soon (eg
+       bank,  -U  to  see  things which will probably hit your bank soon (like
        uncashed checks), and no flags to see the most up-to-date state of your
        finances.
 
@@ -827,6 +805,7 @@ EDITOR SUPPORT
                           lime-Text
        Textmate           https://github.com/ledger/ledger/wiki/Using-Text-
                           Mate-2
+
        Text Wrangler      https://github.com/ledger/ledger/wiki/Edit-
                           ing-Ledger-files-with-TextWrangler
 
