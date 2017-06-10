@@ -112,7 +112,7 @@ To set a non-standard period, you can use `/` and a `date:` query.
 using the same [query terms](/hledger.html#queries) as in hledger and hledger-web.
 While editing the query, you can use [CTRL-a/e/d/k, BS, cursor keys](http://hackage.haskell.org/package/brick-0.7/docs/Brick-Widgets-Edit.html#t:Editor); 
 press `ENTER` to set it, or `ESCAPE`to cancel.
-There are also keys for quickly adjusting some common filters like account depth and cleared/uncleared (see below).
+There are also keys for quickly adjusting some common filters like account depth and transaction status (see below).
 `BACKSPACE` or `DELETE` removes all filters, showing all transactions.
 
 `ESCAPE` removes all filters and jumps back to the top screen.
@@ -163,10 +163,9 @@ balances are what you would see on a bank statement for that account (unless dis
 a filter query). Period balances ignore transactions before the report start date, so they
 show the change in balance during the report period. They are more useful eg when viewing a time log.
 
-`C` toggles cleared mode, in which
-[uncleared transactions and postings](/journal.html#transactions) are
-not shown. `U` toggles uncleared mode, in which only uncleared
-transactions/postings are shown.
+`C` toggles cleared mode, which shows balances for postings with [cleared status](/journal.html#status) only. 
+Similarly, `P` toggles pending mode, which shows balances for pending postings only,
+and `U` toggles uncleared mode, which shows balances for unmarked postings only.
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 
@@ -203,10 +202,9 @@ In other words, the register always shows the transactions responsible for the p
 shown on the accounts screen.
 As on the accounts screen, this can be toggled with `F`.
 
-`C` toggles cleared mode, in which
-[uncleared transactions and postings](/journal.html#transactions) are
-not shown. `U` toggles uncleared mode, in which only uncleared
-transactions/postings are shown.
+`C` toggles cleared mode, which shows transactions with [cleared status](/journal.html#status) only.
+Similarly, `P` toggles pending mode, which shows only pending transactions,
+and `U` toggles uncleared mode, which shows only unmarked transactions.
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 

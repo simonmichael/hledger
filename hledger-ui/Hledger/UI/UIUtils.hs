@@ -78,6 +78,7 @@ helpDialog =
                   ,str " "
                   ,renderKey ("/", "set a filter query")
                   ,renderKey ("C", "toggle cleared/all")
+                  ,renderKey ("P", "toggle pending/all")
                   ,renderKey ("U", "toggle uncleared/all")
                   ,renderKey ("R", "toggle real/all")
                   ,renderKey ("Z", "toggle nonzero/all")
