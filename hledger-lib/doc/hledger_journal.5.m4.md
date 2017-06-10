@@ -191,7 +191,7 @@ the transaction description or posting account name,
 separated from it by a space, indicating one of three statuses:
 
 mark &nbsp; | status
-:-----------|:----------
+:-----------|:-------------------
 &nbsp;      | uncleared (no mark)
 `!`         | pending
 `*`         | cleared
@@ -206,21 +206,21 @@ Note from hledger 1.3 onwards, -U/--uncleared matches the uncleared (unmarked) s
 To replicate Ledger and old hledger's behaviour of also matching pending, combine -U and -P.
 
 Status marks are optional, but can be helpful eg for reconciling with real-world accounts.
-Some editor modes provide highlighting and shortcuts working with status.
+Some editor modes provide highlighting and shortcuts for working with status.
 Eg in Emacs ledger-mode, you can toggle transaction status with C-c C-e, or posting status with C-c C-c.
 
 What "uncleared", "pending", and "cleared" actually mean is up to you.
 Here's one suggestion:
 
 status    | meaning
-----------|--------
-uncleared | recorded but not yet reconciled; needs checking
-pending   | tentatively reconciled, during reconciliation (if needed); "I think I have matched this one"
-cleared   | complete, reconciled/checked as far as possible, and considered correct.
+:---------|:------------------------------------------------------------
+uncleared | recorded but not yet reconciled; needs review
+pending   | tentatively reconciled (if needed, eg during a big reconciliation)
+cleared   | complete, reconciled as far as possible, and considered correct
 
 With this scheme, you would use
 `-PC` to see the current balance at your bank,
-`-U` to see things which will probably hit your bank soon (eg uncashed checks),
+`-U` to see things which will probably hit your bank soon (like uncashed checks),
 and no flags to see the most up-to-date state of your finances.
 
 ## Account names

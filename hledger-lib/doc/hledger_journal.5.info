@@ -254,45 +254,24 @@ of also matching pending, combine -U and -P.
 
    Status marks are optional, but can be helpful eg for reconciling with
 real-world accounts.  Some editor modes provide highlighting and
-shortcuts working with status.  Eg in Emacs ledger-mode, you can toggle
-transaction status with C-c C-e, or posting status with C-c C-c.
+shortcuts for working with status.  Eg in Emacs ledger-mode, you can
+toggle transaction status with C-c C-e, or posting status with C-c C-c.
 
    What "uncleared", "pending", and "cleared" actually mean is up to
 you.  Here's one suggestion:
 
 status      meaning
-----------------------
-uncleared   recorded
-            but not
-            yet
-            reconciled;
-            needs
-            checking
-pending     tentatively
-            reconciled,
-            during
-            reconciliation
-            (if
-            needed);
-            "I
-            think I
-            have
-            matched
-            this
-            one"
-cleared     complete,
-            reconciled/checked
-            as far
-            as
-            possible,
-            and
-            considered
-            correct.
+--------------------------------------------------------------------------
+uncleared   recorded but not yet reconciled; needs review
+pending     tentatively reconciled (if needed, eg during a big
+            reconciliation)
+cleared     complete, reconciled as far as possible, and considered
+            correct
 
    With this scheme, you would use '-PC' to see the current balance at
-your bank, '-U' to see things which will probably hit your bank soon (eg
-uncashed checks), and no flags to see the most up-to-date state of your
-finances.
+your bank, '-U' to see things which will probably hit your bank soon
+(like uncashed checks), and no flags to see the most up-to-date state of
+your finances.
 
 
 File: hledger_journal.5.info,  Node: Account names,  Next: Amounts,  Prev: Status,  Up: FILE FORMAT
@@ -1081,67 +1060,67 @@ Node: Posting dates6832
 Ref: #posting-dates6963
 Node: Status8337
 Ref: #status8461
-Node: Account names10360
-Ref: #account-names10500
-Node: Amounts10987
-Ref: #amounts11125
-Node: Virtual Postings13226
-Ref: #virtual-postings13387
-Node: Balance Assertions14607
-Ref: #balance-assertions14784
-Node: Assertions and ordering15680
-Ref: #assertions-and-ordering15868
-Node: Assertions and included files16568
-Ref: #assertions-and-included-files16811
-Node: Assertions and multiple -f options17144
-Ref: #assertions-and-multiple--f-options17400
-Node: Assertions and commodities17532
-Ref: #assertions-and-commodities17769
-Node: Assertions and subaccounts18465
-Ref: #assertions-and-subaccounts18699
-Node: Assertions and virtual postings19220
-Ref: #assertions-and-virtual-postings19429
-Node: Balance Assignments19571
-Ref: #balance-assignments19740
-Node: Prices20859
-Ref: #prices20994
-Node: Transaction prices21045
-Ref: #transaction-prices21192
-Node: Market prices23348
-Ref: #market-prices23485
-Node: Comments24445
-Ref: #comments24569
-Node: Tags25682
-Ref: #tags25802
-Node: Implicit tags27231
-Ref: #implicit-tags27339
-Node: Directives27856
-Ref: #directives27971
-Node: Account aliases28164
-Ref: #account-aliases28310
-Node: Basic aliases28914
-Ref: #basic-aliases29059
-Node: Regex aliases29749
-Ref: #regex-aliases29919
-Node: Multiple aliases30634
-Ref: #multiple-aliases30808
-Node: end aliases31306
-Ref: #end-aliases31448
-Node: account directive31549
-Ref: #account-directive31731
-Node: apply account directive32027
-Ref: #apply-account-directive32225
-Node: Multi-line comments32884
-Ref: #multi-line-comments33076
-Node: commodity directive33204
-Ref: #commodity-directive33390
-Node: Default commodity34262
-Ref: #default-commodity34437
-Node: Default year34974
-Ref: #default-year35141
-Node: Including other files35564
-Ref: #including-other-files35723
-Node: EDITOR SUPPORT36120
-Ref: #editor-support36240
+Node: Account names10129
+Ref: #account-names10269
+Node: Amounts10756
+Ref: #amounts10894
+Node: Virtual Postings12995
+Ref: #virtual-postings13156
+Node: Balance Assertions14376
+Ref: #balance-assertions14553
+Node: Assertions and ordering15449
+Ref: #assertions-and-ordering15637
+Node: Assertions and included files16337
+Ref: #assertions-and-included-files16580
+Node: Assertions and multiple -f options16913
+Ref: #assertions-and-multiple--f-options17169
+Node: Assertions and commodities17301
+Ref: #assertions-and-commodities17538
+Node: Assertions and subaccounts18234
+Ref: #assertions-and-subaccounts18468
+Node: Assertions and virtual postings18989
+Ref: #assertions-and-virtual-postings19198
+Node: Balance Assignments19340
+Ref: #balance-assignments19509
+Node: Prices20628
+Ref: #prices20763
+Node: Transaction prices20814
+Ref: #transaction-prices20961
+Node: Market prices23117
+Ref: #market-prices23254
+Node: Comments24214
+Ref: #comments24338
+Node: Tags25451
+Ref: #tags25571
+Node: Implicit tags27000
+Ref: #implicit-tags27108
+Node: Directives27625
+Ref: #directives27740
+Node: Account aliases27933
+Ref: #account-aliases28079
+Node: Basic aliases28683
+Ref: #basic-aliases28828
+Node: Regex aliases29518
+Ref: #regex-aliases29688
+Node: Multiple aliases30403
+Ref: #multiple-aliases30577
+Node: end aliases31075
+Ref: #end-aliases31217
+Node: account directive31318
+Ref: #account-directive31500
+Node: apply account directive31796
+Ref: #apply-account-directive31994
+Node: Multi-line comments32653
+Ref: #multi-line-comments32845
+Node: commodity directive32973
+Ref: #commodity-directive33159
+Node: Default commodity34031
+Ref: #default-commodity34206
+Node: Default year34743
+Ref: #default-year34910
+Node: Including other files35333
+Ref: #including-other-files35492
+Node: EDITOR SUPPORT35889
+Ref: #editor-support36009
 
 End Tag Table
