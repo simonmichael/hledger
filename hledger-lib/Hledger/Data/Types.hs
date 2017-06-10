@@ -180,6 +180,12 @@ type TagName = Text
 type TagValue = Text
 type Tag = (TagName, TagValue)  -- ^ A tag name and (possibly empty) value.
 
+-- | The status of a transaction or posting, recorded with a status mark
+-- (nothing, !, or *). What these mean is ultimately user defined.
+-- Calling the unmarked state "Uncleared" creates some ambiguity 
+-- but is traditional in Ledger/hledger so we keep it (#564).
+-- Calling the type "Cleared..." might also be confusing, just Status
+-- would be better but that's currently used as a Query constructor.
 data ClearedStatus = Uncleared | Pending | Cleared
   deriving (Eq,Ord,Typeable,Data,Generic)
 
