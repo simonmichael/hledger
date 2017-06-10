@@ -20,26 +20,21 @@ import Hledger.UI.UIOptions
 -- | Toggle between showing only cleared items or all items.
 toggleCleared :: UIState -> UIState
 toggleCleared ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=toggleCleared ropts}}}
-  where
-    toggleCleared ropts@ReportOpts{clearedstatus_=Just Cleared} = ropts{clearedstatus_=Nothing}
-    toggleCleared ropts = ropts{clearedstatus_=Just Cleared}
+  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Cleared ropts}}}
 
 -- | Toggle between showing only pending items or all items.
 togglePending :: UIState -> UIState
 togglePending ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=togglePending ropts}}}
-  where
-    togglePending ropts@ReportOpts{clearedstatus_=Just Pending} = ropts{clearedstatus_=Nothing}
-    togglePending ropts = ropts{clearedstatus_=Just Pending}
+  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Pending ropts}}}
 
 -- | Toggle between showing only uncleared items or all items.
 toggleUncleared :: UIState -> UIState
 toggleUncleared ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=toggleUncleared ropts}}}
-  where
-    toggleUncleared ropts@ReportOpts{clearedstatus_=Just Uncleared} = ropts{clearedstatus_=Nothing}
-    toggleUncleared ropts = ropts{clearedstatus_=Just Uncleared}
+  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Uncleared ropts}}}
+
+reportOptsToggleStatus s ropts
+  | clearedstatus_ ropts == [s] = ropts{clearedstatus_=[]}
+  | otherwise                   = ropts{clearedstatus_=[s]}
 
 -- | Toggle between showing all and showing only nonempty (more precisely, nonzero) items.
 toggleEmpty :: UIState -> UIState
@@ -125,7 +120,7 @@ resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=rop
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{
      accountlistmode_=ALTree
     ,empty_=True
-    ,clearedstatus_=Nothing
+    ,clearedstatus_=[]
     ,real_=False
     ,query_=""
     --,period_=PeriodAll
