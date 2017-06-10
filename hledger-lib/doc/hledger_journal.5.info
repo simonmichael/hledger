@@ -232,46 +232,67 @@ File: hledger_journal.5.info,  Node: Status,  Next: Account names,  Prev: Dates,
 1.4 Status
 ==========
 
-More about the status field: transactions, or individual postings within
-a transaction, can be in one of three states, represented by a single
-character:
+Transactions, or individual postings within a transaction, can have a
+status mark, which is a single character before the transaction
+description or posting account name, separated from it by a space,
+indicating one of three statuses:
 
-   * empty (no status character) = uncleared
-   * '!' = pending (aka "tentatively cleared")
-   * '*' = cleared
+mark  status
+ 
+----------------------------
+      uncleared (no mark)
+'!'   pending
+'*'   cleared
 
-   When reporting, you can filter by status using the '-C/--cleared' and
-'-U/--uncleared' flags or the 'status:' query.
+   When reporting, you can filter by status with the '-U/--uncleared',
+'-P/--pending', and '-C/--cleared' flags; or the 'status:', 'status:!',
+and 'status:*' queries; or the U, P, C keys in hledger-ui.
 
-   This feature is optional, but can be helpful for reconciling with
-real-world accounts.  What "uncleared", "pending", and "cleared"
-actually mean is up to you.
+   Note from hledger 1.3 onwards, -U/-uncleared matches the uncleared
+(unmarked) status only.  To replicate Ledger and old hledger's behaviour
+of also matching pending, combine -U and -P.
 
-   A suggestion: use cleared ('*') to mark transactions that are
-"complete", ie:
+   Status marks are optional, but can be helpful eg for reconciling with
+real-world accounts.  Some editor modes provide highlighting and
+shortcuts working with status.  Eg in Emacs ledger-mode, you can toggle
+transaction status with C-c C-e, or posting status with C-c C-c.
 
-   * they have cleared with the bank, or the cash has been handed over
-   * you are satisfied they are recorded accurately in the journal
-   * the resulting account balance reported by hledger agrees exactly
-     with the external source of truth, if any (eg the bank's online
-     register or statement)
+   What "uncleared", "pending", and "cleared" actually mean is up to
+you.  Here's one suggestion:
 
-   Then, with -cleared you'll see the current balance at your bank, with
--uncleared you'll see things which will probably hit your bank soon (eg
-uncashed checks), and with neither flag (the default) you'll see the
-most up-to-date state of your finances.
+status      meaning
+----------------------
+uncleared   recorded
+            but not
+            yet
+            reconciled;
+            needs
+            checking
+pending     tentatively
+            reconciled,
+            during
+            reconciliation
+            (if
+            needed);
+            "I
+            think I
+            have
+            matched
+            this
+            one"
+cleared     complete,
+            reconciled/checked
+            as far
+            as
+            possible,
+            and
+            considered
+            correct.
 
-   I don't use pending ('!'), but perhaps it is useful in very tricky
-reconciliations, as a temporary marker for transactions matched so far,
-allowing you start over more easily.  Note, the -uncleared flag matches
-both uncleared and pending things ("everything not definitely cleared").
-Currently, to match pending things only, use 'status:!', and to match
-uncleared things only, 'not:status:! not:status:*' ('status:' seems
-buggy).
-
-   Some editor modes highlight entries differently based on their
-status.  In Emacs ledger-mode, you can toggle transaction status with
-'C-c C-e', or posting status with 'C-c C-c'.
+   With this scheme, you would use '-PC' to see the current balance at
+your bank, '-U' to see things which will probably hit your bank soon (eg
+uncashed checks), and no flags to see the most up-to-date state of your
+finances.
 
 
 File: hledger_journal.5.info,  Node: Account names,  Next: Amounts,  Prev: Status,  Up: FILE FORMAT
@@ -1060,67 +1081,67 @@ Node: Posting dates6832
 Ref: #posting-dates6963
 Node: Status8337
 Ref: #status8461
-Node: Account names10271
-Ref: #account-names10411
-Node: Amounts10898
-Ref: #amounts11036
-Node: Virtual Postings13137
-Ref: #virtual-postings13298
-Node: Balance Assertions14518
-Ref: #balance-assertions14695
-Node: Assertions and ordering15591
-Ref: #assertions-and-ordering15779
-Node: Assertions and included files16479
-Ref: #assertions-and-included-files16722
-Node: Assertions and multiple -f options17055
-Ref: #assertions-and-multiple--f-options17311
-Node: Assertions and commodities17443
-Ref: #assertions-and-commodities17680
-Node: Assertions and subaccounts18376
-Ref: #assertions-and-subaccounts18610
-Node: Assertions and virtual postings19131
-Ref: #assertions-and-virtual-postings19340
-Node: Balance Assignments19482
-Ref: #balance-assignments19651
-Node: Prices20770
-Ref: #prices20905
-Node: Transaction prices20956
-Ref: #transaction-prices21103
-Node: Market prices23259
-Ref: #market-prices23396
-Node: Comments24356
-Ref: #comments24480
-Node: Tags25593
-Ref: #tags25713
-Node: Implicit tags27142
-Ref: #implicit-tags27250
-Node: Directives27767
-Ref: #directives27882
-Node: Account aliases28075
-Ref: #account-aliases28221
-Node: Basic aliases28825
-Ref: #basic-aliases28970
-Node: Regex aliases29660
-Ref: #regex-aliases29830
-Node: Multiple aliases30545
-Ref: #multiple-aliases30719
-Node: end aliases31217
-Ref: #end-aliases31359
-Node: account directive31460
-Ref: #account-directive31642
-Node: apply account directive31938
-Ref: #apply-account-directive32136
-Node: Multi-line comments32795
-Ref: #multi-line-comments32987
-Node: commodity directive33115
-Ref: #commodity-directive33301
-Node: Default commodity34173
-Ref: #default-commodity34348
-Node: Default year34885
-Ref: #default-year35052
-Node: Including other files35475
-Ref: #including-other-files35634
-Node: EDITOR SUPPORT36031
-Ref: #editor-support36151
+Node: Account names10360
+Ref: #account-names10500
+Node: Amounts10987
+Ref: #amounts11125
+Node: Virtual Postings13226
+Ref: #virtual-postings13387
+Node: Balance Assertions14607
+Ref: #balance-assertions14784
+Node: Assertions and ordering15680
+Ref: #assertions-and-ordering15868
+Node: Assertions and included files16568
+Ref: #assertions-and-included-files16811
+Node: Assertions and multiple -f options17144
+Ref: #assertions-and-multiple--f-options17400
+Node: Assertions and commodities17532
+Ref: #assertions-and-commodities17769
+Node: Assertions and subaccounts18465
+Ref: #assertions-and-subaccounts18699
+Node: Assertions and virtual postings19220
+Ref: #assertions-and-virtual-postings19429
+Node: Balance Assignments19571
+Ref: #balance-assignments19740
+Node: Prices20859
+Ref: #prices20994
+Node: Transaction prices21045
+Ref: #transaction-prices21192
+Node: Market prices23348
+Ref: #market-prices23485
+Node: Comments24445
+Ref: #comments24569
+Node: Tags25682
+Ref: #tags25802
+Node: Implicit tags27231
+Ref: #implicit-tags27339
+Node: Directives27856
+Ref: #directives27971
+Node: Account aliases28164
+Ref: #account-aliases28310
+Node: Basic aliases28914
+Ref: #basic-aliases29059
+Node: Regex aliases29749
+Ref: #regex-aliases29919
+Node: Multiple aliases30634
+Ref: #multiple-aliases30808
+Node: end aliases31306
+Ref: #end-aliases31448
+Node: account directive31549
+Ref: #account-directive31731
+Node: apply account directive32027
+Ref: #apply-account-directive32225
+Node: Multi-line comments32884
+Ref: #multi-line-comments33076
+Node: commodity directive33204
+Ref: #commodity-directive33390
+Node: Default commodity34262
+Ref: #default-commodity34437
+Node: Default year34974
+Ref: #default-year35141
+Node: Including other files35564
+Ref: #including-other-files35723
+Node: EDITOR SUPPORT36120
+Ref: #editor-support36240
 
 End Tag Table

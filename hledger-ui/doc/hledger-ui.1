@@ -151,13 +151,13 @@ include only cleared postings/txns
 .RS
 .RE
 .TP
-.B \f[C]\-\-pending\f[]
+.B \f[C]\-P\ \-\-pending\f[]
 include only pending postings/txns
 .RS
 .RE
 .TP
 .B \f[C]\-U\ \-\-uncleared\f[]
-include only uncleared (and pending) postings/txns
+include only unmarked postings/txns
 .RS
 .RE
 .TP
@@ -255,7 +255,7 @@ using the same query terms as in hledger and hledger\-web.
 While editing the query, you can use CTRL\-a/e/d/k, BS, cursor keys;
 press \f[C]ENTER\f[] to set it, or \f[C]ESCAPE\f[]to cancel.
 There are also keys for quickly adjusting some common filters like
-account depth and cleared/uncleared (see below).
+account depth and transaction status (see below).
 \f[C]BACKSPACE\f[] or \f[C]DELETE\f[] removes all filters, showing all
 transactions.
 .PP
@@ -322,10 +322,11 @@ Period balances ignore transactions before the report start date, so
 they show the change in balance during the report period.
 They are more useful eg when viewing a time log.
 .PP
-\f[C]C\f[] toggles cleared mode, in which uncleared transactions and
-postings are not shown.
-\f[C]U\f[] toggles uncleared mode, in which only uncleared
-transactions/postings are shown.
+\f[C]C\f[] toggles cleared mode, which shows balances for postings with
+cleared status only.
+Similarly, \f[C]P\f[] toggles pending mode, which shows balances for
+pending postings only, and \f[C]U\f[] toggles uncleared mode, which
+shows balances for unmarked postings only.
 .PP
 \f[C]R\f[] toggles real mode, in which virtual postings are ignored.
 .PP
@@ -367,10 +368,11 @@ In other words, the register always shows the transactions responsible
 for the period balance shown on the accounts screen.
 As on the accounts screen, this can be toggled with \f[C]F\f[].
 .PP
-\f[C]C\f[] toggles cleared mode, in which uncleared transactions and
-postings are not shown.
-\f[C]U\f[] toggles uncleared mode, in which only uncleared
-transactions/postings are shown.
+\f[C]C\f[] toggles cleared mode, which shows transactions with cleared
+status only.
+Similarly, \f[C]P\f[] toggles pending mode, which shows only pending
+transactions, and \f[C]U\f[] toggles uncleared mode, which shows only
+unmarked transactions.
 .PP
 \f[C]R\f[] toggles real mode, in which virtual postings are ignored.
 .PP

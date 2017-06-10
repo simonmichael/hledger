@@ -278,13 +278,13 @@ include only cleared postings/txns
 .RS
 .RE
 .TP
-.B \f[C]\-\-pending\f[]
+.B \f[C]\-P\ \-\-pending\f[]
 include only pending postings/txns
 .RS
 .RE
 .TP
 .B \f[C]\-U\ \-\-uncleared\f[]
-include only uncleared (and pending) postings/txns
+include only unmarked postings/txns
 .RS
 .RE
 .TP
@@ -967,6 +967,8 @@ match (or negatively match)
 any of the description terms AND
 .IP \[bu] 2
 any of the account terms AND
+.IP \[bu] 2
+any of the status terms AND
 .IP \[bu] 2
 all the other terms.
 .PP

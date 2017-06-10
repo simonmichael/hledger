@@ -107,12 +107,12 @@ the data.
 '-C --cleared'
 
      include only cleared postings/txns
-'--pending'
+'-P --pending'
 
      include only pending postings/txns
 '-U --uncleared'
 
-     include only uncleared (and pending) postings/txns
+     include only unmarked postings/txns
 '-R --real'
 
      include only non-virtual postings
@@ -186,7 +186,7 @@ non-standard period, you can use '/' and a 'date:' query.
 using the same query terms as in hledger and hledger-web.  While editing
 the query, you can use CTRL-a/e/d/k, BS, cursor keys; press 'ENTER' to
 set it, or 'ESCAPE'to cancel.  There are also keys for quickly adjusting
-some common filters like account depth and cleared/uncleared (see
+some common filters like account depth and transaction status (see
 below).  'BACKSPACE' or 'DELETE' removes all filters, showing all
 transactions.
 
@@ -260,9 +260,10 @@ disturbed by a filter query).  Period balances ignore transactions
 before the report start date, so they show the change in balance during
 the report period.  They are more useful eg when viewing a time log.
 
-   'C' toggles cleared mode, in which uncleared transactions and
-postings are not shown.  'U' toggles uncleared mode, in which only
-uncleared transactions/postings are shown.
+   'C' toggles cleared mode, which shows balances for postings with
+cleared status only.  Similarly, 'P' toggles pending mode, which shows
+balances for pending postings only, and 'U' toggles uncleared mode,
+which shows balances for unmarked postings only.
 
    'R' toggles real mode, in which virtual postings are ignored.
 
@@ -304,9 +305,10 @@ subaccounts.  In other words, the register always shows the transactions
 responsible for the period balance shown on the accounts screen.  As on
 the accounts screen, this can be toggled with 'F'.
 
-   'C' toggles cleared mode, in which uncleared transactions and
-postings are not shown.  'U' toggles uncleared mode, in which only
-uncleared transactions/postings are shown.
+   'C' toggles cleared mode, which shows transactions with cleared
+status only.  Similarly, 'P' toggles pending mode, which shows only
+pending transactions, and 'U' toggles uncleared mode, which shows only
+unmarked transactions.
 
    'R' toggles real mode, in which virtual postings are ignored.
 
@@ -357,17 +359,17 @@ Tag Table:
 Node: Top73
 Node: OPTIONS831
 Ref: #options930
-Node: KEYS3656
-Ref: #keys3753
-Node: SCREENS6341
-Ref: #screens6428
-Node: Accounts screen6518
-Ref: #accounts-screen6648
-Node: Register screen8697
-Ref: #register-screen8854
-Node: Transaction screen10743
-Ref: #transaction-screen10903
-Node: Error screen11773
-Ref: #error-screen11897
+Node: KEYS3644
+Ref: #keys3741
+Node: SCREENS6330
+Ref: #screens6417
+Node: Accounts screen6507
+Ref: #accounts-screen6637
+Node: Register screen8767
+Ref: #register-screen8924
+Node: Transaction screen10867
+Ref: #transaction-screen11027
+Node: Error screen11897
+Ref: #error-screen12021
 
 End Tag Table

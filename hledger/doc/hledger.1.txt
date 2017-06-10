@@ -185,11 +185,11 @@ OPTIONS
        -C --cleared
               include only cleared postings/txns
 
-       --pending
+       -P --pending
               include only pending postings/txns
 
        -U --uncleared
-              include only uncleared (and pending) postings/txns
+              include only unmarked postings/txns
 
        -R --real
               include only non-virtual postings
@@ -622,6 +622,8 @@ QUERIES
        o any of the description terms AND
 
        o any of the account terms AND
+
+       o any of the status terms AND
 
        o all the other terms.
 
