@@ -155,15 +155,17 @@ data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register fo
 -- Multiple terms are combined as follows:
 -- 1. multiple account patterns are OR'd together
 -- 2. multiple description patterns are OR'd together
--- 3. then all terms are AND'd together
+-- 3. multiple status patterns are OR'd together
+-- 4. then all terms are AND'd together
 parseQuery :: Day -> T.Text -> (Query,[QueryOpt])
 parseQuery d s = (q, opts)
   where
     terms = words'' prefixes s
     (pats, opts) = partitionEithers $ map (parseQueryTerm d) terms
     (descpats, pats') = partition queryIsDesc pats
-    (acctpats, otherpats) = partition queryIsAcct pats'
-    q = simplifyQuery $ And $ [Or acctpats, Or descpats] ++ otherpats
+    (acctpats, pats'') = partition queryIsAcct pats'
+    (statuspats, otherpats) = partition queryIsStatus pats''
+    q = simplifyQuery $ And $ [Or acctpats, Or descpats, Or statuspats] ++ otherpats
 
 tests_parseQuery = [
   "parseQuery" ~: do

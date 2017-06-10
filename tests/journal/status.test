@@ -100,3 +100,16 @@ hledger -fstatus.journal print status:
 
 >>>=0
 
+# 11. multiple status: queries are OR'd
+hledger -fstatus.journal print status: status:!
+>>>
+2017/01/01 uncleared
+    (a)               1
+    (b)               1
+
+2017/01/02 ! pending
+    (a)               1
+    ! (b)             1
+
+>>>= 0
+
