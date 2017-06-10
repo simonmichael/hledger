@@ -75,14 +75,12 @@ tests_Hledger_Cli = TestList
    -- ,tests_Hledger_Cli_Stats
 
 
-   ,"apply account directive" ~:
-   let ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)} in
-   let sameParse str1 str2 = do j1 <- readJournal Nothing Nothing True Nothing str1 >>= either error' (return . ignoresourcepos)
-                                j2 <- readJournal Nothing Nothing True Nothing str2 >>= either error' (return . ignoresourcepos)
-                                j1 `is` j2{jlastreadtime=jlastreadtime j1, jfiles=jfiles j1} --, jparsestate=jparsestate j1}
-   in TestList
-   [
-    "apply account directive 1" ~: sameParse
+   ,"apply account directive" ~: 
+      let ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)} in
+      let sameParse str1 str2 = do j1 <- readJournal Nothing Nothing True Nothing str1 >>= either error' (return . ignoresourcepos)
+                                   j2 <- readJournal Nothing Nothing True Nothing str2 >>= either error' (return . ignoresourcepos)
+                                   j1 `is` j2{jlastreadtime=jlastreadtime j1, jfiles=jfiles j1} --, jparsestate=jparsestate j1}
+      in sameParse
                            ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
                             "apply account outer\n2008/12/07 Two\n  aigh  $-2\n  bee  $2\n" <>
                             "apply account inner\n2008/12/07 Three\n  gamma  $-3\n  delta  $3\n" <>
@@ -101,8 +99,6 @@ tests_Hledger_Cli = TestList
       let p = head $ tpostings $ head $ jtxns j
       assertBool "" $ paccount p == "test:from"
       assertBool "" $ ptype p == VirtualPosting
-
-   ]
 
    ,"account aliases" ~: do
       j <- readJournal Nothing Nothing True Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return
