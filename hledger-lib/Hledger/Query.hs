@@ -79,7 +79,7 @@ data Query = Any              -- ^ always match
            | Acct Regexp      -- ^ match postings whose account matches this regexp
            | Date DateSpan    -- ^ match if primary date in this date span
            | Date2 DateSpan   -- ^ match if secondary date in this date span
-           | Status ClearedStatus  -- ^ match txns/postings with this cleared status (Status Uncleared matches all states except cleared)
+           | Status ClearedStatus  -- ^ match txns/postings with this status
            | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
            | Amt OrdPlus Quantity  -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
            | Sym Regexp       -- ^ match if the entire commodity symbol is matched by this regexp
@@ -673,7 +673,6 @@ matchesPosting (Acct r) p = matchesPosting p || matchesPosting (originalPosting 
     where matchesPosting p = regexMatchesCI r $ T.unpack $ paccount p -- XXX pack
 matchesPosting (Date span) p = span `spanContainsDate` postingDate p
 matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
-matchesPosting (Status Uncleared) p = postingStatus p /= Cleared
 matchesPosting (Status s) p = postingStatus p == s
 matchesPosting (Real v) p = v == isReal p
 matchesPosting q@(Depth _) Posting{paccount=a} = q `matchesAccount` a
@@ -694,7 +693,7 @@ tests_matchesPosting = [
                    (Status Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
     assertBool "negative match on cleared posting status"  $
                not $ (Not $ Status Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
-    assertBool "positive match on unclered posting status" $
+    assertBool "positive match on uncleared posting status" $
                    (Status Uncleared) `matchesPosting` nullposting{pstatus=Uncleared}
     assertBool "negative match on unclered posting status" $
                not $ (Not $ Status Uncleared) `matchesPosting` nullposting{pstatus=Uncleared}
@@ -731,7 +730,6 @@ matchesTransaction (Desc r) t = regexMatchesCI r $ T.unpack $ tdescription t
 matchesTransaction q@(Acct _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Date span) t = spanContainsDate span $ tdate t
 matchesTransaction (Date2 span) t = spanContainsDate span $ transactionDate2 t
-matchesTransaction (Status Uncleared) t = tstatus t /= Cleared
 matchesTransaction (Status s) t = tstatus t == s
 matchesTransaction (Real v) t = v == hasRealPostings t
 matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t

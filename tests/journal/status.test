@@ -53,10 +53,6 @@ hledger -fstatus.journal print --uncleared
     (a)               1
     (b)               1
 
-2017/01/02 ! pending
-    (a)               1
-    ! (b)             1
-
 >>>=0
 
 # 6. only one of these flags (the last) takes effect
@@ -69,8 +65,8 @@ hledger -fstatus.journal register --uncleared --pending --cleared
 # 7. these flags work with other commands
 hledger -fstatus.journal balance -N --uncleared
 >>>
-                   2  a
-                   2  b
+                   1  a
+                   1  b
 >>>=0
 
 ## matching with status: query
@@ -93,16 +89,12 @@ hledger -fstatus.journal print status:!
 
 >>>=0
 
-# 10. status: matches everything but *
+# 10. status: matches unmarked only
 hledger -fstatus.journal print status:
 >>>
 2017/01/01 uncleared
     (a)               1
     (b)               1
-
-2017/01/02 ! pending
-    (a)               1
-    ! (b)             1
 
 >>>=0
 
