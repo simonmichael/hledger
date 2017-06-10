@@ -14,6 +14,7 @@ show transactions/postings/accounts which match (or negatively match)
 
 - any of the description terms AND
 - any of the account terms AND
+- any of the status terms AND
 - all the other terms.
 
 The print command:
