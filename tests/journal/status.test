@@ -55,11 +55,13 @@ hledger -fstatus.journal print --uncleared
 
 >>>=0
 
-# 6. only one of these flags (the last) takes effect
-hledger -fstatus.journal register --uncleared --pending --cleared
+# 6. these flags can be combined
+hledger -fstatus.journal register --uncleared --pending
 >>>
-2017/01/03 cleared              (a)                              1             1
+2017/01/01 uncleared            (a)                              1             1
                                 (b)                              1             2
+2017/01/02 pending              (a)                              1             3
+                                (b)                              1             4
 >>>= 0
 
 # 7. these flags work with other commands

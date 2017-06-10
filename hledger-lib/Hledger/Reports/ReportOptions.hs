@@ -34,6 +34,7 @@ import Data.Data (Data)
 #if !MIN_VERSION_base(4,8,0)
 import Data.Functor.Compat ((<$>))
 #endif
+import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Typeable (Typeable)
@@ -73,7 +74,7 @@ instance Default AccountListMode where def = ALDefault
 data ReportOpts = ReportOpts {
      period_         :: Period
     ,interval_       :: Interval
-    ,clearedstatus_  :: Maybe ClearedStatus
+    ,clearedstatus_  :: [ClearedStatus]  -- ^ Zero, one, or two statuses to be matched
     ,cost_           :: Bool
     ,depth_          :: Maybe Int
     ,display_        :: Maybe DisplayExp
@@ -262,16 +263,18 @@ intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
       | n == "yearly"    = Just $ Years 1
       | otherwise = Nothing
 
--- | Get the cleared status, if any, specified by the last of -C/--cleared,
--- --pending, -U/--uncleared options.
-clearedStatusFromRawOpts :: RawOpts -> Maybe ClearedStatus
-clearedStatusFromRawOpts = lastMay . catMaybes . map clearedstatusfromrawopt
+-- | Get any cleared statuses to be matched, as specified by -C/--cleared,
+-- -P/--pending, -U/--uncleared options. -UPC is equivalent to no flags,
+-- so this returns a list of 0-2 unique statuses. 
+clearedStatusFromRawOpts :: RawOpts -> [ClearedStatus]
+clearedStatusFromRawOpts = simplify . nub . sort . catMaybes . map clearedstatusfromrawopt
   where
     clearedstatusfromrawopt (n,_)
       | n == "cleared"   = Just Cleared
       | n == "pending"   = Just Pending
       | n == "uncleared" = Just Uncleared
       | otherwise        = Nothing
+    simplify l = if length l == 3 then [] else l  -- TODO: (maxBound :: ClearedStatus) or something  
 
 type DisplayExp = String
 
@@ -319,7 +322,7 @@ queryFromOpts d ReportOpts{..} = simplifyQuery $ And $ [flagsq, argsq]
               [(if date2_ then Date2 else Date) $ periodAsDateSpan period_]
               ++ (if real_ then [Real True] else [])
               ++ (if empty_ then [Empty True] else []) -- ?
-              ++ (maybe [] ((:[]) . Status) clearedstatus_)
+              ++ [Or $ map Status clearedstatus_]
               ++ (maybe [] ((:[]) . Depth) depth_)
     argsq = fst $ parseQuery d (T.pack query_)
 
@@ -331,7 +334,7 @@ queryFromOptsOnly _d ReportOpts{..} = simplifyQuery flagsq
               [(if date2_ then Date2 else Date) $ periodAsDateSpan period_]
               ++ (if real_ then [Real True] else [])
               ++ (if empty_ then [Empty True] else []) -- ?
-              ++ (maybe [] ((:[]) . Status) clearedstatus_)
+              ++ [Or $ map Status clearedstatus_]
               ++ (maybe [] ((:[]) . Depth) depth_)
 
 tests_queryFromOpts :: [Test]
