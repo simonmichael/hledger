@@ -185,37 +185,43 @@ the transaction and DATE2 infers its year from DATE.
 
 ## Status
 
-More about the status field: transactions, or individual postings within a transaction,
-can be in one of three states, represented by a single character:
+Transactions, or individual postings within a transaction, 
+can have a status mark, which is a single character before
+the transaction description or posting account name, 
+separated from it by a space, indicating one of three statuses:
 
-- empty (no status character) = uncleared
-- `!` = pending (aka "tentatively cleared")
-- `*` = cleared
+mark &nbsp; | status
+:-----------|:----------
+&nbsp;      | uncleared (no mark)
+`!`         | pending
+`*`         | cleared
 
-When reporting, you can filter by status using the `-C/--cleared` and `-U/--uncleared` flags
-or the `status:` query.
+When reporting, you can filter by status with
+the `-U/--uncleared`, `-P/--pending`, and `-C/--cleared` flags;
+or the `status:`, `status:!`, and `status:*` [queries](/manual.html#queries);
+or the U, P, C keys in hledger-ui.
 
-This feature is optional, but can be helpful for reconciling with real-world accounts.
+
+Note from hledger 1.3 onwards, -U/--uncleared matches the uncleared (unmarked) status only.
+To replicate Ledger and old hledger's behaviour of also matching pending, combine -U and -P.
+
+Status marks are optional, but can be helpful eg for reconciling with real-world accounts.
+Some editor modes provide highlighting and shortcuts working with status.
+Eg in Emacs ledger-mode, you can toggle transaction status with C-c C-e, or posting status with C-c C-c.
+
 What "uncleared", "pending", and "cleared" actually mean is up to you.
+Here's one suggestion:
 
-A suggestion: use cleared (`*`) to mark transactions that are "complete", ie: 
+status    | meaning
+----------|--------
+uncleared | recorded but not yet reconciled; needs checking
+pending   | tentatively reconciled, during reconciliation (if needed); "I think I have matched this one"
+cleared   | complete, reconciled/checked as far as possible, and considered correct.
 
-- they have cleared with the bank, or the cash has been handed over
-- you are satisfied they are recorded accurately in the journal
-- the resulting account balance reported by hledger agrees exactly with the external source of truth, if any (eg the bank's online register or statement) 
-
-Then, with --cleared you'll see the current balance at your bank,
-with --uncleared you'll see things which will probably hit your bank soon (eg uncashed checks),
-and with neither flag (the default) you'll see the most up-to-date state of your finances.
-
-I don't use pending (`!`), but perhaps it is useful in very tricky reconciliations,
-as a temporary marker for transactions matched so far, allowing you start over more easily. 
-Note, the --uncleared flag matches both uncleared and pending things ("everything not definitely cleared").
-Currently, to match pending things only, use `status:!`,
-and to match uncleared things only, `not:status:! not:status:*` (`status:` seems buggy). 
-
-Some [editor modes](#editor-support) highlight entries differently based on their status.
-In Emacs ledger-mode, you can toggle transaction status with `C-c C-e`, or posting status with `C-c C-c`.  
+With this scheme, you would use
+`-PC` to see the current balance at your bank,
+`-U` to see things which will probably hit your bank soon (eg uncashed checks),
+and no flags to see the most up-to-date state of your finances.
 
 ## Account names
 
