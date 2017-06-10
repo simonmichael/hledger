@@ -178,6 +178,9 @@ or [balance assertions](manual.html#assertions-and-ordering).
   With hledger you can also specify start and/or end dates with a query argument,
   date:START-END, which probably doesn't combine perfectly with the options.
 
+- in hledger version 1.3 onward, -U/--uncleared does not match pending things.
+  (#564)
+
 ### Future ?
 
 There is a [ledger4](https://github.com/ledger/ledger4) repo on
