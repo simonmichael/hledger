@@ -620,10 +620,16 @@ builtintest: \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 
 # assumes hledger is built and uses whatever build is there, avoiding excessive rebuilding
-functest: tests/addons/hledger-addon \
+functest: addons tests/addons/hledger-addon \
 	$(call def-help,functest, run the functional tests for hledger )
 	@($(SHELLTESTSTK) tests \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
+
+addons: \
+	$(call def-help,addons,\
+	compile the experimental add-on commands, required for functional tests \
+	)
+	bin/compile.sh
 
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
 tests/addons/hledger-addon: \
