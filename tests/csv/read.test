@@ -17,7 +17,7 @@
 # Test numbers in comments were wrong (now fixed).
 
 # 1. read CSV to hledger journal format
- rm -rf t.rules$$; printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ rm -rf t.rules$$; printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; printf '10/2009/09,Flubber Co,50\n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
 >>>
 2009/09/10 Flubber Co
     income:unknown            $-50
@@ -44,7 +44,7 @@
 >>>=0
 
 # report rules parse error
-# rm -rf t.rules$$; printf 'date-fiel 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | hledger convert --rules-file t.rules$$; rm -rf t.rules$$
+# rm -rf t.rules$$; printf 'date-fiel 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; printf '10/2009/09,Flubber Co,50\n' | hledger convert --rules-file t.rules$$; rm -rf t.rules$$
 # >>>
 # 2009/09/10 Flubber Co
 #     income:unknown          $-50
@@ -54,7 +54,7 @@
 # >>>=0
 
 # 3. handle conditions assigning multiple fields
- rm -rf t.rules$$; printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\nif Flubber\n  account2 acct\n  comment cmt' >t.rules$$; echo '10/2009/09,Flubber Co,50' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ rm -rf t.rules$$; printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\nif Flubber\n  account2 acct\n  comment cmt' >t.rules$$; printf '10/2009/09,Flubber Co,50\n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
 >>>
 2009/09/10 Flubber Co    ; cmt
     acct                     $-50
@@ -78,7 +78,7 @@
 #>>>=0
 
 # 4. read CSV with balance field
- rm -rf t.rules$$; printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50,123' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ rm -rf t.rules$$; printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; printf '10/2009/09,Flubber Co,50,123\n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
 >>>
 2009/09/10 Flubber Co
     income:unknown            $-50
@@ -88,7 +88,7 @@
 >>>=0
 
 # 5. read CSV with blank balance field
- rm -rf t.rules$$; printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ rm -rf t.rules$$; printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; printf '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,\n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
 >>>
 2009/09/10 Flubber Co
     income:unknown            $-50
@@ -102,7 +102,7 @@
 >>>=0
 
 # 6. read CSV with empty balance field
- rm -rf t.rules$$; printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,   ' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ rm -rf t.rules$$; printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; printf '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,   \n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
 >>>
 2009/09/10 Flubber Co
     income:unknown            $-50
@@ -116,7 +116,7 @@
 >>>=0
 
 # 7. read CSV with rule double-negating column
- rm -rf t.rules$$; printf 'skip 1\n\ncurrency $\n\nfields date, payee, payment\n\namount -%%payment\naccount1 liabilities:bank\naccount2 expense:other' >t.rules$$; echo 'date,payee,amount\n2009/10/9,Flubber Co,50\n2009/11/09,Merchant Credit,-60' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ rm -rf t.rules$$; printf 'skip 1\n\ncurrency $\n\nfields date, payee, payment\n\namount -%%payment\naccount1 liabilities:bank\naccount2 expense:other' >t.rules$$; printf 'date,payee,amount\n2009/10/9,Flubber Co,50\n2009/11/09,Merchant Credit,-60\n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
 >>>
 2009/10/09
     expense:other                $50
