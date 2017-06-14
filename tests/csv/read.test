@@ -1,33 +1,27 @@
 # NOTE some issues with these tests:
 # 
-# The stderr regex tests don't tell us much as the CSV reader always gives that output.
+# The final cleanup command is chained with && so as not to mask hledger's exit code,
+# but this means a temp file is left behind whenever hledger fails. What TODO ?
+#
+# The stderr regex tests don't tell us much, as the CSV reader always gives that output.
 # They'll cause stderr to be displayed if the CSV reader doesn't run at all,
 # which is slightly better than nothing.
 #
-# echo doesn't normally support embedded \n characters, though somehow it has been working 
-# on most systems (shelltestrunner ?)
-#
-# The final cleanup command, chained with ;, masks hledger's exit code.
-#
-# We should use the csv: prefix when reading stdin, to ensure we get the CSV reader's
-# error message if it fails.
-# 
-# The "blank" and "empty" test names are switched.
-#
-# Test numbers in comments were wrong (now fixed).
+# These tests read CSV from stdin for convenience, so to ensure we get the CSV reader's
+# error, the csv: prefix is used. 
 
 # 1. read CSV to hledger journal format
- rm -rf t.rules$$; printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; printf '10/2009/09,Flubber Co,50\n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/09/10 Flubber Co
     income:unknown            $-50
     assets:myacct              $50
 
->>>2 /using conversion rules file.*t.rules/
+>>>2 /using conversion rules file/
 >>>=0
 
 # 2. reading CSV with in-field and out-field
- printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >$$.rules ; hledger -f- print --rules-file $$.rules; rm -rf $$.rules
+ printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >t.$$.csv.rules ; hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 <<<
 10/2009/09,Flubber Co,50,
 11/2009/09,Flubber Co,,50
@@ -40,55 +34,31 @@
     expenses:unknown             $50
     Assets:MyAccount            $-50
 
->>>2 /using conversion rules file.*[0-9]+\.rules/
+>>>2 /using conversion rules file/
 >>>=0
 
-# report rules parse error
-# rm -rf t.rules$$; printf 'date-fiel 0\ndate-format %%d/%%Y/%%m\ndescription-field 1\namount-field 2\ncurrency $\nbase-account assets:myacct\n' >t.rules$$; printf '10/2009/09,Flubber Co,50\n' | hledger convert --rules-file t.rules$$; rm -rf t.rules$$
-# >>>
-# 2009/09/10 Flubber Co
-#     income:unknown          $-50
-#     assets:myacct            $50
-
-# >>>2 /using conversion rules file.*t.rules/
-# >>>=0
-
 # 3. handle conditions assigning multiple fields
- rm -rf t.rules$$; printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\nif Flubber\n  account2 acct\n  comment cmt' >t.rules$$; printf '10/2009/09,Flubber Co,50\n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\nif Flubber\n  account2 acct\n  comment cmt' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/09/10 Flubber Co    ; cmt
     acct                     $-50
     assets:myacct             $50
 
->>>2 /using conversion rules file.*t.rules/
+>>>2 /using conversion rules file/
 >>>=0
-
-# this should infer display styles correctly
-# XXX but doesn't: (#415)
-# Got stdout:
-#            $-1001.00  income:unknown
-#            $1,001.00  unknown
-#hledger --rules-file minimal.csv.rules -f- balance --no-total
-#<<<
-#"2016/1/1","$1"
-#"2016/2/2","$1,000.00"
-#>>>
-#          $-1,001.00  income:unknown
-#           $1,001.00  unknown
-#>>>=0
 
 # 4. read CSV with balance field
- rm -rf t.rules$$; printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; printf '10/2009/09,Flubber Co,50,123\n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,123\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/09/10 Flubber Co
     income:unknown            $-50
     assets:myacct              $50 = $123
 
->>>2 /using conversion rules file.*t.rules/
+>>>2 /using conversion rules file/
 >>>=0
 
-# 5. read CSV with blank balance field
- rm -rf t.rules$$; printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; printf '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,\n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+# 5. read CSV with empty balance field
+ printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/09/10 Flubber Co
     income:unknown            $-50
@@ -98,11 +68,11 @@
     income:unknown            $-60
     assets:myacct              $60
 
->>>2 /using conversion rules file.*t.rules/
+>>>2 /using conversion rules file/
 >>>=0
 
-# 6. read CSV with empty balance field
- rm -rf t.rules$$; printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; printf '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,   \n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+# 6. read CSV with only whitespace in balance field
+ printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,   \n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/09/10 Flubber Co
     income:unknown            $-50
@@ -112,11 +82,11 @@
     income:unknown            $-60
     assets:myacct              $60
 
->>>2 /using conversion rules file.*t.rules/
+>>>2 /using conversion rules file/
 >>>=0
 
 # 7. read CSV with rule double-negating column
- rm -rf t.rules$$; printf 'skip 1\n\ncurrency $\n\nfields date, payee, payment\n\namount -%%payment\naccount1 liabilities:bank\naccount2 expense:other' >t.rules$$; printf 'date,payee,amount\n2009/10/9,Flubber Co,50\n2009/11/09,Merchant Credit,-60\n' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
+ printf 'skip 1\n\ncurrency $\n\nfields date, payee, payment\n\namount -%%payment\naccount1 liabilities:bank\naccount2 expense:other' >t.$$.csv.rules; printf 'date,payee,amount\n2009/10/9,Flubber Co,50\n2009/11/09,Merchant Credit,-60\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/10/09
     expense:other                $50
@@ -126,5 +96,5 @@
     expense:other               $-60
     liabilities:bank             $60
 
->>>2 /using conversion rules file.*t.rules/
+>>>2 /using conversion rules file/
 >>>=0
