@@ -1,3 +1,21 @@
+# NOTE some issues with these tests:
+# 
+# The stderr regex tests don't tell us much as the CSV reader always gives that output.
+# They'll cause stderr to be displayed if the CSV reader doesn't run at all,
+# which is slightly better than nothing.
+#
+# echo doesn't normally support embedded \n characters, though somehow it has been working 
+# on most systems (shelltestrunner ?)
+#
+# The final cleanup command, chained with ;, masks hledger's exit code.
+#
+# We should use the csv: prefix when reading stdin, to ensure we get the CSV reader's
+# error message if it fails.
+# 
+# The "blank" and "empty" test names are switched.
+#
+# Test numbers in comments were wrong (now fixed).
+
 # 1. read CSV to hledger journal format
  rm -rf t.rules$$; printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.rules$$; echo '10/2009/09,Flubber Co,50' | hledger -f- print --rules-file t.rules$$; rm -rf t.rules$$
 >>>
