@@ -17,20 +17,20 @@ import Hledger.Cli.CliOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIOptions
 
--- | Toggle between showing only cleared items or all items.
-toggleCleared :: UIState -> UIState
-toggleCleared ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Cleared ropts}}}
+-- | Toggle between showing only unmarked items or all items.
+toggleUnmarked :: UIState -> UIState
+toggleUnmarked ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Unmarked ropts}}}
 
 -- | Toggle between showing only pending items or all items.
 togglePending :: UIState -> UIState
 togglePending ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Pending ropts}}}
 
--- | Toggle between showing only unmarked items or all items.
-toggleUnmarked :: UIState -> UIState
-toggleUnmarked ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Unmarked ropts}}}
+-- | Toggle between showing only cleared items or all items.
+toggleCleared :: UIState -> UIState
+toggleCleared ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
+  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Cleared ropts}}}
 
 reportOptsToggleStatus s ropts
   | clearedstatus_ ropts == [s] = ropts{clearedstatus_=[]}

@@ -26,9 +26,9 @@ Available options:
   --ignore-assertions      ignore any balance assertions in the journal
   -b,--begin DATE          include postings/txns on or after this date
   -e,--end DATE            include postings/txns before this date
-  -C,--cleared             include only cleared postings/txns
-  -P,--pending             include only pending postings/txns
   -U,--unmarked            include only unmarked postings/txns
+  -P,--pending             include only pending postings/txns
+  -C,--cleared             include only cleared postings/txns
   -R,--real                include only non-virtual postings
   --sunday                 weeks start on Sunday
   -D,--daily ASSERT        assertions that must hold at the end of the day

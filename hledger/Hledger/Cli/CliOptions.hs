@@ -139,9 +139,9 @@ reportflags = [
  ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set start date, end date, and/or report interval all at once (overrides the flags above)"
  ,flagNone ["date2"]         (setboolopt "date2") "show, and make -b/-e/-p/date: match, secondary dates instead"
 
- ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only cleared postings/txns"
+ ,flagNone ["unmarked","U"]  (setboolopt "unmarked") "include only unmarked postings/txns (can combine with -P or -C)"
  ,flagNone ["pending","P"]   (setboolopt "pending") "include only pending postings/txns"
- ,flagNone ["unmarked","U"]  (setboolopt "unmarked") "include only unmarked postings/txns"
+ ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only cleared postings/txns"
  ,flagNone ["real","R"]      (setboolopt "real") "include only non-virtual postings"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/postings deeper than N"
  ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden"
