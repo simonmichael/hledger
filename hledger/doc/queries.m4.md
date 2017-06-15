@@ -71,8 +71,8 @@ If the `--date2` command line flag is present, this matches [secondary dates](ma
 **`real:, real:0`**
 : match real or virtual postings respectively
 
-**`status:*, status:!, status:`**
-: match cleared, pending, or uncleared/pending transactions respectively
+**`status:, status:!, status:*`**
+: match unmarked, pending, or cleared transactions respectively
 
 **`tag:REGEX[=REGEX]`**
 : match by tag name, and optionally also by tag value.  Note a
