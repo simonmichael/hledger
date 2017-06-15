@@ -169,7 +169,7 @@ parserErrorAt pos s = throwError $ sourcePosPretty pos ++ ":\n" ++ s
 --- * parsers
 --- ** transaction bits
 
-statusp :: TextParser m ClearedStatus
+statusp :: TextParser m Status
 statusp =
   choice'
     [ many spacenonewline >> char '*' >> return Cleared

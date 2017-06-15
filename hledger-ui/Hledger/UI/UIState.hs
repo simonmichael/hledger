@@ -120,7 +120,7 @@ resetFilter ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=rop
   ui{aopts=uopts{cliopts_=copts{reportopts_=ropts{
      accountlistmode_=ALTree
     ,empty_=True
-    ,clearedstatus_=[]
+    ,statuses_=[]
     ,real_=False
     ,query_=""
     --,period_=PeriodAll

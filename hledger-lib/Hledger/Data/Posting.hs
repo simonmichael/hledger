@@ -169,7 +169,7 @@ postingDate2 p = headDef nulldate $ catMaybes dates
 -- transaction, or unmarked if there is no parent transaction. (Note
 -- the ambiguity, unmarked can mean "posting and transaction are both 
 -- unmarked" or "posting is unmarked and don't know about the transaction".
-postingStatus :: Posting -> ClearedStatus
+postingStatus :: Posting -> Status
 postingStatus Posting{pstatus=s, ptransaction=mt}
   | s == Unmarked = case mt of Just t  -> tstatus t
                                Nothing -> Unmarked

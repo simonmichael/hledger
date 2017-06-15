@@ -178,7 +178,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           where
             togglefilters =
               case concat [
-                   uiShowClearedStatus $ clearedstatus_ ropts
+                   uiShowStatus $ statuses_ ropts
                   ,if real_ ropts then ["real"] else []
                   ,if empty_ ropts then [] else ["nonzero"]
                   ] of

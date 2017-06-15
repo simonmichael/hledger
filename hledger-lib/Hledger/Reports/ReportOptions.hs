@@ -74,7 +74,7 @@ instance Default AccountListMode where def = ALDefault
 data ReportOpts = ReportOpts {
      period_         :: Period
     ,interval_       :: Interval
-    ,clearedstatus_  :: [ClearedStatus]  -- ^ Zero, one, or two statuses to be matched
+    ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
     ,cost_           :: Bool
     ,depth_          :: Maybe Int
     ,display_        :: Maybe DisplayExp
@@ -134,7 +134,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
   return defreportopts{
      period_      = periodFromRawOpts d rawopts'
     ,interval_    = intervalFromRawOpts rawopts'
-    ,clearedstatus_ = clearedStatusFromRawOpts rawopts'
+    ,statuses_    = statusesFromRawOpts rawopts'
     ,cost_        = boolopt "cost" rawopts'
     ,depth_       = maybeintopt "depth" rawopts'
     ,display_     = maybedisplayopt d rawopts'
@@ -263,18 +263,26 @@ intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
       | n == "yearly"    = Just $ Years 1
       | otherwise = Nothing
 
--- | Get any cleared statuses to be matched, as specified by -C/--cleared,
--- -P/--pending, -U/--unmarked options. -UPC is equivalent to no flags,
--- so this returns a list of 0-2 unique statuses. 
-clearedStatusFromRawOpts :: RawOpts -> [ClearedStatus]
-clearedStatusFromRawOpts = simplify . nub . sort . catMaybes . map clearedstatusfromrawopt
+-- | Get any statuses to be matched, as specified by -U/--unmarked,
+-- -P/--pending, -C/--cleared flags. -UPC is equivalent to no flags,
+-- so this returns a list of 0-2 unique statuses.
+statusesFromRawOpts :: RawOpts -> [Status]
+statusesFromRawOpts = simplifyStatuses . catMaybes . map statusfromrawopt
   where
-    clearedstatusfromrawopt (n,_)
-      | n == "cleared"   = Just Cleared
-      | n == "pending"   = Just Pending
+    statusfromrawopt (n,_)
       | n == "unmarked"  = Just Unmarked
+      | n == "pending"   = Just Pending
+      | n == "cleared"   = Just Cleared
       | otherwise        = Nothing
-    simplify l = if length l == 3 then [] else l  -- TODO: (maxBound :: ClearedStatus) or something  
+
+-- | Reduce a list of statuses to just one of each status,
+-- and if all statuses are present return the empty list.
+simplifyStatuses l
+  | length l' >= numstatuses = []
+  | otherwise                = l'
+  where
+    l' = nub $ sort l 
+    numstatuses = length [minBound .. maxBound :: Status]
 
 type DisplayExp = String
 
@@ -322,7 +330,7 @@ queryFromOpts d ReportOpts{..} = simplifyQuery $ And $ [flagsq, argsq]
               [(if date2_ then Date2 else Date) $ periodAsDateSpan period_]
               ++ (if real_ then [Real True] else [])
               ++ (if empty_ then [Empty True] else []) -- ?
-              ++ [Or $ map StatusQ clearedstatus_]
+              ++ [Or $ map StatusQ statuses_]
               ++ (maybe [] ((:[]) . Depth) depth_)
     argsq = fst $ parseQuery d (T.pack query_)
 
@@ -334,7 +342,7 @@ queryFromOptsOnly _d ReportOpts{..} = simplifyQuery flagsq
               [(if date2_ then Date2 else Date) $ periodAsDateSpan period_]
               ++ (if real_ then [Real True] else [])
               ++ (if empty_ then [Empty True] else []) -- ?
-              ++ [Or $ map StatusQ clearedstatus_]
+              ++ [Or $ map StatusQ statuses_]
               ++ (maybe [] ((:[]) . Depth) depth_)
 
 tests_queryFromOpts :: [Test]
