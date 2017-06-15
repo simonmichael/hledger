@@ -28,7 +28,7 @@ runHelp = runCommand "hledger-ui --help | less" >>= waitForProcess
 
 -- ui
 
-uiShowClearedStatus = map showstatus . sort
+uiShowStatus = map showstatus . sort
  where
    showstatus Cleared  = "cleared"
    showstatus Pending  = "pending"

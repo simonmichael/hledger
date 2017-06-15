@@ -346,7 +346,7 @@ filterJournalTransactions FilterSpec{datespan=datespan
                                     ,depth=depth
                                     ,fMetadata=md
                                     } =
-    filterJournalTransactionsByClearedStatus cleared .
+    filterJournalTransactionsByStatus cleared .
     filterJournalPostingsByDepth depth .
     filterJournalTransactionsByAccount apats .
     filterJournalTransactionsByMetadata md .
@@ -366,7 +366,7 @@ filterJournalPostings FilterSpec{datespan=datespan
                                 ,fMetadata=md
                                 } =
     filterJournalPostingsByRealness real .
-    filterJournalPostingsByClearedStatus cleared .
+    filterJournalPostingsByStatus cleared .
     filterJournalPostingsByEmpty empty .
     filterJournalPostingsByDepth depth .
     filterJournalPostingsByAccount apats .
@@ -393,16 +393,16 @@ filterJournalTransactionsByDate (DateSpan begin end) j@Journal{jtxns=ts} = j{jtx
 
 -- | Keep only transactions which have the requested cleared/uncleared
 -- status, if there is one.
-filterJournalTransactionsByClearedStatus :: Maybe Bool -> Journal -> Journal
-filterJournalTransactionsByClearedStatus Nothing j = j
-filterJournalTransactionsByClearedStatus (Just val) j@Journal{jtxns=ts} = j{jtxns=filter match ts}
+filterJournalTransactionsByStatus :: Maybe Bool -> Journal -> Journal
+filterJournalTransactionsByStatus Nothing j = j
+filterJournalTransactionsByStatus (Just val) j@Journal{jtxns=ts} = j{jtxns=filter match ts}
     where match = (==val).tstatus
 
 -- | Keep only postings which have the requested cleared/uncleared status,
 -- if there is one.
-filterJournalPostingsByClearedStatus :: Maybe Bool -> Journal -> Journal
-filterJournalPostingsByClearedStatus Nothing j = j
-filterJournalPostingsByClearedStatus (Just c) j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
+filterJournalPostingsByStatus :: Maybe Bool -> Journal -> Journal
+filterJournalPostingsByStatus Nothing j = j
+filterJournalPostingsByStatus (Just c) j@Journal{jtxns=ts} = j{jtxns=map filterpostings ts}
     where filterpostings t@Transaction{tpostings=ps} = t{tpostings=filter ((==c) . postingCleared) ps}
 
 -- | Strip out any virtual postings, if the flag is true, otherwise do

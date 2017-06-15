@@ -79,7 +79,7 @@ data Query = Any              -- ^ always match
            | Acct Regexp      -- ^ match postings whose account matches this regexp
            | Date DateSpan    -- ^ match if primary date in this date span
            | Date2 DateSpan   -- ^ match if secondary date in this date span
-           | StatusQ ClearedStatus  -- ^ match txns/postings with this status
+           | StatusQ Status  -- ^ match txns/postings with this status
            | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
            | Amt OrdPlus Quantity  -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
            | Sym Regexp       -- ^ match if the entire commodity symbol is matched by this regexp
@@ -364,7 +364,7 @@ parseTag s | "=" `T.isInfixOf` s = (T.unpack n, Just $ tail $ T.unpack v)
            where (n,v) = T.break (=='=') s
 
 -- | Parse the value part of a "status:" query, or return an error.
-parseStatus :: T.Text -> Either String ClearedStatus
+parseStatus :: T.Text -> Either String Status
 parseStatus s | s `elem` ["*","1"] = Right Cleared
               | s `elem` ["!"]     = Right Pending
               | s `elem` ["","0"]  = Right Unmarked

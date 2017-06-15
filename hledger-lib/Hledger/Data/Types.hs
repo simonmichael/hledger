@@ -182,12 +182,12 @@ type Tag = (TagName, TagValue)  -- ^ A tag name and (possibly empty) value.
 
 -- | The status of a transaction or posting, recorded with a status mark
 -- (nothing, !, or *). What these mean is ultimately user defined.
-data ClearedStatus = Unmarked | Pending | Cleared
-  deriving (Eq,Ord,Typeable,Data,Generic)
+data Status = Unmarked | Pending | Cleared
+  deriving (Eq,Ord,Bounded,Enum,Typeable,Data,Generic)
 
-instance NFData ClearedStatus
+instance NFData Status
 
-instance Show ClearedStatus where -- custom show.. bad idea.. don't do it..
+instance Show Status where -- custom show.. bad idea.. don't do it..
   show Unmarked = ""
   show Pending   = "!"
   show Cleared   = "*"
@@ -195,7 +195,7 @@ instance Show ClearedStatus where -- custom show.. bad idea.. don't do it..
 data Posting = Posting {
       pdate             :: Maybe Day,         -- ^ this posting's date, if different from the transaction's
       pdate2            :: Maybe Day,         -- ^ this posting's secondary date, if different from the transaction's
-      pstatus           :: ClearedStatus,
+      pstatus           :: Status,
       paccount          :: AccountName,
       pamount           :: MixedAmount,
       pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
@@ -227,7 +227,7 @@ data Transaction = Transaction {
       tsourcepos               :: GenericSourcePos,
       tdate                    :: Day,
       tdate2                   :: Maybe Day,
-      tstatus                  :: ClearedStatus,
+      tstatus                  :: Status,
       tcode                    :: Text,
       tdescription             :: Text,
       tcomment                 :: Text,      -- ^ this transaction's comment lines, as a single non-indented multi-line string

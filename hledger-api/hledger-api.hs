@@ -165,7 +165,7 @@ hledgerApiApp staticdir j = Servant.serve api server
             thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
           return $ accountTransactionsReport ropts j q thisacctq
 
-instance ToJSON ClearedStatus where toJSON = genericToJSON defaultOptions -- avoiding https://github.com/bos/aeson/issues/290
+instance ToJSON Status where toJSON = genericToJSON defaultOptions -- avoiding https://github.com/bos/aeson/issues/290
 instance ToJSON GenericSourcePos where toJSON = genericToJSON defaultOptions
 instance ToJSON Decimal where
   toJSON = toJSON . show
@@ -203,7 +203,7 @@ instance ToJSON Account where
     ,"aparentname"  .= toJSON (maybe "" aname $ aparent a)
     ,"asubs"        .= toJSON (map toJSON $ asubs a)
     ]
-instance ToSchema ClearedStatus
+instance ToSchema Status
 instance ToSchema GenericSourcePos
 instance ToSchema Decimal
  where
