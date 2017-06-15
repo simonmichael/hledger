@@ -266,8 +266,8 @@ tests_postingsReport = [
    (Any, samplejournal) `gives` 11
    -- register --depth just clips account names
    (Depth 2, samplejournal) `gives` 11
-   (And [Depth 1, Status Cleared, Acct "expenses"], samplejournal) `gives` 2
-   (And [And [Depth 1, Status Cleared], Acct "expenses"], samplejournal) `gives` 2
+   (And [Depth 1, StatusQ Cleared, Acct "expenses"], samplejournal) `gives` 2
+   (And [And [Depth 1, StatusQ Cleared], Acct "expenses"], samplejournal) `gives` 2
 
    -- with query and/or command-line options
    assertEqual "" 11 (length $ snd $ postingsReport defreportopts Any samplejournal)

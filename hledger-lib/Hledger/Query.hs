@@ -79,7 +79,7 @@ data Query = Any              -- ^ always match
            | Acct Regexp      -- ^ match postings whose account matches this regexp
            | Date DateSpan    -- ^ match if primary date in this date span
            | Date2 DateSpan   -- ^ match if secondary date in this date span
-           | Status ClearedStatus  -- ^ match txns/postings with this status
+           | StatusQ ClearedStatus  -- ^ match txns/postings with this status
            | Real Bool        -- ^ match if "realness" (involves a real non-virtual account ?) has this value
            | Amt OrdPlus Quantity  -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
            | Sym Regexp       -- ^ match if the entire commodity symbol is matched by this regexp
@@ -104,7 +104,7 @@ instance Show Query where
   show (Acct r)      = "Acct "   ++ show r
   show (Date ds)     = "Date ("  ++ show ds ++ ")"
   show (Date2 ds)    = "Date2 (" ++ show ds ++ ")"
-  show (Status b)    = "Status " ++ show b
+  show (StatusQ b)    = "StatusQ " ++ show b
   show (Real b)      = "Real "   ++ show b
   show (Amt ord qty) = "Amt "    ++ show ord ++ " " ++ show qty
   show (Sym r)       = "Sym "    ++ show r
@@ -270,7 +270,7 @@ parseQueryTerm d (T.stripPrefix "date:" -> Just s) =
                                     Right (_,span) -> Left $ Date span
 parseQueryTerm _ (T.stripPrefix "status:" -> Just s) =
         case parseStatus s of Left e   -> error' $ "\"status:"++T.unpack s++"\" gave a parse error: " ++ e
-                              Right st -> Left $ Status st
+                              Right st -> Left $ StatusQ st
 parseQueryTerm _ (T.stripPrefix "real:" -> Just s) = Left $ Real $ parseBool s || T.null s
 parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = Left $ Amt ord q where (ord, q) = parseAmountQueryTerm s
 parseQueryTerm _ (T.stripPrefix "empty:" -> Just s) = Left $ Empty $ parseBool s
@@ -290,11 +290,11 @@ tests_parseQueryTerm = [
     "a" `gives` (Left $ Acct "a")
     "acct:expenses:autres d\233penses" `gives` (Left $ Acct "expenses:autres d\233penses")
     "not:desc:a b" `gives` (Left $ Not $ Desc "a b")
-    "status:1" `gives` (Left $ Status Cleared)
-    "status:*" `gives` (Left $ Status Cleared)
-    "status:!" `gives` (Left $ Status Pending)
-    "status:0" `gives` (Left $ Status Unmarked)
-    "status:" `gives` (Left $ Status Unmarked)
+    "status:1" `gives` (Left $ StatusQ Cleared)
+    "status:*" `gives` (Left $ StatusQ Cleared)
+    "status:!" `gives` (Left $ StatusQ Pending)
+    "status:0" `gives` (Left $ StatusQ Unmarked)
+    "status:" `gives` (Left $ StatusQ Unmarked)
     "real:1" `gives` (Left $ Real True)
     "date:2008" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
     "date:from 2012/5/17" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
@@ -433,7 +433,7 @@ tests_filterQuery = [
   let (q,p) `gives` r = assertEqual "" r (filterQuery p q)
   (Any, queryIsDepth) `gives` Any
   (Depth 1, queryIsDepth) `gives` Depth 1
-  (And [And [Status Cleared,Depth 1]], not . queryIsDepth) `gives` Status Cleared
+  (And [And [StatusQ Cleared,Depth 1]], not . queryIsDepth) `gives` StatusQ Cleared
   -- (And [Date nulldatespan, Not (Or [Any, Depth 1])], queryIsDepth) `gives` And [Not (Or [Depth 1])]
  ]
 
@@ -480,7 +480,7 @@ queryIsReal (Real _) = True
 queryIsReal _ = False
 
 queryIsStatus :: Query -> Bool
-queryIsStatus (Status _) = True
+queryIsStatus (StatusQ _) = True
 queryIsStatus _ = False
 
 queryIsEmpty :: Query -> Bool
@@ -675,7 +675,7 @@ matchesPosting (Acct r) p = matchesPosting p || matchesPosting (originalPosting 
     where matchesPosting p = regexMatchesCI r $ T.unpack $ paccount p -- XXX pack
 matchesPosting (Date span) p = span `spanContainsDate` postingDate p
 matchesPosting (Date2 span) p = span `spanContainsDate` postingDate2 p
-matchesPosting (Status s) p = postingStatus p == s
+matchesPosting (StatusQ s) p = postingStatus p == s
 matchesPosting (Real v) p = v == isReal p
 matchesPosting q@(Depth _) Posting{paccount=a} = q `matchesAccount` a
 matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
@@ -692,15 +692,15 @@ tests_matchesPosting = [
    "matchesPosting" ~: do
     -- matching posting status..
     assertBool "positive match on cleared posting status"  $
-                   (Status Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
+                   (StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
     assertBool "negative match on cleared posting status"  $
-               not $ (Not $ Status Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
+               not $ (Not $ StatusQ Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
     assertBool "positive match on unmarked posting status" $
-                   (Status Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
+                   (StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
     assertBool "negative match on unmarked posting status" $
-               not $ (Not $ Status Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
+               not $ (Not $ StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
     assertBool "positive match on true posting status acquired from transaction" $
-                   (Status Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
+                   (StatusQ Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
     assertBool "real:1 on real posting" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
     assertBool "real:1 on virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
     assertBool "real:1 on balanced virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
@@ -732,7 +732,7 @@ matchesTransaction (Desc r) t = regexMatchesCI r $ T.unpack $ tdescription t
 matchesTransaction q@(Acct _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Date span) t = spanContainsDate span $ tdate t
 matchesTransaction (Date2 span) t = spanContainsDate span $ transactionDate2 t
-matchesTransaction (Status s) t = tstatus t == s
+matchesTransaction (StatusQ s) t = tstatus t == s
 matchesTransaction (Real v) t = v == hasRealPostings t
 matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Empty _) _ = True
