@@ -13,7 +13,7 @@
 ```
 Usage: hledger-check [-f|--file FILE] [--alias OLD=NEW] [--ignore-assertions]
                      [-b|--begin DATE] [-e|--end DATE] [-C|--cleared]
-                     [--pending] [-U|--uncleared] [-R|--real] [--sunday]
+                     [--pending] [-U|--unmarked] [-R|--real] [--sunday]
                      [-D|--daily ASSERT] [-W|--weekly ASSERT]
                      [-M|--monthly ASSERT] [-Q|--quarterly ASSERT]
                      [-Y|--yearly ASSERT] [ASSERT]
@@ -27,8 +27,8 @@ Available options:
   -b,--begin DATE          include postings/txns on or after this date
   -e,--end DATE            include postings/txns before this date
   -C,--cleared             include only cleared postings/txns
-  --pending                include only pending postings/txns
-  -U,--uncleared           include only uncleared (and pending) postings/txns
+  -P,--pending             include only pending postings/txns
+  -U,--unmarked            include only unmarked postings/txns
   -R,--real                include only non-virtual postings
   --sunday                 weeks start on Sunday
   -D,--daily ASSERT        assertions that must hold at the end of the day
@@ -228,10 +228,10 @@ inAssertion account = inAssertion'
 fixupJournal :: Opts -> H.Journal -> IO (H.Journal, [(H.AccountName, H.MixedAmount)])
 fixupJournal opts j = do
     today <- H.getCurrentDay
-    let j' = (if cleared   opts then H.filterJournalTransactions (H.Status H.Cleared)   else id)
-           . (if pending   opts then H.filterJournalTransactions (H.Status H.Pending)   else id)
-           . (if uncleared opts then H.filterJournalTransactions (H.Status H.Uncleared) else id)
-           . (if real      opts then H.filterJournalTransactions (H.Real   True)        else id)
+    let j' = (if cleared   opts then H.filterJournalTransactions (H.Status H.Cleared)  else id)
+           . (if pending   opts then H.filterJournalTransactions (H.Status H.Pending)  else id)
+           . (if unmarked  opts then H.filterJournalTransactions (H.Status H.Unmarked) else id)
+           . (if real      opts then H.filterJournalTransactions (H.Real   True)       else id)
            $ H.journalApplyAliases (aliases opts) j
     let starting = case begin opts of
           Just _  ->
@@ -319,8 +319,8 @@ data Opts = Opts
     -- ^ Include only cleared postings/txns.
     , pending :: Bool
     -- ^ Include only pending postings/txns.
-    , uncleared :: Bool
-    -- ^ Include only uncleared (and pending) postings/txns.
+    , unmarked :: Bool
+    -- ^ Include only unmarked postings/txns.
     , real :: Bool
     -- ^ Include only non-virtual postings.
     , sunday :: Bool
@@ -362,7 +362,7 @@ args = info (helper <*> parser) $ mconcat
                   <*> switch
                         (arg' "pending" "include only pending postings/txns")
                   <*> switch
-                        (arg 'U' "uncleared" "include only uncleared (and pending) postings/txns")
+                        (arg 'U' "unmarked" "include only unmarked postings/txns")
                   <*> switch
                         (arg 'R' "real" "include only non-virtual postings")
                   <*> switch

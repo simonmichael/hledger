@@ -293,8 +293,8 @@ tests_parseQueryTerm = [
     "status:1" `gives` (Left $ Status Cleared)
     "status:*" `gives` (Left $ Status Cleared)
     "status:!" `gives` (Left $ Status Pending)
-    "status:0" `gives` (Left $ Status Uncleared)
-    "status:" `gives` (Left $ Status Uncleared)
+    "status:0" `gives` (Left $ Status Unmarked)
+    "status:" `gives` (Left $ Status Unmarked)
     "real:1" `gives` (Left $ Real True)
     "date:2008" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
     "date:from 2012/5/17" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
@@ -367,7 +367,7 @@ parseTag s | "=" `T.isInfixOf` s = (T.unpack n, Just $ tail $ T.unpack v)
 parseStatus :: T.Text -> Either String ClearedStatus
 parseStatus s | s `elem` ["*","1"] = Right Cleared
               | s `elem` ["!"]     = Right Pending
-              | s `elem` ["","0"]  = Right Uncleared
+              | s `elem` ["","0"]  = Right Unmarked
               | otherwise          = Left $ "could not parse "++show s++" as a status (should be *, ! or empty)"
 
 -- | Parse the boolean value part of a "status:" query. "1" means true,
@@ -695,12 +695,12 @@ tests_matchesPosting = [
                    (Status Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
     assertBool "negative match on cleared posting status"  $
                not $ (Not $ Status Cleared)  `matchesPosting` nullposting{pstatus=Cleared}
-    assertBool "positive match on uncleared posting status" $
-                   (Status Uncleared) `matchesPosting` nullposting{pstatus=Uncleared}
-    assertBool "negative match on unclered posting status" $
-               not $ (Not $ Status Uncleared) `matchesPosting` nullposting{pstatus=Uncleared}
+    assertBool "positive match on unmarked posting status" $
+                   (Status Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
+    assertBool "negative match on unmarked posting status" $
+               not $ (Not $ Status Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
     assertBool "positive match on true posting status acquired from transaction" $
-                   (Status Cleared) `matchesPosting` nullposting{pstatus=Uncleared,ptransaction=Just nulltransaction{tstatus=Cleared}}
+                   (Status Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
     assertBool "real:1 on real posting" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
     assertBool "real:1 on virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
     assertBool "real:1 on balanced virtual posting fails" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}

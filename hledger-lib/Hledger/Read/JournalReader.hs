@@ -470,7 +470,7 @@ test_transactionp = do
      nulltransaction{
       tdate=parsedate "2012/05/14",
       tdate2=Just $ parsedate "2012/05/15",
-      tstatus=Uncleared,
+      tstatus=Unmarked,
       tcode="code",
       tdescription="desc",
       tcomment=" tcomment1\n tcomment2\n ttag1: val1\n",

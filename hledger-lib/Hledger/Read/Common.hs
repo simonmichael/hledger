@@ -174,7 +174,7 @@ statusp =
   choice'
     [ many spacenonewline >> char '*' >> return Cleared
     , many spacenonewline >> char '!' >> return Pending
-    , return Uncleared
+    , return Unmarked
     ]
     <?> "cleared status"
 

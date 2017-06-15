@@ -32,7 +32,7 @@ uiShowClearedStatus = map showstatus
  where
    showstatus Cleared   = "cleared"
    showstatus Pending   = "pending"
-   showstatus Uncleared = "uncleared"
+   showstatus Unmarked = "unmarked"
 
 -- | Draw the help dialog, called when help mode is active.
 helpDialog :: Widget Name
@@ -78,7 +78,7 @@ helpDialog =
                   ,renderKey ("/", "set a filter query")
                   ,renderKey ("C", "toggle cleared/all")
                   ,renderKey ("P", "toggle pending/all")
-                  ,renderKey ("U", "toggle uncleared/all")
+                  ,renderKey ("U", "toggle unmarked/all")
                   ,renderKey ("R", "toggle real/all")
                   ,renderKey ("Z", "toggle nonzero/all")
                   ,renderKey ("DEL/BS", "remove filters")

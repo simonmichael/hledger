@@ -74,7 +74,7 @@ showLedgerStats l today span =
         ,("Accounts", printf "%d (depth %d)" acctnum acctdepth)
         ,("Commodities", printf "%s (%s)" (show $ length cs) (T.intercalate ", " cs))
       -- Transactions this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
-      -- Uncleared transactions      : %(uncleared)s
+      -- Unmarked transactions      : %(unmarked)s
       -- Days since reconciliation   : %(reconcileelapsed)s
       -- Days since last transaction : %(recentelapsed)s
        ]
