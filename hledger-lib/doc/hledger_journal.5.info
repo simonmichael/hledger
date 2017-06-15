@@ -239,18 +239,21 @@ indicating one of three statuses:
 
 mark  status
  
-----------------------------
-      uncleared (no mark)
+-----------------
+      unmarked
 '!'   pending
 '*'   cleared
 
-   When reporting, you can filter by status with the '-U/--uncleared',
+   When reporting, you can filter by status with the '-U/--unmarked',
 '-P/--pending', and '-C/--cleared' flags; or the 'status:', 'status:!',
 and 'status:*' queries; or the U, P, C keys in hledger-ui.
 
-   Note from hledger 1.3 onwards, -U/-uncleared matches the uncleared
-(unmarked) status only.  To replicate Ledger and old hledger's behaviour
-of also matching pending, combine -U and -P.
+   Note, in Ledger and in older versions of hledger, the "unmarked"
+state is called "uncleared".  As of hledger 1.3 we have renamed it to
+unmarked for clarity.
+
+   To replicate Ledger and old hledger's behaviour of also matching
+pending, combine -U and -P.
 
    Status marks are optional, but can be helpful eg for reconciling with
 real-world accounts.  Some editor modes provide highlighting and
@@ -1060,67 +1063,67 @@ Node: Posting dates6832
 Ref: #posting-dates6963
 Node: Status8337
 Ref: #status8461
-Node: Account names10129
-Ref: #account-names10269
-Node: Amounts10756
-Ref: #amounts10894
-Node: Virtual Postings12995
-Ref: #virtual-postings13156
-Node: Balance Assertions14376
-Ref: #balance-assertions14553
-Node: Assertions and ordering15449
-Ref: #assertions-and-ordering15637
-Node: Assertions and included files16337
-Ref: #assertions-and-included-files16580
-Node: Assertions and multiple -f options16913
-Ref: #assertions-and-multiple--f-options17169
-Node: Assertions and commodities17301
-Ref: #assertions-and-commodities17538
-Node: Assertions and subaccounts18234
-Ref: #assertions-and-subaccounts18468
-Node: Assertions and virtual postings18989
-Ref: #assertions-and-virtual-postings19198
-Node: Balance Assignments19340
-Ref: #balance-assignments19509
-Node: Prices20628
-Ref: #prices20763
-Node: Transaction prices20814
-Ref: #transaction-prices20961
-Node: Market prices23117
-Ref: #market-prices23254
-Node: Comments24214
-Ref: #comments24338
-Node: Tags25451
-Ref: #tags25571
-Node: Implicit tags27000
-Ref: #implicit-tags27108
-Node: Directives27625
-Ref: #directives27740
-Node: Account aliases27933
-Ref: #account-aliases28079
-Node: Basic aliases28683
-Ref: #basic-aliases28828
-Node: Regex aliases29518
-Ref: #regex-aliases29688
-Node: Multiple aliases30403
-Ref: #multiple-aliases30577
-Node: end aliases31075
-Ref: #end-aliases31217
-Node: account directive31318
-Ref: #account-directive31500
-Node: apply account directive31796
-Ref: #apply-account-directive31994
-Node: Multi-line comments32653
-Ref: #multi-line-comments32845
-Node: commodity directive32973
-Ref: #commodity-directive33159
-Node: Default commodity34031
-Ref: #default-commodity34206
-Node: Default year34743
-Ref: #default-year34910
-Node: Including other files35333
-Ref: #including-other-files35492
-Node: EDITOR SUPPORT35889
-Ref: #editor-support36009
+Node: Account names10175
+Ref: #account-names10315
+Node: Amounts10802
+Ref: #amounts10940
+Node: Virtual Postings13041
+Ref: #virtual-postings13202
+Node: Balance Assertions14422
+Ref: #balance-assertions14599
+Node: Assertions and ordering15495
+Ref: #assertions-and-ordering15683
+Node: Assertions and included files16383
+Ref: #assertions-and-included-files16626
+Node: Assertions and multiple -f options16959
+Ref: #assertions-and-multiple--f-options17215
+Node: Assertions and commodities17347
+Ref: #assertions-and-commodities17584
+Node: Assertions and subaccounts18280
+Ref: #assertions-and-subaccounts18514
+Node: Assertions and virtual postings19035
+Ref: #assertions-and-virtual-postings19244
+Node: Balance Assignments19386
+Ref: #balance-assignments19555
+Node: Prices20674
+Ref: #prices20809
+Node: Transaction prices20860
+Ref: #transaction-prices21007
+Node: Market prices23163
+Ref: #market-prices23300
+Node: Comments24260
+Ref: #comments24384
+Node: Tags25497
+Ref: #tags25617
+Node: Implicit tags27046
+Ref: #implicit-tags27154
+Node: Directives27671
+Ref: #directives27786
+Node: Account aliases27979
+Ref: #account-aliases28125
+Node: Basic aliases28729
+Ref: #basic-aliases28874
+Node: Regex aliases29564
+Ref: #regex-aliases29734
+Node: Multiple aliases30449
+Ref: #multiple-aliases30623
+Node: end aliases31121
+Ref: #end-aliases31263
+Node: account directive31364
+Ref: #account-directive31546
+Node: apply account directive31842
+Ref: #apply-account-directive32040
+Node: Multi-line comments32699
+Ref: #multi-line-comments32891
+Node: commodity directive33019
+Ref: #commodity-directive33205
+Node: Default commodity34077
+Ref: #default-commodity34252
+Node: Default year34789
+Ref: #default-year34956
+Node: Including other files35379
+Ref: #including-other-files35538
+Node: EDITOR SUPPORT35935
+Ref: #editor-support36055
 
 End Tag Table

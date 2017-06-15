@@ -220,7 +220,7 @@ different, like git.)
 '-P --pending'
 
      include only pending postings/txns
-'-U --uncleared'
+'-U --unmarked'
 
      include only unmarked postings/txns
 '-R --real'
@@ -2120,123 +2120,123 @@ Node: OPTIONS3640
 Ref: #options3744
 Node: General options4025
 Ref: #general-options4152
-Node: Command options6663
-Ref: #command-options6816
-Node: Command arguments7214
-Ref: #command-arguments7374
-Node: Special characters7495
-Ref: #special-characters7653
-Node: Input files8821
-Ref: #input-files8959
-Node: Smart dates10922
-Ref: #smart-dates11065
-Node: Report start & end date12044
-Ref: #report-start-end-date12216
-Node: Report intervals13282
-Ref: #report-intervals13447
-Node: Period expressions13848
-Ref: #period-expressions14008
-Node: Depth limiting16348
-Ref: #depth-limiting16494
-Node: Pivoting16695
-Ref: #pivoting16815
-Node: Cost18586
-Ref: #cost18696
-Node: Market value18814
-Ref: #market-value18951
-Node: Regular expressions20251
-Ref: #regular-expressions20389
-Node: QUERIES21750
-Ref: #queries21854
-Node: COMMANDS25533
-Ref: #commands25647
-Node: accounts26320
-Ref: #accounts26420
-Node: activity27402
-Ref: #activity27514
-Node: add27873
-Ref: #add27974
-Node: balance30632
-Ref: #balance30745
-Node: Flat mode33760
-Ref: #flat-mode33887
-Node: Depth limited balance reports34307
-Ref: #depth-limited-balance-reports34510
-Node: Multicolumn balance reports34930
-Ref: #multicolumn-balance-reports35141
-Node: Custom balance output39789
-Ref: #custom-balance-output39973
-Node: Colour support42066
-Ref: #colour-support42227
-Node: Output destination42400
-Ref: #output-destination42558
-Node: CSV output42828
-Ref: #csv-output42947
-Node: balancesheet43344
-Ref: #balancesheet43472
-Node: cashflow45379
-Ref: #cashflow45496
-Node: help47364
-Ref: #help47476
-Node: incomestatement48314
-Ref: #incomestatement48444
-Node: info50336
-Ref: #info50443
-Node: man50807
-Ref: #man50904
-Node: print51309
-Ref: #print51414
-Node: register55170
-Ref: #register55283
-Node: Custom register output59779
-Ref: #custom-register-output59910
-Node: stats61207
-Ref: #stats61313
-Node: test62194
-Ref: #test62281
-Node: ADD-ON COMMANDS62649
-Ref: #add-on-commands62761
-Node: Official add-ons64048
-Ref: #official-add-ons64190
-Node: api64277
-Ref: #api64368
-Node: ui64420
-Ref: #ui64521
-Node: web64579
-Ref: #web64670
-Node: Third party add-ons64716
-Ref: #third-party-add-ons64893
-Node: diff65028
-Ref: #diff65127
-Node: iadd65226
-Ref: #iadd65342
-Node: interest65425
-Ref: #interest65548
-Node: irr65643
-Ref: #irr65743
-Node: Experimental add-ons65821
-Ref: #experimental-add-ons65975
-Node: autosync66368
-Ref: #autosync66482
-Node: budget66721
-Ref: #budget66845
-Node: chart66911
-Ref: #chart67030
-Node: check67101
-Ref: #check67225
-Node: check-dates67292
-Ref: #check-dates67434
-Node: check-dupes67507
-Ref: #check-dupes67650
-Node: equity67727
-Ref: #equity67855
-Node: prices67974
-Ref: #prices68103
-Node: print-unique68158
-Ref: #print-unique68307
-Node: register-match68400
-Ref: #register-match68556
-Node: rewrite68654
-Ref: #rewrite68775
+Node: Command options6662
+Ref: #command-options6815
+Node: Command arguments7213
+Ref: #command-arguments7373
+Node: Special characters7494
+Ref: #special-characters7652
+Node: Input files8820
+Ref: #input-files8958
+Node: Smart dates10921
+Ref: #smart-dates11064
+Node: Report start & end date12043
+Ref: #report-start-end-date12215
+Node: Report intervals13281
+Ref: #report-intervals13446
+Node: Period expressions13847
+Ref: #period-expressions14007
+Node: Depth limiting16347
+Ref: #depth-limiting16493
+Node: Pivoting16694
+Ref: #pivoting16814
+Node: Cost18585
+Ref: #cost18695
+Node: Market value18813
+Ref: #market-value18950
+Node: Regular expressions20250
+Ref: #regular-expressions20388
+Node: QUERIES21749
+Ref: #queries21853
+Node: COMMANDS25532
+Ref: #commands25646
+Node: accounts26319
+Ref: #accounts26419
+Node: activity27401
+Ref: #activity27513
+Node: add27872
+Ref: #add27973
+Node: balance30631
+Ref: #balance30744
+Node: Flat mode33759
+Ref: #flat-mode33886
+Node: Depth limited balance reports34306
+Ref: #depth-limited-balance-reports34509
+Node: Multicolumn balance reports34929
+Ref: #multicolumn-balance-reports35140
+Node: Custom balance output39788
+Ref: #custom-balance-output39972
+Node: Colour support42065
+Ref: #colour-support42226
+Node: Output destination42399
+Ref: #output-destination42557
+Node: CSV output42827
+Ref: #csv-output42946
+Node: balancesheet43343
+Ref: #balancesheet43471
+Node: cashflow45378
+Ref: #cashflow45495
+Node: help47363
+Ref: #help47475
+Node: incomestatement48313
+Ref: #incomestatement48443
+Node: info50335
+Ref: #info50442
+Node: man50806
+Ref: #man50903
+Node: print51308
+Ref: #print51413
+Node: register55169
+Ref: #register55282
+Node: Custom register output59778
+Ref: #custom-register-output59909
+Node: stats61206
+Ref: #stats61312
+Node: test62193
+Ref: #test62280
+Node: ADD-ON COMMANDS62648
+Ref: #add-on-commands62760
+Node: Official add-ons64047
+Ref: #official-add-ons64189
+Node: api64276
+Ref: #api64367
+Node: ui64419
+Ref: #ui64520
+Node: web64578
+Ref: #web64669
+Node: Third party add-ons64715
+Ref: #third-party-add-ons64892
+Node: diff65027
+Ref: #diff65126
+Node: iadd65225
+Ref: #iadd65341
+Node: interest65424
+Ref: #interest65547
+Node: irr65642
+Ref: #irr65742
+Node: Experimental add-ons65820
+Ref: #experimental-add-ons65974
+Node: autosync66367
+Ref: #autosync66481
+Node: budget66720
+Ref: #budget66844
+Node: chart66910
+Ref: #chart67029
+Node: check67100
+Ref: #check67224
+Node: check-dates67291
+Ref: #check-dates67433
+Node: check-dupes67506
+Ref: #check-dupes67649
+Node: equity67726
+Ref: #equity67854
+Node: prices67973
+Ref: #prices68102
+Node: print-unique68157
+Ref: #print-unique68306
+Node: register-match68399
+Ref: #register-match68555
+Node: rewrite68653
+Ref: #rewrite68774
 
 End Tag Table
