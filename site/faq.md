@@ -178,7 +178,11 @@ or [balance assertions](manual.html#assertions-and-ordering).
   With hledger you can also specify start and/or end dates with a query argument,
   date:START-END, which probably doesn't combine perfectly with the options.
 
-- in hledger version 1.3 onward, -U/--uncleared does not match pending things.
+- in hledger version 1.3 onward, 
+  the "uncleared" status has been renamed to "unmarked",
+  it is matched by the -U/--unmarked flag.
+  Also, the --unmarked/--pending/--cleared flags can be combined,
+  so eg -UP matches unmarked and pending, similar to Ledger's --uncleared flag.
   (#564)
 
 - hledger's -P flag is short for --pending. Ledger uses it for grouping by payee. 

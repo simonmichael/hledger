@@ -192,17 +192,18 @@ separated from it by a space, indicating one of three statuses:
 
 mark &nbsp; | status
 :-----------|:-------------------
-&nbsp;      | uncleared (no mark)
+&nbsp;      | unmarked
 `!`         | pending
 `*`         | cleared
 
 When reporting, you can filter by status with
-the `-U/--uncleared`, `-P/--pending`, and `-C/--cleared` flags;
+the `-U/--unmarked`, `-P/--pending`, and `-C/--cleared` flags;
 or the `status:`, `status:!`, and `status:*` [queries](/manual.html#queries);
 or the U, P, C keys in hledger-ui.
 
+Note, in Ledger and in older versions of hledger, the "unmarked" state is called
+"uncleared". As of hledger 1.3 we have renamed it to unmarked for clarity.
 
-Note from hledger 1.3 onwards, -U/--uncleared matches the uncleared (unmarked) status only.
 To replicate Ledger and old hledger's behaviour of also matching pending, combine -U and -P.
 
 Status marks are optional, but can be helpful eg for reconciling with real-world accounts.

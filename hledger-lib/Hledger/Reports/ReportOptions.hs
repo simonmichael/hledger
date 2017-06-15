@@ -264,7 +264,7 @@ intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
       | otherwise = Nothing
 
 -- | Get any cleared statuses to be matched, as specified by -C/--cleared,
--- -P/--pending, -U/--uncleared options. -UPC is equivalent to no flags,
+-- -P/--pending, -U/--unmarked options. -UPC is equivalent to no flags,
 -- so this returns a list of 0-2 unique statuses. 
 clearedStatusFromRawOpts :: RawOpts -> [ClearedStatus]
 clearedStatusFromRawOpts = simplify . nub . sort . catMaybes . map clearedstatusfromrawopt
@@ -272,7 +272,7 @@ clearedStatusFromRawOpts = simplify . nub . sort . catMaybes . map clearedstatus
     clearedstatusfromrawopt (n,_)
       | n == "cleared"   = Just Cleared
       | n == "pending"   = Just Pending
-      | n == "uncleared" = Just Uncleared
+      | n == "unmarked"  = Just Unmarked
       | otherwise        = Nothing
     simplify l = if length l == 3 then [] else l  -- TODO: (maxBound :: ClearedStatus) or something  
 

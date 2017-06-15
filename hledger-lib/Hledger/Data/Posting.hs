@@ -81,7 +81,7 @@ nullposting, posting :: Posting
 nullposting = Posting
                 {pdate=Nothing
                 ,pdate2=Nothing
-                ,pstatus=Uncleared
+                ,pstatus=Unmarked
                 ,paccount=""
                 ,pamount=nullmixedamt
                 ,pcomment=""
@@ -164,14 +164,15 @@ postingDate2 p = headDef nulldate $ catMaybes dates
                 ,maybe Nothing (Just . tdate) $ ptransaction p
                 ]
 
--- | Get a posting's cleared status: cleared or pending if those are
--- explicitly set, otherwise the cleared status of its parent
--- transaction, or uncleared if there is no parent transaction. (Note
--- Uncleared's ambiguity, it can mean "uncleared" or "don't know".
+-- | Get a posting's status. This is cleared or pending if those are
+-- explicitly set on the posting, otherwise the status of its parent
+-- transaction, or unmarked if there is no parent transaction. (Note
+-- the ambiguity, unmarked can mean "posting and transaction are both 
+-- unmarked" or "posting is unmarked and don't know about the transaction".
 postingStatus :: Posting -> ClearedStatus
 postingStatus Posting{pstatus=s, ptransaction=mt}
-  | s == Uncleared = case mt of Just t  -> tstatus t
-                                Nothing -> Uncleared
+  | s == Unmarked = case mt of Just t  -> tstatus t
+                               Nothing -> Unmarked
   | otherwise = s
 
 -- | Implicit tags for this transaction.
