@@ -110,7 +110,7 @@ the data.
 '-P --pending'
 
      include only pending postings/txns
-'-U --uncleared'
+'-U --unmarked'
 
      include only unmarked postings/txns
 '-R --real'
@@ -359,17 +359,17 @@ Tag Table:
 Node: Top73
 Node: OPTIONS831
 Ref: #options930
-Node: KEYS3644
-Ref: #keys3741
-Node: SCREENS6330
-Ref: #screens6417
-Node: Accounts screen6507
-Ref: #accounts-screen6637
-Node: Register screen8767
-Ref: #register-screen8924
-Node: Transaction screen10867
-Ref: #transaction-screen11027
-Node: Error screen11897
-Ref: #error-screen12021
+Node: KEYS3643
+Ref: #keys3740
+Node: SCREENS6329
+Ref: #screens6416
+Node: Accounts screen6506
+Ref: #accounts-screen6636
+Node: Register screen8766
+Ref: #register-screen8923
+Node: Transaction screen10866
+Ref: #transaction-screen11026
+Node: Error screen11896
+Ref: #error-screen12020
 
 End Tag Table

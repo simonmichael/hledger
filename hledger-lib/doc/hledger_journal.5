@@ -229,7 +229,7 @@ _
 T{
 \ 
 T}@T{
-uncleared (no mark)
+unmarked
 T}
 T{
 \f[C]!\f[]
@@ -244,13 +244,15 @@ T}
 .TE
 .PP
 When reporting, you can filter by status with the
-\f[C]\-U/\-\-uncleared\f[], \f[C]\-P/\-\-pending\f[], and
+\f[C]\-U/\-\-unmarked\f[], \f[C]\-P/\-\-pending\f[], and
 \f[C]\-C/\-\-cleared\f[] flags; or the \f[C]status:\f[],
 \f[C]status:!\f[], and \f[C]status:*\f[] queries; or the U, P, C keys in
 hledger\-ui.
 .PP
-Note from hledger 1.3 onwards, \-U/\-\-uncleared matches the uncleared
-(unmarked) status only.
+Note, in Ledger and in older versions of hledger, the "unmarked" state
+is called "uncleared".
+As of hledger 1.3 we have renamed it to unmarked for clarity.
+.PP
 To replicate Ledger and old hledger\[aq]s behaviour of also matching
 pending, combine \-U and \-P.
 .PP
