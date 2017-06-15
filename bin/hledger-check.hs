@@ -228,9 +228,9 @@ inAssertion account = inAssertion'
 fixupJournal :: Opts -> H.Journal -> IO (H.Journal, [(H.AccountName, H.MixedAmount)])
 fixupJournal opts j = do
     today <- H.getCurrentDay
-    let j' = (if cleared   opts then H.filterJournalTransactions (H.Status H.Cleared)  else id)
-           . (if pending   opts then H.filterJournalTransactions (H.Status H.Pending)  else id)
-           . (if unmarked  opts then H.filterJournalTransactions (H.Status H.Unmarked) else id)
+    let j' = (if cleared   opts then H.filterJournalTransactions (H.StatusQ H.Cleared)  else id)
+           . (if pending   opts then H.filterJournalTransactions (H.StatusQ H.Pending)  else id)
+           . (if unmarked  opts then H.filterJournalTransactions (H.StatusQ H.Unmarked) else id)
            . (if real      opts then H.filterJournalTransactions (H.Real   True)       else id)
            $ H.journalApplyAliases (aliases opts) j
     let starting = case begin opts of

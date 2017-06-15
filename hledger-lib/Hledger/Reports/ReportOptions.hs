@@ -322,7 +322,7 @@ queryFromOpts d ReportOpts{..} = simplifyQuery $ And $ [flagsq, argsq]
               [(if date2_ then Date2 else Date) $ periodAsDateSpan period_]
               ++ (if real_ then [Real True] else [])
               ++ (if empty_ then [Empty True] else []) -- ?
-              ++ [Or $ map Status clearedstatus_]
+              ++ [Or $ map StatusQ clearedstatus_]
               ++ (maybe [] ((:[]) . Depth) depth_)
     argsq = fst $ parseQuery d (T.pack query_)
 
@@ -334,7 +334,7 @@ queryFromOptsOnly _d ReportOpts{..} = simplifyQuery flagsq
               [(if date2_ then Date2 else Date) $ periodAsDateSpan period_]
               ++ (if real_ then [Real True] else [])
               ++ (if empty_ then [Empty True] else []) -- ?
-              ++ [Or $ map Status clearedstatus_]
+              ++ [Or $ map StatusQ clearedstatus_]
               ++ (maybe [] ((:[]) . Depth) depth_)
 
 tests_queryFromOpts :: [Test]
