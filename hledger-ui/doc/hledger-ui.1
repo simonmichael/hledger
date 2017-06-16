@@ -146,8 +146,8 @@ show, and match with \-b/\-e/\-p/date:, secondary dates instead
 .RS
 .RE
 .TP
-.B \f[C]\-C\ \-\-cleared\f[]
-include only cleared postings/txns
+.B \f[C]\-U\ \-\-unmarked\f[]
+include only unmarked postings/txns (can combine with \-P or \-C)
 .RS
 .RE
 .TP
@@ -156,8 +156,8 @@ include only pending postings/txns
 .RS
 .RE
 .TP
-.B \f[C]\-U\ \-\-unmarked\f[]
-include only unmarked postings/txns
+.B \f[C]\-C\ \-\-cleared\f[]
+include only cleared postings/txns
 .RS
 .RE
 .TP
@@ -322,11 +322,13 @@ Period balances ignore transactions before the report start date, so
 they show the change in balance during the report period.
 They are more useful eg when viewing a time log.
 .PP
-\f[C]C\f[] toggles cleared mode, which shows balances for postings with
-cleared status only.
-Similarly, \f[C]P\f[] toggles pending mode, which shows balances for
-pending postings only, and \f[C]U\f[] toggles uncleared mode, which
-shows balances for unmarked postings only.
+\f[C]U\f[] toggles filtering by unmarked status, including or excluding
+unmarked postings in the balances.
+Similarly, \f[C]P\f[] toggles pending postings, and \f[C]C\f[] toggles
+cleared postings.
+(By default, balances include all postings; if you activate one or two
+status filters, only those postings are included; and if you activate
+all three, the filter is removed.)
 .PP
 \f[C]R\f[] toggles real mode, in which virtual postings are ignored.
 .PP
@@ -368,11 +370,13 @@ In other words, the register always shows the transactions responsible
 for the period balance shown on the accounts screen.
 As on the accounts screen, this can be toggled with \f[C]F\f[].
 .PP
-\f[C]C\f[] toggles cleared mode, which shows transactions with cleared
-status only.
-Similarly, \f[C]P\f[] toggles pending mode, which shows only pending
-transactions, and \f[C]U\f[] toggles uncleared mode, which shows only
+\f[C]U\f[] toggles filtering by unmarked status, showing or hiding
 unmarked transactions.
+Similarly, \f[C]P\f[] toggles pending transactions, and \f[C]C\f[]
+toggles cleared transactions.
+(By default, transactions with all statuses are shown; if you activate
+one or two status filters, only those transactions are shown; and if you
+activate all three, the filter is removed.)q
 .PP
 \f[C]R\f[] toggles real mode, in which virtual postings are ignored.
 .PP

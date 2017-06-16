@@ -146,14 +146,14 @@ OPTIONS
        --date2
               show, and match with -b/-e/-p/date:, secondary dates instead
 
-       -C --cleared
-              include only cleared postings/txns
+       -U --unmarked
+              include only unmarked postings/txns (can combine with -P or -C)
 
        -P --pending
               include only pending postings/txns
 
-       -U --unmarked
-              include only unmarked postings/txns
+       -C --cleared
+              include only cleared postings/txns
 
        -R --real
               include only non-virtual postings
