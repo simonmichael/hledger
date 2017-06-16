@@ -15,6 +15,7 @@ module Hledger.Reports.ReportOptions (
   checkReportOpts,
   flat_,
   tree_,
+  reportOptsToggleStatus,
   whichDateFromOpts,
   journalSelectingAmountFromOpts,
   queryFromOpts,
@@ -283,6 +284,11 @@ simplifyStatuses l
   where
     l' = nub $ sort l 
     numstatuses = length [minBound .. maxBound :: Status]
+
+-- | Add/remove this status from the status list. Used by hledger-ui.
+reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
+  | s `elem` ss = ropts{statuses_=filter (/= s) ss}
+  | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
 
 type DisplayExp = String
 

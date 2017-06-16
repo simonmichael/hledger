@@ -163,9 +163,13 @@ balances are what you would see on a bank statement for that account (unless dis
 a filter query). Period balances ignore transactions before the report start date, so they
 show the change in balance during the report period. They are more useful eg when viewing a time log.
 
-`C` toggles cleared mode, which shows balances for postings with [cleared status](/journal.html#status) only. 
-Similarly, `P` toggles pending mode, which shows balances for pending postings only,
-and `U` toggles uncleared mode, which shows balances for unmarked postings only.
+`U` toggles filtering by [unmarked status](/journal.html#status), 
+including or excluding unmarked postings in the balances. 
+Similarly, `P` toggles pending postings, 
+and `C` toggles cleared postings.
+(By default, balances include all postings;
+if you activate one or two status filters, only those postings are included; 
+and if you activate all three, the filter is removed.)
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 
@@ -202,9 +206,11 @@ In other words, the register always shows the transactions responsible for the p
 shown on the accounts screen.
 As on the accounts screen, this can be toggled with `F`.
 
-`C` toggles cleared mode, which shows transactions with [cleared status](/journal.html#status) only.
-Similarly, `P` toggles pending mode, which shows only pending transactions,
-and `U` toggles uncleared mode, which shows only unmarked transactions.
+`U` toggles filtering by [unmarked status](/journal.html#status), showing or hiding unmarked transactions. 
+Similarly, `P` toggles pending transactions, and `C` toggles cleared transactions.
+(By default, transactions with all statuses are shown;
+if you activate one or two status filters, only those transactions are shown; 
+and if you activate all three, the filter is removed.)q
 
 `R` toggles real mode, in which [virtual postings](/journal.html#virtual-postings) are ignored.
 

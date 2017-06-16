@@ -76,9 +76,9 @@ helpDialog =
                   ,renderKey ("t", "set report period to today")
                   ,str " "
                   ,renderKey ("/", "set a filter query")
-                  ,renderKey ("U", "toggle unmarked/all")
-                  ,renderKey ("P", "toggle pending/all")
-                  ,renderKey ("C", "toggle cleared/all")
+                  ,renderKey ("U", "toggle unmarked filter")
+                  ,renderKey ("P", "toggle pending filter")
+                  ,renderKey ("C", "toggle cleared filter")
                   ,renderKey ("R", "toggle real/all")
                   ,renderKey ("Z", "toggle nonzero/all")
                   ,renderKey ("DEL/BS", "remove filters")

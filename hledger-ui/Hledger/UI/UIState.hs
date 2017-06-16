@@ -32,10 +32,6 @@ toggleCleared :: UIState -> UIState
 toggleCleared ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
   ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Cleared ropts}}}
 
-reportOptsToggleStatus s ropts
-  | clearedstatus_ ropts == [s] = ropts{clearedstatus_=[]}
-  | otherwise                   = ropts{clearedstatus_=[s]}
-
 -- | Toggle between showing all and showing only nonempty (more precisely, nonzero) items.
 toggleEmpty :: UIState -> UIState
 toggleEmpty ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
