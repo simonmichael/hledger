@@ -101,14 +101,14 @@ OPTIONS
        --date2
               show, and match with -b/-e/-p/date:, secondary dates instead
 
-       -C --cleared
-              include only cleared postings/txns
+       -U --unmarked
+              include only unmarked postings/txns (can combine with -P or -C)
 
        -P --pending
               include only pending postings/txns
 
-       -U --unmarked
-              include only unmarked postings/txns
+       -C --cleared
+              include only cleared postings/txns
 
        -R --real
               include only non-virtual postings
@@ -226,15 +226,16 @@ SCREENS
        before the report start date, so they show the change in balance during
        the report period.  They are more useful eg when viewing a time log.
 
-       C toggles cleared mode, which shows balances for postings with  cleared
-       status  only.   Similarly, P toggles pending mode, which shows balances
-       for pending postings only, and U toggles uncleared  mode,  which  shows
-       balances for unmarked postings only.
+       U toggles filtering by unmarked status, including or excluding unmarked
+       postings in the balances.  Similarly, P toggles pending postings, and C
+       toggles cleared postings.  (By default, balances include all  postings;
+       if  you  activate  one  or  two status filters, only those postings are
+       included; and if you activate all three, the filter is removed.)
 
        R toggles real mode, in which virtual postings are ignored.
 
-       Z  toggles  nonzero  mode, in which only accounts with nonzero balances
-       are shown (hledger-ui shows zero items by default, unlike  command-line
+       Z toggles nonzero mode, in which only accounts  with  nonzero  balances
+       are  shown (hledger-ui shows zero items by default, unlike command-line
        hledger).
 
        Press right or enter to view an account's transactions register.
@@ -243,63 +244,65 @@ SCREENS
        This screen shows the transactions affecting a particular account, like
        a check register.  Each line represents one transaction and shows:
 
-       o the other account(s) involved, in abbreviated form.   (If  there  are
-         both  real  and virtual postings, it shows only the accounts affected
+       o the  other  account(s)  involved, in abbreviated form.  (If there are
+         both real and virtual postings, it shows only the  accounts  affected
          by real postings.)
 
-       o the overall change to the current account's balance; positive for  an
+       o the  overall change to the current account's balance; positive for an
          inflow to this account, negative for an outflow.
 
        o the running historical total or period total for the current account,
-         after the transaction.  This can be toggled with H.  Similar  to  the
-         accounts  screen,  the  historical  total is affected by transactions
-         (filtered by the filter query) before the report  start  date,  while
+         after  the  transaction.  This can be toggled with H.  Similar to the
+         accounts screen, the historical total  is  affected  by  transactions
+         (filtered  by  the  filter query) before the report start date, while
          the period total is not.  If the historical total is not disturbed by
-         a filter query, it will be the running historical balance  you  would
+         a  filter  query, it will be the running historical balance you would
          see on a bank register for the current account.
 
-       If  the  accounts  screen  was  in  tree mode, the register screen will
+       If the accounts screen was in  tree  mode,  the  register  screen  will
        include transactions from both the current account and its subaccounts.
-       If  the  accounts  screen  was  in  flat  mode, and a non-depth-clipped
-       account was selected, the register  screen  will  exclude  transactions
+       If the accounts screen  was  in  flat  mode,  and  a  non-depth-clipped
+       account  was  selected,  the  register screen will exclude transactions
        from subaccounts.  In other words, the register always shows the trans-
-       actions responsible for  the  period  balance  shown  on  the  accounts
+       actions  responsible  for  the  period  balance  shown  on the accounts
        screen.  As on the accounts screen, this can be toggled with F.
 
-       C  toggles  cleared  mode, which shows transactions with cleared status
-       only.  Similarly, P toggles pending  mode,  which  shows  only  pending
-       transactions,  and  U toggles uncleared mode, which shows only unmarked
-       transactions.
+       U toggles filtering by unmarked  status,  showing  or  hiding  unmarked
+       transactions.  Similarly, P toggles pending transactions, and C toggles
+       cleared transactions.  (By default, transactions with all statuses  are
+       shown;  if  you activate one or two status filters, only those transac-
+       tions are  shown;  and  if  you  activate  all  three,  the  filter  is
+       removed.)q
 
        R toggles real mode, in which virtual postings are ignored.
 
-       Z toggles nonzero mode, in which only transactions  posting  a  nonzero
-       change  are  shown (hledger-ui shows zero items by default, unlike com-
+       Z  toggles  nonzero  mode, in which only transactions posting a nonzero
+       change are shown (hledger-ui shows zero items by default,  unlike  com-
        mand-line hledger).
 
        Press right (or enter) to view the selected transaction in detail.
 
    Transaction screen
-       This screen shows a single transaction, as  a  general  journal  entry,
-       similar  to  hledger's  print command and journal format (hledger_jour-
+       This  screen  shows  a  single transaction, as a general journal entry,
+       similar to hledger's print command and  journal  format  (hledger_jour-
        nal(5)).
 
-       The transaction's date(s)  and  any  cleared  flag,  transaction  code,
-       description,  comments,  along  with  all  of  its account postings are
-       shown.  Simple transactions have two postings, but there  can  be  more
+       The  transaction's  date(s)  and  any  cleared  flag, transaction code,
+       description, comments, along with  all  of  its  account  postings  are
+       shown.   Simple  transactions  have two postings, but there can be more
        (or in certain cases, fewer).
 
-       up  and  down will step through all transactions listed in the previous
-       account register screen.  In the title bar, the numbers in  parentheses
-       show  your  position  within  that  account  register.   They will vary
+       up and down will step through all transactions listed in  the  previous
+       account  register screen.  In the title bar, the numbers in parentheses
+       show your position  within  that  account  register.   They  will  vary
        depending on which account register you came from (remember most trans-
        actions appear in multiple account registers).  The #N number preceding
        them is the transaction's position within the complete unfiltered jour-
        nal, which is a more stable id (at least until the next reload).
 
    Error screen
-       This  screen  will appear if there is a problem, such as a parse error,
-       when you press g to reload.  Once you have fixed the problem,  press  g
+       This screen will appear if there is a problem, such as a  parse  error,
+       when  you  press g to reload.  Once you have fixed the problem, press g
        again to reload and resume normal operation.  (Or, you can press escape
        to cancel the reload attempt.)
 
@@ -307,17 +310,17 @@ ENVIRONMENT
        COLUMNS The screen width to use.  Default: the full terminal width.
 
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
 FILES
-       Reads data from one or more files in hledger journal, timeclock,  time-
-       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
-       $HOME/.hledger.journal          (on          windows,           perhaps
+       Reads  data from one or more files in hledger journal, timeclock, time-
+       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
+       $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The  need  to precede options with -- when invoked from hledger is awk-
+       The need to precede options with -- when invoked from hledger  is  awk-
        ward.
 
        -f- doesn't work (hledger-ui can't read from stdin).
@@ -325,13 +328,13 @@ BUGS
        -V affects only the accounts screen.
 
        When you press g, the current and all previous screens are regenerated,
-       which  may cause a noticeable pause with large files.  Also there is no
+       which may cause a noticeable pause with large files.  Also there is  no
        visual indication that this is in progress.
 
-       --watch is not yet fully robust.  It works well for normal  usage,  but
-       many  file  changes  in  a  short time (eg saving the file thousands of
-       times with an editor macro) can cause problems at least on OSX.   Symp-
-       toms  include:  unresponsive UI, periodic resetting of the cursor posi-
+       --watch  is  not yet fully robust.  It works well for normal usage, but
+       many file changes in a short time (eg  saving  the  file  thousands  of
+       times  with an editor macro) can cause problems at least on OSX.  Symp-
+       toms include: unresponsive UI, periodic resetting of the  cursor  posi-
        tion, momentary display of parse errors, high CPU usage eventually sub-
        siding, and possibly a small but persistent build-up of CPU usage until
        the program is restarted.
@@ -339,7 +342,7 @@ BUGS
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -353,7 +356,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

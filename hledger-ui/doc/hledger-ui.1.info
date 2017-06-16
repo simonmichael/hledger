@@ -104,15 +104,15 @@ the data.
 '--date2'
 
      show, and match with -b/-e/-p/date:, secondary dates instead
-'-C --cleared'
+'-U --unmarked'
 
-     include only cleared postings/txns
+     include only unmarked postings/txns (can combine with -P or -C)
 '-P --pending'
 
      include only pending postings/txns
-'-U --unmarked'
+'-C --cleared'
 
-     include only unmarked postings/txns
+     include only cleared postings/txns
 '-R --real'
 
      include only non-virtual postings
@@ -260,10 +260,12 @@ disturbed by a filter query).  Period balances ignore transactions
 before the report start date, so they show the change in balance during
 the report period.  They are more useful eg when viewing a time log.
 
-   'C' toggles cleared mode, which shows balances for postings with
-cleared status only.  Similarly, 'P' toggles pending mode, which shows
-balances for pending postings only, and 'U' toggles uncleared mode,
-which shows balances for unmarked postings only.
+   'U' toggles filtering by unmarked status, including or excluding
+unmarked postings in the balances.  Similarly, 'P' toggles pending
+postings, and 'C' toggles cleared postings.  (By default, balances
+include all postings; if you activate one or two status filters, only
+those postings are included; and if you activate all three, the filter
+is removed.)
 
    'R' toggles real mode, in which virtual postings are ignored.
 
@@ -305,10 +307,12 @@ subaccounts.  In other words, the register always shows the transactions
 responsible for the period balance shown on the accounts screen.  As on
 the accounts screen, this can be toggled with 'F'.
 
-   'C' toggles cleared mode, which shows transactions with cleared
-status only.  Similarly, 'P' toggles pending mode, which shows only
-pending transactions, and 'U' toggles uncleared mode, which shows only
-unmarked transactions.
+   'U' toggles filtering by unmarked status, showing or hiding unmarked
+transactions.  Similarly, 'P' toggles pending transactions, and 'C'
+toggles cleared transactions.  (By default, transactions with all
+statuses are shown; if you activate one or two status filters, only
+those transactions are shown; and if you activate all three, the filter
+is removed.)q
 
    'R' toggles real mode, in which virtual postings are ignored.
 
@@ -359,17 +363,17 @@ Tag Table:
 Node: Top73
 Node: OPTIONS831
 Ref: #options930
-Node: KEYS3643
-Ref: #keys3740
-Node: SCREENS6329
-Ref: #screens6416
-Node: Accounts screen6506
-Ref: #accounts-screen6636
-Node: Register screen8766
-Ref: #register-screen8923
-Node: Transaction screen10866
-Ref: #transaction-screen11026
-Node: Error screen11896
-Ref: #error-screen12020
+Node: KEYS3671
+Ref: #keys3768
+Node: SCREENS6357
+Ref: #screens6444
+Node: Accounts screen6534
+Ref: #accounts-screen6664
+Node: Register screen8894
+Ref: #register-screen9051
+Node: Transaction screen11125
+Ref: #transaction-screen11285
+Node: Error screen12155
+Ref: #error-screen12279
 
 End Tag Table
