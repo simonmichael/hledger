@@ -16,6 +16,7 @@ module Hledger.Reports.ReportOptions (
   flat_,
   tree_,
   reportOptsToggleStatus,
+  simplifyStatuses,
   whichDateFromOpts,
   journalSelectingAmountFromOpts,
   queryFromOpts,

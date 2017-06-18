@@ -53,7 +53,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                                   ,tsAccount=acct}
                               ,aMode=mode} =
   case mode of
-    Help       -> [helpDialog, maincontent]
+    Help       -> [helpDialog copts, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
@@ -78,7 +78,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           where
             togglefilters =
               case concat [
-                   uiShowStatus $ statuses_ ropts
+                   uiShowStatus copts $ statuses_ ropts
                   ,if real_ ropts then ["real"] else []
                   ,if empty_ ropts then [] else ["nonzero"]
                   ] of

@@ -20,17 +20,83 @@ import Hledger.UI.UIOptions
 -- | Toggle between showing only unmarked items or all items.
 toggleUnmarked :: UIState -> UIState
 toggleUnmarked ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Unmarked ropts}}}
+  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatusSomehow Unmarked copts ropts}}}
 
 -- | Toggle between showing only pending items or all items.
 togglePending :: UIState -> UIState
 togglePending ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Pending ropts}}}
+  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatusSomehow Pending copts ropts}}}
 
 -- | Toggle between showing only cleared items or all items.
 toggleCleared :: UIState -> UIState
 toggleCleared ui@UIState{aopts=uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}} =
-  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatus Cleared ropts}}}
+  ui{aopts=uopts{cliopts_=copts{reportopts_=reportOptsToggleStatusSomehow Cleared copts ropts}}}
+
+-- TODO testing different status toggle styles 
+
+-- | Generate zero or more indicators of the status filters currently active, 
+-- which will be shown comma-separated as part of the indicators list.
+uiShowStatus :: CliOpts -> [Status] -> [String]
+uiShowStatus copts ss =
+  case style of
+    -- in style 2, instead of "Y, Z" show "not X" 
+    Just 2 | length ss == numstatuses-1 
+      -> map (("not "++). showstatus) $ sort $ complement ss  -- should be just one
+    _ -> map showstatus $ sort ss
+  where
+    numstatuses = length [minBound..maxBound::Status]
+    style = maybeintopt "status-toggles" $ rawopts_ copts
+    showstatus Cleared  = "cleared"
+    showstatus Pending  = "pending"
+    showstatus Unmarked = "unmarked"
+
+reportOptsToggleStatusSomehow :: Status -> CliOpts -> ReportOpts -> ReportOpts
+reportOptsToggleStatusSomehow s copts ropts =
+  case maybeintopt "status-toggles" $ rawopts_ copts of 
+     Just 2 -> reportOptsToggleStatus2 s ropts
+     Just 3 -> reportOptsToggleStatus3 s ropts
+--     Just 4 -> reportOptsToggleStatus4 s ropts
+--     Just 5 -> reportOptsToggleStatus5 s ropts
+     _      -> reportOptsToggleStatus1 s ropts
+
+-- 1 UPC toggles only X/all
+reportOptsToggleStatus1 s ropts@ReportOpts{statuses_=ss}
+  | ss == [s]  = ropts{statuses_=[]}
+  | otherwise = ropts{statuses_=[s]}
+
+-- 2 UPC cycles X/not-X/all
+-- repeatedly pressing X cycles:
+-- [] U [u]
+-- [u] U [pc]
+-- [pc] U []
+-- pressing Y after first or second step starts new cycle:
+-- [u] P [p]
+-- [pc] P [p]
+reportOptsToggleStatus2 s ropts@ReportOpts{statuses_=ss}
+  | ss == [s]            = ropts{statuses_=complement [s]}
+  | ss == complement [s] = ropts{statuses_=[]}
+  | otherwise            = ropts{statuses_=[s]}  -- XXX assume only three values 
+
+-- 3 UPC toggles each X
+reportOptsToggleStatus3 s ropts@ReportOpts{statuses_=ss}
+  | s `elem` ss = ropts{statuses_=filter (/= s) ss}
+  | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
+
+-- 4 upc sets X, UPC sets not-X
+--reportOptsToggleStatus4 s ropts@ReportOpts{statuses_=ss}
+--  | s `elem` ss = ropts{statuses_=filter (/= s) ss}
+--  | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
+--
+-- 5 upc toggles X, UPC toggles not-X
+--reportOptsToggleStatus5 s ropts@ReportOpts{statuses_=ss}
+--  | s `elem` ss = ropts{statuses_=filter (/= s) ss}
+--  | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
+
+-- | Given a list of unique enum values, list the other possible values of that enum.
+complement :: (Bounded a, Enum a, Eq a) => [a] -> [a]
+complement = ([minBound..maxBound] \\)
+
+--
 
 -- | Toggle between showing all and showing only nonempty (more precisely, nonzero) items.
 toggleEmpty :: UIState -> UIState

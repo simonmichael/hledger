@@ -39,11 +39,11 @@ esInit _ _ ui@UIState{aScreen=ErrorScreen{}} = ui
 esInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
 esDraw :: UIState -> [Widget Name]
-esDraw UIState{ --aopts=UIOpts{cliopts_=copts@CliOpts{}}
-               aScreen=ErrorScreen{..}
+esDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{}}
+              ,aScreen=ErrorScreen{..}
               ,aMode=mode} =
   case mode of
-    Help       -> [helpDialog, maincontent]
+    Help       -> [helpDialog copts, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where

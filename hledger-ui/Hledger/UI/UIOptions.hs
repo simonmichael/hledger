@@ -39,6 +39,15 @@ uiflags = [
   -- ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
   -- ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
   -- ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't compress empty parent accounts on one line"
+  ,flagReq  ["status-toggles"] (\s opts -> Right $ setopt "status-toggles" s opts) "N"
+    (intercalate "\n"
+      ["choose how status toggles work:"
+      ," 1 UPC toggles X/all"
+      ," 2 UPC cycles X/not-X/all"
+      ," 3 UPC toggles each X"
+--      ," 4 upc sets X, UPC sets not-X"
+--      ," 5 upc toggles X, UPC toggles not-X"
+      ])
  ]
 
 --uimode :: Mode [([Char], [Char])]

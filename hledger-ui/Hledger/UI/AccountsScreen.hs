@@ -109,7 +109,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                            ,aMode=mode
                            } =
   case mode of
-    Help       -> [helpDialog, maincontent]
+    Help       -> [helpDialog copts, maincontent]
     -- Minibuffer e -> [minibuffer e, maincontent]
     _          -> [maincontent]
   where
@@ -181,7 +181,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
             mdepth = depth_ ropts
             togglefilters =
               case concat [
-                   uiShowStatus $ statuses_ ropts
+                   uiShowStatus copts $ statuses_ ropts
                   ,if real_ ropts then ["real"] else []
                   ] of
                 [] -> str ""

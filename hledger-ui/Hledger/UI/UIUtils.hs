@@ -12,12 +12,14 @@ import Brick.Widgets.Border.Style
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
 import Data.List
+import Data.Maybe
 import Data.Monoid
 import Graphics.Vty (Event(..),Key(..),Color,Attr,currentAttr)
 import Lens.Micro.Platform
 import System.Process
 
 import Hledger hiding (Color)
+import Hledger.Cli (CliOpts(rawopts_))
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 
@@ -28,15 +30,9 @@ runHelp = runCommand "hledger-ui --help | less" >>= waitForProcess
 
 -- ui
 
-uiShowStatus = map showstatus . sort
- where
-   showstatus Cleared  = "cleared"
-   showstatus Pending  = "pending"
-   showstatus Unmarked = "unmarked"
-
 -- | Draw the help dialog, called when help mode is active.
-helpDialog :: Widget Name
-helpDialog =
+helpDialog :: CliOpts -> Widget Name
+helpDialog copts =
   Widget Fixed Fixed $ do
     c <- getContext
     render $
@@ -76,9 +72,21 @@ helpDialog =
                   ,renderKey ("t", "set report period to today")
                   ,str " "
                   ,renderKey ("/", "set a filter query")
-                  ,renderKey ("U", "toggle unmarked filter")
-                  ,renderKey ("P", "toggle pending filter")
-                  ,renderKey ("C", "toggle cleared filter")
+                  ,renderKey ("U", 
+                    ["toggle unmarked/all"
+                    ,"cycle unmarked/not unmarked/all"
+                    ,"toggle unmarked filter"
+                    ] !! (statusstyle-1))
+                  ,renderKey ("P",
+                    ["toggle pending/all"
+                    ,"cycle pending/not pending/all"
+                    ,"toggle pending filter"
+                    ] !! (statusstyle-1))
+                  ,renderKey ("C",
+                    ["toggle cleared/all"
+                    ,"cycle cleared/not cleared/all"
+                    ,"toggle cleared filter"
+                    ] !! (statusstyle-1))
                   ,renderKey ("R", "toggle real/all")
                   ,renderKey ("Z", "toggle nonzero/all")
                   ,renderKey ("DEL/BS", "remove filters")
@@ -109,6 +117,7 @@ helpDialog =
           ]
   where
     renderKey (key,desc) = withAttr (borderAttr <> "keys") (str key) <+> str " " <+> str desc
+    statusstyle = min 3 $ fromMaybe 1 $ maybeintopt "status-toggles" $ rawopts_ copts 
 
 -- | Event handler used when help mode is active.
 helpHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
