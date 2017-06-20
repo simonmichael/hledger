@@ -2,7 +2,7 @@ User-visible changes in hledger-web.
 See also the hledger and the project change logs.
 
 
-# 1.2 (2016/3/31)
+# 1.2 (2017/3/31)
 
 Accounts with ? in name had empty registers (fixes #498) (Bryan Richter)
 
