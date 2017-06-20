@@ -6,6 +6,7 @@
   --package megaparsec
   --package text
   --package Diff
+  --package data-default
 -}
 
 {-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
@@ -15,6 +16,7 @@ import Control.Monad.Writer
 import Data.List (sortOn, foldl')
 import Data.String.Here
 import qualified Data.Text as T
+import Data.Default
 -- hledger lib, cli and cmdargs utils
 import Hledger.Cli hiding (outputflags)
 -- more utils for parsing
@@ -27,7 +29,7 @@ import qualified Data.Algorithm.Diff as D
 import Hledger.Data.AutoTransaction (runModifierTransaction)
 
 ------------------------------------------------------------------------------
-cmdmode = hledgerCommandMode
+cmdmode = templateCommandMode
   [here| rewrite
 Print all transactions, adding custom postings to the matched ones.
 
@@ -153,13 +155,16 @@ See also:
 https://github.com/simonmichael/hledger/issues/99
 
   |]
-  [flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
-           "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."
-  ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"
-  ]
-  [generalflagsgroup1]
-  []
-  ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
+  `addModeFlags` def
+    { groupUnnamed =
+        [flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
+                "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."
+        ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"
+        ]
+    , groupNamed = [generalflagsgroup1]
+    }
+  `addModeRemainingArgs`
+    [argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ..."]
 ------------------------------------------------------------------------------
 
 -- TODO regex matching and interpolating matched name in replacement

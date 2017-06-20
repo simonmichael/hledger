@@ -22,6 +22,10 @@ module Hledger.Cli.CliOptions (
   defCommandMode,
   quickAddonCommandMode,
   hledgerCommandMode,
+  templateCommandMode,
+  addModeFlags,
+  addModeArgs,
+  addModeRemainingArgs,
   argsFlag,
   showModeUsage,
   withAliases,
@@ -268,6 +272,44 @@ hledgerCommandMode tmpl ungroupedflags groupedflags hiddenflags args =
         ,modeArgs = args
         }
 
+-- | Build a cmdarg mode suitable for a hledger add-on command,
+-- from a help template. Use 'addModeFlags', 'addModeArgs', and
+-- 'addModeRemainingArgs' to declare flags and arguments.
+templateCommandMode :: HelpTemplate -> Mode RawOpts
+templateCommandMode tmpl = hledgerCommandMode tmpl [] [] [] ([], Nothing)
+
+-- | Extend cmdarg mode with a group of flags
+addModeFlags :: Mode a -> Group (Flag a) -> Mode a
+mode `addModeFlags` newFlags = mode' where
+    mode' = mode { modeGroupFlags = groupFlags' }
+    groupFlags = modeGroupFlags mode
+    groupFlags' = groupFlags
+        { groupUnnamed = groupUnnamed groupFlags ++ groupUnnamed newFlags
+        , groupNamed = namedFlags'
+        , groupHidden = groupHidden groupFlags ++ groupHidden newFlags
+        }
+    namedFlags = groupNamed groupFlags
+    namedFlags' = foldr injectKeyedList namedFlags (groupNamed newFlags)
+    injectKeyedList :: Eq a => (a, [b]) -> [(a, [b])] -> [(a, [b])]
+    injectKeyedList (k, xs) zs =
+        case ((k ==) . fst) `partition` zs of
+            ([z], zs') -> (fst z, snd z ++ xs) : zs'
+            _ -> (k, xs) : zs
+
+-- | Extend cmdarg mode with a positional parameters description
+addModeArgs :: Mode a -> [Arg a] -> Mode a
+addModeArgs mode newArgs = mode { modeArgs = (args ++ newArgs, marg) } where
+    (args, marg) = modeArgs mode
+
+-- | Extend cmdarg mode with an parameters description with a last one catching
+-- all of the remaining arguments
+addModeRemainingArgs :: Mode a -> [Arg a] -> Mode a
+addModeRemainingArgs mode [] = mode
+addModeRemainingArgs mode remArgs = mode { modeArgs = (args', marg') } where
+    args' = args ++ init remArgs
+    marg' = Just $ last remArgs
+    (args, _) = modeArgs mode
+
 -- | Built-in descriptions for some of the known addons.
 standardAddonsHelp :: [(String,String)]
 standardAddonsHelp = [
@@ -352,6 +394,7 @@ data CliOpts = CliOpts {
  } deriving (Show, Data, Typeable)
 
 instance Default CliOpts where def = defcliopts
+instance Default (Group a) where def = Group def def def
 
 defcliopts :: CliOpts
 defcliopts = CliOpts
