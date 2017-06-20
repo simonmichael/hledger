@@ -2,7 +2,7 @@ User-visible changes in hledger-ui.
 See also the hledger and project change logs.
 
 
-# 1.2 (2016/3/31)
+# 1.2 (2017/3/31)
 
 Fix a pattern match failure when pressing E on the transaction screen (fixes #508)
 

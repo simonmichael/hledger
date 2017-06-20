@@ -2,14 +2,14 @@ User-visible changes in hledger-api.
 See also the hledger and the project change logs.
 
 
-# 1.2 (2016/3/31)
+# 1.2 (2017/3/31)
 
 see project changes at http://hledger.org/release-notes
 
 # 1.1 (2016/12/31)
 
 -   serves on 127.0.0.1 by default, --host option added (#432)
-    
+
     Consistent with hledger-web: serves only local requests by default,
     use --host=IPADDR to change this.
 
