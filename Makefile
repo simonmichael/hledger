@@ -1076,6 +1076,20 @@ haddock: \
 # # 	cd site/api && \
 # # 	hoogle --convert=main.txt --output=default.hoo
 
+changelog-draft: \
+	$(call def-help,changelog-draft, print commits since last tag as org-mode nodes for drafting changelogs/release notes. Eg: make changelog-draft >>doc/CHANGES.draft.org )
+	@echo "* draft changelog for `git describe --tags`"
+	@echo "** project"
+	@git log --pretty=format:'ORGNODE %s (%an) %h%n%b' \
+		--abbrev-commit --date-order `git describe --tags --abbrev=0`.. \
+		| sed -e 's/^\*/-/' -e 's/^ORGNODE/***/' \
+		| sed -e 's/ (Simon Michael)//'
+	@echo "** hledger-lib"
+	@echo "** hledger"
+	@echo "** hledger-ui"
+	@echo "** hledger-web"
+	@echo "** hledger-api"
+
 # in subsequent rules, allow automatic variables to be used in prerequisites (use $$)
 .SECONDEXPANSION:
 
