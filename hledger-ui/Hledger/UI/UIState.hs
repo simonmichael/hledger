@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {- | UIState operations. -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -6,7 +7,9 @@
 module Hledger.UI.UIState
 where
 
+#if !MIN_VERSION_brick(0,19,0)
 import Brick
+#endif
 import Brick.Widgets.Edit
 import Data.List
 import Data.Text.Zipper (gotoEOL)
@@ -235,7 +238,11 @@ getDepth UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}} = depth_ rop
 showMinibuffer :: UIState -> UIState
 showMinibuffer ui = setMode (Minibuffer e) ui
   where
+#if MIN_VERSION_brick(0,19,0)
+    e = applyEdit gotoEOL $ editor MinibufferEditor (Just 1) oldq
+#else
     e = applyEdit gotoEOL $ editor MinibufferEditor (str . unlines) (Just 1) oldq
+#endif
     oldq = query_ $ reportopts_ $ cliopts_ $ aopts ui
 
 -- | Close the minibuffer, discarding any edit in progress.
