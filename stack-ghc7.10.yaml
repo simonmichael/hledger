@@ -10,7 +10,8 @@ packages:
 - hledger-api
 
 extra-deps:
-- brick-0.13
+- brick-0.19
+- data-clist-0.1.1.0
 - text-zipper-0.8.1
 - vty-5.11.3
 - megaparsec-5.1.2

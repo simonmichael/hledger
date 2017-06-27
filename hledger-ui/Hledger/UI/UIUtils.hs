@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {- | Rendering & misc. helpers. -}
 
 {-# LANGUAGE OverloadedStrings #-}
@@ -136,7 +137,11 @@ minibuffer :: Editor String Name -> Widget Name
 minibuffer ed =
   forceAttr (borderAttr <> "minibuffer") $
   hBox $
+#if MIN_VERSION_brick(0,19,0)
+  [txt "filter: ", renderEditor (str . unlines) True ed]
+#else
   [txt "filter: ", renderEditor True ed]
+#endif
 
 -- | Wrap a widget in the default hledger-ui screen layout.
 defaultLayout :: Widget Name -> Widget Name -> Widget Name -> Widget Name
