@@ -291,9 +291,9 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KChar 'H') []) -> continue $ regenerateScreens j d $ toggleHistorical ui
         VtyEvent (EvKey (KChar 'F') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleFlat ui)
         VtyEvent (EvKey (KChar 'Z') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
-        VtyEvent (EvKey (KChar 'C') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
-        VtyEvent (EvKey (KChar 'P') []) -> scrollTop >> (continue $ regenerateScreens j d $ togglePending ui)
         VtyEvent (EvKey (KChar 'U') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleUnmarked ui)
+        VtyEvent (EvKey (KChar 'P') []) -> scrollTop >> (continue $ regenerateScreens j d $ togglePending ui)
+        VtyEvent (EvKey (KChar 'C') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
         VtyEvent (EvKey (KChar 'R') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
         VtyEvent (EvKey (KChar '/') []) -> (continue $ regenerateScreens j d $ showMinibuffer ui)
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
