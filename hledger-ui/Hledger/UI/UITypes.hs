@@ -142,6 +142,7 @@ data AccountsScreenItem = AccountsScreenItem {
 -- | An item in the register screen's list of transactions in the current account.
 data RegisterScreenItem = RegisterScreenItem {
    rsItemDate           :: String           -- ^ date
+  ,rsItemStatus         :: Status           -- ^ transaction status
   ,rsItemDescription    :: String           -- ^ description
   ,rsItemOtherAccounts  :: String           -- ^ other accounts
   ,rsItemChangeAmount   :: String           -- ^ the change to the current account from this transaction

@@ -76,6 +76,7 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
       where
         displayitem (t, _, _issplit, otheracctsstr, change, bal) =
           RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate q thisacctq t
+                            ,rsItemStatus        = tstatus t
                             ,rsItemDescription   = T.unpack $ tdescription t
                             ,rsItemOtherAccounts = case splitOn ", " otheracctsstr of
                                                      [s] -> s
@@ -127,7 +128,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
         -- columns and whitespace.  If they don't get all they need,
         -- allocate it to them proportionally to their maximum widths.
         whitespacewidth = 10 -- inter-column whitespace, fixed width
-        minnonamtcolswidth = datewidth + 2 + 2 -- date column plus at least 2 for desc and accts
+        minnonamtcolswidth = datewidth + 1 + 2 + 2 -- date column plus at least 1 for status and 2 for desc and accts
         maxamtswidth = max 0 (totalwidth - minnonamtcolswidth - whitespacewidth)
         maxchangewidthseen = maximum' $ map (strWidth . rsItemChangeAmount) displayitems
         maxbalwidthseen = maximum' $ map (strWidth . rsItemBalanceAmount) displayitems
@@ -140,7 +141,7 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
         -- maxdescacctswidth = totalwidth - (whitespacewidth - 4) - changewidth - balwidth
         maxdescacctswidth =
           -- trace (show (totalwidth, datewidth, changewidth, balwidth, whitespacewidth)) $
-          max 0 (totalwidth - datewidth - changewidth - balwidth - whitespacewidth)
+          max 0 (totalwidth - datewidth - 1 - changewidth - balwidth - whitespacewidth)
         -- allocating proportionally.
         -- descwidth' = maximum' $ map (strWidth . second6) displayitems
         -- acctswidth' = maximum' $ map (strWidth . third6) displayitems
@@ -220,7 +221,9 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
   Widget Greedy Fixed $ do
     render $
       str (fitString (Just datewidth) (Just datewidth) True True rsItemDate) <+>
-      str "  " <+>
+      str " " <+>
+      str (fitString (Just 1) (Just 1) True True (show rsItemStatus)) <+>
+      str " " <+>
       str (fitString (Just descwidth) (Just descwidth) True True rsItemDescription) <+>
       str "  " <+>
       str (fitString (Just acctswidth) (Just acctswidth) True True rsItemOtherAccounts) <+>
