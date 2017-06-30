@@ -102,12 +102,12 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
     -- build the List
     newitems = list RegisterList (V.fromList $ displayitems ++ blankitems) 1
 
-    -- decide which transaction is selected.
-    -- if reset is true, select the last (latest) transaction;
-    -- otherwise, select the previously selected transaction if possible;
-    -- otherwise, select the transaction nearest in date to it;
+    -- decide which transaction is selected:
+    -- if reset is true, the last (latest) transaction;
+    -- otherwise, the previously selected transaction if possible;
+    -- otherwise, the transaction nearest in date to it;
     -- or if there's several with the same date, the nearest in journal order;
-    -- otherwise, select the last (latest) transaction. 
+    -- otherwise, the last (latest) transaction. 
     newitems' = listMoveTo newselidx newitems
       where
         newselidx = 

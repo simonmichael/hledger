@@ -24,6 +24,7 @@ import Data.Time.Calendar (Day)
 import qualified Data.Vector as V
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Lens.Micro.Platform
+import Safe
 import System.Console.ANSI
 import System.FilePath (takeFileName)
 
@@ -56,17 +57,25 @@ asInit d reset ui@UIState{
    where
     newitems = list AccountsList (V.fromList $ displayitems ++ blankitems) 1
 
-    -- keep the selection near the last selected account
-    -- (may need to move to the next leaf account when entering flat mode)
+    -- decide which account is selected:
+    -- if reset is true, the first account;
+    -- otherwise, the previously selected account if possible;
+    -- otherwise, the first account with the same prefix (eg first leaf account when entering flat mode);
+    -- otherwise, the alphabetically preceding account.
     newitems' = listMoveTo selidx newitems
       where
         selidx = case (reset, listSelectedElement $ _asList s) of
                    (True, _)               -> 0
                    (_, Nothing)            -> 0
-                   (_, Just (_,AccountsScreenItem{asItemAccountName=a})) -> fromMaybe (fromMaybe 0 mprefixmatch) mexactmatch
-                     where
-                       mexactmatch  = findIndex ((a ==)                      . asItemAccountName) displayitems
-                       mprefixmatch = findIndex ((a `isAccountNamePrefixOf`) . asItemAccountName) displayitems
+                   (_, Just (_,AccountsScreenItem{asItemAccountName=a})) -> 
+                     headDef 0 $ catMaybes [
+                       findIndex (a ==) as
+                      ,findIndex (a `isAccountNamePrefixOf`) as
+                      ,Just $ max 0 (length (filter (< a) as) - 1)
+                      ]
+                      where
+                        as = map asItemAccountName displayitems
+
     uopts' = uopts{cliopts_=copts{reportopts_=ropts'}}
     ropts' = ropts{accountlistmode_=if flat_ ropts then ALFlat else ALTree}
 
