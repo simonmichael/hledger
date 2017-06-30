@@ -328,7 +328,7 @@ rsHandle ui@UIState{
           case listSelectedElement rsList of
             Just (_, RegisterScreenItem{rsItemTransaction=t}) ->
               let
-                ts = map rsItemTransaction $ V.toList $ listElements rsList
+                ts = map rsItemTransaction $ V.toList $ nonblanks
                 numberedts = zip [1..] ts
                 i = fromIntegral $ maybe 0 (+1) $ elemIndex t ts -- XXX
               in
