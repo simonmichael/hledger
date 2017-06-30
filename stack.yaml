@@ -10,6 +10,4 @@ packages:
 - hledger-web
 - hledger-api
 
-extra-deps:
-- brick-0.19
-- data-clist-0.1.1.0
+extra-deps: []
