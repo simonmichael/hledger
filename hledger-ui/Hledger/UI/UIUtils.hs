@@ -287,11 +287,11 @@ scrollSelectionToMiddle list = do
       setTop (viewportScroll vpname) toprow 
     _ -> return ()
 
---                 arrow keys      vi keys               emacs keys
-moveUpEvents    = [EvKey KUp []  , EvKey (KChar 'k') [], EvKey (KChar 'p') [MCtrl]]
-moveDownEvents  = [EvKey KDown [], EvKey (KChar 'j') [], EvKey (KChar 'n') [MCtrl]]
-moveLeftEvents  = [EvKey KLeft [], EvKey (KChar 'h') [], EvKey (KChar 'b') [MCtrl]]
-moveRightEvents = [EvKey KLeft [], EvKey (KChar 'l') [], EvKey (KChar 'f') [MCtrl]]
+--                 arrow keys       vi keys               emacs keys
+moveUpEvents    = [EvKey KUp []   , EvKey (KChar 'k') [], EvKey (KChar 'p') [MCtrl]]
+moveDownEvents  = [EvKey KDown [] , EvKey (KChar 'j') [], EvKey (KChar 'n') [MCtrl]]
+moveLeftEvents  = [EvKey KLeft [] , EvKey (KChar 'h') [], EvKey (KChar 'b') [MCtrl]]
+moveRightEvents = [EvKey KRight [], EvKey (KChar 'l') [], EvKey (KChar 'f') [MCtrl]]
 
 normaliseMovementKeys ev
   | ev `elem` moveUpEvents    = EvKey KUp []
