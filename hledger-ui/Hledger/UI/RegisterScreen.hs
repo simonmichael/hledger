@@ -17,7 +17,7 @@ import Data.List.Split (splitOn)
 import Data.Monoid
 import Data.Maybe
 import qualified Data.Text as T
-import Data.Time.Calendar (Day)
+import Data.Time.Calendar
 import qualified Data.Vector as V
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Brick
@@ -25,6 +25,7 @@ import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Brick.Widgets.Border (borderAttr)
 import Lens.Micro.Platform
+import Safe
 import System.Console.ANSI
 
 
@@ -101,15 +102,27 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
     -- build the List
     newitems = list RegisterList (V.fromList $ displayitems ++ blankitems) 1
 
-    -- keep the selection on the previously selected transaction if possible,
-    -- (eg after toggling nonzero mode), otherwise select the last element.
+    -- decide which transaction is selected.
+    -- if reset is true, select the last (latest) transaction;
+    -- otherwise, select the previously selected transaction if possible;
+    -- otherwise, select the transaction nearest in date to it;
+    -- or if there's several with the same date, the nearest in journal order;
+    -- otherwise, select the last (latest) transaction. 
     newitems' = listMoveTo newselidx newitems
       where
-        newselidx = case (reset, listSelectedElement rsList) of
-                      (True, _)    -> endidx
-                      (_, Nothing) -> endidx
-                      (_, Just (_,RegisterScreenItem{rsItemTransaction=Transaction{tindex=ti}}))
-                                   -> fromMaybe endidx $ findIndex ((==ti) . tindex . rsItemTransaction) displayitems
+        newselidx = 
+          case (reset, listSelectedElement rsList) of
+            (True, _)    -> endidx
+            (_, Nothing) -> endidx
+            (_, Just (_, RegisterScreenItem{rsItemTransaction=Transaction{tindex=prevselidx, tdate=prevseld}})) ->
+              headDef endidx $ catMaybes [
+                 findIndex ((==prevselidx) . tindex . rsItemTransaction) displayitems
+                ,findIndex ((==nearestidbydatethenid) . Just . tindex . rsItemTransaction) displayitems
+                ]
+              where
+                nearestidbydatethenid = third3 <$> (headMay $ sort
+                  [(abs $ diffDays (tdate t) prevseld, abs (tindex t - prevselidx), tindex t) | t <- ts])
+                ts = map rsItemTransaction displayitems
         endidx = length displayitems - 1
 
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"
