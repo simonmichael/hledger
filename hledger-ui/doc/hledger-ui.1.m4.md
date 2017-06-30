@@ -92,7 +92,7 @@ The cursor keys navigate:
 `right` (or `enter`) goes deeper, 
 `left` returns to the previous screen,
 `up`/`down`/`page up`/`page down`/`home`/`end` move up and down through lists.
-Vi-style `h`/`j`/`k`/`l` movement keys are also supported. 
+Vi-style (`h`/`j`/`k`/`l`) and Emacs-style (`CTRL-p`/`CTRL-n`/`CTRL-f`/`CTRL-b`) movement keys are also supported. 
 A tip: movement speed is limited by your keyboard repeat rate, 
 to move faster you may want to adjust it.
 (If you're on a mac, the Karabiner app is one way to do that.)
@@ -117,6 +117,9 @@ There are also keys for quickly adjusting some common filters like account depth
 
 `ESCAPE` removes all filters and jumps back to the top screen.
 Or, it cancels a minibuffer edit or help dialog in progress.
+
+`CTRL-l` redraws the screen and centers the selection if possible
+(selections near the top won't be centered, since we don't scroll above the top). 
 
 `g` reloads from the data file(s) and updates the current screen and any
 previous screens. (With large files, this could cause a noticeable pause.)
