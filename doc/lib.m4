@@ -8,7 +8,7 @@ m4_define({{_webcombined_}}, m4_ifdef({{WEB && COMBINED}},{{$1}}) )m4_dnl
 m4_dnl
 m4_define({{_author_}}, {{}})m4_dnl
 m4_define({{_monthyear_}}, {{June 2017}})m4_dnl
-m4_define({{_version_}}, {{1.2.98}})m4_dnl
+m4_define({{_version_}}, {{1.3}})m4_dnl
 m4_dnl
 m4_dnl Links to dev and recent release versions of a manual.
 m4_dnl $1 is the manual's web slug: hledger, hledger-ui, journal, csv etc.
@@ -20,6 +20,7 @@ This doc is for version **_version_**.
 m4_dnl Too painful for static generation, insert from site.js instead
 m4_dnl Available versions:
 m4_dnl <a href="/$1.html">dev</a>
+m4_dnl | <a href="/doc/1.3/$1.html">1.3</a>
 m4_dnl | <a href="/doc/1.2/$1.html">1.2</a>
 m4_dnl | <a href="/doc/1.1/$1.html">1.1</a>
 m4_dnl | <a href="/doc/1.0/$1.html">1.0</a>

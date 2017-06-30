@@ -4,8 +4,8 @@ stdin.
 
 File: hledger_journal.5.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
-hledger_journal(5) hledger 1.2.98
-*********************************
+hledger_journal(5) hledger 1.3
+******************************
 
 hledger's usual data source is a plain text file containing journal
 entries in hledger journal format.  This file represents a standard
@@ -89,8 +89,8 @@ with a simple date in column 0.  This can be followed by any of the
 following, separated by spaces:
 
    * (optional) a status character (empty, '!', or '*')
-   * (optional) a transaction code (any short number or text, eg a check
-     number)
+   * (optional) a transaction code (any short number or text, enclosed
+     in parentheses)
    * (optional) a transaction description (any remaining text until end
      of line)
 
@@ -1047,10 +1047,10 @@ Text Wrangler     https://github.com/ledger/ledger/wiki/Editing-Ledger-files-wit
 
 Tag Table:
 Node: Top78
-Node: FILE FORMAT2298
-Ref: #file-format2424
-Node: Transactions2631
-Ref: #transactions2754
+Node: FILE FORMAT2292
+Ref: #file-format2418
+Node: Transactions2625
+Ref: #transactions2748
 Node: Postings3313
 Ref: #postings3442
 Node: Dates4437

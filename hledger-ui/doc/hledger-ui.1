@@ -1,5 +1,5 @@
 
-.TH "hledger\-ui" "1" "June 2017" "hledger\-ui 1.2.98" "hledger User Manuals"
+.TH "hledger\-ui" "1" "June 2017" "hledger\-ui 1.3" "hledger User Manuals"
 
 
 
@@ -232,8 +232,9 @@ The cursor keys navigate: \f[C]right\f[] (or \f[C]enter\f[]) goes
 deeper, \f[C]left\f[] returns to the previous screen,
 \f[C]up\f[]/\f[C]down\f[]/\f[C]page\ up\f[]/\f[C]page\ down\f[]/\f[C]home\f[]/\f[C]end\f[]
 move up and down through lists.
-Vi\-style \f[C]h\f[]/\f[C]j\f[]/\f[C]k\f[]/\f[C]l\f[] movement keys are
-also supported.
+Vi\-style (\f[C]h\f[]/\f[C]j\f[]/\f[C]k\f[]/\f[C]l\f[]) and Emacs\-style
+(\f[C]CTRL\-p\f[]/\f[C]CTRL\-n\f[]/\f[C]CTRL\-f\f[]/\f[C]CTRL\-b\f[])
+movement keys are also supported.
 A tip: movement speed is limited by your keyboard repeat rate, to move
 faster you may want to adjust it.
 (If you\[aq]re on a mac, the Karabiner app is one way to do that.)
@@ -261,6 +262,10 @@ transactions.
 .PP
 \f[C]ESCAPE\f[] removes all filters and jumps back to the top screen.
 Or, it cancels a minibuffer edit or help dialog in progress.
+.PP
+\f[C]CTRL\-l\f[] redraws the screen and centers the selection if
+possible (selections near the top won\[aq]t be centered, since we
+don\[aq]t scroll above the top).
 .PP
 \f[C]g\f[] reloads from the data file(s) and updates the current screen
 and any previous screens.
