@@ -12,7 +12,7 @@ ones. See the issue and linked mail list discussion for more
 background. (#564)
 
 Also the -P short flag has been added for --pending, and the -U/-P/-C
-and flags can be combined. 
+flags can be combined. 
 
 bs/is: fix "Ratio has zero denominator" error (#535)
 
