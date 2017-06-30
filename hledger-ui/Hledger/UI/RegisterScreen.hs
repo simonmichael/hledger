@@ -4,11 +4,12 @@
 
 module Hledger.UI.RegisterScreen
  (registerScreen
+ ,rsHandle
  ,rsSetAccount
+ ,rsCenterAndContinue
  )
 where
 
-import Lens.Micro.Platform ((^.))
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.List
@@ -23,6 +24,7 @@ import Brick
 import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Brick.Widgets.Border (borderAttr)
+import Lens.Micro.Platform
 import System.Console.ANSI
 
 
@@ -86,9 +88,18 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
                             ,rsItemBalanceAmount = showMixedAmountOneLineWithoutPrice bal
                             ,rsItemTransaction   = t
                             }
-
+    -- blank items are added to allow more control of scroll position; we won't allow movement over these
+    blankitems = replicate 100  -- 100 ought to be enough for anyone
+          RegisterScreenItem{rsItemDate          = ""
+                            ,rsItemStatus        = Unmarked
+                            ,rsItemDescription   = ""
+                            ,rsItemOtherAccounts = ""
+                            ,rsItemChangeAmount  = ""
+                            ,rsItemBalanceAmount = ""
+                            ,rsItemTransaction   = nulltransaction
+                            }
     -- build the List
-    newitems = list RegisterList (V.fromList displayitems) 1
+    newitems = list RegisterList (V.fromList $ displayitems ++ blankitems) 1
 
     -- keep the selection on the previously selected transaction if possible,
     -- (eg after toggling nonzero mode), otherwise select the last element.
@@ -99,7 +110,7 @@ rsInit d reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=ropts}}, ajo
                       (_, Nothing) -> endidx
                       (_, Just (_,RegisterScreenItem{rsItemTransaction=Transaction{tindex=ti}}))
                                    -> fromMaybe endidx $ findIndex ((==ti) . tindex . rsItemTransaction) displayitems
-        endidx = length displayitems
+        endidx = length displayitems - 1
 
 rsInit _ _ _ = error "init function called with wrong screen type, should not happen"
 
@@ -188,7 +199,8 @@ rsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
             cur = str $ case rsList ^. listSelectedL of
                          Nothing -> "-"
                          Just i -> show (i + 1)
-            total = str $ show $ length displayitems
+            total = str $ show $ length nonblanks
+            nonblanks = V.takeWhile (not . null . rsItemDate) $ rsList^.listElementsL
 
             -- query = query_ $ reportopts_ $ cliopts_ opts
 
@@ -247,7 +259,11 @@ rsHandle ui@UIState{
   ,aMode=mode
   } ev = do
   d <- liftIO getCurrentDay
-
+  let 
+    journalspan = journalDateSpan False j
+    nonblanks = V.takeWhile (not . null . rsItemDate) $ rsList^.listElementsL
+    lastnonblankidx = max 0 (length nonblanks - 1)
+  
   case mode of
     Minibuffer ed ->
       case ev of
@@ -288,20 +304,23 @@ rsHandle ui@UIState{
                           rsItemTransaction=Transaction{tsourcepos=GenericSourcePos f l c}}) -> (Just (l, Just c),f)
                         Just (_, RegisterScreenItem{
                           rsItemTransaction=Transaction{tsourcepos=JournalSourcePos f (l,_)}}) -> (Just (l, Nothing),f)
-        VtyEvent (EvKey (KChar 'H') []) -> continue $ regenerateScreens j d $ toggleHistorical ui
-        VtyEvent (EvKey (KChar 'F') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleFlat ui)
-        VtyEvent (EvKey (KChar 'Z') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
-        VtyEvent (EvKey (KChar 'U') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleUnmarked ui)
-        VtyEvent (EvKey (KChar 'P') []) -> scrollTop >> (continue $ regenerateScreens j d $ togglePending ui)
-        VtyEvent (EvKey (KChar 'C') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
-        VtyEvent (EvKey (KChar 'R') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
-        VtyEvent (EvKey (KChar '/') []) -> (continue $ regenerateScreens j d $ showMinibuffer ui)
+        VtyEvent (EvKey (KChar 'H') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleHistorical ui
+        VtyEvent (EvKey (KChar 'F') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleFlat ui
+        VtyEvent (EvKey (KChar 'Z') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
+        VtyEvent (EvKey (KChar 'U') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
+        VtyEvent (EvKey (KChar 'P') []) -> rsCenterAndContinue $ regenerateScreens j d $ togglePending ui
+        VtyEvent (EvKey (KChar 'C') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
+        VtyEvent (EvKey (KChar 'R') []) -> rsCenterAndContinue $ regenerateScreens j d $ toggleReal ui
+        VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
         VtyEvent (EvKey (KUp)       [MShift]) -> continue $ regenerateScreens j d $ growReportPeriod d ui
         VtyEvent (EvKey (KRight)    [MShift]) -> continue $ regenerateScreens j d $ nextReportPeriod journalspan ui
         VtyEvent (EvKey (KLeft)     [MShift]) -> continue $ regenerateScreens j d $ previousReportPeriod journalspan ui
         VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         VtyEvent (EvKey k           []) | k `elem` [KLeft, KChar 'h']  -> continue $ popScreen ui
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle rsList >> invalidateCache >> continue ui
+
+        -- enter transaction screen for selected transaction
         VtyEvent (EvKey k           []) | k `elem` [KRight, KChar 'l'] -> do
           case listSelectedElement rsList of
             Just (_, RegisterScreenItem{rsItemTransaction=t}) ->
@@ -314,7 +333,27 @@ rsHandle ui@UIState{
                                                           ,tsTransactions=numberedts
                                                           ,tsAccount=rsAccount} ui
             Nothing -> continue ui
-        -- fall through to the list's event handler (handles [pg]up/down)
+
+        -- prevent moving down over blank padding items;
+        -- instead scroll down by one, until maximally scrolled - shows the end has been reached
+        VtyEvent (EvKey (KDown)     []) | isBlankElement mnextelement -> do
+          vScrollBy (viewportScroll $ rsList^.listNameL) 1 
+          continue ui
+          where 
+            mnextelement = listSelectedElement $ listMoveDown rsList
+
+        -- if page down or end leads to a blank padding item, stop at last non-blank
+        VtyEvent e@(EvKey k           []) | k `elem` [KPageDown, KEnd] -> do
+          list <- handleListEvent e rsList
+          if isBlankElement $ listSelectedElement list
+          then do
+            let list' = listMoveTo lastnonblankidx list
+            scrollSelectionToMiddle list'
+            continue ui{aScreen=s{rsList=list'}}
+          else
+            continue ui{aScreen=s{rsList=list}}
+          
+        -- fall through to the list's event handler (handles other [pg]up/down events)
         VtyEvent ev -> do
                 let ev' = case ev of
                             EvKey (KChar 'k') [] -> EvKey (KUp) []
@@ -323,12 +362,15 @@ rsHandle ui@UIState{
                 newitems <- handleListEvent ev' rsList
                 continue ui{aScreen=s{rsList=newitems}}
                 -- continue =<< handleEventLensed ui someLens ev
+
         AppEvent _        -> continue ui
         MouseDown _ _ _ _ -> continue ui
         MouseUp _ _ _     -> continue ui
-      where
-        -- Encourage a more stable scroll position when toggling list items (cf AccountsScreen.hs)
-        scrollTop = vScrollToBeginning $ viewportScroll RegisterViewport
-        journalspan = journalDateSpan False j
 
 rsHandle _ _ = error "event handler called with wrong screen type, should not happen"
+
+isBlankElement mel = ((rsItemDate . snd) <$> mel) == Just "" 
+
+rsCenterAndContinue ui = do
+  scrollSelectionToMiddle $ rsList $ aScreen ui
+  continue ui

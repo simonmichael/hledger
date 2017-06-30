@@ -11,6 +11,7 @@ import Brick.Widgets.Border.Style
 -- import Brick.Widgets.Center
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
+import Brick.Widgets.List
 import Data.List
 import Data.Maybe
 import Data.Monoid
@@ -54,8 +55,9 @@ helpDialog copts =
                   ,renderKey ("a", "add transaction (hledger add)")
                   ,renderKey ("A", "add transaction (hledger-iadd)")
                   ,renderKey ("E", "open editor")
-                  ,renderKey ("g", "reload data")
                   ,renderKey ("I", "toggle balance assertions")
+                  ,renderKey ("g", "reload data")
+                  ,renderKey ("CTRL-l", "redraw & recenter")
                   ,renderKey ("q", "quit")
                   ,str " "
                   ,str "MANUAL"
@@ -255,3 +257,31 @@ margin h v mcolour = \w ->
 withBorderAttr :: Attr -> Widget Name -> Widget Name
 withBorderAttr attr = updateAttrMap (applyAttrMappings [(borderAttr, attr)])
 
+-- | Like brick's continue, but first run some action to modify brick's state.
+-- This action does not affect the app state, but might eg adjust a widget's scroll position.
+continueWith :: EventM n () -> ui -> EventM n (Next ui)
+continueWith brickaction ui = brickaction >> continue ui
+
+-- | Scroll a list's viewport so that the selected item is centered in the
+-- middle of the display area.
+scrollToTop :: List Name e -> EventM Name ()
+scrollToTop list = do
+  let vpname = list^.listNameL
+  setTop (viewportScroll vpname) 0 
+
+-- | Scroll a list's viewport so that the selected item is centered in the
+-- middle of the display area.
+scrollSelectionToMiddle :: List Name e -> EventM Name ()
+scrollSelectionToMiddle list = do
+  let mselectedrow = list^.listSelectedL 
+      vpname = list^.listNameL
+  mvp <- lookupViewport vpname
+  case (mselectedrow, mvp) of
+    (Just selectedrow, Just vp) -> do
+      let
+        itemheight   = dbg4 "itemheight" $ list^.listItemHeightL
+        vpheight     = dbg4 "vpheight" $ vp^.vpSize._2
+        itemsperpage = dbg4 "itemsperpage" $ vpheight `div` itemheight
+        toprow       = dbg4 "toprow" $ max 0 (selectedrow - (itemsperpage `div` 2)) -- assuming ViewportScroll's row offset is measured in list items not screen rows
+      setTop (viewportScroll vpname) toprow 
+    _ -> return ()

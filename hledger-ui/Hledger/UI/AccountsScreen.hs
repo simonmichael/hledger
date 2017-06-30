@@ -54,7 +54,7 @@ asInit d reset ui@UIState{
   } =
   ui{aopts=uopts', aScreen=s & asList .~ newitems'}
    where
-    newitems = list AccountsList (V.fromList displayitems) 1
+    newitems = list AccountsList (V.fromList $ displayitems ++ blankitems) 1
 
     -- keep the selection near the last selected account
     -- (may need to move to the next leaf account when entering flat mode)
@@ -98,6 +98,13 @@ asInit d reset ui@UIState{
         Mixed amts = normaliseMixedAmountSquashPricesForDisplay $ stripPrices bal
         stripPrices (Mixed as) = Mixed $ map stripprice as where stripprice a = a{aprice=NoPrice}
     displayitems = map displayitem items
+    -- blanks added for scrolling control, cf RegisterScreen 
+    blankitems = replicate 100
+      AccountsScreenItem{asItemIndentLevel        = 0
+                        ,asItemAccountName        = ""
+                        ,asItemDisplayAccountName = ""
+                        ,asItemRenderedAmounts    = []
+                        }
 
 
 asInit _ _ _ = error "init function called with wrong screen type, should not happen"
@@ -191,7 +198,8 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
             cur = str (case _asList s ^. listSelectedL of
                         Nothing -> "-"
                         Just i -> show (i + 1))
-            total = str $ show $ V.length $ s ^. asList . listElementsL
+            total = str $ show $ V.length nonblanks 
+            nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ s ^. asList . listElementsL
 
         bottomlabel = case mode of
                         Minibuffer ed -> minibuffer ed
@@ -255,9 +263,9 @@ asHandle ui0@UIState{
   ,aMode=mode
   } ev = do
   d <- liftIO getCurrentDay
-  -- c <- getContext
-  -- let h = c^.availHeightL
-  --     moveSel n l = listMoveBy n l
+  let
+    nonblanks = V.takeWhile (not . T.null . asItemAccountName) $ _asList^.listElementsL
+    lastnonblankidx = max 0 (length nonblanks - 1)
 
   -- save the currently selected account, in case we leave this screen and lose the selection
   let
@@ -315,13 +323,13 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KChar '_') []) -> continue $ regenerateScreens j d $ decDepth ui
         VtyEvent (EvKey (KChar c)   []) | c `elem` ['+','='] -> continue $ regenerateScreens j d $ incDepth ui
         VtyEvent (EvKey (KChar 't') [])    -> continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
-        VtyEvent (EvKey (KChar 'H') []) -> continue $ regenerateScreens j d $ toggleHistorical ui
-        VtyEvent (EvKey (KChar 'F') []) -> continue $ regenerateScreens j d $ toggleFlat ui
-        VtyEvent (EvKey (KChar 'Z') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleEmpty ui)
-        VtyEvent (EvKey (KChar 'U') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleUnmarked ui)
-        VtyEvent (EvKey (KChar 'P') []) -> scrollTop >> (continue $ regenerateScreens j d $ togglePending ui)
-        VtyEvent (EvKey (KChar 'C') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleCleared ui)
-        VtyEvent (EvKey (KChar 'R') []) -> scrollTop >> (continue $ regenerateScreens j d $ toggleReal ui)
+        VtyEvent (EvKey (KChar 'H') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleHistorical ui
+        VtyEvent (EvKey (KChar 'F') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleFlat ui
+        VtyEvent (EvKey (KChar 'Z') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleEmpty ui
+        VtyEvent (EvKey (KChar 'U') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleUnmarked ui
+        VtyEvent (EvKey (KChar 'P') []) -> asCenterAndContinue $ regenerateScreens j d $ togglePending ui
+        VtyEvent (EvKey (KChar 'C') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleCleared ui
+        VtyEvent (EvKey (KChar 'R') []) -> asCenterAndContinue $ regenerateScreens j d $ toggleReal ui
         VtyEvent (EvKey (KDown)     [MShift]) -> continue $ regenerateScreens j d $ shrinkReportPeriod d ui
         VtyEvent (EvKey (KUp)       [MShift]) -> continue $ regenerateScreens j d $ growReportPeriod d ui
         VtyEvent (EvKey (KRight)    [MShift]) -> continue $ regenerateScreens j d $ nextReportPeriod journalspan ui
@@ -329,13 +337,42 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
         VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
         VtyEvent (EvKey k           []) | k `elem` [KLeft, KChar 'h']  -> continue $ popScreen ui
-        VtyEvent (EvKey k           []) | k `elem` [KRight, KChar 'l'] -> scrollTopRegister >> continue (screenEnter d scr ui)
+        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _asList >> invalidateCache >> continue ui
+
+        -- enter register screen for selected account (if there is one), 
+        -- centering its selected transaction if possible
+        VtyEvent (EvKey k           []) 
+          | k `elem` [KRight, KChar 'l']
+          , not $ isBlankElement $ listSelectedElement _asList->
+          -- TODO center selection after entering register screen; neither of these works till second time entering; easy strictifications didn't help 
+          rsCenterAndContinue $  
+          -- flip rsHandle (VtyEvent (EvKey (KChar 'l') [MCtrl])) $
+            screenEnter d regscr ui 
           where
-            scr = rsSetAccount selacct isdepthclipped registerScreen
+            regscr = rsSetAccount selacct isdepthclipped registerScreen
             isdepthclipped = case getDepth ui of
                                 Just d  -> accountNameLevel selacct >= d
                                 Nothing -> False
 
+        -- prevent moving down over blank padding items;
+        -- instead scroll down by one, until maximally scrolled - shows the end has been reached
+        VtyEvent (EvKey (KDown)     []) | isBlankElement mnextelement -> do
+          vScrollBy (viewportScroll $ _asList^.listNameL) 1 
+          continue ui
+          where 
+            mnextelement = listSelectedElement $ listMoveDown _asList
+
+        -- if page down or end leads to a blank padding item, stop at last non-blank
+        VtyEvent e@(EvKey k           []) | k `elem` [KPageDown, KEnd] -> do
+          list <- handleListEvent e _asList
+          if isBlankElement $ listSelectedElement list
+          then do
+            let list' = listMoveTo lastnonblankidx list
+            scrollSelectionToMiddle list'
+            continue ui{aScreen=scr{_asList=list'}}
+          else
+            continue ui{aScreen=scr{_asList=list}}
+          
         -- fall through to the list's event handler (handles up/down)
         VtyEvent ev ->
               do
@@ -348,18 +385,12 @@ asHandle ui0@UIState{
                                           & asSelectedAccount .~ selacct
                                           }
                 -- continue =<< handleEventLensed ui someLens ev
+
         AppEvent _        -> continue ui
         MouseDown _ _ _ _ -> continue ui
         MouseUp _ _ _     -> continue ui
 
   where
-    -- Encourage a more stable scroll position when toggling list items.
-    -- We scroll to the top, and the viewport will automatically
-    -- scroll down just far enough to reveal the selection, which
-    -- usually leaves it at bottom of screen).
-    -- XXX better: scroll so selection is in middle of screen ?
-    scrollTop         = vScrollToBeginning $ viewportScroll AccountsViewport
-    scrollTopRegister = vScrollToBeginning $ viewportScroll RegisterViewport
     journalspan = journalDateSpan False j
 
 asHandle _ _ = error "event handler called with wrong screen type, should not happen"
@@ -367,3 +398,8 @@ asHandle _ _ = error "event handler called with wrong screen type, should not ha
 asSetSelectedAccount a s@AccountsScreen{} = s & asSelectedAccount .~ a
 asSetSelectedAccount _ s = s
 
+isBlankElement mel = ((asItemAccountName . snd) <$> mel) == Just "" 
+
+asCenterAndContinue ui = do
+  scrollSelectionToMiddle $ _asList $ aScreen ui
+  continue ui
