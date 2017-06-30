@@ -50,7 +50,7 @@ You have to build it, but this is relatively easy:
    Eg if you're a bash user:\
    `echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
 
-2. **`stack install hledger-lib-1.2 hledger-1.2 [hledger-ui-1.2] [hledger-web-1.2] [hledger-api-1.2]`**\   
+2. **`stack install hledger-lib-1.3 hledger-1.3 [hledger-ui-1.3] [hledger-web-1.3] [hledger-api-1.3]`**\   
    \
    This command installs the latest hledger packages (and the haskell libraries and tools they depend on) from an
    [appropriate](https://www.stackage.org/package/hledger-lib)
