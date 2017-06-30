@@ -70,7 +70,7 @@ Each transaction is represented by a journal entry beginning with a [simple date
 This can be followed by any of the following, separated by spaces:
 
 - (optional) a [status](#status) character (empty, `!`, or `*`) 
-- (optional) a transaction code (any short number or text, eg a check number)
+- (optional) a transaction code (any short number or text, enclosed in parentheses)
 - (optional) a transaction description (any remaining text until end of line)
 
 Then comes zero or more (but usually at least 2) indented lines representing...
