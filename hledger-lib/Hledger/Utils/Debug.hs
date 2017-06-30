@@ -151,7 +151,7 @@ dbg9IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg9IO = tracePrettyAtIO 9
 
 -- | Pretty-print a message and a showable value to the console if the debug level is at or above the specified level.
--- dbtAt 0 always prints. Otherwise, uses unsafePerformIO.
+-- At level 0, always prints. Otherwise, uses unsafePerformIO.
 tracePrettyAt :: Show a => Int -> String -> a -> a
 tracePrettyAt lvl = dbgppshow lvl
 
@@ -170,6 +170,25 @@ tracePrettyAt lvl = dbgppshow lvl
 
 tracePrettyAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
 tracePrettyAtIO lvl lbl x = liftIO $ tracePrettyAt lvl lbl x `seq` return ()
+
+log0 :: Show a => String -> a -> a
+log0 = logPrettyAt 0
+
+-- | Log a message and a pretty-printed showable value to ./debug.log, 
+-- if the debug level is at or above the specified level.
+-- At level 0, always logs. Otherwise, uses unsafePerformIO.
+logPrettyAt :: Show a => Int -> String -> a -> a
+logPrettyAt lvl
+    | lvl > 0 && debugLevel < lvl = flip const
+    | otherwise = \s a -> 
+        let p = ppShow a
+            ls = lines p
+            nlorspace | length ls > 1 = "\n"
+                      | otherwise     = " " ++ take (10 - length s) (repeat ' ')
+            ls' | length ls > 1 = map (" "++) ls
+                | otherwise     = ls
+            output = s++":"++nlorspace++intercalate "\n" ls'
+        in unsafePerformIO $ appendFile "debug.log" output >> return a
 
 -- | print this string to the console before evaluating the expression,
 -- if the global debug level is at or above the specified level.  Uses unsafePerformIO.
