@@ -7,6 +7,7 @@ h4 { margin-top:2em; }
 <nav id="toc">
 <p>Major releases:</p>
 <ol>
+<li><a href="#hledger-1.3">hledger 1.3 (2017/6/30)</a>
 <li><a href="#hledger-1.2">hledger 1.2 (2017/3/31)</a>
 <li><a href="#hledger-1.1">hledger 1.1 (2016/12/31)</a>
 <li><a href="#hledger-1.0">hledger 1.0 (2016/10/26)</a>
@@ -52,6 +53,105 @@ Based on the
 [hledger project](https://github.com/simonmichael/hledger/blob/master/doc/CHANGES)
 change logs.
 -->
+
+
+## 2017/6/30 hledger 1.3
+
+***release notes to follow
+***
+
+<!-- ([announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1267)) -->
+<!-- ([announcement](https://groups.google.com/d/topic/hledger/WgdTy3-a6sc/discussion))  -->
+
+Release contributors:
+<!-- Simon Michael, -->
+<!-- Mykola Orliuk, -->
+<!-- Justin Le, -->
+<!-- Peter Simons, -->
+<!-- Stefano Rodighiero, -->
+<!-- Moritz Kiefer, -->
+<!-- Pia Mancini, -->
+<!-- Bryan Richter, -->
+<!-- Steven R. Baker, -->
+<!-- Hans-Peter Deifel, -->
+<!-- Joshua Chia, -->
+<!-- Joshua Kehn, -->
+<!-- Michael Walker. -->
+
+  [project](#project-wide-changes-for-1.3)
+| [hledger-lib](#hledger-lib-1.3)
+| [hledger](#hledger-1.3-1)
+| [hledger-ui](#hledger-ui-1.3)
+| [hledger-web](#hledger-web-1.3)
+| [hledger-api](#hledger-api-1.3)
+
+### project-wide changes for 1.3
+
+#### Packaging
+
+#### Finance
+
+#### Documentation and website
+
+#### Examples
+
+#### Tools
+
+make ghci-prof starts GHCI in profiling mode, enabling stack traces with traceStack
+
+make ghci-web now also creates required symlinks
+
+make site-reload opens an auto-reloading browser on the latest site html
+
+make changelog-draft shows the commits since last tag as org nodes
+
+### hledger-lib 1.3
+
+#### journal format
+
+#### ledger format
+
+#### Misc
+
+### hledger 1.3
+
+#### CLI
+
+#### Addons
+
+
+### addons
+
+make addons compiles the experimental add-ons
+
+prices: add inverted-costs support and sort output (Mykola Orliuk)
+
+prices: improve precision (Nikolay Orlyuk)
+
+rewrite: Add Support for Rewriting Multipler Postings Into Different Commodities (#557) (Christian G. Warden)
+
+When generating a new posting as a multiple of an existing posting,
+support conversion to a different commodity.  For example, postings in
+hours can be used to generate postings in USD.
+    
+Automatic transactions generated from rewrite rules use the commodity,
+amount style, and transaction price if the rewrite defines a
+commodity.
+
+#### balance
+
+#### balancesheet/cashflow/incomestatement
+
+#### print
+
+#### Misc
+
+### hledger-ui 1.3
+
+### hledger-web 1.3
+
+### hledger-api 1.3
+
 
 
 ## 2017/3/31 hledger 1.2
