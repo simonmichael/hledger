@@ -336,14 +336,13 @@ asHandle ui0@UIState{
         VtyEvent (EvKey (KLeft)     [MShift]) -> continue $ regenerateScreens j d $ previousReportPeriod journalspan ui
         VtyEvent (EvKey (KChar '/') []) -> continue $ regenerateScreens j d $ showMinibuffer ui
         VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
-        VtyEvent (EvKey k           []) | k `elem` [KLeft, KChar 'h']  -> continue $ popScreen ui
+        VtyEvent e | e `elem` moveLeftEvents -> continue $ popScreen ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _asList >> invalidateCache >> continue ui
 
         -- enter register screen for selected account (if there is one), 
         -- centering its selected transaction if possible
-        VtyEvent (EvKey k           []) 
-          | k `elem` [KRight, KChar 'l']
-          , not $ isBlankElement $ listSelectedElement _asList->
+        VtyEvent e | e `elem` moveRightEvents 
+                   , not $ isBlankElement $ listSelectedElement _asList->
           -- TODO center selection after entering register screen; neither of these works till second time entering; easy strictifications didn't help 
           rsCenterAndContinue $  
           -- flip rsHandle (VtyEvent (EvKey (KChar 'l') [MCtrl])) $
@@ -374,17 +373,11 @@ asHandle ui0@UIState{
             continue ui{aScreen=scr{_asList=list}}
           
         -- fall through to the list's event handler (handles up/down)
-        VtyEvent ev ->
-              do
-                let ev' = case ev of
-                            EvKey (KChar 'k') [] -> EvKey (KUp) []
-                            EvKey (KChar 'j') [] -> EvKey (KDown) []
-                            _                    -> ev
-                newitems <- handleListEvent ev' _asList
-                continue $ ui{aScreen=scr & asList .~ newitems
-                                          & asSelectedAccount .~ selacct
-                                          }
-                -- continue =<< handleEventLensed ui someLens ev
+        VtyEvent ev -> do
+          newitems <- handleListEvent (normaliseMovementKeys ev) _asList
+          continue $ ui{aScreen=scr & asList .~ newitems
+                                    & asSelectedAccount .~ selacct
+                                    }
 
         AppEvent _        -> continue ui
         MouseDown _ _ _ _ -> continue ui

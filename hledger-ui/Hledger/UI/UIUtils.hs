@@ -15,7 +15,7 @@ import Brick.Widgets.List
 import Data.List
 import Data.Maybe
 import Data.Monoid
-import Graphics.Vty (Event(..),Key(..),Color,Attr,currentAttr)
+import Graphics.Vty (Event(..),Key(..),Modifier(..),Color,Attr,currentAttr)
 import Lens.Micro.Platform
 import System.Process
 
@@ -44,10 +44,11 @@ helpDialog copts =
               padLeftRight 1 $
                 vBox [
                    str "NAVIGATION"
-                  ,renderKey ("UP/DOWN/k/j/PGUP/PGDN/HOME/END", "")
+                  ,renderKey ("UP/DOWN/PGUP/PGDN/HOME/END", "")
                   ,str "  move selection"
-                  ,renderKey ("RIGHT/l", "more detail")
-                  ,renderKey ("LEFT/h", "previous screen")
+                  ,renderKey ("RIGHT", "more detail")
+                  ,renderKey ("LEFT", "previous screen")
+                  ,str "  (or vi/emacs movement keys)"
                   ,renderKey ("ESC", "cancel / reset to top")
                   ,str " "
                   ,str "MISC"
@@ -125,7 +126,7 @@ helpDialog copts =
 helpHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
 helpHandle ui ev =
   case ev of
-    VtyEvent (EvKey k []) | k `elem` [KEsc, KLeft, KChar 'h', KChar '?'] -> continue $ setMode Normal ui
+    VtyEvent e | e `elem` (moveLeftEvents ++ [EvKey KEsc [], EvKey (KChar '?') []]) -> continue $ setMode Normal ui
     VtyEvent (EvKey (KChar 't') []) -> suspendAndResume $ runHelp >> return ui'
     VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume $ runMan  >> return ui'
     VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume $ runInfo >> return ui'
@@ -285,3 +286,16 @@ scrollSelectionToMiddle list = do
         toprow       = dbg4 "toprow" $ max 0 (selectedrow - (itemsperpage `div` 2)) -- assuming ViewportScroll's row offset is measured in list items not screen rows
       setTop (viewportScroll vpname) toprow 
     _ -> return ()
+
+--                 arrow keys      vi keys               emacs keys
+moveUpEvents    = [EvKey KUp []  , EvKey (KChar 'k') [], EvKey (KChar 'p') [MCtrl]]
+moveDownEvents  = [EvKey KDown [], EvKey (KChar 'j') [], EvKey (KChar 'n') [MCtrl]]
+moveLeftEvents  = [EvKey KLeft [], EvKey (KChar 'h') [], EvKey (KChar 'b') [MCtrl]]
+moveRightEvents = [EvKey KLeft [], EvKey (KChar 'l') [], EvKey (KChar 'f') [MCtrl]]
+
+normaliseMovementKeys ev
+  | ev `elem` moveUpEvents    = EvKey KUp []
+  | ev `elem` moveDownEvents  = EvKey KDown []
+  | ev `elem` moveLeftEvents  = EvKey KLeft []
+  | ev `elem` moveRightEvents = EvKey KRight []
+  | otherwise = ev

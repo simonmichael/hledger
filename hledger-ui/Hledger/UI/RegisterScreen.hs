@@ -317,11 +317,11 @@ rsHandle ui@UIState{
         VtyEvent (EvKey (KRight)    [MShift]) -> continue $ regenerateScreens j d $ nextReportPeriod journalspan ui
         VtyEvent (EvKey (KLeft)     [MShift]) -> continue $ regenerateScreens j d $ previousReportPeriod journalspan ui
         VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (continue $ regenerateScreens j d $ resetFilter ui)
-        VtyEvent (EvKey k           []) | k `elem` [KLeft, KChar 'h']  -> continue $ popScreen ui
+        VtyEvent e | e `elem` moveLeftEvents  -> continue $ popScreen ui
         VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle rsList >> invalidateCache >> continue ui
 
         -- enter transaction screen for selected transaction
-        VtyEvent (EvKey k           []) | k `elem` [KRight, KChar 'l'] -> do
+        VtyEvent e | e `elem` moveRightEvents -> do
           case listSelectedElement rsList of
             Just (_, RegisterScreenItem{rsItemTransaction=t}) ->
               let
@@ -336,7 +336,7 @@ rsHandle ui@UIState{
 
         -- prevent moving down over blank padding items;
         -- instead scroll down by one, until maximally scrolled - shows the end has been reached
-        VtyEvent (EvKey (KDown)     []) | isBlankElement mnextelement -> do
+        VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
           vScrollBy (viewportScroll $ rsList^.listNameL) 1 
           continue ui
           where 
@@ -355,13 +355,9 @@ rsHandle ui@UIState{
           
         -- fall through to the list's event handler (handles other [pg]up/down events)
         VtyEvent ev -> do
-                let ev' = case ev of
-                            EvKey (KChar 'k') [] -> EvKey (KUp) []
-                            EvKey (KChar 'j') [] -> EvKey (KDown) []
-                            _                    -> ev
-                newitems <- handleListEvent ev' rsList
-                continue ui{aScreen=s{rsList=newitems}}
-                -- continue =<< handleEventLensed ui someLens ev
+          let ev' = normaliseMovementKeys ev
+          newitems <- handleListEvent ev' rsList
+          continue ui{aScreen=s{rsList=newitems}}
 
         AppEvent _        -> continue ui
         MouseDown _ _ _ _ -> continue ui

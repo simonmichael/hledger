@@ -168,9 +168,9 @@ tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
         -- EvKey (KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty ui
         -- EvKey (KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared ui
         -- EvKey (KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal ui
-        VtyEvent (EvKey k           []) | k `elem` [KUp, KChar 'k']   -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(iprev,tprev)}}
-        VtyEvent (EvKey k           []) | k `elem` [KDown, KChar 'j'] -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(inext,tnext)}}
-        VtyEvent (EvKey k           []) | k `elem` [KLeft, KChar 'h'] -> continue ui''
+        VtyEvent e | e `elem` moveUpEvents   -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(iprev,tprev)}}
+        VtyEvent e | e `elem` moveDownEvents -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(inext,tnext)}}
+        VtyEvent e | e `elem` moveLeftEvents -> continue ui''
           where
             ui'@UIState{aScreen=scr} = popScreen ui
             ui'' = ui'{aScreen=rsSelect (fromIntegral i) scr}
