@@ -2,6 +2,35 @@ User-visible changes in the hledger and hledger-lib packages.
 See also the project change log.
 
 
+# 1.3 (2017/6/30)
+
+The "uncleared" transaction/posting status, and associated UI flags
+and keys, have been renamed to "unmarked" to remove ambiguity and
+confusion.  This means that we have dropped the `--uncleared` flag,
+and our `-U` flag now matches only unmarked things and not pending
+ones. See the issue and linked mail list discussion for more
+background. (#564)
+
+Also the -P short flag has been added for --pending, and the -U/-P/-C
+and flags can be combined. 
+
+bs/is: fix "Ratio has zero denominator" error (#535)
+
+bs/is/cf: fix --flat (#552) (Justin Le, Simon Michael)
+
+bal/bs/is/cf: show negative amounts in red (Simon Michael, Justin Le).
+These commands now shows negative amounts in red, when hledger detects
+that ANSI codes are supported, (ie when TERM is not "dumb" and stdout
+is not being redirected or piped).
+
+print: show pending mark on postings (fixes #563).
+A pending mark on postings is now displayed, just like a cleared mark.
+Also there will now be a space between the mark and account name.
+
+print: amounts are now better aligned, eg when there are posting
+status marks or virtual postings
+
+
 # 1.2 (2017/3/31)
 
 ## CLI

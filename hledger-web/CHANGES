@@ -2,6 +2,11 @@ User-visible changes in hledger-web.
 See also the hledger and the project change logs.
 
 
+# 1.3 (2017/6/30)
+
+Depends on hledger[-lib] 1.3, see related changelogs.
+
+
 # 1.2 (2017/3/31)
 
 Accounts with ? in name had empty registers (fixes #498) (Bryan Richter)
