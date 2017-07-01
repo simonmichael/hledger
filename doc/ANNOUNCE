@@ -1,20 +1,17 @@
-I'm pleased to announce hledger 1.2, on schedule.  Thank you to
-release contributors Peter Simons, Stefano Rodighiero, Moritz Kiefer,
-Pia Mancini, Bryan Richter, Steven R. Baker, Hans-Peter Deifel, Joshua
-Chia, Joshua Kehn, Michael Walker, and especially Mykola Orliuk and
-Justin Le!
+I'm pleased to announce hledger 1.3, released yesterday.  
+Thank you release contributors: Mykola Orliuk, Christian G. Warden,
+Dmitry Astapov, Justin Le, Joe Horsnell, Nicolas Wavrant, afarrow,
+Carel Fellinger, flip111, David Reaver, Felix Yan, Nissar Chababy, and
+Jan Zerebecki.
 
 Notable user-visible changes in this release:
-new commands list,
-more powerful balancesheet/incomestatement/cashflow commands,
-more parseable print output,
-better --pivot, 
-basic automated postings and periodic transactions support,
-more and easier addons,
+terminology/UI improvements for the status field,
+selection/scrolling/movement improvements in hledger-ui,
+negative amounts shown in red,
 bugfixes.
 
-Full release notes: http://hledger.org/release-notes#hledger-1.2
-The next major release is scheduled for June 30.
+Full release notes are at http://hledger.org/release-notes#hledger-1.3
+The next major release is scheduled for September 30.
 
 hledger (http://hledger.org) is a dependable, precise, cross-platform
 program for tracking money, time, or any other commodity, using
@@ -22,20 +19,30 @@ double-entry accounting and a simple plain text file format.  It is a
 haskell reimplementation of Ledger, provides command-line, curses and
 web interfaces, and aims to be a robust, practical tool for daily use.
 
-To install this release:
+To get started, install the stack tool, eg by downloading from
+http://haskell-lang.org/get-started. Then install hledger (and
+optionally the alternate UIs):
 
-Get stack, eg from http://haskell-lang.org/get-started
-$ stack install --resolver=nightly hledger [hledger-ui] [hledger-web] [hledger-api]
-$ ~/.local/bin/hledger
+$ stack install hledger-lib-1.3 hledger-1.3 [hledger-ui-1.3] [hledger-web-1.3] [hledger-api-1.3]
 
-or see http://hledger.org/download for more installation options.
+(cabal experts can use that instead. See http://hledger.org/download
+for more install options.)
+
+Ensure $HOME/.local/bin is in your $PATH, and try some commands:
+
+$ hledger               # list commands
+$ hledger -h            # quick help
+$ hledger --man         # man page for the hledger CLI tool
+$ hledger info journal  # info manual for the journal format
+
+etc.
+
 Our IRC channel is #hledger on Freenode, and you can find out more at
 http://hledger.org.
 
-I hope you enjoy hledger and that it helps you achieve your goals.
 If you have benefitted from hledger, please give back and make it stronger!
 Donate using one of the funding links on the home page, give feedback,
-report bugs, send pull requests, write about it, etc.
+report bugs, send pull requests, write about it, or help in some other way. 
+Thanks for your support; I hope you enjoy hledger and that it helps you achieve your goals.
 
-Best!
 -Simon

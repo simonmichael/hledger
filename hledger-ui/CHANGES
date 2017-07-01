@@ -4,11 +4,17 @@ See also the hledger and project change logs.
 
 # 1.3 (2017/6/30)
 
-Deps: allow brick 0.19 (#575, Felix Yan, Simon Michael)
+The register screen now shows transaction status marks.
 
-The P key toggles pending mode.
-Also there is a temporary --status-toggles flag for testing different
-toggle styles, see `hledger-ui -h`. (#564)
+The "uncleared" status, and associated UI flags and keys, have been
+renamed to "unmarked" to remove ambiguity and confusion.  This means
+that we have dropped the `--uncleared` flag, and our `-U` flag now
+matches only unmarked things and not pending ones. See the issue and
+linked mail list discussion for more background. (#564)
+
+The P key toggles pending mode, consistent with U (unmarked) and C
+(cleared). There is also a temporary --status-toggles flag for testing
+other toggle styles; see `hledger-ui -h`. (#564)
 
 There is now less "warping" of selection when lists change:
 
@@ -23,8 +29,8 @@ There is now less "warping" of selection when lists change:
 
 In the accounts and register screens, you can now scroll down further
 so that the last item need not always be shown at the bottom of the
-screen.  Also we now try to center the selected item in the following
-situations:
+screen.  And we now try to show the selected item centered in the
+following situations:
 
 -   after moving to the end with Page down/End
 -   after toggling filters (status, real, historical..)
@@ -32,16 +38,16 @@ situations:
 -   on entering the register screen from the accounts screen (there's a
     known problem with this: it doesn't work the first time).
 
-Items near the top of the list can't be centered, as we don't scroll
-higher than the top of the list.
+(Items near the top can't be centered, as we don't scroll higher than
+the top of the list.)
 
 Emacs movement keys are now supported, as well as VI keys.
 hjkl and CTRL-bfnp should work wherever unmodified arrow keys work.
 
-The register screen now shows transaction status marks.
-
 In the transaction screen, amounts are now better aligned, eg when
 there are posting status marks or virtual postings.
+
+Deps: allow brick 0.19 (#575, Felix Yan, Simon Michael)
 
 
 # 1.2 (2017/3/31)

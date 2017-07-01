@@ -57,26 +57,28 @@ change logs.
 
 ## 2017/6/30 hledger 1.3
 
-***release notes to follow
-***
+***terminology/UI improvements for the status field,
+selection/scrolling/movement improvements in hledger-ui,
+negative amounts shown in red,
+bugfixes.***
 
-<!-- ([announcement](http://thread.gmane.org/gmane.comp.finance.ledger.hledger/1267)) -->
-<!-- ([announcement](https://groups.google.com/d/topic/hledger/WgdTy3-a6sc/discussion))  -->
+([announcement](https://groups.google.com/d/msg/hledger/X4iR1wpaq0E/_v5BLQIXAgAJ))
 
 Release contributors:
-<!-- Simon Michael, -->
-<!-- Mykola Orliuk, -->
-<!-- Justin Le, -->
-<!-- Peter Simons, -->
-<!-- Stefano Rodighiero, -->
-<!-- Moritz Kiefer, -->
-<!-- Pia Mancini, -->
-<!-- Bryan Richter, -->
-<!-- Steven R. Baker, -->
-<!-- Hans-Peter Deifel, -->
-<!-- Joshua Chia, -->
-<!-- Joshua Kehn, -->
-<!-- Michael Walker. -->
+Simon Michael,
+Mykola Orliuk,
+Christian G. Warden,
+Dmitry Astapov,
+Justin Le,
+Joe Horsnell,
+Nicolas Wavrant,
+afarrow,
+Carel Fellinger,
+flip111,
+David Reaver,
+Felix Yan,
+Nissar Chababy,
+Jan Zerebecki.
 
   [project](#project-wide-changes-for-1.3)
 | [hledger-lib](#hledger-lib-1.3)
@@ -87,13 +89,13 @@ Release contributors:
 
 ### project-wide changes for 1.3
 
-#### Packaging
+<!-- #### Packaging -->
 
-#### Finance
+<!-- #### Finance -->
 
-#### Documentation and website
+<!-- #### Documentation and website -->
 
-#### Examples
+<!-- #### Examples -->
 
 #### Tools
 
@@ -109,48 +111,120 @@ make changelog-draft shows the commits since last tag as org nodes
 
 #### journal format
 
-#### ledger format
+The "uncleared" transaction/posting status (and associated UI flags
+and keys) has been renamed to "unmarked" to remove ambiguity and
+confusion. See the issue and linked mail list discussion for more
+background.  (#564)
+
+#### csv format
+
+In CSV conversion rules, assigning to the "balance" field name
+creates balance assertions (#537, Dmitry Astapov).
+
+Doubled minus signs are handled more robustly (fixes #524, Nicolas
+Wavrant, Simon Michael)
 
 #### Misc
+
+Multiple status: query terms are now OR'd together. (#564)
+
+Deps: allow megaparsec 5.3.
 
 ### hledger 1.3
 
 #### CLI
 
+The "uncleared" transaction/posting status, and associated UI flags
+and keys, have been renamed to "unmarked" to remove ambiguity and
+confusion.  This means that we have dropped the `--uncleared` flag,
+and our `-U` flag now matches only unmarked things and not pending
+ones. See the issue and linked mail list discussion for more
+background. (#564)
+
+Also the -P short flag has been added for --pending, and the -U/-P/-C
+flags can be combined. 
+
+bs/is: fix "Ratio has zero denominator" error (#535)
+
+bs/is/cf: fix --flat (#552) (Justin Le, Simon Michael)
+
+bal/bs/is/cf: show negative amounts in red (Simon Michael, Justin Le).
+These commands now shows negative amounts in red, when hledger detects
+that ANSI codes are supported, (ie when TERM is not "dumb" and stdout
+is not being redirected or piped).
+
+print: show pending mark on postings (fixes #563).
+A pending mark on postings is now displayed, just like a cleared mark.
+Also there will now be a space between the mark and account name.
+
+print: amounts are now better aligned, eg when there are posting
+status marks or virtual postings
+
 #### Addons
 
+`make addons` compiles the experimental add-ons.
 
-### addons
+prices: add --inverted-costs flag, sort output, increase precision
+(Mykola Orliuk)
 
-make addons compiles the experimental add-ons
-
-prices: add inverted-costs support and sort output (Mykola Orliuk)
-
-prices: improve precision (Nikolay Orlyuk)
-
-rewrite: Add Support for Rewriting Multipler Postings Into Different Commodities (#557) (Christian G. Warden)
-
-When generating a new posting as a multiple of an existing posting,
-support conversion to a different commodity.  For example, postings in
-hours can be used to generate postings in USD.
-    
-Automatic transactions generated from rewrite rules use the commodity,
-amount style, and transaction price if the rewrite defines a
-commodity.
-
-#### balance
-
-#### balancesheet/cashflow/incomestatement
-
-#### print
-
-#### Misc
+rewrite: add support for rewriting multipler postings into different
+commodities. For example, postings in hours can be used to generate
+postings in USD. (#557) (Christian G. Warden)
 
 ### hledger-ui 1.3
 
+The register screen now shows transaction status marks.
+
+The "uncleared" status, and associated UI flags and keys, have been
+renamed to "unmarked" to remove ambiguity and confusion.  This means
+that we have dropped the `--uncleared` flag, and our `-U` flag now
+matches only unmarked things and not pending ones. See the issue and
+linked mail list discussion for more background. (#564)
+
+The P key toggles pending mode, consistent with U (unmarked) and C
+(cleared). There is also a temporary --status-toggles flag for testing
+other toggle styles; see `hledger-ui -h`. (#564)
+
+There is now less "warping" of selection when lists change:
+
+- When the selected account disappears, eg when toggling zero
+  accounts, the selection moves to the alphabetically preceding item,
+  instead of the first one.
+
+- When the selected transaction disappears, eg when toggling status
+  filters, the selection moves to the nearest transaction by date (and
+  if several have the same date, by journal order), instead of the
+  last one.
+
+In the accounts and register screens, you can now scroll down further
+so that the last item need not always be shown at the bottom of the
+screen.  And we now try to show the selected item centered in the
+following situations:
+
+-   after moving to the end with Page down/End
+-   after toggling filters (status, real, historical..)
+-   on pressing the control-l key (should force a screen redraw, also)
+-   on entering the register screen from the accounts screen (there's a
+    known problem with this: it doesn't work the first time).
+
+(Items near the top can't be centered, as we don't scroll higher than
+the top of the list.)
+
+Emacs movement keys are now supported, as well as VI keys.
+hjkl and CTRL-bfnp should work wherever unmodified arrow keys work.
+
+In the transaction screen, amounts are now better aligned, eg when
+there are posting status marks or virtual postings.
+
+Deps: allow brick 0.19 (#575, Felix Yan, Simon Michael)
+
 ### hledger-web 1.3
 
+Depends on hledger 1.3.
+
 ### hledger-api 1.3
+
+Depends on hledger 1.3.
 
 
 

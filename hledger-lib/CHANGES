@@ -4,20 +4,21 @@ See also the hledger and project change logs (for user-visible changes).
 
 # 1.3 (2017/6/30)
 
-Deps: allow megaparsec 5.3.
-
-CSV conversion: assigning to the "balance" field name creates balance
-assertions (#537, Dmitry Astapov).
-Doubled minus signs are handled more robustly (fixes #524, Nicolas Wavrant, Simon Michael)
-
-The "uncleared" transaction/posting status, and associated UI flags
+journal: The "uncleared" transaction/posting status, and associated UI flags
 and keys, have been renamed to "unmarked" to remove ambiguity and
 confusion.  This means that we have dropped the `--uncleared` flag,
 and our `-U` flag now matches only unmarked things and not pending
 ones.  See the issue and linked mail list discussion for more
 background.  (#564)
 
-Multiple status: query terms are now OR'd together. (#564)
+csv: assigning to the "balance" field name creates balance
+assertions (#537, Dmitry Astapov).
+
+csv: Doubled minus signs are handled more robustly (fixes #524, Nicolas Wavrant, Simon Michael)
+
+Multiple "status:" query terms are now OR'd together. (#564)
+
+deps: allow megaparsec 5.3.
 
 
 # 1.2 (2017/3/31)
