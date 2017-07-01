@@ -149,7 +149,7 @@ bs/is: fix "Ratio has zero denominator" error (#535)
 bs/is/cf: fix --flat (#552) (Justin Le, Simon Michael)
 
 bal/bs/is/cf: show negative amounts in red (Simon Michael, Justin Le).
-These commands now shows negative amounts in red, when hledger detects
+These commands now show negative amounts in red, when hledger detects
 that ANSI codes are supported, (ie when TERM is not "dumb" and stdout
 is not being redirected or piped).
 
@@ -158,11 +158,9 @@ A pending mark on postings is now displayed, just like a cleared mark.
 Also there will now be a space between the mark and account name.
 
 print: amounts are now better aligned, eg when there are posting
-status marks or virtual postings
+status marks or virtual postings.
 
 #### Addons
-
-`make addons` compiles the experimental add-ons.
 
 prices: add --inverted-costs flag, sort output, increase precision
 (Mykola Orliuk)
@@ -170,6 +168,8 @@ prices: add --inverted-costs flag, sort output, increase precision
 rewrite: add support for rewriting multipler postings into different
 commodities. For example, postings in hours can be used to generate
 postings in USD. (#557) (Christian G. Warden)
+
+`make addons` compiles the experimental add-ons.
 
 ### hledger-ui 1.3
 
@@ -202,16 +202,16 @@ screen.  And we now try to show the selected item centered in the
 following situations:
 
 -   after moving to the end with Page down/End
--   after toggling filters (status, real, historical..)
--   on pressing the control-l key (should force a screen redraw, also)
--   on entering the register screen from the accounts screen (there's a
-    known problem with this: it doesn't work the first time).
+-   after toggling filters/display modes (status, real, historical..)
+-   on pressing the control-l key (this forces a screen redraw, also)
+-   on entering the register screen from the accounts screen
+    (except the first time, a known problem).
 
-(Items near the top can't be centered, as we don't scroll higher than
-the top of the list.)
+Items near the top won't be centered because we don't scroll above the
+top of the list.
 
 Emacs movement keys are now supported, as well as VI keys.
-hjkl and CTRL-bfnp should work wherever unmodified arrow keys work.
+`CTRL-b/CTRL-f/CTRL-n/CTRL-p` and `hjkl` should work wherever unmodified arrow keys work.
 
 In the transaction screen, amounts are now better aligned, eg when
 there are posting status marks or virtual postings.
