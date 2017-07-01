@@ -1077,7 +1077,7 @@ haddock: \
 # # 	hoogle --convert=main.txt --output=default.hoo
 
 CHANGELOGSTART=`git describe --tags --abbrev=0`
-#CHANGELOGSTART=2b4e7cdb
+#CHANGELOGSTART=hledger-1.2
 
 changelog-draft: \
 	$(call def-help,changelog-draft, print commits since last tag as org-mode nodes for drafting changelogs/release notes. Eg: make changelog-draft >>doc/CHANGES.draft.org )
@@ -1371,14 +1371,10 @@ hackageupload: \
 # 	@darcs changes --from-tag $(FROMTAG) --count
 # 	@echo
 
-# # XXX
-# showreleaseauthors: \
-# 	$(call def-help,showreleaseauthors,\
-# 	\
-# 	)
-# 	@echo Patch authors since last release:
-# 	@darcs changes --from-tag $(FROMTAG) |grep '^\w' |cut -c 31- |sort |uniq
-# 	@echo
+showreleaseauthors: \
+	$(call def-help,showreleaseauthors, show author names	since last release)
+	@echo Commit authors since last release:
+	@git shortlog -sn $(CHANGELOGSTART)..
 
 cloc: \
 	$(call def-help,cloc, count lines of source code )
