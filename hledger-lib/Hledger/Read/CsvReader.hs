@@ -1,9 +1,9 @@
-{-# LANGUAGE CPP #-}
 {-|
 
 A reader for CSV data, using an extra rules file to help interpret the data.
 
 -}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -41,6 +41,7 @@ import Data.Ord
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Data.Time.Calendar (Day)
 #if MIN_VERSION_time(1,5,0)
 import Data.Time.Format (parseTimeM, defaultTimeLocale)
@@ -367,22 +368,18 @@ parseRulesFile :: FilePath -> ExceptT String IO CsvRules
 parseRulesFile f = 
   liftIO (readFile' f >>= expandIncludes (takeDirectory f)) >>= parseAndValidateCsvRules f
 
--- | Look for hledger rules file-style include directives in this text,
--- and interpolate the included files, recursively.
--- Included file paths may be relative to the directory of the
--- provided file path.
+-- | Inline all files referenced by include directives in this hledger CSV rules text, recursively.
+-- Included file paths may be relative to the directory of the provided file path.
 -- This is a cheap hack to avoid rewriting the CSV rules parser.
-expandIncludes :: FilePath -> T.Text -> IO T.Text
-expandIncludes basedir content = do
-  let (ls,rest) = break (T.isPrefixOf "include") $ T.lines content
-  case rest of
-    [] -> return $ T.unlines ls
-    ((T.stripPrefix "include" -> Just f):ls') -> do
-      let f'       = basedir </> dropWhile isSpace (T.unpack f)
-          basedir' = takeDirectory f'
-      included <- readFile' f' >>= expandIncludes basedir'
-      return $ T.unlines [T.unlines ls, included, T.unlines ls']
-    ls' -> return $ T.unlines $ ls ++ ls'   -- should never get here
+expandIncludes dir content = mapM (expandLine dir) (T.lines content) >>= return . T.unlines
+  where
+    expandLine dir line =
+      case line of
+        (T.stripPrefix "include " -> Just f) -> expandIncludes dir' =<< T.readFile f'
+          where
+            f' = dir </> dropWhile isSpace (T.unpack f)
+            dir' = takeDirectory f'
+        _ -> return line 
 
 -- | An error-throwing action that parses this text as CSV conversion rules 
 -- and runs some extra validation checks. The file path is for error messages.
