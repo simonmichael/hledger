@@ -1076,22 +1076,48 @@ haddock: \
 # # 	cd site/api && \
 # # 	hoogle --convert=main.txt --output=default.hoo
 
-CHANGELOGSTART=`git describe --tags --abbrev=0`
-#CHANGELOGSTART=hledger-1.2
+# changelogs
+#
+# commits are appended as date-ordered org nodes to doc/CHANGES.org
+# for easy editing.  This is used as the basis for package changelogs
+# (hledger*/CHANGES) and release notes (site/release-notes.md).
 
-changelog-draft: \
-	$(call def-help,changelog-draft, print commits since last tag as org-mode nodes for drafting changelogs/release notes. Eg: make changelog-draft >>doc/CHANGES.draft.org )
-	@echo "* draft changelog for `git describe --tags`"
-	@echo "** project"
-	@git log --pretty=format:'ORGNODE %s (%an) %h%n%b' \
-		--abbrev-commit --date-order $(CHANGELOGSTART).. \
-		| sed -e 's/^\*/-/' -e 's/^ORGNODE/***/' \
-		| sed -e 's/ (Simon Michael)//'
+DRAFTCHANGELOG=doc/CHANGES.org
+LASTCHANGELOGREF:=`grep -E '^[a-f0-9]{8}$$' $(DRAFTCHANGELOG) | tail -1`
+#TODO: list only from LASTTAG if no refs are present
+#LASTTAG:=`git describe --tags --abbrev=0`
+#GREPCHANGELOGREF:=grep -E '^[a-f0-9]{8}$$' $(DRAFTCHANGELOG)
+#LASTCHANGELOGREF:=`($(GREPCHANGELOGREF) -q && ($(GREPCHANGELOGREF) | tail -1))` || `echo $(LASTTAG)`
+
+draft-changelog-start: \
+	$(call def-help,draft-changelog-start, add an empty changelog outline to $(DRAFTCHANGELOG) )
+	@make draft-changelog-template >>$(DRAFTCHANGELOG)
+
+draft-changelog-template: \
+	#$(call def-help,draft-changelog-template, print an empty org outline for drafting changelogs. )
+	@echo "* draft changelog for `git describe --tags --abbrev=0`"
 	@echo "** hledger-lib"
 	@echo "** hledger"
 	@echo "** hledger-ui"
 	@echo "** hledger-web"
 	@echo "** hledger-api"
+	@echo "** project"
+
+draft-changelog-%: \
+	#$(call def-help,draft-changelog-STARTREF, print commits from STARTREF as org nodes. Eg: make draft-changelog-hledger-1.3 )
+	@git log --abbrev-commit --reverse --pretty=format:'ORGNODE %s (%an)%n%b%h' $*.. \
+		| sed -e 's/^\*/-/' -e 's/^ORGNODE/***/' \
+		| sed -e 's/ (Simon Michael)//'
+
+draft-changelog-add-%: \
+	#$(call def-help,draft-changelog-add-STARTREF, add commits from STARTREF as org nodes to $(DRAFTCHANGELOG). Eg: make draft-changelog-add-HEAD~1 )
+	@make draft-changelog-$* >>$(DRAFTCHANGELOG)
+
+draft-changelog-update: \
+	$(call def-help,draft-changelog-update, add any new commits as org nodes to $(DRAFTCHANGELOG) )
+	@make draft-changelog-$(LASTCHANGELOGREF) >> $(DRAFTCHANGELOG)
+
+#
 
 # in subsequent rules, allow automatic variables to be used in prerequisites (use $$)
 .SECONDEXPANSION:
