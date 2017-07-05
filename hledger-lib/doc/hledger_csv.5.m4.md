@@ -31,7 +31,7 @@ To learn about *exporting* CSV, see [CSV output](hledger.html#csv-output).
 
 # CSV RULES
 
-The following six kinds of rule can appear in the rules file, in any order.
+The following seven kinds of rule can appear in the rules file, in any order.
 Blank lines and lines beginning with `#` or `;` are ignored.
 
 ## skip
@@ -156,6 +156,17 @@ a path relative to the current file's directory. Eg:
 # rules reused with several CSV files
 include common.rules
 ```
+
+## newest-first
+
+`newest-first`
+
+Consider adding this rule if: 
+your CSV records are in reverse chronological order (newest first),
+and you care about preserving the order of same-day transactions,
+and you might be processing just one day of data.
+It usually isn't needed, because hledger autodetects the CSV order,
+but if all the CSV records have the same date it assumes they are oldest first.
 
 # CSV TIPS
 

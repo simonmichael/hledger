@@ -130,8 +130,9 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   -- let (headerlines, datalines) = identifyHeaderLines records
   --     mfieldnames = lastMay headerlines
 
-  -- convert to transactions and return as a journal
-  let txns = snd $ mapAccumL
+  let 
+    -- convert CSV records to transactions
+    txns = snd $ mapAccumL
                      (\pos r -> (pos,
                                  transactionFromCsvRecord
                                    (let SourcePos name line col =  pos in
@@ -140,17 +141,27 @@ readJournalFromCsv mrulesfile csvfile csvdata =
                                     r))
                      (initialPos parsecfilename) records
 
-  -- heuristic: if the records appear to have been in reverse date order,
-  -- reverse them all as well as doing a txn date sort,
-  -- so that same-day txns' original order is preserved
-      txns' | length txns > 1 && tdate (head txns) > tdate (last txns) = reverse txns
-            | otherwise = txns
+    -- Ensure transactions are ordered chronologically.
+    -- First, reverse them to get same-date transactions ordered chronologically,
+    -- if the CSV records seem to be most-recent-first, ie if there's an explicit 
+    -- "newest-first" directive, or if there's more than one date and the first date
+    -- is more recent than the last.
+    txns' = 
+      (if newestfirst || mseemsnewestfirst == Just True then reverse else id) txns
+      where
+        newestfirst = dbg3 "newestfirst" $ isJust $ getDirective "newest-first" rules
+        mseemsnewestfirst = dbg3 "mseemsnewestfirst" $  
+          case nub $ map tdate txns of 
+            ds | length ds > 1 -> Just $ head ds > last ds 
+            _                  -> Nothing
+    -- Second, sort by date.
+    txns'' = sortBy (comparing tdate) txns'
 
   when (not rulesfileexists) $ do
     hPrintf stderr "created default conversion rules file %s, edit this for better results\n" rulesfile
     writeFile rulesfile $ T.unpack rulestext
 
-  return $ Right nulljournal{jtxns=sortBy (comparing tdate) txns'}
+  return $ Right nulljournal{jtxns=txns''}
 
 parseCsv :: FilePath -> String -> IO (Either Parsec.ParseError CSV)
 parseCsv path csvdata =
@@ -209,6 +220,7 @@ defaultRulesText csvfile = T.pack $ unlines
   ,"fields date, description, amount"
   ,""
   ,"#skip 1"
+  ,"#newest-first"
   ,""
   ,"#date-format %-d/%-m/%Y"
   ,"#date-format %-m/%-d/%Y"
@@ -231,7 +243,7 @@ Grammar for the CSV conversion rules, more or less:
 
 RULES: RULE*
 
-RULE: ( FIELD-LIST | FIELD-ASSIGNMENT | CONDITIONAL-BLOCK | SKIP | DATE-FORMAT | COMMENT | BLANK ) NEWLINE
+RULE: ( FIELD-LIST | FIELD-ASSIGNMENT | CONDITIONAL-BLOCK | SKIP | NEWEST-FIRST | DATE-FORMAT | COMMENT | BLANK ) NEWLINE
 
 FIELD-LIST: fields SPACE FIELD-NAME ( SPACE? , SPACE? FIELD-NAME )*
 
@@ -453,6 +465,7 @@ directives =
   -- ,"default-currency"
   -- ,"skip-lines" -- old
   ,"skip"
+  ,"newest-first"
    -- ,"base-account"
    -- ,"base-currency"
   ]
