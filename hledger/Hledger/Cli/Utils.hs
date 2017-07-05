@@ -126,6 +126,10 @@ anonymise j
   where
     anon = T.pack . flip showHex "" . (fromIntegral :: Int -> Word32) . hash
 
+-- XXX as of since 2017/4 this is used instead of 
+-- balanceReportValue/multiBalanceReportValue (mostly; not yet hledger-ui)
+-- | If -V/--value was requested, convert all journal amounts to their market value
+-- as of the report end date. Cf http://hledger.org/manual.html#market-value
 journalApplyValue :: ReportOpts -> Journal -> IO Journal
 journalApplyValue ropts j = do
     mvaluedate <- reportEndDate j ropts
