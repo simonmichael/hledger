@@ -1,5 +1,5 @@
 #!/bin/sh
-# Run this script to compile all addons in this directory.
+# Run this script (or "make addons") to compile all addons in this directory.
 cd "$(dirname "$0")"
 echo "building dependencies"
 stack build hledger
