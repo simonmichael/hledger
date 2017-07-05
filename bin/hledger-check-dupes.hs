@@ -1,6 +1,7 @@
 #!/usr/bin/env stack
 {- stack runghc --verbosity info
    --package hledger-lib
+   --package hledger
    --package here
    --package text
 -}
