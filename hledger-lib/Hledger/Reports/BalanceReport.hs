@@ -281,6 +281,20 @@ tests_balanceReport =
      ],
      Mixed [usd0])
 
+  ,"balanceReport with period on a populated period" ~: do
+    (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2)}, samplejournal) `gives`
+     (
+      [
+       ("assets:bank:checking","assets:bank:checking",0, mamountp' "$1.00")
+      ,("income:salary","income:salary",0, mamountp' "$-1.00")
+      ],
+      Mixed [usd0])
+
+   ,"balanceReport with period on an unpopulated period" ~: do
+    (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3)}, samplejournal) `gives`
+     ([],Mixed [nullamt])
+
+
 
 {-
     ,"accounts report with account pattern o" ~:
