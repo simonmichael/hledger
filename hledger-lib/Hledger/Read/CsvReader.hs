@@ -52,13 +52,12 @@ import System.Locale (defaultTimeLocale)
 import Safe
 import System.Directory (doesFileExist)
 import System.FilePath
-import System.IO (stderr)
 import Test.HUnit hiding (State)
 import Text.CSV (parseCSV, CSV)
 import Text.Megaparsec hiding (parse, State)
 import Text.Megaparsec.Text
 import qualified Text.Parsec as Parsec
-import Text.Printf (hPrintf,printf)
+import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils.UTF8IOCompat (getContents)
@@ -106,7 +105,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   rulestext <-
     if rulesfileexists
     then do
-      hPrintf stderr "using conversion rules file %s\n" rulesfile
+      dbg1IO "using conversion rules file" rulesfile
       liftIO $ (readFile' rulesfile >>= expandIncludes (takeDirectory rulesfile))
     else return $ defaultRulesText rulesfile
   rules <- liftIO (runExceptT $ parseAndValidateCsvRules rulesfile rulestext) >>= either throwerr return 
@@ -159,7 +158,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
     txns'' = sortBy (comparing tdate) txns'
 
   when (not rulesfileexists) $ do
-    hPrintf stderr "created default conversion rules file %s, edit this for better results\n" rulesfile
+    dbg1IO "creating conversion rules file" rulesfile
     writeFile rulesfile $ T.unpack rulestext
 
   return $ Right nulljournal{jtxns=txns''}
