@@ -119,6 +119,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
         where
           displayspan
             | empty_ opts = dbg1 "displayspan (-E)" reportspan                                -- all the requested intervals
+            | (balancetype_ opts) == HistoricalBalance = dbg1 "displayspan (-H)" reportspan   -- all the requested intervals
             | otherwise   = dbg1 "displayspan"      $ requestedspan `spanIntersect` matchedspan -- exclude leading/trailing empty intervals
           matchedspan = dbg1 "matchedspan" $ postingsDateSpan' (whichDateFromOpts opts) ps
 
@@ -156,7 +157,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
           dbg1 "displayedAccts" $
           (if tree_ opts then expandAccountNames else id) $
           nub $ map (clipOrEllipsifyAccountName depth) $
-          if empty_ opts then nub $ sort $ startAccts ++ postedAccts else postedAccts
+          if empty_ opts || (balancetype_ opts) == HistoricalBalance then nub $ sort $ startAccts ++ postedAccts else postedAccts
 
       acctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
           dbg1 "acctBalChangesPerSpan"
