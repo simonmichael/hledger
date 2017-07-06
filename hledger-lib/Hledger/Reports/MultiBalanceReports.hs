@@ -60,7 +60,7 @@ newtype MultiBalanceReport =
                      ,MultiBalanceReportTotals
                      )
 type MultiBalanceReportRow    = (AccountName, AccountName, Int, [MixedAmount], MixedAmount, MixedAmount)
-type MultiBalanceReportTotals = ([MixedAmount], MixedAmount, MixedAmount)
+type MultiBalanceReportTotals = ([MixedAmount], MixedAmount, MixedAmount) -- (Totals list, sum of totals, average of totals)
 
 instance Show MultiBalanceReport where
     -- use ppShow to break long lists onto multiple lines
