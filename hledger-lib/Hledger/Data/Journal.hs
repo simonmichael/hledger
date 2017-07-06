@@ -61,6 +61,7 @@ module Hledger.Data.Journal (
   journalUntieTransactions,
   -- * Tests
   samplejournal,
+  samplejournal2,
   tests_Hledger_Data_Journal,
 )
 where
@@ -1000,6 +1001,112 @@ Right samplejournal = journalBalanceTransactions False $
              tpostings=["expenses:food" `post` usd 1
                        ,"expenses:supplies" `post` usd 1
                        ,"assets:cash" `post` missingamt
+                       ],
+             tpreceding_comment_lines=""
+           }
+          ,
+           txnTieKnot $ Transaction {
+             tindex=0,
+             tsourcepos=nullsourcepos,
+             tdate=parsedate "2008/12/31",
+             tdate2=Nothing,
+             tstatus=Unmarked,
+             tcode="",
+             tdescription="pay off",
+             tcomment="",
+             ttags=[],
+             tpostings=["liabilities:debts" `post` usd 1
+                       ,"assets:bank:checking" `post` usd (-1)
+                       ],
+             tpreceding_comment_lines=""
+           }
+          ]
+         }
+
+-- basicly, this is exactly like samplejournal except there is an account that is closed
+Right samplejournal2 = journalBalanceTransactions False $
+         nulljournal
+         {jtxns = [
+           txnTieKnot $ Transaction {
+             tindex=0,
+             tsourcepos=nullsourcepos,
+             tdate=parsedate "2008/01/01",
+             tdate2=Nothing,
+             tstatus=Unmarked,
+             tcode="",
+             tdescription="income",
+             tcomment="",
+             ttags=[],
+             tpostings=
+                 ["assets:bank:checking" `post` usd 1
+                 ,"income:salary" `post` missingamt
+                 ],
+             tpreceding_comment_lines=""
+           }
+          ,
+           txnTieKnot $ Transaction {
+             tindex=0,
+             tsourcepos=nullsourcepos,
+             tdate=parsedate "2008/06/01",
+             tdate2=Nothing,
+             tstatus=Unmarked,
+             tcode="",
+             tdescription="gift",
+             tcomment="",
+             ttags=[],
+             tpostings=
+                 ["assets:bank:checking" `post` usd 1
+                 ,"income:gifts" `post` missingamt
+                 ],
+             tpreceding_comment_lines=""
+           }
+          ,
+           txnTieKnot $ Transaction {
+             tindex=0,
+             tsourcepos=nullsourcepos,
+             tdate=parsedate "2008/06/02",
+             tdate2=Nothing,
+             tstatus=Unmarked,
+             tcode="",
+             tdescription="save",
+             tcomment="",
+             ttags=[],
+             tpostings=
+                 ["assets:bank:saving" `post` usd 1
+                 ,"assets:bank:checking" `post` usd (-1)
+                 ],
+             tpreceding_comment_lines=""
+           }
+          ,
+           txnTieKnot $ Transaction {
+             tindex=0,
+             tsourcepos=nullsourcepos,
+             tdate=parsedate "2008/06/03",
+             tdate2=Nothing,
+             tstatus=Cleared,
+             tcode="",
+             tdescription="eat & shop",
+             tcomment="",
+             ttags=[],
+             tpostings=["expenses:food" `post` usd 1
+                       ,"expenses:supplies" `post` usd 1
+                       ,"assets:cash" `post` missingamt
+                       ],
+             tpreceding_comment_lines=""
+           }
+          ,
+           txnTieKnot $ Transaction {
+             tindex=0,
+             tsourcepos=nullsourcepos,
+             tdate=parsedate "2008/10/01",
+             tdate2=Nothing,
+             tstatus=Unmarked,
+             tcode="",
+             tdescription="take a loan",
+             tcomment="",
+             ttags=[],
+             tpostings=["assets:bank:checking" `post` usd 1
+                       ,"liabilities:debts" `post` usd (-1)
                        ],
              tpreceding_comment_lines=""
            }
