@@ -58,8 +58,8 @@ helpDialog copts =
                   ,renderKey ("A", "add transaction (hledger-iadd)")
                   ,renderKey ("E", "open editor")
                   ,renderKey ("I", "toggle balance assertions")
-                  ,renderKey ("g", "reload data")
                   ,renderKey ("CTRL-l", "redraw & recenter")
+                  ,renderKey ("g", "reload data")
                   ,renderKey ("q", "quit")
                   ,str " "
                   ,str "MANUAL"
