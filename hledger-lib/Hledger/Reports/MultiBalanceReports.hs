@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, ScopedTypeVariables #-}
+{-# LANGUAGE FlexibleInstances, ScopedTypeVariables, OverloadedStrings #-}
 {-|
 
 Multi-column balance reports, used by the balance command.
@@ -10,10 +10,10 @@ module Hledger.Reports.MultiBalanceReports (
   MultiBalanceReportRow,
   multiBalanceReport,
   multiBalanceReportValue,
-  singleBalanceReport
+  singleBalanceReport,
 
   -- -- * Tests
-  -- tests_Hledger_Reports_MultiBalanceReport
+  tests_Hledger_Reports_MultiBalanceReport
 )
 where
 
@@ -22,11 +22,12 @@ import Data.Maybe
 import Data.Ord
 import Data.Time.Calendar
 import Safe
--- import Test.HUnit
+import Test.HUnit
 
 import Hledger.Data
 import Hledger.Query
 import Hledger.Utils
+import Hledger.Read (mamountp')
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.BalanceReport
 
@@ -209,3 +210,39 @@ multiBalanceReportValue j d r = r'
           (map convert coltotals, convert rowtotaltotal, convert rowavgtotal))
     convert = mixedAmountValue j d
 
+tests_multiBalanceReport =
+  let
+    (opts,journal) `gives` r = do
+      let (eitems, etotal) = r
+          (MultiBalanceReport (_, aitems, atotal)) = multiBalanceReport opts (queryFromOpts nulldate opts) journal
+          showw (acct,acct',indent,lAmt,amt,amt') = (acct, acct', indent, map showMixedAmountDebug lAmt, showMixedAmountDebug amt, showMixedAmountDebug amt')
+      assertEqual "items" (map showw eitems) (map showw aitems)
+      assertEqual "total" (showMixedAmountDebug etotal) ((\(_, b, _) -> showMixedAmountDebug b) atotal) -- we only check the sum of the totals
+    usd0 = usd 0
+    amount0 = Amount {acommodity="$", aquantity=0, aprice=NoPrice, astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asprecision = 2, asdecimalpoint = Just '.', asdigitgroups = Nothing}, amultiplier=False}
+  in [
+   "multiBalanceReport with no args on null journal" ~: do
+   (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
+
+   ,"multiBalanceReport with -H on a populated period" ~: do
+    (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
+     (
+      [
+       ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
+      ,("income:salary","salary",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
+      ],
+      Mixed [usd0])
+
+   ,"multiBalanceReport tests the ability to have a valid history on an empty period" ~: do
+    (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balancetype_=HistoricalBalance}, samplejournal) `gives`
+     (
+      [
+       ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
+      ,("income:salary","salary",2, [mamountp' "$-1.00"], mamountp' "$-1.00",Mixed [amount0 {aquantity=(-1)}])
+      ],
+      Mixed [usd0])
+  ]
+
+tests_Hledger_Reports_MultiBalanceReport :: Test
+tests_Hledger_Reports_MultiBalanceReport = TestList
+  tests_multiBalanceReport
