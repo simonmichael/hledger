@@ -1,14 +1,8 @@
-# NOTE some issues with these tests:
-# 
-# The final cleanup command is chained with && so as not to mask hledger's exit code,
-# but this means a temp file is left behind whenever hledger fails. What TODO ?
-#
-# The stderr regex tests don't tell us much, as the CSV reader always gives that output.
-# They'll cause stderr to be displayed if the CSV reader doesn't run at all,
-# which is slightly better than nothing.
-#
 # These tests read CSV from stdin for convenience, so to ensure we get the CSV reader's
 # error, the csv: prefix is used. 
+#
+# The final cleanup command is chained with && so as not to mask hledger's exit code,
+# but this means a temp file is left behind whenever hledger fails. What TODO ?
 
 # 1. read CSV to hledger journal format
  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
@@ -17,7 +11,7 @@
     income:unknown            $-50
     assets:myacct              $50
 
->>>2 /using conversion rules file/
+>>>2
 >>>=0
 
 # 2. reading CSV with in-field and out-field
@@ -34,7 +28,7 @@
     expenses:unknown             $50
     Assets:MyAccount            $-50
 
->>>2 /using conversion rules file/
+>>>2
 >>>=0
 
 # 3. handle conditions assigning multiple fields
@@ -44,7 +38,7 @@
     acct                     $-50
     assets:myacct             $50
 
->>>2 /using conversion rules file/
+>>>2
 >>>=0
 
 # 4. read CSV with balance field
@@ -54,7 +48,7 @@
     income:unknown            $-50
     assets:myacct              $50 = $123
 
->>>2 /using conversion rules file/
+>>>2
 >>>=0
 
 # 5. read CSV with empty balance field
@@ -68,7 +62,7 @@
     income:unknown            $-60
     assets:myacct              $60
 
->>>2 /using conversion rules file/
+>>>2
 >>>=0
 
 # 6. read CSV with only whitespace in balance field
@@ -82,7 +76,7 @@
     income:unknown            $-60
     assets:myacct              $60
 
->>>2 /using conversion rules file/
+>>>2
 >>>=0
 
 # 7. read CSV with rule double-negating column
@@ -96,5 +90,5 @@
     expense:other               $-60
     liabilities:bank             $60
 
->>>2 /using conversion rules file/
+>>>2
 >>>=0
