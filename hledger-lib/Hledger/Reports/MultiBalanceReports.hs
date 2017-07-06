@@ -225,7 +225,7 @@ tests_multiBalanceReport =
    (defreportopts, nulljournal) `gives` ([], Mixed [nullamt])
 
    ,"multiBalanceReport with -H on a populated period" ~: do
-    (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}, samplejournal) `gives`
+    (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 1) (fromGregorian 2008 1 2), balancetype_=HistoricalBalance}, samplejournal2) `gives`
      (
       [
        ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
@@ -234,7 +234,7 @@ tests_multiBalanceReport =
       Mixed [usd0])
 
    ,"multiBalanceReport tests the ability to have a valid history on an empty period" ~: do
-    (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balancetype_=HistoricalBalance}, samplejournal) `gives`
+    (defreportopts{period_= PeriodBetween (fromGregorian 2008 1 2) (fromGregorian 2008 1 3), balancetype_=HistoricalBalance}, samplejournal2) `gives`
      (
       [
        ("assets:bank:checking","checking",3, [mamountp' "$1.00"], mamountp' "$1.00",Mixed [amount0 {aquantity=1}])
