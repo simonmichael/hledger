@@ -222,7 +222,7 @@
 >>>=0
 
 # Rewrite using diff output
-../../bin/hledger-rewrite.hs --diff -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
+../../bin/hledger-rewrite --diff -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
 <<<
 2016/01/01 withdraw
     assets:cash              $20
