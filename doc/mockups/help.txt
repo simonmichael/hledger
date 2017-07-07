@@ -704,3 +704,35 @@ DESCRIPTION
        other commodity, using double-entry accounting and a  simple,  editable
        file  format.   hledger  is  inspired  by  and  largely compatible with
 ....
+
+* 201707 https://github.com/simonmichael/hledger/issues/579
+** principles
+*** docs (usage, manuals, tutorials..) should be available reliably and instantly from the software you are running (without net or filesystem access and on windows too)
+*** docs should by default be provided in the native UI of the tool you request them from
+**** if you're using hledger, you'll see docs as plain text printed to the console (possibly with a pager).
+**** if you're using hledger-ui, you'll see them as tui screens or dialogs.
+**** if you're using hledger-web, you'll see them as built-in web content.
+**** if you're using the web, you'll see them as web pages.
+*** each tool should provide the full set of docs
+*** within a tool, there should be one clear way to call up any particular doc
+** merge -h/--help, emphasize help command, provide full docs in hledger-ui and hledger-web also
+*** -h/--help will be synonyms for short context-sensitive usage help (ideally one screenful)
+*** hledger help will list/show all (8) manuals as plain text (or man pages or info manuals where supported)
+**** hledger
+**** hledger-ui
+**** hledger-web
+**** hledger-api
+**** journal-format
+**** csv-format
+**** timeclock-format
+**** timedot-format
+*** hledger-ui will include all manuals as help screens (or call out to man/info)
+*** hledger-web will include all manuals as web content
+*** examples
+ ```
+ hledger -h/--help                         general usage
+ hledger CMD -h/--help                     command usage
+ hledger help                              list manuals/topics
+ hledger help [--man|--info] MANUAL/TOPIC  show MANUAL/TOPIC as plain text[/man page/info manual]
+ hledger-ui, hledger-web                   (manuals provided in-app)
+ ```
