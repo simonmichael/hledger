@@ -133,19 +133,9 @@ the data.
 
    hledger help options:
 
-'-h'
+'-h --help'
 
      show general usage (or after COMMAND, command usage)
-'--help'
-
-     show this program's manual as plain text (or after an add-on
-     COMMAND, the add-on's manual)
-'--man'
-
-     show this program's manual with man
-'--info'
-
-     show this program's manual with info
 '--version'
 
      show version
@@ -367,17 +357,17 @@ Tag Table:
 Node: Top73
 Node: OPTIONS825
 Ref: #options924
-Node: KEYS3665
-Ref: #keys3762
-Node: SCREENS6558
-Ref: #screens6645
-Node: Accounts screen6735
-Ref: #accounts-screen6865
-Node: Register screen9095
-Ref: #register-screen9252
-Node: Transaction screen11326
-Ref: #transaction-screen11486
-Node: Error screen12356
-Ref: #error-screen12480
+Node: KEYS3459
+Ref: #keys3556
+Node: SCREENS6352
+Ref: #screens6439
+Node: Accounts screen6529
+Ref: #accounts-screen6659
+Node: Register screen8889
+Ref: #register-screen9046
+Node: Transaction screen11120
+Ref: #transaction-screen11280
+Node: Error screen12150
+Ref: #error-screen12274
 
 End Tag Table

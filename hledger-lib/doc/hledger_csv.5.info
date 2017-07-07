@@ -27,7 +27,7 @@ File: hledger_csv.5.info,  Node: CSV RULES,  Next: CSV TIPS,  Prev: Top,  Up: To
 1 CSV RULES
 ***********
 
-The following six kinds of rule can appear in the rules file, in any
+The following seven kinds of rule can appear in the rules file, in any
 order.  Blank lines and lines beginning with '#' or ';' are ignored.
 * Menu:
 
@@ -37,6 +37,7 @@ order.  Blank lines and lines beginning with '#' or ';' are ignored.
 * field assignment::
 * conditional block::
 * include::
+* newest-first::
 
 
 File: hledger_csv.5.info,  Node: skip,  Next: date-format,  Up: CSV RULES
@@ -156,7 +157,7 @@ banking thru software
  comment  XXX deductible ? check it
 
 
-File: hledger_csv.5.info,  Node: include,  Prev: conditional block,  Up: CSV RULES
+File: hledger_csv.5.info,  Node: include,  Next: newest-first,  Prev: conditional block,  Up: CSV RULES
 
 1.6 include
 ===========
@@ -169,6 +170,21 @@ Eg:
 
 # rules reused with several CSV files
 include common.rules
+
+
+File: hledger_csv.5.info,  Node: newest-first,  Prev: include,  Up: CSV RULES
+
+1.7 newest-first
+================
+
+'newest-first'
+
+   Consider adding this rule if: your CSV records are in reverse
+chronological order (newest first), and you care about preserving the
+order of same-day transactions, and you might be processing just one day
+of data.  It usually isn't needed, because hledger autodetects the CSV
+order, but if all the CSV records have the same date it assumes they are
+oldest first.
 
 
 File: hledger_csv.5.info,  Node: CSV TIPS,  Prev: CSV RULES,  Up: Top
@@ -203,19 +219,21 @@ Tag Table:
 Node: Top74
 Node: CSV RULES810
 Ref: #csv-rules920
-Node: skip1163
-Ref: #skip1259
-Node: date-format1431
-Ref: #date-format1560
-Node: field list2066
-Ref: #field-list2205
-Node: field assignment2910
-Ref: #field-assignment3067
-Node: conditional block3571
-Ref: #conditional-block3727
-Node: include4623
-Ref: #include4734
-Node: CSV TIPS4965
-Ref: #csv-tips5061
+Node: skip1182
+Ref: #skip1278
+Node: date-format1450
+Ref: #date-format1579
+Node: field list2085
+Ref: #field-list2224
+Node: field assignment2929
+Ref: #field-assignment3086
+Node: conditional block3590
+Ref: #conditional-block3746
+Node: include4642
+Ref: #include4774
+Node: newest-first5005
+Ref: #newest-first5121
+Node: CSV TIPS5504
+Ref: #csv-tips5600
 
 End Tag Table

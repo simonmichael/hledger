@@ -19,7 +19,7 @@ DESCRIPTION
        To learn about exporting CSV, see CSV output.
 
 CSV RULES
-       The following six kinds of rule can appear in the rules  file,  in  any
+       The following seven kinds of rule can appear in the rules file, in  any
        order.  Blank lines and lines beginning with # or ; are ignored.
 
    skip
@@ -123,33 +123,43 @@ CSV RULES
               # rules reused with several CSV files
               include common.rules
 
+   newest-first
+       newest-first
+
+       Consider adding this rule if: your CSV records are in  reverse  chrono-
+       logical  order  (newest first), and you care about preserving the order
+       of same-day transactions, and you might be processing just one  day  of
+       data.   It  usually  isn't  needed, because hledger autodetects the CSV
+       order, but if all the CSV records have the same date  it  assumes  they
+       are oldest first.
+
 CSV TIPS
-       Each generated journal entry will have two postings,  to  account1  and
+       Each  generated  journal  entry will have two postings, to account1 and
        account2 respectively.  Currently it's not possible to generate entries
        with more than two postings.
 
-       If the CSV has debit/credit amounts in separate fields, assign  to  the
+       If  the  CSV has debit/credit amounts in separate fields, assign to the
        amount-in and amount-out pseudo fields instead of amount.
 
-       If  the  CSV  has  the currency in a separate field, assign that to the
-       currency pseudo field which will  be  automatically  prepended  to  the
+       If the CSV has the currency in a separate field,  assign  that  to  the
+       currency  pseudo  field  which  will  be automatically prepended to the
        amount.  (Or you can do the same thing with a field assignment.)
 
-       If  the CSV includes a running balance, you can assign that to the bal-
-       ance pseudo field to generate a balance assertion on account1  whenever
-       the  balance  field is non-empty.  (Eg to double-check your bank's bal-
+       If the CSV includes a running balance, you can assign that to the  bal-
+       ance  pseudo field to generate a balance assertion on account1 whenever
+       the balance field is non-empty.  (Eg to double-check your  bank's  bal-
        ance calculation.)
 
-       If an amount value is parenthesised, it will  be  de-parenthesised  and
+       If  an  amount  value is parenthesised, it will be de-parenthesised and
        sign-flipped automatically.
 
-       The  generated  journal  entries  will be sorted by date.  The original
+       The generated journal entries will be sorted  by  date.   The  original
        order of same-day entries will be preserved, usually.
 
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -163,7 +173,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

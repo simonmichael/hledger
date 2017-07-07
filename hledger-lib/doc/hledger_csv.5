@@ -23,7 +23,7 @@ For an example, see Cookbook: convert CSV files.
 To learn about \f[I]exporting\f[] CSV, see CSV output.
 .SH CSV RULES
 .PP
-The following six kinds of rule can appear in the rules file, in any
+The following seven kinds of rule can appear in the rules file, in any
 order.
 Blank lines and lines beginning with \f[C]#\f[] or \f[C];\f[] are
 ignored.
@@ -195,6 +195,17 @@ Eg:
 include\ common.rules
 \f[]
 .fi
+.SS newest\-first
+.PP
+\f[C]newest\-first\f[]
+.PP
+Consider adding this rule if: your CSV records are in reverse
+chronological order (newest first), and you care about preserving the
+order of same\-day transactions, and you might be processing just one
+day of data.
+It usually isn\[aq]t needed, because hledger autodetects the CSV order,
+but if all the CSV records have the same date it assumes they are oldest
+first.
 .SH CSV TIPS
 .PP
 Each generated journal entry will have two postings, to
