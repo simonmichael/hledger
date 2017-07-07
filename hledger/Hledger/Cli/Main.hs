@@ -127,15 +127,12 @@ mainmode addons = defMode {
 PROGNAME                         list commands
 PROGNAME CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)
 PROGNAME-CMD [OPTS] [ARGS]       or run addon commands directly
-PROGNAME -h                      general usage
-PROGNAME CMD -h                  command usage
-PROGNAME --help                  PROGNAME manual
-PROGNAME --man                   PROGNAME manual as man page
-PROGNAME --info                  PROGNAME manual as info manual
-PROGNAME help                    list help topics
-PROGNAME help TOPIC              TOPIC manual
-PROGNAME man  TOPIC              TOPIC manual as man page
-PROGNAME info TOPIC              TOPIC manual as info manual
+PROGNAME -h                      show general usage
+PROGNAME CMD -h                  show command usage
+PROGNAME help                    list available manuals
+PROGNAME help MANUAL             show a manual as plain text
+PROGNAME man  MANUAL             show a manual as man page
+PROGNAME info MANUAL             show a manual as info manual
 |]
  }
 
@@ -264,8 +261,10 @@ Misc:
  rewrite              add automated postings to certain transactions
  test                 run some self tests
 OTHERCMDS
-Help: (see also -h, CMD -h, --help|--man|--info)
- help|man|info        show any of the hledger manuals in text/man/info format
+Help:
+ hledger -h           show general usage
+ hledger CMD -h       show command usage
+ help|man|info        show any of the hledger manuals in plain text/man/info format
 |]
 
 knownCommands :: [String]

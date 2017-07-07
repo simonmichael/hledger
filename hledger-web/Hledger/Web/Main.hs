@@ -43,10 +43,7 @@ hledgerWebMain = do
 
 runWith :: WebOpts -> IO ()
 runWith opts
-  | "h"               `inRawOpts` (rawopts_ $ cliopts_ opts) = putStr (showModeUsage webmode) >> exitSuccess
-  | "help"            `inRawOpts` (rawopts_ $ cliopts_ opts) = printHelpForTopic (topicForMode webmode) >> exitSuccess
-  | "man"             `inRawOpts` (rawopts_ $ cliopts_ opts) = runManForTopic (topicForMode webmode) >> exitSuccess
-  | "info"            `inRawOpts` (rawopts_ $ cliopts_ opts) = runInfoForTopic (topicForMode webmode) >> exitSuccess
+  | "help"            `inRawOpts` (rawopts_ $ cliopts_ opts) = putStr (showModeUsage webmode) >> exitSuccess
   | "version"         `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn prognameandversion >> exitSuccess
   | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
   | otherwise = do

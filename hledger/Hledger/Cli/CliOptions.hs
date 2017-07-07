@@ -102,10 +102,7 @@ import Hledger.Cli.Version
 -- | Common help flags: --help, --debug, --version...
 helpflags :: [Flag RawOpts]
 helpflags = [
-  flagNone ["h"]    (setboolopt "h")    "show general usage (or after CMD, command usage)"
- ,flagNone ["help"] (setboolopt "help") "show this program's manual as plain text (or after an addon CMD, the add-on's manual)"
- ,flagNone ["man"]  (setboolopt "man")  "show this program's manual with man"
- ,flagNone ["info"] (setboolopt "info") "show this program's manual with info"
+  flagNone ["help","h"] (setboolopt "help") "show general usage (or after CMD, command usage)"
  -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
  ,flagNone ["version"] (setboolopt "version") "show version information"
@@ -200,7 +197,7 @@ defCommandMode names = defMode {
   ,modeGroupFlags  = Group {
      groupNamed   = []
     ,groupUnnamed = [
-       flagNone ["h"] (setboolopt "h") "Show usage."
+       flagNone ["help"] (setboolopt "help") "Show usage."
       -- ,flagNone ["help"] (setboolopt "help") "Show long help."
       ]
     ,groupHidden  = []             --  flags not displayed in the usage
@@ -447,8 +444,8 @@ getHledgerCliOpts mode' = do
   let rawopts = either usageError decodeRawOpts $ process mode' args'
   opts <- rawOptsToCliOpts rawopts
   debugArgs args' opts
-  when ("help" `inRawOpts` rawopts_ opts) $ putStr longhelp  >> exitSuccess
-  when ("h"    `inRawOpts` rawopts_ opts) $ putStr shorthelp >> exitSuccess
+  when ("help" `inRawOpts` rawopts_ opts) $ putStr shorthelp >> exitSuccess
+  -- when ("help" `inRawOpts` rawopts_ opts) $ putStr longhelp  >> exitSuccess
   return opts
   where
     longhelp = showModeUsage mode'
@@ -457,7 +454,7 @@ getHledgerCliOpts mode' = do
         (reverse $ dropWhile null $ reverse $ takeWhile (not . ("flags:" `isInfixOf`)) $ lines longhelp)
         ++
         [""
-        ,"  See --help for full detail, including common hledger options."
+        ,"  See manual for full detail, including common hledger options." -- TODO
         ]
     -- | Print debug info about arguments and options if --debug is present.
     debugArgs :: [String] -> CliOpts -> IO ()

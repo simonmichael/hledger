@@ -60,17 +60,8 @@ Note: if invoking hledger-api as a hledger subcommand, write `--` before options
 `--version`
 : show version
 
-`-h`
+`-h --help`
 : show usage
-
-`--help`
-: show manual as plain text
-
-`--man`
-: show manual with man
-
-`--info`
-: show manual with info
 
 
 _man_({{

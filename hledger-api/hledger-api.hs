@@ -50,7 +50,7 @@ Usage:
   hledger-api --swagger
     print API docs in Swagger 2.0 format
   hledger-api --version
-  hledger-api -h|--help|--man|--info
+  hledger-api -h|--help
 
 Options:
   -f --file FILE   use a different input file
@@ -60,10 +60,7 @@ Options:
      --host IPADDR listen on this IP address (default: 127.0.0.1)
   -p --port PORT   listen on this TCP port (default: 8001)
      --version     show version
-  -h               show usage
-     --help        show manual
-     --man         show manual with man
-     --info        show manual with info
+  -h --help        show usage
 |]
 
 swaggerSpec :: Swagger
@@ -76,10 +73,7 @@ swaggerSpec = toSwagger (Proxy :: Proxy HledgerApi)
 main :: IO ()
 main = do
   args <- getArgs >>= parseArgsOrExit doc
-  when (isPresent args (shortOption 'h')) $ exitWithUsage doc
-  when (isPresent args (longOption "help")) $ printHelpForTopic "api" >> exitSuccess
-  when (isPresent args (longOption "man"))  $ runManForTopic "api" >> exitSuccess
-  when (isPresent args (longOption "info")) $ runInfoForTopic "api" >> exitSuccess
+  when (isPresent args (shortOption 'h') || isPresent args (longOption "help")) $ exitWithUsage doc
   when (isPresent args (longOption "version")) $ putStrLn hledgerApiVersion >> exitSuccess
   when (isPresent args (longOption "swagger")) $ BL8.putStrLn (encode swaggerSpec) >> exitSuccess
   let

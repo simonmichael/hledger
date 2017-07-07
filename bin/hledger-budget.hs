@@ -239,6 +239,6 @@ main = do
     rawopts <- fmap decodeRawOpts . processArgs $ cmdmode
     opts <- rawOptsToCliOpts rawopts
     case find (\e -> command_ opts `elem` modeNames (fst e)) actions of
-        Just (amode, _) | "h" `elem` map fst (rawopts_ opts) -> print amode
+        Just (amode, _) | "help" `elem` map fst (rawopts_ opts) -> print amode
         Just (_, action) -> action opts
         Nothing -> print cmdmode
