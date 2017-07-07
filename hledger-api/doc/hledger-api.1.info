@@ -57,18 +57,9 @@ options as shown above.
 '--version'
 
      show version
-'-h'
+'-h --help'
 
      show usage
-'--help'
-
-     show manual as plain text
-'--man'
-
-     show manual with man
-'--info'
-
-     show manual with info
 
 
 Tag Table:

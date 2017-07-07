@@ -59,13 +59,8 @@ OPTIONS
        --version
               show version
 
-       -h     show usage
-
-       --help show manual as plain text
-
-       --man  show manual with man
-
-       --info show manual with info
+       -h --help
+              show usage
 
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:

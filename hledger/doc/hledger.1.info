@@ -786,7 +786,6 @@ displayed in the command list ('hledger is').
 * cashflow::
 * help::
 * incomestatement::
-* info::
 * man::
 * print::
 * register::
@@ -1441,16 +1440,19 @@ File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: cashflow,  Up:
 
 Show any of the hledger manuals.
 
-   The 'help' command displays any of the main hledger man pages.
-(Unlike 'hledger --help', which displays only the hledger man page.)
-Run it with no arguments to list available topics (their names are
-shortened for easier typing), and run 'hledger help TOPIC' to select
-one.  The output is similar to a man page, but fixed width.  It may be
-long, so you may wish to pipe it into a pager.  See also info and man.
+   The 'help' command displays any of the main hledger manuals, in one
+of several ways.  Run it with no argument to list the manuals (their
+names are shortened for easier typing), and run 'hledger help MANUAL' to
+select one.
+
+   hledger help will choose one of these docs viewers, in order of
+preference: info, man, $PAGER, less, stdout (and it always prints on
+stdout when piped).  Or you can force a particular viewer with the
+'--info', '--man', '--pager', '--cat' flags.
 
 $ hledger help
-Choose a topic, eg: hledger help cli
-cli, ui, web, api, journal, csv, timeclock, timedot
+Please choose a manual:
+hledger help cli|ui|web|api|journal|csv|timeclock|timedot
 
 $ hledger help cli | less
 
@@ -1462,12 +1464,10 @@ NAME
        hledger - a command-line accounting tool
 
 SYNOPSIS
-       hledger [-f FILE] COMMAND [OPTIONS] [CMDARGS]
-       hledger [-f FILE] ADDONCMD -- [OPTIONS] [CMDARGS]
-:
+       hledger [-f FILE] COMMAND [OPTIONS] [ARGS]
 
 
-File: hledger.1.info,  Node: incomestatement,  Next: info,  Prev: help,  Up: COMMANDS
+File: hledger.1.info,  Node: incomestatement,  Next: man,  Prev: help,  Up: COMMANDS
 
 4.8 incomestatement
 ===================
@@ -1542,13 +1542,7 @@ each report period.  Normally incomestatement shows revenues/expenses
 per period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.
 
-
-File: hledger.1.info,  Node: info,  Next: man,  Prev: incomestatement,  Up: COMMANDS
-
-4.9 info
-========
-
-Show any of the hledger manuals using info.
+   ...  ## info Show any of the hledger manuals using info.
 
    The 'info' command displays any of the hledger reference manuals
 using the info hypertextual documentation viewer.  This can be a very
@@ -1559,10 +1553,10 @@ to be available in your PATH.
 (manuals).
 
 
-File: hledger.1.info,  Node: man,  Next: print,  Prev: info,  Up: COMMANDS
+File: hledger.1.info,  Node: man,  Next: print,  Prev: incomestatement,  Up: COMMANDS
 
-4.10 man
-========
+4.9 man
+=======
 
 Show any of the hledger manuals using man.
 
@@ -1573,12 +1567,12 @@ automatically.  It requires the "man" program to be available in your
 PATH.
 
    As with help, run it with no arguments to list available topics
-(manuals).
+(manuals).  "'
 
 
 File: hledger.1.info,  Node: print,  Next: register,  Prev: man,  Up: COMMANDS
 
-4.11 print
+4.10 print
 ==========
 
 Show transactions from the journal.
@@ -1672,7 +1666,7 @@ $ hledger print -Ocsv
 
 File: hledger.1.info,  Node: register,  Next: stats,  Prev: print,  Up: COMMANDS
 
-4.12 register
+4.11 register
 =============
 
 Show postings and their running total.  Alias: reg.
@@ -1777,7 +1771,7 @@ length and comparable to the others in the report.
 
 File: hledger.1.info,  Node: Custom register output,  Up: register
 
-4.12.1 Custom register output
+4.11.1 Custom register output
 -----------------------------
 
 register uses the full terminal width by default, except on windows.
@@ -1809,7 +1803,7 @@ output.
 
 File: hledger.1.info,  Node: stats,  Next: test,  Prev: register,  Up: COMMANDS
 
-4.13 stats
+4.12 stats
 ==========
 
 Show some journal statistics.
@@ -1841,7 +1835,7 @@ output destination.
 
 File: hledger.1.info,  Node: test,  Prev: stats,  Up: COMMANDS
 
-4.14 test
+4.13 test
 =========
 
 Run built-in unit tests.
@@ -2139,93 +2133,91 @@ Node: QUERIES21565
 Ref: #queries21669
 Node: COMMANDS25334
 Ref: #commands25448
-Node: accounts26121
-Ref: #accounts26221
-Node: activity27203
-Ref: #activity27315
-Node: add27674
-Ref: #add27775
-Node: balance30433
-Ref: #balance30546
-Node: Flat mode33561
-Ref: #flat-mode33688
-Node: Depth limited balance reports34108
-Ref: #depth-limited-balance-reports34311
-Node: Multicolumn balance reports34731
-Ref: #multicolumn-balance-reports34942
-Node: Custom balance output39590
-Ref: #custom-balance-output39774
-Node: Colour support41867
-Ref: #colour-support42028
-Node: Output destination42201
-Ref: #output-destination42359
-Node: CSV output42629
-Ref: #csv-output42748
-Node: balancesheet43145
-Ref: #balancesheet43273
-Node: cashflow45180
-Ref: #cashflow45297
-Node: help47165
-Ref: #help47277
-Node: incomestatement48115
-Ref: #incomestatement48245
-Node: info50137
-Ref: #info50244
-Node: man50608
-Ref: #man50705
-Node: print51110
-Ref: #print51215
-Node: register54971
-Ref: #register55084
-Node: Custom register output59580
-Ref: #custom-register-output59711
-Node: stats61008
-Ref: #stats61114
-Node: test61995
-Ref: #test62082
-Node: ADD-ON COMMANDS62450
-Ref: #add-on-commands62562
-Node: Official add-ons63849
-Ref: #official-add-ons63991
-Node: api64078
-Ref: #api64169
-Node: ui64221
-Ref: #ui64322
-Node: web64380
-Ref: #web64471
-Node: Third party add-ons64517
-Ref: #third-party-add-ons64694
-Node: diff64829
-Ref: #diff64928
-Node: iadd65027
-Ref: #iadd65143
-Node: interest65226
-Ref: #interest65349
-Node: irr65444
-Ref: #irr65544
-Node: Experimental add-ons65622
-Ref: #experimental-add-ons65776
-Node: autosync66169
-Ref: #autosync66283
-Node: budget66522
-Ref: #budget66646
-Node: chart66712
-Ref: #chart66831
-Node: check66902
-Ref: #check67026
-Node: check-dates67093
-Ref: #check-dates67235
-Node: check-dupes67308
-Ref: #check-dupes67451
-Node: equity67528
-Ref: #equity67656
-Node: prices67775
-Ref: #prices67904
-Node: print-unique67959
-Ref: #print-unique68108
-Node: register-match68201
-Ref: #register-match68357
-Node: rewrite68455
-Ref: #rewrite68576
+Node: accounts26112
+Ref: #accounts26212
+Node: activity27194
+Ref: #activity27306
+Node: add27665
+Ref: #add27766
+Node: balance30424
+Ref: #balance30537
+Node: Flat mode33552
+Ref: #flat-mode33679
+Node: Depth limited balance reports34099
+Ref: #depth-limited-balance-reports34302
+Node: Multicolumn balance reports34722
+Ref: #multicolumn-balance-reports34933
+Node: Custom balance output39581
+Ref: #custom-balance-output39765
+Node: Colour support41858
+Ref: #colour-support42019
+Node: Output destination42192
+Ref: #output-destination42350
+Node: CSV output42620
+Ref: #csv-output42739
+Node: balancesheet43136
+Ref: #balancesheet43264
+Node: cashflow45171
+Ref: #cashflow45288
+Node: help47156
+Ref: #help47268
+Node: incomestatement48098
+Ref: #incomestatement48227
+Node: man50499
+Ref: #man50605
+Node: print51014
+Ref: #print51119
+Node: register54875
+Ref: #register54988
+Node: Custom register output59484
+Ref: #custom-register-output59615
+Node: stats60912
+Ref: #stats61018
+Node: test61899
+Ref: #test61986
+Node: ADD-ON COMMANDS62354
+Ref: #add-on-commands62466
+Node: Official add-ons63753
+Ref: #official-add-ons63895
+Node: api63982
+Ref: #api64073
+Node: ui64125
+Ref: #ui64226
+Node: web64284
+Ref: #web64375
+Node: Third party add-ons64421
+Ref: #third-party-add-ons64598
+Node: diff64733
+Ref: #diff64832
+Node: iadd64931
+Ref: #iadd65047
+Node: interest65130
+Ref: #interest65253
+Node: irr65348
+Ref: #irr65448
+Node: Experimental add-ons65526
+Ref: #experimental-add-ons65680
+Node: autosync66073
+Ref: #autosync66187
+Node: budget66426
+Ref: #budget66550
+Node: chart66616
+Ref: #chart66735
+Node: check66806
+Ref: #check66930
+Node: check-dates66997
+Ref: #check-dates67139
+Node: check-dupes67212
+Ref: #check-dupes67355
+Node: equity67432
+Ref: #equity67560
+Node: prices67679
+Ref: #prices67808
+Node: print-unique67863
+Ref: #print-unique68012
+Node: register-match68105
+Ref: #register-match68261
+Node: rewrite68359
+Ref: #rewrite68480
 
 End Tag Table

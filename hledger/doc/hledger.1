@@ -1848,20 +1848,23 @@ multicolumn balance reports you can alter the report mode with
 .PP
 Show any of the hledger manuals.
 .PP
-The \f[C]help\f[] command displays any of the main hledger man pages.
-(Unlike \f[C]hledger\ \-\-help\f[], which displays only the hledger man
-page.) Run it with no arguments to list available topics (their names
-are shortened for easier typing), and run \f[C]hledger\ help\ TOPIC\f[]
-to select one.
-The output is similar to a man page, but fixed width.
-It may be long, so you may wish to pipe it into a pager.
-See also info and man.
+The \f[C]help\f[] command displays any of the main hledger manuals, in
+one of several ways.
+Run it with no argument to list the manuals (their names are shortened
+for easier typing), and run \f[C]hledger\ help\ MANUAL\f[] to select
+one.
+.PP
+hledger help will choose one of these docs viewers, in order of
+preference: info, man, $PAGER, less, stdout (and it always prints on
+stdout when piped).
+Or you can force a particular viewer with the \f[C]\-\-info\f[],
+\f[C]\-\-man\f[], \f[C]\-\-pager\f[], \f[C]\-\-cat\f[] flags.
 .IP
 .nf
 \f[C]
 $\ hledger\ help
-Choose\ a\ topic,\ eg:\ hledger\ help\ cli
-cli,\ ui,\ web,\ api,\ journal,\ csv,\ timeclock,\ timedot
+Please\ choose\ a\ manual:
+hledger\ help\ cli|ui|web|api|journal|csv|timeclock|timedot
 \f[]
 .fi
 .IP
@@ -1877,9 +1880,7 @@ NAME
 \ \ \ \ \ \ \ hledger\ \-\ a\ command\-line\ accounting\ tool
 
 SYNOPSIS
-\ \ \ \ \ \ \ hledger\ [\-f\ FILE]\ COMMAND\ [OPTIONS]\ [CMDARGS]
-\ \ \ \ \ \ \ hledger\ [\-f\ FILE]\ ADDONCMD\ \-\-\ [OPTIONS]\ [CMDARGS]
-:
+\ \ \ \ \ \ \ hledger\ [\-f\ FILE]\ COMMAND\ [OPTIONS]\ [ARGS]
 \f[]
 .fi
 .SS incomestatement
@@ -1981,9 +1982,9 @@ report period.
 Normally incomestatement shows revenues/expenses per period, though as
 with multicolumn balance reports you can alter the report mode with
 \f[C]\-\-change\f[]/\f[C]\-\-cumulative\f[]/\f[C]\-\-historical\f[].
-.SS info
 .PP
-Show any of the hledger manuals using info.
+\&...
+## info Show any of the hledger manuals using info.
 .PP
 The \f[C]info\f[] command displays any of the hledger reference manuals
 using the info hypertextual documentation viewer.
@@ -2004,6 +2005,7 @@ It requires the "man" program to be available in your PATH.
 .PP
 As with help, run it with no arguments to list available topics
 (manuals).
+```
 .SS print
 .PP
 Show transactions from the journal.
