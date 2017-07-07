@@ -25,6 +25,8 @@ module Hledger.Cli.CliOptions (
   argsFlag,
   showModeUsage,
   withAliases,
+  likelyExecutablesInPath,
+  hledgerExecutablesInPath,
 
   -- * CLI options
   CliOpts(..),
@@ -633,23 +635,27 @@ dropRedundantSourceVersion fs = fs
 compiledExts = ["",".com",".exe"] 
 
 
--- | Get the sorted unique filenames of all hledger-* executables in
--- the current user's PATH. Currently these are: files in any of the
--- PATH directories, named hledger-*, with either no extension (and no
--- periods in the name) or one of the addonExtensions.  Limitations:
--- we do not currently check that the file is really a file (not eg a
--- directory) or whether it has execute permission.
-hledgerExecutablesInPath :: IO [String]
-hledgerExecutablesInPath = do
+-- | Get all sorted unique filenames in the current user's PATH. 
+-- We do not currently filter out non-file objects or files without execute permission.
+likelyExecutablesInPath :: IO [String]
+likelyExecutablesInPath = do
   pathdirs <- splitOneOf "[:;]" `fmap` getEnvSafe "PATH"
   pathfiles <- concat `fmap` mapM getDirectoryContentsSafe pathdirs
-  return $ nub $ sort $ filter isHledgerExeName pathfiles
-  -- XXX should exclude directories and files without execute permission.
+  return $ nub $ sort pathfiles
+  -- exclude directories and files without execute permission.
   -- These will do a stat for each hledger-*, probably ok.
   -- But they need paths, not just filenames
-  -- hledgerexes  <- filterM doesFileExist hledgernamed
-  -- hledgerexes' <- filterM isExecutable hledgerexes
-  -- return hledgerexes
+  -- exes'  <- filterM doesFileExist exe'
+  -- exes'' <- filterM isExecutable exes'
+  -- return exes''
+
+-- | Get the sorted unique filenames of all hledger-* executables in
+-- the current user's PATH. These are files in any of the PATH directories,
+-- named hledger-*, with either no extension (and no periods in the name) 
+-- or one of the addonExtensions. 
+-- We do not currently filter out non-file objects or files without execute permission.
+hledgerExecutablesInPath :: IO [String]
+hledgerExecutablesInPath = filter isHledgerExeName <$> likelyExecutablesInPath
 
 -- isExecutable f = getPermissions f >>= (return . executable)
 

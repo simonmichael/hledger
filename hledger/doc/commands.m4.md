@@ -304,18 +304,18 @@ you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 ## help
 Show any of the hledger manuals.
 
-The `help` command displays any of the main [hledger man pages](/docs.html).
-(Unlike `hledger --help`, which displays only the hledger man page.)
-Run it with no arguments to list available topics (their names are shortened for easier typing),
-and run `hledger help TOPIC` to select one.
-The output is similar to a man page, but fixed width.
-It may be long, so you may wish to pipe it into a pager.
-See also [info](#info) and [man](#man).
+The `help` command displays any of the main [hledger manuals](/docs.html), in one of several ways.
+Run it with no argument to list the manuals (their names are shortened for easier typing),
+and run `hledger help MANUAL` to select one.
+
+hledger help will choose one of these docs viewers, in order of preference: 
+info, man, $PAGER, less, stdout (and it always prints on stdout when piped). 
+Or you can force a particular viewer with the `--info`, `--man`, `--pager`, `--cat` flags.
 
 _shell_({{
 $ hledger help
-Choose a topic, eg: hledger help cli
-cli, ui, web, api, journal, csv, timeclock, timedot
+Please choose a manual:
+hledger help cli|ui|web|api|journal|csv|timeclock|timedot
 }})
 
 _shell_({{
@@ -329,9 +329,7 @@ NAME
        hledger - a command-line accounting tool
 
 SYNOPSIS
-       hledger [-f FILE] COMMAND [OPTIONS] [CMDARGS]
-       hledger [-f FILE] ADDONCMD -- [OPTIONS] [CMDARGS]
-:
+       hledger [-f FILE] COMMAND [OPTIONS] [ARGS]
 }})
 
 ## incomestatement
@@ -404,6 +402,7 @@ Normally incomestatement shows revenues/expenses per period, though
 as with [multicolumn balance reports](#multicolumn-balance-reports)
 you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 
+...
 ## info
 Show any of the hledger manuals using info.
 
@@ -423,6 +422,7 @@ This will fit the text to your terminal width, and probably invoke a pager autom
 It requires the "man" program to be available in your PATH.
 
 As with [help](#help), run it with no arguments to list available topics (manuals).
+```
 
 ## print
 Show transactions from the journal.

@@ -128,10 +128,7 @@ PROGNAME CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)
 PROGNAME-CMD [OPTS] [ARGS]       or run addon commands directly
 PROGNAME -h                      show general usage
 PROGNAME CMD -h                  show command usage
-PROGNAME help                    list available manuals
-PROGNAME help MANUAL             show a manual as plain text
-PROGNAME man  MANUAL             show a manual as man page
-PROGNAME info MANUAL             show a manual as info manual
+PROGNAME help [MANUAL]           show any of the hledger manuals in various formats
 |]
  }
 
@@ -263,7 +260,7 @@ OTHERCMDS
 Help:
  hledger -h           show general usage
  hledger CMD -h       show command usage
- help|man|info        show any of the hledger manuals in plain text/man/info format
+ help                 show any of the hledger manuals in various formats
 |]
 
 knownCommands :: [String]

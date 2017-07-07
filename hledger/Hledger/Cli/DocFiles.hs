@@ -16,6 +16,7 @@ module Hledger.Cli.DocFiles (
   ,printHelpForTopic
   ,runManForTopic
   ,runInfoForTopic
+  ,runPagerForTopic
 
   ) where
 
@@ -93,6 +94,15 @@ lookupDocInfo name =
 printHelpForTopic :: Topic -> IO ()
 printHelpForTopic t =
   putStrLn $ lookupDocTxt t
+
+runPagerForTopic :: FilePath -> Topic -> IO ()
+runPagerForTopic exe t = do
+  (Just inp, _, _, ph) <- createProcess (proc exe []){
+    std_in=CreatePipe
+    }
+  hPutStrLn inp (lookupDocTxt t)
+  _ <- waitForProcess ph
+  return ()
 
 runManForTopic :: Topic -> IO ()
 runManForTopic t =
