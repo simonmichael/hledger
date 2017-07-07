@@ -59,7 +59,6 @@ import Hledger.Cli.Accounts
 import Hledger.Cli.Balance
 import Hledger.Cli.Balancesheet
 import Hledger.Cli.Cashflow
-import Hledger.Cli.DocFiles
 import Hledger.Cli.Help
 import Hledger.Cli.Histogram
 import Hledger.Cli.Incomestatement
@@ -345,18 +344,10 @@ main = do
     hasDetailedVersion   = ("--version+" `elem`)
     printUsage           = putStr $ showModeUsage $ mainmode addons
     badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure
-    hasShortHelpFlag args = any (`elem` args) ["-h"]
-    hasLongHelpFlag args = any (`elem` args) ["--help"]
-    hasManFlag args      = any (`elem` args) ["--man"]
-    hasInfoFlag args     = any (`elem` args) ["--info"]
-    hasSomeHelpFlag args = hasShortHelpFlag args || hasLongHelpFlag args || hasManFlag args || hasInfoFlag args
+    hasHelpFlag args     = any (`elem` args) ["-h","--help"]
     f `orShowHelp` mode
-      | hasShortHelpFlag args = putStr $ showModeUsage mode
-      | hasLongHelpFlag args  = printHelpForTopic t
-      | hasManFlag args       = runManForTopic t
-      | hasInfoFlag args      = runInfoForTopic t
-      | otherwise             = f
-      where t = topicForMode mode
+      | hasHelpFlag args = putStr $ showModeUsage mode
+      | otherwise        = f
   dbgIO "processed opts" opts
   dbgIO "command matched" cmd
   dbgIO "isNullCommand" isNullCommand
@@ -370,13 +361,10 @@ main = do
   let
     runHledgerCommand
       -- high priority flags and situations. -h, then --help, then --info are highest priority.
-      | hasShortHelpFlag argsbeforecmd = dbgIO "" "-h before command, showing general usage" >> printUsage
-      | hasLongHelpFlag  argsbeforecmd = dbgIO "" "--help before command, showing general manual" >> printHelpForTopic (topicForMode $ mainmode addons)
-      | hasManFlag       argsbeforecmd = dbgIO "" "--man before command, showing general manual with man" >> runManForTopic (topicForMode $ mainmode addons)
-      | hasInfoFlag      argsbeforecmd = dbgIO "" "--info before command, showing general manual with info" >> runInfoForTopic (topicForMode $ mainmode addons)
-      | not (hasSomeHelpFlag argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
+      | hasHelpFlag argsbeforecmd = dbgIO "" "-h before command, showing general usage" >> printUsage
+      | not (hasHelpFlag argsaftercmd) && (hasVersion argsbeforecmd || (hasVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameandversion
-      | not (hasSomeHelpFlag argsaftercmd) && (hasDetailedVersion argsbeforecmd || (hasDetailedVersion argsaftercmd && isInternalCommand))
+      | not (hasHelpFlag argsaftercmd) && (hasDetailedVersion argsbeforecmd || (hasDetailedVersion argsaftercmd && isInternalCommand))
                                  = putStrLn prognameanddetailedversion
       -- \| (null externalcmd) && "binary-filename" `inRawOpts` rawopts = putStrLn $ binaryfilename progname
       -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
