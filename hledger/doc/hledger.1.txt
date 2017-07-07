@@ -1380,27 +1380,6 @@ COMMANDS
        period,  though  as  with multicolumn balance reports you can alter the
        report mode with --change/--cumulative/--historical.
 
-       ...  ## info Show any of the hledger manuals using info.
-
-       The info command displays any of the hledger  reference  manuals  using
-       the  info  hypertextual documentation viewer.  This can be a very effi-
-       cient way to browse large manuals.  It requires the "info"  program  to
-       be available in your PATH.
-
-       As  with help, run it with no arguments to list available topics (manu-
-       als).
-
-   man
-       Show any of the hledger manuals using man.
-
-       The man command displays any of the  hledger  reference  manuals  using
-       man,  the standard documentation viewer on unix systems.  This will fit
-       the text to your terminal width, and probably invoke a pager  automati-
-       cally.  It requires the "man" program to be available in your PATH.
-
-       As  with help, run it with no arguments to list available topics (manu-
-       als).  ```
-
    print
        Show transactions from the journal.
 

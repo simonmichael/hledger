@@ -402,28 +402,6 @@ Normally incomestatement shows revenues/expenses per period, though
 as with [multicolumn balance reports](#multicolumn-balance-reports)
 you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 
-...
-## info
-Show any of the hledger manuals using info.
-
-The `info` command displays any of the [hledger reference manuals](/docs.html)
-using the [info](https://en.wikipedia.org/wiki/Info_(Unix)) hypertextual documentation viewer.
-This can be a very efficient way to browse large manuals.
-It requires the "info" program to be available in your PATH.
-
-As with [help](#help), run it with no arguments to list available topics (manuals).
-
-## man
-Show any of the hledger manuals using man.
-
-The `man` command displays any of the [hledger reference manuals](/docs.html)
-using [man](https://en.wikipedia.org/wiki/Man_page), the standard documentation viewer on unix systems.
-This will fit the text to your terminal width, and probably invoke a pager automatically.
-It requires the "man" program to be available in your PATH.
-
-As with [help](#help), run it with no arguments to list available topics (manuals).
-```
-
 ## print
 Show transactions from the journal.
 
