@@ -319,17 +319,21 @@ Manuals: hledger hledger-ui hledger-web hledger-api journal csv timeclock timedo
 }})
 
 _shell_({{
-$ hledger help cli | less
+$ hledger help h --man
 
-hledger(1)                   hledger User Manuals                   hledger(1)
-
-
+hledger(1)                    hledger User Manuals                    hledger(1)
 
 NAME
        hledger - a command-line accounting tool
 
 SYNOPSIS
        hledger [-f FILE] COMMAND [OPTIONS] [ARGS]
+       hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]
+       hledger
+
+DESCRIPTION
+       hledger  is  a  cross-platform  program  for tracking money, time, or any
+...
 }})
 
 ## incomestatement

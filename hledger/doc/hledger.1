@@ -1850,37 +1850,40 @@ Show any of the hledger manuals.
 .PP
 The \f[C]help\f[] command displays any of the main hledger manuals, in
 one of several ways.
-Run it with no argument to list the manuals (their names are shortened
-for easier typing), and run \f[C]hledger\ help\ MANUAL\f[] to select
-one.
+Run it with no argument to list the manuals, or provide a full or
+partial manual name to select one.
 .PP
-hledger help will choose one of these docs viewers, in order of
-preference: info, man, $PAGER, less, stdout (and it always prints on
-stdout when piped).
-Or you can force a particular viewer with the \f[C]\-\-info\f[],
+hledger manuals are available in several formats.
+hledger help will use the first of these display methods that it finds:
+info, man, $PAGER, less, stdout (or when non\-interactive, just stdout).
+You can force a particular viewer with the \f[C]\-\-info\f[],
 \f[C]\-\-man\f[], \f[C]\-\-pager\f[], \f[C]\-\-cat\f[] flags.
 .IP
 .nf
 \f[C]
 $\ hledger\ help
-Please\ choose\ a\ manual:
-hledger\ help\ cli|ui|web|api|journal|csv|timeclock|timedot
+Please\ choose\ a\ manual\ by\ typing\ "hledger\ help\ MANUAL"\ (a\ substring\ is\ ok).
+Manuals:\ hledger\ hledger\-ui\ hledger\-web\ hledger\-api\ journal\ csv\ timeclock\ timedot
 \f[]
 .fi
 .IP
 .nf
 \f[C]
-$\ hledger\ help\ cli\ |\ less
+$\ hledger\ help\ h\ \-\-man
 
-hledger(1)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hledger\ User\ Manuals\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hledger(1)
-
-
+hledger(1)\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hledger\ User\ Manuals\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ hledger(1)
 
 NAME
 \ \ \ \ \ \ \ hledger\ \-\ a\ command\-line\ accounting\ tool
 
 SYNOPSIS
 \ \ \ \ \ \ \ hledger\ [\-f\ FILE]\ COMMAND\ [OPTIONS]\ [ARGS]
+\ \ \ \ \ \ \ hledger\ [\-f\ FILE]\ ADDONCMD\ \-\-\ [OPTIONS]\ [ARGS]
+\ \ \ \ \ \ \ hledger
+
+DESCRIPTION
+\ \ \ \ \ \ \ hledger\ \ is\ \ a\ \ cross\-platform\ \ program\ \ for\ tracking\ money,\ time,\ or\ any
+\&...
 \f[]
 .fi
 .SS incomestatement

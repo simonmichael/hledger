@@ -1440,30 +1440,33 @@ File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: cashflow,  Up:
 Show any of the hledger manuals.
 
    The 'help' command displays any of the main hledger manuals, in one
-of several ways.  Run it with no argument to list the manuals (their
-names are shortened for easier typing), and run 'hledger help MANUAL' to
-select one.
+of several ways.  Run it with no argument to list the manuals, or
+provide a full or partial manual name to select one.
 
-   hledger help will choose one of these docs viewers, in order of
-preference: info, man, $PAGER, less, stdout (and it always prints on
-stdout when piped).  Or you can force a particular viewer with the
-'--info', '--man', '--pager', '--cat' flags.
+   hledger manuals are available in several formats.  hledger help will
+use the first of these display methods that it finds: info, man, $PAGER,
+less, stdout (or when non-interactive, just stdout).  You can force a
+particular viewer with the '--info', '--man', '--pager', '--cat' flags.
 
 $ hledger help
-Please choose a manual:
-hledger help cli|ui|web|api|journal|csv|timeclock|timedot
+Please choose a manual by typing "hledger help MANUAL" (a substring is ok).
+Manuals: hledger hledger-ui hledger-web hledger-api journal csv timeclock timedot
 
-$ hledger help cli | less
+$ hledger help h --man
 
-hledger(1)                   hledger User Manuals                   hledger(1)
-
-
+hledger(1)                    hledger User Manuals                    hledger(1)
 
 NAME
        hledger - a command-line accounting tool
 
 SYNOPSIS
        hledger [-f FILE] COMMAND [OPTIONS] [ARGS]
+       hledger [-f FILE] ADDONCMD -- [OPTIONS] [ARGS]
+       hledger
+
+DESCRIPTION
+       hledger  is  a  cross-platform  program  for tracking money, time, or any
+...
 
 
 File: hledger.1.info,  Node: incomestatement,  Next: print,  Prev: help,  Up: COMMANDS
@@ -2133,61 +2136,61 @@ Node: cashflow45163
 Ref: #cashflow45280
 Node: help47148
 Ref: #help47260
-Node: incomestatement48090
-Ref: #incomestatement48221
-Node: print50113
-Ref: #print50228
-Node: register53984
-Ref: #register54097
-Node: Custom register output58593
-Ref: #custom-register-output58724
-Node: stats60021
-Ref: #stats60127
-Node: test61008
-Ref: #test61095
-Node: ADD-ON COMMANDS61463
-Ref: #add-on-commands61575
-Node: Official add-ons62862
-Ref: #official-add-ons63004
-Node: api63091
-Ref: #api63182
-Node: ui63234
-Ref: #ui63335
-Node: web63393
-Ref: #web63484
-Node: Third party add-ons63530
-Ref: #third-party-add-ons63707
-Node: diff63842
-Ref: #diff63941
-Node: iadd64040
-Ref: #iadd64156
-Node: interest64239
-Ref: #interest64362
-Node: irr64457
-Ref: #irr64557
-Node: Experimental add-ons64635
-Ref: #experimental-add-ons64789
-Node: autosync65182
-Ref: #autosync65296
-Node: budget65535
-Ref: #budget65659
-Node: chart65725
-Ref: #chart65844
-Node: check65915
-Ref: #check66039
-Node: check-dates66106
-Ref: #check-dates66248
-Node: check-dupes66321
-Ref: #check-dupes66464
-Node: equity66541
-Ref: #equity66669
-Node: prices66788
-Ref: #prices66917
-Node: print-unique66972
-Ref: #print-unique67121
-Node: register-match67214
-Ref: #register-match67370
-Node: rewrite67468
-Ref: #rewrite67589
+Node: incomestatement48334
+Ref: #incomestatement48465
+Node: print50357
+Ref: #print50472
+Node: register54228
+Ref: #register54341
+Node: Custom register output58837
+Ref: #custom-register-output58968
+Node: stats60265
+Ref: #stats60371
+Node: test61252
+Ref: #test61339
+Node: ADD-ON COMMANDS61707
+Ref: #add-on-commands61819
+Node: Official add-ons63106
+Ref: #official-add-ons63248
+Node: api63335
+Ref: #api63426
+Node: ui63478
+Ref: #ui63579
+Node: web63637
+Ref: #web63728
+Node: Third party add-ons63774
+Ref: #third-party-add-ons63951
+Node: diff64086
+Ref: #diff64185
+Node: iadd64284
+Ref: #iadd64400
+Node: interest64483
+Ref: #interest64606
+Node: irr64701
+Ref: #irr64801
+Node: Experimental add-ons64879
+Ref: #experimental-add-ons65033
+Node: autosync65426
+Ref: #autosync65540
+Node: budget65779
+Ref: #budget65903
+Node: chart65969
+Ref: #chart66088
+Node: check66159
+Ref: #check66283
+Node: check-dates66350
+Ref: #check-dates66492
+Node: check-dupes66565
+Ref: #check-dupes66708
+Node: equity66785
+Ref: #equity66913
+Node: prices67032
+Ref: #prices67161
+Node: print-unique67216
+Ref: #print-unique67365
+Node: register-match67458
+Ref: #register-match67614
+Node: rewrite67712
+Ref: #rewrite67833
 
 End Tag Table
