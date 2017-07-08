@@ -6,6 +6,8 @@ The help command.
 --TODO rename manuals
 --TODO substring matching
 
+{-# LANGUAGE QuasiQuotes #-}
+
 module Hledger.Cli.Help (
 
    helpmode
@@ -15,8 +17,11 @@ module Hledger.Cli.Help (
 
 import Prelude ()
 import Prelude.Compat
+import Data.Char
 import Data.List
 import Data.Maybe
+import Data.String.Here
+import Safe
 import System.Console.CmdArgs.Explicit
 import System.Environment
 import System.IO
@@ -54,6 +59,9 @@ help' opts = do
   interactive <- hIsTerminalDevice stdout
   let
     args = take 1 $ listofstringopt "args" $ rawopts_ opts
+    topic = case args of
+              [pat] -> headMay [t | t <- docTopics, map toLower pat `isInfixOf` t]
+              _   -> Nothing
     [info, man, pager, cat] = 
       [runInfoForTopic, runManForTopic, runPagerForTopic pagerprog, printHelpForTopic]
     viewer
@@ -66,7 +74,9 @@ help' opts = do
       | "man"     `elem` exes           = man
       | pagerprog `elem` exes           = pager
       | otherwise                       = cat 
-  case args of
-    [t] -> viewer t
-    _   -> putStrLn $ "Please choose a manual:\nhledger help " ++ intercalate "|" docTopics
-
+  case topic of
+    Nothing -> putStrLn $ [here|
+Please choose a manual by typing "hledger help MANUAL" (any substring is ok).
+Manuals:
+|] ++ " " ++ intercalate " " docTopics
+    Just t  -> viewer t
