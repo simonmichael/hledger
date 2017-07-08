@@ -34,22 +34,22 @@ type Topic = String
 
 docFiles :: IsString a => [(Topic, (a, a, a))]
 docFiles = [
-   ("cli",
+   ("hledger",
     ($(makeRelativeToProject "doc/hledger.1" >>= embedStringFile)
     ,$(makeRelativeToProject "doc/hledger.1.txt" >>= embedStringFile)
     ,$(makeRelativeToProject "doc/hledger.1.info" >>= embedStringFile)
     ))
-  ,("ui",
+  ,("hledger-ui",
     ($(makeRelativeToProject "doc/other/hledger-ui.1" >>= embedStringFile)
     ,$(makeRelativeToProject "doc/other/hledger-ui.1.txt" >>= embedStringFile)
     ,$(makeRelativeToProject "doc/other/hledger-ui.1.info" >>= embedStringFile)
     ))
-  ,("web",
+  ,("hledger-web",
     ($(makeRelativeToProject "doc/other/hledger-web.1" >>= embedStringFile)
     ,$(makeRelativeToProject "doc/other/hledger-web.1.txt" >>= embedStringFile)
     ,$(makeRelativeToProject "doc/other/hledger-web.1.info" >>= embedStringFile)
     ))
-  ,("api",
+  ,("hledger-api",
     ($(makeRelativeToProject "doc/other/hledger-api.1" >>= embedStringFile)
     ,$(makeRelativeToProject "doc/other/hledger-api.1.txt" >>= embedStringFile)
     ,$(makeRelativeToProject "doc/other/hledger-api.1.info" >>= embedStringFile)
