@@ -81,7 +81,7 @@ import Hledger.Utils
 mainmode addons = defMode {
   modeNames = [progname ++ " [CMD]"]
  ,modeArgs = ([], Just $ argsFlag "[ARGS]")
- ,modeHelp = unlines ["hledger's command line interface"]
+ ,modeHelp = unlines ["hledger's main command line interface. Runs builtin commands and other hledger executables. Type \"hledger\" to list available commands."]
  ,modeGroupModes = Group {
     -- subcommands in the unnamed group, shown first:
     groupUnnamed = [

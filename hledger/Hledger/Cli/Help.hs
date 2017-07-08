@@ -32,7 +32,7 @@ import Hledger.Cli.DocFiles
 --import Hledger.Utils.Debug
 
 helpmode = (defCommandMode $ ["help"] ++ aliases) {
-  modeHelp = "show any of the hledger manuals, as plain text. With no argument, list the manuals." `withAliases` aliases
+  modeHelp = "show any of the hledger manuals, choosing the most suitable viewer (info, man, a pager, or stdout). With no argument, list the manuals." `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagNone ["info"]  (setboolopt "info")  "show the manual with info"
