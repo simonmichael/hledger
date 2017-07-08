@@ -210,13 +210,14 @@ noargflagstomove  = concatMap flagNames $ filter ((==FlagNone).flagInfo) flagsto
 reqargflagstomove = -- filter (/= "debug") $
                     concatMap flagNames $ filter ((==FlagReq ).flagInfo) flagstomove
 
--- | Template for the commands list. Includes an entry for known (or
--- hypothetical) builtin and addon commands; these will be filtered
--- based on the commands found at runtime.  COUNT is replaced with the
--- number of commands found.  OTHERCMDS is replaced with an entry for
--- each unknown addon command found. The command descriptions here
--- should be synced with the commands' builtin help and the command
--- list in the hledger manual.
+-- | Template for the commands list. 
+-- Includes an entry for all known or hypothetical builtin and addon commands; 
+-- these will be filtered based on the commands found at runtime.  
+-- Commands beginning with "hledger" are not filtered ("hledger -h" etc.) 
+-- COUNT is replaced with the number of commands found.  
+-- OTHERCMDS is replaced with an entry for each unknown addon command found. 
+-- The command descriptions here should be synced with each command's builtin help 
+-- and with hledger manual's command list.
 commandsListTemplate :: String
 commandsListTemplate = [here|Commands available (COUNT):
 
@@ -258,9 +259,9 @@ Misc:
  test                 run some self tests
 OTHERCMDS
 Help:
- hledger -h           show general usage
- hledger CMD -h       show command usage
  help                 show any of the hledger manuals in various formats
+ hledger CMD -h       show command usage
+ hledger -h           show general usage
 |]
 
 knownCommands :: [String]
@@ -280,6 +281,7 @@ printCommandsList addonsFound = putStr commandsList
     commandsFound = builtinCommandNames ++ addonsFound
     unknownCommandsFound = addonsFound \\ knownCommands
 
+    adjustline l | " hledger " `isPrefixOf` l = [l]
     adjustline (' ':l) | not $ w `elem` commandsFound = []
       where w = takeWhile (not . (`elem` "| ")) l
     adjustline l = [l]
