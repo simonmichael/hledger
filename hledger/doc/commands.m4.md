@@ -308,14 +308,15 @@ The `help` command displays any of the main [hledger manuals](/docs.html), in on
 Run it with no argument to list the manuals (their names are shortened for easier typing),
 and run `hledger help MANUAL` to select one.
 
-hledger help will choose one of these docs viewers, in order of preference: 
-info, man, $PAGER, less, stdout (and it always prints on stdout when piped). 
-Or you can force a particular viewer with the `--info`, `--man`, `--pager`, `--cat` flags.
+hledger manuals are available in several formats.
+hledger help will use the first of these display methods that it finds: 
+info, man, $PAGER, less, stdout (or when non-interactive, just stdout). 
+You can force a particular viewer with the `--info`, `--man`, `--pager`, `--cat` flags.
 
 _shell_({{
 $ hledger help
-Please choose a manual:
-hledger help cli|ui|web|api|journal|csv|timeclock|timedot
+Please choose a manual by typing "hledger help MANUAL" (a substring is ok).
+Manuals: hledger hledger-ui hledger-web hledger-api journal csv timeclock timedot
 }})
 
 _shell_({{
