@@ -213,8 +213,10 @@ tests_balanceReport =
   ,"balanceReport with no args on sample journal" ~: do
    (defreportopts, samplejournal) `gives`
     ([
-      ("assets","assets",0, mamountp' "$-1.00")
-     ,("assets:bank:saving","bank:saving",1, mamountp' "$1.00")
+      ("assets","assets",0, mamountp' "$0.00")
+     ,("assets:bank","bank",1, mamountp' "$2.00")
+     ,("assets:bank:checking","checking",2, mamountp' "$1.00")
+     ,("assets:bank:saving","saving",2, mamountp' "$1.00")
      ,("assets:cash","cash",1, mamountp' "$-2.00")
      ,("expenses","expenses",0, mamountp' "$2.00")
      ,("expenses:food","food",1, mamountp' "$1.00")
@@ -222,27 +224,22 @@ tests_balanceReport =
      ,("income","income",0, mamountp' "$-2.00")
      ,("income:gifts","gifts",1, mamountp' "$-1.00")
      ,("income:salary","salary",1, mamountp' "$-1.00")
-     ,("liabilities:debts","liabilities:debts",0, mamountp' "$1.00")
      ],
      Mixed [usd0])
 
   ,"balanceReport with --depth=N" ~: do
    (defreportopts{depth_=Just 1}, samplejournal) `gives`
     ([
-      ("assets",      "assets",      0, mamountp' "$-1.00")
-     ,("expenses",    "expenses",    0, mamountp'  "$2.00")
+     ("expenses",    "expenses",    0, mamountp'  "$2.00")
      ,("income",      "income",      0, mamountp' "$-2.00")
-     ,("liabilities", "liabilities", 0, mamountp'  "$1.00")
      ],
      Mixed [usd0])
 
   ,"balanceReport with depth:N" ~: do
    (defreportopts{query_="depth:1"}, samplejournal) `gives`
     ([
-      ("assets",      "assets",      0, mamountp' "$-1.00")
-     ,("expenses",    "expenses",    0, mamountp'  "$2.00")
+     ("expenses",    "expenses",    0, mamountp'  "$2.00")
      ,("income",      "income",      0, mamountp' "$-2.00")
-     ,("liabilities", "liabilities", 0, mamountp'  "$1.00")
      ],
      Mixed [usd0])
 
@@ -268,16 +265,13 @@ tests_balanceReport =
   ,"balanceReport with not:desc:" ~: do
    (defreportopts{query_="not:desc:income"}, samplejournal) `gives`
     ([
-      ("assets","assets",0, mamountp' "$-2.00")
-     ,("assets:bank","bank",1, Mixed [usd0])
-     ,("assets:bank:checking","checking",2,mamountp' "$-1.00")
-     ,("assets:bank:saving","saving",2, mamountp' "$1.00")
+      ("assets","assets",0, mamountp' "$-1.00")
+     ,("assets:bank:saving","bank:saving",1, mamountp' "$1.00")
      ,("assets:cash","cash",1, mamountp' "$-2.00")
      ,("expenses","expenses",0, mamountp' "$2.00")
      ,("expenses:food","food",1, mamountp' "$1.00")
      ,("expenses:supplies","supplies",1, mamountp' "$1.00")
      ,("income:gifts","income:gifts",0, mamountp' "$-1.00")
-     ,("liabilities:debts","liabilities:debts",0, mamountp' "$1.00")
      ],
      Mixed [usd0])
 

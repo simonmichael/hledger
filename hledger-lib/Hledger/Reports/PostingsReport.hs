@@ -263,17 +263,17 @@ tests_postingsReport = [
    -- with the query specified explicitly
    let (query, journal) `gives` n = (length $ snd $ postingsReport defreportopts query journal) `is` n
    (Any, nulljournal) `gives` 0
-   (Any, samplejournal) `gives` 11
+   (Any, samplejournal) `gives` 13
    -- register --depth just clips account names
-   (Depth 2, samplejournal) `gives` 11
+   (Depth 2, samplejournal) `gives` 13
    (And [Depth 1, StatusQ Cleared, Acct "expenses"], samplejournal) `gives` 2
    (And [And [Depth 1, StatusQ Cleared], Acct "expenses"], samplejournal) `gives` 2
 
    -- with query and/or command-line options
-   assertEqual "" 11 (length $ snd $ postingsReport defreportopts Any samplejournal)
-   assertEqual ""  9 (length $ snd $ postingsReport defreportopts{interval_=Months 1} Any samplejournal)
-   assertEqual "" 19 (length $ snd $ postingsReport defreportopts{interval_=Months 1, empty_=True} Any samplejournal)
-   assertEqual ""  4 (length $ snd $ postingsReport defreportopts (Acct "assets:bank:checking") samplejournal)
+   assertEqual "" 13 (length $ snd $ postingsReport defreportopts Any samplejournal)
+   assertEqual "" 11 (length $ snd $ postingsReport defreportopts{interval_=Months 1} Any samplejournal)
+   assertEqual "" 20 (length $ snd $ postingsReport defreportopts{interval_=Months 1, empty_=True} Any samplejournal)
+   assertEqual ""  5 (length $ snd $ postingsReport defreportopts (Acct "assets:bank:checking") samplejournal)
 
    -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
    -- [(Just (parsedate "2008-01-01","income"),assets:bank:checking             $1,$1)
