@@ -93,8 +93,8 @@ ledgerCommodities = M.keys . jinferredcommodities . ljournal
 tests_ledgerFromJournal = [
  "ledgerFromJournal" ~: do
   assertEqual "" (0) (length $ ledgerPostings $ ledgerFromJournal Any nulljournal)
-  assertEqual "" (11) (length $ ledgerPostings $ ledgerFromJournal Any samplejournal)
-  assertEqual "" (6) (length $ ledgerPostings $ ledgerFromJournal (Depth 2) samplejournal)
+  assertEqual "" (13) (length $ ledgerPostings $ ledgerFromJournal Any samplejournal)
+  assertEqual "" (7) (length $ ledgerPostings $ ledgerFromJournal (Depth 2) samplejournal)
  ]
 
 tests_Hledger_Data_Ledger = TestList $

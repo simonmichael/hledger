@@ -929,6 +929,10 @@ abspat pat = if isnegativepat pat then drop (length negateprefix) pat else pat
 --     expenses:supplies  $1
 --     assets:cash
 --
+-- 2008/10/01 take a loan
+--     assets:bank:checking $1
+--     liabilities:debts    $-1
+--
 -- 2008/12/31 * pay off
 --     liabilities:debts  $1
 --     assets:bank:checking
@@ -1000,6 +1004,22 @@ Right samplejournal = journalBalanceTransactions False $
              tpostings=["expenses:food" `post` usd 1
                        ,"expenses:supplies" `post` usd 1
                        ,"assets:cash" `post` missingamt
+                       ],
+             tpreceding_comment_lines=""
+           }
+          ,
+           txnTieKnot $ Transaction {
+             tindex=0,
+             tsourcepos=nullsourcepos,
+             tdate=parsedate "2008/10/01",
+             tdate2=Nothing,
+             tstatus=Unmarked,
+             tcode="",
+             tdescription="take a loan",
+             tcomment="",
+             ttags=[],
+             tpostings=["assets:bank:checking" `post` usd 1
+                       ,"liabilities:debts" `post` usd (-1)
                        ],
              tpreceding_comment_lines=""
            }
