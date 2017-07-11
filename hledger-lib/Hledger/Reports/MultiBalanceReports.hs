@@ -155,7 +155,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
           dbg1 "displayedAccts" $
           (if tree_ opts then expandAccountNames else id) $
           nub $ map (clipOrEllipsifyAccountName depth) $
-          if empty_ opts then nub $ sort $ startAccts ++ postedAccts else postedAccts
+          if empty_ opts || (balancetype_ opts) == HistoricalBalance then nub $ sort $ startAccts ++ postedAccts else postedAccts
 
       acctBalChangesPerSpan :: [[(ClippedAccountName, MixedAmount)]] =
           dbg1 "acctBalChangesPerSpan"
