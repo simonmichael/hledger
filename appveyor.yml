@@ -7,6 +7,12 @@ cache:
 
 build: off
 
+# https://www.appveyor.com/docs/how-to/filtering-commits
+# Add [skip ci] or [ci skip] anywhere to commit message and build won’t 
+# be triggered by AppVeyor for that commit. Or explicitly skip AppVeyor only 
+# with [skip appveyor] and still allow any other CI to build the commit 
+# (eg. Travis CI).
+
 #uncomment once to cache latest stack
 #before_test:
 #- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
