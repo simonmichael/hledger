@@ -29,7 +29,7 @@ latest release, or provide only some of the hledger tools.
 | Gentoo:              | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`**
 | Void Linux:          | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`**
 | NixOS:               | **`nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`**
-| Sandstorm:           | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo** (get a hledger-web server in 3 clicks)
+| Sandstorm:           | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo** (get a hledger-web server in 3 clicks. Features needed, [please help](https://github.com/simonmichael/hledger/issues/425))
 
 
 <a name="b"></a>
