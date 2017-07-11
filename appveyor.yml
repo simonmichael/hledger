@@ -1,18 +1,21 @@
 cache:
+- "%LOCALAPPDATA%\\Programs\\stack"
 - "c:\\sr -> appveyor.yml"
 - "c:\\project\\.stack-work"
-- "%LOCALAPPDATA%\\Programs\\stack"
 
 build: off
 
-before_test:
-- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
-- 7z x stack.zip stack.exe
+#uncomment once to cache latest stack
+#before_test:
+#- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
+#- 7z x stack.zip stack.exe
 
 clone_folder: "c:\\project"
 environment:
   global:
     STACK_ROOT: "c:\\sr"
+# set in UI, can we set here ?
+#    APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
 
 test_script:
 - echo "" | stack --no-terminal --install-ghc test -j1 hledger hledger-web hledger-api
