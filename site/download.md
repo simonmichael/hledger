@@ -21,10 +21,10 @@ latest release, or provide only some of the hledger tools.
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| Windows:             | [Latest development builds](contributing.html#appveyor) from Appveyor CI
-| Mac:                 | **`brew install hledger`**
+| Windows:             | [Latest development builds](contributing.html#appveyor) from Appveyor CI (no hledger-ui, [please help](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))
+| Mac:                 | **`brew install hledger`** (CLI only, [please help ](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))
 | Arch Linux:          | **`pacaur -S hledger`**
-| Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`** (note [#541](https://github.com/simonmichael/hledger/issues/541))
+| Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`**
 | Fedora,&nbsp;RHEL:   | **`sudo dnf install hledger`**
 | Gentoo:              | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`**
 | Void Linux:          | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`**
@@ -61,7 +61,7 @@ You have to build it, but this is relatively easy:
    and will take a while.\
    You can add `--dry-run` to see what it plans to do, and kill/restart it without losing progress.\
    Don't type the square brackets; they indicate optional packages which you can skip to save time.\
-   hledger-ui is [not yet available on Windows](https://github.com/coreyoconnor/vty/pull/1).\
+   hledger-ui is [not yet available on Windows](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444).\
    \
    If it says you need to run `stack setup`, do that then run the install command again.\
    If it gives "Invalid package ID" errors, get a more up-to-date version of stack (see step 1).\
