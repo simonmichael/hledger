@@ -115,7 +115,8 @@ downloads](https://img.shields.io/github/downloads/simonmichael/hledger/latest/t
 --> <!-- [![gratipay](https://img.shields.io/gratipay/hledger.svg)]()
 -->
 
-[![travis build status](https://img.shields.io/travis/simonmichael/hledger.svg)](https://travis-ci.org/simonmichael/hledger)
+[![travis build status](https://img.shields.io/travis/simonmichael/hledger.svg)](https://travis.hledger.org)
+[![appveyor windows build status](https://ci.appveyor.com/api/projects/status/5vejw0w5n5igdr42?svg=true)](https://appveyor.hledger.org)
 [![](https://img.shields.io/hackage-deps/v/hledger-lib.svg?label=hledger-lib+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-lib)
 [![](https://img.shields.io/hackage-deps/v/hledger.svg?label=hledger+bounds)](http://packdeps.haskellers.com/feed?needle=hledger)
 [![](https://img.shields.io/hackage-deps/v/hledger-ui.svg?label=hledger-ui+bounds)](http://packdeps.haskellers.com/feed?needle=hledger-ui)
