@@ -17,7 +17,6 @@ a { white-space:nowrap; }
 
 Packaged versions are the quickest to install, but they sometimes lag behind the
 latest release, or provide only some of the hledger tools. 
-(Can you help?)
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
