@@ -17,7 +17,7 @@ a { white-space:nowrap; }
 
 Packaged versions are the quickest to install, but they sometimes lag behind the
 latest release, or provide only some of the hledger tools. 
-(Please help out by making these packages better.)
+(Can you help?)
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ latest release, or provide only some of the hledger tools.
 | Gentoo:              | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`**
 | Void Linux:          | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`**
 | NixOS:               | **`nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`**
-| Sandstorm:           | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo**<br>(get your own private or public hledger-web instance in 3 clicks)
+| Sandstorm:           | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo** (get a hledger-web server in 3 clicks)
 
 
 <a name="b"></a>
@@ -107,7 +107,7 @@ If you're brand new to cabal, these steps should work on unix-like systems
 
 ## C. I want to build the development version
 
-The [dev version](https://github.com/simonmichael/hledger/commits/master) includes not-yet-released features and is stable enough for daily use.
+The latest [master branch](https://github.com/simonmichael/hledger/commits/master) includes not-yet-released features and is stable enough for daily use.
 
 1. **Install [`stack`](http://haskell-lang.org/get-started) and [git](https://en.wikipedia.org/wiki/Git)**
    (see notes in B above)
