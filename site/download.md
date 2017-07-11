@@ -21,7 +21,7 @@ latest release, or provide only some of the hledger tools.
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| Windows:             | see B below <!-- Download and run the [latest development builds](contributing.html) (-> Appveyor CI) -->
+| Windows:             | Latest development builds: [Contribute -> Quick links -> Appveyor CI](contributing.html#appveyor)
 | Mac:                 | **`brew install hledger`**
 | Arch Linux:          | **`pacaur -S hledger`**
 | Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`** (note [#541](https://github.com/simonmichael/hledger/issues/541))
