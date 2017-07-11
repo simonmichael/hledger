@@ -1,7 +1,9 @@
 cache:
 - "%LOCALAPPDATA%\\Programs\\stack"
-- "c:\\sr -> appveyor.yml"
 - "c:\\project\\.stack-work"
+- "c:\\sr"  #  -> appveyor.yml
+# to force cache deletion: browse ui, open inspector,
+# $.ajax({url: 'https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache',type: 'DELETE'})
 
 build: off
 
