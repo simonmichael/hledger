@@ -71,6 +71,9 @@ branches:
 #   - ghc: 7.10.3
 #   - ghc: 8.0.2
 
+before_install:
+  - ./.travis-maybe-skip.sh
+
 install: # command output is hidden as they complete
 
   # if any command fails, end the travis script
