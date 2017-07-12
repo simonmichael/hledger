@@ -7,8 +7,7 @@ set -e
 # works only on master ? 
 CHANGED_FILES=`git diff --name-only master...${TRAVIS_COMMIT}`
 
-# only files not matching this pattern will trigger a build
-# extended regex, don't quote regex metachars
+# only files not matching this extended regex will trigger a build
 #SKIP_PAT="(^site/con|do.nload)"
 SKIP_PAT="\.md$"
 
@@ -20,6 +19,13 @@ for F in $CHANGED_FILES; do
     break
   fi
 done
+
+# standard travis helper, not in scope for some reason  
+travis_terminate() {
+  set +e
+  pkill -9 -P $$ &> /dev/null || true
+  exit $1
+}
 
 if [[ $SKIP == True ]]; then
   echo "Only skippable files found, exiting."
