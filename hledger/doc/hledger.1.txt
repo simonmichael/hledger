@@ -1738,6 +1738,9 @@ ADD-ON COMMANDS
        hledger-rewrite.hs Adds one or more custom postings to matched transac-
        tions.
 
+   tags
+       hledger-tags.hs Lists tag names in use.
+
 ENVIRONMENT
        COLUMNS  The  screen  width used by the register command.  Default: the
        full terminal width.

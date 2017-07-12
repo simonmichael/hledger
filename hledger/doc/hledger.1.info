@@ -1972,6 +1972,7 @@ start making your own!
 * print-unique::
 * register-match::
 * rewrite::
+* tags::
 
 
 File: hledger.1.info,  Node: autosync,  Next: budget,  Up: Experimental add-ons
@@ -2061,13 +2062,21 @@ hledger-register-match.hs helps ledger-autosync detect already-seen
 transactions when importing.
 
 
-File: hledger.1.info,  Node: rewrite,  Prev: register-match,  Up: Experimental add-ons
+File: hledger.1.info,  Node: rewrite,  Next: tags,  Prev: register-match,  Up: Experimental add-ons
 
 5.3.11 rewrite
 --------------
 
 hledger-rewrite.hs Adds one or more custom postings to matched
 transactions.
+
+
+File: hledger.1.info,  Node: tags,  Prev: rewrite,  Up: Experimental add-ons
+
+5.3.12 tags
+-----------
+
+hledger-tags.hs Lists tag names in use.
 
 
 Tag Table:
@@ -2170,27 +2179,29 @@ Node: irr64701
 Ref: #irr64801
 Node: Experimental add-ons64879
 Ref: #experimental-add-ons65033
-Node: autosync65426
-Ref: #autosync65540
-Node: budget65779
-Ref: #budget65903
-Node: chart65969
-Ref: #chart66088
-Node: check66159
-Ref: #check66283
-Node: check-dates66350
-Ref: #check-dates66492
-Node: check-dupes66565
-Ref: #check-dupes66708
-Node: equity66785
-Ref: #equity66913
-Node: prices67032
-Ref: #prices67161
-Node: print-unique67216
-Ref: #print-unique67365
-Node: register-match67458
-Ref: #register-match67614
-Node: rewrite67712
-Ref: #rewrite67833
+Node: autosync65435
+Ref: #autosync65549
+Node: budget65788
+Ref: #budget65912
+Node: chart65978
+Ref: #chart66097
+Node: check66168
+Ref: #check66292
+Node: check-dates66359
+Ref: #check-dates66501
+Node: check-dupes66574
+Ref: #check-dupes66717
+Node: equity66794
+Ref: #equity66922
+Node: prices67041
+Ref: #prices67170
+Node: print-unique67225
+Ref: #print-unique67374
+Node: register-match67467
+Ref: #register-match67623
+Node: rewrite67721
+Ref: #rewrite67855
+Node: tags67933
+Ref: #tags68038
 
 End Tag Table

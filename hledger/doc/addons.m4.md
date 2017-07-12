@@ -124,3 +124,8 @@ helps ledger-autosync detect already-seen transactions when importing.
 [hledger-rewrite.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-rewrite.hs#L28)
 Adds one or more custom postings to matched transactions.
 
+### tags
+
+[hledger-tags.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-tags.hs)
+Lists tag names in use.
+
