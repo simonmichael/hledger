@@ -14,9 +14,9 @@ build: off
 # (eg. Travis CI).
 
 #uncomment once to cache latest stack
-#before_test:
-#- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
-#- 7z x stack.zip stack.exe
+before_test:
+- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
+- 7z x stack.zip stack.exe
 
 clone_folder: "c:\\project"
 environment:
