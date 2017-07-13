@@ -243,3 +243,24 @@ Cashflow Statement
 
 >>>2
 >>>= 0
+
+# 12. exclude fixed assets from cashflow
+hledger -f - cashflow
+<<<
+2016/1/1
+  assets  1
+  b
+
+2016/1/1
+  assets:fixed assets:equipment  1
+  b
+>>>
+Cashflow Statement
+
+Cash flows:
+                   1  assets
+--------------------
+                   1
+
+>>>2
+>>>= 0
