@@ -50,7 +50,7 @@ You have to build it, but this is relatively easy:
 
 2. **`stack install hledger-lib-1.3 hledger-1.3 [hledger-ui-1.3] [hledger-web-1.3] [hledger-api-1.3]`**\   
    \
-   Don't type the square brackets; they indicate optional packages which you can skip to save time.\
+   Don't type the square brackets; they indicate optional packages which you can omit to save time.\
    hledger-ui is [not yet available on Windows](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444).\
    This command installs the latest released hledger packages (and the haskell libraries and tools they depend on) from an
    [appropriate](https://www.stackage.org/package/hledger-lib)
@@ -62,6 +62,7 @@ You have to build it, but this is relatively easy:
    You can add `--dry-run` to see what it plans to do, and kill/restart it without losing progress.\
    If it says you need to run `stack setup`, do that then run the install command again.\
    If it says "Error: While constructing the build plan...", try adding `--resolver=lts` to the install command, or setting a newer resolver in `$HOME/.stack/global/stack.yaml`.\
+   On Mac, if it says "ghc: panic! ... no suitable image found", you may need to specify GHC 8.0.2+/lts-8+, as above.\
    If it gives "Invalid package ID" errors, get a newer version of stack (see step 1).\
    If you're a [cabal](https://www.haskell.org/cabal/) expert, feel free to use that instead of stack.\
    If you get errors due to missing C libraries (like curses or terminfo), install those manually, eg:
@@ -70,6 +71,11 @@ You have to build it, but this is relatively easy:
     |-----------------|-----------------------------------
     | Debian, Ubuntu: | `sudo apt install libncurses5-dev` 
     | Fedora, RHEL:   | `sudo dnf install ncurses-devel`
+
+    If you need to build with an older GHC version for some reason, these commands should work
+   (except on Mac sierra which [requires GHC 8.0.2+](https://ghc.haskell.org/trac/ghc/ticket/12479)):\
+   GHC 7.10.3: `stack install --resolver lts-6 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 megaparsec-5.3.1 brick-0.19 vty-5.15.1 data-clist-0.1.2.0 text-zipper-0.10`\
+   GHC 8.0.1:  `stack install --resolver lts-7 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 brick-0.19 vty-5.15.1 data-clist-0.1.2.0`
 
 Now you should be able to run `hledger --version` and see a version similar to the above
 (and `hledger-ui --version`, `hledger-web --version` etc. if you installed those).
