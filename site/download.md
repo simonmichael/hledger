@@ -61,6 +61,7 @@ You have to build it, but this is relatively easy:
    and will take a while.\
    You can add `--dry-run` to see what it plans to do, and kill/restart it without losing progress.\
    If it says you need to run `stack setup`, do that then run the install command again.\
+   If it says "Error: While constructing the build plan...", try adding `--resolver=lts` to the install command, or setting a newer resolver in `$HOME/.stack/global/stack.yaml`.\
    If it gives "Invalid package ID" errors, get a newer version of stack (see step 1).\
    If you're a [cabal](https://www.haskell.org/cabal/) expert, feel free to use that instead of stack.\
    If you get errors due to missing C libraries (like curses or terminfo), install those manually, eg:
