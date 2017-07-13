@@ -40,18 +40,19 @@ You have to build it, but this is relatively easy:
 
 1. **Install [`stack`](http://haskell-lang.org/get-started)**\
    \
+   Avoid using versions older than 1.0 which give ["Invalid package ID" errors](https://github.com/simonmichael/hledger/issues/513);
+   latest version is good.\
    On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).\
    On Arch, you [may need to also install GHC manually](https://github.com/simonmichael/hledger/issues/434).\
-   Avoid really old packaged stack versions (< 1.0) which give ["Invalid package ID" errors](https://github.com/simonmichael/hledger/issues/513);
-   consider downloading the latest stack binary instead.\
-   \
-   As part of stack installation you should also [add `~/.local/bin` (or Windows equivalent) to \$PATH](https://docs.haskellstack.org/en/stable/install_and_upgrade/#path).
+   Ensure [`~/.local/bin` (or Windows equivalent) is added to your \$PATH](https://docs.haskellstack.org/en/stable/install_and_upgrade/#path).
    Eg if you're a bash user:\
-   `echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
+   &nbsp;&nbsp;`echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
 
 2. **`stack install hledger-lib-1.3 hledger-1.3 [hledger-ui-1.3] [hledger-web-1.3] [hledger-api-1.3]`**\   
    \
-   This command installs the latest hledger packages (and the haskell libraries and tools they depend on) from an
+   Don't type the square brackets; they indicate optional packages which you can skip to save time.\
+   hledger-ui is [not yet available on Windows](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444).\
+   This command installs the latest released hledger packages (and the haskell libraries and tools they depend on) from an
    [appropriate](https://www.stackage.org/package/hledger-lib)
    [stackage](https://www.stackage.org/package/hledger)
    [snapshot](https://www.stackage.org/package/hledger-ui)
@@ -59,24 +60,18 @@ You have to build it, but this is relatively easy:
    [hackage](https://www.stackage.org/package/hledger-api),
    and will take a while.\
    You can add `--dry-run` to see what it plans to do, and kill/restart it without losing progress.\
-   Don't type the square brackets; they indicate optional packages which you can skip to save time.\
-   hledger-ui is [not yet available on Windows](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444).\
-   \
    If it says you need to run `stack setup`, do that then run the install command again.\
-   If it gives "Invalid package ID" errors, get a more up-to-date version of stack (see step 1).\
-   If it gives errors due to missing C libraries (like curses or terminfo), install those manually, eg like so:
+   If it gives "Invalid package ID" errors, get a newer version of stack (see step 1).\
+   If you're a [cabal](https://www.haskell.org/cabal/) expert, feel free to use that instead of stack.\
+   If you get errors due to missing C libraries (like curses or terminfo), install those manually, eg:
 
     |
     |-----------------|-----------------------------------
     | Debian, Ubuntu: | `sudo apt install libncurses5-dev` 
     | Fedora, RHEL:   | `sudo dnf install ncurses-devel`
-   
-([`cabal`](https://www.haskell.org/cabal/) experts, feel free to use that instead of stack.)
 
-Now you should be able to run `hledger --version`
-(and `hledger-ui --version`, `hledger-web --version` if you installed those),
-and see versions similar to those above.
-
+Now you should be able to run `hledger --version` and see a version similar to the above
+(and `hledger-ui --version`, `hledger-web --version` etc. if you installed those).
 
 <!--(The exact steps depend on your OS, cabal version and expertise.)-->
 <!--
