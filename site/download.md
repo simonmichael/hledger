@@ -48,21 +48,15 @@ You have to build it, but this is relatively easy:
    Eg if you're a bash user:\
    &nbsp;&nbsp;`echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
 
-2. **`stack install hledger-lib-1.3 hledger-1.3 [hledger-ui-1.3] [hledger-web-1.3] [hledger-api-1.3]`**\   
+2. **`stack install --resolver lts-8 hledger-lib-1.3 hledger-1.3 [hledger-ui-1.3] [hledger-web-1.3] [hledger-api-1.3]`**\   
    \
-   Don't type the square brackets; they indicate optional packages which you can omit to save time.\
-   hledger-ui is [not yet available on Windows](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444).\
-   This command installs the latest released hledger packages (and the haskell libraries and tools they depend on) from an
-   [appropriate](https://www.stackage.org/package/hledger-lib)
-   [stackage](https://www.stackage.org/package/hledger)
-   [snapshot](https://www.stackage.org/package/hledger-ui)
-   [and/or](https://www.stackage.org/package/hledger-web)
-   [hackage](https://www.stackage.org/package/hledger-api),
-   and will take a while.\
+   This command installs the specified hledger packages (and required haskell libraries and tools) from the latest [Stackage LTS](https://www.stackage.org) snapshot (and Hackage).
+   It is reliable, but can take significant time (minutes to hours) and space (megabytes to a gigabyte) depending on your connection, machine and past installations.
    You can add `--dry-run` to see what it plans to do, and kill/restart it without losing progress.\
+   You can omit the bracketed packages to save time, and maybe install them later. If you include them, don't type the brackets.
+   hledger-ui is [not yet available on Windows](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444).\
+   <!-- You can try removing `--resolver lts-8` to save time, if your default snapshot (in $HOME/.stack/global/stack.yaml) is lts-8.x or newer.\ -->
    If it says you need to run `stack setup`, do that then run the install command again.\
-   If it says "Error: While constructing the build plan...", try adding `--resolver=lts` to the install command, or setting a newer resolver in `$HOME/.stack/global/stack.yaml`.\
-   On Mac, if it says "ghc: panic! ... no suitable image found", you may need to specify GHC 8.0.2+/lts-8+, as above.\
    If it gives "Invalid package ID" errors, get a newer version of stack (see step 1).\
    If you're a [cabal](https://www.haskell.org/cabal/) expert, feel free to use that instead of stack.\
    If you get errors due to missing C libraries (like curses or terminfo), install those manually, eg:
@@ -73,9 +67,9 @@ You have to build it, but this is relatively easy:
     | Fedora, RHEL:   | `sudo dnf install ncurses-devel`
 
     If you need to build with an older GHC version for some reason, these commands should work
-   (except on Mac sierra which [requires GHC 8.0.2+](https://ghc.haskell.org/trac/ghc/ticket/12479)):\
-   GHC 7.10.3: `stack install --resolver lts-6 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 megaparsec-5.3.1 brick-0.19 vty-5.15.1 data-clist-0.1.2.0 text-zipper-0.10`\
-   GHC 8.0.1:  `stack install --resolver lts-7 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 brick-0.19 vty-5.15.1 data-clist-0.1.2.0`
+   (except on Mac Sierra which [requires at least GHC 8.0.2/lts-8](https://ghc.haskell.org/trac/ghc/ticket/12479)):\
+   `stack install --resolver lts-7 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 brick-0.19 vty-5.15.1 data-clist-0.1.2.0`  # GHC 8.0.1 \
+   `stack install --resolver lts-6 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 megaparsec-5.3.1 brick-0.19 vty-5.15.1 data-clist-0.1.2.0 text-zipper-0.10`  # GHC 7.10.3 \
 
 Now you should be able to run `hledger --version` and see a version similar to the above
 (and `hledger-ui --version`, `hledger-web --version` etc. if you installed those).
