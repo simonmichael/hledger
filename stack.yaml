@@ -1,7 +1,9 @@
-# Last-tested stack build plan using GHC 8.0.2 (osx sierra compatible)
-# stack.yaml help: https://github.com/commercialhaskell/stack/wiki/stack.yaml
+# stack build plan using GHC 8.0.2 (osx sierra compatible)
+# keep synced with download.md
 
-resolver: lts-8.15
+resolver: lts-8.22
+
+extra-deps: []
 
 packages:
 - hledger-lib
@@ -9,5 +11,3 @@ packages:
 - hledger-ui
 - hledger-web
 - hledger-api
-
-extra-deps: []

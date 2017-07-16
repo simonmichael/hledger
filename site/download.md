@@ -50,7 +50,7 @@ You have to build it, but this is relatively easy:
 
 2. **`stack install --resolver lts-8 hledger-lib-1.3 hledger-1.3 [hledger-ui-1.3] [hledger-web-1.3] [hledger-api-1.3]`**\   
    \
-   This command installs the specified hledger packages (and required haskell libraries and tools) from the latest [Stackage LTS](https://www.stackage.org) snapshot (and Hackage).
+   This command installs the specified hledger packages (and required haskell libraries and tools) from the latest [Stackage LTS](https://www.stackage.org) snapshot (and if needed, [Hackage](http://hackage.haskell.org)).
    It is reliable, but can take significant time (minutes to hours) and space (megabytes to a gigabyte) depending on your connection, machine and past installations.
    You can add `--dry-run` to see what it plans to do, and kill/restart it without losing progress.\
    You can omit the bracketed packages to save time, and maybe install them later. If you include them, don't type the brackets.
@@ -70,9 +70,11 @@ You have to build it, but this is relatively easy:
    (except on Mac Sierra which [requires at least GHC 8.0.2/lts-8](https://ghc.haskell.org/trac/ghc/ticket/12479)):\
    `stack install --resolver lts-7 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 brick-0.19 vty-5.15.1 data-clist-0.1.2.0`  # GHC 8.0.1 \
    `stack install --resolver lts-6 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 megaparsec-5.3.1 brick-0.19 vty-5.15.1 data-clist-0.1.2.0 text-zipper-0.10`  # GHC 7.10.3 \
+   <!-- keep synced with stack.yaml files -->
 
-Now you should be able to run `hledger --version` and see a version similar to the above
-(and `hledger-ui --version`, `hledger-web --version` etc. if you installed those).
+Now you should be able to run `hledger --version` 
+(and `hledger-ui --version`, `hledger-web --version` etc. if you installed those)
+and see the version you just installed.
 
 <!--(The exact steps depend on your OS, cabal version and expertise.)-->
 <!--

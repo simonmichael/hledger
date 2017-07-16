@@ -1,14 +1,12 @@
-# stack build plan using GHC 7.10.3
+# stack build plan using GHC 8.0.1
 # keep synced with download.md
 
-resolver: lts-6.35
+resolver: lts-7.24
 
 extra-deps:
 - brick-0.19
-- data-clist-0.1.2.0
-- text-zipper-0.10
+- data-clist-0.1.1.0
 - vty-5.15.1
-- megaparsec-5.3.1
 
 packages:
 - hledger-lib
