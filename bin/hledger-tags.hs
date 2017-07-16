@@ -14,7 +14,6 @@ import Data.String.Here
 import qualified Data.Text.IO as T
 import Hledger
 import Hledger.Cli
-import Text.Printf
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
