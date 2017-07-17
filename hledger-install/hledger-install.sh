@@ -4,23 +4,23 @@ usage() {
   cat <<'HERE'
 hledger-install.sh [-f|--force] [-q|--quiet] [-h|--help]
 
-Install hledger (CLI only for now) as reliably and quickly as possible,
+Install hledger as reliably and quickly as possible,
 on any POSIX system, such as GNU/Linux, OSX, or FreeBSD.
 Also installs haskell stack if needed (or with --force, always).
 With --quiet, try to show less output.
 Usage:
 
- curl -sSLO https://hledger.org/hledger-install.sh
+ curl -sSLO http://hledger.org/hledger-install.sh
  less hledger-install.sh     # review for security issues
- sh [-x] hledger-install.sh  # to see commands being run, add -x 
+ bash [-x] hledger-install.sh  # to see commands being run, add -x 
 
 or, if you prefer convenience to security:
 
- curl -sSL https://hledger.org/hledger-install.sh | sh
+ curl -sSL http://hledger.org/hledger-install.sh | bash
 
 or
 
- wget -qO- https://hledger.org/hledger-install.sh | sh
+ wget -qO- http://hledger.org/hledger-install.sh | bash
 
 This is based heavily on the 2017/07/17 version of 
 https://github.com/commercialhaskell/stack/blob/master/etc/scripts/get-stack.sh 
