@@ -74,7 +74,7 @@ main :: IO ()
 main = do
   args <- getArgs >>= parseArgsOrExit doc
   when (isPresent args (shortOption 'h') || isPresent args (longOption "help")) $ exitWithUsage doc
-  when (isPresent args (longOption "version")) $ putStrLn hledgerApiVersion >> exitSuccess
+  when (isPresent args (longOption "version")) $ putStrLn ("hledger-api " ++ hledgerApiVersion) >> exitSuccess
   when (isPresent args (longOption "swagger")) $ BL8.putStrLn (encode swaggerSpec) >> exitSuccess
   let
     defh = "127.0.0.1"
