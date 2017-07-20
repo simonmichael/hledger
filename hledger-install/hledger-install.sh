@@ -29,11 +29,13 @@ Once hledger is installed, if you keep hledger-install.sh in \$PATH
  hledger install        # upgrades other hledger tools
  hledger install -- -s  # shows installation status
 
-Version $VERSION, installs hledger $HLEDGER_VERSION
+Version $HLEDGER_INSTALL_VERSION, installs hledger $HLEDGER_VERSION
 HERE
 }
 
-VERSION=20170720
+HLEDGER_INSTALL_TOOL=hledger-install.sh
+  # ^ this script's name (can't use $0 when it's piped into bash)
+HLEDGER_INSTALL_VERSION=20170720
 RESOLVER="--resolver lts-8" 
   # ^ lts-8 selects the latest lts-8.x snapshot for stack. You can specify another, 
   # or comment out this line to use your current global resolver, which might 
@@ -750,7 +752,7 @@ print_cmd_version() {
 
 # Show the installation status of the $HLEDGER_MAIN_TOOLS and $HLEDGER_OTHER_TOOLS. 
 print_hledger_versions() {
-  for cmd in $HLEDGER_MAIN_TOOLS $HLEDGER_OTHER_TOOLS $(basename $0) ; do print_cmd_version $cmd; done
+  for cmd in $HLEDGER_MAIN_TOOLS $HLEDGER_OTHER_TOOLS $HLEDGER_INSTALL_TOOL ; do print_cmd_version $cmd; done
 }
 
 # Run a command, but first log it with "Trying" prepended.
@@ -803,7 +805,7 @@ if [[ $HELPFLAG ]] ; then
 fi
 
 if [[ $VERSIONFLAG ]] ; then
-  echo $(basename $0) $VERSION
+  echo $HLEDGER_INSTALL_TOOL $HLEDGER_INSTALL_VERSION
   exit 0
 fi
 
