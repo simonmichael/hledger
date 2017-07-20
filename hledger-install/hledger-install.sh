@@ -9,12 +9,13 @@ usage() {
   cat <<HERE
 hledger-install.sh [-f|--force] [-v|--verbose] [-s|--status] [--version] [-h|--help]
 
-Install the current release of hledger and related tools, as reliably and 
-quickly as possible, on any POSIX system, using cabal or stack.
+Installs the current release of hledger and related tools as reliably and 
+quickly as possible on any POSIX system, using cabal (if installed and 
+stack is not) or stack (installing it when needed or if --force is used). 
 With --status, just lists the currently installed hledger tools.
 Usage:
 
- curl -sSLO http://hledger.org/hledger-install.sh
+ curl -sSLO http://hledger.org/hledger-install.sh  # or wget -qO- ...
  less hledger-install.sh       # security review
  bash [-x] hledger-install.sh  # to see commands being run, add -x 
 
@@ -22,9 +23,11 @@ or if you prefer convenience to security:
 
  curl -sSL http://hledger.org/hledger-install.sh | bash
 
-or:
+Once hledger is installed, if you keep hledger-install.sh in \$PATH
+(and upgrade it periodically - currently this must be done manually):
 
- wget -qO- http://hledger.org/hledger-install.sh | bash
+ hledger install        # upgrades other hledger tools
+ hledger install -- -s  # shows installation status
 
 Version $VERSION, installs hledger $HLEDGER_VERSION
 HERE
@@ -705,7 +708,7 @@ trap cleanup_temp_dir EXIT
 
 # hledger routines
 
-# install stack if needed or always with --force, in $HOME/.local/bin
+# install stack if needed, or always with --force, in $HOME/.local/bin
 ensure_stack() {
   if ! $(has_stack) || [[ "$FORCE" == "true" ]] ; then
     echo "Installing stack"
@@ -725,7 +728,8 @@ cmd_location() {
   command -v "$1"
 }
 
-# Get the given command's version, or empty string if there's a problem.
+# Get the given command's version, ie the first number in its --version output, 
+# or empty string if there's a problem.
 cmd_version() {
   (command "$1" --version 2>/dev/null | grep -E '[0-9]' | $SED -e 's/[^0-9]*([0-9][0-9.]*).*/\1/') || ""
 }
@@ -746,7 +750,7 @@ print_cmd_version() {
 
 # Show the installation status of the $HLEDGER_MAIN_TOOLS and $HLEDGER_OTHER_TOOLS. 
 print_hledger_versions() {
-  for cmd in $HLEDGER_MAIN_TOOLS $HLEDGER_OTHER_TOOLS; do print_cmd_version $cmd; done
+  for cmd in $HLEDGER_MAIN_TOOLS $HLEDGER_OTHER_TOOLS $(basename $0) ; do print_cmd_version $cmd; done
 }
 
 # Run a command, but first log it with "Trying" prepended.
