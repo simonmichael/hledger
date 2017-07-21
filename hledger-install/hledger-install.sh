@@ -29,6 +29,10 @@ Once hledger is installed, if you keep hledger-install.sh in \$PATH
  hledger install        # upgrades other hledger tools
  hledger install -- -s  # shows installation status
 
+Note this can require significant time (minutes to hours), memory (~2G),
+and disk space (megabytes to a gigabyte) depending on your connection, 
+machine and past installations. You can kill and rerun it without losing progress.
+
 Version $HLEDGER_INSTALL_VERSION, installs hledger $HLEDGER_VERSION
 HERE
 }
@@ -36,7 +40,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 HLEDGER_INSTALL_VERSION=20170720
-RESOLVER="--resolver lts-8" 
+RESOLVER="--resolver=lts-8"
   # ^ lts-8 selects the latest lts-8.x snapshot for stack. You can specify another, 
   # or comment out this line to use your current global resolver, which might 
   # avoid some unnecessary building. lts-6 or 7 probably require tweaking the 
@@ -874,6 +878,7 @@ fi
 if [[ $(cmd_version hledger-ui) < $HLEDGER_VERSION ]]; then 
   echo Installing hledger-ui
   try_install hledger-ui-$HLEDGER_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_VERSION brick-0.19 data-clist-0.1.2.0
+    # ^ use the same newer version of brick that hledger-iadd requires to avoid rebuilding
   echo
 fi
 if [[ $(cmd_version hledger-web) < $HLEDGER_VERSION ]]; then 
@@ -915,9 +920,11 @@ print_hledger_versions
 check_home_local_bin_on_path
 
 # TODO
-# make sure all required deps are being mentioned in stack command lines
-# should force ghc-8.0.2+/lts-8+ on osx sierra+
+# check/require ghc-8.0.2+/lts-8+ on osx sierra+
 # automate testing
 # install hledger experimental tools
+# help install c libs
+# try installing system packages
+# help with logging & reporting successes/failures
 # detect latest hledger version & resolver ?
 # detect latest installer version, self upgrade ?
