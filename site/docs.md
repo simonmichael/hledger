@@ -9,7 +9,7 @@ td:nth-child(1) { padding-right:1em; white-space:nowrap; }
 
 <div class="container">
 
-## Get help
+## Get help/give feedback
 |
 |---------------|----------------------------------------------------------------------------|
 | IRC           | [#hledger](http://irc.hledger.org) on Freenode (<!-- [chat log](http://ircbrowse.net/browse/hledger); --> see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1)) <!-- *Quick help and background chat.* --> <!-- *If you don't get an answer promptly, you can type `sm` to alert me, or leave the window open and check back later.* -->
