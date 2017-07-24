@@ -26,7 +26,7 @@ balancesheetBV = BalanceView {
 This command displays a simple balance sheet, showing historical ending
 balances of asset and liability accounts (ignoring any report begin date). 
 It assumes that these accounts are under a top-level `asset` or `liability`
-account (plural forms also  allowed).
+account (case insensitive, plural forms also  allowed).
           |],
          bvtitle    = "Balance Sheet",
          bvqueries  = [ ("Assets"     , journalAssetAccountQuery),

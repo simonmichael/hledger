@@ -28,8 +28,8 @@ cashflowBV = BalanceView {
          bvhelp     = [here|
 This command displays a simple cashflow statement, showing changes
 in "cash" accounts. It assumes that these accounts are under a top-level 
-`asset` account and do not contain `receivable` or `A/R` in their name 
-(plural forms also allowed). 
+`asset` account (case insensitive, plural forms also allowed) and do not 
+contain `receivable` or `A/R` in their name. 
           |],
          bvtitle    = "Cashflow Statement",
          bvqueries  = [("Cash flows", journalCashAccountQuery)],
