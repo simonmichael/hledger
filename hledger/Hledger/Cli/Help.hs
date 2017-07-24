@@ -77,6 +77,7 @@ help' opts = do
   case topic of
     Nothing -> putStrLn $ [here|
 Please choose a manual by typing "hledger help MANUAL" (any substring is ok).
-Manuals:
-|] ++ " " ++ intercalate " " docTopics
+A viewer (info, man, a pager, or stdout) will be auto-selected,
+or type "hledger help -h" to see options. Manuals available:
+|] ++ "\n " ++ intercalate " " docTopics
     Just t  -> viewer t
