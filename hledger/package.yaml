@@ -95,7 +95,7 @@ library:
   - Hledger.Cli.Accounts
   - Hledger.Cli.Balance
   - Hledger.Cli.Balancesheet
-  - Hledger.Cli.BalanceView
+  - Hledger.Cli.BalanceCommand
   - Hledger.Cli.Cashflow
   - Hledger.Cli.Help
   - Hledger.Cli.Histogram
