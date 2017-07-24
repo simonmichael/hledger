@@ -19,10 +19,11 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.BalanceView
 
-isBV = BalanceView {
+incomestatementBV = BalanceView {
          bvmode     = "incomestatement",
          bvaliases  = ["is"],
-         bvhelp     = [here|This command displays a simple income statement, showing revenues
+         bvhelp     = [here|
+This command displays a simple income statement, showing revenues
 and expenses during a period. It assumes that these accounts are under a 
 top-level `revenue` or `income` or `expense` account (plural forms 
 also allowed).
@@ -36,10 +37,10 @@ also allowed).
       }
 
 incomestatementmode :: Mode RawOpts
-incomestatementmode = balanceviewmode isBV
+incomestatementmode = balanceviewmode incomestatementBV
 
 incomestatement :: CliOpts -> Journal -> IO ()
-incomestatement = balanceviewReport isBV
+incomestatement = balanceviewReport incomestatementBV
 
 tests_Hledger_Cli_Incomestatement :: Test
 tests_Hledger_Cli_Incomestatement = TestList

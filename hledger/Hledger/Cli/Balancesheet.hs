@@ -19,10 +19,11 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.BalanceView
 
-bsBV = BalanceView {
+balancesheetBV = BalanceView {
          bvmode     = "balancesheet",
          bvaliases  = ["bs"],
-         bvhelp     = [here|This command displays a simple balance sheet, showing historical ending
+         bvhelp     = [here|
+This command displays a simple balance sheet, showing historical ending
 balances of asset and liability accounts (ignoring any report begin date). 
 It assumes that these accounts are under a top-level `asset` or `liability`
 account (plural forms also  allowed).
@@ -35,10 +36,10 @@ account (plural forms also  allowed).
       }
 
 balancesheetmode :: Mode RawOpts
-balancesheetmode = balanceviewmode bsBV
+balancesheetmode = balanceviewmode balancesheetBV
 
 balancesheet :: CliOpts -> Journal -> IO ()
-balancesheet = balanceviewReport bsBV
+balancesheet = balanceviewReport balancesheetBV
 
 tests_Hledger_Cli_Balancesheet :: Test
 tests_Hledger_Cli_Balancesheet = TestList
