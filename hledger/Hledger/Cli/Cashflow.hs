@@ -32,7 +32,8 @@ in "cash" accounts. It assumes that these accounts are under a top-level
           |],
          bvtitle    = "Cashflow Statement",
          bvqueries  = [("Cash flows", journalCashAccountQuery)],
-         bvtype     = PeriodChange
+         bvdeftype  = PeriodChange,
+         bvtypes    = [CumulativeChange, HistoricalBalance]
       }
 
 cashflowmode :: Mode RawOpts

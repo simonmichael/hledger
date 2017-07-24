@@ -33,26 +33,16 @@ data BalanceView = BalanceView {
       bvhelp     :: String,                        -- ^ command line help message
       bvtitle    :: String,                        -- ^ title of the view
       bvqueries  :: [(String, Journal -> Query)],  -- ^ named queries that make up the view
-      bvtype     :: BalanceType                    -- ^ the type of balance this view shows.
-                                                   --   This overrides user input.
+      bvdeftype  :: BalanceType,                   -- ^ the type of balance this view shows.
+      bvtypes    :: [BalanceType]                  -- ^ alternatively allowed types
 }
 
 balanceviewmode :: BalanceView -> Mode RawOpts
 balanceviewmode BalanceView{..} = (defCommandMode $ bvmode : bvaliases) {
   modeHelp = bvhelp `withAliases` bvaliases
  ,modeGroupFlags = C.Group {
-     groupUnnamed = [
-      flagNone ["change"] (\opts -> setboolopt "change" opts)
-        ("show balance change in each period" ++ defType PeriodChange)
-     ,flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
-        ("show balance change accumulated across periods (in multicolumn reports)"
-            ++ defType CumulativeChange
-        )
-     ,flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
-        ("show historical ending balance in each period (includes postings before report start date)"
-            ++ defType HistoricalBalance
-        )
-     ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
+     groupUnnamed = typeFlag True bvdeftype : map (typeFlag False) bvtypes ++ [
+      flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show accounts as a list"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
      ,flagNone ["no-total","N"] (\opts -> setboolopt "no-total" opts) "omit the final total row"
      ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show accounts as a tree; amounts include subaccounts (default in simple reports)"
@@ -67,9 +57,24 @@ balanceviewmode BalanceView{..} = (defCommandMode $ bvmode : bvaliases) {
     }
  }
  where
-   defType :: BalanceType -> String
-   defType bt | bt == bvtype = " (default)"
-              | otherwise    = ""
+   typeFlag :: Bool -> BalanceType -> Flag RawOpts
+   typeFlag dt bt = case bt of
+       PeriodChange ->
+         flagNone ["change"] (\opts -> setboolopt "change" opts)
+           ("show balance change in each period" ++ isDef)
+       HistoricalBalance ->
+         flagNone ["historical","H"] (\opts -> setboolopt "historical" opts)
+           ("show historical ending balance in each period (includes postings before report start date)"
+               ++ isDef
+           )
+       CumulativeChange ->
+         flagNone ["cumulative"] (\opts -> setboolopt "cumulative" opts)
+           ("show balance change accumulated across periods (in multicolumn reports)"
+               ++ isDef
+           )
+     where
+       isDef | dt        = " (default)"
+             | otherwise = ""
 
 balanceviewQueryReport
     :: ReportOpts
@@ -157,12 +162,12 @@ balanceviewReport BalanceView{..} CliOpts{command_=cmd, reportopts_=ropts, rawop
     showamt | color_ ropts = cshowMixedAmountWithoutPrice
             | otherwise    = showMixedAmountWithoutPrice
     overwriteBalanceType =
-      case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst raw of
+      case reverse $ filter (`elem` map typeCmd bvtypes) $ map fst raw of
         "historical":_ -> Just HistoricalBalance
         "cumulative":_ -> Just CumulativeChange
         "change":_     -> Just PeriodChange
         _              -> Nothing
-    balancetype = fromMaybe bvtype overwriteBalanceType
+    balancetype = fromMaybe bvdeftype overwriteBalanceType
     -- we must clarify that the statements aren't actual income statements,
     -- etc. if the user overrides the balance type
     balanceclarification = flip fmap overwriteBalanceType $ \t ->
@@ -186,3 +191,8 @@ balanceviewReport BalanceView{..} CliOpts{command_=cmd, reportopts_=ropts, rawop
           _                               -> id
     merging (Table hLeft hTop dat) (Table hLeft' _ dat') =
         Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
+
+typeCmd :: BalanceType -> String
+typeCmd HistoricalBalance = "historical"
+typeCmd CumulativeChange  = "cumulative"
+typeCmd PeriodChange      = "change"

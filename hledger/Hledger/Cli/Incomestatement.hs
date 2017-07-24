@@ -32,7 +32,8 @@ also allowed).
          bvqueries  = [ ("Revenues", journalIncomeAccountQuery),
                         ("Expenses", journalExpenseAccountQuery)
                       ],
-         bvtype     = PeriodChange
+         bvdeftype  = PeriodChange,
+         bvtypes    = [CumulativeChange, HistoricalBalance]
       }
 
 incomestatementmode :: Mode RawOpts
