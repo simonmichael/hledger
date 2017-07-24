@@ -47,6 +47,10 @@ DESCRIPTION
                   expenses:supplies     $1    ; <- this transaction debits two expense accounts
                   assets:cash                 ; <- $-2 inferred
 
+              2008/10/01 take a loan
+                  assets:bank:checking  $1
+                  liabilities:debts    $-1
+
               2008/12/31 * pay off            ; <- an optional * or ! after the date means "cleared" (or anything you want)
                   liabilities:debts     $1
                   assets:bank:checking
@@ -805,6 +809,8 @@ EDITOR SUPPORT
                           ting-started
        Sublime Text       https://github.com/ledger/ledger/wiki/Using-Sub-
                           lime-Text
+
+
        Textmate           https://github.com/ledger/ledger/wiki/Using-Text-
                           Mate-2
        Text Wrangler      https://github.com/ledger/ledger/wiki/Edit-

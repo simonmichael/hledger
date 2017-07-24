@@ -46,6 +46,10 @@ assisted by the helper modes for emacs or vim.
     expenses:supplies     $1    ; <- this transaction debits two expense accounts
     assets:cash                 ; <- $-2 inferred
 
+2008/10/01 take a loan
+    assets:bank:checking  $1
+    liabilities:debts    $-1
+
 2008/12/31 * pay off            ; <- an optional * or ! after the date means "cleared" (or anything you want)
     liabilities:debts     $1
     assets:bank:checking
@@ -1047,83 +1051,83 @@ Text Wrangler     https://github.com/ledger/ledger/wiki/Editing-Ledger-files-wit
 
 Tag Table:
 Node: Top78
-Node: FILE FORMAT2292
-Ref: #file-format2418
-Node: Transactions2625
-Ref: #transactions2748
-Node: Postings3313
-Ref: #postings3442
-Node: Dates4437
-Ref: #dates4554
-Node: Simple dates4619
-Ref: #simple-dates4747
-Node: Secondary dates5113
-Ref: #secondary-dates5269
-Node: Posting dates6832
-Ref: #posting-dates6963
-Node: Status8337
-Ref: #status8461
-Node: Account names10175
-Ref: #account-names10315
-Node: Amounts10802
-Ref: #amounts10940
-Node: Virtual Postings13041
-Ref: #virtual-postings13202
-Node: Balance Assertions14422
-Ref: #balance-assertions14599
-Node: Assertions and ordering15495
-Ref: #assertions-and-ordering15683
-Node: Assertions and included files16383
-Ref: #assertions-and-included-files16626
-Node: Assertions and multiple -f options16959
-Ref: #assertions-and-multiple--f-options17215
-Node: Assertions and commodities17347
-Ref: #assertions-and-commodities17584
-Node: Assertions and subaccounts18280
-Ref: #assertions-and-subaccounts18514
-Node: Assertions and virtual postings19035
-Ref: #assertions-and-virtual-postings19244
-Node: Balance Assignments19386
-Ref: #balance-assignments19555
-Node: Prices20674
-Ref: #prices20809
-Node: Transaction prices20860
-Ref: #transaction-prices21007
-Node: Market prices23163
-Ref: #market-prices23300
-Node: Comments24260
-Ref: #comments24384
-Node: Tags25497
-Ref: #tags25617
-Node: Implicit tags27046
-Ref: #implicit-tags27154
-Node: Directives27671
-Ref: #directives27786
-Node: Account aliases27979
-Ref: #account-aliases28125
-Node: Basic aliases28729
-Ref: #basic-aliases28874
-Node: Regex aliases29564
-Ref: #regex-aliases29734
-Node: Multiple aliases30449
-Ref: #multiple-aliases30623
-Node: end aliases31121
-Ref: #end-aliases31263
-Node: account directive31364
-Ref: #account-directive31546
-Node: apply account directive31842
-Ref: #apply-account-directive32040
-Node: Multi-line comments32699
-Ref: #multi-line-comments32891
-Node: commodity directive33019
-Ref: #commodity-directive33205
-Node: Default commodity34077
-Ref: #default-commodity34252
-Node: Default year34789
-Ref: #default-year34956
-Node: Including other files35379
-Ref: #including-other-files35538
-Node: EDITOR SUPPORT35935
-Ref: #editor-support36055
+Node: FILE FORMAT2374
+Ref: #file-format2500
+Node: Transactions2707
+Ref: #transactions2830
+Node: Postings3395
+Ref: #postings3524
+Node: Dates4519
+Ref: #dates4636
+Node: Simple dates4701
+Ref: #simple-dates4829
+Node: Secondary dates5195
+Ref: #secondary-dates5351
+Node: Posting dates6914
+Ref: #posting-dates7045
+Node: Status8419
+Ref: #status8543
+Node: Account names10257
+Ref: #account-names10397
+Node: Amounts10884
+Ref: #amounts11022
+Node: Virtual Postings13123
+Ref: #virtual-postings13284
+Node: Balance Assertions14504
+Ref: #balance-assertions14681
+Node: Assertions and ordering15577
+Ref: #assertions-and-ordering15765
+Node: Assertions and included files16465
+Ref: #assertions-and-included-files16708
+Node: Assertions and multiple -f options17041
+Ref: #assertions-and-multiple--f-options17297
+Node: Assertions and commodities17429
+Ref: #assertions-and-commodities17666
+Node: Assertions and subaccounts18362
+Ref: #assertions-and-subaccounts18596
+Node: Assertions and virtual postings19117
+Ref: #assertions-and-virtual-postings19326
+Node: Balance Assignments19468
+Ref: #balance-assignments19637
+Node: Prices20756
+Ref: #prices20891
+Node: Transaction prices20942
+Ref: #transaction-prices21089
+Node: Market prices23245
+Ref: #market-prices23382
+Node: Comments24342
+Ref: #comments24466
+Node: Tags25579
+Ref: #tags25699
+Node: Implicit tags27128
+Ref: #implicit-tags27236
+Node: Directives27753
+Ref: #directives27868
+Node: Account aliases28061
+Ref: #account-aliases28207
+Node: Basic aliases28811
+Ref: #basic-aliases28956
+Node: Regex aliases29646
+Ref: #regex-aliases29816
+Node: Multiple aliases30531
+Ref: #multiple-aliases30705
+Node: end aliases31203
+Ref: #end-aliases31345
+Node: account directive31446
+Ref: #account-directive31628
+Node: apply account directive31924
+Ref: #apply-account-directive32122
+Node: Multi-line comments32781
+Ref: #multi-line-comments32973
+Node: commodity directive33101
+Ref: #commodity-directive33287
+Node: Default commodity34159
+Ref: #default-commodity34334
+Node: Default year34871
+Ref: #default-year35038
+Node: Including other files35461
+Ref: #including-other-files35620
+Node: EDITOR SUPPORT36017
+Ref: #editor-support36137
 
 End Tag Table
