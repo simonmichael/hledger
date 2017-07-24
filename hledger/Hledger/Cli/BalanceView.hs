@@ -2,9 +2,9 @@
 {-|
 
 This module is used by the 'balancesheet', 'incomestatement', and
-'cashflow' commands to print out acocunt balances based on a specific
+'cashflow' commands to print out account balances based on a specific
 "view", which consists of a title and multiple named queries that are
-aggregated and totaled.
+aggregated and totalled.
 
 -}
 
@@ -26,7 +26,7 @@ import Hledger.Cli.Balance
 import Hledger.Cli.CliOptions
 
 -- | Describes a view for the balance, which can consist of multiple
--- separate named queries that are aggregated and totaled.
+-- separate named queries that are aggregated and totalled.
 data BalanceView = BalanceView {
       bvmode     :: String,                        -- ^ command line mode of the view
       bvaliases  :: [String],                      -- ^ command line aliases

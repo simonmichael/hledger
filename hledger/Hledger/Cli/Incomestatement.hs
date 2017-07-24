@@ -1,7 +1,7 @@
 {-# LANGUAGE QuasiQuotes, TemplateHaskell, OverloadedStrings, NoCPP #-}
 {-|
 
-The @incomestatement@ command prints a simple income statement (profit & loss) report.
+The @incomestatement@ command prints a simple income statement (profit & loss report).
 
 -}
 
@@ -25,9 +25,8 @@ incomestatementBV = BalanceView {
          bvhelp     = [here|
 This command displays a simple income statement, showing revenues
 and expenses during a period. It assumes that these accounts are under a 
-top-level `revenue` or `income` or `expense` account (plural forms 
-also allowed).
-
+top-level `revenue` or `income` or `expense` account (case insensitive,
+plural forms also allowed).
           |],
          bvtitle    = "Income Statement",
          bvqueries  = [ ("Revenues", journalIncomeAccountQuery),
