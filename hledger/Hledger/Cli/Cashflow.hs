@@ -22,10 +22,11 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.BalanceView
 
-cfBV = BalanceView {
+cashflowBV = BalanceView {
          bvmode     = "cashflow",
          bvaliases  = ["cf"],
-         bvhelp     = [here|This command displays a simple cashflow statement, showing changes
+         bvhelp     = [here|
+This command displays a simple cashflow statement, showing changes
 in "cash" accounts. It assumes that these accounts are under a top-level 
 `asset` account and do not contain `receivable` or `A/R` in their name 
 (plural forms also allowed). 
@@ -36,10 +37,10 @@ in "cash" accounts. It assumes that these accounts are under a top-level
       }
 
 cashflowmode :: Mode RawOpts
-cashflowmode = balanceviewmode cfBV
+cashflowmode = balanceviewmode cashflowBV
 
 cashflow :: CliOpts -> Journal -> IO ()
-cashflow = balanceviewReport cfBV
+cashflow = balanceviewReport cashflowBV
 
 tests_Hledger_Cli_Cashflow :: Test
 tests_Hledger_Cli_Cashflow = TestList
