@@ -30,8 +30,8 @@ plural forms also allowed).
   |],
   cbctitle    = "Income Statement",
   cbcqueries  = [ ("Revenues", journalIncomeAccountQuery),
-                 ("Expenses", journalExpenseAccountQuery)
-               ],
+                  ("Expenses", journalExpenseAccountQuery)
+                ],
   cbctype     = PeriodChange
 }
 

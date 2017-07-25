@@ -30,8 +30,8 @@ account (case insensitive, plural forms also  allowed).
   |],
   cbctitle    = "Balance Sheet",
   cbcqueries  = [ ("Assets"     , journalAssetAccountQuery),
-                 ("Liabilities", journalLiabilityAccountQuery)
-               ],
+                  ("Liabilities", journalLiabilityAccountQuery)
+                ],
   cbctype     = HistoricalBalance
 }
 
