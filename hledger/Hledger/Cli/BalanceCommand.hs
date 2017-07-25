@@ -72,77 +72,82 @@ balanceCommandMode BalanceCommandSpec{..} = (defCommandMode $ bcname : bcaliases
 
 -- | Generate a runnable command from a compound balance command specification.
 balanceCommand :: BalanceCommandSpec -> (CliOpts -> Journal -> IO ())
-balanceCommand BalanceCommandSpec{..} CliOpts{command_=cmd, reportopts_=ropts, rawopts_=raw} j = do
-    currDay   <- getCurrentDay
-    let q0 = queryFromOpts currDay ropts'
-    let title = bctitle ++ maybe "" (' ':) balanceclarification
-    case interval_ ropts' of
-      NoInterval -> do
-        let (subreportstrs, amt) =
-              foldMap (uncurry (balanceCommandSingleColumnReport ropts' q0 j))
-                 bcqueries
-        mapM_ putStrLn (title : "" : subreportstrs)
+balanceCommand BalanceCommandSpec{..} CliOpts{command_=cmd, reportopts_=ropts, rawopts_=rawopts} j = do
+    d <- getCurrentDay
+    let
+      -- use the default balance type for this report, unless the user overrides  
+      mBalanceTypeOverride =
+        case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst rawopts of
+          "historical":_ -> Just HistoricalBalance
+          "cumulative":_ -> Just CumulativeChange
+          "change":_     -> Just PeriodChange
+          _              -> Nothing
+      balancetype = fromMaybe bctype mBalanceTypeOverride
+      -- when user overrides, add an indication to the report title
+      title = bctitle ++ maybe "" (' ':) mtitleclarification
+        where
+          mtitleclarification = flip fmap mBalanceTypeOverride $ \t ->
+            case t of
+              PeriodChange      -> "(Balance Changes)"
+              CumulativeChange  -> "(Cumulative Ending Balances)"
+              HistoricalBalance -> "(Historical Ending Balances)"
+      -- set balance type and possibly tree mode in the report options. Some older notes: 
+      -- For --historical/--cumulative, we must use multiBalanceReport (this forces --no-elide).
+      -- These settings format the output in a way that we can convert to a normal balance report 
+      -- using singleBalanceReport, see Balance.hs for more information.
+      ropts'
+        | not (flat_ ropts) && 
+          interval_ ropts==NoInterval && 
+          balancetype `elem` [CumulativeChange, HistoricalBalance]
+            = ropts{balancetype_=balancetype, accountlistmode_=ALTree}
+        | otherwise
+            = ropts{balancetype_=balancetype}
+      userq = queryFromOpts d ropts'
 
+    case interval_ ropts' of
+
+      NoInterval -> do
+        -- single-column report
+        let (subreportstr, total) = foldMap (uncurry (balanceCommandSingleColumnReport ropts' userq j)) bcqueries
+        putStrLn $ title ++ "\n"
+        mapM_ putStrLn subreportstr
         unless (no_total_ ropts' || cmd=="cashflow") . mapM_ putStrLn $ -- TODO temp
           [ "Total:"
           , "--------------------"
-          , padLeftWide 20 $ showamt (getSum amt)
+          , padLeftWide 20 $ showamt (getSum total)
           ]
+        where
+          showamt | color_ ropts' = cshowMixedAmountWithoutPrice
+                  | otherwise    = showMixedAmountWithoutPrice
+          
       _ -> do
-        let (tabls, amts, Sum totsum)
-              = foldMap (uncurry (balanceCommandMultiColumnReports ropts' q0 j)) bcqueries
-            sumAmts = case amts of
-              a1:as -> foldl' (zipWith (+)) a1 as
-              []    -> []
-            totavg = totsum `divideMixedAmount` fromIntegral (length sumAmts)
-            mergedTabl = case tabls of
-              t1:ts -> foldl' merging t1 ts
-              []    -> T.empty
-            totTabl
-              | no_total_ ropts' || length bcqueries == 1 =
-                  mergedTabl
-              | otherwise =
-                  mergedTabl
-                  +====+
-                  row "Total"
-                      (sumAmts ++ (if row_total_ ropts' && not (null sumAmts) then [totsum] else [])
-                               ++ (if average_ ropts' && not (null sumAmts)   then [totavg] else [])
-                      )
+        -- multi-column report
+        let
+          (subreporttables, subreporttotals, Sum overalltotal) = foldMap (uncurry (balanceCommandMultiColumnReports ropts' userq j)) bcqueries
+          overalltable = case subreporttables of
+            t1:ts -> foldl' concatTables t1 ts
+            []    -> T.empty
+          overalltable'
+            | no_total_ ropts' || length bcqueries == 1 =
+                overalltable
+            | otherwise =
+                overalltable
+                +====+
+                row "Total"
+                    (overalltotals ++ (if row_total_ ropts' && not (null overalltotals) then [overalltotal]   else [])
+                                   ++ (if average_ ropts'   && not (null overalltotals) then [overallaverage] else [])
+                    )
+              where
+                overalltotals = case subreporttotals of
+                  a1:as -> foldl' (zipWith (+)) a1 as
+                  []    -> []
+                overallaverage = overalltotal `divideMixedAmount` fromIntegral (length overalltotals)
         putStrLn title
-        putStrLn $ renderBalanceReportTable ropts totTabl
-  where
-    showamt | color_ ropts = cshowMixedAmountWithoutPrice
-            | otherwise    = showMixedAmountWithoutPrice
-    overwriteBalanceType =
-      case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst raw of
-        "historical":_ -> Just HistoricalBalance
-        "cumulative":_ -> Just CumulativeChange
-        "change":_     -> Just PeriodChange
-        _              -> Nothing
-    balancetype = fromMaybe bctype overwriteBalanceType
-    -- we must clarify that the statements aren't actual income statements,
-    -- etc. if the user overrides the balance type
-    balanceclarification = flip fmap overwriteBalanceType $ \t ->
-      case t of
-        PeriodChange      -> "(Balance Changes)"
-        CumulativeChange  -> "(Cumulative Ending Balances)"
-        HistoricalBalance -> "(Historical Ending Balances)"
-    ropts' = treeIfNotPeriod $ ropts { balancetype_ = balancetype }
-        -- For --historical/--cumulative, we must use multiBalanceReport.
-        -- (This forces --no-elide.)
-        -- These settings format the output in a way that we can convert to
-        -- a normal balance report using singleBalanceReport.  See
-        -- Balance.hs for more information.
-    treeIfNotPeriod
-      | flat_ ropts = id
-      | otherwise   = case (balancetype, interval_ ropts) of
-          (HistoricalBalance, NoInterval) -> \o ->
-              o { accountlistmode_ = ALTree }
-          (CumulativeChange , NoInterval) -> \o ->
-              o { accountlistmode_ = ALTree }
-          _                               -> id
-    merging (Table hLeft hTop dat) (Table hLeft' _ dat') =
-        Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
+        putStrLn $ renderBalanceReportTable ropts' overalltable'
+
+-- Add the second table below the first, discarding its column headings.
+concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
+    Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
 
 -- | Run one subreport for a single-column compound balance command.
 -- Currently this returns the plain text rendering of the subreport,
@@ -169,7 +174,8 @@ balanceCommandSingleColumnReport ropts q0 j t q = ([view], Sum amt)
 
 -- | Run all the subreports for a multi-column compound balance command.
 -- Currently this returns a table of rendered balance amounts for each 
--- subreport, the totals row for each subreport, and the grand total.
+-- subreport (including a totals row), the totals row for each subreport 
+-- (again, as mixedamounts), and the grand total.
 balanceCommandMultiColumnReports
     :: ReportOpts
     -> Query
