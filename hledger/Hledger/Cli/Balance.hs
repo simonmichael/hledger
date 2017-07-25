@@ -480,8 +480,7 @@ multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,to
 -- | Render a multi-column balance report as plain text suitable for console output.
 multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
 multiBalanceReportAsText opts r =
-    printf "%s in %s:" typeStr (showDateSpan $ multiBalanceReportSpan r)
-      ++ "\n"
+    printf "%s in %s:\n\n" typeStr (showDateSpan $ multiBalanceReportSpan r)
       ++ renderBalanceReportTable opts tabl
   where
     tabl = balanceReportAsTable opts r
@@ -495,11 +494,16 @@ multiBalanceReportAsText opts r =
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output.
 renderBalanceReportTable :: ReportOpts -> Table String String MixedAmount -> String
-renderBalanceReportTable (ReportOpts { pretty_tables_ = pretty, color_=usecolor }) = unlines . trimborder . lines
-                         . render pretty id (" " ++) showamt
-                         . align
+renderBalanceReportTable (ReportOpts { pretty_tables_ = pretty, color_=usecolor }) = 
+  unlines
+  . addtrailingblank
+  . trimborder 
+  . lines
+  . render pretty id (" " ++) showamt
+  . align
   where
-    trimborder = ("":) . (++[""]) . drop 1 . init . map (drop 1 . init)
+    addtrailingblank = (++[""])
+    trimborder = drop 1 . init . map (drop 1 . init)
     align (Table l t d) = Table l' t d
       where
         acctswidth = maximum' $ map strWidth (headerContents l)

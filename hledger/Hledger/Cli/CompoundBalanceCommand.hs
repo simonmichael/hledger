@@ -155,8 +155,8 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
                                  ++ (if average_ ropts'   then [overallaverage] else [])
                     where
                       overallaverage = overalltotal `divideMixedAmount` fromIntegral (length overalltotals)
-        putStrLn title
-        putStrLn $ renderBalanceReportTable ropts' overalltable'
+        putStrLn $ title ++ "\n"
+        putStr $ renderBalanceReportTable ropts' overalltable'
 
 -- Add the second table below the first, discarding its column headings.
 concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
