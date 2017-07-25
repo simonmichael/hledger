@@ -20,27 +20,27 @@ import Test.HUnit
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.BalanceCommand
+import Hledger.Cli.CompoundBalanceCommand
 
-cashflowSpec = BalanceCommandSpec {
-  bcname     = "cashflow",
-  bcaliases  = ["cf"],
-  bchelp     = [here|
+cashflowSpec = CompoundBalanceCommandSpec {
+  cbcname     = "cashflow",
+  cbcaliases  = ["cf"],
+  cbchelp     = [here|
 This command displays a simple cashflow statement, showing changes
 in "cash" accounts. It assumes that these accounts are under a top-level 
 `asset` account (case insensitive, plural forms also allowed) and do not 
 contain `receivable` or `A/R` in their name. 
   |],
-  bctitle    = "Cashflow Statement",
-  bcqueries  = [("Cash flows", journalCashAccountQuery)],
-  bctype     = PeriodChange
+  cbctitle    = "Cashflow Statement",
+  cbcqueries  = [("Cash flows", journalCashAccountQuery)],
+  cbctype     = PeriodChange
 }
 
 cashflowmode :: Mode RawOpts
-cashflowmode = balanceCommandMode cashflowSpec
+cashflowmode = compoundBalanceCommandMode cashflowSpec
 
 cashflow :: CliOpts -> Journal -> IO ()
-cashflow = balanceCommand cashflowSpec
+cashflow = compoundBalanceCommand cashflowSpec
 
 tests_Hledger_Cli_Cashflow :: Test
 tests_Hledger_Cli_Cashflow = TestList

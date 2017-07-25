@@ -17,29 +17,29 @@ import Test.HUnit
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.BalanceCommand
+import Hledger.Cli.CompoundBalanceCommand
 
-balancesheetSpec = BalanceCommandSpec {
-  bcname     = "balancesheet",
-  bcaliases  = ["bs"],
-  bchelp     = [here|
+balancesheetSpec = CompoundBalanceCommandSpec {
+  cbcname     = "balancesheet",
+  cbcaliases  = ["bs"],
+  cbchelp     = [here|
 This command displays a simple balance sheet, showing historical ending
 balances of asset and liability accounts (ignoring any report begin date). 
 It assumes that these accounts are under a top-level `asset` or `liability`
 account (case insensitive, plural forms also  allowed).
   |],
-  bctitle    = "Balance Sheet",
-  bcqueries  = [ ("Assets"     , journalAssetAccountQuery),
+  cbctitle    = "Balance Sheet",
+  cbcqueries  = [ ("Assets"     , journalAssetAccountQuery),
                  ("Liabilities", journalLiabilityAccountQuery)
                ],
-  bctype     = HistoricalBalance
+  cbctype     = HistoricalBalance
 }
 
 balancesheetmode :: Mode RawOpts
-balancesheetmode = balanceCommandMode balancesheetSpec
+balancesheetmode = compoundBalanceCommandMode balancesheetSpec
 
 balancesheet :: CliOpts -> Journal -> IO ()
-balancesheet = balanceCommand balancesheetSpec
+balancesheet = compoundBalanceCommand balancesheetSpec
 
 tests_Hledger_Cli_Balancesheet :: Test
 tests_Hledger_Cli_Balancesheet = TestList
