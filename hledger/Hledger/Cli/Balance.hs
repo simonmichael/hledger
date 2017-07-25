@@ -298,9 +298,11 @@ balance opts@CliOpts{reportopts_=ropts} j = do
     Right _ -> do
       let format   = outputFormatFromOpts opts
           interval = interval_ ropts
-      -- shenanigans: use single/multiBalanceReport when we must,
-      -- ie when there's a report interval, or --historical or -- cumulative.
+      -- XXX shenanigans: use singleBalanceReport or multiBalanceReport when we must, 
+      -- ie when there's a report interval, or when --historical or --cumulative 
+      -- are used (balanceReport doesn't handle those).
       -- Otherwise prefer the older balanceReport since it can elide boring parents.
+      -- See also compoundBalanceCommandSingleColumnReport, singleBalanceReport etc.
       case interval of
         NoInterval -> do
           let report

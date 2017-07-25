@@ -95,8 +95,12 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
               PeriodChange      -> "(Balance Changes)"
               CumulativeChange  -> "(Cumulative Ending Balances)"
               HistoricalBalance -> "(Historical Ending Balances)"
-      -- Set balance type in the report options. 
-      -- Also default to tree mode if --cumulative/--historical are used in single column mode. TODO: why ?  
+      -- Set balance type in the report options.
+      -- XXX Also, use tree mode (by default, at least?) if --cumulative/--historical 
+      -- are used in single column mode, since in that situation we will be using 
+      -- singleBalanceReport which does not support eliding boring parents,
+      -- and tree mode hides this.. or something.. 
+      -- see also compoundBalanceCommandSingleColumnReport, #565  
       ropts'
         | not (flat_ ropts) && 
           interval_ ropts==NoInterval && 
@@ -110,7 +114,9 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
 
       -- single-column report
       NoInterval -> do
-        let (subreportstr, total) = foldMap (uncurry (compoundBalanceCommandSingleColumnReport ropts' userq j)) cbcqueries
+        let 
+          (subreportstr, total) = 
+            foldMap (uncurry (compoundBalanceCommandSingleColumnReport ropts' userq j)) cbcqueries
         putStrLn $ title ++ "\n"
         mapM_ putStrLn subreportstr
         unless (no_total_ ropts' || cmd=="cashflow") . mapM_ putStrLn $
@@ -126,7 +132,8 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
       -- multi-column report
       _ -> do
         let
-          (subreporttables, subreporttotals, Sum overalltotal) = foldMap (uncurry (compoundBalanceCommandMultiColumnReports ropts' userq j)) cbcqueries
+          (subreporttables, subreporttotals, Sum overalltotal) = 
+            foldMap (uncurry (compoundBalanceCommandMultiColumnReports ropts' userq j)) cbcqueries
           overalltable = case subreporttables of
             t1:ts -> foldl' concatTables t1 ts
             []    -> T.empty
@@ -176,18 +183,17 @@ compoundBalanceCommandSingleColumnReport
     -> String
     -> (Journal -> Query)
     -> ([String], Sum MixedAmount)
-compoundBalanceCommandSingleColumnReport ropts q0 j t q = ([view], Sum amt)
+compoundBalanceCommandSingleColumnReport ropts userq j t subreportq = ([subreportstr], Sum amt)
     where
-      q' = And [q0, q j]
+      q' = And [userq, subreportq j]
       rep@(_ , amt)
-        -- For --historical/--cumulative, we must use multiBalanceReport.
-        -- (This forces --no-elide.)
-        -- See Balance.hs's implementation of 'balance' for more information
-        | balancetype_ ropts `elem` [HistoricalBalance, CumulativeChange]
-            = singleBalanceReport ropts q' j
-        | otherwise
-            = balanceReport ropts q' j
-      view = intercalate "\n" [t <> ":", balanceReportAsText ropts rep]
+        -- XXX For --historical/--cumulative, we must use singleBalanceReport
+        -- (which also forces --no-elide); otherwise we use balanceReport
+        -- because it supports eliding boring parents. 
+        -- See also compoundBalanceCommand, Balance.hs -> balance.
+        | balancetype_ ropts `elem` [CumulativeChange, HistoricalBalance] = singleBalanceReport ropts q' j
+        | otherwise = balanceReport ropts q' j
+      subreportstr = intercalate "\n" [t <> ":", balanceReportAsText ropts rep]
 
 -- | Run all the subreports for a multi-column compound balance command.
 -- Currently this returns a table of rendered balance amounts for each 
@@ -205,8 +211,7 @@ compoundBalanceCommandMultiColumnReports ropts q0 j t q = ([tabl], [coltotals], 
       singlesection = "Cash" `isPrefixOf` t -- TODO temp
       ropts' = ropts { no_total_ = singlesection && no_total_ ropts, empty_ = True }
       q' = And [q0, q j]
-      MultiBalanceReport (dates, rows, (coltotals,tot,avg)) =
-          multiBalanceReport ropts' q' j
+      MultiBalanceReport (dates, rows, (coltotals,tot,avg)) = multiBalanceReport ropts' q' j
       rows' | empty_ ropts = rows
             | otherwise    = filter (not . emptyRow) rows
         where
