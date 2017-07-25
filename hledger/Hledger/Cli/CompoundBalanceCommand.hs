@@ -114,7 +114,8 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
 
       -- single-column report
       NoInterval -> do
-        let 
+        let
+          -- concatenate the rendering and sum the totals from each subreport
           (subreportstr, total) = 
             foldMap (uncurry (compoundBalanceCommandSingleColumnReport ropts' userq j)) cbcqueries
         putStrLn $ title ++ "\n"
@@ -132,8 +133,9 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
       -- multi-column report
       _ -> do
         let
+          -- list the tables, list the totals rows, and sum the totals from each subreport
           (subreporttables, subreporttotals, Sum overalltotal) = 
-            foldMap (uncurry (compoundBalanceCommandMultiColumnReports ropts' userq j)) cbcqueries
+            foldMap (uncurry (compoundBalanceCommandMultiColumnReport ropts' userq j)) cbcqueries
           overalltable = case subreporttables of
             t1:ts -> foldl' concatTables t1 ts
             []    -> T.empty
@@ -173,9 +175,9 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
 concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
     Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
 
--- | Run one subreport for a single-column compound balance command.
--- Currently this returns the plain text rendering of the subreport,
--- and its total.
+-- | Run one subreport for a compound balance command in single-column mode.
+-- Currently this returns the plain text rendering of the subreport, and its total.
+-- The latter is wrapped in a Sum for easy monoidal combining.
 compoundBalanceCommandSingleColumnReport
     :: ReportOpts
     -> Query
@@ -183,40 +185,47 @@ compoundBalanceCommandSingleColumnReport
     -> String
     -> (Journal -> Query)
     -> ([String], Sum MixedAmount)
-compoundBalanceCommandSingleColumnReport ropts userq j t subreportq = ([subreportstr], Sum amt)
-    where
-      q' = And [userq, subreportq j]
-      rep@(_ , amt)
-        -- XXX For --historical/--cumulative, we must use singleBalanceReport
-        -- (which also forces --no-elide); otherwise we use balanceReport
-        -- because it supports eliding boring parents. 
-        -- See also compoundBalanceCommand, Balance.hs -> balance.
-        | balancetype_ ropts `elem` [CumulativeChange, HistoricalBalance] = singleBalanceReport ropts q' j
-        | otherwise = balanceReport ropts q' j
-      subreportstr = intercalate "\n" [t <> ":", balanceReportAsText ropts rep]
+compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportq = 
+  ([subreportstr], Sum total)
+  where
+    q = And [subreportq j, userq]
+    r@(_,total)
+      -- XXX For --historical/--cumulative, we must use singleBalanceReport;
+      -- otherwise we use balanceReport -- because it supports eliding boring parents. 
+      -- See also compoundBalanceCommand, Balance.hs -> balance.
+      | balancetype_ ropts `elem` [CumulativeChange, HistoricalBalance] = singleBalanceReport ropts q j
+      | otherwise                                                       = balanceReport       ropts q j
+    subreportstr = intercalate "\n" [subreporttitle <> ":", balanceReportAsText ropts r]
 
--- | Run all the subreports for a multi-column compound balance command.
--- Currently this returns a table of rendered balance amounts for each 
--- subreport (including a totals row), the totals row for each subreport 
--- (again, as mixedamounts), and the grand total.
-compoundBalanceCommandMultiColumnReports
+-- | Run one subreport for a compound balance command in multi-column mode.
+-- Currently this returns the table of rendered balance amounts, including the
+-- totals row; the totals row again, as mixedamounts; and the grand total.
+-- The first two are wrapped in a list and the third in a Sum, for easy
+-- monoidal combining.
+compoundBalanceCommandMultiColumnReport
     :: ReportOpts
     -> Query
     -> Journal
     -> String
     -> (Journal -> Query)
     -> ([Table String String MixedAmount], [[MixedAmount]], Sum MixedAmount)
-compoundBalanceCommandMultiColumnReports ropts q0 j t q = ([tabl], [coltotals], Sum tot)
-    where
-      singlesection = "Cash" `isPrefixOf` t -- TODO temp
-      ropts' = ropts { no_total_ = singlesection && no_total_ ropts, empty_ = True }
-      q' = And [q0, q j]
-      MultiBalanceReport (dates, rows, (coltotals,tot,avg)) = multiBalanceReport ropts' q' j
-      rows' | empty_ ropts = rows
-            | otherwise    = filter (not . emptyRow) rows
-        where
-          emptyRow (_,_,_,amts,_,_) = all isZeroMixedAmount amts
-      r = MultiBalanceReport (dates, rows', (coltotals, tot, avg))
-      Table hLeft hTop dat = balanceReportAsTable ropts' r
-      tabl = Table (T.Group SingleLine [Header t, hLeft]) hTop ([]:dat)
-
+compoundBalanceCommandMultiColumnReport ropts userq j subreporttitle subreportq =
+  ([tabl], [coltotals], Sum tot)
+  where
+    ropts' = ropts { no_total_ = singlesection && no_total_ ropts, empty_ = True }
+      where
+        singlesection = "Cash" `isPrefixOf` subreporttitle -- TODO temp
+    q = And [subreportq j, userq]
+    -- run the report
+    MultiBalanceReport (dates, rows, (coltotals,tot,avg)) = multiBalanceReport ropts' q j
+    -- maybe filter all-zero rows from the report
+    r = MultiBalanceReport (dates, rows', (coltotals, tot, avg))
+      where
+        rows' | empty_ ropts = rows
+              | otherwise    = filter (not . emptyRow) rows
+          where
+            emptyRow (_,_,_,amts,_,_) = all isZeroMixedAmount amts
+    -- convert to a table for rendering
+    Table hLeft hTop dat = balanceReportAsTable ropts' r
+    -- tweak the table layout
+    tabl = Table (T.Group SingleLine [Header subreporttitle, hLeft]) hTop ([]:dat)
