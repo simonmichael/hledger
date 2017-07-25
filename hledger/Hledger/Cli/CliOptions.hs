@@ -15,6 +15,8 @@ module Hledger.Cli.CliOptions (
   inputflags,
   reportflags,
   outputflags,
+  outputFormatFlag,
+  outputFileFlag,
   generalflagsgroup1,
   generalflagsgroup2,
   generalflagsgroup3,
@@ -149,10 +151,9 @@ reportflags = [
  ]
 
 -- | Common output-related flags: --output-file, --output-format...
-outputflags = [
-   flagReq  ["output-format","O"] (\s opts -> Right $ setopt "output-format" s opts) "FMT" "select the output format. Supported formats:\ntxt, csv."
-  ,flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE. A file extension matching one of the above formats selects that format."
-  ]
+outputflags = [outputFormatFlag, outputFileFlag]
+outputFormatFlag = flagReq  ["output-format","O"] (\s opts -> Right $ setopt "output-format" s opts) "FMT" "select the output format. Supported formats:\ntxt, csv."
+outputFileFlag   = flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE. A file extension matching one of the above formats selects that format."
 
 argsFlag :: FlagHelp -> Arg RawOpts
 argsFlag desc = flagArg (\s opts -> Right $ setopt "args" s opts) desc
