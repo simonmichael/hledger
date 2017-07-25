@@ -119,6 +119,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
           [ "Total:"
           , "--------------------"
           , padLeftWide 20 $ showamt (getSum total)
+          , ""
           ]
         where
           showamt | color_ ropts' = cshowMixedAmountWithoutPrice
