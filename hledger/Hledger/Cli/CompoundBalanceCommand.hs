@@ -140,8 +140,14 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
                 row "Total" overalltotals'
               where
                 overalltotals = case subreporttotals of
-                  a1:as -> foldl' (zipWith (+)) a1 as
-                  []    -> []
+                  [] -> []
+                  ts -> foldl' (zipWith (+)) zeros ts'
+                    where
+                      -- A subreport might be empty and have no subtotals, count those as zeroes (#588).
+                      -- Varying-length subtotals rows are handled similarly, though that is not expected to happen.  
+                      len = maximum $ map length ts
+                      ts' = [take len $ as ++ repeat nullmixedamt | as <- ts]
+                      zeros = replicate len nullmixedamt
                 overalltotals'
                   | null overalltotals = []
                   | otherwise =  overalltotals
