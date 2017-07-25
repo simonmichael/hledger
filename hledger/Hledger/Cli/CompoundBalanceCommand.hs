@@ -95,10 +95,8 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
               PeriodChange      -> "(Balance Changes)"
               CumulativeChange  -> "(Cumulative Ending Balances)"
               HistoricalBalance -> "(Historical Ending Balances)"
-      -- set balance type and possibly tree mode in the report options. Some older notes: 
-      -- For --historical/--cumulative, we must use multiBalanceReport (this forces --no-elide).
-      -- These settings format the output in a way that we can convert to a normal balance report 
-      -- using singleBalanceReport, see Balance.hs for more information.
+      -- Set balance type in the report options. 
+      -- Also default to tree mode if --cumulative/--historical are used in single column mode. TODO: why ?  
       ropts'
         | not (flat_ ropts) && 
           interval_ ropts==NoInterval && 
@@ -115,7 +113,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
         let (subreportstr, total) = foldMap (uncurry (compoundBalanceCommandSingleColumnReport ropts' userq j)) cbcqueries
         putStrLn $ title ++ "\n"
         mapM_ putStrLn subreportstr
-        unless (no_total_ ropts' || cmd=="cashflow") . mapM_ putStrLn $ -- TODO temp
+        unless (no_total_ ropts' || cmd=="cashflow") . mapM_ putStrLn $
           [ "Total:"
           , "--------------------"
           , padLeftWide 20 $ showamt (getSum total)
@@ -142,20 +140,25 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
               where
                 overalltotals = case subreporttotals of
                   [] -> []
-                  ts -> foldl' (zipWith (+)) zeros ts'
-                    where
-                      -- A subreport might be empty and have no subtotals, count those as zeroes (#588).
-                      -- Varying-length subtotals rows are handled similarly, though that is not expected to happen.  
-                      len = maximum $ map length ts
-                      ts' = [take len $ as ++ repeat nullmixedamt | as <- ts]
-                      zeros = replicate len nullmixedamt
+                  ts ->
+                    -- Sum the subtotals in each column.
+                    -- A subreport might be empty and have no subtotals, count those as zeros (#588).
+                    -- Short subtotals rows are also implicitly padded with zeros, though that is not expected to happen.  
+                    let
+                      numcols = maximum $ map length ts
+                      zeros = replicate numcols nullmixedamt
+                      ts' = [take numcols $ as ++ repeat nullmixedamt | as <- ts]
+                    in foldl' (zipWith (+)) zeros ts'
+                -- add values for the total/average columns if enabled
                 overalltotals'
                   | null overalltotals = []
-                  | otherwise =  overalltotals
-                                 ++ (if row_total_ ropts' then [overalltotal]   else [])
-                                 ++ (if average_ ropts'   then [overallaverage] else [])
-                    where
-                      overallaverage = overalltotal `divideMixedAmount` fromIntegral (length overalltotals)
+                  | otherwise =
+                      overalltotals
+                      ++ (if row_total_ ropts' then [overalltotal]   else [])
+                      ++ (if average_ ropts'   then [overallaverage] else [])
+                      where
+                        overallaverage = 
+                          overalltotal `divideMixedAmount` fromIntegral (length overalltotals) -- depends on non-null overalltotals
         putStrLn $ title ++ "\n"
         putStr $ renderBalanceReportTable ropts' overalltable'
 
