@@ -141,6 +141,7 @@ journalApplyValue ropts j = do
     return $ convert j
 
 -- | Write some output to stdout or to a file selected by --output-file.
+-- If the file exists it will be overwritten.
 writeOutput :: CliOpts -> String -> IO ()
 writeOutput opts s = do
   f <- outputFileFromOpts opts
