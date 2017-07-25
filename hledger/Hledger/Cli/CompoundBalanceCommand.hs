@@ -185,10 +185,10 @@ compoundBalanceCommandSingleColumnReport
     -> String
     -> (Journal -> Query)
     -> ([String], Sum MixedAmount)
-compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportq = 
+compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportqfn = 
   ([subreportstr], Sum total)
   where
-    q = And [subreportq j, userq]
+    q = And [subreportqfn j, userq]
     r@(_,total)
       -- XXX For --historical/--cumulative, we must use singleBalanceReport;
       -- otherwise we use balanceReport -- because it supports eliding boring parents. 
@@ -198,7 +198,7 @@ compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportq
     subreportstr = intercalate "\n" [subreporttitle <> ":", balanceReportAsText ropts r]
 
 -- | Run one subreport for a compound balance command in multi-column mode.
--- Currently this returns the table of rendered balance amounts, including the
+-- Currently this returns a table of rendered balance amounts, including the
 -- totals row; the totals row again, as mixedamounts; and the grand total.
 -- The first two are wrapped in a list and the third in a Sum, for easy
 -- monoidal combining.
@@ -209,16 +209,18 @@ compoundBalanceCommandMultiColumnReport
     -> String
     -> (Journal -> Query)
     -> ([Table String String MixedAmount], [[MixedAmount]], Sum MixedAmount)
-compoundBalanceCommandMultiColumnReport ropts userq j subreporttitle subreportq =
+compoundBalanceCommandMultiColumnReport ropts userq j subreporttitle subreportqfn =
   ([tabl], [coltotals], Sum tot)
   where
+    -- disable totals row if there's just one section and --no-total
+    -- force --empty to ensure same columns in all sections, or something
     ropts' = ropts { no_total_ = singlesection && no_total_ ropts, empty_ = True }
       where
         singlesection = "Cash" `isPrefixOf` subreporttitle -- TODO temp
-    q = And [subreportq j, userq]
     -- run the report
+    q = And [subreportqfn j, userq]
     MultiBalanceReport (dates, rows, (coltotals,tot,avg)) = multiBalanceReport ropts' q j
-    -- maybe filter all-zero rows from the report
+    -- if user didn't specify --empty, now remove the all-zero rows
     r = MultiBalanceReport (dates, rows', (coltotals, tot, avg))
       where
         rows' | empty_ ropts = rows
@@ -226,6 +228,6 @@ compoundBalanceCommandMultiColumnReport ropts userq j subreporttitle subreportq 
           where
             emptyRow (_,_,_,amts,_,_) = all isZeroMixedAmount amts
     -- convert to a table for rendering
-    Table hLeft hTop dat = balanceReportAsTable ropts' r
+    Table lefthdrs tophdrs cells = balanceReportAsTable ropts' r
     -- tweak the table layout
-    tabl = Table (T.Group SingleLine [Header subreporttitle, hLeft]) hTop ([]:dat)
+    tabl = Table (T.Group SingleLine [Header subreporttitle, lefthdrs]) tophdrs ([]:cells)
