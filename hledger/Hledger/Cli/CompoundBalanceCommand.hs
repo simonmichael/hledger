@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings, RecordWildCards #-}
 {-|
 
-Common helpers for making compound balance-report-ish commands like
-balancesheet, cashflow, or incomestatement.
+Common helpers for making multi-section balance report commands 
+like balancesheet, cashflow, and incomestatement.
 
 -}
 
-module Hledger.Cli.BalanceCommand (
-  BalanceCommandSpec(..)
- ,balanceCommandMode
- ,balanceCommand
+module Hledger.Cli.CompoundBalanceCommand (
+  CompoundBalanceCommandSpec(..)
+ ,compoundBalanceCommandMode
+ ,compoundBalanceCommand
 ) where
 
 import Control.Monad (unless)
@@ -23,22 +23,26 @@ import Hledger
 import Hledger.Cli.Balance
 import Hledger.Cli.CliOptions
 
--- | Description of a compound balance-report-like command, consisting of
--- multiple named subreports displayed in order and then totalled.
-data BalanceCommandSpec = BalanceCommandSpec {
-  bcname     :: String,                        -- ^ command name
-  bcaliases  :: [String],                      -- ^ command aliases
-  bchelp     :: String,                        -- ^ command line help
-  bctitle    :: String,                        -- ^ overall report title
-  bcqueries  :: [(String, Journal -> Query)],  -- ^ title and (journal-parameterised) query for each subreport
-  bctype     :: BalanceType                    -- ^ the type of "balance" this report shows (overrides command line flags)
+-- | Description of a compound balance report command, 
+-- from which we generate the command's cmdargs mode and IO action.
+-- A compound balance report shows one or more sections/subreports, 
+-- each with its own title and subtotals row, in a certain order, 
+-- plus a grand totals row if there's more than one section.
+-- Examples are the balancesheet, cashflow and incomestatement commands.
+data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
+  cbcname     :: String,                        -- ^ command name
+  cbcaliases  :: [String],                      -- ^ command aliases
+  cbchelp     :: String,                        -- ^ command line help
+  cbctitle    :: String,                        -- ^ overall report title
+  cbcqueries  :: [(String, Journal -> Query)],  -- ^ title and (journal-parameterised) query for each subreport
+  cbctype     :: BalanceType                    -- ^ the type of "balance" this report shows (overrides command line flags)
 }
 
 -- | Generate a cmdargs option-parsing mode from a compound balance command 
 -- specification.
-balanceCommandMode :: BalanceCommandSpec -> Mode RawOpts
-balanceCommandMode BalanceCommandSpec{..} = (defCommandMode $ bcname : bcaliases) {
-  modeHelp = bchelp `withAliases` bcaliases
+compoundBalanceCommandMode :: CompoundBalanceCommandSpec -> Mode RawOpts
+compoundBalanceCommandMode CompoundBalanceCommandSpec{..} = (defCommandMode $ cbcname : cbcaliases) {
+  modeHelp = cbchelp `withAliases` cbcaliases
  ,modeGroupFlags = C.Group {
      groupUnnamed = [
       flagNone ["change"] (\opts -> setboolopt "change" opts)
@@ -67,12 +71,12 @@ balanceCommandMode BalanceCommandSpec{..} = (defCommandMode $ bcname : bcaliases
  }
  where
    defType :: BalanceType -> String
-   defType bt | bt == bctype = " (default)"
+   defType bt | bt == cbctype = " (default)"
               | otherwise    = ""
 
 -- | Generate a runnable command from a compound balance command specification.
-balanceCommand :: BalanceCommandSpec -> (CliOpts -> Journal -> IO ())
-balanceCommand BalanceCommandSpec{..} CliOpts{command_=cmd, reportopts_=ropts, rawopts_=rawopts} j = do
+compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> IO ())
+compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, reportopts_=ropts, rawopts_=rawopts} j = do
     d <- getCurrentDay
     let
       -- use the default balance type for this report, unless the user overrides  
@@ -82,9 +86,9 @@ balanceCommand BalanceCommandSpec{..} CliOpts{command_=cmd, reportopts_=ropts, r
           "cumulative":_ -> Just CumulativeChange
           "change":_     -> Just PeriodChange
           _              -> Nothing
-      balancetype = fromMaybe bctype mBalanceTypeOverride
+      balancetype = fromMaybe cbctype mBalanceTypeOverride
       -- when user overrides, add an indication to the report title
-      title = bctitle ++ maybe "" (' ':) mtitleclarification
+      title = cbctitle ++ maybe "" (' ':) mtitleclarification
         where
           mtitleclarification = flip fmap mBalanceTypeOverride $ \t ->
             case t of
@@ -106,9 +110,9 @@ balanceCommand BalanceCommandSpec{..} CliOpts{command_=cmd, reportopts_=ropts, r
 
     case interval_ ropts' of
 
+      -- single-column report
       NoInterval -> do
-        -- single-column report
-        let (subreportstr, total) = foldMap (uncurry (balanceCommandSingleColumnReport ropts' userq j)) bcqueries
+        let (subreportstr, total) = foldMap (uncurry (compoundBalanceCommandSingleColumnReport ropts' userq j)) cbcqueries
         putStrLn $ title ++ "\n"
         mapM_ putStrLn subreportstr
         unless (no_total_ ropts' || cmd=="cashflow") . mapM_ putStrLn $ -- TODO temp
@@ -120,28 +124,31 @@ balanceCommand BalanceCommandSpec{..} CliOpts{command_=cmd, reportopts_=ropts, r
           showamt | color_ ropts' = cshowMixedAmountWithoutPrice
                   | otherwise    = showMixedAmountWithoutPrice
           
+      -- multi-column report
       _ -> do
-        -- multi-column report
         let
-          (subreporttables, subreporttotals, Sum overalltotal) = foldMap (uncurry (balanceCommandMultiColumnReports ropts' userq j)) bcqueries
+          (subreporttables, subreporttotals, Sum overalltotal) = foldMap (uncurry (compoundBalanceCommandMultiColumnReports ropts' userq j)) cbcqueries
           overalltable = case subreporttables of
             t1:ts -> foldl' concatTables t1 ts
             []    -> T.empty
           overalltable'
-            | no_total_ ropts' || length bcqueries == 1 =
+            | no_total_ ropts' || length cbcqueries == 1 =
                 overalltable
             | otherwise =
                 overalltable
                 +====+
-                row "Total"
-                    (overalltotals ++ (if row_total_ ropts' && not (null overalltotals) then [overalltotal]   else [])
-                                   ++ (if average_ ropts'   && not (null overalltotals) then [overallaverage] else [])
-                    )
+                row "Total" overalltotals'
               where
                 overalltotals = case subreporttotals of
                   a1:as -> foldl' (zipWith (+)) a1 as
                   []    -> []
-                overallaverage = overalltotal `divideMixedAmount` fromIntegral (length overalltotals)
+                overalltotals'
+                  | null overalltotals = []
+                  | otherwise =  overalltotals
+                                 ++ (if row_total_ ropts' then [overalltotal]   else [])
+                                 ++ (if average_ ropts'   then [overallaverage] else [])
+                    where
+                      overallaverage = overalltotal `divideMixedAmount` fromIntegral (length overalltotals)
         putStrLn title
         putStrLn $ renderBalanceReportTable ropts' overalltable'
 
@@ -152,14 +159,14 @@ concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
 -- | Run one subreport for a single-column compound balance command.
 -- Currently this returns the plain text rendering of the subreport,
 -- and its total.
-balanceCommandSingleColumnReport
+compoundBalanceCommandSingleColumnReport
     :: ReportOpts
     -> Query
     -> Journal
     -> String
     -> (Journal -> Query)
     -> ([String], Sum MixedAmount)
-balanceCommandSingleColumnReport ropts q0 j t q = ([view], Sum amt)
+compoundBalanceCommandSingleColumnReport ropts q0 j t q = ([view], Sum amt)
     where
       q' = And [q0, q j]
       rep@(_ , amt)
@@ -176,14 +183,14 @@ balanceCommandSingleColumnReport ropts q0 j t q = ([view], Sum amt)
 -- Currently this returns a table of rendered balance amounts for each 
 -- subreport (including a totals row), the totals row for each subreport 
 -- (again, as mixedamounts), and the grand total.
-balanceCommandMultiColumnReports
+compoundBalanceCommandMultiColumnReports
     :: ReportOpts
     -> Query
     -> Journal
     -> String
     -> (Journal -> Query)
     -> ([Table String String MixedAmount], [[MixedAmount]], Sum MixedAmount)
-balanceCommandMultiColumnReports ropts q0 j t q = ([tabl], [coltotals], Sum tot)
+compoundBalanceCommandMultiColumnReports ropts q0 j t q = ([tabl], [coltotals], Sum tot)
     where
       singlesection = "Cash" `isPrefixOf` t -- TODO temp
       ropts' = ropts { no_total_ = singlesection && no_total_ ropts, empty_ = True }
