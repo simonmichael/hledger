@@ -240,6 +240,7 @@ module Hledger.Cli.Balance (
  ,balanceReportAsText
  ,balanceReportItemAsText
  ,multiBalanceReportAsText
+ ,multiBalanceReportAsCsv
  ,renderBalanceReportTable
  ,balanceReportAsTable
  ,tests_Hledger_Cli_Balance

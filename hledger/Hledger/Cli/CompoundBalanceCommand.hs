@@ -12,20 +12,21 @@ module Hledger.Cli.CompoundBalanceCommand (
  ,compoundBalanceCommand
 ) where
 
-import Control.Monad (unless)
-import Data.List (intercalate, foldl', isPrefixOf)
+import Data.List (intercalate, foldl')
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Sum(..), (<>))
 import System.Console.CmdArgs.Explicit as C
+import Text.CSV
 import Text.Tabular as T
 
 import Hledger
 import Hledger.Cli.Balance
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Utils (writeOutput)
 
 -- | Description of a compound balance report command, 
 -- from which we generate the command's cmdargs mode and IO action.
--- A compound balance report shows one or more sections/subreports, 
+-- A compound balance report command shows one or more sections/subreports, 
 -- each with its own title and subtotals row, in a certain order, 
 -- plus a grand totals row if there's more than one section.
 -- Examples are the balancesheet, cashflow and incomestatement commands.
@@ -64,6 +65,8 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} = (defCommandMode $ cb
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
      ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode when displaying tables"
+     ,outputFormatFlag
+     ,outputFileFlag
      ]
     ,groupHidden = []
     ,groupNamed = [generalflagsgroup1]
@@ -76,7 +79,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} = (defCommandMode $ cb
 
 -- | Generate a runnable command from a compound balance command specification.
 compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> IO ())
-compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, reportopts_=ropts, rawopts_=rawopts} j = do
+compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{command_=cmd, reportopts_=ropts, rawopts_=rawopts} j = do
     d <- getCurrentDay
     let
       -- use the default balance type for this report, unless the user overrides  
@@ -109,68 +112,70 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} CliOpts{command_=cmd, repo
         | otherwise
             = ropts{balancetype_=balancetype}
       userq = queryFromOpts d ropts'
+      format = outputFormatFromOpts opts
 
     case interval_ ropts' of
 
       -- single-column report
+      -- TODO refactor, support output format like multi column 
       NoInterval -> do
         let
           -- concatenate the rendering and sum the totals from each subreport
           (subreportstr, total) = 
             foldMap (uncurry (compoundBalanceCommandSingleColumnReport ropts' userq j)) cbcqueries
-        putStrLn $ title ++ "\n"
-        mapM_ putStrLn subreportstr
-        unless (no_total_ ropts' || cmd=="cashflow") . mapM_ putStrLn $
-          [ "Total:"
-          , "--------------------"
-          , padLeftWide 20 $ showamt (getSum total)
-          , ""
-          ]
-        where
-          showamt | color_ ropts' = cshowMixedAmountWithoutPrice
-                  | otherwise    = showMixedAmountWithoutPrice
-          
+
+        writeOutput opts $ unlines $
+          [title ++ "\n"] ++
+          subreportstr ++
+          if (no_total_ ropts' || cmd=="cashflow")
+           then []
+           else
+             [ "Total:"
+             , "--------------------"
+             , padLeftWide 20 $ showamt (getSum total)
+             , ""
+             ]
+             where
+               showamt | color_ ropts' = cshowMixedAmountWithoutPrice
+                       | otherwise    = showMixedAmountWithoutPrice
+
       -- multi-column report
       _ -> do
         let
-          -- list the tables, list the totals rows, and sum the totals from each subreport
-          (subreporttables, subreporttotals, Sum overalltotal) = 
-            foldMap (uncurry (compoundBalanceCommandMultiColumnReport ropts' userq j)) cbcqueries
-          overalltable = case subreporttables of
-            t1:ts -> foldl' concatTables t1 ts
-            []    -> T.empty
-          overalltable'
-            | no_total_ ropts' || length cbcqueries == 1 =
-                overalltable
-            | otherwise =
-                overalltable
-                +====+
-                row "Total" overalltotals'
-              where
-                overalltotals = case subreporttotals of
-                  [] -> []
-                  ts ->
-                    -- Sum the subtotals in each column.
-                    -- A subreport might be empty and have no subtotals, count those as zeros (#588).
-                    -- Short subtotals rows are also implicitly padded with zeros, though that is not expected to happen.  
-                    let
-                      numcols = maximum $ map length ts
-                      zeros = replicate numcols nullmixedamt
-                      ts' = [take numcols $ as ++ repeat nullmixedamt | as <- ts]
-                    in foldl' (zipWith (+)) zeros ts'
-                -- add values for the total/average columns if enabled
-                overalltotals'
-                  | null overalltotals = []
-                  | otherwise =
-                      overalltotals
-                      ++ (if row_total_ ropts' then [overalltotal]   else [])
-                      ++ (if average_ ropts'   then [overallaverage] else [])
-                      where
-                        overallaverage = 
-                          overalltotal `divideMixedAmount` fromIntegral (length overalltotals) -- depends on non-null overalltotals
-        putStrLn $ title ++ "\n"
-        putStr $ renderBalanceReportTable ropts' overalltable'
+          -- make a CompoundBalanceReport
+          namedsubreports = 
+            map (\(subreporttitle, subreportq) -> 
+                  (subreporttitle, compoundBalanceSubreport ropts' userq j subreportq)) 
+                cbcqueries
+          subtotalrows = [coltotals | MultiBalanceReport (_,_,(coltotals,_,_)) <- map snd namedsubreports]
+          overalltotals = case subtotalrows of
+            [] -> ([], nullmixedamt, nullmixedamt)
+            rs ->
+              -- Sum the subtotals in each column.
+              -- A subreport might be empty and have no subtotals, count those as zeros (#588).
+              -- Short subtotals rows are also implicitly padded with zeros, though that is not expected to happen.  
+              let
+                numcols = maximum $ map length rs  -- depends on non-null ts
+                zeros = replicate numcols nullmixedamt
+                rs' = [take numcols $ as ++ repeat nullmixedamt | as <- rs]
+                coltotals = foldl' (zipWith (+)) zeros rs'
+                grandtotal = sum coltotals
+                grandavg | null coltotals = nullmixedamt
+                         | otherwise      = grandtotal `divideMixedAmount` fromIntegral (length coltotals)
+              in 
+                (coltotals, grandtotal, grandavg)
+          cbr =
+            (title
+            ,namedsubreports
+            ,overalltotals 
+            )
+        -- render appropriately
+        writeOutput opts $
+          case format of
+            "csv" -> printCSV (compoundBalanceReportAsCsv ropts cbr) ++ "\n"
+            _     -> compoundBalanceReportAsText ropts' cbr
 
+-- | Render a multi-column balance report as plain text suitable for console output.
 -- Add the second table below the first, discarding its column headings.
 concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
     Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
@@ -197,37 +202,141 @@ compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportq
       | otherwise                                                       = balanceReport       ropts q j
     subreportstr = intercalate "\n" [subreporttitle <> ":", balanceReportAsText ropts r]
 
+-- | A compound balance report has:
+--
+-- * an overall title
+--
+-- * one or more named multi balance reports, with the same column headings
+--
+-- * a list of overall totals for each column, and their grand total and average
+--
+-- It is used in compound balance report commands like balancesheet, 
+-- cashflow and incomestatement.
+type CompoundBalanceReport = 
+  ( String
+  , [(String, MultiBalanceReport)]
+  , ([MixedAmount], MixedAmount, MixedAmount)
+  )
+
 -- | Run one subreport for a compound balance command in multi-column mode.
--- Currently this returns a table of rendered balance amounts, including the
--- totals row; the totals row again, as mixedamounts; and the grand total.
--- The first two are wrapped in a list and the third in a Sum, for easy
--- monoidal combining.
-compoundBalanceCommandMultiColumnReport
-    :: ReportOpts
-    -> Query
-    -> Journal
-    -> String
-    -> (Journal -> Query)
-    -> ([Table String String MixedAmount], [[MixedAmount]], Sum MixedAmount)
-compoundBalanceCommandMultiColumnReport ropts userq j subreporttitle subreportqfn =
-  ([tabl], [coltotals], Sum tot)
+-- This returns a MultiBalanceReport.
+compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> (Journal -> Query) -> MultiBalanceReport
+compoundBalanceSubreport ropts userq j subreportqfn = r'
   where
-    -- disable totals row if there's just one section and --no-total
-    -- force --empty to ensure same columns in all sections, or something
-    ropts' = ropts { no_total_ = singlesection && no_total_ ropts, empty_ = True }
-      where
-        singlesection = "Cash" `isPrefixOf` subreporttitle -- TODO temp
+    -- force --empty to ensure same columns in all sections
+    ropts' = ropts { empty_ = True }
     -- run the report
     q = And [subreportqfn j, userq]
-    MultiBalanceReport (dates, rows, (coltotals,tot,avg)) = multiBalanceReport ropts' q j
+    r@(MultiBalanceReport (dates, rows, totals)) = multiBalanceReport ropts' q j
     -- if user didn't specify --empty, now remove the all-zero rows
-    r = MultiBalanceReport (dates, rows', (coltotals, tot, avg))
-      where
-        rows' | empty_ ropts = rows
-              | otherwise    = filter (not . emptyRow) rows
+    r' | empty_ ropts = r
+       | otherwise    = MultiBalanceReport (dates, rows', totals) 
           where
-            emptyRow (_,_,_,amts,_,_) = all isZeroMixedAmount amts
-    -- convert to a table for rendering
-    Table lefthdrs tophdrs cells = balanceReportAsTable ropts' r
-    -- tweak the table layout
-    tabl = Table (T.Group SingleLine [Header subreporttitle, lefthdrs]) tophdrs ([]:cells)
+            rows' = filter (not . emptyRow) rows
+              where
+                emptyRow (_,_,_,amts,_,_) = all isZeroMixedAmount amts
+
+-- | Render a compound balance report as plain text suitable for console output.
+{- Eg:
+Balance Sheet
+
+             ||  2017/12/31    Total  Average 
+=============++===============================
+ Assets      ||                               
+-------------++-------------------------------
+ assets:b    ||           1        1        1 
+-------------++-------------------------------
+             ||           1        1        1 
+=============++===============================
+ Liabilities ||                               
+-------------++-------------------------------
+-------------++-------------------------------
+             ||                               
+=============++===============================
+ Total       ||           1        1        1 
+
+-}
+compoundBalanceReportAsText :: ReportOpts -> CompoundBalanceReport -> String
+compoundBalanceReportAsText ropts (title, subreports, (coltotals, grandtotal, grandavg)) =
+  title ++ "\n\n" ++ 
+  renderBalanceReportTable ropts bigtable'
+  where
+    singlesubreport = length subreports == 1
+    bigtable = 
+      case map (subreportAsTable ropts singlesubreport) subreports of
+        []   -> T.empty
+        r:rs -> foldl' concatTables r rs
+    bigtable'
+      | no_total_ ropts || singlesubreport = 
+          bigtable
+      | otherwise =
+          bigtable
+          +====+
+          row "Total" (
+            coltotals
+            ++ (if row_total_ ropts then [grandtotal] else [])
+            ++ (if average_ ropts   then [grandavg]   else [])
+            )
+
+    -- | Convert a named multi balance report to a table suitable for
+    -- concatenating with others to make a compound balance report table.
+    subreportAsTable ropts singlesubreport (title, r) = t
+      where
+        -- unless there's only one section, always show the subtotal row
+        ropts' | singlesubreport = ropts
+               | otherwise       = ropts{ no_total_=False }
+        -- convert to table
+        Table lefthdrs tophdrs cells = balanceReportAsTable ropts' r
+        -- tweak the layout
+        t = Table (T.Group SingleLine [Header title, lefthdrs]) tophdrs ([]:cells)
+
+-- | Render a compound balance report as CSV.
+{- Eg: 
+ghci> :main -f examples/sample.journal bs -Y -O csv -AT
+"Balance Sheet","","","","",""
+"Assets","","","","",""
+"account","short account","indent","2008","total","average"
+"assets:bank:saving","saving","3","$1","$1","$1"
+"assets:cash","cash","2","$-2","$-2","$-2"
+"totals","","","$-1","$-1","$-1"
+"Liabilities","","","","",""
+"account","short account","indent","2008","total","average"
+"liabilities:debts","debts","2","$1","$1","$1"
+"totals","","","$1","$1","$1"
+"Total","0","0","0"
+-}
+compoundBalanceReportAsCsv :: ReportOpts -> CompoundBalanceReport -> CSV
+compoundBalanceReportAsCsv ropts (title, subreports, (coltotals, grandtotal, grandavg)) =
+  addtotals $
+  padRow title :
+  concatMap (subreportAsCsv ropts singlesubreport) subreports
+  where
+    singlesubreport = length subreports == 1
+    subreportAsCsv ropts singlesubreport (subreporttitle, multibalreport) =
+      padRow subreporttitle :
+      multiBalanceReportAsCsv ropts' multibalreport
+      where
+        -- unless there's only one section, always show the subtotal row
+        ropts' | singlesubreport = ropts
+               | otherwise       = ropts{ no_total_=False }
+    padRow s = take numcols $ s : repeat ""
+      where
+        numcols
+          | null subreports = 1
+          | otherwise =
+            (3 +) $ -- account name & indent columns
+            (if row_total_ ropts then (1+) else id) $
+            (if average_ ropts then (1+) else id) $
+            maximum $ -- depends on non-null subreports
+            map (\(MultiBalanceReport (amtcolheadings, _, _)) -> length amtcolheadings) $ 
+            map snd subreports
+    addtotals
+      | no_total_ ropts || length subreports == 1 = id
+      | otherwise = (++ 
+          ["Total" :
+           map showMixedAmountOneLineWithoutPrice (
+             coltotals
+             ++ (if row_total_ ropts then [grandtotal] else [])
+             ++ (if average_ ropts   then [grandavg]   else [])
+             )
+          ])

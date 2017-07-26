@@ -36,7 +36,7 @@ import Hledger.Reports.BalanceReport
 --
 -- 1. a list of each column's period (date span)
 --
--- 2. a list of row items, each containing:
+-- 2. a list of rows, each containing:
 --
 --   * the full account name
 --
@@ -44,7 +44,7 @@ import Hledger.Reports.BalanceReport
 --
 --   * the account's depth
 --
---   * the amounts to show in each column
+--   * a list of amounts, one for each column
 --
 --   * the total of the row's amounts
 --
