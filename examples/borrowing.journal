@@ -1,0 +1,47 @@
+; some simple borrowing and lending transactions
+
+; money to be repaid to others is a liability, usually called "accounts payable"
+
+1/1 borrow from alice
+  assets:cash                 10
+  liabilities:payable:alice  -10
+
+1/2 repay alice
+  assets:cash                -10
+  liabilities:payable:alice   10 = 0 ; optional balance assertion showing alice is fully repaid
+
+; money to be repaid to you is an asset, usually called "accounts receivable"
+
+1/3 lend to bob
+  assets:cash                        ; omitting the second amount this time
+  assets:receivable:bob       25
+
+1/4 receive repayment from bob
+  assets:cash
+  assets:receivable:bob      -25 = 0 ; balance assertion showing no more money is due from bob
+
+; a loan with interest and late fees
+
+2/1 assume some money in checking at the start
+  (assets:bank:checking)       30
+
+2/1 borrow from bank
+  liabilities:payable:bank
+  assets:bank:checking       1000
+
+3/1 a bank repayment
+  liabilities:payable:bank    97 = -903
+  expenses:interest:bank       3    
+  assets:bank:checking      -100
+
+4/15 a bank repayment, late
+  liabilities:payable:bank    97 = -806
+  expenses:interest:bank       3    
+  assets:bank:checking      -100
+
+5/1 repay bank in full
+  liabilities:payable:bank   806 = 0
+  expenses:interest:bank       3    
+  expenses:late fees:bank     15
+  assets:bank:checking
+
