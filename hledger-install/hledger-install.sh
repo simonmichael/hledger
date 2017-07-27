@@ -39,7 +39,7 @@ HERE
 
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
-HLEDGER_INSTALL_VERSION=20170725
+HLEDGER_INSTALL_VERSION=20170727
 RESOLVER="--resolver=lts-8"
   # ^ lts-8 selects the latest lts-8.x snapshot for stack. You can specify another, 
   # or comment out this line to use your current global resolver, which might 
@@ -47,7 +47,7 @@ RESOLVER="--resolver=lts-8"
   # hledger install commands below. OSX Sierra+ requires at least lts-8.0+. 
 HLEDGER_VERSION=1.3
 HLEDGER_DIFF_VERSION=0.2.0.10
-HLEDGER_IADD_VERSION=1.2.2
+HLEDGER_IADD_VERSION=1.2.3
 HLEDGER_INTEREST_VERSION=1.5.1
 HLEDGER_IRR_VERSION=0.1.1.11
 HLEDGER_MAIN_TOOLS="\
@@ -877,8 +877,9 @@ if [[ $(cmd_version hledger) < $HLEDGER_VERSION ]]; then
 fi
 if [[ $(cmd_version hledger-ui) < $HLEDGER_VERSION ]]; then 
   echo Installing hledger-ui
-  try_install hledger-ui-$HLEDGER_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_VERSION brick-0.19 data-clist-0.1.2.0
-    # ^ use the same newer version of brick that hledger-iadd requires to avoid rebuilding
+  try_install hledger-ui-$HLEDGER_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_VERSION
+    # brick-0.19 data-clist-0.1.2.0
+    # ^ when hledger-iadd requires a non-stack brick, use the same version here to avoid rebuilding
   echo
 fi
 if [[ $(cmd_version hledger-web) < $HLEDGER_VERSION ]]; then 
@@ -898,7 +899,7 @@ if [[ $(cmd_version hledger-diff) < $HLEDGER_DIFF_VERSION ]]; then
 fi
 if [[ $(cmd_version hledger-iadd) < $HLEDGER_IADD_VERSION ]]; then 
   echo Installing hledger-iadd
-  try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_VERSION brick-0.19 data-clist-0.1.2.0
+  try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-interest) < $HLEDGER_INTEREST_VERSION ]]; then 
