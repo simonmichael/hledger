@@ -502,7 +502,7 @@ renderBalanceReportTable (ReportOpts { pretty_tables_ = pretty, color_=usecolor 
   . addtrailingblank
   . trimborder 
   . lines
-  . render pretty id (" " ++) showamt
+  . render pretty id id showamt
   . align
   where
     addtrailingblank = (++[""])

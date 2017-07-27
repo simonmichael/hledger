@@ -70,7 +70,7 @@ renderColumns pretty is h = leftBar pretty ++ coreLine ++ rightBar pretty
   coreLine = concatMap helper $ flattenHeader $ zipHeader 0 is h
   helper = either hsep (uncurry padLeftWide)
   hsep :: Properties -> String
-  hsep NoLine     = " "
+  hsep NoLine     = "  "
   hsep SingleLine = midBar pretty
   hsep DoubleLine = doubleMidBar pretty
 
@@ -98,7 +98,7 @@ renderHLine' pretty prop is sep h = [ cross pretty, sep ] ++ coreLine ++ [sep, c
   coreLine        = concatMap helper $ flattenHeader $ zipHeader 0 is h
   helper          = either vsep dashes
   dashes (i,_)    = replicate i sep
-  vsep NoLine     = [sep]
+  vsep NoLine     = replicate 2 sep  -- match the double space sep in renderColumns 
   vsep SingleLine = sep : cross pretty : [sep]
   vsep DoubleLine = sep : cross' ++ [sep]
   cross' = case prop of
