@@ -60,7 +60,7 @@ import           Data.Maybe (fromMaybe)
 import           Data.Text (Text)
 import qualified Data.Text as T
 import           Test.HUnit
-import           Text.Megaparsec hiding (parse)
+import           Text.Megaparsec.Compat hiding (parse)
 
 import           Hledger.Data
 -- XXX too much reuse ?
@@ -105,7 +105,7 @@ timeclockfilep = do many timeclockitemp
                           ] <?> "timeclock entry, or default year or historical price directive"
 
 -- | Parse a timeclock entry.
-timeclockentryp :: JournalStateParser m TimeclockEntry
+timeclockentryp :: JournalParser m TimeclockEntry
 timeclockentryp = do
   sourcepos <- genericSourcePos <$> lift getPosition
   code <- oneOf ("bhioO" :: [Char])

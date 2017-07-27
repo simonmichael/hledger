@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.17.0.
+-- This file has been generated from package.yaml by hpack version 0.17.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -159,7 +159,7 @@ library
     , yesod-form
     , yesod-static
     , json
-    , megaparsec >=5.0 && < 5.4
+    , megaparsec >=5.0 && < 6.1
     , mtl
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT

@@ -3,7 +3,7 @@ A history-aware add command to help with data entry.
 |-}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
-{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings #-}
 
 module Hledger.Cli.Add
 where
@@ -16,6 +16,7 @@ import Control.Monad.Trans.Class
 import Control.Monad.State.Strict (evalState, evalStateT)
 import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper, toLower)
+import Data.Functor.Identity (Identity(..))
 import Data.List.Compat
 import qualified Data.Set as S
 import Data.Maybe
@@ -30,8 +31,7 @@ import System.Console.Haskeline.Completion
 import System.Console.Wizard
 import System.Console.Wizard.Haskeline
 import System.IO ( stderr, hPutStr, hPutStrLn )
-import Text.Megaparsec
-import Text.Megaparsec.Text
+import Text.Megaparsec.Compat
 import Text.Printf
 
 import Hledger
@@ -187,7 +187,7 @@ dateAndCodeWizard EntryState{..} = do
       parseSmartDateAndCode refdate s = either (const Nothing) (\(d,c) -> return (fixSmartDate refdate d, c)) edc
           where
             edc = runParser (dateandcodep <* eof) "" $ T.pack $ lowercase s
-            dateandcodep :: Parser (SmartDate, Text)
+            dateandcodep :: SimpleTextParser (SmartDate, Text)
             dateandcodep = do
                 d <- smartdate
                 c <- optional codep
@@ -285,7 +285,7 @@ amountAndCommentWizard EntryState{..} = do
                                   ""
                                   (T.pack s)
       nodefcommodityj = esJournal{jparsedefaultcommodity=Nothing}
-      amountandcommentp :: JournalParser (Amount, Text)
+      amountandcommentp :: JournalParser Identity (Amount, Text)
       amountandcommentp = do
         a <- amountp
         lift (many spacenonewline)
