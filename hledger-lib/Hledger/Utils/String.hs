@@ -49,7 +49,7 @@ module Hledger.Utils.String (
 
 import Data.Char
 import Data.List
-import Text.Megaparsec
+import Text.Megaparsec.Compat
 import Text.Printf (printf)
 
 import Hledger.Utils.Parse

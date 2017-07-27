@@ -38,7 +38,6 @@ import Data.Char (toLower, isDigit, isSpace)
 import Data.List.Compat
 import Data.Maybe
 import Data.Ord
-import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -54,8 +53,7 @@ import System.Directory (doesFileExist)
 import System.FilePath
 import Test.HUnit hiding (State)
 import Text.CSV (parseCSV, CSV)
-import Text.Megaparsec hiding (parse, State)
-import Text.Megaparsec.Text
+import Text.Megaparsec.Compat hiding (parse)
 import qualified Text.Parsec as Parsec
 import Text.Printf (printf)
 
@@ -133,13 +131,15 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   let 
     -- convert CSV records to transactions
     txns = snd $ mapAccumL
-                     (\pos r -> (pos,
-                                 transactionFromCsvRecord
-                                   (let SourcePos name line col =  pos in
-                                    SourcePos name (unsafePos $ unPos line + 1) col)
-                                   rules
-                                    r))
-                     (initialPos parsecfilename) records
+                   (\pos r -> 
+                      let
+                        SourcePos name line col = pos
+                        line' = (mpMkPos . (+1) . mpUnPos) line
+                        pos' = SourcePos name line' col
+                      in
+                        (pos, transactionFromCsvRecord pos' rules r)
+                   )
+                   (initialPos parsecfilename) records
 
     -- Ensure transactions are ordered chronologically.
     -- First, reverse them to get same-date transactions ordered chronologically,
@@ -312,7 +312,7 @@ data CsvRules = CsvRules {
   rconditionalblocks :: [ConditionalBlock]
 } deriving (Show, Eq)
 
-type CsvRulesParser a = StateT CsvRules Parser a
+type CsvRulesParser a = StateT CsvRules SimpleTextParser a
 
 type DirectiveName    = String
 type CsvFieldName     = String
@@ -390,14 +390,11 @@ parseAndValidateCsvRules rulesfile s = do
     Right r -> do
                r_ <- liftIO $ runExceptT $ validateRules r
                ExceptT $ case r_ of
-                 Left e -> return $ Left $ parseErrorPretty $ toParseError e
+                 Left  s -> return $ Left $ parseErrorPretty $ mpMkParseError rulesfile s
                  Right r -> return $ Right r
-  where
-    toParseError :: forall s. Ord s => s -> ParseError Char s
-    toParseError s = (mempty :: ParseError Char s) { errorCustom = S.singleton s}
 
 -- | Parse this text as CSV conversion rules. The file path is for error messages.
-parseCsvRules :: FilePath -> T.Text -> Either (ParseError Char Dec) CsvRules
+parseCsvRules :: FilePath -> T.Text -> Either (ParseError Char MPErr) CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
 parseCsvRules rulesfile s =
   runParser (evalStateT rulesp rules) rulesfile s
@@ -449,10 +446,10 @@ commentcharp = oneOf (";#*" :: [Char])
 directivep :: CsvRulesParser (DirectiveName, String)
 directivep = (do
   lift $ pdbg 3 "trying directive"
-  d <- choiceInState $ map string directives
+  d <- fmap T.unpack $ choiceInState $ map (lift . mptext . T.pack) directives
   v <- (((char ':' >> lift (many spacenonewline)) <|> lift (some spacenonewline)) >> directivevalp)
        <|> (optional (char ':') >> lift (many spacenonewline) >> lift eolof >> return "")
-  return (d,v)
+  return (d, v)
   ) <?> "directive"
 
 directives =
@@ -505,7 +502,9 @@ fieldassignmentp = do
   <?> "field assignment"
 
 journalfieldnamep :: CsvRulesParser String
-journalfieldnamep = lift (pdbg 2 "trying journalfieldnamep") >> choiceInState (map string journalfieldnames)
+journalfieldnamep = do
+  lift (pdbg 2 "trying journalfieldnamep")
+  T.unpack <$> choiceInState (map (lift . mptext . T.pack) journalfieldnames)
 
 -- Transaction fields and pseudo fields for CSV conversion. 
 -- Names must precede any other name they contain, for the parser 
@@ -565,7 +564,7 @@ recordmatcherp = do
   <?> "record matcher"
 
 matchoperatorp :: CsvRulesParser String
-matchoperatorp = choiceInState $ map string
+matchoperatorp = fmap T.unpack $ choiceInState $ map mptext
   ["~"
   -- ,"!~"
   -- ,"="

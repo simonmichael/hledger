@@ -98,8 +98,7 @@ import qualified Hledger.Utils.Parse as H
 import Options.Applicative
 import System.Exit (exitFailure)
 import System.FilePath (FilePath)
-import qualified Text.Megaparsec as P
-import qualified Text.Megaparsec.Text as P
+import qualified Text.Megaparsec.Compat as P
 
 main :: IO ()
 main = do
@@ -391,7 +390,7 @@ args = info (helper <*> parser) $ mconcat
 
     -- Turn a Parsec parser into a ReadM parser that also returns the
     -- input.
-    readParsec :: H.JournalStateParser ReadM a -> ReadM (String, a)
+    readParsec :: H.JournalParser ReadM a -> ReadM (String, a)
     readParsec p = do
       s <- str
       parsed <- P.runParserT (runStateT p H.nulljournal) "" (pack s)
@@ -418,7 +417,7 @@ data Predicate
   deriving (Eq, Ord, Show)
 
 -- | Parse a 'Predicate'.
-predicatep :: Monad m => H.JournalStateParser m Predicate
+predicatep :: Monad m => H.JournalParser m Predicate
 predicatep = wrap predparensp <|> wrap predcomparep <|> wrap prednotp where
     predparensp  = P.char '(' *> spaces *> predicatep <* spaces <* P.char ')'
     predcomparep = Compare <$> valuep <*> (spaces *> lift comparep <* spaces) <*> valuep
@@ -434,7 +433,7 @@ data Value = Account H.AccountName | AccountNested H.AccountName | Amount H.Amou
   deriving (Eq, Ord, Show)
 
 -- | Parse a 'Value'.
-valuep :: Monad m => H.JournalStateParser m Value
+valuep :: Monad m => H.JournalParser m Value
 -- Account name parser has to come last because they eat everything.
 valuep = valueamountp <|> valueaccountnestedp <|> valueaccountp where
     valueamountp  = Amount  <$> H.amountp

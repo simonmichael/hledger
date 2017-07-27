@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.17.0.
+-- This file has been generated from package.yaml by hpack version 0.17.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -72,7 +72,7 @@ library
     , directory
     , filepath
     , hashtables >= 1.2
-    , megaparsec >=5.0 && < 5.4
+    , megaparsec >=5.0 && < 6.1
     , mtl
     , mtl-compat
     , old-time
@@ -141,6 +141,7 @@ library
       Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
+      Text.Megaparsec.Compat
   other-modules:
       Paths_hledger_lib
   default-language: Haskell2010
@@ -168,7 +169,7 @@ test-suite doctests
     , directory
     , filepath
     , hashtables >= 1.2
-    , megaparsec >=5.0 && < 5.4
+    , megaparsec >=5.0 && < 6.1
     , mtl
     , mtl-compat
     , old-time
@@ -230,6 +231,7 @@ test-suite doctests
       Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
+      Text.Megaparsec.Compat
   default-language: Haskell2010
 
 test-suite hunittests
@@ -255,7 +257,7 @@ test-suite hunittests
     , directory
     , filepath
     , hashtables >= 1.2
-    , megaparsec >=5.0 && < 5.4
+    , megaparsec >=5.0 && < 6.1
     , mtl
     , mtl-compat
     , old-time
@@ -326,4 +328,5 @@ test-suite hunittests
       Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
+      Text.Megaparsec.Compat
   default-language: Haskell2010

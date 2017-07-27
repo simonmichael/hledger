@@ -90,7 +90,7 @@ import Test.HUnit
 import Test.Framework
 import Text.Megaparsec.Error
 #endif
-import Text.Megaparsec hiding (parse)
+import Text.Megaparsec.Compat hiding (parse)
 import Text.Printf
 import System.FilePath
 
@@ -187,7 +187,7 @@ includedirectivep = do
       let curdir = takeDirectory (sourceName parentpos)
       filepath <- expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
       txt      <- readFileAnyLineEnding filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
-      (ej1::Either (ParseError Char Dec) ParsedJournal) <-
+      (ej1::Either (ParseError Char MPErr) ParsedJournal) <-
         runParserT
            (evalStateT
               (choiceInState
@@ -227,7 +227,7 @@ orRethrowIOError io msg =
     (Right <$> io)
     `C.catch` \(e::C.IOException) -> return $ Left $ printf "%s:\n%s" msg (show e)
 
-accountdirectivep :: JournalStateParser m ()
+accountdirectivep :: JournalParser m ()
 accountdirectivep = do
   string "account"
   lift (some spacenonewline)
@@ -237,7 +237,7 @@ accountdirectivep = do
   modify' (\j -> j{jaccounts = acct : jaccounts j})
 
 
-indentedlinep :: JournalStateParser m String
+indentedlinep :: JournalParser m String
 indentedlinep = lift (some spacenonewline) >> (rstrip <$> lift restofline)
 
 -- | Parse a one-line or multi-line commodity directive.
@@ -253,7 +253,7 @@ commoditydirectivep = try commoditydirectiveonelinep <|> commoditydirectivemulti
 --
 -- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00"
 -- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
-commoditydirectiveonelinep :: Monad m => JournalStateParser m ()
+commoditydirectiveonelinep :: Monad m => JournalParser m ()
 commoditydirectiveonelinep = do
   string "commodity"
   lift (some spacenonewline)
@@ -292,7 +292,7 @@ formatdirectivep expectedsym = do
     else parserErrorAt pos $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 
-applyaccountdirectivep :: JournalStateParser m ()
+applyaccountdirectivep :: JournalParser m ()
 applyaccountdirectivep = do
   string "apply" >> lift (some spacenonewline) >> string "account"
   lift (some spacenonewline)
@@ -300,12 +300,12 @@ applyaccountdirectivep = do
   newline
   pushParentAccount parent
 
-endapplyaccountdirectivep :: JournalStateParser m ()
+endapplyaccountdirectivep :: JournalParser m ()
 endapplyaccountdirectivep = do
   string "end" >> lift (some spacenonewline) >> string "apply" >> lift (some spacenonewline) >> string "account"
   popParentAccount
 
-aliasdirectivep :: JournalStateParser m ()
+aliasdirectivep :: JournalParser m ()
 aliasdirectivep = do
   string "alias"
   lift (some spacenonewline)
@@ -336,12 +336,12 @@ regexaliasp = do
   repl <- rstrip <$> anyChar `manyTill` eolof
   return $ RegexAlias re repl
 
-endaliasesdirectivep :: JournalStateParser m ()
+endaliasesdirectivep :: JournalParser m ()
 endaliasesdirectivep = do
   string "end aliases"
   clearAccountAliases
 
-tagdirectivep :: JournalStateParser m ()
+tagdirectivep :: JournalParser m ()
 tagdirectivep = do
   string "tag" <?> "tag directive"
   lift (some spacenonewline)
@@ -349,13 +349,13 @@ tagdirectivep = do
   lift restofline
   return ()
 
-endtagdirectivep :: JournalStateParser m ()
+endtagdirectivep :: JournalParser m ()
 endtagdirectivep = do
   (string "end tag" <|> string "pop") <?> "end tag or pop directive"
   lift restofline
   return ()
 
-defaultyeardirectivep :: JournalStateParser m ()
+defaultyeardirectivep :: JournalParser m ()
 defaultyeardirectivep = do
   char 'Y' <?> "default year"
   lift (many spacenonewline)
@@ -364,7 +364,7 @@ defaultyeardirectivep = do
   failIfInvalidYear y
   setYear y'
 
-defaultcommoditydirectivep :: Monad m => JournalStateParser m ()
+defaultcommoditydirectivep :: Monad m => JournalParser m ()
 defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
   lift (some spacenonewline)
@@ -372,7 +372,7 @@ defaultcommoditydirectivep = do
   lift restofline
   setDefaultCommodityAndStyle (acommodity, astyle)
 
-marketpricedirectivep :: Monad m => JournalStateParser m MarketPrice
+marketpricedirectivep :: Monad m => JournalParser m MarketPrice
 marketpricedirectivep = do
   char 'P' <?> "market price"
   lift (many spacenonewline)
@@ -384,7 +384,7 @@ marketpricedirectivep = do
   lift restofline
   return $ MarketPrice date symbol price
 
-ignoredpricecommoditydirectivep :: JournalStateParser m ()
+ignoredpricecommoditydirectivep :: JournalParser m ()
 ignoredpricecommoditydirectivep = do
   char 'N' <?> "ignored-price commodity"
   lift (some spacenonewline)
@@ -392,7 +392,7 @@ ignoredpricecommoditydirectivep = do
   lift restofline
   return ()
 
-commodityconversiondirectivep :: Monad m => JournalStateParser m ()
+commodityconversiondirectivep :: Monad m => JournalParser m ()
 commodityconversiondirectivep = do
   char 'C' <?> "commodity conversion"
   lift (some spacenonewline)

@@ -19,9 +19,9 @@ import Numeric
 import Data.Char (isPrint)
 import Data.Maybe
 import Test.HUnit
-import Text.Megaparsec
-import Text.Megaparsec.String
+import Text.Megaparsec.Compat
 
+import Hledger.Utils.Parse
 import Hledger.Utils.String (formatString)
 
 -- | A format specification/template to use when rendering a report line item as text.
@@ -86,7 +86,7 @@ parseStringFormat input = case (runParser (stringformatp <* eof) "(unknown)") in
 
 defaultStringFormatStyle = BottomAligned
 
-stringformatp :: Parser StringFormat
+stringformatp :: SimpleStringParser StringFormat
 stringformatp = do
   alignspec <- optional (try $ char '%' >> oneOf "^_,")
   let constructor =
@@ -97,10 +97,10 @@ stringformatp = do
           _        -> defaultStringFormatStyle
   constructor <$> many componentp
 
-componentp :: Parser StringFormatComponent
+componentp :: SimpleStringParser StringFormatComponent
 componentp = formatliteralp <|> formatfieldp
 
-formatliteralp :: Parser StringFormatComponent
+formatliteralp :: SimpleStringParser StringFormatComponent
 formatliteralp = do
     s <- some c
     return $ FormatLiteral s
@@ -109,7 +109,7 @@ formatliteralp = do
       c =     (satisfy isPrintableButNotPercentage <?> "printable character")
           <|> try (string "%%" >> return '%')
 
-formatfieldp :: Parser StringFormatComponent
+formatfieldp :: SimpleStringParser StringFormatComponent
 formatfieldp = do
     char '%'
     leftJustified <- optional (char '-')
@@ -124,7 +124,7 @@ formatfieldp = do
         Just text -> Just m where ((m,_):_) = readDec text
         _ -> Nothing
 
-fieldp :: Parser ReportItemField
+fieldp :: SimpleStringParser ReportItemField
 fieldp = do
         try (string "account" >> return AccountField)
     <|> try (string "depth_spacer" >> return DepthSpacerField)

@@ -5,7 +5,7 @@ related utilities used by hledger commands.
 
 -}
 
-{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts, TypeFamilies #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts, TypeFamilies, OverloadedStrings #-}
 
 module Hledger.Cli.CliOptions (
 
@@ -94,7 +94,7 @@ import System.Environment
 import System.Exit (exitSuccess)
 import System.FilePath
 import Test.HUnit
-import Text.Megaparsec
+import Text.Megaparsec.Compat
 
 import Hledger
 import Hledger.Cli.DocFiles
@@ -549,7 +549,7 @@ rulesFilePathFromOpts opts = do
 widthFromOpts :: CliOpts -> Int
 widthFromOpts CliOpts{width_=Nothing, available_width_=w} = w
 widthFromOpts CliOpts{width_=Just s}  =
-    case runParser (read `fmap` some digitChar <* eof :: ParsecT Dec String Identity Int) "(unknown)" s of
+    case runParser (read `fmap` some digitChar <* eof :: ParsecT MPErr String Identity Int) "(unknown)" s of
         Left e   -> usageError $ "could not parse width option: "++show e
         Right w  -> w
 
@@ -571,7 +571,7 @@ registerWidthsFromOpts CliOpts{width_=Just s}  =
         Left e   -> usageError $ "could not parse width option: "++show e
         Right ws -> ws
     where
-        registerwidthp :: (Stream s, Char ~ Token s) => ParsecT Dec s m (Int, Maybe Int)
+        registerwidthp :: (Stream s, Char ~ Token s) => ParsecT MPErr s m (Int, Maybe Int)
         registerwidthp = do
           totalwidth <- read `fmap` some digitChar
           descwidth <- optional (char ',' >> read `fmap` some digitChar)
@@ -665,10 +665,10 @@ isHledgerExeName :: String -> Bool
 isHledgerExeName = isRight . parsewith hledgerexenamep . T.pack
     where
       hledgerexenamep = do
-        _ <- string progname
+        _ <- mptext $ T.pack progname
         _ <- char '-'
-        _ <- some (noneOf ".")
-        optional (string "." >> choice' (map string addonExtensions))
+        _ <- some $ noneOf ['.']
+        optional (string "." >> choice' (map (mptext . T.pack) addonExtensions))
         eof
 
 stripAddonExtension :: String -> String

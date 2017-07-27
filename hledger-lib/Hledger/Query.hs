@@ -1,7 +1,7 @@
 {-|
 
 A general query system for matching things (accounts, postings,
-transactions..)  by various criteria, and a parser for query expressions.
+transactions..)  by various criteria, and a SimpleTextParser for query expressions.
 
 -}
 
@@ -55,8 +55,7 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe (readDef, headDef)
 import Test.HUnit
-import Text.Megaparsec
-import Text.Megaparsec.Text
+import Text.Megaparsec.Compat
 
 import Hledger.Utils hiding (words')
 import Hledger.Data.Types
@@ -185,23 +184,23 @@ tests_parseQuery = [
 words'' :: [T.Text] -> T.Text -> [T.Text]
 words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
     where
-      maybeprefixedquotedphrases :: Parser [T.Text]
+      maybeprefixedquotedphrases :: SimpleTextParser [T.Text]
       maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, pattern] `sepBy` some spacenonewline
-      prefixedQuotedPattern :: Parser T.Text
+      prefixedQuotedPattern :: SimpleTextParser T.Text
       prefixedQuotedPattern = do
-        not' <- fromMaybe "" `fmap` (optional $ string "not:")
-        let allowednexts | null not' = prefixes
-                         | otherwise = prefixes ++ [""]
-        next <- fmap T.pack $ choice' $ map (string . T.unpack) allowednexts
+        not' <- fromMaybe "" `fmap` (optional $ mptext "not:")
+        let allowednexts | T.null not' = prefixes
+                         | otherwise   = prefixes ++ [""]
+        next <- choice' $ map mptext allowednexts
         let prefix :: T.Text
-            prefix = T.pack not' <> next
+            prefix = not' <> next
         p <- singleQuotedPattern <|> doubleQuotedPattern
         return $ prefix <> stripquotes p
-      singleQuotedPattern :: Parser T.Text
+      singleQuotedPattern :: SimpleTextParser T.Text
       singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf ("'" :: [Char])) >>= return . stripquotes . T.pack
-      doubleQuotedPattern :: Parser T.Text
+      doubleQuotedPattern :: SimpleTextParser T.Text
       doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf ("\"" :: [Char])) >>= return . stripquotes . T.pack
-      pattern :: Parser T.Text
+      pattern :: SimpleTextParser T.Text
       pattern = fmap T.pack $ many (noneOf (" \n\r" :: [Char]))
 
 tests_words'' = [

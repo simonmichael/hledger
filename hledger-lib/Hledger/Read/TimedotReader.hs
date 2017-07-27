@@ -42,7 +42,7 @@ import Data.List (foldl')
 import Data.Maybe
 import Data.Text (Text)
 import Test.HUnit
-import Text.Megaparsec hiding (parse)
+import Text.Megaparsec.Compat hiding (parse)
 
 import Hledger.Data
 import Hledger.Read.Common
@@ -66,12 +66,12 @@ reader = Reader
 parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
 parse _ = parseAndFinaliseJournal timedotfilep
 
-timedotfilep :: JournalStateParser m ParsedJournal
+timedotfilep :: JournalParser m ParsedJournal
 timedotfilep = do many timedotfileitemp
                   eof
                   get
     where
-      timedotfileitemp :: JournalStateParser m ()
+      timedotfileitemp :: JournalParser m ()
       timedotfileitemp = do
         ptrace "timedotfileitemp"
         choice [
@@ -89,7 +89,7 @@ addTransactions ts j = foldl' (flip ($)) j (map addTransaction ts)
 -- biz.research .
 -- inc.client1  .... .... .... .... .... ....
 -- @
-timedotdayp :: JournalStateParser m [Transaction]
+timedotdayp :: JournalParser m [Transaction]
 timedotdayp = do
   ptrace " timedotdayp"
   d <- datep <* lift eolof
@@ -101,7 +101,7 @@ timedotdayp = do
 -- @
 -- fos.haskell  .... ..
 -- @
-timedotentryp :: JournalStateParser m Transaction
+timedotentryp :: JournalParser m Transaction
 timedotentryp = do
   ptrace "  timedotentryp"
   pos <- genericSourcePos <$> getPosition
@@ -125,14 +125,14 @@ timedotentryp = do
         }
   return t
 
-timedotdurationp :: JournalStateParser m Quantity
+timedotdurationp :: JournalParser m Quantity
 timedotdurationp = try timedotnumberp <|> timedotdotsp
 
 -- | Parse a duration written as a decimal number of hours (optionally followed by the letter h).
 -- @
 -- 1.5h
 -- @
-timedotnumberp :: JournalStateParser m Quantity
+timedotnumberp :: JournalParser m Quantity
 timedotnumberp = do
    (q, _, _, _) <- lift numberp
    lift (many spacenonewline)
@@ -144,7 +144,7 @@ timedotnumberp = do
 -- @
 -- .... ..
 -- @
-timedotdotsp :: JournalStateParser m Quantity
+timedotdotsp :: JournalParser m Quantity
 timedotdotsp = do
   dots <- filter (not.isSpace) <$> many (oneOf (". " :: [Char]))
   return $ (/4) $ fromIntegral $ length dots
