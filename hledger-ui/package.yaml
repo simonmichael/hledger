@@ -48,8 +48,8 @@ executables:
       -fno-warn-type-defaults
       -fno-warn-orphans
     dependencies:
-      - hledger >= 1.3
-      - hledger-lib >= 1.3
+      - hledger >= 1.3 && < 1.4
+      - hledger-lib >= 1.3 && < 1.4
       - ansi-terminal >= 0.6.2.3 && < 0.7
       - async
       - base >= 4.8 && < 5

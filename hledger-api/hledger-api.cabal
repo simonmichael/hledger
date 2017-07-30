@@ -1,4 +1,4 @@
--- This file has been generated from package.yaml by hpack version 0.17.0.
+-- This file has been generated from package.yaml by hpack version 0.17.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -46,8 +46,8 @@ executable hledger-api
   ghc-options: -threaded
   cpp-options: -DVERSION="1.3"
   build-depends:
-      hledger-lib >= 1.3
-    , hledger >= 1.3
+      hledger-lib >= 1.3 && < 1.4
+    , hledger >= 1.3 && < 1.4
     , base >=4.8 && <5
     , aeson
     , bytestring
