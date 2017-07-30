@@ -1283,34 +1283,10 @@ setversionforce:\
 	$(call def-help,setversionforce, update all version strings even if $(VERSIONFILE) seems unchanged)
 	touch $(VERSIONFILE); make setversion
 
-# XXX may need fixing:
-
-hledger-lib/package.yaml: $(VERSIONFILE) \
-	$(call def-help-hide,hledger-lib/package.yaml, update the version in this file )
-	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
-
-hledger/package.yaml: $(VERSIONFILE) \
+hledger%/package.yaml: $(VERSIONFILE) \
 	$(call def-help-hide,hledger/package.yaml, update the version in this file )
 	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
-	perl -p -e "s/(hledger(-lib)? *[>=]= *).*/\$${1}$(VERSION)/" -i $@
-	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
-
-hledger-ui/package.yaml: $(VERSIONFILE) \
-	$(call def-help-hide,hledger-ui/package.yaml, update the version in this file )
-	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
-	perl -p -e "s/(hledger(-lib|-ui)? *[>=]= *).*/\$${1}$(VERSION)/" -i $@
-	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
-
-hledger-web/package.yaml: $(VERSIONFILE) \
-	$(call def-help-hide,hledger-web/package.yaml, update the version in this file )
-	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
-	perl -p -e "s/(hledger(-lib|-web)? *[>=]= *).*/\$${1}$(VERSION)/" -i $@
-	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
-
-hledger-api/package.yaml: $(VERSIONFILE) \
-	$(call def-help-hide,hledger-api/package.yaml, update the version in this file )
-	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
-	perl -p -e "s/(hledger(-lib|-api)? *[>=]= *).*/\$${1}$(VERSION)/" -i $@
+	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *&& *< *((\d+\.)*\d+)$$/\$$1 >= $(VERSION) && < \$$5/" -i $@  # replace the lower bound with VERSION, leave the upper bound as is
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
 site/manual-start.md: $(VERSIONFILE) \
