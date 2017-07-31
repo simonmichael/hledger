@@ -29,7 +29,12 @@
 # This makefile mostly uses stack to get things done (slow but robust).
 # Secondarily it uses ghc directly to do some developer tasks (faster).
 # # Also if needed it uses cabal directly for a few tasks.
-#
+
+# XXX do we need this ?
+#SHELL=/bin/bash
+#.SHELLFLAGS="-O extglob -c" # example
+
+# help system
 # Every user-relevant rule in this makefile should use def-help to define
 # a help string. Use "make help" to see the available rules.
 
@@ -39,7 +44,7 @@ include help-system.mk
 $(call def-help-section, hledger make rules )
 
 help2: \
-	$(call def-help,[help], list documented rules in this makefile. make -n RULE shows more detail. )
+	$(call def-help,[help], list documented rules in this makefile. "make RULE -n" shows more detail. )
 
 ###############################################################################
 # VARS
@@ -120,29 +125,41 @@ SOURCEFILES:= \
 	hledger-web/tests/*.hs \
 	hledger-web/Handler/*.hs \
 	hledger-web/Hledger/*.hs \
-	hledger-web/Settings/*.hs
-
-CABALFILES:= \
-	hledger/hledger.cabal \
-	hledger-*/*.cabal \
-	site/hakyll-std/hakyll-std.cabal
+	hledger-web/Settings/*.hs \
 
 HPACKFILES:= \
 	hledger/*package.yaml \
 	hledger-*/*package.yaml \
-	site/hakyll-std/*package.yaml
 
-WEBFILES:= \
+CABALFILES:= \
+	hledger/hledger.cabal \
+	hledger-*/*.cabal \
+
+MANUALSOURCEFILES:= \
+	doc/lib.m4 \
+	*/*/*.m4.md \
+
+MANUALGENFILES:= \
+	hledger*/doc/hledger*.[15]{,.info,.txt} \
+
+# site/*.md includes website source files and generated web manual files
+# WEBDOCFILES:= \
+# 	site/*.md \
+
+WEBCODEFILES:= \
 	hledger-web/templates/* \
 	hledger-web/static/*.js \
-	hledger-web/static/*.css
+	hledger-web/static/*.css \
 
-DOCFILES:= \
-	*/*.md
+DOCSOURCEFILES:= \
+  README.md \
+	$(MANUALSOURCEFILES) \
 
 # files which should be updated when the version changes
 VERSIONSENSITIVEFILES=\
 	$(HPACKFILES) \
+	hledger-api/hledger-api.hs \
+	doc/lib.m4 \
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE=hledger/Hledger/Cli/Version.hs
@@ -216,6 +233,7 @@ BUILDFLAGS:=$(BUILDFLAGS1) -DVERSION='"$(VERSION)dev"'
 # RELEASEBINARYSUFFIX=$(shell echo "-$(VERSION)-`uname`-`arch`" | tr '[:upper:]' '[:lower:]')
 
 TIME:=$(shell date +"%Y%m%d%H%M")
+MONTHYEAR:=$(shell date +'%B %Y')
 
 ###############################################################################
 $(call def-help-subsection,INSTALLING:)
@@ -252,6 +270,10 @@ $(call def-help-subsection,BUILDING:)
 build: \
 	$(call def-help,build, download dependencies and build hledger executables (with stack))
 	$(STACK) build
+
+addons: \
+	$(call def-help,addons, compile the experimental add-on commands, required for functional tests )
+	bin/compile.sh
 
 # check-setup: \
 # 	$(call def-help,check-setup,\
@@ -624,12 +646,6 @@ functest: addons tests/addons/hledger-addon \
 	$(call def-help,functest, run the functional tests for hledger )
 	@($(SHELLTESTSTK) tests \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
-
-addons: \
-	$(call def-help,addons,\
-	compile the experimental add-on commands, required for functional tests \
-	)
-	bin/compile.sh
 
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
 tests/addons/hledger-addon: \
@@ -1199,7 +1215,8 @@ site/manual2-1.md: site/manual-start.md site/manual-end.md $(MANPAGES) \
 $(call def-help-subsection,RELEASING:)
 #$(call def-help-subsection,see also developer guide -> how to -> do a release)
 
-# # XXX UPDATE
+# TODO update this:
+
 # # Version numbering. See also .version and Version.hs.
 # #
 # # hledger's version number appears in:
@@ -1247,51 +1264,81 @@ $(call def-help-subsection,RELEASING:)
 # # - "make release" additionally records the main version number-affected
 # #   files, and tags the repo with the release tag.
 
-# release: releasetest setandrecordversion tagrelease \
-# 	$(call def-help,release,\
-# 	Build a release, tag the repo, prepare a cabal package\
-# 	First update .version. Eg:\
-# 	a normal release: echo 0.7   >.version; make release\
-# 	a bugfix release: echo 0.7.1 >.version; make release\
-# 	)
+# TODO revive these:
 
-# upload: cabalsdist hackageupload pushdocs \
-# 	$(call def-help,upload,\
-# 	Upload the latest cabal package and update hledger.org\
-# 	)
+# old examples: 
+# a normal release: echo 0.7   >.version; make release
+# a bugfix release: echo 0.7.1 >.version; make release
+#release: releasetest bumpversion tagrelease $(call def-help,release, prepare a release and tag the repo )
 
-# releaseandupload: release upload \
-# 	$(call def-help,releaseandupload,\
-# 	\
-# 	)
+#publish: hackageupload pushdocs $(call def-help,upload, publish latest hackage packages and docs )
 
-# # setandrecordversion: setversion \
-# # 	$(call def-help,setandrecordversion,\
-# # 	update the version number in local files, and prompt to record changes\
-# # 	in these files. Triggered by "make release".\
-# # 	)
-# # 	darcs record -m "bump version" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
+#releaseandpublish: release upload $(call def-help,releaseandupload, prepare a release and publish )
 
-describe: \
-		$(call def-help,describe, show an accurate git-describe version string )
-	@git describe --tags --match 'hledger-[0-9]*' --dirty
+ISCLEAN=git diff-index --quiet HEAD --
 
-setversion: $(VERSIONSENSITIVEFILES) \
-	$(call def-help,setversion, update all version strings to match $(VERSIONFILE) )
+# stop if the working directory has uncommitted changes
+iscleanwd:
+	@$(ISCLEAN) || (echo "please clean the working directory first"; false)
 
-setversionforce:\
-	$(call def-help,setversionforce, update all version strings even if $(VERSIONFILE) seems unchanged)
-	touch $(VERSIONFILE); make setversion
+# stop if the given file(s) have uncommitted changes
+isclean-%:
+	@$(ISCLEAN) $* || (echo "please clean these files first: $*"; false)
 
-hledger%/package.yaml: $(VERSIONFILE) \
-	$(call def-help-hide,hledger/package.yaml, update the version in this file )
+setdate: #$(call def-help,setdate, set manual date to current month and year )
+	@$(ISCLEAN) doc/lib.m4 || (echo "please clean doc/lib.m4 first"; false)
+	perl -pe "s/^(m4_define\({{_monthyear_}}, *{{)[^}]*(}}\)m4_dnl *)$$/\$${1}$(MONTHYEAR)\$${2}/" -i doc/lib.m4
+
+updatedate: setdate $(call def-help,updatedate, set manual date to current month and year and commit )
+	git commit -m "bump manual date to $(MONTHYEAR)" doc/lib.m4
+
+# update a package yaml file's version, -DVERSION, and hledger lower bounds (does not change upper bounds)
+%/package.yaml: $(VERSIONFILE)
 	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
-	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *&& *< *((\d+\.)*\d+)$$/\$$1 >= $(VERSION) && < \$$5/" -i $@  # replace the lower bound with VERSION, leave the upper bound as is
+	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *&& *< *((\d+\.)*\d+)$$/\$$1 >= $(VERSION) && < \$$5/" -i $@
 	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
 
-site/manual-start.md: $(VERSIONFILE) \
-	$(call def-help-hide,site/manual-start.md, update the version in this file )
-	perl -p -e "s/(this version documents hledger and hledger-web) +[0-9.]+/\1 $(VERSION)/" -i $@
+# update hledger-api's version strings
+hledger-api/hledger-api.hs: $(VERSIONFILE)
+	perl -pe "s/(hledgerApiVersion=)\"((\d+\.)*\d+)\" *$$/\$$1\"$(VERSION)\"/" -i $@
+	perl -pe "s/(.*?hledger-api +)((\d+\.)*\d+)(.*)$$/\$${1}$(VERSION)\$$4/" -i $@
+
+# update version string used in generated docs
+doc/lib.m4: $(VERSIONFILE)
+	perl -pe "s/^(m4_define\({{_version_}}, *{{)((\d+\.)*\d+)(}}\)m4_dnl *)$$/\$${1}$(VERSION)\$${4}/" -i $@
+	@echo "please manually check/update _docversionlinks_ in doc/lib.m4"
+
+# XXX obsolete ?
+# update version string in manual
+#site/manual-start.md: $(VERSIONFILE)
+#	perl -p -e "s/(this version documents hledger and hledger-web) +[0-9.]+/\1 $(VERSION)/" -i $@
+
+# XXX start with early targets isclean-$(VERSIONSENSITIVEFILES) (fails due to glob) and isdirty-$(VERSIONFILE) ?
+setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version strings & bounds from $(VERSIONFILE) (might need -B) )
+
+updateversion: setversion $(call def-help,updateversion, update version strings & bounds from $(VERSIONFILE) and commit (might need -B) )
+	@read -p "please review changes then press enter to commit: $(VERSIONFILE) $(VERSIONSENSITIVEFILES)"
+	git commit -m "bump version strings & lower bounds to $(VERSION)" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
+
+# (re)generate a cabal file from its package.yaml definition 
+# XXX to avoid warnings, this hpack should be the same version as stack's built-in hpack
+%.cabal: $$(dir $$@)package.yaml
+	hpack --silent $(dir $*) 
+
+gencabal: $$(CABALFILES) #$(call def-help,gencabal, regenerate cabal files from package.yamls (might need -B) )
+
+updatecabal: gencabal $(call def-help,updatecabal, regenerate and commit cabal files (might need -B) )
+	@read -p "please review changes then press enter to commit: $(CABALFILES)"
+	git commit -m "regenerate cabal files" $(CABALFILES)
+
+# we call in shake for this job; so dependencies aren't checked here
+genmanuals: Shake #$(call def-help,genmanuals, regenerate embedded manuals (might need -B) )
+	./Shake manuals
+
+updatemanuals: genmanuals $(call def-help,updatemanuals, regenerate embedded manuals and commit (might need -B) )
+	@read -p "please review changes then press enter to commit: $(shell ls hledger*/doc/*.[15]*)"
+	git commit -m "regenerate embedded manuals" hledger*/doc/*.[15]*
+
 
 tagrelease: \
 	$(call def-help,tagrelease, commit a release tag based on $(VERSIONFILE) for each package )
@@ -1373,13 +1420,14 @@ hackageupload: \
 # 	@darcs changes --from-tag $(FROMTAG) --count
 # 	@echo
 
-showreleaseauthors: \
-	$(call def-help,showreleaseauthors, show author names	since last release)
+describe: $(call def-help,describe, show a precise git-describe version string )
+	@git describe --tags --match 'hledger-[0-9]*' --dirty
+
+showreleaseauthors: $(call def-help,showreleaseauthors, show author names since last release)
 	@echo Commit authors since last release:
 	@git shortlog -sn $(CHANGELOGSTART)..
 
-cloc: \
-	$(call def-help,cloc, count lines of source code )
+cloc: $(call def-help,cloc, count lines of source code )
 	@echo Lines of code including tests:
 	@cloc --exclude-lang=HTML --exclude-dir=.stack-work,.idea,dist,old,bin,doc,site,.tutorial-data,static,angular .
 
@@ -1462,17 +1510,8 @@ cloc: \
 ###############################################################################
 $(call def-help-subsection,MISCELLANEOUS:)
 
-# XXX enable for all cabal files when hpack is a little better
-# gencabalfiles: $$(CABALFILES)
-gencabalfiles: site/hakyll-std/hakyll-std.cabal \
-		$(call def-help,gencabalfiles, regenerate cabal files from their package.yaml definitions )
-
-%.cabal: $$(dir $$@)package.yaml \
-		$(call def-help-hide,PATH/SOME.cabal, regenerate a cabal file from its package.yaml definition with hpack )
-	cd $(dir $*) && \
-	hpack && \
-	touch $(notdir $@) && \
-	cabal check
+Shake: Shake.hs $(call def-help,Shake, ensure the Shake script is compiled )
+	./Shake.hs
 
 cabal%: \
 	$(call def-help,cabalCMD, run cabal CMD inside each hledger package directory )
@@ -1503,7 +1542,7 @@ tag: emacstags-ctags \
 emacstags:
 	rm -f TAGS
 	hasktags -e $(SOURCEFILES)
-	for f in Makefile $(WEBFILES) $(HPACKFILES) $(CABALFILES) $(DOCFILES); do \
+	for f in Makefile $(WEBCODEFILES) $(HPACKFILES) $(CABALFILES) $(DOCSOURCEFILES); do \
 		printf "\n$$f,1\n" >> TAGS; \
 	done
 
@@ -1546,4 +1585,4 @@ Clean: stackclean cabalclean cleanghc cleantags clean-manpages \
 
 -include local.mk
 
-$(call def-help-section,------------------)
+#$(call def-help-section,------------------)
