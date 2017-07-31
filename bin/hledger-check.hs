@@ -398,7 +398,7 @@ args = info (helper <*> parser) $ mconcat
         Right (a, _) -> pure (s, a)
         Left err -> fail ("failed to parse input '" ++ s ++ "': " ++ show err)
 
-    readParsec' :: P.Parser a -> ReadM (String, a)
+    readParsec' :: H.SimpleTextParser a -> ReadM (String, a)
     readParsec' p = do
       s <- str
       let parsed = runIdentity $ P.runParserT p "" (pack s)
