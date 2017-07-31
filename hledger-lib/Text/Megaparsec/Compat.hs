@@ -1,4 +1,4 @@
--- ^ Paper over some differences between megaparsec 5 and 6,
+-- | Paper over some differences between megaparsec 5 and 6,
 -- making it possible to write code that supports both.
 
 {-# LANGUAGE CPP, FlexibleContexts #-}
