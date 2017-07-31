@@ -3,17 +3,17 @@
 
 {-# LANGUAGE CPP, FlexibleContexts #-}
 
-module Text.Megaparsec.Compat
-(module Text.Megaparsec
+module Text.Megaparsec.Compat (
+   module Text.Megaparsec
 #if MIN_VERSION_megaparsec(6,0,0)
-,module Text.Megaparsec.Char
+  ,module Text.Megaparsec.Char
 #endif
-,MPErr
-,mptext
-,mpMkPos
-,mpUnPos
-,mpMkParseError
-)
+  ,MPErr
+  ,mptext
+  ,mpMkPos
+  ,mpUnPos
+  ,mpMkParseError
+  )
 where
 
 import qualified Data.Set as S
