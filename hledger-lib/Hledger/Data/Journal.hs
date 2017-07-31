@@ -169,6 +169,7 @@ instance Monoid Journal where
     ,jmodifiertxns              = jmodifiertxns              j1 <> jmodifiertxns              j2
     ,jperiodictxns              = jperiodictxns              j1 <> jperiodictxns              j2
     ,jtxns                      = jtxns                      j1 <> jtxns                      j2
+    ,jcompoundbalance           = jcompoundbalance           j1 <> jcompoundbalance           j2
     ,jfinalcommentlines         = jfinalcommentlines         j2
     ,jfiles                     = jfiles                     j1 <> jfiles                     j2
     ,jlastreadtime              = max (jlastreadtime j1) (jlastreadtime j2)
@@ -189,6 +190,7 @@ nulljournal = Journal {
   ,jmodifiertxns              = []
   ,jperiodictxns              = []
   ,jtxns                      = []
+  ,jcompoundbalance           = []
   ,jfinalcommentlines         = ""
   ,jfiles                     = []
   ,jlastreadtime              = TOD 0 0
@@ -252,50 +254,50 @@ journalAccountNameTree = accountNameTreeFrom . journalAccountNames
 
 -- | A query for Profit & Loss accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Profit_.26_Loss_accounts>.
-journalProfitAndLossAccountQuery  :: Journal -> Query
-journalProfitAndLossAccountQuery j = Or [journalIncomeAccountQuery j
-                                               ,journalExpenseAccountQuery j
-                                               ]
+journalProfitAndLossAccountQuery :: Query
+journalProfitAndLossAccountQuery = Or [journalIncomeAccountQuery
+                                      ,journalExpenseAccountQuery
+                                      ]
 
 -- | A query for Income (Revenue) accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^(income|revenue)s?(:|$)@.
-journalIncomeAccountQuery  :: Journal -> Query
-journalIncomeAccountQuery _ = Acct "^(income|revenue)s?(:|$)"
+journalIncomeAccountQuery :: Query
+journalIncomeAccountQuery = Acct "^(income|revenue)s?(:|$)"
 
 -- | A query for Expense accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^expenses?(:|$)@.
-journalExpenseAccountQuery  :: Journal -> Query
-journalExpenseAccountQuery _ = Acct "^expenses?(:|$)"
+journalExpenseAccountQuery :: Query
+journalExpenseAccountQuery = Acct "^expenses?(:|$)"
 
 -- | A query for Asset, Liability & Equity accounts in this journal.
 -- Cf <http://en.wikipedia.org/wiki/Chart_of_accounts#Balance_Sheet_Accounts>.
-journalBalanceSheetAccountQuery  :: Journal -> Query
-journalBalanceSheetAccountQuery j = Or [journalAssetAccountQuery j
-                                              ,journalLiabilityAccountQuery j
-                                              ,journalEquityAccountQuery j
-                                              ]
+journalBalanceSheetAccountQuery :: Query
+journalBalanceSheetAccountQuery = Or [journalAssetAccountQuery
+                                     ,journalLiabilityAccountQuery
+                                     ,journalEquityAccountQuery
+                                     ]
 
 -- | A query for Asset accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^assets?(:|$)@.
-journalAssetAccountQuery  :: Journal -> Query
-journalAssetAccountQuery _ = Acct "^assets?(:|$)"
+journalAssetAccountQuery :: Query
+journalAssetAccountQuery = Acct "^assets?(:|$)"
 
 -- | A query for Liability accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^(debts?|liabilit(y|ies))(:|$)@.
-journalLiabilityAccountQuery  :: Journal -> Query
-journalLiabilityAccountQuery _ = Acct "^(debts?|liabilit(y|ies))(:|$)"
+journalLiabilityAccountQuery :: Query
+journalLiabilityAccountQuery = Acct "^(debts?|liabilit(y|ies))(:|$)"
 
 -- | A query for Equity accounts in this journal.
 -- This is currently hard-coded to the case-insensitive regex @^equity(:|$)@.
-journalEquityAccountQuery  :: Journal -> Query
-journalEquityAccountQuery _ = Acct "^equity(:|$)"
+journalEquityAccountQuery :: Query
+journalEquityAccountQuery = Acct "^equity(:|$)"
 
 -- | A query for Cash (-equivalent) accounts in this journal (ie,
 -- accounts which appear on the cashflow statement.)  This is currently
 -- hard-coded to be all the Asset accounts except for those containing the
 -- case-insensitive regex @(receivable|A/R)@.
-journalCashAccountQuery  :: Journal -> Query
-journalCashAccountQuery j = And [journalAssetAccountQuery j, Not $ Acct "(receivable|A/R)"]
+journalCashAccountQuery :: Query
+journalCashAccountQuery = And [journalAssetAccountQuery, Not $ Acct "(receivable|A/R)"]
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
