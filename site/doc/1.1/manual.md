@@ -4,7 +4,7 @@
 
 ## hledger
 
-This doc is for version **dev**. <span class="docversions"></span>
+This doc is for version **1.1**. <span class="docversions"></span>
 
 ### NAME
 
