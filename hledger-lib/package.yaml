@@ -71,6 +71,18 @@ dependencies:
 #- parsers >= 0.5
 #- system-filepath
 #- trifecta >= 0.91
+when:
+- condition: impl(ghc <7.6)
+  dependencies:
+  - ghc-prim
+- condition: flag(oldtime)
+  then:
+    dependencies:
+    - time <1.5
+    - old-locale
+  else:
+    dependencies:
+    - time >=1.5
 ghc-options:
 - -Wall
 - -fno-warn-unused-do-bind
@@ -133,18 +145,6 @@ library:
   dependencies:
   - parsec
   - semigroups
-  when:
-  - condition: impl(ghc <7.6)
-    dependencies:
-    - ghc-prim
-  - condition: flag(oldtime)
-    then:
-      dependencies:
-      - time <1.5
-      - old-locale
-    else:
-      dependencies:
-      - time >=1.5
 tests:
   doctests:
     main: doctests.hs
@@ -152,10 +152,6 @@ tests:
     dependencies:
     - doctest >=0.8
     - Glob >=0.7
-    when:
-    - condition: impl(ghc <7.6)
-      dependencies:
-      - ghc-prim
   hunittests:
     main: hunittests.hs
     source-dirs: tests
@@ -164,17 +160,5 @@ tests:
     - parsec
     - test-framework
     - test-framework-hunit
-    when:
-    - condition: impl(ghc <7.6)
-      dependencies:
-      - ghc-prim
-    - condition: flag(oldtime)
-      then:
-        dependencies:
-        - time <1.5
-        - old-locale
-      else:
-        dependencies:
-        - time >=1.5
 stability: stable
 tested-with: GHC==7.10.3, GHC==8.0
