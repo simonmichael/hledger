@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           hledger
-version:        1.3
+version:        1.3.99
 synopsis:       Command-line interface for the hledger accounting tool
 description:    This is hledger's command-line interface.
                 Its basic function is to read a plain text file describing
@@ -80,7 +80,7 @@ flag threaded
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.3"
+  cpp-options: -DVERSION="1.3.99"
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
@@ -93,7 +93,7 @@ library
     , process
     , temporary
     , tabular >=0.2 && <0.3
-    , hledger-lib >= 1.3 && < 1.4
+    , hledger-lib >= 1.3.99 && < 1.4
     , bytestring
     , containers
     , unordered-containers
@@ -166,7 +166,7 @@ executable hledger
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.3"
+  cpp-options: -DVERSION="1.3.99"
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
@@ -229,7 +229,7 @@ test-suite test
   hs-source-dirs:
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.3"
+  cpp-options: -DVERSION="1.3.99"
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
