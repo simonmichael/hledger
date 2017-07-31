@@ -187,6 +187,13 @@ test-suite doctests
   if impl(ghc <7.6)
     build-depends:
         ghc-prim
+  if flag(oldtime)
+    build-depends:
+        time <1.5
+      , old-locale
+  else
+    build-depends:
+        time >=1.5
   other-modules:
       Hledger
       Hledger.Data
