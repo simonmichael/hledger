@@ -1,10 +1,14 @@
 {-# LANGUAGE PackageImports #-}
 
 import Data.List
+import Data.Monoid
 import "Glob" System.FilePath.Glob
 import Test.DocTest
 
-main = do
-  fs1 <- filter (not . isInfixOf "/.") <$> glob "Hledger/**/*.hs"
-  -- fs2 <- filter (not . isInfixOf "/.") <$> glob "other/ledger-parse/**/*.hs"
-  doctest $ ["Hledger.hs"] ++ fs1 -- ++ fs2
+main =
+     pure ["Hledger.hs"]
+  <> glob "Hledger/**/*.hs" 
+  <> glob "Text/**/*.hs"
+  -- <> glob "other/ledger-parse/**/*.hs"
+  >>= pure . filter (not . isInfixOf "/.") 
+  >>= doctest
