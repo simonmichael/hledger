@@ -53,8 +53,8 @@ usage = unlines
   ["Usage:"
   ,"./Shake.hs               # compile this script"
   ,"./Shake                  # show commands"
-  ,"./Shake docs             # generate built-in manuals (plaintext, man, info)"
-  ,"./Shake website          # generate the web site (web manuals, web pages)"
+  ,"./Shake manuals          # generate the txt/man/info manuals"
+  ,"./Shake website          # generate the html manuals and website"
 --   ,"./Shake manpages         # generate nroff files for man"
 --   ,"./Shake txtmanpages      # generate text man pages for embedding"
 --   ,"./Shake infomanpages     # generate info files for info"
@@ -97,9 +97,9 @@ main = do
 --       unit $ cmd "./Shake.hs"  -- running as stack script installs deps and compiles
 --       putLoud "You can now run ./Shake instead of ./Shake.hs"
 
-    phony "all" $ need ["docs", "website"]
+    phony "all" $ need ["manuals", "website"]
 
-    -- docs
+    -- manuals
 
     let
       manpageNames = [ -- in suggested reading order
@@ -164,7 +164,7 @@ main = do
       manpageUriToName u | "hledger" `isPrefixOf` u = u <.> "1"
                          | otherwise                = "hledger_" ++ u <.> "5"
 
-    phony "docs" $ do
+    phony "manuals" $ do
       need $
         nroffmanpages
         ++ infomanpages
