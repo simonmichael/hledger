@@ -179,8 +179,8 @@ executable hledger
     , process
     , temporary
     , tabular >=0.2 && <0.3
-    , hledger-lib >= 1.3
-    , hledger == 1.3
+    , hledger-lib >= 1.3.99
+    , hledger == 1.3.99
     , bytestring
     , containers
     , unordered-containers
@@ -242,8 +242,8 @@ test-suite test
     , process
     , temporary
     , tabular >=0.2 && <0.3
-    , hledger-lib >= 1.3
-    , hledger == 1.3
+    , hledger-lib >= 1.3.99
+    , hledger == 1.3.99
     , bytestring
     , containers
     , unordered-containers
@@ -304,8 +304,8 @@ benchmark bench
     , process
     , temporary
     , tabular >=0.2 && <0.3
-    , hledger-lib >= 1.3
-    , hledger == 1.3
+    , hledger-lib >= 1.3.99
+    , hledger == 1.3.99
     , criterion
     , html
     , timeit
