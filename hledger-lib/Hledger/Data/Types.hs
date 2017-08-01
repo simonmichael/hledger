@@ -28,6 +28,7 @@ import Data.Decimal
 import Data.Default
 import Text.Blaze (ToMarkup(..))
 import qualified Data.Map as M
+import qualified Data.Set as S
 import Data.Text (Text)
 -- import qualified Data.Text as T
 import Data.Time.Calendar
@@ -285,17 +286,16 @@ instance NFData MarketPrice
 --
 -- report balancesheet
 --   title     Balance Sheet
---   aliases   bs, balsh
+--   aliases   bs balsh
 --   type      historical
 --   subreport Assets       ^assets?(:|$)
 --   subreport Liabilities  ^(debts?|liabilit(y|ies))(:|$))
 data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
       cbcname     :: String,             -- ^ command name
-      cbcaliases  :: [String],           -- ^ command aliases
-      cbchelp     :: String,             -- ^ command line help
+      cbcaliases  :: S.Set String,       -- ^ command aliases
       cbctitle    :: Maybe String,       -- ^ overall report title
       cbcqueries  :: [(String, Text)],   -- ^ title and query string for each subreport (not a Query for import reasons)
-      cbctype     :: BalanceType         -- ^ the type of "balance" this report shows (overrides command line flags)
+      cbctype     :: Maybe BalanceType   -- ^ the type of "balance" this report shows (overrides command line flags)
     } deriving (Eq,Ord,Show,Typeable,Data,Generic)
 
 instance NFData CompoundBalanceCommandSpec

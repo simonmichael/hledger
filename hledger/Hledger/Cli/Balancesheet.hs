@@ -7,7 +7,7 @@ The @balancesheet@ command prints a simple balance sheet.
 
 module Hledger.Cli.Balancesheet (
   balancesheetmode
- ,balancesheet
+ -- ,balancesheet
  ,tests_Hledger_Cli_Balancesheet
 ) where
 
@@ -21,25 +21,21 @@ import Hledger.Cli.CompoundBalanceCommand
 
 balancesheetSpec = CompoundBalanceCommandSpec {
   cbcname     = "balancesheet",
-  cbcaliases  = ["bs"],
-  cbchelp     = [here|
-This command displays a simple balance sheet, showing historical ending
-balances of asset and liability accounts (ignoring any report begin date). 
-It assumes that these accounts are under a top-level `asset` or `liability`
-account (case insensitive, plural forms also  allowed).
-  |],
+  -- cbcaliases  = ["bs"],
   cbctitle    = Just "Balance Sheet",
   cbcqueries  = [ ("Assets"     , "^assets?(:|$)"),
                   ("Liabilities", "^(debts?|liabilit(y|ies))(:|$)")
                 ],
-  cbctype     = HistoricalBalance
+  cbctype     = Just HistoricalBalance
 }
 
-balancesheetmode :: Mode RawOpts
-balancesheetmode = compoundBalanceCommandMode balancesheetSpec
-
-balancesheet :: CliOpts -> Journal -> IO ()
-balancesheet = compoundBalanceCommand balancesheetSpec
+-- balancesheetmode :: Mode RawOpts
+-- balancesheetmode = compoundBalanceCommandMode balancesheetSpec [here|
+-- This command displays a simple balance sheet, showing historical ending
+-- balances of asset and liability accounts (ignoring any report begin date). 
+-- It assumes that these accounts are under a top-level `asset` or `liability`
+-- account (case insensitive, plural forms also  allowed).
+-- |]
 
 tests_Hledger_Cli_Balancesheet :: Test
 tests_Hledger_Cli_Balancesheet = TestList

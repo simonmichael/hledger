@@ -81,6 +81,7 @@ import Control.Monad.State.Strict
 import qualified Data.Map.Strict as M
 import Data.Foldable
 import Data.Monoid
+import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
@@ -423,15 +424,13 @@ reportdirectivep = do
       )
     let initcbc = CompoundBalanceCommandSpec
                     { cbcname    = commandname
-                    , cbcaliases = []
-                    , cbchelp    = "Compound balance report " ++ commandname
+                    , cbcaliases = S.empty
                     , cbctitle   = Nothing
                     , cbcqueries = []
-                    , cbctype    = PeriodChange
+                    , cbctype    = Nothing
                     }
         finalcbc = appEndo (fold (reverse reportModifiers)) initcbc
-    -- TODO: should be reversed for performance?
-    modify' (\j -> j{jcompoundbalance = jcompoundbalance j ++ [finalcbc]})
+    modify' (\j -> j{jcompoundbalance = finalcbc : jcompoundbalance j})
   where
     -- TODO: account for comments
     indented = (lift (some spacenonewline) >>)
@@ -446,11 +445,11 @@ reportdirectivep = do
       string "aliases"
       lift (some spacenonewline)
       as <- lift (some nonspace
-                    `sepBy1` try (char ',' >> some spacenonewline)
+                    `sepBy1` some spacenonewline
                  )
         <?> "report aliases"
       _ <- lift restofline
-      return . Endo $ \cb -> cb { cbcaliases = cbcaliases cb ++ as }
+      return . Endo $ \cb -> cb { cbcaliases = cbcaliases cb `S.union` S.fromList as }
     cbcqueryp :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
     cbcqueryp = do
       string "subreport"
@@ -469,7 +468,7 @@ reportdirectivep = do
                          ]
               <?> "subreport type"
       _ <- lift restofline
-      return . Endo $ \cb -> cb { cbctype = t }
+      return . Endo $ \cb -> cb { cbctype = Just t }
 
 --- ** transactions
 

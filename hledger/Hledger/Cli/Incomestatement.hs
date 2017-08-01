@@ -7,7 +7,7 @@ The @incomestatement@ command prints a simple income statement (profit & loss re
 
 module Hledger.Cli.Incomestatement (
   incomestatementmode
- ,incomestatement
+ -- ,incomestatement
  ,tests_Hledger_Cli_Incomestatement
 ) where
 
@@ -21,25 +21,21 @@ import Hledger.Cli.CompoundBalanceCommand
 
 incomestatementSpec = CompoundBalanceCommandSpec {
   cbcname     = "incomestatement",
-  cbcaliases  = ["is"],
-  cbchelp     = [here|
-This command displays a simple income statement, showing revenues
-and expenses during a period. It assumes that these accounts are under a 
-top-level `revenue` or `income` or `expense` account (case insensitive,
-plural forms also allowed).
-  |],
+  -- cbcaliases  = ["is"],
   cbctitle    = Just "Income Statement",
   cbcqueries  = [ ("Revenues", "^(income|revenue)s?(:|$)"),
                   ("Expenses", "^expenses?(:|$)")
                 ],
-  cbctype     = PeriodChange
+  cbctype     = Just PeriodChange
 }
 
-incomestatementmode :: Mode RawOpts
-incomestatementmode = compoundBalanceCommandMode incomestatementSpec
-
-incomestatement :: CliOpts -> Journal -> IO ()
-incomestatement = compoundBalanceCommand incomestatementSpec
+-- incomestatementmode :: Mode RawOpts
+-- incomestatementmode = compoundBalanceCommandMode incomestatementSpec [here|
+-- This command displays a simple income statement, showing revenues
+-- and expenses during a period. It assumes that these accounts are under a 
+-- top-level `revenue` or `income` or `expense` account (case insensitive,
+-- plural forms also allowed).
+-- |]
 
 tests_Hledger_Cli_Incomestatement :: Test
 tests_Hledger_Cli_Incomestatement = TestList

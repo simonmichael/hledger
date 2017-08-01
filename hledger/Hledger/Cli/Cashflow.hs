@@ -10,7 +10,7 @@ cash flows.)
 
 module Hledger.Cli.Cashflow (
   cashflowmode
- ,cashflow
+ -- ,cashflow
  ,tests_Hledger_Cli_Cashflow
 ) where
 
@@ -24,23 +24,19 @@ import Hledger.Cli.CompoundBalanceCommand
 
 cashflowSpec = CompoundBalanceCommandSpec {
   cbcname     = "cashflow",
-  cbcaliases  = ["cf"],
-  cbchelp     = [here|
-This command displays a simple cashflow statement, showing changes
-in "cash" accounts. It assumes that these accounts are under a top-level 
-`asset` account (case insensitive, plural forms also allowed) and do not 
-contain `receivable` or `A/R` in their name. 
-  |],
+  -- cbcaliases  = ["cf"],
   cbctitle    = Just "Cashflow Statement",
   cbcqueries  = [("Cash flows", "^assets?(:|$) not:(receivable|A/R)")],
-  cbctype     = PeriodChange
+  cbctype     = Just PeriodChange
 }
 
-cashflowmode :: Mode RawOpts
-cashflowmode = compoundBalanceCommandMode cashflowSpec
-
-cashflow :: CliOpts -> Journal -> IO ()
-cashflow = compoundBalanceCommand cashflowSpec
+-- cashflowmode :: Mode RawOpts
+-- cashflowmode = compoundBalanceCommandMode cashflowSpec [here|
+-- This command displays a simple cashflow statement, showing changes
+-- in "cash" accounts. It assumes that these accounts are under a top-level 
+-- `asset` account (case insensitive, plural forms also allowed) and do not 
+-- contain `receivable` or `A/R` in their name. 
+-- |]
 
 tests_Hledger_Cli_Cashflow :: Test
 tests_Hledger_Cli_Cashflow = TestList
