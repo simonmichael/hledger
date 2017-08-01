@@ -1294,9 +1294,11 @@ updatedate: setdate $(call def-help,updatedate, set manual date to current month
 
 # update a package yaml file's version, -DVERSION, and hledger lower bounds (does not change upper bounds)
 %/package.yaml: $(VERSIONFILE)
-	perl -p -e "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@
-	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *&& *< *((\d+\.)*\d+)$$/\$$1 >= $(VERSION) && < \$$5/" -i $@
-	perl -p -e "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@
+	perl -pe "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@                                                         # version: 'A'
+	perl -pe "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@                                                        # -DVERSION="A"
+	perl -pe "s/(hledger(-\w+)?) *== *((\d+\.)*\d+) *$$/\$$1 == $(VERSION)/" -i $@                                   # hledgerX == A
+	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *$$/\$$1 >= $(VERSION)/" -i $@                                  # hledgerX >= A
+	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *&& *< *((\d+\.)*\d+) *$$/\$$1 >= $(VERSION) && < \$$5/" -i $@  # hledgerX >= A && < B
 
 # update hledger-api's version strings
 hledger-api/hledger-api.hs: $(VERSIONFILE)
