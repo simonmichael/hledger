@@ -409,6 +409,7 @@ commodityconversiondirectivep = do
 
 reportdirectivep :: Monad m => JournalStateParser m ()
 reportdirectivep = do
+    p <- lift getPosition
     string "report"
     lift (some spacenonewline)
     commandname <- lift (some nonspace) <?> "report command name"
@@ -424,11 +425,12 @@ reportdirectivep = do
           <?> "report directive command"
       )
     let initcbc = CompoundBalanceCommandSpec
-                    { cbcname    = commandname
-                    , cbcaliases = S.empty
-                    , cbctitle   = Nothing
-                    , cbcqueries = []
-                    , cbctype    = Nothing
+                    { cbcname     = commandname
+                    , cbcaliases  = S.empty
+                    , cbctitle    = Nothing
+                    , cbcqueries  = []
+                    , cbctype     = Nothing
+                    , cbclocation = Just p
                     }
         finalcbc = appEndo (fold (reverse reportModifiers)) initcbc
     modify' (\j -> j{jcompoundbalance = finalcbc : jcompoundbalance j})

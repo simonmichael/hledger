@@ -34,6 +34,7 @@ import Data.Text (Text)
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (ClockTime(..))
+import Text.Megaparsec.Pos (SourcePos)
 
 import Hledger.Utils.Regex
 
@@ -296,6 +297,7 @@ data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
       cbctitle    :: Maybe String,       -- ^ overall report title
       cbcqueries  :: [(String, Text)],   -- ^ title and query string for each subreport (not a Query for import reasons)
       cbctype     :: Maybe BalanceType   -- ^ the type of "balance" this report shows (overrides command line flags)
+    , cbclocation :: Maybe SourcePos     -- ^ location of definition
     } deriving (Eq,Ord,Show,Typeable,Data,Generic)
 
 instance NFData CompoundBalanceCommandSpec
