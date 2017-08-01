@@ -31,7 +31,7 @@ in "cash" accounts. It assumes that these accounts are under a top-level
 `asset` account (case insensitive, plural forms also allowed) and do not 
 contain `receivable` or `A/R` in their name. 
   |],
-  cbctitle    = "Cashflow Statement",
+  cbctitle    = Just "Cashflow Statement",
   cbcqueries  = [("Cash flows", "^assets?(:|$) not:(receivable|A/R)")],
   cbctype     = PeriodChange
 }

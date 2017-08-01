@@ -28,7 +28,7 @@ and expenses during a period. It assumes that these accounts are under a
 top-level `revenue` or `income` or `expense` account (case insensitive,
 plural forms also allowed).
   |],
-  cbctitle    = "Income Statement",
+  cbctitle    = Just "Income Statement",
   cbcqueries  = [ ("Revenues", "^(income|revenue)s?(:|$)"),
                   ("Expenses", "^expenses?(:|$)")
                 ],

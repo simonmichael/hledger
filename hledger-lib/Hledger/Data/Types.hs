@@ -280,11 +280,20 @@ instance NFData MarketPrice
 -- each with its own title and subtotals row, in a certain order, 
 -- plus a grand totals row if there's more than one section.
 -- Examples are the balancesheet, cashflow and incomestatement commands.
+--
+-- Syntax for directive:
+--
+-- report balancesheet
+--   title     Balance Sheet
+--   aliases   bs, balsh
+--   type      historical
+--   subreport Assets       ^assets?(:|$)
+--   subreport Liabilities  ^(debts?|liabilit(y|ies))(:|$))
 data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
       cbcname     :: String,             -- ^ command name
       cbcaliases  :: [String],           -- ^ command aliases
       cbchelp     :: String,             -- ^ command line help
-      cbctitle    :: String,             -- ^ overall report title
+      cbctitle    :: Maybe String,       -- ^ overall report title
       cbcqueries  :: [(String, Text)],   -- ^ title and query string for each subreport (not a Query for import reasons)
       cbctype     :: BalanceType         -- ^ the type of "balance" this report shows (overrides command line flags)
     } deriving (Eq,Ord,Show,Typeable,Data,Generic)
@@ -328,6 +337,7 @@ data Journal = Journal {
   ,jmodifiertxns          :: [ModifierTransaction]
   ,jperiodictxns          :: [PeriodicTransaction]
   ,jtxns                  :: [Transaction]
+  ,jcompoundbalance       :: [CompoundBalanceCommandSpec]           -- ^ the current compound reports defined
   ,jfinalcommentlines     :: Text                                   -- ^ any final trailing comments in the (main) journal file
   ,jfiles                 :: [(FilePath, Text)]                     -- ^ the file path and raw text of the main and
                                                                     --   any included journal files. The main file is first,

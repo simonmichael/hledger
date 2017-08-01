@@ -79,6 +79,7 @@ import Control.Monad
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import Control.Monad.State.Strict
 import qualified Data.Map.Strict as M
+import Data.Foldable
 import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -171,6 +172,7 @@ directivep = (do
    ,defaultcommoditydirectivep
    ,commodityconversiondirectivep
    ,ignoredpricecommoditydirectivep
+   ,reportdirectivep
    ]
   ) <?> "directive"
 
@@ -403,6 +405,71 @@ commodityconversiondirectivep = do
   amountp
   lift restofline
   return ()
+
+reportdirectivep :: Monad m => JournalStateParser m ()
+reportdirectivep = do
+    string "report"
+    lift (some spacenonewline)
+    commandname <- lift (some nonspace) <?> "report command name"
+    lift restofline
+    reportModifiers <- (some . try) ( 
+        choiceInState (indented <$> [ cbctitlep <?> "report title"
+                                    , cbcaliasp <?> "report aliases"
+                                    , cbcqueryp <?> "report query"
+                                    , cbctypep  <?> "report type"
+                                    ]
+                      )
+          <?> "report directive command"
+      )
+    let initcbc = CompoundBalanceCommandSpec
+                    { cbcname    = commandname
+                    , cbcaliases = []
+                    , cbchelp    = "Compound balance report " ++ commandname
+                    , cbctitle   = Nothing
+                    , cbcqueries = []
+                    , cbctype    = PeriodChange
+                    }
+        finalcbc = appEndo (fold (reverse reportModifiers)) initcbc
+    -- TODO: should be reversed for performance?
+    modify' (\j -> j{jcompoundbalance = jcompoundbalance j ++ [finalcbc]})
+  where
+    -- TODO: account for comments
+    indented = (lift (some spacenonewline) >>)
+    cbctitlep :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
+    cbctitlep = do
+      string "title"
+      lift (some spacenonewline)
+      t <- lift restofline <?> "report title"
+      return . Endo $ \cb -> cb { cbctitle = Just t }
+    cbcaliasp :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
+    cbcaliasp = do
+      string "aliases"
+      lift (some spacenonewline)
+      as <- lift (some nonspace
+                    `sepBy1` try (char ',' >> some spacenonewline)
+                 )
+        <?> "report aliases"
+      _ <- lift restofline
+      return . Endo $ \cb -> cb { cbcaliases = cbcaliases cb ++ as }
+    cbcqueryp :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
+    cbcqueryp = do
+      string "subreport"
+      lift (some spacenonewline)
+      t <- T.unpack <$> lift accountnamep <?> "subreport title"
+      lift (some spacenonewline)
+      q <- T.pack <$> lift restofline <?> "subreport query"
+      return . Endo $ \cb -> cb { cbcqueries = cbcqueries cb ++ [(t, q)]}
+    cbctypep  :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
+    cbctypep  = do
+      string "type"
+      lift (some spacenonewline)
+      t <- choiceInState [ PeriodChange      <$ string "change"
+                         , CumulativeChange  <$ string "cumulative"
+                         , HistoricalBalance <$ string "historical"
+                         ]
+              <?> "subreport type"
+      _ <- lift restofline
+      return . Endo $ \cb -> cb { cbctype = t }
 
 --- ** transactions
 

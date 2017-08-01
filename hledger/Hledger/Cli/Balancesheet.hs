@@ -28,7 +28,7 @@ balances of asset and liability accounts (ignoring any report begin date).
 It assumes that these accounts are under a top-level `asset` or `liability`
 account (case insensitive, plural forms also  allowed).
   |],
-  cbctitle    = "Balance Sheet",
+  cbctitle    = Just "Balance Sheet",
   cbcqueries  = [ ("Assets"     , "^assets?(:|$)"),
                   ("Liabilities", "^(debts?|liabilit(y|ies))(:|$)")
                 ],
