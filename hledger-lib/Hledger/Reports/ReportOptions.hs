@@ -55,16 +55,6 @@ import Hledger.Utils
 
 type FormatStr = String
 
--- | Which "balance" is being shown in a balance report.
-data BalanceType = PeriodChange      -- ^ The change of balance in each period.
-                 | CumulativeChange  -- ^ The accumulated change across multiple periods.
-                 | HistoricalBalance -- ^ The historical ending balance, including the effect of
-                                     --   all postings before the report period. Unless altered by,
-                                     --   a query, this is what you would see on a bank statement.
-  deriving (Eq,Show,Data,Typeable)
-
-instance Default BalanceType where def = PeriodChange
-
 -- | Should accounts be displayed: in the command's default style, hierarchically, or as a flat list ?
 data AccountListMode = ALDefault | ALTree | ALFlat deriving (Eq, Show, Data, Typeable)
 

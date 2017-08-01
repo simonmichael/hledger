@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, RecordWildCards, NoCPP #-}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, RecordWildCards, NoCPP #-}
 {-|
 
 The @balancesheet@ command prints a simple balance sheet.
@@ -29,8 +29,8 @@ It assumes that these accounts are under a top-level `asset` or `liability`
 account (case insensitive, plural forms also  allowed).
   |],
   cbctitle    = "Balance Sheet",
-  cbcqueries  = [ ("Assets"     , journalAssetAccountQuery),
-                  ("Liabilities", journalLiabilityAccountQuery)
+  cbcqueries  = [ ("Assets"     , "^assets?(:|$)"),
+                  ("Liabilities", "^(debts?|liabilit(y|ies))(:|$)")
                 ],
   cbctype     = HistoricalBalance
 }

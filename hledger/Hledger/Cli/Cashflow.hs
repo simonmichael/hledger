@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, RecordWildCards, NoCPP #-}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, RecordWildCards, NoCPP #-}
 {-|
 
 The @cashflow@ command prints a simplified cashflow statement.  It just
@@ -32,7 +32,7 @@ in "cash" accounts. It assumes that these accounts are under a top-level
 contain `receivable` or `A/R` in their name. 
   |],
   cbctitle    = "Cashflow Statement",
-  cbcqueries  = [("Cash flows", journalCashAccountQuery)],
+  cbcqueries  = [("Cash flows", "^assets?(:|$) not:(receivable|A/R)")],
   cbctype     = PeriodChange
 }
 

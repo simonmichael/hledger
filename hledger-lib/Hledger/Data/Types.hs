@@ -274,6 +274,34 @@ data MarketPrice = MarketPrice {
 
 instance NFData MarketPrice
 
+-- | Description of a compound balance report command, 
+-- from which we generate the command's cmdargs mode and IO action.
+-- A compound balance report shows one or more sections/subreports, 
+-- each with its own title and subtotals row, in a certain order, 
+-- plus a grand totals row if there's more than one section.
+-- Examples are the balancesheet, cashflow and incomestatement commands.
+data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
+      cbcname     :: String,             -- ^ command name
+      cbcaliases  :: [String],           -- ^ command aliases
+      cbchelp     :: String,             -- ^ command line help
+      cbctitle    :: String,             -- ^ overall report title
+      cbcqueries  :: [(String, Text)],   -- ^ title and query string for each subreport (not a Query for import reasons)
+      cbctype     :: BalanceType         -- ^ the type of "balance" this report shows (overrides command line flags)
+    } deriving (Eq,Ord,Show,Typeable,Data,Generic)
+
+instance NFData CompoundBalanceCommandSpec
+
+-- | Which "balance" is being shown in a balance report.
+data BalanceType = PeriodChange      -- ^ The change of balance in each period.
+                 | CumulativeChange  -- ^ The accumulated change across multiple periods.
+                 | HistoricalBalance -- ^ The historical ending balance, including the effect of
+                                     --   all postings before the report period. Unless altered by,
+                                     --   a query, this is what you would see on a bank statement.
+  deriving (Eq,Ord,Show,Typeable,Data,Generic)
+
+instance Default BalanceType where def = PeriodChange
+instance NFData BalanceType
+
 -- | A Journal, containing transactions and various other things.
 -- The basic data model for hledger.
 --
