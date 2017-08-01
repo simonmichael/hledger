@@ -412,12 +412,13 @@ reportdirectivep = do
     string "report"
     lift (some spacenonewline)
     commandname <- lift (some nonspace) <?> "report command name"
-    lift restofline
+    restofline'
     reportModifiers <- (some . try) ( 
         choiceInState (indented <$> [ cbctitlep <?> "report title"
                                     , cbcaliasp <?> "report aliases"
                                     , cbcqueryp <?> "report query"
                                     , cbctypep  <?> "report type"
+                                    , mempty <$ emptyorcommentlinep <?> "comment line"
                                     ]
                       )
           <?> "report directive command"
@@ -438,7 +439,7 @@ reportdirectivep = do
     cbctitlep = do
       string "title"
       lift (some spacenonewline)
-      t <- lift restofline <?> "report title"
+      t <- restofline' <?> "report title"
       return . Endo $ \cb -> cb { cbctitle = Just t }
     cbcaliasp :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
     cbcaliasp = do
@@ -448,7 +449,7 @@ reportdirectivep = do
                     `sepBy1` some spacenonewline
                  )
         <?> "report aliases"
-      _ <- lift restofline
+      _ <- restofline'
       return . Endo $ \cb -> cb { cbcaliases = cbcaliases cb `S.union` S.fromList as }
     cbcqueryp :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
     cbcqueryp = do
@@ -456,7 +457,7 @@ reportdirectivep = do
       lift (some spacenonewline)
       t <- T.unpack <$> lift accountnamep <?> "subreport title"
       lift (some spacenonewline)
-      q <- T.pack <$> lift restofline <?> "subreport query"
+      q <- T.pack <$> restofline' <?> "subreport query"
       return . Endo $ \cb -> cb { cbcqueries = cbcqueries cb ++ [(t, q)]}
     cbctypep  :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
     cbctypep  = do
@@ -467,8 +468,9 @@ reportdirectivep = do
                          , HistoricalBalance <$ string "historical"
                          ]
               <?> "subreport type"
-      _ <- lift restofline
+      _ <- restofline'
       return . Endo $ \cb -> cb { cbctype = Just t }
+    restofline' = lift anyChar `manyTill` (try emptyorcommentlinep <|> void (lift newline))
 
 --- ** transactions
 
