@@ -856,6 +856,7 @@ These were written with Ledger in mind, but also work with hledger files:
 | Sublime Text   | <https://github.com/ledger/ledger/wiki/Using-Sublime-Text> |
 | Textmate       | <https://github.com/ledger/ledger/wiki/Using-TextMate-2> |
 | Text Wrangler &nbsp; | <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler> |
+| Visual Studio Code | <https://marketplace.visualstudio.com/items?itemName=mark-hansen.hledger-vscode> |
 
 <!-- Some related LedgerTips:
 https://twitter.com/LedgerTips/status/504061626233159681
