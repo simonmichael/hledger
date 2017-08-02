@@ -1,4 +1,4 @@
-This is hledger_journal.5.info, produced by makeinfo version 6.0 from
+This is hledger_journal.5.info, produced by makeinfo version 5.2 from
 stdin.
 
 
@@ -1047,6 +1047,8 @@ Vim               https://github.com/ledger/ledger/wiki/Getting-started
 Sublime Text      https://github.com/ledger/ledger/wiki/Using-Sublime-Text
 Textmate          https://github.com/ledger/ledger/wiki/Using-TextMate-2
 Text Wrangler     https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler
+Visual Studio     https://marketplace.visualstudio.com/items?itemName=mark-hansen.hledger-vscode
+Code
 
 
 Tag Table:

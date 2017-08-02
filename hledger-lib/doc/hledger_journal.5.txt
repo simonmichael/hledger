@@ -815,6 +815,8 @@ EDITOR SUPPORT
                           Mate-2
        Text Wrangler      https://github.com/ledger/ledger/wiki/Edit-
                           ing-Ledger-files-with-TextWrangler
+       Visual    Studio   https://marketplace.visualstudio.com/items?item-
+       Code               Name=mark-hansen.hledger-vscode
 
 
 
