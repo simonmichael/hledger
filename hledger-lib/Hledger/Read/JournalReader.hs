@@ -407,7 +407,7 @@ commodityconversiondirectivep = do
   lift restofline
   return ()
 
-reportdirectivep :: Monad m => JournalStateParser m ()
+reportdirectivep :: Monad m => JournalParser m ()
 reportdirectivep = do
     p <- lift getPosition
     string "report"
@@ -437,13 +437,13 @@ reportdirectivep = do
   where
     -- TODO: account for comments
     indented = (lift (some spacenonewline) >>)
-    cbctitlep :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
+    cbctitlep :: JournalParser m (Endo CompoundBalanceCommandSpec)
     cbctitlep = do
       string "title"
       lift (some spacenonewline)
       t <- restofline' <?> "report title"
       return . Endo $ \cb -> cb { cbctitle = Just t }
-    cbcaliasp :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
+    cbcaliasp :: JournalParser m (Endo CompoundBalanceCommandSpec)
     cbcaliasp = do
       string "aliases"
       lift (some spacenonewline)
@@ -453,7 +453,7 @@ reportdirectivep = do
         <?> "report aliases"
       _ <- restofline'
       return . Endo $ \cb -> cb { cbcaliases = cbcaliases cb `S.union` S.fromList as }
-    cbcqueryp :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
+    cbcqueryp :: JournalParser m (Endo CompoundBalanceCommandSpec)
     cbcqueryp = do
       string "subreport"
       lift (some spacenonewline)
@@ -461,7 +461,7 @@ reportdirectivep = do
       lift (some spacenonewline)
       q <- T.pack <$> restofline' <?> "subreport query"
       return . Endo $ \cb -> cb { cbcqueries = cbcqueries cb ++ [(t, q)]}
-    cbctypep  :: JournalStateParser m (Endo CompoundBalanceCommandSpec)
+    cbctypep  :: JournalParser m (Endo CompoundBalanceCommandSpec)
     cbctypep  = do
       string "type"
       lift (some spacenonewline)
