@@ -1,0 +1,17 @@
+# 1. decimal point/digit grouping chars are autodetected, 
+# separately for each commodity, which can be surprising. TODO
+# So hledger parses 1 XAU at 1000 USD here:
+hledger -f - bal --flat --no-total -B
+<<<
+1/1
+    assets:gold  1,000 XAU @ 1,000.00 USD
+    equity 
+>>>
+        1,000.00 USD  assets:gold
+       -1,000.00 USD  equity
+>>>2
+>>>= 0
+# while ledger parses 1000 XAU at 1000 USD each:
+# $ ledger bal --flat --no-total -B
+#           USD1000000  assets:gold
+#          USD-1000000  equity)
