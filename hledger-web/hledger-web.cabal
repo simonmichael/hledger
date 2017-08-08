@@ -159,7 +159,7 @@ library
     , yesod-form
     , yesod-static
     , json
-    , megaparsec >=5.0 && < 6.1
+    , megaparsec >=5.0 && < 6.2
     , mtl
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
