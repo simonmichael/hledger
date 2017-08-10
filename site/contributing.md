@@ -52,7 +52,7 @@ There is also a collection of wishes at the old [trello board](http://trello.hle
 - review and discuss new [pull requests](http://prs.hledger.org) and commits on github
 - build hledger and test the latest changes in your own repo
 - read the existing [code docs and source](#quick-links)
-- send feedback or discuss via [IRC or mail list](/docs.html#get-helpgive-feedback)
+- send feedback or discuss via [IRC or mail list](/docs.html#helpfeedback)
 
 #### Build hledger
 
@@ -207,7 +207,7 @@ If you're new to this process, [help.github.com](http://help.github.com) may be 
 
 #### Add yourself to the contributor list
 
-- after getting something into the master branch, read and sign the [contributor list & agreement](contributors.html). Or, [ask](/docs.html#get-helpgive-feedback) to be added.
+- after getting something into the master branch, read and sign the [contributor list & agreement](contributors.html). Or, [ask](/docs.html#helpfeedback) to be added.
 - give yourself a high five!
 
 ### Technical Writer

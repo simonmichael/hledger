@@ -52,7 +52,7 @@ and here's the less secure, more convenient way:
 Note this could take significant time (minutes to hours), memory (~2G),
 and disk space (up to a gigabyte) depending on your connection, 
 machine and past cabal/stack installations. You can kill and rerun it without losing progress.
-If the installer fails, please help improve it by [reporting](docs.html#get-helpgive-feedback) the full output.
+If the installer fails, please help improve it by [reporting](docs.html#helpfeedback) the full output.
 
 Or, you can install manually (all systems):
 
