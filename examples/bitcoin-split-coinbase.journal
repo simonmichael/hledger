@@ -1,0 +1,29 @@
+; Example entry for the 2017/8 bitcoin split, eg for a coinbase user.
+
+; Set up initial state
+2017/01/01 opening balance
+    (Assets:Coinbase:BTC Wallet)                              = BTC 0.12345678
+
+; "Customers with balances of bitcoin at the time of the fork now have an equal quantity of bitcoin cash stored by Coinbase."
+2017/08/01 BTC-BCH split.
+    ; assert initial balances, for added clarity/error-checking
+    Assets:Coinbase:BTC Wallet                          BTC 0 = BTC 0.12345678
+    Assets:Coinbase:BCH Available 2018                  BCH 0 = BCH 0
+    ; receive BCH equivalent to BTC balance
+    Assets:Coinbase:BCH Available 2018         BCH 0.12345678 = BCH 0.12345678
+    Income:Cryptocoin Split
+
+
+comment
+$ ledger -f examples/bitcoin-split-coinbase.journal bal -E --flat assets
+      BCH 0.12345678  Assets:Coinbase:BCH Available 2018
+      BTC 0.12345678  Assets:Coinbase:BTC Wallet
+--------------------
+      BCH 0.12345678
+      BTC 0.12345678
+$ hledger -f examples/bitcoin-split-coinbase.journal bal -E --flat assets
+      BCH 0.12345678  Assets:Coinbase:BCH Available 2018
+      BTC 0.12345678  Assets:Coinbase:BTC Wallet
+--------------------
+      BCH 0.12345678
+      BTC 0.12345678
