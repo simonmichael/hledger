@@ -8,8 +8,8 @@
  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/09/10 Flubber Co
-    income:unknown            $-50
     assets:myacct              $50
+    income:unknown            $-50
 
 >>>2
 >>>=0
@@ -21,12 +21,12 @@
 11/2009/09,Flubber Co,,50
 >>>
 2009/09/10 Flubber Co
-    income:unknown              $-50
     Assets:MyAccount             $50
+    income:unknown              $-50
 
 2009/09/11 Flubber Co
-    expenses:unknown             $50
     Assets:MyAccount            $-50
+    expenses:unknown             $50
 
 >>>2
 >>>=0
@@ -35,8 +35,8 @@
  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\nif Flubber\n  account2 acct\n  comment cmt' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/09/10 Flubber Co    ; cmt
-    acct                     $-50
     assets:myacct             $50
+    acct                     $-50
 
 >>>2
 >>>=0
@@ -45,8 +45,8 @@
  printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,123\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/09/10 Flubber Co
-    income:unknown            $-50
     assets:myacct              $50 = $123
+    income:unknown            $-50
 
 >>>2
 >>>=0
@@ -55,12 +55,12 @@
  printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/09/10 Flubber Co
-    income:unknown            $-50
     assets:myacct              $50 = $123
+    income:unknown            $-50
 
 2009/09/11 Blubber Co
-    income:unknown            $-60
     assets:myacct              $60
+    income:unknown            $-60
 
 >>>2
 >>>=0
@@ -69,12 +69,12 @@
  printf 'fields date, description, amount, balance\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\n' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50,123\n11/2009/09,Blubber Co,60,   \n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/09/10 Flubber Co
-    income:unknown            $-50
     assets:myacct              $50 = $123
+    income:unknown            $-50
 
 2009/09/11 Blubber Co
-    income:unknown            $-60
     assets:myacct              $60
+    income:unknown            $-60
 
 >>>2
 >>>=0
@@ -83,12 +83,12 @@
  printf 'skip 1\n\ncurrency $\n\nfields date, payee, payment\n\namount -%%payment\naccount1 liabilities:bank\naccount2 expense:other' >t.$$.csv.rules; printf 'date,payee,amount\n2009/10/9,Flubber Co,50\n2009/11/09,Merchant Credit,-60\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
 2009/10/09
-    expense:other                $50
     liabilities:bank            $-50
+    expense:other                $50
 
 2009/11/09
-    expense:other               $-60
     liabilities:bank             $60
+    expense:other               $-60
 
 >>>2
 >>>=0
