@@ -179,12 +179,12 @@ File: hledger_csv.5.info,  Node: newest-first,  Prev: include,  Up: CSV RULES
 
 'newest-first'
 
-   Consider adding this rule if: your CSV records are in reverse
+   Consider adding this rule if all of the following are true: you might
+be processing just one day of data, your CSV records are in reverse
 chronological order (newest first), and you care about preserving the
-order of same-day transactions, and you might be processing just one day
-of data.  It usually isn't needed, because hledger autodetects the CSV
-order, but if all the CSV records have the same date it assumes they are
-oldest first.
+order of same-day transactions.  It usually isn't needed, because
+hledger autodetects the CSV order, but when all CSV records have the
+same date it will assume they are oldest first.
 
 
 File: hledger_csv.5.info,  Node: CSV TIPS,  Prev: CSV RULES,  Up: Top
@@ -192,27 +192,68 @@ File: hledger_csv.5.info,  Node: CSV TIPS,  Prev: CSV RULES,  Up: Top
 2 CSV TIPS
 **********
 
-Each generated journal entry will have two postings, to 'account1' and
-'account2' respectively.  Currently it's not possible to generate
-entries with more than two postings.
+* Menu:
+
+* CSV ordering::
+* CSV accounts::
+* CSV amounts::
+* CSV balance assertions::
+
+
+File: hledger_csv.5.info,  Node: CSV ordering,  Next: CSV accounts,  Up: CSV TIPS
+
+2.1 CSV ordering
+================
+
+The generated journal entries will be sorted by date.  The order of
+same-day entries will be preserved (except in the special case where you
+might need 'newest-first', see above).
+
+
+File: hledger_csv.5.info,  Node: CSV accounts,  Next: CSV amounts,  Prev: CSV ordering,  Up: CSV TIPS
+
+2.2 CSV accounts
+================
+
+Each journal entry will have two postings, to 'account1' and 'account2'
+respectively.  It's not yet possible to generate entries with more than
+two postings.  It's conventional and recommended to use 'account1' for
+the account whose CSV we are reading.
+
+
+File: hledger_csv.5.info,  Node: CSV amounts,  Next: CSV balance assertions,  Prev: CSV accounts,  Up: CSV TIPS
+
+2.3 CSV amounts
+===============
+
+The 'amount' field sets the amount of the 'account1' posting.
 
    If the CSV has debit/credit amounts in separate fields, assign to the
-'amount-in' and 'amount-out' pseudo fields instead of 'amount'.
-
-   If the CSV has the currency in a separate field, assign that to the
-'currency' pseudo field which will be automatically prepended to the
-amount.  (Or you can do the same thing with a field assignment.)
-
-   If the CSV includes a running balance, you can assign that to the
-'balance' pseudo field to generate a balance assertion on 'account1'
-whenever the balance field is non-empty.  (Eg to double-check your
-bank's balance calculation.)
+'amount-in' and 'amount-out' pseudo fields instead.  (Whichever one has
+a value will be used, with appropriate sign.  If both contain a value,
+it may not work so well.)
 
    If an amount value is parenthesised, it will be de-parenthesised and
-sign-flipped automatically.
+sign-flipped.
 
-   The generated journal entries will be sorted by date.  The original
-order of same-day entries will be preserved, usually.
+   If an amount value begins with a double minus sign, those will cancel
+out and be removed.
+
+   If the CSV has the currency symbol in a separate field, assign that
+to the 'currency' pseudo field to have it prepended to the amount.  Or,
+you can use a field assignment to 'amount' that interpolates both CSV
+fields (giving more control, eg to put the currency symbol on the
+right).
+
+
+File: hledger_csv.5.info,  Node: CSV balance assertions,  Prev: CSV amounts,  Up: CSV TIPS
+
+2.4 CSV balance assertions
+==========================
+
+If the CSV includes a running balance, you can assign that to the
+'balance' pseudo field; whenever the running balance value is non-empty,
+it will be asserted as the balance after the 'account1' posting.
 
 
 Tag Table:
@@ -233,7 +274,15 @@ Node: include4648
 Ref: #include4780
 Node: newest-first5011
 Ref: #newest-first5127
-Node: CSV TIPS5510
-Ref: #csv-tips5606
+Node: CSV TIPS5538
+Ref: #csv-tips5634
+Node: CSV ordering5721
+Ref: #csv-ordering5841
+Node: CSV accounts6022
+Ref: #csv-accounts6162
+Node: CSV amounts6416
+Ref: #csv-amounts6564
+Node: CSV balance assertions7339
+Ref: #csv-balance-assertions7488
 
 End Tag Table

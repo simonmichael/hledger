@@ -161,31 +161,45 @@ include common.rules
 
 `newest-first`
 
-Consider adding this rule if: 
+Consider adding this rule if all of the following are true: 
+you might be processing just one day of data,
 your CSV records are in reverse chronological order (newest first),
-and you care about preserving the order of same-day transactions,
-and you might be processing just one day of data.
+and you care about preserving the order of same-day transactions.
 It usually isn't needed, because hledger autodetects the CSV order,
-but if all the CSV records have the same date it assumes they are oldest first.
+but when all CSV records have the same date it will assume they are oldest first.
 
 # CSV TIPS
 
-Each generated journal entry will have two postings, to `account1` and `account2` respectively.
-Currently it's not possible to generate entries with more than two postings.
+## CSV ordering
 
-If the CSV has debit/credit amounts in separate fields, assign to the `amount-in` and `amount-out` pseudo fields instead of `amount`.
+The generated [journal entries](/journal.html#transactions) will be sorted by date. 
+The order of same-day entries will be preserved 
+(except in the special case where you might need [`newest-first`](#newest-first), see above).
 
-If the CSV has the currency in a separate field, assign that to the `currency` pseudo field which will be automatically prepended to the amount.
-(Or you can do the same thing with a field assignment.)
+## CSV accounts
 
-If the CSV includes a running balance, you can assign that to the `balance` pseudo field 
-to generate a [balance assertion](/journal.html#balance-assertions) on `account1` 
-whenever the balance field is non-empty.
-(Eg to double-check your bank's balance calculation.)
+Each journal entry will have two [postings](/journal.html#postings), to `account1` and `account2` respectively.
+It's not yet possible to generate entries with more than two postings.
+It's conventional and recommended to use `account1` for the account whose CSV we are reading.
 
-If an amount value is parenthesised, it will be de-parenthesised and sign-flipped automatically.
+## CSV amounts
 
-The generated journal entries will be sorted by date.
-The original order of same-day entries will be preserved, usually.
-<!-- (by reversing the CSV entries if they seem to be in reverse date order). -->
+The `amount` field sets the [amount](/journal.html#amounts) of the `account1` posting.
 
+If the CSV has debit/credit amounts in separate fields, assign to the `amount-in` and `amount-out` pseudo fields instead.
+(Whichever one has a value will be used, with appropriate sign. If both contain a value, it may not work so well.)
+
+If an amount value is parenthesised, it will be de-parenthesised and sign-flipped.
+
+If an amount value begins with a double minus sign, those will cancel out and be removed.
+
+If the CSV has the currency symbol in a separate field, 
+assign that to the `currency` pseudo field to have it prepended to the amount.
+Or, you can use a [field assignment](#field-assignment) to `amount` that interpolates both CSV fields
+(giving more control, eg to put the currency symbol on the right).
+
+## CSV balance assertions
+
+If the CSV includes a running balance, you can assign that to the `balance` pseudo field;
+whenever the running balance value is non-empty, 
+it will be [asserted](/journal.html#balance-assertions) as the balance after the `account1` posting. 

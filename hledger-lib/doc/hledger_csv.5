@@ -199,39 +199,54 @@ include\ common.rules
 .PP
 \f[C]newest\-first\f[]
 .PP
-Consider adding this rule if: your CSV records are in reverse
+Consider adding this rule if all of the following are true: you might be
+processing just one day of data, your CSV records are in reverse
 chronological order (newest first), and you care about preserving the
-order of same\-day transactions, and you might be processing just one
-day of data.
+order of same\-day transactions.
 It usually isn\[aq]t needed, because hledger autodetects the CSV order,
-but if all the CSV records have the same date it assumes they are oldest
-first.
+but when all CSV records have the same date it will assume they are
+oldest first.
 .SH CSV TIPS
-.PP
-Each generated journal entry will have two postings, to
-\f[C]account1\f[] and \f[C]account2\f[] respectively.
-Currently it\[aq]s not possible to generate entries with more than two
-postings.
-.PP
-If the CSV has debit/credit amounts in separate fields, assign to the
-\f[C]amount\-in\f[] and \f[C]amount\-out\f[] pseudo fields instead of
-\f[C]amount\f[].
-.PP
-If the CSV has the currency in a separate field, assign that to the
-\f[C]currency\f[] pseudo field which will be automatically prepended to
-the amount.
-(Or you can do the same thing with a field assignment.)
-.PP
-If the CSV includes a running balance, you can assign that to the
-\f[C]balance\f[] pseudo field to generate a balance assertion on
-\f[C]account1\f[] whenever the balance field is non\-empty.
-(Eg to double\-check your bank\[aq]s balance calculation.)
-.PP
-If an amount value is parenthesised, it will be de\-parenthesised and
-sign\-flipped automatically.
+.SS CSV ordering
 .PP
 The generated journal entries will be sorted by date.
-The original order of same\-day entries will be preserved, usually.
+The order of same\-day entries will be preserved (except in the special
+case where you might need \f[C]newest\-first\f[], see above).
+.SS CSV accounts
+.PP
+Each journal entry will have two postings, to \f[C]account1\f[] and
+\f[C]account2\f[] respectively.
+It\[aq]s not yet possible to generate entries with more than two
+postings.
+It\[aq]s conventional and recommended to use \f[C]account1\f[] for the
+account whose CSV we are reading.
+.SS CSV amounts
+.PP
+The \f[C]amount\f[] field sets the amount of the \f[C]account1\f[]
+posting.
+.PP
+If the CSV has debit/credit amounts in separate fields, assign to the
+\f[C]amount\-in\f[] and \f[C]amount\-out\f[] pseudo fields instead.
+(Whichever one has a value will be used, with appropriate sign.
+If both contain a value, it may not work so well.)
+.PP
+If an amount value is parenthesised, it will be de\-parenthesised and
+sign\-flipped.
+.PP
+If an amount value begins with a double minus sign, those will cancel
+out and be removed.
+.PP
+If the CSV has the currency symbol in a separate field, assign that to
+the \f[C]currency\f[] pseudo field to have it prepended to the amount.
+Or, you can use a field assignment to \f[C]amount\f[] that interpolates
+both CSV fields (giving more control, eg to put the currency symbol on
+the right).
+.SS CSV balance assertions
+.PP
+If the CSV includes a running balance, you can assign that to the
+\f[C]balance\f[] pseudo field; whenever the running balance value is
+non\-empty, it will be asserted as the balance after the
+\f[C]account1\f[] posting.
 
 
 .SH "REPORTING BUGS"
