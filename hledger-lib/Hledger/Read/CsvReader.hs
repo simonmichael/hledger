@@ -662,10 +662,10 @@ transactionFromCsvRecord sourcepos rules record = t
        ++"change your amount or currency rules, "
        ++"or "++maybe "add a" (const "change your") mskip++" skip rule"
       ]
-    -- Using costOfMixedAmount here to allow complex costs like "10 GBP @@ 15 USD".
-    -- Aim is to have "10 GBP @@ 15 USD" applied to account2, but have "-15USD" applied to account1
-    amount1        = costOfMixedAmount amount
-    amount2        = (-amount)
+    amount1        = amount
+    -- convert balancing amount to cost like hledger print, so eg if 
+    -- amount1 is "10 GBP @@ 15 USD", amount2 will be "-15 USD".
+    amount2        = costOfMixedAmount (-amount)
     s `or` def  = if null s then def else s
     defaccount1 = fromMaybe "unknown" $ mdirective "default-account1"
     defaccount2 = case isNegativeMixedAmount amount2 of
