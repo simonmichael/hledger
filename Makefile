@@ -41,7 +41,10 @@
 # def-help* functions for documenting make rules. See the file for usage.
 include help-system.mk
 
-$(call def-help-section, hledger make rules )
+$(call def-help-heading,Main make rules in the hledger project:)
+$(call def-help-heading,TODO: some of these need updating)
+$(call def-help-heading,---------------------------------------)
+$(call def-help-heading, )
 
 help2: \
 	$(call def-help,[help], list documented rules in this makefile. "make RULE -n" shows more detail. )
@@ -236,7 +239,7 @@ TIME:=$(shell date +"%Y%m%d%H%M")
 MONTHYEAR:=$(shell date +'%B %Y')
 
 ###############################################################################
-$(call def-help-subsection,INSTALLING:)
+$(call def-help-subheading,INSTALLING:)
 
 install: \
 	$(call def-help,install, download dependencies and install hledger executables to ~/.local/bin or equivalent (with stack))
@@ -263,7 +266,7 @@ install: \
 # # 	-for p in $(call reverse,$(PACKAGES)); do $(GHCPKG) unregister $$p; done
 
 ###############################################################################
-$(call def-help-subsection,BUILDING:)
+$(call def-help-subheading,BUILDING:)
 
 # EXTRAINSTALLARGS=
 
@@ -546,7 +549,7 @@ tools/generatejournal: tools/generatejournal.hs \
 	$(GHC) tools/generatejournal.hs
 
 ###############################################################################
-$(call def-help-subsection,TESTING:)
+$(call def-help-subheading,TESTING:)
 
 # packdeps: \
 # 	$(call def-help,packdeps,\
@@ -899,7 +902,7 @@ examples/mixed.journal: tools/generatejournal
 	tools/generatejournal 3 5 5 --mixed >$@
 
 ###############################################################################
-$(call def-help-subsection,DOCUMENTATION:)
+$(call def-help-subheading,DOCUMENTATION:)
 
 # docs: site codedocs \
 # 	$(call def-help,docs,\
@@ -1110,7 +1113,7 @@ draft-changelog-start: \
 	@make draft-changelog-template >>$(DRAFTCHANGELOG)
 
 draft-changelog-template: \
-	#$(call def-help,draft-changelog-template, print an empty org outline for drafting changelogs. )
+	$(call def-help,draft-changelog-template, print an empty org outline for drafting changelogs. )
 	@echo "* draft changelog for `git describe --tags --abbrev=0`"
 	@echo "** hledger-lib"
 	@echo "** hledger"
@@ -1119,19 +1122,19 @@ draft-changelog-template: \
 	@echo "** hledger-api"
 	@echo "** project"
 
+draft-changelog-update: \
+	$(call def-help,draft-changelog-update, add any new commits as org nodes to $(DRAFTCHANGELOG) )
+	@make draft-changelog-$(LASTCHANGELOGREF) >> $(DRAFTCHANGELOG)
+
 draft-changelog-%: \
-	#$(call def-help,draft-changelog-STARTREF, print commits from STARTREF as org nodes. Eg: make draft-changelog-hledger-1.3 )
+	$(call def-help,draft-changelog-STARTREF, print commits from STARTREF as org nodes. Eg: make draft-changelog-hledger-1.3 )
 	@git log --abbrev-commit --reverse --pretty=format:'ORGNODE %s (%an)%n%b%h' $*.. \
 		| sed -e 's/^\*/-/' -e 's/^ORGNODE/***/' \
 		| sed -e 's/ (Simon Michael)//'
 
 draft-changelog-add-%: \
-	#$(call def-help,draft-changelog-add-STARTREF, add commits from STARTREF as org nodes to $(DRAFTCHANGELOG). Eg: make draft-changelog-add-HEAD~1 )
+	$(call def-help,draft-changelog-add-STARTREF, add commits from STARTREF as org nodes to $(DRAFTCHANGELOG). Eg: make draft-changelog-add-HEAD~1 )
 	@make draft-changelog-$* >>$(DRAFTCHANGELOG)
-
-draft-changelog-update: \
-	$(call def-help,draft-changelog-update, add any new commits as org nodes to $(DRAFTCHANGELOG) )
-	@make draft-changelog-$(LASTCHANGELOGREF) >> $(DRAFTCHANGELOG)
 
 #
 
@@ -1212,8 +1215,8 @@ site/manual2-1.md: site/manual-start.md site/manual-end.md $(MANPAGES) \
 # too hard, see Shake.hs
 
 ###############################################################################
-$(call def-help-subsection,RELEASING:)
-#$(call def-help-subsection,see also developer guide -> how to -> do a release)
+$(call def-help-subheading,RELEASING:)
+#$(call def-help-subheading,see also developer guide -> how to -> do a release)
 
 # TODO update this:
 
@@ -1510,7 +1513,7 @@ cloc: $(call def-help,cloc, count lines of source code )
 # 	@echo
 
 ###############################################################################
-$(call def-help-subsection,MISCELLANEOUS:)
+$(call def-help-subheading,MISCELLANEOUS:)
 
 Shake: Shake.hs $(call def-help,Shake, ensure the Shake script is compiled )
 	./Shake.hs
@@ -1587,4 +1590,4 @@ Clean: stackclean cabalclean cleanghc cleantags clean-manpages \
 
 -include local.mk
 
-#$(call def-help-section,------------------)
+#$(call def-help-heading,------------------)

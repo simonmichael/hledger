@@ -16,13 +16,13 @@
 #
 # Also:
 #
-# $(call def-help-section,TITLE,HELP)     -- show a section heading
+# $(call def-help-heading,TITLE,HELP)     -- show a section heading
 #
-# $(call def-help-subsection,TITLE,HELP)  -- show a subsection heading
+# $(call def-help-subheading,TITLE,HELP)  -- show a subsection heading
 #
 # $(call def-help-hide,TARGET,HELP)       -- temporarily suppress the help)
-# $(call def-help-section-hide,TITLE,HELP)
-# $(call def-help-subsection-hide,TITLE,HELP)
+# $(call def-help-heading-hide,TITLE,HELP)
+# $(call def-help-subheading-hide,TITLE,HELP)
 #
 # HELP is one or more lines, or can be blank.
 # Certain characters are not allowed, comma in particular.
@@ -40,21 +40,21 @@ define def-help
 endef
 
 # show a section heading when help has been requested
-define def-help-section
-	$(if $(need-help),$(warning --------------------$1--------------------$2))
+define def-help-heading
+	$(if $(need-help),$(warning $1))
 endef
 
 # show a subsection heading when help has been requested
-define def-help-subsection
-	$(if $(need-help),$(warning $1))
+define def-help-subheading
+	$(if $(need-help),$(warning );$(warning $1))
 endef
 
 # no-ops, for hiding help without removing it entirely
 define def-help-hide
 endef
-define def-help-section-hide
+define def-help-heading-hide
 endef
-define def-help-subsection-hide
+define def-help-subheading-hide
 endef
 
 # utilities
