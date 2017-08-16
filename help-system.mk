@@ -46,7 +46,7 @@ endef
 
 # show a subsection heading when help has been requested
 define def-help-subsection
-	$(if $(need-help),$(warning ($1)))
+	$(if $(need-help),$(warning $1))
 endef
 
 # no-ops, for hiding help without removing it entirely
