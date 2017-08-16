@@ -41,13 +41,18 @@
 # def-help* functions for documenting make rules. See the file for usage.
 include help-system.mk
 
+
+
 $(call def-help-heading,Main make rules in the hledger project:)
 $(call def-help-heading,TODO: some of these need updating)
 $(call def-help-heading,---------------------------------------)
 $(call def-help-heading, )
 
-help2: \
-	$(call def-help,[help], list documented rules in this makefile. "make RULE -n" shows more detail. )
+# just to include "make help" in help:
+help2: $(call def-help,[help], list documented rules in this makefile. "make RULE -n" shows more detail. )
+
+help-%: $(call def-help,[help-SECTION], list documented rules in one section of this makefile. )
+	make help 2>&1 | sed -n '/$*/,/: $$/p'
 
 ###############################################################################
 # VARS
