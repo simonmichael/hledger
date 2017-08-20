@@ -33,15 +33,18 @@ with a date, and is followed by category/quantity pairs, one per line.
 Dates are hledger-style simple dates (see hledger_journal(5)).
 Categories are hledger-style account names, optionally indented.  There
 must be at least two spaces between the category and the quantity.
-Quantities can be written in two ways:
+Quantities can be written in several ways:
 
-  1. a series of dots (period characters).  Each dot represents "a
-     quarter" - eg, a quarter hour.  Spaces can be used to group dots
-     into hours, for easier counting.
+  1. a series of dots (.).  Each dot represents one quarter unit - eg, a
+     quarter hour.  Spaces may optionally be used to group dots, for
+     easier counting.
 
-  2. a number (integer or decimal), representing "units" - eg, hours.  A
-     good alternative when dots are cumbersome.  (A number also can
-     record negative quantities.)
+  2. an integral or decimal number optionally followed by the letter h
+     represents whole units - eg, hours.  Numbers may be more convenient
+     for large quantities (and can also record negative quantities).
+
+  3. an integral or decimal number followed by the letter m represents
+     1/60th units - eg, minutes.
 
    Blank lines and lines beginning with #, ; or * are ignored.  An
 example:

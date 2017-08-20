@@ -5,7 +5,9 @@ Example:
 
 @
 #DATE
-#ACCT DOTS  # Each dot represents 15m, spaces are ignored
+#ACCT  DOTS  # Each dot represents 15m, spaces are ignored
+#ACCT  8    # numbers with or without a following h represent hours
+#ACCT  5m   # numbers followed by m represent minutes
 
 # on 2/1, 1h was spent on FOSS haskell work, 0.25h on research, etc.
 2/1
@@ -126,16 +128,26 @@ timedotentryp = do
   return t
 
 timedotdurationp :: JournalParser m Quantity
-timedotdurationp = try timedotnumberp <|> timedotdotsp
+timedotdurationp = try timedotminutesp <|> try timedothoursp <|> timedotdotsp
 
--- | Parse a duration written as a decimal number of hours (optionally followed by the letter h).
+-- | Parse a duration written as a decimal number of minutes followed by the letter m.
+-- @
+-- 5m
+-- @
+timedotminutesp :: JournalParser m Quantity
+timedotminutesp = do
+   (q, _, _, _) <- lift numberp
+   char 'm'
+   lift (many spacenonewline)
+   return $ q / 60
+
+-- | Parse a duration written as a decimal number of hours optionally followed by the letter h.
 -- @
 -- 1.5h
 -- @
-timedotnumberp :: JournalParser m Quantity
-timedotnumberp = do
+timedothoursp :: JournalParser m Quantity
+timedothoursp = do
    (q, _, _, _) <- lift numberp
-   lift (many spacenonewline)
    optional $ char 'h'
    lift (many spacenonewline)
    return q

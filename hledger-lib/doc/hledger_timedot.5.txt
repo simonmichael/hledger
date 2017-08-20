@@ -25,17 +25,20 @@ FILE FORMAT
        Dates  are  hledger-style simple dates (see hledger_journal(5)).  Cate-
        gories are hledger-style account  names,  optionally  indented.   There
        must  be  at  least  two  spaces between the category and the quantity.
-       Quantities can be written in two ways:
+       Quantities can be written in several ways:
 
-       1. a series of dots (period characters).  Each dot represents "a  quar-
-          ter"  -  eg,  a quarter hour.  Spaces can be used to group dots into
-          hours, for easier counting.
+       1. a series of dots (.).  Each dot represents one quarter unit - eg,  a
+          quarter hour.  Spaces may optionally be used to group dots, for eas-
+          ier counting.
 
-       2. a number (integer or decimal), representing "units" - eg, hours.   A
-          good  alternative  when  dots  are  cumbersome.   (A number also can
-          record negative quantities.)
+       2. an integral or decimal number optionally followed by  the  letter  h
+          represents  whole units - eg, hours.  Numbers may be more convenient
+          for large quantities (and can also record negative quantities).
 
-       Blank lines and lines beginning with #, ; or * are ignored.   An  exam-
+       3. an integral or decimal number followed by the  letter  m  represents
+          1/60th units - eg, minutes.
+
+       Blank  lines  and lines beginning with #, ; or * are ignored.  An exam-
        ple:
 
               # on this day, 6h was spent on client work, 1.5h on haskell FOSS work, etc.
@@ -79,7 +82,7 @@ FILE FORMAT
               ------------++----------------------------------------
                           ||         7.75         2.25         8.00
 
-       I  prefer to use period for separating account components.  We can make
+       I prefer to use period for separating account components.  We can  make
        this work with an account alias:
 
               2016/2/4
@@ -98,7 +101,7 @@ FILE FORMAT
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -112,7 +115,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
