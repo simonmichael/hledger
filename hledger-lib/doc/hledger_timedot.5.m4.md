@@ -29,7 +29,7 @@ In the docs below we'll assume it's time.
 
 A timedot file contains a series of day entries.
 A day entry begins with a date, and is followed by category/quantity pairs, one per line.
-Dates are hledger-style [simple dates](#simple-dates) (see hledger_journal(5)).
+Dates are hledger-style [simple dates](/journal.html#simple-dates) (see hledger_journal(5)).
 Categories are hledger-style account names, optionally indented.
 As in a hledger journal, there must be at least two spaces between the category (account name) and the quantity.
 
@@ -101,7 +101,7 @@ Balance changes in 2016/02/01-2016/02/03:
 ```
 
 I prefer to use period for separating account components.
-We can make this work with an [account alias](#account-aliases):
+We can make this work with an [account alias](/journal.html#account-aliases):
 
 ```timedot
 2016/2/4
