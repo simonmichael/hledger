@@ -127,7 +127,7 @@ m4_define({{_reportingoptions_}}, {{
 : set start date, end date, and/or reporting interval all at once (overrides the flags above)
 
 `--date2`
-: show, and match with -b/-e/-p/date:, secondary dates instead
+: match the secondary date instead (see command help for other effects)
 
 `-U --unmarked`
 : include only unmarked postings/txns (can combine with -P or -C)

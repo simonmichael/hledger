@@ -103,7 +103,8 @@ the data.
      (overrides the flags above)
 '--date2'
 
-     show, and match with -b/-e/-p/date:, secondary dates instead
+     match the secondary date instead (see command help for other
+     effects)
 '-U --unmarked'
 
      include only unmarked postings/txns (can combine with -P or -C)
@@ -357,17 +358,17 @@ Tag Table:
 Node: Top73
 Node: OPTIONS831
 Ref: #options930
-Node: KEYS3465
-Ref: #keys3562
-Node: SCREENS6358
-Ref: #screens6445
-Node: Accounts screen6535
-Ref: #accounts-screen6665
-Node: Register screen8895
-Ref: #register-screen9052
-Node: Transaction screen11126
-Ref: #transaction-screen11286
-Node: Error screen12156
-Ref: #error-screen12280
+Node: KEYS3479
+Ref: #keys3576
+Node: SCREENS6372
+Ref: #screens6459
+Node: Accounts screen6549
+Ref: #accounts-screen6679
+Node: Register screen8909
+Ref: #register-screen9066
+Node: Transaction screen11140
+Ref: #transaction-screen11300
+Node: Error screen12170
+Ref: #error-screen12294
 
 End Tag Table

@@ -29,7 +29,7 @@ import Hledger.Cli.Utils
 
 
 registermode = (defCommandMode $ ["register"] ++ aliases) {
-  modeHelp = "show postings and running total" `withAliases` aliases
+  modeHelp = "show postings and running total. With --date2, show and sort by secondary date instead." `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
       flagNone ["cumulative"]         (\opts -> setboolopt "change" opts)

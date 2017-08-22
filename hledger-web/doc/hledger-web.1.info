@@ -148,7 +148,8 @@ options as shown above.
      (overrides the flags above)
 '--date2'
 
-     show, and match with -b/-e/-p/date:, secondary dates instead
+     match the secondary date instead (see command help for other
+     effects)
 '-U --unmarked'
 
      include only unmarked postings/txns (can combine with -P or -C)

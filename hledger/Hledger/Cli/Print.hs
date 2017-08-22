@@ -28,7 +28,7 @@ import Hledger.Cli.Add ( transactionsSimilarTo )
 
 
 printmode = (defCommandMode $ ["print"] ++ aliases) {
-  modeHelp = "show transaction journal entries" `withAliases` aliases
+  modeHelp = "show transaction journal entries, sorted by date. With --date2, sort by secondary date instead." `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
         let matcharg = "STR"
