@@ -16,13 +16,14 @@ Timedot - hledger's human-friendly time logging format
 
 }})
 
-Timedot is a plain text format for logging dated, categorised quantities (eg time), supported by hledger.
+Timedot is a plain text format for logging dated, categorised quantities (of time, usually), supported by hledger.
 It is convenient for approximate and retroactive time logging,
 eg when the real-time clock-in/out required with a timeclock file is too precise or too interruptive.
 It can be formatted like a bar chart, making clear at a glance where time was spent.
 
-Though called "timedot", the format does not specify the commodity being logged, so could represent other dated, quantifiable things.
-Eg you could record a single-entry journal of financial transactions, perhaps slightly more conveniently than with hledger_journal(5) format.
+Though called "timedot", this format is read by hledger as commodityless quantities, 
+so it could be used to represent dated quantities other than time.
+In the docs below we'll assume it's time.
 
 # FILE FORMAT
 
@@ -30,17 +31,23 @@ A timedot file contains a series of day entries.
 A day entry begins with a date, and is followed by category/quantity pairs, one per line.
 Dates are hledger-style [simple dates](#simple-dates) (see hledger_journal(5)).
 Categories are hledger-style account names, optionally indented.
-There must be at least two spaces between the category and the quantity.
-Quantities can be written in several ways:
+As in a hledger journal, there must be at least two spaces between the category (account name) and the quantity.
 
-1. a series of dots (.).
-   Each dot represents one quarter unit - eg, a quarter hour.
-   Spaces may optionally be used to group dots, for easier counting.
+Quantities can be written as:
 
-2. an integral or decimal number optionally followed by the letter h represents whole units - eg, hours.
-   Numbers may be more convenient for large quantities (and can also record negative quantities).
+- a sequence of dots (.) representing quarter hours.
+  Spaces may optionally be used for grouping and readability.
+  Eg: .... .. 
 
-3. an integral or decimal number followed by the letter m represents 1/60th units - eg, minutes.
+- an integral or decimal number, representing hours.
+  Eg: 1.5
+  
+- an integral or decimal number immediately followed by a unit symbol 
+  `s`, `m`, `h`, `d`, `w`, `mo`, or `y`, representing seconds, minutes, hours, days
+  weeks, months or years respectively. 
+  Eg: 90m.
+  The following equivalencies are assumed, currently: 
+  1m = 60s, 1h = 60m, 1d = 24h, 1w = 7d, 1mo = 30d, 1y=365d.
 
 Blank lines and lines beginning with #, ; or * are ignored.
 An example:

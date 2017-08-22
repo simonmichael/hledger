@@ -128,29 +128,41 @@ timedotentryp = do
   return t
 
 timedotdurationp :: JournalParser m Quantity
-timedotdurationp = try timedotminutesp <|> try timedothoursp <|> timedotdotsp
+timedotdurationp = try timedotnumericp <|> timedotdotsp
 
--- | Parse a duration written as a decimal number of minutes followed by the letter m.
+-- | Parse a duration of seconds, minutes, hours, days, weeks, months or years,
+-- written as a decimal number followed by s, m, h, d, w, mo or y, assuming h
+-- if there is no unit. Returns the duration as hours, assuming
+-- 1m = 60s, 1h = 60m, 1d = 24h, 1w = 7d, 1mo = 30d, 1y=365d.
 -- @
--- 5m
--- @
-timedotminutesp :: JournalParser m Quantity
-timedotminutesp = do
-   (q, _, _, _) <- lift numberp
-   char 'm'
-   lift (many spacenonewline)
-   return $ q / 60
-
--- | Parse a duration written as a decimal number of hours optionally followed by the letter h.
--- @
+-- 1.5
 -- 1.5h
+-- 90m
 -- @
-timedothoursp :: JournalParser m Quantity
-timedothoursp = do
-   (q, _, _, _) <- lift numberp
-   optional $ char 'h'
-   lift (many spacenonewline)
-   return q
+timedotnumericp :: JournalParser m Quantity
+timedotnumericp = do
+  (q, _, _, _) <- lift numberp
+  msymbol <- optional $ choice $ map (string . fst) timeUnits
+  lift (many spacenonewline)
+  let q' = 
+        case msymbol of
+          Nothing  -> q
+          Just sym ->
+            case lookup sym timeUnits of
+              Just mult -> q * mult  
+              Nothing   -> q  -- shouldn't happen.. ignore
+  return q'
+
+-- (symbol, equivalent in hours). 
+timeUnits =
+  [("s",2.777777777777778e-4)
+  ,("m",1.6666666666666666e-2)
+  ,("h",1)
+  ,("d",24)
+  ,("w",168)
+  ,("mo",5040)
+  ,("y",61320)
+  ]
 
 -- | Parse a quantity written as a line of dots, each representing 0.25.
 -- @
