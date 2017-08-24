@@ -1,7 +1,7 @@
 # stack build plan using GHC 8.0.2 (osx sierra compatible)
 # keep synced with download.md
 
-resolver: lts-8.23
+resolver: lts-9.0
 
 extra-deps:
  []
