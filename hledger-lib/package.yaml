@@ -17,9 +17,13 @@ maintainer: Simon Michael <simon@joyful.com>
 github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
+stability: stable
+tested-with: GHC==7.10.3, GHC==8.0.2, GHC==8.2.1
+
 extra-source-files:
 - CHANGES
 - README
+
 data-files:
 - doc/hledger_csv.5
 - doc/hledger_csv.5.txt
@@ -33,11 +37,13 @@ data-files:
 - doc/hledger_timeclock.5
 - doc/hledger_timeclock.5.txt
 - doc/hledger_timeclock.5.info
+
 flags:
   oldtime:
     description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
     manual: false
     default: false
+
 dependencies:
 - base >=4.8 && <5
 - base-compat >=0.8.1
@@ -73,6 +79,7 @@ dependencies:
 #- parsers >= 0.5
 #- system-filepath
 #- trifecta >= 0.91
+
 when:
 - condition: flag(oldtime)
   then:
@@ -82,6 +89,7 @@ when:
   else:
     dependencies:
     - time >=1.5
+
 ghc-options:
 - -Wall
 - -fno-warn-unused-do-bind
@@ -89,9 +97,11 @@ ghc-options:
 - -fno-warn-missing-signatures
 - -fno-warn-type-defaults
 - -fno-warn-orphans
+
 source-dirs: 
 #- other/ledger-parse
 - .
+
 library:
   exposed-modules:
   - Hledger
@@ -141,6 +151,7 @@ library:
   - Text.Megaparsec.Compat
 #  other-modules:
 #  - Ledger.Parser.Text
+
 tests:
   doctests:
     main: doctests.hs
@@ -155,5 +166,3 @@ tests:
     - hledger-lib
     - test-framework
     - test-framework-hunit
-stability: stable
-tested-with: GHC==7.10.3, GHC==8.0.2, GHC==8.2.1
