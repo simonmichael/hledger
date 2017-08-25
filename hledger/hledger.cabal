@@ -179,7 +179,7 @@ executable hledger
     , process
     , temporary
     , tabular >=0.2 && <0.3
-    , hledger-lib >= 1.3.99
+    , hledger-lib >= 1.3.99 && < 1.4
     , hledger
     , bytestring
     , containers
@@ -199,8 +199,6 @@ executable hledger
     , text >=0.11
     , utf8-string >=0.3.5 && <1.1
     , wizards ==1.0.*
-  if flag(threaded)
-    ghc-options: -threaded
   if impl(ghc <7.6)
     build-depends:
         ghc-prim
@@ -221,6 +219,8 @@ executable hledger
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
+  if flag(threaded)
+    ghc-options: -threaded
   default-language: Haskell2010
 
 test-suite test
@@ -242,7 +242,7 @@ test-suite test
     , process
     , temporary
     , tabular >=0.2 && <0.3
-    , hledger-lib >= 1.3.99
+    , hledger-lib >= 1.3.99 && < 1.4
     , hledger
     , bytestring
     , containers
@@ -304,11 +304,21 @@ benchmark bench
     , process
     , temporary
     , tabular >=0.2 && <0.3
-    , hledger-lib >= 1.3.99
+    , hledger-lib >= 1.3.99 && < 1.4
     , hledger
     , criterion
     , html
     , timeit
+  if impl(ghc <7.6)
+    build-depends:
+        ghc-prim
+  if impl(ghc >=7.10)
+    build-depends:
+        shakespeare >=2.0.2.2 && <2.1
+  else
+    build-depends:
+        shakespeare >=1.0 && <2.1
+      , shakespeare-text >=1.0 && <1.2
   if flag(oldtime)
     build-depends:
         time <1.5
@@ -316,4 +326,7 @@ benchmark bench
   else
     build-depends:
         time >=1.5
+  if (!(os(windows))) && (flag(terminfo))
+    build-depends:
+        terminfo
   default-language: Haskell2010
