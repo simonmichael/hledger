@@ -141,7 +141,7 @@ hledgerApiApp staticdir j = Servant.serve api server
       :<|> accounttransactionsH
       )
       --
-      :<|> serveDirectory staticdir
+      :<|> serveDirectoryFileServer staticdir
       where
         accountnamesH = return $ journalAccountNames j
         transactionsH = return $ jtxns j
