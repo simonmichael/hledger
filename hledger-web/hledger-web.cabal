@@ -161,8 +161,11 @@ library
     , json
     , megaparsec >=5.0 && < 6.2
     , mtl
+    , parsec >=3
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
+  if flag(dev)
+    ghc-options: -O0
   if flag(oldtime)
     build-depends:
         time <1.5
@@ -233,16 +236,14 @@ executable hledger-web
     , yesod-form
     , yesod-static
     , json
+    , megaparsec >=5.0 && < 6.2
+    , mtl
     , parsec >=3
     , hledger-web
-  if flag(library-only)
-    buildable: False
-  if flag(threaded)
-    ghc-options: -threaded
+  if (flag(dev)) || (flag(library-only))
+    cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
-  if flag(dev)
-    cpp-options: -DDEVELOPMENT
   if flag(oldtime)
     build-depends:
         time <1.5
@@ -253,6 +254,10 @@ executable hledger-web
   if impl(ghc <7.6)
     build-depends:
         ghc-prim
+  if flag(library-only)
+    buildable: False
+  if flag(threaded)
+    ghc-options: -threaded
   default-language: Haskell2010
 
 test-suite test
@@ -295,9 +300,16 @@ test-suite test
     , yesod-form
     , yesod-static
     , json
+    , megaparsec >=5.0 && < 6.2
+    , mtl
+    , parsec >=3
     , hledger-web
     , hspec
     , yesod-test
+  if (flag(dev)) || (flag(library-only))
+    cpp-options: -DDEVELOPMENT
+  if flag(dev)
+    ghc-options: -O0
   if flag(oldtime)
     build-depends:
         time <1.5

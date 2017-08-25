@@ -87,8 +87,6 @@ executable hledger-ui
     build-depends:
         brick >= 0.12 && < 0.25
       , vty >= 5.5 && < 5.18
-  if flag(threaded)
-    ghc-options: -threaded
   if flag(oldtime)
     build-depends:
         time < 1.5
@@ -96,6 +94,8 @@ executable hledger-ui
   else
     build-depends:
         time >= 1.5
+  if flag(threaded)
+    ghc-options: -threaded
   other-modules:
       Hledger.UI
       Hledger.UI.AccountsScreen

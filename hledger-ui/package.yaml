@@ -19,13 +19,18 @@ maintainer  : Simon Michael <simon@joyful.com>
 github      : simonmichael/hledger
 homepage    : http://hledger.org
 bug-reports : http://bugs.hledger.org
+stability   : stable
+tested-with : GHC==7.10.3, GHC==8.0
+
 extra-source-files:
   - CHANGES
   - README
+
 data-files:
   - doc/hledger-ui.1
   - doc/hledger-ui.1.txt
   - doc/hledger-ui.1.info
+
 flags:
   threaded:
     description: Build with support for multithreaded execution
@@ -35,7 +40,62 @@ flags:
     description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
     manual: false
     default: false
+
 cpp-options: -DVERSION="1.3.99"
+
+dependencies:
+ - hledger >= 1.3.99 && < 1.4
+ - hledger-lib >= 1.3.99 && < 1.4
+ - ansi-terminal >= 0.6.2.3 && < 0.7
+ - async
+ - base >= 4.8 && < 5
+ - base-compat >= 0.8.1
+ - cmdargs >= 0.8
+ - containers
+ - data-default
+ - directory
+ - filepath
+ - fsnotify >= 0.2 && < 0.3
+ - HUnit
+ - microlens >= 0.4 && < 0.5
+ - microlens-platform >= 0.2.3.1 && < 0.4
+ - megaparsec >=5.0 && < 6.2
+ - pretty-show >=1.6.4
+ - process >= 1.2
+ - safe >= 0.2
+ - split >= 0.1 && < 0.3
+ - text >= 1.2 && < 1.3
+ - text-zipper >= 0.4 && < 0.11
+ - transformers
+ - vector
+
+when:
+ # curses is required to build terminfo for vty for hledger-ui.
+ # On POSIX systems it might be not present.
+ # On windows it's very likely not present, but possibly it could be.
+ # Ideally we'd like to
+ # on POSIX: give a clear error ("install your system libcurses-dev package") if not present
+ # on windows: quietly skip building if not present, build if it is present
+ #  curses
+ #    default: True
+ #    description:
+ # For now, just don't build hledger-ui on windows
+ - condition: os(windows)
+   then:
+     buildable: false
+   else:
+     dependencies:
+       - brick >= 0.12 && < 0.25
+       - vty >= 5.5 && < 5.18
+ - condition: flag(oldtime)
+   then:
+     dependencies:
+       - time < 1.5
+       - old-locale
+   else:
+     dependencies:
+       - time >= 1.5
+
 executables:
   hledger-ui:
     source-dirs: .
@@ -47,58 +107,6 @@ executables:
       -fno-warn-missing-signatures
       -fno-warn-type-defaults
       -fno-warn-orphans
-    dependencies:
-      - hledger >= 1.3.99 && < 1.4
-      - hledger-lib >= 1.3.99 && < 1.4
-      - ansi-terminal >= 0.6.2.3 && < 0.7
-      - async
-      - base >= 4.8 && < 5
-      - base-compat >= 0.8.1
-      - cmdargs >= 0.8
-      - containers
-      - data-default
-      - directory
-      - filepath
-      - fsnotify >= 0.2 && < 0.3
-      - HUnit
-      - microlens >= 0.4 && < 0.5
-      - microlens-platform >= 0.2.3.1 && < 0.4
-      - megaparsec >=5.0 && < 6.2
-      - pretty-show >=1.6.4
-      - process >= 1.2
-      - safe >= 0.2
-      - split >= 0.1 && < 0.3
-      - text >= 1.2 && < 1.3
-      - text-zipper >= 0.4 && < 0.11
-      - transformers
-      - vector
     when:
-      # curses is required to build terminfo for vty for hledger-ui.
-      # On POSIX systems it might be not present.
-      # On windows it's very likely not present, but possibly it could be.
-      # Ideally we'd like to
-      # on POSIX: give a clear error ("install your system libcurses-dev package") if not present
-      # on windows: quietly skip building if not present, build if it is present
-      #  curses
-      #    default: True
-      #    description:
-      # For now, just don't build hledger-ui on windows
-      - condition: os(windows)
-        then:
-          buildable: false
-        else:
-          dependencies:
-            - brick >= 0.12 && < 0.25
-            - vty >= 5.5 && < 5.18
-      - condition: flag(threaded)
-        ghc-options: -threaded
-      - condition: flag(oldtime)
-        then:
-          dependencies:
-            - time < 1.5
-            - old-locale
-        else:
-          dependencies:
-            - time >= 1.5
-stability   : stable
-tested-with : GHC==7.10.3, GHC==8.0
+    - condition: flag(threaded)
+      ghc-options: -threaded
