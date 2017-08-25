@@ -1,7 +1,7 @@
 # Last-tested stack build plan using GHC 8.0.2 (osx sierra compatible)
 # stack.yaml help: https://github.com/commercialhaskell/stack/wiki/stack.yaml
 
-resolver: lts-8.23
+resolver: lts-9.0
 
 extra-deps:
  []
