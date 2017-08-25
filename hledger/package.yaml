@@ -158,7 +158,7 @@ executables:
     cpp-options: -DVERSION="1.3.99"
     dependencies:
     - hledger-lib >= 1.3.99
-    - hledger == 1.3.99
+    - hledger
     - bytestring
     - containers
     - unordered-containers
@@ -209,7 +209,7 @@ tests:
     cpp-options: -DVERSION="1.3.99"
     dependencies:
     - hledger-lib >= 1.3.99
-    - hledger == 1.3.99
+    - hledger
     - bytestring
     - containers
     - unordered-containers
@@ -259,7 +259,7 @@ benchmarks:
     source-dirs: bench
     dependencies:
     - hledger-lib >= 1.3.99
-    - hledger == 1.3.99
+    - hledger
     - criterion
     - html
     - timeit
