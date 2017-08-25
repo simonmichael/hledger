@@ -144,8 +144,8 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   -- heuristic: if the records appear to have been in reverse date order,
   -- reverse them all as well as doing a txn date sort,
   -- so that same-day txns' original order is preserved
-      txns' | length txns > 1 && tdate (head txns) > tdate (last txns) = reverse txns
-            | otherwise = txns
+    txns' | length txns > 1 && tdate (head txns) > tdate (last txns) = reverse txns
+          | otherwise = txns
 
   when (not rulesfileexists) $ do
     hPrintf stderr "created default conversion rules file %s, edit this for better results\n" rulesfile
