@@ -2,6 +2,19 @@ User-visible changes in hledger-ui.
 See also the hledger and project change logs.
 
 
+# 1.3.1 (2017/8/25)
+
+* allow megaparsec 6 (#594, Simon Michael, Hans-Peter Deifel)
+
+* allow megaparsec-6.1 (Hans-Peter Deifel)
+
+* allow vty 5.17 (Felix Yan)
+
+* allow brick 0.24
+
+* restore upper bounds on hledger packages
+
+
 # 1.3 (2017/6/30)
 
 The register screen now shows transaction status marks.
