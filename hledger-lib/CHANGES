@@ -1,6 +1,21 @@
 API-ish changes in the hledger-lib package.
 See also the hledger and project change logs (for user-visible changes).
 
+# 1.3.1 (2017/8/25)
+
+* Fix a bug with -H showing nothing for empty periods (Nicholas Niro)
+This patch fixes a bug that happened when using the -H option on
+a period without any transaction. Previously, the behavior was no
+output at all even though it should have shown the previous ending balances
+of past transactions. (This is similar to previously using -H with -E,
+but with the extra advantage of not showing empty accounts)
+
+* allow megaparsec 6 (#594)
+
+* allow megaparsec-6.1 (Hans-Peter Deifel)
+
+* fix test suite with Cabal 2 (#596)
+
 
 # 1.3 (2017/6/30)
 
