@@ -39,7 +39,7 @@ dependencies:
 - microlens >=0.4 && <0.5
 - microlens-platform >=0.2.3.1 && <0.4
 - safe
-- servant-server
+- servant-server >= 0.10
 - servant-swagger
 - swagger2
 - text
