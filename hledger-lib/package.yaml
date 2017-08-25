@@ -58,9 +58,11 @@ dependencies:
 - mtl
 - mtl-compat
 - old-time
+- parsec
 - pretty-show >=1.6.4
 - regex-tdfa
 - safe >=0.2
+- semigroups
 - split >=0.1 && <0.3
 - text >=1.2 && <1.3
 - transformers >=0.2 && <0.6
@@ -142,9 +144,6 @@ library:
   - Text.Megaparsec.Compat
 #  other-modules:
 #  - Ledger.Parser.Text
-  dependencies:
-  - parsec
-  - semigroups
 tests:
   doctests:
     main: doctests.hs
@@ -157,7 +156,6 @@ tests:
     source-dirs: tests
     dependencies:
     - hledger-lib
-    - parsec
     - test-framework
     - test-framework-hunit
 stability: stable
