@@ -1,5 +1,5 @@
 name: hledger-web
-version: '1.3.1'
+version: '1.3.2'
 synopsis: Web interface for the hledger accounting tool
 description: |
   This is hledger's web interface.
@@ -100,7 +100,7 @@ ghc-options:
 - -fno-warn-type-defaults
 - -fno-warn-orphans
 library:
-  cpp-options: -DVERSION="1.3.1"
+  cpp-options: -DVERSION="1.3.2"
   exposed-modules:
   - Application
   - Foundation
@@ -139,7 +139,7 @@ executables:
   hledger-web:
     main: main.hs
     source-dirs: app
-    cpp-options: -DVERSION="1.3.1"
+    cpp-options: -DVERSION="1.3.2"
     dependencies:
     - parsec >=3
     - hledger-web
@@ -167,7 +167,7 @@ tests:
   test:
     main: main.hs
     source-dirs: tests
-    cpp-options: -DVERSION="1.3.1"
+    cpp-options: -DVERSION="1.3.2"
     dependencies:
     - hledger-web
     - hspec

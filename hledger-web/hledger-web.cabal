@@ -3,7 +3,7 @@
 -- see: https://github.com/sol/hpack
 
 name:           hledger-web
-version:        1.3.1
+version:        1.3.2
 synopsis:       Web interface for the hledger accounting tool
 description:    This is hledger's web interface.
                 It provides a more user-friendly and collaborative UI than the
@@ -125,7 +125,7 @@ flag threaded
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.3.1"
+  cpp-options: -DVERSION="1.3.2"
   build-depends:
       hledger-lib >= 1.3.1 && < 1.4
     , hledger >= 1.3.1 && < 1.4
@@ -199,7 +199,7 @@ executable hledger-web
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.3.1"
+  cpp-options: -DVERSION="1.3.2"
   build-depends:
       hledger-lib >= 1.3.1 && < 1.4
     , hledger >= 1.3.1 && < 1.4
@@ -261,7 +261,7 @@ test-suite test
   hs-source-dirs:
       tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.3.1"
+  cpp-options: -DVERSION="1.3.2"
   build-depends:
       hledger-lib >= 1.3.1 && < 1.4
     , hledger >= 1.3.1 && < 1.4
