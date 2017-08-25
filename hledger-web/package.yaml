@@ -84,7 +84,7 @@ dependencies:
 - HUnit
 - conduit-extra >=1.1
 - safe >=0.2
-- shakespeare >=2.0
+- shakespeare >=2.0.2.2 && < 2.1
 - template-haskell
 - text >=1.2 && <1.3
 - transformers

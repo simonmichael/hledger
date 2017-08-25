@@ -91,6 +91,7 @@ library
     , here
     , pretty-show >=1.6.4
     , process
+    , shakespeare >=2.0.2.2 && <2.1
     , temporary
     , tabular >=0.2 && <0.3
     , hledger-lib >= 1.3.99 && < 1.4
@@ -114,13 +115,6 @@ library
     , text >=0.11
     , utf8-string >=0.3.5 && <1.1
     , wizards ==1.0.*
-  if impl(ghc >=7.10)
-    build-depends:
-        shakespeare >=2.0.2.2 && <2.1
-  else
-    build-depends:
-        shakespeare >=1.0 && <2.1
-      , shakespeare-text >=1.0 && <1.2
   if flag(oldtime)
     build-depends:
         time <1.5
@@ -174,6 +168,7 @@ executable hledger
     , here
     , pretty-show >=1.6.4
     , process
+    , shakespeare >=2.0.2.2 && <2.1
     , temporary
     , tabular >=0.2 && <0.3
     , hledger-lib >= 1.3.99 && < 1.4
@@ -196,13 +191,6 @@ executable hledger
     , text >=0.11
     , utf8-string >=0.3.5 && <1.1
     , wizards ==1.0.*
-  if impl(ghc >=7.10)
-    build-depends:
-        shakespeare >=2.0.2.2 && <2.1
-  else
-    build-depends:
-        shakespeare >=1.0 && <2.1
-      , shakespeare-text >=1.0 && <1.2
   if flag(oldtime)
     build-depends:
         time <1.5
@@ -234,6 +222,7 @@ test-suite test
     , here
     , pretty-show >=1.6.4
     , process
+    , shakespeare >=2.0.2.2 && <2.1
     , temporary
     , tabular >=0.2 && <0.3
     , hledger-lib >= 1.3.99 && < 1.4
@@ -258,13 +247,6 @@ test-suite test
     , wizards ==1.0.*
     , test-framework
     , test-framework-hunit
-  if impl(ghc >=7.10)
-    build-depends:
-        shakespeare >=2.0.2.2 && <2.1
-  else
-    build-depends:
-        shakespeare >=1.0 && <2.1
-      , shakespeare-text >=1.0 && <1.2
   if flag(oldtime)
     build-depends:
         time <1.5
@@ -293,6 +275,7 @@ benchmark bench
     , here
     , pretty-show >=1.6.4
     , process
+    , shakespeare >=2.0.2.2 && <2.1
     , temporary
     , tabular >=0.2 && <0.3
     , hledger-lib >= 1.3.99 && < 1.4
@@ -300,13 +283,6 @@ benchmark bench
     , criterion
     , html
     , timeit
-  if impl(ghc >=7.10)
-    build-depends:
-        shakespeare >=2.0.2.2 && <2.1
-  else
-    build-depends:
-        shakespeare >=1.0 && <2.1
-      , shakespeare-text >=1.0 && <1.2
   if flag(oldtime)
     build-depends:
         time <1.5

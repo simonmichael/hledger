@@ -86,19 +86,12 @@ dependencies:
 - here
 - pretty-show >=1.6.4
 - process
+- shakespeare >=2.0.2.2 && <2.1
 - temporary
 - tabular >=0.2 && <0.3
 - hledger-lib >= 1.3.99 && < 1.4
 
 when:
-- condition: impl(ghc >=7.10)
-  then:
-    dependencies:
-    - shakespeare >=2.0.2.2 && <2.1
-  else:
-    dependencies:
-    - shakespeare >=1.0 && <2.1
-    - shakespeare-text >=1.0 && <1.2
 - condition: flag(oldtime)
   then:
     dependencies:
