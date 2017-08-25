@@ -115,9 +115,6 @@ when:
   else:
     dependencies:
     - time >=1.5
-- condition: impl(ghc <7.6)
-  dependencies:
-  - ghc-prim
 
 ghc-options:
 - -Wall

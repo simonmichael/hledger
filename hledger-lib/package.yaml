@@ -74,9 +74,6 @@ dependencies:
 #- system-filepath
 #- trifecta >= 0.91
 when:
-- condition: impl(ghc <7.6)
-  dependencies:
-  - ghc-prim
 - condition: flag(oldtime)
   then:
     dependencies:

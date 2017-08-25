@@ -91,9 +91,6 @@ dependencies:
 - hledger-lib >= 1.3.99 && < 1.4
 
 when:
-- condition: impl(ghc <7.6)
-  dependencies:
-  - ghc-prim
 - condition: impl(ghc >=7.10)
   then:
     dependencies:

@@ -173,9 +173,6 @@ library
   else
     build-depends:
         time >=1.5
-  if impl(ghc <7.6)
-    build-depends:
-        ghc-prim
   exposed-modules:
       Application
       Foundation
@@ -251,9 +248,6 @@ executable hledger-web
   else
     build-depends:
         time >=1.5
-  if impl(ghc <7.6)
-    build-depends:
-        ghc-prim
   if flag(library-only)
     buildable: False
   if flag(threaded)
@@ -317,9 +311,6 @@ test-suite test
   else
     build-depends:
         time >=1.5
-  if impl(ghc <7.6)
-    build-depends:
-        ghc-prim
   other-modules:
       HomeTest
       TestImport

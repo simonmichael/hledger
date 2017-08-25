@@ -114,9 +114,6 @@ library
     , text >=0.11
     , utf8-string >=0.3.5 && <1.1
     , wizards ==1.0.*
-  if impl(ghc <7.6)
-    build-depends:
-        ghc-prim
   if impl(ghc >=7.10)
     build-depends:
         shakespeare >=2.0.2.2 && <2.1
@@ -199,9 +196,6 @@ executable hledger
     , text >=0.11
     , utf8-string >=0.3.5 && <1.1
     , wizards ==1.0.*
-  if impl(ghc <7.6)
-    build-depends:
-        ghc-prim
   if impl(ghc >=7.10)
     build-depends:
         shakespeare >=2.0.2.2 && <2.1
@@ -264,9 +258,6 @@ test-suite test
     , wizards ==1.0.*
     , test-framework
     , test-framework-hunit
-  if impl(ghc <7.6)
-    build-depends:
-        ghc-prim
   if impl(ghc >=7.10)
     build-depends:
         shakespeare >=2.0.2.2 && <2.1
@@ -309,9 +300,6 @@ benchmark bench
     , criterion
     , html
     , timeit
-  if impl(ghc <7.6)
-    build-depends:
-        ghc-prim
   if impl(ghc >=7.10)
     build-depends:
         shakespeare >=2.0.2.2 && <2.1
