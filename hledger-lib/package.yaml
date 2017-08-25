@@ -38,12 +38,6 @@ data-files:
 - doc/hledger_timeclock.5.txt
 - doc/hledger_timeclock.5.info
 
-flags:
-  oldtime:
-    description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
-    manual: false
-    default: false
-
 dependencies:
 - base >=4.8 && <5
 - base-compat >=0.8.1
@@ -71,6 +65,7 @@ dependencies:
 - semigroups
 - split >=0.1 && <0.3
 - text >=1.2 && <1.3
+- time >=1.5
 - transformers >=0.2 && <0.6
 - uglymemo
 - utf8-string >=0.3.5 && <1.1
@@ -79,16 +74,6 @@ dependencies:
 #- parsers >= 0.5
 #- system-filepath
 #- trifecta >= 0.91
-
-when:
-- condition: flag(oldtime)
-  then:
-    dependencies:
-    - time <1.5
-    - old-locale
-  else:
-    dependencies:
-    - time >=1.5
 
 ghc-options:
 - -Wall

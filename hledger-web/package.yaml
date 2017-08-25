@@ -60,10 +60,6 @@ flags:
     description: Build with support for multithreaded execution.
     manual: false
     default: true
-  oldtime:
-    description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
-    manual: false
-    default: false
 
 dependencies:
 - hledger-lib >= 1.3.99 && < 1.4
@@ -87,6 +83,7 @@ dependencies:
 - shakespeare >=2.0.2.2 && < 2.1
 - template-haskell
 - text >=1.2 && <1.3
+- time >=1.5
 - transformers
 - wai
 - wai-extra
@@ -107,14 +104,6 @@ when:
   cpp-options: -DDEVELOPMENT
 - condition: flag(dev)
   ghc-options: -O0
-- condition: flag(oldtime)
-  then:
-    dependencies:
-    - time <1.5
-    - old-locale
-  else:
-    dependencies:
-    - time >=1.5
 
 ghc-options:
 - -Wall

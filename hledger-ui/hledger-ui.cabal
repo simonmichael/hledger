@@ -40,11 +40,6 @@ source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
-flag oldtime
-  description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
-  manual: False
-  default: False
-
 flag threaded
   description: Build with support for multithreaded execution
   manual: False
@@ -79,6 +74,7 @@ executable hledger-ui
     , split >= 0.1 && < 0.3
     , text >= 1.2 && < 1.3
     , text-zipper >= 0.4 && < 0.11
+    , time >= 1.5
     , transformers
     , vector
   if os(windows)
@@ -87,13 +83,6 @@ executable hledger-ui
     build-depends:
         brick >= 0.12 && < 0.25
       , vty >= 5.5 && < 5.18
-  if flag(oldtime)
-    build-depends:
-        time < 1.5
-      , old-locale
-  else
-    build-depends:
-        time >= 1.5
   if flag(threaded)
     ghc-options: -threaded
   other-modules:

@@ -113,11 +113,6 @@ flag library-only
   manual: False
   default: False
 
-flag oldtime
-  description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
-  manual: False
-  default: False
-
 flag threaded
   description: Build with support for multithreaded execution.
   manual: False
@@ -148,6 +143,7 @@ library
     , shakespeare >=2.0.2.2 && < 2.1
     , template-haskell
     , text >=1.2 && <1.3
+    , time >=1.5
     , transformers
     , wai
     , wai-extra
@@ -166,13 +162,6 @@ library
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
-  if flag(oldtime)
-    build-depends:
-        time <1.5
-      , old-locale
-  else
-    build-depends:
-        time >=1.5
   exposed-modules:
       Application
       Foundation
@@ -222,6 +211,7 @@ executable hledger-web
     , shakespeare >=2.0.2.2 && < 2.1
     , template-haskell
     , text >=1.2 && <1.3
+    , time >=1.5
     , transformers
     , wai
     , wai-extra
@@ -241,13 +231,6 @@ executable hledger-web
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
-  if flag(oldtime)
-    build-depends:
-        time <1.5
-      , old-locale
-  else
-    build-depends:
-        time >=1.5
   if flag(library-only)
     buildable: False
   if flag(threaded)
@@ -283,6 +266,7 @@ test-suite test
     , shakespeare >=2.0.2.2 && < 2.1
     , template-haskell
     , text >=1.2 && <1.3
+    , time >=1.5
     , transformers
     , wai
     , wai-extra
@@ -304,13 +288,6 @@ test-suite test
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
-  if flag(oldtime)
-    build-depends:
-        time <1.5
-      , old-locale
-  else
-    build-depends:
-        time >=1.5
   other-modules:
       HomeTest
       TestImport

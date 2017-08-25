@@ -63,10 +63,6 @@ flags:
     description: Build with support for multithreaded execution
     manual: false
     default: true
-  oldtime:
-    description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
-    manual: false
-    default: false
 
 ghc-options:
 - -Wall
@@ -89,17 +85,10 @@ dependencies:
 - shakespeare >=2.0.2.2 && <2.1
 - temporary
 - tabular >=0.2 && <0.3
+- time >=1.5
 - hledger-lib >= 1.3.99 && < 1.4
 
 when:
-- condition: flag(oldtime)
-  then:
-    dependencies:
-    - time <1.5
-    - old-locale
-  else:
-    dependencies:
-    - time >=1.5
 - condition: (!(os(windows))) && (flag(terminfo))
   dependencies:
   - terminfo

@@ -47,11 +47,6 @@ source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
-flag oldtime
-  description: If building with time < 1.5, also depend on old-locale. Set automatically by cabal.
-  manual: False
-  default: False
-
 library
   hs-source-dirs:
       ./.
@@ -83,17 +78,11 @@ library
     , semigroups
     , split >=0.1 && <0.3
     , text >=1.2 && <1.3
+    , time >=1.5
     , transformers >=0.2 && <0.6
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
-  if flag(oldtime)
-    build-depends:
-        time <1.5
-      , old-locale
-  else
-    build-depends:
-        time >=1.5
   exposed-modules:
       Hledger
       Hledger.Data
@@ -177,19 +166,13 @@ test-suite doctests
     , semigroups
     , split >=0.1 && <0.3
     , text >=1.2 && <1.3
+    , time >=1.5
     , transformers >=0.2 && <0.6
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
     , doctest >=0.8
     , Glob >=0.7
-  if flag(oldtime)
-    build-depends:
-        time <1.5
-      , old-locale
-  else
-    build-depends:
-        time >=1.5
   other-modules:
       Hledger
       Hledger.Data
@@ -271,6 +254,7 @@ test-suite hunittests
     , semigroups
     , split >=0.1 && <0.3
     , text >=1.2 && <1.3
+    , time >=1.5
     , transformers >=0.2 && <0.6
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
@@ -278,13 +262,6 @@ test-suite hunittests
     , hledger-lib
     , test-framework
     , test-framework-hunit
-  if flag(oldtime)
-    build-depends:
-        time <1.5
-      , old-locale
-  else
-    build-depends:
-        time >=1.5
   other-modules:
       Hledger
       Hledger.Data
