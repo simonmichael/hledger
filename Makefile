@@ -1183,69 +1183,76 @@ site/manual2-1.md: site/manual-start.md site/manual-end.md $(MANPAGES) \
 # too hard, see Shake.hs
 
 ########################
-# 2017 changelog process
-# make help-changenotes
-
-# Commit messages are periodically appended to this org outline,
-# and before release it is edited down to make the package changelogs
-# (hledger*/CHANGES) and release notes (site/release-notes.md).
-# The notes for past releases are kept in the outline,
-# in case they might come in handy again.
-# It is not specific to any particular branch, and not tracked with git.
-CHANGENOTES=CHANGENOTES.org
+# 2017 changelog process: 
+# at release time, for each package: (cd PKG; make changes-show > CHANGES.draft.org), edit, move to CHANGES
 
 LASTTAG=$(shell git describe --tags --abbrev=0)
 
-# The last git revision referenced in the change notes. 
-# (Or, if there are no change notes, the last tag.
-# Tries hard to be warning free and run shell commands only when needed.)
-CHANGENOTESLASTREV=$(subst %,,$(subst %%,$(LASTTAG),%$(shell [ -f $(CHANGENOTES) ] && (grep -E '^[a-f0-9]{8}$$' $(CHANGENOTES) | tail -1) )%))
+changes-show: \
+		$(call def-help,changes-show, show commits affecting the current directory excluding any hledger package subdirs from the last tag as org nodes newest first )
+	@make changes-show-from-$(LASTTAG)
 
-# create change notes file if it doesn't exist.. shouldn't happen much.
-$(CHANGENOTES):
-	@make changenotes-start
-
-changenotes-start: \
-		$(call def-help,changenotes-start, add a new outline named after $(VERSIONFILE) in $(CHANGENOTES). Run after bumping $(VERSIONFILE). )
-	@(\
-		echo "* change notes for hledger-$(VERSION)" ;\
-		echo "** hledger-lib" ;\
-		echo "** hledger" ;\
-		echo "** hledger-ui" ;\
-		echo "** hledger-web" ;\
-		echo "** hledger-api" ;\
-		echo "** hledger-install" ;\
-		echo "** project" ;\
-		) >>$(CHANGENOTES)
-
-# TODO problem: this only checks the last (bottom-most) git rev in the
-# change notes file, so after manual editing has begun this may re-add
-# commits which are already in the file.
-changenotes-update: $(CHANGENOTES) \
-		$(call def-help,changenotes-update, add any not-yet-added(*) commits to $(CHANGENOTES). Run periodically (* it may get this wrong once manual editing has begun). )
-	@make changenotes-show-from-$(CHANGENOTESLASTREV) >>$(CHANGENOTES)
-	@echo "Latest items in $(CHANGENOTES):"
-	@make changenotes-show | tail -10
-	@make changenotes-show-last
-
-changenotes-update-from-%: \
-#		$(call def-help,changenotes-update-from-REV, add commits from this git revision onward to $(CHANGENOTES) )
-	@make changenotes-show-from-$* >>$(CHANGENOTES)
-
-changenotes-show-from-%: \
-#		$(call def-help,changenotes-show-from-REV, show commits from this git revision onward as org nodes )
-	@git log --abbrev-commit --reverse --pretty=format:'ORGNODE %s (%an)%n%b%h' $*.. \
-		| sed -e 's/^\*/-/' -e 's/^ORGNODE/***/' \
+changes-show-from-%: \
+		#$(call def-help,changes-show-from-REV, show commits affecting the current directory excluding any hledger package subdirs from this git revision onward as org nodes newest first )
+	@git log --abbrev-commit --pretty=format:'ORGNODE %s (%an)%n%b%h' $*.. -- . ':!hledger' ':!hledger-*' \
+		| sed -e 's/^\*/-/' -e 's/^ORGNODE/*/' \
 		| sed -e 's/ (Simon Michael)//'
 
-changenotes-show: $(CHANGENOTES) \
-		$(call def-help,changenotes-show, show all the org headlines recorded in $(CHANGENOTES) )
-	@cat $(CHANGENOTES) | grep '*'
-
-# git l is a local alias with output like "2017-08-16 0a0e6d18 tools: make help-SECTION (HEAD -> master)"
-changenotes-show-last: $(CHANGENOTES) \
-		$(call def-help,changenotes-show-last, show the last commit recorded in $(CHANGENOTES) )
-	@git l -1 $(CHANGENOTESLASTREV)
+# old:
+## The last git revision referenced in the change notes. 
+## (Or, if there are no change notes, the last tag.
+## Tries hard to be warning free and run shell commands only when needed.)
+#CHANGENOTESLASTREV=$(subst %,,$(subst %%,$(LASTTAG),%$(shell [ -f $(CHANGENOTES) ] && (grep -E '^[a-f0-9]{8}$$' $(CHANGENOTES) | tail -1) )%))
+#
+## create change notes file if it doesn't exist.. shouldn't happen much.
+#$(CHANGENOTES):
+#	@make changenotes-start
+#
+#changenotes-template:
+#	@(\
+#		echo "* change notes for hledger-$(VERSION)" ;\
+#		echo "** hledger-lib" ;\
+#		echo "** hledger" ;\
+#		echo "** hledger-ui" ;\
+#		echo "** hledger-web" ;\
+#		echo "** hledger-api" ;\
+#		echo "** hledger-install" ;\
+#		echo "** project" ;\
+#		echo "** unsorted" ;\
+#		)
+#
+#changenotes-start: \
+#		$(call def-help,changenotes-start, add a new outline named after $(VERSIONFILE) in $(CHANGENOTES). Run after bumping $(VERSIONFILE). )
+#	@make changenotes-template >>$(CHANGENOTES)
+#
+## TODO problem: this only checks the last (bottom-most) git rev in the
+## change notes file, so after manual editing has begun this may re-add
+## commits which are already in the file.
+#changenotes-update: $(CHANGENOTES) \
+#		$(call def-help,changenotes-update, add any not-yet-added(*) commits to $(CHANGENOTES). Run periodically (* it may get this wrong once manual editing has begun). )
+#	@make changenotes-show-from-$(CHANGENOTESLASTREV) >>$(CHANGENOTES)
+#	@echo "Latest items in $(CHANGENOTES):"
+#	@make changenotes-show | tail -10
+#	@make changenotes-show-last
+#
+#changenotes-update-from-%: \
+##		$(call def-help,changenotes-update-from-REV, add commits from this git revision onward to $(CHANGENOTES) )
+#	@make changenotes-show-from-$* >>$(CHANGENOTES)
+#
+#changenotes-show-from-%: \
+##		$(call def-help,changenotes-show-from-REV, show commits from this git revision onward as org nodes )
+#	@git log --abbrev-commit --reverse --pretty=format:'ORGNODE %s (%an)%n%b%h' $*.. \
+#		| sed -e 's/^\*/-/' -e 's/^ORGNODE/***/' \
+#		| sed -e 's/ (Simon Michael)//'
+#
+#changenotes-show: $(CHANGENOTES) \
+#		$(call def-help,changenotes-show, show all the org headlines recorded in $(CHANGENOTES) )
+#	@cat $(CHANGENOTES) | grep '*'
+#
+## git l is a local alias with output like "2017-08-16 0a0e6d18 tools: make help-SECTION (HEAD -> master)"
+#changenotes-show-last: $(CHANGENOTES) \
+#		$(call def-help,changenotes-show-last, show the last commit recorded in $(CHANGENOTES) )
+#	@git l -1 $(CHANGENOTESLASTREV)
 
 ###############################################################################
 $(call def-help-subheading,RELEASING:)
