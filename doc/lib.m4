@@ -7,7 +7,7 @@ m4_define({{_webseparate_}}, m4_ifdef({{WEB && SEPARATE}},{{$1}}) )m4_dnl
 m4_define({{_webcombined_}}, m4_ifdef({{WEB && COMBINED}},{{$1}}) )m4_dnl
 m4_dnl
 m4_define({{_author_}}, {{}})m4_dnl
-m4_define({{_monthyear_}}, {{June 2017}})m4_dnl
+m4_define({{_monthyear_}}, {{August 2017}})m4_dnl
 m4_define({{_version_}}, {{1.3.1}})m4_dnl
 m4_dnl
 m4_dnl Links to dev and recent release versions of a manual.
