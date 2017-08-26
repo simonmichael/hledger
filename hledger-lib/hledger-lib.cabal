@@ -54,7 +54,7 @@ library
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
-    , ansi-terminal >= 0.6.2.3 && < 0.7
+    , ansi-terminal >= 0.6.2.3 && < 0.8
     , array
     , blaze-markup >=0.5.1
     , bytestring
@@ -142,7 +142,7 @@ test-suite doctests
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
-    , ansi-terminal >= 0.6.2.3 && < 0.7
+    , ansi-terminal >= 0.6.2.3 && < 0.8
     , array
     , blaze-markup >=0.5.1
     , bytestring
@@ -230,7 +230,7 @@ test-suite hunittests
   build-depends:
       base >=4.8 && <5
     , base-compat >=0.8.1
-    , ansi-terminal >= 0.6.2.3 && < 0.7
+    , ansi-terminal >= 0.6.2.3 && < 0.8
     , array
     , blaze-markup >=0.5.1
     , bytestring

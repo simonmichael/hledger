@@ -75,7 +75,7 @@ ghc-options:
 dependencies:
 - base >=4.8 && <5
 - base-compat >=0.8.1
-- ansi-terminal >= 0.6.2.3 && < 0.7
+- ansi-terminal >= 0.6.2.3 && < 0.8
 - directory
 - file-embed >=0.0.10 && <0.1
 - filepath
