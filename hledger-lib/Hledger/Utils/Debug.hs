@@ -10,9 +10,7 @@
 module Hledger.Utils.Debug (
   module Hledger.Utils.Debug
   ,module Debug.Trace
-#if __GLASGOW_HASKELL__ >= 704
   ,ppShow
-#endif
 )
 where
 
@@ -28,14 +26,7 @@ import           System.Exit
 import           System.IO.Unsafe (unsafePerformIO)
 import           Text.Megaparsec
 import           Text.Printf
-
-#if __GLASGOW_HASKELL__ >= 704
 import           Text.Show.Pretty (ppShow)
-#else
--- the required pretty-show version requires GHC >= 7.4
-ppShow :: Show a => a -> String
-ppShow = show
-#endif
 
 pprint :: Show a => a -> IO ()
 pprint = putStrLn . ppShow

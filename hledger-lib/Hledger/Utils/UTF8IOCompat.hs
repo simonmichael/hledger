@@ -44,10 +44,6 @@ where
 -- import qualified Data.ByteString.Lazy.UTF8 as U8 (toString, fromString)
 import Prelude hiding (readFile, writeFile, appendFile, getContents, putStr, putStrLn)
 import System.IO -- (Handle)
--- #if __GLASGOW_HASKELL__ < 702
--- import Codec.Binary.UTF8.String as UTF8 (decodeString, encodeString, isUTF8Encoded)
--- import System.Info (os)
--- #endif
 
 -- bom :: B.ByteString
 -- bom = B.pack [0xEF, 0xBB, 0xBF]
@@ -100,24 +96,12 @@ type SystemString = String
 -- | Convert a system string to an ordinary string, decoding from UTF-8 if
 -- it appears to be UTF8-encoded and GHC version is less than 7.2.
 fromSystemString :: SystemString -> String
--- #if __GLASGOW_HASKELL__ < 702
--- fromSystemString s = if UTF8.isUTF8Encoded s then UTF8.decodeString s else s
--- #else
 fromSystemString = id
--- #endif
 
 -- | Convert a unicode string to a system string, encoding with UTF-8 if
 -- we are on a posix platform with GHC < 7.2.
 toSystemString :: String -> SystemString
--- #if __GLASGOW_HASKELL__ < 702
--- toSystemString = case os of
---                      "unix" -> UTF8.encodeString
---                      "linux" -> UTF8.encodeString
---                      "darwin" -> UTF8.encodeString
---                      _ -> id
--- #else
 toSystemString = id
--- #endif
 
 -- | A SystemString-aware version of error.
 error' :: String -> a
