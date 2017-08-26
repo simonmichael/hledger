@@ -57,11 +57,9 @@ import Hledger (ensureJournalFileExists)
 import Hledger.Cli.Add
 import Hledger.Cli.Accounts
 import Hledger.Cli.Balance
-import Hledger.Cli.Balancesheet
-import Hledger.Cli.Cashflow
 import Hledger.Cli.Help
 import Hledger.Cli.Histogram
-import Hledger.Cli.Incomestatement
+import Hledger.Cli.CompoundBalanceCommand
 import Hledger.Cli.Info
 import Hledger.Cli.Man
 import Hledger.Cli.Print
@@ -98,6 +96,7 @@ mainmode addons = defMode {
      ,balancemode
      ,balancesheetmode
      ,cashflowmode
+     ,compoundreportmode
      ,helpmode
      ,incomestatementmode
      ,infomode
@@ -378,6 +377,7 @@ main = do
       | cmd == "balancesheet"    = withJournalDo opts balancesheet    `orShowHelp` balancesheetmode
       | cmd == "cashflow"        = withJournalDo opts cashflow        `orShowHelp` cashflowmode
       | cmd == "incomestatement" = withJournalDo opts incomestatement `orShowHelp` incomestatementmode
+      | cmd == "report"          = withJournalDo opts compoundreport  `orShowHelp` compoundreportmode
       | cmd == "print"           = withJournalDo opts print'          `orShowHelp` printmode
       | cmd == "register"        = withJournalDo opts register        `orShowHelp` registermode
       | cmd == "stats"           = withJournalDo opts stats           `orShowHelp` statsmode

@@ -28,11 +28,13 @@ import Data.Decimal
 import Data.Default
 import Text.Blaze (ToMarkup(..))
 import qualified Data.Map as M
+import qualified Data.Set as S
 import Data.Text (Text)
 -- import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (ClockTime(..))
+import Text.Megaparsec.Pos (SourcePos)
 
 import Hledger.Utils.Regex
 
@@ -274,6 +276,43 @@ data MarketPrice = MarketPrice {
 
 instance NFData MarketPrice
 
+-- | Description of a compound balance report command, 
+-- from which we generate the command's cmdargs mode and IO action.
+-- A compound balance report shows one or more sections/subreports, 
+-- each with its own title and subtotals row, in a certain order, 
+-- plus a grand totals row if there's more than one section.
+-- Examples are the balancesheet, cashflow and incomestatement commands.
+--
+-- Syntax for directive:
+--
+-- report balancesheet
+--   title     Balance Sheet
+--   aliases   bs balsh
+--   type      historical
+--   subreport Assets       ^assets?(:|$)
+--   subreport Liabilities  ^(debts?|liabilit(y|ies))(:|$))
+data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
+      cbcname     :: String,             -- ^ command name
+      cbcaliases  :: S.Set String,       -- ^ command aliases
+      cbctitle    :: Maybe String,       -- ^ overall report title
+      cbcqueries  :: [(String, Text)],   -- ^ title and query string for each subreport (not a Query for import reasons)
+      cbctype     :: Maybe BalanceType   -- ^ the type of "balance" this report shows (overrides command line flags)
+    , cbclocation :: Maybe SourcePos     -- ^ location of definition
+    } deriving (Eq,Ord,Show,Typeable,Data,Generic)
+
+instance NFData CompoundBalanceCommandSpec
+
+-- | Which "balance" is being shown in a balance report.
+data BalanceType = PeriodChange      -- ^ The change of balance in each period.
+                 | CumulativeChange  -- ^ The accumulated change across multiple periods.
+                 | HistoricalBalance -- ^ The historical ending balance, including the effect of
+                                     --   all postings before the report period. Unless altered by,
+                                     --   a query, this is what you would see on a bank statement.
+  deriving (Eq,Ord,Show,Typeable,Data,Generic)
+
+instance Default BalanceType where def = PeriodChange
+instance NFData BalanceType
+
 -- | A Journal, containing transactions and various other things.
 -- The basic data model for hledger.
 --
@@ -300,6 +339,7 @@ data Journal = Journal {
   ,jmodifiertxns          :: [ModifierTransaction]
   ,jperiodictxns          :: [PeriodicTransaction]
   ,jtxns                  :: [Transaction]
+  ,jcompoundbalance       :: [CompoundBalanceCommandSpec]           -- ^ the current compound reports defined
   ,jfinalcommentlines     :: Text                                   -- ^ any final trailing comments in the (main) journal file
   ,jfiles                 :: [(FilePath, Text)]                     -- ^ the file path and raw text of the main and
                                                                     --   any included journal files. The main file is first,
