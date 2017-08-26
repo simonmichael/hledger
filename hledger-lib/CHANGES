@@ -3,7 +3,7 @@ See also the hledger and project change logs (for user-visible changes).
 
 # 1.3.1 (2017/8/25)
 
-* Fix a bug with -H showing nothing for empty periods (Nicholas Niro)
+* Fix a bug with -H showing nothing for empty periods (#583, Nicholas Niro)
 This patch fixes a bug that happened when using the -H option on
 a period without any transaction. Previously, the behavior was no
 output at all even though it should have shown the previous ending balances
