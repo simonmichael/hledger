@@ -293,9 +293,9 @@ journalEquityAccountQuery _ = Acct "^equity(:|$)"
 -- | A query for Cash (-equivalent) accounts in this journal (ie,
 -- accounts which appear on the cashflow statement.)  This is currently
 -- hard-coded to be all the Asset accounts except for those containing the
--- case-insensitive regex @(receivable|A/R|fixed)@.
+-- case-insensitive regex @(receivable|:A/R|:fixed)@.
 journalCashAccountQuery  :: Journal -> Query
-journalCashAccountQuery j = And [journalAssetAccountQuery j, Not $ Acct "(receivable|A/R|fixed)"]
+journalCashAccountQuery j = And [journalAssetAccountQuery j, Not $ Acct "(receivable|:A/R|:fixed)"]
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.

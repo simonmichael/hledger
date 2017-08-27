@@ -276,8 +276,7 @@ This command displays a simple
 [cashflow statement](http://en.wikipedia.org/wiki/Cash_flow_statement)
 It shows the change in all "cash" (ie, liquid assets) accounts for the
 period. It currently assumes that cash accounts are under a top-level
-account named `asset` and do not contain `receivable` or `A/R` (plural
-forms also allowed.)
+account named `asset` and do not contain `receivable`, `:A/R` or `:fixed`.
 
 ```shell
 $ hledger cashflow
