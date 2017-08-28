@@ -37,7 +37,7 @@ getJournalR = do
        <div .row>
         <h2 #contenttitle>#{title}
         <!-- p>Journal entries record movements of commodities between accounts. -->
-        <a #addformlink role="button" style="cursor:pointer; margin-top:1em;" data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal" >Add a transaction
+        <a #addformlink role="button" style="cursor:pointer; margin-top:1em;" data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal" href="#">Add a transaction
        <div .table-responsive>
         ^{maincontent}
      |]
