@@ -14,6 +14,7 @@ module Hledger.Cli (
                      module Hledger.Cli.Add,
                      module Hledger.Cli.Balance,
                      module Hledger.Cli.Balancesheet,
+                     module Hledger.Cli.Balancesheetequity,
                      module Hledger.Cli.Cashflow,
                      module Hledger.Cli.Help,
                      module Hledger.Cli.Histogram,
@@ -44,6 +45,7 @@ import Hledger.Cli.Accounts
 import Hledger.Cli.Add
 import Hledger.Cli.Balance
 import Hledger.Cli.Balancesheet
+import Hledger.Cli.Balancesheetequity
 import Hledger.Cli.Cashflow
 import Hledger.Cli.Histogram
 import Hledger.Cli.Help

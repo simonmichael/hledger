@@ -58,6 +58,7 @@ import Hledger.Cli.Add
 import Hledger.Cli.Accounts
 import Hledger.Cli.Balance
 import Hledger.Cli.Balancesheet
+import Hledger.Cli.Balancesheetequity
 import Hledger.Cli.Cashflow
 import Hledger.Cli.Help
 import Hledger.Cli.Histogram
@@ -97,6 +98,7 @@ mainmode addons = defMode {
      ,addmode
      ,balancemode
      ,balancesheetmode
+     ,balancesheetequitymode
      ,cashflowmode
      ,helpmode
      ,incomestatementmode
@@ -224,6 +226,7 @@ commandsListTemplate = [here|Commands available (COUNT):
 Standard reports:
  accounts             show chart of accounts
  balancesheet (bs)    show a balance sheet
+ balancesheetequity (bse)    show a balance sheet with equity
  cashflow (cf)        show a cashflow statement
  incomestatement (is) show an income statement
  transactions (txns)  show transactions in some account
@@ -376,6 +379,7 @@ main = do
       | cmd == "accounts"        = withJournalDo opts accounts        `orShowHelp` accountsmode
       | cmd == "balance"         = withJournalDo opts balance         `orShowHelp` balancemode
       | cmd == "balancesheet"    = withJournalDo opts balancesheet    `orShowHelp` balancesheetmode
+      | cmd == "balancesheetequity"    = withJournalDo opts balancesheetequity    `orShowHelp` balancesheetequitymode
       | cmd == "cashflow"        = withJournalDo opts cashflow        `orShowHelp` cashflowmode
       | cmd == "incomestatement" = withJournalDo opts incomestatement `orShowHelp` incomestatementmode
       | cmd == "print"           = withJournalDo opts print'          `orShowHelp` printmode

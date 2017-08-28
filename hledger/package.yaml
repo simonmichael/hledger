@@ -107,6 +107,7 @@ library:
   - Hledger.Cli.Accounts
   - Hledger.Cli.Balance
   - Hledger.Cli.Balancesheet
+  - Hledger.Cli.Balancesheetequity
   - Hledger.Cli.CompoundBalanceCommand
   - Hledger.Cli.Cashflow
   - Hledger.Cli.Help
