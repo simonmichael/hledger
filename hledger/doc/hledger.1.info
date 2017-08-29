@@ -784,6 +784,7 @@ displayed in the command list ('hledger is').
 * add::
 * balance::
 * balancesheet::
+* balancesheetequity::
 * cashflow::
 * help::
 * incomestatement::
@@ -1287,7 +1288,7 @@ $ hledger balance -O csv       # write CSV to stdout
 $ hledger balance -o FILE.csv  # write CSV to FILE.csv
 
 
-File: hledger.1.info,  Node: balancesheet,  Next: cashflow,  Prev: balance,  Up: COMMANDS
+File: hledger.1.info,  Node: balancesheet,  Next: balancesheetequity,  Prev: balance,  Up: COMMANDS
 
 4.5 balancesheet
 ================
@@ -1363,9 +1364,49 @@ balancesheet shows historical ending balances, which is what you need
 for a balance sheet; note this means it ignores report begin dates.
 
 
-File: hledger.1.info,  Node: cashflow,  Next: help,  Prev: balancesheet,  Up: COMMANDS
+File: hledger.1.info,  Node: balancesheetequity,  Next: cashflow,  Prev: balancesheet,  Up: COMMANDS
 
-4.6 cashflow
+4.6 balancesheetequity
+======================
+
+Show a balance sheet including equity.  Alias: bse.
+
+   Other than showing the equity accounts, this command is exactly the
+same as the command balancesheet.  Please refer to it for the available
+options.
+
+   This command displays a balancesheet.  It currently assumes that you
+have top-level accounts named 'asset', 'liability' and 'equity' (plural
+forms also allowed.)
+
+$ hledger balancesheetequity
+Balance Sheet With Equity
+
+Assets:
+                 $-2  assets
+                  $1    bank:saving
+                 $-3    cash
+--------------------
+                 $-2
+
+Liabilities:
+                  $1  liabilities:debts
+--------------------
+                  $1
+
+Equity:
+          $1  equity:owner
+--------------------
+          $1
+
+Total:
+--------------------
+                   0
+
+
+File: hledger.1.info,  Node: cashflow,  Next: help,  Prev: balancesheetequity,  Up: COMMANDS
+
+4.7 cashflow
 ============
 
 Show a cashflow statement.  Alias: cf.
@@ -1435,7 +1476,7 @@ report mode with '--change'/'--cumulative'/'--historical'.
 
 File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: cashflow,  Up: COMMANDS
 
-4.7 help
+4.8 help
 ========
 
 Show any of the hledger manuals.
@@ -1472,7 +1513,7 @@ DESCRIPTION
 
 File: hledger.1.info,  Node: incomestatement,  Next: print,  Prev: help,  Up: COMMANDS
 
-4.8 incomestatement
+4.9 incomestatement
 ===================
 
 Show an income statement.  Alias: is.
@@ -1548,8 +1589,8 @@ report mode with '--change'/'--cumulative'/'--historical'.
 
 File: hledger.1.info,  Node: print,  Next: register,  Prev: incomestatement,  Up: COMMANDS
 
-4.9 print
-=========
+4.10 print
+==========
 
 Show transactions from the journal.
 
@@ -1642,7 +1683,7 @@ $ hledger print -Ocsv
 
 File: hledger.1.info,  Node: register,  Next: stats,  Prev: print,  Up: COMMANDS
 
-4.10 register
+4.11 register
 =============
 
 Show postings and their running total.  Alias: reg.
@@ -1747,7 +1788,7 @@ length and comparable to the others in the report.
 
 File: hledger.1.info,  Node: Custom register output,  Up: register
 
-4.10.1 Custom register output
+4.11.1 Custom register output
 -----------------------------
 
 register uses the full terminal width by default, except on windows.
@@ -1779,7 +1820,7 @@ output.
 
 File: hledger.1.info,  Node: stats,  Next: test,  Prev: register,  Up: COMMANDS
 
-4.11 stats
+4.12 stats
 ==========
 
 Show some journal statistics.
@@ -1811,7 +1852,7 @@ output destination.
 
 File: hledger.1.info,  Node: test,  Prev: stats,  Up: COMMANDS
 
-4.12 test
+4.13 test
 =========
 
 Run built-in unit tests.
@@ -2118,91 +2159,93 @@ Node: QUERIES21585
 Ref: #queries21689
 Node: COMMANDS25354
 Ref: #commands25468
-Node: accounts26124
-Ref: #accounts26224
-Node: activity27206
-Ref: #activity27318
-Node: add27677
-Ref: #add27778
-Node: balance30436
-Ref: #balance30549
-Node: Flat mode33564
-Ref: #flat-mode33691
-Node: Depth limited balance reports34111
-Ref: #depth-limited-balance-reports34314
-Node: Multicolumn balance reports34734
-Ref: #multicolumn-balance-reports34945
-Node: Custom balance output39593
-Ref: #custom-balance-output39777
-Node: Colour support41870
-Ref: #colour-support42031
-Node: Output destination42204
-Ref: #output-destination42362
-Node: CSV output42632
-Ref: #csv-output42751
-Node: balancesheet43148
-Ref: #balancesheet43276
-Node: cashflow45183
-Ref: #cashflow45300
-Node: help47151
-Ref: #help47263
-Node: incomestatement48337
-Ref: #incomestatement48468
-Node: print50360
-Ref: #print50475
-Node: register54231
-Ref: #register54344
-Node: Custom register output58840
-Ref: #custom-register-output58971
-Node: stats60268
-Ref: #stats60374
-Node: test61255
-Ref: #test61342
-Node: ADD-ON COMMANDS61710
-Ref: #add-on-commands61822
-Node: Official add-ons63109
-Ref: #official-add-ons63251
-Node: api63338
-Ref: #api63429
-Node: ui63481
-Ref: #ui63582
-Node: web63640
-Ref: #web63731
-Node: Third party add-ons63777
-Ref: #third-party-add-ons63954
-Node: diff64089
-Ref: #diff64188
-Node: iadd64287
-Ref: #iadd64403
-Node: interest64486
-Ref: #interest64609
-Node: irr64704
-Ref: #irr64804
-Node: Experimental add-ons64882
-Ref: #experimental-add-ons65036
-Node: autosync65438
-Ref: #autosync65552
-Node: budget65791
-Ref: #budget65915
-Node: chart65981
-Ref: #chart66100
-Node: check66171
-Ref: #check66295
-Node: check-dates66362
-Ref: #check-dates66504
-Node: check-dupes66577
-Ref: #check-dupes66720
-Node: equity66797
-Ref: #equity66925
-Node: prices67044
-Ref: #prices67173
-Node: print-unique67228
-Ref: #print-unique67377
-Node: register-match67470
-Ref: #register-match67626
-Node: rewrite67724
-Ref: #rewrite67858
-Node: tags67936
-Ref: #tags68041
+Node: accounts26147
+Ref: #accounts26247
+Node: activity27229
+Ref: #activity27341
+Node: add27700
+Ref: #add27801
+Node: balance30459
+Ref: #balance30572
+Node: Flat mode33587
+Ref: #flat-mode33714
+Node: Depth limited balance reports34134
+Ref: #depth-limited-balance-reports34337
+Node: Multicolumn balance reports34757
+Ref: #multicolumn-balance-reports34968
+Node: Custom balance output39616
+Ref: #custom-balance-output39800
+Node: Colour support41893
+Ref: #colour-support42054
+Node: Output destination42227
+Ref: #output-destination42385
+Node: CSV output42655
+Ref: #csv-output42774
+Node: balancesheet43171
+Ref: #balancesheet43309
+Node: balancesheetequity45216
+Ref: #balancesheetequity45367
+Node: cashflow46156
+Ref: #cashflow46279
+Node: help48130
+Ref: #help48242
+Node: incomestatement49316
+Ref: #incomestatement49447
+Node: print51339
+Ref: #print51456
+Node: register55212
+Ref: #register55325
+Node: Custom register output59821
+Ref: #custom-register-output59952
+Node: stats61249
+Ref: #stats61355
+Node: test62236
+Ref: #test62323
+Node: ADD-ON COMMANDS62691
+Ref: #add-on-commands62803
+Node: Official add-ons64090
+Ref: #official-add-ons64232
+Node: api64319
+Ref: #api64410
+Node: ui64462
+Ref: #ui64563
+Node: web64621
+Ref: #web64712
+Node: Third party add-ons64758
+Ref: #third-party-add-ons64935
+Node: diff65070
+Ref: #diff65169
+Node: iadd65268
+Ref: #iadd65384
+Node: interest65467
+Ref: #interest65590
+Node: irr65685
+Ref: #irr65785
+Node: Experimental add-ons65863
+Ref: #experimental-add-ons66017
+Node: autosync66419
+Ref: #autosync66533
+Node: budget66772
+Ref: #budget66896
+Node: chart66962
+Ref: #chart67081
+Node: check67152
+Ref: #check67276
+Node: check-dates67343
+Ref: #check-dates67485
+Node: check-dupes67558
+Ref: #check-dupes67701
+Node: equity67778
+Ref: #equity67906
+Node: prices68025
+Ref: #prices68154
+Node: print-unique68209
+Ref: #print-unique68358
+Node: register-match68451
+Ref: #register-match68607
+Node: rewrite68705
+Ref: #rewrite68839
+Node: tags68917
+Ref: #tags69022
 
 End Tag Table

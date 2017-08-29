@@ -1751,6 +1751,47 @@ As with multicolumn balance reports, you can alter the report mode with
 Normally balancesheet shows historical ending balances, which is what
 you need for a balance sheet; note this means it ignores report begin
 dates.
+.SS balancesheetequity
+.PP
+Show a balance sheet including equity.
+Alias: bse.
+.PP
+Other than showing the equity accounts, this command is exactly the same
+as the command balancesheet.
+Please refer to it for the available options.
+.PP
+This command displays a balancesheet.
+It currently assumes that you have top\-level accounts named
+\f[C]asset\f[], \f[C]liability\f[] and \f[C]equity\f[] (plural forms
+also allowed.)
+.IP
+.nf
+\f[C]
+$\ hledger\ balancesheetequity
+Balance\ Sheet\ With\ Equity
+
+Assets:
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2\ \ assets
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ \ \ bank:saving
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-3\ \ \ \ cash
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-2
+
+Liabilities:
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1\ \ liabilities:debts
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $1
+
+Equity:
+\ \ \ \ \ \ \ \ \ \ $1\ \ equity:owner
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ $1
+
+Total:
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
 .SS cashflow
 .PP
 Show a cashflow statement.
