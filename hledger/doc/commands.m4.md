@@ -236,6 +236,43 @@ Normally balancesheet shows historical ending balances, which is what
 you need for a balance sheet; note this means it ignores report begin
 dates.
 
+## balancesheetequity
+Show a balance sheet including equity. Alias: bse.
+
+Other than showing the equity accounts, this command is exactly the same
+as the command balancesheet. Please refer to it for the available options.
+
+This command displays a
+[balancesheet](http://en.wikipedia.org/wiki/Balance_sheet). It currently assumes that
+you have top-level accounts named `asset`, `liability` and `equity` (plural forms also
+allowed.)
+
+```shell
+$ hledger balancesheetequity
+Balance Sheet With Equity
+
+Assets:
+                 $-2  assets
+                  $1    bank:saving
+                 $-3    cash
+--------------------
+                 $-2
+
+Liabilities:
+                  $1  liabilities:debts
+--------------------
+                  $1
+
+Equity:
+		  $1  equity:owner
+--------------------
+		  $1
+
+Total:
+--------------------
+                   0
+```
+
 ## cashflow
 Show a cashflow statement. Alias: cf.
 
