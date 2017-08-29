@@ -77,7 +77,11 @@ withJournalDoUICommand uopts@UIOpts{cliopts_=copts} cmd = do
   rulespath <- rulesFilePathFromOpts copts
   journalpath <- journalFilePathFromOpts copts
   ej <- readJournalFiles Nothing rulespath (not $ ignore_assertions_ copts) journalpath
-  either error' (cmd uopts . journalApplyAliases (aliasesFromOpts copts)) ej
+  let fn = cmd uopts .
+           pivotByOpts copts .
+           anonymiseByOpts copts .
+           journalApplyAliases (aliasesFromOpts copts)
+  either error' fn ej
 
 runBrickUi :: UIOpts -> Journal -> IO ()
 runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
