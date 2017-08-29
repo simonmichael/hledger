@@ -19,6 +19,8 @@ module Hledger.Cli.Utils
      writeFileWithBackup,
      writeFileWithBackupIfChanged,
      readFileStrictly,
+     pivotByOpts,
+     anonymiseByOpts,
      Test(TestList),
     )
 where
