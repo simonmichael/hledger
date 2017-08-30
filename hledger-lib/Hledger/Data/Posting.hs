@@ -187,16 +187,18 @@ transactionPayee :: Transaction -> Text
 transactionPayee = fst . payeeAndNoteFromDescription . tdescription
 
 transactionNote :: Transaction -> Text
-transactionNote = fst . payeeAndNoteFromDescription . tdescription
+transactionNote = snd . payeeAndNoteFromDescription . tdescription
 
 -- | Parse a transaction's description into payee and note (aka narration) fields,
 -- assuming a convention of separating these with | (like Beancount).
 -- Ie, everything up to the first | is the payee, everything after it is the note.
 -- When there's no |, payee == note == description.
 payeeAndNoteFromDescription :: Text -> (Text,Text)
-payeeAndNoteFromDescription t = (textstrip p, textstrip $ T.tail n)
+payeeAndNoteFromDescription t
+  | T.null n = (t, t)
+  | otherwise = (textstrip p, textstrip $ T.drop 1 n)
   where
-    (p,n) = T.breakOn "|" t
+    (p, n) = T.span (/= '|') t
 
 -- | Tags for this posting including implicit and any inherited from its parent transaction.
 postingAllImplicitTags :: Posting -> [Tag]
