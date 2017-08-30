@@ -225,6 +225,8 @@ prefixes = map (<>":") [
     ,"amt"
     ,"code"
     ,"desc"
+    ,"payee"
+    ,"note"
     ,"acct"
     ,"date"
     ,"date2"
@@ -260,6 +262,8 @@ parseQueryTerm d (T.stripPrefix "not:" -> Just s) =
     Right _ -> Left Any -- not:somequeryoption will be ignored
 parseQueryTerm _ (T.stripPrefix "code:" -> Just s) = Left $ Code $ T.unpack s
 parseQueryTerm _ (T.stripPrefix "desc:" -> Just s) = Left $ Desc $ T.unpack s
+parseQueryTerm _ (T.stripPrefix "payee:" -> Just s) = Left $ Tag "payee" $ Just $ T.unpack s
+parseQueryTerm _ (T.stripPrefix "note:" -> Just s) = Left $ Tag "note" $ Just $ T.unpack s
 parseQueryTerm _ (T.stripPrefix "acct:" -> Just s) = Left $ Acct $ T.unpack s
 parseQueryTerm d (T.stripPrefix "date2:" -> Just s) =
         case parsePeriodExpr d s of Left e         -> error' $ "\"date2:"++T.unpack s++"\" gave a "++showDateParseError e
@@ -294,6 +298,8 @@ tests_parseQueryTerm = [
     "status:!" `gives` (Left $ StatusQ Pending)
     "status:0" `gives` (Left $ StatusQ Unmarked)
     "status:" `gives` (Left $ StatusQ Unmarked)
+    "payee:x" `gives` (Left $ Tag "payee" (Just "x"))
+    "note:x" `gives` (Left $ Tag "note" (Just "x"))
     "real:1" `gives` (Left $ Real True)
     "date:2008" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
     "date:from 2012/5/17" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
@@ -684,8 +690,10 @@ matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
 -- matchesPosting (Empty True) Posting{pamount=a} = isZeroMixedAmount a
 matchesPosting (Empty _) _ = True
 matchesPosting (Sym r) Posting{pamount=Mixed as} = any (regexMatchesCI $ "^" ++ r ++ "$") $ map (T.unpack . acommodity) as
-matchesPosting (Tag n v) p = not $ null $ matchedTags n v $ postingAllTags p
--- matchesPosting _ _ = False
+matchesPosting (Tag n v) p = case (n, v) of
+  ("payee", Just v) -> maybe False (regexMatchesCI v . T.unpack . transactionPayee) $ ptransaction p
+  ("note", Just v) -> maybe False (regexMatchesCI v . T.unpack . transactionNote) $ ptransaction p
+  (n, v) -> matchesTags n v $ postingAllTags p
 
 tests_matchesPosting = [
    "matchesPosting" ~: do
@@ -737,9 +745,10 @@ matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Empty _) _ = True
 matchesTransaction (Depth d) t = any (Depth d `matchesPosting`) $ tpostings t
 matchesTransaction q@(Sym _) t = any (q `matchesPosting`) $ tpostings t
-matchesTransaction (Tag n v) t = not $ null $ matchedTags n v $ transactionAllTags t
-
--- matchesTransaction _ _ = False
+matchesTransaction (Tag n v) t = case (n, v) of
+  ("payee", Just v) -> regexMatchesCI v . T.unpack . transactionPayee $ t
+  ("note", Just v) -> regexMatchesCI v . T.unpack . transactionNote $ t
+  (n, v) -> matchesTags n v $ transactionAllTags t
 
 tests_matchesTransaction = [
   "matchesTransaction" ~: do
@@ -749,14 +758,16 @@ tests_matchesTransaction = [
    assertBool "" $ (Desc "x x") `matchesTransaction` nulltransaction{tdescription="x x"}
    -- see posting for more tag tests
    assertBool "" $ (Tag "foo" (Just "a")) `matchesTransaction` nulltransaction{ttags=[("foo","bar")]}
+   assertBool "" $ (Tag "payee" (Just "payee")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
+   assertBool "" $ (Tag "note" (Just "note")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
    -- a tag match on a transaction also matches posting tags
    assertBool "" $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
  ]
 
 -- | Filter a list of tags by matching against their names and
 -- optionally also their values.
-matchedTags :: Regexp -> Maybe Regexp -> [Tag] -> [Tag]
-matchedTags namepat valuepat tags = filter (match namepat valuepat) tags
+matchesTags :: Regexp -> Maybe Regexp -> [Tag] -> Bool
+matchesTags namepat valuepat = not . null . filter (match namepat valuepat)
   where
     match npat Nothing     (n,_) = regexMatchesCI npat (T.unpack n) -- XXX
     match npat (Just vpat) (n,v) = regexMatchesCI npat (T.unpack n) && regexMatchesCI vpat (T.unpack v)
