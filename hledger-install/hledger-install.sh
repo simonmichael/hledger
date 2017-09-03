@@ -522,7 +522,9 @@ install_from_bindist() {
     echo "Stack has been installed to: $HOME_LOCAL_BIN/stack"
     info ""
 
-    check_usr_local_bin_on_path
+#CHANGED
+#    check_usr_local_bin_on_path
+    ensure_home_local_bin_on_path
 }
 
 install_arm_binary() {
@@ -690,6 +692,16 @@ check_home_local_bin_on_path() {
   fi
 }
 
+# If ~/.local/bin is not on the PATH, print a warning and add it temporarily.
+ensure_home_local_bin_on_path() {
+  if ! on_path "$HOME_LOCAL_BIN" ; then
+    info "WARNING: '$HOME_LOCAL_BIN' is not on your PATH; adding it temporarily."
+    info "    For best results, please add it to the beginning of PATH in your profile."
+    info ""
+    PATH=$HOME_LOCAL_BIN:$PATH
+  fi
+}
+
 # Check whether /usr/local/bin is on the PATH, and print a warning if not.
 check_usr_local_bin_on_path() {
   if ! on_path "$USR_LOCAL_BIN" ; then
@@ -719,6 +731,7 @@ ensure_stack() {
   if ! $(has_stack) || [[ "$FORCE" == "true" ]] ; then
     echo "Installing stack"
     do_os
+    # after installing stack, it will 
   fi
 }
 
