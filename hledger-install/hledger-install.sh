@@ -770,6 +770,11 @@ try_info() {
   $@
 }
 
+# Run a command if possible, suppressing any error output or non-zero exit code.
+quietly_run() {
+  $@ 2>/dev/null || true
+}
+
 # start
 
 # process command-line flags
@@ -838,6 +843,11 @@ if ! on_path "$HOME_LOCAL_BIN" ; then
   echo "    echo \"export PATH=\$PATH:~/.local/bin\" >> ~/.bashrc && source ~/.bashrc"
   export PATH=$HOME_LOCAL_BIN:$PATH
 fi
+
+# show system info
+echo "System info:"
+quietly_run uname
+quietly_run lsb_release -a
 
 # show current installed hledger packages
 echo "Install status:"
