@@ -283,9 +283,13 @@ do_osx_install() {
   info "Using generic bindist..."
   info ""
   install_64bit_osx_binary
-  info "NOTE: You may need to run 'xcode-select --install' to set"
-  info "      up the Xcode command-line tools, which Stack uses."
-  info ""
+#CHANGED
+#  info "NOTE: You may need to run 'xcode-select --install' to set"
+#  info "      up the Xcode command-line tools, which Stack uses."
+#  info ""
+  echo "NOTE: You may need to run 'xcode-select --install' to set"
+  echo "      up the Xcode command-line tools, which Stack uses."
+  echo ""
 }
 
 # Attempts to insall on FreeBSD.  Installs dependencies with
@@ -524,7 +528,6 @@ install_from_bindist() {
 
 #CHANGED
 #    check_usr_local_bin_on_path
-    ensure_home_local_bin_on_path
 }
 
 install_arm_binary() {
@@ -692,16 +695,6 @@ check_home_local_bin_on_path() {
   fi
 }
 
-# If ~/.local/bin is not on the PATH, print a warning and add it temporarily.
-ensure_home_local_bin_on_path() {
-  if ! on_path "$HOME_LOCAL_BIN" ; then
-    info "WARNING: '$HOME_LOCAL_BIN' is not on your PATH; adding it temporarily."
-    info "    For best results, please add it to the beginning of PATH in your profile."
-    info ""
-    PATH=$HOME_LOCAL_BIN:$PATH
-  fi
-}
-
 # Check whether /usr/local/bin is on the PATH, and print a warning if not.
 check_usr_local_bin_on_path() {
   if ! on_path "$USR_LOCAL_BIN" ; then
@@ -731,7 +724,6 @@ ensure_stack() {
   if ! $(has_stack) || [[ "$FORCE" == "true" ]] ; then
     echo "Installing stack"
     do_os
-    # after installing stack, it will 
   fi
 }
 
@@ -835,7 +827,20 @@ else
   QUIET="true"
 fi
 
+echo "Running hledger-install.sh $HLEDGER_INSTALL_VERSION"
+
+# ensure ~/.local/bin/ in PATH
+if ! on_path "$HOME_LOCAL_BIN" ; then
+  echo "WARNING: this script installs hledger (and perhaps stack) in '$HOME_LOCAL_BIN'"
+  echo "  but this directory is not in your PATH. Adding it temporarily. To run"
+  echo "  these things easily, please add it to PATH in your shell profile."
+  echo "  Eg, bash users: "
+  echo "    echo \"export PATH=\$PATH:~/.local/bin\" >> ~/.bashrc && source ~/.bashrc"
+  export PATH=$HOME_LOCAL_BIN:$PATH
+fi
+
 # show current installed hledger packages
+echo "Install status:"
 print_hledger_versions
 
 if [[ $STATUSFLAG ]] ; then
