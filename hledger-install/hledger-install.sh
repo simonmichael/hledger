@@ -775,6 +775,25 @@ quietly_run() {
   $@ 2>/dev/null || true
 }
 
+# Try to install the executables of the given package(s) to $HOME/.local/bin, 
+# trying several methods, generally from quickest to most reliable, continuing on failure.
+# Current the installation methods are:
+# - if stack is not installed and cabal is, try cabal install
+# - otherwise install stack if needed and try stack install with specific resolver and ghc
+# For the stack method, it's necessary to provide not only the package(s) you want to
+# install but also all dependencies which are not in the specified stackage $RESOLVER.
+try_install() {
+  (cd  # avoid any project-specific stack/cabal config, install at user level
+   (! has_cmd stack && has_cmd cabal && try_info cabal install "$@" --verbose=$CABAL_VERBOSITY ) ||
+   (ensure_stack && (
+    #(try_info stack install --install-ghc "$@" --verbosity=$STACK_VERBOSITY ) ||        # existing resolver
+    (try_info stack install --install-ghc $RESOLVER "$@" --verbosity=$STACK_VERBOSITY )  # specific resolver
+    )
+   ) ||
+   echo Failed to install "$@"
+  )
+}
+
 # start
 
 # process command-line flags
@@ -857,46 +876,7 @@ if [[ $STATUSFLAG ]] ; then
   exit 0
 fi
 
-# select main hledger packages to install
-#TOOLS_TO_INSTALL=""
-## packages of main tools which are missing or older than latest version
-#for t in $HLEDGER_MAIN_TOOLS; do
-#  if [[ $(cmd_version $t) < $HLEDGER_VERSION ]]; then 
-#    TOOLS_TO_INSTALL="$TOOLS_TO_INSTALL $t-$HLEDGER_VERSION"
-#  fi
-#done
-## any depended-on hledger packages so that stack can pull those too from hackage when needed  
-#PACKAGES_TO_INSTALL=$TOOLS_TO_INSTALL
-#if [[ $PACKAGES_TO_INSTALL ]]; then
-#  # most packages depend on hledger, add it if not already added
-#  if [[ ! $PACKAGES_TO_INSTALL =~ hledger-$HLEDGER_VERSION ]]; then
-#    PACKAGES_TO_INSTALL="hledger-$HLEDGER_VERSION $PACKAGES_TO_INSTALL"
-#  fi
-#  # and most depend on hledger-lib
-#  PACKAGES_TO_INSTALL="hledger-lib-$HLEDGER_VERSION $PACKAGES_TO_INSTALL"
-#fi
-
 # try installing each package that needs installing, in turn
-
-# Try to install the executables of the given package(s) to $HOME/.local/bin, 
-# trying several methods, generally from quickest to most reliable, continuing on failure.
-# Current the installation methods are:
-# - if stack is not installed and cabal is, try cabal install
-# - otherwise install stack if needed and try stack install with specific resolver and ghc
-# For the stack method, it's necessary to provide not only the package(s) you want to
-# install but also all dependencies which are not in the specified stackage $RESOLVER.
-try_install() {
-  (cd  # avoid any project-specific stack/cabal config, install at user level
-   (! has_cmd stack && has_cmd cabal && try_info cabal install "$@" --verbose=$CABAL_VERBOSITY ) ||
-   (ensure_stack && (
-    #(try_info stack install --install-ghc "$@" --verbosity=$STACK_VERBOSITY ) ||        # existing resolver
-    (try_info stack install --install-ghc $RESOLVER "$@" --verbosity=$STACK_VERBOSITY )  # specific resolver
-    )
-   ) ||
-   echo Failed to install "$@"
-  )
-}
-
 echo ----------
 if [[ $(cmd_version hledger) < $HLEDGER_VERSION ]]; then
   echo Installing hledger
