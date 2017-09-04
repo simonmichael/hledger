@@ -39,23 +39,29 @@ HERE
 
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
-HLEDGER_INSTALL_VERSION=20170727
+
+HLEDGER_INSTALL_VERSION=2017904
+
 RESOLVER="--resolver=lts-9"
   # ^ lts-9 selects the latest lts-9.x snapshot from stackage. You can specify another, 
   # or comment out this line to use your current global resolver, which might 
   # avoid some unnecessary building. OSX Sierra+ requires at least lts-8.0. 
   # lts-6 or 7 probably require tweaking the hledger install commands below. 
-HLEDGER_VERSION=1.3
+
+HLEDGER_VERSION=1.3.1
+HLEDGER_WEB_VERSION=1.3.2
 HLEDGER_DIFF_VERSION=0.2.0.10
-HLEDGER_IADD_VERSION=1.2.3
+HLEDGER_IADD_VERSION=1.2.5
 HLEDGER_INTEREST_VERSION=1.5.1
 HLEDGER_IRR_VERSION=0.1.1.11
+
 HLEDGER_MAIN_TOOLS="\
 hledger \
 hledger-ui \
 hledger-web \
 hledger-api \
 "
+
 HLEDGER_OTHER_TOOLS="\
 hledger-diff \
 hledger-iadd \
@@ -890,9 +896,9 @@ if [[ $(cmd_version hledger-ui) < $HLEDGER_VERSION ]]; then
     # ^ when hledger-iadd requires a non-stack brick, use the same version here to avoid rebuilding
   echo
 fi
-if [[ $(cmd_version hledger-web) < $HLEDGER_VERSION ]]; then 
+if [[ $(cmd_version hledger-web) < $HLEDGER_WEB_VERSION ]]; then 
   echo Installing hledger-web
-  try_install hledger-web-$HLEDGER_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_VERSION
+  try_install hledger-web-$HLEDGER_WEB_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-api) < $HLEDGER_VERSION ]]; then 
