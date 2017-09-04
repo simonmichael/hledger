@@ -1,10 +1,10 @@
 {-|
 
-Print a histogram report. (The "activity" command).
+Print a bar chart of posting activity per day, or other report interval. 
 
 -}
 
-module Hledger.Cli.Histogram
+module Hledger.Cli.Activity
 where
 
 import Data.List
@@ -33,10 +33,9 @@ activitymode = (defCommandMode $ ["activity"] ++ aliases) {
 barchar :: Char
 barchar = '*'
 
--- | Print a histogram of some statistic per report interval, such as
--- number of postings per day.
-histogram :: CliOpts -> Journal -> IO ()
-histogram CliOpts{reportopts_=ropts} j = do
+-- | Print a bar chart of number of postings per report interval.
+activity :: CliOpts -> Journal -> IO ()
+activity CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   putStr $ showHistogram ropts (queryFromOpts d ropts) j
 

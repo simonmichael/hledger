@@ -20,9 +20,9 @@ import Data.Time.Calendar
 import Text.Megaparsec.Compat (digitChar, eof, some, string, runParser, ParseError, MPErr)
 
 import Hledger.Utils
-import Hledger.Data hiding (num)
+import Hledger.Data
 import Hledger.Read
-import Hledger.Cli hiding (num)
+import Hledger.Cli.Add (appendToJournalFileOrStdout)
 
 
 -- Part of the data required from the add form.

@@ -19,7 +19,7 @@ import Data.Time.Calendar (Day)
 import Graphics.Vty (Event(..),Key(..))
 import Text.Megaparsec.Compat
 
-import Hledger.Cli hiding (progname,prognameandversion,green)
+import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState

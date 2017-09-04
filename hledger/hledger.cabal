@@ -122,18 +122,17 @@ library
       Hledger.Cli.Tests
       Hledger.Cli.Utils
       Hledger.Cli.Version
-      Hledger.Cli.Add
       Hledger.Cli.Accounts
+      Hledger.Cli.Activity
+      Hledger.Cli.Add
       Hledger.Cli.Balance
       Hledger.Cli.Balancesheet
       Hledger.Cli.Balancesheetequity
+      Hledger.Cli.Commands
       Hledger.Cli.CompoundBalanceCommand
       Hledger.Cli.Cashflow
       Hledger.Cli.Help
-      Hledger.Cli.Histogram
       Hledger.Cli.Incomestatement
-      Hledger.Cli.Info
-      Hledger.Cli.Man
       Hledger.Cli.Print
       Hledger.Cli.Register
       Hledger.Cli.Stats

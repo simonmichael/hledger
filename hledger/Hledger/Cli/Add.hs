@@ -5,7 +5,12 @@ A history-aware add command to help with data entry.
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
 {-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings #-}
 
-module Hledger.Cli.Add
+module Hledger.Cli.Add (
+   addmode
+  ,add
+  ,appendToJournalFileOrStdout
+  ,transactionsSimilarTo
+)
 where
 
 import Prelude ()

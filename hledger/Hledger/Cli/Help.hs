@@ -27,6 +27,7 @@ import System.Environment
 import System.IO
 
 import Hledger.Data.RawOptions
+import Hledger.Data.Types
 import Hledger.Cli.CliOptions
 import Hledger.Cli.DocFiles
 --import Hledger.Utils.Debug
@@ -52,8 +53,8 @@ helpmode = (defCommandMode $ ["help"] ++ aliases) {
 -- You can select a docs viewer with one of the `--info`, `--man`, `--pager`, `--cat` flags.
 -- Otherwise it will use the first available of: info, man, $PAGER, less, stdout
 -- (and always stdout if output is non-interactive). 
-help' :: CliOpts -> IO ()
-help' opts = do
+help' :: CliOpts -> Journal -> IO ()
+help' opts _ = do
   exes <- likelyExecutablesInPath
   pagerprog <- fromMaybe "less" <$> lookupEnv "PAGER"
   interactive <- hIsTerminalDevice stdout

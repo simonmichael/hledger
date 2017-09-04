@@ -20,7 +20,7 @@ import Brick.Widgets.List (listMoveTo)
 import Brick.Widgets.Border (borderAttr)
 
 import Hledger
-import Hledger.Cli hiding (progname,prognameandversion,green)
+import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes

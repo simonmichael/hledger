@@ -10,21 +10,8 @@ adds some more which are easier to define here.
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Cli (
-                     module Hledger.Cli.Accounts,
-                     module Hledger.Cli.Add,
-                     module Hledger.Cli.Balance,
-                     module Hledger.Cli.Balancesheet,
-                     module Hledger.Cli.Balancesheetequity,
-                     module Hledger.Cli.Cashflow,
-                     module Hledger.Cli.Help,
-                     module Hledger.Cli.Histogram,
-                     module Hledger.Cli.Incomestatement,
-                     module Hledger.Cli.Info,
-                     module Hledger.Cli.Man,
-                     module Hledger.Cli.Print,
-                     module Hledger.Cli.Register,
-                     module Hledger.Cli.Stats,
                      module Hledger.Cli.CliOptions,
+                     module Hledger.Cli.Commands,
                      module Hledger.Cli.DocFiles,
                      module Hledger.Cli.Utils,
                      module Hledger.Cli.Version,
@@ -41,21 +28,8 @@ import System.Console.CmdArgs.Explicit hiding (Name) -- don't clash with hledger
 import Test.HUnit
 
 import Hledger
-import Hledger.Cli.Accounts
-import Hledger.Cli.Add
-import Hledger.Cli.Balance
-import Hledger.Cli.Balancesheet
-import Hledger.Cli.Balancesheetequity
-import Hledger.Cli.Cashflow
-import Hledger.Cli.Histogram
-import Hledger.Cli.Help
-import Hledger.Cli.Incomestatement
-import Hledger.Cli.Info
-import Hledger.Cli.Man
-import Hledger.Cli.Print
-import Hledger.Cli.Register
-import Hledger.Cli.Stats
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Commands
 import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
@@ -65,16 +39,8 @@ tests_Hledger_Cli :: Test
 tests_Hledger_Cli = TestList
  [
     tests_Hledger
-   -- ,tests_Hledger_Cli_Add
-   ,tests_Hledger_Cli_Balance
-   ,tests_Hledger_Cli_Balancesheet
-   ,tests_Hledger_Cli_Cashflow
-   -- ,tests_Hledger_Cli_Histogram
-   ,tests_Hledger_Cli_Incomestatement
    ,tests_Hledger_Cli_CliOptions
-   -- ,tests_Hledger_Cli_Print
-   ,tests_Hledger_Cli_Register
-   -- ,tests_Hledger_Cli_Stats
+   ,tests_Hledger_Cli_Commands
 
 
    ,"apply account directive" ~: 

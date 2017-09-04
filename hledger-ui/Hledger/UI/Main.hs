@@ -40,7 +40,7 @@ import Control.Concurrent.Chan (newChan, writeChan)
 #endif
 
 import Hledger
-import Hledger.Cli hiding (progname,prognameandversion,green)
+import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIState (toggleHistorical)
