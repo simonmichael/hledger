@@ -229,17 +229,18 @@ With this scheme, you would use
 `-U` to see things which will probably hit your bank soon (like uncashed checks),
 and no flags to see the most up-to-date state of your finances.
 
-## Description, payee and note
+## Description
 
-As mentioned, a transaction's description is the rest of the line following the date and status mark
-(or, the rest of line until a comment begins).
+A transaction's description is the rest of the line following the date and status mark (or until a comment begins).
 Sometimes called the "narration" in traditional bookkeeping, it can be used for whatever you wish,
-or left blank. The description can be queried, unlike [comments](#comments). 
+or left blank. Transaction descriptions can be queried, unlike [comments](#comments). 
 
-Including a `|` (pipe) character in the description will subdivide it 
-into a payee/payer name (on the left) and additional notes (on the right).
-This is entirely optional, but it can allow more precise  
-[querying](/hledger.html#queries) and [pivoting](/hledger.html#pivoting).
+### Payee and note
+
+You can optionally include a `|` (pipe) character in a description to 
+subdivide it into a payee/payer name on the left and additional notes on the right.
+This may be worthwhile if you need to do more precise
+[querying](/hledger.html#queries) and [pivoting](/hledger.html#pivoting) by payee.
 
 ## Account names
 

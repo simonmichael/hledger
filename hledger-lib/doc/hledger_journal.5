@@ -303,23 +303,20 @@ With this scheme, you would use \f[C]\-PC\f[] to see the current balance
 at your bank, \f[C]\-U\f[] to see things which will probably hit your
 bank soon (like uncashed checks), and no flags to see the most
 up\-to\-date state of your finances.
-.SS Description, payee and note
+.SS Description
 .PP
-As mentioned, a transaction\[aq]s description is the rest of the line
-following the date and status mark (or, the rest of line until a comment
-begins).
+A transaction\[aq]s description is the rest of the line following the
+date and status mark (or until a comment begins).
 Sometimes called the "narration" in traditional bookkeeping, it can be
 used for whatever you wish, or left blank.
-The description can be queried, unlike comments.
+Transaction descriptions can be queried, unlike comments.
+.SS Payee and note
 .PP
-Including a \f[C]|\f[] (pipe) character in the description will
-subdivide it into a payee/payer name (on the left) and additional notes
-(on the right).
-This is entirely optional, but it can allow more precise
-.PD 0
-.P
-.PD
-querying and pivoting.
+You can optionally include a \f[C]|\f[] (pipe) character in a
+description to subdivide it into a payee/payer name on the left and
+additional notes on the right.
+This may be worthwhile if you need to do more precise querying and
+pivoting by payee.
 .SS Account names
 .PP
 Account names typically have several parts separated by a full colon,
