@@ -77,7 +77,10 @@ This can be followed by any of the following, separated by spaces:
 parentheses)
 .IP \[bu] 2
 (optional) a transaction description (any remaining text until end of
-line)
+line or a semicolon)
+.IP \[bu] 2
+(optional) a transaction comment (any remaining text following a
+semicolon until end of line)
 .PP
 Then comes zero or more (but usually at least 2) indented lines
 representing...
@@ -300,6 +303,23 @@ With this scheme, you would use \f[C]\-PC\f[] to see the current balance
 at your bank, \f[C]\-U\f[] to see things which will probably hit your
 bank soon (like uncashed checks), and no flags to see the most
 up\-to\-date state of your finances.
+.SS Description, payee and note
+.PP
+As mentioned, a transaction\[aq]s description is the rest of the line
+following the date and status mark (or, the rest of line until a comment
+begins).
+Sometimes called the "narration" in traditional bookkeeping, it can be
+used for whatever you wish, or left blank.
+The description can be queried, unlike comments.
+.PP
+Including a \f[C]|\f[] (pipe) character in the description will
+subdivide it into a payee/payer name (on the left) and additional notes
+(on the right).
+This is entirely optional, but it can allow more precise
+.PD 0
+.P
+.PD
+querying and pivoting.
 .SS Account names
 .PP
 Account names typically have several parts separated by a full colon,
@@ -797,24 +817,6 @@ For example, the following transaction has three tags (\f[C]A\f[],
 .PP
 Tags are like Ledger\[aq]s metadata feature, except hledger\[aq]s tag
 values are simple strings.
-.SS Implicit tags
-.PP
-Some predefined "implicit" tags are also provided:
-.IP \[bu] 2
-\f[C]code\f[] \- the transaction\[aq]s code field
-.IP \[bu] 2
-\f[C]description\f[] \- the transaction\[aq]s description
-.IP \[bu] 2
-\f[C]payee\f[] \- the part of description before \f[C]|\f[], or all of
-it
-.IP \[bu] 2
-\f[C]note\f[] \- the part of description after \f[C]|\f[], or all of it
-.PP
-\f[C]payee\f[] and \f[C]note\f[] support descriptions written in a
-special \f[C]PAYEE\ |\ NOTE\f[] format, accessing the parts before and
-after the pipe character respectively.
-For descriptions not containing a pipe character they are the same as
-\f[C]description\f[].
 .SS Directives
 .SS Account aliases
 .PP

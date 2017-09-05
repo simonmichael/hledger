@@ -54,7 +54,7 @@ quoting to hide it from the shell, so eg do: `hledger print cur:'\$'`
 or `hledger print cur:\\$`.
 
 **`desc:REGEX`**
-: match transaction descriptions
+: match transaction [descriptions](/manual.html#description-payee-and-note).
 
 **`date:PERIODEXPR`**
 : match dates within the specified period.
@@ -67,6 +67,14 @@ If the `--date2` command line flag is present, this matches [secondary dates](ma
 
 **`depth:N`**
 : match (or display, depending on command) accounts at or above this depth
+
+**`note:REGEX`**
+: match transaction [notes](/manual.html#description-payee-and-note)
+(part of description right of `|`, or whole description when there's no `|`)
+
+**`payee:REGEX`**
+: match transaction [payee/payer names](/manual.html#description-payee-and-note)
+(part of description left of `|`, or whole description when there's no `|`)
 
 **`real:, real:0`**
 : match real or virtual postings respectively

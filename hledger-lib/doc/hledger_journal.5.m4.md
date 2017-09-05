@@ -75,7 +75,8 @@ This can be followed by any of the following, separated by spaces:
 
 - (optional) a [status](#status) character (empty, `!`, or `*`) 
 - (optional) a transaction code (any short number or text, enclosed in parentheses)
-- (optional) a transaction description (any remaining text until end of line)
+- (optional) a transaction description (any remaining text until end of line or a semicolon)
+- (optional) a transaction comment (any remaining text following a semicolon until end of line)
 
 Then comes zero or more (but usually at least 2) indented lines representing...
 
@@ -227,6 +228,18 @@ With this scheme, you would use
 `-PC` to see the current balance at your bank,
 `-U` to see things which will probably hit your bank soon (like uncashed checks),
 and no flags to see the most up-to-date state of your finances.
+
+## Description, payee and note
+
+As mentioned, a transaction's description is the rest of the line following the date and status mark
+(or, the rest of line until a comment begins).
+Sometimes called the "narration" in traditional bookkeeping, it can be used for whatever you wish,
+or left blank. The description can be queried, unlike [comments](#comments). 
+
+Including a `|` (pipe) character in the description will subdivide it 
+into a payee/payer name (on the left) and additional notes (on the right).
+This is entirely optional, but it can allow more precise  
+[querying](/hledger.html#queries) and [pivoting](/hledger.html#pivoting).
 
 ## Account names
 
@@ -603,19 +616,6 @@ and the posting has four (those plus `posting-tag`):
 Tags are like Ledger's
 [metadata](http://ledger-cli.org/3.0/doc/ledger3.html#Metadata)
 feature, except hledger's tag values are simple strings.
-
-### Implicit tags
-
-Some predefined "implicit" tags are also provided:
-
-- `code`        - the transaction's code field
-- `description` - the transaction's description
-- `payee`       - the part of description before `|`, or all of it
-- `note`        - the part of description after `|`, or all of it
-
-`payee` and `note` support descriptions written in a special `PAYEE | NOTE` format,
-accessing the parts before and after the pipe character respectively.
-For descriptions not containing a pipe character they are the same as `description`.
 
 ## Directives
 

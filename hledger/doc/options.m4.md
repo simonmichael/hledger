@@ -265,16 +265,15 @@ tree, down to level N. Use this when you want a summary with less detail.
 ## Pivoting
 
 Normally hledger sums amounts, and organizes them in a hierarchy, based on account name.
-The `--pivot TAGNAME` option causes it to sum and organize hierarchy based on some other field instead.
-
-TAGNAME is the full, case-insensitive name of a [tag](/journal.html#tags) you have defined,
-or one of the built-in implicit tags (like `code` or `payee`).
-As with account names, when tag values have `multiple:colon-separated:parts` hledger will build hierarchy,
-displayed in tree-mode reports, summarisable with a depth limit, and so on.
+The `--pivot FIELD` option causes it to sum and organize hierarchy based on the value of some other field instead.
+FIELD can be:
+`code`, `description`, `payee`, `note`, 
+or the full name (case insensitive) of any [tag](/journal.html#tags).
+As with account names, values containing `colon:separated:parts` will be displayed hierarchically in reports.
 
 `--pivot` is a general option affecting all reports; you can think of hledger transforming 
 the journal before any other processing, replacing every posting's account name with 
-the value of the specified tag on that posting, inheriting it from the transaction 
+the value of the specified field on that posting, inheriting it from the transaction 
 or using a blank value if it's not present.
 
 An example:

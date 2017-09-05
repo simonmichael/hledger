@@ -67,9 +67,9 @@ the data.
 '--anon'
 
      anonymize accounts and payees
-'--pivot TAGNAME'
+'--pivot FIELDNAME'
 
-     use some other field/tag for account names
+     use some other field or tag for the account name
 '-I --ignore-assertions'
 
      ignore any failing balance assertions
@@ -358,17 +358,17 @@ Tag Table:
 Node: Top73
 Node: OPTIONS831
 Ref: #options930
-Node: KEYS3479
-Ref: #keys3576
-Node: SCREENS6372
-Ref: #screens6459
-Node: Accounts screen6549
-Ref: #accounts-screen6679
-Node: Register screen8909
-Ref: #register-screen9066
-Node: Transaction screen11140
-Ref: #transaction-screen11300
-Node: Error screen12170
-Ref: #error-screen12294
+Node: KEYS3487
+Ref: #keys3584
+Node: SCREENS6380
+Ref: #screens6467
+Node: Accounts screen6557
+Ref: #accounts-screen6687
+Node: Register screen8917
+Ref: #register-screen9074
+Node: Transaction screen11148
+Ref: #transaction-screen11308
+Node: Error screen12178
+Ref: #error-screen12302
 
 End Tag Table

@@ -199,8 +199,8 @@ anonymize accounts and payees
 .RS
 .RE
 .TP
-.B \f[C]\-\-pivot\ TAGNAME\f[]
-use some other field/tag for account names
+.B \f[C]\-\-pivot\ FIELDNAME\f[]
+use some other field or tag for the account name
 .RS
 .RE
 .TP
@@ -750,21 +750,17 @@ Use this when you want a summary with less detail.
 .PP
 Normally hledger sums amounts, and organizes them in a hierarchy, based
 on account name.
-The \f[C]\-\-pivot\ TAGNAME\f[] option causes it to sum and organize
-hierarchy based on some other field instead.
-.PP
-TAGNAME is the full, case\-insensitive name of a tag you have defined,
-or one of the built\-in implicit tags (like \f[C]code\f[] or
-\f[C]payee\f[]).
-As with account names, when tag values have
-\f[C]multiple:colon\-separated:parts\f[] hledger will build hierarchy,
-displayed in tree\-mode reports, summarisable with a depth limit, and so
-on.
+The \f[C]\-\-pivot\ FIELD\f[] option causes it to sum and organize
+hierarchy based on the value of some other field instead.
+FIELD can be: \f[C]code\f[], \f[C]description\f[], \f[C]payee\f[],
+\f[C]note\f[], or the full name (case insensitive) of any tag.
+As with account names, values containing \f[C]colon:separated:parts\f[]
+will be displayed hierarchically in reports.
 .PP
 \f[C]\-\-pivot\f[] is a general option affecting all reports; you can
 think of hledger transforming the journal before any other processing,
 replacing every posting\[aq]s account name with the value of the
-specified tag on that posting, inheriting it from the transaction or
+specified field on that posting, inheriting it from the transaction or
 using a blank value if it\[aq]s not present.
 .PP
 An example:
@@ -1007,7 +1003,7 @@ quoting to hide it from the shell, so eg do:
 .RE
 .TP
 .B \f[B]\f[C]desc:REGEX\f[]\f[]
-match transaction descriptions
+match transaction descriptions.
 .RS
 .RE
 .TP
@@ -1028,6 +1024,18 @@ match secondary dates within the specified period.
 .TP
 .B \f[B]\f[C]depth:N\f[]\f[]
 match (or display, depending on command) accounts at or above this depth
+.RS
+.RE
+.TP
+.B \f[B]\f[C]note:REGEX\f[]\f[]
+match transaction notes (part of description right of \f[C]|\f[], or
+whole description when there\[aq]s no \f[C]|\f[])
+.RS
+.RE
+.TP
+.B \f[B]\f[C]payee:REGEX\f[]\f[]
+match transaction payee/payer names (part of description left of
+\f[C]|\f[], or whole description when there\[aq]s no \f[C]|\f[])
 .RS
 .RE
 .TP

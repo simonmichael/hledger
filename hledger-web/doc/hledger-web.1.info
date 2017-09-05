@@ -112,9 +112,9 @@ options as shown above.
 '--anon'
 
      anonymize accounts and payees
-'--pivot TAGNAME'
+'--pivot FIELDNAME'
 
-     use some other field/tag for account names
+     use some other field or tag for the account name
 '-I --ignore-assertions'
 
      ignore any failing balance assertions
