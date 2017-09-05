@@ -25,7 +25,6 @@ module Hledger.Data.Posting (
   hasAmount,
   postingAllTags,
   transactionAllTags,
-  postingAllImplicitTags,
   relatedPostings,
   removePrices,
   -- * date operations
@@ -175,14 +174,6 @@ postingStatus Posting{pstatus=s, ptransaction=mt}
                                Nothing -> Unmarked
   | otherwise = s
 
--- | Implicit tags for this transaction.
-transactionImplicitTags :: Transaction -> [Tag]
-transactionImplicitTags t = filter (not . T.null . snd) [("code", tcode t)
-                                                        ,("description", tdescription t)
-                                                        ,("payee", transactionPayee t)
-                                                        ,("note", transactionNote t)
-                                                        ]
-
 transactionPayee :: Transaction -> Text
 transactionPayee = fst . payeeAndNoteFromDescription . tdescription
 
@@ -199,11 +190,6 @@ payeeAndNoteFromDescription t
   | otherwise = (textstrip p, textstrip $ T.drop 1 n)
   where
     (p, n) = T.span (/= '|') t
-
--- | Tags for this posting including implicit and any inherited from its parent transaction.
-postingAllImplicitTags :: Posting -> [Tag]
-postingAllImplicitTags p = ptags p ++ maybe [] transactionTags (ptransaction p)
-    where transactionTags t = ttags t ++ transactionImplicitTags t
 
 -- | Tags for this posting including any inherited from its parent transaction.
 postingAllTags :: Posting -> [Tag]

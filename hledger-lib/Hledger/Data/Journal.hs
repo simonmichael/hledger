@@ -20,6 +20,7 @@ module Hledger.Data.Journal (
   commodityStylesFromAmounts,
   journalConvertAmountsToCost,
   journalFinalise,
+  journalPivot,
   -- * Filtering
   filterJournalTransactions,
   filterJournalPostings,
@@ -884,6 +885,32 @@ test_journalDateSpan = do
                                             }
                             ]}
 -- #endif
+
+-- | Apply the pivot transformation to all postings in a journal,
+-- replacing their account name by their value for the given field or tag.
+journalPivot :: Text -> Journal -> Journal
+journalPivot fieldortagname j = j{jtxns = map (transactionPivot fieldortagname) . jtxns $ j}
+
+-- | Replace this transaction's postings' account names with the value
+-- of the given field or tag, if any.
+transactionPivot :: Text -> Transaction -> Transaction         
+transactionPivot fieldortagname t = t{tpostings = map (postingPivot fieldortagname) . tpostings $ t}
+
+-- | Replace this posting's account name with the value
+-- of the given field or tag, if any, otherwise the empty string.
+postingPivot :: Text -> Posting -> Posting         
+postingPivot fieldortagname p = p{paccount = pivotedacct, porigin = Just $ originalPosting p}
+  where
+    pivotedacct
+      | Just t <- ptransaction p, fieldortagname == "code"        = tcode t  
+      | Just t <- ptransaction p, fieldortagname == "description" = tdescription t  
+      | Just t <- ptransaction p, fieldortagname == "payee"       = transactionPayee t  
+      | Just t <- ptransaction p, fieldortagname == "note"        = transactionNote t  
+      | Just (_, value) <- postingFindTag fieldortagname p        = value
+      | otherwise                                                 = ""
+
+postingFindTag :: TagName -> Posting -> Maybe (TagName, TagValue)         
+postingFindTag tagname p = find ((tagname==) . fst) $ postingAllTags p
 
 -- Misc helpers
 

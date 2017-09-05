@@ -29,7 +29,6 @@ import Control.Monad ((<=<))
 import Data.Hashable (hash)
 import Data.List
 import Data.Maybe
-import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Time (Day)
@@ -47,6 +46,7 @@ import Test.HUnit
 import Text.Printf
 import Text.Regex.TDFA ((=~))
 
+import Hledger.Data.Journal (journalPivot)
 
 -- kludge - adapt to whichever directory version is installed, or when
 -- cabal macros aren't available, assume the new directory
@@ -91,18 +91,8 @@ withJournalDo opts cmd = do
 pivotByOpts :: CliOpts -> Journal -> Journal
 pivotByOpts opts =
   case maybestringopt "pivot" . rawopts_ $ opts of
-    Just tag -> pivot $ T.pack tag
+    Just tag -> journalPivot $ T.pack tag
     Nothing  -> id
-
--- | Apply the pivot transformation by given tag on a journal.
-pivot :: Text -> Journal -> Journal
-pivot tag j = j{jtxns = map pivotTrans . jtxns $ j}
- where
-  pivotTrans t = t{tpostings = map pivotPosting . tpostings $ t}
-  pivotPosting p
-    | Just (_ , value) <- tagTuple = p{paccount = value, porigin = Just $ originalPosting p}
-    | _                <- tagTuple = p{paccount = T.pack "", porigin = Just $ originalPosting p}
-   where tagTuple = find ((tag ==) . fst) . postingAllImplicitTags $ p
 
 -- | Apply the anonymisation transformation on a journal, if option is present
 anonymiseByOpts :: CliOpts -> Journal -> Journal
