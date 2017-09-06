@@ -58,7 +58,7 @@ dependencies:
 - mtl
 - mtl-compat
 - old-time
-- parsec
+- parsec >= 3
 - pretty-show >=1.6.4
 - regex-tdfa
 - safe >=0.2
