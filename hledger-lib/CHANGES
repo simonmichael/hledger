@@ -1,6 +1,10 @@
 API-ish changes in the hledger-lib package.
 See also the hledger and project change logs (for user-visible changes).
 
+# 1.3.2 (2017/9/6)
+
+* fix missing parsec dep breaking doctests with ghc 8.2 (fpco/stackage#2835)
+
 # 1.3.1 (2017/8/25)
 
 * Fix a bug with -H showing nothing for empty periods (Nicholas Niro)
