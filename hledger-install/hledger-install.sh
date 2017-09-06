@@ -32,15 +32,21 @@ Once hledger is installed, if you keep hledger-install.sh in \$PATH
 Note this can require significant time (minutes to hours), memory (~2G),
 and disk space (megabytes to a gigabyte) depending on your connection, 
 machine and past installations. You can kill and rerun it without losing progress.
+(But note if you ctrl-C too vigorously, it might leave a
+"hackage-security-lock" directory which you'll need to remove manually,
+cf https://github.com/commercialhaskell/stack/issues/3055).
 
 Version $HLEDGER_INSTALL_VERSION, installs hledger $HLEDGER_VERSION
 HERE
 }
+#TODO https://github.com/commercialhaskell/stack/issues/3055 https://github.com/haskell/hackage-security/issues/187 
+#Updating package index Hackage (mirrored at https://s3.amazonaws.com/hackage.fpcomplete.com/) ...
+#   /Users/simon/.stack/indices/Hackage/hackage-security-lock: createDirectory: already exists (File exists)
 
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=2017904
+HLEDGER_INSTALL_VERSION=2017906
 
 RESOLVER="--resolver=lts-9"
   # ^ lts-9 selects the latest lts-9.x snapshot from stackage. You can specify another, 
@@ -48,6 +54,7 @@ RESOLVER="--resolver=lts-9"
   # avoid some unnecessary building. OSX Sierra+ requires at least lts-8.0. 
   # lts-6 or 7 probably require tweaking the hledger install commands below. 
 
+HLEDGER_LIB_VERSION=1.3.2
 HLEDGER_VERSION=1.3.1
 HLEDGER_WEB_VERSION=1.3.2
 HLEDGER_DIFF_VERSION=0.2.0.10
@@ -886,44 +893,44 @@ fi
 echo ----------
 if [[ $(cmd_version hledger) < $HLEDGER_VERSION ]]; then
   echo Installing hledger
-  try_install hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_VERSION
+  try_install hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-ui) < $HLEDGER_VERSION ]]; then 
   echo Installing hledger-ui
-  try_install hledger-ui-$HLEDGER_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_VERSION
+  try_install hledger-ui-$HLEDGER_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
     # brick-0.19 data-clist-0.1.2.0
     # ^ when hledger-iadd requires a non-stack brick, use the same version here to avoid rebuilding
   echo
 fi
 if [[ $(cmd_version hledger-web) < $HLEDGER_WEB_VERSION ]]; then 
   echo Installing hledger-web
-  try_install hledger-web-$HLEDGER_WEB_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_VERSION
+  try_install hledger-web-$HLEDGER_WEB_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-api) < $HLEDGER_VERSION ]]; then 
   echo Installing hledger-api
-  try_install hledger-api-$HLEDGER_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_VERSION
+  try_install hledger-api-$HLEDGER_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-diff) < $HLEDGER_DIFF_VERSION ]]; then 
   echo Installing hledger-diff
-  try_install hledger-diff-$HLEDGER_DIFF_VERSION hledger-lib-$HLEDGER_VERSION
+  try_install hledger-diff-$HLEDGER_DIFF_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-iadd) < $HLEDGER_IADD_VERSION ]]; then 
   echo Installing hledger-iadd
-  try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_VERSION
+  try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-interest) < $HLEDGER_INTEREST_VERSION ]]; then 
   echo Installing hledger-interest
-  try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_VERSION
+  try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-irr) < $HLEDGER_IRR_VERSION ]]; then 
   echo Installing hledger-irr
-  try_install hledger-irr-$HLEDGER_IRR_VERSION hledger-lib-$HLEDGER_VERSION
+  try_install hledger-irr-$HLEDGER_IRR_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 echo ----------
