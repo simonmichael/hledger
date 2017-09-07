@@ -937,12 +937,12 @@ Most commands accept an optional query expression, written as arguments
 after the command name, to filter the data by date, account name or
 other criteria.
 The syntax is similar to a web search: one or more space\-separated
-search terms, quotes to enclose whitespace, optional prefixes to match
-specific fields.
-Multiple search terms are combined as follows:
+search terms, quotes to enclose whitespace, prefixes to match specific
+fields, a not: prefix to negate the match.
 .PP
-All commands except print: show transactions/postings/accounts which
-match (or negatively match)
+We do not yet support arbitrary boolean combinations of search terms;
+instead most commands show transactions/postings/accounts which match
+(or negatively match):
 .IP \[bu] 2
 any of the description terms AND
 .IP \[bu] 2
@@ -952,7 +952,7 @@ any of the status terms AND
 .IP \[bu] 2
 all the other terms.
 .PP
-The print command: show transactions which
+The print command instead shows transactions which:
 .IP \[bu] 2
 match any of the description terms AND
 .IP \[bu] 2
@@ -962,10 +962,13 @@ have no postings matching any of the negative account terms AND
 .IP \[bu] 2
 match all the other terms.
 .PP
-The following kinds of search terms can be used:
+The following kinds of search terms can be used.
+Remember these can also be prefixed with \f[B]\f[C]not:\f[]\f[], eg to
+exclude a particular subaccount.
 .TP
 .B \f[B]\f[C]REGEX\f[]\f[]
-match account names by this regular expression
+match account names by this regular expression.
+(No prefix is equivalent to \f[C]acct:\f[]).
 .RS
 .RE
 .TP
@@ -1057,18 +1060,13 @@ Also remember that postings inherit the tags of their parent
 transaction.
 .RS
 .RE
-.TP
-.B \f[B]\f[C]not:\f[]\f[]
-before any of the above negates the match.
-.RS
-.RE
+.PP
+The following special search term is used only you click an account name
+in hledger\-web:
 .TP
 .B \f[B]\f[C]inacct:ACCTNAME\f[]\f[]
-a special term used automatically when you click an account name in
-hledger\-web, specifying the account register we are currently in
-(selects the transactions of that account and how to show them, can be
-filtered further with \f[C]acct\f[] etc).
-Not supported elsewhere in hledger.
+tells hledger\-web to show the transaction register for this account.
+Can be filtered further with \f[C]acct\f[] etc.
 .RS
 .RE
 .PP

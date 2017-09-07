@@ -666,29 +666,32 @@ subsets of your data.  Most commands accept an optional query
 expression, written as arguments after the command name, to filter the
 data by date, account name or other criteria.  The syntax is similar to
 a web search: one or more space-separated search terms, quotes to
-enclose whitespace, optional prefixes to match specific fields.
-Multiple search terms are combined as follows:
+enclose whitespace, prefixes to match specific fields, a not: prefix to
+negate the match.
 
-   All commands except print: show transactions/postings/accounts which
-match (or negatively match)
+   We do not yet support arbitrary boolean combinations of search terms;
+instead most commands show transactions/postings/accounts which match
+(or negatively match):
 
    * any of the description terms AND
    * any of the account terms AND
    * any of the status terms AND
    * all the other terms.
 
-   The print command: show transactions which
+   The print command instead shows transactions which:
 
    * match any of the description terms AND
    * have any postings matching any of the positive account terms AND
    * have no postings matching any of the negative account terms AND
    * match all the other terms.
 
-   The following kinds of search terms can be used:
+   The following kinds of search terms can be used.  Remember these can
+also be prefixed with *'not:'*, eg to exclude a particular subaccount.
 
 *'REGEX'*
 
-     match account names by this regular expression
+     match account names by this regular expression.  (No prefix is
+     equivalent to 'acct:').
 *'acct:REGEX'*
 
      same as above
@@ -749,16 +752,14 @@ match (or negatively match)
      query is considered to match a transaction if it matches any of the
      postings.  Also remember that postings inherit the tags of their
      parent transaction.
-*'not:'*
 
-     before any of the above negates the match.
+   The following special search term is used only you click an account
+name in hledger-web:
+
 *'inacct:ACCTNAME'*
 
-     a special term used automatically when you click an account name in
-     hledger-web, specifying the account register we are currently in
-     (selects the transactions of that account and how to show them, can
-     be filtered further with 'acct' etc).  Not supported elsewhere in
-     hledger.
+     tells hledger-web to show the transaction register for this
+     account.  Can be filtered further with 'acct' etc.
 
    Some of these can also be expressed as command-line options (eg
 'depth:2' is equivalent to '--depth 2').  Generally you can mix options
@@ -2162,95 +2163,95 @@ Node: Regular expressions19999
 Ref: #regular-expressions20137
 Node: QUERIES21498
 Ref: #queries21602
-Node: COMMANDS25534
-Ref: #commands25648
-Node: accounts26327
-Ref: #accounts26427
-Node: activity27409
-Ref: #activity27521
-Node: add27880
-Ref: #add27981
-Node: balance30639
-Ref: #balance30752
-Node: Flat mode33767
-Ref: #flat-mode33894
-Node: Depth limited balance reports34314
-Ref: #depth-limited-balance-reports34517
-Node: Multicolumn balance reports34937
-Ref: #multicolumn-balance-reports35148
-Node: Custom balance output39796
-Ref: #custom-balance-output39980
-Node: Colour support42073
-Ref: #colour-support42234
-Node: Output destination42407
-Ref: #output-destination42565
-Node: CSV output42835
-Ref: #csv-output42954
-Node: balancesheet43351
-Ref: #balancesheet43489
-Node: balancesheetequity45396
-Ref: #balancesheetequity45547
-Node: cashflow46336
-Ref: #cashflow46459
-Node: help48310
-Ref: #help48422
-Node: incomestatement49496
-Ref: #incomestatement49627
-Node: print51519
-Ref: #print51636
-Node: register55392
-Ref: #register55505
-Node: Custom register output60001
-Ref: #custom-register-output60132
-Node: stats61429
-Ref: #stats61535
-Node: test62416
-Ref: #test62503
-Node: ADD-ON COMMANDS62871
-Ref: #add-on-commands62983
-Node: Official add-ons64270
-Ref: #official-add-ons64412
-Node: api64499
-Ref: #api64590
-Node: ui64642
-Ref: #ui64743
-Node: web64801
-Ref: #web64892
-Node: Third party add-ons64938
-Ref: #third-party-add-ons65115
-Node: diff65250
-Ref: #diff65349
-Node: iadd65448
-Ref: #iadd65564
-Node: interest65647
-Ref: #interest65770
-Node: irr65865
-Ref: #irr65965
-Node: Experimental add-ons66043
-Ref: #experimental-add-ons66197
-Node: autosync66599
-Ref: #autosync66713
-Node: budget66952
-Ref: #budget67076
-Node: chart67142
-Ref: #chart67261
-Node: check67332
-Ref: #check67456
-Node: check-dates67523
-Ref: #check-dates67665
-Node: check-dupes67738
-Ref: #check-dupes67881
-Node: equity67958
-Ref: #equity68086
-Node: prices68205
-Ref: #prices68334
-Node: print-unique68389
-Ref: #print-unique68538
-Node: register-match68631
-Ref: #register-match68787
-Node: rewrite68885
-Ref: #rewrite69019
-Node: tags69097
-Ref: #tags69202
+Node: COMMANDS25580
+Ref: #commands25694
+Node: accounts26373
+Ref: #accounts26473
+Node: activity27455
+Ref: #activity27567
+Node: add27926
+Ref: #add28027
+Node: balance30685
+Ref: #balance30798
+Node: Flat mode33813
+Ref: #flat-mode33940
+Node: Depth limited balance reports34360
+Ref: #depth-limited-balance-reports34563
+Node: Multicolumn balance reports34983
+Ref: #multicolumn-balance-reports35194
+Node: Custom balance output39842
+Ref: #custom-balance-output40026
+Node: Colour support42119
+Ref: #colour-support42280
+Node: Output destination42453
+Ref: #output-destination42611
+Node: CSV output42881
+Ref: #csv-output43000
+Node: balancesheet43397
+Ref: #balancesheet43535
+Node: balancesheetequity45442
+Ref: #balancesheetequity45593
+Node: cashflow46382
+Ref: #cashflow46505
+Node: help48356
+Ref: #help48468
+Node: incomestatement49542
+Ref: #incomestatement49673
+Node: print51565
+Ref: #print51682
+Node: register55438
+Ref: #register55551
+Node: Custom register output60047
+Ref: #custom-register-output60178
+Node: stats61475
+Ref: #stats61581
+Node: test62462
+Ref: #test62549
+Node: ADD-ON COMMANDS62917
+Ref: #add-on-commands63029
+Node: Official add-ons64316
+Ref: #official-add-ons64458
+Node: api64545
+Ref: #api64636
+Node: ui64688
+Ref: #ui64789
+Node: web64847
+Ref: #web64938
+Node: Third party add-ons64984
+Ref: #third-party-add-ons65161
+Node: diff65296
+Ref: #diff65395
+Node: iadd65494
+Ref: #iadd65610
+Node: interest65693
+Ref: #interest65816
+Node: irr65911
+Ref: #irr66011
+Node: Experimental add-ons66089
+Ref: #experimental-add-ons66243
+Node: autosync66645
+Ref: #autosync66759
+Node: budget66998
+Ref: #budget67122
+Node: chart67188
+Ref: #chart67307
+Node: check67378
+Ref: #check67502
+Node: check-dates67569
+Ref: #check-dates67711
+Node: check-dupes67784
+Ref: #check-dupes67927
+Node: equity68004
+Ref: #equity68132
+Node: prices68251
+Ref: #prices68380
+Node: print-unique68435
+Ref: #print-unique68584
+Node: register-match68677
+Ref: #register-match68833
+Node: rewrite68931
+Ref: #rewrite69065
+Node: tags69143
+Ref: #tags69248
 
 End Tag Table

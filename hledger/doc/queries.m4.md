@@ -6,29 +6,29 @@ to filter the data by date, account name or other criteria.
 The syntax is similar to a web search:
 one or more space-separated search terms,
 quotes to enclose whitespace,
-optional prefixes to match specific fields.
-Multiple search terms are combined as follows:
+prefixes to match specific fields,
+a not: prefix to negate the match.
 
-All commands except print:
-show transactions/postings/accounts which match (or negatively match)
+We do not yet support arbitrary boolean combinations of search terms;
+instead most commands show transactions/postings/accounts which match (or negatively match):
 
 - any of the description terms AND
 - any of the account terms AND
 - any of the status terms AND
 - all the other terms.
 
-The print command:
-show transactions which
+The [print](/manual.html#print) command instead shows transactions which:
 
 - match any of the description terms AND
 - have any postings matching any of the positive account terms AND
 - have no postings matching any of the negative account terms AND
 - match all the other terms.
 
-The following kinds of search terms can be used:
+The following kinds of search terms can be used. 
+Remember these can also be prefixed with **`not:`**, eg to exclude a particular subaccount.
 
 **`REGEX`**
-: match account names by this regular expression
+: match account names by this regular expression. (No prefix is equivalent to `acct:`).
 
 **`acct:REGEX`**
 : same as above
@@ -88,14 +88,11 @@ tag: query is considered to match a transaction if it matches any of
 the postings.  Also remember that postings inherit the tags of their
 parent transaction.
 
-**`not:`**
-: before any of the above negates the match.
+The following special search term is used only you click an account name in hledger-web:
 
 **`inacct:ACCTNAME`**
-: a special term used automatically when you click an account name in hledger-web, 
-specifying the account register we are currently in
-(selects the transactions of that account and how to show them, can be filtered further with `acct` etc).
-Not supported elsewhere in hledger.
+: tells hledger-web to show the transaction register for this account.
+Can be filtered further with `acct` etc.
 
 Some of these can also be expressed as command-line options (eg `depth:2` is equivalent to `--depth 2`).
 Generally you can mix options and query arguments, and the resulting query will be their intersection
