@@ -753,8 +753,8 @@ also be prefixed with *'not:'*, eg to exclude a particular subaccount.
      postings.  Also remember that postings inherit the tags of their
      parent transaction.
 
-   The following special search term is used only you click an account
-name in hledger-web:
+   The following special search term is used automatically in
+hledger-web, only:
 
 *'inacct:ACCTNAME'*
 
@@ -2163,95 +2163,95 @@ Node: Regular expressions19999
 Ref: #regular-expressions20137
 Node: QUERIES21498
 Ref: #queries21602
-Node: COMMANDS25580
-Ref: #commands25694
-Node: accounts26373
-Ref: #accounts26473
-Node: activity27455
-Ref: #activity27567
-Node: add27926
-Ref: #add28027
-Node: balance30685
-Ref: #balance30798
-Node: Flat mode33813
-Ref: #flat-mode33940
-Node: Depth limited balance reports34360
-Ref: #depth-limited-balance-reports34563
-Node: Multicolumn balance reports34983
-Ref: #multicolumn-balance-reports35194
-Node: Custom balance output39842
-Ref: #custom-balance-output40026
-Node: Colour support42119
-Ref: #colour-support42280
-Node: Output destination42453
-Ref: #output-destination42611
-Node: CSV output42881
-Ref: #csv-output43000
-Node: balancesheet43397
-Ref: #balancesheet43535
-Node: balancesheetequity45442
-Ref: #balancesheetequity45593
-Node: cashflow46382
-Ref: #cashflow46505
-Node: help48356
-Ref: #help48468
-Node: incomestatement49542
-Ref: #incomestatement49673
-Node: print51565
-Ref: #print51682
-Node: register55438
-Ref: #register55551
-Node: Custom register output60047
-Ref: #custom-register-output60178
-Node: stats61475
-Ref: #stats61581
-Node: test62462
-Ref: #test62549
-Node: ADD-ON COMMANDS62917
-Ref: #add-on-commands63029
-Node: Official add-ons64316
-Ref: #official-add-ons64458
-Node: api64545
-Ref: #api64636
-Node: ui64688
-Ref: #ui64789
-Node: web64847
-Ref: #web64938
-Node: Third party add-ons64984
-Ref: #third-party-add-ons65161
-Node: diff65296
-Ref: #diff65395
-Node: iadd65494
-Ref: #iadd65610
-Node: interest65693
-Ref: #interest65816
-Node: irr65911
-Ref: #irr66011
-Node: Experimental add-ons66089
-Ref: #experimental-add-ons66243
-Node: autosync66645
-Ref: #autosync66759
-Node: budget66998
-Ref: #budget67122
-Node: chart67188
-Ref: #chart67307
-Node: check67378
-Ref: #check67502
-Node: check-dates67569
-Ref: #check-dates67711
-Node: check-dupes67784
-Ref: #check-dupes67927
-Node: equity68004
-Ref: #equity68132
-Node: prices68251
-Ref: #prices68380
-Node: print-unique68435
-Ref: #print-unique68584
-Node: register-match68677
-Ref: #register-match68833
-Node: rewrite68931
-Ref: #rewrite69065
-Node: tags69143
-Ref: #tags69248
+Node: COMMANDS25569
+Ref: #commands25683
+Node: accounts26362
+Ref: #accounts26462
+Node: activity27444
+Ref: #activity27556
+Node: add27915
+Ref: #add28016
+Node: balance30674
+Ref: #balance30787
+Node: Flat mode33802
+Ref: #flat-mode33929
+Node: Depth limited balance reports34349
+Ref: #depth-limited-balance-reports34552
+Node: Multicolumn balance reports34972
+Ref: #multicolumn-balance-reports35183
+Node: Custom balance output39831
+Ref: #custom-balance-output40015
+Node: Colour support42108
+Ref: #colour-support42269
+Node: Output destination42442
+Ref: #output-destination42600
+Node: CSV output42870
+Ref: #csv-output42989
+Node: balancesheet43386
+Ref: #balancesheet43524
+Node: balancesheetequity45431
+Ref: #balancesheetequity45582
+Node: cashflow46371
+Ref: #cashflow46494
+Node: help48345
+Ref: #help48457
+Node: incomestatement49531
+Ref: #incomestatement49662
+Node: print51554
+Ref: #print51671
+Node: register55427
+Ref: #register55540
+Node: Custom register output60036
+Ref: #custom-register-output60167
+Node: stats61464
+Ref: #stats61570
+Node: test62451
+Ref: #test62538
+Node: ADD-ON COMMANDS62906
+Ref: #add-on-commands63018
+Node: Official add-ons64305
+Ref: #official-add-ons64447
+Node: api64534
+Ref: #api64625
+Node: ui64677
+Ref: #ui64778
+Node: web64836
+Ref: #web64927
+Node: Third party add-ons64973
+Ref: #third-party-add-ons65150
+Node: diff65285
+Ref: #diff65384
+Node: iadd65483
+Ref: #iadd65599
+Node: interest65682
+Ref: #interest65805
+Node: irr65900
+Ref: #irr66000
+Node: Experimental add-ons66078
+Ref: #experimental-add-ons66232
+Node: autosync66634
+Ref: #autosync66748
+Node: budget66987
+Ref: #budget67111
+Node: chart67177
+Ref: #chart67296
+Node: check67367
+Ref: #check67491
+Node: check-dates67558
+Ref: #check-dates67700
+Node: check-dupes67773
+Ref: #check-dupes67916
+Node: equity67993
+Ref: #equity68121
+Node: prices68240
+Ref: #prices68369
+Node: print-unique68424
+Ref: #print-unique68573
+Node: register-match68666
+Ref: #register-match68822
+Node: rewrite68920
+Ref: #rewrite69054
+Node: tags69132
+Ref: #tags69237
 
 End Tag Table

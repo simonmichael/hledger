@@ -88,7 +88,7 @@ tag: query is considered to match a transaction if it matches any of
 the postings.  Also remember that postings inherit the tags of their
 parent transaction.
 
-The following special search term is used only you click an account name in hledger-web:
+The following special search term is used automatically in hledger-web, only:
 
 **`inacct:ACCTNAME`**
 : tells hledger-web to show the transaction register for this account.
