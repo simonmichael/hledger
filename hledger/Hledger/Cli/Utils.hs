@@ -46,20 +46,8 @@ import Test.HUnit
 import Text.Printf
 import Text.Regex.TDFA ((=~))
 
--- kludge - adapt to whichever directory version is installed, or when
--- cabal macros aren't available, assume the new directory
-#ifdef MIN_VERSION_directory
-#if MIN_VERSION_directory(1,2,0)
-#define directory_1_2
-#endif
-#else
-#define directory_1_2
-#endif
-
-#ifdef directory_1_2
 import System.Time (ClockTime(TOD))
 import Data.Time.Clock.POSIX (utcTimeToPOSIXSeconds)
-#endif
 
 import Hledger.Cli.CliOptions
 import Hledger.Data
@@ -190,13 +178,9 @@ fileModificationTime :: FilePath -> IO ClockTime
 fileModificationTime f
     | null f = getClockTime
     | otherwise = (do
-#ifdef directory_1_2
         utc <- getModificationTime f
         let nom = utcTimeToPOSIXSeconds utc
         let clo = TOD (read $ takeWhile (`elem` "0123456789") $ show nom) 0 -- XXX read
-#else
-        clo <- getModificationTime f
-#endif
         return clo
         )
         `C.catch` \(_::C.IOException) -> getClockTime
