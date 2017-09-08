@@ -579,17 +579,6 @@ travistest: \
 	sh -e bin/compile.sh
 	make functest
 
-STACKAGETESTACTION=test bench
-# STACKAGETESTACTION=build --dry-run
-
-test-stackage: \
-	test-stack7.10.yaml \
-	test-stack8.0.yaml \
-	test-stack.yaml \
-
-test-stack%yaml:
-	stack --stack-yaml stack$*yaml $(STACKAGETESTACTION)
-
 # test-ghc-%: # bin/hledgerdev.ghc-$* \
 # 	$(call def-help,test-ghc-%,\
 # 	run default tests with a specific GHC version\
@@ -731,6 +720,17 @@ cabalfiletest: \
 # 		); done \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 # #		&& cabal upload dist/$$p-$(VERSION).tar.gz --check -v3 \
+
+STACKTESTACTION=test bench
+#STACKTESTACTION=build --dry-run
+
+stacktest: $(call def-help,stacktest, try a build/test/bench with each stack config) \
+	test-stack7.10.yaml \
+	test-stack8.0.yaml \
+	test-stack.yaml \
+
+test-stack%yaml:
+	stack --stack-yaml stack$*yaml $(STACKTESTACTION)
 
 BENCHEXES=hledger-0.27,hledger
 
