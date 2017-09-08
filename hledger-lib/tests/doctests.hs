@@ -1,7 +1,6 @@
 {-# LANGUAGE PackageImports #-}
 
 import Data.List
-import Data.Monoid
 import "Glob" System.FilePath.Glob
 import Test.DocTest
 
