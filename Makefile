@@ -730,7 +730,7 @@ stacktest: $(call def-help,stacktest, try a build/test/bench with each stack con
 	test-stack.yaml \
 
 test-stack%yaml:
-	stack --stack-yaml stack$*yaml $(STACKTESTACTION)
+	stack --stack-yaml stack$*yaml --install-ghc $(STACKTESTACTION)
 
 BENCHEXES=hledger-0.27,hledger
 
