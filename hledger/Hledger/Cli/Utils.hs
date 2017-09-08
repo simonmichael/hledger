@@ -46,8 +46,6 @@ import Test.HUnit
 import Text.Printf
 import Text.Regex.TDFA ((=~))
 
-import Hledger.Data.Journal (journalPivot)
-
 -- kludge - adapt to whichever directory version is installed, or when
 -- cabal macros aren't available, assume the new directory
 #ifdef MIN_VERSION_directory
