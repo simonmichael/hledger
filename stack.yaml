@@ -1,5 +1,4 @@
 # stack build plan using GHC 8.2.1
-# keep synced with download.md ?
 
 resolver: nightly-2017-09-07
 

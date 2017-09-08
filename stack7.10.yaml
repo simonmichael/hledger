@@ -1,5 +1,5 @@
 # stack build plan using GHC 7.10.3
-# keep synced with download.md
+# This is unlikely to work on OSX Sierra+ due to https://ghc.haskell.org/trac/ghc/ticket/12479
 
 resolver: lts-6.35
 
