@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack exec --verbosity info
+{- stack exec --verbosity info --stack-yaml stack8.0.yaml
    --package base-prelude
    --package directory
    --package extra
