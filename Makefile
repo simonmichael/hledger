@@ -721,7 +721,7 @@ cabalfiletest: \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 # #		&& cabal upload dist/$$p-$(VERSION).tar.gz --check -v3 \
 
-STACKTESTACTION=test bench
+STACKTESTACTION=build --test --bench
 #STACKTESTACTION=build --dry-run
 
 stacktest: $(call def-help,stacktest, try a build/test/bench with each stack config) \
