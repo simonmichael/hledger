@@ -1,10 +1,10 @@
-# stack build plan using GHC 8.0.2 (osx sierra compatible)
-# keep synced with download.md
+# stack build plan using GHC 8.2.1
+# keep synced with download.md ?
 
-resolver: lts-9.0
+resolver: nightly-2017-09-07
 
 extra-deps:
- []
+- wai-handler-launch-3.0.2.3
 
 packages:
 - hledger-lib

@@ -579,6 +579,24 @@ travistest: \
 	sh -e bin/compile.sh
 	make functest
 
+STACKTESTACTION=test
+#STACKTESTACTION=bench
+#STACKTESTACTION=build
+#STACKTESTACTION=build --dry-run
+
+test-stackage: \
+	test-stackage-ghc710 \
+	test-stackage-ghc80 \
+	test-stackage-ghc82 \
+
+test-stackage-ghc710:
+	stack --stack-yaml stack7.10.yaml $(STACKTESTACTION)
+
+test-stackage-ghc80:
+	stack --stack-yaml stack8.0.yaml $(STACKTESTACTION)
+
+test-stackage-ghc82:
+	stack --stack-yaml stack.yaml $(STACKTESTACTION)
 
 # test-ghc-%: # bin/hledgerdev.ghc-$* \
 # 	$(call def-help,test-ghc-%,\

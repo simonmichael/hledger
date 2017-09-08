@@ -1,0 +1,30 @@
+# stack build plan using GHC 7.10.3
+# keep synced with download.md
+
+resolver: lts-6.35
+
+extra-deps:
+- attoparsec-iso8601-1.0.0.0
+- brick-0.24.2
+- cpphs-1.20.8
+- data-clist-0.1.2.0
+- http-api-data-0.3.7.1
+- megaparsec-5.3.1
+- natural-transformation-0.4
+- parser-combinators-0.2.0
+- persistent-2.7.0
+- persistent-template-2.5.2
+- servant-0.11
+- servant-server-0.11
+- text-zipper-0.10
+- th-orphans-0.13.4
+- vty-5.17.1
+- word-wrap-0.4.1
+- yesod-persistent-1.4.2
+
+packages:
+- hledger-lib
+- hledger
+- hledger-ui
+- hledger-web
+- hledger-api

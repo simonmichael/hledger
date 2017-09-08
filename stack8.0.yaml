@@ -1,0 +1,14 @@
+# stack build plan using GHC 8.0.2 (this or newer required for osx sierra+)
+# keep synced with download.md
+
+resolver: lts-9.3
+
+extra-deps:
+ []
+
+packages:
+- hledger-lib
+- hledger
+- hledger-ui
+- hledger-web
+- hledger-api
