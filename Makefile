@@ -721,16 +721,14 @@ cabalfiletest: \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 # #		&& cabal upload dist/$$p-$(VERSION).tar.gz --check -v3 \
 
-STACKTESTACTION=build --test --bench
-#STACKTESTACTION=build --dry-run
-
 stacktest: $(call def-help,stacktest, try a build/test/bench with each stack config) \
 	test-stack7.10.yaml \
 	test-stack8.0.yaml \
 	test-stack.yaml \
 
 test-stack%yaml:
-	stack --stack-yaml stack$*yaml --install-ghc $(STACKTESTACTION)
+	stack --stack-yaml stack$*yaml clean
+	stack --stack-yaml stack$*yaml --install-ghc build --test --bench
 
 BENCHEXES=hledger-0.27,hledger
 
