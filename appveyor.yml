@@ -27,13 +27,8 @@ environment:
 
 test_script:
 #the j1 flag is a temporary workaround for https://github.com/commercialhaskell/stack/issues/2617, https://github.com/simonmichael/hledger/issues/424
-#- echo "" | stack --no-terminal --install-ghc test -j1 hledger hledger-web hledger-api
-#- stack --local-bin-path . -j1 install hledger hledger-web hledger-api
-
-- stack --local-bin-path . -j1 build --test --bench --copy-bins hledger hledger-web hledger-api
-
+- stack --local-bin-path . -j1 --install-ghc build --test --bench --copy-bins hledger hledger-web hledger-api
 #- hledger-install/hledger-install.sh
-
 #- make stacktest
 
 artifacts:
