@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack runghc --verbosity info
+{- stack runghc --verbosity info --resolver lts-9.3
    --package hledger
    --package Chart
    --package Chart-diagrams
@@ -9,6 +9,18 @@
    --package here
    --package safe
    --package text
+-}
+{- stackage nightly:
+   --package SVGFonts
+   --package diagrams-core
+   --package diagrams-lib
+   --package diagrams-postscript
+   --package diagrams-svg
+   --package svg-builder
+   --package cereal-vector
+   --package dual-tree
+   --package diagrams-solve
+   --package statestack
 -}
 
 {-# OPTIONS_GHC -Wno-missing-signatures -Wno-unused-do-bind #-}
