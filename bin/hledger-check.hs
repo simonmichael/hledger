@@ -471,5 +471,5 @@ sameish f = (==) `on` f . toGregorian . H.postingDate
 
 -- | Helper for 'Compare' and 'Connect' parsers.
 gostringsp :: Monad m => [(String, a)] -> H.TextParser m a
-gostringsp ((s,a):rest) = P.try (P.string s *> pure a) `mplus` gostringsp rest
+gostringsp ((s,a):rest) = P.try (P.string (pack s) *> pure a) `mplus` gostringsp rest
 gostringsp [] = mzero
