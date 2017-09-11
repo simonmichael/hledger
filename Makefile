@@ -843,35 +843,47 @@ quickheap-%: hledgerprof samplejournals \
 # 	(cd hledger-web; cabal repl exe:hledger-web)
 
 # multi-package GHCI prompts
-ghci: \
-# 	 	$(call def-help,ghci, start a GHCI REPL and load the hledger-lib and hledger packages)
+ghci: $(call def-help,ghci, start ghci REPL on hledger-lib + hledger)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
 
-ghci-prof: \
-# 	 	$(call def-help,ghci, start a GHCI REPL and load the hledger-lib and hledger packages, with profiling information)
+ghci-prof: $(call def-help,ghci-prof, start ghci REPL on hledger-lib + hledger with profiling information)
 	stack build --profile hledger --only-dependencies
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli/Main.hs
 
-ghci-dev: \
-# 	 	$(call def-help,ghci, start a GHCI REPL and load the dev.hs script plus hledger-lib and hledger)
+ghci-dev: $(call def-help,ghci-dev, start ghci REPL on hledger-lib + hledger + dev.hs script)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
 
-ghci-ui: \
-# 		$(call def-help,ghci-ui, start a GHCI REPL and load the hledger-lib, hledger and hledger-ui packages)
+ghci-ui: $(call def-help,ghci-ui, start ghci REPL on hledger-lib + hledger + hledger-ui)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
 
-ghci-web: link-web-dirs \
-# 		$(call def-help,ghci-web, start a GHCI REPL and load the hledger-lib, hledger and hledger-web packages)
+ghci-web: link-web-dirs $(call def-help,ghci-web, start ghci REPL on hledger-lib + hledger + hledger-web)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
 
-ghci-api: \
-# 		$(call def-help,ghci-api, start a GHCI REPL and load the hledger-lib, hledger and hledger-api packages)
+ghci-api: (call def-help,ghci-api, start ghci REPL on hledger-lib + hledger + hledger-api)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-api/hledger-api.hs
 
-ghcid-lib-doctest:
-	ghcid --command 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
+# ghci-all: $(call def-help,ghci-all, start ghci REPL on all the hledger)
+# 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) \
+# 		hledger-ui/Hledger/UI/Main.hs \
+# 		hledger-web/app/main.hs \
+# 		hledger-api/hledger-api.hs \
 
-samplejournals: \
+ghcid-lib-doctest:
+	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
+
+ghcid: $(call def-help,ghcid, start ghcid autobuilder on hledger-lib + hledger)
+	ghcid -c 'make ghci'
+
+ghcid-ui: $(call def-help,ghcid-ui, start ghcid autobuilder on hledger-lib + hledger + hledger-ui)
+	ghcid -c 'make ghci-ui'
+
+ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + hledger + hledger-web)
+	ghcid -c 'make ghci-web'
+
+ghcid-api: $(call def-help,ghcid-api, start ghcid autobuilder on hledger-lib + hledger + hledger-api)
+	ghcid -c 'make ghci-api'
+
+samplejournals: $(call def-help,samplejournals, regenerate standard sample journals in examples/) \
 	examples/sample.journal \
 	examples/100x100x10.journal \
 	examples/1000x1000x10.journal \
@@ -883,7 +895,6 @@ samplejournals: \
 	examples/ascii.journal \
 	examples/chinese.journal \
 	examples/mixed.journal \
-	$(call def-help,samplejournals, regenerate standard sample journals in examples/ )
 
 examples/sample.journal:
 	true # XXX should probably regenerate this
