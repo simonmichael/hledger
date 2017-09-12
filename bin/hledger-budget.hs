@@ -155,9 +155,7 @@ budgetFlags =
 
 actions :: [(Mode RawOpts, CliOpts -> IO ())]
 actions = first injectBudgetFlags <$>
-    [ (manmode, man)
-    , (infomode, info')
-    , (balancemode, flip withJournalDo' balance)
+    [ (balancemode, flip withJournalDo' balance)
     , (balancesheetmode, flip withJournalDo' balancesheet)
     , (cashflowmode, flip withJournalDo' cashflow)
     , (incomestatementmode, flip withJournalDo' incomestatement)
