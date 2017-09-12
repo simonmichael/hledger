@@ -155,6 +155,10 @@ https://github.com/simonmichael/hledger/issues/99
   |]
   [flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
            "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."
+  ,flagReq ["txn-comment"] (\s opts -> Right $ setopt "txn-comment" s opts) "'COMMENT'"
+           "add transaction comment."
+  ,flagNone ["replace"] (setboolopt "replace-posting")
+           "replace/delete original posting from transaction."
   ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"
   ]
   [generalflagsgroup1]
@@ -193,7 +197,12 @@ modifierTransactionFromOpts :: RawOpts -> IO ModifierTransaction
 modifierTransactionFromOpts opts = do
     postings <- mapM (postingp' . stripquotes . T.pack) $ listofstringopt "add-posting" opts
     return
-        ModifierTransaction { mtvalueexpr = T.empty, mtpostings = postings }
+        ModifierTransaction { mtvalueexpr = T.empty
+                            , mtcomment = T.intercalate "\n" $
+                                map T.pack (listofstringopt "txn-comment" opts)
+
+                            , mtreplace = boolopt "replace-posting" opts
+                            , mtpostings = postings }
 
 outputFromOpts :: RawOpts -> (CliOpts -> Journal -> Journal -> IO ())
 outputFromOpts opts
