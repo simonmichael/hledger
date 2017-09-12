@@ -195,7 +195,7 @@ main = do
           system shellcmd >>= exitWith
 
       -- deprecated commands
-      -- | cmd == "convert"         = error' (modeHelp oldconvertmode) >> exitFailure
+      -- cmd == "convert"         = error' (modeHelp oldconvertmode) >> exitFailure
 
       -- shouldn't reach here
       | otherwise                = usageError ("could not understand the arguments "++show args) >> exitFailure
