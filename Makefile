@@ -569,8 +569,7 @@ $(call def-help-subheading,TESTING:)
 test: pkgtest functest \
 	$(call def-help,test, run default tests )
 
-travistest: \
-	$(call def-help,travistest, run tests similar to the most thorough travis tests)
+travistest: $(call def-help,travistest, run tests similar to the most thorough travis tests)
 	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib
 	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger
 	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-ui
@@ -728,7 +727,7 @@ stacktest: $(call def-help,stacktest, try a build/test/bench with each stack con
 
 test-stack%yaml:
 	stack --stack-yaml stack$*yaml clean
-	stack --stack-yaml stack$*yaml --install-ghc build --test --bench
+	stack --stack-yaml stack$*yaml --install-ghc build --test --bench --haddock --no-haddock-deps
 
 BENCHEXES=hledger-0.27,hledger
 
