@@ -20,7 +20,7 @@ import Text.CSV
 import Text.Tabular as T
 
 import Hledger
-import Hledger.Cli.Balance
+import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (writeOutput)
 

@@ -31,7 +31,7 @@ import System.Console.ANSI
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
-import Hledger.Cli.Add (add)
+import Hledger.Cli.Commands.Add (add)
 import Hledger.UI.UIOptions
 -- import Hledger.UI.Theme
 import Hledger.UI.UITypes

@@ -234,7 +234,7 @@ Currently, empty cells show 0.
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Hledger.Cli.Balance (
+module Hledger.Cli.Commands.Balance (
   balancemode
  ,balance
  ,balanceReportAsText
@@ -243,7 +243,7 @@ module Hledger.Cli.Balance (
  ,multiBalanceReportAsCsv
  ,renderBalanceReportTable
  ,balanceReportAsTable
- ,tests_Hledger_Cli_Balance
+ ,tests_Hledger_Cli_Commands_Balance
 ) where
 
 import Data.List (intercalate)
@@ -548,5 +548,5 @@ multiBalanceReportSpan (MultiBalanceReport ([], _, _))       = DateSpan Nothing 
 multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
 
 
-tests_Hledger_Cli_Balance = TestList
+tests_Hledger_Cli_Commands_Balance = TestList
   tests_balanceReportAsText

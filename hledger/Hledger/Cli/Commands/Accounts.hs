@@ -12,10 +12,10 @@ The @accounts@ command lists account names:
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Hledger.Cli.Accounts (
+module Hledger.Cli.Commands.Accounts (
   accountsmode
  ,accounts
- ,tests_Hledger_Cli_Accounts
+ ,tests_Hledger_Cli_Commands_Accounts
 ) where
 
 import Data.List
@@ -64,4 +64,4 @@ accounts CliOpts{reportopts_=ropts} j = do
                | otherwise   = maybeAccountNameDrop ropts a
   mapM_ (putStrLn . T.unpack . render) as'
 
-tests_Hledger_Cli_Accounts = TestList []
+tests_Hledger_Cli_Commands_Accounts = TestList []

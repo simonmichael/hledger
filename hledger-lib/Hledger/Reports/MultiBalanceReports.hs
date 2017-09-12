@@ -54,7 +54,7 @@ import Hledger.Reports.BalanceReport
 --
 -- The meaning of the amounts depends on the type of multi balance
 -- report, of which there are three: periodic, cumulative and historical
--- (see 'BalanceType' and "Hledger.Cli.Balance").
+-- (see 'BalanceType' and "Hledger.Cli.Commands.Balance").
 newtype MultiBalanceReport =
   MultiBalanceReport ([DateSpan]
                      ,[MultiBalanceReportRow]

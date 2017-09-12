@@ -9,10 +9,10 @@ import System.Environment (getArgs, withArgs)
 import System.TimeIt      (timeItT)
 import Text.Printf
 import Hledger.Cli
-import Hledger.Cli.Balance
-import Hledger.Cli.Print
-import Hledger.Cli.Register
-import Hledger.Cli.Stats
+import Hledger.Cli.Commands.Balance
+import Hledger.Cli.Commands.Print
+import Hledger.Cli.Commands.Register
+import Hledger.Cli.Commands.Stats
 
 -- sample journal file to use for benchmarks
 inputfile = "bench/10000x1000x10.journal"

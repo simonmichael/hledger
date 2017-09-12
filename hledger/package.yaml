@@ -100,23 +100,22 @@ library:
   - Hledger.Cli.Main
   - Hledger.Cli.CliOptions
   - Hledger.Cli.DocFiles
-  - Hledger.Cli.Tests
   - Hledger.Cli.Utils
   - Hledger.Cli.Version
-  - Hledger.Cli.Accounts
-  - Hledger.Cli.Activity
-  - Hledger.Cli.Add
-  - Hledger.Cli.Balance
-  - Hledger.Cli.Balancesheet
-  - Hledger.Cli.Balancesheetequity
   - Hledger.Cli.Commands
+  - Hledger.Cli.Commands.Accounts
+  - Hledger.Cli.Commands.Activity
+  - Hledger.Cli.Commands.Add
+  - Hledger.Cli.Commands.Balance
+  - Hledger.Cli.Commands.Balancesheet
+  - Hledger.Cli.Commands.Balancesheetequity
+  - Hledger.Cli.Commands.Cashflow
+  - Hledger.Cli.Commands.Help
+  - Hledger.Cli.Commands.Incomestatement
+  - Hledger.Cli.Commands.Print
+  - Hledger.Cli.Commands.Register
+  - Hledger.Cli.Commands.Stats
   - Hledger.Cli.CompoundBalanceCommand
-  - Hledger.Cli.Cashflow
-  - Hledger.Cli.Help
-  - Hledger.Cli.Incomestatement
-  - Hledger.Cli.Print
-  - Hledger.Cli.Register
-  - Hledger.Cli.Stats
   - Text.Tabular.AsciiWide
   dependencies:
   - bytestring

@@ -6,13 +6,13 @@ A ledger-compatible @register@ command.
 
 {-# LANGUAGE CPP, OverloadedStrings #-}
 
-module Hledger.Cli.Register (
+module Hledger.Cli.Commands.Register (
   registermode
  ,register
  ,postingsReportAsText
  ,postingsReportItemAsText
  -- ,showPostingWithBalanceForVty
- ,tests_Hledger_Cli_Register
+ ,tests_Hledger_Cli_Commands_Register
 ) where
 
 import Data.List
@@ -199,6 +199,6 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
       (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) "" ++ ballines -- balance amount is bottom-aligned
       spacer = replicate (totalwidth - (amtwidth + 2 + balwidth)) ' '
 
-tests_Hledger_Cli_Register :: Test
-tests_Hledger_Cli_Register = TestList
+tests_Hledger_Cli_Commands_Register :: Test
+tests_Hledger_Cli_Commands_Register = TestList
   tests_postingsReportAsText

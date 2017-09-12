@@ -22,7 +22,7 @@ import Text.Megaparsec.Compat (digitChar, eof, some, string, runParser, ParseErr
 import Hledger.Utils
 import Hledger.Data
 import Hledger.Read
-import Hledger.Cli.Add (appendToJournalFileOrStdout)
+import Hledger.Cli.Commands.Add (appendToJournalFileOrStdout)
 
 
 -- Part of the data required from the add form.

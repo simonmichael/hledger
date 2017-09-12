@@ -6,7 +6,7 @@ Print some statistics for the journal.
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Hledger.Cli.Stats (
+module Hledger.Cli.Commands.Stats (
   statsmode
  ,stats
 )

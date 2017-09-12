@@ -5,10 +5,10 @@ The @balancesheet@ command prints a simple balance sheet.
 
 -}
 
-module Hledger.Cli.Balancesheet (
+module Hledger.Cli.Commands.Balancesheet (
   balancesheetmode
  ,balancesheet
- ,tests_Hledger_Cli_Balancesheet
+ ,tests_Hledger_Cli_Commands_Balancesheet
 ) where
 
 import Data.String.Here
@@ -41,7 +41,7 @@ balancesheetmode = compoundBalanceCommandMode balancesheetSpec
 balancesheet :: CliOpts -> Journal -> IO ()
 balancesheet = compoundBalanceCommand balancesheetSpec
 
-tests_Hledger_Cli_Balancesheet :: Test
-tests_Hledger_Cli_Balancesheet = TestList
+tests_Hledger_Cli_Commands_Balancesheet :: Test
+tests_Hledger_Cli_Commands_Balancesheet = TestList
  [
  ]

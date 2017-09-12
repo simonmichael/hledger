@@ -8,7 +8,7 @@ The help command.
 
 {-# LANGUAGE QuasiQuotes #-}
 
-module Hledger.Cli.Help (
+module Hledger.Cli.Commands.Help (
 
    helpmode
   ,help'

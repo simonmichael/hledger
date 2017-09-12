@@ -6,12 +6,12 @@ A ledger-compatible @print@ command.
 
 {-# LANGUAGE OverloadedStrings #-}
 
-module Hledger.Cli.Print (
+module Hledger.Cli.Commands.Print (
   printmode
  ,print'
  -- ,entriesReportAsText
  ,originalTransaction
- ,tests_Hledger_Cli_Print
+ ,tests_Hledger_Cli_Commands_Print
 )
 where
 
@@ -24,7 +24,7 @@ import Text.CSV
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Hledger.Cli.Add ( transactionsSimilarTo )
+import Hledger.Cli.Commands.Add ( transactionsSimilarTo )
 
 
 printmode = (defCommandMode $ ["print"] ++ aliases) {
@@ -176,5 +176,5 @@ printMatch CliOpts{reportopts_=ropts} j desc = do
 
 -- tests
 
-tests_Hledger_Cli_Print = TestList []
+tests_Hledger_Cli_Commands_Print = TestList []
   -- tests_showTransactions

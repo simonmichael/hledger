@@ -5,10 +5,11 @@ A history-aware add command to help with data entry.
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
 {-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings #-}
 
-module Hledger.Cli.Add (
+module Hledger.Cli.Commands.Add (
    addmode
   ,add
   ,appendToJournalFileOrStdout
+  ,journalAddTransaction
   ,transactionsSimilarTo
 )
 where
@@ -41,7 +42,7 @@ import Text.Printf
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Register (postingsReportAsText)
+import Hledger.Cli.Commands.Register (postingsReportAsText)
 
 
 addmode = (defCommandMode ["add"]) {

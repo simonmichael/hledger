@@ -5,7 +5,7 @@ The @balancesheetequity@ command prints a simple balance sheet.
 
 -}
 
-module Hledger.Cli.Balancesheetequity (
+module Hledger.Cli.Commands.Balancesheetequity (
   balancesheetequitymode
  ,balancesheetequity
 ) where

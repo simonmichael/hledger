@@ -10,7 +10,7 @@ module Hledger.Data.StringFormat (
         , StringFormat(..)
         , StringFormatComponent(..)
         , ReportItemField(..)
-        , tests
+        , tests_Hledger_Data_StringFormat
         ) where
 
 import Prelude ()
@@ -147,7 +147,7 @@ testParser s expected = case (parseStringFormat s) of
     Left  error -> assertFailure $ show error
     Right actual -> assertEqual ("Input: " ++ s) expected actual
 
-tests = test [ formattingTests ++ parserTests ]
+tests_Hledger_Data_StringFormat = test [ formattingTests ++ parserTests ]
 
 formattingTests = [
       testFormat (FormatLiteral " ")                                ""            " "

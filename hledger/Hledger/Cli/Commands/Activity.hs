@@ -4,7 +4,7 @@ Print a bar chart of posting activity per day, or other report interval.
 
 -}
 
-module Hledger.Cli.Activity
+module Hledger.Cli.Commands.Activity
 where
 
 import Data.List
