@@ -53,7 +53,6 @@ import Text.Printf
 
 import Hledger (ensureJournalFileExists, getCurrentDay, period_, interval_, queryFromOpts)
 import Hledger.Cli
-import Hledger.Utils
 
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
