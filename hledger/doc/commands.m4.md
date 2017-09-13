@@ -680,6 +680,11 @@ The register command also supports the
 `-o/--output-file` and `-O/--output-format` options for controlling
 [output destination](#output-destination) and [CSV output](#csv-output).
 
+## register-match
+Print the one posting whose transaction description is closest to DESC, 
+in the style of the register command.
+Helps ledger-autosync detect already-seen transactions when importing.
+
 ## stats
 Show some journal statistics.
 

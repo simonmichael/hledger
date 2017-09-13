@@ -89,11 +89,6 @@ is an old pie chart generator, in need of some love.
 [hledger-check.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check.hs)
 checks more powerful account balance assertions.
 
-### register-match
-
-[hledger-register-match.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-register-match.hs#L23)
-helps ledger-autosync detect already-seen transactions when importing.
-
 ### rewrite
 
 [hledger-rewrite.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-rewrite.hs#L28)
