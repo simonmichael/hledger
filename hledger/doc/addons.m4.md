@@ -89,11 +89,6 @@ is an old pie chart generator, in need of some love.
 [hledger-check.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check.hs)
 checks more powerful account balance assertions.
 
-### prices
-
-[hledger-prices.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-prices.hs)
-prints all prices from the journal.
-
 ### print-unique
 
 [hledger-print-unique.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-print-unique.hs#L15)

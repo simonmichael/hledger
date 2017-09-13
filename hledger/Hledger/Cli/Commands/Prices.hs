@@ -1,23 +1,21 @@
-#!/usr/bin/env stack
-{- stack runghc --verbosity info
-   --package hledger
-   --package here
-   --package text
-   --package time
--}
-
-{-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# LANGUAGE QuasiQuotes #-}
+
+module Hledger.Cli.Commands.Prices (
+  pricesmode
+ ,prices
+) 
+where
 
 import Data.Maybe
 import Data.List
 import Data.String.Here
-import Data.Time
 import qualified Data.Text as T
-import Hledger.Cli
+import Data.Time
+import Hledger
+import Hledger.Cli.CliOptions
+import System.Console.CmdArgs.Explicit
 
-------------------------------------------------------------------------------
-cmdmode = hledgerCommandMode
+pricesmode = hledgerCommandMode
   [here| prices
 Print all market prices from the journal.
   |]
@@ -26,7 +24,21 @@ Print all market prices from the journal.
   [generalflagsgroup1]
   []
   ([], Nothing)
-------------------------------------------------------------------------------
+
+prices opts j = do
+  -- XXX the original hledger-prices script always ignored assertions 
+  let cprices = concatMap postingCosts . allPostings $ j
+      icprices = concatMap postingCosts . mapAmount invertPrice . allPostings $ j
+      printPrices = mapM_ (putStrLn . showPrice)
+      forBoolOpt opt | boolopt opt $ rawopts_ opts = id
+                     | otherwise = const []
+      allPrices = sortOn mpdate . concat $
+          [ jmarketprices j
+          , forBoolOpt "costs" cprices
+          , forBoolOpt "inverted-costs" icprices
+          ]
+  
+  printPrices allPrices
 
 showPrice :: MarketPrice -> String
 showPrice mp = unwords ["P", show $ mpdate mp, T.unpack . quoteCommoditySymbolIfNeeded $ mpcommodity mp, showAmountWithZeroCommodity $ mpamount mp]
@@ -70,20 +82,3 @@ mapAmount :: (Amount -> Amount) -> [Posting] -> [Posting]
 mapAmount f = map pf where
     pf p = p { pamount = mf (pamount p) }
     mf = mixed . map f . amounts
-
-main :: IO ()
-main = do
-    opts <- getHledgerCliOpts cmdmode
-    withJournalDo opts{ ignore_assertions_ = True } $ \_ j -> do
-        let cprices = concatMap postingCosts . allPostings $ j
-            icprices = concatMap postingCosts . mapAmount invertPrice . allPostings $ j
-            printPrices = mapM_ (putStrLn . showPrice)
-            forBoolOpt opt | boolopt opt $ rawopts_ opts = id
-                           | otherwise = const []
-            allPrices = sortOn mpdate . concat $
-                [ jmarketprices j
-                , forBoolOpt "costs" cprices
-                , forBoolOpt "inverted-costs" icprices
-                ]
-
-        printPrices allPrices
