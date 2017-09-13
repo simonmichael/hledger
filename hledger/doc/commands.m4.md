@@ -685,6 +685,9 @@ Print the one posting whose transaction description is closest to DESC,
 in the style of the register command.
 Helps ledger-autosync detect already-seen transactions when importing.
 
+## rewrite
+Print all transactions, adding custom postings to the matched ones.
+
 ## stats
 Show some journal statistics.
 

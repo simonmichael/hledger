@@ -28,6 +28,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Printunique
   ,module Hledger.Cli.Commands.Register
   ,module Hledger.Cli.Commands.Registermatch
+  ,module Hledger.Cli.Commands.Rewrite
   ,module Hledger.Cli.Commands.Stats
 ) 
 where
@@ -63,6 +64,7 @@ import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Printunique
 import Hledger.Cli.Commands.Register
 import Hledger.Cli.Commands.Registermatch
+import Hledger.Cli.Commands.Rewrite
 import Hledger.Cli.Commands.Stats
 
 

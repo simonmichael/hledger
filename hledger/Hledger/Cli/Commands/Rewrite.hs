@@ -1,33 +1,26 @@
-#!/usr/bin/env stack
-{- stack runghc --verbosity info
-  --package hledger-lib
-  --package hledger
-  --package here
-  --package megaparsec
-  --package text
-  --package Diff
--}
-
-{-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
 {-# LANGUAGE OverloadedStrings, LambdaCase, DeriveTraversable, ViewPatterns, QuasiQuotes #-}
+
+module Hledger.Cli.Commands.Rewrite (
+  rewritemode
+ ,rewrite
+) 
+where
 
 import Control.Monad.Writer
 import Data.List (sortOn, foldl')
 import Data.String.Here
 import qualified Data.Text as T
--- hledger lib, cli and cmdargs utils
-import Hledger.Cli hiding (outputflags)
--- more utils for parsing
--- #if !MIN_VERSION_base(4,8,0)
--- import Control.Applicative.Compat ((<*))
--- #endif
+import Hledger
+import Hledger.Data.AutoTransaction (runModifierTransaction)
+import Hledger.Cli.CliOptions
+import Hledger.Cli.Commands.Print
+--import Hledger.Cli hiding (outputflags)
+import System.Console.CmdArgs.Explicit
 import Text.Printf
 import Text.Megaparsec
 import qualified Data.Algorithm.Diff as D
-import Hledger.Data.AutoTransaction (runModifierTransaction)
 
-------------------------------------------------------------------------------
-cmdmode = hledgerCommandMode
+rewritemode = hledgerCommandMode
   [here| rewrite
 Print all transactions, adding custom postings to the matched ones.
 
@@ -166,22 +159,19 @@ https://github.com/simonmichael/hledger/issues/99
 -- TODO interpolating match groups in replacement
 -- TODO allow using this on unbalanced entries, eg to rewrite while editing
 
-main :: IO ()
-main = do
-  opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} <- getHledgerCliOpts cmdmode
+rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = do 
   d <- getCurrentDay
   let q = queryFromOpts d ropts
   modifier <- modifierTransactionFromOpts rawopts
-  withJournalDo opts $ \opts' j@Journal{jtxns=ts} -> do
-    -- create re-writer
-    let modifiers = modifier : jmodifiertxns j
-        -- Note that some query matches require transaction. Thus modifiers
-        -- pipeline should include txnTieKnot on every step.
-        modifier' = foldr (flip (.) . fmap txnTieKnot . runModifierTransaction q) id modifiers
-    -- rewrite matched transactions
-    let j' = j{jtxns=map modifier' ts}
-    -- run the print command, showing all transactions
-    outputFromOpts rawopts opts'{reportopts_=ropts{query_=""}} j j'
+  -- create re-writer
+  let modifiers = modifier : jmodifiertxns j
+      -- Note that some query matches require transaction. Thus modifiers
+      -- pipeline should include txnTieKnot on every step.
+      modifier' = foldr (flip (.) . fmap txnTieKnot . runModifierTransaction q) id modifiers
+  -- rewrite matched transactions
+  let j' = j{jtxns=map modifier' ts}
+  -- run the print command, showing all transactions
+  outputFromOpts rawopts opts{reportopts_=ropts{query_=""}} j j'
 
 postingp' :: T.Text -> IO Posting
 postingp' t = runErroringJournalParser (postingp Nothing <* eof) t' >>= \case
