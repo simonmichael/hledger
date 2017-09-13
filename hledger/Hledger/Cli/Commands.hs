@@ -18,6 +18,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Balancesheet
   ,module Hledger.Cli.Commands.Balancesheetequity
   ,module Hledger.Cli.Commands.Cashflow
+  ,module Hledger.Cli.Commands.Checkdates
   ,module Hledger.Cli.Commands.Help
   ,module Hledger.Cli.Commands.Incomestatement
   ,module Hledger.Cli.Commands.Print
@@ -47,6 +48,7 @@ import Hledger.Cli.Commands.Balance
 import Hledger.Cli.Commands.Balancesheet
 import Hledger.Cli.Commands.Balancesheetequity
 import Hledger.Cli.Commands.Cashflow
+import Hledger.Cli.Commands.Checkdates
 import Hledger.Cli.Commands.Help
 import Hledger.Cli.Commands.Incomestatement
 import Hledger.Cli.Commands.Print
@@ -65,6 +67,7 @@ builtinCommands = [
   ,(balancesheetmode       , balancesheet) 
   ,(balancesheetequitymode , balancesheetequity) 
   ,(cashflowmode           , cashflow) 
+  ,(checkdatesmode         , checkdates) 
   ,(helpmode               , help') 
   ,(incomestatementmode    , incomestatement) 
   ,(printmode              , print') 

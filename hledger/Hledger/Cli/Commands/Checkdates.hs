@@ -5,16 +5,23 @@
    --package here
 -}
 
-{-# OPTIONS_GHC -Wno-missing-signatures -Wno-name-shadowing #-}
 {-# LANGUAGE QuasiQuotes #-}
+
+module Hledger.Cli.Commands.Checkdates (
+  checkdatesmode
+ ,checkdates
+ ,tests_Hledger_Cli_Commands_Checkdates
+) where
 
 import Data.String.Here
 import Hledger
-import Hledger.Cli
+import Hledger.Cli.CliOptions
+import System.Console.CmdArgs.Explicit
+import Test.HUnit
 import Text.Printf
 
-------------------------------------------------------------------------------
-cmdmode = hledgerCommandMode
+-- checkdatesmode :: Mode RawOpts
+checkdatesmode = hledgerCommandMode
   [here| check-dates
 Check that transactions' dates are monotonically increasing.
 With --date2, checks secondary dates instead.
@@ -27,38 +34,34 @@ FLAGS
   [generalflagsgroup1]
   []
   ([], Just $ argsFlag "[QUERY]")
-------------------------------------------------------------------------------
 
-main :: IO ()
-main = do
-  opts <- getHledgerCliOpts cmdmode
-  withJournalDo opts $
-   \CliOpts{rawopts_=rawopts,reportopts_=ropts} j -> do
-    d <- getCurrentDay
-    let ropts_ = ropts{accountlistmode_=ALFlat}
-    let q = queryFromOpts d ropts_
-    let ts = filter (q `matchesTransaction`) $
-             jtxns $ journalSelectingAmountFromOpts ropts j
-    let strict = boolopt "strict" rawopts
-    let date = transactionDateFn ropts
-    let compare a b =
-          if strict
-          then date a <  date b
-          else date a <= date b
-    case checkTransactions compare ts of
-     FoldAcc{fa_previous=Nothing} -> putStrLn "ok (empty journal)"
-     FoldAcc{fa_error=Nothing}    -> putStrLn "ok"
-     FoldAcc{fa_error=Just error, fa_previous=Just previous} ->
-      putStrLn $ printf ("ERROR: transaction out of%s date order"
-       ++ "\nPrevious date: %s"
-       ++ "\nDate: %s"
-       ++ "\nLocation: %s"
-       ++ "\nTransaction:\n\n%s")
-       (if strict then " STRICT" else "")
-       (show $ date previous)
-       (show $ date error)
-       (show $ tsourcepos error)
-       (showTransactionUnelided error)
+checkdates :: CliOpts -> Journal -> IO ()
+checkdates CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
+  d <- getCurrentDay
+  let ropts_ = ropts{accountlistmode_=ALFlat}
+  let q = queryFromOpts d ropts_
+  let ts = filter (q `matchesTransaction`) $
+           jtxns $ journalSelectingAmountFromOpts ropts j
+  let strict = boolopt "strict" rawopts
+  let date = transactionDateFn ropts
+  let compare a b =
+        if strict
+        then date a <  date b
+        else date a <= date b
+  case checkTransactions compare ts of
+   FoldAcc{fa_previous=Nothing} -> putStrLn "ok (empty journal)"
+   FoldAcc{fa_error=Nothing}    -> putStrLn "ok"
+   FoldAcc{fa_error=Just error, fa_previous=Just previous} ->
+    putStrLn $ printf ("ERROR: transaction out of%s date order"
+     ++ "\nPrevious date: %s"
+     ++ "\nDate: %s"
+     ++ "\nLocation: %s"
+     ++ "\nTransaction:\n\n%s")
+     (if strict then " STRICT" else "")
+     (show $ date previous)
+     (show $ date error)
+     (show $ tsourcepos error)
+     (showTransactionUnelided error)
 
 data FoldAcc a b = FoldAcc
  { fa_error    :: Maybe a
@@ -83,3 +86,7 @@ checkTransactions compare ts =
       then acc{fa_previous=Just current}
       else acc{fa_error=Just current}
 
+tests_Hledger_Cli_Commands_Checkdates :: Test
+tests_Hledger_Cli_Commands_Checkdates = TestList
+ [
+ ]
