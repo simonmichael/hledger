@@ -547,6 +547,8 @@ $ hledger print -Ocsv
   (Those names are not accurate in the accounting sense; it just puts negative amounts under
   credit and zero or greater amounts under debit.)
 
+## print-unique
+Print transactions which do not reuse an already-seen description.
 
 ## register
 Show postings and their running total. Alias: reg.

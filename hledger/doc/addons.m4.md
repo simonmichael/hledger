@@ -89,11 +89,6 @@ is an old pie chart generator, in need of some love.
 [hledger-check.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check.hs)
 checks more powerful account balance assertions.
 
-### print-unique
-
-[hledger-print-unique.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-print-unique.hs#L15)
-prints transactions which do not reuse an already-seen description.
-
 ### register-match
 
 [hledger-register-match.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-register-match.hs#L23)

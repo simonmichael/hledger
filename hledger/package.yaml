@@ -117,6 +117,7 @@ library:
   - Hledger.Cli.Commands.Incomestatement
   - Hledger.Cli.Commands.Prices
   - Hledger.Cli.Commands.Print
+  - Hledger.Cli.Commands.Printunique
   - Hledger.Cli.Commands.Register
   - Hledger.Cli.Commands.Stats
   - Hledger.Cli.CompoundBalanceCommand
