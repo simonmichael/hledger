@@ -346,8 +346,12 @@ Check that transactions are sorted by increasing date.
 With a query, only matched transactions' dates are checked.
 
 ## check-dupes
-Reports account names having the same leaf but different prefixes. 
+Report account names having the same leaf but different prefixes. 
 An example: http://stefanorodighiero.net/software/hledger-dupes.html
+
+## equity
+Print closing/opening transactions that bring some or all account balances to zero and back. 
+Can be useful for bringing account balances across file boundaries. 
 
 ## help
 Show any of the hledger manuals.
