@@ -89,11 +89,6 @@ is an old pie chart generator, in need of some love.
 [hledger-check.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check.hs)
 checks more powerful account balance assertions.
 
-### check-dupes
-
-[hledger-check-dupes.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-dupes.hs#L21)
-checks for account names sharing the same leaf name.
-
 ### equity
 
 [hledger-equity.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-equity.hs#L17)

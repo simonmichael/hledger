@@ -111,6 +111,7 @@ library:
   - Hledger.Cli.Commands.Balancesheetequity
   - Hledger.Cli.Commands.Cashflow
   - Hledger.Cli.Commands.Checkdates
+  - Hledger.Cli.Commands.Checkdupes
   - Hledger.Cli.Commands.Help
   - Hledger.Cli.Commands.Incomestatement
   - Hledger.Cli.Commands.Print

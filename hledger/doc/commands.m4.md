@@ -345,6 +345,10 @@ you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 Check that transactions are sorted by increasing date.
 With a query, only matched transactions' dates are checked.
 
+## check-dupes
+Reports account names having the same leaf but different prefixes. 
+An example: http://stefanorodighiero.net/software/hledger-dupes.html
+
 ## help
 Show any of the hledger manuals.
 
