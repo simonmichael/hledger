@@ -30,6 +30,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Registermatch
   ,module Hledger.Cli.Commands.Rewrite
   ,module Hledger.Cli.Commands.Stats
+  ,module Hledger.Cli.Commands.Tags
 ) 
 where
 
@@ -66,6 +67,7 @@ import Hledger.Cli.Commands.Register
 import Hledger.Cli.Commands.Registermatch
 import Hledger.Cli.Commands.Rewrite
 import Hledger.Cli.Commands.Stats
+import Hledger.Cli.Commands.Tags
 
 
 -- | The cmdargs subcommand mode and IO action for each builtin command.

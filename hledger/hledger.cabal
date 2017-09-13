@@ -97,6 +97,7 @@ library
     , cmdargs >=0.10 && <0.11
     , csv
     , data-default >=0.5
+    , Diff
     , hashable >=1.2.4
     , haskeline >=0.6 && <=0.8
     , HUnit
@@ -139,7 +140,9 @@ library
       Hledger.Cli.Commands.Printunique
       Hledger.Cli.Commands.Register
       Hledger.Cli.Commands.Registermatch
+      Hledger.Cli.Commands.Rewrite
       Hledger.Cli.Commands.Stats
+      Hledger.Cli.Commands.Tags
       Hledger.Cli.CompoundBalanceCommand
       Text.Tabular.AsciiWide
   other-modules:

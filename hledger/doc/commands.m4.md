@@ -715,6 +715,9 @@ it shows a report for each report period.
 The stats command also supports `-o/--output-file`
 for controlling [output destination](#output-destination).
 
+## tags
+List all the tag names in use.
+
 ## test
 Run built-in unit tests.
 
