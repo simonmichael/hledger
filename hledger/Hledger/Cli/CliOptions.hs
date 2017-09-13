@@ -62,8 +62,12 @@ module Hledger.Cli.CliOptions (
   topicForMode,
 
   -- * Tests
-  tests_Hledger_Cli_CliOptions
+  tests_Hledger_Cli_CliOptions,
 
+--  -- * Convenience re-exports
+--  module Data.String.Here,
+--  module System.Console.CmdArgs.Explicit,
+--  module Test.HUnit
 )
 where
 
@@ -80,6 +84,7 @@ import Data.List.Compat
 import Data.List.Split (splitOneOf)
 import Data.Ord
 import Data.Maybe
+--import Data.String.Here
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Safe
@@ -246,11 +251,10 @@ parseHelpTemplate t =
         preamble = unlines $ reverse $ dropWhile null $ reverse preamblels
         postamblelines = dropWhile null $ drop 1 postamblels
 
--- | Build a cmdarg mode suitable for a hledger add-on command,
+-- | Build a cmdarg mode for a hledger command,
 -- from a help template and flag/argument specifications.
 -- Reduces boilerplate a little, though the complicated cmdargs
 -- flag and argument specs are still required.
--- See the addons in bin/ for examples of usage.
 hledgerCommandMode :: HelpTemplate -> [Flag RawOpts] -> [(Help, [Flag RawOpts])] 
   -> [Flag RawOpts] -> ([Arg RawOpts], Maybe (Arg RawOpts)) -> Mode RawOpts
 hledgerCommandMode tmpl ungroupedflags groupedflags hiddenflags args =
