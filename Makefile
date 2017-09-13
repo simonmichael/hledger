@@ -129,6 +129,7 @@ SOURCEFILES:= \
 	hledger/bench/*hs \
 	hledger/Hledger/*hs \
 	hledger/Hledger/*/*hs \
+	hledger/Hledger/*/*/*hs \
 	hledger-*/*hs \
 	hledger-*/Hledger/*hs \
 	hledger-*/Hledger/*/*hs \
