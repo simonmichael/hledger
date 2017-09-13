@@ -783,6 +783,10 @@ be listed as subcommands.
 incomestatement').  You can also write any unambiguous prefix of a
 command name ('hledger inc'), or one of the standard short aliases
 displayed in the command list ('hledger is').
+
+   Here are all the builtin commands in alphabetical order.  See also
+'hledger' for a more organised command list, and 'hledger CMD -h' for
+detailed command help.
 * Menu:
 
 * accounts::
@@ -792,6 +796,7 @@ displayed in the command list ('hledger is').
 * balancesheet::
 * balancesheetequity::
 * cashflow::
+* check-dates::
 * help::
 * incomestatement::
 * print::
@@ -1410,7 +1415,7 @@ Total:
                    0
 
 
-File: hledger.1.info,  Node: cashflow,  Next: help,  Prev: balancesheetequity,  Up: COMMANDS
+File: hledger.1.info,  Node: cashflow,  Next: check-dates,  Prev: balancesheetequity,  Up: COMMANDS
 
 4.7 cashflow
 ============
@@ -1480,9 +1485,18 @@ period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.
 
 
-File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: cashflow,  Up: COMMANDS
+File: hledger.1.info,  Node: check-dates,  Next: help,  Prev: cashflow,  Up: COMMANDS
 
-4.8 help
+4.8 check-dates
+===============
+
+Check that transactions are sorted by increasing date.  With a query,
+only matched transactions' dates are checked.
+
+
+File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: check-dates,  Up: COMMANDS
+
+4.9 help
 ========
 
 Show any of the hledger manuals.
@@ -1519,8 +1533,8 @@ DESCRIPTION
 
 File: hledger.1.info,  Node: incomestatement,  Next: print,  Prev: help,  Up: COMMANDS
 
-4.9 incomestatement
-===================
+4.10 incomestatement
+====================
 
 Show an income statement.  Alias: is.
 
@@ -1595,7 +1609,7 @@ report mode with '--change'/'--cumulative'/'--historical'.
 
 File: hledger.1.info,  Node: print,  Next: register,  Prev: incomestatement,  Up: COMMANDS
 
-4.10 print
+4.11 print
 ==========
 
 Show transactions from the journal.
@@ -1689,7 +1703,7 @@ $ hledger print -Ocsv
 
 File: hledger.1.info,  Node: register,  Next: stats,  Prev: print,  Up: COMMANDS
 
-4.11 register
+4.12 register
 =============
 
 Show postings and their running total.  Alias: reg.
@@ -1794,7 +1808,7 @@ length and comparable to the others in the report.
 
 File: hledger.1.info,  Node: Custom register output,  Up: register
 
-4.11.1 Custom register output
+4.12.1 Custom register output
 -----------------------------
 
 register uses the full terminal width by default, except on windows.
@@ -1826,7 +1840,7 @@ output.
 
 File: hledger.1.info,  Node: stats,  Next: test,  Prev: register,  Up: COMMANDS
 
-4.12 stats
+4.13 stats
 ==========
 
 Show some journal statistics.
@@ -1858,7 +1872,7 @@ output destination.
 
 File: hledger.1.info,  Node: test,  Prev: stats,  Up: COMMANDS
 
-4.13 test
+4.14 test
 =========
 
 Run built-in unit tests.
@@ -2013,7 +2027,6 @@ start making your own!
 * budget::
 * chart::
 * check::
-* check-dates::
 * check-dupes::
 * equity::
 * prices::
@@ -2050,7 +2063,7 @@ File: hledger.1.info,  Node: chart,  Next: check,  Prev: budget,  Up: Experiment
 hledger-chart.hs is an old pie chart generator, in need of some love.
 
 
-File: hledger.1.info,  Node: check,  Next: check-dates,  Prev: chart,  Up: Experimental add-ons
+File: hledger.1.info,  Node: check,  Next: check-dupes,  Prev: chart,  Up: Experimental add-ons
 
 5.3.4 check
 -----------
@@ -2058,17 +2071,9 @@ File: hledger.1.info,  Node: check,  Next: check-dates,  Prev: chart,  Up: Exper
 hledger-check.hs checks more powerful account balance assertions.
 
 
-File: hledger.1.info,  Node: check-dates,  Next: check-dupes,  Prev: check,  Up: Experimental add-ons
+File: hledger.1.info,  Node: check-dupes,  Next: equity,  Prev: check,  Up: Experimental add-ons
 
-5.3.5 check-dates
------------------
-
-hledger-check-dates.hs checks that journal entries are ordered by date.
-
-
-File: hledger.1.info,  Node: check-dupes,  Next: equity,  Prev: check-dates,  Up: Experimental add-ons
-
-5.3.6 check-dupes
+5.3.5 check-dupes
 -----------------
 
 hledger-check-dupes.hs checks for account names sharing the same leaf
@@ -2077,7 +2082,7 @@ name.
 
 File: hledger.1.info,  Node: equity,  Next: prices,  Prev: check-dupes,  Up: Experimental add-ons
 
-5.3.7 equity
+5.3.6 equity
 ------------
 
 hledger-equity.hs prints balance-resetting transactions, useful for
@@ -2086,7 +2091,7 @@ bringing account balances across file boundaries.
 
 File: hledger.1.info,  Node: prices,  Next: print-unique,  Prev: equity,  Up: Experimental add-ons
 
-5.3.8 prices
+5.3.7 prices
 ------------
 
 hledger-prices.hs prints all prices from the journal.
@@ -2094,7 +2099,7 @@ hledger-prices.hs prints all prices from the journal.
 
 File: hledger.1.info,  Node: print-unique,  Next: register-match,  Prev: prices,  Up: Experimental add-ons
 
-5.3.9 print-unique
+5.3.8 print-unique
 ------------------
 
 hledger-print-unique.hs prints transactions which do not reuse an
@@ -2103,8 +2108,8 @@ already-seen description.
 
 File: hledger.1.info,  Node: register-match,  Next: rewrite,  Prev: print-unique,  Up: Experimental add-ons
 
-5.3.10 register-match
----------------------
+5.3.9 register-match
+--------------------
 
 hledger-register-match.hs helps ledger-autosync detect already-seen
 transactions when importing.
@@ -2112,7 +2117,7 @@ transactions when importing.
 
 File: hledger.1.info,  Node: rewrite,  Next: tags,  Prev: register-match,  Up: Experimental add-ons
 
-5.3.11 rewrite
+5.3.10 rewrite
 --------------
 
 hledger-rewrite.hs Adds one or more custom postings to matched
@@ -2121,7 +2126,7 @@ transactions.
 
 File: hledger.1.info,  Node: tags,  Prev: rewrite,  Up: Experimental add-ons
 
-5.3.12 tags
+5.3.11 tags
 -----------
 
 hledger-tags.hs Lists tag names in use.
@@ -2165,93 +2170,93 @@ Node: QUERIES21498
 Ref: #queries21602
 Node: COMMANDS25569
 Ref: #commands25683
-Node: accounts26362
-Ref: #accounts26462
-Node: activity27444
-Ref: #activity27556
-Node: add27915
-Ref: #add28016
-Node: balance30674
-Ref: #balance30787
-Node: Flat mode33802
-Ref: #flat-mode33929
-Node: Depth limited balance reports34349
-Ref: #depth-limited-balance-reports34552
-Node: Multicolumn balance reports34972
-Ref: #multicolumn-balance-reports35183
-Node: Custom balance output39831
-Ref: #custom-balance-output40015
-Node: Colour support42108
-Ref: #colour-support42269
-Node: Output destination42442
-Ref: #output-destination42600
-Node: CSV output42870
-Ref: #csv-output42989
-Node: balancesheet43386
-Ref: #balancesheet43524
-Node: balancesheetequity45431
-Ref: #balancesheetequity45582
-Node: cashflow46371
-Ref: #cashflow46494
-Node: help48345
-Ref: #help48457
-Node: incomestatement49531
-Ref: #incomestatement49662
-Node: print51554
-Ref: #print51671
-Node: register55427
-Ref: #register55540
-Node: Custom register output60036
-Ref: #custom-register-output60167
-Node: stats61464
-Ref: #stats61570
-Node: test62451
-Ref: #test62538
-Node: ADD-ON COMMANDS62906
-Ref: #add-on-commands63018
-Node: Official add-ons64305
-Ref: #official-add-ons64447
-Node: api64534
-Ref: #api64625
-Node: ui64677
-Ref: #ui64778
-Node: web64836
-Ref: #web64927
-Node: Third party add-ons64973
-Ref: #third-party-add-ons65150
-Node: diff65285
-Ref: #diff65384
-Node: iadd65483
-Ref: #iadd65599
-Node: interest65682
-Ref: #interest65805
-Node: irr65900
-Ref: #irr66000
-Node: Experimental add-ons66078
-Ref: #experimental-add-ons66232
-Node: autosync66634
-Ref: #autosync66748
-Node: budget66987
-Ref: #budget67111
-Node: chart67177
-Ref: #chart67296
-Node: check67367
-Ref: #check67491
-Node: check-dates67558
-Ref: #check-dates67700
-Node: check-dupes67773
-Ref: #check-dupes67916
-Node: equity67993
-Ref: #equity68121
-Node: prices68240
-Ref: #prices68369
-Node: print-unique68424
-Ref: #print-unique68573
-Node: register-match68666
-Ref: #register-match68822
-Node: rewrite68920
-Ref: #rewrite69054
-Node: tags69132
-Ref: #tags69237
+Node: accounts26542
+Ref: #accounts26642
+Node: activity27624
+Ref: #activity27736
+Node: add28095
+Ref: #add28196
+Node: balance30854
+Ref: #balance30967
+Node: Flat mode33982
+Ref: #flat-mode34109
+Node: Depth limited balance reports34529
+Ref: #depth-limited-balance-reports34732
+Node: Multicolumn balance reports35152
+Ref: #multicolumn-balance-reports35363
+Node: Custom balance output40011
+Ref: #custom-balance-output40195
+Node: Colour support42288
+Ref: #colour-support42449
+Node: Output destination42622
+Ref: #output-destination42780
+Node: CSV output43050
+Ref: #csv-output43169
+Node: balancesheet43566
+Ref: #balancesheet43704
+Node: balancesheetequity45611
+Ref: #balancesheetequity45762
+Node: cashflow46551
+Ref: #cashflow46681
+Node: check-dates48532
+Ref: #check-dates48654
+Node: help48771
+Ref: #help48886
+Node: incomestatement49960
+Ref: #incomestatement50093
+Node: print51985
+Ref: #print52102
+Node: register55858
+Ref: #register55971
+Node: Custom register output60467
+Ref: #custom-register-output60598
+Node: stats61895
+Ref: #stats62001
+Node: test62882
+Ref: #test62969
+Node: ADD-ON COMMANDS63337
+Ref: #add-on-commands63449
+Node: Official add-ons64736
+Ref: #official-add-ons64878
+Node: api64965
+Ref: #api65056
+Node: ui65108
+Ref: #ui65209
+Node: web65267
+Ref: #web65358
+Node: Third party add-ons65404
+Ref: #third-party-add-ons65581
+Node: diff65716
+Ref: #diff65815
+Node: iadd65914
+Ref: #iadd66030
+Node: interest66113
+Ref: #interest66236
+Node: irr66331
+Ref: #irr66431
+Node: Experimental add-ons66509
+Ref: #experimental-add-ons66663
+Node: autosync67049
+Ref: #autosync67163
+Node: budget67402
+Ref: #budget67526
+Node: chart67592
+Ref: #chart67711
+Node: check67782
+Ref: #check67906
+Node: check-dupes67973
+Ref: #check-dupes68110
+Node: equity68187
+Ref: #equity68315
+Node: prices68434
+Ref: #prices68563
+Node: print-unique68618
+Ref: #print-unique68767
+Node: register-match68860
+Ref: #register-match69014
+Node: rewrite69112
+Ref: #rewrite69246
+Node: tags69324
+Ref: #tags69429
 
 End Tag Table

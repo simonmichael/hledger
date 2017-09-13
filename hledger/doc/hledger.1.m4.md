@@ -2,7 +2,7 @@
 % _author_
 % _monthyear_
 
-m4_dnl This man page is currently broken into smaller files as follows:
+m4_dnl This man page is composed from multiple files as follows:
 m4_dnl
 m4_dnl hledger.1.m4.md
 m4_dnl  examples.m4.md

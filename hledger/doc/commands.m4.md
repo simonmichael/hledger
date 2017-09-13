@@ -12,6 +12,10 @@ incomestatement`). You can also write any unambiguous prefix of a
 command name (`hledger inc`), or one of the standard short aliases
 displayed in the command list (`hledger is`).
 
+Here are all the builtin commands in alphabetical order.
+See also `hledger` for a more organised command list,
+and `hledger CMD -h` for detailed command help.  
+
 <!--
 ---
 comment:
@@ -336,6 +340,10 @@ will be shown, one for each report period.
 Normally cashflow shows changes in assets per period, though
 as with [multicolumn balance reports](#multicolumn-balance-reports)
 you can alter the report mode with `--change`/`--cumulative`/`--historical`.
+
+## check-dates
+Check that transactions are sorted by increasing date.
+With a query, only matched transactions' dates are checked.
 
 ## help
 Show any of the hledger manuals.

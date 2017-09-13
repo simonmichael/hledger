@@ -23,7 +23,7 @@ import Text.Printf
 -- checkdatesmode :: Mode RawOpts
 checkdatesmode = hledgerCommandMode
   [here| check-dates
-Check that transactions' dates are monotonically increasing.
+Check that transactions are sorted by increasing date.
 With --date2, checks secondary dates instead.
 With --strict, dates must also be unique.
 With a query, only matched transactions' dates are checked.

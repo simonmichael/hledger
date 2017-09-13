@@ -1089,6 +1089,10 @@ Run a subcommand by writing its name as first argument (eg
 You can also write any unambiguous prefix of a command name
 (\f[C]hledger\ inc\f[]), or one of the standard short aliases displayed
 in the command list (\f[C]hledger\ is\f[]).
+.PP
+Here are all the builtin commands in alphabetical order.
+See also \f[C]hledger\f[] for a more organised command list, and
+\f[C]hledger\ CMD\ \-h\f[] for detailed command help.
 .SS accounts
 .PP
 Show account names.
@@ -1891,6 +1895,10 @@ report period.
 Normally cashflow shows changes in assets per period, though as with
 multicolumn balance reports you can alter the report mode with
 \f[C]\-\-change\f[]/\f[C]\-\-cumulative\f[]/\f[C]\-\-historical\f[].
+.SS check\-dates
+.PP
+Check that transactions are sorted by increasing date.
+With a query, only matched transactions\[aq] dates are checked.
 .SS help
 .PP
 Show any of the hledger manuals.
@@ -2452,10 +2460,6 @@ hledger\-chart.hs is an old pie chart generator, in need of some love.
 .SS check
 .PP
 hledger\-check.hs checks more powerful account balance assertions.
-.SS check\-dates
-.PP
-hledger\-check\-dates.hs checks that journal entries are ordered by
-date.
 .SS check\-dupes
 .PP
 hledger\-check\-dupes.hs checks for account names sharing the same leaf
