@@ -48,6 +48,7 @@ import Test.HUnit
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Version
 import Hledger.Cli.Commands.Accounts
 import Hledger.Cli.Commands.Activity
 import Hledger.Cli.Commands.Add
@@ -74,20 +75,27 @@ import Hledger.Cli.Commands.Tags
 -- Command actions take parsed CLI options and a (lazy) finalised journal.
 builtinCommands :: [(Mode RawOpts, CliOpts -> Journal -> IO ())]
 builtinCommands = [
-   (accountsmode           , accounts) 
-  ,(activitymode           , activity) 
-  ,(addmode                , add) 
-  ,(balancemode            , balance) 
-  ,(balancesheetmode       , balancesheet) 
-  ,(balancesheetequitymode , balancesheetequity) 
-  ,(cashflowmode           , cashflow) 
-  ,(checkdatesmode         , checkdates) 
-  ,(helpmode               , help') 
-  ,(incomestatementmode    , incomestatement) 
-  ,(printmode              , print') 
-  ,(registermode           , register) 
-  ,(statsmode              , stats) 
-  ,(testmode               , testcmd) 
+   (accountsmode           , accounts)
+  ,(activitymode           , activity)
+  ,(addmode                , add)
+  ,(balancemode            , balance)
+  ,(balancesheetmode       , balancesheet)
+  ,(balancesheetequitymode , balancesheetequity)
+  ,(cashflowmode           , cashflow)
+  ,(checkdatesmode         , checkdates)
+  ,(checkdupesmode         , checkdupes)
+  ,(equitymode             , equity)
+  ,(helpmode               , help')
+  ,(incomestatementmode    , incomestatement)
+  ,(pricesmode             , prices)
+  ,(printmode              , print')
+  ,(printuniquemode        , printunique)
+  ,(registermode           , register)
+  ,(registermatchmode      , registermatch)
+  ,(rewritemode            , rewrite)
+  ,(statsmode              , stats)
+  ,(tagsmode               , tags)
+  ,(testmode               , testcmd)
   ]
 
 -- | All names and aliases of builtin commands.
@@ -99,68 +107,85 @@ findCommand :: String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())
 findCommand cmdname = find (elem cmdname . modeNames . fst) builtinCommands 
 
 -- | A template for the commands list, containing entries (indented lines)
--- for all currently known builtin and addon commands.
+-- for all known and some hypothetical builtin and addon commands.
 -- These will be filtered based on the commands found at runtime,  
 -- except those beginning with "hledger", which are not filtered. 
--- OTHERCMDS is replaced with an entry for each unknown addon command found. 
--- COUNT is replaced with the number of commands found.
+-- PROGVERSION is replaced with the program name and version.
+-- OTHER is replaced with an entry for each unknown addon command found. 
 --  
 -- The command descriptions here should be kept synced with 
 -- each command's builtin help and with hledger manual's command list.
 --
-commandsListTemplate :: String
-commandsListTemplate = [here|Commands available (COUNT):
+commandsList :: String
+commandsList = [here|
+-------------------------------------------------------------------------------
+PROGVERSION, commands available:
 
-Standard reports:
- accounts             show chart of accounts
- balancesheet (bs)    show a balance sheet
- balancesheetequity (bse)    show a balance sheet with equity
- cashflow (cf)        show a cashflow statement
- incomestatement (is) show an income statement
- transactions (txns)  show transactions in some account
+Statements:
+ balancesheet (bs)        show a simple balance sheet with net worth
+ balancesheetequity (bse) show a detailed balance sheet with equity
+ cashflow (cf)            show a cashflow statement
+ incomestatement (is)     show an income statement
 
-General reporting:
- activity             show a bar chart of posting counts per interval
- balance (bal)        show accounts and balances
- budget               add automated postings/txns/bucket accts (experimental)
- chart                generate simple balance pie charts (experimental)
- check                check more powerful balance assertions
- check-dates          check transactions are ordered by date
- check-dupes          check for accounts with the same leaf name
- irr                  calculate internal rate of return of an investment
- prices               show market price records
- print                show transaction journal entries
- print-unique         show only transactions with unique descriptions
- register (reg)       show postings and running total
- register-match       show best matching transaction for a description
- stats                show some journal statistics
+Basic reports:
+ accounts (a)             show account names
+ activity                 show a chart of posting counts per interval
+ aregister (ar, areg)     show transactions in a single account
+ balance (b, bal)         show account balance changes or ending balances
+ prices                   show market price records
+ print (p, txns)          show transactions/journal entries
+ register (r, reg)        show postings to one or more accounts
+ stats                    show journal statistics
+ tags                     show tag names
 
-Interfaces:
- add                  console ui for adding transactions
- api                  web api server
- iadd                 curses ui for adding transactions
- ui                   curses ui
- web                  web ui
+Modifying data:
+ add                      add transactions using console ui
+ iadd                     add transactions using curses ui
+ import                   add new transactions from one or more import files
+ edit                     open a text editor on some part of the journal
+ equity                   generate balance-resetting transactions
+ interest                 generate interest transactions
+ rewrite                  generate automated postings on matched transactions
 
-Misc:
- autosync             download/deduplicate/convert OFX data
- equity               generate transactions to zero & restore account balances
- interest             generate interest transactions
- rewrite              add automated postings to certain transactions
- test                 run some self tests
-OTHERCMDS
+UIs:
+ api                      start web api server
+ ui                       start curses ui
+ web                      start web ui
+
+Other/experimental:
+ autosync                 download/deduplicate/convert OFX data
+ budget                   add automated postings/txns/bucket accts
+ chart                    generate simple balance pie charts
+ check                    check more powerful balance assertions
+ check-dates              check transactions are ordered by date
+ check-dupes              check for accounts with the same leaf name
+ diff                     compare account transactions in two journal files
+ irr                      calculate internal rate of return of an investment
+ print-unique             show only transactions with unique descriptions
+ register-match           show best matching transaction for a description
+ test                     run self tests
+OTHER
 Help:
- help                 show any of the hledger manuals in various formats
- hledger CMD -h       show command usage
- hledger -h           show general usage
+ help                     show any of the hledger manuals in various formats
+ hledger CMD -h           show command usage
+ hledger -h               show general usage
+-------------------------------------------------------------------------------
 |]
 
 -- | Print the commands list, modifying the template above based on
 -- the currently available addons. Missing addons will be removed, and
 -- extra addons will be added under Misc.
 printCommandsList :: [String] -> IO ()
-printCommandsList addonsFound = putStr commandsList
+printCommandsList addonsFound =
+  putStr $
+  regexReplace "PROGVERSION" (prognameandversion) $
+  regexReplace "OTHER" (unlines $ map (' ':) unknownCommandsFound) $
+  -- regexReplace "COUNT" (show cmdcount) $
+  unlines $ concatMap adjustline $ lines $
+  cmdlist
   where
+    cmdlist = commandsList
+    -- cmdcount = length $ commandsFromCommandsList cmdlist
     commandsFound = builtinCommandNames ++ addonsFound
     unknownCommandsFound = addonsFound \\ knownCommands
 
@@ -169,21 +194,14 @@ printCommandsList addonsFound = putStr commandsList
       where w = takeWhile (not . (`elem` ['|',' '])) l
     adjustline l = [l]
 
-    commandsList1 =
-      regexReplace "OTHERCMDS" (unlines [' ':w | w <- unknownCommandsFound]) $
-      unlines $ concatMap adjustline $ lines commandsListTemplate
-
-    commandsList =
-      regexReplace "COUNT" (show $ length $ commandsFromCommandsList commandsList1)
-      commandsList1
-
 knownCommands :: [String]
-knownCommands = sort $ commandsFromCommandsList commandsListTemplate
+knownCommands = sort $ commandsFromCommandsList commandsList
 
 -- | Extract the command names from a commands list like the above:
 -- the first word (or words separated by |) of lines beginning with a space.
 commandsFromCommandsList :: String -> [String]
-commandsFromCommandsList s = concatMap (splitOn "|") [w | ' ':l <- lines s, let w:_ = words l]
+commandsFromCommandsList s =
+  concatMap (splitOn "|") [w | ' ':l <- lines s, let w:_ = words l]
 
 
 
