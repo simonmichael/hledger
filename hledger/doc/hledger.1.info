@@ -780,9 +780,9 @@ programs or scripts named 'hledger-NAME' in your PATH, these will also
 be listed as subcommands.
 
    Run a subcommand by writing its name as first argument (eg 'hledger
-incomestatement').  You can also write any unambiguous prefix of a
-command name ('hledger inc'), or one of the standard short aliases
-displayed in the command list ('hledger is').
+incomestatement').  You can also write one of the standard short aliases
+displayed in parentheses in the command list ('hledger b'), or any any
+unambiguous prefix of a command name ('hledger inc').
 
    Here are all the builtin commands in alphabetical order.  See also
 'hledger' for a more organised command list, and 'hledger CMD -h' for
@@ -797,11 +797,18 @@ detailed command help.
 * balancesheetequity::
 * cashflow::
 * check-dates::
+* check-dupes::
+* equity::
 * help::
 * incomestatement::
+* prices::
 * print::
+* print-unique::
 * register::
+* register-match::
+* rewrite::
 * stats::
+* tags::
 * test::
 
 
@@ -810,7 +817,7 @@ File: hledger.1.info,  Node: accounts,  Next: activity,  Up: COMMANDS
 4.1 accounts
 ============
 
-Show account names.
+Show account names.  Alias: a.
 
 '--tree'
 
@@ -963,7 +970,7 @@ File: hledger.1.info,  Node: balance,  Next: balancesheet,  Prev: add,  Up: COMM
 4.4 balance
 ===========
 
-Show accounts and their balances.  Alias: bal.
+Show accounts and their balances.  Aliases: b, bal.
 
 '--change'
 
@@ -1485,7 +1492,7 @@ period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.
 
 
-File: hledger.1.info,  Node: check-dates,  Next: help,  Prev: cashflow,  Up: COMMANDS
+File: hledger.1.info,  Node: check-dates,  Next: check-dupes,  Prev: cashflow,  Up: COMMANDS
 
 4.8 check-dates
 ===============
@@ -1494,10 +1501,29 @@ Check that transactions are sorted by increasing date.  With a query,
 only matched transactions' dates are checked.
 
 
-File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: check-dates,  Up: COMMANDS
+File: hledger.1.info,  Node: check-dupes,  Next: equity,  Prev: check-dates,  Up: COMMANDS
 
-4.9 help
-========
+4.9 check-dupes
+===============
+
+Report account names having the same leaf but different prefixes.  An
+example: http://stefanorodighiero.net/software/hledger-dupes.html
+
+
+File: hledger.1.info,  Node: equity,  Next: help,  Prev: check-dupes,  Up: COMMANDS
+
+4.10 equity
+===========
+
+Print closing/opening transactions that bring some or all account
+balances to zero and back.  Can be useful for bringing account balances
+across file boundaries.
+
+
+File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: equity,  Up: COMMANDS
+
+4.11 help
+=========
 
 Show any of the hledger manuals.
 
@@ -1531,9 +1557,9 @@ DESCRIPTION
 ...
 
 
-File: hledger.1.info,  Node: incomestatement,  Next: print,  Prev: help,  Up: COMMANDS
+File: hledger.1.info,  Node: incomestatement,  Next: prices,  Prev: help,  Up: COMMANDS
 
-4.10 incomestatement
+4.12 incomestatement
 ====================
 
 Show an income statement.  Alias: is.
@@ -1607,12 +1633,20 @@ per period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.
 
 
-File: hledger.1.info,  Node: print,  Next: register,  Prev: incomestatement,  Up: COMMANDS
+File: hledger.1.info,  Node: prices,  Next: print,  Prev: incomestatement,  Up: COMMANDS
 
-4.11 print
+4.13 prices
+===========
+
+Print all market prices from the journal.
+
+
+File: hledger.1.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: COMMANDS
+
+4.14 print
 ==========
 
-Show transactions from the journal.
+Show transactions from the journal.  Aliases: p, txns.
 
 '-x --explicit'
 
@@ -1701,12 +1735,20 @@ $ hledger print -Ocsv
      zero or greater amounts under debit.)
 
 
-File: hledger.1.info,  Node: register,  Next: stats,  Prev: print,  Up: COMMANDS
+File: hledger.1.info,  Node: print-unique,  Next: register,  Prev: print,  Up: COMMANDS
 
-4.12 register
+4.15 print-unique
+=================
+
+Print transactions which do not reuse an already-seen description.
+
+
+File: hledger.1.info,  Node: register,  Next: register-match,  Prev: print-unique,  Up: COMMANDS
+
+4.16 register
 =============
 
-Show postings and their running total.  Alias: reg.
+Show postings and their running total.  Aliases: r, reg.
 
 '--cumulative'
 
@@ -1808,7 +1850,7 @@ length and comparable to the others in the report.
 
 File: hledger.1.info,  Node: Custom register output,  Up: register
 
-4.12.1 Custom register output
+4.16.1 Custom register output
 -----------------------------
 
 register uses the full terminal width by default, except on windows.
@@ -1838,9 +1880,27 @@ $ hledger reg -w $COLUMNS,40      # use terminal width, and set description widt
 output.
 
 
-File: hledger.1.info,  Node: stats,  Next: test,  Prev: register,  Up: COMMANDS
+File: hledger.1.info,  Node: register-match,  Next: rewrite,  Prev: register,  Up: COMMANDS
 
-4.13 stats
+4.17 register-match
+===================
+
+Print the one posting whose transaction description is closest to DESC,
+in the style of the register command.  Helps ledger-autosync detect
+already-seen transactions when importing.
+
+
+File: hledger.1.info,  Node: rewrite,  Next: stats,  Prev: register-match,  Up: COMMANDS
+
+4.18 rewrite
+============
+
+Print all transactions, adding custom postings to the matched ones.
+
+
+File: hledger.1.info,  Node: stats,  Next: tags,  Prev: rewrite,  Up: COMMANDS
+
+4.19 stats
 ==========
 
 Show some journal statistics.
@@ -1870,9 +1930,17 @@ for each report period.
 output destination.
 
 
-File: hledger.1.info,  Node: test,  Prev: stats,  Up: COMMANDS
+File: hledger.1.info,  Node: tags,  Next: test,  Prev: stats,  Up: COMMANDS
 
-4.14 test
+4.20 tags
+=========
+
+List all the tag names in use.
+
+
+File: hledger.1.info,  Node: test,  Prev: tags,  Up: COMMANDS
+
+4.21 test
 =========
 
 Run built-in unit tests.
@@ -2027,13 +2095,6 @@ start making your own!
 * budget::
 * chart::
 * check::
-* check-dupes::
-* equity::
-* prices::
-* print-unique::
-* register-match::
-* rewrite::
-* tags::
 
 
 File: hledger.1.info,  Node: autosync,  Next: budget,  Up: Experimental add-ons
@@ -2063,73 +2124,12 @@ File: hledger.1.info,  Node: chart,  Next: check,  Prev: budget,  Up: Experiment
 hledger-chart.hs is an old pie chart generator, in need of some love.
 
 
-File: hledger.1.info,  Node: check,  Next: check-dupes,  Prev: chart,  Up: Experimental add-ons
+File: hledger.1.info,  Node: check,  Prev: chart,  Up: Experimental add-ons
 
 5.3.4 check
 -----------
 
 hledger-check.hs checks more powerful account balance assertions.
-
-
-File: hledger.1.info,  Node: check-dupes,  Next: equity,  Prev: check,  Up: Experimental add-ons
-
-5.3.5 check-dupes
------------------
-
-hledger-check-dupes.hs checks for account names sharing the same leaf
-name.
-
-
-File: hledger.1.info,  Node: equity,  Next: prices,  Prev: check-dupes,  Up: Experimental add-ons
-
-5.3.6 equity
-------------
-
-hledger-equity.hs prints balance-resetting transactions, useful for
-bringing account balances across file boundaries.
-
-
-File: hledger.1.info,  Node: prices,  Next: print-unique,  Prev: equity,  Up: Experimental add-ons
-
-5.3.7 prices
-------------
-
-hledger-prices.hs prints all prices from the journal.
-
-
-File: hledger.1.info,  Node: print-unique,  Next: register-match,  Prev: prices,  Up: Experimental add-ons
-
-5.3.8 print-unique
-------------------
-
-hledger-print-unique.hs prints transactions which do not reuse an
-already-seen description.
-
-
-File: hledger.1.info,  Node: register-match,  Next: rewrite,  Prev: print-unique,  Up: Experimental add-ons
-
-5.3.9 register-match
---------------------
-
-hledger-register-match.hs helps ledger-autosync detect already-seen
-transactions when importing.
-
-
-File: hledger.1.info,  Node: rewrite,  Next: tags,  Prev: register-match,  Up: Experimental add-ons
-
-5.3.10 rewrite
---------------
-
-hledger-rewrite.hs Adds one or more custom postings to matched
-transactions.
-
-
-File: hledger.1.info,  Node: tags,  Prev: rewrite,  Up: Experimental add-ons
-
-5.3.11 tags
------------
-
-hledger-tags.hs Lists tag names in use.
 
 
 Tag Table:
@@ -2170,93 +2170,93 @@ Node: QUERIES21498
 Ref: #queries21602
 Node: COMMANDS25569
 Ref: #commands25683
-Node: accounts26542
-Ref: #accounts26642
-Node: activity27624
-Ref: #activity27736
-Node: add28095
-Ref: #add28196
-Node: balance30854
-Ref: #balance30967
-Node: Flat mode33982
-Ref: #flat-mode34109
-Node: Depth limited balance reports34529
-Ref: #depth-limited-balance-reports34732
-Node: Multicolumn balance reports35152
-Ref: #multicolumn-balance-reports35363
-Node: Custom balance output40011
-Ref: #custom-balance-output40195
-Node: Colour support42288
-Ref: #colour-support42449
-Node: Output destination42622
-Ref: #output-destination42780
-Node: CSV output43050
-Ref: #csv-output43169
-Node: balancesheet43566
-Ref: #balancesheet43704
-Node: balancesheetequity45611
-Ref: #balancesheetequity45762
-Node: cashflow46551
-Ref: #cashflow46681
-Node: check-dates48532
-Ref: #check-dates48654
-Node: help48771
-Ref: #help48886
-Node: incomestatement49960
-Ref: #incomestatement50093
-Node: print51985
-Ref: #print52102
-Node: register55858
-Ref: #register55971
-Node: Custom register output60467
-Ref: #custom-register-output60598
-Node: stats61895
-Ref: #stats62001
-Node: test62882
-Ref: #test62969
-Node: ADD-ON COMMANDS63337
-Ref: #add-on-commands63449
-Node: Official add-ons64736
-Ref: #official-add-ons64878
-Node: api64965
-Ref: #api65056
-Node: ui65108
-Ref: #ui65209
-Node: web65267
-Ref: #web65358
-Node: Third party add-ons65404
-Ref: #third-party-add-ons65581
-Node: diff65716
-Ref: #diff65815
-Node: iadd65914
-Ref: #iadd66030
-Node: interest66113
-Ref: #interest66236
-Node: irr66331
-Ref: #irr66431
-Node: Experimental add-ons66509
-Ref: #experimental-add-ons66663
-Node: autosync67049
-Ref: #autosync67163
-Node: budget67402
-Ref: #budget67526
-Node: chart67592
-Ref: #chart67711
-Node: check67782
-Ref: #check67906
-Node: check-dupes67973
-Ref: #check-dupes68110
-Node: equity68187
-Ref: #equity68315
-Node: prices68434
-Ref: #prices68563
-Node: print-unique68618
-Ref: #print-unique68767
-Node: register-match68860
-Ref: #register-match69014
-Node: rewrite69112
-Ref: #rewrite69246
-Node: tags69324
-Ref: #tags69429
+Node: accounts26655
+Ref: #accounts26755
+Node: activity27748
+Ref: #activity27860
+Node: add28219
+Ref: #add28320
+Node: balance30978
+Ref: #balance31091
+Node: Flat mode34111
+Ref: #flat-mode34238
+Node: Depth limited balance reports34658
+Ref: #depth-limited-balance-reports34861
+Node: Multicolumn balance reports35281
+Ref: #multicolumn-balance-reports35492
+Node: Custom balance output40140
+Ref: #custom-balance-output40324
+Node: Colour support42417
+Ref: #colour-support42578
+Node: Output destination42751
+Ref: #output-destination42909
+Node: CSV output43179
+Ref: #csv-output43298
+Node: balancesheet43695
+Ref: #balancesheet43833
+Node: balancesheetequity45740
+Ref: #balancesheetequity45891
+Node: cashflow46680
+Ref: #cashflow46810
+Node: check-dates48661
+Ref: #check-dates48790
+Node: check-dupes48907
+Ref: #check-dupes49034
+Node: equity49171
+Ref: #equity49283
+Node: help49446
+Ref: #help49558
+Node: incomestatement50632
+Ref: #incomestatement50766
+Node: prices52658
+Ref: #prices52775
+Node: print52818
+Ref: #print52930
+Node: print-unique56705
+Ref: #print-unique56833
+Node: register56901
+Ref: #register57030
+Node: Custom register output61531
+Ref: #custom-register-output61662
+Node: register-match62959
+Ref: #register-match63095
+Node: rewrite63278
+Ref: #rewrite63397
+Node: stats63466
+Ref: #stats63571
+Node: tags64452
+Ref: #tags64552
+Node: test64584
+Ref: #test64670
+Node: ADD-ON COMMANDS65038
+Ref: #add-on-commands65150
+Node: Official add-ons66437
+Ref: #official-add-ons66579
+Node: api66666
+Ref: #api66757
+Node: ui66809
+Ref: #ui66910
+Node: web66968
+Ref: #web67059
+Node: Third party add-ons67105
+Ref: #third-party-add-ons67282
+Node: diff67417
+Ref: #diff67516
+Node: iadd67615
+Ref: #iadd67731
+Node: interest67814
+Ref: #interest67937
+Node: irr68032
+Ref: #irr68132
+Node: Experimental add-ons68210
+Ref: #experimental-add-ons68364
+Node: autosync68655
+Ref: #autosync68769
+Node: budget69008
+Ref: #budget69132
+Node: chart69198
+Ref: #chart69317
+Node: check69388
+Ref: #check69492
 
 End Tag Table

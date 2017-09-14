@@ -1086,9 +1086,9 @@ will also be listed as subcommands.
 .PP
 Run a subcommand by writing its name as first argument (eg
 \f[C]hledger\ incomestatement\f[]).
-You can also write any unambiguous prefix of a command name
-(\f[C]hledger\ inc\f[]), or one of the standard short aliases displayed
-in the command list (\f[C]hledger\ is\f[]).
+You can also write one of the standard short aliases displayed in
+parentheses in the command list (\f[C]hledger\ b\f[]), or any any
+unambiguous prefix of a command name (\f[C]hledger\ inc\f[]).
 .PP
 Here are all the builtin commands in alphabetical order.
 See also \f[C]hledger\f[] for a more organised command list, and
@@ -1096,6 +1096,7 @@ See also \f[C]hledger\f[] for a more organised command list, and
 .SS accounts
 .PP
 Show account names.
+Alias: a.
 .TP
 .B \f[C]\-\-tree\f[]
 show short account names, as a tree
@@ -1272,7 +1273,7 @@ Date\ [2015/05/22]:\ <CTRL\-D>\ $
 .SS balance
 .PP
 Show accounts and their balances.
-Alias: bal.
+Aliases: b, bal.
 .TP
 .B \f[C]\-\-change\f[]
 show balance change in each period (default)
@@ -1899,6 +1900,15 @@ multicolumn balance reports you can alter the report mode with
 .PP
 Check that transactions are sorted by increasing date.
 With a query, only matched transactions\[aq] dates are checked.
+.SS check\-dupes
+.PP
+Report account names having the same leaf but different prefixes.
+An example: http://stefanorodighiero.net/software/hledger\-dupes.html
+.SS equity
+.PP
+Print closing/opening transactions that bring some or all account
+balances to zero and back.
+Can be useful for bringing account balances across file boundaries.
 .SS help
 .PP
 Show any of the hledger manuals.
@@ -2040,9 +2050,13 @@ report period.
 Normally incomestatement shows revenues/expenses per period, though as
 with multicolumn balance reports you can alter the report mode with
 \f[C]\-\-change\f[]/\f[C]\-\-cumulative\f[]/\f[C]\-\-historical\f[].
+.SS prices
+.PP
+Print all market prices from the journal.
 .SS print
 .PP
 Show transactions from the journal.
+Aliases: p, txns.
 .TP
 .B \f[C]\-x\ \ \ \ \ \-\-explicit\f[]
 show all amounts explicitly
@@ -2149,10 +2163,13 @@ The numeric amount is repeated in either the "credit" or "debit" column,
 for convenience.
 (Those names are not accurate in the accounting sense; it just puts
 negative amounts under credit and zero or greater amounts under debit.)
+.SS print\-unique
+.PP
+Print transactions which do not reuse an already\-seen description.
 .SS register
 .PP
 Show postings and their running total.
-Alias: reg.
+Aliases: r, reg.
 .TP
 .B \f[C]\-\-cumulative\f[]
 show running total from report start date (default)
@@ -2325,6 +2342,14 @@ $\ hledger\ reg\ \-w\ $COLUMNS,40\ \ \ \ \ \ #\ use\ terminal\ width,\ and\ set\
 The register command also supports the \f[C]\-o/\-\-output\-file\f[] and
 \f[C]\-O/\-\-output\-format\f[] options for controlling output
 destination and CSV output.
+.SS register\-match
+.PP
+Print the one posting whose transaction description is closest to DESC,
+in the style of the register command.
+Helps ledger\-autosync detect already\-seen transactions when importing.
+.SS rewrite
+.PP
+Print all transactions, adding custom postings to the matched ones.
 .SS stats
 .PP
 Show some journal statistics.
@@ -2357,6 +2382,9 @@ With a reporting interval, it shows a report for each report period.
 .PP
 The stats command also supports \f[C]\-o/\-\-output\-file\f[] for
 controlling output destination.
+.SS tags
+.PP
+List all the tag names in use.
 .SS test
 .PP
 Run built\-in unit tests.
@@ -2460,32 +2488,6 @@ hledger\-chart.hs is an old pie chart generator, in need of some love.
 .SS check
 .PP
 hledger\-check.hs checks more powerful account balance assertions.
-.SS check\-dupes
-.PP
-hledger\-check\-dupes.hs checks for account names sharing the same leaf
-name.
-.SS equity
-.PP
-hledger\-equity.hs prints balance\-resetting transactions, useful for
-bringing account balances across file boundaries.
-.SS prices
-.PP
-hledger\-prices.hs prints all prices from the journal.
-.SS print\-unique
-.PP
-hledger\-print\-unique.hs prints transactions which do not reuse an
-already\-seen description.
-.SS register\-match
-.PP
-hledger\-register\-match.hs helps ledger\-autosync detect already\-seen
-transactions when importing.
-.SS rewrite
-.PP
-hledger\-rewrite.hs Adds one or more custom postings to matched
-transactions.
-.SS tags
-.PP
-hledger\-tags.hs Lists tag names in use.
 .SH ENVIRONMENT
 .PP
 \f[B]COLUMNS\f[] The screen width used by the register command.
