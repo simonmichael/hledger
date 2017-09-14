@@ -75,19 +75,19 @@ hledger balance --version
 
 # 3. with no command, show commands list
 hledger
->>> /^Commands available/
+>>> /^hledger.*commands available/
 >>>2
 >>>=0
 
 # 4. no-command help still works if there are flags, at least the common ones
 hledger -fsomefile
->>> /^Commands available/
+>>> /^hledger.*commands available/
 >>>2
 >>>=0
 
 # 5. and also with a space between flag and value
 hledger -f somefile
->>> /^Commands available/
+>>> /^hledger.*commands available/
 >>>2
 >>>=0
 
