@@ -1,5 +1,5 @@
 ## balance
-Show accounts and their balances. Alias: bal.
+Show accounts and their balances. Aliases: b, bal.
 
 `--change`
 : show balance change in each period (default)

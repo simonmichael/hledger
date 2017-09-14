@@ -8,9 +8,9 @@ or scripts named `hledger-NAME` in your PATH, these will also be
 listed as subcommands.
 
 Run a subcommand by writing its name as first argument (eg `hledger
-incomestatement`). You can also write any unambiguous prefix of a
-command name (`hledger inc`), or one of the standard short aliases
-displayed in the command list (`hledger is`).
+incomestatement`). You can also write one of the standard short aliases
+displayed in parentheses in the command list (`hledger b`), or any
+any unambiguous prefix of a command name (`hledger inc`). 
 
 Here are all the builtin commands in alphabetical order.
 See also `hledger` for a more organised command list,
@@ -24,7 +24,7 @@ for each command: name, synopsis, description, examples.
 -->
 
 ## accounts
-Show account names.
+Show account names. Alias: a.
 
 `--tree`
 : show short account names, as a tree
@@ -462,7 +462,7 @@ you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 Print all market prices from the journal.
 
 ## print
-Show transactions from the journal.
+Show transactions from the journal. Aliases: p, txns.
 
 `-x     --explicit`
 : show all amounts explicitly
@@ -551,7 +551,7 @@ $ hledger print -Ocsv
 Print transactions which do not reuse an already-seen description.
 
 ## register
-Show postings and their running total. Alias: reg.
+Show postings and their running total. Aliases: r, reg.
 
 `--cumulative`
 : show running total from report start date (default)
