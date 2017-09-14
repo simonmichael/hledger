@@ -47,7 +47,7 @@ accountsmode = (defCommandMode $ ["accounts"] ++ aliases) {
     ,groupNamed = [generalflagsgroup1]
     }
  }
-  where aliases = []
+  where aliases = ["a"]
 
 -- | The accounts command.
 accounts :: CliOpts -> Journal -> IO ()

@@ -54,7 +54,7 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
     ,groupNamed = [generalflagsgroup1]
     }
  }
-  where aliases = ["reg"]
+  where aliases = ["r","reg"]
 
 -- | Print a (posting) register report.
 register :: CliOpts -> Journal -> IO ()

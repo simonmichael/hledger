@@ -288,7 +288,7 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
     ,groupNamed = [generalflagsgroup1]
     }
  }
-  where aliases = ["bal"]
+  where aliases = ["b","bal"]
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
