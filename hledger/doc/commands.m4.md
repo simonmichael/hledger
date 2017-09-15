@@ -468,7 +468,7 @@ Show transactions from the journal. Aliases: p, txns.
 : show the transaction whose description is most similar to STR, and is most recent
 
 `       --new`
-: show only more recent transactions added to each file since last run
+: show only newer-dated transactions added in each file since last run
 
 `-x     --explicit`
 : show all amounts explicitly

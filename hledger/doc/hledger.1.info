@@ -1648,13 +1648,17 @@ File: hledger.1.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: COM
 
 Show transactions from the journal.  Aliases: p, txns.
 
-'-x --explicit'
-
-     show all amounts explicitly
 '-m STR --match=STR'
 
      show the transaction whose description is most similar to STR, and
      is most recent
+'--new'
+
+     show only newer-dated transactions added in each file since last
+     run
+'-x --explicit'
+
+     show all amounts explicitly
 '-O FMT --output-format=FMT'
 
      select the output format.  Supported formats: txt, csv.
@@ -1686,23 +1690,40 @@ $ hledger print
     assets:bank:checking           $-1
 
    The print command displays full journal entries (transactions) from
-the journal file, tidily formatted.
+the journal file in date order, tidily formatted.  print's output is
+always a valid hledger journal.  It preserves all transaction
+information, but it does not preserve directives or inter-transaction
+comments
 
-   As of hledger 1.2, print's output is always a valid hledger journal.
-However it may not preserve all original content, eg it does not print
-directives or inter-transaction comments.
+   Normally, the journal entry's explicit or implicit amount style is
+preserved.  Ie when an amount is omitted in the journal, it will be
+omitted in the output.  You can use the '-x'/'--explicit' flag to make
+all amounts explicit, which can be useful for troubleshooting or for
+making your journal more readable and robust against data entry errors.
+Note, '-x' will cause postings with a multi-commodity amount (these can
+arise when a multi-commodity transaction has an implicit amount) will be
+split into multiple single-commodity postings, for valid journal output.
 
-   Normally, transactions' implicit/explicit amount style is preserved:
-when an amount is omitted in the journal, it will be omitted in the
-output.  You can use the '-x/--explicit' flag to make all amounts
-explicit, which can be useful for troubleshooting or for making your
-journal more readable and robust against data entry errors.  Note, in
-this mode postings with a multi-commodity amount (possible with an
-implicit amount in a multi-commodity transaction) will be split into
-multiple single-commodity postings, for valid journal output.
+   With '-B'/'--cost', amounts with transaction prices are converted to
+cost using that price.
 
-   With -B/-cost, amounts with transaction prices are converted to cost
-(using the transaction price).
+   With '-m'/'--match' and a STR argument, print will show at most one
+transaction: the one one whose description is most similar to STR, and
+is most recent.  STR should contain at least two characters.  If there
+is no similar-enough match, no transaction will be shown.
+
+   With '--new', for each FILE being read, hledger reads (and writes) a
+special .FILE.seen file in the same directory, containing the latest
+transaction date(s) that were seen last time FILE was read.  When this
+file is found, only transactions with newer dates (and new transactions
+on the latest date) are printed.  This is useful for ignoring
+already-seen entries in import data, such as downloaded CSV files.  Eg:
+
+$ hledger -f bank1.csv print --new
+# shows transactions added since last print --new on this file
+
+   It assumes that only same-or-newer-dated transactions are added to
+FILE, and that the order of same-date transactions remains stable.
 
    The print command also supports output destination and CSV output.
 Here's an example of print's CSV output:
@@ -2212,51 +2233,51 @@ Node: prices52658
 Ref: #prices52775
 Node: print52818
 Ref: #print52930
-Node: print-unique56705
-Ref: #print-unique56833
-Node: register56901
-Ref: #register57030
-Node: Custom register output61531
-Ref: #custom-register-output61662
-Node: register-match62959
-Ref: #register-match63095
-Node: rewrite63278
-Ref: #rewrite63397
-Node: stats63466
-Ref: #stats63571
-Node: tags64452
-Ref: #tags64552
-Node: test64584
-Ref: #test64670
-Node: ADD-ON COMMANDS65038
-Ref: #add-on-commands65150
-Node: Official add-ons66437
-Ref: #official-add-ons66579
-Node: api66666
-Ref: #api66757
-Node: ui66809
-Ref: #ui66910
-Node: web66968
-Ref: #web67059
-Node: Third party add-ons67105
-Ref: #third-party-add-ons67282
-Node: diff67417
-Ref: #diff67516
-Node: iadd67615
-Ref: #iadd67731
-Node: interest67814
-Ref: #interest67937
-Node: irr68032
-Ref: #irr68132
-Node: Experimental add-ons68210
-Ref: #experimental-add-ons68364
-Node: autosync68655
-Ref: #autosync68769
-Node: budget69008
-Ref: #budget69132
-Node: chart69198
-Ref: #chart69317
-Node: check69388
-Ref: #check69492
+Node: print-unique57726
+Ref: #print-unique57854
+Node: register57922
+Ref: #register58051
+Node: Custom register output62552
+Ref: #custom-register-output62683
+Node: register-match63980
+Ref: #register-match64116
+Node: rewrite64299
+Ref: #rewrite64418
+Node: stats64487
+Ref: #stats64592
+Node: tags65473
+Ref: #tags65573
+Node: test65605
+Ref: #test65691
+Node: ADD-ON COMMANDS66059
+Ref: #add-on-commands66171
+Node: Official add-ons67458
+Ref: #official-add-ons67600
+Node: api67687
+Ref: #api67778
+Node: ui67830
+Ref: #ui67931
+Node: web67989
+Ref: #web68080
+Node: Third party add-ons68126
+Ref: #third-party-add-ons68303
+Node: diff68438
+Ref: #diff68537
+Node: iadd68636
+Ref: #iadd68752
+Node: interest68835
+Ref: #interest68958
+Node: irr69053
+Ref: #irr69153
+Node: Experimental add-ons69231
+Ref: #experimental-add-ons69385
+Node: autosync69676
+Ref: #autosync69790
+Node: budget70029
+Ref: #budget70153
+Node: chart70219
+Ref: #chart70338
+Node: check70409
+Ref: #check70513
 
 End Tag Table

@@ -37,7 +37,7 @@ printmode = (defCommandMode $ ["print"] ++ aliases) {
         ,flagNone ["explicit","x"] (setboolopt "explicit")
           "show all amounts explicitly"
         ,flagNone ["new"] (setboolopt "new")
-          "show only more recent transactions added to each file since last run"
+          "show only newer-dated transactions added in each file since last run"
         ]
         ++ outputflags
     ,groupHidden = []
