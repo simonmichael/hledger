@@ -31,13 +31,13 @@ printmode = (defCommandMode $ ["print"] ++ aliases) {
   modeHelp = "show transaction journal entries, sorted by date. With --date2, sort by secondary date instead." `withAliases` aliases
  ,modeGroupFlags = Group {
      groupUnnamed = [
-        let matcharg = "STR"
-        in
-         flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) matcharg
-         ("show the transaction whose description is most similar to "++matcharg
-          ++ ", and is most recent"),
-        flagNone ["explicit","x"] (setboolopt "explicit")
-         "show all amounts explicitly"
+         let arg = "STR" in
+         flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
+          ("show the transaction whose description is most similar to "++arg++", and is most recent")
+        ,flagNone ["explicit","x"] (setboolopt "explicit")
+          "show all amounts explicitly"
+        ,flagNone ["new"] (setboolopt "new")
+          "show only more recent transactions added to each file since last run"
         ]
         ++ outputflags
     ,groupHidden = []

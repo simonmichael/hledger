@@ -42,18 +42,20 @@ import qualified Control.Exception as C
 import Control.Monad.Except
 import Data.List
 import Data.Maybe
+import Data.Ord
 import Data.Text (Text)
 import qualified Data.Text as T
+import Data.Time (Day)
 import Safe
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
-import System.FilePath ((</>), takeExtension)
-import System.IO (stderr)
+import System.FilePath
+import System.IO
 import Test.HUnit
 import Text.Printf
 
-import Hledger.Data.Dates (getCurrentDay)
+import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
 import Hledger.Data.Types
 import Hledger.Read.Common
 import qualified Hledger.Read.JournalReader   as JournalReader
@@ -259,7 +261,7 @@ tryReaders readers mrulesfile assrt path t = firstSuccessOrFirstError [] readers
     path' = fromMaybe "(string)" path
 
 
---- New versions of readJournal* with easier arguments
+--- New versions of readJournal* with easier arguments, and --new/last-seen handling.
 
 readJournalFilesWithOpts :: InputOpts -> [FilePath] -> IO (Either String Journal)
 readJournalFilesWithOpts iopts =
@@ -275,7 +277,67 @@ readJournalFileWithOpts iopts prefixedfile = do
     (mfmt, f) = splitReaderPrefix prefixedfile
     iopts' = iopts{mformat_=firstJust [mfmt, mformat_ iopts]}
   requireJournalFileExists f
-  readFileOrStdinAnyLineEnding f >>= readJournalWithOpts iopts' (Just f)
+  t <- readFileOrStdinAnyLineEnding f
+  ej <- readJournalWithOpts iopts' (Just f) t
+  case ej of
+    Left e  -> return $ Left e
+    Right j | new_ iopts -> do
+      lastdates <- lastSeen f
+      let (newj, newlastdates) = journalFilterSinceLastDates lastdates j
+      when (not $ null newlastdates) $ saveLastSeen newlastdates f
+      return $ Right newj
+    Right j -> return $ Right j
+
+-- | Given zero or more date values (all the same, representing the
+-- latest previously seen transaction date, and how many transactions
+-- were seen on that date), remove transactions with earlier dates
+-- from the journal, and the same number of transactions on the
+-- latest date, if any, leaving only transactions that we can assume
+-- are newer. Also returns the new last dates of the new journal.
+journalFilterSinceLastDates :: [Day] -> Journal -> (Journal, [Day])
+journalFilterSinceLastDates [] j       = (j,  latestDates $ map tdate $ jtxns j)
+journalFilterSinceLastDates ds@(d:_) j = (j', ds')
+  where
+    samedateorlaterts     = filter ((>= d).tdate) $ jtxns j
+    (samedatets, laterts) = span ((== d).tdate) $ sortBy (comparing tdate) samedateorlaterts
+    newsamedatets         = drop (length ds) samedatets
+    j'                    = j{jtxns=newsamedatets++laterts}
+    ds'                   = latestDates $ map tdate $ samedatets++laterts
+
+-- | Get all instances of the latest date in an unsorted list of dates.
+-- Ie, if the latest date appears once, return it in a one-element list,
+-- if it appears three times (anywhere), return three of it.
+latestDates :: [Day] -> [Day]
+latestDates = headDef [] . take 1 . group . reverse . sort
+
+-- | Where to save last-seen transactions info for the given file path
+-- (.FILE.seen).
+seenFileFor :: FilePath -> FilePath
+seenFileFor f = dir </> fname' <.> "seen"
+  where
+    (dir, fname) = splitFileName f
+    fname' | "." `isPrefixOf` fname = fname
+           | otherwise              = '.':fname 
+
+-- | What were the latest transaction dates seen the last time this 
+-- journal file was read ? If there were multiple transactions on the
+-- latest date, that number of dates is returned, otherwise just one.
+-- Or none if no transactions were seen. 
+lastSeen :: FilePath -> IO [Day]
+lastSeen f = do
+  let seenfile = seenFileFor f
+  exists <- doesFileExist seenfile
+  if exists
+  then map (parsedate . strip) . lines . strip . T.unpack <$> readFileStrictly seenfile
+  else return []
+
+readFileStrictly :: FilePath -> IO Text
+readFileStrictly f = readFile' f >>= \t -> C.evaluate (T.length t) >> return t
+
+-- | Remember that these transaction dates were the latest seen when
+-- reading this journal file.
+saveLastSeen :: [Day] -> FilePath -> IO () 
+saveLastSeen dates f = writeFile (seenFileFor f) $ unlines $ map showDate dates
 
 readJournalWithOpts :: InputOpts -> Maybe FilePath -> Text -> IO (Either String Journal)
 readJournalWithOpts iopts mfile txt =
