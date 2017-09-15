@@ -14,6 +14,7 @@ module Hledger.Read (
   PrefixedFilePath,
   defaultJournal,
   defaultJournalPath,
+  readJournalFilesWithOpts,
   readJournalFiles,
   readJournalFile,
   requireJournalFileExists,
@@ -257,6 +258,47 @@ tryReaders readers mrulesfile assrt path t = firstSuccessOrFirstError [] readers
     firstSuccessOrFirstError (e:_) []    = return $ Left e              -- none left, return first error
     path' = fromMaybe "(string)" path
 
+
+--- New versions of readJournal* with easier arguments
+
+readJournalFilesWithOpts :: InputOpts -> [FilePath] -> IO (Either String Journal)
+readJournalFilesWithOpts iopts =
+  (right mconcat1 . sequence <$>) . mapM (readJournalFileWithOpts iopts)
+  where
+    mconcat1 :: Monoid t => [t] -> t
+    mconcat1 [] = mempty
+    mconcat1 x  = foldr1 mappend x
+
+readJournalFileWithOpts :: InputOpts -> PrefixedFilePath -> IO (Either String Journal)
+readJournalFileWithOpts iopts prefixedfile = do
+  let 
+    (mfmt, f) = splitReaderPrefix prefixedfile
+    iopts' = iopts{mformat_=firstJust [mfmt, mformat_ iopts]}
+  requireJournalFileExists f
+  readFileOrStdinAnyLineEnding f >>= readJournalWithOpts iopts' (Just f)
+
+readJournalWithOpts :: InputOpts -> Maybe FilePath -> Text -> IO (Either String Journal)
+readJournalWithOpts iopts mfile txt =
+  tryReadersWithOpts iopts mfile specifiedorallreaders txt
+  where
+    specifiedorallreaders = maybe stablereaders (:[]) $ findReader (mformat_ iopts) mfile
+    stablereaders = filter (not.rExperimental) readers
+
+tryReadersWithOpts :: InputOpts -> Maybe FilePath -> [Reader] -> Text -> IO (Either String Journal)
+tryReadersWithOpts iopts mpath readers txt = firstSuccessOrFirstError [] readers
+  where
+    firstSuccessOrFirstError :: [String] -> [Reader] -> IO (Either String Journal)
+    firstSuccessOrFirstError [] []        = return $ Left "no readers found"
+    firstSuccessOrFirstError errs (r:rs) = do
+      dbg1IO "trying reader" (rFormat r)
+      result <- (runExceptT . (rParser r) (mrules_file_ iopts) (not $ ignore_assertions_ iopts) path) txt
+      dbg1IO "reader result" $ either id show result
+      case result of Right j -> return $ Right j                        -- success!
+                     Left e  -> firstSuccessOrFirstError (errs++[e]) rs -- keep trying
+    firstSuccessOrFirstError (e:_) []    = return $ Left e              -- none left, return first error
+    path = fromMaybe "(string)" mpath
+
+---
 
 
 -- tests

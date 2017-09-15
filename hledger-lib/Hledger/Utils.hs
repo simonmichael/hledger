@@ -35,6 +35,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
 where
 import Control.Monad (liftM)
 -- import Data.Char
+import Data.Default
 import Data.List
 -- import Data.Maybe
 -- import Data.PPrint
@@ -116,6 +117,8 @@ getCurrentZonedTime = do
   return $ utcToZonedTime tz t
 
 -- misc
+
+instance Default Bool where def = False
 
 isLeft :: Either a b -> Bool
 isLeft (Left _) = True

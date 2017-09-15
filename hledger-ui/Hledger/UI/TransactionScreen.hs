@@ -74,7 +74,7 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           <+> togglefilters
           <+> borderQueryStr (query_ ropts)
           <+> str (" in "++T.unpack (replaceHiddenAccountsNameWith "All" acct)++")")
-          <+> (if ignore_assertions_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
+          <+> (if ignore_assertions_ $ inputopts_ copts then withAttr (borderAttr <> "query") (str " ignoring balance assertions") else str "")
           where
             togglefilters =
               case concat [

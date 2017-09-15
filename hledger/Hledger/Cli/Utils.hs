@@ -63,9 +63,8 @@ withJournalDo opts cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
-  rulespath <- rulesFilePathFromOpts opts
   journalpaths <- journalFilePathFromOpts opts
-  ej <- readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpaths
+  ej <- readJournalFilesWithOpts (inputopts_ opts) journalpaths
   let f   = cmd opts
           . pivotByOpts opts
           . anonymiseByOpts opts
@@ -134,10 +133,9 @@ writeOutput opts s = do
 -- Reads the full journal, without filtering.
 journalReload :: CliOpts -> IO (Either String Journal)
 journalReload opts = do
-  rulespath <- rulesFilePathFromOpts opts
   journalpaths <- journalFilePathFromOpts opts
   ((pivotByOpts opts . journalApplyAliases (aliasesFromOpts opts)) <$>) <$>
-    readJournalFiles Nothing rulespath (not $ ignore_assertions_ opts) journalpaths
+    readJournalFilesWithOpts (inputopts_ opts) journalpaths
 
 -- | Re-read the option-specified journal file(s), but only if any of
 -- them has changed since last read. (If the file is standard input,

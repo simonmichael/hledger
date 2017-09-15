@@ -340,11 +340,10 @@ data CliOpts = CliOpts {
      rawopts_         :: RawOpts
     ,command_         :: String
     ,file_            :: [FilePath]
-    ,rules_file_      :: Maybe FilePath
+    ,inputopts_       :: InputOpts
+    ,reportopts_      :: ReportOpts
     ,output_file_     :: Maybe FilePath
     ,output_format_   :: Maybe String
-    ,alias_           :: [String]
-    ,ignore_assertions_ :: Bool
     ,debug_           :: Int            -- ^ debug level, set by @--debug[=N]@. See also 'Hledger.Utils.debugLevel'.
     ,no_new_accounts_ :: Bool           -- add
     ,width_           :: Maybe String   -- ^ the --width value provided, if any
@@ -352,7 +351,6 @@ data CliOpts = CliOpts {
                                         -- 1. the COLUMNS env var, if set
                                         -- 2. the width reported by the terminal, if supported
                                         -- 3. the default (80)
-    ,reportopts_      :: ReportOpts
  } deriving (Show, Data, Typeable)
 
 instance Default CliOpts where def = defcliopts
@@ -369,9 +367,7 @@ defcliopts = CliOpts
     def
     def
     def
-    def
     defaultWidth
-    def
 
 -- | Convert possibly encoded option values to regular unicode strings.
 decodeRawOpts :: RawOpts -> RawOpts
@@ -387,6 +383,7 @@ defaultWidth = 80
 -- Also records the terminal width, if supported.
 rawOptsToCliOpts :: RawOpts -> IO CliOpts
 rawOptsToCliOpts rawopts = checkCliOpts <$> do
+  let iopts = rawOptsToInputOpts rawopts
   ropts <- rawOptsToReportOpts rawopts
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
   mtermwidth <-
@@ -401,16 +398,14 @@ rawOptsToCliOpts rawopts = checkCliOpts <$> do
               rawopts_         = rawopts
              ,command_         = stringopt "command" rawopts
              ,file_            = map (T.unpack . stripquotes . T.pack) $ listofstringopt "file" rawopts
-             ,rules_file_      = maybestringopt "rules-file" rawopts
+             ,inputopts_       = iopts
+             ,reportopts_      = ropts
              ,output_file_     = maybestringopt "output-file" rawopts
              ,output_format_   = maybestringopt "output-format" rawopts
-             ,alias_           = map (T.unpack . stripquotes . T.pack) $ listofstringopt "alias" rawopts
              ,debug_           = intopt "debug" rawopts
-             ,ignore_assertions_ = boolopt "ignore-assertions" rawopts
              ,no_new_accounts_ = boolopt "no-new-accounts" rawopts -- add
              ,width_           = maybestringopt "width" rawopts
              ,available_width_ = availablewidth
-             ,reportopts_      = ropts
              }
 
 -- | Do final validation of processed opts, raising an error if there is trouble.
@@ -480,7 +475,7 @@ getHledgerCliOpts mode' = do
 -- | Get the account name aliases from options, if any.
 aliasesFromOpts :: CliOpts -> [AccountAlias]
 aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++quoteIfNeeded a) $ T.pack a)
-                  . alias_
+                  . aliases_ . inputopts_
 
 -- | Get the (tilde-expanded, absolute) journal file path from
 -- 1. options, 2. an environment variable, or 3. the default.
@@ -544,7 +539,7 @@ filePathExtension = dropWhile (=='.') . snd . splitExtension . snd . splitFileNa
 rulesFilePathFromOpts :: CliOpts -> IO (Maybe FilePath)
 rulesFilePathFromOpts opts = do
   d <- getCurrentDirectory
-  maybe (return Nothing) (fmap Just . expandPath d) $ rules_file_ opts
+  maybe (return Nothing) (fmap Just . expandPath d) $ mrules_file_ $ inputopts_ opts
 
 -- | Get the width in characters to use for console output.
 -- This comes from the --width option, or the COLUMNS environment

@@ -185,7 +185,7 @@ asDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
           <+> str "/"
           <+> total
           <+> str ")"
-          <+> (if ignore_assertions_ copts
+          <+> (if ignore_assertions_ $ inputopts_ copts
                then withAttr (borderAttr <> "query") (str " ignoring balance assertions")
                else str "")
           where

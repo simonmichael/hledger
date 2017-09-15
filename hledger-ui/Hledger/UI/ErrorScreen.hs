@@ -151,7 +151,7 @@ uiReloadJournalIfChanged copts d j ui = do
 -- are disabled, do nothing.
 uiCheckBalanceAssertions :: Day -> UIState -> UIState
 uiCheckBalanceAssertions d ui@UIState{aopts=UIOpts{cliopts_=copts}, ajournal=j}
-  | ignore_assertions_ copts = ui
+  | ignore_assertions_ $ inputopts_ copts = ui
   | otherwise =
     case journalCheckBalanceAssertions j of
       Right _  -> ui

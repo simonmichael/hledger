@@ -101,7 +101,6 @@ data ReportOpts = ReportOpts {
  } deriving (Show, Data, Typeable)
 
 instance Default ReportOpts where def = defreportopts
-instance Default Bool where def = False
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts

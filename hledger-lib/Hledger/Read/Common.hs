@@ -13,7 +13,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 -}
 
 --- * module
-{-# LANGUAGE CPP, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
+{-# LANGUAGE CPP, DeriveDataTypeable, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
 
 module Hledger.Read.Common
 where
@@ -24,6 +24,8 @@ import Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
 import Control.Monad.State.Strict
 import Data.Char (isNumber)
+import Data.Data
+import Data.Default
 import Data.Functor.Identity
 import Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
@@ -42,6 +44,35 @@ import Hledger.Data
 import Hledger.Utils
 
 -- $setup
+
+-- | Various options to use when reading journal files.
+-- Similar to CliOptions.inputflags, simplifies the journal-reading functions.
+data InputOpts = InputOpts {
+     -- files_             :: [FilePath]
+     mformat_           :: Maybe StorageFormat  -- ^ a file/storage format to try, unless overridden
+                                                --   by a filename prefix. Nothing means try all.
+    ,mrules_file_       :: Maybe FilePath       -- ^ a conversion rules file to use (when reading CSV)
+    ,aliases_           :: [String]             -- ^ account name aliases to apply
+    ,anon_              :: Bool                 -- ^ do light anonymisation/obfuscation of the data 
+    ,ignore_assertions_ :: Bool                 -- ^ don't check balance assertions
+    ,pivot_             :: String               -- ^ use the given field's value as the account name 
+ } deriving (Show, Data) --, Typeable)
+
+instance Default InputOpts where def = definputopts
+
+definputopts :: InputOpts
+definputopts = InputOpts def def def def def def
+
+rawOptsToInputOpts :: RawOpts -> InputOpts
+rawOptsToInputOpts rawopts = InputOpts{
+   -- files_             = map (T.unpack . stripquotes . T.pack) $ listofstringopt "file" rawopts
+   mformat_           = Nothing
+  ,mrules_file_       = maybestringopt "rules-file" rawopts
+  ,aliases_           = map (T.unpack . stripquotes . T.pack) $ listofstringopt "alias" rawopts
+  ,anon_              = boolopt "anon" rawopts
+  ,ignore_assertions_ = boolopt "ignore-assertions" rawopts
+  ,pivot_             = stringopt "pivot" rawopts
+  }
 
 --- * parsing utils
 
