@@ -203,3 +203,9 @@ Or, you can use a [field assignment](#field-assignment) to `amount` that interpo
 If the CSV includes a running balance, you can assign that to the `balance` pseudo field;
 whenever the running balance value is non-empty, 
 it will be [asserted](/journal.html#balance-assertions) as the balance after the `account1` posting. 
+
+## Reading multiple CSV files
+
+You can read multiple CSV files at once using multiple `-f` arguments on the command line,
+and hledger will look for a correspondingly-named rules file for each.
+Note if you use the `--rules-file` option, this one rules file will be used for all the CSV files being read. 
