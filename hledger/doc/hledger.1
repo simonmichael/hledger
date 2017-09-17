@@ -2140,8 +2140,8 @@ STR should contain at least two characters.
 If there is no similar\-enough match, no transaction will be shown.
 .PP
 With \f[C]\-\-new\f[], for each FILE being read, hledger reads (and
-writes) a special .FILE.seen file in the same directory, containing the
-latest transaction date(s) that were seen last time FILE was read.
+writes) a special .latest.FILE file in the same directory, containing
+the latest transaction date(s) that were seen last time FILE was read.
 When this file is found, only transactions with newer dates (and new
 transactions on the latest date) are printed.
 This is useful for ignoring already\-seen entries in import data, such
@@ -2155,8 +2155,9 @@ $\ hledger\ \-f\ bank1.csv\ print\ \-\-new
 \f[]
 .fi
 .PP
-It assumes that only same\-or\-newer\-dated transactions are added to
-FILE, and that the order of same\-date transactions remains stable.
+This assumes that transactions added to FILE always have same or
+increasing dates, and that transactions on the same day do not get
+reordered.
 .PP
 The print command also supports output destination and CSV output.
 Here\[aq]s an example of print\[aq]s CSV output:

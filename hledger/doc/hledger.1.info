@@ -1713,7 +1713,7 @@ is most recent.  STR should contain at least two characters.  If there
 is no similar-enough match, no transaction will be shown.
 
    With '--new', for each FILE being read, hledger reads (and writes) a
-special .FILE.seen file in the same directory, containing the latest
+special .latest.FILE file in the same directory, containing the latest
 transaction date(s) that were seen last time FILE was read.  When this
 file is found, only transactions with newer dates (and new transactions
 on the latest date) are printed.  This is useful for ignoring
@@ -1722,8 +1722,9 @@ already-seen entries in import data, such as downloaded CSV files.  Eg:
 $ hledger -f bank1.csv print --new
 # shows transactions added since last print --new on this file
 
-   It assumes that only same-or-newer-dated transactions are added to
-FILE, and that the order of same-date transactions remains stable.
+   This assumes that transactions added to FILE always have same or
+increasing dates, and that transactions on the same day do not get
+reordered.
 
    The print command also supports output destination and CSV output.
 Here's an example of print's CSV output:
@@ -2233,51 +2234,51 @@ Node: prices52658
 Ref: #prices52775
 Node: print52818
 Ref: #print52930
-Node: print-unique57726
-Ref: #print-unique57854
-Node: register57922
-Ref: #register58051
-Node: Custom register output62552
-Ref: #custom-register-output62683
-Node: register-match63980
-Ref: #register-match64116
-Node: rewrite64299
-Ref: #rewrite64418
-Node: stats64487
-Ref: #stats64592
-Node: tags65473
-Ref: #tags65573
-Node: test65605
-Ref: #test65691
-Node: ADD-ON COMMANDS66059
-Ref: #add-on-commands66171
-Node: Official add-ons67458
-Ref: #official-add-ons67600
-Node: api67687
-Ref: #api67778
-Node: ui67830
-Ref: #ui67931
-Node: web67989
-Ref: #web68080
-Node: Third party add-ons68126
-Ref: #third-party-add-ons68303
-Node: diff68438
-Ref: #diff68537
-Node: iadd68636
-Ref: #iadd68752
-Node: interest68835
-Ref: #interest68958
-Node: irr69053
-Ref: #irr69153
-Node: Experimental add-ons69231
-Ref: #experimental-add-ons69385
-Node: autosync69676
-Ref: #autosync69790
-Node: budget70029
-Ref: #budget70153
-Node: chart70219
-Ref: #chart70338
-Node: check70409
-Ref: #check70513
+Node: print-unique57737
+Ref: #print-unique57865
+Node: register57933
+Ref: #register58062
+Node: Custom register output62563
+Ref: #custom-register-output62694
+Node: register-match63991
+Ref: #register-match64127
+Node: rewrite64310
+Ref: #rewrite64429
+Node: stats64498
+Ref: #stats64603
+Node: tags65484
+Ref: #tags65584
+Node: test65616
+Ref: #test65702
+Node: ADD-ON COMMANDS66070
+Ref: #add-on-commands66182
+Node: Official add-ons67469
+Ref: #official-add-ons67611
+Node: api67698
+Ref: #api67789
+Node: ui67841
+Ref: #ui67942
+Node: web68000
+Ref: #web68091
+Node: Third party add-ons68137
+Ref: #third-party-add-ons68314
+Node: diff68449
+Ref: #diff68548
+Node: iadd68647
+Ref: #iadd68763
+Node: interest68846
+Ref: #interest68969
+Node: irr69064
+Ref: #irr69164
+Node: Experimental add-ons69242
+Ref: #experimental-add-ons69396
+Node: autosync69687
+Ref: #autosync69801
+Node: budget70040
+Ref: #budget70164
+Node: chart70230
+Ref: #chart70349
+Node: check70420
+Ref: #check70524
 
 End Tag Table

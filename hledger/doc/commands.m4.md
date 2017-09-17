@@ -524,16 +524,18 @@ With `-m`/`--match` and a STR argument, print will show at most one transaction:
 one whose description is most similar to STR, and is most recent. STR should contain at
 least two characters. If there is no similar-enough match, no transaction will be shown.
 
-With `--new`, for each FILE being read, hledger reads (and writes) a special .FILE.seen file in the same directory,
-containing the latest transaction date(s) that were seen last time FILE was read.
-When this file is found, only transactions with newer dates (and new transactions on the latest date) are printed.
+With `--new`, for each FILE being read, hledger reads (and writes) a special 
+.latest.FILE file in the same directory, containing the latest transaction date(s)
+that were seen last time FILE was read. When this file is found, only transactions 
+with newer dates (and new transactions on the latest date) are printed.
 This is useful for ignoring already-seen entries in import data, such as downloaded CSV files.
 Eg:
 ```console
 $ hledger -f bank1.csv print --new
 # shows transactions added since last print --new on this file
 ```
-It assumes that only same-or-newer-dated transactions are added to FILE, and that the order of same-date transactions remains stable.   
+This assumes that transactions added to FILE always have same or increasing dates, 
+and that transactions on the same day do not get reordered.   
 
 The print command also supports 
 [output destination](#output-destination)
