@@ -388,6 +388,19 @@ DESCRIPTION
 ...
 }})
 
+## import
+Read new transactions added to each FILE since last run, and add them to
+the main journal file.
+
+`--dry-run`
+: just show the transactions to be imported
+
+Input files are provided as arguments, or glob patterns. So eg to add new 
+transactions from all CSV files to the main journal: hledger import *.csv
+
+New transactions are detected like print --new (using .latest.FILE state files).
+
+
 ## incomestatement
 Show an income statement. Alias: is.
 
@@ -525,7 +538,7 @@ one whose description is most similar to STR, and is most recent. STR should con
 least two characters. If there is no similar-enough match, no transaction will be shown.
 
 With `--new`, for each FILE being read, hledger reads (and writes) a special 
-.latest.FILE file in the same directory, containing the latest transaction date(s)
+state file (`.latest.FILE` in the same directory), containing the latest transaction date(s)
 that were seen last time FILE was read. When this file is found, only transactions 
 with newer dates (and new transactions on the latest date) are printed.
 This is useful for ignoring already-seen entries in import data, such as downloaded CSV files.
@@ -535,7 +548,8 @@ $ hledger -f bank1.csv print --new
 # shows transactions added since last print --new on this file
 ```
 This assumes that transactions added to FILE always have same or increasing dates, 
-and that transactions on the same day do not get reordered.   
+and that transactions on the same day do not get reordered.
+See also the [import](#import) command.    
 
 The print command also supports 
 [output destination](#output-destination)

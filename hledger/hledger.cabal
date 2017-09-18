@@ -134,6 +134,7 @@ library
       Hledger.Cli.Commands.Checkdupes
       Hledger.Cli.Commands.Equity
       Hledger.Cli.Commands.Help
+      Hledger.Cli.Commands.Import
       Hledger.Cli.Commands.Incomestatement
       Hledger.Cli.Commands.Prices
       Hledger.Cli.Commands.Print

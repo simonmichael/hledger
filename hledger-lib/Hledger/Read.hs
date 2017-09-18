@@ -284,7 +284,7 @@ readJournalFileWithOpts iopts prefixedfile = do
     Right j | new_ iopts -> do
       ds <- previousLatestDates f
       let (newj, newds) = journalFilterSinceLatestDates ds j
-      when (not $ null newds) $ saveLatestDates newds f
+      when (new_save_ iopts && not (null newds)) $ saveLatestDates newds f
       return $ Right newj
     Right j -> return $ Right j
 

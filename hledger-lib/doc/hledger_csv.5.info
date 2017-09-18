@@ -198,6 +198,7 @@ File: hledger_csv.5.info,  Node: CSV TIPS,  Prev: CSV RULES,  Up: Top
 * CSV accounts::
 * CSV amounts::
 * CSV balance assertions::
+* Reading multiple CSV files::
 
 
 File: hledger_csv.5.info,  Node: CSV ordering,  Next: CSV accounts,  Up: CSV TIPS
@@ -246,7 +247,7 @@ fields (giving more control, eg to put the currency symbol on the
 right).
 
 
-File: hledger_csv.5.info,  Node: CSV balance assertions,  Prev: CSV amounts,  Up: CSV TIPS
+File: hledger_csv.5.info,  Node: CSV balance assertions,  Next: Reading multiple CSV files,  Prev: CSV amounts,  Up: CSV TIPS
 
 2.4 CSV balance assertions
 ==========================
@@ -254,6 +255,17 @@ File: hledger_csv.5.info,  Node: CSV balance assertions,  Prev: CSV amounts,  Up
 If the CSV includes a running balance, you can assign that to the
 'balance' pseudo field; whenever the running balance value is non-empty,
 it will be asserted as the balance after the 'account1' posting.
+
+
+File: hledger_csv.5.info,  Node: Reading multiple CSV files,  Prev: CSV balance assertions,  Up: CSV TIPS
+
+2.5 Reading multiple CSV files
+==============================
+
+You can read multiple CSV files at once using multiple '-f' arguments on
+the command line, and hledger will look for a correspondingly-named
+rules file for each.  Note if you use the '--rules-file' option, this
+one rules file will be used for all the CSV files being read.
 
 
 Tag Table:
@@ -276,13 +288,15 @@ Node: newest-first5011
 Ref: #newest-first5127
 Node: CSV TIPS5538
 Ref: #csv-tips5634
-Node: CSV ordering5721
-Ref: #csv-ordering5841
-Node: CSV accounts6022
-Ref: #csv-accounts6162
-Node: CSV amounts6416
-Ref: #csv-amounts6564
-Node: CSV balance assertions7339
-Ref: #csv-balance-assertions7488
+Node: CSV ordering5752
+Ref: #csv-ordering5872
+Node: CSV accounts6053
+Ref: #csv-accounts6193
+Node: CSV amounts6447
+Ref: #csv-amounts6595
+Node: CSV balance assertions7370
+Ref: #csv-balance-assertions7554
+Node: Reading multiple CSV files7759
+Ref: #reading-multiple-csv-files7931
 
 End Tag Table

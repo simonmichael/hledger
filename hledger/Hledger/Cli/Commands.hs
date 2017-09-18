@@ -22,6 +22,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Checkdupes
   ,module Hledger.Cli.Commands.Equity
   ,module Hledger.Cli.Commands.Help
+  ,module Hledger.Cli.Commands.Import
   ,module Hledger.Cli.Commands.Incomestatement
   ,module Hledger.Cli.Commands.Prices
   ,module Hledger.Cli.Commands.Print
@@ -60,6 +61,7 @@ import Hledger.Cli.Commands.Checkdates
 import Hledger.Cli.Commands.Checkdupes
 import Hledger.Cli.Commands.Equity
 import Hledger.Cli.Commands.Help
+import Hledger.Cli.Commands.Import
 import Hledger.Cli.Commands.Incomestatement
 import Hledger.Cli.Commands.Prices
 import Hledger.Cli.Commands.Print
@@ -86,6 +88,7 @@ builtinCommands = [
   ,(checkdupesmode         , checkdupes)
   ,(equitymode             , equity)
   ,(helpmode               , help')
+  ,(importmode             , importcmd)
   ,(incomestatementmode    , incomestatement)
   ,(pricesmode             , prices)
   ,(printmode              , print')

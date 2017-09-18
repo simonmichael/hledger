@@ -800,6 +800,7 @@ detailed command help.
 * check-dupes::
 * equity::
 * help::
+* import::
 * incomestatement::
 * prices::
 * print::
@@ -1520,7 +1521,7 @@ balances to zero and back.  Can be useful for bringing account balances
 across file boundaries.
 
 
-File: hledger.1.info,  Node: help,  Next: incomestatement,  Prev: equity,  Up: COMMANDS
+File: hledger.1.info,  Node: help,  Next: import,  Prev: equity,  Up: COMMANDS
 
 4.11 help
 =========
@@ -1557,9 +1558,29 @@ DESCRIPTION
 ...
 
 
-File: hledger.1.info,  Node: incomestatement,  Next: prices,  Prev: help,  Up: COMMANDS
+File: hledger.1.info,  Node: import,  Next: incomestatement,  Prev: help,  Up: COMMANDS
 
-4.12 incomestatement
+4.12 import
+===========
+
+Read new transactions added to each FILE since last run, and add them to
+the main journal file.
+
+'--dry-run'
+
+     just show the transactions to be imported
+
+   Input files are provided as arguments, or glob patterns.  So eg to
+add new transactions from all CSV files to the main journal: hledger
+import *.csv
+
+   New transactions are detected like print -new (using .latest.FILE
+state files).
+
+
+File: hledger.1.info,  Node: incomestatement,  Next: prices,  Prev: import,  Up: COMMANDS
+
+4.13 incomestatement
 ====================
 
 Show an income statement.  Alias: is.
@@ -1635,7 +1656,7 @@ report mode with '--change'/'--cumulative'/'--historical'.
 
 File: hledger.1.info,  Node: prices,  Next: print,  Prev: incomestatement,  Up: COMMANDS
 
-4.13 prices
+4.14 prices
 ===========
 
 Print all market prices from the journal.
@@ -1643,7 +1664,7 @@ Print all market prices from the journal.
 
 File: hledger.1.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: COMMANDS
 
-4.14 print
+4.15 print
 ==========
 
 Show transactions from the journal.  Aliases: p, txns.
@@ -1713,18 +1734,19 @@ is most recent.  STR should contain at least two characters.  If there
 is no similar-enough match, no transaction will be shown.
 
    With '--new', for each FILE being read, hledger reads (and writes) a
-special .latest.FILE file in the same directory, containing the latest
-transaction date(s) that were seen last time FILE was read.  When this
-file is found, only transactions with newer dates (and new transactions
-on the latest date) are printed.  This is useful for ignoring
-already-seen entries in import data, such as downloaded CSV files.  Eg:
+special state file ('.latest.FILE' in the same directory), containing
+the latest transaction date(s) that were seen last time FILE was read.
+When this file is found, only transactions with newer dates (and new
+transactions on the latest date) are printed.  This is useful for
+ignoring already-seen entries in import data, such as downloaded CSV
+files.  Eg:
 
 $ hledger -f bank1.csv print --new
 # shows transactions added since last print --new on this file
 
    This assumes that transactions added to FILE always have same or
 increasing dates, and that transactions on the same day do not get
-reordered.
+reordered.  See also the import command.
 
    The print command also supports output destination and CSV output.
 Here's an example of print's CSV output:
@@ -1759,7 +1781,7 @@ $ hledger print -Ocsv
 
 File: hledger.1.info,  Node: print-unique,  Next: register,  Prev: print,  Up: COMMANDS
 
-4.15 print-unique
+4.16 print-unique
 =================
 
 Print transactions which do not reuse an already-seen description.
@@ -1767,7 +1789,7 @@ Print transactions which do not reuse an already-seen description.
 
 File: hledger.1.info,  Node: register,  Next: register-match,  Prev: print-unique,  Up: COMMANDS
 
-4.16 register
+4.17 register
 =============
 
 Show postings and their running total.  Aliases: r, reg.
@@ -1872,7 +1894,7 @@ length and comparable to the others in the report.
 
 File: hledger.1.info,  Node: Custom register output,  Up: register
 
-4.16.1 Custom register output
+4.17.1 Custom register output
 -----------------------------
 
 register uses the full terminal width by default, except on windows.
@@ -1904,7 +1926,7 @@ output.
 
 File: hledger.1.info,  Node: register-match,  Next: rewrite,  Prev: register,  Up: COMMANDS
 
-4.17 register-match
+4.18 register-match
 ===================
 
 Print the one posting whose transaction description is closest to DESC,
@@ -1914,7 +1936,7 @@ already-seen transactions when importing.
 
 File: hledger.1.info,  Node: rewrite,  Next: stats,  Prev: register-match,  Up: COMMANDS
 
-4.18 rewrite
+4.19 rewrite
 ============
 
 Print all transactions, adding custom postings to the matched ones.
@@ -1922,7 +1944,7 @@ Print all transactions, adding custom postings to the matched ones.
 
 File: hledger.1.info,  Node: stats,  Next: tags,  Prev: rewrite,  Up: COMMANDS
 
-4.19 stats
+4.20 stats
 ==========
 
 Show some journal statistics.
@@ -1954,7 +1976,7 @@ output destination.
 
 File: hledger.1.info,  Node: tags,  Next: test,  Prev: stats,  Up: COMMANDS
 
-4.20 tags
+4.21 tags
 =========
 
 List all the tag names in use.
@@ -1962,7 +1984,7 @@ List all the tag names in use.
 
 File: hledger.1.info,  Node: test,  Prev: tags,  Up: COMMANDS
 
-4.21 test
+4.22 test
 =========
 
 Run built-in unit tests.
@@ -2192,93 +2214,95 @@ Node: QUERIES21498
 Ref: #queries21602
 Node: COMMANDS25569
 Ref: #commands25683
-Node: accounts26655
-Ref: #accounts26755
-Node: activity27748
-Ref: #activity27860
-Node: add28219
-Ref: #add28320
-Node: balance30978
-Ref: #balance31091
-Node: Flat mode34111
-Ref: #flat-mode34238
-Node: Depth limited balance reports34658
-Ref: #depth-limited-balance-reports34861
-Node: Multicolumn balance reports35281
-Ref: #multicolumn-balance-reports35492
-Node: Custom balance output40140
-Ref: #custom-balance-output40324
-Node: Colour support42417
-Ref: #colour-support42578
-Node: Output destination42751
-Ref: #output-destination42909
-Node: CSV output43179
-Ref: #csv-output43298
-Node: balancesheet43695
-Ref: #balancesheet43833
-Node: balancesheetequity45740
-Ref: #balancesheetequity45891
-Node: cashflow46680
-Ref: #cashflow46810
-Node: check-dates48661
-Ref: #check-dates48790
-Node: check-dupes48907
-Ref: #check-dupes49034
-Node: equity49171
-Ref: #equity49283
-Node: help49446
-Ref: #help49558
-Node: incomestatement50632
-Ref: #incomestatement50766
-Node: prices52658
-Ref: #prices52775
-Node: print52818
-Ref: #print52930
-Node: print-unique57737
-Ref: #print-unique57865
-Node: register57933
-Ref: #register58062
-Node: Custom register output62563
-Ref: #custom-register-output62694
-Node: register-match63991
-Ref: #register-match64127
-Node: rewrite64310
-Ref: #rewrite64429
-Node: stats64498
-Ref: #stats64603
-Node: tags65484
-Ref: #tags65584
-Node: test65616
-Ref: #test65702
-Node: ADD-ON COMMANDS66070
-Ref: #add-on-commands66182
-Node: Official add-ons67469
-Ref: #official-add-ons67611
-Node: api67698
-Ref: #api67789
-Node: ui67841
-Ref: #ui67942
-Node: web68000
-Ref: #web68091
-Node: Third party add-ons68137
-Ref: #third-party-add-ons68314
-Node: diff68449
-Ref: #diff68548
-Node: iadd68647
-Ref: #iadd68763
-Node: interest68846
-Ref: #interest68969
-Node: irr69064
-Ref: #irr69164
-Node: Experimental add-ons69242
-Ref: #experimental-add-ons69396
-Node: autosync69687
-Ref: #autosync69801
-Node: budget70040
-Ref: #budget70164
-Node: chart70230
-Ref: #chart70349
-Node: check70420
-Ref: #check70524
+Node: accounts26666
+Ref: #accounts26766
+Node: activity27759
+Ref: #activity27871
+Node: add28230
+Ref: #add28331
+Node: balance30989
+Ref: #balance31102
+Node: Flat mode34122
+Ref: #flat-mode34249
+Node: Depth limited balance reports34669
+Ref: #depth-limited-balance-reports34872
+Node: Multicolumn balance reports35292
+Ref: #multicolumn-balance-reports35503
+Node: Custom balance output40151
+Ref: #custom-balance-output40335
+Node: Colour support42428
+Ref: #colour-support42589
+Node: Output destination42762
+Ref: #output-destination42920
+Node: CSV output43190
+Ref: #csv-output43309
+Node: balancesheet43706
+Ref: #balancesheet43844
+Node: balancesheetequity45751
+Ref: #balancesheetequity45902
+Node: cashflow46691
+Ref: #cashflow46821
+Node: check-dates48672
+Ref: #check-dates48801
+Node: check-dupes48918
+Ref: #check-dupes49045
+Node: equity49182
+Ref: #equity49294
+Node: help49457
+Ref: #help49560
+Node: import50634
+Ref: #import50750
+Node: incomestatement51145
+Ref: #incomestatement51281
+Node: prices53173
+Ref: #prices53290
+Node: print53333
+Ref: #print53445
+Node: print-unique58291
+Ref: #print-unique58419
+Node: register58487
+Ref: #register58616
+Node: Custom register output63117
+Ref: #custom-register-output63248
+Node: register-match64545
+Ref: #register-match64681
+Node: rewrite64864
+Ref: #rewrite64983
+Node: stats65052
+Ref: #stats65157
+Node: tags66038
+Ref: #tags66138
+Node: test66170
+Ref: #test66256
+Node: ADD-ON COMMANDS66624
+Ref: #add-on-commands66736
+Node: Official add-ons68023
+Ref: #official-add-ons68165
+Node: api68252
+Ref: #api68343
+Node: ui68395
+Ref: #ui68496
+Node: web68554
+Ref: #web68645
+Node: Third party add-ons68691
+Ref: #third-party-add-ons68868
+Node: diff69003
+Ref: #diff69102
+Node: iadd69201
+Ref: #iadd69317
+Node: interest69400
+Ref: #interest69523
+Node: irr69618
+Ref: #irr69718
+Node: Experimental add-ons69796
+Ref: #experimental-add-ons69950
+Node: autosync70241
+Ref: #autosync70355
+Node: budget70594
+Ref: #budget70718
+Node: chart70784
+Ref: #chart70903
+Node: check70974
+Ref: #check71078
 
 End Tag Table

@@ -247,6 +247,13 @@ If the CSV includes a running balance, you can assign that to the
 \f[C]balance\f[] pseudo field; whenever the running balance value is
 non\-empty, it will be asserted as the balance after the
 \f[C]account1\f[] posting.
+.SS Reading multiple CSV files
+.PP
+You can read multiple CSV files at once using multiple \f[C]\-f\f[]
+arguments on the command line, and hledger will look for a
+correspondingly\-named rules file for each.
+Note if you use the \f[C]\-\-rules\-file\f[] option, this one rules file
+will be used for all the CSV files being read.
 
 
 .SH "REPORTING BUGS"

@@ -56,13 +56,14 @@ data InputOpts = InputOpts {
     ,anon_              :: Bool                 -- ^ do light anonymisation/obfuscation of the data 
     ,ignore_assertions_ :: Bool                 -- ^ don't check balance assertions
     ,new_               :: Bool                 -- ^ read only new transactions since this file was last read
+    ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
     ,pivot_             :: String               -- ^ use the given field's value as the account name 
  } deriving (Show, Data) --, Typeable)
 
 instance Default InputOpts where def = definputopts
 
 definputopts :: InputOpts
-definputopts = InputOpts def def def def def def def
+definputopts = InputOpts def def def def def def True def
 
 rawOptsToInputOpts :: RawOpts -> InputOpts
 rawOptsToInputOpts rawopts = InputOpts{
@@ -73,6 +74,7 @@ rawOptsToInputOpts rawopts = InputOpts{
   ,anon_              = boolopt "anon" rawopts
   ,ignore_assertions_ = boolopt "ignore-assertions" rawopts
   ,new_               = boolopt "new" rawopts
+  ,new_save_          = True
   ,pivot_             = stringopt "pivot" rawopts
   }
 

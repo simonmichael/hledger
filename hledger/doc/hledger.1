@@ -1951,6 +1951,22 @@ DESCRIPTION
 \&...
 \f[]
 .fi
+.SS import
+.PP
+Read new transactions added to each FILE since last run, and add them to
+the main journal file.
+.TP
+.B \f[C]\-\-dry\-run\f[]
+just show the transactions to be imported
+.RS
+.RE
+.PP
+Input files are provided as arguments, or glob patterns.
+So eg to add new transactions from all CSV files to the main journal:
+hledger import *.csv
+.PP
+New transactions are detected like print \-\-new (using .latest.FILE
+state files).
 .SS incomestatement
 .PP
 Show an income statement.
@@ -2140,8 +2156,9 @@ STR should contain at least two characters.
 If there is no similar\-enough match, no transaction will be shown.
 .PP
 With \f[C]\-\-new\f[], for each FILE being read, hledger reads (and
-writes) a special .latest.FILE file in the same directory, containing
-the latest transaction date(s) that were seen last time FILE was read.
+writes) a special state file (\f[C]\&.latest.FILE\f[] in the same
+directory), containing the latest transaction date(s) that were seen
+last time FILE was read.
 When this file is found, only transactions with newer dates (and new
 transactions on the latest date) are printed.
 This is useful for ignoring already\-seen entries in import data, such
@@ -2158,6 +2175,7 @@ $\ hledger\ \-f\ bank1.csv\ print\ \-\-new
 This assumes that transactions added to FILE always have same or
 increasing dates, and that transactions on the same day do not get
 reordered.
+See also the import command.
 .PP
 The print command also supports output destination and CSV output.
 Here\[aq]s an example of print\[aq]s CSV output:
