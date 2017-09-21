@@ -8,6 +8,8 @@ module Hledger.Cli.Commands.Import (
 where
 
 import Control.Monad
+import Data.List
+import Data.Ord
 import Data.String.Here
 import Hledger
 import Hledger.Cli.CliOptions
@@ -46,7 +48,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
       case enewj of
         Left e     -> error' e 
         Right newj ->
-          case jtxns newj of
+          case sortBy (comparing tdate) $ jtxns newj of
             [] -> putStrLn "no new transactions"
             newts | dryrun -> do
               printf "would import %d new transactions:\n\n" (length newts)
