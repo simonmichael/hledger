@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE DataKinds           #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -212,6 +213,9 @@ instance ToSchema Side
 instance ToSchema DigitGroupStyle
 instance ToSchema MixedAmount
 instance ToSchema Price
+#if MIN_VERSION_swagger2(2,1,5)
+  where declareNamedSchema = genericDeclareNamedSchemaUnrestricted defaultSchemaOptions
+#endif
 instance ToSchema MarketPrice
 instance ToSchema PostingType
 instance ToSchema Posting

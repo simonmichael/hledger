@@ -60,7 +60,7 @@ executable hledger-api
     , safe
     , servant-server >= 0.10
     , servant-swagger
-    , swagger2 >= 2.0 && < 2.1.5
+    , swagger2 >= 2.0 && < 2.2
     , text
     , transformers
     , wai
