@@ -51,6 +51,7 @@ module Hledger.Cli.CliOptions (
   outputFormatFromOpts,
   defaultWidth,
   widthFromOpts,
+  replaceNumericFlags,
   -- | For register:
   registerWidthsFromOpts,
   maybeAccountNameDrop,
@@ -75,6 +76,7 @@ import Prelude ()
 import Prelude.Compat
 import qualified Control.Exception as C
 import Control.Monad (when)
+import Data.Char
 import Data.Default
 #if !MIN_VERSION_base(4,8,0)
 import Data.Functor.Compat ((<$>))
@@ -149,7 +151,7 @@ reportflags = [
  ,flagNone ["pending","P"]   (setboolopt "pending") "include only pending postings/txns"
  ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only cleared postings/txns"
  ,flagNone ["real","R"]      (setboolopt "real") "include only non-virtual postings"
- ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "N" "hide accounts/postings deeper than N"
+ ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "NUM" "(or -NUM): hide accounts/postings deeper than this"
  ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden"
  ,flagNone ["cost","B"]      (setboolopt "cost") "convert amounts to their cost at transaction time (using the transaction price, if any)"
  ,flagNone ["value","V"]     (setboolopt "value") "convert amounts to their market value on the report end date (using the most recent applicable market price, if any)"
@@ -376,6 +378,14 @@ decodeRawOpts = map (\(name',val) -> (name', fromSystemString val))
 -- | Default width for hledger console output, when not otherwise specified.
 defaultWidth :: Int
 defaultWidth = 80
+
+-- | Replace any numeric flags (eg -2) with their long form (--depth 2),
+-- as I'm guessing cmdargs doesn't support this directly.  
+replaceNumericFlags :: [String] -> [String]
+replaceNumericFlags = map replace
+  where
+    replace ('-':ds) | not (null ds) && all isDigit ds = "--depth="++ds
+    replace s = s
 
 -- | Parse raw option string values to the desired final data types.
 -- Any relative smart dates will be converted to fixed dates based on

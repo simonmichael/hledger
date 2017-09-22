@@ -108,7 +108,7 @@ main = do
   -- some preliminary (imperfect) argument parsing to supplement cmdargs
   args <- getArgs
   let
-    args'                = moveFlagsAfterCommand args
+    args'                = moveFlagsAfterCommand $ replaceNumericFlags args
     isFlag               = ("-" `isPrefixOf`)
     isNonEmptyNonFlag s  = not (isFlag s) && not (null s)
     rawcmd               = headDef "" $ takeWhile isNonEmptyNonFlag args'
@@ -201,7 +201,7 @@ main = do
 argsToCliOpts :: [String] -> [String] -> IO CliOpts
 argsToCliOpts args addons = do
   let
-    args'        = moveFlagsAfterCommand args
+    args'        = moveFlagsAfterCommand $ replaceNumericFlags args
     cmdargsopts  = either usageError id $ process (mainmode addons) args'
     cmdargsopts' = decodeRawOpts cmdargsopts
   rawOptsToCliOpts cmdargsopts'

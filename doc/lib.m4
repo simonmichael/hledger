@@ -141,8 +141,8 @@ m4_define({{_reportingoptions_}}, {{
 `-R --real`
 : include only non-virtual postings
 
-`--depth=N`
-: hide accounts/postings deeper than N
+`-NUM --depth=NUM`
+: hide/aggregate accounts or postings more than NUM levels deep
 
 `-E --empty`
 : show items with zero amount, normally hidden

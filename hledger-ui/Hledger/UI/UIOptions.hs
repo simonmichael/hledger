@@ -10,6 +10,7 @@ import Data.Default
 import Data.Functor.Compat ((<$>))
 #endif
 import Data.List (intercalate)
+import System.Environment
 
 import Hledger.Cli hiding (progname,version,prognameandversion)
 import Hledger.UI.Theme (themeNames)
@@ -94,6 +95,12 @@ checkUIOpts opts =
       Just t | not $ elem t themeNames -> Left $ "invalid theme name: "++t
       _                                -> Right ()
 
+-- XXX some refactoring seems due
 getHledgerUIOpts :: IO UIOpts
-getHledgerUIOpts = processArgs uimode >>= return . decodeRawOpts >>= rawOptsToUIOpts
+--getHledgerUIOpts = processArgs uimode >>= return . decodeRawOpts >>= rawOptsToUIOpts
+getHledgerUIOpts = do
+  args <- getArgs
+  let args' = replaceNumericFlags args 
+  let cmdargopts = either usageError id $ process uimode args'
+  rawOptsToUIOpts $ decodeRawOpts cmdargopts 
 

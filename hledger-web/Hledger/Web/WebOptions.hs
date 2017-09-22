@@ -7,6 +7,7 @@ import Data.Default
 import Data.Functor.Compat ((<$>))
 #endif
 import Data.Maybe
+import System.Environment
 
 import Hledger.Cli hiding (progname,version,prognameandversion)
 import Settings
@@ -92,5 +93,10 @@ checkWebOpts wopts =
     else Right ()
 
 getHledgerWebOpts :: IO WebOpts
-getHledgerWebOpts = processArgs webmode >>= return . decodeRawOpts >>= rawOptsToWebOpts
+--getHledgerWebOpts = processArgs webmode >>= return . decodeRawOpts >>= rawOptsToWebOpts
+getHledgerWebOpts = do
+  args <- getArgs
+  let args' = replaceNumericFlags args 
+  let cmdargopts = either usageError id $ process webmode args'
+  rawOptsToWebOpts $ decodeRawOpts cmdargopts 
 
