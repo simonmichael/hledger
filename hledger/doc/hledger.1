@@ -277,8 +277,8 @@ include only non\-virtual postings
 .RS
 .RE
 .TP
-.B \f[C]\-\-depth=N\f[]
-hide accounts/postings deeper than N
+.B \f[C]\-NUM\ \-\-depth=NUM\f[]
+hide/aggregate accounts or postings more than NUM levels deep
 .RS
 .RE
 .TP
@@ -742,10 +742,13 @@ start date and exclusive end date):
 \f[C]hledger\ register\ checking\ \-p\ "every\ 3rd\ day\ of\ week"\f[]
 .SS Depth limiting
 .PP
-With the \f[C]\-\-depth\ N\f[] option, commands like account, balance
-and register will show only the uppermost accounts in the account tree,
-down to level N.
+With the \f[C]\-\-depth\ N\f[] option (short form: \f[C]\-N\f[]),
+commands like account, balance and register will show only the uppermost
+accounts in the account tree, down to level N.
 Use this when you want a summary with less detail.
+This flag has the same effect as a \f[C]depth:\f[] query argument (so
+\f[C]\-2\f[], \f[C]\-\-depth=2\f[] or \f[C]depth:2\f[] are basically
+equivalent).
 .SS Pivoting
 .PP
 Normally hledger sums amounts, and organizes them in a hierarchy, based

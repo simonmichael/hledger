@@ -117,9 +117,9 @@ the data.
 '-R --real'
 
      include only non-virtual postings
-'--depth=N'
+'-NUM --depth=NUM'
 
-     hide accounts/postings deeper than N
+     hide/aggregate accounts or postings more than NUM levels deep
 '-E --empty'
 
      show items with zero amount, normally hidden
@@ -358,17 +358,17 @@ Tag Table:
 Node: Top73
 Node: OPTIONS831
 Ref: #options930
-Node: KEYS3487
-Ref: #keys3584
-Node: SCREENS6380
-Ref: #screens6467
-Node: Accounts screen6557
-Ref: #accounts-screen6687
-Node: Register screen8917
-Ref: #register-screen9074
-Node: Transaction screen11148
-Ref: #transaction-screen11308
-Node: Error screen12178
-Ref: #error-screen12302
+Node: KEYS3519
+Ref: #keys3616
+Node: SCREENS6412
+Ref: #screens6499
+Node: Accounts screen6589
+Ref: #accounts-screen6719
+Node: Register screen8949
+Ref: #register-screen9106
+Node: Transaction screen11180
+Ref: #transaction-screen11340
+Node: Error screen12210
+Ref: #error-screen12334
 
 End Tag Table

@@ -162,9 +162,9 @@ options as shown above.
 '-R --real'
 
      include only non-virtual postings
-'--depth=N'
+'-NUM --depth=NUM'
 
-     hide accounts/postings deeper than N
+     hide/aggregate accounts or postings more than NUM levels deep
 '-E --empty'
 
      show items with zero amount, normally hidden

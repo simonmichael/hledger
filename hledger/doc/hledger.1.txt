@@ -189,8 +189,8 @@ OPTIONS
        -R --real
               include only non-virtual postings
 
-       --depth=N
-              hide accounts/postings deeper than N
+       -NUM --depth=NUM
+              hide/aggregate accounts or postings more than NUM levels deep
 
        -E --empty
               show items with zero amount, normally hidden
@@ -454,9 +454,11 @@ OPTIONS
        hledger register checking -p "every 3rd day of week"
 
    Depth limiting
-       With the --depth N option, commands like account, balance and  register
-       will  show  only  the  uppermost  accounts in the account tree, down to
-       level N.  Use this when you want a summary with less detail.
+       With the --depth N option (short form: -N), commands like account, bal-
+       ance  and register will show only the uppermost accounts in the account
+       tree, down to level N.  Use this when you  want  a  summary  with  less
+       detail.   This  flag has the same effect as a depth: query argument (so
+       -2, --depth=2 or depth:2 are basically equivalent).
 
    Pivoting
        Normally hledger sums amounts, and organizes them in a hierarchy, based
