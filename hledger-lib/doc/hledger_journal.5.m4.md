@@ -672,14 +672,15 @@ inside an account name, the matched part will be replaced by
 REPLACEMENT.
 If REGEX contains parenthesised match groups, these can be referenced
 by the usual numeric backreferences in REPLACEMENT.
-Note, currently regular expression aliases may cause noticeable slow-downs.
-(And if you use Ledger on your hledger file, they will be ignored.)
 Eg:
 
 ```journal
 alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
 # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 ```
+
+Also note that REPLACEMENT continues to the end of line (or on command line,
+to end of option argument), so it can contain trailing whitespace. 
 
 #### Multiple aliases
 

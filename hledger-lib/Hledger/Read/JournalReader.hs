@@ -321,7 +321,7 @@ basicaliasp = do
   old <- rstrip <$> (some $ noneOf ("=" :: [Char]))
   char '='
   many spacenonewline
-  new <- rstrip <$> anyChar `manyTill` eolof  -- don't require a final newline, good for cli options
+  new <- rstrip <$> anyChar `manyTill` eolof  -- eol in journal, eof in command lines, normally
   return $ BasicAlias (T.pack old) (T.pack new)
 
 regexaliasp :: TextParser m AccountAlias
@@ -333,7 +333,7 @@ regexaliasp = do
   many spacenonewline
   char '='
   many spacenonewline
-  repl <- rstrip <$> anyChar `manyTill` eolof
+  repl <- anyChar `manyTill` eolof
   return $ RegexAlias re repl
 
 endaliasesdirectivep :: JournalParser m ()
