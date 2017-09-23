@@ -1394,7 +1394,7 @@ gencabal: $$(CABALFILES) #$(call def-help,gencabal, regenerate cabal files from 
 
 updatecabal: gencabal $(call def-help,updatecabal, regenerate and commit cabal files (might need -B) )
 	@read -p "please review changes then press enter to commit: $(CABALFILES)"
-	git commit -m "regenerate cabal files" $(CABALFILES)
+	git commit -m "update cabal files" $(CABALFILES)
 
 # we call in shake for this job; so dependencies aren't checked here
 genmanuals: Shake #$(call def-help,genmanuals, regenerate embedded manuals (might need -B) )
@@ -1402,7 +1402,7 @@ genmanuals: Shake #$(call def-help,genmanuals, regenerate embedded manuals (migh
 
 updatemanuals: genmanuals $(call def-help,updatemanuals, regenerate embedded manuals and commit (might need -B) )
 	@read -p "please review changes then press enter to commit: $(shell ls hledger*/doc/*.[15]*)"
-	git commit -m "regenerate embedded manuals" hledger*/doc/*.[15]*
+	git commit -m "update embedded manuals" hledger*/doc/*.[15]*
 
 
 tagrelease: \
