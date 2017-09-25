@@ -169,7 +169,13 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
           [(a, map snd abs) | abs@((a,_):_) <- transpose acctBalChangesPerSpan] -- never null, or used when null...
 
       items :: [MultiBalanceReportRow] =
-          dbg1 "items"
+          dbg1 "items" $
+          (if sort_amount_ opts && accountlistmode_ opts /= ALTree 
+           then sortBy (flip $ comparing $ 
+                  -- sort by average when that is displayed, instead of total. 
+                  -- Usually equivalent, but perhaps not in future.
+                  if average_ opts then sixth6 else fifth6) 
+           else id) $
           [(a, accountLeafName a, accountNameLevel a, displayedBals, rowtot, rowavg)
            | (a,changes) <- acctBalChanges
            , let displayedBals = case balancetype_ opts of

@@ -65,6 +65,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} = (defCommandMode $ cb
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
      ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode when displaying tables"
+     ,flagNone ["sort-amount","S"] (\opts -> setboolopt "sort-amount" opts) "sort by amount/total/average (in flat mode)"
      ,outputFormatFlag
      ,outputFileFlag
      ]
@@ -175,11 +176,6 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{command_=cmd,
             "csv" -> printCSV (compoundBalanceReportAsCsv ropts cbr) ++ "\n"
             _     -> compoundBalanceReportAsText ropts' cbr
 
--- | Render a multi-column balance report as plain text suitable for console output.
--- Add the second table below the first, discarding its column headings.
-concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
-    Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
-
 -- | Run one subreport for a compound balance command in single-column mode.
 -- Currently this returns the plain text rendering of the subreport, and its total.
 -- The latter is wrapped in a Sum for easy monoidal combining.
@@ -289,6 +285,10 @@ compoundBalanceReportAsText ropts (title, subreports, (coltotals, grandtotal, gr
         Table lefthdrs tophdrs cells = balanceReportAsTable ropts' r
         -- tweak the layout
         t = Table (T.Group SingleLine [Header title, lefthdrs]) tophdrs ([]:cells)
+
+-- | Add the second table below the first, discarding its column headings.
+concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
+    Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
 
 -- | Render a compound balance report as CSV.
 {- Eg: 

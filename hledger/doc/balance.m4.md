@@ -44,6 +44,9 @@ txt, csv.
 `--pretty-tables`
 : Use unicode to display prettier tables.
 
+`--sort-amount`
+: Sort by amount (total row amount, or by average if that is displayed), instead of account name (in flat mode)
+
 The balance command displays accounts and balances.
 It is hledger's most featureful and versatile command.
 

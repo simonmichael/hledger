@@ -97,6 +97,7 @@ data ReportOpts = ReportOpts {
     ,no_total_       :: Bool
     ,value_          :: Bool
     ,pretty_tables_  :: Bool
+    ,sort_amount_    :: Bool
     ,color_          :: Bool
  } deriving (Show, Data, Typeable)
 
@@ -104,6 +105,7 @@ instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
+    def
     def
     def
     def
@@ -153,6 +155,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,row_total_   = boolopt "row-total" rawopts'
     ,no_total_    = boolopt "no-total" rawopts'
     ,value_       = boolopt "value" rawopts'
+    ,sort_amount_ = boolopt "sort-amount" rawopts'
     ,pretty_tables_ = boolopt "pretty-tables" rawopts'
     ,color_       = color
     }
