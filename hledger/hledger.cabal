@@ -90,6 +90,7 @@ library
     , temporary
     , tabular >=0.2 && <0.3
     , time >=1.5
+    , utility-ht >= 0.0.13
     , hledger-lib >= 1.3.99 && < 1.4
     , bytestring
     , containers
@@ -170,6 +171,7 @@ executable hledger
     , temporary
     , tabular >=0.2 && <0.3
     , time >=1.5
+    , utility-ht >= 0.0.13
     , hledger-lib >= 1.3.99 && < 1.4
     , hledger
     , bytestring
@@ -218,6 +220,7 @@ test-suite test
     , temporary
     , tabular >=0.2 && <0.3
     , time >=1.5
+    , utility-ht >= 0.0.13
     , hledger-lib >= 1.3.99 && < 1.4
     , hledger
     , bytestring
@@ -265,6 +268,7 @@ benchmark bench
     , temporary
     , tabular >=0.2 && <0.3
     , time >=1.5
+    , utility-ht >= 0.0.13
     , hledger-lib >= 1.3.99 && < 1.4
     , hledger
     , criterion

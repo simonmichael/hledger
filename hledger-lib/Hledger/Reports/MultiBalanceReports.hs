@@ -171,10 +171,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
       items :: [MultiBalanceReportRow] =
           dbg1 "items" $
           (if sort_amount_ opts && accountlistmode_ opts /= ALTree 
-           then sortBy (flip $ comparing $ 
-                  -- sort by average when that is displayed, instead of total. 
-                  -- Usually equivalent, but perhaps not in future.
-                  if average_ opts then sixth6 else fifth6) 
+           then sortBy (maybeflip $ comparing sortfield) 
            else id) $
           [(a, accountLeafName a, accountNameLevel a, displayedBals, rowtot, rowavg)
            | (a,changes) <- acctBalChanges
@@ -186,6 +183,13 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
            , let rowavg = averageMixedAmounts displayedBals
            , empty_ opts || depth == 0 || any (not . isZeroMixedAmount) displayedBals
            ]
+          where
+            -- reverse the sort if doing a balance report on normally-negative accounts,
+            -- so eg a large negative income balance appears at top in income statement
+            maybeflip = if normalbalance_ opts == Just NormalPositive then flip else id
+            -- sort by average when that is displayed, instead of total. 
+            -- Usually equivalent, but perhaps not in future (eg with --percent)
+            sortfield = if average_ opts then sixth6 else fifth6 
 
       totals :: [MixedAmount] =
           -- dbg1 "totals" $

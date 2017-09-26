@@ -15,6 +15,7 @@ module Hledger.Cli.CompoundBalanceCommand (
 import Data.List (intercalate, foldl')
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Sum(..), (<>))
+import Data.Tuple.HT (uncurry3)
 import System.Console.CmdArgs.Explicit as C
 import Text.CSV
 import Text.Tabular as T
@@ -35,7 +36,9 @@ data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
   cbcaliases  :: [String],                      -- ^ command aliases
   cbchelp     :: String,                        -- ^ command line help
   cbctitle    :: String,                        -- ^ overall report title
-  cbcqueries  :: [(String, Journal -> Query)],  -- ^ title and (journal-parameterised) query for each subreport
+  cbcqueries  :: [(String, Journal -> Query, Maybe NormalBalance)],
+    -- ^ title, journal-parameterised query, and expected normal balance for each subreport.
+    -- The normal balance helps --sort-amount know how to sort negative amounts. 
   cbctype     :: BalanceType                    -- ^ the type of "balance" this report shows (overrides command line flags)
 }
 
@@ -123,7 +126,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{command_=cmd,
         let
           -- concatenate the rendering and sum the totals from each subreport
           (subreportstr, total) = 
-            foldMap (uncurry (compoundBalanceCommandSingleColumnReport ropts' userq j)) cbcqueries
+            foldMap (uncurry3 (compoundBalanceCommandSingleColumnReport ropts' userq j)) cbcqueries
 
         writeOutput opts $ unlines $
           [title ++ "\n"] ++
@@ -145,8 +148,8 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{command_=cmd,
         let
           -- make a CompoundBalanceReport
           namedsubreports = 
-            map (\(subreporttitle, subreportq) -> 
-                  (subreporttitle, compoundBalanceSubreport ropts' userq j subreportq)) 
+            map (\(subreporttitle, subreportq, subreportnormalsign) -> 
+                  (subreporttitle, compoundBalanceSubreport ropts' userq j subreportq subreportnormalsign)) 
                 cbcqueries
           subtotalrows = [coltotals | MultiBalanceReport (_,_,(coltotals,_,_)) <- map snd namedsubreports]
           overalltotals = case subtotalrows of
@@ -185,17 +188,19 @@ compoundBalanceCommandSingleColumnReport
     -> Journal
     -> String
     -> (Journal -> Query)
+    -> Maybe NormalBalance
     -> ([String], Sum MixedAmount)
-compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportqfn = 
+compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportqfn subreportnormalsign = 
   ([subreportstr], Sum total)
   where
     q = And [subreportqfn j, userq]
+    ropts' = ropts{normalbalance_=subreportnormalsign}
     r@(_,total)
       -- XXX For --historical/--cumulative, we must use singleBalanceReport;
       -- otherwise we use balanceReport -- because it supports eliding boring parents. 
       -- See also compoundBalanceCommand, Balance.hs -> balance.
-      | balancetype_ ropts `elem` [CumulativeChange, HistoricalBalance] = singleBalanceReport ropts q j
-      | otherwise                                                       = balanceReport       ropts q j
+      | balancetype_ ropts `elem` [CumulativeChange, HistoricalBalance] = singleBalanceReport ropts' q j
+      | otherwise                                                       = balanceReport       ropts' q j
     subreportstr = intercalate "\n" [subreporttitle <> ":", balanceReportAsText ropts r]
 
 -- | A compound balance report has:
@@ -216,11 +221,11 @@ type CompoundBalanceReport =
 
 -- | Run one subreport for a compound balance command in multi-column mode.
 -- This returns a MultiBalanceReport.
-compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> (Journal -> Query) -> MultiBalanceReport
-compoundBalanceSubreport ropts userq j subreportqfn = r'
+compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> (Journal -> Query) -> Maybe NormalBalance -> MultiBalanceReport
+compoundBalanceSubreport ropts userq j subreportqfn subreportnormalsign = r'
   where
     -- force --empty to ensure same columns in all sections
-    ropts' = ropts { empty_ = True }
+    ropts' = ropts { empty_=True, normalbalance_=subreportnormalsign }
     -- run the report
     q = And [subreportqfn j, userq]
     r@(MultiBalanceReport (dates, rows, totals)) = multiBalanceReport ropts' q j

@@ -32,7 +32,7 @@ in "cash" accounts. It assumes that these accounts are under a top-level
 contain `receivable` or `A/R` in their name. 
   |],
   cbctitle    = "Cashflow Statement",
-  cbcqueries  = [("Cash flows", journalCashAccountQuery)],
+  cbcqueries  = [("Cash flows", journalCashAccountQuery, Just NormalPositive)],
   cbctype     = PeriodChange
 }
 

@@ -7,6 +7,7 @@ Options common to most hledger reports.
 
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
+  NormalBalance(..),
   BalanceType(..),
   AccountListMode(..),
   FormatStr,
@@ -70,9 +71,10 @@ data AccountListMode = ALDefault | ALTree | ALFlat deriving (Eq, Show, Data, Typ
 
 instance Default AccountListMode where def = ALDefault
 
--- | Standard options for customising report filtering and output,
--- corresponding to hledger's command-line options and query language
--- arguments. Used in hledger-lib and above.
+-- | Standard options for customising report filtering and output.
+-- Most of these correspond to standard hledger command-line options
+-- or query arguments, but not all. Some are used only by certain
+-- commands, as noted below. 
 data ReportOpts = ReportOpts {
      period_         :: Period
     ,interval_       :: Interval
@@ -86,10 +88,10 @@ data ReportOpts = ReportOpts {
     ,real_           :: Bool
     ,format_         :: Maybe FormatStr
     ,query_          :: String -- all arguments, as a string
-    -- register only
+    -- register command only
     ,average_        :: Bool
     ,related_        :: Bool
-    -- balance only
+    -- balance-type commands only
     ,balancetype_    :: BalanceType
     ,accountlistmode_ :: AccountListMode
     ,drop_           :: Int
@@ -98,6 +100,10 @@ data ReportOpts = ReportOpts {
     ,value_          :: Bool
     ,pretty_tables_  :: Bool
     ,sort_amount_    :: Bool
+    ,normalbalance_  :: Maybe NormalBalance
+      -- ^ when running a balance report on accounts of the same normal balance type,
+      -- eg in the income section of an income statement, this helps --sort-amount know
+      -- how to sort negative numbers.
     ,color_          :: Bool
  } deriving (Show, Data, Typeable)
 
@@ -128,6 +134,16 @@ defreportopts = ReportOpts
     def
     def
     def
+    def
+
+-- | Whether an account's balance is normally a positive number (in accounting terms,
+-- normally a debit balance), as for asset and expense accounts, or a negative number
+-- (in accounting terms, normally a credit balance), as for liability, equity and 
+-- income accounts. Cf https://en.wikipedia.org/wiki/Normal_balance .
+data NormalBalance = 
+    NormalPositive -- ^ normally debit - assets, expenses...
+  | NormalNegative -- ^ normally credit - liabilities, equity, income...
+  deriving (Show, Data, Eq) 
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = checkReportOpts <$> do
