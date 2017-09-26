@@ -110,7 +110,7 @@ balanceReport opts q j = (items, total)
             markboring  = if no_elide_ opts then id else markBoringParentAccounts
             maybesort   = if sort_amount_ opts then sortBy (maybeflip $ comparing balance) else id
               where
-                maybeflip = if normalbalance_ opts == Just NormalPositive then flip else id
+                maybeflip = if normalbalance_ opts == Just NormalNegative then id else flip
       items = dbg1 "items" $ map (balanceReportItem opts q) accts'
       total | not (flat_ opts) = dbg1 "total" $ sum [amt | (_,_,indent,amt) <- items, indent == 0]
             | otherwise        = dbg1 "total" $

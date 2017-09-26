@@ -186,7 +186,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
           where
             -- reverse the sort if doing a balance report on normally-negative accounts,
             -- so eg a large negative income balance appears at top in income statement
-            maybeflip = if normalbalance_ opts == Just NormalPositive then flip else id
+            maybeflip = if normalbalance_ opts == Just NormalNegative then id else flip
             -- sort by average when that is displayed, instead of total. 
             -- Usually equivalent, but perhaps not in future (eg with --percent)
             sortfield = if average_ opts then sixth6 else fifth6 
