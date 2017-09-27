@@ -39,7 +39,7 @@
 # a help string. Use "make help" to see the available rules.
 
 # def-help* functions for documenting make rules. See the file for usage.
-include help-system.mk
+-include help-system.mk
 
 
 
@@ -1205,6 +1205,7 @@ site/manual2-1.md: site/manual-start.md site/manual-end.md $(MANPAGES) \
 ########################
 # 2017 changelog process: 
 # at release time, for each package: (cd PKG; make changes-show > CHANGES.draft.org), edit, move to CHANGES
+# actual working example: for p in  hledger-lib hledger hledger-ui hledger-web hledger-api; do (cd $p; make -f../Makefile changes-show-from-hledger-1.3 >CHANGES.draft.org); done
 
 LASTTAG=$(shell git describe --tags --abbrev=0)
 
