@@ -156,11 +156,11 @@ timedotnumericp = do
 -- (symbol, equivalent in hours). 
 timeUnits =
   [("s",2.777777777777778e-4)
+  ,("mo",5040) -- before "m"
   ,("m",1.6666666666666666e-2)
   ,("h",1)
   ,("d",24)
   ,("w",168)
-  ,("mo",5040)
   ,("y",61320)
   ]
 
