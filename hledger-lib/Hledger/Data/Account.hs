@@ -11,6 +11,7 @@ module Hledger.Data.Account
 where
 import Data.List
 import Data.Maybe
+import Data.Ord
 import qualified Data.Map as M
 import Safe (headMay, lookupJustDef)
 import Test.HUnit
@@ -182,6 +183,12 @@ filterAccounts :: (Account -> Bool) -> Account -> [Account]
 filterAccounts p a
     | p a       = a : concatMap (filterAccounts p) (asubs a)
     | otherwise = concatMap (filterAccounts p) (asubs a)
+
+-- | Sort an account tree by inclusive amount.
+sortAccountTreeByAmount :: Account -> Account
+sortAccountTreeByAmount a
+  | null $ asubs a = a
+  | otherwise      = a{asubs=sortBy (flip $ comparing aibalance) $ map sortAccountTreeByAmount $ asubs a}
 
 -- | Search an account list by name.
 lookupAccount :: AccountName -> [Account] -> Maybe Account

@@ -92,7 +92,7 @@ balanceReport opts q j = (items, total)
                          dbg1 "accts" $
                          take 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
           | flat_ opts = dbg1 "accts" $
-                         maybesort $
+                         maybesortflat $
                          filterzeros $
                          filterempty $
                          drop 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
@@ -101,6 +101,7 @@ balanceReport opts q j = (items, total)
                          drop 1 $ flattenAccounts $
                          markboring $
                          prunezeros $
+                         maybesorttree $
                          clipAccounts (queryDepth q) accts
           where
             balance     = if flat_ opts then aebalance else aibalance
@@ -108,9 +109,12 @@ balanceReport opts q j = (items, total)
             filterempty = filter (\a -> anumpostings a > 0 || not (isZeroMixedAmount (balance a)))
             prunezeros  = if empty_ opts then id else fromMaybe nullacct . pruneAccounts (isZeroMixedAmount . balance)
             markboring  = if no_elide_ opts then id else markBoringParentAccounts
-            maybesort   = if sort_amount_ opts then sortBy (maybeflip $ comparing balance) else id
+            maybesortflat | sort_amount_ opts = sortBy (maybeflip $ comparing balance)
+                          | otherwise = id
               where
                 maybeflip = if normalbalance_ opts == Just NormalNegative then id else flip
+            maybesorttree | sort_amount_ opts = sortAccountTreeByAmount 
+                          | otherwise = id
       items = dbg1 "items" $ map (balanceReportItem opts q) accts'
       total | not (flat_ opts) = dbg1 "total" $ sum [amt | (_,_,indent,amt) <- items, indent == 0]
             | otherwise        = dbg1 "total" $
