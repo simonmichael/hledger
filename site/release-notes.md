@@ -81,11 +81,11 @@ Peter Simons.
 test-stackage" for finding stackage build problems, switch to GHC
 8.2.1 as default for developer builds
 
+* streamline docs page
+
 * improve changelog/release notes process
 
 * improve makefile help and speed
-
-* reorganise/streamline docs page
 
 ### hledger-install.sh 1.4
 
@@ -145,6 +145,8 @@ but with the extra advantage of not showing empty accounts)
 * fix test suite with Cabal 2 (#596)
 
 ### hledger 1.4
+
+* cli: a @FILE argument reads flags & args from FILE, one per line
 
 * cli: reorganized commands list, added some new command aliases:
   accounts: a
@@ -229,6 +231,8 @@ but with the extra advantage of not showing empty accounts)
 
 ### hledger-ui 1.4
 
+* a @FILE argument reads flags & args from FILE, one per line
+
 * enable --pivot and --anon options, like hledger CLI (#474) (Jakub Zárybnický)
 
 * accept -NUM as a shortcut for --depth NUM
@@ -250,6 +254,8 @@ but with the extra advantage of not showing empty accounts)
 * restore upper bounds on hledger packages
 
 ### hledger-web 1.4
+
+* a @FILE argument reads flags & args from FILE, one per line
 
 * enable --pivot and --anon options, like hledger CLI (#474) (Jakub Zárybnický)
 

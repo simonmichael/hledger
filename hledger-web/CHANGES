@@ -4,6 +4,8 @@ See also the hledger and the project change logs.
 
 # 1.4 (2017/9/30)
 
+* a @FILE argument reads flags & args from FILE, one per line
+
 * enable --pivot and --anon options, like hledger CLI (#474) (Jakub Zárybnický)
 
 * web: Make "Add transaction" button tabbable (#430) (Jakub Zárybnický)
