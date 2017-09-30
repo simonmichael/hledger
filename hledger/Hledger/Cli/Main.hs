@@ -51,7 +51,6 @@ import System.FilePath
 import System.Process
 import Text.Printf
 
-import Hledger (ensureJournalFileExists, getCurrentDay, period_, interval_, queryFromOpts)
 import Hledger.Cli
 
 

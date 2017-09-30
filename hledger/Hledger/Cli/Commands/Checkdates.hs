@@ -1,16 +1,3 @@
-{- #!/usr/bin/env stack -}
-{- stack runghc -- 
-    --ghc-arg='-main-is _main' 
-    --verbosity info
-    --package hledger-lib
-    --package hledger
-    --package here
--}
--- We could probably still allow running these command modules as scripts, if useful.
---import Hledger.Cli.Utils (withJournalDo)
---main :: IO ()
---main = getHledgerCliOpts checkdatesmode >>= flip withJournalDo checkdates
-
 {-# LANGUAGE QuasiQuotes #-}
 
 module Hledger.Cli.Commands.Checkdates (
