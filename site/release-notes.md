@@ -7,7 +7,7 @@ h4 { margin-top:2em; }
 <nav id="toc">
 <p>Major releases:</p>
 <ol>
-<li><a href="#hledger-1.3">hledger 1.4 (2017/9/30)</a>
+<li><a href="#hledger-1.4">hledger 1.4 (2017/9/30)</a>
 <li><a href="#hledger-1.3">hledger 1.3 (2017/6/30)</a>
 <li><a href="#hledger-1.2">hledger 1.2 (2017/3/31)</a>
 <li><a href="#hledger-1.1">hledger 1.1 (2016/12/31)</a>
