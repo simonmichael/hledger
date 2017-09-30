@@ -4,7 +4,6 @@
 
 To see general usage help, including general options 
 which are supported by most hledger commands, run `hledger -h`.
-(Note -h and --help are different, like git.)
 
 General help options:
 
@@ -17,8 +16,6 @@ _inputoptions_
 General reporting options:
 
 _reportingoptions_
-
-_optionnotes_
 
 ## Command options
 
@@ -35,6 +32,12 @@ Or, you can run the addon executable directly: `hledger-ui --watch`.
 Most hledger commands accept arguments after the command name, 
 which are often a [query](#queries), filtering the data in some way. 
 
+## Argument expansion
+
+You can save a set of command line options/arguments in a file, one per line,
+and then reuse them by writing `@FILE` in a command line.
+(To prevent this expansion of `@`-arguments, precede them with a `--` argument.)
+
 ## Special characters
 
 Option and argument values which contain problematic characters
@@ -49,9 +52,14 @@ These include parentheses, the pipe symbol and the dollar sign.
 Eg, to match the dollar symbol, bash users should do: `hledger balance cur:'\$'` or 
 `hledger balance cur:\\$`.
 
-There's more.. options and arguments get de-escaped when hledger 
-is passing them to an addon executable. In this case you might need *triple*-escaping.
-Eg: `hledger ui cur:'\\$'` or `hledger ui cur:\\\\$`.
+When hledger is invoking an addon executable (like hledger-ui), 
+options and arguments get de-escaped once more, 
+so you might need *triple*-escaping.
+Eg: `hledger ui cur:'\\$'` or `hledger ui cur:\\\\$` in bash.
+(The number of backslashes in fish shell is left as an exercise for the reader.)
+
+Inside a file used for [argument expansion](#argument-expansion), one less level of escaping is enough.
+(And in this case, backslashes seem to work better than quotes. Eg: `cur:\$`).
 
 If in doubt, keep things simple:
 

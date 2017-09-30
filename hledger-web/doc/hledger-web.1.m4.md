@@ -136,7 +136,9 @@ hledger help options:
 
 _helpoptions_
 
-_optionnotes_
+A @FILE argument will be expanded to the contents of FILE,
+which should contain one command line option/argument per line.
+(To prevent this, insert a `--` argument before.)
 
 _man_({{
 

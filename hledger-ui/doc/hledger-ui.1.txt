@@ -128,6 +128,11 @@ OPTIONS
               convert amounts to their market value on  the  report  end  date
               (using the most recent applicable market price, if any)
 
+       When a reporting option appears more than once in the command line, the
+       last one takes precedence.
+
+       Some reporting options can also be written as query arguments.
+
        hledger help options:
 
        -h --help
@@ -140,13 +145,8 @@ OPTIONS
               show debug output (levels 1-9, default: 1)
 
        A @FILE argument will be expanded to the contents of FILE, which should
-       contain one command line option/argument per line.  (To  prevent  this,
+       contain  one  command line option/argument per line.  (To prevent this,
        insert a -- argument before.)
-
-       When  multiple  similar  reporting  options  are provided, the last one
-       takes precedence.  Eg --depth 3 --depth 1 is equivalent to --depth 1.
-
-       Some of the reporting options can also be written as query arguments.
 
 KEYS
        ? shows a help dialog listing all keys.  (Some of these also appear  in

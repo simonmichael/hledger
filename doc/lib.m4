@@ -155,18 +155,9 @@ m4_define({{_reportingoptions_}}, {{
 : convert amounts to their market value on the report end date
 (using the most recent applicable [market price](journal.html#market-prices), if any)
 
-}} )m4_dnl
-m4_dnl
-m4_define({{_optionnotes_}}, {{
+When a reporting option appears more than once in the command line, the last one takes precedence.
 
-A @FILE argument will be expanded to the contents of FILE,
-which should contain one command line option/argument per line.
-(To prevent this, insert a `--` argument before.)
-
-When multiple similar reporting options are provided, the last one takes precedence.
-Eg `--depth 3 --depth 1` is equivalent to `--depth 1`.
-
-Some of the reporting options can also be written as [query arguments](#queries).
+Some reporting options can also be written as [query arguments](#queries).
 
 }} )m4_dnl
 m4_dnl

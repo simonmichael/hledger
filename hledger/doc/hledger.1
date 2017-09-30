@@ -156,7 +156,6 @@ $\ hledger\ activity\ \-W\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ #\ show\ tran
 .PP
 To see general usage help, including general options which are supported
 by most hledger commands, run \f[C]hledger\ \-h\f[].
-(Note \-h and \-\-help are different, like git.)
 .PP
 General help options:
 .TP
@@ -299,16 +298,10 @@ most recent applicable market price, if any)
 .RS
 .RE
 .PP
-A \@FILE argument will be expanded to the contents of FILE, which should
-contain one command line option/argument per line.
-(To prevent this, insert a \f[C]\-\-\f[] argument before.)
+When a reporting option appears more than once in the command line, the
+last one takes precedence.
 .PP
-When multiple similar reporting options are provided, the last one takes
-precedence.
-Eg \f[C]\-\-depth\ 3\ \-\-depth\ 1\f[] is equivalent to
-\f[C]\-\-depth\ 1\f[].
-.PP
-Some of the reporting options can also be written as query arguments.
+Some reporting options can also be written as query arguments.
 .SS Command options
 .PP
 To see options for a particular command, including command\-specific
@@ -326,6 +319,12 @@ Or, you can run the addon executable directly:
 .PP
 Most hledger commands accept arguments after the command name, which are
 often a query, filtering the data in some way.
+.SS Argument expansion
+.PP
+You can save a set of command line options/arguments in a file, one per
+line, and then reuse them by writing \f[C]\@FILE\f[] in a command line.
+(To prevent this expansion of \f[C]\@\f[]\-arguments, precede them with
+a \f[C]\-\-\f[] argument.)
 .SS Special characters
 .PP
 Option and argument values which contain problematic characters should
@@ -342,12 +341,18 @@ Eg, to match the dollar symbol, bash users should do:
 \f[C]hledger\ balance\ cur:\[aq]\\$\[aq]\f[] or
 \f[C]hledger\ balance\ cur:\\\\$\f[].
 .PP
-There\[aq]s more..
-options and arguments get de\-escaped when hledger is passing them to an
-addon executable.
-In this case you might need \f[I]triple\f[]\-escaping.
+When hledger is invoking an addon executable (like hledger\-ui), options
+and arguments get de\-escaped once more, so you might need
+\f[I]triple\f[]\-escaping.
 Eg: \f[C]hledger\ ui\ cur:\[aq]\\\\$\[aq]\f[] or
-\f[C]hledger\ ui\ cur:\\\\\\\\$\f[].
+\f[C]hledger\ ui\ cur:\\\\\\\\$\f[] in bash.
+(The number of backslashes in fish shell is left as an exercise for the
+reader.)
+.PP
+Inside a file used for argument expansion, one less level of escaping is
+enough.
+(And in this case, backslashes seem to work better than quotes.
+Eg: \f[C]cur:\\$\f[]).
 .PP
 If in doubt, keep things simple:
 .IP \[bu] 2
