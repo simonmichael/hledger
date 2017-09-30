@@ -7,7 +7,6 @@ Options common to most hledger reports.
 
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
-  NormalBalance(..),
   BalanceType(..),
   AccountListMode(..),
   FormatStr,
@@ -135,15 +134,6 @@ defreportopts = ReportOpts
     def
     def
     def
-
--- | Whether an account's balance is normally a positive number (in accounting terms,
--- normally a debit balance), as for asset and expense accounts, or a negative number
--- (in accounting terms, normally a credit balance), as for liability, equity and 
--- income accounts. Cf https://en.wikipedia.org/wiki/Normal_balance .
-data NormalBalance = 
-    NormalPositive -- ^ normally debit - assets, expenses...
-  | NormalNegative -- ^ normally credit - liabilities, equity, income...
-  deriving (Show, Data, Eq) 
 
 rawOptsToReportOpts :: RawOpts -> IO ReportOpts
 rawOptsToReportOpts rawopts = checkReportOpts <$> do

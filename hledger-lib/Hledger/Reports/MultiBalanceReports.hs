@@ -91,7 +91,7 @@ singleBalanceReport opts q j = (rows', total)
 -- showing the change of balance, accumulated balance, or historical balance
 -- in each of the specified periods.
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
-multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow)
+multiBalanceReport opts q j = MultiBalanceReport (displayspans, sorteditems, totalsrow)
     where
       symq       = dbg1 "symq"   $ filterQuery queryIsSym $ dbg1 "requested q" q
       depthq     = dbg1 "depthq" $ filterQuery queryIsDepth q
@@ -170,9 +170,6 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
 
       items :: [MultiBalanceReportRow] =
           dbg1 "items" $
-          (if sort_amount_ opts && accountlistmode_ opts /= ALTree 
-           then sortBy (maybeflip $ comparing sortfield) 
-           else id) $
           [(a, accountLeafName a, accountNameLevel a, displayedBals, rowtot, rowavg)
            | (a,changes) <- acctBalChanges
            , let displayedBals = case balancetype_ opts of
@@ -183,19 +180,49 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, items, totalsrow
            , let rowavg = averageMixedAmounts displayedBals
            , empty_ opts || depth == 0 || any (not . isZeroMixedAmount) displayedBals
            ]
-          where
-            -- reverse the sort if doing a balance report on normally-negative accounts,
-            -- so eg a large negative income balance appears at top in income statement
-            maybeflip = if normalbalance_ opts == Just NormalNegative then id else flip
-            -- sort by average when that is displayed, instead of total. 
-            -- Usually equivalent, but perhaps not in future (eg with --percent)
-            sortfield = if average_ opts then sixth6 else fifth6 
+
+      sorteditems :: [MultiBalanceReportRow] =
+        dbg1 "sorteditems" $
+        maybesort items
+        where
+          maybesort
+            | not $ sort_amount_ opts         = id
+            | accountlistmode_ opts == ALTree = sortTreeMultiBalanceReportRowsByAmount
+            | otherwise                       = sortFlatMultiBalanceReportRowsByAmount
+            where
+              -- Sort the report rows, representing a flat account list, by row total. 
+              sortFlatMultiBalanceReportRowsByAmount = sortBy (maybeflip $ comparing fifth6)
+                where
+                  maybeflip = if normalbalance_ opts == Just NormalNegative then id else flip
+
+              -- Sort the report rows, representing a tree of accounts, by row total at each level.
+              -- To do this we recreate an Account tree with the row totals as balances, 
+              -- so we can do a hierarchical sort, flatten again, and then reorder the  
+              -- report rows similarly. Yes this is pretty long winded. 
+              sortTreeMultiBalanceReportRowsByAmount rows = sortedrows
+                where
+                  anamesandrows = [(first6 r, r) | r <- rows]
+                  anames = map fst anamesandrows
+                  atotals = [(a,tot) | (a,_,_,_,tot,_) <- rows]
+                  nametree = treeFromPaths $ map expandAccountName anames
+                  accounttree = nameTreeToAccount "root" nametree
+                  accounttreewithbals = mapAccounts setibalance accounttree
+                    where
+                      -- this error should not happen, but it's ugly TODO 
+                      setibalance a = a{aibalance=fromMaybe (error "sortTreeMultiBalanceReportRowsByAmount 1") $ lookup (aname a) atotals}
+                  sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormalPositive $ normalbalance_ opts) accounttreewithbals
+                  sortedaccounts = drop 1 $ flattenAccounts sortedaccounttree
+                  sortedrows = [ 
+                    -- this error should not happen, but it's ugly TODO 
+                    fromMaybe (error "sortTreeMultiBalanceReportRowsByAmount 2") $ lookup (aname a) anamesandrows
+                    | a <- sortedaccounts 
+                    ]
 
       totals :: [MixedAmount] =
           -- dbg1 "totals" $
           map sum balsbycol
           where
-            balsbycol = transpose [bs | (a,_,_,bs,_,_) <- items, not (tree_ opts) || a `elem` highestlevelaccts]
+            balsbycol = transpose [bs | (a,_,_,bs,_,_) <- sorteditems, not (tree_ opts) || a `elem` highestlevelaccts]
             highestlevelaccts     =
                 dbg1 "highestlevelaccts"
                 [a | a <- displayedAccts, not $ any (`elem` displayedAccts) $ init $ expandAccountName a]

@@ -184,11 +184,19 @@ filterAccounts p a
     | p a       = a : concatMap (filterAccounts p) (asubs a)
     | otherwise = concatMap (filterAccounts p) (asubs a)
 
--- | Sort an account tree by inclusive amount.
-sortAccountTreeByAmount :: Account -> Account
-sortAccountTreeByAmount a
+-- | Sort each level of an account tree by inclusive amount,
+-- so that the accounts with largest normal balances are listed first.  
+-- The provided normal balance sign determines whether normal balances
+-- are negative or positive.
+sortAccountTreeByAmount :: NormalBalance -> Account -> Account
+sortAccountTreeByAmount normalsign a
   | null $ asubs a = a
-  | otherwise      = a{asubs=sortBy (flip $ comparing aibalance) $ map sortAccountTreeByAmount $ asubs a}
+  | otherwise      = a{asubs=
+                        sortBy (maybeflip $ comparing aibalance) $ 
+                        map (sortAccountTreeByAmount normalsign) $ asubs a}
+  where
+    maybeflip | normalsign==NormalNegative = id
+              | otherwise                  = flip
 
 -- | Search an account list by name.
 lookupAccount :: AccountName -> [Account] -> Maybe Account
