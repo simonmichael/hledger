@@ -7,6 +7,7 @@ h4 { margin-top:2em; }
 <nav id="toc">
 <p>Major releases:</p>
 <ol>
+<li><a href="#hledger-1.3">hledger 1.4 (2017/9/30)</a>
 <li><a href="#hledger-1.3">hledger 1.3 (2017/6/30)</a>
 <li><a href="#hledger-1.2">hledger 1.2 (2017/3/31)</a>
 <li><a href="#hledger-1.1">hledger 1.1 (2016/12/31)</a>
@@ -43,16 +44,242 @@ h4 { margin-top:2em; }
 
 # Release notes
 
-<!--
-Based on the 
-[hledger](http://hackage.haskell.org/package/hledger/changelog),
-[hledger-ui](http://hackage.haskell.org/package/hledger-ui/changelog),
-[hledger-web](http://hackage.haskell.org/package/hledger-web/changelog),
-[hledger-api](http://hackage.haskell.org/package/hledger-web/changelog),
-[hledger-lib](http://hackage.haskell.org/package/hledger-lib/changelog) &
-[hledger project](https://github.com/simonmichael/hledger/blob/master/doc/CHANGES)
-change logs.
--->
+
+## 2017/9/30 hledger 1.4
+
+***easy install script,
+streamlined help,
+more commands included,
+csv conversion improvements,
+sort balance reports by amount
+***
+
+<!-- ([announcement](https://groups.google.com/d/msg/hledger/X4iR1wpaq0E/_v5BLQIXAgAJ)) -->
+
+Release contributors:
+Simon Michael,
+Nicholas Niro,
+Hans-Peter Deifel,
+Jakub Zárybnický,
+Felix Yan,
+Mark Hansen,
+Christian G. Warden,
+Nissar Chababy,
+Peter Simons.
+
+  [project](#project-wide-changes-for-1.4)
+| [hledger-install](#hledger-install.sh-1.4)
+| [hledger-lib](#hledger-lib-1.4)
+| [hledger](#hledger-1.4-1)
+| [hledger-ui](#hledger-ui-1.4)
+| [hledger-web](#hledger-web-1.4)
+| [hledger-api](#hledger-api-1.4)
+
+### project-wide changes for 1.4
+
+* update stack configs for the last three GHC versions, add "make
+test-stackage" for finding stackage build problems, switch to GHC
+8.2.1 as default for developer builds
+
+* improve changelog/release notes process
+
+* improve makefile help and speed
+
+* reorganise/streamline docs page
+
+### hledger-install.sh 1.4
+
+Added a new installer script for the hledger tools, which aims to
+dodge common pitfalls and just work. Based on the stack install
+script, this bash script is cross platform, uses cabal or stack,
+installs stack and GHC if needed, and installs the latest release of
+all major hledger packages.
+
+### hledger-lib 1.4
+
+* add readJournalFile[s]WithOpts, with simpler arguments and support
+for detecting new transactions since the last read.
+
+* query: add payee: and note: query terms, improve description/payee/note docs (Jakub Zárybnický, Simon Michael, #598, #608)
+
+* journal, cli: make trailing whitespace significant in regex account aliases
+Trailing whitespace in the replacement part of a regular expression
+account alias is now significant. Eg, converting a parent account to
+just an account name prefix: --alias '/:acct:/=:acct '
+
+* timedot: allow a quantity of seconds, minutes, days, weeks, months
+  or years to be logged as Ns, Nm, Nd, Nw, Nmo, Ny
+
+* csv: switch the order of generated postings, so account1 is first.
+This simplifies things and facilitates future improvements.
+
+* csv: show the "creating/using rules file" message only with --debug
+
+* csv: fix multiple includes in one rules file
+
+* csv: add "newest-first" rule for more robust same-day ordering
+
+* deps: allow ansi-terminal 0.7
+
+* deps: add missing parsec lower bound, possibly related to #596, fpco/stackage#2835
+
+* deps: drop oldtime flag, require time 1.5+
+
+* deps: remove ghc < 7.6 support, remove obsolete CPP conditionals
+
+* deps: fix test suite with ghc 8.2
+
+<!-- 1.3.1 (2017/8/25) -->
+
+* Fix a bug with -H showing nothing for empty periods (#583, Nicholas Niro)
+This patch fixes a bug that happened when using the -H option on
+a period without any transaction. Previously, the behavior was no
+output at all even though it should have shown the previous ending balances
+of past transactions. (This is similar to previously using -H with -E,
+but with the extra advantage of not showing empty accounts)
+
+* allow megaparsec 6 (#594)
+
+* allow megaparsec-6.1 (Hans-Peter Deifel)
+
+* fix test suite with Cabal 2 (#596)
+
+### hledger 1.4
+
+* cli: reorganized commands list, added some new command aliases:
+  accounts: a
+  balance:  b
+  print:    p, txns
+  register: r
+
+* cli: accept -NUM as a shortcut for --depth=NUM (eg: -2)
+
+* cli: improve command-line help for --date2 (#604)
+
+* cli: make --help and -h the same, drop --man and --info for now (#579)
+
+* help: offers multiple formats, accepts topic substrings.
+  The separate info/man commands have been dropped. help now
+  chooses an appropriate documentation format as follows: 
+  - it uses info if available, 
+  - otherwise man if available, 
+  - otherwise $PAGER if defined, 
+  - otherwise less if available, 
+  - otherwise it prints on stdout
+  - (and it always prints on stdout when piped). 
+  You can override this with the `--info`/`--man`/`--pager`/`--cat` flags.
+  (#579)
+
+* bal/bs/cf/is: --sort-amount/-S sorts by largest amount instead of
+  account name
+
+* bs/cf/is: support --output-file and --output-format=txt|csv
+  The CSV output should be reasonably ok for dragging into a
+  spreadsheet and reformatting.
+
+* bal/bs/cf/is: consistent double space between columns, consistent
+  single final blank line.  Previously, amounts wider than the column
+  headings would be separated by only a single space.
+
+* bs/is: don't let an empty subreport disable the grand totals (fixes #588)
+
+* cf: exclude asset accounts with ":fixed" in their name (Christian G. Warden, Simon Michael, #584)
+
+* new balancesheetequity command: like balancesheet but also shows
+  equity accounts (Nicholas Niro)
+
+* new import command: adds new transactions seen in one or more input
+  files to the main journal file
+
+* print: --new shows only transactions added since last time
+  (saves state in .latest.JOURNALFILE file)
+
+* new tags command: lists tags in matched transactions
+
+* most addons formerly shipped in bin/ are now builtin commands. These
+  include: check-dates, check-dupes, equity, prices, print-unique,
+  register-match, rewrite.
+
+* refactor: new Commands module and subdirectory.
+  Builtin commands are now gathered more tightly in a single module,
+  Hledger.Cli.Commands, facilitating change.  The legacy "convert"
+  command has been dropped.
+
+* refactor: BalanceView -> CompoundBalanceCommand
+
+* deps: drop support for directory < 1.2
+
+* deps: allow ansi-terminal 0.7
+
+* deps: drop oldtime flag, require time 1.5+
+
+* deps: simplify shakespeare bounds
+
+* deps: remove ghc < 7.6 support
+
+<!-- 1.3.1 (2017/8/25) -->
+
+* bs/is: don't let an empty subreport disable the grand totals (#588)
+
+* allow megaparsec 6 (#594)
+
+* allow megaparsec-6.1 (Hans-Peter Deifel)
+
+* restore upper bounds on hledger packages
+
+### hledger-ui 1.4
+
+* enable --pivot and --anon options, like hledger CLI (#474) (Jakub Zárybnický)
+
+* accept -NUM as a shortcut for --depth NUM
+
+* deps: allow ansi-terminal 0.7
+
+* deps: drop oldtime flag, require time 1.5+
+
+<!-- # 1.3.1 (2017/8/25) -->
+
+* allow megaparsec 6 (#594, Simon Michael, Hans-Peter Deifel)
+
+* allow megaparsec-6.1 (Hans-Peter Deifel)
+
+* allow vty 5.17 (Felix Yan)
+
+* allow brick 0.24
+
+* restore upper bounds on hledger packages
+
+### hledger-web 1.4
+
+* enable --pivot and --anon options, like hledger CLI (#474) (Jakub Zárybnický)
+
+* web: Make "Add transaction" button tabbable (#430) (Jakub Zárybnický)
+
+* accept -NUM as a shortcut for --depth NUM
+
+* deps: drop oldtime flag, require time 1.5+, remove ghc < 7.6 support
+
+<!-- # 1.3.2 (2017/8/25) -->
+
+* remove unnecessary bound to satisfy hackage server
+
+<!-- # 1.3.1 (2017/8/25) -->
+
+* allow megaparsec 6 (#594, Simon Michael, Hans-Peter Deifel)
+
+* allow megaparsec-6.1 (Hans-Peter Deifel)
+
+* restore upper bounds on hledger packages
+
+### hledger-api 1.4
+
+* api: add support for swagger2 2.1.5+ (fixes #612)
+
+<!-- # 1.3.1 (2017/8/25) -->
+
+* require servant-server 0.10+ to fix compilation warning
+
+* restore upper bounds on hledger packages
 
 
 ## 2017/6/30 hledger 1.3
