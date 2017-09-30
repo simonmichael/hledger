@@ -260,6 +260,17 @@ show version
 show debug output (levels 1\-9, default: 1)
 .RS
 .RE
+.PP
+A \@FILE argument will be expanded to the contents of FILE, which should
+contain one command line option/argument per line.
+(To prevent this, insert a \f[C]\-\-\f[] argument before.)
+.PP
+When multiple similar reporting options are provided, the last one takes
+precedence.
+Eg \f[C]\-\-depth\ 3\ \-\-depth\ 1\f[] is equivalent to
+\f[C]\-\-depth\ 1\f[].
+.PP
+Some of the reporting options can also be written as query arguments.
 .SH ENVIRONMENT
 .PP
 \f[B]LEDGER_FILE\f[] The journal file path when not specified with

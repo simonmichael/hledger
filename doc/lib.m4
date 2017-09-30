@@ -161,6 +161,7 @@ m4_define({{_optionnotes_}}, {{
 
 A @FILE argument will be expanded to the contents of FILE,
 which should contain one command line option/argument per line.
+(To prevent this, insert a `--` argument before.)
 
 When multiple similar reporting options are provided, the last one takes precedence.
 Eg `--depth 3 --depth 1` is equivalent to `--depth 1`.
