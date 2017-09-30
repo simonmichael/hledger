@@ -13,6 +13,7 @@ import Data.List
 import Data.Maybe
 import Data.Ord
 import qualified Data.Map as M
+import Data.Text (pack,unpack)
 import Safe (headMay, lookupJustDef)
 import Test.HUnit
 import Text.Printf
@@ -27,7 +28,7 @@ import Hledger.Utils
 -- deriving instance Show Account
 instance Show Account where
     show Account{..} = printf "Account %s (boring:%s, postings:%d, ebalance:%s, ibalance:%s)"
-                       aname
+                       (pack $ regexReplace ":" "_" $ unpack aname)  -- hide : so pretty-show doesn't break line
                        (if aboring then "y" else "n" :: String)
                        anumpostings
                        (showMixedAmount aebalance)
