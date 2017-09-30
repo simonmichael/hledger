@@ -48,10 +48,13 @@ h4 { margin-top:2em; }
 ## 2017/9/30 hledger 1.4
 
 ***easy install script,
-streamlined help,
-more commands included,
-csv conversion improvements,
-sort balance reports by amount
+simpler help commands,
+experimental addon commands now built in,
+new balancesheetequity/tags commands,
+new import command for easy CSV merging,
+print can detect new transactions,
+balance reports can sort by amount,
+cli conveniences
 ***
 
 <!-- ([announcement](https://groups.google.com/d/msg/hledger/X4iR1wpaq0E/_v5BLQIXAgAJ)) -->
@@ -93,7 +96,7 @@ Added a new installer script for the hledger tools, which aims to
 dodge common pitfalls and just work. Based on the stack install
 script, this bash script is cross platform, uses cabal or stack,
 installs stack and GHC if needed, and installs the latest release of
-all major hledger packages.
+all major hledger packages. See http://hledger.org/download for details.
 
 ### hledger-lib 1.4
 
