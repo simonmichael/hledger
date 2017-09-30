@@ -124,6 +124,12 @@ commandsList = [here|
 -------------------------------------------------------------------------------
 PROGVERSION, commands available:
 
+Data entry:
+ add                      add transactions using console ui
+ iadd                     add transactions using curses ui
+ import                   add new transactions from one or more import files
+ edit                     open a text editor on some part of the journal
+
 Statements:
  balancesheet (bs)        show a simple balance sheet with net worth
  balancesheetequity (bse) show a detailed balance sheet with equity
@@ -141,21 +147,17 @@ Basic reports:
  stats                    show journal statistics
  tags                     show tag names
 
-Modifying data:
- add                      add transactions using console ui
- iadd                     add transactions using curses ui
- import                   add new transactions from one or more import files
- edit                     open a text editor on some part of the journal
+UIs:
+ ui                       start curses ui
+ web                      start web ui
+
+Generating data:
  equity                   generate balance-resetting transactions
  interest                 generate interest transactions
  rewrite                  generate automated postings on matched transactions
 
-UIs:
- api                      start web api server
- ui                       start curses ui
- web                      start web ui
-
 Other/experimental:
+ api                      start web api server
  autosync                 download/deduplicate/convert OFX data
  budget                   add automated postings/txns/bucket accts
  chart                    generate simple balance pie charts
