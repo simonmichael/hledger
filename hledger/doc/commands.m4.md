@@ -207,7 +207,7 @@ Show a balance sheet. Alias: bs.
 : in single-column balance reports: use this custom line format
 
 `--sort-amount`
-: Sort by amount (total row amount, or by average if that is displayed), instead of account name (in flat mode)
+: sort by amount instead of account name
 
 This command displays a simple [balance
 sheet](http://en.wikipedia.org/wiki/Balance_sheet). It currently assumes that
@@ -317,7 +317,7 @@ Show a cashflow statement. Alias: cf.
 : in single-column balance reports: use this custom line format
 
 `--sort-amount`
-: Sort by amount (total row amount, or by average if that is displayed), instead of account name (in flat mode)
+: sort by amount instead of account name
 
 This command displays a simple
 [cashflow statement](http://en.wikipedia.org/wiki/Cash_flow_statement)
@@ -444,7 +444,7 @@ Show an income statement. Alias: is.
 : in single-column balance reports: use this custom line format
 
 `--sort-amount`
-: Sort by amount (total row amount, or by average if that is displayed), instead of account name (in flat mode)
+: sort by amount instead of account name
 
 This command displays a simple
 [income statement](http://en.wikipedia.org/wiki/Income_statement).  It

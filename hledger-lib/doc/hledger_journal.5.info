@@ -841,12 +841,14 @@ alias /REGEX/ = REPLACEMENT
    REGEX is a case-insensitive regular expression.  Anywhere it matches
 inside an account name, the matched part will be replaced by
 REPLACEMENT. If REGEX contains parenthesised match groups, these can be
-referenced by the usual numeric backreferences in REPLACEMENT. Note,
-currently regular expression aliases may cause noticeable slow-downs.
-(And if you use Ledger on your hledger file, they will be ignored.)  Eg:
+referenced by the usual numeric backreferences in REPLACEMENT. Eg:
 
 alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
 # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
+
+   Also note that REPLACEMENT continues to the end of line (or on
+command line, to end of option argument), so it can contain trailing
+whitespace.
 
 
 File: hledger_journal.5.info,  Node: Multiple aliases,  Next: end aliases,  Prev: Regex aliases,  Up: Account aliases
@@ -1121,25 +1123,25 @@ Node: Basic aliases29122
 Ref: #basic-aliases29267
 Node: Regex aliases29957
 Ref: #regex-aliases30127
-Node: Multiple aliases30842
-Ref: #multiple-aliases31016
-Node: end aliases31514
-Ref: #end-aliases31656
-Node: account directive31757
-Ref: #account-directive31939
-Node: apply account directive32235
-Ref: #apply-account-directive32433
-Node: Multi-line comments33092
-Ref: #multi-line-comments33284
-Node: commodity directive33412
-Ref: #commodity-directive33598
-Node: Default commodity34470
-Ref: #default-commodity34645
-Node: Default year35182
-Ref: #default-year35349
-Node: Including other files35772
-Ref: #including-other-files35931
-Node: EDITOR SUPPORT36328
-Ref: #editor-support36448
+Node: Multiple aliases30845
+Ref: #multiple-aliases31019
+Node: end aliases31517
+Ref: #end-aliases31659
+Node: account directive31760
+Ref: #account-directive31942
+Node: apply account directive32238
+Ref: #apply-account-directive32436
+Node: Multi-line comments33095
+Ref: #multi-line-comments33287
+Node: commodity directive33415
+Ref: #commodity-directive33601
+Node: Default commodity34473
+Ref: #default-commodity34648
+Node: Default year35185
+Ref: #default-year35352
+Node: Including other files35775
+Ref: #including-other-files35934
+Node: EDITOR SUPPORT36331
+Ref: #editor-support36451
 
 End Tag Table

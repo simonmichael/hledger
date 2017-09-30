@@ -1352,6 +1352,12 @@ A file extension matching one of the above formats selects that format.
 Use unicode to display prettier tables.
 .RS
 .RE
+.TP
+.B \f[C]\-\-sort\-amount\f[]
+Sort by amount (total row amount, or by average if that is displayed),
+instead of account name (in flat mode)
+.RS
+.RE
 .PP
 The balance command displays accounts and balances.
 It is hledger\[aq]s most featureful and versatile command.
@@ -1730,6 +1736,11 @@ don\[aq]t squash boring parent accounts (in tree mode)
 in single\-column balance reports: use this custom line format
 .RS
 .RE
+.TP
+.B \f[C]\-\-sort\-amount\f[]
+sort by amount instead of account name
+.RS
+.RE
 .PP
 This command displays a simple balance sheet.
 It currently assumes that you have top\-level accounts named
@@ -1867,6 +1878,11 @@ don\[aq]t squash boring parent accounts (in tree mode)
 .TP
 .B \f[C]\-\-format=LINEFORMAT\f[]
 in single\-column balance reports: use this custom line format
+.RS
+.RE
+.TP
+.B \f[C]\-\-sort\-amount\f[]
+sort by amount instead of account name
 .RS
 .RE
 .PP
@@ -2031,6 +2047,11 @@ don\[aq]t squash boring parent accounts (in tree mode)
 .TP
 .B \f[C]\-\-format=LINEFORMAT\f[]
 in single\-column balance reports: use this custom line format
+.RS
+.RE
+.TP
+.B \f[C]\-\-sort\-amount\f[]
+sort by amount instead of account name
 .RS
 .RE
 .PP
