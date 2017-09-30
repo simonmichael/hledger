@@ -453,7 +453,7 @@ checkCliOpts opts =
 --
 getHledgerCliOpts :: Mode RawOpts -> IO CliOpts
 getHledgerCliOpts mode' = do
-  args' <- getArgs
+  args' <- getArgs >>= expandArgsAt
   let rawopts = either usageError decodeRawOpts $ process mode' args'
   opts <- rawOptsToCliOpts rawopts
   debugArgs args' opts

@@ -299,11 +299,15 @@ most recent applicable market price, if any)
 .RS
 .RE
 .PP
-Note when multiple similar reporting options are provided, the last one
-takes precedence.
-Eg \f[C]\-p\ feb\ \-p\ mar\f[] is equivalent to \f[C]\-p\ mar\f[].
+A \@FILE argument will be expanded to the contents of FILE, which should
+contain one command line option/argument per line.
 .PP
-Some of these can also be written as queries.
+When multiple similar reporting options are provided, the last one takes
+precedence.
+Eg \f[C]\-\-depth\ 3\ \-\-depth\ 1\f[] is equivalent to
+\f[C]\-\-depth\ 1\f[].
+.PP
+Some of the reporting options can also be written as query arguments.
 .SS Command options
 .PP
 To see options for a particular command, including command\-specific

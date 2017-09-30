@@ -99,7 +99,7 @@ checkUIOpts opts =
 getHledgerUIOpts :: IO UIOpts
 --getHledgerUIOpts = processArgs uimode >>= return . decodeRawOpts >>= rawOptsToUIOpts
 getHledgerUIOpts = do
-  args <- getArgs
+  args <- getArgs >>= expandArgsAt
   let args' = replaceNumericFlags args 
   let cmdargopts = either usageError id $ process uimode args'
   rawOptsToUIOpts $ decodeRawOpts cmdargopts 

@@ -95,7 +95,7 @@ checkWebOpts wopts =
 getHledgerWebOpts :: IO WebOpts
 --getHledgerWebOpts = processArgs webmode >>= return . decodeRawOpts >>= rawOptsToWebOpts
 getHledgerWebOpts = do
-  args <- getArgs
+  args <- getArgs >>= expandArgsAt
   let args' = replaceNumericFlags args 
   let cmdargopts = either usageError id $ process webmode args'
   rawOptsToWebOpts $ decodeRawOpts cmdargopts 

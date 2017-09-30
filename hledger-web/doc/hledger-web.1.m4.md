@@ -136,6 +136,8 @@ hledger help options:
 
 _helpoptions_
 
+_optionnotes_
+
 _man_({{
 
 # ENVIRONMENT

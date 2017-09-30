@@ -18,10 +18,7 @@ General reporting options:
 
 _reportingoptions_
 
-Note when multiple similar reporting options are provided, the last one takes precedence.
-Eg `-p feb -p mar` is equivalent to `-p mar`.
-
-Some of these can also be written as [queries](#queries).
+_optionnotes_
 
 ## Command options
 

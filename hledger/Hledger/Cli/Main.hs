@@ -106,7 +106,7 @@ main = do
   -- command-line.test.
 
   -- some preliminary (imperfect) argument parsing to supplement cmdargs
-  args <- getArgs
+  args <- getArgs >>= expandArgsAt
   let
     args'                = moveFlagsAfterCommand $ replaceNumericFlags args
     isFlag               = ("-" `isPrefixOf`)

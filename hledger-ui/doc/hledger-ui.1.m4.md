@@ -81,6 +81,8 @@ hledger help options:
 
 _helpoptions_
 
+_optionnotes_
+
 # KEYS
 
 `?` shows a help dialog listing all keys. 

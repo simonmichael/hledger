@@ -157,6 +157,18 @@ m4_define({{_reportingoptions_}}, {{
 
 }} )m4_dnl
 m4_dnl
+m4_define({{_optionnotes_}}, {{
+
+A @FILE argument will be expanded to the contents of FILE,
+which should contain one command line option/argument per line.
+
+When multiple similar reporting options are provided, the last one takes precedence.
+Eg `--depth 3 --depth 1` is equivalent to `--depth 1`.
+
+Some of the reporting options can also be written as [query arguments](#queries).
+
+}} )m4_dnl
+m4_dnl
 m4_define({{_generaloptions_}}, {{
 
 _inputoptions_
@@ -164,6 +176,8 @@ _inputoptions_
 _reportingoptions_
 
 _helpoptions_
+
+_optionnotes_
 
 }} )m4_dnl
 m4_dnl
