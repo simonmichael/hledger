@@ -190,7 +190,7 @@ cmdmode = (mainmode [])
 
 journalBalanceTransactions' :: CliOpts -> Journal -> IO Journal
 journalBalanceTransactions' opts j = do
-    let assrt = not $ ignore_assertions_ opts
+    let assrt = not . ignore_assertions_ $ inputopts_ opts
     either error' return $ journalBalanceTransactions assrt j
 
 withJournalDo' :: CliOpts -> (CliOpts -> Journal -> IO ()) -> IO ()
