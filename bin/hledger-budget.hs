@@ -171,7 +171,7 @@ budgetFlags =
     ]
 
 actions :: [(Mode RawOpts, CliOpts -> Journal -> IO ())]
-actions = first injectBudgetFlags <$>
+actions = first (injectBudgetSubCmd . injectBudgetFlags) <$>
     [ (balancemode, balance)
     , (balancesheetmode, balancesheet)
     , (cashflowmode, cashflow)
@@ -182,6 +182,9 @@ actions = first injectBudgetFlags <$>
 
 injectBudgetFlags :: Mode RawOpts -> Mode RawOpts
 injectBudgetFlags = injectFlags "\nBudgeting" budgetFlags
+
+injectBudgetSubCmd :: Mode RawOpts -> Mode RawOpts
+injectBudgetSubCmd cmdmode = cmdmode { modeValue=[("command", "budget"), ("budget-cmd", head (modeNames cmdmode))] }
 
 -- maybe lenses will help...
 injectFlags :: String -> [Flag RawOpts] -> Mode RawOpts -> Mode RawOpts
@@ -265,6 +268,6 @@ main = do
 
 budget :: CliOpts -> Journal -> IO ()
 budget opts journal =
-    case find (\e -> command_ opts `elem` modeNames (fst e)) actions of
+    case find (\e -> stringopt "budget-cmd" (rawopts_ opts) `elem` modeNames (fst e)) actions of
         Just (_, action) -> budgetWrapper action opts journal
         Nothing -> print budgetmode
