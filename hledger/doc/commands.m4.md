@@ -401,11 +401,13 @@ the main journal file.
 `--dry-run`
 : just show the transactions to be imported
 
-Input files are provided as arguments, or glob patterns. So eg to add new 
-transactions from all CSV files to the main journal: hledger import *.csv
+The input files are specified as arguments - no need to write -f before each one.
+So eg to add new transactions from all CSV files to the main journal, it's just: 
+`hledger import *.csv`
 
-New transactions are detected like print --new (using .latest.FILE state files).
-
+New transactions are detected in the same way as print --new: 
+by assuming transactions are always added to the input files in increasing date order,
+and by saving `.latest.FILE` state files.
 
 ## incomestatement
 Show an income statement. Alias: is.
