@@ -57,7 +57,7 @@ balance reports can sort by amount,
 cli conveniences
 ***
 
-<!-- ([announcement](https://groups.google.com/d/msg/hledger/X4iR1wpaq0E/_v5BLQIXAgAJ)) -->
+([announcement](https://groups.google.com/forum/#!topic/hledger/tdtkhchqg9k))
 
 Release contributors:
 Simon Michael,
