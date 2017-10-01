@@ -66,7 +66,7 @@ Or, you can install manually (all systems):
    Eg if you're a bash user:\
    &nbsp;&nbsp;`echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
 
-2. **`stack install --install-ghc --resolver lts-8 hledger-lib-1.4 hledger-1.4 [hledger-ui-1.4] [hledger-web-1.4] [hledger-api-1.4]`**\   
+2. **`stack install --install-ghc --resolver lts-9 hledger-lib-1.4 hledger-1.4 [hledger-ui-1.4] [hledger-web-1.4] [hledger-api-1.4]`**\   
    \
    This command installs the specified hledger packages (and required haskell libraries and tools) from [Stackage](https://www.stackage.org) (and if needed, [Hackage](http://hackage.haskell.org)).
    As noted above, it can take a while.
