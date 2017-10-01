@@ -66,7 +66,7 @@ Or, you can install manually (all systems):
    Eg if you're a bash user:\
    &nbsp;&nbsp;`echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
 
-2. **`stack install --install-ghc --resolver lts-8 hledger-lib-1.3 hledger-1.3 [hledger-ui-1.3] [hledger-web-1.3] [hledger-api-1.3]`**\   
+2. **`stack install --install-ghc --resolver lts-8 hledger-lib-1.4 hledger-1.4 [hledger-ui-1.4] [hledger-web-1.4] [hledger-api-1.4]`**\   
    \
    This command installs the specified hledger packages (and required haskell libraries and tools) from [Stackage](https://www.stackage.org) (and if needed, [Hackage](http://hackage.haskell.org)).
    As noted above, it can take a while.
@@ -82,10 +82,12 @@ Or, you can install manually (all systems):
     | Debian, Ubuntu: | `sudo apt install libncurses5-dev` 
     | Fedora, RHEL:   | `sudo dnf install ncurses-devel`
 
+<!--
     If you need to build with an older GHC version for some reason, these commands should work
    (except on Mac Sierra which [requires at least GHC 8.0.2/lts-8](https://ghc.haskell.org/trac/ghc/ticket/12479)):\
    `stack install --resolver lts-7 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 brick-0.19 vty-5.15.1 data-clist-0.1.2.0`  *# (GHC 8.0.1)* \
    `stack install --resolver lts-6 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 megaparsec-5.3.1 brick-0.19 vty-5.15.1 data-clist-0.1.2.0 text-zipper-0.10`  *# (GHC 7.10.3)* \
+-->
    <!-- keep synced with stack.yaml files -->
 
 Now you should be able to run `hledger --version` 
