@@ -5,7 +5,7 @@
   --package cmdargs
   --package text
 -}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
 {-
 
 hledger-budget REPORT-COMMAND [--no-offset] [--no-buckets] [OPTIONS...]
@@ -142,10 +142,26 @@ $ hledger budget -- bal --period 'monthly to last month' --no-offset --average
 import Control.Arrow (first)
 import Data.Maybe
 import Data.List
+import Data.String.Here
 import System.Console.CmdArgs
 import Hledger.Cli
-import Hledger.Cli.Main (mainmode)
 import Hledger.Data.AutoTransaction
+
+budgetmode :: Mode RawOpts
+budgetmode = (hledgerCommandMode
+    [here| budget
+Perform various reporting commands taking into account budgeting entries in journal.
+    |]
+    [] -- ungroupped flags
+    [("\nBudgeting", budgetFlags), generalflagsgroup2] -- groupped flags
+    [] -- hidden flags
+    ([], Nothing)
+    ) { modeGroupModes = Group
+        { groupUnnamed = map fst actions
+        , groupNamed = []
+        , groupHidden = []
+        }
+    }
 
 budgetFlags :: [Flag RawOpts]
 budgetFlags =
@@ -153,14 +169,14 @@ budgetFlags =
     , flagNone ["no-offset"] (setboolopt "no-offset") "do not add up periodic transactions"
     ]
 
-actions :: [(Mode RawOpts, CliOpts -> IO ())]
+actions :: [(Mode RawOpts, CliOpts -> Journal -> IO ())]
 actions = first injectBudgetFlags <$>
-    [ (balancemode, flip withJournalDo' balance)
-    , (balancesheetmode, flip withJournalDo' balancesheet)
-    , (cashflowmode, flip withJournalDo' cashflow)
-    , (incomestatementmode, flip withJournalDo' incomestatement)
-    , (registermode, flip withJournalDo' register)
-    , (printmode, flip withJournalDo' print')
+    [ (balancemode, balance)
+    , (balancesheetmode, balancesheet)
+    , (cashflowmode, cashflow)
+    , (incomestatementmode, incomestatement)
+    , (registermode, register)
+    , (printmode, print')
     ]
 
 injectBudgetFlags :: Mode RawOpts -> Mode RawOpts
@@ -178,24 +194,13 @@ injectFlags section flags mode0 = mode' where
             ([g], gs) -> (fst g, snd g ++ flags) : gs
             _ -> (section, flags) : namedFlags0
 
-cmdmode :: Mode RawOpts
-cmdmode = (mainmode [])
-    { modeNames = ["hledger-budget"]
-    , modeGroupModes = Group
-        { groupUnnamed = map fst actions
-        , groupNamed = []
-        , groupHidden = []
-        }
-    }
-
 journalBalanceTransactions' :: CliOpts -> Journal -> IO Journal
 journalBalanceTransactions' opts j = do
     let assrt = not . ignore_assertions_ $ inputopts_ opts
     either error' return $ journalBalanceTransactions assrt j
 
-withJournalDo' :: CliOpts -> (CliOpts -> Journal -> IO ()) -> IO ()
-withJournalDo' opts = withJournalDo opts . wrapper where
-    wrapper f opts' j = do
+budgetWrapper :: (CliOpts -> Journal -> IO ()) -> CliOpts -> Journal -> IO ()
+budgetWrapper f opts' j = do
         -- use original transactions as input for journalBalanceTransactions to re-infer balances/prices
         let modifier = originalTransaction . foldr (flip (.) . runModifierTransaction') id mtxns
             runModifierTransaction' = fmap txnTieKnot . runModifierTransaction Any
@@ -234,9 +239,12 @@ mapPostings f t = txnTieKnot $ t { tpostings = f $ tpostings t }
 
 main :: IO ()
 main = do
-    rawopts <- fmap decodeRawOpts . processArgs $ cmdmode
+    rawopts <- fmap decodeRawOpts . processArgs $ budgetmode
     opts <- rawOptsToCliOpts rawopts
+    withJournalDo opts budget
+
+budget :: CliOpts -> Journal -> IO ()
+budget opts journal =
     case find (\e -> command_ opts `elem` modeNames (fst e)) actions of
-        Just (amode, _) | "help" `elem` map fst (rawopts_ opts) -> print amode
-        Just (_, action) -> action opts
-        Nothing -> print cmdmode
+        Just (_, action) -> budgetWrapper action opts journal
+        Nothing -> print budgetmode
