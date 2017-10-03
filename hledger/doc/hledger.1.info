@@ -1598,12 +1598,13 @@ the main journal file.
 
      just show the transactions to be imported
 
-   Input files are provided as arguments, or glob patterns.  So eg to
-add new transactions from all CSV files to the main journal: hledger
-import *.csv
+   The input files are specified as arguments - no need to write -f
+before each one.  So eg to add new transactions from all CSV files to
+the main journal, it's just: 'hledger import *.csv'
 
-   New transactions are detected like print -new (using .latest.FILE
-state files).
+   New transactions are detected in the same way as print -new: by
+assuming transactions are always added to the input files in increasing
+date order, and by saving '.latest.FILE' state files.
 
 
 File: hledger.1.info,  Node: incomestatement,  Next: prices,  Prev: import,  Up: COMMANDS
@@ -2285,57 +2286,57 @@ Node: help50477
 Ref: #help50580
 Node: import51654
 Ref: #import51770
-Node: incomestatement52165
-Ref: #incomestatement52301
-Node: prices54254
-Ref: #prices54371
-Node: print54414
-Ref: #print54526
-Node: print-unique59372
-Ref: #print-unique59500
-Node: register59568
-Ref: #register59697
-Node: Custom register output64198
-Ref: #custom-register-output64329
-Node: register-match65626
-Ref: #register-match65762
-Node: rewrite65945
-Ref: #rewrite66064
-Node: stats66133
-Ref: #stats66238
-Node: tags67119
-Ref: #tags67219
-Node: test67251
-Ref: #test67337
-Node: ADD-ON COMMANDS67705
-Ref: #add-on-commands67817
-Node: Official add-ons69104
-Ref: #official-add-ons69246
-Node: api69333
-Ref: #api69424
-Node: ui69476
-Ref: #ui69577
-Node: web69635
-Ref: #web69726
-Node: Third party add-ons69772
-Ref: #third-party-add-ons69949
-Node: diff70084
-Ref: #diff70183
-Node: iadd70282
-Ref: #iadd70398
-Node: interest70481
-Ref: #interest70604
-Node: irr70699
-Ref: #irr70799
-Node: Experimental add-ons70877
-Ref: #experimental-add-ons71031
-Node: autosync71322
-Ref: #autosync71436
-Node: budget71675
-Ref: #budget71799
-Node: chart71865
-Ref: #chart71984
-Node: check72055
-Ref: #check72159
+Node: incomestatement52313
+Ref: #incomestatement52449
+Node: prices54402
+Ref: #prices54519
+Node: print54562
+Ref: #print54674
+Node: print-unique59520
+Ref: #print-unique59648
+Node: register59716
+Ref: #register59845
+Node: Custom register output64346
+Ref: #custom-register-output64477
+Node: register-match65774
+Ref: #register-match65910
+Node: rewrite66093
+Ref: #rewrite66212
+Node: stats66281
+Ref: #stats66386
+Node: tags67267
+Ref: #tags67367
+Node: test67399
+Ref: #test67485
+Node: ADD-ON COMMANDS67853
+Ref: #add-on-commands67965
+Node: Official add-ons69252
+Ref: #official-add-ons69394
+Node: api69481
+Ref: #api69572
+Node: ui69624
+Ref: #ui69725
+Node: web69783
+Ref: #web69874
+Node: Third party add-ons69920
+Ref: #third-party-add-ons70097
+Node: diff70232
+Ref: #diff70331
+Node: iadd70430
+Ref: #iadd70546
+Node: interest70629
+Ref: #interest70752
+Node: irr70847
+Ref: #irr70947
+Node: Experimental add-ons71025
+Ref: #experimental-add-ons71179
+Node: autosync71470
+Ref: #autosync71584
+Node: budget71823
+Ref: #budget71947
+Node: chart72013
+Ref: #chart72132
+Node: check72203
+Ref: #check72307
 
 End Tag Table

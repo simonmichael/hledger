@@ -1990,12 +1990,14 @@ just show the transactions to be imported
 .RS
 .RE
 .PP
-Input files are provided as arguments, or glob patterns.
-So eg to add new transactions from all CSV files to the main journal:
-hledger import *.csv
+The input files are specified as arguments \- no need to write \-f
+before each one.
+So eg to add new transactions from all CSV files to the main journal,
+it\[aq]s just: \f[C]hledger\ import\ *.csv\f[]
 .PP
-New transactions are detected like print \-\-new (using .latest.FILE
-state files).
+New transactions are detected in the same way as print \-\-new: by
+assuming transactions are always added to the input files in increasing
+date order, and by saving \f[C]\&.latest.FILE\f[] state files.
 .SS incomestatement
 .PP
 Show an income statement.
