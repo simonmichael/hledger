@@ -82,7 +82,7 @@ when:
      buildable: false
    else:
      dependencies:
-       - brick >= 0.12 && < 0.25
+       - brick >= 0.12 && < 0.27
        - vty >= 5.5 && < 5.18
 
 executables:
