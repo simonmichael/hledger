@@ -46,7 +46,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20170930
+HLEDGER_INSTALL_VERSION=20171005
 
 RESOLVER="--resolver=lts-9"
   # ^ lts-9 selects the latest lts-9.x snapshot from stackage. You can specify another, 
@@ -57,7 +57,7 @@ RESOLVER="--resolver=lts-9"
 HLEDGER_LIB_VERSION=1.4
 HLEDGER_VERSION=1.4
 HLEDGER_WEB_VERSION=1.4
-HLEDGER_DIFF_VERSION=0.2.0.10
+HLEDGER_DIFF_VERSION=0.2.0.11
 HLEDGER_IADD_VERSION=1.2.6
 HLEDGER_INTEREST_VERSION=1.5.1
 HLEDGER_IRR_VERSION=0.1.1.11
