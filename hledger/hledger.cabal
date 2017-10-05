@@ -130,6 +130,7 @@ library
       Hledger.Cli.Commands.Balance
       Hledger.Cli.Commands.Balancesheet
       Hledger.Cli.Commands.Balancesheetequity
+      Hledger.Cli.Commands.Budget
       Hledger.Cli.Commands.Cashflow
       Hledger.Cli.Commands.Checkdates
       Hledger.Cli.Commands.Checkdupes

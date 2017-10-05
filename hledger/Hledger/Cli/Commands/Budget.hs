@@ -1,11 +1,3 @@
-#!/usr/bin/env stack
-{- stack runghc --verbosity info
-  --package hledger-lib
-  --package hledger
-  --package cmdargs
-  --package text
--}
-{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
 {-
 
 hledger-budget REPORT-COMMAND [--no-offset] [--no-buckets] [OPTIONS...]
@@ -139,12 +131,24 @@ $ hledger budget -- bal --period 'monthly to last month' --no-offset --average
   will be a child to the one you want to offset.
 
 -}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
+
+module Hledger.Cli.Commands.Budget (budgetmode, budget) where
+
 import Control.Arrow (first)
 import Data.Maybe
 import Data.List
 import Data.String.Here
 import System.Console.CmdArgs
-import Hledger.Cli
+import System.Console.CmdArgs.Explicit
+import Hledger
+import Hledger.Cli.CliOptions
+import Hledger.Cli.Commands.Balance
+import Hledger.Cli.Commands.Balancesheet
+import Hledger.Cli.Commands.Cashflow
+import Hledger.Cli.Commands.Incomestatement
+import Hledger.Cli.Commands.Print
+import Hledger.Cli.Commands.Register
 import Hledger.Data.AutoTransaction
 
 budgetmode :: Mode RawOpts
@@ -165,8 +169,7 @@ Perform various reporting commands taking into account budgeting entries in jour
 
 budgetFlags :: [Flag RawOpts]
 budgetFlags =
-    [ flagNone ["budget"] (setboolopt "budget") "turn on budget-useful journal transformations"
-    , flagNone ["no-buckets"] (setboolopt "no-buckets") "show all accounts besides mentioned in periodic transactions"
+    [ flagNone ["no-buckets"] (setboolopt "no-buckets") "show all accounts besides mentioned in periodic transactions"
     , flagNone ["no-offset"] (setboolopt "no-offset") "do not add up periodic transactions"
     ]
 
@@ -243,13 +246,7 @@ applyModifierTxns j = j { jtxns = ts' } where
 
 -- | Apply all requested journal transformations useful for budgeting.
 budgetByOpts :: CliOpts -> Journal -> Journal
-budgetByOpts opts
-    | boolopt "budget" $ rawopts_ opts = bucketsByOpts opts . offsetByOpts opts . applyModifierTxns
-    | otherwise = id
-
-assumeBudgetCliOpts :: CliOpts -> CliOpts
-assumeBudgetCliOpts opts@CliOpts{rawopts_ = raw} = opts {rawopts_ = addBudgetOpt raw} where
-    addBudgetOpt = (("budget", ""):)
+budgetByOpts opts = bucketsByOpts opts . offsetByOpts opts . applyModifierTxns
 
 budgetWrapper :: (CliOpts -> Journal -> IO ()) -> CliOpts -> Journal -> IO ()
 budgetWrapper f opts = f opts . budgetByOpts opts
@@ -259,12 +256,6 @@ budgetBuckets = nub . map paccount . concatMap ptpostings . jperiodictxns
 
 mapPostings :: ([Posting] -> [Posting]) -> (Transaction -> Transaction)
 mapPostings f t = txnTieKnot $ t { tpostings = f $ tpostings t }
-
-main :: IO ()
-main = do
-    rawopts <- fmap decodeRawOpts . processArgs $ budgetmode
-    opts <- rawOptsToCliOpts rawopts
-    withJournalDo (assumeBudgetCliOpts opts) (\opts' -> budget opts' . journalBalanceTransactions' opts')
 
 budget :: CliOpts -> Journal -> IO ()
 budget opts journal =

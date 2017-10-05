@@ -1,7 +1,7 @@
 # Test budget addon
 
 # Rewrite rules within journal always applied
-../../bin/hledger-budget bal -f - --no-total -DH budget
+hledger budget bal -f - --no-total -DH budget
 <<<
 = ^assets:bank$ date:2017/1 amt:<0
     assets:bank  *0.008
@@ -46,7 +46,7 @@ Ending balances (historical) in 2016/12/31-2017/01/02:
 >>>=0
 
 # Rewrite rules can chain one another according to order of definition
-../../bin/hledger-budget reg -f -
+hledger budget reg -f -
 <<<
 
 ; unfortunately date override in posting comment doesn't work
@@ -116,7 +116,7 @@ Ending balances (historical) in 2016/12/31-2017/01/02:
 
 # Periodical transactions within journal being applied with inverted sign in amounts
 # As well, accounts from periodic transaction being used for bucketing
-../../bin/hledger-budget bal -f - --no-total -DH expenses
+hledger budget bal -f - --no-total -DH expenses
 <<<
 ~ daily from 2016/12/31
     expenses:food  $8
@@ -165,7 +165,7 @@ Ending balances (historical) in 2016/12/26-2017/01/04:
 >>>=0
 
 # We still can disable bucketing keeping rewrites and budget offset
-../../bin/hledger-budget bal -f - --no-total --no-buckets -DH expenses
+hledger budget bal -f - --no-total --no-buckets -DH expenses
 <<<
 ~ daily from 2016/12/31
     expenses:food  $8
@@ -200,7 +200,7 @@ Ending balances (historical) in 2016/12/31-2017/01/01:
 
 # We can disable offset keeping rewrites and bucketing
 # Note that original account names used for query
-../../bin/hledger-budget bal -f - --no-total --no-offset -DH expenses
+hledger budget bal -f - --no-total --no-offset -DH expenses
 <<<
 ~ daily from 2016/12/31
     expenses:food  $8
@@ -231,7 +231,7 @@ Ending balances (historical) in 2016/12/31-2017/01/01:
 >>>=0
 
 # We can keep just rewrites
-../../bin/hledger-budget bal -f - --no-total --no-buckets --no-offset -DH expenses
+hledger budget bal -f - --no-total --no-buckets --no-offset -DH expenses
 <<<
 ~ daily from 2016/12/31
     expenses:food  $8

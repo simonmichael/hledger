@@ -17,6 +17,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Balance
   ,module Hledger.Cli.Commands.Balancesheet
   ,module Hledger.Cli.Commands.Balancesheetequity
+  ,module Hledger.Cli.Commands.Budget
   ,module Hledger.Cli.Commands.Cashflow
   ,module Hledger.Cli.Commands.Checkdates
   ,module Hledger.Cli.Commands.Checkdupes
@@ -56,6 +57,7 @@ import Hledger.Cli.Commands.Add
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.Commands.Balancesheet
 import Hledger.Cli.Commands.Balancesheetequity
+import Hledger.Cli.Commands.Budget
 import Hledger.Cli.Commands.Cashflow
 import Hledger.Cli.Commands.Checkdates
 import Hledger.Cli.Commands.Checkdupes
@@ -99,6 +101,7 @@ builtinCommands = [
   ,(statsmode              , stats)
   ,(tagsmode               , tags)
   ,(testmode               , testcmd)
+  ,(budgetmode             , budget)
   ]
 
 -- | All names and aliases of builtin commands.
