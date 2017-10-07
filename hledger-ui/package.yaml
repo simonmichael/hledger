@@ -82,8 +82,8 @@ when:
      buildable: false
    else:
      dependencies:
-       - brick >= 0.12 && < 0.27
-       - vty >= 5.5 && < 5.18
+       - brick >= 0.12 && < 0.28
+       - vty >= 5.5 && < 5.19
 
 executables:
   hledger-ui:
