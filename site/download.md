@@ -41,8 +41,8 @@ On POSIX systems (mac/linux/freebsd..), use our new hassle-free installer
 to get the current release of hledger and related tools.
 Here's the more secure way:
 
- **`curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**  *# (or `wget -qO- ...`)* \
- **`less hledger-install.sh`**                           *# (do security review)* \
+ **`curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**\
+ **`less hledger-install.sh`**  *# (do security review)*\
  **`bash hledger-install.sh`**  *# (add `-v` for more detail; use `bash -x` to show commands being run)* 
 
 and here's the less secure, more convenient way:
