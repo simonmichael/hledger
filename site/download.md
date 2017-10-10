@@ -41,13 +41,13 @@ On POSIX systems (mac/linux/freebsd..), use our new hassle-free installer
 to get the current release of hledger and related tools.
 Here's the more secure way:
 
- **`curl -sSLO http://hledger.org/hledger-install.sh`**  *# (or `wget -qO- ...`; or fetch it from [github](https://github.com/simonmichael/hledger/blob/master/hledger-install/hledger-install.sh))* \
+ **`curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**  *# (or `wget -qO- ...`; or fetch it from [github](https://github.com/simonmichael/hledger/blob/master/hledger-install/hledger-install.sh))* \
  **`less hledger-install.sh`**                           *# (do security review)* \
  **`bash hledger-install.sh`**  *# (add `-v` for more detail; use `bash -x` to show commands being run)* 
 
 and here's the less secure, more convenient way:
 
- **`curl -sSL http://hledger.org/hledger-install.sh | bash`**
+ **`curl https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash`**
 
 Note this could take significant time (minutes to hours), memory (~2G),
 and disk space (up to a gigabyte) depending on your connection, 
