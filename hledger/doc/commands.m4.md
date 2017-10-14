@@ -409,6 +409,12 @@ New transactions are detected in the same way as print --new:
 by assuming transactions are always added to the input files in increasing date order,
 and by saving `.latest.FILE` state files.
 
+The --dry-run output is in journal format, so you can filter it, eg 
+to see only uncategorised transactions: 
+```shell
+$ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
+```
+
 ## incomestatement
 Show an income statement. Alias: is.
 

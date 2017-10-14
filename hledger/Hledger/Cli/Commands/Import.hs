@@ -51,7 +51,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
           case sortBy (comparing tdate) $ jtxns newj of
             [] -> putStrLn "no new transactions"
             newts | dryrun -> do
-              printf "would import %d new transactions:\n\n" (length newts)
+              printf "; would import %d new transactions:\n\n" (length newts)
               -- TODO how to force output here ?
               -- length (jtxns newj) `seq` print' opts{rawopts_=("explicit",""):rawopts} newj
               mapM_ (putStr . showTransactionUnelided) newts
