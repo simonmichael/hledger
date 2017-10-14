@@ -42,6 +42,7 @@ module Hledger.Data.Transaction (
   sourceFilePath,
   sourceFirstLine,
   showGenericSourcePos,
+  increaseSourceLine,
   -- * misc.
   tests_Hledger_Data_Transaction
 )
@@ -80,6 +81,10 @@ sourceFirstLine :: GenericSourcePos -> Int
 sourceFirstLine = \case
     GenericSourcePos _ line _ -> line
     JournalSourcePos _ (line, _) -> line
+
+increaseSourceLine :: Int -> GenericSourcePos -> GenericSourcePos
+increaseSourceLine val (GenericSourcePos fp line col) = GenericSourcePos fp (line+val) col
+increaseSourceLine val (JournalSourcePos fp (first, _)) = GenericSourcePos fp (first+val) 0
 
 showGenericSourcePos :: GenericSourcePos -> String
 showGenericSourcePos = \case
