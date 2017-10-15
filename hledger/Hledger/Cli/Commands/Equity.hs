@@ -66,7 +66,7 @@ equity CliOpts{reportopts_=ropts} j = do
       balancingamt = negate $ sum $ map (\(_,_,_,b) -> normaliseMixedAmountSquashPricesForDisplay b) acctbals
       ps = [posting{paccount=a
                    ,pamount=mixed [b]
-                   ,pbalanceassertion=Just b
+                   ,pbalanceassertion=Just (b,nullsourcepos)
                    }
            |(a,_,_,mb) <- acctbals
            ,b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
@@ -75,7 +75,7 @@ equity CliOpts{reportopts_=ropts} j = do
       enddate = fromMaybe today $ queryEndDate (date2_ ropts_) q
       nps = [posting{paccount=a
                     ,pamount=mixed [negate b]
-                    ,pbalanceassertion=Just b{aquantity=0}
+                    ,pbalanceassertion=Just (b{aquantity=0}, nullsourcepos)
                     }
             |(a,_,_,mb) <- acctbals
             ,b <- amounts $ normaliseMixedAmountSquashPricesForDisplay mb
