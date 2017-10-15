@@ -477,14 +477,15 @@ priceamountp =
             return $ UnitPrice a))
          <|> return NoPrice
 
-partialbalanceassertionp :: Monad m => JournalParser m (Maybe Amount)
+partialbalanceassertionp :: Monad m => JournalParser m BalanceAssertion
 partialbalanceassertionp =
     try (do
           lift (many spacenonewline)
+          sourcepos <- genericSourcePos <$> lift getPosition
           char '='
           lift (many spacenonewline)
           a <- amountp -- XXX should restrict to a simple amount
-          return $ Just $ a)
+          return $ Just (a, sourcepos))
          <|> return Nothing
 
 -- balanceassertion :: Monad m => TextParser m (Maybe MixedAmount)

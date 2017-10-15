@@ -513,7 +513,7 @@ journalCheckBalanceAssertions j =
 -- | Check a posting's balance assertion and return an error if it
 -- fails.
 checkBalanceAssertion :: Posting -> MixedAmount -> Either String ()
-checkBalanceAssertion p@Posting{ pbalanceassertion = Just ass} amt
+checkBalanceAssertion p@Posting{ pbalanceassertion = Just (ass,_)} amt
   | isReallyZeroAmount diff = Right ()
   | True    = Left err
     where assertedcomm = acommodity ass
@@ -535,9 +535,8 @@ checkBalanceAssertion p@Posting{ pbalanceassertion = Just ass} amt
             (case ptransaction p of
                Nothing -> ":" -- shouldn't happen
                Just t ->  printf " in %s:\nin transaction:\n%s"
-                          (showGenericSourcePos postingPos) (chomp $ show t) :: String
-                            where postingLine = fromJust $ elemIndex p $ tpostings t -- assume postings are in order
-                                  postingPos = increaseSourceLine (1+postingLine) (tsourcepos t))
+                          (showGenericSourcePos pos) (chomp $ show t) :: String
+                            where pos = snd $ fromJust $ pbalanceassertion p)
             (showPostingLine p)
             (showDate $ postingDate p)
             (T.unpack $ paccount p) -- XXX pack
@@ -665,7 +664,7 @@ checkInferAndRegisterAmounts (Right oldTx) = do
   where
     inferFromAssignment :: Posting -> CurrentBalancesModifier s Posting
     inferFromAssignment p = maybe (return p)
-      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . setBalance (paccount p))
+      (fmap (\a -> p { pamount = a, porigin = Just $ originalPosting p }) . setBalance (paccount p) . fst)
       $ pbalanceassertion p
 
 -- | Adds a posting's amonut to the posting's account balance and

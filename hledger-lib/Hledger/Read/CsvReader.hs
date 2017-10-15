@@ -676,7 +676,7 @@ transactionFromCsvRecord sourcepos rules record = t
     balance     = maybe Nothing (parsebalance.render) $ mfieldtemplate "balance"
     parsebalance str 
       | all isSpace str  = Nothing
-      | otherwise = Just $ either (balanceerror str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ simplifySign str
+      | otherwise = Just $ (either (balanceerror str) id $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack $ (currency++) $ simplifySign str, nullsourcepos)
     balanceerror str err = error' $ unlines
       ["error: could not parse \""++str++"\" as balance amount"
       ,showRecord record
