@@ -1,11 +1,3 @@
-#!/usr/bin/env stack
-{- stack runghc --verbosity info
-  --package hledger-lib
-  --package hledger
-  --package cmdargs
-  --package text
--}
-{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
 {-
 
 hledger-budget REPORT-COMMAND [--no-offset] [--no-buckets] [OPTIONS...]
@@ -139,12 +131,24 @@ $ hledger budget -- bal --period 'monthly to last month' --no-offset --average
   will be a child to the one you want to offset.
 
 -}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
+
+module Hledger.Cli.Commands.Budget (budgetmode, budget) where
+
 import Control.Arrow (first)
 import Data.Maybe
 import Data.List
 import Data.String.Here
 import System.Console.CmdArgs
-import Hledger.Cli
+import System.Console.CmdArgs.Explicit
+import Hledger
+import Hledger.Cli.CliOptions
+import Hledger.Cli.Commands.Balance
+import Hledger.Cli.Commands.Balancesheet
+import Hledger.Cli.Commands.Cashflow
+import Hledger.Cli.Commands.Incomestatement
+import Hledger.Cli.Commands.Print
+import Hledger.Cli.Commands.Register
 import Hledger.Data.AutoTransaction
 
 budgetmode :: Mode RawOpts
@@ -170,7 +174,7 @@ budgetFlags =
     ]
 
 actions :: [(Mode RawOpts, CliOpts -> Journal -> IO ())]
-actions = first injectBudgetFlags <$>
+actions = first (injectBudgetSubCmd . injectBudgetFlags) <$>
     [ (balancemode, balance)
     , (balancesheetmode, balancesheet)
     , (cashflowmode, cashflow)
@@ -181,6 +185,9 @@ actions = first injectBudgetFlags <$>
 
 injectBudgetFlags :: Mode RawOpts -> Mode RawOpts
 injectBudgetFlags = injectFlags "\nBudgeting" budgetFlags
+
+injectBudgetSubCmd :: Mode RawOpts -> Mode RawOpts
+injectBudgetSubCmd cmdmode = cmdmode { modeValue=[("command", "budget"), ("budget-cmd", head (modeNames cmdmode))] }
 
 -- maybe lenses will help...
 injectFlags :: String -> [Flag RawOpts] -> Mode RawOpts -> Mode RawOpts
@@ -194,42 +201,55 @@ injectFlags section flags mode0 = mode' where
             ([g], gs) -> (fst g, snd g ++ flags) : gs
             _ -> (section, flags) : namedFlags0
 
-journalBalanceTransactions' :: CliOpts -> Journal -> IO Journal
+journalBalanceTransactions' :: CliOpts -> Journal -> Journal
 journalBalanceTransactions' opts j = do
     let assrt = not . ignore_assertions_ $ inputopts_ opts
-    either error' return $ journalBalanceTransactions assrt j
+    either error' id $ journalBalanceTransactions assrt j
+
+-- | Re-map account names into buckets from periodic transaction if requested.
+bucketsByOpts :: CliOpts -> Journal -> Journal
+bucketsByOpts CliOpts{rawopts_ = rawopts} j'
+        | boolopt "no-buckets" rawopts = j'
+        | null buckets = j'
+        | otherwise = j' { jtxns = remapTxn <$> jtxns j' }
+    where
+        buckets = budgetBuckets j'
+        remapAccount "" = "<unbucketed>"
+        remapAccount an
+            | an `elem` buckets = an
+            | otherwise = remapAccount (parentAccountName an)
+        remapPosting p = p { paccount = remapAccount $ paccount p, porigin = Just . fromMaybe p $ porigin p }
+        remapTxn = mapPostings (map remapPosting)
+
+-- | Inject postings and transactions if requested by budget.
+offsetByOpts :: CliOpts -> Journal -> Journal
+offsetByOpts opts@CliOpts{rawopts_ = rawopts} j = journalBalanceTransactions' opts j{ jtxns = ts' }
+        -- re-infer balances/prices again for implicit postings after modifications
+    where
+        ts = jtxns j
+        dates = jdatespan j
+        ts' | boolopt "no-offset" rawopts = ts
+            | otherwise = [makeBudget t | pt <- jperiodictxns j, t <- runPeriodicTransaction pt dates] ++ ts
+        makeBudget t = txnTieKnot $ t
+            { tdescription = "Budget transaction"
+            , tpostings = map makeBudgetPosting $ tpostings t
+            }
+        makeBudgetPosting p = p { pamount = negate $ pamount p }
+
+-- | Apply modifiers transactions from journal.
+applyModifierTxns :: Journal -> Journal
+applyModifierTxns j = j { jtxns = ts' } where
+    modifier = foldr (flip (.) . runModifierTransaction') id mtxns
+    runModifierTransaction' = fmap txnTieKnot . runModifierTransaction Any
+    mtxns = jmodifiertxns j
+    ts' = map modifier $ jtxns j
+
+-- | Apply all requested journal transformations useful for budgeting.
+budgetByOpts :: CliOpts -> Journal -> Journal
+budgetByOpts opts = bucketsByOpts opts . offsetByOpts opts . applyModifierTxns
 
 budgetWrapper :: (CliOpts -> Journal -> IO ()) -> CliOpts -> Journal -> IO ()
-budgetWrapper f opts' j = do
-        -- use original transactions as input for journalBalanceTransactions to re-infer balances/prices
-        let modifier = originalTransaction . foldr (flip (.) . runModifierTransaction') id mtxns
-            runModifierTransaction' = fmap txnTieKnot . runModifierTransaction Any
-            mtxns = jmodifiertxns j
-            dates = jdatespan j
-            ts' = map modifier $ jtxns j
-            ts'' | boolopt "no-offset" $ rawopts_ opts' = ts'
-                 | otherwise= [makeBudget t | pt <- jperiodictxns j, t <- runPeriodicTransaction pt dates] ++ ts'
-            makeBudget t = txnTieKnot $ t
-                { tdescription = "Budget transaction"
-                , tpostings = map makeBudgetPosting $ tpostings t
-                }
-            makeBudgetPosting p = p { pamount = negate $ pamount p }
-        j' <- journalBalanceTransactions' opts' j{ jtxns = ts'' }
-
-        -- re-map account names into buckets from periodic transaction
-        let buckets = budgetBuckets j
-            remapAccount "" = "<unbucketed>"
-            remapAccount an
-                | an `elem` buckets = an
-                | otherwise = remapAccount (parentAccountName an)
-            remapPosting p = p { paccount = remapAccount $ paccount p, porigin = Just . fromMaybe p $ porigin p }
-            remapTxn = mapPostings (map remapPosting)
-        let j'' | boolopt "no-buckets" $ rawopts_ opts' = j'
-                | null buckets = j'
-                | otherwise = j' { jtxns = remapTxn <$> jtxns j' }
-
-        -- finally feed to real command
-        f opts' j''
+budgetWrapper f opts = f opts . budgetByOpts opts
 
 budgetBuckets :: Journal -> [AccountName]
 budgetBuckets = nub . map paccount . concatMap ptpostings . jperiodictxns
@@ -237,14 +257,8 @@ budgetBuckets = nub . map paccount . concatMap ptpostings . jperiodictxns
 mapPostings :: ([Posting] -> [Posting]) -> (Transaction -> Transaction)
 mapPostings f t = txnTieKnot $ t { tpostings = f $ tpostings t }
 
-main :: IO ()
-main = do
-    rawopts <- fmap decodeRawOpts . processArgs $ budgetmode
-    opts <- rawOptsToCliOpts rawopts
-    withJournalDo opts budget
-
 budget :: CliOpts -> Journal -> IO ()
 budget opts journal =
-    case find (\e -> command_ opts `elem` modeNames (fst e)) actions of
+    case find (\e -> stringopt "budget-cmd" (rawopts_ opts) `elem` modeNames (fst e)) actions of
         Just (_, action) -> budgetWrapper action opts journal
         Nothing -> print budgetmode
