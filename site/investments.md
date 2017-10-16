@@ -95,20 +95,21 @@ It may seem intuitive to model such a sale as follows.
 
 This leads to the following evolution
 ```shell
-hledger -f t.j balance --flat -HD -B
+hledger -f t.j balance --flat -HD
 Ending balances (historical) in 2017/01/01-2017/01/04:
 
-               ||  2017/01/01  2017/01/02  2017/01/03  2017/01/04
-===============++=================================================
- assets:depot  ||       $3000       $1000       $1000       $3500
- assets:shares ||           0       $2000       $2000       $-500
----------------++-------------------------------------------------
-               ||       $3000       $3000       $3000       $3000
+               ||  2017/01/01     2017/01/02     2017/01/03  2017/01/04
+===============++=======================================================
+ assets:depot  ||       $3000          $1000          $1000       $3500
+ assets:shares ||           0        10 TSLA        10 TSLA           0
+---------------++-------------------------------------------------------
+               ||       $3000 $1000, 10 TSLA $1000, 10 TSLA       $3500
 ```
 
 You end up with the correct amount in your depot.
 At some point, however, you will have to report the capital gain that you realized with your sale.
-This gain currently "sits" in `assets:shares` and has to be entered manually to be recognized.
+This gain is currently invisible.
+In fact, we have violated the double-entry principle and created money out of nowhere.
 
 Let's report our sale in a different way.
 ```journal
@@ -118,20 +119,19 @@ Let's report our sale in a different way.
   revenue:capital_gains                  ; deduce profit
 ```
 
-Now, the new $500 are no longer stuck in the shares account.
+Now, the new $500 are correctly balanced with the capital gains account.
 ```shell
-hledger -f t.j bal --flat -HD -B
+hledger -f t.j balance --flat -HD
 Ending balances (historical) in 2017/01/01-2017/01/04:
 
-                       ||  2017/01/01  2017/01/02  2017/01/03  2017/01/04
-=======================++=================================================
- assets:depot          ||       $3000       $1000       $1000       $3500
- assets:shares         ||           0       $2000       $2000           0
- revenue:capital_gains ||           0           0           0       $-500
------------------------++-------------------------------------------------
-                       ||       $3000       $3000       $3000       $3000
+                       ||  2017/01/01     2017/01/02     2017/01/03  2017/01/04
+=======================++=======================================================
+ assets:depot          ||       $3000          $1000          $1000       $3500
+ assets:shares         ||           0        10 TSLA        10 TSLA           0
+ revenue:capital_gains ||           0              0              0       $-500
+-----------------------++-------------------------------------------------------
+                       ||       $3000 $1000, 10 TSLA $1000, 10 TSLA       $3000
 ```
-
 
 ## Further reading
 
