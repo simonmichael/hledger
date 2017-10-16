@@ -6,18 +6,26 @@
   --package text
 -}
 {-# LANGUAGE OverloadedStrings, QuasiQuotes #-}
-{-
 
-hledger-budget REPORT-COMMAND [--no-offset] [--no-buckets] [OPTIONS...]
+import Control.Arrow (first)
+import Data.Maybe
+import Data.List
+import Data.String.Here
+import System.Console.CmdArgs
+import Hledger.Cli
+import Hledger.Data.AutoTransaction
 
+-- hledger-budget REPORT-COMMAND [--no-offset] [--no-buckets] [OPTIONS...]
+
+budgetmode :: Mode RawOpts
+budgetmode = (hledgerCommandMode
+    [here| budget
 Perform some subset of reports available in core hledger but process automated
 and periodic transactions. Also simplify tree of accounts to ease view of
-"budget buckets".
-
-For people familiar with [`ledger`
-budgeting](http://www.ledger-cli.org/3.0/doc/ledger3.html#Budgeting) may
-consider this tool as an alias to `ledger --budget`.
-
+"budget buckets". People familiar with ledger budgeting
+(http://www.ledger-cli.org/3.0/doc/ledger3.html#Budgeting)
+may consider this tool as an alias to `ledger --budget`.
+FLAGS
 With this tool you may either use so called periodic transactions that being
 issued with each new period or use a family of approaches with automated
 transactions. You may want to look at [budgeting section of
@@ -25,7 +33,6 @@ plaintextaccounting](http://plaintextaccounting.org/#budgeting).
 
 Periodic transaction that being interpreted by this tool may look like:
 
-```ledger
 ~ monthly from 2017/3
     income:salary  $-4,000.00
     expenses:taxes  $1,000
@@ -35,7 +42,6 @@ Periodic transaction that being interpreted by this tool may look like:
     expenses:health  $200
     expenses  $100
     assets:savings
-```
 
 Header of such entries starts with `'~'` (tilde symbol) following by an
 interval with an effect period when transactions should be injected.
@@ -57,14 +63,14 @@ Effect of declaring such periodic transaction is:
 Note that beside a periodic transaction all automated transactions will be
 handled in a similar way how they are handled in `rewrite` command.
 
-#### Bucketing
+Bucketing
+
 It is very common to have more expense accounts than budget
 "envelopes"/"buckets". For this reason all periodic transactions are treated as
 a source of information about your budget "buckets".
 
 I.e. example from previous section will build a sub-tree of accounts that look like
 
-```
 assets:savings
 expenses
   taxes
@@ -73,7 +79,6 @@ expenses
   leisure
   health
 income:salary
-```
 
 All accounts used in your transactions journal files will be classified
 according to that tree to contribute to an appropriate bucket of budget.
@@ -82,7 +87,8 @@ Everything else will be collected under virtual account `<unbucketed>` to give
 you an idea of what parts of your accounts tree is not budgeted. For example
 `liabilities` will contributed to that entry.
 
-#### Reports
+Reports
+
 You can use `budget` command to produce next reports:
 
 - `balance` - the most important one to track how you follow your budget. If
@@ -96,7 +102,8 @@ You can use `budget` command to produce next reports:
   if you prefer to generate budget transactions and store it in a separate
   journal for some less popular budgeting scheme.
 
-#### Extra options for reports
+Extra options for reports
+
 You may tweak behavior of this command with additional options `--no-offset` and `--no-bucketing`.
 
 - Don't use these options if your budgeting schema includes both periodic
@@ -104,16 +111,13 @@ You may tweak behavior of this command with additional options `--no-offset` and
   budgeting might look like. You may find helpful values of average column from
   report
 
-```shell
 $ hledger budget -- bal --period 'monthly to last month' --no-offset --average
-```
 
 - Use `--no-offset` and `--no-bucketing` if your schema fully relies on
   automated transactions and hand-crafted budgeting transactions. In this mode
   only automated transactions will be processed. I.e. when you journal looks
   something like
 
-```ledger
 = ^expenses:food
   budget:gifts  *-1
   assets:budget  *1
@@ -122,13 +126,13 @@ $ hledger budget -- bal --period 'monthly to last month' --no-offset --average
   assets:bank  $-1000
   budget:gifts  $200
   budget:misc
-```
 
 - Use `--no-bucketing` only if you want to produce a valid journal. For example
   when you want to pass it as an input for other `hledger` command. Most people
   will find this useless.
 
-#### Recommendations
+Recommendations
+
 - Automated transaction should follow same rules that usual transactions follow
   (i.e. keep balance for real and balanced virtual postings).
 - Don't change the balance of real asset and liability accounts for which you
@@ -138,21 +142,8 @@ $ hledger budget -- bal --period 'monthly to last month' --no-offset --average
   like `Assets` or introduce a "virtual" one like `Assets:Bank:Budget` that
   will be a child to the one you want to offset.
 
--}
-import Control.Arrow (first)
-import Data.Maybe
-import Data.List
-import Data.String.Here
-import System.Console.CmdArgs
-import Hledger.Cli
-import Hledger.Data.AutoTransaction
-
-budgetmode :: Mode RawOpts
-budgetmode = (hledgerCommandMode
-    [here| budget
-Perform various reporting commands taking into account budgeting entries in journal.
-    |]
-    [] -- ungroupped flags
+|]
+    [] -- ungrouped flags
     [("\nBudgeting", budgetFlags), generalflagsgroup2] -- groupped flags
     [] -- hidden flags
     ([], Nothing)
