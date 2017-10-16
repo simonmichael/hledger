@@ -1,6 +1,6 @@
 # Track investments
 
-Hledger can be used to track stock investments.
+You can use hledger to track stock investments.
 In fact, the double-entry accounting is flexible enough to support most constellations you will come across.
 However, you may find that some transactions could be better supported.
 Caveats are:
