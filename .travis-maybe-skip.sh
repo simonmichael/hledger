@@ -4,8 +4,9 @@
 
 set -e
 
-# works only on master ? 
 CHANGED_FILES=`git diff --name-only master...${TRAVIS_COMMIT}`
+  # TODO works only on master ? See eg this failure:
+  # https://travis-ci.org/simonmichael/hledger/builds/288453508
 
 # only files not matching this extended regex will trigger a build
 #SKIP_PAT="(^site/con|do.nload)"
