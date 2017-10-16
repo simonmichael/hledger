@@ -512,8 +512,10 @@ journalfieldnamep = do
 journalfieldnames = [
    "account1"
   ,"account2"
-  ,"amount-in"
-  ,"amount-out"
+  ,"account3"
+  ,"account4"
+  ,"amount3"
+  ,"amount4"
   ,"amount"
   ,"balance"
   ,"code"
@@ -686,6 +688,29 @@ transactionFromCsvRecord sourcepos rules record = t
       ,"the parse error is:      "++show err
       ]
 
+    -- TODO: Are different currencies also needed?
+    -- TODO: Remove amount-in / amount-in
+    -- TODO: Error messages are not helpful
+    -- TODO: Handle cases where only amount or only amount are defined
+
+    amount3    = getAmount rules record currency "amount3"
+    amount4    = getAmount rules record currency "amount4"
+    account3    = maybe "" render (mfieldtemplate "account3")
+    account4    = maybe "" render (mfieldtemplate "account4")
+
+    posting1 = Just posting {paccount=account1, pamount=amount1, ptransaction=Just t, pbalanceassertion=balance}
+    posting2 = Just posting {paccount=account2, pamount=amount2, ptransaction=Just t}
+
+    posting3 = case (T.pack account3) of
+                  ("")  -> Nothing
+                  (acct) -> Just posting {paccount=acct, ptransaction=Just t,
+                    pamount=amount3}
+    posting4 = case (T.pack account4) of
+                  ("")  -> Nothing
+                  (acct) -> Just posting {paccount=acct, pamount=amount4, ptransaction=Just t}
+
+    postings = [posting1, posting2, posting3, posting4]
+
     -- build the transaction
     t = nulltransaction{
       tsourcepos               = genericSourcePos sourcepos,
@@ -696,11 +721,34 @@ transactionFromCsvRecord sourcepos rules record = t
       tdescription             = T.pack description,
       tcomment                 = T.pack comment,
       tpreceding_comment_lines = T.pack precomment,
-      tpostings                =
-        [posting {paccount=account1, pamount=amount1, ptransaction=Just t, pbalanceassertion=balance}
-        ,posting {paccount=account2, pamount=amount2, ptransaction=Just t}
-        ]
+      tpostings                = catMaybes postings
       }
+
+getAmount :: CsvRules -> CsvRecord -> [Char] -> [Char] -> MixedAmount
+getAmount rules record currency fieldName =
+  let
+    mamount3    = getEffectiveAssignment rules record fieldName
+    amountStr3' = maybe "" render mamount3
+    amountStr3  = (currency++) $ simplifySign $ amountStr3'
+    render      = renderTemplate rules record
+    mdirective       = (`getDirective` rules)   -- CHECK: Avoid repetition?
+    mskip            = mdirective "skip"
+    mdefaultcurrency = mdirective "default-currency"
+    mfieldtemplate   = getEffectiveAssignment rules record
+    amounterror err = error' $ unlines
+      ["error: could not parse \""++fieldName++"\" as an amount"
+      ,showRecord record
+      ,"the amount rule is:      "++(fromMaybe "" $ mfieldtemplate "amount")
+      ,"the currency rule is:    "++(fromMaybe "unspecified" $ mfieldtemplate "currency")
+      ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
+      ,"the parse error is:      "++show err
+      ,"you may need to "
+       ++"change your amount or currency rules, "
+       ++"or "++maybe "add a" (const "change your") mskip++" skip rule"
+      ]
+  in
+    either amounterror (Mixed . (:[])) $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack amountStr3
+
 
 getAmountStr :: CsvRules -> CsvRecord -> String
 getAmountStr rules record =
