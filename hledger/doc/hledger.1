@@ -1998,6 +1998,15 @@ it\[aq]s just: \f[C]hledger\ import\ *.csv\f[]
 New transactions are detected in the same way as print \-\-new: by
 assuming transactions are always added to the input files in increasing
 date order, and by saving \f[C]\&.latest.FILE\f[] state files.
+.PP
+The \-\-dry\-run output is in journal format, so you can filter it, eg
+to see only uncategorised transactions:
+.IP
+.nf
+\f[C]
+$\ hledger\ import\ \-\-dry\ ...\ |\ hledger\ \-f\-\ print\ unknown\ \-\-ignore\-assertions
+\f[]
+.fi
 .SS incomestatement
 .PP
 Show an income statement.
@@ -2470,7 +2479,11 @@ The stats command also supports \f[C]\-o/\-\-output\-file\f[] for
 controlling output destination.
 .SS tags
 .PP
-List all the tag names in use.
+List all the tag names used in the journal.
+With a TAGREGEX argument, only tag names matching the regular expression
+(case insensitive) are shown.
+With additional QUERY arguments, only transactions matching the query
+are considered.
 .SS test
 .PP
 Run built\-in unit tests.

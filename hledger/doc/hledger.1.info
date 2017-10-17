@@ -1606,6 +1606,11 @@ the main journal, it's just: 'hledger import *.csv'
 assuming transactions are always added to the input files in increasing
 date order, and by saving '.latest.FILE' state files.
 
+   The -dry-run output is in journal format, so you can filter it, eg to
+see only uncategorised transactions:
+
+$ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
+
 
 File: hledger.1.info,  Node: incomestatement,  Next: prices,  Prev: import,  Up: COMMANDS
 
@@ -2011,7 +2016,10 @@ File: hledger.1.info,  Node: tags,  Next: test,  Prev: stats,  Up: COMMANDS
 4.21 tags
 =========
 
-List all the tag names in use.
+List all the tag names used in the journal.  With a TAGREGEX argument,
+only tag names matching the regular expression (case insensitive) are
+shown.  With additional QUERY arguments, only transactions matching the
+query are considered.
 
 
 File: hledger.1.info,  Node: test,  Prev: tags,  Up: COMMANDS
@@ -2286,57 +2294,57 @@ Node: help50477
 Ref: #help50580
 Node: import51654
 Ref: #import51770
-Node: incomestatement52313
-Ref: #incomestatement52449
-Node: prices54402
-Ref: #prices54519
-Node: print54562
-Ref: #print54674
-Node: print-unique59520
-Ref: #print-unique59648
-Node: register59716
-Ref: #register59845
-Node: Custom register output64346
-Ref: #custom-register-output64477
-Node: register-match65774
-Ref: #register-match65910
-Node: rewrite66093
-Ref: #rewrite66212
-Node: stats66281
-Ref: #stats66386
-Node: tags67267
-Ref: #tags67367
-Node: test67399
-Ref: #test67485
-Node: ADD-ON COMMANDS67853
-Ref: #add-on-commands67965
-Node: Official add-ons69252
-Ref: #official-add-ons69394
-Node: api69481
-Ref: #api69572
-Node: ui69624
-Ref: #ui69725
-Node: web69783
-Ref: #web69874
-Node: Third party add-ons69920
-Ref: #third-party-add-ons70097
-Node: diff70232
-Ref: #diff70331
-Node: iadd70430
-Ref: #iadd70546
-Node: interest70629
-Ref: #interest70752
-Node: irr70847
-Ref: #irr70947
-Node: Experimental add-ons71025
-Ref: #experimental-add-ons71179
-Node: autosync71470
-Ref: #autosync71584
-Node: budget71823
-Ref: #budget71947
-Node: chart72013
-Ref: #chart72132
-Node: check72203
-Ref: #check72307
+Node: incomestatement52500
+Ref: #incomestatement52636
+Node: prices54589
+Ref: #prices54706
+Node: print54749
+Ref: #print54861
+Node: print-unique59707
+Ref: #print-unique59835
+Node: register59903
+Ref: #register60032
+Node: Custom register output64533
+Ref: #custom-register-output64664
+Node: register-match65961
+Ref: #register-match66097
+Node: rewrite66280
+Ref: #rewrite66399
+Node: stats66468
+Ref: #stats66573
+Node: tags67454
+Ref: #tags67554
+Node: test67790
+Ref: #test67876
+Node: ADD-ON COMMANDS68244
+Ref: #add-on-commands68356
+Node: Official add-ons69643
+Ref: #official-add-ons69785
+Node: api69872
+Ref: #api69963
+Node: ui70015
+Ref: #ui70116
+Node: web70174
+Ref: #web70265
+Node: Third party add-ons70311
+Ref: #third-party-add-ons70488
+Node: diff70623
+Ref: #diff70722
+Node: iadd70821
+Ref: #iadd70937
+Node: interest71020
+Ref: #interest71143
+Node: irr71238
+Ref: #irr71338
+Node: Experimental add-ons71416
+Ref: #experimental-add-ons71570
+Node: autosync71861
+Ref: #autosync71975
+Node: budget72214
+Ref: #budget72338
+Node: chart72404
+Ref: #chart72523
+Node: check72594
+Ref: #check72698
 
 End Tag Table
