@@ -46,7 +46,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20171005
+HLEDGER_INSTALL_VERSION=20171016
 
 RESOLVER="--resolver=lts-9"
   # ^ lts-9 selects the latest lts-9.x snapshot from stackage. You can specify another, 
