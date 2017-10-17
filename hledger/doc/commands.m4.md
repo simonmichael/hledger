@@ -766,7 +766,9 @@ The stats command also supports `-o/--output-file`
 for controlling [output destination](#output-destination).
 
 ## tags
-List all the tag names in use.
+List all the tag names used in the journal. With a TAGREGEX argument,
+only tag names matching the regular expression (case insensitive) are shown. 
+With additional QUERY arguments, only transactions matching the query are considered.  
 
 ## test
 Run built-in unit tests.
