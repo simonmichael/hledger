@@ -930,7 +930,7 @@ if [[ $(cmd_version hledger-interest) < $HLEDGER_INTEREST_VERSION ]]; then
 fi
 if [[ $(cmd_version hledger-irr) < $HLEDGER_IRR_VERSION ]]; then 
   echo Installing hledger-irr
-  try_install hledger-irr-$HLEDGER_IRR_VERSION hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-irr-$HLEDGER_IRR_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 echo ----------
