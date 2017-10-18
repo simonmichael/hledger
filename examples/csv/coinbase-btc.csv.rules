@@ -21,3 +21,9 @@ currency %currency
 if Visa debit.*1234
  account2 assets:bank:checking
 # TODO want BTC on account1 posting, $ on account2 posting
+
+# if there's a transfer total, add that as price
+# The double quotes enclosing each field have been removed at this point.
+# TODO when supported, we'll set the other posting's amount instead
+if ^[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]+
+ amount %amount @@ $%transfer_total
