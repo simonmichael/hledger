@@ -1,7 +1,7 @@
 # Test prices addon
 
 # by default only market prices are reported
-../../bin/hledger-prices -f-
+hledger prices -f-
 <<<
 P 2016/1/1 EUR $1.06
 P 2016/2/1 EUR $1.05
@@ -21,7 +21,7 @@ P 2016-02-01 EUR $1.05
 >>>=0
 
 # costs from postings can be included also
-../../bin/hledger-prices -f- --costs
+hledger prices -f- --costs
 <<<
 P 2016/1/1 EUR $1.06
 P 2016/2/1 EUR $1.05
@@ -47,7 +47,7 @@ P 2016-02-01 EUR $1.05
 >>>=0
 
 # inverted costs from postings can be calculated
-../../bin/hledger-prices -f- --inverted-costs
+hledger prices -f- --inverted-costs
 <<<
 P 2016/1/1 EUR $1.06
 P 2016/2/1 EUR $1.05
