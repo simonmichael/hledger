@@ -23,7 +23,6 @@ import Prelude.Compat hiding (readFile)
 import Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
 import Control.Monad.State.Strict
-import Data.Char (isNumber)
 import Data.Data
 import Data.Default
 import Data.Functor.Identity
@@ -527,53 +526,65 @@ fixedlotpricep =
 --
 numberp :: TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
 numberp = do
-  -- a number is an optional sign followed by a sequence of digits possibly
-  -- interspersed with periods, commas, or both
-  -- ptrace "numberp"
-  sign <- signp
-  parts <- some $ choice' [some digitChar, some $ oneOf ['.', ',']]
-  dbg8 "numberp parsed" (sign,parts) `seq` return ()
+    -- a number is an optional sign followed by a sequence of digits possibly
+    -- interspersed with periods, commas, or both
+    -- ptrace "numberp"
+    sign <- signp
+    raw <- rawnumberp
+    dbg8 "numberp parsed" raw `seq` return ()
+    return $ dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (fromRawNumber (sign == "-") raw)
+    <?> "numberp"
 
-  -- check the number is well-formed and identify the decimal point and digit
-  -- group separator characters used, if any
-  let (numparts, puncparts) = partition numeric parts
-      (ok, mdecimalpoint, mseparator) =
-          case (numparts, puncparts) of
-            ([],_)     -> (False, Nothing, Nothing)  -- no digits, not ok
-            (_,[])     -> (True, Nothing, Nothing)   -- digits with no punctuation, ok
-            (_,[[d]])  -> (True, Just d, Nothing)    -- just a single punctuation of length 1, assume it's a decimal point
-            (_,[_])    -> (False, Nothing, Nothing)  -- a single punctuation of some other length, not ok
-            (_,_:_:_)  ->                                       -- two or more punctuations
-              let (s:ss, d) = (init puncparts, last puncparts)  -- the leftmost is a separator and the rightmost may be a decimal point
-              in if any ((/=1).length) puncparts               -- adjacent punctuation chars, not ok
-                    || any (s/=) ss                            -- separator chars vary, not ok
-                    || head parts == s                        -- number begins with a separator char, not ok
-                 then (False, Nothing, Nothing)
-                 else if s == d
-                      then (True, Nothing, Just $ head s)       -- just one kind of punctuation - must be separators
-                      else (True, Just $ head d, Just $ head s) -- separator(s) and a decimal point
-  unless ok $ fail $ "number seems ill-formed: "++concat parts
+fromRawNumber :: Bool -> (Maybe Char, [String], Maybe (Char, String)) -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+fromRawNumber negated raw = (quantity, precision, mdecimalpoint, mgrps) where
+    -- unpack with a hint if useful
+    (mseparator, intparts, mdecimalpoint, frac) =
+            case raw of
+                -- just a single punctuation between two digits groups, assume it's a decimal point
+                (Just s, [firstGroup, lastGroup], Nothing)
+                    -> (Nothing, [firstGroup], Just s, lastGroup)
 
-  -- get the digit group sizes and digit group style if any
-  let (intparts',fracparts') = span ((/= mdecimalpoint) . Just . head) parts
-      (intparts, fracpart) = (filter numeric intparts', filter numeric fracparts')
-      groupsizes = reverse $ case map length intparts of
+                (firstSep, digitGroups, Nothing) -> (firstSep, digitGroups, Nothing, [])
+                (firstSep, digitGroups, Just (d, frac)) -> (firstSep, digitGroups, Just d, frac)
+
+    -- get the digit group sizes and digit group style if any
+    groupsizes = reverse $ case map length intparts of
                                (a:b:cs) | a < b -> b:cs
                                gs               -> gs
-      mgrps = (`DigitGroups` groupsizes) <$> mseparator
+    mgrps = (`DigitGroups` groupsizes) <$> mseparator
 
-  -- put the parts back together without digit group separators, get the precision and parse the value
-  let int = concat $ "":intparts
-      frac = concat $ "":fracpart
-      precision = length frac
-      int' = if null int then "0" else int
-      frac' = if null frac then "0" else frac
-      quantity = read $ sign++int'++"."++frac' -- this read should never fail
+    -- put the parts back together without digit group separators, get the precision and parse the value
+    repr = (if negated then "-" else "") ++ "0" ++ concat intparts ++ (if null frac then "" else "." ++ frac)
+    quantity = read repr
+    precision = length frac
 
-  return $ dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (quantity,precision,mdecimalpoint,mgrps)
-  <?> "numberp"
-  where
-    numeric = isNumber . headDef '_'
+rawnumberp :: TextParser m (Maybe Char, [String], Maybe (Char, String))
+rawnumberp = do
+    let sepChars = ['.', ','] -- all allowed punctuation characters
+
+    (firstSep, groups) <- option (Nothing, []) $ do
+        leadingDigits <- some digitChar
+        option (Nothing, [leadingDigits]) . try $ do
+            firstSep <- oneOf sepChars
+            groups <- some digitChar `sepBy1` char firstSep
+            return (Just firstSep, leadingDigits : groups)
+
+    let remSepChars = maybe sepChars (`delete` sepChars) firstSep
+        modifier
+            | null groups = fmap Just  -- if no digits so far, we require at least some decimals
+            | otherwise = optional
+
+    extraGroup <- modifier $ do
+        lastSep <- oneOf remSepChars
+        digits <- modifier $ some digitChar  -- decimal separator allowed to be without digits if had some before
+        return (lastSep, fromMaybe [] digits)
+
+    -- make sure we didn't leading part of mistyped number
+    notFollowedBy $ oneOf sepChars
+
+    return $ dbg8 "rawnumberp" (firstSep, groups, extraGroup)
+    <?> "rawnumberp"
+
 
 -- test_numberp = do
 --       let s `is` n = assertParseEqual (parseWithState mempty numberp s) n
