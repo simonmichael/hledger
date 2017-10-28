@@ -30,6 +30,7 @@ import Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.List.Split (wordsBy)
 import Data.Maybe
+import qualified Data.Map as M
 import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -144,6 +145,12 @@ setDefaultCommodityAndStyle cs = modify' (\j -> j{jparsedefaultcommodity=Just cs
 
 getDefaultCommodityAndStyle :: JournalParser m (Maybe (CommoditySymbol,AmountStyle))
 getDefaultCommodityAndStyle = jparsedefaultcommodity `fmap` get
+
+getDefaultDecimalHint :: JournalParser m (Maybe Char)
+getDefaultDecimalHint = maybe Nothing (asdecimalpoint . snd) <$> getDefaultCommodityAndStyle
+
+getDecimalHint :: CommoditySymbol -> JournalParser m (Maybe Char)
+getDecimalHint commodity = maybe Nothing asdecimalpoint . maybe Nothing cformat . M.lookup commodity . jcommodities <$> get
 
 pushAccount :: AccountName -> JournalParser m ()
 pushAccount acct = modify' (\j -> j{jaccounts = acct : jaccounts j})
@@ -415,8 +422,9 @@ leftsymbolamountp = do
   sign <- lift signp
   m <- lift multiplierp
   c <- lift commoditysymbolp
+  decimalHint <- getDecimalHint c
   sp <- lift $ many spacenonewline
-  (q,prec,mdec,mgrps) <- lift numberp
+  (q,prec,mdec,mgrps) <- lift $ numberp decimalHint
   let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   p <- priceamountp
   let applysign = if sign=="-" then negate else id
@@ -426,9 +434,12 @@ leftsymbolamountp = do
 rightsymbolamountp :: Monad m => JournalParser m Amount
 rightsymbolamountp = do
   m <- lift multiplierp
-  (q,prec,mdec,mgrps) <- lift numberp
+  sign <- lift signp
+  rawnum <- lift $ rawnumberp
   sp <- lift $ many spacenonewline
   c <- lift commoditysymbolp
+  decimalHint <- getDecimalHint c
+  let (q,prec,mdec,mgrps) = fromRawNumber decimalHint (sign == "-") rawnum
   p <- priceamountp
   let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   return $ Amount c q p s m
@@ -437,7 +448,8 @@ rightsymbolamountp = do
 nosymbolamountp :: Monad m => JournalParser m Amount
 nosymbolamountp = do
   m <- lift multiplierp
-  (q,prec,mdec,mgrps) <- lift numberp
+  decimalHint <- getDefaultDecimalHint
+  (q,prec,mdec,mgrps) <- lift $ numberp decimalHint
   p <- priceamountp
   -- apply the most recently seen default commodity and style to this commodityless amount
   defcs <- getDefaultCommodityAndStyle
@@ -524,25 +536,26 @@ fixedlotpricep =
 -- seen following the decimal point), the decimal point character used if any,
 -- and the digit group style if any.
 --
-numberp :: TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-numberp = do
+numberp :: Maybe Char -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+numberp decimalHint = do
     -- a number is an optional sign followed by a sequence of digits possibly
     -- interspersed with periods, commas, or both
     -- ptrace "numberp"
     sign <- signp
     raw <- rawnumberp
     dbg8 "numberp parsed" raw `seq` return ()
-    return $ dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (fromRawNumber (sign == "-") raw)
+    return $ dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (fromRawNumber decimalHint (sign == "-") raw)
     <?> "numberp"
 
-fromRawNumber :: Bool -> (Maybe Char, [String], Maybe (Char, String)) -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-fromRawNumber negated raw = (quantity, precision, mdecimalpoint, mgrps) where
+fromRawNumber :: Maybe Char -> Bool -> (Maybe Char, [String], Maybe (Char, String)) -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+fromRawNumber decimalHint negated raw = (quantity, precision, mdecimalpoint, mgrps) where
     -- unpack with a hint if useful
     (mseparator, intparts, mdecimalpoint, frac) =
             case raw of
                 -- just a single punctuation between two digits groups, assume it's a decimal point
                 (Just s, [firstGroup, lastGroup], Nothing)
-                    -> (Nothing, [firstGroup], Just s, lastGroup)
+                    -- if have a decimalHint restrict this assumpion only to a matching separator
+                    | maybe True (s ==) decimalHint -> (Nothing, [firstGroup], Just s, lastGroup)
 
                 (firstSep, digitGroups, Nothing) -> (firstSep, digitGroups, Nothing, [])
                 (firstSep, digitGroups, Just (d, frac)) -> (firstSep, digitGroups, Just d, frac)

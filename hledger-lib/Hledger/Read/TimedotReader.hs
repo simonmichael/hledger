@@ -141,7 +141,7 @@ timedotdurationp = try timedotnumericp <|> timedotdotsp
 -- @
 timedotnumericp :: JournalParser m Quantity
 timedotnumericp = do
-  (q, _, _, _) <- lift numberp
+  (q, _, _, _) <- lift $ numberp Nothing
   msymbol <- optional $ choice $ map (string . fst) timeUnits
   lift (many spacenonewline)
   let q' = 

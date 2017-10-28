@@ -43,6 +43,22 @@ hledger bal -f -
 >>>
 >>>=1
 
+# Default commodity
+hledger bal -f -
+<<<
+D 1,000.00 EUR
+
+2017/1/1
+	a   1,000
+	b  -1,000.00
+>>>
+        1,000.00 EUR  a
+       -1,000.00 EUR  b
+--------------------
+                   0
+>>>2
+>>>=0
+
 # Omitted decimals
 hledger bal -f -
 <<<
@@ -52,6 +68,38 @@ hledger bal -f -
 >>>
 >>>=1
 
+# Omitted decimals with commodity hint
+hledger bal -f -
+<<<
+commodity 1,000.00 EUR
+
+2017/1/1
+	a   1,000 EUR
+	b  -1,000.00 EUR
+>>>
+        1,000.00 EUR  a
+       -1,000.00 EUR  b
+--------------------
+                   0
+>>>2
+>>>=0
+
+# Omitted decimals with commodity hint and symbol on left
+hledger bal -f -
+<<<
+commodity €1,000.00
+
+2017/1/1
+	a   €1,000
+	b  €-1,000.00
+>>>
+           €1,000.00  a
+          €-1,000.00  b
+--------------------
+                   0
+>>>2
+>>>=0
+
 # Big prices
 hledger bal -f -  --no-total
 <<<
@@ -60,6 +108,20 @@ hledger bal -f -  --no-total
 	b   24,840.00 UAH
 >>>
 >>>=1
+
+# Big prices with commodity hint
+hledger bal -f -  --no-total
+<<<
+commodity ₴1,000.00
+
+2017/1/1
+	a   -1 BTC @ ₴24,840
+	b   ₴24,840.00
+>>>
+              -1 BTC  a
+          ₴24,840.00  b
+>>>2
+>>>=0
 
 # adjacent punctuation chars
 hledger bal -f -
