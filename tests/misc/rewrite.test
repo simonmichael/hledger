@@ -1,7 +1,7 @@
 # Tests for rewrite addon
 
 # Add proportional income tax (from documentation)
-../../bin/hledger-rewrite -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax'
+hledger rewrite -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax'
 <<<
 2016/1/1 paycheck
     income:remuneration     $-100
@@ -27,7 +27,7 @@
 >>>=0
 
 # Duplicate posting for budgeting (from documentation)
-../../bin/hledger-rewrite -f- expenses:gifts --add-posting '(budget:gifts)  *-1'
+hledger rewrite -f- expenses:gifts --add-posting '(budget:gifts)  *-1'
 <<<
 2016/1/1 withdraw
     assets:cash     $20
@@ -50,7 +50,7 @@
 >>>=0
 
 # Add postings in another commodity
-../../bin/hledger-rewrite -f-
+hledger rewrite -f-
 <<<
 2017/04/24 * 09:00-09:25
     (assets:unbilled:client1)           0.42h
@@ -85,7 +85,7 @@
 
 
 # Add postings with prices
-../../bin/hledger-rewrite -f- -B
+hledger rewrite -f- -B
 <<<
 2017/04/24 * 09:00-09:25
     (assets:unbilled:client1)         0.42h
@@ -124,7 +124,7 @@
 >>>=0
 
 # Add absolute bank processing fee
-../../bin/hledger-rewrite -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
+hledger rewrite -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
 <<<
 2016/1/1 withdraw
     assets:cash     $20
@@ -155,7 +155,7 @@
 >>>=0
 
 # Rewrite rule within journal
-../../bin/hledger-rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0'
+hledger rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0'
 <<<
 = ^assets:bank$ date:2017/1 amt:<0
     assets:bank  *0.008
@@ -222,7 +222,7 @@
 >>>=0
 
 # Rewrite using diff output
-../../bin/hledger-rewrite --diff -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
+hledger rewrite --diff -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5'  --add-posting 'assets:bank  $-5'
 <<<
 2016/01/01 withdraw
     assets:cash              $20
