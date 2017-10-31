@@ -27,7 +27,7 @@ For some, it is a simpler, less distracting, more future-proof alternative to Qu
 
 For more, see http://hledger.org.
 
-##Support
+## Support
 
 ### Backers
 Support us with a monthly donation and help us continue our activities. [[Become a backer](https://opencollective.com/hledger#backer)]
