@@ -29,23 +29,25 @@ For more docs relevant to all ledger-likes, see [plaintextaccounting.org](http:/
 
 ## Introduction
 
-### What is hledger?
+### What is... hledger?
+An enhanced, well-documented rewrite of the original plain text accounting tool.
+Loved Ledger so much, I had to rebuild it!\
+[hledger intro](http://hledger.org)\
+[Frequently Asked Questions](faq.html)\
+[Download](download.html)\
+[Release notes](release-notes.html)\
 
-[hledger.org](http://hledger.org)\
-[Misc. links](more-docs.html)\
-<!-- Some learning resources not yet moved to the above. -->
-[FAQ](faq.html)\
 
-
-### What is plain text accounting?
-
+### Plain text accounting?
+Using plain text data formats and quick, modular free software tools
+for robust, transparent, powerful accounting.\
 [plaintextaccounting.org](http://plaintextaccounting.org)\
 
 
-### Installing 
-
-[Download](download.html)\
-[Release notes](release-notes.html)\
+### Accounting?
+Tracking the flow of valuable commodities, such as money or time.
+Reduce stress, increase success!\
+[Selected accounting links](more-docs.html#accounting)
 
 
 </div>
