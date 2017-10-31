@@ -319,12 +319,14 @@ Or, you can run the addon executable directly:
 .PP
 Most hledger commands accept arguments after the command name, which are
 often a query, filtering the data in some way.
-.SS Argument expansion
+.SS Argument files
 .PP
 You can save a set of command line options/arguments in a file, one per
-line, and then reuse them by writing \f[C]\@FILE\f[] in a command line.
-(To prevent this expansion of \f[C]\@\f[]\-arguments, precede them with
-a \f[C]\-\-\f[] argument.)
+line, and then reuse them by writing \f[C]\@FILENAME\f[] in a command
+line.
+To prevent this expansion of \f[C]\@\f[]\-arguments, precede them with a
+\f[C]\-\-\f[] argument.
+For more, see Save frequently used options.
 .SS Special characters
 .PP
 Option and argument values which contain problematic characters should
