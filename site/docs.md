@@ -59,7 +59,7 @@ For more docs relevant to all ledger-likes, see [plaintextaccounting.org](http:/
 
 <div class="col-sm-3">
 
-## [Cookbook](cookbook.html){title="all on one page"}
+## [Guide](guide.html){title="all on one page"}
 
 ### Journal management
 

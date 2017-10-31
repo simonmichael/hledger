@@ -60,7 +60,7 @@ usage = unlines
 --   ,"./Shake infomanpages     # generate info files for info"
 --   ,"./Shake webmanpages      # generate individual web man pages for hakyll"
 --   ,"./Shake webmanall        # generate all-in-one web manual for hakyll"
---   ,"./Shake cookbookall      # generate all-in-one web cookbook for hakyll"
+--   ,"./Shake guideall         # generate all-in-one web user guide for hakyll"
   ,"./Shake site/doc/VER/.snapshot   # generate and save a versioned web site snapshot"
   ,"./Shake all              # generate everything"
   ,"./Shake clean            # clean generated files"
@@ -130,15 +130,15 @@ main = do
       -- manuals rendered to markdown and combined, ready for web output by hakyll
       webmanall = "site/manual.md"
 
-      -- cookbook pages in markdown, ready for web output by hakyll (site/csv-import.md).
+      -- user guide pages in markdown, ready for web output by hakyll (site/csv-import.md).
       -- Keeping these in the main site directory allows hakyll-std to see them (and simpler urls).
       -- These should be kept ordered like the links on the docs page, so that the 
-      -- combined cookbook follows the same order.
+      -- combined guide follows the same order.
       -- XXX This, as well as keeping page link, heading, and filename synced, will be a bit tricky.
       -- Current policy:
       -- filenames are simple and stable as possible, beginning with TOPIC- prefix when appropriate
-      -- titles are succinct and practical/action-oriented 
-      cookbookpages = [
+      -- titles are succinct and practical/action/verb-oriented 
+      guidepages = [
          "site/start-journal.md"
         ,"site/version-control.md"
         ,"site/entries.md"
@@ -149,8 +149,8 @@ main = do
         ,"site/argfiles.md"
         ]
 
-      -- cookbook pages combined, ready for web output by hakyll
-      cookbookall = "site/cookbook.md"
+      -- guide pages combined, ready for web output by hakyll
+      guideall = "site/guide.md"
 
       -- hledger.1 -> hledger/doc, hledger_journal.5 -> hledger-lib/doc
       manpageDir m
@@ -236,7 +236,7 @@ main = do
       need $
         webmanpages ++
         [webmanall
-        ,cookbookall
+        ,guideall
         ,hakyllstd
         ]
       cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
@@ -285,19 +285,19 @@ main = do
           ">>" webmanall :: Action ExitCode
 
     -- adjust and combine recipe mds for single-page web output, using pandoc
-    phony "cookbookall" $ need [ cookbookall ]
+    phony "guideall" $ need [ guideall ]
 
-    cookbookall %> \out -> do
-      need cookbookpages  -- XXX seems not to work, not rebuilt when a recipe changes 
-      liftIO $ writeFile cookbookall "* toc\n\n"  -- # User Cookbook\n\n -- TOC style is better without main heading, 
-      forM_ cookbookpages $ \f -> do -- site/csv-import.md, site/account-aliases.md, ...
-        cmd Shell ("printf '\\n\\n' >>") cookbookall :: Action ExitCode
+    guideall %> \out -> do
+      need guidepages  -- XXX seems not to work, not rebuilt when a recipe changes 
+      liftIO $ writeFile guideall "* toc\n\n"  -- # User Guide\n\n -- TOC style is better without main heading, 
+      forM_ guidepages $ \f -> do -- site/csv-import.md, site/account-aliases.md, ...
+        cmd Shell ("printf '\\n\\n' >>") guideall :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown --atx-headers"
           -- "--filter tools/pandoc-drop-man-blocks"
           "--filter tools/pandoc-drop-toc"
           -- "--filter tools/pandoc-capitalize-headers"
           "--filter tools/pandoc-demote-headers"
-          ">>" cookbookall :: Action ExitCode
+          ">>" guideall :: Action ExitCode
 
     -- build the currently checked out web docs and save as a named snapshot
     "site/doc/*/.snapshot" %> \out -> do
@@ -328,7 +328,7 @@ main = do
     phony "clean" $ do
       putNormal "Cleaning generated files"
       removeFilesAfter "." webmanpages
-      removeFilesAfter "." [webmanall, cookbookall]
+      removeFilesAfter "." [webmanall, guideall]
 
     phony "Clean" $ do
       need ["clean"]
