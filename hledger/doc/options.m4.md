@@ -32,11 +32,12 @@ Or, you can run the addon executable directly: `hledger-ui --watch`.
 Most hledger commands accept arguments after the command name, 
 which are often a [query](#queries), filtering the data in some way. 
 
-## Argument expansion
+## Argument files
 
 You can save a set of command line options/arguments in a file, one per line,
-and then reuse them by writing `@FILE` in a command line.
-(To prevent this expansion of `@`-arguments, precede them with a `--` argument.)
+and then reuse them by writing `@FILENAME` in a command line.
+To prevent this expansion of `@`-arguments, precede them with a `--` argument.
+For more, see [Save frequently used options](argsfiles.html).
 
 ## Special characters
 

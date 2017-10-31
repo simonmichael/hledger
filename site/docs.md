@@ -90,7 +90,9 @@ For more docs relevant to all ledger-likes, see [plaintextaccounting.org](http:/
 
 
 ### More..
-[PTA: Common tasks](http://plaintextaccounting.org/#common-tasks)
+
+[Save frequently used options](argfiles.html)\
+[PTA: Common tasks](http://plaintextaccounting.org/#common-tasks)\
 
 </div>
 
