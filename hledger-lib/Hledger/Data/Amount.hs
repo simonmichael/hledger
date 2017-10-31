@@ -83,6 +83,7 @@ module Hledger.Data.Amount (
   costOfMixedAmount,
   divideMixedAmount,
   averageMixedAmounts,
+  minimumMixedAmounts,
   isNegativeAmount,
   isNegativeMixedAmount,
   isZeroAmount,
@@ -427,6 +428,28 @@ tests_normaliseMixedAmount = [
    normaliseMixedAmount (Mixed  [usd 1 @@ eur 1, usd 1 @@ eur 1]) `is` Mixed [usd 1 @@ eur 1, usd 1 @@ eur 1]
  ]
 
+-- | The minimum amount of each currency in a MixedAmount
+minimiseMixedAmount :: MixedAmount -> MixedAmount
+minimiseMixedAmount (Mixed as)
+  | missingamt `elem` as = missingmixedamt
+  | null nonzeros = Mixed [newzero]
+  | otherwise = Mixed nonzeros
+  where
+    newzero = case filter (/= "") (map acommodity zeros) of
+      _:_ -> last zeros
+      _ -> nullamt
+
+    (zeros, nonzeros) = partition isReallyZeroAmount $
+                        map minimiseSimilarAmountsUsingFirstPrice $
+                        groupBy groupfn $
+                        sortBy sortfn $
+                        as
+    sortfn = compare `on` \a -> (acommodity a, aprice a)
+    groupfn = \a1 a2 -> acommodity a1 == acommodity a2 && combinableprices a1 a2
+    combinableprices Amount{aprice=NoPrice} Amount{aprice=NoPrice} = True
+    combinableprices Amount{aprice=UnitPrice p1} Amount{aprice=UnitPrice p2} = p1 == p2
+    combinableprices _ _ = False
+
 -- | Like normaliseMixedAmount, but combine each commodity's amounts
 -- into just one by throwing away all prices except the first. This is
 -- only used as a rendering helper, and could show a misleading price.
@@ -450,6 +473,14 @@ tests_normaliseMixedAmountSquashPricesForDisplay = [
 sumSimilarAmountsUsingFirstPrice :: [Amount] -> Amount
 sumSimilarAmountsUsingFirstPrice [] = nullamt
 sumSimilarAmountsUsingFirstPrice as = (sumStrict as){aprice=aprice $ head as}
+
+-- | Minimise same-commodity amounts in a lossy way, applying the first price to the result and discarding any other prices
+minimiseSimilarAmountsUsingFirstPrice :: [Amount] -> Amount
+minimiseSimilarAmountsUsingFirstPrice [] = nullamt
+minimiseSimilarAmountsUsingFirstPrice [a] = a
+minimiseSimilarAmountsUsingFirstPrice (a:as) =
+  let minimumAs = minimiseSimilarAmountsUsingFirstPrice as
+  in if a <= minimumAs then a else minimumAs { aprice = aprice a }
 
 -- -- | Sum same-commodity amounts. If there were different prices, set
 -- -- the price to a special marker indicating "various". Only used as a
@@ -490,6 +521,13 @@ divideMixedAmount (Mixed as) d = Mixed $ map (flip divideAmount d) as
 averageMixedAmounts :: [MixedAmount] -> MixedAmount
 averageMixedAmounts [] = 0
 averageMixedAmounts as = sum as `divideMixedAmount` fromIntegral (length as)
+
+-- | Calculate the (currency-pointwise) minimum of mixed amounts
+minimumMixedAmounts :: [MixedAmount] -> MixedAmount
+minimumMixedAmounts [] = 0
+minimumMixedAmounts ms = minimiseMixedAmount $ Mixed $ concatMap (\(Mixed as) -> as) ms
+
+-- | Calculate pointwise per currency the minimum mixed amount
 
 -- | Is this mixed amount negative, if it can be normalised to a single commodity ?
 isNegativeMixedAmount :: MixedAmount -> Maybe Bool
