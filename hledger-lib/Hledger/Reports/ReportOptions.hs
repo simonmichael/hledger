@@ -61,6 +61,7 @@ data BalanceType = PeriodChange      -- ^ The change of balance in each period.
                  | HistoricalBalance -- ^ The historical ending balance, including the effect of
                                      --   all postings before the report period. Unless altered by,
                                      --   a query, this is what you would see on a bank statement.
+                 | AvailableBalance  -- ^ The minimum future balance after each posting
   deriving (Eq,Show,Data,Typeable)
 
 instance Default BalanceType where def = PeriodChange
@@ -204,7 +205,8 @@ accountlistmodeopt rawopts =
 
 balancetypeopt :: RawOpts -> BalanceType
 balancetypeopt rawopts =
-  case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst rawopts of
+  case reverse $ filter (`elem` ["change","cumulative","historical","available"]) $ map fst rawopts of
+    ("available":_)  -> AvailableBalance
     ("historical":_) -> HistoricalBalance
     ("cumulative":_) -> CumulativeChange
     _                -> PeriodChange

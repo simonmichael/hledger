@@ -38,6 +38,8 @@ registermode = (defCommandMode $ ["register"] ++ aliases) {
         "show historical running total/balance (includes postings before report start date)\n "
      ,flagNone ["average","A"] (\opts -> setboolopt "average" opts)
         "show running average of posting amounts instead of total (implies --empty)"
+     ,flagNone ["available"] (\opts -> setboolopt "available" opts)
+        "show available balance (minimum future balance in given period)"
      ,flagNone ["related","r"] (\opts -> setboolopt "related" opts) "show postings' siblings instead"
      ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
       ("set output width (default: " ++
