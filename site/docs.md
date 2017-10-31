@@ -48,11 +48,6 @@ For more docs relevant to all ledger-likes, see [plaintextaccounting.org](http:/
 [Release notes](release-notes.html)\
 
 
-### Getting started
-
-[hledger Step by Step](step-by-step.html) tutorial\
-
-
 </div>
 
 
@@ -60,6 +55,14 @@ For more docs relevant to all ledger-likes, see [plaintextaccounting.org](http:/
 <div class="col-sm-3">
 
 ## [Guide](guide.html){title="all on one page"}
+
+A growing collection of tutorials, how-tos and discussion of general topics.
+(Please help complete this!)
+
+### Getting started
+
+[hledger Step by Step](step-by-step.html) tutorial\
+
 
 ### Journal management
 
@@ -102,6 +105,8 @@ For more docs relevant to all ledger-likes, see [plaintextaccounting.org](http:/
 
 ## [Reference](manual.html){title="all on one page"}
 
+Reference manuals, covering every part of hledger's functionality.
+
 ### File formats
 
 [hledger_journal(5)](journal.html)
@@ -116,7 +121,7 @@ is for clock-in/clock-out time logging
 [hledger_timedot(5)](timedot.html)
 is for human-friendly time logging
 
-### Tools
+### Core tools
 
 [hledger(1)](hledger.html)
 is the command-line UI
@@ -132,7 +137,7 @@ is a HTTP-JSON API
 
 ### Addon tools
 
-Available [on Hackage/Stackage](/download.html#d):
+(cf [download -> D](download.html#d))
 
 [hledger-diff](http://hackage.haskell.org/package/hledger-diff)
 shows differences in an account's transactions between one journal file and another.
@@ -146,47 +151,22 @@ generates interest transactions for an account according to various schemes.
 [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
 calculates the internal rate of return of an investment account.
 
-### Experimental tools
-
-Available [in the hledger repo](/download.html#d):
-
-[hledger-autosync](https://github.com/simonmichael/hledger/blob/master/bin/hledger-autosync) 
-is a symbolic link for running 
-[ledger-autosync](https://pypi.python.org/pypi/ledger-autosync),
-which can download or convert OFX data.
+Some experimental tools:
 
 [hledger-budget.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-budget.hs#L10)
 adds Ledger-style periodic transactions and budget reports.
 
-[hledger-chart.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-chart.hs#L47)
-is an old pie chart generator.
-
 [hledger-check.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check.hs)
 checks more powerful account balance assertions.
 
-[hledger-check-dates.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-dates.hs#L15)
-checks that journal entries are ordered by date.
+Also:
 
-[hledger-check-dupes.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-dupes.hs#L21)
-checks for account names sharing the same leaf name.
+[ledger-autosync](https://pypi.python.org/pypi/ledger-autosync),
+can download, deduplicate and/or convert OFX data (includes hledger support, 
+rename/symlink it to hledger-autosync to see it in commands list)
 
-[hledger-equity.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-equity.hs#L17)
-prints balance-clearing/restoring transactions, useful for bringing account balances across file boundaries. 
-
-[hledger-prices.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-prices.hs)
-prints all prices from the journal.
-
-[hledger-print-unique.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-print-unique.hs#L15)
-prints transactions with unique descriptions.
-
-[hledger-register-match.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-register-match.hs#L23)
-helps ledger-autosync ignore previously imported transactions.
-
-[hledger-rewrite.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-rewrite.hs#L28)
-adds Ledger-style automatic postings to existing transactions.
-
-[hledger-tags.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-tags.hs)
-lists tag names in use.
+[PTA: related tools](http://plaintextaccounting.org/#related-tools)
+lists all known plain text accounting helper tools
 
 
 </div> <!-- col -->
