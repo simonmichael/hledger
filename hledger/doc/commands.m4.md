@@ -489,7 +489,7 @@ as with [multicolumn balance reports](#multicolumn-balance-reports)
 you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 
 ## prices
-Print all market prices from the journal.
+Print all [market prices](/manual#market-prices) from the journal.
 
 ## print
 Show transactions from the journal. Aliases: p, txns.
