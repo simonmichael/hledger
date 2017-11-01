@@ -541,8 +541,9 @@ P 2010/1/1 € $1.40
 ## Comments
 
 Lines in the journal beginning with a semicolon (`;`) or hash (`#`) or
-asterisk (`*`) are comments, and will be ignored. (Asterisk comments
-make it easy to treat your journal like an org-mode outline in emacs.)
+star (`*`) are comments, and will be ignored. (Star comments cause
+org-mode nodes to be ignored, allowing emacs users to fold and navigate
+their journals with org-mode or orgstruct-mode.)
 
 Also, anything between [`comment` and `end comment` directives](#multi-line-comments) is a (multi-line) comment.
 If there is no `end comment`, the comment extends to the end of the file.
@@ -551,20 +552,21 @@ You can attach comments to a transaction by writing them after the
 description and/or indented on the following lines (before the
 postings).  Similarly, you can attach comments to an individual
 posting by writing them after the amount and/or indented on the
-following lines.
+following lines. 
+Transaction and posting comments must begin with a semicolon (`;`).
 
 Some examples:
 
 ```journal
-# a journal comment
+# a file comment
 
-; also a journal comment
+; also a file comment
 
 comment
-This is a multiline comment,
+This is a multiline file comment,
 which continues until a line
 where the "end comment" string
-appears on its own.
+appears on its own (or end of file).
 end comment
 
 2012/5/14 something  ; a transaction comment
@@ -573,7 +575,7 @@ end comment
     posting2
     ; a comment for posting 2
     ; another comment line for posting 2
-; a journal comment (because not indented)
+; a file comment (because not indented)
 ```
 
 ## Tags

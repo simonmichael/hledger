@@ -1,78 +1,56 @@
 # comment tests
 
-# 1. 
+# 1. several comment characters allowed for file characters; 
+# print shows in-transaction & posting comments;
+# comment line is preserved, starting column is not.
 hledger -f - print
 <<<
-2009/01/01 x
-    ; transaction comment 1
-    ; transaction comment 2
-    a  1
-    b
->>>
-2009/01/01 x
-    ; transaction comment 1
-    ; transaction comment 2
-    a               1
-    b
+; file comments, ignored
+# file comment using a hash
+* file comment using a star (org node)
+ ; file comments need not
+ # start in
+ * column 0
 
->>>=0
-
-# 2. 
-hledger -f - print
-<<<
-2009/01/01 x
-    a  1
-    b
-; comment line after postings
->>>
-2009/01/01 x
-    a               1
-    b
-
->>>=0
-
-# 3. print should preserve transaction (entry) comments and which line they're on
-hledger -f - print
-<<<
-; leading journal comment, not preserved
-
-; transaction preceding comment, not preserved
+; pre-transaction comment, ignored
 2009/1/1 x ; transaction same line comment
-    ; transaction new line comment
+      ; transaction new line comment
     a  1    ; posting 1 same line comment
     ; posting 1 new line comment
-    b
+    a
       ; posting 2 new line comment
-; journal comment right after the transaction, not preserved
+; file comment right after the transaction, ignored
 
-; trailing journal comment, not preserved
+; trailing file comment, ignored
 >>>
 2009/01/01 x    ; transaction same line comment
     ; transaction new line comment
     a               1    ; posting 1 same line comment
     ; posting 1 new line comment
-    b
+    a
     ; posting 2 new line comment
 
 >>>2
 >>>=0
 
-# 4. a posting comment should appear in print
+# 2. transaction comments must use ;
 hledger -f - print
 <<<
-2010/01/01 x
-    a               1    ; comment
-    b              -1
-
+2017/1/1 this # and * are not ; the comment
 >>>
-2010/01/01 x
-    a               1    ; comment
-    b              -1
+2017/01/01 this # and * are not    ; the comment
 
 >>>2
 >>>=0
 
-# 5. a posting comment should not appear in register
+# 3. posting comments must use ;
+hledger -f - print
+<<<
+2017/1/1
+  a  0  # hash & star not allowed for posting comments
+>>>=1
+
+# 4. register does not show comments
 hledger -f - register
 <<<
 2010/1/1 x
@@ -84,3 +62,4 @@ hledger -f - register
                                 b                               -1             0
 >>>2
 >>>=0
+

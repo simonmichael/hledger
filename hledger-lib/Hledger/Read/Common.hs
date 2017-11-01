@@ -610,15 +610,15 @@ multilinecommentp = do
 
 emptyorcommentlinep :: JournalParser m ()
 emptyorcommentlinep = do
-  lift (many spacenonewline) >> (commentp <|> (lift (many spacenonewline) >> newline >> return ""))
+  lift (many spacenonewline) >> (linecommentp <|> (lift (many spacenonewline) >> newline >> return ""))
   return ()
 
 -- | Parse a possibly multi-line comment following a semicolon.
 followingcommentp :: JournalParser m Text
 followingcommentp =
   -- ptrace "followingcommentp"
-  do samelinecomment <- lift (many spacenonewline) >> (try semicoloncommentp <|> (newline >> return ""))
-     newlinecomments <- many (try (lift (some spacenonewline) >> semicoloncommentp))
+  do samelinecomment <- lift (many spacenonewline) >> (try commentp <|> (newline >> return ""))
+     newlinecomments <- many (try (lift (some spacenonewline) >> commentp))
      return $ T.unlines $ samelinecomment:newlinecomments
 
 -- | Parse a possibly multi-line comment following a semicolon, and
@@ -650,10 +650,10 @@ followingcommentandtagsp mdefdate = do
   -- to get good error positions.
   startpos <- getPosition
   commentandwhitespace :: String <- do
-    let semicoloncommentp' = (:) <$> char ';' <*> anyChar `manyTill` eolof
+    let commentp' = (:) <$> char ';' <*> anyChar `manyTill` eolof
     sp1 <- lift (many spacenonewline)
-    l1  <- try (lift semicoloncommentp') <|> (newline >> return "")
-    ls  <- lift . many $ try ((++) <$> some spacenonewline <*> semicoloncommentp')
+    l1  <- try (lift commentp') <|> (newline >> return "")
+    ls  <- lift . many $ try ((++) <$> some spacenonewline <*> commentp')
     return $ unlines $ (sp1 ++ l1) : ls
   let comment = T.pack $ unlines $ map (lstrip . dropWhile (==';') . strip) $ lines commentandwhitespace
   -- pdbg 0 $ "commentws:"++show commentandwhitespace
@@ -676,14 +676,15 @@ followingcommentandtagsp mdefdate = do
 
   return (comment, tags, mdate, mdate2)
 
+-- A transaction/posting comment must start with a semicolon.
+-- This parser ignores leading whitespace.
 commentp :: JournalParser m Text
-commentp = commentStartingWithp commentchars
+commentp = commentStartingWithp ";"
 
-commentchars :: [Char]
-commentchars = "#;*"
-
-semicoloncommentp :: JournalParser m Text
-semicoloncommentp = commentStartingWithp ";"
+-- A line (file-level) comment can start with a semicolon, hash,
+-- or star (allowing org nodes). This parser ignores leading whitespace.
+linecommentp :: JournalParser m Text
+linecommentp = commentStartingWithp ";#*" 
 
 commentStartingWithp :: [Char] -> JournalParser m Text
 commentStartingWithp cs = do
