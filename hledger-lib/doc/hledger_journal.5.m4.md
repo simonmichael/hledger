@@ -800,7 +800,7 @@ The commodity and display format will be applied to all subsequent commodity-les
 D $1,000.00
 
 1/1
-  a     5    # <- commodity-less amount, becomes $1
+  a     5    ; <- commodity-less amount, becomes $1
   b
 ```
 
