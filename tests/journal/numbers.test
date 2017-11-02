@@ -43,6 +43,32 @@ hledger bal -f -
 >>>
 >>>=1
 
+# Space between digits groups
+hledger bal -f - --no-total
+<<<
+2017/1/1
+	a   1 000.00 EUR
+	b  -1 000.00 EUR
+>>>
+        1 000.00 EUR  a
+       -1 000.00 EUR  b
+>>>2
+>>>=0
+
+# Space between digits groups in commodity directive
+hledger bal -f - --no-total
+<<<
+commodity 1 000.00 EUR
+
+2017/1/1
+	a   1,000.00 EUR
+	b  -1,000.00 EUR
+>>>
+        1 000.00 EUR  a
+       -1 000.00 EUR  b
+>>>2
+>>>=0
+
 # Default commodity
 hledger bal -f -
 <<<
