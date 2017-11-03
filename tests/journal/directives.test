@@ -16,3 +16,20 @@ a:b
 aa:b
 c
 >>>=0
+
+# empty multi-line commodity directive
+hledger -f - reg
+<<<
+commodity BTC
+>>>
+>>>2
+>>>=0
+
+# unsupported commodity sub-directive
+hledger -f - reg
+<<<
+commodity BTC
+  note Bitcoin
+>>>
+>>>2 /expecting "format"/
+>>>=1
