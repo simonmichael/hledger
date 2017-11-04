@@ -150,7 +150,11 @@ getDefaultDecimalHint :: JournalParser m (Maybe Char)
 getDefaultDecimalHint = maybe Nothing (asdecimalpoint . snd) <$> getDefaultCommodityAndStyle
 
 getDecimalHint :: CommoditySymbol -> JournalParser m (Maybe Char)
-getDecimalHint commodity = maybe Nothing asdecimalpoint . maybe Nothing cformat . M.lookup commodity . jcommodities <$> get
+getDecimalHint commodity = do
+    specificStyle <-  maybe Nothing cformat . M.lookup commodity . jcommodities <$> get
+    defaultStyle <- fmap snd <$> getDefaultCommodityAndStyle
+    let effectiveStyle = listToMaybe $ catMaybes [specificStyle, defaultStyle]
+    return $ maybe Nothing asdecimalpoint effectiveStyle
 
 pushAccount :: AccountName -> JournalParser m ()
 pushAccount acct = modify' (\j -> j{jaccounts = acct : jaccounts j})
