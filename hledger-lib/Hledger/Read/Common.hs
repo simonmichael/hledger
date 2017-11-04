@@ -14,6 +14,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 
 --- * module
 {-# LANGUAGE CPP, DeriveDataTypeable, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Hledger.Read.Common
 where
@@ -146,15 +147,23 @@ setDefaultCommodityAndStyle cs = modify' (\j -> j{jparsedefaultcommodity=Just cs
 getDefaultCommodityAndStyle :: JournalParser m (Maybe (CommoditySymbol,AmountStyle))
 getDefaultCommodityAndStyle = jparsedefaultcommodity `fmap` get
 
-getDefaultDecimalHint :: JournalParser m (Maybe Char)
-getDefaultDecimalHint = maybe Nothing (asdecimalpoint . snd) <$> getDefaultCommodityAndStyle
+-- | Get amount style associated with default currency.
+--
+-- Returns 'AmountStyle' used to defined by a latest default commodity directive
+-- prior to current position within this file or its parents.
+getDefaultAmountStyle :: JournalParser m (Maybe AmountStyle)
+getDefaultAmountStyle = fmap snd <$> getDefaultCommodityAndStyle
 
-getDecimalHint :: CommoditySymbol -> JournalParser m (Maybe Char)
-getDecimalHint commodity = do
+-- | Lookup currency-specific amount style.
+--
+-- Returns 'AmountStyle' used in commodity directive within current journal
+-- prior to current position or in its parents files.
+getAmountStyle :: CommoditySymbol -> JournalParser m (Maybe AmountStyle)
+getAmountStyle commodity = do
     specificStyle <-  maybe Nothing cformat . M.lookup commodity . jcommodities <$> get
     defaultStyle <- fmap snd <$> getDefaultCommodityAndStyle
     let effectiveStyle = listToMaybe $ catMaybes [specificStyle, defaultStyle]
-    return $ maybe Nothing asdecimalpoint effectiveStyle
+    return effectiveStyle
 
 pushAccount :: AccountName -> JournalParser m ()
 pushAccount acct = modify' (\j -> j{jaccounts = acct : jaccounts j})
@@ -426,9 +435,9 @@ leftsymbolamountp = do
   sign <- lift signp
   m <- lift multiplierp
   c <- lift commoditysymbolp
-  decimalHint <- getDecimalHint c
+  suggestedStyle <- getAmountStyle c
   sp <- lift $ many spacenonewline
-  (q,prec,mdec,mgrps) <- lift $ numberp decimalHint
+  (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
   let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   p <- priceamountp
   let applysign = if sign=="-" then negate else id
@@ -442,8 +451,8 @@ rightsymbolamountp = do
   rawnum <- lift $ rawnumberp
   sp <- lift $ many spacenonewline
   c <- lift commoditysymbolp
-  decimalHint <- getDecimalHint c
-  let (q,prec,mdec,mgrps) = fromRawNumber decimalHint (sign == "-") rawnum
+  suggestedStyle <- getAmountStyle c
+  let (q,prec,mdec,mgrps) = fromRawNumber suggestedStyle (sign == "-") rawnum
   p <- priceamountp
   let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   return $ Amount c q p s m
@@ -452,8 +461,8 @@ rightsymbolamountp = do
 nosymbolamountp :: Monad m => JournalParser m Amount
 nosymbolamountp = do
   m <- lift multiplierp
-  decimalHint <- getDefaultDecimalHint
-  (q,prec,mdec,mgrps) <- lift $ numberp decimalHint
+  suggestedStyle <- getDefaultAmountStyle
+  (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
   p <- priceamountp
   -- apply the most recently seen default commodity and style to this commodityless amount
   defcs <- getDefaultCommodityAndStyle
@@ -540,26 +549,26 @@ fixedlotpricep =
 -- seen following the decimal point), the decimal point character used if any,
 -- and the digit group style if any.
 --
-numberp :: Maybe Char -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-numberp decimalHint = do
+numberp :: Maybe AmountStyle -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+numberp suggestedStyle = do
     -- a number is an optional sign followed by a sequence of digits possibly
     -- interspersed with periods, commas, or both
     -- ptrace "numberp"
     sign <- signp
     raw <- rawnumberp
     dbg8 "numberp parsed" raw `seq` return ()
-    return $ dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (fromRawNumber decimalHint (sign == "-") raw)
+    return $ dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (fromRawNumber suggestedStyle (sign == "-") raw)
     <?> "numberp"
 
-fromRawNumber :: Maybe Char -> Bool -> (Maybe Char, [String], Maybe (Char, String)) -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-fromRawNumber decimalHint negated raw = (quantity, precision, mdecimalpoint, mgrps) where
+fromRawNumber :: Maybe AmountStyle -> Bool -> (Maybe Char, [String], Maybe (Char, String)) -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+fromRawNumber suggestedStyle negated raw = (quantity, precision, mdecimalpoint, mgrps) where
     -- unpack with a hint if useful
     (mseparator, intparts, mdecimalpoint, frac) =
             case raw of
                 -- just a single punctuation between two digits groups, assume it's a decimal point
                 (Just s, [firstGroup, lastGroup], Nothing)
                     -- if have a decimalHint restrict this assumpion only to a matching separator
-                    | maybe True (s ==) decimalHint -> (Nothing, [firstGroup], Just s, lastGroup)
+                    | maybe True (`asdecimalcheck` s) suggestedStyle -> (Nothing, [firstGroup], Just s, lastGroup)
 
                 (firstSep, digitGroups, Nothing) -> (firstSep, digitGroups, Nothing, [])
                 (firstSep, digitGroups, Just (d, frac)) -> (firstSep, digitGroups, Just d, frac)
@@ -574,6 +583,14 @@ fromRawNumber decimalHint negated raw = (quantity, precision, mdecimalpoint, mgr
     repr = (if negated then "-" else "") ++ "0" ++ concat intparts ++ (if null frac then "" else "." ++ frac)
     quantity = read repr
     precision = length frac
+
+    asdecimalcheck :: AmountStyle -> Char -> Bool
+    asdecimalcheck = \case
+        AmountStyle{asdecimalpoint = Just d} -> (d ==)
+        AmountStyle{asdigitgroups = Just (DigitGroups g _)} -> (g /=)
+        AmountStyle{asprecision = 0} -> const False
+        _ -> const True
+
 
 rawnumberp :: TextParser m (Maybe Char, [String], Maybe (Char, String))
 rawnumberp = do
