@@ -7,7 +7,7 @@
 skip: 1
 
 # name the csv fields, and assign some of them as entry fields
-fields: date, type, toorfrom, name, status_, payment, fees, code
+fields: date, type, toorfrom, name, status_, amount, fees, code
 
 # parse the date
 date-format: %b %-d, %Y
@@ -18,8 +18,8 @@ description: %toorfrom %name
 # save these fields as tags
 comment:     status:%status_, fees:%fees
 
-# flip the sign on the payment amount
-amount:      -%payment
+# flip the sign on the amount
+amount:      -%amount
 
 # set the base account for all txns
 account1:    assets:personal:online:amazon
