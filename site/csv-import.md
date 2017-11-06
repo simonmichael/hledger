@@ -1,6 +1,6 @@
 # Convert CSV files
 
-Here's a quick example of [converting a CSV file](manual.html#csv-format).
+Here's a quick example of reading CSV data with hledger.
 
 Say we have downloaded `checking.csv` from a bank for the first time:
 ```csv
