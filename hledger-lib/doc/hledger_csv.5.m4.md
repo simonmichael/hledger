@@ -17,16 +17,64 @@ CSV - how hledger reads CSV data, and the CSV rules file format
 }})
 
 hledger can read
-[CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files,
-converting each CSV record into a journal entry (transaction),
-if you provide some conversion hints in a "rules file".
-This file should be named like the CSV file with an additional `.rules` suffix (eg: `mybank.csv.rules`);
-or, you can specify the file with `--rules-file PATH`.
-hledger will create it if necessary, with some default rules which you'll need to adjust.
-At minimum, the rules file must specify the `date` and `amount` fields.
-For an example, see [Cookbook: convert CSV files](csv-import.html).
+[CSV](http://en.wikipedia.org/wiki/Comma-separated_values)
+(comma-separated value) files as if they were journal files,
+automatically converting each CSV record into a transaction.  (To
+learn about *writing* CSV, see [CSV output](hledger.html#csv-output).)
 
-To learn about *exporting* CSV, see [CSV output](hledger.html#csv-output).
+Converting CSV to transactions requires some special conversion rules.
+These do several things:
+
+- they describe the layout and format of the CSV data
+- they can customize the generated journal entries using a simple templating language
+- they can add refinements based on patterns in the CSV data, eg categorizing transactions with more detailed account names.
+
+When reading a CSV file named `FILE.csv`, hledger looks for a
+conversion rules file named `FILE.csv.rules` in the same directory.
+You can override this with the `--rules-file` option.
+If the rules file does not exist, hledger will auto-create one with
+some example rules, which you'll need to adjust.
+
+At minimum, the rules file must identify the `date` and `amount` fields. 
+It may also be necessary to specify the date format, and the number of header lines to skip. Eg:
+```
+fields date, _, _, amount
+date-format  %d/%m/%Y
+skip 1
+```
+
+A more complete example:
+```
+# hledger CSV rules for amazon.com order history
+
+# sample:
+# "Date","Type","To/From","Name","Status","Amount","Fees","Transaction ID"
+# "Jul 29, 2012","Payment","To","Adapteva, Inc.","Completed","$25.00","$0.00","17LA58JSK6PRD4HDGLNJQPI1PB9N8DKPVHL"
+
+# skip one header line
+skip 1
+
+# name the csv fields (and assign the transaction's date, amount and code)
+fields date, _, toorfrom, name, amzstatus, amount, fees, code
+
+# how to parse the date
+date-format %b %-d, %Y
+
+# combine two fields to make the description
+description %toorfrom %name
+
+# save these fields as tags
+comment     status:%amzstatus, fees:%fees
+
+# set the base account for all transactions
+account1    assets:amazon
+
+# flip the sign on the amount
+amount      -%amount
+
+```
+
+For more examples, see [Convert CSV files](csv-import.html).
 
 
 # CSV RULES
