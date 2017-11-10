@@ -187,6 +187,10 @@ or [balance assertions](manual.html#assertions-and-ordering).
 
 - hledger's -P flag is short for --pending. Ledger uses it for grouping by payee. 
 
+- hledger's journal and timeclock formats are separate; you can't use 
+  [both syntaxes in the same file](https://www.reddit.com/r/plaintextaccounting/comments/7buf8q/how_to_balance_working_hours/dpligsd/)
+  unlike Ledger. ([Include](journal.html#including-other-files) a separate timeclock file instead.) 
+  
 ### Future ?
 
 There is a [ledger4](https://github.com/ledger/ledger4) repo on
