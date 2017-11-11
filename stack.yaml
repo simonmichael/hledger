@@ -1,6 +1,6 @@
 # stack build plan using GHC 8.2.1
 
-resolver: nightly-2017-09-07
+resolver: nightly-2017-11-10
 
 extra-deps:
 - wai-handler-launch-3.0.2.3
