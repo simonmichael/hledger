@@ -131,6 +131,15 @@ $ hledger budget -- bal --period 'monthly to last month' --no-offset --average
   when you want to pass it as an input for other `hledger` command. Most people
   will find this useless.
 
+- Use `--dont-invert` if you want to use hledget-budget for future forecasting
+  only. You can create future.journal with periodic income/expense/one-off  
+  transactions, and then do:
+
+$ hledger-budget print --dont-invert -f future.journal -b today -e ... > forecast.journal
+
+  Now you can include forecast.journal into your master journal to incorporate
+  all future transactions up to specified date.
+  
 Recommendations
 
 - Automated transaction should follow same rules that usual transactions follow
@@ -158,6 +167,7 @@ budgetFlags :: [Flag RawOpts]
 budgetFlags =
     [ flagNone ["no-buckets"] (setboolopt "no-buckets") "show all accounts besides mentioned in periodic transactions"
     , flagNone ["no-offset"] (setboolopt "no-offset") "do not add up periodic transactions"
+    , flagNone ["dont-invert"] (setboolopt "dont-invert") "do not invert amounts of periodic transactions"
     ]
 
 actions :: [(Mode RawOpts, CliOpts -> Journal -> IO ())]
@@ -204,7 +214,8 @@ budgetWrapper f opts' j = do
                 { tdescription = "Budget transaction"
                 , tpostings = map makeBudgetPosting $ tpostings t
                 }
-            makeBudgetPosting p = p { pamount = negate $ pamount p }
+            budgetAmountSign = if (boolopt "dont-invert" $ rawopts_ opts') then id else negate
+            makeBudgetPosting p = p { pamount = budgetAmountSign $ pamount p }
         j' <- journalBalanceTransactions' opts' j{ jtxns = ts'' }
 
         -- re-map account names into buckets from periodic transaction
