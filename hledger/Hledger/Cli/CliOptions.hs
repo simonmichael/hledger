@@ -155,7 +155,8 @@ reportflags = [
  ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden"
  ,flagNone ["cost","B"]      (setboolopt "cost") "convert amounts to their cost at transaction time (using the transaction price, if any)"
  ,flagNone ["value","V"]     (setboolopt "value") "convert amounts to their market value on the report end date (using the most recent applicable market price, if any)"
- ,flagNone ["forecast"] (\opts -> setboolopt "forecast" opts) "generate forecast transactions"
+ ,flagNone ["forecast"]      (setboolopt "forecast") "generate forecast transactions"
+ ,flagNone ["auto"]          (setboolopt "auto") "generate automated postings"
  ]
 
 -- | Common output-related flags: --output-file, --output-format...
