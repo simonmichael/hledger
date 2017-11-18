@@ -54,6 +54,7 @@ import Hledger.Data
 import Hledger.Read
 import Hledger.Reports
 import Hledger.Utils
+import Hledger.Query (Query(Any))
 
 
 -- | Parse the user's specified journal file, maybe apply some transformations
@@ -71,6 +72,7 @@ withJournalDo opts cmd = do
           . journalApplyAliases (aliasesFromOpts opts)
         <=< journalApplyValue (reportopts_ opts)
         <=< journalAddForecast opts
+          . generateAutomaticPostings (reportopts_ opts)
   either error' f ej
 
 -- | Apply the pivot transformation on a journal, if option is present.
@@ -140,6 +142,15 @@ journalAddForecast opts j = do
       let assrt = not . ignore_assertions_ $ inputopts_ opts
       in
        either error' id $ journalBalanceTransactions assrt j
+
+-- | Generate Automatic postings and add them to the current journal.
+generateAutomaticPostings :: ReportOpts -> Journal -> Journal
+generateAutomaticPostings ropts j = 
+  if auto_ ropts then j { jtxns = map modifier $ jtxns j } else j
+  where
+    modifier = foldr (flip (.) . runModifierTransaction') id mtxns
+    runModifierTransaction' = fmap txnTieKnot . runModifierTransaction Any
+    mtxns = jmodifiertxns j
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.
