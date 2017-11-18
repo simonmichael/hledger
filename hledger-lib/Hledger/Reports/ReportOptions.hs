@@ -104,12 +104,14 @@ data ReportOpts = ReportOpts {
       -- eg in the income section of an income statement, this helps --sort-amount know
       -- how to sort negative numbers.
     ,color_          :: Bool
+    ,forecast_       :: Bool
  } deriving (Show, Data, Typeable)
 
 instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
+    def
     def
     def
     def
@@ -164,6 +166,7 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,sort_amount_ = boolopt "sort-amount" rawopts'
     ,pretty_tables_ = boolopt "pretty-tables" rawopts'
     ,color_       = color
+    ,forecast_    = boolopt "forecast" rawopts'
     }
 
 -- | Do extra validation of raw option values, raising an error if there's a problem.
