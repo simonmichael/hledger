@@ -1,0 +1,81 @@
+# Test --forecast switch
+hledger bal -M -b 2016-11 -e 2017-02 -f - --forecast
+<<<
+2016/12/31
+    expenses:housing  $600
+    assets:cash
+
+~ monthly from 2016/1/1
+    income  $-1000
+    expenses:food     $20
+    expenses:leisure  $15
+    expenses:grocery  $30
+    assets:cash
+>>>
+Balance changes in 2016/12/01-2017/01/31:
+
+                  || 2016/12  2017/01 
+==================++==================
+ assets:cash      ||   $-600     $935 
+ expenses:food    ||       0      $20 
+ expenses:grocery ||       0      $30 
+ expenses:housing ||    $600        0 
+ expenses:leisure ||       0      $15 
+ income           ||       0   $-1000 
+------------------++------------------
+                  ||       0        0 
+
+>>>2
+>>>=0
+
+
+hledger print -b 2016-11 -e 2017-02 -f - --forecast
+<<<
+2016/12/31
+    expenses:housing  $600
+    assets:cash
+
+~ monthly from 2016/1/1
+    income  $-1000
+    expenses:food     $20
+    expenses:leisure  $15
+    expenses:grocery  $30
+    assets:cash
+>>>
+2016/12/31
+    expenses:housing            $600
+    assets:cash
+
+2017/01/01 Forecast transaction
+    income                    $-1000
+    expenses:food                $20
+    expenses:leisure             $15
+    expenses:grocery             $30
+    assets:cash
+
+>>>2
+>>>=0
+
+
+hledger register -b 2016-11 -e 2017-02 -f - --forecast
+<<<
+2016/12/31
+    expenses:housing  $600
+    assets:cash
+
+~ monthly from 2016/1/1
+    income  $-1000
+    expenses:food     $20
+    expenses:leisure  $15
+    expenses:grocery  $30
+    assets:cash
+>>>
+2016/12/31                      expenses:housing              $600          $600
+                                assets:cash                  $-600             0
+2017/01/01 Forecast transact..  income                      $-1000        $-1000
+                                expenses:food                  $20         $-980
+                                expenses:leisure               $15         $-965
+                                expenses:grocery               $30         $-935
+                                assets:cash                   $935             0
+>>>2
+>>>=0
