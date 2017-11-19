@@ -106,12 +106,16 @@ data ReportOpts = ReportOpts {
     ,color_          :: Bool
     ,forecast_       :: Bool
     ,auto_           :: Bool
+    ,budget_         :: Bool
+    ,show_unbudgeted_:: Bool
  } deriving (Show, Data, Typeable)
 
 instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
+    def
+    def
     def
     def
     def
@@ -170,6 +174,8 @@ rawOptsToReportOpts rawopts = checkReportOpts <$> do
     ,color_       = color
     ,forecast_    = boolopt "forecast" rawopts'
     ,auto_        = boolopt "auto" rawopts'
+    ,budget_      = boolopt "budget" rawopts'
+    ,show_unbudgeted_ = boolopt "show-unbudgeted" rawopts'
     }
 
 -- | Do extra validation of raw option values, raising an error if there's a problem.
