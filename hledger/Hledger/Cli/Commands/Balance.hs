@@ -246,8 +246,9 @@ module Hledger.Cli.Commands.Balance (
  ,tests_Hledger_Cli_Commands_Balance
 ) where
 
-import Data.List (intercalate)
+import Data.List (intercalate, nub)
 import Data.Maybe
+import qualified Data.Map as Map
 -- import Data.Monoid
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit as C
@@ -283,6 +284,8 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
      ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode when displaying tables"
      ,flagNone ["sort-amount","S"] (\opts -> setboolopt "sort-amount" opts) "sort by amount instead of account name"
+     ,flagNone ["budget"] (setboolopt "budget") "compute budget from periodic transactions and compare real balances to it"
+     ,flagNone ["show-unbudgeted"] (setboolopt "show-unbudgeted") "show full names of accounts not mentioned in budget"
      ]
      ++ outputflags
     ,groupHidden = []
@@ -293,7 +296,7 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
-balance opts@CliOpts{reportopts_=ropts} j = do
+balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
   d <- getCurrentDay
   case lineFormatFromOpts ropts of
     Left err -> error' $ unlines [err]
@@ -319,12 +322,58 @@ balance opts@CliOpts{reportopts_=ropts} j = do
                 "csv" -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
                 _     -> balanceReportAsText
           writeOutput opts $ render ropts report
-        _ -> do
+          
+        _ | boolopt "budget" rawopts -> do
+          let budget = budgetJournal opts j
+              j' = budgetRollUp opts budget j
+              report = multiBalanceReport ropts (queryFromOpts d ropts) j'
+              budgetReport = multiBalanceReport ropts (queryFromOpts d ropts) budget
+              render = case format of
+                -- XXX: implement csv rendering
+                "csv" -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
+                _     -> multiBalanceReportWithBudgetAsText ropts budgetReport
+          writeOutput opts $ render report
+          
+          | otherwise -> do
           let report = multiBalanceReport ropts (queryFromOpts d ropts) j
               render = case format of
-                "csv" -> \ropts r -> (++ "\n") $ printCSV $ multiBalanceReportAsCsv ropts r
-                _     -> multiBalanceReportAsText
-          writeOutput opts $ render ropts report
+                "csv" -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
+                _     -> multiBalanceReportAsText ropts
+          writeOutput opts $ render report
+
+-- | Re-map account names to closet parent with periodic transaction from budget.
+-- Accounts that dont have suitable parent are either remapped to "<unbudgeted>:topAccount" 
+-- or left as-is if --show-unbudgeted is provided 
+budgetRollUp :: CliOpts -> Journal -> Journal -> Journal
+budgetRollUp CliOpts{rawopts_=rawopts} budget j = j { jtxns = remapTxn <$> jtxns j }
+    where
+        budgetAccounts = nub $ concatMap (map paccount . ptpostings) $ jperiodictxns budget
+        remapAccount origAcctName = remapAccount' origAcctName
+          where 
+            remapAccount' acctName
+              | acctName `elem` budgetAccounts = acctName
+              | otherwise = 
+                case parentAccountName acctName of
+                  "" | boolopt "show-unbudgeted" rawopts -> origAcctName
+                     | otherwise              -> T.append (T.pack "<unbudgeted>:") acctName
+                  parent -> remapAccount' parent
+        remapPosting p = p { paccount = remapAccount $ paccount p, porigin = Just . fromMaybe p $ porigin p }
+        remapTxn = mapPostings (map remapPosting)
+        mapPostings f t = txnTieKnot $ t { tpostings = f $ tpostings t }
+
+-- | Generate journal of all periodic transactions in the given journal for the
+-- entireity of its history or reporting period, whatever is smaller
+budgetJournal :: CliOpts -> Journal -> Journal
+budgetJournal opts j = journalBalanceTransactions' opts j { jtxns = budget }
+  where 
+    dates = spanIntersect (jdatespan j) (periodAsDateSpan $ period_ $ reportopts_ opts)
+    budget = [makeBudget t | pt <- jperiodictxns j, t <- runPeriodicTransaction pt dates]
+    makeBudget t = txnTieKnot $ t { tdescription = T.pack "Budget transaction" }
+    journalBalanceTransactions' opts j =
+      let assrt = not . ignore_assertions_ $ inputopts_ opts
+      in
+       either error' id $ journalBalanceTransactions assrt j
+
 
 -- single-column balance reports
 
@@ -494,16 +543,66 @@ multiBalanceReportAsText opts r =
         CumulativeChange -> "Ending balances (cumulative)"
         HistoricalBalance -> "Ending balances (historical)"
 
+-- | Render two multi-column balance reports as plain text suitable for console output.
+-- They are assumed to have same number of columns, one of them representing
+-- a budget
+multiBalanceReportWithBudgetAsText :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport -> String
+multiBalanceReportWithBudgetAsText opts budget r =
+    printf "%s in %s:\n\n" typeStr (showDateSpan $ multiBalanceReportSpan r)
+      ++ renderBalanceReportTable' opts showcell tabl
+  where
+    tabl = combine (balanceReportAsTable opts r) (balanceReportAsTable opts budget)
+    typeStr :: String
+    typeStr = case balancetype_ opts of
+        PeriodChange -> "Balance changes"
+        CumulativeChange -> "Ending balances (cumulative)"
+        HistoricalBalance -> "Ending balances (historical)"
+    showcell (real, Nothing)     = showamt real
+    showcell (real, Just budget) = 
+        printf "%s [%s]" (showamt real) (showamt budget)
+    showamt | color_ opts  = cshowMixedAmountOneLineWithoutPrice
+            | otherwise    = showMixedAmountOneLineWithoutPrice
+    -- combine reportTable budgetTable will combine them into a single table where cells
+    -- are tuples of (actual, Maybe budget) numbers. Main assumptions is that
+    -- row/column titles of budgetTable are subset of row/column titles or reportTable,
+    -- and there are now row/column titles in budgetTable that are not mentioned in reporTable.
+    -- Both of these are satisfied by construction of budget report and process of rolling up
+    -- account names.
+    combine (Table l t d) (Table l' t' d') = Table l t combinedRows
+      where 
+        -- For all accounts that are present in the budget, zip real amounts with budget amounts
+        combinedRows = [ combineRow row budgetRow 
+                       | (acct, row) <- zip (headerContents l) d
+                       , let budgetRow = 
+                               if acct == "" then [] -- "" is totals row
+                               else fromMaybe [] $ Map.lookup acct budgetAccts
+                       ]
+        -- Budget could cover smaller interval of time than the whole journal.
+        -- Headers for budget row will always be a sublist of headers of row
+        combineRow r br =
+          let reportRow = zip (headerContents t) r
+              budgetRow = Map.fromList $ zip (headerContents t') br 
+              findBudgetVal hdr = Map.lookup hdr budgetRow 
+          in map (\(hdr, val) -> (val, findBudgetVal hdr)) reportRow
+        budgetAccts = Map.fromList $ zip (headerContents l') d'
+                                                           
 -- | Given a table representing a multi-column balance report (for example,
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output.
 renderBalanceReportTable :: ReportOpts -> Table String String MixedAmount -> String
-renderBalanceReportTable (ReportOpts { pretty_tables_ = pretty, color_=usecolor }) = 
+renderBalanceReportTable ropts = 
+  renderBalanceReportTable' ropts showamt
+  where
+    showamt | color_ ropts = cshowMixedAmountOneLineWithoutPrice
+            | otherwise    = showMixedAmountOneLineWithoutPrice
+  
+renderBalanceReportTable' :: ReportOpts -> (a -> String) -> Table String String a -> String
+renderBalanceReportTable' (ReportOpts { pretty_tables_ = pretty}) showCell = 
   unlines
   . addtrailingblank
   . trimborder 
   . lines
-  . render pretty id id showamt
+  . render pretty id id showCell
   . align
   where
     addtrailingblank = (++[""])
@@ -512,8 +611,6 @@ renderBalanceReportTable (ReportOpts { pretty_tables_ = pretty, color_=usecolor 
       where
         acctswidth = maximum' $ map strWidth (headerContents l)
         l'         = padRightWide acctswidth <$> l
-    showamt | usecolor  = cshowMixedAmountOneLineWithoutPrice
-            | otherwise = showMixedAmountOneLineWithoutPrice
 
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
