@@ -252,6 +252,7 @@ import qualified Data.Map as Map
 -- import Data.Monoid
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit as C
+import Data.Decimal (roundTo)
 import Text.CSV
 import Test.HUnit
 import Text.Printf (printf)
@@ -559,8 +560,16 @@ multiBalanceReportWithBudgetAsText opts budget r =
         PeriodChange -> "Balance changes"
         CumulativeChange -> "Ending balances (cumulative)"
         HistoricalBalance -> "Ending balances (historical)"
-    showcell (real, Just budget) = showamt real ++ " [" ++ showamt budget ++ "]"
     showcell (real, Nothing)     = showamt real
+    showcell (real, Just budget) = 
+      case percentage real budget of
+        Just pct -> printf "%s [%s%% of %s]" (showamt real) (show $ roundTo 0 pct) (showamt budget)
+        Nothing  -> printf "%s [%s]" (showamt real) (showamt budget)
+    percentage real budget =
+      case (real, budget) of
+        (Mixed [a1], Mixed [a2]) | acommodity a1 == acommodity a2 && aquantity a2 /= 0 -> 
+          Just $ 100 * aquantity a1 / aquantity a2
+        _ -> Nothing
     showamt | color_ opts  = cshowMixedAmountOneLineWithoutPrice
             | otherwise    = showMixedAmountOneLineWithoutPrice
     combine (Table l t d) (Table l' _ d') = Table l t combined
