@@ -95,9 +95,8 @@ hledger register -b 2015-12 -e 2017-02 -f - assets:cash --forecast
     income  $-10000 ; bonus
     assets:cash
 >>>
-2016/01/01 Forecast transact..  assets:cash                 $10000        $10000
-2016/01/01                      assets:cash                   $-10         $9990
-2016/12/02                      assets:cash                  $-600         $9390
-2017/01/01 Forecast transact..  assets:cash                 $10000        $19390
+2016/01/01                      assets:cash                   $-10          $-10
+2016/12/02                      assets:cash                  $-600         $-610
+2017/01/01 Forecast transact..  assets:cash                 $10000         $9390
 >>>2
 >>>=0

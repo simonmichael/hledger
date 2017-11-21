@@ -123,12 +123,10 @@ journalApplyValue ropts j = do
 journalAddForecast :: CliOpts -> Journal -> IO Journal
 journalAddForecast opts j = do
   today <- getCurrentDay
-  let startDate =
-        -- Create forecast starting from end of journal + 1 day, and until the end of requested reporting period
-        -- If end is not provided, do 180 days of forecast
-        case spanEnd (jdatespan j) of
-          Just jEnd -> addDays 1 jEnd
-          Nothing   -> today
+  -- Create forecast starting from end of journal + 1 day, and until the end of requested reporting period
+  -- If end is not provided, do 180 days of forecast.
+  -- Note that jdatespan already returns last day + 1
+  let startDate = fromMaybe today $ spanEnd (jdatespan j) 
       endDate = fromMaybe (addDays 180 today) $ periodEnd (period_ ropts)
       dates = DateSpan (Just startDate) (Just endDate)
       withForecast = [makeForecast t | pt <- jperiodictxns j, t <- runPeriodicTransaction pt dates] ++ (jtxns j)
