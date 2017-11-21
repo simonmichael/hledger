@@ -79,3 +79,25 @@ hledger register -b 2016-11 -e 2017-02 -f - --forecast
                                 assets:cash                   $935             0
 >>>2
 >>>=0
+
+# Check that --forecast generates transactions only after last transaction in journal
+hledger register -b 2015-12 -e 2017-02 -f - assets:cash --forecast
+<<<
+2016/01/01
+    expenses:fun  $10 ; more fireworks
+    assets:cash
+
+2016/12/02
+    expenses:housing  $600
+    assets:cash
+
+~ yearly from 2016/1/1
+    income  $-10000 ; bonus
+    assets:cash
+>>>
+2016/01/01 Forecast transact..  assets:cash                 $10000        $10000
+2016/01/01                      assets:cash                   $-10         $9990
+2016/12/02                      assets:cash                  $-600         $9390
+2017/01/01 Forecast transact..  assets:cash                 $10000        $19390
+>>>2
+>>>=0
