@@ -136,7 +136,8 @@ renderPostingCommentDates p = p { pcomment = comment' }
 --
 -- Note that new transactions require 'txnTieKnot' post-processing.
 --
--- >>> mapM_ (putStr . show) $ runPeriodicTransaction (PeriodicTransaction "monthly from 2017/1 to 2017/4" ["hi" `post` usd 1]) nulldatespan
+-- >>> let gen str = mapM_ (putStr . show) $ runPeriodicTransaction (PeriodicTransaction str ["hi" `post` usd 1]) nulldatespan
+-- >>> gen "monthly from 2017/1 to 2017/4"
 -- 2017/01/01
 --     hi           $1.00
 -- <BLANKLINE>
@@ -146,6 +147,14 @@ renderPostingCommentDates p = p { pcomment = comment' }
 -- 2017/03/01
 --     hi           $1.00
 -- <BLANKLINE>
+-- >>> gen "weekly from 2017"
+-- *** Exception: Unable to generate transactions according to "weekly from 2017" as 2017-01-01 is not a first day of the week
+-- >>> gen "monthly from 2017/5/4"
+-- *** Exception: Unable to generate transactions according to "monthly from 2017/5/4" as 2017-05-04 is not a first day of the month        
+-- >>> gen "every quarter from 2017/1/2"
+-- *** Exception: Unable to generate transactions according to "every quarter from 2017/1/2" as 2017-01-02 is not a first day of the quarter        
+-- >>> gen "yearly from 2017/1/14"
+-- *** Exception: Unable to generate transactions according to "yearly from 2017/1/14" as 2017-01-14 is not a first day of the year        
 runPeriodicTransaction :: PeriodicTransaction -> (DateSpan -> [Transaction])
 runPeriodicTransaction pt = generate where
     base = nulltransaction { tpostings = ptpostings pt }
@@ -154,5 +163,18 @@ runPeriodicTransaction pt = generate where
     (interval, effectspan) =
         case parsePeriodExpr errCurrent periodExpr of
             Left e -> error' $ "Failed to parse " ++ show (T.unpack periodExpr) ++ ": " ++ showDateParseError e
-            Right x -> x
+            Right x -> checkProperStartDate x
     generate jspan = [base {tdate=date} | span <- interval `splitSpan` spanIntersect effectspan jspan, let Just date = spanStart span]
+    checkProperStartDate (i,s) = 
+      case (i,spanStart s) of
+        (Weeks _,    Just d) -> checkStart d "week"
+        (Months _,   Just d) -> checkStart d "month"
+        (Quarters _, Just d) -> checkStart d "quarter"
+        (Years _,    Just d) -> checkStart d "year"
+        _                    -> (i,s) 
+        where
+          checkStart d x =
+            let firstDate = fixSmartDate d ("","this",x) 
+            in   
+             if d == firstDate then (i,s)
+             else error' $ "Unable to generate transactions according to "++(show periodExpr)++" as "++(show d)++" is not a first day of the "++x
