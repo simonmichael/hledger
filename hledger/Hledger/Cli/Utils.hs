@@ -31,7 +31,7 @@ import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Data.Time (Day)
+import Data.Time (Day, addDays)
 import Data.Word
 import Numeric
 import Safe (readMay)
@@ -70,6 +70,7 @@ withJournalDo opts cmd = do
           . anonymiseByOpts opts
           . journalApplyAliases (aliasesFromOpts opts)
         <=< journalApplyValue (reportopts_ opts)
+        <=< journalAddForecast opts
   either error' f ej
 
 -- | Apply the pivot transformation on a journal, if option is present.
@@ -116,6 +117,29 @@ journalApplyValue ropts j = do
                 | otherwise
                 = id
     return $ convert j
+
+-- | Run PeriodicTransactions from journal from today or journal end to requested end day.
+-- Add generated transactions to the journal
+journalAddForecast :: CliOpts -> Journal -> IO Journal
+journalAddForecast opts j = do
+  today <- getCurrentDay
+  -- Create forecast starting from end of journal + 1 day, and until the end of requested reporting period
+  -- If end is not provided, do 180 days of forecast.
+  -- Note that jdatespan already returns last day + 1
+  let startDate = fromMaybe today $ spanEnd (jdatespan j) 
+      endDate = fromMaybe (addDays 180 today) $ periodEnd (period_ ropts)
+      dates = DateSpan (Just startDate) (Just endDate)
+      withForecast = [makeForecast t | pt <- jperiodictxns j, t <- runPeriodicTransaction pt dates] ++ (jtxns j)
+      makeForecast t = txnTieKnot $ t { tdescription = T.pack "Forecast transaction" }
+      ropts = reportopts_ opts
+  if forecast_ ropts 
+    then return $ journalBalanceTransactions' opts j { jtxns = withForecast }
+    else return j
+  where      
+    journalBalanceTransactions' opts j =
+      let assrt = not . ignore_assertions_ $ inputopts_ opts
+      in
+       either error' id $ journalBalanceTransactions assrt j
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.

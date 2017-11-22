@@ -155,4 +155,6 @@ runPeriodicTransaction pt = generate where
         case parsePeriodExpr errCurrent periodExpr of
             Left e -> error' $ "Failed to parse " ++ show (T.unpack periodExpr) ++ ": " ++ showDateParseError e
             Right x -> x
-    generate jspan = [base {tdate=date} | span <- interval `splitSpan` spanIntersect effectspan jspan, let Just date = spanStart span]
+    generate jspan = 
+      let effectspan' = spanIntersect effectspan jspan 
+          in [base {tdate=date} | span <- interval `splitSpan` effectspan', let Just date = spanStart span, spanContainsDate effectspan' date]
