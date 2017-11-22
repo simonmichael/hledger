@@ -22,6 +22,7 @@ module Hledger.Data (
                module Hledger.Data.StringFormat,
                module Hledger.Data.Timeclock,
                module Hledger.Data.Transaction,
+               module Hledger.Data.AutoTransaction,
                module Hledger.Data.Types,
                tests_Hledger_Data
               )
@@ -42,6 +43,7 @@ import Hledger.Data.RawOptions
 import Hledger.Data.StringFormat
 import Hledger.Data.Timeclock
 import Hledger.Data.Transaction
+import Hledger.Data.AutoTransaction
 import Hledger.Data.Types
 
 tests_Hledger_Data :: Test

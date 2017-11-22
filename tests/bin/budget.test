@@ -116,7 +116,7 @@ Ending balances (historical) in 2016/12/31-2017/01/02:
 
 # Periodical transactions within journal being applied with inverted sign in amounts
 # As well, accounts from periodic transaction being used for bucketing
-../../bin/hledger-budget bal -f - --no-total -DH expenses
+../../bin/hledger-budget bal -f - --no-total -DH expenses -b 2016/12/26 -e 2017/01/05
 <<<
 ~ daily from 2016/12/31
     expenses:food  $8

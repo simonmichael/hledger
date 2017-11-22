@@ -13,7 +13,6 @@ import Data.List
 import Data.String.Here
 import System.Console.CmdArgs
 import Hledger.Cli
-import Hledger.Data.AutoTransaction
 
 -- hledger-budget REPORT-COMMAND [--no-offset] [--no-buckets] [OPTIONS...]
 
