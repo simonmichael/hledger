@@ -166,6 +166,8 @@ spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Noth
 -- [DateSpan 2007/12/31-2008/01/13,DateSpan 2008/01/14-2008/01/27]
 -- >>> t (DayOfMonth 2) "2008/01/01" "2008/04/01"
 -- [DateSpan 2008/01/02-2008/02/01,DateSpan 2008/02/02-2008/03/01,DateSpan 2008/03/02-2008/04/01]
+-- >>> t (WeekdayOfMonth 2 4) "2011/01/01" "2011/02/15"
+-- [DateSpan 2011/01/13-2011/02/09,DateSpan 2011/02/10-2011/03/09]
 -- >>> t (DayOfWeek 2) "2011/01/01" "2011/01/15"
 -- [DateSpan 2011/01/04-2011/01/10,DateSpan 2011/01/11-2011/01/17]
 --
@@ -178,6 +180,8 @@ splitSpan (Months n)     s = splitspan startofmonth   (applyN n nextmonth)   s
 splitSpan (Quarters n)   s = splitspan startofquarter (applyN n nextquarter) s
 splitSpan (Years n)      s = splitspan startofyear    (applyN n nextyear)    s
 splitSpan (DayOfMonth n) s = splitspan (nthdayofmonthcontaining n) (applyN (n-1) nextday . nextmonth) s
+splitSpan (WeekdayOfMonth n wd) s = monthlyspan (nthweekdayofmonthcontaining n wd) s
+    where monthlyspan start = splitspan start (start . nextmonth)
 splitSpan (DayOfWeek n)  s = splitspan (nthdayofweekcontaining n)  (applyN (n-1) nextday . nextweek)  s
 -- splitSpan (WeekOfYear n)    s = splitspan startofweek    (applyN n nextweek)    s
 -- splitSpan (MonthOfYear n)   s = splitspan startofmonth   (applyN n nextmonth)   s
@@ -467,6 +471,15 @@ nthdayofmonthcontaining n d | d1 >= d    = d1
           d2 = addDays (fromIntegral n-1) $ nextmonth s
           s = startofmonth d
 
+nthweekdayofmonthcontaining n wd d | d1 >= d    = d1
+                                   | otherwise = d2
+    where d1 = findDay $ startofmonth d
+          d2 = findDay $ nextmonth d
+          findDay s = addWeeks (n-1) . firstMatch (>=s) . iterate (addWeeks 1) $ startofweekday s
+          addWeeks k = addDays (7 * fromIntegral k)
+          firstMatch p = head . dropWhile (not . p)
+          startofweekday = addDays (fromIntegral wd-1) . startofweek
+
 nthdayofweekcontaining n d | d1 >= d    = d1
                            | otherwise = d2
     where d1 = addDays (fromIntegral n-1) s
@@ -633,8 +646,8 @@ md = do
 months         = ["january","february","march","april","may","june",
                   "july","august","september","october","november","december"]
 monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
--- weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
--- weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
+weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
+weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
 
 #if MIN_VERSION_megaparsec(6,0,0)
 lc = T.toLower
@@ -656,6 +669,12 @@ mon = do
   m <- choice $ map (try . string) monthabbrevs
   let i = monIndex m
   return ("",show i,"")
+
+weekday :: SimpleTextParser Int
+weekday = do
+  wday <- choice . map string' $ weekdays ++ weekdayabbrevs
+  let i = head . catMaybes $ [lc wday `elemIndex` weekdays, lc wday `elemIndex` weekdayabbrevs]
+  return (i+1)
 
 today,yesterday,tomorrow :: SimpleTextParser SmartDate
 today     = string "today"     >> return ("","","today")
@@ -694,6 +713,8 @@ lastthisnextthing = do
 -- Right (Days 1,DateSpan 2008/08/01-)
 -- >>> p "every week to 2009"
 -- Right (Weeks 1,DateSpan -2008/12/31)
+-- >>> p "every 2nd Thursday of month to 2009"
+-- Right (WeekdayOfMonth 2 4,DateSpan -2008/12/31)
 periodexpr :: Day -> SimpleTextParser (Interval, DateSpan)
 periodexpr rdate = choice $ map try [
                     intervalanddateperiodexpr rdate,
@@ -756,7 +777,20 @@ reportinginterval = choice' [
                             string "of"
                             many spacenonewline
                             string "month"
-                          return $ DayOfMonth n
+                          return $ DayOfMonth n,
+                       do string "every"
+                          many spacenonewline
+                          n <- fmap read $ some digitChar
+                          thsuffix
+                          many spacenonewline
+                          wd <- weekday
+                          many spacenonewline
+                          optional $ do
+                            many spacenonewline
+                            string "of"
+                            many spacenonewline
+                            string "month"
+                          return $ WeekdayOfMonth n wd
                     ]
     where
 
