@@ -146,6 +146,53 @@ renderPostingCommentDates p = p { pcomment = comment' }
 -- 2017/03/01
 --     hi           $1.00
 -- <BLANKLINE>
+-- >>> mapM_ (putStr . show) $ runPeriodicTransaction (PeriodicTransaction "monthly from 2017/1 to 2017/5" ["hi" `post` usd 1]) (mkdatespan "2017/02/01" "2017/04/02")
+-- 2017/02/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/03/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/04/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- >>> mapM_ (putStr . show) $ runPeriodicTransaction (PeriodicTransaction "every 2nd day of month" ["hi" `post` usd 1]) (mkdatespan "2017/02/01" "2017/04/02")
+-- 2017/02/02
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/03/02
+--     hi           $1.00
+-- <BLANKLINE>
+-- >>> mapM_ (putStr . show) $ runPeriodicTransaction (PeriodicTransaction "monthly from 2017/1/5 to 2017/4" ["hi" `post` usd 1]) nulldatespan
+-- 2017/01/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/02/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/03/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- >>> mapM_ (putStr . show) $ runPeriodicTransaction (PeriodicTransaction "every 30rd day of month from 2017/1 to 2017/5" ["hi" `post` usd 1]) nulldatespan
+-- 2017/01/30
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/03/30
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/04/30
+--     hi           $1.00
+-- <BLANKLINE>
+-- >>> mapM_ (putStr . show) $ runPeriodicTransaction (PeriodicTransaction "every 2nd Thursday of month from 2017/1 to 2017/4" ["hi" `post` usd 1]) nulldatespan
+-- 2017/01/12
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/02/09
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/03/09
+--     hi           $1.00
+-- <BLANKLINE>
 runPeriodicTransaction :: PeriodicTransaction -> (DateSpan -> [Transaction])
 runPeriodicTransaction pt = generate where
     base = nulltransaction { tpostings = ptpostings pt }
