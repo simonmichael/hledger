@@ -90,6 +90,7 @@ data Interval =
   | Years Int
   | DayOfMonth Int
   | DayOfWeek Int
+  | DayOfYear Int Int -- Month, Day
   -- WeekOfYear Int
   -- MonthOfYear Int
   -- QuarterOfYear Int
