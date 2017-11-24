@@ -184,7 +184,7 @@ splitSpan (Weeks n)      s = splitspan startofweek    (applyN n nextweek)    s
 splitSpan (Months n)     s = splitspan startofmonth   (applyN n nextmonth)   s
 splitSpan (Quarters n)   s = splitspan startofquarter (applyN n nextquarter) s
 splitSpan (Years n)      s = splitspan startofyear    (applyN n nextyear)    s
-splitSpan (DayOfMonth n) s = splitspan (nthdayofmonthcontaining n) (applyN (n-1) nextday . nextmonth) s
+splitSpan (DayOfMonth n) s = splitspan (nthdayofmonthcontaining n) (nthdayofmonth n . nextmonth) s
 splitSpan (WeekdayOfMonth n wd) s = splitspan (nthweekdayofmonthcontaining n wd) (advancetonthweekday n wd . nextmonth) s
 splitSpan (DayOfWeek n)  s = splitspan (nthdayofweekcontaining n)  (applyN (n-1) nextday . nextweek)  s
 splitSpan (DayOfYear m n) s= splitspan (nthdayofyearcontaining m n) (applyN (n-1) nextday . applyN (m-1) nextmonth . nextyear) s
@@ -456,6 +456,7 @@ thismonth = startofmonth
 prevmonth = startofmonth . addGregorianMonthsClip (-1)
 nextmonth = startofmonth . addGregorianMonthsClip 1
 startofmonth day = fromGregorian y m 1 where (y,m,_) = toGregorian day
+nthdayofmonth d day = fromGregorian y m d where (y,m,_) = toGregorian day
 
 thisquarter = startofquarter
 prevquarter = startofquarter . addGregorianMonthsClip (-3)
@@ -514,8 +515,8 @@ nthdayofyearcontaining m n d | mmddOfSameYear <= d = mmddOfSameYear
 -- 2017-10-30          
 nthdayofmonthcontaining n d | nthOfSameMonth <= d = nthOfSameMonth
                             | otherwise = nthOfPrevMonth
-    where nthOfSameMonth = addDays (fromIntegral n-1) s
-          nthOfPrevMonth = addDays (fromIntegral n-1) $ prevmonth s
+    where nthOfSameMonth = nthdayofmonth n s
+          nthOfPrevMonth = nthdayofmonth n $ prevmonth s
           s = startofmonth d
 
 -- | For given date d find week-long interval that starts on nth day of week

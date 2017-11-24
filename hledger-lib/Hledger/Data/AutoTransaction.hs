@@ -147,7 +147,69 @@ renderPostingCommentDates p = p { pcomment = comment' }
 -- 2017/03/01
 --     hi           $1.00
 -- <BLANKLINE>
--- >>> gen "every Nov 29th from 2017 to 2019"
+-- >>> gen "monthly from 2017/1 to 2017/5"
+-- 2017/01/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/02/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/03/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/04/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- >>> gen "every 2nd day of month from 2017/02 to 2017/04"
+-- 2017/01/02
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/02/02
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/03/02
+--     hi           $1.00
+-- <BLANKLINE>
+-- >>> gen "monthly from 2017/1 to 2017/4"
+-- 2017/01/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/02/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/03/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- >>> gen "every 30th day of month from 2017/1 to 2017/5"
+-- 2016/12/30
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/01/30
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/02/28
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/03/30
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/04/30
+--     hi           $1.00
+-- <BLANKLINE>
+-- >>> gen "every 2nd Thursday of month from 2017/1 to 2017/4"
+-- 2016/12/08
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/01/12
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/02/09
+--     hi           $1.00
+-- <BLANKLINE>
+-- 2017/03/09
+--     hi           $1.00
+-- <BLANKLINE>
+-- >>> gen "every nov 29th from 2017 to 2019"
 -- 2016/11/29
 --     hi           $1.00
 -- <BLANKLINE>
