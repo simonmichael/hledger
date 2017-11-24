@@ -811,6 +811,12 @@ lastthisnextthing = do
 -- Right (WeekdayOfMonth 2 4,DateSpan -2008/12/31)
 -- >>> p "every 1st monday of month to 2009"
 -- Right (WeekdayOfMonth 1 1,DateSpan -2008/12/31)
+-- >>> p "every tue"
+-- Right (DayOfWeek 2,DateSpan -)
+-- >>> p "every 2nd day of week"
+-- Right (DayOfWeek 2,DateSpan -)
+-- >>> p "every 2nd day 2009-"
+-- Right (DayOfMonth 2,DateSpan 2009/01/01-)
 periodexpr :: Day -> SimpleTextParser (Interval, DateSpan)
 periodexpr rdate = choice $ map try [
                     intervalanddateperiodexpr rdate,
@@ -857,6 +863,10 @@ reportinginterval = choice' [
                           many spacenonewline
                           string "day"
                           of_ "week"
+                          return $ DayOfWeek n,
+                       do string "every"
+                          many spacenonewline
+                          n <- weekday
                           return $ DayOfWeek n,
                        do string "every"
                           many spacenonewline
