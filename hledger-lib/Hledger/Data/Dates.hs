@@ -165,9 +165,9 @@ spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Noth
 -- >>> t (Weeks 2) "2008/01/01" "2008/01/15"
 -- [DateSpan 2007/12/31-2008/01/13,DateSpan 2008/01/14-2008/01/27]
 -- >>> t (DayOfMonth 2) "2008/01/01" "2008/04/01"
--- [DateSpan 2008/01/02-2008/02/01,DateSpan 2008/02/02-2008/03/01,DateSpan 2008/03/02-2008/04/01]
+-- [DateSpan 2007/12/02-2008/01/01,DateSpan 2008/01/02-2008/02/01,DateSpan 2008/02/02-2008/03/01,DateSpan 2008/03/02-2008/04/01]
 -- >>> t (DayOfWeek 2) "2011/01/01" "2011/01/15"
--- [DateSpan 2011/01/04-2011/01/10,DateSpan 2011/01/11-2011/01/17]
+-- [DateSpan 2010/12/28-2011/01/03,DateSpan 2011/01/04-2011/01/10,DateSpan 2011/01/11-2011/01/17]
 --
 splitSpan :: Interval -> DateSpan -> [DateSpan]
 splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
@@ -461,16 +461,51 @@ prevyear = startofyear . addGregorianYearsClip (-1)
 nextyear = startofyear . addGregorianYearsClip 1
 startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 
-nthdayofmonthcontaining n d | d1 >= d    = d1
-                            | otherwise = d2
-    where d1 = addDays (fromIntegral n-1) s
-          d2 = addDays (fromIntegral n-1) $ nextmonth s
+-- | For given date d find month-long interval that starts on nth day of month
+-- and covers it. 
+--
+-- Examples: lets take 2017-11-22. Month-long intervals covering it that
+-- start on 1st-22nd of month will start in Nov. However
+-- intervals that start on 23rd-30th of month should start in Oct:
+-- >>> let wed22nd = parsedate "2017-11-22"          
+-- >>> nthdayofmonthcontaining 1 wed22nd
+-- 2017-11-01          
+-- >>> nthdayofmonthcontaining 12 wed22nd
+-- 2017-11-12          
+-- >>> nthdayofmonthcontaining 22 wed22nd
+-- 2017-11-22          
+-- >>> nthdayofmonthcontaining 23 wed22nd
+-- 2017-10-23          
+-- >>> nthdayofmonthcontaining 30 wed22nd
+-- 2017-10-30          
+nthdayofmonthcontaining n d | nthOfSameMonth <= d = nthOfSameMonth
+                            | otherwise = nthOfPrevMonth
+    where nthOfSameMonth = addDays (fromIntegral n-1) s
+          nthOfPrevMonth = addDays (fromIntegral n-1) $ prevmonth s
           s = startofmonth d
 
-nthdayofweekcontaining n d | d1 >= d    = d1
-                           | otherwise = d2
-    where d1 = addDays (fromIntegral n-1) s
-          d2 = addDays (fromIntegral n-1) $ nextweek s
+
+-- | For given date d find week-long interval that starts on nth day of week
+-- and covers it. 
+--
+-- Examples: 2017-11-22 is Wed. Week-long intervals that cover it and
+-- start on Mon, Tue or Wed will start in the same week. However
+-- intervals that start on Thu or Fri should start in prev week:          
+-- >>> let wed22nd = parsedate "2017-11-22"          
+-- >>> nthdayofweekcontaining 1 wed22nd
+-- 2017-11-20          
+-- >>> nthdayofweekcontaining 2 wed22nd
+-- 2017-11-21
+-- >>> nthdayofweekcontaining 3 wed22nd
+-- 2017-11-22          
+-- >>> nthdayofweekcontaining 4 wed22nd
+-- 2017-11-16          
+-- >>> nthdayofweekcontaining 5 wed22nd
+-- 2017-11-17          
+nthdayofweekcontaining n d | nthOfSameWeek <= d = nthOfSameWeek
+                           | otherwise = nthOfPrevWeek
+    where nthOfSameWeek = addDays (fromIntegral n-1) s
+          nthOfPrevWeek = addDays (fromIntegral n-1) $ prevweek s
           s = startofweek d
 
 ----------------------------------------------------------------------
