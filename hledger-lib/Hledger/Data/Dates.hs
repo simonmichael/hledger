@@ -257,7 +257,7 @@ earliest (Just d1) (Just d2) = Just $ min d1 d2
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
 parsePeriodExpr :: Day -> Text -> Either (ParseError Char MPErr) (Interval, DateSpan)
-parsePeriodExpr refdate = parsewith (periodexpr refdate <* eof)
+parsePeriodExpr refdate s = parsewith (periodexpr refdate <* eof) (T.toLower s)
 
 maybePeriod :: Day -> Text -> Maybe (Interval,DateSpan)
 maybePeriod refdate = either (const Nothing) Just . parsePeriodExpr refdate
@@ -671,14 +671,8 @@ monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","n
 -- weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
 -- weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
 
-#if MIN_VERSION_megaparsec(6,0,0)
-lc = T.toLower
-#else
-lc = lowercase
-#endif
-
-monthIndex t = maybe 0 (+1) $ lc t `elemIndex` months
-monIndex t   = maybe 0 (+1) $ lc t `elemIndex` monthabbrevs
+monthIndex t = maybe 0 (+1) $ t `elemIndex` months
+monIndex t   = maybe 0 (+1) $ t `elemIndex` monthabbrevs
 
 month :: SimpleTextParser SmartDate
 month = do
@@ -718,12 +712,12 @@ lastthisnextthing = do
   return ("", T.unpack r, T.unpack p)
 
 -- |
--- >>> let p = parsewith (periodexpr (parsedate "2008/11/26")) :: T.Text -> Either (ParseError Char MPErr) (Interval, DateSpan)
--- >>> p "from aug to oct"
+-- >>> let p s = parsewith (periodexpr (parsedate "2008/11/26")) (T.toLower s) :: Either (ParseError Char MPErr) (Interval, DateSpan)
+-- >>> p "from Aug to Oct"
 -- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
 -- >>> p "aug to oct"
 -- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
--- >>> p "every 3 days in aug"
+-- >>> p "every 3 days in Aug"
 -- Right (Days 3,DateSpan 2008/08)
 -- >>> p "daily from aug"
 -- Right (Days 1,DateSpan 2008/08/01-)
