@@ -219,6 +219,12 @@ renderPostingCommentDates p = p { pcomment = comment' }
 -- 2018/11/29
 --     hi           $1.00
 -- <BLANKLINE>
+-- >>> gen "2017/1"
+-- 2017/01/01
+--     hi           $1.00
+-- <BLANKLINE>
+-- >>> gen ""
+-- ... Failed to parse ...
 -- >>> gen "weekly from 2017"
 -- *** Exception: Unable to generate transactions according to "weekly from 2017" as 2017-01-01 is not a first day of the week
 -- >>> gen "monthly from 2017/5/4"
