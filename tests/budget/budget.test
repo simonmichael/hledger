@@ -1,0 +1,92 @@
+# Test --budget switch
+hledger bal -D -b 2016-12-01 -e 2016-12-04 -f - --budget
+<<<
+2016/12/01
+    expenses:food  $10
+    assets:cash
+
+2016/12/02
+    expenses:food  $9
+    assets:cash
+
+2016/12/03
+    expenses:food  $11
+    assets:cash
+
+2016/12/02
+    expenses:leisure  $5
+    assets:cash
+
+2016/12/03
+    expenses:movies  $25
+    assets:cash
+
+2016/12/03
+    expenses:cab  $15
+    assets:cash
+
+~ daily from 2016/1/1
+    expenses:food     $10
+    expenses:leisure  $15
+    assets:cash
+>>>
+Balance changes in 2016/12/01-2016/12/03:
+
+                       ||         2016/12/01          2016/12/02           2016/12/03 
+=======================++=============================================================
+ <unbudgeted>:expenses ||                  0                   0                  $40 
+ assets:cash           || $-10 [40% of $-25]  $-14 [56% of $-25]  $-51 [204% of $-25] 
+ expenses:food         ||  $10 [100% of $10]     $9 [90% of $10]    $11 [110% of $10] 
+ expenses:leisure      ||            0 [$15]     $5 [33% of $15]              0 [$15] 
+-----------------------++-------------------------------------------------------------
+                       ||                  0                   0                    0 
+
+>>>2
+>>>=0
+
+# --show-unbudgeted
+hledger bal -D -b 2016-12-01 -e 2016-12-04 -f - --budget --show-unbudgeted
+<<<
+2016/12/01
+    expenses:food  $10
+    assets:cash
+
+2016/12/02
+    expenses:food  $9
+    assets:cash
+
+2016/12/03
+    expenses:food  $11
+    assets:cash
+
+2016/12/02
+    expenses:leisure  $5
+    assets:cash
+
+2016/12/03
+    expenses:movies  $25
+    assets:cash
+
+2016/12/03
+    expenses:cab  $15
+    assets:cash
+
+~ daily from 2016/1/1
+    expenses:food     $10
+    expenses:leisure  $15
+    assets:cash
+>>>
+Balance changes in 2016/12/01-2016/12/03:
+
+                  ||         2016/12/01          2016/12/02           2016/12/03 
+==================++=============================================================
+ assets:cash      || $-10 [40% of $-25]  $-14 [56% of $-25]  $-51 [204% of $-25] 
+ expenses:cab     ||                  0                   0                  $15 
+ expenses:food    ||  $10 [100% of $10]     $9 [90% of $10]    $11 [110% of $10] 
+ expenses:leisure ||            0 [$15]     $5 [33% of $15]              0 [$15] 
+ expenses:movies  ||                  0                   0                  $25 
+------------------++-------------------------------------------------------------
+                  ||                  0                   0                    0 
+
+>>>2
+>>>=0

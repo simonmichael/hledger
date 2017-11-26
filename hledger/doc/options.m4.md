@@ -239,20 +239,58 @@ Examples:
 `-p "quarterly"`
 ------------------------------------------
 
+Note that `weekly`, `monthly`, `quarterly` and `yearly` intervals will
+always start on the first day on week, month, quarter or year
+accordingly, and will end on the last day of same period, even if
+associated period expression specifies different explicit start and end date.
+
+For example:
+------------------------------------------
+`-p "weekly from 2009/1/1 to 2009/4/1"` -- starts on 2008/12/29, closest preceeding Monday
+`-p "monthly in 2008/11/25"` -- starts on 2018/11/01                  
+`-p "quarterly from 2009-05-05 to 2009-06-01"` - starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009 
+`-p "yearly from 2009-12-29"` - starts on 2009/01/01, first day of 2009
+------------------------------------------
+
 The following more complex report intervals are also supported:
 `biweekly`, 
 `bimonthly`,
-`every N days|weeks|months|quarters|years`,
-`every Nth day [of month]`,
-`every Nth day of week`.
+`every day|week|month|quarter|year`,
+`every N days|weeks|months|quarters|years`.
+
+
+All of these will start on the first day of the requested period and end on the last one, as described above.
 
 Examples:
 
 ------------------------------------------
-`-p "bimonthly from 2008"`
-`-p "every 2 weeks"`
-`-p "every 5 days from 1/3"`
+`-p "bimonthly from 2008"` -- periods will have boundaries on 2008/01/01, 2008/03/01, ...
+`-p "every 2 weeks"`  -- starts on closest preceeding Monday
+`-p "every 5 month from 2009/03"` -- periods will have boundaries on 2009/03/01, 2009/08/01, ...
 ------------------------------------------
+
+If you want intervals that start on arbitrary day of your choosing and span a week, month or year, you need to use any of the following:
+
+`every Nth day of week`,
+`every <weekday>`,
+`every Nth day [of month]`,
+`every Nth weekday [of month]`,
+`every MM/DD [of year]`,
+`every Nth MMM [of year]`,
+`every MMM Nth [of year]`.
+
+Examples:
+
+------------------------------------------
+`-p "every 2nd day of week"` -- periods will go from Tue to Tue
+`-p "every Tue"` -- same
+`-p "every 15th day"` -- period boundaries will be on 15th of each month
+`-p "every 2nd Monday"` -- period boundaries will be on second Monday of each month
+`-p "every 11/05"` -- yearly periods with boundaries on 5th of Nov
+`-p "every 5th Nov"` -- same
+`-p "every Nov 5th"` -- same
+------------------------------------------
+
 
 Show historical balances at end of 15th each month (N is exclusive end date):
 

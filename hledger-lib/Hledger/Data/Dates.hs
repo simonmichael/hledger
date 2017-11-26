@@ -88,6 +88,7 @@ import Data.Time.Clock
 import Data.Time.LocalTime
 import Safe (headMay, lastMay, readMay)
 import Text.Megaparsec.Compat
+import Text.Megaparsec.Perm
 import Text.Printf
 
 import Hledger.Data.Types
@@ -165,9 +166,15 @@ spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Noth
 -- >>> t (Weeks 2) "2008/01/01" "2008/01/15"
 -- [DateSpan 2007/12/31-2008/01/13,DateSpan 2008/01/14-2008/01/27]
 -- >>> t (DayOfMonth 2) "2008/01/01" "2008/04/01"
--- [DateSpan 2008/01/02-2008/02/01,DateSpan 2008/02/02-2008/03/01,DateSpan 2008/03/02-2008/04/01]
+-- [DateSpan 2007/12/02-2008/01/01,DateSpan 2008/01/02-2008/02/01,DateSpan 2008/02/02-2008/03/01,DateSpan 2008/03/02-2008/04/01]
+-- >>> t (WeekdayOfMonth 2 4) "2011/01/01" "2011/02/15"
+-- [DateSpan 2010/12/09-2011/01/12,DateSpan 2011/01/13-2011/02/09,DateSpan 2011/02/10-2011/03/09]
 -- >>> t (DayOfWeek 2) "2011/01/01" "2011/01/15"
--- [DateSpan 2011/01/04-2011/01/10,DateSpan 2011/01/11-2011/01/17]
+-- [DateSpan 2010/12/28-2011/01/03,DateSpan 2011/01/04-2011/01/10,DateSpan 2011/01/11-2011/01/17]
+-- >>> t (DayOfYear 11 29) "2011/10/01" "2011/10/15"
+-- [DateSpan 2010/11/29-2011/11/28]
+-- >>> t (DayOfYear 11 29) "2011/12/01" "2012/12/15"
+-- [DateSpan 2011/11/29-2012/11/28,DateSpan 2012/11/29-2013/11/28]
 --
 splitSpan :: Interval -> DateSpan -> [DateSpan]
 splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
@@ -177,8 +184,10 @@ splitSpan (Weeks n)      s = splitspan startofweek    (applyN n nextweek)    s
 splitSpan (Months n)     s = splitspan startofmonth   (applyN n nextmonth)   s
 splitSpan (Quarters n)   s = splitspan startofquarter (applyN n nextquarter) s
 splitSpan (Years n)      s = splitspan startofyear    (applyN n nextyear)    s
-splitSpan (DayOfMonth n) s = splitspan (nthdayofmonthcontaining n) (applyN (n-1) nextday . nextmonth) s
+splitSpan (DayOfMonth n) s = splitspan (nthdayofmonthcontaining n) (nthdayofmonth n . nextmonth) s
+splitSpan (WeekdayOfMonth n wd) s = splitspan (nthweekdayofmonthcontaining n wd) (advancetonthweekday n wd . nextmonth) s
 splitSpan (DayOfWeek n)  s = splitspan (nthdayofweekcontaining n)  (applyN (n-1) nextday . nextweek)  s
+splitSpan (DayOfYear m n) s= splitspan (nthdayofyearcontaining m n) (applyN (n-1) nextday . applyN (m-1) nextmonth . nextyear) s
 -- splitSpan (WeekOfYear n)    s = splitspan startofweek    (applyN n nextweek)    s
 -- splitSpan (MonthOfYear n)   s = splitspan startofmonth   (applyN n nextmonth)   s
 -- splitSpan (QuarterOfYear n) s = splitspan startofquarter (applyN n nextquarter) s
@@ -257,7 +266,7 @@ earliest (Just d1) (Just d2) = Just $ min d1 d2
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
 parsePeriodExpr :: Day -> Text -> Either (ParseError Char MPErr) (Interval, DateSpan)
-parsePeriodExpr refdate = parsewith (periodexpr refdate <* eof)
+parsePeriodExpr refdate s = parsewith (periodexpr refdate <* eof) (T.toLower s)
 
 maybePeriod :: Day -> Text -> Maybe (Interval,DateSpan)
 maybePeriod refdate = either (const Nothing) Just . parsePeriodExpr refdate
@@ -447,6 +456,7 @@ thismonth = startofmonth
 prevmonth = startofmonth . addGregorianMonthsClip (-1)
 nextmonth = startofmonth . addGregorianMonthsClip 1
 startofmonth day = fromGregorian y m 1 where (y,m,_) = toGregorian day
+nthdayofmonth d day = fromGregorian y m d where (y,m,_) = toGregorian day
 
 thisquarter = startofquarter
 prevquarter = startofquarter . addGregorianMonthsClip (-3)
@@ -461,17 +471,105 @@ prevyear = startofyear . addGregorianYearsClip (-1)
 nextyear = startofyear . addGregorianYearsClip 1
 startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 
-nthdayofmonthcontaining n d | d1 >= d    = d1
-                            | otherwise = d2
-    where d1 = addDays (fromIntegral n-1) s
-          d2 = addDays (fromIntegral n-1) $ nextmonth s
+-- | For given date d find year-long interval that starts on given MM/DD of year
+-- and covers it. 
+--
+-- Examples: lets take 2017-11-22. Year-long intervals covering it that
+-- starts before Nov 22 will start in 2017. However
+-- intervals that start after Nov 23rd should start in 2016:
+-- >>> let wed22nd = parsedate "2017-11-22"          
+-- >>> nthdayofyearcontaining 11 21 wed22nd
+-- 2017-11-21          
+-- >>> nthdayofyearcontaining 11 22 wed22nd
+-- 2017-11-22          
+-- >>> nthdayofyearcontaining 11 23 wed22nd
+-- 2016-11-23          
+-- >>> nthdayofyearcontaining 12 02 wed22nd
+-- 2016-12-02          
+-- >>> nthdayofyearcontaining 12 31 wed22nd
+-- 2016-12-31          
+-- >>> nthdayofyearcontaining 1 1 wed22nd
+-- 2017-01-01          
+nthdayofyearcontaining m n d | mmddOfSameYear <= d = mmddOfSameYear
+                             | otherwise = mmddOfPrevYear
+    where mmddOfSameYear = addDays (fromIntegral n-1) $ applyN (m-1) nextmonth s
+          mmddOfPrevYear = addDays (fromIntegral n-1) $ applyN (m-1) nextmonth $ prevyear s
+          s = startofyear d
+
+-- | For given date d find month-long interval that starts on nth day of month
+-- and covers it. 
+--
+-- Examples: lets take 2017-11-22. Month-long intervals covering it that
+-- start on 1st-22nd of month will start in Nov. However
+-- intervals that start on 23rd-30th of month should start in Oct:
+-- >>> let wed22nd = parsedate "2017-11-22"          
+-- >>> nthdayofmonthcontaining 1 wed22nd
+-- 2017-11-01          
+-- >>> nthdayofmonthcontaining 12 wed22nd
+-- 2017-11-12          
+-- >>> nthdayofmonthcontaining 22 wed22nd
+-- 2017-11-22          
+-- >>> nthdayofmonthcontaining 23 wed22nd
+-- 2017-10-23          
+-- >>> nthdayofmonthcontaining 30 wed22nd
+-- 2017-10-30          
+nthdayofmonthcontaining n d | nthOfSameMonth <= d = nthOfSameMonth
+                            | otherwise = nthOfPrevMonth
+    where nthOfSameMonth = nthdayofmonth n s
+          nthOfPrevMonth = nthdayofmonth n $ prevmonth s
           s = startofmonth d
 
-nthdayofweekcontaining n d | d1 >= d    = d1
-                           | otherwise = d2
-    where d1 = addDays (fromIntegral n-1) s
-          d2 = addDays (fromIntegral n-1) $ nextweek s
+-- | For given date d find week-long interval that starts on nth day of week
+-- and covers it. 
+--
+-- Examples: 2017-11-22 is Wed. Week-long intervals that cover it and
+-- start on Mon, Tue or Wed will start in the same week. However
+-- intervals that start on Thu or Fri should start in prev week:          
+-- >>> let wed22nd = parsedate "2017-11-22"          
+-- >>> nthdayofweekcontaining 1 wed22nd
+-- 2017-11-20          
+-- >>> nthdayofweekcontaining 2 wed22nd
+-- 2017-11-21
+-- >>> nthdayofweekcontaining 3 wed22nd
+-- 2017-11-22          
+-- >>> nthdayofweekcontaining 4 wed22nd
+-- 2017-11-16          
+-- >>> nthdayofweekcontaining 5 wed22nd
+-- 2017-11-17          
+nthdayofweekcontaining n d | nthOfSameWeek <= d = nthOfSameWeek
+                           | otherwise = nthOfPrevWeek
+    where nthOfSameWeek = addDays (fromIntegral n-1) s
+          nthOfPrevWeek = addDays (fromIntegral n-1) $ prevweek s
           s = startofweek d
+
+-- | For given date d find month-long interval that starts on nth weekday of month
+-- and covers it. 
+--
+-- Examples: 2017-11-22 is 3rd Wed of Nov. Month-long intervals that cover it and
+-- start on 1st-4th Wed will start in Nov. However
+-- intervals that start on 4th Thu or Fri or later should start in Oct:          
+-- >>> let wed22nd = parsedate "2017-11-22"          
+-- >>> nthweekdayofmonthcontaining 1 3 wed22nd
+-- 2017-11-01
+-- >>> nthweekdayofmonthcontaining 3 2 wed22nd
+-- 2017-11-21
+-- >>> nthweekdayofmonthcontaining 4 3 wed22nd
+-- 2017-11-22
+-- >>> nthweekdayofmonthcontaining 4 4 wed22nd
+-- 2017-10-26
+-- >>> nthweekdayofmonthcontaining 4 5 wed22nd
+-- 2017-10-27
+nthweekdayofmonthcontaining n wd d | nthWeekdaySameMonth <= d  = nthWeekdaySameMonth
+                                   | otherwise = nthWeekdayPrevMonth
+    where nthWeekdaySameMonth = advancetonthweekday n wd $ startofmonth d
+          nthWeekdayPrevMonth = advancetonthweekday n wd $ prevmonth d
+          
+-- | Advance to nth weekday wd after given start day s
+advancetonthweekday n wd s = addWeeks (n-1) . firstMatch (>=s) . iterate (addWeeks 1) $ firstweekday s
+  where          
+    addWeeks k = addDays (7 * fromIntegral k)
+    firstMatch p = head . dropWhile (not . p)
+    firstweekday = addDays (fromIntegral wd-1) . startofweek
 
 ----------------------------------------------------------------------
 -- parsing
@@ -633,17 +731,11 @@ md = do
 months         = ["january","february","march","april","may","june",
                   "july","august","september","october","november","december"]
 monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
--- weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
--- weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
+weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
+weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
 
-#if MIN_VERSION_megaparsec(6,0,0)
-lc = T.toLower
-#else
-lc = lowercase
-#endif
-
-monthIndex t = maybe 0 (+1) $ lc t `elemIndex` months
-monIndex t   = maybe 0 (+1) $ lc t `elemIndex` monthabbrevs
+monthIndex t = maybe 0 (+1) $ t `elemIndex` months
+monIndex t   = maybe 0 (+1) $ t `elemIndex` monthabbrevs
 
 month :: SimpleTextParser SmartDate
 month = do
@@ -656,6 +748,12 @@ mon = do
   m <- choice $ map (try . string) monthabbrevs
   let i = monIndex m
   return ("",show i,"")
+
+weekday :: SimpleTextParser Int
+weekday = do
+  wday <- choice . map string' $ weekdays ++ weekdayabbrevs
+  let i = head . catMaybes $ [wday `elemIndex` weekdays, wday `elemIndex` weekdayabbrevs]
+  return (i+1)
 
 today,yesterday,tomorrow :: SimpleTextParser SmartDate
 today     = string "today"     >> return ("","","today")
@@ -683,17 +781,43 @@ lastthisnextthing = do
   return ("", T.unpack r, T.unpack p)
 
 -- |
--- >>> let p = parsewith (periodexpr (parsedate "2008/11/26")) :: T.Text -> Either (ParseError Char MPErr) (Interval, DateSpan)
--- >>> p "from aug to oct"
+-- >>> let p s = parsewith (periodexpr (parsedate "2008/11/26") <* eof) (T.toLower s) :: Either (ParseError Char MPErr) (Interval, DateSpan)
+-- >>> p "from Aug to Oct"
 -- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
 -- >>> p "aug to oct"
 -- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
--- >>> p "every 3 days in aug"
+-- >>> p "every 3 days in Aug"
 -- Right (Days 3,DateSpan 2008/08)
 -- >>> p "daily from aug"
 -- Right (Days 1,DateSpan 2008/08/01-)
 -- >>> p "every week to 2009"
 -- Right (Weeks 1,DateSpan -2008/12/31)
+-- >>> p "every 2nd day of month"
+-- Right (DayOfMonth 2,DateSpan -)
+-- >>> p "every 2nd day"
+-- Right (DayOfMonth 2,DateSpan -)
+-- >>> p "every 2nd day 2009-"
+-- Right (DayOfMonth 2,DateSpan 2009/01/01-)  
+-- >>> p "every 29th Nov"
+-- Right (DayOfYear 11 29,DateSpan -)
+-- >>> p "every 29th nov -2009"
+-- Right (DayOfYear 11 29,DateSpan -2008/12/31)
+-- >>> p "every nov 29th"
+-- Right (DayOfYear 11 29,DateSpan -)
+-- >>> p "every Nov 29th 2009-"
+-- Right (DayOfYear 11 29,DateSpan 2009/01/01-)
+-- >>> p "every 11/29 from 2009"
+-- Right (DayOfYear 11 29,DateSpan 2009/01/01-)
+-- >>> p "every 2nd Thursday of month to 2009"
+-- Right (WeekdayOfMonth 2 4,DateSpan -2008/12/31)
+-- >>> p "every 1st monday of month to 2009"
+-- Right (WeekdayOfMonth 1 1,DateSpan -2008/12/31)
+-- >>> p "every tue"
+-- Right (DayOfWeek 2,DateSpan -)
+-- >>> p "every 2nd day of week"
+-- Right (DayOfWeek 2,DateSpan -)
+-- >>> p "every 2nd day 2009-"
+-- Right (DayOfMonth 2,DateSpan 2009/01/01-)
 periodexpr :: Day -> SimpleTextParser (Interval, DateSpan)
 periodexpr rdate = choice $ map try [
                     intervalanddateperiodexpr rdate,
@@ -736,31 +860,53 @@ reportinginterval = choice' [
                           return $ Months 2,
                        do string "every"
                           many spacenonewline
-                          n <- fmap read $ some digitChar
-                          thsuffix
+                          n <- nth
                           many spacenonewline
                           string "day"
-                          many spacenonewline
-                          string "of"
-                          many spacenonewline
-                          string "week"
+                          of_ "week"
                           return $ DayOfWeek n,
                        do string "every"
                           many spacenonewline
-                          n <- fmap read $ some digitChar
-                          thsuffix
+                          n <- weekday
+                          return $ DayOfWeek n,
+                       do string "every"
+                          many spacenonewline
+                          n <- nth
                           many spacenonewline
                           string "day"
-                          optional $ do
-                            many spacenonewline
-                            string "of"
-                            many spacenonewline
-                            string "month"
-                          return $ DayOfMonth n
+                          optOf_ "month"
+                          return $ DayOfMonth n,
+                       do string "every"
+                          many spacenonewline
+                          let mnth = choice' [month, mon] >>= \(_,m,_) -> return (read m)
+                          d_o_y <- makePermParser $ DayOfYear <$$> (mnth <* many spacenonewline) <||> (nth <* many spacenonewline)
+                          optOf_ "year"
+                          return d_o_y,
+                       do string "every"
+                          many spacenonewline
+                          ("",m,d) <- md
+                          optOf_ "year"
+                          return $ DayOfYear (read m) (read d),
+                       do string "every"
+                          many spacenonewline
+                          n <- nth
+                          many spacenonewline
+                          wd <- weekday
+                          optOf_ "month"
+                          return $ WeekdayOfMonth n wd
                     ]
     where
-
-      thsuffix = choice' $ map string ["st","nd","rd","th"]
+      of_ period = do
+        many spacenonewline
+        string "of"
+        many spacenonewline
+        string period
+        
+      optOf_ period = optional $ try $ of_ period
+      
+      nth = do n <- some digitChar
+               choice' $ map string ["st","nd","rd","th"]
+               return $ read n
 
       -- Parse any of several variants of a basic interval, eg "daily", "every day", "every N days".
       tryinterval :: String -> String -> (Int -> Interval) -> SimpleTextParser Interval

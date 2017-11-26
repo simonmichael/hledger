@@ -113,6 +113,7 @@ library
     , text >=0.11
     , utf8-string >=0.3.5 && <1.1
     , wizards ==1.0.*
+    , Decimal
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
@@ -192,6 +193,7 @@ executable hledger
     , text >=0.11
     , utf8-string >=0.3.5 && <1.1
     , wizards ==1.0.*
+    , Decimal
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
@@ -241,6 +243,7 @@ test-suite test
     , text >=0.11
     , utf8-string >=0.3.5 && <1.1
     , wizards ==1.0.*
+    , Decimal
     , test-framework
     , test-framework-hunit
   if (!(os(windows))) && (flag(terminfo))
