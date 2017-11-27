@@ -277,7 +277,17 @@ As you can see, the amount format is somewhat flexible:
 - negative amounts with a commodity on the left can have the minus sign before or after it
 - digit groups (thousands, or any other grouping) can be separated by commas (in which case period is used for decimal point) or periods (in which case comma is used for decimal point)
 
-You can use any of these variations when recording data, but when hledger displays amounts, it will choose a consistent format for each commodity.
+You can use any of these variations when recording data. However, there is some ambiguous way of representing numbers like `$1.000` and `$1,000` both may mean either one thousand or one dollar. By default hledger will assume that this is sole delimiter is used only for decimals. On the other hand commodity format declared prior to that line will help to resolve that ambiguity differently:
+
+``` journal
+commodity $1,000.00
+
+2017/12/25 New life of Scrooge
+    expenses:gifts  $1,000
+    assets
+```
+
+Though journal may contain mixed styles to represent amount, when hledger displays amounts, it will choose a consistent format for each commodity.
 (Except for [price amounts](#prices), which are always formatted as written). The display format is chosen as follows:
 
 - if there is a [commodity directive](#commodity-directive) specifying the format, that is used
