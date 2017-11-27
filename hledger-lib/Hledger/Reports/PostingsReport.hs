@@ -16,7 +16,6 @@ module Hledger.Reports.PostingsReport (
 )
 where
 
-import Control.Arrow (second)
 import Data.Function (on)
 import Data.List
 import Data.Maybe
