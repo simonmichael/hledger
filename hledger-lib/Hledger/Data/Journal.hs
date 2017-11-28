@@ -75,6 +75,7 @@ import Data.Array.ST
 import Data.Functor.Identity (Identity(..))
 import qualified Data.HashTable.ST.Cuckoo as HT
 import Data.List
+import Data.List.Extra (groupSort)
 -- import Data.Map (findWithDefault)
 import Data.Maybe
 import Data.Monoid
@@ -752,8 +753,7 @@ journalInferCommodityStyles j =
 commodityStylesFromAmounts :: [Amount] -> M.Map CommoditySymbol AmountStyle
 commodityStylesFromAmounts amts = M.fromList commstyles
   where
-    samecomm = \a1 a2 -> acommodity a1 == acommodity a2
-    commamts = [(acommodity $ head as, as) | as <- groupBy samecomm $ sortBy (comparing acommodity) amts]
+    commamts = groupSort [(acommodity as, as) | as <- amts]
     commstyles = [(c, canonicalStyleFrom $ map astyle as) | (c,as) <- commamts]
 
 -- | Given an ordered list of amount styles, choose a canonical style.

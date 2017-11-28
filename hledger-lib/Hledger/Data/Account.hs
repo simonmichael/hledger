@@ -10,6 +10,7 @@ account, and subaccounting-excluding and -including balances.
 module Hledger.Data.Account
 where
 import Data.List
+import Data.List.Extra (groupSort, groupOn)
 import Data.Maybe
 import Data.Ord
 import qualified Data.Map as M
@@ -63,10 +64,9 @@ nullacct = Account
 accountsFromPostings :: [Posting] -> [Account]
 accountsFromPostings ps =
   let
-    acctamts = [(paccount p,pamount p) | p <- ps]
-    grouped = groupBy (\a b -> fst a == fst b) $ sort $ acctamts
-    counted = [(a, length acctamts) | acctamts@((a,_):_) <- grouped]
-    summed = map (\as@((aname,_):_) -> (aname, sumStrict $ map snd as)) grouped -- always non-empty
+    grouped = groupSort [(paccount p,pamount p) | p <- ps]
+    counted = [(aname, length amts) | (aname, amts) <- grouped]
+    summed =  [(aname, sumStrict amts) | (aname, amts) <- grouped]  -- always non-empty
     nametree = treeFromPaths $ map (expandAccountName . fst) summed
     acctswithnames = nameTreeToAccount "root" nametree
     acctswithnumps = mapAccounts setnumps    acctswithnames where setnumps    a = a{anumpostings=fromMaybe 0 $ lookup (aname a) counted}
@@ -132,7 +132,7 @@ clipAccountsAndAggregate d as = combined
     where
       clipped  = [a{aname=clipOrEllipsifyAccountName d $ aname a} | a <- as]
       combined = [a{aebalance=sum (map aebalance same)}
-                  | same@(a:_) <- groupBy (\a1 a2 -> aname a1 == aname a2) clipped]
+                 | same@(a:_) <- groupOn aname clipped]
 {-
 test cases, assuming d=1:
 
