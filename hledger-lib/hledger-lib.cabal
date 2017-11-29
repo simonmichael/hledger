@@ -83,6 +83,7 @@ library
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
+    , extra
   exposed-modules:
       Hledger
       Hledger.Data
@@ -171,6 +172,7 @@ test-suite doctests
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
+    , extra
     , doctest >=0.8
     , Glob >=0.7
   other-modules:
@@ -259,6 +261,7 @@ test-suite hunittests
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
     , HUnit
+    , extra
     , hledger-lib
     , test-framework
     , test-framework-hunit
