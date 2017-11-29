@@ -82,6 +82,7 @@ import Control.Arrow (first)
 import Control.Monad (mplus, mzero, unless, void)
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.State.Strict (runStateT)
+import Data.String (fromString)
 import Data.Function (on)
 import Data.Functor.Identity (Identity(..))
 import Data.List (foldl', groupBy, intercalate, nub, sortOn)
@@ -471,5 +472,5 @@ sameish f = (==) `on` f . toGregorian . H.postingDate
 
 -- | Helper for 'Compare' and 'Connect' parsers.
 gostringsp :: Monad m => [(String, a)] -> H.TextParser m a
-gostringsp ((s,a):rest) = P.try (P.string (pack s) *> pure a) `mplus` gostringsp rest
+gostringsp ((s,a):rest) = P.try (P.string (fromString s) *> pure a) `mplus` gostringsp rest
 gostringsp [] = mzero
