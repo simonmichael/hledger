@@ -384,7 +384,26 @@ digit groups (thousands, or any other grouping) can be separated by
 commas (in which case period is used for decimal point) or periods (in
 which case comma is used for decimal point)
 .PP
-You can use any of these variations when recording data, but when
+You can use any of these variations when recording data.
+However, there is some ambiguous way of representing numbers like
+\f[C]$1.000\f[] and \f[C]$1,000\f[] both may mean either one thousand or
+one dollar.
+By default hledger will assume that this is sole delimiter is used only
+for decimals.
+On the other hand commodity format declared prior to that line will help
+to resolve that ambiguity differently:
+.IP
+.nf
+\f[C]
+commodity\ $1,000.00
+
+2017/12/25\ New\ life\ of\ Scrooge
+\ \ \ \ expenses:gifts\ \ $1,000
+\ \ \ \ assets
+\f[]
+.fi
+.PP
+Though journal may contain mixed styles to represent amount, when
 hledger displays amounts, it will choose a consistent format for each
 commodity.
 (Except for price amounts, which are always formatted as written).
@@ -716,9 +735,9 @@ P\ 2010/1/1\ €\ $1.40
 .SS Comments
 .PP
 Lines in the journal beginning with a semicolon (\f[C];\f[]) or hash
-(\f[C]#\f[]) or asterisk (\f[C]*\f[]) are comments, and will be ignored.
-(Asterisk comments make it easy to treat your journal like an org\-mode
-outline in emacs.)
+(\f[C]#\f[]) or star (\f[C]*\f[]) are comments, and will be ignored.
+(Star comments cause org\-mode nodes to be ignored, allowing emacs users
+to fold and navigate their journals with org\-mode or orgstruct\-mode.)
 .PP
 Also, anything between \f[C]comment\f[] and \f[C]end\ comment\f[]
 directives is a (multi\-line) comment.
@@ -730,20 +749,22 @@ description and/or indented on the following lines (before the
 postings).
 Similarly, you can attach comments to an individual posting by writing
 them after the amount and/or indented on the following lines.
+Transaction and posting comments must begin with a semicolon
+(\f[C];\f[]).
 .PP
 Some examples:
 .IP
 .nf
 \f[C]
-#\ a\ journal\ comment
+#\ a\ file\ comment
 
-;\ also\ a\ journal\ comment
+;\ also\ a\ file\ comment
 
 comment
-This\ is\ a\ multiline\ comment,
+This\ is\ a\ multiline\ file\ comment,
 which\ continues\ until\ a\ line
 where\ the\ "end\ comment"\ string
-appears\ on\ its\ own.
+appears\ on\ its\ own\ (or\ end\ of\ file).
 end\ comment
 
 2012/5/14\ something\ \ ;\ a\ transaction\ comment
@@ -752,7 +773,7 @@ end\ comment
 \ \ \ \ posting2
 \ \ \ \ ;\ a\ comment\ for\ posting\ 2
 \ \ \ \ ;\ another\ comment\ line\ for\ posting\ 2
-;\ a\ journal\ comment\ (because\ not\ indented)
+;\ a\ file\ comment\ (because\ not\ indented)
 \f[]
 .fi
 .SS Tags
@@ -1038,7 +1059,7 @@ commodity\-less amounts, or until the next D directive.
 D\ $1,000.00
 
 1/1
-\ \ a\ \ \ \ \ 5\ \ \ \ #\ <\-\ commodity\-less\ amount,\ becomes\ $1
+\ \ a\ \ \ \ \ 5\ \ \ \ ;\ <\-\ commodity\-less\ amount,\ becomes\ $1
 \ \ b
 \f[]
 .fi

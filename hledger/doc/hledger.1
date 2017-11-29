@@ -721,11 +721,32 @@ T{
 T}
 .TE
 .PP
+Note that \f[C]weekly\f[], \f[C]monthly\f[], \f[C]quarterly\f[] and
+\f[C]yearly\f[] intervals will always start on the first day on week,
+month, quarter or year accordingly, and will end on the last day of same
+period, even if associated period expression specifies different
+explicit start and end date.
+.SS For example:
+.PP
+\f[C]\-p\ "weekly\ from\ 2009/1/1\ to\ 2009/4/1"\f[] \-\- starts on
+2008/12/29, closest preceeding Monday
+\f[C]\-p\ "monthly\ in\ 2008/11/25"\f[] \-\- starts on 2018/11/01
+.PD 0
+.P
+.PD
+\f[C]\-p\ "quarterly\ from\ 2009\-05\-05\ to\ 2009\-06\-01"\f[] \-
+starts on 2009/04/01, ends on 2009/06/30, which are first and last days
+of Q2 2009 \f[C]\-p\ "yearly\ from\ 2009\-12\-29"\f[] \- starts on
+2009/01/01, first day of 2009
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+.PP
 The following more complex report intervals are also supported:
 \f[C]biweekly\f[], \f[C]bimonthly\f[],
-\f[C]every\ N\ days|weeks|months|quarters|years\f[],
-\f[C]every\ Nth\ day\ [of\ month]\f[],
-\f[C]every\ Nth\ day\ of\ week\f[].
+\f[C]every\ day|week|month|quarter|year\f[],
+\f[C]every\ N\ days|weeks|months|quarters|years\f[].
+.PP
+All of these will start on the first day of the requested period and end
+on the last one, as described above.
 .PP
 Examples:
 .PP
@@ -733,13 +754,56 @@ Examples:
 tab(@);
 l.
 T{
-\f[C]\-p\ "bimonthly\ from\ 2008"\f[]
+\f[C]\-p\ "bimonthly\ from\ 2008"\f[] \-\- periods will have boundaries
+on 2008/01/01, 2008/03/01, ...
 T}
 T{
-\f[C]\-p\ "every\ 2\ weeks"\f[]
+\f[C]\-p\ "every\ 2\ weeks"\f[] \-\- starts on closest preceeding Monday
 T}
 T{
-\f[C]\-p\ "every\ 5\ days\ from\ 1/3"\f[]
+\f[C]\-p\ "every\ 5\ month\ from\ 2009/03"\f[] \-\- periods will have
+boundaries on 2009/03/01, 2009/08/01, ...
+T}
+.TE
+.PP
+If you want intervals that start on arbitrary day of your choosing and
+span a week, month or year, you need to use any of the following:
+.PP
+\f[C]every\ Nth\ day\ of\ week\f[], \f[C]every\ <weekday>\f[],
+\f[C]every\ Nth\ day\ [of\ month]\f[],
+\f[C]every\ Nth\ weekday\ [of\ month]\f[],
+\f[C]every\ MM/DD\ [of\ year]\f[], \f[C]every\ Nth\ MMM\ [of\ year]\f[],
+\f[C]every\ MMM\ Nth\ [of\ year]\f[].
+.PP
+Examples:
+.PP
+.TS
+tab(@);
+l.
+T{
+\f[C]\-p\ "every\ 2nd\ day\ of\ week"\f[] \-\- periods will go from Tue
+to Tue
+T}
+T{
+\f[C]\-p\ "every\ Tue"\f[] \-\- same
+T}
+T{
+\f[C]\-p\ "every\ 15th\ day"\f[] \-\- period boundaries will be on 15th
+of each month
+T}
+T{
+\f[C]\-p\ "every\ 2nd\ Monday"\f[] \-\- period boundaries will be on
+second Monday of each month
+T}
+T{
+\f[C]\-p\ "every\ 11/05"\f[] \-\- yearly periods with boundaries on 5th
+of Nov
+T}
+T{
+\f[C]\-p\ "every\ 5th\ Nov"\f[] \-\- same
+T}
+T{
+\f[C]\-p\ "every\ Nov\ 5th"\f[] \-\- same
 T}
 .TE
 .PP

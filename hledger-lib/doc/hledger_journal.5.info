@@ -1,4 +1,4 @@
-This is hledger_journal.5.info, produced by makeinfo version 6.1 from
+This is hledger_journal.5.info, produced by makeinfo version 6.0 from
 stdin.
 
 
@@ -361,7 +361,20 @@ commodity name.  Some examples:
      commas (in which case period is used for decimal point) or periods
      (in which case comma is used for decimal point)
 
-   You can use any of these variations when recording data, but when
+   You can use any of these variations when recording data.  However,
+there is some ambiguous way of representing numbers like '$1.000' and
+'$1,000' both may mean either one thousand or one dollar.  By default
+hledger will assume that this is sole delimiter is used only for
+decimals.  On the other hand commodity format declared prior to that
+line will help to resolve that ambiguity differently:
+
+commodity $1,000.00
+
+2017/12/25 New life of Scrooge
+    expenses:gifts  $1,000
+    assets
+
+   Though journal may contain mixed styles to represent amount, when
 hledger displays amounts, it will choose a consistent format for each
 commodity.  (Except for price amounts, which are always formatted as
 written).  The display format is chosen as follows:
@@ -684,8 +697,9 @@ File: hledger_journal.5.info,  Node: Comments,  Next: Tags,  Prev: Prices,  Up: 
 =============
 
 Lines in the journal beginning with a semicolon (';') or hash ('#') or
-asterisk ('*') are comments, and will be ignored.  (Asterisk comments
-make it easy to treat your journal like an org-mode outline in emacs.)
+star ('*') are comments, and will be ignored.  (Star comments cause
+org-mode nodes to be ignored, allowing emacs users to fold and navigate
+their journals with org-mode or orgstruct-mode.)
 
    Also, anything between 'comment' and 'end comment' directives is a
 (multi-line) comment.  If there is no 'end comment', the comment extends
@@ -695,18 +709,19 @@ to the end of the file.
 description and/or indented on the following lines (before the
 postings).  Similarly, you can attach comments to an individual posting
 by writing them after the amount and/or indented on the following lines.
+Transaction and posting comments must begin with a semicolon (';').
 
    Some examples:
 
-# a journal comment
+# a file comment
 
-; also a journal comment
+; also a file comment
 
 comment
-This is a multiline comment,
+This is a multiline file comment,
 which continues until a line
 where the "end comment" string
-appears on its own.
+appears on its own (or end of file).
 end comment
 
 2012/5/14 something  ; a transaction comment
@@ -715,7 +730,7 @@ end comment
     posting2
     ; a comment for posting 2
     ; another comment line for posting 2
-; a journal comment (because not indented)
+; a file comment (because not indented)
 
 
 File: hledger_journal.5.info,  Node: Tags,  Next: Directives,  Prev: Comments,  Up: FILE FORMAT
@@ -992,7 +1007,7 @@ amounts, or until the next D directive.
 D $1,000.00
 
 1/1
-  a     5    # <- commodity-less amount, becomes $1
+  a     5    ; <- commodity-less amount, becomes $1
   b
 
 
@@ -1087,61 +1102,61 @@ Node: Account names11207
 Ref: #account-names11352
 Node: Amounts11839
 Ref: #amounts11977
-Node: Virtual Postings14078
-Ref: #virtual-postings14239
-Node: Balance Assertions15459
-Ref: #balance-assertions15636
-Node: Assertions and ordering16532
-Ref: #assertions-and-ordering16720
-Node: Assertions and included files17420
-Ref: #assertions-and-included-files17663
-Node: Assertions and multiple -f options17996
-Ref: #assertions-and-multiple--f-options18252
-Node: Assertions and commodities18384
-Ref: #assertions-and-commodities18621
-Node: Assertions and subaccounts19317
-Ref: #assertions-and-subaccounts19551
-Node: Assertions and virtual postings20072
-Ref: #assertions-and-virtual-postings20281
-Node: Balance Assignments20423
-Ref: #balance-assignments20594
-Node: Prices21713
-Ref: #prices21848
-Node: Transaction prices21899
-Ref: #transaction-prices22046
-Node: Market prices24202
-Ref: #market-prices24339
-Node: Comments25299
-Ref: #comments25423
-Node: Tags26536
-Ref: #tags26656
-Node: Directives28058
-Ref: #directives28173
-Node: Account aliases28366
-Ref: #account-aliases28512
-Node: Basic aliases29116
-Ref: #basic-aliases29261
-Node: Regex aliases29951
-Ref: #regex-aliases30121
-Node: Multiple aliases30839
-Ref: #multiple-aliases31013
-Node: end aliases31511
-Ref: #end-aliases31653
-Node: account directive31754
-Ref: #account-directive31936
-Node: apply account directive32232
-Ref: #apply-account-directive32430
-Node: Multi-line comments33089
-Ref: #multi-line-comments33281
-Node: commodity directive33409
-Ref: #commodity-directive33595
-Node: Default commodity34467
-Ref: #default-commodity34642
-Node: Default year35179
-Ref: #default-year35346
-Node: Including other files35769
-Ref: #including-other-files35928
-Node: EDITOR SUPPORT36325
-Ref: #editor-support36445
+Node: Virtual Postings14568
+Ref: #virtual-postings14729
+Node: Balance Assertions15949
+Ref: #balance-assertions16126
+Node: Assertions and ordering17022
+Ref: #assertions-and-ordering17210
+Node: Assertions and included files17910
+Ref: #assertions-and-included-files18153
+Node: Assertions and multiple -f options18486
+Ref: #assertions-and-multiple--f-options18742
+Node: Assertions and commodities18874
+Ref: #assertions-and-commodities19111
+Node: Assertions and subaccounts19807
+Ref: #assertions-and-subaccounts20041
+Node: Assertions and virtual postings20562
+Ref: #assertions-and-virtual-postings20771
+Node: Balance Assignments20913
+Ref: #balance-assignments21084
+Node: Prices22203
+Ref: #prices22338
+Node: Transaction prices22389
+Ref: #transaction-prices22536
+Node: Market prices24692
+Ref: #market-prices24829
+Node: Comments25789
+Ref: #comments25913
+Node: Tags27155
+Ref: #tags27275
+Node: Directives28677
+Ref: #directives28792
+Node: Account aliases28985
+Ref: #account-aliases29131
+Node: Basic aliases29735
+Ref: #basic-aliases29880
+Node: Regex aliases30570
+Ref: #regex-aliases30740
+Node: Multiple aliases31458
+Ref: #multiple-aliases31632
+Node: end aliases32130
+Ref: #end-aliases32272
+Node: account directive32373
+Ref: #account-directive32555
+Node: apply account directive32851
+Ref: #apply-account-directive33049
+Node: Multi-line comments33708
+Ref: #multi-line-comments33900
+Node: commodity directive34028
+Ref: #commodity-directive34214
+Node: Default commodity35086
+Ref: #default-commodity35261
+Node: Default year35798
+Ref: #default-year35965
+Node: Including other files36388
+Ref: #including-other-files36547
+Node: EDITOR SUPPORT36944
+Ref: #editor-support37064
 
 End Tag Table

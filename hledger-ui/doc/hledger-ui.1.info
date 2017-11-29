@@ -1,4 +1,4 @@
-This is hledger-ui.1.info, produced by makeinfo version 6.1 from stdin.
+This is hledger-ui.1.info, produced by makeinfo version 6.0 from stdin.
 
 
 File: hledger-ui.1.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
@@ -207,6 +207,10 @@ temporarily can be useful for troubleshooting.
    'a' runs command-line hledger's add command, and reloads the updated
 file.  This allows some basic data entry.
 
+   'A' is like 'a', but runs the hledger-iadd tool, which provides a
+curses-style interface.  This key will be available if 'hledger-iadd' is
+installed in $PATH.
+
    'E' runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default ('emacsclient
 -a "" -nw') on the journal file.  With some editors (emacs, vi), the
 cursor will be positioned at the current transaction when invoked from
@@ -369,15 +373,15 @@ Node: OPTIONS825
 Ref: #options924
 Node: KEYS3861
 Ref: #keys3958
-Node: SCREENS6754
-Ref: #screens6841
-Node: Accounts screen6931
-Ref: #accounts-screen7061
-Node: Register screen9291
-Ref: #register-screen9448
-Node: Transaction screen11522
-Ref: #transaction-screen11682
-Node: Error screen12552
-Ref: #error-screen12676
+Node: SCREENS6917
+Ref: #screens7004
+Node: Accounts screen7094
+Ref: #accounts-screen7224
+Node: Register screen9454
+Ref: #register-screen9611
+Node: Transaction screen11685
+Ref: #transaction-screen11845
+Node: Error screen12715
+Ref: #error-screen12839
 
 End Tag Table

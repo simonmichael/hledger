@@ -1,4 +1,4 @@
-This is hledger.1.info, produced by makeinfo version 6.1 from stdin.
+This is hledger.1.info, produced by makeinfo version 6.0 from stdin.
 
 
 File: hledger.1.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
@@ -125,6 +125,7 @@ File: hledger.1.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 * Report start & end date::
 * Report intervals::
 * Period expressions::
+* For example::
 * Depth limiting::
 * Pivoting::
 * Cost::
@@ -432,7 +433,7 @@ complex intervals may be specified with a period expression.  Report
 intervals can not be specified with a query, currently.
 
 
-File: hledger.1.info,  Node: Period expressions,  Next: Depth limiting,  Prev: Report intervals,  Up: OPTIONS
+File: hledger.1.info,  Node: Period expressions,  Next: For example,  Prev: Report intervals,  Up: OPTIONS
 
 2.10 Period expressions
 =======================
@@ -486,15 +487,54 @@ start/end dates (if any), the word 'in' is optional.  Examples:
 '-p "monthly in 2008"'
 '-p "quarterly"'
 
+   Note that 'weekly', 'monthly', 'quarterly' and 'yearly' intervals
+will always start on the first day on week, month, quarter or year
+accordingly, and will end on the last day of same period, even if
+associated period expression specifies different explicit start and end
+date.
+
+
+File: hledger.1.info,  Node: For example,  Next: Depth limiting,  Prev: Period expressions,  Up: OPTIONS
+
+2.11 For example:
+=================
+
+'-p "weekly from 2009/1/1 to 2009/4/1"' - starts on 2008/12/29, closest
+preceeding Monday '-p "monthly in 2008/11/25"' - starts on 2018/11/01
+'-p "quarterly from 2009-05-05 to 2009-06-01"' - starts on 2009/04/01,
+ends on 2009/06/30, which are first and last days of Q2 2009 '-p "yearly
+from 2009-12-29"' - starts on 2009/01/01, first day of 2009
+----------------------------
+
    The following more complex report intervals are also supported:
-'biweekly', 'bimonthly', 'every N days|weeks|months|quarters|years',
-'every Nth day [of month]', 'every Nth day of week'.
+'biweekly', 'bimonthly', 'every day|week|month|quarter|year', 'every N
+days|weeks|months|quarters|years'.
+
+   All of these will start on the first day of the requested period and
+end on the last one, as described above.
 
    Examples:
 
-'-p "bimonthly from 2008"'
-'-p "every 2 weeks"'
-'-p "every 5 days from 1/3"'
+'-p "bimonthly from 2008"' - periods will have boundaries on 2008/01/01, 2008/03/01, ...
+'-p "every 2 weeks"' - starts on closest preceeding Monday
+'-p "every 5 month from 2009/03"' - periods will have boundaries on 2009/03/01, 2009/08/01, ...
+
+   If you want intervals that start on arbitrary day of your choosing
+and span a week, month or year, you need to use any of the following:
+
+   'every Nth day of week', 'every <weekday>', 'every Nth day [of
+month]', 'every Nth weekday [of month]', 'every MM/DD [of year]', 'every
+Nth MMM [of year]', 'every MMM Nth [of year]'.
+
+   Examples:
+
+'-p "every 2nd day of week"' - periods will go from Tue to Tue
+'-p "every Tue"' - same
+'-p "every 15th day"' - period boundaries will be on 15th of each month
+'-p "every 2nd Monday"' - period boundaries will be on second Monday of each month
+'-p "every 11/05"' - yearly periods with boundaries on 5th of Nov
+'-p "every 5th Nov"' - same
+'-p "every Nov 5th"' - same
 
    Show historical balances at end of 15th each month (N is exclusive
 end date):
@@ -507,9 +547,9 @@ start date and exclusive end date):
    'hledger register checking -p "every 3rd day of week"'
 
 
-File: hledger.1.info,  Node: Depth limiting,  Next: Pivoting,  Prev: Period expressions,  Up: OPTIONS
+File: hledger.1.info,  Node: Depth limiting,  Next: Pivoting,  Prev: For example,  Up: OPTIONS
 
-2.11 Depth limiting
+2.12 Depth limiting
 ===================
 
 With the '--depth N' option (short form: '-N'), commands like account,
@@ -521,7 +561,7 @@ less detail.  This flag has the same effect as a 'depth:' query argument
 
 File: hledger.1.info,  Node: Pivoting,  Next: Cost,  Prev: Depth limiting,  Up: OPTIONS
 
-2.12 Pivoting
+2.13 Pivoting
 =============
 
 Normally hledger sums amounts, and organizes them in a hierarchy, based
@@ -578,7 +618,7 @@ $ hledger balance --pivot member acct:.
 
 File: hledger.1.info,  Node: Cost,  Next: Market value,  Prev: Pivoting,  Up: OPTIONS
 
-2.13 Cost
+2.14 Cost
 =========
 
 The '-B/--cost' flag converts amounts to their cost at transaction time,
@@ -587,7 +627,7 @@ if they have a transaction price specified.
 
 File: hledger.1.info,  Node: Market value,  Next: Regular expressions,  Prev: Cost,  Up: OPTIONS
 
-2.14 Market value
+2.15 Market value
 =================
 
 The '-V/--value' flag converts the reported amounts to their market
@@ -636,7 +676,7 @@ directives, not transaction prices (unlike Ledger).
 
 File: hledger.1.info,  Node: Regular expressions,  Prev: Market value,  Up: OPTIONS
 
-2.15 Regular expressions
+2.16 Regular expressions
 ========================
 
 hledger uses regular expressions in a number of places:
@@ -2222,129 +2262,131 @@ Node: EXAMPLES1886
 Ref: #examples1988
 Node: OPTIONS3634
 Ref: #options3738
-Node: General options4038
-Ref: #general-options4165
-Node: Command options6484
-Ref: #command-options6637
-Node: Command arguments7035
-Ref: #command-arguments7191
-Node: Argument files7312
-Ref: #argument-files7465
-Node: Special characters7731
-Ref: #special-characters7886
-Node: Input files9305
-Ref: #input-files9443
-Node: Smart dates11406
-Ref: #smart-dates11549
-Node: Report start & end date12528
-Ref: #report-start-end-date12700
-Node: Report intervals13766
-Ref: #report-intervals13931
-Node: Period expressions14332
-Ref: #period-expressions14494
-Node: Depth limiting16834
-Ref: #depth-limiting16980
-Node: Pivoting17322
-Ref: #pivoting17442
-Node: Cost19118
-Ref: #cost19228
-Node: Market value19346
-Ref: #market-value19483
-Node: Regular expressions20783
-Ref: #regular-expressions20921
-Node: QUERIES22282
-Ref: #queries22386
-Node: COMMANDS26353
-Ref: #commands26467
-Node: accounts27450
-Ref: #accounts27550
-Node: activity28543
-Ref: #activity28655
-Node: add29014
-Ref: #add29115
-Node: balance31773
-Ref: #balance31886
-Node: Flat mode35043
-Ref: #flat-mode35170
-Node: Depth limited balance reports35590
-Ref: #depth-limited-balance-reports35793
-Node: Multicolumn balance reports36213
-Ref: #multicolumn-balance-reports36424
-Node: Custom balance output41072
-Ref: #custom-balance-output41256
-Node: Colour support43349
-Ref: #colour-support43510
-Node: Output destination43683
-Ref: #output-destination43841
-Node: CSV output44111
-Ref: #csv-output44230
-Node: balancesheet44627
-Ref: #balancesheet44765
-Node: balancesheetequity46733
-Ref: #balancesheetequity46884
-Node: cashflow47673
-Ref: #cashflow47803
-Node: check-dates49715
-Ref: #check-dates49844
-Node: check-dupes49961
-Ref: #check-dupes50088
-Node: equity50225
-Ref: #equity50337
-Node: help50500
-Ref: #help50603
-Node: import51677
-Ref: #import51793
-Node: incomestatement52523
-Ref: #incomestatement52659
-Node: prices54612
-Ref: #prices54729
-Node: print54772
-Ref: #print54884
-Node: print-unique59730
-Ref: #print-unique59858
-Node: register59926
-Ref: #register60055
-Node: Custom register output64556
-Ref: #custom-register-output64687
-Node: register-match65984
-Ref: #register-match66120
-Node: rewrite66303
-Ref: #rewrite66422
-Node: stats66491
-Ref: #stats66596
-Node: tags67477
-Ref: #tags67577
-Node: test67813
-Ref: #test67899
-Node: ADD-ON COMMANDS68267
-Ref: #add-on-commands68379
-Node: Official add-ons69666
-Ref: #official-add-ons69808
-Node: api69895
-Ref: #api69986
-Node: ui70038
-Ref: #ui70139
-Node: web70197
-Ref: #web70288
-Node: Third party add-ons70334
-Ref: #third-party-add-ons70511
-Node: diff70646
-Ref: #diff70745
-Node: iadd70844
-Ref: #iadd70960
-Node: interest71043
-Ref: #interest71166
-Node: irr71261
-Ref: #irr71361
-Node: Experimental add-ons71439
-Ref: #experimental-add-ons71593
-Node: autosync71884
-Ref: #autosync71998
-Node: budget72237
-Ref: #budget72361
-Node: chart72427
-Ref: #chart72546
-Node: check72617
-Ref: #check72721
+Node: General options4054
+Ref: #general-options4181
+Node: Command options6500
+Ref: #command-options6653
+Node: Command arguments7051
+Ref: #command-arguments7207
+Node: Argument files7328
+Ref: #argument-files7481
+Node: Special characters7747
+Ref: #special-characters7902
+Node: Input files9321
+Ref: #input-files9459
+Node: Smart dates11422
+Ref: #smart-dates11565
+Node: Report start & end date12544
+Ref: #report-start-end-date12716
+Node: Report intervals13782
+Ref: #report-intervals13947
+Node: Period expressions14348
+Ref: #period-expressions14507
+Node: For example16552
+Ref: #for-example16697
+Node: Depth limiting18621
+Ref: #depth-limiting18760
+Node: Pivoting19102
+Ref: #pivoting19222
+Node: Cost20898
+Ref: #cost21008
+Node: Market value21126
+Ref: #market-value21263
+Node: Regular expressions22563
+Ref: #regular-expressions22701
+Node: QUERIES24062
+Ref: #queries24166
+Node: COMMANDS28133
+Ref: #commands28247
+Node: accounts29230
+Ref: #accounts29330
+Node: activity30323
+Ref: #activity30435
+Node: add30794
+Ref: #add30895
+Node: balance33553
+Ref: #balance33666
+Node: Flat mode36823
+Ref: #flat-mode36950
+Node: Depth limited balance reports37370
+Ref: #depth-limited-balance-reports37573
+Node: Multicolumn balance reports37993
+Ref: #multicolumn-balance-reports38204
+Node: Custom balance output42852
+Ref: #custom-balance-output43036
+Node: Colour support45129
+Ref: #colour-support45290
+Node: Output destination45463
+Ref: #output-destination45621
+Node: CSV output45891
+Ref: #csv-output46010
+Node: balancesheet46407
+Ref: #balancesheet46545
+Node: balancesheetequity48513
+Ref: #balancesheetequity48664
+Node: cashflow49453
+Ref: #cashflow49583
+Node: check-dates51495
+Ref: #check-dates51624
+Node: check-dupes51741
+Ref: #check-dupes51868
+Node: equity52005
+Ref: #equity52117
+Node: help52280
+Ref: #help52383
+Node: import53457
+Ref: #import53573
+Node: incomestatement54303
+Ref: #incomestatement54439
+Node: prices56392
+Ref: #prices56509
+Node: print56552
+Ref: #print56664
+Node: print-unique61510
+Ref: #print-unique61638
+Node: register61706
+Ref: #register61835
+Node: Custom register output66336
+Ref: #custom-register-output66467
+Node: register-match67764
+Ref: #register-match67900
+Node: rewrite68083
+Ref: #rewrite68202
+Node: stats68271
+Ref: #stats68376
+Node: tags69257
+Ref: #tags69357
+Node: test69593
+Ref: #test69679
+Node: ADD-ON COMMANDS70047
+Ref: #add-on-commands70159
+Node: Official add-ons71446
+Ref: #official-add-ons71588
+Node: api71675
+Ref: #api71766
+Node: ui71818
+Ref: #ui71919
+Node: web71977
+Ref: #web72068
+Node: Third party add-ons72114
+Ref: #third-party-add-ons72291
+Node: diff72426
+Ref: #diff72525
+Node: iadd72624
+Ref: #iadd72740
+Node: interest72823
+Ref: #interest72946
+Node: irr73041
+Ref: #irr73141
+Node: Experimental add-ons73219
+Ref: #experimental-add-ons73373
+Node: autosync73664
+Ref: #autosync73778
+Node: budget74017
+Ref: #budget74141
+Node: chart74207
+Ref: #chart74326
+Node: check74397
+Ref: #check74501
 
 End Tag Table

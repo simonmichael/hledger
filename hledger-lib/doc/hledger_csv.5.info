@@ -1,4 +1,4 @@
-This is hledger_csv.5.info, produced by makeinfo version 6.1 from stdin.
+This is hledger_csv.5.info, produced by makeinfo version 6.0 from stdin.
 
 
 File: hledger_csv.5.info,  Node: Top,  Next: CSV RULES,  Up: (dir)
@@ -6,16 +6,63 @@ File: hledger_csv.5.info,  Node: Top,  Next: CSV RULES,  Up: (dir)
 hledger_csv(5) hledger 1.4
 **************************
 
-hledger can read CSV files, converting each CSV record into a journal
-entry (transaction), if you provide some conversion hints in a "rules
-file".  This file should be named like the CSV file with an additional
-'.rules' suffix (eg: 'mybank.csv.rules'); or, you can specify the file
-with '--rules-file PATH'.  hledger will create it if necessary, with
-some default rules which you'll need to adjust.  At minimum, the rules
-file must specify the 'date' and 'amount' fields.  For an example, see
-Cookbook: convert CSV files.
+hledger can read CSV (comma-separated value) files as if they were
+journal files, automatically converting each CSV record into a
+transaction.  (To learn about _writing_ CSV, see CSV output.)
 
-   To learn about _exporting_ CSV, see CSV output.
+   Converting CSV to transactions requires some special conversion
+rules.  These do several things:
+
+   * they describe the layout and format of the CSV data
+   * they can customize the generated journal entries using a simple
+     templating language
+   * they can add refinements based on patterns in the CSV data, eg
+     categorizing transactions with more detailed account names.
+
+   When reading a CSV file named 'FILE.csv', hledger looks for a
+conversion rules file named 'FILE.csv.rules' in the same directory.  You
+can override this with the '--rules-file' option.  If the rules file
+does not exist, hledger will auto-create one with some example rules,
+which you'll need to adjust.
+
+   At minimum, the rules file must identify the 'date' and 'amount'
+fields.  It may also be necessary to specify the date format, and the
+number of header lines to skip.  Eg:
+
+fields date, _, _, amount
+date-format  %d/%m/%Y
+skip 1
+
+   A more complete example:
+
+# hledger CSV rules for amazon.com order history
+
+# sample:
+# "Date","Type","To/From","Name","Status","Amount","Fees","Transaction ID"
+# "Jul 29, 2012","Payment","To","Adapteva, Inc.","Completed","$25.00","$0.00","17LA58JSK6PRD4HDGLNJQPI1PB9N8DKPVHL"
+
+# skip one header line
+skip 1
+
+# name the csv fields (and assign the transaction's date, amount and code)
+fields date, _, toorfrom, name, amzstatus, amount, fees, code
+
+# how to parse the date
+date-format %b %-d, %Y
+
+# combine two fields to make the description
+description %toorfrom %name
+
+# save these fields as tags
+comment     status:%amzstatus, fees:%fees
+
+# set the base account for all transactions
+account1    assets:amazon
+
+# flip the sign on the amount
+amount      -%amount
+
+   For more examples, see Convert CSV files.
 * Menu:
 
 * CSV RULES::
@@ -270,33 +317,33 @@ one rules file will be used for all the CSV files being read.
 
 Tag Table:
 Node: Top74
-Node: CSV RULES810
-Ref: #csv-rules920
-Node: skip1182
-Ref: #skip1278
-Node: date-format1450
-Ref: #date-format1579
-Node: field list2085
-Ref: #field-list2224
-Node: field assignment2929
-Ref: #field-assignment3086
-Node: conditional block3590
-Ref: #conditional-block3746
-Node: include4642
-Ref: #include4774
-Node: newest-first5005
-Ref: #newest-first5121
-Node: CSV TIPS5532
-Ref: #csv-tips5628
-Node: CSV ordering5746
-Ref: #csv-ordering5866
-Node: CSV accounts6047
-Ref: #csv-accounts6187
-Node: CSV amounts6441
-Ref: #csv-amounts6589
-Node: CSV balance assertions7364
-Ref: #csv-balance-assertions7548
-Node: Reading multiple CSV files7753
-Ref: #reading-multiple-csv-files7925
+Node: CSV RULES2165
+Ref: #csv-rules2275
+Node: skip2537
+Ref: #skip2633
+Node: date-format2805
+Ref: #date-format2934
+Node: field list3440
+Ref: #field-list3579
+Node: field assignment4284
+Ref: #field-assignment4441
+Node: conditional block4945
+Ref: #conditional-block5101
+Node: include5997
+Ref: #include6129
+Node: newest-first6360
+Ref: #newest-first6476
+Node: CSV TIPS6887
+Ref: #csv-tips6983
+Node: CSV ordering7101
+Ref: #csv-ordering7221
+Node: CSV accounts7402
+Ref: #csv-accounts7542
+Node: CSV amounts7796
+Ref: #csv-amounts7944
+Node: CSV balance assertions8719
+Ref: #csv-balance-assertions8903
+Node: Reading multiple CSV files9108
+Ref: #reading-multiple-csv-files9280
 
 End Tag Table

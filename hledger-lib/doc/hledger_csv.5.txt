@@ -7,16 +7,65 @@ NAME
        CSV - how hledger reads CSV data, and the CSV rules file format
 
 DESCRIPTION
-       hledger  can  read CSV files, converting each CSV record into a journal
-       entry (transaction), if you provide some conversion hints in  a  "rules
-       file".   This file should be named like the CSV file with an additional
-       .rules suffix (eg: mybank.csv.rules); or, you can specify the file with
-       --rules-file PATH.   hledger  will  create  it  if necessary, with some
-       default rules which you'll need to adjust.  At minimum, the rules  file
-       must specify the date and amount fields.  For an example, see Cookbook:
-       convert CSV files.
+       hledger  can  read  CSV  (comma-separated  value) files as if they were
+       journal files, automatically converting each CSV record into a transac-
+       tion.  (To learn about writing CSV, see CSV output.)
 
-       To learn about exporting CSV, see CSV output.
+       Converting  CSV to transactions requires some special conversion rules.
+       These do several things:
+
+       o they describe the layout and format of the CSV data
+
+       o they can customize the generated journal entries using a simple  tem-
+         plating language
+
+       o they  can add refinements based on patterns in the CSV data, eg cate-
+         gorizing transactions with more detailed account names.
+
+       When reading a CSV file named FILE.csv, hledger looks for a  conversion
+       rules  file  named FILE.csv.rules in the same directory.  You can over-
+       ride this with the --rules-file option.  If the  rules  file  does  not
+       exist,  hledger  will  auto-create  one  with some example rules, which
+       you'll need to adjust.
+
+       At minimum, the rules file must identify the date  and  amount  fields.
+       It  may also be necessary to specify the date format, and the number of
+       header lines to skip.  Eg:
+
+              fields date, _, _, amount
+              date-format  %d/%m/%Y
+              skip 1
+
+       A more complete example:
+
+              # hledger CSV rules for amazon.com order history
+
+              # sample:
+              # "Date","Type","To/From","Name","Status","Amount","Fees","Transaction ID"
+              # "Jul 29, 2012","Payment","To","Adapteva, Inc.","Completed","$25.00","$0.00","17LA58JSK6PRD4HDGLNJQPI1PB9N8DKPVHL"
+
+              # skip one header line
+              skip 1
+
+              # name the csv fields (and assign the transaction's date, amount and code)
+              fields date, _, toorfrom, name, amzstatus, amount, fees, code
+
+              # how to parse the date
+              date-format %b %-d, %Y
+
+              # combine two fields to make the description
+              description %toorfrom %name
+
+              # save these fields as tags
+              comment     status:%amzstatus, fees:%fees
+
+              # set the base account for all transactions
+              account1    assets:amazon
+
+              # flip the sign on the amount
+              amount      -%amount
+
+       For more examples, see Convert CSV files.
 
 CSV RULES
        The following seven kinds of rule can appear in the rules file, in  any
@@ -126,59 +175,59 @@ CSV RULES
    newest-first
        newest-first
 
-       Consider  adding  this rule if all of the following are true: you might
-       be processing just one day of data, your CSV  records  are  in  reverse
-       chronological  order  (newest first), and you care about preserving the
-       order of same-day  transactions.   It  usually  isn't  needed,  because
-       hledger  autodetects  the  CSV order, but when all CSV records have the
+       Consider adding this rule if all of the following are true:  you  might
+       be  processing  just  one  day of data, your CSV records are in reverse
+       chronological order (newest first), and you care about  preserving  the
+       order  of  same-day  transactions.   It  usually  isn't needed, because
+       hledger autodetects the CSV order, but when all CSV  records  have  the
        same date it will assume they are oldest first.
 
 CSV TIPS
    CSV ordering
-       The generated journal entries will be sorted by  date.   The  order  of
-       same-day  entries  will  be preserved (except in the special case where
+       The  generated  journal  entries  will be sorted by date.  The order of
+       same-day entries will be preserved (except in the  special  case  where
        you might need newest-first, see above).
 
    CSV accounts
-       Each journal entry will have two postings,  to  account1  and  account2
+       Each  journal  entry  will  have two postings, to account1 and account2
        respectively.  It's not yet possible to generate entries with more than
-       two postings.  It's conventional and recommended to  use  account1  for
+       two  postings.   It's  conventional and recommended to use account1 for
        the account whose CSV we are reading.
 
    CSV amounts
        The amount field sets the amount of the account1 posting.
 
-       If  the  CSV has debit/credit amounts in separate fields, assign to the
-       amount-in and amount-out pseudo fields instead.  (Whichever one  has  a
+       If the CSV has debit/credit amounts in separate fields, assign  to  the
+       amount-in  and  amount-out pseudo fields instead.  (Whichever one has a
        value will be used, with appropriate sign.  If both contain a value, it
        may not work so well.)
 
-       If an amount value is parenthesised, it will  be  de-parenthesised  and
+       If  an  amount  value is parenthesised, it will be de-parenthesised and
        sign-flipped.
 
-       If  an  amount value begins with a double minus sign, those will cancel
+       If an amount value begins with a double minus sign, those  will  cancel
        out and be removed.
 
-       If the CSV has the currency symbol in a separate field, assign that  to
-       the  currency pseudo field to have it prepended to the amount.  Or, you
-       can use a field assignment to amount that interpolates both CSV  fields
+       If  the CSV has the currency symbol in a separate field, assign that to
+       the currency pseudo field to have it prepended to the amount.  Or,  you
+       can  use a field assignment to amount that interpolates both CSV fields
        (giving more control, eg to put the currency symbol on the right).
 
    CSV balance assertions
-       If  the CSV includes a running balance, you can assign that to the bal-
-       ance pseudo field; whenever the running balance value is non-empty,  it
+       If the CSV includes a running balance, you can assign that to the  bal-
+       ance  pseudo field; whenever the running balance value is non-empty, it
        will be asserted as the balance after the account1 posting.
 
    Reading multiple CSV files
-       You  can read multiple CSV files at once using multiple -f arguments on
-       the command line, and hledger will  look  for  a  correspondingly-named
+       You can read multiple CSV files at once using multiple -f arguments  on
+       the  command  line,  and  hledger will look for a correspondingly-named
        rules file for each.  Note if you use the --rules-file option, this one
        rules file will be used for all the CSV files being read.
 
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -192,7 +241,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
