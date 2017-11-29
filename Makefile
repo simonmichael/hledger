@@ -731,13 +731,9 @@ test-stack%yaml:
 	stack --stack-yaml stack$*yaml clean
 	stack --stack-yaml stack$*yaml --install-ghc build --test --bench --haddock --no-haddock-deps
 
-BENCHEXES=hledger-0.27,hledger
+BENCHEXES=hledger-1.4,hledger
 
-quickbench: samplejournals bench.sh \
-	$(call def-help,quickbench,\
-	run simple performance benchmarks without saving results\
-	Requires some commands defined in bench.sh\
-	)
+bench: samplejournals bench.sh $(call def-help,bench, benchmark commands in bench.sh with quickbench and $(BENCHEXES))
 	quickbench -v -w $(BENCHEXES)
 
 # bench: samplejournals tests/bench.tests tools/simplebench \
