@@ -134,6 +134,10 @@ Disabling balance assertions temporarily can be useful for troubleshooting.
 `a` runs command-line hledger's add command, and reloads the updated file.
 This allows some basic data entry. 
 
+`A` is like `a`, but runs the [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd) tool, 
+which provides a curses-style interface.
+This key will be available if `hledger-iadd` is installed in $PATH.  
+
 `E` runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default (`emacsclient -a "" -nw`) on the journal file.
 With some editors (emacs, vi), the cursor will be positioned at the current transaction
 when invoked from the register and transaction screens, and at the error location (if possible)
