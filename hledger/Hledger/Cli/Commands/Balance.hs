@@ -564,10 +564,15 @@ multiBalanceReportWithBudgetAsText opts budget r =
         Just pct -> printf "%s [%s%% of %s]" (showamt real) (show $ roundTo 0 pct) (showamt budget)
         Nothing  -> printf "%s [%s]" (showamt real) (showamt budget)
     percentage real budget =
-      case (real, budget) of
-        (Mixed [a1], Mixed [a2]) | acommodity a1 == acommodity a2 && aquantity a2 /= 0 -> 
-          Just $ 100 * aquantity a1 / aquantity a2
+      -- percentage of budget consumed is always computed in the cost basis
+      case (toCost real, toCost budget) of
+        (Mixed [a1], Mixed [a2]) 
+          | isReallyZeroAmount a1 -> Just 0 -- if there are no postings, we consumed 0% of budget
+          | acommodity a1 == acommodity a2 && aquantity a2 /= 0 -> 
+            Just $ 100 * aquantity a1 / aquantity a2
         _ -> Nothing
+        where
+          toCost = normaliseMixedAmount . costOfMixedAmount
     showamt | color_ opts  = cshowMixedAmountOneLineWithoutPrice
             | otherwise    = showMixedAmountOneLineWithoutPrice
     -- combine reportTable budgetTable will combine them into a single table where cells
