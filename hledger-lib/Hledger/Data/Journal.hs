@@ -732,8 +732,11 @@ journalApplyCommodityStyles j@Journal{jtxns=ts, jmarketprices=mps} = j''
 -- from the posting amounts (or in some cases, price amounts) in this
 -- commodity if any, otherwise the default style.
 journalCommodityStyle :: Journal -> CommoditySymbol -> AmountStyle
-journalCommodityStyle j c =
-  headDef amountstyle{asprecision=2} $
+journalCommodityStyle j = fromMaybe amountstyle{asprecision=2} . journalCommodityStyleLookup j
+
+journalCommodityStyleLookup :: Journal -> CommoditySymbol -> Maybe AmountStyle
+journalCommodityStyleLookup j c =
+  listToMaybe $
   catMaybes [
      M.lookup c (jcommodities j) >>= cformat
     ,M.lookup c $ jinferredcommodities j
@@ -802,7 +805,10 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount = canonicaliseAmount (jinferredcommodities j) . costOfAmount
+      fixamount = applyJournalStyle . costOfAmount
+      applyJournalStyle a
+          | Just s <- journalCommodityStyleLookup j (acommodity a) = a{astyle=s}
+          | otherwise = a
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 -- journalCanonicalCommodities :: Journal -> M.Map String CommoditySymbol
