@@ -217,6 +217,7 @@ newJournalWithParseStateFrom j = mempty{
   ,jparsedefaultcommodity = jparsedefaultcommodity j
   ,jparseparentaccounts   = jparseparentaccounts j
   ,jparsealiases          = jparsealiases j
+  ,jcommodities           = jcommodities j
   -- ,jparsetransactioncount = jparsetransactioncount j
   ,jparsetimeclockentries = jparsetimeclockentries j
   }
