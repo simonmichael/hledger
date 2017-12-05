@@ -731,7 +731,8 @@ test-stack%yaml:
 	stack --stack-yaml stack$*yaml clean
 	stack --stack-yaml stack$*yaml --install-ghc build --test --bench --haddock --no-haddock-deps
 
-BENCHEXES=hledger-1.4,hledger
+BENCHEXES=hledger
+# or, eg: BENCHEXES=ledger,hledger-1.4,hledger  
 
 bench: samplejournals bench.sh $(call def-help,bench, benchmark commands in bench.sh with quickbench and $(BENCHEXES))
 	quickbench -v -w $(BENCHEXES)
