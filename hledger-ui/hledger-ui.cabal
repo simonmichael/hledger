@@ -1,6 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.17.1.
+-- This file has been generated from package.yaml by hpack version 0.20.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: c00bcfd6f775d332d459686ee8b8058420f77d46d34fe308eaee51fe84a7619f
 
 name:           hledger-ui
 version:        1.4
@@ -52,37 +54,37 @@ executable hledger-ui
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   cpp-options: -DVERSION="1.4"
   build-depends:
-      hledger >= 1.4 && < 1.5
-    , hledger-lib >= 1.4 && < 1.5
-    , ansi-terminal >= 0.6.2.3 && < 0.8
+      HUnit
+    , ansi-terminal >=0.6.2.3 && <0.8
     , async
-    , base >= 4.8 && < 5
-    , base-compat >= 0.8.1
-    , cmdargs >= 0.8
+    , base >=4.8 && <5
+    , base-compat >=0.8.1
+    , cmdargs >=0.8
     , containers
     , data-default
     , directory
     , filepath
-    , fsnotify >= 0.2 && < 0.3
-    , HUnit
-    , microlens >= 0.4 && < 0.5
-    , microlens-platform >= 0.2.3.1 && < 0.4
-    , megaparsec >=5.0 && < 6.3
+    , fsnotify >=0.2 && <0.3
+    , hledger >=1.4 && <1.5
+    , hledger-lib >=1.4 && <1.5
+    , megaparsec >=5.0 && <6.3
+    , microlens >=0.4 && <0.5
+    , microlens-platform >=0.2.3.1 && <0.4
     , pretty-show >=1.6.4
-    , process >= 1.2
-    , safe >= 0.2
-    , split >= 0.1 && < 0.3
-    , text >= 1.2 && < 1.3
-    , text-zipper >= 0.4 && < 0.11
-    , time >= 1.5
+    , process >=1.2
+    , safe >=0.2
+    , split >=0.1 && <0.3
+    , text >=1.2 && <1.3
+    , text-zipper >=0.4 && <0.11
+    , time >=1.5
     , transformers
     , vector
   if os(windows)
     buildable: False
   else
     build-depends:
-        brick >= 0.12 && < 0.30
-      , vty >= 5.5 && < 5.20
+        brick >=0.12 && <0.30
+      , vty >=5.5 && <5.20
   if flag(threaded)
     ghc-options: -threaded
   other-modules:
@@ -98,4 +100,5 @@ executable hledger-ui
       Hledger.UI.UIState
       Hledger.UI.UITypes
       Hledger.UI.UIUtils
+      Paths_hledger_ui
   default-language: Haskell2010

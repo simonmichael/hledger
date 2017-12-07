@@ -1,6 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.17.1.
+-- This file has been generated from package.yaml by hpack version 0.20.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: a055e6e87e8d6345efe67e94f9a716eedbcfb2d65daf650a2d5a6c75a8c466f7
 
 name:           hledger-web
 version:        1.4
@@ -122,8 +124,7 @@ library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   cpp-options: -DVERSION="1.4"
   build-depends:
-      hledger-lib >= 1.4 && < 1.5
-    , hledger >= 1.4 && < 1.5
+      HUnit
     , base >=4.8 && <5
     , base-compat >=0.8.1
     , blaze-html
@@ -131,16 +132,21 @@ library
     , bytestring
     , clientsession
     , cmdargs >=0.10 && <0.11
+    , conduit-extra >=1.1
     , data-default
     , directory
     , filepath
     , hjsmin
-    , http-conduit
+    , hledger >=1.4 && <1.5
+    , hledger-lib >=1.4 && <1.5
     , http-client
-    , HUnit
-    , conduit-extra >=1.1
+    , http-conduit
+    , json
+    , megaparsec >=5.0 && <6.3
+    , mtl
+    , parsec >=3
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && < 2.1
+    , shakespeare >=2.0.2.2 && <2.1
     , template-haskell
     , text >=1.2 && <1.3
     , time >=1.5
@@ -154,10 +160,6 @@ library
     , yesod-core
     , yesod-form
     , yesod-static
-    , json
-    , megaparsec >=5.0 && < 6.3
-    , mtl
-    , parsec >=3
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
@@ -190,8 +192,7 @@ executable hledger-web
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   cpp-options: -DVERSION="1.4"
   build-depends:
-      hledger-lib >= 1.4 && < 1.5
-    , hledger >= 1.4 && < 1.5
+      HUnit
     , base >=4.8 && <5
     , base-compat >=0.8.1
     , blaze-html
@@ -199,16 +200,22 @@ executable hledger-web
     , bytestring
     , clientsession
     , cmdargs >=0.10 && <0.11
+    , conduit-extra >=1.1
     , data-default
     , directory
     , filepath
     , hjsmin
-    , http-conduit
+    , hledger >=1.4 && <1.5
+    , hledger-lib >=1.4 && <1.5
+    , hledger-web
     , http-client
-    , HUnit
-    , conduit-extra >=1.1
+    , http-conduit
+    , json
+    , megaparsec >=5.0 && <6.3
+    , mtl
+    , parsec >=3
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && < 2.1
+    , shakespeare >=2.0.2.2 && <2.1
     , template-haskell
     , text >=1.2 && <1.3
     , time >=1.5
@@ -222,11 +229,6 @@ executable hledger-web
     , yesod-core
     , yesod-form
     , yesod-static
-    , json
-    , megaparsec >=5.0 && < 6.3
-    , mtl
-    , parsec >=3
-    , hledger-web
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
@@ -235,6 +237,8 @@ executable hledger-web
     buildable: False
   if flag(threaded)
     ghc-options: -threaded
+  other-modules:
+      Paths_hledger_web
   default-language: Haskell2010
 
 test-suite test
@@ -245,8 +249,7 @@ test-suite test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   cpp-options: -DVERSION="1.4"
   build-depends:
-      hledger-lib >= 1.4 && < 1.5
-    , hledger >= 1.4 && < 1.5
+      HUnit
     , base >=4.8 && <5
     , base-compat >=0.8.1
     , blaze-html
@@ -254,16 +257,23 @@ test-suite test
     , bytestring
     , clientsession
     , cmdargs >=0.10 && <0.11
+    , conduit-extra >=1.1
     , data-default
     , directory
     , filepath
     , hjsmin
-    , http-conduit
+    , hledger >=1.4 && <1.5
+    , hledger-lib >=1.4 && <1.5
+    , hledger-web
+    , hspec
     , http-client
-    , HUnit
-    , conduit-extra >=1.1
+    , http-conduit
+    , json
+    , megaparsec >=5.0 && <6.3
+    , mtl
+    , parsec >=3
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && < 2.1
+    , shakespeare >=2.0.2.2 && <2.1
     , template-haskell
     , text >=1.2 && <1.3
     , time >=1.5
@@ -277,12 +287,6 @@ test-suite test
     , yesod-core
     , yesod-form
     , yesod-static
-    , json
-    , megaparsec >=5.0 && < 6.3
-    , mtl
-    , parsec >=3
-    , hledger-web
-    , hspec
     , yesod-test
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
@@ -291,4 +295,5 @@ test-suite test
   other-modules:
       HomeTest
       TestImport
+      Paths_hledger_web
   default-language: Haskell2010

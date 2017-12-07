@@ -1,6 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.17.1.
+-- This file has been generated from package.yaml by hpack version 0.20.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: fd127179a6a5d684a9d0c26c79a1e960e8d5a8c5ae933bfe74f4243f141cbdbe
 
 name:           hledger-api
 version:        1.4
@@ -46,24 +48,26 @@ executable hledger-api
   ghc-options: -threaded
   cpp-options: -DVERSION="1.4"
   build-depends:
-      hledger-lib >= 1.4 && < 1.5
-    , hledger >= 1.4 && < 1.5
-    , base >=4.8 && <5
+      Decimal
     , aeson
+    , base >=4.8 && <5
     , bytestring
     , containers
-    , Decimal
     , docopt
     , either
+    , hledger >=1.4 && <1.5
+    , hledger-lib >=1.4 && <1.5
     , microlens >=0.4 && <0.5
     , microlens-platform >=0.2.3.1 && <0.4
     , safe
-    , servant-server >= 0.10
+    , servant-server >=0.10
     , servant-swagger
-    , swagger2 >= 2.0 && < 2.3
+    , swagger2 >=2.0 && <2.3
     , text
     , transformers
     , wai
     , wai-extra
     , warp
+  other-modules:
+      Paths_hledger_api
   default-language: Haskell2010
