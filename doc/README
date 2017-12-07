@@ -18,7 +18,11 @@ doc/profs/        a place for long-term profiling/performance data
 README.md         the main project readme, displayed on github
 LICENSE           the default project license
 
-3. Per-package descriptions, readmes, changelogs, and reference manuals.
+3. Code/API docs in haskell source files as haddock comments:
+
+hledger*/**/*.hs  haddock module and function docs in most source files
+
+4. Per-package descriptions, readmes, changelogs, and reference manuals.
 These are in the respective package directories:
 
 hledger*/package.yaml    source for package metadata (description, etc.)
@@ -26,13 +30,13 @@ hledger*/README          package readme, displayed on hackage
 hledger*/CHANGES         package changelog, displayed on hackage
 hledger*/hledger*.m4.md  package manual source file(s)
 
-4. The project website and additional docs - home page, FAQ, tutorials, 
+5. The project website and additional docs - home page, FAQ, tutorials, 
 how-tos, developer guide, etc. These are in the site directory:
 
 site/             hledger.org website content, templates, assets
 
 
-Workflows:
+## Workflows
 
 The manuals and website are rendered from the top directory, 
 primarily using Shake. First, build Shake:
@@ -78,7 +82,7 @@ $ make site-reload
 $ open http://localhost:8001  # if the make file didn't do it
 
 
-Misc. notes:
+## Misc. notes
 
 Changelogs are plain text, but started including some markdown formatting
 from 1.0. Should make consistent.
