@@ -27,9 +27,9 @@ extra-source-files:
   - README
 
 data-files:
-  - doc/hledger-ui.1
-  - doc/hledger-ui.1.txt
-  - doc/hledger-ui.1.info
+  - hledger-ui.1
+  - hledger-ui.txt
+  - hledger-ui.info
 
 flags:
   threaded:

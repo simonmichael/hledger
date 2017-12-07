@@ -150,10 +150,10 @@ CABALFILES:= \
 
 MANUALSOURCEFILES:= \
 	doc/lib.m4 \
-	*/*/*.m4.md \
+	*/*.m4.md \
 
 MANUALGENFILES:= \
-	hledger*/doc/hledger*.[15]{,.info,.txt} \
+	hledger*/hledger*.{1,5,info,txt} \
 
 # site/*.md includes website source files and generated web manual files
 # WEBDOCFILES:= \
@@ -1399,8 +1399,8 @@ genmanuals: Shake #$(call def-help,genmanuals, regenerate embedded manuals (migh
 	./Shake manuals
 
 updatemanuals: genmanuals $(call def-help,updatemanuals, regenerate embedded manuals and commit (might need -B) )
-	@read -p "please review changes then press enter to commit: $(shell ls hledger*/doc/*.[15]*)"
-	git commit -m "update embedded manuals" hledger*/doc/*.[15]*
+	@read -p "please review changes then press enter to commit: $(shell ls hledger*/hledger*.{1,5,info,txt})"
+	git commit -m "update embedded manuals" hledger*/hledger*.{1,5,info,txt}
 
 
 tagrelease: \

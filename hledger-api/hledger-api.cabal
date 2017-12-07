@@ -33,9 +33,9 @@ extra-source-files:
     README
 
 data-files:
-    doc/hledger-api.1
-    doc/hledger-api.1.info
-    doc/hledger-api.1.txt
+    hledger-api.1
+    hledger-api.info
+    hledger-api.txt
 
 source-repository head
   type: git

@@ -5,13 +5,13 @@
 m4_dnl This man page is composed from multiple files as follows:
 m4_dnl
 m4_dnl hledger.1.m4.md
-m4_dnl  examples.m4.md
-m4_dnl  options.m4.md
-m4_dnl  queries.m4.md
-m4_dnl  commands.m4.md
-m4_dnl   balance.m4.md
-m4_dnl  addons.m4.md
-m4_dnl  troubleshooting.m4.md
+m4_dnl  hledger_examples.m4.md
+m4_dnl  hledger_options.m4.md
+m4_dnl  hledger_queries.m4.md
+m4_dnl  hledger_commands.m4.md
+m4_dnl  hledger_balance.m4.md
+m4_dnl  hledger_addons.m4.md
+m4_dnl  hledger_troubleshooting.m4.md
 
 _web_({{
 _docversionlinks_({{hledger}})
@@ -71,10 +71,10 @@ To get started, you can either save some entries like the above in
 try some commands like `hledger print` or `hledger balance`.
 Run `hledger` with no arguments for a list of commands.
  
-_include_(examples.m4.md)
-_include_(options.m4.md)
-_include_(queries.m4.md)
-_include_(commands.m4.md)
+_include_(hledger_examples.m4.md)
+_include_(hledger_options.m4.md)
+_include_(hledger_queries.m4.md)
+_include_(hledger_commands.m4.md)
 _man_({{
 
 # ENVIRONMENT
@@ -104,6 +104,6 @@ Not all of Ledger's journal file syntax is supported. See [file format differenc
 
 On large data files, hledger is slower and uses more memory than Ledger.
 
-_include_(troubleshooting.m4.md)
+_include_(hledger_troubleshooting.m4.md)
 
 }})

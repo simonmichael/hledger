@@ -24,7 +24,7 @@ These are in the respective package directories:
 hledger*/package.yaml    source for package metadata (description, etc.)
 hledger*/README          package readme, displayed on hackage
 hledger*/CHANGES         package changelog, displayed on hackage
-hledger*/doc/hledger*.m4.md  package manual source file(s)
+hledger*/hledger*.m4.md  package manual source file(s)
 
 4. The project website and additional docs - home page, FAQ, tutorials, 
 how-tos, developer guide, etc. These are in the site directory:
@@ -45,12 +45,17 @@ such as m4:
 
 $ ./Shake manuals
 
-Then render the website. This copies the manuals' markdown files into
-the website, edits them for web display, concatenates them to form the 
-one-page manual, and runs hakyll-std (a generic hakyll script, included)
-to render everything as html and add site header/footer, 
-tables of contents, etc.: 
-  
+The text/man/info manuals are embedded in the hledger executable, so a 
+rebuild of that now will pick up the latest manuals:
+
+$ stack build hledger
+
+The website uses the markdown manuals. This copies them into the
+website, edits them for web display, concatenates them to form the
+one-page manual, and runs hakyll-std (a generic hakyll script,
+included) which adds tables of contents and renders everything as html
+with the site header/footer.
+
 $ ./Shake website
 
 View the rendered website ("open" is mac-specific; use your equivalent):
