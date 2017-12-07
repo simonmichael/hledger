@@ -1,7 +1,7 @@
-This is hledger.1.info, produced by makeinfo version 6.0 from stdin.
+This is hledger.info, produced by makeinfo version 6.0 from stdin.
 
 
-File: hledger.1.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
+File: hledger.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
 hledger(1) hledger 1.4
 **********************
@@ -49,7 +49,7 @@ try some commands like 'hledger print' or 'hledger balance'.  Run
 * ADD-ON COMMANDS::
 
 
-File: hledger.1.info,  Node: EXAMPLES,  Next: OPTIONS,  Prev: Top,  Up: Top
+File: hledger.info,  Node: EXAMPLES,  Next: OPTIONS,  Prev: Top,  Up: Top
 
 1 EXAMPLES
 **********
@@ -108,7 +108,7 @@ $ hledger print desc:shop                 # show transactions with shop in the d
 $ hledger activity -W                     # show transaction counts per week as a bar chart
 
 
-File: hledger.1.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
+File: hledger.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 
 2 OPTIONS
 *********
@@ -133,7 +133,7 @@ File: hledger.1.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 * Regular expressions::
 
 
-File: hledger.1.info,  Node: General options,  Next: Command options,  Up: OPTIONS
+File: hledger.info,  Node: General options,  Next: Command options,  Up: OPTIONS
 
 2.1 General options
 ===================
@@ -239,7 +239,7 @@ the last one takes precedence.
    Some reporting options can also be written as query arguments.
 
 
-File: hledger.1.info,  Node: Command options,  Next: Command arguments,  Prev: General options,  Up: OPTIONS
+File: hledger.info,  Node: Command options,  Next: Command arguments,  Prev: General options,  Up: OPTIONS
 
 2.2 Command options
 ===================
@@ -255,7 +255,7 @@ options after a double-hyphen, eg: 'hledger ui -- --watch'.  Or, you can
 run the addon executable directly: 'hledger-ui --watch'.
 
 
-File: hledger.1.info,  Node: Command arguments,  Next: Argument files,  Prev: Command options,  Up: OPTIONS
+File: hledger.info,  Node: Command arguments,  Next: Argument files,  Prev: Command options,  Up: OPTIONS
 
 2.3 Command arguments
 =====================
@@ -264,7 +264,7 @@ Most hledger commands accept arguments after the command name, which are
 often a query, filtering the data in some way.
 
 
-File: hledger.1.info,  Node: Argument files,  Next: Special characters,  Prev: Command arguments,  Up: OPTIONS
+File: hledger.info,  Node: Argument files,  Next: Special characters,  Prev: Command arguments,  Up: OPTIONS
 
 2.4 Argument files
 ==================
@@ -275,7 +275,7 @@ prevent this expansion of '@'-arguments, precede them with a '--'
 argument.  For more, see Save frequently used options.
 
 
-File: hledger.1.info,  Node: Special characters,  Next: Input files,  Prev: Argument files,  Up: OPTIONS
+File: hledger.info,  Node: Special characters,  Next: Input files,  Prev: Argument files,  Up: OPTIONS
 
 2.5 Special characters
 ======================
@@ -313,7 +313,7 @@ quotes.  Eg: 'cur:\$').
    If you're really stumped, add '--debug=2' to troubleshoot.
 
 
-File: hledger.1.info,  Node: Input files,  Next: Smart dates,  Prev: Special characters,  Up: OPTIONS
+File: hledger.info,  Node: Input files,  Next: Smart dates,  Prev: Special characters,  Up: OPTIONS
 
 2.6 Input files
 ===============
@@ -368,7 +368,7 @@ one big journal.  There are some limitations with this:
 the files, eg: 'cat a.journal b.journal | hledger -f- CMD'.
 
 
-File: hledger.1.info,  Node: Smart dates,  Next: Report start & end date,  Prev: Input files,  Up: OPTIONS
+File: hledger.info,  Node: Smart dates,  Next: Report start & end date,  Prev: Input files,  Up: OPTIONS
 
 2.7 Smart dates
 ===============
@@ -391,7 +391,7 @@ omitted (defaulting to 1).
 'today', 'yesterday', 'tomorrow'
 
 
-File: hledger.1.info,  Node: Report start & end date,  Next: Report intervals,  Prev: Smart dates,  Up: OPTIONS
+File: hledger.info,  Node: Report start & end date,  Next: Report intervals,  Prev: Smart dates,  Up: OPTIONS
 
 2.8 Report start & end date
 ===========================
@@ -410,7 +410,7 @@ need to write the date _after_ the last day you want to include.
 
    Examples:
 
-'-b 2016/3/17'      begin on St.  Patrick's day 2016
+'-b 2016/3/17'      begin on St. Patrick's day 2016
 '-e 12/1'           end at the start of december 1st of the current year (11/30 will be the last date included)
 '-b thismonth'      all transactions on or after the 1st of the current month
 '-p thismonth'      all transactions in the current month
@@ -420,7 +420,7 @@ need to write the date _after_ the last day you want to include.
 'date:thismonth'
 
 
-File: hledger.1.info,  Node: Report intervals,  Next: Period expressions,  Prev: Report start & end date,  Up: OPTIONS
+File: hledger.info,  Node: Report intervals,  Next: Period expressions,  Prev: Report start & end date,  Up: OPTIONS
 
 2.9 Report intervals
 ====================
@@ -433,7 +433,7 @@ complex intervals may be specified with a period expression.  Report
 intervals can not be specified with a query, currently.
 
 
-File: hledger.1.info,  Node: Period expressions,  Next: For example,  Prev: Report intervals,  Up: OPTIONS
+File: hledger.info,  Node: Period expressions,  Next: For example,  Prev: Report intervals,  Up: OPTIONS
 
 2.10 Period expressions
 =======================
@@ -494,7 +494,7 @@ associated period expression specifies different explicit start and end
 date.
 
 
-File: hledger.1.info,  Node: For example,  Next: Depth limiting,  Prev: Period expressions,  Up: OPTIONS
+File: hledger.info,  Node: For example,  Next: Depth limiting,  Prev: Period expressions,  Up: OPTIONS
 
 2.11 For example:
 =================
@@ -547,7 +547,7 @@ start date and exclusive end date):
    'hledger register checking -p "every 3rd day of week"'
 
 
-File: hledger.1.info,  Node: Depth limiting,  Next: Pivoting,  Prev: For example,  Up: OPTIONS
+File: hledger.info,  Node: Depth limiting,  Next: Pivoting,  Prev: For example,  Up: OPTIONS
 
 2.12 Depth limiting
 ===================
@@ -559,7 +559,7 @@ less detail.  This flag has the same effect as a 'depth:' query argument
 (so '-2', '--depth=2' or 'depth:2' are basically equivalent).
 
 
-File: hledger.1.info,  Node: Pivoting,  Next: Cost,  Prev: Depth limiting,  Up: OPTIONS
+File: hledger.info,  Node: Pivoting,  Next: Cost,  Prev: Depth limiting,  Up: OPTIONS
 
 2.13 Pivoting
 =============
@@ -616,7 +616,7 @@ $ hledger balance --pivot member acct:.
               -2 EUR
 
 
-File: hledger.1.info,  Node: Cost,  Next: Market value,  Prev: Pivoting,  Up: OPTIONS
+File: hledger.info,  Node: Cost,  Next: Market value,  Prev: Pivoting,  Up: OPTIONS
 
 2.14 Cost
 =========
@@ -625,7 +625,7 @@ The '-B/--cost' flag converts amounts to their cost at transaction time,
 if they have a transaction price specified.
 
 
-File: hledger.1.info,  Node: Market value,  Next: Regular expressions,  Prev: Cost,  Up: OPTIONS
+File: hledger.info,  Node: Market value,  Next: Regular expressions,  Prev: Cost,  Up: OPTIONS
 
 2.15 Market value
 =================
@@ -674,7 +674,7 @@ directives, not transaction prices (unlike Ledger).
    Using -B and -V together is allowed.
 
 
-File: hledger.1.info,  Node: Regular expressions,  Prev: Market value,  Up: OPTIONS
+File: hledger.info,  Node: Regular expressions,  Prev: Market value,  Up: OPTIONS
 
 2.16 Regular expressions
 ========================
@@ -714,7 +714,7 @@ general they:
      See Special characters.
 
 
-File: hledger.1.info,  Node: QUERIES,  Next: COMMANDS,  Prev: OPTIONS,  Up: Top
+File: hledger.info,  Node: QUERIES,  Next: COMMANDS,  Prev: OPTIONS,  Up: Top
 
 3 QUERIES
 *********
@@ -825,7 +825,7 @@ and query arguments, and the resulting query will be their intersection
 (perhaps excluding the '-p/--period' option).
 
 
-File: hledger.1.info,  Node: COMMANDS,  Next: ADD-ON COMMANDS,  Prev: QUERIES,  Up: Top
+File: hledger.info,  Node: COMMANDS,  Next: ADD-ON COMMANDS,  Prev: QUERIES,  Up: Top
 
 4 COMMANDS
 **********
@@ -871,7 +871,7 @@ detailed command help.
 * test::
 
 
-File: hledger.1.info,  Node: accounts,  Next: activity,  Up: COMMANDS
+File: hledger.info,  Node: accounts,  Next: activity,  Up: COMMANDS
 
 4.1 accounts
 ============
@@ -936,7 +936,7 @@ income:salary
 liabilities:debts
 
 
-File: hledger.1.info,  Node: activity,  Next: add,  Prev: accounts,  Up: COMMANDS
+File: hledger.info,  Node: activity,  Next: add,  Prev: accounts,  Up: COMMANDS
 
 4.2 activity
 ============
@@ -954,7 +954,7 @@ $ hledger activity --quarterly
 2008-10-01 **
 
 
-File: hledger.1.info,  Node: add,  Next: balance,  Prev: activity,  Up: COMMANDS
+File: hledger.info,  Node: add,  Next: balance,  Prev: activity,  Up: COMMANDS
 
 4.3 add
 =======
@@ -1024,7 +1024,7 @@ Starting the next transaction (. or ctrl-D/ctrl-C to quit)
 Date [2015/05/22]: <CTRL-D> $
 
 
-File: hledger.1.info,  Node: balance,  Next: balancesheet,  Prev: add,  Up: COMMANDS
+File: hledger.info,  Node: balance,  Next: balancesheet,  Prev: add,  Up: COMMANDS
 
 4.4 balance
 ===========
@@ -1137,7 +1137,7 @@ $ hledger balance -p 2008/6 expenses --no-total
 * CSV output::
 
 
-File: hledger.1.info,  Node: Flat mode,  Next: Depth limited balance reports,  Up: balance
+File: hledger.info,  Node: Flat mode,  Next: Depth limited balance reports,  Up: balance
 
 4.4.1 Flat mode
 ---------------
@@ -1153,7 +1153,7 @@ $ hledger balance -p 2008/6 expenses -N --flat --drop 1
                   $1  supplies
 
 
-File: hledger.1.info,  Node: Depth limited balance reports,  Next: Multicolumn balance reports,  Prev: Flat mode,  Up: balance
+File: hledger.info,  Node: Depth limited balance reports,  Next: Multicolumn balance reports,  Prev: Flat mode,  Up: balance
 
 4.4.2 Depth limited balance reports
 -----------------------------------
@@ -1170,7 +1170,7 @@ $ hledger balance -N --depth 1
                   $1  liabilities
 
 
-File: hledger.1.info,  Node: Multicolumn balance reports,  Next: Custom balance output,  Prev: Depth limited balance reports,  Up: balance
+File: hledger.info,  Node: Multicolumn balance reports,  Next: Custom balance output,  Prev: Depth limited balance reports,  Up: balance
 
 4.4.3 Multicolumn balance reports
 ---------------------------------
@@ -1270,7 +1270,7 @@ Balance changes in 2008:
 # Average is rounded to the dollar here since all journal amounts are
 
 
-File: hledger.1.info,  Node: Custom balance output,  Next: Colour support,  Prev: Multicolumn balance reports,  Up: balance
+File: hledger.info,  Node: Custom balance output,  Next: Colour support,  Prev: Multicolumn balance reports,  Up: balance
 
 4.4.4 Custom balance output
 ---------------------------
@@ -1330,7 +1330,7 @@ may be needed to get pleasing results.
      the single-column balance report
 
 
-File: hledger.1.info,  Node: Colour support,  Next: Output destination,  Prev: Custom balance output,  Up: balance
+File: hledger.info,  Node: Colour support,  Next: Output destination,  Prev: Custom balance output,  Up: balance
 
 4.4.5 Colour support
 --------------------
@@ -1341,7 +1341,7 @@ The balance command shows negative amounts in red, if:
    * the output is not being redirected or piped anywhere
 
 
-File: hledger.1.info,  Node: Output destination,  Next: CSV output,  Prev: Colour support,  Up: balance
+File: hledger.info,  Node: Output destination,  Next: CSV output,  Prev: Colour support,  Up: balance
 
 4.4.6 Output destination
 ------------------------
@@ -1354,7 +1354,7 @@ $ hledger balance -o -     # write to stdout (the default)
 $ hledger balance -o FILE  # write to FILE
 
 
-File: hledger.1.info,  Node: CSV output,  Prev: Output destination,  Up: balance
+File: hledger.info,  Node: CSV output,  Prev: Output destination,  Up: balance
 
 4.4.7 CSV output
 ----------------
@@ -1369,7 +1369,7 @@ $ hledger balance -O csv       # write CSV to stdout
 $ hledger balance -o FILE.csv  # write CSV to FILE.csv
 
 
-File: hledger.1.info,  Node: balancesheet,  Next: balancesheetequity,  Prev: balance,  Up: COMMANDS
+File: hledger.info,  Node: balancesheet,  Next: balancesheetequity,  Prev: balance,  Up: COMMANDS
 
 4.5 balancesheet
 ================
@@ -1448,7 +1448,7 @@ balancesheet shows historical ending balances, which is what you need
 for a balance sheet; note this means it ignores report begin dates.
 
 
-File: hledger.1.info,  Node: balancesheetequity,  Next: cashflow,  Prev: balancesheet,  Up: COMMANDS
+File: hledger.info,  Node: balancesheetequity,  Next: cashflow,  Prev: balancesheet,  Up: COMMANDS
 
 4.6 balancesheetequity
 ======================
@@ -1488,7 +1488,7 @@ Total:
                    0
 
 
-File: hledger.1.info,  Node: cashflow,  Next: check-dates,  Prev: balancesheetequity,  Up: COMMANDS
+File: hledger.info,  Node: cashflow,  Next: check-dates,  Prev: balancesheetequity,  Up: COMMANDS
 
 4.7 cashflow
 ============
@@ -1561,7 +1561,7 @@ period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.
 
 
-File: hledger.1.info,  Node: check-dates,  Next: check-dupes,  Prev: cashflow,  Up: COMMANDS
+File: hledger.info,  Node: check-dates,  Next: check-dupes,  Prev: cashflow,  Up: COMMANDS
 
 4.8 check-dates
 ===============
@@ -1570,7 +1570,7 @@ Check that transactions are sorted by increasing date.  With a query,
 only matched transactions' dates are checked.
 
 
-File: hledger.1.info,  Node: check-dupes,  Next: equity,  Prev: check-dates,  Up: COMMANDS
+File: hledger.info,  Node: check-dupes,  Next: equity,  Prev: check-dates,  Up: COMMANDS
 
 4.9 check-dupes
 ===============
@@ -1579,7 +1579,7 @@ Report account names having the same leaf but different prefixes.  An
 example: http://stefanorodighiero.net/software/hledger-dupes.html
 
 
-File: hledger.1.info,  Node: equity,  Next: help,  Prev: check-dupes,  Up: COMMANDS
+File: hledger.info,  Node: equity,  Next: help,  Prev: check-dupes,  Up: COMMANDS
 
 4.10 equity
 ===========
@@ -1589,7 +1589,7 @@ balances to zero and back.  Can be useful for bringing account balances
 across file boundaries.
 
 
-File: hledger.1.info,  Node: help,  Next: import,  Prev: equity,  Up: COMMANDS
+File: hledger.info,  Node: help,  Next: import,  Prev: equity,  Up: COMMANDS
 
 4.11 help
 =========
@@ -1626,7 +1626,7 @@ DESCRIPTION
 ...
 
 
-File: hledger.1.info,  Node: import,  Next: incomestatement,  Prev: help,  Up: COMMANDS
+File: hledger.info,  Node: import,  Next: incomestatement,  Prev: help,  Up: COMMANDS
 
 4.12 import
 ===========
@@ -1652,7 +1652,7 @@ see only uncategorised transactions:
 $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
 
 
-File: hledger.1.info,  Node: incomestatement,  Next: prices,  Prev: import,  Up: COMMANDS
+File: hledger.info,  Node: incomestatement,  Next: prices,  Prev: import,  Up: COMMANDS
 
 4.13 incomestatement
 ====================
@@ -1731,7 +1731,7 @@ per period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.
 
 
-File: hledger.1.info,  Node: prices,  Next: print,  Prev: incomestatement,  Up: COMMANDS
+File: hledger.info,  Node: prices,  Next: print,  Prev: incomestatement,  Up: COMMANDS
 
 4.14 prices
 ===========
@@ -1739,7 +1739,7 @@ File: hledger.1.info,  Node: prices,  Next: print,  Prev: incomestatement,  Up: 
 Print all market prices from the journal.
 
 
-File: hledger.1.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: COMMANDS
+File: hledger.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: COMMANDS
 
 4.15 print
 ==========
@@ -1856,7 +1856,7 @@ $ hledger print -Ocsv
      zero or greater amounts under debit.)
 
 
-File: hledger.1.info,  Node: print-unique,  Next: register,  Prev: print,  Up: COMMANDS
+File: hledger.info,  Node: print-unique,  Next: register,  Prev: print,  Up: COMMANDS
 
 4.16 print-unique
 =================
@@ -1864,7 +1864,7 @@ File: hledger.1.info,  Node: print-unique,  Next: register,  Prev: print,  Up: C
 Print transactions which do not reuse an already-seen description.
 
 
-File: hledger.1.info,  Node: register,  Next: register-match,  Prev: print-unique,  Up: COMMANDS
+File: hledger.info,  Node: register,  Next: register-match,  Prev: print-unique,  Up: COMMANDS
 
 4.17 register
 =============
@@ -1969,7 +1969,7 @@ length and comparable to the others in the report.
 * Custom register output::
 
 
-File: hledger.1.info,  Node: Custom register output,  Up: register
+File: hledger.info,  Node: Custom register output,  Up: register
 
 4.17.1 Custom register output
 -----------------------------
@@ -2001,7 +2001,7 @@ $ hledger reg -w $COLUMNS,40      # use terminal width, and set description widt
 output.
 
 
-File: hledger.1.info,  Node: register-match,  Next: rewrite,  Prev: register,  Up: COMMANDS
+File: hledger.info,  Node: register-match,  Next: rewrite,  Prev: register,  Up: COMMANDS
 
 4.18 register-match
 ===================
@@ -2011,7 +2011,7 @@ in the style of the register command.  Helps ledger-autosync detect
 already-seen transactions when importing.
 
 
-File: hledger.1.info,  Node: rewrite,  Next: stats,  Prev: register-match,  Up: COMMANDS
+File: hledger.info,  Node: rewrite,  Next: stats,  Prev: register-match,  Up: COMMANDS
 
 4.19 rewrite
 ============
@@ -2019,7 +2019,7 @@ File: hledger.1.info,  Node: rewrite,  Next: stats,  Prev: register-match,  Up: 
 Print all transactions, adding custom postings to the matched ones.
 
 
-File: hledger.1.info,  Node: stats,  Next: tags,  Prev: rewrite,  Up: COMMANDS
+File: hledger.info,  Node: stats,  Next: tags,  Prev: rewrite,  Up: COMMANDS
 
 4.20 stats
 ==========
@@ -2051,7 +2051,7 @@ for each report period.
 output destination.
 
 
-File: hledger.1.info,  Node: tags,  Next: test,  Prev: stats,  Up: COMMANDS
+File: hledger.info,  Node: tags,  Next: test,  Prev: stats,  Up: COMMANDS
 
 4.21 tags
 =========
@@ -2062,7 +2062,7 @@ shown.  With additional QUERY arguments, only transactions matching the
 query are considered.
 
 
-File: hledger.1.info,  Node: test,  Prev: tags,  Up: COMMANDS
+File: hledger.info,  Node: test,  Prev: tags,  Up: COMMANDS
 
 4.22 test
 =========
@@ -2078,7 +2078,7 @@ matching names.  It's mainly used in development, but it's also nice to
 be able to check your hledger executable for smoke at any time.
 
 
-File: hledger.1.info,  Node: ADD-ON COMMANDS,  Prev: COMMANDS,  Up: Top
+File: hledger.info,  Node: ADD-ON COMMANDS,  Prev: COMMANDS,  Up: Top
 
 5 ADD-ON COMMANDS
 *****************
@@ -2116,7 +2116,7 @@ options, journal parsing, reporting, etc.
 * Experimental add-ons::
 
 
-File: hledger.1.info,  Node: Official add-ons,  Next: Third party add-ons,  Up: ADD-ON COMMANDS
+File: hledger.info,  Node: Official add-ons,  Next: Third party add-ons,  Up: ADD-ON COMMANDS
 
 5.1 Official add-ons
 ====================
@@ -2129,7 +2129,7 @@ These are maintained and released along with hledger.
 * web::
 
 
-File: hledger.1.info,  Node: api,  Next: ui,  Up: Official add-ons
+File: hledger.info,  Node: api,  Next: ui,  Up: Official add-ons
 
 5.1.1 api
 ---------
@@ -2137,7 +2137,7 @@ File: hledger.1.info,  Node: api,  Next: ui,  Up: Official add-ons
 hledger-api serves hledger data as a JSON web API.
 
 
-File: hledger.1.info,  Node: ui,  Next: web,  Prev: api,  Up: Official add-ons
+File: hledger.info,  Node: ui,  Next: web,  Prev: api,  Up: Official add-ons
 
 5.1.2 ui
 --------
@@ -2145,7 +2145,7 @@ File: hledger.1.info,  Node: ui,  Next: web,  Prev: api,  Up: Official add-ons
 hledger-ui provides an efficient curses-style interface.
 
 
-File: hledger.1.info,  Node: web,  Prev: ui,  Up: Official add-ons
+File: hledger.info,  Node: web,  Prev: ui,  Up: Official add-ons
 
 5.1.3 web
 ---------
@@ -2153,7 +2153,7 @@ File: hledger.1.info,  Node: web,  Prev: ui,  Up: Official add-ons
 hledger-web provides a simple web interface.
 
 
-File: hledger.1.info,  Node: Third party add-ons,  Next: Experimental add-ons,  Prev: Official add-ons,  Up: ADD-ON COMMANDS
+File: hledger.info,  Node: Third party add-ons,  Next: Experimental add-ons,  Prev: Official add-ons,  Up: ADD-ON COMMANDS
 
 5.2 Third party add-ons
 =======================
@@ -2168,7 +2168,7 @@ hledger release.
 * irr::
 
 
-File: hledger.1.info,  Node: diff,  Next: iadd,  Up: Third party add-ons
+File: hledger.info,  Node: diff,  Next: iadd,  Up: Third party add-ons
 
 5.2.1 diff
 ----------
@@ -2177,7 +2177,7 @@ hledger-diff shows differences in an account's transactions between one
 journal file and another.
 
 
-File: hledger.1.info,  Node: iadd,  Next: interest,  Prev: diff,  Up: Third party add-ons
+File: hledger.info,  Node: iadd,  Next: interest,  Prev: diff,  Up: Third party add-ons
 
 5.2.2 iadd
 ----------
@@ -2186,7 +2186,7 @@ hledger-iadd is a curses-style, more interactive replacement for the add
 command.
 
 
-File: hledger.1.info,  Node: interest,  Next: irr,  Prev: iadd,  Up: Third party add-ons
+File: hledger.info,  Node: interest,  Next: irr,  Prev: iadd,  Up: Third party add-ons
 
 5.2.3 interest
 --------------
@@ -2195,7 +2195,7 @@ hledger-interest generates interest transactions for an account
 according to various schemes.
 
 
-File: hledger.1.info,  Node: irr,  Prev: interest,  Up: Third party add-ons
+File: hledger.info,  Node: irr,  Prev: interest,  Up: Third party add-ons
 
 5.2.4 irr
 ---------
@@ -2204,7 +2204,7 @@ hledger-irr calculates the internal rate of return of an investment
 account.
 
 
-File: hledger.1.info,  Node: Experimental add-ons,  Prev: Third party add-ons,  Up: ADD-ON COMMANDS
+File: hledger.info,  Node: Experimental add-ons,  Prev: Third party add-ons,  Up: ADD-ON COMMANDS
 
 5.3 Experimental add-ons
 ========================
@@ -2221,7 +2221,7 @@ start making your own!
 * check::
 
 
-File: hledger.1.info,  Node: autosync,  Next: budget,  Up: Experimental add-ons
+File: hledger.info,  Node: autosync,  Next: budget,  Up: Experimental add-ons
 
 5.3.1 autosync
 --------------
@@ -2232,7 +2232,7 @@ and some CSV formats, and can also download the data if your bank offers
 OFX Direct Connect.
 
 
-File: hledger.1.info,  Node: budget,  Next: chart,  Prev: autosync,  Up: Experimental add-ons
+File: hledger.info,  Node: budget,  Next: chart,  Prev: autosync,  Up: Experimental add-ons
 
 5.3.2 budget
 ------------
@@ -2240,7 +2240,7 @@ File: hledger.1.info,  Node: budget,  Next: chart,  Prev: autosync,  Up: Experim
 hledger-budget.hs adds more budget-tracking features to hledger.
 
 
-File: hledger.1.info,  Node: chart,  Next: check,  Prev: budget,  Up: Experimental add-ons
+File: hledger.info,  Node: chart,  Next: check,  Prev: budget,  Up: Experimental add-ons
 
 5.3.3 chart
 -----------
@@ -2248,7 +2248,7 @@ File: hledger.1.info,  Node: chart,  Next: check,  Prev: budget,  Up: Experiment
 hledger-chart.hs is an old pie chart generator, in need of some love.
 
 
-File: hledger.1.info,  Node: check,  Prev: chart,  Up: Experimental add-ons
+File: hledger.info,  Node: check,  Prev: chart,  Up: Experimental add-ons
 
 5.3.4 check
 -----------
@@ -2257,136 +2257,136 @@ hledger-check.hs checks more powerful account balance assertions.
 
 
 Tag Table:
-Node: Top70
-Node: EXAMPLES1886
-Ref: #examples1988
-Node: OPTIONS3634
-Ref: #options3738
-Node: General options4054
-Ref: #general-options4181
-Node: Command options6500
-Ref: #command-options6653
-Node: Command arguments7051
-Ref: #command-arguments7207
-Node: Argument files7328
-Ref: #argument-files7481
-Node: Special characters7747
-Ref: #special-characters7902
-Node: Input files9321
-Ref: #input-files9459
-Node: Smart dates11422
-Ref: #smart-dates11565
-Node: Report start & end date12544
-Ref: #report-start-end-date12716
-Node: Report intervals13782
-Ref: #report-intervals13947
-Node: Period expressions14348
-Ref: #period-expressions14507
-Node: For example16552
-Ref: #for-example16697
-Node: Depth limiting18621
-Ref: #depth-limiting18760
-Node: Pivoting19102
-Ref: #pivoting19222
-Node: Cost20898
-Ref: #cost21008
-Node: Market value21126
-Ref: #market-value21263
-Node: Regular expressions22563
-Ref: #regular-expressions22701
-Node: QUERIES24062
-Ref: #queries24166
-Node: COMMANDS28133
-Ref: #commands28247
-Node: accounts29230
-Ref: #accounts29330
-Node: activity30323
-Ref: #activity30435
-Node: add30794
-Ref: #add30895
-Node: balance33553
-Ref: #balance33666
-Node: Flat mode36823
-Ref: #flat-mode36950
-Node: Depth limited balance reports37370
-Ref: #depth-limited-balance-reports37573
-Node: Multicolumn balance reports37993
-Ref: #multicolumn-balance-reports38204
-Node: Custom balance output42852
-Ref: #custom-balance-output43036
-Node: Colour support45129
-Ref: #colour-support45290
-Node: Output destination45463
-Ref: #output-destination45621
-Node: CSV output45891
-Ref: #csv-output46010
-Node: balancesheet46407
-Ref: #balancesheet46545
-Node: balancesheetequity48513
-Ref: #balancesheetequity48664
-Node: cashflow49453
-Ref: #cashflow49583
-Node: check-dates51495
-Ref: #check-dates51624
-Node: check-dupes51741
-Ref: #check-dupes51868
-Node: equity52005
-Ref: #equity52117
-Node: help52280
-Ref: #help52383
-Node: import53457
-Ref: #import53573
-Node: incomestatement54303
-Ref: #incomestatement54439
-Node: prices56392
-Ref: #prices56509
-Node: print56552
-Ref: #print56664
-Node: print-unique61510
-Ref: #print-unique61638
-Node: register61706
-Ref: #register61835
-Node: Custom register output66336
-Ref: #custom-register-output66467
-Node: register-match67764
-Ref: #register-match67900
-Node: rewrite68083
-Ref: #rewrite68202
-Node: stats68271
-Ref: #stats68376
-Node: tags69257
-Ref: #tags69357
-Node: test69593
-Ref: #test69679
-Node: ADD-ON COMMANDS70047
-Ref: #add-on-commands70159
-Node: Official add-ons71446
-Ref: #official-add-ons71588
-Node: api71675
-Ref: #api71766
-Node: ui71818
-Ref: #ui71919
-Node: web71977
-Ref: #web72068
-Node: Third party add-ons72114
-Ref: #third-party-add-ons72291
-Node: diff72426
-Ref: #diff72525
-Node: iadd72624
-Ref: #iadd72740
-Node: interest72823
-Ref: #interest72946
-Node: irr73041
-Ref: #irr73141
-Node: Experimental add-ons73219
-Ref: #experimental-add-ons73373
-Node: autosync73664
-Ref: #autosync73778
-Node: budget74017
-Ref: #budget74141
-Node: chart74207
-Ref: #chart74326
-Node: check74397
-Ref: #check74501
+Node: Top68
+Node: EXAMPLES1882
+Ref: #examples1982
+Node: OPTIONS3628
+Ref: #options3730
+Node: General options4046
+Ref: #general-options4171
+Node: Command options6490
+Ref: #command-options6641
+Node: Command arguments7039
+Ref: #command-arguments7193
+Node: Argument files7314
+Ref: #argument-files7465
+Node: Special characters7731
+Ref: #special-characters7884
+Node: Input files9303
+Ref: #input-files9439
+Node: Smart dates11402
+Ref: #smart-dates11543
+Node: Report start & end date12522
+Ref: #report-start-end-date12692
+Node: Report intervals13757
+Ref: #report-intervals13920
+Node: Period expressions14321
+Ref: #period-expressions14478
+Node: For example16523
+Ref: #for-example16666
+Node: Depth limiting18590
+Ref: #depth-limiting18727
+Node: Pivoting19069
+Ref: #pivoting19187
+Node: Cost20863
+Ref: #cost20971
+Node: Market value21089
+Ref: #market-value21224
+Node: Regular expressions22524
+Ref: #regular-expressions22660
+Node: QUERIES24021
+Ref: #queries24123
+Node: COMMANDS28090
+Ref: #commands28202
+Node: accounts29185
+Ref: #accounts29283
+Node: activity30276
+Ref: #activity30386
+Node: add30745
+Ref: #add30844
+Node: balance33502
+Ref: #balance33613
+Node: Flat mode36770
+Ref: #flat-mode36895
+Node: Depth limited balance reports37315
+Ref: #depth-limited-balance-reports37516
+Node: Multicolumn balance reports37936
+Ref: #multicolumn-balance-reports38145
+Node: Custom balance output42793
+Ref: #custom-balance-output42975
+Node: Colour support45068
+Ref: #colour-support45227
+Node: Output destination45400
+Ref: #output-destination45556
+Node: CSV output45826
+Ref: #csv-output45943
+Node: balancesheet46340
+Ref: #balancesheet46476
+Node: balancesheetequity48444
+Ref: #balancesheetequity48593
+Node: cashflow49382
+Ref: #cashflow49510
+Node: check-dates51422
+Ref: #check-dates51549
+Node: check-dupes51666
+Ref: #check-dupes51791
+Node: equity51928
+Ref: #equity52038
+Node: help52201
+Ref: #help52302
+Node: import53376
+Ref: #import53490
+Node: incomestatement54220
+Ref: #incomestatement54354
+Node: prices56307
+Ref: #prices56422
+Node: print56465
+Ref: #print56575
+Node: print-unique61421
+Ref: #print-unique61547
+Node: register61615
+Ref: #register61742
+Node: Custom register output66243
+Ref: #custom-register-output66372
+Node: register-match67669
+Ref: #register-match67803
+Node: rewrite67986
+Ref: #rewrite68103
+Node: stats68172
+Ref: #stats68275
+Node: tags69156
+Ref: #tags69254
+Node: test69490
+Ref: #test69574
+Node: ADD-ON COMMANDS69942
+Ref: #add-on-commands70052
+Node: Official add-ons71339
+Ref: #official-add-ons71479
+Node: api71566
+Ref: #api71655
+Node: ui71707
+Ref: #ui71806
+Node: web71864
+Ref: #web71953
+Node: Third party add-ons71999
+Ref: #third-party-add-ons72174
+Node: diff72309
+Ref: #diff72406
+Node: iadd72505
+Ref: #iadd72619
+Node: interest72702
+Ref: #interest72823
+Node: irr72918
+Ref: #irr73016
+Node: Experimental add-ons73094
+Ref: #experimental-add-ons73246
+Node: autosync73537
+Ref: #autosync73649
+Node: budget73888
+Ref: #budget74010
+Node: chart74076
+Ref: #chart74193
+Node: check74264
+Ref: #check74366
 
 End Tag Table

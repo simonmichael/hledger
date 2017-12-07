@@ -6,31 +6,29 @@
 
 .SH NAME
 .PP
-Journal \- hledger\[aq]s default file format, representing a General
-Journal
+Journal \- hledger's default file format, representing a General Journal
 .SH DESCRIPTION
 .PP
-hledger\[aq]s usual data source is a plain text file containing journal
+hledger's usual data source is a plain text file containing journal
 entries in hledger journal format.
 This file represents a standard accounting general journal.
-I use file names ending in \f[C]\&.journal\f[], but that\[aq]s not
-required.
+I use file names ending in \f[C]\&.journal\f[], but that's not required.
 The journal file contains a number of transaction entries, each
 describing a transfer of money (or any commodity) between two or more
 named accounts, in a simple format readable by both hledger and humans.
 .PP
-hledger\[aq]s journal format is a compatible subset, mostly, of
-ledger\[aq]s journal format, so hledger can work with compatible ledger
-journal files as well.
-It\[aq]s safe, and encouraged, to run both hledger and ledger on the
-same journal file, eg to validate the results you\[aq]re getting.
+hledger's journal format is a compatible subset, mostly, of ledger's
+journal format, so hledger can work with compatible ledger journal files
+as well.
+It's safe, and encouraged, to run both hledger and ledger on the same
+journal file, eg to validate the results you're getting.
 .PP
 You can use hledger without learning any more about this file; just use
 the add or web commands to create and update it.
 Many users, though, also edit the journal file directly with a text
 editor, perhaps assisted by the helper modes for emacs or vim.
 .PP
-Here\[aq]s an example:
+Here's an example:
 .IP
 .nf
 \f[C]
@@ -83,7 +81,7 @@ line or a semicolon)
 semicolon until end of line)
 .PP
 Then comes zero or more (but usually at least 2) indented lines
-representing...
+representing\&...
 .SS Postings
 .PP
 A posting is an addition of some amount to, or removal of some amount
@@ -136,12 +134,12 @@ The primary date, on the left, is used by default; the secondary date,
 on the right, is used when the \f[C]\-\-date2\f[] flag is specified
 (\f[C]\-\-aux\-date\f[] or \f[C]\-\-effective\f[] also work).
 .PP
-The meaning of secondary dates is up to you, but it\[aq]s best to follow
-a consistent rule.
-Eg write the bank\[aq]s clearing date as primary, and when needed, the
-date the transaction was initiated as secondary.
+The meaning of secondary dates is up to you, but it's best to follow a
+consistent rule.
+Eg write the bank's clearing date as primary, and when needed, the date
+the transaction was initiated as secondary.
 .PP
-Here\[aq]s an example.
+Here's an example.
 Note that a secondary date will use the year of the primary date if
 unspecified.
 .IP
@@ -205,14 +203,14 @@ $\ hledger\ \-f\ t.j\ register\ checking
 .fi
 .PP
 DATE should be a simple date; if the year is not specified it will use
-the year of the transaction\[aq]s date.
+the year of the transaction's date.
 You can set the secondary date similarly, with \f[C]date2:DATE2\f[].
 The \f[C]date:\f[] or \f[C]date2:\f[] tags must have a valid simple date
 value if they are present, eg a \f[C]date:\f[] tag with no value is not
 allowed.
 .PP
-Ledger\[aq]s earlier, more compact bracketed date syntax is also
-supported: \f[C][DATE]\f[], \f[C][DATE=DATE2]\f[] or \f[C][=DATE2]\f[].
+Ledger's earlier, more compact bracketed date syntax is also supported:
+\f[C][DATE]\f[], \f[C][DATE=DATE2]\f[] or \f[C][=DATE2]\f[].
 hledger will attempt to parse any square\-bracketed sequence of the
 \f[C]0123456789/\-.=\f[] characters in this way.
 With this syntax, DATE infers its year from the transaction and DATE2
@@ -256,11 +254,11 @@ When reporting, you can filter by status with the
 \f[C]status:!\f[], and \f[C]status:*\f[] queries; or the U, P, C keys in
 hledger\-ui.
 .PP
-Note, in Ledger and in older versions of hledger, the "unmarked" state
-is called "uncleared".
+Note, in Ledger and in older versions of hledger, the \[lq]unmarked\[rq]
+state is called \[lq]uncleared\[rq].
 As of hledger 1.3 we have renamed it to unmarked for clarity.
 .PP
-To replicate Ledger and old hledger\[aq]s behaviour of also matching
+To replicate Ledger and old hledger's behaviour of also matching
 pending, combine \-U and \-P.
 .PP
 Status marks are optional, but can be helpful eg for reconciling with
@@ -270,8 +268,9 @@ status.
 Eg in Emacs ledger\-mode, you can toggle transaction status with C\-c
 C\-e, or posting status with C\-c C\-c.
 .PP
-What "uncleared", "pending", and "cleared" actually mean is up to you.
-Here\[aq]s one suggestion:
+What \[lq]uncleared\[rq], \[lq]pending\[rq], and \[lq]cleared\[rq]
+actually mean is up to you.
+Here's one suggestion:
 .PP
 .TS
 tab(@);
@@ -305,10 +304,10 @@ bank soon (like uncashed checks), and no flags to see the most
 up\-to\-date state of your finances.
 .SS Description
 .PP
-A transaction\[aq]s description is the rest of the line following the
-date and status mark (or until a comment begins).
-Sometimes called the "narration" in traditional bookkeeping, it can be
-used for whatever you wish, or left blank.
+A transaction's description is the rest of the line following the date
+and status mark (or until a comment begins).
+Sometimes called the \[lq]narration\[rq] in traditional bookkeeping, it
+can be used for whatever you wish, or left blank.
 Transaction descriptions can be queried, unlike comments.
 .SS Payee and note
 .PP
@@ -369,8 +368,8 @@ Some examples:
 .PP
 As you can see, the amount format is somewhat flexible:
 .IP \[bu] 2
-amounts are a number (the "quantity") and optionally a currency
-symbol/commodity name (the "commodity").
+amounts are a number (the \[lq]quantity\[rq]) and optionally a currency
+symbol/commodity name (the \[lq]commodity\[rq]).
 .IP \[bu] 2
 the commodity is a symbol, word, or phrase, on the left or right, with
 or without a separating space.
@@ -418,13 +417,12 @@ will be the maximum from all posting amounts in that commmodity
 or if there are no such amounts in the journal, a default format is used
 (like \f[C]$1000.00\f[]).
 .PP
-Price amounts and amounts in D directives usually don\[aq]t affect
-amount format inference, but in some situations they can do so
-indirectly.
-(Eg when D\[aq]s default commodity is applied to a commodity\-less
-amount, or when an amountless posting is balanced using a price\[aq]s
-commodity, or when \-V is used.) If you find this causing problems, set
-the desired format with a commodity directive.
+Price amounts and amounts in D directives usually don't affect amount
+format inference, but in some situations they can do so indirectly.
+(Eg when D's default commodity is applied to a commodity\-less amount,
+or when an amountless posting is balanced using a price's commodity, or
+when \-V is used.) If you find this causing problems, set the desired
+format with a commodity directive.
 .SS Virtual Postings
 .PP
 When you parenthesise the account name in a posting, we call that a
@@ -435,7 +433,7 @@ it is ignored when checking that the transaction is balanced
 it is excluded from reports when the \f[C]\-\-real/\-R\f[] flag is used,
 or the \f[C]real:1\f[] query.
 .PP
-You could use this, eg, to set an account\[aq]s opening balance without
+You could use this, eg, to set an account's opening balance without
 needing to use the \f[C]equity:opening\ balances\f[] account:
 .IP
 .nf
@@ -469,8 +467,7 @@ which is more correct and provides better error checking.
 .SS Balance Assertions
 .PP
 hledger supports Ledger\-style balance assertions in journal files.
-These look like \f[C]=EXPECTEDBALANCE\f[] following a posting\[aq]s
-amount.
+These look like \f[C]=EXPECTEDBALANCE\f[] following a posting's amount.
 Eg in this example we assert the expected dollar balance in accounts a
 and b after each posting:
 .IP
@@ -495,7 +492,7 @@ You can disable them temporarily with the
 troubleshooting or for reading Ledger files.
 .SS Assertions and ordering
 .PP
-hledger sorts an account\[aq]s postings and assertions first by date and
+hledger sorts an account's postings and assertions first by date and
 then (for postings on the same day) by parse order.
 Note this is different from Ledger, which sorts assertions only by parse
 order.
@@ -514,33 +511,33 @@ intra\-day balances.
 With included files, things are a little more complicated.
 Including preserves the ordering of postings and assertions.
 If you have multiple postings to an account on the same day, split
-across different files, and you also want to assert the account\[aq]s
-balance on the same day, you\[aq]ll have to put the assertion in the
-right file.
+across different files, and you also want to assert the account's
+balance on the same day, you'll have to put the assertion in the right
+file.
 .SS Assertions and multiple \-f options
 .PP
-Balance assertions don\[aq]t work well across files specified with
-multiple \-f options.
+Balance assertions don't work well across files specified with multiple
+\-f options.
 Use include or concatenate the files instead.
 .SS Assertions and commodities
 .PP
 The asserted balance must be a simple single\-commodity amount, and in
-fact the assertion checks only this commodity\[aq]s balance within the
+fact the assertion checks only this commodity's balance within the
 (possibly multi\-commodity) account balance.
 We could call this a partial balance assertion.
 This is compatible with Ledger, and makes it possible to make assertions
 about accounts containing multiple commodities.
 .PP
-To assert each commodity\[aq]s balance in such a multi\-commodity
-account, you can add multiple postings (with amount 0 if necessary).
-But note that no matter how many assertions you add, you can\[aq]t be
-sure the account does not contain some unexpected commodity.
-(We\[aq]ll add support for this kind of total balance assertion if
-there\[aq]s demand.)
+To assert each commodity's balance in such a multi\-commodity account,
+you can add multiple postings (with amount 0 if necessary).
+But note that no matter how many assertions you add, you can't be sure
+the account does not contain some unexpected commodity.
+(We'll add support for this kind of total balance assertion if there's
+demand.)
 .SS Assertions and subaccounts
 .PP
 Balance assertions do not count the balance from subaccounts; they check
-the posted account\[aq]s exclusive balance.
+the posted account's exclusive balance.
 For example:
 .IP
 .nf
@@ -552,7 +549,7 @@ For example:
 \f[]
 .fi
 .PP
-The balance report\[aq]s flat mode shows these exclusive balances more
+The balance report's flat mode shows these exclusive balances more
 clearly:
 .IP
 .nf
@@ -601,9 +598,9 @@ or when adjusting a balance to reality:
 \f[]
 .fi
 .PP
-The calculated amount depends on the account\[aq]s balance in the
-commodity at that point (which depends on the previously\-dated postings
-of the commodity to that account since the last balance assertion or
+The calculated amount depends on the account's balance in the commodity
+at that point (which depends on the previously\-dated postings of the
+commodity to that account since the last balance assertion or
 assignment).
 Note that using balance assignments makes your journal a little less
 explicit; to know the exact amount posted, you have to run hledger or do
@@ -611,7 +608,7 @@ the calculations yourself, instead of just reading it.
 .SS Prices
 .SS Transaction prices
 .PP
-Within a transaction, you can note an amount\[aq]s price in another
+Within a transaction, you can note an amount's price in another
 commodity.
 This can be used to document the cost (in a purchase) or selling price
 (in a sale).
@@ -662,8 +659,8 @@ hledger infer the price that balances the transaction:
 .RE
 .PP
 Amounts with transaction prices can be displayed in the transaction
-price\[aq]s commodity by using the \f[C]\-B/\-\-cost\f[] flag (except
-for #551) ("B" is from "cost Basis").
+price's commodity by using the \f[C]\-B/\-\-cost\f[] flag (except for
+#551) (\[lq]B\[rq] is from \[lq]cost Basis\[rq]).
 Eg for the above, here is how \-B affects the balance report:
 .IP
 .nf
@@ -680,7 +677,7 @@ $\ hledger\ bal\ \-N\ \-\-flat\ \-B
 Note \-B is sensitive to the order of postings when a transaction price
 is inferred: the inferred price will be in the commodity of the last
 amount.
-So if example 3\[aq]s postings are reversed, while the transaction is
+So if example 3's postings are reversed, while the transaction is
 equivalent, \-B shows something different:
 .IP
 .nf
@@ -799,8 +796,7 @@ comma or end of line, with leading/trailing whitespace removed:
 \f[]
 .fi
 .PP
-Note this means hledger\[aq]s tag values can not contain commas or
-newlines.
+Note this means hledger's tag values can not contain commas or newlines.
 Ending at commas means you can write multiple short tags on one line,
 comma separated:
 .IP
@@ -812,12 +808,13 @@ comma separated:
 .PP
 Here,
 .IP \[bu] 2
-"\f[C]a\ comment\ containing\f[]" is just comment text, not a tag
+\[lq]\f[C]a\ comment\ containing\f[]\[rq] is just comment text, not a
+tag
 .IP \[bu] 2
-"\f[C]tag1\f[]" is a tag with no value
+\[lq]\f[C]tag1\f[]\[rq] is a tag with no value
 .IP \[bu] 2
-"\f[C]tag2\f[]" is another tag, whose value is
-"\f[C]some\ value\ ...\f[]"
+\[lq]\f[C]tag2\f[]\[rq] is another tag, whose value is
+\[lq]\f[C]some\ value\ ...\f[]\[rq]
 .PP
 Tags in a transaction comment affect the transaction and all of its
 postings, while tags in a posting comment affect only that posting.
@@ -833,14 +830,14 @@ For example, the following transaction has three tags (\f[C]A\f[],
 \f[]
 .fi
 .PP
-Tags are like Ledger\[aq]s metadata feature, except hledger\[aq]s tag
-values are simple strings.
+Tags are like Ledger's metadata feature, except hledger's tag values are
+simple strings.
 .SS Directives
 .SS Account aliases
 .PP
 You can define aliases which rewrite your account names (after reading
 the journal, before generating reports).
-hledger\[aq]s account aliases can be useful for:
+hledger's account aliases can be useful for:
 .IP \[bu] 2
 expanding shorthand account names to their full form, allowing easier
 data entry and a less verbose journal
@@ -870,7 +867,7 @@ alias\ OLD\ =\ NEW
 Or, you can use the \f[C]\-\-alias\ \[aq]OLD=NEW\[aq]\f[] option on the
 command line.
 This affects all entries.
-It\[aq]s useful for trying out aliases interactively.
+It's useful for trying out aliases interactively.
 .PP
 OLD and NEW are full account names.
 hledger will replace any occurrence of the old account name with the new
@@ -941,8 +938,8 @@ end\ aliases
 .PP
 The \f[C]account\f[] directive predefines account names, as in Ledger
 and Beancount.
-This may be useful for your own documentation; hledger doesn\[aq]t make
-use of it yet.
+This may be useful for your own documentation; hledger doesn't make use
+of it yet.
 .IP
 .nf
 \f[C]
@@ -1028,7 +1025,7 @@ commodity\ 1,000.0000\ AAAA
 \f[]
 .fi
 .PP
-or on multiple lines, using the "format" subdirective.
+or on multiple lines, using the \[lq]format\[rq] subdirective.
 In this case the commodity symbol appears twice and should be the same
 in both places:
 .IP
@@ -1048,7 +1045,7 @@ commodity\ INR
 .PP
 The D directive sets a default commodity (and display format), to be
 used for amounts without a commodity symbol (ie, plain numbers).
-(Note this differs from Ledger\[aq]s default commodity directive.) The
+(Note this differs from Ledger's default commodity directive.) The
 commodity and display format will be applied to all subsequent
 commodity\-less amounts, or until the next D directive.
 .IP
@@ -1065,8 +1062,8 @@ D\ $1,000.00
 .fi
 .SS Default year
 .PP
-You can set a default year to be used for subsequent dates which
-don\[aq]t specify a year.
+You can set a default year to be used for subsequent dates which don't
+specify a year.
 This is a line beginning with \f[C]Y\f[] followed by the year.
 Eg:
 .IP

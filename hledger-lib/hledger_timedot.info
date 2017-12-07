@@ -1,8 +1,8 @@
-This is hledger_timedot.5.info, produced by makeinfo version 6.0 from
+This is hledger_timedot.info, produced by makeinfo version 6.0 from
 stdin.
 
 
-File: hledger_timedot.5.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
+File: hledger_timedot.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
 hledger_timedot(5) hledger 1.4
 ******************************
@@ -22,7 +22,7 @@ quantities other than time.  In the docs below we'll assume it's time.
 * FILE FORMAT::
 
 
-File: hledger_timedot.5.info,  Node: FILE FORMAT,  Prev: Top,  Up: Top
+File: hledger_timedot.info,  Node: FILE FORMAT,  Prev: Top,  Up: Top
 
 1 FILE FORMAT
 *************
@@ -109,8 +109,8 @@ $ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4
 
 
 Tag Table:
-Node: Top78
-Node: FILE FORMAT809
-Ref: #file-format912
+Node: Top76
+Node: FILE FORMAT805
+Ref: #file-format906
 
 End Tag Table

@@ -359,8 +359,8 @@ OPTIONS
        Examples:
 
 
-       -b 2016/3/17      begin  on  St.   Patrick's
-                         day 2016
+       -b 2016/3/17      begin on St. Patrick's day
+                         2016
        -e 12/1           end at the start of decem-
                          ber  1st  of  the  current
                          year  (11/30  will  be the
@@ -451,12 +451,12 @@ OPTIONS
        expression specifies different explicit start and end date.
 
    For example:
-       -p "weekly from 2009/1/1 to 2009/4/1"  -- starts on 2008/12/29, closest
-       preceeding Monday -p "monthly in 2008/11/25" -- starts on 2018/11/01
+       -p "weekly from 2009/1/1 to 2009/4/1"  -  starts on 2008/12/29, closest
+       preceeding Monday -p "monthly in 2008/11/25" - starts on 2018/11/01
        -p "quarterly from 2009-05-05 to 2009-06-01" -  starts  on  2009/04/01,
        ends  on  2009/06/30,  which  are  first  and  last  days  of  Q2  2009
        -p "yearly from 2009-12-29" - starts on 2009/01/01, first day  of  2009
-       ------------------------------------------
+       ----------------------------
 
        The  following  more  complex  report  intervals  are  also  supported:
        biweekly,         bimonthly,         every day|week|month|quarter|year,
@@ -468,14 +468,14 @@ OPTIONS
        Examples:
 
 
-       -p "bimonthly from 2008"   --   periods
-       will  have  boundaries  on  2008/01/01,
+       -p "bimonthly from 2008" - periods will
+       have    boundaries    on    2008/01/01,
        2008/03/01, ...
-       -p "every 2 weeks" -- starts on closest
+       -p "every 2 weeks" - starts on  closest
        preceeding Monday
-       -p "every 5 month from 2009/03"      --
-       periods   will   have   boundaries   on
-       2009/03/01, 2009/08/01, ...
+       -p "every 5 month from 2009/03" - peri-
+       ods will have boundaries on 2009/03/01,
+       2009/08/01, ...
 
        If  you want intervals that start on arbitrary day of your choosing and
        span a week, month or year, you need to use any of the following:
@@ -487,18 +487,18 @@ OPTIONS
        Examples:
 
 
-       -p "every 2nd day of week"  --  periods
+       -p "every 2nd day of week"  -   periods
        will go from Tue to Tue
-       -p "every Tue" -- same
-       -p "every 15th day"  --  period  bound-
-       aries will be on 15th of each month
-       -p "every 2nd Monday" -- period  bound-
+       -p "every Tue" - same
+       -p "every 15th day" - period boundaries
+       will be on 15th of each month
+       -p "every 2nd Monday" -  period  bound-
        aries  will be on second Monday of each
        month
-       -p "every 11/05" -- yearly periods with
+       -p "every 11/05" - yearly periods  with
        boundaries on 5th of Nov
-       -p "every 5th Nov" -- same
-       -p "every Nov 5th" -- same
+       -p "every 5th Nov" - same
+       -p "every Nov 5th" - same
 
        Show  historical balances at end of 15th each month (N is exclusive end
        date):
@@ -1454,11 +1454,11 @@ COMMANDS
        each one.  So eg to add new transactions from all CSV files to the main
        journal, it's just: hledger import *.csv
 
-       New transactions are detected in the same way as print --new: by assum-
+       New  transactions are detected in the same way as print -new: by assum-
        ing transactions are always added to the input files in increasing date
        order, and by saving .latest.FILE state files.
 
-       The  --dry-run output is in journal format, so you can filter it, eg to
+       The  -dry-run  output is in journal format, so you can filter it, eg to
        see only uncategorised transactions:
 
               $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
@@ -1665,7 +1665,7 @@ COMMANDS
 
        -A --average
               show  running  average  of  posting  amounts  instead  of  total
-              (implies --empty)
+              (implies -empty)
 
        -r --related
               show postings' siblings instead
@@ -1755,7 +1755,7 @@ COMMANDS
 
        The description and account columns normally share  the  space  equally
        (about  half  of  (width  - 40) each).  You can adjust this by adding a
-       description width  as  part  of  --width's  argument,  comma-separated:
+       description  width  as  part  of  -width's  argument,  comma-separated:
        --width W,D .  Here's a diagram:
 
               <--------------------------------- width (W) ---------------------------------->
@@ -1944,7 +1944,7 @@ TROUBLESHOOTING
        remember  you can also seek help from the IRC channel, mail list or bug
        tracker):
 
-       Successfully installed, but "No command 'hledger' found"
+       Successfully installed, but "No command `hledger' found"
        stack and cabal install binaries into a special directory, which should
        be  added  to your PATH environment variable.  Eg on unix-like systems,
        that is ~/.local/bin and ~/.cabal/bin respectively.

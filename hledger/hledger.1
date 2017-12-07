@@ -366,7 +366,7 @@ enclose problematic args in single quotes
 .IP \[bu] 2
 if needed, also add a backslash to escape regexp metacharacters
 .PP
-If you\[aq]re really stumped, add \f[C]\-\-debug=2\f[] to troubleshoot.
+If you're really stumped, add \f[C]\-\-debug=2\f[] to troubleshoot.
 .SS Input files
 .PP
 hledger reads transactions from a data file (and the add command writes
@@ -399,10 +399,11 @@ $\ cat\ some.journal\ |\ hledger\ \-f\-
 \f[]
 .fi
 .PP
-Usually the data file is in hledger\[aq]s journal format, but it can
-also be one of several other formats, listed below.
+Usually the data file is in hledger's journal format, but it can also be
+one of several other formats, listed below.
 hledger detects the format automatically based on the file extension, or
-if that is not recognised, by trying each built\-in "reader" in turn:
+if that is not recognised, by trying each built\-in \[lq]reader\[rq] in
+turn:
 .PP
 .TS
 tab(@);
@@ -418,7 +419,7 @@ _
 T{
 \f[C]journal\f[]
 T}@T{
-hledger\[aq]s journal format, also some Ledger journals
+hledger's journal format, also some Ledger journals
 T}@T{
 \f[C]\&.journal\f[] \f[C]\&.j\f[] \f[C]\&.hledger\f[] \f[C]\&.ledger\f[]
 T}
@@ -446,8 +447,8 @@ T}
 .TE
 .PP
 If needed (eg to ensure correct error messages when a file has the
-"wrong" extension), you can force a specific reader/format by prepending
-it to the file path with a colon.
+\[lq]wrong\[rq] extension), you can force a specific reader/format by
+prepending it to the file path with a colon.
 Examples:
 .IP
 .nf
@@ -469,11 +470,10 @@ If you need those, either use the include directive, or concatenate the
 files, eg: \f[C]cat\ a.journal\ b.journal\ |\ hledger\ \-f\-\ CMD\f[].
 .SS Smart dates
 .PP
-hledger\[aq]s user interfaces accept a flexible "smart date" syntax
+hledger's user interfaces accept a flexible \[lq]smart date\[rq] syntax
 (unlike dates in the journal file).
-Smart dates allow some english words, can be relative to today\[aq]s
-date, and can have less\-significant date parts omitted (defaulting to
-1).
+Smart dates allow some english words, can be relative to today's date,
+and can have less\-significant date parts omitted (defaulting to 1).
 .PP
 Examples:
 .PP
@@ -551,8 +551,7 @@ l l.
 T{
 \f[C]\-b\ 2016/3/17\f[]
 T}@T{
-begin on St.
-Patrick\[aq]s day 2016
+begin on St.\ Patrick's day 2016
 T}
 T{
 \f[C]\-e\ 12/1\f[]
@@ -603,16 +602,15 @@ The \f[C]\-p/\-\-period\f[] option accepts period expressions, a
 shorthand way of expressing a start date, end date, and/or report
 interval all at once.
 .PP
-Here\[aq]s a basic period expression specifying the first quarter of
-2009.
+Here's a basic period expression specifying the first quarter of 2009.
 Note, hledger always treats start dates as inclusive and end dates as
 exclusive:
 .PP
 \f[C]\-p\ "from\ 2009/1/1\ to\ 2009/4/1"\f[]
 .PP
-Keywords like "from" and "to" are optional, and so are the spaces, as
-long as you don\[aq]t run two dates together.
-"to" can also be written as "\-".
+Keywords like \[lq]from\[rq] and \[lq]to\[rq] are optional, and so are
+the spaces, as long as you don't run two dates together.
+\[lq]to\[rq] can also be written as \[lq]\-\[rq].
 These are equivalent to the above:
 .PP
 .TS
@@ -674,8 +672,8 @@ everything before january 1, 2009
 T}
 .TE
 .PP
-A single date with no "from" or "to" defines both the start and end date
-like so:
+A single date with no \[lq]from\[rq] or \[lq]to\[rq] defines both the
+start and end date like so:
 .PP
 .TS
 tab(@);
@@ -683,17 +681,17 @@ l l.
 T{
 \f[C]\-p\ "2009"\f[]
 T}@T{
-the year 2009; equivalent to "2009/1/1 to 2010/1/1"
+the year 2009; equivalent to \[lq]2009/1/1 to 2010/1/1\[rq]
 T}
 T{
 \f[C]\-p\ "2009/1"\f[]
 T}@T{
-the month of jan; equivalent to "2009/1/1 to 2009/2/1"
+the month of jan; equivalent to \[lq]2009/1/1 to 2009/2/1\[rq]
 T}
 T{
 \f[C]\-p\ "2009/1/1"\f[]
 T}@T{
-just that day; equivalent to "2009/1/1 to 2009/1/2"
+just that day; equivalent to \[lq]2009/1/1 to 2009/1/2\[rq]
 T}
 .TE
 .PP
@@ -728,9 +726,9 @@ period, even if associated period expression specifies different
 explicit start and end date.
 .SS For example:
 .PP
-\f[C]\-p\ "weekly\ from\ 2009/1/1\ to\ 2009/4/1"\f[] \-\- starts on
+\f[C]\-p\ "weekly\ from\ 2009/1/1\ to\ 2009/4/1"\f[] \[en] starts on
 2008/12/29, closest preceeding Monday
-\f[C]\-p\ "monthly\ in\ 2008/11/25"\f[] \-\- starts on 2018/11/01
+\f[C]\-p\ "monthly\ in\ 2008/11/25"\f[] \[en] starts on 2018/11/01
 .PD 0
 .P
 .PD
@@ -738,7 +736,7 @@ explicit start and end date.
 starts on 2009/04/01, ends on 2009/06/30, which are first and last days
 of Q2 2009 \f[C]\-p\ "yearly\ from\ 2009\-12\-29"\f[] \- starts on
 2009/01/01, first day of 2009
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]
 .PP
 The following more complex report intervals are also supported:
 \f[C]biweekly\f[], \f[C]bimonthly\f[],
@@ -754,15 +752,16 @@ Examples:
 tab(@);
 l.
 T{
-\f[C]\-p\ "bimonthly\ from\ 2008"\f[] \-\- periods will have boundaries
-on 2008/01/01, 2008/03/01, ...
+\f[C]\-p\ "bimonthly\ from\ 2008"\f[] \[en] periods will have boundaries
+on 2008/01/01, 2008/03/01, \&...
 T}
 T{
-\f[C]\-p\ "every\ 2\ weeks"\f[] \-\- starts on closest preceeding Monday
+\f[C]\-p\ "every\ 2\ weeks"\f[] \[en] starts on closest preceeding
+Monday
 T}
 T{
-\f[C]\-p\ "every\ 5\ month\ from\ 2009/03"\f[] \-\- periods will have
-boundaries on 2009/03/01, 2009/08/01, ...
+\f[C]\-p\ "every\ 5\ month\ from\ 2009/03"\f[] \[en] periods will have
+boundaries on 2009/03/01, 2009/08/01, \&...
 T}
 .TE
 .PP
@@ -781,29 +780,29 @@ Examples:
 tab(@);
 l.
 T{
-\f[C]\-p\ "every\ 2nd\ day\ of\ week"\f[] \-\- periods will go from Tue
+\f[C]\-p\ "every\ 2nd\ day\ of\ week"\f[] \[en] periods will go from Tue
 to Tue
 T}
 T{
-\f[C]\-p\ "every\ Tue"\f[] \-\- same
+\f[C]\-p\ "every\ Tue"\f[] \[en] same
 T}
 T{
-\f[C]\-p\ "every\ 15th\ day"\f[] \-\- period boundaries will be on 15th
+\f[C]\-p\ "every\ 15th\ day"\f[] \[en] period boundaries will be on 15th
 of each month
 T}
 T{
-\f[C]\-p\ "every\ 2nd\ Monday"\f[] \-\- period boundaries will be on
+\f[C]\-p\ "every\ 2nd\ Monday"\f[] \[en] period boundaries will be on
 second Monday of each month
 T}
 T{
-\f[C]\-p\ "every\ 11/05"\f[] \-\- yearly periods with boundaries on 5th
+\f[C]\-p\ "every\ 11/05"\f[] \[en] yearly periods with boundaries on 5th
 of Nov
 T}
 T{
-\f[C]\-p\ "every\ 5th\ Nov"\f[] \-\- same
+\f[C]\-p\ "every\ 5th\ Nov"\f[] \[en] same
 T}
 T{
-\f[C]\-p\ "every\ Nov\ 5th"\f[] \-\- same
+\f[C]\-p\ "every\ Nov\ 5th"\f[] \[en] same
 T}
 .TE
 .PP
@@ -838,9 +837,9 @@ will be displayed hierarchically in reports.
 .PP
 \f[C]\-\-pivot\f[] is a general option affecting all reports; you can
 think of hledger transforming the journal before any other processing,
-replacing every posting\[aq]s account name with the value of the
-specified field on that posting, inheriting it from the transaction or
-using a blank value if it\[aq]s not present.
+replacing every posting's account name with the value of the specified
+field on that posting, inheriting it from the transaction or using a
+blank value if it's not present.
 .PP
 An example:
 .IP
@@ -888,8 +887,8 @@ $\ hledger\ balance\ \-\-pivot\ member\ tag:member=.
 \f[]
 .fi
 .PP
-Another way (the acct: query matches against the pivoted "account
-name"):
+Another way (the acct: query matches against the pivoted \[lq]account
+name\[rq]):
 .IP
 .nf
 \f[C]
@@ -909,9 +908,9 @@ The \f[C]\-V/\-\-value\f[] flag converts the reported amounts to their
 market value on the report end date, using the most recent applicable
 market prices, when known.
 Specifically, when there is a market price (P directive) for the
-amount\[aq]s commodity, dated on or before the report end date (see
-hledger \-> Report start & end date), the amount will be converted to
-the price\[aq]s commodity.
+amount's commodity, dated on or before the report end date (see hledger
+\-> Report start & end date), the amount will be converted to the
+price's commodity.
 If multiple applicable prices are defined, the latest\-dated one is used
 (and if dates are equal, the one last parsed).
 .PP
@@ -960,7 +959,7 @@ $\ hledger\ \-f\ t.j\ bal\ euros\ \-V\ \-e\ 2016/12/21
 \f[]
 .fi
 .PP
-Currently, hledger\[aq]s \-V only uses market prices recorded with P
+Currently, hledger's \-V only uses market prices recorded with P
 directives, not transaction prices (unlike Ledger).
 .PP
 Using \-B and \-V together is allowed.
@@ -978,7 +977,7 @@ account alias directives and options:
 \f[C]alias\ /REGEX/\ =\ REPLACEMENT\f[],
 \f[C]\-\-alias\ /REGEX/=REPLACEMENT\f[]
 .PP
-hledger\[aq]s regular expressions come from the regex\-tdfa library.
+hledger's regular expressions come from the regex\-tdfa library.
 In general they:
 .IP \[bu] 2
 are case insensitive
@@ -1010,8 +1009,8 @@ meaning to the shell and so must be escaped at least once more.
 See Special characters.
 .SH QUERIES
 .PP
-One of hledger\[aq]s strengths is being able to quickly report on
-precise subsets of your data.
+One of hledger's strengths is being able to quickly report on precise
+subsets of your data.
 Most commands accept an optional query expression, written as arguments
 after the command name, to filter the data by date, account name or
 other criteria.
@@ -1042,21 +1041,21 @@ have no postings matching any of the negative account terms AND
 match all the other terms.
 .PP
 The following kinds of search terms can be used.
-Remember these can also be prefixed with \f[B]\f[C]not:\f[]\f[], eg to
+Remember these can also be prefixed with \f[B]\f[BC]not:\f[B]\f[], eg to
 exclude a particular subaccount.
 .TP
-.B \f[B]\f[C]REGEX\f[]\f[]
+.B \f[B]\f[BC]REGEX\f[B]\f[]
 match account names by this regular expression.
 (No prefix is equivalent to \f[C]acct:\f[]).
 .RS
 .RE
 .TP
-.B \f[B]\f[C]acct:REGEX\f[]\f[]
+.B \f[B]\f[BC]acct:REGEX\f[B]\f[]
 same as above
 .RS
 .RE
 .TP
-.B \f[B]\f[C]amt:N,\ amt:<N,\ amt:<=N,\ amt:>N,\ amt:>=N\f[]\f[]
+.B \f[B]\f[BC]amt:N,\ amt:<N,\ amt:<=N,\ amt:>N,\ amt:>=N\f[B]\f[]
 match postings with a single\-commodity amount that is equal to, less
 than, or greater than N.
 (Multi\-commodity amounts are not tested, and will always match.) The
@@ -1066,12 +1065,12 @@ Otherwise, the absolute magnitudes are compared, ignoring sign.
 .RS
 .RE
 .TP
-.B \f[B]\f[C]code:REGEX\f[]\f[]
+.B \f[B]\f[BC]code:REGEX\f[B]\f[]
 match by transaction code (eg check number)
 .RS
 .RE
 .TP
-.B \f[B]\f[C]cur:REGEX\f[]\f[]
+.B \f[B]\f[BC]cur:REGEX\f[B]\f[]
 match postings or transactions including any amounts whose
 currency/commodity symbol is fully matched by REGEX.
 (For a partial match, use \f[C]\&.*REGEX.*\f[]).
@@ -1084,12 +1083,12 @@ quoting to hide it from the shell, so eg do:
 .RS
 .RE
 .TP
-.B \f[B]\f[C]desc:REGEX\f[]\f[]
+.B \f[B]\f[BC]desc:REGEX\f[B]\f[]
 match transaction descriptions.
 .RS
 .RE
 .TP
-.B \f[B]\f[C]date:PERIODEXPR\f[]\f[]
+.B \f[B]\f[BC]date:PERIODEXPR\f[B]\f[]
 match dates within the specified period.
 PERIODEXPR is a period expression (with no report interval).
 Examples: \f[C]date:2016\f[], \f[C]date:thismonth\f[],
@@ -1099,39 +1098,39 @@ secondary dates instead.
 .RS
 .RE
 .TP
-.B \f[B]\f[C]date2:PERIODEXPR\f[]\f[]
+.B \f[B]\f[BC]date2:PERIODEXPR\f[B]\f[]
 match secondary dates within the specified period.
 .RS
 .RE
 .TP
-.B \f[B]\f[C]depth:N\f[]\f[]
+.B \f[B]\f[BC]depth:N\f[B]\f[]
 match (or display, depending on command) accounts at or above this depth
 .RS
 .RE
 .TP
-.B \f[B]\f[C]note:REGEX\f[]\f[]
+.B \f[B]\f[BC]note:REGEX\f[B]\f[]
 match transaction notes (part of description right of \f[C]|\f[], or
-whole description when there\[aq]s no \f[C]|\f[])
+whole description when there's no \f[C]|\f[])
 .RS
 .RE
 .TP
-.B \f[B]\f[C]payee:REGEX\f[]\f[]
+.B \f[B]\f[BC]payee:REGEX\f[B]\f[]
 match transaction payee/payer names (part of description left of
-\f[C]|\f[], or whole description when there\[aq]s no \f[C]|\f[])
+\f[C]|\f[], or whole description when there's no \f[C]|\f[])
 .RS
 .RE
 .TP
-.B \f[B]\f[C]real:,\ real:0\f[]\f[]
+.B \f[B]\f[BC]real:,\ real:0\f[B]\f[]
 match real or virtual postings respectively
 .RS
 .RE
 .TP
-.B \f[B]\f[C]status:,\ status:!,\ status:*\f[]\f[]
+.B \f[B]\f[BC]status:,\ status:!,\ status:*\f[B]\f[]
 match unmarked, pending, or cleared transactions respectively
 .RS
 .RE
 .TP
-.B \f[B]\f[C]tag:REGEX[=REGEX]\f[]\f[]
+.B \f[B]\f[BC]tag:REGEX[=REGEX]\f[B]\f[]
 match by tag name, and optionally also by tag value.
 Note a tag: query is considered to match a transaction if it matches any
 of the postings.
@@ -1143,7 +1142,7 @@ transaction.
 The following special search term is used automatically in hledger\-web,
 only:
 .TP
-.B \f[B]\f[C]inacct:ACCTNAME\f[]\f[]
+.B \f[B]\f[BC]inacct:ACCTNAME\f[B]\f[]
 tells hledger\-web to show the transaction register for this account.
 Can be filtered further with \f[C]acct\f[] etc.
 .RS
@@ -1274,7 +1273,7 @@ $\ hledger\ activity\ \-\-quarterly
 Prompt for transactions and add them to the journal.
 .TP
 .B \f[C]\-\-no\-new\-accounts\f[]
-don\[aq]t allow creating new accounts; helps prevent typos when entering
+don't allow creating new accounts; helps prevent typos when entering
 account names
 .RS
 .RE
@@ -1393,7 +1392,7 @@ show a row total column (in multicolumn mode)
 .RE
 .TP
 .B \f[C]\-N\ \-\-no\-total\f[]
-don\[aq]t show the final total row
+don't show the final total row
 .RS
 .RE
 .TP
@@ -1403,7 +1402,7 @@ omit N leading account name parts (in flat mode)
 .RE
 .TP
 .B \f[C]\-\-no\-elide\f[]
-don\[aq]t squash boring parent accounts (in tree mode)
+don't squash boring parent accounts (in tree mode)
 .RS
 .RE
 .TP
@@ -1436,7 +1435,7 @@ instead of account name (in flat mode)
 .RE
 .PP
 The balance command displays accounts and balances.
-It is hledger\[aq]s most featureful and versatile command.
+It is hledger's most featureful and versatile command.
 .IP
 .nf
 \f[C]
@@ -1457,21 +1456,21 @@ $\ hledger\ balance
 .fi
 .PP
 More precisely, the balance command shows the \f[I]change\f[] to each
-account\[aq]s balance caused by all (matched) postings.
+account's balance caused by all (matched) postings.
 In the common case where you do not filter by date and your journal sets
-the correct opening balances, this is the same as the account\[aq]s
-ending balance.
+the correct opening balances, this is the same as the account's ending
+balance.
 .PP
 By default, accounts are displayed hierarchically, with subaccounts
 indented below their parent.
-"Boring" accounts, which contain a single interesting subaccount and no
-balance of their own, are elided into the following line for more
+\[lq]Boring\[rq] accounts, which contain a single interesting subaccount
+and no balance of their own, are elided into the following line for more
 compact output.
 (Use \f[C]\-\-no\-elide\f[] to prevent this.
 Eliding of boring accounts is not yet supported in multicolumn reports.)
 .PP
-Each account\[aq]s balance is the "inclusive" balance \- it includes the
-balances of any subaccounts.
+Each account's balance is the \[lq]inclusive\[rq] balance \- it includes
+the balances of any subaccounts.
 .PP
 Accounts which have zero balance (and no non\-zero subaccounts) are
 omitted.
@@ -1492,8 +1491,8 @@ $\ hledger\ balance\ \-p\ 2008/6\ expenses\ \-\-no\-total
 .PP
 To see a flat list of full account names instead of the default
 hierarchical display, use \f[C]\-\-flat\f[].
-In this mode, accounts (unless depth\-clipped) show their "exclusive"
-balance, excluding any subaccount balances.
+In this mode, accounts (unless depth\-clipped) show their
+\[lq]exclusive\[rq] balance, excluding any subaccount balances.
 In this mode, you can also use \f[C]\-\-drop\ N\f[] to omit the first
 few account name components.
 .IP
@@ -1529,7 +1528,7 @@ There are three types of multi\-column balance report, showing different
 information:
 .IP "1." 3
 By default: each column shows the sum of postings in that period, ie the
-account\[aq]s change of balance in that period.
+account's change of balance in that period.
 This is useful eg for a monthly income statement:
 .RS 4
 .IP
@@ -1603,8 +1602,8 @@ to see the hierarchy, use \f[C]\-\-tree\f[].
 With a reporting interval (like \f[C]\-\-quarterly\f[] above), the
 report start/end dates will be adjusted if necessary so that they
 encompass the displayed report periods.
-This is so that the first and last periods will be "full" and comparable
-to the others.
+This is so that the first and last periods will be \[lq]full\[rq] and
+comparable to the others.
 .PP
 The \f[C]\-E/\-\-empty\f[] flag does two things in multicolumn balance
 reports: first, the report will show all columns within the specified
@@ -1621,7 +1620,7 @@ the total for each row.
 The \f[C]\-A/\-\-average\f[] flag adds a column showing the average
 value in each row.
 .PP
-Here\[aq]s an example of all three:
+Here's an example of all three:
 .IP
 .nf
 \f[C]
@@ -1678,13 +1677,12 @@ MAX truncates at this width (optional)
 FIELDNAME must be enclosed in parentheses, and can be one of:
 .RS 2
 .IP \[bu] 2
-\f[C]depth_spacer\f[] \- a number of spaces equal to the account\[aq]s
+\f[C]depth_spacer\f[] \- a number of spaces equal to the account's
 depth, or if MIN is specified, MIN * depth spaces.
 .IP \[bu] 2
-\f[C]account\f[] \- the account\[aq]s name
+\f[C]account\f[] \- the account's name
 .IP \[bu] 2
-\f[C]total\f[] \- the account\[aq]s balance/posted total, right
-justified
+\f[C]total\f[] \- the account's balance/posted total, right justified
 .RE
 .PP
 Also, FMT can begin with an optional prefix to control how
@@ -1703,10 +1701,10 @@ Eg in one\-line mode, \f[C]%(depth_spacer)\f[] has no effect, instead
 .PP
 Some example formats:
 .IP \[bu] 2
-\f[C]%(total)\f[] \- the account\[aq]s total
+\f[C]%(total)\f[] \- the account's total
 .IP \[bu] 2
-\f[C]%\-20.20(account)\f[] \- the account\[aq]s name, left justified,
-padded to 20 characters and clipped at 20 characters
+\f[C]%\-20.20(account)\f[] \- the account's name, left justified, padded
+to 20 characters and clipped at 20 characters
 .IP \[bu] 2
 \f[C]%,%\-50(account)\ \ %25(total)\f[] \- account name padded to 50
 characters, total padded to 20 characters, with multiple commodities
@@ -1794,7 +1792,7 @@ show a row total column (in multicolumn mode)
 .RE
 .TP
 .B \f[C]\-N\ \-\-no\-total\f[]
-don\[aq]t show the final total row
+don't show the final total row
 .RS
 .RE
 .TP
@@ -1804,7 +1802,7 @@ omit N leading account name parts (in flat mode)
 .RE
 .TP
 .B \f[C]\-\-no\-elide\f[]
-don\[aq]t squash boring parent accounts (in tree mode)
+don't squash boring parent accounts (in tree mode)
 .RS
 .RE
 .TP
@@ -1938,7 +1936,7 @@ show a row total column (in multicolumn mode)
 .RE
 .TP
 .B \f[C]\-N\ \-\-no\-total\f[]
-don\[aq]t show the final total row (in simple reports)
+don't show the final total row (in simple reports)
 .RS
 .RE
 .TP
@@ -1948,7 +1946,7 @@ omit N leading account name parts (in flat mode)
 .RE
 .TP
 .B \f[C]\-\-no\-elide\f[]
-don\[aq]t squash boring parent accounts (in tree mode)
+don't squash boring parent accounts (in tree mode)
 .RS
 .RE
 .TP
@@ -1963,7 +1961,7 @@ sort by amount instead of account name
 .RE
 .PP
 This command displays a simple cashflow statement It shows the change in
-all "cash" (ie, liquid assets) accounts for the period.
+all \[lq]cash\[rq] (ie, liquid assets) accounts for the period.
 It currently assumes that cash accounts are under a top\-level account
 named \f[C]asset\f[] and do not contain \f[C]receivable\f[],
 \f[C]:A/R\f[] or \f[C]:fixed\f[].
@@ -1994,7 +1992,7 @@ multicolumn balance reports you can alter the report mode with
 .SS check\-dates
 .PP
 Check that transactions are sorted by increasing date.
-With a query, only matched transactions\[aq] dates are checked.
+With a query, only matched transactions' dates are checked.
 .SS check\-dupes
 .PP
 Report account names having the same leaf but different prefixes.
@@ -2059,13 +2057,13 @@ just show the transactions to be imported
 The input files are specified as arguments \- no need to write \-f
 before each one.
 So eg to add new transactions from all CSV files to the main journal,
-it\[aq]s just: \f[C]hledger\ import\ *.csv\f[]
+it's just: \f[C]hledger\ import\ *.csv\f[]
 .PP
-New transactions are detected in the same way as print \-\-new: by
+New transactions are detected in the same way as print \[en]new: by
 assuming transactions are always added to the input files in increasing
 date order, and by saving \f[C]\&.latest.FILE\f[] state files.
 .PP
-The \-\-dry\-run output is in journal format, so you can filter it, eg
+The \[en]dry\-run output is in journal format, so you can filter it, eg
 to see only uncategorised transactions:
 .IP
 .nf
@@ -2118,7 +2116,7 @@ show a row total column (in multicolumn mode)
 .RE
 .TP
 .B \f[C]\-N\ \-\-no\-total\f[]
-don\[aq]t show the final total row
+don't show the final total row
 .RS
 .RE
 .TP
@@ -2128,7 +2126,7 @@ omit N leading account name parts (in flat mode)
 .RE
 .TP
 .B \f[C]\-\-no\-elide\f[]
-don\[aq]t squash boring parent accounts (in tree mode)
+don't squash boring parent accounts (in tree mode)
 .RS
 .RE
 .TP
@@ -2241,11 +2239,11 @@ $\ hledger\ print
 .PP
 The print command displays full journal entries (transactions) from the
 journal file in date order, tidily formatted.
-print\[aq]s output is always a valid hledger journal.
+print's output is always a valid hledger journal.
 It preserves all transaction information, but it does not preserve
 directives or inter\-transaction comments
 .PP
-Normally, the journal entry\[aq]s explicit or implicit amount style is
+Normally, the journal entry's explicit or implicit amount style is
 preserved.
 Ie when an amount is omitted in the journal, it will be omitted in the
 output.
@@ -2289,7 +2287,7 @@ reordered.
 See also the import command.
 .PP
 The print command also supports output destination and CSV output.
-Here\[aq]s an example of print\[aq]s CSV output:
+Here's an example of print's CSV output:
 .IP
 .nf
 \f[C]
@@ -2309,19 +2307,19 @@ $\ hledger\ print\ \-Ocsv
 \f[]
 .fi
 .IP \[bu] 2
-There is one CSV record per posting, with the parent transaction\[aq]s
+There is one CSV record per posting, with the parent transaction's
 fields repeated.
 .IP \[bu] 2
-The "txnidx" (transaction index) field shows which postings belong to
-the same transaction.
+The \[lq]txnidx\[rq] (transaction index) field shows which postings
+belong to the same transaction.
 (This number might change if transactions are reordered within the file,
 files are parsed/included in a different order, etc.)
 .IP \[bu] 2
-The amount is separated into "commodity" (the symbol) and "amount"
-(numeric quantity) fields.
+The amount is separated into \[lq]commodity\[rq] (the symbol) and
+\[lq]amount\[rq] (numeric quantity) fields.
 .IP \[bu] 2
-The numeric amount is repeated in either the "credit" or "debit" column,
-for convenience.
+The numeric amount is repeated in either the \[lq]credit\[rq] or
+\[lq]debit\[rq] column, for convenience.
 (Those names are not accurate in the accounting sense; it just puts
 negative amounts under credit and zero or greater amounts under debit.)
 .SS print\-unique
@@ -2345,12 +2343,12 @@ start date)
 .TP
 .B \f[C]\-A\ \-\-average\f[]
 show running average of posting amounts instead of total (implies
-\-\-empty)
+\[en]empty)
 .RS
 .RE
 .TP
 .B \f[C]\-r\ \-\-related\f[]
-show postings\[aq] siblings instead
+show postings' siblings instead
 .RS
 .RE
 .TP
@@ -2375,7 +2373,7 @@ A file extension matching one of the above formats selects that format.
 The register command displays postings, one per line, and their running
 total.
 This is typically used with a query selecting a particular account, to
-see that account\[aq]s activity:
+see that account's activity:
 .IP
 .nf
 \f[C]
@@ -2448,7 +2446,7 @@ $\ hledger\ register\ \-\-monthly\ income\ \-E
 \f[]
 .fi
 .PP
-Often, you\[aq]ll want to see just one line per interval.
+Often, you'll want to see just one line per interval.
 The \f[C]\-\-depth\f[] option helps with this, causing subaccounts to be
 aggregated:
 .IP
@@ -2476,8 +2474,8 @@ variable (not a bash shell variable) or by using the
 The description and account columns normally share the space equally
 (about half of (width \- 40) each).
 You can adjust this by adding a description width as part of
-\-\-width\[aq]s argument, comma\-separated: \f[C]\-\-width\ W,D\f[] .
-Here\[aq]s a diagram:
+\[en]width's argument, comma\-separated: \f[C]\-\-width\ W,D\f[] .
+Here's a diagram:
 .IP
 .nf
 \f[C]
@@ -2561,12 +2559,12 @@ Cases:\ 74\ \ Tried:\ 74\ \ Errors:\ 0\ \ Failures:\ 0
 \f[]
 .fi
 .PP
-This command runs hledger\[aq]s built\-in unit tests and displays a
-quick report.
+This command runs hledger's built\-in unit tests and displays a quick
+report.
 With a regular expression argument, it selects only tests with matching
 names.
-It\[aq]s mainly used in development, but it\[aq]s also nice to be able
-to check your hledger executable for smoke at any time.
+It's mainly used in development, but it's also nice to be able to check
+your hledger executable for smoke at any time.
 .SH ADD\-ON COMMANDS
 .PP
 hledger also searches for external add\-on commands, and will include
@@ -2580,8 +2578,8 @@ Add\-ons can be invoked like any hledger command, but there are a few
 things to be aware of.
 Eg if the \f[C]hledger\-web\f[] add\-on is installed,
 .IP \[bu] 2
-\f[C]hledger\ \-h\ web\f[] shows hledger\[aq]s help, while
-\f[C]hledger\ web\ \-h\f[] shows hledger\-web\[aq]s help.
+\f[C]hledger\ \-h\ web\f[] shows hledger's help, while
+\f[C]hledger\ web\ \-h\f[] shows hledger\-web's help.
 .IP \[bu] 2
 Flags specific to the add\-on must have a preceding \f[C]\-\-\f[] to
 hide them from hledger.
@@ -2617,8 +2615,8 @@ These are maintained separately, and usually updated shortly after a
 hledger release.
 .SS diff
 .PP
-hledger\-diff shows differences in an account\[aq]s transactions between
-one journal file and another.
+hledger\-diff shows differences in an account's transactions between one
+journal file and another.
 .SS iadd
 .PP
 hledger\-iadd is a curses\-style, more interactive replacement for the
@@ -2633,8 +2631,8 @@ hledger\-irr calculates the internal rate of return of an investment
 account.
 .SS Experimental add\-ons
 .PP
-These are available in source form in the hledger repo\[aq]s bin/
-directory; installing them is pretty easy.
+These are available in source form in the hledger repo's bin/ directory;
+installing them is pretty easy.
 They may be less mature and documented than built\-in commands.
 Reading and tweaking these is a good way to start making your own!
 .SS autosync
@@ -2683,7 +2681,7 @@ not supported.
 In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger
 add.
 .PP
-Not all of Ledger\[aq]s journal file syntax is supported.
+Not all of Ledger's journal file syntax is supported.
 See file format differences.
 .PP
 On large data files, hledger is slower and uses more memory than Ledger.
@@ -2693,8 +2691,8 @@ Here are some issues you might encounter when you run hledger (and
 remember you can also seek help from the IRC channel, mail list or bug
 tracker):
 .PP
-\f[B]Successfully installed, but "No command \[aq]hledger\[aq]
-found"\f[]
+\f[B]Successfully installed, but \[lq]No command `hledger'
+found\[rq]\f[]
 .PD 0
 .P
 .PD
@@ -2712,10 +2710,10 @@ file\f[]
 shell variable.
 The command \f[C]env\ |\ grep\ LEDGER_FILE\f[] should show it.
 You may need to use \f[C]export\f[].
-Here\[aq]s an explanation.
+Here's an explanation.
 .PP
-\f[B]"Illegal byte sequence" or "Invalid or incomplete multibyte or wide
-character" errors\f[]
+\f[B]\[lq]Illegal byte sequence\[rq] or \[lq]Invalid or incomplete
+multibyte or wide character\[rq] errors\f[]
 .PD 0
 .P
 .PD
@@ -2724,9 +2722,9 @@ needs an appropriate locale.
 This is usually configured system\-wide; you can also configure it
 temporarily.
 The locale may need to be one that supports UTF\-8, if you built hledger
-with GHC < 7.2 (or possibly always, I\[aq]m not sure yet).
+with GHC < 7.2 (or possibly always, I'm not sure yet).
 .PP
-Here\[aq]s an example of setting the locale temporarily, on ubuntu
+Here's an example of setting the locale temporarily, on ubuntu
 gnu/linux:
 .IP
 .nf
@@ -2741,8 +2739,7 @@ $\ LANG=en_US.utf8\ hledger\ \-f\ my.journal\ print\ \ \ #\ <\-\ use\ it\ for\ t
 \f[]
 .fi
 .PP
-Here\[aq]s one way to set it permanently, there are probably better
-ways:
+Here's one way to set it permanently, there are probably better ways:
 .IP
 .nf
 \f[C]

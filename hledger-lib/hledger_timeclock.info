@@ -1,8 +1,8 @@
-This is hledger_timeclock.5.info, produced by makeinfo version 6.0 from
+This is hledger_timeclock.info, produced by makeinfo version 6.0 from
 stdin.
 
 
-File: hledger_timeclock.5.info,  Node: Top,  Up: (dir)
+File: hledger_timeclock.info,  Node: Top,  Up: (dir)
 
 hledger_timeclock(5) hledger 1.4
 ********************************
@@ -45,11 +45,9 @@ $ hledger -f sample.timeclock register -p weekly --depth 1 --empty  # time summa
    * use emacs and the built-in timeclock.el, or the extended
      timeclock-x.el and perhaps the extras in ledgerutils.el
 
-   * at the command line, use these bash aliases:
-
-     alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
-     alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
-
+   * at the command line, use these bash aliases: 'shell alias ti="echo
+     i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG" alias to="echo o
+     `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"'
    * or use the old 'ti' and 'to' scripts in the ledger 2.x repository.
      These rely on a "timeclock" executable which I think is just the
      ledger 2 executable renamed.
@@ -57,6 +55,6 @@ $ hledger -f sample.timeclock register -p weekly --depth 1 --empty  # time summa
 
 
 Tag Table:
-Node: Top80
+Node: Top78
 
 End Tag Table

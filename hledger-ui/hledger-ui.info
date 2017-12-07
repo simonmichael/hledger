@@ -1,7 +1,7 @@
-This is hledger-ui.1.info, produced by makeinfo version 6.0 from stdin.
+This is hledger-ui.info, produced by makeinfo version 6.0 from stdin.
 
 
-File: hledger-ui.1.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
+File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
 hledger-ui(1) hledger-ui 1.4
 ****************************
@@ -24,7 +24,7 @@ hledger_journal(5) etc.
 * SCREENS::
 
 
-File: hledger-ui.1.info,  Node: OPTIONS,  Next: KEYS,  Prev: Top,  Up: Top
+File: hledger-ui.info,  Node: OPTIONS,  Next: KEYS,  Prev: Top,  Up: Top
 
 1 OPTIONS
 *********
@@ -154,7 +154,7 @@ should contain one command line option/argument per line.  (To prevent
 this, insert a '--' argument before.)
 
 
-File: hledger-ui.1.info,  Node: KEYS,  Next: SCREENS,  Prev: OPTIONS,  Up: Top
+File: hledger-ui.info,  Node: KEYS,  Next: SCREENS,  Prev: OPTIONS,  Up: Top
 
 2 KEYS
 ******
@@ -222,7 +222,7 @@ possible) when invoked from the error screen.
    Additional screen-specific keys are described below.
 
 
-File: hledger-ui.1.info,  Node: SCREENS,  Prev: KEYS,  Up: Top
+File: hledger-ui.info,  Node: SCREENS,  Prev: KEYS,  Up: Top
 
 3 SCREENS
 *********
@@ -235,7 +235,7 @@ File: hledger-ui.1.info,  Node: SCREENS,  Prev: KEYS,  Up: Top
 * Error screen::
 
 
-File: hledger-ui.1.info,  Node: Accounts screen,  Next: Register screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Accounts screen,  Next: Register screen,  Up: SCREENS
 
 3.1 Accounts screen
 ===================
@@ -284,7 +284,7 @@ command-line hledger).
    Press 'right' or 'enter' to view an account's transactions register.
 
 
-File: hledger-ui.1.info,  Node: Register screen,  Next: Transaction screen,  Prev: Accounts screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Register screen,  Next: Transaction screen,  Prev: Accounts screen,  Up: SCREENS
 
 3.2 Register screen
 ===================
@@ -332,7 +332,7 @@ command-line hledger).
 detail.
 
 
-File: hledger-ui.1.info,  Node: Transaction screen,  Next: Error screen,  Prev: Register screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Transaction screen,  Next: Error screen,  Prev: Register screen,  Up: SCREENS
 
 3.3 Transaction screen
 ======================
@@ -356,7 +356,7 @@ unfiltered journal, which is a more stable id (at least until the next
 reload).
 
 
-File: hledger-ui.1.info,  Node: Error screen,  Prev: Transaction screen,  Up: SCREENS
+File: hledger-ui.info,  Node: Error screen,  Prev: Transaction screen,  Up: SCREENS
 
 3.4 Error screen
 ================
@@ -368,20 +368,20 @@ to cancel the reload attempt.)
 
 
 Tag Table:
-Node: Top73
-Node: OPTIONS825
-Ref: #options924
-Node: KEYS3861
-Ref: #keys3958
-Node: SCREENS6917
-Ref: #screens7004
-Node: Accounts screen7094
-Ref: #accounts-screen7224
-Node: Register screen9454
-Ref: #register-screen9611
-Node: Transaction screen11685
-Ref: #transaction-screen11845
-Node: Error screen12715
-Ref: #error-screen12839
+Node: Top71
+Node: OPTIONS821
+Ref: #options918
+Node: KEYS3855
+Ref: #keys3950
+Node: SCREENS6909
+Ref: #screens6994
+Node: Accounts screen7084
+Ref: #accounts-screen7212
+Node: Register screen9442
+Ref: #register-screen9597
+Node: Transaction screen11671
+Ref: #transaction-screen11829
+Node: Error screen12699
+Ref: #error-screen12821
 
 End Tag Table

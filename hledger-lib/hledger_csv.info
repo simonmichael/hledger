@@ -1,7 +1,7 @@
-This is hledger_csv.5.info, produced by makeinfo version 6.0 from stdin.
+This is hledger_csv.info, produced by makeinfo version 6.0 from stdin.
 
 
-File: hledger_csv.5.info,  Node: Top,  Next: CSV RULES,  Up: (dir)
+File: hledger_csv.info,  Node: Top,  Next: CSV RULES,  Up: (dir)
 
 hledger_csv(5) hledger 1.4
 **************************
@@ -69,7 +69,7 @@ amount      -%amount
 * CSV TIPS::
 
 
-File: hledger_csv.5.info,  Node: CSV RULES,  Next: CSV TIPS,  Prev: Top,  Up: Top
+File: hledger_csv.info,  Node: CSV RULES,  Next: CSV TIPS,  Prev: Top,  Up: Top
 
 1 CSV RULES
 ***********
@@ -87,7 +87,7 @@ order.  Blank lines and lines beginning with '#' or ';' are ignored.
 * newest-first::
 
 
-File: hledger_csv.5.info,  Node: skip,  Next: date-format,  Up: CSV RULES
+File: hledger_csv.info,  Node: skip,  Next: date-format,  Up: CSV RULES
 
 1.1 skip
 ========
@@ -101,7 +101,7 @@ whenever your CSV data contains header lines.  Eg:
 skip 1
 
 
-File: hledger_csv.5.info,  Node: date-format,  Next: field list,  Prev: skip,  Up: CSV RULES
+File: hledger_csv.info,  Node: date-format,  Next: field list,  Prev: skip,  Up: CSV RULES
 
 1.2 date-format
 ===============
@@ -126,7 +126,7 @@ date-format %Y-%h-%d
 date-format %-m/%-d/%Y %l:%M %p
 
 
-File: hledger_csv.5.info,  Node: field list,  Next: field assignment,  Prev: date-format,  Up: CSV RULES
+File: hledger_csv.info,  Node: field list,  Next: field assignment,  Prev: date-format,  Up: CSV RULES
 
 1.3 field list
 ==============
@@ -149,7 +149,7 @@ Eg:
 fields date, description, , amount, , , somefield, anotherfield
 
 
-File: hledger_csv.5.info,  Node: field assignment,  Next: conditional block,  Prev: field list,  Up: CSV RULES
+File: hledger_csv.info,  Node: field assignment,  Next: conditional block,  Prev: field list,  Up: CSV RULES
 
 1.4 field assignment
 ====================
@@ -170,7 +170,7 @@ comment note: %somefield - %anotherfield, date: %1
 list.
 
 
-File: hledger_csv.5.info,  Node: conditional block,  Next: include,  Prev: field assignment,  Up: CSV RULES
+File: hledger_csv.info,  Node: conditional block,  Next: include,  Prev: field assignment,  Up: CSV RULES
 
 1.5 conditional block
 =====================
@@ -204,7 +204,7 @@ banking thru software
  comment  XXX deductible ? check it
 
 
-File: hledger_csv.5.info,  Node: include,  Next: newest-first,  Prev: conditional block,  Up: CSV RULES
+File: hledger_csv.info,  Node: include,  Next: newest-first,  Prev: conditional block,  Up: CSV RULES
 
 1.6 include
 ===========
@@ -219,7 +219,7 @@ Eg:
 include common.rules
 
 
-File: hledger_csv.5.info,  Node: newest-first,  Prev: include,  Up: CSV RULES
+File: hledger_csv.info,  Node: newest-first,  Prev: include,  Up: CSV RULES
 
 1.7 newest-first
 ================
@@ -234,7 +234,7 @@ hledger autodetects the CSV order, but when all CSV records have the
 same date it will assume they are oldest first.
 
 
-File: hledger_csv.5.info,  Node: CSV TIPS,  Prev: CSV RULES,  Up: Top
+File: hledger_csv.info,  Node: CSV TIPS,  Prev: CSV RULES,  Up: Top
 
 2 CSV TIPS
 **********
@@ -248,7 +248,7 @@ File: hledger_csv.5.info,  Node: CSV TIPS,  Prev: CSV RULES,  Up: Top
 * Reading multiple CSV files::
 
 
-File: hledger_csv.5.info,  Node: CSV ordering,  Next: CSV accounts,  Up: CSV TIPS
+File: hledger_csv.info,  Node: CSV ordering,  Next: CSV accounts,  Up: CSV TIPS
 
 2.1 CSV ordering
 ================
@@ -258,7 +258,7 @@ same-day entries will be preserved (except in the special case where you
 might need 'newest-first', see above).
 
 
-File: hledger_csv.5.info,  Node: CSV accounts,  Next: CSV amounts,  Prev: CSV ordering,  Up: CSV TIPS
+File: hledger_csv.info,  Node: CSV accounts,  Next: CSV amounts,  Prev: CSV ordering,  Up: CSV TIPS
 
 2.2 CSV accounts
 ================
@@ -269,7 +269,7 @@ two postings.  It's conventional and recommended to use 'account1' for
 the account whose CSV we are reading.
 
 
-File: hledger_csv.5.info,  Node: CSV amounts,  Next: CSV balance assertions,  Prev: CSV accounts,  Up: CSV TIPS
+File: hledger_csv.info,  Node: CSV amounts,  Next: CSV balance assertions,  Prev: CSV accounts,  Up: CSV TIPS
 
 2.3 CSV amounts
 ===============
@@ -294,7 +294,7 @@ fields (giving more control, eg to put the currency symbol on the
 right).
 
 
-File: hledger_csv.5.info,  Node: CSV balance assertions,  Next: Reading multiple CSV files,  Prev: CSV amounts,  Up: CSV TIPS
+File: hledger_csv.info,  Node: CSV balance assertions,  Next: Reading multiple CSV files,  Prev: CSV amounts,  Up: CSV TIPS
 
 2.4 CSV balance assertions
 ==========================
@@ -304,7 +304,7 @@ If the CSV includes a running balance, you can assign that to the
 it will be asserted as the balance after the 'account1' posting.
 
 
-File: hledger_csv.5.info,  Node: Reading multiple CSV files,  Prev: CSV balance assertions,  Up: CSV TIPS
+File: hledger_csv.info,  Node: Reading multiple CSV files,  Prev: CSV balance assertions,  Up: CSV TIPS
 
 2.5 Reading multiple CSV files
 ==============================
@@ -316,34 +316,34 @@ one rules file will be used for all the CSV files being read.
 
 
 Tag Table:
-Node: Top74
-Node: CSV RULES2165
-Ref: #csv-rules2275
-Node: skip2537
-Ref: #skip2633
-Node: date-format2805
-Ref: #date-format2934
-Node: field list3440
-Ref: #field-list3579
-Node: field assignment4284
-Ref: #field-assignment4441
-Node: conditional block4945
-Ref: #conditional-block5101
-Node: include5997
-Ref: #include6129
-Node: newest-first6360
-Ref: #newest-first6476
-Node: CSV TIPS6887
-Ref: #csv-tips6983
-Node: CSV ordering7101
-Ref: #csv-ordering7221
-Node: CSV accounts7402
-Ref: #csv-accounts7542
-Node: CSV amounts7796
-Ref: #csv-amounts7944
-Node: CSV balance assertions8719
-Ref: #csv-balance-assertions8903
-Node: Reading multiple CSV files9108
-Ref: #reading-multiple-csv-files9280
+Node: Top72
+Node: CSV RULES2161
+Ref: #csv-rules2269
+Node: skip2531
+Ref: #skip2625
+Node: date-format2797
+Ref: #date-format2924
+Node: field list3430
+Ref: #field-list3567
+Node: field assignment4272
+Ref: #field-assignment4427
+Node: conditional block4931
+Ref: #conditional-block5085
+Node: include5981
+Ref: #include6111
+Node: newest-first6342
+Ref: #newest-first6456
+Node: CSV TIPS6867
+Ref: #csv-tips6961
+Node: CSV ordering7079
+Ref: #csv-ordering7197
+Node: CSV accounts7378
+Ref: #csv-accounts7516
+Node: CSV amounts7770
+Ref: #csv-amounts7916
+Node: CSV balance assertions8691
+Ref: #csv-balance-assertions8873
+Node: Reading multiple CSV files9078
+Ref: #reading-multiple-csv-files9248
 
 End Tag Table

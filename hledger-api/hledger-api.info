@@ -1,7 +1,7 @@
-This is hledger-api.1.info, produced by makeinfo version 6.0 from stdin.
+This is hledger-api.info, produced by makeinfo version 6.0 from stdin.
 
 
-File: hledger-api.1.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
+File: hledger-api.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
 hledger-api(1) hledger-api 1.4
 ******************************
@@ -30,7 +30,7 @@ the API docs will be printed in Swagger 2.0 format.
 * OPTIONS::
 
 
-File: hledger-api.1.info,  Node: OPTIONS,  Prev: Top,  Up: Top
+File: hledger-api.info,  Node: OPTIONS,  Prev: Top,  Up: Top
 
 1 OPTIONS
 *********
@@ -63,8 +63,8 @@ options as shown above.
 
 
 Tag Table:
-Node: Top74
-Node: OPTIONS1220
-Ref: #options1307
+Node: Top72
+Node: OPTIONS1216
+Ref: #options1301
 
 End Tag Table

@@ -20,10 +20,10 @@ other commodity, using double\-entry accounting and a simple, editable
 file format.
 hledger is inspired by and largely compatible with ledger(1).
 .PP
-hledger\-ui is hledger\[aq]s curses\-style interface, providing an
-efficient full\-window text UI for viewing accounts and transactions,
-and some limited data entry capability.
-It is easier than hledger\[aq]s command\-line interface, and sometimes
+hledger\-ui is hledger's curses\-style interface, providing an efficient
+full\-window text UI for viewing accounts and transactions, and some
+limited data entry capability.
+It is easier than hledger's command\-line interface, and sometimes
 quicker and more convenient than the web interface.
 .PP
 Like hledger, it reads data from one or more files in hledger journal,
@@ -50,7 +50,7 @@ use this custom display theme
 .RE
 .TP
 .B \f[C]\-\-register=ACCTREGEX\f[]
-start in the (first) matched account\[aq]s register screen
+start in the (first) matched account's register screen
 .RS
 .RE
 .TP
@@ -230,7 +230,7 @@ Vi\-style (\f[C]h\f[]/\f[C]j\f[]/\f[C]k\f[]/\f[C]l\f[]) and Emacs\-style
 movement keys are also supported.
 A tip: movement speed is limited by your keyboard repeat rate, to move
 faster you may want to adjust it.
-(If you\[aq]re on a mac, the Karabiner app is one way to do that.)
+(If you're on a mac, the Karabiner app is one way to do that.)
 .PP
 With shift pressed, the cursor keys adjust the report period, limiting
 the transactions to be shown (by default, all are shown).
@@ -238,9 +238,9 @@ the transactions to be shown (by default, all are shown).
 report period durations: year, quarter, month, week, day.
 Then, \f[C]shift\-left/right\f[] moves to the previous/next period.
 \f[C]t\f[] sets the report period to today.
-With the \f[C]\-\-watch\f[] option, when viewing a "current" period (the
-current day, week, month, quarter, or year), the period will move
-automatically to track the current date.
+With the \f[C]\-\-watch\f[] option, when viewing a \[lq]current\[rq]
+period (the current day, week, month, quarter, or year), the period will
+move automatically to track the current date.
 To set a non\-standard period, you can use \f[C]/\f[] and a
 \f[C]date:\f[] query.
 .PP
@@ -257,8 +257,8 @@ transactions.
 Or, it cancels a minibuffer edit or help dialog in progress.
 .PP
 \f[C]CTRL\-l\f[] redraws the screen and centers the selection if
-possible (selections near the top won\[aq]t be centered, since we
-don\[aq]t scroll above the top).
+possible (selections near the top won't be centered, since we don't
+scroll above the top).
 .PP
 \f[C]g\f[] reloads from the data file(s) and updates the current screen
 and any previous screens.
@@ -268,7 +268,7 @@ and any previous screens.
 Disabling balance assertions temporarily can be useful for
 troubleshooting.
 .PP
-\f[C]a\f[] runs command\-line hledger\[aq]s add command, and reloads the
+\f[C]a\f[] runs command\-line hledger's add command, and reloads the
 updated file.
 This allows some basic data entry.
 .PP
@@ -291,8 +291,7 @@ Additional screen\-specific keys are described below.
 .SS Accounts screen
 .PP
 This is normally the first screen displayed.
-It lists accounts and their balances, like hledger\[aq]s balance
-command.
+It lists accounts and their balances, like hledger's balance command.
 By default, it shows all accounts and their latest ending balances
 (including the balances of subaccounts).
 if you specify a query on the command line, it shows just the matched
@@ -311,7 +310,7 @@ or press \f[C]ESCAPE\f[].
 \f[C]F\f[] toggles flat mode, in which accounts are shown as a flat
 list, with their full names.
 In this mode, account balances exclude subaccounts, except for accounts
-at the depth limit (as with hledger\[aq]s balance command).
+at the depth limit (as with hledger's balance command).
 .PP
 \f[C]H\f[] toggles between showing historical balances or period
 balances.
@@ -339,8 +338,8 @@ all three, the filter is removed.)
 balances are shown (hledger\-ui shows zero items by default, unlike
 command\-line hledger).
 .PP
-Press \f[C]right\f[] or \f[C]enter\f[] to view an account\[aq]s
-transactions register.
+Press \f[C]right\f[] or \f[C]enter\f[] to view an account's transactions
+register.
 .SS Register screen
 .PP
 This screen shows the transactions affecting a particular account, like
@@ -351,7 +350,7 @@ the other account(s) involved, in abbreviated form.
 (If there are both real and virtual postings, it shows only the accounts
 affected by real postings.)
 .IP \[bu] 2
-the overall change to the current account\[aq]s balance; positive for an
+the overall change to the current account's balance; positive for an
 inflow to this account, negative for an outflow.
 .IP \[bu] 2
 the running historical total or period total for the current account,
@@ -392,10 +391,10 @@ transaction in detail.
 .SS Transaction screen
 .PP
 This screen shows a single transaction, as a general journal entry,
-similar to hledger\[aq]s print command and journal format
+similar to hledger's print command and journal format
 (hledger_journal(5)).
 .PP
-The transaction\[aq]s date(s) and any cleared flag, transaction code,
+The transaction's date(s) and any cleared flag, transaction code,
 description, comments, along with all of its account postings are shown.
 Simple transactions have two postings, but there can be more (or in
 certain cases, fewer).
@@ -406,9 +405,9 @@ In the title bar, the numbers in parentheses show your position within
 that account register.
 They will vary depending on which account register you came from
 (remember most transactions appear in multiple account registers).
-The #N number preceding them is the transaction\[aq]s position within
-the complete unfiltered journal, which is a more stable id (at least
-until the next reload).
+The #N number preceding them is the transaction's position within the
+complete unfiltered journal, which is a more stable id (at least until
+the next reload).
 .SS Error screen
 .PP
 This screen will appear if there is a problem, such as a parse error,
@@ -436,7 +435,7 @@ perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
 The need to precede options with \f[C]\-\-\f[] when invoked from hledger
 is awkward.
 .PP
-\f[C]\-f\-\f[] doesn\[aq]t work (hledger\-ui can\[aq]t read from stdin).
+\f[C]\-f\-\f[] doesn't work (hledger\-ui can't read from stdin).
 .PP
 \f[C]\-V\f[] affects only the accounts screen.
 .PP

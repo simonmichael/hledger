@@ -20,7 +20,7 @@ other commodity, using double\-entry accounting and a simple, editable
 file format.
 hledger is inspired by and largely compatible with ledger(1).
 .PP
-hledger\-web is hledger\[aq]s web interface.
+hledger\-web is hledger's web interface.
 It starts a simple web application for browsing and adding transactions,
 and optionally opens it in a web browser window if possible.
 It provides a more user\-friendly UI than the hledger CLI or hledger\-ui
@@ -42,8 +42,8 @@ timeclock, timedot, or CSV format specified with \f[C]\-f\f[], or
 perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
 For more about this see hledger(1), hledger_journal(5) etc.
 .PP
-By default, hledger\-web starts the web app in "transient mode" and also
-opens it in your default web browser if possible.
+By default, hledger\-web starts the web app in \[lq]transient mode\[rq]
+and also opens it in your default web browser if possible.
 In this mode the web app will keep running for as long as you have it
 open in a browser window, and will exit after two minutes of inactivity
 (no requests and no browser windows viewing it).
@@ -61,9 +61,8 @@ if you are running multiple hledger\-web instances.
 You can use \f[C]\-\-base\-url\f[] to change the protocol, hostname,
 port and path that appear in hyperlinks, useful eg for integrating
 hledger\-web within a larger website.
-The default is \f[C]http://HOST:PORT/\f[] using the server\[aq]s
-configured host address and TCP port (or \f[C]http://HOST\f[] if PORT is
-80).
+The default is \f[C]http://HOST:PORT/\f[] using the server's configured
+host address and TCP port (or \f[C]http://HOST\f[] if PORT is 80).
 .PP
 With \f[C]\-\-file\-url\f[] you can set a different base url for static
 files, eg for better caching or cookie\-less serving on high performance
@@ -91,7 +90,7 @@ Note: if invoking hledger\-web as a hledger subcommand, write
 \f[C]\-\-\f[] before options as shown above.
 .TP
 .B \f[C]\-\-serve\f[]
-serve and log requests, don\[aq]t browse or auto\-exit
+serve and log requests, don't browse or auto\-exit
 .RS
 .RE
 .TP
@@ -286,8 +285,7 @@ perhaps \f[C]C:/Users/USER/.hledger.journal\f[]).
 The need to precede options with \f[C]\-\-\f[] when invoked from hledger
 is awkward.
 .PP
-\f[C]\-f\-\f[] doesn\[aq]t work (hledger\-web can\[aq]t read from
-stdin).
+\f[C]\-f\-\f[] doesn't work (hledger\-web can't read from stdin).
 .PP
 Query arguments and some hledger options are ignored.
 .PP

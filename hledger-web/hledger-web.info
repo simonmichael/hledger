@@ -1,7 +1,7 @@
-This is hledger-web.1.info, produced by makeinfo version 6.0 from stdin.
+This is hledger-web.info, produced by makeinfo version 6.0 from stdin.
 
 
-File: hledger-web.1.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
+File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
 hledger-web(1) hledger-web 1.4
 ******************************
@@ -68,7 +68,7 @@ hledger-web will show an error until the file has been fixed.
 * OPTIONS::
 
 
-File: hledger-web.1.info,  Node: OPTIONS,  Prev: Top,  Up: Top
+File: hledger-web.info,  Node: OPTIONS,  Prev: Top,  Up: Top
 
 1 OPTIONS
 *********
@@ -200,8 +200,8 @@ this, insert a '--' argument before.)
 
 
 Tag Table:
-Node: Top74
-Node: OPTIONS3156
-Ref: #options3243
+Node: Top72
+Node: OPTIONS3152
+Ref: #options3237
 
 End Tag Table
