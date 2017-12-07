@@ -35,44 +35,44 @@ type Topic = String
 docFiles :: IsString a => [(Topic, (a, a, a))]
 docFiles = [
    ("hledger",
-    ($(makeRelativeToProject "doc/hledger.1" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/hledger.1.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/hledger.1.info" >>= embedStringFile)
+    ($(makeRelativeToProject "hledger.1" >>= embedStringFile)
+    ,$(makeRelativeToProject "hledger.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "hledger.info" >>= embedStringFile)
     ))
   ,("hledger-ui",
-    ($(makeRelativeToProject "doc/other/hledger-ui.1" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger-ui.1.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger-ui.1.info" >>= embedStringFile)
+    ($(makeRelativeToProject ".otherdocs/hledger-ui.1" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger-ui.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger-ui.info" >>= embedStringFile)
     ))
   ,("hledger-web",
-    ($(makeRelativeToProject "doc/other/hledger-web.1" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger-web.1.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger-web.1.info" >>= embedStringFile)
+    ($(makeRelativeToProject ".otherdocs/hledger-web.1" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger-web.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger-web.info" >>= embedStringFile)
     ))
   ,("hledger-api",
-    ($(makeRelativeToProject "doc/other/hledger-api.1" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger-api.1.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger-api.1.info" >>= embedStringFile)
+    ($(makeRelativeToProject ".otherdocs/hledger-api.1" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger-api.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger-api.info" >>= embedStringFile)
     ))
   ,("journal",
-    ($(makeRelativeToProject "doc/other/hledger_journal.5" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger_journal.5.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger_journal.5.info" >>= embedStringFile)
+    ($(makeRelativeToProject ".otherdocs/hledger_journal.5" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger_journal.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger_journal.info" >>= embedStringFile)
     ))
   ,("csv",
-    ($(makeRelativeToProject "doc/other/hledger_csv.5" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger_csv.5.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger_csv.5.info" >>= embedStringFile)
+    ($(makeRelativeToProject ".otherdocs/hledger_csv.5" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger_csv.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger_csv.info" >>= embedStringFile)
     ))
   ,("timeclock",
-    ($(makeRelativeToProject "doc/other/hledger_timeclock.5" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger_timeclock.5.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger_timeclock.5.info" >>= embedStringFile)
+    ($(makeRelativeToProject ".otherdocs/hledger_timeclock.5" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger_timeclock.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger_timeclock.info" >>= embedStringFile)
     ))
   ,("timedot",
-    ($(makeRelativeToProject "doc/other/hledger_timedot.5" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger_timedot.5.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject "doc/other/hledger_timedot.5.info" >>= embedStringFile)
+    ($(makeRelativeToProject ".otherdocs/hledger_timedot.5" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger_timedot.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject ".otherdocs/hledger_timedot.info" >>= embedStringFile)
     ))
   ]
 

@@ -24,7 +24,7 @@ These are in the respective package directories:
 hledger*/package.yaml    source for package metadata (description, etc.)
 hledger*/README          package readme, displayed on hackage
 hledger*/CHANGES         package changelog, displayed on hackage
-hledger*/doc/hledger*.m4.md  package manual source file(s)
+hledger*/hledger*.m4.md  package manual source file(s)
 
 4. The project website and additional docs - home page, FAQ, tutorials, 
 how-tos, developer guide, etc. These are in the site directory:
