@@ -76,9 +76,18 @@ groff = "groff"
 
 main = do
 
-  pandocFilters <-
-    map ("tools" </>). nub . sort . map (-<.> "") . filter ("pandoc-" `isPrefixOf`)
-    <$> S.getDirectoryContents "tools"
+--  pandocFilters <-
+--    map ("tools" </>). nub . sort . map (-<.> "") . filter ("pandoc-" `isPrefixOf`)
+--    <$> S.getDirectoryContents "tools"
+  let pandocFilters =
+        [
+         "tools" </> "pandoc-demote-headers"
+        ,"tools" </> "pandoc-drop-html-blocks"
+        ,"tools" </> "pandoc-drop-html-inlines"
+        ,"tools" </> "pandoc-drop-links"
+        ,"tools" </> "pandoc-drop-notes"
+        ,"tools" </> "pandoc-drop-toc"
+        ]
 
   shakeArgs
     shakeOptions{
