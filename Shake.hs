@@ -226,7 +226,7 @@ main = do
     phony "txtmanpages" $ need txtmanpages
 
     txtmanpages |%> \out -> do  -- hledger/hledger.txt
-      let src = dropExtension out <.> "m4.md"
+      let src = manualNameToManpageName $ dropExtension out
       need [src]
       cmd Shell groff "-t -e -mandoc -Tascii" src  "| col -bx >" out -- http://www.tldp.org/HOWTO/Man-Page/q10.html
 
