@@ -25,18 +25,18 @@ extra-source-files:
 - README
 
 data-files:
-- doc/hledger_csv.5
-- doc/hledger_csv.5.txt
-- doc/hledger_csv.5.info
-- doc/hledger_journal.5
-- doc/hledger_journal.5.txt
-- doc/hledger_journal.5.info
-- doc/hledger_timedot.5
-- doc/hledger_timedot.5.txt
-- doc/hledger_timedot.5.info
-- doc/hledger_timeclock.5
-- doc/hledger_timeclock.5.txt
-- doc/hledger_timeclock.5.info
+- hledger_csv.5
+- hledger_csv.txt
+- hledger_csv.info
+- hledger_journal.5
+- hledger_journal.txt
+- hledger_journal.info
+- hledger_timedot.5
+- hledger_timedot.txt
+- hledger_timedot.info
+- hledger_timeclock.5
+- hledger_timeclock.txt
+- hledger_timeclock.info
 
 dependencies:
 - base >=4.8 && <5

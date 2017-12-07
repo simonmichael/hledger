@@ -95,9 +95,9 @@ extra-source-files:
     templates/default-layout.hamlet
 
 data-files:
-    doc/hledger-web.1
-    doc/hledger-web.1.info
-    doc/hledger-web.1.txt
+    hledger-web.1
+    hledger-web.info
+    hledger-web.txt
 
 source-repository head
   type: git

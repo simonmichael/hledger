@@ -34,30 +34,30 @@ extra-source-files:
     test/test.hs
 
 data-files:
-    doc/hledger.1
-    doc/hledger.1.info
-    doc/hledger.1.txt
-    doc/other/hledger-api.1
-    doc/other/hledger-api.1.info
-    doc/other/hledger-api.1.txt
-    doc/other/hledger-ui.1
-    doc/other/hledger-ui.1.info
-    doc/other/hledger-ui.1.txt
-    doc/other/hledger-web.1
-    doc/other/hledger-web.1.info
-    doc/other/hledger-web.1.txt
-    doc/other/hledger_csv.5
-    doc/other/hledger_csv.5.info
-    doc/other/hledger_csv.5.txt
-    doc/other/hledger_journal.5
-    doc/other/hledger_journal.5.info
-    doc/other/hledger_journal.5.txt
-    doc/other/hledger_timeclock.5
-    doc/other/hledger_timeclock.5.info
-    doc/other/hledger_timeclock.5.txt
-    doc/other/hledger_timedot.5
-    doc/other/hledger_timedot.5.info
-    doc/other/hledger_timedot.5.txt
+    .otherdocs/hledger-api.1
+    .otherdocs/hledger-api.info
+    .otherdocs/hledger-api.txt
+    .otherdocs/hledger-ui.1
+    .otherdocs/hledger-ui.info
+    .otherdocs/hledger-ui.txt
+    .otherdocs/hledger-web.1
+    .otherdocs/hledger-web.info
+    .otherdocs/hledger-web.txt
+    .otherdocs/hledger_csv.5
+    .otherdocs/hledger_csv.info
+    .otherdocs/hledger_csv.txt
+    .otherdocs/hledger_journal.5
+    .otherdocs/hledger_journal.info
+    .otherdocs/hledger_journal.txt
+    .otherdocs/hledger_timeclock.5
+    .otherdocs/hledger_timeclock.info
+    .otherdocs/hledger_timeclock.txt
+    .otherdocs/hledger_timedot.5
+    .otherdocs/hledger_timedot.info
+    .otherdocs/hledger_timedot.txt
+    hledger.1
+    hledger.info
+    hledger.txt
 
 source-repository head
   type: git

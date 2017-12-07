@@ -30,18 +30,18 @@ extra-source-files:
     README
 
 data-files:
-    doc/hledger_csv.5
-    doc/hledger_csv.5.info
-    doc/hledger_csv.5.txt
-    doc/hledger_journal.5
-    doc/hledger_journal.5.info
-    doc/hledger_journal.5.txt
-    doc/hledger_timeclock.5
-    doc/hledger_timeclock.5.info
-    doc/hledger_timeclock.5.txt
-    doc/hledger_timedot.5
-    doc/hledger_timedot.5.info
-    doc/hledger_timedot.5.txt
+    hledger_csv.5
+    hledger_csv.info
+    hledger_csv.txt
+    hledger_journal.5
+    hledger_journal.info
+    hledger_journal.txt
+    hledger_timeclock.5
+    hledger_timeclock.info
+    hledger_timeclock.txt
+    hledger_timedot.5
+    hledger_timedot.info
+    hledger_timedot.txt
 
 source-repository head
   type: git
