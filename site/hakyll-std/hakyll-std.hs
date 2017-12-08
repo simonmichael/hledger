@@ -1,6 +1,6 @@
 #!/usr/bin/env stack
 {- stack exec --verbosity info
-   --resolver lts-9.17
+   --stack-yaml=../../stack8.0.yaml
    --package hakyll
    --package pandoc
    -- ghc
