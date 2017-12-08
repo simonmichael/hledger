@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bd2f0b8fb0ccd42bde368ee17beef1e09b0031891300059efb70f88f7e1c1e04
+-- hash: 3cda8b9094bb172a1caa4593fec0a0ccc6e54357da526476e24cc1c22d0dce0d
 
 name:           hledger-lib
-version:        1.4
+version:        1.4.99
 synopsis:       Core data types, parsers and functionality for the hledger accounting tools
 description:    This is a reusable library containing hledger's core functionality.
                 .
@@ -71,7 +71,7 @@ library
     , extra
     , filepath
     , hashtables >=1.2
-    , megaparsec >=5.0 && <6.3
+    , megaparsec >=5.0 && <6.4
     , mtl
     , mtl-compat
     , old-time
@@ -162,7 +162,7 @@ test-suite doctests
     , extra
     , filepath
     , hashtables >=1.2
-    , megaparsec >=5.0 && <6.3
+    , megaparsec >=5.0 && <6.4
     , mtl
     , mtl-compat
     , old-time
@@ -251,7 +251,7 @@ test-suite hunittests
     , filepath
     , hashtables >=1.2
     , hledger-lib
-    , megaparsec >=5.0 && <6.3
+    , megaparsec >=5.0 && <6.4
     , mtl
     , mtl-compat
     , old-time

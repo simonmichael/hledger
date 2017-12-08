@@ -881,6 +881,18 @@ ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + h
 ghcid-api: $(call def-help,ghcid-api, start ghcid autobuilder on hledger-lib + hledger + hledger-api)
 	ghcid -c 'make ghci-api'
 
+ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
+	stack exec \
+		--package base-prelude \
+		--package directory \
+		--package extra \
+		--package pandoc \
+		--package safe \
+		--package shake \
+		--package time \
+		-- ghcid Shake.hs
+# same packages as in Shake.hs
+
 samplejournals: $(call def-help,samplejournals, regenerate standard sample journals in examples/) \
 	examples/sample.journal \
 	examples/100x100x10.journal \

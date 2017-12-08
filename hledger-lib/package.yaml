@@ -1,5 +1,5 @@
 name: hledger-lib
-version: '1.4'
+version: '1.4.99'
 synopsis: Core data types, parsers and functionality for the hledger accounting tools
 description: |
   This is a reusable library containing hledger's core functionality.
@@ -54,7 +54,7 @@ dependencies:
 - directory
 - filepath
 - hashtables >= 1.2
-- megaparsec >=5.0 && < 6.3
+- megaparsec >=5.0 && < 6.4
 - mtl
 - mtl-compat
 - old-time

@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "September 2017" "hledger 1.4" "hledger User Manuals"
+.TH "hledger" "1" "December 2017" "hledger 1.4.99" "hledger User Manuals"
 
 
 
@@ -246,8 +246,8 @@ multiperiod/multicolumn report by year
 .RE
 .TP
 .B \f[C]\-p\ \-\-period=PERIODEXP\f[]
-set start date, end date, and/or reporting interval all at once
-(overrides the flags above)
+set start date, end date, and/or reporting interval all at once using
+period expressions syntax (overrides the flags above)
 .RS
 .RE
 .TP
@@ -295,6 +295,21 @@ price, if any)
 .B \f[C]\-V\ \-\-value\f[]
 convert amounts to their market value on the report end date (using the
 most recent applicable market price, if any)
+.RS
+.RE
+.TP
+.B \f[C]\-\-forecast\f[]
+generate forecast transactions from [periodic
+transaction]((journal.html#periodic\-transactions) rules.
+Each periodic transaction rule will generate forecast transactions,
+beginning the day after the last recorded journal transaction, and
+ending 6 months from today, or at the specified report end date.
+.RS
+.RE
+.TP
+.B \f[C]\-\-auto\f[]
+apply automated posting rules to modify transactions where applicable
+(can combine with \[en]forecast).
 .RS
 .RE
 .PP
@@ -407,7 +422,7 @@ turn:
 .PP
 .TS
 tab(@);
-lw(10.7n) lw(33.2n) lw(26.1n).
+lw(10.3n) lw(33.5n) lw(26.2n).
 T{
 Reader:
 T}@T{
@@ -1433,6 +1448,19 @@ Sort by amount (total row amount, or by average if that is displayed),
 instead of account name (in flat mode)
 .RS
 .RE
+.TP
+.B \f[C]\-\-budget\f[]
+Treat periodic transaction as definition of a budget.
+Compare real balances to budget balances and show percentage of budget
+consumed.
+.RS
+.RE
+.TP
+.B \f[C]\-\-show\-unbudgeted\f[]
+When \[en]budget is used, display accounts that do not have budget
+defined
+.RS
+.RE
 .PP
 The balance command displays accounts and balances.
 It is hledger's most featureful and versatile command.
@@ -1641,6 +1669,108 @@ Balance\ changes\ in\ 2008:
 #\ Average\ is\ rounded\ to\ the\ dollar\ here\ since\ all\ journal\ amounts\ are
 \f[]
 .fi
+.SS Budgets
+.PP
+The \f[C]\-\-budget\f[] flag will treat all [periodic
+transaction]((journal.html#periodic\-transactions) in your journal as
+definition of the budget and allow you to compare real balances versus
+budgeted amounts.
+.PP
+For example, you can take average monthly expenses in the common expense
+categories to construct a minimal monthly budget:
+.IP
+.nf
+\f[C]
+;;\ Budget
+~\ monthly
+\ \ income\ \ $2000
+\ \ expenses:food\ \ \ \ $400
+\ \ expenses:bus\ \ \ \ \ $50
+\ \ expenses:movies\ \ $30
+\ \ assets:bank:checking
+
+;;\ Two\ months\ worth\ of\ expenses
+2017\-11\-01
+\ \ income\ \ $1950
+\ \ expenses:food\ \ \ \ $396
+\ \ expenses:bus\ \ \ \ \ $49
+\ \ expenses:movies\ \ $30
+\ \ expenses:supplies\ \ $20
+\ \ assets:bank:checking
+
+2017\-12\-01
+\ \ income\ \ $2100
+\ \ expenses:food\ \ \ \ $412
+\ \ expenses:bus\ \ \ \ \ $53
+\ \ expenses:gifts\ \ \ $100
+\ \ assets:bank:checking
+\f[]
+.fi
+.PP
+You can now compare real balances with budget:
+.IP
+.nf
+\f[C]
+$\ hledge\ balance\ \-M\ \-\-budget
+Balance\ changes\ in\ 2017/11/01\-2017/12/31:
+
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2017/11\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2017/12\ 
+=======================++=================================================
+\ <unbudgeted>:expenses\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $20\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $100\ 
+\ assets:bank:checking\ \ ||\ $\-2445\ [99%\ of\ $\-2480]\ \ $\-2665\ [107%\ of\ $\-2480]\ 
+\ expenses:bus\ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ $49\ [98%\ of\ $50]\ \ \ \ \ \ \ \ $53\ [106%\ of\ $50]\ 
+\ expenses:food\ \ \ \ \ \ \ \ \ ||\ \ \ \ \ $396\ [99%\ of\ $400]\ \ \ \ \ \ $412\ [103%\ of\ $400]\ 
+\ expenses:movies\ \ \ \ \ \ \ ||\ \ \ \ \ \ $30\ [100%\ of\ $30]\ \ \ \ \ \ \ \ \ \ \ \ 0\ [0%\ of\ $30]\ 
+\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ $1950\ [98%\ of\ $2000]\ \ \ \ $2100\ [105%\ of\ $2000]\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ 
+\f[]
+.fi
+.PP
+You can roll over unspent budgets to next period with
+\f[C]\-\-cumulative\f[]:
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-M\ \-\-budget\ \-\-cumulative
+Ending\ balances\ (cumulative)\ in\ 2017/11/01\-2017/12/31:
+
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ 2017/11/30\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2017/12/31\ 
+=======================++=================================================
+\ <unbudgeted>:expenses\ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $20\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $120\ 
+\ assets:bank:checking\ \ ||\ $\-2445\ [99%\ of\ $\-2480]\ \ $\-5110\ [103%\ of\ $\-4960]\ 
+\ expenses:bus\ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ $49\ [98%\ of\ $50]\ \ \ \ \ \ $102\ [102%\ of\ $100]\ 
+\ expenses:food\ \ \ \ \ \ \ \ \ ||\ \ \ \ \ $396\ [99%\ of\ $400]\ \ \ \ \ \ $808\ [101%\ of\ $800]\ 
+\ expenses:movies\ \ \ \ \ \ \ ||\ \ \ \ \ \ $30\ [100%\ of\ $30]\ \ \ \ \ \ \ \ \ $30\ [50%\ of\ $60]\ 
+\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ $1950\ [98%\ of\ $2000]\ \ \ \ $4050\ [101%\ of\ $4000]\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0
+\f[]
+.fi
+.PP
+Adding \f[C]\-\-show\-unbudgeted\f[] will allow you to see all the
+accounts for which budgets:
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-\-budget\ \-\-show\-unbudgeted
+Balance\ changes\ in\ 2017/11/01\-2017/12/31:
+
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2017/11\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2017/12\ 
+======================++=================================================
+\ assets:bank:checking\ ||\ $\-2445\ [99%\ of\ $\-2480]\ \ $\-2665\ [107%\ of\ $\-2480]\ 
+\ expenses:bus\ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ $49\ [98%\ of\ $50]\ \ \ \ \ \ \ \ $53\ [106%\ of\ $50]\ 
+\ expenses:food\ \ \ \ \ \ \ \ ||\ \ \ \ \ $396\ [99%\ of\ $400]\ \ \ \ \ \ $412\ [103%\ of\ $400]\ 
+\ expenses:gifts\ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $100\ 
+\ expenses:movies\ \ \ \ \ \ ||\ \ \ \ \ \ $30\ [100%\ of\ $30]\ \ \ \ \ \ \ \ \ \ \ \ 0\ [0%\ of\ $30]\ 
+\ expenses:supplies\ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $20\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ 
+\ income\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ $1950\ [98%\ of\ $2000]\ \ \ \ $2100\ [105%\ of\ $2000]\ 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 0\ 
+\f[]
+.fi
+.PP
+For more examples and details, see Budgeting and Forecasting.
 .SS Custom balance output
 .PP
 In simple (non\-multi\-column) balance reports, you can customise the

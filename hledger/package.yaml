@@ -1,5 +1,5 @@
 name: hledger
-version: '1.4'
+version: '1.4.99'
 synopsis: Command-line interface for the hledger accounting tool
 description: |
   This is hledger's command-line interface.
@@ -87,7 +87,7 @@ dependencies:
 - tabular >=0.2 && <0.3
 - time >=1.5
 - utility-ht >= 0.0.13
-- hledger-lib >= 1.4 && < 1.5
+- hledger-lib >= 1.4.99 && < 1.5
 
 when:
 - condition: (!(os(windows))) && (flag(terminfo))
@@ -95,7 +95,7 @@ when:
   - terminfo
 
 library:
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   exposed-modules:
   - Hledger.Cli
   - Hledger.Cli.Main
@@ -141,7 +141,7 @@ library:
   - mtl
   - mtl-compat
   - old-time
-  - megaparsec >=5.0 && < 6.3
+  - megaparsec >=5.0 && < 6.4
   - regex-tdfa
   - safe >=0.2
   - split >=0.1 && <0.3
@@ -155,7 +155,7 @@ executables:
   hledger:
     source-dirs: app
     main: hledger-cli.hs
-    cpp-options: -DVERSION="1.4"
+    cpp-options: -DVERSION="1.4.99"
     when:
     - condition: flag(threaded)
       ghc-options: -threaded
@@ -185,7 +185,7 @@ tests:
   test:
     source-dirs: test
     main: test.hs
-    cpp-options: -DVERSION="1.4"
+    cpp-options: -DVERSION="1.4.99"
     dependencies:
     - hledger
     - bytestring

@@ -1,10 +1,10 @@
-This is hledger.info, produced by makeinfo version 6.0 from stdin.
+This is hledger.info, produced by makeinfo version 6.5 from stdin.
 
 
 File: hledger.info,  Node: Top,  Next: EXAMPLES,  Up: (dir)
 
-hledger(1) hledger 1.4
-**********************
+hledger(1) hledger 1.4.99
+*************************
 
 This is hledger's command-line interface (there are also curses and web
 interfaces).  Its basic function is to read a plain text file describing
@@ -201,7 +201,7 @@ by most hledger commands, run 'hledger -h'.
 '-p --period=PERIODEXP'
 
      set start date, end date, and/or reporting interval all at once
-     (overrides the flags above)
+     using period expressions syntax (overrides the flags above)
 '--date2'
 
      match the secondary date instead (see command help for other
@@ -232,6 +232,17 @@ by most hledger commands, run 'hledger -h'.
 
      convert amounts to their market value on the report end date (using
      the most recent applicable market price, if any)
+'--forecast'
+
+     generate forecast transactions from [periodic
+     transaction]((journal.html#periodic-transactions) rules.  Each
+     periodic transaction rule will generate forecast transactions,
+     beginning the day after the last recorded journal transaction, and
+     ending 6 months from today, or at the specified report end date.
+'--auto'
+
+     apply automated posting rules to modify transactions where
+     applicable (can combine with -forecast).
 
    When a reporting option appears more than once in the command line,
 the last one takes precedence.
@@ -339,15 +350,15 @@ be one of several other formats, listed below.  hledger detects the
 format automatically based on the file extension, or if that is not
 recognised, by trying each built-in "reader" in turn:
 
-Reader:     Reads:                             Used for file extensions:
----------------------------------------------------------------------------
-'journal'   hledger's journal format, also     '.journal' '.j'
-            some Ledger journals               '.hledger' '.ledger'
-'timeclock' timeclock files (precise time      '.timeclock'
+Reader:     Reads:                              Used for file extensions:
+----------------------------------------------------------------------------
+'journal'   hledger's journal format, also      '.journal' '.j'
+            some Ledger journals                '.hledger' '.ledger'
+'timeclock' timeclock files (precise time       '.timeclock'
             logging)
-'timedot'   timedot files (approximate time    '.timedot'
+'timedot'   timedot files (approximate time     '.timedot'
             logging)
-'csv'       comma-separated values (data       '.csv'
+'csv'       comma-separated values (data        '.csv'
             interchange)
 
    If needed (eg to ensure correct error messages when a file has the
@@ -950,7 +961,7 @@ default).  With query arguments, it counts only matched transactions.
 $ hledger activity --quarterly
 2008-01-01 **
 2008-04-01 *******
-2008-07-01
+2008-07-01 
 2008-10-01 **
 
 
@@ -1007,18 +1018,18 @@ An optional ; COMMENT may follow descriptions or amounts.
 If you make a mistake, enter < at any prompt to restart the transaction.
 To end a transaction, enter . when prompted.
 To quit, enter . at a date prompt or press control-d or control-c.
-Date [2015/05/22]:
+Date [2015/05/22]: 
 Description: supermarket
 Account 1: expenses:food
 Amount  1: $10
 Account 2: assets:checking
-Amount  2 [$-10.0]:
+Amount  2 [$-10.0]: 
 Account 3 (or . or enter to finish this transaction): .
 2015/05/22 supermarket
     expenses:food             $10
     assets:checking        $-10.0
 
-Save this transaction to the journal ? [y]:
+Save this transaction to the journal ? [y]: 
 Saved.
 Starting the next transaction (. or ctrl-D/ctrl-C to quit)
 Date [2015/05/22]: <CTRL-D> $
@@ -1082,6 +1093,14 @@ Show accounts and their balances.  Aliases: b, bal.
 
      Sort by amount (total row amount, or by average if that is
      displayed), instead of account name (in flat mode)
+'--budget'
+
+     Treat periodic transaction as definition of a budget.  Compare real
+     balances to budget balances and show percentage of budget consumed.
+'--show-unbudgeted'
+
+     When -budget is used, display accounts that do not have budget
+     defined
 
    The balance command displays accounts and balances.  It is hledger's
 most featureful and versatile command.
@@ -1131,6 +1150,7 @@ $ hledger balance -p 2008/6 expenses --no-total
 * Flat mode::
 * Depth limited balance reports::
 * Multicolumn balance reports::
+* Budgets::
 * Custom balance output::
 * Colour support::
 * Output destination::
@@ -1170,7 +1190,7 @@ $ hledger balance -N --depth 1
                   $1  liabilities
 
 
-File: hledger.info,  Node: Multicolumn balance reports,  Next: Custom balance output,  Prev: Depth limited balance reports,  Up: balance
+File: hledger.info,  Node: Multicolumn balance reports,  Next: Budgets,  Prev: Depth limited balance reports,  Up: balance
 
 4.4.3 Multicolumn balance reports
 ---------------------------------
@@ -1185,15 +1205,15 @@ report, showing different information:
 
      $ hledger balance --quarterly income expenses -E
      Balance changes in 2008:
-
-                        ||  2008q1  2008q2  2008q3  2008q4
+     
+                        ||  2008q1  2008q2  2008q3  2008q4 
      ===================++=================================
-      expenses:food     ||       0      $1       0       0
-      expenses:supplies ||       0      $1       0       0
-      income:gifts      ||       0     $-1       0       0
-      income:salary     ||     $-1       0       0       0
+      expenses:food     ||       0      $1       0       0 
+      expenses:supplies ||       0      $1       0       0 
+      income:gifts      ||       0     $-1       0       0 
+      income:salary     ||     $-1       0       0       0 
      -------------------++---------------------------------
-                        ||     $-1      $1       0       0
+                        ||     $-1      $1       0       0 
 
   2. With '--cumulative': each column shows the ending balance for that
      period, accumulating the changes across periods, starting from 0 at
@@ -1201,15 +1221,15 @@ report, showing different information:
 
      $ hledger balance --quarterly income expenses -E --cumulative
      Ending balances (cumulative) in 2008:
-
-                        ||  2008/03/31  2008/06/30  2008/09/30  2008/12/31
+     
+                        ||  2008/03/31  2008/06/30  2008/09/30  2008/12/31 
      ===================++=================================================
-      expenses:food     ||           0          $1          $1          $1
-      expenses:supplies ||           0          $1          $1          $1
-      income:gifts      ||           0         $-1         $-1         $-1
-      income:salary     ||         $-1         $-1         $-1         $-1
+      expenses:food     ||           0          $1          $1          $1 
+      expenses:supplies ||           0          $1          $1          $1 
+      income:gifts      ||           0         $-1         $-1         $-1 
+      income:salary     ||         $-1         $-1         $-1         $-1 
      -------------------++-------------------------------------------------
-                        ||         $-1           0           0           0
+                        ||         $-1           0           0           0 
 
   3. With '--historical/-H': each column shows the actual historical
      ending balance for that period, accumulating the changes across
@@ -1219,15 +1239,15 @@ report, showing different information:
 
      $ hledger balance ^assets ^liabilities --quarterly --historical --begin 2008/4/1
      Ending balances (historical) in 2008/04/01-2008/12/31:
-
-                           ||  2008/06/30  2008/09/30  2008/12/31
+     
+                           ||  2008/06/30  2008/09/30  2008/12/31 
      ======================++=====================================
-      assets:bank:checking ||          $1          $1           0
-      assets:bank:saving   ||          $1          $1          $1
-      assets:cash          ||         $-2         $-2         $-2
-      liabilities:debts    ||           0           0          $1
+      assets:bank:checking ||          $1          $1           0 
+      assets:bank:saving   ||          $1          $1          $1 
+      assets:cash          ||         $-2         $-2         $-2 
+      liabilities:debts    ||           0           0          $1 
      ----------------------++-------------------------------------
-                           ||           0           0           0
+                           ||           0           0           0 
 
    Multi-column balance reports display accounts in flat mode by
 default; to see the hierarchy, use '--tree'.
@@ -1256,23 +1276,113 @@ each row.
 $ hledger balance -Q income expenses --tree -ETA
 Balance changes in 2008:
 
-            ||  2008q1  2008q2  2008q3  2008q4    Total  Average
+            ||  2008q1  2008q2  2008q3  2008q4    Total  Average 
 ============++===================================================
- expenses   ||       0      $2       0       0       $2       $1
-   food     ||       0      $1       0       0       $1        0
-   supplies ||       0      $1       0       0       $1        0
- income     ||     $-1     $-1       0       0      $-2      $-1
-   gifts    ||       0     $-1       0       0      $-1        0
-   salary   ||     $-1       0       0       0      $-1        0
+ expenses   ||       0      $2       0       0       $2       $1 
+   food     ||       0      $1       0       0       $1        0 
+   supplies ||       0      $1       0       0       $1        0 
+ income     ||     $-1     $-1       0       0      $-2      $-1 
+   gifts    ||       0     $-1       0       0      $-1        0 
+   salary   ||     $-1       0       0       0      $-1        0 
 ------------++---------------------------------------------------
-            ||     $-1      $1       0       0        0        0
+            ||     $-1      $1       0       0        0        0 
 
 # Average is rounded to the dollar here since all journal amounts are
 
 
-File: hledger.info,  Node: Custom balance output,  Next: Colour support,  Prev: Multicolumn balance reports,  Up: balance
+File: hledger.info,  Node: Budgets,  Next: Custom balance output,  Prev: Multicolumn balance reports,  Up: balance
 
-4.4.4 Custom balance output
+4.4.4 Budgets
+-------------
+
+The '--budget' flag will treat all [periodic
+transaction]((journal.html#periodic-transactions) in your journal as
+definition of the budget and allow you to compare real balances versus
+budgeted amounts.
+
+   For example, you can take average monthly expenses in the common
+expense categories to construct a minimal monthly budget:
+
+;; Budget
+~ monthly
+  income  $2000
+  expenses:food    $400
+  expenses:bus     $50
+  expenses:movies  $30
+  assets:bank:checking
+
+;; Two months worth of expenses
+2017-11-01
+  income  $1950
+  expenses:food    $396
+  expenses:bus     $49
+  expenses:movies  $30
+  expenses:supplies  $20
+  assets:bank:checking
+
+2017-12-01
+  income  $2100
+  expenses:food    $412
+  expenses:bus     $53
+  expenses:gifts   $100
+  assets:bank:checking
+
+   You can now compare real balances with budget:
+
+$ hledge balance -M --budget
+Balance changes in 2017/11/01-2017/12/31:
+
+                       ||                2017/11                  2017/12 
+=======================++=================================================
+ <unbudgeted>:expenses ||                    $20                     $100 
+ assets:bank:checking  || $-2445 [99% of $-2480]  $-2665 [107% of $-2480] 
+ expenses:bus          ||       $49 [98% of $50]        $53 [106% of $50] 
+ expenses:food         ||     $396 [99% of $400]      $412 [103% of $400] 
+ expenses:movies       ||      $30 [100% of $30]            0 [0% of $30] 
+ income                ||   $1950 [98% of $2000]    $2100 [105% of $2000] 
+-----------------------++-------------------------------------------------
+                       ||                      0                        0 
+
+   You can roll over unspent budgets to next period with '--cumulative':
+
+$ hledger balance -M --budget --cumulative
+Ending balances (cumulative) in 2017/11/01-2017/12/31:
+
+                       ||             2017/11/30               2017/12/31 
+=======================++=================================================
+ <unbudgeted>:expenses ||                    $20                     $120 
+ assets:bank:checking  || $-2445 [99% of $-2480]  $-5110 [103% of $-4960] 
+ expenses:bus          ||       $49 [98% of $50]      $102 [102% of $100] 
+ expenses:food         ||     $396 [99% of $400]      $808 [101% of $800] 
+ expenses:movies       ||      $30 [100% of $30]         $30 [50% of $60] 
+ income                ||   $1950 [98% of $2000]    $4050 [101% of $4000] 
+-----------------------++-------------------------------------------------
+                       ||                      0                        0
+
+   Adding '--show-unbudgeted' will allow you to see all the accounts for
+which budgets:
+
+$ hledger balance --budget --show-unbudgeted
+Balance changes in 2017/11/01-2017/12/31:
+
+                      ||                2017/11                  2017/12 
+======================++=================================================
+ assets:bank:checking || $-2445 [99% of $-2480]  $-2665 [107% of $-2480] 
+ expenses:bus         ||       $49 [98% of $50]        $53 [106% of $50] 
+ expenses:food        ||     $396 [99% of $400]      $412 [103% of $400] 
+ expenses:gifts       ||                      0                     $100 
+ expenses:movies      ||      $30 [100% of $30]            0 [0% of $30] 
+ expenses:supplies    ||                    $20                        0 
+ income               ||   $1950 [98% of $2000]    $2100 [105% of $2000] 
+----------------------++-------------------------------------------------
+                      ||                      0                        0 
+
+   For more examples and details, see Budgeting and Forecasting.
+
+
+File: hledger.info,  Node: Custom balance output,  Next: Colour support,  Prev: Budgets,  Up: balance
+
+4.4.5 Custom balance output
 ---------------------------
 
 In simple (non-multi-column) balance reports, you can customise the
@@ -1332,7 +1442,7 @@ may be needed to get pleasing results.
 
 File: hledger.info,  Node: Colour support,  Next: Output destination,  Prev: Custom balance output,  Up: balance
 
-4.4.5 Colour support
+4.4.6 Colour support
 --------------------
 
 The balance command shows negative amounts in red, if:
@@ -1343,7 +1453,7 @@ The balance command shows negative amounts in red, if:
 
 File: hledger.info,  Node: Output destination,  Next: CSV output,  Prev: Colour support,  Up: balance
 
-4.4.6 Output destination
+4.4.7 Output destination
 ------------------------
 
 The balance, print, register and stats commands can write their output
@@ -1356,7 +1466,7 @@ $ hledger balance -o FILE  # write to FILE
 
 File: hledger.info,  Node: CSV output,  Prev: Output destination,  Up: balance
 
-4.4.7 CSV output
+4.4.8 CSV output
 ----------------
 
 The balance, print and register commands can write their output as CSV.
@@ -2033,7 +2143,7 @@ Show some journal statistics.
 
 $ hledger stats
 Main journal file        : /src/hledger/examples/sample.journal
-Included journal files   :
+Included journal files   : 
 Transactions span        : 2008-01-01 to 2009-01-01 (366 days)
 Last transaction         : 2008-12-31 (2333 days ago)
 Transactions             : 5 (0.0 per day)
@@ -2258,135 +2368,137 @@ hledger-check.hs checks more powerful account balance assertions.
 
 Tag Table:
 Node: Top68
-Node: EXAMPLES1882
-Ref: #examples1982
-Node: OPTIONS3628
-Ref: #options3730
-Node: General options4046
-Ref: #general-options4171
-Node: Command options6490
-Ref: #command-options6641
-Node: Command arguments7039
-Ref: #command-arguments7193
-Node: Argument files7314
-Ref: #argument-files7465
-Node: Special characters7731
-Ref: #special-characters7884
-Node: Input files9303
-Ref: #input-files9439
-Node: Smart dates11402
-Ref: #smart-dates11543
-Node: Report start & end date12522
-Ref: #report-start-end-date12692
-Node: Report intervals13757
-Ref: #report-intervals13920
-Node: Period expressions14321
-Ref: #period-expressions14478
-Node: For example16523
-Ref: #for-example16666
-Node: Depth limiting18590
-Ref: #depth-limiting18727
-Node: Pivoting19069
-Ref: #pivoting19187
-Node: Cost20863
-Ref: #cost20971
-Node: Market value21089
-Ref: #market-value21224
-Node: Regular expressions22524
-Ref: #regular-expressions22660
-Node: QUERIES24021
-Ref: #queries24123
-Node: COMMANDS28090
-Ref: #commands28202
-Node: accounts29185
-Ref: #accounts29283
-Node: activity30276
-Ref: #activity30386
-Node: add30745
-Ref: #add30844
-Node: balance33502
-Ref: #balance33613
-Node: Flat mode36770
-Ref: #flat-mode36895
-Node: Depth limited balance reports37315
-Ref: #depth-limited-balance-reports37516
-Node: Multicolumn balance reports37936
-Ref: #multicolumn-balance-reports38145
-Node: Custom balance output42793
-Ref: #custom-balance-output42975
-Node: Colour support45068
-Ref: #colour-support45227
-Node: Output destination45400
-Ref: #output-destination45556
-Node: CSV output45826
-Ref: #csv-output45943
-Node: balancesheet46340
-Ref: #balancesheet46476
-Node: balancesheetequity48444
-Ref: #balancesheetequity48593
-Node: cashflow49382
-Ref: #cashflow49510
-Node: check-dates51422
-Ref: #check-dates51549
-Node: check-dupes51666
-Ref: #check-dupes51791
-Node: equity51928
-Ref: #equity52038
-Node: help52201
-Ref: #help52302
-Node: import53376
-Ref: #import53490
-Node: incomestatement54220
-Ref: #incomestatement54354
-Node: prices56307
-Ref: #prices56422
-Node: print56465
-Ref: #print56575
-Node: print-unique61421
-Ref: #print-unique61547
-Node: register61615
-Ref: #register61742
-Node: Custom register output66243
-Ref: #custom-register-output66372
-Node: register-match67669
-Ref: #register-match67803
-Node: rewrite67986
-Ref: #rewrite68103
-Node: stats68172
-Ref: #stats68275
-Node: tags69156
-Ref: #tags69254
-Node: test69490
-Ref: #test69574
-Node: ADD-ON COMMANDS69942
-Ref: #add-on-commands70052
-Node: Official add-ons71339
-Ref: #official-add-ons71479
-Node: api71566
-Ref: #api71655
-Node: ui71707
-Ref: #ui71806
-Node: web71864
-Ref: #web71953
-Node: Third party add-ons71999
-Ref: #third-party-add-ons72174
-Node: diff72309
-Ref: #diff72406
-Node: iadd72505
-Ref: #iadd72619
-Node: interest72702
-Ref: #interest72823
-Node: irr72918
-Ref: #irr73016
-Node: Experimental add-ons73094
-Ref: #experimental-add-ons73246
-Node: autosync73537
-Ref: #autosync73649
-Node: budget73888
-Ref: #budget74010
-Node: chart74076
-Ref: #chart74193
-Node: check74264
-Ref: #check74366
+Node: EXAMPLES1888
+Ref: #examples1988
+Node: OPTIONS3634
+Ref: #options3736
+Node: General options4052
+Ref: #general-options4177
+Node: Command options6991
+Ref: #command-options7142
+Node: Command arguments7540
+Ref: #command-arguments7694
+Node: Argument files7815
+Ref: #argument-files7966
+Node: Special characters8232
+Ref: #special-characters8385
+Node: Input files9804
+Ref: #input-files9940
+Node: Smart dates11910
+Ref: #smart-dates12051
+Node: Report start & end date13030
+Ref: #report-start-end-date13200
+Node: Report intervals14265
+Ref: #report-intervals14428
+Node: Period expressions14829
+Ref: #period-expressions14986
+Node: For example17031
+Ref: #for-example17174
+Node: Depth limiting19098
+Ref: #depth-limiting19235
+Node: Pivoting19577
+Ref: #pivoting19695
+Node: Cost21371
+Ref: #cost21479
+Node: Market value21597
+Ref: #market-value21732
+Node: Regular expressions23032
+Ref: #regular-expressions23168
+Node: QUERIES24529
+Ref: #queries24631
+Node: COMMANDS28598
+Ref: #commands28710
+Node: accounts29693
+Ref: #accounts29791
+Node: activity30784
+Ref: #activity30894
+Node: add31254
+Ref: #add31353
+Node: balance34014
+Ref: #balance34125
+Node: Flat mode37554
+Ref: #flat-mode37679
+Node: Depth limited balance reports38099
+Ref: #depth-limited-balance-reports38300
+Node: Multicolumn balance reports38720
+Ref: #multicolumn-balance-reports38915
+Node: Budgets43604
+Ref: #budgets43751
+Node: Custom balance output47367
+Ref: #custom-balance-output47529
+Node: Colour support49622
+Ref: #colour-support49781
+Node: Output destination49954
+Ref: #output-destination50110
+Node: CSV output50380
+Ref: #csv-output50497
+Node: balancesheet50894
+Ref: #balancesheet51030
+Node: balancesheetequity52998
+Ref: #balancesheetequity53147
+Node: cashflow53936
+Ref: #cashflow54064
+Node: check-dates55976
+Ref: #check-dates56103
+Node: check-dupes56220
+Ref: #check-dupes56345
+Node: equity56482
+Ref: #equity56592
+Node: help56755
+Ref: #help56856
+Node: import57930
+Ref: #import58044
+Node: incomestatement58774
+Ref: #incomestatement58908
+Node: prices60861
+Ref: #prices60976
+Node: print61019
+Ref: #print61129
+Node: print-unique65975
+Ref: #print-unique66101
+Node: register66169
+Ref: #register66296
+Node: Custom register output70797
+Ref: #custom-register-output70926
+Node: register-match72223
+Ref: #register-match72357
+Node: rewrite72540
+Ref: #rewrite72657
+Node: stats72726
+Ref: #stats72829
+Node: tags73711
+Ref: #tags73809
+Node: test74045
+Ref: #test74129
+Node: ADD-ON COMMANDS74497
+Ref: #add-on-commands74607
+Node: Official add-ons75894
+Ref: #official-add-ons76034
+Node: api76121
+Ref: #api76210
+Node: ui76262
+Ref: #ui76361
+Node: web76419
+Ref: #web76508
+Node: Third party add-ons76554
+Ref: #third-party-add-ons76729
+Node: diff76864
+Ref: #diff76961
+Node: iadd77060
+Ref: #iadd77174
+Node: interest77257
+Ref: #interest77378
+Node: irr77473
+Ref: #irr77571
+Node: Experimental add-ons77649
+Ref: #experimental-add-ons77801
+Node: autosync78092
+Ref: #autosync78204
+Node: budget78443
+Ref: #budget78565
+Node: chart78631
+Ref: #chart78748
+Node: check78819
+Ref: #check78921
 
 End Tag Table

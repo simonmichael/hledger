@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack exec --verbosity=info --stack-yaml=stack8.0.yaml
+{- stack exec --verbosity=info
    --package base-prelude
    --package directory
    --package extra
@@ -7,7 +7,7 @@
    --package safe
    --package shake
    --package time
-   -- ghc -threaded
+   -- ghc
 -}
 {-
 One of two project scripts files (Makefile, Shake.hs).
@@ -319,7 +319,7 @@ main = do
     phony "guideall" $ need [ guideall ]
 
     guideall %> \out -> do
-      need guidepages  -- XXX seems not to work, not rebuilt when a recipe changes 
+      need $ guidepages ++ pandocFilters  -- XXX seems not to work, not rebuilt when a recipe changes 
       liftIO $ writeFile guideall "* toc\n\n"  -- # User Guide\n\n -- TOC style is better without main heading, 
       forM_ guidepages $ \f -> do -- site/csv-import.md, site/account-aliases.md, ...
         cmd Shell ("printf '\\n\\n' >>") guideall :: Action ExitCode

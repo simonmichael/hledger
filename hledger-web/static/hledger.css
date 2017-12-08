@@ -196,12 +196,24 @@ ul {
     color: #a94442;
 }
 
+.form .transaction-date {
+    width: 100%;
+    padding-right: 0;
+    border-radius: 4px;
+    line-height: 41px;
+}
+
+/* must give higher z-index to show*/
+date-input-polyfill {
+	z-index: 1051;
+}
+
 .date {
     whitespace: nowrap;
 }
 
 #main-content {
-   /* 
+   /*
     -webkit-transition: width 0.3s ease, margin 0.3s ease;
     -moz-transition: width 0.3s ease, margin 0.3s ease;
     -o-transition: width 0.3s ease, margin 0.3s ease;

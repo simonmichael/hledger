@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "September 2017" "hledger 1.4" "hledger User Manuals"
+.TH "hledger_journal" "5" "December 2017" "hledger 1.4.99" "hledger User Manuals"
 
 
 
@@ -274,7 +274,7 @@ Here's one suggestion:
 .PP
 .TS
 tab(@);
-lw(10.5n) lw(59.5n).
+lw(9.9n) lw(60.1n).
 T{
 status
 T}@T{
@@ -1103,6 +1103,68 @@ Glob patterns (\f[C]*\f[]) are not currently supported.
 .PP
 The \f[C]include\f[] directive can only be used in journal files.
 It can include journal, timeclock or timedot files, but not CSV files.
+.SH Periodic transactions
+.PP
+A periodic transaction starts with a tilde `~' in place of a date
+followed by a period expression:
+.IP
+.nf
+\f[C]
+~\ weekly
+\ \ assets:bank:checking\ \ \ $400\ ;\ paycheck
+\ \ income:acme\ inc
+\f[]
+.fi
+.PP
+Periodic transactions are used for budgeting and forecasting only, they
+have no effect without the \f[C]\-\-forecast\f[] or \f[C]\-\-budget\f[]
+option specified.
+For examples and details, see Budgeting and Forecasting.
+.SH Automated posting rules
+.PP
+Autopated posting rule starts with an equal sign `=' in place of a date,
+followed by a query:
+.IP
+.nf
+\f[C]
+=\ expenses:gifts
+\ \ \ \ budget:gifts\ \ *\-1
+\ \ \ \ assets:budget\ \ *1
+\f[]
+.fi
+.PP
+When \f[C]\-\-auto\f[] option is specified on the command line,
+automated posting rule will add its postings to all transactions that
+match the query.
+.PP
+If amount in the automated posting rule includes commodity name, new
+posting will be made in the given commodity, otherwise commodity of the
+matched transaction will be used.
+.PP
+When amount in the automated posting rule begins with the '*', amount
+will be treated as a multiplier that is applied to the amount of the
+first posting in the matched transaction.
+.PP
+In example above, every transaction in \f[C]expenses:gifts\f[] account
+will have two additional postings added to it: amount of the original
+gift will be debited from \f[C]budget:gifts\f[] and credited into
+\f[C]assets:budget\f[]:
+.IP
+.nf
+\f[C]
+;\ Original\ transaction
+2017\-12\-14
+\ \ expenses:gifts\ \ $20
+\ \ assets
+
+;\ With\ automated\ postings\ applied
+2017/12/14
+\ \ \ \ expenses:gifts\ \ \ \ \ \ \ \ \ \ \ \ \ $20
+\ \ \ \ assets
+\ \ \ \ budget:gifts\ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-20
+\ \ \ \ assets:budget\ \ \ \ \ \ \ \ \ \ \ \ \ \ $20
+\f[]
+.fi
 .SH EDITOR SUPPORT
 .PP
 Add\-on modes exist for various text editors, to make working with
@@ -1116,7 +1178,7 @@ files:
 .PP
 .TS
 tab(@);
-lw(16.5n) lw(51.5n).
+lw(16.5n) lw(53.5n).
 T{
 Emacs
 T}@T{

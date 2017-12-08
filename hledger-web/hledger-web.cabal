@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a055e6e87e8d6345efe67e94f9a716eedbcfb2d65daf650a2d5a6c75a8c466f7
+-- hash: 015ba5dae06a3c2c9434725c0982ad55d98ffe912b00aa3d3beff665f82de78c
 
 name:           hledger-web
-version:        1.4
+version:        1.4.99
 synopsis:       Web interface for the hledger accounting tool
 description:    This is hledger's web interface.
                 It provides a more user-friendly and collaborative UI than the
@@ -44,6 +44,7 @@ extra-source-files:
     static/css/bootstrap.css
     static/css/bootstrap.css.map
     static/css/bootstrap.min.css
+    static/css/datepolyfill.css
     static/fonts/glyphicons-halflings-regular.eot
     static/fonts/glyphicons-halflings-regular.svg
     static/fonts/glyphicons-halflings-regular.ttf
@@ -52,6 +53,7 @@ extra-source-files:
     static/hledger.js
     static/js/bootstrap.js
     static/js/bootstrap.min.js
+    static/js/dateinputpolyfill.js
     static/js/excanvas.js
     static/js/excanvas.min.js
     static/js/jquery.cookie.js
@@ -122,7 +124,7 @@ flag threaded
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   build-depends:
       HUnit
     , base >=4.8 && <5
@@ -137,12 +139,12 @@ library
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.4 && <1.5
-    , hledger-lib >=1.4 && <1.5
+    , hledger >=1.4.99 && <1.5
+    , hledger-lib >=1.4.99 && <1.5
     , http-client
     , http-conduit
     , json
-    , megaparsec >=5.0 && <6.3
+    , megaparsec >=5.0 && <6.4
     , mtl
     , parsec >=3
     , safe >=0.2
@@ -190,7 +192,7 @@ executable hledger-web
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   build-depends:
       HUnit
     , base >=4.8 && <5
@@ -205,13 +207,13 @@ executable hledger-web
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.4 && <1.5
-    , hledger-lib >=1.4 && <1.5
+    , hledger >=1.4.99 && <1.5
+    , hledger-lib >=1.4.99 && <1.5
     , hledger-web
     , http-client
     , http-conduit
     , json
-    , megaparsec >=5.0 && <6.3
+    , megaparsec >=5.0 && <6.4
     , mtl
     , parsec >=3
     , safe >=0.2
@@ -247,7 +249,7 @@ test-suite test
   hs-source-dirs:
       tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   build-depends:
       HUnit
     , base >=4.8 && <5
@@ -262,14 +264,14 @@ test-suite test
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.4 && <1.5
-    , hledger-lib >=1.4 && <1.5
+    , hledger >=1.4.99 && <1.5
+    , hledger-lib >=1.4.99 && <1.5
     , hledger-web
     , hspec
     , http-client
     , http-conduit
     , json
-    , megaparsec >=5.0 && <6.3
+    , megaparsec >=5.0 && <6.4
     , mtl
     , parsec >=3
     , safe >=0.2

@@ -125,6 +125,7 @@ instance Yesod App where
 
         pc <- widgetToPageContent $ do
             addStylesheet $ StaticR css_bootstrap_min_css
+            addStylesheet $ StaticR css_datepolyfill_css
              -- load these things early, in HEAD:
             toWidgetHead [hamlet|
                           <script type="text/javascript" src="@{StaticR js_jquery_min_js}">
@@ -132,6 +133,7 @@ instance Yesod App where
                          |]
             addScript $ StaticR js_bootstrap_min_js
             -- addScript $ StaticR js_typeahead_bundle_min_js
+            addScript $ StaticR js_dateinputpolyfill_js
             addScript $ StaticR js_jquery_url_js
             addScript $ StaticR js_jquery_cookie_js
             addScript $ StaticR js_jquery_hotkeys_js
@@ -302,14 +304,6 @@ addform _ vd@VD{..} = [hamlet|
 
     /* set up typeahead fields */
 
-    datesSuggester = new Bloodhound({
-      local:#{listToJsonValueObjArrayStr dates},
-      limit:100,
-      datumTokenizer: function(d) { return [d.value]; },
-      queryTokenizer: function(q) { return [q]; }
-    });
-    datesSuggester.initialize();
-
     descriptionsSuggester = new Bloodhound({
       local:#{listToJsonValueObjArrayStr descriptions},
       limit:100,
@@ -331,7 +325,6 @@ addform _ vd@VD{..} = [hamlet|
     });
     accountsSuggester.initialize();
 
-    enableTypeahead(jQuery('input#date'), datesSuggester);
     enableTypeahead(jQuery('input#description'), descriptionsSuggester);
     enableTypeahead(jQuery('input#account1, input#account2, input#account3, input#account4'), accountsSuggester);
 
@@ -340,9 +333,9 @@ addform _ vd@VD{..} = [hamlet|
 <form#addform method=POST .form>
  <div .form-group>
   <div .row>
-   <div .col-md-2 .col-xs-6 .col-sm-6>
-    <input #date .typeahead .form-control .input-lg type=text size=15 name=date placeholder="Date" value="#{defdate}">
-   <div .col-md-10 .col-xs-6 .col-sm-6>
+   <div .col-md-3 .col-xs-6 .col-sm-6>
+    <input #date required lang=en type=date name=date .transaction-date placeholder="Date" >
+   <div .col-md-9 .col-xs-6 .col-sm-6>
     <input #description .typeahead .form-control .input-lg type=text size=40 name=description placeholder="Description">
  <div .account-postings>
   $forall n <- postingnums
@@ -361,8 +354,6 @@ addform _ vd@VD{..} = [hamlet|
     (or ctrl +, ctrl -)
 |]
  where
-  defdate = "" :: String -- #322 don't set a default, typeahead(?) clears it on tab. See also hledger.js
-  dates = ["today","yesterday","tomorrow"] :: [String]
   descriptions = sort $ nub $ map tdescription $ jtxns j
   accts = sort $ journalAccountNamesUsed j
   escapeJSSpecialChars = regexReplaceCI "</script>" "<\\/script>" -- #236

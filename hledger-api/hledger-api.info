@@ -1,10 +1,10 @@
-This is hledger-api.info, produced by makeinfo version 6.0 from stdin.
+This is hledger-api.info, produced by makeinfo version 6.5 from stdin.
 
 
 File: hledger-api.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-api(1) hledger-api 1.4
-******************************
+hledger-api(1) hledger-api 1.4.99
+*********************************
 
 hledger-api is a simple web API server, intended to support client-side
 web apps operating on hledger data.  It comes with a series of simple
@@ -64,7 +64,7 @@ options as shown above.
 
 Tag Table:
 Node: Top72
-Node: OPTIONS1216
-Ref: #options1301
+Node: OPTIONS1222
+Ref: #options1307
 
 End Tag Table

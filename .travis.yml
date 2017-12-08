@@ -71,8 +71,10 @@ branches:
 #   - ghc: 7.10.3
 #   - ghc: 8.0.2
 
-before_install:
-  - ./.travis-maybe-skip.sh
+#before_install:
+#  - ./.travis-maybe-skip.sh
+#      never seemed to work, and can fail, eg: 
+#      https://travis-ci.org/simonmichael/hledger/builds/316707766
 
 install: # command output is hidden as they complete
 

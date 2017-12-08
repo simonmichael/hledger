@@ -1,6 +1,11 @@
-# stack build plan using GHC 8.2.1
+# stack build plan using GHC 8.2.x
 
-resolver: nightly-2017-12-05
+resolver: lts-10.0
+
+nix:
+  enable: false
+  pure: false
+  packages: [perl gmp ncurses zlib]
 
 # extra-deps:
 

@@ -211,10 +211,10 @@ FILE FORMAT
        status       meaning
        --------------------------------------------------------------------------
        uncleared    recorded but not yet reconciled; needs review
-       pending      tentatively reconciled (if needed, eg during a  big  recon-
-                    ciliation)
-       cleared      complete,  reconciled  as  far  as possible, and considered
-                    correct
+       pending      tentatively reconciled (if needed, eg during a big reconcil-
+                    iation)
+       cleared      complete, reconciled as far as possible, and considered cor-
+                    rect
 
        With this scheme, you would use -PC to see the current balance at  your
        bank,  -U  to  see  things which will probably hit your bank soon (like
@@ -811,32 +811,79 @@ FILE FORMAT
        The include directive can only  be  used  in  journal  files.   It  can
        include journal, timeclock or timedot files, but not CSV files.
 
+Periodic transactions
+       A  periodic transaction starts with a tilde `~' in place of a date fol-
+       lowed by a period expression:
+
+              ~ weekly
+                assets:bank:checking   $400 ; paycheck
+                income:acme inc
+
+       Periodic transactions are used for budgeting and forecasting only, they
+       have  no  effect  without  the --forecast or --budget option specified.
+       For examples and details, see Budgeting and Forecasting.
+
+Automated posting rules
+       Autopated posting rule starts with an equal sign  `='  in  place  of  a
+       date, followed by a query:
+
+              = expenses:gifts
+                  budget:gifts  *-1
+                  assets:budget  *1
+
+       When  --auto option is specified on the command line, automated posting
+       rule will add its postings to all transactions that match the query.
+
+       If amount in the automated posting rule includes  commodity  name,  new
+       posting will be made in the given commodity, otherwise commodity of the
+       matched transaction will be used.
+
+       When amount in the automated posting rule begins with the  '*',  amount
+       will  be  treated  as a multiplier that is applied to the amount of the
+       first posting in the matched transaction.
+
+       In example above, every transaction in expenses:gifts account will have
+       two  additional  postings added to it: amount of the original gift will
+       be debited from budget:gifts and credited into assets:budget:
+
+              ; Original transaction
+              2017-12-14
+                expenses:gifts  $20
+                assets
+
+              ; With automated postings applied
+              2017/12/14
+                  expenses:gifts             $20
+                  assets
+                  budget:gifts              $-20
+                  assets:budget              $20
+
 EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
-       nal files easier.  They add colour, navigation aids  and  helpful  com-
-       mands.   For  hledger  users  who  edit  the journal file directly (the
+       nal  files  easier.   They add colour, navigation aids and helpful com-
+       mands.  For hledger users who  edit  the  journal  file  directly  (the
        majority), using one of these modes is quite recommended.
 
-       These were written with Ledger in mind,  but  also  work  with  hledger
+       These  were  written  with  Ledger  in mind, but also work with hledger
        files:
 
 
        Emacs              http://www.ledger-cli.org/3.0/doc/ledger-mode.html
-       Vim                https://github.com/ledger/ledger/wiki/Get-
-                          ting-started
+       Vim                https://github.com/ledger/ledger/wiki/Getting-started
        Sublime Text       https://github.com/ledger/ledger/wiki/Using-Sub-
                           lime-Text
        Textmate           https://github.com/ledger/ledger/wiki/Using-Text-
                           Mate-2
        Text Wrangler      https://github.com/ledger/ledger/wiki/Edit-
                           ing-Ledger-files-with-TextWrangler
+
        Visual    Studio   https://marketplace.visualstudio.com/items?item-
        Code               Name=mark-hansen.hledger-vscode
 
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -850,7 +897,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
@@ -858,4 +905,4 @@ SEE ALSO
 
 
 
-hledger 1.4                     September 2017              hledger_journal(5)
+hledger 1.4.99                   December 2017              hledger_journal(5)

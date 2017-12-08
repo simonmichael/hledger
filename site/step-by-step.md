@@ -204,9 +204,9 @@ $ cat ~/.hledger.journal
 Why is the amount missing from the assets posting above ?
 As a convenience to make manual data entry easier, if one amount is missing
 hledger infers it so as to balance the transaction ($-10 in this case).
-For consistency, `add` uses the same convention when it writes an entry.
-(But `print` shows the inferred amount, for clarity.)
 Only one missing amount is allowed in each transaction.
+`add` uses the same convention when it writes an entry.
+(To see all such inferred amounts in full, you can use `hledger print -x`.)
 
 ### Edit the journal file
 

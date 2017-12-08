@@ -47,6 +47,12 @@ txt, csv.
 `--sort-amount`
 : Sort by amount (total row amount, or by average if that is displayed), instead of account name (in flat mode)
 
+`--budget`
+: Treat [periodic transaction](journal.html#periodic-transactions) as definition of a budget. Compare real balances to budget balances and show percentage of budget consumed. 
+
+`--show-unbudgeted`
+: When --budget is used, display accounts that do not have budget defined
+
 The balance command displays accounts and balances.
 It is hledger's most featureful and versatile command.
 
@@ -236,6 +242,91 @@ Balance changes in 2008:
 
 ```
 
+### Budgets
+
+The `--budget` flag will treat all [periodic transaction]((journal.html#periodic-transactions) in your journal as definition of the budget and allow you to compare real balances versus budgeted amounts.
+
+For example, you can take average monthly expenses in the common expense categories to construct a minimal monthly budget:
+```journal
+;; Budget
+~ monthly
+  income  $2000
+  expenses:food    $400
+  expenses:bus     $50
+  expenses:movies  $30
+  assets:bank:checking
+
+;; Two months worth of expenses
+2017-11-01
+  income  $1950
+  expenses:food    $396
+  expenses:bus     $49
+  expenses:movies  $30
+  expenses:supplies  $20
+  assets:bank:checking
+
+2017-12-01
+  income  $2100
+  expenses:food    $412
+  expenses:bus     $53
+  expenses:gifts   $100
+  assets:bank:checking
+```
+
+You can now compare real balances with budget:
+```shell
+$ hledge balance -M --budget
+Balance changes in 2017/11/01-2017/12/31:
+
+                       ||                2017/11                  2017/12 
+=======================++=================================================
+ <unbudgeted>:expenses ||                    $20                     $100 
+ assets:bank:checking  || $-2445 [99% of $-2480]  $-2665 [107% of $-2480] 
+ expenses:bus          ||       $49 [98% of $50]        $53 [106% of $50] 
+ expenses:food         ||     $396 [99% of $400]      $412 [103% of $400] 
+ expenses:movies       ||      $30 [100% of $30]            0 [0% of $30] 
+ income                ||   $1950 [98% of $2000]    $2100 [105% of $2000] 
+-----------------------++-------------------------------------------------
+                       ||                      0                        0 
+```
+
+You can roll over unspent budgets to next period with `--cumulative`:
+```shell
+$ hledger balance -M --budget --cumulative
+Ending balances (cumulative) in 2017/11/01-2017/12/31:
+
+                       ||             2017/11/30               2017/12/31 
+=======================++=================================================
+ <unbudgeted>:expenses ||                    $20                     $120 
+ assets:bank:checking  || $-2445 [99% of $-2480]  $-5110 [103% of $-4960] 
+ expenses:bus          ||       $49 [98% of $50]      $102 [102% of $100] 
+ expenses:food         ||     $396 [99% of $400]      $808 [101% of $800] 
+ expenses:movies       ||      $30 [100% of $30]         $30 [50% of $60] 
+ income                ||   $1950 [98% of $2000]    $4050 [101% of $4000] 
+-----------------------++-------------------------------------------------
+                       ||                      0                        0
+```
+
+Adding `--show-unbudgeted` will allow you to see all the accounts for which budgets:
+```shell
+$ hledger balance --budget --show-unbudgeted
+Balance changes in 2017/11/01-2017/12/31:
+
+                      ||                2017/11                  2017/12 
+======================++=================================================
+ assets:bank:checking || $-2445 [99% of $-2480]  $-2665 [107% of $-2480] 
+ expenses:bus         ||       $49 [98% of $50]        $53 [106% of $50] 
+ expenses:food        ||     $396 [99% of $400]      $412 [103% of $400] 
+ expenses:gifts       ||                      0                     $100 
+ expenses:movies      ||      $30 [100% of $30]            0 [0% of $30] 
+ expenses:supplies    ||                    $20                        0 
+ income               ||   $1950 [98% of $2000]    $2100 [105% of $2000] 
+----------------------++-------------------------------------------------
+                      ||                      0                        0 
+```
+
+For more examples and details, see [Budgeting and Forecasting](budgeting-and-forecasting.html).
+
 ### Custom balance output
 
 In simple (non-multi-column) balance reports, you can customise the
@@ -323,3 +414,4 @@ with `-o/--output-file`.
 $ hledger balance -O csv       # write CSV to stdout
 $ hledger balance -o FILE.csv  # write CSV to FILE.csv
 ```
+

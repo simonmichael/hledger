@@ -1,10 +1,10 @@
-This is hledger-web.info, produced by makeinfo version 6.0 from stdin.
+This is hledger-web.info, produced by makeinfo version 6.5 from stdin.
 
 
 File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-web(1) hledger-web 1.4
-******************************
+hledger-web(1) hledger-web 1.4.99
+*********************************
 
 hledger-web is hledger's web interface.  It starts a simple web
 application for browsing and adding transactions, and optionally opens
@@ -145,7 +145,7 @@ options as shown above.
 '-p --period=PERIODEXP'
 
      set start date, end date, and/or reporting interval all at once
-     (overrides the flags above)
+     using period expressions syntax (overrides the flags above)
 '--date2'
 
      match the secondary date instead (see command help for other
@@ -176,6 +176,17 @@ options as shown above.
 
      convert amounts to their market value on the report end date (using
      the most recent applicable market price, if any)
+'--forecast'
+
+     generate forecast transactions from [periodic
+     transaction]((journal.html#periodic-transactions) rules.  Each
+     periodic transaction rule will generate forecast transactions,
+     beginning the day after the last recorded journal transaction, and
+     ending 6 months from today, or at the specified report end date.
+'--auto'
+
+     apply automated posting rules to modify transactions where
+     applicable (can combine with -forecast).
 
    When a reporting option appears more than once in the command line,
 the last one takes precedence.
@@ -201,7 +212,7 @@ this, insert a '--' argument before.)
 
 Tag Table:
 Node: Top72
-Node: OPTIONS3152
-Ref: #options3237
+Node: OPTIONS3158
+Ref: #options3243
 
 End Tag Table

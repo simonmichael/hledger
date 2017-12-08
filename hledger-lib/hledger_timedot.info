@@ -1,11 +1,11 @@
-This is hledger_timedot.info, produced by makeinfo version 6.0 from
+This is hledger_timedot.info, produced by makeinfo version 6.5 from
 stdin.
 
 
 File: hledger_timedot.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
-hledger_timedot(5) hledger 1.4
-******************************
+hledger_timedot(5) hledger 1.4.99
+*********************************
 
 Timedot is a plain text format for logging dated, categorised quantities
 (of time, usually), supported by hledger.  It is convenient for
@@ -53,7 +53,7 @@ example:
 # on this day, 6h was spent on client work, 1.5h on haskell FOSS work, etc.
 2016/2/1
 inc:client1   .... .... .... .... .... ....
-fos:haskell   .... ..
+fos:haskell   .... .. 
 biz:research  .
 
 2016/2/2
@@ -79,17 +79,17 @@ $ hledger -f t.timedot print date:2016/2/2
 $ hledger -f t.timedot bal --daily --tree
 Balance changes in 2016/02/01-2016/02/03:
 
-            ||  2016/02/01d  2016/02/02d  2016/02/03d
+            ||  2016/02/01d  2016/02/02d  2016/02/03d 
 ============++========================================
- biz        ||         0.25         0.25         1.00
-   research ||         0.25         0.25         1.00
- fos        ||         1.50            0         3.00
-   haskell  ||         1.50            0            0
-   hledger  ||            0            0         3.00
- inc        ||         6.00         2.00         4.00
-   client1  ||         6.00         2.00         4.00
+ biz        ||         0.25         0.25         1.00 
+   research ||         0.25         0.25         1.00 
+ fos        ||         1.50            0         3.00 
+   haskell  ||         1.50            0            0 
+   hledger  ||            0            0         3.00 
+ inc        ||         6.00         2.00         4.00 
+   client1  ||         6.00         2.00         4.00 
 ------------++----------------------------------------
-            ||         7.75         2.25         8.00
+            ||         7.75         2.25         8.00 
 
    I prefer to use period for separating account components.  We can
 make this work with an account alias:
@@ -110,7 +110,7 @@ $ hledger -f t.timedot --alias /\\./=: bal date:2016/2/4
 
 Tag Table:
 Node: Top76
-Node: FILE FORMAT805
-Ref: #file-format906
+Node: FILE FORMAT811
+Ref: #file-format912
 
 End Tag Table
