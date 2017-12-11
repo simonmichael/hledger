@@ -4,6 +4,7 @@ resolver: nightly-2017-12-05
 
 nix:
   enable: false
+  pure: false
   packages: [perl gmp ncurses zlib]
 
 # extra-deps:
