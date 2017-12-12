@@ -649,10 +649,10 @@ transactionFromCsvRecord sourcepos rules record = t
     comment     = maybe "" render $ mfieldtemplate "comment"
     precomment  = maybe "" render $ mfieldtemplate "precomment"
     currency    = maybe (fromMaybe "" mdefaultcurrency) render $ mfieldtemplate "currency"
-    amountstr   = (currency++) $ simplifySign $ getAmountStr rules record
-    amount      = either amounterror (Mixed . (:[])) $ runParser (evalStateT (amountp <* eof) mempty) "" $ T.pack amountstr
+    amountstr   = (currency++) <$> simplifySign <$> getAmountStr rules record
+    maybeamount      = either amounterror (Mixed . (:[])) <$> runParser (evalStateT (amountp <* eof) mempty) "" <$> T.pack <$> amountstr
     amounterror err = error' $ unlines
-      ["error: could not parse \""++amountstr++"\" as an amount"
+      ["error: could not parse \""++fromJust amountstr++"\" as an amount"
       ,showRecord record
       ,"the amount rule is:      "++(fromMaybe "" $ mfieldtemplate "amount")
       ,"the currency rule is:    "++(fromMaybe "unspecified" $ mfieldtemplate "currency")
@@ -662,10 +662,13 @@ transactionFromCsvRecord sourcepos rules record = t
        ++"change your amount or currency rules, "
        ++"or "++maybe "add a" (const "change your") mskip++" skip rule"
       ]
-    amount1        = amount
-    -- convert balancing amount to cost like hledger print, so eg if 
+    amount1 = case maybeamount of
+                Just a -> a
+                Nothing | balance /= Nothing -> nullmixedamt
+                Nothing -> error' $ "amount and balance have no value\n"++showRecord record
+    -- convert balancing amount to cost like hledger print, so eg if
     -- amount1 is "10 GBP @@ 15 USD", amount2 will be "-15 USD".
-    amount2        = costOfMixedAmount (-amount)
+    amount2        = costOfMixedAmount (-amount1)
     s `or` def  = if null s then def else s
     defaccount1 = fromMaybe "unknown" $ mdirective "default-account1"
     defaccount2 = case isNegativeMixedAmount amount2 of
@@ -702,7 +705,7 @@ transactionFromCsvRecord sourcepos rules record = t
         ]
       }
 
-getAmountStr :: CsvRules -> CsvRecord -> String
+getAmountStr :: CsvRules -> CsvRecord -> Maybe String
 getAmountStr rules record =
  let
    mamount    = getEffectiveAssignment rules record "amount"
@@ -711,11 +714,11 @@ getAmountStr rules record =
    render     = fmap (strip . renderTemplate rules record)
  in
   case (render mamount, render mamountin, render mamountout) of
-    (Just "", Nothing, Nothing) -> error' $ "amount has no value\n"++showRecord record
-    (Just a,  Nothing, Nothing) -> a
+    (Just "", Nothing, Nothing) -> Nothing
+    (Just a,  Nothing, Nothing) -> Just a
     (Nothing, Just "", Just "") -> error' $ "neither amount-in or amount-out has a value\n"++showRecord record
-    (Nothing, Just i,  Just "") -> i
-    (Nothing, Just "", Just o)  -> negateStr o
+    (Nothing, Just i,  Just "") -> Just i
+    (Nothing, Just "", Just o)  -> Just $ negateStr o
     (Nothing, Just _,  Just _)  -> error' $ "both amount-in and amount-out have a value\n"++showRecord record
     _                           -> error' $ "found values for amount and for amount-in/amount-out - please use either amount or amount-in/amount-out\n"++showRecord record
 

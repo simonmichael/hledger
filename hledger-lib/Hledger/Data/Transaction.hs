@@ -228,6 +228,7 @@ postingAsLines elideamount onelineamounts ps p = concat [
     shownAmounts
       | elideamount    = [""]
       | onelineamounts = [fitString (Just amtwidth) Nothing False False $ showMixedAmountOneLine $ pamount p]
+      | null (amounts $ pamount p) = [""]
       | otherwise      = map (fitStringMulti (Just amtwidth) Nothing False False . showAmount ) . amounts $ pamount p
       where
         amtwidth = maximum $ 12 : map (strWidth . showMixedAmount . pamount) ps  -- min. 12 for backwards compatibility
@@ -254,7 +255,7 @@ showPostingLines p = postingAsLines False False ps p where
 tests_postingAsLines = [
    "postingAsLines" ~: do
     let p `gives` ls = assertEqual (show p) ls (postingAsLines False False [p] p)
-    posting `gives` []
+    posting `gives` [""]
     posting{
       pstatus=Cleared,
       paccount="a",
