@@ -854,6 +854,50 @@ Glob patterns (`*`) are not currently supported.
 The `include` directive can only be used in journal files.
 It can include journal, timeclock or timedot files, but not CSV files.
 
+# Periodic transactions
+
+A periodic transaction starts with a tilde ‘~’ in place of a date followed by a [period expression](manual.html#period-expressions):
+```journal
+~ weekly
+  assets:bank:checking   $400 ; paycheck
+  income:acme inc
+```
+
+Periodic transactions are used for budgeting and forecasting only, they have no effect without the `--forecast` or `--budget` option specified.
+For examples and details, see [Budgeting and Forecasting](budgeting-and-forecasting.html).
+
+# Automated posting rules
+
+Autopated posting rule starts with an equal sign '=' in place of a date, followed by a [query](manual.html#queries):
+```journal
+= expenses:gifts
+    budget:gifts  *-1
+    assets:budget  *1
+```
+
+When `--auto` option is specified on the command line, automated posting rule will add its postings to all transactions that match the query.
+
+If amount in the automated posting rule includes commodity name, new posting will be made in the given commodity, otherwise commodity of the matched transaction will be used.
+
+When amount in the automated posting rule begins with the '*', amount will be treated as a multiplier that is applied to the amount of the first posting in the matched transaction.
+
+In example above, every transaction in `expenses:gifts` account will
+have two additional postings added to it: amount of the original gift
+will be debited from `budget:gifts` and credited into `assets:budget`:
+```journal
+; Original transaction
+2017-12-14
+  expenses:gifts  $20
+  assets
+
+; With automated postings applied
+2017/12/14
+    expenses:gifts             $20
+    assets
+    budget:gifts              $-20
+    assets:budget              $20
+```
+
 # EDITOR SUPPORT
 
 Add-on modes exist for various text editors, to make working with journal
