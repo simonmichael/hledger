@@ -109,6 +109,8 @@ The latest [master branch](https://github.com/simonmichael/hledger/commits/maste
 
 Cabal users can use the `cabal-install.sh` or `cabal.project` files instead.
 
+Nix users taking advantage of Stack integration may need to use Stack's `--no-nix-pure` flag to build hledger.
+
 
 <a name="d"></a>
 
