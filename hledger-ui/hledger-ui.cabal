@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c00bcfd6f775d332d459686ee8b8058420f77d46d34fe308eaee51fe84a7619f
+-- hash: 2eb14077c24a8b14adaaece4e3f30465814771ebcc65a932d3a513f03e820b9f
 
 name:           hledger-ui
 version:        1.4
@@ -83,7 +83,7 @@ executable hledger-ui
     buildable: False
   else
     build-depends:
-        brick >=0.12 && <0.30
+        brick >=0.12 && <0.31
       , vty >=5.5 && <5.20
   if flag(threaded)
     ghc-options: -threaded
