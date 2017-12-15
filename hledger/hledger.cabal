@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 02f720160e681e526ef52ed8f954737f447d5b0a654db2efb9f3474584db8618
+-- hash: f596781aa9e12a7e831c9532b7fe13a0c744b25186a77ef8796c839285519e56
 
 name:           hledger
 version:        1.4
@@ -97,7 +97,7 @@ library
     , haskeline >=0.6 && <=0.8
     , here
     , hledger-lib >=1.4 && <1.5
-    , megaparsec >=5.0 && <6.3
+    , megaparsec >=5.0 && <6.4
     , mtl
     , mtl-compat
     , old-time

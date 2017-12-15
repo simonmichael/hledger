@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2eb14077c24a8b14adaaece4e3f30465814771ebcc65a932d3a513f03e820b9f
+-- hash: ee0c5617b02ecbc0732d165f53e39e49de9c956079f8bb16b501bb7f0d200f0a
 
 name:           hledger-ui
 version:        1.4
@@ -67,7 +67,7 @@ executable hledger-ui
     , fsnotify >=0.2 && <0.3
     , hledger >=1.4 && <1.5
     , hledger-lib >=1.4 && <1.5
-    , megaparsec >=5.0 && <6.3
+    , megaparsec >=5.0 && <6.4
     , microlens >=0.4 && <0.5
     , microlens-platform >=0.2.3.1 && <0.4
     , pretty-show >=1.6.4
