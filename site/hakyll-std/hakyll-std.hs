@@ -4,7 +4,10 @@
    --package hakyll
    --package pandoc
    -- ghc
--}
+-} 
+-- Still using stack8.0.yaml because hakyll-std requires pandoc < 2, which requires GHC < 8.2.
+-- hledger and Shake use stack.yaml by default so you may end up downloading and building two snapshots.
+-- hakyll-std will go away soon hopefully.
 
 {- |
 
