@@ -1,4 +1,4 @@
-This is hledger_journal.info, produced by makeinfo version 6.0 from
+This is hledger_journal.info, produced by makeinfo version 6.5 from
 stdin.
 
 
@@ -57,10 +57,12 @@ assisted by the helper modes for emacs or vim.
 * Menu:
 
 * FILE FORMAT::
+* Periodic transactions::
+* Automated posting rules::
 * EDITOR SUPPORT::
 
 
-File: hledger_journal.info,  Node: FILE FORMAT,  Next: EDITOR SUPPORT,  Prev: Top,  Up: Top
+File: hledger_journal.info,  Node: FILE FORMAT,  Next: Periodic transactions,  Prev: Top,  Up: Top
 
 1 FILE FORMAT
 *************
@@ -270,13 +272,13 @@ toggle transaction status with C-c C-e, or posting status with C-c C-c.
    What "uncleared", "pending", and "cleared" actually mean is up to
 you.  Here's one suggestion:
 
-status      meaning
+status     meaning
 --------------------------------------------------------------------------
-uncleared   recorded but not yet reconciled; needs review
-pending     tentatively reconciled (if needed, eg during a big
-            reconciliation)
-cleared     complete, reconciled as far as possible, and considered
-            correct
+uncleared  recorded but not yet reconciled; needs review
+pending    tentatively reconciled (if needed, eg during a big
+           reconciliation)
+cleared    complete, reconciled as far as possible, and considered
+           correct
 
    With this scheme, you would use '-PC' to see the current balance at
 your bank, '-U' to see things which will probably hit your bank soon
@@ -568,7 +570,7 @@ equals sign; instead it is calculated automatically so as to satisfy the
 assertion.  This can be a convenience during data entry, eg when setting
 opening balances:
 
-; starting a new journal, set asset account balances
+; starting a new journal, set asset account balances 
 2016/1/1 opening balances
   assets:checking            = $409.32
   assets:savings             = $735.24
@@ -1054,9 +1056,67 @@ current file.  Glob patterns ('*') are not currently supported.
 include journal, timeclock or timedot files, but not CSV files.
 
 
-File: hledger_journal.info,  Node: EDITOR SUPPORT,  Prev: FILE FORMAT,  Up: Top
+File: hledger_journal.info,  Node: Periodic transactions,  Next: Automated posting rules,  Prev: FILE FORMAT,  Up: Top
 
-2 EDITOR SUPPORT
+2 Periodic transactions
+***********************
+
+A periodic transaction starts with a tilde '~' in place of a date
+followed by a period expression:
+
+~ weekly
+  assets:bank:checking   $400 ; paycheck
+  income:acme inc
+
+   Periodic transactions are used for budgeting and forecasting only,
+they have no effect without the '--forecast' or '--budget' option
+specified.  For examples and details, see Budgeting and Forecasting.
+
+
+File: hledger_journal.info,  Node: Automated posting rules,  Next: EDITOR SUPPORT,  Prev: Periodic transactions,  Up: Top
+
+3 Automated posting rules
+*************************
+
+Autopated posting rule starts with an equal sign '=' in place of a date,
+followed by a query:
+
+= expenses:gifts
+    budget:gifts  *-1
+    assets:budget  *1
+
+   When '--auto' option is specified on the command line, automated
+posting rule will add its postings to all transactions that match the
+query.
+
+   If amount in the automated posting rule includes commodity name, new
+posting will be made in the given commodity, otherwise commodity of the
+matched transaction will be used.
+
+   When amount in the automated posting rule begins with the '*', amount
+will be treated as a multiplier that is applied to the amount of the
+first posting in the matched transaction.
+
+   In example above, every transaction in 'expenses:gifts' account will
+have two additional postings added to it: amount of the original gift
+will be debited from 'budget:gifts' and credited into 'assets:budget':
+
+; Original transaction
+2017-12-14
+  expenses:gifts  $20
+  assets
+
+; With automated postings applied
+2017/12/14
+    expenses:gifts             $20
+    assets
+    budget:gifts              $-20
+    assets:budget              $20
+
+
+File: hledger_journal.info,  Node: EDITOR SUPPORT,  Prev: Automated posting rules,  Up: Top
+
+4 EDITOR SUPPORT
 ****************
 
 Add-on modes exist for various text editors, to make working with
@@ -1078,85 +1138,89 @@ Code
 
 Tag Table:
 Node: Top76
-Node: FILE FORMAT2370
-Ref: #file-format2494
-Node: Transactions2717
-Ref: #transactions2838
-Node: Postings3522
-Ref: #postings3649
-Node: Dates4644
-Ref: #dates4759
-Node: Simple dates4824
-Ref: #simple-dates4950
-Node: Secondary dates5316
-Ref: #secondary-dates5470
-Node: Posting dates7033
-Ref: #posting-dates7162
-Node: Status8536
-Ref: #status8656
-Node: Description10370
-Ref: #description10508
-Node: Payee and note10827
-Ref: #payee-and-note10941
-Node: Account names11183
-Ref: #account-names11326
-Node: Amounts11813
-Ref: #amounts11949
-Node: Virtual Postings14540
-Ref: #virtual-postings14699
-Node: Balance Assertions15919
-Ref: #balance-assertions16094
-Node: Assertions and ordering16990
-Ref: #assertions-and-ordering17176
-Node: Assertions and included files17876
-Ref: #assertions-and-included-files18117
-Node: Assertions and multiple -f options18450
-Ref: #assertions-and-multiple--f-options18704
-Node: Assertions and commodities18836
-Ref: #assertions-and-commodities19071
-Node: Assertions and subaccounts19767
-Ref: #assertions-and-subaccounts19999
-Node: Assertions and virtual postings20520
-Ref: #assertions-and-virtual-postings20727
-Node: Balance Assignments20869
-Ref: #balance-assignments21038
-Node: Prices22157
-Ref: #prices22290
-Node: Transaction prices22341
-Ref: #transaction-prices22486
-Node: Market prices24642
-Ref: #market-prices24777
-Node: Comments25737
-Ref: #comments25859
-Node: Tags27101
-Ref: #tags27219
-Node: Directives28621
-Ref: #directives28734
-Node: Account aliases28927
-Ref: #account-aliases29071
-Node: Basic aliases29675
-Ref: #basic-aliases29818
-Node: Regex aliases30508
-Ref: #regex-aliases30676
-Node: Multiple aliases31394
-Ref: #multiple-aliases31566
-Node: end aliases32064
-Ref: #end-aliases32204
-Node: account directive32305
-Ref: #account-directive32485
-Node: apply account directive32781
-Ref: #apply-account-directive32977
-Node: Multi-line comments33636
-Ref: #multi-line-comments33826
-Node: commodity directive33954
-Ref: #commodity-directive34138
-Node: Default commodity35010
-Ref: #default-commodity35183
-Node: Default year35720
-Ref: #default-year35885
-Node: Including other files36308
-Ref: #including-other-files36465
-Node: EDITOR SUPPORT36862
-Ref: #editor-support36980
+Node: FILE FORMAT2424
+Ref: #file-format2555
+Node: Transactions2778
+Ref: #transactions2899
+Node: Postings3583
+Ref: #postings3710
+Node: Dates4705
+Ref: #dates4820
+Node: Simple dates4885
+Ref: #simple-dates5011
+Node: Secondary dates5377
+Ref: #secondary-dates5531
+Node: Posting dates7094
+Ref: #posting-dates7223
+Node: Status8597
+Ref: #status8717
+Node: Description10425
+Ref: #description10563
+Node: Payee and note10882
+Ref: #payee-and-note10996
+Node: Account names11238
+Ref: #account-names11381
+Node: Amounts11868
+Ref: #amounts12004
+Node: Virtual Postings14595
+Ref: #virtual-postings14754
+Node: Balance Assertions15974
+Ref: #balance-assertions16149
+Node: Assertions and ordering17045
+Ref: #assertions-and-ordering17231
+Node: Assertions and included files17931
+Ref: #assertions-and-included-files18172
+Node: Assertions and multiple -f options18505
+Ref: #assertions-and-multiple--f-options18759
+Node: Assertions and commodities18891
+Ref: #assertions-and-commodities19126
+Node: Assertions and subaccounts19822
+Ref: #assertions-and-subaccounts20054
+Node: Assertions and virtual postings20575
+Ref: #assertions-and-virtual-postings20782
+Node: Balance Assignments20924
+Ref: #balance-assignments21093
+Node: Prices22213
+Ref: #prices22346
+Node: Transaction prices22397
+Ref: #transaction-prices22542
+Node: Market prices24698
+Ref: #market-prices24833
+Node: Comments25793
+Ref: #comments25915
+Node: Tags27157
+Ref: #tags27275
+Node: Directives28677
+Ref: #directives28790
+Node: Account aliases28983
+Ref: #account-aliases29127
+Node: Basic aliases29731
+Ref: #basic-aliases29874
+Node: Regex aliases30564
+Ref: #regex-aliases30732
+Node: Multiple aliases31450
+Ref: #multiple-aliases31622
+Node: end aliases32120
+Ref: #end-aliases32260
+Node: account directive32361
+Ref: #account-directive32541
+Node: apply account directive32837
+Ref: #apply-account-directive33033
+Node: Multi-line comments33692
+Ref: #multi-line-comments33882
+Node: commodity directive34010
+Ref: #commodity-directive34194
+Node: Default commodity35066
+Ref: #default-commodity35239
+Node: Default year35776
+Ref: #default-year35941
+Node: Including other files36364
+Ref: #including-other-files36521
+Node: Periodic transactions36918
+Ref: #periodic-transactions37089
+Node: Automated posting rules37464
+Ref: #automated-posting-rules37642
+Node: EDITOR SUPPORT38751
+Ref: #editor-support38881
 
 End Tag Table

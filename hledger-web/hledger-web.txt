@@ -141,7 +141,7 @@ OPTIONS
 
        -p --period=PERIODEXP
               set start date, end date, and/or reporting interval all at  once
-              (overrides the flags above)
+              using period expressions syntax (overrides the flags above)
 
        --date2
               match  the  secondary  date  instead (see command help for other
@@ -173,6 +173,16 @@ OPTIONS
               convert  amounts  to  their  market value on the report end date
               (using the most recent applicable market price, if any)
 
+       --forecast
+              generate   forecast   transactions   from   [periodic   transac-
+              tion]((journal.html#periodic-transactions) rules.  Each periodic
+              transaction rule will generate forecast transactions,  beginning
+              the  day after the last recorded journal transaction, and ending
+              6 months from today, or at the specified report end date.
+
+       --auto apply automated  posting  rules  to  modify  transactions  where
+              applicable (can combine with -forecast).
+
        When a reporting option appears more than once in the command line, the
        last one takes precedence.
 
@@ -190,22 +200,22 @@ OPTIONS
               show debug output (levels 1-9, default: 1)
 
        A @FILE argument will be expanded to the contents of FILE, which should
-       contain one command line option/argument per line.  (To  prevent  this,
+       contain  one  command line option/argument per line.  (To prevent this,
        insert a -- argument before.)
 
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
        nal).
 
 FILES
-       Reads  data from one or more files in hledger journal, timeclock, time-
-       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
-       $HOME/.hledger.journal           (on          windows,          perhaps
+       Reads data from one or more files in hledger journal, timeclock,  time-
+       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
+       $HOME/.hledger.journal          (on          windows,           perhaps
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The need to precede options with -- when invoked from hledger  is  awk-
+       The  need  to precede options with -- when invoked from hledger is awk-
        ward.
 
        -f- doesn't work (hledger-web can't read from stdin).
@@ -219,7 +229,7 @@ BUGS
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -233,7 +243,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

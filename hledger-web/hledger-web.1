@@ -191,8 +191,8 @@ multiperiod/multicolumn report by year
 .RE
 .TP
 .B \f[C]\-p\ \-\-period=PERIODEXP\f[]
-set start date, end date, and/or reporting interval all at once
-(overrides the flags above)
+set start date, end date, and/or reporting interval all at once using
+period expressions syntax (overrides the flags above)
 .RS
 .RE
 .TP
@@ -240,6 +240,21 @@ price, if any)
 .B \f[C]\-V\ \-\-value\f[]
 convert amounts to their market value on the report end date (using the
 most recent applicable market price, if any)
+.RS
+.RE
+.TP
+.B \f[C]\-\-forecast\f[]
+generate forecast transactions from [periodic
+transaction]((journal.html#periodic\-transactions) rules.
+Each periodic transaction rule will generate forecast transactions,
+beginning the day after the last recorded journal transaction, and
+ending 6 months from today, or at the specified report end date.
+.RS
+.RE
+.TP
+.B \f[C]\-\-auto\f[]
+apply automated posting rules to modify transactions where applicable
+(can combine with \[en]forecast).
 .RS
 .RE
 .PP
