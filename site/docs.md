@@ -29,25 +29,22 @@ For more docs relevant to all ledger-likes, see [plaintextaccounting.org](http:/
 
 ## Introduction
 
-### What is... hledger?
-An enhanced, well-documented rewrite of the original plain text accounting tool.
-Loved Ledger so much, I had to rebuild it!\
+### What is hledger?
+An enhanced, well-documented rewrite of the original plain text accounting tool.\
 [hledger intro](http://hledger.org)\
 [Frequently Asked Questions](faq.html)\
 [Download](download.html)\
 [Release notes](release-notes.html)\
 
 
-### Plain text accounting?
-Using plain text data formats and quick, modular free software tools
-for robust, transparent, powerful accounting.\
+### What is Plain Text Accounting?
+Using plain text data formats and modular free software tools for robust, efficient accounting.\
 [plaintextaccounting.org](http://plaintextaccounting.org)\
 
 
-### Accounting?
-Tracking the flow of valuable commodities, such as money or time.
-Reduce stress, increase success!\
-[Selected accounting links](more-docs.html#accounting)
+### What is Accounting?
+Tracking your use of valuable commodities, such as money or time, for increased awareness and effectiveness.\
+[Selected accounting links](more-docs.html#accounting)\
 
 
 </div>
@@ -110,20 +107,6 @@ A growing collection of tutorials, how-tos and discussion of general topics.
 
 Reference manuals, covering every part of hledger's functionality.
 
-### File formats
-
-[hledger_journal(5)](journal.html)
-is hledger's native data format, representing an accounting journal
-
-[hledger_csv(5)](csv.html)
-allows CSV import/export
-
-[hledger_timeclock(5)](timeclock.html)
-is for clock-in/clock-out time logging
-
-[hledger_timedot(5)](timedot.html)
-is for human-friendly time logging
-
 ### Core tools
 
 [hledger(1)](hledger.html)
@@ -137,6 +120,20 @@ is a web UI
 
 [hledger-api(1)](hledger-api.html)
 is a HTTP-JSON API
+
+### File formats
+
+[hledger_journal(5)](journal.html)
+is hledger's native data format, representing an accounting journal
+
+[hledger_csv(5)](csv.html)
+allows CSV import/export
+
+[hledger_timeclock(5)](timeclock.html)
+is for clock-in/clock-out time logging
+
+[hledger_timedot(5)](timedot.html)
+is for human-friendly time logging
 
 ### Addon tools
 
