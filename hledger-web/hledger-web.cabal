@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 015ba5dae06a3c2c9434725c0982ad55d98ffe912b00aa3d3beff665f82de78c
+-- hash: 8b909b66ed99a760e973a9a36822f85ab879fb9823aab1521214d41b237abd45
 
 name:           hledger-web
-version:        1.4
+version:        1.4.99
 synopsis:       Web interface for the hledger accounting tool
 description:    This is hledger's web interface.
                 It provides a more user-friendly and collaborative UI than the
@@ -124,7 +124,7 @@ flag threaded
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   build-depends:
       HUnit
     , base >=4.8 && <5
@@ -139,8 +139,8 @@ library
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.4 && <1.5
-    , hledger-lib >=1.4 && <1.5
+    , hledger >=1.4.99 && <1.5
+    , hledger-lib >=1.4.99 && <1.5
     , http-client
     , http-conduit
     , json
@@ -192,7 +192,7 @@ executable hledger-web
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   build-depends:
       HUnit
     , base >=4.8 && <5
@@ -207,8 +207,8 @@ executable hledger-web
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.4 && <1.5
-    , hledger-lib >=1.4 && <1.5
+    , hledger >=1.4.99 && <1.5
+    , hledger-lib >=1.4.99 && <1.5
     , hledger-web
     , http-client
     , http-conduit
@@ -249,7 +249,7 @@ test-suite test
   hs-source-dirs:
       tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   build-depends:
       HUnit
     , base >=4.8 && <5
@@ -264,8 +264,8 @@ test-suite test
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.4 && <1.5
-    , hledger-lib >=1.4 && <1.5
+    , hledger >=1.4.99 && <1.5
+    , hledger-lib >=1.4.99 && <1.5
     , hledger-web
     , hspec
     , http-client
