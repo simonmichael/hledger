@@ -196,9 +196,11 @@ ul {
     color: #a94442;
 }
 
-.form .transaction-date.input-lg {
+.form .transaction-date {
     width: 100%;
     padding-right: 0;
+    border-radius: 4px;
+    line-height: 41px;
 }
 
 .date {

@@ -125,6 +125,7 @@ instance Yesod App where
 
         pc <- widgetToPageContent $ do
             addStylesheet $ StaticR css_bootstrap_min_css
+            addStylesheet $ StaticR css_datepolyfill_css
              -- load these things early, in HEAD:
             toWidgetHead [hamlet|
                           <script type="text/javascript" src="@{StaticR js_jquery_min_js}">
@@ -132,6 +133,7 @@ instance Yesod App where
                          |]
             addScript $ StaticR js_bootstrap_min_js
             -- addScript $ StaticR js_typeahead_bundle_min_js
+            addScript $ StaticR js_dateinputpolyfill_js
             addScript $ StaticR js_jquery_url_js
             addScript $ StaticR js_jquery_cookie_js
             addScript $ StaticR js_jquery_hotkeys_js
@@ -332,7 +334,7 @@ addform _ vd@VD{..} = [hamlet|
  <div .form-group>
   <div .row>
    <div .col-md-3 .col-xs-6 .col-sm-6>
-    <input required type=date name=date .transaction-date .input-lg placeholder="Date" >
+    <input #date required lang=en type=date name=date .transaction-date placeholder="Date" >
    <div .col-md-9 .col-xs-6 .col-sm-6>
     <input #description .typeahead .form-control .input-lg type=text size=40 name=description placeholder="Description">
  <div .account-postings>
