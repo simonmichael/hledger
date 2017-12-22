@@ -54,3 +54,4 @@ tools/simplebench
 /templates
 hledger-web/static/tmp/
 hledger-web/yesod-devel/
+.hledger-web_client_session_key.aes
