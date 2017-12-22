@@ -35,24 +35,27 @@ but they can be out of date or incomplete.
 
 ## B. I want to build the latest release
 
-The latest release (see [release notes](release-notes.html)) is a good choice.
+The latest release is a good choice. Check the [release notes](release-notes.html) to see what's in it.
 
-On POSIX systems (mac/linux/freebsd..), use our new hassle-free installer
-to get the current release of hledger and related tools.
-Here's the more secure way:
+On POSIX systems (mac/linux/freebsd..), the hassle-free 
+[hledger-install.sh](https://github.com/simonmichael/hledger/tree/master/hledger-install) script is the most reliable install method.
+It will use stack or cabal, installing stack if needed, and build the current release of hledger and addon tools,
+installing everything in $HOME/.local/bin (or $HOME/.cabal/bin).
+This is like doing a manual stack/cabal install, but more automated and robust.
+Here's how to run the installer:
 
  **`curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**\
  **`less hledger-install.sh`**  *# (do security review)*\
  **`bash hledger-install.sh`**  *# (add `-v` for more detail; use `bash -x` to show commands being run)* 
 
-and here's the less secure, more convenient way:
+and here's the more convenient but less secure way:
 
  **`curl https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash`**
 
-Note this could take significant time (minutes to hours), memory (~2G),
-and disk space (up to a gigabyte) depending on your connection, 
-machine and past cabal/stack installations. You can kill and rerun it without losing progress.
-If the installer fails, please help improve it by [reporting](docs.html#helpfeedback) the full output.
+Note, building haskell apps can take significant time (minutes to hours), memory (~2G),
+and disk space (up to a gigabyte in $HOME/.stack, though you can delete that afterward).
+You can kill and restart the installer without losing progress.
+If it fails, please help us improve it by [reporting the full output](docs.html#helpfeedback).
 
 Or, you can install manually (all systems):
 
@@ -103,7 +106,7 @@ The latest [master branch](https://github.com/simonmichael/hledger/commits/maste
 
 1. **Install [`stack`](http://haskell-lang.org/get-started) and [git](https://en.wikipedia.org/wiki/Git)**
    (see notes in B above)
-2. **`git clone http://code.hledger.org hledger`**
+2. **`git clone https://github.com/simonmichael/hledger`**
 3. **`cd hledger`**
 4. **`stack install`**
 
