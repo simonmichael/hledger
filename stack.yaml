@@ -1,6 +1,6 @@
 # stack build plan using GHC 8.2.1
 
-resolver: nightly-2017-12-14
+resolver: lts-10.0
 
 nix:
   enable: false
