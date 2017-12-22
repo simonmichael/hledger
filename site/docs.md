@@ -109,31 +109,31 @@ Reference manuals, covering every part of hledger's functionality.
 
 ### Core tools
 
-[hledger(1)](hledger.html)
+[hledger](hledger.html)
 is the command-line UI
 
-[hledger-ui(1)](hledger-ui.html)
+[hledger-ui](hledger-ui.html)
 is a curses-style UI
 
-[hledger-web(1)](hledger-web.html)
+[hledger-web](hledger-web.html)
 is a web UI
 
-[hledger-api(1)](hledger-api.html)
+[hledger-api](hledger-api.html)
 is a HTTP-JSON API
 
 ### File formats
 
-[hledger_journal(5)](journal.html)
+[journal format](journal.html)
 is hledger's native data format, representing an accounting journal
 
-[hledger_csv(5)](csv.html)
-allows CSV import/export
+[csv format](csv.html)
+allows hledger to read and write CSV, a common download format
 
-[hledger_timeclock(5)](timeclock.html)
-is for clock-in/clock-out time logging
+[timeclock format](timeclock.html)
+is for precise time logging with clock-in/clock-out
 
-[hledger_timedot(5)](timedot.html)
-is for human-friendly time logging
+[timedot format](timedot.html)
+is for human-friendly approximate time logging
 
 ### Addon tools
 
