@@ -103,7 +103,7 @@ The latest [master branch](https://github.com/simonmichael/hledger/commits/maste
 
 1. **Install [`stack`](http://haskell-lang.org/get-started) and [git](https://en.wikipedia.org/wiki/Git)**
    (see notes in B above)
-2. **`git clone http://code.hledger.org hledger`**
+2. **`git clone https://github.com/simonmichael/hledger`**
 3. **`cd hledger`**
 4. **`stack install`**
 
