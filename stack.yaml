@@ -1,4 +1,4 @@
-# stack build plan using GHC 8.2.1
+# stack build plan using GHC 8.2.x
 
 resolver: lts-10.0
 
