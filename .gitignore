@@ -12,12 +12,19 @@ _*
 tags
 TAGS
 
-# temp files
+# Tricksy rules ignoring some typical temp files.
+# For troubleshooting: git check-ignore --verbose PATHS...
+# 1- or 2-character filenames, maybe with an extension; but not directories
 [a-z0-9]
 [a-z0-9].*
 [a-z0-9][a-z0-9]
 [a-z0-9][a-z0-9].*
-[0-9]*
+![a-z0-9]/
+![a-z0-9].*/
+![a-z0-9][a-z0-9]/
+![a-z0-9][a-z0-9].*/
+# files/directories beginning with a number
+/[0-9]*
 
 # haskell stuff
 *.dyn_hi
