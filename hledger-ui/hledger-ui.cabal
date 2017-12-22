@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c00bcfd6f775d332d459686ee8b8058420f77d46d34fe308eaee51fe84a7619f
+-- hash: ee0c5617b02ecbc0732d165f53e39e49de9c956079f8bb16b501bb7f0d200f0a
 
 name:           hledger-ui
 version:        1.4
@@ -67,7 +67,7 @@ executable hledger-ui
     , fsnotify >=0.2 && <0.3
     , hledger >=1.4 && <1.5
     , hledger-lib >=1.4 && <1.5
-    , megaparsec >=5.0 && <6.3
+    , megaparsec >=5.0 && <6.4
     , microlens >=0.4 && <0.5
     , microlens-platform >=0.2.3.1 && <0.4
     , pretty-show >=1.6.4
@@ -83,7 +83,7 @@ executable hledger-ui
     buildable: False
   else
     build-depends:
-        brick >=0.12 && <0.30
+        brick >=0.12 && <0.31
       , vty >=5.5 && <5.20
   if flag(threaded)
     ghc-options: -threaded

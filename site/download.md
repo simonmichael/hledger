@@ -22,7 +22,7 @@ but they can be out of date or incomplete.
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Windows:             | [Latest developer builds](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts) (no hledger-ui, [please help](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))
 | Mac:                 | **`brew install hledger`** (CLI only, [please help ](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))
-| Arch Linux:          | **`pacman -S hledger`**
+| Arch Linux:          | **`pacman -S hledger`** (haskell problems are common on Arch at present, cf [#668](https://github.com/simonmichael/hledger/issues/668#issuecomment-352197500))
 | Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`**
 | Fedora,&nbsp;RHEL:   | **`sudo dnf install hledger`**
 | Gentoo:              | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`**
@@ -108,6 +108,8 @@ The latest [master branch](https://github.com/simonmichael/hledger/commits/maste
 4. **`stack install`**
 
 Cabal users can use the `cabal-install.sh` or `cabal.project` files instead.
+
+Nix users taking advantage of Stack integration may need to use Stack's `--no-nix-pure` flag to build hledger.
 
 
 <a name="d"></a>

@@ -1,4 +1,4 @@
-This is hledger-ui.info, produced by makeinfo version 6.0 from stdin.
+This is hledger-ui.info, produced by makeinfo version 6.5 from stdin.
 
 
 File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
@@ -100,7 +100,7 @@ the data.
 '-p --period=PERIODEXP'
 
      set start date, end date, and/or reporting interval all at once
-     (overrides the flags above)
+     using period expressions syntax (overrides the flags above)
 '--date2'
 
      match the secondary date instead (see command help for other
@@ -131,6 +131,17 @@ the data.
 
      convert amounts to their market value on the report end date (using
      the most recent applicable market price, if any)
+'--forecast'
+
+     generate forecast transactions from [periodic
+     transaction]((journal.html#periodic-transactions) rules.  Each
+     periodic transaction rule will generate forecast transactions,
+     beginning the day after the last recorded journal transaction, and
+     ending 6 months from today, or at the specified report end date.
+'--auto'
+
+     apply automated posting rules to modify transactions where
+     applicable (can combine with -forecast).
 
    When a reporting option appears more than once in the command line,
 the last one takes precedence.
@@ -371,17 +382,17 @@ Tag Table:
 Node: Top71
 Node: OPTIONS821
 Ref: #options918
-Node: KEYS3855
-Ref: #keys3950
-Node: SCREENS6909
-Ref: #screens6994
-Node: Accounts screen7084
-Ref: #accounts-screen7212
-Node: Register screen9442
-Ref: #register-screen9597
-Node: Transaction screen11671
-Ref: #transaction-screen11829
-Node: Error screen12699
-Ref: #error-screen12821
+Node: KEYS4350
+Ref: #keys4445
+Node: SCREENS7404
+Ref: #screens7489
+Node: Accounts screen7579
+Ref: #accounts-screen7707
+Node: Register screen9937
+Ref: #register-screen10092
+Node: Transaction screen12166
+Ref: #transaction-screen12324
+Node: Error screen13194
+Ref: #error-screen13316
 
 End Tag Table

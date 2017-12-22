@@ -125,7 +125,7 @@ m4_define({{_reportingoptions_}}, {{
 : multiperiod/multicolumn report by year
 
 `-p --period=PERIODEXP`
-: set start date, end date, and/or reporting interval all at once (overrides the flags above)
+: set start date, end date, and/or reporting interval all at once using [period expressions](manual.html#period-expressions) syntax (overrides the flags above)
 
 `--date2`
 : match the secondary date instead (see command help for other effects)
@@ -155,6 +155,15 @@ m4_define({{_reportingoptions_}}, {{
 `-V --value`
 : convert amounts to their market value on the report end date
 (using the most recent applicable [market price](journal.html#market-prices), if any)
+
+`--forecast`
+: generate forecast transactions from [periodic transaction]((journal.html#periodic-transactions) rules.
+Each periodic transaction rule will generate [forecast transactions](budgeting-and-forecasting.html#forecasting),
+beginning the day after the last recorded journal transaction,
+and ending 6 months from today, or at the specified report end date.
+
+`--auto`
+: apply [automated posting rules](journal.html#automated-posting-rules) to modify transactions where applicable (can combine with --forecast).
 
 When a reporting option appears more than once in the command line, the last one takes precedence.
 

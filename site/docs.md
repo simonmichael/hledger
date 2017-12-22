@@ -81,7 +81,8 @@ A growing collection of tutorials, how-tos and discussion of general topics.
 
 ### Journal entries
 
-[Example journal entries](entries.html)\
+[Basic journal entries](entries.html)\
+[Project accounting](project-accounting.html)\
 
 
 ### Data entry/import

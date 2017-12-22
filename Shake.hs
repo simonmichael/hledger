@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack exec --verbosity=info --stack-yaml=stack8.0.yaml
+{- stack exec --verbosity=info
    --package base-prelude
    --package directory
    --package extra
@@ -7,7 +7,7 @@
    --package safe
    --package shake
    --package time
-   -- ghc -threaded
+   -- ghc
 -}
 {-
 One of two project scripts files (Makefile, Shake.hs).

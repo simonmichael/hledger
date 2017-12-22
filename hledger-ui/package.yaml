@@ -55,7 +55,7 @@ dependencies:
  - HUnit
  - microlens >= 0.4 && < 0.5
  - microlens-platform >= 0.2.3.1 && < 0.4
- - megaparsec >=5.0 && < 6.3
+ - megaparsec >=5.0 && < 6.4
  - pretty-show >=1.6.4
  - process >= 1.2
  - safe >= 0.2
@@ -82,7 +82,7 @@ when:
      buildable: false
    else:
      dependencies:
-       - brick >= 0.12 && < 0.30
+       - brick >= 0.12 && < 0.31
        - vty >= 5.5 && < 5.20
 
 executables:
