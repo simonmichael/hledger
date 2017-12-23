@@ -14,6 +14,14 @@ $(document).ready(function() {
   // show add form if ?add=1
   if ($.url.param('add')) { addformShow(true); }
 
+	// date picker
+	// http://bootstrap-datepicker.readthedocs.io/en/latest/options.html
+	$('#dateWrap').datepicker({
+		showOnFocus: false,
+		autoclose: true,
+		format: 'yyyy-mm-dd'
+	});
+
   // sidebar account hover handlers
   $('#sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
   $('#sidebar td').mouseleave(function(){ $(this).removeClass('mouseover'); });
@@ -141,7 +149,6 @@ function addformReset(showmsg) {
     // reset typehead state (though not fetched completions)
     $('.typeahead').typeahead('val', '');
     $('.tt-dropdown-menu').hide();
-    $('input#date').val(''); // #322 don't set a default, typeahead(?) clears it on tab. See also Foundation.hs
   }
 }
 
