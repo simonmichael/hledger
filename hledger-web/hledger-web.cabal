@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8b909b66ed99a760e973a9a36822f85ab879fb9823aab1521214d41b237abd45
+-- hash: e44d6ce1b41bd59cebb67a6f567178cd7fdef2396dd1debf0c5c1e9635233736
 
 name:           hledger-web
 version:        1.4.99
@@ -38,6 +38,7 @@ extra-source-files:
     config/settings.yml
     messages/en.msg
     README
+    static/css/bootstrap-datepicker.standalone.min.css
     static/css/bootstrap-theme.css
     static/css/bootstrap-theme.css.map
     static/css/bootstrap-theme.min.css
@@ -50,6 +51,7 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.woff
     static/hledger.css
     static/hledger.js
+    static/js/bootstrap-datepicker.min.js
     static/js/bootstrap.js
     static/js/bootstrap.min.js
     static/js/excanvas.js
