@@ -262,7 +262,7 @@ accountWizard EntryState{..} = do
           flip evalState esJournal $ runParserT (accountnamep <* eof) "" (T.pack s) -- otherwise, try to parse the input as an accountname
         where
           validateAccount :: Text -> Maybe Text
-          validateAccount t | no_new_accounts_ esOpts && not (t `elem` journalAccountNames esJournal) = Nothing
+          validateAccount t | no_new_accounts_ esOpts && not (t `elem` journalAccountNamesDeclaredOrImplied esJournal) = Nothing
                             | otherwise = Just t
       dbg1 = id -- strace
 
@@ -337,7 +337,7 @@ descriptionCompleter :: Journal -> String -> CompletionFunc IO
 descriptionCompleter j = completer (map T.unpack $ journalDescriptions j)
 
 accountCompleter :: Journal -> String -> CompletionFunc IO
-accountCompleter j = completer (map T.unpack $ journalAccountNamesUsed j)
+accountCompleter j = completer (map T.unpack $ journalAccountNamesDeclaredOrImplied j)
 
 amountCompleter :: String -> CompletionFunc IO
 amountCompleter = completer []
