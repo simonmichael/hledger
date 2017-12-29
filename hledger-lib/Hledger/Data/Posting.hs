@@ -132,8 +132,9 @@ hasAmount = (/= missingmixedamt) . pamount
 isAssignment :: Posting -> Bool
 isAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)
 
+-- | Sorted unique account names referenced by these postings.
 accountNamesFromPostings :: [Posting] -> [AccountName]
-accountNamesFromPostings = nub . map paccount
+accountNamesFromPostings = nub . sort . map paccount
 
 sumPostings :: [Posting] -> MixedAmount
 sumPostings = sumStrict . map pamount
