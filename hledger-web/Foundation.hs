@@ -358,7 +358,7 @@ addform _ vd@VD{..} = [hamlet|
 |]
  where
   descriptions = sort $ nub $ map tdescription $ jtxns j
-  accts = sort $ journalAccountNamesUsed j
+  accts = journalAccountNamesDeclaredOrImplied j
   escapeJSSpecialChars = regexReplaceCI "</script>" "<\\/script>" -- #236
   listToJsonValueObjArrayStr as  = preEscapedString $ escapeJSSpecialChars $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("value", showJSON a)]) as
   numpostings = 4

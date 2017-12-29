@@ -29,8 +29,12 @@ module Hledger.Data.Journal (
   filterTransactionPostings,
   filterPostingAmount,
   -- * Querying
-  journalAccountNames,
   journalAccountNamesUsed,
+  journalAccountNamesImplied,
+  journalAccountNamesDeclared,
+  journalAccountNamesDeclaredOrUsed,
+  journalAccountNamesDeclaredOrImplied,
+  journalAccountNames,
   -- journalAmountAndPriceCommodities,
   journalAmounts,
   overJournalAmounts,
@@ -239,13 +243,32 @@ journalDescriptions = nub . sort . map tdescription . jtxns
 journalPostings :: Journal -> [Posting]
 journalPostings = concatMap tpostings . jtxns
 
--- | Unique account names posted to in this journal.
+-- | Sorted unique account names posted to by this journal's transactions.
 journalAccountNamesUsed :: Journal -> [AccountName]
-journalAccountNamesUsed = sort . accountNamesFromPostings . journalPostings
+journalAccountNamesUsed = accountNamesFromPostings . journalPostings
 
--- | Unique account names in this journal, including parent accounts containing no postings.
+-- | Sorted unique account names implied by this journal's transactions - 
+-- accounts posted to and all their implied parent accounts.
+journalAccountNamesImplied :: Journal -> [AccountName]
+journalAccountNamesImplied = expandAccountNames . journalAccountNamesUsed
+
+-- | Sorted unique account names declared by account directives in this journal.
+journalAccountNamesDeclared :: Journal -> [AccountName]
+journalAccountNamesDeclared = nub . sort . jaccounts
+
+-- | Sorted unique account names declared by account directives or posted to
+-- by transactions in this journal.
+journalAccountNamesDeclaredOrUsed :: Journal -> [AccountName]
+journalAccountNamesDeclaredOrUsed j = nub $ sort $ journalAccountNamesDeclared j ++ journalAccountNamesUsed j
+
+-- | Sorted unique account names declared by account directives, or posted to
+-- or implied as parents by transactions in this journal.
+journalAccountNamesDeclaredOrImplied :: Journal -> [AccountName]
+journalAccountNamesDeclaredOrImplied j = nub $ sort $ journalAccountNamesDeclared j ++ journalAccountNamesImplied j
+
+-- | Convenience/compatibility alias for journalAccountNamesDeclaredOrImplied.
 journalAccountNames :: Journal -> [AccountName]
-journalAccountNames = sort . expandAccountNames . journalAccountNamesUsed
+journalAccountNames = journalAccountNamesDeclaredOrImplied 
 
 journalAccountNameTree :: Journal -> Tree AccountName
 journalAccountNameTree = accountNameTreeFrom . journalAccountNames
