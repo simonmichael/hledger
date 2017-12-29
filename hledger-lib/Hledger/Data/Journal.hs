@@ -266,7 +266,7 @@ journalAccountNamesDeclaredOrUsed j = nub $ sort $ journalAccountNamesDeclared j
 journalAccountNamesDeclaredOrImplied :: Journal -> [AccountName]
 journalAccountNamesDeclaredOrImplied j = nub $ sort $ journalAccountNamesDeclared j ++ journalAccountNamesImplied j
 
--- | Convenience/compatibility alias for journalAccountNamesImpliedOrUsed.
+-- | Convenience/compatibility alias for journalAccountNamesDeclaredOrImplied.
 journalAccountNames :: Journal -> [AccountName]
 journalAccountNames = journalAccountNamesDeclaredOrImplied 
 
