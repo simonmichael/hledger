@@ -41,7 +41,7 @@ data-files:
 dependencies:
 - base >=4.8 && <5
 - base-compat >=0.8.1
-- ansi-terminal >= 0.6.2.3 && < 0.8
+- ansi-terminal >= 0.6.2.3 && < 0.9
 - array
 - blaze-markup >=0.5.1
 - bytestring

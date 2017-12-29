@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.21.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3cda8b9094bb172a1caa4593fec0a0ccc6e54357da526476e24cc1c22d0dce0d
+-- hash: bdd44830833c0a5bac9f94905672abc6917c2763aa43b4ae8728bcc5cbc7354f
 
 name:           hledger-lib
 version:        1.4.99
@@ -56,7 +56,7 @@ library
   build-depends:
       Decimal
     , HUnit
-    , ansi-terminal >=0.6.2.3 && <0.8
+    , ansi-terminal >=0.6.2.3 && <0.9
     , array
     , base >=4.8 && <5
     , base-compat >=0.8.1
@@ -146,7 +146,7 @@ test-suite doctests
       Decimal
     , Glob >=0.7
     , HUnit
-    , ansi-terminal >=0.6.2.3 && <0.8
+    , ansi-terminal >=0.6.2.3 && <0.9
     , array
     , base >=4.8 && <5
     , base-compat >=0.8.1
@@ -235,7 +235,7 @@ test-suite hunittests
   build-depends:
       Decimal
     , HUnit
-    , ansi-terminal >=0.6.2.3 && <0.8
+    , ansi-terminal >=0.6.2.3 && <0.9
     , array
     , base >=4.8 && <5
     , base-compat >=0.8.1
