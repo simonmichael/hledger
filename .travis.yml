@@ -200,3 +200,12 @@ notifications:
   #     - other@example.com
   #   on_success: [always|never|change] # default: change
   #   on_failure: [always|never|change] # default: always
+  
+  webhooks:
+    urls:
+      - "https://ingest.devmode.cloud/hooks/travisci?channel=%23hledger-bots"
+    # on_success: change # default: always
+    # on_failure: always # default: always
+    # on_start: change   # default: never
+    # on_cancel: always # default: always
+    # on_error: always # default: always
