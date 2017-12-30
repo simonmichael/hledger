@@ -367,15 +367,13 @@ if they have a [transaction price](/journal.html#transaction-prices) specified.
 
 ## Market value
 
-The `-V/--value` flag converts the reported amounts to their market value
-on the report end date, using the most recent applicable market prices,
-when known.
-Specifically, when there is a [market price](journal.html#market-prices) (P directive)
-for the amount's commodity, dated on or before the
-[report end date](hledger.html#report-start-end-date) (see hledger -> Report start & end date), 
+The `-V/--value` flag converts reported amounts to their current market value.
+Specifically, when there is a [market price](journal.html#market-prices) (P directive) for the amount's commodity, 
+dated on or before today's date (or the [report end date](#report-start-end-date) if specified),
 the amount will be converted to the price's commodity.
-If multiple applicable prices are defined, the latest-dated one is used
-(and if dates are equal, the one last parsed).
+
+When there are multiple applicable P directives, -V chooses the most 
+recent one, or in case of equal dates, the last-parsed one. 
 
 For example:
 
