@@ -24,6 +24,7 @@ import Prelude.Compat hiding (readFile)
 import Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
 import Control.Monad.State.Strict
+import Data.Char
 import Data.Data
 import Data.Default
 import Data.Functor.Identity
@@ -599,7 +600,7 @@ rawnumberp = do
     (firstSep, groups) <- option (Nothing, []) $ do
         leadingDigits <- some digitChar
         option (Nothing, [leadingDigits]) . try $ do
-            firstSep <- oneOf sepChars
+            firstSep <- oneOf sepChars <|> whitespaceChar
             groups <- some digitChar `sepBy1` char firstSep
             return (Just firstSep, leadingDigits : groups)
 
@@ -614,11 +615,14 @@ rawnumberp = do
         return (lastSep, fromMaybe [] digits)
 
     -- make sure we didn't leading part of mistyped number
-    notFollowedBy $ oneOf sepChars
+    notFollowedBy $ oneOf sepChars <|> (whitespaceChar >> digitChar)
 
     return $ dbg8 "rawnumberp" (firstSep, groups, extraGroup)
     <?> "rawnumberp"
 
+-- | Parse a unicode char that represents any non-control space char (Zs general category).
+whitespaceChar :: TextParser m Char
+whitespaceChar = charCategory Space
 
 -- test_numberp = do
 --       let s `is` n = assertParseEqual (parseWithState mempty numberp s) n

@@ -100,11 +100,13 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 instance Yesod App where
     approot = ApprootMaster $ appRoot . settings
 
-    -- Store session data on the client in encrypted cookies,
-    -- default session idle timeout is 120 minutes
-    makeSessionBackend _ = fmap Just $ defaultClientSessionBackend
-                             (120 * 60)
-                             ".hledger-web_client_session_key.aes"
+--    -- Store session data on the client in encrypted cookies,
+--    -- default session idle timeout is 120 minutes
+--    makeSessionBackend _ = fmap Just $ defaultClientSessionBackend
+--                             (120 * 60)
+--                             ".hledger-web_client_session_key.aes"
+    -- don't use session data
+    makeSessionBackend _ = return Nothing
 
     defaultLayout widget = do
         master <- getYesod
