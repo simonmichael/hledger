@@ -1392,26 +1392,27 @@ doc/lib.m4: $(VERSIONFILE)
 setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version strings & bounds from $(VERSIONFILE) (might need -B) )
 
 updateversion: setversion $(call def-help,updateversion, update version strings & bounds from $(VERSIONFILE) and commit (might need -B) )
-	@read -p "please review changes then press enter to commit: $(VERSIONFILE) $(VERSIONSENSITIVEFILES)"
+	@read -p "please review changes then press enter to commit $(VERSIONFILE) $(VERSIONSENSITIVEFILES)"
 	git commit -m "bump version strings & lower bounds to $(VERSION)" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
 
 # (re)generate a cabal file from its package.yaml definition 
 # XXX to avoid warnings, this hpack should be the same version as stack's built-in hpack
-%.cabal: $$(dir $$@)package.yaml
-	hpack --silent $(dir $*) 
+#%.cabal: $$(dir $$@)package.yaml
+#	hpack --silent $(dir $*) 
+#
+gencabal: $(call def-help,gencabal, regenerate cabal files from package.yaml files with stack )
+	stack build --dry-run --silent
 
-gencabal: $$(CABALFILES) #$(call def-help,gencabal, regenerate cabal files from package.yamls (might need -B) )
-
-updatecabal: gencabal $(call def-help,updatecabal, regenerate and commit cabal files (might need -B) )
-	@read -p "please review changes then press enter to commit: $(CABALFILES)"
-	git commit -m "update cabal files" $(CABALFILES)
+updatecabal: gencabal $(call def-help,updatecabal, regenerate cabal files and commit )
+	@read -p "please review changes then press enter to commit $(shell ls */*.cabal)"
+	git commit -m "update cabal files" $(shell ls */*.cabal)
 
 # we call in shake for this job; so dependencies aren't checked here
 genmanuals: Shake #$(call def-help,genmanuals, regenerate embedded manuals (might need -B) )
 	./Shake manuals
 
 updatemanuals: genmanuals $(call def-help,updatemanuals, regenerate embedded manuals and commit (might need -B) )
-	@read -p "please review changes then press enter to commit: $(shell ls hledger*/hledger*.{1,5,info,txt})"
+	@read -p "please review changes then press enter to commit $(shell ls hledger*/hledger*.{1,5,info,txt})"
 	git commit -m "update embedded manuals" hledger*/hledger*.{1,5,info,txt}
 
 
