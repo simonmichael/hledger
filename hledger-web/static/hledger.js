@@ -4,23 +4,30 @@
 // STARTUP
 
 $(document).ready(function() {
+  // cache the input element as a variable
+  // for minor performance   benefits
+  var dateEl = $('#dateWrap');
 
-  // ensure add form always focusses its first field
+  // ensure add form always focuses its first field
   $('#addmodal')
-    .on('shown.bs.modal', function (e) {
+    .on('shown.bs.modal', function() {
       addformFocus();
     })
+    .on('hidden.bs.modal', function() {
+      // close the date picker if open
+      dateEl.datepicker('hide');
+    });
 
   // show add form if ?add=1
   if ($.url.param('add')) { addformShow(true); }
 
-	// date picker
-	// http://bootstrap-datepicker.readthedocs.io/en/latest/options.html
-	$('#dateWrap').datepicker({
-		showOnFocus: false,
-		autoclose: true,
-		format: 'yyyy-mm-dd'
-	});
+  // date picker
+  // http://bootstrap-datepicker.readthedocs.io/en/latest/options.html
+  dateEl.datepicker({
+    showOnFocus: false,
+    autoclose: true,
+    format: 'yyyy-mm-dd'
+  });
 
   // sidebar account hover handlers
   $('#sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
@@ -45,7 +52,7 @@ $(document).ready(function() {
   if (window.location.hash && $(window.location.hash)[0]) {
     $(window.location.hash).addClass('highlighted');
   }
-  $(window).on('hashchange', function(event) {
+  $(window).on('hashchange', function() {
     $('.highlighted').removeClass('highlighted');
     $(window.location.hash).addClass('highlighted');
   });
@@ -57,6 +64,7 @@ $(document).ready(function() {
 //----------------------------------------------------------------------
 // REGISTER CHART
 
+//eslint-disable-next-line no-unused-vars
 function registerChart($container, series) {
   // https://github.com/flot/flot/blob/master/API.md
   return $container.plot(
