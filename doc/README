@@ -1,20 +1,97 @@
-Miscellaneous project docs that don't fit elsewhere.
-See also:
+HLEDGER_SRC/doc - starting point for hledger documentation files.
 
-- the project readme in the top directory
-- the package changelogs and man pages in hledger-lib/, hledger/ etc.
-- the website content in site/
 
-Some doc notes, until a better place is found:
+hledger doc files can be divided into several groups: 
 
-In site/release-notes.md, we stopped mentioning minor releases
-around 0.27. The old minor releases should probably be removed
-or promoted to the same heading level as major releases.
+1. Project admin/dev notes not published on the website.
+These are kept in this directory (doc/). They include: 
+ 
+doc/finance/      project finances
+doc/hcar/         Haskell Community and Activities Report entries
+doc/lib.m4        common macros used in package manuals
+doc/manpage.*     misc. templates for rendering package manuals
+doc/mockups/      exploratory developer mockups   
+doc/profs/        a place for long-term profiling/performance data
+
+2. Project doc files required to be in the top directory:
+
+README.md         the main project readme, displayed on github
+LICENSE           the default project license
+
+3. Code/API docs in haskell source files as haddock comments:
+
+hledger*/**/*.hs  haddock module and function docs in most source files
+
+4. Per-package descriptions, readmes, changelogs, and reference manuals.
+These are in the respective package directories:
+
+hledger*/package.yaml    source for package metadata (description, etc.)
+hledger*/README          package readme, displayed on hackage
+hledger*/CHANGES         package changelog, displayed on hackage
+hledger*/hledger*.m4.md  package manual source file(s)
+
+5. The project website and additional docs - home page, FAQ, tutorials, 
+how-tos, developer guide, etc. These are in the site directory:
+
+site/             hledger.org website content, templates, assets
+
+
+## Workflows
+
+The manuals and website are rendered from the top directory, 
+primarily using Shake. First, build Shake:
+
+$ make Shake
+
+Then render the per-package manuals from markdown-m4 source files (*.m4.md) 
+to text, man, info, and markdown formats. This requires some unix tools 
+such as m4:
+
+$ ./Shake manuals
+
+The text/man/info manuals are embedded in the hledger executable, so a 
+rebuild of that now will pick up the latest manuals:
+
+$ stack build hledger
+
+The website uses the markdown manuals. This copies them into the
+website, edits them for web display, concatenates them to form the
+one-page manual, and runs hakyll-std (a generic hakyll script,
+included) which adds tables of contents and renders everything as html
+with the site header/footer.
+
+$ ./Shake website
+
+View the rendered website ("open" is mac-specific; use your equivalent):
+ 
+$ open site/_site/index.html
+
+Or run hakyll in preview mode, regenerating html when source changes: 
+
+$ make site-preview
+$ open http://localhost:8000
+
+Example workflow: edit doc source files, run Shake website in another window, 
+wait for to hakyll rebuild html files, manually reload pages in browser.
+Occasionally hakyll will get confused, to fix it: ctrl-c, make site-clean site-preview . 
+
+You can automate the browser page reloading by running a livereloadx proxy. 
+In another window:
+
+$ make site-reload
+$ open http://localhost:8001  # if the make file didn't do it
+
+
+## Misc. notes
+
+Changelogs are plain text, but started including some markdown formatting
+from 1.0. Should make consistent.
 
 Changelogs started mentioning committer names from 2017/1,
 for hledger-ui-1.1.1 (because they won't appear on the release notes).
 Could do it just for minor releases but might as well do it for all.
 Could do it for past releases but no pressing need.
 
-Changelogs are plain text, but started including some markdown formatting
-from 1.0, for ease of pasting from release notes ? Should make consistent.
+In site/release-notes.md, we stopped mentioning minor releases
+around 0.27. The old minor releases should probably be removed
+or promoted to the same heading level as major releases.

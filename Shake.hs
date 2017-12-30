@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack exec --verbosity info --stack-yaml stack8.0.yaml
+{- stack exec --verbosity=info
    --package base-prelude
    --package directory
    --package extra
@@ -7,7 +7,7 @@
    --package safe
    --package shake
    --package time
-   -- ghc -threaded
+   -- ghc
 -}
 {-
 One of two project scripts files (Makefile, Shake.hs).
@@ -76,9 +76,18 @@ groff = "groff"
 
 main = do
 
-  pandocFilters <-
-    map ("tools" </>). nub . sort . map (-<.> "") . filter ("pandoc-" `isPrefixOf`)
-    <$> S.getDirectoryContents "tools"
+--  pandocFilters <-
+--    map ("tools" </>). nub . sort . map (-<.> "") . filter ("pandoc-" `isPrefixOf`)
+--    <$> S.getDirectoryContents "tools"
+  let pandocFilters =
+        [
+         "tools" </> "pandoc-demote-headers"
+        ,"tools" </> "pandoc-drop-html-blocks"
+        ,"tools" </> "pandoc-drop-html-inlines"
+        ,"tools" </> "pandoc-drop-links"
+        ,"tools" </> "pandoc-drop-notes"
+        ,"tools" </> "pandoc-drop-toc"
+        ]
 
   shakeArgs
     shakeOptions{
@@ -112,17 +121,33 @@ main = do
         ,"hledger_timeclock.5"
         ,"hledger_timedot.5"
         ]
-      -- manuals m4 source, may include other files (hledger/doc/hledger.1.m4.md)
-      m4manpages = [manpageDir m </> m <.> "m4.md" | m <- manpageNames]
 
-      -- manuals rendered to nroff, ready for man (hledger/doc/hledger.1)
+      manualNames = map manpageNameToManualName manpageNames
+
+      -- hledger.1 -> hledger, hledger_journal.5 -> hledger_journal
+      manpageNameToManualName = dropNumericSuffix
+        where
+          dropNumericSuffix s = reverse $
+            case reverse s of
+              c : '.' : cs | isDigit c -> cs
+              cs                       -> cs
+
+      -- hledger -> hledger.1, hledger_journal -> hledger_journal.5
+      manualNameToManpageName s
+        | '_' `elem` s = s <.> "5"
+        | otherwise    = s <.> "1"
+
+      -- manuals m4 source; may include other source files (hledger/hledger.m4.md)
+      m4manpages = [manualDir m </> m <.> "m4.md" | m <- manualNames]
+
+      -- manuals rendered to nroff, ready for man (hledger/hledger.1)
       nroffmanpages = [manpageDir m </> m | m <- manpageNames]
 
-      -- manuals rendered to text, ready for embedding (hledger/doc/hledger.1.txt)
-      txtmanpages = [manpageDir m </> m <.> "txt" | m <- manpageNames]
+      -- manuals rendered to text, ready for embedding (hledger/hledger.txt)
+      txtmanpages = [manualDir m </> m <.> "txt" | m <- manualNames]
 
-      -- manuals rendered to info, ready for info (hledger/doc/hledger.1.info)
-      infomanpages = [manpageDir m </> m <.> "info" | m <- manpageNames]
+      -- manuals rendered to info, ready for info (hledger/hledger.info)
+      infomanpages = [manualDir m </> m <.> "info" | m <- manualNames]
 
       -- manuals rendered to markdown, ready for web output by hakyll (site/hledger.md)
       webmanpages = ["site" </> manpageNameToUri m <.>"md" | m <- manpageNames]
@@ -154,8 +179,13 @@ main = do
 
       -- hledger.1 -> hledger/doc, hledger_journal.5 -> hledger-lib/doc
       manpageDir m
-        | '_' `elem` m = "hledger-lib" </> "doc"
-        | otherwise    = dropExtension m </> "doc"
+        | '_' `elem` m = "hledger-lib"
+        | otherwise    = dropExtension m
+
+      -- hledger -> hledger, hledger_journal -> hledger-lib
+      manualDir m
+        | '_' `elem` m = "hledger-lib"
+        | otherwise    = m
 
       -- hledger.1 -> hledger, hledger_journal.5 -> journal
       manpageNameToUri m | "hledger_" `isPrefixOf` m = dropExtension $ drop 8 m
@@ -183,8 +213,8 @@ main = do
     -- use m4 and pandoc to process macros, filter content, and convert to nroff suitable for man output
     phony "manpages" $ need nroffmanpages
 
-    nroffmanpages |%> \out -> do -- hledger/doc/hledger.1
-      let src = out <.> "m4.md"
+    nroffmanpages |%> \out -> do -- hledger/hledger.1
+      let src = manpageNameToManualName out <.> "m4.md"
           lib = "doc/lib.m4"
           dir = takeDirectory out
           tmpl = "doc/manpage.nroff"
@@ -204,15 +234,15 @@ main = do
     -- render man page nroffs to fixed-width text for embedding in executables, with nroff
     phony "txtmanpages" $ need txtmanpages
 
-    txtmanpages |%> \out -> do  -- hledger/doc/hledger.1.txt
-      let src = dropExtension out
+    txtmanpages |%> \out -> do  -- hledger/hledger.txt
+      let src = manualNameToManpageName $ dropExtension out
       need [src]
       cmd Shell groff "-t -e -mandoc -Tascii" src  "| col -bx >" out -- http://www.tldp.org/HOWTO/Man-Page/q10.html
 
     -- use m4 and pandoc to process macros, filter content, and convert to info, suitable for info viewing
     phony "infomanpages" $ need infomanpages
 
-    infomanpages |%> \out -> do -- hledger/doc/hledger.1.info
+    infomanpages |%> \out -> do -- hledger/hledger.info
       let src = out -<.> "m4.md"
           lib = "doc/lib.m4"
           dir = takeDirectory out
@@ -249,11 +279,12 @@ main = do
     phony "webmanpages" $ need webmanpages
 
     webmanpages |%> \out -> do -- site/hledger.md
-      let m       = manpageUriToName $ dropExtension $ takeFileName out -- hledger.1
-          dir     = manpageDir m
-          src     = dir </> m <.> "m4.md"
+      let manpage = manpageUriToName $ dropExtension $ takeFileName out -- hledger
+          manual  = manpageNameToManualName manpage
+          dir     = manpageDir manpage
+          src     = dir </> manual <.> "m4.md"
           lib     = "doc/lib.m4"
-          heading = let h = dropExtension m
+          heading = let h = manual
                     in if "hledger_" `isPrefixOf` h
                        then drop 8 h ++ " format"
                        else h
@@ -288,7 +319,7 @@ main = do
     phony "guideall" $ need [ guideall ]
 
     guideall %> \out -> do
-      need guidepages  -- XXX seems not to work, not rebuilt when a recipe changes 
+      need $ guidepages ++ pandocFilters  -- XXX seems not to work, not rebuilt when a recipe changes 
       liftIO $ writeFile guideall "* toc\n\n"  -- # User Guide\n\n -- TOC style is better without main heading, 
       forM_ guidepages $ \f -> do -- site/csv-import.md, site/account-aliases.md, ...
         cmd Shell ("printf '\\n\\n' >>") guideall :: Action ExitCode

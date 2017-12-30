@@ -38,6 +38,9 @@ choice' = choice . map try
 choiceInState :: [StateT s (ParsecT MPErr Text m) a] -> StateT s (ParsecT MPErr Text m) a
 choiceInState = choice . map try
 
+surroundedBy :: Applicative m => m openclose -> m a -> m a
+surroundedBy p = between p p
+
 parsewith :: Parsec e Text a -> Text -> Either (ParseError Char e) a
 parsewith p = runParser p ""
 

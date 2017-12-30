@@ -1,9 +1,11 @@
--- This file has been generated from package.yaml by hpack version 0.17.1.
+-- This file has been generated from package.yaml by hpack version 0.20.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: 45c7ca631b342ca758edba76083ab22dab453922fd7dd19bd156227e1b322fea
 
 name:           hledger-api
-version:        1.4
+version:        1.4.99
 synopsis:       Web API server for the hledger accounting tool
 description:    This is a simple web API server for hledger data.
                 It comes with a series of simple client-side web app examples.
@@ -33,9 +35,9 @@ extra-source-files:
     README
 
 data-files:
-    doc/hledger-api.1
-    doc/hledger-api.1.info
-    doc/hledger-api.1.txt
+    hledger-api.1
+    hledger-api.info
+    hledger-api.txt
 
 source-repository head
   type: git
@@ -44,26 +46,28 @@ source-repository head
 executable hledger-api
   main-is: hledger-api.hs
   ghc-options: -threaded
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   build-depends:
-      hledger-lib >= 1.4 && < 1.5
-    , hledger >= 1.4 && < 1.5
-    , base >=4.8 && <5
+      Decimal
     , aeson
+    , base >=4.8 && <5
     , bytestring
     , containers
-    , Decimal
     , docopt
     , either
+    , hledger >=1.4.99 && <1.5
+    , hledger-lib >=1.4.99 && <1.5
     , microlens >=0.4 && <0.5
     , microlens-platform >=0.2.3.1 && <0.4
     , safe
-    , servant-server >= 0.10
+    , servant-server >=0.10
     , servant-swagger
-    , swagger2 >= 2.0 && < 2.3
+    , swagger2 >=2.0 && <2.3
     , text
     , transformers
     , wai
     , wai-extra
     , warp
+  other-modules:
+      Paths_hledger_api
   default-language: Haskell2010

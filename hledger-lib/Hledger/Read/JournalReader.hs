@@ -81,6 +81,8 @@ import Control.Monad.State.Strict
 import qualified Data.Map.Strict as M
 import Data.Monoid
 import Data.Text (Text)
+import Data.String
+import Data.List
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
@@ -157,7 +159,7 @@ addJournalItemP =
 directivep :: MonadIO m => ErroringJournalParser m ()
 directivep = (do
   optional $ char '!'
-  choiceInState [
+  choice [
     includedirectivep
    ,aliasdirectivep
    ,endaliasesdirectivep
@@ -201,7 +203,7 @@ includedirectivep = do
       either
         (throwError
           . ((show parentpos ++ " in included file " ++ show filename ++ ":\n") ++)
-          . show)
+          . parseErrorPretty)
         (return . journalAddFile (filepath, txt))
         ej1
   case ej of
@@ -215,6 +217,7 @@ newJournalWithParseStateFrom j = mempty{
   ,jparsedefaultcommodity = jparsedefaultcommodity j
   ,jparseparentaccounts   = jparseparentaccounts j
   ,jparsealiases          = jparsealiases j
+  ,jcommodities           = jcommodities j
   -- ,jparsetransactioncount = jparsetransactioncount j
   ,jparsetimeclockentries = jparsetimeclockentries j
   }
@@ -292,9 +295,19 @@ formatdirectivep expectedsym = do
     else parserErrorAt pos $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 
+keywordp :: String -> JournalParser m ()
+keywordp = (() <$) . string . fromString
+
+spacesp :: JournalParser m ()
+spacesp = () <$ lift (some spacenonewline)
+
+-- | Backtracking parser similar to string, but allows varying amount of space between words
+keywordsp :: String -> JournalParser m ()
+keywordsp = try . sequence_ . intersperse spacesp . map keywordp . words
+
 applyaccountdirectivep :: JournalParser m ()
 applyaccountdirectivep = do
-  string "apply" >> lift (some spacenonewline) >> string "account"
+  keywordsp "apply account" <?> "apply account directive"
   lift (some spacenonewline)
   parent <- lift accountnamep
   newline
@@ -302,7 +315,7 @@ applyaccountdirectivep = do
 
 endapplyaccountdirectivep :: JournalParser m ()
 endapplyaccountdirectivep = do
-  string "end" >> lift (some spacenonewline) >> string "apply" >> lift (some spacenonewline) >> string "account"
+  keywordsp "end apply account" <?> "end apply account directive"
   popParentAccount
 
 aliasdirectivep :: JournalParser m ()
@@ -338,7 +351,7 @@ regexaliasp = do
 
 endaliasesdirectivep :: JournalParser m ()
 endaliasesdirectivep = do
-  string "end aliases"
+  keywordsp "end aliases" <?> "end aliases directive"
   clearAccountAliases
 
 tagdirectivep :: JournalParser m ()
@@ -351,7 +364,7 @@ tagdirectivep = do
 
 endtagdirectivep :: JournalParser m ()
 endtagdirectivep = do
-  (string "end tag" <|> string "pop") <?> "end tag or pop directive"
+  (keywordsp "end tag" <|> keywordp "pop") <?> "end tag or pop directive"
   lift restofline
   return ()
 

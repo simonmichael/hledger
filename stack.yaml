@@ -1,9 +1,13 @@
-# stack build plan using GHC 8.2.1
+# stack build plan using GHC 8.2.x
 
-resolver: nightly-2017-11-10
+resolver: lts-10.0
 
-extra-deps:
-- wai-handler-launch-3.0.2.3
+nix:
+  enable: false
+  pure: false
+  packages: [perl gmp ncurses zlib]
+
+# extra-deps:
 
 packages:
 - hledger-lib

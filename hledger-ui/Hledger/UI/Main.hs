@@ -71,15 +71,18 @@ main = do
         | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
         | otherwise                                                = withJournalDoUICommand opts runBrickUi
 
--- XXX withJournalDo specialised for UIOpts
+-- TODO fix nasty duplication of withJournalDo
 withJournalDoUICommand :: UIOpts -> (UIOpts -> Journal -> IO ()) -> IO ()
 withJournalDoUICommand uopts@UIOpts{cliopts_=copts} cmd = do
   journalpath <- journalFilePathFromOpts copts
   ej <- readJournalFilesWithOpts (inputopts_ copts) journalpath
-  let fn = cmd uopts .
-           pivotByOpts copts .
-           anonymiseByOpts copts .
-           journalApplyAliases (aliasesFromOpts copts)
+  let fn = cmd uopts
+         . pivotByOpts copts
+         . anonymiseByOpts copts
+         . journalApplyAliases (aliasesFromOpts copts)
+       <=< journalApplyValue (reportopts_ copts)
+       <=< journalAddForecast copts
+         . generateAutomaticPostings (reportopts_ copts)
   either error' fn ej
 
 runBrickUi :: UIOpts -> Journal -> IO ()

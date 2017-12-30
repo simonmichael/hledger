@@ -29,8 +29,12 @@ module Hledger.Data.Journal (
   filterTransactionPostings,
   filterPostingAmount,
   -- * Querying
-  journalAccountNames,
   journalAccountNamesUsed,
+  journalAccountNamesImplied,
+  journalAccountNamesDeclared,
+  journalAccountNamesDeclaredOrUsed,
+  journalAccountNamesDeclaredOrImplied,
+  journalAccountNames,
   -- journalAmountAndPriceCommodities,
   journalAmounts,
   overJournalAmounts,
@@ -75,6 +79,7 @@ import Data.Array.ST
 import Data.Functor.Identity (Identity(..))
 import qualified Data.HashTable.ST.Cuckoo as HT
 import Data.List
+import Data.List.Extra (groupSort)
 -- import Data.Map (findWithDefault)
 import Data.Maybe
 import Data.Monoid
@@ -238,13 +243,32 @@ journalDescriptions = nub . sort . map tdescription . jtxns
 journalPostings :: Journal -> [Posting]
 journalPostings = concatMap tpostings . jtxns
 
--- | Unique account names posted to in this journal.
+-- | Sorted unique account names posted to by this journal's transactions.
 journalAccountNamesUsed :: Journal -> [AccountName]
-journalAccountNamesUsed = sort . accountNamesFromPostings . journalPostings
+journalAccountNamesUsed = accountNamesFromPostings . journalPostings
 
--- | Unique account names in this journal, including parent accounts containing no postings.
+-- | Sorted unique account names implied by this journal's transactions - 
+-- accounts posted to and all their implied parent accounts.
+journalAccountNamesImplied :: Journal -> [AccountName]
+journalAccountNamesImplied = expandAccountNames . journalAccountNamesUsed
+
+-- | Sorted unique account names declared by account directives in this journal.
+journalAccountNamesDeclared :: Journal -> [AccountName]
+journalAccountNamesDeclared = nub . sort . jaccounts
+
+-- | Sorted unique account names declared by account directives or posted to
+-- by transactions in this journal.
+journalAccountNamesDeclaredOrUsed :: Journal -> [AccountName]
+journalAccountNamesDeclaredOrUsed j = nub $ sort $ journalAccountNamesDeclared j ++ journalAccountNamesUsed j
+
+-- | Sorted unique account names declared by account directives, or posted to
+-- or implied as parents by transactions in this journal.
+journalAccountNamesDeclaredOrImplied :: Journal -> [AccountName]
+journalAccountNamesDeclaredOrImplied j = nub $ sort $ journalAccountNamesDeclared j ++ journalAccountNamesImplied j
+
+-- | Convenience/compatibility alias for journalAccountNamesDeclaredOrImplied.
 journalAccountNames :: Journal -> [AccountName]
-journalAccountNames = sort . expandAccountNames . journalAccountNamesUsed
+journalAccountNames = journalAccountNamesDeclaredOrImplied 
 
 journalAccountNameTree :: Journal -> Tree AccountName
 journalAccountNameTree = accountNameTreeFrom . journalAccountNames
@@ -731,8 +755,11 @@ journalApplyCommodityStyles j@Journal{jtxns=ts, jmarketprices=mps} = j''
 -- from the posting amounts (or in some cases, price amounts) in this
 -- commodity if any, otherwise the default style.
 journalCommodityStyle :: Journal -> CommoditySymbol -> AmountStyle
-journalCommodityStyle j c =
-  headDef amountstyle{asprecision=2} $
+journalCommodityStyle j = fromMaybe amountstyle{asprecision=2} . journalCommodityStyleLookup j
+
+journalCommodityStyleLookup :: Journal -> CommoditySymbol -> Maybe AmountStyle
+journalCommodityStyleLookup j c =
+  listToMaybe $
   catMaybes [
      M.lookup c (jcommodities j) >>= cformat
     ,M.lookup c $ jinferredcommodities j
@@ -752,8 +779,7 @@ journalInferCommodityStyles j =
 commodityStylesFromAmounts :: [Amount] -> M.Map CommoditySymbol AmountStyle
 commodityStylesFromAmounts amts = M.fromList commstyles
   where
-    samecomm = \a1 a2 -> acommodity a1 == acommodity a2
-    commamts = [(acommodity $ head as, as) | as <- groupBy samecomm $ sortBy (comparing acommodity) amts]
+    commamts = groupSort [(acommodity as, as) | as <- amts]
     commstyles = [(c, canonicalStyleFrom $ map astyle as) | (c,as) <- commamts]
 
 -- | Given an ordered list of amount styles, choose a canonical style.
@@ -802,7 +828,10 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount = canonicaliseAmount (jinferredcommodities j) . costOfAmount
+      fixamount = applyJournalStyle . costOfAmount
+      applyJournalStyle a
+          | Just s <- journalCommodityStyleLookup j (acommodity a) = a{astyle=s}
+          | otherwise = a
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 -- journalCanonicalCommodities :: Journal -> M.Map String CommoditySymbol

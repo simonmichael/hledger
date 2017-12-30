@@ -1,9 +1,11 @@
--- This file has been generated from package.yaml by hpack version 0.17.1.
+-- This file has been generated from package.yaml by hpack version 0.20.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: e44d6ce1b41bd59cebb67a6f567178cd7fdef2396dd1debf0c5c1e9635233736
 
 name:           hledger-web
-version:        1.4
+version:        1.4.99
 synopsis:       Web interface for the hledger accounting tool
 description:    This is hledger's web interface.
                 It provides a more user-friendly and collaborative UI than the
@@ -36,6 +38,7 @@ extra-source-files:
     config/settings.yml
     messages/en.msg
     README
+    static/css/bootstrap-datepicker.standalone.min.css
     static/css/bootstrap-theme.css
     static/css/bootstrap-theme.css.map
     static/css/bootstrap-theme.min.css
@@ -48,6 +51,7 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.woff
     static/hledger.css
     static/hledger.js
+    static/js/bootstrap-datepicker.min.js
     static/js/bootstrap.js
     static/js/bootstrap.min.js
     static/js/excanvas.js
@@ -95,9 +99,9 @@ extra-source-files:
     templates/default-layout.hamlet
 
 data-files:
-    doc/hledger-web.1
-    doc/hledger-web.1.info
-    doc/hledger-web.1.txt
+    hledger-web.1
+    hledger-web.info
+    hledger-web.txt
 
 source-repository head
   type: git
@@ -120,10 +124,9 @@ flag threaded
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   build-depends:
-      hledger-lib >= 1.4 && < 1.5
-    , hledger >= 1.4 && < 1.5
+      HUnit
     , base >=4.8 && <5
     , base-compat >=0.8.1
     , blaze-html
@@ -131,16 +134,21 @@ library
     , bytestring
     , clientsession
     , cmdargs >=0.10 && <0.11
+    , conduit-extra >=1.1
     , data-default
     , directory
     , filepath
     , hjsmin
-    , http-conduit
+    , hledger >=1.4.99 && <1.5
+    , hledger-lib >=1.4.99 && <1.5
     , http-client
-    , HUnit
-    , conduit-extra >=1.1
+    , http-conduit
+    , json
+    , megaparsec >=5.0 && <6.4
+    , mtl
+    , parsec >=3
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && < 2.1
+    , shakespeare >=2.0.2.2 && <2.1
     , template-haskell
     , text >=1.2 && <1.3
     , time >=1.5
@@ -154,10 +162,6 @@ library
     , yesod-core
     , yesod-form
     , yesod-static
-    , json
-    , megaparsec >=5.0 && < 6.3
-    , mtl
-    , parsec >=3
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
@@ -188,10 +192,9 @@ executable hledger-web
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   build-depends:
-      hledger-lib >= 1.4 && < 1.5
-    , hledger >= 1.4 && < 1.5
+      HUnit
     , base >=4.8 && <5
     , base-compat >=0.8.1
     , blaze-html
@@ -199,16 +202,22 @@ executable hledger-web
     , bytestring
     , clientsession
     , cmdargs >=0.10 && <0.11
+    , conduit-extra >=1.1
     , data-default
     , directory
     , filepath
     , hjsmin
-    , http-conduit
+    , hledger >=1.4.99 && <1.5
+    , hledger-lib >=1.4.99 && <1.5
+    , hledger-web
     , http-client
-    , HUnit
-    , conduit-extra >=1.1
+    , http-conduit
+    , json
+    , megaparsec >=5.0 && <6.4
+    , mtl
+    , parsec >=3
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && < 2.1
+    , shakespeare >=2.0.2.2 && <2.1
     , template-haskell
     , text >=1.2 && <1.3
     , time >=1.5
@@ -222,11 +231,6 @@ executable hledger-web
     , yesod-core
     , yesod-form
     , yesod-static
-    , json
-    , megaparsec >=5.0 && < 6.3
-    , mtl
-    , parsec >=3
-    , hledger-web
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
@@ -235,6 +239,8 @@ executable hledger-web
     buildable: False
   if flag(threaded)
     ghc-options: -threaded
+  other-modules:
+      Paths_hledger_web
   default-language: Haskell2010
 
 test-suite test
@@ -243,10 +249,9 @@ test-suite test
   hs-source-dirs:
       tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   build-depends:
-      hledger-lib >= 1.4 && < 1.5
-    , hledger >= 1.4 && < 1.5
+      HUnit
     , base >=4.8 && <5
     , base-compat >=0.8.1
     , blaze-html
@@ -254,16 +259,23 @@ test-suite test
     , bytestring
     , clientsession
     , cmdargs >=0.10 && <0.11
+    , conduit-extra >=1.1
     , data-default
     , directory
     , filepath
     , hjsmin
-    , http-conduit
+    , hledger >=1.4.99 && <1.5
+    , hledger-lib >=1.4.99 && <1.5
+    , hledger-web
+    , hspec
     , http-client
-    , HUnit
-    , conduit-extra >=1.1
+    , http-conduit
+    , json
+    , megaparsec >=5.0 && <6.4
+    , mtl
+    , parsec >=3
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && < 2.1
+    , shakespeare >=2.0.2.2 && <2.1
     , template-haskell
     , text >=1.2 && <1.3
     , time >=1.5
@@ -277,12 +289,6 @@ test-suite test
     , yesod-core
     , yesod-form
     , yesod-static
-    , json
-    , megaparsec >=5.0 && < 6.3
-    , mtl
-    , parsec >=3
-    , hledger-web
-    , hspec
     , yesod-test
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
@@ -291,4 +297,5 @@ test-suite test
   other-modules:
       HomeTest
       TestImport
+      Paths_hledger_web
   default-language: Haskell2010

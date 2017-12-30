@@ -43,6 +43,8 @@ data WhichDate = PrimaryDate | SecondaryDate deriving (Eq,Show)
 
 data DateSpan = DateSpan (Maybe Day) (Maybe Day) deriving (Eq,Ord,Data,Generic,Typeable)
 
+instance Default DateSpan where def = DateSpan Nothing Nothing
+
 instance NFData DateSpan
 
 -- synonyms for various date-related scalars

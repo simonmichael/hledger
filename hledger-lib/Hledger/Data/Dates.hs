@@ -73,6 +73,7 @@ import Prelude ()
 import Prelude.Compat
 import Control.Monad
 import Data.List.Compat
+import Data.Default
 import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -627,11 +628,6 @@ parsedate s =  fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")
 -- -- 2008-02-29
 -- #endif
 
--- | Parse a time string to a time type using the provided pattern, or
--- return the default.
-_parsetimewith :: ParseTime t => String -> String -> t -> t
-_parsetimewith pat s def = fromMaybe def $ parsetime defaultTimeLocale pat s
-
 {-|
 Parse a date in any of the formats allowed in ledger's period expressions,
 and maybe some others:
@@ -781,7 +777,7 @@ lastthisnextthing = do
   return ("", T.unpack r, T.unpack p)
 
 -- |
--- >>> let p s = parsewith (periodexpr (parsedate "2008/11/26") <* eof) (T.toLower s) :: Either (ParseError Char MPErr) (Interval, DateSpan)
+-- >>> let p = parsePeriodExpr (parsedate "2008/11/26")
 -- >>> p "from Aug to Oct"
 -- Right (NoInterval,DateSpan 2008/08/01-2008/09/30)
 -- >>> p "aug to oct"
@@ -816,35 +812,27 @@ lastthisnextthing = do
 -- Right (DayOfWeek 2,DateSpan -)
 -- >>> p "every 2nd day of week"
 -- Right (DayOfWeek 2,DateSpan -)
+-- >>> p "every 2nd day of month"
+-- Right (DayOfMonth 2,DateSpan -)
+-- >>> p "every 2nd day"
+-- Right (DayOfMonth 2,DateSpan -)
 -- >>> p "every 2nd day 2009-"
 -- Right (DayOfMonth 2,DateSpan 2009/01/01-)
+-- >>> p "every 2nd day of month 2009-"
+-- Right (DayOfMonth 2,DateSpan 2009/01/01-)
 periodexpr :: Day -> SimpleTextParser (Interval, DateSpan)
-periodexpr rdate = choice $ map try [
+periodexpr rdate = surroundedBy (many spacenonewline) . choice $ map try [
                     intervalanddateperiodexpr rdate,
-                    intervalperiodexpr,
-                    dateperiodexpr rdate,
-                    (return (NoInterval,DateSpan Nothing Nothing))
+                    (,) NoInterval <$> periodexprdatespan rdate
                    ]
 
 intervalanddateperiodexpr :: Day -> SimpleTextParser (Interval, DateSpan)
 intervalanddateperiodexpr rdate = do
-  many spacenonewline
   i <- reportinginterval
-  many spacenonewline
-  s <- periodexprdatespan rdate
+  s <- option def . try $ do
+      many spacenonewline
+      periodexprdatespan rdate
   return (i,s)
-
-intervalperiodexpr :: SimpleTextParser (Interval, DateSpan)
-intervalperiodexpr = do
-  many spacenonewline
-  i <- reportinginterval
-  return (i, DateSpan Nothing Nothing)
-
-dateperiodexpr :: Day -> SimpleTextParser (Interval, DateSpan)
-dateperiodexpr rdate = do
-  many spacenonewline
-  s <- periodexprdatespan rdate
-  return (NoInterval, s)
 
 -- Parse a reporting interval.
 reportinginterval :: SimpleTextParser Interval
@@ -877,9 +865,8 @@ reportinginterval = choice' [
                           optOf_ "month"
                           return $ DayOfMonth n,
                        do string "every"
-                          many spacenonewline
                           let mnth = choice' [month, mon] >>= \(_,m,_) -> return (read m)
-                          d_o_y <- makePermParser $ DayOfYear <$$> (mnth <* many spacenonewline) <||> (nth <* many spacenonewline)
+                          d_o_y <- makePermParser $ DayOfYear <$$> try (many spacenonewline *> mnth) <||> try (many spacenonewline *> nth)
                           optOf_ "year"
                           return d_o_y,
                        do string "every"

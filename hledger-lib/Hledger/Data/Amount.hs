@@ -58,6 +58,7 @@ module Hledger.Data.Amount (
   -- ** arithmetic
   costOfAmount,
   divideAmount,
+  amountValue,
   -- ** rendering
   amountstyle,
   showAmount,
@@ -91,6 +92,7 @@ module Hledger.Data.Amount (
   isZeroMixedAmount,
   isReallyZeroMixedAmount,
   isReallyZeroMixedAmountCost,
+  mixedAmountValue,
   -- ** rendering
   showMixedAmount,
   showMixedAmountOneLine,
@@ -114,6 +116,8 @@ import Data.Function (on)
 import Data.List
 import Data.Map (findWithDefault)
 import Data.Maybe
+import Data.Time.Calendar (Day)
+import Data.Ord (comparing)
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Test.HUnit
@@ -347,6 +351,38 @@ canonicaliseAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
 canonicaliseAmount styles a@Amount{acommodity=c, astyle=s} = a{astyle=s'}
     where
       s' = findWithDefault s c styles
+
+-- | Find the market value of this amount on the given date, in it's
+-- default valuation commodity, based on recorded market prices.
+-- If no default valuation commodity can be found, the amount is left
+-- unchanged.
+amountValue :: Journal -> Day -> Amount -> Amount
+amountValue j d a =
+  case commodityValue j d (acommodity a) of
+    Just v  -> v{aquantity=aquantity v * aquantity a
+                ,aprice=aprice a
+                }
+    Nothing -> a
+
+-- This is here not in Commodity.hs to use the Amount Show instance above for debugging. 
+-- | Find the market value, if known, of one unit of this commodity (A) on
+-- the given valuation date, in the commodity (B) mentioned in the latest
+-- applicable market price. The latest applicable market price is the market
+-- price directive for commodity A with the latest date that is on or before
+-- the valuation date; or if there are multiple such prices with the same date,
+-- the last parsed.
+commodityValue :: Journal -> Day -> CommoditySymbol -> Maybe Amount
+commodityValue j valuationdate c
+    | null applicableprices = dbg Nothing
+    | otherwise             = dbg $ Just $ mpamount $ last applicableprices
+  where
+    dbg = dbg8 ("using market price for "++T.unpack c)
+    applicableprices =
+      [p | p <- sortBy (comparing mpdate) $ jmarketprices j
+      , mpcommodity p == c
+      , mpdate p <= valuationdate
+      ]
+
 
 -------------------------------------------------------------------------------
 -- MixedAmount
@@ -640,6 +676,9 @@ cshowMixedAmountOneLineWithoutPrice m = concat $ intersperse ", " $ map cshowAmo
 -- | Canonicalise a mixed amount's display styles using the provided commodity style map.
 canonicaliseMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
 canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styles) as
+
+mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
+mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
 
 -------------------------------------------------------------------------------
 -- misc

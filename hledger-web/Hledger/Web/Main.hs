@@ -22,7 +22,7 @@ import Network.Wai.Handler.Launch (runHostPortUrl)
 #if !MIN_VERSION_base(4,8,0)
 import Control.Applicative ((<$>))
 #endif
-import Control.Monad (when)
+import Control.Monad
 import Data.Text (pack)
 import System.Exit (exitSuccess)
 import System.IO (hFlush, stdout)
@@ -59,10 +59,13 @@ withJournalDo' opts@WebOpts {cliopts_ = cliopts} cmd = do
   -- Also we may be writing to this file. Just disallow it.
   when (f == "-") $ error' "hledger-web doesn't support -f -, please specify a file path"
 
-  let fn = cmd opts .
-           pivotByOpts cliopts .
-           anonymiseByOpts cliopts .
-           journalApplyAliases (aliasesFromOpts cliopts)
+  let fn = cmd opts
+         . pivotByOpts cliopts
+         . anonymiseByOpts cliopts
+         . journalApplyAliases (aliasesFromOpts cliopts)
+       <=< journalApplyValue (reportopts_ cliopts)
+       <=< journalAddForecast cliopts
+         . generateAutomaticPostings (reportopts_ cliopts)
   readJournalFile Nothing Nothing True f >>= either error' fn
 
 -- | The web command.

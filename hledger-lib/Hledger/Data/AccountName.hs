@@ -56,9 +56,11 @@ accountNameLevel a = T.length (T.filter (==acctsepchar) a) + 1
 accountNameDrop :: Int -> AccountName -> AccountName
 accountNameDrop n = accountNameFromComponents . drop n . accountNameComponents
 
--- | ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
+-- | Sorted unique account names implied by these account names,
+-- ie these plus all their parent accounts up to the root.
+-- Eg: ["a:b:c","d:e"] -> ["a","a:b","a:b:c","d","d:e"]
 expandAccountNames :: [AccountName] -> [AccountName]
-expandAccountNames as = nub $ concatMap expandAccountName as
+expandAccountNames as = nub $ sort $ concatMap expandAccountName as
 
 -- | "a:b:c" -> ["a","a:b","a:b:c"]
 expandAccountName :: AccountName -> [AccountName]

@@ -14,7 +14,6 @@ where
 import Data.List
 import Data.Maybe (fromMaybe)
 import Data.Monoid
--- import Data.Text (Text)
 import qualified Data.Text as T
 import Test.HUnit
 -- import qualified Data.Map as M

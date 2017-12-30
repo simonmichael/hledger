@@ -150,10 +150,10 @@ CABALFILES:= \
 
 MANUALSOURCEFILES:= \
 	doc/lib.m4 \
-	*/*/*.m4.md \
+	*/*.m4.md \
 
 MANUALGENFILES:= \
-	hledger*/doc/hledger*.[15]{,.info,.txt} \
+	hledger*/hledger*.{1,5,info,txt} \
 
 # site/*.md includes website source files and generated web manual files
 # WEBDOCFILES:= \
@@ -731,13 +731,10 @@ test-stack%yaml:
 	stack --stack-yaml stack$*yaml clean
 	stack --stack-yaml stack$*yaml --install-ghc build --test --bench --haddock --no-haddock-deps
 
-BENCHEXES=hledger-0.27,hledger
+BENCHEXES=hledger
+# or, eg: BENCHEXES=ledger,hledger-1.4,hledger  
 
-quickbench: samplejournals bench.sh \
-	$(call def-help,quickbench,\
-	run simple performance benchmarks without saving results\
-	Requires some commands defined in bench.sh\
-	)
+bench: samplejournals bench.sh $(call def-help,bench, benchmark commands in bench.sh with quickbench and $(BENCHEXES))
 	quickbench -v -w $(BENCHEXES)
 
 # bench: samplejournals tests/bench.tests tools/simplebench \
@@ -883,6 +880,18 @@ ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + h
 
 ghcid-api: $(call def-help,ghcid-api, start ghcid autobuilder on hledger-lib + hledger + hledger-api)
 	ghcid -c 'make ghci-api'
+
+ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
+	stack exec \
+		--package base-prelude \
+		--package directory \
+		--package extra \
+		--package pandoc \
+		--package safe \
+		--package shake \
+		--package time \
+		-- ghcid Shake.hs
+# same packages as in Shake.hs
 
 samplejournals: $(call def-help,samplejournals, regenerate standard sample journals in examples/) \
 	examples/sample.journal \
@@ -1402,8 +1411,8 @@ genmanuals: Shake #$(call def-help,genmanuals, regenerate embedded manuals (migh
 	./Shake manuals
 
 updatemanuals: genmanuals $(call def-help,updatemanuals, regenerate embedded manuals and commit (might need -B) )
-	@read -p "please review changes then press enter to commit: $(shell ls hledger*/doc/*.[15]*)"
-	git commit -m "update embedded manuals" hledger*/doc/*.[15]*
+	@read -p "please review changes then press enter to commit: $(shell ls hledger*/hledger*.{1,5,info,txt})"
+	git commit -m "update embedded manuals" hledger*/hledger*.{1,5,info,txt}
 
 
 tagrelease: \

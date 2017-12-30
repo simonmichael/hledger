@@ -1,0 +1,4 @@
+Symbolic links to all the other hledger packages' rendered manuals,
+for embedding into the hledger program via Hledger/Cli/DocFiles.hs.
+(Because you can only embed relative file paths which are under 
+the current package directory, IIRC).

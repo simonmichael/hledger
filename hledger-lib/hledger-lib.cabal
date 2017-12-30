@@ -1,9 +1,11 @@
--- This file has been generated from package.yaml by hpack version 0.17.1.
+-- This file has been generated from package.yaml by hpack version 0.21.2.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: bdd44830833c0a5bac9f94905672abc6917c2763aa43b4ae8728bcc5cbc7354f
 
 name:           hledger-lib
-version:        1.4
+version:        1.4.99
 synopsis:       Core data types, parsers and functionality for the hledger accounting tools
 description:    This is a reusable library containing hledger's core functionality.
                 .
@@ -30,18 +32,18 @@ extra-source-files:
     README
 
 data-files:
-    doc/hledger_csv.5
-    doc/hledger_csv.5.info
-    doc/hledger_csv.5.txt
-    doc/hledger_journal.5
-    doc/hledger_journal.5.info
-    doc/hledger_journal.5.txt
-    doc/hledger_timeclock.5
-    doc/hledger_timeclock.5.info
-    doc/hledger_timeclock.5.txt
-    doc/hledger_timedot.5
-    doc/hledger_timedot.5.info
-    doc/hledger_timedot.5.txt
+    hledger_csv.5
+    hledger_csv.info
+    hledger_csv.txt
+    hledger_journal.5
+    hledger_journal.info
+    hledger_journal.txt
+    hledger_timeclock.5
+    hledger_timeclock.info
+    hledger_timeclock.txt
+    hledger_timedot.5
+    hledger_timedot.info
+    hledger_timedot.txt
 
 source-repository head
   type: git
@@ -52,26 +54,28 @@ library
       ./.
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-      base >=4.8 && <5
-    , base-compat >=0.8.1
-    , ansi-terminal >= 0.6.2.3 && < 0.8
+      Decimal
+    , HUnit
+    , ansi-terminal >=0.6.2.3 && <0.9
     , array
+    , base >=4.8 && <5
+    , base-compat >=0.8.1
     , blaze-markup >=0.5.1
     , bytestring
     , cmdargs >=0.10 && <0.11
     , containers
     , csv
     , data-default >=0.5
-    , Decimal
     , deepseq
     , directory
+    , extra
     , filepath
-    , hashtables >= 1.2
-    , megaparsec >=5.0 && < 6.3
+    , hashtables >=1.2
+    , megaparsec >=5.0 && <6.4
     , mtl
     , mtl-compat
     , old-time
-    , parsec >= 3
+    , parsec >=3
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
@@ -82,7 +86,6 @@ library
     , transformers >=0.2 && <0.6
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
-    , HUnit
   exposed-modules:
       Hledger
       Hledger.Data
@@ -140,26 +143,30 @@ test-suite doctests
       tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-      base >=4.8 && <5
-    , base-compat >=0.8.1
-    , ansi-terminal >= 0.6.2.3 && < 0.8
+      Decimal
+    , Glob >=0.7
+    , HUnit
+    , ansi-terminal >=0.6.2.3 && <0.9
     , array
+    , base >=4.8 && <5
+    , base-compat >=0.8.1
     , blaze-markup >=0.5.1
     , bytestring
     , cmdargs >=0.10 && <0.11
     , containers
     , csv
     , data-default >=0.5
-    , Decimal
     , deepseq
     , directory
+    , doctest >=0.8
+    , extra
     , filepath
-    , hashtables >= 1.2
-    , megaparsec >=5.0 && < 6.3
+    , hashtables >=1.2
+    , megaparsec >=5.0 && <6.4
     , mtl
     , mtl-compat
     , old-time
-    , parsec >= 3
+    , parsec >=3
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
@@ -170,9 +177,6 @@ test-suite doctests
     , transformers >=0.2 && <0.6
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
-    , HUnit
-    , doctest >=0.8
-    , Glob >=0.7
   other-modules:
       Hledger
       Hledger.Data
@@ -218,6 +222,7 @@ test-suite doctests
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
       Text.Megaparsec.Compat
+      Paths_hledger_lib
   default-language: Haskell2010
 
 test-suite hunittests
@@ -228,40 +233,41 @@ test-suite hunittests
       tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-      base >=4.8 && <5
-    , base-compat >=0.8.1
-    , ansi-terminal >= 0.6.2.3 && < 0.8
+      Decimal
+    , HUnit
+    , ansi-terminal >=0.6.2.3 && <0.9
     , array
+    , base >=4.8 && <5
+    , base-compat >=0.8.1
     , blaze-markup >=0.5.1
     , bytestring
     , cmdargs >=0.10 && <0.11
     , containers
     , csv
     , data-default >=0.5
-    , Decimal
     , deepseq
     , directory
+    , extra
     , filepath
-    , hashtables >= 1.2
-    , megaparsec >=5.0 && < 6.3
+    , hashtables >=1.2
+    , hledger-lib
+    , megaparsec >=5.0 && <6.4
     , mtl
     , mtl-compat
     , old-time
-    , parsec >= 3
+    , parsec >=3
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
     , semigroups
     , split >=0.1 && <0.3
+    , test-framework
+    , test-framework-hunit
     , text >=1.2 && <1.3
     , time >=1.5
     , transformers >=0.2 && <0.6
     , uglymemo
     , utf8-string >=0.3.5 && <1.1
-    , HUnit
-    , hledger-lib
-    , test-framework
-    , test-framework-hunit
   other-modules:
       Hledger
       Hledger.Data
@@ -307,4 +313,5 @@ test-suite hunittests
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
       Text.Megaparsec.Compat
+      Paths_hledger_lib
   default-language: Haskell2010

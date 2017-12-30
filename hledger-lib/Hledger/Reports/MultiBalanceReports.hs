@@ -9,7 +9,6 @@ module Hledger.Reports.MultiBalanceReports (
   MultiBalanceReport(..),
   MultiBalanceReportRow,
   multiBalanceReport,
-  multiBalanceReportValue,
   singleBalanceReport,
 
   -- -- * Tests
@@ -234,18 +233,6 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, sorteditems, tot
       dbg1 s = let p = "multiBalanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in this function's debug output
       -- dbg1 = const id  -- exclude this function from debug output
 
--- | Convert all the amounts in a multi-column balance report to their
--- value on the given date in their default valuation commodities
--- (which are determined as of that date, not the report interval dates).
-multiBalanceReportValue :: Journal -> Day -> MultiBalanceReport -> MultiBalanceReport
-multiBalanceReportValue j d r = r'
-  where
-    MultiBalanceReport (spans, rows, (coltotals, rowtotaltotal, rowavgtotal)) = r
-    r' = MultiBalanceReport
-         (spans,
-          [(acct, acct', depth, map convert rowamts, convert rowtotal, convert rowavg) | (acct, acct', depth, rowamts, rowtotal, rowavg) <- rows],
-          (map convert coltotals, convert rowtotaltotal, convert rowavgtotal))
-    convert = mixedAmountValue j d
 
 tests_multiBalanceReport =
   let

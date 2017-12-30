@@ -1,6 +1,6 @@
 # stack build plan using GHC 8.0.2
 
-resolver: lts-9.3
+resolver: lts-9.17
 
 extra-deps:
  []

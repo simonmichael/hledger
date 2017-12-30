@@ -14,6 +14,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 
 --- * module
 {-# LANGUAGE CPP, DeriveDataTypeable, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Hledger.Read.Common
 where
@@ -23,7 +24,6 @@ import Prelude.Compat hiding (readFile)
 import Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
 import Control.Monad.State.Strict
-import Data.Char (isNumber)
 import Data.Data
 import Data.Default
 import Data.Functor.Identity
@@ -31,6 +31,7 @@ import Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.List.Split (wordsBy)
 import Data.Maybe
+import qualified Data.Map as M
 import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -145,6 +146,24 @@ setDefaultCommodityAndStyle cs = modify' (\j -> j{jparsedefaultcommodity=Just cs
 
 getDefaultCommodityAndStyle :: JournalParser m (Maybe (CommoditySymbol,AmountStyle))
 getDefaultCommodityAndStyle = jparsedefaultcommodity `fmap` get
+
+-- | Get amount style associated with default currency.
+--
+-- Returns 'AmountStyle' used to defined by a latest default commodity directive
+-- prior to current position within this file or its parents.
+getDefaultAmountStyle :: JournalParser m (Maybe AmountStyle)
+getDefaultAmountStyle = fmap snd <$> getDefaultCommodityAndStyle
+
+-- | Lookup currency-specific amount style.
+--
+-- Returns 'AmountStyle' used in commodity directive within current journal
+-- prior to current position or in its parents files.
+getAmountStyle :: CommoditySymbol -> JournalParser m (Maybe AmountStyle)
+getAmountStyle commodity = do
+    specificStyle <-  maybe Nothing cformat . M.lookup commodity . jcommodities <$> get
+    defaultStyle <- fmap snd <$> getDefaultCommodityAndStyle
+    let effectiveStyle = listToMaybe $ catMaybes [specificStyle, defaultStyle]
+    return effectiveStyle
 
 pushAccount :: AccountName -> JournalParser m ()
 pushAccount acct = modify' (\j -> j{jaccounts = acct : jaccounts j})
@@ -416,8 +435,9 @@ leftsymbolamountp = do
   sign <- lift signp
   m <- lift multiplierp
   c <- lift commoditysymbolp
+  suggestedStyle <- getAmountStyle c
   sp <- lift $ many spacenonewline
-  (q,prec,mdec,mgrps) <- lift numberp
+  (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
   let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   p <- priceamountp
   let applysign = if sign=="-" then negate else id
@@ -427,9 +447,12 @@ leftsymbolamountp = do
 rightsymbolamountp :: Monad m => JournalParser m Amount
 rightsymbolamountp = do
   m <- lift multiplierp
-  (q,prec,mdec,mgrps) <- lift numberp
+  sign <- lift signp
+  rawnum <- lift $ rawnumberp
   sp <- lift $ many spacenonewline
   c <- lift commoditysymbolp
+  suggestedStyle <- getAmountStyle c
+  let (q,prec,mdec,mgrps) = fromRawNumber suggestedStyle (sign == "-") rawnum
   p <- priceamountp
   let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   return $ Amount c q p s m
@@ -438,7 +461,8 @@ rightsymbolamountp = do
 nosymbolamountp :: Monad m => JournalParser m Amount
 nosymbolamountp = do
   m <- lift multiplierp
-  (q,prec,mdec,mgrps) <- lift numberp
+  suggestedStyle <- getDefaultAmountStyle
+  (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
   p <- priceamountp
   -- apply the most recently seen default commodity and style to this commodityless amount
   defcs <- getDefaultCommodityAndStyle
@@ -525,55 +549,76 @@ fixedlotpricep =
 -- seen following the decimal point), the decimal point character used if any,
 -- and the digit group style if any.
 --
-numberp :: TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-numberp = do
-  -- a number is an optional sign followed by a sequence of digits possibly
-  -- interspersed with periods, commas, or both
-  -- ptrace "numberp"
-  sign <- signp
-  parts <- some $ choice' [some digitChar, some $ char ',', some $ char '.']
-  dbg8 "numberp parsed" (sign,parts) `seq` return ()
+numberp :: Maybe AmountStyle -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+numberp suggestedStyle = do
+    -- a number is an optional sign followed by a sequence of digits possibly
+    -- interspersed with periods, commas, or both
+    -- ptrace "numberp"
+    sign <- signp
+    raw <- rawnumberp
+    dbg8 "numberp parsed" raw `seq` return ()
+    return $ dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (fromRawNumber suggestedStyle (sign == "-") raw)
+    <?> "numberp"
 
-  -- check the number is well-formed and identify the decimal point and digit
-  -- group separator characters used, if any
-  let (numparts, puncparts) = partition numeric parts
-      (ok, mdecimalpoint, mseparator) =
-          case (numparts, puncparts) of
-            ([],_)     -> (False, Nothing, Nothing)  -- no digits, not ok
-            (_,[])     -> (True, Nothing, Nothing)   -- digits with no punctuation, ok
-            (_,[[d]])  -> (True, Just d, Nothing)    -- just a single punctuation of length 1, assume it's a decimal point
-            (_,[_])    -> (False, Nothing, Nothing)  -- a single punctuation of some other length, not ok
-            (_,_:_:_)  ->                                       -- two or more punctuations
-              let (s:ss, d) = (init puncparts, last puncparts)  -- the leftmost is a separator and the rightmost may be a decimal point
-              in if any ((/=1).length) puncparts               -- adjacent punctuation chars, not ok
-                    || any (s/=) ss                            -- separator chars vary, not ok
-                    || head parts == s                        -- number begins with a separator char, not ok
-                 then (False, Nothing, Nothing)
-                 else if s == d
-                      then (True, Nothing, Just $ head s)       -- just one kind of punctuation - must be separators
-                      else (True, Just $ head d, Just $ head s) -- separator(s) and a decimal point
-  unless ok $ fail $ "number seems ill-formed: "++concat parts
+fromRawNumber :: Maybe AmountStyle -> Bool -> (Maybe Char, [String], Maybe (Char, String)) -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+fromRawNumber suggestedStyle negated raw = (quantity, precision, mdecimalpoint, mgrps) where
+    -- unpack with a hint if useful
+    (mseparator, intparts, mdecimalpoint, frac) =
+            case raw of
+                -- just a single punctuation between two digits groups, assume it's a decimal point
+                (Just s, [firstGroup, lastGroup], Nothing)
+                    -- if have a decimalHint restrict this assumpion only to a matching separator
+                    | maybe True (`asdecimalcheck` s) suggestedStyle -> (Nothing, [firstGroup], Just s, lastGroup)
 
-  -- get the digit group sizes and digit group style if any
-  let (intparts',fracparts') = span ((/= mdecimalpoint) . Just . head) parts
-      (intparts, fracpart) = (filter numeric intparts', filter numeric fracparts')
-      groupsizes = reverse $ case map length intparts of
+                (firstSep, digitGroups, Nothing) -> (firstSep, digitGroups, Nothing, [])
+                (firstSep, digitGroups, Just (d, frac)) -> (firstSep, digitGroups, Just d, frac)
+
+    -- get the digit group sizes and digit group style if any
+    groupsizes = reverse $ case map length intparts of
                                (a:b:cs) | a < b -> b:cs
                                gs               -> gs
-      mgrps = (`DigitGroups` groupsizes) <$> mseparator
+    mgrps = (`DigitGroups` groupsizes) <$> mseparator
 
-  -- put the parts back together without digit group separators, get the precision and parse the value
-  let int = concat $ "":intparts
-      frac = concat $ "":fracpart
-      precision = length frac
-      int' = if null int then "0" else int
-      frac' = if null frac then "0" else frac
-      quantity = read $ sign++int'++"."++frac' -- this read should never fail
+    -- put the parts back together without digit group separators, get the precision and parse the value
+    repr = (if negated then "-" else "") ++ "0" ++ concat intparts ++ (if null frac then "" else "." ++ frac)
+    quantity = read repr
+    precision = length frac
 
-  return $ dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (quantity,precision,mdecimalpoint,mgrps)
-  <?> "numberp"
-  where
-    numeric = isNumber . headDef '_'
+    asdecimalcheck :: AmountStyle -> Char -> Bool
+    asdecimalcheck = \case
+        AmountStyle{asdecimalpoint = Just d} -> (d ==)
+        AmountStyle{asdigitgroups = Just (DigitGroups g _)} -> (g /=)
+        AmountStyle{asprecision = 0} -> const False
+        _ -> const True
+
+
+rawnumberp :: TextParser m (Maybe Char, [String], Maybe (Char, String))
+rawnumberp = do
+    let sepChars = ['.', ','] -- all allowed punctuation characters
+
+    (firstSep, groups) <- option (Nothing, []) $ do
+        leadingDigits <- some digitChar
+        option (Nothing, [leadingDigits]) . try $ do
+            firstSep <- oneOf sepChars
+            groups <- some digitChar `sepBy1` char firstSep
+            return (Just firstSep, leadingDigits : groups)
+
+    let remSepChars = maybe sepChars (`delete` sepChars) firstSep
+        modifier
+            | null groups = fmap Just  -- if no digits so far, we require at least some decimals
+            | otherwise = optional
+
+    extraGroup <- modifier $ do
+        lastSep <- oneOf remSepChars
+        digits <- modifier $ some digitChar  -- decimal separator allowed to be without digits if had some before
+        return (lastSep, fromMaybe [] digits)
+
+    -- make sure we didn't leading part of mistyped number
+    notFollowedBy $ oneOf sepChars
+
+    return $ dbg8 "rawnumberp" (firstSep, groups, extraGroup)
+    <?> "rawnumberp"
+
 
 -- test_numberp = do
 --       let s `is` n = assertParseEqual (parseWithState mempty numberp s) n

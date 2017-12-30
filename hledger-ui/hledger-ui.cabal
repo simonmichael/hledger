@@ -1,9 +1,11 @@
--- This file has been generated from package.yaml by hpack version 0.17.1.
+-- This file has been generated from package.yaml by hpack version 0.21.2.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: dc5f97f576101ba1c8e4bc80d0a556ff8131ba3ca1a10315504dbcded1664f70
 
 name:           hledger-ui
-version:        1.4
+version:        1.4.99
 synopsis:       Curses-style user interface for the hledger accounting tool
 description:    This is hledger's curses-style interface.
                 It is simpler and more convenient for browsing data than the command-line interface,
@@ -32,9 +34,9 @@ extra-source-files:
     README
 
 data-files:
-    doc/hledger-ui.1
-    doc/hledger-ui.1.info
-    doc/hledger-ui.1.txt
+    hledger-ui.1
+    hledger-ui.info
+    hledger-ui.txt
 
 source-repository head
   type: git
@@ -50,39 +52,39 @@ executable hledger-ui
   hs-source-dirs:
       ./.
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4"
+  cpp-options: -DVERSION="1.4.99"
   build-depends:
-      hledger >= 1.4 && < 1.5
-    , hledger-lib >= 1.4 && < 1.5
-    , ansi-terminal >= 0.6.2.3 && < 0.8
+      HUnit
+    , ansi-terminal >=0.6.2.3 && <0.9
     , async
-    , base >= 4.8 && < 5
-    , base-compat >= 0.8.1
-    , cmdargs >= 0.8
+    , base >=4.8 && <5
+    , base-compat >=0.8.1
+    , cmdargs >=0.8
     , containers
     , data-default
     , directory
     , filepath
-    , fsnotify >= 0.2 && < 0.3
-    , HUnit
-    , microlens >= 0.4 && < 0.5
-    , microlens-platform >= 0.2.3.1 && < 0.4
-    , megaparsec >=5.0 && < 6.3
+    , fsnotify >=0.2 && <0.3
+    , hledger >=1.4.99 && <1.5
+    , hledger-lib >=1.4.99 && <1.5
+    , megaparsec >=5.0 && <6.4
+    , microlens >=0.4 && <0.5
+    , microlens-platform >=0.2.3.1 && <0.4
     , pretty-show >=1.6.4
-    , process >= 1.2
-    , safe >= 0.2
-    , split >= 0.1 && < 0.3
-    , text >= 1.2 && < 1.3
-    , text-zipper >= 0.4 && < 0.11
-    , time >= 1.5
+    , process >=1.2
+    , safe >=0.2
+    , split >=0.1 && <0.3
+    , text >=1.2 && <1.3
+    , text-zipper >=0.4 && <0.11
+    , time >=1.5
     , transformers
     , vector
   if os(windows)
     buildable: False
   else
     build-depends:
-        brick >= 0.12 && < 0.30
-      , vty >= 5.5 && < 5.19
+        brick >=0.12 && <0.31
+      , vty >=5.5 && <5.20
   if flag(threaded)
     ghc-options: -threaded
   other-modules:
@@ -98,4 +100,5 @@ executable hledger-ui
       Hledger.UI.UIState
       Hledger.UI.UITypes
       Hledger.UI.UIUtils
+      Paths_hledger_ui
   default-language: Haskell2010
