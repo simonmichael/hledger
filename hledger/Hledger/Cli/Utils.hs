@@ -117,12 +117,11 @@ anonymise j
 -- and seems to have the same effect as doing it last on the reported values.
 journalApplyValue :: ReportOpts -> Journal -> IO Journal
 journalApplyValue ropts j = do
-    mvaluedate <- reportEndDate j ropts
-    let convert | value_ ropts
-                , Just d <- mvaluedate
-                = overJournalAmounts (amountValue j d)
-                | otherwise
-                = id
+    today <- getCurrentDay
+    mspecifiedenddate <- specifiedEndDate ropts
+    let d = fromMaybe today mspecifiedenddate
+        convert | value_ ropts = overJournalAmounts (amountValue j d)
+                | otherwise    = id
     return $ convert j
 
 -- | Run PeriodicTransactions from journal from today or journal end to requested end day.

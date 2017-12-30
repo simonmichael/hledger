@@ -24,9 +24,12 @@ module Hledger.Reports.ReportOptions (
   queryOptsFromOpts,
   transactionDateFn,
   postingDateFn,
+  reportStartEndDates,
   reportStartDate,
   reportEndDate,
-  reportStartEndDates,
+  specifiedStartEndDates,
+  specifiedStartDate,
+  specifiedEndDate,
 
   tests_Hledger_Reports_ReportOptions
 )
@@ -399,32 +402,41 @@ tests_queryOptsFromOpts = [
                                                              })
  ]
 
--- | The effective report start date is the one specified by options or queries,
--- otherwise the earliest transaction or posting date in the journal,
+-- | The effective report start/end dates are the dates specified by options or queries,
+-- otherwise the earliest/latest transaction or posting date in the journal,
 -- otherwise (for an empty journal) nothing.
 -- Needs IO to parse smart dates in options/queries.
-reportStartDate :: Journal -> ReportOpts -> IO (Maybe Day)
-reportStartDate j ropts = (fst <$>) <$> reportStartEndDates j ropts
-
--- | The effective report end date is the one specified by options or queries,
--- otherwise the latest transaction or posting date in the journal,
--- otherwise (for an empty journal) nothing.
--- Needs IO to parse smart dates in options/queries.
-reportEndDate :: Journal -> ReportOpts -> IO (Maybe Day)
-reportEndDate j ropts = (snd <$>) <$> reportStartEndDates j ropts
-
 reportStartEndDates :: Journal -> ReportOpts -> IO (Maybe (Day,Day))
 reportStartEndDates j ropts = do
-  today <- getCurrentDay
-  let
-    q = queryFromOpts today ropts
-    mrequestedstartdate = queryStartDate False q
-    mrequestedenddate = queryEndDate False q
+  (mspecifiedstartdate, mspecifiedenddate) <- specifiedStartEndDates ropts
   return $
     case journalDateSpan False j of  -- don't bother with secondary dates
       DateSpan (Just journalstartdate) (Just journalenddate) ->
-        Just (fromMaybe journalstartdate mrequestedstartdate, fromMaybe journalenddate mrequestedenddate)
+        Just (fromMaybe journalstartdate mspecifiedstartdate, fromMaybe journalenddate mspecifiedenddate)
       _ -> Nothing
+
+reportStartDate :: Journal -> ReportOpts -> IO (Maybe Day)
+reportStartDate j ropts = (fst <$>) <$> reportStartEndDates j ropts
+
+reportEndDate :: Journal -> ReportOpts -> IO (Maybe Day)
+reportEndDate j ropts = (snd <$>) <$> reportStartEndDates j ropts
+
+-- | The specified report start/end dates are the dates specified by options or queries, if any.
+-- Needs IO to parse smart dates in options/queries.
+specifiedStartEndDates :: ReportOpts -> IO (Maybe Day, Maybe Day)
+specifiedStartEndDates ropts = do
+  today <- getCurrentDay
+  let
+    q = queryFromOpts today ropts
+    mspecifiedstartdate = queryStartDate False q
+    mspecifiedenddate   = queryEndDate   False q
+  return (mspecifiedstartdate, mspecifiedenddate)
+
+specifiedStartDate :: ReportOpts -> IO (Maybe Day)
+specifiedStartDate ropts = fst <$> specifiedStartEndDates ropts
+
+specifiedEndDate :: ReportOpts -> IO (Maybe Day)
+specifiedEndDate ropts = snd <$> specifiedStartEndDates ropts
 
 
 tests_Hledger_Reports_ReportOptions :: Test
