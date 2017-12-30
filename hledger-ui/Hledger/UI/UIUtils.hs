@@ -13,22 +13,20 @@ import Brick.Widgets.Border.Style
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
 import Brick.Widgets.List
+import Control.Monad.IO.Class
 import Data.List
 import Data.Maybe
 import Data.Monoid
 import Graphics.Vty (Event(..),Key(..),Modifier(..),Color,Attr,currentAttr)
 import Lens.Micro.Platform
-import System.Process
+import System.Environment
 
 import Hledger hiding (Color)
 import Hledger.Cli (CliOpts(rawopts_))
+import Hledger.Cli.DocFiles
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 
-
-runInfo = runCommand "hledger-ui --info" >>= waitForProcess
-runMan  = runCommand "hledger-ui --man" >>= waitForProcess
-runHelp = runCommand "hledger-ui --help | less" >>= waitForProcess
 
 -- ui
 
@@ -63,9 +61,9 @@ helpDialog copts =
                   ,renderKey ("q", "quit")
                   ,str " "
                   ,str "MANUAL"
-                  ,str "from help dialog:"
-                  ,renderKey ("t", "text")
-                  ,renderKey ("m", "man page")
+                  ,str "choose format:"
+                  ,renderKey ("p", "pager")
+                  ,renderKey ("m", "man")
                   ,renderKey ("i", "info")
                 ]
              ,padLeftRight 1 $
@@ -124,13 +122,15 @@ helpDialog copts =
     statusstyle = min 3 $ fromMaybe 1 $ maybeintopt "status-toggles" $ rawopts_ copts 
 
 -- | Event handler used when help mode is active.
+-- May invoke $PAGER, less, man or info, which is likely to fail on MS Windows, TODO.
 helpHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
-helpHandle ui ev =
+helpHandle ui ev = do
+  pagerprog <- liftIO $ fromMaybe "less" <$> lookupEnv "PAGER"
   case ev of
     VtyEvent e | e `elem` (moveLeftEvents ++ [EvKey KEsc [], EvKey (KChar '?') []]) -> continue $ setMode Normal ui
-    VtyEvent (EvKey (KChar 't') []) -> suspendAndResume $ runHelp >> return ui'
-    VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume $ runMan  >> return ui'
-    VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume $ runInfo >> return ui'
+    VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume $ runPagerForTopic pagerprog "hledger-ui" >> return ui'
+    VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume $ runManForTopic             "hledger-ui" >> return ui'
+    VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume $ runInfoForTopic            "hledger-ui" >> return ui'
     _ -> continue ui
   where
     ui' = setMode Normal ui
