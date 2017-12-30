@@ -10,6 +10,9 @@ module Hledger.Cli.Utils
     (
      withJournalDo,
      writeOutput,
+     journalApplyValue, 
+     journalAddForecast,
+     generateAutomaticPostings,
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
@@ -106,9 +109,12 @@ anonymise j
   where
     anon = T.pack . flip showHex "" . (fromIntegral :: Int -> Word32) . hash
 
--- TODO This early value conversion was introduced 2017/4 to replace the late balanceReportValue/multiBalanceReportValue conversion; but hledger-ui (eg) still uses the latter. 
+-- TODO move journalApplyValue and friends to Hledger.Data.Journal ? They are here because they use ReportOpts
+
 -- | If -V/--value was requested, convert all journal amounts to their market value
 -- as of the report end date. Cf http://hledger.org/manual.html#market-value
+-- Since 2017/4 we do this early, before commands run, which affects all commands
+-- and seems to have the same effect as doing it last on the reported values.
 journalApplyValue :: ReportOpts -> Journal -> IO Journal
 journalApplyValue ropts j = do
     mvaluedate <- reportEndDate j ropts

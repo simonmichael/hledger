@@ -17,9 +17,6 @@ module Hledger.Reports.BalanceReport (
   BalanceReport,
   BalanceReportItem,
   balanceReport,
-  balanceReportValue,
-  mixedAmountValue,
-  amountValue,
   flatShowsExclusiveBalance,
 
   -- * Tests
@@ -32,7 +29,6 @@ import Data.Ord
 import Data.Maybe
 import Data.Time.Calendar
 import Test.HUnit
-import qualified Data.Text as T
 
 import Hledger.Data
 import Hledger.Read (mamountp')
@@ -151,57 +147,6 @@ balanceReportItem opts q a
 --     MultiBalanceReport (_,mbrrows,mbrtotals) = PeriodChangeReport opts q j
 --     items = [(a,a',n, headDef 0 bs) | ((a,a',n), bs) <- mbrrows]
 --     total = headDef 0 mbrtotals
-
--- | Convert all the amounts in a single-column balance report to
--- their value on the given date in their default valuation
--- commodities.
-balanceReportValue :: Journal -> Day -> BalanceReport -> BalanceReport
-balanceReportValue j d r = r'
-  where
-    (items,total) = r
-    r' =
-      dbg8 "known market prices" (jmarketprices j) `seq`
-      dbg8 "report end date" d `seq`
-      dbg8 "balanceReportValue"
-        ([(n, n', i, mixedAmountValue j d a) |(n,n',i,a) <- items], mixedAmountValue j d total)
-
-mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
-mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
-
--- | Find the market value of this amount on the given date, in it's
--- default valuation commodity, based on recorded market prices.
--- If no default valuation commodity can be found, the amount is left
--- unchanged.
-amountValue :: Journal -> Day -> Amount -> Amount
-amountValue j d a =
-  case commodityValue j d (acommodity a) of
-    Just v  -> v{aquantity=aquantity v * aquantity a
-                ,aprice=aprice a
-                }
-    Nothing -> a
-
--- | Find the market value, if known, of one unit of this commodity (A) on
--- the given valuation date, in the commodity (B) mentioned in the latest
--- applicable market price. The latest applicable market price is the market
--- price directive for commodity A with the latest date that is on or before
--- the valuation date; or if there are multiple such prices with the same date,
--- the last parsed.
-commodityValue :: Journal -> Day -> CommoditySymbol -> Maybe Amount
-commodityValue j valuationdate c
-    | null applicableprices = dbg Nothing
-    | otherwise             = dbg $ Just $ mpamount $ last applicableprices
-  where
-    dbg = dbg8 ("using market price for "++T.unpack c)
-    applicableprices =
-      [p | p <- sortBy (comparing mpdate) $ jmarketprices j
-      , mpcommodity p == c
-      , mpdate p <= valuationdate
-      ]
-
-
-
-
-
 
 
 tests_balanceReport =
