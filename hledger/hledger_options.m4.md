@@ -410,7 +410,10 @@ $ hledger -f t.j bal euros -V -e 2016/12/21
 Currently, hledger's -V only uses market prices recorded with P directives,
 not [transaction prices](journal.html#transaction-prices) (unlike Ledger).
 
-Using -B and -V together is allowed.
+## Combining -B and -V
+
+Using -B/--cost and -V/--value together is currently allowed, but the
+results are probably not meaningful. Let us know if you find a use for this. 
 
 ## Regular expressions
 
