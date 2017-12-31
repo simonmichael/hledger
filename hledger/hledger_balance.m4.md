@@ -244,7 +244,7 @@ Balance changes in 2008:
 
 ### Budgets
 
-The `--budget` flag will treat all [periodic transaction]((journal.html#periodic-transactions) in your journal as definition of the budget and allow you to compare real balances versus budgeted amounts.
+The `--budget` flag will treat all [periodic transaction](journal.html#periodic-transactions) in your journal as definition of the budget and allow you to compare real balances versus budgeted amounts.
 
 For example, you can take average monthly expenses in the common expense categories to construct a minimal monthly budget:
 ```journal
