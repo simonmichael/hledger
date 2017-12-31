@@ -46,21 +46,21 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20171016
+HLEDGER_INSTALL_VERSION=20171231
 
-RESOLVER="--resolver=lts-9"
-  # ^ lts-9 selects the latest lts-9.x snapshot from stackage. You can specify another, 
+RESOLVER="--resolver=nightly"
+  # ^ You can specify a different stackage snapshot here, 
   # or comment out this line to use your current global resolver, which might 
   # avoid some unnecessary building. OSX Sierra+ requires at least lts-8.0. 
   # lts-6 or 7 probably require tweaking the hledger install commands below. 
 
-HLEDGER_LIB_VERSION=1.4
-HLEDGER_VERSION=1.4
-HLEDGER_WEB_VERSION=1.4
-HLEDGER_DIFF_VERSION=0.2.0.11
-HLEDGER_IADD_VERSION=1.2.6
+HLEDGER_LIB_VERSION=1.5
+HLEDGER_VERSION=1.5
+HLEDGER_WEB_VERSION=1.5
+HLEDGER_DIFF_VERSION=0.2.0.12
+HLEDGER_IADD_VERSION=1.3.0
 HLEDGER_INTEREST_VERSION=1.5.1
-HLEDGER_IRR_VERSION=0.1.1.11
+HLEDGER_IRR_VERSION=0.1.1.12
 
 HLEDGER_MAIN_TOOLS="\
 hledger \
