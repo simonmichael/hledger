@@ -1,5 +1,13 @@
-User-visible changes in hledger-ui.
-See also the hledger and project change logs.
+User-visible changes in hledger-ui. See also hledger, hledger-lib.
+
+
+# 1.5 (2017/12/31)
+
+* fix help -> view manual (on posix platforms) #623
+
+* support -V/--value, --forecast, --auto
+
+* allow ansi-terminal 0.8, megaparsec 6.3.0, brick 0.30, vty-5.19
 
 
 # 1.4 (2017/9/30)

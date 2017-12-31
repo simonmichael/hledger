@@ -1,5 +1,28 @@
-User-visible changes in the hledger and hledger-lib packages.
-See also the project change log.
+User-visible changes in the hledger CLI tool. See also hledger-lib.
+
+
+# 1.5 (2017/12/31)
+
+* --auto adds Ledger-style automated postings to transactions (Dmitry Astapov, Mykola Orliuk)
+
+* --forecast generates Ledger-style periodic transactions in the future (Dmitry Astapov, Mykola Orliuk)
+
+* -V/--value uses today's market prices by default, not those of last transaction date. #683, #648
+
+* add: suggest implied (parent) and declared (by account directives) account names also
+
+* bal: --budget shows performance compared to budget goals defined
+  with periodic transactions.  Accounts with budget goals are
+  displayed folded (depth-clipped) at a depth matching the budget
+  specification.  Unbudgeted accounts are hidden, or with
+  --show-unbudgeted, shown at their usual depth. (Dmitry Astapov)
+
+* import: the output of --dry-run is now valid journal format
+
+* tag: the first argument now filters tag names, additional arguments
+  filter transactions (#261)
+
+* allow ansi-terminal 0.8, megaparsec 6.3.0
 
 
 # 1.4 (2017/9/30)
