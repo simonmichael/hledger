@@ -40,29 +40,29 @@ flags:
 cpp-options: -DVERSION="1.4.99"
 
 dependencies:
- - hledger >= 1.4.99 && < 1.5
- - hledger-lib >= 1.4.99 && < 1.5
- - ansi-terminal >= 0.6.2.3 && < 0.9
+ - hledger >=1.4.99 && <1.5
+ - hledger-lib >=1.4.99 && <1.5
+ - ansi-terminal >=0.6.2.3 && <0.9
  - async
- - base >= 4.8 && < 5
- - base-compat >= 0.8.1
- - cmdargs >= 0.8
+ - base >=4.8 && <5
+ - base-compat >=0.8.1
+ - cmdargs >=0.8
  - containers
  - data-default
  - directory
  - filepath
- - fsnotify >= 0.2 && < 0.3
+ - fsnotify >=0.2 && <0.3
  - HUnit
- - microlens >= 0.4 && < 0.5
- - microlens-platform >= 0.2.3.1 && < 0.4
- - megaparsec >=5.0 && < 6.5
+ - microlens >=0.4 && <0.5
+ - microlens-platform >=0.2.3.1 && <0.4
+ - megaparsec >=5.0 && <6.5
  - pretty-show >=1.6.4
- - process >= 1.2
- - safe >= 0.2
- - split >= 0.1 && < 0.3
- - text >= 1.2 && < 1.3
- - text-zipper >= 0.4 && < 0.11
- - time >= 1.5
+ - process >=1.2
+ - safe >=0.2
+ - split >=0.1 && <0.3
+ - text >=1.2 && <1.3
+ - text-zipper >=0.4 && <0.11
+ - time >=1.5
  - transformers
  - vector
 
@@ -82,8 +82,8 @@ when:
      buildable: false
    else:
      dependencies:
-       - brick >= 0.12 && < 0.31
-       - vty >= 5.5 && < 5.20
+       - brick >=0.12 && <0.31
+       - vty >=5.5 && <5.20
 
 executables:
   hledger-ui:

@@ -41,7 +41,7 @@ data-files:
 dependencies:
 - base >=4.8 && <5
 - base-compat >=0.8.1
-- ansi-terminal >= 0.6.2.3 && < 0.9
+- ansi-terminal >=0.6.2.3 && <0.9
 - array
 - blaze-markup >=0.5.1
 - bytestring
@@ -53,12 +53,12 @@ dependencies:
 - deepseq
 - directory
 - filepath
-- hashtables >= 1.2
-- megaparsec >=5.0 && < 6.5
+- hashtables >=1.2
+- megaparsec >=5.0 && <6.5
 - mtl
 - mtl-compat
 - old-time
-- parsec >= 3
+- parsec >=3
 - pretty-show >=1.6.4
 - regex-tdfa
 - safe >=0.2
@@ -72,9 +72,9 @@ dependencies:
 - HUnit
 - extra
 # for ledger-parse:
-#- parsers >= 0.5
+#- parsers >=0.5
 #- system-filepath
-#- trifecta >= 0.91
+#- trifecta >=0.91
 
 ghc-options:
 - -Wall

@@ -23,7 +23,7 @@ author      : Simon Michael <simon@joyful.com>
 maintainer  : '-'
 
 dependencies:
-  - base >= 4.7 && < 5
+  - base >=4.7 && <5
   - hakyll >=4.7
   - pandoc #>=1.15
   - pandoc-types

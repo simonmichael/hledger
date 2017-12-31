@@ -32,8 +32,8 @@ data-files:
 - hledger-api.info
 
 dependencies:
-- hledger-lib >= 1.4.99 && < 1.5
-- hledger >= 1.4.99 && < 1.5
+- hledger-lib >=1.4.99 && <1.5
+- hledger >=1.4.99 && <1.5
 - base >=4.8 && <5
 - aeson
 - bytestring
@@ -44,9 +44,9 @@ dependencies:
 - microlens >=0.4 && <0.5
 - microlens-platform >=0.2.3.1 && <0.4
 - safe
-- servant-server >= 0.10
+- servant-server >=0.10
 - servant-swagger
-- swagger2 >= 2.0 && < 2.3
+- swagger2 >=2.0 && <2.3
 - text
 - transformers
 - wai
