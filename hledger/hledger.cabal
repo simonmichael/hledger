@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3367f2d53cbdb8bef95eb615437a6c778497043b784b5eed1c0a3eaf7d4cdf5b
+-- hash: b78375f899cdebd7ba632c6a3e3eca7aaed8f668d16e24ac785c592c8091726d
 
 name:           hledger
 version:        1.4.99
@@ -82,22 +82,22 @@ library
       Decimal
     , Diff
     , HUnit
-    , ansi-terminal >=0.6.2.3 && <0.9
+    , ansi-terminal >=0.6.2.3
     , base >=4.8 && <5
     , base-compat >=0.8.1
     , bytestring
-    , cmdargs >=0.10 && <0.11
+    , cmdargs >=0.10
     , containers
     , csv
     , data-default >=0.5
     , directory
-    , file-embed >=0.0.10 && <0.1
+    , file-embed >=0.0.10
     , filepath
     , hashable >=1.2.4
-    , haskeline >=0.6 && <=0.8
+    , haskeline >=0.6
     , here
     , hledger-lib >=1.4.99 && <1.5
-    , megaparsec >=5.0 && <6.5
+    , megaparsec >=5.0
     , mtl
     , mtl-compat
     , old-time
@@ -105,17 +105,17 @@ library
     , process
     , regex-tdfa
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && <2.1
-    , split >=0.1 && <0.3
-    , tabular >=0.2 && <0.3
+    , shakespeare >=2.0.2.2
+    , split >=0.1
+    , tabular >=0.2
     , temporary
     , text >=0.11
     , time >=1.5
     , transformers
     , unordered-containers
-    , utf8-string >=0.3.5 && <1.1
+    , utf8-string >=0.3.5
     , utility-ht >=0.0.13
-    , wizards ==1.0.*
+    , wizards >=1.0
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
@@ -163,18 +163,18 @@ executable hledger
   build-depends:
       Decimal
     , HUnit
-    , ansi-terminal >=0.6.2.3 && <0.9
+    , ansi-terminal >=0.6.2.3
     , base >=4.8 && <5
     , base-compat >=0.8.1
     , bytestring
-    , cmdargs >=0.10 && <0.11
+    , cmdargs >=0.10
     , containers
     , csv
     , data-default >=0.5
     , directory
-    , file-embed >=0.0.10 && <0.1
+    , file-embed >=0.0.10
     , filepath
-    , haskeline >=0.6 && <=0.8
+    , haskeline >=0.6
     , here
     , hledger
     , hledger-lib >=1.4.99 && <1.5
@@ -186,16 +186,16 @@ executable hledger
     , process
     , regex-tdfa
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && <2.1
-    , split >=0.1 && <0.3
-    , tabular >=0.2 && <0.3
+    , shakespeare >=2.0.2.2
+    , split >=0.1
+    , tabular >=0.2
     , temporary
     , text >=0.11
     , time >=1.5
     , unordered-containers
-    , utf8-string >=0.3.5 && <1.1
+    , utf8-string >=0.3.5
     , utility-ht >=0.0.13
-    , wizards ==1.0.*
+    , wizards >=1.0
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
@@ -215,18 +215,18 @@ test-suite test
   build-depends:
       Decimal
     , HUnit
-    , ansi-terminal >=0.6.2.3 && <0.9
+    , ansi-terminal >=0.6.2.3
     , base >=4.8 && <5
     , base-compat >=0.8.1
     , bytestring
-    , cmdargs >=0.10 && <0.11
+    , cmdargs >=0.10
     , containers
     , csv
     , data-default >=0.5
     , directory
-    , file-embed >=0.0.10 && <0.1
+    , file-embed >=0.0.10
     , filepath
-    , haskeline >=0.6 && <=0.8
+    , haskeline >=0.6
     , here
     , hledger
     , hledger-lib >=1.4.99 && <1.5
@@ -238,18 +238,18 @@ test-suite test
     , process
     , regex-tdfa
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && <2.1
-    , split >=0.1 && <0.3
-    , tabular >=0.2 && <0.3
+    , shakespeare >=2.0.2.2
+    , split >=0.1
+    , tabular >=0.2
     , temporary
     , test-framework
     , test-framework-hunit
     , text >=0.11
     , time >=1.5
     , unordered-containers
-    , utf8-string >=0.3.5 && <1.1
+    , utf8-string >=0.3.5
     , utility-ht >=0.0.13
-    , wizards ==1.0.*
+    , wizards >=1.0
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
@@ -264,12 +264,12 @@ benchmark bench
       bench
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-      ansi-terminal >=0.6.2.3 && <0.9
+      ansi-terminal >=0.6.2.3
     , base >=4.8 && <5
     , base-compat >=0.8.1
     , criterion
     , directory
-    , file-embed >=0.0.10 && <0.1
+    , file-embed >=0.0.10
     , filepath
     , here
     , hledger
@@ -277,8 +277,8 @@ benchmark bench
     , html
     , pretty-show >=1.6.4
     , process
-    , shakespeare >=2.0.2.2 && <2.1
-    , tabular >=0.2 && <0.3
+    , shakespeare >=2.0.2.2
+    , tabular >=0.2
     , temporary
     , time >=1.5
     , timeit

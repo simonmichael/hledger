@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 45c7ca631b342ca758edba76083ab22dab453922fd7dd19bd156227e1b322fea
+-- hash: f1c4547b158161ac886b9e8d538a2f075ec53fb53ee4f358eceb0d6516deda8d
 
 name:           hledger-api
 version:        1.4.99
@@ -57,12 +57,12 @@ executable hledger-api
     , either
     , hledger >=1.4.99 && <1.5
     , hledger-lib >=1.4.99 && <1.5
-    , microlens >=0.4 && <0.5
-    , microlens-platform >=0.2.3.1 && <0.4
+    , microlens >=0.4
+    , microlens-platform >=0.2.3.1
     , safe
     , servant-server >=0.10
     , servant-swagger
-    , swagger2 >=2.0 && <2.3
+    , swagger2 >=2.0
     , text
     , transformers
     , wai

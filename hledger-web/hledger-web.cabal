@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 26ee8150273be2220a86a3d59474acfc963116819ed9cdf7ab790fcf237a7de7
+-- hash: ba3551190ab441c8d9193501a69d9c6710b33b2abb0c71537504e8ecff271590
 
 name:           hledger-web
 version:        1.4.99
@@ -133,7 +133,7 @@ library
     , blaze-markup
     , bytestring
     , clientsession
-    , cmdargs >=0.10 && <0.11
+    , cmdargs >=0.10
     , conduit-extra >=1.1
     , data-default
     , directory
@@ -144,13 +144,13 @@ library
     , http-client
     , http-conduit
     , json
-    , megaparsec >=5.0 && <6.5
+    , megaparsec >=5.0
     , mtl
     , parsec >=3
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && <2.1
+    , shakespeare >=2.0.2.2
     , template-haskell
-    , text >=1.2 && <1.3
+    , text >=1.2
     , time >=1.5
     , transformers
     , wai
@@ -158,7 +158,7 @@ library
     , wai-handler-launch >=1.3
     , warp
     , yaml
-    , yesod >=1.4 && <1.5
+    , yesod >=1.4
     , yesod-core
     , yesod-form
     , yesod-static
@@ -201,7 +201,7 @@ executable hledger-web
     , blaze-markup
     , bytestring
     , clientsession
-    , cmdargs >=0.10 && <0.11
+    , cmdargs >=0.10
     , conduit-extra >=1.1
     , data-default
     , directory
@@ -213,13 +213,13 @@ executable hledger-web
     , http-client
     , http-conduit
     , json
-    , megaparsec >=5.0 && <6.5
+    , megaparsec >=5.0
     , mtl
     , parsec >=3
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && <2.1
+    , shakespeare >=2.0.2.2
     , template-haskell
-    , text >=1.2 && <1.3
+    , text >=1.2
     , time >=1.5
     , transformers
     , wai
@@ -227,7 +227,7 @@ executable hledger-web
     , wai-handler-launch >=1.3
     , warp
     , yaml
-    , yesod >=1.4 && <1.5
+    , yesod >=1.4
     , yesod-core
     , yesod-form
     , yesod-static
@@ -258,7 +258,7 @@ test-suite test
     , blaze-markup
     , bytestring
     , clientsession
-    , cmdargs >=0.10 && <0.11
+    , cmdargs >=0.10
     , conduit-extra >=1.1
     , data-default
     , directory
@@ -271,13 +271,13 @@ test-suite test
     , http-client
     , http-conduit
     , json
-    , megaparsec >=5.0 && <6.5
+    , megaparsec >=5.0
     , mtl
     , parsec >=3
     , safe >=0.2
-    , shakespeare >=2.0.2.2 && <2.1
+    , shakespeare >=2.0.2.2
     , template-haskell
-    , text >=1.2 && <1.3
+    , text >=1.2
     , time >=1.5
     , transformers
     , wai
@@ -285,7 +285,7 @@ test-suite test
     , wai-handler-launch >=1.3
     , warp
     , yaml
-    , yesod >=1.4 && <1.5
+    , yesod >=1.4
     , yesod-core
     , yesod-form
     , yesod-static

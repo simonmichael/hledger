@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: da9e01e1f9d9e6d8d2f8542c24ecd91250502befeb2de9cf854fbaf4043410ff
+-- hash: 4e841321d7ab36b067050f6e143ea20d6c8ba27b0b167faddcf4f2ae7357cfd6
 
 name:           hledger-ui
 version:        1.4.99
@@ -55,7 +55,7 @@ executable hledger-ui
   cpp-options: -DVERSION="1.4.99"
   build-depends:
       HUnit
-    , ansi-terminal >=0.6.2.3 && <0.9
+    , ansi-terminal >=0.6.2.3
     , async
     , base >=4.8 && <5
     , base-compat >=0.8.1
@@ -64,18 +64,18 @@ executable hledger-ui
     , data-default
     , directory
     , filepath
-    , fsnotify >=0.2 && <0.3
+    , fsnotify >=0.2
     , hledger >=1.4.99 && <1.5
     , hledger-lib >=1.4.99 && <1.5
-    , megaparsec >=5.0 && <6.5
-    , microlens >=0.4 && <0.5
-    , microlens-platform >=0.2.3.1 && <0.4
+    , megaparsec >=5.0
+    , microlens >=0.4
+    , microlens-platform >=0.2.3.1
     , pretty-show >=1.6.4
     , process >=1.2
     , safe >=0.2
-    , split >=0.1 && <0.3
-    , text >=1.2 && <1.3
-    , text-zipper >=0.4 && <0.11
+    , split >=0.1
+    , text >=1.2
+    , text-zipper >=0.4
     , time >=1.5
     , transformers
     , vector
@@ -83,8 +83,8 @@ executable hledger-ui
     buildable: False
   else
     build-depends:
-        brick >=0.12 && <0.31
-      , vty >=5.5 && <5.20
+        brick >=0.12
+      , vty >=5.5
   if flag(threaded)
     ghc-options: -threaded
   other-modules:
