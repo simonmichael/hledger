@@ -7,6 +7,7 @@ h4 { margin-top:2em; }
 <nav id="toc">
 <p>Major releases:</p>
 <ol>
+<li><a href="#hledger-1.5">hledger 1.5 (2017/12/31)</a>
 <li><a href="#hledger-1.4">hledger 1.4 (2017/9/30)</a>
 <li><a href="#hledger-1.3">hledger 1.3 (2017/6/30)</a>
 <li><a href="#hledger-1.2">hledger 1.2 (2017/3/31)</a>
@@ -43,6 +44,124 @@ h4 { margin-top:2em; }
 </nav>
 
 # Release notes
+
+
+## 2017/12/31 hledger 1.5
+
+***
+***
+
+<!-- ([announcement](https://groups.google.com/forum/#!topic/hledger/)) -->
+
+Release contributors:
+Dmitry Astapov,
+Mykola Orliuk,
+Eli Flanagan,
+Elijah Caine,
+Sam Jeeves,
+Matthias Kauer,
+Hans-Peter Deifel,
+Mick Dekkers,
+Nadrieril,
+Alvaro Fernando García.
+
+  [project](#project-wide-changes-for-1.5)
+| [hledger-install](#hledger-install.sh-1.5)
+| [hledger-lib](#hledger-lib-1.5)
+| [hledger](#hledger-1.5-1)
+| [hledger-ui](#hledger-ui-1.5)
+| [hledger-web](#hledger-web-1.5)
+| [hledger-api](#hledger-api-1.5)
+
+### project-wide changes for 1.5
+
+* remove upper bounds on all but hledger* and base (experimental)
+  It's rare that my deps break their api or that newer versions must
+  be avoided, and very common that they release new versions which I
+  must tediously and promptly test and release hackage revisions for
+  or risk falling out of stackage. Trying it this way for a bit.
+
+### hledger-install.sh 1.5
+
+### hledger-lib 1.5
+
+* -V/--value uses today's market prices by default, not those of last transaction date. #683, #648)
+
+* csv: allow balance assignment (balance assertion only, no amount) in csv records (Nadrieril)
+
+* journal: allow space as digit group separator character, #330 (Mykola Orliuk)
+
+* journal: balance assertion errors now show line of failed assertion posting, #481 (Sam Jeeves)
+
+* journal: better errors for directives, #402 (Mykola Orliuk)
+
+* journal: better errors for included files, #660 (Mykola Orliuk)
+
+* journal: commodity directives in parent files are inherited by included files, #487 (Mykola Orliuk)
+
+* journal: commodity directives limits precision even after -B, #509 (Mykola Orliuk)
+
+* journal: decimal point/digit group separator chars are now inferred from an applicable commodity directive or default commodity directive. #399, #487 (Mykola Orliuk)
+
+* journal: numbers are parsed more strictly (Mykola Orliuk)
+
+* journal: support Ledger-style automated postings, enabled with --auto flag (Dmitry Astapov)
+
+* journal: support Ledger-style periodic transactions, enabled with --forecast flag (Dmitry Astapov)
+
+* period expressions: fix "nth day of {week,month}", which could generate wrong intervals (Dmitry Astapov)
+
+* period expressions: month names are now case-insensitive (Dmitry Astapov)
+
+* period expressions: stricter checking for invalid expressions (Mykola Orliuk)
+
+* period expressions: support "every 11th Nov" (Dmitry Astapov)
+
+* period expressions: support "every 2nd Thursday of month" (Dmitry Astapov)
+
+* period expressions: support "every Tuesday", short for "every <n>th day of week" (Dmitry Astapov)
+
+### hledger 1.5
+
+* --auto adds Ledger-style automated postings to transactions (Dmitry Astapov, Mykola Orliuk)
+
+* --forecast generates Ledger-style periodic transactions in the future (Dmitry Astapov, Mykola Orliuk)
+
+* -V/--value uses today's market prices by default, not those of last transaction date. #683, #648
+
+* add: suggest implied (parent) and declared (by account directives) account names also
+
+* bal: --budget shows performance compared to budget goals defined
+  with periodic transactions.  Accounts with budget goals are
+  displayed folded (depth-clipped) at a depth matching the budget
+  specification.  Unbudgeted accounts are hidden, or with
+  --show-unbudgeted, shown at their usual depth. (Dmitry Astapov)
+
+* import: the output of --dry-run is now valid journal format
+
+* print: -B shows converted amounts again, as in 1.1, even without
+  -x. #551 (Mykola Orliuk, Simon Michael)
+
+* tag: the first argument now filters tag names, additional arguments
+  filter transactions (#261)
+
+### hledger-ui 1.5
+
+* fix help -> view manual (on posix platforms) #623
+
+* support -V/--value, --forecast, --auto
+
+### hledger-web 1.5
+
+* add form account fields now suggest implied and declared account names also
+
+* add form date field now uses a datepicker (Eli Flanagan)
+
+* don't write a session file at startup, don't require a writable working directory
+
+* support -V/--value, --forecast, --auto
+
+### hledger-api 1.5
 
 
 ## 2017/9/30 hledger 1.4

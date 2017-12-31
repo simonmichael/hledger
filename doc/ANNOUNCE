@@ -1,78 +1,87 @@
-Aloha! I'm pleased to announce hledger 1.4.
+I'm very pleased to announce hledger 1.5.
+A big thank you to the release contributors: 
+Dmitry Astapov,
+Mykola Orliuk,
+Eli Flanagan,
+Elijah Caine,
+Sam Jeeves,
+Matthias Kauer,
+Hans-Peter Deifel,
+Mick Dekkers,
+Nadrieril,
+Alvaro Fernando García.
 
-Thank you release contributors: Nicholas Niro, Hans-Peter Deifel, 
-Jakub Zárybnický, Felix Yan, Mark Hansen, Christian G. Warden, 
-Nissar Chababy and Peter Simons.
-
-Also, if I haven't already mentioned it: this year hledger turns 10!
-Here's the first commit, from January 27 2007:
-https://github.com/simonmichael/hledger/commit/85864b41 
-We have come a way, but there is much yet to look forward to.
-Onward and upward!
-
-The next major release is scheduled for 2017/12/31.
+The next major release is scheduled for 2018/03/31.
 
 What is hledger ?
 -----------------
 
-hledger (http://hledger.org) is an evolving, dependable, robust,
-cross-platform program for tracking money, time, or any other
-commodity, using double-entry accounting and a simple plain text file
-format.  It is a haskell reimplementation of Ledger and the plain text
-accounting concept, providing command-line, curses and web
-interfaces. hledger aims to be a pleasant and practical tool for
-personal, business or institutional finance and time tracking.
+hledger (http://hledger.org) is an evolving, reliable, cross-platform
+program for tracking money, time, or any other commodity, using
+double-entry accounting and a simple plain text file format.  It is a
+haskell reimplementation of Ledger and the plain text accounting
+concept, providing command-line, curses and web interfaces. hledger
+aims to be a pleasant and practical tool for personal, business or
+institutional finance and time tracking.
 
 What's new ?
 ------------
 
-The full release notes are at http://hledger.org/release-notes#hledger-1.4 .
+The full release notes are at http://hledger.org/release-notes#hledger-1.5 .
 Some highlights:
 
-- Easy install script: we have a new installation method for the
-hledger tools, intended to dodge common pitfalls and just-work more
-often. Building on the stack team's install script, this bash script
-is cross platform, uses cabal or stack, installs stack and GHC if
-needed, and installs the latest release of all major hledger
-packages. See http://hledger.org/download for details.
+* Ledger-style automated posting rules to modify transactions, enabled
+  with --auto flag
 
-- More batteries included: most experimental addon commands formerly
-shipped in bin/ are now built in and work out of the box.
+* Ledger-style periodic transaction rules to generate forecast
+  transactions (--forecast) and budget goals
 
-- New commands: 
-balancesheetequity (a balance sheet including equity), 
-tags (list tags in use), 
-import (detects new transactions in multiple input files and adds them
-to the main journal, particularly useful with CSV downloads).
+* a new budget report (balance --budget) comparing amounts with
+  per-period and per-account budget goals
 
-- Balance reports can be sorted by amount - makes those high expenses
-easy to spot.
+* more expressive period expressions
 
-- CLI conveniences:
-@ARGSFILE is expanded to the set of args/flags in ARGSFILE.
-depth:2 or --depth=2 can be written as -2.
+* space can be used as digit group separator character in numbers
 
-- Help improvements: reorganized docs page, a more useful commands
-list, a smarter help command, --help and -h are the same again (by
-popular demand),
+* commodity or default commodity directives give more control over
+  display precision and decimal point/digit group separator
+
 
 Getting started
 ---------------
 
 See http://hledger.org/download for all install methods.
+Windows users can download nightly binaries.
+On other platforms, you may need to build the latest release yourself.
+The easiest and most reliable way is to run the hledger install script. 
+This requires only bash and will install the hledger tools in $HOME/.local/bin/.
+(It uses an installed cabal or stack if possible, otherwise installs
+stack and GHC in $HOME/.local/bin and $HOME/.stack/).
+Here's the responsible way to run it:
 
-To get the latest hledger release, you may need to build it yourself
-using stack or cabal. But don't worry, this is.. getting quite painless.
-The new hledger installer requires only bash and will install
-everything you need in one step: the hledger tools in
-$HOME/.local/bin/, and (if required) stack and GHC in $HOME/.stack/.
-Run it like so:
+$ curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh
+$ less hledger-install.sh # (do security review)
+$ bash hledger-install.sh # (add -v for more detail; use bash -x to show commands being run)
 
-$ curl -sSLO http://hledger.org/hledger-install.sh
-$ less hledger-install.sh   # review script, for the security conscious
-$ bash hledger-install.sh   # install the latest hledger tools
+or the more convenient, less secure way:
 
-Ensure $HOME/.local/bin is in your $PATH. Now try some commands:
+$ curl https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash
+
+or, to install individual tools:
+
+$ stack install hledger-1.5  # hledger-ui-1.5 hledger-web-1.5 hledger-api-1.5 etc.
+
+or:
+
+$ cabal update
+$ cabal install hledger-1.5  # hledger-ui-1.5 hledger-web-1.5 hledger-api-1.5 etc.
+
+Note: building haskell apps can take significant time, memory, and disk space, especially the first time.
+You can kill and restart the installer without losing progress. 
+If it fails, please help us improve it by reporting the full output.
+
+After installation, ensure $HOME/.local/bin is in your $PATH. 
+Now try some commands:
 
 $ hledger -h            # quick help
 $ hledger help          # list built-in manuals
@@ -87,10 +96,9 @@ and http://plaintextaccounting.org
 Or say hello and ask questions in the #hledger IRC channel on Freenode:
 http://irc.hledger.org
 
-If you have been finding hledger useful, I invite you to become a 
-sponsor or contributor to make it stronger.  Donate using one of the 
-funding links on the home page, give feedback, report bugs, send 
-pull requests, write about it, or help in some other way. 
-Thanks for your support! I hope to meet you online.
+If you have been finding hledger useful, I invite you to become a
+sponsor or donor to make it stronger (see home page).
+Also give feedback, report bugs, send pull requests, write about it,
+etc. Thanks for your help!
 
 -Simon
