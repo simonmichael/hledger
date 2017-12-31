@@ -245,6 +245,7 @@ accordingly, and will end on the last day of same period, even if
 associated period expression specifies different explicit start and end date.
 
 For example:
+
 ------------------------------------------
 `-p "weekly from 2009/1/1 to 2009/4/1"` -- starts on 2008/12/29, closest preceeding Monday
 `-p "monthly in 2008/11/25"` -- starts on 2018/11/01                  
