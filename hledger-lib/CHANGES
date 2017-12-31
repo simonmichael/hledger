@@ -39,7 +39,11 @@ API-ish changes in the hledger-lib package. See also hledger.
 
 * period expressions: support "every Tuesday", short for "every <n>th day of week" (Dmitry Astapov)
 
-* allow ansi-terminal 0.8, megaparsec 6.3.0
+* remove upper bounds on all but hledger* and base (experimental)
+  It's rare that my deps break their api or that newer versions must
+  be avoided, and very common that they release new versions which I
+  must tediously and promptly test and release hackage revisions for
+  or risk falling out of stackage. Trying it this way for a bit.
 
 
 # 1.4 (2017/9/30)

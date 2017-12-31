@@ -7,7 +7,7 @@ User-visible changes in hledger-ui. See also hledger, hledger-lib.
 
 * support -V/--value, --forecast, --auto
 
-* allow ansi-terminal 0.8, megaparsec 6.3.0, brick 0.30, vty-5.19
+* remove upper bounds on all but hledger* and base (experimental)
 
 
 # 1.4 (2017/9/30)

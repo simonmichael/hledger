@@ -19,10 +19,13 @@ User-visible changes in the hledger CLI tool. See also hledger-lib.
 
 * import: the output of --dry-run is now valid journal format
 
+* print: -B shows converted amounts again, as in 1.1, even without
+  -x. #551 (Mykola Orliuk, Simon Michael)
+
 * tag: the first argument now filters tag names, additional arguments
   filter transactions (#261)
 
-* allow ansi-terminal 0.8, megaparsec 6.3.0
+* remove upper bounds on all but hledger* and base (experimental)
 
 
 # 1.4 (2017/9/30)

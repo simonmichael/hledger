@@ -3,7 +3,7 @@ User-visible changes in hledger-api. See also hledger, hledger-lib.
 
 # 1.5 (2017/12/31)
 
-* allow swagger2 2.2
+* remove upper bounds on all but hledger* and base (experimental)
 
 
 # 1.4 (2017/9/30)
