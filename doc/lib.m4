@@ -156,14 +156,12 @@ m4_define({{_reportingoptions_}}, {{
 : convert amounts to their market value on the report end date
 (using the most recent applicable [market price](journal.html#market-prices), if any)
 
-`--forecast`
-: generate forecast transactions from [periodic transaction](journal.html#periodic-transactions) rules.
-Each periodic transaction rule will generate [forecast transactions](budgeting-and-forecasting.html#forecasting),
-beginning the day after the last recorded journal transaction,
-and ending 6 months from today, or at the specified report end date.
-
 `--auto`
-: apply [automated posting rules](journal.html#automated-posting-rules) to modify transactions where applicable (can combine with --forecast).
+: apply [automated posting rules](journal.html#automated-posting-rules) to modify transactions.
+
+`--forecast`
+: apply [periodic transaction](journal.html#periodic-transactions) rules to generate future transactions, to 6 months from now or report end date.
+
 
 When a reporting option appears more than once in the command line, the last one takes precedence.
 

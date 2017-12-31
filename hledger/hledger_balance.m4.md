@@ -42,16 +42,16 @@ txt, csv.
 : write output to FILE.  A file extension matching one of the above formats selects that format.
 
 `--pretty-tables`
-: Use unicode to display prettier tables.
+: use unicode to display prettier tables.
 
 `--sort-amount`
-: Sort by amount (total row amount, or by average if that is displayed), instead of account name (in flat mode)
+: sort by amount instead of account name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed. 
 
 `--budget`
-: Treat [periodic transaction](journal.html#periodic-transactions) as definition of a budget. Compare real balances to budget balances and show percentage of budget consumed. 
+: show performance compared to budget goals defined by [periodic transactions](journal.html#periodic-transactions)
 
 `--show-unbudgeted`
-: When --budget is used, display accounts that do not have budget defined
+: with --budget, show unbudgeted accounts also
 
 The balance command displays accounts and balances.
 It is hledger's most featureful and versatile command.
@@ -244,7 +244,12 @@ Balance changes in 2008:
 
 ### Budgets
 
-The `--budget` flag will treat all [periodic transaction](journal.html#periodic-transactions) in your journal as definition of the budget and allow you to compare real balances versus budgeted amounts.
+With `--budget` and a [report interval](manual.html#report-intervals), 
+all [periodic transactions](journal.html#periodic-transactions) in your journal 
+with that interval, 
+active during the requested report period,
+are interpreted as recurring budget goals for the specified accounts (and subaccounts), 
+and the report will show the difference between actual and budgeted balances.  
 
 For example, you can take average monthly expenses in the common expense categories to construct a minimal monthly budget:
 ```journal
@@ -273,9 +278,9 @@ For example, you can take average monthly expenses in the common expense categor
   assets:bank:checking
 ```
 
-You can now compare real balances with budget:
+You can now see a monthly budget performance report:
 ```shell
-$ hledge balance -M --budget
+$ hledger balance -M --budget
 Balance changes in 2017/11/01-2017/12/31:
 
                        ||                2017/11                  2017/12 
@@ -307,7 +312,9 @@ Ending balances (cumulative) in 2017/11/01-2017/12/31:
                        ||                      0                        0
 ```
 
-Adding `--show-unbudgeted` will allow you to see all the accounts for which budgets:
+Accounts with no budget goals (not mentioned in the periodic transactions)
+will be aggregated under `<unbudgeted>`, unless you add the 
+`--show-unbudgeted` flag to display them normally:
 ```shell
 $ hledger balance --budget --show-unbudgeted
 Balance changes in 2017/11/01-2017/12/31:

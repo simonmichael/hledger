@@ -865,12 +865,18 @@ A periodic transaction starts with a tilde ‘~’ in place of a date followed b
   income:acme inc
 ```
 
-Periodic transactions are used for budgeting and forecasting only, they have no effect without the `--forecast` or `--budget` option specified.
-For examples and details, see [Budgeting and Forecasting](budgeting-and-forecasting.html).
+Periodic transactions are used for forecasting and budgeting only, they have no effect unless the `--forecast` or `--budget` flag is used.
+With `--forecast`, each periodic transaction rule generates recurring forecast transactions
+at the specified interval, beginning the day after the last recorded journal transaction
+and ending 6 months from today, or at the specified report end date.
+With `balance --budget`, each periodic transaction declares recurring budget goals for one or more accounts.   
+For more details, see:
+[balance > Budgeting](manual.html#budgeting), 
+[Budgeting and Forecasting](budgeting-and-forecasting.html).
 
 # Automated posting rules
 
-Autopated posting rule starts with an equal sign '=' in place of a date, followed by a [query](manual.html#queries):
+Automated posting rule starts with an equal sign '=' in place of a date, followed by a [query](manual.html#queries):
 ```journal
 = expenses:gifts
     budget:gifts  *-1

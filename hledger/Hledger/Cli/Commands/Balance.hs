@@ -283,10 +283,10 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
      ,flagNone ["no-elide"] (\opts -> setboolopt "no-elide" opts) "don't squash boring parent accounts (in tree mode)"
      ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
-     ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode when displaying tables"
-     ,flagNone ["sort-amount","S"] (\opts -> setboolopt "sort-amount" opts) "sort by amount instead of account name"
-     ,flagNone ["budget"] (setboolopt "budget") "compute budget from periodic transactions and compare real balances to it"
-     ,flagNone ["show-unbudgeted"] (setboolopt "show-unbudgeted") "show full names of accounts not mentioned in budget"
+     ,flagNone ["pretty-tables"] (\opts -> setboolopt "pretty-tables" opts) "use unicode to display prettier tables"
+     ,flagNone ["sort-amount","S"] (\opts -> setboolopt "sort-amount" opts) "sort by amount instead of account name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
+     ,flagNone ["budget"] (setboolopt "budget") "show performance compared to budget goals defined by periodic transactions"
+     ,flagNone ["show-unbudgeted"] (setboolopt "show-unbudgeted") "with --budget, show unbudgeted accounts also"
      ]
      ++ outputflags
     ,groupHidden = []
