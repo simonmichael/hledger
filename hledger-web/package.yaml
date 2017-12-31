@@ -95,7 +95,7 @@ dependencies:
 - yesod-form
 - yesod-static
 - json
-- megaparsec >=5.0 && < 6.4
+- megaparsec >=5.0 && < 6.5
 - mtl
 - parsec >=3
 

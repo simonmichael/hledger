@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e44d6ce1b41bd59cebb67a6f567178cd7fdef2396dd1debf0c5c1e9635233736
+-- hash: 26ee8150273be2220a86a3d59474acfc963116819ed9cdf7ab790fcf237a7de7
 
 name:           hledger-web
 version:        1.4.99
@@ -144,7 +144,7 @@ library
     , http-client
     , http-conduit
     , json
-    , megaparsec >=5.0 && <6.4
+    , megaparsec >=5.0 && <6.5
     , mtl
     , parsec >=3
     , safe >=0.2
@@ -213,7 +213,7 @@ executable hledger-web
     , http-client
     , http-conduit
     , json
-    , megaparsec >=5.0 && <6.4
+    , megaparsec >=5.0 && <6.5
     , mtl
     , parsec >=3
     , safe >=0.2
@@ -271,7 +271,7 @@ test-suite test
     , http-client
     , http-conduit
     , json
-    , megaparsec >=5.0 && <6.4
+    , megaparsec >=5.0 && <6.5
     , mtl
     , parsec >=3
     , safe >=0.2
