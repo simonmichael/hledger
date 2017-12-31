@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b78375f899cdebd7ba632c6a3e3eca7aaed8f668d16e24ac785c592c8091726d
+-- hash: 8e14dbb3cafd99102e0a85bd39076ca0af4c9554f348cd6cacb0d59faf63623b
 
 name:           hledger
-version:        1.4.99
+version:        1.5
 synopsis:       Command-line interface for the hledger accounting tool
 description:    This is hledger's command-line interface.
                 Its basic function is to read a plain text file describing
@@ -77,7 +77,7 @@ flag threaded
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4.99"
+  cpp-options: -DVERSION="1.5"
   build-depends:
       Decimal
     , Diff
@@ -96,7 +96,7 @@ library
     , hashable >=1.2.4
     , haskeline >=0.6
     , here
-    , hledger-lib >=1.4.99 && <1.5
+    , hledger-lib >=1.5 && <1.6
     , megaparsec >=5.0
     , mtl
     , mtl-compat
@@ -159,7 +159,7 @@ executable hledger
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4.99"
+  cpp-options: -DVERSION="1.5"
   build-depends:
       Decimal
     , HUnit
@@ -177,7 +177,7 @@ executable hledger
     , haskeline >=0.6
     , here
     , hledger
-    , hledger-lib >=1.4.99 && <1.5
+    , hledger-lib >=1.5 && <1.6
     , mtl
     , mtl-compat
     , old-time
@@ -211,7 +211,7 @@ test-suite test
   hs-source-dirs:
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.4.99"
+  cpp-options: -DVERSION="1.5"
   build-depends:
       Decimal
     , HUnit
@@ -229,7 +229,7 @@ test-suite test
     , haskeline >=0.6
     , here
     , hledger
-    , hledger-lib >=1.4.99 && <1.5
+    , hledger-lib >=1.5 && <1.6
     , mtl
     , mtl-compat
     , old-time
@@ -273,7 +273,7 @@ benchmark bench
     , filepath
     , here
     , hledger
-    , hledger-lib >=1.4.99 && <1.5
+    , hledger-lib >=1.5 && <1.6
     , html
     , pretty-show >=1.6.4
     , process
