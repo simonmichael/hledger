@@ -1355,20 +1355,20 @@ iscleanwd:
 isclean-%:
 	@$(ISCLEAN) $* || (echo "please clean these files first: $*"; false)
 
-setdate: #$(call def-help,setdate, set manual date to current month and year )
+setdate: $(call def-help,setdate, set date in manuals to current month and year )
 	@$(ISCLEAN) doc/lib.m4 || (echo "please clean doc/lib.m4 first"; false)
 	perl -pe "s/^(m4_define\({{_monthyear_}}, *{{)[^}]*(}}\)m4_dnl *)$$/\$${1}$(MONTHYEAR)\$${2}/" -i doc/lib.m4
 
-updatedate: setdate $(call def-help,updatedate, set manual date to current month and year and commit )
+updatedate: setdate $(call def-help,updatedate, set date in manuals to current month and year and commit )
 	git commit -m "bump manual date to $(MONTHYEAR)" doc/lib.m4
 
-# update a package yaml file's version, -DVERSION, and hledger lower bounds (does not change upper bounds)
+# update a package yaml file's version, -DVERSION, and hledger lower bounds (upper bounds must be changed manually)
 %/package.yaml: $(VERSIONFILE)
-	perl -pe "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@                                                         # version: 'A'
-	perl -pe "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@                                                        # -DVERSION="A"
-	perl -pe "s/(hledger(-\w+)?) *== *((\d+\.)*\d+) *$$/\$$1 == $(VERSION)/" -i $@                                   # hledgerX == A
-	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *$$/\$$1 >= $(VERSION)/" -i $@                                  # hledgerX >= A
-	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *&& *< *((\d+\.)*\d+) *$$/\$$1 >= $(VERSION) && < \$$5/" -i $@  # hledgerX >= A && < B
+	perl -pe "s/(^version *: *).*/\$${1}'$(VERSION)'/" -i $@                                                       # version: 'A'
+	perl -pe "s/(-DVERSION=\")[^\"]+/\$${1}$(VERSION)/" -i $@                                                      # -DVERSION="A"
+	perl -pe "s/(hledger(-\w+)?) *== *((\d+\.)*\d+) *$$/\$$1 ==$(VERSION)/" -i $@                                  # hledgerX == A
+	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *$$/\$$1 >=$(VERSION)/" -i $@                                 # hledgerX >= A
+	perl -pe "s/(hledger(-\w+)?) *>=? *((\d+\.)*\d+) *&& *< *((\d+\.)*\d+) *$$/\$$1 >=$(VERSION) && <\$$5/" -i $@  # hledgerX >= A && < B
 
 # update hledger-api's version strings
 hledger-api/hledger-api.hs: $(VERSIONFILE)
@@ -1388,9 +1388,9 @@ doc/lib.m4: $(VERSIONFILE)
 # XXX start with early targets isclean-$(VERSIONSENSITIVEFILES) (fails due to glob) and isdirty-$(VERSIONFILE) ?
 setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version strings & bounds from $(VERSIONFILE) (might need -B) )
 
-updateversion: setversion $(call def-help,updateversion, update version strings & bounds from $(VERSIONFILE) and commit (might need -B) )
+updateversion: setdate setversion $(call def-help,updateversion, update manual date and update version strings & (lower) bounds from $(VERSIONFILE) and commit )
 	@read -p "please review changes then press enter to commit $(VERSIONFILE) $(VERSIONSENSITIVEFILES)"
-	git commit -m "bump version strings & lower bounds to $(VERSION)" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
+	git commit -m "bump version strings & bounds to $(VERSION)" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
 
 # (re)generate a cabal file from its package.yaml definition 
 # XXX to avoid warnings, this hpack should be the same version as stack's built-in hpack
