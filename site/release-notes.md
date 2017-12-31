@@ -51,7 +51,7 @@ h4 { margin-top:2em; }
 ***
 ***
 
-<!-- ([announcement](https://groups.google.com/forum/#!topic/hledger/)) -->
+([announcement](https://groups.google.com/forum/#!topic/hledger/CyNifndzZxk))
 
 Release contributors:
 Dmitry Astapov,

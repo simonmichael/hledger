@@ -1,5 +1,13 @@
-I'm very pleased to announce hledger 1.5.
-A big thank you to the release contributors: 
+Happy New Year all! I'm very pleased to announce hledger 1.5.
+
+hledger (http://hledger.org) is a reliable, cross-platform program for
+tracking money, time or other commodities, using double-entry
+accounting and simple plain text file formats. It provides
+command-line, curses and web interfaces, and aims to be a pleasant and
+practical tool for personal, business or institutional use.
+
+A big thank you to the release contributors:
+
 Dmitry Astapov,
 Mykola Orliuk,
 Eli Flanagan,
@@ -11,24 +19,20 @@ Mick Dekkers,
 Nadrieril,
 Alvaro Fernando García.
 
-The next major release is scheduled for 2018/03/31.
+In 2017, four quarter-end releases were shipped on schedule, 
+and our feature set, marketing reach and contributor activity 
+continue to grow. The next release is scheduled for 2018/03/31.
 
-What is hledger ?
------------------
-
-hledger (http://hledger.org) is an evolving, reliable, cross-platform
-program for tracking money, time, or any other commodity, using
-double-entry accounting and a simple plain text file format.  It is a
-haskell reimplementation of Ledger and the plain text accounting
-concept, providing command-line, curses and web interfaces. hledger
-aims to be a pleasant and practical tool for personal, business or
-institutional finance and time tracking.
+New users and contributors are always welcome! Give feedback, report
+bugs, send pull requests, write about it, etc.  And if you have been
+finding hledger useful, consider becoming a sponsor or donor to help
+to sustain and accelerate our progress (see home page).
+Our IRC channel is #hledger on Freenode (http://irc.hledger.org).
 
 What's new ?
 ------------
 
-The full release notes are at http://hledger.org/release-notes#hledger-1.5 .
-Some highlights:
+Some highlights from the release notes at http://hledger.org/release-notes#hledger-1.5 :
 
 * Ledger-style automated posting rules to modify transactions, enabled
   with --auto flag
@@ -46,18 +50,17 @@ Some highlights:
 * commodity or default commodity directives give more control over
   display precision and decimal point/digit group separator
 
+Get started
+-----------
 
-Getting started
----------------
-
-See http://hledger.org/download for all install methods.
-Windows users can download nightly binaries.
-On other platforms, you may need to build the latest release yourself.
-The easiest and most reliable way is to run the hledger install script. 
-This requires only bash and will install the hledger tools in $HOME/.local/bin/.
-(It uses an installed cabal or stack if possible, otherwise installs
-stack and GHC in $HOME/.local/bin and $HOME/.stack/).
-Here's the responsible way to run it:
+See http://hledger.org/download for all install methods.  Windows
+users can download nightly binaries.  On other platforms, you may need
+to build the latest release yourself.  The easiest and most reliable
+way is to run the hledger install script.  This requires only bash and
+will install the hledger tools in $HOME/.local/bin/.  (It uses an
+installed cabal or stack if possible, otherwise installs stack and GHC
+in $HOME/.local/bin and $HOME/.stack/).  Here's the responsible way to
+run it:
 
 $ curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh
 $ less hledger-install.sh # (do security review)
@@ -76,9 +79,10 @@ or:
 $ cabal update
 $ cabal install hledger-1.5  # hledger-ui-1.5 hledger-web-1.5 hledger-api-1.5 etc.
 
-Note: building haskell apps can take significant time, memory, and disk space, especially the first time.
-You can kill and restart the installer without losing progress. 
-If it fails, please help us improve it by reporting the full output.
+Note: building haskell apps can take significant time, memory, and
+disk space, especially the first time.  You can kill and restart the
+installer without losing progress.  If it fails, please help us
+improve it by reporting the full output.
 
 After installation, ensure $HOME/.local/bin is in your $PATH. 
 Now try some commands:
@@ -96,9 +100,7 @@ and http://plaintextaccounting.org
 Or say hello and ask questions in the #hledger IRC channel on Freenode:
 http://irc.hledger.org
 
-If you have been finding hledger useful, I invite you to become a
-sponsor or donor to make it stronger (see home page).
-Also give feedback, report bugs, send pull requests, write about it,
-etc. Thanks for your help!
+
+Wishing you a highly prosperous and serene 2018,
 
 -Simon
