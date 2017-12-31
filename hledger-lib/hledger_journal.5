@@ -365,6 +365,10 @@ Some examples:
 .P
 .PD
 \f[C]EUR\ \-2.000.000,00\f[]
+.PD 0
+.P
+.PD
+\f[C]1\ 999\ 999.9455\f[]
 .PP
 As you can see, the amount format is somewhat flexible:
 .IP \[bu] 2
@@ -380,8 +384,11 @@ negative amounts with a commodity on the left can have the minus sign
 before or after it
 .IP \[bu] 2
 digit groups (thousands, or any other grouping) can be separated by
-commas (in which case period is used for decimal point) or periods (in
-which case comma is used for decimal point)
+space or comma or period and should be used as separator between all
+groups
+.IP \[bu] 2
+decimal part can be separated by comma or period and should be different
+from digit groups separator
 .PP
 You can use any of these variations when recording data.
 However, there is some ambiguous way of representing numbers like
@@ -1116,13 +1123,22 @@ followed by a period expression:
 \f[]
 .fi
 .PP
-Periodic transactions are used for budgeting and forecasting only, they
-have no effect without the \f[C]\-\-forecast\f[] or \f[C]\-\-budget\f[]
-option specified.
-For examples and details, see Budgeting and Forecasting.
+Periodic transactions are used for forecasting and budgeting only, they
+have no effect unless the \f[C]\-\-forecast\f[] or \f[C]\-\-budget\f[]
+flag is used.
+With \f[C]\-\-forecast\f[], each periodic transaction rule generates
+recurring forecast transactions at the specified interval, beginning the
+day after the last recorded journal transaction and ending 6 months from
+today, or at the specified report end date.
+With \f[C]balance\ \-\-budget\f[], each periodic transaction declares
+recurring budget goals for one or more accounts.
+.PD 0
+.P
+.PD
+For more details, see: balance > Budgeting, Budgeting and Forecasting.
 .SH Automated posting rules
 .PP
-Autopated posting rule starts with an equal sign `=' in place of a date,
+Automated posting rule starts with an equal sign `=' in place of a date,
 followed by a query:
 .IP
 .nf

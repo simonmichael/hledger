@@ -298,18 +298,14 @@ most recent applicable market price, if any)
 .RS
 .RE
 .TP
-.B \f[C]\-\-forecast\f[]
-generate forecast transactions from [periodic
-transaction]((journal.html#periodic\-transactions) rules.
-Each periodic transaction rule will generate forecast transactions,
-beginning the day after the last recorded journal transaction, and
-ending 6 months from today, or at the specified report end date.
+.B \f[C]\-\-auto\f[]
+apply automated posting rules to modify transactions.
 .RS
 .RE
 .TP
-.B \f[C]\-\-auto\f[]
-apply automated posting rules to modify transactions where applicable
-(can combine with \[en]forecast).
+.B \f[C]\-\-forecast\f[]
+apply periodic transaction rules to generate future transactions, to 6
+months from now or report end date.
 .RS
 .RE
 .PP
@@ -739,19 +735,29 @@ Note that \f[C]weekly\f[], \f[C]monthly\f[], \f[C]quarterly\f[] and
 month, quarter or year accordingly, and will end on the last day of same
 period, even if associated period expression specifies different
 explicit start and end date.
-.SS For example:
 .PP
+For example:
+.PP
+.TS
+tab(@);
+l.
+T{
 \f[C]\-p\ "weekly\ from\ 2009/1/1\ to\ 2009/4/1"\f[] \[en] starts on
 2008/12/29, closest preceeding Monday
+T}
+T{
 \f[C]\-p\ "monthly\ in\ 2008/11/25"\f[] \[en] starts on 2018/11/01
-.PD 0
-.P
-.PD
+T}
+T{
 \f[C]\-p\ "quarterly\ from\ 2009\-05\-05\ to\ 2009\-06\-01"\f[] \-
 starts on 2009/04/01, ends on 2009/06/30, which are first and last days
-of Q2 2009 \f[C]\-p\ "yearly\ from\ 2009\-12\-29"\f[] \- starts on
-2009/01/01, first day of 2009
-\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]\[em]
+of Q2 2009
+T}
+T{
+\f[C]\-p\ "yearly\ from\ 2009\-12\-29"\f[] \- starts on 2009/01/01,
+first day of 2009
+T}
+.TE
 .PP
 The following more complex report intervals are also supported:
 \f[C]biweekly\f[], \f[C]bimonthly\f[],
@@ -919,15 +925,15 @@ The \f[C]\-B/\-\-cost\f[] flag converts amounts to their cost at
 transaction time, if they have a transaction price specified.
 .SS Market value
 .PP
-The \f[C]\-V/\-\-value\f[] flag converts the reported amounts to their
-market value on the report end date, using the most recent applicable
-market prices, when known.
+The \f[C]\-V/\-\-value\f[] flag converts reported amounts to their
+current market value.
 Specifically, when there is a market price (P directive) for the
-amount's commodity, dated on or before the report end date (see hledger
-\-> Report start & end date), the amount will be converted to the
-price's commodity.
-If multiple applicable prices are defined, the latest\-dated one is used
-(and if dates are equal, the one last parsed).
+amount's commodity, dated on or before today's date (or the report end
+date if specified), the amount will be converted to the price's
+commodity.
+.PP
+When there are multiple applicable P directives, \-V chooses the most
+recent one, or in case of equal dates, the last\-parsed one.
 .PP
 For example:
 .IP
@@ -976,8 +982,11 @@ $\ hledger\ \-f\ t.j\ bal\ euros\ \-V\ \-e\ 2016/12/21
 .PP
 Currently, hledger's \-V only uses market prices recorded with P
 directives, not transaction prices (unlike Ledger).
+.SS Combining \-B and \-V
 .PP
-Using \-B and \-V together is allowed.
+Using \-B/\[en]cost and \-V/\[en]value together is currently allowed,
+but the results are probably not meaningful.
+Let us know if you find a use for this.
 .SS Regular expressions
 .PP
 hledger uses regular expressions in a number of places:
@@ -1439,26 +1448,25 @@ A file extension matching one of the above formats selects that format.
 .RE
 .TP
 .B \f[C]\-\-pretty\-tables\f[]
-Use unicode to display prettier tables.
+use unicode to display prettier tables.
 .RS
 .RE
 .TP
 .B \f[C]\-\-sort\-amount\f[]
-Sort by amount (total row amount, or by average if that is displayed),
-instead of account name (in flat mode)
+sort by amount instead of account name (in flat mode).
+With multiple columns, sorts by the row total, or by row average if that
+is displayed.
 .RS
 .RE
 .TP
 .B \f[C]\-\-budget\f[]
-Treat periodic transaction as definition of a budget.
-Compare real balances to budget balances and show percentage of budget
-consumed.
+show performance compared to budget goals defined by periodic
+transactions
 .RS
 .RE
 .TP
 .B \f[C]\-\-show\-unbudgeted\f[]
-When \[en]budget is used, display accounts that do not have budget
-defined
+with \[en]budget, show unbudgeted accounts also
 .RS
 .RE
 .PP
@@ -1671,10 +1679,11 @@ Balance\ changes\ in\ 2008:
 .fi
 .SS Budgets
 .PP
-The \f[C]\-\-budget\f[] flag will treat all [periodic
-transaction]((journal.html#periodic\-transactions) in your journal as
-definition of the budget and allow you to compare real balances versus
-budgeted amounts.
+With \f[C]\-\-budget\f[] and a report interval, all periodic
+transactions in your journal with that interval, active during the
+requested report period, are interpreted as recurring budget goals for
+the specified accounts (and subaccounts), and the report will show the
+difference between actual and budgeted balances.
 .PP
 For example, you can take average monthly expenses in the common expense
 categories to construct a minimal monthly budget:
@@ -1707,11 +1716,11 @@ categories to construct a minimal monthly budget:
 \f[]
 .fi
 .PP
-You can now compare real balances with budget:
+You can now see a monthly budget performance report:
 .IP
 .nf
 \f[C]
-$\ hledge\ balance\ \-M\ \-\-budget
+$\ hledger\ balance\ \-M\ \-\-budget
 Balance\ changes\ in\ 2017/11/01\-2017/12/31:
 
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ||\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2017/11\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 2017/12\ 
@@ -1748,8 +1757,9 @@ Ending\ balances\ (cumulative)\ in\ 2017/11/01\-2017/12/31:
 \f[]
 .fi
 .PP
-Adding \f[C]\-\-show\-unbudgeted\f[] will allow you to see all the
-accounts for which budgets:
+Accounts with no budget goals (not mentioned in the periodic
+transactions) will be aggregated under \f[C]<unbudgeted>\f[], unless you
+add the \f[C]\-\-show\-unbudgeted\f[] flag to display them normally:
 .IP
 .nf
 \f[C]
@@ -2387,6 +2397,7 @@ valid journal output.
 .PP
 With \f[C]\-B\f[]/\f[C]\-\-cost\f[], amounts with transaction prices are
 converted to cost using that price.
+This can be used for troubleshooting.
 .PP
 With \f[C]\-m\f[]/\f[C]\-\-match\f[] and a STR argument, print will show
 at most one transaction: the one one whose description is most similar

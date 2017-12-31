@@ -125,11 +125,11 @@ File: hledger.info,  Node: OPTIONS,  Next: QUERIES,  Prev: EXAMPLES,  Up: Top
 * Report start & end date::
 * Report intervals::
 * Period expressions::
-* For example::
 * Depth limiting::
 * Pivoting::
 * Cost::
 * Market value::
+* Combining -B and -V::
 * Regular expressions::
 
 
@@ -232,17 +232,13 @@ by most hledger commands, run 'hledger -h'.
 
      convert amounts to their market value on the report end date (using
      the most recent applicable market price, if any)
-'--forecast'
-
-     generate forecast transactions from [periodic
-     transaction]((journal.html#periodic-transactions) rules.  Each
-     periodic transaction rule will generate forecast transactions,
-     beginning the day after the last recorded journal transaction, and
-     ending 6 months from today, or at the specified report end date.
 '--auto'
 
-     apply automated posting rules to modify transactions where
-     applicable (can combine with -forecast).
+     apply automated posting rules to modify transactions.
+'--forecast'
+
+     apply periodic transaction rules to generate future transactions,
+     to 6 months from now or report end date.
 
    When a reporting option appears more than once in the command line,
 the last one takes precedence.
@@ -444,7 +440,7 @@ complex intervals may be specified with a period expression.  Report
 intervals can not be specified with a query, currently.
 
 
-File: hledger.info,  Node: Period expressions,  Next: For example,  Prev: Report intervals,  Up: OPTIONS
+File: hledger.info,  Node: Period expressions,  Next: Depth limiting,  Prev: Report intervals,  Up: OPTIONS
 
 2.10 Period expressions
 =======================
@@ -504,18 +500,12 @@ accordingly, and will end on the last day of same period, even if
 associated period expression specifies different explicit start and end
 date.
 
-
-File: hledger.info,  Node: For example,  Next: Depth limiting,  Prev: Period expressions,  Up: OPTIONS
+   For example:
 
-2.11 For example:
-=================
-
-'-p "weekly from 2009/1/1 to 2009/4/1"' - starts on 2008/12/29, closest
-preceeding Monday '-p "monthly in 2008/11/25"' - starts on 2018/11/01
-'-p "quarterly from 2009-05-05 to 2009-06-01"' - starts on 2009/04/01,
-ends on 2009/06/30, which are first and last days of Q2 2009 '-p "yearly
-from 2009-12-29"' - starts on 2009/01/01, first day of 2009
-----------------------------
+'-p "weekly from 2009/1/1 to 2009/4/1"' - starts on 2008/12/29, closest preceeding Monday
+'-p "monthly in 2008/11/25"' - starts on 2018/11/01
+'-p "quarterly from 2009-05-05 to 2009-06-01"' - starts on 2009/04/01, ends on 2009/06/30, which are first and last days of Q2 2009
+'-p "yearly from 2009-12-29"' - starts on 2009/01/01, first day of 2009
 
    The following more complex report intervals are also supported:
 'biweekly', 'bimonthly', 'every day|week|month|quarter|year', 'every N
@@ -558,9 +548,9 @@ start date and exclusive end date):
    'hledger register checking -p "every 3rd day of week"'
 
 
-File: hledger.info,  Node: Depth limiting,  Next: Pivoting,  Prev: For example,  Up: OPTIONS
+File: hledger.info,  Node: Depth limiting,  Next: Pivoting,  Prev: Period expressions,  Up: OPTIONS
 
-2.12 Depth limiting
+2.11 Depth limiting
 ===================
 
 With the '--depth N' option (short form: '-N'), commands like account,
@@ -572,7 +562,7 @@ less detail.  This flag has the same effect as a 'depth:' query argument
 
 File: hledger.info,  Node: Pivoting,  Next: Cost,  Prev: Depth limiting,  Up: OPTIONS
 
-2.13 Pivoting
+2.12 Pivoting
 =============
 
 Normally hledger sums amounts, and organizes them in a hierarchy, based
@@ -629,26 +619,26 @@ $ hledger balance --pivot member acct:.
 
 File: hledger.info,  Node: Cost,  Next: Market value,  Prev: Pivoting,  Up: OPTIONS
 
-2.14 Cost
+2.13 Cost
 =========
 
 The '-B/--cost' flag converts amounts to their cost at transaction time,
 if they have a transaction price specified.
 
 
-File: hledger.info,  Node: Market value,  Next: Regular expressions,  Prev: Cost,  Up: OPTIONS
+File: hledger.info,  Node: Market value,  Next: Combining -B and -V,  Prev: Cost,  Up: OPTIONS
 
-2.15 Market value
+2.14 Market value
 =================
 
-The '-V/--value' flag converts the reported amounts to their market
-value on the report end date, using the most recent applicable market
-prices, when known.  Specifically, when there is a market price (P
-directive) for the amount's commodity, dated on or before the report end
-date (see hledger -> Report start & end date), the amount will be
-converted to the price's commodity.  If multiple applicable prices are
-defined, the latest-dated one is used (and if dates are equal, the one
-last parsed).
+The '-V/--value' flag converts reported amounts to their current market
+value.  Specifically, when there is a market price (P directive) for the
+amount's commodity, dated on or before today's date (or the report end
+date if specified), the amount will be converted to the price's
+commodity.
+
+   When there are multiple applicable P directives, -V chooses the most
+recent one, or in case of equal dates, the last-parsed one.
 
    For example:
 
@@ -682,10 +672,18 @@ $ hledger -f t.j bal euros -V -e 2016/12/21
    Currently, hledger's -V only uses market prices recorded with P
 directives, not transaction prices (unlike Ledger).
 
-   Using -B and -V together is allowed.
+
+File: hledger.info,  Node: Combining -B and -V,  Next: Regular expressions,  Prev: Market value,  Up: OPTIONS
+
+2.15 Combining -B and -V
+========================
+
+Using -B/-cost and -V/-value together is currently allowed, but the
+results are probably not meaningful.  Let us know if you find a use for
+this.
 
 
-File: hledger.info,  Node: Regular expressions,  Prev: Market value,  Up: OPTIONS
+File: hledger.info,  Node: Regular expressions,  Prev: Combining -B and -V,  Up: OPTIONS
 
 2.16 Regular expressions
 ========================
@@ -1088,19 +1086,19 @@ Show accounts and their balances.  Aliases: b, bal.
      formats selects that format.
 '--pretty-tables'
 
-     Use unicode to display prettier tables.
+     use unicode to display prettier tables.
 '--sort-amount'
 
-     Sort by amount (total row amount, or by average if that is
-     displayed), instead of account name (in flat mode)
+     sort by amount instead of account name (in flat mode).  With
+     multiple columns, sorts by the row total, or by row average if that
+     is displayed.
 '--budget'
 
-     Treat periodic transaction as definition of a budget.  Compare real
-     balances to budget balances and show percentage of budget consumed.
+     show performance compared to budget goals defined by periodic
+     transactions
 '--show-unbudgeted'
 
-     When -budget is used, display accounts that do not have budget
-     defined
+     with -budget, show unbudgeted accounts also
 
    The balance command displays accounts and balances.  It is hledger's
 most featureful and versatile command.
@@ -1295,10 +1293,11 @@ File: hledger.info,  Node: Budgets,  Next: Custom balance output,  Prev: Multico
 4.4.4 Budgets
 -------------
 
-The '--budget' flag will treat all [periodic
-transaction]((journal.html#periodic-transactions) in your journal as
-definition of the budget and allow you to compare real balances versus
-budgeted amounts.
+With '--budget' and a report interval, all periodic transactions in your
+journal with that interval, active during the requested report period,
+are interpreted as recurring budget goals for the specified accounts
+(and subaccounts), and the report will show the difference between
+actual and budgeted balances.
 
    For example, you can take average monthly expenses in the common
 expense categories to construct a minimal monthly budget:
@@ -1327,9 +1326,9 @@ expense categories to construct a minimal monthly budget:
   expenses:gifts   $100
   assets:bank:checking
 
-   You can now compare real balances with budget:
+   You can now see a monthly budget performance report:
 
-$ hledge balance -M --budget
+$ hledger balance -M --budget
 Balance changes in 2017/11/01-2017/12/31:
 
                        ||                2017/11                  2017/12 
@@ -1359,8 +1358,9 @@ Ending balances (cumulative) in 2017/11/01-2017/12/31:
 -----------------------++-------------------------------------------------
                        ||                      0                        0
 
-   Adding '--show-unbudgeted' will allow you to see all the accounts for
-which budgets:
+   Accounts with no budget goals (not mentioned in the periodic
+transactions) will be aggregated under '<unbudgeted>', unless you add
+the '--show-unbudgeted' flag to display them normally:
 
 $ hledger balance --budget --show-unbudgeted
 Balance changes in 2017/11/01-2017/12/31:
@@ -1913,7 +1913,7 @@ arise when a multi-commodity transaction has an implicit amount) will be
 split into multiple single-commodity postings, for valid journal output.
 
    With '-B'/'--cost', amounts with transaction prices are converted to
-cost using that price.
+cost using that price.  This can be used for troubleshooting.
 
    With '-m'/'--match' and a STR argument, print will show at most one
 transaction: the one one whose description is most similar to STR, and
@@ -2372,88 +2372,88 @@ Node: EXAMPLES1888
 Ref: #examples1988
 Node: OPTIONS3634
 Ref: #options3736
-Node: General options4052
-Ref: #general-options4177
-Node: Command options6991
-Ref: #command-options7142
-Node: Command arguments7540
-Ref: #command-arguments7694
-Node: Argument files7815
-Ref: #argument-files7966
-Node: Special characters8232
-Ref: #special-characters8385
-Node: Input files9804
-Ref: #input-files9940
-Node: Smart dates11910
-Ref: #smart-dates12051
-Node: Report start & end date13030
-Ref: #report-start-end-date13200
-Node: Report intervals14265
-Ref: #report-intervals14428
-Node: Period expressions14829
-Ref: #period-expressions14986
-Node: For example17031
-Ref: #for-example17174
-Node: Depth limiting19098
-Ref: #depth-limiting19235
-Node: Pivoting19577
-Ref: #pivoting19695
-Node: Cost21371
-Ref: #cost21479
-Node: Market value21597
-Ref: #market-value21732
-Node: Regular expressions23032
-Ref: #regular-expressions23168
-Node: QUERIES24529
-Ref: #queries24631
-Node: COMMANDS28598
-Ref: #commands28710
-Node: accounts29693
-Ref: #accounts29791
-Node: activity30784
-Ref: #activity30894
-Node: add31254
-Ref: #add31353
-Node: balance34014
-Ref: #balance34125
-Node: Flat mode37554
-Ref: #flat-mode37679
-Node: Depth limited balance reports38099
-Ref: #depth-limited-balance-reports38300
-Node: Multicolumn balance reports38720
-Ref: #multicolumn-balance-reports38915
-Node: Budgets43604
-Ref: #budgets43751
-Node: Custom balance output47367
-Ref: #custom-balance-output47529
-Node: Colour support49622
-Ref: #colour-support49781
-Node: Output destination49954
-Ref: #output-destination50110
-Node: CSV output50380
-Ref: #csv-output50497
-Node: balancesheet50894
-Ref: #balancesheet51030
-Node: balancesheetequity52998
-Ref: #balancesheetequity53147
-Node: cashflow53936
-Ref: #cashflow54064
-Node: check-dates55976
-Ref: #check-dates56103
-Node: check-dupes56220
-Ref: #check-dupes56345
-Node: equity56482
-Ref: #equity56592
-Node: help56755
-Ref: #help56856
-Node: import57930
-Ref: #import58044
-Node: incomestatement58774
-Ref: #incomestatement58908
-Node: prices60861
-Ref: #prices60976
-Node: print61019
-Ref: #print61129
+Node: General options4060
+Ref: #general-options4185
+Node: Command options6736
+Ref: #command-options6887
+Node: Command arguments7285
+Ref: #command-arguments7439
+Node: Argument files7560
+Ref: #argument-files7711
+Node: Special characters7977
+Ref: #special-characters8130
+Node: Input files9549
+Ref: #input-files9685
+Node: Smart dates11655
+Ref: #smart-dates11796
+Node: Report start & end date12775
+Ref: #report-start-end-date12945
+Node: Report intervals14010
+Ref: #report-intervals14173
+Node: Period expressions14574
+Ref: #period-expressions14734
+Node: Depth limiting18691
+Ref: #depth-limiting18835
+Node: Pivoting19177
+Ref: #pivoting19295
+Node: Cost20971
+Ref: #cost21079
+Node: Market value21197
+Ref: #market-value21332
+Node: Combining -B and -V22515
+Ref: #combining--b-and--v22679
+Node: Regular expressions22826
+Ref: #regular-expressions22969
+Node: QUERIES24330
+Ref: #queries24432
+Node: COMMANDS28399
+Ref: #commands28511
+Node: accounts29494
+Ref: #accounts29592
+Node: activity30585
+Ref: #activity30695
+Node: add31055
+Ref: #add31154
+Node: balance33815
+Ref: #balance33926
+Node: Flat mode37300
+Ref: #flat-mode37425
+Node: Depth limited balance reports37845
+Ref: #depth-limited-balance-reports38046
+Node: Multicolumn balance reports38466
+Ref: #multicolumn-balance-reports38661
+Node: Budgets43350
+Ref: #budgets43497
+Node: Custom balance output47328
+Ref: #custom-balance-output47490
+Node: Colour support49583
+Ref: #colour-support49742
+Node: Output destination49915
+Ref: #output-destination50071
+Node: CSV output50341
+Ref: #csv-output50458
+Node: balancesheet50855
+Ref: #balancesheet50991
+Node: balancesheetequity52959
+Ref: #balancesheetequity53108
+Node: cashflow53897
+Ref: #cashflow54025
+Node: check-dates55937
+Ref: #check-dates56064
+Node: check-dupes56181
+Ref: #check-dupes56306
+Node: equity56443
+Ref: #equity56553
+Node: help56716
+Ref: #help56817
+Node: import57891
+Ref: #import58005
+Node: incomestatement58735
+Ref: #incomestatement58869
+Node: prices60822
+Ref: #prices60937
+Node: print60980
+Ref: #print61090
 Node: print-unique65975
 Ref: #print-unique66101
 Node: register66169

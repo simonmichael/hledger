@@ -131,17 +131,13 @@ the data.
 
      convert amounts to their market value on the report end date (using
      the most recent applicable market price, if any)
-'--forecast'
-
-     generate forecast transactions from [periodic
-     transaction]((journal.html#periodic-transactions) rules.  Each
-     periodic transaction rule will generate forecast transactions,
-     beginning the day after the last recorded journal transaction, and
-     ending 6 months from today, or at the specified report end date.
 '--auto'
 
-     apply automated posting rules to modify transactions where
-     applicable (can combine with -forecast).
+     apply automated posting rules to modify transactions.
+'--forecast'
+
+     apply periodic transaction rules to generate future transactions,
+     to 6 months from now or report end date.
 
    When a reporting option appears more than once in the command line,
 the last one takes precedence.
@@ -382,17 +378,17 @@ Tag Table:
 Node: Top71
 Node: OPTIONS827
 Ref: #options924
-Node: KEYS4356
-Ref: #keys4451
-Node: SCREENS7410
-Ref: #screens7495
-Node: Accounts screen7585
-Ref: #accounts-screen7713
-Node: Register screen9943
-Ref: #register-screen10098
-Node: Transaction screen12172
-Ref: #transaction-screen12330
-Node: Error screen13200
-Ref: #error-screen13322
+Node: KEYS4093
+Ref: #keys4188
+Node: SCREENS7147
+Ref: #screens7232
+Node: Accounts screen7322
+Ref: #accounts-screen7450
+Node: Register screen9680
+Ref: #register-screen9835
+Node: Transaction screen11909
+Ref: #transaction-screen12067
+Node: Error screen12937
+Ref: #error-screen13059
 
 End Tag Table

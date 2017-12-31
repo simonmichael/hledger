@@ -243,18 +243,14 @@ most recent applicable market price, if any)
 .RS
 .RE
 .TP
-.B \f[C]\-\-forecast\f[]
-generate forecast transactions from [periodic
-transaction]((journal.html#periodic\-transactions) rules.
-Each periodic transaction rule will generate forecast transactions,
-beginning the day after the last recorded journal transaction, and
-ending 6 months from today, or at the specified report end date.
+.B \f[C]\-\-auto\f[]
+apply automated posting rules to modify transactions.
 .RS
 .RE
 .TP
-.B \f[C]\-\-auto\f[]
-apply automated posting rules to modify transactions where applicable
-(can combine with \[en]forecast).
+.B \f[C]\-\-forecast\f[]
+apply periodic transaction rules to generate future transactions, to 6
+months from now or report end date.
 .RS
 .RE
 .PP

@@ -348,6 +348,7 @@ commodity name.  Some examples:
 '-$1,000,000.00'
 'INR 9,99,99,999.00'
 'EUR -2.000.000,00'
+'1 999 999.9455'
 
    As you can see, the amount format is somewhat flexible:
 
@@ -360,8 +361,10 @@ commodity name.  Some examples:
    * negative amounts with a commodity on the left can have the minus
      sign before or after it
    * digit groups (thousands, or any other grouping) can be separated by
-     commas (in which case period is used for decimal point) or periods
-     (in which case comma is used for decimal point)
+     space or comma or period and should be used as separator between
+     all groups
+   * decimal part can be separated by comma or period and should be
+     different from digit groups separator
 
    You can use any of these variations when recording data.  However,
 there is some ambiguous way of representing numbers like '$1.000' and
@@ -1068,9 +1071,15 @@ followed by a period expression:
   assets:bank:checking   $400 ; paycheck
   income:acme inc
 
-   Periodic transactions are used for budgeting and forecasting only,
-they have no effect without the '--forecast' or '--budget' option
-specified.  For examples and details, see Budgeting and Forecasting.
+   Periodic transactions are used for forecasting and budgeting only,
+they have no effect unless the '--forecast' or '--budget' flag is used.
+With '--forecast', each periodic transaction rule generates recurring
+forecast transactions at the specified interval, beginning the day after
+the last recorded journal transaction and ending 6 months from today, or
+at the specified report end date.  With 'balance --budget', each
+periodic transaction declares recurring budget goals for one or more
+accounts.
+For more details, see: balance > Budgeting, Budgeting and Forecasting.
 
 
 File: hledger_journal.info,  Node: Automated posting rules,  Next: EDITOR SUPPORT,  Prev: Periodic transactions,  Up: Top
@@ -1078,7 +1087,7 @@ File: hledger_journal.info,  Node: Automated posting rules,  Next: EDITOR SUPPOR
 3 Automated posting rules
 *************************
 
-Autopated posting rule starts with an equal sign '=' in place of a date,
+Automated posting rule starts with an equal sign '=' in place of a date,
 followed by a query:
 
 = expenses:gifts
@@ -1162,65 +1171,65 @@ Node: Account names11244
 Ref: #account-names11387
 Node: Amounts11874
 Ref: #amounts12010
-Node: Virtual Postings14601
-Ref: #virtual-postings14760
-Node: Balance Assertions15980
-Ref: #balance-assertions16155
-Node: Assertions and ordering17051
-Ref: #assertions-and-ordering17237
-Node: Assertions and included files17937
-Ref: #assertions-and-included-files18178
-Node: Assertions and multiple -f options18511
-Ref: #assertions-and-multiple--f-options18765
-Node: Assertions and commodities18897
-Ref: #assertions-and-commodities19132
-Node: Assertions and subaccounts19828
-Ref: #assertions-and-subaccounts20060
-Node: Assertions and virtual postings20581
-Ref: #assertions-and-virtual-postings20788
-Node: Balance Assignments20930
-Ref: #balance-assignments21099
-Node: Prices22219
-Ref: #prices22352
-Node: Transaction prices22403
-Ref: #transaction-prices22548
-Node: Market prices24704
-Ref: #market-prices24839
-Node: Comments25799
-Ref: #comments25921
-Node: Tags27163
-Ref: #tags27281
-Node: Directives28683
-Ref: #directives28796
-Node: Account aliases28989
-Ref: #account-aliases29133
-Node: Basic aliases29737
-Ref: #basic-aliases29880
-Node: Regex aliases30570
-Ref: #regex-aliases30738
-Node: Multiple aliases31456
-Ref: #multiple-aliases31628
-Node: end aliases32126
-Ref: #end-aliases32266
-Node: account directive32367
-Ref: #account-directive32547
-Node: apply account directive32843
-Ref: #apply-account-directive33039
-Node: Multi-line comments33698
-Ref: #multi-line-comments33888
-Node: commodity directive34016
-Ref: #commodity-directive34200
-Node: Default commodity35072
-Ref: #default-commodity35245
-Node: Default year35782
-Ref: #default-year35947
-Node: Including other files36370
-Ref: #including-other-files36527
-Node: Periodic transactions36924
-Ref: #periodic-transactions37095
-Node: Automated posting rules37470
-Ref: #automated-posting-rules37648
-Node: EDITOR SUPPORT38757
-Ref: #editor-support38887
+Node: Virtual Postings14690
+Ref: #virtual-postings14849
+Node: Balance Assertions16069
+Ref: #balance-assertions16244
+Node: Assertions and ordering17140
+Ref: #assertions-and-ordering17326
+Node: Assertions and included files18026
+Ref: #assertions-and-included-files18267
+Node: Assertions and multiple -f options18600
+Ref: #assertions-and-multiple--f-options18854
+Node: Assertions and commodities18986
+Ref: #assertions-and-commodities19221
+Node: Assertions and subaccounts19917
+Ref: #assertions-and-subaccounts20149
+Node: Assertions and virtual postings20670
+Ref: #assertions-and-virtual-postings20877
+Node: Balance Assignments21019
+Ref: #balance-assignments21188
+Node: Prices22308
+Ref: #prices22441
+Node: Transaction prices22492
+Ref: #transaction-prices22637
+Node: Market prices24793
+Ref: #market-prices24928
+Node: Comments25888
+Ref: #comments26010
+Node: Tags27252
+Ref: #tags27370
+Node: Directives28772
+Ref: #directives28885
+Node: Account aliases29078
+Ref: #account-aliases29222
+Node: Basic aliases29826
+Ref: #basic-aliases29969
+Node: Regex aliases30659
+Ref: #regex-aliases30827
+Node: Multiple aliases31545
+Ref: #multiple-aliases31717
+Node: end aliases32215
+Ref: #end-aliases32355
+Node: account directive32456
+Ref: #account-directive32636
+Node: apply account directive32932
+Ref: #apply-account-directive33128
+Node: Multi-line comments33787
+Ref: #multi-line-comments33977
+Node: commodity directive34105
+Ref: #commodity-directive34289
+Node: Default commodity35161
+Ref: #default-commodity35334
+Node: Default year35871
+Ref: #default-year36036
+Node: Including other files36459
+Ref: #including-other-files36616
+Node: Periodic transactions37013
+Ref: #periodic-transactions37184
+Node: Automated posting rules37927
+Ref: #automated-posting-rules38105
+Node: EDITOR SUPPORT39214
+Ref: #editor-support39344
 
 End Tag Table
