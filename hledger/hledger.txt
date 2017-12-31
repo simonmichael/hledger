@@ -2135,4 +2135,4 @@ SEE ALSO
 
 
 
-hledger 1.4.99                   December 2017                      hledger(1)
+hledger 1.5                      December 2017                      hledger(1)
