@@ -157,7 +157,7 @@ m4_define({{_reportingoptions_}}, {{
 (using the most recent applicable [market price](journal.html#market-prices), if any)
 
 `--forecast`
-: generate forecast transactions from [periodic transaction]((journal.html#periodic-transactions) rules.
+: generate forecast transactions from [periodic transaction](journal.html#periodic-transactions) rules.
 Each periodic transaction rule will generate [forecast transactions](budgeting-and-forecasting.html#forecasting),
 beginning the day after the last recorded journal transaction,
 and ending 6 months from today, or at the specified report end date.
