@@ -548,7 +548,7 @@ Note, `-x` will cause postings with a multi-commodity amount
 will be split into multiple single-commodity postings, for valid journal output.
 
 With `-B`/`--cost`, amounts with [transaction prices](/journal.html#transaction-prices)
-are converted to cost using that price.
+are converted to cost using that price. This can be used for troubleshooting.
 
 With `-m`/`--match` and a STR argument, print will show at most one transaction: the one 
 one whose description is most similar to STR, and is most recent. STR should contain at

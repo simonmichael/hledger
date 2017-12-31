@@ -66,8 +66,15 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
 entriesReportAsText :: CliOpts -> EntriesReport -> String
 entriesReportAsText opts = concatMap (showTransactionUnelided . gettxn) 
   where
-    gettxn | boolopt "explicit" $ rawopts_ opts = id                   -- use the fully inferred/explicit txn
-           | otherwise                          = originalTransaction  -- use the original txn (more or less)
+    gettxn | useexplicittxn = id                   -- use the fully inferred/explicit txn
+           | otherwise      = originalTransaction  -- use the original as-written txn, more or less
+    -- Original vs inferred transactions/postings were causing problems here, disabling -B (#551).
+    -- Use the explicit one if -B or -x are active.
+    -- This passes tests; does it also mean -B sometimes shows missing amounts unnecessarily ?  
+    useexplicittxn = or
+      [ boolopt "explicit" $ rawopts_ opts
+      , cost_ $ reportopts_ opts
+      ]
 
 -- Replace this transaction's postings with the original postings if any, but keep the
 -- current possibly rewritten account names.
