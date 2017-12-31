@@ -70,7 +70,7 @@ dependencies:
 - blaze-markup
 - bytestring
 - clientsession
-- cmdargs >=0.10 && <0.11
+- cmdargs >=0.10
 - data-default
 - directory
 - filepath
@@ -80,9 +80,9 @@ dependencies:
 - HUnit
 - conduit-extra >=1.1
 - safe >=0.2
-- shakespeare >=2.0.2.2 && <2.1
+- shakespeare >=2.0.2.2
 - template-haskell
-- text >=1.2 && <1.3
+- text >=1.2
 - time >=1.5
 - transformers
 - wai
@@ -90,12 +90,12 @@ dependencies:
 - wai-handler-launch >=1.3
 - warp
 - yaml
-- yesod >=1.4 && <1.5
+- yesod >=1.4
 - yesod-core
 - yesod-form
 - yesod-static
 - json
-- megaparsec >=5.0 && <6.5
+- megaparsec >=5.0
 - mtl
 - parsec >=3
 

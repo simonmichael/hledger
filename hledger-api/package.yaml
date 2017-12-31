@@ -41,12 +41,12 @@ dependencies:
 - Decimal
 - docopt
 - either
-- microlens >=0.4 && <0.5
-- microlens-platform >=0.2.3.1 && <0.4
+- microlens >=0.4
+- microlens-platform >=0.2.3.1
 - safe
 - servant-server >=0.10
 - servant-swagger
-- swagger2 >=2.0 && <2.3
+- swagger2 >=2.0
 - text
 - transformers
 - wai
