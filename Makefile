@@ -41,8 +41,6 @@
 # def-help* functions for documenting make rules. See the file for usage.
 -include help-system.mk
 
-
-
 $(call def-help-heading,Main make rules in the hledger project:)
 $(call def-help-heading,TODO: some of these need updating)
 $(call def-help-heading,---------------------------------------)
@@ -1213,17 +1211,16 @@ site/manual2-1.md: site/manual-start.md site/manual-end.md $(MANPAGES) \
 
 ########################
 # 2017 changelog process: 
-# at release time, for each package: (cd PKG; make changes-show > CHANGES.draft.org), edit, move to CHANGES
-# actual working example: for p in  hledger-lib hledger hledger-ui hledger-web hledger-api; do (cd $p; make -f../Makefile changes-show-from-hledger-1.3 >CHANGES.draft.org); done
+# at release time, in each package dir, make changes-show >CHANGES.org, edit, move to CHANGES. Eg:
+# for p in  hledger-lib hledger hledger-ui hledger-web hledger-api; do (cd $p; make -f../Makefile changes-show-from-hledger-1.4 >CHANGES.org); done
+# TODO: prints junk after failing help-system.mk include, make changes-show doesn't work from subdir, want to run from top dir; move to Shake
 
 LASTTAG=$(shell git describe --tags --abbrev=0)
 
-changes-show: \
-		$(call def-help,changes-show, show commits affecting the current directory excluding any hledger package subdirs from the last tag as org nodes newest first )
+changes-show: $(call def-help,changes-show, show commits affecting the current directory excluding any hledger package subdirs from the last tag as org nodes newest first )
 	@make changes-show-from-$(LASTTAG)
 
-changes-show-from-%: \
-		#$(call def-help,changes-show-from-REV, show commits affecting the current directory excluding any hledger package subdirs from this git revision onward as org nodes newest first )
+changes-show-from-%: #$(call def-help,changes-show-from-REV, show commits affecting the current directory excluding any hledger package subdirs from this git revision onward as org nodes newest first )
 	@git log --abbrev-commit --pretty=format:'ORGNODE %s (%an)%n%b%h' $*.. -- . ':!hledger' ':!hledger-*' \
 		| sed -e 's/^\*/-/' -e 's/^ORGNODE/*/' \
 		| sed -e 's/ (Simon Michael)//'
