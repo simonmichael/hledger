@@ -36,12 +36,12 @@ import           Text.Printf
 import Hledger.Query
 import Hledger.Cli hiding (Reader, version)
 
-hledgerApiVersion="1.4.99"
+hledgerApiVersion="1.5"
 
 -- https://github.com/docopt/docopt.hs#readme
 doc :: Docopt
 doc = [docopt|
-hledger-api 1.4.99
+hledger-api 1.5
 
 Serves hledger data and reports as a JSON web API.
 
