@@ -126,7 +126,7 @@ alias E=F
 hledger -f- reg '^a$' '^b$'
 <<<
 alias a = b
-1/1
+2017/1/1
     a  1
     b  -1
 >>>
