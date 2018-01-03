@@ -16,8 +16,9 @@ import Hledger.Cli.CliOptions
 equitymode = hledgerCommandMode
   [here| equity
 Print a "closing balances" transaction that brings all accounts (or with
-query arguments, just the matched accounts) to a zero balance, followed by an
-opposite "opening balances" transaction that restores the balances from zero.
+query arguments, just the matched accounts) to a zero (historical) balance, 
+followed by an opposite "opening balances" transaction that restores the 
+balances from zero.
 
 FLAGS
 
@@ -34,7 +35,8 @@ The closing transaction asserts a zero balance for each closed account.
 
 By default, the closing transaction is dated yesterday, with balances 
 calculated as of end of yesterday, and the opening transaction is dated today.
-To close on some other date, use: `hledger close -e OPENINGDATE ...`
+To close on some other date, use: `hledger close -e OPENINGDATE ...`.
+(-p or date: can also be used, but any begin date is ignored.)
 
 For example, carrying asset/liability balances into a new file for 2018:
 ```
@@ -46,12 +48,9 @@ $ hledger bs -f 2018.journal -f 2017.journal   # still correct
 $ hledger bs -f 2017.journal not:desc:closing  # must exclude closing txn 
 ```
 
-Possible issues/complications/todos:
-- -p or date: should work as well as -e, but can be buggy
-- a begin date should have no effect. Closed balances should be historical.
-- transactions on the opening date should be excluded from closed balances 
-- balance assertions can fail due to filtering by status or realness
-- transactions spanning a file boundary, eg:
+Some things to be aware of:
+- you probably shouldn't filter by status or realness, or assertions will fail
+- transactions spanning a file boundary may be tricky, eg:
 ```
 2017/12/31
     expenses:food          1
@@ -66,12 +65,11 @@ Possible issues/complications/todos:
 equity CliOpts{reportopts_=ropts} j = do
   today <- getCurrentDay
   let 
-      -- TODO: this query is sometimes wrong 
-      ropts_ = ropts{accountlistmode_=ALFlat}
+      ropts_ = ropts{balancetype_=HistoricalBalance, accountlistmode_=ALFlat}
       q = queryFromOpts today ropts_
       openingdate = fromMaybe today $ queryEndDate False q
       closingdate = addDays (-1) openingdate
-      (acctbals,_) = balanceReport ropts_ q j
+      (acctbals,_) = singleBalanceReport ropts_ q j
       balancingamt = negate $ sum $ map (\(_,_,_,b) -> normaliseMixedAmountSquashPricesForDisplay b) acctbals
       ps = [posting{paccount=a
                    ,pamount=mixed [b]
