@@ -31,12 +31,14 @@ can be a useful complement, allowing you to optionally include old files
 This command may also be useful for closing out expense/income accounts 
 for a period (ie "closing the books" in accounting).
 
-The closing transaction asserts a zero balance for each closed account.
+Both transactions include balance assertions for the closed/reopened accounts.
+You probably shouldn't use status or realness queries (eg -C or -R) with this 
+command, or the balance assertions will require that query to pass. 
 
 By default, the closing transaction is dated yesterday, with balances 
 calculated as of end of yesterday, and the opening transaction is dated today.
 To close on some other date, use: `hledger close -e OPENINGDATE ...`.
-(-p or date: can also be used, but any begin date is ignored.)
+(-p or date: can also be used, the begin date is ignored.)
 
 For example, carrying asset/liability balances into a new file for 2018:
 ```
@@ -48,9 +50,7 @@ $ hledger bs -f 2018.journal -f 2017.journal   # still correct
 $ hledger bs -f 2017.journal not:desc:closing  # must exclude closing txn 
 ```
 
-Some things to be aware of:
-- you probably shouldn't filter by status or realness, or assertions will fail
-- transactions spanning a file boundary may be tricky, eg:
+Transactions spanning a file boundary may complicate matters. Eg:
 ```
 2017/12/31
     expenses:food          1
