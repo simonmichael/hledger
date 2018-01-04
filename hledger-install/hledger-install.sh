@@ -46,7 +46,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20171231
+HLEDGER_INSTALL_VERSION=20180104
 
 RESOLVER=  #"--resolver=nightly"
   # ^ You can specify a different stackage snapshot here, 
@@ -56,11 +56,14 @@ RESOLVER=  #"--resolver=nightly"
 
 HLEDGER_LIB_VERSION=1.5
 HLEDGER_VERSION=1.5
+HLEDGER_UI_VERSION=1.5
 HLEDGER_WEB_VERSION=1.5
+HLEDGER_API_VERSION=1.5
+
 HLEDGER_DIFF_VERSION=0.2.0.12
 HLEDGER_IADD_VERSION=1.3.1
 HLEDGER_INTEREST_VERSION=1.5.1
-HLEDGER_IRR_VERSION=0.1.1.12
+HLEDGER_IRR_VERSION=0.1.1.13
 
 HLEDGER_MAIN_TOOLS="\
 hledger \
@@ -896,9 +899,9 @@ if [[ $(cmd_version hledger) < $HLEDGER_VERSION ]]; then
   try_install hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
-if [[ $(cmd_version hledger-ui) < $HLEDGER_VERSION ]]; then 
+if [[ $(cmd_version hledger-ui) < $HLEDGER_UI_VERSION ]]; then 
   echo Installing hledger-ui
-  try_install hledger-ui-$HLEDGER_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-ui-$HLEDGER_UI_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
     # brick-0.19 data-clist-0.1.2.0
     # ^ when hledger-iadd requires a non-stack brick, use the same version here to avoid rebuilding
   echo
@@ -908,24 +911,24 @@ if [[ $(cmd_version hledger-web) < $HLEDGER_WEB_VERSION ]]; then
   try_install hledger-web-$HLEDGER_WEB_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
-if [[ $(cmd_version hledger-api) < $HLEDGER_VERSION ]]; then 
+if [[ $(cmd_version hledger-api) < $HLEDGER_API_VERSION ]]; then 
   echo Installing hledger-api
-  try_install hledger-api-$HLEDGER_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-api-$HLEDGER_API_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-diff) < $HLEDGER_DIFF_VERSION ]]; then 
   echo Installing hledger-diff
-  try_install hledger-diff-$HLEDGER_DIFF_VERSION hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-diff-$HLEDGER_DIFF_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-iadd) < $HLEDGER_IADD_VERSION ]]; then 
   echo Installing hledger-iadd
-  try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-iadd-$HLEDGER_IADD_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-interest) < $HLEDGER_INTEREST_VERSION ]]; then 
   echo Installing hledger-interest
-  try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-interest-$HLEDGER_INTEREST_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-irr) < $HLEDGER_IRR_VERSION ]]; then 
