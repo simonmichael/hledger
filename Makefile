@@ -1355,8 +1355,8 @@ iscleanwd:
 isclean-%:
 	@$(ISCLEAN) $* || (echo "please clean these files first: $*"; false)
 
+#	@$(ISCLEAN) doc/lib.m4 || (echo "please clean doc/lib.m4 first"; false)
 setdate: $(call def-help,setdate, set date in manuals to current month and year )
-	@$(ISCLEAN) doc/lib.m4 || (echo "please clean doc/lib.m4 first"; false)
 	perl -pe "s/^(m4_define\({{_monthyear_}}, *{{)[^}]*(}}\)m4_dnl *)$$/\$${1}$(MONTHYEAR)\$${2}/" -i doc/lib.m4
 
 updatedate: setdate $(call def-help,updatedate, set date in manuals to current month and year and commit )
@@ -1387,10 +1387,15 @@ doc/lib.m4: $(VERSIONFILE)
 
 # XXX start with early targets isclean-$(VERSIONSENSITIVEFILES) (fails due to glob) and isdirty-$(VERSIONFILE) ?
 setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version strings & bounds from $(VERSIONFILE) (might need -B) )
+	@echo "if this is a new major version, please manually update upper bounds in */package.yaml before generating cabal files"
 
-updateversion: setdate setversion $(call def-help,updateversion, update manual date and update version strings & (lower) bounds from $(VERSIONFILE) and commit )
-	@read -p "please review changes then press enter to commit $(VERSIONFILE) $(VERSIONSENSITIVEFILES)"
-	git commit -m "bump version strings & bounds to $(VERSION)" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
+# TODO: combine updateversion/updatecabal
+# minor version bump: make setdate setversion gencabal
+# major version bump: make setdate setversion, fix upper bounds in package.yamls, make gencabal
+
+# updateversion: setdate setversion $(call def-help,updateversion, update manual date and update version strings & (lower) bounds from $(VERSIONFILE) and commit )
+# 	@read -p "please review changes then press enter to commit $(VERSIONFILE) $(VERSIONSENSITIVEFILES)"
+# 	git commit -m "bump version strings & bounds to $(VERSION)" $(VERSIONFILE) $(VERSIONSENSITIVEFILES)
 
 # (re)generate a cabal file from its package.yaml definition 
 # XXX to avoid warnings, this hpack should be the same version as stack's built-in hpack
@@ -1400,9 +1405,9 @@ updateversion: setdate setversion $(call def-help,updateversion, update manual d
 gencabal: $(call def-help,gencabal, regenerate cabal files from package.yaml files with stack )
 	stack build --dry-run --silent
 
-updatecabal: gencabal $(call def-help,updatecabal, regenerate cabal files and commit )
-	@read -p "please review changes then press enter to commit $(shell ls */*.cabal)"
-	git commit -m "update cabal files" $(shell ls */*.cabal)
+# updatecabal: gencabal $(call def-help,updatecabal, regenerate cabal files and commit )
+# 	@read -p "please review changes then press enter to commit $(shell ls */*.cabal)"
+# 	git commit -m "update cabal files" $(shell ls */*.cabal)
 
 # we call in shake for this job; so dependencies aren't checked here
 genmanuals: Shake #$(call def-help,genmanuals, regenerate embedded manuals (might need -B) )
