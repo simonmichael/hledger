@@ -865,7 +865,7 @@ detailed command help.
 * cashflow::
 * check-dates::
 * check-dupes::
-* equity::
+* close::
 * help::
 * import::
 * incomestatement::
@@ -1680,7 +1680,7 @@ Check that transactions are sorted by increasing date.  With a query,
 only matched transactions' dates are checked.
 
 
-File: hledger.info,  Node: check-dupes,  Next: equity,  Prev: check-dates,  Up: COMMANDS
+File: hledger.info,  Node: check-dupes,  Next: close,  Prev: check-dates,  Up: COMMANDS
 
 4.9 check-dupes
 ===============
@@ -1689,17 +1689,19 @@ Report account names having the same leaf but different prefixes.  An
 example: http://stefanorodighiero.net/software/hledger-dupes.html
 
 
-File: hledger.info,  Node: equity,  Next: help,  Prev: check-dupes,  Up: COMMANDS
+File: hledger.info,  Node: close,  Next: help,  Prev: check-dupes,  Up: COMMANDS
 
-4.10 equity
-===========
+4.10 close
+==========
 
 Print closing/opening transactions that bring some or all account
-balances to zero and back.  Can be useful for bringing account balances
-across file boundaries.
+balances to zero and back.  Can be useful for bringing asset/liability
+balances across file boundaries, or for closing out income/expenses for
+a period.  This was formerly called "equity", as in Ledger, and that
+alias is also accepted.  See close -help for more.
 
 
-File: hledger.info,  Node: help,  Next: import,  Prev: equity,  Up: COMMANDS
+File: hledger.info,  Node: help,  Next: import,  Prev: close,  Up: COMMANDS
 
 4.11 help
 =========
@@ -2408,97 +2410,97 @@ Node: QUERIES24324
 Ref: #queries24426
 Node: COMMANDS28393
 Ref: #commands28505
-Node: accounts29488
-Ref: #accounts29586
-Node: activity30579
-Ref: #activity30689
-Node: add31049
-Ref: #add31148
-Node: balance33809
-Ref: #balance33920
-Node: Flat mode37294
-Ref: #flat-mode37419
-Node: Depth limited balance reports37839
-Ref: #depth-limited-balance-reports38040
-Node: Multicolumn balance reports38460
-Ref: #multicolumn-balance-reports38655
-Node: Budgets43344
-Ref: #budgets43491
-Node: Custom balance output47322
-Ref: #custom-balance-output47484
-Node: Colour support49577
-Ref: #colour-support49736
-Node: Output destination49909
-Ref: #output-destination50065
-Node: CSV output50335
-Ref: #csv-output50452
-Node: balancesheet50849
-Ref: #balancesheet50985
-Node: balancesheetequity52953
-Ref: #balancesheetequity53102
-Node: cashflow53891
-Ref: #cashflow54019
-Node: check-dates55931
-Ref: #check-dates56058
-Node: check-dupes56175
-Ref: #check-dupes56300
-Node: equity56437
-Ref: #equity56547
-Node: help56710
-Ref: #help56811
-Node: import57885
-Ref: #import57999
-Node: incomestatement58729
-Ref: #incomestatement58863
-Node: prices60816
-Ref: #prices60931
-Node: print60974
-Ref: #print61084
-Node: print-unique65969
-Ref: #print-unique66095
-Node: register66163
-Ref: #register66290
-Node: Custom register output70791
-Ref: #custom-register-output70920
-Node: register-match72217
-Ref: #register-match72351
-Node: rewrite72534
-Ref: #rewrite72651
-Node: stats72720
-Ref: #stats72823
-Node: tags73705
-Ref: #tags73803
-Node: test74039
-Ref: #test74123
-Node: ADD-ON COMMANDS74491
-Ref: #add-on-commands74601
-Node: Official add-ons75888
-Ref: #official-add-ons76028
-Node: api76115
-Ref: #api76204
-Node: ui76256
-Ref: #ui76355
-Node: web76413
-Ref: #web76502
-Node: Third party add-ons76548
-Ref: #third-party-add-ons76723
-Node: diff76858
-Ref: #diff76955
-Node: iadd77054
-Ref: #iadd77168
-Node: interest77251
-Ref: #interest77372
-Node: irr77467
-Ref: #irr77565
-Node: Experimental add-ons77643
-Ref: #experimental-add-ons77795
-Node: autosync78086
-Ref: #autosync78198
-Node: budget78437
-Ref: #budget78559
-Node: chart78625
-Ref: #chart78742
-Node: check78813
-Ref: #check78915
+Node: accounts29487
+Ref: #accounts29585
+Node: activity30578
+Ref: #activity30688
+Node: add31048
+Ref: #add31147
+Node: balance33808
+Ref: #balance33919
+Node: Flat mode37293
+Ref: #flat-mode37418
+Node: Depth limited balance reports37838
+Ref: #depth-limited-balance-reports38039
+Node: Multicolumn balance reports38459
+Ref: #multicolumn-balance-reports38654
+Node: Budgets43343
+Ref: #budgets43490
+Node: Custom balance output47321
+Ref: #custom-balance-output47483
+Node: Colour support49576
+Ref: #colour-support49735
+Node: Output destination49908
+Ref: #output-destination50064
+Node: CSV output50334
+Ref: #csv-output50451
+Node: balancesheet50848
+Ref: #balancesheet50984
+Node: balancesheetequity52952
+Ref: #balancesheetequity53101
+Node: cashflow53890
+Ref: #cashflow54018
+Node: check-dates55930
+Ref: #check-dates56057
+Node: check-dupes56174
+Ref: #check-dupes56298
+Node: close56435
+Ref: #close56542
+Node: help56872
+Ref: #help56972
+Node: import58046
+Ref: #import58160
+Node: incomestatement58890
+Ref: #incomestatement59024
+Node: prices60977
+Ref: #prices61092
+Node: print61135
+Ref: #print61245
+Node: print-unique66130
+Ref: #print-unique66256
+Node: register66324
+Ref: #register66451
+Node: Custom register output70952
+Ref: #custom-register-output71081
+Node: register-match72378
+Ref: #register-match72512
+Node: rewrite72695
+Ref: #rewrite72812
+Node: stats72881
+Ref: #stats72984
+Node: tags73866
+Ref: #tags73964
+Node: test74200
+Ref: #test74284
+Node: ADD-ON COMMANDS74652
+Ref: #add-on-commands74762
+Node: Official add-ons76049
+Ref: #official-add-ons76189
+Node: api76276
+Ref: #api76365
+Node: ui76417
+Ref: #ui76516
+Node: web76574
+Ref: #web76663
+Node: Third party add-ons76709
+Ref: #third-party-add-ons76884
+Node: diff77019
+Ref: #diff77116
+Node: iadd77215
+Ref: #iadd77329
+Node: interest77412
+Ref: #interest77533
+Node: irr77628
+Ref: #irr77726
+Node: Experimental add-ons77804
+Ref: #experimental-add-ons77956
+Node: autosync78247
+Ref: #autosync78359
+Node: budget78598
+Ref: #budget78720
+Node: chart78786
+Ref: #chart78903
+Node: check78974
+Ref: #check79076
 
 End Tag Table

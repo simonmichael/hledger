@@ -1,9 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
-module Hledger.Cli.Commands.Equity (
-  equitymode
- ,equity
+module Hledger.Cli.Commands.Close (
+  closemode
+ ,close
 ) 
 where
 
@@ -13,8 +13,8 @@ import Data.Time.Calendar
 import Hledger
 import Hledger.Cli.CliOptions
 
-equitymode = hledgerCommandMode
-  [here| equity
+closemode = hledgerCommandMode
+  [here| close equity
 Print a "closing balances" transaction that brings all accounts (or with
 query arguments, just the matched accounts) to a zero (historical) balance, 
 followed by an opposite "opening balances" transaction that restores the 
@@ -42,7 +42,7 @@ To close on some other date, use: `hledger close -e OPENINGDATE ...`.
 
 For example, carrying asset/liability balances into a new file for 2018:
 ```
-$ hledger equity -f 2017.journal -e 2018/1/1 ^assets ^liab >>2017.journal
+$ hledger close -f 2017.journal -e 2018/1/1 ^assets ^liab >>2017.journal
 # cut & paste the opening transaction from 2017.journal to a new 2018.journal
 # now:
 $ hledger bs -f 2018.journal                   # correct balances
@@ -50,7 +50,8 @@ $ hledger bs -f 2018.journal -f 2017.journal   # still correct
 $ hledger bs -f 2017.journal not:desc:closing  # must exclude closing txn 
 ```
 
-Transactions spanning a file boundary may complicate matters. Eg:
+Transactions spanning the closing date may complicate matters. Eg, if
+closing at end of 2017:
 ```
 2017/12/31
     expenses:food          1
@@ -62,7 +63,7 @@ Transactions spanning a file boundary may complicate matters. Eg:
   []
   ([], Just $ argsFlag "[QUERY]")
 
-equity CliOpts{reportopts_=ropts} j = do
+close CliOpts{reportopts_=ropts} j = do
   today <- getCurrentDay
   let 
       ropts_ = ropts{balancetype_=HistoricalBalance, accountlistmode_=ALFlat}

@@ -355,9 +355,12 @@ With a query, only matched transactions' dates are checked.
 Report account names having the same leaf but different prefixes. 
 An example: http://stefanorodighiero.net/software/hledger-dupes.html
 
-## equity
+## close
 Print closing/opening transactions that bring some or all account balances to zero and back. 
-Can be useful for bringing account balances across file boundaries. 
+Can be useful for bringing asset/liability balances across file boundaries,
+or for closing out income/expenses for a period.
+This was formerly called "equity", as in Ledger, and that alias is also accepted.
+See close --help for more.   
 
 ## help
 Show any of the hledger manuals.

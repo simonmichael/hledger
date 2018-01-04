@@ -20,7 +20,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Cashflow
   ,module Hledger.Cli.Commands.Checkdates
   ,module Hledger.Cli.Commands.Checkdupes
-  ,module Hledger.Cli.Commands.Equity
+  ,module Hledger.Cli.Commands.Close
   ,module Hledger.Cli.Commands.Help
   ,module Hledger.Cli.Commands.Import
   ,module Hledger.Cli.Commands.Incomestatement
@@ -59,7 +59,7 @@ import Hledger.Cli.Commands.Balancesheetequity
 import Hledger.Cli.Commands.Cashflow
 import Hledger.Cli.Commands.Checkdates
 import Hledger.Cli.Commands.Checkdupes
-import Hledger.Cli.Commands.Equity
+import Hledger.Cli.Commands.Close
 import Hledger.Cli.Commands.Help
 import Hledger.Cli.Commands.Import
 import Hledger.Cli.Commands.Incomestatement
@@ -86,7 +86,7 @@ builtinCommands = [
   ,(cashflowmode           , cashflow)
   ,(checkdatesmode         , checkdates)
   ,(checkdupesmode         , checkdupes)
-  ,(equitymode             , equity)
+  ,(closemode              , close)
   ,(helpmode               , help')
   ,(importmode             , importcmd)
   ,(incomestatementmode    , incomestatement)
@@ -152,7 +152,7 @@ UIs:
  web                      start web ui
 
 Generating data:
- equity                   generate balance-resetting transactions
+ close                    generate balance-resetting transactions
  interest                 generate interest transactions
  rewrite                  generate automated postings on matched transactions
 

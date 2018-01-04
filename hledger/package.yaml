@@ -113,7 +113,7 @@ library:
   - Hledger.Cli.Commands.Cashflow
   - Hledger.Cli.Commands.Checkdates
   - Hledger.Cli.Commands.Checkdupes
-  - Hledger.Cli.Commands.Equity
+  - Hledger.Cli.Commands.Close
   - Hledger.Cli.Commands.Help
   - Hledger.Cli.Commands.Import
   - Hledger.Cli.Commands.Incomestatement

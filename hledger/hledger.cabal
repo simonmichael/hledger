@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 8e14dbb3cafd99102e0a85bd39076ca0af4c9554f348cd6cacb0d59faf63623b
+-- hash: 4b322928cce5df23c77a7f404c11167cd43fc20c0e236fa93a61ed474c003d64
 
 name:           hledger
 version:        1.5
@@ -136,7 +136,7 @@ library
       Hledger.Cli.Commands.Cashflow
       Hledger.Cli.Commands.Checkdates
       Hledger.Cli.Commands.Checkdupes
-      Hledger.Cli.Commands.Equity
+      Hledger.Cli.Commands.Close
       Hledger.Cli.Commands.Help
       Hledger.Cli.Commands.Import
       Hledger.Cli.Commands.Incomestatement
