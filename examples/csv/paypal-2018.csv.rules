@@ -1,0 +1,65 @@
+# conversion rules for paypal CSV (2018 format, default fields)
+# sample:
+# "Date","Time","TimeZone","Name","Type","Status","Currency","Gross","Fee","Net","From Email Address","To Email Address","Transaction ID","Shipping Address","Address Status","Item Title","Item ID","Shipping and Handling Amount","Insurance Amount","Sales Tax","Option 1 Name","Option 1 Value","Option 2 Name","Option 2 Value","Reference Txn ID","Invoice Number","Custom Number","Quantity","Receipt ID","Balance","Address Line 1","Address Line 2/District/Neighborhood","Town/City","State/Province/Region/County/Territory/Prefecture/Republic","Zip/Postal Code","Country","Contact Phone Number","Subject","Note","Country Code","Balance Impact"
+# "1/1/2018","02:15:42","PST","Calm Radio","Subscription Payment","Completed","USD","-6.99","0.00","-6.99","simon@joyful.com","memberships@calmradio.com","0XG02A4F70310002N","Eric, Harry","Non-Confirmed","MONTHLY - $1 for the first 2 Months: Me - Order 88290. Item total: $1.00 USD first 2 months, then $6.99 / Month","","","","","","","","","I-8RXL1Y23JYX","","","","","0.00","","","","","","","","MONTHLY - $1 for the first 2 Months: Me - Order 88290. Item total: $1.00 USD first 2 months, then $6.99 / Month","","","Debit"
+
+# skip the header line
+skip  1
+
+# name the csv fields, and assign some of them as journal entry fields
+# "Date","Time","TimeZone","Name","Type","Status","Currency","Gross","Fee","Net","From Email Address","To Email Address","Transaction ID","Shipping Address","Address Status","Item Title","Item ID","Shipping and Handling Amount","Insurance Amount","Sales Tax","Option 1 Name","Option 1 Value","Option 2 Name","Option 2 Value","Reference Txn ID","Invoice Number","Custom Number","Quantity","Receipt ID","Balance","Address Line 1","Address Line 2/District/Neighborhood","Town/City","State/Province/Region/County/Territory/Prefecture/Republic","Zip/Postal Code","Country","Contact Phone Number","Subject","Note","Country Code","Balance Impact"
+fields date, time, timezone, description, type, status_, currency, grossamount, feeamount, netamount, fromemail, toemail, code, shippingaddress, addressstatus, itemtitle, itemid, shippingamount, insuranceamount, salestax, option1, option1value, option2, option2value, referencetxnid, invoiceno, customno, quantity, receiptid, balance, addressline1, addressline2, city, state, zip, country, contactphone, subject, note, countrycode, balanceimpact
+
+# date is in US format
+date-format  %-m/%-d/%Y
+
+amount %netamount
+
+#if In Progress
+# skip
+
+# set the base account
+account1  assets:personal:online:paypal
+
+# replace a USD currency symbol with $
+if
+,USD,
+ currency $
+
+# save some other fields as tags
+comment  time:%time, type:%type, status:%status_, balance:%balance  TODO: revenues:business:donations:TODO:%grossamount  expenses:business:banking:paypal:%feeamount
+
+# match if itemid is non-empty. The double quotes enclosing each field have been removed at this point.
+# if ^[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]+
+#  description %description <%fromemail> for %itemid
+comment  for:%itemid, time:%time, type:%type, status:%status_, balance:%balance, gross:%grossamount, fee:%feeamount
+
+# if these uninteresting paypal txns are included, mark them for manual deletion
+if
+Update to 
+Temporary Hold
+ description  %4 ; TODO: delete this, type is %type
+
+# 2017 CSV format ?
+if 
+Add Funds from a Bank Account
+ description  add funds to paypal
+
+# 2018 CSV format ? 
+# name is "Bank Deposit to PP Account (Obselete)", 
+# type is "Pending", but it seems required
+if 
+Bank Deposit to PP Account
+ description  add funds to paypal
+
+include common.rules
+
+if
+INTEREST PAYMENT
+ account2  revenues:personal:interest
+
+if
+Donation Received
+Recurring Payment Received
+ account2 revenues:business:TODO refine
+

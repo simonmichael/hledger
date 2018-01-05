@@ -1,4 +1,5 @@
-# sample of CSV being converted
+# conversion rules for paypal CSV (pre-2018 format)
+# sample:
 #Date, Time, Time Zone, Name, Type, Status, Currency, Amount, Receipt ID, Balance, 
 #"7/20/2009","17:09:22","PDT","Skype","Preapproved Payment Sent","Completed","USD","-10.00","","0.00",
 
