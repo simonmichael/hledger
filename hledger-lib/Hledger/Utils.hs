@@ -33,7 +33,7 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           -- the rest need to be done in each module I think
                           )
 where
-import Control.Monad (liftM)
+import Control.Monad (liftM, when)
 -- import Data.Char
 import Data.Default
 import Data.List
@@ -150,12 +150,14 @@ firstJust ms = case dropWhile (==Nothing) ms of
     [] -> Nothing
     (md:_) -> md
 
--- | Read text from a file, handling any of the usual line ending conventions.
+-- | Read text from a file, 
+-- handling any of the usual line ending conventions,
+-- using the system locale's text encoding,
+-- ignoring any utf8 BOM prefix (as seen in paypal's 2018 CSV, eg) if that encoding is utf8. 
 readFilePortably :: FilePath -> IO Text
 readFilePortably f =  openFile f ReadMode >>= readHandlePortably
 
--- | Read text from a file, or from standard input if the path is "-", 
--- handling any of the usual line ending conventions.
+-- | Like readFilePortably, but read from standard input if the path is "-". 
 readFileOrStdinPortably :: String -> IO Text
 readFileOrStdinPortably f = openFileOrStdin f ReadMode >>= readHandlePortably
   where
@@ -166,6 +168,9 @@ readFileOrStdinPortably f = openFileOrStdin f ReadMode >>= readHandlePortably
 readHandlePortably :: Handle -> IO Text
 readHandlePortably h = do
   hSetNewlineMode h universalNewlineMode
+  menc <- hGetEncoding h
+  when (fmap show menc == Just "UTF-8") $  -- XXX no Eq instance, rely on Show
+    hSetEncoding h utf8_bom
   T.hGetContents h
 
 -- | Total version of maximum, for integral types, giving 0 for an empty list.
