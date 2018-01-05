@@ -156,7 +156,7 @@ readJournalFile mformat mrulesfile assrt prefixedfile = do
     (mprefixformat, f) = splitReaderPrefix prefixedfile
     mfmt = mformat <|> mprefixformat
   requireJournalFileExists f
-  readFileOrStdinAnyLineEnding f >>= readJournal mfmt mrulesfile assrt (Just f)
+  readFileOrStdinPortably f >>= readJournal mfmt mrulesfile assrt (Just f)
 
 -- | If a filepath is prefixed by one of the reader names and a colon,
 -- split that off. Eg "csv:-" -> (Just "csv", "-").
@@ -276,7 +276,7 @@ readJournalFileWithOpts iopts prefixedfile = do
     (mfmt, f) = splitReaderPrefix prefixedfile
     iopts' = iopts{mformat_=firstJust [mfmt, mformat_ iopts]}
   requireJournalFileExists f
-  t <- readFileOrStdinAnyLineEnding f
+  t <- readFileOrStdinPortably f
   ej <- readJournalWithOpts iopts' (Just f) t
   case ej of
     Left e  -> return $ Left e
@@ -324,7 +324,7 @@ latestDatesFileFor f = dir </> ".latest" <.> fname
     (dir, fname) = splitFileName f
 
 readFileStrictly :: FilePath -> IO Text
-readFileStrictly f = readFile' f >>= \t -> C.evaluate (T.length t) >> return t
+readFileStrictly f = readFilePortably f >>= \t -> C.evaluate (T.length t) >> return t
 
 -- | Given zero or more latest dates (all the same, representing the
 -- latest previously seen transaction date, and how many transactions

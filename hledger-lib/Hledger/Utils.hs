@@ -150,30 +150,23 @@ firstJust ms = case dropWhile (==Nothing) ms of
     [] -> Nothing
     (md:_) -> md
 
--- | Read a file in universal newline mode, handling any of the usual line ending conventions.
-readFile' :: FilePath -> IO Text
-readFile' name =  do
-  h <- openFile name ReadMode
-  hSetNewlineMode h universalNewlineMode
-  T.hGetContents h
+-- | Read text from a file, handling any of the usual line ending conventions.
+readFilePortably :: FilePath -> IO Text
+readFilePortably f =  openFile f ReadMode >>= readHandlePortably
 
--- | Read a file in universal newline mode, handling any of the usual line ending conventions.
-readFileAnyLineEnding :: FilePath -> IO Text
-readFileAnyLineEnding path =  do
-  h <- openFile path ReadMode
-  hSetNewlineMode h universalNewlineMode
-  T.hGetContents h
-
--- | Read the given file, or standard input if the path is "-", using
--- universal newline mode.
-readFileOrStdinAnyLineEnding :: String -> IO Text
-readFileOrStdinAnyLineEnding f = do
-  h <- fileHandle f
-  hSetNewlineMode h universalNewlineMode
-  T.hGetContents h
+-- | Read text from a file, or from standard input if the path is "-", 
+-- handling any of the usual line ending conventions.
+readFileOrStdinPortably :: String -> IO Text
+readFileOrStdinPortably f = openFileOrStdin f ReadMode >>= readHandlePortably
   where
-    fileHandle "-" = return stdin
-    fileHandle f = openFile f ReadMode
+    openFileOrStdin :: String -> IOMode -> IO Handle
+    openFileOrStdin "-" _ = return stdin
+    openFileOrStdin f m   = openFile f m
+
+readHandlePortably :: Handle -> IO Text
+readHandlePortably h = do
+  hSetNewlineMode h universalNewlineMode
+  T.hGetContents h
 
 -- | Total version of maximum, for integral types, giving 0 for an empty list.
 maximum' :: Integral a => [a] -> a

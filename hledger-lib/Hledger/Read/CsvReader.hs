@@ -104,7 +104,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
     if rulesfileexists
     then do
       dbg1IO "using conversion rules file" rulesfile
-      liftIO $ (readFile' rulesfile >>= expandIncludes (takeDirectory rulesfile))
+      liftIO $ (readFilePortably rulesfile >>= expandIncludes (takeDirectory rulesfile))
     else return $ defaultRulesText rulesfile
   rules <- liftIO (runExceptT $ parseAndValidateCsvRules rulesfile rulestext) >>= either throwerr return 
   dbg2IO "rules" rules
@@ -365,7 +365,7 @@ instance ShowErrorComponent String where
 -- and runs some extra validation checks.
 parseRulesFile :: FilePath -> ExceptT String IO CsvRules
 parseRulesFile f = 
-  liftIO (readFile' f >>= expandIncludes (takeDirectory f)) >>= parseAndValidateCsvRules f
+  liftIO (readFilePortably f >>= expandIncludes (takeDirectory f)) >>= parseAndValidateCsvRules f
 
 -- | Inline all files referenced by include directives in this hledger CSV rules text, recursively.
 -- Included file paths may be relative to the directory of the provided file path.

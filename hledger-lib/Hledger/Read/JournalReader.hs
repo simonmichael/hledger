@@ -188,7 +188,7 @@ includedirectivep = do
     liftIO $ runExceptT $ do
       let curdir = takeDirectory (sourceName parentpos)
       filepath <- expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
-      txt      <- readFileAnyLineEnding filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
+      txt      <- readFilePortably filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
       (ej1::Either (ParseError Char MPErr) ParsedJournal) <-
         runParserT
            (evalStateT
