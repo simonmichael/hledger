@@ -16,7 +16,8 @@ a { white-space:nowrap; }
 </style>
 
 Packaged versions are the quickest to install, 
-but they can be out of date or incomplete. 
+but they can be [out of date](https://repology.org/metapackage/hledger/badges) or incomplete. 
+
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
