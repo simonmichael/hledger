@@ -1024,7 +1024,7 @@ files:
 
   Vim              <https://github.com/ledger/ledger/wiki/Getting-started>
 
-  Sublime Text     <https://github.com/ledger/ledger/wiki/Using-Sublime-Text>
+  Sublime Text     <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-Sublime-Text-or-RubyMine>
 
   Textmate         <https://github.com/ledger/ledger/wiki/Using-TextMate-2>
 
