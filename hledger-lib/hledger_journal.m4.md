@@ -915,14 +915,14 @@ using one of these modes is quite recommended.
 
 These were written with Ledger in mind, but also work with hledger files:
 
-|
-|----------------|----------------------------------------------------|
-| Emacs          | <http://www.ledger-cli.org/3.0/doc/ledger-mode.html> |
-| Vim            | <https://github.com/ledger/ledger/wiki/Getting-started> |
-| Sublime Text   | <https://github.com/ledger/ledger/wiki/Using-Sublime-Text> |
-| Textmate       | <https://github.com/ledger/ledger/wiki/Using-TextMate-2> |
-| Text Wrangler &nbsp; | <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler> |
-| Visual Studio Code | <https://marketplace.visualstudio.com/items?itemName=mark-hansen.hledger-vscode> |
+| Editor              |                                                                                            |  
+| ------------------- | ------------------------------------------------------------------------------------------ |  
+| Emacs               | <http://www.ledger-cli.org/3.0/doc/ledger-mode.html>                                       |  
+| Vim                 | <https://github.com/ledger/ledger/wiki/Getting-started>                                    |  
+| Sublime Text        | <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-Sublime-Text-or-RubyMine> |  
+| Textmate            | <https://github.com/ledger/ledger/wiki/Using-TextMate-2>                                   |  
+| Text Wrangler &nbsp;| <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler>             |  
+| Visual Studio Code  | <https://marketplace.visualstudio.com/items?itemName=mark-hansen.hledger-vscode>           |  
 
 <!-- Some related LedgerTips:
 https://twitter.com/LedgerTips/status/504061626233159681
