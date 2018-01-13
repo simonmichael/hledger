@@ -511,20 +511,20 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
 -- | Render a multi-column balance report as CSV.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
 multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
-  ("account" : "short account" : "indent" : map showDateSpan colspans
+  ("account" : map showDateSpan colspans
    ++ (if row_total_ opts then ["total"] else [])
    ++ (if average_ opts then ["average"] else [])
   ) :
-  [T.unpack a : T.unpack a' : show i :
+  [T.unpack a :
    map showMixedAmountOneLineWithoutPrice
    (amts
     ++ (if row_total_ opts then [rowtot] else [])
     ++ (if average_ opts then [rowavg] else []))
-  | (a,a',i, amts, rowtot, rowavg) <- items]
+  | (a, _, _, amts, rowtot, rowavg) <- items]
   ++
   if no_total_ opts
   then []
-  else [["totals", "", ""]
+  else [["totals"]
         ++ map showMixedAmountOneLineWithoutPrice (
            coltotals
            ++ (if row_total_ opts then [tot] else [])
