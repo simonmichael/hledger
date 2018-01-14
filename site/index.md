@@ -17,13 +17,11 @@ title: home
 
 <!-- funding buttons -->
 <div style="text-align:right; width:100%;">
-[![github](https://img.shields.io/github/stars/simonmichael/hledger.svg?style=social&label=Github){style="min-width:102;" title="hledger on Github. Star us!"}](https://github.com/simonmichael/hledger/)
+[![github](https://img.shields.io/github/stars/simonmichael/hledger.svg?style=social&label=Github){style="min-width:102;" title="Star us!"}](https://github.com/simonmichael/hledger/)
 <a href="https://opencollective.com/hledger#support"><img border="0" src="https://opencollective.com/hledger/backers/badge.svg" title="Back us with a monthly donation at Open Collective" alt="open collective backers"></a>
 <a href="https://opencollective.com/hledger#support"><img border="0" src="https://opencollective.com/hledger/sponsors/badge.svg" title="Sponsor us with a $100+ monthly donation at Open Collective and get your organization's logo on our README" alt="open collective sponsors"></a>
-<a href="https://gratipay.com/hledger/"><img style="min-width:111px;" border=0 src="http://img.shields.io/gratipay/hledger.svg?label=gratipay" title="Give weekly with Gratipay" alt="gratipay"></a>
 <a href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img border="0" src="//api.flattr.com/button/flattr-badge-large.png" alt="" title="Give monthly with Flattr" alt="flattr"></a> 
 <a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" title="Contribute or claim issue bounties via Bountysource" alt="bountysource"></a>
-<a href="http://www.codefund.io/issues.php?g=simonmichael&repo=hledger" style="border:thin solid #000; background:#bfb; border-radius:4px; padding:1px 3px 2px 3px; font-size:small; font-family:helvetica;" title="Contribute or claim issue bounties via CodeFund" alt="codefund">codefund</a>
 <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img width=62 height=31 border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" title="Give one time or recurringly with Paypal" alt="paypal"></a> 
 </div>
 
@@ -35,8 +33,9 @@ title: home
 
 <h2 style="margin-top:0; margin-bottom:.5em;">
 <!-- Making accounting fun for techies. -->
-Robust, precise, plain text accounting.
 <!-- Plain text accounting for everyone. -->
+<!-- Robust, precise, plain text accounting. -->
+Robust, powerful, plain text accounting.
 </h2>
 
 <div style="font-size:medium;">
