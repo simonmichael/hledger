@@ -189,14 +189,14 @@ filterAccounts p a
 -- so that the accounts with largest normal balances are listed first.  
 -- The provided normal balance sign determines whether normal balances
 -- are negative or positive.
-sortAccountTreeByAmount :: NormalBalance -> Account -> Account
+sortAccountTreeByAmount :: NormalSign -> Account -> Account
 sortAccountTreeByAmount normalsign a
   | null $ asubs a = a
   | otherwise      = a{asubs=
                         sortBy (maybeflip $ comparing aibalance) $ 
                         map (sortAccountTreeByAmount normalsign) $ asubs a}
   where
-    maybeflip | normalsign==NormalNegative = id
+    maybeflip | normalsign==NormallyNegative = id
               | otherwise                  = flip
 
 -- | Search an account list by name.

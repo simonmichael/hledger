@@ -362,13 +362,14 @@ data Account = Account {
   aboring                   :: Bool           -- ^ used in the accounts report to label elidable parents
   } deriving (Typeable, Data, Generic)
 
--- | Whether an account's balance is normally a positive number (in accounting terms,
--- normally a debit balance), as for asset and expense accounts, or a negative number
--- (in accounting terms, normally a credit balance), as for liability, equity and 
--- income accounts. Cf https://en.wikipedia.org/wiki/Normal_balance .
-data NormalBalance = 
-    NormalPositive -- ^ normally debit - assets, expenses...
-  | NormalNegative -- ^ normally credit - liabilities, equity, income...
+-- | Whether an account's balance is normally a positive number (in 
+-- accounting terms, a debit balance) or a negative number (credit balance). 
+-- Assets and expenses are normally positive (debit), while liabilities, equity
+-- and income are normally negative (credit).
+-- https://en.wikipedia.org/wiki/Normal_balance
+data NormalSign = 
+    NormallyPositive -- ^ normally debit - assets, expenses...
+  | NormallyNegative -- ^ normally credit - liabilities, equity, income...
   deriving (Show, Data, Eq) 
 
 -- | A Ledger has the journal it derives from, and the accounts

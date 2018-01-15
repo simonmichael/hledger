@@ -29,8 +29,8 @@ top-level `revenue` or `income` or `expense` account (case insensitive,
 plural forms also allowed).
   |],
   cbctitle    = "Income Statement",
-  cbcqueries  = [ ("Revenues", journalIncomeAccountQuery, Just NormalNegative),
-                  ("Expenses", journalExpenseAccountQuery, Just NormalPositive)
+  cbcqueries  = [ ("Revenues", journalIncomeAccountQuery, Just NormallyNegative),
+                  ("Expenses", journalExpenseAccountQuery, Just NormallyPositive)
                 ],
   cbctype     = PeriodChange
 }

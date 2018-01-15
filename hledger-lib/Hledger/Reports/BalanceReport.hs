@@ -108,8 +108,8 @@ balanceReport opts q j = (items, total)
             maybesortflat | sort_amount_ opts = sortBy (maybeflip $ comparing balance)
                           | otherwise = id
               where
-                maybeflip = if normalbalance_ opts == Just NormalNegative then id else flip
-            maybesorttree | sort_amount_ opts = sortAccountTreeByAmount (fromMaybe NormalPositive $ normalbalance_ opts)
+                maybeflip = if normalbalance_ opts == Just NormallyNegative then id else flip
+            maybesorttree | sort_amount_ opts = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ opts)
                           | otherwise = id
       items = dbg1 "items" $ map (balanceReportItem opts q) accts'
       total | not (flat_ opts) = dbg1 "total" $ sum [amt | (_,_,indent,amt) <- items, indent == 0]

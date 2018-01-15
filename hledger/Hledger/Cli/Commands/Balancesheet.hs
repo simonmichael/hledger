@@ -29,8 +29,8 @@ It assumes that these accounts are under a top-level `asset` or `liability`
 account (case insensitive, plural forms also  allowed).
   |],
   cbctitle    = "Balance Sheet",
-  cbcqueries  = [ ("Assets"     , journalAssetAccountQuery,     Just NormalPositive),
-                  ("Liabilities", journalLiabilityAccountQuery, Just NormalNegative)
+  cbcqueries  = [ ("Assets"     , journalAssetAccountQuery,     Just NormallyPositive),
+                  ("Liabilities", journalLiabilityAccountQuery, Just NormallyNegative)
                 ],
   cbctype     = HistoricalBalance
 }

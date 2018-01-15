@@ -192,7 +192,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, sorteditems, tot
               -- Sort the report rows, representing a flat account list, by row total. 
               sortFlatMultiBalanceReportRowsByAmount = sortBy (maybeflip $ comparing fifth6)
                 where
-                  maybeflip = if normalbalance_ opts == Just NormalNegative then id else flip
+                  maybeflip = if normalbalance_ opts == Just NormallyNegative then id else flip
 
               -- Sort the report rows, representing a tree of accounts, by row total at each level.
               -- To do this we recreate an Account tree with the row totals as balances, 
@@ -209,7 +209,7 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, sorteditems, tot
                     where
                       -- this error should not happen, but it's ugly TODO 
                       setibalance a = a{aibalance=fromMaybe (error "sortTreeMultiBalanceReportRowsByAmount 1") $ lookup (aname a) atotals}
-                  sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormalPositive $ normalbalance_ opts) accounttreewithbals
+                  sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ opts) accounttreewithbals
                   sortedaccounts = drop 1 $ flattenAccounts sortedaccounttree
                   sortedrows = [ 
                     -- this error should not happen, but it's ugly TODO 

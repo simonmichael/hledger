@@ -39,8 +39,8 @@ data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
   cbcaliases  :: [String],                      -- ^ command aliases
   cbchelp     :: String,                        -- ^ command line help
   cbctitle    :: String,                        -- ^ overall report title
-  cbcqueries  :: [(String, Journal -> Query, Maybe NormalBalance)],
-    -- ^ title, journal-parameterised query, and expected normal balance for each subreport.
+  cbcqueries  :: [(String, Journal -> Query, Maybe NormalSign)],
+    -- ^ title, journal-parameterised query, and normal balance sign for each subreport.
     -- The normal balance helps --sort-amount know how to sort negative amounts. 
   cbctype     :: BalanceType                    -- ^ the type of "balance" this report shows (overrides command line flags)
 }
@@ -197,7 +197,7 @@ compoundBalanceCommandSingleColumnReport
     -> Journal
     -> String
     -> (Journal -> Query)
-    -> Maybe NormalBalance
+    -> Maybe NormalSign
     -> ([String], Sum MixedAmount)
 compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportqfn subreportnormalsign = 
   ([subreportstr], Sum total)
@@ -233,7 +233,7 @@ type CompoundBalanceReport =
 
 -- | Run one subreport for a compound balance command in multi-column mode.
 -- This returns a MultiBalanceReport.
-compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> (Journal -> Query) -> Maybe NormalBalance -> MultiBalanceReport
+compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> (Journal -> Query) -> Maybe NormalSign -> MultiBalanceReport
 compoundBalanceSubreport ropts userq j subreportqfn subreportnormalsign = r'
   where
     -- force --empty to ensure same columns in all sections
