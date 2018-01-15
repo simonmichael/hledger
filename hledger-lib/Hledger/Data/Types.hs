@@ -367,10 +367,7 @@ data Account = Account {
 -- Assets and expenses are normally positive (debit), while liabilities, equity
 -- and income are normally negative (credit).
 -- https://en.wikipedia.org/wiki/Normal_balance
-data NormalSign = 
-    NormallyPositive -- ^ normally debit - assets, expenses...
-  | NormallyNegative -- ^ normally credit - liabilities, equity, income...
-  deriving (Show, Data, Eq) 
+data NormalSign = NormallyPositive | NormallyNegative deriving (Show, Data, Eq) 
 
 -- | A Ledger has the journal it derives from, and the accounts
 -- derived from that. Accounts are accessible both list-wise and

@@ -45,6 +45,26 @@ data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
   cbctype     :: BalanceType                    -- ^ the type of "balance" this report shows (overrides command line flags)
 }
 
+-- | A compound balance report has:
+--
+-- * an overall title
+--
+-- * the period (date span) of each column
+--
+-- * one or more named multi balance reports, with columns corresponding to the above
+--
+-- * a list of overall totals for each column, and their grand total and average
+--
+-- It is used in compound balance report commands like balancesheet, 
+-- cashflow and incomestatement.
+type CompoundBalanceReport = 
+  ( String
+  , [DateSpan]
+  , [(String, MultiBalanceReport)]
+  , ([MixedAmount], MixedAmount, MixedAmount)
+  )
+
+
 -- | Generate a cmdargs option-parsing mode from a compound balance command 
 -- specification.
 compoundBalanceCommandMode :: CompoundBalanceCommandSpec -> Mode RawOpts
@@ -211,25 +231,6 @@ compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportq
       | balancetype_ ropts `elem` [CumulativeChange, HistoricalBalance] = singleBalanceReport ropts' q j
       | otherwise                                                       = balanceReport       ropts' q j
     subreportstr = intercalate "\n" [subreporttitle <> ":", balanceReportAsText ropts r]
-
--- | A compound balance report has:
---
--- * an overall title
---
--- * the period (date span) of each column
---
--- * one or more named multi balance reports, with columns corresponding to the above
---
--- * a list of overall totals for each column, and their grand total and average
---
--- It is used in compound balance report commands like balancesheet, 
--- cashflow and incomestatement.
-type CompoundBalanceReport = 
-  ( String
-  , [DateSpan]
-  , [(String, MultiBalanceReport)]
-  , ([MixedAmount], MixedAmount, MixedAmount)
-  )
 
 -- | Run one subreport for a compound balance command in multi-column mode.
 -- This returns a MultiBalanceReport.
