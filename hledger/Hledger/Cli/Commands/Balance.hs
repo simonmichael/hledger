@@ -233,6 +233,8 @@ Currently, empty cells show 0.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ExtendedDefaultRules #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Hledger.Cli.Commands.Balance (
   balancemode
@@ -241,6 +243,8 @@ module Hledger.Cli.Commands.Balance (
  ,balanceReportItemAsText
  ,multiBalanceReportAsText
  ,multiBalanceReportAsCsv
+ ,multiBalanceReportAsHtml
+ ,multiBalanceReportHtmlRows
  ,renderBalanceReportTable
  ,balanceReportAsTable
  ,tests_Hledger_Cli_Commands_Balance
@@ -249,10 +253,11 @@ module Hledger.Cli.Commands.Balance (
 import Data.List (intercalate, nub)
 import Data.Maybe
 import qualified Data.Map as Map
--- import Data.Monoid
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import System.Console.CmdArgs.Explicit as C
 import Data.Decimal (roundTo)
+import Lucid as L
 import Text.CSV
 import Test.HUnit
 import Text.Printf (printf)
@@ -320,8 +325,9 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
                     in singleBalanceReport ropts' (queryFromOpts d ropts) j
                 | otherwise = balanceReport ropts (queryFromOpts d ropts) j
               render = case format of
-                "csv" -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
-                _     -> balanceReportAsText
+                "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
+                "html" -> \_ _ -> error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
+                _      -> balanceReportAsText
           writeOutput opts $ render ropts report
           
         _ | boolopt "budget" rawopts -> do
@@ -332,14 +338,16 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
               render = case format of
                 -- XXX: implement csv rendering
                 "csv" -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
+                "html" -> const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
                 _     -> multiBalanceReportWithBudgetAsText ropts budgetReport
           writeOutput opts $ render report
           
           | otherwise -> do
           let report = multiBalanceReport ropts (queryFromOpts d ropts) j
               render = case format of
-                "csv" -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
-                _     -> multiBalanceReportAsText ropts
+                "csv"  -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
+                "html" ->  (++ "\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts
+                _      -> multiBalanceReportAsText ropts
           writeOutput opts $ render report
 
 -- | Re-map account names to closet parent with periodic transaction from budget.
@@ -503,17 +511,19 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
   TotalField       -> fitStringMulti min max True False $ ((intercalate ", " . map strip . lines) (showamt total))
     where
       showamt | color_ opts = cshowMixedAmountWithoutPrice
-              | otherwise   = showMixedAmountWithoutPrice 
+              | otherwise   = showMixedAmountWithoutPrice
   _                -> ""
 
 -- multi-column balance reports
 
 -- | Render a multi-column balance report as CSV.
+-- The CSV will always include the initial headings row,
+-- and will include the final totals row unless --no-total is set.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
 multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
-  ("account" : map showDateSpan colspans
-   ++ (if row_total_ opts then ["total"] else [])
-   ++ (if average_ opts then ["average"] else [])
+  ("Account" : map showDateSpan colspans
+   ++ (if row_total_ opts then ["Total"] else [])
+   ++ (if average_ opts then ["Average"] else [])
   ) :
   [T.unpack a :
    map showMixedAmountOneLineWithoutPrice
@@ -524,12 +534,48 @@ multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,to
   ++
   if no_total_ opts
   then []
-  else [["totals"]
+  else [["Total:"]
         ++ map showMixedAmountOneLineWithoutPrice (
            coltotals
            ++ (if row_total_ opts then [tot] else [])
            ++ (if average_ opts then [avg] else [])
            )]
+
+-- | Render a multi-column balance report as HTML.
+multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
+multiBalanceReportAsHtml ropts mbr =
+  let
+    (headingsrow,bodyrows,mtotalsrow) = multiBalanceReportHtmlRows ropts mbr
+  in
+    table_ $ mconcat $
+         [headingsrow]
+      ++ bodyrows
+      ++ maybe [] (:[]) mtotalsrow
+
+-- | Render the HTML table rows for a MultiBalanceReport.
+-- Returns the heading row, 0 or more body rows, and the totals row if enabled.
+multiBalanceReportHtmlRows :: ReportOpts -> MultiBalanceReport -> (Html (), [Html ()], Maybe (Html ()))
+multiBalanceReportHtmlRows ropts mbr =
+  let
+    headingsrow:rest = multiBalanceReportAsCsv ropts mbr
+    (bodyrows, mtotalsrow) | no_total_ ropts = (rest,      Nothing)
+                           | otherwise       = (init rest, Just $ last rest)
+  in
+    (thRow headingsrow
+    ,map multiBalanceReportHtmlBodyRow bodyrows
+    ,thRow <$> mtotalsrow
+    )
+
+-- | Render one MultiBalanceReport data row as a HTML table row.
+multiBalanceReportHtmlBodyRow :: [String] -> Html ()
+multiBalanceReportHtmlBodyRow [] = mempty  -- shouldn't happen
+multiBalanceReportHtmlBodyRow (acct:amts) =
+  tr_ $ mconcat $
+    td_ (toHtml acct) :
+    [td_ [style_ "text-align:right"] (toHtml amt) | amt <- amts]
+
+thRow :: [String] -> Html ()
+thRow = tr_ . mconcat . map (th_ . toHtml)
 
 -- | Render a multi-column balance report as plain text suitable for console output.
 multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
@@ -559,16 +605,16 @@ multiBalanceReportWithBudgetAsText opts budget r =
         CumulativeChange -> "Ending balances (cumulative)"
         HistoricalBalance -> "Ending balances (historical)"
     showcell (real, Nothing)     = showamt real
-    showcell (real, Just budget) = 
+    showcell (real, Just budget) =
       case percentage real budget of
         Just pct -> printf "%s [%s%% of %s]" (showamt real) (show $ roundTo 0 pct) (showamt budget)
         Nothing  -> printf "%s [%s]" (showamt real) (showamt budget)
     percentage real budget =
       -- percentage of budget consumed is always computed in the cost basis
       case (toCost real, toCost budget) of
-        (Mixed [a1], Mixed [a2]) 
+        (Mixed [a1], Mixed [a2])
           | isReallyZeroAmount a1 -> Just 0 -- if there are no postings, we consumed 0% of budget
-          | acommodity a1 == acommodity a2 && aquantity a2 /= 0 -> 
+          | acommodity a1 == acommodity a2 && aquantity a2 /= 0 ->
             Just $ 100 * aquantity a1 / aquantity a2
         _ -> Nothing
         where
@@ -582,11 +628,11 @@ multiBalanceReportWithBudgetAsText opts budget r =
     -- Both of these are satisfied by construction of budget report and process of rolling up
     -- account names.
     combine (Table l t d) (Table l' t' d') = Table l t combinedRows
-      where 
+      where
         -- For all accounts that are present in the budget, zip real amounts with budget amounts
-        combinedRows = [ combineRow row budgetRow 
+        combinedRows = [ combineRow row budgetRow
                        | (acct, row) <- zip (headerContents l) d
-                       , let budgetRow = 
+                       , let budgetRow =
                                if acct == "" then [] -- "" is totals row
                                else fromMaybe [] $ Map.lookup acct budgetAccts
                        ]
@@ -594,26 +640,26 @@ multiBalanceReportWithBudgetAsText opts budget r =
         -- Headers for budget row will always be a sublist of headers of row
         combineRow r br =
           let reportRow = zip (headerContents t) r
-              budgetRow = Map.fromList $ zip (headerContents t') br 
-              findBudgetVal hdr = Map.lookup hdr budgetRow 
+              budgetRow = Map.fromList $ zip (headerContents t') br
+              findBudgetVal hdr = Map.lookup hdr budgetRow
           in map (\(hdr, val) -> (val, findBudgetVal hdr)) reportRow
         budgetAccts = Map.fromList $ zip (headerContents l') d'
-                                                           
+
 -- | Given a table representing a multi-column balance report (for example,
 -- made using 'balanceReportAsTable'), render it in a format suitable for
 -- console output.
 renderBalanceReportTable :: ReportOpts -> Table String String MixedAmount -> String
-renderBalanceReportTable ropts = 
+renderBalanceReportTable ropts =
   renderBalanceReportTable' ropts showamt
   where
     showamt | color_ ropts = cshowMixedAmountOneLineWithoutPrice
             | otherwise    = showMixedAmountOneLineWithoutPrice
-  
+
 renderBalanceReportTable' :: ReportOpts -> (a -> String) -> Table String String a -> String
-renderBalanceReportTable' (ReportOpts { pretty_tables_ = pretty}) showCell = 
+renderBalanceReportTable' (ReportOpts { pretty_tables_ = pretty}) showCell =
   unlines
   . addtrailingblank
-  . trimborder 
+  . trimborder
   . lines
   . render pretty id id showCell
   . align

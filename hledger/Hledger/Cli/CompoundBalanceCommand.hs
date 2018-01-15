@@ -15,9 +15,12 @@ module Hledger.Cli.CompoundBalanceCommand (
 import Data.List (intercalate, foldl')
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Sum(..), (<>))
+import qualified Data.Text
+import qualified Data.Text.Lazy as TL
 import Data.Tuple.HT (uncurry3)
 import System.Console.CmdArgs.Explicit as C
 import Text.CSV
+import Lucid as L
 import Text.Tabular as T
 
 import Hledger
@@ -181,8 +184,9 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{command_=cmd,
         -- render appropriately
         writeOutput opts $
           case format of
-            "csv" -> printCSV (compoundBalanceReportAsCsv ropts cbr) ++ "\n"
-            _     -> compoundBalanceReportAsText ropts' cbr
+            "csv"  -> printCSV (compoundBalanceReportAsCsv ropts cbr) ++ "\n"
+            "html" -> (++ "\n") $ TL.unpack $ L.renderText $ compoundBalanceReportAsHtml ropts cbr
+            _      -> compoundBalanceReportAsText ropts' cbr
 
 -- | Run one subreport for a compound balance command in single-column mode.
 -- Currently this returns the plain text rendering of the subreport, and its total.
@@ -348,3 +352,54 @@ compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grand
              ++ (if average_ ropts   then [grandavg]   else [])
              )
           ])
+
+-- | Render a compound balance report as HTML.
+compoundBalanceReportAsHtml :: ReportOpts -> CompoundBalanceReport -> Html ()
+compoundBalanceReportAsHtml ropts cbr =
+  let
+    (title, colspans, subreports, (coltotals, grandtotal, grandavg)) = cbr
+    colspanattr = colspan_ $ Data.Text.pack $ show $ length colspans + 1
+    leftattr = style_ "text-align:left"
+    blankrow = tr_ $ td_ [colspanattr] $ toHtmlRaw ("&nbsp;"::String)
+
+    titlerows =
+         [tr_ $ th_ [colspanattr, leftattr] $ toHtml title]
+      ++ [thRow $
+          "" :
+          map showDateSpan colspans
+          ++ (if row_total_ ropts then ["Total"] else [])
+          ++ (if average_ ropts then ["Average"] else [])
+          ]
+
+    -- Make rows for a subreport: its title row, not the headings row,
+    -- the data rows, any totals row, and a blank row for whitespace.
+    subreportrows :: (String, MultiBalanceReport) -> [Html ()]
+    subreportrows (subreporttitle, mbr) =
+      let
+        (_,bodyrows,mtotalsrow) = multiBalanceReportHtmlRows ropts mbr
+      in
+           [tr_ $ th_ [colspanattr, leftattr] $ toHtml subreporttitle]
+        ++ bodyrows
+        ++ maybe [] (:[]) mtotalsrow
+        ++ [blankrow]
+
+    totalrows | no_total_ ropts || length subreports == 1 = []
+              | otherwise =
+                  [thRow $
+                    "Grand Total:" :
+                    map showMixedAmountOneLineWithoutPrice (
+                       coltotals
+                       ++ (if row_total_ ropts then [grandtotal] else [])
+                       ++ (if average_ ropts   then [grandavg]   else [])
+                       )
+                  ]
+  in
+    table_ $ mconcat $
+         titlerows
+      ++ [blankrow]
+      ++ concatMap subreportrows subreports
+      ++ totalrows
+
+thRow :: [String] -> Html ()
+thRow = tr_ . mconcat . map (th_ . toHtml)
+

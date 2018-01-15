@@ -138,6 +138,7 @@ library:
   - hashable >=1.2.4
   - haskeline >=0.6
   - HUnit
+  - lucid
   - mtl
   - mtl-compat
   - old-time

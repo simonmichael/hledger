@@ -61,8 +61,9 @@ register :: CliOpts -> Journal -> IO ()
 register opts@CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let fmt = outputFormatFromOpts opts
-      render | fmt=="csv" = const ((++"\n") . printCSV . postingsReportAsCsv)
-             | otherwise  = postingsReportAsText
+      render | fmt=="csv"  = const ((++"\n") . printCSV . postingsReportAsCsv)
+             | fmt=="html" = const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
+             | otherwise   = postingsReportAsText
   writeOutput opts $ render opts $ postingsReport ropts (queryFromOpts d ropts) j
 
 postingsReportAsCsv :: PostingsReport -> CSV

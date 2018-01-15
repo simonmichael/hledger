@@ -59,8 +59,9 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
   let q = queryFromOpts d ropts
       fmt = outputFormatFromOpts opts
       (render, ropts') = case fmt of
-        "csv" -> ((++"\n") . printCSV . entriesReportAsCsv, ropts{accountlistmode_=ALFlat})
-        _     -> (entriesReportAsText opts,                 ropts)
+        "csv"  -> ((++"\n") . printCSV . entriesReportAsCsv, ropts{accountlistmode_=ALFlat})
+        "html" -> (const $ error' "Sorry, HTML output is not yet implemented for this kind of report.", ropts{accountlistmode_=ALFlat})  -- TODO
+        _      -> (entriesReportAsText opts,                 ropts)
   writeOutput opts $ render $ entriesReport ropts' q j
 
 entriesReportAsText :: CliOpts -> EntriesReport -> String
