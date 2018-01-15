@@ -168,8 +168,13 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{command_=cmd,
                          | otherwise      = grandtotal `divideMixedAmount` fromIntegral (length coltotals)
               in 
                 (coltotals, grandtotal, grandavg)
+          colspans =
+            case namedsubreports of
+              (_, MultiBalanceReport (ds,_,_)):_ -> ds
+              [] -> []
           cbr =
             (title
+            ,colspans
             ,namedsubreports
             ,overalltotals 
             )
@@ -207,7 +212,9 @@ compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportq
 --
 -- * an overall title
 --
--- * one or more named multi balance reports, with the same column headings
+-- * the period (date span) of each column
+--
+-- * one or more named multi balance reports, with columns corresponding to the above
 --
 -- * a list of overall totals for each column, and their grand total and average
 --
@@ -215,6 +222,7 @@ compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportq
 -- cashflow and incomestatement.
 type CompoundBalanceReport = 
   ( String
+  , [DateSpan]
   , [(String, MultiBalanceReport)]
   , ([MixedAmount], MixedAmount, MixedAmount)
   )
@@ -258,7 +266,7 @@ Balance Sheet
 
 -}
 compoundBalanceReportAsText :: ReportOpts -> CompoundBalanceReport -> String
-compoundBalanceReportAsText ropts (title, subreports, (coltotals, grandtotal, grandavg)) =
+compoundBalanceReportAsText ropts (title, _colspans, subreports, (coltotals, grandtotal, grandavg)) =
   title ++ "\n\n" ++ 
   renderBalanceReportTable ropts bigtable'
   where
@@ -311,7 +319,7 @@ ghci> :main -f examples/sample.journal bs -Y -O csv -AT
 "Total","0","0","0"
 -}
 compoundBalanceReportAsCsv :: ReportOpts -> CompoundBalanceReport -> CSV
-compoundBalanceReportAsCsv ropts (title, subreports, (coltotals, grandtotal, grandavg)) =
+compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grandtotal, grandavg)) =
   addtotals $
   padRow title :
   concatMap (subreportAsCsv ropts singlesubreport) subreports
