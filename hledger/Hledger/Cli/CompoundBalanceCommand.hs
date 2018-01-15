@@ -304,30 +304,25 @@ concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
     Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
 
 -- | Render a compound balance report as CSV.
-{- Eg: 
-ghci> :main -f examples/sample.journal bs -Y -O csv -AT
-"Balance Sheet","","","","",""
-"Assets","","","","",""
-"account","short account","indent","2008","total","average"
-"assets:bank:saving","saving","3","$1","$1","$1"
-"assets:cash","cash","2","$-2","$-2","$-2"
-"totals","","","$-1","$-1","$-1"
-"Liabilities","","","","",""
-"account","short account","indent","2008","total","average"
-"liabilities:debts","debts","2","$1","$1","$1"
-"totals","","","$1","$1","$1"
-"Total","0","0","0"
--}
+-- Subreports' CSV is concatenated, with the headings rows replaced by a
+-- subreport title row, and an overall title row, one headings row, and an
+-- optional overall totals row is added.
 compoundBalanceReportAsCsv :: ReportOpts -> CompoundBalanceReport -> CSV
 compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grandtotal, grandavg)) =
   addtotals $
   padRow title :
+  ("Account" :
+   map showDateSpan colspans
+   ++ (if row_total_ ropts then ["Total"] else [])
+   ++ (if average_ ropts then ["Average"] else [])
+   ) :
   concatMap (subreportAsCsv ropts singlesubreport) subreports
   where
     singlesubreport = length subreports == 1
+    -- | Add a subreport title row and drop the heading row.
     subreportAsCsv ropts singlesubreport (subreporttitle, multibalreport) =
       padRow subreporttitle :
-      multiBalanceReportAsCsv ropts' multibalreport
+      tail (multiBalanceReportAsCsv ropts' multibalreport)
       where
         -- unless there's only one section, always show the subtotal row
         ropts' | singlesubreport = ropts
@@ -346,7 +341,7 @@ compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grand
     addtotals
       | no_total_ ropts || length subreports == 1 = id
       | otherwise = (++ 
-          ["Total" :
+          ["Grand total" :
            map showMixedAmountOneLineWithoutPrice (
              coltotals
              ++ (if row_total_ ropts then [grandtotal] else [])
