@@ -10,6 +10,8 @@ module Hledger.Reports.MultiBalanceReports (
   MultiBalanceReportRow,
   multiBalanceReport,
   singleBalanceReport,
+--  mbrNegate,
+--  mbrNormaliseSign,
 
   -- -- * Tests
   tests_Hledger_Reports_MultiBalanceReport

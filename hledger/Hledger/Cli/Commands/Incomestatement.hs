@@ -27,11 +27,26 @@ This command displays a simple income statement, showing revenues
 and expenses during a period. It assumes that these accounts are under a 
 top-level `revenue` or `income` or `expense` account (case insensitive,
 plural forms also allowed).
+
+Note this report shows all account balances with normal positive sign
+(like conventional financial statements, unlike balance/print/register)
+(experimental).
   |],
   cbctitle    = "Income Statement",
-  cbcqueries  = [ ("Revenues", journalIncomeAccountQuery, Just NormallyNegative),
-                  ("Expenses", journalExpenseAccountQuery, Just NormallyPositive)
-                ],
+  cbcqueries  = [
+     CBCSubreportSpec{
+      cbcsubreporttitle="Revenues"
+     ,cbcsubreportquery=journalIncomeAccountQuery
+     ,cbcsubreportnormalsign=NormallyNegative
+     ,cbcsubreportincreasestotal=True
+     }
+    ,CBCSubreportSpec{
+      cbcsubreporttitle="Expenses"
+     ,cbcsubreportquery=journalExpenseAccountQuery
+     ,cbcsubreportnormalsign=NormallyPositive
+     ,cbcsubreportincreasestotal=False
+     }
+    ],
   cbctype     = PeriodChange
 }
 

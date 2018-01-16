@@ -24,12 +24,32 @@ balancesheetequitySpec = CompoundBalanceCommandSpec {
 balances of asset, liability and equity accounts (ignoring any report begin date). 
 It assumes that these accounts are under a top-level `asset`, `liability` and `equity`
 account (plural forms also  allowed).
+
+Note this report shows all account balances with normal positive sign
+(like conventional financial statements, unlike balance/print/register)
+(experimental).
   |],
   cbctitle    = "Balance Sheet With Equity",
-  cbcqueries  = [("Assets",      journalAssetAccountQuery,     Just NormallyPositive),
-                 ("Liabilities", journalLiabilityAccountQuery, Just NormallyNegative),
-                 ("Equity",      journalEquityAccountQuery,    Just NormallyNegative)
-              ],
+  cbcqueries  = [
+     CBCSubreportSpec{
+      cbcsubreporttitle="Assets"
+     ,cbcsubreportquery=journalAssetAccountQuery
+     ,cbcsubreportnormalsign=NormallyPositive
+     ,cbcsubreportincreasestotal=True
+     }
+    ,CBCSubreportSpec{
+      cbcsubreporttitle="Liabilities"
+     ,cbcsubreportquery=journalLiabilityAccountQuery
+     ,cbcsubreportnormalsign=NormallyNegative
+     ,cbcsubreportincreasestotal=False
+     }
+    ,CBCSubreportSpec{
+      cbcsubreporttitle="Equity"
+     ,cbcsubreportquery=journalEquityAccountQuery
+     ,cbcsubreportnormalsign=NormallyNegative
+     ,cbcsubreportincreasestotal=False
+     }
+    ],
   cbctype     = HistoricalBalance
 }
 

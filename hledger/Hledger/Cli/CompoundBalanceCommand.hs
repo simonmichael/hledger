@@ -8,6 +8,7 @@ like balancesheet, cashflow, and incomestatement.
 
 module Hledger.Cli.CompoundBalanceCommand (
   CompoundBalanceCommandSpec(..)
+ ,CBCSubreportSpec(..)
  ,compoundBalanceCommandMode
  ,compoundBalanceCommand
 ) where
@@ -17,7 +18,6 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid (Sum(..), (<>))
 import qualified Data.Text
 import qualified Data.Text.Lazy as TL
-import Data.Tuple.HT (uncurry3)
 import System.Console.CmdArgs.Explicit as C
 import Text.CSV
 import Lucid as L
@@ -34,15 +34,29 @@ import Hledger.Cli.Utils (writeOutput)
 -- each with its own title and subtotals row, in a certain order, 
 -- plus a grand totals row if there's more than one section.
 -- Examples are the balancesheet, cashflow and incomestatement commands.
+--
+-- Compound balance reports do sign normalisation: they show all account balances 
+-- as normally positive, unlike the ordinary BalanceReport and most hledger commands
+-- which show income/liability/equity balances as normally negative.  
+-- Each subreport specifies the normal sign of its amounts, and whether
+-- it should be added to or subtracted from the grand total.
+--
 data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
-  cbcname     :: String,                        -- ^ command name
-  cbcaliases  :: [String],                      -- ^ command aliases
-  cbchelp     :: String,                        -- ^ command line help
-  cbctitle    :: String,                        -- ^ overall report title
-  cbcqueries  :: [(String, Journal -> Query, Maybe NormalSign)],
-    -- ^ title, journal-parameterised query, and normal balance sign for each subreport.
-    -- The normal balance helps --sort-amount know how to sort negative amounts. 
-  cbctype     :: BalanceType                    -- ^ the type of "balance" this report shows (overrides command line flags)
+  cbcname     :: String,              -- ^ command name
+  cbcaliases  :: [String],            -- ^ command aliases
+  cbchelp     :: String,              -- ^ command line help
+  cbctitle    :: String,              -- ^ overall report title
+  cbcqueries  :: [CBCSubreportSpec],  -- ^ subreport details
+  cbctype     :: BalanceType          -- ^ the "balance" type (change, cumulative, historical) 
+                                      --   this report shows (overrides command line flags)
+}
+
+-- | Description of one subreport within a compound balance report.
+data CBCSubreportSpec = CBCSubreportSpec {
+   cbcsubreporttitle :: String
+  ,cbcsubreportquery :: Journal -> Query
+  ,cbcsubreportnormalsign :: NormalSign
+  ,cbcsubreportincreasestotal :: Bool
 }
 
 -- | A compound balance report has:
@@ -51,7 +65,9 @@ data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
 --
 -- * the period (date span) of each column
 --
--- * one or more named multi balance reports, with columns corresponding to the above
+-- * one or more named, normal-positive multi balance reports, 
+--   with columns corresponding to the above, and a flag indicating
+--   whether they increased or decreased the overall totals
 --
 -- * a list of overall totals for each column, and their grand total and average
 --
@@ -60,7 +76,7 @@ data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
 type CompoundBalanceReport = 
   ( String
   , [DateSpan]
-  , [(String, MultiBalanceReport)]
+  , [(String, MultiBalanceReport, Bool)]
   , ([MixedAmount], MixedAmount, MixedAmount)
   )
 
@@ -145,15 +161,16 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{command_=cmd,
 
       -- single-column report
       -- TODO refactor, support output format like multi column 
+      -- TODO support sign normalisation ?
       NoInterval -> do
         let
           -- concatenate the rendering and sum the totals from each subreport
-          (subreportstr, total) = 
-            foldMap (uncurry3 (compoundBalanceCommandSingleColumnReport ropts' userq j)) cbcqueries
+          (output, total) = 
+            foldMap (compoundBalanceCommandSingleColumnReport ropts' userq j) cbcqueries
 
         writeOutput opts $ unlines $
           [title ++ "\n"] ++
-          subreportstr ++
+          output ++
           if (no_total_ ropts' || cmd=="cashflow")
            then []
            else
@@ -170,35 +187,48 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{command_=cmd,
       _ -> do
         let
           -- make a CompoundBalanceReport
-          namedsubreports = 
-            map (\(subreporttitle, subreportq, subreportnormalsign) -> 
-                  (subreporttitle, compoundBalanceSubreport ropts' userq j subreportq subreportnormalsign)) 
+          subreports = 
+            map (\CBCSubreportSpec{..} -> 
+                    (cbcsubreporttitle
+                    ,mbrNormaliseSign cbcsubreportnormalsign $ -- <- convert normal-negative to normal-positive
+                      compoundBalanceSubreport ropts' userq j cbcsubreportquery cbcsubreportnormalsign
+                                                                             -- ^ allow correct amount sorting
+                    ,cbcsubreportincreasestotal
+                    ))
                 cbcqueries
-          subtotalrows = [coltotals | MultiBalanceReport (_,_,(coltotals,_,_)) <- map snd namedsubreports]
+          subtotalrows = 
+            [(coltotals, increasesoveralltotal) 
+            | (_, MultiBalanceReport (_,_,(coltotals,_,_)), increasesoveralltotal) <- subreports
+            ]
+          -- Sum the subreport totals by column. Handle these cases:
+          -- - no subreports
+          -- - empty subreports, having no subtotals (#588)
+          -- - subreports with a shorter subtotals row than the others  
           overalltotals = case subtotalrows of
             [] -> ([], nullmixedamt, nullmixedamt)
             rs ->
-              -- Sum the subtotals in each column.
-              -- A subreport might be empty and have no subtotals, count those as zeros (#588).
-              -- Short subtotals rows are also implicitly padded with zeros, though that is not expected to happen.  
               let
-                numcols = maximum $ map length rs  -- depends on non-null ts
-                zeros = replicate numcols nullmixedamt
-                rs' = [take numcols $ as ++ repeat nullmixedamt | as <- rs]
-                coltotals = foldl' (zipWith (+)) zeros rs'
+                numcols = maximum $ map (length.fst) rs  -- partial maximum is ok, rs is non-null
+                paddedsignedsubtotalrows = 
+                  [map (if increasesoveralltotal then id else negate) $  -- maybe flip the signs
+                   take numcols $ as ++ repeat nullmixedamt              -- pad short rows with zeros 
+                  | (as,increasesoveralltotal) <- rs
+                  ]
+                coltotals = foldl' (zipWith (+)) zeros paddedsignedsubtotalrows  -- sum the columns
+                  where zeros = replicate numcols nullmixedamt
                 grandtotal = sum coltotals
                 grandavg | null coltotals = nullmixedamt
                          | otherwise      = grandtotal `divideMixedAmount` fromIntegral (length coltotals)
               in 
                 (coltotals, grandtotal, grandavg)
           colspans =
-            case namedsubreports of
-              (_, MultiBalanceReport (ds,_,_)):_ -> ds
+            case subreports of
+              (_, MultiBalanceReport (ds,_,_), _):_ -> ds
               [] -> []
           cbr =
             (title
             ,colspans
-            ,namedsubreports
+            ,subreports
             ,overalltotals 
             )
         -- render appropriately
@@ -208,6 +238,19 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{command_=cmd,
             "html" -> (++ "\n") $ TL.unpack $ L.renderText $ compoundBalanceReportAsHtml ropts cbr
             _      -> compoundBalanceReportAsText ropts' cbr
 
+-- | Given a MultiBalanceReport and its normal balance sign,
+-- if it is known to be normally negative, convert it to normally positive.
+mbrNormaliseSign :: NormalSign -> MultiBalanceReport -> MultiBalanceReport
+mbrNormaliseSign NormallyNegative = mbrNegate
+mbrNormaliseSign _ = id
+
+-- | Flip the sign of all amounts in a MultiBalanceReport.
+mbrNegate (MultiBalanceReport (colspans, rows, totalsrow)) =
+  MultiBalanceReport (colspans, map mbrRowNegate rows, mbrTotalsRowNegate totalsrow)
+  where
+    mbrRowNegate (acct,shortacct,indent,amts,tot,avg) = (acct,shortacct,indent,map negate amts,-tot,-avg)
+    mbrTotalsRowNegate (amts,tot,avg) = (map negate amts,-tot,-avg)
+
 -- | Run one subreport for a compound balance command in single-column mode.
 -- Currently this returns the plain text rendering of the subreport, and its total.
 -- The latter is wrapped in a Sum for easy monoidal combining.
@@ -215,30 +258,28 @@ compoundBalanceCommandSingleColumnReport
     :: ReportOpts
     -> Query
     -> Journal
-    -> String
-    -> (Journal -> Query)
-    -> Maybe NormalSign
+    -> CBCSubreportSpec
     -> ([String], Sum MixedAmount)
-compoundBalanceCommandSingleColumnReport ropts userq j subreporttitle subreportqfn subreportnormalsign = 
+compoundBalanceCommandSingleColumnReport ropts userq j CBCSubreportSpec{..} = 
   ([subreportstr], Sum total)
   where
-    q = And [subreportqfn j, userq]
-    ropts' = ropts{normalbalance_=subreportnormalsign}
+    q = And [cbcsubreportquery j, userq]
+    ropts' = ropts{normalbalance_=Just cbcsubreportnormalsign}
     r@(_,total)
       -- XXX For --historical/--cumulative, we must use singleBalanceReport;
       -- otherwise we use balanceReport -- because it supports eliding boring parents. 
       -- See also compoundBalanceCommand, Balance.hs -> balance.
       | balancetype_ ropts `elem` [CumulativeChange, HistoricalBalance] = singleBalanceReport ropts' q j
       | otherwise                                                       = balanceReport       ropts' q j
-    subreportstr = intercalate "\n" [subreporttitle <> ":", balanceReportAsText ropts r]
+    subreportstr = intercalate "\n" [cbcsubreporttitle <> ":", balanceReportAsText ropts r]
 
 -- | Run one subreport for a compound balance command in multi-column mode.
 -- This returns a MultiBalanceReport.
-compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> (Journal -> Query) -> Maybe NormalSign -> MultiBalanceReport
+compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> (Journal -> Query) -> NormalSign -> MultiBalanceReport
 compoundBalanceSubreport ropts userq j subreportqfn subreportnormalsign = r'
   where
     -- force --empty to ensure same columns in all sections
-    ropts' = ropts { empty_=True, normalbalance_=subreportnormalsign }
+    ropts' = ropts { empty_=True, normalbalance_=Just subreportnormalsign }
     -- run the report
     q = And [subreportqfn j, userq]
     r@(MultiBalanceReport (dates, rows, totals)) = multiBalanceReport ropts' q j
@@ -286,7 +327,7 @@ compoundBalanceReportAsText ropts (title, _colspans, subreports, (coltotals, gra
       | otherwise =
           bigtable
           +====+
-          row "Total" (
+          row "Net:" (
             coltotals
             ++ (if row_total_ ropts then [grandtotal] else [])
             ++ (if average_ ropts   then [grandavg]   else [])
@@ -294,7 +335,7 @@ compoundBalanceReportAsText ropts (title, _colspans, subreports, (coltotals, gra
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
-    subreportAsTable ropts singlesubreport (title, r) = t
+    subreportAsTable ropts singlesubreport (title, r, _) = t
       where
         -- unless there's only one section, always show the subtotal row
         ropts' | singlesubreport = ropts
@@ -325,7 +366,7 @@ compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grand
   where
     singlesubreport = length subreports == 1
     -- | Add a subreport title row and drop the heading row.
-    subreportAsCsv ropts singlesubreport (subreporttitle, multibalreport) =
+    subreportAsCsv ropts singlesubreport (subreporttitle, multibalreport, _) =
       padRow subreporttitle :
       tail (multiBalanceReportAsCsv ropts' multibalreport)
       where
@@ -342,11 +383,11 @@ compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grand
             (if average_ ropts then (1+) else id) $
             maximum $ -- depends on non-null subreports
             map (\(MultiBalanceReport (amtcolheadings, _, _)) -> length amtcolheadings) $ 
-            map snd subreports
+            map second3 subreports
     addtotals
       | no_total_ ropts || length subreports == 1 = id
       | otherwise = (++ 
-          ["Grand total" :
+          ["Net:" :
            map showMixedAmountOneLineWithoutPrice (
              coltotals
              ++ (if row_total_ ropts then [grandtotal] else [])
@@ -374,8 +415,8 @@ compoundBalanceReportAsHtml ropts cbr =
 
     -- Make rows for a subreport: its title row, not the headings row,
     -- the data rows, any totals row, and a blank row for whitespace.
-    subreportrows :: (String, MultiBalanceReport) -> [Html ()]
-    subreportrows (subreporttitle, mbr) =
+    subreportrows :: (String, MultiBalanceReport, Bool) -> [Html ()]
+    subreportrows (subreporttitle, mbr, _increasestotal) =
       let
         (_,bodyrows,mtotalsrow) = multiBalanceReportHtmlRows ropts mbr
       in
@@ -387,7 +428,7 @@ compoundBalanceReportAsHtml ropts cbr =
     totalrows | no_total_ ropts || length subreports == 1 = []
               | otherwise =
                   [thRow $
-                    "Grand Total:" :
+                    "Net:" :
                     map showMixedAmountOneLineWithoutPrice (
                        coltotals
                        ++ (if row_total_ ropts then [grandtotal] else [])

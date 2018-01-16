@@ -30,9 +30,20 @@ This command displays a simple cashflow statement, showing changes
 in "cash" accounts. It assumes that these accounts are under a top-level 
 `asset` account (case insensitive, plural forms also allowed) and do not 
 contain `receivable` or `A/R` in their name. 
+
+Note this report shows all account balances with normal positive sign
+(like conventional financial statements, unlike balance/print/register)
+(experimental).
   |],
   cbctitle    = "Cashflow Statement",
-  cbcqueries  = [("Cash flows", journalCashAccountQuery, Just NormallyPositive)],
+  cbcqueries  = [
+     CBCSubreportSpec{
+      cbcsubreporttitle="Cash flows"
+     ,cbcsubreportquery=journalCashAccountQuery
+     ,cbcsubreportnormalsign=NormallyPositive
+     ,cbcsubreportincreasestotal=True
+     }
+    ],
   cbctype     = PeriodChange
 }
 
