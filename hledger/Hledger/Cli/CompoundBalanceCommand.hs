@@ -133,9 +133,10 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{command_=cmd,
           "change":_     -> Just PeriodChange
           _              -> Nothing
       balancetype = fromMaybe cbctype mBalanceTypeOverride
-      -- when user overrides, add an indication to the report title
-      title = cbctitle ++ maybe "" (' ':) mtitleclarification
+      title = cbctitle ++ " " ++ showDateSpan requestedspan ++ maybe "" (' ':) mtitleclarification
         where
+          requestedspan = queryDateSpan (date2_ ropts) userq `spanDefaultsFrom` journalDateSpan (date2_ ropts) j
+          -- when user overrides, add an indication to the report title
           mtitleclarification = flip fmap mBalanceTypeOverride $ \t ->
             case t of
               PeriodChange      -> "(Balance Changes)"
