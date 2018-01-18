@@ -363,7 +363,7 @@ budgetRollUp CliOpts{rawopts_=rawopts} budget j = j { jtxns = remapTxn <$> jtxns
               | otherwise = 
                 case parentAccountName acctName of
                   "" | boolopt "show-unbudgeted" rawopts -> origAcctName
-                     | otherwise              -> T.append (T.pack "<unbudgeted>:") acctName
+                     | otherwise              -> T.append (T.pack "<unbudgeted>:") acctName  -- TODO: --drop should not remove this
                   parent -> remapAccount' parent
         remapPosting p = p { paccount = remapAccount $ paccount p, porigin = Just . fromMaybe p $ porigin p }
         remapTxn = mapPostings (map remapPosting)
@@ -397,7 +397,7 @@ budgetJournal opts j = journalBalanceTransactions' opts j { jtxns = budget }
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
   ["account","balance"] :
-  [[T.unpack a, showMixedAmountOneLineWithoutPrice b] | (a, _, _, b) <- items]
+  [[T.unpack (maybeAccountNameDrop opts a), showMixedAmountOneLineWithoutPrice b] | (a, _, _, b) <- items]
   ++
   if no_total_ opts
   then []
@@ -524,7 +524,7 @@ multiBalanceReportAsCsv opts (MultiBalanceReport (colspans, items, (coltotals,to
    ++ (if row_total_ opts then ["Total"] else [])
    ++ (if average_ opts then ["Average"] else [])
   ) :
-  [T.unpack a :
+  [T.unpack (maybeAccountNameDrop opts a) :
    map showMixedAmountOneLineWithoutPrice
    (amts
     ++ (if row_total_ opts then [rowtot] else [])
