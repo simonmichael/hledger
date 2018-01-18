@@ -40,6 +40,7 @@ module Hledger.Data.Dates (
   parsedate,
   showDate,
   showDateSpan,
+  showDateSpanMonthAbbrev,
   elapsedSeconds,
   prevday,
   parsePeriodExpr,
@@ -109,6 +110,11 @@ showDate = formatTime defaultTimeLocale "%0C%y/%m/%d"
 -- compact form if possible.
 showDateSpan :: DateSpan -> String
 showDateSpan = showPeriod . dateSpanAsPeriod
+
+-- | Like showDateSpan, but show month spans as just the abbreviated month name
+-- in the current locale.
+showDateSpanMonthAbbrev :: DateSpan -> String
+showDateSpanMonthAbbrev = showPeriodMonthAbbrev . dateSpanAsPeriod
 
 -- | Get the current local date.
 getCurrentDay :: IO Day

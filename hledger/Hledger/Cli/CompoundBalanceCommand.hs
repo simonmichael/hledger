@@ -408,7 +408,7 @@ compoundBalanceReportAsHtml ropts cbr =
          [tr_ $ th_ [colspanattr, leftattr] $ toHtml title]
       ++ [thRow $
           "" :
-          map showDateSpan colspans
+          map showDateSpanMonthAbbrev colspans
           ++ (if row_total_ ropts then ["Total"] else [])
           ++ (if average_ ropts then ["Average"] else [])
           ]
