@@ -1484,7 +1484,13 @@ File: hledger.info,  Node: balancesheet,  Next: balancesheetequity,  Prev: balan
 4.5 balancesheet
 ================
 
-Show a balance sheet.  Alias: bs.
+This command displays a simple balance sheet, showing historical ending
+balances of asset and liability accounts (ignoring any report begin
+date).  It assumes that these accounts are under a top-level 'asset' or
+'liability' account (case insensitive, plural forms also allowed).  Note
+this report shows all account balances with normal positive sign (like
+conventional financial statements, unlike balance/print/register)
+(experimental).  (bs)
 
 '--change'
 
@@ -1528,9 +1534,7 @@ Show a balance sheet.  Alias: bs.
 
      sort by amount instead of account name
 
-   This command displays a simple balance sheet.  It currently assumes
-that you have top-level accounts named 'asset' and 'liability' (plural
-forms also allowed.)
+   Example:
 
 $ hledger balancesheet
 Balance Sheet
@@ -1563,15 +1567,10 @@ File: hledger.info,  Node: balancesheetequity,  Next: cashflow,  Prev: balancesh
 4.6 balancesheetequity
 ======================
 
-Show a balance sheet including equity.  Alias: bse.
+Just like balancesheet, but also reports Equity (which it assumes is
+under a top-level 'equity' account).
 
-   Other than showing the equity accounts, this command is exactly the
-same as the command balancesheet.  Please refer to it for the available
-options.
-
-   This command displays a balancesheet.  It currently assumes that you
-have top-level accounts named 'asset', 'liability' and 'equity' (plural
-forms also allowed.)
+   Example:
 
 $ hledger balancesheetequity
 Balance Sheet With Equity
@@ -1603,7 +1602,12 @@ File: hledger.info,  Node: cashflow,  Next: check-dates,  Prev: balancesheetequi
 4.7 cashflow
 ============
 
-Show a cashflow statement.  Alias: cf.
+This command displays a simple cashflow statement, showing changes in
+"cash" accounts.  It assumes that these accounts are under a top-level
+'asset' account (case insensitive, plural forms also allowed) and do not
+contain 'receivable' or 'A/R' in their name.  Note this report shows all
+account balances with normal positive sign (like conventional financial
+statements, unlike balance/print/register) (experimental).  (cf)
 
 '--change'
 
@@ -1646,10 +1650,7 @@ Show a cashflow statement.  Alias: cf.
 
      sort by amount instead of account name
 
-   This command displays a simple cashflow statement It shows the change
-in all "cash" (ie, liquid assets) accounts for the period.  It currently
-assumes that cash accounts are under a top-level account named 'asset'
-and do not contain 'receivable', ':A/R' or ':fixed'.
+   Example:
 
 $ hledger cashflow
 Cashflow Statement
@@ -1769,7 +1770,12 @@ File: hledger.info,  Node: incomestatement,  Next: prices,  Prev: import,  Up: C
 4.13 incomestatement
 ====================
 
-Show an income statement.  Alias: is.
+This command displays a simple income statement, showing revenues and
+expenses during a period.  It assumes that these accounts are under a
+top-level 'revenue' or 'income' or 'expense' account (case insensitive,
+plural forms also allowed).  Note this report shows all account balances
+with normal positive sign (like conventional financial statements,
+unlike balance/print/register) (experimental).  (is)
 
 '--change'
 
@@ -2436,71 +2442,71 @@ Node: CSV output50340
 Ref: #csv-output50457
 Node: balancesheet50854
 Ref: #balancesheet50990
-Node: balancesheetequity52958
-Ref: #balancesheetequity53107
-Node: cashflow53896
-Ref: #cashflow54024
-Node: check-dates55936
-Ref: #check-dates56063
-Node: check-dupes56180
-Ref: #check-dupes56304
-Node: close56441
-Ref: #close56548
-Node: help56878
-Ref: #help56978
-Node: import58052
-Ref: #import58166
-Node: incomestatement58896
-Ref: #incomestatement59030
-Node: prices60983
-Ref: #prices61098
-Node: print61141
-Ref: #print61251
-Node: print-unique66136
-Ref: #print-unique66262
-Node: register66330
-Ref: #register66457
-Node: Custom register output70958
-Ref: #custom-register-output71087
-Node: register-match72384
-Ref: #register-match72518
-Node: rewrite72701
-Ref: #rewrite72818
-Node: stats72887
-Ref: #stats72990
-Node: tags73872
-Ref: #tags73970
-Node: test74206
-Ref: #test74290
-Node: ADD-ON COMMANDS74658
-Ref: #add-on-commands74768
-Node: Official add-ons76055
-Ref: #official-add-ons76195
-Node: api76282
-Ref: #api76371
-Node: ui76423
-Ref: #ui76522
-Node: web76580
-Ref: #web76669
-Node: Third party add-ons76715
-Ref: #third-party-add-ons76890
-Node: diff77025
-Ref: #diff77122
-Node: iadd77221
-Ref: #iadd77335
-Node: interest77418
-Ref: #interest77539
-Node: irr77634
-Ref: #irr77732
-Node: Experimental add-ons77810
-Ref: #experimental-add-ons77962
-Node: autosync78253
-Ref: #autosync78365
-Node: budget78604
-Ref: #budget78726
-Node: chart78792
-Ref: #chart78909
-Node: check78980
-Ref: #check79082
+Node: balancesheetequity53217
+Ref: #balancesheetequity53366
+Node: cashflow53903
+Ref: #cashflow54031
+Node: check-dates56070
+Ref: #check-dates56197
+Node: check-dupes56314
+Ref: #check-dupes56438
+Node: close56575
+Ref: #close56682
+Node: help57012
+Ref: #help57112
+Node: import58186
+Ref: #import58300
+Node: incomestatement59030
+Ref: #incomestatement59164
+Node: prices61484
+Ref: #prices61599
+Node: print61642
+Ref: #print61752
+Node: print-unique66637
+Ref: #print-unique66763
+Node: register66831
+Ref: #register66958
+Node: Custom register output71459
+Ref: #custom-register-output71588
+Node: register-match72885
+Ref: #register-match73019
+Node: rewrite73202
+Ref: #rewrite73319
+Node: stats73388
+Ref: #stats73491
+Node: tags74373
+Ref: #tags74471
+Node: test74707
+Ref: #test74791
+Node: ADD-ON COMMANDS75159
+Ref: #add-on-commands75269
+Node: Official add-ons76556
+Ref: #official-add-ons76696
+Node: api76783
+Ref: #api76872
+Node: ui76924
+Ref: #ui77023
+Node: web77081
+Ref: #web77170
+Node: Third party add-ons77216
+Ref: #third-party-add-ons77391
+Node: diff77526
+Ref: #diff77623
+Node: iadd77722
+Ref: #iadd77836
+Node: interest77919
+Ref: #interest78040
+Node: irr78135
+Ref: #irr78233
+Node: Experimental add-ons78311
+Ref: #experimental-add-ons78463
+Node: autosync78754
+Ref: #autosync78866
+Node: budget79105
+Ref: #budget79227
+Node: chart79293
+Ref: #chart79410
+Node: check79481
+Ref: #check79583
 
 End Tag Table

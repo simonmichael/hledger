@@ -1342,7 +1342,13 @@ COMMANDS
               $ hledger balance -o FILE.csv  # write CSV to FILE.csv
 
    balancesheet
-       Show a balance sheet.  Alias: bs.
+       This command displays a simple balance sheet, showing historical ending
+       balances  of  asset  and  liability accounts (ignoring any report begin
+       date).  It assumes that these accounts are under a top-level  asset  or
+       liability  account (case insensitive, plural forms also allowed).  Note
+       this report shows all account balances with normal positive sign  (like
+       conventional   financial   statements,  unlike  balance/print/register)
+       (experimental).  (bs)
 
        --change
               show balance change in each period, instead of historical ending
@@ -1383,9 +1389,7 @@ COMMANDS
        --sort-amount
               sort by amount instead of account name
 
-       This  command  displays  a  simple balance sheet.  It currently assumes
-       that you have top-level accounts  named  asset  and  liability  (plural
-       forms also allowed.)
+       Example:
 
               $ hledger balancesheet
               Balance Sheet
@@ -1413,15 +1417,10 @@ COMMANDS
        a balance sheet; note this means it ignores report begin dates.
 
    balancesheetequity
-       Show a balance sheet including equity.  Alias: bse.
+       Just  like  balancesheet,  but also reports Equity (which it assumes is
+       under a top-level equity account).
 
-       Other  than  showing  the  equity accounts, this command is exactly the
-       same as the command balancesheet.  Please refer to it for the available
-       options.
-
-       This  command  displays  a balancesheet.  It currently assumes that you
-       have top-level accounts named asset, liability and equity (plural forms
-       also allowed.)
+       Example:
 
               $ hledger balancesheetequity
               Balance Sheet With Equity
@@ -1448,7 +1447,12 @@ COMMANDS
                                  0
 
    cashflow
-       Show a cashflow statement.  Alias: cf.
+       This command displays a simple cashflow statement, showing  changes  in
+       "cash"  accounts.  It assumes that these accounts are under a top-level
+       asset account (case insensitive, plural forms also allowed) and do  not
+       contain  receivable  or  A/R in their name.  Note this report shows all
+       account balances with normal positive sign (like conventional financial
+       statements, unlike balance/print/register) (experimental).  (cf)
 
        --change
               show balance change in each period (default)
@@ -1488,10 +1492,7 @@ COMMANDS
        --sort-amount
               sort by amount instead of account name
 
-       This command displays a simple cashflow statement It shows  the  change
-       in  all  "cash"  (ie,  liquid assets) accounts for the period.  It cur-
-       rently assumes that cash accounts are under a top-level  account  named
-       asset and do not contain receivable, :A/R or :fixed.
+       Example:
 
               $ hledger cashflow
               Cashflow Statement
@@ -1508,35 +1509,35 @@ COMMANDS
                                $-1
 
        With a reporting interval, multiple columns will be shown, one for each
-       report period.  Normally cashflow shows changes in assets  per  period,
-       though  as  with  multicolumn  balance reports you can alter the report
+       report  period.   Normally cashflow shows changes in assets per period,
+       though as with multicolumn balance reports you  can  alter  the  report
        mode with --change/--cumulative/--historical.
 
    check-dates
-       Check that transactions are sorted by increasing date.  With  a  query,
+       Check  that  transactions are sorted by increasing date.  With a query,
        only matched transactions' dates are checked.
 
    check-dupes
-       Report  account  names having the same leaf but different prefixes.  An
+       Report account names having the same leaf but different  prefixes.   An
        example: http://stefanorodighiero.net/software/hledger-dupes.html
 
    close
-       Print closing/opening transactions that bring some or all account  bal-
-       ances  to  zero  and  back.  Can be useful for bringing asset/liability
+       Print  closing/opening transactions that bring some or all account bal-
+       ances to zero and back.  Can be  useful  for  bringing  asset/liability
        balances across file boundaries, or for closing out income/expenses for
-       a  period.   This  was formerly called "equity", as in Ledger, and that
+       a period.  This was formerly called "equity", as in  Ledger,  and  that
        alias is also accepted.  See close -help for more.
 
    help
        Show any of the hledger manuals.
 
-       The help command displays any of the main hledger manuals,  in  one  of
-       several  ways.  Run it with no argument to list the manuals, or provide
+       The  help  command  displays any of the main hledger manuals, in one of
+       several ways.  Run it with no argument to list the manuals, or  provide
        a full or partial manual name to select one.
 
-       hledger manuals are available in several formats.   hledger  help  will
-       use  the  first  of  these  display  methods  that it finds: info, man,
-       $PAGER, less, stdout (or when non-interactive, just stdout).   You  can
+       hledger  manuals  are  available in several formats.  hledger help will
+       use the first of these  display  methods  that  it  finds:  info,  man,
+       $PAGER,  less,  stdout (or when non-interactive, just stdout).  You can
        force a particular viewer with the --info, --man, --pager, --cat flags.
 
               $ hledger help
@@ -1560,7 +1561,7 @@ COMMANDS
               ...
 
    import
-       Read new transactions added to each FILE since last run, and  add  them
+       Read  new  transactions added to each FILE since last run, and add them
        to the main journal file.
 
        --dry-run
@@ -1570,17 +1571,22 @@ COMMANDS
        each one.  So eg to add new transactions from all CSV files to the main
        journal, it's just: hledger import *.csv
 
-       New  transactions are detected in the same way as print -new: by assum-
+       New transactions are detected in the same way as print -new: by  assum-
        ing transactions are always added to the input files in increasing date
        order, and by saving .latest.FILE state files.
 
-       The  -dry-run  output is in journal format, so you can filter it, eg to
+       The -dry-run output is in journal format, so you can filter it,  eg  to
        see only uncategorised transactions:
 
               $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
 
    incomestatement
-       Show an income statement.  Alias: is.
+       This  command  displays a simple income statement, showing revenues and
+       expenses during a period.  It assumes that these accounts are  under  a
+       top-level  revenue or income or expense account (case insensitive, plu-
+       ral forms also allowed).  Note this report shows all  account  balances
+       with  normal  positive  sign  (like  conventional financial statements,
+       unlike balance/print/register) (experimental).  (is)
 
        --change
               show balance change in each period (default)

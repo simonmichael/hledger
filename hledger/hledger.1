@@ -1888,8 +1888,16 @@ $\ hledger\ balance\ \-o\ FILE.csv\ \ #\ write\ CSV\ to\ FILE.csv
 .fi
 .SS balancesheet
 .PP
-Show a balance sheet.
-Alias: bs.
+This command displays a simple balance sheet, showing historical ending
+balances of asset and liability accounts (ignoring any report begin
+date).
+It assumes that these accounts are under a top\-level \f[C]asset\f[] or
+\f[C]liability\f[] account (case insensitive, plural forms also
+allowed).
+Note this report shows all account balances with normal positive sign
+(like conventional financial statements, unlike balance/print/register)
+(experimental).
+(bs)
 .TP
 .B \f[C]\-\-change\f[]
 show balance change in each period, instead of historical ending
@@ -1956,9 +1964,7 @@ sort by amount instead of account name
 .RS
 .RE
 .PP
-This command displays a simple balance sheet.
-It currently assumes that you have top\-level accounts named
-\f[C]asset\f[] and \f[C]liability\f[] (plural forms also allowed.)
+Example:
 .IP
 .nf
 \f[C]
@@ -1992,17 +1998,10 @@ you need for a balance sheet; note this means it ignores report begin
 dates.
 .SS balancesheetequity
 .PP
-Show a balance sheet including equity.
-Alias: bse.
+Just like balancesheet, but also reports Equity (which it assumes is
+under a top\-level \f[C]equity\f[] account).
 .PP
-Other than showing the equity accounts, this command is exactly the same
-as the command balancesheet.
-Please refer to it for the available options.
-.PP
-This command displays a balancesheet.
-It currently assumes that you have top\-level accounts named
-\f[C]asset\f[], \f[C]liability\f[] and \f[C]equity\f[] (plural forms
-also allowed.)
+Example:
 .IP
 .nf
 \f[C]
@@ -2033,8 +2032,15 @@ Total:
 .fi
 .SS cashflow
 .PP
-Show a cashflow statement.
-Alias: cf.
+This command displays a simple cashflow statement, showing changes in
+\[lq]cash\[rq] accounts.
+It assumes that these accounts are under a top\-level \f[C]asset\f[]
+account (case insensitive, plural forms also allowed) and do not contain
+\f[C]receivable\f[] or \f[C]A/R\f[] in their name.
+Note this report shows all account balances with normal positive sign
+(like conventional financial statements, unlike balance/print/register)
+(experimental).
+(cf)
 .TP
 .B \f[C]\-\-change\f[]
 show balance change in each period (default)
@@ -2100,11 +2106,7 @@ sort by amount instead of account name
 .RS
 .RE
 .PP
-This command displays a simple cashflow statement It shows the change in
-all \[lq]cash\[rq] (ie, liquid assets) accounts for the period.
-It currently assumes that cash accounts are under a top\-level account
-named \f[C]asset\f[] and do not contain \f[C]receivable\f[],
-\f[C]:A/R\f[] or \f[C]:fixed\f[].
+Example:
 .IP
 .nf
 \f[C]
@@ -2217,8 +2219,15 @@ $\ hledger\ import\ \-\-dry\ ...\ |\ hledger\ \-f\-\ print\ unknown\ \-\-ignore\
 .fi
 .SS incomestatement
 .PP
-Show an income statement.
-Alias: is.
+This command displays a simple income statement, showing revenues and
+expenses during a period.
+It assumes that these accounts are under a top\-level \f[C]revenue\f[]
+or \f[C]income\f[] or \f[C]expense\f[] account (case insensitive, plural
+forms also allowed).
+Note this report shows all account balances with normal positive sign
+(like conventional financial statements, unlike balance/print/register)
+(experimental).
+(is)
 .TP
 .B \f[C]\-\-change\f[]
 show balance change in each period (default)

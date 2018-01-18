@@ -1136,12 +1136,17 @@ majority), using one of these modes is quite recommended.
    These were written with Ledger in mind, but also work with hledger
 files:
 
-Emacs             http://www.ledger-cli.org/3.0/doc/ledger-mode.html
-Vim               https://github.com/ledger/ledger/wiki/Getting-started
-Sublime Text      https://github.com/ledger/ledger/wiki/Using-Sublime-Text
-Textmate          https://github.com/ledger/ledger/wiki/Using-TextMate-2
-Text Wrangler     https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler
-Visual Studio     https://marketplace.visualstudio.com/items?itemName=mark-hansen.hledger-vscode
+Editor
+--------------------------------------------------------------------------
+Emacs        http://www.ledger-cli.org/3.0/doc/ledger-mode.html
+Vim          https://github.com/ledger/ledger/wiki/Getting-started
+Sublime      https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-Sublime-Text-or-RubyMine
+Text
+Textmate     https://github.com/ledger/ledger/wiki/Using-TextMate-2
+Text         https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler
+Wrangler  
+Visual       https://marketplace.visualstudio.com/items?itemName=mark-hansen.hledger-vscode
+Studio
 Code
 
 
