@@ -171,7 +171,13 @@ Date [2015/05/22]: <CTRL-D> $
 _include_({{hledger_balance.m4.md}})
 
 ## balancesheet
-Show a balance sheet. Alias: bs.
+  This command displays a simple balance sheet, showing historical ending
+  balances of asset and liability accounts (ignoring any report begin date).
+  It assumes that these accounts are under a top-level `asset` or `liability`
+  account (case insensitive, plural forms also  allowed).
+  Note this report shows all account balances with normal positive sign
+  (like conventional financial statements, unlike balance/print/register)
+  (experimental). (bs)
 
 `--change`
 : show balance change in each period, instead of historical ending balances
@@ -209,11 +215,7 @@ Show a balance sheet. Alias: bs.
 `--sort-amount`
 : sort by amount instead of account name
 
-This command displays a simple [balance
-sheet](http://en.wikipedia.org/wiki/Balance_sheet). It currently assumes that
-you have top-level accounts named `asset` and `liability` (plural forms also
-allowed.)
-
+Example:
 ```shell
 $ hledger balancesheet
 Balance Sheet
@@ -244,16 +246,10 @@ you need for a balance sheet; note this means it ignores report begin
 dates.
 
 ## balancesheetequity
-Show a balance sheet including equity. Alias: bse.
+Just like [balancesheet](#balancesheet), but also reports Equity
+(which it assumes is under a top-level `equity` account).
 
-Other than showing the equity accounts, this command is exactly the same
-as the command balancesheet. Please refer to it for the available options.
-
-This command displays a
-[balancesheet](http://en.wikipedia.org/wiki/Balance_sheet). It currently assumes that
-you have top-level accounts named `asset`, `liability` and `equity` (plural forms also
-allowed.)
-
+Example:
 ```shell
 $ hledger balancesheetequity
 Balance Sheet With Equity
@@ -281,7 +277,13 @@ Total:
 ```
 
 ## cashflow
-Show a cashflow statement. Alias: cf.
+  This command displays a simple cashflow statement, showing changes
+  in "cash" accounts. It assumes that these accounts are under a top-level
+  `asset` account (case insensitive, plural forms also allowed) and do not
+  contain `receivable` or `A/R` in their name.
+  Note this report shows all account balances with normal positive sign
+  (like conventional financial statements, unlike balance/print/register)
+  (experimental). (cf)
 
 `--change`
 : show balance change in each period (default)
@@ -319,12 +321,7 @@ Show a cashflow statement. Alias: cf.
 `--sort-amount`
 : sort by amount instead of account name
 
-This command displays a simple
-[cashflow statement](http://en.wikipedia.org/wiki/Cash_flow_statement)
-It shows the change in all "cash" (ie, liquid assets) accounts for the
-period. It currently assumes that cash accounts are under a top-level
-account named `asset` and do not contain `receivable`, `:A/R` or `:fixed`.
-
+Example:
 ```shell
 $ hledger cashflow
 Cashflow Statement
@@ -419,7 +416,13 @@ $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
 ```
 
 ## incomestatement
-Show an income statement. Alias: is.
+  This command displays a simple income statement, showing revenues
+  and expenses during a period. It assumes that these accounts are under a
+  top-level `revenue` or `income` or `expense` account (case insensitive,
+  plural forms also allowed).
+  Note this report shows all account balances with normal positive sign
+  (like conventional financial statements, unlike balance/print/register)
+  (experimental). (is)
 
 `--change`
 : show balance change in each period (default)
