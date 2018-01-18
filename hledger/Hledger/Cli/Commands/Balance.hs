@@ -336,8 +336,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
               report = multiBalanceReport ropts (queryFromOpts d ropts) j'
               budgetReport = multiBalanceReport ropts (queryFromOpts d ropts) budget
               render = case format of
-                -- XXX: implement csv rendering
-                "csv" -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
+                "csv"  -> const $ error' "Sorry, CSV output is not yet implemented for this kind of report."  -- TODO
                 "html" -> const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
                 _     -> multiBalanceReportWithBudgetAsText ropts budgetReport
           writeOutput opts $ render report
