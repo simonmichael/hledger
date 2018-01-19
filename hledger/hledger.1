@@ -1200,8 +1200,18 @@ See also \f[C]hledger\f[] for a more organised command list, and
 Show account names.
 Alias: a.
 .TP
+.B \f[C]\-\-declared\f[]
+show account names declared with account directives
+.RS
+.RE
+.TP
+.B \f[C]\-\-posted\f[]
+show account names posted to by transactions
+.RS
+.RE
+.TP
 .B \f[C]\-\-tree\f[]
-show short account names, as a tree
+show short account names and their parents, as a tree
 .RS
 .RE
 .TP
@@ -1215,16 +1225,17 @@ in flat mode: omit N leading account name parts
 .RS
 .RE
 .PP
-This command lists all account names that are in use (ie, all the
-accounts which have at least one transaction posting to them).
-With query arguments, only matched account names are shown.
-.PP
+This command lists account names, either declared with account
+directives (\[en]declared), posted to (\[en]posted), or both (default).
+With query arguments, only matched account names and account names
+referenced by matched postings are shown.
 It shows a flat list by default.
 With \f[C]\-\-tree\f[], it uses indentation to show the account
 hierarchy.
-.PP
 In flat mode you can add \f[C]\-\-drop\ N\f[] to omit the first few
 account name components.
+Account names can be depth\-clipped with \f[C]\-\-depth\ N\f[] or
+depth:N.
 .PP
 Examples:
 .IP

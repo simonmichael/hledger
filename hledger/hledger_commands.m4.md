@@ -26,8 +26,14 @@ for each command: name, synopsis, description, examples.
 ## accounts
 Show account names. Alias: a.
 
+`--declared`
+: show account names declared with account directives
+
+`--posted`
+: show account names posted to by transactions
+
 `--tree`
-: show short account names, as a tree
+: show short account names and their parents, as a tree
 
 `--flat`
 : show full account names, as a list (default)
@@ -35,15 +41,14 @@ Show account names. Alias: a.
 `--drop=N`
 : in flat mode: omit N leading account name parts
 
-This command lists all account names that are in use (ie, all the
-accounts which have at least one transaction posting to them).  With
-query arguments, only matched account names are shown.
-
+This command lists account names, either declared with account directives
+(--declared), posted to (--posted), or both (default).
+With query arguments, only matched account names and account names 
+referenced by matched postings are shown.
 It shows a flat list by default. With `--tree`, it uses indentation to
 show the account hierarchy.
-
-In flat mode you can add `--drop N` to omit the first few account name
-components.
+In flat mode you can add `--drop N` to omit the first few account name components.
+Account names can be depth-clipped with `--depth N` or depth:N.
 
 Examples:
 

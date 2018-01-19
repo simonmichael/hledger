@@ -35,11 +35,20 @@ import Hledger.Cli.CliOptions
 accountsmode = (defCommandMode $ ["accounts"] ++ aliases) {
   modeHelp = "show account names" `withAliases` aliases
  ,modeHelpSuffix = [
-    "This command lists the accounts referenced by matched postings (and in tree mode, their parents as well). The accounts can be depth-clipped (--depth N) or have their leading parts trimmed (--drop N)."
+     "This command lists account names, either declared with account directives"
+    ,"(--declared), posted to (--posted), or both (default)."
+    ,"With query arguments, only matched account names and account names" 
+    ,"referenced by matched postings are shown."
+    ,"It shows a flat list by default. With `--tree`, it uses indentation to"
+    ,"show the account hierarchy."
+    ,"In flat mode you can add `--drop N` to omit the first few account name components."
+    ,"Account names can be depth-clipped with `--depth N` or depth:N."
    ]
  ,modeGroupFlags = C.Group {
      groupUnnamed = [
-      flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
+      flagNone ["declared"] (\opts -> setboolopt "declared" opts) "show account names declared with account directives"
+     ,flagNone ["posted"] (\opts -> setboolopt "posted" opts) "show account names posted to by transactions"
+     ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
      ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default)"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
      ]
@@ -51,13 +60,19 @@ accountsmode = (defCommandMode $ ["accounts"] ++ aliases) {
 
 -- | The accounts command.
 accounts :: CliOpts -> Journal -> IO ()
-accounts CliOpts{reportopts_=ropts} j = do
+accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   d <- getCurrentDay
   let q = queryFromOpts d ropts
       nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) q
       depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth q
-      ps = dbg1 "ps" $ journalPostings $ filterJournalPostings nodepthq j
-      as = dbg1 "as" $ nub $ filter (not . T.null) $ map (clipAccountName depth) $ sort $ map paccount ps
+      matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ nub $ sort $ filter (matchesAccount q) $ jaccounts j
+      matchedps = dbg1 "ps" $ journalPostings $ filterJournalPostings nodepthq j
+      matchedpostedaccts = dbg1 "matchedpostedaccts" $ nub $ sort $ filter (not . T.null) $ map (clipAccountName depth) $ map paccount matchedps
+      posted   = boolopt "posted"   rawopts
+      declared = boolopt "declared" rawopts
+      as | declared     && not posted = matcheddeclaredaccts
+         | not declared && posted     = matchedpostedaccts
+         | otherwise                  = nub $ sort $ matcheddeclaredaccts ++ matchedpostedaccts
       as' | tree_ ropts = expandAccountNames as
           | otherwise   = as
       render a | tree_ ropts = T.replicate (2 * (accountNameLevel a - 1)) " " <> accountLeafName a
