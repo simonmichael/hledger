@@ -560,21 +560,73 @@ multiBalanceReportHtmlRows ropts mbr =
     (bodyrows, mtotalsrow) | no_total_ ropts = (rest,      Nothing)
                            | otherwise       = (init rest, Just $ last rest)
   in
-    (thRow headingsrow
-    ,map multiBalanceReportHtmlBodyRow bodyrows
-    ,thRow <$> mtotalsrow
+    (multiBalanceReportHtmlHeadRow ropts headingsrow
+    ,map (multiBalanceReportHtmlBodyRow ropts) bodyrows
+    ,multiBalanceReportHtmlFootRow ropts <$> mtotalsrow -- TODO pad totals row with zeros when there are 
     )
 
--- | Render one MultiBalanceReport data row as a HTML table row.
-multiBalanceReportHtmlBodyRow :: [String] -> Html ()
-multiBalanceReportHtmlBodyRow [] = mempty  -- shouldn't happen
-multiBalanceReportHtmlBodyRow (acct:amts) =
-  tr_ $ mconcat $
-    td_ (toHtml acct) :
-    [td_ [style_ "text-align:right"] (toHtml amt) | amt <- amts]
+-- | Render one MultiBalanceReport heading row as a HTML table row.
+multiBalanceReportHtmlHeadRow :: ReportOpts -> [String] -> Html ()
+multiBalanceReportHtmlHeadRow _ [] = mempty  -- shouldn't happen
+multiBalanceReportHtmlHeadRow ropts (acct:rest) =
+  let
+    defstyle = style_ ""
+    (amts,tot,avg)
+      | row_total_ ropts && average_ ropts = (init $ init rest, [last $ init rest], [last rest])
+      | row_total_ ropts                   = (init rest,        [last rest],        [])
+      |                     average_ ropts = (init rest,        [],                 [last rest])
+      | otherwise                          = (rest,             [],                 [])
+  in
+    tr_ $ mconcat $
+          td_ [class_ "account"]              (toHtml acct)
+       : [td_ [class_ "", defstyle]           (toHtml a) | a <- amts]
+      ++ [td_ [class_ "rowtotal", defstyle]   (toHtml a) | a <- tot]
+      ++ [td_ [class_ "rowaverage", defstyle] (toHtml a) | a <- avg]
 
-thRow :: [String] -> Html ()
-thRow = tr_ . mconcat . map (th_ . toHtml)
+-- | Render one MultiBalanceReport data row as a HTML table row.
+multiBalanceReportHtmlBodyRow :: ReportOpts -> [String] -> Html ()
+multiBalanceReportHtmlBodyRow _ [] = mempty  -- shouldn't happen
+multiBalanceReportHtmlBodyRow ropts (label:rest) =
+  let
+    defstyle = style_ "text-align:right"
+    (amts,tot,avg)
+      | row_total_ ropts && average_ ropts = (init $ init rest, [last $ init rest], [last rest])
+      | row_total_ ropts                   = (init rest,        [last rest],        [])
+      |                     average_ ropts = (init rest,        [],                 [last rest])
+      | otherwise                          = (rest,             [],                 [])
+  in
+    tr_ $ mconcat $
+          td_ [class_ "account", style_ "text-align:left"]  (toHtml label)
+       : [td_ [class_ "amount", defstyle]            (toHtml a) | a <- amts]
+      ++ [td_ [class_ "amount rowtotal", defstyle]   (toHtml a) | a <- tot]
+      ++ [td_ [class_ "amount rowaverage", defstyle] (toHtml a) | a <- avg]
+
+-- | Render one MultiBalanceReport totals row as a HTML table row.
+multiBalanceReportHtmlFootRow :: ReportOpts -> [String] -> Html ()
+multiBalanceReportHtmlFootRow _ropts [] = mempty
+-- TODO pad totals row with zeros when subreport is empty
+--  multiBalanceReportHtmlFootRow ropts $ 
+--     "" 
+--   : repeat nullmixedamt zeros
+--  ++ (if row_total_ ropts then [nullmixedamt] else [])
+--  ++ (if average_ ropts   then [nullmixedamt]   else [])
+multiBalanceReportHtmlFootRow ropts (acct:rest) =
+  let
+    defstyle = style_ "text-align:right"
+    (amts,tot,avg)
+      | row_total_ ropts && average_ ropts = (init $ init rest, [last $ init rest], [last rest])
+      | row_total_ ropts                   = (init rest,        [last rest],        [])
+      |                     average_ ropts = (init rest,        [],                 [last rest])
+      | otherwise                          = (rest,             [],                 [])
+  in
+    tr_ $ mconcat $
+          th_ [style_ "text-align:left"]             (toHtml acct)
+       : [th_ [class_ "amount coltotal", defstyle]   (toHtml a) | a <- amts]
+      ++ [th_ [class_ "amount coltotal", defstyle]   (toHtml a) | a <- tot]
+      ++ [th_ [class_ "amount colaverage", defstyle] (toHtml a) | a <- avg]
+
+--thRow :: [String] -> Html ()
+--thRow = tr_ . mconcat . map (th_ . toHtml)
 
 -- | Render a multi-column balance report as plain text suitable for console output.
 multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String

@@ -16,7 +16,7 @@ module Hledger.Cli.CompoundBalanceCommand (
 import Data.List (intercalate, foldl')
 import Data.Maybe (fromMaybe)
 import Data.Monoid (Sum(..), (<>))
-import qualified Data.Text
+import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
 import System.Console.CmdArgs.Explicit as C
 import Text.CSV
@@ -401,12 +401,13 @@ compoundBalanceReportAsHtml :: ReportOpts -> CompoundBalanceReport -> Html ()
 compoundBalanceReportAsHtml ropts cbr =
   let
     (title, colspans, subreports, (coltotals, grandtotal, grandavg)) = cbr
-    colspanattr = colspan_ $ Data.Text.pack $ show $ length colspans + 1
+    colspanattr = colspan_ $ TS.pack $ show $ 
+      1 + length colspans + (if row_total_ ropts then 1 else 0) + (if average_ ropts then 1 else 0)
     leftattr = style_ "text-align:left"
     blankrow = tr_ $ td_ [colspanattr] $ toHtmlRaw ("&nbsp;"::String)
 
     titlerows =
-         [tr_ $ th_ [colspanattr, leftattr] $ toHtml title]
+         [tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title]
       ++ [thRow $
           "" :
           map showDateSpanMonthAbbrev colspans
@@ -414,6 +415,9 @@ compoundBalanceReportAsHtml ropts cbr =
           ++ (if average_ ropts then ["Average"] else [])
           ]
 
+    thRow :: [String] -> Html ()
+    thRow = tr_ . mconcat . map (th_ . toHtml)
+    
     -- Make rows for a subreport: its title row, not the headings row,
     -- the data rows, any totals row, and a blank row for whitespace.
     subreportrows :: (String, MultiBalanceReport, Bool) -> [Html ()]
@@ -428,21 +432,25 @@ compoundBalanceReportAsHtml ropts cbr =
 
     totalrows | no_total_ ropts || length subreports == 1 = []
               | otherwise =
-                  [thRow $
-                    "Net:" :
-                    map showMixedAmountOneLineWithoutPrice (
-                       coltotals
-                       ++ (if row_total_ ropts then [grandtotal] else [])
-                       ++ (if average_ ropts   then [grandavg]   else [])
-                       )
-                  ]
-  in
+                  let defstyle = style_ "text-align:right"
+                  in
+                    [tr_ $ mconcat $
+                         th_ [class_ "", style_ "text-align:left"] "Net:"
+                       : [th_ [class_ "amount coltotal", defstyle] (toHtml $ showMixedAmountOneLineWithoutPrice a) | a <- coltotals]
+                      ++ (if row_total_ ropts then [th_ [class_ "amount coltotal", defstyle] $ toHtml $ showMixedAmountOneLineWithoutPrice $ grandtotal] else [])
+                      ++ (if average_ ropts   then [th_ [class_ "amount colaverage", defstyle] $ toHtml $ showMixedAmountOneLineWithoutPrice $ grandavg] else [])
+                    ]
+
+  in do
+    style_ (TS.unlines [""
+      ,"td { padding:0 0.5em; }"
+      ,"td:nth-child(1) { white-space:nowrap; }"
+      ,"tr:nth-child(even) td { background-color:#eee; }"
+      ])
+    link_ [rel_ "stylesheet", href_ "hledger.css"]
     table_ $ mconcat $
          titlerows
       ++ [blankrow]
       ++ concatMap subreportrows subreports
       ++ totalrows
-
-thRow :: [String] -> Html ()
-thRow = tr_ . mconcat . map (th_ . toHtml)
 
