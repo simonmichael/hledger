@@ -65,7 +65,7 @@ accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
   let q = queryFromOpts d ropts
       nodepthq = dbg1 "nodepthq" $ filterQuery (not . queryIsDepth) q
       depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth q
-      matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ nub $ sort $ filter (matchesAccount q) $ jaccounts j
+      matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ nub $ sort $ filter (matchesAccount q) $ map fst $ jaccounts j
       matchedps = dbg1 "ps" $ journalPostings $ filterJournalPostings nodepthq j
       matchedusedaccts = dbg1 "matchedusedaccts" $ nub $ sort $ filter (not . T.null) $ map (clipAccountName depth) $ map paccount matchedps
       used     = boolopt "used"   rawopts

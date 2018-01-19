@@ -104,6 +104,7 @@ instance Default Interval where def = NoInterval
 instance NFData Interval
 
 type AccountName = Text
+type AccountCode = Int
 
 data AccountAlias = BasicAlias AccountName AccountName
                   | RegexAlias Regexp Replacement
@@ -299,7 +300,7 @@ data Journal = Journal {
   -- ,jparsetransactioncount :: Integer                               -- ^ the current count of transactions parsed so far (only journal format txns, currently)
   ,jparsetimeclockentries :: [TimeclockEntry]                   -- ^ timeclock sessions which have not been clocked out
   -- principal data
-  ,jaccounts              :: [AccountName]                         -- ^ accounts that have been declared by account directives
+  ,jaccounts              :: [(AccountName, Maybe AccountCode)]     -- ^ accounts that have been declared by account directives
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts
   ,jmarketprices          :: [MarketPrice]

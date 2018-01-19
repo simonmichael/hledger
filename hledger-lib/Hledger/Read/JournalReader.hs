@@ -234,11 +234,18 @@ accountdirectivep :: JournalParser m ()
 accountdirectivep = do
   string "account"
   lift (some spacenonewline)
-  acct <- lift accountnamep
+  acct <- lift accountnamep  -- eats single spaces
+  macode' :: Maybe String <- (optional $ lift $ some spacenonewline >> some digitChar)
+  let macode :: Maybe AccountCode = read <$> macode'
   newline
-  many indentedlinep
-  modify' (\j -> j{jaccounts = acct : jaccounts j})
-
+  _tags <- many $ do
+    startpos <- getPosition
+    l <- indentedlinep
+    case runTextParser (setPosition startpos >> tagsp) $ T.pack l of
+      Right ts -> return ts
+      Left _e   -> return [] -- TODO throwError $ parseErrorPretty e
+    
+  modify' (\j -> j{jaccounts = (acct, macode) : jaccounts j})
 
 indentedlinep :: JournalParser m String
 indentedlinep = lift (some spacenonewline) >> (rstrip <$> lift restofline)
