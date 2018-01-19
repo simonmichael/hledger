@@ -36,7 +36,7 @@ accountsmode = (defCommandMode $ ["accounts"] ++ aliases) {
   modeHelp = "show account names" `withAliases` aliases
  ,modeHelpSuffix = [
      "This command lists account names, either declared with account directives"
-    ,"(--declared), posted to (--posted), or both (default)."
+    ,"(--declared), posted to (--used), or both (default)."
     ,"With query arguments, only matched account names and account names" 
     ,"referenced by matched postings are shown."
     ,"It shows a flat list by default. With `--tree`, it uses indentation to"
@@ -47,7 +47,7 @@ accountsmode = (defCommandMode $ ["accounts"] ++ aliases) {
  ,modeGroupFlags = C.Group {
      groupUnnamed = [
       flagNone ["declared"] (\opts -> setboolopt "declared" opts) "show account names declared with account directives"
-     ,flagNone ["posted"] (\opts -> setboolopt "posted" opts) "show account names posted to by transactions"
+     ,flagNone ["used"] (\opts -> setboolopt "used" opts) "show account names referenced by transactions"
      ,flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show short account names, as a tree"
      ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show full account names, as a list (default)"
      ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
@@ -67,12 +67,12 @@ accounts CliOpts{rawopts_=rawopts, reportopts_=ropts} j = do
       depth    = dbg1 "depth" $ queryDepth $ filterQuery queryIsDepth q
       matcheddeclaredaccts = dbg1 "matcheddeclaredaccts" $ nub $ sort $ filter (matchesAccount q) $ jaccounts j
       matchedps = dbg1 "ps" $ journalPostings $ filterJournalPostings nodepthq j
-      matchedpostedaccts = dbg1 "matchedpostedaccts" $ nub $ sort $ filter (not . T.null) $ map (clipAccountName depth) $ map paccount matchedps
-      posted   = boolopt "posted"   rawopts
+      matchedusedaccts = dbg1 "matchedusedaccts" $ nub $ sort $ filter (not . T.null) $ map (clipAccountName depth) $ map paccount matchedps
+      used     = boolopt "used"   rawopts
       declared = boolopt "declared" rawopts
-      as | declared     && not posted = matcheddeclaredaccts
-         | not declared && posted     = matchedpostedaccts
-         | otherwise                  = nub $ sort $ matcheddeclaredaccts ++ matchedpostedaccts
+      as | declared     && not used = matcheddeclaredaccts
+         | not declared && used     = matchedusedaccts
+         | otherwise                = nub $ sort $ matcheddeclaredaccts ++ matchedusedaccts
       as' | tree_ ropts = expandAccountNames as
           | otherwise   = as
       render a | tree_ ropts = T.replicate (2 * (accountNameLevel a - 1)) " " <> accountLeafName a

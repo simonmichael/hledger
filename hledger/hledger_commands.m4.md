@@ -29,7 +29,7 @@ Show account names. Alias: a.
 `--declared`
 : show account names declared with account directives
 
-`--posted`
+`--used`
 : show account names posted to by transactions
 
 `--tree`
@@ -42,7 +42,7 @@ Show account names. Alias: a.
 : in flat mode: omit N leading account name parts
 
 This command lists account names, either declared with account directives
-(--declared), posted to (--posted), or both (default).
+(--declared), posted to (--used), or both (default).
 With query arguments, only matched account names and account names 
 referenced by matched postings are shown.
 It shows a flat list by default. With `--tree`, it uses indentation to

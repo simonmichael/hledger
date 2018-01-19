@@ -890,7 +890,7 @@ Show account names.  Alias: a.
 '--declared'
 
      show account names declared with account directives
-'--posted'
+'--used'
 
      show account names posted to by transactions
 '--tree'
@@ -904,7 +904,7 @@ Show account names.  Alias: a.
      in flat mode: omit N leading account name parts
 
    This command lists account names, either declared with account
-directives (-declared), posted to (-posted), or both (default).  With
+directives (-declared), posted to (-used), or both (default).  With
 query arguments, only matched account names and account names referenced
 by matched postings are shown.  It shows a flat list by default.  With
 '--tree', it uses indentation to show the account hierarchy.  In flat
@@ -2423,95 +2423,95 @@ Node: COMMANDS28399
 Ref: #commands28511
 Node: accounts29493
 Ref: #accounts29591
-Node: activity30841
-Ref: #activity30951
-Node: add31311
-Ref: #add31410
-Node: balance34071
-Ref: #balance34182
-Node: Flat mode37556
-Ref: #flat-mode37681
-Node: Depth limited balance reports38101
-Ref: #depth-limited-balance-reports38302
-Node: Multicolumn balance reports38722
-Ref: #multicolumn-balance-reports38917
-Node: Budgets43606
-Ref: #budgets43753
-Node: Custom balance output47584
-Ref: #custom-balance-output47746
-Node: Colour support49839
-Ref: #colour-support49998
-Node: Output destination50171
-Ref: #output-destination50327
-Node: CSV output50597
-Ref: #csv-output50714
-Node: balancesheet51111
-Ref: #balancesheet51247
-Node: balancesheetequity53474
-Ref: #balancesheetequity53623
-Node: cashflow54160
-Ref: #cashflow54288
-Node: check-dates56327
-Ref: #check-dates56454
-Node: check-dupes56571
-Ref: #check-dupes56695
-Node: close56832
-Ref: #close56939
-Node: help57269
-Ref: #help57369
-Node: import58443
-Ref: #import58557
-Node: incomestatement59287
-Ref: #incomestatement59421
-Node: prices61741
-Ref: #prices61856
-Node: print61899
-Ref: #print62009
-Node: print-unique66894
-Ref: #print-unique67020
-Node: register67088
-Ref: #register67215
-Node: Custom register output71716
-Ref: #custom-register-output71845
-Node: register-match73142
-Ref: #register-match73276
-Node: rewrite73459
-Ref: #rewrite73576
-Node: stats73645
-Ref: #stats73748
-Node: tags74630
-Ref: #tags74728
-Node: test74964
-Ref: #test75048
-Node: ADD-ON COMMANDS75416
-Ref: #add-on-commands75526
-Node: Official add-ons76813
-Ref: #official-add-ons76953
-Node: api77040
-Ref: #api77129
-Node: ui77181
-Ref: #ui77280
-Node: web77338
-Ref: #web77427
-Node: Third party add-ons77473
-Ref: #third-party-add-ons77648
-Node: diff77783
-Ref: #diff77880
-Node: iadd77979
-Ref: #iadd78093
-Node: interest78176
-Ref: #interest78297
-Node: irr78392
-Ref: #irr78490
-Node: Experimental add-ons78568
-Ref: #experimental-add-ons78720
-Node: autosync79011
-Ref: #autosync79123
-Node: budget79362
-Ref: #budget79484
-Node: chart79550
-Ref: #chart79667
-Node: check79738
-Ref: #check79840
+Node: activity30837
+Ref: #activity30947
+Node: add31307
+Ref: #add31406
+Node: balance34067
+Ref: #balance34178
+Node: Flat mode37552
+Ref: #flat-mode37677
+Node: Depth limited balance reports38097
+Ref: #depth-limited-balance-reports38298
+Node: Multicolumn balance reports38718
+Ref: #multicolumn-balance-reports38913
+Node: Budgets43602
+Ref: #budgets43749
+Node: Custom balance output47580
+Ref: #custom-balance-output47742
+Node: Colour support49835
+Ref: #colour-support49994
+Node: Output destination50167
+Ref: #output-destination50323
+Node: CSV output50593
+Ref: #csv-output50710
+Node: balancesheet51107
+Ref: #balancesheet51243
+Node: balancesheetequity53470
+Ref: #balancesheetequity53619
+Node: cashflow54156
+Ref: #cashflow54284
+Node: check-dates56323
+Ref: #check-dates56450
+Node: check-dupes56567
+Ref: #check-dupes56691
+Node: close56828
+Ref: #close56935
+Node: help57265
+Ref: #help57365
+Node: import58439
+Ref: #import58553
+Node: incomestatement59283
+Ref: #incomestatement59417
+Node: prices61737
+Ref: #prices61852
+Node: print61895
+Ref: #print62005
+Node: print-unique66890
+Ref: #print-unique67016
+Node: register67084
+Ref: #register67211
+Node: Custom register output71712
+Ref: #custom-register-output71841
+Node: register-match73138
+Ref: #register-match73272
+Node: rewrite73455
+Ref: #rewrite73572
+Node: stats73641
+Ref: #stats73744
+Node: tags74626
+Ref: #tags74724
+Node: test74960
+Ref: #test75044
+Node: ADD-ON COMMANDS75412
+Ref: #add-on-commands75522
+Node: Official add-ons76809
+Ref: #official-add-ons76949
+Node: api77036
+Ref: #api77125
+Node: ui77177
+Ref: #ui77276
+Node: web77334
+Ref: #web77423
+Node: Third party add-ons77469
+Ref: #third-party-add-ons77644
+Node: diff77779
+Ref: #diff77876
+Node: iadd77975
+Ref: #iadd78089
+Node: interest78172
+Ref: #interest78293
+Node: irr78388
+Ref: #irr78486
+Node: Experimental add-ons78564
+Ref: #experimental-add-ons78716
+Node: autosync79007
+Ref: #autosync79119
+Node: budget79358
+Ref: #budget79480
+Node: chart79546
+Ref: #chart79663
+Node: check79734
+Ref: #check79836
 
 End Tag Table
