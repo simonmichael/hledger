@@ -147,7 +147,7 @@ showPeriod PeriodAll           = "-"
 -- | Like showPeriod, but if it's a month period show just 
 -- the 3 letter month name abbreviation for the current locale.
 showPeriodMonthAbbrev (MonthPeriod _ m)                           -- Jan
-  | m >= 0 && m < length monthnames = snd $ monthnames !! (m-1)
+  | m > 0 && m <= length monthnames = snd $ monthnames !! (m-1)
   where monthnames = months defaultTimeLocale
 showPeriodMonthAbbrev p = showPeriod p
 
