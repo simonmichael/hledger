@@ -5,7 +5,7 @@ hledger -f - incomestatement
   income  1
   b
 >>>
-Income Statement
+Income Statement 2016/01/01
 
 Revenues:
                    1  income
@@ -46,7 +46,7 @@ hledger -f - incomestatement -b 2016 -e 2017
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Income Statement
+Income Statement 2016
 
 Revenues:
              $-10.00  revenue:clients:B
@@ -88,7 +88,7 @@ hledger -f - incomestatement -b 2015 -e 2017
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Income Statement
+Income Statement 2015/01/01-2016/12/31
 
 Revenues:
          $-10,010.00  revenue:clients
@@ -132,7 +132,7 @@ hledger -f - incomestatement -b 2015/10 -e 2015/11
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Income Statement
+Income Statement 2015/10
 
 Revenues:
          $-10,000.00  revenue:clients:A
@@ -173,7 +173,7 @@ hledger -f - incomestatement -b 2016/10 -e 2016/11
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Income Statement
+Income Statement 2016/10
 
 Revenues:
 --------------------
@@ -214,7 +214,7 @@ Total:
 #
 hledger -f sample.journal incomestatement -p 'monthly in 2008' -AT
 >>>
-Income Statement
+Income Statement 2008
 
                    || 2008/01  2008/02  2008/03  2008/04  2008/05  2008/06  2008/07  2008/08  2008/09  2008/10  2008/11  2008/12    Total  Average 
 ===================++==============================================================================================================================
@@ -260,7 +260,7 @@ Income Statement
 #
 hledger -f sample.journal incomestatement -p 'monthly in 2008' --historical
 >>>
-Income Statement (Historical Ending Balances)
+Income Statement 2008 (Historical Ending Balances)
 
                    || 2008/01/31  2008/02/29  2008/03/31  2008/04/30  2008/05/31  2008/06/30  2008/07/31  2008/08/31  2008/09/30  2008/10/31  2008/11/30  2008/12/31 
 ===================++================================================================================================================================================

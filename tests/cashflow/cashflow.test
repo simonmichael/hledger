@@ -5,7 +5,7 @@ hledger -f - cashflow
   assets  1
   b
 >>>
-Cashflow Statement
+Cashflow Statement 2016/01/01
 
 Cash flows:
                    1  assets
@@ -38,7 +38,7 @@ hledger -f - cashflow -b 2016 -e 2017
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Cashflow Statement
+Cashflow Statement 2016
 
 Cash flows:
              $-40.00  assets:checking
@@ -71,7 +71,7 @@ hledger -f - cashflow -b 2015 -e 2017
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Cashflow Statement
+Cashflow Statement 2015/01/01-2016/12/31
 
 Cash flows:
            $9,960.00  assets:checking
@@ -104,7 +104,7 @@ hledger -f - cashflow -b 2015/11 -e 2015/12
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Cashflow Statement
+Cashflow Statement 2015/11
 
 Cash flows:
           $10,000.00  assets:checking
@@ -137,7 +137,7 @@ hledger -f - cashflow -b 2016/10 -e 2016/11
     assets:checking             $10.00
     assets:receivables         -$10.00
 >>>
-Cashflow Statement
+Cashflow Statement 2016/10
 
 Cash flows:
 --------------------
@@ -149,7 +149,7 @@ Cash flows:
 # 6. Multicolumn test
 hledger -f sample.journal cashflow -p 'monthly in 2008'
 >>>
-Cashflow Statement
+Cashflow Statement 2008
 
                       || 2008/01  2008/02  2008/03  2008/04  2008/05  2008/06  2008/07  2008/08  2008/09  2008/10  2008/11  2008/12 
 ======================++============================================================================================================
@@ -166,7 +166,7 @@ Cashflow Statement
 # 7. Multicolumn test (historical)
 hledger -f sample.journal cashflow -p 'monthly in 2008' -A --historical
 >>>
-Cashflow Statement (Historical Ending Balances)
+Cashflow Statement 2008 (Historical Ending Balances)
 
                       || 2008/01/31  2008/02/29  2008/03/31  2008/04/30  2008/05/31  2008/06/30  2008/07/31  2008/08/31  2008/09/30  2008/10/31  2008/11/30  2008/12/31  Average 
 ======================++=========================================================================================================================================================
@@ -183,7 +183,7 @@ Cashflow Statement (Historical Ending Balances)
 # 8. without -N/--no-total (single column)
 hledger -f sample.journal cf 
 >>>
-Cashflow Statement
+Cashflow Statement 2008
 
 Cash flows:
                  $-1  assets
@@ -198,7 +198,7 @@ Cash flows:
 # 9. with -N (single column)
 hledger -f sample.journal cf -N
 >>>
-Cashflow Statement
+Cashflow Statement 2008
 
 Cash flows:
                  $-1  assets
@@ -211,7 +211,7 @@ Cash flows:
 # 10. without -N (multi column)
 hledger -f sample.journal cf -Y
 >>>
-Cashflow Statement
+Cashflow Statement 2008
 
                     || 2008 
 ====================++======
@@ -228,7 +228,7 @@ Cashflow Statement
 # 11. with -N (multi column)
 hledger -f sample.journal cf -Y -N
 >>>
-Cashflow Statement
+Cashflow Statement 2008
 
                     || 2008 
 ====================++======
@@ -251,7 +251,7 @@ hledger -f - cashflow
   assets:fixed assets:equipment  1
   b
 >>>
-Cashflow Statement
+Cashflow Statement 2016/01/01
 
 Cash flows:
                    1  assets

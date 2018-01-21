@@ -5,7 +5,7 @@ hledger -f - balancesheet
   assets  1
   b
 >>>
-Balance Sheet
+Balance Sheet 2016/01/01
 
 Assets:
                    1  assets
@@ -47,7 +47,7 @@ Total:
 #
 hledger -f sample.journal balancesheet -p 'monthly in 2008'
 >>>
-Balance Sheet
+Balance Sheet 2008
 
                       || 2008/01/31  2008/02/29  2008/03/31  2008/04/30  2008/05/31  2008/06/30  2008/07/31  2008/08/31  2008/09/30  2008/10/31  2008/11/30  2008/12/31 
 ======================++================================================================================================================================================
@@ -94,7 +94,7 @@ Balance Sheet
 #
 hledger -f sample.journal balancesheet -p 'monthly in 2008' --tree
 >>>
-Balance Sheet
+Balance Sheet 2008
 
               || 2008/01/31  2008/02/29  2008/03/31  2008/04/30  2008/05/31  2008/06/30  2008/07/31  2008/08/31  2008/09/30  2008/10/31  2008/11/30  2008/12/31 
 ==============++================================================================================================================================================
@@ -122,7 +122,7 @@ Balance Sheet
 # 4. monthly balancesheet with average/total columns and without overall totals row
 hledger -f sample.journal balancesheet -p 'monthly in 2008' -NAT
 >>>
-Balance Sheet
+Balance Sheet 2008
 
                       || 2008/01/31  2008/02/29  2008/03/31  2008/04/30  2008/05/31  2008/06/30  2008/07/31  2008/08/31  2008/09/30  2008/10/31  2008/11/30  2008/12/31    Total  Average 
 ======================++==================================================================================================================================================================
@@ -148,7 +148,7 @@ hledger -f- balancesheet
 2017/1/1
   (assets:b)  1
 >>>
-Balance Sheet
+Balance Sheet 2017/01/01
 
 Assets:
                    1  assets
@@ -173,7 +173,7 @@ hledger -f- balancesheet --flat
 2017/1/1
   (assets:b)  1
 >>>
-Balance Sheet
+Balance Sheet 2017/01/01
 
 Assets:
                    1  assets:b
@@ -197,7 +197,7 @@ hledger -f- balancesheet -YTA
 2017/1/1
   (assets)  $1
 >>>
-Balance Sheet
+Balance Sheet 2017/01/01
 
              || 2017/12/31    Total  Average 
 =============++==============================
@@ -224,7 +224,7 @@ hledger -f - balancesheet -M --pretty-tables
   assets  1
   b
 >>>
-Balance Sheet
+Balance Sheet 2016/01/01
 
              ║ 2016/01/31 
 ═════════════╬════════════

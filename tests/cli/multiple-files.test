@@ -1,7 +1,7 @@
 # 1. all data files on the command line should be read
 hledger inc -f personal.journal -f business.journal
 >>>
-Income Statement
+Income Statement 2014/01/01-2014/01/02
 
 Revenues:
 --------------------
