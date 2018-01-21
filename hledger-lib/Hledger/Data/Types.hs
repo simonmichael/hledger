@@ -354,6 +354,7 @@ instance Show Reader where show r = rFormat r ++ " reader"
 -- which let you walk up or down the account tree.
 data Account = Account {
   aname                     :: AccountName,   -- ^ this account's full name
+  acode                     :: Maybe AccountCode,   -- ^ this account's numeric code, if any (not always set) 
   aebalance                 :: MixedAmount,   -- ^ this account's balance, excluding subaccounts
   asubs                     :: [Account],     -- ^ sub-accounts
   anumpostings              :: Int,           -- ^ number of postings to this account

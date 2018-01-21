@@ -47,6 +47,7 @@ instance Eq Account where
 
 nullacct = Account
   { aname = ""
+  , acode = Nothing
   , aparent = Nothing
   , asubs = []
   , anumpostings = 0
@@ -89,6 +90,10 @@ tieAccountParents = tie Nothing
     tie parent a@Account{..} = a'
       where
         a' = a{aparent=parent, asubs=map (tie (Just a')) asubs}
+
+-- | Look up an account's numeric code, if any, from the Journal and set it.
+accountSetCodeFrom :: Journal -> Account -> Account
+accountSetCodeFrom j a = a{acode=fromMaybe Nothing $ (lookup (aname a) $ jaccounts j)}
 
 -- | Get this account's parent accounts, from the nearest up to the root.
 parentAccounts :: Account -> [Account]
@@ -188,7 +193,9 @@ filterAccounts p a
 -- | Sort each level of an account tree by inclusive amount,
 -- so that the accounts with largest normal balances are listed first.  
 -- The provided normal balance sign determines whether normal balances
--- are negative or positive.
+-- are negative or positive, affecting the sort order. Ie,
+-- if balances are normally negative, then the most negative balances
+-- sort first, and vice versa.
 sortAccountTreeByAmount :: NormalSign -> Account -> Account
 sortAccountTreeByAmount normalsign a
   | null $ asubs a = a
@@ -198,6 +205,19 @@ sortAccountTreeByAmount normalsign a
   where
     maybeflip | normalsign==NormallyNegative = id
               | otherwise                  = flip
+
+-- | Sort each level of an account tree first by the account code
+-- if any, with the empty account code sorting last, and then by
+-- the account name. 
+sortAccountTreeByAccountCodeAndName :: Account -> Account
+sortAccountTreeByAccountCodeAndName a
+  | null $ asubs a = a
+  | otherwise      = a{asubs=
+      sortBy (comparing accountCodeAndNameForSort) $ map sortAccountTreeByAccountCodeAndName $ asubs a}
+
+accountCodeAndNameForSort a = (acode', aname a)
+  where
+    acode' = fromMaybe maxBound (acode a)
 
 -- | Search an account list by name.
 lookupAccount :: AccountName -> [Account] -> Maybe Account

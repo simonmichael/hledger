@@ -88,7 +88,7 @@ balanceReport opts q j = (items, total)
                          dbg1 "accts" $
                          take 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
           | flat_ opts = dbg1 "accts" $
-                         maybesortflat $
+                         sortflat $
                          filterzeros $
                          filterempty $
                          drop 1 $ clipAccountsAndAggregate (queryDepth q) $ flattenAccounts accts
@@ -97,7 +97,7 @@ balanceReport opts q j = (items, total)
                          drop 1 $ flattenAccounts $
                          markboring $
                          prunezeros $
-                         maybesorttree $
+                         sorttree $
                          clipAccounts (queryDepth q) accts
           where
             balance     = if flat_ opts then aebalance else aibalance
@@ -105,12 +105,12 @@ balanceReport opts q j = (items, total)
             filterempty = filter (\a -> anumpostings a > 0 || not (isZeroMixedAmount (balance a)))
             prunezeros  = if empty_ opts then id else fromMaybe nullacct . pruneAccounts (isZeroMixedAmount . balance)
             markboring  = if no_elide_ opts then id else markBoringParentAccounts
-            maybesortflat | sort_amount_ opts = sortBy (maybeflip $ comparing balance)
-                          | otherwise = id
+            sortflat | sort_amount_ opts = sortBy (maybeflip $ comparing balance)
+                     | otherwise         = sortBy (comparing accountCodeAndNameForSort)
               where
                 maybeflip = if normalbalance_ opts == Just NormallyNegative then id else flip
-            maybesorttree | sort_amount_ opts = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ opts)
-                          | otherwise = id
+            sorttree | sort_amount_ opts = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ opts)
+                     | otherwise         = sortAccountTreeByAccountCodeAndName
       items = dbg1 "items" $ map (balanceReportItem opts q) accts'
       total | not (flat_ opts) = dbg1 "total" $ sum [amt | (_,_,indent,amt) <- items, indent == 0]
             | otherwise        = dbg1 "total" $

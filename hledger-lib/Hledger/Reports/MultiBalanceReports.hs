@@ -172,12 +172,13 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, sorteditems, tot
 
       sorteditems :: [MultiBalanceReportRow] =
         dbg1 "sorteditems" $
-        maybesort items
+        sortitems items
         where
-          maybesort
-            | not $ sort_amount_ opts         = id
-            | accountlistmode_ opts == ALTree = sortTreeMultiBalanceReportRowsByAmount
-            | otherwise                       = sortFlatMultiBalanceReportRowsByAmount
+          sortitems
+            | sort_amount_ opts && accountlistmode_ opts == ALTree       = sortTreeMultiBalanceReportRowsByAmount
+            | sort_amount_ opts                                          = sortFlatMultiBalanceReportRowsByAmount
+            | not (sort_amount_ opts) && accountlistmode_ opts == ALTree = sortTreeMultiBalanceReportRowsByAccountCodeAndName
+            | otherwise                                                  = sortFlatMultiBalanceReportRowsByAccountCodeAndName
             where
               -- Sort the report rows, representing a flat account list, by row total. 
               sortFlatMultiBalanceReportRowsByAmount = sortBy (maybeflip $ comparing fifth6)
@@ -201,11 +202,31 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, sorteditems, tot
                       setibalance a = a{aibalance=fromMaybe (error "sortTreeMultiBalanceReportRowsByAmount 1") $ lookup (aname a) atotals}
                   sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ opts) accounttreewithbals
                   sortedaccounts = drop 1 $ flattenAccounts sortedaccounttree
-                  sortedrows = [ 
-                    -- this error should not happen, but it's ugly TODO 
-                    fromMaybe (error "sortTreeMultiBalanceReportRowsByAmount 2") $ lookup (aname a) anamesandrows
-                    | a <- sortedaccounts 
-                    ]
+                  -- dropped the root account, also ignore any parent accounts not in rows
+                  sortedrows = concatMap (\a -> maybe [] (:[]) $ lookup (aname a) anamesandrows) sortedaccounts 
+
+              -- Sort the report rows by account code if any, with the empty account code coming last, then account name. 
+              sortFlatMultiBalanceReportRowsByAccountCodeAndName = sortBy (comparing acodeandname)
+                where
+                  acodeandname r = (acode', aname)
+                    where
+                      aname = first6 r
+                      macode = fromMaybe Nothing $ lookup aname $ jaccounts j
+                      acode' = fromMaybe maxBound macode 
+
+              -- Sort the report rows, representing a tree of accounts, by account code and then account name at each level.
+              -- Convert a tree of account names, look up the account codes, sort and flatten the tree, reorder the rows.
+              sortTreeMultiBalanceReportRowsByAccountCodeAndName rows = sortedrows
+                where
+                  anamesandrows = [(first6 r, r) | r <- rows]
+                  anames = map fst anamesandrows
+                  nametree = treeFromPaths $ map expandAccountName anames
+                  accounttree = nameTreeToAccount "root" nametree
+                  accounttreewithcodes = mapAccounts (accountSetCodeFrom j) accounttree
+                  sortedaccounttree = sortAccountTreeByAccountCodeAndName accounttreewithcodes
+                  sortedaccounts = drop 1 $ flattenAccounts sortedaccounttree
+                  -- dropped the root account, also ignore any parent accounts not in rows
+                  sortedrows = concatMap (\a -> maybe [] (:[]) $ lookup (aname a) anamesandrows) sortedaccounts 
 
       totals :: [MixedAmount] =
           -- dbg1 "totals" $
