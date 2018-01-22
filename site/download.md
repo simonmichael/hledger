@@ -70,11 +70,12 @@ Or, you can install manually (all systems):
    Eg if you're a bash user:\
    &nbsp;&nbsp;`echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
 
-2. **`stack install hledger-lib-1.5 hledger-1.5 [hledger-ui-1.5] [hledger-web-1.5] [hledger-api-1.5]`**\   
+2. **`stack install --resolver=nightly hledger-lib-1.5 hledger-1.5 [hledger-ui-1.5] [hledger-web-1.5] [hledger-api-1.5]`**\   
    \
    This command installs the specified hledger packages (and required haskell libraries and tools) from [Stackage](https://www.stackage.org) (and if needed, [Hackage](http://hackage.haskell.org)).
-   It will work once the release has landed in stackage nightly, usually 1-2 days after hledger release.
    As noted above, it can take a while.
+   Specifying the nightly resolver requires most building, but is also the most reliable;
+   you can try an older resolver (or no --resolver option) if you wish. 
    You can add `--dry-run` to see what it plans to do, and kill/restart it without losing progress.\
    You can omit the bracketed packages to save time, and maybe install them later. If you include them, don't type the brackets.
    Do include the hledger-lib and hledger packages explicitly in the command as well, otherwise stack may complain.
