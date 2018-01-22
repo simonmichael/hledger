@@ -77,6 +77,7 @@ Or, you can install manually (all systems):
    As noted above, it can take a while.
    You can add `--dry-run` to see what it plans to do, and kill/restart it without losing progress.\
    You can omit the bracketed packages to save time, and maybe install them later. If you include them, don't type the brackets.
+   Do include the hledger-lib and hledger packages explicitly in the command as well, otherwise stack may complain.
    hledger-ui is [not yet available on Windows](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444).\
    If it gives "Invalid package ID" errors, get a newer version of stack.\
    If you're a [cabal](https://www.haskell.org/cabal/) expert, feel free to use that instead of stack.\
