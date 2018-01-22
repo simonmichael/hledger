@@ -3,7 +3,7 @@
 Do you want to..
 <a name="a"></a>
 
-## A. download a system package ?
+## A. download a binary/system package ?
 
 <style>
 tr { vertical-align:top; }
