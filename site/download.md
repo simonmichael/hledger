@@ -1,9 +1,9 @@
 # Download
 
-Would you like to..
+Do you want to..
 <a name="a"></a>
 
-## A. download a packaged version ?
+## A. download a system package ?
 
 <style>
 tr { vertical-align:top; }
@@ -15,21 +15,21 @@ td:first-of-type {
 a { white-space:nowrap; }
 </style>
 
-Packaged versions are the quickest to install, 
+System packages are quickest to install, 
 but they can be [out of date](https://repology.org/metapackage/hledger/badges) or incomplete. 
 
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| Windows:             | [Latest developer builds](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts) (no hledger-ui, [please help](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))
-| Mac:                 | **`brew install hledger`** (CLI only, [please help ](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))
+| Windows:             | [Latest developer builds](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts) ([no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))
+| Mac:                 | **`brew install hledger`** ([CLI only](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))
 | Arch Linux:          | **`pacman -S hledger`** (haskell problems are common on Arch at present, cf #668 [1](https://github.com/simonmichael/hledger/issues/668#issuecomment-352197500), [2](https://github.com/simonmichael/hledger/issues/668#issuecomment-355107667))
 | Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`**
 | Fedora,&nbsp;RHEL:   | **`sudo dnf install hledger`**
 | Gentoo:              | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`**
 | Void Linux:          | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`**
-| NixOS:               | **`nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`** (problems building hledger-ui on MacOS, [please help](https://github.com/simonmichael/hledger/issues/613))
-| Sandstorm:           | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo** (get a hledger-web server in 3 clicks. Features needed, [please help](https://github.com/simonmichael/hledger/issues/425))
+| NixOS:               | **`nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`** ([problems building hledger-ui on MacOS](https://github.com/simonmichael/hledger/issues/613))
+| Sandstorm:           | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo** (get a hledger-web server in 3 clicks. [Features needed](https://github.com/simonmichael/hledger/issues/425))
 
 
 <a name="b"></a>
@@ -37,9 +37,9 @@ but they can be [out of date](https://repology.org/metapackage/hledger/badges) o
 ## B. build the latest release ?
 
 Good choice! The [release notes](release-notes.html) show what you'll get.
-
 Just know that building haskell apps for the first time can take significant time (minutes to hours), 
-memory (eg 1-2G), and disk space (eg 1G in $HOME/.stack or $HOME/.cabal, though you can delete much of that afterward).
+memory (eg 1G+), and disk space (eg 1G in $HOME/.stack or $HOME/.cabal, though you can delete much of that afterward).
+
 Here are three methods:
 
 ### 1. hledger-install
