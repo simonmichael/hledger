@@ -1,9 +1,9 @@
 # Download
 
-Choose a method:
+Would you like to..
 <a name="a"></a>
 
-## A. I want to download a packaged version
+## A. download a packaged version ?
 
 <style>
 tr { vertical-align:top; }
@@ -34,55 +34,62 @@ but they can be [out of date](https://repology.org/metapackage/hledger/badges) o
 
 <a name="b"></a>
 
-## B. I want to build the latest release
+## B. build the latest release ?
 
-The latest release is a good choice. Check the [release notes](release-notes.html) to see what's in it.
+Good choice! The [release notes](release-notes.html) show what you'll get.
 
-On POSIX systems (mac/linux/freebsd..), the hassle-free 
-[hledger-install.sh](https://github.com/simonmichael/hledger/tree/master/hledger-install) script is the most reliable install method.
-It will use stack or cabal, installing stack if needed, and build the current release of hledger and addon tools,
-installing everything in $HOME/.local/bin (or $HOME/.cabal/bin).
-This is like doing a manual stack/cabal install, but more automated and robust.
-Here's how to run the installer:
+Just know that building haskell apps for the first time can take significant time (minutes to hours), 
+memory (eg 1-2G), and disk space (eg 1G in $HOME/.stack or $HOME/.cabal, though you can delete much of that afterward).
+Here are three methods:
+
+### 1. hledger-install
+
+On POSIX systems (mac/linux/freebsd..), the
+[hledger-install.sh](https://github.com/simonmichael/hledger/tree/master/hledger-install) script is 
+the build method most likely to just work, as the only prerequisite is bash and it avoids many common gotchas.
+It uses stack or cabal, installing stack if needed, to build the latest release of hledger and all addon tools,
+one at a time, installing everything in $HOME/.local/bin (or $HOME/.cabal/bin).
+
+Here's the responsible way to run it:
 
  **`curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**\
- **`less hledger-install.sh`**  *# (do security review)*\
- **`bash hledger-install.sh`**  *# (add `-v` for more detail; use `bash -x` to show commands being run)* 
+ **`less hledger-install.sh`**  *# do security review*\
+ **`bash hledger-install.sh`**  *# run it; add `-v` for more detail, or use `bash -x` to show commands being run* 
 
-and here's the more convenient but less secure way:
+and here's the easy way:
 
  **`curl https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash`**
 
-Note, building haskell apps can take significant time (minutes to hours), memory (~2G),
-and disk space (up to a gigabyte in $HOME/.stack, though you can delete that afterward).
 You can kill and restart the installer without losing progress.
 If it fails, please help us improve it by [reporting the full output](docs.html#helpfeedback).
 
-Or, you can install manually (all systems):
+### 2. stack
 
-1. **Install [haskell `stack`](http://haskell-lang.org/get-started)**\
-   \
-   Avoid using versions older than 1.0, which give ["Invalid package ID" errors](https://github.com/simonmichael/hledger/issues/513);
-   latest version is good.\
-   On Windows, the 64-bit version is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).\
-   On Arch, you [may need to also install GHC manually](https://github.com/simonmichael/hledger/issues/434).\
-   Ensure [`~/.local/bin` (or Windows equivalent) is added to your \$PATH](https://docs.haskellstack.org/en/stable/install_and_upgrade/#path).
-   Eg if you're a bash user:\
+[`stack`](http://haskell-lang.org/get-started) is the newer and easier of the two Haskell build tools.
+Here's how to use it directly to install hledger:
+
+1. **Install or upgrade to the latest stack**\
+   The latest version of stack is recommended, as it is the best at avoiding ecosystem breakages and most likely to just work.
+   If you already have stack 1.3 or greater, you can usually run `stack upgrade` to quickly upgrade it.
+   On Windows, the 64-bit version of stack is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
+   <!-- On Arch, you [may need to also install GHC manually](https://github.com/simonmichael/hledger/issues/434).\ -->
+   Follow stack's advice to 
+   [add `$HOME/.local/bin` to your \$PATH](https://docs.haskellstack.org/en/stable/install_and_upgrade/#path) (`%APPDATA%\local\bin` on Windows).
+   Eg, if you're a bash user:\
    &nbsp;&nbsp;`echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
 
 2. **`stack install --resolver=nightly hledger-lib-1.5 hledger-1.5 [hledger-ui-1.5] [hledger-web-1.5] [hledger-api-1.5]`**\   
-   \
-   This command installs the specified hledger packages (and required haskell libraries and tools) from [Stackage](https://www.stackage.org) (and if needed, [Hackage](http://hackage.haskell.org)).
-   As noted above, it can take a while.
-   Specifying the nightly resolver requires most building, but is also the most reliable;
-   you can try an older resolver (or no --resolver option) if you wish. 
-   You can add `--dry-run` to see what it plans to do, and kill/restart it without losing progress.\
-   You can omit the bracketed packages to save time, and maybe install them later. If you include them, don't type the brackets.
-   Do include the hledger-lib and hledger packages explicitly in the command as well, otherwise stack may complain.
-   hledger-ui is [not yet available on Windows](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444).\
-   If it gives "Invalid package ID" errors, get a newer version of stack.\
-   If you're a [cabal](https://www.haskell.org/cabal/) expert, feel free to use that instead of stack.\
-   If you get errors due to missing C libraries (like curses or terminfo), install those manually, eg:
+   This installs the specified hledger packages (and required haskell libraries and tools) from [Stackage](https://www.stackage.org) (and if needed, [Hackage](http://hackage.haskell.org)).
+   Specifying stackage's nightly resolver (snapshot) requires the most rebuilding, but is the most reliable;
+   you can try reducing build time by specifying another resolver that you've installed from previously, or no --resolver option.\
+   Add `--dry-run` to see the build plan. You can kill and restart this without losing progress.
+
+    The bracketed packages are optional; if you include them, don't type the brackets, and do always 
+    include the preceding hledger-lib and hledger packages in the command, otherwise stack may complain.
+    hledger-ui is [not yet available on Windows](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444), alas.
+
+    If you get errors due to missing C libraries like curses or terminfo, you'll need to find out the corresponding
+    system packages and install those manually. Eg:
 
     |
     |-----------------|-----------------------------------
@@ -98,40 +105,35 @@ Or, you can install manually (all systems):
    <!-- keep synced with stack.yaml files -->
 
 Now you should be able to run `hledger --version` 
-(and `hledger-ui --version`, `hledger-web --version` etc. if you installed those)
-and see the version you just installed.
+(and `hledger-ui --version`, `hledger-web --version` etc. if installed)
+and see the latest version number.
+Additional [add-on commands](/hledger.html#third-party-add-ons),
+such as
+[hledger-diff](http://hackage.haskell.org/package/hledger-diff),
+[hledger-iadd](http://hackage.haskell.org/package/hledger-iadd),
+[hledger-interest](http://hackage.haskell.org/package/hledger-interest),
+and [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
+can be installed similarly to the above. Eg:\
+&nbsp;&nbsp;`stack install --resolver nightly hledger-lib-1.5 hledger-1.5 hledger-iadd-1.3.1`
 
+
+### 3. cabal
+
+[cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, feel free to use this instead.
 
 <a name="c"></a>
 
-## C. I want to build the development version
+## C. build the development version ?
 
-The latest [master branch](https://github.com/simonmichael/hledger/commits/master) includes not-yet-released features and is stable enough for daily use.
+Also a good choice. Our master branch is kept stable enough for daily use,
+and includes the very latest improvements ([commits](https://github.com/simonmichael/hledger/commits/master)).
 
-1. **Install [`stack`](http://haskell-lang.org/get-started) and [git](https://en.wikipedia.org/wiki/Git)**
-   (see notes in B above)
+1. **Install [`stack`](#stack) and [git](https://en.wikipedia.org/wiki/Git)**
 2. **`git clone https://github.com/simonmichael/hledger`**
 3. **`cd hledger`**
-4. **`stack install`**
+4. **`stack install [hledger]`**  *# optionally specify just the hledger package to build less* 
 
-Cabal users can use the `cabal-install.sh` or `cabal.project` files instead.
+cabal users may find the `cabal-install.sh` or `cabal.project` files useful.
 
-Nix users taking advantage of Stack integration may need to use Stack's `--no-nix-pure` flag to build hledger.
-
-
-<a name="d"></a>
-
-## D. I want to install more commands
-
-Additional [add-on commands](/hledger.html#third-party-add-ons)
-can be installed. Eg:\
-`stack install hledger-iadd-1.2.1` or `stack install --resolver nightly hledger-iadd`.
-
-More, [experimental add-ons](/hledger.html#experimental-add-ons) are
-included in the hledger source repo; to install these:
-
-1. **Download the hledger source code** (as in C above)
-2. **In the hledger directory, run `bin/compile.sh`** (installs dependencies & compiles for speed)
-3. **Add the `hledger/bin/` directory to your `$PATH`** (as in B above) 
-
-Now you should be able to run `hledger iadd --version`, `hledger check --help` etc.
+<!-- now covered by stack.yaml I think:
+ Nix users taking advantage of Stack integration may need to use Stack's `--no-nix-pure` flag to build hledger. -->
