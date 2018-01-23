@@ -7,7 +7,6 @@ Ending balances (historical) in 2013/01:
                  || 2013/01/31 
 =================++============
  assets:checking ||         10 
-
 >>>= 0
 
 # 2. multiple flags ending with --tree, equivalent to --tree
@@ -19,5 +18,4 @@ Ending balances (historical) in 2013/01:
 ============++============
  assets     ||         10 
    checking ||         10 
-
 >>>= 0

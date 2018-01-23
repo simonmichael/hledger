@@ -41,7 +41,6 @@ Ending balances (historical) in 2016/12/31-2017/01/02:
  budget:food    ||          0     $-50.00     $-50.00 
  budget:housing ||   $-600.00    $-600.00    $-600.00 
  budget:misc    ||          0     $-15.00     $-16.60 
-
 >>>2
 >>>=0
 
@@ -160,7 +159,6 @@ Ending balances (historical) in 2016/12/26-2017/01/04:
  expenses:grocery ||       $-50        $-50        $-50        $-50        $-50        $-50     $-20.00     $-70.00     $-70.00     $-70.00 
  expenses:housing ||      $-250       $-250       $-250       $-250       $-250     $350.00     $350.00     $100.00     $100.00     $100.00 
  expenses:leisure ||       $-20        $-20        $-20        $-20        $-20        $-20      $-5.00     $-25.00     $-25.00     $-25.00 
-
 >>>2
 >>>=0
 
@@ -194,7 +192,6 @@ Ending balances (historical) in 2016/12/31-2017/01/01:
  expenses:grocery      ||          0         $30 
  expenses:housing:rent ||       $600        $600 
  expenses:leisure      ||          0         $15 
-
 >>>2
 >>>=0
 
@@ -226,7 +223,6 @@ Ending balances (historical) in 2016/12/31-2017/01/01:
 ===============++========================
  <unbucketed>  ||       $600        $646 
  expenses:food ||          0         $20 
-
 >>>2
 >>>=0
 
@@ -260,6 +256,5 @@ Ending balances (historical) in 2016/12/31-2017/01/01:
  expenses:grocery      ||          0         $30 
  expenses:housing:rent ||       $600        $600 
  expenses:leisure      ||          0         $15 
-
 >>>2
 >>>=0

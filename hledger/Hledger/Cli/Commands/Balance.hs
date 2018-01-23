@@ -703,13 +703,11 @@ renderBalanceReportTable ropts =
 renderBalanceReportTable' :: ReportOpts -> (a -> String) -> Table String String a -> String
 renderBalanceReportTable' (ReportOpts { pretty_tables_ = pretty}) showCell =
   unlines
-  . addtrailingblank
   . trimborder
   . lines
   . render pretty id id showCell
   . align
   where
-    addtrailingblank = (++[""])
     trimborder = drop 1 . init . map (drop 1 . init)
     align (Table l t d) = Table l' t d
       where

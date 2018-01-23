@@ -21,7 +21,6 @@ Balance changes in 2013q1:
  assets          ||       0        1        0 
  assets:cash     ||       0        1        0 
  assets:checking ||       0        0        1 
-
 >>>=0
 
 # 3. With --empty, includes leading/trailing empty periods
@@ -42,7 +41,6 @@ Balance changes in 2013:
  a ||      2       0       0       0 
 ---++--------------------------------
    ||      2       0       0       0 
-
 >>>=0
 
 # 4. A cumulative ending balance report. Column totals are the sum of
@@ -58,7 +56,6 @@ Ending balances (cumulative) in 2013q1:
  assets:checking ||          0           0           1 
 -----------------++------------------------------------
                  ||          0           2           3 
-
 >>>=0
 
 # 5. With the assets:cash account excluded.  As with a single-column
@@ -74,7 +71,6 @@ Ending balances (cumulative) in 2013q1:
  assets:checking ||          0           0           1 
 -----------------++------------------------------------
                  ||          0           1           2 
-
 >>>=0
 
 # 6. A historical ending balance report.
@@ -89,7 +85,6 @@ Ending balances (historical) in 2013q1:
  assets:checking ||         10          10          11 
 -----------------++------------------------------------
                  ||         10          12          13 
-
 >>>=0
 
 # 7. With top-level accounts excluded. As always, column totals are the sum of
@@ -104,7 +99,6 @@ Balance changes in 2013q1:
  assets:checking ||       0        0        1 
 -----------------++---------------------------
                  ||       0        1        1 
-
 >>>=0
 
 # 8. cumulative:
@@ -118,7 +112,6 @@ Ending balances (cumulative) in 2013q1:
  assets:checking ||          0           0           1 
 -----------------++------------------------------------
                  ||          0           1           2 
-
 >>>=0
 
 # 9. historical
@@ -133,7 +126,6 @@ Ending balances (historical) in 2013q1:
  assets:checking ||         10          10          11 
 -----------------++------------------------------------
                  ||         10          12          13 
-
 >>>=0
 
 # --depth
@@ -148,7 +140,6 @@ Balance changes in 2013q1:
  assets ||       0        2        1 
 --------++---------------------------
         ||       0        2        1 
-
 >>>=0
 
 # 11. As above, but postings in the top-level assets account have been excluded.
@@ -161,7 +152,6 @@ Balance changes in 2013q1:
  assets ||       0        1        1 
 --------++---------------------------
         ||       0        1        1 
-
 >>>=0
 
 # 12. A cumulative balance report with depth limiting.
@@ -174,7 +164,6 @@ Ending balances (cumulative) in 2013q1:
  assets ||          0           2           3 
 --------++------------------------------------
         ||          0           2           3 
-
 >>>=0
 
 # 13. A historical balance report with depth limiting.
@@ -187,7 +176,6 @@ Ending balances (historical) in 2013q1:
  assets ||         10          12          13 
 --------++------------------------------------
         ||         10          12          13 
-
 >>>=0
 
 # 14. The three multicol balance report types again, this time with --tree
@@ -202,7 +190,6 @@ Balance changes in 2013q1:
    checking ||       0        0        1 
 ------------++---------------------------
             ||       0        2        1 
-
 >>>=0
 
 # 15.
@@ -217,7 +204,6 @@ Ending balances (cumulative) in 2013q1:
    checking ||          0           0           1 
 ------------++------------------------------------
             ||          0           2           3 
-
 >>>=0
 
 # 16.
@@ -232,7 +218,6 @@ Ending balances (historical) in 2013q1:
    checking ||         10          10          11 
 ------------++------------------------------------
             ||         10          12          13 
-
 >>>=0
 
 # 17. --date2 should work
@@ -253,7 +238,6 @@ Balance changes in 2014/01:
  b ||       1 
 ---++---------
    ||       2 
-
 >>>=0
 
 # 18. All matched postings in the displayed intervals should be reported on.
@@ -278,5 +262,4 @@ Balance changes in 2014/01/01-2014/02/28:
  within ||       0        1 
 --------++------------------
         ||       1        2 
-
 >>>=0
