@@ -313,7 +313,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
       -- ie when there's a report interval, or when --historical or --cumulative 
       -- are used (balanceReport doesn't handle those).
       -- Otherwise prefer the older balanceReport since it can elide boring parents.
-      -- See also compoundBalanceCommandSingleColumnReport, singleBalanceReport etc.
+      -- See also singleBalanceReport etc.
       case interval of
         NoInterval -> do
           let report

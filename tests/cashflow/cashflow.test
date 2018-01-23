@@ -7,10 +7,13 @@ hledger -f - cashflow
 >>>
 Cashflow Statement 2016/01/01
 
-Cash flows:
-                   1  assets
---------------------
-                   1
+            || 2016/01/01 
+============++============
+ Cash flows ||            
+------------++------------
+ assets     ||          1 
+------------++------------
+            ||          1 
 
 >>>2
 >>>= 0
@@ -40,10 +43,13 @@ hledger -f - cashflow -b 2016 -e 2017
 >>>
 Cashflow Statement 2016
 
-Cash flows:
-             $-40.00  assets:checking
---------------------
-             $-40.00
+                 ||    2016 
+=================++=========
+ Cash flows      ||         
+-----------------++---------
+ assets:checking || $-40.00 
+-----------------++---------
+                 || $-40.00 
 
 >>>2
 >>>= 0
@@ -73,10 +79,13 @@ hledger -f - cashflow -b 2015 -e 2017
 >>>
 Cashflow Statement 2015/01/01-2016/12/31
 
-Cash flows:
-           $9,960.00  assets:checking
---------------------
-           $9,960.00
+                 || 2015/01/01-2016/12/31 
+=================++=======================
+ Cash flows      ||                       
+-----------------++-----------------------
+ assets:checking ||             $9,960.00 
+-----------------++-----------------------
+                 ||             $9,960.00 
 
 >>>2
 >>>= 0
@@ -106,10 +115,13 @@ hledger -f - cashflow -b 2015/11 -e 2015/12
 >>>
 Cashflow Statement 2015/11
 
-Cash flows:
-          $10,000.00  assets:checking
---------------------
-          $10,000.00
+                 ||    2015/11 
+=================++============
+ Cash flows      ||            
+-----------------++------------
+ assets:checking || $10,000.00 
+-----------------++------------
+                 || $10,000.00 
 
 >>>2
 >>>= 0
@@ -139,9 +151,12 @@ hledger -f - cashflow -b 2016/10 -e 2016/11
 >>>
 Cashflow Statement 2016/10
 
-Cash flows:
---------------------
-                   0
+            || 2016/10 
+============++=========
+ Cash flows ||         
+------------++---------
+------------++---------
+            ||       0 
 
 >>>2
 >>>= 0
@@ -180,36 +195,8 @@ Cashflow Statement 2008 (Historical Ending Balances)
 
 >>>= 0
 
-# 8. without -N/--no-total (single column)
+# 8. without -N/--no-total
 hledger -f sample.journal cf 
->>>
-Cashflow Statement 2008
-
-Cash flows:
-                 $-1  assets
-                  $1    bank:saving
-                 $-2    cash
---------------------
-                 $-1
-
->>>2
->>>= 0
-
-# 9. with -N (single column)
-hledger -f sample.journal cf -N
->>>
-Cashflow Statement 2008
-
-Cash flows:
-                 $-1  assets
-                  $1    bank:saving
-                 $-2    cash
-
->>>2
->>>= 0
-
-# 10. without -N (multi column)
-hledger -f sample.journal cf -Y
 >>>
 Cashflow Statement 2008
 
@@ -225,8 +212,8 @@ Cashflow Statement 2008
 >>>2
 >>>= 0
 
-# 11. with -N (multi column)
-hledger -f sample.journal cf -Y -N
+# 9. with -N
+hledger -f sample.journal cf -N
 >>>
 Cashflow Statement 2008
 
@@ -240,7 +227,7 @@ Cashflow Statement 2008
 >>>2
 >>>= 0
 
-# 12. exclude fixed assets from cashflow
+# 10. exclude fixed assets from cashflow
 hledger -f - cashflow
 <<<
 2016/1/1
@@ -253,10 +240,13 @@ hledger -f - cashflow
 >>>
 Cashflow Statement 2016/01/01
 
-Cash flows:
-                   1  assets
---------------------
-                   1
+            || 2016/01/01 
+============++============
+ Cash flows ||            
+------------++------------
+ assets     ||          1 
+------------++------------
+            ||          1 
 
 >>>2
 >>>= 0
