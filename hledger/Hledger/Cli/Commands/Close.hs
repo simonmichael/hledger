@@ -70,7 +70,7 @@ close CliOpts{reportopts_=ropts} j = do
       q = queryFromOpts today ropts_
       openingdate = fromMaybe today $ queryEndDate False q
       closingdate = addDays (-1) openingdate
-      (acctbals,_) = singleBalanceReport ropts_ q j
+      (acctbals,_) = balanceReportFromMultiBalanceReport ropts_ q j
       balancingamt = negate $ sum $ map (\(_,_,_,b) -> normaliseMixedAmountSquashPricesForDisplay b) acctbals
       ps = [posting{paccount=a
                    ,pamount=mixed [b]

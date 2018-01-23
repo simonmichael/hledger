@@ -43,7 +43,7 @@ import Hledger.Reports.ReportOptions
 
 
 
--- | A simple single-column balance report. It has:
+-- | A simple balance report. It has:
 --
 -- 1. a list of items, one per account, each containing:
 --

@@ -85,10 +85,10 @@ asInit d reset ui@UIState{
     -- run the report
     (items,_total) = report ropts' q j
       where
-        -- still using the old balanceReport for change reports as it
-        -- does not include every account from before the report period
-        report | balancetype_ ropts == HistoricalBalance = singleBalanceReport
+        report | balancetype_ ropts == HistoricalBalance = balanceReportFromMultiBalanceReport
                | otherwise                               = balanceReport
+                    -- still using the old balanceReport for change reports as it
+                    -- does not include every account from before the report period
 
 
     -- pre-render the list items

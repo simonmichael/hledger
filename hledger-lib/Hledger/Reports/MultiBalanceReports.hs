@@ -9,7 +9,7 @@ module Hledger.Reports.MultiBalanceReports (
   MultiBalanceReport(..),
   MultiBalanceReportRow,
   multiBalanceReport,
-  singleBalanceReport,
+  balanceReportFromMultiBalanceReport,
 --  mbrNegate,
 --  mbrNormaliseSign,
 
@@ -74,23 +74,11 @@ instance Show MultiBalanceReport where
 -- type alias just to remind us which AccountNames might be depth-clipped, below.
 type ClippedAccountName = AccountName
 
--- | Generates a single column BalanceReport like balanceReport, but uses
--- multiBalanceReport, so supports --historical. 
--- TODO Does not support boring parent eliding or --flat yet.
-singleBalanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
-singleBalanceReport opts q j = (rows', total)
-  where
-    MultiBalanceReport (_, rows, (totals, _, _)) = multiBalanceReport opts q j
-    rows' = [(a
-             ,if flat_ opts then a else a'   -- BalanceReport expects full account name here with --flat
-             ,if tree_ opts then d-1 else 0  -- BalanceReport uses 0-based account depths
-             , headDef nullmixedamt amts     -- 0 columns is illegal, should not happen, return zeroes if it does
-             ) | (a,a',d, amts, _, _) <- rows]
-    total = headDef nullmixedamt totals
-
 -- | Generate a multicolumn balance report for the matched accounts,
 -- showing the change of balance, accumulated balance, or historical balance
--- in each of the specified periods.
+-- in each of the specified periods. Does not support tree-mode boring parent eliding.
+-- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts 
+-- (see ReportOpts and CompoundBalanceCommand).
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
 multiBalanceReport opts q j = MultiBalanceReport (displayspans, sorteditems, totalsrow)
     where
@@ -234,6 +222,21 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, sorteditems, tot
 
       dbg1 s = let p = "multiBalanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in this function's debug output
       -- dbg1 = const id  -- exclude this function from debug output
+
+-- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport, 
+-- in order to support --historical. Does not support tree-mode boring parent eliding. 
+-- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts 
+-- (see ReportOpts and CompoundBalanceCommand).
+balanceReportFromMultiBalanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
+balanceReportFromMultiBalanceReport opts q j = (rows', total)
+  where
+    MultiBalanceReport (_, rows, (totals, _, _)) = multiBalanceReport opts q j
+    rows' = [(a
+             ,if flat_ opts then a else a'   -- BalanceReport expects full account name here with --flat
+             ,if tree_ opts then d-1 else 0  -- BalanceReport uses 0-based account depths
+             , headDef nullmixedamt amts     -- 0 columns is illegal, should not happen, return zeroes if it does
+             ) | (a,a',d, amts, _, _) <- rows]
+    total = headDef nullmixedamt totals
 
 
 tests_multiBalanceReport =

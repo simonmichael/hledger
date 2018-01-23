@@ -309,21 +309,15 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
     Right _ -> do
       let format   = outputFormatFromOpts opts
           interval = interval_ ropts
-      -- XXX shenanigans: use singleBalanceReport or multiBalanceReport when we must, 
-      -- ie when there's a report interval, or when --historical or --cumulative 
-      -- are used (balanceReport doesn't handle those).
-      -- Otherwise prefer the older balanceReport since it can elide boring parents.
-      -- See also singleBalanceReport etc.
       case interval of
         NoInterval -> do
           let report
-                -- For --historical/--cumulative, we must use multiBalanceReport.
-                -- (This forces --no-elide.)
                 | balancetype_ ropts `elem` [HistoricalBalance, CumulativeChange]
                   = let ropts' | flat_ ropts = ropts
                                | otherwise   = ropts{accountlistmode_=ALTree}
-                    in singleBalanceReport ropts' (queryFromOpts d ropts) j
-                | otherwise = balanceReport ropts (queryFromOpts d ropts) j
+                    in balanceReportFromMultiBalanceReport ropts' (queryFromOpts d ropts) j
+                          -- for historical balances we must use balanceReportFromMultiBalanceReport (also forces --no-elide)
+                | otherwise = balanceReport ropts (queryFromOpts d ropts) j -- simple Ledger-style balance report 
               render = case format of
                 "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
                 "html" -> \_ _ -> error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO

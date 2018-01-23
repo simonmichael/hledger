@@ -97,7 +97,7 @@ main = do
   d <- getCurrentDay
   j <- defaultJournal
   let ropts = (reportopts_ $ cliopts_ chopts)
-  let balreport = singleBalanceReport ropts (queryFromOpts d ropts) j
+  let balreport = balanceReportFromMultiBalanceReport ropts (queryFromOpts d ropts) j
   let go -- | "--help" `elem` (rawopts_ $ cliopts_ chopts)    = putStr (showModeHelp chartmode) >> exitSuccess
          -- | "--version" `elem` (rawopts_ $ cliopts_ chopts) = putStrLn progversion >> exitSuccess
          | otherwise                                       = withJournalAndChartOptsDo chopts (writeChart balreport)

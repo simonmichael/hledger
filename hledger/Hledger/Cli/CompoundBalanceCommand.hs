@@ -142,10 +142,10 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
               CumulativeChange  -> "(Cumulative Ending Balances)"
               HistoricalBalance -> "(Historical Ending Balances)"
       -- Set balance type in the report options.
-      -- XXX Also, use tree mode (by default, at least?) if --cumulative/--historical 
+      -- Also, use tree mode (by default, at least?) if --cumulative/--historical 
       -- are used in single column mode, since in that situation we will be using 
-      -- singleBalanceReport which does not support eliding boring parents,
-      -- and tree mode hides this.. or something.. 
+      -- balanceReportFromMultiBalanceReport which does not support eliding boring parents,
+      -- and tree mode hides this.. or something.. XXX 
       ropts'
         | not (flat_ ropts) && 
           interval_ ropts==NoInterval && 

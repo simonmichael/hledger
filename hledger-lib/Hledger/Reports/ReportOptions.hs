@@ -104,7 +104,7 @@ data ReportOpts = ReportOpts {
     ,sort_amount_    :: Bool
     ,normalbalance_  :: Maybe NormalSign
       -- ^ This can be set when running balance reports on a set of accounts
-      -- with the same normal balance type (eg all assets, or all incomes).
+      --   with the same normal balance type (eg all assets, or all incomes).
       -- - It helps --sort-amount know how to sort negative numbers
       --   (eg in the income section of an income statement) 
       -- - It helps compound balance report commands (is, bs etc.) do  
