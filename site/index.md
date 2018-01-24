@@ -6,7 +6,6 @@ title: home
  .highslide img {max-width:200px; float:right; margin:0 0 1em 1em;}
  .highslide-caption {color:white; background-color:black;}
  a {white-space:nowrap;}
- /*div.asciicast { float:right; height:200px; }*/
 </style>
 <style media="screen and (min-width:1020px) and (orientation: landscape)">
  .indent0 { margin:0 15em 0  0em; }
@@ -20,9 +19,9 @@ title: home
 [![github](https://img.shields.io/github/stars/simonmichael/hledger.svg?style=social&label=Github){style="min-width:102;" title="Star us!"}](https://github.com/simonmichael/hledger/)
 <a href="https://opencollective.com/hledger#support"><img border="0" src="https://opencollective.com/hledger/backers/badge.svg" title="Back us with a monthly donation at Open Collective" alt="open collective backers"></a>
 <a href="https://opencollective.com/hledger#support"><img border="0" src="https://opencollective.com/hledger/sponsors/badge.svg" title="Sponsor us with a $100+ monthly donation at Open Collective and get your organization's logo on our README" alt="open collective sponsors"></a>
-<a href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img border="0" src="//api.flattr.com/button/flattr-badge-large.png" alt="" title="Give monthly with Flattr" alt="flattr"></a> 
+<a href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img border="0" src="//api.flattr.com/button/flattr-badge-large.png" alt="" title="Give monthly with Flattr" alt="flattr"></a>
 <a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" title="Contribute or claim issue bounties via Bountysource" alt="bountysource"></a>
-<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img width=62 height=31 border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" title="Give one time or recurringly with Paypal" alt="paypal"></a> 
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img width=62 height=31 border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" title="Give one time or recurringly with Paypal" alt="paypal"></a>
 </div>
 
 <!-- main content -->
@@ -64,7 +63,7 @@ which can be quite educational and enjoyable.
 If you'd like more background,
 we have collected many useful resources at **[plaintextaccounting.org](http://plaintextaccounting.org)**.
 
-Read on for more about hledger, or if you're keen to get going, 
+Read on for more about hledger, or if you're keen to get going,
 **[download](download.html)** it and start the **[tutorial](step-by-step.html)** now!
 
 <!-- I use it for: -->
@@ -103,7 +102,7 @@ Read more about the differences in the [FAQ](faq.html#hledger-and-ledger).
 
 <a href="images/balance-q-inc.png" class="highslide" onclick="return hs.expand(this)"><img src="images/balance-q-inc.png" title="Balance report showing income/expense by quarter" /></a>
 
-hledger is first a command-line tool. 
+hledger is first a command-line tool.
 Your data lives in a plain text journal file which you can edit
 any way you wish; hledger reads that file and produces reports of
 various kinds, without changing your data. (It can help you add new
@@ -168,7 +167,7 @@ hledger strives to be usable, practical and to provide real-world value.
 Intuitive features, bug-free operation and complete, accurate documentation are top goals.
 Currently it is particularly suited to techies, ie users who appreciate the
 power of text files, revision control, scriptability and double entry
-accounting. 
+accounting.
 
 I've been using hledger daily and improving it since 2007.
 I needed a tool like this badly, and I hope it will keep growing and
