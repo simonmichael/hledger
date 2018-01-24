@@ -716,20 +716,39 @@ end aliases
 
 ### account directive
 
-The `account` directive predefines account names, as in Ledger and Beancount.
-This may be useful for your own documentation; hledger doesn't make use of it yet.
-
+The `account` directive predeclares account names. The simplest form is `account ACCTNAME`, eg:
 ```journal
-; account ACCT
-;   OPTIONAL COMMENTS/TAGS...
-
 account assets:bank:checking
- a comment
- acct-no:12345
+```
+Currently this mainly helps with account name autocompletion in eg 
+hledger add, hledger-iadd, hledger-web, and ledger-mode.  
+In future it will also help detect misspelled accounts.
 
-account expenses:food
+Account names can be followed by a numeric account code:
+```journal
+account assets                  1000
+account assets:bank:checking    1110
+account liabilities             2000
+account revenues                4000
+account expenses                6000
+```
+This affects account display order in reports: accounts with codes are listed before accounts without codes, in increasing code order.
+(Otherwise, accounts are listed alphabetically.) 
+Account codes should be all numeric digits, unique, and separated from the account name by at least two spaces (since account names may contain single spaces). 
+By convention, often the first digit indicates the type of account, 
+as in 
+[this numbering scheme](http://www.dwmbeancounter.com/BCTutorSite/Courses/ChartAccounts/lesson02-6.html) 
+and the example above.
+In future, we might use this to recognize account types.
 
-; etc.
+An account directive can also have indented subdirectives following it, which are currently ignored. Here is the full syntax:
+```journal
+; account ACCTNAME  [OPTIONALCODE]
+;   [OPTIONALSUBDIRECTIVES]
+
+account assets:bank:checking   1110
+  a comment
+  some-tag:12345
 ```
 
 ### apply account directive

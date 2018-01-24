@@ -45,7 +45,7 @@ txt, csv.
 : use unicode to display prettier tables.
 
 `--sort-amount`
-: sort by amount instead of account name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed. 
+: sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed. 
 
 `--budget`
 : show performance compared to budget goals defined by [periodic transactions](journal.html#periodic-transactions)
@@ -75,15 +75,15 @@ $ hledger balance
 More precisely, the balance command shows the *change* to each account's balance caused by all (matched) postings.
 In the common case where you do not filter by date and your journal sets the correct opening balances, this is the same as the account's ending balance.
 
-By default, accounts are displayed hierarchically, with subaccounts
-indented below their parent.
-"Boring" accounts, which contain a single interesting
-subaccount and no balance of their own, are elided into the following
-line for more compact output. (Use `--no-elide` to prevent this. 
-Eliding of boring accounts is not yet supported in multicolumn reports.)
+By default, accounts are displayed hierarchically, with subaccounts indented below their parent.
+At each level of the tree, accounts are sorted by [account code](/manual.html#account-directive) if any, then by account name.
+Or with `-S/--sort-amount`, by their balance amount.
 
-Each account's balance is the "inclusive" balance - it includes the
-balances of any subaccounts.
+"Boring" accounts, which contain a single interesting subaccount and 
+no balance of their own, are elided into the following line for more compact output.
+(Not yet supported in tabular reports.) Use `--no-elide` to prevent this. 
+
+Account balances are "inclusive" - they include the balances of any subaccounts.
 
 Accounts which have zero balance (and no non-zero subaccounts) are
 omitted. Use `-E/--empty` to show them.

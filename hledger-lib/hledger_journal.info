@@ -903,20 +903,41 @@ File: hledger_journal.info,  Node: account directive,  Next: apply account direc
 1.14.2 account directive
 ------------------------
 
-The 'account' directive predefines account names, as in Ledger and
-Beancount.  This may be useful for your own documentation; hledger
-doesn't make use of it yet.
-
-; account ACCT
-;   OPTIONAL COMMENTS/TAGS...
+The 'account' directive predeclares account names.  The simplest form is
+'account ACCTNAME', eg:
 
 account assets:bank:checking
- a comment
- acct-no:12345
 
-account expenses:food
+   Currently this mainly helps with account name autocompletion in eg
+hledger add, hledger-iadd, hledger-web, and ledger-mode.
+In future it will also help detect misspelled accounts.
 
-; etc.
+   Account names can be followed by a numeric account code:
+
+account assets                  1000
+account assets:bank:checking    1110
+account liabilities             2000
+account revenues                4000
+account expenses                6000
+
+   This affects account display order in reports: accounts with codes
+are listed before accounts without codes, in increasing code order.
+(Otherwise, accounts are listed alphabetically.)  Account codes should
+be all numeric digits, unique, and separated from the account name by at
+least two spaces (since account names may contain single spaces).  By
+convention, often the first digit indicates the type of account, as in
+this numbering scheme and the example above.  In future, we might use
+this to recognize account types.
+
+   An account directive can also have indented subdirectives following
+it, which are currently ignored.  Here is the full syntax:
+
+; account ACCTNAME  [OPTIONALCODE]
+;   [OPTIONALSUBDIRECTIVES]
+
+account assets:bank:checking   1110
+  a comment
+  some-tag:12345
 
 
 File: hledger_journal.info,  Node: apply account directive,  Next: Multi-line comments,  Prev: account directive,  Up: Directives
@@ -1218,23 +1239,23 @@ Node: end aliases32215
 Ref: #end-aliases32355
 Node: account directive32456
 Ref: #account-directive32636
-Node: apply account directive32932
-Ref: #apply-account-directive33128
-Node: Multi-line comments33787
-Ref: #multi-line-comments33977
-Node: commodity directive34105
-Ref: #commodity-directive34289
-Node: Default commodity35161
-Ref: #default-commodity35334
-Node: Default year35871
-Ref: #default-year36036
-Node: Including other files36459
-Ref: #including-other-files36616
-Node: Periodic transactions37013
-Ref: #periodic-transactions37184
-Node: Automated posting rules37927
-Ref: #automated-posting-rules38105
-Node: EDITOR SUPPORT39214
-Ref: #editor-support39344
+Node: apply account directive33983
+Ref: #apply-account-directive34179
+Node: Multi-line comments34838
+Ref: #multi-line-comments35028
+Node: commodity directive35156
+Ref: #commodity-directive35340
+Node: Default commodity36212
+Ref: #default-commodity36385
+Node: Default year36922
+Ref: #default-year37087
+Node: Including other files37510
+Ref: #including-other-files37667
+Node: Periodic transactions38064
+Ref: #periodic-transactions38235
+Node: Automated posting rules38978
+Ref: #automated-posting-rules39156
+Node: EDITOR SUPPORT40265
+Ref: #editor-support40395
 
 End Tag Table

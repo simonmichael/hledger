@@ -1094,7 +1094,7 @@ Show accounts and their balances.  Aliases: b, bal.
      use unicode to display prettier tables.
 '--sort-amount'
 
-     sort by amount instead of account name (in flat mode).  With
+     sort by amount instead of account code/name (in flat mode).  With
      multiple columns, sorts by the row total, or by row average if that
      is displayed.
 '--budget'
@@ -1128,14 +1128,17 @@ where you do not filter by date and your journal sets the correct
 opening balances, this is the same as the account's ending balance.
 
    By default, accounts are displayed hierarchically, with subaccounts
-indented below their parent.  "Boring" accounts, which contain a single
-interesting subaccount and no balance of their own, are elided into the
-following line for more compact output.  (Use '--no-elide' to prevent
-this.  Eliding of boring accounts is not yet supported in multicolumn
-reports.)
+indented below their parent.  At each level of the tree, accounts are
+sorted by account code if any, then by account name.  Or with
+'-S/--sort-amount', by their balance amount.
 
-   Each account's balance is the "inclusive" balance - it includes the
-balances of any subaccounts.
+   "Boring" accounts, which contain a single interesting subaccount and
+no balance of their own, are elided into the following line for more
+compact output.  (Not yet supported in tabular reports.)  Use
+'--no-elide' to prevent this.
+
+   Account balances are "inclusive" - they include the balances of any
+subaccounts.
 
    Accounts which have zero balance (and no non-zero subaccounts) are
 omitted.  Use '-E/--empty' to show them.
@@ -1537,7 +1540,7 @@ conventional financial statements, unlike balance/print/register)
      in single-column balance reports: use this custom line format
 '--sort-amount'
 
-     sort by amount instead of account name
+     sort by amount instead of account code/name
 
    Example:
 
@@ -1653,7 +1656,7 @@ statements, unlike balance/print/register) (experimental).  (cf)
      in single-column balance reports: use this custom line format
 '--sort-amount'
 
-     sort by amount instead of account name
+     sort by amount instead of account code/name
 
    Example:
 
@@ -1821,7 +1824,7 @@ unlike balance/print/register) (experimental).  (is)
      in single-column balance reports: use this custom line format
 '--sort-amount'
 
-     sort by amount instead of account name
+     sort by amount instead of account code/name
 
    This command displays a simple income statement.  It currently
 assumes that you have top-level accounts named 'income' (or 'revenue')
@@ -2429,89 +2432,89 @@ Node: add31307
 Ref: #add31406
 Node: balance34067
 Ref: #balance34178
-Node: Flat mode37552
-Ref: #flat-mode37677
-Node: Depth limited balance reports38097
-Ref: #depth-limited-balance-reports38298
-Node: Multicolumn balance reports38718
-Ref: #multicolumn-balance-reports38913
-Node: Budgets43602
-Ref: #budgets43749
-Node: Custom balance output47580
-Ref: #custom-balance-output47742
-Node: Colour support49835
-Ref: #colour-support49994
-Node: Output destination50167
-Ref: #output-destination50323
-Node: CSV output50593
-Ref: #csv-output50710
-Node: balancesheet51107
-Ref: #balancesheet51243
-Node: balancesheetequity53470
-Ref: #balancesheetequity53619
-Node: cashflow54156
-Ref: #cashflow54284
-Node: check-dates56323
-Ref: #check-dates56450
-Node: check-dupes56567
-Ref: #check-dupes56691
-Node: close56828
-Ref: #close56935
-Node: help57265
-Ref: #help57365
-Node: import58439
-Ref: #import58553
-Node: incomestatement59283
-Ref: #incomestatement59417
-Node: prices61737
-Ref: #prices61852
-Node: print61895
-Ref: #print62005
-Node: print-unique66890
-Ref: #print-unique67016
-Node: register67084
-Ref: #register67211
-Node: Custom register output71712
-Ref: #custom-register-output71841
-Node: register-match73138
-Ref: #register-match73272
-Node: rewrite73455
-Ref: #rewrite73572
-Node: stats73641
-Ref: #stats73744
-Node: tags74626
-Ref: #tags74724
-Node: test74960
-Ref: #test75044
-Node: ADD-ON COMMANDS75412
-Ref: #add-on-commands75522
-Node: Official add-ons76809
-Ref: #official-add-ons76949
-Node: api77036
-Ref: #api77125
-Node: ui77177
-Ref: #ui77276
-Node: web77334
-Ref: #web77423
-Node: Third party add-ons77469
-Ref: #third-party-add-ons77644
-Node: diff77779
-Ref: #diff77876
-Node: iadd77975
-Ref: #iadd78089
-Node: interest78172
-Ref: #interest78293
-Node: irr78388
-Ref: #irr78486
-Node: Experimental add-ons78564
-Ref: #experimental-add-ons78716
-Node: autosync79007
-Ref: #autosync79119
-Node: budget79358
-Ref: #budget79480
-Node: chart79546
-Ref: #chart79663
-Node: check79734
-Ref: #check79836
+Node: Flat mode37658
+Ref: #flat-mode37783
+Node: Depth limited balance reports38203
+Ref: #depth-limited-balance-reports38404
+Node: Multicolumn balance reports38824
+Ref: #multicolumn-balance-reports39019
+Node: Budgets43708
+Ref: #budgets43855
+Node: Custom balance output47686
+Ref: #custom-balance-output47848
+Node: Colour support49941
+Ref: #colour-support50100
+Node: Output destination50273
+Ref: #output-destination50429
+Node: CSV output50699
+Ref: #csv-output50816
+Node: balancesheet51213
+Ref: #balancesheet51349
+Node: balancesheetequity53581
+Ref: #balancesheetequity53730
+Node: cashflow54267
+Ref: #cashflow54395
+Node: check-dates56439
+Ref: #check-dates56566
+Node: check-dupes56683
+Ref: #check-dupes56807
+Node: close56944
+Ref: #close57051
+Node: help57381
+Ref: #help57481
+Node: import58555
+Ref: #import58669
+Node: incomestatement59399
+Ref: #incomestatement59533
+Node: prices61858
+Ref: #prices61973
+Node: print62016
+Ref: #print62126
+Node: print-unique67011
+Ref: #print-unique67137
+Node: register67205
+Ref: #register67332
+Node: Custom register output71833
+Ref: #custom-register-output71962
+Node: register-match73259
+Ref: #register-match73393
+Node: rewrite73576
+Ref: #rewrite73693
+Node: stats73762
+Ref: #stats73865
+Node: tags74747
+Ref: #tags74845
+Node: test75081
+Ref: #test75165
+Node: ADD-ON COMMANDS75533
+Ref: #add-on-commands75643
+Node: Official add-ons76930
+Ref: #official-add-ons77070
+Node: api77157
+Ref: #api77246
+Node: ui77298
+Ref: #ui77397
+Node: web77455
+Ref: #web77544
+Node: Third party add-ons77590
+Ref: #third-party-add-ons77765
+Node: diff77900
+Ref: #diff77997
+Node: iadd78096
+Ref: #iadd78210
+Node: interest78293
+Ref: #interest78414
+Node: irr78509
+Ref: #irr78607
+Node: Experimental add-ons78685
+Ref: #experimental-add-ons78837
+Node: autosync79128
+Ref: #autosync79240
+Node: budget79479
+Ref: #budget79601
+Node: chart79667
+Ref: #chart79784
+Node: check79855
+Ref: #check79957
 
 End Tag Table

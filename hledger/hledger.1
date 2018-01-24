@@ -1464,7 +1464,7 @@ use unicode to display prettier tables.
 .RE
 .TP
 .B \f[C]\-\-sort\-amount\f[]
-sort by amount instead of account name (in flat mode).
+sort by amount instead of account code/name (in flat mode).
 With multiple columns, sorts by the row total, or by row average if that
 is displayed.
 .RS
@@ -1510,14 +1510,18 @@ balance.
 .PP
 By default, accounts are displayed hierarchically, with subaccounts
 indented below their parent.
+At each level of the tree, accounts are sorted by account code if any,
+then by account name.
+Or with \f[C]\-S/\-\-sort\-amount\f[], by their balance amount.
+.PP
 \[lq]Boring\[rq] accounts, which contain a single interesting subaccount
 and no balance of their own, are elided into the following line for more
 compact output.
-(Use \f[C]\-\-no\-elide\f[] to prevent this.
-Eliding of boring accounts is not yet supported in multicolumn reports.)
+(Not yet supported in tabular reports.) Use \f[C]\-\-no\-elide\f[] to
+prevent this.
 .PP
-Each account's balance is the \[lq]inclusive\[rq] balance \- it includes
-the balances of any subaccounts.
+Account balances are \[lq]inclusive\[rq] \- they include the balances of
+any subaccounts.
 .PP
 Accounts which have zero balance (and no non\-zero subaccounts) are
 omitted.
@@ -1971,7 +1975,7 @@ in single\-column balance reports: use this custom line format
 .RE
 .TP
 .B \f[C]\-\-sort\-amount\f[]
-sort by amount instead of account name
+sort by amount instead of account code/name
 .RS
 .RE
 .PP
@@ -2113,7 +2117,7 @@ in single\-column balance reports: use this custom line format
 .RE
 .TP
 .B \f[C]\-\-sort\-amount\f[]
-sort by amount instead of account name
+sort by amount instead of account code/name
 .RS
 .RE
 .PP
@@ -2300,7 +2304,7 @@ in single\-column balance reports: use this custom line format
 .RE
 .TP
 .B \f[C]\-\-sort\-amount\f[]
-sort by amount instead of account name
+sort by amount instead of account code/name
 .RS
 .RE
 .PP

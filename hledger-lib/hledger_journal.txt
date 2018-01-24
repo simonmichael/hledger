@@ -690,20 +690,41 @@ FILE FORMAT
               end aliases
 
    account directive
-       The account directive predefines account names, as in Ledger and  Bean-
-       count.   This may be useful for your own documentation; hledger doesn't
-       make use of it yet.
-
-              ; account ACCT
-              ;   OPTIONAL COMMENTS/TAGS...
+       The account directive predeclares account names.  The simplest form  is
+       account ACCTNAME, eg:
 
               account assets:bank:checking
-               a comment
-               acct-no:12345
 
-              account expenses:food
+       Currently  this  mainly  helps  with  account name autocompletion in eg
+       hledger add, hledger-iadd, hledger-web, and ledger-mode.
+       In future it will also help detect misspelled accounts.
 
-              ; etc.
+       Account names can be followed by a numeric account code:
+
+              account assets                  1000
+              account assets:bank:checking    1110
+              account liabilities             2000
+              account revenues                4000
+              account expenses                6000
+
+       This affects account display order in reports: accounts with codes  are
+       listed  before accounts without codes, in increasing code order.  (Oth-
+       erwise, accounts are listed alphabetically.) Account  codes  should  be
+       all  numeric  digits, unique, and separated from the account name by at
+       least two spaces (since account names may contain single  spaces).   By
+       convention,  often the first digit indicates the type of account, as in
+       this numbering scheme and the example above.  In future, we  might  use
+       this to recognize account types.
+
+       An account directive can also have indented subdirectives following it,
+       which are currently ignored.  Here is the full syntax:
+
+              ; account ACCTNAME  [OPTIONALCODE]
+              ;   [OPTIONALSUBDIRECTIVES]
+
+              account assets:bank:checking   1110
+                a comment
+                some-tag:12345
 
    apply account directive
        You can specify a  parent  account  which  will  be  prepended  to  all
@@ -880,7 +901,6 @@ EDITOR SUPPORT
        Editor
        --------------------------------------------------------------------------
        Emacs          http://www.ledger-cli.org/3.0/doc/ledger-mode.html
-
        Vim            https://github.com/ledger/ledger/wiki/Getting-started
        Sublime Text   https://github.com/ledger/ledger/wiki/Edit-
                       ing-Ledger-files-with-Sublime-Text-or-RubyMine

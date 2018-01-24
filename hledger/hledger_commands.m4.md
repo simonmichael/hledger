@@ -218,7 +218,7 @@ _include_({{hledger_balance.m4.md}})
 : in single-column balance reports: use this custom line format
 
 `--sort-amount`
-: sort by amount instead of account name
+: sort by amount instead of account code/name
 
 Example:
 ```shell
@@ -324,7 +324,7 @@ Total:
 : in single-column balance reports: use this custom line format
 
 `--sort-amount`
-: sort by amount instead of account name
+: sort by amount instead of account code/name
 
 Example:
 ```shell
@@ -463,7 +463,7 @@ $ hledger import --dry ... | hledger -f- print unknown --ignore-assertions
 : in single-column balance reports: use this custom line format
 
 `--sort-amount`
-: sort by amount instead of account name
+: sort by amount instead of account code/name
 
 This command displays a simple
 [income statement](http://en.wikipedia.org/wiki/Income_statement).  It
