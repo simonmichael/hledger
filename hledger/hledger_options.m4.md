@@ -414,7 +414,7 @@ not [transaction prices](journal.html#transaction-prices) (unlike Ledger).
 Using -B/--cost and -V/--value together is currently allowed, but the
 results are probably not meaningful. Let us know if you find a use for this. 
 
-### Output destination
+## Output destination
 
 Some commands (print, register, stats, the balance commands) 
 can write their output to a destination other than the console. 
@@ -425,7 +425,7 @@ $ hledger balance -o -     # write to stdout (the default)
 $ hledger balance -o FILE  # write to FILE
 ```
 
-### Output format
+## Output format
 
 Some commands can write their output in other formats.
 Eg print and register can output CSV, and the balance commands can output CSV or HTML.
