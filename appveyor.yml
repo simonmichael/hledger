@@ -2,8 +2,9 @@ cache:
 - "%LOCALAPPDATA%\\Programs\\stack"
 - "c:\\project\\.stack-work"
 - "c:\\sr"  #  -> appveyor.yml
-# to force cache deletion: browse ui, open inspector,
-# $.ajax({url: 'https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache',type: 'DELETE'})
+# https://www.appveyor.com/docs/build-cache/#cleaning-up-cache
+# method 1: browse ui, open inspector, $.ajax({url: 'https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache',type: 'DELETE'})
+# method 2: curl -s -H "Authorization: Bearer $APPVEYOR_TOKEN" -H "Content-Type: application/json" -X DELETE https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache
 
 build: off
 
@@ -26,8 +27,8 @@ environment:
 #    APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
 
 test_script:
-#the j1 flag is a temporary workaround for https://github.com/commercialhaskell/stack/issues/2617, https://github.com/simonmichael/hledger/issues/424
-- stack --local-bin-path . -j1 --install-ghc build --test --copy-bins hledger hledger-web hledger-api
+- stack --local-bin-path . --install-ghc build --test --copy-bins hledger hledger-web hledger-api
+# -j1      a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+
 # --bench  benchmark doesn't run on windows yet
 #- hledger-install/hledger-install.sh
 #- make stacktest
