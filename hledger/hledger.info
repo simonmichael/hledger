@@ -1474,7 +1474,8 @@ may be needed to get pleasing results.
    * '%20(total) %2(depth_spacer)%-(account)' - the default format for
      the single-column balance report
 
-   This command also supports output destination and output formats.
+   This command also supports output destination and output format
+selection.
 
 
 File: hledger.info,  Node: Colour support,  Prev: Custom balance output,  Up: balance
@@ -1570,7 +1571,8 @@ the report mode with '--change'/'--cumulative'/'--historical'.  Normally
 balancesheet shows historical ending balances, which is what you need
 for a balance sheet; note this means it ignores report begin dates.
 
-   This command also supports output destination and output formats.
+   This command also supports output destination and output format
+selection.
 
 
 File: hledger.info,  Node: balancesheetequity,  Next: cashflow,  Prev: balancesheet,  Up: COMMANDS
@@ -1682,7 +1684,8 @@ each report period.  Normally cashflow shows changes in assets per
 period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.
 
-   This command also supports output destination and output formats.
+   This command also supports output destination and output format
+selection.
 
 
 File: hledger.info,  Node: check-dates,  Next: check-dupes,  Prev: cashflow,  Up: COMMANDS
@@ -1861,7 +1864,8 @@ each report period.  Normally incomestatement shows revenues/expenses
 per period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.
 
-   This command also supports output destination and output formats.
+   This command also supports output destination and output format
+selection.
 
 
 File: hledger.info,  Node: prices,  Next: print,  Prev: incomestatement,  Up: COMMANDS
@@ -1958,8 +1962,8 @@ $ hledger -f bank1.csv print --new
 increasing dates, and that transactions on the same day do not get
 reordered.  See also the import command.
 
-   This command also supports output destination and output formats.
-Here's an example of print's CSV output:
+   This command also supports output destination and output format
+selection.  Here's an example of print's CSV output:
 
 $ hledger print -Ocsv
 "txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"
@@ -2129,7 +2133,8 @@ $ export COLUMNS=100; hledger reg # set till session end (or window resize)
 $ hledger reg -w 100,40           # set overall width 100, description width 40
 $ hledger reg -w $COLUMNS,40      # use terminal width, and set description width
 
-   This command also supports output destination and output formats.
+   This command also supports output destination and output format
+selection.
 
 
 File: hledger.info,  Node: register-match,  Next: rewrite,  Prev: register,  Up: COMMANDS
@@ -2178,7 +2183,8 @@ Commodities              : 1 ($)
 or a matched part of it.  With a reporting interval, it shows a report
 for each report period.
 
-   This command also supports output destination and output formats.
+   This command also supports output destination and output format
+selection.
 
 
 File: hledger.info,  Node: tags,  Next: test,  Prev: stats,  Up: COMMANDS
@@ -2450,75 +2456,75 @@ Node: Budgets44692
 Ref: #budgets44839
 Node: Custom balance output48670
 Ref: #custom-balance-output48832
-Node: Colour support50989
-Ref: #colour-support51121
-Node: balancesheet51294
-Ref: #balancesheet51430
-Node: balancesheetequity53732
-Ref: #balancesheetequity53881
-Node: cashflow54418
-Ref: #cashflow54546
-Node: check-dates56660
-Ref: #check-dates56787
-Node: check-dupes56904
-Ref: #check-dupes57028
-Node: close57165
-Ref: #close57272
-Node: help57602
-Ref: #help57702
-Node: import58776
-Ref: #import58890
-Node: incomestatement59620
-Ref: #incomestatement59754
-Node: prices62149
-Ref: #prices62264
-Node: print62307
-Ref: #print62417
-Node: print-unique67301
-Ref: #print-unique67427
-Node: register67495
-Ref: #register67622
-Node: Custom register output72123
-Ref: #custom-register-output72252
-Node: register-match73473
-Ref: #register-match73607
-Node: rewrite73790
-Ref: #rewrite73907
-Node: stats73976
-Ref: #stats74079
-Node: tags74940
-Ref: #tags75038
-Node: test75274
-Ref: #test75358
-Node: ADD-ON COMMANDS75726
-Ref: #add-on-commands75836
-Node: Official add-ons77123
-Ref: #official-add-ons77263
-Node: api77350
-Ref: #api77439
-Node: ui77491
-Ref: #ui77590
-Node: web77648
-Ref: #web77737
-Node: Third party add-ons77783
-Ref: #third-party-add-ons77958
-Node: diff78093
-Ref: #diff78190
-Node: iadd78289
-Ref: #iadd78403
-Node: interest78486
-Ref: #interest78607
-Node: irr78702
-Ref: #irr78800
-Node: Experimental add-ons78878
-Ref: #experimental-add-ons79030
-Node: autosync79321
-Ref: #autosync79433
-Node: budget79672
-Ref: #budget79794
-Node: chart79860
-Ref: #chart79977
-Node: check80048
-Ref: #check80150
+Node: Colour support50998
+Ref: #colour-support51130
+Node: balancesheet51303
+Ref: #balancesheet51439
+Node: balancesheetequity53750
+Ref: #balancesheetequity53899
+Node: cashflow54436
+Ref: #cashflow54564
+Node: check-dates56687
+Ref: #check-dates56814
+Node: check-dupes56931
+Ref: #check-dupes57055
+Node: close57192
+Ref: #close57299
+Node: help57629
+Ref: #help57729
+Node: import58803
+Ref: #import58917
+Node: incomestatement59647
+Ref: #incomestatement59781
+Node: prices62185
+Ref: #prices62300
+Node: print62343
+Ref: #print62453
+Node: print-unique67347
+Ref: #print-unique67473
+Node: register67541
+Ref: #register67668
+Node: Custom register output72169
+Ref: #custom-register-output72298
+Node: register-match73528
+Ref: #register-match73662
+Node: rewrite73845
+Ref: #rewrite73962
+Node: stats74031
+Ref: #stats74134
+Node: tags75004
+Ref: #tags75102
+Node: test75338
+Ref: #test75422
+Node: ADD-ON COMMANDS75790
+Ref: #add-on-commands75900
+Node: Official add-ons77187
+Ref: #official-add-ons77327
+Node: api77414
+Ref: #api77503
+Node: ui77555
+Ref: #ui77654
+Node: web77712
+Ref: #web77801
+Node: Third party add-ons77847
+Ref: #third-party-add-ons78022
+Node: diff78157
+Ref: #diff78254
+Node: iadd78353
+Ref: #iadd78467
+Node: interest78550
+Ref: #interest78671
+Node: irr78766
+Ref: #irr78864
+Node: Experimental add-ons78942
+Ref: #experimental-add-ons79094
+Node: autosync79385
+Ref: #autosync79497
+Node: budget79736
+Ref: #budget79858
+Node: chart79924
+Ref: #chart80041
+Node: check80112
+Ref: #check80214
 
 End Tag Table

@@ -390,7 +390,7 @@ Some example formats:
 - `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
 - `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report
 
-This command also supports [output destination](/manual.html#output-destination) and [output formats](/manual.html#output-formats).
+This command also supports [output destination](/manual.html#output-destination) and [output format](/manual.html#output-format) selection.
 
 ### Colour support
 

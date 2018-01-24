@@ -1895,7 +1895,8 @@ rendered on one line
 \f[C]%20(total)\ \ %2(depth_spacer)%\-(account)\f[] \- the default
 format for the single\-column balance report
 .PP
-This command also supports output destination and output formats.
+This command also supports output destination and output format
+selection.
 .SS Colour support
 .PP
 The balance command shows negative amounts in red, if:
@@ -2014,7 +2015,8 @@ Normally balancesheet shows historical ending balances, which is what
 you need for a balance sheet; note this means it ignores report begin
 dates.
 .PP
-This command also supports output destination and output formats.
+This command also supports output destination and output format
+selection.
 .SS balancesheetequity
 .PP
 Just like balancesheet, but also reports Equity (which it assumes is
@@ -2151,7 +2153,8 @@ Normally cashflow shows changes in assets per period, though as with
 multicolumn balance reports you can alter the report mode with
 \f[C]\-\-change\f[]/\f[C]\-\-cumulative\f[]/\f[C]\-\-historical\f[].
 .PP
-This command also supports output destination and output formats.
+This command also supports output destination and output format
+selection.
 .SS check\-dates
 .PP
 Check that transactions are sorted by increasing date.
@@ -2350,7 +2353,8 @@ Normally incomestatement shows revenues/expenses per period, though as
 with multicolumn balance reports you can alter the report mode with
 \f[C]\-\-change\f[]/\f[C]\-\-cumulative\f[]/\f[C]\-\-historical\f[].
 .PP
-This command also supports output destination and output formats.
+This command also supports output destination and output format
+selection.
 .SS prices
 .PP
 Print all market prices from the journal.
@@ -2463,7 +2467,8 @@ increasing dates, and that transactions on the same day do not get
 reordered.
 See also the import command.
 .PP
-This command also supports output destination and output formats.
+This command also supports output destination and output format
+selection.
 Here's an example of print's CSV output:
 .IP
 .nf
@@ -2675,7 +2680,8 @@ $\ hledger\ reg\ \-w\ $COLUMNS,40\ \ \ \ \ \ #\ use\ terminal\ width,\ and\ set\
 \f[]
 .fi
 .PP
-This command also supports output destination and output formats.
+This command also supports output destination and output format
+selection.
 .SS register\-match
 .PP
 Print the one posting whose transaction description is closest to DESC,
@@ -2714,7 +2720,8 @@ The stats command displays summary information for the whole journal, or
 a matched part of it.
 With a reporting interval, it shows a report for each report period.
 .PP
-This command also supports output destination and output formats.
+This command also supports output destination and output format
+selection.
 .SS tags
 .PP
 List all the tag names used in the journal.
