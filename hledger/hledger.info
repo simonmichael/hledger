@@ -681,6 +681,37 @@ File: hledger.info,  Node: Combining -B and -V,  Next: Regular expressions,  Pre
 Using -B/-cost and -V/-value together is currently allowed, but the
 results are probably not meaningful.  Let us know if you find a use for
 this.
+* Menu:
+
+* Output destination::
+* Output format::
+
+
+File: hledger.info,  Node: Output destination,  Next: Output format,  Up: Combining -B and -V
+
+2.15.1 Output destination
+-------------------------
+
+Some commands (print, register, stats, the balance commands) can write
+their output to a destination other than the console.  This is
+controlled by the '-o/--output-file' option.
+
+$ hledger balance -o -     # write to stdout (the default)
+$ hledger balance -o FILE  # write to FILE
+
+
+File: hledger.info,  Node: Output format,  Prev: Output destination,  Up: Combining -B and -V
+
+2.15.2 Output format
+--------------------
+
+Some commands can write their output in other formats.  Eg print and
+register can output CSV, and the balance commands can output CSV or
+HTML. This is controlled by the '-O/--output-format' option, or by
+specifying a '.csv' or '.html' file extension with '-o/--output-file'.
+
+$ hledger balance -O csv       # write CSV to stdout
+$ hledger balance -o FILE.csv  # write CSV to FILE.csv
 
 
 File: hledger.info,  Node: Regular expressions,  Prev: Combining -B and -V,  Up: OPTIONS
@@ -1084,7 +1115,7 @@ Show accounts and their balances.  Aliases: b, bal.
      in single-column balance reports: use this custom line format
 '-O FMT --output-format=FMT'
 
-     select the output format.  Supported formats: txt, csv.
+     select the output format.  Supported formats: txt, csv, html.
 '-o FILE --output-file=FILE'
 
      write output to FILE. A file extension matching one of the above
@@ -1159,8 +1190,6 @@ $ hledger balance -p 2008/6 expenses --no-total
 * Budgets::
 * Custom balance output::
 * Colour support::
-* Output destination::
-* CSV output::
 
 
 File: hledger.info,  Node: Flat mode,  Next: Depth limited balance reports,  Up: balance
@@ -1393,8 +1422,8 @@ File: hledger.info,  Node: Custom balance output,  Next: Colour support,  Prev: 
 4.4.5 Custom balance output
 ---------------------------
 
-In simple (non-multi-column) balance reports, you can customise the
-output with '--format FMT':
+You can customise the layout of simple (non-tabular) balance reports
+with '--format FMT':
 
 $ hledger balance --format "%20(account) %12(total)"
               assets          $-1
@@ -1447,8 +1476,10 @@ may be needed to get pleasing results.
    * '%20(total) %2(depth_spacer)%-(account)' - the default format for
      the single-column balance report
 
+   This command also supports output destination and output formats.
+
 
-File: hledger.info,  Node: Colour support,  Next: Output destination,  Prev: Custom balance output,  Up: balance
+File: hledger.info,  Node: Colour support,  Prev: Custom balance output,  Up: balance
 
 4.4.6 Colour support
 --------------------
@@ -1457,34 +1488,6 @@ The balance command shows negative amounts in red, if:
 
    * the 'TERM' environment variable is not set to 'dumb'
    * the output is not being redirected or piped anywhere
-
-
-File: hledger.info,  Node: Output destination,  Next: CSV output,  Prev: Colour support,  Up: balance
-
-4.4.7 Output destination
-------------------------
-
-The balance, print, register and stats commands can write their output
-to a destination other than the console.  This is controlled by the
-'-o/--output-file' option.
-
-$ hledger balance -o -     # write to stdout (the default)
-$ hledger balance -o FILE  # write to FILE
-
-
-File: hledger.info,  Node: CSV output,  Prev: Output destination,  Up: balance
-
-4.4.8 CSV output
-----------------
-
-The balance, print and register commands can write their output as CSV.
-This is useful for exporting data to other applications, eg to make
-charts in a spreadsheet.  This is controlled by the '-O/--output-format'
-option, or by specifying a '.csv' file extension with
-'-o/--output-file'.
-
-$ hledger balance -O csv       # write CSV to stdout
-$ hledger balance -o FILE.csv  # write CSV to FILE.csv
 
 
 File: hledger.info,  Node: balancesheet,  Next: balancesheetequity,  Prev: balance,  Up: COMMANDS
@@ -1568,6 +1571,8 @@ each report period.  As with multicolumn balance reports, you can alter
 the report mode with '--change'/'--cumulative'/'--historical'.  Normally
 balancesheet shows historical ending balances, which is what you need
 for a balance sheet; note this means it ignores report begin dates.
+
+   This command also supports output destination and output formats.
 
 
 File: hledger.info,  Node: balancesheetequity,  Next: cashflow,  Prev: balancesheet,  Up: COMMANDS
@@ -1678,6 +1683,8 @@ Total:
 each report period.  Normally cashflow shows changes in assets per
 period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.
+
+   This command also supports output destination and output formats.
 
 
 File: hledger.info,  Node: check-dates,  Next: check-dupes,  Prev: cashflow,  Up: COMMANDS
@@ -1856,6 +1863,8 @@ each report period.  Normally incomestatement shows revenues/expenses
 per period, though as with multicolumn balance reports you can alter the
 report mode with '--change'/'--cumulative'/'--historical'.
 
+   This command also supports output destination and output formats.
+
 
 File: hledger.info,  Node: prices,  Next: print,  Prev: incomestatement,  Up: COMMANDS
 
@@ -1951,7 +1960,7 @@ $ hledger -f bank1.csv print --new
 increasing dates, and that transactions on the same day do not get
 reordered.  See also the import command.
 
-   The print command also supports output destination and CSV output.
+   This command also supports output destination and output formats.
 Here's an example of print's CSV output:
 
 $ hledger print -Ocsv
@@ -2122,9 +2131,7 @@ $ export COLUMNS=100; hledger reg # set till session end (or window resize)
 $ hledger reg -w 100,40           # set overall width 100, description width 40
 $ hledger reg -w $COLUMNS,40      # use terminal width, and set description width
 
-   The register command also supports the '-o/--output-file' and
-'-O/--output-format' options for controlling output destination and CSV
-output.
+   This command also supports output destination and output formats.
 
 
 File: hledger.info,  Node: register-match,  Next: rewrite,  Prev: register,  Up: COMMANDS
@@ -2173,8 +2180,7 @@ Commodities              : 1 ($)
 or a matched part of it.  With a reporting interval, it shows a report
 for each report period.
 
-   The stats command also supports '-o/--output-file' for controlling
-output destination.
+   This command also supports output destination and output formats.
 
 
 File: hledger.info,  Node: tags,  Next: test,  Prev: stats,  Up: COMMANDS
@@ -2418,103 +2424,103 @@ Node: Market value21197
 Ref: #market-value21332
 Node: Combining -B and -V22515
 Ref: #combining--b-and--v22679
-Node: Regular expressions22826
-Ref: #regular-expressions22969
-Node: QUERIES24330
-Ref: #queries24432
-Node: COMMANDS28399
-Ref: #commands28511
-Node: accounts29493
-Ref: #accounts29591
-Node: activity30837
-Ref: #activity30947
-Node: add31307
-Ref: #add31406
-Node: balance34067
-Ref: #balance34178
-Node: Flat mode37658
-Ref: #flat-mode37783
-Node: Depth limited balance reports38203
-Ref: #depth-limited-balance-reports38404
-Node: Multicolumn balance reports38824
-Ref: #multicolumn-balance-reports39019
-Node: Budgets43708
-Ref: #budgets43855
-Node: Custom balance output47686
-Ref: #custom-balance-output47848
-Node: Colour support49941
-Ref: #colour-support50100
-Node: Output destination50273
-Ref: #output-destination50429
-Node: CSV output50699
-Ref: #csv-output50816
-Node: balancesheet51213
-Ref: #balancesheet51349
-Node: balancesheetequity53581
-Ref: #balancesheetequity53730
-Node: cashflow54267
-Ref: #cashflow54395
-Node: check-dates56439
-Ref: #check-dates56566
-Node: check-dupes56683
-Ref: #check-dupes56807
-Node: close56944
-Ref: #close57051
-Node: help57381
-Ref: #help57481
-Node: import58555
-Ref: #import58669
-Node: incomestatement59399
-Ref: #incomestatement59533
-Node: prices61858
-Ref: #prices61973
-Node: print62016
-Ref: #print62126
-Node: print-unique67011
-Ref: #print-unique67137
-Node: register67205
-Ref: #register67332
-Node: Custom register output71833
-Ref: #custom-register-output71962
-Node: register-match73259
-Ref: #register-match73393
-Node: rewrite73576
-Ref: #rewrite73693
-Node: stats73762
-Ref: #stats73865
-Node: tags74747
-Ref: #tags74845
-Node: test75081
-Ref: #test75165
-Node: ADD-ON COMMANDS75533
-Ref: #add-on-commands75643
-Node: Official add-ons76930
-Ref: #official-add-ons77070
-Node: api77157
-Ref: #api77246
-Node: ui77298
-Ref: #ui77397
-Node: web77455
-Ref: #web77544
-Node: Third party add-ons77590
-Ref: #third-party-add-ons77765
-Node: diff77900
-Ref: #diff77997
-Node: iadd78096
-Ref: #iadd78210
-Node: interest78293
-Ref: #interest78414
-Node: irr78509
-Ref: #irr78607
-Node: Experimental add-ons78685
-Ref: #experimental-add-ons78837
-Node: autosync79128
-Ref: #autosync79240
-Node: budget79479
-Ref: #budget79601
-Node: chart79667
-Ref: #chart79784
-Node: check79855
-Ref: #check79957
+Node: Output destination22876
+Ref: #output-destination23026
+Node: Output format23309
+Ref: #output-format23449
+Node: Regular expressions23834
+Ref: #regular-expressions23977
+Node: QUERIES25338
+Ref: #queries25440
+Node: COMMANDS29407
+Ref: #commands29519
+Node: accounts30501
+Ref: #accounts30599
+Node: activity31845
+Ref: #activity31955
+Node: add32315
+Ref: #add32414
+Node: balance35075
+Ref: #balance35186
+Node: Flat mode38634
+Ref: #flat-mode38759
+Node: Depth limited balance reports39179
+Ref: #depth-limited-balance-reports39380
+Node: Multicolumn balance reports39800
+Ref: #multicolumn-balance-reports39995
+Node: Budgets44684
+Ref: #budgets44831
+Node: Custom balance output48662
+Ref: #custom-balance-output48824
+Node: Colour support50981
+Ref: #colour-support51113
+Node: balancesheet51286
+Ref: #balancesheet51422
+Node: balancesheetequity53724
+Ref: #balancesheetequity53873
+Node: cashflow54410
+Ref: #cashflow54538
+Node: check-dates56652
+Ref: #check-dates56779
+Node: check-dupes56896
+Ref: #check-dupes57020
+Node: close57157
+Ref: #close57264
+Node: help57594
+Ref: #help57694
+Node: import58768
+Ref: #import58882
+Node: incomestatement59612
+Ref: #incomestatement59746
+Node: prices62141
+Ref: #prices62256
+Node: print62299
+Ref: #print62409
+Node: print-unique67293
+Ref: #print-unique67419
+Node: register67487
+Ref: #register67614
+Node: Custom register output72115
+Ref: #custom-register-output72244
+Node: register-match73465
+Ref: #register-match73599
+Node: rewrite73782
+Ref: #rewrite73899
+Node: stats73968
+Ref: #stats74071
+Node: tags74932
+Ref: #tags75030
+Node: test75266
+Ref: #test75350
+Node: ADD-ON COMMANDS75718
+Ref: #add-on-commands75828
+Node: Official add-ons77115
+Ref: #official-add-ons77255
+Node: api77342
+Ref: #api77431
+Node: ui77483
+Ref: #ui77582
+Node: web77640
+Ref: #web77729
+Node: Third party add-ons77775
+Ref: #third-party-add-ons77950
+Node: diff78085
+Ref: #diff78182
+Node: iadd78281
+Ref: #iadd78395
+Node: interest78478
+Ref: #interest78599
+Node: irr78694
+Ref: #irr78792
+Node: Experimental add-ons78870
+Ref: #experimental-add-ons79022
+Node: autosync79313
+Ref: #autosync79425
+Node: budget79664
+Ref: #budget79786
+Node: chart79852
+Ref: #chart79969
+Node: check80040
+Ref: #check80142
 
 End Tag Table

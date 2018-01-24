@@ -414,6 +414,28 @@ not [transaction prices](journal.html#transaction-prices) (unlike Ledger).
 Using -B/--cost and -V/--value together is currently allowed, but the
 results are probably not meaningful. Let us know if you find a use for this. 
 
+### Output destination
+
+Some commands (print, register, stats, the balance commands) 
+can write their output to a destination other than the console. 
+This is controlled by the `-o/--output-file` option.
+
+```shell
+$ hledger balance -o -     # write to stdout (the default)
+$ hledger balance -o FILE  # write to FILE
+```
+
+### Output format
+
+Some commands can write their output in other formats.
+Eg print and register can output CSV, and the balance commands can output CSV or HTML.
+This is controlled by the `-O/--output-format` option, or by specifying a `.csv` or `.html` file extension with `-o/--output-file`.
+
+```shell
+$ hledger balance -O csv       # write CSV to stdout
+$ hledger balance -o FILE.csv  # write CSV to FILE.csv
+```
+
 ## Regular expressions
 
 hledger uses [regular expressions](http://www.regular-expressions.info) in a number of places:

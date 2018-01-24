@@ -987,6 +987,33 @@ directives, not transaction prices (unlike Ledger).
 Using \-B/\[en]cost and \-V/\[en]value together is currently allowed,
 but the results are probably not meaningful.
 Let us know if you find a use for this.
+.SS Output destination
+.PP
+Some commands (print, register, stats, the balance commands) can write
+their output to a destination other than the console.
+This is controlled by the \f[C]\-o/\-\-output\-file\f[] option.
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-o\ \-\ \ \ \ \ #\ write\ to\ stdout\ (the\ default)
+$\ hledger\ balance\ \-o\ FILE\ \ #\ write\ to\ FILE
+\f[]
+.fi
+.SS Output format
+.PP
+Some commands can write their output in other formats.
+Eg print and register can output CSV, and the balance commands can
+output CSV or HTML.
+This is controlled by the \f[C]\-O/\-\-output\-format\f[] option, or by
+specifying a \f[C]\&.csv\f[] or \f[C]\&.html\f[] file extension with
+\f[C]\-o/\-\-output\-file\f[].
+.IP
+.nf
+\f[C]
+$\ hledger\ balance\ \-O\ csv\ \ \ \ \ \ \ #\ write\ CSV\ to\ stdout
+$\ hledger\ balance\ \-o\ FILE.csv\ \ #\ write\ CSV\ to\ FILE.csv
+\f[]
+.fi
 .SS Regular expressions
 .PP
 hledger uses regular expressions in a number of places:
@@ -1448,7 +1475,7 @@ in single\-column balance reports: use this custom line format
 .TP
 .B \f[C]\-O\ FMT\ \-\-output\-format=FMT\f[]
 select the output format.
-Supported formats: txt, csv.
+Supported formats: txt, csv, html.
 .RS
 .RE
 .TP
@@ -1798,8 +1825,8 @@ Balance\ changes\ in\ 2017/11/01\-2017/12/31:
 For more examples and details, see Budgeting and Forecasting.
 .SS Custom balance output
 .PP
-In simple (non\-multi\-column) balance reports, you can customise the
-output with \f[C]\-\-format\ FMT\f[]:
+You can customise the layout of simple (non\-tabular) balance reports
+with \f[C]\-\-format\ FMT\f[]:
 .IP
 .nf
 \f[C]
@@ -1867,6 +1894,8 @@ rendered on one line
 .IP \[bu] 2
 \f[C]%20(total)\ \ %2(depth_spacer)%\-(account)\f[] \- the default
 format for the single\-column balance report
+.PP
+This command also supports output destination and output formats.
 .SS Colour support
 .PP
 The balance command shows negative amounts in red, if:
@@ -1874,33 +1903,6 @@ The balance command shows negative amounts in red, if:
 the \f[C]TERM\f[] environment variable is not set to \f[C]dumb\f[]
 .IP \[bu] 2
 the output is not being redirected or piped anywhere
-.SS Output destination
-.PP
-The balance, print, register and stats commands can write their output
-to a destination other than the console.
-This is controlled by the \f[C]\-o/\-\-output\-file\f[] option.
-.IP
-.nf
-\f[C]
-$\ hledger\ balance\ \-o\ \-\ \ \ \ \ #\ write\ to\ stdout\ (the\ default)
-$\ hledger\ balance\ \-o\ FILE\ \ #\ write\ to\ FILE
-\f[]
-.fi
-.SS CSV output
-.PP
-The balance, print and register commands can write their output as CSV.
-This is useful for exporting data to other applications, eg to make
-charts in a spreadsheet.
-This is controlled by the \f[C]\-O/\-\-output\-format\f[] option, or by
-specifying a \f[C]\&.csv\f[] file extension with
-\f[C]\-o/\-\-output\-file\f[].
-.IP
-.nf
-\f[C]
-$\ hledger\ balance\ \-O\ csv\ \ \ \ \ \ \ #\ write\ CSV\ to\ stdout
-$\ hledger\ balance\ \-o\ FILE.csv\ \ #\ write\ CSV\ to\ FILE.csv
-\f[]
-.fi
 .SS balancesheet
 .PP
 This command displays a simple balance sheet, showing historical ending
@@ -2011,6 +2013,8 @@ As with multicolumn balance reports, you can alter the report mode with
 Normally balancesheet shows historical ending balances, which is what
 you need for a balance sheet; note this means it ignores report begin
 dates.
+.PP
+This command also supports output destination and output formats.
 .SS balancesheetequity
 .PP
 Just like balancesheet, but also reports Equity (which it assumes is
@@ -2146,6 +2150,8 @@ report period.
 Normally cashflow shows changes in assets per period, though as with
 multicolumn balance reports you can alter the report mode with
 \f[C]\-\-change\f[]/\f[C]\-\-cumulative\f[]/\f[C]\-\-historical\f[].
+.PP
+This command also supports output destination and output formats.
 .SS check\-dates
 .PP
 Check that transactions are sorted by increasing date.
@@ -2343,6 +2349,8 @@ report period.
 Normally incomestatement shows revenues/expenses per period, though as
 with multicolumn balance reports you can alter the report mode with
 \f[C]\-\-change\f[]/\f[C]\-\-cumulative\f[]/\f[C]\-\-historical\f[].
+.PP
+This command also supports output destination and output formats.
 .SS prices
 .PP
 Print all market prices from the journal.
@@ -2455,7 +2463,7 @@ increasing dates, and that transactions on the same day do not get
 reordered.
 See also the import command.
 .PP
-The print command also supports output destination and CSV output.
+This command also supports output destination and output formats.
 Here's an example of print's CSV output:
 .IP
 .nf
@@ -2667,9 +2675,7 @@ $\ hledger\ reg\ \-w\ $COLUMNS,40\ \ \ \ \ \ #\ use\ terminal\ width,\ and\ set\
 \f[]
 .fi
 .PP
-The register command also supports the \f[C]\-o/\-\-output\-file\f[] and
-\f[C]\-O/\-\-output\-format\f[] options for controlling output
-destination and CSV output.
+This command also supports output destination and output formats.
 .SS register\-match
 .PP
 Print the one posting whose transaction description is closest to DESC,
@@ -2708,8 +2714,7 @@ The stats command displays summary information for the whole journal, or
 a matched part of it.
 With a reporting interval, it shows a report for each report period.
 .PP
-The stats command also supports \f[C]\-o/\-\-output\-file\f[] for
-controlling output destination.
+This command also supports output destination and output formats.
 .SS tags
 .PP
 List all the tag names used in the journal.

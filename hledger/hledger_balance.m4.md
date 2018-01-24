@@ -36,7 +36,7 @@ Show accounts and their balances. Aliases: b, bal.
 
 `-O FMT --output-format=FMT     `
 : select the output format. Supported formats:
-txt, csv.
+txt, csv, html.
 
 `-o FILE --output-file=FILE`
 : write output to FILE.  A file extension matching one of the above formats selects that format.
@@ -336,8 +336,7 @@ For more examples and details, see [Budgeting and Forecasting](budgeting-and-for
 
 ### Custom balance output
 
-In simple (non-multi-column) balance reports, you can customise the
-output with `--format FMT`:
+You can customise the layout of simple (non-tabular) balance reports with `--format FMT`:
 
 ```shell
 $ hledger balance --format "%20(account) %12(total)"
@@ -391,6 +390,8 @@ Some example formats:
 - `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
 - `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report
 
+This command also supports [output destination](/manual.html#output-destination) and [output formats](/manual.html#output-formats).
+
 ### Colour support
 
 The balance command shows negative amounts in red, if:
@@ -398,27 +399,4 @@ The balance command shows negative amounts in red, if:
 - the `TERM` environment variable is not set to `dumb`
 - the output is not being redirected or piped anywhere
 
-### Output destination
-
-The balance, print, register and stats commands can write their output to a
-destination other than the console. This is controlled by the
-`-o/--output-file` option.
-
-```shell
-$ hledger balance -o -     # write to stdout (the default)
-$ hledger balance -o FILE  # write to FILE
-```
-
-### CSV output
-
-The balance, print and register commands can write their output as
-CSV. This is useful for exporting data to other applications, eg to
-make charts in a spreadsheet. This is controlled by the
-`-O/--output-format` option, or by specifying a `.csv` file extension
-with `-o/--output-file`.
-
-```shell
-$ hledger balance -O csv       # write CSV to stdout
-$ hledger balance -o FILE.csv  # write CSV to FILE.csv
-```
 

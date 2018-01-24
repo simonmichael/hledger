@@ -250,6 +250,8 @@ Normally balancesheet shows historical ending balances, which is what
 you need for a balance sheet; note this means it ignores report begin
 dates.
 
+This command also supports [output destination](/manual.html#output-destination) and [output formats](/manual.html#output-formats).
+
 ## balancesheetequity
 Just like [balancesheet](#balancesheet), but also reports Equity
 (which it assumes is under a top-level `equity` account).
@@ -348,6 +350,8 @@ will be shown, one for each report period.
 Normally cashflow shows changes in assets per period, though
 as with [multicolumn balance reports](#multicolumn-balance-reports)
 you can alter the report mode with `--change`/`--cumulative`/`--historical`.
+
+This command also supports [output destination](/manual.html#output-destination) and [output formats](/manual.html#output-formats).
 
 ## check-dates
 Check that transactions are sorted by increasing date.
@@ -499,6 +503,8 @@ Normally incomestatement shows revenues/expenses per period, though
 as with [multicolumn balance reports](#multicolumn-balance-reports)
 you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 
+This command also supports [output destination](/manual.html#output-destination) and [output formats](/manual.html#output-formats).
+
 ## prices
 Print all [market prices](/manual#market-prices) from the journal.
 
@@ -579,10 +585,7 @@ This assumes that transactions added to FILE always have same or increasing date
 and that transactions on the same day do not get reordered.
 See also the [import](#import) command.    
 
-The print command also supports 
-[output destination](#output-destination)
-and
-[CSV output](#csv-output).
+This command also supports [output destination](/manual.html#output-destination) and [output formats](/manual.html#output-formats).
 Here's an example of print's CSV output:
 ```shell
 $ hledger print -Ocsv
@@ -737,9 +740,7 @@ $ hledger reg -w 100,40           # set overall width 100, description width 40
 $ hledger reg -w $COLUMNS,40      # use terminal width, and set description width
 ```
 
-The register command also supports the
-`-o/--output-file` and `-O/--output-format` options for controlling
-[output destination](#output-destination) and [CSV output](#csv-output).
+This command also supports [output destination](/manual.html#output-destination) and [output formats](/manual.html#output-formats).
 
 ## register-match
 Print the one posting whose transaction description is closest to DESC, 
@@ -773,8 +774,7 @@ The stats command displays summary information for the whole journal, or
 a matched part of it. With a [reporting interval](#reporting-interval),
 it shows a report for each report period.
 
-The stats command also supports `-o/--output-file`
-for controlling [output destination](#output-destination).
+This command also supports [output destination](/manual.html#output-destination) and [output formats](/manual.html#output-formats).
 
 ## tags
 List all the tag names used in the journal. With a TAGREGEX argument,
