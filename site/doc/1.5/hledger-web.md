@@ -24,13 +24,12 @@ ledger(1).
 .highslide img {max-width:200px; border:thin grey solid; margin:0 0 1em 1em; }
 .highslide-caption {color:white; background-color:black;}
 </style>
-::: {style="float:right; max-width:200px; text-align:right;"}
+<div style="float:right; max-width:200px; text-align:right;">
 <a href="images/hledger-web/normal/register.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/register.png" title="Account register view with accounts sidebar" /></a>
 <a href="images/hledger-web/normal/journal.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/journal.png" title="Journal view" /></a>
 <a href="images/hledger-web/normal/help.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/help.png" title="Help dialog" /></a>
 <a href="images/hledger-web/normal/add.png" class="highslide" onclick="return hs.expand(this)"><img src="images/hledger-web/normal/add.png" title="Add form" /></a>
-:::
-
+</div>
 hledger-web is hledger's web interface. It starts a simple web
 application for browsing and adding transactions, and optionally opens
 it in a web browser window if possible. It provides a more user-friendly
