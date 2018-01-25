@@ -294,7 +294,7 @@ main = do
       liftIO $ writeFile out $ "# " ++ heading ++ "\n\n"
       cmd Shell
         "m4 -P -DMAN -DWEB -I" dir lib src "|"
-        pandoc "-f markdown -t markdown --atx-headers"
+        pandoc "-f markdown -t markdown-fenced_divs --atx-headers"
         "--filter tools/pandoc-demote-headers"
         -- "--filter tools/pandoc-add-toc"
         -- "--filter tools/pandoc-drop-man-blocks"
@@ -308,7 +308,7 @@ main = do
       liftIO $ writeFile webmanall "* toc\n\n" -- # Big Manual\n\n -- TOC style is better without main heading,
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
         cmd Shell ("printf '\\n\\n' >>") webmanall :: Action ExitCode
-        cmd Shell "pandoc" f "-t markdown --atx-headers"
+        cmd Shell "pandoc" f "-t markdown-fenced_divs --atx-headers"
           -- "--filter tools/pandoc-drop-man-blocks"
           "--filter tools/pandoc-drop-toc"
           -- "--filter tools/pandoc-capitalize-headers"
@@ -323,7 +323,7 @@ main = do
       liftIO $ writeFile guideall "* toc\n\n"  -- # User Guide\n\n -- TOC style is better without main heading, 
       forM_ guidepages $ \f -> do -- site/csv-import.md, site/account-aliases.md, ...
         cmd Shell ("printf '\\n\\n' >>") guideall :: Action ExitCode
-        cmd Shell "pandoc" f "-t markdown --atx-headers"
+        cmd Shell "pandoc" f "-t markdown-fenced_divs --atx-headers"
           -- "--filter tools/pandoc-drop-man-blocks"
           "--filter tools/pandoc-drop-toc"
           -- "--filter tools/pandoc-capitalize-headers"
