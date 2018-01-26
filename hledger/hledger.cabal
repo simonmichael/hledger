@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dd03cb6cac12f8e524583863aef51ed01ef1c5fb45efb109ad478be0d14aa5d1
+-- hash: 4f6f5987e53fdedbadc89cb204e1c986bd36c663a71808e642eefe15edebe72f
 
 name:           hledger
 version:        1.5.99
@@ -56,6 +56,9 @@ extra-source-files:
     embeddedfiles/hledger_timedot.5
     embeddedfiles/hledger_timedot.info
     embeddedfiles/hledger_timedot.txt
+    hledger.1
+    hledger.info
+    hledger.txt
     README.md
     test/test.hs
 

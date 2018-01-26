@@ -27,6 +27,9 @@ extra-source-files:
 - README.md
 - test/test.hs
 - bench/10000x1000x10.journal
+- hledger.1
+- hledger.txt
+- hledger.info
 - embeddedfiles/hledger.1
 - embeddedfiles/hledger.txt
 - embeddedfiles/hledger.info
