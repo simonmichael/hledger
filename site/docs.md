@@ -141,8 +141,6 @@ is for human-friendly approximate time logging
 
 ### Addon tools
 
-(cf [download -> D](download.html#d))
-
 [hledger-diff](http://hackage.haskell.org/package/hledger-diff)
 shows differences in an account's transactions between one journal file and another.
 
