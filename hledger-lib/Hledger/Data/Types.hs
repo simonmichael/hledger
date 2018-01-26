@@ -1,4 +1,6 @@
 {-# LANGUAGE CPP, DeriveDataTypeable, StandaloneDeriving, DeriveGeneric, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-|
 
 Most data types are defined here to avoid import cycles.
@@ -33,9 +35,14 @@ import Data.Text (Text)
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (ClockTime(..))
+import Data.Aeson
 
 import Hledger.Utils.Regex
 
+
+-- todo: see if this needs to be moved to another file
+instance ToJSON Decimal where
+  toJSON = toJSON . show
 
 type SmartDate = (String,String,String)
 
@@ -115,6 +122,7 @@ instance NFData AccountAlias
 data Side = L | R deriving (Eq,Show,Read,Ord,Typeable,Data,Generic)
 
 instance NFData Side
+instance ToJSON Side where toJSON = genericToJSON defaultOptions
 
 -- | The basic numeric type used in amounts.
 type Quantity = Decimal
@@ -130,6 +138,7 @@ instance ToMarkup (Quantity)
 data Price = NoPrice | UnitPrice Amount | TotalPrice Amount deriving (Eq,Ord,Typeable,Data,Generic)
 
 instance NFData Price
+instance ToJSON Price where toJSON = genericToJSON defaultOptions
 
 -- | Display style for an amount.
 data AmountStyle = AmountStyle {
@@ -141,6 +150,7 @@ data AmountStyle = AmountStyle {
 } deriving (Eq,Ord,Read,Show,Typeable,Data,Generic)
 
 instance NFData AmountStyle
+instance ToJSON AmountStyle where toJSON = genericToJSON defaultOptions
 
 -- | A style for displaying digit groups in the integer part of a
 -- floating point number. It consists of the character used to
@@ -152,6 +162,7 @@ data DigitGroupStyle = DigitGroups Char [Int]
   deriving (Eq,Ord,Read,Show,Typeable,Data,Generic)
 
 instance NFData DigitGroupStyle
+instance ToJSON DigitGroupStyle where toJSON = genericToJSON defaultOptions
 
 type CommoditySymbol = Text
 
@@ -171,15 +182,18 @@ data Amount = Amount {
     } deriving (Eq,Ord,Typeable,Data,Generic)
 
 instance NFData Amount
+instance ToJSON Amount where toJSON = genericToJSON defaultOptions
 
 newtype MixedAmount = Mixed [Amount] deriving (Eq,Ord,Typeable,Data,Generic)
 
 instance NFData MixedAmount
+instance ToJSON MixedAmount where toJSON = genericToJSON defaultOptions
 
 data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
                    deriving (Eq,Show,Typeable,Data,Generic)
 
 instance NFData PostingType
+instance ToJSON PostingType where toJSON = genericToJSON defaultOptions
 
 type TagName = Text
 type TagValue = Text
@@ -191,6 +205,7 @@ data Status = Unmarked | Pending | Cleared
   deriving (Eq,Ord,Bounded,Enum,Typeable,Data,Generic)
 
 instance NFData Status
+instance ToJSON Status where toJSON = genericToJSON defaultOptions
 
 instance Show Status where -- custom show.. bad idea.. don't do it..
   show Unmarked = ""
@@ -215,6 +230,20 @@ data Posting = Posting {
     } deriving (Typeable,Data,Generic)
 
 instance NFData Posting
+instance ToJSON Posting where
+  toJSON Posting{..} =
+    object
+    ["pdate"             .= toJSON pdate
+    ,"pdate2"            .= toJSON pdate2
+    ,"pstatus"           .= toJSON pstatus
+    ,"paccount"          .= toJSON paccount
+    ,"pamount"           .= toJSON pamount
+    ,"pcomment"          .= toJSON pcomment
+    ,"ptype"             .= toJSON ptype
+    ,"ptags"             .= toJSON ptags
+    ,"pbalanceassertion" .= toJSON pbalanceassertion
+    ,"ptransactionidx"   .= toJSON (maybe "" (show.tindex) ptransaction)
+    ]
 
 -- The equality test for postings ignores the parent transaction's
 -- identity, to avoid infinite loops.
@@ -228,6 +257,7 @@ data GenericSourcePos = GenericSourcePos FilePath Int Int    -- ^ name, 1-based 
   deriving (Eq, Read, Show, Ord, Data, Generic, Typeable)
 
 instance NFData GenericSourcePos
+instance ToJSON GenericSourcePos where toJSON = genericToJSON defaultOptions
 
 data Transaction = Transaction {
       tindex                   :: Integer,   -- ^ this transaction's 1-based position in the input stream, or 0 when not available
@@ -244,6 +274,7 @@ data Transaction = Transaction {
     } deriving (Eq,Typeable,Data,Generic)
 
 instance NFData Transaction
+instance ToJSON Transaction where toJSON = genericToJSON defaultOptions
 
 data ModifierTransaction = ModifierTransaction {
       mtvalueexpr :: Text,
@@ -280,6 +311,7 @@ data MarketPrice = MarketPrice {
     } deriving (Eq,Ord,Typeable,Data,Generic) -- & Show (in Amount.hs)
 
 instance NFData MarketPrice
+instance ToJSON MarketPrice where toJSON = genericToJSON defaultOptions
 
 -- | A Journal, containing transactions and various other things.
 -- The basic data model for hledger.
@@ -363,6 +395,18 @@ data Account = Account {
   aparent                   :: Maybe Account, -- ^ parent account
   aboring                   :: Bool           -- ^ used in the accounts report to label elidable parents
   } deriving (Typeable, Data, Generic)
+
+instance ToJSON Account where
+  toJSON a =
+    object
+    ["aname"        .= toJSON (aname a)
+    ,"aebalance"    .= toJSON (aebalance a)
+    ,"aibalance"    .= toJSON (aibalance a)
+    ,"anumpostings" .= toJSON (anumpostings a)
+    ,"aboring"      .= toJSON (aboring a)
+    ,"aparentname"  .= toJSON (maybe "" aname $ aparent a)
+    ,"asubs"        .= toJSON (map toJSON $ asubs a)
+    ]
 
 -- | Whether an account's balance is normally a positive number (in 
 -- accounting terms, a debit balance) or a negative number (credit balance). 

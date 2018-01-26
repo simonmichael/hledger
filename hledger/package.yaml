@@ -88,6 +88,7 @@ dependencies:
 - time >=1.5
 - utility-ht >=0.0.13
 - hledger-lib >=1.5.99 && <1.6
+- aeson
 
 when:
 - condition: (!(os(windows))) && (flag(terminfo))

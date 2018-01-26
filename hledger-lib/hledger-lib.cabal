@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0359b7d353e59a15012d14a39fea7d133562b202c70969984a8fd918f27417e8
+-- hash: 1332f7c0746a3de64e5fa5dde1d9f1786d215634f026dcd1aac53afa284190fc
 
 name:           hledger-lib
 version:        1.5.99
@@ -56,6 +56,7 @@ library
   build-depends:
       Decimal
     , HUnit
+    , aeson
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.8 && <5
@@ -146,6 +147,7 @@ test-suite doctests
       Decimal
     , Glob >=0.7
     , HUnit
+    , aeson
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.8 && <5
@@ -235,6 +237,7 @@ test-suite hunittests
   build-depends:
       Decimal
     , HUnit
+    , aeson
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.8 && <5

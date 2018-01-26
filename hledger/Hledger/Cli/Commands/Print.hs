@@ -20,6 +20,8 @@ import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
 import Test.HUnit
 import Text.CSV
+import Data.Aeson.Text
+import qualified Data.Text.Lazy as TL
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -61,6 +63,7 @@ printEntries opts@CliOpts{reportopts_=ropts} j = do
       (render, ropts') = case fmt of
         "csv"  -> ((++"\n") . printCSV . entriesReportAsCsv, ropts{accountlistmode_=ALFlat})
         "html" -> (const $ error' "Sorry, HTML output is not yet implemented for this kind of report.", ropts{accountlistmode_=ALFlat})  -- TODO
+        "json" -> (TL.unpack . encodeToLazyText, ropts{accountlistmode_=ALFlat})
         _      -> (entriesReportAsText opts,                 ropts)
   writeOutput opts $ render $ entriesReport ropts' q j
 

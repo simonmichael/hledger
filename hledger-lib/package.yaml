@@ -71,6 +71,7 @@ dependencies:
 - utf8-string >=0.3.5
 - HUnit
 - extra
+- aeson
 # for ledger-parse:
 #- parsers >=0.5
 #- system-filepath
