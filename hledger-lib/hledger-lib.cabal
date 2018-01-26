@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0359b7d353e59a15012d14a39fea7d133562b202c70969984a8fd918f27417e8
+-- hash: e19a6e513d9933c42207c22788118878eede237f4ec6f1fdc70983da44c8291d
 
 name:           hledger-lib
 version:        1.5.99
@@ -29,9 +29,6 @@ cabal-version:  >= 1.10
 
 extra-source-files:
     CHANGES
-    README
-
-data-files:
     hledger_csv.5
     hledger_csv.info
     hledger_csv.txt
@@ -44,6 +41,7 @@ data-files:
     hledger_timedot.5
     hledger_timedot.info
     hledger_timedot.txt
+    README
 
 source-repository head
   type: git

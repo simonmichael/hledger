@@ -25,11 +25,11 @@ extra-source-files:
 - CHANGES
 - README
 - examples/*.html
-
-data-files:
 - hledger-api.1
 - hledger-api.txt
 - hledger-api.info
+
+#data-files:
 
 dependencies:
 - hledger-lib >=1.5.99 && <1.6

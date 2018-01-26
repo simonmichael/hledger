@@ -41,11 +41,11 @@ extra-source-files:
 - static/hledger.js
 - static/js/*.js
 - templates/*.hamlet
-
-data-files:
 - hledger-web.1
 - hledger-web.txt
 - hledger-web.info
+
+#data-files:
 
 flags:
   library-only:

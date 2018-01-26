@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2ba06bc3009a704bd5e904823472d017379f40db355ae36b066113536467e03c
+-- hash: 66e47e69f42abc82efc4dd262f42bffb6292f387520b5b75b6dd71ca0991128a
 
 name:           hledger-api
 version:        1.5.99
@@ -32,12 +32,10 @@ extra-source-files:
     CHANGES
     examples/01.html
     examples/02.html
-    README
-
-data-files:
     hledger-api.1
     hledger-api.info
     hledger-api.txt
+    README
 
 source-repository head
   type: git

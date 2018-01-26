@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dd0253057446851aae37d74a6f743e6365772780e2070e0e38f31d56a6610fdc
+-- hash: f4bc380b9cd5f49af0f1534f8978ef8cd5f209c77fa81ca93444f0f8858ab49b
 
 name:           hledger-ui
 version:        1.5.99
@@ -31,12 +31,10 @@ cabal-version:  >= 1.10
 
 extra-source-files:
     CHANGES
-    README
-
-data-files:
     hledger-ui.1
     hledger-ui.info
     hledger-ui.txt
+    README
 
 source-repository head
   type: git

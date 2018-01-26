@@ -25,11 +25,11 @@ tested-with : GHC==7.10.3, GHC==8.0
 extra-source-files:
   - CHANGES
   - README
-
-data-files:
   - hledger-ui.1
   - hledger-ui.txt
   - hledger-ui.info
+
+#data-files:
 
 flags:
   threaded:

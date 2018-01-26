@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ab1ce07009282db56c0dd739039af340a8b2f2c8f710157c2c78cdbc1709dfdd
+-- hash: 89c298d4ceea0cefabbf5896a13ca5fbc2dcb9602892d510f43c5ca40dd7dddf
 
 name:           hledger-web
 version:        1.5.99
@@ -36,6 +36,9 @@ extra-source-files:
     config/robots.txt
     config/routes
     config/settings.yml
+    hledger-web.1
+    hledger-web.info
+    hledger-web.txt
     messages/en.msg
     README
     static/css/bootstrap-datepicker.standalone.min.css
@@ -97,11 +100,6 @@ extra-source-files:
     static/js/typeahead.bundle.min.js
     templates/default-layout-wrapper.hamlet
     templates/default-layout.hamlet
-
-data-files:
-    hledger-web.1
-    hledger-web.info
-    hledger-web.txt
 
 source-repository head
   type: git

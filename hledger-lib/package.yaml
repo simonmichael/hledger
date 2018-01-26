@@ -23,8 +23,6 @@ tested-with: GHC==7.10.3, GHC==8.0.2, GHC==8.2.1
 extra-source-files:
 - CHANGES
 - README
-
-data-files:
 - hledger_csv.5
 - hledger_csv.txt
 - hledger_csv.info
@@ -37,6 +35,8 @@ data-files:
 - hledger_timeclock.5
 - hledger_timeclock.txt
 - hledger_timeclock.info
+
+#data-files:
 
 dependencies:
 - base >=4.8 && <5
