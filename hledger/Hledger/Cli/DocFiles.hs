@@ -35,44 +35,44 @@ type Topic = String
 docFiles :: IsString a => [(Topic, (a, a, a))]
 docFiles = [
    ("hledger",
-    ($(makeRelativeToProject "hledger.1" >>= embedStringFile)
-    ,$(makeRelativeToProject "hledger.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject "hledger.info" >>= embedStringFile)
+    ($(makeRelativeToProject "embeddedfiles/hledger.1" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger.info" >>= embedStringFile)
     ))
   ,("hledger-ui",
-    ($(makeRelativeToProject ".otherdocs/hledger-ui.1" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger-ui.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger-ui.info" >>= embedStringFile)
+    ($(makeRelativeToProject "embeddedfiles/hledger-ui.1" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger-ui.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger-ui.info" >>= embedStringFile)
     ))
   ,("hledger-web",
-    ($(makeRelativeToProject ".otherdocs/hledger-web.1" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger-web.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger-web.info" >>= embedStringFile)
+    ($(makeRelativeToProject "embeddedfiles/hledger-web.1" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger-web.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger-web.info" >>= embedStringFile)
     ))
   ,("hledger-api",
-    ($(makeRelativeToProject ".otherdocs/hledger-api.1" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger-api.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger-api.info" >>= embedStringFile)
+    ($(makeRelativeToProject "embeddedfiles/hledger-api.1" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger-api.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger-api.info" >>= embedStringFile)
     ))
   ,("journal",
-    ($(makeRelativeToProject ".otherdocs/hledger_journal.5" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger_journal.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger_journal.info" >>= embedStringFile)
+    ($(makeRelativeToProject "embeddedfiles/hledger_journal.5" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger_journal.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger_journal.info" >>= embedStringFile)
     ))
   ,("csv",
-    ($(makeRelativeToProject ".otherdocs/hledger_csv.5" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger_csv.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger_csv.info" >>= embedStringFile)
+    ($(makeRelativeToProject "embeddedfiles/hledger_csv.5" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger_csv.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger_csv.info" >>= embedStringFile)
     ))
   ,("timeclock",
-    ($(makeRelativeToProject ".otherdocs/hledger_timeclock.5" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger_timeclock.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger_timeclock.info" >>= embedStringFile)
+    ($(makeRelativeToProject "embeddedfiles/hledger_timeclock.5" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger_timeclock.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger_timeclock.info" >>= embedStringFile)
     ))
   ,("timedot",
-    ($(makeRelativeToProject ".otherdocs/hledger_timedot.5" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger_timedot.txt" >>= embedStringFile)
-    ,$(makeRelativeToProject ".otherdocs/hledger_timedot.info" >>= embedStringFile)
+    ($(makeRelativeToProject "embeddedfiles/hledger_timedot.5" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger_timedot.txt" >>= embedStringFile)
+    ,$(makeRelativeToProject "embeddedfiles/hledger_timedot.info" >>= embedStringFile)
     ))
   ]
 

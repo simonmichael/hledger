@@ -1,0 +1,4 @@
+Symbolic links to all the main hledger manuals in several formats.
+These files are embedded into the hledger executable at compile time, in Hledger/Cli/DocFiles.hs.
+Having them symlinked here allows embedding them without using absolute paths, 
+which is allowed only within the current package directory. 

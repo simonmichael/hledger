@@ -27,32 +27,32 @@ extra-source-files:
 - README.md
 - test/test.hs
 - bench/10000x1000x10.journal
+- embeddedfiles/hledger.1
+- embeddedfiles/hledger.txt
+- embeddedfiles/hledger.info
+- embeddedfiles/hledger-api.1
+- embeddedfiles/hledger-api.txt
+- embeddedfiles/hledger-api.info
+- embeddedfiles/hledger-ui.1
+- embeddedfiles/hledger-ui.txt
+- embeddedfiles/hledger-ui.info
+- embeddedfiles/hledger-web.1
+- embeddedfiles/hledger-web.txt
+- embeddedfiles/hledger-web.info
+- embeddedfiles/hledger_journal.5
+- embeddedfiles/hledger_journal.txt
+- embeddedfiles/hledger_journal.info
+- embeddedfiles/hledger_csv.5
+- embeddedfiles/hledger_csv.txt
+- embeddedfiles/hledger_csv.info
+- embeddedfiles/hledger_timeclock.5
+- embeddedfiles/hledger_timeclock.txt
+- embeddedfiles/hledger_timeclock.info
+- embeddedfiles/hledger_timedot.5
+- embeddedfiles/hledger_timedot.txt
+- embeddedfiles/hledger_timedot.info
 
-data-files:
-- hledger.1
-- hledger.txt
-- hledger.info
-- .otherdocs/hledger-api.1
-- .otherdocs/hledger-api.txt
-- .otherdocs/hledger-api.info
-- .otherdocs/hledger-ui.1
-- .otherdocs/hledger-ui.txt
-- .otherdocs/hledger-ui.info
-- .otherdocs/hledger-web.1
-- .otherdocs/hledger-web.txt
-- .otherdocs/hledger-web.info
-- .otherdocs/hledger_journal.5
-- .otherdocs/hledger_journal.txt
-- .otherdocs/hledger_journal.info
-- .otherdocs/hledger_csv.5
-- .otherdocs/hledger_csv.txt
-- .otherdocs/hledger_csv.info
-- .otherdocs/hledger_timeclock.5
-- .otherdocs/hledger_timeclock.txt
-- .otherdocs/hledger_timeclock.info
-- .otherdocs/hledger_timedot.5
-- .otherdocs/hledger_timedot.txt
-- .otherdocs/hledger_timedot.info
+#data-files:
 
 flags:
   terminfo:

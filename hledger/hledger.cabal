@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cb1407ac28a973e8fc74c9e78c06c2c29715873a64eb4586417cf02d12bfa60f
+-- hash: dd03cb6cac12f8e524583863aef51ed01ef1c5fb45efb109ad478be0d14aa5d1
 
 name:           hledger
 version:        1.5.99
@@ -32,34 +32,32 @@ cabal-version:  >= 1.10
 extra-source-files:
     bench/10000x1000x10.journal
     CHANGES
+    embeddedfiles/hledger-api.1
+    embeddedfiles/hledger-api.info
+    embeddedfiles/hledger-api.txt
+    embeddedfiles/hledger-ui.1
+    embeddedfiles/hledger-ui.info
+    embeddedfiles/hledger-ui.txt
+    embeddedfiles/hledger-web.1
+    embeddedfiles/hledger-web.info
+    embeddedfiles/hledger-web.txt
+    embeddedfiles/hledger.1
+    embeddedfiles/hledger.info
+    embeddedfiles/hledger.txt
+    embeddedfiles/hledger_csv.5
+    embeddedfiles/hledger_csv.info
+    embeddedfiles/hledger_csv.txt
+    embeddedfiles/hledger_journal.5
+    embeddedfiles/hledger_journal.info
+    embeddedfiles/hledger_journal.txt
+    embeddedfiles/hledger_timeclock.5
+    embeddedfiles/hledger_timeclock.info
+    embeddedfiles/hledger_timeclock.txt
+    embeddedfiles/hledger_timedot.5
+    embeddedfiles/hledger_timedot.info
+    embeddedfiles/hledger_timedot.txt
     README.md
     test/test.hs
-
-data-files:
-    .otherdocs/hledger-api.1
-    .otherdocs/hledger-api.info
-    .otherdocs/hledger-api.txt
-    .otherdocs/hledger-ui.1
-    .otherdocs/hledger-ui.info
-    .otherdocs/hledger-ui.txt
-    .otherdocs/hledger-web.1
-    .otherdocs/hledger-web.info
-    .otherdocs/hledger-web.txt
-    .otherdocs/hledger_csv.5
-    .otherdocs/hledger_csv.info
-    .otherdocs/hledger_csv.txt
-    .otherdocs/hledger_journal.5
-    .otherdocs/hledger_journal.info
-    .otherdocs/hledger_journal.txt
-    .otherdocs/hledger_timeclock.5
-    .otherdocs/hledger_timeclock.info
-    .otherdocs/hledger_timeclock.txt
-    .otherdocs/hledger_timedot.5
-    .otherdocs/hledger_timedot.info
-    .otherdocs/hledger_timedot.txt
-    hledger.1
-    hledger.info
-    hledger.txt
 
 source-repository head
   type: git
