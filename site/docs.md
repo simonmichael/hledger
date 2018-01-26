@@ -56,7 +56,6 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 ## [Guide](guide.html){title="all on one page"}
 
 A growing collection of tutorials, how-tos and discussion of general topics.
-(Please help complete this!)
 
 ### Getting started
 
