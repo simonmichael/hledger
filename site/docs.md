@@ -87,6 +87,11 @@ A growing collection of tutorials, how-tos and discussion of general topics.
 [Convert CSV files](csv-import.html)\
 
 
+### Budgeting/forecasting
+
+[Budgeting and forecasting](budgeting-and-forecasting.html)\
+
+
 ### Investing
 
 [Track investments](investments.html)\
