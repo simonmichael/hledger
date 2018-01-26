@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cb1407ac28a973e8fc74c9e78c06c2c29715873a64eb4586417cf02d12bfa60f
+-- hash: 614f3c1d6a4adab9b7858a3358175346c25ed3f374721cbdaf2a381af71de91a
 
 name:           hledger
 version:        1.5.99
@@ -82,6 +82,7 @@ library
       Decimal
     , Diff
     , HUnit
+    , aeson
     , ansi-terminal >=0.6.2.3
     , base >=4.8 && <5
     , base-compat >=0.8.1
@@ -164,6 +165,7 @@ executable hledger
   build-depends:
       Decimal
     , HUnit
+    , aeson
     , ansi-terminal >=0.6.2.3
     , base >=4.8 && <5
     , base-compat >=0.8.1
@@ -216,6 +218,7 @@ test-suite test
   build-depends:
       Decimal
     , HUnit
+    , aeson
     , ansi-terminal >=0.6.2.3
     , base >=4.8 && <5
     , base-compat >=0.8.1
@@ -265,7 +268,8 @@ benchmark bench
       bench
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
-      ansi-terminal >=0.6.2.3
+      aeson
+    , ansi-terminal >=0.6.2.3
     , base >=4.8 && <5
     , base-compat >=0.8.1
     , criterion

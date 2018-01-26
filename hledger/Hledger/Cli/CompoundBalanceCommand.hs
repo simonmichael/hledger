@@ -207,6 +207,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
       case format of
         "csv"  -> printCSV (compoundBalanceReportAsCsv ropts cbr) ++ "\n"
         "html" -> (++ "\n") $ TL.unpack $ L.renderText $ compoundBalanceReportAsHtml ropts cbr
+        "json" -> "Sorry, JSON output is not yet implemented for this kind of report."  -- TODO
         _      -> compoundBalanceReportAsText ropts' cbr
 
 -- | Given a MultiBalanceReport and its normal balance sign,

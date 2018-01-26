@@ -161,7 +161,7 @@ reportflags = [
 
 -- | Common output-related flags: --output-file, --output-format...
 outputflags = [outputFormatFlag, outputFileFlag]
-outputFormatFlag = flagReq  ["output-format","O"] (\s opts -> Right $ setopt "output-format" s opts) "FMT" "select the output format. Supported formats:\ntxt, csv, html."
+outputFormatFlag = flagReq  ["output-format","O"] (\s opts -> Right $ setopt "output-format" s opts) "FMT" "select the output format. Supported formats:\ntxt, csv, html and json."
 outputFileFlag   = flagReq  ["output-file","o"]   (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE. A file extension matching one of the above formats selects that format."
 
 argsFlag :: FlagHelp -> Arg RawOpts
@@ -525,6 +525,7 @@ outputFormats =
   [defaultOutputFormat] ++
   ["csv"
   ,"html"
+  ,"json"
   ]
 
 -- | Get the output format from the --output-format option,

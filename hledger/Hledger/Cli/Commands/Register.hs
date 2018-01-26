@@ -22,6 +22,8 @@ import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
 import Text.CSV
 import Test.HUnit
+import Data.Aeson.Text
+import qualified Data.Text.Lazy as TL
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -63,6 +65,7 @@ register opts@CliOpts{reportopts_=ropts} j = do
   let fmt = outputFormatFromOpts opts
       render | fmt=="csv"  = const ((++"\n") . printCSV . postingsReportAsCsv)
              | fmt=="html" = const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
+             | fmt=="json" = const (TL.unpack . encodeToLazyText)
              | otherwise   = postingsReportAsText
   writeOutput opts $ render opts $ postingsReport ropts (queryFromOpts d ropts) j
 

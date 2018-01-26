@@ -321,6 +321,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
               render = case format of
                 "csv"  -> \ropts r -> (++ "\n") $ printCSV $ balanceReportAsCsv ropts r
                 "html" -> \_ _ -> error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
+                "json" -> \_ _ -> error' "Sorry, JSON output is not yet implemented for this kind of report."  -- TODO
                 _      -> balanceReportAsText
           writeOutput opts $ render ropts report
           
@@ -332,6 +333,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
               render = case format of
                 "csv"  -> const $ error' "Sorry, CSV output is not yet implemented for this kind of report."  -- TODO
                 "html" -> const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
+                "json" -> const $ error' "Sorry, JSON output is not yet implemented for this kind of report."  -- TODO
                 _     -> multiBalanceReportWithBudgetAsText ropts budgetReport
           writeOutput opts $ render report
           
@@ -340,6 +342,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
               render = case format of
                 "csv"  -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
                 "html" ->  (++ "\n") . TL.unpack . L.renderText . multiBalanceReportAsHtml ropts
+                "json" -> const $ error' "Sorry, JSON output is not yet implemented for this kind of report."  -- TODO
                 _      -> multiBalanceReportAsText ropts
           writeOutput opts $ render report
 
