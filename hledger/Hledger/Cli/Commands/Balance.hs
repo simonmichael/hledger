@@ -263,8 +263,6 @@ import Test.HUnit
 import Text.Printf (printf)
 import Text.Tabular as T
 import Text.Tabular.AsciiWide
-import Data.Aeson.Text
-import qualified Data.Text.Lazy as TL
 
 import Hledger
 import Hledger.Cli.CliOptions
