@@ -47,6 +47,9 @@ txt, csv, html.
 `--sort-amount`
 : sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed. 
 
+`--invert`
+: display all amounts with reversed sign 
+
 `--budget`
 : show performance compared to budget goals defined by [periodic transactions](journal.html#periodic-transactions)
 

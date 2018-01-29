@@ -209,19 +209,6 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
         "html" -> (++ "\n") $ TL.unpack $ L.renderText $ compoundBalanceReportAsHtml ropts cbr
         _      -> compoundBalanceReportAsText ropts' cbr
 
--- | Given a MultiBalanceReport and its normal balance sign,
--- if it is known to be normally negative, convert it to normally positive.
-mbrNormaliseSign :: NormalSign -> MultiBalanceReport -> MultiBalanceReport
-mbrNormaliseSign NormallyNegative = mbrNegate
-mbrNormaliseSign _ = id
-
--- | Flip the sign of all amounts in a MultiBalanceReport.
-mbrNegate (MultiBalanceReport (colspans, rows, totalsrow)) =
-  MultiBalanceReport (colspans, map mbrRowNegate rows, mbrTotalsRowNegate totalsrow)
-  where
-    mbrRowNegate (acct,shortacct,indent,amts,tot,avg) = (acct,shortacct,indent,map negate amts,-tot,-avg)
-    mbrTotalsRowNegate (amts,tot,avg) = (map negate amts,-tot,-avg)
-
 -- | Run one subreport for a compound balance command in multi-column mode.
 -- This returns a MultiBalanceReport.
 compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> (Journal -> Query) -> NormalSign -> MultiBalanceReport

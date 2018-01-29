@@ -77,7 +77,9 @@ flatShowsExclusiveBalance    = True
 -- This is like PeriodChangeReport with a single column (but more mature,
 -- eg this can do hierarchical display).
 balanceReport :: ReportOpts -> Query -> Journal -> BalanceReport
-balanceReport opts q j = (items, total)
+balanceReport opts q j = 
+  (if invert_ opts then brNegate else id) $ 
+  (items, total)
     where
       -- dbg1 = const id -- exclude from debug output
       dbg1 s = let p = "balanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in debug output
@@ -148,6 +150,11 @@ balanceReportItem opts q a
 --     items = [(a,a',n, headDef 0 bs) | ((a,a',n), bs) <- mbrrows]
 --     total = headDef 0 mbrtotals
 
+-- | Flip the sign of all amounts in a BalanceReport.
+brNegate :: BalanceReport -> BalanceReport
+brNegate (is, tot) = (map brItemNegate is, -tot) 
+  where
+    brItemNegate (a, a', d, amt) = (a, a', d, -amt)
 
 tests_balanceReport =
   let

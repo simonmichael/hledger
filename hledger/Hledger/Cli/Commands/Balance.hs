@@ -292,6 +292,7 @@ balancemode = (defCommandMode $ ["balance"] ++ aliases) { -- also accept but don
      ,flagNone ["sort-amount","S"] (\opts -> setboolopt "sort-amount" opts) "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
      ,flagNone ["budget"] (setboolopt "budget") "show performance compared to budget goals defined by periodic transactions"
      ,flagNone ["show-unbudgeted"] (setboolopt "show-unbudgeted") "with --budget, show unbudgeted accounts also"
+     ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
      ]
      ++ outputflags
     ,groupHidden = []
@@ -701,11 +702,11 @@ renderBalanceReportTable ropts =
             | otherwise    = showMixedAmountOneLineWithoutPrice
 
 renderBalanceReportTable' :: ReportOpts -> (a -> String) -> Table String String a -> String
-renderBalanceReportTable' (ReportOpts { pretty_tables_ = pretty}) showCell =
+renderBalanceReportTable' (ReportOpts { pretty_tables_ = pretty}) showamt =
   unlines
   . trimborder
   . lines
-  . render pretty id id showCell
+  . render pretty id id showamt
   . align
   where
     trimborder = drop 1 . init . map (drop 1 . init)

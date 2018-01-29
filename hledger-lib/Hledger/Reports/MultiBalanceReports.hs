@@ -10,8 +10,8 @@ module Hledger.Reports.MultiBalanceReports (
   MultiBalanceReportRow,
   multiBalanceReport,
   balanceReportFromMultiBalanceReport,
---  mbrNegate,
---  mbrNormaliseSign,
+  mbrNegate,
+  mbrNormaliseSign,
 
   -- -- * Tests
   tests_Hledger_Reports_MultiBalanceReport
@@ -80,7 +80,9 @@ type ClippedAccountName = AccountName
 -- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts 
 -- (see ReportOpts and CompoundBalanceCommand).
 multiBalanceReport :: ReportOpts -> Query -> Journal -> MultiBalanceReport
-multiBalanceReport opts q j = MultiBalanceReport (displayspans, sorteditems, totalsrow)
+multiBalanceReport opts q j =
+  (if invert_ opts then mbrNegate else id) $ 
+  MultiBalanceReport (displayspans, sorteditems, totalsrow)
     where
       symq       = dbg1 "symq"   $ filterQuery queryIsSym $ dbg1 "requested q" q
       depthq     = dbg1 "depthq" $ filterQuery queryIsDepth q
@@ -243,6 +245,19 @@ multiBalanceReport opts q j = MultiBalanceReport (displayspans, sorteditems, tot
 
       dbg1 s = let p = "multiBalanceReport" in Hledger.Utils.dbg1 (p++" "++s)  -- add prefix in this function's debug output
       -- dbg1 = const id  -- exclude this function from debug output
+
+-- | Given a MultiBalanceReport and its normal balance sign,
+-- if it is known to be normally negative, convert it to normally positive.
+mbrNormaliseSign :: NormalSign -> MultiBalanceReport -> MultiBalanceReport
+mbrNormaliseSign NormallyNegative = mbrNegate
+mbrNormaliseSign _ = id
+
+-- | Flip the sign of all amounts in a MultiBalanceReport.
+mbrNegate (MultiBalanceReport (colspans, rows, totalsrow)) =
+  MultiBalanceReport (colspans, map mbrRowNegate rows, mbrTotalsRowNegate totalsrow)
+  where
+    mbrRowNegate (acct,shortacct,indent,amts,tot,avg) = (acct,shortacct,indent,map negate amts,-tot,-avg)
+    mbrTotalsRowNegate (amts,tot,avg) = (map negate amts,-tot,-avg)
 
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport, 
 -- in order to support --historical. Does not support tree-mode boring parent eliding. 
