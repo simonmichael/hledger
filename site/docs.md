@@ -123,7 +123,7 @@ is a curses-style UI
 is a web UI
 
 [hledger-api](hledger-api.html)
-is a HTTP-JSON API
+is a HTTP JSON server
 
 ### File formats
 
