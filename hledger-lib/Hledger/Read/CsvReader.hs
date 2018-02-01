@@ -169,13 +169,13 @@ parseCsv path csvdata =
     "-" -> liftM (parseCSV "(stdin)") getContents
     _   -> return $ parseCSV path csvdata
 
--- | Return the cleaned up and validated CSV data, or an error.
+-- | Return the cleaned up and validated CSV data (can be empty), or an error.
 validateCsv :: Int -> Either Parsec.ParseError CSV -> Either String [CsvRecord]
 validateCsv _ (Left e) = Left $ show e
 validateCsv numhdrlines (Right rs) = validate $ drop numhdrlines $ filternulls rs
   where
     filternulls = filter (/=[""])
-    validate [] = Left "no CSV records found"
+    validate [] = Right []
     validate rs@(first:_)
       | isJust lessthan2 = let r = fromJust lessthan2 in Left $ printf "CSV record %s has less than two fields" (show r)
       | isJust different = let r = fromJust different in Left $ printf "the first CSV record %s has %d fields but %s has %d" (show first) length1 (show r) (length r)
