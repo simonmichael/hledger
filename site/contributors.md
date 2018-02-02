@@ -47,7 +47,7 @@ doing you promise that all of your commits to hledger:
     of your knowledge
 
 -   are released under the hledger project's
-    [license](http://joyful.com/repos/hledger/LICENSE); or are released
+    [license](https://github.com/simonmichael/hledger/blob/master/LICENSE); or are released
     under another compatible license (in which case this must be clearly
     noted); or are public domain
 
