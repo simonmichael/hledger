@@ -200,7 +200,7 @@ apt_install_dependencies() {
 do_ubuntu_install() {
 
   install_dependencies() {
-    apt_install_dependencies g++ gcc libc6-dev libffi-dev libgmp-dev make xz-utils zlib1g-dev git gnupg
+    apt_install_dependencies g++ gcc libc6-dev libffi-dev libgmp-dev make xz-utils zlib1g-dev git gnupg  libtinfo-dev
   }
 
   if is_arm ; then
@@ -226,7 +226,7 @@ do_ubuntu_install() {
 do_debian_install() {
 
   install_dependencies() {
-    apt_install_dependencies g++ gcc libc6-dev libffi-dev libgmp-dev make xz-utils zlib1g-dev
+    apt_install_dependencies g++ gcc libc6-dev libffi-dev libgmp-dev make xz-utils zlib1g-dev libtinfo-dev
   }
 
   if is_arm ; then
