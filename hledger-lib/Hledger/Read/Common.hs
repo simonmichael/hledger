@@ -21,6 +21,7 @@ where
 --- * imports
 import Prelude ()
 import Prelude.Compat hiding (readFile)
+import Control.Arrow ((***))
 import Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
 import Control.Monad.State.Strict
@@ -450,10 +451,12 @@ rightsymbolamountp = do
   m <- lift multiplierp
   sign <- lift signp
   rawnum <- lift $ rawnumberp
+  expMod <- lift . option id $ try exponentp
   sp <- lift $ many spacenonewline
   c <- lift commoditysymbolp
   suggestedStyle <- getAmountStyle c
-  let (q,prec,mdec,mgrps) = fromRawNumber suggestedStyle (sign == "-") rawnum
+  let (q0,prec0,mdec,mgrps) = fromRawNumber suggestedStyle (sign == "-") rawnum
+      (q, prec) = expMod (q0, prec0)
   p <- priceamountp
   let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   return $ Amount c q p s m
@@ -558,8 +561,19 @@ numberp suggestedStyle = do
     sign <- signp
     raw <- rawnumberp
     dbg8 "numberp parsed" raw `seq` return ()
-    return $ dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (fromRawNumber suggestedStyle (sign == "-") raw)
+    let num@(q, prec, decSep, groups) = dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (fromRawNumber suggestedStyle (sign == "-") raw)
+    option num . try $ do
+        when (isJust groups) $ fail "groups and exponent are not mixable"
+        (q', prec') <- exponentp <*> pure (q, prec)
+        return (q', prec', decSep, groups)
     <?> "numberp"
+
+exponentp :: TextParser m ((Quantity, Int) -> (Quantity, Int))
+exponentp = do
+    char' 'e'
+    exp <- liftM read $ (++) <$> signp <*> some digitChar
+    return $ (* 10^^exp) *** (0 `max`) . (+ (-exp))
+    <?> "exponentp"
 
 fromRawNumber :: Maybe AmountStyle -> Bool -> (Maybe Char, [String], Maybe (Char, String)) -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
 fromRawNumber suggestedStyle negated raw = (quantity, precision, mdecimalpoint, mgrps) where
