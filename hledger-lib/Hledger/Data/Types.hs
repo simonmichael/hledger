@@ -118,10 +118,10 @@ instance NFData Side
 
 -- | The basic numeric type used in amounts.
 type Quantity = Decimal
-deriving instance Data (Quantity)
+deriving instance Data Quantity
 -- The following is for hledger-web, and requires blaze-markup.
 -- Doing it here avoids needing a matching flag on the hledger-web package.
-instance ToMarkup (Quantity)
+instance ToMarkup Quantity
  where
    toMarkup = toMarkup . show
 
@@ -229,6 +229,7 @@ data GenericSourcePos = GenericSourcePos FilePath Int Int    -- ^ name, 1-based 
 
 instance NFData GenericSourcePos
 
+{-# ANN Transaction "HLint: ignore" #-}
 data Transaction = Transaction {
       tindex                   :: Integer,   -- ^ this transaction's 1-based position in the input stream, or 0 when not available
       tsourcepos               :: GenericSourcePos,
@@ -314,9 +315,9 @@ data Journal = Journal {
   ,jlastreadtime          :: ClockTime                              -- ^ when this journal was last read from its file(s)
   } deriving (Eq, Typeable, Data, Generic)
 
-deriving instance Data (ClockTime)
-deriving instance Typeable (ClockTime)
-deriving instance Generic (ClockTime)
+deriving instance Data ClockTime
+deriving instance Typeable ClockTime
+deriving instance Generic ClockTime
 instance NFData ClockTime
 instance NFData Journal
 
