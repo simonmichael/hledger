@@ -43,7 +43,7 @@ accountLeafName = last . accountNameComponents
 accountSummarisedName :: AccountName -> Text
 accountSummarisedName a
   --   length cs > 1 = take 2 (head cs) ++ ":" ++ a'
-  | length cs > 1 = (T.intercalate ":" (map (T.take 2) $ init cs)) <> ":" <> a'
+  | length cs > 1 = T.intercalate ":" (map (T.take 2) $ init cs) <> ":" <> a'
   | otherwise     = a'
     where
       cs = accountNameComponents a
@@ -125,11 +125,11 @@ elideAccountName width s
   | " (split)" `T.isSuffixOf` s =
     let
       names = T.splitOn ", " $ T.take (T.length s - 8) s
-      widthpername = (max 0 (width - 8 - 2 * (max 1 (length names) - 1))) `div` length names
+      widthpername = max 0 (width - 8 - 2 * (max 1 (length names) - 1)) `div` length names
     in
      fitText Nothing (Just width) True False $
      (<>" (split)") $
-     T.intercalate ", " $
+     T.intercalate ", "
      [accountNameFromComponents $ elideparts widthpername [] $ accountNameComponents s' | s' <- names]
   | otherwise =
     fitText Nothing (Just width) True False $ accountNameFromComponents $ elideparts width [] $ accountNameComponents s
@@ -174,7 +174,7 @@ accountRegexToAccountName = T.pack . regexReplace "^\\^(.*?)\\(:\\|\\$\\)$" "\\1
 
 -- | Does this string look like an exact account-matching regular expression ?
 isAccountRegex  :: String -> Bool
-isAccountRegex s = take 1 s == "^" && (take 5 $ reverse s) == ")$|:("
+isAccountRegex s = take 1 s == "^" && take 5 (reverse s) == ")$|:("
 
 tests_Hledger_Data_AccountName = TestList
  [
