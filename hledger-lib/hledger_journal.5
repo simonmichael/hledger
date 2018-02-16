@@ -1144,8 +1144,11 @@ The \f[C]include\f[] directive can only be used in journal files.
 It can include journal, timeclock or timedot files, but not CSV files.
 .SH Periodic transactions
 .PP
-A periodic transaction starts with a tilde `~' in place of a date
-followed by a period expression:
+Periodic transactions are a kind of rule with a dual purpose: they can
+specify recurring future transactions (with \f[C]\-\-forecast\f[]), or
+budget goals (with \f[C]\-\-budget\f[]).
+They look a bit like a transaction, except the first line is a tilde
+(\f[C]~\f[]) followed by a period expression:
 .IP
 .nf
 \f[C]
@@ -1155,23 +1158,25 @@ followed by a period expression:
 \f[]
 .fi
 .PP
-Periodic transactions are used for forecasting and budgeting only, they
-have no effect unless the \f[C]\-\-forecast\f[] or \f[C]\-\-budget\f[]
-flag is used.
 With \f[C]\-\-forecast\f[], each periodic transaction rule generates
-recurring forecast transactions at the specified interval, beginning the
-day after the last recorded journal transaction and ending 6 months from
-today, or at the specified report end date.
-With \f[C]balance\ \-\-budget\f[], each periodic transaction declares
-recurring budget goals for one or more accounts.
-.PD 0
-.P
-.PD
-For more details, see: balance > Budgeting, Budgeting and Forecasting.
-.SH Automated posting rules
+recurring \[lq]forecast\[rq] transactions at the specified interval,
+beginning the day after the latest recorded journal transaction (or
+today, if there are no transactions) and ending 6 months from today (or
+at the report end date, if specified).
 .PP
-Automated posting rule starts with an equal sign `=' in place of a date,
-followed by a query:
+With \f[C]balance\ \-\-budget\f[], each periodic transaction declares
+recurring budget goals for the specified accounts.
+Eg the example above declares the goal of receiving $400 from
+\f[C]income:acme\ inc\f[] (and also, depositing $400 into
+\f[C]assets:bank:checking\f[]) every week.
+.PP
+For more details, see: balance: Budgeting and Budgeting and Forecasting.
+.SH Automated postings
+.PP
+Automated postings are postings added automatically by rule to certain
+transactions (with \f[C]\-\-auto\f[]).
+An automated posting rule looks like a transaction where the first line
+is an equal sign (\f[C]=\f[]) followed by a query:
 .IP
 .nf
 \f[C]
@@ -1181,36 +1186,33 @@ followed by a query:
 \f[]
 .fi
 .PP
-When \f[C]\-\-auto\f[] option is specified on the command line,
-automated posting rule will add its postings to all transactions that
-match the query.
+The posting amounts can be of the form \f[C]*N\f[], which means \[lq]the
+amount of the matched transaction's first posting, multiplied by N\[rq].
+They can also be ordinary fixed amounts.
+Fixed amounts with no commodity symbol will be given the same commodity
+as the matched transaction's first posting.
 .PP
-If amount in the automated posting rule includes commodity name, new
-posting will be made in the given commodity, otherwise commodity of the
-matched transaction will be used.
-.PP
-When amount in the automated posting rule begins with the '*', amount
-will be treated as a multiplier that is applied to the amount of the
-first posting in the matched transaction.
-.PP
-In example above, every transaction in \f[C]expenses:gifts\f[] account
-will have two additional postings added to it: amount of the original
-gift will be debited from \f[C]budget:gifts\f[] and credited into
-\f[C]assets:budget\f[]:
+This example adds a corresponding (unbalanced) budget posting to every
+transaction involving the \f[C]expenses:gifts\f[] account:
 .IP
 .nf
 \f[C]
-;\ Original\ transaction
+=\ expenses:gifts
+\ \ \ \ (budget:gifts)\ \ *\-1
+
 2017\-12\-14
 \ \ expenses:gifts\ \ $20
 \ \ assets
-
-;\ With\ automated\ postings\ applied
+\f[]
+.fi
+.IP
+.nf
+\f[C]
+$\ hledger\ print\ \-\-auto
 2017/12/14
 \ \ \ \ expenses:gifts\ \ \ \ \ \ \ \ \ \ \ \ \ $20
 \ \ \ \ assets
-\ \ \ \ budget:gifts\ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-20
-\ \ \ \ assets:budget\ \ \ \ \ \ \ \ \ \ \ \ \ \ $20
+\ \ \ \ (budget:gifts)\ \ \ \ \ \ \ \ \ \ \ \ $\-20
 \f[]
 .fi
 .SH EDITOR SUPPORT

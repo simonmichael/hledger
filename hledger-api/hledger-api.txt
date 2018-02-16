@@ -29,15 +29,30 @@ DESCRIPTION
        The server listens on IP address 127.0.0.1, accessible  only  to  local
        requests,   by   default.    You   can  change  this  with  --host,  eg
        --host 0.0.0.0 to listen on all addresses.   Note  there  is  no  other
-       access  control, so you will need to hide hledger-api behind an authen-
-       ticating proxy if you want to restrict access.  You can change the  TCP
-       port (default: 8001) with -p PORT.
+       access  control,  and  hledger-api  allows  file browsing, so on shared
+       machines you will certainly need to put  it  behind  an  authenticating
+       proxy to restrict access.
 
-       If  invoked  as hledger-api --swagger, instead of starting a server the
-       API docs will be printed in Swagger 2.0 format.
+       You can change the TCP port it listens on (default: 8001) with -p PORT.
+
+       API methods look like:
+
+              /api/v1/accountnames
+              /api/v1/transactions
+              /api/v1/prices
+              /api/v1/commodities
+              /api/v1/accounts
+              /api/v1/accounts/ACCTNAME
+
+       See /api/swagger.json for a full list in Swagger 2.0 format.   (Or  you
+       can run hledger-api --swagger to print this in the console.)
+
+       hledger-api  also  serves files, from the current directory by default,
+       and the / path will also show a directory listing.  This is  convenient
+       for serving client-side web code, in addition to the server-side api.
 
 OPTIONS
-       Note: if invoking hledger-api as a hledger subcommand, write --  before
+       Note:  if invoking hledger-api as a hledger subcommand, write -- before
        options as shown above.
 
        -f --file=FILE
@@ -64,23 +79,23 @@ OPTIONS
 
 ENVIRONMENT
        LEDGER_FILE The journal file path when not specified with -f.  Default:
-       ~/.hledger.journal  (on  windows,  perhaps C:/Users/USER/.hledger.jour-
+       ~/.hledger.journal (on  windows,  perhaps  C:/Users/USER/.hledger.jour-
        nal).
 
 FILES
-       Reads data from one or more files in hledger journal, timeclock,  time-
-       dot,   or   CSV   format   specified   with  -f,  or  $LEDGER_FILE,  or
-       $HOME/.hledger.journal          (on          windows,           perhaps
+       Reads  data from one or more files in hledger journal, timeclock, time-
+       dot,  or  CSV  format  specified   with   -f,   or   $LEDGER_FILE,   or
+       $HOME/.hledger.journal           (on          windows,          perhaps
        C:/Users/USER/.hledger.journal).
 
 BUGS
-       The  need  to precede options with -- when invoked from hledger is awk-
+       The need to precede options with -- when invoked from hledger  is  awk-
        ward.
 
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -94,7 +109,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

@@ -837,64 +837,68 @@ FILE FORMAT
        include journal, timeclock or timedot files, but not CSV files.
 
 Periodic transactions
-       A periodic transaction starts with a tilde `~' in place of a date  fol-
-       lowed by a period expression:
+       Periodic transactions are a kind of rule with a dual purpose: they  can
+       specify  recurring  future  transactions  (with  --forecast), or budget
+       goals (with --budget).  They look a bit like a transaction, except  the
+       first line is a tilde (~) followed by a period expression:
 
               ~ weekly
                 assets:bank:checking   $400 ; paycheck
                 income:acme inc
 
-       Periodic transactions are used for forecasting and budgeting only, they
-       have no effect unless the --forecast or --budget flag  is  used.   With
-       --forecast, each periodic transaction rule generates recurring forecast
-       transactions at the specified interval, beginning  the  day  after  the
-       last recorded journal transaction and ending 6 months from today, or at
-       the specified report end date.  With  balance --budget,  each  periodic
-       transaction declares recurring budget goals for one or more accounts.
-       For  more details, see: balance > Budgeting, Budgeting and Forecasting.
+       With  --forecast,  each  periodic  transaction rule generates recurring
+       "forecast" transactions at the specified interval,  beginning  the  day
+       after  the  latest recorded journal transaction (or today, if there are
+       no transactions) and ending 6 months from today (or at the  report  end
+       date, if specified).
 
-Automated posting rules
-       Automated posting rule starts with an equal sign  `='  in  place  of  a
-       date, followed by a query:
+       With  balance --budget,  each  periodic  transaction declares recurring
+       budget goals for the specified accounts.  Eg the example above declares
+       the  goal  of receiving $400 from income:acme inc (and also, depositing
+       $400 into assets:bank:checking) every week.
+
+       For more details, see: balance: Budgeting and Budgeting  and  Forecast-
+       ing.
+
+Automated postings
+       Automated  postings are postings added automatically by rule to certain
+       transactions (with --auto).  An automated posting  rule  looks  like  a
+       transaction  where  the  first  line is an equal sign (=) followed by a
+       query:
 
               = expenses:gifts
                   budget:gifts  *-1
                   assets:budget  *1
 
-       When  --auto option is specified on the command line, automated posting
-       rule will add its postings to all transactions that match the query.
+       The posting amounts can be of the form *N, which means "the  amount  of
+       the  matched  transaction's  first posting, multiplied by N".  They can
+       also be ordinary fixed amounts.  Fixed amounts with no commodity symbol
+       will  be  given  the  same commodity as the matched transaction's first
+       posting.
 
-       If amount in the automated posting rule includes  commodity  name,  new
-       posting will be made in the given commodity, otherwise commodity of the
-       matched transaction will be used.
+       This example adds a corresponding (unbalanced) budget posting to  every
+       transaction involving the expenses:gifts account:
 
-       When amount in the automated posting rule begins with the  '*',  amount
-       will  be  treated  as a multiplier that is applied to the amount of the
-       first posting in the matched transaction.
+              = expenses:gifts
+                  (budget:gifts)  *-1
 
-       In example above, every transaction in expenses:gifts account will have
-       two  additional  postings added to it: amount of the original gift will
-       be debited from budget:gifts and credited into assets:budget:
-
-              ; Original transaction
               2017-12-14
                 expenses:gifts  $20
                 assets
 
-              ; With automated postings applied
+              $ hledger print --auto
               2017/12/14
                   expenses:gifts             $20
                   assets
-                  budget:gifts              $-20
-                  assets:budget              $20
+                  (budget:gifts)            $-20
 
 EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
-       nal  files  easier.   They add colour, navigation aids and helpful com-
-       mands.  For hledger users who  edit  the  journal  file  directly  (the
+       nal files easier.  They add colour, navigation aids  and  helpful  com-
+       mands.   For  hledger  users  who  edit  the journal file directly (the
        majority), using one of these modes is quite recommended.
 
-       These  were  written  with  Ledger  in mind, but also work with hledger
+       These were written with Ledger in mind,  but  also  work  with  hledger
        files:
 
 
@@ -913,7 +917,7 @@ EDITOR SUPPORT
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -927,7 +931,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

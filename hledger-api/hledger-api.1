@@ -35,13 +35,34 @@ The server listens on IP address 127.0.0.1, accessible only to local
 requests, by default.
 You can change this with \f[C]\-\-host\f[], eg
 \f[C]\-\-host\ 0.0.0.0\f[] to listen on all addresses.
-Note there is no other access control, so you will need to hide
-hledger\-api behind an authenticating proxy if you want to restrict
-access.
-You can change the TCP port (default: 8001) with \f[C]\-p\ PORT\f[].
+Note there is no other access control, and hledger\-api allows file
+browsing, so on shared machines you will certainly need to put it behind
+an authenticating proxy to restrict access.
 .PP
-If invoked as \f[C]hledger\-api\ \-\-swagger\f[], instead of starting a
-server the API docs will be printed in Swagger 2.0 format.
+You can change the TCP port it listens on (default: 8001) with
+\f[C]\-p\ PORT\f[].
+.PP
+API methods look like:
+.IP
+.nf
+\f[C]
+/api/v1/accountnames
+/api/v1/transactions
+/api/v1/prices
+/api/v1/commodities
+/api/v1/accounts
+/api/v1/accounts/ACCTNAME
+\f[]
+.fi
+.PP
+See \f[C]/api/swagger.json\f[] for a full list in Swagger 2.0 format.
+(Or you can run \f[C]hledger\-api\ \-\-swagger\f[] to print this in the
+console.)
+.PP
+hledger\-api also serves files, from the current directory by default,
+and the \f[C]/\f[] path will also show a directory listing.
+This is convenient for serving client\-side web code, in addition to the
+server\-side api.
 .SH OPTIONS
 .PP
 Note: if invoking hledger\-api as a hledger subcommand, write
