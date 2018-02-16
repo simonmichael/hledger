@@ -103,11 +103,8 @@ install: # command output is hidden as they complete
   # addon dependencies
   #- stack build Chart Chart-diagrams colour Diff
 
-  # shelltestrunner, need unreleased installable version
-  #- git clone http://github.com/simonmichael/shelltestrunner
-  #- if [[ ! -d shelltestrunner ]]; then git clone http://github.com/simonmichael/shelltestrunner; fi
-  - git clone https://github.com/simonmichael/shelltestrunner
-  - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install --stack-yaml=shelltestrunner/stack.yaml; fi
+  # shelltestrunner
+  - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.9; fi
   - shelltest --version
 
 script:  # command output is not hidden
