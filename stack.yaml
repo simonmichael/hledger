@@ -7,11 +7,14 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-extra-deps: []
-
 packages:
 - hledger-lib
 - hledger
 - hledger-ui
 - hledger-web
 - hledger-api
+
+extra-deps:
+# for tools/easytest.hs. Should be harmless otherwise.
+- git: git@github.com:joelburget/easytest.git
+  commit: 5d5b851e77368071b5727cd366af9c6ecd288add
