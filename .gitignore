@@ -5,12 +5,20 @@ _*
 
 # dev stuff
 .build
-.idea*
+.idea
+/*.iml
 .shake
 .tmp
 .vscode
 tags
 TAGS
+/debug.log
+/tools/pandoc-demote-headers
+/tools/pandoc-drop-html-blocks
+/tools/pandoc-drop-html-inlines
+/tools/pandoc-drop-links
+/tools/pandoc-drop-notes
+/tools/pandoc-drop-toc
 
 # Tricksy rules ignoring some typical temp files.
 # For troubleshooting: git check-ignore --verbose PATHS...
@@ -25,6 +33,8 @@ TAGS
 ![a-z0-9][a-z0-9].*/
 # files/directories beginning with a number
 /[0-9]*
+#
+*.j
 
 # haskell stuff
 *.dyn_hi
@@ -43,16 +53,15 @@ dist-newstyle/
 
 # hledger stuff
 old
-log
-profs/*
+/log
+/profs/*
+/bin/**
+/.latest.*
 test.hs
 tests/addons/hledger-*
 tools/generatejournal
 tools/simplebench
-*/doc/*.[0-9]
-*/doc/*.[0-9].txt
-*/doc/*.[0-9].info
-/hledger.org
+/examples/10*.journal
 
 # hledger-web stuff
 /config
@@ -62,3 +71,6 @@ tools/simplebench
 hledger-web/static/tmp/
 hledger-web/yesod-devel/
 .hledger-web_client_session_key.aes
+
+# recent stuff
+
