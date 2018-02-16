@@ -31,12 +31,26 @@ For more about this see hledger(1), hledger_journal(5) etc.
 
 The server listens on IP address 127.0.0.1, accessible only to local requests, by default.
 You can change this with `--host`, eg `--host 0.0.0.0` to listen on all addresses.
-Note there is no other access control, so you will need to hide
-hledger-api behind an authenticating proxy if you want to restrict access.
-You can change the TCP port (default: 8001) with `-p PORT`.
+Note there is no other access control, and hledger-api allows file browsing,
+so on shared machines you will certainly need to put it behind an authenticating proxy to restrict access.
 
-If invoked as `hledger-api --swagger`, instead of starting a server
-the API docs will be printed in Swagger 2.0 format.
+You can change the TCP port it listens on (default: 8001) with `-p PORT`.
+
+API methods look like:
+```
+/api/v1/accountnames
+/api/v1/transactions
+/api/v1/prices
+/api/v1/commodities
+/api/v1/accounts
+/api/v1/accounts/ACCTNAME
+```
+See `/api/swagger.json` for a full list in Swagger 2.0 format.
+(Or you can run `hledger-api --swagger` to print this in the console.)
+
+hledger-api also serves files, from the current directory by default,
+and the `/` path will also show a directory listing.
+This is convenient for serving client-side web code, in addition to the server-side api.
 
 # OPTIONS
 
