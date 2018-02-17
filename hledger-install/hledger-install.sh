@@ -887,7 +887,7 @@ fi
 
 # show system info
 echo "System info:"
-quietly_run uname
+quietly_run uname -rsv
 quietly_run lsb_release -a
 
 # show current installed hledger packages
