@@ -37,31 +37,46 @@ but they can be [out of date](https://repology.org/metapackage/hledger/badges) o
 ## B. build the latest release ?
 
 Good choice! The [release notes](release-notes.html) show what you'll get.
-Just know that building haskell apps for the first time can take significant time (minutes to hours), 
-memory (eg 1G+), and disk space (eg 1G in $HOME/.stack or $HOME/.cabal, though you can delete much of that afterward).
 
-Here are three methods:
+A slight warning: the first build of a haskell application can take
+significant time (minutes to hours), memory (eg 1G+), and disk space
+(eg 1G in ~/.stack or ~/.cabal).  On the upside, it can be left
+unattended, you can kill and restart it without losing progress, and
+subsequent builds will be quicker.
+
+Here are three ways to build hledger, in order of preference:\
+(and some current issues/workarounds:
+[freebsd 12](https://github.com/simonmichael/hledger/issues/709)
+)
 
 ### 1. hledger-install
 
-On POSIX systems (mac/linux/freebsd..), the
-[hledger-install.sh](https://github.com/simonmichael/hledger/tree/master/hledger-install) script is 
-the build method most likely to just work, as the only prerequisite is bash and it avoids many common gotchas.
-It uses stack or cabal, installing stack if needed, to build the latest release of hledger and all addon tools,
-one at a time, installing everything in $HOME/.local/bin (or $HOME/.cabal/bin).
+On POSIX systems (linux/mac/bsd...),
+[hledger-install.sh](https://github.com/simonmichael/hledger/tree/master/hledger-install)
+is the build method most likely to just work:
 
-Here's the responsible way to run it:
+- it requires only that you have bash and curl (or wget) installed, and internet access.
+- it uses haskell build tools like stack, cabal and GHC, installing stack/GHC if needed (in ~/.stack).
+- it installs the latest release of hledger and its suite of addon tools
+  (in ~/.local/bin or ~/.cabal/bin).
 
- **`curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**\
- **`less hledger-install.sh`**  *# do security review*\
- **`bash hledger-install.sh`**  *# run it; add `-v` for more detail, or use `bash -x` to show commands being run* 
-
-and here's the easy way:
+Here's the easy, non-secure way to run it:
 
  **`curl https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash`**
 
-You can kill and restart the installer without losing progress.
-If it fails, please help us improve it by [reporting the full output](docs.html#helpfeedback).
+And here's the safer, more responsible way:
+
+ **`curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**\
+ **`less hledger-install.sh`**  *# do security review*\
+ **`bash hledger-install.sh`**  *# run it*
+
+If you have any trouble, you can help greatly by capturing a debug log
+and sending it to me via 
+[paste](http://paste.hledger.org) & [IRC](http://irc.hledger.org),
+or an [issue](http://bugs.hledger.org)
+or [email](docs.html#helpfeedback):
+
+ **`bash -x hledger-install.sh 2>&1 | tee hledger-install.log`**
 
 ### 2. stack
 
@@ -74,7 +89,7 @@ Here's how to use it directly to install hledger:
    On Windows, the 64-bit version of stack is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
    <!-- On Arch, you [may need to also install GHC manually](https://github.com/simonmichael/hledger/issues/434).\ -->
    Follow stack's advice to 
-   [add `$HOME/.local/bin` to your \$PATH](https://docs.haskellstack.org/en/stable/install_and_upgrade/#path) (`%APPDATA%\local\bin` on Windows).
+   [add `~/.local/bin` to your \$PATH](https://docs.haskellstack.org/en/stable/install_and_upgrade/#path) (`%APPDATA%\local\bin` on Windows).
    Eg, if you're a bash user:\
    &nbsp;&nbsp;`echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
 
