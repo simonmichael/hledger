@@ -2,6 +2,9 @@
 # Install all hledger packages using cabal (if you prefer it to stack).
 # cabal.project may be a newer way.
 
+# Ensure cabal sees the latest available packages
+cabal update
+
 # Make a local sandbox - optional, recommended for reliable installs
 cabal sandbox init
 
