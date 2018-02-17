@@ -1,17 +1,17 @@
 #!/bin/bash -e
 # Easy hledger installation script for POSIX systems.
 # Uses cabal if installed and stack is not, 
-# or stack, which it will install if needed (or if --force is used).
+# or stack, which it will install if needed (or if --force-install-stack is used).
 # Requires bash and some other POSIX tools.
 # This is based on get-stack.sh which is copyright (c) 2015-2017, Stack contributors.
 
 usage() {
   cat <<HERE
-hledger-install.sh [-f|--force] [-v|--verbose] [-s|--status] [--version] [-h|--help]
+hledger-install.sh [-f|--force-install-stack] [-v|--verbose] [-s|--status] [--version] [-h|--help]
 
 Installs the current release of hledger and related tools as reliably and 
 quickly as possible on any POSIX system, using cabal (if installed and 
-stack is not) or stack (installing it when needed or if --force is used). 
+stack is not) or stack (installing it when needed or if --force-install-stack is used). 
 With --status, just lists the currently installed hledger tools.
 Usage:
 
@@ -85,7 +85,7 @@ hledger-irr \
 HOME_LOCAL_BIN="$HOME/.local/bin"
 USR_LOCAL_BIN="/usr/local/bin"
 QUIET=""
-FORCE=""
+FORCE_INSTALL_STACK=""
 STACK_TEMP_DIR=
 
 # creates a temporary directory, which will be cleaned up automatically
@@ -727,11 +727,11 @@ check_usr_local_bin_on_path() {
 
 # Check whether Stack is already installed, and print an error if it is.
 check_stack_installed() {
-  if [ "$FORCE" != "true" ] && has_stack ; then
+  if [ "$FORCE_INSTALL_STACK" != "true" ] && has_stack ; then
     die "Stack $(stack_version) already appears to be installed at:
   $(stack_location)
 Use 'stack upgrade' or your OS's package manager to upgrade,
-or pass --force to this script to install anyway."
+or pass --force-install-stack to this script to install anyway."
   fi
 }
 
@@ -741,9 +741,9 @@ trap cleanup_temp_dir EXIT
 
 # hledger routines
 
-# install stack if needed, or always with --force, in $HOME/.local/bin
+# install stack if needed, or always with --force-install-stack, in $HOME/.local/bin
 ensure_stack() {
-  if ! $(has_stack) || [[ "$FORCE" == "true" ]] ; then
+  if ! $(has_stack) || [[ "$FORCE_INSTALL_STACK" == "true" ]] ; then
     echo "Installing stack"
     do_os
   fi
@@ -827,8 +827,8 @@ VERSIONFLAG=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    -f|--force)
-      FORCE="true"
+    -f|--force-install-stack)
+      FORCE_INSTALL_STACK="true"
       shift
       ;;
     -v|--verbose)
