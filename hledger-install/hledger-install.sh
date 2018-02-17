@@ -1,9 +1,11 @@
-#!/bin/bash -e
+#!/bin/bash
 # Easy hledger installation script for POSIX systems.
 # Uses cabal if installed and stack is not, 
 # or stack, which it will install if needed (or if --force-install-stack is used).
 # Requires bash and some other POSIX tools.
 # This is based on get-stack.sh which is copyright (c) 2015-2017, Stack contributors.
+
+set -e
 
 usage() {
   cat <<HERE
