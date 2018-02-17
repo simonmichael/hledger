@@ -37,30 +37,30 @@ but they can be [out of date](https://repology.org/metapackage/hledger/badges) o
 ## B. build the latest release ?
 
 Good choice! The [release notes](release-notes.html) show what you'll get.
+Below are three ways to build hledger, in order of preference.
 
-A slight warning: the first build of a haskell application can take
-significant time (minutes to hours), memory (eg 1G+), and disk space
+But first, a slight warning: the first build of a haskell application can take
+significant time (minutes to 1 hour), memory (eg 1G+), and disk space
 (eg 1G in ~/.stack or ~/.cabal).  On the upside, it can be left
 unattended, you can kill and restart it without losing progress, and
 subsequent builds will be quicker.
 
-Here are three ways to build hledger, in order of preference:\
-(and some current issues/workarounds:
+Current build issues/workarounds:
 [freebsd 12](https://github.com/simonmichael/hledger/issues/709)
-)
 
 ### 1. hledger-install
 
-On POSIX systems (linux/mac/bsd...),
-[hledger-install.sh](https://github.com/simonmichael/hledger/tree/master/hledger-install)
+On POSIX systems (linux, mac, *bsd, unixlike environments on windows..),
+our [hledger-install.sh](https://github.com/simonmichael/hledger/tree/master/hledger-install)
 is the build method most likely to just work:
 
 - it requires only that you have bash and curl (or wget) installed, and internet access.
 - it uses haskell build tools like stack, cabal and GHC, installing stack/GHC if needed (in ~/.stack).
-- it installs the latest release of hledger and its suite of addon tools
+- it avoids common pitfalls, such as unreliable build plans and all-or-nothing builds
+- it installs the latest release of hledger and the full suite of addon tools
   (in ~/.local/bin or ~/.cabal/bin).
 
-Here's the easy, non-secure way to run it:
+Here's the quick, non-secure way to run it:
 
  **`curl https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash`**
 
@@ -68,12 +68,12 @@ And here's the safer, more responsible way:
 
  **`curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh`**\
  **`less hledger-install.sh`**  *# do security review*\
- **`bash hledger-install.sh`**  *# run it*
+ **`bash hledger-install.sh`**  *# or bash -x, to log commands*
 
 If you have any trouble, you can help greatly by capturing a debug log
 and sending it to me via 
 [paste](http://paste.hledger.org) & [IRC](http://irc.hledger.org),
-or an [issue](http://bugs.hledger.org)
+an [issue](http://bugs.hledger.org),
 or [email](docs.html#helpfeedback):
 
  **`bash -x hledger-install.sh 2>&1 | tee hledger-install.log`**
