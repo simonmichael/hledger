@@ -875,7 +875,7 @@ else
   QUIET="true"
 fi
 
-echo "Running hledger-install.sh $HLEDGER_INSTALL_VERSION"
+echo "hledger-install.sh $HLEDGER_INSTALL_VERSION `date`"
 
 # ensure ~/.local/bin/ in PATH
 if ! on_path "$HOME_LOCAL_BIN" ; then
