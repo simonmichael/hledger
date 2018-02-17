@@ -46,7 +46,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20180208
+HLEDGER_INSTALL_VERSION=20180216
 
 RESOLVER=  #"--resolver=nightly"
   # ^ You can specify a different stackage snapshot here, 
@@ -532,6 +532,7 @@ install_from_bindist() {
 #CHANGED
 #    if ! sudocmd install -c -o 0 -g 0 -m 0755 "$STACK_TEMP_DIR/$1"/*/stack "$USR_LOCAL_BIN/stack"; then
 #      die "Install to $USR_LOCAL_BIN/stack failed"
+    ensure_home_local_bin
     if ! install -m 0755 "$STACK_TEMP_DIR/$1"/*/stack "$HOME_LOCAL_BIN/stack"; then
       die "Install to $HOME_LOCAL_BIN/stack failed"
     fi
@@ -694,6 +695,11 @@ has_dnf() {
 # Check whether the given command exists
 has_cmd() {
   command -v "$1" > /dev/null 2>&1
+}
+
+# Ensure that $HOME/.local/bin/ exists, or die.
+ensure_home_local_bin() {
+  install -d "$HOME_LOCAL_BIN" || die "Creating $HOME_LOCAL_BIN/ directory failed"
 }
 
 # Check whether the given path is listed in the PATH environment variable
