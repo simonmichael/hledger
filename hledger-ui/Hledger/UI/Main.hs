@@ -5,7 +5,6 @@ Released under GPL version 3 or later.
 -}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
 module Hledger.UI.Main where
@@ -142,27 +141,27 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
           -- Initialising the accounts screen is awkward, requiring
           -- another temporary UIState value..
           ascr' = aScreen $
-                  asInit d True $
-                  UIState{
-                    aopts=uopts'
-                   ,ajournal=j
-                   ,aScreen=asSetSelectedAccount acct accountsScreen
-                   ,aPrevScreens=[]
-                   ,aMode=Normal
-                   }
+                  asInit d True
+                    UIState{
+                      aopts=uopts'
+                    ,ajournal=j
+                    ,aScreen=asSetSelectedAccount acct accountsScreen
+                    ,aPrevScreens=[]
+                    ,aMode=Normal
+                    }
 
     ui =
       (sInit scr) d True $
-        (if change_ uopts' then toggleHistorical else id) $ -- XXX
-        UIState{
-          aopts=uopts'
-         ,ajournal=j
-         ,aScreen=scr
-         ,aPrevScreens=prevscrs
-         ,aMode=Normal
-         }
+        (if change_ uopts' then toggleHistorical else id) -- XXX
+          UIState{
+            aopts=uopts'
+          ,ajournal=j
+          ,aScreen=scr
+          ,aPrevScreens=prevscrs
+          ,aMode=Normal
+          }
 
-    brickapp :: App (UIState) AppEvent Name
+    brickapp :: App UIState AppEvent Name
     brickapp = App {
         appStartEvent   = return
       , appAttrMap      = const theme
@@ -194,7 +193,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
 
     withAsync
       (getCurrentDay >>= watchDate)
-      $ \_ -> do
+      $ \_ ->
 
       -- start one or more background threads reporting changes in the directories of our files
       -- XXX many quick successive saves causes the problems listed in BUGS
@@ -205,7 +204,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
       -- but gets tied up for ages
       withManager $ \mgr -> do
         dbg1IO "fsnotify using polling ?" $ isPollingManager mgr
-        files <- mapM canonicalizePath $ map fst $ jfiles j
+        files <- mapM (canonicalizePath . fst) $ jfiles j
         let directories = nub $ sort $ map takeDirectory files
         dbg1IO "files" files
         dbg1IO "directories to watch" directories
