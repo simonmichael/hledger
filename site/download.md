@@ -50,7 +50,7 @@ Current build issues/workarounds:
 
 ### 1. hledger-install
 
-On supported POSIX systems (GNU/linux, mac, freeBSD (but not other BSDs yet), possibly unixlike environments on windows..),
+On supported POSIX systems - GNU/linux, mac, freeBSD (might work on other BSDs if you install cabal-install first), possibly unixlike environments on windows - 
 our [hledger-install.sh](https://github.com/simonmichael/hledger/tree/master/hledger-install)
 is the build method most likely to just work:
 
