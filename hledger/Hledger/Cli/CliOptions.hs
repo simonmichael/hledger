@@ -152,7 +152,7 @@ reportflags = [
  ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only cleared postings/txns"
  ,flagNone ["real","R"]      (setboolopt "real") "include only non-virtual postings"
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "NUM" "(or -NUM): hide accounts/postings deeper than this"
- ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden"
+ ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden (except in hledger-ui)"
  ,flagNone ["cost","B"]      (setboolopt "cost") "convert amounts to their cost at transaction time (using the transaction price, if any)"
  ,flagNone ["value","V"]     (setboolopt "value") "convert amounts to their market value on the report end date (using the most recent applicable market price, if any)"
  ,flagNone ["auto"]          (setboolopt "auto") "apply automated posting rules to modify transactions"

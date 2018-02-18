@@ -122,7 +122,7 @@ the data.
      hide/aggregate accounts or postings more than NUM levels deep
 '-E --empty'
 
-     show items with zero amount, normally hidden
+     show items with zero amount, normally hidden (except in hledger-ui)
 '-B --cost'
 
      convert amounts to their cost at transaction time (using the
@@ -378,17 +378,17 @@ Tag Table:
 Node: Top71
 Node: OPTIONS827
 Ref: #options924
-Node: KEYS4093
-Ref: #keys4188
-Node: SCREENS7147
-Ref: #screens7232
-Node: Accounts screen7322
-Ref: #accounts-screen7450
-Node: Register screen9680
-Ref: #register-screen9835
-Node: Transaction screen11909
-Ref: #transaction-screen12067
-Node: Error screen12937
-Ref: #error-screen13059
+Node: KEYS4116
+Ref: #keys4211
+Node: SCREENS7170
+Ref: #screens7255
+Node: Accounts screen7345
+Ref: #accounts-screen7473
+Node: Register screen9703
+Ref: #register-screen9858
+Node: Transaction screen11932
+Ref: #transaction-screen12090
+Node: Error screen12960
+Ref: #error-screen13082
 
 End Tag Table

@@ -147,7 +147,7 @@ m4_define({{_reportingoptions_}}, {{
 : hide/aggregate accounts or postings more than NUM levels deep
 
 `-E --empty`
-: show items with zero amount, normally hidden
+: show items with zero amount, normally hidden (except in hledger-ui)
 
 `-B --cost`
 : convert amounts to their cost at transaction time
