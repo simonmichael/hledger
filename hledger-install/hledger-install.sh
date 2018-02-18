@@ -396,7 +396,7 @@ distro_info() {
       if [ -e /etc/arch-release ] ; then
         # /etc/arch-release exists but is often empty
         echo "arch;"
-      elif [ -e /etc/centos-release ] && grep -q "\<6\>" /etc/centos-release ; then
+      elif [ -e /etc/centos-release ] && grep -q "\\<6\\>" /etc/centos-release ; then
         # /etc/centos-release has a non-standard format before version 7
         echo "centos;6"
       else
@@ -745,7 +745,7 @@ trap cleanup_temp_dir EXIT
 
 # install stack if needed, or always with --force-install-stack, in $HOME/.local/bin
 ensure_stack() {
-  if ! $(has_stack) || [[ "$FORCE_INSTALL_STACK" == "true" ]] ; then
+  if ! has_stack || [[ "$FORCE_INSTALL_STACK" == "true" ]] ; then
     echo "Installing stack"
     do_os
   fi
@@ -785,18 +785,18 @@ print_cmd_version() {
 
 # Show the installation status of the $HLEDGER_MAIN_TOOLS and $HLEDGER_OTHER_TOOLS. 
 print_hledger_versions() {
-  for cmd in $HLEDGER_MAIN_TOOLS $HLEDGER_OTHER_TOOLS $HLEDGER_INSTALL_TOOL ; do print_cmd_version $cmd; done
+  for cmd in $HLEDGER_MAIN_TOOLS $HLEDGER_OTHER_TOOLS $HLEDGER_INSTALL_TOOL ; do print_cmd_version "$cmd"; done
 }
 
 # Run a command, but first log it with "Trying" prepended.
 try_info() {
   echo Trying "$@"
-  $@
+  "$@"
 }
 
 # Run a command if possible, suppressing any error output or non-zero exit code.
 quietly_run() {
-  $@ 2>/dev/null || true
+  "$@" 2>/dev/null || true
 }
 
 # Try to install the executables of the given package(s) to $HOME/.local/bin, 
@@ -808,10 +808,10 @@ quietly_run() {
 # install but also all dependencies which are not in the specified stackage $RESOLVER.
 try_install() {
   (cd  # avoid any project-specific stack/cabal config, install at user level
-   (! has_cmd stack && has_cmd cabal && try_info cabal install "$@" --verbose=$CABAL_VERBOSITY ) ||
+   (! has_cmd stack && has_cmd cabal && try_info cabal install "$@" --verbose="$CABAL_VERBOSITY" ) ||
    (ensure_stack && (
     #(try_info stack install --install-ghc "$@" --verbosity=$STACK_VERBOSITY ) ||        # existing resolver
-    (try_info stack install --install-ghc $RESOLVER "$@" --verbosity=$STACK_VERBOSITY )  # specific resolver
+    (try_info stack install --install-ghc $RESOLVER "$@" --verbosity="$STACK_VERBOSITY" )  # specific resolver
     )
    ) ||
    echo Failed to install "$@"
@@ -875,7 +875,7 @@ else
   QUIET="true"
 fi
 
-echo "hledger-install.sh $HLEDGER_INSTALL_VERSION `date`"
+echo "hledger-install.sh $HLEDGER_INSTALL_VERSION $(date)"
 
 # ensure ~/.local/bin/ in PATH
 if ! on_path "$HOME_LOCAL_BIN" ; then
