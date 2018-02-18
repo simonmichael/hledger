@@ -48,7 +48,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20180217
+HLEDGER_INSTALL_VERSION=20180218
 
 RESOLVER=  #"--resolver=nightly"
   # ^ You can specify a different stackage snapshot here, 
@@ -899,6 +899,9 @@ print_hledger_versions
 if [[ $STATUSFLAG ]] ; then
   exit 0
 fi
+
+# if we'll be using cabal, run cabal update once at the start
+(! has_cmd stack && has_cmd cabal && try_info cabal update )
 
 # try installing each package that needs installing, in turn
 echo ----------
