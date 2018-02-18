@@ -50,7 +50,7 @@ Current build issues/workarounds:
 
 ### 1. hledger-install
 
-On POSIX systems (linux, mac, *bsd, unixlike environments on windows..),
+On supported POSIX systems (GNU/linux, mac, freeBSD (but not other BSDs yet), possibly unixlike environments on windows..),
 our [hledger-install.sh](https://github.com/simonmichael/hledger/tree/master/hledger-install)
 is the build method most likely to just work:
 
@@ -85,7 +85,7 @@ Here's how to use it directly to install hledger:
 
 1. **Install or upgrade to the latest stack**\
    The latest version of stack is recommended, as it is the best at avoiding ecosystem breakages and most likely to just work.
-   If you already have stack 1.3 or greater, you can usually run `stack upgrade` to quickly upgrade it.
+   If you can get at least stack 1.3 installed, eg from your system packages, you can usually run `stack upgrade` to quickly upgrade it to the latest.
    On Windows, the 64-bit version of stack is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
    <!-- On Arch, you [may need to also install GHC manually](https://github.com/simonmichael/hledger/issues/434).\ -->
    Follow stack's advice to 
