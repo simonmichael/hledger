@@ -193,7 +193,7 @@ OPTIONS
 
        -E --empty
               show   items  with  zero  amount,  normally  hidden  (except  in
-              hledger-ui)
+              hledger-ui/hledger-web)
 
        -B --cost
               convert amounts to their cost at  transaction  time  (using  the
