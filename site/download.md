@@ -47,7 +47,8 @@ subsequent builds will be quicker.
 
 And, here are some current build issues that might affect you:\
 [freebsd 12 no cabal file found](https://github.com/simonmichael/hledger/issues/709),\
-[openbsd 6 exec permission denied](https://deftly.net/posts/2017-10-12-using-cabal-on-openbsd.html)
+[openbsd 6 exec permission denied](https://deftly.net/posts/2017-10-12-using-cabal-on-openbsd.html),\
+[openbsd how to get stack](https://github.com/commercialhaskell/stack/issues/2822#issuecomment-318892816)
 
 ### 1. hledger-install
 
