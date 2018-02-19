@@ -45,8 +45,9 @@ significant time (minutes to 1 hour), memory (eg 1G+), and disk space
 unattended, you can kill and restart it without losing progress, and
 subsequent builds will be quicker.
 
-Current build issues/workarounds:
-[freebsd 12](https://github.com/simonmichael/hledger/issues/709)
+And, here are some current build issues that might affect you:\
+[freebsd 12 no cabal file found](https://github.com/simonmichael/hledger/issues/709),\
+[openbsd 6 exec permission denied](https://deftly.net/posts/2017-10-12-using-cabal-on-openbsd.html)
 
 ### 1. hledger-install
 
