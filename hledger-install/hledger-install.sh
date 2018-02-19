@@ -6,6 +6,7 @@
 # This is based on get-stack.sh which is copyright (c) 2015-2017, Stack contributors.
 
 set -e
+set -o pipefail
 
 usage() {
   cat <<HERE
