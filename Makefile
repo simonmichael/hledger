@@ -568,6 +568,12 @@ $(call def-help-subheading,TESTING:)
 test: pkgtest functest \
 	$(call def-help,test, run default tests )
 
+easytest: $(call def-help,easytest, run unit tests defined with easytest)
+	stack runghc tools/easytest.hs
+
+easytest-watch: $(call def-help,easytest-watch, repeatedly run unit tests defined with easytest)
+	tools/easytest.hs
+
 travistest: $(call def-help,travistest, run tests similar to the most thorough travis tests)
 	stack clean
 	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib
