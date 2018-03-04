@@ -54,9 +54,10 @@ subsequent builds will be quicker.
 
 <span class=warnings>
 Some known build issues and workarounds:\
-[freebsd 12 no cabal file found](https://github.com/simonmichael/hledger/issues/709),\
-[openbsd 6 exec permission denied](https://deftly.net/posts/2017-10-12-using-cabal-on-openbsd.html),\
-[openbsd how to get stack](https://github.com/commercialhaskell/stack/issues/2822#issuecomment-318892816).
+[freebsd 12 no cabal file found](https://github.com/simonmichael/hledger/issues/709)\
+[openbsd 6 exec permission denied](https://deftly.net/posts/2017-10-12-using-cabal-on-openbsd.html)\
+[openbsd how to get stack](https://github.com/commercialhaskell/stack/issues/2822#issuecomment-318892816)\
+[nixos hledger sets `nix enable` to false by default](https://github.com/simonmichael/hledger/issues/712)\
 </span>
 
 ### 1. hledger-install
