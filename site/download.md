@@ -13,6 +13,13 @@ td:first-of-type {
   /* width:1%; */
 }
 a { white-space:nowrap; }
+.warnings {
+    font-style:italic;
+}
+.warnings > a:before {
+    content: "⚠ ";
+    color:red;
+}
 </style>
 
 System packages are quickest to install, 
@@ -21,15 +28,15 @@ but they can be [out of date](https://repology.org/metapackage/hledger/badges) o
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| Windows:             | [Latest developer builds](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts) ([no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))
-| Mac:                 | **`brew install hledger`** ([CLI only](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))
-| Arch Linux:          | **`pacman -S hledger`** (haskell problems are common on Arch at present, cf #668 [1](https://github.com/simonmichael/hledger/issues/668#issuecomment-352197500), [2](https://github.com/simonmichael/hledger/issues/668#issuecomment-355107667))
+| Windows:             | [Latest developer builds](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts) <span class=warnings>([appveyor builds are not up to date](https://github.com/simonmichael/hledger/issues/694), [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
+| Mac:                 | **`brew install hledger`** <span class=warnings>([only hledger CLI is packaged](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))</span>
+| Arch Linux:          | **`pacman -S hledger`** <span class=warnings>([haskell problems are common on Arch at present](https://github.com/simonmichael/hledger/issues/668))</span>
 | Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`**
 | Fedora,&nbsp;RHEL:   | **`sudo dnf install hledger`**
 | Gentoo:              | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`**
 | Void Linux:          | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`**
-| NixOS:               | **`nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`** ([problems building hledger-ui on MacOS](https://github.com/simonmichael/hledger/issues/613))
-| Sandstorm:           | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo** (get a hledger-web server in 3 clicks. [Features needed](https://github.com/simonmichael/hledger/issues/425))
+| NixOS:               | **`nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`** <span class=warnings>([problems building hledger-ui on MacOS](https://github.com/simonmichael/hledger/issues/613))</span>
+| Sandstorm:           | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo** - a hledger-web server in 3 clicks. <span class=warnings>([features needed](https://github.com/simonmichael/hledger/issues/425))</span>
 
 
 <a name="b"></a>
@@ -45,10 +52,12 @@ significant time (minutes to 1 hour), memory (eg 1G+), and disk space
 unattended, you can kill and restart it without losing progress, and
 subsequent builds will be quicker.
 
-And, here are some current build issues that might affect you:\
+<span class=warnings>
+Some known build issues and workarounds:\
 [freebsd 12 no cabal file found](https://github.com/simonmichael/hledger/issues/709),\
 [openbsd 6 exec permission denied](https://deftly.net/posts/2017-10-12-using-cabal-on-openbsd.html),\
-[openbsd how to get stack](https://github.com/commercialhaskell/stack/issues/2822#issuecomment-318892816)
+[openbsd how to get stack](https://github.com/commercialhaskell/stack/issues/2822#issuecomment-318892816).
+</span>
 
 ### 1. hledger-install
 
@@ -103,7 +112,7 @@ Here's how to use it directly to install hledger:
 
     The bracketed packages are optional; if you include them, don't type the brackets, and do always 
     include the preceding hledger-lib and hledger packages in the command, otherwise stack may complain.
-    hledger-ui is [not yet available on Windows](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444), alas.
+    <span class=warnings>([hledger-ui is not yet available on Windows, alas](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444).)</span>
 
     If you get errors due to missing C libraries like curses or terminfo, you'll need to find out the corresponding
     system packages and install those manually. Eg:
