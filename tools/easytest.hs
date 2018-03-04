@@ -1,36 +1,40 @@
-#!/usr/bin/env stack
--- stack runghc --install-ghc --package easytest
--- (use project's resolver)
-
--- stack script --resolver lts-10.3 --package easytest
--- (use specific resolver, be more self-contained)
-
--- Examples of https://github.com/joelburget/easytest, an easier testing framework.
+#!/usr/bin/env stack exec -- ghcid -Tmain
+-- Run tests using project's resolver, whenever ghcid is happy.
+--
+-- Experimental tests using easytest, an alternative to hunit (eg).
+-- https://github.com/joelburget/easytest
+-- https://hackage.haskell.org/package/easytest-0.1/candidate
 
 {-# LANGUAGE OverloadedStrings #-}
 
 import EasyTest
-import Control.Applicative
-import Control.Monad
-
-suite1 :: Test ()
-suite1 = tests
-  [ scope "a" ok
-  , scope "b.c" ok
-  , scope "b" ok
-  , scope "b" . scope "c" . scope "d" $ ok
-  , scope "c" ok ]
-
-reverseTest :: Test ()
-reverseTest = scope "list reversal" $ do
-  nums <- listsOf [0..100] (int' 0 99)
-  nums `forM_` \nums -> expect (reverse (reverse nums) == nums)
+import Hledger
 
 main :: IO ()
 main = do
-  run suite1
-  runOnly "a" suite1
-  runOnly "b" suite1
-  runOnly "b" $ tests [suite1, scope "xyz" (crash "never run")]
-  runOnly "b.c" $ tests [suite1, scope "b" (crash "never run")]
-  run reverseTest
+  run
+  -- rerun "journal.standard account types.queries.assets"
+  -- rerunOnly 2686786430487349354 "journal.standard account types.queries.assets"
+    $ tests [
+
+      scope "journal.standard account types.queries" $
+        let
+          j = samplejournal
+          journalAccountNamesMatching :: Query -> Journal -> [AccountName]
+          journalAccountNamesMatching q = filter (q `matchesAccount`) . journalAccountNames
+          namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
+        in
+          tests
+            [ scope "assets" $
+              expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+            , scope "liabilities" $
+              expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
+            , scope "equity" $
+              expectEq (namesfrom journalEquityAccountQuery)    []
+            , scope "income" $
+              expectEq (namesfrom journalIncomeAccountQuery)    ["income","income:gifts","income:salary"]
+            , scope "expenses" $
+              expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
+            ]
+
+    ]
