@@ -3,7 +3,6 @@
 resolver: lts-10.3
 
 nix:
-  enable: false
   pure: false
   packages: [perl gmp ncurses zlib]
 
