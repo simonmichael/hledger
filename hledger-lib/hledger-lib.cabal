@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e19a6e513d9933c42207c22788118878eede237f4ec6f1fdc70983da44c8291d
+-- hash: 0dda6f4ef72b1a815284abd47c8dfefe75812e2e91900581bd7837dd587533d4
 
 name:           hledger-lib
 version:        1.5.99
@@ -160,6 +160,96 @@ test-suite doctests
     , extra
     , filepath
     , hashtables >=1.2
+    , megaparsec >=5.0
+    , mtl
+    , mtl-compat
+    , old-time
+    , parsec >=3
+    , pretty-show >=1.6.4
+    , regex-tdfa
+    , safe >=0.2
+    , semigroups
+    , split >=0.1
+    , text >=1.2
+    , time >=1.5
+    , transformers >=0.2
+    , uglymemo
+    , utf8-string >=0.3.5
+  other-modules:
+      Hledger
+      Hledger.Data
+      Hledger.Data.Account
+      Hledger.Data.AccountName
+      Hledger.Data.Amount
+      Hledger.Data.AutoTransaction
+      Hledger.Data.Commodity
+      Hledger.Data.Dates
+      Hledger.Data.Journal
+      Hledger.Data.Ledger
+      Hledger.Data.MarketPrice
+      Hledger.Data.Period
+      Hledger.Data.Posting
+      Hledger.Data.RawOptions
+      Hledger.Data.StringFormat
+      Hledger.Data.Timeclock
+      Hledger.Data.Transaction
+      Hledger.Data.Types
+      Hledger.Query
+      Hledger.Read
+      Hledger.Read.Common
+      Hledger.Read.CsvReader
+      Hledger.Read.JournalReader
+      Hledger.Read.TimeclockReader
+      Hledger.Read.TimedotReader
+      Hledger.Reports
+      Hledger.Reports.BalanceHistoryReport
+      Hledger.Reports.BalanceReport
+      Hledger.Reports.EntriesReport
+      Hledger.Reports.MultiBalanceReports
+      Hledger.Reports.PostingsReport
+      Hledger.Reports.ReportOptions
+      Hledger.Reports.TransactionsReports
+      Hledger.Utils
+      Hledger.Utils.Color
+      Hledger.Utils.Debug
+      Hledger.Utils.Parse
+      Hledger.Utils.Regex
+      Hledger.Utils.String
+      Hledger.Utils.Test
+      Hledger.Utils.Text
+      Hledger.Utils.Tree
+      Hledger.Utils.UTF8IOCompat
+      Text.Megaparsec.Compat
+      Paths_hledger_lib
+  default-language: Haskell2010
+
+test-suite easytests
+  type: exitcode-stdio-1.0
+  main-is: easytests.hs
+  hs-source-dirs:
+      ./.
+      tests
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  build-depends:
+      Decimal
+    , HUnit
+    , ansi-terminal >=0.6.2.3
+    , array
+    , base >=4.8 && <5
+    , base-compat >=0.8.1
+    , blaze-markup >=0.5.1
+    , bytestring
+    , cmdargs >=0.10
+    , containers
+    , csv
+    , data-default >=0.5
+    , deepseq
+    , directory
+    , easytest
+    , extra
+    , filepath
+    , hashtables >=1.2
+    , hledger-lib
     , megaparsec >=5.0
     , mtl
     , mtl-compat

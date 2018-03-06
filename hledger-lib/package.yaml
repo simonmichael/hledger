@@ -139,12 +139,14 @@ library:
 #  - Ledger.Parser.Text
 
 tests:
+
   doctests:
     main: doctests.hs
     source-dirs: tests
     dependencies:
     - doctest >=0.8
     - Glob >=0.7
+
   hunittests:
     main: hunittests.hs
     source-dirs: tests
@@ -152,3 +154,10 @@ tests:
     - hledger-lib
     - test-framework
     - test-framework-hunit
+
+  easytests:
+    main: easytests.hs
+    source-dirs: tests
+    dependencies:
+    - hledger-lib
+    - easytest

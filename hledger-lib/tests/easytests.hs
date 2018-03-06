@@ -2,8 +2,7 @@
 -- Run tests using project's resolver, whenever ghcid is happy.
 --
 -- Experimental tests using easytest, an alternative to hunit (eg).
--- https://github.com/joelburget/easytest
--- https://hackage.haskell.org/package/easytest-0.1/candidate
+-- https://hackage.haskell.org/package/easytest
 
 {-# LANGUAGE OverloadedStrings #-}
 
