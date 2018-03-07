@@ -81,7 +81,10 @@ And here's the safer, more responsible way:
  **`less hledger-install.sh`**  *# do security review*\
  **`bash hledger-install.sh`**  *# or bash -x, to log commands*
 
-If you have any trouble, you can help greatly by capturing a debug log
+If you see link errors, you might need to manually install some extra C libraries and try again.
+See "Install required C libraries" below.
+
+If you have any other trouble, you can help greatly by capturing a debug log
 and sending it to me via 
 [paste](http://paste.hledger.org) & [IRC](http://irc.hledger.org),
 an [issue](http://bugs.hledger.org),
@@ -95,7 +98,7 @@ or [email](docs.html#helpfeedback):
 Here's how to use it directly to install hledger:
 
 1. **Install or upgrade to the latest stack**\
-   The latest version of stack is recommended, as it is the best at avoiding ecosystem breakages and most likely to just work.
+   The latest version of stack (1.6.3+) is recommended, as it is the best at avoiding ecosystem breakages and most likely to just work.
    If you can get at least stack 1.3 installed, eg from your system packages, you can usually run `stack upgrade` to quickly upgrade it to the latest.
    On Windows, the 64-bit version of stack is [recommended](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
    <!-- On Arch, you [may need to also install GHC manually](https://github.com/simonmichael/hledger/issues/434).\ -->
@@ -104,7 +107,28 @@ Here's how to use it directly to install hledger:
    Eg, if you're a bash user:\
    &nbsp;&nbsp;`echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
 
-2. **`stack install --resolver=nightly hledger-lib-1.5 hledger-1.5 [hledger-ui-1.5] [hledger-web-1.5] [hledger-api-1.5]`**\   
+2. **Install required C libraries**\
+   You might need to manually install some extra C libraries required by hledger's dependencies.
+    If you're not sure about this, proceed with the next step and return here if you get link errors
+    (for example: "/bin/ld.gold: error: cannot find -ltinfo").
+
+   In particular the "-devel" packages for 
+   libstdc++ (for hledger-iadd),
+   ncurses (for hledger, hledger-ui),
+   and
+   zlib (for hledger-web)
+   are often required. 
+   Eg:
+
+    |
+    |-----------------|-----------------------------------
+    | Centos:         | `sudo yum install -y libstdc++-devel ncurses-devel zlib-devel`  # ⚠ still having trouble with libstdc++
+    | Debian, Ubuntu: | `sudo apt install -y libncurses5-dev ...` 
+    | Fedora, RHEL:   | `sudo dnf install -y ncurses-devel ...`
+
+    (Please send us updates for the above list.)
+
+3. **`stack install --resolver=nightly hledger-lib-1.5 hledger-1.5 [hledger-ui-1.5] [hledger-web-1.5] [hledger-api-1.5]`**\   
    This installs the specified hledger packages (and required haskell libraries and tools) from [Stackage](https://www.stackage.org) (and if needed, [Hackage](http://hackage.haskell.org)).
    Specifying stackage's nightly resolver (snapshot) requires the most rebuilding, but is the most reliable;
    you can try reducing build time by specifying another resolver that you've installed from previously, or no --resolver option.\
@@ -113,14 +137,6 @@ Here's how to use it directly to install hledger:
     The bracketed packages are optional; if you include them, don't type the brackets, and do always 
     include the preceding hledger-lib and hledger packages in the command, otherwise stack may complain.
     <span class=warnings>([hledger-ui is not yet available on Windows, alas](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444).)</span>
-
-    If you get errors due to missing C libraries like curses or terminfo, you'll need to find out the corresponding
-    system packages and install those manually. Eg:
-
-    |
-    |-----------------|-----------------------------------
-    | Debian, Ubuntu: | `sudo apt install libncurses5-dev` 
-    | Fedora, RHEL:   | `sudo dnf install ncurses-devel`
 
 <!--
     If you need to build with an older GHC version for some reason, these commands should work
