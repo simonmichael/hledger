@@ -5,7 +5,7 @@
 # Requires bash and some other POSIX tools.
 # This is based on get-stack.sh which is copyright (c) 2015-2017, Stack contributors.
 
-set -e
+#set -e  # causes trouble, https://github.com/simonmichael/hledger/issues/714
 set -o pipefail
 
 usage() {
@@ -49,7 +49,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20180218
+HLEDGER_INSTALL_VERSION=20180306
 
 RESOLVER=  #"--resolver=nightly"
   # ^ You can specify a different stackage snapshot here, 
