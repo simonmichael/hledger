@@ -33,7 +33,6 @@ For more docs relevant to all ledger-likes, see [plaintextaccounting.org](http:/
 ### What is hledger?
 An enhanced, well-documented rewrite of the original plain text accounting tool.\
 [hledger intro](http://hledger.org)\
-[Frequently Asked Questions](faq.html)\
 [Download](download.html)\
 [Release notes](release-notes.html)\
 
@@ -45,66 +44,9 @@ Using plain text data formats and modular free software tools for robust, effici
 
 ### What is Accounting?
 Tracking your use of valuable commodities, such as money or time, for increased awareness and effectiveness.\
-[Selected accounting links](more-docs.html#accounting)\
-
-
-</div>
-
-
-
-<div class="col-sm-3">
-
-## [Guide](guide.html){title="all on one page"}
-
-A growing collection of tutorials, how-tos and discussion of general topics.
-
-### Getting started
-
-[hledger Step by Step](step-by-step.html) tutorial\
-
-
-### Journal management
-
-[Start a journal](start-journal.html)\
-[Track changes with version control](version-control.html)\
-
-
-### Account names
-
-[PTA: choosing accounts](http://plaintextaccounting.org/#choosing-accounts)\
-[Rewrite account names](account-aliases.html)\
-[Use another account separator character](account-separator.html)\
-
-
-### Journal entries
-
-[Basic journal entries](entries.html)\
-[Project accounting](project-accounting.html)\
-
-
-### Data entry/import
-
-[Convert CSV files](csv-import.html)\
-
-
-### Budgeting/forecasting
-
-[Budgeting and forecasting](budgeting-and-forecasting.html)\
-
-
-### Investing
-
-[Track investments](investments.html)\
-
-
-### More..
-
-[Save frequently used options](argfiles.html)\
-[PTA: Common tasks](http://plaintextaccounting.org/#common-tasks)\
+[Selected accounting links](http://github.com/simonmichael/hledger/wiki/more-docs)\
 
 </div>
-
-
 
 <div class="col-sm-3">
 
@@ -140,39 +82,17 @@ is for precise time logging with clock-in/clock-out
 [timedot format](timedot.html)
 is for human-friendly approximate time logging
 
-### Addon tools
+</div>
 
-[hledger-diff](http://hackage.haskell.org/package/hledger-diff)
-shows differences in an account's transactions between one journal file and another.
+<div class="col-sm-3">
 
-[hledger-iadd](http://hackage.haskell.org/package/hledger-iadd)
-is a curses-style replacement for hledger's add command. 
+## Wiki / Cookbook
 
-[hledger-interest](http://hackage.haskell.org/package/hledger-interest)
-generates interest transactions for an account according to various schemes. 
+Tutorials, how-tos and discussion of general topics.
 
-[hledger-irr](http://hackage.haskell.org/package/hledger-irr)
-calculates the internal rate of return of an investment account.
+https://github.com/simonmichael/hledger/wiki
 
-Some experimental tools:
-
-[hledger-budget.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-budget.hs#L10)
-adds Ledger-style periodic transactions and budget reports.
-
-[hledger-check.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check.hs)
-checks more powerful account balance assertions.
-
-Also:
-
-[ledger-autosync](https://pypi.python.org/pypi/ledger-autosync),
-can download, deduplicate and/or convert OFX data (includes hledger support, 
-rename/symlink it to hledger-autosync to see it in commands list)
-
-[PTA: related tools](http://plaintextaccounting.org/#related-tools)
-lists all known plain text accounting helper tools
-
-
-</div> <!-- col -->
+</div>
 
 </div> <!-- row -->
 </div> <!-- container -->

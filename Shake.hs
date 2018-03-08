@@ -60,7 +60,6 @@ usage = unlines
 --   ,"./Shake infomanpages     # generate info files for info"
 --   ,"./Shake webmanpages      # generate individual web man pages for hakyll"
 --   ,"./Shake webmanall        # generate all-in-one web manual for hakyll"
---   ,"./Shake guideall         # generate all-in-one web user guide for hakyll"
   ,"./Shake site/doc/VER/.snapshot   # generate and save a versioned web site snapshot"
   ,"./Shake all              # generate everything"
   ,"./Shake clean            # clean generated files"
@@ -155,28 +154,6 @@ main = do
       -- manuals rendered to markdown and combined, ready for web output by hakyll
       webmanall = "site/manual.md"
 
-      -- user guide pages in markdown, ready for web output by hakyll (site/csv-import.md).
-      -- Keeping these in the main site directory allows hakyll-std to see them (and simpler urls).
-      -- These should be kept ordered like the links on the docs page, so that the 
-      -- combined guide follows the same order.
-      -- XXX This, as well as keeping page link, heading, and filename synced, will be a bit tricky.
-      -- Current policy:
-      -- filenames are simple and stable as possible, beginning with TOPIC- prefix when appropriate
-      -- titles are succinct and practical/action/verb-oriented 
-      guidepages = [
-         "site/start-journal.md"
-        ,"site/version-control.md"
-        ,"site/entries.md"
-        ,"site/csv-import.md"
-        ,"site/account-aliases.md"
-        ,"site/account-separator.md"
-        ,"site/investments.md"
-        ,"site/argfiles.md"
-        ]
-
-      -- guide pages combined, ready for web output by hakyll
-      guideall = "site/guide.md"
-
       -- hledger.1 -> hledger/doc, hledger_journal.5 -> hledger-lib/doc
       manpageDir m
         | '_' `elem` m = "hledger-lib"
@@ -266,7 +243,6 @@ main = do
       need $
         webmanpages ++
         [webmanall
-        ,guideall
         ,hakyllstd
         ]
       cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
@@ -316,20 +292,6 @@ main = do
           ">>" webmanall :: Action ExitCode
 
     -- adjust and combine recipe mds for single-page web output, using pandoc
-    phony "guideall" $ need [ guideall ]
-
-    guideall %> \out -> do
-      need $ guidepages ++ pandocFilters  -- XXX seems not to work, not rebuilt when a recipe changes 
-      liftIO $ writeFile guideall "* toc\n\n"  -- # User Guide\n\n -- TOC style is better without main heading, 
-      forM_ guidepages $ \f -> do -- site/csv-import.md, site/account-aliases.md, ...
-        cmd Shell ("printf '\\n\\n' >>") guideall :: Action ExitCode
-        cmd Shell "pandoc" f "-t markdown-fenced_divs --atx-headers"
-          -- "--filter tools/pandoc-drop-man-blocks"
-          "--filter tools/pandoc-drop-toc"
-          -- "--filter tools/pandoc-capitalize-headers"
-          "--filter tools/pandoc-demote-headers"
-          ">>" guideall :: Action ExitCode
-
     -- build the currently checked out web docs and save as a named snapshot
     "site/doc/*/.snapshot" %> \out -> do
       need [ webmanall ]
@@ -359,7 +321,7 @@ main = do
     phony "clean" $ do
       putNormal "Cleaning generated files"
       removeFilesAfter "." webmanpages
-      removeFilesAfter "." [webmanall, guideall]
+      removeFilesAfter "." [webmanall]
 
     phony "Clean" $ do
       need ["clean"]
