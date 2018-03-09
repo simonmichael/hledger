@@ -57,16 +57,16 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 ### Core tools
 
 **[hledger](hledger.html)**
-is the command-line UI
+- the command-line UI
 
 **[hledger-ui](hledger-ui.html)**
-is a curses-style UI
+- a curses-style UI
 
 **[hledger-web](hledger-web.html)**
-is a web UI
+- a web UI
 
 **[hledger-api](hledger-api.html)**
-is a HTTP JSON server
+- a HTTP JSON server
 
 ### File formats
 
