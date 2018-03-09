@@ -928,6 +928,8 @@ if [[ $(cmd_version hledger-api) < $HLEDGER_API_VERSION ]]; then
   try_install hledger-api-$HLEDGER_API_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
+# Third-party addons. We allow these to use an older version of
+# hledger-lib, in case their bounds have not been updated yet. 
 if [[ $(cmd_version hledger-diff) < $HLEDGER_DIFF_VERSION ]]; then 
   echo Installing hledger-diff
   try_install hledger-diff-$HLEDGER_DIFF_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
