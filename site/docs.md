@@ -71,16 +71,16 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 ### File formats
 
 **[journal format](journal.html)**
-is hledger's native data format, representing an accounting journal
+- hledger's native data format, representing an accounting journal
 
 **[csv format](csv.html)**
-allows hledger to read and write CSV, a common download format
+- allows hledger to read and write CSV, a common download format
 
 **[timeclock format](timeclock.html)**
-is for precise time logging with clock-in/clock-out
+- for precise time logging with clock-in/clock-out
 
 [timedot format](timedot.html)
-is for human-friendly approximate time logging
+- for human-friendly approximate time logging
 
 </div>
 
