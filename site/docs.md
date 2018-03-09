@@ -92,12 +92,58 @@ a file format for human-friendly approximate time logging
 ## Wiki/Cookbook
 
 **[hledger wiki](https://github.com/simonmichael/hledger/wiki)**\
-How-tos, tutorials and notes, including the\
-[hledger basics tutorial](https://github.com/simonmichael/hledger/wiki/hledger-basics-tutorial) and\
-[FAQ](https://github.com/simonmichael/hledger/wiki/faq).\
+How-tos, tutorials & tips, including:
 
-\
+<div style="margin-left:0em;">
+<!-- WIKICONTENT -->
+### Getting started
 
+[hledger basics tutorial](https://github.com/simonmichael/hledger/wiki/hledger basics tutorial)  
+[Start a journal](https://github.com/simonmichael/hledger/wiki/Start a journal)  
+[Common journal entries](https://github.com/simonmichael/hledger/wiki/Common journal entries)  
+[hledger accounting concepts tutorial](https://github.com/simonmichael/hledger/wiki/hledger accounting concepts tutorial)  
+[FAQ](https://github.com/simonmichael/hledger/wiki/FAQ)
+
+### Data entry, import, management
+
+[Convert CSV files](https://github.com/simonmichael/hledger/wiki/Convert CSV files)  
+[Track changes with version control](https://github.com/simonmichael/hledger/wiki/Track changes with version control)  
+[Use another account separator character](https://github.com/simonmichael/hledger/wiki/Use another account separator character)  
+
+### Reporting
+
+[hledger tags tutorial](https://github.com/simonmichael/hledger/wiki/hledger tags tutorial)  
+[Queries](https://github.com/simonmichael/hledger/wiki/Queries)  
+[Rewrite account names](https://github.com/simonmichael/hledger/wiki/Rewrite account names)  
+
+### Accounting tasks
+
+[Budgeting and forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting and forecasting)  
+[Project accounting](https://github.com/simonmichael/hledger/wiki/Project accounting)  
+[Track investments](https://github.com/simonmichael/hledger/wiki/Track investments)  
+
+### Usage tips
+
+[Addons](https://github.com/simonmichael/hledger/wiki/Addons)  
+[Mobile apps](https://github.com/simonmichael/hledger/wiki/Mobile apps)  
+[Save frequently used options](https://github.com/simonmichael/hledger/wiki/Save frequently used options)  
+
+### More..
+
+[More docs](https://github.com/simonmichael/hledger/wiki/More docs)  
+
+[plaintextaccounting.org](http://plaintextaccounting.org) -
+[ledger‑likes](http://plaintextaccounting.org/#ledger-likes) -
+[tools](http://plaintextaccounting.org/#related-tools) -
+[docs](http://plaintextaccounting.org/#docs) -
+[common&nbsp;tasks](http://plaintextaccounting.org/#common-tasks) -
+[discussion](http://plaintextaccounting.org/#discussion)  
+
+[ledger-cli.org](http://ledger-cli.org) - [docs](https://www.ledger-cli.org/docs.html) - [wiki](https://github.com/ledger/ledger/wiki)  
+
+[Beancount's docs](http://furius.ca/beancount/doc/index)
+<!-- ENDWIKICONTENT -->
+</div>
 
 </div>
 

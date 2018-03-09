@@ -967,6 +967,15 @@ site-build: site/hakyll-std/hakyll-std site/manual.md \
 	$(call def-help,site-build, generate the hledger.org website with hakyll-std )
 	-cd site; hakyll-std/hakyll-std build
 
+site/docs.md: wiki/_Sidebar.md \
+	$(call def-help,site/docs.md, update docs page with wiki sidebar content which should be in ./wiki/_Sidebar )
+	(sed -ne '1,/<!-- WIKICONTENT -->/ p'     site/docs.md     ; \
+	 sed -ne '/###/,$$ p'                     wiki/_Sidebar.md \
+		| perl -p -e 's/\[\[([^\]]*)\]\]/[\1](https:\/\/github.com\/simonmichael\/hledger\/wiki\/\1)/g' ; \
+	 sed -ne '/<!-- ENDWIKICONTENT -->/,$$ p' site/docs.md     ) \
+	> site/_docs.md.$$$$ && \
+	mv site/_docs.md.$$$$ site/docs.md
+
 site-clean: site/hakyll-std/hakyll-std \
 	$(call def-help,site-clean, remove hakyll-generated files (& take down the website) ) #cleanolddocs
 	-cd site; hakyll-std/hakyll-std clean
