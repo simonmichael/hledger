@@ -32,19 +32,19 @@ For more docs relevant to all ledger-likes, see [plaintextaccounting.org](http:/
 
 ### What is hledger?
 An enhanced, well-documented rewrite of the original plain text accounting tool.\
-[hledger intro](http://hledger.org)\
-[Download](download.html)\
-[Release notes](release-notes.html)\
+**[hledger intro](http://hledger.org)**\
+**[Download](download.html)**\
+**[Release notes](release-notes.html)**\
 
 
 ### What is Plain Text Accounting?
 Using plain text data formats and modular free software tools for robust, efficient accounting.\
-[plaintextaccounting.org](http://plaintextaccounting.org)\
+**[plaintextaccounting.org](http://plaintextaccounting.org)**\
 
 
 ### What is Accounting?
 Tracking your use of valuable commodities, such as money or time, for increased awareness and effectiveness.\
-[Selected accounting links](http://github.com/simonmichael/hledger/wiki/more-docs)\
+**[Selected accounting links](http://github.com/simonmichael/hledger/wiki/more-docs)**\
 
 </div>
 
@@ -52,31 +52,31 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 
 ## Reference
 
-[Manual](manual.html) - all the main manuals on one page
+**[Manual](manual.html)** - all the main manuals on one page
 
 ### Core tools
 
-[hledger](hledger.html)
+**[hledger](hledger.html)**
 is the command-line UI
 
-[hledger-ui](hledger-ui.html)
+**[hledger-ui](hledger-ui.html)**
 is a curses-style UI
 
-[hledger-web](hledger-web.html)
+**[hledger-web](hledger-web.html)**
 is a web UI
 
-[hledger-api](hledger-api.html)
+**[hledger-api](hledger-api.html)**
 is a HTTP JSON server
 
 ### File formats
 
-[journal format](journal.html)
+**[journal format](journal.html)**
 is hledger's native data format, representing an accounting journal
 
-[csv format](csv.html)
+**[csv format](csv.html)**
 allows hledger to read and write CSV, a common download format
 
-[timeclock format](timeclock.html)
+**[timeclock format](timeclock.html)**
 is for precise time logging with clock-in/clock-out
 
 [timedot format](timedot.html)
@@ -90,7 +90,7 @@ is for human-friendly approximate time logging
 
 Tutorials, how-tos and discussion of general topics.
 
-[github.com/simonmichael/hledger/wiki](https://github.com/simonmichael/hledger/wiki){style="white-space:nowrap;"}
+**[github.com/simonmichael/hledger/wiki](https://github.com/simonmichael/hledger/wiki){style="white-space:nowrap;"}**
 
 </div>
 
