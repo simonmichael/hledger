@@ -40,7 +40,6 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 **[hledger manual](manual.html)**\
 The main hledger manuals combined on one page, including:
 
-\
 **[hledger](hledger.html)**\
 the command-line UI
 
@@ -71,9 +70,11 @@ for human-friendly approximate time logging
 
 ## Wiki / Cookbook
 
-Tutorials, how-tos and discussion of general topics.
-
-**[hledger wiki](https://github.com/simonmichael/hledger/wiki)**
+**[hledger wiki](https://github.com/simonmichael/hledger/wiki)**,
+including the\
+**[hledger basics tutorial](https://github.com/simonmichael/hledger/wiki/hledger-basics-tutorial)**,\
+**[FAQ](https://github.com/simonmichael/hledger/wiki/faq)**,\
+how-tos, tips, and general topics.
 
 \
 
@@ -84,6 +85,7 @@ Tutorials, how-tos and discussion of general topics.
 |-------------------|----------------------------------------------------------------------------|
 | IRC:              | [#hledger](http://irc.hledger.org) on Freenode <!-- [chat log](http://ircbrowse.net/browse/hledger); --> <!-- see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1) --> <!-- *Quick help and background chat.* --> <!-- *If you don't get an answer promptly, you can type `sm` to alert me, or leave the window open and check back later.* -->
 | Twitter:          | [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime), [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime) <!-- <a href="https://twitter.com/ledgertips">@LedgerTips</a> --> <!-- *Social!* -->
+| Reddit:           | [/r/plaintextaccounting](https://www.reddit.com/r/plaintextaccounting/)
 | Mail list:        | [list.hledger.org](http://list.hledger.org), hledger@googlegroups.com <!-- *Slightly less quick, more eyeballs.* -->
 | Issue tracker:    | [bugs.hledger.org](http://bugs.hledger.org)&nbsp;(bugs), [issues.hledger.org](http://issues.hledger.org)&nbsp;(all) <!-- *Always check here.* --> <!-- *Bug reports are welcome.* -->
 | Sensitive issues: | [simon@joyful.com](mailto:simon@joyful.com)
