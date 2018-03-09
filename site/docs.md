@@ -15,15 +15,17 @@ td:nth-child(1) { padding-right:1em; white-space:nowrap; }
 ## Introduction
 
 ### What is hledger?
-An enhanced, well-documented rewrite of the original plain text accounting tool.\
+
+An enhanced, well-documented reimplementation of plain text accounting.\
 **[hledger intro](http://hledger.org)**
 
-### What is Plain Text Accounting?
-Using plain text data formats and modular free software tools for robust, efficient accounting.
-More docs for all ledger-likes at:\
+### What is plain text accounting?
+
+Using plain text data formats and version control for robust, transparent accounting.\
 **[plaintextaccounting.org](http://plaintextaccounting.org)**
 
-### What is Accounting?
+### What is accounting?
+
 Tracking your use of valuable commodities, such as money or time, for increased awareness and effectiveness.\
 **[Selected accounting links](http://github.com/simonmichael/hledger/wiki/more-docs)**
 
@@ -36,8 +38,9 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 **[Release notes](release-notes.html)**\
 What's new in each hledger version.
 
-**[hledger manual](manual.html)**\
-The main hledger manuals combined on one page, including:
+**[User manual](manual.html)**\
+The main hledger manuals combined on one page for easy searching.
+Includes:
 
 **[hledger](hledger.html)**\
 the command-line UI
@@ -52,16 +55,16 @@ a web UI
 a HTTP JSON server
 
 **[journal format](journal.html)**\
-hledger's native data format
+hledger's native file format
 
 **[csv format](csv.html)**\
-allows hledger to read and write CSV
+hledger's CSV import system
 
 **[timeclock format](timeclock.html)**\
-for precise time logging with clock-in/clock-out
+a file format for precise time logging
 
 **[timedot format](timedot.html)**\
-for human-friendly approximate time logging
+a file format for human-friendly approximate time logging
 
 </div>
 
@@ -73,7 +76,7 @@ for human-friendly approximate time logging
 including the\
 **[hledger basics tutorial](https://github.com/simonmichael/hledger/wiki/hledger-basics-tutorial)**,\
 **[FAQ](https://github.com/simonmichael/hledger/wiki/faq)**,\
-how-tos, tips, and general topics.
+how-tos, tips, and general notes.
 
 \
 
