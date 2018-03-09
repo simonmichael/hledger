@@ -50,9 +50,9 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 
 <div class="col-sm-3">
 
-## Reference manuals
+## Reference
 
-[Manual](manual.html) all the main manuals on one page
+[Manual](manual.html) - all the main manuals on one page
 
 ### Core tools
 
@@ -90,7 +90,7 @@ is for human-friendly approximate time logging
 
 Tutorials, how-tos and discussion of general topics.
 
-[github.com/simonmichael/hledger/wiki](https://github.com/simonmichael/hledger/wiki)
+[github.com/simonmichael/hledger/wiki](https://github.com/simonmichael/hledger/wiki){style="white-space:nowrap;"}
 
 </div>
 
