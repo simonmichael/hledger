@@ -8,22 +8,6 @@ td:nth-child(1) { padding-right:1em; white-space:nowrap; }
 </style>
 
 <div class="container">
-
-hledger-specific docs are collected here. 
-For more docs relevant to all ledger-likes, see [plaintextaccounting.org](http://plaintextaccounting.org).
-
-## Help/feedback
-|
-|---------------|----------------------------------------------------------------------------|
-| IRC:           | [#hledger](http://irc.hledger.org) on Freenode (<!-- [chat log](http://ircbrowse.net/browse/hledger); --> see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1)) <!-- *Quick help and background chat.* --> <!-- *If you don't get an answer promptly, you can type `sm` to alert me, or leave the window open and check back later.* -->
-| Twitter:       | [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime) hashtag (see also [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime)) <!-- <a href="https://twitter.com/ledgertips">@LedgerTips</a> --> <!-- *Social!* -->
-| Mail list:     | [list.hledger.org](http://list.hledger.org), posting address: hledger@googlegroups.com <!-- *Slightly less quick, more eyeballs.* -->
-| Issue tracker: | [bugs.hledger.org](http://bugs.hledger.org) (just the bugs), [issues.hledger.org](http://issues.hledger.org) (all issues). <!-- *Always check here.* --> <!-- *Bug reports are welcome.* -->
-| Private/security issues: | [simon@joyful.com](mailto:simon@joyful.com)
-<!-- | hledger-web demo&nbsp;&nbsp; | [demo.hledger.org](http://demo.hledger.org) -->
-<!-- | hledger-web on Sandstorm&nbsp;&nbsp; | [hledger-web app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90), [issues](https://github.com/simonmichael/hledger/issues?utf8=✓&q=label%3A%22platform%3A%20sandstorm%22%20) -->
-<!-- | hledger-api demo        | <\!-- [demo.hledger.org/api](http://demo.hledger.org/api/swagger.json), -\-> [in swagger editor](http://editor.swagger.io/#/?import=demo.hledger.org/api/swagger.json&no-proxy) -->
-
 <div class="row">
 
 <div class="col-sm-3">
@@ -38,7 +22,8 @@ An enhanced, well-documented rewrite of the original plain text accounting tool.
 
 
 ### What is Plain Text Accounting?
-Using plain text data formats and modular free software tools for robust, efficient accounting.\
+Using plain text data formats and modular free software tools for robust, efficient accounting.
+More docs for all ledger-likes at:\
 **[plaintextaccounting.org](http://plaintextaccounting.org)**\
 
 
@@ -53,7 +38,7 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 ## Reference
 
 **[hledger manual](manual.html)**\
-the main hledger manuals combined on one page, including:
+The main hledger manuals combined on one page, including:
 
 \
 **[hledger](hledger.html)**\
@@ -90,8 +75,23 @@ Tutorials, how-tos and discussion of general topics.
 
 **[hledger wiki](https://github.com/simonmichael/hledger/wiki)**
 
+\
+
+
+## Help/feedback
+
+|
+|-------------------|----------------------------------------------------------------------------|
+| IRC:              | [#hledger](http://irc.hledger.org) on Freenode <!-- [chat log](http://ircbrowse.net/browse/hledger); --> <!-- see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1) --> <!-- *Quick help and background chat.* --> <!-- *If you don't get an answer promptly, you can type `sm` to alert me, or leave the window open and check back later.* -->
+| Twitter:          | [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime), [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime) <!-- <a href="https://twitter.com/ledgertips">@LedgerTips</a> --> <!-- *Social!* -->
+| Mail list:        | [list.hledger.org](http://list.hledger.org), hledger@googlegroups.com <!-- *Slightly less quick, more eyeballs.* -->
+| Issue tracker:    | [bugs.hledger.org](http://bugs.hledger.org)&nbsp;(bugs), [issues.hledger.org](http://issues.hledger.org)&nbsp;(all) <!-- *Always check here.* --> <!-- *Bug reports are welcome.* -->
+| Sensitive issues: | [simon@joyful.com](mailto:simon@joyful.com)
+<!-- | hledger-web demo&nbsp;&nbsp; | [demo.hledger.org](http://demo.hledger.org) -->
+<!-- | hledger-web on Sandstorm&nbsp;&nbsp; | [hledger-web app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90), [issues](https://github.com/simonmichael/hledger/issues?utf8=✓&q=label%3A%22platform%3A%20sandstorm%22%20) -->
+<!-- | hledger-api demo        | <\!-- [demo.hledger.org/api](http://demo.hledger.org/api/swagger.json), -\-> [in swagger editor](http://editor.swagger.io/#/?import=demo.hledger.org/api/swagger.json&no-proxy) -->
+
 </div>
 
 </div> <!-- row -->
 </div> <!-- container -->
-
