@@ -16,26 +16,25 @@ td:nth-child(1) { padding-right:1em; white-space:nowrap; }
 
 ### What is hledger?
 An enhanced, well-documented rewrite of the original plain text accounting tool.\
-**[hledger intro](http://hledger.org)**\
-**[Download](download.html)**\
-**[Release notes](release-notes.html)**\
-
+**[hledger intro](http://hledger.org)**
 
 ### What is Plain Text Accounting?
 Using plain text data formats and modular free software tools for robust, efficient accounting.
 More docs for all ledger-likes at:\
-**[plaintextaccounting.org](http://plaintextaccounting.org)**\
-
+**[plaintextaccounting.org](http://plaintextaccounting.org)**
 
 ### What is Accounting?
 Tracking your use of valuable commodities, such as money or time, for increased awareness and effectiveness.\
-**[Selected accounting links](http://github.com/simonmichael/hledger/wiki/more-docs)**\
+**[Selected accounting links](http://github.com/simonmichael/hledger/wiki/more-docs)**
 
 </div>
 
 <div class="col-sm-3">
 
 ## Reference
+
+**[Release notes](release-notes.html)**\
+What's new in each hledger version.
 
 **[hledger manual](manual.html)**\
 The main hledger manuals combined on one page, including:
@@ -61,7 +60,7 @@ allows hledger to read and write CSV
 **[timeclock format](timeclock.html)**\
 for precise time logging with clock-in/clock-out
 
-[timedot format](timedot.html)\
+**[timedot format](timedot.html)**\
 for human-friendly approximate time logging
 
 </div>
@@ -86,7 +85,7 @@ how-tos, tips, and general topics.
 | IRC:              | [#hledger](http://irc.hledger.org) on Freenode <!-- [chat log](http://ircbrowse.net/browse/hledger); --> <!-- see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1) --> <!-- *Quick help and background chat.* --> <!-- *If you don't get an answer promptly, you can type `sm` to alert me, or leave the window open and check back later.* -->
 | Twitter:          | [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime), [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime) <!-- <a href="https://twitter.com/ledgertips">@LedgerTips</a> --> <!-- *Social!* -->
 | Reddit:           | [/r/plaintextaccounting](https://www.reddit.com/r/plaintextaccounting/)
-| Mail list:        | [list.hledger.org](http://list.hledger.org), hledger@googlegroups.com <!-- *Slightly less quick, more eyeballs.* -->
+| Mail list:        | [list.hledger.org](http://list.hledger.org), [hledger@googlegroups.com](mailto:hledger@googlegroups.com) <!-- *Slightly less quick, more eyeballs.* -->
 | Issue tracker:    | [bugs.hledger.org](http://bugs.hledger.org)&nbsp;(bugs), [issues.hledger.org](http://issues.hledger.org)&nbsp;(all) <!-- *Always check here.* --> <!-- *Bug reports are welcome.* -->
 | Sensitive issues: | [simon@joyful.com](mailto:simon@joyful.com)
 <!-- | hledger-web demo&nbsp;&nbsp; | [demo.hledger.org](http://demo.hledger.org) -->
