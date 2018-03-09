@@ -91,7 +91,7 @@ is for human-friendly approximate time logging
 Tutorials, how-tos and discussion of general topics.
 
 **[hledger wiki](https://github.com/simonmichael/hledger/wiki)**
-
+ 
 </div>
 
 </div> <!-- row -->
