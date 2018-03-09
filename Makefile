@@ -975,6 +975,8 @@ site-clean: site/hakyll-std/hakyll-std \
 # regenerate html whenever markdown files change (and serve it on port 8000)
 # XXX hakyll preview/watch often fail to notice changes in large files
 # XXX can get confused when docs are generated concurrently by a Shake command
+# XXX individual file updates loses the stylesheets for some reason
+#     more robust: "ls site/*.md | entr ./Shake website" and reload file:///Users/simon/src/hledger/site/_site/docs.html
 site-preview: site/hakyll-std/hakyll-std \
 	$(call def-help,site-preview, run a hakyll server to preview the website  ) #site/site
 	-cd site; hakyll-std/hakyll-std watch # -h hledger.org
