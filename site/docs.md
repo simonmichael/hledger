@@ -52,7 +52,6 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 
 ## Reference
 
-
 **[Manual](manual.html)** - the main hledger manuals combined on one page, including:
 
 ### Core tools
