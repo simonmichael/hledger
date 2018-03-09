@@ -58,26 +58,19 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 **[hledger](hledger.html)**
 - the command-line UI
 
-**[hledger-ui](hledger-ui.html)**
-- a curses-style UI
+**[hledger-ui](hledger-ui.html)** - a curses-style UI
 
-**[hledger-web](hledger-web.html)**
-- a web UI
+**[hledger-web](hledger-web.html)** - a web UI
 
-**[hledger-api](hledger-api.html)**
-- a HTTP JSON server
+**[hledger-api](hledger-api.html)** - a HTTP JSON server
 
-**[journal format](journal.html)**
-- hledger's native data format, representing an accounting journal
+**[journal format](journal.html)** - hledger's native data format
 
-**[csv format](csv.html)**
-- allows hledger to read and write CSV, a common download format
+**[csv format](csv.html)** - allows hledger to read and write CSV
 
-**[timeclock format](timeclock.html)**
-- for precise time logging with clock-in/clock-out
+**[timeclock format](timeclock.html)** - for precise time logging with clock-in/clock-out
 
-[timedot format](timedot.html)
-- for human-friendly approximate time logging
+[timedot format](timedot.html) - for human-friendly approximate time logging
 
 </div>
 
