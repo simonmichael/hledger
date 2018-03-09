@@ -96,6 +96,3 @@ Tutorials, how-tos and discussion of general topics.
 
 </div> <!-- row -->
 </div> <!-- container -->
-
-<!-- For more docs relevant to all ledger-likes, see also [plaintextaccounting.org](http://plaintextaccounting.org)  -->
-
