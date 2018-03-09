@@ -54,8 +54,7 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 
 **[Manual](manual.html)** - the main hledger manuals combined on one page, including:
 
-### Core tools
-
+\
 **[hledger](hledger.html)**
 - the command-line UI
 
@@ -67,8 +66,6 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 
 **[hledger-api](hledger-api.html)**
 - a HTTP JSON server
-
-### File formats
 
 **[journal format](journal.html)**
 - hledger's native data format, representing an accounting journal
