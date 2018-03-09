@@ -90,7 +90,7 @@ is for human-friendly approximate time logging
 
 Tutorials, how-tos and discussion of general topics.
 
-**[github.com/simonmichael/hledger/wiki](https://github.com/simonmichael/hledger/wiki){style="white-space:nowrap;"}**
+**[github.com/simonmichael/hledger/wiki](https://github.com/simonmichael/hledger/wiki)**
 
 </div>
 
