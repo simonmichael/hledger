@@ -42,28 +42,28 @@ What's new in each hledger version.
 The main hledger manuals combined on one page for easy searching.
 Includes:
 
-**[hledger](hledger.html)**\
+[hledger](hledger.html)\
 the command-line UI
 
-**[hledger-ui](hledger-ui.html)**\
+[hledger-ui](hledger-ui.html)\
 a curses-style UI
 
-**[hledger-web](hledger-web.html)**\
+[hledger-web](hledger-web.html)\
 a web UI
 
-**[hledger-api](hledger-api.html)**\
+[hledger-api](hledger-api.html)\
 a HTTP JSON server
 
-**[journal format](journal.html)**\
+[journal format](journal.html)\
 hledger's native file format
 
-**[csv format](csv.html)**\
+[csv format](csv.html)\
 hledger's CSV import system
 
-**[timeclock format](timeclock.html)**\
+[timeclock format](timeclock.html)\
 a file format for precise time logging
 
-**[timedot format](timedot.html)**\
+[timedot format](timedot.html)\
 a file format for human-friendly approximate time logging
 
 </div>
