@@ -42,6 +42,7 @@ What's new in each hledger version.
 The main hledger manuals combined on one page for easy searching.
 Includes:
 
+<div style="margin-left:1em;">
 [hledger](hledger.html)\
 the command-line UI
 
@@ -65,6 +66,7 @@ a file format for precise time logging
 
 [timedot format](timedot.html)\
 a file format for human-friendly approximate time logging
+</div>
 
 </div>
 
@@ -72,11 +74,10 @@ a file format for human-friendly approximate time logging
 
 ## Wiki / Cookbook
 
-**[hledger wiki](https://github.com/simonmichael/hledger/wiki)**,
-including the\
-**[hledger basics tutorial](https://github.com/simonmichael/hledger/wiki/hledger-basics-tutorial)**,\
-**[FAQ](https://github.com/simonmichael/hledger/wiki/faq)**,\
-how-tos, tips, and general notes.
+**[hledger wiki](https://github.com/simonmichael/hledger/wiki)**\
+How-tos, tutorials and notes, including the\
+[hledger basics tutorial](https://github.com/simonmichael/hledger/wiki/hledger-basics-tutorial) and\
+[FAQ](https://github.com/simonmichael/hledger/wiki/faq).\
 
 \
 
