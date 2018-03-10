@@ -108,25 +108,17 @@ Here's how to use it directly to install hledger:
    &nbsp;&nbsp;`echo "export PATH=$PATH:~/.local/bin" >> ~/.bashrc && source ~/.bashrc`
 
 2. **Install required C libraries**\
-   You might need to manually install some extra C libraries required by hledger's dependencies.
-    If you're not sure about this, proceed with the next step and return here if you get link errors
-    (for example: "/bin/ld.gold: error: cannot find -ltinfo").
-
-   In particular the "-devel" packages for 
-   libstdc++ (for hledger-iadd),
-   ncurses (for hledger, hledger-ui),
-   and
-   zlib (for hledger-web)
-   are often required. 
-   Eg:
+   You might need to manually install some extra C libraries, such as the below
+   (please send updates for this list).
+   If you're not sure about this, proceed with the next step and return here if you get link errors
+   (eg: "/bin/ld.gold: error: cannot find -ltinfo").
 
     |
-    |-----------------|-----------------------------------
-    | Centos:         | `sudo yum install -y libstdc++-devel ncurses-devel zlib-devel`  # ⚠ still having trouble with libstdc++
-    | Debian, Ubuntu: | `sudo apt install -y libncurses5-dev ...` 
-    | Fedora, RHEL:   | `sudo dnf install -y ncurses-devel ...`
+    |-----------------|-------------------------------------------------------
+    | Centos:         | `sudo yum install -y libstdc++-devel ncurses-devel zlib-devel` *[?](https://github.com/simonmichael/hledger/issues/715)*
+    | Debian, Ubuntu: | `sudo apt install -y libncurses5` *?*
+    | Fedora, RHEL:   | `sudo dnf install -y ncurses-devel` *?*
 
-    (Please send us updates for the above list.)
 
 3. **`stack install --resolver=nightly hledger-lib-1.5 hledger-1.5 [hledger-ui-1.5] [hledger-web-1.5] [hledger-api-1.5]`**\   
    This installs the specified hledger packages (and required haskell libraries and tools) from [Stackage](https://www.stackage.org) (and if needed, [Hackage](http://hackage.haskell.org)).
@@ -143,8 +135,7 @@ Here's how to use it directly to install hledger:
    (except on Mac Sierra which [requires at least GHC 8.0.2/lts-8](https://ghc.haskell.org/trac/ghc/ticket/12479)):\
    `stack install --resolver lts-7 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 brick-0.19 vty-5.15.1 data-clist-0.1.2.0`  *# (GHC 8.0.1)* \
    `stack install --resolver lts-6 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 megaparsec-5.3.1 brick-0.19 vty-5.15.1 data-clist-0.1.2.0 text-zipper-0.10`  *# (GHC 7.10.3)* \
--->
-   <!-- keep synced with stack.yaml files -->
+--> <!-- keep synced with stack.yaml files -->
 
 Now you should be able to run `hledger --version` 
 (and `hledger-ui --version`, `hledger-web --version` etc. if installed)
