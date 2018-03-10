@@ -1,3 +1,5 @@
+- toc
+
 # Download
 
 Do you want to..
@@ -7,6 +9,7 @@ Do you want to..
 
 <style>
 table { margin-left:1em; }
+code { white-space:nowrap; }
 tr { vertical-align:top; }
 td { padding-bottom:.5em; padding-right:1em; }
 td:first-of-type { 
@@ -23,7 +26,7 @@ a { white-space:nowrap; }
 }
 </style>
 
-System packages are quickest to install
+Binaries/system packages are quickest to install
 (but they can be [out of date](https://repology.org/metapackage/hledger/badges) or incomplete).
 
 
@@ -36,16 +39,16 @@ System packages are quickest to install
 | Fedora,&nbsp;RHEL:   | **`sudo dnf install hledger`**
 | Gentoo:              | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`**
 | Void Linux:          | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`**
-| NixOS:               | **`nix-env -iA nixpkgs.haskellPackages.hledger \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-ui \`<br>&nbsp;&nbsp;`nixpkgs.haskellPackages.hledger-web`** <span class=warnings>([problems building hledger-ui on MacOS](https://github.com/simonmichael/hledger/issues/613))</span>
-| Sandstorm:           | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo** - a hledger-web server in 3 clicks. <span class=warnings>([features needed](https://github.com/simonmichael/hledger/issues/425))</span>
+| NixOS:               | **`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`** <span class=warnings>([problems building hledger-ui on MacOS](https://github.com/simonmichael/hledger/issues/613))</span>
+| Sandstorm:           | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo** - a hledger-web server in 3 clicks <span class=warnings>([features needed](https://github.com/simonmichael/hledger/issues/425))</span>
 
 
 <a name="b"></a>
 
 ## B. build the latest release ?
 
-Good choice! The [release notes](release-notes.html) show what you'll get.
-Below are three ways to build hledger, in order of preference.
+Good choice! You'll get the latest features mentioned in the [release notes](release-notes.html).
+Below are three ways to build the latest release, in order of preference.
 
 Note, building all hledger tools for the first time could take as much
 as an hour, 1G of free memory, and 1G of disk space.  You can kill and
@@ -97,12 +100,27 @@ you might need to install some extra system packages, such as the below, and try
 You should
 [extend your \$PATH with `~/.local/bin`](https://docs.haskellstack.org/en/stable/install_and_upgrade/#path) (for stack)
 and/or `~/.cabal/bin` (for cabal).
-Eg, if you use bash:\
+Eg, if you use bash:
+
 **`echo "export PATH=~/.local/bin:~/.cabal/bin:$PATH" >> ~/.bashrc && source ~/.bashrc`**
+
+#### Test
+
+Now you should be able to run the hledger tools and see the expected versions. Eg:
+```
+$ hledger --version
+hledger 1.5
+$ hledger-ui --version
+hledger-ui 1.5
+$ hledger web --version
+hledger-web 1.5
+$ hledger iadd --version
+This is hledger-iadd version 1.3.1
+```
 
 #### Need help ?
 
-If you have any other trouble, please capture a debug log and send it to me via 
+If you are having trouble, please capture a debug log and send it to me via 
 [paste](http://paste.hledger.org) & [IRC](http://irc.hledger.org),
 the [issue tracker](http://bugs.hledger.org),
 or [email](docs.html#helpfeedback):
@@ -120,8 +138,8 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 
     On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-2. **`stack install --resolver=nightly hledger-lib-1.5 hledger-1.5 [hledger-ui-1.5] [hledger-web-1.5] [hledger-api-1.5]`**\   
-   This installs the specified hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
+2. **`stack install --resolver=nightly hledger-lib-1.5 hledger-1.5 [hledger-ui-1.5] [hledger-web-1.5] [hledger-api-1.5]`**\
+    This installs the specified hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
     The bracketed packages are optional; if you include them, don't type the brackets, and do always 
     include the preceding hledger-lib and hledger packages.\
     <span class=warnings>([windows: hledger-ui is not yet available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
@@ -138,26 +156,22 @@ If you prefer more control or if hledger-install failed, here's how to use stack
    `stack install --resolver lts-6 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 megaparsec-5.3.1 brick-0.19 vty-5.15.1 data-clist-0.1.2.0 text-zipper-0.10`  *# (GHC 7.10.3)* \
 --> <!-- keep synced with stack.yaml files -->
 
- 3. **Install system packages if needed**
+3. **[If you see link errors..](#link-errors)**
 
-    [If you see link errors, install the required system packages](#link-errors).
+4. **[Set up \$PATH](#set-up-path)**
 
- 4. **Set up \$PATH**
- 
-    [As above](#set-up-path).
+5. **Install addons ?**\
+   Additional [add-on commands](/hledger.html#third-party-add-ons),
+   such as
+   [hledger-diff](http://hackage.haskell.org/package/hledger-diff),
+   [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd),
+   [hledger-interest](http://hackage.haskell.org/package/hledger-interest),
+   and [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
+   can be installed similarly to the above. Eg:
 
-Now you should be able to run `hledger --version` 
-(and `hledger-ui --version`, `hledger-web --version` etc. if installed)
-and see the latest version number.
-Additional [add-on commands](/hledger.html#third-party-add-ons),
-such as
-[hledger-diff](http://hackage.haskell.org/package/hledger-diff),
-[hledger-iadd](http://hackage.haskell.org/package/hledger-iadd),
-[hledger-interest](http://hackage.haskell.org/package/hledger-interest),
-and [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
-can be installed similarly to the above. Eg:
+    **`stack install --resolver nightly hledger-lib-1.5 hledger-1.5 hledger-iadd-1.3.1`**
 
-**`stack install --resolver nightly hledger-lib-1.5 hledger-1.5 hledger-iadd-1.3.1`**
+6. **[Test](#test)**
 
 
 ### cabal
@@ -169,13 +183,15 @@ can be installed similarly to the above. Eg:
 ## C. build the development version ?
 
 Also a good choice. Our master branch is stable enough for daily use,
-and includes the latest improvements ([commits](https://github.com/simonmichael/hledger/commits/master)).
+and includes the [latest improvements](https://github.com/simonmichael/hledger/commits/master).
 
 1. **Install [git](https://en.wikipedia.org/wiki/Git) and [`stack`](#stack)**
 2. **`git clone https://github.com/simonmichael/hledger`**
 3. **`cd hledger`**
 4. **`stack install [hledger]`**  *# build all, or just the command line UI* 
-5. **[Install system packages if needed](#link-errors)**
+5. **[If you see link errors..](#link-errors)**
 6. **[Set up \$PATH](#set-up-path)**
+7. **[Test](#test)**
+   (Development versions will have a .99 suffix, 1.5.99 means 1.6-dev)
 
 cabal users may find the `cabal-install.sh` or `cabal.project` files useful.
