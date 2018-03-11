@@ -9,6 +9,7 @@ Do you want to..
 
 <style>
 table { margin-left:1em; }
+div > p > strong > code { margin-left:1em; } /* top-level code lines */
 code { white-space:nowrap; }
 tr { vertical-align:top; }
 td { padding-bottom:.5em; padding-right:1em; }
@@ -107,7 +108,7 @@ Eg, if you use bash:
 #### Test
 
 Now you should be able to run the hledger tools and see the expected versions. Eg:
-```
+```shell
 $ hledger --version
 hledger 1.5
 $ hledger-ui --version
