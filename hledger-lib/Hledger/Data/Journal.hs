@@ -1,5 +1,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE StandaloneDeriving, OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
+
 {-|
 
 A 'Journal' is a set of transactions, plus optional related data.  This is
@@ -84,6 +86,7 @@ import Data.List.Extra (groupSort)
 import Data.Maybe
 import Data.Monoid
 import Data.Ord
+import qualified Data.Semigroup as Sem
 import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (headMay, headDef)
@@ -159,9 +162,8 @@ instance Show Journal where
 -- CHILD <> PARENT. A parsed journal's data is in reverse order, so
 -- this gives what we want.
 --
-instance Monoid Journal where
-  mempty = nulljournal
-  mappend j1 j2 = Journal {
+instance Sem.Semigroup Journal where
+  j1 <> j2 = Journal {
      jparsedefaultyear          = jparsedefaultyear          j2
     ,jparsedefaultcommodity     = jparsedefaultcommodity     j2
     ,jparseparentaccounts       = jparseparentaccounts       j2
@@ -179,6 +181,13 @@ instance Monoid Journal where
     ,jfiles                     = jfiles                     j1 <> jfiles                     j2
     ,jlastreadtime              = max (jlastreadtime j1) (jlastreadtime j2)
     }
+
+instance Monoid Journal where
+  mempty = nulljournal
+#if !(MIN_VERSION_base(4,11,0))
+  -- This is redundant starting with base-4.11 / GHC 8.4.
+  mappend = (Sem.<>)
+#endif
 
 nulljournal :: Journal
 nulljournal = Journal {
