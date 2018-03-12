@@ -1,0 +1,35 @@
+# stack build plan with yesod 1.6
+
+resolver: nightly-2018-03-10
+
+nix:
+  pure: false
+  packages: [perl gmp ncurses zlib]
+
+packages:
+- hledger-lib
+- hledger
+- hledger-ui
+- hledger-web
+- hledger-api
+
+extra-deps:
+- easytest-0.1
+
+- yesod-1.6.0
+- yesod-core-1.6.0
+- yesod-form-1.6.0
+- yesod-persistent-1.6.0
+- yesod-static-1.6.0
+- yesod-test-1.6.0
+- persistent-2.8.1
+- resourcet-1.2.0
+- http-types-0.12.1
+- http-conduit-2.3.0
+- html-conduit-1.3.0
+- xml-conduit-1.8.0
+- conduit-extra-1.3.0
+- conduit-1.3.0
+- servant-0.13
+- servant-server-0.13
+- servant-swagger-1.1.5

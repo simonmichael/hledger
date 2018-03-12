@@ -20,7 +20,6 @@ import Yesod.Default.Util (addStaticContentExternal)
 #endif
 import Network.HTTP.Conduit (Manager)
 -- import qualified Settings
-import Settings.Development (development)
 import Settings.StaticFiles
 import Settings (staticRoot, widgetFile, Extra (..))
 #ifndef DEVELOPMENT
@@ -150,11 +149,12 @@ instance Yesod App where
         staticRootUrl <- (staticRoot . settings) <$> getYesod
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
+    -- TODO outdated, still needed ?
     -- This is done to provide an optimization for serving static files from
     -- a separate domain. Please see the staticRoot setting in Settings.hs
-    urlRenderOverride y (StaticR s) =
-        Just $ uncurry (joinPath y (Settings.staticRoot $ settings y)) $ renderRoute s
-    urlRenderOverride _ _ = Nothing
+    -- urlRenderOverride y (StaticR s) =
+    --     Just $ uncurry (joinPath y (Settings.staticRoot $ settings y)) $ renderRoute s
+    urlParamRenderOverride _ _ _ = Nothing
 
 #ifndef DEVELOPMENT
     -- This function creates static content files in the static folder
@@ -166,11 +166,6 @@ instance Yesod App where
 
     -- Place Javascript at bottom of the body tag so the rest of the page loads first
     jsLoader _ = BottomOfBody
-
-    -- What messages should be logged. The following includes all messages when
-    -- in development, and warnings and errors in production.
-    shouldLog _ _source level =
-        development || level == LevelWarn || level == LevelError
 
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.
