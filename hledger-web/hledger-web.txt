@@ -247,4 +247,4 @@ SEE ALSO
 
 
 
-hledger-web 1.5                  December 2017                  hledger-web(1)
+hledger-web 1.5.1                 March 2018                    hledger-web(1)
