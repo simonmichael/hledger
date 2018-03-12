@@ -86,8 +86,9 @@ library
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
-  if !impl(ghc >= 8.0)
-    build-depends: semigroups == 0.18.*
+  if (!impl(ghc >= 8.0))
+    build-depends:
+        semigroups ==0.18.*
   exposed-modules:
       Hledger
       Hledger.Data
@@ -179,6 +180,9 @@ test-suite doctests
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
+  if (!impl(ghc >= 8.0))
+    build-depends:
+        semigroups ==0.18.*
   other-modules:
       Hledger
       Hledger.Data
@@ -270,6 +274,9 @@ test-suite hunittests
     , transformers >=0.2
     , uglymemo
     , utf8-string >=0.3.5
+  if (!impl(ghc >= 8.0))
+    build-depends:
+        semigroups ==0.18.*
   other-modules:
       Hledger
       Hledger.Data
