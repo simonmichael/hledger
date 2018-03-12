@@ -90,10 +90,10 @@ dependencies:
 - wai-handler-launch >=1.3
 - warp
 - yaml
-- yesod >=1.4
-- yesod-core
-- yesod-form
-- yesod-static
+- yesod        >=1.4 && < 1.7
+- yesod-core   >=1.4 && < 1.7
+- yesod-form   >=1.4 && < 1.7
+- yesod-static >=1.4 && < 1.7
 - json
 - megaparsec >=5.0
 - mtl
