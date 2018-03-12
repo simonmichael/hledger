@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ef77771a7dfbc58bc009c08aed638005d0fc9f307e379cffa127b93c84ca8d8a
+-- hash: 8981f38a42c85ba35d93927a4b2704ee3dfcf567fc0001372a20033f22daa14a
 
 name:           hledger-web
-version:        1.5
+version:        1.5.1
 synopsis:       Web interface for the hledger accounting tool
 description:    This is hledger's web interface.
                 It provides a more user-friendly and collaborative UI than the
@@ -124,7 +124,7 @@ flag threaded
 
 library
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.5"
+  cpp-options: -DVERSION="1.5.1"
   build-depends:
       HUnit
     , base >=4.8 && <5
@@ -192,7 +192,7 @@ executable hledger-web
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.5"
+  cpp-options: -DVERSION="1.5.1"
   build-depends:
       HUnit
     , base >=4.8 && <5
@@ -249,7 +249,7 @@ test-suite test
   hs-source-dirs:
       tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.5"
+  cpp-options: -DVERSION="1.5.1"
   build-depends:
       HUnit
     , base >=4.8 && <5
