@@ -74,11 +74,6 @@ ledger-autosync does deduplicating conversion of OFX data and some CSV formats,
 and can also download the data 
 [if your bank offers OFX Direct Connect](http://wiki.gnucash.org/wiki/OFX_Direct_Connect_Bank_Settings). 
 
-### budget
-
-[hledger-budget.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-budget.hs#L10)
-adds more budget-tracking features to hledger.
-
 ### chart
 
 [hledger-chart.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-chart.hs#L47)

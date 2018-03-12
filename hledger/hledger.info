@@ -2356,12 +2356,11 @@ start making your own!
 * Menu:
 
 * autosync::
-* budget::
 * chart::
 * check::
 
 
-File: hledger.info,  Node: autosync,  Next: budget,  Up: Experimental add-ons
+File: hledger.info,  Node: autosync,  Next: chart,  Up: Experimental add-ons
 
 5.3.1 autosync
 --------------
@@ -2372,17 +2371,9 @@ and some CSV formats, and can also download the data if your bank offers
 OFX Direct Connect.
 
 
-File: hledger.info,  Node: budget,  Next: chart,  Prev: autosync,  Up: Experimental add-ons
+File: hledger.info,  Node: chart,  Next: check,  Prev: autosync,  Up: Experimental add-ons
 
-5.3.2 budget
-------------
-
-hledger-budget.hs adds more budget-tracking features to hledger.
-
-
-File: hledger.info,  Node: chart,  Next: check,  Prev: budget,  Up: Experimental add-ons
-
-5.3.3 chart
+5.3.2 chart
 -----------
 
 hledger-chart.hs is an old pie chart generator, in need of some love.
@@ -2390,7 +2381,7 @@ hledger-chart.hs is an old pie chart generator, in need of some love.
 
 File: hledger.info,  Node: check,  Prev: chart,  Up: Experimental add-ons
 
-5.3.4 check
+5.3.3 check
 -----------
 
 hledger-check.hs checks more powerful account balance assertions.
@@ -2522,13 +2513,11 @@ Node: irr78862
 Ref: #irr78960
 Node: Experimental add-ons79038
 Ref: #experimental-add-ons79190
-Node: autosync79481
-Ref: #autosync79593
-Node: budget79832
-Ref: #budget79954
-Node: chart80020
-Ref: #chart80137
-Node: check80208
-Ref: #check80310
+Node: autosync79470
+Ref: #autosync79581
+Node: chart79820
+Ref: #chart79939
+Node: check80010
+Ref: #check80112
 
 End Tag Table
