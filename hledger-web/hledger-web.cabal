@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 89c298d4ceea0cefabbf5896a13ca5fbc2dcb9602892d510f43c5ca40dd7dddf
+-- hash: 36b5bb0fe92c72e4e34972aecc9e4bf6146ba5335af16843402857120b506267
 
 name:           hledger-web
 version:        1.5.99
@@ -156,10 +156,10 @@ library
     , wai-handler-launch >=1.3
     , warp
     , yaml
-    , yesod >=1.4
-    , yesod-core
-    , yesod-form
-    , yesod-static
+    , yesod >=1.4 && <1.7
+    , yesod-core >=1.4 && <1.7
+    , yesod-form >=1.4 && <1.7
+    , yesod-static >=1.4 && <1.7
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
@@ -225,10 +225,10 @@ executable hledger-web
     , wai-handler-launch >=1.3
     , warp
     , yaml
-    , yesod >=1.4
-    , yesod-core
-    , yesod-form
-    , yesod-static
+    , yesod >=1.4 && <1.7
+    , yesod-core >=1.4 && <1.7
+    , yesod-form >=1.4 && <1.7
+    , yesod-static >=1.4 && <1.7
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
@@ -283,10 +283,10 @@ test-suite test
     , wai-handler-launch >=1.3
     , warp
     , yaml
-    , yesod >=1.4
-    , yesod-core
-    , yesod-form
-    , yesod-static
+    , yesod >=1.4 && <1.7
+    , yesod-core >=1.4 && <1.7
+    , yesod-form >=1.4 && <1.7
+    , yesod-static >=1.4 && <1.7
     , yesod-test
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
