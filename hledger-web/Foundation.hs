@@ -20,7 +20,6 @@ import Yesod.Default.Util (addStaticContentExternal)
 #endif
 import Network.HTTP.Conduit (Manager)
 -- import qualified Settings
-import Settings.Development (development)
 import Settings.StaticFiles
 import Settings (staticRoot, widgetFile, Extra (..))
 #ifndef DEVELOPMENT
