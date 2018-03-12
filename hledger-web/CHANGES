@@ -1,6 +1,13 @@
 User-visible changes in hledger-web. See also hledger, hledger-lib.
 
 
+# 1.5.1 (2018/03/12)
+
+* support yesod 1.6 (#717)
+
+* restore bounds for main yesod packages to avoid breakage (#717)
+
+
 # 1.5 (2017/12/31)
 
 * add form account fields now suggest implied and declared account names also
