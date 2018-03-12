@@ -1,6 +1,8 @@
-# stack build plan using GHC 8.2.x
+# default stack build plan for developers/HEAD users.
+# This should normally use a recent stackage nightly,
+# to help us detect problems at stackage.
 
-resolver: lts-10.3
+resolver: nightly-2018-03-10
 
 nix:
   pure: false
