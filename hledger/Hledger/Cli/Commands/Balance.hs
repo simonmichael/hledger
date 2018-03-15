@@ -344,9 +344,9 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
                 _      -> multiBalanceReportAsText ropts
           writeOutput opts $ render report
 
--- | Re-map account names to closet parent with periodic transaction from budget.
--- Accounts that dont have suitable parent are either remapped to "<unbudgeted>:topAccount" 
--- or left as-is if --show-unbudgeted is provided 
+-- | Re-map account names to closest parent with periodic transaction from budget.
+-- Accounts that don't have suitable parent are either remapped to "<unbudgeted>:topAccount" 
+-- or left as-is if --show-unbudgeted is provided. 
 budgetRollUp :: CliOpts -> Journal -> Journal -> Journal
 budgetRollUp CliOpts{rawopts_=rawopts} budget j = j { jtxns = remapTxn <$> jtxns j }
     where
@@ -365,7 +365,7 @@ budgetRollUp CliOpts{rawopts_=rawopts} budget j = j { jtxns = remapTxn <$> jtxns
         mapPostings f t = txnTieKnot $ t { tpostings = f $ tpostings t }
 
 -- | Generate journal of all periodic transactions in the given journal for the
--- entireity of its history or reporting period, whatever is smaller
+-- entirety of its history or reporting period, whatever is smaller.
 budgetJournal :: CliOpts -> Journal -> Journal
 budgetJournal opts j = journalBalanceTransactions' opts j { jtxns = budget }
   where 
