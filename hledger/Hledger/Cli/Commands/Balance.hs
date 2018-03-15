@@ -312,6 +312,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
           interval = interval_ ropts
       case interval of
         NoInterval -> do
+          -- single column balance report
           let report
                 | balancetype_ ropts `elem` [HistoricalBalance, CumulativeChange]
                   = let ropts' | flat_ ropts = ropts
@@ -326,6 +327,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
           writeOutput opts $ render ropts report
           
         _ | boolopt "budget" rawopts -> do
+          -- multi column budget report
           let budget = budgetJournal opts j
               j' = budgetRollUp opts budget j
               report = multiBalanceReport ropts (queryFromOpts d ropts) j'
@@ -337,6 +339,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
           writeOutput opts $ render report
           
           | otherwise -> do
+          -- multi column balance report
           let report = multiBalanceReport ropts (queryFromOpts d ropts) j
               render = case format of
                 "csv"  -> (++ "\n") . printCSV . multiBalanceReportAsCsv ropts
@@ -636,9 +639,10 @@ multiBalanceReportAsText opts r =
         CumulativeChange -> "Ending balances (cumulative)"
         HistoricalBalance -> "Ending balances (historical)"
 
--- | Render two multi-column balance reports as plain text suitable for console output.
--- They are assumed to have same number of columns, one of them representing
--- a budget
+-- | Given two multi-column balance reports, the first representing a budget 
+-- (target change amounts) and the second representing actual change amounts, 
+-- render a budget report as plain text suitable for console output.
+-- The reports should have the same number of columns.
 multiBalanceReportWithBudgetAsText :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport -> String
 multiBalanceReportWithBudgetAsText opts budget r =
     printf "%s in %s:\n\n" typeStr (showDateSpan $ multiBalanceReportSpan r)
@@ -667,12 +671,12 @@ multiBalanceReportWithBudgetAsText opts budget r =
           toCost = normaliseMixedAmount . costOfMixedAmount
     showamt | color_ opts  = cshowMixedAmountOneLineWithoutPrice
             | otherwise    = showMixedAmountOneLineWithoutPrice
-    -- combine reportTable budgetTable will combine them into a single table where cells
-    -- are tuples of (actual, Maybe budget) numbers. Main assumptions is that
-    -- row/column titles of budgetTable are subset of row/column titles or reportTable,
-    -- and there are now row/column titles in budgetTable that are not mentioned in reporTable.
-    -- Both of these are satisfied by construction of budget report and process of rolling up
-    -- account names.
+
+    -- Combine a table of actual amounts and a table of budgeted amounts into  
+    -- a single table of (actualamount, Maybe budgetamount) tuples. 
+    -- The budget table's row/column titles should be a subset of the actual table's.
+    -- (This is satisfied by the construction of the budget report and the
+    -- process of rolling up account names.)
     combine (Table l t d) (Table l' t' d') = Table l t combinedRows
       where
         -- For all accounts that are present in the budget, zip real amounts with budget amounts
