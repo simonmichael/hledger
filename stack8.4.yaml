@@ -1,6 +1,6 @@
 # stack build plan for testing with latest ghc 8.4-based stackage nightlies
 
-resolver: nightly-2018-03-14
+resolver: nightly-2018-03-16
 
 nix:
   pure: false
