@@ -250,6 +250,7 @@ module Hledger.Cli.Commands.Balance (
  ,tests_Hledger_Cli_Commands_Balance
 ) where
 
+import Data.Decimal
 import Data.List (intercalate, nub)
 import Data.Maybe
 import qualified Data.Map as Map
@@ -629,39 +630,53 @@ multiBalanceReportHtmlFootRow ropts (acct:rest) =
 -- | Render a multi-column balance report as plain text suitable for console output.
 multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
 multiBalanceReportAsText opts r =
-    printf "%s in %s:\n\n" typeStr (showDateSpan $ multiBalanceReportSpan r)
+    printf "%s in %s:\n\n" desc (showDateSpan $ multiBalanceReportSpan r)
       ++ renderBalanceReportTable opts tabl
   where
     tabl = balanceReportAsTable opts r
-    typeStr :: String
-    typeStr = case balancetype_ opts of
+    desc = case balancetype_ opts of
         PeriodChange -> "Balance changes"
         CumulativeChange -> "Ending balances (cumulative)"
         HistoricalBalance -> "Ending balances (historical)"
+
+type ActualAmount = MixedAmount
+type BudgetAmount = MixedAmount
+type ActualAmountsReport = MultiBalanceReport
+type BudgetAmountsReport = MultiBalanceReport
+type ActualAmountsTable = Table String String MixedAmount
+type BudgetAmountsTable = Table String String MixedAmount
+type ActualAndBudgetAmountsTable = Table String String (MixedAmount, Maybe MixedAmount)
+type Percentage = Decimal
 
 -- | Given two multi-column balance reports, the first representing a budget 
 -- (target change amounts) and the second representing actual change amounts, 
 -- render a budget report as plain text suitable for console output.
 -- The reports should have the same number of columns.
-multiBalanceReportWithBudgetAsText :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport -> String
-multiBalanceReportWithBudgetAsText opts budget r =
-    printf "%s in %s:\n\n" typeStr (showDateSpan $ multiBalanceReportSpan r)
-      ++ renderBalanceReportTable' opts showcell tabl
+multiBalanceReportWithBudgetAsText :: ReportOpts -> BudgetAmountsReport -> ActualAmountsReport -> String
+multiBalanceReportWithBudgetAsText opts budgetr actualr =
+    printf "%s in %s:\n\n" desc (showDateSpan $ multiBalanceReportSpan actualr)
+      ++ renderBalanceReportTable' opts showcell actualandbudgetamts
   where
-    tabl = combine (balanceReportAsTable opts r) (balanceReportAsTable opts budget)
-    typeStr :: String
-    typeStr = case balancetype_ opts of
+    desc :: String
+    desc = case balancetype_ opts of
         PeriodChange -> "Balance changes"
         CumulativeChange -> "Ending balances (cumulative)"
         HistoricalBalance -> "Ending balances (historical)"
-    showcell (real, Nothing)     = showamt real
-    showcell (real, Just budget) =
-      case percentage real budget of
-        Just pct -> printf "%s [%s%% of %s]" (showamt real) (show $ roundTo 0 pct) (showamt budget)
-        Nothing  -> printf "%s [%s]" (showamt real) (showamt budget)
-    percentage real budget =
+
+    actualandbudgetamts :: ActualAndBudgetAmountsTable
+    actualandbudgetamts = combine (balanceReportAsTable opts actualr) (balanceReportAsTable opts budgetr)
+
+    showcell :: (ActualAmount, Maybe BudgetAmount) -> String
+    showcell (actual, Nothing)     = showamt actual
+    showcell (actual, Just budget) =
+      case percentage actual budget of
+        Just pct -> printf "%s [%s%% of %s]" (showamt actual) (show $ roundTo 0 pct) (showamt budget)
+        Nothing  -> printf "%s [%s]" (showamt actual) (showamt budget)
+
+    percentage :: ActualAmount -> BudgetAmount -> Maybe Percentage
+    percentage actual budget =
       -- percentage of budget consumed is always computed in the cost basis
-      case (toCost real, toCost budget) of
+      case (toCost actual, toCost budget) of
         (Mixed [a1], Mixed [a2])
           | isReallyZeroAmount a1 -> Just 0 -- if there are no postings, we consumed 0% of budget
           | acommodity a1 == acommodity a2 && aquantity a2 /= 0 ->
@@ -669,6 +684,8 @@ multiBalanceReportWithBudgetAsText opts budget r =
         _ -> Nothing
         where
           toCost = normaliseMixedAmount . costOfMixedAmount
+
+    showamt :: MixedAmount -> String
     showamt | color_ opts  = cshowMixedAmountOneLineWithoutPrice
             | otherwise    = showMixedAmountOneLineWithoutPrice
 
@@ -677,9 +694,10 @@ multiBalanceReportWithBudgetAsText opts budget r =
     -- The budget table's row/column titles should be a subset of the actual table's.
     -- (This is satisfied by the construction of the budget report and the
     -- process of rolling up account names.)
+    combine :: ActualAmountsTable -> BudgetAmountsTable -> ActualAndBudgetAmountsTable
     combine (Table l t d) (Table l' t' d') = Table l t combinedRows
       where
-        -- For all accounts that are present in the budget, zip real amounts with budget amounts
+        -- For all accounts that are present in the budget, zip actual amounts with budget amounts
         combinedRows = [ combineRow row budgetRow
                        | (acct, row) <- zip (headerContents l) d
                        , let budgetRow =
