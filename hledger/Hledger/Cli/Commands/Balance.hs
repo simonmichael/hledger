@@ -667,11 +667,22 @@ multiBalanceReportWithBudgetAsText opts budgetr actualr =
     actualandbudgetamts = combine (balanceReportAsTable opts actualr) (balanceReportAsTable opts budgetr)
 
     showcell :: (ActualAmount, Maybe BudgetAmount) -> String
-    showcell (actual, Nothing)     = showamt actual
-    showcell (actual, Just budget) =
-      case percentage actual budget of
-        Just pct -> printf "%s [%s%% of %s]" (showamt actual) (show $ roundTo 0 pct) (showamt budget)
-        Nothing  -> printf "%s [%s]" (showamt actual) (showamt budget)
+    showcell (actual, mbudget) =
+      case (actual, mbudget) of
+        (actual, Nothing) ->
+          printf ("%"++show actualwidth++"s " ++ replicate (percentwidth + 7 + budgetwidth) ' ') (showamt actual)
+        (actual, Just budget) ->
+          case percentage actual budget of
+            Just pct ->
+              printf ("%"++show actualwidth++"s [%"++show percentwidth++"s%% of %"++show budgetwidth++"s]")
+                     (showamt actual) (show $ roundTo 0 pct) (showamt budget)
+            Nothing ->
+              printf ("%"++show actualwidth++"s ["++replicate (percentwidth+5) ' '++"%"++show budgetwidth++"s]")
+                     (showamt actual) (showamt budget)
+      where
+        actualwidth  = 7
+        percentwidth = 3
+        budgetwidth  = 4
 
     percentage :: ActualAmount -> BudgetAmount -> Maybe Percentage
     percentage actual budget =
