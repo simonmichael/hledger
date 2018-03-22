@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.27.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9878d76090f5076d1d95f3f77f92ef1683e98b5567dfcd1613a225f85ece8dfe
+-- hash: ffc358a5098438b47f3f0aaa556b94fedb42995d19db755b1fe57b97f4775236
 
 name:           hledger-lib
 version:        1.5.99
@@ -77,7 +77,6 @@ library
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
-    , semigroups
     , split >=0.1
     , text >=1.2
     , time >=1.5
@@ -171,7 +170,6 @@ test-suite doctests
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
-    , semigroups
     , split >=0.1
     , text >=1.2
     , time >=1.5
@@ -264,7 +262,6 @@ test-suite easytests
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
-    , semigroups
     , split >=0.1
     , text >=1.2
     , time >=1.5
@@ -356,7 +353,6 @@ test-suite hunittests
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
-    , semigroups
     , split >=0.1
     , test-framework
     , test-framework-hunit
