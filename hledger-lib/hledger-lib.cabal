@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.27.0.
+-- This file has been generated from package.yaml by hpack version 0.21.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ffc358a5098438b47f3f0aaa556b94fedb42995d19db755b1fe57b97f4775236
+-- hash: cbe598ce4858fbf5dde16925499a85ff389700d3504666b582be23a366739bbd
 
 name:           hledger-lib
 version:        1.5.99
@@ -48,44 +48,6 @@ source-repository head
   location: https://github.com/simonmichael/hledger
 
 library
-  hs-source-dirs:
-      ./.
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  build-depends:
-      Decimal
-    , HUnit
-    , ansi-terminal >=0.6.2.3
-    , array
-    , base >=4.8 && <5
-    , base-compat >=0.8.1
-    , blaze-markup >=0.5.1
-    , bytestring
-    , cmdargs >=0.10
-    , containers
-    , csv
-    , data-default >=0.5
-    , deepseq
-    , directory
-    , extra
-    , filepath
-    , hashtables >=1.2
-    , megaparsec >=5.0
-    , mtl
-    , mtl-compat
-    , old-time
-    , parsec >=3
-    , pretty-show >=1.6.4
-    , regex-tdfa
-    , safe >=0.2
-    , split >=0.1
-    , text >=1.2
-    , time >=1.5
-    , transformers >=0.2
-    , uglymemo
-    , utf8-string >=0.3.5
-  if (!impl(ghc >= 8.0))
-    build-depends:
-        semigroups ==0.18.*
   exposed-modules:
       Hledger
       Hledger.Data
@@ -133,11 +95,95 @@ library
       Text.Megaparsec.Compat
   other-modules:
       Paths_hledger_lib
+  hs-source-dirs:
+      ./.
+  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  build-depends:
+      Decimal
+    , HUnit
+    , ansi-terminal >=0.6.2.3
+    , array
+    , base >=4.8 && <5
+    , base-compat >=0.8.1
+    , blaze-markup >=0.5.1
+    , bytestring
+    , cmdargs >=0.10
+    , containers
+    , csv
+    , data-default >=0.5
+    , deepseq
+    , directory
+    , extra
+    , filepath
+    , hashtables >=1.2
+    , megaparsec >=5.0
+    , mtl
+    , mtl-compat
+    , old-time
+    , parsec >=3
+    , pretty-show >=1.6.4
+    , regex-tdfa
+    , safe >=0.2
+    , split >=0.1
+    , text >=1.2
+    , time >=1.5
+    , transformers >=0.2
+    , uglymemo
+    , utf8-string >=0.3.5
+  if (!impl(ghc >= 8.0))
+    build-depends:
+        semigroups ==0.18.*
   default-language: Haskell2010
 
 test-suite doctests
   type: exitcode-stdio-1.0
   main-is: doctests.hs
+  other-modules:
+      Hledger
+      Hledger.Data
+      Hledger.Data.Account
+      Hledger.Data.AccountName
+      Hledger.Data.Amount
+      Hledger.Data.AutoTransaction
+      Hledger.Data.Commodity
+      Hledger.Data.Dates
+      Hledger.Data.Journal
+      Hledger.Data.Ledger
+      Hledger.Data.MarketPrice
+      Hledger.Data.Period
+      Hledger.Data.Posting
+      Hledger.Data.RawOptions
+      Hledger.Data.StringFormat
+      Hledger.Data.Timeclock
+      Hledger.Data.Transaction
+      Hledger.Data.Types
+      Hledger.Query
+      Hledger.Read
+      Hledger.Read.Common
+      Hledger.Read.CsvReader
+      Hledger.Read.JournalReader
+      Hledger.Read.TimeclockReader
+      Hledger.Read.TimedotReader
+      Hledger.Reports
+      Hledger.Reports.BalanceHistoryReport
+      Hledger.Reports.BalanceReport
+      Hledger.Reports.EntriesReport
+      Hledger.Reports.MultiBalanceReports
+      Hledger.Reports.PostingsReport
+      Hledger.Reports.ReportOptions
+      Hledger.Reports.TransactionsReports
+      Hledger.Utils
+      Hledger.Utils.Color
+      Hledger.Utils.Debug
+      Hledger.Utils.Parse
+      Hledger.Utils.Regex
+      Hledger.Utils.String
+      Hledger.Utils.Test
+      Hledger.Utils.Text
+      Hledger.Utils.Tree
+      Hledger.Utils.UTF8IOCompat
+      Text.Megaparsec.Compat
+      Paths_hledger_lib
   hs-source-dirs:
       ./.
       tests
@@ -179,6 +225,11 @@ test-suite doctests
   if (!impl(ghc >= 8.0))
     build-depends:
         semigroups ==0.18.*
+  default-language: Haskell2010
+
+test-suite easytests
+  type: exitcode-stdio-1.0
+  main-is: easytests.hs
   other-modules:
       Hledger
       Hledger.Data
@@ -225,11 +276,6 @@ test-suite doctests
       Hledger.Utils.UTF8IOCompat
       Text.Megaparsec.Compat
       Paths_hledger_lib
-  default-language: Haskell2010
-
-test-suite easytests
-  type: exitcode-stdio-1.0
-  main-is: easytests.hs
   hs-source-dirs:
       ./.
       tests
@@ -271,6 +317,11 @@ test-suite easytests
   if (!impl(ghc >= 8.0))
     build-depends:
         semigroups ==0.18.*
+  default-language: Haskell2010
+
+test-suite hunittests
+  type: exitcode-stdio-1.0
+  main-is: hunittests.hs
   other-modules:
       Hledger
       Hledger.Data
@@ -317,11 +368,6 @@ test-suite easytests
       Hledger.Utils.UTF8IOCompat
       Text.Megaparsec.Compat
       Paths_hledger_lib
-  default-language: Haskell2010
-
-test-suite hunittests
-  type: exitcode-stdio-1.0
-  main-is: hunittests.hs
   hs-source-dirs:
       ./.
       tests
@@ -364,50 +410,4 @@ test-suite hunittests
   if (!impl(ghc >= 8.0))
     build-depends:
         semigroups ==0.18.*
-  other-modules:
-      Hledger
-      Hledger.Data
-      Hledger.Data.Account
-      Hledger.Data.AccountName
-      Hledger.Data.Amount
-      Hledger.Data.AutoTransaction
-      Hledger.Data.Commodity
-      Hledger.Data.Dates
-      Hledger.Data.Journal
-      Hledger.Data.Ledger
-      Hledger.Data.MarketPrice
-      Hledger.Data.Period
-      Hledger.Data.Posting
-      Hledger.Data.RawOptions
-      Hledger.Data.StringFormat
-      Hledger.Data.Timeclock
-      Hledger.Data.Transaction
-      Hledger.Data.Types
-      Hledger.Query
-      Hledger.Read
-      Hledger.Read.Common
-      Hledger.Read.CsvReader
-      Hledger.Read.JournalReader
-      Hledger.Read.TimeclockReader
-      Hledger.Read.TimedotReader
-      Hledger.Reports
-      Hledger.Reports.BalanceHistoryReport
-      Hledger.Reports.BalanceReport
-      Hledger.Reports.EntriesReport
-      Hledger.Reports.MultiBalanceReports
-      Hledger.Reports.PostingsReport
-      Hledger.Reports.ReportOptions
-      Hledger.Reports.TransactionsReports
-      Hledger.Utils
-      Hledger.Utils.Color
-      Hledger.Utils.Debug
-      Hledger.Utils.Parse
-      Hledger.Utils.Regex
-      Hledger.Utils.String
-      Hledger.Utils.Test
-      Hledger.Utils.Text
-      Hledger.Utils.Tree
-      Hledger.Utils.UTF8IOCompat
-      Text.Megaparsec.Compat
-      Paths_hledger_lib
   default-language: Haskell2010
