@@ -34,7 +34,7 @@ extra-source-files:
 dependencies:
 - hledger-lib >=1.5.99 && <1.6
 - hledger >=1.5.99 && <1.6
-- base >=4.8 && <5
+- base >=4.8 && <4.12
 - aeson
 - bytestring
 - containers

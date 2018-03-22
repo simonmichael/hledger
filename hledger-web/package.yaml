@@ -64,7 +64,7 @@ flags:
 dependencies:
 - hledger-lib >=1.5.99 && <1.6
 - hledger >=1.5.99 && <1.6
-- base >=4.8 && <5
+- base >=4.8 && <4.12
 - base-compat >=0.8.1
 - blaze-html
 - blaze-markup

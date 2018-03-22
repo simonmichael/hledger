@@ -76,7 +76,7 @@ ghc-options:
 - -fno-warn-orphans
 
 dependencies:
-- base >=4.8 && <5
+- base >=4.8 && <4.12
 - base-compat >=0.8.1
 - ansi-terminal >=0.6.2.3
 - directory
