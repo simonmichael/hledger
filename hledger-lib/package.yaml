@@ -62,7 +62,6 @@ dependencies:
 - pretty-show >=1.6.4
 - regex-tdfa
 - safe >=0.2
-- semigroups
 - split >=0.1
 - text >=1.2
 - time >=1.5
