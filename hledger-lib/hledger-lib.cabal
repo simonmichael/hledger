@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b63fce3e819cfa8f9bf41a84f14ee9eb230773f7faa5b44297aef4adc92f57d8
+-- hash: 65b38111258a2bd9065067e58c4d087cfca39eb38e7bb02c035d9265a9dd59fc
 
 name:           hledger-lib
-version:        1.5
+version:        1.5.1
 synopsis:       Core data types, parsers and functionality for the hledger accounting tools
 description:    This is a reusable library containing hledger's core functionality.
                 .
