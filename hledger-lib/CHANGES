@@ -1,6 +1,11 @@
 API-ish changes in the hledger-lib package. See also hledger.
 
 
+# 1.5.1 (2018/3/22)
+
+* support GHC 8.4 (add missing Semigroup instance for Journal)
+
+
 # 1.5 (2017/12/31)
 
 * -V/--value uses today's market prices by default, not those of last transaction date. #683, #648)
