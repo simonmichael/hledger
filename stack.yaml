@@ -1,0 +1,39 @@
+# stack build plan using GHC 8.4.1 and recent stackage nightly
+
+resolver: nightly-2018-03-23
+
+packages:
+- hledger-lib
+- hledger
+- hledger-ui
+#- hledger-web  waiting for wai-handler-launch
+#- hledger-api  waiting for http-media
+
+extra-deps:
+# hledger
+- easytest-0.1
+- hashtables-1.2.3.0
+- uglymemo-0.1.0.1
+- wizards-1.0.2
+- control-monad-free-0.6.1
+- prelude-extras-0.4.0.3
+# hledger-ui
+- brick-0.35
+- fsnotify-0.2.1.1
+- text-zipper-0.10.1
+- config-ini-0.2.2.0
+- data-clist-0.1.2.1
+- word-wrap-0.4.1
+# hledger-web
+- json-0.9.2
+- wai-handler-launch-3.0.2.3
+# hledger-api
+# - servant-server-0.13
+# - servant-swagger-1.1.5
+# - swagger2-2.2.1
+# - http-media-0.7.1.2
+# - servant-0.13
+
+nix:
+  pure: false
+  packages: [perl gmp ncurses zlib]
