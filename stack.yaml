@@ -10,7 +10,7 @@ packages:
 #- hledger-api  waiting for http-media
 
 extra-deps:
-# hledger
+# hledger[-lib]
 - easytest-0.1
 - hashtables-1.2.3.0
 - uglymemo-0.1.0.1
@@ -18,7 +18,7 @@ extra-deps:
 - control-monad-free-0.6.1
 - prelude-extras-0.4.0.3
 # hledger-ui
-- brick-0.35
+- brick-0.35.1
 - fsnotify-0.2.1.1
 - text-zipper-0.10.1
 - config-ini-0.2.2.0
