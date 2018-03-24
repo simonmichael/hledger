@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.21.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4f6f5987e53fdedbadc89cb204e1c986bd36c663a71808e642eefe15edebe72f
+-- hash: f8f9cb9d2b75d91e5ec746b32d1b0bb664b7914e1e578ae8a63e3ca0b39bbdfd
 
 name:           hledger
 version:        1.5.99
@@ -84,7 +84,7 @@ library
     , Diff
     , HUnit
     , ansi-terminal >=0.6.2.3
-    , base >=4.8 && <5
+    , base >=4.8 && <4.12
     , base-compat >=0.8.1
     , bytestring
     , cmdargs >=0.10
@@ -166,7 +166,7 @@ executable hledger
       Decimal
     , HUnit
     , ansi-terminal >=0.6.2.3
-    , base >=4.8 && <5
+    , base >=4.8 && <4.12
     , base-compat >=0.8.1
     , bytestring
     , cmdargs >=0.10
@@ -218,7 +218,7 @@ test-suite test
       Decimal
     , HUnit
     , ansi-terminal >=0.6.2.3
-    , base >=4.8 && <5
+    , base >=4.8 && <4.12
     , base-compat >=0.8.1
     , bytestring
     , cmdargs >=0.10
@@ -267,7 +267,7 @@ benchmark bench
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       ansi-terminal >=0.6.2.3
-    , base >=4.8 && <5
+    , base >=4.8 && <4.12
     , base-compat >=0.8.1
     , criterion
     , directory

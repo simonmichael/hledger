@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.21.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 66e47e69f42abc82efc4dd262f42bffb6292f387520b5b75b6dd71ca0991128a
+-- hash: c30ba28c4fb8d8763b4cb710dc6aa957af07ff28f34e9605997b798d33ad7e18
 
 name:           hledger-api
 version:        1.5.99
@@ -48,7 +48,7 @@ executable hledger-api
   build-depends:
       Decimal
     , aeson
-    , base >=4.8 && <5
+    , base >=4.8 && <4.12
     , bytestring
     , containers
     , docopt

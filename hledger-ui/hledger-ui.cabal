@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.21.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f4bc380b9cd5f49af0f1534f8978ef8cd5f209c77fa81ca93444f0f8858ab49b
+-- hash: aeeb8e437253815b541ebabaa1d968a0f58b3860e9b33c92639bb8ad87652c44
 
 name:           hledger-ui
 version:        1.5.99
@@ -55,7 +55,7 @@ executable hledger-ui
       HUnit
     , ansi-terminal >=0.6.2.3
     , async
-    , base >=4.8 && <5
+    , base >=4.8 && <4.12
     , base-compat >=0.8.1
     , cmdargs >=0.8
     , containers

@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cbe598ce4858fbf5dde16925499a85ff389700d3504666b582be23a366739bbd
+-- hash: 916d92693555f9b8362107e6b607319726dac39eb253d530485abf0dd0abcdeb
 
 name:           hledger-lib
 version:        1.5.99
@@ -103,7 +103,7 @@ library
     , HUnit
     , ansi-terminal >=0.6.2.3
     , array
-    , base >=4.8 && <5
+    , base >=4.8 && <4.12
     , base-compat >=0.8.1
     , blaze-markup >=0.5.1
     , bytestring
@@ -194,7 +194,7 @@ test-suite doctests
     , HUnit
     , ansi-terminal >=0.6.2.3
     , array
-    , base >=4.8 && <5
+    , base >=4.8 && <4.12
     , base-compat >=0.8.1
     , blaze-markup >=0.5.1
     , bytestring
@@ -285,7 +285,7 @@ test-suite easytests
     , HUnit
     , ansi-terminal >=0.6.2.3
     , array
-    , base >=4.8 && <5
+    , base >=4.8 && <4.12
     , base-compat >=0.8.1
     , blaze-markup >=0.5.1
     , bytestring
@@ -377,7 +377,7 @@ test-suite hunittests
     , HUnit
     , ansi-terminal >=0.6.2.3
     , array
-    , base >=4.8 && <5
+    , base >=4.8 && <4.12
     , base-compat >=0.8.1
     , blaze-markup >=0.5.1
     , bytestring
