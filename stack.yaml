@@ -7,7 +7,7 @@ packages:
 - hledger
 - hledger-ui
 - hledger-web
-#- hledger-api  waiting for http-media
+- hledger-api
 
 extra-deps:
 # hledger[-lib]
@@ -30,11 +30,11 @@ extra-deps:
 - streaming-commons-0.1.19
 - wai-extra-3.0.22.0
 # hledger-api
-# - servant-server-0.13
-# - servant-swagger-1.1.5
-# - swagger2-2.2.1
-# - http-media-0.7.1.2
-# - servant-0.13
+- servant-server-0.13
+- servant-swagger-1.1.5
+- swagger2-2.2.1
+- http-media-0.7.1.2
+- servant-0.13
 
 nix:
   pure: false
