@@ -2,6 +2,7 @@
 {- | Rendering & misc. helpers. -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 module Hledger.UI.UIUtils
 where
@@ -16,7 +17,9 @@ import Brick.Widgets.List
 import Control.Monad.IO.Class
 import Data.List
 import Data.Maybe
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
+#endif
 import Graphics.Vty (Event(..),Key(..),Modifier(..),Color,Attr,currentAttr)
 import Lens.Micro.Platform
 import System.Environment

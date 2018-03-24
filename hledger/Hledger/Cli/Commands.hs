@@ -4,6 +4,7 @@ hledger's built-in commands, and helpers for printing the commands list.
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE CPP #-}
 
 module Hledger.Cli.Commands (
    findCommand
@@ -38,7 +39,9 @@ where
 import Control.Monad
 import Data.List
 import Data.List.Split (splitOn)
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
+#endif
 import Data.String.Here
 import Data.Text (Text)
 import qualified Data.Text as T

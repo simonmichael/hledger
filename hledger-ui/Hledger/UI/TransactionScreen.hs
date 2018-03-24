@@ -1,6 +1,7 @@
 -- The transaction screen, showing a single transaction's general journal entry.
 
 {-# LANGUAGE OverloadedStrings, TupleSections, RecordWildCards #-} -- , FlexibleContexts
+{-# LANGUAGE CPP #-}
 
 module Hledger.UI.TransactionScreen
  (transactionScreen
@@ -11,7 +12,9 @@ where
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.List
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
+#endif
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import Graphics.Vty (Event(..),Key(..))

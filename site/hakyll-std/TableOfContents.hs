@@ -1,5 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
 -- from https://github.com/blaenk/blaenk.github.io
+
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 module TableOfContents (
   tableOfContents,
@@ -13,7 +15,9 @@ import Text.Pandoc.Walk (walk, query)
 
 import Data.List (groupBy)
 import Data.Tree (Forest, Tree(Node))
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>), mconcat)
+#endif
 import Data.Function (on)
 import Data.Maybe (fromMaybe)
 

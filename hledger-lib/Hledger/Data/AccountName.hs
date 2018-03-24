@@ -1,4 +1,6 @@
-{-# LANGUAGE NoMonomorphismRestriction, OverloadedStrings #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 {-|
 
 'AccountName's are strings like @assets:cash:petty@, with multiple
@@ -10,7 +12,9 @@ hierarchy.
 module Hledger.Data.AccountName
 where
 import Data.List
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
+#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Tree

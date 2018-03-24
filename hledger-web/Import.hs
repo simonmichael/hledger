@@ -17,4 +17,6 @@ import           Settings             as Import
 import           Settings.Development as Import
 import           Settings.StaticFiles as Import
 
+#if !(MIN_VERSION_base(4,11,0))
 import           Data.Monoid          as Import ((<>))
+#endif

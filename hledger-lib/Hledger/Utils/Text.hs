@@ -2,6 +2,7 @@
 -- There may be better alternatives out there.
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 module Hledger.Utils.Text
  --  (
@@ -57,7 +58,9 @@ where
 
 -- import Data.Char
 import Data.List
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
+#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 -- import Text.Parsec

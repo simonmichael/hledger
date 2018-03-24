@@ -10,12 +10,15 @@
 -- Based on code from https://github.com/blaenk/blaenk.github.io
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 import Data.Char (isDigit)
 import Data.List (groupBy)
 import Data.List.Split
 import Data.Tree (Forest, Tree(Node))
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>), mconcat)
+#endif
 import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import Safe

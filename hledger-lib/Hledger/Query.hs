@@ -6,6 +6,7 @@ transactions..)  by various criteria, and a SimpleTextParser for query expressio
 -}
 
 {-# LANGUAGE DeriveDataTypeable, OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE CPP #-}
 
 module Hledger.Query (
   -- * Query and QueryOpt
@@ -49,7 +50,9 @@ import Data.Data
 import Data.Either
 import Data.List
 import Data.Maybe
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
+#endif
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar

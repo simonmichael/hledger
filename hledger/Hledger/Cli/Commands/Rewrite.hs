@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings, LambdaCase, DeriveTraversable, ViewPatterns, QuasiQuotes #-}
+{-# LANGUAGE CPP #-}
 
 module Hledger.Cli.Commands.Rewrite (
   rewritemode
@@ -6,7 +7,9 @@ module Hledger.Cli.Commands.Rewrite (
 ) 
 where
 
+#if !(MIN_VERSION_base(4,11,0))
 import Control.Monad.Writer
+#endif
 import Data.List (sortOn, foldl')
 import Data.String.Here
 import qualified Data.Text as T

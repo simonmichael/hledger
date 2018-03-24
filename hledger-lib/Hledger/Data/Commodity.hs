@@ -8,12 +8,15 @@ are thousands separated by comma, significant decimal places and so on.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 module Hledger.Data.Commodity
 where
 import Data.List
 import Data.Maybe (fromMaybe)
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
+#endif
 import qualified Data.Text as T
 import Test.HUnit
 -- import qualified Data.Map as M

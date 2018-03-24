@@ -2,6 +2,7 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE CPP #-}
 
 module Hledger.UI.AccountsScreen
  (accountsScreen
@@ -18,7 +19,9 @@ import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.Maybe
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
+#endif
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import qualified Data.Vector as V

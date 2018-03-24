@@ -33,7 +33,9 @@ import Data.List.NonEmpty (NonEmpty(..))
 import Data.List.Split (wordsBy)
 import Data.Maybe
 import qualified Data.Map as M
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
+#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar

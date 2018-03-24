@@ -1,4 +1,6 @@
-{-# LANGUAGE OverloadedStrings, ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE CPP #-}
 {-|
 
 This module provides utilities for applying automated transactions like
@@ -18,7 +20,9 @@ module Hledger.Data.AutoTransaction
 where
 
 import Data.Maybe
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>))
+#endif
 import Data.Time.Calendar
 import qualified Data.Text as T
 import Hledger.Data.Types

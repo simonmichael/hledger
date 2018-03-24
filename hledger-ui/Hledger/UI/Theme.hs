@@ -9,6 +9,7 @@
 
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 module Hledger.UI.Theme (
    defaultTheme
@@ -19,7 +20,9 @@ module Hledger.UI.Theme (
 
 import qualified Data.Map as M
 import Data.Maybe
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
+#endif
 import Graphics.Vty
 import Brick
 import Brick.Widgets.Border

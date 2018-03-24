@@ -11,6 +11,7 @@ The @accounts@ command lists account names:
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 module Hledger.Cli.Commands.Accounts (
   accountsmode
@@ -19,7 +20,9 @@ module Hledger.Cli.Commands.Accounts (
 ) where
 
 import Data.List
+#if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid
+#endif
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit as C
