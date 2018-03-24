@@ -1,9 +1,6 @@
 # stack build plan using GHC 8.0.2
 
-resolver: lts-9.17
-
-extra-deps:
- []
+resolver: lts-9.21
 
 packages:
 - hledger-lib
@@ -11,3 +8,6 @@ packages:
 - hledger-ui
 - hledger-web
 - hledger-api
+
+extra-deps:
+ []

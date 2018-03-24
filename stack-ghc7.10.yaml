@@ -3,6 +3,13 @@
 
 resolver: lts-6.35
 
+packages:
+- hledger-lib
+- hledger
+- hledger-ui
+- hledger-web
+- hledger-api
+
 extra-deps:
 - attoparsec-iso8601-1.0.0.0
 - brick-0.24.2
@@ -21,10 +28,3 @@ extra-deps:
 - vty-5.17.1
 - word-wrap-0.4.1
 - yesod-persistent-1.4.2
-
-packages:
-- hledger-lib
-- hledger
-- hledger-ui
-- hledger-web
-- hledger-api
