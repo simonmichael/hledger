@@ -660,7 +660,7 @@ smartdate = do
 smartdateonly :: SimpleTextParser SmartDate
 smartdateonly = do
   d <- smartdate
-  many spacenonewline
+  skipMany spacenonewline
   eof
   return d
 
@@ -769,7 +769,7 @@ lastthisnextthing = do
        ,"this"
        ,"next"
       ]
-  many spacenonewline  -- make the space optional for easier scripting
+  skipMany spacenonewline  -- make the space optional for easier scripting
   p <- choice $ map mptext [
         "day"
        ,"week"
@@ -827,7 +827,7 @@ lastthisnextthing = do
 -- >>> p "every 2nd day of month 2009-"
 -- Right (DayOfMonth 2,DateSpan 2009/01/01-)
 periodexpr :: Day -> SimpleTextParser (Interval, DateSpan)
-periodexpr rdate = surroundedBy (many spacenonewline) . choice $ map try [
+periodexpr rdate = surroundedBy (skipMany spacenonewline) . choice $ map try [
                     intervalanddateperiodexpr rdate,
                     (,) NoInterval <$> periodexprdatespan rdate
                    ]
@@ -836,7 +836,7 @@ intervalanddateperiodexpr :: Day -> SimpleTextParser (Interval, DateSpan)
 intervalanddateperiodexpr rdate = do
   i <- reportinginterval
   s <- option def . try $ do
-      many spacenonewline
+      skipMany spacenonewline
       periodexprdatespan rdate
   return (i,s)
 
@@ -853,46 +853,46 @@ reportinginterval = choice' [
                        do string "bimonthly"
                           return $ Months 2,
                        do string "every"
-                          many spacenonewline
+                          skipMany spacenonewline
                           n <- nth
-                          many spacenonewline
+                          skipMany spacenonewline
                           string "day"
                           of_ "week"
                           return $ DayOfWeek n,
                        do string "every"
-                          many spacenonewline
+                          skipMany spacenonewline
                           n <- weekday
                           return $ DayOfWeek n,
                        do string "every"
-                          many spacenonewline
+                          skipMany spacenonewline
                           n <- nth
-                          many spacenonewline
+                          skipMany spacenonewline
                           string "day"
                           optOf_ "month"
                           return $ DayOfMonth n,
                        do string "every"
                           let mnth = choice' [month, mon] >>= \(_,m,_) -> return (read m)
-                          d_o_y <- makePermParser $ DayOfYear <$$> try (many spacenonewline *> mnth) <||> try (many spacenonewline *> nth)
+                          d_o_y <- makePermParser $ DayOfYear <$$> try (skipMany spacenonewline *> mnth) <||> try (skipMany spacenonewline *> nth)
                           optOf_ "year"
                           return d_o_y,
                        do string "every"
-                          many spacenonewline
+                          skipMany spacenonewline
                           ("",m,d) <- md
                           optOf_ "year"
                           return $ DayOfYear (read m) (read d),
                        do string "every"
-                          many spacenonewline
+                          skipMany spacenonewline
                           n <- nth
-                          many spacenonewline
+                          skipMany spacenonewline
                           wd <- weekday
                           optOf_ "month"
                           return $ WeekdayOfMonth n wd
                     ]
     where
       of_ period = do
-        many spacenonewline
+        skipMany spacenonewline
         string "of"
-        many spacenonewline
+        skipMany spacenonewline
         string period
         
       optOf_ period = optional $ try $ of_ period
@@ -908,13 +908,13 @@ reportinginterval = choice' [
           do mptext compact'
              return $ intcons 1,
           do mptext "every"
-             many spacenonewline
+             skipMany spacenonewline
              mptext singular'
              return $ intcons 1,
           do mptext "every"
-             many spacenonewline
+             skipMany spacenonewline
              n <- fmap read $ some digitChar
-             many spacenonewline
+             skipMany spacenonewline
              mptext plural'
              return $ intcons n
           ]
@@ -933,10 +933,10 @@ periodexprdatespan rdate = choice $ map try [
 
 doubledatespan :: Day -> SimpleTextParser DateSpan
 doubledatespan rdate = do
-  optional (string "from" >> many spacenonewline)
+  optional (string "from" >> skipMany spacenonewline)
   b <- smartdate
-  many spacenonewline
-  optional (choice [string "to", string "-"] >> many spacenonewline)
+  skipMany spacenonewline
+  optional (choice [string "to", string "-"] >> skipMany spacenonewline)
   e <- smartdate
   return $ DateSpan (Just $ fixSmartDate rdate b) (Just $ fixSmartDate rdate e)
 
@@ -944,7 +944,7 @@ fromdatespan :: Day -> SimpleTextParser DateSpan
 fromdatespan rdate = do
   b <- choice [
     do
-      string "from" >> many spacenonewline
+      string "from" >> skipMany spacenonewline
       smartdate
     ,
     do
@@ -956,13 +956,13 @@ fromdatespan rdate = do
 
 todatespan :: Day -> SimpleTextParser DateSpan
 todatespan rdate = do
-  choice [string "to", string "-"] >> many spacenonewline
+  choice [string "to", string "-"] >> skipMany spacenonewline
   e <- smartdate
   return $ DateSpan Nothing (Just $ fixSmartDate rdate e)
 
 justdatespan :: Day -> SimpleTextParser DateSpan
 justdatespan rdate = do
-  optional (string "in" >> many spacenonewline)
+  optional (string "in" >> skipMany spacenonewline)
   d <- smartdate
   return $ spanFromSmartDate rdate d
 

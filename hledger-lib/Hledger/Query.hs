@@ -188,7 +188,7 @@ words'' :: [T.Text] -> T.Text -> [T.Text]
 words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
     where
       maybeprefixedquotedphrases :: SimpleTextParser [T.Text]
-      maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, pattern] `sepBy` some spacenonewline
+      maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, pattern] `sepBy` skipSome spacenonewline
       prefixedQuotedPattern :: SimpleTextParser T.Text
       prefixedQuotedPattern = do
         not' <- fromMaybe "" `fmap` (optional $ mptext "not:")

@@ -13,7 +13,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 -}
 
 --- * module
-{-# LANGUAGE CPP, DeriveDataTypeable, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
+{-# LANGUAGE CPP, BangPatterns, DeriveDataTypeable, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
 module Hledger.Read.Common
@@ -228,14 +228,14 @@ parserErrorAt pos s = throwError $ sourcePosPretty pos ++ ":\n" ++ s
 statusp :: TextParser m Status
 statusp =
   choice'
-    [ many spacenonewline >> char '*' >> return Cleared
-    , many spacenonewline >> char '!' >> return Pending
+    [ skipMany spacenonewline >> char '*' >> return Cleared
+    , skipMany spacenonewline >> char '!' >> return Pending
     , return Unmarked
     ]
     <?> "cleared status"
 
 codep :: TextParser m String
-codep = try (do { some spacenonewline; char '(' <?> "codep"; anyChar `manyTill` char ')' } ) <|> return ""
+codep = try (do { skipSome spacenonewline; char '(' <?> "codep"; anyChar `manyTill` char ')' } ) <|> return ""
 
 descriptionp :: JournalParser m String
 descriptionp = many (noneOf (";\n" :: [Char]))
@@ -279,7 +279,7 @@ datep = do
 datetimep :: JournalParser m LocalTime
 datetimep = do
   day <- datep
-  lift $ some spacenonewline
+  lift $ skipSome spacenonewline
   h <- some digitChar
   let h' = read h
   guard $ h' >= 0 && h' <= 23
@@ -372,7 +372,7 @@ accountnamep = do
 spaceandamountormissingp :: Monad m => JournalParser m MixedAmount
 spaceandamountormissingp =
   try (do
-        lift $ some spacenonewline
+        lift $ skipSome spacenonewline
         (Mixed . (:[])) `fmap` amountp <|> return missingmixedamt
       ) <|> return missingmixedamt
 
@@ -433,15 +433,27 @@ multiplierp = do
   return $ case multiplier of Just '*' -> True
                               _        -> False
 
+-- | This is like skipMany but it returns True if at least one element
+-- was skipped. This is helpful if you’re just using many to check if
+-- the resulting list is empty or not.
+skipMany' :: MonadPlus m => m a -> m Bool
+skipMany' p = go False
+  where
+    go !isNull = do
+      more <- option False (True <$ p)
+      if more
+        then go True
+        else pure isNull
+
 leftsymbolamountp :: Monad m => JournalParser m Amount
 leftsymbolamountp = do
   sign <- lift signp
   m <- lift multiplierp
   c <- lift commoditysymbolp
   suggestedStyle <- getAmountStyle c
-  sp <- lift $ many spacenonewline
+  commodityspaced <- lift $ skipMany' spacenonewline
   (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
-  let s = amountstyle{ascommodityside=L, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
+  let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   p <- priceamountp
   let applysign = if sign=="-" then negate else id
   return $ applysign $ Amount c q p s m
@@ -452,12 +464,12 @@ rightsymbolamountp = do
   m <- lift multiplierp
   sign <- lift signp
   rawnum <- lift $ rawnumberp
-  sp <- lift $ many spacenonewline
+  commodityspaced <- lift $ skipMany' spacenonewline
   c <- lift commoditysymbolp
   suggestedStyle <- getAmountStyle c
   let (q,prec,mdec,mgrps) = fromRawNumber suggestedStyle (sign == "-") rawnum
   p <- priceamountp
-  let s = amountstyle{ascommodityside=R, ascommodityspaced=not $ null sp, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
+  let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   return $ Amount c q p s m
   <?> "right-symbol amount"
 
@@ -491,15 +503,15 @@ simplecommoditysymbolp = T.pack <$> some (noneOf nonsimplecommoditychars)
 priceamountp :: Monad m => JournalParser m Price
 priceamountp =
     try (do
-          lift (many spacenonewline)
+          lift (skipMany spacenonewline)
           char '@'
           try (do
                 char '@'
-                lift (many spacenonewline)
+                lift (skipMany spacenonewline)
                 a <- amountp -- XXX can parse more prices ad infinitum, shouldn't
                 return $ TotalPrice a)
            <|> (do
-            lift (many spacenonewline)
+            lift (skipMany spacenonewline)
             a <- amountp -- XXX can parse more prices ad infinitum, shouldn't
             return $ UnitPrice a))
          <|> return NoPrice
@@ -507,10 +519,10 @@ priceamountp =
 partialbalanceassertionp :: Monad m => JournalParser m BalanceAssertion
 partialbalanceassertionp =
     try (do
-          lift (many spacenonewline)
+          lift (skipMany spacenonewline)
           sourcepos <- genericSourcePos <$> lift getPosition
           char '='
-          lift (many spacenonewline)
+          lift (skipMany spacenonewline)
           a <- amountp -- XXX should restrict to a simple amount
           return $ Just (a, sourcepos))
          <|> return Nothing
@@ -518,9 +530,9 @@ partialbalanceassertionp =
 -- balanceassertion :: Monad m => TextParser m (Maybe MixedAmount)
 -- balanceassertion =
 --     try (do
---           lift (many spacenonewline)
+--           lift (skipMany spacenonewline)
 --           string "=="
---           lift (many spacenonewline)
+--           lift (skipMany spacenonewline)
 --           a <- amountp -- XXX should restrict to a simple amount
 --           return $ Just $ Mixed [a])
 --          <|> return Nothing
@@ -529,13 +541,13 @@ partialbalanceassertionp =
 fixedlotpricep :: Monad m => JournalParser m (Maybe Amount)
 fixedlotpricep =
     try (do
-          lift (many spacenonewline)
+          lift (skipMany spacenonewline)
           char '{'
-          lift (many spacenonewline)
+          lift (skipMany spacenonewline)
           char '='
-          lift (many spacenonewline)
+          lift (skipMany spacenonewline)
           a <- amountp -- XXX should restrict to a simple amount
-          lift (many spacenonewline)
+          lift (skipMany spacenonewline)
           char '}'
           return $ Just a)
          <|> return Nothing
@@ -652,7 +664,7 @@ whitespaceChar = charCategory Space
 
 multilinecommentp :: JournalParser m ()
 multilinecommentp = do
-  string "comment" >> lift (many spacenonewline) >> newline
+  string "comment" >> lift (skipMany spacenonewline) >> newline
   go
   where
     go = try (eof <|> (string "end comment" >> newline >> return ()))
@@ -661,15 +673,15 @@ multilinecommentp = do
 
 emptyorcommentlinep :: JournalParser m ()
 emptyorcommentlinep = do
-  lift (many spacenonewline) >> (linecommentp <|> (lift (many spacenonewline) >> newline >> return ""))
+  lift (skipMany spacenonewline) >> (linecommentp <|> (lift (skipMany spacenonewline) >> newline >> return ""))
   return ()
 
 -- | Parse a possibly multi-line comment following a semicolon.
 followingcommentp :: JournalParser m Text
 followingcommentp =
   -- ptrace "followingcommentp"
-  do samelinecomment <- lift (many spacenonewline) >> (try commentp <|> (newline >> return ""))
-     newlinecomments <- many (try (lift (some spacenonewline) >> commentp))
+  do samelinecomment <- lift (skipMany spacenonewline) >> (try commentp <|> (newline >> return ""))
+     newlinecomments <- many (try (lift (skipSome spacenonewline) >> commentp))
      return $ T.unlines $ samelinecomment:newlinecomments
 
 -- | Parse a possibly multi-line comment following a semicolon, and
@@ -741,7 +753,7 @@ commentStartingWithp :: [Char] -> JournalParser m Text
 commentStartingWithp cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
-  lift (many spacenonewline)
+  lift (skipMany spacenonewline)
   l <- anyChar `manyTill` (lift eolof)
   optional newline
   return $ T.pack l

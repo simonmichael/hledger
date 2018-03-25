@@ -435,10 +435,10 @@ blankorcommentlinep :: CsvRulesParser ()
 blankorcommentlinep = lift (pdbg 3 "trying blankorcommentlinep") >> choiceInState [blanklinep, commentlinep]
 
 blanklinep :: CsvRulesParser ()
-blanklinep = lift (many spacenonewline) >> newline >> return () <?> "blank line"
+blanklinep = lift (skipMany spacenonewline) >> newline >> return () <?> "blank line"
 
 commentlinep :: CsvRulesParser ()
-commentlinep = lift (many spacenonewline) >> commentcharp >> lift restofline >> return () <?> "comment line"
+commentlinep = lift (skipMany spacenonewline) >> commentcharp >> lift restofline >> return () <?> "comment line"
 
 commentcharp :: CsvRulesParser Char
 commentcharp = oneOf (";#*" :: [Char])
@@ -448,7 +448,7 @@ directivep = (do
   lift $ pdbg 3 "trying directive"
   d <- fmap T.unpack $ choiceInState $ map (lift . mptext . T.pack) directives
   v <- (((char ':' >> lift (many spacenonewline)) <|> lift (some spacenonewline)) >> directivevalp)
-       <|> (optional (char ':') >> lift (many spacenonewline) >> lift eolof >> return "")
+       <|> (optional (char ':') >> lift (skipMany spacenonewline) >> lift eolof >> return "")
   return (d, v)
   ) <?> "directive"
 
@@ -471,8 +471,8 @@ fieldnamelistp = (do
   lift $ pdbg 3 "trying fieldnamelist"
   string "fields"
   optional $ char ':'
-  lift (some spacenonewline)
-  let separator = lift (many spacenonewline) >> char ',' >> lift (many spacenonewline)
+  lift (skipSome spacenonewline)
+  let separator = lift (skipMany spacenonewline) >> char ',' >> lift (skipMany spacenonewline)
   f <- fromMaybe "" <$> optional fieldnamep
   fs <- some $ (separator >> fromMaybe "" <$> optional fieldnamep)
   lift restofline
@@ -529,11 +529,11 @@ assignmentseparatorp :: CsvRulesParser ()
 assignmentseparatorp = do
   lift $ pdbg 3 "trying assignmentseparatorp"
   choice [
-    -- try (lift (many spacenonewline) >> oneOf ":="),
-    try (lift (many spacenonewline) >> char ':'),
+    -- try (lift (skipMany spacenonewline) >> oneOf ":="),
+    try (lift (skipMany spacenonewline) >> char ':'),
     spaceChar
     ]
-  _ <- lift (many spacenonewline)
+  _ <- lift (skipMany spacenonewline)
   return ()
 
 fieldvalp :: CsvRulesParser String
@@ -544,9 +544,9 @@ fieldvalp = do
 conditionalblockp :: CsvRulesParser ConditionalBlock
 conditionalblockp = do
   lift $ pdbg 3 "trying conditionalblockp"
-  string "if" >> lift (many spacenonewline) >> optional newline
+  string "if" >> lift (skipMany spacenonewline) >> optional newline
   ms <- some recordmatcherp
-  as <- many (lift (some spacenonewline) >> fieldassignmentp)
+  as <- many (lift (skipSome spacenonewline) >> fieldassignmentp)
   when (null as) $
     fail "start of conditional block found, but no assignment rules afterward\n(assignment rules in a conditional block should be indented)\n"
   return (ms, as)
@@ -556,7 +556,7 @@ recordmatcherp :: CsvRulesParser [String]
 recordmatcherp = do
   lift $ pdbg 2 "trying recordmatcherp"
   -- pos <- currentPos
-  _  <- optional (matchoperatorp >> lift (many spacenonewline) >> optional newline)
+  _  <- optional (matchoperatorp >> lift (skipMany spacenonewline) >> optional newline)
   ps <- patternsp
   when (null ps) $
     fail "start of record matcher found, but no patterns afterward\n(patterns should not be indented)\n"
@@ -589,10 +589,10 @@ regexp = do
 --   pdbg 2 "trying fieldmatcher"
 --   f <- fromMaybe "all" `fmap` (optional $ do
 --          f' <- fieldname
---          lift (many spacenonewline)
+--          lift (skipMany spacenonewline)
 --          return f')
 --   char '~'
---   lift (many spacenonewline)
+--   lift (skipMany spacenonewline)
 --   ps <- patterns
 --   let r = "(" ++ intercalate "|" ps ++ ")"
 --   return (f,r)
