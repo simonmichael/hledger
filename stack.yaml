@@ -5,7 +5,7 @@ resolver: nightly-2018-03-23
 packages:
 - hledger-lib
 - hledger
-- hledger-ui
+# - hledger-ui  # blocked on hinotify's async bound
 - hledger-web
 - hledger-api
 
@@ -18,13 +18,13 @@ extra-deps:
 - control-monad-free-0.6.1
 - prelude-extras-0.4.0.3
 # hledger-ui
-- brick-0.35.1
-- fsnotify-0.2.1.1
-- hinotify-0.3.9
-- text-zipper-0.10.1
-- config-ini-0.2.2.0
-- data-clist-0.1.2.1
-- word-wrap-0.4.1
+# - brick-0.35.1
+# - fsnotify-0.2.1.1
+# - hinotify-0.3.9   # needed on linux
+# - text-zipper-0.10.1
+# - config-ini-0.2.2.0
+# - data-clist-0.1.2.1
+# - word-wrap-0.4.1
 # hledger-web
 - json-0.9.2
 - wai-handler-launch-3.0.2.3  # requires older streaming-commons, wai-extra
