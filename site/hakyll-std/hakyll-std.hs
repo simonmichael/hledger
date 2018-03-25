@@ -1,13 +1,13 @@
 #!/usr/bin/env stack
 {- stack exec --verbosity info
-   --stack-yaml=../../stack8.0.yaml
+   --stack-yaml=../../stack-ghc8.2.yaml
    --package hakyll
    --package pandoc
    -- ghc
 -} 
--- Still using stack8.0.yaml because hakyll-std requires pandoc < 2, which requires GHC < 8.2.
--- hledger and Shake use stack.yaml by default so you may end up downloading and building two snapshots.
--- hakyll-std will go away soon hopefully.
+-- Need to stick stack-ghc8.2.yaml for hakyll/pandoc.  hledger and
+-- Shake use stack.yaml by default so you may end up downloading and
+-- building two snapshots.  hakyll-std will go away soon hopefully.
 
 {- |
 
