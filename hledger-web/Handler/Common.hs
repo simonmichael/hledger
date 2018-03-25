@@ -28,7 +28,7 @@ import Hledger.Web.WebOptions
 -- Common page layout
 
 -- | Standard hledger-web page layout.
-hledgerLayout :: ViewData -> String -> HtmlUrl AppRoute -> HandlerT App IO Html
+hledgerLayout :: ViewData -> String -> HtmlUrl AppRoute -> HandlerFor App Html
 hledgerLayout vd title content = do
   defaultLayout $ do
       setTitle $ toHtml $ title ++ " - hledger-web"
