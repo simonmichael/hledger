@@ -109,10 +109,10 @@ timeclockentryp :: JournalParser m TimeclockEntry
 timeclockentryp = do
   sourcepos <- genericSourcePos <$> lift getPosition
   code <- oneOf ("bhioO" :: [Char])
-  lift (some spacenonewline)
+  lift (skipSome spacenonewline)
   datetime <- datetimep
-  account <- fromMaybe "" <$> optional (lift (some spacenonewline) >> modifiedaccountnamep)
-  description <- T.pack . fromMaybe "" <$> lift (optional (some spacenonewline >> restofline))
+  account <- fromMaybe "" <$> optional (lift (skipSome spacenonewline) >> modifiedaccountnamep)
+  description <- T.pack . fromMaybe "" <$> lift (optional (skipSome spacenonewline >> restofline))
   return $ TimeclockEntry sourcepos (read [code]) datetime account description
 
 tests_Hledger_Read_TimeclockReader = TestList [

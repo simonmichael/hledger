@@ -107,9 +107,9 @@ timedotentryp :: JournalParser m Transaction
 timedotentryp = do
   ptrace "  timedotentryp"
   pos <- genericSourcePos <$> getPosition
-  lift (many spacenonewline)
+  lift (skipMany spacenonewline)
   a <- modifiedaccountnamep
-  lift (many spacenonewline)
+  lift (skipMany spacenonewline)
   hours <-
     try (followingcommentp >> return 0)
     <|> (timedotdurationp <*
@@ -143,7 +143,7 @@ timedotnumericp :: JournalParser m Quantity
 timedotnumericp = do
   (q, _, _, _) <- lift $ numberp Nothing
   msymbol <- optional $ choice $ map (string . fst) timeUnits
-  lift (many spacenonewline)
+  lift (skipMany spacenonewline)
   let q' = 
         case msymbol of
           Nothing  -> q

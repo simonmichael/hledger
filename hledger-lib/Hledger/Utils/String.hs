@@ -129,7 +129,7 @@ words' :: String -> [String]
 words' "" = []
 words' s  = map stripquotes $ fromparse $ parsewithString p s
     where
-      p = do ss <- (singleQuotedPattern <|> doubleQuotedPattern <|> pattern) `sepBy` some spacenonewline
+      p = do ss <- (singleQuotedPattern <|> doubleQuotedPattern <|> pattern) `sepBy` skipSome spacenonewline
              -- eof
              return ss
       pattern = many (noneOf whitespacechars)
