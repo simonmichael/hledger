@@ -5,9 +5,13 @@
    --package pandoc
    -- ghc
 -} 
--- Need to stick stack-ghc8.2.yaml for hakyll/pandoc.  hledger and
--- Shake use stack.yaml by default so you may end up downloading and
--- building two snapshots.  hakyll-std will go away soon hopefully.
+-- pandoc must be >= 2                                                                                                                                                                           
+--                                                                                                                                                                                               
+-- must use older stack-ghc8.2.yaml for hakyll/pandoc                                                                                                                                            
+-- (hledger and Shake use stack.yaml by default so you may 
+-- end up downloading and building two large snapshots)                                                                                        
+--                                                                                                                                                                                               
+-- hakyll-std will go away soon hopefully                                                                                                                                                       
 
 {- |
 

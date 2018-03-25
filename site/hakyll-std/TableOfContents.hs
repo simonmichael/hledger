@@ -14,6 +14,7 @@ import Text.Pandoc
 import Text.Pandoc.Walk (walk, query)
 
 import Data.List (groupBy)
+import Data.Text (unpack)
 import Data.Tree (Forest, Tree(Node))
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>), mconcat)
@@ -53,9 +54,9 @@ markupHeader :: Tree Block -> H.Html
 markupHeader (Node (Header _ (ident, _, keyvals) inline) headers)
   | headers == [] = H.li $ link
   | otherwise     = H.li $ link <> (H.ol $ markupHeaders headers)
-  where render x  = writeHtmlString def (Pandoc nullMeta [(Plain x)])
+  where render x  = write5HtmlString def (Pandoc nullMeta [(Plain x)])
         section   = fromMaybe (render inline) (lookup "toc" keyvals)
-        link      = H.a ! A.href (H.toValue $ "#" ++ ident) $ preEscapedToHtml section
+        link      = H.a ! A.href (H.toValue $ "#" ++ ident) $ preEscapedToHtml $ unpack section
 markupHeader _ = error "what"
 
 markupHeaders :: Forest Block -> H.Html
