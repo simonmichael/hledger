@@ -52,6 +52,11 @@ cache:
     - $HOME/.stack/
     - $HOME/.local/bin/
     - .stack-work/
+    - hledger-lib/.stack-work/
+    - hledger/.stack-work/
+    - hledger-ui/.stack-work/
+    - hledger-web/.stack-work/
+    - hledger-api/.stack-work/
 #    - shelltestrunner/
 
 # addons:
