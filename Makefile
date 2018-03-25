@@ -282,6 +282,11 @@ build: \
 	$(call def-help,build, download dependencies and build hledger executables (with stack))
 	$(STACK) build
 
+# XXX currently always fails on hledger nonportable include path warning https://github.com/commercialhaskell/stack/issues/3918
+build-check-warnings: \
+	$(call def-help,build-check-warnings, repeatedly build all hledger executables quickly ensuring no warnings)
+	stack build --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --file-watch
+
 addons: \
 	$(call def-help,addons, compile the experimental add-on commands, required for functional tests )
 	bin/compile.sh
