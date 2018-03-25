@@ -20,6 +20,7 @@ extra-deps:
 # hledger-ui
 - brick-0.35.1
 - fsnotify-0.2.1.1
+- hinotify-0.3.9
 - text-zipper-0.10.1
 - config-ini-0.2.2.0
 - data-clist-0.1.2.1
