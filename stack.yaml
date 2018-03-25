@@ -1,6 +1,6 @@
 # stack build plan using GHC 8.4.1 and recent stackage nightly
 
-resolver: nightly-2018-03-23
+resolver: nightly-2018-03-25
 
 packages:
 - hledger-lib
@@ -9,27 +9,18 @@ packages:
 - hledger-web
 - hledger-api
 
+# avoid "non-portable path" warning on mac, https://github.com/commercialhaskell/stack/issues/3918
+ghc-options:
+  hledger: -optP-Wno-nonportable-include-path
+
 extra-deps:
-# hledger[-lib]
-- easytest-0.1
-- hashtables-1.2.3.0
-- uglymemo-0.1.0.1
-- wizards-1.0.2
-- control-monad-free-0.6.1
-- prelude-extras-0.4.0.3
+# hledger-lib
+- easytest-0.1.1
 # hledger-ui
-# - brick-0.35.1
 # - fsnotify-0.2.1.1
-# - hinotify-0.3.9   # needed on linux
-# - text-zipper-0.10.1
-# - config-ini-0.2.2.0
-# - data-clist-0.1.2.1
-# - word-wrap-0.4.1
 # hledger-web
 - json-0.9.2
-- wai-handler-launch-3.0.2.3  # requires older streaming-commons, wai-extra
-- streaming-commons-0.1.19
-- wai-extra-3.0.22.0
+- wai-handler-launch-3.0.2.4
 # hledger-api
 - servant-server-0.13
 - servant-swagger-1.1.5
