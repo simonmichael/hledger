@@ -9,10 +9,6 @@ packages:
 - hledger-web
 - hledger-api
 
-# avoid "non-portable path" warning on mac, https://github.com/commercialhaskell/stack/issues/3918
-ghc-options:
-  hledger: -optP-Wno-nonportable-include-path
-
 extra-deps:
 # hledger-lib
 - easytest-0.1.1

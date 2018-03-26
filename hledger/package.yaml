@@ -74,6 +74,8 @@ ghc-options:
 - -fno-warn-missing-signatures
 - -fno-warn-type-defaults
 - -fno-warn-orphans
+# avoid "non-portable path" warning on mac, https://github.com/commercialhaskell/stack/issues/3918
+- -optP-Wno-nonportable-include-path
 
 dependencies:
 - base >=4.8 && <4.12
