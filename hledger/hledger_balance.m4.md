@@ -335,6 +335,9 @@ Balance changes in 2017/11/01-2017/12/31:
                       ||                      0                        0 
 ```
 
+Note --budget first arrived in hledger in 1.5 and is still pretty young; 
+join the discussions on mail list and issue tracker to help us refine it.  
+
 For more examples and details, see [Budgeting and Forecasting](budgeting-and-forecasting.html).
 
 ### Custom balance output
