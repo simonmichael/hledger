@@ -150,6 +150,10 @@ tests:
     dependencies:
     - doctest >=0.8
     - Glob >=0.7
+    # doctest won't run with ghc 8.4 on mac right now, https://github.com/sol/hpack/issues/199
+    when:
+    - condition: impl(ghc >= 8.4) && os(darwin)
+      buildable: false
 
   hunittests:
     main: hunittests.hs
