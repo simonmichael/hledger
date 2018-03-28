@@ -7,6 +7,7 @@ h4 { margin-top:2em; }
 <nav id="toc">
 <p>Major releases:</p>
 <ol>
+<li><a href="#hledger-1.6">hledger 1.6 (2018/3/31)</a>
 <li><a href="#hledger-1.5">hledger 1.5 (2017/12/31)</a>
 <li><a href="#hledger-1.4">hledger 1.4 (2017/9/30)</a>
 <li><a href="#hledger-1.3">hledger 1.3 (2017/6/30)</a>
@@ -44,6 +45,102 @@ h4 { margin-top:2em; }
 </nav>
 
 # Release notes
+
+
+## 2018/3/31 hledger 1.6
+
+***
+Report cleanups,
+show normal-positive numbers,
+account sort codes,
+HTML output.
+***
+
+<!-- ([announcement]()) -->
+
+Release contributors:
+
+  [project](#project-wide-changes-for-1.6)
+| [hledger-install](#hledger-install.sh-1.6)
+| [hledger-lib](#hledger-lib-1.6)
+| [hledger](#hledger-1.6-1)
+| [hledger-ui](#hledger-ui-1.6)
+| [hledger-web](#hledger-web-1.6)
+| [hledger-api](#hledger-api-1.6)
+
+### project-wide changes for 1.6
+
+* support ghc 8.4, latest deps
+
+### hledger-install.sh 1.6
+
+### hledger-lib 1.6
+
+* when the system text encoding is UTF-8, ignore any UTF-8 BOM prefix
+found when reading files.
+
+* CompoundBalanceReport amounts are now normally positive. (experimental)
+
+### hledger 1.6
+
+* journal: account directives can define a numeric account code to
+customize sorting.  bal/bs/cf/is will sort accounts by account code,
+if any, then account name.
+
+* csv: reading a CSV file containing no records is no longer an error
+
+* cli: when the system text encoding is UTF-8, ignore any UTF-8 BOM
+prefix found when reading files.  (Paypal's new CSV has this BOM
+prefix, causing a confusing parse error.)
+
+* cli: tabular reports no longer have a trailing blank line added.
+(This allows omitting the ">=0" delimiters in our functional tests,
+making them easier to read and maintain.)
+
+* acc: the accounts command now has --declared and --used flags
+
+* bal: the --invert flag flips all signs
+
+* bal: --drop now works with CSV output
+
+* bal: warn that --budget -M -O csv is unimplemented
+
+* bal/bs/bse/cf/is: these commands can now generate HTML output
+
+* bal/bs/is/cf: drop short name and indent fields from multicolumn CSV
+
+* bs/bse/cf/is: these, the "financial statement" commands, now show
+normal income, liability and equity balances as positive numbers.
+Negative numbers now indicate a contra-balance (eg an overdrawn
+checking account), a net loss, or a negative net worth.  This makes
+these reports more like conventional financial statements, and easier
+to read and share with others. (Other commands, like balance, have not
+changed.)  (experimental)
+
+* bs/cf/is: always show a tabular report, even with no report
+interval.  Previously you would get a simple borderless report like
+the original balance command.  Less code, fewer bugs.
+
+* bs/bse/cf/is: show overall report span in title
+
+TODO why not working ?
+* bs/bse/cf/is: use local abbreviated month names for monthly column headings
+
+TODO reproducible in 1.5 ?
+* bs/bse/cf/is: fix display of abbreviated name for December
+
+* bs/bse/cf/is: in CSV output, don't repeat the headings row for each subreport
+
+* close: the equity command has been renamed to close.  It now ignores
+any begin date (it always closes historical end balances).  It also
+ignores --date2.
+
+### hledger-ui 1.6
+
+### hledger-web 1.6
+
+### hledger-api 1.6
+
 
 
 ## 2017/12/31 hledger 1.5

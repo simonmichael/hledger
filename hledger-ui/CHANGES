@@ -1,6 +1,13 @@
 User-visible changes in hledger-ui. See also hledger, hledger-lib.
 
 
+# 1.6 (2018/3/31)
+
+* support ghc 8.4, latest deps
+
+* when the system text encoding is UTF-8, ignore any UTF-8 BOM prefix
+  found when reading files
+
 # 1.5 (2017/12/31)
 
 * fix help -> view manual (on posix platforms) #623

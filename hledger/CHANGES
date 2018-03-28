@@ -1,4 +1,57 @@
-User-visible changes in the hledger CLI tool. See also hledger-lib.
+User-visible changes in the hledger command line tool.
+
+
+# 1.6 (2018/3/31)
+
+* support ghc 8.4, latest deps
+
+* journal: account directives can define a numeric account code to
+customize sorting.  bal/bs/cf/is will sort accounts by account code,
+if any, then account name.
+
+* csv: reading a CSV file containing no records is no longer an error
+
+* cli: when the system text encoding is UTF-8, ignore any UTF-8 BOM
+prefix found when reading files.  (Paypal's new CSV has this BOM
+prefix, causing a confusing parse error.)
+
+* cli: tabular reports no longer have a trailing blank line added.
+(This allows omitting the ">=0" delimiters in our functional tests,
+making them easier to read and maintain.)
+
+* acc: the accounts command now has --declared and --used flags
+
+* bal: the --invert flag flips all signs
+
+* bal: --drop now works with CSV output
+
+* bal: warn that --budget -M -O csv is unimplemented
+
+* bal/bs/bse/cf/is: show overall report span in title
+
+* bal/bs/bse/cf/is: show short month names as headings in monthly reports
+
+* bal/bs/bse/cf/is: these commands can now generate HTML output
+
+* bal/bs/is/cf: drop short name and indent fields from multicolumn CSV
+
+* bs/bse/cf/is: these, the "financial statement" commands, now show
+normal income, liability and equity balances as positive numbers.
+Negative numbers now indicate a contra-balance (eg an overdrawn
+checking account), a net loss, or a negative net worth.  This makes
+these reports more like conventional financial statements, and easier
+to read and share with others. (Other commands, like balance, have not
+changed.)  (experimental)
+
+* bs/cf/is: always show a tabular report, even with no report
+interval.  Previously you would get a simple borderless report like
+the original balance command.  Less code, fewer bugs.
+
+* bs/bse/cf/is: in CSV output, don't repeat the headings row for each subreport
+
+* close: the equity command has been renamed to close.  It now ignores
+any begin date (it always closes historical end balances).  It also
+ignores --date2.
 
 
 # 1.5 (2017/12/31)

@@ -1,4 +1,32 @@
-API-ish changes in the hledger-lib package. See also hledger.
+API-ish changes in the hledger-lib package. 
+Most user-visible changes are noted in the hledger changelog, instead.
+
+
+# 1.6 (2018/3/31)
+
+* support ghc 8.4, latest deps
+
+* CompoundBalanceReport amounts are now normally positive.
+The bs/bse/cf/is commands now show normal income, liability and equity
+balances as positive.  Negative numbers now indicate a contra-balance
+(eg an overdrawn checking account), a net loss, a negative net worth,
+etc.  This makes these reports more like conventional financial
+statements, and easier to read and share with others. (experimental)
+
+* when the system text encoding is UTF-8, ignore any UTF-8 BOM prefix
+found when reading files.
+
+* lib/ui/web/api: move embedded manual files to extra-source-files
+
+* Use skipMany/skipSome for parsing spacenonewline (Moritz Kiefer)
+This avoids allocating the list of space characters only to then
+discard it.
+
+* rename, clarify purpose of balanceReportFromMultiBalanceReport
+
+* fix some hlint warnings
+
+* add some easytest tests
 
 
 # 1.5 (2017/12/31)
