@@ -294,7 +294,7 @@ compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grand
   addtotals $
   padRow title :
   ("Account" :
-   map showDateSpan colspans
+   map showDateSpanMonthAbbrev colspans
    ++ (if row_total_ ropts then ["Total"] else [])
    ++ (if average_ ropts then ["Average"] else [])
    ) :

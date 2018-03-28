@@ -724,7 +724,7 @@ balanceReportAsTable opts (MultiBalanceReport (colspans, items, (coltotals,tot,a
      (map rowvals items)
   where
     mkDate = case balancetype_ opts of
-       PeriodChange -> showDateSpan
+       PeriodChange -> showDateSpanMonthAbbrev
        _            -> maybe "" (showDate . prevday) . spanEnd
     colheadings = map mkDate colspans
                   ++ (if row_total_ opts then ["  Total"] else [])
