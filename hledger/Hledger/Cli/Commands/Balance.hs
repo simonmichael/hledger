@@ -681,8 +681,8 @@ multiBalanceReportWithBudgetAsText opts budgetr actualr =
                      (showamt actual) (showamt budget)
       where
         actualwidth  = 7
-        percentwidth = 3
-        budgetwidth  = 4
+        percentwidth = 4
+        budgetwidth  = 5
 
     percentage :: ActualAmount -> BudgetAmount -> Maybe Percentage
     percentage actual budget =
