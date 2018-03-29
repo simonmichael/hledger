@@ -122,7 +122,7 @@ the data.
      hide/aggregate accounts or postings more than NUM levels deep
 '-E --empty'
 
-     show items with zero amount, normally hidden (except in
+     show items with zero amount, normally hidden (and vice-versa in
      hledger-ui/hledger-web)
 '-B --cost'
 
@@ -379,17 +379,17 @@ Tag Table:
 Node: Top71
 Node: OPTIONS827
 Ref: #options924
-Node: KEYS4133
-Ref: #keys4228
-Node: SCREENS7187
-Ref: #screens7272
-Node: Accounts screen7362
-Ref: #accounts-screen7490
-Node: Register screen9720
-Ref: #register-screen9875
-Node: Transaction screen11949
-Ref: #transaction-screen12107
-Node: Error screen12977
-Ref: #error-screen13099
+Node: KEYS4141
+Ref: #keys4236
+Node: SCREENS7195
+Ref: #screens7280
+Node: Accounts screen7370
+Ref: #accounts-screen7498
+Node: Register screen9728
+Ref: #register-screen9883
+Node: Transaction screen11957
+Ref: #transaction-screen12115
+Node: Error screen12985
+Ref: #error-screen13107
 
 End Tag Table

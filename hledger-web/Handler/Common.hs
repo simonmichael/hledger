@@ -73,7 +73,10 @@ sidebar vd@VD{..} =
 |]
  where
   journalcurrent = if here == JournalR then "inacct" else "" :: String
-  accounts = balanceReportAsHtml opts vd $ balanceReport (reportopts_ $ cliopts_ opts){empty_=True} am j
+  ropts = reportopts_ $ cliopts_ opts
+  -- flip the default for items with zero amounts, show them by default
+  ropts' = ropts{empty_=not $ empty_ ropts}
+  accounts = balanceReportAsHtml opts vd $ balanceReport ropts' am j
   showmd = if showsidebar then "col-md-4" else "col-any-0" :: String
   showsm = if showsidebar then "col-sm-4" else "" :: String
 
