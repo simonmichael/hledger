@@ -33,6 +33,7 @@ import Hledger.Data.Transaction
 import Hledger.Utils.Parse
 import Hledger.Utils.UTF8IOCompat (error')
 import Hledger.Query
+-- import Hledger.Utils.Debug
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -238,29 +239,37 @@ renderPostingCommentDates p = p { pcomment = comment' }
 -- *** Exception: Unable to generate transactions according to "every quarter from 2017/1/2" as 2017-01-02 is not a first day of the quarter        
 -- >>> gen "yearly from 2017/1/14"
 -- *** Exception: Unable to generate transactions according to "yearly from 2017/1/14" as 2017-01-14 is not a first day of the year        
+--
+-- >>> let reportperiod="daily from 2018/01/03" in runPeriodicTransaction (PeriodicTransaction reportperiod [post "a" (usd 1)]) (DateSpan (Just $ parsedate "2018-01-01") (Just $ parsedate "2018-01-03"))
+-- []
 runPeriodicTransaction :: PeriodicTransaction -> (DateSpan -> [Transaction])
-runPeriodicTransaction pt = generate where
-    base = nulltransaction { tpostings = ptpostings pt }
-    periodExpr = ptperiodicexpr pt
-    errCurrent = error' $ "Current date cannot be referenced in " ++ show (T.unpack periodExpr)
-    (interval, effectspan) =
-        case parsePeriodExpr errCurrent periodExpr of
-            Left e -> error' $ "Failed to parse " ++ show (T.unpack periodExpr) ++ ": " ++ showDateParseError e
-            Right x -> checkProperStartDate x
-    generate jspan = [base {tdate=date} | span <- interval `splitSpan` spanIntersect effectspan jspan, let Just date = spanStart span]
-    checkProperStartDate (i,s) = 
-      case (i,spanStart s) of
-        (Weeks _,    Just d) -> checkStart d "week"
-        (Months _,   Just d) -> checkStart d "month"
-        (Quarters _, Just d) -> checkStart d "quarter"
-        (Years _,    Just d) -> checkStart d "year"
-        _                    -> (i,s) 
-        where
-          checkStart d x =
-            let firstDate = fixSmartDate d ("","this",x) 
-            in   
-             if d == firstDate then (i,s)
-             else error' $ "Unable to generate transactions according to "++(show periodExpr)++" as "++(show d)++" is not a first day of the "++x
+runPeriodicTransaction pt =
+  \requestedspan ->
+    let fillspan = ptspan `spanIntersect` requestedspan
+    in  [ t{tdate=d} | (DateSpan (Just d) _) <- ptinterval `splitSpan` fillspan ]
+  where
+    t = nulltransaction { tpostings = ptpostings pt }
+    periodexpr = ptperiodicexpr pt
+    currentdateerr = error' $ "Current date cannot be referenced in " ++ show (T.unpack periodexpr)
+    (ptinterval, ptspan) =
+        case parsePeriodExpr currentdateerr periodexpr of
+            Left e  -> error' $ "Failed to parse " ++ show (T.unpack periodexpr) ++ ": " ++ showDateParseError e
+            Right x -> checkPeriodTransactionStartDate periodexpr x
+
+checkPeriodTransactionStartDate :: T.Text -> (Interval, DateSpan) -> (Interval, DateSpan)
+checkPeriodTransactionStartDate periodexpr (i,s) = 
+  case (i,spanStart s) of
+    (Weeks _,    Just d) -> checkStart d "week"
+    (Months _,   Just d) -> checkStart d "month"
+    (Quarters _, Just d) -> checkStart d "quarter"
+    (Years _,    Just d) -> checkStart d "year"
+    _                    -> (i,s) 
+    where
+      checkStart d x =
+        let firstDate = fixSmartDate d ("","this",x) 
+        in   
+         if d == firstDate then (i,s)
+         else error' $ "Unable to generate transactions according to "++(show periodexpr)++" as "++(show d)++" is not a first day of the "++x
 
 -- | What is the interval of this 'PeriodicTransaction's period expression, if it can be parsed ?
 periodTransactionInterval :: PeriodicTransaction -> Maybe Interval
