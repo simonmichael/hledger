@@ -14,16 +14,16 @@ hledger bal -M -b 2016-11 -e 2017-02 -f - --forecast
 >>>
 Balance changes in 2016/12/01-2017/01/31:
 
-                  || 2016/12  2017/01 
-==================++==================
- assets:cash      ||   $-600     $935 
- expenses:food    ||       0      $20 
- expenses:grocery ||       0      $30 
- expenses:housing ||    $600        0 
- expenses:leisure ||       0      $15 
- income           ||       0   $-1000 
-------------------++------------------
-                  ||       0        0 
+                  ||   Dec     Jan 
+==================++===============
+ assets:cash      || $-600    $935 
+ expenses:food    ||     0     $20 
+ expenses:grocery ||     0     $30 
+ expenses:housing ||  $600       0 
+ expenses:leisure ||     0     $15 
+ income           ||     0  $-1000 
+------------------++---------------
+                  ||     0       0 
 >>>2
 >>>=0
 
