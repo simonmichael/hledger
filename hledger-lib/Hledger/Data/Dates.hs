@@ -149,8 +149,12 @@ spanEnd (DateSpan _ d) = d
 spansSpan :: [DateSpan] -> DateSpan
 spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Nothing spanEnd $ lastMay spans)
 
--- | Split a DateSpan into one or more consecutive whole spans of the specified length which enclose it.
+-- | Split a DateSpan into consecutive whole spans of the specified interval
+-- which fully encompass the original span (and a little more when necessary).
 -- If no interval is specified, the original span is returned.
+-- If the original span is the null date span, ie unbounded, the null date span is returned.
+-- If the original span is empty, eg if the end date is <= the start date, no spans are returned.
+-- 
 --
 -- ==== Examples:
 -- >>> let t i d1 d2 = splitSpan i $ mkdatespan d1 d2
@@ -161,9 +165,9 @@ spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Noth
 -- >>> splitSpan (Quarters 1) nulldatespan
 -- [DateSpan -]
 -- >>> t (Days 1) "2008/01/01" "2008/01/01"  -- an empty datespan
--- [DateSpan 2008/01/01-2007/12/31]
+-- []
 -- >>> t (Quarters 1) "2008/01/01" "2008/01/01"
--- [DateSpan 2008/01/01-2007/12/31]
+-- []
 -- >>> t (Months 1) "2008/01/01" "2008/04/01"
 -- [DateSpan 2008/01,DateSpan 2008/02,DateSpan 2008/03]
 -- >>> t (Months 2) "2008/01/01" "2008/04/01"
@@ -185,6 +189,7 @@ spansSpan spans = DateSpan (maybe Nothing spanStart $ headMay spans) (maybe Noth
 --
 splitSpan :: Interval -> DateSpan -> [DateSpan]
 splitSpan _ (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
+splitSpan _ s | isEmptySpan s = []
 splitSpan NoInterval     s = [s]
 splitSpan (Days n)       s = splitspan startofday     (applyN n nextday)     s
 splitSpan (Weeks n)      s = splitspan startofweek    (applyN n nextweek)    s
@@ -222,6 +227,12 @@ daysInSpan :: DateSpan -> Maybe Integer
 daysInSpan (DateSpan (Just d1) (Just d2)) = Just $ diffDays d2 d1
 daysInSpan _ = Nothing
 
+-- | Is this an empty span, ie closed with the end date on or before the start date ?
+isEmptySpan :: DateSpan -> Bool
+isEmptySpan s = case daysInSpan s of
+                  Just n  -> n < 1
+                  Nothing -> False
+
 -- | Does the span include the given date ?
 spanContainsDate :: DateSpan -> Day -> Bool
 spanContainsDate (DateSpan Nothing Nothing)   _ = True
@@ -240,6 +251,10 @@ spansIntersect [d] = d
 spansIntersect (d:ds) = d `spanIntersect` (spansIntersect ds)
 
 -- | Calculate the intersection of two datespans.
+--
+-- For non-intersecting spans, gives an empty span beginning on the second's start date:
+-- >>> mkdatespan "2018-01-01" "2018-01-03" `spanIntersect` mkdatespan "2018-01-03" "2018-01-05"
+-- DateSpan 2018/01/03-2018/01/02
 spanIntersect (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan b e
     where
       b = latest b1 b2
