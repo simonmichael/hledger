@@ -1277,6 +1277,10 @@ COMMANDS
               ----------------------++-------------------------------------------------
                                     ||                      0                        0
 
+       Note -budget first arrived in hledger in 1.5 and is still pretty young;
+       join  the  discussions on mail list and issue tracker to help us refine
+       it.
+
        For more examples and details, see Budgeting and Forecasting.
 
    Custom balance output
