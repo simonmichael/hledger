@@ -119,22 +119,16 @@ instance Show Journal where
   show j
     | debugLevel < 3 = printf "Journal %s with %d transactions, %d accounts"
              (journalFilePath j)
-             (length (jtxns j) +
-              length (jmodifiertxns j) +
-              length (jperiodictxns j))
+             (length $ jtxns j)
              (length accounts)
     | debugLevel < 6 = printf "Journal %s with %d transactions, %d accounts: %s"
              (journalFilePath j)
-             (length (jtxns j) +
-              length (jmodifiertxns j) +
-              length (jperiodictxns j))
+             (length $ jtxns j)
              (length accounts)
              (show accounts)
     | otherwise = printf "Journal %s with %d transactions, %d accounts: %s, commodity styles: %s"
              (journalFilePath j)
-             (length (jtxns j) +
-              length (jmodifiertxns j) +
-              length (jperiodictxns j))
+             (length $ jtxns j)
              (length accounts)
              (show accounts)
              (show $ jinferredcommodities j)
