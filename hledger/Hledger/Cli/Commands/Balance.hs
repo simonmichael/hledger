@@ -368,14 +368,21 @@ budgetRollUp CliOpts{rawopts_=rawopts} budget j = j { jtxns = remapTxn <$> jtxns
         remapTxn = mapPostings (map remapPosting)
         mapPostings f t = txnTieKnot $ t { tpostings = f $ tpostings t }
 
--- | Generate journal of all periodic transactions in the given journal for the
--- entirety of its history or reporting period, whatever is smaller.
+-- | Select all periodic transactions from the given journal which
+-- match the opts-specified report interval, and use them to generate
+-- budget transactions (like forecast transactions) in the specified
+-- report period.
 budgetJournal :: CliOpts -> Journal -> Journal
-budgetJournal opts j = journalBalanceTransactions' opts j { jtxns = budget }
+budgetJournal opts j = journalBalanceTransactions' opts j { jtxns = budgetts }
   where 
-    dates = spanIntersect (jdatespan j) (periodAsDateSpan $ period_ $ reportopts_ opts)
-    budget = [makeBudget t | pt <- jperiodictxns j, t <- runPeriodicTransaction pt dates]
-    makeBudget t = txnTieKnot $ t { tdescription = T.pack "Budget transaction" }
+    interval = intervalFromRawOpts $ rawopts_ opts
+    dates    = spanIntersect (jdatespan j) (periodAsDateSpan $ period_ $ reportopts_ opts)
+    budgetts = [makeBudgetTxn t
+               | pt <- jperiodictxns j
+               , periodTransactionInterval pt == Just interval
+               , t <- runPeriodicTransaction pt dates
+               ]
+    makeBudgetTxn t = txnTieKnot $ t { tdescription = T.pack "Budget transaction" }
     journalBalanceTransactions' opts j =
       let assrt = not . ignore_assertions_ $ inputopts_ opts
       in

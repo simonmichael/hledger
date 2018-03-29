@@ -19,6 +19,7 @@ module Hledger.Reports.ReportOptions (
   simplifyStatuses,
   whichDateFromOpts,
   journalSelectingAmountFromOpts,
+  intervalFromRawOpts,
   queryFromOpts,
   queryFromOptsOnly,
   queryOptsFromOpts,

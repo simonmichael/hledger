@@ -16,6 +16,7 @@ module Hledger.Data.AutoTransaction
     -- * Accessors
     , mtvaluequery
     , jdatespan
+    , periodTransactionInterval
     )
 where
 
@@ -260,3 +261,14 @@ runPeriodicTransaction pt = generate where
             in   
              if d == firstDate then (i,s)
              else error' $ "Unable to generate transactions according to "++(show periodExpr)++" as "++(show d)++" is not a first day of the "++x
+
+-- | What is the interval of this 'PeriodicTransaction's period expression, if it can be parsed ?
+periodTransactionInterval :: PeriodicTransaction -> Maybe Interval
+periodTransactionInterval pt =
+  let
+    expr = ptperiodicexpr pt
+    err  = error' $ "Current date cannot be referenced in " ++ show (T.unpack expr)
+  in
+    case parsePeriodExpr err expr of
+      Left _      -> Nothing
+      Right (i,_) -> Just i
