@@ -25,7 +25,7 @@ module Hledger.Reports.ReportOptions (
   queryOptsFromOpts,
   transactionDateFn,
   postingDateFn,
-  reportStartEndDates,
+  reportSpan,
   reportStartDate,
   reportEndDate,
   specifiedStartEndDates,
@@ -36,6 +36,7 @@ module Hledger.Reports.ReportOptions (
 )
 where
 
+import Control.Applicative ((<|>))
 import Data.Data (Data)
 #if !MIN_VERSION_base(4,8,0)
 import Data.Functor.Compat ((<$>))
@@ -410,24 +411,25 @@ tests_queryOptsFromOpts = [
                                                              })
  ]
 
--- | The effective report start/end dates are the dates specified by options or queries,
--- otherwise the earliest/latest transaction or posting date in the journal,
--- otherwise (for an empty journal) nothing.
+-- | The effective report span is the start and end dates specified by
+-- options or queries, or otherwise the earliest and latest transaction or 
+-- posting dates in the journal. If no dates are specified by options/queries
+-- and the journal is empty, returns the null date span.
 -- Needs IO to parse smart dates in options/queries.
-reportStartEndDates :: Journal -> ReportOpts -> IO (Maybe (Day,Day))
-reportStartEndDates j ropts = do
+reportSpan :: Journal -> ReportOpts -> IO DateSpan
+reportSpan j ropts = do
   (mspecifiedstartdate, mspecifiedenddate) <- specifiedStartEndDates ropts
-  return $
-    case journalDateSpan False j of  -- don't bother with secondary dates
-      DateSpan (Just journalstartdate) (Just journalenddate) ->
-        Just (fromMaybe journalstartdate mspecifiedstartdate, fromMaybe journalenddate mspecifiedenddate)
-      _ -> Nothing
+  let
+    DateSpan mjournalstartdate mjournalenddate = journalDateSpan False j  -- don't bother with secondary dates
+    mstartdate = mspecifiedstartdate <|> mjournalstartdate
+    menddate   = mspecifiedenddate   <|> mjournalenddate
+  return $ DateSpan mstartdate menddate
 
 reportStartDate :: Journal -> ReportOpts -> IO (Maybe Day)
-reportStartDate j ropts = (fst <$>) <$> reportStartEndDates j ropts
+reportStartDate j ropts = spanStart <$> reportSpan j ropts
 
 reportEndDate :: Journal -> ReportOpts -> IO (Maybe Day)
-reportEndDate j ropts = (snd <$>) <$> reportStartEndDates j ropts
+reportEndDate j ropts = spanEnd <$> reportSpan j ropts
 
 -- | The specified report start/end dates are the dates specified by options or queries, if any.
 -- Needs IO to parse smart dates in options/queries.
