@@ -251,7 +251,7 @@ module Hledger.Cli.Commands.Balance (
 ) where
 
 import Data.Decimal
-import Data.List (intercalate, nub)
+import Data.List
 import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.Text as T
@@ -329,7 +329,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
           
         _ | boolopt "budget" rawopts -> do
           -- multi column budget report
-          reportspan <- dbg1 "reportspan" <$> reportSpan j ropts
+          reportspan <- reportSpan j ropts
           let budget = budgetJournal opts reportspan j
               j' = budgetRollUp opts budget j
               report       = dbg1 "report"       $ multiBalanceReport ropts (queryFromOpts d ropts) j'
@@ -655,7 +655,7 @@ type ActualAmountsReport = MultiBalanceReport
 type BudgetAmountsReport = MultiBalanceReport
 type ActualAmountsTable = Table String String MixedAmount
 type BudgetAmountsTable = Table String String MixedAmount
-type ActualAndBudgetAmountsTable = Table String String (MixedAmount, Maybe MixedAmount)
+type ActualAndBudgetAmountsTable = Table String String (Maybe MixedAmount, Maybe MixedAmount)
 type Percentage = Decimal
 
 -- | Given two multi-column balance reports, the first representing a budget 
@@ -674,28 +674,29 @@ multiBalanceReportWithBudgetAsText opts budgetr actualr =
         HistoricalBalance -> "Ending balances (historical)"
 
     actualandbudgetamts :: ActualAndBudgetAmountsTable
-    actualandbudgetamts = combine (balanceReportAsTable opts actualr) (balanceReportAsTable opts budgetr)
+    actualandbudgetamts = combineTables (balanceReportAsTable opts actualr) (balanceReportAsTable opts budgetr)
 
-    showcell :: (ActualAmount, Maybe BudgetAmount) -> String
-    showcell (actual, mbudget) =
-      case (actual, mbudget) of
-        (actual, Nothing) ->
-          printf ("%"++show actualwidth++"s " ++ replicate (percentwidth + 7 + budgetwidth) ' ') (showamt actual)
-        (actual, Just budget) ->
-          case percentage actual budget of
-            Just pct ->
-              printf ("%"++show actualwidth++"s [%"++show percentwidth++"s%% of %"++show budgetwidth++"s]")
-                     (showamt actual) (show $ roundTo 0 pct) (showamt budget)
-            Nothing ->
-              printf ("%"++show actualwidth++"s ["++replicate (percentwidth+5) ' '++"%"++show budgetwidth++"s]")
-                     (showamt actual) (showamt budget)
+    showcell :: (Maybe ActualAmount, Maybe BudgetAmount) -> String
+    showcell (mactual, mbudget) = actualstr ++ " " ++ budgetstr
       where
         actualwidth  = 7
         percentwidth = 4
         budgetwidth  = 5
+        actualstr = printf ("%"++show actualwidth++"s") (maybe "" showamt mactual)
+        budgetstr = case (mactual, mbudget) of
+          (_,       Nothing)     -> replicate (percentwidth + 7 + budgetwidth) ' '
+          (mactual, Just budget) -> 
+            case percentage mactual budget of
+              Just pct ->
+                printf ("[%"++show percentwidth++"s%% of %"++show budgetwidth++"s]")
+                       (show $ roundTo 0 pct) (showamt budget)
+              Nothing ->
+                printf ("["++replicate (percentwidth+5) ' '++"%"++show budgetwidth++"s]")
+                       (showamt budget)
 
-    percentage :: ActualAmount -> BudgetAmount -> Maybe Percentage
-    percentage actual budget =
+    percentage :: Maybe ActualAmount -> BudgetAmount -> Maybe Percentage
+    percentage Nothing _ = Nothing
+    percentage (Just actual) budget =
       -- percentage of budget consumed is always computed in the cost basis
       case (toCost actual, toCost budget) of
         (Mixed [a1], Mixed [a2])
@@ -711,28 +712,37 @@ multiBalanceReportWithBudgetAsText opts budgetr actualr =
             | otherwise    = showMixedAmountOneLineWithoutPrice
 
     -- Combine a table of actual amounts and a table of budgeted amounts into  
-    -- a single table of (actualamount, Maybe budgetamount) tuples. 
-    -- The budget table's row/column titles should be a subset of the actual table's.
-    -- (This is satisfied by the construction of the budget report and the
-    -- process of rolling up account names.)
-    combine :: ActualAmountsTable -> BudgetAmountsTable -> ActualAndBudgetAmountsTable
-    combine (Table l t d) (Table l' t' d') = Table l t combinedRows
+    -- a single table of (Maybe actualamount, Maybe budgetamount) tuples. 
+    -- The actual and budget table need not have the same account rows or date columns.
+    -- Every row and column from either table will appear in the combined table.
+    -- TODO better to combine the reports, not these tables which are just rendering helpers
+    combineTables :: ActualAmountsTable -> BudgetAmountsTable -> ActualAndBudgetAmountsTable
+    combineTables (Table aaccthdrs adatehdrs arows) (Table baccthdrs bdatehdrs brows) =
+      addtotalrow $ Table caccthdrs cdatehdrs crows
       where
-        -- For all accounts that are present in the budget, zip actual amounts with budget amounts
-        combinedRows = [ combineRow row budgetRow
-                       | (acct, row) <- zip (headerContents l) d
-                       , let budgetRow =
-                               if acct == "" then [] -- "" is totals row
-                               else fromMaybe [] $ Map.lookup acct budgetAccts
-                       ]
-        -- Budget could cover smaller interval of time than the whole journal.
-        -- Headers for budget row will always be a sublist of headers of row
-        combineRow r br =
-          let reportRow = zip (headerContents t) r
-              budgetRow = Map.fromList $ zip (headerContents t') br
-              findBudgetVal hdr = Map.lookup hdr budgetRow
-          in map (\(hdr, val) -> (val, findBudgetVal hdr)) reportRow
-        budgetAccts = Map.fromList $ zip (headerContents l') d'
+        [aaccts, adates, baccts, bdates] = map headerContents [aaccthdrs, adatehdrs, baccthdrs, bdatehdrs]
+        -- combined account names
+        -- TODO Can't sort these or things will fall apart.
+        caccts = dbg2 "caccts" $ init $ (dbg2 "aaccts" $ filter (not . null) aaccts) `union` (dbg2 "baccts" baccts)
+        caccthdrs = T.Group NoLine $ map Header $ caccts
+        -- Actual column dates and budget column dates could be different.
+        -- TODO Can't easily combine these preserving correct order, will go wrong on monthly reports probably.
+        cdates = dbg2 "cdates" $ sort $ (dbg2 "adates" adates) `union` (dbg2 "bdates" bdates)
+        cdatehdrs = T.Group NoLine $ map Header cdates
+        -- corresponding rows of combined actual and/or budget amounts
+        crows = [ combineRow (actualRow a) (budgetRow a) | a <- caccts ]
+        -- totals row
+        addtotalrow | no_total_ opts = id
+                    | otherwise      = (+----+ (row "" $ combineRow (actualRow "") (budgetRow "")))
+        -- helpers
+        combineRow arow brow =
+          dbg1 "row" $ [(actualAmt d, budgetAmt d) | d <- cdates]
+          where
+            actualAmt date = Map.lookup date $ Map.fromList $ zip adates arow
+            budgetAmt date = Map.lookup date $ Map.fromList $ zip bdates brow
+
+        actualRow acct = fromMaybe [] $ Map.lookup acct $ Map.fromList $ zip aaccts arows
+        budgetRow acct = fromMaybe [] $ Map.lookup acct $ Map.fromList $ zip baccts brows
 
 -- | Given a table representing a multi-column balance report (for example,
 -- made using 'balanceReportAsTable'), render it in a format suitable for
