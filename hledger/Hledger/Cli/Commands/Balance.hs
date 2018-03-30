@@ -329,10 +329,11 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
           
         _ | boolopt "budget" rawopts -> do
           -- multi column budget report
-          let budget = budgetJournal opts j
+          reportspan <- dbg1 "reportspan" <$> reportSpan j ropts
+          let budget = budgetJournal opts reportspan j
               j' = budgetRollUp opts budget j
-              report = multiBalanceReport ropts (queryFromOpts d ropts) j'
-              budgetReport = multiBalanceReport ropts (queryFromOpts d ropts) budget
+              report       = dbg1 "report"       $ multiBalanceReport ropts (queryFromOpts d ropts) j'
+              budgetReport = dbg1 "budgetreport" $ multiBalanceReport ropts (queryFromOpts d ropts) budget
               render = case format of
                 "csv"  -> const $ error' "Sorry, CSV output is not yet implemented for this kind of report."  -- TODO
                 "html" -> const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
@@ -369,19 +370,21 @@ budgetRollUp CliOpts{rawopts_=rawopts} budget j = j { jtxns = remapTxn <$> jtxns
         mapPostings f t = txnTieKnot $ t { tpostings = f $ tpostings t }
 
 -- | Select all periodic transactions from the given journal which
--- match the opts-specified report interval, and use them to generate
+-- match the requested report interval, and use them to generate
 -- budget transactions (like forecast transactions) in the specified
--- report period.
-budgetJournal :: CliOpts -> Journal -> Journal
-budgetJournal opts j = journalBalanceTransactions' opts j { jtxns = budgetts }
+-- report period (calculated in IO and passed in).
+budgetJournal :: CliOpts -> DateSpan -> Journal -> Journal
+budgetJournal opts reportspan j = journalBalanceTransactions' opts j { jtxns = budgetts }
   where 
-    interval = intervalFromRawOpts $ rawopts_ opts
-    dates    = spanIntersect (jdatespan j) (periodAsDateSpan $ period_ $ reportopts_ opts)
-    budgetts = [makeBudgetTxn t
-               | pt <- jperiodictxns j
-               , periodTransactionInterval pt == Just interval
-               , t <- runPeriodicTransaction pt dates
-               ]
+    budgetinterval = dbg2 "budgetinterval" $ intervalFromRawOpts $ rawopts_ opts
+    budgetspan = dbg2 "budgetspan" $ reportspan
+    budgetts =
+      dbg1 "budgetts" $
+      [makeBudgetTxn t
+      | pt <- jperiodictxns j
+      , periodTransactionInterval pt == Just budgetinterval
+      , t <- runPeriodicTransaction pt budgetspan
+      ]
     makeBudgetTxn t = txnTieKnot $ t { tdescription = T.pack "Budget transaction" }
     journalBalanceTransactions' opts j =
       let assrt = not . ignore_assertions_ $ inputopts_ opts
