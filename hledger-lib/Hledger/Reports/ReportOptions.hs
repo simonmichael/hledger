@@ -418,12 +418,14 @@ tests_queryOptsFromOpts = [
 -- Needs IO to parse smart dates in options/queries.
 reportSpan :: Journal -> ReportOpts -> IO DateSpan
 reportSpan j ropts = do
-  (mspecifiedstartdate, mspecifiedenddate) <- specifiedStartEndDates ropts
+  (mspecifiedstartdate, mspecifiedenddate) <-
+    dbg2 "specifieddates" <$> specifiedStartEndDates ropts
   let
-    DateSpan mjournalstartdate mjournalenddate = journalDateSpan False j  -- don't bother with secondary dates
+    DateSpan mjournalstartdate mjournalenddate =
+      dbg2 "journalspan" $ journalDateSpan False j  -- don't bother with secondary dates
     mstartdate = mspecifiedstartdate <|> mjournalstartdate
     menddate   = mspecifiedenddate   <|> mjournalenddate
-  return $ DateSpan mstartdate menddate
+  return $ dbg1 "reportspan" $ DateSpan mstartdate menddate
 
 reportStartDate :: Journal -> ReportOpts -> IO (Maybe Day)
 reportStartDate j ropts = spanStart <$> reportSpan j ropts
