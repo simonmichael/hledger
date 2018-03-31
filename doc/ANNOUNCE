@@ -1,4 +1,17 @@
-iHappy New Year all! I'm very pleased to announce hledger 1.5.
+I'm pleased to announce hledger 1.9. The version jump signals some
+noteworthy changes still landing (normal-positive reports, budget
+reporting) which are a kind of preview of 2.0. The next major release,
+on 2018/06/30, will be hledger 2.0.
+
+Thank you to release contributors:
+
+Eli Flanagan,
+Peter Simons,
+Christoph Nicolai,
+agander,
+M Parker,
+Moritz Kiefer,
+Mykola Orliuk.
 
 hledger (http://hledger.org) is a reliable, cross-platform program for
 tracking money, time or other commodities, using double-entry
@@ -6,83 +19,57 @@ accounting and simple plain text file formats. It provides
 command-line, curses and web interfaces, and aims to be a pleasant and
 practical tool for personal, business or institutional use.
 
-A big thank you to the release contributors:
-
-Dmitry Astapov,
-Mykola Orliuk,
-Eli Flanagan,
-Elijah Caine,
-Sam Jeeves,
-Matthias Kauer,
-Hans-Peter Deifel,
-Mick Dekkers,
-Nadrieril,
-Alvaro Fernando García.
-
-In 2017, four quarter-end releases were shipped on schedule, 
-and our feature set, marketing reach and contributor activity 
-continue to grow. The next release is scheduled for 2018/03/31.
-
-New users and contributors are always welcome! Give feedback, report
-bugs, send pull requests, write about it, etc.  And if you have been
-finding hledger useful, consider becoming a sponsor or donor to help
-to sustain and accelerate our progress (see home page).
-Our IRC channel is #hledger on Freenode (http://irc.hledger.org).
-
 What's new ?
 ------------
 
-Some highlights from the release notes at http://hledger.org/release-notes#hledger-1.5 :
+Some highlights:
 
-* Ledger-style automated posting rules to modify transactions, enabled
-  with --auto flag
+* the "financial statement" commands bs/bse/cf/is now show all normal
+balances as positive numbers, producing more conventional financial
+reports which are easier to share with others.  (experimental)
 
-* Ledger-style periodic transaction rules to generate forecast
-  transactions (--forecast) and budget goals
+* bal/bs/bse/cf/is can now generate HTML reports
 
-* a new budget report (balance --budget) comparing amounts with
-  per-period and per-account budget goals
+* account codes can be used to customize account sorting
 
-* more expressive period expressions
+* numbers in scientific E-notation are supported, eg in journal and CSV data
 
-* space can be used as digit group separator character in numbers
+* budget report improvements
 
-* commodity or default commodity directives give more control over
-  display precision and decimal point/digit group separator
+* general report cleanups
+
+More at http://hledger.org/release-notes#hledger-1.9 .
 
 Get started
 -----------
 
-See http://hledger.org/download for all install methods.  Windows
-users can download nightly binaries.  On other platforms, you may need
-to build the latest release yourself.  The easiest and most reliable
-way is to run the hledger install script.  This requires only bash and
-will install the hledger tools in $HOME/.local/bin/.  (It uses an
-installed cabal or stack if possible, otherwise installs stack and GHC
-in $HOME/.local/bin and $HOME/.stack/).  Here's the responsible way to
-run it:
+See http://hledger.org/download for all install methods.
+Often, to get the latest release you will need to build it.  
+Here are some ways to do that:
+
+Using the hledger-install script, which requires only bash and will
+build and install the hledger tools in $HOME/.local/bin/.
+(Note: building haskell apps can take significant time, memory, and
+disk space, especially the first time.  You can kill and restart the
+installer without losing progress.  If it fails, please help us
+improve it by reporting the full output):
 
 $ curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh
 $ less hledger-install.sh # (do security review)
 $ bash hledger-install.sh # (add -v for more detail; use bash -x to show commands being run)
 
-or the more convenient, less secure way:
+Using hledger-install the more convenient, less secure way:
 
 $ curl https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash
 
-or, to install individual tools:
+Using stack:
 
-$ stack install hledger-lib-1.5 hledger-1.5  # hledger-ui-1.5 hledger-web-1.5 hledger-api-1.5 etc.
+$ stack install hledger-lib-1.9 hledger-1.9  # hledger-ui-1.9 hledger-web-1.9 hledger-api-1.9
 
-or:
+Using cabal:
 
 $ cabal update
-$ cabal install hledger-1.5  # hledger-ui-1.5 hledger-web-1.5 hledger-api-1.5 etc.
-
-Note: building haskell apps can take significant time, memory, and
-disk space, especially the first time.  You can kill and restart the
-installer without losing progress.  If it fails, please help us
-improve it by reporting the full output.
+$ cabal install hledger-1.9  # hledger-ui-1.9 hledger-web-1.9 hledger-api-1.9
 
 After installation, ensure $HOME/.local/bin is in your $PATH. 
 Now try some commands:
@@ -100,7 +87,8 @@ and http://plaintextaccounting.org
 Or say hello and ask questions in the #hledger IRC channel on Freenode:
 http://irc.hledger.org
 
-
-Wishing you a highly prosperous and serene 2018,
-
--Simon
+New users and contributors are always welcome! Give feedback, report
+bugs, send pull requests, write about it, etc.  And if you have been
+finding hledger useful, consider becoming a sponsor or donor to help
+to sustain and accelerate our progress (see home page).
+Our IRC channel is #hledger on Freenode (http://irc.hledger.org).
