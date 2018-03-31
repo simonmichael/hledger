@@ -162,7 +162,6 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=r
                 (cbcsubreporttitle
                 ,mbrNormaliseSign cbcsubreportnormalsign $ -- <- convert normal-negative to normal-positive
                   compoundBalanceSubreport ropts' userq j cbcsubreportquery cbcsubreportnormalsign
-                                                                         -- ^ allow correct amount sorting
                 ,cbcsubreportincreasestotal
                 ))
             cbcqueries
