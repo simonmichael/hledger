@@ -1,14 +1,16 @@
 #!/usr/bin/env stack
-{- stack exec --verbosity=info
+{- stack exec
+   --verbosity=info
+   --stack-yaml=stack-ghc8.2.yaml
    --package base-prelude
    --package directory
    --package extra
-   --package pandoc
    --package safe
    --package shake
    --package time
    -- ghc
 -}
+--   --package pandoc
 {-
 One of two project scripts files (Makefile, Shake.hs).
 This one provides a stronger programming language and more
@@ -42,12 +44,12 @@ not having to write :: Action ExitCode after a non-final cmd
 
 import                Prelude ()
 import "base-prelude" BasePrelude
+import "directory"    System.Directory as S (getDirectoryContents)
 import "extra"        Data.List.Extra
 import "safe"         Safe
 import "shake"        Development.Shake
 import "shake"        Development.Shake.FilePath
 import "time"         Data.Time
-import "directory"    System.Directory as S (getDirectoryContents)
 
 usage = unlines
   ["Usage:"
@@ -183,7 +185,7 @@ main = do
 
     pandocFilters |%> \out -> do
       need [out <.> "hs"]
-      cmd ("stack ghc") out
+      cmd ("stack --stack-yaml=stack-ghc8.2.yaml ghc") out
 
     -- man pages
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env stack
-{- stack runghc --verbosity info
-   --package pandoc
+{- stack runghc
+   --verbosity info
+   --stack-yaml=stack-ghc8.2.yaml
+   --package pandoc-types
+   --package safe
    --package split
 -}
 -- Remove a table of contents marker
