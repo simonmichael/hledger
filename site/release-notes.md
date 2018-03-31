@@ -7,7 +7,7 @@ h4 { margin-top:2em; }
 <nav id="toc">
 <p>Major releases:</p>
 <ol>
-<li><a href="#hledger-1.6">hledger 1.6 (2018/3/31)</a>
+<li><a href="#hledger-1.9">hledger 1.9 (2018/3/31)</a>
 <li><a href="#hledger-1.5">hledger 1.5 (2017/12/31)</a>
 <li><a href="#hledger-1.4">hledger 1.4 (2017/9/30)</a>
 <li><a href="#hledger-1.3">hledger 1.3 (2017/6/30)</a>
@@ -47,7 +47,7 @@ h4 { margin-top:2em; }
 # Release notes
 
 
-## 2018/3/31 hledger 1.6
+## 2018/3/31 hledger 1.9
 
 ***
 Report cleanups,
@@ -67,28 +67,28 @@ M Parker,
 Moritz Kiefer,
 Mykola Orliuk.
 
-  [project](#project-wide-changes-for-1.6)
-| [hledger-install](#hledger-install.sh-1.6)
-| [hledger-lib](#hledger-lib-1.6)
-| [hledger](#hledger-1.6-1)
-| [hledger-ui](#hledger-ui-1.6)
-| [hledger-web](#hledger-web-1.6)
-| [hledger-api](#hledger-api-1.6)
+  [project](#project-wide-changes-for-1.9)
+| [hledger-install](#hledger-install.sh-1.9)
+| [hledger-lib](#hledger-lib-1.9)
+| [hledger](#hledger-1.9-1)
+| [hledger-ui](#hledger-ui-1.9)
+| [hledger-web](#hledger-web-1.9)
+| [hledger-api](#hledger-api-1.9)
 
-### project-wide changes for 1.6
+### project-wide changes for 1.9
 
 * support ghc 8.4, latest deps
 
-### hledger-install.sh 1.6
+### hledger-install.sh 1.9
 
-### hledger-lib 1.6
+### hledger-lib 1.9
 
 * when the system text encoding is UTF-8, ignore any UTF-8 BOM prefix
 found when reading files.
 
 * CompoundBalanceReport amounts are now normally positive. (experimental)
 
-### hledger 1.6
+### hledger 1.9
 
 * journal: account directives can define a numeric account code to
 customize sorting.  bal/bs/cf/is will sort accounts by account code,
@@ -153,15 +153,15 @@ ending on the day before the report start date (splitSpan issue)
 any begin date (it always closes historical end balances).  It also
 ignores --date2.
 
-### hledger-ui 1.6
+### hledger-ui 1.9
 
 * -E/--empty toggles zeroes at startup (with opposite default to cli)
 
-### hledger-web 1.6
+### hledger-web 1.9
 
 * -E/--empty toggles zeroes at startup (with opposite default to cli)
 
-### hledger-api 1.6
+### hledger-api 1.9
 
 
 
