@@ -49,11 +49,10 @@ h4 { margin-top:2em; }
 
 ## 2018/3/31 hledger 1.9
 
-***
-Report cleanups,
-show normal-positive numbers,
-account sort codes,
+***Report cleanups,
+normal-positive reports,
 HTML output,
+account sort codes,
 budget improvements.
 ***
 
