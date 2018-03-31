@@ -284,7 +284,11 @@ FILE FORMAT
        o decimal  part  can be separated by comma or period and should be dif-
          ferent from digit groups separator
 
-       o scientific E-notation (without digit groups) is allowed
+       o scientific E-notation is allowed.  Be careful  not  to  use  a  digit
+         group  separator  character  in scientific notation, as it's not sup-
+         ported and it might get mistaken for a decimal point.  (Declaring the
+         digit group separator character explicitly with a commodity directive
+         will prevent this.)
 
        You can use any of these  variations  when  recording  data.   However,
        there  is  some  ambiguous  way of representing numbers like $1.000 and

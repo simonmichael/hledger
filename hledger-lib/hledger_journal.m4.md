@@ -280,7 +280,9 @@ As you can see, the amount format is somewhat flexible:
 - negative amounts with a commodity on the left can have the minus sign before or after it
 - digit groups (thousands, or any other grouping) can be separated by space or comma or period and should be used as separator between all groups
 - decimal part can be separated by comma or period and should be different from digit groups separator
-- scientific E-notation (without digit groups) is allowed
+- scientific E-notation is allowed. 
+  Be careful not to use a digit group separator character in scientific notation, as it's not supported and it might get mistaken for a decimal point. 
+  (Declaring the digit group separator character explicitly with a commodity directive will prevent this.) 
 
 You can use any of these variations when recording data. However, there is some ambiguous way of representing numbers like `$1.000` and `$1,000` both may mean either one thousand or one dollar. By default hledger will assume that this is sole delimiter is used only for decimals. On the other hand commodity format declared prior to that line will help to resolve that ambiguity differently:
 

@@ -401,7 +401,12 @@ groups
 decimal part can be separated by comma or period and should be different
 from digit groups separator
 .IP \[bu] 2
-scientific E\-notation (without digit groups) is allowed
+scientific E\-notation is allowed.
+Be careful not to use a digit group separator character in scientific
+notation, as it's not supported and it might get mistaken for a decimal
+point.
+(Declaring the digit group separator character explicitly with a
+commodity directive will prevent this.)
 .PP
 You can use any of these variations when recording data.
 However, there is some ambiguous way of representing numbers like
