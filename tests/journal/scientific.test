@@ -78,3 +78,42 @@ hledger -f - reg
    (a)  1,000.5e-1
 >>>
 >>>=1
+
+# different digit group separator chars before and after decimal point, not supported
+# 2018/1/4
+#     (d)  1,000,000.123 456 789
+
+# same digit group separator chars after decimal point - not supported
+# 2018/1/4
+#     (d)  1,000,000.123,456,789
+
+# space digit group separator
+# 2018/1/1
+#   (a)   1 999 999.9455
+
+# scientific E-notation, with a commodity symbol
+# 2018/1/2
+#   (b)   $1E+3
+
+# non-normalised E-notation
+# 2018/1/1
+#   (a)   123E+3
+
+# E-notation with digit group separator - not supported
+# 2018/1/3
+#   (c)   1,000.5e-1
+
+# E-notation with only a digit group separator - parsed as decimal point
+# 2018/1/1
+#   (a)   $1,000e1
+
+# E-notation with only a digit group separator, identified as such by commodity declaration - detected and rejected
+# commodity $1,000.00
+# 2018/1/1
+#   (a)   $1,000e1
+
+# E-notation with only a digit group separator, amount style implied - parsed as decimal point
+# 2018/1/1
+#   (a)   $1,000.00
+# 2018/1/1
+#   (a)   $1,000e3  ; should be parsed as 1000000
