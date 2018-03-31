@@ -59,6 +59,13 @@ HTML output.
 <!-- ([announcement]()) -->
 
 Release contributors:
+Eli Flanagan,
+Peter Simons,
+Christoph Nicolai,
+agander,
+M Parker,
+Moritz Kiefer,
+Mykola Orliuk.
 
   [project](#project-wide-changes-for-1.6)
 | [hledger-install](#hledger-install.sh-1.6)
