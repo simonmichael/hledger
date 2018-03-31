@@ -90,6 +90,7 @@ runTextParser, rtp :: TextParser Identity a -> Text -> Either (ParseError Char M
 runTextParser p t =  runParser p "" t
 rtp = runTextParser
 
+-- XXX odd, why doesn't this take a JournalParser ?
 -- | Run a journal parser with a null journal-parsing state.
 runJournalParser, rjp :: Monad m => TextParser m a -> Text -> m (Either (ParseError Char MPErr) a)
 runJournalParser p t = runParserT p "" t
