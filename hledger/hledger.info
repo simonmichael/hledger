@@ -1420,7 +1420,7 @@ Balance changes in 2017/11/01-2017/12/31:
 young; join the discussions on mail list and issue tracker to help us
 refine it.
 
-   For more examples and details, see Budgeting and Forecasting.
+   For more examples, see Budgeting and Forecasting.
 
 
 File: hledger.info,  Node: Custom balance output,  Next: Colour support,  Prev: Budgets,  Up: balance
@@ -2453,75 +2453,75 @@ Node: Multicolumn balance reports39912
 Ref: #multicolumn-balance-reports40107
 Node: Budgets44796
 Ref: #budgets44943
-Node: Custom balance output48924
-Ref: #custom-balance-output49086
-Node: Colour support51252
-Ref: #colour-support51384
-Node: balancesheet51557
-Ref: #balancesheet51693
-Node: balancesheetequity54004
-Ref: #balancesheetequity54153
-Node: cashflow54690
-Ref: #cashflow54818
-Node: check-dates56941
-Ref: #check-dates57068
-Node: check-dupes57185
-Ref: #check-dupes57309
-Node: close57446
-Ref: #close57553
-Node: help57883
-Ref: #help57983
-Node: import59057
-Ref: #import59171
-Node: incomestatement59901
-Ref: #incomestatement60035
-Node: prices62439
-Ref: #prices62554
-Node: print62597
-Ref: #print62707
-Node: print-unique67601
-Ref: #print-unique67727
-Node: register67795
-Ref: #register67922
-Node: Custom register output72423
-Ref: #custom-register-output72552
-Node: register-match73782
-Ref: #register-match73916
-Node: rewrite74099
-Ref: #rewrite74216
-Node: stats74285
-Ref: #stats74388
-Node: tags75258
-Ref: #tags75356
-Node: test75592
-Ref: #test75676
-Node: ADD-ON COMMANDS76044
-Ref: #add-on-commands76154
-Node: Official add-ons77441
-Ref: #official-add-ons77581
-Node: api77668
-Ref: #api77757
-Node: ui77809
-Ref: #ui77908
-Node: web77966
-Ref: #web78055
-Node: Third party add-ons78101
-Ref: #third-party-add-ons78276
-Node: diff78411
-Ref: #diff78508
-Node: iadd78607
-Ref: #iadd78721
-Node: interest78804
-Ref: #interest78925
-Node: irr79020
-Ref: #irr79118
-Node: Experimental add-ons79196
-Ref: #experimental-add-ons79348
-Node: autosync79628
-Ref: #autosync79739
-Node: chart79978
-Ref: #chart80097
-Node: check80168
-Ref: #check80270
+Node: Custom balance output48912
+Ref: #custom-balance-output49074
+Node: Colour support51240
+Ref: #colour-support51372
+Node: balancesheet51545
+Ref: #balancesheet51681
+Node: balancesheetequity53992
+Ref: #balancesheetequity54141
+Node: cashflow54678
+Ref: #cashflow54806
+Node: check-dates56929
+Ref: #check-dates57056
+Node: check-dupes57173
+Ref: #check-dupes57297
+Node: close57434
+Ref: #close57541
+Node: help57871
+Ref: #help57971
+Node: import59045
+Ref: #import59159
+Node: incomestatement59889
+Ref: #incomestatement60023
+Node: prices62427
+Ref: #prices62542
+Node: print62585
+Ref: #print62695
+Node: print-unique67589
+Ref: #print-unique67715
+Node: register67783
+Ref: #register67910
+Node: Custom register output72411
+Ref: #custom-register-output72540
+Node: register-match73770
+Ref: #register-match73904
+Node: rewrite74087
+Ref: #rewrite74204
+Node: stats74273
+Ref: #stats74376
+Node: tags75246
+Ref: #tags75344
+Node: test75580
+Ref: #test75664
+Node: ADD-ON COMMANDS76032
+Ref: #add-on-commands76142
+Node: Official add-ons77429
+Ref: #official-add-ons77569
+Node: api77656
+Ref: #api77745
+Node: ui77797
+Ref: #ui77896
+Node: web77954
+Ref: #web78043
+Node: Third party add-ons78089
+Ref: #third-party-add-ons78264
+Node: diff78399
+Ref: #diff78496
+Node: iadd78595
+Ref: #iadd78709
+Node: interest78792
+Ref: #interest78913
+Node: irr79008
+Ref: #irr79106
+Node: Experimental add-ons79184
+Ref: #experimental-add-ons79336
+Node: autosync79616
+Ref: #autosync79727
+Node: chart79966
+Ref: #chart80085
+Node: check80156
+Ref: #check80258
 
 End Tag Table
