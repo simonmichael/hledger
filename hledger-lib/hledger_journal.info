@@ -349,6 +349,8 @@ commodity name.  Some examples:
 'INR 9,99,99,999.00'
 'EUR -2.000.000,00'
 '1 999 999.9455'
+'EUR 1E3 # 1000 euros'
+'1000E-6s # 1000 microseconds'
 
    As you can see, the amount format is somewhat flexible:
 
@@ -365,6 +367,7 @@ commodity name.  Some examples:
      all groups
    * decimal part can be separated by comma or period and should be
      different from digit groups separator
+   * scientific E-notation (without digit groups) is allowed
 
    You can use any of these variations when recording data.  However,
 there is some ambiguous way of representing numbers like '$1.000' and
@@ -1199,65 +1202,65 @@ Node: Account names11239
 Ref: #account-names11382
 Node: Amounts11869
 Ref: #amounts12005
-Node: Virtual Postings14685
-Ref: #virtual-postings14844
-Node: Balance Assertions16064
-Ref: #balance-assertions16239
-Node: Assertions and ordering17135
-Ref: #assertions-and-ordering17321
-Node: Assertions and included files18021
-Ref: #assertions-and-included-files18262
-Node: Assertions and multiple -f options18595
-Ref: #assertions-and-multiple--f-options18849
-Node: Assertions and commodities18981
-Ref: #assertions-and-commodities19216
-Node: Assertions and subaccounts19912
-Ref: #assertions-and-subaccounts20144
-Node: Assertions and virtual postings20665
-Ref: #assertions-and-virtual-postings20872
-Node: Balance Assignments21014
-Ref: #balance-assignments21183
-Node: Prices22303
-Ref: #prices22436
-Node: Transaction prices22487
-Ref: #transaction-prices22632
-Node: Market prices24788
-Ref: #market-prices24923
-Node: Comments25883
-Ref: #comments26005
-Node: Tags27247
-Ref: #tags27365
-Node: Directives28767
-Ref: #directives28880
-Node: Account aliases29073
-Ref: #account-aliases29217
-Node: Basic aliases29821
-Ref: #basic-aliases29964
-Node: Regex aliases30654
-Ref: #regex-aliases30822
-Node: Multiple aliases31540
-Ref: #multiple-aliases31712
-Node: end aliases32210
-Ref: #end-aliases32350
-Node: account directive32451
-Ref: #account-directive32631
-Node: apply account directive33978
-Ref: #apply-account-directive34174
-Node: Multi-line comments34833
-Ref: #multi-line-comments35023
-Node: commodity directive35151
-Ref: #commodity-directive35335
-Node: Default commodity36207
-Ref: #default-commodity36380
-Node: Default year36917
-Ref: #default-year37082
-Node: Including other files37505
-Ref: #including-other-files37662
-Node: Periodic transactions38059
-Ref: #periodic-transactions38225
-Node: Automated postings39214
-Ref: #automated-postings39377
-Node: EDITOR SUPPORT40279
-Ref: #editor-support40404
+Node: Virtual Postings14800
+Ref: #virtual-postings14959
+Node: Balance Assertions16179
+Ref: #balance-assertions16354
+Node: Assertions and ordering17250
+Ref: #assertions-and-ordering17436
+Node: Assertions and included files18136
+Ref: #assertions-and-included-files18377
+Node: Assertions and multiple -f options18710
+Ref: #assertions-and-multiple--f-options18964
+Node: Assertions and commodities19096
+Ref: #assertions-and-commodities19331
+Node: Assertions and subaccounts20027
+Ref: #assertions-and-subaccounts20259
+Node: Assertions and virtual postings20780
+Ref: #assertions-and-virtual-postings20987
+Node: Balance Assignments21129
+Ref: #balance-assignments21298
+Node: Prices22418
+Ref: #prices22551
+Node: Transaction prices22602
+Ref: #transaction-prices22747
+Node: Market prices24903
+Ref: #market-prices25038
+Node: Comments25998
+Ref: #comments26120
+Node: Tags27362
+Ref: #tags27480
+Node: Directives28882
+Ref: #directives28995
+Node: Account aliases29188
+Ref: #account-aliases29332
+Node: Basic aliases29936
+Ref: #basic-aliases30079
+Node: Regex aliases30769
+Ref: #regex-aliases30937
+Node: Multiple aliases31655
+Ref: #multiple-aliases31827
+Node: end aliases32325
+Ref: #end-aliases32465
+Node: account directive32566
+Ref: #account-directive32746
+Node: apply account directive34093
+Ref: #apply-account-directive34289
+Node: Multi-line comments34948
+Ref: #multi-line-comments35138
+Node: commodity directive35266
+Ref: #commodity-directive35450
+Node: Default commodity36322
+Ref: #default-commodity36495
+Node: Default year37032
+Ref: #default-year37197
+Node: Including other files37620
+Ref: #including-other-files37777
+Node: Periodic transactions38174
+Ref: #periodic-transactions38340
+Node: Automated postings39329
+Ref: #automated-postings39492
+Node: EDITOR SUPPORT40394
+Ref: #editor-support40519
 
 End Tag Table

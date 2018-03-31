@@ -369,6 +369,17 @@ Some examples:
 .P
 .PD
 \f[C]1\ 999\ 999.9455\f[]
+.PD 0
+.P
+.PD
+\f[C]EUR\ 1E3\ \ \ #\ 1000\ euros\f[]
+.PD 0
+.P
+.PD
+\f[C]1000E\-6s\ \ #\ 1000\ microseconds\f[]
+.PD 0
+.P
+.PD
 .PP
 As you can see, the amount format is somewhat flexible:
 .IP \[bu] 2
@@ -389,6 +400,8 @@ groups
 .IP \[bu] 2
 decimal part can be separated by comma or period and should be different
 from digit groups separator
+.IP \[bu] 2
+scientific E\-notation (without digit groups) is allowed
 .PP
 You can use any of these variations when recording data.
 However, there is some ambiguous way of representing numbers like

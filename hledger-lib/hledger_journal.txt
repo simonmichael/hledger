@@ -261,6 +261,8 @@ FILE FORMAT
        INR 9,99,99,999.00
        EUR -2.000.000,00
        1 999 999.9455
+       EUR 1E3   # 1000 euros
+       1000E-6s  # 1000 microseconds
 
        As you can see, the amount format is somewhat flexible:
 
@@ -281,6 +283,8 @@ FILE FORMAT
 
        o decimal  part  can be separated by comma or period and should be dif-
          ferent from digit groups separator
+
+       o scientific E-notation (without digit groups) is allowed
 
        You can use any of these  variations  when  recording  data.   However,
        there  is  some  ambiguous  way of representing numbers like $1.000 and

@@ -268,7 +268,9 @@ Amounts consist of a number and (usually) a currency symbol or commodity name. S
   `-$1,000,000.00`\
   `INR 9,99,99,999.00`\
   `EUR -2.000.000,00`\
-  `1 999 999.9455`
+  `1 999 999.9455`\
+  `EUR 1E3   # 1000 euros`\
+  `1000E-6s  # 1000 microseconds`\
 
 As you can see, the amount format is somewhat flexible:
 
@@ -278,6 +280,7 @@ As you can see, the amount format is somewhat flexible:
 - negative amounts with a commodity on the left can have the minus sign before or after it
 - digit groups (thousands, or any other grouping) can be separated by space or comma or period and should be used as separator between all groups
 - decimal part can be separated by comma or period and should be different from digit groups separator
+- scientific E-notation (without digit groups) is allowed
 
 You can use any of these variations when recording data. However, there is some ambiguous way of representing numbers like `$1.000` and `$1,000` both may mean either one thousand or one dollar. By default hledger will assume that this is sole delimiter is used only for decimals. On the other hand commodity format declared prior to that line will help to resolve that ambiguity differently:
 
