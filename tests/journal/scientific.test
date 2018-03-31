@@ -61,24 +61,6 @@ hledger -f - bal --no-total
 >>>2
 >>>=0
 
-# some strang effect of default
-hledger -f - bal --no-total
-<<<
-D $1,000.00
-
-2018/1/1
-   a  1.050000e2
-   b  31415926e-7
-   c  1E+3
-   d
->>>
-        $105.0000000  a
-          $3.1415926  b
-      $1,000.0000000  c
-     $-1,108.1415926  d
->>>2
->>>=0
-
 # we still should recognize commodities with e
 hledger -f - bal --no-total
 <<<
