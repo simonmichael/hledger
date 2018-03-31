@@ -89,9 +89,9 @@ together with 30+ other committers, and an unknown number of usually happy-sound
 <div class="indent2">
 ### inspired by Ledger
 
-hledger is a Haskell reimplementation of the excellent [Ledger](faq.html#hledger-and-ledger).
+hledger is a Haskell reimplementation of the excellent [Ledger](https://github.com/simonmichael/hledger/wiki/FAQ#hledger--ledger).
 It remains substantially compatible with Ledger, and if you wish you can keep your data compatible with both.
-Read more about the differences in the [FAQ](faq.html#hledger-and-ledger).
+Read more about the differences in the [FAQ](https://github.com/simonmichael/hledger/wiki/FAQ#hledger--ledger).
 
 
 
