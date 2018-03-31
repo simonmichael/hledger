@@ -2,7 +2,7 @@ API-ish changes in the hledger-lib package.
 Most user-visible changes are noted in the hledger changelog, instead.
 
 
-# 1.6 (2018/3/31)
+# 1.9 (2018/3/31)
 
 * support ghc 8.4, latest deps
 

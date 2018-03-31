@@ -1,5 +1,5 @@
 name: hledger-web
-version: '1.5.99'
+version: '1.9'
 synopsis: Web interface for the hledger accounting tool
 description: |
   This is hledger's web interface.
@@ -62,8 +62,8 @@ flags:
     default: true
 
 dependencies:
-- hledger-lib >=1.5.99 && <1.6
-- hledger >=1.5.99 && <1.6
+- hledger-lib >=1.9 && <2.0
+- hledger >=1.9 && <2.0
 - base >=4.8 && <4.12
 - base-compat >=0.8.1
 - blaze-html
@@ -114,7 +114,7 @@ ghc-options:
 - -fno-warn-orphans
 
 library:
-  cpp-options: -DVERSION="1.5.99"
+  cpp-options: -DVERSION="1.9"
   exposed-modules:
   - Application
   - Foundation
@@ -137,7 +137,7 @@ executables:
   hledger-web:
     source-dirs: app
     main: main.hs
-    cpp-options: -DVERSION="1.5.99"
+    cpp-options: -DVERSION="1.9"
     dependencies:
     - hledger-web
     when:
@@ -150,7 +150,7 @@ tests:
   test:
     source-dirs: tests
     main: main.hs
-    cpp-options: -DVERSION="1.5.99"
+    cpp-options: -DVERSION="1.9"
     dependencies:
     - hledger-web
     - hspec
