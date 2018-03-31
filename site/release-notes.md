@@ -53,10 +53,11 @@ h4 { margin-top:2em; }
 Report cleanups,
 show normal-positive numbers,
 account sort codes,
-HTML output.
+HTML output,
+budget improvements.
 ***
 
-<!-- ([announcement]()) -->
+([announcement](https://groups.google.com/forum/#!topic/hledger/DifO6UbeKnU))
 
 Release contributors:
 Eli Flanagan,
