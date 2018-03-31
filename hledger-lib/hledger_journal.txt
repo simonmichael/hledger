@@ -947,4 +947,4 @@ SEE ALSO
 
 
 
-hledger 1.5.99                   January 2018               hledger_journal(5)
+hledger 1.9                       March 2018                hledger_journal(5)
