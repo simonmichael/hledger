@@ -87,6 +87,8 @@ found when reading files.
 customize sorting.  bal/bs/cf/is will sort accounts by account code,
 if any, then account name.
 
+* journal: support scientific number notation (#704, #706)
+
 * csv: reading a CSV file containing no records is no longer an error
 
 * cli: when the system text encoding is UTF-8, ignore any UTF-8 BOM
@@ -103,7 +105,9 @@ making them easier to read and maintain.)
 
 * bal: --drop now works with CSV output
 
-* bal: warn that --budget -M -O csv is unimplemented
+* bal/bs/bse/cf/is: show overall report span in title
+
+* bal/bs/bse/cf/is: show short month names as headings in monthly reports
 
 * bal/bs/bse/cf/is: these commands can now generate HTML output
 
@@ -121,15 +125,22 @@ changed.)  (experimental)
 interval.  Previously you would get a simple borderless report like
 the original balance command.  Less code, fewer bugs.
 
-* bs/bse/cf/is: show overall report span in title
-
-TODO why not working ?
-* bs/bse/cf/is: use local abbreviated month names for monthly column headings
-
-TODO reproducible in 1.5 ?
-* bs/bse/cf/is: fix display of abbreviated name for December
-
 * bs/bse/cf/is: in CSV output, don't repeat the headings row for each subreport
+
+* budget: warn that CSV output with bal --budget is unimplemented
+
+* budget: bal --budget shows budget goals even with no or zero actual amounts. 
+Makes budget reports more intuitive, at the cost of a temporary hack
+which may misorder columns in some cases (if actual and budget
+activity occur in a different range of columns).
+
+* budget: --budget uses only periodic txns with the selected interval.  
+Budgets with different interval, eg a daily and weekly budget, are independent.
+
+* budget: show mostly fixed-width columns for readability
+
+* budget: fix bug where a budget report could include budget goals
+ending on the day before the report start date (splitSpan issue)
 
 * close: the equity command has been renamed to close.  It now ignores
 any begin date (it always closes historical end balances).  It also
@@ -137,7 +148,11 @@ ignores --date2.
 
 ### hledger-ui 1.6
 
+* -E/--empty toggles zeroes at startup (with opposite default to cli)
+
 ### hledger-web 1.6
+
+* -E/--empty toggles zeroes at startup (with opposite default to cli)
 
 ### hledger-api 1.6
 

@@ -8,6 +8,8 @@ User-visible changes in hledger-ui. See also hledger, hledger-lib.
 * when the system text encoding is UTF-8, ignore any UTF-8 BOM prefix
   found when reading files
 
+* -E/--empty toggles zeroes at startup (with opposite default to cli)
+
 # 1.5 (2017/12/31)
 
 * fix help -> view manual (on posix platforms) #623

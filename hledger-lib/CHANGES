@@ -6,6 +6,9 @@ Most user-visible changes are noted in the hledger changelog, instead.
 
 * support ghc 8.4, latest deps
 
+* when the system text encoding is UTF-8, ignore any UTF-8 BOM prefix
+found when reading files.
+
 * CompoundBalanceReport amounts are now normally positive.
 The bs/bse/cf/is commands now show normal income, liability and equity
 balances as positive.  Negative numbers now indicate a contra-balance
@@ -13,8 +16,9 @@ balances as positive.  Negative numbers now indicate a contra-balance
 etc.  This makes these reports more like conventional financial
 statements, and easier to read and share with others. (experimental)
 
-* when the system text encoding is UTF-8, ignore any UTF-8 BOM prefix
-found when reading files.
+* splitSpan now returns no spans for an empty datespan
+
+* don't count periodic/modifier txns in Journal debug output
 
 * lib/ui/web/api: move embedded manual files to extra-source-files
 
