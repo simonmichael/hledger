@@ -307,7 +307,6 @@ Marketing and market understanding is vital.
     - site/contributing.md
     - site/step-by-step.md
     - site/how-to-*
-    - site/faq.md (ledger compatibility)
     - site/download.md
     - site/contributors.md
     - doc/ANNOUNCE

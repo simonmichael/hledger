@@ -2258,7 +2258,7 @@ In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger
 add.
 
 Not all of Ledger's journal file syntax is supported. See [file format
-differences](faq#file-format-differences).
+differences](https://github.com/simonmichael/hledger/wiki/FAQ#file-formats).
 
 On large data files, hledger is slower and uses more memory than Ledger.
 
