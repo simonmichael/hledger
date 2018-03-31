@@ -349,8 +349,8 @@ commodity name.  Some examples:
 'INR 9,99,99,999.00'
 'EUR -2.000.000,00'
 '1 999 999.9455'
-'EUR 1E3 # 1000 euros'
-'1000E-6s # 1000 microseconds'
+'EUR 1E3'
+'1000E-6s'
 
    As you can see, the amount format is somewhat flexible:
 
@@ -1206,65 +1206,65 @@ Node: Account names11239
 Ref: #account-names11382
 Node: Amounts11869
 Ref: #amounts12005
-Node: Virtual Postings15053
-Ref: #virtual-postings15212
-Node: Balance Assertions16432
-Ref: #balance-assertions16607
-Node: Assertions and ordering17503
-Ref: #assertions-and-ordering17689
-Node: Assertions and included files18389
-Ref: #assertions-and-included-files18630
-Node: Assertions and multiple -f options18963
-Ref: #assertions-and-multiple--f-options19217
-Node: Assertions and commodities19349
-Ref: #assertions-and-commodities19584
-Node: Assertions and subaccounts20280
-Ref: #assertions-and-subaccounts20512
-Node: Assertions and virtual postings21033
-Ref: #assertions-and-virtual-postings21240
-Node: Balance Assignments21382
-Ref: #balance-assignments21551
-Node: Prices22671
-Ref: #prices22804
-Node: Transaction prices22855
-Ref: #transaction-prices23000
-Node: Market prices25156
-Ref: #market-prices25291
-Node: Comments26251
-Ref: #comments26373
-Node: Tags27615
-Ref: #tags27733
-Node: Directives29135
-Ref: #directives29248
-Node: Account aliases29441
-Ref: #account-aliases29585
-Node: Basic aliases30189
-Ref: #basic-aliases30332
-Node: Regex aliases31022
-Ref: #regex-aliases31190
-Node: Multiple aliases31908
-Ref: #multiple-aliases32080
-Node: end aliases32578
-Ref: #end-aliases32718
-Node: account directive32819
-Ref: #account-directive32999
-Node: apply account directive34346
-Ref: #apply-account-directive34542
-Node: Multi-line comments35201
-Ref: #multi-line-comments35391
-Node: commodity directive35519
-Ref: #commodity-directive35703
-Node: Default commodity36575
-Ref: #default-commodity36748
-Node: Default year37285
-Ref: #default-year37450
-Node: Including other files37873
-Ref: #including-other-files38030
-Node: Periodic transactions38427
-Ref: #periodic-transactions38593
-Node: Automated postings39582
-Ref: #automated-postings39745
-Node: EDITOR SUPPORT40647
-Ref: #editor-support40772
+Node: Virtual Postings15020
+Ref: #virtual-postings15179
+Node: Balance Assertions16399
+Ref: #balance-assertions16574
+Node: Assertions and ordering17470
+Ref: #assertions-and-ordering17656
+Node: Assertions and included files18356
+Ref: #assertions-and-included-files18597
+Node: Assertions and multiple -f options18930
+Ref: #assertions-and-multiple--f-options19184
+Node: Assertions and commodities19316
+Ref: #assertions-and-commodities19551
+Node: Assertions and subaccounts20247
+Ref: #assertions-and-subaccounts20479
+Node: Assertions and virtual postings21000
+Ref: #assertions-and-virtual-postings21207
+Node: Balance Assignments21349
+Ref: #balance-assignments21518
+Node: Prices22638
+Ref: #prices22771
+Node: Transaction prices22822
+Ref: #transaction-prices22967
+Node: Market prices25123
+Ref: #market-prices25258
+Node: Comments26218
+Ref: #comments26340
+Node: Tags27582
+Ref: #tags27700
+Node: Directives29102
+Ref: #directives29215
+Node: Account aliases29408
+Ref: #account-aliases29552
+Node: Basic aliases30156
+Ref: #basic-aliases30299
+Node: Regex aliases30989
+Ref: #regex-aliases31157
+Node: Multiple aliases31875
+Ref: #multiple-aliases32047
+Node: end aliases32545
+Ref: #end-aliases32685
+Node: account directive32786
+Ref: #account-directive32966
+Node: apply account directive34313
+Ref: #apply-account-directive34509
+Node: Multi-line comments35168
+Ref: #multi-line-comments35358
+Node: commodity directive35486
+Ref: #commodity-directive35670
+Node: Default commodity36542
+Ref: #default-commodity36715
+Node: Default year37252
+Ref: #default-year37417
+Node: Including other files37840
+Ref: #including-other-files37997
+Node: Periodic transactions38394
+Ref: #periodic-transactions38560
+Node: Automated postings39549
+Ref: #automated-postings39712
+Node: EDITOR SUPPORT40614
+Ref: #editor-support40739
 
 End Tag Table

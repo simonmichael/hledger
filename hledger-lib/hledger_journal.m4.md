@@ -269,8 +269,8 @@ Amounts consist of a number and (usually) a currency symbol or commodity name. S
   `INR 9,99,99,999.00`\
   `EUR -2.000.000,00`\
   `1 999 999.9455`\
-  `EUR 1E3   # 1000 euros`\
-  `1000E-6s  # 1000 microseconds`\
+  `EUR 1E3`\
+  `1000E-6s`
 
 As you can see, the amount format is somewhat flexible:
 
