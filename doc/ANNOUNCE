@@ -1,9 +1,13 @@
+hledger (http://hledger.org) is a reliable, cross-platform program for
+tracking money, time or other commodities, using double-entry
+accounting and simple plain text file formats. It provides
+command-line, curses and web interfaces, and aims to be a pleasant and
+practical tool for personal, business or institutional use.
+
 I'm pleased to announce hledger 1.9. The version jump signals some
 noteworthy changes still landing (normal-positive reports, budget
 reporting) which are a kind of preview of 2.0. The next major release,
-on 2018/06/30, will be hledger 2.0.
-
-Thank you to release contributors:
+on 2018/06/30, will be hledger 2.0. Thank you to release contributors:
 
 Eli Flanagan,
 Peter Simons,
@@ -13,16 +17,8 @@ M Parker,
 Moritz Kiefer,
 Mykola Orliuk.
 
-hledger (http://hledger.org) is a reliable, cross-platform program for
-tracking money, time or other commodities, using double-entry
-accounting and simple plain text file formats. It provides
-command-line, curses and web interfaces, and aims to be a pleasant and
-practical tool for personal, business or institutional use.
-
-What's new ?
-------------
-
-Some highlights:
+Highlights:
+-----------
 
 * the "financial statement" commands bs/bse/cf/is now show all normal
 balances as positive numbers, producing more conventional financial
@@ -40,8 +36,8 @@ reports which are easier to share with others.  (experimental)
 
 More at http://hledger.org/release-notes#hledger-1.9 .
 
-Get started
------------
+Get started:
+------------
 
 See http://hledger.org/download for all install methods.
 Often, to get the latest release you will need to build it.  
@@ -79,16 +75,16 @@ $ hledger help          # list built-in manuals
 $ hledger add           # record some transactions
 $ hledger               # list available commands
 
-Now perhaps work through the tutorial at http://hledger.org/step-by-step.html
+Now perhaps work through the tutorial at 
+https://github.com/simonmichael/hledger/wiki/hledger-basics-tutorial.
+Or review the fine documents at http://hledger.org and
+http://plaintextaccounting.org. Or say hello and ask questions in the 
+#hledger IRC channel on Freenode: http://irc.hledger.org.
 
-Or review the fine documents, presentations etc. at http://hledger.org
-and http://plaintextaccounting.org
-
-Or say hello and ask questions in the #hledger IRC channel on Freenode:
-http://irc.hledger.org
+Get involved:
+-------------
 
 New users and contributors are always welcome! Give feedback, report
 bugs, send pull requests, write about it, etc.  And if you have been
 finding hledger useful, consider becoming a sponsor or donor to help
 to sustain and accelerate our progress (see home page).
-Our IRC channel is #hledger on Freenode (http://irc.hledger.org).
