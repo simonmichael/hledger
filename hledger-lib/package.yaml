@@ -63,6 +63,7 @@ dependencies:
 - regex-tdfa
 - safe >=0.2
 - split >=0.1
+- tabular >=0.2
 - text >=1.2
 - time >=1.5
 - transformers >=0.2
@@ -141,6 +142,7 @@ library:
   - Hledger.Utils.Tree
   - Hledger.Utils.UTF8IOCompat
   - Text.Megaparsec.Compat
+  - Text.Tabular.AsciiWide
 #  other-modules:
 #  - Ledger.Parser.Text
 

@@ -113,8 +113,10 @@ library
       Hledger.Read.TimeclockReader
       Hledger.Reports
       Hledger.Reports.ReportOptions
+      Hledger.Reports.ReportTypes
       Hledger.Reports.BalanceHistoryReport
       Hledger.Reports.BalanceReport
+      Hledger.Reports.BudgetReport
       Hledger.Reports.EntriesReport
       Hledger.Reports.MultiBalanceReports
       Hledger.Reports.PostingsReport
@@ -130,9 +132,8 @@ library
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
       Text.Megaparsec.Compat
+      Text.Tabular.AsciiWide
   other-modules:
-      Hledger.Reports.BudgetReport
-      Hledger.Reports.ReportTypes
       Paths_hledger_lib
   default-language: Haskell2010
 
@@ -172,6 +173,7 @@ test-suite doctests
     , regex-tdfa
     , safe >=0.2
     , split >=0.1
+    , tabular >=0.2
     , text >=1.2
     , time >=1.5
     , transformers >=0.2
@@ -229,6 +231,7 @@ test-suite doctests
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
       Text.Megaparsec.Compat
+      Text.Tabular.AsciiWide
       Paths_hledger_lib
   default-language: Haskell2010
 
@@ -268,6 +271,7 @@ test-suite easytests
     , regex-tdfa
     , safe >=0.2
     , split >=0.1
+    , tabular >=0.2
     , text >=1.2
     , time >=1.5
     , transformers >=0.2
@@ -323,6 +327,7 @@ test-suite easytests
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
       Text.Megaparsec.Compat
+      Text.Tabular.AsciiWide
       Paths_hledger_lib
   default-language: Haskell2010
 
@@ -363,6 +368,7 @@ test-suite hunittests
     , split >=0.1
     , test-framework
     , test-framework-hunit
+    , tabular >=0.2
     , text >=1.2
     , time >=1.5
     , transformers >=0.2
@@ -418,5 +424,6 @@ test-suite hunittests
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
       Text.Megaparsec.Compat
+      Text.Tabular.AsciiWide
       Paths_hledger_lib
   default-language: Haskell2010

@@ -22,19 +22,19 @@ type Average = MixedAmount  -- ^ The average of 'Change's or 'Balance's in a rep
 -- budget performance, etc. Successor to MultiBalanceReport.
 data PeriodicReport a =
   PeriodicReport
-    ( [DateSpan]            -- ^ The subperiods formed by spliting the overall report period by the report interval.
-                            --   For ending-balance reports, only the end date is significant.
-                            --   Usually displayed as report columns.
-    , [PeriodicReportRow a] -- ^ One row per account in the report.
-    , PeriodicReportRow a   -- ^ The grand totals row. The account name in this row is always empty.
+    ( [DateSpan]            -- The subperiods formed by splitting the overall report period by the report interval.
+                            -- For ending-balance reports, only the end date is significant.
+                            -- Usually displayed as report columns.
+    , [PeriodicReportRow a] -- One row per account in the report.
+    , PeriodicReportRow a   -- The grand totals row. The account name in this row is always empty.
     )
    deriving (Show)
 
 type PeriodicReportRow a =
-  ( AccountName  -- ^ A full account name.
-  , AccountName  -- ^ Shortened form of the account name to display in tree mode. Usually the leaf name, possibly with parent accounts prefixed.
-  , Int          -- ^ Indent level for displaying this account name in tree mode. 0, 1, 2... 
-  , [a]          -- ^ The data value for each subperiod.
-  , a            -- ^ The total of this row's values.
-  , a            -- ^ The average of this row's values.
+  ( AccountName  -- A full account name.
+  , AccountName  -- Shortened form of the account name to display in tree mode. Usually the leaf name, possibly with parent accounts prefixed.
+  , Int          -- Indent level for displaying this account name in tree mode. 0, 1, 2... 
+  , [a]          -- The data value for each subperiod.
+  , a            -- The total of this row's values.
+  , a            -- The average of this row's values.
   )

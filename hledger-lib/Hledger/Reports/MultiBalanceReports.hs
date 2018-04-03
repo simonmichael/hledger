@@ -12,6 +12,8 @@ module Hledger.Reports.MultiBalanceReports (
   balanceReportFromMultiBalanceReport,
   mbrNegate,
   mbrNormaliseSign,
+  multiBalanceReportSpan,
+  tableAsText,
 
   -- -- * Tests
   tests_Hledger_Reports_MultiBalanceReport
@@ -24,6 +26,8 @@ import Data.Ord
 import Data.Time.Calendar
 import Safe
 import Test.HUnit
+import Text.Tabular as T
+import Text.Tabular.AsciiWide
 
 import Hledger.Data
 import Hledger.Query
@@ -259,6 +263,11 @@ mbrNegate (MultiBalanceReport (colspans, rows, totalsrow)) =
     mbrRowNegate (acct,shortacct,indent,amts,tot,avg) = (acct,shortacct,indent,map negate amts,-tot,-avg)
     mbrTotalsRowNegate (amts,tot,avg) = (map negate amts,-tot,-avg)
 
+-- | Figure out the overall date span of a multicolumn balance report.
+multiBalanceReportSpan :: MultiBalanceReport -> DateSpan
+multiBalanceReportSpan (MultiBalanceReport ([], _, _))       = DateSpan Nothing Nothing
+multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
+
 -- | Generates a simple non-columnar BalanceReport, but using multiBalanceReport, 
 -- in order to support --historical. Does not support tree-mode boring parent eliding. 
 -- If the normalbalance_ option is set, it adjusts the sorting and sign of amounts 
@@ -321,6 +330,22 @@ tests_multiBalanceReport =
       ],
       Mixed [usd0])
   ]
+
+-- common rendering helper, XXX here for now
+
+tableAsText :: ReportOpts -> (a -> String) -> Table String String a -> String
+tableAsText (ReportOpts{pretty_tables_ = pretty}) showcell =
+  unlines
+  . trimborder
+  . lines
+  . render pretty id id showcell
+  . align
+  where
+    trimborder = drop 1 . init . map (drop 1 . init)
+    align (Table l t d) = Table l' t d
+      where
+        acctswidth = maximum' $ map strWidth (headerContents l)
+        l'         = padRightWide acctswidth <$> l
 
 tests_Hledger_Reports_MultiBalanceReport :: Test
 tests_Hledger_Reports_MultiBalanceReport = TestList

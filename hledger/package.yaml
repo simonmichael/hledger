@@ -131,7 +131,6 @@ library:
   - Hledger.Cli.Commands.Stats
   - Hledger.Cli.Commands.Tags
   - Hledger.Cli.CompoundBalanceCommand
-  - Text.Tabular.AsciiWide
   dependencies:
   - bytestring
   - containers
