@@ -53,7 +53,6 @@ module Hledger.Cli.CliOptions (
   replaceNumericFlags,
   -- | For register:
   registerWidthsFromOpts,
-  maybeAccountNameDrop,
   -- | For balance:
   lineFormatFromOpts,
 
@@ -583,11 +582,6 @@ registerWidthsFromOpts CliOpts{width_=Just s}  =
           descwidth <- optional (char ',' >> read `fmap` some digitChar)
           eof
           return (totalwidth, descwidth)
-
--- | Drop leading components of accounts names as specified by --drop, but only in --flat mode.
-maybeAccountNameDrop :: ReportOpts -> AccountName -> AccountName
-maybeAccountNameDrop opts a | tree_ opts = a
-                            | otherwise  = accountNameDrop (drop_ opts) a
 
 -- for balance, currently:
 

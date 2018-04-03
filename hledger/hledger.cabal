@@ -150,7 +150,6 @@ library
       Hledger.Cli.Commands.Stats
       Hledger.Cli.Commands.Tags
       Hledger.Cli.CompoundBalanceCommand
-      Text.Tabular.AsciiWide
   other-modules:
       Paths_hledger
   default-language: Haskell2010
