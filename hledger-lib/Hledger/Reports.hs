@@ -10,6 +10,7 @@ javascript, or whatever.
 
 module Hledger.Reports (
   module Hledger.Reports.ReportOptions,
+  module Hledger.Reports.ReportTypes,
   module Hledger.Reports.EntriesReport,
   module Hledger.Reports.PostingsReport,
   module Hledger.Reports.TransactionsReports,
@@ -25,6 +26,7 @@ where
 import Test.HUnit
 
 import Hledger.Reports.ReportOptions
+import Hledger.Reports.ReportTypes
 import Hledger.Reports.EntriesReport
 import Hledger.Reports.PostingsReport
 import Hledger.Reports.TransactionsReports

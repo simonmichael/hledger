@@ -131,6 +131,8 @@ library
       Hledger.Utils.UTF8IOCompat
       Text.Megaparsec.Compat
   other-modules:
+      Hledger.Reports.BudgetReport
+      Hledger.Reports.ReportTypes
       Paths_hledger_lib
   default-language: Haskell2010
 
@@ -209,10 +211,12 @@ test-suite doctests
       Hledger.Reports
       Hledger.Reports.BalanceHistoryReport
       Hledger.Reports.BalanceReport
+      Hledger.Reports.BudgetReport
       Hledger.Reports.EntriesReport
       Hledger.Reports.MultiBalanceReports
       Hledger.Reports.PostingsReport
       Hledger.Reports.ReportOptions
+      Hledger.Reports.ReportTypes
       Hledger.Reports.TransactionsReports
       Hledger.Utils
       Hledger.Utils.Color
@@ -301,10 +305,12 @@ test-suite easytests
       Hledger.Reports
       Hledger.Reports.BalanceHistoryReport
       Hledger.Reports.BalanceReport
+      Hledger.Reports.BudgetReport
       Hledger.Reports.EntriesReport
       Hledger.Reports.MultiBalanceReports
       Hledger.Reports.PostingsReport
       Hledger.Reports.ReportOptions
+      Hledger.Reports.ReportTypes
       Hledger.Reports.TransactionsReports
       Hledger.Utils
       Hledger.Utils.Color
@@ -394,10 +400,12 @@ test-suite hunittests
       Hledger.Reports
       Hledger.Reports.BalanceHistoryReport
       Hledger.Reports.BalanceReport
+      Hledger.Reports.BudgetReport
       Hledger.Reports.EntriesReport
       Hledger.Reports.MultiBalanceReports
       Hledger.Reports.PostingsReport
       Hledger.Reports.ReportOptions
+      Hledger.Reports.ReportTypes
       Hledger.Reports.TransactionsReports
       Hledger.Utils
       Hledger.Utils.Color

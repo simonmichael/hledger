@@ -122,8 +122,10 @@ library:
   - Hledger.Read.TimeclockReader
   - Hledger.Reports
   - Hledger.Reports.ReportOptions
+  - Hledger.Reports.ReportTypes
   - Hledger.Reports.BalanceHistoryReport
   - Hledger.Reports.BalanceReport
+  - Hledger.Reports.BudgetReport
   - Hledger.Reports.EntriesReport
   - Hledger.Reports.MultiBalanceReports
   - Hledger.Reports.PostingsReport
