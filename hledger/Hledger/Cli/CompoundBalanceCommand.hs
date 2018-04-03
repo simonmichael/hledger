@@ -249,7 +249,7 @@ Balance Sheet
 compoundBalanceReportAsText :: ReportOpts -> CompoundBalanceReport -> String
 compoundBalanceReportAsText ropts (title, _colspans, subreports, (coltotals, grandtotal, grandavg)) =
   title ++ "\n\n" ++ 
-  renderBalanceReportTable ropts bigtable'
+  balanceReportTableAsText ropts bigtable'
   where
     singlesubreport = length subreports == 1
     bigtable = 

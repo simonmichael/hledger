@@ -32,7 +32,7 @@
 
 # 1. Test --budget switch
 $ hledger bal -D -b 2016-12-01 -e 2016-12-04 -f - --budget
-Balance changes in 2016/12/01-2016/12/03:
+Budget performance in 2016/12/01-2016/12/03:
 
                        ||               2016/12/01                2016/12/02                2016/12/03 
 =======================++==============================================================================
@@ -45,7 +45,7 @@ Balance changes in 2016/12/01-2016/12/03:
 
 # 2. --show-unbudgeted
 $ hledger bal -D -b 2016-12-01 -e 2016-12-04 -f - --budget --show-unbudgeted
-Balance changes in 2016/12/01-2016/12/03:
+Budget performance in 2016/12/01-2016/12/03:
 
                   ||               2016/12/01                2016/12/02                2016/12/03 
 ==================++==============================================================================
@@ -93,7 +93,7 @@ Balance changes in 2016/12/01-2016/12/03:
     assets:cash
 
 $ hledger bal -D -b 2016-12-01 -e 2016-12-04 -f - --budget
-Balance changes in 2016/12/01-2016/12/03:
+Budget performance in 2016/12/01-2016/12/03:
 
                        ||                 2016/12/01                     2016/12/02                2016/12/03 
 =======================++=====================================================================================
@@ -137,7 +137,7 @@ $ hledger -f- bal --budget
 # 5. With -D it selects the daily budget. 
 # The budget is unbounded, so extends through the report period.
 $ hledger -f- bal --budget -D
-Balance changes in 2018/01/01-2018/01/03:
+Budget performance in 2018/01/01-2018/01/03:
 
    ||               2018/01/01                2018/01/02                2018/01/03 
 ===++==============================================================================
@@ -150,7 +150,7 @@ Balance changes in 2018/01/01-2018/01/03:
 
 # 6. And with -W it selects the weekly budget, defined by all weekly periodic transactions.
 $ hledger -f- bal --budget -W
-Balance changes in 2018/01/01w01:
+Budget performance in 2018/01/01w01:
 
    ||            2018/01/01w01 
 ===++==========================
@@ -182,7 +182,7 @@ Balance changes in 2018/01/01w01:
   (b)  1
 
 $ hledger -f- bal --budget -D
-Balance changes in 2018/01/01-2018/01/04:
+Budget performance in 2018/01/01-2018/01/04:
 
                 ||               2018/01/01                2018/01/02                2018/01/03                2018/01/04 
 ================++========================================================================================================
@@ -212,7 +212,7 @@ Balance changes in 2018/01/01-2018/01/04:
   (a)  1
 
 $ hledger -f- bal --budget -D
-Balance changes in 2018/01/01-2018/01/04:
+Budget performance in 2018/01/01-2018/01/04:
 
    ||               2018/01/01                2018/01/02                2018/01/03                2018/01/04 
 ===++========================================================================================================
@@ -222,7 +222,7 @@ Balance changes in 2018/01/01-2018/01/04:
 
 # 9. A "from A to B" budget should not be included in a report beginning on B.
 $ hledger -f- bal --budget -D -b 2018/1/3
-Balance changes in 2018/01/03-2018/01/04:
+Budget performance in 2018/01/03-2018/01/04:
 
    ||               2018/01/03                2018/01/04 
 ===++====================================================
@@ -243,18 +243,18 @@ Balance changes in 2018/01/03-2018/01/04:
 # 10. accounts with non-zero budget should be shown by default 
 # even if there are no actual transactions in the period,
 # or if the actual amount is zero.
-# $ hledger -f- bal --budget -D date:2018/1/1-2018/1/3
-# Balance changes in 2018/01/01-2018/01/02:
+$ hledger -f- bal --budget -D date:2018/1/1-2018/1/3
+Budget performance in 2018/01/01-2018/01/02:
 
-#    ||               2018/01/01                2018/01/02 
-# ===++====================================================
-#  a ||         [             1]          [             1] 
-# ---++----------------------------------------------------
-#    ||         [             1]          [             1] 
+   ||               2018/01/01                2018/01/02 
+===++====================================================
+ a ||       0 [             1]        0 [             1] 
+---++----------------------------------------------------
+   ||       0 [             1]        0 [             1] 
 
 # 11. With -E, zeroes are shown
 $ hledger -f- bal --budget -D date:2018/1/1-2018/1/3 -E
-Balance changes in 2018/01/01-2018/01/02:
+Budget performance in 2018/01/01-2018/01/02:
 
    ||               2018/01/01                2018/01/02 
 ===++====================================================

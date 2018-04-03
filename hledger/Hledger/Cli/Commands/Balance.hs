@@ -245,25 +245,23 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportAsCsv
  ,multiBalanceReportAsHtml
  ,multiBalanceReportHtmlRows
- ,renderBalanceReportTable
  ,balanceReportAsTable
+ ,balanceReportTableAsText
  ,tests_Hledger_Cli_Commands_Balance
 ) where
 
-import Data.Decimal
 import Data.List
 import Data.Maybe
-import qualified Data.Map as Map
+--import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import System.Console.CmdArgs.Explicit as C
-import Data.Decimal (roundTo)
 import Lucid as L
 import Text.CSV
 import Test.HUnit
 import Text.Printf (printf)
 import Text.Tabular as T
-import Text.Tabular.AsciiWide
+--import Text.Tabular.AsciiWide
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -330,15 +328,15 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
         _ | boolopt "budget" rawopts -> do
           -- multi column budget report
           reportspan <- reportSpan j ropts
-          let budget = budgetJournal opts reportspan j
-              j' = budgetRollUp opts budget j
-              report       = dbg1 "report"       $ multiBalanceReport ropts (queryFromOpts d ropts) j'
-              budgetReport = dbg1 "budgetreport" $ multiBalanceReport ropts (queryFromOpts d ropts) budget
+          let budgetreport     = dbg1 "budgetreport"     $ budgetReport ropts assrt showunbudgeted reportspan d j
+                where
+                  showunbudgeted = boolopt "show-unbudgeted" rawopts
+                  assrt          = not $ ignore_assertions_ $ inputopts_ opts
               render = case format of
                 "csv"  -> const $ error' "Sorry, CSV output is not yet implemented for this kind of report."  -- TODO
                 "html" -> const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
-                _     -> multiBalanceReportWithBudgetAsText ropts budgetReport
-          writeOutput opts $ render report
+                _      -> budgetReportAsText ropts
+          writeOutput opts $ render budgetreport
           
           | otherwise -> do
           -- multi column balance report
@@ -349,50 +347,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
                 _      -> multiBalanceReportAsText ropts
           writeOutput opts $ render report
 
--- | Re-map account names to closest parent with periodic transaction from budget.
--- Accounts that don't have suitable parent are either remapped to "<unbudgeted>:topAccount" 
--- or left as-is if --show-unbudgeted is provided. 
-budgetRollUp :: CliOpts -> Journal -> Journal -> Journal
-budgetRollUp CliOpts{rawopts_=rawopts} budget j = j { jtxns = remapTxn <$> jtxns j }
-    where
-        budgetAccounts = nub $ concatMap (map paccount . ptpostings) $ jperiodictxns budget
-        remapAccount origAcctName = remapAccount' origAcctName
-          where 
-            remapAccount' acctName
-              | acctName `elem` budgetAccounts = acctName
-              | otherwise = 
-                case parentAccountName acctName of
-                  "" | boolopt "show-unbudgeted" rawopts -> origAcctName
-                     | otherwise              -> T.append (T.pack "<unbudgeted>:") acctName  -- TODO: --drop should not remove this
-                  parent -> remapAccount' parent
-        remapPosting p = p { paccount = remapAccount $ paccount p, porigin = Just . fromMaybe p $ porigin p }
-        remapTxn = mapPostings (map remapPosting)
-        mapPostings f t = txnTieKnot $ t { tpostings = f $ tpostings t }
-
--- | Select all periodic transactions from the given journal which
--- match the requested report interval, and use them to generate
--- budget transactions (like forecast transactions) in the specified
--- report period (calculated in IO and passed in).
-budgetJournal :: CliOpts -> DateSpan -> Journal -> Journal
-budgetJournal opts reportspan j = journalBalanceTransactions' opts j { jtxns = budgetts }
-  where 
-    budgetinterval = dbg2 "budgetinterval" $ intervalFromRawOpts $ rawopts_ opts
-    budgetspan = dbg2 "budgetspan" $ reportspan
-    budgetts =
-      dbg1 "budgetts" $
-      [makeBudgetTxn t
-      | pt <- jperiodictxns j
-      , periodTransactionInterval pt == Just budgetinterval
-      , t <- runPeriodicTransaction pt budgetspan
-      ]
-    makeBudgetTxn t = txnTieKnot $ t { tdescription = T.pack "Budget transaction" }
-    journalBalanceTransactions' opts j =
-      let assrt = not . ignore_assertions_ $ inputopts_ opts
-      in
-       either error' id $ journalBalanceTransactions assrt j
-
-
--- single-column balance reports
+-- rendering single-column balance reports
 
 -- | Find the best commodity to convert to when asked to show the
 -- market value of this commodity on the given date. That is, the one
@@ -522,7 +477,7 @@ renderComponent1 opts (acctname, depth, total) (FormatField ljust min max field)
               | otherwise   = showMixedAmountWithoutPrice
   _                -> ""
 
--- multi-column balance reports
+-- rendering multi-column balance reports
 
 -- | Render a multi-column balance report as CSV.
 -- The CSV will always include the initial headings row,
@@ -641,7 +596,7 @@ multiBalanceReportHtmlFootRow ropts (acct:rest) =
 multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> String
 multiBalanceReportAsText opts r =
     printf "%s in %s:\n\n" desc (showDateSpan $ multiBalanceReportSpan r)
-      ++ renderBalanceReportTable opts tabl
+      ++ balanceReportTableAsText opts tabl
   where
     tabl = balanceReportAsTable opts r
     desc = case balancetype_ opts of
@@ -649,129 +604,11 @@ multiBalanceReportAsText opts r =
         CumulativeChange -> "Ending balances (cumulative)"
         HistoricalBalance -> "Ending balances (historical)"
 
-type ActualAmount = MixedAmount
-type BudgetAmount = MixedAmount
-type ActualAmountsReport = MultiBalanceReport
-type BudgetAmountsReport = MultiBalanceReport
-type ActualAmountsTable = Table String String MixedAmount
-type BudgetAmountsTable = Table String String MixedAmount
-type ActualAndBudgetAmountsTable = Table String String (Maybe MixedAmount, Maybe MixedAmount)
-type Percentage = Decimal
-
--- | Given two multi-column balance reports, the first representing a budget 
--- (target change amounts) and the second representing actual change amounts, 
--- render a budget report as plain text suitable for console output.
--- The reports should have the same number of columns.
-multiBalanceReportWithBudgetAsText :: ReportOpts -> BudgetAmountsReport -> ActualAmountsReport -> String
-multiBalanceReportWithBudgetAsText opts budgetr actualr =
-    printf "%s in %s:\n\n" desc (showDateSpan $ multiBalanceReportSpan actualr)
-      ++ renderBalanceReportTable' opts showcell actualandbudgetamts
-  where
-    desc :: String
-    desc = case balancetype_ opts of
-        PeriodChange -> "Balance changes"
-        CumulativeChange -> "Ending balances (cumulative)"
-        HistoricalBalance -> "Ending balances (historical)"
-
-    actualandbudgetamts :: ActualAndBudgetAmountsTable
-    actualandbudgetamts = combineTables (balanceReportAsTable opts actualr) (balanceReportAsTable opts budgetr)
-
-    showcell :: (Maybe ActualAmount, Maybe BudgetAmount) -> String
-    showcell (mactual, mbudget) = actualstr ++ " " ++ budgetstr
-      where
-        actualwidth  = 7
-        percentwidth = 4
-        budgetwidth  = 5
-        actualstr = printf ("%"++show actualwidth++"s") (maybe "" showamt mactual)
-        budgetstr = case (mactual, mbudget) of
-          (_,       Nothing)     -> replicate (percentwidth + 7 + budgetwidth) ' '
-          (mactual, Just budget) -> 
-            case percentage mactual budget of
-              Just pct ->
-                printf ("[%"++show percentwidth++"s%% of %"++show budgetwidth++"s]")
-                       (show $ roundTo 0 pct) (showamt budget)
-              Nothing ->
-                printf ("["++replicate (percentwidth+5) ' '++"%"++show budgetwidth++"s]")
-                       (showamt budget)
-
-    percentage :: Maybe ActualAmount -> BudgetAmount -> Maybe Percentage
-    percentage Nothing _ = Nothing
-    percentage (Just actual) budget =
-      -- percentage of budget consumed is always computed in the cost basis
-      case (toCost actual, toCost budget) of
-        (Mixed [a1], Mixed [a2])
-          | isReallyZeroAmount a1 -> Just 0 -- if there are no postings, we consumed 0% of budget
-          | acommodity a1 == acommodity a2 && aquantity a2 /= 0 ->
-            Just $ 100 * aquantity a1 / aquantity a2
-        _ -> Nothing
-        where
-          toCost = normaliseMixedAmount . costOfMixedAmount
-
-    showamt :: MixedAmount -> String
-    showamt | color_ opts  = cshowMixedAmountOneLineWithoutPrice
-            | otherwise    = showMixedAmountOneLineWithoutPrice
-
-    -- Combine a table of actual amounts and a table of budgeted amounts into  
-    -- a single table of (Maybe actualamount, Maybe budgetamount) tuples. 
-    -- The actual and budget table need not have the same account rows or date columns.
-    -- Every row and column from either table will appear in the combined table.
-    -- TODO better to combine the reports, not these tables which are just rendering helpers
-    combineTables :: ActualAmountsTable -> BudgetAmountsTable -> ActualAndBudgetAmountsTable
-    combineTables (Table aaccthdrs adatehdrs arows) (Table baccthdrs bdatehdrs brows) =
-      addtotalrow $ Table caccthdrs cdatehdrs crows
-      where
-        [aaccts, adates, baccts, bdates] = map headerContents [aaccthdrs, adatehdrs, baccthdrs, bdatehdrs]
-        -- combined account names
-        -- TODO Can't sort these or things will fall apart.
-        caccts = dbg2 "caccts" $ init $ (dbg2 "aaccts" $ filter (not . null) aaccts) `union` (dbg2 "baccts" baccts)
-        caccthdrs = T.Group NoLine $ map Header $ caccts
-        -- Actual column dates and budget column dates could be different.
-        -- TODO Can't easily combine these preserving correct order, will go wrong on monthly reports probably.
-        cdates = dbg2 "cdates" $ sort $ (dbg2 "adates" adates) `union` (dbg2 "bdates" bdates)
-        cdatehdrs = T.Group NoLine $ map Header cdates
-        -- corresponding rows of combined actual and/or budget amounts
-        crows = [ combineRow (actualRow a) (budgetRow a) | a <- caccts ]
-        -- totals row
-        addtotalrow | no_total_ opts = id
-                    | otherwise      = (+----+ (row "" $ combineRow (actualRow "") (budgetRow "")))
-        -- helpers
-        combineRow arow brow =
-          dbg1 "row" $ [(actualAmt d, budgetAmt d) | d <- cdates]
-          where
-            actualAmt date = Map.lookup date $ Map.fromList $ zip adates arow
-            budgetAmt date = Map.lookup date $ Map.fromList $ zip bdates brow
-
-        actualRow acct = fromMaybe [] $ Map.lookup acct $ Map.fromList $ zip aaccts arows
-        budgetRow acct = fromMaybe [] $ Map.lookup acct $ Map.fromList $ zip baccts brows
-
--- | Given a table representing a multi-column balance report (for example,
--- made using 'balanceReportAsTable'), render it in a format suitable for
--- console output.
-renderBalanceReportTable :: ReportOpts -> Table String String MixedAmount -> String
-renderBalanceReportTable ropts =
-  renderBalanceReportTable' ropts showamt
-  where
-    showamt | color_ ropts = cshowMixedAmountOneLineWithoutPrice
-            | otherwise    = showMixedAmountOneLineWithoutPrice
-
-renderBalanceReportTable' :: ReportOpts -> (a -> String) -> Table String String a -> String
-renderBalanceReportTable' (ReportOpts { pretty_tables_ = pretty}) showamt =
-  unlines
-  . trimborder
-  . lines
-  . render pretty id id showamt
-  . align
-  where
-    trimborder = drop 1 . init . map (drop 1 . init)
-    align (Table l t d) = Table l' t d
-      where
-        acctswidth = maximum' $ map strWidth (headerContents l)
-        l'         = padRightWide acctswidth <$> l
-
 -- | Build a 'Table' from a multi-column balance report.
 balanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table String String MixedAmount
 balanceReportAsTable opts (MultiBalanceReport (colspans, items, (coltotals,tot,avg))) =
-   addtotalrow $ Table
+   addtotalrow $ 
+   Table
      (T.Group NoLine $ map Header accts)
      (T.Group NoLine $ map Header colheadings)
      (map rowvals items)
@@ -796,10 +633,14 @@ balanceReportAsTable opts (MultiBalanceReport (colspans, items, (coltotals,tot,a
                                     ++ (if average_ opts && not (null coltotals)   then [avg] else [])
                                     ))
 
--- | Figure out the overall date span of a multicolumn balance report.
-multiBalanceReportSpan :: MultiBalanceReport -> DateSpan
-multiBalanceReportSpan (MultiBalanceReport ([], _, _))       = DateSpan Nothing Nothing
-multiBalanceReportSpan (MultiBalanceReport (colspans, _, _)) = DateSpan (spanStart $ head colspans) (spanEnd $ last colspans)
+-- | Given a table representing a multi-column balance report (for example,
+-- made using 'balanceReportAsTable'), render it in a format suitable for
+-- console output.
+balanceReportTableAsText :: ReportOpts -> Table String String MixedAmount -> String
+balanceReportTableAsText ropts = tableAsText ropts showamt
+  where
+    showamt | color_ ropts = cshowMixedAmountOneLineWithoutPrice
+            | otherwise    =  showMixedAmountOneLineWithoutPrice
 
 
 tests_Hledger_Cli_Commands_Balance = TestList
