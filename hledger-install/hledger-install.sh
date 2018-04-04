@@ -750,6 +750,7 @@ ensure_stack() {
     echo "Installing stack"
     do_os
   fi
+  echo "using stack $(stack --version)"
 }
 
 # get a sed command that supports EREs
@@ -809,7 +810,7 @@ quietly_run() {
 # install but also all dependencies which are not in the specified stackage $RESOLVER.
 try_install() {
   (cd  # avoid any project-specific stack/cabal config, install at user level
-   (! has_cmd stack && has_cmd cabal && try_info cabal install "$@" --verbose="$CABAL_VERBOSITY" ) ||
+   (! has_cmd stack && has_cmd cabal && echo "using $(cabal --version)" && try_info cabal install "$@" --verbose="$CABAL_VERBOSITY" ) ||
    (ensure_stack && (
     #(try_info stack install --install-ghc "$@" --verbosity=$STACK_VERBOSITY ) ||        # existing resolver
     (try_info stack install --install-ghc $RESOLVER "$@" --verbosity="$STACK_VERBOSITY" )  # specific resolver
