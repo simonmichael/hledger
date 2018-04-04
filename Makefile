@@ -86,7 +86,7 @@ GHCI=ghci #-package ghc-datasize #-package ghc-heap-view
 # HADDOCK=haddock
 # CABAL=cabal
 # CABALINSTALL=cabal install -w $(GHC)
-STACK=stack
+STACK=stack --with-hpack=hpack-0.20
 #STACK=stack --stack-yaml=stack-ghc7.yaml
 
 # -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
@@ -1429,7 +1429,7 @@ setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version
 #	hpack --silent $(dir $*) 
 #
 gencabal: $(call def-help,gencabal, regenerate cabal files from package.yaml files with stack )
-	stack build --dry-run --silent
+	$(STACK) build --dry-run --silent
 
 # updatecabal: gencabal $(call def-help,updatecabal, regenerate cabal files and commit )
 # 	@read -p "please review changes then press enter to commit $(shell ls */*.cabal)"
