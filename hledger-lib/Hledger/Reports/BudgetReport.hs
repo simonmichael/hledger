@@ -106,7 +106,7 @@ budgetRollUp showunbudgeted budget j = j { jtxns = remapTxn <$> jtxns j }
               | otherwise =
                 case parentAccountName acctName of
                   "" | showunbudgeted -> origAcctName
-                     | otherwise      -> T.append (T.pack "<unbudgeted>:") acctName  -- TODO: --drop should not remove this
+                     | otherwise      -> unbudgetedAccount <> acctsep <> acctName
                   parent -> remapAccount' parent
         remapPosting p = p { paccount = remapAccount $ paccount p, porigin = Just . fromMaybe p $ porigin p }
         remapTxn = mapPostings (map remapPosting)
