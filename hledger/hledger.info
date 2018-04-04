@@ -390,15 +390,25 @@ omitted (defaulting to 1).
 
    Examples:
 
-'2009/1/1', '2009/01/01', '2009-1-1', '2009.1.1'   simple dates, several separators allowed
-'2009/1', '2009'                                   same as above - a missing day or month defaults to 1
-'1/1', 'january', 'jan', 'this year'               relative dates, meaning january 1 of the current year
-'next year'                                        january 1 of next year
-'this month'                                       the 1st of the current month
-'this week'                                        the most recent monday
-'last week'                                        the monday of the week before this one
-'lastweek'                                         spaces are optional
-'today', 'yesterday', 'tomorrow'
+'2004/10/1', '2004-01-01', '2004.9.1'   exact date, several separators allowed.  Year is 4+ digits, month is 1-12, day is 1-31
+'2004'                                  start of year
+'2004/10'                               start of month
+'10/1'                                  month and day in current year
+'21'                                    day in current month
+'october, oct'                          start of month in current year
+'yesterday, today, tomorrow'            -1, 0, 1 days from today
+'last/this/next                         -1, 0, 1 periods from the current period
+day/week/month/quarter/year'
+'20181201'                              8 digit YYYYMMDD with valid year month and day
+'201812'                                6 digit YYYYMM with valid year and month
+
+   Counterexamples - malformed digit sequences might give surprising
+results:
+
+'201813'      6 digits with an invalid month is parsed as start of 6-digit year
+'20181301'    8 digits with an invalid month is parsed as start of 8-digit year
+'20181232'    8 digits with an invalid day gives an error
+'201801012'   9+ digits beginning with a valid YYYYMMDD gives an error
 
 
 File: hledger.info,  Node: Report start & end date,  Next: Report intervals,  Prev: Smart dates,  Up: OPTIONS
@@ -2411,117 +2421,117 @@ Node: Input files9632
 Ref: #input-files9768
 Node: Smart dates11738
 Ref: #smart-dates11879
-Node: Report start & end date12858
-Ref: #report-start-end-date13028
-Node: Report intervals14093
-Ref: #report-intervals14256
-Node: Period expressions14657
-Ref: #period-expressions14817
-Node: Depth limiting18774
-Ref: #depth-limiting18918
-Node: Pivoting19260
-Ref: #pivoting19378
-Node: Cost21054
-Ref: #cost21162
-Node: Market value21280
-Ref: #market-value21415
-Node: Combining -B and -V22598
-Ref: #combining--b-and--v22761
-Node: Output destination22908
-Ref: #output-destination23070
-Node: Output format23353
-Ref: #output-format23505
-Node: Regular expressions23890
-Ref: #regular-expressions24027
-Node: QUERIES25388
-Ref: #queries25490
-Node: COMMANDS29457
-Ref: #commands29569
-Node: accounts30551
-Ref: #accounts30649
-Node: activity31895
-Ref: #activity32005
-Node: add32365
-Ref: #add32464
-Node: balance35125
-Ref: #balance35236
-Node: Flat mode38740
-Ref: #flat-mode38865
-Node: Depth limited balance reports39285
-Ref: #depth-limited-balance-reports39486
-Node: Multicolumn balance reports39906
-Ref: #multicolumn-balance-reports40101
-Node: Budgets44790
-Ref: #budgets44937
-Node: Custom balance output48906
-Ref: #custom-balance-output49068
-Node: Colour support51234
-Ref: #colour-support51366
-Node: balancesheet51539
-Ref: #balancesheet51675
-Node: balancesheetequity53986
-Ref: #balancesheetequity54135
-Node: cashflow54672
-Ref: #cashflow54800
-Node: check-dates56923
-Ref: #check-dates57050
-Node: check-dupes57167
-Ref: #check-dupes57291
-Node: close57428
-Ref: #close57535
-Node: help57865
-Ref: #help57965
-Node: import59039
-Ref: #import59153
-Node: incomestatement59883
-Ref: #incomestatement60017
-Node: prices62421
-Ref: #prices62536
-Node: print62579
-Ref: #print62689
-Node: print-unique67583
-Ref: #print-unique67709
-Node: register67777
-Ref: #register67904
-Node: Custom register output72405
-Ref: #custom-register-output72534
-Node: register-match73764
-Ref: #register-match73898
-Node: rewrite74081
-Ref: #rewrite74198
-Node: stats74267
-Ref: #stats74370
-Node: tags75240
-Ref: #tags75338
-Node: test75574
-Ref: #test75658
-Node: ADD-ON COMMANDS76026
-Ref: #add-on-commands76136
-Node: Official add-ons77423
-Ref: #official-add-ons77563
-Node: api77650
-Ref: #api77739
-Node: ui77791
-Ref: #ui77890
-Node: web77948
-Ref: #web78037
-Node: Third party add-ons78083
-Ref: #third-party-add-ons78258
-Node: diff78393
-Ref: #diff78490
-Node: iadd78589
-Ref: #iadd78703
-Node: interest78786
-Ref: #interest78907
-Node: irr79002
-Ref: #irr79100
-Node: Experimental add-ons79178
-Ref: #experimental-add-ons79330
-Node: autosync79610
-Ref: #autosync79721
-Node: chart79960
-Ref: #chart80079
-Node: check80150
-Ref: #check80252
+Node: Report start & end date13285
+Ref: #report-start-end-date13455
+Node: Report intervals14520
+Ref: #report-intervals14683
+Node: Period expressions15084
+Ref: #period-expressions15244
+Node: Depth limiting19201
+Ref: #depth-limiting19345
+Node: Pivoting19687
+Ref: #pivoting19805
+Node: Cost21481
+Ref: #cost21589
+Node: Market value21707
+Ref: #market-value21842
+Node: Combining -B and -V23025
+Ref: #combining--b-and--v23188
+Node: Output destination23335
+Ref: #output-destination23497
+Node: Output format23780
+Ref: #output-format23932
+Node: Regular expressions24317
+Ref: #regular-expressions24454
+Node: QUERIES25815
+Ref: #queries25917
+Node: COMMANDS29884
+Ref: #commands29996
+Node: accounts30978
+Ref: #accounts31076
+Node: activity32322
+Ref: #activity32432
+Node: add32792
+Ref: #add32891
+Node: balance35552
+Ref: #balance35663
+Node: Flat mode39167
+Ref: #flat-mode39292
+Node: Depth limited balance reports39712
+Ref: #depth-limited-balance-reports39913
+Node: Multicolumn balance reports40333
+Ref: #multicolumn-balance-reports40528
+Node: Budgets45217
+Ref: #budgets45364
+Node: Custom balance output49333
+Ref: #custom-balance-output49495
+Node: Colour support51661
+Ref: #colour-support51793
+Node: balancesheet51966
+Ref: #balancesheet52102
+Node: balancesheetequity54413
+Ref: #balancesheetequity54562
+Node: cashflow55099
+Ref: #cashflow55227
+Node: check-dates57350
+Ref: #check-dates57477
+Node: check-dupes57594
+Ref: #check-dupes57718
+Node: close57855
+Ref: #close57962
+Node: help58292
+Ref: #help58392
+Node: import59466
+Ref: #import59580
+Node: incomestatement60310
+Ref: #incomestatement60444
+Node: prices62848
+Ref: #prices62963
+Node: print63006
+Ref: #print63116
+Node: print-unique68010
+Ref: #print-unique68136
+Node: register68204
+Ref: #register68331
+Node: Custom register output72832
+Ref: #custom-register-output72961
+Node: register-match74191
+Ref: #register-match74325
+Node: rewrite74508
+Ref: #rewrite74625
+Node: stats74694
+Ref: #stats74797
+Node: tags75667
+Ref: #tags75765
+Node: test76001
+Ref: #test76085
+Node: ADD-ON COMMANDS76453
+Ref: #add-on-commands76563
+Node: Official add-ons77850
+Ref: #official-add-ons77990
+Node: api78077
+Ref: #api78166
+Node: ui78218
+Ref: #ui78317
+Node: web78375
+Ref: #web78464
+Node: Third party add-ons78510
+Ref: #third-party-add-ons78685
+Node: diff78820
+Ref: #diff78917
+Node: iadd79016
+Ref: #iadd79130
+Node: interest79213
+Ref: #interest79334
+Node: irr79429
+Ref: #irr79527
+Node: Experimental add-ons79605
+Ref: #experimental-add-ons79757
+Node: autosync80037
+Ref: #autosync80148
+Node: chart80387
+Ref: #chart80506
+Node: check80577
+Ref: #check80679
 
 End Tag Table

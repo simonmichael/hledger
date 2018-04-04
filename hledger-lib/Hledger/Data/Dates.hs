@@ -650,25 +650,58 @@ parsedate s =  fromMaybe (error' $ "could not parse date \"" ++ s ++ "\"")
 -- #endif
 
 {-|
-Parse a date in any of the formats allowed in ledger's period expressions,
-and maybe some others:
-
-> 2004
-> 2004/10
-> 2004/10/1
-> 10/1
-> 21
-> october, oct
-> yesterday, today, tomorrow
-> this/next/last week/day/month/quarter/year
-
-Returns a SmartDate, to be converted to a full date later (see fixSmartDate).
+Parse a date in any of the formats allowed in Ledger's period expressions, and some others.
 Assumes any text in the parse stream has been lowercased.
+Returns a SmartDate, to be converted to a full date later (see fixSmartDate).
+
+Examples:
+
+> 2004                                        (start of year, which must have 4+ digits)
+> 2004/10                                     (start of month, which must be 1-12)
+> 2004/10/1                                   (exact date, day must be 1-31)
+> 10/1                                        (month and day in current year)
+> 21                                          (day in current month)
+> october, oct                                (start of month in current year)
+> yesterday, today, tomorrow                  (-1, 0, 1 days from today)
+> last/this/next day/week/month/quarter/year  (-1, 0, 1 periods from the current period)
+> 20181201                                    (8 digit YYYYMMDD with valid year month and day)
+> 201812                                      (6 digit YYYYMM with valid year and month)
+
+Note malformed digit sequences might give surprising results:
+
+> 201813                                      (6 digits with an invalid month is parsed as start of 6-digit year)
+> 20181301                                    (8 digits with an invalid month is parsed as start of 8-digit year)
+> 20181232                                    (8 digits with an invalid day gives an error)
+> 201801012                                   (9+ digits beginning with a valid YYYYMMDD gives an error)
+
+Eg:
+
+YYYYMMDD is parsed as year-month-date if those parts are valid
+(>=4 digits, 1-12, and 1-31 respectively):
+>>> parsewith (smartdate <* eof) "20181201"
+Right ("2018","12","01")
+
+YYYYMM is parsed as year-month-01 if year and month are valid:
+>>> parsewith (smartdate <* eof) "201804"
+Right ("2018","04","01")
+
+With an invalid month, it's parsed as a year:
+>>> parsewith (smartdate <* eof) "201813"
+Right ("201813","","")
+
+A 9+ digit number beginning with valid YYYYMMDD gives an error:
+>>> parsewith (smartdate <* eof) "201801012"
+Left (TrivialError (SourcePos {sourceName = "", sourceLine = Pos 1, sourceColumn = Pos 9} :| []) (Just (Tokens ('2' :| ""))) (fromList [EndOfInput]))
+
+Big numbers not beginning with a valid YYYYMMDD are parsed as a year:
+>>> parsewith (smartdate <* eof) "201813012"
+Right ("201813012","","")
+
 -}
 smartdate :: SimpleTextParser SmartDate
 smartdate = do
   -- XXX maybe obscures date errors ? see ledgerdate
-  (y,m,d) <- choice' [yyyymmdd, ymd, ym, md, y, d, month, mon, today, yesterday, tomorrow, lastthisnextthing]
+  (y,m,d) <- choice' [yyyymmdd, yyyymm, ymd, ym, md, y, d, month, mon, today, yesterday, tomorrow, lastthisnextthing]
   return (y,m,d)
 
 -- | Like smartdate, but there must be nothing other than whitespace after the date.
@@ -702,6 +735,13 @@ yyyymmdd = do
   d <- count 2 digitChar
   failIfInvalidDay d
   return (y,m,d)
+
+yyyymm :: SimpleTextParser SmartDate
+yyyymm = do
+  y <- count 4 digitChar
+  m <- count 2 digitChar
+  failIfInvalidMonth m
+  return (y,m,"01")
 
 ymd :: SimpleTextParser SmartDate
 ymd = do
@@ -946,6 +986,9 @@ periodexprdatespan rdate = choice $ map try [
                             justdatespan rdate
                            ]
 
+-- |
+-- -- >>> parsewith (doubledatespan (parsedate "2018/01/01") <* eof) "20180101-201804"
+-- Right DateSpan 2018/01/01-2018/04/01
 doubledatespan :: Day -> SimpleTextParser DateSpan
 doubledatespan rdate = do
   optional (string "from" >> skipMany spacenonewline)

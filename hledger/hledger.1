@@ -493,49 +493,83 @@ Examples:
 tab(@);
 l l.
 T{
-\f[C]2009/1/1\f[], \f[C]2009/01/01\f[], \f[C]2009\-1\-1\f[],
-\f[C]2009.1.1\f[]
+\f[C]2004/10/1\f[], \f[C]2004\-01\-01\f[], \f[C]2004.9.1\f[]
 T}@T{
-simple dates, several separators allowed
+exact date, several separators allowed.
+Year is 4+ digits, month is 1\-12, day is 1\-31
 T}
 T{
-\f[C]2009/1\f[], \f[C]2009\f[]
+\f[C]2004\f[]
 T}@T{
-same as above \- a missing day or month defaults to 1
+start of year
 T}
 T{
-\f[C]1/1\f[], \f[C]january\f[], \f[C]jan\f[], \f[C]this\ year\f[]
+\f[C]2004/10\f[]
 T}@T{
-relative dates, meaning january 1 of the current year
+start of month
 T}
 T{
-\f[C]next\ year\f[]
+\f[C]10/1\f[]
 T}@T{
-january 1 of next year
+month and day in current year
 T}
 T{
-\f[C]this\ month\f[]
+\f[C]21\f[]
 T}@T{
-the 1st of the current month
+day in current month
 T}
 T{
-\f[C]this\ week\f[]
+\f[C]october,\ oct\f[]
 T}@T{
-the most recent monday
+start of month in current year
 T}
 T{
-\f[C]last\ week\f[]
+\f[C]yesterday,\ today,\ tomorrow\f[]
 T}@T{
-the monday of the week before this one
+\-1, 0, 1 days from today
 T}
 T{
-\f[C]lastweek\f[]
+\f[C]last/this/next\ day/week/month/quarter/year\f[]
 T}@T{
-spaces are optional
+\-1, 0, 1 periods from the current period
 T}
 T{
-\f[C]today\f[], \f[C]yesterday\f[], \f[C]tomorrow\f[]
+\f[C]20181201\f[]
 T}@T{
+8 digit YYYYMMDD with valid year month and day
+T}
+T{
+\f[C]201812\f[]
+T}@T{
+6 digit YYYYMM with valid year and month
+T}
+.TE
+.PP
+Counterexamples \- malformed digit sequences might give surprising
+results:
+.PP
+.TS
+tab(@);
+l l.
+T{
+\f[C]201813\f[]
+T}@T{
+6 digits with an invalid month is parsed as start of 6\-digit year
+T}
+T{
+\f[C]20181301\f[]
+T}@T{
+8 digits with an invalid month is parsed as start of 8\-digit year
+T}
+T{
+\f[C]20181232\f[]
+T}@T{
+8 digits with an invalid day gives an error
+T}
+T{
+\f[C]201801012\f[]
+T}@T{
+9+ digits beginning with a valid YYYYMMDD gives an error
 T}
 .TE
 .SS Report start & end date

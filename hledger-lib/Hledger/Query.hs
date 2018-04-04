@@ -306,6 +306,7 @@ tests_parseQueryTerm = [
     "real:1" `gives` (Left $ Real True)
     "date:2008" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2008/01/01") (Just $ parsedate "2009/01/01"))
     "date:from 2012/5/17" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2012/05/17") Nothing)
+    "date:20180101-201804" `gives` (Left $ Date $ DateSpan (Just $ parsedate "2018/01/01") (Just $ parsedate "2018/04/01"))
     "inacct:a" `gives` (Right $ QueryOptInAcct "a")
     "tag:a" `gives` (Left $ Tag "a" Nothing)
     "tag:a=some value" `gives` (Left $ Tag "a" (Just "some value"))

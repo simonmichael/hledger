@@ -128,17 +128,27 @@ and can have less-significant date parts omitted (defaulting to 1).
 
 Examples:
 
-------------------------------------------------- -----------------------------------------------------------------------------
-`2009/1/1`, `2009/01/01`, `2009-1-1`, `2009.1.1`  simple dates, several separators allowed
-`2009/1`, `2009`                                  same as above - a missing day or month defaults to 1
-`1/1`, `january`, `jan`, `this year`              relative dates, meaning january 1 of the current year
-`next year`                                       january 1 of next year
-`this month`                                      the 1st of the current month
-`this week`                                       the most recent monday
-`last week`                                       the monday of the week before this one
-`lastweek`                                        spaces are optional
-`today`, `yesterday`, `tomorrow`
----
+--------------------------------------------- -----------------------------------------------------------------------------
+`2004/10/1`, `2004-01-01`, `2004.9.1`         exact date, several separators allowed. Year is 4+ digits, month is 1-12, day is 1-31
+`2004`                                        start of year 
+`2004/10`                                     start of month 
+`10/1`                                        month and day in current year
+`21`                                          day in current month
+`october, oct`                                start of month in current year
+`yesterday, today, tomorrow`                  -1, 0, 1 days from today
+`last/this/next day/week/month/quarter/year`  -1, 0, 1 periods from the current period
+`20181201`                                    8 digit YYYYMMDD with valid year month and day
+`201812`                                      6 digit YYYYMM with valid year and month
+--------------------------------------------- -----------------------------------------------------------------------------
+
+Counterexamples - malformed digit sequences might give surprising results:
+
+--------------------------------------------- -----------------------------------------------------------------------------
+`201813`                                      6 digits with an invalid month is parsed as start of 6-digit year
+`20181301`                                    8 digits with an invalid month is parsed as start of 8-digit year
+`20181232`                                    8 digits with an invalid day gives an error
+`201801012`                                   9+ digits beginning with a valid YYYYMMDD gives an error
+--------------------------------------------- -----------------------------------------------------------------------------
 
 ## Report start & end date
 
