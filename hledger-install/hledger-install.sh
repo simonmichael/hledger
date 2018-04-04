@@ -873,7 +873,7 @@ if [[ $VERBOSEFLAG ]]; then
   STACK_VERBOSITY=info    # silent, error, warn, info, debug
 else
   CABAL_VERBOSITY=0
-  STACK_VERBOSITY=info    # error is too quiet, hides install plan failure details
+  STACK_VERBOSITY=error   # XXX error hides install plan failure details, but info shows too many warnings..
   QUIET="true"
 fi
 
