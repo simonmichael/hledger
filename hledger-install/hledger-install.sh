@@ -51,7 +51,7 @@ HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 HLEDGER_INSTALL_VERSION=20180404
 
-RESOLVER=  #"--resolver=nightly"
+RESOLVER="--resolver=lts"
   # ^ You can specify a different stackage snapshot here, 
   # or comment out this line to use your current global resolver, which might 
   # avoid some unnecessary building. OSX Sierra+ requires at least lts-8.0. 
