@@ -876,8 +876,8 @@ ghci-api: (call def-help,ghci-api, start ghci REPL on hledger-lib + hledger + hl
 # 		hledger-web/app/main.hs \
 # 		hledger-api/hledger-api.hs \
 
-ghcid-lib-doctest:
-	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
+ghci-lib-doctest: (call def-help,ghci-lib-doctest, start ghci REPL on hledger-lib doctests)
+	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests
 
 ghcid: $(call def-help,ghcid, start ghcid autobuilder on hledger-lib + hledger)
 	ghcid -c 'make ghci'
@@ -890,6 +890,9 @@ ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + h
 
 ghcid-api: $(call def-help,ghcid-api, start ghcid autobuilder on hledger-lib + hledger + hledger-api)
 	ghcid -c 'make ghci-api'
+
+ghcid-lib-doctest: $(call def-help,ghcid-lib-doctest, start ghcid autobuilder on hledger-lib doctests)
+	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
 
 ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
 	stack exec \
