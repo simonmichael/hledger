@@ -49,7 +49,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20180331
+HLEDGER_INSTALL_VERSION=20180404
 
 RESOLVER=  #"--resolver=nightly"
   # ^ You can specify a different stackage snapshot here, 
