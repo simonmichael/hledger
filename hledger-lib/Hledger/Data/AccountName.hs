@@ -57,8 +57,24 @@ accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
 accountNameLevel a = T.length (T.filter (==acctsepchar) a) + 1
 
+-- | Remove some number of account name components from the front of the account name.
+-- If the special "<unbudgeted>" top-level account is present, it is preserved and
+-- dropping affects the rest of the account name. 
 accountNameDrop :: Int -> AccountName -> AccountName
-accountNameDrop n = accountNameFromComponents . drop n . accountNameComponents
+accountNameDrop n a
+  | a == unbudgetedAccount = a
+  | unbudgetedAccountAndSep `T.isPrefixOf` a =
+      case accountNameDrop n $ T.drop (T.length unbudgetedAccountAndSep) a of
+        "" -> unbudgetedAccount
+        a' -> unbudgetedAccountAndSep <> a'
+  | otherwise = accountNameFromComponents $ drop n $ accountNameComponents a
+  where 
+    unbudgetedAccountAndSep = unbudgetedAccount <> acctsep
+
+-- | A top-level account prefixed to some accounts in budget reports.
+-- Defined here so it can be ignored by accountNameDrop. 
+unbudgetedAccount :: T.Text
+unbudgetedAccount = "<unbudgeted>"
 
 -- | Sorted unique account names implied by these account names,
 -- ie these plus all their parent accounts up to the root.
