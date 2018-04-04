@@ -716,11 +716,17 @@ getAmountStr rules record =
   case (render mamount, render mamountin, render mamountout) of
     (Just "", Nothing, Nothing) -> Nothing
     (Just a,  Nothing, Nothing) -> Just a
-    (Nothing, Just "", Just "") -> error' $ "neither amount-in or amount-out has a value\n"++showRecord record
+    (Nothing, Just "", Just "") -> error' $    "neither amount-in or amount-out has a value\n"
+                                            ++ "    record: " ++ showRecord record
     (Nothing, Just i,  Just "") -> Just i
     (Nothing, Just "", Just o)  -> Just $ negateStr o
-    (Nothing, Just _,  Just _)  -> error' $ "both amount-in and amount-out have a value\n"++showRecord record
-    _                           -> error' $ "found values for amount and for amount-in/amount-out - please use either amount or amount-in/amount-out\n"++showRecord record
+    (Nothing, Just i,  Just o)  -> error' $    "both amount-in and amount-out have a value\n"
+                                            ++ "    amount-in: "  ++ i ++ "\n"
+                                            ++ "    amount-out: " ++ o ++ "\n"
+                                            ++ "    record: "     ++ showRecord record
+    _                           -> error' $    "found values for amount and for amount-in/amount-out\n"
+                                            ++ "please use either amount or amount-in/amount-out\n"
+                                            ++ "    record: " ++ showRecord record
 
 type CsvAmountString = String
 
