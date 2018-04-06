@@ -948,7 +948,7 @@ These were written with Ledger in mind, but also work with hledger files:
 | Editor              |                                                                                            |  
 | ------------------- | ------------------------------------------------------------------------------------------ |  
 | Emacs               | <http://www.ledger-cli.org/3.0/doc/ledger-mode.html>                                       |  
-| Vim                 | <https://github.com/ledger/ledger/wiki/Getting-started>                                    |  
+| Vim                 | <https://github.com/ledger/vim-ledger>                                                     |  
 | Sublime Text        | <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-Sublime-Text-or-RubyMine> |  
 | Textmate            | <https://github.com/ledger/ledger/wiki/Using-TextMate-2>                                   |  
 | Text Wrangler &nbsp;| <https://github.com/ledger/ledger/wiki/Editing-Ledger-files-with-TextWrangler>             |  
