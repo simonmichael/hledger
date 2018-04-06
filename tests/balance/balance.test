@@ -148,3 +148,21 @@ hledger -f - balance -b 2016/10 -e 2016/11
                    0
 >>>2
 >>>= 0
+
+#7. Sorting by account code. Here, balance should display Equity first.
+hledger -f- bal -N
+<<<
+account Equity  1000
+account Assets  2000
+
+2018/1/1
+  (Equity)  1
+
+2018/1/1
+  (Assets)  1
+
+>>>
+                   1  Equity
+                   1  Assets
+>>>2
+>>>=0
