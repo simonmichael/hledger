@@ -139,7 +139,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 
     On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-2. **`stack install --resolver=nightly hledger-lib-1.9 hledger-1.9 [hledger-ui-1.9] [hledger-web-1.9] [hledger-api-1.9]`**\
+2. **`stack install --resolver=lts hledger-lib-1.9 hledger-1.9 [hledger-ui-1.9] [hledger-web-1.9] [hledger-api-1.9]`**\
     This installs the specified hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
     The bracketed packages are optional; if you include them, don't type the brackets, and do always 
     include the preceding hledger-lib and hledger packages.\
@@ -170,7 +170,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
    and [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
    can be installed similarly to the above. Eg:
 
-    **`stack install --resolver nightly hledger-lib-1.9 hledger-1.9 hledger-iadd-1.3.2`**
+    **`stack install --resolver lts hledger-lib-1.9 hledger-1.9 hledger-iadd-1.3.2`**
 
 6. **[Test](#test)**
 
@@ -189,7 +189,7 @@ and includes the [latest improvements](https://github.com/simonmichael/hledger/c
 1. **Install [git](https://en.wikipedia.org/wiki/Git) and [`stack`](#stack)**
 2. **`git clone https://github.com/simonmichael/hledger`**
 3. **`cd hledger`**
-4. **`stack install [hledger]`**  *# build all, or just the command line UI* 
+4. **`stack install --stack-yaml=stack-ghc8.2.yaml [hledger]`**  *# build all, or just the command line UI. Using older snapshot as hledger-ui doesn't build with latest yet* 
 5. **[If you see link errors..](#link-errors)**
 6. **[Set up \$PATH](#set-up-path)**
 7. **[Test](#test)**
