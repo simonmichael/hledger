@@ -153,8 +153,8 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 <!--
     If you need to build with an older GHC version for some reason, these commands should work
    (except on Mac Sierra which [requires at least GHC 8.0.2/lts-8](https://ghc.haskell.org/trac/ghc/ticket/12479)):\
-   `stack install --resolver lts-7 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 brick-0.19 vty-5.15.1 data-clist-0.1.2.0`  *# (GHC 8.0.1)* \
-   `stack install --resolver lts-6 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 megaparsec-5.3.1 brick-0.19 vty-5.15.1 data-clist-0.1.2.0 text-zipper-0.10`  *# (GHC 7.10.3)* \
+   `stack install --resolver=lts-7 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 brick-0.19 vty-5.15.1 data-clist-0.1.2.0`  *# (GHC 8.0.1)* \
+   `stack install --resolver=lts-6 hledger-lib-1.3 hledger-1.3 hledger-ui-1.3 hledger-web-1.3 hledger-api-1.3 megaparsec-5.3.1 brick-0.19 vty-5.15.1 data-clist-0.1.2.0 text-zipper-0.10`  *# (GHC 7.10.3)* \
 --> <!-- keep synced with stack.yaml files -->
 
 3. **[If you see link errors..](#link-errors)**
@@ -170,7 +170,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
    and [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
    can be installed similarly to the above. Eg:
 
-    **`stack install --resolver lts hledger-lib-1.9 hledger-1.9 hledger-iadd-1.3.2`**
+    **`stack install --resolver=lts hledger-lib-1.9 hledger-1.9 hledger-iadd-1.3.2`**
 
 6. **[Test](#test)**
 
