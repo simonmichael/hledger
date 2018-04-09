@@ -33,7 +33,7 @@ Binaries/system packages are quickest to install
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| Windows:             | [Latest available nightly builds](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts) <span class=warnings>([appveyor builds are not up to date](https://github.com/simonmichael/hledger/issues/694), [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
+| Windows:             | [Latest available dev builds](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts) <span class=warnings>([appveyor builds are not up to date](https://github.com/simonmichael/hledger/issues/694), [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
 | Mac:                 | **`brew install hledger`** <span class=warnings>([only hledger CLI is packaged](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))</span>
 | Arch Linux:          | **`pacman -S hledger`** <span class=warnings>([haskell problems are common on Arch at present](https://github.com/simonmichael/hledger/issues/668))</span>
 | Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`**
