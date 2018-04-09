@@ -1,0 +1,19 @@
+../../bin/hledger-find -f- expenses:gifts
+<<<
+2016/1/1 withdraw
+    assets:cash     $20
+    assets:bank
+
+2016/1/1 gift
+    assets:cash     $-15
+    expenses:gifts
+>>>
+; "-" (lines 5-7)
+2016/01/01 gift
+    assets:cash               $-15
+    expenses:gifts             $15
+
+
+>>>2
+>>>=0
+
