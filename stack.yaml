@@ -5,7 +5,7 @@ resolver: nightly-2018-03-25
 packages:
 - hledger-lib
 - hledger
-# - hledger-ui  # blocked on hinotify's async bound
+- hledger-ui
 - hledger-web
 - hledger-api
 
@@ -13,7 +13,7 @@ extra-deps:
 # hledger-lib
 - easytest-0.1.1
 # hledger-ui
-# - fsnotify-0.2.1.1
+- fsnotify-0.2.1.1
 # hledger-web
 - json-0.9.2
 - wai-handler-launch-3.0.2.4

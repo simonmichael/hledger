@@ -189,7 +189,7 @@ and includes the [latest improvements](https://github.com/simonmichael/hledger/c
 1. **Install [git](https://en.wikipedia.org/wiki/Git) and [`stack`](#stack)**
 2. **`git clone https://github.com/simonmichael/hledger`**
 3. **`cd hledger`**
-4. **`stack install --stack-yaml=stack-ghc8.2.yaml [hledger]`**  *# build all, or just the command line UI. Using older snapshot as hledger-ui doesn't build with latest yet* 
+4. **`stack install [hledger]`**  *# build all (or, just the command line UI)* 
 5. **[If you see link errors..](#link-errors)**
 6. **[Set up \$PATH](#set-up-path)**
 7. **[Test](#test)**
