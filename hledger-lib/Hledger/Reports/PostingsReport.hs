@@ -16,6 +16,7 @@ module Hledger.Reports.PostingsReport (
 )
 where
 
+import Data.Function (on)
 import Data.List
 import Data.Maybe
 import Data.Ord (comparing)
@@ -73,9 +74,9 @@ postingsReport opts q j = (totallabel, items)
           showempty = empty_ opts || average_ opts
 
       -- posting report items ready for display
-      items = dbg1 "postingsReport items" $ postingsReportItems displayps (nullposting,Nothing) whichdate depth startbal runningcalc startnum
+      items = dbg1 "postingsReport items" $ postPostingsReportItems $ postingsReportItems displayps (nullposting,Nothing) whichdate depth startbal runningcalc startnum
         where
-          historical = balancetype_ opts == HistoricalBalance
+          historical = balancetype_ opts == HistoricalBalance || balancetype_ opts == AvailableBalance
           precedingsum = sumPostings precedingps
           precedingavg | null precedingps = 0
                        | otherwise        = precedingsum `divideMixedAmount` (fromIntegral $ length precedingps)
@@ -84,6 +85,14 @@ postingsReport opts q j = (totallabel, items)
           startnum = if historical then length precedingps + 1 else 1
           runningcalc | average_ opts = \i avg amt -> avg + (amt - avg) `divideMixedAmount` (fromIntegral i) -- running average
                       | otherwise     = \_ bal amt -> bal + amt                                              -- running total
+          postPostingsReportItems | balancetype_ opts == AvailableBalance = mapMaybe listToMaybe . groupBy ((==) `on` (\(_,_,_,_,x) -> x)) . fst . computeAvailableBalances
+                                  | otherwise = id                                   
+          computeAvailableBalances [] = ([], Nothing)
+          computeAvailableBalances ((a,b,c,d,balance):postings) = case computeAvailableBalances postings of
+            (postings, Nothing) -> ((a,b,c,d,balance):postings, Just balance)
+            (postings, Just available) ->
+              let minBalance = minimumMixedAmounts [available, balance]
+              in ((a,b,c,d,minBalance) : postings, Just minBalance)
 
 totallabel = "Total"
 
