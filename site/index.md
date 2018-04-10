@@ -179,8 +179,7 @@ If you feel the same way, join us!
 <div class="indent1">
 ### fully documented
 
-Time to check out those **[docs](docs.html)**,
-or maybe **[look deeper](contributing.html)**.
+Time to check out those **[docs](docs.html)**!
 
 </div>
 

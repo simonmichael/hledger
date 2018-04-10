@@ -1152,7 +1152,7 @@ Mitchell Rosen, Hans-Peter Deifel, Brian Scott, and Andrew Jones.
 
 -   tools/simplebench has been spun off as the [quickbench](http://hackage.haskell.org/package/quickbench) package.
 
--   add Appveyor CI builds, provide [more up-to-date Windows binaries](http://hledger.org/contributing.html#quick-links)
+-   add Appveyor CI builds, provide more up-to-date Windows binaries
 
 -   extra: add a bunch of CSV rules examples
 
