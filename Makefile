@@ -982,8 +982,6 @@ site/docs.md: wiki/_Sidebar.md \
 	 | perl -p \
 			-e 's/\[\[([^\|]*)\|([^\]]*)\]\]/[\1](https:\/\/github.com\/simonmichael\/hledger\/wiki\/\2)/g;' \
 		  -e 's/\[\[([^\]]*)\]\]/[\1](https:\/\/github.com\/simonmichael\/hledger\/wiki\/\1)/g;' \
-	 | perl -p \
-			-e 's/\[dev\//[/g;' \
 	 ; \
 	 sed -ne '/<!-- ENDWIKICONTENT -->/,$$ p' site/docs.md     ) \
 	> site/_docs.md.$$$$ && \
