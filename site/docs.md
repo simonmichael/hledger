@@ -117,13 +117,10 @@ a file format for human-friendly approximate time logging
 <div class="col-sm-4">
 
 <div id=wiki class=contentbox>
-## Wiki/Cookbook
-
-**[hledger wiki](https://github.com/simonmichael/hledger/wiki)**\
-How-tos, tutorials & tips, including:
-
 <div class=subcontent>
 <!-- WIKICONTENT -->
+## [User Cookbook](https://github.com/simonmichael/hledger/wiki/Home)
+
 ### Getting started
 
 [hledger basics tutorial](https://github.com/simonmichael/hledger/wiki/hledger basics tutorial)  
@@ -170,6 +167,8 @@ How-tos, tutorials & tips, including:
 [ledger-cli.org](http://ledger-cli.org) - [docs](https://www.ledger-cli.org/docs.html) - [wiki](https://github.com/ledger/ledger/wiki)  
 
 [Beancount's docs](http://furius.ca/beancount/doc/index)
+
+## [Dev Zone](https://github.com/simonmichael/hledger/wiki/dev/Dev Zone)
 <!-- ENDWIKICONTENT -->
 </div>
 </div>

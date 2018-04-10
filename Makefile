@@ -978,8 +978,13 @@ site-build: site/hakyll-std/hakyll-std site/manual.md \
 site/docs.md: wiki/_Sidebar.md \
 	$(call def-help,site/docs.md, update docs page with wiki sidebar content which should be in ./wiki/_Sidebar )
 	(sed -ne '1,/<!-- WIKICONTENT -->/ p'     site/docs.md     ; \
-	 sed -ne '/^#/,$$ p'                     wiki/_Sidebar.md \
-		| perl -p -e 's/\[\[([^\]]*)\]\]/[\1](https:\/\/github.com\/simonmichael\/hledger\/wiki\/\1)/g' ; \
+	 sed -ne '/^#.*User/,$$ p'                 wiki/_Sidebar.md \
+	 | perl -p \
+			-e 's/\[\[([^\|]*)\|([^\]]*)\]\]/[\1](https:\/\/github.com\/simonmichael\/hledger\/wiki\/\2)/g;' \
+		  -e 's/\[\[([^\]]*)\]\]/[\1](https:\/\/github.com\/simonmichael\/hledger\/wiki\/\1)/g;' \
+	 | perl -p \
+			-e 's/\[dev\//[/g;' \
+	 ; \
 	 sed -ne '/<!-- ENDWIKICONTENT -->/,$$ p' site/docs.md     ) \
 	> site/_docs.md.$$$$ && \
 	mv site/_docs.md.$$$$ site/docs.md
