@@ -5,37 +5,37 @@
 {-# LANGUAGE CPP #-}
 
 module Hledger.Utils.Text
- --  (
+  (
  -- -- * misc
  -- lowercase,
  -- uppercase,
  -- underline,
  -- stripbrackets,
- -- unbracket,
+  textUnbracket,
  -- -- quoting
- -- quoteIfSpaced,
+  quoteIfSpaced,
  -- quoteIfNeeded,
  -- singleQuoteIfNeeded,
  -- -- quotechars,
  -- -- whitespacechars,
- -- escapeDoubleQuotes,
+  escapeDoubleQuotes,
  -- escapeSingleQuotes,
  -- escapeQuotes,
  -- words',
  -- unwords',
- -- stripquotes,
+  stripquotes,
  -- isSingleQuoted,
  -- isDoubleQuoted,
  -- -- * single-line layout
- -- strip,
- -- lstrip,
- -- rstrip,
+  textstrip,
+  textlstrip,
+  textrstrip,
  -- chomp,
  -- elideLeft,
- -- elideRight,
+  textElideRight,
  -- formatString,
  -- -- * multi-line layout
- -- concatTopPadded,
+  textConcatTopPadded,
  -- concatBottomPadded,
  -- concatOneLine,
  -- vConcatLeftAligned,
@@ -46,14 +46,15 @@ module Hledger.Utils.Text
  -- padright,
  -- cliptopleft,
  -- fitto,
+  fitText,
  -- -- * wide-character-aware layout
- -- strWidth,
- -- textTakeWidth,
+  textWidth,
+  textTakeWidth,
  -- fitString,
  -- fitStringMulti,
- -- padLeftWide,
- -- padRightWide
- -- )
+  textPadLeftWide,
+  textPadRightWide
+  )
 where
 
 -- import Data.Char
