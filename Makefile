@@ -86,8 +86,10 @@ GHCI=ghci #-package ghc-datasize #-package ghc-heap-view
 # HADDOCK=haddock
 # CABAL=cabal
 # CABALINSTALL=cabal install -w $(GHC)
-STACK=stack --with-hpack=hpack-0.20
-#STACK=stack --stack-yaml=stack-ghc7.yaml
+STACK=stack
+# if using an unreleased stack with a newer hpack than the one mentioned in */*.cabal,
+# it will give warnings. To silence these, put the old hpack-X.Y in $PATH and uncomment:
+#STACK=stack --with-hpack=hpack-0.20
 
 # -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
 SHELLTESTOPTS=--execdir -j16 --hide-successes
