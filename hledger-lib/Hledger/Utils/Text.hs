@@ -53,9 +53,11 @@ module Hledger.Utils.Text
  -- fitString,
  -- fitStringMulti,
   textPadLeftWide,
-  textPadRightWide
+  textPadRightWide,
+  tests_Hledger_Utils_Text
   )
 where
+import Test.HUnit
 
 -- import Data.Char
 import Data.List
@@ -124,7 +126,7 @@ textElideRight width t =
 quoteIfSpaced :: T.Text -> T.Text
 quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
                 | not $ any (`elem` (T.unpack s)) whitespacechars = s
-                | otherwise = "'"<>escapeSingleQuotes s<>"'"
+                | otherwise = quoteIfNeeded s
 
 -- -- | Wrap a string in double quotes, and \-prefix any embedded single
 -- -- quotes, if it contains whitespace and is not already single- or
@@ -136,9 +138,9 @@ quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
 
 -- -- | Double-quote this string if it contains whitespace, single quotes
 -- -- or double-quotes, escaping the quotes as needed.
--- quoteIfNeeded :: T.Text -> T.Text
--- quoteIfNeeded s | any (`elem` T.unpack s) (quotechars++whitespacechars) = "\"" <> escapeDoubleQuotes s <> "\""
---                 | otherwise = s
+quoteIfNeeded :: T.Text -> T.Text
+quoteIfNeeded s | any (`elem` T.unpack s) (quotechars++whitespacechars) = "\"" <> escapeDoubleQuotes s <> "\""
+                | otherwise = s
 
 -- -- | Single-quote this string if it contains whitespace or double-quotes.
 -- -- No good for strings containing single quotes.
@@ -151,10 +153,10 @@ quotechars      = "'\""
 whitespacechars = " \t\n\r"
 
 escapeDoubleQuotes :: T.Text -> T.Text
-escapeDoubleQuotes = T.replace "\"" "\""
+escapeDoubleQuotes = T.replace "\"" "\\\""
 
-escapeSingleQuotes :: T.Text -> T.Text
-escapeSingleQuotes = T.replace "'" "\'"
+-- escapeSingleQuotes :: T.Text -> T.Text
+-- escapeSingleQuotes = T.replace "'" "\'"
 
 -- escapeQuotes :: String -> String
 -- escapeQuotes = regexReplace "([\"'])" "\\1"
@@ -295,7 +297,7 @@ difforzero a b = maximum [(a - b), 0]
 -- It clips and pads on the right when the fourth argument is true, otherwise on the left.
 -- It treats wide characters as double width.
 fitText :: Maybe Int -> Maybe Int -> Bool -> Bool -> Text -> Text
-fitText mminwidth mmaxwidth ellipsify rightside s = (clip . pad) s
+fitText mminwidth mmaxwidth ellipsify rightside = clip . pad
   where
     clip :: Text -> Text
     clip s =
@@ -416,3 +418,13 @@ textWidth s = maximum $ map (T.foldr (\a b -> charWidth a + b) 0) $ T.lines s
 --         | c >= '\x20000' && c <= '\x3FFFD' -> 2
 --         | otherwise                        -> 1
 
+
+tests_Hledger_Utils_Text = TestList [
+      quoteIfSpaced "a'a" ~?= "a'a"
+    , quoteIfSpaced "a\"a" ~?= "a\"a"
+    , quoteIfSpaced "a a" ~?= "\"a a\""
+    , quoteIfSpaced "mimi's cafe" ~?= "\"mimi's cafe\""
+    , quoteIfSpaced "\"alex\" cafe" ~?= "\"\\\"alex\\\" cafe\""
+    , quoteIfSpaced "le'shan's cafe" ~?= "\"le'shan's cafe\""
+    , quoteIfSpaced "\"be'any's\" cafe" ~?= "\"\\\"be'any's\\\" cafe\""
+    ]

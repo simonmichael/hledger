@@ -33,6 +33,8 @@ module Hledger.Utils (---- provide these frequently used modules - or not, for c
                           -- the rest need to be done in each module I think
                           )
 where
+import Test.HUnit
+
 import Control.Monad (liftM, when)
 -- import Data.Char
 import Data.Default
@@ -212,3 +214,8 @@ sequence' ms = do
 {-# INLINABLE mapM' #-}
 mapM' :: Monad f => (a -> f b) -> [a] -> f [b]
 mapM' f = sequence' . map f
+
+tests_Hledger_Utils :: Test
+tests_Hledger_Utils = TestList [
+    tests_Hledger_Utils_Text
+    ]

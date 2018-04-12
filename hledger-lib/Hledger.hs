@@ -17,4 +17,5 @@ tests_Hledger = TestList
     ,tests_Hledger_Query
     ,tests_Hledger_Read
     ,tests_Hledger_Reports
+    ,tests_Hledger_Utils
     ]
