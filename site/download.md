@@ -139,7 +139,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 
     On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-2. **`stack install --resolver=lts hledger-lib-1.9 hledger-1.9 [hledger-ui-1.9] [hledger-web-1.9] [hledger-api-1.9]`**\
+2. **`stack install --resolver=lts hledger-lib-1.9 hledger-1.9 [hledger-ui-1.9] [hledger-web-1.9.1] [hledger-api-1.9]`**\
     This installs the specified hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
     The bracketed packages are optional; if you include them, don't type the brackets, and do always 
     include the preceding hledger-lib and hledger packages.\
