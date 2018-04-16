@@ -15,10 +15,10 @@ hledger print -f- --auto
 >>>
 2016/01/01 paycheck
     income:remuneration           $-100
-    income:donations               $-15
-    assets:bank
     (liabilities:tax)              $-33    ; income tax
+    income:donations               $-15
     (liabilities:tax)               $-5    ; income tax
+    assets:bank
 
 2016/01/01 withdraw
     assets:cash             $20
@@ -42,12 +42,27 @@ hledger register -f- --auto
   (liabilities:tax)  *.33  ; income tax
 >>>
 2016/01/01 paycheck             income:remuneration          $-100         $-100
-                                income:donations              $-15         $-115
-                                assets:bank                   $115             0
-                                (liabilities:tax)             $-33          $-33
-                                (liabilities:tax)              $-5          $-38
+                                (liabilities:tax)             $-33         $-133
+                                income:donations              $-15         $-148
+                                (liabilities:tax)              $-5         $-153
+                                assets:bank                   $115          $-38
 2016/01/01 withdraw             assets:cash                    $20          $-18
                                 assets:bank                   $-20          $-38
+>>>2
+>>>=0
+
+hledger register -f- --auto
+<<<
+= trigger
+  (target)   10
+
+2018/1/1
+  (trigger)   1
+  (target)    1    = 11  ; this assertion would not fail, auto posting will be taken into account
+>>>
+2018/01/01                      (trigger)                        1             1
+                                (target)                        10            11
+                                (target)                         1            12
 >>>2
 >>>=0
 
