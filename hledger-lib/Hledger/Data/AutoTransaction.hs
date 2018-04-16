@@ -71,8 +71,9 @@ runModifierTransaction :: Query -> ModifierTransaction -> (Transaction -> Transa
 runModifierTransaction q mt = modifier where
     q' = simplifyQuery $ And [q, mtvaluequery mt (error "query cannot depend on current time")]
     mods = map runModifierPosting $ mtpostings mt
-    generatePostings ps = [m p | p <- ps, q' `matchesPosting` p, m <- mods]
-    modifier t@(tpostings -> ps) = t { tpostings = ps ++ generatePostings ps }
+    generatePostings ps = [p' | p <- ps
+                              , p' <- if q' `matchesPosting` p then p:[ m p | m <- mods] else [p]]
+    modifier t@(tpostings -> ps) = t { tpostings = generatePostings ps }
 
 -- | Extract 'Query' equivalent of 'mtvalueexpr' from 'ModifierTransaction'
 --
