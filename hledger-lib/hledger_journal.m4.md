@@ -932,9 +932,11 @@ This example adds a corresponding (unbalanced) budget posting to every transacti
 $ hledger print --auto
 2017/12/14
     expenses:gifts             $20
-    assets
     (budget:gifts)            $-20
+    assets
 ```
+
+Automated postings would not be distinguishable from equivalent postings written by hand. In particular, they would affect [amount inference|#postings] and [balance assertion|#balance-assertions] checks in the usual way.
 
 # EDITOR SUPPORT
 
