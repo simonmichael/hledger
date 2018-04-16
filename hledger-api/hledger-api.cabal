@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f3634e33165cee47d5e654d9261a1c38195c0466a0c52c659e5833033a73416a
+-- hash: f3ae96bc4a552af6049713498efd77ef61e5ade3bac393e45e47b484335029bd
 
 name:           hledger-api
 version:        1.9
@@ -51,6 +51,7 @@ executable hledger-api
     , base >=4.8 && <4.12
     , bytestring
     , containers
+    , data-default >=0.5
     , docopt
     , either
     , hledger >=1.9 && <2.0

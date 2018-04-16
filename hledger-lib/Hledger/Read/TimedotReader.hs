@@ -65,8 +65,8 @@ reader = Reader
   }
 
 -- | Parse and post-process a "Journal" from the timedot format, or give an error.
-parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
-parse _ = parseAndFinaliseJournal timedotfilep
+parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
+parse = parseAndFinaliseJournal timedotfilep
 
 timedotfilep :: JournalParser m ParsedJournal
 timedotfilep = do many timedotfileitemp

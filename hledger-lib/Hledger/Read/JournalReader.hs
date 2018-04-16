@@ -119,8 +119,8 @@ reader = Reader
 
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
-parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
-parse _ = parseAndFinaliseJournal journalp
+parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
+parse = parseAndFinaliseJournal journalp
 
 --- * parsers
 --- ** journal

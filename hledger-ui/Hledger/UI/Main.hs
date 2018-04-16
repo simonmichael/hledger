@@ -81,7 +81,6 @@ withJournalDoUICommand uopts@UIOpts{cliopts_=copts} cmd = do
          . journalApplyAliases (aliasesFromOpts copts)
        <=< journalApplyValue (reportopts_ copts)
        <=< journalAddForecast copts
-         . generateAutomaticPostings (reportopts_ copts)
   either error' fn ej
 
 runBrickUi :: UIOpts -> Journal -> IO ()
