@@ -17,6 +17,7 @@ import           Control.Monad
 import           Data.Aeson
 import qualified Data.ByteString.Lazy.Char8 as BL8
 import           Data.Decimal
+import           Data.Default
 import qualified Data.Map as M
 import           Data.Proxy
 import           Data.String (fromString)
@@ -90,7 +91,7 @@ main = do
   let
     defd = "."
     d = getArgWithDefault args defd (longOption "static-dir")
-  readJournalFile Nothing Nothing True f >>= either error' (serveApi h p d f)
+  readJournalFile Nothing def f >>= either error' (serveApi h p d f)
 
 serveApi :: String -> Int -> FilePath -> FilePath -> Journal -> IO ()
 serveApi h p d f j = do

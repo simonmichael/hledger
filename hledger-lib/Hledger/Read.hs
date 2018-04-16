@@ -40,6 +40,7 @@ import Control.Applicative ((<|>))
 import Control.Arrow (right)
 import qualified Control.Exception as C
 import Control.Monad.Except
+import Data.Default
 import Data.List
 import Data.Maybe
 import Data.Ord
@@ -90,7 +91,7 @@ type PrefixedFilePath = FilePath
 
 -- | Read the default journal file specified by the environment, or raise an error.
 defaultJournal :: IO Journal
-defaultJournal = defaultJournalPath >>= readJournalFile Nothing Nothing True >>= either error' return
+defaultJournal = defaultJournalPath >>= readJournalFile Nothing def >>= either error' return
 
 -- | Get the default journal file path specified by the environment.
 -- Like ledger, we look first for the LEDGER_FILE environment
@@ -123,14 +124,13 @@ defaultJournalPath = do
 -- (The final parse state saved in the Journal does span all files, however.)
 --
 -- As with readJournalFile,
--- file paths can optionally have a READER: prefix,
--- and the @mformat@, @mrulesfile, and @assrt@ arguments are supported
--- (and these are applied to all files).
+-- input ioptions (@iopts@) specify CSV conversion rules file to help convert CSV data,
+-- enable or disable balance assertion checking and automated posting generation.
 --
-readJournalFiles :: Maybe StorageFormat -> Maybe FilePath -> Bool -> [PrefixedFilePath] -> IO (Either String Journal)
-readJournalFiles mformat mrulesfile assrt prefixedfiles = do
+readJournalFiles :: Maybe StorageFormat -> InputOpts -> [PrefixedFilePath] -> IO (Either String Journal)
+readJournalFiles mformat iopts prefixedfiles = do
   (right mconcat1 . sequence)
-    <$> mapM (readJournalFile mformat mrulesfile assrt) prefixedfiles
+    <$> mapM (readJournalFile mformat iopts) prefixedfiles
   where mconcat1 :: Monoid t => [t] -> t
         mconcat1 [] = mempty
         mconcat1 x = foldr1 mappend x
@@ -146,17 +146,16 @@ readJournalFiles mformat mrulesfile assrt prefixedfiles = do
 -- a recognised file name extension (in readJournal);
 -- if none of these identify a known reader, all built-in readers are tried in turn.
 --
--- A CSV conversion rules file (@mrulesfiles@) can be specified to help convert CSV data.
+-- Input ioptions (@iopts@) specify CSV conversion rules file to help convert CSV data,
+-- enable or disable balance assertion checking and automated posting generation.
 --
--- Optionally, any balance assertions in the journal can be checked (@assrt@).
---
-readJournalFile :: Maybe StorageFormat -> Maybe FilePath -> Bool -> PrefixedFilePath -> IO (Either String Journal)
-readJournalFile mformat mrulesfile assrt prefixedfile = do
+readJournalFile :: Maybe StorageFormat -> InputOpts -> PrefixedFilePath -> IO (Either String Journal)
+readJournalFile mformat iopts prefixedfile = do
   let
     (mprefixformat, f) = splitReaderPrefix prefixedfile
     mfmt = mformat <|> mprefixformat
   requireJournalFileExists f
-  readFileOrStdinPortably f >>= readJournal mfmt mrulesfile assrt (Just f)
+  readFileOrStdinPortably f >>= readJournal mfmt iopts (Just f)
 
 -- | If a filepath is prefixed by one of the reader names and a colon,
 -- split that off. Eg "csv:-" -> (Just "csv", "-").
@@ -195,7 +194,7 @@ newJournalContent = do
 
 -- | Read a Journal from the given text trying all readers in turn, or throw an error.
 readJournal' :: Text -> IO Journal
-readJournal' t = readJournal Nothing Nothing True Nothing t >>= either error' return
+readJournal' t = readJournal Nothing def Nothing t >>= either error' return
 
 tests_readJournal' = [
   "readJournal' parses sample journal" ~: do
@@ -213,17 +212,16 @@ tests_readJournal' = [
 -- If none of these identify a known reader, all built-in readers are tried in turn
 -- (returning the first one's error message if none of them succeed).
 --
--- A CSV conversion rules file (@mrulesfiles@) can be specified to help convert CSV data.
+-- Input ioptions (@iopts@) specify CSV conversion rules file to help convert CSV data,
+-- enable or disable balance assertion checking and automated posting generation.
 --
--- Optionally, any balance assertions in the journal can be checked (@assrt@).
---
-readJournal :: Maybe StorageFormat -> Maybe FilePath -> Bool -> Maybe FilePath -> Text -> IO (Either String Journal)
-readJournal mformat mrulesfile assrt mfile txt =
+readJournal :: Maybe StorageFormat -> InputOpts -> Maybe FilePath -> Text -> IO (Either String Journal)
+readJournal mformat iopts mfile txt =
   let
     stablereaders = filter (not.rExperimental) readers
     rs = maybe stablereaders (:[]) $ findReader mformat mfile
   in
-    tryReaders rs mrulesfile assrt mfile txt
+    tryReaders rs iopts mfile txt
 
 -- | @findReader mformat mpath@
 --
@@ -245,14 +243,14 @@ findReader Nothing (Just path) =
 --
 -- Try to parse the given text to a Journal using each reader in turn,
 -- returning the first success, or if all of them fail, the first error message.
-tryReaders :: [Reader] -> Maybe FilePath -> Bool -> Maybe FilePath -> Text -> IO (Either String Journal)
-tryReaders readers mrulesfile assrt path t = firstSuccessOrFirstError [] readers
+tryReaders :: [Reader] -> InputOpts -> Maybe FilePath -> Text -> IO (Either String Journal)
+tryReaders readers iopts path t = firstSuccessOrFirstError [] readers
   where
     firstSuccessOrFirstError :: [String] -> [Reader] -> IO (Either String Journal)
     firstSuccessOrFirstError [] []        = return $ Left "no readers found"
     firstSuccessOrFirstError errs (r:rs) = do
       dbg1IO "trying reader" (rFormat r)
-      result <- (runExceptT . (rParser r) mrulesfile assrt path') t
+      result <- (runExceptT . (rParser r) iopts path') t
       dbg1IO "reader result" $ either id show result
       case result of Right j -> return $ Right j                        -- success!
                      Left e  -> firstSuccessOrFirstError (errs++[e]) rs -- keep trying
@@ -356,7 +354,7 @@ tryReadersWithOpts iopts mpath readers txt = firstSuccessOrFirstError [] readers
     firstSuccessOrFirstError [] []        = return $ Left "no readers found"
     firstSuccessOrFirstError errs (r:rs) = do
       dbg1IO "trying reader" (rFormat r)
-      result <- (runExceptT . (rParser r) (mrules_file_ iopts) (not $ ignore_assertions_ iopts) path) txt
+      result <- (runExceptT . (rParser r) iopts path) txt
       dbg1IO "reader result" $ either id show result
       case result of Right j -> return $ Right j                        -- success!
                      Left e  -> firstSuccessOrFirstError (errs++[e]) rs -- keep trying
@@ -408,7 +406,7 @@ tests_Hledger_Read = TestList $
    "journal" ~: do
     r <- runExceptT $ parseWithState mempty JournalReader.journalp ""
     assertBool "journalp should parse an empty file" (isRight $ r)
-    jE <- readJournal Nothing Nothing True Nothing "" -- don't know how to get it from journal
+    jE <- readJournal Nothing def Nothing "" -- don't know how to get it from journal
     either error' (assertBool "journalp parsing an empty file should give an empty journal" . null . jtxns) jE
 
   ]

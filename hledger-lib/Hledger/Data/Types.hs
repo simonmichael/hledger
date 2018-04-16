@@ -22,7 +22,6 @@ where
 
 import GHC.Generics (Generic)
 import Control.DeepSeq (NFData)
-import Control.Monad.Except (ExceptT)
 import Data.Data
 import Data.Decimal
 import Data.Default
@@ -328,28 +327,6 @@ type ParsedJournal = Journal
 -- | The id of a data format understood by hledger, eg @journal@ or @csv@.
 -- The --output-format option selects one of these for output.
 type StorageFormat = String
-
--- | A hledger journal reader is a triple of storage format name, a
--- detector of that format, and a parser from that format to Journal.
-data Reader = Reader {
-
-     -- The canonical name of the format handled by this reader
-     rFormat   :: StorageFormat
-
-     -- The file extensions recognised as containing this format
-    ,rExtensions :: [String]
-
-     -- A text parser for this format, accepting an optional rules file,
-     -- assertion-checking flag, and file path for error messages,
-     -- producing an exception-raising IO action that returns a journal
-     -- or error message.
-    ,rParser   :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
-
-     -- Experimental readers are never tried automatically.
-    ,rExperimental :: Bool
-    }
-
-instance Show Reader where show r = rFormat r ++ " reader"
 
 -- | An account, with name, balances and links to parent/subaccounts
 -- which let you walk up or down the account tree.

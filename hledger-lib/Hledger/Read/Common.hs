@@ -47,6 +47,28 @@ import Text.Megaparsec.Compat
 
 import Hledger.Data
 import Hledger.Utils
+import qualified Hledger.Query as Q (Query(Any))
+
+-- | A hledger journal reader is a triple of storage format name, a
+-- detector of that format, and a parser from that format to Journal.
+data Reader = Reader {
+
+     -- The canonical name of the format handled by this reader
+     rFormat   :: StorageFormat
+
+     -- The file extensions recognised as containing this format
+    ,rExtensions :: [String]
+
+     -- A text parser for this format, accepting input options, file
+     -- path for error messages and file contents, producing an exception-raising IO
+     -- action that returns a journal or error message.
+    ,rParser   :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
+
+     -- Experimental readers are never tried automatically.
+    ,rExperimental :: Bool
+    }
+
+instance Show Reader where show r = rFormat r ++ " reader"
 
 -- $setup
 
@@ -63,12 +85,13 @@ data InputOpts = InputOpts {
     ,new_               :: Bool                 -- ^ read only new transactions since this file was last read
     ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
     ,pivot_             :: String               -- ^ use the given field's value as the account name 
+    ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed     
  } deriving (Show, Data) --, Typeable)
 
 instance Default InputOpts where def = definputopts
 
 definputopts :: InputOpts
-definputopts = InputOpts def def def def def def True def
+definputopts = InputOpts def def def def def def True def def
 
 rawOptsToInputOpts :: RawOpts -> InputOpts
 rawOptsToInputOpts rawopts = InputOpts{
@@ -81,6 +104,7 @@ rawOptsToInputOpts rawopts = InputOpts{
   ,new_               = boolopt "new" rawopts
   ,new_save_          = True
   ,pivot_             = stringopt "pivot" rawopts
+  ,auto_              = boolopt "auto" rawopts                        
   }
 
 --- * parsing utils
@@ -115,27 +139,40 @@ journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ 
             | otherwise = unPos $ sourceLine p' -- might be at end of file withat last new-line
 
 
--- | Given a megaparsec ParsedJournal parser, balance assertion flag, file
+-- | Generate Automatic postings and add them to the current journal.
+generateAutomaticPostings :: Journal -> Journal
+generateAutomaticPostings j = j { jtxns = map modifier $ jtxns j }
+  where
+    modifier = foldr (flip (.) . runModifierTransaction') id mtxns
+    runModifierTransaction' = fmap txnTieKnot . runModifierTransaction Q.Any
+    mtxns = jmodifiertxns j
+
+-- | Given a megaparsec ParsedJournal parser, input options, file
 -- path and file content: parse and post-process a Journal, or give an error.
-parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> Bool
-                        -> FilePath -> Text -> ExceptT String IO Journal
-parseAndFinaliseJournal parser assrt f txt = do
+parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
+                           -> FilePath -> Text -> ExceptT String IO Journal
+parseAndFinaliseJournal parser iopts f txt = do
   t <- liftIO getClockTime
   y <- liftIO getCurrentYear
   ep <- runParserT (evalStateT parser nulljournal {jparsedefaultyear=Just y}) f txt
   case ep of
-    Right pj -> case journalFinalise t f txt assrt pj of
+    Right pj -> 
+      let pj' = if auto_ iopts then generateAutomaticPostings pj else pj in
+      case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
                         Right j -> return j
                         Left e  -> throwError e
     Left e   -> throwError $ parseErrorPretty e
 
-parseAndFinaliseJournal' :: JournalParser Identity ParsedJournal -> Bool -> FilePath -> Text -> ExceptT String IO Journal
-parseAndFinaliseJournal' parser assrt f txt = do
+parseAndFinaliseJournal' :: JournalParser Identity ParsedJournal -> InputOpts 
+                            -> FilePath -> Text -> ExceptT String IO Journal
+parseAndFinaliseJournal' parser iopts f txt = do
   t <- liftIO getClockTime
   y <- liftIO getCurrentYear
   let ep = runParser (evalStateT parser nulljournal {jparsedefaultyear=Just y}) f txt
   case ep of
-    Right pj -> case journalFinalise t f txt assrt pj of
+    Right pj -> 
+      let pj' = if auto_ iopts then generateAutomaticPostings pj else pj in      
+      case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
                         Right j -> return j
                         Left e  -> throwError e
     Left e   -> throwError $ parseErrorPretty e
