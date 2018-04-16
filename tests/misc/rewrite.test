@@ -14,10 +14,10 @@ hledger rewrite -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax
 >>>
 2016/01/01 paycheck
     income:remuneration           $-100
-    income:donations               $-15
-    assets:bank
     (liabilities:tax)              $-33    ; income tax
+    income:donations               $-15
     (liabilities:tax)               $-5    ; income tax
+    assets:bank
 
 2016/01/01 withdraw
     assets:cash             $20
@@ -194,25 +194,25 @@ hledger rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0'
 
 2017/01/01
     expenses:food             $20.00
+    (budget:food)            $-20.00
+    Here comes Santa               0
     expenses:leisure          $15.00
+    (budget:misc)            $-15.00
+    Here comes Santa               0
     expenses:grocery          $30.00
+    (budget:food)            $-30.00
+    Here comes Santa               0
     assets:cash
     Here comes Santa               0
-    Here comes Santa               0
-    Here comes Santa               0
-    Here comes Santa               0
-    (budget:food)            $-20.00
-    (budget:food)            $-30.00
-    (budget:misc)            $-15.00
 
 2017/01/02
     assets:cash              $200.00
+    Here comes Santa               0
     assets:bank
-    Here comes Santa               0
-    Here comes Santa               0
     assets:bank               $-1.60
     expenses:fee               $1.60    ; cash withdraw fee
     (budget:misc)             $-1.60
+    Here comes Santa               0
 
 2017/02/01
     assets:cash         $100.00
