@@ -60,7 +60,7 @@ import Text.Printf (printf)
 import Hledger.Data
 import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
-import Hledger.Read.Common (amountp, statusp, genericSourcePos)
+import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos)
 
 
 reader :: Reader
@@ -73,8 +73,9 @@ reader = Reader
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.
 -- XXX currently ignores the string and reads from the file path
-parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
-parse rulesfile _ f t = do
+parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
+parse iopts f t = do
+  let rulesfile = mrules_file_ iopts
   r <- liftIO $ readJournalFromCsv rulesfile f t
   case r of Left e -> throwError e
             Right j -> return $ journalNumberAndTieTransactions j

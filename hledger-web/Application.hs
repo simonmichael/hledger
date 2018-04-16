@@ -6,6 +6,7 @@ module Application
     , makeFoundation
     ) where
 
+import Data.Default
 import Data.IORef
 import Import
 import Yesod.Default.Config
@@ -79,7 +80,7 @@ makeFoundation conf opts = do
 getApplicationDev :: IO (Int, Application)
 getApplicationDev = do
   f <- head `fmap` journalFilePathFromOpts defcliopts -- XXX head should be safe for now
-  j <- either error' id `fmap` readJournalFile Nothing Nothing True f
+  j <- either error' id `fmap` readJournalFile Nothing def f
   defaultDevelApp loader (makeApplication defwebopts j)
   where
     loader = Yesod.Default.Config.loadConfig (configSettings Development)

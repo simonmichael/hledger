@@ -79,8 +79,8 @@ reader = Reader
 -- | Parse and post-process a "Journal" from timeclock.el's timeclock
 -- format, saving the provided file path and the current time, or give an
 -- error.
-parse :: Maybe FilePath -> Bool -> FilePath -> Text -> ExceptT String IO Journal
-parse _ = parseAndFinaliseJournal timeclockfilep
+parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
+parse = parseAndFinaliseJournal timeclockfilep
 
 timeclockfilep :: ErroringJournalParser IO ParsedJournal
 timeclockfilep = do many timeclockitemp

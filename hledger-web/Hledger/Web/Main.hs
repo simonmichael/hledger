@@ -23,6 +23,7 @@ import Network.Wai.Handler.Launch (runHostPortUrl)
 import Control.Applicative ((<$>))
 #endif
 import Control.Monad
+import Data.Default
 import Data.Text (pack)
 import System.Exit (exitSuccess)
 import System.IO (hFlush, stdout)
@@ -65,8 +66,7 @@ withJournalDo' opts@WebOpts {cliopts_ = cliopts} cmd = do
          . journalApplyAliases (aliasesFromOpts cliopts)
        <=< journalApplyValue (reportopts_ cliopts)
        <=< journalAddForecast cliopts
-         . generateAutomaticPostings (reportopts_ cliopts)
-  readJournalFile Nothing Nothing True f >>= either error' fn
+  readJournalFile Nothing def f >>= either error' fn
 
 -- | The web command.
 web :: WebOpts -> Journal -> IO ()

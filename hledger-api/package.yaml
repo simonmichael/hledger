@@ -38,6 +38,7 @@ dependencies:
 - aeson
 - bytestring
 - containers
+- data-default >=0.5
 - Decimal
 - docopt
 - either
