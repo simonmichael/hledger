@@ -350,7 +350,7 @@ tests_balanceReport =
      ]
 
     ,"accounts report with cost basis" ~: do
-       j <- (readJournal Nothing Nothing Nothing $ unlines
+       j <- (readJournal def Nothing $ unlines
               [""
               ,"2008/1/1 test           "
               ,"  a:b          10h @ $50"

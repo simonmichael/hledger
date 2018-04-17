@@ -39,7 +39,7 @@ import Handler.SidebarR
 
 import Hledger.Web.WebOptions (WebOpts(..), defwebopts)
 import Hledger.Data (Journal, nulljournal)
-import Hledger.Read (readJournalFileWithOpts)
+import Hledger.Read (readJournalFile)
 import Hledger.Utils (error')
 import Hledger.Cli.CliOptions (defcliopts, journalFilePathFromOpts)
 
@@ -80,7 +80,7 @@ makeFoundation conf opts = do
 getApplicationDev :: IO (Int, Application)
 getApplicationDev = do
   f <- head `fmap` journalFilePathFromOpts defcliopts -- XXX head should be safe for now
-  j <- either error' id `fmap` readJournalFileWithOpts def f
+  j <- either error' id `fmap` readJournalFile def f
   defaultDevelApp loader (makeApplication defwebopts j)
   where
     loader = Yesod.Default.Config.loadConfig (configSettings Development)

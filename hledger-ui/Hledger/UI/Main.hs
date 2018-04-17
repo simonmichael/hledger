@@ -74,7 +74,7 @@ main = do
 withJournalDoUICommand :: UIOpts -> (UIOpts -> Journal -> IO ()) -> IO ()
 withJournalDoUICommand uopts@UIOpts{cliopts_=copts} cmd = do
   journalpath <- journalFilePathFromOpts copts
-  ej <- readJournalFilesWithOpts (inputopts_ copts) journalpath
+  ej <- readJournalFiles (inputopts_ copts) journalpath
   let fn = cmd uopts
          . pivotByOpts copts
          . anonymiseByOpts copts

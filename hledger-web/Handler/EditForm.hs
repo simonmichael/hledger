@@ -61,7 +61,7 @@
 --        setMessage "No change"
 --        redirect JournalR
 --      else do
---       jE <- liftIO $ readJournal Nothing Nothing True (Just journalpath) tnew
+--       jE <- liftIO $ readJournal def (Just journalpath) tnew
 --       either
 --        (\e -> do
 --           setMessage $ toHtml e
