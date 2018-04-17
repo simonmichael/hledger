@@ -16,7 +16,6 @@ module Hledger.Data.Journal (
   addModifierTransaction,
   addPeriodicTransaction,
   addTransaction,
-  journalApplyAliases,
   journalBalanceTransactions,
   journalApplyCommodityStyles,
   commodityStylesFromAmounts,
@@ -484,19 +483,6 @@ filterJournalTransactionsByAccount apats j@Journal{jtxns=ts} = j{jtxns=filter tm
       (negatives,positives) = partition isnegativepat apats
 
 -}
-
--- | Apply additional account aliases (eg from the command-line) to all postings in a journal.
-journalApplyAliases :: [AccountAlias] -> Journal -> Journal
-journalApplyAliases aliases j@Journal{jtxns=ts} =
-  -- (if null aliases
-  --  then id
-  --  else (dbgtrace $
-  --        "applying additional command-line aliases:\n"
-  --        ++ chomp (unlines $ map (" "++) $ lines $ ppShow aliases))) $
-  j{jtxns=map dotransaction ts}
-    where
-      dotransaction t@Transaction{tpostings=ps} = t{tpostings=map doposting ps}
-      doposting p@Posting{paccount=a} = p{paccount= accountNameApplyAliases aliases a}
 
 -- | Do post-parse processing on a parsed journal to make it ready for
 -- use.  Reverse parsed data to normal order, canonicalise amount
