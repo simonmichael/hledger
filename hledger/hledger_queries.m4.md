@@ -27,10 +27,9 @@ The [print](/manual.html#print) command instead shows transactions which:
 The following kinds of search terms can be used. 
 Remember these can also be prefixed with **`not:`**, eg to exclude a particular subaccount.
 
-**`REGEX`**
-: match account names by this regular expression. (No prefix is equivalent to `acct:`).
+**`REGEX`, `acct:REGEX`**
+: match account names by this regular expression. (With no prefix, `acct:` is assumed.)
 
-**`acct:REGEX`**
 : same as above
 
 **`amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N`**
