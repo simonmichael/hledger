@@ -78,7 +78,6 @@ withJournalDoUICommand uopts@UIOpts{cliopts_=copts} cmd = do
   let fn = cmd uopts
          . pivotByOpts copts
          . anonymiseByOpts copts
-         . journalApplyAliases (aliasesFromOpts copts)
        <=< journalApplyValue (reportopts_ copts)
        <=< journalAddForecast copts
   either error' fn ej

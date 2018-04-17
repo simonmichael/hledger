@@ -122,6 +122,36 @@ alias E=F
 >>>2
 >>>=0
 
+# alias options 
+hledger -f- balance --alias=cc=credit-card --alias=b=bank
+<<<
+01/01 Opening balances
+	(bank)         100
+	(credit-card)  -10
+
+01/02
+	expenses  5
+	cc
+
+01/03
+	expenses  5
+	b
+
+01/04 Credit card charge
+	cc  = 0
+    b
+
+01/05
+	expenses  5
+	b         = 75
+>>>
+                  75  bank
+                  15  expenses
+--------------------
+                  90
+>>>2
+>>>=0
+
 # query will search both origin and substitution in alias
 hledger -f- reg '^a$' '^b$'
 <<<

@@ -63,8 +63,7 @@ module Hledger.Read.JournalReader (
   -- numberp,
   statusp,
   emptyorcommentlinep,
-  followingcommentp,
-  accountaliasp
+  followingcommentp
 
   -- * Tests
   ,tests_Hledger_Read_JournalReader
@@ -120,7 +119,17 @@ reader = Reader
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse = parseAndFinaliseJournal journalp
+parse iopts = parseAndFinaliseJournal journalp' iopts
+  where
+    journalp' = do 
+      -- reverse parsed aliases to ensure that they are applied in order given on commandline
+      mapM_ addAccountAlias (reverse $ aliasesFromOpts iopts) 
+      journalp
+
+-- | Get the account name aliases from options, if any.
+aliasesFromOpts :: InputOpts -> [AccountAlias]
+aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++quoteIfNeeded a) $ T.pack a)
+                  . aliases_
 
 --- * parsers
 --- ** journal
