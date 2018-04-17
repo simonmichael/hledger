@@ -16,8 +16,6 @@ module Hledger.Read (
   defaultJournalPath,
   readJournalFilesWithOpts,
   readJournalFileWithOpts,
-  readJournalFiles,
-  readJournalFile,
   requireJournalFileExists,
   ensureJournalFileExists,
   splitReaderPrefix,
@@ -37,7 +35,6 @@ module Hledger.Read (
 
 ) where
 
-import Control.Applicative ((<|>))
 import Control.Arrow (right)
 import qualified Control.Exception as C
 import Control.Monad.Except
@@ -113,50 +110,6 @@ defaultJournalPath = do
       defaultJournalPath = do
                   home <- getHomeDirectory `C.catch` (\(_::C.IOException) -> return "")
                   return $ home </> journalDefaultFilename
-
--- | @readJournalFiles mformat mrulesfile assrt prefixedfiles@
---
--- Read a Journal from each specified file path and combine them into one.
--- Or, return the first error message.
---
--- Combining Journals means concatenating them, basically.
--- The parse state resets at the start of each file, which means that
--- directives & aliases do not cross file boundaries.
--- (The final parse state saved in the Journal does span all files, however.)
---
--- As with readJournalFile,
--- input ioptions (@iopts@) specify CSV conversion rules file to help convert CSV data,
--- enable or disable balance assertion checking and automated posting generation.
---
-readJournalFiles :: Maybe StorageFormat -> InputOpts -> [PrefixedFilePath] -> IO (Either String Journal)
-readJournalFiles mformat iopts prefixedfiles = do
-  (right mconcat1 . sequence)
-    <$> mapM (readJournalFile mformat iopts) prefixedfiles
-  where mconcat1 :: Monoid t => [t] -> t
-        mconcat1 [] = mempty
-        mconcat1 x = foldr1 mappend x
-
--- | @readJournalFile mformat mrulesfile assrt prefixedfile@
---
--- Read a Journal from this file, or from stdin if the file path is -,
--- or return an error message. The file path can have a READER: prefix.
---
--- The reader (data format) is chosen based on (in priority order):
--- the @mformat@ argument;
--- the file path's READER: prefix, if any;
--- a recognised file name extension (in readJournal);
--- if none of these identify a known reader, all built-in readers are tried in turn.
---
--- Input ioptions (@iopts@) specify CSV conversion rules file to help convert CSV data,
--- enable or disable balance assertion checking and automated posting generation.
---
-readJournalFile :: Maybe StorageFormat -> InputOpts -> PrefixedFilePath -> IO (Either String Journal)
-readJournalFile mformat iopts prefixedfile = do
-  let
-    (mprefixformat, f) = splitReaderPrefix prefixedfile
-    mfmt = mformat <|> mprefixformat
-  requireJournalFileExists f
-  readFileOrStdinPortably f >>= readJournal mfmt iopts (Just f)
 
 -- | If a filepath is prefixed by one of the reader names and a colon,
 -- split that off. Eg "csv:-" -> (Just "csv", "-").
