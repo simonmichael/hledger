@@ -51,7 +51,7 @@ timeReadJournal msg s = timeit msg $ either error id <$> readJournal Nothing Not
 main = do
   -- putStrLn $ regexReplaceCI "^aa" "xx" "aa:bb:cc:dd:ee"
 
-  (_t0,_j) <- timeit ("read "++journal) $ either error id <$> readJournalFile Nothing Nothing True journal
+  (_t0,_j) <- timeit ("read "++journal) $ either error id <$> readJournalFileWithOpts def journal
   return ()
   -- printf "Total: %0.2fs\n" (sum [t0,t1,t2,t3,t4])
 
@@ -156,7 +156,7 @@ main = do
 -- benchWithTimeit = do
 --   getCurrentDirectory >>= printf "Benchmarking hledger in %s with timeit\n"
 --   let opts = defcliopts{output_file_=Just outputfile}
---   (t0,j) <- timeit ("read "++inputfile) $ either error id <$> readJournalFile Nothing Nothing True inputfile
+--   (t0,j) <- timeit ("read "++inputfile) $ either error id <$> readJournalFileWithOpts def inputfile
 --   (t1,_) <- timeit ("print") $ print' opts j
 --   (t2,_) <- timeit ("register") $ register opts j
 --   (t3,_) <- timeit ("balance") $ balance  opts j
