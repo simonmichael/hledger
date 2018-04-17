@@ -15,6 +15,7 @@ module Hledger.Read (
   defaultJournal,
   defaultJournalPath,
   readJournalFilesWithOpts,
+  readJournalFileWithOpts,
   readJournalFiles,
   readJournalFile,
   requireJournalFileExists,
@@ -91,7 +92,7 @@ type PrefixedFilePath = FilePath
 
 -- | Read the default journal file specified by the environment, or raise an error.
 defaultJournal :: IO Journal
-defaultJournal = defaultJournalPath >>= readJournalFile Nothing def >>= either error' return
+defaultJournal = defaultJournalPath >>= readJournalFileWithOpts def >>= either error' return
 
 -- | Get the default journal file path specified by the environment.
 -- Like ledger, we look first for the LEDGER_FILE environment
