@@ -212,8 +212,14 @@ tryReaders readers iopts path t = firstSuccessOrFirstError [] readers
     path' = fromMaybe "(string)" path
 
 
---- New versions of readJournal* with easier arguments, and support for --new.
-
+-- | Read a Journal from each specified file path and combine them into one.
+-- Or, return the first error message.
+--
+-- Combining Journals means concatenating them, basically.
+-- The parse state resets at the start of each file, which means that
+-- directives & aliases do not affect subsequent sibling or parent files.
+-- They do affect included child files though. 
+-- Also the final parse state saved in the Journal does span all files.
 readJournalFilesWithOpts :: InputOpts -> [FilePath] -> IO (Either String Journal)
 readJournalFilesWithOpts iopts =
   (right mconcat1 . sequence <$>) . mapM (readJournalFileWithOpts iopts)
@@ -222,6 +228,17 @@ readJournalFilesWithOpts iopts =
     mconcat1 [] = mempty
     mconcat1 x  = foldr1 mappend x
 
+-- | Read a Journal from this file, or from stdin if the file path is -,
+-- or return an error message. The file path can have a READER: prefix.
+--
+-- The reader (data format) to use is determined from (in priority order):
+-- the @mformat_@ specified in the input options, if any;
+-- the file path's READER: prefix, if any;
+-- a recognised file name extension.
+-- if none of these identify a known reader, all built-in readers are tried in turn.
+--
+-- The input options can also configure balance assertion checking, automated posting
+-- generation, a rules file for converting CSV data, etc.
 readJournalFileWithOpts :: InputOpts -> PrefixedFilePath -> IO (Either String Journal)
 readJournalFileWithOpts iopts prefixedfile = do
   let 
