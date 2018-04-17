@@ -66,7 +66,7 @@ withJournalDo' opts@WebOpts {cliopts_ = cliopts} cmd = do
          . journalApplyAliases (aliasesFromOpts cliopts)
        <=< journalApplyValue (reportopts_ cliopts)
        <=< journalAddForecast cliopts
-  readJournalFileWithOpts def f >>= either error' fn
+  readJournalFile def f >>= either error' fn
 
 -- | The web command.
 web :: WebOpts -> Journal -> IO ()

@@ -44,7 +44,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
   case inputfiles of
     [] -> error' "please provide one or more input files as arguments"
     fs -> do
-      enewj <- readJournalFilesWithOpts iopts' fs
+      enewj <- readJournalFiles iopts' fs
       case enewj of
         Left e     -> error' e 
         Right newj ->

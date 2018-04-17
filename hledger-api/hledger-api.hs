@@ -91,7 +91,7 @@ main = do
   let
     defd = "."
     d = getArgWithDefault args defd (longOption "static-dir")
-  readJournalFileWithOpts def f >>= either error' (serveApi h p d f)
+  readJournalFile def f >>= either error' (serveApi h p d f)
 
 serveApi :: String -> Int -> FilePath -> FilePath -> Journal -> IO ()
 serveApi h p d f j = do
