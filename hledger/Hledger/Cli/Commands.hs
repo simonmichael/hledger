@@ -270,8 +270,8 @@ tests_Hledger_Cli_Commands = TestList [
   
   ,"apply account directive" ~: 
     let ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)} in
-    let sameParse str1 str2 = do j1 <- readJournal Nothing def Nothing str1 >>= either error' (return . ignoresourcepos)
-                                 j2 <- readJournal Nothing def Nothing str2 >>= either error' (return . ignoresourcepos)
+    let sameParse str1 str2 = do j1 <- readJournal def Nothing str1 >>= either error' (return . ignoresourcepos)
+                                 j2 <- readJournal def Nothing str2 >>= either error' (return . ignoresourcepos)
                                  j1 `is` j2{jlastreadtime=jlastreadtime j1, jfiles=jfiles j1} --, jparsestate=jparsestate j1}
     in sameParse
                          ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
@@ -288,13 +288,13 @@ tests_Hledger_Cli_Commands = TestList [
                          )
 
   ,"apply account directive should preserve \"virtual\" posting type" ~: do
-    j <- readJournal Nothing def Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
+    j <- readJournal def Nothing "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n" >>= either error' return
     let p = head $ tpostings $ head $ jtxns j
     assertBool "" $ paccount p == "test:from"
     assertBool "" $ ptype p == VirtualPosting
   
   ,"account aliases" ~: do
-    j <- readJournal Nothing def Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return
+    j <- readJournal def Nothing "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n" >>= either error' return
     let p = head $ tpostings $ head $ jtxns j
     assertBool "" $ paccount p == "equity:draw:personal:food"
 
@@ -316,7 +316,7 @@ tests_Hledger_Cli_Commands = TestList [
   --     `is` "aa:aa:aaaaaaaaaaaaaa")
 
   ,"default year" ~: do
-    j <- readJournal Nothing def Nothing defaultyear_journal_txt >>= either error' return
+    j <- readJournal def Nothing defaultyear_journal_txt >>= either error' return
     tdate (head $ jtxns j) `is` fromGregorian 2009 1 1
     return ()
 

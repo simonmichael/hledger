@@ -66,7 +66,7 @@ withJournalDo opts cmd = do
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   journalpaths <- journalFilePathFromOpts opts
-  ej <- readJournalFilesWithOpts (inputopts_ opts) journalpaths
+  ej <- readJournalFiles (inputopts_ opts) journalpaths
   let f   = cmd opts
           . pivotByOpts opts
           . anonymiseByOpts opts
@@ -152,8 +152,8 @@ writeOutput opts s = do
   (if f == "-" then putStr else writeFile f) s
   
 -- -- | Get a journal from the given string and options, or throw an error.
--- readJournalWithOpts :: CliOpts -> String -> IO Journal
--- readJournalWithOpts opts s = readJournal Nothing Nothing Nothing s >>= either error' return
+-- readJournal :: CliOpts -> String -> IO Journal
+-- readJournal opts s = readJournal def Nothing s >>= either error' return
 
 -- | Re-read the journal file(s) specified by options and maybe apply some
 -- transformations (aliases, pivot), or return an error string.
@@ -162,7 +162,7 @@ journalReload :: CliOpts -> IO (Either String Journal)
 journalReload opts = do
   journalpaths <- journalFilePathFromOpts opts
   ((pivotByOpts opts . journalApplyAliases (aliasesFromOpts opts)) <$>) <$>
-    readJournalFilesWithOpts (inputopts_ opts) journalpaths
+    readJournalFiles (inputopts_ opts) journalpaths
 
 -- | Re-read the option-specified journal file(s), but only if any of
 -- them has changed since last read. (If the file is standard input,
