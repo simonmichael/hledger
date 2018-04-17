@@ -44,7 +44,6 @@ module Hledger.Cli.CliOptions (
   -- possibly these should move into argsToCliOpts
   -- * CLI option accessors
   -- | These do the extra processing required for some options.
-  aliasesFromOpts,
   journalFilePathFromOpts,
   rulesFilePathFromOpts,
   outputFileFromOpts,
@@ -483,11 +482,6 @@ getHledgerCliOpts mode' = do
         putStrLn $ "search query: " ++ show (queryFromOpts d $ reportopts_ opts)
 
 -- CliOpts accessors
-
--- | Get the account name aliases from options, if any.
-aliasesFromOpts :: CliOpts -> [AccountAlias]
-aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++quoteIfNeeded a) $ T.pack a)
-                  . aliases_ . inputopts_
 
 -- | Get the (tilde-expanded, absolute) journal file path from
 -- 1. options, 2. an environment variable, or 3. the default.

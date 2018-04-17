@@ -70,7 +70,6 @@ withJournalDo opts cmd = do
   let f   = cmd opts
           . pivotByOpts opts
           . anonymiseByOpts opts
-          . journalApplyAliases (aliasesFromOpts opts)
         <=< journalApplyValue (reportopts_ opts)
         <=< journalAddForecast opts
   either error' f ej
@@ -161,7 +160,7 @@ writeOutput opts s = do
 journalReload :: CliOpts -> IO (Either String Journal)
 journalReload opts = do
   journalpaths <- journalFilePathFromOpts opts
-  ((pivotByOpts opts . journalApplyAliases (aliasesFromOpts opts)) <$>) <$>
+  (pivotByOpts opts <$>) <$>
     readJournalFiles (inputopts_ opts) journalpaths
 
 -- | Re-read the option-specified journal file(s), but only if any of

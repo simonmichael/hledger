@@ -63,7 +63,6 @@ withJournalDo' opts@WebOpts {cliopts_ = cliopts} cmd = do
   let fn = cmd opts
          . pivotByOpts cliopts
          . anonymiseByOpts cliopts
-         . journalApplyAliases (aliasesFromOpts cliopts)
        <=< journalApplyValue (reportopts_ cliopts)
        <=< journalAddForecast cliopts
   readJournalFile def f >>= either error' fn
