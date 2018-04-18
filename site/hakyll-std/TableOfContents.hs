@@ -54,7 +54,7 @@ markupHeader :: Tree Block -> H.Html
 markupHeader (Node (Header _ (ident, _, keyvals) inline) headers)
   | headers == [] = H.li $ link
   | otherwise     = H.li $ link <> (H.ol $ markupHeaders headers)
-  where render x  = write5HtmlString def (Pandoc nullMeta [(Plain x)])
+  where render x  = writeHtml5String def (Pandoc nullMeta [(Plain x)])
         section   = fromMaybe (render inline) (lookup "toc" keyvals)
         link      = H.a ! A.href (H.toValue $ "#" ++ ident) $ preEscapedToHtml $ unpack section
 markupHeader _ = error "what"
