@@ -82,8 +82,8 @@ main = do
 --    <$> S.getDirectoryContents "tools"
   let pandocFilters =
         [
-         "tools" </> "pandoc-demote-headers"
-        ,"tools" </> "pandoc-drop-html-blocks"
+        --- "tools" </> "pandoc-demote-headers"
+         "tools" </> "pandoc-drop-html-blocks"
         ,"tools" </> "pandoc-drop-html-inlines"
         ,"tools" </> "pandoc-drop-links"
         ,"tools" </> "pandoc-drop-notes"
@@ -273,7 +273,7 @@ main = do
       cmd Shell
         "m4 -P -DMAN -DWEB -I" dir lib src "|"
         pandoc "-f markdown -t markdown-fenced_divs --atx-headers"
-        "--filter tools/pandoc-demote-headers"
+        "--lua-filter tools/pandoc-demote-headers.lua"
         -- "--filter tools/pandoc-add-toc"
         -- "--filter tools/pandoc-drop-man-blocks"
         ">>" out
@@ -290,7 +290,7 @@ main = do
           -- "--filter tools/pandoc-drop-man-blocks"
           "--filter tools/pandoc-drop-toc"
           -- "--filter tools/pandoc-capitalize-headers"
-          "--filter tools/pandoc-demote-headers"
+          "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" webmanall :: Action ExitCode
 
     -- adjust and combine recipe mds for single-page web output, using pandoc
