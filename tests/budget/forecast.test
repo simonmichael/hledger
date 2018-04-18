@@ -45,7 +45,7 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
     expenses:housing            $600
     assets:cash
 
-2017/01/01 Forecast transaction
+2017/01/01 Forecast transaction (monthly from 2016/1)
     income                    $-1000
     expenses:food                $20
     expenses:leisure             $15
