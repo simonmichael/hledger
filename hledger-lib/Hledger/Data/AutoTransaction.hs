@@ -145,89 +145,79 @@ renderPostingCommentDates p = p { pcomment = comment' }
 --
 -- >>> let gen str = mapM_ (putStr . show) $ runPeriodicTransaction (PeriodicTransaction str ["hi" `post` usd 1]) nulldatespan
 -- >>> gen "monthly from 2017/1 to 2017/4"
--- 2017/01/01
+-- 2017/01/01 Forecast transaction (monthly from 2017/1 to 2017/4)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/02/01
+-- 2017/02/01 Forecast transaction (monthly from 2017/1 to 2017/4)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/03/01
+-- 2017/03/01 Forecast transaction (monthly from 2017/1 to 2017/4)
 --     hi           $1.00
 -- <BLANKLINE>
 -- >>> gen "monthly from 2017/1 to 2017/5"
--- 2017/01/01
+-- 2017/01/01 Forecast transaction (monthly from 2017/1 to 2017/5)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/02/01
+-- 2017/02/01 Forecast transaction (monthly from 2017/1 to 2017/5)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/03/01
+-- 2017/03/01 Forecast transaction (monthly from 2017/1 to 2017/5)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/04/01
+-- 2017/04/01 Forecast transaction (monthly from 2017/1 to 2017/5)
 --     hi           $1.00
 -- <BLANKLINE>
 -- >>> gen "every 2nd day of month from 2017/02 to 2017/04"
--- 2017/01/02
+-- 2017/01/02 Forecast transaction (every 2nd day of month from 2017/02 to 2017/04)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/02/02
+-- 2017/02/02 Forecast transaction (every 2nd day of month from 2017/02 to 2017/04)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/03/02
---     hi           $1.00
--- <BLANKLINE>
--- >>> gen "monthly from 2017/1 to 2017/4"
--- 2017/01/01
---     hi           $1.00
--- <BLANKLINE>
--- 2017/02/01
---     hi           $1.00
--- <BLANKLINE>
--- 2017/03/01
+-- 2017/03/02 Forecast transaction (every 2nd day of month from 2017/02 to 2017/04)
 --     hi           $1.00
 -- <BLANKLINE>
 -- >>> gen "every 30th day of month from 2017/1 to 2017/5"
--- 2016/12/30
+-- 2016/12/30 Forecast transaction (every 30th day of month from 2017/1 to 2017/5)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/01/30
+-- 2017/01/30 Forecast transaction (every 30th day of month from 2017/1 to 2017/5)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/02/28
+-- 2017/02/28 Forecast transaction (every 30th day of month from 2017/1 to 2017/5)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/03/30
+-- 2017/03/30 Forecast transaction (every 30th day of month from 2017/1 to 2017/5)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/04/30
+-- 2017/04/30 Forecast transaction (every 30th day of month from 2017/1 to 2017/5)
 --     hi           $1.00
 -- <BLANKLINE>
 -- >>> gen "every 2nd Thursday of month from 2017/1 to 2017/4"
--- 2016/12/08
+-- 2016/12/08 Forecast transaction (every 2nd Thursday of month from 2017/1 to 2017/4)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/01/12
+-- 2017/01/12 Forecast transaction (every 2nd Thursday of month from 2017/1 to 2017/4)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/02/09
+-- 2017/02/09 Forecast transaction (every 2nd Thursday of month from 2017/1 to 2017/4)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/03/09
+-- 2017/03/09 Forecast transaction (every 2nd Thursday of month from 2017/1 to 2017/4)
 --     hi           $1.00
 -- <BLANKLINE>
 -- >>> gen "every nov 29th from 2017 to 2019"
--- 2016/11/29
+-- 2016/11/29 Forecast transaction (every nov 29th from 2017 to 2019)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2017/11/29
+-- 2017/11/29 Forecast transaction (every nov 29th from 2017 to 2019)
 --     hi           $1.00
 -- <BLANKLINE>
--- 2018/11/29
+-- 2018/11/29 Forecast transaction (every nov 29th from 2017 to 2019)
 --     hi           $1.00
 -- <BLANKLINE>
 -- >>> gen "2017/1"
--- 2017/01/01
+-- 2017/01/01 Forecast transaction (2017/1)
 --     hi           $1.00
 -- <BLANKLINE>
 -- >>> gen ""
@@ -249,7 +239,8 @@ runPeriodicTransaction pt =
     let fillspan = ptspan `spanIntersect` requestedspan
     in  [ t{tdate=d} | (DateSpan (Just d) _) <- ptinterval `splitSpan` fillspan ]
   where
-    t = nulltransaction { tpostings = ptpostings pt }
+    descr = T.pack $ "Forecast transaction (" ++ T.unpack periodexpr ++ ")"
+    t = nulltransaction { tpostings = ptpostings pt, tdescription = descr }
     periodexpr = ptperiodicexpr pt
     currentdateerr = error' $ "Current date cannot be referenced in " ++ show (T.unpack periodexpr)
     (ptinterval, ptspan) =

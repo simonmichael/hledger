@@ -131,8 +131,7 @@ journalAddForecast opts j = do
   let startDate = fromMaybe today $ spanEnd (jdatespan j) 
       endDate = fromMaybe (addDays 180 today) $ periodEnd (period_ ropts)
       dates = DateSpan (Just startDate) (Just endDate)
-      withForecast = [makeForecast t | pt <- jperiodictxns j, t <- runPeriodicTransaction pt dates, spanContainsDate dates (tdate t) ] ++ (jtxns j)
-      makeForecast t = txnTieKnot $ t { tdescription = T.pack "Forecast transaction" }
+      withForecast = [ txnTieKnot t | pt <- jperiodictxns j, t <- runPeriodicTransaction pt dates, spanContainsDate dates (tdate t) ] ++ (jtxns j)
       ropts = reportopts_ opts
   if forecast_ ropts 
     then return $ journalBalanceTransactions' opts j { jtxns = withForecast }
