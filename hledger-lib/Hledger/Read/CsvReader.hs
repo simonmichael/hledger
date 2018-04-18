@@ -732,10 +732,26 @@ getAmountStr rules record =
 type CsvAmountString = String
 
 -- | Canonicalise the sign in a CSV amount string.
--- Such strings can be parenthesized, which is equivalent to having a minus sign.
--- Also they can end up with a double minus sign, which cancels out.
+-- Such strings can have a minus sign, negating parentheses, 
+-- or any two of these (which cancels out).
+--
+-- >>> simplifySign "1"
+-- "1"
+-- >>> simplifySign "-1"
+-- "-1"
+-- >>> simplifySign "(1)"
+-- "-1"
+-- >>> simplifySign "--1"
+-- "1"
+-- >>> simplifySign "-(1)"
+-- "1"
+-- >>> simplifySign "(-1)"
+-- "1"
+-- >>> simplifySign "((1))"
+-- "1"
 simplifySign :: CsvAmountString -> CsvAmountString
 simplifySign ('(':s) | lastMay s == Just ')' = simplifySign $ negateStr $ init s
+simplifySign ('-':'(':s) | lastMay s == Just ')' = simplifySign $ init s
 simplifySign ('-':'-':s) = s
 simplifySign s = s
 
