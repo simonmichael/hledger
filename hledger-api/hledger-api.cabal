@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f3ae96bc4a552af6049713498efd77ef61e5ade3bac393e45e47b484335029bd
+-- hash: b04bd71305e57bfa76f593730e7d5aca62144edfb3b858a2b68e78e46c476a89
 
 name:           hledger-api
 version:        1.9.99
@@ -24,7 +24,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL-3
 license-file:   LICENSE
-tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.1
+tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.1
 build-type:     Simple
 cabal-version:  >= 1.10
 

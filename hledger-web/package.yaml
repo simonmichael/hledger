@@ -20,7 +20,7 @@ github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
 stability: stable
-tested-with: GHC==7.10.3, GHC==8.0.2, GHC==8.2.1
+tested-with: GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.1
 
 extra-source-files:
 - CHANGES

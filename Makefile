@@ -1430,6 +1430,9 @@ setversion: $(VERSIONSENSITIVEFILES) #$(call def-help,setversion, update version
 gencabal: $(call def-help,gencabal, regenerate cabal files from package.yaml files with stack )
 	$(STACK) build --dry-run --silent --stack-yaml stack-ghc8.2.yaml
 
+gencabal-with-hpack-%:
+	$(STACK) build --with-hpack hpack-$* --dry-run --silent --stack-yaml stack-ghc8.2.yaml
+
 # updatecabal: gencabal $(call def-help,updatecabal, regenerate cabal files and commit )
 # 	@read -p "please review changes then press enter to commit $(shell ls */*.cabal)"
 # 	git commit -m "update cabal files" $(shell ls */*.cabal)
