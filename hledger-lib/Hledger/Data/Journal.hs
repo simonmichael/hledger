@@ -19,6 +19,7 @@ module Hledger.Data.Journal (
   journalBalanceTransactions,
   journalApplyCommodityStyles,
   commodityStylesFromAmounts,
+  journalCommodityStyles,
   journalConvertAmountsToCost,
   journalFinalise,
   journalPivot,
@@ -592,7 +593,7 @@ journalBalanceTransactionsST assrt j createStore storeIn extract =
     let env = Env bals 
                   (storeIn txStore) 
                   assrt
-                  (Just $ jinferredcommodities j)
+                  (Just $ journalCommodityStyles j)
     flip R.runReaderT env $ do
       dated <- fmap snd . sortBy (comparing fst) . concat
                 <$> mapM' discriminateByDate (jtxns j)
@@ -722,7 +723,6 @@ storeTransaction tx = liftModifier $ ($tx) . eStoreTx
 liftModifier :: (Env s -> ST s a) -> CurrentBalancesModifier s a
 liftModifier f = R.ask >>= lift . lift . f
 
-
 -- | Choose and apply a consistent display format to the posting
 -- amounts in each commodity. Each commodity's format is specified by
 -- a commodity format directive, or otherwise inferred from posting
@@ -731,28 +731,20 @@ journalApplyCommodityStyles :: Journal -> Journal
 journalApplyCommodityStyles j@Journal{jtxns=ts, jmarketprices=mps} = j''
     where
       j' = journalInferCommodityStyles j
+      styles = journalCommodityStyles j'
       j'' = j'{jtxns=map fixtransaction ts, jmarketprices=map fixmarketprice mps}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
-      fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
-      fixmarketprice mp@MarketPrice{mpamount=a} = mp{mpamount=fixamount a}
-      fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount a@Amount{acommodity=c} = a{astyle=journalCommodityStyle j' c}
+      fixposting p@Posting{pamount=a} = p{pamount=styleMixedAmount styles a}
+      fixmarketprice mp@MarketPrice{mpamount=a} = mp{mpamount=styleAmount styles a}
 
--- | Get this journal's standard display style for the given
--- commodity.  That is the style defined by the last corresponding
--- commodity format directive if any, otherwise the style inferred
--- from the posting amounts (or in some cases, price amounts) in this
--- commodity if any, otherwise the default style.
-journalCommodityStyle :: Journal -> CommoditySymbol -> AmountStyle
-journalCommodityStyle j = fromMaybe amountstyle{asprecision=2} . journalCommodityStyleLookup j
-
-journalCommodityStyleLookup :: Journal -> CommoditySymbol -> Maybe AmountStyle
-journalCommodityStyleLookup j c =
-  listToMaybe $
-  catMaybes [
-     M.lookup c (jcommodities j) >>= cformat
-    ,M.lookup c $ jinferredcommodities j
-    ]
+-- | Get all the amount styles defined in this journal, either 
+-- declared by a commodity directive (preferred) or inferred from amounts,
+-- as a map from symbol to style. 
+journalCommodityStyles :: Journal -> M.Map CommoditySymbol AmountStyle
+journalCommodityStyles j = declaredstyles <> inferredstyles
+  where
+    declaredstyles = M.mapMaybe cformat $ jcommodities j
+    inferredstyles = jinferredcommodities j
 
 -- | Infer a display format for each commodity based on the amounts parsed.
 -- "hledger... will use the format of the first posting amount in the
@@ -760,8 +752,8 @@ journalCommodityStyleLookup j c =
 journalInferCommodityStyles :: Journal -> Journal
 journalInferCommodityStyles j =
   j{jinferredcommodities =
-        commodityStylesFromAmounts $
-        dbg8 "journalChooseCommmodityStyles using amounts" $ journalAmounts j}
+    commodityStylesFromAmounts $
+    dbg8 "journalInferCommmodityStyles using amounts" $ journalAmounts j}
 
 -- | Given a list of amounts in parse order, build a map from their commodity names
 -- to standard commodity display formats.
@@ -817,10 +809,8 @@ journalConvertAmountsToCost j@Journal{jtxns=ts} = j{jtxns=map fixtransaction ts}
       fixtransaction t@Transaction{tpostings=ps} = t{tpostings=map fixposting ps}
       fixposting p@Posting{pamount=a} = p{pamount=fixmixedamount a}
       fixmixedamount (Mixed as) = Mixed $ map fixamount as
-      fixamount = applyJournalStyle . costOfAmount
-      applyJournalStyle a
-          | Just s <- journalCommodityStyleLookup j (acommodity a) = a{astyle=s}
-          | otherwise = a
+      fixamount = styleAmount styles . costOfAmount
+      styles = journalCommodityStyles j
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 -- journalCanonicalCommodities :: Journal -> M.Map String CommoditySymbol

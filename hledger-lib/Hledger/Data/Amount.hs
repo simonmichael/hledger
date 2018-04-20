@@ -61,6 +61,7 @@ module Hledger.Data.Amount (
   amountValue,
   -- ** rendering
   amountstyle,
+  styleAmount,
   showAmount,
   cshowAmount,
   showAmountWithZeroCommodity,
@@ -93,6 +94,7 @@ module Hledger.Data.Amount (
   isReallyZeroMixedAmountCost,
   mixedAmountValue,
   -- ** rendering
+  styleMixedAmount,
   showMixedAmount,
   showMixedAmountOneLine,
   showMixedAmountDebug,
@@ -131,7 +133,13 @@ import Hledger.Utils
 
 deriving instance Show MarketPrice
 
+
+-------------------------------------------------------------------------------
+-- Amount styles
+
+-- | Default amount style 
 amountstyle = AmountStyle L False 0 (Just '.') Nothing
+
 
 -------------------------------------------------------------------------------
 -- Amount
@@ -264,6 +272,14 @@ showPriceDebug :: Price -> String
 showPriceDebug NoPrice         = ""
 showPriceDebug (UnitPrice pa)  = " @ "  ++ showAmountDebug pa
 showPriceDebug (TotalPrice pa) = " @@ " ++ showAmountDebug pa
+
+-- | Given a map of standard amount display styles, apply the appropriate one to this amount.
+-- If there's no standard style for this amount's commodity, return the amount unchanged.
+styleAmount :: M.Map CommoditySymbol AmountStyle -> Amount -> Amount
+styleAmount styles a =
+  case M.lookup (acommodity a) styles of
+    Just s  -> a{astyle=s}
+    Nothing -> a 
 
 -- | Get the string representation of an amount, based on its
 -- commodity's display settings. String representations equivalent to
@@ -555,6 +571,10 @@ isReallyZeroMixedAmountCost = isReallyZeroMixedAmount . costOfMixedAmount
 --     where a' = normaliseMixedAmountSquashPricesForDisplay a
 --           b' = normaliseMixedAmountSquashPricesForDisplay b
 
+-- | Given a map of standard amount display styles, apply the appropriate ones to each individual amount.
+styleMixedAmount :: M.Map CommoditySymbol AmountStyle -> MixedAmount -> MixedAmount
+styleMixedAmount styles (Mixed as) = Mixed $ map (styleAmount styles) as 
+
 -- | Get the string representation of a mixed amount, after
 -- normalising it to one amount per commodity. Assumes amounts have
 -- no or similar prices, otherwise this can show misleading prices.
@@ -647,6 +667,7 @@ canonicaliseMixedAmount styles (Mixed as) = Mixed $ map (canonicaliseAmount styl
 
 mixedAmountValue :: Journal -> Day -> MixedAmount -> MixedAmount
 mixedAmountValue j d (Mixed as) = Mixed $ map (amountValue j d) as
+
 
 -------------------------------------------------------------------------------
 -- misc

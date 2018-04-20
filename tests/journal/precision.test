@@ -14,24 +14,9 @@ hledger -f - print
 
 >>>=0
 
-## 1b. here $'s canonical display precision should be 2 not 4
-## XXX no, because the inferred amount $1.0049 is observed
-# hledger -f - print --cost
-# <<<
-# 2010/1/1
-#    a  $0.00
-#    a  1C @ $1.0049
-#    a
-# >>>
-# 2010/01/01
-#     a             0
-#     a         $1.00
-#     a        $-1.00
-#
-# >>>=0
-
-# 2. and here the price should be printed with its original precision, not
-# the canonical display precision
+# 2. here the price should be printed with its original precision, not
+# the canonical display precision. And the inferred amount should be printed
+# with the canonical precision (2 digits, inferred from the first posting).
 hledger -f - print --explicit
 <<<
 2010/1/1
@@ -42,7 +27,7 @@ hledger -f - print --explicit
 2010/01/01
     a               0
     a    1C @ $1.0049
-    a        $-1.0049
+    a          $-1.00
 
 >>>=0
 
