@@ -278,7 +278,7 @@ tests_inference = [
     "inferBalancingAmount" ~: do
     let p `gives` p' = assertEqual (show p) (Right p') $ inferTransaction p
         inferTransaction :: Transaction -> Either String Transaction
-        inferTransaction = runIdentity . runExceptT . inferBalancingAmount (\_ _ -> return ())
+        inferTransaction = runIdentity . runExceptT . inferBalancingAmount (\_ _ -> return ()) Map.empty
     nulltransaction `gives` nulltransaction
     nulltransaction{
       tpostings=[
@@ -382,11 +382,11 @@ balanceTransactionUpdate :: MonadError String m
      -- ^ update function
   -> Maybe (Map.Map CommoditySymbol AmountStyle)
   -> Transaction -> m Transaction
-balanceTransactionUpdate update styles t =
-  finalize =<< inferBalancingAmount update t
+balanceTransactionUpdate update mstyles t =
+  finalize =<< inferBalancingAmount update (fromMaybe Map.empty mstyles) t
   where
     finalize t' = let t'' = inferBalancingPrices t'
-                  in if isTransactionBalanced styles t''
+                  in if isTransactionBalanced mstyles t''
                      then return $ txnTieKnot t''
                      else throwError $ printerr $ nonzerobalanceerror t''
     printerr s = intercalate "\n" [s, showTransactionUnelided t]
@@ -409,11 +409,12 @@ balanceTransactionUpdate update styles t =
 -- We can infer a missing amount when there are multiple postings and exactly
 -- one of them is amountless. If the amounts had price(s) the inferred amount
 -- have the same price(s), and will be converted to the price commodity.
-inferBalancingAmount :: MonadError String m
-                     => (AccountName -> MixedAmount -> m ())
-                     -- ^ update function
-                     -> Transaction -> m Transaction
-inferBalancingAmount update t@Transaction{tpostings=ps}
+inferBalancingAmount :: MonadError String m =>
+                        (AccountName -> MixedAmount -> m ()) -- ^ update function
+                     -> Map.Map CommoditySymbol AmountStyle  -- ^ standard amount styles
+                     -> Transaction
+                     -> m Transaction
+inferBalancingAmount update styles t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
       = throwError $ printerr "could not balance this transaction - can't have more than one real posting with no amount (remember to put 2 or more spaces before amounts)"
   | length amountlessbvps > 1
@@ -432,8 +433,13 @@ inferBalancingAmount update t@Transaction{tpostings=ps}
     inferamount p@Posting{ptype=BalancedVirtualPosting}
      | not (hasAmount p) = updateAmount p bvsum
     inferamount p = return p
-    updateAmount p amt = update (paccount p) amt' >> return p { pamount=amt', porigin=Just $ originalPosting p }
-      where amt' = normaliseMixedAmount $ costOfMixedAmount (-amt)
+    updateAmount p amt = 
+      update (paccount p) amt' >> return p { pamount=amt', porigin=Just $ originalPosting p }
+      where
+        -- Inferred amounts are converted to cost.
+        -- Also, ensure the new amount has the standard style for its commodity  
+        -- (the main amount styling pass happened before this balancing pass).   
+        amt' = styleMixedAmount styles $ normaliseMixedAmount $ costOfMixedAmount (-amt)
 
 -- | Infer prices for this transaction's posting amounts, if needed to make
 -- the postings balance, and if possible. This is done once for the real

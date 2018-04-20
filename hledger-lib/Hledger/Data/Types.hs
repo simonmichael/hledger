@@ -302,7 +302,7 @@ data Journal = Journal {
   -- principal data
   ,jaccounts              :: [(AccountName, Maybe AccountCode)]     -- ^ accounts that have been declared by account directives
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
-  ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts
+  ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  XXX misnamed
   ,jmarketprices          :: [MarketPrice]
   ,jmodifiertxns          :: [ModifierTransaction]
   ,jperiodictxns          :: [PeriodicTransaction]
