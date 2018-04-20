@@ -419,7 +419,7 @@ $ hledger -f t.j bal -N euros -V
 Currently, hledger's -V only uses market prices recorded with P directives,
 not [transaction prices](journal.html#transaction-prices) (unlike Ledger).
 
-Currently, the -V has a limitation with in 
+Currently, -V has a limitation in 
 [multicolumn balance reports](#multicolumn-balance-reports):
 it uses the market prices on the report end date for all columns. 
 (Instead of the prices on each column's end date.) 
