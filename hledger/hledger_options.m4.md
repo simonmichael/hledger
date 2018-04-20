@@ -402,17 +402,17 @@ P 2016/12/21 € $1.03
 ```
 How many euros do I have ?
 ```
-$ hledger -f t.j bal euros
+$ hledger -f t.j bal -N euros
                 €100  assets:euros
 ```
-What are they worth on nov 3 ? (no report end date specified, defaults to the last date in the journal)
+What are they worth at end of nov 3 ?
 ```
-$ hledger -f t.j bal euros -V
+$ hledger -f t.j bal -N euros -V -e 2016/11/4
              $110.00  assets:euros
 ```
-What are they worth on dec 21 ?
+What are they worth after 2016/12/21 ? (no report end date specified, defaults to today)
 ```
-$ hledger -f t.j bal euros -V -e 2016/12/21
+$ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 ```
 
