@@ -134,7 +134,7 @@ or [email](docs.html#helpfeedback):
 If you prefer more control or if hledger-install failed, here's how to use stack yourself:
 
 1. **Install or upgrade to the latest stack**\
-   The latest version of stack (1.6.3+) is recommended, for best avoidance of ecosystem breakages.
+   The latest version of stack (1.7) is recommended, for best avoidance of ecosystem breakages.
    If you can get at least stack 1.3 installed, eg from your system packages, you can usually run `stack upgrade` to quickly upgrade it to the latest.
 
     On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
@@ -150,6 +150,9 @@ If you prefer more control or if hledger-install failed, here's how to use stack
     To estimate the build time, add `--dry-run`. 
     You can kill and restart this without losing progress. 
     
+    If you see "was generated with a newer version of hpack, please upgrade and try again" errors, you can ignore them.
+    (Upgrade to the latest stack release to stop them.)
+
 <!--
     If you need to build with an older GHC version for some reason, these commands should work
    (except on Mac Sierra which [requires at least GHC 8.0.2/lts-8](https://ghc.haskell.org/trac/ghc/ticket/12479)):\
