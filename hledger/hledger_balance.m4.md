@@ -245,6 +245,10 @@ Balance changes in 2008:
 
 ```
 
+The [`-V/--value` flag](#market-value) currently has a limitation with 
+multicolumn reports: it uses the market prices on the report end date 
+for all columns. (Instead of the prices on each column's end date.) 
+
 ### Budgets
 
 With `--budget` and a [report interval](manual.html#report-intervals), 
