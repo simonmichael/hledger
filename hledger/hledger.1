@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger" "1" "March 2018" "hledger 1.9" "hledger User Manuals"
+.TH "hledger" "1" "March 2018" "hledger 1.9.99" "hledger User Manuals"
 
 
 
@@ -991,32 +991,36 @@ How many euros do I have ?
 .IP
 .nf
 \f[C]
-$\ hledger\ \-f\ t.j\ bal\ euros
+$\ hledger\ \-f\ t.j\ bal\ \-N\ euros
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ €100\ \ assets:euros
 \f[]
 .fi
 .PP
-What are they worth on nov 3 ?
-(no report end date specified, defaults to the last date in the journal)
+What are they worth at end of nov 3 ?
 .IP
 .nf
 \f[C]
-$\ hledger\ \-f\ t.j\ bal\ euros\ \-V
+$\ hledger\ \-f\ t.j\ bal\ \-N\ euros\ \-V\ \-e\ 2016/11/4
 \ \ \ \ \ \ \ \ \ \ \ \ \ $110.00\ \ assets:euros
 \f[]
 .fi
 .PP
-What are they worth on dec 21 ?
+What are they worth after 2016/12/21 ?
+(no report end date specified, defaults to today)
 .IP
 .nf
 \f[C]
-$\ hledger\ \-f\ t.j\ bal\ euros\ \-V\ \-e\ 2016/12/21
+$\ hledger\ \-f\ t.j\ bal\ \-N\ euros\ \-V
 \ \ \ \ \ \ \ \ \ \ \ \ \ $103.00\ \ assets:euros
 \f[]
 .fi
 .PP
 Currently, hledger's \-V only uses market prices recorded with P
 directives, not transaction prices (unlike Ledger).
+.PP
+Currently, the \-V has a limitation with in multicolumn balance reports:
+it uses the market prices on the report end date for all columns.
+(Instead of the prices on each column's end date.)
 .SS Combining \-B and \-V
 .PP
 Using \-B/\[en]cost and \-V/\[en]value together is currently allowed,
@@ -1130,13 +1134,11 @@ The following kinds of search terms can be used.
 Remember these can also be prefixed with \f[B]\f[BC]not:\f[B]\f[], eg to
 exclude a particular subaccount.
 .TP
-.B \f[B]\f[BC]REGEX\f[B]\f[]
+.B \f[B]\f[BC]REGEX\f[B], \f[BC]acct:REGEX\f[B]\f[]
 match account names by this regular expression.
-(No prefix is equivalent to \f[C]acct:\f[]).
+(With no prefix, \f[C]acct:\f[] is assumed.)
 .RS
 .RE
-.TP
-.B \f[B]\f[BC]acct:REGEX\f[B]\f[]
 same as above
 .RS
 .RE
@@ -1759,6 +1761,11 @@ Balance\ changes\ in\ 2008:
 #\ Average\ is\ rounded\ to\ the\ dollar\ here\ since\ all\ journal\ amounts\ are
 \f[]
 .fi
+.PP
+The \f[C]\-V/\-\-value\f[] flag currently has a limitation with
+multicolumn reports: it uses the market prices on the report end date
+for all columns.
+(Instead of the prices on each column's end date.)
 .SS Budgets
 .PP
 With \f[C]\-\-budget\f[] and a report interval, all periodic

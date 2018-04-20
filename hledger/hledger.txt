@@ -634,22 +634,26 @@ OPTIONS
 
        How many euros do I have ?
 
-              $ hledger -f t.j bal euros
+              $ hledger -f t.j bal -N euros
                               100  assets:euros
 
-       What are they worth on nov 3 ?  (no report end date specified, defaults
-       to the last date in the journal)
+       What are they worth at end of nov 3 ?
 
-              $ hledger -f t.j bal euros -V
+              $ hledger -f t.j bal -N euros -V -e 2016/11/4
                            $110.00  assets:euros
 
-       What are they worth on dec 21 ?
+       What  are they worth after 2016/12/21 ?  (no report end date specified,
+       defaults to today)
 
-              $ hledger -f t.j bal euros -V -e 2016/12/21
+              $ hledger -f t.j bal -N euros -V
                            $103.00  assets:euros
 
        Currently, hledger's -V only uses market prices recorded with P  direc-
        tives, not transaction prices (unlike Ledger).
+
+       Currently, the -V has a limitation with in multicolumn balance reports:
+       it uses the market prices on the  report  end  date  for  all  columns.
+       (Instead of the prices on each column's end date.)
 
    Combining -B and -V
        Using  -B/-cost  and  -V/-value  together is currently allowed, but the
@@ -749,11 +753,10 @@ QUERIES
        The  following  kinds  of search terms can be used.  Remember these can
        also be prefixed with not:, eg to exclude a particular subaccount.
 
-       REGEX  match account names by this regular expression.  (No  prefix  is
-              equivalent to acct:).
-
-       acct:REGEX
-              same as above
+       REGEX, acct:REGEX
+              match account names by this regular expression.  (With  no  pre-
+              fix, acct: is assumed.)
+       same as above
 
        amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N
               match  postings with a single-commodity amount that is equal to,
@@ -1212,6 +1215,10 @@ COMMANDS
                           ||     $-1      $1       0       0        0        0
 
               # Average is rounded to the dollar here since all journal amounts are
+
+       The  -V/--value  flag  currently  has  a  limitation  with  multicolumn
+       reports:  it uses the market prices on the report end date for all col-
+       umns.  (Instead of the prices on each column's end date.)
 
    Budgets
        With --budget and a report interval, all periodic transactions in  your
@@ -2186,4 +2193,4 @@ SEE ALSO
 
 
 
-hledger 1.9                       March 2018                        hledger(1)
+hledger 1.9.99                    March 2018                        hledger(1)

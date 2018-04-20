@@ -384,4 +384,4 @@ SEE ALSO
 
 
 
-hledger-ui 1.9                    March 2018                     hledger-ui(1)
+hledger-ui 1.9.99                 March 2018                     hledger-ui(1)

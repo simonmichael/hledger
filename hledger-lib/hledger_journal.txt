@@ -897,23 +897,28 @@ Automated postings
               $ hledger print --auto
               2017/12/14
                   expenses:gifts             $20
-                  assets
                   (budget:gifts)            $-20
+                  assets
+
+       Automated  postings  would not be distinguishable from equivalent post-
+       ings written by hand.  In particular, they would affect [amount  infer-
+       ence|#postings]  and  [balance assertion|#balance-assertions] checks in
+       the usual way.
 
 EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
-       nal files easier.  They add colour, navigation aids  and  helpful  com-
-       mands.   For  hledger  users  who  edit  the journal file directly (the
+       nal  files  easier.   They add colour, navigation aids and helpful com-
+       mands.  For hledger users who  edit  the  journal  file  directly  (the
        majority), using one of these modes is quite recommended.
 
-       These were written with Ledger in mind,  but  also  work  with  hledger
+       These  were  written  with  Ledger  in mind, but also work with hledger
        files:
 
 
        Editor
        --------------------------------------------------------------------------
        Emacs          http://www.ledger-cli.org/3.0/doc/ledger-mode.html
-       Vim            https://github.com/ledger/ledger/wiki/Getting-started
+       Vim            https://github.com/ledger/vim-ledger
        Sublime Text   https://github.com/ledger/ledger/wiki/Edit-
                       ing-Ledger-files-with-Sublime-Text-or-RubyMine
        Textmate       https://github.com/ledger/ledger/wiki/Using-TextMate-2
@@ -925,7 +930,7 @@ EDITOR SUPPORT
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -939,7 +944,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
@@ -947,4 +952,4 @@ SEE ALSO
 
 
 
-hledger 1.9                       March 2018                hledger_journal(5)
+hledger 1.9.99                    March 2018                hledger_journal(5)

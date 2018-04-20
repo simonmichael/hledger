@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "March 2018" "hledger 1.9" "hledger User Manuals"
+.TH "hledger_journal" "5" "March 2018" "hledger 1.9.99" "hledger User Manuals"
 
 
 
@@ -1226,10 +1226,15 @@ transaction involving the \f[C]expenses:gifts\f[] account:
 $\ hledger\ print\ \-\-auto
 2017/12/14
 \ \ \ \ expenses:gifts\ \ \ \ \ \ \ \ \ \ \ \ \ $20
-\ \ \ \ assets
 \ \ \ \ (budget:gifts)\ \ \ \ \ \ \ \ \ \ \ \ $\-20
+\ \ \ \ assets
 \f[]
 .fi
+.PP
+Automated postings would not be distinguishable from equivalent postings
+written by hand.
+In particular, they would affect [amount inference|#postings] and
+[balance assertion|#balance\-assertions] checks in the usual way.
 .SH EDITOR SUPPORT
 .PP
 Add\-on modes exist for various text editors, to make working with
@@ -1257,7 +1262,7 @@ T}
 T{
 Vim
 T}@T{
-https://github.com/ledger/ledger/wiki/Getting\-started
+https://github.com/ledger/vim\-ledger
 T}
 T{
 Sublime Text
