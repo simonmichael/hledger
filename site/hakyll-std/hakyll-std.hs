@@ -2,7 +2,6 @@
 {- stack exec --verbosity info
    --stack-yaml=../../stack-ghc8.2.yaml
    --package hakyll
-   --package pandoc
    -- ghc
 -} 
 -- pandoc must be >= 2                                                                                                                                                                           
