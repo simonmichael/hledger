@@ -84,8 +84,8 @@ main = do
         [
         --- "tools" </> "pandoc-demote-headers"
         --- "tools" </> "pandoc-drop-html-blocks"
-         "tools" </> "pandoc-drop-html-inlines"
-        ,"tools" </> "pandoc-drop-links"
+        --- "tools" </> "pandoc-drop-html-inlines"
+         "tools" </> "pandoc-drop-links"
         ,"tools" </> "pandoc-drop-notes"
         ,"tools" </> "pandoc-drop-toc"
         ]
@@ -205,7 +205,7 @@ main = do
         pandoc "-f markdown -s --template" tmpl
         -- "--filter tools/pandoc-drop-web-blocks"
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
-        "--filter tools/pandoc-drop-html-inlines"
+        "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--filter tools/pandoc-drop-links"
         "--filter tools/pandoc-drop-notes"
         "-o" out
@@ -233,7 +233,7 @@ main = do
         pandoc "-f markdown"
         -- "--filter tools/pandoc-drop-web-blocks"
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
-        "--filter tools/pandoc-drop-html-inlines"
+        "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--filter tools/pandoc-drop-links"
         "--filter tools/pandoc-drop-notes"
         "-t texinfo |"
