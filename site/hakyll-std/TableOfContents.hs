@@ -12,6 +12,7 @@ module TableOfContents (
 
 import Text.Pandoc
 import Text.Pandoc.Walk (walk, query)
+import Text.Pandoc.Class (runPure)
 
 import Data.List (groupBy)
 import Data.Text (unpack)
@@ -21,6 +22,7 @@ import Data.Monoid ((<>), mconcat)
 #endif
 import Data.Function (on)
 import Data.Maybe (fromMaybe)
+import Data.Text (unpack)
 
 import Text.Blaze.Html (preEscapedToHtml, (!))
 import Text.Blaze.Html.Renderer.String (renderHtml)
@@ -51,13 +53,17 @@ groupByHierarchy :: [Block] -> Forest Block
 groupByHierarchy = map (\(x:xs) -> Node x (groupByHierarchy xs)) . groupBy ((<) `on` headerLevel)
 
 markupHeader :: Tree Block -> H.Html
-markupHeader (Node (Header _ (ident, _, keyvals) inline) headers)
+markupHeader n@(Node (Header _ (ident, _, keyvals) inline) headers)
   | headers == [] = H.li $ link
   | otherwise     = H.li $ link <> (H.ol $ markupHeaders headers)
-  where render x  = writeHtml5String def (Pandoc nullMeta [(Plain x)])
-        section   = fromMaybe (render inline) (lookup "toc" keyvals)
-        link      = H.a ! A.href (H.toValue $ "#" ++ ident) $ preEscapedToHtml $ unpack section
-markupHeader _ = error "what"
+  where render x  = case runPure $ writeHtml5String def (Pandoc nullMeta [(Plain x)]) of
+                        Left  _   -> error $    "Error building header.\n"
+                                             ++ "   saw: " ++ show n
+                        Right txt -> txt
+        section   = fromMaybe (unpack $ render inline) (lookup "toc" keyvals)
+        link      = H.a ! A.href (H.toValue $ "#" ++ ident) $ preEscapedToHtml section
+markupHeader n = error $    "'markupHeader' should only be passed a 'Node $ Header'\n"
+                         ++ "    saw: " ++ show n
 
 markupHeaders :: Forest Block -> H.Html
 markupHeaders = mconcat . map markupHeader
