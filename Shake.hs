@@ -87,7 +87,7 @@ main = do
         --- "tools" </> "pandoc-drop-html-inlines"
         --- "tools" </> "pandoc-drop-links"
         --- "tools" </> "pandoc-drop-notes"
-         "tools" </> "pandoc-drop-toc"
+        --- "tools" </> "pandoc-drop-toc"
         ]
 
   shakeArgs
@@ -286,7 +286,7 @@ main = do
         cmd Shell ("printf '\\n\\n' >>") webmanall :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown-fenced_divs --atx-headers"
           -- "--filter tools/pandoc-drop-man-blocks"
-          "--filter tools/pandoc-drop-toc"
+          "--lua-filter tools/pandoc-drop-toc.lua"
           -- "--filter tools/pandoc-capitalize-headers"
           "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" webmanall :: Action ExitCode
