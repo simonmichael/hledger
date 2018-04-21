@@ -83,8 +83,8 @@ main = do
   let pandocFilters =
         [
         --- "tools" </> "pandoc-demote-headers"
-         "tools" </> "pandoc-drop-html-blocks"
-        ,"tools" </> "pandoc-drop-html-inlines"
+        --- "tools" </> "pandoc-drop-html-blocks"
+         "tools" </> "pandoc-drop-html-inlines"
         ,"tools" </> "pandoc-drop-links"
         ,"tools" </> "pandoc-drop-notes"
         ,"tools" </> "pandoc-drop-toc"
@@ -204,7 +204,7 @@ main = do
         "m4 -P -DMAN -I" dir lib src "|"
         pandoc "-f markdown -s --template" tmpl
         -- "--filter tools/pandoc-drop-web-blocks"
-        "--filter tools/pandoc-drop-html-blocks"
+        "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--filter tools/pandoc-drop-html-inlines"
         "--filter tools/pandoc-drop-links"
         "--filter tools/pandoc-drop-notes"
@@ -232,7 +232,7 @@ main = do
         "m4 -P -I" dir lib src "|"
         pandoc "-f markdown"
         -- "--filter tools/pandoc-drop-web-blocks"
-        "--filter tools/pandoc-drop-html-blocks"
+        "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--filter tools/pandoc-drop-html-inlines"
         "--filter tools/pandoc-drop-links"
         "--filter tools/pandoc-drop-notes"
