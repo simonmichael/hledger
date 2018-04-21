@@ -113,11 +113,11 @@ pandocReaderOptions = def
 
 -- http://hackage.haskell.org/package/pandoc-1.13/docs/src/Text-Pandoc-Options.html#WriterOptions
 pandocWriterOptions = def
-  {writerHighlight=True
+---  {writerHighlight=True
   -- this would change the value of pandoc's $highlight-css$ var
   -- for now, let the user provide these styles
   -- ,writerHighlightStyle=tango
-  }
+  --- }
 
 pandocTransform = tableOfContents "right"
 
