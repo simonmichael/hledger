@@ -799,9 +799,7 @@ line containing just `end comment` ends it. See [comments](#comments).
 
 ### commodity directive
 
-The `commodity` directive predefines commodities (currently this is just informational),
-and also it may define the display format for amounts in this commodity (overriding the automatically inferred format).
-
+The `commodity` directive declares commodities which may be used in the journal (though currently we do not enforce this).
 It may be written on a single line, like this:
 
 ```journal
@@ -827,6 +825,12 @@ commodity INR
   format INR 9,99,99,999.00
 ```
 
+Commodity directives have a second purpose: they define the standard display format for amounts in the commodity. 
+Normally the display format is inferred from journal entries, but this can be unpredictable; 
+declaring it with a commodity directive overrides this and removes ambiguity. 
+Towards this end, amounts in commodity directives must always be written with a decimal point 
+(a period or comma, followed by 0 or more decimal digits). 
+
 ### Default commodity
 
 The D directive sets a default commodity (and display format), to be used for amounts without a commodity symbol (ie, plain numbers).
@@ -842,6 +846,8 @@ D $1,000.00
   a     5    ; <- commodity-less amount, becomes $1
   b
 ```
+
+As with the `commodity` directive, the amount must always be written with a decimal point. 
 
 ### Default year
 

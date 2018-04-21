@@ -126,26 +126,17 @@ commodity €1,000.00
 >>>2
 >>>=0
 
-# 11. No decimals but have hint from commodity directive with groups
+# 11. Commodity directive requires a decimal point
 hledger bal -f -
 <<<
-commodity 1,000,000 EUR
+commodity 1000 EUR
+>>>2 /please include a decimal point/
+>>>=1
 
-2017/1/1
-	a   1,000 EUR
-	b  -1,000.00 EUR
->>>
-           1,000 EUR  a
-          -1,000 EUR  b
---------------------
-                   0
->>>2
->>>=0
-
-# 12. No decimals but have hint from commodity directive with zero precision
+# 12. Commodity directive with zero precision
 hledger bal -f -
 <<<
-commodity 100 EUR
+commodity 100. EUR
 
 2017/1/1
 	a   1,000 EUR

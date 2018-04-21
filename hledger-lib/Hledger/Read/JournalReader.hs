@@ -274,15 +274,21 @@ commoditydirectivep = try commoditydirectiveonelinep <|> commoditydirectivemulti
 --
 -- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00"
 -- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
-commoditydirectiveonelinep :: Monad m => JournalParser m ()
+commoditydirectiveonelinep :: Monad m => ErroringJournalParser m ()
 commoditydirectiveonelinep = do
   string "commodity"
   lift (skipSome spacenonewline)
+  pos <- getPosition
   Amount{acommodity,astyle} <- amountp
   lift (skipMany spacenonewline)
   _ <- followingcommentp <|> (lift eolof >> return "")
-  let comm = Commodity{csymbol=acommodity, cformat=Just astyle}
-  modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
+  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg2 "style from commodity directive" astyle}
+  if asdecimalpoint astyle == Nothing
+  then parserErrorAt pos pleaseincludedecimalpoint
+  else modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
+
+pleaseincludedecimalpoint :: String
+pleaseincludedecimalpoint = "to avoid ambiguity, please include a decimal point in commodity directives"
 
 -- | Parse a multi-line commodity directive, containing 0 or more format subdirectives.
 --
@@ -309,7 +315,10 @@ formatdirectivep expectedsym = do
   Amount{acommodity,astyle} <- amountp
   _ <- followingcommentp <|> (lift eolof >> return "")
   if acommodity==expectedsym
-    then return astyle
+    then 
+      if asdecimalpoint astyle == Nothing
+      then parserErrorAt pos pleaseincludedecimalpoint
+      else return $ dbg2 "style from format subdirective" astyle
     else parserErrorAt pos $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 
@@ -395,13 +404,16 @@ defaultyeardirectivep = do
   failIfInvalidYear y
   setYear y'
 
-defaultcommoditydirectivep :: Monad m => JournalParser m ()
+defaultcommoditydirectivep :: Monad m => ErroringJournalParser m ()
 defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
   lift (skipSome spacenonewline)
-  Amount{..} <- amountp
+  pos <- getPosition
+  Amount{acommodity,astyle} <- amountp
   lift restofline
-  setDefaultCommodityAndStyle (acommodity, astyle)
+  if asdecimalpoint astyle == Nothing
+  then parserErrorAt pos pleaseincludedecimalpoint
+  else setDefaultCommodityAndStyle (acommodity, astyle)
 
 marketpricedirectivep :: Monad m => JournalParser m MarketPrice
 marketpricedirectivep = do

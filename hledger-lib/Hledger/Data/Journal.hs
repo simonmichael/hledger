@@ -737,18 +737,19 @@ journalApplyCommodityStyles j@Journal{jtxns=ts, jmarketprices=mps} = j''
       fixposting p@Posting{pamount=a} = p{pamount=styleMixedAmount styles a}
       fixmarketprice mp@MarketPrice{mpamount=a} = mp{mpamount=styleAmount styles a}
 
--- | Get all the amount styles defined in this journal, either 
--- declared by a commodity directive (preferred) or inferred from amounts,
--- as a map from symbol to style. 
+-- | Get all the amount styles defined in this journal, either declared by 
+-- a commodity directive or inferred from amounts, as a map from symbol to style. 
+-- Styles declared by commodity directives take precedence, and these also are
+-- guaranteed to know their decimal point character.
 journalCommodityStyles :: Journal -> M.Map CommoditySymbol AmountStyle
 journalCommodityStyles j = declaredstyles <> inferredstyles
   where
     declaredstyles = M.mapMaybe cformat $ jcommodities j
     inferredstyles = jinferredcommodities j
 
--- | Infer a display format for each commodity based on the amounts parsed.
--- "hledger... will use the format of the first posting amount in the
--- commodity, and the highest precision of all posting amounts in the commodity."
+-- | Collect and save inferred amount styles for each commodity based on
+-- the posting amounts in that commodity (excluding price amounts), ie:
+-- "the format of the first amount, adjusted to the highest precision of all amounts".
 journalInferCommodityStyles :: Journal -> Journal
 journalInferCommodityStyles j =
   j{jinferredcommodities =
