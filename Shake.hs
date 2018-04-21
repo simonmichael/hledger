@@ -85,8 +85,8 @@ main = do
         --- "tools" </> "pandoc-demote-headers"
         --- "tools" </> "pandoc-drop-html-blocks"
         --- "tools" </> "pandoc-drop-html-inlines"
-         "tools" </> "pandoc-drop-links"
-        ,"tools" </> "pandoc-drop-notes"
+        --- "tools" </> "pandoc-drop-links"
+         "tools" </> "pandoc-drop-notes"
         ,"tools" </> "pandoc-drop-toc"
         ]
 
@@ -206,7 +206,7 @@ main = do
         -- "--filter tools/pandoc-drop-web-blocks"
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
-        "--filter tools/pandoc-drop-links"
+        "--lua-filter tools/pandoc-drop-links.lua"
         "--filter tools/pandoc-drop-notes"
         "-o" out
 
@@ -234,7 +234,7 @@ main = do
         -- "--filter tools/pandoc-drop-web-blocks"
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
-        "--filter tools/pandoc-drop-links"
+        "--lua-filter tools/pandoc-drop-links.lua"
         "--filter tools/pandoc-drop-notes"
         "-t texinfo |"
         makeinfo "--force --no-split -o" out
