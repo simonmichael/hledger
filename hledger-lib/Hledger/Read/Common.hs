@@ -612,7 +612,7 @@ numberp suggestedStyle = do
     -- ptrace "numberp"
     sign <- signp
     raw <- rawnumberp
-    dbg8 "numberp parsed" raw `seq` return ()
+    dbg8 "numberp suggestedStyle" suggestedStyle `seq` return ()
     let num@(q, prec, decSep, groups) = dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (fromRawNumber suggestedStyle (sign == "-") raw)
     option num . try $ do
         when (isJust groups) $ fail "groups and exponent are not mixable"
@@ -627,6 +627,13 @@ exponentp = do
     return $ (* 10^^exp) *** (0 `max`) . (+ (-exp))
     <?> "exponentp"
 
+-- | Interpret the raw parts of a number, using the provided amount style if any,
+-- determining the decimal point character and digit groups where possible.
+-- Returns:
+-- - the decimal number
+-- - the precision (number of digits after the decimal point)  
+-- - the decimal point character, if any
+-- - the digit group style, if any (digit group character and sizes of digit groups)
 fromRawNumber :: Maybe AmountStyle -> Bool -> (Maybe Char, [String], Maybe (Char, String)) -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
 fromRawNumber suggestedStyle negated raw = (quantity, precision, mdecimalpoint, mgrps) where
     -- unpack with a hint if useful
@@ -658,7 +665,13 @@ fromRawNumber suggestedStyle negated raw = (quantity, precision, mdecimalpoint, 
         AmountStyle{asprecision = 0} -> const False
         _ -> const True
 
-
+-- | Parse the parts of a number, optionally with digit group separators
+-- and/or decimal point, which may be comma or period. Returns: 
+-- - the first separator char (. or ,) if any
+-- - the zero or more digit sequences which were separated by this char
+-- - the other, final separator char and digit sequence following it, if any  
+-- Eg:
+-- 1,234,567.89 -> ( Just ',', ["1","234","567"], Just ('.', "89") )
 rawnumberp :: TextParser m (Maybe Char, [String], Maybe (Char, String))
 rawnumberp = do
     let sepChars = ['.', ','] -- all allowed punctuation characters

@@ -1,4 +1,4 @@
-# Simple case
+# 1. Simple case
 hledger bal -f - --no-total
 <<<
 2017/1/1
@@ -10,7 +10,7 @@ hledger bal -f - --no-total
 >>>2
 >>>=0
 
-# No digits before decimal sep
+# 2. No digits before decimal sep
 hledger bal -f - --no-total
 <<<
 2017/1/1
@@ -22,7 +22,7 @@ hledger bal -f - --no-total
 >>>2
 >>>=0
 
-# No digits after decimal sep
+# 3. No digits after decimal sep
 hledger bal -f - --no-total
 <<<
 2017/1/1
@@ -34,7 +34,7 @@ hledger bal -f - --no-total
 >>>2
 >>>=0
 
-# No digits at all
+# 4. No digits at all
 hledger bal -f -
 <<<
 2017/1/1
@@ -43,7 +43,7 @@ hledger bal -f -
 >>>
 >>>=1
 
-# Space between digits groups
+# 5. Space between digits groups
 hledger bal -f - --no-total
 <<<
 2017/1/1
@@ -55,7 +55,7 @@ hledger bal -f - --no-total
 >>>2
 >>>=0
 
-# Space between digits groups in commodity directive
+# 6. Space between digits groups in commodity directive
 hledger bal -f - --no-total
 <<<
 commodity 1 000.00 EUR
@@ -69,7 +69,7 @@ commodity 1 000.00 EUR
 >>>2
 >>>=0
 
-# Default commodity
+# 7. Default commodity
 hledger bal -f -
 <<<
 D 1,000.00 EUR
@@ -85,7 +85,7 @@ D 1,000.00 EUR
 >>>2
 >>>=0
 
-# Omitted decimals
+# 8. Omitted decimals
 hledger bal -f -
 <<<
 2017/1/1
@@ -94,7 +94,7 @@ hledger bal -f -
 >>>
 >>>=1
 
-# Omitted decimals with commodity hint
+# 9. Omitted decimals with commodity hint
 hledger bal -f -
 <<<
 commodity 1,000.00 EUR
@@ -110,7 +110,7 @@ commodity 1,000.00 EUR
 >>>2
 >>>=0
 
-# Omitted decimals with commodity hint and symbol on left
+# 10. Omitted decimals with commodity hint and symbol on left
 hledger bal -f -
 <<<
 commodity €1,000.00
@@ -126,7 +126,7 @@ commodity €1,000.00
 >>>2
 >>>=0
 
-# No decimals but have hint from commodity directive with groups
+# 11. No decimals but have hint from commodity directive with groups
 hledger bal -f -
 <<<
 commodity 1,000,000 EUR
@@ -142,7 +142,7 @@ commodity 1,000,000 EUR
 >>>2
 >>>=0
 
-# No decimals but have hint from commodity directive with zero precision
+# 12. No decimals but have hint from commodity directive with zero precision
 hledger bal -f -
 <<<
 commodity 100 EUR
@@ -158,7 +158,7 @@ commodity 100 EUR
 >>>2
 >>>=0
 
-# Big prices
+# 13. Big prices
 hledger bal -f -  --no-total
 <<<
 2017/1/1
@@ -167,7 +167,7 @@ hledger bal -f -  --no-total
 >>>
 >>>=1
 
-# Big prices with commodity hint
+# 14. Big prices with commodity hint
 hledger bal -f -  --no-total
 <<<
 commodity ₴1,000.00
@@ -181,7 +181,7 @@ commodity ₴1,000.00
 >>>2
 >>>=0
 
-# adjacent punctuation chars
+# 15. adjacent punctuation chars
 hledger bal -f -
 <<<
 2017/1/1
@@ -190,7 +190,7 @@ hledger bal -f -
 >>>
 >>>=1
 
-# adjacent punctuation chars of different types
+# 16. adjacent punctuation chars of different types
 hledger bal -f -
 <<<
 2017/1/1
@@ -199,7 +199,7 @@ hledger bal -f -
 >>>
 >>>=1
 
-# separator chars vary
+# 17. separator chars vary
 hledger bal -f -
 <<<
 2017/1/1
@@ -208,7 +208,7 @@ hledger bal -f -
 >>>
 >>>=1
 
-# number begins with a decimal char
+# 18. number begins with a decimal char
 hledger bal -f -
 <<<
 2017/1/1
@@ -222,7 +222,7 @@ hledger bal -f -
 >>>2
 >>>=0
 
-# number begins with a separator char
+# 19. number begins with a separator char
 hledger bal -f -
 <<<
 2017/1/1
