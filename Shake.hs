@@ -86,8 +86,8 @@ main = do
         --- "tools" </> "pandoc-drop-html-blocks"
         --- "tools" </> "pandoc-drop-html-inlines"
         --- "tools" </> "pandoc-drop-links"
-         "tools" </> "pandoc-drop-notes"
-        ,"tools" </> "pandoc-drop-toc"
+        --- "tools" </> "pandoc-drop-notes"
+         "tools" </> "pandoc-drop-toc"
         ]
 
   shakeArgs
@@ -207,7 +207,7 @@ main = do
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
-        "--filter tools/pandoc-drop-notes"
+        "--lua-filter tools/pandoc-drop-notes.lua"
         "-o" out
 
     -- render man page nroffs to fixed-width text for embedding in executables, with nroff
@@ -235,7 +235,7 @@ main = do
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
-        "--filter tools/pandoc-drop-notes"
+        "--lua-filter tools/pandoc-drop-notes.lua"
         "-t texinfo |"
         makeinfo "--force --no-split -o" out
 
