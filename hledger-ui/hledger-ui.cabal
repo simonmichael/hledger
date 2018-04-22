@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: cea777a487df72770055345666488fc9985b6adfc88526e59c3a6867e4768811
+-- hash: b550ebb38d8cb6318ceaade71bf1f9eeb9c85a5a84b4da7d9b63f6f8ccd91124
 
 name:           hledger-ui
 version:        1.9
@@ -47,6 +47,20 @@ flag threaded
 
 executable hledger-ui
   main-is: hledger-ui.hs
+  other-modules:
+      Hledger.UI
+      Hledger.UI.AccountsScreen
+      Hledger.UI.Editor
+      Hledger.UI.ErrorScreen
+      Hledger.UI.Main
+      Hledger.UI.RegisterScreen
+      Hledger.UI.Theme
+      Hledger.UI.TransactionScreen
+      Hledger.UI.UIOptions
+      Hledger.UI.UIState
+      Hledger.UI.UITypes
+      Hledger.UI.UIUtils
+      Paths_hledger_ui
   hs-source-dirs:
       ./.
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
@@ -85,18 +99,4 @@ executable hledger-ui
       , vty >=5.5
   if flag(threaded)
     ghc-options: -threaded
-  other-modules:
-      Hledger.UI
-      Hledger.UI.AccountsScreen
-      Hledger.UI.Editor
-      Hledger.UI.ErrorScreen
-      Hledger.UI.Main
-      Hledger.UI.RegisterScreen
-      Hledger.UI.Theme
-      Hledger.UI.TransactionScreen
-      Hledger.UI.UIOptions
-      Hledger.UI.UIState
-      Hledger.UI.UITypes
-      Hledger.UI.UIUtils
-      Paths_hledger_ui
   default-language: Haskell2010

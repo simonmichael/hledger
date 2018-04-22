@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 99eb38f5627e64b90fe33622dba3444cfb4f1d57f69c12b19731fb061f2b896a
+-- hash: 76caff99c32b8b2a218a88b5935bdd4f5aacf03ce196484689e33855c1e9da84
 
 name:           hledger
 version:        1.9
@@ -77,6 +77,38 @@ flag threaded
   default: True
 
 library
+  exposed-modules:
+      Hledger.Cli
+      Hledger.Cli.Main
+      Hledger.Cli.CliOptions
+      Hledger.Cli.DocFiles
+      Hledger.Cli.Utils
+      Hledger.Cli.Version
+      Hledger.Cli.Commands
+      Hledger.Cli.Commands.Accounts
+      Hledger.Cli.Commands.Activity
+      Hledger.Cli.Commands.Add
+      Hledger.Cli.Commands.Balance
+      Hledger.Cli.Commands.Balancesheet
+      Hledger.Cli.Commands.Balancesheetequity
+      Hledger.Cli.Commands.Cashflow
+      Hledger.Cli.Commands.Checkdates
+      Hledger.Cli.Commands.Checkdupes
+      Hledger.Cli.Commands.Close
+      Hledger.Cli.Commands.Help
+      Hledger.Cli.Commands.Import
+      Hledger.Cli.Commands.Incomestatement
+      Hledger.Cli.Commands.Prices
+      Hledger.Cli.Commands.Print
+      Hledger.Cli.Commands.Printunique
+      Hledger.Cli.Commands.Register
+      Hledger.Cli.Commands.Registermatch
+      Hledger.Cli.Commands.Rewrite
+      Hledger.Cli.Commands.Stats
+      Hledger.Cli.Commands.Tags
+      Hledger.Cli.CompoundBalanceCommand
+  other-modules:
+      Paths_hledger
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
   cpp-options: -DVERSION="1.9"
   build-depends:
@@ -121,42 +153,12 @@ library
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
-  exposed-modules:
-      Hledger.Cli
-      Hledger.Cli.Main
-      Hledger.Cli.CliOptions
-      Hledger.Cli.DocFiles
-      Hledger.Cli.Utils
-      Hledger.Cli.Version
-      Hledger.Cli.Commands
-      Hledger.Cli.Commands.Accounts
-      Hledger.Cli.Commands.Activity
-      Hledger.Cli.Commands.Add
-      Hledger.Cli.Commands.Balance
-      Hledger.Cli.Commands.Balancesheet
-      Hledger.Cli.Commands.Balancesheetequity
-      Hledger.Cli.Commands.Cashflow
-      Hledger.Cli.Commands.Checkdates
-      Hledger.Cli.Commands.Checkdupes
-      Hledger.Cli.Commands.Close
-      Hledger.Cli.Commands.Help
-      Hledger.Cli.Commands.Import
-      Hledger.Cli.Commands.Incomestatement
-      Hledger.Cli.Commands.Prices
-      Hledger.Cli.Commands.Print
-      Hledger.Cli.Commands.Printunique
-      Hledger.Cli.Commands.Register
-      Hledger.Cli.Commands.Registermatch
-      Hledger.Cli.Commands.Rewrite
-      Hledger.Cli.Commands.Stats
-      Hledger.Cli.Commands.Tags
-      Hledger.Cli.CompoundBalanceCommand
-  other-modules:
-      Paths_hledger
   default-language: Haskell2010
 
 executable hledger
   main-is: hledger-cli.hs
+  other-modules:
+      Paths_hledger
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
@@ -202,13 +204,13 @@ executable hledger
         terminfo
   if flag(threaded)
     ghc-options: -threaded
-  other-modules:
-      Paths_hledger
   default-language: Haskell2010
 
 test-suite test
   type: exitcode-stdio-1.0
   main-is: test.hs
+  other-modules:
+      Paths_hledger
   hs-source-dirs:
       test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
@@ -254,13 +256,13 @@ test-suite test
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
-  other-modules:
-      Paths_hledger
   default-language: Haskell2010
 
 benchmark bench
   type: exitcode-stdio-1.0
   main-is: bench.hs
+  other-modules:
+      Paths_hledger
   hs-source-dirs:
       bench
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
@@ -287,6 +289,4 @@ benchmark bench
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
-  other-modules:
-      Paths_hledger
   default-language: Haskell2010

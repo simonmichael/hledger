@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f3ae96bc4a552af6049713498efd77ef61e5ade3bac393e45e47b484335029bd
+-- hash: 6e88fc6dc1563f77fa7cb770026fb5039e3293499797c2af985830545fce17f2
 
 name:           hledger-api
 version:        1.9
@@ -43,6 +43,8 @@ source-repository head
 
 executable hledger-api
   main-is: hledger-api.hs
+  other-modules:
+      Paths_hledger_api
   ghc-options: -threaded
   cpp-options: -DVERSION="1.9"
   build-depends:
@@ -67,6 +69,4 @@ executable hledger-api
     , wai
     , wai-extra
     , warp
-  other-modules:
-      Paths_hledger_api
   default-language: Haskell2010
