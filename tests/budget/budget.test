@@ -125,8 +125,7 @@ Budget performance in 2016/12/01-2016/12/03:
   (b)  1
   (c)  1
 
-# 4. --budget uses only periodic transactions of the specified interval.
-# No interval - same as a regular balance report.
+# 4. --budget with no interval has no effect.
 $ hledger -f- bal --budget
                    2  a
                    2  b
@@ -134,31 +133,31 @@ $ hledger -f- bal --budget
 --------------------
                    6
 
-# 5. With -D it selects the daily budget. 
-# The budget is unbounded, so extends through the report period.
+# 5. Multiple periodic transactions with different intervals are combined. 
+# Budget goals with lower frequency than the report are posted in the 
+# appropriate intermittent periods. 
 $ hledger -f- bal --budget -D
 Budget performance in 2018/01/01-2018/01/03:
 
    ||               2018/01/01                2018/01/02                2018/01/03 
 ===++==============================================================================
  a ||       1 [  10% of    10]        0 [   0% of    10]        1 [  10% of    10] 
- b ||       1                         0                         1                  
- c ||       1                         0                         1                  
+ b ||       1 [   1% of   100]        0 [   0% of     0]        1 [             0] 
+ c ||       1 [   0% of  1000]        0 [   0% of     0]        1 [             0] 
 ---++------------------------------------------------------------------------------
-   ||       3 [  30% of    10]        0 [   0% of    10]        3 [  30% of    10] 
-# TODO misleading totals ? ^
+   ||       3 [   0% of  1110]        0 [   0% of    10]        3 [  30% of    10] 
 
-# 6. And with -W it selects the weekly budget, defined by all weekly periodic transactions.
+# 6. Budget goals with higher frequency than the report get added up appropriately.
 $ hledger -f- bal --budget -W
 Budget performance in 2018/01/01w01:
 
    ||            2018/01/01w01 
 ===++==========================
- a ||       2                  
+ a ||       2 [   7% of    30] 
  b ||       2 [   2% of   100] 
  c ||       2 [   0% of  1000] 
 ---++--------------------------
-   ||       6 [   1% of  1100] 
+   ||       6 [   1% of  1130] 
 
 # 7. A bounded two day budget. The end date is exclusive as usual.
 <
