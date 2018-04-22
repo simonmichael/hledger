@@ -73,21 +73,19 @@ budgetReport ropts assrt showunbudgeted reportspan d j =
     dbg1 "budgetreport" $ 
     combineBudgetAndActual budgetgoalreport actualreport
 
--- | Select all periodic transactions from the given journal which
--- match the requested report interval, and use them to generate
--- budget transactions (like forecast transactions) in the specified
--- report period (calculated in IO and passed in).
+-- | Use all periodic transactions in the journal to generate 
+-- budget transactions in the specified report period.
+-- Budget transactions are similar to forecast transactions except
+-- their purpose is to set goal amounts (of change) per account and period.
 budgetJournal :: Bool -> ReportOpts -> DateSpan -> Journal -> Journal
-budgetJournal assrt ropts reportspan j =
+budgetJournal assrt _ropts reportspan j =
   either error' id $ journalBalanceTransactions assrt j{ jtxns = budgetts }
   where
-    budgetinterval = dbg2 "budgetinterval" $ interval_ ropts
     budgetspan = dbg2 "budgetspan" $ reportspan
     budgetts =
       dbg1 "budgetts" $
       [makeBudgetTxn t
       | pt <- jperiodictxns j
-      , periodTransactionInterval pt == Just budgetinterval
       , t <- runPeriodicTransaction pt budgetspan
       ]
     makeBudgetTxn t = txnTieKnot $ t { tdescription = T.pack "Budget transaction" }
