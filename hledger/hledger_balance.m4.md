@@ -337,6 +337,7 @@ Balance changes in 2017/11/01-2017/12/31:
 
 Note --budget first arrived in hledger in 1.5 and is still pretty young; 
 join the discussions on mail list and issue tracker to help us refine it.  
+Also, the `-S/--sort-amount` flag is not yet supported with --budget.
 
 For more examples, see [Budgeting and Forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting and forecasting).
 
