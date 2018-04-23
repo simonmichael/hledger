@@ -258,17 +258,19 @@ budgetReportAsText ropts budgetr =
   ++ 
   tableAsText ropts showcell (budgetReportAsTable ropts budgetr)
   where
+    -- XXX lay out actual, percentage and/or goal in the single table cell for now, should probably use separate cells
     showcell :: (Maybe Change, Maybe BudgetGoal) -> String
     showcell (mactual, mbudget) = actualstr ++ " " ++ budgetstr
       where
         actualwidth  = 7
         percentwidth = 4
         budgetwidth  = 5
-        actualstr = printf ("%"++show actualwidth++"s") (maybe "0" showamt mactual)
-        budgetstr = case (mactual, mbudget) of
-          (_,       Nothing)     -> replicate (percentwidth + 7 + budgetwidth) ' '
-          (mactual, Just budget) ->
-            case percentage mactual budget of
+        actual = fromMaybe 0 mactual
+        actualstr = printf ("%"++show actualwidth++"s") (showamt actual)
+        budgetstr = case mbudget of
+          Nothing     -> replicate (percentwidth + 7 + budgetwidth) ' '
+          Just budget ->
+            case percentage actual budget of
               Just pct ->
                 printf ("[%"++show percentwidth++"s%% of %"++show budgetwidth++"s]")
                        (show $ roundTo 0 pct) (showbudgetamt budget)
@@ -276,18 +278,19 @@ budgetReportAsText ropts budgetr =
                 printf ("["++replicate (percentwidth+5) ' '++"%"++show budgetwidth++"s]")
                        (showbudgetamt budget)
 
-    percentage :: Maybe Change -> BudgetGoal -> Maybe Percentage
-    percentage Nothing _ = Nothing
-    percentage (Just actual) budget =
-      -- percentage of budget consumed is always computed in the cost basis
+    -- | Calculate the percentage of actual change to budget goal to show, if any.
+    -- Both amounts are converted to cost, if possible, before comparing.
+    -- A percentage will not be shown if:
+    -- - actual or goal are not the same, single, commodity
+    -- - the goal is zero
+    percentage :: Change -> BudgetGoal -> Maybe Percentage
+    percentage actual budget =
       case (toCost actual, toCost budget) of
-        (Mixed [a1], Mixed [a2])
-          | isReallyZeroAmount a1 -> Just 0 -- if there are no postings, we consumed 0% of budget
-          | acommodity a1 == acommodity a2 && aquantity a2 /= 0 ->
-            Just $ 100 * aquantity a1 / aquantity a2
-        _ -> Nothing
-        where
-          toCost = normaliseMixedAmount . costOfMixedAmount
+        (Mixed [a], Mixed [b]) | (acommodity a == acommodity b || isZeroAmount a) && not (isZeroAmount b) 
+            -> Just $ 100 * aquantity a / aquantity b
+        _   -> Nothing
+      where
+        toCost = normaliseMixedAmount . costOfMixedAmount 
 
     showamt :: MixedAmount -> String
     showamt | color_ ropts  = cshowMixedAmountOneLineWithoutPrice
