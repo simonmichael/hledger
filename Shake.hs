@@ -207,7 +207,6 @@ main = do
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
-        "--lua-filter tools/pandoc-drop-notes.lua"
         "-o" out
 
     -- render man page nroffs to fixed-width text for embedding in executables, with nroff
@@ -235,7 +234,6 @@ main = do
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
-        "--lua-filter tools/pandoc-drop-notes.lua"
         "-t texinfo |"
         makeinfo "--force --no-split -o" out
 
