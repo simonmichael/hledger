@@ -16,7 +16,7 @@ import Data.Monoid ((<>))
 #endif
 import Data.Ord
 import Data.Time.Calendar
---import Safe
+import Safe
 import Test.HUnit
 --import Data.List
 --import Data.Maybe
@@ -65,24 +65,19 @@ type BudgetReport = PeriodicReport (Maybe Change, Maybe BudgetGoal)
 budgetReport :: ReportOpts -> Bool -> Bool -> DateSpan -> Day -> Journal -> BudgetReport
 budgetReport ropts assrt showunbudgeted reportspan d j =
   let
-    budgetj          = budgetJournal assrt ropts reportspan j
-    budgetedacctsinperiod = 
+    q = queryFromOpts d ropts 
+    budgetj = budgetJournal assrt ropts reportspan j
+    budgetedaccts = 
       dbg2 "budgetedacctsinperiod" $
       accountNamesFromPostings $ 
       concatMap tpostings $ 
       concatMap (flip runPeriodicTransaction reportspan) $ 
       jperiodictxns j
-    actualj          = 
-      budgetRollUp budgetedacctsinperiod showunbudgeted
---      (if showunbudgeted then id else budgetRollUp budgetedacctsinperiod True budgetj) 
-      j
-    q = queryFromOpts d ropts 
+    actualj = budgetRollUp budgetedaccts showunbudgeted j
     budgetgoalreport = dbg1 "budgetgoalreport" $ multiBalanceReport ropts q budgetj
     actualreport     = dbg1 "actualreport"     $ multiBalanceReport ropts q actualj
   in
-    dbg1 "budgetreport" $
---    (if showunbudgeted then id else hideUnbudgetedAccounts budgetedacctsinperiod) $ 
-    combineBudgetAndActual budgetgoalreport actualreport
+    dbg1 "budgetreport" $ combineBudgetAndActual budgetgoalreport actualreport
 
 -- | Use all periodic transactions in the journal to generate 
 -- budget transactions in the specified report period.
@@ -101,19 +96,15 @@ budgetJournal assrt _ropts reportspan j =
       ]
     makeBudgetTxn t = txnTieKnot $ t { tdescription = T.pack "Budget transaction" }
 
--- variations on hiding unbudgeted accounts:
-
--- | Adjust a journal for budget reporting, hiding all or most unbudgeted subaccounts. 
--- Specifically,
+-- | Adjust a journal's account names for budget reporting, in two ways:
 --
--- - account names with no budget goal are rewritten to their closest parent with a budget goal
---   (thereby hiding unbudgeted subaccounts of budgeted accounts, regardless of depth limit).   
+-- 1. accounts with no budget goal anywhere in their ancestry are moved 
+--    under the "unbudgeted" top level account.
 --
--- - accounts with no budgeted parent are rewritten to "<unbudgeted>:topaccountname" 
---   (hiding subaccounts of unbudgeted accounts, regardless of depth limit),   
---   unless --show-unbudgeted is provided.
+-- 2. subaccounts with no budget goal are merged with their closest parent account
+--    with a budget goal, so that only budgeted accounts are shown. 
+--    This can be disabled by --show-unbudgeted.
 --
--- This is slightly inconsistent/confusing but probably useful. 
 budgetRollUp :: [AccountName] -> Bool -> Journal -> Journal
 budgetRollUp budgetedaccts showunbudgeted j = j { jtxns = remapTxn <$> jtxns j }
   where
@@ -122,47 +113,15 @@ budgetRollUp budgetedaccts showunbudgeted j = j { jtxns = remapTxn <$> jtxns j }
         mapPostings f t = txnTieKnot $ t { tpostings = f $ tpostings t }
         remapPosting p = p { paccount = remapAccount $ paccount p, porigin = Just . fromMaybe p $ porigin p }
           where
-            remapAccount origAcctName = remapAccount' origAcctName
+            remapAccount a
+              | hasbudget         = a
+              | hasbudgetedparent = if showunbudgeted then a else budgetedparent 
+              | otherwise         = if showunbudgeted then u <> acctsep <> a else u
               where
-                remapAccount' a
-                  | a `elem` budgetedaccts = a
-                  | not (T.null parent)    = remapAccount' parent
-                  | showunbudgeted         = origAcctName
-                  | otherwise              = unbudgetedAccount <> acctsep <> a
-                  where
-                    parent = parentAccountName a
-
---type PeriodicReportRow a =
---  ( AccountName  -- A full account name.
---  , AccountName  -- Shortened form of the account name to display in tree mode. Usually the leaf name, possibly with parent accounts prefixed.
---  , Int          -- Indent level for displaying this account name in tree mode. 0, 1, 2... 
---  , [a]          -- The data value for each subperiod.
---  , a            -- The total of this row's values.
---  , a            -- The average of this row's values.
---  )
--- XXX doesn't work right with depth limit, show-unbudgeted, tree mode
--- | Adjust a budget report, altering the account name for any rows which have no
--- budget goals in any period, so that they are grouped under a special "unbudgeted"
--- prefix, and moving all "unbudgeted" rows to the end.
-hideOrRenameUnbudgetedAccounts :: [AccountName] -> BudgetReport -> BudgetReport 
-hideOrRenameUnbudgetedAccounts budgetedaccts (PeriodicReport (spans, rows, totalrow)) =
-  PeriodicReport (spans, rs ++ unbudgetedrs, totalrow)
-  where
-    (rs, unbudgetedrs) = partition (any (isJust . snd) . fourth6) $ map renameacct rows
-    renameacct r@(a, a', indent, vals, tot, avg) =
-      -- if any (isJust . snd) vals
-      if a `elem` budgetedaccts
-      then r
-      else (rename a, mayberename a', indent, vals, tot, avg)
-      where
-        rename = ("<unbudgeted>:"<>)  
-        mayberename = id  -- XXX
-
--- | Adjust a budget report, removing any rows which do not correspond to
--- one of the provided budgeted accounts.
-hideUnbudgetedAccounts :: [AccountName] -> BudgetReport -> BudgetReport 
-hideUnbudgetedAccounts budgetedaccts (PeriodicReport (spans, rows, totalrow)) =
-  PeriodicReport (spans, filter ((`elem` budgetedaccts) . first6) rows, totalrow)
+                hasbudget = a `elem` budgetedaccts
+                hasbudgetedparent = not $ T.null budgetedparent
+                budgetedparent = headDef "" $ filter (`elem` budgetedaccts) $ parentAccountNames a
+                u = unbudgetedAccountName
 
 -- | Combine a per-account-and-subperiod report of budget goals, and one
 -- of actual change amounts, into a budget performance report.
