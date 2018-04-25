@@ -245,14 +245,83 @@ Balance changes in 2008:
 
 ```
 
-### Budgets
+Currently, the [`-V/--value` flag](#market-value) has a limitation in 
+multicolumn reports: it uses the market prices on the report end date 
+for all columns. (Instead of the prices on each column's end date.) 
 
-With `--budget` and a [report interval](manual.html#report-intervals), 
-all [periodic transactions](journal.html#periodic-transactions) in your journal 
-with that interval, 
-active during the requested report period,
-are interpreted as recurring budget goals for the specified accounts (and subaccounts), 
-and the report will show the difference between actual and budgeted balances.  
+### Custom balance output
+
+You can customise the layout of simple (non-tabular) balance reports with `--format FMT`:
+
+```shell
+$ hledger balance --format "%20(account) %12(total)"
+              assets          $-1
+         bank:saving           $1
+                cash          $-2
+            expenses           $2
+                food           $1
+            supplies           $1
+              income          $-2
+               gifts          $-1
+              salary          $-1
+   liabilities:debts           $1
+---------------------------------
+                                0
+```
+
+The FMT format string (plus a newline) specifies the formatting
+applied to each account/balance pair. It may contain any suitable
+text, with data fields interpolated like so:
+
+`%[MIN][.MAX](FIELDNAME)`
+
+- MIN pads with spaces to at least this width (optional)
+- MAX truncates at this width (optional)
+- FIELDNAME must be enclosed in parentheses, and can be one of:
+
+    - `depth_spacer` - a number of spaces equal to the account's depth, or if MIN is specified, MIN * depth spaces.
+    - `account`      - the account's name
+    - `total`        - the account's balance/posted total, right justified
+
+Also, FMT can begin with an optional prefix to control how
+multi-commodity amounts are rendered:
+
+- `%_` - render on multiple lines, bottom-aligned (the default)
+- `%^` - render on multiple lines, top-aligned
+- `%,` - render on one line, comma-separated
+
+There are some quirks. Eg in one-line mode, `%(depth_spacer)` has no
+effect, instead `%(account)` has indentation built in.
+<!-- XXX retest:
+Consistent column widths are not well enforced, causing ragged edges unless you set suitable widths.
+Beware of specifying a maximum width; it will clip account names and amounts that are too wide, with no visible indication.
+-->
+Experimentation may be needed to get pleasing results.
+
+Some example formats:
+
+- `%(total)`         - the account's total
+- `%-20.20(account)` - the account's name, left justified, padded to 20 characters and clipped at 20 characters
+- `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
+- `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report
+
+This command also supports [output destination](/manual.html#output-destination) and [output format](/manual.html#output-format) selection.
+
+### Colour support
+
+The balance command shows negative amounts in red, if:
+
+- the `TERM` environment variable is not set to `dumb`
+- the output is not being redirected or piped anywhere
+
+
+### Budget report
+
+With `--budget`, extra columns are displayed showing budget goals for each account and period,
+and how the actual amounts compare with the goals.
+Budget goals are defined by [periodic transactions](journal.html#periodic-transactions) in the journal.
+
+--budget is most often combined with a [report interval](manual.html#report-intervals).
 
 For example, you can take average monthly expenses in the common expense categories to construct a minimal monthly budget:
 ```journal
@@ -336,74 +405,8 @@ Balance changes in 2017/11/01-2017/12/31:
 ```
 
 Note --budget first arrived in hledger in 1.5 and is still pretty young; 
-join the discussions on mail list and issue tracker to help us refine it.  
+join the discussions on mail list and issue tracker to help us refine it.
 Also, the `-S/--sort-amount` flag is not yet supported with --budget.
 
 For more examples, see [Budgeting and Forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting and forecasting).
-
-### Custom balance output
-
-You can customise the layout of simple (non-tabular) balance reports with `--format FMT`:
-
-```shell
-$ hledger balance --format "%20(account) %12(total)"
-              assets          $-1
-         bank:saving           $1
-                cash          $-2
-            expenses           $2
-                food           $1
-            supplies           $1
-              income          $-2
-               gifts          $-1
-              salary          $-1
-   liabilities:debts           $1
----------------------------------
-                                0
-```
-
-The FMT format string (plus a newline) specifies the formatting
-applied to each account/balance pair. It may contain any suitable
-text, with data fields interpolated like so:
-
-`%[MIN][.MAX](FIELDNAME)`
-
-- MIN pads with spaces to at least this width (optional)
-- MAX truncates at this width (optional)
-- FIELDNAME must be enclosed in parentheses, and can be one of:
-
-    - `depth_spacer` - a number of spaces equal to the account's depth, or if MIN is specified, MIN * depth spaces.
-    - `account`      - the account's name
-    - `total`        - the account's balance/posted total, right justified
-
-Also, FMT can begin with an optional prefix to control how
-multi-commodity amounts are rendered:
-
-- `%_` - render on multiple lines, bottom-aligned (the default)
-- `%^` - render on multiple lines, top-aligned
-- `%,` - render on one line, comma-separated
-
-There are some quirks. Eg in one-line mode, `%(depth_spacer)` has no
-effect, instead `%(account)` has indentation built in.
-<!-- XXX retest:
-Consistent column widths are not well enforced, causing ragged edges unless you set suitable widths.
-Beware of specifying a maximum width; it will clip account names and amounts that are too wide, with no visible indication.
--->
-Experimentation may be needed to get pleasing results.
-
-Some example formats:
-
-- `%(total)`         - the account's total
-- `%-20.20(account)` - the account's name, left justified, padded to 20 characters and clipped at 20 characters
-- `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
-- `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report
-
-This command also supports [output destination](/manual.html#output-destination) and [output format](/manual.html#output-format) selection.
-
-### Colour support
-
-The balance command shows negative amounts in red, if:
-
-- the `TERM` environment variable is not set to `dumb`
-- the output is not being redirected or piped anywhere
-
 
