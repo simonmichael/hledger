@@ -66,18 +66,24 @@ budgetReport :: ReportOpts -> Bool -> Bool -> DateSpan -> Day -> Journal -> Budg
 budgetReport ropts assrt showunbudgeted reportspan d j =
   let
     q = queryFromOpts d ropts 
-    budgetj = budgetJournal assrt ropts reportspan j
     budgetedaccts = 
       dbg2 "budgetedacctsinperiod" $
       accountNamesFromPostings $ 
       concatMap tpostings $ 
       concatMap (flip runPeriodicTransaction reportspan) $ 
       jperiodictxns j
-    actualj = budgetRollUp budgetedaccts showunbudgeted j
-    budgetgoalreport = dbg1 "budgetgoalreport" $ multiBalanceReport ropts q budgetj
-    actualreport     = dbg1 "actualreport"     $ multiBalanceReport ropts q actualj
+    actualj = dbg1 "actualj" $ budgetRollUp budgetedaccts showunbudgeted j
+    budgetj = dbg1 "budgetj" $ budgetJournal assrt ropts reportspan j
+    actualreport@(MultiBalanceReport (actualspans, _, _)) = dbg1 "actualreport" $ multiBalanceReport ropts  q actualj
+    budgetgoalreport@(MultiBalanceReport (_, budgetgoalitems, budgetgoaltotals)) = dbg1 "budgetgoalreport" $ multiBalanceReport ropts q budgetj
+    budgetgoalreport'
+      -- If no interval is specified:
+      -- budgetgoalreport's span might be shorter actualreport's due to periodic txns; 
+      -- it should be safe to replace it with the latter, so they combine well. 
+      | interval_ ropts == NoInterval = MultiBalanceReport (actualspans, budgetgoalitems, budgetgoaltotals)
+      | otherwise = budgetgoalreport 
   in
-    dbg1 "budgetreport" $ combineBudgetAndActual budgetgoalreport actualreport
+    dbg1 "budgetreport" $ combineBudgetAndActual budgetgoalreport' actualreport
 
 -- | Use all periodic transactions in the journal to generate 
 -- budget transactions in the specified report period.
