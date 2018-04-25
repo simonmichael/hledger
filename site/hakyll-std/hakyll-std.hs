@@ -108,10 +108,10 @@ filesToRender =
   ,"doc/**.markdown"
   ]
 
--- http://hackage.haskell.org/package/pandoc-1.13/docs/src/Text-Pandoc-Options.html#ReaderOptions
 pandocReaderOptions = def
+  { readerExtensions = pandocExtensions
+  }
 
--- http://hackage.haskell.org/package/pandoc-1.13/docs/src/Text-Pandoc-Options.html#WriterOptions
 pandocWriterOptions = def
 ---  {writerHighlight=True
   -- this would change the value of pandoc's $highlight-css$ var
