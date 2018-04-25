@@ -77,19 +77,6 @@ groff = "groff"
 
 main = do
 
---  pandocFilters <-
---    map ("tools" </>). nub . sort . map (-<.> "") . filter ("pandoc-" `isPrefixOf`)
---    <$> S.getDirectoryContents "tools"
-  let pandocFilters =
-        [
-        --- "tools" </> "pandoc-demote-headers"
-        --- "tools" </> "pandoc-drop-html-blocks"
-        --- "tools" </> "pandoc-drop-html-inlines"
-        --- "tools" </> "pandoc-drop-links"
-        --- "tools" </> "pandoc-drop-notes"
-        --- "tools" </> "pandoc-drop-toc"
-        ]
-
   shakeArgs
     shakeOptions{
       shakeVerbosity=Loud
@@ -180,13 +167,6 @@ main = do
         ++ infomanpages
         ++ txtmanpages
 
-    -- compile pandoc helpers
-    phony "pandocfilters" $ need pandocFilters
-
-    pandocFilters |%> \out -> do
-      need [out <.> "hs"]
-      cmd ("stack --stack-yaml=stack-ghc8.2.yaml ghc") out
-
     -- man pages
 
     -- use m4 and pandoc to process macros, filter content, and convert to nroff suitable for man output
@@ -199,11 +179,10 @@ main = do
           tmpl = "doc/manpage.nroff"
       -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
       deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-      need $ src : lib : tmpl : deps ++ pandocFilters
+      need $ src : lib : tmpl : deps
       cmd Shell
         "m4 -P -DMAN -I" dir lib src "|"
         pandoc "-f markdown -s --template" tmpl
-        -- "--filter tools/pandoc-drop-web-blocks"
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
@@ -226,11 +205,10 @@ main = do
           dir = takeDirectory out
       -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
       deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-      need $ src : lib : deps ++ pandocFilters
+      need $ src : lib : deps
       cmd Shell
         "m4 -P -I" dir lib src "|"
         pandoc "-f markdown"
-        -- "--filter tools/pandoc-drop-web-blocks"
         "--lua-filter tools/pandoc-drop-html-blocks.lua"
         "--lua-filter tools/pandoc-drop-html-inlines.lua"
         "--lua-filter tools/pandoc-drop-links.lua"
@@ -266,14 +244,12 @@ main = do
                        else h
       -- assume all other m4 files in dir are included by this one XXX not true in hledger-lib
       deps <- liftIO $ filter (/= src) . filter (".m4.md" `isSuffixOf`) . map (dir </>) <$> S.getDirectoryContents dir
-      need $ src : lib : deps ++ pandocFilters
+      need $ src : lib : deps
       liftIO $ writeFile out $ "# " ++ heading ++ "\n\n"
       cmd Shell
         "m4 -P -DMAN -DWEB -I" dir lib src "|"
         pandoc "-f markdown -t markdown-fenced_divs --atx-headers"
         "--lua-filter tools/pandoc-demote-headers.lua"
-        -- "--filter tools/pandoc-add-toc"
-        -- "--filter tools/pandoc-drop-man-blocks"
         ">>" out
 
     -- adjust and combine man page mds for single-page web output, using pandoc
@@ -285,9 +261,7 @@ main = do
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
         cmd Shell ("printf '\\n\\n' >>") webmanall :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown-fenced_divs --atx-headers"
-          -- "--filter tools/pandoc-drop-man-blocks"
           "--lua-filter tools/pandoc-drop-toc.lua"
-          -- "--filter tools/pandoc-capitalize-headers"
           "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" webmanall :: Action ExitCode
 
@@ -328,7 +302,7 @@ main = do
       putNormal "Cleaning all hakyll generated files"
       removeFilesAfter "site" ["_*"]
       putNormal "Cleaning executables"
-      removeFilesAfter "." $ hakyllstd : pandocFilters
+      removeFilesAfter "." $ [ hakyllstd ]
       putNormal "Cleaning object files" -- also forces rebuild of executables
       removeFilesAfter "tools"  ["*.o","*.p_o","*.hi"]
       removeFilesAfter "site" ["*.o","*.p_o","*.hi"]
