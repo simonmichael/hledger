@@ -329,12 +329,14 @@ Balance changes in 2008:
 
 ```
 
-Eliding of boring parent accounts, as in the classic balance report,
-is not yet supported in multicolumn reports.
+Limitations:
 
-Currently, the [`-V/--value` flag](#market-value) has a limitation in 
-multicolumn reports: it uses the market prices on the report end date 
-for all columns. (Instead of the prices on each column's end date.) 
+In multicolumn reports the [`-V/--value` flag](#market-value) uses the
+market price on the report end date, for all columns (not the price on
+each column's end date).
+
+Eliding of boring parent accounts in tree mode, as in the classic
+balance report, is not yet supported in multicolumn reports.
 
 ### Budget report
 
