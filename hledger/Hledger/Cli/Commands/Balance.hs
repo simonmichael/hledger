@@ -308,9 +308,23 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
     Left err -> error' $ unlines [err]
     Right _ -> do
       let format   = outputFormatFromOpts opts
+          budget   = boolopt "budget" rawopts
           interval = interval_ ropts
-      case interval of
-        NoInterval -> do
+      case (budget, interval) of
+        (True, _) -> do
+          -- single or multicolumn budget report
+          reportspan <- reportSpan j ropts
+          let budgetreport     = dbg1 "budgetreport"     $ budgetReport ropts assrt showunbudgeted reportspan d j
+                where
+                  showunbudgeted = boolopt "show-unbudgeted" rawopts
+                  assrt          = not $ ignore_assertions_ $ inputopts_ opts
+              render = case format of
+                "csv"  -> const $ error' "Sorry, CSV output is not yet implemented for this kind of report."  -- TODO
+                "html" -> const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
+                _      -> budgetReportAsText ropts
+          writeOutput opts $ render budgetreport
+          
+        (False, NoInterval) -> do
           -- single column balance report
           let report
                 | balancetype_ ropts `elem` [HistoricalBalance, CumulativeChange]
@@ -325,20 +339,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
                 _      -> balanceReportAsText
           writeOutput opts $ render ropts report
           
-        _ | boolopt "budget" rawopts -> do
-          -- multi column budget report
-          reportspan <- reportSpan j ropts
-          let budgetreport     = dbg1 "budgetreport"     $ budgetReport ropts assrt showunbudgeted reportspan d j
-                where
-                  showunbudgeted = boolopt "show-unbudgeted" rawopts
-                  assrt          = not $ ignore_assertions_ $ inputopts_ opts
-              render = case format of
-                "csv"  -> const $ error' "Sorry, CSV output is not yet implemented for this kind of report."  -- TODO
-                "html" -> const $ error' "Sorry, HTML output is not yet implemented for this kind of report."  -- TODO
-                _      -> budgetReportAsText ropts
-          writeOutput opts $ render budgetreport
-          
-          | otherwise -> do
+        _  -> do
           -- multi column balance report
           let report = multiBalanceReport ropts (queryFromOpts d ropts) j
               render = case format of

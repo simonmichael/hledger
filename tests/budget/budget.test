@@ -124,13 +124,18 @@ Budget performance in 2016/12/01-2016/12/03:
   (b)  1
   (c)  1
 
-# 4. --budget with no interval has no effect.
+# 4. --budget with no interval shows total budget for the journal period
+# (in tabular format). 
 $ hledger -f- bal --budget
-                   2  a
-                   2  b
-                   2  c
---------------------
-                   6
+Budget performance in 2018/01/01-2018/01/03:
+
+   ||    2018/01/01-2018/01/03 
+===++==========================
+ a ||       2 [   7% of    30] 
+ b ||       2 [   2% of   100] 
+ c ||       2 [   0% of  1000] 
+---++--------------------------
+   ||       6 [   1% of  1130] 
 
 # 5. Multiple periodic transactions with different intervals are combined. 
 # Budget goals with lower frequency than the report are posted in the 
