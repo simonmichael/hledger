@@ -770,11 +770,9 @@ FILE FORMAT
        containing just end comment ends it.  See comments.
 
    commodity directive
-       The  commodity directive predefines commodities (currently this is just
-       informational), and also it may define the display format  for  amounts
-       in this commodity (overriding the automatically inferred format).
-
-       It may be written on a single line, like this:
+       The  commodity  directive declares commodities which may be used in the
+       journal (though currently we do not enforce this).  It may  be  written
+       on a single line, like this:
 
               ; commodity EXAMPLEAMOUNT
 
@@ -796,6 +794,14 @@ FILE FORMAT
               commodity INR
                 format INR 9,99,99,999.00
 
+       Commodity  directives  have  a second purpose: they define the standard
+       display format for amounts in the commodity.  Normally the display for-
+       mat  is  inferred  from journal entries, but this can be unpredictable;
+       declaring it with a commodity  directive  overrides  this  and  removes
+       ambiguity.   Towards  this  end,  amounts  in commodity directives must
+       always be written with a decimal point (a period or comma, followed  by
+       0 or more decimal digits).
+
    Default commodity
        The  D  directive  sets a default commodity (and display format), to be
        used for amounts without a commodity symbol (ie, plain numbers).  (Note
@@ -811,9 +817,12 @@ FILE FORMAT
                 a     5    ; <- commodity-less amount, becomes $1
                 b
 
+       As with the commodity directive, the amount must always be written with
+       a decimal point.
+
    Default year
-       You  can set a default year to be used for subsequent dates which don't
-       specify a year.  This is a line beginning with Y followed by the  year.
+       You can set a default year to be used for subsequent dates which  don't
+       specify  a year.  This is a line beginning with Y followed by the year.
        Eg:
 
               Y2009      ; set default year to 2009
@@ -833,58 +842,58 @@ FILE FORMAT
                 assets
 
    Including other files
-       You  can  pull in the content of additional journal files by writing an
+       You can pull in the content of additional journal files by  writing  an
        include directive, like this:
 
               include path/to/file.journal
 
-       If the path does not begin with a slash, it is relative to the  current
+       If  the path does not begin with a slash, it is relative to the current
        file.  Glob patterns (*) are not currently supported.
 
-       The  include  directive  can  only  be  used  in journal files.  It can
+       The include directive can only  be  used  in  journal  files.   It  can
        include journal, timeclock or timedot files, but not CSV files.
 
 Periodic transactions
-       Periodic transactions are a kind of rule with a dual purpose: they  can
-       specify  recurring  future  transactions  (with  --forecast), or budget
-       goals (with --budget).  They look a bit like a transaction, except  the
+       Periodic  transactions are a kind of rule with a dual purpose: they can
+       specify recurring future  transactions  (with  --forecast),  or  budget
+       goals  (with --budget).  They look a bit like a transaction, except the
        first line is a tilde (~) followed by a period expression:
 
               ~ weekly
                 assets:bank:checking   $400 ; paycheck
                 income:acme inc
 
-       With  --forecast,  each  periodic  transaction rule generates recurring
-       "forecast" transactions at the specified interval,  beginning  the  day
-       after  the  latest recorded journal transaction (or today, if there are
-       no transactions) and ending 6 months from today (or at the  report  end
+       With --forecast, each periodic  transaction  rule  generates  recurring
+       "forecast"  transactions  at  the specified interval, beginning the day
+       after the latest recorded journal transaction (or today, if  there  are
+       no  transactions)  and ending 6 months from today (or at the report end
        date, if specified).
 
-       With  balance --budget,  each  periodic  transaction declares recurring
+       With balance --budget, each  periodic  transaction  declares  recurring
        budget goals for the specified accounts.  Eg the example above declares
-       the  goal  of receiving $400 from income:acme inc (and also, depositing
+       the goal of receiving $400 from income:acme inc (and  also,  depositing
        $400 into assets:bank:checking) every week.
 
-       For more details, see: balance: Budgeting and Budgeting  and  Forecast-
+       For  more  details, see: balance: Budgeting and Budgeting and Forecast-
        ing.
 
 Automated postings
-       Automated  postings are postings added automatically by rule to certain
-       transactions (with --auto).  An automated posting  rule  looks  like  a
-       transaction  where  the  first  line is an equal sign (=) followed by a
+       Automated postings are postings added automatically by rule to  certain
+       transactions  (with  --auto).   An  automated posting rule looks like a
+       transaction where the first line is an equal sign  (=)  followed  by  a
        query:
 
               = expenses:gifts
                   budget:gifts  *-1
                   assets:budget  *1
 
-       The posting amounts can be of the form *N, which means "the  amount  of
-       the  matched  transaction's  first posting, multiplied by N".  They can
+       The  posting  amounts can be of the form *N, which means "the amount of
+       the matched transaction's first posting, multiplied by  N".   They  can
        also be ordinary fixed amounts.  Fixed amounts with no commodity symbol
-       will  be  given  the  same commodity as the matched transaction's first
+       will be given the same commodity as  the  matched  transaction's  first
        posting.
 
-       This example adds a corresponding (unbalanced) budget posting to  every
+       This  example adds a corresponding (unbalanced) budget posting to every
        transaction involving the expenses:gifts account:
 
               = expenses:gifts
@@ -900,18 +909,18 @@ Automated postings
                   (budget:gifts)            $-20
                   assets
 
-       Automated  postings  would not be distinguishable from equivalent post-
-       ings written by hand.  In particular, they would affect [amount  infer-
-       ence|#postings]  and  [balance assertion|#balance-assertions] checks in
+       Automated postings would not be distinguishable from  equivalent  post-
+       ings  written by hand.  In particular, they would affect [amount infer-
+       ence|#postings] and [balance assertion|#balance-assertions]  checks  in
        the usual way.
 
 EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
-       nal  files  easier.   They add colour, navigation aids and helpful com-
-       mands.  For hledger users who  edit  the  journal  file  directly  (the
+       nal files easier.  They add colour, navigation aids  and  helpful  com-
+       mands.   For  hledger  users  who  edit  the journal file directly (the
        majority), using one of these modes is quite recommended.
 
-       These  were  written  with  Ledger  in mind, but also work with hledger
+       These were written with Ledger in mind,  but  also  work  with  hledger
        files:
 
 
@@ -930,7 +939,7 @@ EDITOR SUPPORT
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -944,7 +953,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

@@ -1061,11 +1061,8 @@ and a line containing just \f[C]end\ comment\f[] ends it.
 See comments.
 .SS commodity directive
 .PP
-The \f[C]commodity\f[] directive predefines commodities (currently this
-is just informational), and also it may define the display format for
-amounts in this commodity (overriding the automatically inferred
-format).
-.PP
+The \f[C]commodity\f[] directive declares commodities which may be used
+in the journal (though currently we do not enforce this).
 It may be written on a single line, like this:
 .IP
 .nf
@@ -1095,6 +1092,15 @@ commodity\ INR
 \ \ format\ INR\ 9,99,99,999.00
 \f[]
 .fi
+.PP
+Commodity directives have a second purpose: they define the standard
+display format for amounts in the commodity.
+Normally the display format is inferred from journal entries, but this
+can be unpredictable; declaring it with a commodity directive overrides
+this and removes ambiguity.
+Towards this end, amounts in commodity directives must always be written
+with a decimal point (a period or comma, followed by 0 or more decimal
+digits).
 .SS Default commodity
 .PP
 The D directive sets a default commodity (and display format), to be
@@ -1114,6 +1120,9 @@ D\ $1,000.00
 \ \ b
 \f[]
 .fi
+.PP
+As with the \f[C]commodity\f[] directive, the amount must always be
+written with a decimal point.
 .SS Default year
 .PP
 You can set a default year to be used for subsequent dates which don't

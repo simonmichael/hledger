@@ -997,11 +997,9 @@ File: hledger_journal.info,  Node: commodity directive,  Next: Default commodity
 1.14.5 commodity directive
 --------------------------
 
-The 'commodity' directive predefines commodities (currently this is just
-informational), and also it may define the display format for amounts in
-this commodity (overriding the automatically inferred format).
-
-   It may be written on a single line, like this:
+The 'commodity' directive declares commodities which may be used in the
+journal (though currently we do not enforce this).  It may be written on
+a single line, like this:
 
 ; commodity EXAMPLEAMOUNT
 
@@ -1023,6 +1021,14 @@ places:
 commodity INR
   format INR 9,99,99,999.00
 
+   Commodity directives have a second purpose: they define the standard
+display format for amounts in the commodity.  Normally the display
+format is inferred from journal entries, but this can be unpredictable;
+declaring it with a commodity directive overrides this and removes
+ambiguity.  Towards this end, amounts in commodity directives must
+always be written with a decimal point (a period or comma, followed by 0
+or more decimal digits).
+
 
 File: hledger_journal.info,  Node: Default commodity,  Next: Default year,  Prev: commodity directive,  Up: Directives
 
@@ -1042,6 +1048,9 @@ D $1,000.00
 1/1
   a     5    ; <- commodity-less amount, becomes $1
   b
+
+   As with the 'commodity' directive, the amount must always be written
+with a decimal point.
 
 
 File: hledger_journal.info,  Node: Default year,  Next: Including other files,  Prev: Default commodity,  Up: Directives
@@ -1259,17 +1268,17 @@ Node: Multi-line comments35168
 Ref: #multi-line-comments35358
 Node: commodity directive35486
 Ref: #commodity-directive35670
-Node: Default commodity36542
-Ref: #default-commodity36715
-Node: Default year37252
-Ref: #default-year37417
-Node: Including other files37840
-Ref: #including-other-files37997
-Node: Periodic transactions38394
-Ref: #periodic-transactions38560
-Node: Automated postings39549
-Ref: #automated-postings39712
-Node: EDITOR SUPPORT40840
-Ref: #editor-support40965
+Node: Default commodity36897
+Ref: #default-commodity37070
+Node: Default year37702
+Ref: #default-year37867
+Node: Including other files38290
+Ref: #including-other-files38447
+Node: Periodic transactions38844
+Ref: #periodic-transactions39010
+Node: Automated postings39999
+Ref: #automated-postings40162
+Node: EDITOR SUPPORT41290
+Ref: #editor-support41415
 
 End Tag Table
