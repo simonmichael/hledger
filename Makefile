@@ -896,7 +896,6 @@ ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
 		--package base-prelude \
 		--package directory \
 		--package extra \
-		--package pandoc \
 		--package safe \
 		--package shake \
 		--package time \
