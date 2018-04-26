@@ -1,0 +1,65 @@
+# https://www.appveyor.com/docs/appveyor-yml
+# https://www.appveyor.com/docs/build-configuration
+# https://www.appveyor.com/docs/branches
+# https://www.appveyor.com/docs/how-to/filtering-commits:
+# [skip ci] or [ci skip] anywhere in commit message, or [skip appveyor] only 
+
+#build: off
+
+# shorter file paths have been a known workaround in the past
+clone_folder: "c:\\pr"
+environment:
+  global:
+    STACK_ROOT: "c:\\sr"
+# set in UI, can we set here ?
+#    APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
+
+#version: '1.9.99.{build}'
+
+# to clean cache: https://www.appveyor.com/docs/build-cache/#cleaning-up-cache
+# method 1: browse ui, open inspector, $.ajax({url: 'https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache',type: 'DELETE'})
+# method 2: curl -s -H "Authorization: Bearer $APPVEYOR_TOKEN" -H "Content-Type: application/json" -X DELETE https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache
+cache:
+- "%LOCALAPPDATA%\\Programs\\stack"
+- "c:\\sr"
+- "c:\\pr\\.stack-work"
+#- "c:\\pr\\hledger-lib\\.stack-work"
+#- "c:\\pr\\hledger\\.stack-work"
+#- "c:\\pr\\hledger-web\\.stack-work"
+#- "c:\\pr\\hledger-api\\.stack-work"
+
+#before_test:
+install:
+- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
+- 7z x stack.zip stack.exe
+
+test_script:
+- stack build --test --copy-bins --local-bin-path=. hledger #hledger-web hledger-api
+# -j1      a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+
+# --bench  benchmark doesn't run on windows yet
+#- hledger-install/hledger-install.sh
+#- make stacktest
+
+artifacts:
+- path: hledger.exe
+#- path: hledger-web.exe
+#- path: hledger-api.exe
+
+
+
+# deployment stuff for later
+# https://silky.github.io/posts/2016-01-05-build-windows-haskell-app-with-stack-and-appveyor.html
+#
+#- cmd: for /f %%i in ('.\\hledger --version') do set HLEDGER_VERSION=%%i
+#- cmd: for /f %%i in ('.\\hledger-web --version') do set HLEDGER_WEB_VERSION=%%i
+#- cmd: for /f %%i in ('.\\hledger-api --version') do set HLEDGER_API_VERSION=%%i
+#
+#deploy:
+#  - provider: GitHub
+#    tag: 'hledger-$(HLEDGER_VERSION)'
+#    release: 'Release hledger-$(HLEDGER_VERSION)'
+#    auth_token:
+#      secure: #FZXhwa1ucQwyFtswv/XNUJkclAxoz4YGGu69dSOEEkwG7Rlh/Gho66SJtOUJ57kN
+#    artifact: hledger.exe
+#    on:
+#      branch: master
