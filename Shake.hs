@@ -8,7 +8,7 @@
    --package safe
    --package shake
    --package time
-   -- ghc
+   ghc
 -}
 --   --package pandoc
 {-
