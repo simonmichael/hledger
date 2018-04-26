@@ -28,17 +28,20 @@ cache:
 #- "c:\\pr\\hledger-web\\.stack-work"
 #- "c:\\pr\\hledger-api\\.stack-work"
 
-#install:
-before_test:
+install:
 - curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
 - 7z x stack.zip stack.exe
 
-test_script:
+# run custom scripts instead of MSBuild
+build_script:
 - stack build --test --copy-bins --local-bin-path=. hledger #hledger-web hledger-api
 # -j1      a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+
 # --bench  benchmark doesn't run on windows yet
 #- hledger-install/hledger-install.sh
 #- make stacktest
+
+# run custom scripts instead of automatic test detector
+#test_script:
 
 artifacts:
 - path: hledger.exe
