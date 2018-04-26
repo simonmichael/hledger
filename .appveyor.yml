@@ -28,8 +28,8 @@ cache:
 #- "c:\\pr\\hledger-web\\.stack-work"
 #- "c:\\pr\\hledger-api\\.stack-work"
 
-#before_test:
-install:
+#install:
+before_test:
 - curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
 - 7z x stack.zip stack.exe
 
