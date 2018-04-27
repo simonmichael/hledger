@@ -6,6 +6,8 @@
 
 #build: off
 
+platform: x64
+
 # shorter file paths have been a known workaround in the past
 clone_folder: "c:\\pr"
 environment:
@@ -29,18 +31,17 @@ cache:
 #- "c:\\pr\\hledger-api\\.stack-work"
 
 install:
-- curl -ostack.zip -L --insecure http://www.stackage.org/stack/windows-i386
+- curl -skL -ostack.zip http://www.stackage.org/stack/windows-i386
 - 7z x stack.zip stack.exe
+- stack setup
 
-# run custom scripts instead of MSBuild
+# -j1      - a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+
+# --bench  - benchmark doesn't run on windows yet
 build_script:
-- stack build --test --copy-bins --local-bin-path=. hledger #hledger-web hledger-api
-# -j1      a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+
-# --bench  benchmark doesn't run on windows yet
+- stack build --no-install-ghc --test --copy-bins --local-bin-path=. hledger #hledger-web hledger-api
 #- hledger-install/hledger-install.sh
 #- make stacktest
 
-# run custom scripts instead of automatic test detector
 #test_script:
 
 artifacts:
