@@ -53,7 +53,7 @@ import System.Process (system)
 -- import Text.Highlighting.Kate (pygments, kate, espresso, tango, haddock, monochrome, zenburn)
 import Text.Pandoc.Options
 
-import TableOfContents (tableOfContents)
+import TableOfContents (tableOfContents, TOCAlignment(TOCRight))
 
 import Debug.Trace
 strace :: Show a => a -> a
@@ -118,7 +118,7 @@ pandocWriterOptions = def
   -- ,writerHighlightStyle=tango
   --- }
 
-pandocTransform = tableOfContents "right"
+pandocTransform = tableOfContents TOCRight
 
 main = do
   args <- getArgs

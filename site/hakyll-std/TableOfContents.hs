@@ -7,6 +7,7 @@ module TableOfContents (
   tableOfContents,
   ignoreTOC,
   collectHeaders,
+  TOCAlignment(TOCOff,TOCLeft,TOCRight)
 ) where
 
 import Text.Pandoc
@@ -27,6 +28,8 @@ import Text.Blaze.Html (preEscapedToHtml, (!))
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
+
+data TOCAlignment = TOCOff | TOCLeft | TOCRight
 
 headerLevel :: Block -> Int
 headerLevel (Header level _ _) = level
@@ -69,20 +72,18 @@ createTable headers =
     H.p "Contents"
     H.ol $ markupHeaders headers
 
-generateTOC :: [Block] -> String -> Block -> Block
+generateTOC :: [Block] -> TOCAlignment -> Block -> Block
 generateTOC [] _     x = x
 generateTOC headers alignment x@(BulletList (( (( Plain ((Str "toc"):_)):_)):_))
-  | alignment == "right" = render . (! A.class_ "right-toc") . table $ headers
-  | alignment == "left"  = render . table $ headers
-  | otherwise            = x
+    = case alignment of
+        TOCRight -> render . (! A.class_ "right-toc") . table $ headers
+        TOCLeft  -> render . table $ headers
+        _        -> x
   where render = (RawBlock "html") . renderHtml
         table  = createTable . groupByHierarchy
 generateTOC _ _ x = x
 
-tableOfContents :: String -> Pandoc -> Pandoc
-tableOfContents alignment ast =
-  if alignment /= "off"
-    then let headers = query collectHeaders ast
-         in walk (generateTOC headers alignment) ast
-    else walk ignoreTOC ast
-
+tableOfContents :: TOCAlignment -> Pandoc -> Pandoc
+tableOfContents TOCOff    ast = walk ignoreTOC ast
+tableOfContents alignment ast = let headers = query collectHeaders ast
+                                 in walk (generateTOC headers alignment) ast
