@@ -7,7 +7,6 @@ module TableOfContents (
   tableOfContents,
   ignoreTOC,
   collectHeaders,
-  removeTOCMarker
 ) where
 
 import Text.Pandoc
@@ -37,10 +36,6 @@ ignoreTOC :: Block -> Block
 ignoreTOC (Header level (ident, classes, params) inline) =
   Header level (ident, "notoc" : classes, params) inline
 ignoreTOC x = x
-
-removeTOCMarker :: Block -> Block
-removeTOCMarker (BulletList (( (( Plain ((Str "toc"):_)):_)):_)) = Null
-removeTOCMarker x = x
 
 collectHeaders :: Block -> [Block]
 collectHeaders header@(Header _ (_, classes, _) _) =
