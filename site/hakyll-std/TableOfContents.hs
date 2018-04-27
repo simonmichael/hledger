@@ -18,7 +18,6 @@ import Text.Pandoc.Options (def)
 
 import Data.Either (fromRight)
 import Data.List (groupBy)
-import Data.Text (unpack)
 import Data.Tree (Forest, Tree(Node))
 #if !(MIN_VERSION_base(4,11,0))
 import Data.Monoid ((<>), mconcat)
@@ -72,13 +71,14 @@ markupHeaders = OrderedList (1, Decimal, Period) . map markupHeader
 createTable :: TOCAlignment -> Forest Block -> Block
 createTable _ [] = Null
 createTable alignment headers
-    = render $ (H.nav ! (A.id "toc" <> alignmentAttr)) $ do
-            H.p "Contents"
-            fromRight mempty . runPure . writeHtml5 def $ Pandoc nullMeta [markupHeaders headers]
-  where render = (RawBlock "html") . renderHtml
-        alignmentAttr = case alignment of
-                           TOCRight -> A.class_ "right-toc"
-                           _        -> mempty
+    = let alignAttr = case alignment of
+                        TOCRight -> " class=\"right-toc\""
+                        _        -> ""
+          navBegin  = "<nav id=\"toc\"" ++ alignAttr ++ ">"
+          navEnd    = "</nav>"
+          tocDoc    = Pandoc nullMeta [Para [Str "Contents"], markupHeaders headers]
+          tocString = unpack . fromRight mempty . runPure . writeHtml5String def $ tocDoc
+       in RawBlock "html" (navBegin ++ "\n" ++ tocString ++ "\n" ++ navEnd)
 
 generateTOC :: [Block] -> TOCAlignment -> Block -> Block
 generateTOC headers alignment x@(BulletList (( (( Plain ((Str "toc"):_)):_)):_))
