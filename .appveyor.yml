@@ -42,7 +42,7 @@ install:
 - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 - 7z x stack.zip stack.exe
 - stack setup
-- stack install shelltestrunner
+#- stack install shelltestrunner
 
 # -j1      - a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+
 # --bench  - benchmark doesn't run on windows yet
@@ -51,7 +51,7 @@ install:
 # hledger-api - not tried recently 
 build_script:
 - stack build --test --copy-bins --local-bin-path=. hledger #hledger-web
-- stack exec -- shelltest --execdir -j16 tests  # COLUMNS=80 
+#- stack exec -- shelltest --execdir -a -j16 tests  # COLUMNS=80   # functional tests - these don't run well on windows currently 
 #- hledger-install/hledger-install.sh
 #- make stacktest
 
