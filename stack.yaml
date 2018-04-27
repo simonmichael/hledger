@@ -10,9 +10,6 @@ packages:
 - hledger-api
 
 extra-deps:
-# try workaround for appveyor, https://github.com/yav/pretty-show/issues/27
-- git: https://github.com/simonmichael/pretty-show.git
-  commit: 225bcff3302f72cf739172f4e42792a7448eaa6c
 # hledger-lib
 - easytest-0.1.1
 # hledger-ui
