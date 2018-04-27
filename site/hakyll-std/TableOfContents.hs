@@ -58,23 +58,23 @@ markupLink (headerId, _, headerProperties) headerText
     = let linkText = fromMaybe headerText (fmap (toList . text) $ lookup "toc" headerProperties)
        in Link nullAttr linkText (("#" ++ headerId), headerId)
 
-markupHeader :: Tree Block -> H.Html
+markupHeader :: Tree Block -> [Block]
 markupHeader n@(Node (Header _ hAttr hText) headers)
-  | headers == [] = H.li $ link
-  | otherwise     = H.li $ link <> markupHeaders headers
-  where link = fromRight mempty . runPure . writeHtml5 def $ Pandoc nullMeta [Plain [markupLink hAttr hText]]
+  | headers == [] = [link]
+  | otherwise     = [link, markupHeaders headers]
+  where link = Plain [markupLink hAttr hText]
 markupHeader n = error $    "'markupHeader' should only be passed a 'Node $ Header'\n"
                          ++ "    saw: " ++ show n
 
-markupHeaders :: Forest Block -> H.Html
-markupHeaders = H.ol . mconcat . map markupHeader
+markupHeaders :: Forest Block -> Block
+markupHeaders = OrderedList (1, Decimal, Period) . map markupHeader
 
 createTable :: TOCAlignment -> Forest Block -> Block
 createTable _ [] = Null
 createTable alignment headers
     = render $ (H.nav ! (A.id "toc" <> alignmentAttr)) $ do
             H.p "Contents"
-            markupHeaders headers
+            fromRight mempty . runPure . writeHtml5 def $ Pandoc nullMeta [markupHeaders headers]
   where render = (RawBlock "html") . renderHtml
         alignmentAttr = case alignment of
                            TOCRight -> A.class_ "right-toc"
