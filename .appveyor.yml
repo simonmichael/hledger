@@ -13,14 +13,22 @@ clone_folder: "c:\\pr"
 environment:
   global:
     STACK_ROOT: "c:\\sr"
-# set in UI, can we set here ?
-#    APPVEYOR_SAVE_CACHE_ON_ERROR: "true"
 
 #version: '1.9.99.{build}'
 
-# to clean cache: https://www.appveyor.com/docs/build-cache/#cleaning-up-cache
+# https://www.appveyor.com/docs/build-cache
+# Appveyor's free plan allows a 1G cache. To wipe it, eg before a GHC upgrade:
 # method 1: browse ui, open inspector, $.ajax({url: 'https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache',type: 'DELETE'})
 # method 2: curl -s -H "Authorization: Bearer $APPVEYOR_TOKEN" -H "Content-Type: application/json" -X DELETE https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache
+# To skip it:
+#    APPVEYOR_CACHE_SKIP_RESTORE - set to true to disable cache restore
+#    APPVEYOR_CACHE_SKIP_SAVE - set to true to disable cache update
+# or, conditionally:
+#init:
+#- ps: IF ($env:APPVEYOR_REPO_BRANCH -eq "develop") {$env:APPVEYOR_CACHE_SKIP_SAVE = "true"}
+environment:
+  APPVEYOR_SAVE_CACHE_ON_ERROR: "true"  # set in UI, can we set here ?
+  #APPVEYOR_CACHE_ENTRY_ZIP_ARGS: "-t7z -m0=lzma -mx=9"    # compress cache as much as possible to stay under 1G quota
 cache:
 - "%LOCALAPPDATA%\\Programs\\stack"
 - "c:\\sr"
@@ -40,6 +48,7 @@ install:
 # --bench  - benchmark doesn't run on windows yet
 build_script:
 - stack build --no-install-ghc --test --copy-bins --local-bin-path=. hledger #hledger-web hledger-api
+- make functest
 #- hledger-install/hledger-install.sh
 #- make stacktest
 
