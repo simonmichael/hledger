@@ -36,8 +36,8 @@ headerLevel (Header level _ _) = level
 headerLevel _ = error "not a header"
 
 ignoreTOC :: Block -> Block
-ignoreTOC (Header level (ident, classes, params) inline) =
-  Header level (ident, "notoc" : classes, params) inline
+ignoreTOC (Header level (ident, classes, params) inlines) =
+  Header level (ident, "notoc" : classes, params) inlines
 ignoreTOC x = x
 
 collectHeaders :: Block -> [Block]
@@ -51,14 +51,14 @@ groupByHierarchy :: [Block] -> Forest Block
 groupByHierarchy = map (\(x:xs) -> Node x (groupByHierarchy xs)) . groupBy ((<) `on` headerLevel)
 
 markupHeader :: Tree Block -> H.Html
-markupHeader n@(Node (Header _ (ident, _, keyvals) inline) headers)
+markupHeader n@(Node (Header _ (ident, _, keyvals) inlines) headers)
   | headers == [] = H.li $ link
   | otherwise     = H.li $ link <> (H.ol $ markupHeaders headers)
   where render x  = case runPure $ writeHtml5String def (Pandoc nullMeta [(Plain x)]) of
                         Left  _   -> error $    "Error building header.\n"
                                              ++ "   saw: " ++ show n
                         Right txt -> txt
-        section   = fromMaybe (unpack $ render inline) (lookup "toc" keyvals)
+        section   = fromMaybe (unpack $ render inlines) (lookup "toc" keyvals)
         link      = H.a ! A.href (H.toValue $ "#" ++ ident) $ preEscapedToHtml section
 markupHeader n = error $    "'markupHeader' should only be passed a 'Node $ Header'\n"
                          ++ "    saw: " ++ show n
