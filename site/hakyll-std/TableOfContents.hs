@@ -13,7 +13,10 @@ module TableOfContents (
 import Text.Pandoc
 import Text.Pandoc.Walk (walk, query)
 import Text.Pandoc.Class (runPure)
+import Text.Pandoc.Builder (text, toList)
+import Text.Pandoc.Options (def)
 
+import Data.Either (fromRight)
 import Data.List (groupBy)
 import Data.Text (unpack)
 import Data.Tree (Forest, Tree(Node))
@@ -50,16 +53,16 @@ collectHeaders _ = []
 groupByHierarchy :: [Block] -> Forest Block
 groupByHierarchy = map (\(x:xs) -> Node x (groupByHierarchy xs)) . groupBy ((<) `on` headerLevel)
 
+markupLink :: Attr -> [Inline] -> Inline
+markupLink (headerId, _, headerProperties) headerText
+    = let linkText = fromMaybe headerText (fmap (toList . text) $ lookup "toc" headerProperties)
+       in Link nullAttr linkText (("#" ++ headerId), headerId)
+
 markupHeader :: Tree Block -> H.Html
-markupHeader n@(Node (Header _ (ident, _, keyvals) inlines) headers)
+markupHeader n@(Node (Header _ hAttr hText) headers)
   | headers == [] = H.li $ link
   | otherwise     = H.li $ link <> (H.ol $ markupHeaders headers)
-  where render x  = case runPure $ writeHtml5String def (Pandoc nullMeta [(Plain x)]) of
-                        Left  _   -> error $    "Error building header.\n"
-                                             ++ "   saw: " ++ show n
-                        Right txt -> txt
-        section   = fromMaybe (unpack $ render inlines) (lookup "toc" keyvals)
-        link      = H.a ! A.href (H.toValue $ "#" ++ ident) $ preEscapedToHtml section
+  where link = fromRight mempty . runPure . writeHtml5 def $ Pandoc nullMeta [Plain [markupLink hAttr hText]]
 markupHeader n = error $    "'markupHeader' should only be passed a 'Node $ Header'\n"
                          ++ "    saw: " ++ show n
 
