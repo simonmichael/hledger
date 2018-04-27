@@ -250,6 +250,7 @@ module Hledger.Cli.Commands.Balance (
  ,tests_Hledger_Cli_Commands_Balance
 ) where
 
+import Control.Monad (when)
 import Data.List
 import Data.Maybe
 --import qualified Data.Map as Map
@@ -313,6 +314,7 @@ balance opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j = do
       case (budget, interval) of
         (True, _) -> do
           -- single or multicolumn budget report
+          when (sort_amount_ ropts) $ error' "Sorry, --sort-amount is not yet supported with --budget."  -- TODO
           reportspan <- reportSpan j ropts
           let budgetreport     = dbg1 "budgetreport"     $ budgetReport ropts assrt showunbudgeted reportspan d j
                 where
