@@ -31,7 +31,8 @@ cache:
 #- "c:\\pr\\hledger-api\\.stack-work"
 
 install:
-- curl -skL -ostack.zip http://www.stackage.org/stack/windows-i386
+#- curl -skL -ostack.zip http://www.stackage.org/stack/windows-i386
+- curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 - 7z x stack.zip stack.exe
 - stack setup
 
