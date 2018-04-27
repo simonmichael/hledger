@@ -46,8 +46,8 @@ install:
 # -j1      - a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+
 # --bench  - benchmark doesn't run on windows yet
 build_script:
-- stack build --no-install-ghc --test --copy-bins --local-bin-path=. hledger #hledger-web hledger-api
-- make functest
+- stack build --no-install-ghc --test --copy-bins --local-bin-path=. hledger hledger-web #hledger-api
+- stack exec -- shelltest --execdir -j16 tests  # COLUMNS=80 
 #- hledger-install/hledger-install.sh
 #- make stacktest
 
@@ -55,7 +55,7 @@ build_script:
 
 artifacts:
 - path: hledger.exe
-#- path: hledger-web.exe
+- path: hledger-web.exe
 #- path: hledger-api.exe
 
 
