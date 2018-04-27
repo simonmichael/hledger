@@ -13,6 +13,8 @@ clone_folder: "c:\\pr"
 environment:
   global:
     STACK_ROOT: "c:\\sr"
+    APPVEYOR_SAVE_CACHE_ON_ERROR: "true"  # set in UI, can we set here ?
+    #APPVEYOR_CACHE_ENTRY_ZIP_ARGS: "-t7z -m0=lzma -mx=9"    # compress cache as much as possible to stay under 1G quota
 
 #version: '1.9.99.{build}'
 
@@ -26,9 +28,6 @@ environment:
 # or, conditionally:
 #init:
 #- ps: IF ($env:APPVEYOR_REPO_BRANCH -eq "develop") {$env:APPVEYOR_CACHE_SKIP_SAVE = "true"}
-environment:
-  APPVEYOR_SAVE_CACHE_ON_ERROR: "true"  # set in UI, can we set here ?
-  #APPVEYOR_CACHE_ENTRY_ZIP_ARGS: "-t7z -m0=lzma -mx=9"    # compress cache as much as possible to stay under 1G quota
 cache:
 - "%LOCALAPPDATA%\\Programs\\stack"
 - "c:\\sr"
