@@ -41,16 +41,16 @@ install:
 #- curl -skL -ostack.zip http://www.stackage.org/stack/windows-i386
 - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 - 7z x stack.zip stack.exe
-- stack setup
+- stack --stack-yaml=stack-ghc8.2.yaml setup
 #- stack install shelltestrunner
 
 # -j1      - a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+
 # --bench  - benchmark doesn't run on windows yet
 # hledger-ui - vty isn't available on windows
-# hledger-web - network doesn't build on appveyor currently
+# hledger-web dep "network" doesn't build with 8.4.2 on appveyor currently
 # hledger-api - not tried recently 
 build_script:
-- stack build --test --copy-bins --local-bin-path=. hledger #hledger-web
+- stack --stack-yaml=stack-ghc8.2.yaml build --test --copy-bins --local-bin-path=. hledger hledger-web
 #- stack exec -- shelltest --execdir -a -j16 tests  # COLUMNS=80   # functional tests - these don't run well on windows currently 
 #- hledger-install/hledger-install.sh
 #- make stacktest
@@ -59,7 +59,7 @@ build_script:
 
 artifacts:
 - path: hledger.exe
-#- path: hledger-web.exe
+- path: hledger-web.exe
 #- path: hledger-api.exe
 
 
