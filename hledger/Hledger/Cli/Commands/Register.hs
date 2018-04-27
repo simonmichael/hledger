@@ -68,15 +68,16 @@ register opts@CliOpts{reportopts_=ropts} j = do
 
 postingsReportAsCsv :: PostingsReport -> CSV
 postingsReportAsCsv (_,is) =
-  ["txnidx","date","description","account","amount","total"]
+  ["txnidx","date","code","description","account","amount","total"]
   :
   map postingsReportItemAsCsvRecord is
 
 postingsReportItemAsCsvRecord :: PostingsReportItem -> Record
-postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,desc,acct,amt,bal]
+postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal]
   where
     idx  = show $ maybe 0 tindex $ ptransaction p
     date = showDate $ postingDate p -- XXX csv should show date2 with --date2
+    code = maybe "" (T.unpack . tcode) $ ptransaction p
     desc = T.unpack $ maybe "" tdescription $ ptransaction p
     acct = bracket $ T.unpack $ paccount p
       where
