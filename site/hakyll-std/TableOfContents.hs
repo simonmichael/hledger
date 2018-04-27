@@ -66,21 +66,20 @@ markupHeader n = error $    "'markupHeader' should only be passed a 'Node $ Head
 markupHeaders :: Forest Block -> H.Html
 markupHeaders = mconcat . map markupHeader
 
-createTable :: Forest Block -> H.Html
-createTable headers =
-  (H.nav ! A.id "toc") $ do
-    H.p "Contents"
-    H.ol $ markupHeaders headers
+createTable :: TOCAlignment -> Forest Block -> Block
+createTable _ [] = Null
+createTable alignment headers
+    = render $ (H.nav ! (A.id "toc" <> alignmentAttr)) $ do
+            H.p "Contents"
+            H.ol $ markupHeaders headers
+  where render = (RawBlock "html") . renderHtml
+        alignmentAttr = case alignment of
+                           TOCRight -> A.class_ "right-toc"
+                           _        -> mempty
 
 generateTOC :: [Block] -> TOCAlignment -> Block -> Block
-generateTOC [] _     x = x
 generateTOC headers alignment x@(BulletList (( (( Plain ((Str "toc"):_)):_)):_))
-    = case alignment of
-        TOCRight -> render . (! A.class_ "right-toc") . table $ headers
-        TOCLeft  -> render . table $ headers
-        _        -> x
-  where render = (RawBlock "html") . renderHtml
-        table  = createTable . groupByHierarchy
+    = createTable alignment . groupByHierarchy $ headers
 generateTOC _ _ x = x
 
 tableOfContents :: TOCAlignment -> Pandoc -> Pandoc
