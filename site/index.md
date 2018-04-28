@@ -167,6 +167,7 @@ a file format for human-friendly approximate time logging
 [Convert CSV files](https://github.com/simonmichael/hledger/wiki/Convert CSV files)  
 [Track changes with version control](https://github.com/simonmichael/hledger/wiki/Track changes with version control)  
 [Use another account separator character](https://github.com/simonmichael/hledger/wiki/Use another account separator character)  
+[Full-fledged hledger](https://github.com/adept/full-fledged-hledger)  
 
 ### Reporting
 
@@ -189,19 +190,16 @@ a file format for human-friendly approximate time logging
 ### More..
 
 [More docs](https://github.com/simonmichael/hledger/wiki/More docs)  
-
 [plaintextaccounting.org](http://plaintextaccounting.org) -
 [ledger‑likes](http://plaintextaccounting.org/#ledger-likes) -
 [tools](http://plaintextaccounting.org/#related-tools) -
 [docs](http://plaintextaccounting.org/#docs) -
 [common&nbsp;tasks](http://plaintextaccounting.org/#common-tasks) -
 [discussion](http://plaintextaccounting.org/#discussion)  
-
 [ledger-cli.org](http://ledger-cli.org) - [docs](https://www.ledger-cli.org/docs.html) - [wiki](https://github.com/ledger/ledger/wiki)  
+[Beancount's docs](http://furius.ca/beancount/doc/index)  
 
-[Beancount's docs](http://furius.ca/beancount/doc/index)
-
-## [Dev Zone](https://github.com/simonmichael/hledger/wiki/dev/Dev Zone)
+## [Dev Zone](https://github.com/simonmichael/hledger/wiki/Dev Zone)
 <!-- ENDWIKICONTENT -->
 </div>
 </div>
