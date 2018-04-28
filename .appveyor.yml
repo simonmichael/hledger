@@ -1,81 +1,76 @@
 # https://www.appveyor.com/docs/appveyor-yml
 # https://www.appveyor.com/docs/build-configuration
 # https://www.appveyor.com/docs/branches
-# https://www.appveyor.com/docs/how-to/filtering-commits:
-# [skip ci] or [ci skip] anywhere in commit message, or [skip appveyor] only 
+# https://www.appveyor.com/docs/how-to/filtering-commits
+# To ignore a commit: [skip ci], [ci skip] or [skip appveyor] in the commit message 
 
 #build: off
-
 platform: x64
-
-# shorter file paths have been a known workaround in the past
-clone_folder: "c:\\pr"
+clone_folder: c:\pr  # shorter file paths were a known workaround in the past
 environment:
   global:
-    STACK_ROOT: "c:\\sr"
-    APPVEYOR_SAVE_CACHE_ON_ERROR: "true"  # set in UI, can we set here ?
-    #APPVEYOR_CACHE_ENTRY_ZIP_ARGS: "-t7z -m0=lzma -mx=9"    # compress cache as much as possible to stay under 1G quota
+    STACK_ROOT: c:\sr
+    APPVEYOR_SAVE_CACHE_ON_ERROR: true
+    #APPVEYOR_CACHE_ENTRY_ZIP_ARGS: "-t7z -m0=lzma -mx=9"    # smaller, slower cache
 
-#version: '1.9.99.{build}'
-
-# https://www.appveyor.com/docs/build-cache
-# Appveyor's free plan allows a 1G cache. To wipe it, eg before a GHC upgrade:
-# method 1: browse ui, open inspector, $.ajax({url: 'https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache',type: 'DELETE'})
-# method 2: curl -s -H "Authorization: Bearer $APPVEYOR_TOKEN" -H "Content-Type: application/json" -X DELETE https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache
-# To skip it:
+# Appveyor's free plan allows a 1G cache. https://www.appveyor.com/docs/build-cache 
+# The cache is saved only on the current vm instance, so when appveyor picks a different vm instance it's like starting again with no cache.
+# To wipe the cache (on the current instance ? all instances ?), eg before a GHC upgrade:
+# browse ui, open inspector, $.ajax({url: 'https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache',type: 'DELETE'})
+# or curl -s -H "Authorization: Bearer $APPVEYOR_TOKEN" -H "Content-Type: application/json" -X DELETE https://ci.appveyor.com/api/projects/simonmichael/hledger/buildcache
+# To skip caching:
 #    APPVEYOR_CACHE_SKIP_RESTORE - set to true to disable cache restore
 #    APPVEYOR_CACHE_SKIP_SAVE - set to true to disable cache update
-# or, conditionally:
+# conditionally:
 #init:
 #- ps: IF ($env:APPVEYOR_REPO_BRANCH -eq "develop") {$env:APPVEYOR_CACHE_SKIP_SAVE = "true"}
+# To declare cache dependency on specific files add "-> FILEPATTERN below. Appveyor will checksum 
+# only those files for cache invalidation, quicker than checksumming all cached content.
 cache:
-- "%LOCALAPPDATA%\\Programs\\stack"
-- "c:\\sr"
-- "c:\\pr\\.stack-work"
-#- "c:\\pr\\hledger-lib\\.stack-work"
-#- "c:\\pr\\hledger\\.stack-work"
-#- "c:\\pr\\hledger-web\\.stack-work"
-#- "c:\\pr\\hledger-api\\.stack-work"
+- "%LOCALAPPDATA%\Programs\stack"
+- C:\sr                   -> **\*.yaml
+- .stack-work
+- hledger-lib\.stack-work -> hledger-lib\**
+- hledger\.stack-work     -> hledger\**
+- hledger-web\.stack-work -> hledger-web\**
 
 install:
-#- curl -skL -ostack.zip http://www.stackage.org/stack/windows-i386
 - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 - 7z x stack.zip stack.exe
+# install ghc; 8.2 because hledger-web dep "network" doesn't build with 8.4.2 on windows currently
 - stack --stack-yaml=stack-ghc8.2.yaml setup
 #- stack install shelltestrunner
 
-# -j1      - a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+
-# --bench  - benchmark doesn't run on windows yet
-# hledger-ui - vty isn't available on windows
-# hledger-web dep "network" doesn't build with 8.4.2 on appveyor currently
-# hledger-api - not tried recently 
+# -j1 was a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+
+# --bench didn't run on windows, not tried recently
+# hledger-ui's vty dep isn't available on windows
+# hledger-api not tried recently 
 build_script:
 - stack --stack-yaml=stack-ghc8.2.yaml build --test --copy-bins --local-bin-path=. hledger hledger-web
 - 7z a -tzip hledger.zip hledger.exe hledger-web.exe
-#- stack exec -- shelltest --execdir -a -j16 tests  # COLUMNS=80   # functional tests - these don't run well on windows currently 
 #- hledger-install/hledger-install.sh
 #- make stacktest
 
 #test_script:
+#- stack exec -- shelltest --execdir -a -j16 tests  # COLUMNS=80   # functional tests - these don't run well on windows currently 
 
 artifacts:
+- path: hledger.zip
 - path: hledger.exe
 - path: hledger-web.exe
-#- path: hledger-api.exe
 
 
-
-# deployment stuff for later
+# deployment stuff
 # https://silky.github.io/posts/2016-01-05-build-windows-haskell-app-with-stack-and-appveyor.html
 #
-#- cmd: for /f %%i in ('.\\hledger --version') do set HLEDGER_VERSION=%%i
-#- cmd: for /f %%i in ('.\\hledger-web --version') do set HLEDGER_WEB_VERSION=%%i
-#- cmd: for /f %%i in ('.\\hledger-api --version') do set HLEDGER_API_VERSION=%%i
+#- cmd: for /f %%i in (".\hledger --version") do set HLEDGER_VERSION=%%i
+#- cmd: for /f %%i in (".\hledger-web --version") do set HLEDGER_WEB_VERSION=%%i
+#- cmd: for /f %%i in (".\hledger-api --version") do set HLEDGER_API_VERSION=%%i
 #
 #deploy:
 #  - provider: GitHub
-#    tag: 'hledger-$(HLEDGER_VERSION)'
-#    release: 'Release hledger-$(HLEDGER_VERSION)'
+#    tag: "hledger-$(HLEDGER_VERSION)"
+#    release: "Release hledger-$(HLEDGER_VERSION)"
 #    auth_token:
 #      secure: #FZXhwa1ucQwyFtswv/XNUJkclAxoz4YGGu69dSOEEkwG7Rlh/Gho66SJtOUJ57kN
 #    artifact: hledger.exe
