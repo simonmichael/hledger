@@ -35,7 +35,7 @@ Binaries/system packages are quickest to install
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 | Windows:             | [latest nightly binaries](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) (<span class=warnings>[no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
 | Mac:                 | **`brew install hledger`** <span class=warnings>([only hledger CLI](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))</span>
-| Arch Linux:          | **`pacman -S hledger`** <span class=warnings>([haskell problems are common on Arch](https://github.com/simonmichael/hledger/issues/668))</span>
+| Arch Linux:          | **`pacman -S hledger`**
 | Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`**
 | Fedora,&nbsp;RHEL:   | **`sudo dnf install hledger`**
 | Gentoo:              | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`**
@@ -57,6 +57,9 @@ restart it without losing progress, and subsequent builds will be much
 faster.
 Also, here are some known build issues and workarounds:\
 <span class=warnings>
+[arch: advice from Arch wiki](https://wiki.archlinux.org/index.php/Haskell)\
+[arch: No information found for ghc-8.4.2](https://github.com/commercialhaskell/stack/issues/3984)\
+<!-- [arch: some past problems](https://github.com/simonmichael/hledger/issues/668) -->
 [freebsd 12: no cabal file found](https://github.com/simonmichael/hledger/issues/709)\
 [openbsd 6: exec permission denied](https://deftly.net/posts/2017-10-12-using-cabal-on-openbsd.html)\
 [openbsd: how to get stack](https://github.com/commercialhaskell/stack/issues/2822#issuecomment-318892816)\
