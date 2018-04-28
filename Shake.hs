@@ -299,10 +299,6 @@ main = do
                 , not ("_site//*" ?== file)
              ]
 
-    "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webcopyfileexts ] |%> \out -> do
-        let input = "site" </> dropDirectory2 out
-        copyFile' input out
-
     phony "website-render" $ do
         need webhtmlpages
 
@@ -310,6 +306,10 @@ main = do
         let source = out <.> "hs"
         need [source]
         cmd "stack --stack-yaml=stack-ghc8.2.yaml ghc --package pandoc -- -o" out source
+
+    "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webcopyfileexts ] |%> \out -> do
+        let input = "site" </> dropDirectory2 out
+        copyFile' input out
 
     "site/_site//*.html" %> \out -> do
         let source    = "site" </> dropDirectory2 out -<.> "md"
