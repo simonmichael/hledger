@@ -33,14 +33,14 @@ Binaries/system packages are quickest to install
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| Windows:             | [Latest available dev builds](https://ci.appveyor.com/project/simonmichael/hledger/build/artifacts) <span class=warnings>([appveyor builds are not up to date](https://github.com/simonmichael/hledger/issues/694), [no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
-| Mac:                 | **`brew install hledger`** <span class=warnings>([only hledger CLI is packaged](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))</span>
-| Arch Linux:          | **`pacman -S hledger`** <span class=warnings>([haskell problems are common on Arch at present](https://github.com/simonmichael/hledger/issues/668))</span>
+| Windows:             | [latest nightly binaries](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) (<span class=warnings>[no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
+| Mac:                 | **`brew install hledger`** <span class=warnings>([only hledger CLI](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))</span>
+| Arch Linux:          | **`pacman -S hledger`** <span class=warnings>([haskell problems are common on Arch](https://github.com/simonmichael/hledger/issues/668))</span>
 | Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`**
 | Fedora,&nbsp;RHEL:   | **`sudo dnf install hledger`**
 | Gentoo:              | **`sudo layman -a haskell && sudo emerge hledger hledger-ui hledger-web`**
 | Void Linux:          | **`xbps-install -S hledger hledger-ui hledger-web hledger-api`**
-| NixOS:               | **`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`** <span class=warnings>([problems building hledger-ui on MacOS](https://github.com/simonmichael/hledger/issues/613))</span>
+| NixOS:               | **`nix-env -iA nixpkgs.haskellPackages.hledger nixpkgs.haskellPackages.hledger-ui nixpkgs.haskellPackages.hledger-web`** <span class=warnings>([problems with hledger-ui on MacOS ?](https://github.com/simonmichael/hledger/issues/613))</span>
 | Sandstorm:           | **[hledger-web Sandstorm app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90) -> demo** - a hledger-web server in 3 clicks <span class=warnings>([features needed](https://github.com/simonmichael/hledger/issues/425))</span>
 
 
@@ -143,7 +143,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
     This installs the specified hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
     The bracketed packages are optional; if you include them, don't type the brackets, and do always 
     include the preceding hledger-lib and hledger packages.\
-    <span class=warnings>([windows: hledger-ui is not yet available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
+    <span class=warnings>([windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
 
     The command above uses stackage's nightly snapshot.
     You might be able to reduce build time by specifying an older snapshot that you've used before (eg: `--resolver=lts-10.8`), or by omitting the --resolver option.
