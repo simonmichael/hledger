@@ -1,4 +1,33 @@
-# hledger docs
+---
+title: home
+...
+
+<style>
+ .highslide img {max-width:200px; float:right; margin:0 0 1em 1em;}
+ .highslide-caption {color:white; background-color:black;}
+ a {white-space:nowrap;}
+</style>
+
+<img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:1em 1em 0 1em;" />
+<h1 style="/*font-size:4em;*/ ">hledger</h1>
+<span style="font-size:xx-large;">
+Friendly, robust, plain text accounting.
+<!-- Robust, powerful, plain text accounting. -->
+<!-- Robust, precise, plain text accounting. -->
+<!-- Plain text accounting for everyone. -->
+<!-- Making accounting fun for techies. -->
+</span>
+
+<span style="font-size:x-large;">hledger</span> is an accounting program, for tracking money, time, or
+other commodities, on unix, mac and windows. 
+
+With simple yet powerful functionality accessed from command line, terminal or web browser, 
+it is a dependable, cross-platform alternative to Quickbooks, GnuCash, spreadsheets etc.
+
+The hledger project is led by Simon Michael.
+I've been using and improving hledger since 2007.
+I hope it will keep growing and helping more of us to master our time and money.
+If you feel the same way, join us!
 
 <style>
 h2 { font-size:x-large; margin-top:.5em; }
@@ -9,12 +38,12 @@ td:nth-child(1) { padding-right:1em; white-space:nowrap; }
   padding:0;
 }
 .contentbox {
+  margin:1em .5em .5em 0;
   padding:.1em .5em;
-  margin:0 .5em .5em 0;
   border-radius:1em;
 }
 #introduction {
-  background-color:#ffd;
+/*  background-color:#ffb; */
 }
 #help {
   background-color:#fdd;
@@ -44,7 +73,7 @@ td:nth-child(1) { padding-right:1em; white-space:nowrap; }
 ### What is hledger?
 
 An enhanced, well-documented reimplementation of plain text accounting.\
-**[hledger intro](http://hledger.org)**
+**[What is hledger ?](intro.html)**
 
 ### What is plain text accounting?
 
@@ -54,7 +83,7 @@ Using plain text data formats and version control for robust, transparent accoun
 ### What is accounting?
 
 Tracking your use of valuable commodities, such as money or time, for increased awareness and effectiveness.\
-**[Selected accounting links](http://github.com/simonmichael/hledger/wiki/more-docs)**
+**[Selected accounting links](http://github.com/simonmichael/hledger/wiki/more-docs#accounting)**
 </div>
 
 <div id=help class=contentbox>
@@ -63,9 +92,9 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 |
 |-------------------|----------------------------------------------------------------------------|
 | IRC:              | [#hledger](http://irc.hledger.org) on Freenode <!-- [chat log](http://ircbrowse.net/browse/hledger); --> <!-- see also [#ledger](http://webchat.freenode.net?channels=ledger&randomnick=1) --> <!-- *Quick help and background chat.* --> <!-- *If you don't get an answer promptly, you can type `sm` to alert me, or leave the window open and check back later.* -->
-| Twitter:          | [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime), [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime) <!-- <a href="https://twitter.com/ledgertips">@LedgerTips</a> --> <!-- *Social!* -->
+| Twitter:          | [#hledger,<br>#plaintextaccounting](#twitter) <!-- *Social!* -->
 | Reddit:           | [/r/plaintextaccounting](https://www.reddit.com/r/plaintextaccounting/)
-| Mail list:     | [list.hledger.org](http://list.hledger.org), [hledger@googlegroups.com](mailto:hledger@googlegroups.com) <!-- *Slightly less quick, more eyeballs.* -->
+| Mail list:        | [list.hledger.org](http://list.hledger.org), [hledger@googlegroups.com](mailto:hledger@googlegroups.com) <!-- *Slightly less quick, more eyeballs.* -->
 | Issue<br>tracker: | [bugs.hledger.org](http://bugs.hledger.org)&nbsp;(bugs), [issues.hledger.org](http://issues.hledger.org)&nbsp;(all) <!-- *Always check here.* --> <!-- *Bug reports are welcome.* -->
 | Other:            | [simon@joyful.com](mailto:simon@joyful.com)
 <!-- | hledger-web demo&nbsp;&nbsp; | [demo.hledger.org](http://demo.hledger.org) -->
@@ -176,3 +205,20 @@ a file format for human-friendly approximate time logging
 </div> <!-- column -->
 </div> <!-- row -->
 </div> <!-- container -->
+
+
+<div style="margin-top:4em; text-align:center; ">
+<a name="twitter"></a>
+
+## [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime), [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime) on Twitter:
+
+<!-- <a href="https://twitter.com/ledgertips">@LedgerTips</a> -->
+<style>
+ .twitter-timeline {
+   height: 1500px !important;
+   /* width: 70% !important; */
+ }
+</style>
+<a class="twitter-timeline" data-chrome="noheader" data-dnt="true" href="https://twitter.com/search?q=%23hledger%20OR%20%23plaintextaccounting%20-RT%20-%23TheJoker" data-widget-id="707934052225945600">Tweets about #hledger OR #plaintextaccounting OR #ledgercli -RT -#TheJoker</a> <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>
+
+</div>
