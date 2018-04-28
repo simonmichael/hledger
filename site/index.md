@@ -8,6 +8,8 @@ title: home
  a {white-space:nowrap;}
 </style>
 
+<!-- INTRO -->
+
 <img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:1em 1em 0 1em;" />
 <h1 style="/*font-size:4em;*/ ">hledger</h1>
 <span style="font-size:xx-large;">
@@ -19,15 +21,17 @@ Friendly, robust, plain text accounting.
 </span>
 
 <span style="font-size:x-large;">hledger</span> is an accounting program, for tracking money, time, or
-other commodities, on unix, mac and windows. 
+other commodities. It is cross platform and released under GNU GPLv3.
 
 With simple yet powerful functionality accessed from command line, terminal or web browser, 
-it is a dependable, cross-platform alternative to Quickbooks, GnuCash, spreadsheets etc.
+it is a fast, secure and dependable alternative to spreadsheets, Quickbooks, GnuCash, Xero etc.
 
 The hledger project is led by Simon Michael.
-I've been using and improving hledger since 2007.
-I hope it will keep growing and helping more of us to master our time and money.
-If you feel the same way, join us!
+I've been building and using hledger since 2007, because I needed it.
+I hope you will find it helpful in mastering your time and money.
+And if you feel like helping, please join us!
+
+<!-- DOCS -->
 
 <style>
 h2 { font-size:x-large; margin-top:.5em; }
@@ -95,7 +99,7 @@ Tracking your use of valuable commodities, such as money or time, for increased 
 | Twitter:          | [#hledger,<br>#plaintextaccounting](#twitter) <!-- *Social!* -->
 | Reddit:           | [/r/plaintextaccounting](https://www.reddit.com/r/plaintextaccounting/)
 | Mail list:        | [list.hledger.org](http://list.hledger.org), [hledger@googlegroups.com](mailto:hledger@googlegroups.com) <!-- *Slightly less quick, more eyeballs.* -->
-| Issue<br>tracker: | [bugs.hledger.org](http://bugs.hledger.org)&nbsp;(bugs), [issues.hledger.org](http://issues.hledger.org)&nbsp;(all) <!-- *Always check here.* --> <!-- *Bug reports are welcome.* -->
+| Issues:           | [bugs.hledger.org](http://bugs.hledger.org)&nbsp;(bugs), [issues.hledger.org](http://issues.hledger.org)&nbsp;(all) <!-- *Always check here.* --> <!-- *Bug reports are welcome.* -->
 | Other:            | [simon@joyful.com](mailto:simon@joyful.com)
 <!-- | hledger-web demo&nbsp;&nbsp; | [demo.hledger.org](http://demo.hledger.org) -->
 <!-- | hledger-web on Sandstorm&nbsp;&nbsp; | [hledger-web app](https://apps.sandstorm.io/app/8x12h6p0x0nrzk73hfq6zh2jxtgyzzcty7qsatkg7jfg2mzw5n90), [issues](https://github.com/simonmichael/hledger/issues?utf8=✓&q=label%3A%22platform%3A%20sandstorm%22%20) -->
@@ -207,8 +211,10 @@ a file format for human-friendly approximate time logging
 </div> <!-- container -->
 
 
-<div style="margin-top:4em; text-align:center; ">
+<!-- TWITTER -->
+
 <a name="twitter"></a>
+<div style="margin-top:4em; text-align:center; ">
 
 ## [#hledger](https://twitter.com/search?q=%23hledger&src=typd&f=realtime), [#plaintextaccounting](https://twitter.com/search?q=%23plaintextaccounting&src=typd&f=realtime) on Twitter:
 

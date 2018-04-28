@@ -64,16 +64,16 @@ hledger is Free software, created by [Simon Michael](http://joyful.com)
 and released under GNU GPLv3+.
 
 I have been actively developing and using hledger since 2007,
-together with 30+ other committers, and an unknown number of usually happy-sounding users.
+together with 80+ other committers and an unknown number of usually happy-sounding users.
 </div>
 
 <div class="indent2">
 ### inspired by Ledger
 
-hledger is a Haskell reimplementation of the excellent [Ledger](https://github.com/simonmichael/hledger/wiki/FAQ#hledger--ledger).
+hledger is a Haskell [reimplementation](https://github.com/simonmichael/hledger/wiki/FAQ#hledger--ledger)
+of the excellent [Ledger](http://ledger-cli.org).
 It remains substantially compatible with Ledger, and if you wish you can keep your data compatible with both.
-Read more about the differences in the [FAQ](https://github.com/simonmichael/hledger/wiki/FAQ#hledger--ledger).
-
+Read more about the [differences](https://github.com/simonmichael/hledger/wiki/FAQ#features) in the FAQ.
 
 
 </div>
