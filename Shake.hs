@@ -19,7 +19,6 @@ compiling is recommended; run the script in interpreted mode to do that.
 
 It requires stack (https://haskell-lang.org/get-started) and
 auto-installs the packages above. Also, some rules require:
-- site/hakyll-std/hakyll-std
 - runhaskell
 - groff
 - m4
@@ -304,19 +303,6 @@ main = do
         let input = "site" </> dropDirectory2 out
         copyFile' input out
 
-    -- build standard hakyll script used for site rendering
-    hakyllstd %> \out -> do
-      let dir = takeDirectory out
-      need [out <.> "hs", dir </> "TableOfContents.hs"] -- XXX hard-coded dep
-      unit $ liftIO $
-        cmd (Cwd dir) "./hakyll-std.hs"
-        `catch` (\(e::IOException) -> putStr $ unlines $
-          ["I could not run ./hakyll-std.hs in "++dir++" to install Hakyll."
-          ,"If you see a hakyll-std build error after this, please do it manually:"
-          ,"$ (cd site/hakyll-std; ./hakyll-std.hs)"
-          ,"and try again."
-          ])
-
     phony "website-render" $ do
         need webhtmlpages
 
@@ -347,10 +333,8 @@ main = do
 
     phony "Clean" $ do
       need ["clean"]
-      putNormal "Cleaning all hakyll generated files"
+      putNormal "Cleaning all site generated files"
       removeFilesAfter "site" ["_*"]
-      putNormal "Cleaning executables"
-      removeFilesAfter "." $ [ hakyllstd ]
       putNormal "Cleaning object files" -- also forces rebuild of executables
       removeFilesAfter "tools"  ["*.o","*.p_o","*.hi"]
       removeFilesAfter "site" ["*.o","*.p_o","*.hi"]
