@@ -2,10 +2,10 @@
 
 # Download
 
-Do you want to..
+Adventurer, choose your path! No, really it's quite easy. Often. Do you want to..
 <a name="a"></a>
 
-## A. download a binary/system package ?
+## a. download a binary/system package
 
 <style>
 table { margin-left:1em; }
@@ -27,8 +27,9 @@ a { white-space:nowrap; }
 }
 </style>
 
-Binaries/system packages are quickest to install
-(but they can be [out of date](https://repology.org/metapackage/hledger/badges) or incomplete).
+hledger binaries or system packages are quickest to install,
+but they can be [out of date](https://repology.org/metapackage/hledger/badges) or incomplete.
+(Please help your local packagers with this!).
 
 
 |
@@ -46,7 +47,7 @@ Binaries/system packages are quickest to install
 
 <a name="b"></a>
 
-## B. build the latest release ?
+## b. build the latest release
 
 Good choice! You'll get the latest features mentioned in the [release notes](release-notes.html).
 Below are three ways to build the latest release, in order of preference.
@@ -65,7 +66,9 @@ Also, here are some known build issues and workarounds:\
 [openbsd: how to get stack](https://github.com/commercialhaskell/stack/issues/2822#issuecomment-318892816)\
 </span>
 
-### hledger-install
+<a name="b1"></a>
+
+### b1. with hledger-install
 
 Our [hledger-install script](https://github.com/simonmichael/hledger/tree/master/hledger-install)
 is recommended as the easiest and most-likely-to-just-work build method,
@@ -131,7 +134,9 @@ or [email](docs.html#helpfeedback):
 
  **`bash -x hledger-install.sh 2>&1 | tee hledger-install.log`**
 
-### stack
+<a name="b2"></a>
+
+### b2. with stack
 
 [`stack`](http://haskell-lang.org/get-started) is the newer and easier of the Haskell build tools.
 If you prefer more control or if hledger-install failed, here's how to use stack yourself:
@@ -181,13 +186,15 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 6. **[Test](#test)**
 
 
-### cabal
+<a name="b3"></a>
 
-[cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, feel free to use this instead.
+### b3. with cabal
+
+[cabal](https://www.haskell.org/cabal/) is the other Haskell build tool. If you're a cabal expert, feel free to use this in the usual way.
 
 <a name="c"></a>
 
-## C. build the development version ?
+## c. build the development version
 
 Also a good choice. Our master branch is stable enough for daily use,
 and includes the [latest improvements](https://github.com/simonmichael/hledger/commits/master).
