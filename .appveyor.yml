@@ -51,6 +51,7 @@ install:
 # hledger-api - not tried recently 
 build_script:
 - stack --stack-yaml=stack-ghc8.2.yaml build --test --copy-bins --local-bin-path=. hledger hledger-web
+- 7z a -tzip hledger.zip hledger.exe hledger-web.exe
 #- stack exec -- shelltest --execdir -a -j16 tests  # COLUMNS=80   # functional tests - these don't run well on windows currently 
 #- hledger-install/hledger-install.sh
 #- make stacktest
