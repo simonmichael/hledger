@@ -27,7 +27,7 @@ environment:
 # To declare cache dependency on specific files add "-> FILEPATTERN below. Appveyor will checksum 
 # only those files for cache invalidation, quicker than checksumming all cached content.
 cache:
-- "%LOCALAPPDATA%\Programs\stack"
+- "%LOCALAPPDATA%\\Programs\\stack"
 - C:\sr                   -> **\*.yaml
 - .stack-work
 - hledger-lib\.stack-work -> hledger-lib\**
