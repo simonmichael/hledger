@@ -22,14 +22,27 @@ Friendly, robust, plain text accounting.
 
 <span style="font-size:x-large;">hledger</span> is an accounting program, for tracking money, time, or
 other commodities. It is cross platform and released under GNU GPLv3.
+<!-- [![...](https://api.travis-ci.org/simonmichael/hledger.svg?branch=master)](https://travis-ci.org/simonmichael/hledger/builds) -->
+<!-- [![...](https://ci.appveyor.com/api/projects/status/5vejw0w5n5igdr42?svg=true)](https://ci.appveyor.com/project/simonmichael/hledger/history) -->
+[![...](https://img.shields.io/github/stars/simonmichael/hledger.svg?style=social&label=Github){style="min-width:102;" title="Star us!"}](https://github.com/simonmichael/hledger/)
 
 With simple yet powerful functionality accessed from command line, terminal or web browser, 
-it is a fast, secure and dependable alternative to spreadsheets, Quickbooks, GnuCash, Xero etc.
+hledger is a fast, secure, dependable alternative to spreadsheets, Quickbooks, GnuCash, Xero etc.
 
 The hledger project is led by Simon Michael.
 I've been building and using hledger since 2007, because I needed it.
-I hope you will find it helpful in mastering your time and money.
-And if you feel like helping, please join us!
+Welcome, and I hope you find it helpful in mastering your time and money.
+And if you feel like helping this project grow, please join us!
+
+<!-- FUNDING -->
+
+<div style="text-align:center;">
+<a href="https://opencollective.com/hledger#support"><img border="0" src="https://opencollective.com/hledger/backers/badge.svg" title="Back us with a monthly donation at Open Collective" alt="open collective backers"></a>
+<a href="https://opencollective.com/hledger#support"><img border="0" src="https://opencollective.com/hledger/sponsors/badge.svg" title="Sponsor us with a $100+ monthly donation at Open Collective and get your organization's logo on our README" alt="open collective sponsors"></a>
+<a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&amp;hosted_button_id=5J33NLXYXCYAY"><img width=62 height=31 border=0 src="https://www.paypal.com/en_US/i/btn/x-click-but04.gif" title="Give one time or recurringly with Paypal" alt="paypal"></a>
+<a href="https://www.bountysource.com/trackers/536505-simonmichael-hledger"><img border=0 src="https://www.bountysource.com/badge/tracker?tracker_id=536505" title="Contribute or claim issue bounties via Bountysource" alt="bountysource"></a>
+<!-- <a href="https://flattr.com/submit/auto?user_id=simonmichael&amp;url=http%3A%2F%2Fhledger.org" target="_blank"><img border="0" src="//api.flattr.com/button/flattr-badge-large.png" alt="" title="Give monthly with Flattr" alt="flattr"></a> -->
+</div>
 
 <!-- DOCS -->
 
