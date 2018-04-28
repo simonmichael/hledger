@@ -11,7 +11,7 @@ environment:
   global:
     STACK_ROOT: c:\sr
     APPVEYOR_SAVE_CACHE_ON_ERROR: true
-    #APPVEYOR_CACHE_ENTRY_ZIP_ARGS: "-t7z -m0=lzma -mx=9"    # smaller, slower cache
+    APPVEYOR_CACHE_ENTRY_ZIP_ARGS: "-t7z -m0=lzma -mx=9"    # smaller (& slower) cache
 
 # Appveyor's free plan allows a 1G cache. https://www.appveyor.com/docs/build-cache 
 # The cache is saved only on the current vm instance, so when appveyor picks a different vm instance it's like starting again with no cache.
@@ -37,7 +37,8 @@ cache:
 install:
 - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 - 7z x stack.zip stack.exe
-# install ghc; 8.2 because hledger-web dep "network" doesn't build with 8.4.2 on windows currently
+# install ghc
+# 8.2 for hledger-web -> network, https://github.com/haskell/network/issues/313
 - stack --stack-yaml=stack-ghc8.2.yaml setup
 #- stack install shelltestrunner
 
@@ -56,8 +57,6 @@ build_script:
 
 artifacts:
 - path: hledger.zip
-#- path: hledger.exe
-#- path: hledger-web.exe
 
 
 # deployment stuff
