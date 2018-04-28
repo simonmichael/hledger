@@ -59,45 +59,6 @@ import Debug.Trace
 strace :: Show a => a -> a
 strace a = trace (show a) a
 
-filesToCopy =
-  ["site/css/**"
-  ,"site/js/**"
-  ,"site/img/**"
-  ,"site/images/**"
-  ,"site/fonts/**"
-  ,"site/files/**"
-  ,"site/etc/**"
-  ,"site/*.html"
-  ,"site/*.htm"
-  ,"site/*.gif"
-  ,"site/*.jpg"
-  ,"site/*.jpeg"
-  ,"site/*.png"
-  ,"site/*.css"
-  ,"site/*.js"
-  ,"css/**"
-  ,"js/**"
-  ,"img/**"
-  ,"images/**"
-  ,"fonts/**"
-  ,"files/**"
-  ,"doc/**.html"
-  ,"doc/**.htm"
-  ,"doc/**.txt"
-  ,"doc/**.gif"
-  ,"doc/**.jpg"
-  ,"doc/**.jpeg"
-  ,"doc/**.png"
-  ,"*.html"
-  ,"*.htm"
-  ,"*.css"
-  ,"*.js"
-  ,"*.gif"
-  ,"*.jpg"
-  ,"*.jpeg"
-  ,"*.png"
-  ]
-
 filesToRender =
   ["*.md"
   ,"*.mdwn"
@@ -127,8 +88,6 @@ main = do
     exitSuccess
 
   hakyll $ do
-
-    match (foldl1 (.||.) filesToCopy) $ route idRoute >> compile copyFileCompiler
 
     -- there might or might not be a site template in ./ or ./site/
     mtmpl <- preprocess $ do
