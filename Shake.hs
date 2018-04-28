@@ -73,6 +73,7 @@ hakyllstd = "site/hakyll-std/hakyll-std"
 makeinfo = "makeinfo"
 -- nroff = "nroff"
 groff = "groff"
+dropDirectory2 = dropDirectory1 . dropDirectory1
 
 main = do
 
@@ -141,6 +142,9 @@ main = do
 
       -- manuals rendered to markdown and combined, ready for web output by hakyll
       webmanall = "site/manual.md"
+
+      -- file extensions which should just be copied directly over to the website
+      webcopyfileexts = ["png", "gif", "cur", "js", "css", "eot", "ttf", "woff", "svg"]
 
       -- hledger.1 -> hledger/doc, hledger_journal.5 -> hledger-lib/doc
       manpageDir m
@@ -221,11 +225,12 @@ main = do
         webmanpages ++
         [webmanall
         ,hakyllstd
+        ,"website-copy"
         ]
       cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
     -- website also links to old manuals, which are generated manually
     -- with ./Shake websnapshot and committed
-    -- TODO: when pandoc filters are missing, ./Shake website complains about them before building them 
+    -- TODO: when pandoc filters are missing, ./Shake website complains about them before building them
     --   ./Shake.hs && ./Shake Clean && (cd site/hakyll-std; ./hakyll-std.hs) && ./Shake website
 
     -- use m4 and pandoc to process macros and filter content, leaving markdown suitable for web output
@@ -275,6 +280,17 @@ main = do
       cmd Shell "cp" "site/manual.md" snapshot :: Action ExitCode
       cmd Shell "cp -r site/images" snapshot :: Action ExitCode
       cmd Shell "touch" out -- :: Action ExitCode
+
+    phony "website-copy" $ do
+        orig_files <- getDirectoryFiles "site" (map ("//*" <.>) webcopyfileexts)
+        need [ "site/_site" </> file
+                | file <- "files/README" : orig_files
+                , not ("_site//*" ?== file)
+             ]
+
+    "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webcopyfileexts ] |%> \out -> do
+        let input = "site" </> dropDirectory2 out
+        copyFile' input out
 
     -- build standard hakyll script used for site rendering
     hakyllstd %> \out -> do
