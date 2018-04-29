@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f4144b343af9ed7db6d4295a3a536df8eea395e5a01cbf517a2230fc8e33f9eb
+-- hash: 05c45adc94455b7776ed25c756329788c1c5bb3b9ef5620a681eb538a4e1bdf3
 
 name:           hledger-ui
-version:        1.9
+version:        1.9.1
 synopsis:       Curses-style user interface for the hledger accounting tool
 description:    This is hledger's curses-style interface.
                 It is simpler and more convenient for browsing data than the command-line interface,
@@ -63,7 +63,7 @@ executable hledger-ui
   hs-source-dirs:
       ./.
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.9"
+  cpp-options: -DVERSION="1.9.1"
   build-depends:
       HUnit
     , ansi-terminal >=0.6.2.3
@@ -76,8 +76,8 @@ executable hledger-ui
     , directory
     , filepath
     , fsnotify >=0.2
-    , hledger >=1.9 && <2.0
-    , hledger-lib >=1.9 && <2.0
+    , hledger >=1.9.1 && <2.0
+    , hledger-lib >=1.9.1 && <2.0
     , megaparsec >=5.0
     , microlens >=0.4
     , microlens-platform >=0.2.3.1

@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 80fc78384df9059050d15efe878b93e234f038c64b2f9b6d4b5af699b244050f
+-- hash: 1872196bf7e9ff50fae0f3ea64ea81d1155799a2779617be58c9acf7f6aabce8
 
 name:           hledger-web
-version:        1.9.1
+version:        1.9.2
 synopsis:       Web interface for the hledger accounting tool
 description:    This is hledger's web interface.
                 It provides a more user-friendly and collaborative UI than the
@@ -140,7 +140,7 @@ library
   other-modules:
       Paths_hledger_web
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.9.1"
+  cpp-options: -DVERSION="1.9.2"
   build-depends:
       HUnit
     , base >=4.8 && <4.12
@@ -155,8 +155,8 @@ library
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.9 && <2.0
-    , hledger-lib >=1.9 && <2.0
+    , hledger >=1.9.1 && <2.0
+    , hledger-lib >=1.9.1 && <2.0
     , http-client
     , http-conduit
     , json
@@ -191,7 +191,7 @@ executable hledger-web
   hs-source-dirs:
       app
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.9.1"
+  cpp-options: -DVERSION="1.9.2"
   build-depends:
       HUnit
     , base >=4.8 && <4.12
@@ -206,8 +206,8 @@ executable hledger-web
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.9 && <2.0
-    , hledger-lib >=1.9 && <2.0
+    , hledger >=1.9.1 && <2.0
+    , hledger-lib >=1.9.1 && <2.0
     , hledger-web
     , http-client
     , http-conduit
@@ -250,7 +250,7 @@ test-suite test
   hs-source-dirs:
       tests
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
-  cpp-options: -DVERSION="1.9.1"
+  cpp-options: -DVERSION="1.9.2"
   build-depends:
       HUnit
     , base >=4.8 && <4.12
@@ -265,8 +265,8 @@ test-suite test
     , directory
     , filepath
     , hjsmin
-    , hledger >=1.9 && <2.0
-    , hledger-lib >=1.9 && <2.0
+    , hledger >=1.9.1 && <2.0
+    , hledger-lib >=1.9.1 && <2.0
     , hledger-web
     , hspec
     , http-client
