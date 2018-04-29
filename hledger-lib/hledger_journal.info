@@ -4,8 +4,8 @@ stdin.
 
 File: hledger_journal.info,  Node: Top,  Next: FILE FORMAT,  Up: (dir)
 
-hledger_journal(5) hledger 1.9
-******************************
+hledger_journal(5) hledger 1.9.1
+********************************
 
 hledger's usual data source is a plain text file containing journal
 entries in hledger journal format.  This file represents a standard
@@ -1149,8 +1149,13 @@ every transaction involving the 'expenses:gifts' account:
 $ hledger print --auto
 2017/12/14
     expenses:gifts             $20
-    assets
     (budget:gifts)            $-20
+    assets
+
+   Automated postings would not be distinguishable from equivalent
+postings written by hand.  In particular, they would affect [amount
+inference|#postings] and [balance assertion|#balance-assertions] checks
+in the usual way.
 
 
 File: hledger_journal.info,  Node: EDITOR SUPPORT,  Prev: Automated postings,  Up: Top
@@ -1182,89 +1187,89 @@ Code
 
 Tag Table:
 Node: Top76
-Node: FILE FORMAT2419
-Ref: #file-format2550
-Node: Transactions2773
-Ref: #transactions2894
-Node: Postings3578
-Ref: #postings3705
-Node: Dates4700
-Ref: #dates4815
-Node: Simple dates4880
-Ref: #simple-dates5006
-Node: Secondary dates5372
-Ref: #secondary-dates5526
-Node: Posting dates7089
-Ref: #posting-dates7218
-Node: Status8592
-Ref: #status8712
-Node: Description10420
-Ref: #description10558
-Node: Payee and note10877
-Ref: #payee-and-note10991
-Node: Account names11233
-Ref: #account-names11376
-Node: Amounts11863
-Ref: #amounts11999
-Node: Virtual Postings15014
-Ref: #virtual-postings15173
-Node: Balance Assertions16393
-Ref: #balance-assertions16568
-Node: Assertions and ordering17464
-Ref: #assertions-and-ordering17650
-Node: Assertions and included files18350
-Ref: #assertions-and-included-files18591
-Node: Assertions and multiple -f options18924
-Ref: #assertions-and-multiple--f-options19178
-Node: Assertions and commodities19310
-Ref: #assertions-and-commodities19545
-Node: Assertions and subaccounts20241
-Ref: #assertions-and-subaccounts20473
-Node: Assertions and virtual postings20994
-Ref: #assertions-and-virtual-postings21201
-Node: Balance Assignments21343
-Ref: #balance-assignments21512
-Node: Prices22632
-Ref: #prices22765
-Node: Transaction prices22816
-Ref: #transaction-prices22961
-Node: Market prices25117
-Ref: #market-prices25252
-Node: Comments26212
-Ref: #comments26334
-Node: Tags27576
-Ref: #tags27694
-Node: Directives29096
-Ref: #directives29209
-Node: Account aliases29402
-Ref: #account-aliases29546
-Node: Basic aliases30150
-Ref: #basic-aliases30293
-Node: Regex aliases30983
-Ref: #regex-aliases31151
-Node: Multiple aliases31869
-Ref: #multiple-aliases32041
-Node: end aliases32539
-Ref: #end-aliases32679
-Node: account directive32780
-Ref: #account-directive32960
-Node: apply account directive34307
-Ref: #apply-account-directive34503
-Node: Multi-line comments35162
-Ref: #multi-line-comments35352
-Node: commodity directive35480
-Ref: #commodity-directive35664
-Node: Default commodity36536
-Ref: #default-commodity36709
-Node: Default year37246
-Ref: #default-year37411
-Node: Including other files37834
-Ref: #including-other-files37991
-Node: Periodic transactions38388
-Ref: #periodic-transactions38554
-Node: Automated postings39543
-Ref: #automated-postings39706
-Node: EDITOR SUPPORT40608
-Ref: #editor-support40733
+Node: FILE FORMAT2423
+Ref: #file-format2554
+Node: Transactions2777
+Ref: #transactions2898
+Node: Postings3582
+Ref: #postings3709
+Node: Dates4704
+Ref: #dates4819
+Node: Simple dates4884
+Ref: #simple-dates5010
+Node: Secondary dates5376
+Ref: #secondary-dates5530
+Node: Posting dates7093
+Ref: #posting-dates7222
+Node: Status8596
+Ref: #status8716
+Node: Description10424
+Ref: #description10562
+Node: Payee and note10881
+Ref: #payee-and-note10995
+Node: Account names11237
+Ref: #account-names11380
+Node: Amounts11867
+Ref: #amounts12003
+Node: Virtual Postings15018
+Ref: #virtual-postings15177
+Node: Balance Assertions16397
+Ref: #balance-assertions16572
+Node: Assertions and ordering17468
+Ref: #assertions-and-ordering17654
+Node: Assertions and included files18354
+Ref: #assertions-and-included-files18595
+Node: Assertions and multiple -f options18928
+Ref: #assertions-and-multiple--f-options19182
+Node: Assertions and commodities19314
+Ref: #assertions-and-commodities19549
+Node: Assertions and subaccounts20245
+Ref: #assertions-and-subaccounts20477
+Node: Assertions and virtual postings20998
+Ref: #assertions-and-virtual-postings21205
+Node: Balance Assignments21347
+Ref: #balance-assignments21516
+Node: Prices22636
+Ref: #prices22769
+Node: Transaction prices22820
+Ref: #transaction-prices22965
+Node: Market prices25121
+Ref: #market-prices25256
+Node: Comments26216
+Ref: #comments26338
+Node: Tags27580
+Ref: #tags27698
+Node: Directives29100
+Ref: #directives29213
+Node: Account aliases29406
+Ref: #account-aliases29550
+Node: Basic aliases30154
+Ref: #basic-aliases30297
+Node: Regex aliases30987
+Ref: #regex-aliases31155
+Node: Multiple aliases31873
+Ref: #multiple-aliases32045
+Node: end aliases32543
+Ref: #end-aliases32683
+Node: account directive32784
+Ref: #account-directive32964
+Node: apply account directive34311
+Ref: #apply-account-directive34507
+Node: Multi-line comments35166
+Ref: #multi-line-comments35356
+Node: commodity directive35484
+Ref: #commodity-directive35668
+Node: Default commodity36540
+Ref: #default-commodity36713
+Node: Default year37250
+Ref: #default-year37415
+Node: Including other files37838
+Ref: #including-other-files37995
+Node: Periodic transactions38392
+Ref: #periodic-transactions38558
+Node: Automated postings39547
+Ref: #automated-postings39710
+Node: EDITOR SUPPORT40838
+Ref: #editor-support40963
 
 End Tag Table
