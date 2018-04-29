@@ -2,6 +2,15 @@ API-ish changes in the hledger-lib package.
 Most user-visible changes are noted in the hledger changelog, instead.
 
 
+# 1.9.1 (2018/4/30)
+
+* new generic PeriodicReport, and some report-related type aliases
+
+* new BudgetReport
+
+* make (readJournal|tryReader)s?WithOpts the default api, dropping "WithOpts"
+
+
 # 1.9 (2018/3/31)
 
 * support ghc 8.4, latest deps

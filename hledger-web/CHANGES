@@ -1,6 +1,16 @@
 User-visible changes in hledger-web. See also hledger, hledger-lib.
 
 
+# 1.9.2 (2018/4/30)
+
+* use hledger-lib 1.9.1
+
+
+# 1.9.1 (2018/4/13)
+
+* fix compilation with yesod < 1.6
+
+
 # 1.9 (2018/3/31)
 
 * support ghc 8.4, latest deps
