@@ -144,7 +144,9 @@ applications.
 <div class="indent1">
 ### fully documented
 
-We practice documentation-driven development. Every feature must be **[well documented](index2.html)**, and getting started must be easy.
+We practice documentation-driven development. 
+Every feature must be **[well documented](index.html#reference)**, 
+and getting started must be easy.
 
 </div>
 
