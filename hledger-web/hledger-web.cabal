@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0f07bd3900d1a00fa95eb4cc28f4e539eddce9d0b6a6123a37a809c6f71f6b6d
+-- hash: 80fc78384df9059050d15efe878b93e234f038c64b2f9b6d4b5af699b244050f
 
 name:           hledger-web
 version:        1.9.1
@@ -28,7 +28,6 @@ license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.1
 build-type:     Simple
 cabal-version:  >= 1.10
-
 extra-source-files:
     CHANGES
     config/favicon.ico

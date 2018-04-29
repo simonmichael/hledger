@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 76caff99c32b8b2a218a88b5935bdd4f5aacf03ce196484689e33855c1e9da84
+-- hash: 831f77cf5a9dcad3bd8cb02a19f4d25754a0bd9132bfb57bd0223151a7a3f270
 
 name:           hledger
 version:        1.9
@@ -28,7 +28,6 @@ license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.1
 build-type:     Simple
 cabal-version:  >= 1.10
-
 extra-source-files:
     bench/10000x1000x10.journal
     CHANGES

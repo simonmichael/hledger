@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.20.0.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b550ebb38d8cb6318ceaade71bf1f9eeb9c85a5a84b4da7d9b63f6f8ccd91124
+-- hash: f4144b343af9ed7db6d4295a3a536df8eea395e5a01cbf517a2230fc8e33f9eb
 
 name:           hledger-ui
 version:        1.9
@@ -28,7 +28,6 @@ license-file:   LICENSE
 tested-with:    GHC==7.10.3, GHC==8.0
 build-type:     Simple
 cabal-version:  >= 1.10
-
 extra-source-files:
     CHANGES
     hledger-ui.1
