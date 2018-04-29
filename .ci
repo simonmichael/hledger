@@ -1,0 +1,3 @@
+[test "website"]
+    command      = ./Shake.hs && ./Shake Clean && ./Shake website
+    trackedFiles = site/_site
