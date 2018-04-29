@@ -887,7 +887,7 @@ Glob patterns (`*`) are not currently supported.
 The `include` directive can only be used in journal files.
 It can include journal, timeclock or timedot files, but not CSV files.
 
-# Periodic transactions
+## Periodic transactions
 
 Periodic transactions are a kind of rule with a dual purpose: they can specify 
 recurring future transactions (with `--forecast`), or budget goals (with `--budget`). 
@@ -911,7 +911,7 @@ For more details, see:
 and
 [Budgeting and Forecasting](budgeting-and-forecasting.html).
 
-# Automated postings
+## Automated postings
 
 Automated postings are postings added automatically by rule to certain transactions (with `--auto`).
 An automated posting rule looks like a transaction where the first line is an equal sign (`=`) followed by a [query](manual.html#queries):
