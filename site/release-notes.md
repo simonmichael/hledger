@@ -46,6 +46,10 @@ h4 { margin-top:2em; }
 
 # Release notes
 
+Here are the changes brought by each major hledger release.
+For details of minor releases, see the 
+[package changelogs on Hackage](https://github.com/simonmichael/hledger/wiki/Dev-Zone#hackage).
+
 
 ## 2018/3/31 hledger 1.9
 
