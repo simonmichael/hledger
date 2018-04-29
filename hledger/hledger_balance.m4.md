@@ -102,7 +102,7 @@ Or with `-S/--sort-amount`, by their balance amount.
 
 "Boring" accounts, which contain a single interesting subaccount and 
 no balance of their own, are elided into the following line for more compact output.
-Use `--no-elide` to prevent this. 
+(Eg above, the "liabilities" account.) Use `--no-elide` to prevent this. 
 
 Account balances are "inclusive" - they include the balances of any subaccounts.
 
