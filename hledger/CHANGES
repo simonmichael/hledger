@@ -1,6 +1,50 @@
 User-visible changes in the hledger command line tool.
 
 
+# 1.9.1 (2018/4/30)
+
+* use hledger-lib 1.9.1
+
+* budget (balance --budget): budgets can be built from periodic
+  transactions with different intervals again. In 1.9, budgets were
+  restricted to a single interval, but this was a mistake. This
+  restores the 1.5 behaviour.
+
+* budget: budget reports are more intuitive and much less likely to
+  produce no output.
+
+* budget: when no report interval is specified, a budget report for
+  the whole journal period is shown.
+
+* budget: periodic transactions and the requested report period can
+  each have their own start/end dates, and the resulting report will
+  span the union of those periods, showing zeroes where data is
+  missing.
+
+* budget: total row and total/average columns are now calculated correctly
+
+* budget: actual, percentage, and goal amounts are now aligned in
+  columns for better readability (usually, unless numbers get huge).
+
+* budget: combining --budget and --sort-amount is not yet supported
+  and now gives an error.
+
+* csv: handle "-%amount" in a rule when the CSV amount is parenthesised (#736)
+
+* journal: automated postings are now generated early, before journal finalisation,
+  so they are present for amount inference, transaction balancing, and balance assertions
+  (#729)
+
+* cli: command-line account aliases are now applied early, before journal finalisation,
+  so they are equivalent to alias directives in the journal (#730)
+
+* journal: inferred amounts now have the appropriate standard amount style applied
+  (setting the precision correctly, eg). (#737)
+
+* journal: when checking for balanced transactions, amount styles declared with 
+  commodity directives are also used (previously only inferred amount styles were).
+
+
 # 1.9 (2018/3/31)
 
 * support ghc 8.4, latest deps
