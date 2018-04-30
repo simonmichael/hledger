@@ -5,10 +5,13 @@ User-visible changes in the hledger command line tool.
 
 * use hledger-lib 1.9.1
 
-* budget (balance --budget): budgets can be built from periodic
-  transactions with different intervals again. In 1.9, budgets were
-  restricted to a single interval, but this was a mistake. This
-  restores the 1.5 behaviour.
+* budget (balance --budget): monthly columns are displayed in the
+  proper order.  This fixes a regression in 1.9.
+
+* budget: budgets can be built from periodic transactions with
+  different intervals again. In 1.9, budgets were restricted to a
+  single interval, but this was a mistake. This restores the 1.5
+  behaviour.
 
 * budget: budget reports are more intuitive and much less likely to
   produce no output.
