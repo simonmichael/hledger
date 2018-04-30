@@ -58,6 +58,25 @@ build_script:
 artifacts:
 - path: hledger.zip
 
+# overriding common configuration:
+for:
+
+# settings specific to master branch
+# master is set as default branch in UI, and built nightly by cron
+-
+  branches:
+    only:
+      - master
+
+# settings specific to release branches
+# release branches are built on tag push
+-
+  branches:
+    only:
+      - /^[0-9.]+$/
+  on:
+    appveyor_repo_tag: true
+
 
 # deployment stuff
 # https://silky.github.io/posts/2016-01-05-build-windows-haskell-app-with-stack-and-appveyor.html
