@@ -1198,7 +1198,8 @@ sorted by account code if any, then by account name.  Or with
 
    "Boring" accounts, which contain a single interesting subaccount and
 no balance of their own, are elided into the following line for more
-compact output.  Use '--no-elide' to prevent this.
+compact output.  (Eg above, the "liabilities" account.)  Use
+'--no-elide' to prevent this.
 
    Account balances are "inclusive" - they include the balances of any
 subaccounts.
@@ -2471,84 +2472,84 @@ Node: balance35124
 Ref: #balance35235
 Node: Classic balance report38318
 Ref: #classic-balance-report38491
-Node: Customising the classic balance report39820
-Ref: #customising-the-classic-balance-report40048
-Node: Colour support42122
-Ref: #colour-support42289
-Node: Flat mode42462
-Ref: #flat-mode42610
-Node: Depth limited balance reports43023
-Ref: #depth-limited-balance-reports43223
-Node: Multicolumn balance report43679
-Ref: #multicolumn-balance-report43877
-Node: Budget report49057
-Ref: #budget-report49200
-Ref: #output-format-152234
-Node: balancesheet52312
-Ref: #balancesheet52448
-Node: balancesheetequity54759
-Ref: #balancesheetequity54908
-Node: cashflow55445
-Ref: #cashflow55573
-Node: check-dates57696
-Ref: #check-dates57823
-Node: check-dupes57940
-Ref: #check-dupes58064
-Node: close58201
-Ref: #close58308
-Node: help58638
-Ref: #help58738
-Node: import59812
-Ref: #import59926
-Node: incomestatement60656
-Ref: #incomestatement60790
-Node: prices63194
-Ref: #prices63309
-Node: print63352
-Ref: #print63462
-Node: print-unique68356
-Ref: #print-unique68482
-Node: register68550
-Ref: #register68677
-Node: Custom register output73178
-Ref: #custom-register-output73307
-Node: register-match74537
-Ref: #register-match74671
-Node: rewrite74854
-Ref: #rewrite74971
-Node: stats75040
-Ref: #stats75143
-Node: tags76013
-Ref: #tags76111
-Node: test76347
-Ref: #test76431
-Node: ADD-ON COMMANDS76799
-Ref: #add-on-commands76909
-Node: Official add-ons78196
-Ref: #official-add-ons78336
-Node: api78423
-Ref: #api78512
-Node: ui78564
-Ref: #ui78663
-Node: web78721
-Ref: #web78810
-Node: Third party add-ons78856
-Ref: #third-party-add-ons79031
-Node: diff79166
-Ref: #diff79263
-Node: iadd79362
-Ref: #iadd79476
-Node: interest79559
-Ref: #interest79680
-Node: irr79775
-Ref: #irr79873
-Node: Experimental add-ons79951
-Ref: #experimental-add-ons80103
-Node: autosync80383
-Ref: #autosync80494
-Node: chart80733
-Ref: #chart80852
-Node: check80923
-Ref: #check81025
+Node: Customising the classic balance report39860
+Ref: #customising-the-classic-balance-report40088
+Node: Colour support42162
+Ref: #colour-support42329
+Node: Flat mode42502
+Ref: #flat-mode42650
+Node: Depth limited balance reports43063
+Ref: #depth-limited-balance-reports43263
+Node: Multicolumn balance report43719
+Ref: #multicolumn-balance-report43917
+Node: Budget report49097
+Ref: #budget-report49240
+Ref: #output-format-152274
+Node: balancesheet52352
+Ref: #balancesheet52488
+Node: balancesheetequity54799
+Ref: #balancesheetequity54948
+Node: cashflow55485
+Ref: #cashflow55613
+Node: check-dates57736
+Ref: #check-dates57863
+Node: check-dupes57980
+Ref: #check-dupes58104
+Node: close58241
+Ref: #close58348
+Node: help58678
+Ref: #help58778
+Node: import59852
+Ref: #import59966
+Node: incomestatement60696
+Ref: #incomestatement60830
+Node: prices63234
+Ref: #prices63349
+Node: print63392
+Ref: #print63502
+Node: print-unique68396
+Ref: #print-unique68522
+Node: register68590
+Ref: #register68717
+Node: Custom register output73218
+Ref: #custom-register-output73347
+Node: register-match74577
+Ref: #register-match74711
+Node: rewrite74894
+Ref: #rewrite75011
+Node: stats75080
+Ref: #stats75183
+Node: tags76053
+Ref: #tags76151
+Node: test76387
+Ref: #test76471
+Node: ADD-ON COMMANDS76839
+Ref: #add-on-commands76949
+Node: Official add-ons78236
+Ref: #official-add-ons78376
+Node: api78463
+Ref: #api78552
+Node: ui78604
+Ref: #ui78703
+Node: web78761
+Ref: #web78850
+Node: Third party add-ons78896
+Ref: #third-party-add-ons79071
+Node: diff79206
+Ref: #diff79303
+Node: iadd79402
+Ref: #iadd79516
+Node: interest79599
+Ref: #interest79720
+Node: irr79815
+Ref: #irr79913
+Node: Experimental add-ons79991
+Ref: #experimental-add-ons80143
+Node: autosync80423
+Ref: #autosync80534
+Node: chart80773
+Ref: #chart80892
+Node: check80963
+Ref: #check81065
 
 End Tag Table

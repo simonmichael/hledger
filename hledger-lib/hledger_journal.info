@@ -57,12 +57,10 @@ assisted by the helper modes for emacs or vim.
 * Menu:
 
 * FILE FORMAT::
-* Periodic transactions::
-* Automated postings::
 * EDITOR SUPPORT::
 
 
-File: hledger_journal.info,  Node: FILE FORMAT,  Next: Periodic transactions,  Prev: Top,  Up: Top
+File: hledger_journal.info,  Node: FILE FORMAT,  Next: EDITOR SUPPORT,  Prev: Top,  Up: Top
 
 1 FILE FORMAT
 *************
@@ -83,6 +81,8 @@ File: hledger_journal.info,  Node: FILE FORMAT,  Next: Periodic transactions,  P
 * Comments::
 * Tags::
 * Directives::
+* Periodic transactions::
+* Automated postings::
 
 
 File: hledger_journal.info,  Node: Transactions,  Next: Postings,  Up: FILE FORMAT
@@ -713,10 +713,6 @@ star ('*') are comments, and will be ignored.  (Star comments cause
 org-mode nodes to be ignored, allowing emacs users to fold and navigate
 their journals with org-mode or orgstruct-mode.)
 
-   Also, anything between 'comment' and 'end comment' directives is a
-(multi-line) comment.  If there is no 'end comment', the comment extends
-to the end of the file.
-
    You can attach comments to a transaction by writing them after the
 description and/or indented on the following lines (before the
 postings).  Similarly, you can attach comments to an individual posting
@@ -743,6 +739,9 @@ end comment
     ; a comment for posting 2
     ; another comment line for posting 2
 ; a file comment (because not indented)
+
+   You can also comment larger regions of a file using 'comment' and
+'end comment' directives.
 
 
 File: hledger_journal.info,  Node: Tags,  Next: Directives,  Prev: Comments,  Up: FILE FORMAT
@@ -788,127 +787,141 @@ example, the following transaction has three tags ('A', 'TAG2',
 are simple strings.
 
 
-File: hledger_journal.info,  Node: Directives,  Prev: Tags,  Up: FILE FORMAT
+File: hledger_journal.info,  Node: Directives,  Next: Periodic transactions,  Prev: Tags,  Up: FILE FORMAT
 
 1.14 Directives
 ===============
 
 * Menu:
 
-* Account aliases::
-* account directive::
-* apply account directive::
-* Multi-line comments::
-* commodity directive::
-* Default commodity::
-* Default year::
+* Comment blocks::
 * Including other files::
+* Default year::
+* Declaring commodities::
+* Default commodity::
+* Declaring accounts::
+* Rewriting accounts::
+* Default parent account::
 
 
-File: hledger_journal.info,  Node: Account aliases,  Next: account directive,  Up: Directives
+File: hledger_journal.info,  Node: Comment blocks,  Next: Including other files,  Up: Directives
 
-1.14.1 Account aliases
-----------------------
+1.14.1 Comment blocks
+---------------------
 
-You can define aliases which rewrite your account names (after reading
-the journal, before generating reports).  hledger's account aliases can
-be useful for:
-
-   * expanding shorthand account names to their full form, allowing
-     easier data entry and a less verbose journal
-   * adapting old journals to your current chart of accounts
-   * experimenting with new account organisations, like a new hierarchy
-     or combining two accounts into one
-   * customising reports
-
-   See also Cookbook: rewrite account names.
-* Menu:
-
-* Basic aliases::
-* Regex aliases::
-* Multiple aliases::
-* end aliases::
+A line containing just 'comment' starts a commented region of the file,
+and a line containing just 'end comment' (or the end of the current
+file) ends it.  See also comments.
 
 
-File: hledger_journal.info,  Node: Basic aliases,  Next: Regex aliases,  Up: Account aliases
+File: hledger_journal.info,  Node: Including other files,  Next: Default year,  Prev: Comment blocks,  Up: Directives
 
-1.14.1.1 Basic aliases
-......................
+1.14.2 Including other files
+----------------------------
 
-To set an account alias, use the 'alias' directive in your journal file.
-This affects all subsequent journal entries in the current file or its
-included files.  The spaces around the = are optional:
+You can pull in the content of additional files by writing an include
+directive, like this:
 
-alias OLD = NEW
+include path/to/file.journal
 
-   Or, you can use the '--alias 'OLD=NEW'' option on the command line.
-This affects all entries.  It's useful for trying out aliases
-interactively.
+   If the path does not begin with a slash, it is relative to the
+current file.  Glob patterns ('*') are not currently supported.
 
-   OLD and NEW are full account names.  hledger will replace any
-occurrence of the old account name with the new one.  Subaccounts are
-also affected.  Eg:
-
-alias checking = assets:bank:wells fargo:checking
-# rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
+   The 'include' directive can only be used in journal files.  It can
+include journal, timeclock or timedot files, but not CSV files.
 
 
-File: hledger_journal.info,  Node: Regex aliases,  Next: Multiple aliases,  Prev: Basic aliases,  Up: Account aliases
+File: hledger_journal.info,  Node: Default year,  Next: Declaring commodities,  Prev: Including other files,  Up: Directives
 
-1.14.1.2 Regex aliases
-......................
+1.14.3 Default year
+-------------------
 
-There is also a more powerful variant that uses a regular expression,
-indicated by the forward slashes:
+You can set a default year to be used for subsequent dates which don't
+specify a year.  This is a line beginning with 'Y' followed by the year.
+Eg:
 
-alias /REGEX/ = REPLACEMENT
+Y2009      ; set default year to 2009
 
-   or '--alias '/REGEX/=REPLACEMENT''.
+12/15      ; equivalent to 2009/12/15
+  expenses  1
+  assets
 
-   REGEX is a case-insensitive regular expression.  Anywhere it matches
-inside an account name, the matched part will be replaced by
-REPLACEMENT. If REGEX contains parenthesised match groups, these can be
-referenced by the usual numeric backreferences in REPLACEMENT. Eg:
+Y2010      ; change default year to 2010
 
-alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
-# rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
+2009/1/30  ; specifies the year, not affected
+  expenses  1
+  assets
 
-   Also note that REPLACEMENT continues to the end of line (or on
-command line, to end of option argument), so it can contain trailing
-whitespace.
-
-
-File: hledger_journal.info,  Node: Multiple aliases,  Next: end aliases,  Prev: Regex aliases,  Up: Account aliases
-
-1.14.1.3 Multiple aliases
-.........................
-
-You can define as many aliases as you like using directives or
-command-line options.  Aliases are recursive - each alias sees the
-result of applying previous ones.  (This is different from Ledger, where
-aliases are non-recursive by default).  Aliases are applied in the
-following order:
-
-  1. alias directives, most recently seen first (recent directives take
-     precedence over earlier ones; directives not yet seen are ignored)
-  2. alias options, in the order they appear on the command line
+1/31       ; equivalent to 2010/1/31
+  expenses  1
+  assets
 
 
-File: hledger_journal.info,  Node: end aliases,  Prev: Multiple aliases,  Up: Account aliases
+File: hledger_journal.info,  Node: Declaring commodities,  Next: Default commodity,  Prev: Default year,  Up: Directives
 
-1.14.1.4 end aliases
-....................
+1.14.4 Declaring commodities
+----------------------------
 
-You can clear (forget) all currently defined aliases with the 'end
-aliases' directive:
+The 'commodity' directive declares commodities which may be used in the
+journal (though currently we do not enforce this).  It may be written on
+a single line, like this:
 
-end aliases
+; commodity EXAMPLEAMOUNT
+
+; display AAAA amounts with the symbol on the right, space-separated,
+; using period as decimal point, with four decimal places, and
+; separating thousands with comma.
+commodity 1,000.0000 AAAA
+
+   or on multiple lines, using the "format" subdirective.  In this case
+the commodity symbol appears twice and should be the same in both
+places:
+
+; commodity SYMBOL
+;   format EXAMPLEAMOUNT
+
+; display indian rupees with currency name on the left,
+; thousands, lakhs and crores comma-separated,
+; period as decimal point, and two decimal places.
+commodity INR
+  format INR 9,99,99,999.00
+
+   Commodity directives have a second purpose: they define the standard
+display format for amounts in the commodity.  Normally the display
+format is inferred from journal entries, but this can be unpredictable;
+declaring it with a commodity directive overrides this and removes
+ambiguity.  Towards this end, amounts in commodity directives must
+always be written with a decimal point (a period or comma, followed by 0
+or more decimal digits).
 
 
-File: hledger_journal.info,  Node: account directive,  Next: apply account directive,  Prev: Account aliases,  Up: Directives
+File: hledger_journal.info,  Node: Default commodity,  Next: Declaring accounts,  Prev: Declaring commodities,  Up: Directives
 
-1.14.2 account directive
+1.14.5 Default commodity
 ------------------------
+
+The D directive sets a default commodity (and display format), to be
+used for amounts without a commodity symbol (ie, plain numbers).  (Note
+this differs from Ledger's default commodity directive.)  The commodity
+and display format will be applied to all subsequent commodity-less
+amounts, or until the next D directive.
+
+# commodity-less amounts should be treated as dollars
+# (and displayed with symbol on the left, thousands separators and two decimal places)
+D $1,000.00
+
+1/1
+  a     5    ; <- commodity-less amount, becomes $1
+  b
+
+   As with the 'commodity' directive, the amount must always be written
+with a decimal point.
+
+
+File: hledger_journal.info,  Node: Declaring accounts,  Next: Rewriting accounts,  Prev: Default commodity,  Up: Directives
+
+1.14.6 Declaring accounts
+-------------------------
 
 The 'account' directive predeclares account names.  The simplest form is
 'account ACCTNAME', eg:
@@ -947,10 +960,110 @@ account assets:bank:checking   1110
   some-tag:12345
 
 
-File: hledger_journal.info,  Node: apply account directive,  Next: Multi-line comments,  Prev: account directive,  Up: Directives
+File: hledger_journal.info,  Node: Rewriting accounts,  Next: Default parent account,  Prev: Declaring accounts,  Up: Directives
 
-1.14.3 apply account directive
-------------------------------
+1.14.7 Rewriting accounts
+-------------------------
+
+You can define aliases which rewrite your account names (after reading
+the journal, before generating reports).  hledger's account aliases can
+be useful for:
+
+   * expanding shorthand account names to their full form, allowing
+     easier data entry and a less verbose journal
+   * adapting old journals to your current chart of accounts
+   * experimenting with new account organisations, like a new hierarchy
+     or combining two accounts into one
+   * customising reports
+
+   See also Cookbook: Rewrite account names.
+* Menu:
+
+* Basic aliases::
+* Regex aliases::
+* Multiple aliases::
+* end aliases::
+
+
+File: hledger_journal.info,  Node: Basic aliases,  Next: Regex aliases,  Up: Rewriting accounts
+
+1.14.7.1 Basic aliases
+......................
+
+To set an account alias, use the 'alias' directive in your journal file.
+This affects all subsequent journal entries in the current file or its
+included files.  The spaces around the = are optional:
+
+alias OLD = NEW
+
+   Or, you can use the '--alias 'OLD=NEW'' option on the command line.
+This affects all entries.  It's useful for trying out aliases
+interactively.
+
+   OLD and NEW are full account names.  hledger will replace any
+occurrence of the old account name with the new one.  Subaccounts are
+also affected.  Eg:
+
+alias checking = assets:bank:wells fargo:checking
+# rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
+
+
+File: hledger_journal.info,  Node: Regex aliases,  Next: Multiple aliases,  Prev: Basic aliases,  Up: Rewriting accounts
+
+1.14.7.2 Regex aliases
+......................
+
+There is also a more powerful variant that uses a regular expression,
+indicated by the forward slashes:
+
+alias /REGEX/ = REPLACEMENT
+
+   or '--alias '/REGEX/=REPLACEMENT''.
+
+   REGEX is a case-insensitive regular expression.  Anywhere it matches
+inside an account name, the matched part will be replaced by
+REPLACEMENT. If REGEX contains parenthesised match groups, these can be
+referenced by the usual numeric backreferences in REPLACEMENT. Eg:
+
+alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
+# rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
+
+   Also note that REPLACEMENT continues to the end of line (or on
+command line, to end of option argument), so it can contain trailing
+whitespace.
+
+
+File: hledger_journal.info,  Node: Multiple aliases,  Next: end aliases,  Prev: Regex aliases,  Up: Rewriting accounts
+
+1.14.7.3 Multiple aliases
+.........................
+
+You can define as many aliases as you like using directives or
+command-line options.  Aliases are recursive - each alias sees the
+result of applying previous ones.  (This is different from Ledger, where
+aliases are non-recursive by default).  Aliases are applied in the
+following order:
+
+  1. alias directives, most recently seen first (recent directives take
+     precedence over earlier ones; directives not yet seen are ignored)
+  2. alias options, in the order they appear on the command line
+
+
+File: hledger_journal.info,  Node: end aliases,  Prev: Multiple aliases,  Up: Rewriting accounts
+
+1.14.7.4 'end aliases'
+......................
+
+You can clear (forget) all currently defined aliases with the 'end
+aliases' directive:
+
+end aliases
+
+
+File: hledger_journal.info,  Node: Default parent account,  Prev: Rewriting accounts,  Up: Directives
+
+1.14.8 Default parent account
+-----------------------------
 
 You can specify a parent account which will be prepended to all accounts
 within a section of the journal.  Use the 'apply account' and 'end apply
@@ -983,148 +1096,52 @@ include personal.journal
 supported.
 
 
-File: hledger_journal.info,  Node: Multi-line comments,  Next: commodity directive,  Prev: apply account directive,  Up: Directives
+File: hledger_journal.info,  Node: Periodic transactions,  Next: Automated postings,  Prev: Directives,  Up: FILE FORMAT
 
-1.14.4 Multi-line comments
---------------------------
+1.15 Periodic transactions
+==========================
 
-A line containing just 'comment' starts a multi-line comment, and a line
-containing just 'end comment' ends it.  See comments.
-
-
-File: hledger_journal.info,  Node: commodity directive,  Next: Default commodity,  Prev: Multi-line comments,  Up: Directives
-
-1.14.5 commodity directive
---------------------------
-
-The 'commodity' directive predefines commodities (currently this is just
-informational), and also it may define the display format for amounts in
-this commodity (overriding the automatically inferred format).
-
-   It may be written on a single line, like this:
-
-; commodity EXAMPLEAMOUNT
-
-; display AAAA amounts with the symbol on the right, space-separated,
-; using period as decimal point, with four decimal places, and
-; separating thousands with comma.
-commodity 1,000.0000 AAAA
-
-   or on multiple lines, using the "format" subdirective.  In this case
-the commodity symbol appears twice and should be the same in both
-places:
-
-; commodity SYMBOL
-;   format EXAMPLEAMOUNT
-
-; display indian rupees with currency name on the left,
-; thousands, lakhs and crores comma-separated,
-; period as decimal point, and two decimal places.
-commodity INR
-  format INR 9,99,99,999.00
-
-
-File: hledger_journal.info,  Node: Default commodity,  Next: Default year,  Prev: commodity directive,  Up: Directives
-
-1.14.6 Default commodity
-------------------------
-
-The D directive sets a default commodity (and display format), to be
-used for amounts without a commodity symbol (ie, plain numbers).  (Note
-this differs from Ledger's default commodity directive.)  The commodity
-and display format will be applied to all subsequent commodity-less
-amounts, or until the next D directive.
-
-# commodity-less amounts should be treated as dollars
-# (and displayed with symbol on the left, thousands separators and two decimal places)
-D $1,000.00
-
-1/1
-  a     5    ; <- commodity-less amount, becomes $1
-  b
-
-
-File: hledger_journal.info,  Node: Default year,  Next: Including other files,  Prev: Default commodity,  Up: Directives
-
-1.14.7 Default year
--------------------
-
-You can set a default year to be used for subsequent dates which don't
-specify a year.  This is a line beginning with 'Y' followed by the year.
-Eg:
-
-Y2009      ; set default year to 2009
-
-12/15      ; equivalent to 2009/12/15
-  expenses  1
-  assets
-
-Y2010      ; change default year to 2010
-
-2009/1/30  ; specifies the year, not affected
-  expenses  1
-  assets
-
-1/31       ; equivalent to 2010/1/31
-  expenses  1
-  assets
-
-
-File: hledger_journal.info,  Node: Including other files,  Prev: Default year,  Up: Directives
-
-1.14.8 Including other files
-----------------------------
-
-You can pull in the content of additional journal files by writing an
-include directive, like this:
-
-include path/to/file.journal
-
-   If the path does not begin with a slash, it is relative to the
-current file.  Glob patterns ('*') are not currently supported.
-
-   The 'include' directive can only be used in journal files.  It can
-include journal, timeclock or timedot files, but not CSV files.
-
-
-File: hledger_journal.info,  Node: Periodic transactions,  Next: Automated postings,  Prev: FILE FORMAT,  Up: Top
-
-2 Periodic transactions
-***********************
-
-Periodic transactions are a kind of rule with a dual purpose: they can
-specify recurring future transactions (with '--forecast'), or budget
-goals (with '--budget').  They look a bit like a transaction, except the
-first line is a tilde ('~') followed by a period expression:
+Periodic transaction rules (enabled by '--forecast' or '--budget')
+describe recurring transactions.  They look like a transaction where the
+first line is a tilde ('~') followed by a period expression (mnemonic:
+'~' is like a recurring sine wave):
 
 ~ weekly
   assets:bank:checking   $400 ; paycheck
   income:acme inc
 
-   With '--forecast', each periodic transaction rule generates recurring
-"forecast" transactions at the specified interval, beginning the day
-after the latest recorded journal transaction (or today, if there are no
-transactions) and ending 6 months from today (or at the report end date,
-if specified).
+   Periodic transactions have a dual purpose:
 
-   With 'balance --budget', each periodic transaction declares recurring
-budget goals for the specified accounts.  Eg the example above declares
-the goal of receiving $400 from 'income:acme inc' (and also, depositing
-$400 into 'assets:bank:checking') every week.
+   * With '--forecast', each periodic transaction rule generates future
+     transactions, recurring at the specified interval, which can be
+     seen in reports.  Forecast transactions begin the day after the
+     latest recorded journal transaction (or today, if there are no
+     transactions) and end 6 months from today (or at the report end
+     date, if specified).
 
-   For more details, see: balance: Budgeting and Budgeting and
-Forecasting.
+   * With '--budget' (supported by the balance command), each periodic
+     transaction rule declares recurring budget goals for the specified
+     accounts, which can be seen in budget reports.  Eg the example
+     above declares the goal of receiving $400 from 'income:acme inc'
+     (and also, depositing $400 into 'assets:bank:checking') every week.
+
+   (Actually, you can generate one-off transactions too, by writing a
+period expression with no report interval.)
+
+   For more details, see: balance: Budget report and Cookbook: Budgeting
+and Forecasting.
 
 
-File: hledger_journal.info,  Node: Automated postings,  Next: EDITOR SUPPORT,  Prev: Periodic transactions,  Up: Top
+File: hledger_journal.info,  Node: Automated postings,  Prev: Periodic transactions,  Up: FILE FORMAT
 
-3 Automated postings
-********************
+1.16 Automated postings
+=======================
 
-Automated postings are postings added automatically by rule to certain
-transactions (with '--auto').  An automated posting rule looks like a
-transaction where the first line is an equal sign ('=') followed by a
-query:
+Automated postings (enabled by '--auto') are postings added
+automatically by rule to certain transactions.  An automated posting
+rule looks like a transaction where the first line is an equal sign
+('=') followed by a query (mnemonic: '=' tests for matching
+transactions, and also looks like posting lines):
 
 = expenses:gifts
     budget:gifts  *-1
@@ -1152,15 +1169,13 @@ $ hledger print --auto
     (budget:gifts)            $-20
     assets
 
-   Automated postings would not be distinguishable from equivalent
-postings written by hand.  In particular, they would affect [amount
-inference|#postings] and [balance assertion|#balance-assertions] checks
-in the usual way.
+   Like postings recorded by hand, automated postings participate in
+transaction balancing, missing amount inference and balance assertions.
 
 
-File: hledger_journal.info,  Node: EDITOR SUPPORT,  Prev: Automated postings,  Up: Top
+File: hledger_journal.info,  Node: EDITOR SUPPORT,  Prev: FILE FORMAT,  Up: Top
 
-4 EDITOR SUPPORT
+2 EDITOR SUPPORT
 ****************
 
 Add-on modes exist for various text editors, to make working with
@@ -1187,89 +1202,89 @@ Code
 
 Tag Table:
 Node: Top76
-Node: FILE FORMAT2423
-Ref: #file-format2554
-Node: Transactions2777
-Ref: #transactions2898
-Node: Postings3582
-Ref: #postings3709
-Node: Dates4704
-Ref: #dates4819
-Node: Simple dates4884
-Ref: #simple-dates5010
-Node: Secondary dates5376
-Ref: #secondary-dates5530
-Node: Posting dates7093
-Ref: #posting-dates7222
-Node: Status8596
-Ref: #status8716
-Node: Description10424
-Ref: #description10562
-Node: Payee and note10881
-Ref: #payee-and-note10995
-Node: Account names11237
-Ref: #account-names11380
-Node: Amounts11867
-Ref: #amounts12003
-Node: Virtual Postings15018
-Ref: #virtual-postings15177
-Node: Balance Assertions16397
-Ref: #balance-assertions16572
-Node: Assertions and ordering17468
-Ref: #assertions-and-ordering17654
-Node: Assertions and included files18354
-Ref: #assertions-and-included-files18595
-Node: Assertions and multiple -f options18928
-Ref: #assertions-and-multiple--f-options19182
-Node: Assertions and commodities19314
-Ref: #assertions-and-commodities19549
-Node: Assertions and subaccounts20245
-Ref: #assertions-and-subaccounts20477
-Node: Assertions and virtual postings20998
-Ref: #assertions-and-virtual-postings21205
-Node: Balance Assignments21347
-Ref: #balance-assignments21516
-Node: Prices22636
-Ref: #prices22769
-Node: Transaction prices22820
-Ref: #transaction-prices22965
-Node: Market prices25121
-Ref: #market-prices25256
-Node: Comments26216
-Ref: #comments26338
-Node: Tags27580
-Ref: #tags27698
-Node: Directives29100
-Ref: #directives29213
-Node: Account aliases29406
-Ref: #account-aliases29550
-Node: Basic aliases30154
-Ref: #basic-aliases30297
-Node: Regex aliases30987
-Ref: #regex-aliases31155
-Node: Multiple aliases31873
-Ref: #multiple-aliases32045
-Node: end aliases32543
-Ref: #end-aliases32683
-Node: account directive32784
-Ref: #account-directive32964
-Node: apply account directive34311
-Ref: #apply-account-directive34507
-Node: Multi-line comments35166
-Ref: #multi-line-comments35356
-Node: commodity directive35484
-Ref: #commodity-directive35668
-Node: Default commodity36540
-Ref: #default-commodity36713
-Node: Default year37250
-Ref: #default-year37415
-Node: Including other files37838
-Ref: #including-other-files37995
-Node: Periodic transactions38392
-Ref: #periodic-transactions38558
-Node: Automated postings39547
-Ref: #automated-postings39710
-Node: EDITOR SUPPORT40838
-Ref: #editor-support40963
+Node: FILE FORMAT2374
+Ref: #file-format2498
+Node: Transactions2770
+Ref: #transactions2891
+Node: Postings3575
+Ref: #postings3702
+Node: Dates4697
+Ref: #dates4812
+Node: Simple dates4877
+Ref: #simple-dates5003
+Node: Secondary dates5369
+Ref: #secondary-dates5523
+Node: Posting dates7086
+Ref: #posting-dates7215
+Node: Status8589
+Ref: #status8709
+Node: Description10417
+Ref: #description10555
+Node: Payee and note10874
+Ref: #payee-and-note10988
+Node: Account names11230
+Ref: #account-names11373
+Node: Amounts11860
+Ref: #amounts11996
+Node: Virtual Postings15011
+Ref: #virtual-postings15170
+Node: Balance Assertions16390
+Ref: #balance-assertions16565
+Node: Assertions and ordering17461
+Ref: #assertions-and-ordering17647
+Node: Assertions and included files18347
+Ref: #assertions-and-included-files18588
+Node: Assertions and multiple -f options18921
+Ref: #assertions-and-multiple--f-options19175
+Node: Assertions and commodities19307
+Ref: #assertions-and-commodities19542
+Node: Assertions and subaccounts20238
+Ref: #assertions-and-subaccounts20470
+Node: Assertions and virtual postings20991
+Ref: #assertions-and-virtual-postings21198
+Node: Balance Assignments21340
+Ref: #balance-assignments21509
+Node: Prices22629
+Ref: #prices22762
+Node: Transaction prices22813
+Ref: #transaction-prices22958
+Node: Market prices25114
+Ref: #market-prices25249
+Node: Comments26209
+Ref: #comments26331
+Node: Tags27501
+Ref: #tags27619
+Node: Directives29021
+Ref: #directives29164
+Node: Comment blocks29357
+Ref: #comment-blocks29502
+Node: Including other files29678
+Ref: #including-other-files29858
+Node: Default year30247
+Ref: #default-year30416
+Node: Declaring commodities30839
+Ref: #declaring-commodities31022
+Node: Default commodity32249
+Ref: #default-commodity32430
+Node: Declaring accounts33062
+Ref: #declaring-accounts33242
+Node: Rewriting accounts34589
+Ref: #rewriting-accounts34774
+Node: Basic aliases35378
+Ref: #basic-aliases35524
+Node: Regex aliases36214
+Ref: #regex-aliases36385
+Node: Multiple aliases37103
+Ref: #multiple-aliases37278
+Node: end aliases37776
+Ref: #end-aliases37923
+Node: Default parent account38024
+Ref: #default-parent-account38190
+Node: Periodic transactions38849
+Ref: #periodic-transactions39028
+Node: Automated postings40327
+Ref: #automated-postings40481
+Node: EDITOR SUPPORT41614
+Ref: #editor-support41732
 
 End Tag Table
