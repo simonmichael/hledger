@@ -457,7 +457,7 @@ hledger uses [regular expressions](http://www.regular-expressions.info) in a num
 
 - [query terms](#queries), on the command line and in the hledger-web search form: `REGEX`, `desc:REGEX`, `cur:REGEX`, `tag:...=REGEX`
 - [CSV rules](#csv-rules) conditional blocks: `if REGEX ...`
-- [account alias](#account-aliases) directives and options: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
+- [account alias](#rewriting-accounts) directives and options: `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
 
 hledger's regular expressions come from the
 [regex-tdfa](http://hackage.haskell.org/package/regex-tdfa/docs/Text-Regex-TDFA.html)

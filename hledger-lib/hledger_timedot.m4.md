@@ -101,7 +101,7 @@ Balance changes in 2016/02/01-2016/02/03:
 ```
 
 I prefer to use period for separating account components.
-We can make this work with an [account alias](/journal.html#account-aliases):
+We can make this work with an [account alias](/journal.html#rewriting-accounts):
 
 ```timedot
 2016/2/4

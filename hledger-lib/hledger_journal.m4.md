@@ -253,7 +253,7 @@ accounts: `assets`, `liabilities`, `income`, `expenses`, and `equity`.
 Account names may contain single spaces, eg: `assets:accounts receivable`.
 Because of this, they must always be followed by **two or more spaces** (or newline).
 
-Account names can be [aliased](#account-aliases).
+Account names can be [aliased](#rewriting-accounts).
 
 ## Amounts
 
@@ -298,7 +298,7 @@ commodity $1,000.00
 Though journal may contain mixed styles to represent amount, when hledger displays amounts, it will choose a consistent format for each commodity.
 (Except for [price amounts](#prices), which are always formatted as written). The display format is chosen as follows:
 
-- if there is a [commodity directive](#commodity-directive) specifying the format, that is used
+- if there is a [commodity directive](#declaring-commodities) specifying the format, that is used
 - otherwise the format is inferred from the first posting amount in that commodity in the journal, and the precision (number of decimal places) will be the maximum from all posting amounts in that commmodity
 - or if there are no such amounts in the journal, a default format is used (like `$1000.00`).
 
@@ -563,9 +563,6 @@ star (`*`) are comments, and will be ignored. (Star comments cause
 org-mode nodes to be ignored, allowing emacs users to fold and navigate
 their journals with org-mode or orgstruct-mode.)
 
-Also, anything between [`comment` and `end comment` directives](#multi-line-comments) is a (multi-line) comment.
-If there is no `end comment`, the comment extends to the end of the file.
-
 You can attach comments to a transaction by writing them after the
 description and/or indented on the following lines (before the
 postings).  Similarly, you can attach comments to an individual
@@ -595,6 +592,9 @@ end comment
     ; another comment line for posting 2
 ; a file comment (because not indented)
 ```
+
+You can also comment larger regions of a file using [`comment` and `end comment` directives](#comment-blocks).
+
 
 ## Tags
 
@@ -640,7 +640,139 @@ feature, except hledger's tag values are simple strings.
 
 ## Directives
 
-### Account aliases
+### Comment blocks
+
+A line containing just `comment` starts a commented region of the file,
+and a line containing just `end comment` (or the end of the current file) ends it.
+See also [comments](#comments).
+
+### Including other files
+
+You can pull in the content of additional files by writing an include directive, like this:
+
+```journal
+include path/to/file.journal
+```
+
+If the path does not begin with a slash, it is relative to the current file.
+Glob patterns (`*`) are not currently supported.
+
+The `include` directive can only be used in journal files.
+It can include journal, timeclock or timedot files, but not CSV files.
+
+### Default year
+
+You can set a default year to be used for subsequent dates which don't
+specify a year. This is a line beginning with `Y` followed by the year. Eg:
+
+```journal
+Y2009      ; set default year to 2009
+
+12/15      ; equivalent to 2009/12/15
+  expenses  1
+  assets
+
+Y2010      ; change default year to 2010
+
+2009/1/30  ; specifies the year, not affected
+  expenses  1
+  assets
+
+1/31       ; equivalent to 2010/1/31
+  expenses  1
+  assets
+```
+
+### Declaring commodities
+
+The `commodity` directive declares commodities which may be used in the journal (though currently we do not enforce this).
+It may be written on a single line, like this:
+
+```journal
+; commodity EXAMPLEAMOUNT
+
+; display AAAA amounts with the symbol on the right, space-separated,
+; using period as decimal point, with four decimal places, and
+; separating thousands with comma.
+commodity 1,000.0000 AAAA
+```
+
+or on multiple lines, using the "format" subdirective. In this case
+the commodity symbol appears twice and should be the same in both places:
+
+```journal
+; commodity SYMBOL
+;   format EXAMPLEAMOUNT
+
+; display indian rupees with currency name on the left,
+; thousands, lakhs and crores comma-separated,
+; period as decimal point, and two decimal places.
+commodity INR
+  format INR 9,99,99,999.00
+```
+
+Commodity directives have a second purpose: they define the standard display format for amounts in the commodity. 
+Normally the display format is inferred from journal entries, but this can be unpredictable; 
+declaring it with a commodity directive overrides this and removes ambiguity. 
+Towards this end, amounts in commodity directives must always be written with a decimal point 
+(a period or comma, followed by 0 or more decimal digits). 
+
+### Default commodity
+
+The D directive sets a default commodity (and display format), to be used for amounts without a commodity symbol (ie, plain numbers).
+(Note this differs from Ledger's default commodity directive.)
+The commodity and display format will be applied to all subsequent commodity-less amounts, or until the next D directive.
+
+```journal
+# commodity-less amounts should be treated as dollars
+# (and displayed with symbol on the left, thousands separators and two decimal places)
+D $1,000.00
+
+1/1
+  a     5    ; <- commodity-less amount, becomes $1
+  b
+```
+
+As with the `commodity` directive, the amount must always be written with a decimal point. 
+
+### Declaring accounts
+
+The `account` directive predeclares account names. The simplest form is `account ACCTNAME`, eg:
+```journal
+account assets:bank:checking
+```
+Currently this mainly helps with account name autocompletion in eg 
+hledger add, hledger-iadd, hledger-web, and ledger-mode.  
+In future it will also help detect misspelled accounts.
+
+Account names can be followed by a numeric account code:
+```journal
+account assets                  1000
+account assets:bank:checking    1110
+account liabilities             2000
+account revenues                4000
+account expenses                6000
+```
+This affects account display order in reports: accounts with codes are listed before accounts without codes, in increasing code order.
+(Otherwise, accounts are listed alphabetically.) 
+Account codes should be all numeric digits, unique, and separated from the account name by at least two spaces (since account names may contain single spaces). 
+By convention, often the first digit indicates the type of account, 
+as in 
+[this numbering scheme](http://www.dwmbeancounter.com/BCTutorSite/Courses/ChartAccounts/lesson02-6.html) 
+and the example above.
+In future, we might use this to recognize account types.
+
+An account directive can also have indented subdirectives following it, which are currently ignored. Here is the full syntax:
+```journal
+; account ACCTNAME  [OPTIONALCODE]
+;   [OPTIONALSUBDIRECTIVES]
+
+account assets:bank:checking   1110
+  a comment
+  some-tag:12345
+```
+
+### Rewriting accounts
 
 You can define aliases which rewrite your account names (after reading the journal,
 before generating reports). hledger's account aliases can be useful for:
@@ -650,7 +782,7 @@ before generating reports). hledger's account aliases can be useful for:
 - experimenting with new account organisations, like a new hierarchy or combining two accounts into one
 - customising reports
 
-See also [Cookbook: rewrite account names](account-aliases.html).
+See also [Cookbook: Rewrite account names](https://github.com/simonmichael/hledger/wiki/Rewrite-account-names).
 
 #### Basic aliases
 
@@ -712,7 +844,7 @@ Aliases are applied in the following order:
 1. alias directives, most recently seen first (recent directives take precedence over earlier ones; directives not yet seen are ignored)
 2. alias options, in the order they appear on the command line
 
-#### end aliases
+#### `end aliases`
 
 You can clear (forget) all currently defined aliases with the `end aliases` directive:
 
@@ -720,44 +852,7 @@ You can clear (forget) all currently defined aliases with the `end aliases` dire
 end aliases
 ```
 
-### account directive
-
-The `account` directive predeclares account names. The simplest form is `account ACCTNAME`, eg:
-```journal
-account assets:bank:checking
-```
-Currently this mainly helps with account name autocompletion in eg 
-hledger add, hledger-iadd, hledger-web, and ledger-mode.  
-In future it will also help detect misspelled accounts.
-
-Account names can be followed by a numeric account code:
-```journal
-account assets                  1000
-account assets:bank:checking    1110
-account liabilities             2000
-account revenues                4000
-account expenses                6000
-```
-This affects account display order in reports: accounts with codes are listed before accounts without codes, in increasing code order.
-(Otherwise, accounts are listed alphabetically.) 
-Account codes should be all numeric digits, unique, and separated from the account name by at least two spaces (since account names may contain single spaces). 
-By convention, often the first digit indicates the type of account, 
-as in 
-[this numbering scheme](http://www.dwmbeancounter.com/BCTutorSite/Courses/ChartAccounts/lesson02-6.html) 
-and the example above.
-In future, we might use this to recognize account types.
-
-An account directive can also have indented subdirectives following it, which are currently ignored. Here is the full syntax:
-```journal
-; account ACCTNAME  [OPTIONALCODE]
-;   [OPTIONALSUBDIRECTIVES]
-
-account assets:bank:checking   1110
-  a comment
-  some-tag:12345
-```
-
-### apply account directive
+### Default parent account
 
 You can specify a parent account which will be prepended to all accounts
 within a section of the journal. Use the `apply account` and `end apply account`
@@ -792,129 +887,47 @@ include personal.journal
 
 Prior to hledger 1.0, legacy `account` and `end` spellings were also supported.
 
-### Multi-line comments
-
-A line containing just `comment` starts a multi-line comment, and a
-line containing just `end comment` ends it. See [comments](#comments).
-
-### commodity directive
-
-The `commodity` directive declares commodities which may be used in the journal (though currently we do not enforce this).
-It may be written on a single line, like this:
-
-```journal
-; commodity EXAMPLEAMOUNT
-
-; display AAAA amounts with the symbol on the right, space-separated,
-; using period as decimal point, with four decimal places, and
-; separating thousands with comma.
-commodity 1,000.0000 AAAA
-```
-
-or on multiple lines, using the "format" subdirective. In this case
-the commodity symbol appears twice and should be the same in both places:
-
-```journal
-; commodity SYMBOL
-;   format EXAMPLEAMOUNT
-
-; display indian rupees with currency name on the left,
-; thousands, lakhs and crores comma-separated,
-; period as decimal point, and two decimal places.
-commodity INR
-  format INR 9,99,99,999.00
-```
-
-Commodity directives have a second purpose: they define the standard display format for amounts in the commodity. 
-Normally the display format is inferred from journal entries, but this can be unpredictable; 
-declaring it with a commodity directive overrides this and removes ambiguity. 
-Towards this end, amounts in commodity directives must always be written with a decimal point 
-(a period or comma, followed by 0 or more decimal digits). 
-
-### Default commodity
-
-The D directive sets a default commodity (and display format), to be used for amounts without a commodity symbol (ie, plain numbers).
-(Note this differs from Ledger's default commodity directive.)
-The commodity and display format will be applied to all subsequent commodity-less amounts, or until the next D directive.
-
-```journal
-# commodity-less amounts should be treated as dollars
-# (and displayed with symbol on the left, thousands separators and two decimal places)
-D $1,000.00
-
-1/1
-  a     5    ; <- commodity-less amount, becomes $1
-  b
-```
-
-As with the `commodity` directive, the amount must always be written with a decimal point. 
-
-### Default year
-
-You can set a default year to be used for subsequent dates which don't
-specify a year. This is a line beginning with `Y` followed by the year. Eg:
-
-```journal
-Y2009      ; set default year to 2009
-
-12/15      ; equivalent to 2009/12/15
-  expenses  1
-  assets
-
-Y2010      ; change default year to 2010
-
-2009/1/30  ; specifies the year, not affected
-  expenses  1
-  assets
-
-1/31       ; equivalent to 2010/1/31
-  expenses  1
-  assets
-```
-
-### Including other files
-
-You can pull in the content of additional journal files by writing an
-include directive, like this:
-
-```journal
-include path/to/file.journal
-```
-
-If the path does not begin with a slash, it is relative to the current file.
-Glob patterns (`*`) are not currently supported.
-
-The `include` directive can only be used in journal files.
-It can include journal, timeclock or timedot files, but not CSV files.
-
 ## Periodic transactions
 
-Periodic transactions are a kind of rule with a dual purpose: they can specify 
-recurring future transactions (with `--forecast`), or budget goals (with `--budget`). 
-They look a bit like a transaction, except the first line is a tilde (`~`) followed by a [period expression](manual.html#period-expressions):
+Periodic transaction rules (enabled by `--forecast` or `--budget`) describe recurring transactions.
+They look like a transaction where the first line is a tilde (`~`)
+followed by a [period expression](manual.html#period-expressions)
+(mnemonic: `~` is like a recurring sine wave):
 ```journal
 ~ weekly
   assets:bank:checking   $400 ; paycheck
   income:acme inc
 ```
 
-With `--forecast`, each periodic transaction rule generates recurring "forecast" transactions at the specified interval, 
-beginning the day after the latest recorded journal transaction (or today, if there are no transactions)
-and ending 6 months from today (or at the report end date, if specified).
+Periodic transactions have a dual purpose:
 
-With `balance --budget`, each periodic transaction declares recurring budget goals for the specified accounts.
+- With `--forecast`,
+each periodic transaction rule generates future transactions,
+recurring at the specified interval,
+which can be seen in reports.
+Forecast transactions begin the day after the latest recorded journal transaction (or today, if there are no transactions)
+and end 6 months from today (or at the report end date, if specified).
+
+- With `--budget` (supported by the balance command),
+each periodic transaction rule declares recurring budget goals for the specified accounts,
+which can be seen in [budget reports](/manual.html#budget-report).
 Eg the example above declares the goal of receiving $400 from `income:acme inc`
 (and also, depositing $400 into `assets:bank:checking`) every week.
 
+(Actually, you can generate one-off transactions too,
+by writing a period expression with no report interval.)
+
 For more details, see:
-[balance: Budgeting](manual.html#budgeting)
+[balance: Budget report](manual.html#budget-report)
 and
-[Budgeting and Forecasting](budgeting-and-forecasting.html).
+[Cookbook: Budgeting and Forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting-and-forecasting).
 
 ## Automated postings
 
-Automated postings are postings added automatically by rule to certain transactions (with `--auto`).
-An automated posting rule looks like a transaction where the first line is an equal sign (`=`) followed by a [query](manual.html#queries):
+Automated postings (enabled by `--auto`) are postings added automatically by rule to certain transactions.
+An automated posting rule looks like a transaction where
+the first line is an equal sign (`=`) followed by a [query](manual.html#queries)
+(mnemonic: `=` tests for matching transactions, and also looks like posting lines):
 ```journal
 = expenses:gifts
     budget:gifts  *-1
@@ -925,7 +938,7 @@ The posting amounts can be of the form `*N`, which means "the amount of the matc
 They can also be ordinary fixed amounts. 
 Fixed amounts with no commodity symbol will be given the same commodity as the matched transaction's first posting.
 
-This example adds a corresponding (unbalanced) budget posting to every transaction involving the `expenses:gifts` account:
+This example adds a corresponding ([unbalanced](#virtual-postings)) budget posting to every transaction involving the `expenses:gifts` account:
 ```journal
 = expenses:gifts
     (budget:gifts)  *-1
@@ -942,7 +955,9 @@ $ hledger print --auto
     assets
 ```
 
-Automated postings would not be distinguishable from equivalent postings written by hand. In particular, they would affect [amount inference|#postings] and [balance assertion|#balance-assertions] checks in the usual way.
+Like postings recorded by hand, automated postings participate in
+[transaction balancing, missing amount inference](#postings)
+and [balance assertions](#balance-assertions).
 
 # EDITOR SUPPORT
 
