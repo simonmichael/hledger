@@ -97,7 +97,7 @@ $ hledger balance
 ```
 
 By default, accounts are displayed hierarchically, with subaccounts indented below their parent.
-At each level of the tree, accounts are sorted by [account code](/manual.html#account-directive) if any, then by account name.
+At each level of the tree, accounts are sorted by [account code](/manual.html#declaring-accounts) if any, then by account name.
 Or with `-S/--sort-amount`, by their balance amount.
 
 "Boring" accounts, which contain a single interesting subaccount and 
