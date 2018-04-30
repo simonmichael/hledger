@@ -758,11 +758,6 @@ Lines in the journal beginning with a semicolon (\f[C];\f[]) or hash
 (Star comments cause org\-mode nodes to be ignored, allowing emacs users
 to fold and navigate their journals with org\-mode or orgstruct\-mode.)
 .PP
-Also, anything between \f[C]comment\f[] and \f[C]end\ comment\f[]
-directives is a (multi\-line) comment.
-If there is no \f[C]end\ comment\f[], the comment extends to the end of
-the file.
-.PP
 You can attach comments to a transaction by writing them after the
 description and/or indented on the following lines (before the
 postings).
@@ -795,6 +790,9 @@ end\ comment
 ;\ a\ file\ comment\ (because\ not\ indented)
 \f[]
 .fi
+.PP
+You can also comment larger regions of a file using \f[C]comment\f[] and
+\f[C]end\ comment\f[] directives.
 .SS Tags
 .PP
 Tags are a way to add extra labels or labelled data to postings and
@@ -855,7 +853,173 @@ For example, the following transaction has three tags (\f[C]A\f[],
 Tags are like Ledger's metadata feature, except hledger's tag values are
 simple strings.
 .SS Directives
-.SS Account aliases
+.SS Comment blocks
+.PP
+A line containing just \f[C]comment\f[] starts a commented region of the
+file, and a line containing just \f[C]end\ comment\f[] (or the end of
+the current file) ends it.
+See also comments.
+.SS Including other files
+.PP
+You can pull in the content of additional files by writing an include
+directive, like this:
+.IP
+.nf
+\f[C]
+include\ path/to/file.journal
+\f[]
+.fi
+.PP
+If the path does not begin with a slash, it is relative to the current
+file.
+Glob patterns (\f[C]*\f[]) are not currently supported.
+.PP
+The \f[C]include\f[] directive can only be used in journal files.
+It can include journal, timeclock or timedot files, but not CSV files.
+.SS Default year
+.PP
+You can set a default year to be used for subsequent dates which don't
+specify a year.
+This is a line beginning with \f[C]Y\f[] followed by the year.
+Eg:
+.IP
+.nf
+\f[C]
+Y2009\ \ \ \ \ \ ;\ set\ default\ year\ to\ 2009
+
+12/15\ \ \ \ \ \ ;\ equivalent\ to\ 2009/12/15
+\ \ expenses\ \ 1
+\ \ assets
+
+Y2010\ \ \ \ \ \ ;\ change\ default\ year\ to\ 2010
+
+2009/1/30\ \ ;\ specifies\ the\ year,\ not\ affected
+\ \ expenses\ \ 1
+\ \ assets
+
+1/31\ \ \ \ \ \ \ ;\ equivalent\ to\ 2010/1/31
+\ \ expenses\ \ 1
+\ \ assets
+\f[]
+.fi
+.SS Declaring commodities
+.PP
+The \f[C]commodity\f[] directive declares commodities which may be used
+in the journal (though currently we do not enforce this).
+It may be written on a single line, like this:
+.IP
+.nf
+\f[C]
+;\ commodity\ EXAMPLEAMOUNT
+
+;\ display\ AAAA\ amounts\ with\ the\ symbol\ on\ the\ right,\ space\-separated,
+;\ using\ period\ as\ decimal\ point,\ with\ four\ decimal\ places,\ and
+;\ separating\ thousands\ with\ comma.
+commodity\ 1,000.0000\ AAAA
+\f[]
+.fi
+.PP
+or on multiple lines, using the \[lq]format\[rq] subdirective.
+In this case the commodity symbol appears twice and should be the same
+in both places:
+.IP
+.nf
+\f[C]
+;\ commodity\ SYMBOL
+;\ \ \ format\ EXAMPLEAMOUNT
+
+;\ display\ indian\ rupees\ with\ currency\ name\ on\ the\ left,
+;\ thousands,\ lakhs\ and\ crores\ comma\-separated,
+;\ period\ as\ decimal\ point,\ and\ two\ decimal\ places.
+commodity\ INR
+\ \ format\ INR\ 9,99,99,999.00
+\f[]
+.fi
+.PP
+Commodity directives have a second purpose: they define the standard
+display format for amounts in the commodity.
+Normally the display format is inferred from journal entries, but this
+can be unpredictable; declaring it with a commodity directive overrides
+this and removes ambiguity.
+Towards this end, amounts in commodity directives must always be written
+with a decimal point (a period or comma, followed by 0 or more decimal
+digits).
+.SS Default commodity
+.PP
+The D directive sets a default commodity (and display format), to be
+used for amounts without a commodity symbol (ie, plain numbers).
+(Note this differs from Ledger's default commodity directive.) The
+commodity and display format will be applied to all subsequent
+commodity\-less amounts, or until the next D directive.
+.IP
+.nf
+\f[C]
+#\ commodity\-less\ amounts\ should\ be\ treated\ as\ dollars
+#\ (and\ displayed\ with\ symbol\ on\ the\ left,\ thousands\ separators\ and\ two\ decimal\ places)
+D\ $1,000.00
+
+1/1
+\ \ a\ \ \ \ \ 5\ \ \ \ ;\ <\-\ commodity\-less\ amount,\ becomes\ $1
+\ \ b
+\f[]
+.fi
+.PP
+As with the \f[C]commodity\f[] directive, the amount must always be
+written with a decimal point.
+.SS Declaring accounts
+.PP
+The \f[C]account\f[] directive predeclares account names.
+The simplest form is \f[C]account\ ACCTNAME\f[], eg:
+.IP
+.nf
+\f[C]
+account\ assets:bank:checking
+\f[]
+.fi
+.PP
+Currently this mainly helps with account name autocompletion in eg
+hledger add, hledger\-iadd, hledger\-web, and ledger\-mode.
+.PD 0
+.P
+.PD
+In future it will also help detect misspelled accounts.
+.PP
+Account names can be followed by a numeric account code:
+.IP
+.nf
+\f[C]
+account\ assets\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1000
+account\ assets:bank:checking\ \ \ \ 1110
+account\ liabilities\ \ \ \ \ \ \ \ \ \ \ \ \ 2000
+account\ revenues\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4000
+account\ expenses\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 6000
+\f[]
+.fi
+.PP
+This affects account display order in reports: accounts with codes are
+listed before accounts without codes, in increasing code order.
+(Otherwise, accounts are listed alphabetically.) Account codes should be
+all numeric digits, unique, and separated from the account name by at
+least two spaces (since account names may contain single spaces).
+By convention, often the first digit indicates the type of account, as
+in this numbering scheme and the example above.
+In future, we might use this to recognize account types.
+.PP
+An account directive can also have indented subdirectives following it,
+which are currently ignored.
+Here is the full syntax:
+.IP
+.nf
+\f[C]
+;\ account\ ACCTNAME\ \ [OPTIONALCODE]
+;\ \ \ [OPTIONALSUBDIRECTIVES]
+
+account\ assets:bank:checking\ \ \ 1110
+\ \ a\ comment
+\ \ some\-tag:12345
+\f[]
+.fi
+.SS Rewriting accounts
 .PP
 You can define aliases which rewrite your account names (after reading
 the journal, before generating reports).
@@ -871,7 +1035,7 @@ combining two accounts into one
 .IP \[bu] 2
 customising reports
 .PP
-See also Cookbook: rewrite account names.
+See also Cookbook: Rewrite account names.
 .SS Basic aliases
 .PP
 To set an account alias, use the \f[C]alias\f[] directive in your
@@ -946,7 +1110,7 @@ alias directives, most recently seen first (recent directives take
 precedence over earlier ones; directives not yet seen are ignored)
 .IP "2." 3
 alias options, in the order they appear on the command line
-.SS end aliases
+.SS \f[C]end\ aliases\f[]
 .PP
 You can clear (forget) all currently defined aliases with the
 \f[C]end\ aliases\f[] directive:
@@ -956,60 +1120,7 @@ You can clear (forget) all currently defined aliases with the
 end\ aliases
 \f[]
 .fi
-.SS account directive
-.PP
-The \f[C]account\f[] directive predeclares account names.
-The simplest form is \f[C]account\ ACCTNAME\f[], eg:
-.IP
-.nf
-\f[C]
-account\ assets:bank:checking
-\f[]
-.fi
-.PP
-Currently this mainly helps with account name autocompletion in eg
-hledger add, hledger\-iadd, hledger\-web, and ledger\-mode.
-.PD 0
-.P
-.PD
-In future it will also help detect misspelled accounts.
-.PP
-Account names can be followed by a numeric account code:
-.IP
-.nf
-\f[C]
-account\ assets\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 1000
-account\ assets:bank:checking\ \ \ \ 1110
-account\ liabilities\ \ \ \ \ \ \ \ \ \ \ \ \ 2000
-account\ revenues\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 4000
-account\ expenses\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 6000
-\f[]
-.fi
-.PP
-This affects account display order in reports: accounts with codes are
-listed before accounts without codes, in increasing code order.
-(Otherwise, accounts are listed alphabetically.) Account codes should be
-all numeric digits, unique, and separated from the account name by at
-least two spaces (since account names may contain single spaces).
-By convention, often the first digit indicates the type of account, as
-in this numbering scheme and the example above.
-In future, we might use this to recognize account types.
-.PP
-An account directive can also have indented subdirectives following it,
-which are currently ignored.
-Here is the full syntax:
-.IP
-.nf
-\f[C]
-;\ account\ ACCTNAME\ \ [OPTIONALCODE]
-;\ \ \ [OPTIONALSUBDIRECTIVES]
-
-account\ assets:bank:checking\ \ \ 1110
-\ \ a\ comment
-\ \ some\-tag:12345
-\f[]
-.fi
-.SS apply account directive
+.SS Default parent account
 .PP
 You can specify a parent account which will be prepended to all accounts
 within a section of the journal.
@@ -1054,125 +1165,13 @@ include\ personal.journal
 .PP
 Prior to hledger 1.0, legacy \f[C]account\f[] and \f[C]end\f[] spellings
 were also supported.
-.SS Multi\-line comments
+.SS Periodic transactions
 .PP
-A line containing just \f[C]comment\f[] starts a multi\-line comment,
-and a line containing just \f[C]end\ comment\f[] ends it.
-See comments.
-.SS commodity directive
-.PP
-The \f[C]commodity\f[] directive declares commodities which may be used
-in the journal (though currently we do not enforce this).
-It may be written on a single line, like this:
-.IP
-.nf
-\f[C]
-;\ commodity\ EXAMPLEAMOUNT
-
-;\ display\ AAAA\ amounts\ with\ the\ symbol\ on\ the\ right,\ space\-separated,
-;\ using\ period\ as\ decimal\ point,\ with\ four\ decimal\ places,\ and
-;\ separating\ thousands\ with\ comma.
-commodity\ 1,000.0000\ AAAA
-\f[]
-.fi
-.PP
-or on multiple lines, using the \[lq]format\[rq] subdirective.
-In this case the commodity symbol appears twice and should be the same
-in both places:
-.IP
-.nf
-\f[C]
-;\ commodity\ SYMBOL
-;\ \ \ format\ EXAMPLEAMOUNT
-
-;\ display\ indian\ rupees\ with\ currency\ name\ on\ the\ left,
-;\ thousands,\ lakhs\ and\ crores\ comma\-separated,
-;\ period\ as\ decimal\ point,\ and\ two\ decimal\ places.
-commodity\ INR
-\ \ format\ INR\ 9,99,99,999.00
-\f[]
-.fi
-.PP
-Commodity directives have a second purpose: they define the standard
-display format for amounts in the commodity.
-Normally the display format is inferred from journal entries, but this
-can be unpredictable; declaring it with a commodity directive overrides
-this and removes ambiguity.
-Towards this end, amounts in commodity directives must always be written
-with a decimal point (a period or comma, followed by 0 or more decimal
-digits).
-.SS Default commodity
-.PP
-The D directive sets a default commodity (and display format), to be
-used for amounts without a commodity symbol (ie, plain numbers).
-(Note this differs from Ledger's default commodity directive.) The
-commodity and display format will be applied to all subsequent
-commodity\-less amounts, or until the next D directive.
-.IP
-.nf
-\f[C]
-#\ commodity\-less\ amounts\ should\ be\ treated\ as\ dollars
-#\ (and\ displayed\ with\ symbol\ on\ the\ left,\ thousands\ separators\ and\ two\ decimal\ places)
-D\ $1,000.00
-
-1/1
-\ \ a\ \ \ \ \ 5\ \ \ \ ;\ <\-\ commodity\-less\ amount,\ becomes\ $1
-\ \ b
-\f[]
-.fi
-.PP
-As with the \f[C]commodity\f[] directive, the amount must always be
-written with a decimal point.
-.SS Default year
-.PP
-You can set a default year to be used for subsequent dates which don't
-specify a year.
-This is a line beginning with \f[C]Y\f[] followed by the year.
-Eg:
-.IP
-.nf
-\f[C]
-Y2009\ \ \ \ \ \ ;\ set\ default\ year\ to\ 2009
-
-12/15\ \ \ \ \ \ ;\ equivalent\ to\ 2009/12/15
-\ \ expenses\ \ 1
-\ \ assets
-
-Y2010\ \ \ \ \ \ ;\ change\ default\ year\ to\ 2010
-
-2009/1/30\ \ ;\ specifies\ the\ year,\ not\ affected
-\ \ expenses\ \ 1
-\ \ assets
-
-1/31\ \ \ \ \ \ \ ;\ equivalent\ to\ 2010/1/31
-\ \ expenses\ \ 1
-\ \ assets
-\f[]
-.fi
-.SS Including other files
-.PP
-You can pull in the content of additional journal files by writing an
-include directive, like this:
-.IP
-.nf
-\f[C]
-include\ path/to/file.journal
-\f[]
-.fi
-.PP
-If the path does not begin with a slash, it is relative to the current
-file.
-Glob patterns (\f[C]*\f[]) are not currently supported.
-.PP
-The \f[C]include\f[] directive can only be used in journal files.
-It can include journal, timeclock or timedot files, but not CSV files.
-.SH Periodic transactions
-.PP
-Periodic transactions are a kind of rule with a dual purpose: they can
-specify recurring future transactions (with \f[C]\-\-forecast\f[]), or
-budget goals (with \f[C]\-\-budget\f[]).
-They look a bit like a transaction, except the first line is a tilde
-(\f[C]~\f[]) followed by a period expression:
+Periodic transaction rules (enabled by \f[C]\-\-forecast\f[] or
+\f[C]\-\-budget\f[]) describe recurring transactions.
+They look like a transaction where the first line is a tilde
+(\f[C]~\f[]) followed by a period expression (mnemonic: \f[C]~\f[] is
+like a recurring sine wave):
 .IP
 .nf
 \f[C]
@@ -1182,25 +1181,34 @@ They look a bit like a transaction, except the first line is a tilde
 \f[]
 .fi
 .PP
+Periodic transactions have a dual purpose:
+.IP \[bu] 2
 With \f[C]\-\-forecast\f[], each periodic transaction rule generates
-recurring \[lq]forecast\[rq] transactions at the specified interval,
-beginning the day after the latest recorded journal transaction (or
-today, if there are no transactions) and ending 6 months from today (or
-at the report end date, if specified).
-.PP
-With \f[C]balance\ \-\-budget\f[], each periodic transaction declares
-recurring budget goals for the specified accounts.
+future transactions, recurring at the specified interval, which can be
+seen in reports.
+Forecast transactions begin the day after the latest recorded journal
+transaction (or today, if there are no transactions) and end 6 months
+from today (or at the report end date, if specified).
+.IP \[bu] 2
+With \f[C]\-\-budget\f[] (supported by the balance command), each
+periodic transaction rule declares recurring budget goals for the
+specified accounts, which can be seen in budget reports.
 Eg the example above declares the goal of receiving $400 from
 \f[C]income:acme\ inc\f[] (and also, depositing $400 into
 \f[C]assets:bank:checking\f[]) every week.
 .PP
-For more details, see: balance: Budgeting and Budgeting and Forecasting.
-.SH Automated postings
+(Actually, you can generate one\-off transactions too, by writing a
+period expression with no report interval.)
 .PP
-Automated postings are postings added automatically by rule to certain
-transactions (with \f[C]\-\-auto\f[]).
+For more details, see: balance: Budget report and Cookbook: Budgeting
+and Forecasting.
+.SS Automated postings
+.PP
+Automated postings (enabled by \f[C]\-\-auto\f[]) are postings added
+automatically by rule to certain transactions.
 An automated posting rule looks like a transaction where the first line
-is an equal sign (\f[C]=\f[]) followed by a query:
+is an equal sign (\f[C]=\f[]) followed by a query (mnemonic: \f[C]=\f[]
+tests for matching transactions, and also looks like posting lines):
 .IP
 .nf
 \f[C]
@@ -1240,10 +1248,8 @@ $\ hledger\ print\ \-\-auto
 \f[]
 .fi
 .PP
-Automated postings would not be distinguishable from equivalent postings
-written by hand.
-In particular, they would affect [amount inference|#postings] and
-[balance assertion|#balance\-assertions] checks in the usual way.
+Like postings recorded by hand, automated postings participate in
+transaction balancing, missing amount inference and balance assertions.
 .SH EDITOR SUPPORT
 .PP
 Add\-on modes exist for various text editors, to make working with

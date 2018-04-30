@@ -553,10 +553,6 @@ FILE FORMAT
        nodes to be ignored, allowing emacs users to fold  and  navigate  their
        journals with org-mode or orgstruct-mode.)
 
-       Also,   anything  between  comment  and  end comment  directives  is  a
-       (multi-line) comment.  If there is no end comment, the comment  extends
-       to the end of the file.
-
        You  can  attach  comments  to  a transaction by writing them after the
        description and/or indented on the following lines  (before  the  post-
        ings).   Similarly, you can attach comments to an individual posting by
@@ -584,21 +580,24 @@ FILE FORMAT
                   ; another comment line for posting 2
               ; a file comment (because not indented)
 
+       You  can  also  comment  larger  regions  of  a  file using comment and
+       end comment directives.
+
    Tags
-       Tags  are  a  way  to add extra labels or labelled data to postings and
+       Tags are a way to add extra labels or labelled  data  to  postings  and
        transactions, which you can then search or pivot on.
 
-       A simple tag is a word (which may contain hyphens) followed by  a  full
+       A  simple  tag is a word (which may contain hyphens) followed by a full
        colon, written inside a transaction or posting comment line:
 
               2017/1/16 bought groceries    ; sometag:
 
-       Tags  can  have  a  value, which is the text after the colon, up to the
+       Tags can have a value, which is the text after the  colon,  up  to  the
        next comma or end of line, with leading/trailing whitespace removed:
 
                   expenses:food    $10   ; a-posting-tag: the tag value
 
-       Note this means hledger's tag values can not  contain  commas  or  new-
+       Note  this  means  hledger's  tag values can not contain commas or new-
        lines.  Ending at commas means you can write multiple short tags on one
        line, comma separated:
 
@@ -612,213 +611,35 @@ FILE FORMAT
 
        o "tag2" is another tag, whose value is "some value ..."
 
-       Tags in a transaction comment affect the transaction  and  all  of  its
-       postings,  while  tags  in  a posting comment affect only that posting.
-       For example,  the  following  transaction  has  three  tags  (A,  TAG2,
+       Tags  in  a  transaction  comment affect the transaction and all of its
+       postings, while tags in a posting comment  affect  only  that  posting.
+       For  example,  the  following  transaction  has  three  tags  (A, TAG2,
        third-tag) and the posting has four (those plus posting-tag):
 
               1/1 a transaction  ; A:, TAG2:
                   ; third-tag: a third transaction tag, <- with a value
                   (a)  $1  ; posting-tag:
 
-       Tags  are  like  Ledger's metadata feature, except hledger's tag values
+       Tags are like Ledger's metadata feature, except  hledger's  tag  values
        are simple strings.
 
    Directives
-   Account aliases
-       You can define aliases which rewrite your account names (after  reading
-       the journal, before generating reports).  hledger's account aliases can
-       be useful for:
+   Comment blocks
+       A  line  containing just comment starts a commented region of the file,
+       and a line containing just end comment (or the end of the current file)
+       ends it.  See also comments.
 
-       o expanding shorthand account names to their full form, allowing easier
-         data entry and a less verbose journal
+   Including other files
+       You  can  pull in the content of additional files by writing an include
+       directive, like this:
 
-       o adapting old journals to your current chart of accounts
+              include path/to/file.journal
 
-       o experimenting with new account organisations, like a new hierarchy or
-         combining two accounts into one
+       If the path does not begin with a slash, it is relative to the  current
+       file.  Glob patterns (*) are not currently supported.
 
-       o customising reports
-
-       See also Cookbook: rewrite account names.
-
-   Basic aliases
-       To set an account alias, use the alias directive in your journal  file.
-       This  affects all subsequent journal entries in the current file or its
-       included files.  The spaces around the = are optional:
-
-              alias OLD = NEW
-
-       Or, you can use the --alias 'OLD=NEW' option on the command line.  This
-       affects all entries.  It's useful for trying out aliases interactively.
-
-       OLD and NEW are full account names.  hledger will  replace  any  occur-
-       rence  of  the old account name with the new one.  Subaccounts are also
-       affected.  Eg:
-
-              alias checking = assets:bank:wells fargo:checking
-              # rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
-
-   Regex aliases
-       There is also a more powerful variant that uses a  regular  expression,
-       indicated by the forward slashes:
-
-              alias /REGEX/ = REPLACEMENT
-
-       or --alias '/REGEX/=REPLACEMENT'.
-
-       REGEX  is  a  case-insensitive regular expression.  Anywhere it matches
-       inside an account name, the matched part will be replaced  by  REPLACE-
-       MENT.   If REGEX contains parenthesised match groups, these can be ref-
-       erenced by the usual numeric backreferences in REPLACEMENT.  Eg:
-
-              alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
-              # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
-
-       Also note that REPLACEMENT continues to the end of line (or on  command
-       line,  to  end  of  option argument), so it can contain trailing white-
-       space.
-
-   Multiple aliases
-       You can define as many aliases as you like  using  directives  or  com-
-       mand-line  options.  Aliases are recursive - each alias sees the result
-       of applying previous ones.   (This  is  different  from  Ledger,  where
-       aliases are non-recursive by default).  Aliases are applied in the fol-
-       lowing order:
-
-       1. alias directives, most recently seen first (recent  directives  take
-          precedence over earlier ones; directives not yet seen are ignored)
-
-       2. alias options, in the order they appear on the command line
-
-   end aliases
-       You   can  clear  (forget)  all  currently  defined  aliases  with  the
-       end aliases directive:
-
-              end aliases
-
-   account directive
-       The account directive predeclares account names.  The simplest form  is
-       account ACCTNAME, eg:
-
-              account assets:bank:checking
-
-       Currently  this  mainly  helps  with  account name autocompletion in eg
-       hledger add, hledger-iadd, hledger-web, and ledger-mode.
-       In future it will also help detect misspelled accounts.
-
-       Account names can be followed by a numeric account code:
-
-              account assets                  1000
-              account assets:bank:checking    1110
-              account liabilities             2000
-              account revenues                4000
-              account expenses                6000
-
-       This affects account display order in reports: accounts with codes  are
-       listed  before accounts without codes, in increasing code order.  (Oth-
-       erwise, accounts are listed alphabetically.) Account  codes  should  be
-       all  numeric  digits, unique, and separated from the account name by at
-       least two spaces (since account names may contain single  spaces).   By
-       convention,  often the first digit indicates the type of account, as in
-       this numbering scheme and the example above.  In future, we  might  use
-       this to recognize account types.
-
-       An account directive can also have indented subdirectives following it,
-       which are currently ignored.  Here is the full syntax:
-
-              ; account ACCTNAME  [OPTIONALCODE]
-              ;   [OPTIONALSUBDIRECTIVES]
-
-              account assets:bank:checking   1110
-                a comment
-                some-tag:12345
-
-   apply account directive
-       You can specify a  parent  account  which  will  be  prepended  to  all
-       accounts  within  a  section of the journal.  Use the apply account and
-       end apply account directives like so:
-
-              apply account home
-
-              2010/1/1
-                  food    $10
-                  cash
-
-              end apply account
-
-       which is equivalent to:
-
-              2010/01/01
-                  home:food           $10
-                  home:cash          $-10
-
-       If end apply account is omitted, the effect lasts to  the  end  of  the
-       file.  Included files are also affected, eg:
-
-              apply account business
-              include biz.journal
-              end apply account
-              apply account personal
-              include personal.journal
-
-       Prior  to  hledger 1.0, legacy account and end spellings were also sup-
-       ported.
-
-   Multi-line comments
-       A line containing just comment starts a multi-line comment, and a  line
-       containing just end comment ends it.  See comments.
-
-   commodity directive
-       The  commodity  directive declares commodities which may be used in the
-       journal (though currently we do not enforce this).  It may  be  written
-       on a single line, like this:
-
-              ; commodity EXAMPLEAMOUNT
-
-              ; display AAAA amounts with the symbol on the right, space-separated,
-              ; using period as decimal point, with four decimal places, and
-              ; separating thousands with comma.
-              commodity 1,000.0000 AAAA
-
-       or  on  multiple  lines, using the "format" subdirective.  In this case
-       the commodity symbol appears twice and  should  be  the  same  in  both
-       places:
-
-              ; commodity SYMBOL
-              ;   format EXAMPLEAMOUNT
-
-              ; display indian rupees with currency name on the left,
-              ; thousands, lakhs and crores comma-separated,
-              ; period as decimal point, and two decimal places.
-              commodity INR
-                format INR 9,99,99,999.00
-
-       Commodity  directives  have  a second purpose: they define the standard
-       display format for amounts in the commodity.  Normally the display for-
-       mat  is  inferred  from journal entries, but this can be unpredictable;
-       declaring it with a commodity  directive  overrides  this  and  removes
-       ambiguity.   Towards  this  end,  amounts  in commodity directives must
-       always be written with a decimal point (a period or comma, followed  by
-       0 or more decimal digits).
-
-   Default commodity
-       The  D  directive  sets a default commodity (and display format), to be
-       used for amounts without a commodity symbol (ie, plain numbers).  (Note
-       this  differs from Ledger's default commodity directive.) The commodity
-       and display format will be applied  to  all  subsequent  commodity-less
-       amounts, or until the next D directive.
-
-              # commodity-less amounts should be treated as dollars
-              # (and displayed with symbol on the left, thousands separators and two decimal places)
-              D $1,000.00
-
-              1/1
-                a     5    ; <- commodity-less amount, becomes $1
-                b
-
-       As with the commodity directive, the amount must always be written with
-       a decimal point.
+       The  include  directive  can  only  be  used  in journal files.  It can
+       include journal, timeclock or timedot files, but not CSV files.
 
    Default year
        You can set a default year to be used for subsequent dates which  don't
@@ -841,47 +662,234 @@ FILE FORMAT
                 expenses  1
                 assets
 
-   Including other files
-       You can pull in the content of additional journal files by  writing  an
-       include directive, like this:
+   Declaring commodities
+       The commodity directive declares commodities which may be used  in  the
+       journal  (though  currently we do not enforce this).  It may be written
+       on a single line, like this:
 
-              include path/to/file.journal
+              ; commodity EXAMPLEAMOUNT
 
-       If  the path does not begin with a slash, it is relative to the current
-       file.  Glob patterns (*) are not currently supported.
+              ; display AAAA amounts with the symbol on the right, space-separated,
+              ; using period as decimal point, with four decimal places, and
+              ; separating thousands with comma.
+              commodity 1,000.0000 AAAA
 
-       The include directive can only  be  used  in  journal  files.   It  can
-       include journal, timeclock or timedot files, but not CSV files.
+       or on multiple lines, using the "format" subdirective.   In  this  case
+       the  commodity  symbol  appears  twice  and  should be the same in both
+       places:
 
-Periodic transactions
-       Periodic  transactions are a kind of rule with a dual purpose: they can
-       specify recurring future  transactions  (with  --forecast),  or  budget
-       goals  (with --budget).  They look a bit like a transaction, except the
-       first line is a tilde (~) followed by a period expression:
+              ; commodity SYMBOL
+              ;   format EXAMPLEAMOUNT
+
+              ; display indian rupees with currency name on the left,
+              ; thousands, lakhs and crores comma-separated,
+              ; period as decimal point, and two decimal places.
+              commodity INR
+                format INR 9,99,99,999.00
+
+       Commodity directives have a second purpose: they  define  the  standard
+       display format for amounts in the commodity.  Normally the display for-
+       mat is inferred from journal entries, but this  can  be  unpredictable;
+       declaring  it  with  a  commodity  directive overrides this and removes
+       ambiguity.  Towards this end,  amounts  in  commodity  directives  must
+       always  be written with a decimal point (a period or comma, followed by
+       0 or more decimal digits).
+
+   Default commodity
+       The D directive sets a default commodity (and display  format),  to  be
+       used for amounts without a commodity symbol (ie, plain numbers).  (Note
+       this differs from Ledger's default commodity directive.) The  commodity
+       and  display  format  will  be applied to all subsequent commodity-less
+       amounts, or until the next D directive.
+
+              # commodity-less amounts should be treated as dollars
+              # (and displayed with symbol on the left, thousands separators and two decimal places)
+              D $1,000.00
+
+              1/1
+                a     5    ; <- commodity-less amount, becomes $1
+                b
+
+       As with the commodity directive, the amount must always be written with
+       a decimal point.
+
+   Declaring accounts
+       The  account directive predeclares account names.  The simplest form is
+       account ACCTNAME, eg:
+
+              account assets:bank:checking
+
+       Currently this mainly helps with  account  name  autocompletion  in  eg
+       hledger add, hledger-iadd, hledger-web, and ledger-mode.
+       In future it will also help detect misspelled accounts.
+
+       Account names can be followed by a numeric account code:
+
+              account assets                  1000
+              account assets:bank:checking    1110
+              account liabilities             2000
+              account revenues                4000
+              account expenses                6000
+
+       This  affects account display order in reports: accounts with codes are
+       listed before accounts without codes, in increasing code order.   (Oth-
+       erwise,  accounts  are  listed alphabetically.) Account codes should be
+       all numeric digits, unique, and separated from the account name  by  at
+       least  two  spaces (since account names may contain single spaces).  By
+       convention, often the first digit indicates the type of account, as  in
+       this  numbering  scheme and the example above.  In future, we might use
+       this to recognize account types.
+
+       An account directive can also have indented subdirectives following it,
+       which are currently ignored.  Here is the full syntax:
+
+              ; account ACCTNAME  [OPTIONALCODE]
+              ;   [OPTIONALSUBDIRECTIVES]
+
+              account assets:bank:checking   1110
+                a comment
+                some-tag:12345
+
+   Rewriting accounts
+       You  can define aliases which rewrite your account names (after reading
+       the journal, before generating reports).  hledger's account aliases can
+       be useful for:
+
+       o expanding shorthand account names to their full form, allowing easier
+         data entry and a less verbose journal
+
+       o adapting old journals to your current chart of accounts
+
+       o experimenting with new account organisations, like a new hierarchy or
+         combining two accounts into one
+
+       o customising reports
+
+       See also Cookbook: Rewrite account names.
+
+   Basic aliases
+       To  set an account alias, use the alias directive in your journal file.
+       This affects all subsequent journal entries in the current file or  its
+       included files.  The spaces around the = are optional:
+
+              alias OLD = NEW
+
+       Or, you can use the --alias 'OLD=NEW' option on the command line.  This
+       affects all entries.  It's useful for trying out aliases interactively.
+
+       OLD  and  NEW  are full account names.  hledger will replace any occur-
+       rence of the old account name with the new one.  Subaccounts  are  also
+       affected.  Eg:
+
+              alias checking = assets:bank:wells fargo:checking
+              # rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
+
+   Regex aliases
+       There  is  also a more powerful variant that uses a regular expression,
+       indicated by the forward slashes:
+
+              alias /REGEX/ = REPLACEMENT
+
+       or --alias '/REGEX/=REPLACEMENT'.
+
+       REGEX is a case-insensitive regular expression.   Anywhere  it  matches
+       inside  an  account name, the matched part will be replaced by REPLACE-
+       MENT.  If REGEX contains parenthesised match groups, these can be  ref-
+       erenced by the usual numeric backreferences in REPLACEMENT.  Eg:
+
+              alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
+              # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
+
+       Also  note that REPLACEMENT continues to the end of line (or on command
+       line, to end of option argument), so it  can  contain  trailing  white-
+       space.
+
+   Multiple aliases
+       You  can  define  as  many aliases as you like using directives or com-
+       mand-line options.  Aliases are recursive - each alias sees the  result
+       of  applying  previous  ones.   (This  is  different from Ledger, where
+       aliases are non-recursive by default).  Aliases are applied in the fol-
+       lowing order:
+
+       1. alias  directives,  most recently seen first (recent directives take
+          precedence over earlier ones; directives not yet seen are ignored)
+
+       2. alias options, in the order they appear on the command line
+
+   end aliases
+       You  can  clear  (forget)  all  currently  defined  aliases  with   the
+       end aliases directive:
+
+              end aliases
+
+   Default parent account
+       You  can  specify  a  parent  account  which  will  be prepended to all
+       accounts within a section of the journal.  Use  the  apply account  and
+       end apply account directives like so:
+
+              apply account home
+
+              2010/1/1
+                  food    $10
+                  cash
+
+              end apply account
+
+       which is equivalent to:
+
+              2010/01/01
+                  home:food           $10
+                  home:cash          $-10
+
+       If  end apply account  is  omitted,  the effect lasts to the end of the
+       file.  Included files are also affected, eg:
+
+              apply account business
+              include biz.journal
+              end apply account
+              apply account personal
+              include personal.journal
+
+       Prior to hledger 1.0, legacy account and end spellings were  also  sup-
+       ported.
+
+   Periodic transactions
+       Periodic transaction rules (enabled by --forecast or --budget) describe
+       recurring transactions.  They look like a transaction where  the  first
+       line  is  a  tilde  (~) followed by a period expression (mnemonic: ~ is
+       like a recurring sine wave):
 
               ~ weekly
                 assets:bank:checking   $400 ; paycheck
                 income:acme inc
 
-       With --forecast, each periodic  transaction  rule  generates  recurring
-       "forecast"  transactions  at  the specified interval, beginning the day
-       after the latest recorded journal transaction (or today, if  there  are
-       no  transactions)  and ending 6 months from today (or at the report end
-       date, if specified).
+       Periodic transactions have a dual purpose:
 
-       With balance --budget, each  periodic  transaction  declares  recurring
-       budget goals for the specified accounts.  Eg the example above declares
-       the goal of receiving $400 from income:acme inc (and  also,  depositing
-       $400 into assets:bank:checking) every week.
+       o With --forecast, each  periodic  transaction  rule  generates  future
+         transactions,  recurring at the specified interval, which can be seen
+         in reports.  Forecast transactions begin the  day  after  the  latest
+         recorded journal transaction (or today, if there are no transactions)
+         and end 6 months from today (or at the report  end  date,  if  speci-
+         fied).
 
-       For  more  details, see: balance: Budgeting and Budgeting and Forecast-
-       ing.
+       o With  --budget  (supported  by  the  balance  command), each periodic
+         transaction rule declares recurring budget goals  for  the  specified
+         accounts,  which can be seen in budget reports.  Eg the example above
+         declares the goal of receiving $400 from income:acme inc  (and  also,
+         depositing $400 into assets:bank:checking) every week.
 
-Automated postings
-       Automated postings are postings added automatically by rule to  certain
-       transactions  (with  --auto).   An  automated posting rule looks like a
-       transaction where the first line is an equal sign  (=)  followed  by  a
-       query:
+       (Actually,  you  can  generate  one-off  transactions too, by writing a
+       period expression with no report interval.)
+
+       For more details, see: balance: Budget report and  Cookbook:  Budgeting
+       and Forecasting.
+
+   Automated postings
+       Automated postings (enabled by --auto) are postings added automatically
+       by rule to certain transactions.  An automated posting rule looks  like
+       a  transaction  where the first line is an equal sign (=) followed by a
+       query (mnemonic: = tests for matching transactions, and also looks like
+       posting lines):
 
               = expenses:gifts
                   budget:gifts  *-1
@@ -909,18 +917,16 @@ Automated postings
                   (budget:gifts)            $-20
                   assets
 
-       Automated postings would not be distinguishable from  equivalent  post-
-       ings  written by hand.  In particular, they would affect [amount infer-
-       ence|#postings] and [balance assertion|#balance-assertions]  checks  in
-       the usual way.
+       Like postings recorded  by  hand,  automated  postings  participate  in
+       transaction balancing, missing amount inference and balance assertions.
 
 EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
-       nal files easier.  They add colour, navigation aids  and  helpful  com-
-       mands.   For  hledger  users  who  edit  the journal file directly (the
+       nal  files  easier.   They add colour, navigation aids and helpful com-
+       mands.  For hledger users who  edit  the  journal  file  directly  (the
        majority), using one of these modes is quite recommended.
 
-       These were written with Ledger in mind,  but  also  work  with  hledger
+       These  were  written  with  Ledger  in mind, but also work with hledger
        files:
 
 
@@ -939,7 +945,7 @@ EDITOR SUPPORT
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -953,7 +959,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
