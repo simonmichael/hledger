@@ -170,7 +170,7 @@ a file format for human-friendly approximate time logging
 ### Getting started
 
 [hledger basics tutorial](https://github.com/simonmichael/hledger/wiki/hledger basics tutorial)  
-[Start a journal](https://github.com/simonmichael/hledger/wiki/Start a journal)  
+[Create a journal](https://github.com/simonmichael/hledger/wiki/Create a journal)  
 [Common journal entries](https://github.com/simonmichael/hledger/wiki/Common journal entries)  
 [hledger accounting concepts tutorial](https://github.com/simonmichael/hledger/wiki/hledger accounting concepts tutorial)  
 [FAQ](https://github.com/simonmichael/hledger/wiki/FAQ)
