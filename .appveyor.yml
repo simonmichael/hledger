@@ -58,24 +58,29 @@ build_script:
 artifacts:
 - path: hledger.zip
 
-# overriding common configuration:
-for:
+branches:
+  only:
+    - master          # master is set as default branch in UI, and built nightly by cron
+    - /^[0-9.]+$/     # release branches will be build on each push (would prefer on tag)
 
-# settings specific to master branch
-# master is set as default branch in UI, and built nightly by cron
--
-  branches:
-    only:
-      - master
-
-# settings specific to release branches
-# release branches are built on tag push
--
-  branches:
-    only:
-      - /^[0-9.]+$/
-  on:
-    appveyor_repo_tag: true
+## overriding common configuration:
+#for:
+#
+## settings specific to master branch
+## master is set as default branch in UI, and built nightly by cron
+#-
+#  branches:
+#    only:
+#      - master
+#
+## settings specific to release branches
+## release branches are built on tag push
+#-
+#  branches:
+#    only:
+#      - /^[0-9.]+$/
+#  on:   # https://ci.appveyor.com/tools/validate-yaml: Invalid setting or section: on
+#    appveyor_repo_tag: true
 
 
 # deployment stuff
