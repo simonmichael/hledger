@@ -10,6 +10,9 @@ Most user-visible changes are noted in the hledger changelog, instead.
 
 * make (readJournal|tryReader)s?WithOpts the default api, dropping "WithOpts"
 
+* automated postings and command line account aliases happen earlier
+  in journal processing (see hledger changelog)
+
 
 # 1.9 (2018/3/31)
 
