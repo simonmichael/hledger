@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 76caff99c32b8b2a218a88b5935bdd4f5aacf03ce196484689e33855c1e9da84
+-- hash: d2e059ba76c4adc8bd3486849c68143d38dc3fb25e92eb6a19327a6de3e852db
 
 name:           hledger
 version:        1.9.99
@@ -134,6 +134,7 @@ library
     , mtl
     , mtl-compat
     , old-time
+    , parsec >=3
     , pretty-show >=1.6.4
     , process
     , regex-tdfa
@@ -180,6 +181,7 @@ executable hledger
     , here
     , hledger
     , hledger-lib >=1.9.99 && <2.0
+    , megaparsec >=5.0
     , mtl
     , mtl-compat
     , old-time
@@ -194,6 +196,7 @@ executable hledger
     , temporary
     , text >=0.11
     , time >=1.5
+    , transformers
     , unordered-containers
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
@@ -232,6 +235,7 @@ test-suite test
     , here
     , hledger
     , hledger-lib >=1.9.99 && <2.0
+    , megaparsec >=5.0
     , mtl
     , mtl-compat
     , old-time
@@ -248,6 +252,7 @@ test-suite test
     , test-framework-hunit
     , text >=0.11
     , time >=1.5
+    , transformers
     , unordered-containers
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
@@ -266,25 +271,46 @@ benchmark bench
       bench
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans -optP-Wno-nonportable-include-path
   build-depends:
-      ansi-terminal >=0.6.2.3
+      Decimal
+    , HUnit
+    , ansi-terminal >=0.6.2.3
     , base >=4.8 && <4.12
     , base-compat >=0.8.1
+    , bytestring
+    , cmdargs >=0.10
+    , containers
     , criterion
+    , csv
+    , data-default >=0.5
     , directory
     , file-embed >=0.0.10
     , filepath
+    , haskeline >=0.6
     , here
     , hledger
     , hledger-lib >=1.9.99 && <2.0
     , html
+    , megaparsec >=5.0
+    , mtl
+    , mtl-compat
+    , old-time
+    , parsec >=3
     , pretty-show >=1.6.4
     , process
+    , regex-tdfa
+    , safe >=0.2
     , shakespeare >=2.0.2.2
+    , split >=0.1
     , tabular >=0.2
     , temporary
+    , text >=0.11
     , time >=1.5
     , timeit
+    , transformers
+    , unordered-containers
+    , utf8-string >=0.3.5
     , utility-ht >=0.0.13
+    , wizards >=1.0
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
