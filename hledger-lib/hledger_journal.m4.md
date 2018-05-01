@@ -640,6 +640,15 @@ feature, except hledger's tag values are simple strings.
 
 ## Directives
 
+A directive is a line in the journal beginning with a special keyword,
+that influences how the journal is processed.
+Some directives may also have indented sub-directives on the following lines.
+
+Some directives are positional - they affect all the journal entries that follow them
+(usually till the end of the current file, and also any files included in that region).
+Some directives form a begin/end pair, and affect the enclosed region of the journal.
+Others are position independent and affect the whole journal no matter where they occur.
+
 ### Comment blocks
 
 A line containing just `comment` starts a commented region of the file,
