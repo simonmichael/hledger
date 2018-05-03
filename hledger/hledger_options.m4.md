@@ -378,10 +378,12 @@ if they have a [transaction price](/journal.html#transaction-prices) specified.
 
 ## Market value
 
-The `-V/--value` flag converts reported amounts to their current market value.
-Specifically, when there is a [market price](journal.html#market-prices) (P directive) for the amount's commodity, 
-dated on or before today's date (or the [report end date](#report-start-end-date) if specified),
-the amount will be converted to the price's commodity.
+The `-V/--value` flag converts reported amounts to their current market value.  
+Specifically, when there is a
+[market price](journal.html#market-prices) (P directive) for the
+amount's commodity, dated on or before today's date (or the
+[report end date](#report-start-end-date) if specified), the amount
+will be converted to the price's commodity.
 
 When there are multiple applicable P directives, -V chooses the most 
 recent one, or in case of equal dates, the last-parsed one. 
