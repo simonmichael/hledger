@@ -11,6 +11,9 @@ packages:
 
 extra-deps:
 - easytest-0.1
+- pandoc-2.1
+- http-types-0.11
+- skylighting-0.5.1
 
 nix:
   pure: false
