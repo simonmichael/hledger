@@ -302,7 +302,7 @@ Though journal may contain mixed styles to represent amount, when hledger displa
 - otherwise the format is inferred from the first posting amount in that commodity in the journal, and the precision (number of decimal places) will be the maximum from all posting amounts in that commmodity
 - or if there are no such amounts in the journal, a default format is used (like `$1000.00`).
 
-Price amounts and amounts in D directives usually don't affect amount format inference, but in some situations they can do so indirectly. (Eg when D's default commodity is applied to a commodity-less amount, or when an amountless posting is balanced using a price's commodity, or when -V is used.) If you find this causing problems, set the desired format with a commodity directive.
+Price amounts and amounts in `D` directives usually don't affect amount format inference, but in some situations they can do so indirectly. (Eg when D's default commodity is applied to a commodity-less amount, or when an amountless posting is balanced using a price's commodity, or when -V is used.) If you find this causing problems, set the desired format with a commodity directive.
 
 ## Virtual Postings
 
@@ -459,17 +459,13 @@ to know the exact amount posted, you have to run hledger or do the calculations 
 instead of just reading it.
 
 
-## Prices
-
-### Transaction prices
+## Transaction prices
 
 Within a transaction, you can note an amount's price in another commodity.
 This can be used to document the cost (in a purchase) or selling price (in a sale).
 For example, transaction prices are useful to record purchases of a foreign currency.
-
-Transaction prices are fixed, and do not change over time.
-(Ledger users: Ledger uses a different [syntax](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices)
-for fixed prices, `{=UNITPRICE}`, which hledger currently ignores).
+Note transaction prices are fixed at the time of the transaction, and do not change over time.
+See also [market prices](#market-prices), which represent prevailing exchange rates on a certain date.
 
 There are several ways to record a transaction price:
 
@@ -498,11 +494,13 @@ There are several ways to record a transaction price:
       assets:dollars  $-135          ; for $135
     ```
 
-Amounts with transaction prices can be displayed in the transaction price's
-commodity by using the [`-B/--cost`](hledger.html#reporting-options) flag 
-(except for [#551](https://github.com/simonmichael/hledger/issues/551))
-("B" is from "cost Basis").
-Eg for the above, here is how -B affects the balance report:
+(Ledger users: Ledger uses a different [syntax](http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices)
+for fixed prices, `{=UNITPRICE}`, which hledger currently ignores).
+
+Use the [`-B/--cost`](hledger.html#reporting-options) flag to convert 
+amounts to their transaction price's commodity, if any.
+(mnemonic: "B" is from "cost Basis", as in Ledger).
+Eg here is how -B affects the balance report for the example above:
 
 ```shell
 $ hledger bal -N --flat
@@ -527,33 +525,6 @@ is equivalent, -B shows something different:
 $ hledger bal -N --flat -B
                €-100  assets:dollars  # <- the dollars' selling price
                 €100  assets:euros
-```
-
-
-### Market prices
-
-Market prices are not tied to a particular transaction; they represent historical exchange rates between two commodities.
-(Ledger calls them historical prices.)
-For example, the prices published by a [stock exchange](https://en.wikipedia.org/wiki/Stock_exchange)
-or the [foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
-hledger can use these prices to show the market value of things at a given date, see [market value](#market-value).
-
-To record market prices, use P directives in the main journal or
-in an [included](#including-other-files) file. Their format is:
-```journal
-P DATE COMMODITYBEINGPRICED UNITPRICE
-```
-<!-- (A time and numeric time zone are allowed but ignored, like ledger.) -->
-DATE is a [simple date](#simple-dates) as usual.
-COMMODITYBEINGPRICED is the symbol of the commodity being priced.
-UNITPRICE is an ordinary [amount](#amounts) (symbol and quantity) in a second commodity,
-specifying the unit price or conversion rate for the first commodity in terms of the second, on the given date.
-
-For example, the following directives say that one euro was worth 1.35 US dollars during 2009, 
-and $1.40 from 2010 onward:
-```journal
-P 2009/1/1 € $1.35
-P 2010/1/1 € $1.40
 ```
 
 ## Comments
@@ -640,6 +611,31 @@ feature, except hledger's tag values are simple strings.
 
 ## Directives
 
+A directive is a line in the journal beginning with a special keyword,
+that influences how the journal is processed.
+Some directives may also have indented sub-directives on the following lines (`commodity`).
+
+### Directive scope, multiple files
+
+Directives vary in which journal entries they affect:
+
+- some form a begin/end pair, and affect the enclosed journal entries (and included files):\
+  `alias` & `end aliases`; `comment` & `end comment`
+- some affect the subsequent journal entries (and included files) in the current file:\
+  `alias` or `comment` without an end directive, `Y`
+- some affect all journal entries (and included files) anywhere in the current file:\
+  `account`, `commodity`, `D`, `P`.
+
+It's important to note that directives can affect the current file and
+child (included) files, but not sibling or parent (including) files.
+This is by design, for simplicity and predictability of reports, but
+it can be surprising at times. Eg, in:
+
+    hledger -f a.prices -f b.journal
+
+the prices defined in a.prices will not be effective in b.journal (a sibling file).
+Instead, you have to include (or inline) a.prices in b.journal, or vice versa.
+
 ### Comment blocks
 
 A line containing just `comment` starts a commented region of the file,
@@ -719,9 +715,9 @@ Towards this end, amounts in commodity directives must always be written with a 
 
 ### Default commodity
 
-The D directive sets a default commodity (and display format), to be used for amounts without a commodity symbol (ie, plain numbers).
+The `D` directive sets a default commodity (and display format), to be used for amounts without a commodity symbol (ie, plain numbers).
 (Note this differs from Ledger's default commodity directive.)
-The commodity and display format will be applied to all subsequent commodity-less amounts, or until the next D directive.
+The commodity and display format will be applied to all subsequent commodity-less amounts, or until the next `D` directive.
 
 ```journal
 # commodity-less amounts should be treated as dollars
@@ -734,6 +730,36 @@ D $1,000.00
 ```
 
 As with the `commodity` directive, the amount must always be written with a decimal point. 
+
+### Market prices
+
+The `P` directive declares a market price, which is 
+an exchange rate between two commodities on a certain date.
+(In Ledger, they are called "historical prices".)
+These are often obtained from a
+[stock exchange](https://en.wikipedia.org/wiki/Stock_exchange),
+cryptocurrency exchange, or the
+[foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
+
+Here is the format:
+
+```journal
+P DATE COMMODITYA COMMODITYBAMOUNT
+```
+- DATE is a [simple date](#simple-dates)
+- COMMODITYA is the symbol of the commodity being priced
+- COMMODITYBAMOUNT is an [amount](#amounts) (symbol and quantity) in a
+  second commodity, giving the price in commodity B of one unit of commodity A.
+
+These two market price directives say that one euro was worth 1.35 US dollars during 2009, 
+and $1.40 from 2010 onward:
+```journal
+P 2009/1/1 € $1.35
+P 2010/1/1 € $1.40
+```
+
+The [`-V/--value`](manual.html#market-value) flag can be used to convert reported amounts
+to another commodity using these prices.
 
 ### Declaring accounts
 
