@@ -613,12 +613,28 @@ feature, except hledger's tag values are simple strings.
 
 A directive is a line in the journal beginning with a special keyword,
 that influences how the journal is processed.
-Some directives may also have indented sub-directives on the following lines.
+Some directives may also have indented sub-directives on the following lines (`commodity`).
 
-Some directives are positional - they affect all the journal entries that follow them
-(usually till the end of the current file, and also any files included in that region).
-Some directives form a begin/end pair, and affect the enclosed region of the journal.
-Others are position independent and affect the whole journal no matter where they occur.
+### Directive scope, multiple files
+
+Directives vary in which journal entries they affect:
+
+- some form a begin/end pair, and affect the enclosed journal entries (and included files):\
+  `alias` & `end aliases`; `comment` & `end comment`
+- some affect the subsequent journal entries (and included files) in the current file:\
+  `alias` or `comment` without an end directive, `Y`
+- some affect all journal entries (and included files) anywhere in the current file:\
+  `account`, `commodity`, `D`, `P`.
+
+It's important to note that directives can affect the current file and
+child (included) files, but not sibling or parent (including) files.
+This is by design, for simplicity and predictability of reports, but
+it can be surprising at times. Eg, in:
+
+    hledger -f a.prices -f b.journal
+
+the prices defined in a.prices will not be effective in b.journal (a sibling file).
+Instead, you have to include (or inline) a.prices in b.journal, or vice versa.
 
 ### Comment blocks
 
