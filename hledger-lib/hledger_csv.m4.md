@@ -74,7 +74,7 @@ amount      -%amount
 
 ```
 
-For more examples, see [Convert CSV files](csv-import.html).
+For more examples, see [Convert CSV files](https://github.com/simonmichael/hledger/wiki/Convert-CSV-files).
 
 
 # CSV RULES
