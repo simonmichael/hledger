@@ -28,7 +28,8 @@ module Hledger.Cli.Utils
     )
 where
 import Control.Exception as C
-import Control.Monad ((<=<))
+import Control.Monad
+import Data.Functor
 import Data.Hashable (hash)
 import Data.List
 import Data.Maybe
@@ -58,21 +59,32 @@ import Hledger.Read
 import Hledger.Reports
 import Hledger.Utils
 
--- | Parse the user's specified journal file, maybe apply some transformations
--- (aliases, pivot) and run a hledger command on it, or throw an error.
+-- | Parse the user's specified journal file(s) as a Journal, maybe apply some
+-- transformations according to options, and run a hledger command with it. 
+-- Or, throw an error.
 withJournalDo :: CliOpts -> (CliOpts -> Journal -> IO ()) -> IO ()
 withJournalDo opts cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   journalpaths <- journalFilePathFromOpts opts
-  ej <- readJournalFiles (inputopts_ opts) journalpaths
-  let f   = cmd opts
-          . pivotByOpts opts
-          . anonymiseByOpts opts
-        <=< journalApplyValue (reportopts_ opts)
-        <=< journalAddForecast opts
-  either error' f ej
+  readJournalFiles (inputopts_ opts) journalpaths 
+  >>= mapM (journalTransform opts)
+  >>= either error' (cmd opts)
+
+-- | Apply some transformations to the journal if specified by options.
+-- These include:
+-- 
+-- - adding forecast transactions (--forecast)
+-- - converting amounts to market value (--value)
+-- - pivoting account names (--pivot)
+-- - anonymising (--anonymise).
+journalTransform :: CliOpts -> Journal -> IO Journal
+journalTransform opts@CliOpts{reportopts_=ropts} =
+  (   journalAddForecast opts
+  >=> journalApplyValue ropts)
+  <&> (pivotByOpts opts <$>)
+  <&> (anonymiseByOpts opts <$>)
 
 -- | Apply the pivot transformation on a journal, if option is present.
 pivotByOpts :: CliOpts -> Journal -> Journal
@@ -153,14 +165,14 @@ writeOutput opts s = do
 -- readJournal :: CliOpts -> String -> IO Journal
 -- readJournal opts s = readJournal def Nothing s >>= either error' return
 
--- | Re-read the journal file(s) specified by options and maybe apply some
--- transformations (aliases, pivot), or return an error string.
+-- | Re-read the journal file(s) specified by options, applying any
+-- transformations specified by options. Or return an error string.
 -- Reads the full journal, without filtering.
 journalReload :: CliOpts -> IO (Either String Journal)
 journalReload opts = do
   journalpaths <- journalFilePathFromOpts opts
-  (pivotByOpts opts <$>) <$>
-    readJournalFiles (inputopts_ opts) journalpaths
+  readJournalFiles (inputopts_ opts) journalpaths
+  >>= mapM (journalTransform opts)
 
 -- | Re-read the option-specified journal file(s), but only if any of
 -- them has changed since last read. (If the file is standard input,
