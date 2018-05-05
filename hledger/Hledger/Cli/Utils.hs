@@ -29,7 +29,8 @@ module Hledger.Cli.Utils
 where
 import Control.Exception as C
 import Control.Monad
-import Data.Functor
+import Data.Functor.Compat ((<&>))
+
 import Data.Hashable (hash)
 import Data.List
 import Data.Maybe
