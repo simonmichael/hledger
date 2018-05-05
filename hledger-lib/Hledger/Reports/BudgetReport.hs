@@ -353,8 +353,8 @@ budgetReportAsTable
 -- XXX here for now
 -- | Drop leading components of accounts names as specified by --drop, but only in --flat mode.
 maybeAccountNameDrop :: ReportOpts -> AccountName -> AccountName
-maybeAccountNameDrop opts a | tree_ opts = a
-                            | otherwise  = accountNameDrop (drop_ opts) a
+maybeAccountNameDrop opts a | flat_ opts = accountNameDrop (drop_ opts) a
+                            | otherwise  = a
 
 tests_Hledger_Reports_BudgetReport :: Test
 tests_Hledger_Reports_BudgetReport = TestList [
