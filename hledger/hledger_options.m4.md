@@ -37,7 +37,7 @@ which are often a [query](#queries), filtering the data in some way.
 You can save a set of command line options/arguments in a file, one per line,
 and then reuse them by writing `@FILENAME` in a command line.
 To prevent this expansion of `@`-arguments, precede them with a `--` argument.
-For more, see [Save frequently used options](argfiles.html).
+For more, see [Save frequently used options](https://github.com/simonmichael/hledger/wiki/Save-frequently-used-options).
 
 ## Special characters
 
