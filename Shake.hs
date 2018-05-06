@@ -9,7 +9,6 @@
    --package time
    ghc
 -}
---   --package pandoc
 {-
 One of two project scripts files (Makefile, Shake.hs).
 This one provides a stronger programming language and more
@@ -138,8 +137,26 @@ main = do
       -- manuals rendered to info, ready for info (hledger/hledger.info)
       infomanpages = [manualDir m </> m <.> "info" | m <- manualNames]
 
-      -- manuals rendered to markdown, ready for web output by hakyll (site/hledger.md)
-      webmanpages = ["site" </> manpageNameToUri m <.>"md" | m <- manpageNames]
+      -- manuals rendered to markdown, ready for web output by pandoc (site/hledger.md)
+      webmanpages = ["site" </> manpageNameToUri m <.> "md" | m <- manpageNames]
+
+      -- versions of documentation (excluding 0.27)
+      docversions = [ "1.0" , "1.1" , "1.2" , "1.3" , "1.4" , "1.5" , "1.9" ]
+
+      -- manuals rendered to html by pandoc
+      webhtmlpages
+        = map (normalise . ("site/_site" </>))
+            $ ( [ prefix </> manpageNameToUri mPage <.> "html"
+                   | prefix <- "" : [ "doc" </> v | v <- docversions ]
+                   , mPage  <- manpageNames
+                ]
+             ++ [ mPage <.> "html"
+                   | mPage <- [ "contributors" , "download" , "ledgertips" , "index" , "intro" , "release-notes" ]
+                ]
+             ++ [ prefix </> "manual" <.> "html"
+                   | prefix <- "" : "doc/0.27" : [ "doc" </> v | v <- docversions ]
+                ]
+              )
 
       -- manuals rendered to markdown and combined, ready for web output by hakyll
       webmanall = "site/manual.md"
@@ -222,13 +239,7 @@ main = do
     -- web site
 
     phony "website" $ do
-      need $
-        webmanpages ++
-        [webmanall
-        ,hakyllstd
-        ,"website-copy"
-        ]
-      cmd Shell (Cwd "site") "hakyll-std/hakyll-std" "build"
+      need $ [ "website-copy" , "website-render" ]
     -- website also links to old manuals, which are generated manually
     -- with ./Shake websnapshot and committed
     -- TODO: when pandoc filters are missing, ./Shake website complains about them before building them
@@ -306,10 +317,26 @@ main = do
           ,"and try again."
           ])
 
+    phony "website-render" $ do
+        need webhtmlpages
+
     pandocSiteFilter %> \out -> do
         let source = out <.> "hs"
         need [source]
         cmd "stack --stack-yaml=stack-ghc8.2.yaml ghc --package pandoc -- -o" out source
+
+    "site/_site//*.html" %> \out -> do
+        let source    = "site" </> dropDirectory2 out -<.> "md"
+            pageTitle = takeBaseName out
+            template  = "site/site.tmpl"
+            siteRoot  = if "site/_site/doc//*" ?== out then "../.." else "."
+        need [source, template, pandocSiteFilter]
+        cmd Shell pandoc "--from markdown --to html" source
+                         "--template"                template
+                         ("--metadata=siteRoot:"  ++ siteRoot)
+                         ("--metadata=title:"     ++ pageTitle)
+                         "--filter"                  pandocSiteFilter
+                         "--output"                  out
 
     -- cleanup
 
