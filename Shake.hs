@@ -69,6 +69,7 @@ usage = unlines
   ]
 
 pandoc = "stack exec -- pandoc" -- pandoc from project's stackage snapshot
+pandocSiteFilter = "tools/pandoc-site"
 hakyllstd = "site/hakyll-std/hakyll-std"
 makeinfo = "makeinfo"
 -- nroff = "nroff"
@@ -304,6 +305,11 @@ main = do
           ,"$ (cd site/hakyll-std; ./hakyll-std.hs)"
           ,"and try again."
           ])
+
+    pandocSiteFilter %> \out -> do
+        let source = out <.> "hs"
+        need [source]
+        cmd "stack --stack-yaml=stack-ghc8.2.yaml ghc --package pandoc -- -o" out source
 
     -- cleanup
 
