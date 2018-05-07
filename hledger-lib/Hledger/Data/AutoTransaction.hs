@@ -233,11 +233,9 @@ renderPostingCommentDates p = p { pcomment = comment' }
 --
 -- >>> let reportperiod="daily from 2018/01/03" in runPeriodicTransaction (PeriodicTransaction reportperiod [post "a" (usd 1)]) (DateSpan (Just $ parsedate "2018-01-01") (Just $ parsedate "2018-01-03"))
 -- []
-runPeriodicTransaction :: PeriodicTransaction -> (DateSpan -> [Transaction])
-runPeriodicTransaction pt =
-  \requestedspan ->
-    let fillspan = ptspan `spanIntersect` requestedspan
-    in  [ t{tdate=d} | (DateSpan (Just d) _) <- ptinterval `splitSpan` fillspan ]
+runPeriodicTransaction :: PeriodicTransaction -> DateSpan -> [Transaction]
+runPeriodicTransaction pt requestedspan =
+    [ t{tdate=d} | (DateSpan (Just d) _) <- ptinterval `splitSpan` fillspan ]
   where
     descr = T.pack $ "Forecast transaction (" ++ T.unpack periodexpr ++ ")"
     t = nulltransaction { tpostings = ptpostings pt, tdescription = descr }
@@ -247,6 +245,7 @@ runPeriodicTransaction pt =
         case parsePeriodExpr currentdateerr periodexpr of
             Left e  -> error' $ "Failed to parse " ++ show (T.unpack periodexpr) ++ ": " ++ showDateParseError e
             Right x -> checkPeriodTransactionStartDate periodexpr x
+    fillspan = spanIntervalIntersect ptinterval ptspan requestedspan
 
 checkPeriodTransactionStartDate :: T.Text -> (Interval, DateSpan) -> (Interval, DateSpan)
 checkPeriodTransactionStartDate periodexpr (i,s) = 
