@@ -872,7 +872,7 @@ ghci-api: (call def-help,ghci-api, start ghci REPL on hledger-lib + hledger + hl
 # 		hledger-web/app/main.hs \
 # 		hledger-api/hledger-api.hs \
 
-ghci-lib-doctest: (call def-help,ghci-lib-doctest, start ghci REPL on hledger-lib doctests)
+ghci-lib-doctest: $(call def-help,ghci-lib-doctest, start ghci REPL on hledger-lib doctests)
 	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests
 
 ghcid: $(call def-help,ghcid, start ghcid autobuilder on hledger-lib + hledger)
