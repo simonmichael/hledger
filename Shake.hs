@@ -57,8 +57,8 @@ usage = unlines
 --   ,"./Shake manpages         # generate nroff files for man"
 --   ,"./Shake txtmanpages      # generate text man pages for embedding"
 --   ,"./Shake infomanpages     # generate info files for info"
---   ,"./Shake webmanpages      # generate individual web man pages for hakyll"
---   ,"./Shake webmanall        # generate all-in-one web manual for hakyll"
+--   ,"./Shake webmanpages      # generate individual web man pages as markdown"
+--   ,"./Shake webmanall        # generate all-in-one web manual as markdown"
   ,"./Shake site/doc/VER/.snapshot   # generate and save a versioned web site snapshot"
   ,"./Shake all              # generate everything"
   ,"./Shake clean            # clean generated files"
@@ -68,7 +68,6 @@ usage = unlines
 
 pandoc = "stack exec -- pandoc" -- pandoc from project's stackage snapshot
 pandocSiteFilter = "tools/pandoc-site"
-hakyllstd = "site/hakyll-std/hakyll-std"
 makeinfo = "makeinfo"
 -- nroff = "nroff"
 groff = "groff"
@@ -157,7 +156,7 @@ main = do
                 ]
               )
 
-      -- manuals rendered to markdown and combined, ready for web output by hakyll
+      -- manuals rendered to markdown and combined, ready for web rendering
       webmanall = "site/manual.md"
 
       -- file extensions which should just be copied directly over to the website
@@ -239,10 +238,6 @@ main = do
 
     phony "website" $ do
       need $ [ "website-copy" , "website-render" ]
-    -- website also links to old manuals, which are generated manually
-    -- with ./Shake websnapshot and committed
-    -- TODO: when pandoc filters are missing, ./Shake website complains about them before building them
-    --   ./Shake.hs && ./Shake Clean && (cd site/hakyll-std; ./hakyll-std.hs) && ./Shake website
 
     -- use m4 and pandoc to process macros and filter content, leaving markdown suitable for web output
     phony "webmanpages" $ need webmanpages

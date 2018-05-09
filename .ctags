@@ -18,5 +18,4 @@
 --exclude=old
 --exclude=site/doc
 --exclude=site/files
---exclude=site/hakyll-std
 --exclude=tests/addons/hledger-*
