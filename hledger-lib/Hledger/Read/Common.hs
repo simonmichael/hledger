@@ -665,14 +665,22 @@ fromRawNumber suggestedStyle negated raw = (quantity, precision, mdecimalpoint, 
         AmountStyle{asprecision = 0} -> const False
         _ -> const True
 
--- | Parse the parts of a number, optionally with digit group separators
--- and/or decimal point, which may be comma or period. Returns: 
--- - the first separator char (. or ,) if any
--- - the zero or more digit sequences which were separated by this char
--- - the other, final separator char and digit sequence following it, if any  
--- Eg:
--- 1,234,567.89 -> ( Just ',', ["1","234","567"], Just ('.', "89") )
-rawnumberp :: TextParser m (Maybe Char, [String], Maybe (Char, String))
+-- | Pre-parse a number into parts for further interpretation.
+-- Numbers may optionally have a period/comma decimal point 
+-- and/or comma/period/space digit group separators, but we don't
+-- decide which is which here, just return the parts:
+-- 
+-- - the first separator char (period or comma or space) seen, if any
+-- 
+-- - the digit group(s), possibly several separated by the above char, occuring before..
+-- 
+-- - the second and last separator char, and following digit group, if any.
+-- 
+-- >>> 1,234,567.89
+-- ( Just ',', ["1","234","567"], Just ('.', "89") )
+-- >>> 1 000
+-- ( Just ' ', ["1","000"], Nothing )
+rawnumberp :: TextParser m ( Maybe Char , [String] , Maybe (Char, String) )
 rawnumberp = do
     let sepChars = ['.', ','] -- all allowed punctuation characters
 
