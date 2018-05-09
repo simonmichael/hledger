@@ -56,9 +56,8 @@ $ stack build hledger
 
 The website uses the markdown manuals. This copies them into the
 website, edits them for web display, concatenates them to form the
-one-page manual, and runs hakyll-std (a generic hakyll script,
-included) which adds tables of contents and renders everything as html
-with the site header/footer.
+one-page manual, and runs pandoc to render everything as html,
+adding tables of contents and the site header/footer.
 
 $ ./Shake website
 
@@ -66,20 +65,21 @@ View the rendered website ("open" is mac-specific; use your equivalent):
  
 $ open site/_site/index.html
 
-Or run hakyll in preview mode, regenerating html when source changes: 
-
-$ make site-preview
-$ open http://localhost:8000
-
-Example workflow: edit doc source files, run Shake website in another window, 
-wait for to hakyll rebuild html files, manually reload pages in browser.
-Occasionally hakyll will get confused, to fix it: ctrl-c, make site-clean site-preview . 
-
-You can automate the browser page reloading by running a livereloadx proxy. 
-In another window:
-
-$ make site-reload
-$ open http://localhost:8001  # if the make file didn't do it
+# TODO: this section needs update
+# Or run hakyll in preview mode, regenerating html when source changes: 
+# 
+# $ make site-preview
+# $ open http://localhost:8000
+# 
+# Example workflow: edit doc source files, run Shake website in another window, 
+# wait for to hakyll rebuild html files, manually reload pages in browser.
+# Occasionally hakyll will get confused, to fix it: ctrl-c, make site-clean site-preview . 
+# 
+# You can automate the browser page reloading by running a livereloadx proxy. 
+# In another window:
+# 
+# $ make site-reload
+# $ open http://localhost:8001  # if the make file didn't do it
 
 
 ## Misc. notes
