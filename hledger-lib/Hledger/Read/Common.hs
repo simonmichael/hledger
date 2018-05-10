@@ -16,7 +16,66 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 {-# LANGUAGE CPP, BangPatterns, DeriveDataTypeable, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Hledger.Read.Common
+module Hledger.Read.Common (
+  Reader (..),
+  InputOpts (..),
+  rawOptsToInputOpts,
+
+  -- * parsing utilities
+  runTextParser,
+  runJournalParser,
+  rjp,
+  runErroringJournalParser,
+  rejp,
+  genericSourcePos,
+  journalSourcePos,
+  generateAutomaticPostings,
+  parseAndFinaliseJournal,
+  setYear,
+  setDefaultCommodityAndStyle,
+  getDefaultCommodityAndStyle,
+  pushParentAccount,
+  popParentAccount,
+  getParentAccount,
+  addAccountAlias,
+  clearAccountAliases,
+  journalAddFile,
+  parserErrorAt,
+
+  -- * parsers
+  -- ** transaction bits
+  statusp,
+  codep,
+  descriptionp,
+
+  -- ** dates
+  datep,
+  datetimep,
+  secondarydatep,
+
+  -- ** account names
+  modifiedaccountnamep,
+  accountnamep,
+
+  -- ** amounts
+  spaceandamountormissingp,
+  amountp,
+  mamountp',
+  commoditysymbolp,
+  partialbalanceassertionp,
+  fixedlotpricep,
+  numberp,
+
+  -- ** comments
+  multilinecommentp,
+  emptyorcommentlinep,
+  followingcommentp,
+  followingcommentandtagsp,
+
+  -- ** tags
+  commentTags,
+  tagsp
+)
 where
 --- * imports
 import Prelude ()
@@ -107,7 +166,7 @@ rawOptsToInputOpts rawopts = InputOpts{
   ,auto_              = boolopt "auto" rawopts                        
   }
 
---- * parsing utils
+--- * parsing utilities
 
 -- | Run a string parser with no state in the identity monad.
 runTextParser, rtp :: TextParser Identity a -> Text -> Either (ParseError Char MPErr) a
