@@ -795,26 +795,26 @@ whitespaceChar = charCategory Space
 --- ** comments
 
 multilinecommentp :: JournalParser m ()
-multilinecommentp = do
-  string "comment" >> lift (skipMany spacenonewline) >> newline
-  go
+multilinecommentp = startComment *> anyLine `skipManyTill` endComment
   where
-    go = try (eof <|> (string "end comment" >> newline >> return ()))
-         <|> (anyLine >> go)
+    emptylinep = lift (skipMany spacenonewline) *> newline *> pure ()
+    startComment = string "comment" >> emptylinep
+    endComment = eof <|> (string "end comment" >> emptylinep)
     anyLine = anyChar `manyTill` newline
 
 emptyorcommentlinep :: JournalParser m ()
 emptyorcommentlinep = do
-  lift (skipMany spacenonewline) >> (linecommentp <|> (lift (skipMany spacenonewline) >> newline >> return ""))
-  return ()
+  lift (skipMany spacenonewline)
+  void linecommentp <|> void newline
 
 -- | Parse a possibly multi-line comment following a semicolon.
 followingcommentp :: JournalParser m Text
-followingcommentp =
+followingcommentp = do
   -- ptrace "followingcommentp"
-  do samelinecomment <- lift (skipMany spacenonewline) >> (try commentp <|> (newline >> return ""))
-     newlinecomments <- many (try (lift (skipSome spacenonewline) >> commentp))
-     return $ T.unlines $ samelinecomment:newlinecomments
+  lift (skipMany spacenonewline)
+  samelinecomment <- try commentp <|> (newline >> return "")
+  newlinecomments <- many $ try $ lift (skipSome spacenonewline) >> commentp
+  return $ T.unlines $ samelinecomment:newlinecomments
 
 -- | Parse a possibly multi-line comment following a semicolon, and
 -- any tags and/or posting dates within it. Posting dates can be
