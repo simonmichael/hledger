@@ -809,14 +809,17 @@ emptyorcommentlinep = do
 
 -- | Parse a possibly multi-line comment following a semicolon.
 followingcommentp :: JournalParser m Text
-followingcommentp = do
-  -- ptrace "followingcommentp"
-  lift (skipMany spacenonewline)
-  samelinecomment <- try commentp' <|> (newline >> return "")
-  newlinecomments <- many $ try $ lift (skipSome spacenonewline) >> commentp'
-  return $ T.unlines $ samelinecomment:newlinecomments
-  where
-    commentp' = fmap snd commentp :: JournalParser m Text
+followingcommentp = T.unlines . map snd <$> followingcommentwithpositionsp
+
+followingcommentwithpositionsp :: JournalParser m [(SourcePos, Text)]
+followingcommentwithpositionsp = do
+  lift $ skipMany spacenonewline
+  samelineComment <- try commentp
+                 <|> (,) <$> (getPosition <* newline) <*> pure ""
+  newlineComments <- many $ try $ do
+    lift $ skipSome spacenonewline -- leading whitespace is required
+    commentp
+  pure $ samelineComment : newlineComments
 
 -- | Parse a possibly multi-line comment following a semicolon, and
 -- any tags and/or posting dates within it. Posting dates can be
@@ -842,36 +845,35 @@ followingcommentandtagsp :: MonadIO m => Maybe Day
 followingcommentandtagsp mdefdate = do
   -- pdbg 0 "followingcommentandtagsp"
 
-  -- Parse a single or multi-line comment, starting on this line or the next one.
-  -- Save the starting position and preserve all whitespace for the subsequent re-parsing,
-  -- to get good error positions.
-  startpos <- getPosition
-  commentandwhitespace :: String <- do
-    let commentp' = (:) <$> char ';' <*> anyChar `manyTill` eolof
-    sp1 <- lift (many spacenonewline)
-    l1  <- try (lift commentp') <|> (newline >> return "")
-    ls  <- lift . many $ try ((++) <$> some spacenonewline <*> commentp')
-    return $ unlines $ (sp1 ++ l1) : ls
-  let comment = T.pack $ unlines $ map (lstrip . dropWhile (==';') . strip) $ lines commentandwhitespace
-  -- pdbg 0 $ "commentws:"++show commentandwhitespace
-  -- pdbg 0 $ "comment:"++show comment
+  commentLinesWithPositions <- followingcommentwithpositionsp
+  -- pdbg 0 $ "commentws:" ++ show commentLinesWithPositions
 
   -- Reparse the comment for any tags.
-  tags <- case runTextParser (setPosition startpos >> tagsp) $ T.pack commentandwhitespace of
-            Right ts -> return ts
-            Left e   -> throwError $ parseErrorPretty e
-  -- pdbg 0 $ "tags: "++show tags
+  tags <- case traverse (runTextParserAt tagsp) commentLinesWithPositions of
+    Right tss -> pure $ concat tss
+    Left e    -> throwError $ parseErrorPretty e
 
-  -- Reparse the comment for any posting dates. Use the transaction date for defaults, if provided.
-  epdates <- liftIO $ rejp (setPosition startpos >> postingdatesp mdefdate) $ T.pack commentandwhitespace
+  -- Reparse the comment for any posting dates.
+  -- Use the transaction date for defaults, if provided.
+  epdates <- fmap sequence
+           $ traverse (runErroringJournalParserAt (postingdatesp mdefdate))
+                      commentLinesWithPositions
   pdates <- case epdates of
-              Right ds -> return ds
-              Left e   -> throwError e
+    Right dss -> pure $ concat dss
+    Left e    -> throwError e
   -- pdbg 0 $ "pdates: "++show pdates
   let mdate  = headMay $ map snd $ filter ((=="date").fst)  pdates
       mdate2 = headMay $ map snd $ filter ((=="date2").fst) pdates
 
-  return (comment, tags, mdate, mdate2)
+  let strippedComment = T.unlines $ map (T.strip . snd) commentLinesWithPositions
+  -- pdbg 0 $ "comment:"++show strippedComment
+
+  pure (strippedComment, tags, mdate, mdate2)
+  where
+    runTextParserAt parser (pos, txt) =
+      runTextParser (setPosition pos *> parser) txt
+    runErroringJournalParserAt parser (pos, txt) =
+      runErroringJournalParser (setPosition pos *> parser) txt
 
 -- A transaction/posting comment must start with a semicolon.
 -- This parser discards the leading whitespace of the comment
