@@ -812,9 +812,11 @@ followingcommentp :: JournalParser m Text
 followingcommentp = do
   -- ptrace "followingcommentp"
   lift (skipMany spacenonewline)
-  samelinecomment <- try commentp <|> (newline >> return "")
-  newlinecomments <- many $ try $ lift (skipSome spacenonewline) >> commentp
+  samelinecomment <- try commentp' <|> (newline >> return "")
+  newlinecomments <- many $ try $ lift (skipSome spacenonewline) >> commentp'
   return $ T.unlines $ samelinecomment:newlinecomments
+  where
+    commentp' = fmap snd commentp :: JournalParser m Text
 
 -- | Parse a possibly multi-line comment following a semicolon, and
 -- any tags and/or posting dates within it. Posting dates can be
@@ -872,23 +874,27 @@ followingcommentandtagsp mdefdate = do
   return (comment, tags, mdate, mdate2)
 
 -- A transaction/posting comment must start with a semicolon.
--- This parser ignores leading whitespace.
-commentp :: JournalParser m Text
+-- This parser discards the leading whitespace of the comment
+-- and returns the source position of the comment's first non-whitespace character.
+commentp :: JournalParser m (SourcePos, Text)
 commentp = commentStartingWithp ";"
 
 -- A line (file-level) comment can start with a semicolon, hash,
--- or star (allowing org nodes). This parser ignores leading whitespace.
-linecommentp :: JournalParser m Text
+-- or star (allowing org nodes).
+-- This parser discards the leading whitespace of the comment
+-- and returns the source position of the comment's first non-whitespace character.
+linecommentp :: JournalParser m (SourcePos, Text)
 linecommentp = commentStartingWithp ";#*" 
 
-commentStartingWithp :: [Char] -> JournalParser m Text
+commentStartingWithp :: [Char] -> JournalParser m (SourcePos, Text)
 commentStartingWithp cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
   lift (skipMany spacenonewline)
-  l <- anyChar `manyTill` (lift eolof)
+  startPos <- getPosition
+  content <- T.pack <$> anyChar `manyTill` (lift eolof)
   optional newline
-  return $ T.pack l
+  return (startPos, content)
 
 --- ** tags
 
