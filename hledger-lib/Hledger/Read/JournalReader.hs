@@ -581,7 +581,7 @@ test_transactionp = do
 -- Parse the following whitespace-beginning lines as postings, posting
 -- tags, and/or comments (inferring year, if needed, from the given date).
 postingsp :: MonadIO m => Maybe Day -> ErroringJournalParser m [Posting]
-postingsp mdate = many (try $ postingp mdate) <?> "postings"
+postingsp mdate = many (postingp mdate) <?> "postings"
 
 -- linebeginningwithspaces :: Monad m => JournalParser m String
 -- linebeginningwithspaces = do
@@ -593,10 +593,12 @@ postingsp mdate = many (try $ postingp mdate) <?> "postings"
 postingp :: MonadIO m => Maybe Day -> ErroringJournalParser m Posting
 postingp mtdate = do
   -- pdbg 0 "postingp"
-  lift (skipSome spacenonewline)
-  status <- lift statusp
-  lift (skipMany spacenonewline)
-  account <- modifiedaccountnamep
+  (status, account) <- try $ do
+    lift (skipSome spacenonewline)
+    status <- lift statusp
+    lift (skipMany spacenonewline)
+    account <- modifiedaccountnamep
+    return (status, account)
   let (ptype, account') = (accountNamePostingType account, textUnbracket account)
   amount <- spaceandamountormissingp
   massertion <- partialbalanceassertionp
