@@ -16,7 +16,66 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 {-# LANGUAGE CPP, BangPatterns, DeriveDataTypeable, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
 
-module Hledger.Read.Common
+module Hledger.Read.Common (
+  Reader (..),
+  InputOpts (..),
+  rawOptsToInputOpts,
+
+  -- * parsing utilities
+  runTextParser,
+  runJournalParser,
+  rjp,
+  runErroringJournalParser,
+  rejp,
+  genericSourcePos,
+  journalSourcePos,
+  generateAutomaticPostings,
+  parseAndFinaliseJournal,
+  setYear,
+  setDefaultCommodityAndStyle,
+  getDefaultCommodityAndStyle,
+  pushParentAccount,
+  popParentAccount,
+  getParentAccount,
+  addAccountAlias,
+  clearAccountAliases,
+  journalAddFile,
+  parserErrorAt,
+
+  -- * parsers
+  -- ** transaction bits
+  statusp,
+  codep,
+  descriptionp,
+
+  -- ** dates
+  datep,
+  datetimep,
+  secondarydatep,
+
+  -- ** account names
+  modifiedaccountnamep,
+  accountnamep,
+
+  -- ** amounts
+  spaceandamountormissingp,
+  amountp,
+  mamountp',
+  commoditysymbolp,
+  partialbalanceassertionp,
+  fixedlotpricep,
+  numberp,
+
+  -- ** comments
+  multilinecommentp,
+  emptyorcommentlinep,
+  followingcommentp,
+  followingcommentandtagsp,
+
+  -- ** tags
+  commentTags,
+  tagsp
+)
 where
 --- * imports
 import Prelude ()
@@ -107,7 +166,7 @@ rawOptsToInputOpts rawopts = InputOpts{
   ,auto_              = boolopt "auto" rawopts                        
   }
 
---- * parsing utils
+--- * parsing utilities
 
 -- | Run a string parser with no state in the identity monad.
 runTextParser, rtp :: TextParser Identity a -> Text -> Either (ParseError Char MPErr) a
@@ -736,26 +795,31 @@ whitespaceChar = charCategory Space
 --- ** comments
 
 multilinecommentp :: JournalParser m ()
-multilinecommentp = do
-  string "comment" >> lift (skipMany spacenonewline) >> newline
-  go
+multilinecommentp = startComment *> anyLine `skipManyTill` endComment
   where
-    go = try (eof <|> (string "end comment" >> newline >> return ()))
-         <|> (anyLine >> go)
+    startComment = string "comment" >> emptyLine
+    endComment = eof <|> (string "end comment" >> emptyLine)
+    emptyLine = void $ lift (skipMany spacenonewline) *> newline
     anyLine = anyChar `manyTill` newline
 
 emptyorcommentlinep :: JournalParser m ()
 emptyorcommentlinep = do
-  lift (skipMany spacenonewline) >> (linecommentp <|> (lift (skipMany spacenonewline) >> newline >> return ""))
-  return ()
+  lift $ skipMany spacenonewline
+  void linecommentp <|> void newline
 
 -- | Parse a possibly multi-line comment following a semicolon.
 followingcommentp :: JournalParser m Text
-followingcommentp =
-  -- ptrace "followingcommentp"
-  do samelinecomment <- lift (skipMany spacenonewline) >> (try commentp <|> (newline >> return ""))
-     newlinecomments <- many (try (lift (skipSome spacenonewline) >> commentp))
-     return $ T.unlines $ samelinecomment:newlinecomments
+followingcommentp = T.unlines . map snd <$> followingcommentlinesp
+
+followingcommentlinesp :: JournalParser m [(SourcePos, Text)]
+followingcommentlinesp = do
+  lift $ skipMany spacenonewline
+  samelineComment <- try commentp
+                 <|> (,) <$> (getPosition <* newline) <*> pure ""
+  newlineComments <- many $ try $ do
+    lift $ skipSome spacenonewline -- leading whitespace is required
+    commentp
+  pure $ samelineComment : newlineComments
 
 -- | Parse a possibly multi-line comment following a semicolon, and
 -- any tags and/or posting dates within it. Posting dates can be
@@ -781,55 +845,59 @@ followingcommentandtagsp :: MonadIO m => Maybe Day
 followingcommentandtagsp mdefdate = do
   -- pdbg 0 "followingcommentandtagsp"
 
-  -- Parse a single or multi-line comment, starting on this line or the next one.
-  -- Save the starting position and preserve all whitespace for the subsequent re-parsing,
-  -- to get good error positions.
-  startpos <- getPosition
-  commentandwhitespace :: String <- do
-    let commentp' = (:) <$> char ';' <*> anyChar `manyTill` eolof
-    sp1 <- lift (many spacenonewline)
-    l1  <- try (lift commentp') <|> (newline >> return "")
-    ls  <- lift . many $ try ((++) <$> some spacenonewline <*> commentp')
-    return $ unlines $ (sp1 ++ l1) : ls
-  let comment = T.pack $ unlines $ map (lstrip . dropWhile (==';') . strip) $ lines commentandwhitespace
-  -- pdbg 0 $ "commentws:"++show commentandwhitespace
-  -- pdbg 0 $ "comment:"++show comment
+  commentLines <- followingcommentlinesp
+  -- pdbg 0 $ "commentws:" ++ show commentLines
 
   -- Reparse the comment for any tags.
-  tags <- case runTextParser (setPosition startpos >> tagsp) $ T.pack commentandwhitespace of
-            Right ts -> return ts
-            Left e   -> throwError $ parseErrorPretty e
-  -- pdbg 0 $ "tags: "++show tags
+  tags <- case traverse (runTextParserAt tagsp) commentLines of
+    Right tss -> pure $ concat tss
+    Left e    -> throwError $ parseErrorPretty e
 
-  -- Reparse the comment for any posting dates. Use the transaction date for defaults, if provided.
-  epdates <- liftIO $ rejp (setPosition startpos >> postingdatesp mdefdate) $ T.pack commentandwhitespace
+  -- Reparse the comment for any posting dates.
+  -- Use the transaction date for defaults, if provided.
+  epdates <- fmap sequence
+           $ traverse (runErroringJournalParserAt (postingdatesp mdefdate))
+                      commentLines
   pdates <- case epdates of
-              Right ds -> return ds
-              Left e   -> throwError e
+    Right dss -> pure $ concat dss
+    Left e    -> throwError e
   -- pdbg 0 $ "pdates: "++show pdates
-  let mdate  = headMay $ map snd $ filter ((=="date").fst)  pdates
+  let mdate  = headMay $ map snd $ filter ((=="date") .fst) pdates
       mdate2 = headMay $ map snd $ filter ((=="date2").fst) pdates
 
-  return (comment, tags, mdate, mdate2)
+  let strippedComment = T.unlines $ map (T.strip . snd) commentLines
+  -- pdbg 0 $ "comment:"++show strippedComment
+
+  pure (strippedComment, tags, mdate, mdate2)
+
+  where
+    runTextParserAt parser (pos, txt) =
+      runTextParser (setPosition pos *> parser) txt
+    runErroringJournalParserAt parser (pos, txt) =
+      runErroringJournalParser (setPosition pos *> parser) txt
 
 -- A transaction/posting comment must start with a semicolon.
--- This parser ignores leading whitespace.
-commentp :: JournalParser m Text
+-- This parser discards the leading whitespace of the comment
+-- and returns the source position of the comment's first non-whitespace character.
+commentp :: JournalParser m (SourcePos, Text)
 commentp = commentStartingWithp ";"
 
 -- A line (file-level) comment can start with a semicolon, hash,
--- or star (allowing org nodes). This parser ignores leading whitespace.
-linecommentp :: JournalParser m Text
+-- or star (allowing org nodes).
+-- This parser discards the leading whitespace of the comment
+-- and returns the source position of the comment's first non-whitespace character.
+linecommentp :: JournalParser m (SourcePos, Text)
 linecommentp = commentStartingWithp ";#*" 
 
-commentStartingWithp :: [Char] -> JournalParser m Text
+commentStartingWithp :: [Char] -> JournalParser m (SourcePos, Text)
 commentStartingWithp cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
   lift (skipMany spacenonewline)
-  l <- anyChar `manyTill` (lift eolof)
+  startPos <- getPosition
+  content <- T.pack <$> anyChar `manyTill` (lift eolof)
   optional newline
-  return $ T.pack l
+  return (startPos, content)
 
 --- ** tags
 
