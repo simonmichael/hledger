@@ -8,6 +8,7 @@
 -- import Control.Monad.Except
 import Criterion.Main
 -- import Data.Text.Lazy as LT
+import qualified Data.Text as T
 -- import System.Environment
 import System.TimeIt      (timeItT)
 import Text.Printf
@@ -45,9 +46,6 @@ timeit name action = do
   (t,a) <- timeItT action
   printf "[%.2fs]\n" t
   return (t,a)
-
-timeReadJournal :: String -> String -> IO (Double, Journal)
-timeReadJournal msg s = timeit msg $ either error id <$> readJournal def Nothing s
 
 main = do
   -- putStrLn $ regexReplaceCI "^aa" "xx" "aa:bb:cc:dd:ee"
@@ -131,6 +129,9 @@ main = do
   --   ) -- force evaluation, though it seems not to be needed
 
   -- return ()
+
+--timeReadJournal :: String -> T.Text -> IO (Double, Journal)
+--timeReadJournal msg s = timeit msg $ either error id <$> readJournal def Nothing s
 
   -- benchmark timeclock parsing
   -- s <- readFile inputtimeclock
