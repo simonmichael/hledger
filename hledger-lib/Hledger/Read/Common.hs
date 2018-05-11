@@ -797,22 +797,22 @@ whitespaceChar = charCategory Space
 multilinecommentp :: JournalParser m ()
 multilinecommentp = startComment *> anyLine `skipManyTill` endComment
   where
-    emptylinep = lift (skipMany spacenonewline) *> newline *> pure ()
-    startComment = string "comment" >> emptylinep
-    endComment = eof <|> (string "end comment" >> emptylinep)
+    startComment = string "comment" >> emptyLine
+    endComment = eof <|> (string "end comment" >> emptyLine)
+    emptyLine = void $ lift (skipMany spacenonewline) *> newline
     anyLine = anyChar `manyTill` newline
 
 emptyorcommentlinep :: JournalParser m ()
 emptyorcommentlinep = do
-  lift (skipMany spacenonewline)
+  lift $ skipMany spacenonewline
   void linecommentp <|> void newline
 
 -- | Parse a possibly multi-line comment following a semicolon.
 followingcommentp :: JournalParser m Text
-followingcommentp = T.unlines . map snd <$> followingcommentwithpositionsp
+followingcommentp = T.unlines . map snd <$> followingcommentlinesp
 
-followingcommentwithpositionsp :: JournalParser m [(SourcePos, Text)]
-followingcommentwithpositionsp = do
+followingcommentlinesp :: JournalParser m [(SourcePos, Text)]
+followingcommentlinesp = do
   lift $ skipMany spacenonewline
   samelineComment <- try commentp
                  <|> (,) <$> (getPosition <* newline) <*> pure ""
@@ -845,11 +845,11 @@ followingcommentandtagsp :: MonadIO m => Maybe Day
 followingcommentandtagsp mdefdate = do
   -- pdbg 0 "followingcommentandtagsp"
 
-  commentLinesWithPositions <- followingcommentwithpositionsp
-  -- pdbg 0 $ "commentws:" ++ show commentLinesWithPositions
+  commentLines <- followingcommentlinesp
+  -- pdbg 0 $ "commentws:" ++ show commentLines
 
   -- Reparse the comment for any tags.
-  tags <- case traverse (runTextParserAt tagsp) commentLinesWithPositions of
+  tags <- case traverse (runTextParserAt tagsp) commentLines of
     Right tss -> pure $ concat tss
     Left e    -> throwError $ parseErrorPretty e
 
@@ -857,18 +857,19 @@ followingcommentandtagsp mdefdate = do
   -- Use the transaction date for defaults, if provided.
   epdates <- fmap sequence
            $ traverse (runErroringJournalParserAt (postingdatesp mdefdate))
-                      commentLinesWithPositions
+                      commentLines
   pdates <- case epdates of
     Right dss -> pure $ concat dss
     Left e    -> throwError e
   -- pdbg 0 $ "pdates: "++show pdates
-  let mdate  = headMay $ map snd $ filter ((=="date").fst)  pdates
+  let mdate  = headMay $ map snd $ filter ((=="date") .fst) pdates
       mdate2 = headMay $ map snd $ filter ((=="date2").fst) pdates
 
-  let strippedComment = T.unlines $ map (T.strip . snd) commentLinesWithPositions
+  let strippedComment = T.unlines $ map (T.strip . snd) commentLines
   -- pdbg 0 $ "comment:"++show strippedComment
 
   pure (strippedComment, tags, mdate, mdate2)
+
   where
     runTextParserAt parser (pos, txt) =
       runTextParser (setPosition pos *> parser) txt
