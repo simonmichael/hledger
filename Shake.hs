@@ -267,7 +267,7 @@ main = do
 
     webmanall %> \out -> do
       need webmanpages
-      liftIO $ writeFile webmanall "* toc\n\n" -- # Big Manual\n\n -- TOC style is better without main heading,
+      liftIO $ writeFile webmanall "\\$toc\\$" -- # Big Manual\n\n -- TOC style is better without main heading,
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
         cmd Shell ("printf '\\n\\n' >>") webmanall :: Action ExitCode
         cmd Shell "pandoc" f "-t markdown-fenced_divs --atx-headers"

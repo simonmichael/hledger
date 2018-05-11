@@ -2,7 +2,7 @@
 
 This doc is for version **1.0**. <span class="docversions"></span>
 
--   toc
+\$toc\$
 
 ## NAME
 
