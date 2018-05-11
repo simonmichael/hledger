@@ -300,7 +300,7 @@ main = do
     pandocSiteFilter %> \out -> do
         let source = out <.> "hs"
         need [source]
-        cmd "stack --stack-yaml=stack-ghc8.2.yaml ghc --package pandoc -- -o" out source
+        cmd "stack --stack-yaml=stack-ghc8.2.yaml ghc -- -o" out source
 
     "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webcopyfileexts ] |%> \out -> do
         let input = "site" </> dropDirectory2 out
