@@ -1,5 +1,3 @@
--- from https://github.com/blaenk/blaenk.github.io
-
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
 
