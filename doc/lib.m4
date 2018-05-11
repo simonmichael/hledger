@@ -31,7 +31,7 @@ m4_dnl | <a href="/doc/0.27/manual.html#$1">0.27</a>
 </span>)m4_dnl
 m4_dnl
 m4_define({{_toc_}},{{
-* toc
+\$toc\$
 }})m4_dnl
 m4_dnl
 m4_dnl _table_({{

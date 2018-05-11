@@ -2,7 +2,7 @@
 
 This doc is for version **1.5**. []{.docversions}
 
--   toc
+\$toc\$
 
 ## NAME
 

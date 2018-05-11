@@ -65,9 +65,8 @@ createTable alignment headers
        in RawBlock "html" (navBegin ++ "\n" ++ tocString ++ "\n" ++ navEnd)
 
 generateTOC :: Block -> Block -> Block
-generateTOC toc (BulletList (( (( Plain ((Str "toc"):_)):_)):_))
-                = toc
-generateTOC _ x = x
+generateTOC toc (Para [Str "$toc$"]) = toc
+generateTOC _   x                    = x
 
 tableOfContents :: TOCAlignment -> Pandoc -> Pandoc
 tableOfContents TOCOff ast = walk ignoreTOC ast
