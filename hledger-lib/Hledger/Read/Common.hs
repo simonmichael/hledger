@@ -23,6 +23,7 @@ module Hledger.Read.Common (
 
   -- * parsing utilities
   runTextParser,
+  rtp,
   runJournalParser,
   rjp,
   runErroringJournalParser,
@@ -31,9 +32,11 @@ module Hledger.Read.Common (
   journalSourcePos,
   generateAutomaticPostings,
   parseAndFinaliseJournal,
+  parseAndFinaliseJournal',  -- TODO unused ? check addons
   setYear,
   setDefaultCommodityAndStyle,
   getDefaultCommodityAndStyle,
+  pushAccount,
   pushParentAccount,
   popParentAccount,
   getParentAccount,
