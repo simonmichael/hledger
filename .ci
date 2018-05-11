@@ -1,3 +1,12 @@
 [test "website"]
     command      = ./Shake.hs && ./Shake Clean && ./Shake website
-    trackedFiles = site/_site
+    trackedFiles = site/_site \
+                   site/csv.md \
+                   site/hledger-api.md \
+                   site/hledger-ui.md \
+                   site/hledger-web.md \
+                   site/hledger.md \
+                   site/journal.md \
+                   site/manual.md \
+                   site/timeclock.md \
+                   site/timedot.md
