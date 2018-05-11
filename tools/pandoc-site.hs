@@ -64,18 +64,17 @@ createTable alignment headers
           tocString = unpack . fromRight mempty . runPure . writeHtml5String def $ tocDoc
        in RawBlock "html" (navBegin ++ "\n" ++ tocString ++ "\n" ++ navEnd)
 
-generateTOC :: [Block] -> TOCAlignment -> Block -> Block
-generateTOC headers alignment x@(BulletList (( (( Plain ((Str "toc"):_)):_)):_))
-    = createTable alignment . groupByHierarchy $ headers
-generateTOC _ _ x = x
+generateTOC :: Block -> Block -> Block
+generateTOC toc (BulletList (( (( Plain ((Str "toc"):_)):_)):_))
+                = toc
+generateTOC _ x = x
 
 tableOfContents :: TOCAlignment -> Pandoc -> Pandoc
+tableOfContents TOCOff ast = walk ignoreTOC ast
 tableOfContents alignment ast
-    = let headers  = query collectHeaders ast
-          tocGen   = case alignment of
-                        TOCOff -> walk ignoreTOC
-                        _      -> walk (generateTOC headers alignment)
-       in tocGen $ ast
+    = let headers = query collectHeaders ast
+          toc     = createTable alignment . groupByHierarchy $ headers
+       in walk (generateTOC toc) ast
 
 main :: IO ()
 main = toJSONFilter (tableOfContents TOCRight)
