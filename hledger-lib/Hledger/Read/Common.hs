@@ -872,7 +872,7 @@ followingcommentandtagsp mdefdate = do
   -- Reparse the comment for any bracketed style posting dates.
   -- Use the transaction date for defaults, if provided.
   eBracketedDates <- fmap sequence
-           $ traverse (runErroringJournalParserAt (postingdatesp mdefdate))
+           $ traverse (runErroringJournalParserAt (bracketedpostingdatesp mdefdate))
                       commentLines
   bracketedDates <- case eBracketedDates of
     Right dss -> pure $ concat dss
@@ -1002,19 +1002,18 @@ tagswithvaluepositions = do
 
 --- ** posting dates
 
--- | Parse all posting dates found in a string. Posting dates can be
--- expressed with date/date2 tags and/or bracketed dates.  The dates
--- are parsed fully to give useful errors. Missing years can be
--- inferred only if a default date is provided.
+-- | Parse all bracketed posting dates found in a string. The dates are
+-- parsed fully to give useful errors. Missing years can be inferred only
+-- if a default date is provided.
 --
-postingdatesp :: Monad m => Maybe Day -> ErroringJournalParser m [(TagName,Day)]
-postingdatesp mdefdate = do
-  -- pdbg 0 $ "postingdatesp"
-  let p = bracketeddatetagsp mdefdate
-      nonp =
-         many (notFollowedBy p >> anyChar)
-         -- anyChar `manyTill` (lookAhead (try (p >> return ()) <|> eof))
-  concat <$> many (try (nonp >> p))
+bracketedpostingdatesp
+  :: Monad m => Maybe Day -> ErroringJournalParser m [(TagName,Day)]
+bracketedpostingdatesp mdefdate = do
+  -- pdbg 0 $ "bracketedpostingdatesp"
+  skipMany $ notChar '['
+  fmap concat
+    $ sepEndBy (try (bracketeddatetagsp mdefdate) <|> char '[' *> pure [])
+               (skipMany $ notChar '[')
 
 --- ** bracketed dates
 
