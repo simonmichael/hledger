@@ -853,23 +853,38 @@ followingcommentandtagsp mdefdate = do
   -- pdbg 0 $ "commentws:" ++ show commentLines
 
   -- Reparse the comment for any tags.
-  tags <- case traverse (runTextParserAt tagsp) commentLines of
+  tagsWithPositions <- case traverse (runTextParserAt tagswithvaluepositions) commentLines of
     Right tss -> pure $ concat tss
     Left e    -> throwError $ parseErrorPretty e
 
-  -- Reparse the comment for any posting dates.
+  -- Extract date-tag style posting dates from the tags.
   -- Use the transaction date for defaults, if provided.
-  epdates <- fmap sequence
+  journal <- fmap
+    (\j -> j{jparsedefaultyear=first3.toGregorian <$> mdefdate}) get
+
+  let eTagDates = traverse (tagDate journal)
+                $ filter (isDateLabel . fst . snd) tagsWithPositions
+                where isDateLabel txt = txt == "date" || txt == "date2"
+  tagDates <- case eTagDates of
+    Right ds -> pure ds
+    Left e   -> throwError e
+
+  -- Reparse the comment for any bracketed style posting dates.
+  -- Use the transaction date for defaults, if provided.
+  eBracketedDates <- fmap sequence
            $ traverse (runErroringJournalParserAt (postingdatesp mdefdate))
                       commentLines
-  pdates <- case epdates of
+  bracketedDates <- case eBracketedDates of
     Right dss -> pure $ concat dss
     Left e    -> throwError e
-  -- pdbg 0 $ "pdates: "++show pdates
+
+  let pdates = tagDates ++ bracketedDates
+  -- pdbg 0 $ "allDates: "++show pdates
   let mdate  = headMay $ map snd $ filter ((=="date") .fst) pdates
       mdate2 = headMay $ map snd $ filter ((=="date2").fst) pdates
 
   let strippedComment = T.unlines $ map (T.strip . snd) commentLines
+      tags = map snd tagsWithPositions
   -- pdbg 0 $ "comment:"++show strippedComment
 
   pure (strippedComment, tags, mdate, mdate2)
@@ -877,8 +892,21 @@ followingcommentandtagsp mdefdate = do
   where
     runTextParserAt parser (pos, txt) =
       runTextParser (setPosition pos *> parser) txt
+
     runErroringJournalParserAt parser (pos, txt) =
       runErroringJournalParser (setPosition pos *> parser) txt
+
+    parseWithStateAt' st parser (pos, txt) =
+      parseWithState' st (setPosition pos *> parser) txt
+
+    tagDate
+      :: Journal
+      -> (SourcePos, Tag)
+      -> Either String (TagName, Day)
+    tagDate journal (pos, (name, value)) =
+      case parseWithStateAt' journal datep (pos, value) of
+        Left e -> Left $ parseErrorPretty e
+        Right day -> Right (name, day)
 
 -- A transaction/posting comment must start with a semicolon.
 -- This parser discards the leading whitespace of the comment
@@ -929,7 +957,10 @@ commentTags s =
 
 -- | Parse all tags found in a string.
 tagsp :: SimpleTextParser [Tag]
-tagsp = do
+tagsp = map snd <$> tagswithvaluepositions
+
+tagswithvaluepositions :: SimpleTextParser [(SourcePos, Tag)]
+tagswithvaluepositions = do
   -- pdbg 0 $ "tagsp"
 
   -- If we parse in a single pass, we cannot know whether some text
@@ -953,24 +984,21 @@ tagsp = do
     tagValue =
       T.strip . T.pack <$> anyChar `manyTill` (void (char ',') <|> eolof)
 
-    atSpaceChar :: SimpleTextParser [Tag]
-    atSpaceChar = skipSome spaceChar *> tagsp
+    atSpaceChar :: SimpleTextParser [(SourcePos, Tag)]
+    atSpaceChar = skipSome spaceChar *> tagswithvaluepositions
 
-    atColon :: Text -> SimpleTextParser [Tag]
+    atColon :: Text -> SimpleTextParser [(SourcePos, Tag)]
     atColon tagName = do
       char ':'
       if T.null tagName
-        then tagsp
-        else (:) <$> fmap (tagName,) tagValue <*> tagsp
+        then tagswithvaluepositions
+        else do
+          pos <- getPosition
+          (:) <$> fmap (\val -> (pos, (tagName, val))) tagValue
+              <*> tagswithvaluepositions
 
-    atEof :: SimpleTextParser [Tag]
+    atEof :: SimpleTextParser [(SourcePos, Tag)]
     atEof = eof *> pure []
-
-tagvaluep :: TextParser m Text
-tagvaluep = do
-  -- ptrace "tagvalue"
-  v <- anyChar `manyTill` (void (try (char ',')) <|> eolof)
-  return $ T.pack $ strip $ reverse $ dropWhile (==',') $ reverse $ strip v
 
 --- ** posting dates
 
@@ -982,51 +1010,11 @@ tagvaluep = do
 postingdatesp :: Monad m => Maybe Day -> ErroringJournalParser m [(TagName,Day)]
 postingdatesp mdefdate = do
   -- pdbg 0 $ "postingdatesp"
-  let p = ((:[]) <$> datetagp mdefdate) <|> bracketeddatetagsp mdefdate
+  let p = bracketeddatetagsp mdefdate
       nonp =
          many (notFollowedBy p >> anyChar)
          -- anyChar `manyTill` (lookAhead (try (p >> return ()) <|> eof))
   concat <$> many (try (nonp >> p))
-
---- ** date tags
-
--- | Date tags are tags with name "date" or "date2". Their value is
--- parsed as a date, using the provided default date if any for
--- inferring a missing year if needed. Any error in date parsing is
--- reported and terminates parsing.
---
--- >>> rejp (datetagp Nothing) "date: 2000/1/2 "
--- Right ("date",2000-01-02)
---
--- >>> rejp (datetagp (Just $ fromGregorian 2001 2 3)) "date2:3/4"
--- Right ("date2",2001-03-04)
---
--- >>> rejp (datetagp Nothing) "date:  3/4"
--- Left ...1:9...partial date 3/4 found, but the current year is unknown...
---
-datetagp :: Monad m => Maybe Day -> ErroringJournalParser m (TagName,Day)
-datetagp mdefdate = do
-  -- pdbg 0 "datetagp"
-  string "date"
-  n <- fromMaybe "" <$> optional (mptext "2")
-  char ':'
-  startpos <- getPosition
-  v <- lift tagvaluep
-  -- re-parse value as a date.
-  j <- get
-  let ep :: Either (ParseError Char MPErr) Day
-      ep = parseWithState'
-             j{jparsedefaultyear=first3.toGregorian <$> mdefdate}
-             -- The value extends to a comma, newline, or end of file.
-             -- It seems like ignoring any extra stuff following a date
-             -- gives better errors here.
-             (do
-                 setPosition startpos
-                 datep) -- <* eof)
-             v
-  case ep
-    of Left e  -> throwError $ parseErrorPretty e
-       Right d -> return ("date"<>n, d)
 
 --- ** bracketed dates
 
