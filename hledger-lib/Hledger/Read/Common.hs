@@ -918,6 +918,9 @@ commentStartingWithp cs = do
 -- >>> commentTags "\na b:, \nd:e, f"
 -- [("b",""),("d","e")]
 --
+-- >>> commentTags ":value"
+-- []
+--
 commentTags :: Text -> [Tag]
 commentTags s =
   case runTextParser tagsp s of
@@ -926,42 +929,42 @@ commentTags s =
 
 -- | Parse all tags found in a string.
 tagsp :: SimpleTextParser [Tag]
-tagsp = -- do
+tagsp = do
   -- pdbg 0 $ "tagsp"
-  many (try (nontagp >> tagp))
 
--- | Parse everything up till the first tag.
---
--- >>> rtp nontagp "\na b:, \nd:e, f"
--- Right "\na "
-nontagp :: SimpleTextParser String
-nontagp = -- do
-  -- pdbg 0 "nontagp"
-  -- anyChar `manyTill` (lookAhead (try (tagorbracketeddatetagsp Nothing >> return ()) <|> eof))
-  anyChar `manyTill` lookAhead (try (void tagp) <|> eof)
-  -- XXX costly ?
+  -- If we parse in a single pass, we cannot know whether some text
+  -- belongs to a tag label until we have reached a colon (in which case
+  -- it does) or whitespace (in which case it does not). Therefore, we
+  -- hold on to the text until we reach such a break point, and then
+  -- decide what to do.
 
--- | Tags begin with a colon-suffixed tag name (a word beginning with
--- a letter) and are followed by a tag value (any text up to a comma
--- or newline, whitespace-stripped).
---
--- >>> rtp tagp "a:b b , c AuxDate: 4/2"
--- Right ("a","b b")
---
-tagp :: SimpleTextParser Tag
-tagp = do
-  -- pdbg 0 "tagp"
-  n <- tagnamep
-  v <- tagvaluep
-  return (n,v)
+  potentialTagName <- tillNextBreak
+  atSpaceChar <|> atColon potentialTagName <|> atEof
 
--- |
--- >>> rtp tagnamep "a:"
--- Right "a"
-tagnamep :: SimpleTextParser Text
-tagnamep = -- do
-  -- pdbg 0 "tagnamep"
-  T.pack <$> some (noneOf (": \t\n" :: [Char])) <* char ':'
+  where
+
+    break :: SimpleTextParser ()
+    break = void spaceChar <|> void (char ':') <|> eof
+
+    tillNextBreak :: SimpleTextParser Text
+    tillNextBreak = T.pack <$> anyChar `manyTill` lookAhead break
+
+    tagValue :: SimpleTextParser Text
+    tagValue =
+      T.strip . T.pack <$> anyChar `manyTill` (void (char ',') <|> eolof)
+
+    atSpaceChar :: SimpleTextParser [Tag]
+    atSpaceChar = skipSome spaceChar *> tagsp
+
+    atColon :: Text -> SimpleTextParser [Tag]
+    atColon tagName = do
+      char ':'
+      if T.null tagName
+        then tagsp
+        else (:) <$> fmap (tagName,) tagValue <*> tagsp
+
+    atEof :: SimpleTextParser [Tag]
+    atEof = eof *> pure []
 
 tagvaluep :: TextParser m Text
 tagvaluep = do
