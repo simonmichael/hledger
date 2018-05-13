@@ -713,7 +713,7 @@ Right ("201813","","")
 
 A 9+ digit number beginning with valid YYYYMMDD gives an error:
 >>> parsewith (smartdate <* eof) "201801012"
-Left (TrivialError (SourcePos {sourceName = "", sourceLine = Pos 1, sourceColumn = Pos 9} :| []) (Just (Tokens ('2' :| ""))) (fromList [EndOfInput]))
+Left (...)
 
 Big numbers not beginning with a valid YYYYMMDD are parsed as a year:
 >>> parsewith (smartdate <* eof) "201813012"

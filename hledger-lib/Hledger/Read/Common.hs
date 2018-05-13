@@ -105,7 +105,8 @@ import Data.Time.Calendar
 import Data.Time.LocalTime
 import Safe
 import System.Time (getClockTime)
-import Text.Megaparsec.Compat
+import Text.Megaparsec.Compat hiding (skipManyTill)
+import Control.Applicative.Combinators (skipManyTill)
 
 import Hledger.Data
 import Hledger.Utils
