@@ -123,6 +123,7 @@ library
     , mtl-compat
     , old-time
     , parsec >=3
+    , parser-combinators
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
@@ -219,6 +220,7 @@ test-suite doctests
     , mtl-compat
     , old-time
     , parsec >=3
+    , parser-combinators
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
@@ -317,6 +319,7 @@ test-suite easytests
     , mtl-compat
     , old-time
     , parsec >=3
+    , parser-combinators
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
@@ -412,6 +415,7 @@ test-suite hunittests
     , mtl-compat
     , old-time
     , parsec >=3
+    , parser-combinators
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2

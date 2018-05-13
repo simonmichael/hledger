@@ -29,7 +29,6 @@ module Hledger.Cli.Utils
 where
 import Control.Exception as C
 import Control.Monad
-import Data.Functor.Compat ((<&>))
 
 import Data.Hashable (hash)
 import Data.List
@@ -82,10 +81,10 @@ withJournalDo opts cmd = do
 -- - anonymising (--anonymise).
 journalTransform :: CliOpts -> Journal -> IO Journal
 journalTransform opts@CliOpts{reportopts_=ropts} =
-  (   journalAddForecast opts
-  >=> journalApplyValue ropts)
-  <&> (pivotByOpts opts <$>)
-  <&> (anonymiseByOpts opts <$>)
+      journalAddForecast opts
+  >=> journalApplyValue ropts
+  >=> return . pivotByOpts opts
+  >=> return . anonymiseByOpts opts
 
 -- | Apply the pivot transformation on a journal, if option is present.
 pivotByOpts :: CliOpts -> Journal -> Journal
