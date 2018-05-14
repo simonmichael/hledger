@@ -462,6 +462,7 @@ periodictransactionp = do
   char '~' <?> "periodic transaction"
   lift (skipMany spacenonewline)
   periodexpr <- T.pack <$> lift restofline
+  _ <- many . try $ lift (skipSome spacenonewline) >> commentp
   postings <- postingsp Nothing
   return $ PeriodicTransaction periodexpr postings
 
