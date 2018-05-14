@@ -1,11 +1,12 @@
 #!/bin/sh
 # Update website(s): hledger.org
 #
-# Called periodically by cron (eg on the hour)
-#  /etc/crontab
-# and via github webhook (on push to main repo or wiki)
+# Called via github webhook (on push to main repo or wiki)
 #  /etc/supervisord.conf -> [program:github-post-receive]
 #  /etc/github-post-receive.conf
+# and via cron (nightly)
+#  /etc/crontab
+# or manually (make deploy)
 
 (\
 
@@ -16,12 +17,12 @@ echo && date --rfc-3339=seconds && \
 # git pull && \
 
 # fetch latest wiki content
-git -C wiki pull && \
+printf "wiki: " && git -C wiki pull && \
 
 # add latest wiki sidebar links to home page
-make site/index.md && \
+make --no-print-directory site/index.md && \
 
-# ensure haskell can handle non-ascii
+# ensure GHC can handle non-ascii
 export LANG=en_US.UTF-8 && \
 
 # ensure latest Shake is built
