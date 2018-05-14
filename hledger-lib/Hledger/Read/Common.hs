@@ -19,6 +19,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 module Hledger.Read.Common (
   Reader (..),
   InputOpts (..),
+  definputopts,
   rawOptsToInputOpts,
 
   -- * parsing utilities
@@ -34,13 +35,17 @@ module Hledger.Read.Common (
   parseAndFinaliseJournal,
   parseAndFinaliseJournal',  -- TODO unused ? check addons
   setYear,
+  getYear,
   setDefaultCommodityAndStyle,
   getDefaultCommodityAndStyle,
+  getDefaultAmountStyle,
+  getAmountStyle,
   pushAccount,
   pushParentAccount,
   popParentAccount,
   getParentAccount,
   addAccountAlias,
+  getAccountAliases,
   clearAccountAliases,
   journalAddFile,
   parserErrorAt,
@@ -63,11 +68,15 @@ module Hledger.Read.Common (
   -- ** amounts
   spaceandamountormissingp,
   amountp,
+  amountp',
   mamountp',
   commoditysymbolp,
+  priceamountp,
   partialbalanceassertionp,
   fixedlotpricep,
   numberp,
+  fromRawNumber,
+  rawnumberp,
 
   -- ** comments
   multilinecommentp,
@@ -77,7 +86,10 @@ module Hledger.Read.Common (
 
   -- ** tags
   commentTags,
-  tagsp
+  tagsp,
+
+  -- ** bracketed dates
+  bracketeddatetagsp
 )
 where
 --- * imports
