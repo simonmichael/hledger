@@ -193,6 +193,7 @@ a file format for human-friendly approximate time logging
 [Budgeting and forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting and forecasting)  
 [Project accounting](https://github.com/simonmichael/hledger/wiki/Project accounting)  
 [Track investments](https://github.com/simonmichael/hledger/wiki/Track investments)  
+[Time planning](https://github.com/simonmichael/hledger/wiki/Time planning)
 
 ### Usage tips
 
