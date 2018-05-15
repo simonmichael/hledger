@@ -1182,6 +1182,8 @@ changes-show-from-%: #$(call def-help,changes-show-from-REV, show commits affect
 	@git log --abbrev-commit --pretty=format:'ORGNODE %s (%an)%n%b%h' $*.. -- . ':!hledger' ':!hledger-*' \
 		| sed -e 's/^\*/-/' -e 's/^ORGNODE/*/' \
 		| sed -e 's/ (Simon Michael)//'
+# would be nice to sort changes by case-insensitive name and reverse date, like 
+# git ll hledger-1.9.1.. -- hledger* | grep -v doc: | sort -f -k3,3 -k1,1r
 
 # old:
 ## The last git revision referenced in the change notes. 
