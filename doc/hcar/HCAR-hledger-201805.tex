@@ -1,0 +1,39 @@
+% hledger-Sh.tex
+\begin{hcarentry}{hledger}
+\label{hledger}
+\report{Simon Michael}%05/18
+\status{stable, actively developed}
+\makeheader
+
+{\tt hledger} is a set of cross-platform tools (and Haskell libraries) for tracking money, time, or any other commodity, using double-entry accounting and a simple future-proof text file format.
+It is an enhanced, well-documented reimplementation of plain text accounting in Haskell, inspired by John Wiegley's Ledger program.
+{\tt hledger} aims to be a reliable and practical tool for daily use, and provides command-line, curses-style, and web interfaces.
+{\tt hledger} is released under GNU GPLv3+.
+
+Project activity has been continuous since our last update in November 2016.
+Some notable developments:
+
+\begin{compactitem}
+\item The community has grown in size and activity. The number of committers has doubled, from 42 to 84.
+\item Website, documentation, CI and project infrastructure have been improved
+\item A cross-platform installer script has been added
+\item Many fixes, refinements, and new features have been added, such as:
+\item balance assignments
+\item pivot
+\item periodic transactions
+\item automated postings
+\item budget reports
+\item normal-positive reports
+\item HTML output
+\item custom account sorting
+\item import command
+\item live reloading in hledger-ui
+\end{compactitem}
+
+hledger is available from the hledger.org website, Github, Hackage, or Stackage.
+It is packaged for a number of systems (Windows, Homebrew, most GNU/Linux distros, NixOS, Sandstorm..)
+and buildable on other systems supporting GHC (freeBSD, openBSD..).
+
+\FurtherReading
+  \url{http://hledger.org}
+\end{hcarentry}

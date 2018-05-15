@@ -49,7 +49,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20180404
+HLEDGER_INSTALL_VERSION=20180514
 
 RESOLVER="--resolver=lts"
   # ^ You can specify a different stackage snapshot here, 
@@ -57,15 +57,15 @@ RESOLVER="--resolver=lts"
   # avoid some unnecessary building. OSX Sierra+ requires at least lts-8.0. 
   # lts-6 or 7 probably require tweaking the hledger install commands below. 
 
-HLEDGER_LIB_VERSION=1.9
-HLEDGER_VERSION=1.9
-HLEDGER_UI_VERSION=1.9
-HLEDGER_WEB_VERSION=1.9
-HLEDGER_API_VERSION=1.9
+HLEDGER_LIB_VERSION=1.9.1
+HLEDGER_VERSION=1.9.1
+HLEDGER_UI_VERSION=1.9.1
+HLEDGER_WEB_VERSION=1.9.2
+HLEDGER_API_VERSION=1.9.1
 
-HLEDGER_DIFF_VERSION=0.2.0.13
-HLEDGER_IADD_VERSION=1.3.2
-HLEDGER_INTEREST_VERSION=1.5.1
+HLEDGER_DIFF_VERSION=0.2.0.14
+HLEDGER_IADD_VERSION=1.3.5
+HLEDGER_INTEREST_VERSION=1.5.2
 HLEDGER_IRR_VERSION=0.1.1.13
 
 HLEDGER_MAIN_TOOLS="\
@@ -213,7 +213,7 @@ do_ubuntu_install() {
   elif is_64_bit ; then
     install_dependencies
     print_bindist_notice
-    install_64bit_static_binary
+    install_64bit_linux_binary
   else
     install_dependencies
     print_bindist_notice
@@ -239,7 +239,7 @@ do_debian_install() {
   elif is_64_bit ; then
     install_dependencies
     print_bindist_notice
-    install_64bit_static_binary
+    install_64bit_linux_binary
   else
     install_dependencies
     print_bindist_notice
@@ -259,7 +259,7 @@ do_fedora_install() {
   if is_64_bit ; then
     install_dependencies "$1"
     print_bindist_notice
-    install_64bit_static_binary
+    install_64bit_linux_binary
   else
     install_dependencies "$1"
     print_bindist_notice
@@ -279,7 +279,7 @@ do_centos_install() {
   if is_64_bit ; then
     install_dependencies
     print_bindist_notice
-    install_64bit_static_binary
+    install_64bit_linux_binary
   else
     install_dependencies
     case "$1" in
@@ -332,7 +332,7 @@ do_alpine_install() {
   }
   install_dependencies
   if is_64_bit ; then
-    install_64bit_static_binary
+    install_64bit_linux_binary
   else
     die "Sorry, there is currently no 32-bit Alpine Linux binary available."
   fi
@@ -348,7 +348,7 @@ do_sloppy_install() {
   if is_arm ; then
       install_arm_binary
   elif is_64_bit ; then
-      install_64bit_static_binary
+      install_64bit_linux_binary
   else
       install_32bit_standard_binary
   fi
@@ -556,6 +556,10 @@ install_arm_binary() {
 
 install_32bit_standard_binary() {
   install_from_bindist "linux-i386"
+}
+
+install_64bit_linux_binary() {
+  install_from_bindist "linux-x86_64"
 }
 
 install_64bit_static_binary() {
@@ -933,22 +937,22 @@ fi
 # hledger-lib, in case their bounds have not been updated yet. 
 if [[ $(cmd_version hledger-diff) < $HLEDGER_DIFF_VERSION ]]; then 
   echo Installing hledger-diff
-  try_install hledger-diff-$HLEDGER_DIFF_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-diff-$HLEDGER_DIFF_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-iadd) < $HLEDGER_IADD_VERSION ]]; then 
   echo Installing hledger-iadd
-  try_install hledger-iadd-$HLEDGER_IADD_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-interest) < $HLEDGER_INTEREST_VERSION ]]; then 
   echo Installing hledger-interest
-  try_install hledger-interest-$HLEDGER_INTEREST_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-irr) < $HLEDGER_IRR_VERSION ]]; then 
   echo Installing hledger-irr
-  try_install hledger-irr-$HLEDGER_IRR_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-irr-$HLEDGER_IRR_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 echo ----------

@@ -457,11 +457,13 @@ modifiertransactionp = do
   postings <- postingsp Nothing
   return $ ModifierTransaction valueexpr postings
 
+-- | Parse a periodic transaction
 periodictransactionp :: MonadIO m => ErroringJournalParser m PeriodicTransaction
 periodictransactionp = do
   char '~' <?> "periodic transaction"
   lift (skipMany spacenonewline)
-  periodexpr <- T.pack <$> lift restofline
+  periodexpr <- T.pack . strip <$> descriptionp
+  _ <- try followingcommentp <|> (newline >> return "")
   postings <- postingsp Nothing
   return $ PeriodicTransaction periodexpr postings
 

@@ -5,8 +5,8 @@
 h4 { margin-top:2em; }
 </style>
 <nav id="toc">
-<p>Major releases:</p>
 <ol>
+<li><a href="#latest-minor-release">Latest (2018/4/30)</a>
 <li><a href="#hledger-1.9">hledger 1.9 (2018/3/31)</a>
 <li><a href="#hledger-1.5">hledger 1.5 (2017/12/31)</a>
 <li><a href="#hledger-1.4">hledger 1.4 (2017/9/30)</a>
@@ -46,9 +46,19 @@ h4 { margin-top:2em; }
 
 # Release notes
 
-Here are the changes brought by each major hledger release.
-For details of minor releases, see the 
-[package changelogs on Hackage](https://github.com/simonmichael/hledger/wiki/Dev-Zone#hackage).
+Here are the changes in major hledger releases, and any more-recent minor releases.
+
+The [hledger installer](file:///Users/simon/src/PLAINTEXTACCOUNTING/hledger/site/_site/download.html#b1.-with-hledger-install)
+was last updated on 2018/05/14
+([changes](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh))
+
+## Latest minor release
+
+<http://hackage.haskell.org/package/hledger-lib-1.9.1/changelog>  
+<http://hackage.haskell.org/package/hledger-1.9.1/changelog>  
+<http://hackage.haskell.org/package/hledger-ui-1.9.1/changelog>  
+<http://hackage.haskell.org/package/hledger-web-1.9.2/changelog>  
+<http://hackage.haskell.org/package/hledger-api-1.9.1/changelog>  
 
 
 ## 2018/3/31 hledger 1.9
