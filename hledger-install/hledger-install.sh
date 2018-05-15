@@ -937,22 +937,22 @@ fi
 # hledger-lib, in case their bounds have not been updated yet. 
 if [[ $(cmd_version hledger-diff) < $HLEDGER_DIFF_VERSION ]]; then 
   echo Installing hledger-diff
-  try_install hledger-diff-$HLEDGER_DIFF_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-diff-$HLEDGER_DIFF_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-iadd) < $HLEDGER_IADD_VERSION ]]; then 
   echo Installing hledger-iadd
-  try_install hledger-iadd-$HLEDGER_IADD_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-interest) < $HLEDGER_INTEREST_VERSION ]]; then 
   echo Installing hledger-interest
-  try_install hledger-interest-$HLEDGER_INTEREST_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 if [[ $(cmd_version hledger-irr) < $HLEDGER_IRR_VERSION ]]; then 
   echo Installing hledger-irr
-  try_install hledger-irr-$HLEDGER_IRR_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-irr-$HLEDGER_IRR_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 echo ----------
