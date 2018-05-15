@@ -971,7 +971,7 @@ site-build: site/hakyll-std/hakyll-std site/manual.md \
 	-cd site; hakyll-std/hakyll-std build
 
 site/index.md: wiki/_Sidebar.md \
-	$(call def-help,site/index.md, update home page with wiki sidebar content which should be in ./wiki/_Sidebar )
+	$(call def-help,site/index.md, update home page with ./wiki/_Sidebar content )
 	(sed -ne '1,/<!-- WIKICONTENT -->/ p'     site/index.md     ; \
 	 sed -ne '/^#.*User/,$$ p'                 wiki/_Sidebar.md \
 	 | perl -p \
@@ -982,6 +982,12 @@ site/index.md: wiki/_Sidebar.md \
 	 sed -ne '/<!-- ENDWIKICONTENT -->/,$$ p' site/index.md     ) \
 	> site/_index.md.$$$$ && \
 	mv site/_index.md.$$$$ site/index.md
+
+site/index.md-commit: \
+	$(call def-help,site/index.md, update home page with ./wiki/_Sidebar content and commit if changed )
+	-git diff --quiet site/index.md && \
+	make -s site/index.md && \
+	git commit -q -m 'site: home: update from wiki' -m '[ci skip]' site/index.md
 
 site-clean: site/hakyll-std/hakyll-std \
 	$(call def-help,site-clean, remove hakyll-generated files (& take down the website) ) #cleanolddocs

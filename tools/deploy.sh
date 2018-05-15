@@ -20,7 +20,7 @@ echo && date --rfc-3339=seconds && \
 printf "wiki: " && git -C wiki pull && \
 
 # add latest wiki sidebar links to home page
-make --no-print-directory site/index.md && \
+make --no-print-directory site/index.md-commit && \
 
 # ensure GHC can handle non-ascii
 export LANG=en_US.UTF-8 && \
