@@ -985,9 +985,9 @@ site/index.md: wiki/_Sidebar.md \
 
 site/index.md-commit: \
 	$(call def-help,site/index.md, update home page with ./wiki/_Sidebar content and commit if changed )
-	-git diff --quiet site/index.md && \
+	git diff --quiet site/index.md && \
 	make -s site/index.md && \
-	git commit -q -m 'site: home: update from wiki' -m '[ci skip]' site/index.md
+	( git diff --quiet site/index.md || git commit -q -m 'site: home: update from wiki' -m '[ci skip]' site/index.md )
 
 site-clean: site/hakyll-std/hakyll-std \
 	$(call def-help,site-clean, remove hakyll-generated files (& take down the website) ) #cleanolddocs
