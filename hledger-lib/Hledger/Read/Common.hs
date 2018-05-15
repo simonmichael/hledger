@@ -830,12 +830,14 @@ followingcommentp = T.unlines . map snd <$> followingcommentlinesp
 followingcommentlinesp :: JournalParser m [(SourcePos, Text)]
 followingcommentlinesp = do
   lift $ skipMany spacenonewline
-  samelineComment <- try commentp
-                 <|> (,) <$> (getPosition <* newline) <*> pure ""
+  samelineComment@(_, samelineCommentText)
+    <- try commentp <|> (,) <$> (getPosition <* newline) <*> pure ""
   newlineComments <- many $ try $ do
     lift $ skipSome spacenonewline -- leading whitespace is required
     commentp
-  pure $ samelineComment : newlineComments
+  if T.null samelineCommentText && null newlineComments
+    then pure []
+    else pure $ samelineComment : newlineComments
 
 -- | Parse a possibly multi-line comment following a semicolon, and
 -- any tags and/or posting dates within it. Posting dates can be
