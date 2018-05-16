@@ -165,7 +165,7 @@ a file format for human-friendly approximate time logging
 <div id=wiki class=contentbox>
 <div class=subcontent>
 <!-- WIKICONTENT -->
-## [User Cookbook](https://github.com/simonmichael/hledger/wiki/Home)
+# [User Cookbook](https://github.com/simonmichael/hledger/wiki/Home)
 
 ### Getting started
 
