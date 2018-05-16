@@ -19,8 +19,8 @@ echo && date --rfc-3339=seconds && \
 # fetch latest wiki content
 printf "wiki: " && git -C wiki pull && \
 
-# add latest wiki sidebar links to home page
-make --no-print-directory site/index.md-commit && \
+# add latest wiki sidebar links to home page, and push right away so we can keep pulling 
+make --no-print-directory site/index.md-push && \
 
 # ensure GHC can handle non-ascii
 export LANG=en_US.UTF-8 && \
