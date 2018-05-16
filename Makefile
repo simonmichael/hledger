@@ -729,9 +729,9 @@ cabalfiletest: \
 # #		&& cabal upload dist/$$p-$(VERSION).tar.gz --check -v3 \
 
 allsnapshotstest: $(call def-help,allsnapshotstest, try a build/test/bench with each supported stackage snapshot/GHC version) \
-	test-stack7.10.yaml \
-	test-stack8.0.yaml \
-	test-stack8.2.yaml \
+	test-stack-ghc7.10.yaml \
+	test-stack-ghc8.0.yaml \
+	test-stack-ghc8.2.yaml \
 	test-stack.yaml \
 
 test-stack%yaml:
@@ -1558,10 +1558,6 @@ Shake: Shake.hs $(call def-help,Shake, ensure the Shake script is compiled )
 cabal%: \
 	$(call def-help,cabalCMD, run cabal CMD inside each hledger package directory )
 	for p in $(PACKAGES); do (cd $$p; cabal $*); done
-
-all%: \
-	$(call def-help,all"CMD", run CMD inside each hledger package directory )
-	for p in $(PACKAGES); do (cd $$p; $*); done
 
 usage: cabalusage stackusage \
 	$(call def-help,usage, show size of various dirs )
