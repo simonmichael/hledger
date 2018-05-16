@@ -728,9 +728,10 @@ cabalfiletest: \
 # 		&& echo $@ PASSED) || echo $@ FAILED
 # #		&& cabal upload dist/$$p-$(VERSION).tar.gz --check -v3 \
 
-stacktest: $(call def-help,stacktest, try a build/test/bench with each stack config) \
+allsnapshotstest: $(call def-help,allsnapshotstest, try a build/test/bench with each supported stackage snapshot/GHC version) \
 	test-stack7.10.yaml \
 	test-stack8.0.yaml \
+	test-stack8.2.yaml \
 	test-stack.yaml \
 
 test-stack%yaml:
