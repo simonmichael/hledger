@@ -213,7 +213,7 @@ a file format for human-friendly approximate time logging
 [ledger-cli.org](http://ledger-cli.org) - [docs](https://www.ledger-cli.org/docs.html) - [wiki](https://github.com/ledger/ledger/wiki)  
 [Beancount's docs](http://furius.ca/beancount/doc/index)  
 
-## [Dev Zone](https://github.com/simonmichael/hledger/wiki/Dev Zone)
+## [Dev Zone](https://github.com/simonmichael/hledger/wiki/Dev Zone) ...
 <!-- ENDWIKICONTENT -->
 </div>
 </div>
