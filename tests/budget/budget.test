@@ -265,3 +265,17 @@ Budget performance in 2018/01/01-2018/01/02:
 ---++----------------------------------------------------
    ||       0 [   0% of     1]        0 [   0% of     1] 
 
+# 12. subaccounts of budgeted accounts count towards budget
+<
+~ daily
+  (a)      1
+
+2018/1/1
+  (a:b)    1
+
+$ hledger -f- bal --budget -N
+Budget performance in 2018/01/01:
+
+              ||               2018/01/01 
+==============++==========================
+ a            ||       1 [ 100% of     1] 
