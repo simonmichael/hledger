@@ -835,7 +835,7 @@ followingcommentlinesp :: TextParser m [(SourcePos, Text)]
 followingcommentlinesp = do
   skipMany spacenonewline
   samelineComment@(_, samelineCommentText)
-    <- try commentp <|> (,) <$> (getPosition <* newline) <*> pure ""
+    <- try commentp <|> (,) <$> (getPosition <* eolof) <*> pure ""
   newlineComments <- many $ try $ do
     skipSome spacenonewline -- leading whitespace is required
     commentp

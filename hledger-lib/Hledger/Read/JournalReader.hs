@@ -281,7 +281,7 @@ commoditydirectiveonelinep = do
   pos <- getPosition
   Amount{acommodity,astyle} <- amountp
   lift (skipMany spacenonewline)
-  _ <- lift followingcommentp <|> (lift eolof >> return "")
+  _ <- lift followingcommentp
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg2 "style from commodity directive" astyle}
   if asdecimalpoint astyle == Nothing
   then parserErrorAt pos pleaseincludedecimalpoint
@@ -298,7 +298,7 @@ commoditydirectivemultilinep = do
   string "commodity"
   lift (skipSome spacenonewline)
   sym <- lift commoditysymbolp
-  _ <- lift followingcommentp <|> (lift eolof >> return "")
+  _ <- lift followingcommentp
   mformat <- lastMay <$> many (indented $ formatdirectivep sym)
   let comm = Commodity{csymbol=sym, cformat=mformat}
   modify' (\j -> j{jcommodities=M.insert sym comm $ jcommodities j})
@@ -313,7 +313,7 @@ formatdirectivep expectedsym = do
   lift (skipSome spacenonewline)
   pos <- getPosition
   Amount{acommodity,astyle} <- amountp
-  _ <- lift followingcommentp <|> (lift eolof >> return "")
+  _ <- lift followingcommentp
   if acommodity==expectedsym
     then 
       if asdecimalpoint astyle == Nothing
@@ -463,7 +463,7 @@ periodictransactionp = do
   char '~' <?> "periodic transaction"
   lift (skipMany spacenonewline)
   periodexpr <- T.pack . strip <$> descriptionp
-  _ <- try (lift followingcommentp) <|> (newline >> return "")
+  _ <- lift followingcommentp
   postings <- postingsp Nothing
   return $ PeriodicTransaction periodexpr postings
 
@@ -478,7 +478,7 @@ transactionp = do
   status <- lift statusp <?> "cleared status"
   code <- T.pack <$> lift codep <?> "transaction code"
   description <- T.pack . strip <$> descriptionp
-  comment <- try (lift followingcommentp) <|> (newline >> return "")
+  comment <- lift followingcommentp
   let tags = commentTags comment
   postings <- postingsp (Just date)
   pos' <-  getPosition
@@ -606,8 +606,7 @@ postingp mtdate = do
   massertion <- partialbalanceassertionp
   _ <- fixedlotpricep
   lift (skipMany spacenonewline)
-  (comment,tags,mdate,mdate2) <-
-    try (followingcommentandtagsp mtdate) <|> (newline >> return ("",[],Nothing,Nothing))
+  (comment,tags,mdate,mdate2) <- followingcommentandtagsp mtdate
   return posting
    { pdate=mdate
    , pdate2=mdate2
