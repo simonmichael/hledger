@@ -100,7 +100,7 @@ timeclockfilep = do many timeclockitemp
       -- character, excepting transactions versus empty (blank or
       -- comment-only) lines, can use choice w/o try
       timeclockitemp = choice [ 
-                            void emptyorcommentlinep
+                            void (lift emptyorcommentlinep)
                           , timeclockentryp >>= \e -> modify' (\j -> j{jparsetimeclockentries = e : jparsetimeclockentries j})
                           ] <?> "timeclock entry, or default year or historical price directive"
 

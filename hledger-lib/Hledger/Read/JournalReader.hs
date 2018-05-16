@@ -158,8 +158,8 @@ addJournalItemP =
     , modifiertransactionp  >>= modify' . addModifierTransaction
     , periodictransactionp  >>= modify' . addPeriodicTransaction
     , marketpricedirectivep >>= modify' . addMarketPrice
-    , void emptyorcommentlinep
-    , void multilinecommentp
+    , void (lift emptyorcommentlinep)
+    , void (lift multilinecommentp)
     ] <?> "transaction or directive"
 
 --- ** directives
@@ -281,7 +281,7 @@ commoditydirectiveonelinep = do
   pos <- getPosition
   Amount{acommodity,astyle} <- amountp
   lift (skipMany spacenonewline)
-  _ <- followingcommentp <|> (lift eolof >> return "")
+  _ <- lift followingcommentp <|> (lift eolof >> return "")
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg2 "style from commodity directive" astyle}
   if asdecimalpoint astyle == Nothing
   then parserErrorAt pos pleaseincludedecimalpoint
@@ -298,7 +298,7 @@ commoditydirectivemultilinep = do
   string "commodity"
   lift (skipSome spacenonewline)
   sym <- lift commoditysymbolp
-  _ <- followingcommentp <|> (lift eolof >> return "")
+  _ <- lift followingcommentp <|> (lift eolof >> return "")
   mformat <- lastMay <$> many (indented $ formatdirectivep sym)
   let comm = Commodity{csymbol=sym, cformat=mformat}
   modify' (\j -> j{jcommodities=M.insert sym comm $ jcommodities j})
@@ -313,7 +313,7 @@ formatdirectivep expectedsym = do
   lift (skipSome spacenonewline)
   pos <- getPosition
   Amount{acommodity,astyle} <- amountp
-  _ <- followingcommentp <|> (lift eolof >> return "")
+  _ <- lift followingcommentp <|> (lift eolof >> return "")
   if acommodity==expectedsym
     then 
       if asdecimalpoint astyle == Nothing
@@ -463,7 +463,7 @@ periodictransactionp = do
   char '~' <?> "periodic transaction"
   lift (skipMany spacenonewline)
   periodexpr <- T.pack . strip <$> descriptionp
-  _ <- try followingcommentp <|> (newline >> return "")
+  _ <- try (lift followingcommentp) <|> (newline >> return "")
   postings <- postingsp Nothing
   return $ PeriodicTransaction periodexpr postings
 
@@ -478,7 +478,7 @@ transactionp = do
   status <- lift statusp <?> "cleared status"
   code <- T.pack <$> lift codep <?> "transaction code"
   description <- T.pack . strip <$> descriptionp
-  comment <- try followingcommentp <|> (newline >> return "")
+  comment <- try (lift followingcommentp) <|> (newline >> return "")
   let tags = commentTags comment
   postings <- postingsp (Just date)
   pos' <-  getPosition

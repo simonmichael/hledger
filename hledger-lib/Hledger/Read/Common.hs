@@ -810,30 +810,30 @@ whitespaceChar = charCategory Space
 
 --- ** comments
 
-multilinecommentp :: JournalParser m ()
+multilinecommentp :: TextParser m ()
 multilinecommentp = startComment *> anyLine `skipManyTill` endComment
   where
     startComment = string "comment" >> emptyLine
     endComment = eof <|> (string "end comment" >> emptyLine)
-    emptyLine = void $ lift (skipMany spacenonewline) *> newline
+    emptyLine = void $ skipMany spacenonewline *> newline
     anyLine = anyChar `manyTill` newline
 
-emptyorcommentlinep :: JournalParser m ()
+emptyorcommentlinep :: TextParser m ()
 emptyorcommentlinep = do
-  lift $ skipMany spacenonewline
+  skipMany spacenonewline
   void linecommentp <|> void newline
 
 -- | Parse a possibly multi-line comment following a semicolon.
-followingcommentp :: JournalParser m Text
+followingcommentp :: TextParser m Text
 followingcommentp = T.unlines . map snd <$> followingcommentlinesp
 
-followingcommentlinesp :: JournalParser m [(SourcePos, Text)]
+followingcommentlinesp :: TextParser m [(SourcePos, Text)]
 followingcommentlinesp = do
   lift $ skipMany spacenonewline
   samelineComment@(_, samelineCommentText)
     <- try commentp <|> (,) <$> (getPosition <* newline) <*> pure ""
   newlineComments <- many $ try $ do
-    lift $ skipSome spacenonewline -- leading whitespace is required
+    skipSome spacenonewline -- leading whitespace is required
     commentp
   if T.null samelineCommentText && null newlineComments
     then pure []
@@ -858,12 +858,12 @@ followingcommentlinesp = do
 -- >>> rejp (followingcommentandtagsp (Just $ fromGregorian 2000 1 2)) "; date:3/4=5/6"
 -- Right ("date:3/4=5/6\n",[("date","3/4=5/6")],Just 2000-03-04,Nothing)
 --
-followingcommentandtagsp :: MonadIO m => Maybe Day
-                         -> ErroringJournalParser m (Text, [Tag], Maybe Day, Maybe Day)
+followingcommentandtagsp
+  :: Monad m => Maybe Day -> ErroringJournalParser m (Text, [Tag], Maybe Day, Maybe Day)
 followingcommentandtagsp mdefdate = do
   -- pdbg 0 "followingcommentandtagsp"
 
-  commentLines <- followingcommentlinesp
+  commentLines <- lift followingcommentlinesp
   -- pdbg 0 $ "commentws:" ++ show commentLines
 
   -- Reparse the comment for any tags.
@@ -925,23 +925,23 @@ followingcommentandtagsp mdefdate = do
 -- A transaction/posting comment must start with a semicolon.
 -- This parser discards the leading whitespace of the comment
 -- and returns the source position of the comment's first non-whitespace character.
-commentp :: JournalParser m (SourcePos, Text)
+commentp :: TextParser m (SourcePos, Text)
 commentp = commentStartingWithp ";"
 
 -- A line (file-level) comment can start with a semicolon, hash,
 -- or star (allowing org nodes).
 -- This parser discards the leading whitespace of the comment
 -- and returns the source position of the comment's first non-whitespace character.
-linecommentp :: JournalParser m (SourcePos, Text)
+linecommentp :: TextParser m (SourcePos, Text)
 linecommentp = commentStartingWithp ";#*" 
 
-commentStartingWithp :: [Char] -> JournalParser m (SourcePos, Text)
+commentStartingWithp :: [Char] -> TextParser m (SourcePos, Text)
 commentStartingWithp cs = do
   -- ptrace "commentStartingWith"
   oneOf cs
-  lift (skipMany spacenonewline)
+  skipMany spacenonewline
   startPos <- getPosition
-  content <- T.pack <$> anyChar `manyTill` (lift eolof)
+  content <- T.pack <$> anyChar `manyTill` eolof
   optional newline
   return (startPos, content)
 

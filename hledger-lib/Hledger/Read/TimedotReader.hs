@@ -77,7 +77,7 @@ timedotfilep = do many timedotfileitemp
       timedotfileitemp = do
         ptrace "timedotfileitemp"
         choice [
-          void emptyorcommentlinep
+          void $ lift emptyorcommentlinep
          ,timedotdayp >>= \ts -> modify' (addTransactions ts)
          ] <?> "timedot day entry, or default year or comment line or blank line"
 
@@ -95,7 +95,7 @@ timedotdayp :: JournalParser m [Transaction]
 timedotdayp = do
   ptrace " timedotdayp"
   d <- datep <* lift eolof
-  es <- catMaybes <$> many (const Nothing <$> try emptyorcommentlinep <|>
+  es <- catMaybes <$> many (const Nothing <$> try (lift emptyorcommentlinep) <|>
                             Just <$> (notFollowedBy datep >> timedotentryp))
   return $ map (\t -> t{tdate=d}) es -- <$> many timedotentryp
 
@@ -111,9 +111,9 @@ timedotentryp = do
   a <- modifiedaccountnamep
   lift (skipMany spacenonewline)
   hours <-
-    try (followingcommentp >> return 0)
+    try (lift followingcommentp >> return 0)
     <|> (timedotdurationp <*
-         (try followingcommentp <|> (newline >> return "")))
+         (try (lift followingcommentp) <|> (newline >> return "")))
   let t = nulltransaction{
         tsourcepos = pos,
         tstatus    = Cleared,
