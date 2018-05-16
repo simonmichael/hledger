@@ -15,6 +15,7 @@ extra-deps:
 - brick-0.24.2
 - cpphs-1.20.8
 - data-clist-0.1.2.0
+- easytest-0.1
 - http-api-data-0.3.7.1
 - megaparsec-5.3.1
 - natural-transformation-0.4
