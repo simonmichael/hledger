@@ -1022,7 +1022,7 @@ bracketedpostingdatesp mdefdate = do
   -- pdbg 0 $ "bracketedpostingdatesp"
   skipMany $ noneOf ['[']
   fmap concat
-    $ sepEndBy (try (bracketeddatetagsp mdefdate) <|> char '[' *> pure [])
+    $ sepEndBy (bracketeddatetagsp mdefdate <|> char '[' *> pure [])
                (skipMany $ noneOf ['['])
   -- using noneOf ['['] in place of notChar '[' for backwards compatibility
 
@@ -1059,33 +1059,19 @@ bracketedpostingdatesp mdefdate = do
 -- Left ...1:15:...bad date, different separators...
 --
 bracketeddatetagsp :: Monad m => Maybe Day -> ErroringJournalParser m [(TagName, Day)]
-bracketeddatetagsp mdefdate = do
+bracketeddatetagsp mdefdate = lift $ do
   -- pdbg 0 "bracketeddatetagsp"
-  char '['
-  startpos <- getPosition
-  let digits = "0123456789"
-  s <- some (oneOf $ '=':digits++datesepchars)
-  char ']'
-  unless (any (`elem` s) digits && any (`elem` datesepchars) s) $
-    fail "not a bracketed date"
+  try $ do
+    let digits = "0123456789"
+    s <- lookAhead $ between (char '[') (char ']')
+                             (some (oneOf $ '=':digits++datesepchars))
+    unless (any (`elem` s) digits && any (`elem` datesepchars) s) $
+      fail "not a bracketed date"
 
-  -- looks sufficiently like a bracketed date, now we
-  -- re-parse as dates and throw any errors
-  j <- get
-  let ep :: Either (ParseError Char MPErr) (Maybe Day, Maybe Day)
-      ep = parseWithState'
-             j{jparsedefaultyear=first3.toGregorian <$> mdefdate}
-             (do
-               setPosition startpos
-               md1 <- optional datep
-               maybe (return ()) (setYear.first3.toGregorian) md1
-               md2 <- optional $ char '=' >> datep
-               eof
-               return (md1,md2)
-             )
-             (T.pack s)
-  case ep
-    of Left e          -> throwError $ parseErrorPretty e
-       Right (md1,md2) -> return $ catMaybes
-         [("date",) <$> md1, ("date2",) <$> md2]
-
+  -- Looks sufficiently like a bracketed date to commit to parsing a date
+  between (char '[') (char ']') $ do
+    let myear1 = fmap (first3 . toGregorian) mdefdate
+    md1 <- optional $ datep' myear1
+    let myear2 = fmap (first3 . toGregorian) md1 <|> myear1
+    md2 <- optional $ char '=' *> (datep' myear2)
+    pure $ catMaybes [("date",) <$> md1, ("date2",) <$> md2]
