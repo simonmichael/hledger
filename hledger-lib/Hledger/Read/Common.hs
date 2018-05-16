@@ -95,10 +95,10 @@ where
 --- * imports
 import Prelude ()
 import Prelude.Compat hiding (readFile)
-import Control.Arrow ((***))
 import Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
 import Control.Monad.State.Strict
+import Data.Bifunctor
 import Data.Char
 import Data.Data
 import Data.Default
@@ -703,7 +703,7 @@ exponentp :: TextParser m ((Quantity, Int) -> (Quantity, Int))
 exponentp = do
     char' 'e'
     exp <- liftM read $ (++) <$> signp <*> some digitChar
-    return $ (* 10^^exp) *** (0 `max`) . (+ (-exp))
+    return $ bimap (* 10^^exp) (max 0 . subtract exp)
     <?> "exponentp"
 
 -- | Interpret the raw parts of a number, using the provided amount style if any,
@@ -886,12 +886,11 @@ followingcommentandtagsp mdefdate = do
 
   -- Reparse the comment for any bracketed style posting dates.
   -- Use the transaction date for defaults, if provided.
-  eBracketedDates <- fmap sequence
-           $ traverse (runErroringJournalParserAt (bracketedpostingdatesp mdefdate))
-                      commentLines
+  let eBracketedDates =
+        traverse (runTextParserAt (bracketedpostingdatesp mdefdate)) commentLines
   bracketedDates <- case eBracketedDates of
     Right dss -> pure $ concat dss
-    Left e    -> throwError e
+    Left e    -> throwError $ parseErrorPretty e
 
   let pdates = tagDates ++ bracketedDates
   -- pdbg 0 $ "allDates: "++show pdates
@@ -907,9 +906,6 @@ followingcommentandtagsp mdefdate = do
   where
     runTextParserAt parser (pos, txt) =
       runTextParser (setPosition pos *> parser) txt
-
-    runErroringJournalParserAt parser (pos, txt) =
-      runErroringJournalParser (setPosition pos *> parser) txt
 
     tagDate :: (SourcePos, Tag) -> Either String (TagName, Day)
     tagDate (pos, (name, value)) =
@@ -1016,8 +1012,7 @@ tagswithvaluepositions = do
 -- parsed fully to give useful errors. Missing years can be inferred only
 -- if a default date is provided.
 --
-bracketedpostingdatesp
-  :: Monad m => Maybe Day -> ErroringJournalParser m [(TagName,Day)]
+bracketedpostingdatesp :: Maybe Day -> SimpleTextParser [(TagName,Day)]
 bracketedpostingdatesp mdefdate = do
   -- pdbg 0 $ "bracketedpostingdatesp"
   skipMany $ noneOf ['[']
@@ -1043,23 +1038,23 @@ bracketedpostingdatesp mdefdate = do
 -- default date is provided. A missing year in DATE2 will be inferred
 -- from DATE.
 --
--- >>> rejp (bracketeddatetagsp Nothing) "[2016/1/2=3/4]"
+-- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[2016/1/2=3/4]"
 -- Right [("date",2016-01-02),("date2",2016-03-04)]
 --
--- >>> rejp (bracketeddatetagsp Nothing) "[1]"
+-- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[1]"
 -- Left ...not a bracketed date...
 --
--- >>> rejp (bracketeddatetagsp Nothing) "[2016/1/32]"
+-- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[2016/1/32]"
 -- Left ...1:11:...bad date: 2016/1/32...
 --
--- >>> rejp (bracketeddatetagsp Nothing) "[1/31]"
+-- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[1/31]"
 -- Left ...1:6:...partial date 1/31 found, but the current year is unknown...
 --
--- >>> rejp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
+-- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
 -- Left ...1:15:...bad date, different separators...
 --
-bracketeddatetagsp :: Monad m => Maybe Day -> ErroringJournalParser m [(TagName, Day)]
-bracketeddatetagsp mdefdate = lift $ do
+bracketeddatetagsp :: Maybe Day -> SimpleTextParser [(TagName, Day)]
+bracketeddatetagsp mdefdate = do
   -- pdbg 0 "bracketeddatetagsp"
   try $ do
     let digits = "0123456789"
