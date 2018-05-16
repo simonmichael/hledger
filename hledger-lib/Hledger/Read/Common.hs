@@ -362,18 +362,22 @@ descriptionp = many (noneOf (";\n" :: [Char]))
 -- Leading zeroes may be omitted.
 datep :: JournalParser m Day
 datep = do
+  myear <- getYear
+  lift $ datep' myear
+
+datep' :: Maybe Year -> TextParser m Day
+datep' myear = do
   -- hacky: try to ensure precise errors for invalid dates
   -- XXX reported error position is not too good
   -- pos <- genericSourcePos <$> getPosition
   datestr <- do
     c <- digitChar
-    cs <- lift $ many $ choice' [digitChar, datesepchar]
+    cs <- many $ choice' [digitChar, datesepchar]
     return $ c:cs
   let sepchars = nub $ sort $ filter (`elem` datesepchars) datestr
   when (length sepchars /= 1) $ fail $ "bad date, different separators used: " ++ datestr
   let dateparts = wordsBy (`elem` datesepchars) datestr
-  currentyear <- getYear
-  [y,m,d] <- case (dateparts,currentyear) of
+  [y,m,d] <- case (dateparts, myear) of
               ([m,d],Just y)  -> return [show y,m,d]
               ([_,_],Nothing) -> fail $ "partial date "++datestr++" found, but the current year is unknown"
               ([y,m,d],_)     -> return [y,m,d]
@@ -829,7 +833,7 @@ followingcommentp = T.unlines . map snd <$> followingcommentlinesp
 
 followingcommentlinesp :: TextParser m [(SourcePos, Text)]
 followingcommentlinesp = do
-  lift $ skipMany spacenonewline
+  skipMany spacenonewline
   samelineComment@(_, samelineCommentText)
     <- try commentp <|> (,) <$> (getPosition <* newline) <*> pure ""
   newlineComments <- many $ try $ do
@@ -873,10 +877,7 @@ followingcommentandtagsp mdefdate = do
 
   -- Extract date-tag style posting dates from the tags.
   -- Use the transaction date for defaults, if provided.
-  journal <- fmap
-    (\j -> j{jparsedefaultyear=first3.toGregorian <$> mdefdate}) get
-
-  let eTagDates = traverse (tagDate journal)
+  let eTagDates = traverse tagDate
                 $ filter (isDateLabel . fst . snd) tagsWithPositions
                 where isDateLabel txt = txt == "date" || txt == "date2"
   tagDates <- case eTagDates of
@@ -910,17 +911,12 @@ followingcommentandtagsp mdefdate = do
     runErroringJournalParserAt parser (pos, txt) =
       runErroringJournalParser (setPosition pos *> parser) txt
 
-    parseWithStateAt' st parser (pos, txt) =
-      parseWithState' st (setPosition pos *> parser) txt
-
-    tagDate
-      :: Journal
-      -> (SourcePos, Tag)
-      -> Either String (TagName, Day)
-    tagDate journal (pos, (name, value)) =
-      case parseWithStateAt' journal datep (pos, value) of
+    tagDate :: (SourcePos, Tag) -> Either String (TagName, Day)
+    tagDate (pos, (name, value)) =
+      case runTextParserAt (datep' myear) (pos, value) of
         Left e -> Left $ parseErrorPretty e
         Right day -> Right (name, day)
+      where myear = fmap (first3 . toGregorian) mdefdate
 
 -- A transaction/posting comment must start with a semicolon.
 -- This parser discards the leading whitespace of the comment
