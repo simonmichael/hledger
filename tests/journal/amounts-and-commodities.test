@@ -93,22 +93,44 @@ $ hledger -f- bal -V -N
               1.00 B  a
               1.00 B  b
 
-# 8. This should choose the 1,000.00 format (the first amount sets
-# decimal point to period, the second sets digit group size to 3 and
-# digit group separator to comma).
-# hledger -f- print
-# <<<
-# 2015/1/1
-#     (a)  1000.00 A
+# TODO
+# 8. From the first amount it should detect that decimal point is period, 
+# from the second it should detect that there are comma-separated digit groups of size 3,
+# giving commodity A a canonical style of 1,000.00 A.
+#<
+#2015/1/1
+#    (a)  1000.00 A
+#
+#2015/1/1
+#    (a)    1,000 A
+#
+#$ hledger -f- print
+#2015/01/01
+#    (a)    1,000.00 A
+#
+#2015/01/01
+#    (a)    1,000.00 A
+#
+#>=
 
-# 2015/1/1
-#     (a)    1,000 A
-# >>>
-# 2015/01/01
-#     (a)    1,000.00 A
+# TODO #749
+# 9. Here the amount is parsed as 1. I think (hope) no country uses space 
+# for decimal point, so we should parse this as 1000.
+#<     
+#2018-01-01
+# (a)   USD1 000
+#
+#$ hledger -f- reg amt:1
 
-# 2015/01/01
-#     (a)    1,000.00 A
-
-# >>>=0
-
+# TODO #749
+# 10. This commodity directive should complain about a missing decimal point,
+# which we now require.
+#<
+#commodity 1 000  USD
+#
+#2018-01-01
+#  (a)   USD1 000
+#
+#$ hledger -f- bal
+#>2 /decimal point/
+#>=1
