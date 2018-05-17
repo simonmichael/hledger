@@ -10,7 +10,7 @@ packages:
 - hledger-api
 
 extra-deps:
-- easytest-0.1
+- easytest-0.2
 - pandoc-2.1
 - http-types-0.11
 - skylighting-0.5.1

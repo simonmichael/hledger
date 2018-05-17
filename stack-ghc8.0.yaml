@@ -10,4 +10,4 @@ packages:
 - hledger-api
 
 extra-deps:
-- easytest-0.1
+- easytest-0.2
