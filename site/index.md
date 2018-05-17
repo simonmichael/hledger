@@ -170,9 +170,10 @@ a file format for human-friendly approximate time logging
 ### Getting started
 
 [hledger basics tutorial](https://github.com/simonmichael/hledger/wiki/hledger basics tutorial)  
+[hledger terminology](https://github.com/simonmichael/hledger/wiki/hledger terminology)  
 [Create a journal](https://github.com/simonmichael/hledger/wiki/Create a journal)  
 [Common journal entries](https://github.com/simonmichael/hledger/wiki/Common journal entries)  
-[hledger accounting concepts tutorial](https://github.com/simonmichael/hledger/wiki/hledger accounting concepts tutorial)  
+[hledger accounting concepts tutorial](https://github.com/simonmichael/hledger/wiki/hledger accounting concepts tutorial)          
 [FAQ](https://github.com/simonmichael/hledger/wiki/FAQ)
 
 ### Data entry, import, management
