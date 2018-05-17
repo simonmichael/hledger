@@ -212,6 +212,7 @@ multiBalanceReport opts q j =
                   sortedrows = concatMap (\a -> maybe [] (:[]) $ lookup (aname a) anamesandrows) sortedaccounts 
 
               -- Sort the report rows by account code if any, with the empty account code coming last, then account name. 
+              -- TODO keep children below their parent. Have to convert to tree ? 
               sortFlatMultiBalanceReportRowsByAccountCodeAndName = sortBy (comparing acodeandname)
                 where
                   acodeandname r = (acode', aname)
