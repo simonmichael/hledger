@@ -52,9 +52,9 @@ Good choice! You'll get the latest features mentioned in the [release notes](rel
 Below are three ways to build the latest release, in order of preference.
 
 Note, building all hledger tools for the first time could take as much
-as an hour, 1G of free memory, and 1G of disk space.  You can kill and
-restart it without losing progress, and subsequent builds will be much
-faster.
+as an hour, 1G of free memory, and 1G of disk space. 
+(We're not bloated; we just sit atop a lot of fine Haskell engineering!)
+You can kill and restart it without losing progress, and subsequent builds will be much faster.
 Also, here are some known build issues and workarounds:\
 <span class=warnings>
 [arch: advice from Arch wiki](https://wiki.archlinux.org/index.php/Haskell)\
