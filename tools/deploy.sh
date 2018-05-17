@@ -13,8 +13,8 @@
 # timestamp
 echo && date --rfc-3339=seconds && \
 
-# fetch latest code & website - should be already done by webhook
-# git pull && \
+# fetch latest code & website - sometimes already done by webhook, not always
+git pull && \
 
 # fetch latest wiki content
 printf "wiki: " && git -C wiki pull && \
