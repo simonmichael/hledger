@@ -279,3 +279,34 @@ Budget performance in 2018/01/01:
    ||               2018/01/01 
 ===++==========================
  a ||       1 [ 100% of     1] 
+
+# 13. budget goals on both parent and subaccounts are counted
+<
+~ daily
+  (a)        100
+  (a:b:c)      1
+
+2018/1/1
+  (a)          1
+  (a:b:c)      1
+
+$ hledger -f- bal --budget
+Budget performance in 2018/01/01:
+
+       ||               2018/01/01 
+=======++==========================
+ a     ||       1 [   1% of   100] 
+ a:b:c ||       1 [ 100% of     1] 
+-------++--------------------------
+       ||       2 [   2% of   101] 
+
+$ hledger -f- bal --budget --tree
+Budget performance in 2018/01/01:
+
+       ||               2018/01/01 
+=======++==========================
+ a     ||       2 [   2% of   101] 
+   b   ||       1 [ 100% of     1] 
+     c ||       1 [ 100% of     1] 
+-------++--------------------------
+       ||       2 [   2% of   101] 
