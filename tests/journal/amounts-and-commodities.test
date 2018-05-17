@@ -1,0 +1,114 @@
+# Amounts, commodity symbols, commodity directives, amount styles.. 
+
+# 1. decimal point/digit grouping chars are autodetected, 
+# separately for each commodity, which can be surprising. TODO
+# So hledger parses 1 XAU at 1000 USD here:
+<
+1/1
+    assets:gold  1,000 XAU @ 1,000.00 USD
+    equity 
+$ hledger -f - bal --flat --no-total -B
+        1,000.00 USD  assets:gold
+       -1,000.00 USD  equity
+
+# while ledger parses 1000 XAU at 1000 USD each:
+# $ ledger bal --flat --no-total -B
+#           USD1000000  assets:gold
+#          USD-1000000  equity)
+
+# a commodity may contain/end with numbers, if double quoted
+# 2. without quotes, fail. XXX parse error should be clearer here
+<
+2010-04-05 x
+   a   10 DE0002635307
+   b
+$ hledger -f- print
+>2 /unexpected/
+>= 1
+
+# 3. with quotes, ok; quotes appear in print output
+<
+2010-04-05 x
+   a   10 "DE 0002 635307"
+   b
+$ hledger -f- print --explicit
+2010/04/05 x
+    a     10 "DE 0002 635307"
+    b    -10 "DE 0002 635307"
+
+>=
+
+# 4. and in other reports too, I guess
+$ hledger -f- balance
+ 10 "DE 0002 635307"  a
+-10 "DE 0002 635307"  b
+--------------------
+                   0
+
+# 5. autobalance with prices
+<
+2016/1/1
+    saving-card  $-105
+    snacks  95 EUR @@ $100
+    Equity:Unbalanced
+
+$ hledger -f- print -x
+2016/01/01
+    saving-card                   $-105
+    snacks               95 EUR @@ $100
+    Equity:Unbalanced                $5
+
+>=
+
+# 6. The four decimal places of the market price should not alter the
+# canonical style of two decimal places in a's converted-to-B balance
+# (#295), but it turns out they do with -V. This can be fixed with a
+# commodity directive.
+<
+; use a commodity directive to ensure B is displayed with two decimal
+; places, or the price directive plus -V would make it four
+commodity 1.00 B
+
+P 2015/1/1 A 1.0001 B
+
+2015/1/1
+    (a)  1.00 A
+    (b)  1.00 B
+$ hledger -f- bal -V -N
+              1.00 B  a
+              1.00 B  b
+
+# 7. A multi-line commodity directive also works.
+<
+commodity B
+  format 1.00 B
+
+P 2015/1/1 A 1.0001 B
+
+2015/1/1
+    (a)  1.00 A
+    (b)  1.00 B
+
+$ hledger -f- bal -V -N
+              1.00 B  a
+              1.00 B  b
+
+# 8. This should choose the 1,000.00 format (the first amount sets
+# decimal point to period, the second sets digit group size to 3 and
+# digit group separator to comma).
+# hledger -f- print
+# <<<
+# 2015/1/1
+#     (a)  1000.00 A
+
+# 2015/1/1
+#     (a)    1,000 A
+# >>>
+# 2015/01/01
+#     (a)    1,000.00 A
+
+# 2015/01/01
+#     (a)    1,000.00 A
+
+# >>>=0
+
