@@ -114,6 +114,7 @@ $ hledger -f- bal -V -N
 #>=
 
 # TODO #749
+
 # 9. Here the amount is parsed as 1. I think (hope) no country uses space 
 # for decimal point, so we should parse this as 1000.
 #<     
@@ -122,7 +123,6 @@ $ hledger -f- bal -V -N
 #
 #$ hledger -f- reg amt:1
 
-# TODO #749
 # 10. This commodity directive should complain about a missing decimal point,
 # which we now require.
 #<
@@ -134,3 +134,19 @@ $ hledger -f- bal -V -N
 #$ hledger -f- bal
 #>2 /decimal point/
 #>=1
+
+# 11. After a space-grouped amount, a posting comment should parse.
+#<
+#2018-01-01
+#  (a)   USD 1 000  ;comment
+#
+#$ hledger -f- print
+#> //    # any stdout, no stderr, 0 exit code
+
+# 12. After a space-grouped amount, trailing whitespace should parse.
+#<
+#2018-01-01
+#  (a)   USD 1 000 
+#
+#$ hledger -f- print
+#> //    # any stdout, no stderr, 0 exit code
