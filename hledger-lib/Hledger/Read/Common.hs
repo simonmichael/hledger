@@ -115,7 +115,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
-import Safe
 import System.Time (getClockTime)
 import Text.Megaparsec.Compat hiding (skipManyTill)
 import Control.Applicative.Combinators (skipManyTill)
@@ -819,6 +818,7 @@ multilinecommentp = startComment *> anyLine `skipManyTill` endComment
   where
     startComment = string "comment" >> emptyLine
     endComment = eof <|> (string "end comment" >> emptyLine)
+
     emptyLine = void $ skipMany spacenonewline *> newline
     anyLine = anyChar `manyTill` newline
 
@@ -834,11 +834,13 @@ followingcommentp = T.unlines . map snd <$> followingcommentlinesp
 followingcommentlinesp :: TextParser m [(SourcePos, Text)]
 followingcommentlinesp = do
   skipMany spacenonewline
+
   samelineComment@(_, samelineCommentText)
     <- try commentp <|> (,) <$> (getPosition <* eolof) <*> pure ""
   newlineComments <- many $ try $ do
     skipSome spacenonewline -- leading whitespace is required
     commentp
+
   if T.null samelineCommentText && null newlineComments
     then pure []
     else pure $ samelineComment : newlineComments
@@ -863,7 +865,9 @@ followingcommentlinesp = do
 -- Right ("date:3/4=5/6\n",[("date","3/4=5/6")],Just 2000-03-04,Nothing)
 --
 followingcommentandtagsp
-  :: Monad m => Maybe Day -> ErroringJournalParser m (Text, [Tag], Maybe Day, Maybe Day)
+  :: Monad m
+  => Maybe Day
+  -> ErroringJournalParser m (Text, [Tag], Maybe Day, Maybe Day)
 followingcommentandtagsp mdefdate = do
   -- pdbg 0 "followingcommentandtagsp"
 
@@ -871,31 +875,31 @@ followingcommentandtagsp mdefdate = do
   -- pdbg 0 $ "commentws:" ++ show commentLines
 
   -- Reparse the comment for any tags.
-  tagsWithPositions <- case traverse (runTextParserAt tagswithvaluepositions) commentLines of
-    Right tss -> pure $ concat tss
-    Left e    -> throwError $ parseErrorPretty e
+  tagsWithPositions <- case
+    traverse (runTextParserAt tagswithvaluepositions) commentLines of
+      Right tss -> pure $ concat tss
+      Left e    -> throwError $ parseErrorPretty e
 
   -- Extract date-tag style posting dates from the tags.
   -- Use the transaction date for defaults, if provided.
-  let eTagDates = traverse tagDate
-                $ filter (isDateLabel . fst . snd) tagsWithPositions
-                where isDateLabel txt = txt == "date" || txt == "date2"
-  tagDates <- case eTagDates of
-    Right ds -> pure ds
-    Left e   -> throwError e
+  let isDateLabel txt = txt == "date" || txt == "date2"
+      isDateTag = isDateLabel . fst . snd
+  tagDates <- case traverse tagDate $ filter isDateTag tagsWithPositions of
+      Right ds -> pure ds
+      Left e   -> throwError $ parseErrorPretty e
 
   -- Reparse the comment for any bracketed style posting dates.
   -- Use the transaction date for defaults, if provided.
-  let eBracketedDates =
-        traverse (runTextParserAt (bracketedpostingdatesp mdefdate)) commentLines
-  bracketedDates <- case eBracketedDates of
-    Right dss -> pure $ concat dss
-    Left e    -> throwError $ parseErrorPretty e
+  bracketedDates <- case
+    traverse (runTextParserAt (bracketedpostingdatesp mdefdate))
+             commentLines of
+      Right dss -> pure $ concat dss
+      Left e    -> throwError $ parseErrorPretty e
 
   let pdates = tagDates ++ bracketedDates
+      mdate  = fmap snd $ find ((=="date") .fst) pdates
+      mdate2 = fmap snd $ find ((=="date2").fst) pdates
   -- pdbg 0 $ "allDates: "++show pdates
-  let mdate  = headMay $ map snd $ filter ((=="date") .fst) pdates
-      mdate2 = headMay $ map snd $ filter ((=="date2").fst) pdates
 
   let strippedComment = T.unlines $ map (T.strip . snd) commentLines
       tags = map snd tagsWithPositions
@@ -907,30 +911,30 @@ followingcommentandtagsp mdefdate = do
     runTextParserAt parser (pos, txt) =
       runTextParser (setPosition pos *> parser) txt
 
-    tagDate :: (SourcePos, Tag) -> Either String (TagName, Day)
+    tagDate :: (SourcePos, Tag)
+            -> Either (ParseError Char MPErr) (TagName, Day)
     tagDate (pos, (name, value)) =
-      case runTextParserAt (datep' myear) (pos, value) of
-        Left e -> Left $ parseErrorPretty e
-        Right day -> Right (name, day)
+      fmap (name,) $ runTextParserAt (datep' myear) (pos, value)
       where myear = fmap (first3 . toGregorian) mdefdate
 
--- A transaction/posting comment must start with a semicolon.
--- This parser discards the leading whitespace of the comment
--- and returns the source position of the comment's first non-whitespace character.
+-- A transaction/posting comment must start with a semicolon. This parser
+-- discards the leading whitespace of the comment and returns the source
+-- position of the comment's first non-whitespace character.
 commentp :: TextParser m (SourcePos, Text)
-commentp = commentStartingWithp ";"
+commentp = commentStartingWithp (==';')
 
--- A line (file-level) comment can start with a semicolon, hash,
--- or star (allowing org nodes).
--- This parser discards the leading whitespace of the comment
--- and returns the source position of the comment's first non-whitespace character.
+-- A line (file-level) comment can start with a semicolon, hash, or star
+-- (allowing org nodes). This parser discards the leading whitespace of
+-- the comment and returns the source position of the comment's first
+-- non-whitespace character.
 linecommentp :: TextParser m (SourcePos, Text)
-linecommentp = commentStartingWithp ";#*" 
+linecommentp =
+  commentStartingWithp $ \c -> c == ';' || c == '#' || c == '*'
 
-commentStartingWithp :: [Char] -> TextParser m (SourcePos, Text)
-commentStartingWithp cs = do
+commentStartingWithp :: (Char -> Bool) -> TextParser m (SourcePos, Text)
+commentStartingWithp f = do
   -- ptrace "commentStartingWith"
-  oneOf cs
+  satisfy f
   skipMany spacenonewline
   startPos <- getPosition
   content <- T.pack <$> anyChar `manyTill` eolof
@@ -956,10 +960,7 @@ commentStartingWithp cs = do
 -- []
 --
 commentTags :: Text -> [Tag]
-commentTags s =
-  case runTextParser tagsp s of
-    Right r -> r
-    Left _  -> [] -- shouldn't happen
+commentTags s = either (const []) id $ runTextParser tagsp s
 
 -- | Parse all tags found in a string.
 tagsp :: SimpleTextParser [Tag]
@@ -1000,8 +1001,10 @@ tagswithvaluepositions = do
         then tagswithvaluepositions
         else do
           pos <- getPosition
-          (:) <$> fmap (\val -> (pos, (tagName, val))) tagValue
-              <*> tagswithvaluepositions
+          tagVal <- tagValue
+          let tag = (pos, (tagName, tagVal))
+          tags <- tagswithvaluepositions
+          pure $ tag : tags
 
     atEof :: SimpleTextParser [(SourcePos, Tag)]
     atEof = eof *> pure []
@@ -1022,10 +1025,6 @@ bracketedpostingdatesp mdefdate = do
   -- using noneOf ['['] in place of notChar '[' for backwards compatibility
 
 --- ** bracketed dates
-
--- tagorbracketeddatetagsp :: Monad m => Maybe Day -> TextParser u m [Tag]
--- tagorbracketeddatetagsp mdefdate =
---   bracketeddatetagsp mdefdate <|> ((:[]) <$> tagp)
 
 -- | Parse Ledger-style bracketed posting dates ([DATE=DATE2]), as
 -- "date" and/or "date2" tags. Anything that looks like an attempt at
@@ -1057,16 +1056,20 @@ bracketeddatetagsp :: Maybe Day -> SimpleTextParser [(TagName, Day)]
 bracketeddatetagsp mdefdate = do
   -- pdbg 0 "bracketeddatetagsp"
   try $ do
-    let digits = "0123456789"
-    s <- lookAhead $ between (char '[') (char ']')
-                             (some (oneOf $ '=':digits++datesepchars))
-    unless (any (`elem` s) digits && any (`elem` datesepchars) s) $
+    s <- lookAhead
+       $ between (char '[') (char ']')
+       $ some $ digitChar <|> datesepchar <|> char '='
+    unless (any isDigit s && any (`elem` datesepchars) s) $
       fail "not a bracketed date"
-
   -- Looks sufficiently like a bracketed date to commit to parsing a date
+
   between (char '[') (char ']') $ do
-    let myear1 = fmap (first3 . toGregorian) mdefdate
+    let myear1 = fmap readYear mdefdate
     md1 <- optional $ datep' myear1
-    let myear2 = fmap (first3 . toGregorian) md1 <|> myear1
+
+    let myear2 = fmap readYear md1 <|> myear1
     md2 <- optional $ char '=' *> (datep' myear2)
+
     pure $ catMaybes [("date",) <$> md1, ("date2",) <$> md2]
+
+  where readYear = first3 . toGregorian
