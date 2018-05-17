@@ -310,3 +310,9 @@ Budget performance in 2018/01/01:
      c ||       1 [ 100% of     1] 
 -------++--------------------------
        ||       2 [   2% of   101] 
+
+# TODO
+# 14. respect hierarchy when sorting in tree mode
+
+# TODO
+# 15. respect --sort-amount
