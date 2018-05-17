@@ -1024,10 +1024,11 @@ bracketedpostingdatesp
   :: Monad m => Maybe Day -> ErroringJournalParser m [(TagName,Day)]
 bracketedpostingdatesp mdefdate = do
   -- pdbg 0 $ "bracketedpostingdatesp"
-  skipMany $ notChar '['
+  skipMany $ noneOf ['[']
   fmap concat
     $ sepEndBy (try (bracketeddatetagsp mdefdate) <|> char '[' *> pure [])
-               (skipMany $ notChar '[')
+               (skipMany $ noneOf ['['])
+  -- using noneOf ['['] in place of notChar '[' for backwards compatibility
 
 --- ** bracketed dates
 
