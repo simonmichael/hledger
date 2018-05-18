@@ -618,16 +618,17 @@ test: pkgtest functest \
 	$(call def-help,test, run default tests: package tests plus functional tests)
 
 # For quieter tests add --silent. It may hide troubleshooting info.
+# For very verbose tests add --verbosity=debug. It seems hard to get something in between.
 STACKTEST=$(STACK) test
 
 buildtest: $(call def-help,buildtest, build all hledger packages quickly from scratch ensuring no warnings with default snapshot) \
 	buildtest-stack.yaml
 
-buildtest-%: $(call def-help,buildtest-STACKFILE, build all hledger packages quickly from scratch ensuring no warnings with the stack yaml file; eg make buildtest-stack-ghc8.2.yaml )
-	$(STACK) build --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
-
 buildtest-all: $(call def-help,buildtest-all, build all hledger packages quickly from scratch ensuring no warnings with each ghc version/stackage snapshot )
 	for F in stack-*.yaml; do make --no-print-directory buildtest-$$F; done
+
+buildtest-%: $(call def-help,buildtest-STACKFILE, build all hledger packages quickly from scratch ensuring no warnings with the stack yaml file; eg make buildtest-stack-ghc8.2.yaml )
+	$(STACK) build --test --bench --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
 
 pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 	@($(STACKTEST) && echo $@ PASSED) || (echo $@ FAILED; false)
