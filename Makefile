@@ -284,15 +284,6 @@ build: \
 	$(call def-help,build, download dependencies and build hledger executables (with stack))
 	$(STACK) build
 
-# XXX currently always fails on hledger nonportable include path warning https://github.com/commercialhaskell/stack/issues/3918
-build-check-warnings: \
-	$(call def-help,build-check-warnings, repeatedly build all hledger executables quickly ensuring no warnings)
-	stack build --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --file-watch
-
-addons: \
-	$(call def-help,addons, compile the experimental add-on commands, required for functional tests )
-	bin/compile.sh
-
 # check-setup: \
 # 	$(call def-help,check-setup,\
 # 	run some tests to validate the development environment\
@@ -563,100 +554,39 @@ tools/generatejournal: tools/generatejournal.hs \
 		$(call def-help,tools/generatejournal, build the generatejournal tool )
 	$(GHC) tools/generatejournal.hs
 
+
 ###############################################################################
 $(call def-help-subheading,TESTING:)
 
-# packdeps: \
-# 	$(call def-help,packdeps,\
-# 	run packdeps on each package to check for disallowed newer dependencies\
-# 	)
-# 	for p in $(PACKAGES); do packdeps $$p/$$p.cabal; done
-
 test: pkgtest functest \
-	$(call def-help,test, run default tests )
+	$(call def-help,test, run default tests: package tests plus functional tests)
 
-travistest: $(call def-help,travistest, run tests similar to the most thorough travis tests)
-	stack clean
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-ui
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-web
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-api
-	sh -e bin/compile.sh
-	make functest
+# When running code tests, also fail if we notice GHC warnings.
+# We don't force a rebuild of all files, so might not catch all warnings;
+# use make warningstest-watch or make allghcstest for a thorough warnings check.
+# For quieter tests add --silent. It may hide troubleshooting info.
+STACKTEST=$(STACK) test --ghc-options="$(WARNINGS) -Werror" 
 
-# test-ghc-%: # bin/hledgerdev.ghc-$* \
-# 	$(call def-help,test-ghc-%,\
-# 	run default tests with a specific GHC version\
-# 	some functional tests (add, include, read-csv..) have bin/hledgerdev hard coded - might need to symlink it\
-# 	)
-# 	@echo; echo testing hledger built with ghc-$*
-# 	@(echo unit tests: \
-# 	&& bin/hledgerdev.ghc-$* test \
-# 	&& echo functional tests: \
-# 	&& $(SHELLTEST) tests -w bin/hledgerdev.ghc-$* \
-# 	&& echo $@ PASSED) || echo $@ FAILED
+warningstest: $(call def-help,warningstest-watch, build all hledger executables quickly from scratch ensuring no warnings with default snapshot)
+	stack build --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
 
-# test-ghcall: bin/hledgerdev.ghcall \
-# 	test-ghc-7.6.1 \
-# 	test-ghc-7.4.1 \
-# 	test-ghc-7.2.2 \
-# 	test-ghc-7.0.4 \
-# 	$(call def-help,test-ghcall,\
-# 	run default tests with all supported GHC versions\
-# 	)
+pkgtest: $(call def-help,pkgtest, run the test suites in each package )
+	@($(STACKTEST) && echo $@ PASSED) || (echo $@ FAILED; false)
 
-# codetest: unittest functest \
-# 	$(call def-help,codetest,\
-# 	quick code tests, to be run frequently\
-# 	)
+hunittest: $(call def-help,hunittest, run just the hunit tests in hledger-lib )
+	@($(STACKTEST) hledger-lib:test:hunittests && echo $@ PASSED) || (echo $@ FAILED; false)
 
-# committest: hlinttest unittest doctest functest haddocktest warningstest quickcabaltest \
-# 	$(call def-help,committest,\
-# 	more thorough pre-commit/pre-push tests\
-# 	)
+# doctests don't run with ghc 8.4 on mac, see package.yaml
+doctest: $(call def-help,doctest, run just the doctest tests in hledger-lib )
+	@($(STACKTEST) --stack-yaml stack-ghc8.2.yaml hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
 
-# # releasetest: Clean unittest functest fullcabaltest haddocktest #warningstest doctest \
-# # 	$(call def-help,releasetest,\
-# # 	pre-release tests\
-# # 	)
+easytest: $(call def-help,easytest, run just the easytest tests in hledger-lib )
+	@($(STACKTEST) hledger-lib:test:easytests && echo $@ PASSED) || (echo $@ FAILED; false)
 
-# hlinttest hlint: \
-# 	$(call def-help,hlinttest (or hlint),\
-# 	generate a hlint report\
-# 	)
-# 	hlint --hint=hlint --report=hlint.html $(SOURCEFILES)
-
-#@echo package tests:
-pkgtest: \
-	$(call def-help,pkgtest, run the test suites for each package )
-	@($(STACK) test --silent \
-		&& echo $@ PASSED) || (echo $@ FAILED; false)
-
-# NB ensure hledger executable is current (eg do pkgtest first)
-#@echo "built-in tests (hledger cli unit tests)":
-builtintest: \
-	$(call def-help,builtintest, run tests built in to the hledger executable (these are also run by pkg tests) )
-	@($(STACK) exec hledger test \
-		&& echo $@ PASSED) || (echo $@ FAILED; false)
-
-# builtintestghc: bin/hledgerdev \
-# 	$(call def-help,builtintest, run built-in unit tests with ghc build )
-# 	@(bin/hledgerdev test \
-# 		&& echo $@ PASSED) || echo $@ FAILED
-
-# builtintestghc-%: bin/hledgerdev \
-# 	$(call def-help,builtintest-PAT, run built-in unit tests whose name contains PAT )
-# 	@(bin/hledgerdev test $* \
-# 		&& echo $@ PASSED) || echo $@ FAILED
-
-# builtintestghc-interpreted: \
-# 	$(call def-help,builtintest-interpreted,\
-# 	run built-in unit tests without waiting for compilation\
-# 	)
-# 	@echo "builtin tests (interpreted)":
-# 	@(run$(GHC) $(MAIN) test \
-# 		&& echo $@ PASSED) || echo $@ FAILED
+# NB ensure an up to date hledger executable is built (eg make hunittest).
+# I think we don't do it automatically to minimise unnecessary rebuilding.
+builtintest: $(call def-help,builtintest, run hledgers built in test command)
+	@($(STACK) exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # assumes hledger is built and uses whatever build is there, avoiding excessive rebuilding
 #functest: addons tests/addons/hledger-addon 
@@ -679,64 +609,43 @@ tests/addons/hledger-addon: \
 	mkdir tests/addons/hledger-addondir
 	chmod +x tests/addons/hledger-*
 
-# DOCTESTFILES=\
-# 	hledger/Hledger/Cli/Tests.hs
-# doctest: tools/doctest \
-# 	$(call def-help,doctest,\
-# 	run doc tests\
-# 	)
-# 	@for f in $(DOCTESTFILES); do \
-# 		(tools/doctest $$f && echo $@ PASSED) || echo $@ FAILED ; done
+# hlinttest hlint: $(call def-help,hlinttest (or hlint),generate a hlint report)
+# 	hlint --hint=hlint --report=hlint.html $(SOURCEFILES)
 
-haddocktest: \
-	$(call def-help,haddocktest, run haddock and make sure it succeeds )
-	@(make --quiet haddock \
-		&& echo $@ PASSED) || (echo $@ FAILED; false)
+haddocktest: $(call def-help,haddocktest, run haddock and make sure it succeeds )
+	@(make --quiet haddock && echo $@ PASSED) || (echo $@ FAILED; false)
 
-# warningstest: \
-# 	$(call def-help,warningstest,\
-# 	make sure the normal build has no warnings XXX needs updating\
-# 	)
-# 	@(make -s clean \
-# 		&& make --no-print-directory -s hledgernowarnings \
-# 		&& echo $@ PASSED) || echo $@ FAILED
+cabalfiletest: $(call def-help,cabalfiletest, run cabal check to test cabal file syntax )
+	@(make --no-print-directory cabalcheck && echo $@ PASSED) || (echo $@ FAILED; false)
 
-cabalfiletest: \
-	$(call def-help,cabalfiletest, run cabal check to test cabal file syntax )
-	@(make --no-print-directory cabalcheck \
-		&& echo $@ PASSED) || (echo $@ FAILED; false)
-
-# quickcabaltest: \
-# 	$(call def-help,quickcabaltest,\
-# 	make sure cabal is reasonably happy\
-# 	)
-# 	@(make --no-print-directory cabalclean cabalcheck cabalconfigure \
-# 		&& echo $@ PASSED) || echo $@ FAILED
-
-# fullcabaltest: \
-# 	$(call def-help,fullcabaltest,\
-# 	make sure cabal is happy in all possible ways\
-# 	)
-# 	(for p in $(PACKAGES); do ( \
-# 		printf "\ntesting $$p package\n" \
-# 		&& cd $$p \
-# 		&& cabal clean \
-# 		&& cabal check \
-# 		&& $(CABALINSTALL) \
-# 		&& cabal sdist \
-# 		); done \
-# 		&& echo $@ PASSED) || echo $@ FAILED
-# #		&& cabal upload dist/$$p-$(VERSION).tar.gz --check -v3 \
-
-allsnapshotstest: $(call def-help,allsnapshotstest, try a build/test/bench with each supported stackage snapshot/GHC version) \
+allghcstest: $(call def-help,allghcstest, build/test/benchmark with all supported GHC versions/stackage snapshots and warning-free) \
 	test-stack-ghc7.10.yaml \
 	test-stack-ghc8.0.yaml \
 	test-stack-ghc8.2.yaml \
 	test-stack.yaml \
 
 test-stack%yaml:
-	stack --stack-yaml stack$*yaml clean
-	stack --stack-yaml stack$*yaml --install-ghc build --test --bench --haddock --no-haddock-deps
+	$(STACK) --stack-yaml stack$*yaml clean
+	$(STACK) --stack-yaml stack$*yaml build --ghc-options="$(WARNINGS) -Werror" --test --bench --haddock --no-haddock-deps
+
+travistest: $(call def-help,travistest, run tests similar to our travis CI tests)
+	stack clean
+	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib
+	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger
+	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-ui
+	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-web
+	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-api
+	make functest
+
+# committest: hlinttest unittest doctest functest haddocktest warningstest quickcabaltest \
+# 	$(call def-help,committest,more thorough pre-commit/pre-push tests)
+
+# releasetest: Clean unittest functest fullcabaltest haddocktest #warningstest doctest \
+# 	$(call def-help,releasetest,pre-release tests)
+
+
+###############################################################################
+$(call def-help-subheading,BENCHMARKING:)
 
 BENCHEXES=hledger
 # or, eg: BENCHEXES=ledger,hledger-1.4,hledger  
@@ -1551,6 +1460,9 @@ cloc: $(call def-help,cloc, count lines of source code )
 
 ###############################################################################
 $(call def-help-subheading,MISCELLANEOUS:)
+
+watch-%: $(call def-help,watchRULE, run make RULE repeatedly when any committed file changes eg: make watch-warningstest)
+	 @git ls | entr -r make $*
 
 Shake: Shake.hs $(call def-help,Shake, ensure the Shake script is compiled )
 	./Shake.hs
