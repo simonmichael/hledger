@@ -11,9 +11,11 @@ packages:
 
 extra-deps:
 - easytest-0.2
-- pandoc-2.1
-- http-types-0.11
-- skylighting-0.5.1
+# XXX may need to enable these when building Shake.hs.
+# They probably shouldn't be here, and are causing headaches, so commented for now.
+# - pandoc-2.2.1
+# - http-types-0.11
+# - skylighting-0.5.1
 
 nix:
   pure: false
