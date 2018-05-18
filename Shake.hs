@@ -67,7 +67,6 @@ usage = unlines
   ]
 
 pandoc = "stack exec -- pandoc" -- pandoc from project's stackage snapshot
-pandocSiteFilter = "tools/pandoc-site"
 makeinfo = "makeinfo"
 -- nroff = "nroff"
 groff = "groff"
@@ -297,11 +296,6 @@ main = do
     phony "website-render" $ do
         need webhtmlpages
 
-    pandocSiteFilter %> \out -> do
-        let source = out <.> "hs"
-        need [source]
-        cmd "stack --stack-yaml=stack-ghc8.2.yaml ghc -- -o" out source
-
     "site/_site/files/README" : [ "site/_site//*" <.> ext | ext <- webcopyfileexts ] |%> \out -> do
         let input = "site" </> dropDirectory2 out
         copyFile' input out
@@ -311,12 +305,12 @@ main = do
             pageTitle = takeBaseName out
             template  = "site/site.tmpl"
             siteRoot  = if "site/_site/doc//*" ?== out then "../.." else "."
-        need [source, template, pandocSiteFilter]
+        need [source, template]
         cmd Shell pandoc "--from markdown --to html" source
                          "--template"                template
                          ("--metadata=siteRoot:"  ++ siteRoot)
                          ("--metadata=title:"     ++ pageTitle)
-                         "--filter"                  pandocSiteFilter
+                         "--lua-filter"              "tools/pandoc-site.lua"
                          "--output"                  out
 
     -- cleanup
