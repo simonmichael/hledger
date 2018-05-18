@@ -19,6 +19,7 @@ TAGS
 /tools/pandoc-drop-links
 /tools/pandoc-drop-notes
 /tools/pandoc-drop-toc
+/tools/generatetimeclock
 
 # Tricksy rules ignoring some typical temp files.
 # For troubleshooting: git check-ignore --verbose PATHS...
@@ -73,4 +74,3 @@ hledger-web/yesod-devel/
 .hledger-web_client_session_key.aes
 
 # recent stuff
-
