@@ -561,12 +561,6 @@ ghcid-ui: $(call def-help,ghcid-ui, start ghcid autobuilder on hledger-lib + hle
 	ghcid -c 'make ghci-ui'
 
 ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + hledger + hledger-web)
-# When running code tests, also fail if we notice GHC warnings.
-# We don't force a rebuild of all files, so might not catch all warnings;
-# use make warningstest or make allghcstest for a thorough warnings check.
-# When running code tests, also fail if we notice GHC warnings.
-# We don't force a rebuild of all files, so might not catch all warnings;
-# use make warningstest or make allghcstest for a thorough warnings check.
 	ghcid -c 'make ghci-web'
 
 ghcid-api: $(call def-help,ghcid-api, start ghcid autobuilder on hledger-lib + hledger + hledger-api)
@@ -623,14 +617,17 @@ $(call def-help-subheading,TESTING:)
 test: pkgtest functest \
 	$(call def-help,test, run default tests: package tests plus functional tests)
 
-# When running code tests, also fail if we notice GHC warnings.
-# We don't force a rebuild of all files, so might not catch all warnings;
-# use make warningstest or make allghcstest for a thorough warnings check.
 # For quieter tests add --silent. It may hide troubleshooting info.
-STACKTEST=$(STACK) test --ghc-options="$(WARNINGS) -Werror" 
+STACKTEST=$(STACK) test
 
-warningstest: $(call def-help,warningstest-watch, build all hledger executables quickly from scratch ensuring no warnings with default snapshot)
-	$(STACK) build --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
+buildtest: $(call def-help,buildtest, build all hledger packages quickly from scratch ensuring no warnings with default snapshot) \
+	buildtest-stack.yaml
+
+buildtest-%: $(call def-help,buildtest-STACKFILE, build all hledger packages quickly from scratch ensuring no warnings with the stack yaml file; eg make buildtest-stack-ghc8.2.yaml )
+	$(STACK) build --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
+
+buildtest-all: $(call def-help,buildtest-all, build all hledger packages quickly from scratch ensuring no warnings with each ghc version/stackage snapshot )
+	for F in stack-*.yaml; do make --no-print-directory buildtest-$$F; done
 
 pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 	@($(STACKTEST) && echo $@ PASSED) || (echo $@ FAILED; false)
@@ -699,10 +696,10 @@ travistest: $(call def-help,travistest, run tests similar to our travis CI tests
 	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-api
 	make functest
 
-# committest: hlinttest unittest doctest functest haddocktest warningstest quickcabaltest \
+# committest: hlinttest unittest doctest functest haddocktest buildtest quickcabaltest \
 # 	$(call def-help,committest,more thorough pre-commit/pre-push tests)
 
-# releasetest: Clean unittest functest fullcabaltest haddocktest #warningstest doctest \
+# releasetest: Clean unittest functest fullcabaltest haddocktest #buildtest doctest \
 # 	$(call def-help,releasetest,pre-release tests)
 
 
@@ -1468,7 +1465,7 @@ cloc: $(call def-help,cloc, count lines of source code )
 ###############################################################################
 $(call def-help-subheading,MISCELLANEOUS:)
 
-watch-%: $(call def-help,watchRULE, run make RULE repeatedly when any committed file changes eg: make watch-warningstest)
+watch-%: $(call def-help,watch-RULE, run make RULE repeatedly when any committed file changes)
 	 @git ls-files | entr -r make $*
 
 Shake: Shake.hs $(call def-help,Shake, ensure the Shake script is compiled )
