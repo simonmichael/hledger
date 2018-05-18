@@ -41,8 +41,8 @@
 # def-help* functions for documenting make rules. See the file for usage.
 -include help-system.mk
 
-$(call def-help-heading,Main make rules in the hledger project:)
-$(call def-help-heading,TODO: some of these need updating)
+$(call def-help-heading,Main make rules in the hledger project.)
+$(call def-help-heading,(not always entirely up to date))
 $(call def-help-heading,---------------------------------------)
 $(call def-help-heading, )
 
@@ -554,6 +554,68 @@ tools/generatejournal: tools/generatejournal.hs \
 		$(call def-help,tools/generatejournal, build the generatejournal tool )
 	$(GHC) tools/generatejournal.hs
 
+ghcid: $(call def-help,ghcid, start ghcid autobuilder on hledger-lib + hledger)
+	ghcid -c 'make ghci'
+
+ghcid-ui: $(call def-help,ghcid-ui, start ghcid autobuilder on hledger-lib + hledger + hledger-ui)
+	ghcid -c 'make ghci-ui'
+
+ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + hledger + hledger-web)
+# When running code tests, also fail if we notice GHC warnings.
+# We don't force a rebuild of all files, so might not catch all warnings;
+# use make warningstest or make allghcstest for a thorough warnings check.
+# When running code tests, also fail if we notice GHC warnings.
+# We don't force a rebuild of all files, so might not catch all warnings;
+# use make warningstest or make allghcstest for a thorough warnings check.
+	ghcid -c 'make ghci-web'
+
+ghcid-api: $(call def-help,ghcid-api, start ghcid autobuilder on hledger-lib + hledger + hledger-api)
+	ghcid -c 'make ghci-api'
+
+ghcid-lib-doctest: $(call def-help,ghcid-lib-doctest, start ghcid autobuilder on hledger-lib doctests)
+	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
+
+ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
+	stack exec \
+		--package base-prelude \
+		--package directory \
+		--package extra \
+		--package safe \
+		--package shake \
+		--package time \
+		-- ghcid Shake.hs
+# same packages as in Shake.hs
+
+
+# multi-package GHCI prompts
+ghci: $(call def-help,ghci, start ghci REPL on hledger-lib + hledger)
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
+
+ghci-prof: $(call def-help,ghci-prof, start ghci REPL on hledger-lib + hledger with profiling information)
+	stack build --profile hledger --only-dependencies
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli/Main.hs
+
+ghci-dev: $(call def-help,ghci-dev, start ghci REPL on hledger-lib + hledger + dev.hs script)
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
+
+ghci-ui: $(call def-help,ghci-ui, start ghci REPL on hledger-lib + hledger + hledger-ui)
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
+
+ghci-web: link-web-dirs $(call def-help,ghci-web, start ghci REPL on hledger-lib + hledger + hledger-web)
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
+
+ghci-api: (call def-help,ghci-api, start ghci REPL on hledger-lib + hledger + hledger-api)
+	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-api/hledger-api.hs
+
+# ghci-all: $(call def-help,ghci-all, start ghci REPL on all the hledger)
+# 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) \
+# 		hledger-ui/Hledger/UI/Main.hs \
+# 		hledger-web/app/main.hs \
+# 		hledger-api/hledger-api.hs \
+
+ghci-lib-doctest: $(call def-help,ghci-lib-doctest, start ghci REPL on hledger-lib doctests)
+	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests
+
 
 ###############################################################################
 $(call def-help-subheading,TESTING:)
@@ -646,6 +708,52 @@ travistest: $(call def-help,travistest, run tests similar to our travis CI tests
 
 ###############################################################################
 $(call def-help-subheading,BENCHMARKING:)
+
+samplejournals: $(call def-help,samplejournals, regenerate standard sample journals in examples/) \
+	examples/sample.journal \
+	examples/100x100x10.journal \
+	examples/1000x1000x10.journal \
+	examples/1000x10000x10.journal \
+	examples/10000x1000x10.journal \
+	examples/10000x10000x10.journal \
+	examples/100000x1000x10.journal \
+	examples/1000000x1000x10.journal \
+	examples/ascii.journal \
+	examples/chinese.journal \
+	examples/mixed.journal \
+
+examples/sample.journal:
+	true # XXX should probably regenerate this
+
+examples/100x100x10.journal: tools/generatejournal
+	tools/generatejournal 100 100 10 >$@
+
+examples/1000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 1000 1000 10 >$@
+
+examples/1000x10000x10.journal: tools/generatejournal
+	tools/generatejournal 1000 10000 10 >$@
+
+examples/10000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 10000 1000 10 >$@
+
+examples/10000x10000x10.journal: tools/generatejournal
+	tools/generatejournal 10000 10000 10 >$@
+
+examples/100000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 100000 1000 10 >$@
+
+examples/1000000x1000x10.journal: tools/generatejournal
+	tools/generatejournal 1000000 1000 10 >$@
+
+examples/ascii.journal: tools/generatejournal
+	tools/generatejournal 3 5 5 >$@
+
+examples/chinese.journal: tools/generatejournal
+	tools/generatejournal 3 5 5 --chinese >$@
+
+examples/mixed.journal: tools/generatejournal
+	tools/generatejournal 3 5 5 --mixed >$@
 
 BENCHEXES=hledger
 # or, eg: BENCHEXES=ledger,hledger-1.4,hledger  
@@ -755,107 +863,6 @@ quickheap-%: hledgerprof samplejournals \
 # repl-web:\
 # 	$(call def-help,repl-web, start a cabal REPL and load the hledger-web package)
 # 	(cd hledger-web; cabal repl exe:hledger-web)
-
-# multi-package GHCI prompts
-ghci: $(call def-help,ghci, start ghci REPL on hledger-lib + hledger)
-	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger/Hledger/Cli/Main.hs
-
-ghci-prof: $(call def-help,ghci-prof, start ghci REPL on hledger-lib + hledger with profiling information)
-	stack build --profile hledger --only-dependencies
-	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli/Main.hs
-
-ghci-dev: $(call def-help,ghci-dev, start ghci REPL on hledger-lib + hledger + dev.hs script)
-	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
-
-ghci-ui: $(call def-help,ghci-ui, start ghci REPL on hledger-lib + hledger + hledger-ui)
-	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-ui/Hledger/UI/Main.hs
-
-ghci-web: link-web-dirs $(call def-help,ghci-web, start ghci REPL on hledger-lib + hledger + hledger-web)
-	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
-
-ghci-api: (call def-help,ghci-api, start ghci REPL on hledger-lib + hledger + hledger-api)
-	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-api/hledger-api.hs
-
-# ghci-all: $(call def-help,ghci-all, start ghci REPL on all the hledger)
-# 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) \
-# 		hledger-ui/Hledger/UI/Main.hs \
-# 		hledger-web/app/main.hs \
-# 		hledger-api/hledger-api.hs \
-
-ghci-lib-doctest: $(call def-help,ghci-lib-doctest, start ghci REPL on hledger-lib doctests)
-	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests
-
-ghcid: $(call def-help,ghcid, start ghcid autobuilder on hledger-lib + hledger)
-	ghcid -c 'make ghci'
-
-ghcid-ui: $(call def-help,ghcid-ui, start ghcid autobuilder on hledger-lib + hledger + hledger-ui)
-	ghcid -c 'make ghci-ui'
-
-ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + hledger + hledger-web)
-	ghcid -c 'make ghci-web'
-
-ghcid-api: $(call def-help,ghcid-api, start ghcid autobuilder on hledger-lib + hledger + hledger-api)
-	ghcid -c 'make ghci-api'
-
-ghcid-lib-doctest: $(call def-help,ghcid-lib-doctest, start ghcid autobuilder on hledger-lib doctests)
-	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
-
-ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
-	stack exec \
-		--package base-prelude \
-		--package directory \
-		--package extra \
-		--package safe \
-		--package shake \
-		--package time \
-		-- ghcid Shake.hs
-# same packages as in Shake.hs
-
-samplejournals: $(call def-help,samplejournals, regenerate standard sample journals in examples/) \
-	examples/sample.journal \
-	examples/100x100x10.journal \
-	examples/1000x1000x10.journal \
-	examples/1000x10000x10.journal \
-	examples/10000x1000x10.journal \
-	examples/10000x10000x10.journal \
-	examples/100000x1000x10.journal \
-	examples/1000000x1000x10.journal \
-	examples/ascii.journal \
-	examples/chinese.journal \
-	examples/mixed.journal \
-
-examples/sample.journal:
-	true # XXX should probably regenerate this
-
-examples/100x100x10.journal: tools/generatejournal
-	tools/generatejournal 100 100 10 >$@
-
-examples/1000x1000x10.journal: tools/generatejournal
-	tools/generatejournal 1000 1000 10 >$@
-
-examples/1000x10000x10.journal: tools/generatejournal
-	tools/generatejournal 1000 10000 10 >$@
-
-examples/10000x1000x10.journal: tools/generatejournal
-	tools/generatejournal 10000 1000 10 >$@
-
-examples/10000x10000x10.journal: tools/generatejournal
-	tools/generatejournal 10000 10000 10 >$@
-
-examples/100000x1000x10.journal: tools/generatejournal
-	tools/generatejournal 100000 1000 10 >$@
-
-examples/1000000x1000x10.journal: tools/generatejournal
-	tools/generatejournal 1000000 1000 10 >$@
-
-examples/ascii.journal: tools/generatejournal
-	tools/generatejournal 3 5 5 >$@
-
-examples/chinese.journal: tools/generatejournal
-	tools/generatejournal 3 5 5 --chinese >$@
-
-examples/mixed.journal: tools/generatejournal
-	tools/generatejournal 3 5 5 --mixed >$@
 
 ###############################################################################
 $(call def-help-subheading,DOCUMENTATION:)
