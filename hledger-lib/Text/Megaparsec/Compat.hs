@@ -18,10 +18,10 @@ where
 
 import qualified Data.Set as S
 import Data.Text
-import Text.Megaparsec
 
 #if MIN_VERSION_megaparsec(6,0,0)
 
+import Text.Megaparsec hiding (skipManyTill)
 import Text.Megaparsec.Char
 import Data.List.NonEmpty (fromList)
 import Data.Void (Void)
@@ -48,6 +48,7 @@ mptext = string
 
 #else
 
+import Text.Megaparsec
 import Text.Megaparsec.Prim (MonadParsec)
 
 -- | A basic parse error type.

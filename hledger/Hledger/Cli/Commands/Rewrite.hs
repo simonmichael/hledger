@@ -14,10 +14,8 @@ import Data.List (sortOn, foldl')
 import Data.String.Here
 import qualified Data.Text as T
 import Hledger
-import Hledger.Data.AutoTransaction (runModifierTransaction)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Print
---import Hledger.Cli hiding (outputflags)
 import System.Console.CmdArgs.Explicit
 import Text.Printf
 import Text.Megaparsec
