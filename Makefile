@@ -563,12 +563,12 @@ test: pkgtest functest \
 
 # When running code tests, also fail if we notice GHC warnings.
 # We don't force a rebuild of all files, so might not catch all warnings;
-# use make warningstest-watch or make allghcstest for a thorough warnings check.
+# use make warningstest or make allghcstest for a thorough warnings check.
 # For quieter tests add --silent. It may hide troubleshooting info.
 STACKTEST=$(STACK) test --ghc-options="$(WARNINGS) -Werror" 
 
 warningstest: $(call def-help,warningstest-watch, build all hledger executables quickly from scratch ensuring no warnings with default snapshot)
-	stack build --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
+	$(STACK) build --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
 
 pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 	@($(STACKTEST) && echo $@ PASSED) || (echo $@ FAILED; false)
@@ -1462,7 +1462,7 @@ cloc: $(call def-help,cloc, count lines of source code )
 $(call def-help-subheading,MISCELLANEOUS:)
 
 watch-%: $(call def-help,watchRULE, run make RULE repeatedly when any committed file changes eg: make watch-warningstest)
-	 @git ls | entr -r make $*
+	 @git ls-files | entr -r make $*
 
 Shake: Shake.hs $(call def-help,Shake, ensure the Shake script is compiled )
 	./Shake.hs
