@@ -763,8 +763,9 @@ rawnumberp = do
         leadingDigits <- some digitChar
         option (Nothing, [leadingDigits]) . try $ do
             firstSep <- oneOf sepChars <|> whitespaceChar
-            groups <- some digitChar `sepBy1` char firstSep
-            return (Just firstSep, leadingDigits : groups)
+            secondGroup <- some digitChar
+            otherGroups <- many $ try $ char firstSep *> some digitChar
+            return (Just firstSep, leadingDigits : secondGroup : otherGroups)
 
     let remSepChars = maybe sepChars (`delete` sepChars) firstSep
         modifier
