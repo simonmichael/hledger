@@ -15,16 +15,9 @@ import Data.Function (on)
 import Data.Maybe (fromMaybe)
 import Data.Text (unpack)
 
-data TOCAlignment = TOCOff | TOCLeft | TOCRight
-
 headerLevel :: Block -> Int
 headerLevel (Header level _ _) = level
 headerLevel _ = error "not a header"
-
-ignoreTOC :: Block -> Block
-ignoreTOC (Header level (ident, classes, params) inlines) =
-  Header level (ident, "notoc" : classes, params) inlines
-ignoreTOC x = x
 
 collectHeaders :: Block -> [Block]
 collectHeaders header@(Header _ (_, classes, _) _) =
@@ -52,13 +45,10 @@ markupHeader n = error $    "'markupHeader' should only be passed a 'Node $ Head
 markupHeaders :: Forest Block -> Block
 markupHeaders = OrderedList (1, Decimal, Period) . map markupHeader
 
-createTable :: TOCAlignment -> Forest Block -> Block
-createTable _ [] = Null
-createTable alignment headers
-    = let alignAttr = case alignment of
-                        TOCRight -> " class=\"right-toc\""
-                        _        -> ""
-          navBegin  = "<nav id=\"toc\"" ++ alignAttr ++ ">"
+createTable :: Forest Block -> Block
+createTable [] = Null
+createTable headers
+    = let navBegin  = "<nav id=\"toc\" class=\"right-toc\">"
           navEnd    = "</nav>"
           tocDoc    = Pandoc nullMeta [Para [Str "Contents"], markupHeaders headers]
           tocString = unpack . fromRight mempty . runPure . writeHtml5String def $ tocDoc
@@ -68,12 +58,11 @@ generateTOC :: Block -> Block -> Block
 generateTOC toc (Para [Str "$toc$"]) = toc
 generateTOC _   x                    = x
 
-tableOfContents :: TOCAlignment -> Pandoc -> Pandoc
-tableOfContents TOCOff ast = walk ignoreTOC ast
-tableOfContents alignment ast
+tableOfContents :: Pandoc -> Pandoc
+tableOfContents ast
     = let headers = query collectHeaders ast
-          toc     = createTable alignment . groupByHierarchy $ headers
+          toc     = createTable . groupByHierarchy $ headers
        in walk (generateTOC toc) ast
 
 main :: IO ()
-main = toJSONFilter (tableOfContents TOCRight)
+main = toJSONFilter tableOfContents
