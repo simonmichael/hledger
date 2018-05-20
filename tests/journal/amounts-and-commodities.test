@@ -136,17 +136,17 @@ $ hledger -f- bal -V -N
 #>=1
 
 # 11. After a space-grouped amount, a posting comment should parse.
-#<
-#2018-01-01
-#  (a)   USD 1 000  ;comment
-#
-#$ hledger -f- print
-#> //    # any stdout, no stderr, 0 exit code
+<
+2018-01-01
+  (a)   USD 1 000  ;comment
+
+$ hledger -f- print
+> //    # any stdout, no stderr, 0 exit code
 
 # 12. After a space-grouped amount, trailing whitespace should parse.
-#<
-#2018-01-01
-#  (a)   USD 1 000 
-#
-#$ hledger -f- print
-#> //    # any stdout, no stderr, 0 exit code
+<
+2018-01-01
+  (a)   USD 1 000 
+
+$ hledger -f- print
+> //    # any stdout, no stderr, 0 exit code
