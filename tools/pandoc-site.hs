@@ -2,16 +2,12 @@
 {-# LANGUAGE CPP #-}
 
 import Text.Pandoc
-import Text.Pandoc.Walk (walk, query)
-import Text.Pandoc.Class (runPure)
+import Text.Pandoc.Walk (query)
 import Text.Pandoc.Builder (text, toList)
-import Text.Pandoc.Options (def)
 import Text.Pandoc.JSON (toJSONFilter)
 import Text.Pandoc.Shared (hierarchicalize, Element(..))
 
-import Data.Either (fromRight)
 import Data.Maybe (fromMaybe)
-import Data.Text (unpack)
 
 collectHeaders :: Block -> [Block]
 collectHeaders header@(Header _ (_, classes, _) _) =
@@ -36,24 +32,22 @@ markupElement n = error $    "'markupElement' should only be passed a 'Sec'\n"
 markupElements :: [Element] -> Block
 markupElements = OrderedList (1, Decimal, Period) . map markupElement
 
-createTable :: [Element] -> Block
-createTable [] = Null
+createTable :: [Element] -> [Block]
+createTable [] = []
 createTable headers
-    = let navBegin  = "<nav id=\"toc\" class=\"right-toc\">"
-          navEnd    = "</nav>"
-          tocDoc    = Pandoc nullMeta [Para [Str "Contents"], markupElements headers]
-          tocString = unpack . fromRight mempty . runPure . writeHtml5String def $ tocDoc
-       in RawBlock "html" (navBegin ++ "\n" ++ tocString ++ "\n" ++ navEnd)
+    = let navBegin  = RawBlock "html" "<nav id=\"toc\" class=\"right-toc\">"
+          navEnd    = RawBlock "html" "</nav>"
+       in [navBegin, Para [Str "Contents"], markupElements headers, navEnd]
 
-generateTOC :: Block -> Block -> Block
+generateTOC :: [Block] -> Block -> [Block]
 generateTOC toc (Para [Str "$toc$"]) = toc
-generateTOC _   x                    = x
+generateTOC _   x                    = [x]
 
 tableOfContents :: Pandoc -> Pandoc
-tableOfContents ast
-    = let headers = query collectHeaders ast
+tableOfContents (Pandoc meta blks)
+    = let headers = query collectHeaders blks
           toc     = createTable . hierarchicalize $ headers
-       in walk (generateTOC toc) ast
+       in Pandoc meta (concatMap (generateTOC toc) blks)
 
 main :: IO ()
 main = toJSONFilter tableOfContents
