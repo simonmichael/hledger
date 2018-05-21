@@ -17,7 +17,9 @@ import qualified Data.List as L (head) -- qualified keeps dev & prod builds warn
 import Data.Text (append, pack, unpack)
 import qualified Data.Text as T
 import Data.Time.Calendar
-import Text.Megaparsec.Compat (digitChar, eof, some, string, runParser, ParseError, MPErr)
+import Data.Void (Void)
+import Text.Megaparsec
+import Text.Megaparsec.Char
 
 import Hledger.Utils
 import Hledger.Data
@@ -83,7 +85,7 @@ postAddForm = do
       let numberedParams s =
             reverse $ dropWhile (T.null . snd) $ reverse $ sort
             [ (n,v) | (k,v) <- params
-                    , let en = parsewith (paramnamep s) k :: Either (ParseError Char MPErr) Int
+                    , let en = parsewith (paramnamep s) k :: Either (ParseError Char Void) Int
                     , isRight en
                     , let Right n = en
                     ]

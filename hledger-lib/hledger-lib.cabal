@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5fde68eeaac8c1e790c207a8db26776e8659d7058fb3215c3c9678641d406a97
+-- hash: 22b7806755a6e3d8afa63a7e941273b64188b90a6695b78fa7f59dcb150e19f7
 
 name:           hledger-lib
 version:        1.9.99
@@ -93,7 +93,6 @@ library
       Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
-      Text.Megaparsec.Compat
       Text.Tabular.AsciiWide
   other-modules:
       Paths_hledger_lib
@@ -188,7 +187,6 @@ test-suite doctests
       Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
-      Text.Megaparsec.Compat
       Text.Tabular.AsciiWide
       Paths_hledger_lib
   hs-source-dirs:
@@ -287,7 +285,6 @@ test-suite easytests
       Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
-      Text.Megaparsec.Compat
       Text.Tabular.AsciiWide
       Paths_hledger_lib
   hs-source-dirs:
@@ -384,7 +381,6 @@ test-suite hunittests
       Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
-      Text.Megaparsec.Compat
       Text.Tabular.AsciiWide
       Paths_hledger_lib
   hs-source-dirs:

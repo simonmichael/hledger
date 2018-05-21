@@ -37,7 +37,8 @@ import System.Console.Haskeline.Completion
 import System.Console.Wizard
 import System.Console.Wizard.Haskeline
 import System.IO ( stderr, hPutStr, hPutStrLn )
-import Text.Megaparsec.Compat
+import Text.Megaparsec
+import Text.Megaparsec.Char
 import Text.Printf
 
 import Hledger

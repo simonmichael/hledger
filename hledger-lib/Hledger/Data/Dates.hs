@@ -89,8 +89,10 @@ import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate
 import Data.Time.Clock
 import Data.Time.LocalTime
+import Data.Void (Void)
 import Safe (headMay, lastMay, readMay)
-import Text.Megaparsec.Compat
+import Text.Megaparsec
+import Text.Megaparsec.Char
 import Text.Megaparsec.Perm
 import Text.Printf
 
@@ -309,7 +311,7 @@ earliest (Just d1) (Just d2) = Just $ min d1 d2
 
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
-parsePeriodExpr :: Day -> Text -> Either (ParseError Char MPErr) (Interval, DateSpan)
+parsePeriodExpr :: Day -> Text -> Either (ParseError Char Void) (Interval, DateSpan)
 parsePeriodExpr refdate s = parsewith (periodexpr refdate <* eof) (T.toLower s)
 
 maybePeriod :: Day -> Text -> Maybe (Interval,DateSpan)
@@ -369,13 +371,13 @@ fixSmartDateStr :: Day -> Text -> String
 fixSmartDateStr d s = either
                        (\e->error' $ printf "could not parse date %s %s" (show s) (show e))
                        id
-                       $ (fixSmartDateStrEither d s :: Either (ParseError Char MPErr) String)
+                       $ (fixSmartDateStrEither d s :: Either (ParseError Char Void) String)
 
 -- | A safe version of fixSmartDateStr.
-fixSmartDateStrEither :: Day -> Text -> Either (ParseError Char MPErr) String
+fixSmartDateStrEither :: Day -> Text -> Either (ParseError Char Void) String
 fixSmartDateStrEither d = either Left (Right . showDate) . fixSmartDateStrEither' d
 
-fixSmartDateStrEither' :: Day -> Text -> Either (ParseError Char MPErr) Day
+fixSmartDateStrEither' :: Day -> Text -> Either (ParseError Char Void) Day
 fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
                                Right sd -> Right $ fixSmartDate d sd
                                Left e -> Left e
@@ -841,13 +843,13 @@ tomorrow  = string "tomorrow"  >> return ("","","tomorrow")
 
 lastthisnextthing :: SimpleTextParser SmartDate
 lastthisnextthing = do
-  r <- choice $ map mptext [
+  r <- choice $ map string [
         "last"
        ,"this"
        ,"next"
       ]
   skipMany spacenonewline  -- make the space optional for easier scripting
-  p <- choice $ map mptext [
+  p <- choice $ map string [
         "day"
        ,"week"
        ,"month"
@@ -982,17 +984,17 @@ reportinginterval = choice' [
       tryinterval :: String -> String -> (Int -> Interval) -> SimpleTextParser Interval
       tryinterval singular compact intcons =
         choice' [
-          do mptext compact'
+          do string compact'
              return $ intcons 1,
-          do mptext "every"
+          do string "every"
              skipMany spacenonewline
-             mptext singular'
+             string singular'
              return $ intcons 1,
-          do mptext "every"
+          do string "every"
              skipMany spacenonewline
              n <- fmap read $ some digitChar
              skipMany spacenonewline
-             mptext plural'
+             string plural'
              return $ intcons n
           ]
         where

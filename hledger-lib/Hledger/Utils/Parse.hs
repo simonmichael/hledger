@@ -7,26 +7,28 @@ import Data.Char
 import Data.Functor.Identity (Identity(..))
 import Data.List
 import Data.Text (Text)
-import Text.Megaparsec.Compat
+import Data.Void (Void)
+import Text.Megaparsec
+import Text.Megaparsec.Char
 import Text.Printf
 
 import Hledger.Data.Types
 import Hledger.Utils.UTF8IOCompat (error')
 
 -- | A parser of string to some type.
-type SimpleStringParser a = Parsec MPErr String a
+type SimpleStringParser a = Parsec Void String a
 
 -- | A parser of strict text to some type.
-type SimpleTextParser = Parsec MPErr Text  -- XXX an "a" argument breaks the CsvRulesParser declaration somehow
+type SimpleTextParser = Parsec Void Text  -- XXX an "a" argument breaks the CsvRulesParser declaration somehow
 
 -- | A parser of text in some monad.
-type TextParser m a = ParsecT MPErr Text m a
+type TextParser m a = ParsecT Void Text m a
 
 -- | A parser of text in some monad, with a journal as state.
-type JournalParser m a = StateT Journal (ParsecT MPErr Text m) a
+type JournalParser m a = StateT Journal (ParsecT Void Text m) a
 
 -- | A parser of text in some monad, with a journal as state, that can throw an error string mid-parse.
-type ErroringJournalParser m a = StateT Journal (ParsecT MPErr Text (ExceptT String m)) a
+type ErroringJournalParser m a = StateT Journal (ParsecT Void Text (ExceptT String m)) a
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.
@@ -35,7 +37,7 @@ choice' = choice . map try
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.
-choiceInState :: [StateT s (ParsecT MPErr Text m) a] -> StateT s (ParsecT MPErr Text m) a
+choiceInState :: [StateT s (ParsecT Void Text m) a] -> StateT s (ParsecT Void Text m) a
 choiceInState = choice . map try
 
 surroundedBy :: Applicative m => m openclose -> m a -> m a
@@ -47,7 +49,7 @@ parsewith p = runParser p ""
 parsewithString :: Parsec e String a -> String -> Either (ParseError Char e) a
 parsewithString p = runParser p ""
 
-parseWithState :: Monad m => st -> StateT st (ParsecT MPErr Text m) a -> Text -> m (Either (ParseError Char MPErr) a)
+parseWithState :: Monad m => st -> StateT st (ParsecT Void Text m) a -> Text -> m (Either (ParseError Char Void) a)
 parseWithState ctx p s = runParserT (evalStateT p ctx) "" s
 
 parseWithState' :: (
@@ -73,7 +75,7 @@ showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tail $
 nonspace :: TextParser m Char
 nonspace = satisfy (not . isSpace)
 
-spacenonewline :: (Stream s, Char ~ Token s) => ParsecT MPErr s m Char
+spacenonewline :: (Stream s, Char ~ Token s) => ParsecT Void s m Char
 spacenonewline = satisfy (`elem` " \v\f\t")
 
 restofline :: TextParser m String

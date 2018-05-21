@@ -36,12 +36,15 @@ import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 -- import Test.HUnit
 import Data.Char (toLower, isDigit, isSpace)
 import Data.List.Compat
+import Data.List.NonEmpty (fromList)
 import Data.Maybe
 import Data.Ord
+import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Time.Calendar (Day)
+import Data.Void (Void)
 #if MIN_VERSION_time(1,5,0)
 import Data.Time.Format (parseTimeM, defaultTimeLocale)
 #else
@@ -53,7 +56,8 @@ import System.Directory (doesFileExist)
 import System.FilePath
 import Test.HUnit hiding (State)
 import Text.CSV (parseCSV, CSV)
-import Text.Megaparsec.Compat hiding (parse)
+import Text.Megaparsec hiding (parse)
+import Text.Megaparsec.Char
 import qualified Text.Parsec as Parsec
 import Text.Printf (printf)
 
@@ -135,7 +139,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
                    (\pos r -> 
                       let
                         SourcePos name line col = pos
-                        line' = (mpMkPos . (+1) . mpUnPos) line
+                        line' = (mkPos . (+1) . unPos) line
                         pos' = SourcePos name line' col
                       in
                         (pos, transactionFromCsvRecord pos' rules r)
@@ -391,11 +395,15 @@ parseAndValidateCsvRules rulesfile s = do
     Right r -> do
                r_ <- liftIO $ runExceptT $ validateRules r
                ExceptT $ case r_ of
-                 Left  s -> return $ Left $ parseErrorPretty $ mpMkParseError rulesfile s
+                 Left  s -> return $ Left $ parseErrorPretty $ makeParseError rulesfile s
                  Right r -> return $ Right r
 
+  where
+    makeParseError :: FilePath -> String -> ParseError Char String
+    makeParseError f s = FancyError (fromList [initialPos f]) (S.singleton $ ErrorFail s)
+
 -- | Parse this text as CSV conversion rules. The file path is for error messages.
-parseCsvRules :: FilePath -> T.Text -> Either (ParseError Char MPErr) CsvRules
+parseCsvRules :: FilePath -> T.Text -> Either (ParseError Char Void) CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
 parseCsvRules rulesfile s =
   runParser (evalStateT rulesp rules) rulesfile s
@@ -447,7 +455,7 @@ commentcharp = oneOf (";#*" :: [Char])
 directivep :: CsvRulesParser (DirectiveName, String)
 directivep = (do
   lift $ pdbg 3 "trying directive"
-  d <- fmap T.unpack $ choiceInState $ map (lift . mptext . T.pack) directives
+  d <- fmap T.unpack $ choiceInState $ map (lift . string . T.pack) directives
   v <- (((char ':' >> lift (many spacenonewline)) <|> lift (some spacenonewline)) >> directivevalp)
        <|> (optional (char ':') >> lift (skipMany spacenonewline) >> lift eolof >> return "")
   return (d, v)
@@ -505,7 +513,7 @@ fieldassignmentp = do
 journalfieldnamep :: CsvRulesParser String
 journalfieldnamep = do
   lift (pdbg 2 "trying journalfieldnamep")
-  T.unpack <$> choiceInState (map (lift . mptext . T.pack) journalfieldnames)
+  T.unpack <$> choiceInState (map (lift . string . T.pack) journalfieldnames)
 
 -- Transaction fields and pseudo fields for CSV conversion. 
 -- Names must precede any other name they contain, for the parser 
@@ -565,7 +573,7 @@ recordmatcherp = do
   <?> "record matcher"
 
 matchoperatorp :: CsvRulesParser String
-matchoperatorp = fmap T.unpack $ choiceInState $ map mptext
+matchoperatorp = fmap T.unpack $ choiceInState $ map string
   ["~"
   -- ,"!~"
   -- ,"="

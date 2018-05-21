@@ -103,7 +103,8 @@ import qualified Hledger.Utils.Parse as H
 import Options.Applicative
 import System.Exit (exitFailure)
 import System.FilePath (FilePath)
-import qualified Text.Megaparsec.Compat as P
+import qualified Text.Megaparsec as P
+import qualified Text.Megaparsec.Char as P
 
 main :: IO ()
 main = do

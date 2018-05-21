@@ -19,8 +19,10 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Monoid
 #endif
 import Data.Time.Calendar (Day)
+import Data.Void (Void)
 import Graphics.Vty (Event(..),Key(..))
-import Text.Megaparsec.Compat
+import Text.Megaparsec
+import Text.Megaparsec.Char
 
 import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.UIOptions
@@ -108,7 +110,7 @@ esHandle _ _ = error "event handler called with wrong screen type, should not ha
 
 -- | Parse the file name, line and column number from a hledger parse error message, if possible.
 -- Temporary, we should keep the original parse error location. XXX
-hledgerparseerrorpositionp :: ParsecT MPErr String t (String, Int, Int)
+hledgerparseerrorpositionp :: ParsecT Void String t (String, Int, Int)
 hledgerparseerrorpositionp = do
   anyChar `manyTill` char '"'
   f <- anyChar `manyTill` (oneOf ['"','\n'])
