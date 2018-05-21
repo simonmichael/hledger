@@ -54,12 +54,12 @@ dependencies:
 - directory
 - filepath
 - hashtables >=1.2
-- megaparsec >=5.0
+- megaparsec >=6.4.1
 - mtl
 - mtl-compat
 - old-time
 - parsec >=3
-- parser-combinators
+- parser-combinators >=0.4.0
 - pretty-show >=1.6.4
 - regex-tdfa
 - safe >=0.2

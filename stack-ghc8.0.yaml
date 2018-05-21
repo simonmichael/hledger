@@ -11,3 +11,5 @@ packages:
 
 extra-deps:
 - easytest-0.2
+- megaparsec-6.4.1
+- parser-combinators-0.4.0
