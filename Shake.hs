@@ -66,7 +66,7 @@ usage = unlines
   ,"./Shake --help           # show options, eg --color"
   ]
 
-pandoc = "stack exec -- pandoc" -- pandoc from project's stackage snapshot
+pandoc = "pandoc" -- assume pandoc from system or user install
 makeinfo = "makeinfo"
 -- nroff = "nroff"
 groff = "groff"
@@ -269,7 +269,7 @@ main = do
       liftIO $ writeFile webmanall "\\$toc\\$" -- # Big Manual\n\n -- TOC style is better without main heading,
       forM_ webmanpages $ \f -> do -- site/hledger.md, site/journal.md
         cmd Shell ("printf '\\n\\n' >>") webmanall :: Action ExitCode
-        cmd Shell "pandoc" f "-t markdown-fenced_divs --atx-headers"
+        cmd Shell pandoc f "-t markdown-fenced_divs --atx-headers"
           "--lua-filter tools/pandoc-drop-toc.lua"
           "--lua-filter tools/pandoc-demote-headers.lua"
           ">>" webmanall :: Action ExitCode
