@@ -714,10 +714,12 @@ fromRawNumber suggestedStyle negated raw = (quantity, precision, mdecimalpoint, 
     -- unpack with a hint if useful
     (mseparator, intparts, mdecimalpoint, frac) =
             case raw of
-                -- just a single punctuation between two digits groups, assume it's a decimal point
+                -- If the number consists of exactly two digit groups
+                -- separated by a valid decimal point character, we assume
+                -- that the character represents a decimal point.
                 (Just s, [firstGroup, lastGroup], Nothing)
-                    -- if have a decimalHint restrict this assumpion only to a matching separator
-                    | maybe True (`asdecimalcheck` s) suggestedStyle -> (Nothing, [firstGroup], Just s, lastGroup)
+                    | s `elem` decimalPointChars && maybe True (`asdecimalcheck` s) suggestedStyle ->
+                        (Nothing, [firstGroup], Just s, lastGroup)
 
                 (firstSep, digitGroups, Nothing) -> (firstSep, digitGroups, Nothing, [])
                 (firstSep, digitGroups, Just (d, frac)) -> (firstSep, digitGroups, Just d, frac)
@@ -757,17 +759,15 @@ fromRawNumber suggestedStyle negated raw = (quantity, precision, mdecimalpoint, 
 -- (Just ' ',["1","000"],Nothing)
 rawnumberp :: TextParser m ( Maybe Char , [String] , Maybe (Char, String) )
 rawnumberp = do
-    let sepChars = ['.', ','] -- all allowed punctuation characters
-
     (firstSep, groups) <- option (Nothing, []) $ do
         leadingDigits <- some digitChar
         option (Nothing, [leadingDigits]) . try $ do
-            firstSep <- oneOf sepChars <|> whitespaceChar
+            firstSep <- oneOf decimalPointChars <|> whitespaceChar
             secondGroup <- some digitChar
             otherGroups <- many $ try $ char firstSep *> some digitChar
             return (Just firstSep, leadingDigits : secondGroup : otherGroups)
 
-    let remSepChars = maybe sepChars (`delete` sepChars) firstSep
+    let remSepChars = maybe decimalPointChars (`delete` decimalPointChars) firstSep
         modifier
             | null groups = fmap Just  -- if no digits so far, we require at least some decimals
             | otherwise = optional
@@ -778,10 +778,13 @@ rawnumberp = do
         return (lastSep, fromMaybe [] digits)
 
     -- make sure we didn't leading part of mistyped number
-    notFollowedBy $ oneOf sepChars <|> (whitespaceChar >> digitChar)
+    notFollowedBy $ oneOf decimalPointChars <|> (whitespaceChar >> digitChar)
 
     return $ dbg8 "rawnumberp" (firstSep, groups, extraGroup)
     <?> "rawnumberp"
+
+decimalPointChars :: String
+decimalPointChars = ".,"
 
 -- | Parse a unicode char that represents any non-control space char (Zs general category).
 whitespaceChar :: TextParser m Char
