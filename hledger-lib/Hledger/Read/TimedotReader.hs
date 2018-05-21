@@ -44,7 +44,8 @@ import Data.List (foldl')
 import Data.Maybe
 import Data.Text (Text)
 import Test.HUnit
-import Text.Megaparsec.Compat hiding (parse)
+import Text.Megaparsec hiding (parse)
+import Text.Megaparsec.Char
 
 import Hledger.Data
 import Hledger.Read.Common

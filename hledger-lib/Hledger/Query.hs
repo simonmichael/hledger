@@ -58,7 +58,8 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe (readDef, headDef)
 import Test.HUnit
-import Text.Megaparsec.Compat
+import Text.Megaparsec
+import Text.Megaparsec.Char
 
 import Hledger.Utils hiding (words')
 import Hledger.Data.Types
@@ -191,10 +192,10 @@ words'' prefixes = fromparse . parsewith maybeprefixedquotedphrases -- XXX
       maybeprefixedquotedphrases = choice' [prefixedQuotedPattern, singleQuotedPattern, doubleQuotedPattern, pattern] `sepBy` skipSome spacenonewline
       prefixedQuotedPattern :: SimpleTextParser T.Text
       prefixedQuotedPattern = do
-        not' <- fromMaybe "" `fmap` (optional $ mptext "not:")
+        not' <- fromMaybe "" `fmap` (optional $ string "not:")
         let allowednexts | T.null not' = prefixes
                          | otherwise   = prefixes ++ [""]
-        next <- choice' $ map mptext allowednexts
+        next <- choice' $ map string allowednexts
         let prefix :: T.Text
             prefix = not' <> next
         p <- singleQuotedPattern <|> doubleQuotedPattern

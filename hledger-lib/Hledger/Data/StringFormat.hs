@@ -19,7 +19,8 @@ import Numeric
 import Data.Char (isPrint)
 import Data.Maybe
 import Test.HUnit
-import Text.Megaparsec.Compat
+import Text.Megaparsec
+import Text.Megaparsec.Char
 
 import Hledger.Utils.Parse
 import Hledger.Utils.String (formatString)

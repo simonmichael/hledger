@@ -87,13 +87,15 @@ import Data.List
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
+import Data.Void (Void)
 import Safe
 import Test.HUnit
 #ifdef TESTS
 import Test.Framework
 import Text.Megaparsec.Error
 #endif
-import Text.Megaparsec.Compat hiding (parse)
+import Text.Megaparsec hiding (parse)
+import Text.Megaparsec.Char
 import Text.Printf
 import System.FilePath
 
@@ -200,7 +202,7 @@ includedirectivep = do
       let curdir = takeDirectory (sourceName parentpos)
       filepath <- expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
       txt      <- readFilePortably filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
-      (ej1::Either (ParseError Char MPErr) ParsedJournal) <-
+      (ej1::Either (ParseError Char Void) ParsedJournal) <-
         runParserT
            (evalStateT
               (choiceInState
