@@ -55,7 +55,7 @@ dependencies:
  - HUnit
  - microlens >=0.4
  - microlens-platform >=0.2.3.1
- - megaparsec >=5.0
+ - megaparsec >=6.4.1
  - pretty-show >=1.6.4
  - process >=1.2
  - safe >=0.2

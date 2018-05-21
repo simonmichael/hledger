@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d8654e78331f08df80e8a353565c3d3856dd7f46e00fb3f28eaddf3d95167293
+-- hash: 5fde68eeaac8c1e790c207a8db26776e8659d7058fb3215c3c9678641d406a97
 
 name:           hledger-lib
 version:        1.9.99
@@ -118,12 +118,12 @@ library
     , extra
     , filepath
     , hashtables >=1.2
-    , megaparsec >=5.0
+    , megaparsec >=6.4.1
     , mtl
     , mtl-compat
     , old-time
     , parsec >=3
-    , parser-combinators
+    , parser-combinators >=0.4.0
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
@@ -215,12 +215,12 @@ test-suite doctests
     , extra
     , filepath
     , hashtables >=1.2
-    , megaparsec >=5.0
+    , megaparsec >=6.4.1
     , mtl
     , mtl-compat
     , old-time
     , parsec >=3
-    , parser-combinators
+    , parser-combinators >=0.4.0
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
@@ -314,12 +314,12 @@ test-suite easytests
     , filepath
     , hashtables >=1.2
     , hledger-lib
-    , megaparsec >=5.0
+    , megaparsec >=6.4.1
     , mtl
     , mtl-compat
     , old-time
     , parsec >=3
-    , parser-combinators
+    , parser-combinators >=0.4.0
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
@@ -410,12 +410,12 @@ test-suite hunittests
     , filepath
     , hashtables >=1.2
     , hledger-lib
-    , megaparsec >=5.0
+    , megaparsec >=6.4.1
     , mtl
     , mtl-compat
     , old-time
     , parsec >=3
-    , parser-combinators
+    , parser-combinators >=0.4.0
     , pretty-show >=1.6.4
     , regex-tdfa
     , safe >=0.2
