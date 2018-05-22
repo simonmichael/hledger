@@ -52,12 +52,12 @@ parsewithString p = runParser p ""
 parseWithState :: Monad m => st -> StateT st (ParsecT Void Text m) a -> Text -> m (Either (ParseError Char Void) a)
 parseWithState ctx p s = runParserT (evalStateT p ctx) "" s
 
-parseWithState' :: (
-  Stream s 
-#if !MIN_VERSION_megaparsec(6,0,0)
-  ,ErrorComponent e
-#endif
-  ) => st -> StateT st (ParsecT e s Identity) a -> s -> (Either (ParseError (Token s) e) a)
+parseWithState'
+  :: (Stream s)
+  => st
+  -> StateT st (ParsecT e s Identity) a
+  -> s
+  -> (Either (ParseError (Token s) e) a)
 parseWithState' ctx p s = runParser (evalStateT p ctx) "" s
 
 fromparse :: (Show t, Show e) => Either (ParseError t e) a -> a

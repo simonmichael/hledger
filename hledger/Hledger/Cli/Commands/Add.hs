@@ -200,7 +200,7 @@ dateAndCodeWizard EntryState{..} = do
                 c <- optional codep
                 skipMany spacenonewline
                 eof
-                return (d, T.pack $ fromMaybe "" c)
+                return (d, fromMaybe "" c)
       -- defday = fixSmartDate today $ fromparse $ (parse smartdate "" . lowercase) defdate
       -- datestr = showDate $ fixSmartDate defday smtdate
 

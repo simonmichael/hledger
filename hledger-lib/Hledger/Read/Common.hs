@@ -345,11 +345,14 @@ statusp =
     ]
     <?> "cleared status"
 
-codep :: TextParser m String
-codep = try (do { skipSome spacenonewline; char '(' <?> "codep"; anyChar `manyTill` char ')' } ) <|> return ""
+codep :: TextParser m Text
+codep = try codep' <|> pure "" where
+  codep' = do
+    skipSome spacenonewline
+    between (char '(' <?> "codep") (char ')') $ takeWhileP Nothing (/= ')')
 
-descriptionp :: JournalParser m String
-descriptionp = many (noneOf (";\n" :: [Char]))
+descriptionp :: JournalParser m Text
+descriptionp = takeWhileP Nothing $ \c -> c /= ';' && c /= '\n'
 
 --- ** dates
 
@@ -467,7 +470,7 @@ accountnamep = do
   otherParts <- many $ try $ singleSpace *> part
   let account = T.unwords $ firstPart : otherParts
   when (accountNameFromComponents (accountNameComponents account) /= account)
-        (fail $ "account name seems ill-formed: " ++ T.unpack account)
+       (fail $ "account name seems ill-formed: " ++ T.unpack account)
   pure account
   where
     part = takeWhile1P Nothing (not . isSpace)
@@ -602,14 +605,12 @@ commoditysymbolp :: TextParser m CommoditySymbol
 commoditysymbolp = (quotedcommoditysymbolp <|> simplecommoditysymbolp) <?> "commodity symbol"
 
 quotedcommoditysymbolp :: TextParser m CommoditySymbol
-quotedcommoditysymbolp = do
-  char '"'
-  s <- some $ noneOf (";\n\"" :: [Char])
-  char '"'
-  return $ T.pack s
+quotedcommoditysymbolp =
+  between (char '"') (char '"') $
+    takeWhile1P Nothing $ \c -> c /= ';' && c /= '\n' && c /= '\"'
 
 simplecommoditysymbolp :: TextParser m CommoditySymbol
-simplecommoditysymbolp = T.pack <$> some (noneOf nonsimplecommoditychars)
+simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
 priceamountp :: Monad m => JournalParser m Price
 priceamountp =
@@ -816,7 +817,7 @@ multilinecommentp = startComment *> anyLine `skipManyTill` endComment
     endComment = eof <|> (string "end comment" >> emptyLine)
 
     emptyLine = void $ skipMany spacenonewline *> newline
-    anyLine = anyChar `manyTill` newline
+    anyLine = takeWhileP Nothing (\c -> c /= '\n') *> newline
 
 emptyorcommentlinep :: TextParser m ()
 emptyorcommentlinep = do
@@ -933,7 +934,7 @@ commentStartingWithp f = do
   satisfy f
   skipMany spacenonewline
   startPos <- getPosition
-  content <- T.pack <$> anyChar `manyTill` eolof
+  content <- takeWhileP Nothing (\c -> c /= '\n')
   optional newline
   return (startPos, content)
 
@@ -977,15 +978,15 @@ tagswithvaluepositions = do
 
   where
 
-    break :: SimpleTextParser ()
-    break = void spaceChar <|> void (char ':') <|> eof
+    isBreak :: Char -> Bool
+    isBreak c = isSpace c || c == ':'
 
     tillNextBreak :: SimpleTextParser Text
-    tillNextBreak = T.pack <$> anyChar `manyTill` lookAhead break
+    tillNextBreak = takeWhileP Nothing (not . isBreak)
 
     tagValue :: SimpleTextParser Text
-    tagValue =
-      T.strip . T.pack <$> anyChar `manyTill` (void (char ',') <|> eolof)
+    tagValue = T.strip <$> takeWhileP Nothing (not . commaOrNewline)
+      where commaOrNewline c = c == ',' || c == '\n'
 
     atSpaceChar :: SimpleTextParser [(SourcePos, Tag)]
     atSpaceChar = skipSome spaceChar *> tagswithvaluepositions
@@ -1014,11 +1015,10 @@ tagswithvaluepositions = do
 bracketedpostingdatesp :: Maybe Day -> SimpleTextParser [(TagName,Day)]
 bracketedpostingdatesp mdefdate = do
   -- pdbg 0 $ "bracketedpostingdatesp"
-  skipMany $ noneOf ['[']
+  skipMany $ notChar '['
   fmap concat
     $ sepEndBy (bracketeddatetagsp mdefdate <|> char '[' *> pure [])
-               (skipMany $ noneOf ['['])
-  -- using noneOf ['['] in place of notChar '[' for backwards compatibility
+               (skipMany $ notChar '[')
 
 --- ** bracketed dates
 
@@ -1054,8 +1054,8 @@ bracketeddatetagsp mdefdate = do
   try $ do
     s <- lookAhead
        $ between (char '[') (char ']')
-       $ some $ digitChar <|> datesepchar <|> char '='
-    unless (any isDigit s && any (`elem` datesepchars) s) $
+       $ takeWhile1P Nothing isBracketedDateChar
+    unless (T.any isDigit s && T.any isDateSepChar s) $
       fail "not a bracketed date"
   -- Looks sufficiently like a bracketed date to commit to parsing a date
 
@@ -1064,8 +1064,10 @@ bracketeddatetagsp mdefdate = do
     md1 <- optional $ datep' myear1
 
     let myear2 = fmap readYear md1 <|> myear1
-    md2 <- optional $ char '=' *> (datep' myear2)
+    md2 <- optional $ char '=' *> datep' myear2
 
     pure $ catMaybes [("date",) <$> md1, ("date2",) <$> md2]
 
-  where readYear = first3 . toGregorian
+  where
+    readYear = first3 . toGregorian
+    isBracketedDateChar c = isDigit c || isDateSepChar c || c == '='
