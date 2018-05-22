@@ -463,21 +463,15 @@ modifiedaccountnamep = do
 -- (This parser will also consume one following space, if present.)
 accountnamep :: TextParser m AccountName
 accountnamep = do
-    astr <- do
-      c <- nonspace
-      cs <- striptrailingspace <$> many (nonspace <|> singlespace)
-      return $ c:cs
-    let a = T.pack astr
-    when (accountNameFromComponents (accountNameComponents a) /= a)
-         (fail $ "account name seems ill-formed: "++astr)
-    return a
-    where
-      singlespace = try (do {spacenonewline; do {notFollowedBy spacenonewline; return ' '}})
-      striptrailingspace "" = ""
-      striptrailingspace s  = if last s == ' ' then init s else s
-
--- accountnamechar = notFollowedBy (oneOf "()[]") >> nonspace
---     <?> "account name character (non-bracket, non-parenthesis, non-whitespace)"
+  firstPart <- part
+  otherParts <- many $ try $ singleSpace *> part
+  let account = T.unwords $ firstPart : otherParts
+  when (accountNameFromComponents (accountNameComponents account) /= account)
+        (fail $ "account name seems ill-formed: " ++ T.unpack account)
+  pure account
+  where
+    part = takeWhile1P Nothing (not . isSpace)
+    singleSpace = void spacenonewline *> notFollowedBy spacenonewline
 
 --- ** amounts
 

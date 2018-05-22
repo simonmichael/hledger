@@ -75,8 +75,11 @@ showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tail $
 nonspace :: TextParser m Char
 nonspace = satisfy (not . isSpace)
 
+isNonNewlineSpace :: Char -> Bool
+isNonNewlineSpace c = c /= '\n' && isSpace c
+
 spacenonewline :: (Stream s, Char ~ Token s) => ParsecT Void s m Char
-spacenonewline = satisfy (`elem` " \v\f\t")
+spacenonewline = satisfy isNonNewlineSpace
 
 restofline :: TextParser m String
 restofline = anyChar `manyTill` newline
