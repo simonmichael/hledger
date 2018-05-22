@@ -50,6 +50,7 @@ module Hledger.Data.Dates (
   failIfInvalidDay,
   datesepchar,
   datesepchars,
+  isDateSepChar,
   spanStart,
   spanEnd,
   spansSpan,
@@ -738,8 +739,12 @@ smartdateonly = do
 
 datesepchars :: [Char]
 datesepchars = "/-."
+
 datesepchar :: TextParser m Char
-datesepchar = oneOf datesepchars
+datesepchar = satisfy isDateSepChar
+
+isDateSepChar :: Char -> Bool
+isDateSepChar c = c == '/' || c == '-' || c == '.'
 
 validYear, validMonth, validDay :: String -> Bool
 validYear s = length s >= 4 && isJust (readMay s :: Maybe Year)

@@ -464,7 +464,7 @@ periodictransactionp :: MonadIO m => ErroringJournalParser m PeriodicTransaction
 periodictransactionp = do
   char '~' <?> "periodic transaction"
   lift (skipMany spacenonewline)
-  periodexpr <- T.pack . strip <$> descriptionp
+  periodexpr <- T.strip <$> descriptionp
   _ <- lift followingcommentp
   postings <- postingsp Nothing
   return $ PeriodicTransaction periodexpr postings
@@ -478,12 +478,12 @@ transactionp = do
   edate <- optional (secondarydatep date) <?> "secondary date"
   lookAhead (lift spacenonewline <|> newline) <?> "whitespace or newline"
   status <- lift statusp <?> "cleared status"
-  code <- T.pack <$> lift codep <?> "transaction code"
-  description <- T.pack . strip <$> descriptionp
+  code <- lift codep <?> "transaction code"
+  description <- T.strip <$> descriptionp
   comment <- lift followingcommentp
   let tags = commentTags comment
   postings <- postingsp (Just date)
-  pos' <-  getPosition
+  pos' <- getPosition
   let sourcepos = journalSourcePos pos pos'
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
 
