@@ -50,5 +50,5 @@ end comment
 2000/1/2
    b  0   ; [1/1=1/2/3/4] bad second date, should error
 
->>>2 /9:25/
+>>>2 /9:23/
 >>>=1

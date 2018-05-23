@@ -105,7 +105,6 @@ import Data.Default
 import Data.Functor.Identity
 import Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
-import Data.List.Split (wordsBy)
 import Data.Maybe
 import qualified Data.Map as M
 import Data.Text (Text)
@@ -116,6 +115,7 @@ import Data.Void (Void)
 import System.Time (getClockTime)
 import Text.Megaparsec
 import Text.Megaparsec.Char
+import Text.Megaparsec.Char.Lexer (decimal)
 
 import Hledger.Data
 import Hledger.Utils
@@ -366,27 +366,38 @@ datep = do
   lift $ datep' myear
 
 datep' :: Maybe Year -> TextParser m Day
-datep' myear = do
-  -- hacky: try to ensure precise errors for invalid dates
-  -- XXX reported error position is not too good
-  -- pos <- genericSourcePos <$> getPosition
-  datestr <- do
-    c <- digitChar
-    cs <- many $ choice' [digitChar, datesepchar]
-    return $ c:cs
-  let sepchars = nub $ sort $ filter (`elem` datesepchars) datestr
-  when (length sepchars /= 1) $ fail $ "bad date, different separators used: " ++ datestr
-  let dateparts = wordsBy (`elem` datesepchars) datestr
-  [y,m,d] <- case (dateparts, myear) of
-              ([m,d],Just y)  -> return [show y,m,d]
-              ([_,_],Nothing) -> fail $ "partial date "++datestr++" found, but the current year is unknown"
-              ([y,m,d],_)     -> return [y,m,d]
-              _               -> fail $ "bad date: " ++ datestr
-  let maybedate = fromGregorianValid (read y) (read m) (read d)
-  case maybedate of
-    Nothing   -> fail $ "bad date: " ++ datestr
-    Just date -> return date
+datep' mYear = do
+  d1 <- decimal <?> "year or month"
+  sep <- satisfy isDateSepChar <?> "date separator"
+  d2 <- decimal <?> "month or day"
+  fullDate d1 sep d2 <|> partialDate mYear d1 sep d2
   <?> "full or partial date"
+
+  where
+
+  fullDate :: Integer -> Char -> Integer -> TextParser m Day
+  fullDate year sep1 month = do
+    sep2 <- satisfy isDateSepChar <?> "date separator"
+    day <- decimal <?> "day"
+    let dateStr = show year ++ [sep1] ++ show month ++ [sep2] ++ show day
+
+    when (sep1 /= sep2) $ fail $
+      "invalid date (mixing date separators is not allowed): " ++ dateStr
+
+    case fromGregorianValid year (fromIntegral month) day of
+      Nothing -> fail $ "well-formed but invalid date: " ++ dateStr
+      Just date -> pure date
+
+  partialDate :: Maybe Year -> Integer -> Char -> Integer -> TextParser m Day
+  partialDate mYear month sep day = case mYear of
+    Just year ->
+      case fromGregorianValid year (fromIntegral month) (fromIntegral day) of
+        Nothing -> fail $ "well-formed but invalid date: " ++ dateStr
+        Just date -> pure date
+      where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
+    Nothing -> fail $
+      "partial date "++dateStr++" found, but the current year is unknown"
+      where dateStr = show month ++ [sep] ++ show day
 
 -- | Parse a date and time in YYYY/MM/DD HH:MM[:SS][+-ZZZZ] format.
 -- Hyphen (-) and period (.) are also allowed as date separators.
@@ -1040,13 +1051,13 @@ bracketedpostingdatesp mdefdate = do
 -- Left ...not a bracketed date...
 --
 -- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[2016/1/32]"
--- Left ...1:11:...bad date: 2016/1/32...
+-- Left ...1:11:...well-formed but invalid date: 2016/1/32...
 --
 -- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[1/31]"
 -- Left ...1:6:...partial date 1/31 found, but the current year is unknown...
 --
 -- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
--- Left ...1:15:...bad date, different separators...
+-- Left ...1:13:...expecting month or day...
 --
 bracketeddatetagsp :: Maybe Day -> SimpleTextParser [(TagName, Day)]
 bracketeddatetagsp mdefdate = do
