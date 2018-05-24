@@ -475,7 +475,7 @@ transactionp = do
   -- ptrace "transactionp"
   pos <- getPosition
   date <- datep <?> "transaction"
-  edate <- optional (secondarydatep date) <?> "secondary date"
+  edate <- optional (lift $ secondarydatep date) <?> "secondary date"
   lookAhead (lift spacenonewline <|> newline) <?> "whitespace or newline"
   status <- lift statusp <?> "cleared status"
   code <- lift codep <?> "transaction code"
