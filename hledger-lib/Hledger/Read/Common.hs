@@ -811,17 +811,17 @@ rawnumberp = label "rawnumberp" $ do
 
   leadingDecimalPt :: TextParser m RawNumber
   leadingDecimalPt =
-    LeadingDecimalPt <$> satisfy isDecimalPointChar <*> pdigitgroup
+    LeadingDecimalPt <$> satisfy isDecimalPointChar <*> digitgroupp
 
   leadingDigits :: TextParser m RawNumber
   leadingDigits = do
-    grp1 <- pdigitgroup
+    grp1 <- digitgroupp
     withSeparators grp1 <|> trailingDecimalPt grp1 <|> pure (NoSeparators grp1)
 
   withSeparators :: DigitGrp -> TextParser m RawNumber
   withSeparators grp1 = do
-    (sep, grp2) <- try $ (,) <$> satisfy isDigitSeparatorChar <*> pdigitgroup
-    grps <- many $ try $ char sep *> pdigitgroup
+    (sep, grp2) <- try $ (,) <$> satisfy isDigitSeparatorChar <*> digitgroupp
+    grps <- many $ try $ char sep *> digitgroupp
 
     let digitGroups = grp1 : grp2 : grps
     withDecimalPt sep digitGroups <|> pure (withoutDecimalPt grp1 sep grp2 grps)
@@ -829,7 +829,7 @@ rawnumberp = label "rawnumberp" $ do
   withDecimalPt :: Char -> [DigitGrp] -> TextParser m RawNumber
   withDecimalPt digitSep digitGroups = do
     decimalPt <- satisfy $ \c -> isDecimalPointChar c && c /= digitSep
-    decimalDigitGroup <- option mempty pdigitgroup
+    decimalDigitGroup <- option mempty digitgroupp
 
     pure $ BothSeparators digitSep digitGroups decimalPt decimalDigitGroup
 
@@ -870,8 +870,8 @@ instance Monoid DigitGrp where
   mempty = DigitGrp 0 0
   mappend = (Sem.<>)
 
-pdigitgroup :: TextParser m DigitGrp
-pdigitgroup = label "digit group"
+digitgroupp :: TextParser m DigitGrp
+digitgroupp = label "digit group"
             $ makeGroup <$> takeWhile1P (Just "digit") isDigit
   where
     makeGroup = uncurry DigitGrp . foldl' step (0, 0) . T.unpack
