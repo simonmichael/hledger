@@ -101,7 +101,7 @@ import Control.Monad.State.Strict
 import Data.Bifunctor
 import Data.Char
 import Data.Data
-import Data.Decimal (DecimalRaw (Decimal), Decimal)
+import Data.Decimal (DecimalRaw (Decimal))
 import Data.Default
 import Data.Functor.Identity
 import Data.List.Compat
@@ -534,11 +534,8 @@ amountp' s =
 mamountp' :: String -> MixedAmount
 mamountp' = Mixed . (:[]) . amountp'
 
-signp :: TextParser m String
-signp = do
-  sign <- optional $ oneOf ("+-" :: [Char])
-  return $ case sign of Just '-' -> "-"
-                        _        -> ""
+signp :: Num a => TextParser m (a -> a)
+signp = char '-' *> pure negate <|> char '+' *> pure id <|> pure id
 
 multiplierp :: TextParser m Bool
 multiplierp = option False $ char '*' *> pure True
@@ -565,8 +562,7 @@ leftsymbolamountp = do
   (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
   let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   p <- priceamountp
-  let applysign = if sign=="-" then negate else id
-  return $ applysign $ Amount c q p s m
+  return $ Amount c (sign q) p s m
   <?> "left-symbol amount"
 
 rightsymbolamountp :: Monad m => JournalParser m Amount
@@ -578,8 +574,8 @@ rightsymbolamountp = do
   commodityspaced <- lift $ skipMany' spacenonewline
   c <- lift commoditysymbolp
   suggestedStyle <- getAmountStyle c
-  let (q0,prec0,mdec,mgrps) = fromRawNumber suggestedStyle (sign == "-") rawnum
-      (q, prec) = expMod (q0, prec0)
+  let (q0,prec0,mdec,mgrps) = fromRawNumber suggestedStyle rawnum
+      (q, prec) = expMod (sign q0, prec0)
   p <- priceamountp
   let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
   return $ Amount c q p s m
@@ -677,17 +673,22 @@ numberp suggestedStyle = do
     sign <- signp
     raw <- rawnumberp
     dbg8 "numberp suggestedStyle" suggestedStyle `seq` return ()
-    let num@(q, prec, decSep, groups) = dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (fromRawNumber suggestedStyle (sign == "-") raw)
-    option num . try $ do
-        when (isJust groups) $ fail "groups and exponent are not mixable"
-        (q', prec') <- exponentp <*> pure (q, prec)
-        return (q', prec', decSep, groups)
+    let (q, prec, decSep, groups) =
+          dbg8 "numberp quantity,precision,mdecimalpoint,mgrps"
+            $ fromRawNumber suggestedStyle raw
+    mExp <- optional $ try $ exponentp
+    case mExp of
+      Just expFunc
+        | isJust groups -> fail "groups and exponent are not mixable"
+        | otherwise -> let (q', prec') = expFunc (q, prec)
+                       in  pure (sign q', prec', decSep, groups)
+      Nothing -> pure (sign q, prec, decSep, groups)
     <?> "numberp"
 
 exponentp :: TextParser m ((Quantity, Int) -> (Quantity, Int))
 exponentp = do
     char' 'e'
-    exp <- liftM read $ (++) <$> signp <*> some digitChar
+    exp <- ($) <$> signp <*> (read <$> some digitChar)
     return $ bimap (* 10^^exp) (max 0 . subtract exp)
     <?> "exponentp"
 
@@ -704,25 +705,24 @@ exponentp = do
 -- - the digit group style, if any (digit group character and sizes of digit groups)
 fromRawNumber
   :: Maybe AmountStyle
-  -> Bool
   -> RawNumber
   -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-fromRawNumber suggestedStyle negated raw = case raw of
+fromRawNumber suggestedStyle raw = case raw of
 
   LeadingDecimalPt decPt digitGrp ->
-    let quantity = sign $
+    let quantity =
           Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
         precision = digitGroupLength digitGrp
     in  (quantity, precision, Just decPt, Nothing)
 
   TrailingDecimalPt digitGrp decPt ->
-    let quantity = sign $
+    let quantity =
           Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
         precision = 0
     in  (quantity, precision, Just decPt, Nothing)
 
   NoSeparators digitGrp ->
-    let quantity = sign $
+    let quantity =
           Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
         precision = 0
     in  (quantity, precision, Nothing, Nothing)
@@ -734,7 +734,7 @@ fromRawNumber suggestedStyle negated raw = case raw of
       && maybe True (sep `isValidDecimalBy`) suggestedStyle ->
 
       -- Assuming that the separator is a decimal point
-      let quantity = sign $
+      let quantity =
             Decimal (fromIntegral precision)
                     (digitGroupNumber $ digitGrp1 <> digitGrp2)
           precision = digitGroupLength digitGrp2
@@ -742,7 +742,7 @@ fromRawNumber suggestedStyle negated raw = case raw of
 
     | otherwise ->
       -- Assuming that the separator is digit separator
-      let quantity = sign $
+      let quantity =
             Decimal (fromIntegral precision)
                     (digitGroupNumber $ digitGrp1 <> digitGrp2)
           precision = 0
@@ -751,7 +751,7 @@ fromRawNumber suggestedStyle negated raw = case raw of
       in  (quantity, precision, Nothing, digitGroupStyle)
 
   DigitSeparators digitSep digitGrps ->
-    let quantity = sign $
+    let quantity =
           Decimal (fromIntegral precision)
                   (digitGroupNumber $ mconcat digitGrps)
         precision = 0
@@ -759,7 +759,7 @@ fromRawNumber suggestedStyle negated raw = case raw of
     in  (quantity, precision, Nothing, digitGroupStyle)
 
   BothSeparators digitSep digitGrps decPt decimalGrp ->
-    let quantity = sign $
+    let quantity =
           Decimal (fromIntegral precision)
                   (digitGroupNumber $ mconcat digitGrps <> decimalGrp)
         precision = digitGroupLength decimalGrp
@@ -767,10 +767,6 @@ fromRawNumber suggestedStyle negated raw = case raw of
     in  (quantity, precision, Just decPt, digitGroupStyle)
 
   where
-
-    sign :: Decimal -> Decimal
-    sign = if negated then negate else id
-
     -- Outputs digit group sizes from least significant to most significant
     groupSizes :: [DigitGrp] -> [Int]
     groupSizes digitGrps = reverse $ case map digitGroupLength digitGrps of
