@@ -101,7 +101,7 @@ import Control.Monad.State.Strict
 import Data.Bifunctor
 import Data.Char
 import Data.Data
-import Data.Decimal (DecimalRaw (Decimal))
+import Data.Decimal (DecimalRaw (Decimal), Decimal)
 import Data.Default
 import Data.Functor.Identity
 import Data.List.Compat
@@ -569,12 +569,13 @@ rightsymbolamountp :: Monad m => JournalParser m Amount
 rightsymbolamountp = do
   m <- lift multiplierp
   sign <- lift signp
-  rawnum <- lift $ rawnumberp
+  ambiguousRawNum <- lift rawnumberp
   expMod <- lift . option id $ try exponentp
   commodityspaced <- lift $ skipMany' spacenonewline
   c <- lift commoditysymbolp
   suggestedStyle <- getAmountStyle c
-  let (q0,prec0,mdec,mgrps) = fromRawNumber suggestedStyle rawnum
+  let (q0,prec0,mdec,mgrps) =
+        fromRawNumber $ either (disambiguateNumber suggestedStyle) id ambiguousRawNum
       (q, prec) = expMod (sign q0, prec0)
   p <- priceamountp
   let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
@@ -671,11 +672,11 @@ numberp suggestedStyle = do
     -- interspersed with periods, commas, or both
     -- ptrace "numberp"
     sign <- signp
-    raw <- rawnumberp
+    raw <- either (disambiguateNumber suggestedStyle) id <$> rawnumberp
     dbg8 "numberp suggestedStyle" suggestedStyle `seq` return ()
     let (q, prec, decSep, groups) =
           dbg8 "numberp quantity,precision,mdecimalpoint,mgrps"
-            $ fromRawNumber suggestedStyle raw
+            $ fromRawNumber raw
     mExp <- optional $ try $ exponentp
     case mExp of
       Just expFunc
@@ -692,79 +693,26 @@ exponentp = do
     return $ bimap (* 10^^exp) (max 0 . subtract exp)
     <?> "exponentp"
 
--- | Interpret a raw number as a decimal number, and identify the decimal
--- point charcter and digit separating scheme. There is only one ambiguous
--- case: when there is just a single separator between two digit groups.
--- Disambiguate using an amount style, if provided; otherwise, assume that
--- the separator is a decimal point.
+-- | Interpret a raw number as a decimal number.
 --
 -- Returns:
 -- - the decimal number
 -- - the precision (number of digits after the decimal point)  
 -- - the decimal point character, if any
 -- - the digit group style, if any (digit group character and sizes of digit groups)
-fromRawNumber
-  :: Maybe AmountStyle
-  -> RawNumber
-  -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-fromRawNumber suggestedStyle raw = case raw of
+fromRawNumber :: RawNumber -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+fromRawNumber raw = case raw of
 
-  LeadingDecimalPt decPt digitGrp ->
-    let quantity =
-          Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
-        precision = digitGroupLength digitGrp
-    in  (quantity, precision, Just decPt, Nothing)
+  NoSeparators digitGrp mDecimals ->
+    let decimalGrp = maybe mempty snd mDecimals
+        (quantity, precision) = toDecimal digitGrp decimalGrp
+    in  (quantity, precision, fmap fst mDecimals, Nothing)
 
-  TrailingDecimalPt digitGrp decPt ->
-    let quantity =
-          Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
-        precision = 0
-    in  (quantity, precision, Just decPt, Nothing)
-
-  NoSeparators digitGrp ->
-    let quantity =
-          Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
-        precision = 0
-    in  (quantity, precision, Nothing, Nothing)
-
-  AmbiguousNumber digitGrp1 sep digitGrp2
-    -- If present, use the suggested style to disambiguate;
-    -- otherwise, assume that the separator is a decimal point where possible.
-    |    isDecimalPointChar sep
-      && maybe True (sep `isValidDecimalBy`) suggestedStyle ->
-
-      -- Assuming that the separator is a decimal point
-      let quantity =
-            Decimal (fromIntegral precision)
-                    (digitGroupNumber $ digitGrp1 <> digitGrp2)
-          precision = digitGroupLength digitGrp2
-      in  (quantity, precision, Just sep, Nothing)
-
-    | otherwise ->
-      -- Assuming that the separator is digit separator
-      let quantity =
-            Decimal (fromIntegral precision)
-                    (digitGroupNumber $ digitGrp1 <> digitGrp2)
-          precision = 0
-          digitGroupStyle = Just $
-            DigitGroups sep (groupSizes $ [digitGrp1, digitGrp2])
-      in  (quantity, precision, Nothing, digitGroupStyle)
-
-  DigitSeparators digitSep digitGrps ->
-    let quantity =
-          Decimal (fromIntegral precision)
-                  (digitGroupNumber $ mconcat digitGrps)
-        precision = 0
-        digitGroupStyle = Just $ DigitGroups digitSep (groupSizes digitGrps)
-    in  (quantity, precision, Nothing, digitGroupStyle)
-
-  BothSeparators digitSep digitGrps decPt decimalGrp ->
-    let quantity =
-          Decimal (fromIntegral precision)
-                  (digitGroupNumber $ mconcat digitGrps <> decimalGrp)
-        precision = digitGroupLength decimalGrp
-        digitGroupStyle = Just $ DigitGroups digitSep (groupSizes digitGrps)
-    in  (quantity, precision, Just decPt, digitGroupStyle)
+  WithSeparators digitSep digitGrps mDecimals ->
+    let decimalGrp = maybe mempty snd mDecimals
+        (quantity, precision) = toDecimal (mconcat digitGrps) decimalGrp
+        digitGroupStyle = DigitGroups digitSep (groupSizes digitGrps)
+    in  (quantity, precision, fmap fst mDecimals, Just digitGroupStyle)
 
   where
     -- Outputs digit group sizes from least significant to most significant
@@ -773,6 +721,23 @@ fromRawNumber suggestedStyle raw = case raw of
       (a:b:cs) | a < b -> b:cs
       gs               -> gs
 
+    toDecimal :: DigitGrp -> DigitGrp -> (Decimal, Int)
+    toDecimal preDecimalGrp postDecimalGrp = (quantity, precision)
+      where
+        quantity = Decimal (fromIntegral precision)
+                           (digitGroupNumber $ preDecimalGrp <> postDecimalGrp)
+        precision = digitGroupLength postDecimalGrp
+
+
+disambiguateNumber :: Maybe AmountStyle -> AmbiguousNumber -> RawNumber
+disambiguateNumber suggestedStyle (AmbiguousNumber grp1 sep grp2) =
+  -- If present, use the suggested style to disambiguate;
+  -- otherwise, assume that the separator is a decimal point where possible.
+  if isDecimalPointChar sep &&
+     maybe True (sep `isValidDecimalBy`) suggestedStyle
+  then NoSeparators grp1 (Just (sep, grp2))
+  else WithSeparators sep [grp1, grp2] Nothing
+  where
     isValidDecimalBy :: Char -> AmountStyle -> Bool
     isValidDecimalBy c = \case
       AmountStyle{asdecimalpoint = Just d} -> d == c
@@ -780,13 +745,12 @@ fromRawNumber suggestedStyle raw = case raw of
       AmountStyle{asprecision = 0} -> False
       _ -> True
 
-
--- | Parse and interpret the structure of a number as far as possible
--- without external hints. Numbers are digit strings, possibly separated
--- into digit groups by one of two types of separators. (1) Numbers may
--- optionally have a decimal point, which may be either a period or comma.
--- (2) Numbers may optionally contain digit group separators, which must
--- all be either a period, a comma, or a space.
+-- | Parse and interpret the structure of a number without external hints.
+-- Numbers are digit strings, possibly separated into digit groups by one
+-- of two types of separators. (1) Numbers may optionally have a decimal
+-- point, which may be either a period or comma. (2) Numbers may
+-- optionally contain digit group separators, which must all be either a
+-- period, a comma, or a space.
 --
 -- It is our task to deduce the identities of the decimal point and digit
 -- separator characters, based on the allowed syntax. For instance, we
@@ -794,54 +758,63 @@ fromRawNumber suggestedStyle raw = case raw of
 -- must succeed all digit group separators.
 --
 -- >>> parseTest rawnumberp "1,234,567.89"
--- BothSeparators ',' ["1","234","567"] '.' "89"
+-- Right (WithSeparators ',' ["1","234","567"] (Just ('.',"89")))
+-- >>> parseTest rawnumberp "1,000"
+-- Left (AmbiguousNumber "1" ',' "000")
 -- >>> parseTest rawnumberp "1 000"
--- AmbiguousNumber "1" ' ' "000"
+-- Right (WithSeparators ' ' ["1","000"] Nothing)
 --
-rawnumberp :: TextParser m RawNumber
+rawnumberp :: TextParser m (Either AmbiguousNumber RawNumber)
 rawnumberp = label "rawnumberp" $ do
-  rawNumber <- leadingDecimalPt <|> leadingDigits
-
+  rawNumber <- fmap Right leadingDecimalPt <|> leadingDigits
   -- Guard against mistyped numbers
-  notFollowedBy $ satisfy isDecimalPointChar <|> (char ' ' >> digitChar)
-
+  notFollowedBy $ satisfy isDecimalPointChar <|> char ' ' *> digitChar
   return $ dbg8 "rawnumberp" rawNumber
-
   where
 
   leadingDecimalPt :: TextParser m RawNumber
-  leadingDecimalPt =
-    LeadingDecimalPt <$> satisfy isDecimalPointChar <*> digitgroupp
+  leadingDecimalPt = do
+    decPt <- satisfy isDecimalPointChar
+    decGrp <- digitgroupp
+    pure $ NoSeparators mempty (Just (decPt, decGrp))
 
-  leadingDigits :: TextParser m RawNumber
+  leadingDigits :: TextParser m (Either AmbiguousNumber RawNumber)
   leadingDigits = do
     grp1 <- digitgroupp
-    withSeparators grp1 <|> trailingDecimalPt grp1 <|> pure (NoSeparators grp1)
+    withSeparators grp1 <|> fmap Right (trailingDecimalPt grp1)
+                        <|> pure (Right $ NoSeparators grp1 Nothing)
 
-  withSeparators :: DigitGrp -> TextParser m RawNumber
+  withSeparators :: DigitGrp -> TextParser m (Either AmbiguousNumber RawNumber)
   withSeparators grp1 = do
     (sep, grp2) <- try $ (,) <$> satisfy isDigitSeparatorChar <*> digitgroupp
     grps <- many $ try $ char sep *> digitgroupp
 
     let digitGroups = grp1 : grp2 : grps
-    withDecimalPt sep digitGroups <|> pure (withoutDecimalPt grp1 sep grp2 grps)
+    fmap Right (withDecimalPt sep digitGroups)
+      <|> pure (withoutDecimalPt grp1 sep grp2 grps)
 
   withDecimalPt :: Char -> [DigitGrp] -> TextParser m RawNumber
   withDecimalPt digitSep digitGroups = do
-    decimalPt <- satisfy $ \c -> isDecimalPointChar c && c /= digitSep
-    decimalDigitGroup <- option mempty digitgroupp
+    decPt <- satisfy $ \c -> isDecimalPointChar c && c /= digitSep
+    decDigitGrp <- option mempty digitgroupp
 
-    pure $ BothSeparators digitSep digitGroups decimalPt decimalDigitGroup
+    pure $ WithSeparators digitSep digitGroups (Just (decPt, decDigitGrp))
 
-  withoutDecimalPt :: DigitGrp -> Char -> DigitGrp -> [DigitGrp] -> RawNumber
+  withoutDecimalPt
+    :: DigitGrp
+    -> Char
+    -> DigitGrp
+    -> [DigitGrp]
+    -> Either AmbiguousNumber RawNumber
   withoutDecimalPt grp1 sep grp2 grps
-    | null grps = AmbiguousNumber grp1 sep grp2
-    | otherwise = DigitSeparators sep (grp1:grp2:grps)
+    | null grps && isDecimalPointChar sep =
+        Left $ AmbiguousNumber grp1 sep grp2
+    | otherwise = Right $ WithSeparators sep (grp1:grp2:grps) Nothing
 
   trailingDecimalPt :: DigitGrp -> TextParser m RawNumber
   trailingDecimalPt grp1 = do
-    decimalPt <- satisfy isDecimalPointChar
-    pure $ TrailingDecimalPt grp1 decimalPt
+    decPt <- satisfy isDecimalPointChar
+    pure $ NoSeparators grp1 (Just (decPt, mempty))
 
 
 isDecimalPointChar :: Char -> Bool
@@ -879,12 +852,11 @@ digitgroupp = label "digit group"
 
 
 data RawNumber
-  = LeadingDecimalPt  Char DigitGrp                 -- .50
-  | TrailingDecimalPt DigitGrp Char                 -- 100.
-  | NoSeparators      DigitGrp                      -- 100
-  | AmbiguousNumber   DigitGrp Char DigitGrp        -- 1,000
-  | DigitSeparators   Char [DigitGrp]               -- 1,000,000
-  | BothSeparators    Char [DigitGrp] Char DigitGrp -- 1,000.50
+  = NoSeparators   DigitGrp (Maybe (Char, DigitGrp))        -- 100 or 100. or .100 or 100.50
+  | WithSeparators Char [DigitGrp] (Maybe (Char, DigitGrp)) -- 1,000,000 or 1,000.50
+  deriving (Show, Eq)
+
+data AmbiguousNumber = AmbiguousNumber DigitGrp Char DigitGrp  -- 1,000
   deriving (Show, Eq)
 
 -- test_numberp = do
