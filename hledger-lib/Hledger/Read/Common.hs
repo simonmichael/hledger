@@ -98,7 +98,6 @@ import Prelude.Compat hiding (readFile)
 import Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
 import Control.Monad.State.Strict
-import Data.Bifunctor
 import Data.Char
 import Data.Data
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
@@ -570,16 +569,19 @@ rightsymbolamountp = do
   m <- lift multiplierp
   sign <- lift signp
   ambiguousRawNum <- lift rawnumberp
-  expMod <- lift . option id $ try exponentp
+  mExponent <- lift $ optional $ try exponentp
   commodityspaced <- lift $ skipMany' spacenonewline
   c <- lift commoditysymbolp
   suggestedStyle <- getAmountStyle c
-  let (q0,prec0,mdec,mgrps) =
-        fromRawNumber $ either (disambiguateNumber suggestedStyle) id ambiguousRawNum
-      (q, prec) = expMod (sign q0, prec0)
+
+  let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousRawNum
+  (q, prec, mdec, mgrps) <- case fromRawNumber rawNum mExponent of
+    Left errMsg -> fail errMsg
+    Right res -> pure res
+
   p <- priceamountp
   let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-  return $ Amount c q p s m
+  return $ Amount c (sign q) p s m
   <?> "right-symbol amount"
 
 nosymbolamountp :: Monad m => JournalParser m Amount
@@ -672,26 +674,22 @@ numberp suggestedStyle = do
     -- interspersed with periods, commas, or both
     -- ptrace "numberp"
     sign <- signp
-    raw <- either (disambiguateNumber suggestedStyle) id <$> rawnumberp
-    dbg8 "numberp suggestedStyle" suggestedStyle `seq` return ()
-    let (q, prec, decSep, groups) =
-          dbg8 "numberp quantity,precision,mdecimalpoint,mgrps"
-            $ fromRawNumber raw
+    rawNum <- either (disambiguateNumber suggestedStyle) id <$> rawnumberp
     mExp <- optional $ try $ exponentp
-    case mExp of
-      Just expFunc
-        | isJust groups -> fail "groups and exponent are not mixable"
-        | otherwise -> let (q', prec') = expFunc (q, prec)
-                       in  pure (sign q', prec', decSep, groups)
-      Nothing -> pure (sign q, prec, decSep, groups)
+    dbg8 "numberp suggestedStyle" suggestedStyle `seq` return ()
+    case dbg8 "numberp quantity,precision,mdecimalpoint,mgrps"
+           $ fromRawNumber rawNum mExp of
+      Left errMsg -> fail errMsg
+      Right (q, p, d, g) -> pure (sign q, p, d, g)
     <?> "numberp"
 
-exponentp :: TextParser m ((Quantity, Int) -> (Quantity, Int))
+exponentp :: TextParser m Int
 exponentp = do
-    char' 'e'
-    exp <- ($) <$> signp <*> (read <$> some digitChar)
-    return $ bimap (* 10^^exp) (max 0 . subtract exp)
-    <?> "exponentp"
+  char' 'e'
+  sign <- signp
+  d <- decimal
+  pure $ sign d
+  <?> "exponentp"
 
 -- | Interpret a raw number as a decimal number.
 --
@@ -700,19 +698,29 @@ exponentp = do
 -- - the precision (number of digits after the decimal point)  
 -- - the decimal point character, if any
 -- - the digit group style, if any (digit group character and sizes of digit groups)
-fromRawNumber :: RawNumber -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-fromRawNumber raw = case raw of
+fromRawNumber
+  :: RawNumber
+  -> Maybe Int
+  -> Either String
+            (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+fromRawNumber raw mExp = case raw of
 
   NoSeparators digitGrp mDecimals ->
     let decimalGrp = maybe mempty snd mDecimals
-        (quantity, precision) = toDecimal digitGrp decimalGrp
-    in  (quantity, precision, fmap fst mDecimals, Nothing)
+        (quantity, precision) =
+          maybe id applyExp mExp $ toQuantity digitGrp decimalGrp
 
-  WithSeparators digitSep digitGrps mDecimals ->
+    in  Right (quantity, precision, fmap fst mDecimals, Nothing)
+
+  WithSeparators digitSep digitGrps mDecimals -> do
     let decimalGrp = maybe mempty snd mDecimals
-        (quantity, precision) = toDecimal (mconcat digitGrps) decimalGrp
         digitGroupStyle = DigitGroups digitSep (groupSizes digitGrps)
-    in  (quantity, precision, fmap fst mDecimals, Just digitGroupStyle)
+
+    let errMsg = "mixing digit separators with exponents is not allowed"
+    (quantity, precision) <- maybe Right (const $ const $ Left errMsg) mExp
+                           $ toQuantity (mconcat digitGrps) decimalGrp
+
+    Right (quantity, precision, fmap fst mDecimals, Just digitGroupStyle)
 
   where
     -- Outputs digit group sizes from least significant to most significant
@@ -721,12 +729,16 @@ fromRawNumber raw = case raw of
       (a:b:cs) | a < b -> b:cs
       gs               -> gs
 
-    toDecimal :: DigitGrp -> DigitGrp -> (Decimal, Int)
-    toDecimal preDecimalGrp postDecimalGrp = (quantity, precision)
+    toQuantity :: DigitGrp -> DigitGrp -> (Quantity, Int)
+    toQuantity preDecimalGrp postDecimalGrp = (quantity, precision)
       where
         quantity = Decimal (fromIntegral precision)
                            (digitGroupNumber $ preDecimalGrp <> postDecimalGrp)
         precision = digitGroupLength postDecimalGrp
+
+    applyExp :: Int -> (Decimal, Int) -> (Decimal, Int)
+    applyExp exponent (quantity, precision) =
+      (quantity * 10^^exponent, max 0 (precision - exponent))
 
 
 disambiguateNumber :: Maybe AmountStyle -> AmbiguousNumber -> RawNumber
@@ -1105,19 +1117,19 @@ bracketedpostingdatesp mdefdate = do
 -- default date is provided. A missing year in DATE2 will be inferred
 -- from DATE.
 --
--- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[2016/1/2=3/4]"
+-- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[2016/1/2=3/4]"
 -- Right [("date",2016-01-02),("date2",2016-03-04)]
 --
--- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[1]"
+-- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[1]"
 -- Left ...not a bracketed date...
 --
--- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[2016/1/32]"
+-- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[2016/1/32]"
 -- Left ...1:11:...well-formed but invalid date: 2016/1/32...
 --
--- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[1/31]"
+-- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[1/31]"
 -- Left ...1:6:...partial date 1/31 found, but the current year is unknown...
 --
--- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
+-- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
 -- Left ...1:13:...expecting month or day...
 --
 bracketeddatetagsp :: Maybe Day -> SimpleTextParser [(TagName, Day)]
