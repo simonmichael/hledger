@@ -339,6 +339,7 @@ parserErrorAt :: Monad m => SourcePos -> String -> ErroringJournalParser m a
 parserErrorAt pos s = throwError $ sourcePosPretty pos ++ ":\n" ++ s
 
 --- * parsers
+
 --- ** transaction bits
 
 statusp :: TextParser m Status
@@ -348,16 +349,15 @@ statusp =
     , skipMany spacenonewline >> char '!' >> return Pending
     , return Unmarked
     ]
-    <?> "cleared status"
 
 codep :: TextParser m Text
-codep = try codep' <|> pure "" where
-  codep' = do
-    skipSome spacenonewline
-    between (char '(' <?> "codep") (char ')') $ takeWhileP Nothing (/= ')')
+codep = option "" $ try $ do
+  skipSome spacenonewline
+  between (char '(') (char ')') $ takeWhileP Nothing (/= ')')
 
 descriptionp :: JournalParser m Text
-descriptionp = takeWhileP Nothing $ \c -> c /= ';' && c /= '\n'
+descriptionp = takeWhileP Nothing (not . semicolonOrNewline)
+  where semicolonOrNewline c = c == ';' || c == '\n'
 
 --- ** dates
 
@@ -367,8 +367,8 @@ descriptionp = takeWhileP Nothing $ \c -> c /= ';' && c /= '\n'
 -- Leading zeroes may be omitted.
 datep :: JournalParser m Day
 datep = do
-  myear <- getYear
-  lift $ datep' myear
+  mYear <- getYear
+  lift $ datep' mYear
 
 datep' :: Maybe Year -> TextParser m Day
 datep' mYear = do
@@ -380,7 +380,7 @@ datep' mYear = do
 
   where
 
-  fullDate :: Integer -> Char -> Integer -> TextParser m Day
+  fullDate :: Integer -> Char -> Int -> TextParser m Day
   fullDate year sep1 month = do
     sep2 <- satisfy isDateSepChar <?> "date separator"
     day <- decimal <?> "day"
@@ -389,17 +389,18 @@ datep' mYear = do
     when (sep1 /= sep2) $ fail $
       "invalid date (mixing date separators is not allowed): " ++ dateStr
 
-    case fromGregorianValid year (fromIntegral month) day of
+    case fromGregorianValid year month day of
       Nothing -> fail $ "well-formed but invalid date: " ++ dateStr
       Just date -> pure date
 
-  partialDate :: Maybe Year -> Integer -> Char -> Integer -> TextParser m Day
+  partialDate :: Maybe Year -> Integer -> Char -> Int -> TextParser m Day
   partialDate mYear month sep day = case mYear of
     Just year ->
-      case fromGregorianValid year (fromIntegral month) (fromIntegral day) of
+      case fromGregorianValid year (fromIntegral month) day of
         Nothing -> fail $ "well-formed but invalid date: " ++ dateStr
         Just date -> pure date
       where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
+
     Nothing -> fail $
       "partial date "++dateStr++" found, but the current year is unknown"
       where dateStr = show month ++ [sep] ++ show day
@@ -438,28 +439,9 @@ datetimep = do
   -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
   return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
 
-secondarydatep :: Day -> JournalParser m Day
-secondarydatep primarydate = do
-  char '='
-  -- kludgy way to use primary date for default year
-  let withDefaultYear d p = do
-        y <- getYear
-        let (y',_,_) = toGregorian d in setYear y'
-        r <- p
-        when (isJust y) $ setYear $ fromJust y -- XXX
-        -- mapM setYear <$> y
-        return r
-  withDefaultYear primarydate datep
-
--- |
--- >> parsewith twoorthreepartdatestringp "2016/01/2"
--- Right "2016/01/2"
--- twoorthreepartdatestringp = do
---   n1 <- some digitChar
---   c <- datesepchar
---   n2 <- some digitChar
---   mn3 <- optional $ char c >> some digitChar
---   return $ n1 ++ c:n2 ++ maybe "" (c:) mn3
+secondarydatep :: Day -> TextParser m Day
+secondarydatep primaryDate = char '=' *> datep' (Just primaryYear)
+  where primaryYear = first3 $ toGregorian primaryDate
 
 --- ** account names
 
@@ -485,8 +467,12 @@ accountnamep = do
   firstPart <- part
   otherParts <- many $ try $ singleSpace *> part
   let account = T.unwords $ firstPart : otherParts
-  when (accountNameFromComponents (accountNameComponents account) /= account)
-       (fail $ "account name seems ill-formed: " ++ T.unpack account)
+
+  let roundTripAccount =
+        accountNameFromComponents $ accountNameComponents account
+  when (account /= roundTripAccount) $ fail $
+    "account name seems ill-formed: " ++ T.unpack account
+
   pure account
   where
     part = takeWhile1P Nothing (not . isSpace)
@@ -499,10 +485,9 @@ accountnamep = do
 -- "missing" marker amount.
 spaceandamountormissingp :: Monad m => JournalParser m MixedAmount
 spaceandamountormissingp =
-  try (do
-        lift $ skipSome spacenonewline
-        (Mixed . (:[])) `fmap` amountp <|> return missingmixedamt
-      ) <|> return missingmixedamt
+  option missingmixedamt $ try $ do
+    lift $ skipSome spacenonewline
+    Mixed . (:[]) <$> amountp
 
 #ifdef TESTS
 assertParseEqual' :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
@@ -556,10 +541,7 @@ signp = do
                         _        -> ""
 
 multiplierp :: TextParser m Bool
-multiplierp = do
-  multiplier <- optional $ oneOf ("*" :: [Char])
-  return $ case multiplier of Just '*' -> True
-                              _        -> False
+multiplierp = option False $ char '*' *> pure True
 
 -- | This is like skipMany but it returns True if at least one element
 -- was skipped. This is helpful if you’re just using many to check if
@@ -622,38 +604,35 @@ commoditysymbolp = (quotedcommoditysymbolp <|> simplecommoditysymbolp) <?> "comm
 
 quotedcommoditysymbolp :: TextParser m CommoditySymbol
 quotedcommoditysymbolp =
-  between (char '"') (char '"') $
-    takeWhile1P Nothing $ \c -> c /= ';' && c /= '\n' && c /= '\"'
+  between (char '"') (char '"') $ takeWhile1P Nothing f
+  where f c = c /= ';' && c /= '\n' && c /= '\"'
 
 simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
 priceamountp :: Monad m => JournalParser m Price
-priceamountp =
-    try (do
-          lift (skipMany spacenonewline)
-          char '@'
-          try (do
-                char '@'
-                lift (skipMany spacenonewline)
-                a <- amountp -- XXX can parse more prices ad infinitum, shouldn't
-                return $ TotalPrice a)
-           <|> (do
-            lift (skipMany spacenonewline)
-            a <- amountp -- XXX can parse more prices ad infinitum, shouldn't
-            return $ UnitPrice a))
-         <|> return NoPrice
+priceamountp = option NoPrice $ try $ do
+  lift (skipMany spacenonewline)
+  char '@'
+
+  m <- optional $ char '@'
+  let priceConstructor = case m of
+        Just _  -> TotalPrice
+        Nothing -> UnitPrice
+
+  lift (skipMany spacenonewline)
+  priceAmount <- amountp -- XXX can parse more prices ad infinitum, shouldn't
+
+  pure $ priceConstructor priceAmount
 
 partialbalanceassertionp :: Monad m => JournalParser m BalanceAssertion
-partialbalanceassertionp =
-    try (do
-          lift (skipMany spacenonewline)
-          sourcepos <- genericSourcePos <$> lift getPosition
-          char '='
-          lift (skipMany spacenonewline)
-          a <- amountp -- XXX should restrict to a simple amount
-          return $ Just (a, sourcepos))
-         <|> return Nothing
+partialbalanceassertionp = optional $ try $ do
+  lift (skipMany spacenonewline)
+  sourcepos <- genericSourcePos <$> lift getPosition
+  char '='
+  lift (skipMany spacenonewline)
+  a <- amountp -- XXX should restrict to a simple amount
+  return (a, sourcepos)
 
 -- balanceassertion :: Monad m => TextParser m (Maybe MixedAmount)
 -- balanceassertion =
@@ -667,18 +646,16 @@ partialbalanceassertionp =
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
 fixedlotpricep :: Monad m => JournalParser m (Maybe Amount)
-fixedlotpricep =
-    try (do
-          lift (skipMany spacenonewline)
-          char '{'
-          lift (skipMany spacenonewline)
-          char '='
-          lift (skipMany spacenonewline)
-          a <- amountp -- XXX should restrict to a simple amount
-          lift (skipMany spacenonewline)
-          char '}'
-          return $ Just a)
-         <|> return Nothing
+fixedlotpricep = optional $ try $ do
+  lift (skipMany spacenonewline)
+  char '{'
+  lift (skipMany spacenonewline)
+  char '='
+  lift (skipMany spacenonewline)
+  a <- amountp -- XXX should restrict to a simple amount
+  lift (skipMany spacenonewline)
+  char '}'
+  return a
 
 -- | Parse a string representation of a number for its value and display
 -- attributes.
@@ -733,53 +710,58 @@ fromRawNumber
 fromRawNumber suggestedStyle negated raw = case raw of
 
   LeadingDecimalPt decPt digitGrp ->
-    let quantity = sign $ Decimal (fromIntegral precision)
-                                  (digitGroupNumber digitGrp)
+    let quantity = sign $
+          Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
         precision = digitGroupLength digitGrp
     in  (quantity, precision, Just decPt, Nothing)
 
   TrailingDecimalPt digitGrp decPt ->
-    let quantity = sign $ Decimal (fromIntegral precision)
-                                  (digitGroupNumber digitGrp)
+    let quantity = sign $
+          Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
         precision = 0
     in  (quantity, precision, Just decPt, Nothing)
 
   NoSeparators digitGrp ->
-    let quantity = sign $ Decimal (fromIntegral precision)
-                                  (digitGroupNumber digitGrp)
+    let quantity = sign $
+          Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
         precision = 0
     in  (quantity, precision, Nothing, Nothing)
 
-  AmbiguousNumber digitGrp1 sep digitGrp2 ->
+  AmbiguousNumber digitGrp1 sep digitGrp2
     -- If present, use the suggested style to disambiguate;
     -- otherwise, assume that the separator is a decimal point where possible.
-    if isDecimalPointChar sep && maybe True (sep `isValidDecimalBy`) suggestedStyle
+    |    isDecimalPointChar sep
+      && maybe True (sep `isValidDecimalBy`) suggestedStyle ->
 
-    then -- Assuming that the separator is a decimal point
-      let quantity = sign $ Decimal (fromIntegral precision)
-                                    (digitGroupNumber $ digitGrp1 <> digitGrp2)
+      -- Assuming that the separator is a decimal point
+      let quantity = sign $
+            Decimal (fromIntegral precision)
+                    (digitGroupNumber $ digitGrp1 <> digitGrp2)
           precision = digitGroupLength digitGrp2
       in  (quantity, precision, Just sep, Nothing)
 
-    else -- Assuming that the separator is digit separator
-      let quantity = sign $ Decimal (fromIntegral precision)
-                                    (digitGroupNumber $ digitGrp1 <> digitGrp2)
+    | otherwise ->
+      -- Assuming that the separator is digit separator
+      let quantity = sign $
+            Decimal (fromIntegral precision)
+                    (digitGroupNumber $ digitGrp1 <> digitGrp2)
           precision = 0
           digitGroupStyle = Just $
             DigitGroups sep (groupSizes $ [digitGrp1, digitGrp2])
       in  (quantity, precision, Nothing, digitGroupStyle)
 
   DigitSeparators digitSep digitGrps ->
-    let quantity = sign $ Decimal (fromIntegral precision)
-                                  (digitGroupNumber $ mconcat digitGrps)
+    let quantity = sign $
+          Decimal (fromIntegral precision)
+                  (digitGroupNumber $ mconcat digitGrps)
         precision = 0
         digitGroupStyle = Just $ DigitGroups digitSep (groupSizes digitGrps)
     in  (quantity, precision, Nothing, digitGroupStyle)
 
   BothSeparators digitSep digitGrps decPt decimalGrp ->
-    let quantity =
-          sign $ Decimal (fromIntegral precision)
-                         (digitGroupNumber $ mconcat digitGrps <> decimalGrp)
+    let quantity = sign $
+          Decimal (fromIntegral precision)
+                  (digitGroupNumber $ mconcat digitGrps <> decimalGrp)
         precision = digitGroupLength decimalGrp
         digitGroupStyle = Just $ DigitGroups digitSep (groupSizes digitGrps)
     in  (quantity, precision, Just decPt, digitGroupStyle)
@@ -860,7 +842,6 @@ rawnumberp = label "rawnumberp" $ do
     | null grps = AmbiguousNumber grp1 sep grp2
     | otherwise = DigitSeparators sep (grp1:grp2:grps)
 
-
   trailingDecimalPt :: DigitGrp -> TextParser m RawNumber
   trailingDecimalPt grp1 = do
     decimalPt <- satisfy isDecimalPointChar
@@ -937,10 +918,10 @@ data RawNumber
 multilinecommentp :: TextParser m ()
 multilinecommentp = startComment *> anyLine `skipManyTill` endComment
   where
-    startComment = string "comment" >> emptyLine
-    endComment = eof <|> (string "end comment" >> emptyLine)
+    startComment = string "comment" >> skipLine
+    endComment = eof <|> string "end comment" *> skipLine
 
-    emptyLine = void $ skipMany spacenonewline *> newline
+    skipLine = void $ skipMany spacenonewline *> newline
     anyLine = takeWhileP Nothing (\c -> c /= '\n') *> newline
 
 emptyorcommentlinep :: TextParser m ()
@@ -1140,9 +1121,8 @@ bracketedpostingdatesp :: Maybe Day -> SimpleTextParser [(TagName,Day)]
 bracketedpostingdatesp mdefdate = do
   -- pdbg 0 $ "bracketedpostingdatesp"
   skipMany $ notChar '['
-  fmap concat
-    $ sepEndBy (bracketeddatetagsp mdefdate <|> char '[' *> pure [])
-               (skipMany $ notChar '[')
+  concat <$> sepEndBy (bracketeddatetagsp mdefdate <|> char '[' *> pure [])
+                      (skipMany $ notChar '[')
 
 --- ** bracketed dates
 
