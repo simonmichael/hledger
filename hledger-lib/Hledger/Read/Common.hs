@@ -190,19 +190,15 @@ runTextParser, rtp :: TextParser Identity a -> Text -> Either (ParseError Char V
 runTextParser p t =  runParser p "" t
 rtp = runTextParser
 
--- XXX odd, why doesn't this take a JournalParser ?
 -- | Run a journal parser with a null journal-parsing state.
-runJournalParser, rjp :: Monad m => TextParser m a -> Text -> m (Either (ParseError Char Void) a)
-runJournalParser p t = runParserT p "" t
+runJournalParser, rjp :: Monad m => JournalParser m a -> Text -> m (Either (ParseError Char Void) a)
+runJournalParser p t = runParserT (evalStateT p mempty) "" t
 rjp = runJournalParser
 
 -- | Run an error-raising journal parser with a null journal-parsing state.
 runErroringJournalParser, rejp :: Monad m => ErroringJournalParser m a -> Text -> m (Either String a)
-runErroringJournalParser p t =
-  runExceptT $
-  runJournalParser (evalStateT p mempty)
-                   t >>=
-  either (throwError . parseErrorPretty) return
+runErroringJournalParser p t = runExceptT $
+  runJournalParser p t >>= either (throwError . parseErrorPretty) return
 rejp = runErroringJournalParser
 
 genericSourcePos :: SourcePos -> GenericSourcePos
