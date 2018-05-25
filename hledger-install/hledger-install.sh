@@ -49,7 +49,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20180524
+HLEDGER_INSTALL_VERSION=20180525
 
 RESOLVER="--resolver=lts"
   # ^ You can specify a different stackage snapshot here, 
@@ -66,7 +66,7 @@ HLEDGER_API_VERSION=1.9.1
 HLEDGER_DIFF_VERSION=0.2.0.14
 HLEDGER_IADD_VERSION=1.3.5
 HLEDGER_INTEREST_VERSION=1.5.2
-HLEDGER_IRR_VERSION=0.1.1.13
+HLEDGER_IRR_VERSION=0.1.1.14
 
 HLEDGER_MAIN_TOOLS="\
 hledger \
@@ -952,7 +952,7 @@ if [[ $(cmd_version hledger-interest) < $HLEDGER_INTEREST_VERSION ]]; then
 fi
 if [[ $(cmd_version hledger-irr) < $HLEDGER_IRR_VERSION ]]; then 
   echo Installing hledger-irr
-  try_install hledger-irr-$HLEDGER_IRR_VERSION #hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-irr-$HLEDGER_IRR_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 echo ----------
