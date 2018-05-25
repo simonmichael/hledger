@@ -506,7 +506,14 @@ test_spaceandamountormissingp = do
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
 amountp :: Monad m => JournalParser m Amount
-amountp = try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
+amountp = do
+  amount <- amountwithoutpricep
+  price <- priceamountp
+  pure $ amount { aprice = price }
+
+amountwithoutpricep :: Monad m => JournalParser m Amount
+amountwithoutpricep =
+  try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
 
 #ifdef TESTS
 test_amountp = do
@@ -560,8 +567,7 @@ leftsymbolamountp = do
   commodityspaced <- lift $ skipMany' spacenonewline
   (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
   let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-  p <- priceamountp
-  return $ Amount c (sign q) p s m
+  return $ Amount c (sign q) NoPrice s m
   <?> "left-symbol amount"
 
 rightsymbolamountp :: Monad m => JournalParser m Amount
@@ -579,9 +585,8 @@ rightsymbolamountp = do
     Left errMsg -> fail errMsg
     Right res -> pure res
 
-  p <- priceamountp
   let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-  return $ Amount c (sign q) p s m
+  return $ Amount c (sign q) NoPrice s m
   <?> "right-symbol amount"
 
 nosymbolamountp :: Monad m => JournalParser m Amount
@@ -589,13 +594,12 @@ nosymbolamountp = do
   m <- lift multiplierp
   suggestedStyle <- getDefaultAmountStyle
   (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
-  p <- priceamountp
   -- apply the most recently seen default commodity and style to this commodityless amount
   defcs <- getDefaultCommodityAndStyle
   let (c,s) = case defcs of
         Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
         Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-  return $ Amount c q p s m
+  return $ Amount c q NoPrice s m
   <?> "no-symbol amount"
 
 commoditysymbolp :: TextParser m CommoditySymbol
@@ -620,7 +624,7 @@ priceamountp = option NoPrice $ try $ do
         Nothing -> UnitPrice
 
   lift (skipMany spacenonewline)
-  priceAmount <- amountp -- XXX can parse more prices ad infinitum, shouldn't
+  priceAmount <- amountwithoutpricep
 
   pure $ priceConstructor priceAmount
 
