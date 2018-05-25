@@ -603,7 +603,8 @@ nosymbolamountp = do
   <?> "no-symbol amount"
 
 commoditysymbolp :: TextParser m CommoditySymbol
-commoditysymbolp = (quotedcommoditysymbolp <|> simplecommoditysymbolp) <?> "commodity symbol"
+commoditysymbolp =
+  quotedcommoditysymbolp <|> simplecommoditysymbolp <?> "commodity symbol"
 
 quotedcommoditysymbolp :: TextParser m CommoditySymbol
 quotedcommoditysymbolp =
@@ -617,11 +618,7 @@ priceamountp :: Monad m => JournalParser m Price
 priceamountp = option NoPrice $ try $ do
   lift (skipMany spacenonewline)
   char '@'
-
-  m <- optional $ char '@'
-  let priceConstructor = case m of
-        Just _  -> TotalPrice
-        Nothing -> UnitPrice
+  priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
   priceAmount <- amountwithoutpricep
@@ -688,12 +685,7 @@ numberp suggestedStyle = do
     <?> "numberp"
 
 exponentp :: TextParser m Int
-exponentp = do
-  char' 'e'
-  sign <- signp
-  d <- decimal
-  pure $ sign d
-  <?> "exponentp"
+exponentp = char' 'e' *> signp <*> decimal <?> "exponentp"
 
 -- | Interpret a raw number as a decimal number.
 --
