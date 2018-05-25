@@ -198,7 +198,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 Also a good choice. Our master branch is stable enough for daily use,
 and includes the [latest improvements](https://github.com/simonmichael/hledger/commits/master).
 
-1. **Install [git](https://en.wikipedia.org/wiki/Git) and [`stack`](#stack)**
+1. **Install [git](https://en.wikipedia.org/wiki/Git) and [`stack`](#b2)**
 2. **`git clone https://github.com/simonmichael/hledger`**
 3. **`cd hledger`**
 4. **`stack install [hledger]`**  *# build all (or, just the command line UI)* 
