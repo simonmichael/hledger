@@ -461,14 +461,7 @@ accountnamep :: TextParser m AccountName
 accountnamep = do
   firstPart <- part
   otherParts <- many $ try $ singleSpace *> part
-  let account = T.unwords $ firstPart : otherParts
-
-  let roundTripAccount =
-        accountNameFromComponents $ accountNameComponents account
-  when (account /= roundTripAccount) $ fail $
-    "account name seems ill-formed: " ++ T.unpack account
-
-  pure account
+  pure $ T.unwords $ firstPart : otherParts
   where
     part = takeWhile1P Nothing (not . isSpace)
     singleSpace = void spacenonewline *> notFollowedBy spacenonewline
