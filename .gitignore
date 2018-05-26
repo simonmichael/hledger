@@ -73,4 +73,8 @@ hledger-web/static/tmp/
 hledger-web/yesod-devel/
 .hledger-web_client_session_key.aes
 
+# sandstorm stuff
+.vagrant
+*.spk
+
 # recent stuff
