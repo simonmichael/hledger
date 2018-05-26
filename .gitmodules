@@ -1,3 +1,0 @@
-[submodule "hledger"]
-	path = hledger
-	url = https://github.com/simonmichael/hledger/
