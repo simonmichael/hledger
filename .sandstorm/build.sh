@@ -19,7 +19,7 @@ set -euo pipefail
 
 # By default, this script does nothing.  You'll have to modify it as
 # appropriate for your application.
-cd /opt/app/hledger
+cd /opt/app
 stack setup
 stack install hledger-web
 sudo cp /home/vagrant/.local/bin/hledger-web /usr/local/bin

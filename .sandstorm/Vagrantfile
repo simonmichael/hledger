@@ -9,8 +9,17 @@ VM_NAME = File.basename(File.dirname(File.dirname(__FILE__))) + "_sandstorm_#{Ti
 # Vagrantfile API/syntax version. Don't touch unless you know what you're doing!
 VAGRANTFILE_API_VERSION = "2"
 
+# ugly hack to prevent hashicorp's bitrot. See https://github.com/hashicorp/vagrant/issues/9442
+# this setting is required for pre-2.0 vagrant, but causes an error as of 2.0.3,
+# remove entirely when confident nobody uses vagrant 1.x for anything.
+unless Vagrant::DEFAULT_SERVER_URL.frozen?
+  Vagrant::DEFAULT_SERVER_URL.replace('https://vagrantcloud.com')
+end
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-  config.vm.box = "sandstorm/debian-jessie64"
+  # Base on the Sandstorm snapshots of the official Debian 9 (stretch) box with vboxsf support.
+  config.vm.box = "debian/contrib-stretch64"
+  config.vm.box_version = "9.3.0"
 
   if Vagrant.has_plugin?("vagrant-vbguest") then
     # vagrant-vbguest is a Vagrant plugin that upgrades
@@ -24,7 +33,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # We forward port 6080, the Sandstorm web port, so that developers can
   # visit their sandstorm app from their browser as local.sandstorm.io:6080
   # (aka 127.0.0.1:6080).
-  config.vm.network :forwarded_port, guest: 6080, host: 6080
+  config.vm.network :forwarded_port, guest: 6080, host: 6080, host_ip: "127.0.0.1"
 
   # Use a shell script to "provision" the box. This installs Sandstorm using
   # the bundled installer.
@@ -71,25 +80,32 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if total_kB_ram.nil? or total_kB_ram < 2048000
     assign_ram_mb = 512
   else
-    assign_ram_mb = (total_kB_ram / 1024 / 2)
+    assign_ram_mb = (total_kB_ram / 1024 / 4)
   end
   # Actually apply these CPU/memory values to the providers.
   config.vm.provider :virtualbox do |vb, override|
     vb.cpus = cpus
     vb.memory = assign_ram_mb
     vb.name = VM_NAME
+    vb.customize ["modifyvm", :id, "--nictype1", "Am79C973"]
 
+    # /opt/app and /host-dot-sandstorm are used by vagrant-spk
     override.vm.synced_folder "..", "/opt/app"
     override.vm.synced_folder ENV["HOME"] + "/.sandstorm", "/host-dot-sandstorm"
-    override.vm.synced_folder "..", "/vagrant"
+    # /vagrant is not used by vagrant-spk; we need this line so it gets disabled; if we removed the
+    # line, vagrant would automatically insert a synced folder in /vagrant, which is not what we want.
+    override.vm.synced_folder "..", "/vagrant", disabled: true
   end
   config.vm.provider :libvirt do |libvirt, override|
     libvirt.cpus = cpus
     libvirt.memory = assign_ram_mb
     libvirt.default_prefix = VM_NAME
 
+    # /opt/app and /host-dot-sandstorm are used by vagrant-spk
     override.vm.synced_folder "..", "/opt/app", type: "9p", accessmode: "passthrough"
     override.vm.synced_folder ENV["HOME"] + "/.sandstorm", "/host-dot-sandstorm", type: "9p", accessmode: "passthrough"
-    override.vm.synced_folder "..", "/vagrant", type: "9p", accessmode: "passthrough"
+    # /vagrant is not used by vagrant-spk; we need this line so it gets disabled; if we removed the
+    # line, vagrant would automatically insert a synced folder in /vagrant, which is not what we want.
+    override.vm.synced_folder "..", "/vagrant", type: "9p", accessmode: "passthrough", disabled: true
   end
 end
