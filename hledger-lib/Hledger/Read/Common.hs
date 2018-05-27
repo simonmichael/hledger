@@ -386,14 +386,14 @@ datep' mYear = do
 
     case fromGregorianValid year month day of
       Nothing -> fail $ "well-formed but invalid date: " ++ dateStr
-      Just date -> pure date
+      Just date -> pure $! date
 
   partialDate :: Maybe Year -> Integer -> Char -> Int -> TextParser m Day
   partialDate mYear month sep day = case mYear of
     Just year ->
       case fromGregorianValid year (fromIntegral month) day of
         Nothing -> fail $ "well-formed but invalid date: " ++ dateStr
-        Just date -> pure date
+        Just date -> pure $! date
       where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
 
     Nothing -> fail $
@@ -446,7 +446,7 @@ modifiedaccountnamep = do
   parent <- getParentAccount
   aliases <- getAccountAliases
   a <- lift accountnamep
-  return $
+  return $!
     accountNameApplyAliases aliases $
      -- XXX accountNameApplyAliasesMemo ? doesn't seem to make a difference
     joinAccountNames parent
@@ -461,7 +461,7 @@ accountnamep :: TextParser m AccountName
 accountnamep = do
   firstPart <- part
   otherParts <- many $ try $ singleSpace *> part
-  pure $ T.unwords $ firstPart : otherParts
+  pure $! T.unwords $ firstPart : otherParts
   where
     part = takeWhile1P Nothing (not . isSpace)
     singleSpace = void spacenonewline *> notFollowedBy spacenonewline
@@ -822,8 +822,8 @@ isDigitSeparatorChar c = isDecimalPointChar c || c == ' '
 
 
 data DigitGrp = DigitGrp {
-  digitGroupLength :: Int,
-  digitGroupNumber :: Integer
+  digitGroupLength :: !Int,
+  digitGroupNumber :: !Integer
 } deriving (Eq)
 
 instance Show DigitGrp where
