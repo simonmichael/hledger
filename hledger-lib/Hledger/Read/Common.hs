@@ -691,21 +691,25 @@ fromRawNumber
 fromRawNumber raw mExp = case raw of
 
   NoSeparators digitGrp mDecimals ->
-    let decimalGrp = maybe mempty snd mDecimals
+    let mDecPt = fmap fst mDecimals
+        decimalGrp = maybe mempty snd mDecimals
+
         (quantity, precision) =
           maybe id applyExp mExp $ toQuantity digitGrp decimalGrp
 
-    in  Right (quantity, precision, fmap fst mDecimals, Nothing)
+    in  Right (quantity, precision, mDecPt, Nothing)
 
-  WithSeparators digitSep digitGrps mDecimals -> do
-    let decimalGrp = maybe mempty snd mDecimals
-        digitGroupStyle = DigitGroups digitSep (groupSizes digitGrps)
+  WithSeparators digitSep digitGrps mDecimals -> case mExp of
+    Nothing -> 
+      let mDecPt = fmap fst mDecimals
+          decimalGrp = maybe mempty snd mDecimals
+          digitGroupStyle = DigitGroups digitSep (groupSizes digitGrps)
 
-    let errMsg = "mixing digit separators with exponents is not allowed"
-    (quantity, precision) <- maybe Right (const $ const $ Left errMsg) mExp
-                           $ toQuantity (mconcat digitGrps) decimalGrp
+          (quantity, precision) = toQuantity (mconcat digitGrps) decimalGrp
 
-    Right (quantity, precision, fmap fst mDecimals, Just digitGroupStyle)
+      in  Right (quantity, precision, mDecPt, Just digitGroupStyle)
+    Just _ ->
+      Left "mixing digit separators with exponents is not allowed"
 
   where
     -- Outputs digit group sizes from least significant to most significant
