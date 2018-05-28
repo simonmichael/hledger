@@ -83,7 +83,7 @@ identifyEditor :: String -> EditorType
 identifyEditor cmd
   | "emacsclient" `isPrefixOf` exe = EmacsClient
   | "emacs" `isPrefixOf` exe       = Emacs
-  | exe `elem` ["vi","vim","ex","view","gvim","gview","evim","eview","rvim","rview","rgvim","rgview"]
+  | exe `elem` ["vi","nvim","vim","ex","view","gvim","gview","evim","eview","rvim","rview","rgvim","rgview"]
                                    = Vi
   | otherwise                      = Other
   where
