@@ -40,6 +40,8 @@ install:
 # install ghc
 # 8.2 for hledger-web -> network, https://github.com/haskell/network/issues/313
 - stack --stack-yaml=stack-ghc8.2.yaml setup
+# 20180530 no happy today; guess we must ensure it
+- stack install happy
 #- stack install shelltestrunner
 
 # -j1 was a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+
