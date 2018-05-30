@@ -11,7 +11,7 @@ packages:
 
 extra-deps:
 - easytest-0.2
-# use latest directory to avoid windows symlink issues
+# use newer directory to avoid windows/symlink/hang issue
 - directory-1.3.2.2
 
 nix:
