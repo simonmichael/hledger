@@ -44,6 +44,7 @@ install:
 # network 2.7.0.1 should work around it when released
 - stack --stack-yaml=stack-ghc8.2.yaml setup
 # 20180530 no happy today; guess we must ensure it
+- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 - stack install happy
 #- stack install shelltestrunner
 
