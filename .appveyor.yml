@@ -28,7 +28,7 @@ environment:
 # only those files for cache invalidation, quicker than checksumming all cached content.
 cache:
 - "%LOCALAPPDATA%\\Programs\\stack"
-- C:\sr                   -> **\*.yaml
+- C:\sr
 - .stack-work
 - hledger-lib\.stack-work -> hledger-lib\**
 - hledger\.stack-work     -> hledger\**
