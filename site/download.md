@@ -33,7 +33,7 @@ but they can be [out of date](https://repology.org/metapackage/hledger/badges) o
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| Windows:             | [1.9.1](https://ci.appveyor.com/api/buildjobs/ln9saus4y41gr1n8/artifacts/hledger.zip) or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) (<span class=warnings>[no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444), [don't work on old windows ?](https://github.com/simonmichael/hledger/issues/774))</span>
+| Windows:             | [1.9.1](https://ci.appveyor.com/api/buildjobs/ln9saus4y41gr1n8/artifacts/hledger.zip) or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) (<span class=warnings>[no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444), [doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774), [unusually many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791))</span>
 | Mac:                 | **`brew install hledger`** <span class=warnings>([only hledger CLI](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))</span>
 | Arch Linux:          | **`pacman -S hledger`**
 | Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`**
