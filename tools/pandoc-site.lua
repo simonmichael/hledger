@@ -1,8 +1,9 @@
-local headers = {}
-
-function Header(h)
-  table.insert(headers, h)
-  return h
+function gatherHeaders(bs)
+  headers = {}
+  for _,b in pairs(bs) do
+    if b.t == "Header" then table.insert(headers, b) end
+  end
+  return headers
 end
 
 function isTocBlock(blk)
@@ -45,7 +46,7 @@ end
 
 function Pandoc(doc)
   newBlocks = {}
-  tocBlocks = createTable(pandoc.utils.hierarchicalize(headers))
+  tocBlocks = createTable(pandoc.utils.hierarchicalize(gatherHeaders(doc.blocks)))
   for _,blk in pairs(doc.blocks) do
     if isTocBlock(blk) then
       for _,tocBlk in pairs(tocBlocks) do
