@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 22b7806755a6e3d8afa63a7e941273b64188b90a6695b78fa7f59dcb150e19f7
+-- hash: 408bc36237e01b4976cc96ca0444f05937bd517efb0ef378e0d1d4aac76b9e56
 
 name:           hledger-lib
 version:        1.9.99
@@ -232,8 +232,6 @@ test-suite doctests
   if (!impl(ghc >= 8.0))
     build-depends:
         semigroups ==0.18.*
-  if impl(ghc >= 8.4) && os(darwin)
-    buildable: False
   default-language: Haskell2010
 
 test-suite easytests
