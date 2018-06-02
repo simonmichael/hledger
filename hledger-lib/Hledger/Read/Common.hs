@@ -106,9 +106,6 @@ import Data.Functor.Identity
 import Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
 import Data.Text (Text)

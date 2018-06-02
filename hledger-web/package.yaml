@@ -65,7 +65,7 @@ dependencies:
 - hledger-lib >=1.9.99 && <2.0
 - hledger >=1.9.99 && <2.0
 - base >=4.8 && <4.12
-- base-compat >=0.8.1
+- base-compat == 0.10.*
 - blaze-html
 - blaze-markup
 - bytestring

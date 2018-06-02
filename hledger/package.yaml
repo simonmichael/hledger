@@ -81,7 +81,7 @@ dependencies:
 - hledger-lib >=1.9.99 && <2.0
 - ansi-terminal >=0.6.2.3
 - base >=4.8 && <4.12
-- base-compat >=0.8.1
+- base-compat == 0.10.*
 - bytestring
 - cmdargs >=0.10
 - containers

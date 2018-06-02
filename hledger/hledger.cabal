@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0f0ae8e75569c28e8c5987ba06696f6dbbbfc9334de43851eb1d1420ffc89d5a
+-- hash: c0eb869dc10f744521ca915b20715da6a280e9deb5089d74814f63c8b55c5cd9
 
 name:           hledger
 version:        1.9.99
@@ -116,7 +116,7 @@ library
     , HUnit
     , ansi-terminal >=0.6.2.3
     , base >=4.8 && <4.12
-    , base-compat >=0.8.1
+    , base-compat ==0.10.*
     , bytestring
     , cmdargs >=0.10
     , containers
@@ -168,7 +168,7 @@ executable hledger
     , HUnit
     , ansi-terminal >=0.6.2.3
     , base >=4.8 && <4.12
-    , base-compat >=0.8.1
+    , base-compat ==0.10.*
     , bytestring
     , cmdargs >=0.10
     , containers
@@ -222,7 +222,7 @@ test-suite test
     , HUnit
     , ansi-terminal >=0.6.2.3
     , base >=4.8 && <4.12
-    , base-compat >=0.8.1
+    , base-compat ==0.10.*
     , bytestring
     , cmdargs >=0.10
     , containers
@@ -275,7 +275,7 @@ benchmark bench
     , HUnit
     , ansi-terminal >=0.6.2.3
     , base >=4.8 && <4.12
-    , base-compat >=0.8.1
+    , base-compat ==0.10.*
     , bytestring
     , cmdargs >=0.10
     , containers
