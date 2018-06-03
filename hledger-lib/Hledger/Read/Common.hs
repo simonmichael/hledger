@@ -822,7 +822,10 @@ isDecimalPointChar :: Char -> Bool
 isDecimalPointChar c = c == '.' || c == ','
 
 isDigitSeparatorChar :: Char -> Bool
-isDigitSeparatorChar c = isDecimalPointChar c || c == ' '
+isDigitSeparatorChar c =
+  isDecimalPointChar c || c == ' ' ||
+  -- Japanese support
+  c == '兆' || c == '億' || c == '万'
 
 
 data DigitGrp = DigitGrp {
