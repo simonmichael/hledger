@@ -625,7 +625,7 @@ buildtest: $(call def-help,buildtest, build all hledger packages quickly from sc
 	buildtest-stack.yaml
 
 buildtest-all: $(call def-help,buildtest-all, build all hledger packages quickly from scratch ensuring no warnings with each ghc version/stackage snapshot )
-	for F in stack-*.yaml; do make --no-print-directory buildtest-$$F; done
+	for F in stack-*.yaml stack.yaml; do make --no-print-directory buildtest-$$F; done
 
 buildtest-%: $(call def-help,buildtest-STACKFILE, build all hledger packages quickly from scratch ensuring no warnings with the stack yaml file; eg make buildtest-stack-ghc8.2.yaml )
 	$(STACK) build --test --bench --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
