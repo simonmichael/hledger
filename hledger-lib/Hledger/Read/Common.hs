@@ -513,8 +513,15 @@ test_amountp = do
      (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1))
   -- ,"amount with total price" ~: do
     assertParseEqual'
-     (parseWithState mempty amountp "$10 @@ €5")
-     (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
+     (
+        (
+          (parseWithState :: Monad m => st -> StateT st (ParsecT Void Text m) a -> Text -> m (Either (ParseError Char Void) a))
+            (mempty :: Monoid a => a)
+            (amountp :: Monad m => JournalParser m Amount)
+            ("$10 @@ €5" :: Text)
+        ) :: Either (ParseError Char Void) Amount
+     )
+     ((usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0)) :: Amount)
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
