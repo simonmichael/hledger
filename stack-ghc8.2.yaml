@@ -11,6 +11,8 @@ packages:
 
 extra-deps:
 - easytest-0.2
+# avoid hanging with windows symlinks https://github.com/simonmichael/hledger/issues/791
+- directory-1.3.2.2
 
 nix:
   pure: false
