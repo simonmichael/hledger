@@ -700,7 +700,7 @@ fromRawNumber raw mExp = case raw of
     in  Right (quantity, precision, mDecPt, Nothing)
 
   WithSeparators digitSep digitGrps mDecimals -> case mExp of
-    Nothing -> 
+    Nothing ->
       let mDecPt = fmap fst mDecimals
           decimalGrp = maybe mempty snd mDecimals
           digitGroupStyle = DigitGroups digitSep (groupSizes digitGrps)
@@ -822,7 +822,10 @@ isDecimalPointChar :: Char -> Bool
 isDecimalPointChar c = c == '.' || c == ','
 
 isDigitSeparatorChar :: Char -> Bool
-isDigitSeparatorChar c = isDecimalPointChar c || c == ' '
+isDigitSeparatorChar c =
+  isDecimalPointChar c || c == ' ' ||
+  -- Japanese support
+  c == '兆' || c == '億' || c == '万'
 
 
 data DigitGrp = DigitGrp {
