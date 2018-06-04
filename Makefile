@@ -621,14 +621,23 @@ test: pkgtest functest \
 # For very verbose tests add --verbosity=debug. It seems hard to get something in between.
 STACKTEST=$(STACK) test
 
-buildtest: $(call def-help,buildtest, build all hledger packages quickly from scratch ensuring no warnings with default snapshot) \
+buildtest: $(call def-help,buildtest, force-rebuild all hledger packages/modules quickly ensuring no warnings with default snapshot) \
 	buildtest-stack.yaml
 
-buildtest-all: $(call def-help,buildtest-all, build all hledger packages quickly from scratch ensuring no warnings with each ghc version/stackage snapshot )
+buildtest-all: $(call def-help,buildtest-all, force-rebuild all hledger packages/modules quickly ensuring no warnings with each ghc version/stackage snapshot )
 	for F in stack-*.yaml stack.yaml; do make --no-print-directory buildtest-$$F; done
 
-buildtest-%: $(call def-help,buildtest-STACKFILE, build all hledger packages quickly from scratch ensuring no warnings with the stack yaml file; eg make buildtest-stack-ghc8.2.yaml )
+buildtest-%: $(call def-help,buildtest-STACKFILE, force-rebuild all hledger packages/modules quickly ensuring no warnings with the given stack yaml file; eg make buildtest-stack-ghc8.2.yaml )
 	$(STACK) build --test --bench --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
+
+incr-buildtest: $(call def-help,incr-buildtest, build any outdated hledger packages/modules quickly ensuring no warnings with default snapshot. Wont detect warnings in up-to-date modules.) \
+	incr-buildtest-stack.yaml
+
+incr-buildtest-all: $(call def-help,incr-buildtest-all, build any outdated hledger packages/modules quickly ensuring no warnings with each ghc version/stackage snapshot. Wont detect warnings in up-to-date modules. )
+	for F in stack-*.yaml stack.yaml; do make --no-print-directory incr-buildtest-$$F; done
+
+incr-buildtest-%: $(call def-help,incr-buildtest-STACKFILE, build any outdated hledger packages/modules quickly ensuring no warnings with the stack yaml file; eg make buildtest-stack-ghc8.2.yaml. Wont detect warnings in up-to-date modules. )
+	$(STACK) build --test --bench --fast --ghc-options=-Werror --stack-yaml=$*
 
 pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 	@($(STACKTEST) && echo $@ PASSED) || (echo $@ FAILED; false)
