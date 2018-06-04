@@ -95,8 +95,8 @@ module Hledger.Read.Common (
 where
 --- * imports
 import Prelude ()
-import "base-compat" Prelude.Compat hiding (readFile)
-import "base-compat" Control.Monad.Compat
+import "base-compat-batteries" Prelude.Compat hiding (readFile)
+import "base-compat-batteries" Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
 import Control.Monad.State.Strict
 import Data.Char
@@ -104,7 +104,7 @@ import Data.Data
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
 import Data.Default
 import Data.Functor.Identity
-import "base-compat" Data.List.Compat
+import "base-compat-batteries" Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe
 import qualified Data.Map as M

@@ -74,9 +74,9 @@ module Hledger.Data.Dates (
 where
 
 import Prelude ()
-import "base-compat" Prelude.Compat
+import "base-compat-batteries" Prelude.Compat
 import Control.Monad
-import "base-compat" Data.List.Compat
+import "base-compat-batteries" Data.List.Compat
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)

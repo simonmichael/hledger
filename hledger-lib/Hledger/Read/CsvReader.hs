@@ -29,14 +29,14 @@ module Hledger.Read.CsvReader (
 )
 where
 import Prelude ()
-import "base-compat" Prelude.Compat hiding (getContents)
+import "base-compat-batteries" Prelude.Compat hiding (getContents)
 import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 -- import Test.HUnit
 import Data.Char (toLower, isDigit, isSpace)
-import "base-compat" Data.List.Compat
+import "base-compat-batteries" Data.List.Compat
 import Data.List.NonEmpty (fromList)
 import Data.Maybe
 import Data.Ord

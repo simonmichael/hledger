@@ -72,7 +72,7 @@ module Hledger.Read.JournalReader (
 where
 --- * imports
 import Prelude ()
-import "base-compat" Prelude.Compat hiding (readFile)
+import "base-compat-batteries" Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
