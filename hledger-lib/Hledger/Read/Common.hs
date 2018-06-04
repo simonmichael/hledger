@@ -117,11 +117,13 @@ import Data.Time.Calendar
 import Data.Time.LocalTime
 import Data.Void (Void)
 import System.Time (getClockTime)
+import Test.HUnit
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer (decimal)
 
 import Hledger.Data
+import Hledger.Data.Amount
 import Hledger.Utils
 import qualified Hledger.Query as Q (Query(Any))
 
@@ -477,19 +479,17 @@ spaceandamountormissingp =
     lift $ skipSome spacenonewline
     Mixed . (:[]) <$> amountp
 
-#ifdef TESTS
-assertParseEqual' :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
+assertParseEqual' :: (Show a, Eq a) => (Either (ParseError Char Void) a) -> a -> Assertion
 assertParseEqual' parse expected = either (assertFailure.show) (`is'` expected) parse
 
 is' :: (Eq a, Show a) => a -> a -> Assertion
-a `is'` e = assertEqual e a
+a `is'` e = assertEqual "values are equal" e a
 
 test_spaceandamountormissingp = do
     assertParseEqual' (parseWithState mempty spaceandamountormissingp " $47.18") (Mixed [usd 47.18])
     assertParseEqual' (parseWithState mempty spaceandamountormissingp "$47.18") missingmixedamt
     assertParseEqual' (parseWithState mempty spaceandamountormissingp " ") missingmixedamt
     assertParseEqual' (parseWithState mempty spaceandamountormissingp "") missingmixedamt
-#endif
 
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
@@ -504,7 +504,6 @@ amountwithoutpricep :: Monad m => JournalParser m Amount
 amountwithoutpricep =
   try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
 
-#ifdef TESTS
 test_amountp = do
     assertParseEqual' (parseWithState mempty amountp "$47.18") (usd 47.18)
     assertParseEqual' (parseWithState mempty amountp "$1.") (usd 1 `withPrecision` 0)
@@ -516,7 +515,6 @@ test_amountp = do
     assertParseEqual'
      (parseWithState mempty amountp "$10 @@ €5")
      (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
-#endif
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
