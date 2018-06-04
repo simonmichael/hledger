@@ -5,7 +5,7 @@ related utilities used by hledger commands.
 
 -}
 
-{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts, TypeFamilies, OverloadedStrings #-}
+{-# LANGUAGE CPP, ScopedTypeVariables, DeriveDataTypeable, FlexibleContexts, TypeFamilies, OverloadedStrings, PackageImports #-}
 
 module Hledger.Cli.CliOptions (
 
@@ -71,7 +71,7 @@ module Hledger.Cli.CliOptions (
 where
 
 import Prelude ()
-import Prelude.Compat
+import "base-compat-batteries" Prelude.Compat
 import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.Char
@@ -80,7 +80,7 @@ import Data.Default
 import Data.Functor.Compat ((<$>))
 #endif
 import Data.Functor.Identity (Identity)
-import Data.List.Compat
+import "base-compat-batteries" Data.List.Compat
 import Data.List.Split (splitOneOf)
 import Data.Ord
 import Data.Maybe

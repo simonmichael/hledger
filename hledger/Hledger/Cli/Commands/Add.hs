@@ -3,7 +3,7 @@ A history-aware add command to help with data entry.
 |-}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
-{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables, DeriveDataTypeable, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings, PackageImports #-}
 
 module Hledger.Cli.Commands.Add (
    addmode
@@ -15,7 +15,7 @@ module Hledger.Cli.Commands.Add (
 where
 
 import Prelude ()
-import Prelude.Compat
+import "base-compat-batteries" Prelude.Compat
 import Control.Exception as E
 import Control.Monad
 import Control.Monad.Trans.Class
@@ -23,7 +23,7 @@ import Control.Monad.State.Strict (evalState, evalStateT)
 import Control.Monad.Trans (liftIO)
 import Data.Char (toUpper, toLower)
 import Data.Functor.Identity (Identity(..))
-import Data.List.Compat
+import "base-compat-batteries" Data.List.Compat
 import qualified Data.Set as S
 import Data.Maybe
 import Data.Text (Text)

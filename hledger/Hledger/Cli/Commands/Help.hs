@@ -7,6 +7,7 @@ The help command.
 --TODO substring matching
 
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE PackageImports #-}
 
 module Hledger.Cli.Commands.Help (
 
@@ -16,7 +17,7 @@ module Hledger.Cli.Commands.Help (
   ) where
 
 import Prelude ()
-import Prelude.Compat
+import "base-compat-batteries" Prelude.Compat
 import Data.Char
 import Data.List
 import Data.Maybe
