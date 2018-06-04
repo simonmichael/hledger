@@ -698,12 +698,12 @@ test-stack%yaml:
 	$(STACK) --stack-yaml stack$*yaml build --ghc-options="$(WARNINGS) -Werror" --test --bench --haddock --no-haddock-deps
 
 travistest: $(call def-help,travistest, run tests similar to our travis CI tests)
-	stack clean
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-ui
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-web
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-api
+	$(STACK) clean
+	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib
+	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger
+	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-ui
+	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-web
+	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-api
 	make functest
 
 # committest: hlinttest unittest doctest functest haddocktest buildtest quickcabaltest \
