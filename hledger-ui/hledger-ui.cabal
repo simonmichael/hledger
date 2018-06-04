@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ecf98aad3ab1dc507594bf7da100bfa858c432a4e216023543e699f760a271d1
+-- hash: 5191302559d777c449e78ec3e41836e2777c70169c5f25eada5c8378fc081c0a
 
 name:           hledger-ui
 version:        1.9.99
@@ -69,7 +69,7 @@ executable hledger-ui
     , ansi-terminal >=0.6.2.3
     , async
     , base >=4.8 && <4.12
-    , base-compat ==0.10.*
+    , base-compat >=0.10.1 && <0.11
     , cmdargs >=0.8
     , containers
     , data-default

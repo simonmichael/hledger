@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 7307cbaf625ff1863fcf59a405c2f148585b0cc13d02486494e726c5e609eb07
+-- hash: 6e05f5113e2a99d4f17688d2fa94a3ed08148105067ac15db75847e621a36d88
 
 name:           hledger-web
 version:        1.9.99
@@ -144,7 +144,7 @@ library
   build-depends:
       HUnit
     , base >=4.8 && <4.12
-    , base-compat ==0.10.*
+    , base-compat >=0.10.1 && <0.11
     , blaze-html
     , blaze-markup
     , bytestring
@@ -195,7 +195,7 @@ executable hledger-web
   build-depends:
       HUnit
     , base >=4.8 && <4.12
-    , base-compat ==0.10.*
+    , base-compat >=0.10.1 && <0.11
     , blaze-html
     , blaze-markup
     , bytestring
@@ -254,7 +254,7 @@ test-suite test
   build-depends:
       HUnit
     , base >=4.8 && <4.12
-    , base-compat ==0.10.*
+    , base-compat >=0.10.1 && <0.11
     , blaze-html
     , blaze-markup
     , bytestring
