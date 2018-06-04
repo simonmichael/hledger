@@ -19,9 +19,6 @@ import Data.String
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, setHost, setPort)
 import Network.Wai.Handler.Launch (runHostPortUrl)
 --
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative ((<$>))
-#endif
 import Control.Monad
 import Data.Default
 import Data.Text (pack)

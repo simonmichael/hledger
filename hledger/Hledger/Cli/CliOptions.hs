@@ -76,9 +76,6 @@ import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.Char
 import Data.Default
-#if !MIN_VERSION_base(4,8,0)
-import Data.Functor.Compat ((<$>))
-#endif
 import Data.Functor.Identity (Identity)
 import "base-compat-batteries" Data.List.Compat
 import Data.List.Split (splitOneOf)

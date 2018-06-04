@@ -38,9 +38,6 @@ where
 
 import Control.Applicative ((<|>))
 import Data.Data (Data)
-#if !MIN_VERSION_base(4,8,0)
-import Data.Functor.Compat ((<$>))
-#endif
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T

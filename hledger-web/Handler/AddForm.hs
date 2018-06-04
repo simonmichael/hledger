@@ -7,9 +7,6 @@ module Handler.AddForm where
 
 import Import
 
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative
-#endif
 import Control.Monad.State.Strict (evalStateT)
 import Data.Either (lefts,rights)
 import Data.List (sort)
