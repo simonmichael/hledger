@@ -15,6 +15,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 --- * module
 {-# LANGUAGE CPP, BangPatterns, DeriveDataTypeable, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PackageImports #-}
 
 module Hledger.Read.Common (
   Reader (..),
@@ -94,8 +95,8 @@ module Hledger.Read.Common (
 where
 --- * imports
 import Prelude ()
-import Prelude.Compat hiding (readFile)
-import Control.Monad.Compat
+import "base-compat" Prelude.Compat hiding (readFile)
+import "base-compat" Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
 import Control.Monad.State.Strict
 import Data.Char
@@ -103,7 +104,7 @@ import Data.Data
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
 import Data.Default
 import Data.Functor.Identity
-import Data.List.Compat
+import "base-compat" Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe
 import qualified Data.Map as M

@@ -4,6 +4,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE PackageImports #-}
 {-|
 
 Date parsing and utilities for hledger.
@@ -73,9 +74,9 @@ module Hledger.Data.Dates (
 where
 
 import Prelude ()
-import Prelude.Compat
+import "base-compat" Prelude.Compat
 import Control.Monad
-import Data.List.Compat
+import "base-compat" Data.List.Compat
 import Data.Default
 import Data.Maybe
 import Data.Text (Text)
