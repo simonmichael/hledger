@@ -317,7 +317,7 @@ formatdirectivep expectedsym = do
   Amount{acommodity,astyle} <- amountp
   _ <- lift followingcommentp
   if acommodity==expectedsym
-    then 
+    then
       if asdecimalpoint astyle == Nothing
       then parserErrorAt pos pleaseincludedecimalpoint
       else return $ dbg2 "style from format subdirective" astyle

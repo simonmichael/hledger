@@ -700,7 +700,7 @@ fromRawNumber raw mExp = case raw of
     in  Right (quantity, precision, mDecPt, Nothing)
 
   WithSeparators digitSep digitGrps mDecimals -> case mExp of
-    Nothing -> 
+    Nothing ->
       let mDecPt = fmap fst mDecimals
           decimalGrp = maybe mempty snd mDecimals
           digitGroupStyle = DigitGroups digitSep (groupSizes digitGrps)
