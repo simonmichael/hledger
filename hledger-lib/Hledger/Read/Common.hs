@@ -49,7 +49,6 @@ module Hledger.Read.Common (
   getAccountAliases,
   clearAccountAliases,
   journalAddFile,
-  parserErrorAt,
 
   -- * parsers
   -- ** transaction bits
@@ -317,18 +316,6 @@ journalAddFile :: (FilePath,Text) -> Journal -> Journal
 journalAddFile f j@Journal{jfiles=fs} = j{jfiles=fs++[f]}
   -- append, unlike the other fields, even though we do a final reverse,
   -- to compensate for additional reversal due to including/monoid-concatting
-
--- -- | Terminate parsing entirely, returning the given error message
--- -- with the current parse position prepended.
--- parserError :: String -> ErroringJournalParser a
--- parserError s = do
---   pos <- getPosition
---   parserErrorAt pos s
-
--- | Terminate parsing entirely, returning the given error message
--- with the given parse position prepended.
-parserErrorAt :: Monad m => SourcePos -> String -> ErroringJournalParser m a
-parserErrorAt pos s = throwError $ sourcePosPretty pos ++ ":\n" ++ s
 
 --- * parsers
 

@@ -100,6 +100,7 @@ import Hledger.Read.Common
 import Hledger.Read.TimeclockReader (timeclockfilep)
 import Hledger.Read.TimedotReader (timedotfilep)
 import Hledger.Utils
+import Hledger.Utils.ParseErrors
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -265,14 +266,14 @@ indentedlinep = lift (skipSome spacenonewline) >> (rstrip <$> lift restofline)
 -- >>> Right _ <- rejp commoditydirectivep "commodity $\n  format $1.00"
 -- >>> Right _ <- rejp commoditydirectivep "commodity $\n\n" -- a commodity with no format
 -- >>> Right _ <- rejp commoditydirectivep "commodity $1.00\n  format $1.00" -- both, what happens ?
-commoditydirectivep :: Monad m => ErroringJournalParser m ()
+commoditydirectivep :: Monad m => JournalParser m ()
 commoditydirectivep = try commoditydirectiveonelinep <|> commoditydirectivemultilinep
 
 -- | Parse a one-line commodity directive.
 --
 -- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00"
 -- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
-commoditydirectiveonelinep :: Monad m => ErroringJournalParser m ()
+commoditydirectiveonelinep :: Monad m => JournalParser m ()
 commoditydirectiveonelinep = do
   string "commodity"
   lift (skipSome spacenonewline)
@@ -282,7 +283,7 @@ commoditydirectiveonelinep = do
   _ <- lift followingcommentp
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg2 "style from commodity directive" astyle}
   if asdecimalpoint astyle == Nothing
-  then parserErrorAt pos pleaseincludedecimalpoint
+  then parseErrorAt pos pleaseincludedecimalpoint
   else modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
 
 pleaseincludedecimalpoint :: String
@@ -291,7 +292,7 @@ pleaseincludedecimalpoint = "to avoid ambiguity, please include a decimal point 
 -- | Parse a multi-line commodity directive, containing 0 or more format subdirectives.
 --
 -- >>> Right _ <- rejp commoditydirectivemultilinep "commodity $ ; blah \n  format $1.00 ; blah"
-commoditydirectivemultilinep :: Monad m => ErroringJournalParser m ()
+commoditydirectivemultilinep :: Monad m => JournalParser m ()
 commoditydirectivemultilinep = do
   string "commodity"
   lift (skipSome spacenonewline)
@@ -305,7 +306,7 @@ commoditydirectivemultilinep = do
 
 -- | Parse a format (sub)directive, throwing a parse error if its
 -- symbol does not match the one given.
-formatdirectivep :: Monad m => CommoditySymbol -> ErroringJournalParser m AmountStyle
+formatdirectivep :: Monad m => CommoditySymbol -> JournalParser m AmountStyle
 formatdirectivep expectedsym = do
   string "format"
   lift (skipSome spacenonewline)
@@ -315,9 +316,9 @@ formatdirectivep expectedsym = do
   if acommodity==expectedsym
     then 
       if asdecimalpoint astyle == Nothing
-      then parserErrorAt pos pleaseincludedecimalpoint
+      then parseErrorAt pos pleaseincludedecimalpoint
       else return $ dbg2 "style from format subdirective" astyle
-    else parserErrorAt pos $
+    else parseErrorAt pos $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 
 keywordp :: String -> JournalParser m ()
@@ -402,7 +403,7 @@ defaultyeardirectivep = do
   failIfInvalidYear y
   setYear y'
 
-defaultcommoditydirectivep :: Monad m => ErroringJournalParser m ()
+defaultcommoditydirectivep :: Monad m => JournalParser m ()
 defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
   lift (skipSome spacenonewline)
@@ -410,7 +411,7 @@ defaultcommoditydirectivep = do
   Amount{acommodity,astyle} <- amountp
   lift restofline
   if asdecimalpoint astyle == Nothing
-  then parserErrorAt pos pleaseincludedecimalpoint
+  then parseErrorAt pos pleaseincludedecimalpoint
   else setDefaultCommodityAndStyle (acommodity, astyle)
 
 marketpricedirectivep :: Monad m => JournalParser m MarketPrice
