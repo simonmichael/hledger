@@ -12,6 +12,8 @@ packages:
 
 extra-deps:
 - easytest-0.2
+# avoid no hashable instance for AccountName from doctests
+- hashtables-1.2.3.1
 # Many newer versions to allow using the latest base-compat with all ghc versions.
 # This is just the first workable install plan I found.
 - adjunctions-4.4
