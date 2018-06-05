@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4e9f93f0ca43f594b381f1e1e03e67ce3379bd4830b260e6f7dc1596b946993f
+-- hash: fbcc49317255a91cf8d9795d99203ce5e9930e4981b2fc246349a6ea8d23af74
 
 name:           hledger-lib
 version:        1.9.99
@@ -95,6 +95,7 @@ library
       Hledger.Utils.UTF8IOCompat
       Text.Tabular.AsciiWide
   other-modules:
+      Hledger.Utils.ParseErrors
       Paths_hledger_lib
   hs-source-dirs:
       ./.
@@ -181,6 +182,7 @@ test-suite doctests
       Hledger.Utils.Color
       Hledger.Utils.Debug
       Hledger.Utils.Parse
+      Hledger.Utils.ParseErrors
       Hledger.Utils.Regex
       Hledger.Utils.String
       Hledger.Utils.Test
@@ -277,6 +279,7 @@ test-suite easytests
       Hledger.Utils.Color
       Hledger.Utils.Debug
       Hledger.Utils.Parse
+      Hledger.Utils.ParseErrors
       Hledger.Utils.Regex
       Hledger.Utils.String
       Hledger.Utils.Test
@@ -373,6 +376,7 @@ test-suite hunittests
       Hledger.Utils.Color
       Hledger.Utils.Debug
       Hledger.Utils.Parse
+      Hledger.Utils.ParseErrors
       Hledger.Utils.Regex
       Hledger.Utils.String
       Hledger.Utils.Test
