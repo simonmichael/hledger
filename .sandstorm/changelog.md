@@ -1,3 +1,7 @@
+# V1.9.2 (2018-06-05)
+
+ * Upgrade to HLedger 1.9.2
+
 # V1.1-sandstorm2 (2017-03-21)
 
  * Upgrade to HLedger 1.1

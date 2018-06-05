@@ -19,9 +19,9 @@ const pkgdef :Spk.PackageDefinition = (
 
     appTitle = (defaultText = "HLedger Web"),
 
-    appVersion = 2,  # Increment this for every release.
+    appVersion = 3,  # Increment this for every release.
 
-    appMarketingVersion = (defaultText = "1.1-sandstorm2"),
+    appMarketingVersion = (defaultText = "1.9.2"),
     # Human-readable representation of appVersion. Should match the way you
     # identify versions of your app in documentation and marketing.
 
@@ -57,11 +57,11 @@ const pkgdef :Spk.PackageDefinition = (
       website = "http://hledger.org",
       # This should be the app's main website url.
 
-      codeUrl = "https://github.com/ndarilek/hledger-sandstorm",
+      codeUrl = "https://github.com/simonmichael/hledger",
       # URL of the app's source code repository, e.g. a GitHub URL.
       # Required if you specify a license requiring redistributing code, but optional otherwise.
 
-      license = (openSource = gpl2),
+      license = (openSource = gpl3),
       # The license this package is distributed under.  See
       # https://docs.sandstorm.io/en/latest/developing/publishing-apps/#license
 
@@ -73,7 +73,7 @@ const pkgdef :Spk.PackageDefinition = (
       author = (
         # Fields relating to the author of this app.
 
-        contactEmail = "nolan@thewordnerd.info",
+        contactEmail = "inbox@jacobweisz.com",
         # Email address to contact for any issues with this app. This includes end-user support
         # requests as well as app store administrator requests, so it is very important that this be a
         # valid address with someone paying attention to it.
