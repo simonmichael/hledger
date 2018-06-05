@@ -45,7 +45,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Time.Calendar (Day)
-import Data.Void (Void)
 #if MIN_VERSION_time(1,5,0)
 import Data.Time.Format (parseTimeM, defaultTimeLocale)
 #else
@@ -404,7 +403,7 @@ parseAndValidateCsvRules rulesfile s = do
     makeParseError f s = FancyError (fromList [initialPos f]) (S.singleton $ ErrorFail s)
 
 -- | Parse this text as CSV conversion rules. The file path is for error messages.
-parseCsvRules :: FilePath -> T.Text -> Either (ParseError Char Void) CsvRules
+parseCsvRules :: FilePath -> T.Text -> Either (ParseError Char CustomErr) CsvRules
 -- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
 parseCsvRules rulesfile s =
   runParser (evalStateT rulesp rules) rulesfile s

@@ -91,7 +91,6 @@ import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate
 import Data.Time.Clock
 import Data.Time.LocalTime
-import Data.Void (Void)
 import Safe (headMay, lastMay, readMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -313,7 +312,7 @@ earliest (Just d1) (Just d2) = Just $ min d1 d2
 
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
-parsePeriodExpr :: Day -> Text -> Either (ParseError Char Void) (Interval, DateSpan)
+parsePeriodExpr :: Day -> Text -> Either (ParseError Char CustomErr) (Interval, DateSpan)
 parsePeriodExpr refdate s = parsewith (periodexpr refdate <* eof) (T.toLower s)
 
 maybePeriod :: Day -> Text -> Maybe (Interval,DateSpan)
@@ -373,13 +372,13 @@ fixSmartDateStr :: Day -> Text -> String
 fixSmartDateStr d s = either
                        (\e->error' $ printf "could not parse date %s %s" (show s) (show e))
                        id
-                       $ (fixSmartDateStrEither d s :: Either (ParseError Char Void) String)
+                       $ (fixSmartDateStrEither d s :: Either (ParseError Char CustomErr) String)
 
 -- | A safe version of fixSmartDateStr.
-fixSmartDateStrEither :: Day -> Text -> Either (ParseError Char Void) String
+fixSmartDateStrEither :: Day -> Text -> Either (ParseError Char CustomErr) String
 fixSmartDateStrEither d = either Left (Right . showDate) . fixSmartDateStrEither' d
 
-fixSmartDateStrEither' :: Day -> Text -> Either (ParseError Char Void) Day
+fixSmartDateStrEither' :: Day -> Text -> Either (ParseError Char CustomErr) Day
 fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
                                Right sd -> Right $ fixSmartDate d sd
                                Left e -> Left e

@@ -113,7 +113,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
-import Data.Void (Void)
 import System.Time (getClockTime)
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -184,12 +183,12 @@ rawOptsToInputOpts rawopts = InputOpts{
 --- * parsing utilities
 
 -- | Run a string parser with no state in the identity monad.
-runTextParser, rtp :: TextParser Identity a -> Text -> Either (ParseError Char Void) a
+runTextParser, rtp :: TextParser Identity a -> Text -> Either (ParseError Char CustomErr) a
 runTextParser p t =  runParser p "" t
 rtp = runTextParser
 
 -- | Run a journal parser with a null journal-parsing state.
-runJournalParser, rjp :: Monad m => JournalParser m a -> Text -> m (Either (ParseError Char Void) a)
+runJournalParser, rjp :: Monad m => JournalParser m a -> Text -> m (Either (ParseError Char CustomErr) a)
 runJournalParser p t = runParserT (evalStateT p mempty) "" t
 rjp = runJournalParser
 
@@ -981,7 +980,7 @@ followingcommentandtagsp mdefdate = do
       runTextParser (setPosition pos *> parser) txt
 
     tagDate :: (SourcePos, Tag)
-            -> Either (ParseError Char Void) (TagName, Day)
+            -> Either (ParseError Char CustomErr) (TagName, Day)
     tagDate (pos, (name, value)) =
       fmap (name,) $ runTextParserAt (datep' myear) (pos, value)
       where myear = fmap (first3 . toGregorian) mdefdate

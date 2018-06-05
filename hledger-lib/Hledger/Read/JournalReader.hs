@@ -84,7 +84,6 @@ import Data.List
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
-import Data.Void (Void)
 import Safe
 import Test.HUnit
 #ifdef TESTS
@@ -199,7 +198,7 @@ includedirectivep = do
       let curdir = takeDirectory (sourceName parentpos)
       filepath <- expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
       txt      <- readFilePortably filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
-      (ej1::Either (ParseError Char Void) ParsedJournal) <-
+      (ej1::Either (ParseError Char CustomErr) ParsedJournal) <-
         runParserT
            (evalStateT
               (choiceInState
