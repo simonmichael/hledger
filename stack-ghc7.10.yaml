@@ -85,3 +85,8 @@ extra-deps:
 # - th-orphans-0.13.4
 # - vty-5.17.1
 # - word-wrap-0.4.1
+
+# hledger-ui
+# newer fsnotify has a different api and may be more robust
+- fsnotify-0.3.0.1
+- shelly-1.7.2

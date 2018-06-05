@@ -51,7 +51,7 @@ dependencies:
 - data-default
 - directory
 - filepath
-- fsnotify >=0.2
+- fsnotify >=0.3.0.1
 - HUnit
 - microlens >=0.4
 - microlens-platform >=0.2.3.1

@@ -212,7 +212,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
           d
           -- predicate: ignore changes not involving our files
           (\fev -> case fev of
-            Modified f _ -> f `elem` files
+            Modified f _ False -> f `elem` files
             -- Added    f _ -> f `elem` files
             -- Removed  f _ -> f `elem` files
             -- we don't handle adding/removing journal files right now
@@ -223,7 +223,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
           -- action: send event to app
           (\fev -> do
             -- return $ dbglog "fsnotify" $ showFSNEvent fev -- not working
-            dbg1IO "fsnotify" $ showFSNEvent fev
+            dbg1IO "fsnotify" $ show fev
             writeChan eventChan FileChange
             )
 
@@ -234,7 +234,3 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
         let myVty = mkVty def
 #endif
         void $ customMain myVty (Just eventChan) brickapp ui
-
-showFSNEvent (Added    f _) = "Added "    ++ show f
-showFSNEvent (Modified f _) = "Modified " ++ show f
-showFSNEvent (Removed  f _) = "Removed "  ++ show f
