@@ -2,7 +2,7 @@
 -- hledger's report item fields. The formats are used by
 -- report-specific renderers like renderBalanceReportItem.
 
-{-# LANGUAGE FlexibleContexts, TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts, TypeFamilies, PackageImports #-}
 
 module Hledger.Data.StringFormat (
           parseStringFormat
@@ -14,7 +14,7 @@ module Hledger.Data.StringFormat (
         ) where
 
 import Prelude ()
-import Prelude.Compat
+import "base-compat-batteries" Prelude.Compat
 import Numeric
 import Data.Char (isPrint)
 import Data.Maybe

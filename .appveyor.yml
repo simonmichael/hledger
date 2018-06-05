@@ -28,7 +28,7 @@ environment:
 # only those files for cache invalidation, quicker than checksumming all cached content.
 cache:
 - "%LOCALAPPDATA%\\Programs\\stack"
-- C:\sr                   -> **\*.yaml
+- C:\sr
 - .stack-work
 - hledger-lib\.stack-work -> hledger-lib\**
 - hledger\.stack-work     -> hledger\**
@@ -37,9 +37,14 @@ cache:
 install:
 - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 - 7z x stack.zip stack.exe
+- stack --version
 # install ghc
-# 8.2 for hledger-web -> network, https://github.com/haskell/network/issues/313
+# using 8.2 to avoid a hledger-web -> network/stack build issue on windows
+# https://github.com/haskell/network/issues/313
+# https://github.com/commercialhaskell/stack/issues/3944
+# network 2.7.0.1 should work around it when released
 - stack --stack-yaml=stack-ghc8.2.yaml setup
+#- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 #- stack install shelltestrunner
 
 # -j1 was a temporary workaround for https://github.com/simonmichael/hledger/issues/424, https://github.com/commercialhaskell/stack/issues/2617, should be unnecessary with ghc 8.2.1+

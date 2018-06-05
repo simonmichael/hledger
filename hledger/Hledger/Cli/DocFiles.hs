@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell, OverloadedStrings, PackageImports #-}
 {-|
 
 Embedded documentation files in various formats, and helpers for viewing them.
@@ -21,7 +21,7 @@ module Hledger.Cli.DocFiles (
   ) where
 
 import Prelude ()
-import Prelude.Compat
+import "base-compat-batteries" Prelude.Compat
 import Data.FileEmbed
 import Data.String
 import System.IO

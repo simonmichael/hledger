@@ -15,6 +15,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 --- * module
 {-# LANGUAGE CPP, BangPatterns, DeriveDataTypeable, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PackageImports #-}
 
 module Hledger.Read.Common (
   Reader (..),
@@ -94,22 +95,18 @@ module Hledger.Read.Common (
 where
 --- * imports
 import Prelude ()
-import Prelude.Compat hiding (readFile)
-import Control.Monad.Compat
+import "base-compat-batteries" Prelude.Compat hiding (readFile)
+import "base-compat-batteries" Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
 import Control.Monad.State.Strict
-import Data.Bifunctor
 import Data.Char
 import Data.Data
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
 import Data.Default
 import Data.Functor.Identity
-import Data.List.Compat
+import "base-compat-batteries" Data.List.Compat
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
 import Data.Text (Text)
@@ -191,19 +188,15 @@ runTextParser, rtp :: TextParser Identity a -> Text -> Either (ParseError Char V
 runTextParser p t =  runParser p "" t
 rtp = runTextParser
 
--- XXX odd, why doesn't this take a JournalParser ?
 -- | Run a journal parser with a null journal-parsing state.
-runJournalParser, rjp :: Monad m => TextParser m a -> Text -> m (Either (ParseError Char Void) a)
-runJournalParser p t = runParserT p "" t
+runJournalParser, rjp :: Monad m => JournalParser m a -> Text -> m (Either (ParseError Char Void) a)
+runJournalParser p t = runParserT (evalStateT p mempty) "" t
 rjp = runJournalParser
 
 -- | Run an error-raising journal parser with a null journal-parsing state.
 runErroringJournalParser, rejp :: Monad m => ErroringJournalParser m a -> Text -> m (Either String a)
-runErroringJournalParser p t =
-  runExceptT $
-  runJournalParser (evalStateT p mempty)
-                   t >>=
-  either (throwError . parseErrorPretty) return
+runErroringJournalParser p t = runExceptT $
+  runJournalParser p t >>= either (throwError . parseErrorPretty) return
 rejp = runErroringJournalParser
 
 genericSourcePos :: SourcePos -> GenericSourcePos
@@ -391,14 +384,14 @@ datep' mYear = do
 
     case fromGregorianValid year month day of
       Nothing -> fail $ "well-formed but invalid date: " ++ dateStr
-      Just date -> pure date
+      Just date -> pure $! date
 
   partialDate :: Maybe Year -> Integer -> Char -> Int -> TextParser m Day
   partialDate mYear month sep day = case mYear of
     Just year ->
       case fromGregorianValid year (fromIntegral month) day of
         Nothing -> fail $ "well-formed but invalid date: " ++ dateStr
-        Just date -> pure date
+        Just date -> pure $! date
       where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
 
     Nothing -> fail $
@@ -451,7 +444,7 @@ modifiedaccountnamep = do
   parent <- getParentAccount
   aliases <- getAccountAliases
   a <- lift accountnamep
-  return $
+  return $!
     accountNameApplyAliases aliases $
      -- XXX accountNameApplyAliasesMemo ? doesn't seem to make a difference
     joinAccountNames parent
@@ -466,14 +459,7 @@ accountnamep :: TextParser m AccountName
 accountnamep = do
   firstPart <- part
   otherParts <- many $ try $ singleSpace *> part
-  let account = T.unwords $ firstPart : otherParts
-
-  let roundTripAccount =
-        accountNameFromComponents $ accountNameComponents account
-  when (account /= roundTripAccount) $ fail $
-    "account name seems ill-formed: " ++ T.unpack account
-
-  pure account
+  pure $! T.unwords $ firstPart : otherParts
   where
     part = takeWhile1P Nothing (not . isSpace)
     singleSpace = void spacenonewline *> notFollowedBy spacenonewline
@@ -507,7 +493,14 @@ test_spaceandamountormissingp = do
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
 amountp :: Monad m => JournalParser m Amount
-amountp = try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
+amountp = do
+  amount <- amountwithoutpricep
+  price <- priceamountp
+  pure $ amount { aprice = price }
+
+amountwithoutpricep :: Monad m => JournalParser m Amount
+amountwithoutpricep =
+  try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
 
 #ifdef TESTS
 test_amountp = do
@@ -534,11 +527,8 @@ amountp' s =
 mamountp' :: String -> MixedAmount
 mamountp' = Mixed . (:[]) . amountp'
 
-signp :: TextParser m String
-signp = do
-  sign <- optional $ oneOf ("+-" :: [Char])
-  return $ case sign of Just '-' -> "-"
-                        _        -> ""
+signp :: Num a => TextParser m (a -> a)
+signp = char '-' *> pure negate <|> char '+' *> pure id <|> pure id
 
 multiplierp :: TextParser m Bool
 multiplierp = option False $ char '*' *> pure True
@@ -564,25 +554,26 @@ leftsymbolamountp = do
   commodityspaced <- lift $ skipMany' spacenonewline
   (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
   let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-  p <- priceamountp
-  let applysign = if sign=="-" then negate else id
-  return $ applysign $ Amount c q p s m
+  return $ Amount c (sign q) NoPrice s m
   <?> "left-symbol amount"
 
 rightsymbolamountp :: Monad m => JournalParser m Amount
 rightsymbolamountp = do
   m <- lift multiplierp
   sign <- lift signp
-  rawnum <- lift $ rawnumberp
-  expMod <- lift . option id $ try exponentp
+  ambiguousRawNum <- lift rawnumberp
+  mExponent <- lift $ optional $ try exponentp
   commodityspaced <- lift $ skipMany' spacenonewline
   c <- lift commoditysymbolp
   suggestedStyle <- getAmountStyle c
-  let (q0,prec0,mdec,mgrps) = fromRawNumber suggestedStyle (sign == "-") rawnum
-      (q, prec) = expMod (q0, prec0)
-  p <- priceamountp
+
+  let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousRawNum
+  (q, prec, mdec, mgrps) <- case fromRawNumber rawNum mExponent of
+    Left errMsg -> fail errMsg
+    Right res -> pure res
+
   let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-  return $ Amount c q p s m
+  return $ Amount c (sign q) NoPrice s m
   <?> "right-symbol amount"
 
 nosymbolamountp :: Monad m => JournalParser m Amount
@@ -590,17 +581,17 @@ nosymbolamountp = do
   m <- lift multiplierp
   suggestedStyle <- getDefaultAmountStyle
   (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
-  p <- priceamountp
   -- apply the most recently seen default commodity and style to this commodityless amount
   defcs <- getDefaultCommodityAndStyle
   let (c,s) = case defcs of
         Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
         Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-  return $ Amount c q p s m
+  return $ Amount c q NoPrice s m
   <?> "no-symbol amount"
 
 commoditysymbolp :: TextParser m CommoditySymbol
-commoditysymbolp = (quotedcommoditysymbolp <|> simplecommoditysymbolp) <?> "commodity symbol"
+commoditysymbolp =
+  quotedcommoditysymbolp <|> simplecommoditysymbolp <?> "commodity symbol"
 
 quotedcommoditysymbolp :: TextParser m CommoditySymbol
 quotedcommoditysymbolp =
@@ -614,14 +605,10 @@ priceamountp :: Monad m => JournalParser m Price
 priceamountp = option NoPrice $ try $ do
   lift (skipMany spacenonewline)
   char '@'
-
-  m <- optional $ char '@'
-  let priceConstructor = case m of
-        Just _  -> TotalPrice
-        Nothing -> UnitPrice
+  priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
-  priceAmount <- amountp -- XXX can parse more prices ad infinitum, shouldn't
+  priceAmount <- amountwithoutpricep
 
   pure $ priceConstructor priceAmount
 
@@ -675,27 +662,19 @@ numberp suggestedStyle = do
     -- interspersed with periods, commas, or both
     -- ptrace "numberp"
     sign <- signp
-    raw <- rawnumberp
+    rawNum <- either (disambiguateNumber suggestedStyle) id <$> rawnumberp
+    mExp <- optional $ try $ exponentp
     dbg8 "numberp suggestedStyle" suggestedStyle `seq` return ()
-    let num@(q, prec, decSep, groups) = dbg8 "numberp quantity,precision,mdecimalpoint,mgrps" (fromRawNumber suggestedStyle (sign == "-") raw)
-    option num . try $ do
-        when (isJust groups) $ fail "groups and exponent are not mixable"
-        (q', prec') <- exponentp <*> pure (q, prec)
-        return (q', prec', decSep, groups)
+    case dbg8 "numberp quantity,precision,mdecimalpoint,mgrps"
+           $ fromRawNumber rawNum mExp of
+      Left errMsg -> fail errMsg
+      Right (q, p, d, g) -> pure (sign q, p, d, g)
     <?> "numberp"
 
-exponentp :: TextParser m ((Quantity, Int) -> (Quantity, Int))
-exponentp = do
-    char' 'e'
-    exp <- liftM read $ (++) <$> signp <*> some digitChar
-    return $ bimap (* 10^^exp) (max 0 . subtract exp)
-    <?> "exponentp"
+exponentp :: TextParser m Int
+exponentp = char' 'e' *> signp <*> decimal <?> "exponentp"
 
--- | Interpret a raw number as a decimal number, and identify the decimal
--- point charcter and digit separating scheme. There is only one ambiguous
--- case: when there is just a single separator between two digit groups.
--- Disambiguate using an amount style, if provided; otherwise, assume that
--- the separator is a decimal point.
+-- | Interpret a raw number as a decimal number.
 --
 -- Returns:
 -- - the decimal number
@@ -703,80 +682,61 @@ exponentp = do
 -- - the decimal point character, if any
 -- - the digit group style, if any (digit group character and sizes of digit groups)
 fromRawNumber
-  :: Maybe AmountStyle
-  -> Bool
-  -> RawNumber
-  -> (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-fromRawNumber suggestedStyle negated raw = case raw of
+  :: RawNumber
+  -> Maybe Int
+  -> Either String
+            (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+fromRawNumber raw mExp = case raw of
 
-  LeadingDecimalPt decPt digitGrp ->
-    let quantity = sign $
-          Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
-        precision = digitGroupLength digitGrp
-    in  (quantity, precision, Just decPt, Nothing)
+  NoSeparators digitGrp mDecimals ->
+    let mDecPt = fmap fst mDecimals
+        decimalGrp = maybe mempty snd mDecimals
 
-  TrailingDecimalPt digitGrp decPt ->
-    let quantity = sign $
-          Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
-        precision = 0
-    in  (quantity, precision, Just decPt, Nothing)
+        (quantity, precision) =
+          maybe id applyExp mExp $ toQuantity digitGrp decimalGrp
 
-  NoSeparators digitGrp ->
-    let quantity = sign $
-          Decimal (fromIntegral precision) (digitGroupNumber digitGrp)
-        precision = 0
-    in  (quantity, precision, Nothing, Nothing)
+    in  Right (quantity, precision, mDecPt, Nothing)
 
-  AmbiguousNumber digitGrp1 sep digitGrp2
-    -- If present, use the suggested style to disambiguate;
-    -- otherwise, assume that the separator is a decimal point where possible.
-    |    isDecimalPointChar sep
-      && maybe True (sep `isValidDecimalBy`) suggestedStyle ->
+  WithSeparators digitSep digitGrps mDecimals -> case mExp of
+    Nothing -> 
+      let mDecPt = fmap fst mDecimals
+          decimalGrp = maybe mempty snd mDecimals
+          digitGroupStyle = DigitGroups digitSep (groupSizes digitGrps)
 
-      -- Assuming that the separator is a decimal point
-      let quantity = sign $
-            Decimal (fromIntegral precision)
-                    (digitGroupNumber $ digitGrp1 <> digitGrp2)
-          precision = digitGroupLength digitGrp2
-      in  (quantity, precision, Just sep, Nothing)
+          (quantity, precision) = toQuantity (mconcat digitGrps) decimalGrp
 
-    | otherwise ->
-      -- Assuming that the separator is digit separator
-      let quantity = sign $
-            Decimal (fromIntegral precision)
-                    (digitGroupNumber $ digitGrp1 <> digitGrp2)
-          precision = 0
-          digitGroupStyle = Just $
-            DigitGroups sep (groupSizes $ [digitGrp1, digitGrp2])
-      in  (quantity, precision, Nothing, digitGroupStyle)
-
-  DigitSeparators digitSep digitGrps ->
-    let quantity = sign $
-          Decimal (fromIntegral precision)
-                  (digitGroupNumber $ mconcat digitGrps)
-        precision = 0
-        digitGroupStyle = Just $ DigitGroups digitSep (groupSizes digitGrps)
-    in  (quantity, precision, Nothing, digitGroupStyle)
-
-  BothSeparators digitSep digitGrps decPt decimalGrp ->
-    let quantity = sign $
-          Decimal (fromIntegral precision)
-                  (digitGroupNumber $ mconcat digitGrps <> decimalGrp)
-        precision = digitGroupLength decimalGrp
-        digitGroupStyle = Just $ DigitGroups digitSep (groupSizes digitGrps)
-    in  (quantity, precision, Just decPt, digitGroupStyle)
+      in  Right (quantity, precision, mDecPt, Just digitGroupStyle)
+    Just _ ->
+      Left "mixing digit separators with exponents is not allowed"
 
   where
-
-    sign :: Decimal -> Decimal
-    sign = if negated then negate else id
-
     -- Outputs digit group sizes from least significant to most significant
     groupSizes :: [DigitGrp] -> [Int]
     groupSizes digitGrps = reverse $ case map digitGroupLength digitGrps of
       (a:b:cs) | a < b -> b:cs
       gs               -> gs
 
+    toQuantity :: DigitGrp -> DigitGrp -> (Quantity, Int)
+    toQuantity preDecimalGrp postDecimalGrp = (quantity, precision)
+      where
+        quantity = Decimal (fromIntegral precision)
+                           (digitGroupNumber $ preDecimalGrp <> postDecimalGrp)
+        precision = digitGroupLength postDecimalGrp
+
+    applyExp :: Int -> (Decimal, Int) -> (Decimal, Int)
+    applyExp exponent (quantity, precision) =
+      (quantity * 10^^exponent, max 0 (precision - exponent))
+
+
+disambiguateNumber :: Maybe AmountStyle -> AmbiguousNumber -> RawNumber
+disambiguateNumber suggestedStyle (AmbiguousNumber grp1 sep grp2) =
+  -- If present, use the suggested style to disambiguate;
+  -- otherwise, assume that the separator is a decimal point where possible.
+  if isDecimalPointChar sep &&
+     maybe True (sep `isValidDecimalBy`) suggestedStyle
+  then NoSeparators grp1 (Just (sep, grp2))
+  else WithSeparators sep [grp1, grp2] Nothing
+  where
     isValidDecimalBy :: Char -> AmountStyle -> Bool
     isValidDecimalBy c = \case
       AmountStyle{asdecimalpoint = Just d} -> d == c
@@ -784,13 +744,12 @@ fromRawNumber suggestedStyle negated raw = case raw of
       AmountStyle{asprecision = 0} -> False
       _ -> True
 
-
--- | Parse and interpret the structure of a number as far as possible
--- without external hints. Numbers are digit strings, possibly separated
--- into digit groups by one of two types of separators. (1) Numbers may
--- optionally have a decimal point, which may be either a period or comma.
--- (2) Numbers may optionally contain digit group separators, which must
--- all be either a period, a comma, or a space.
+-- | Parse and interpret the structure of a number without external hints.
+-- Numbers are digit strings, possibly separated into digit groups by one
+-- of two types of separators. (1) Numbers may optionally have a decimal
+-- point, which may be either a period or comma. (2) Numbers may
+-- optionally contain digit group separators, which must all be either a
+-- period, a comma, or a space.
 --
 -- It is our task to deduce the identities of the decimal point and digit
 -- separator characters, based on the allowed syntax. For instance, we
@@ -798,54 +757,63 @@ fromRawNumber suggestedStyle negated raw = case raw of
 -- must succeed all digit group separators.
 --
 -- >>> parseTest rawnumberp "1,234,567.89"
--- BothSeparators ',' ["1","234","567"] '.' "89"
+-- Right (WithSeparators ',' ["1","234","567"] (Just ('.',"89")))
+-- >>> parseTest rawnumberp "1,000"
+-- Left (AmbiguousNumber "1" ',' "000")
 -- >>> parseTest rawnumberp "1 000"
--- AmbiguousNumber "1" ' ' "000"
+-- Right (WithSeparators ' ' ["1","000"] Nothing)
 --
-rawnumberp :: TextParser m RawNumber
+rawnumberp :: TextParser m (Either AmbiguousNumber RawNumber)
 rawnumberp = label "rawnumberp" $ do
-  rawNumber <- leadingDecimalPt <|> leadingDigits
-
+  rawNumber <- fmap Right leadingDecimalPt <|> leadingDigits
   -- Guard against mistyped numbers
-  notFollowedBy $ satisfy isDecimalPointChar <|> (char ' ' >> digitChar)
-
+  notFollowedBy $ satisfy isDecimalPointChar <|> char ' ' *> digitChar
   return $ dbg8 "rawnumberp" rawNumber
-
   where
 
   leadingDecimalPt :: TextParser m RawNumber
-  leadingDecimalPt =
-    LeadingDecimalPt <$> satisfy isDecimalPointChar <*> pdigitgroup
+  leadingDecimalPt = do
+    decPt <- satisfy isDecimalPointChar
+    decGrp <- digitgroupp
+    pure $ NoSeparators mempty (Just (decPt, decGrp))
 
-  leadingDigits :: TextParser m RawNumber
+  leadingDigits :: TextParser m (Either AmbiguousNumber RawNumber)
   leadingDigits = do
-    grp1 <- pdigitgroup
-    withSeparators grp1 <|> trailingDecimalPt grp1 <|> pure (NoSeparators grp1)
+    grp1 <- digitgroupp
+    withSeparators grp1 <|> fmap Right (trailingDecimalPt grp1)
+                        <|> pure (Right $ NoSeparators grp1 Nothing)
 
-  withSeparators :: DigitGrp -> TextParser m RawNumber
+  withSeparators :: DigitGrp -> TextParser m (Either AmbiguousNumber RawNumber)
   withSeparators grp1 = do
-    (sep, grp2) <- try $ (,) <$> satisfy isDigitSeparatorChar <*> pdigitgroup
-    grps <- many $ try $ char sep *> pdigitgroup
+    (sep, grp2) <- try $ (,) <$> satisfy isDigitSeparatorChar <*> digitgroupp
+    grps <- many $ try $ char sep *> digitgroupp
 
     let digitGroups = grp1 : grp2 : grps
-    withDecimalPt sep digitGroups <|> pure (withoutDecimalPt grp1 sep grp2 grps)
+    fmap Right (withDecimalPt sep digitGroups)
+      <|> pure (withoutDecimalPt grp1 sep grp2 grps)
 
   withDecimalPt :: Char -> [DigitGrp] -> TextParser m RawNumber
   withDecimalPt digitSep digitGroups = do
-    decimalPt <- satisfy $ \c -> isDecimalPointChar c && c /= digitSep
-    decimalDigitGroup <- option mempty pdigitgroup
+    decPt <- satisfy $ \c -> isDecimalPointChar c && c /= digitSep
+    decDigitGrp <- option mempty digitgroupp
 
-    pure $ BothSeparators digitSep digitGroups decimalPt decimalDigitGroup
+    pure $ WithSeparators digitSep digitGroups (Just (decPt, decDigitGrp))
 
-  withoutDecimalPt :: DigitGrp -> Char -> DigitGrp -> [DigitGrp] -> RawNumber
+  withoutDecimalPt
+    :: DigitGrp
+    -> Char
+    -> DigitGrp
+    -> [DigitGrp]
+    -> Either AmbiguousNumber RawNumber
   withoutDecimalPt grp1 sep grp2 grps
-    | null grps = AmbiguousNumber grp1 sep grp2
-    | otherwise = DigitSeparators sep (grp1:grp2:grps)
+    | null grps && isDecimalPointChar sep =
+        Left $ AmbiguousNumber grp1 sep grp2
+    | otherwise = Right $ WithSeparators sep (grp1:grp2:grps) Nothing
 
   trailingDecimalPt :: DigitGrp -> TextParser m RawNumber
   trailingDecimalPt grp1 = do
-    decimalPt <- satisfy isDecimalPointChar
-    pure $ TrailingDecimalPt grp1 decimalPt
+    decPt <- satisfy isDecimalPointChar
+    pure $ NoSeparators grp1 (Just (decPt, mempty))
 
 
 isDecimalPointChar :: Char -> Bool
@@ -856,8 +824,8 @@ isDigitSeparatorChar c = isDecimalPointChar c || c == ' '
 
 
 data DigitGrp = DigitGrp {
-  digitGroupLength :: Int,
-  digitGroupNumber :: Integer
+  digitGroupLength :: !Int,
+  digitGroupNumber :: !Integer
 } deriving (Eq)
 
 instance Show DigitGrp where
@@ -874,8 +842,8 @@ instance Monoid DigitGrp where
   mempty = DigitGrp 0 0
   mappend = (Sem.<>)
 
-pdigitgroup :: TextParser m DigitGrp
-pdigitgroup = label "digit group"
+digitgroupp :: TextParser m DigitGrp
+digitgroupp = label "digit group"
             $ makeGroup <$> takeWhile1P (Just "digit") isDigit
   where
     makeGroup = uncurry DigitGrp . foldl' step (0, 0) . T.unpack
@@ -883,12 +851,11 @@ pdigitgroup = label "digit group"
 
 
 data RawNumber
-  = LeadingDecimalPt  Char DigitGrp                 -- .50
-  | TrailingDecimalPt DigitGrp Char                 -- 100.
-  | NoSeparators      DigitGrp                      -- 100
-  | AmbiguousNumber   DigitGrp Char DigitGrp        -- 1,000
-  | DigitSeparators   Char [DigitGrp]               -- 1,000,000
-  | BothSeparators    Char [DigitGrp] Char DigitGrp -- 1,000.50
+  = NoSeparators   DigitGrp (Maybe (Char, DigitGrp))        -- 100 or 100. or .100 or 100.50
+  | WithSeparators Char [DigitGrp] (Maybe (Char, DigitGrp)) -- 1,000,000 or 1,000.50
+  deriving (Show, Eq)
+
+data AmbiguousNumber = AmbiguousNumber DigitGrp Char DigitGrp  -- 1,000
   deriving (Show, Eq)
 
 -- test_numberp = do
@@ -1137,19 +1104,19 @@ bracketedpostingdatesp mdefdate = do
 -- default date is provided. A missing year in DATE2 will be inferred
 -- from DATE.
 --
--- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[2016/1/2=3/4]"
+-- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[2016/1/2=3/4]"
 -- Right [("date",2016-01-02),("date2",2016-03-04)]
 --
--- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[1]"
+-- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[1]"
 -- Left ...not a bracketed date...
 --
--- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[2016/1/32]"
+-- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[2016/1/32]"
 -- Left ...1:11:...well-formed but invalid date: 2016/1/32...
 --
--- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[1/31]"
+-- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[1/31]"
 -- Left ...1:6:...partial date 1/31 found, but the current year is unknown...
 --
--- >>> first parseErrorPretty $ rtp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
+-- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
 -- Left ...1:13:...expecting month or day...
 --
 bracketeddatetagsp :: Maybe Day -> SimpleTextParser [(TagName, Day)]

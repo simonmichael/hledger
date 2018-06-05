@@ -29,7 +29,7 @@ import cycles.
 
 --- * module
 
-{-# LANGUAGE CPP, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
+{-# LANGUAGE CPP, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings, PackageImports #-}
 
 module Hledger.Read.JournalReader (
 --- * exports
@@ -72,15 +72,12 @@ module Hledger.Read.JournalReader (
 where
 --- * imports
 import Prelude ()
-import Prelude.Compat hiding (readFile)
+import "base-compat-batteries" Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import Control.Monad.State.Strict
 import qualified Data.Map.Strict as M
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import Data.Text (Text)
 import Data.String
 import Data.List

@@ -621,14 +621,32 @@ test: pkgtest functest \
 # For very verbose tests add --verbosity=debug. It seems hard to get something in between.
 STACKTEST=$(STACK) test
 
-buildtest: $(call def-help,buildtest, build all hledger packages quickly from scratch ensuring no warnings with default snapshot) \
+buildtest: $(call def-help,buildtest, force-rebuild all hledger packages/modules quickly ensuring no warnings with default snapshot) \
 	buildtest-stack.yaml
 
-buildtest-all: $(call def-help,buildtest-all, build all hledger packages quickly from scratch ensuring no warnings with each ghc version/stackage snapshot )
-	for F in stack-*.yaml; do make --no-print-directory buildtest-$$F; done
+buildtest-all: $(call def-help,buildtest-all, force-rebuild all hledger packages/modules quickly ensuring no warnings with each ghc version/stackage snapshot )
+	for F in stack-*.yaml stack.yaml; do make --no-print-directory buildtest-$$F; done
 
-buildtest-%: $(call def-help,buildtest-STACKFILE, build all hledger packages quickly from scratch ensuring no warnings with the stack yaml file; eg make buildtest-stack-ghc8.2.yaml )
+buildtest-%: $(call def-help,buildtest-STACKFILE, force-rebuild all hledger packages/modules quickly ensuring no warnings with the given stack yaml file; eg make buildtest-stack-ghc8.2.yaml )
 	$(STACK) build --test --bench --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
+
+incr-buildtest: $(call def-help,incr-buildtest, build any outdated hledger packages/modules quickly ensuring no warnings with default snapshot. Wont detect warnings in up-to-date modules.) \
+	incr-buildtest-stack.yaml
+
+incr-buildtest-all: $(call def-help,incr-buildtest-all, build any outdated hledger packages/modules quickly ensuring no warnings with each ghc version/stackage snapshot. Wont detect warnings in up-to-date modules. )
+	for F in stack-*.yaml stack.yaml; do make --no-print-directory incr-buildtest-$$F; done
+
+incr-buildtest-%: $(call def-help,incr-buildtest-STACKFILE, build any outdated hledger packages/modules quickly ensuring no warnings with the stack yaml file; eg make buildtest-stack-ghc8.2.yaml. Wont detect warnings in up-to-date modules. )
+	$(STACK) build --test --bench --fast --ghc-options=-Werror --stack-yaml=$*
+
+buildplantest: $(call def-help,buildplantest, stack build --dry-run all hledger packages ensuring an install plan with default snapshot) \
+	buildplantest-stack.yaml
+
+buildplantest-all: $(call def-help,buildplantest-all, stack build --dry-run all hledger packages ensuring an install plan with each ghc version/stackage snapshot )
+	for F in stack-*.yaml stack.yaml; do make --no-print-directory buildplantest-$$F; done
+
+buildplantest-%: $(call def-help,buildplantest-STACKFILE, stack build --dry-run all hledger packages ensuring an install plan with the given stack yaml file; eg make buildplantest-stack-ghc8.2.yaml )
+	$(STACK) build --dry-run --test --bench --stack-yaml=$*
 
 pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 	@($(STACKTEST) && echo $@ PASSED) || (echo $@ FAILED; false)
@@ -689,12 +707,12 @@ test-stack%yaml:
 	$(STACK) --stack-yaml stack$*yaml build --ghc-options="$(WARNINGS) -Werror" --test --bench --haddock --no-haddock-deps
 
 travistest: $(call def-help,travistest, run tests similar to our travis CI tests)
-	stack clean
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-ui
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-web
-	stack build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-api
+	$(STACK) clean
+	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-lib
+	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger
+	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-ui
+	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-web
+	$(STACK) build --ghc-options=-Werror --test --haddock --no-haddock-deps hledger-api
 	make functest
 
 # committest: hlinttest unittest doctest functest haddocktest buildtest quickcabaltest \

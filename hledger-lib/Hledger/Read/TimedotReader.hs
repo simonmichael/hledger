@@ -23,7 +23,7 @@ inc.client1   .... .... ..
 
 -}
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, PackageImports #-}
 
 module Hledger.Read.TimedotReader (
   -- * Reader
@@ -35,7 +35,7 @@ module Hledger.Read.TimedotReader (
 )
 where
 import Prelude ()
-import Prelude.Compat
+import "base-compat-batteries" Prelude.Compat
 import Control.Monad
 import Control.Monad.Except (ExceptT)
 import Control.Monad.State.Strict

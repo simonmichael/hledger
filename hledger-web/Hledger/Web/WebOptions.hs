@@ -3,9 +3,6 @@ module Hledger.Web.WebOptions
 where
 import Prelude
 import Data.Default
-#if !MIN_VERSION_base(4,8,0)
-import Data.Functor.Compat ((<$>))
-#endif
 import Data.Maybe
 import System.Environment
 

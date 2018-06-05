@@ -40,7 +40,7 @@ extra-source-files:
 
 dependencies:
 - base >=4.8 && <4.12
-- base-compat >=0.8.1
+- base-compat-batteries >=0.10.1 && <0.11
 - ansi-terminal >=0.6.2.3
 - array
 - blaze-markup >=0.5.1
@@ -53,7 +53,7 @@ dependencies:
 - deepseq
 - directory
 - filepath
-- hashtables >=1.2
+- hashtables >=1.2.3.1
 - megaparsec >=6.4.1
 - mtl
 - mtl-compat
@@ -154,10 +154,12 @@ tests:
     dependencies:
     - doctest >=0.8
     - Glob >=0.7
-    # doctest won't run with ghc 8.4 on mac right now, https://github.com/sol/hpack/issues/199
-    when:
-    - condition: impl(ghc >= 8.4) && os(darwin)
-      buildable: false
+    # doctest with ghc 8.4 on mac requires a workaround, but we'll leave it enabled
+    # https://ghc.haskell.org/trac/ghc/ticket/15105#comment:10
+    # https://github.com/sol/doctest/issues/199
+    # when:
+    # - condition: impl(ghc >= 8.4) && os(darwin)
+    #   buildable: false
 
   hunittests:
     main: hunittests.hs

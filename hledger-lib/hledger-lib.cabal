@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 22b7806755a6e3d8afa63a7e941273b64188b90a6695b78fa7f59dcb150e19f7
+-- hash: 4e9f93f0ca43f594b381f1e1e03e67ce3379bd4830b260e6f7dc1596b946993f
 
 name:           hledger-lib
 version:        1.9.99
@@ -105,7 +105,7 @@ library
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.8 && <4.12
-    , base-compat >=0.8.1
+    , base-compat-batteries >=0.10.1 && <0.11
     , blaze-markup >=0.5.1
     , bytestring
     , cmdargs >=0.10
@@ -116,7 +116,7 @@ library
     , directory
     , extra
     , filepath
-    , hashtables >=1.2
+    , hashtables >=1.2.3.1
     , megaparsec >=6.4.1
     , mtl
     , mtl-compat
@@ -200,7 +200,7 @@ test-suite doctests
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.8 && <4.12
-    , base-compat >=0.8.1
+    , base-compat-batteries >=0.10.1 && <0.11
     , blaze-markup >=0.5.1
     , bytestring
     , cmdargs >=0.10
@@ -212,7 +212,7 @@ test-suite doctests
     , doctest >=0.8
     , extra
     , filepath
-    , hashtables >=1.2
+    , hashtables >=1.2.3.1
     , megaparsec >=6.4.1
     , mtl
     , mtl-compat
@@ -232,8 +232,6 @@ test-suite doctests
   if (!impl(ghc >= 8.0))
     build-depends:
         semigroups ==0.18.*
-  if impl(ghc >= 8.4) && os(darwin)
-    buildable: False
   default-language: Haskell2010
 
 test-suite easytests
@@ -297,7 +295,7 @@ test-suite easytests
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.8 && <4.12
-    , base-compat >=0.8.1
+    , base-compat-batteries >=0.10.1 && <0.11
     , blaze-markup >=0.5.1
     , bytestring
     , cmdargs >=0.10
@@ -309,7 +307,7 @@ test-suite easytests
     , easytest
     , extra
     , filepath
-    , hashtables >=1.2
+    , hashtables >=1.2.3.1
     , hledger-lib
     , megaparsec >=6.4.1
     , mtl
@@ -393,7 +391,7 @@ test-suite hunittests
     , ansi-terminal >=0.6.2.3
     , array
     , base >=4.8 && <4.12
-    , base-compat >=0.8.1
+    , base-compat-batteries >=0.10.1 && <0.11
     , blaze-markup >=0.5.1
     , bytestring
     , cmdargs >=0.10
@@ -404,7 +402,7 @@ test-suite hunittests
     , directory
     , extra
     , filepath
-    , hashtables >=1.2
+    , hashtables >=1.2.3.1
     , hledger-lib
     , megaparsec >=6.4.1
     , mtl

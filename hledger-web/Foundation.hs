@@ -8,9 +8,6 @@ See a default Yesod app's comments for more details of each part.
 module Foundation where
 
 import Prelude
-#if !MIN_VERSION_base(4,8,0)
-import Control.Applicative ((<$>))
-#endif
 import Data.IORef
 import Yesod
 import Yesod.Static

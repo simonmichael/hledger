@@ -6,9 +6,6 @@
 module Hledger.UI.UIOptions
 where
 import Data.Default
-#if !MIN_VERSION_base(4,8,0)
-import Data.Functor.Compat ((<$>))
-#endif
 import Data.List (intercalate)
 import System.Environment
 

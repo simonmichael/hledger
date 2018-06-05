@@ -7,9 +7,6 @@ import           Prelude              as Import hiding (head, init, last,
                                                  readFile, tail, writeFile)
 import           Yesod                as Import hiding (Route (..))
 
-#if !MIN_VERSION_base(4,8,0)
-import           Control.Applicative  as Import (pure, (<$>), (<*>))
-#endif
 import           Data.Text            as Import (Text)
 
 import           Foundation           as Import

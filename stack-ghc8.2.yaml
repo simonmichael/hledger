@@ -1,6 +1,6 @@
 # stack build plan using GHC 8.2.2
 
-resolver: lts-11.9
+resolver: lts-11.11
 
 packages:
 - hledger-lib
@@ -11,6 +11,19 @@ packages:
 
 extra-deps:
 - easytest-0.2
+# use the latest base-compat with all ghc versions
+- aeson-1.3.1.1
+- base-compat-0.10.1
+- base-compat-batteries-0.10.1
+- criterion-1.4.1.0
+- swagger2-2.2.2
+# avoid no hashable instance for AccountName from doctests
+- hashtables-1.2.3.1
+# avoid https://github.com/simonmichael/hledger/issues/791
+- directory-1.3.2.2
+# hledger-ui
+# newer fsnotify has a different api and may be more robust
+- fsnotify-0.3.0.1
 
 nix:
   pure: false

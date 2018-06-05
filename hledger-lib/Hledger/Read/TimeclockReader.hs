@@ -40,7 +40,7 @@ i, o or O.  The meanings of the codes are:
 
 -}
 
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, PackageImports #-}
 
 module Hledger.Read.TimeclockReader (
   -- * Reader
@@ -52,7 +52,7 @@ module Hledger.Read.TimeclockReader (
 )
 where
 import           Prelude ()
-import           Prelude.Compat
+import "base-compat-batteries" Prelude.Compat
 import           Control.Monad
 import           Control.Monad.Except (ExceptT)
 import           Control.Monad.State.Strict
