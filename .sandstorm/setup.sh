@@ -21,7 +21,5 @@ set -euo pipefail
 
 # By default, this script does nothing.  You'll have to modify it as
 # appropriate for your application.
-wget -q -O- https://s3.amazonaws.com/download.fpcomplete.com/debian/fpco.key | sudo apt-key add -
-echo 'deb http://download.fpcomplete.com/debian/jessie stable main'|sudo tee /etc/apt/sources.list.d/fpco.list
-apt-get update
-apt-get install -y stack
+apt-get install -y libtinfo-dev
+curl -ssl https://get.haskellstack.org/ | sh

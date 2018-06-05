@@ -80,7 +80,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   if total_kB_ram.nil? or total_kB_ram < 2048000
     assign_ram_mb = 512
   else
-    assign_ram_mb = (total_kB_ram / 1024 / 4)
+    assign_ram_mb = (total_kB_ram / 1024 / 2)
   end
   # Actually apply these CPU/memory values to the providers.
   config.vm.provider :virtualbox do |vb, override|
