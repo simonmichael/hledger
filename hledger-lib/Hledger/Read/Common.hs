@@ -14,6 +14,7 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 
 --- * module
 {-# LANGUAGE CPP, BangPatterns, DeriveDataTypeable, RecordWildCards, NamedFieldPuns, NoMonoLocalBinds, ScopedTypeVariables, FlexibleContexts, TupleSections, OverloadedStrings #-}
+{-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE PackageImports #-}
 
@@ -81,12 +82,10 @@ module Hledger.Read.Common (
   -- ** comments
   multilinecommentp,
   emptyorcommentlinep,
-  followingcommentp,
-  followingcommentandtagsp,
 
-  -- ** tags
-  commentTags,
-  tagsp,
+  followingcommentp,
+  transactioncommentp,
+  postingcommentp,
 
   -- ** bracketed dates
   bracketeddatetagsp
@@ -98,6 +97,7 @@ import "base-compat-batteries" Prelude.Compat hiding (readFile)
 import "base-compat-batteries" Control.Monad.Compat
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
 import Control.Monad.State.Strict
+import Data.Bifunctor (bimap, second)
 import Data.Char
 import Data.Data
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
@@ -383,6 +383,8 @@ datep' mYear = do
     Nothing -> fail $
       "partial date "++dateStr++" found, but the current year is unknown"
       where dateStr = show month ++ [sep] ++ show day
+
+{-# INLINABLE datep' #-}
 
 -- | Parse a date and time in YYYY/MM/DD HH:MM[:SS][+-ZZZZ] format.
 -- Hyphen (-) and period (.) are also allowed as date separators.
@@ -871,211 +873,235 @@ data AmbiguousNumber = AmbiguousNumber DigitGrp Char DigitGrp  -- 1,000
 multilinecommentp :: TextParser m ()
 multilinecommentp = startComment *> anyLine `skipManyTill` endComment
   where
-    startComment = string "comment" >> skipLine
-    endComment = eof <|> string "end comment" *> skipLine
+    startComment = string "comment" *> trailingSpaces
+    endComment = eof <|> string "end comment" *> trailingSpaces
 
-    skipLine = void $ skipMany spacenonewline *> newline
-    anyLine = takeWhileP Nothing (\c -> c /= '\n') *> newline
+    trailingSpaces = skipMany spacenonewline <* newline
+    anyLine = void $ takeWhileP Nothing (\c -> c /= '\n') *> newline
+
+{-# INLINABLE multilinecommentp #-}
 
 emptyorcommentlinep :: TextParser m ()
 emptyorcommentlinep = do
   skipMany spacenonewline
-  void linecommentp <|> void newline
+  skiplinecommentp <|> void newline
+  where
+    -- A line (file-level) comment can start with a semicolon, hash, or star
+    -- (allowing org nodes).
+    skiplinecommentp :: TextParser m ()
+    skiplinecommentp = do
+      satisfy $ \c -> c == ';' || c == '#' || c == '*'
+      void $ takeWhileP Nothing (\c -> c /= '\n')
+      optional newline
+      pure ()
 
--- | Parse a possibly multi-line comment following a semicolon.
-followingcommentp :: TextParser m Text
-followingcommentp = T.unlines . map snd <$> followingcommentlinesp
+{-# INLINABLE emptyorcommentlinep #-}
 
-followingcommentlinesp :: TextParser m [(SourcePos, Text)]
-followingcommentlinesp = do
-  skipMany spacenonewline
-
-  samelineComment@(_, samelineCommentText)
-    <- try commentp <|> (,) <$> (getPosition <* eolof) <*> pure ""
-  newlineComments <- many $ try $ do
-    skipSome spacenonewline -- leading whitespace is required
-    commentp
-
-  if T.null samelineCommentText && null newlineComments
-    then pure []
-    else pure $ samelineComment : newlineComments
-
--- | Parse a possibly multi-line comment following a semicolon, and
--- any tags and/or posting dates within it. Posting dates can be
--- expressed with "date"/"date2" tags and/or bracketed dates.  The
--- dates are parsed in full here so that errors are reported in the
--- right position. Missing years can be inferred if a default date is
--- provided.
+-- A parser combinator for parsing (possibly multiline) comments
+-- following journal items.
 --
--- >>> rejp (followingcommentandtagsp (Just $ fromGregorian 2000 1 2)) "; a:b, date:3/4, [=5/6]"
+-- Several journal items may be followed by comments, which begin with
+-- semicolons and extend to the end of the line. Such comments may span
+-- multiple lines, but comment lines below the journal item must be
+-- preceeded by leading whitespace.
+--
+-- This parser combinator accepts a parser that consumes all input up
+-- until the next newline. This parser should extract the "content" from
+-- comments. The resulting parser returns this content plus the raw text
+-- of the comment itself.
+followingcommentp' :: (Monoid a) => TextParser m a -> TextParser m (Text, a)
+followingcommentp' contentp = do
+  skipMany spacenonewline
+  sameLine <- try headerp *> match' contentp <|> pure ("", mempty)
+  _ <- eolof
+  lowerLines <- many $
+    try (skipSome spacenonewline *> headerp) *> match' contentp <* eolof
+
+  let (textLines, results) = unzip $ sameLine : lowerLines
+      strippedCommentText = T.unlines $ map T.strip textLines
+      result = mconcat results
+  pure (strippedCommentText, result)
+
+  where
+    headerp = char ';' *> skipMany spacenonewline
+
+{-# INLINABLE followingcommentp' #-}
+
+-- | Parse the text of a (possibly multiline) comment following a journal
+-- item.
+followingcommentp :: TextParser m Text
+followingcommentp =
+  fst <$> followingcommentp' (void $ takeWhileP Nothing (/= '\n'))
+{-# INLINABLE followingcommentp #-}
+
+
+-- | Parse a transaction comment and extract its tags.
+--
+-- The first line of a transaction may be followed by comments, which
+-- begin with semicolons and extend to the end of the line. Transaction
+-- comments may span multiple lines, but comment lines below the
+-- transaction must be preceeded by leading whitespace.
+--
+-- 2000/1/1 ; a transaction comment starting on the same line ...
+--   ; extending to the next line
+--   account1  $1
+--   account2
+--
+-- Tags are name-value pairs.
+--
+-- >>> let getTags (_,tags) = tags
+-- >>> let parseTags = fmap getTags . rtp transactioncommentp
+--
+-- >>> parseTags "; name1: val1, name2:all this is value2"
+-- Right [("name1","val1"),("name2","all this is value2")]
+--
+-- A tag's name must be immediately followed by a colon, without
+-- separating whitespace. The corresponding value consists of all the text
+-- following the colon up until the next colon or newline, stripped of
+-- leading and trailing whitespace.
+--
+transactioncommentp :: TextParser m (Text, [Tag])
+transactioncommentp = followingcommentp' commenttagsp
+{-# INLINABLE transactioncommentp #-}
+
+commenttagsp :: TextParser m [Tag]
+commenttagsp = do
+  tagName <- fmap (last . T.split isSpace)
+            $ takeWhileP Nothing (\c -> c /= ':' && c /= '\n')
+  atColon tagName <|> pure [] -- if not ':', then either '\n' or EOF
+
+  where
+    atColon :: Text -> TextParser m [Tag]
+    atColon name = char ':' *> do
+      if T.null name
+        then commenttagsp
+        else do
+          skipMany spacenonewline
+          val <- tagValue
+          let tag = (name, val)
+          (tag:) <$> commenttagsp
+
+    tagValue :: TextParser m Text
+    tagValue = do
+      val <- T.strip <$> takeWhileP Nothing (\c -> c /= ',' && c /= '\n')
+      _ <- optional $ char ','
+      pure val
+
+{-# INLINABLE commenttagsp #-}
+
+
+-- | Parse a posting comment and extract its tags and dates.
+--
+-- Postings may be followed by comments, which begin with semicolons and
+-- extend to the end of the line. Posting comments may span multiple
+-- lines, but comment lines below the posting must be preceeded by
+-- leading whitespace.
+--
+-- 2000/1/1
+--   account1  $1 ; a posting comment starting on the same line ...
+--   ; extending to the next line
+--
+--   account2
+--   ; a posting comment beginning on the next line
+--
+-- Tags are name-value pairs.
+--
+-- >>> let getTags (_,tags,_,_) = tags
+-- >>> let parseTags = fmap getTags . rtp (postingcommentp Nothing)
+--
+-- >>> parseTags "; name1: val1, name2:all this is value2"
+-- Right [("name1","val1"),("name2","all this is value2")]
+--
+-- A tag's name must be immediately followed by a colon, without
+-- separating whitespace. The corresponding value consists of all the text
+-- following the colon up until the next colon or newline, stripped of
+-- leading and trailing whitespace.
+--
+-- Posting dates may be expressed with "date"/"date2" tags or with
+-- bracketed date syntax. Posting dates will inherit their year from the
+-- transaction date if the year is not specified. We throw parse errors on
+-- invalid dates.
+--
+-- >>> let getDates (_,_,d1,d2) = (d1, d2)
+-- >>> let parseDates = fmap getDates . rtp (postingcommentp (Just 2000))
+--
+-- >>> parseDates "; date: 1/2, date2: 1999/12/31"
+-- Right (Just 2000-01-02,Just 1999-12-31)
+-- >>> parseDates "; [1/2=1999/12/31]"
+-- Right (Just 2000-01-02,Just 1999-12-31)
+--
+-- Example: tags, date tags, and bracketed dates
+-- >>> rtp (postingcommentp (Just 2000)) "; a:b, date:3/4, [=5/6]"
 -- Right ("a:b, date:3/4, [=5/6]\n",[("a","b"),("date","3/4")],Just 2000-03-04,Just 2000-05-06)
 --
--- Year unspecified and no default provided -> unknown year error, at correct position:
--- >>> rejp (followingcommentandtagsp Nothing) "  ;    xxx   date:3/4\n  ; second line"
--- Left ...1:22...partial date 3/4 found, but the current year is unknown...
---
--- Date tag value contains trailing text - forgot the comma, confused:
--- the syntaxes ?  We'll accept the leading date anyway
--- >>> rejp (followingcommentandtagsp (Just $ fromGregorian 2000 1 2)) "; date:3/4=5/6"
+-- Example: extraction of dates from date tags ignores trailing text
+-- >>> rtp (postingcommentp (Just 2000)) "; date:3/4=5/6"
 -- Right ("date:3/4=5/6\n",[("date","3/4=5/6")],Just 2000-03-04,Nothing)
 --
-followingcommentandtagsp
-  :: Monad m
-  => Maybe Day
-  -> ErroringJournalParser m (Text, [Tag], Maybe Day, Maybe Day)
-followingcommentandtagsp mdefdate = do
-  -- pdbg 0 "followingcommentandtagsp"
+postingcommentp
+  :: Maybe Year -> TextParser m (Text, [Tag], Maybe Day, Maybe Day)
+postingcommentp mYear = do
+  (commentText, (tags, dateTags)) <-
+    followingcommentp' (commenttagsanddatesp mYear)
+  let mdate  = fmap snd $ find ((=="date") .fst) dateTags
+      mdate2 = fmap snd $ find ((=="date2").fst) dateTags
+  pure (commentText, tags, mdate, mdate2)
+{-# INLINABLE postingcommentp #-}
 
-  commentLines <- lift followingcommentlinesp
-  -- pdbg 0 $ "commentws:" ++ show commentLines
 
-  -- Reparse the comment for any tags.
-  tagsWithPositions <- case
-    traverse (runTextParserAt tagswithvaluepositions) commentLines of
-      Right tss -> pure $ concat tss
-      Left e    -> throwError $ parseErrorPretty e
-
-  -- Extract date-tag style posting dates from the tags.
-  -- Use the transaction date for defaults, if provided.
-  let isDateLabel txt = txt == "date" || txt == "date2"
-      isDateTag = isDateLabel . fst . snd
-  tagDates <- case traverse tagDate $ filter isDateTag tagsWithPositions of
-      Right ds -> pure ds
-      Left e   -> throwError $ parseErrorPretty e
-
-  -- Reparse the comment for any bracketed style posting dates.
-  -- Use the transaction date for defaults, if provided.
-  bracketedDates <- case
-    traverse (runTextParserAt (bracketedpostingdatesp mdefdate))
-             commentLines of
-      Right dss -> pure $ concat dss
-      Left e    -> throwError $ parseErrorPretty e
-
-  let pdates = tagDates ++ bracketedDates
-      mdate  = fmap snd $ find ((=="date") .fst) pdates
-      mdate2 = fmap snd $ find ((=="date2").fst) pdates
-  -- pdbg 0 $ "allDates: "++show pdates
-
-  let strippedComment = T.unlines $ map (T.strip . snd) commentLines
-      tags = map snd tagsWithPositions
-  -- pdbg 0 $ "comment:"++show strippedComment
-
-  pure (strippedComment, tags, mdate, mdate2)
+commenttagsanddatesp
+  :: Maybe Year -> TextParser m ([Tag], [DateTag])
+commenttagsanddatesp mYear = do
+  (txt, dateTags) <- match $ readUpTo ':'
+  -- next char is either ':' or '\n' (or EOF)
+  let tagName = last (T.split isSpace txt)
+  (fmap.second) (dateTags++) (atColon tagName) <|> pure ([], dateTags) -- if not ':', then either '\n' or EOF
 
   where
-    runTextParserAt parser (pos, txt) =
-      runTextParser (setPosition pos *> parser) txt
+    readUpTo :: Char -> TextParser m [DateTag]
+    readUpTo end = do
+      void $ takeWhileP Nothing (\c -> c /= end && c /= '\n' && c /= '[')
+      -- if not '[' then ':' or '\n' or EOF
+      atBracket (readUpTo end) <|> pure []
 
-    tagDate :: (SourcePos, Tag)
-            -> Either (ParseError Char CustomErr) (TagName, Day)
-    tagDate (pos, (name, value)) =
-      fmap (name,) $ runTextParserAt (datep' myear) (pos, value)
-      where myear = fmap (first3 . toGregorian) mdefdate
+    atBracket :: TextParser m [DateTag] -> TextParser m [DateTag]
+    atBracket cont = do
+      -- Uses the fact that bracketed date-tags cannot contain newlines
+      dateTags <- option [] $ lookAhead (bracketeddatetagsp mYear)
+      _ <- char '['
+      dateTags' <- cont
+      pure $ dateTags ++ dateTags'
 
--- A transaction/posting comment must start with a semicolon. This parser
--- discards the leading whitespace of the comment and returns the source
--- position of the comment's first non-whitespace character.
-commentp :: TextParser m (SourcePos, Text)
-commentp = commentStartingWithp (==';')
+    atColon :: Text -> TextParser m ([Tag], [DateTag])
+    atColon name = char ':' *> do
+      skipMany spacenonewline
+      (tags, dateTags) <- case name of
+        ""      -> pure ([], [])
+        "date"  -> dateValue name
+        "date2" -> dateValue name
+        _       -> tagValue name
+      _ <- optional $ char ','
+      bimap (tags++) (dateTags++) <$> commenttagsanddatesp mYear
 
--- A line (file-level) comment can start with a semicolon, hash, or star
--- (allowing org nodes). This parser discards the leading whitespace of
--- the comment and returns the source position of the comment's first
--- non-whitespace character.
-linecommentp :: TextParser m (SourcePos, Text)
-linecommentp =
-  commentStartingWithp $ \c -> c == ';' || c == '#' || c == '*'
+    dateValue :: Text -> TextParser m ([Tag], [DateTag])
+    dateValue name = do
+      (txt, (date, dateTags)) <- match' $ do
+        date <- datep' mYear
+        dateTags <- readUpTo ','
+        pure (date, dateTags)
+      let val = T.strip txt
+      pure $ ( [(name, val)]
+             , (name, date) : dateTags )
 
-commentStartingWithp :: (Char -> Bool) -> TextParser m (SourcePos, Text)
-commentStartingWithp f = do
-  -- ptrace "commentStartingWith"
-  satisfy f
-  skipMany spacenonewline
-  startPos <- getPosition
-  content <- takeWhileP Nothing (\c -> c /= '\n')
-  optional newline
-  return (startPos, content)
+    tagValue :: Text -> TextParser m ([Tag], [DateTag])
+    tagValue name = do
+      (txt, dateTags) <- match' $ readUpTo ','
+      let val = T.strip txt
+      pure $ ( [(name, val)]
+             , dateTags )
 
---- ** tags
+{-# INLINABLE commenttagsanddatesp #-}
 
--- | Extract any tags (name:value ended by comma or newline) embedded in a string.
---
--- >>> commentTags "a b:, c:c d:d, e"
--- [("b",""),("c","c d:d")]
---
--- >>> commentTags "a [1/1/1] [1/1] [1], [=1/1/1] [=1/1] [=1] [1/1=1/1/1] [1=1/1/1] b:c"
--- [("b","c")]
---
--- --[("date","1/1/1"),("date","1/1"),("date2","1/1/1"),("date2","1/1"),("date","1/1"),("date2","1/1/1"),("date","1"),("date2","1/1/1")]
---
--- >>> commentTags "\na b:, \nd:e, f"
--- [("b",""),("d","e")]
---
--- >>> commentTags ":value"
--- []
---
-commentTags :: Text -> [Tag]
-commentTags s = either (const []) id $ runTextParser tagsp s
-
--- | Parse all tags found in a string.
-tagsp :: SimpleTextParser [Tag]
-tagsp = map snd <$> tagswithvaluepositions
-
-tagswithvaluepositions :: SimpleTextParser [(SourcePos, Tag)]
-tagswithvaluepositions = do
-  -- pdbg 0 $ "tagsp"
-
-  -- If we parse in a single pass, we cannot know whether some text
-  -- belongs to a tag label until we have reached a colon (in which case
-  -- it does) or whitespace (in which case it does not). Therefore, we
-  -- hold on to the text until we reach such a break point, and then
-  -- decide what to do.
-
-  potentialTagName <- tillNextBreak
-  atSpaceChar <|> atColon potentialTagName <|> atEof
-
-  where
-
-    isBreak :: Char -> Bool
-    isBreak c = isSpace c || c == ':'
-
-    tillNextBreak :: SimpleTextParser Text
-    tillNextBreak = takeWhileP Nothing (not . isBreak)
-
-    tagValue :: SimpleTextParser Text
-    tagValue = T.strip <$> takeWhileP Nothing (not . commaOrNewline)
-      where commaOrNewline c = c == ',' || c == '\n'
-
-    atSpaceChar :: SimpleTextParser [(SourcePos, Tag)]
-    atSpaceChar = skipSome spaceChar *> tagswithvaluepositions
-
-    atColon :: Text -> SimpleTextParser [(SourcePos, Tag)]
-    atColon tagName = do
-      char ':'
-      if T.null tagName
-        then tagswithvaluepositions
-        else do
-          pos <- getPosition
-          tagVal <- tagValue
-          let tag = (pos, (tagName, tagVal))
-          tags <- tagswithvaluepositions
-          pure $ tag : tags
-
-    atEof :: SimpleTextParser [(SourcePos, Tag)]
-    atEof = eof *> pure []
-
---- ** posting dates
-
--- | Parse all bracketed posting dates found in a string. The dates are
--- parsed fully to give useful errors. Missing years can be inferred only
--- if a default date is provided.
---
-bracketedpostingdatesp :: Maybe Day -> SimpleTextParser [(TagName,Day)]
-bracketedpostingdatesp mdefdate = do
-  -- pdbg 0 $ "bracketedpostingdatesp"
-  skipMany $ notChar '['
-  concat <$> sepEndBy (bracketeddatetagsp mdefdate <|> char '[' *> pure [])
-                      (skipMany $ notChar '[')
 
 --- ** bracketed dates
 
@@ -1105,8 +1131,9 @@ bracketedpostingdatesp mdefdate = do
 -- >>> either (Left . parseErrorPretty) Right $ rtp (bracketeddatetagsp Nothing) "[0123456789/-.=/-.=]"
 -- Left ...1:13:...expecting month or day...
 --
-bracketeddatetagsp :: Maybe Day -> SimpleTextParser [(TagName, Day)]
-bracketeddatetagsp mdefdate = do
+bracketeddatetagsp
+  :: Maybe Year -> TextParser m [(TagName, Day)]
+bracketeddatetagsp mYear1 = do
   -- pdbg 0 "bracketeddatetagsp"
   try $ do
     s <- lookAhead
@@ -1117,14 +1144,24 @@ bracketeddatetagsp mdefdate = do
   -- Looks sufficiently like a bracketed date to commit to parsing a date
 
   between (char '[') (char ']') $ do
-    let myear1 = fmap readYear mdefdate
-    md1 <- optional $ datep' myear1
+    md1 <- optional $ datep' mYear1
 
-    let myear2 = fmap readYear md1 <|> myear1
-    md2 <- optional $ char '=' *> datep' myear2
+    let mYear2 = fmap readYear md1 <|> mYear1
+    md2 <- optional $ char '=' *> datep' mYear2
 
     pure $ catMaybes [("date",) <$> md1, ("date2",) <$> md2]
 
   where
     readYear = first3 . toGregorian
     isBracketedDateChar c = isDigit c || isDateSepChar c || c == '='
+
+{-# INLINABLE bracketeddatetagsp #-}
+
+
+--- ** helper parsers
+
+-- A version of `match` that is strict in the returned text
+match' :: TextParser m a -> TextParser m (Text, a)
+match' p = do
+  (!txt, p) <- match p
+  pure (txt, p)

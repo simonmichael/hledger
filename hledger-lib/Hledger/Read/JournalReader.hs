@@ -248,12 +248,7 @@ accountdirectivep = do
   macode' :: Maybe String <- (optional $ lift $ skipSome spacenonewline >> some digitChar)
   let macode :: Maybe AccountCode = read <$> macode'
   newline
-  _tags <- many $ do
-    startpos <- getPosition
-    l <- indentedlinep
-    case runTextParser (setPosition startpos >> tagsp) $ T.pack l of
-      Right ts -> return ts
-      Left _e   -> return [] -- TODO throwError $ parseErrorPretty e
+  skipMany indentedlinep
     
   modify' (\j -> j{jaccounts = (acct, macode) : jaccounts j})
 
@@ -477,9 +472,9 @@ transactionp = do
   status <- lift statusp <?> "cleared status"
   code <- lift codep <?> "transaction code"
   description <- T.strip <$> descriptionp
-  comment <- lift followingcommentp
-  let tags = commentTags comment
-  postings <- postingsp (Just date)
+  (comment, tags) <- lift transactioncommentp
+  let year = first3 $ toGregorian date
+  postings <- postingsp (Just year)
   pos' <- getPosition
   let sourcepos = journalSourcePos pos pos'
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
@@ -581,8 +576,8 @@ test_transactionp = do
 
 -- Parse the following whitespace-beginning lines as postings, posting
 -- tags, and/or comments (inferring year, if needed, from the given date).
-postingsp :: MonadIO m => Maybe Day -> ErroringJournalParser m [Posting]
-postingsp mdate = many (postingp mdate) <?> "postings"
+postingsp :: MonadIO m => Maybe Year -> ErroringJournalParser m [Posting]
+postingsp mTransactionYear = many (postingp mTransactionYear) <?> "postings"
 
 -- linebeginningwithspaces :: Monad m => JournalParser m String
 -- linebeginningwithspaces = do
@@ -591,8 +586,8 @@ postingsp mdate = many (postingp mdate) <?> "postings"
 --   cs <- lift restofline
 --   return $ sp ++ (c:cs) ++ "\n"
 
-postingp :: MonadIO m => Maybe Day -> ErroringJournalParser m Posting
-postingp mtdate = do
+postingp :: MonadIO m => Maybe Year -> ErroringJournalParser m Posting
+postingp mTransactionYear = do
   -- pdbg 0 "postingp"
   (status, account) <- try $ do
     lift (skipSome spacenonewline)
@@ -605,7 +600,7 @@ postingp mtdate = do
   massertion <- partialbalanceassertionp
   _ <- fixedlotpricep
   lift (skipMany spacenonewline)
-  (comment,tags,mdate,mdate2) <- followingcommentandtagsp mtdate
+  (comment,tags,mdate,mdate2) <- lift $ postingcommentp mTransactionYear
   return posting
    { pdate=mdate
    , pdate2=mdate2
