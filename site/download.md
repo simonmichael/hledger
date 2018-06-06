@@ -92,13 +92,13 @@ And here's the more responsible way:
 #### Link errors ?
 
 If you see link errors (like "/bin/ld.gold: error: cannot find -ltinfo"), 
-you might need to install some extra system packages, such as the below, and try again
-(please send any updates for this list):
+you might need to install some extra system packages, such as the below, and try again.
+Please do a web search for the error and send corrections for this list:
 
  |
  |-----------------|-------------------------------------------------------
  | Centos:         | **`sudo yum install -y libstdc++-devel ncurses-devel zlib-devel`** *# [?](https://github.com/simonmichael/hledger/issues/715)*
- | Debian, Ubuntu: | **`sudo apt install -y libncurses5`** *# ?*
+ | Debian, Ubuntu: | **`sudo apt install -y libtinfo-dev`** *# ?*
  | Fedora, RHEL:   | **`sudo dnf install -y ncurses-devel`** *# ?*
 
 #### Set up $PATH
