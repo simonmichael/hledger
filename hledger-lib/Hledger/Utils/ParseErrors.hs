@@ -35,13 +35,13 @@ import Text.Megaparsec
 data CustomErr
   -- | Fail with a message at a specific source position interval. The
   -- interval must be contained within a single line.
-  = ErrorFailAt SourcePos -- ^ Starting position
-                Pos -- ^ Ending position (column; same line as start)
-                String -- ^ Error message
+  = ErrorFailAt SourcePos -- Starting position
+                Pos -- Ending position (column; same line as start)
+                String -- Error message
   -- | Attach a source file to a parse error (for error reporting from
   -- include files, e.g. with the 'region' parser combinator)
-  | ErrorWithSource Text -- ^ Source file contents
-                    (ParseError Char CustomErr) -- ^ The original 
+  | ErrorWithSource Text -- Source file contents
+                    (ParseError Char CustomErr) -- The original
   deriving (Show, Eq, Ord)
 
 -- We require an 'Ord' instance for 'CustomError' so that they may be
@@ -131,7 +131,7 @@ customParseErrorPretty source err = case findCustomError err of
 --- * Modified Megaparsec source
 
 -- The below code has been copied from the Megaparsec module and modified
--- to suit our needs. Changes are marked with '-- *'.
+-- to suit our needs. These changes are indicated by square brackets.
 --
 -- NOTE: I am not sure what we are now obligated to do, having directly
 -- copied source code from another project.
@@ -148,7 +148,7 @@ customParseErrorPretty'
      , Stream s )
   => s                 -- ^ Original input stream
   -> ParseError (Token s) e -- ^ Parse error to render
-  -> Pos               -- ^ Length of error interval -- * added
+  -> Pos               -- ^ Length of error interval [added]
   -> String            -- ^ Result of rendering
 customParseErrorPretty' = customParseErrorPretty_ defaultTabWidth
 
@@ -162,7 +162,7 @@ customParseErrorPretty_
   => Pos               -- ^ Tab width
   -> s                 -- ^ Original input stream
   -> ParseError (Token s) e -- ^ Parse error to render
-  -> Pos               -- ^ Length of error interval -- * added
+  -> Pos               -- ^ Length of error interval [added]
   -> String            -- ^ Result of rendering
 customParseErrorPretty_ w s e l =
   sourcePosStackPretty (errorPos e) <> ":\n" <>
@@ -171,7 +171,7 @@ customParseErrorPretty_ w s e l =
     padding <> "| " <> rpadding <> highlight <> "\n" <>
     parseErrorTextPretty e
   where
-    epos       = NE.head (errorPos e) -- * changed from NE.last to NE.head
+    epos       = NE.head (errorPos e) -- [changed from NE.last to NE.head]
     lineNumber = (show . unPos . sourceLine) epos
     padding    = replicate (length lineNumber + 1) ' '
     rpadding   = replicate (unPos (sourceColumn epos) - 1) ' '
