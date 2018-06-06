@@ -352,38 +352,45 @@ datep = do
 
 datep' :: Maybe Year -> TextParser m Day
 datep' mYear = do
+  startPos <- getPosition
   d1 <- decimal <?> "year or month"
   sep <- satisfy isDateSepChar <?> "date separator"
   d2 <- decimal <?> "month or day"
-  fullDate d1 sep d2 <|> partialDate mYear d1 sep d2
+  fullDate startPos d1 sep d2 <|> partialDate startPos mYear d1 sep d2
   <?> "full or partial date"
 
   where
 
-  fullDate :: Integer -> Char -> Int -> TextParser m Day
-  fullDate year sep1 month = do
+  fullDate :: SourcePos -> Integer -> Char -> Int -> TextParser m Day
+  fullDate startPos year sep1 month = do
     sep2 <- satisfy isDateSepChar <?> "date separator"
     day <- decimal <?> "day"
+    endPos <- getPosition
     let dateStr = show year ++ [sep1] ++ show month ++ [sep2] ++ show day
 
-    when (sep1 /= sep2) $ fail $
+    when (sep1 /= sep2) $ parseErrorAtRegion startPos endPos $
       "invalid date (mixing date separators is not allowed): " ++ dateStr
 
     case fromGregorianValid year month day of
-      Nothing -> fail $ "well-formed but invalid date: " ++ dateStr
+      Nothing -> parseErrorAtRegion startPos endPos $
+                   "well-formed but invalid date: " ++ dateStr
       Just date -> pure $! date
 
-  partialDate :: Maybe Year -> Integer -> Char -> Int -> TextParser m Day
-  partialDate mYear month sep day = case mYear of
-    Just year ->
-      case fromGregorianValid year (fromIntegral month) day of
-        Nothing -> fail $ "well-formed but invalid date: " ++ dateStr
-        Just date -> pure $! date
-      where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
+  partialDate
+    :: SourcePos -> Maybe Year -> Integer -> Char -> Int -> TextParser m Day
+  partialDate startPos mYear month sep day = do
+    endPos <- getPosition
+    case mYear of
+      Just year ->
+        case fromGregorianValid year (fromIntegral month) day of
+          Nothing -> parseErrorAtRegion startPos endPos $
+                      "well-formed but invalid date: " ++ dateStr
+          Just date -> pure $! date
+        where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
 
-    Nothing -> fail $
-      "partial date "++dateStr++" found, but the current year is unknown"
-      where dateStr = show month ++ [sep] ++ show day
+      Nothing -> parseErrorAtRegion startPos endPos $
+        "partial date "++dateStr++" found, but the current year is unknown"
+        where dateStr = show month ++ [sep] ++ show day
 
 {-# INLINABLE datep' #-}
 
