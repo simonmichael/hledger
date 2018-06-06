@@ -334,7 +334,7 @@ codep = option "" $ try $ do
   skipSome spacenonewline
   between (char '(') (char ')') $ takeWhileP Nothing (/= ')')
 
-descriptionp :: JournalParser m Text
+descriptionp :: TextParser m Text
 descriptionp = takeWhileP Nothing (not . semicolonOrNewline)
   where semicolonOrNewline c = c == ';' || c == '\n'
 
@@ -457,7 +457,7 @@ accountnamep = do
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
 -- "missing" marker amount.
-spaceandamountormissingp :: Monad m => JournalParser m MixedAmount
+spaceandamountormissingp :: JournalParser m MixedAmount
 spaceandamountormissingp =
   option missingmixedamt $ try $ do
     lift $ skipSome spacenonewline
@@ -480,13 +480,13 @@ test_spaceandamountormissingp = do
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
-amountp :: Monad m => JournalParser m Amount
+amountp :: JournalParser m Amount
 amountp = do
   amount <- amountwithoutpricep
   price <- priceamountp
   pure $ amount { aprice = price }
 
-amountwithoutpricep :: Monad m => JournalParser m Amount
+amountwithoutpricep :: JournalParser m Amount
 amountwithoutpricep =
   try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
 
@@ -533,7 +533,7 @@ skipMany' p = go False
         then go True
         else pure isNull
 
-leftsymbolamountp :: Monad m => JournalParser m Amount
+leftsymbolamountp :: JournalParser m Amount
 leftsymbolamountp = do
   sign <- lift signp
   m <- lift multiplierp
@@ -545,7 +545,7 @@ leftsymbolamountp = do
   return $ Amount c (sign q) NoPrice s m
   <?> "left-symbol amount"
 
-rightsymbolamountp :: Monad m => JournalParser m Amount
+rightsymbolamountp :: JournalParser m Amount
 rightsymbolamountp = do
   m <- lift multiplierp
   sign <- lift signp
@@ -564,7 +564,7 @@ rightsymbolamountp = do
   return $ Amount c (sign q) NoPrice s m
   <?> "right-symbol amount"
 
-nosymbolamountp :: Monad m => JournalParser m Amount
+nosymbolamountp :: JournalParser m Amount
 nosymbolamountp = do
   m <- lift multiplierp
   suggestedStyle <- getDefaultAmountStyle
@@ -589,7 +589,7 @@ quotedcommoditysymbolp =
 simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
-priceamountp :: Monad m => JournalParser m Price
+priceamountp :: JournalParser m Price
 priceamountp = option NoPrice $ try $ do
   lift (skipMany spacenonewline)
   char '@'
@@ -600,7 +600,7 @@ priceamountp = option NoPrice $ try $ do
 
   pure $ priceConstructor priceAmount
 
-partialbalanceassertionp :: Monad m => JournalParser m BalanceAssertion
+partialbalanceassertionp :: JournalParser m BalanceAssertion
 partialbalanceassertionp = optional $ try $ do
   lift (skipMany spacenonewline)
   sourcepos <- genericSourcePos <$> lift getPosition
@@ -620,7 +620,7 @@ partialbalanceassertionp = optional $ try $ do
 --          <|> return Nothing
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
-fixedlotpricep :: Monad m => JournalParser m (Maybe Amount)
+fixedlotpricep :: JournalParser m (Maybe Amount)
 fixedlotpricep = optional $ try $ do
   lift (skipMany spacenonewline)
   char '{'

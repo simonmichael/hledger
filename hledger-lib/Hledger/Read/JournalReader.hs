@@ -261,14 +261,14 @@ indentedlinep = lift (skipSome spacenonewline) >> (rstrip <$> lift restofline)
 -- >>> Right _ <- rejp commoditydirectivep "commodity $\n  format $1.00"
 -- >>> Right _ <- rejp commoditydirectivep "commodity $\n\n" -- a commodity with no format
 -- >>> Right _ <- rejp commoditydirectivep "commodity $1.00\n  format $1.00" -- both, what happens ?
-commoditydirectivep :: Monad m => JournalParser m ()
+commoditydirectivep :: JournalParser m ()
 commoditydirectivep = try commoditydirectiveonelinep <|> commoditydirectivemultilinep
 
 -- | Parse a one-line commodity directive.
 --
 -- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00"
 -- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
-commoditydirectiveonelinep :: Monad m => JournalParser m ()
+commoditydirectiveonelinep :: JournalParser m ()
 commoditydirectiveonelinep = do
   string "commodity"
   lift (skipSome spacenonewline)
@@ -287,7 +287,7 @@ pleaseincludedecimalpoint = "to avoid ambiguity, please include a decimal point 
 -- | Parse a multi-line commodity directive, containing 0 or more format subdirectives.
 --
 -- >>> Right _ <- rejp commoditydirectivemultilinep "commodity $ ; blah \n  format $1.00 ; blah"
-commoditydirectivemultilinep :: Monad m => JournalParser m ()
+commoditydirectivemultilinep :: JournalParser m ()
 commoditydirectivemultilinep = do
   string "commodity"
   lift (skipSome spacenonewline)
@@ -301,7 +301,7 @@ commoditydirectivemultilinep = do
 
 -- | Parse a format (sub)directive, throwing a parse error if its
 -- symbol does not match the one given.
-formatdirectivep :: Monad m => CommoditySymbol -> JournalParser m AmountStyle
+formatdirectivep :: CommoditySymbol -> JournalParser m AmountStyle
 formatdirectivep expectedsym = do
   string "format"
   lift (skipSome spacenonewline)
@@ -398,7 +398,7 @@ defaultyeardirectivep = do
   failIfInvalidYear y
   setYear y'
 
-defaultcommoditydirectivep :: Monad m => JournalParser m ()
+defaultcommoditydirectivep :: JournalParser m ()
 defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
   lift (skipSome spacenonewline)
@@ -409,7 +409,7 @@ defaultcommoditydirectivep = do
   then parseErrorAt pos pleaseincludedecimalpoint
   else setDefaultCommodityAndStyle (acommodity, astyle)
 
-marketpricedirectivep :: Monad m => JournalParser m MarketPrice
+marketpricedirectivep :: JournalParser m MarketPrice
 marketpricedirectivep = do
   char 'P' <?> "market price"
   lift (skipMany spacenonewline)
@@ -429,7 +429,7 @@ ignoredpricecommoditydirectivep = do
   lift restofline
   return ()
 
-commodityconversiondirectivep :: Monad m => JournalParser m ()
+commodityconversiondirectivep :: JournalParser m ()
 commodityconversiondirectivep = do
   char 'C' <?> "commodity conversion"
   lift (skipSome spacenonewline)
@@ -443,7 +443,7 @@ commodityconversiondirectivep = do
 
 --- ** transactions
 
-modifiertransactionp :: MonadIO m => ErroringJournalParser m ModifierTransaction
+modifiertransactionp :: JournalParser m ModifierTransaction
 modifiertransactionp = do
   char '=' <?> "modifier transaction"
   lift (skipMany spacenonewline)
@@ -452,17 +452,17 @@ modifiertransactionp = do
   return $ ModifierTransaction valueexpr postings
 
 -- | Parse a periodic transaction
-periodictransactionp :: MonadIO m => ErroringJournalParser m PeriodicTransaction
+periodictransactionp :: JournalParser m PeriodicTransaction
 periodictransactionp = do
   char '~' <?> "periodic transaction"
   lift (skipMany spacenonewline)
-  periodexpr <- T.strip <$> descriptionp
+  periodexpr <- lift $ T.strip <$> descriptionp
   _ <- lift followingcommentp
   postings <- postingsp Nothing
   return $ PeriodicTransaction periodexpr postings
 
 -- | Parse a (possibly unbalanced) transaction.
-transactionp :: MonadIO m => ErroringJournalParser m Transaction
+transactionp :: JournalParser m Transaction
 transactionp = do
   -- ptrace "transactionp"
   pos <- getPosition
@@ -471,7 +471,7 @@ transactionp = do
   lookAhead (lift spacenonewline <|> newline) <?> "whitespace or newline"
   status <- lift statusp <?> "cleared status"
   code <- lift codep <?> "transaction code"
-  description <- T.strip <$> descriptionp
+  description <- lift $ T.strip <$> descriptionp
   (comment, tags) <- lift transactioncommentp
   let year = first3 $ toGregorian date
   postings <- postingsp (Just year)
@@ -576,17 +576,17 @@ test_transactionp = do
 
 -- Parse the following whitespace-beginning lines as postings, posting
 -- tags, and/or comments (inferring year, if needed, from the given date).
-postingsp :: MonadIO m => Maybe Year -> ErroringJournalParser m [Posting]
+postingsp :: Maybe Year -> JournalParser m [Posting]
 postingsp mTransactionYear = many (postingp mTransactionYear) <?> "postings"
 
--- linebeginningwithspaces :: Monad m => JournalParser m String
+-- linebeginningwithspaces :: JournalParser m String
 -- linebeginningwithspaces = do
 --   sp <- lift (skipSome spacenonewline)
 --   c <- nonspace
 --   cs <- lift restofline
 --   return $ sp ++ (c:cs) ++ "\n"
 
-postingp :: MonadIO m => Maybe Year -> ErroringJournalParser m Posting
+postingp :: Maybe Year -> JournalParser m Posting
 postingp mTransactionYear = do
   -- pdbg 0 "postingp"
   (status, account) <- try $ do
