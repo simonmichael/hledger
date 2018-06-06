@@ -29,8 +29,6 @@ module Hledger.Read.Common (
   rtp,
   runJournalParser,
   rjp,
-  runErroringJournalParser,
-  rejp,
   genericSourcePos,
   journalSourcePos,
   generateAutomaticPostings,
@@ -95,7 +93,7 @@ where
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (readFile)
 import "base-compat-batteries" Control.Monad.Compat
-import Control.Monad.Except (ExceptT(..), runExceptT, throwError) --, catchError)
+import Control.Monad.Except (ExceptT(..), throwError)
 import Control.Monad.State.Strict
 import Data.Bifunctor (bimap, second)
 import Data.Char
@@ -191,12 +189,6 @@ rtp = runTextParser
 runJournalParser, rjp :: Monad m => JournalParser m a -> Text -> m (Either (ParseError Char CustomErr) a)
 runJournalParser p t = runParserT (evalStateT p mempty) "" t
 rjp = runJournalParser
-
--- | Run an error-raising journal parser with a null journal-parsing state.
-runErroringJournalParser, rejp :: Monad m => ErroringJournalParser m a -> Text -> m (Either String a)
-runErroringJournalParser p t = runExceptT $
-  runJournalParser p t >>= either (throwError . parseErrorPretty) return
-rejp = runErroringJournalParser
 
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p) (fromIntegral . unPos $ sourceColumn p)

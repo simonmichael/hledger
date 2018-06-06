@@ -42,8 +42,6 @@ module Hledger.Read.JournalReader (
   parseAndFinaliseJournal,
   runJournalParser,
   rjp,
-  runErroringJournalParser,
-  rejp,
 
   -- * Parsers used elsewhere
   getParentAccount,
@@ -136,7 +134,7 @@ aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++qu
 -- | A journal parser. Accumulates and returns a "ParsedJournal",
 -- which should be finalised/validated before use.
 --
--- >>> rejp (journalp <* eof) "2015/1/1\n a  0\n"
+-- >>> rjp (journalp <* eof) "2015/1/1\n a  0\n"
 -- Right Journal  with 1 transactions, 1 accounts
 --
 journalp :: MonadIO m => JournalParser m ParsedJournal
@@ -262,17 +260,17 @@ indentedlinep = lift (skipSome spacenonewline) >> (rstrip <$> lift restofline)
 
 -- | Parse a one-line or multi-line commodity directive.
 --
--- >>> Right _ <- rejp commoditydirectivep "commodity $1.00"
--- >>> Right _ <- rejp commoditydirectivep "commodity $\n  format $1.00"
--- >>> Right _ <- rejp commoditydirectivep "commodity $\n\n" -- a commodity with no format
--- >>> Right _ <- rejp commoditydirectivep "commodity $1.00\n  format $1.00" -- both, what happens ?
+-- >>> Right _ <- rjp commoditydirectivep "commodity $1.00"
+-- >>> Right _ <- rjp commoditydirectivep "commodity $\n  format $1.00"
+-- >>> Right _ <- rjp commoditydirectivep "commodity $\n\n" -- a commodity with no format
+-- >>> Right _ <- rjp commoditydirectivep "commodity $1.00\n  format $1.00" -- both, what happens ?
 commoditydirectivep :: JournalParser m ()
 commoditydirectivep = try commoditydirectiveonelinep <|> commoditydirectivemultilinep
 
 -- | Parse a one-line commodity directive.
 --
--- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00"
--- >>> Right _ <- rejp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
+-- >>> Right _ <- rjp commoditydirectiveonelinep "commodity $1.00"
+-- >>> Right _ <- rjp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
 commoditydirectiveonelinep :: JournalParser m ()
 commoditydirectiveonelinep = do
   string "commodity"
@@ -291,7 +289,7 @@ pleaseincludedecimalpoint = "to avoid ambiguity, please include a decimal point 
 
 -- | Parse a multi-line commodity directive, containing 0 or more format subdirectives.
 --
--- >>> Right _ <- rejp commoditydirectivemultilinep "commodity $ ; blah \n  format $1.00 ; blah"
+-- >>> Right _ <- rjp commoditydirectivemultilinep "commodity $ ; blah \n  format $1.00 ; blah"
 commoditydirectivemultilinep :: JournalParser m ()
 commoditydirectivemultilinep = do
   string "commodity"
