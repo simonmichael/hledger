@@ -75,7 +75,7 @@ import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (readFile)
 import qualified Control.Exception as C
 import Control.Monad
-import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
+import Control.Monad.Except (ExceptT(..))
 import Control.Monad.State.Strict
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
@@ -190,36 +190,40 @@ includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
   string "include"
   lift (skipSome spacenonewline)
-  filename  <- lift restofline
-  parentpos <- getPosition
-  parentj   <- get
+  filename <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
+
+  -- save parent state
+  parentParserState <- getParserState
+  parentj <- get
+
   let childj = newJournalWithParseStateFrom parentj
-  (ej :: Either String ParsedJournal) <-
-    liftIO $ runExceptT $ do
-      let curdir = takeDirectory (sourceName parentpos)
-      filepath <- expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
-      txt      <- readFilePortably filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
-      (ej1::Either (ParseError Char CustomErr) ParsedJournal) <-
-        runParserT
-           (evalStateT
-              (choiceInState
-                 [journalp
-                 ,timeclockfilep
-                 ,timedotfilep
-                 -- can't include a csv file yet, that reader is special
-                 ])
-              childj)
-           filepath txt
-      either
-        (throwError
-          . ((show parentpos ++ " in included file " ++ show filename ++ ":\n") ++)
-          . parseErrorPretty)
-        (return . journalAddFile (filepath, txt))
-        ej1
-  case ej of
-    Left e       -> throwError e
-    Right childj -> modify' (\parentj -> childj <> parentj)
-    -- discard child's parse info, prepend its (reversed) list data, combine other fields
+  parentpos <- getPosition
+
+  -- read child input
+  let curdir = takeDirectory (sourceName parentpos)
+  filepath <- lift $ expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
+  childInput <- lift $ readFilePortably filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
+
+  -- set child state
+  setInput childInput
+  pushPosition $ initialPos filepath
+  put childj
+
+  -- parse include file
+  let parsers = [ journalp
+                , timeclockfilep
+                , timedotfilep
+                ] -- can't include a csv file yet, that reader is special
+  updatedChildj <- journalAddFile (filepath, childInput) <$>
+                   region (withSource childInput) (choiceInState parsers)
+
+  -- restore parent state, prepending the child's parse info
+  setParserState parentParserState
+  put $ updatedChildj <> parentj
+  -- discard child's parse info, prepend its (reversed) list data, combine other fields
+
+  void newline
+
 
 newJournalWithParseStateFrom :: Journal -> Journal
 newJournalWithParseStateFrom j = mempty{
@@ -234,11 +238,12 @@ newJournalWithParseStateFrom j = mempty{
 
 -- | Lift an IO action into the exception monad, rethrowing any IO
 -- error with the given message prepended.
-orRethrowIOError :: IO a -> String -> ExceptT String IO a
-orRethrowIOError io msg =
-  ExceptT $
-    (Right <$> io)
-    `C.catch` \(e::C.IOException) -> return $ Left $ printf "%s:\n%s" msg (show e)
+orRethrowIOError :: MonadIO m => IO a -> String -> TextParser m a
+orRethrowIOError io msg = do
+  eResult <- liftIO $ (Right <$> io) `C.catch` \(e::C.IOException) -> pure $ Left $ printf "%s:\n%s" msg (show e)
+  case eResult of
+    Right res -> pure res
+    Left errMsg -> fail errMsg
 
 accountdirectivep :: JournalParser m ()
 accountdirectivep = do

@@ -83,7 +83,7 @@ reader = Reader
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse = parseAndFinaliseJournal timeclockfilep
 
-timeclockfilep :: ErroringJournalParser IO ParsedJournal
+timeclockfilep :: MonadIO m => ErroringJournalParser m ParsedJournal
 timeclockfilep = do many timeclockitemp
                     eof
                     j@Journal{jparsetimeclockentries=es} <- get
