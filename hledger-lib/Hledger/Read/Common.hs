@@ -217,12 +217,12 @@ generateAutomaticPostings j = j { jtxns = map modifier $ jtxns j }
 
 -- | Given a megaparsec ParsedJournal parser, input options, file
 -- path and file content: parse and post-process a Journal, or give an error.
-parseAndFinaliseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
+parseAndFinaliseJournal :: JournalParser IO ParsedJournal -> InputOpts
                            -> FilePath -> Text -> ExceptT String IO Journal
 parseAndFinaliseJournal parser iopts f txt = do
   t <- liftIO getClockTime
   y <- liftIO getCurrentYear
-  ep <- runParserT (evalStateT parser nulljournal {jparsedefaultyear=Just y}) f txt
+  ep <- liftIO $ runParserT (evalStateT parser nulljournal {jparsedefaultyear=Just y}) f txt
   case ep of
     Right pj -> 
       let pj' = if auto_ iopts then generateAutomaticPostings pj else pj in

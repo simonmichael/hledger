@@ -139,7 +139,7 @@ aliasesFromOpts = map (\a -> fromparse $ runParser accountaliasp ("--alias "++qu
 -- >>> rejp (journalp <* eof) "2015/1/1\n a  0\n"
 -- Right Journal  with 1 transactions, 1 accounts
 --
-journalp :: MonadIO m => ErroringJournalParser m ParsedJournal
+journalp :: MonadIO m => JournalParser m ParsedJournal
 journalp = do
   many addJournalItemP
   eof
@@ -147,7 +147,7 @@ journalp = do
 
 -- | A side-effecting parser; parses any kind of journal item
 -- and updates the parse state accordingly.
-addJournalItemP :: MonadIO m => ErroringJournalParser m ()
+addJournalItemP :: MonadIO m => JournalParser m ()
 addJournalItemP =
   -- all journal line types can be distinguished by the first
   -- character, can use choice without backtracking
@@ -166,7 +166,7 @@ addJournalItemP =
 -- | Parse any journal directive and update the parse state accordingly.
 -- Cf http://hledger.org/manual.html#directives,
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
-directivep :: MonadIO m => ErroringJournalParser m ()
+directivep :: MonadIO m => JournalParser m ()
 directivep = (do
   optional $ char '!'
   choice [
@@ -186,7 +186,7 @@ directivep = (do
    ]
   ) <?> "directive"
 
-includedirectivep :: MonadIO m => ErroringJournalParser m ()
+includedirectivep :: MonadIO m => JournalParser m ()
 includedirectivep = do
   string "include"
   lift (skipSome spacenonewline)
