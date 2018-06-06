@@ -119,6 +119,7 @@ import Text.Megaparsec.Char.Lexer (decimal)
 
 import Hledger.Data
 import Hledger.Utils
+import Hledger.Utils.ParseErrors
 import qualified Hledger.Query as Q (Query(Any))
 
 -- | A hledger journal reader is a triple of storage format name, a
@@ -229,7 +230,7 @@ parseAndFinaliseJournal parser iopts f txt = do
       case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
                         Right j -> return j
                         Left e  -> throwError e
-    Left e   -> throwError $ parseErrorPretty e
+    Left e   -> throwError $ customParseErrorPretty txt e
 
 parseAndFinaliseJournal' :: JournalParser Identity ParsedJournal -> InputOpts 
                             -> FilePath -> Text -> ExceptT String IO Journal
