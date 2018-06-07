@@ -1,6 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
@@ -17,6 +18,9 @@ module Hledger.Utils.ParseErrors (
   customParseErrorPretty
 )
 where
+
+import Prelude ()
+import "base-compat-batteries" Prelude.Compat hiding (readFile)
 
 import Data.Foldable (asum, toList)
 import qualified Data.List.NonEmpty as NE
