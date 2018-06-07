@@ -8,4 +8,4 @@ main = do
   fs1 <- glob "Hledger/**/*.hs"
   fs2 <- glob "Text/**/*.hs"
   --fs3 <- glob "other/ledger-parse/**/*.hs"
-  doctest $ filter (not . isInfixOf "/.") $ ["Hledger.hs"] ++ fs1 ++ fs2
+  doctest $ filter (not . isInfixOf "/.") $ ["--fast", "Hledger.hs"] ++ fs1 ++ fs2
