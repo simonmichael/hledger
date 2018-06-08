@@ -566,7 +566,10 @@ ghcid-web: $(call def-help,ghcid-web, start ghcid autobuilder on hledger-lib + h
 ghcid-api: $(call def-help,ghcid-api, start ghcid autobuilder on hledger-lib + hledger + hledger-api)
 	ghcid -c 'make ghci-api'
 
-ghcid-doctest: $(call def-help,ghcid-lib-doctest, start ghcid autobuilder on hledger-lib doctests)
+ghcid-test: $(call def-help,ghcid-test, start ghcid autobuilding and running the test command)
+	ghcid -c 'make ghci' --test ':main test'
+
+ghcid-doctest: $(call def-help,ghcid-doctest, start ghcid autobuilding and running hledger-lib doctests)
 	ghcid -c 'cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests' --test ':main' --reload hledger-lib
 
 ghcid-shake: $(call def-help,ghcid-shake, start ghcid autobuilder on Shake.hs)
