@@ -24,13 +24,13 @@ import Hledger.Web.WebOptions
 
 -- | Standard hledger-web page layout.
 #if MIN_VERSION_yesod(1,6,0)
-hledgerLayout :: ViewData -> String -> HtmlUrl AppRoute -> HandlerFor App Html
+hledgerLayout :: ViewData -> Text -> HtmlUrl AppRoute -> HandlerFor App Html
 #else
-hledgerLayout :: ViewData -> String -> HtmlUrl AppRoute -> HandlerT App IO Html
+hledgerLayout :: ViewData -> Text -> HtmlUrl AppRoute -> HandlerT App IO Html
 #endif
 hledgerLayout vd title content = do
   defaultLayout $ do
-      setTitle $ toHtml $ title ++ " - hledger-web"
+      setTitle $ toHtml $ title <> " - hledger-web"
       toWidget [hamlet|
          ^{topbar vd}
          ^{sidebar vd}
@@ -39,8 +39,8 @@ hledgerLayout vd title content = do
           ^{content}
       |]
   where
-    showmd = if showsidebar vd then "col-md-8" else "col-md-12" :: String
-    showsm = if showsidebar vd then "col-sm-8" else "col-sm-12" :: String
+    showmd = if showsidebar vd then "col-md-8" else "col-md-12" :: Text
+    showsm = if showsidebar vd then "col-sm-8" else "col-sm-12" :: Text
 
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
@@ -55,8 +55,8 @@ topbar VD{..} = [hamlet|
 |]
   where
     title = takeFileName $ journalFilePath j
-    showmd = if showsidebar then "col-md-4" else "col-any-0" :: String
-    showsm = if showsidebar then "col-sm-4" else "" :: String
+    showmd = if showsidebar then "col-md-4" else "col-any-0" :: Text
+    showsm = if showsidebar then "col-sm-4" else "" :: Text
 
 -- | The sidebar used on most views.
 sidebar :: ViewData -> HtmlUrl AppRoute
@@ -71,13 +71,13 @@ sidebar vd@VD{..} =
    ^{accounts}
 |]
  where
-  journalcurrent = if here == JournalR then "inacct" else "" :: String
+  journalcurrent = if here == JournalR then "inacct" else "" :: Text
   ropts = reportopts_ $ cliopts_ opts
   -- flip the default for items with zero amounts, show them by default
   ropts' = ropts{empty_=not $ empty_ ropts}
   accounts = balanceReportAsHtml opts vd $ balanceReport ropts' am j
-  showmd = if showsidebar then "col-md-4" else "col-any-0" :: String
-  showsm = if showsidebar then "col-sm-4" else "" :: String
+  showmd = if showsidebar then "col-md-4" else "col-any-0" :: Text
+  showsm = if showsidebar then "col-sm-4" else "" :: Text
 
 -- -- | Navigation link, preserving parameters and possibly highlighted.
 -- navlink :: ViewData -> String -> AppRoute -> String -> HtmlUrl AppRoute
@@ -114,7 +114,7 @@ searchform VD{..} = [hamlet|
       <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal" title="Show search and general help">?
 |]
  where
-  filtering = not $ null q
+  filtering = not $ T.null q
 
 -- -- | Edit journal form.
 -- editform :: ViewData -> HtmlUrl AppRoute
@@ -163,11 +163,11 @@ searchform VD{..} = [hamlet|
 -- |]
 
 -- | Link to a topic in the manual.
-helplink :: String -> String -> HtmlUrl AppRoute
+helplink :: Text -> Text -> HtmlUrl AppRoute
 helplink topic label = [hamlet|
 <a href=#{u} target=hledgerhelp>#{label}
 |]
-    where u = manualurl ++ if null topic then "" else '#':topic
+    where u = manualurl <> if T.null topic then "" else T.cons '#' topic
 
 nulltemplate :: HtmlUrl AppRoute
 nulltemplate = [hamlet||]
@@ -206,23 +206,20 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
      where
        hassubs = not $ maybe False (null.asubs) $ ledgerAccount l acct
        inacctclass = case inacctmatcher of
-                       Just m' -> if m' `matchesAccount` acct then "inacct" else ""
-                       Nothing -> "" :: String
+         Just m' -> if m' `matchesAccount` acct then "inacct" else ""
+         Nothing -> "" :: Text
        indent = preEscapedString $ concat $ replicate (2 * (1+aindent)) "&nbsp;"
-       acctquery = (RegisterR, [("q", T.pack $ accountQuery acct)])
-       acctonlyquery = (RegisterR, [("q", T.pack $ accountOnlyQuery acct)])
+       acctquery = (RegisterR, [("q", accountQuery acct)])
+       acctonlyquery = (RegisterR, [("q", accountOnlyQuery acct)])
 
-accountQuery :: AccountName -> String
-accountQuery a = "inacct:" ++ T.unpack (quoteIfSpaced a) -- (accountNameToAccountRegex a)
+accountQuery :: AccountName -> Text
+accountQuery = ("inacct:" <>) .  quoteIfSpaced
 
-accountOnlyQuery :: AccountName -> String
-accountOnlyQuery a = "inacctonly:" ++ T.unpack (quoteIfSpaced a ) -- (accountNameToAccountRegex a)
+accountOnlyQuery :: AccountName -> Text
+accountOnlyQuery = ("inacctonly:" <>) . quoteIfSpaced
 
 accountUrl :: AppRoute -> AccountName -> (AppRoute, [(Text, Text)])
-accountUrl r a = (r, [("q", T.pack $ accountQuery a)])
-
--- stringIfLongerThan :: Int -> String -> String
--- stringIfLongerThan n s = if length s > n then s else ""
+accountUrl r a = (r, [("q", accountQuery a)])
 
 numberTransactionsReportItems :: [TransactionsReportItem] -> [(Int,Bool,Bool,Bool,TransactionsReportItem)]
 numberTransactionsReportItems [] = []
@@ -240,7 +237,8 @@ numberTransactionsReportItems items = number 0 nulldate items
 
 mixedAmountAsHtml :: MixedAmount -> Html
 mixedAmountAsHtml b = preEscapedString $ unlines $ map addclass $ lines $ showMixedAmountWithoutPrice b
-    where addclass = printf "<span class=\"%s\">%s</span><br/>" (c :: String)
-          c = case isNegativeMixedAmount b of Just True -> "negative amount"
-                                              _         -> "positive amount"
+    where addclass = printf "<span class=\"%s\">%s</span><br/>" (c :: Text)
+          c = case isNegativeMixedAmount b of
+            Just True -> "negative amount"
+            _         -> "positive amount"
 

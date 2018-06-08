@@ -8,7 +8,6 @@ import Data.IORef (IORef, readIORef, writeIORef)
 import Data.List (isPrefixOf, sort, nub)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit (Manager)
 import Text.Blaze (Markup)
@@ -149,10 +148,10 @@ data ViewData = VD {
     ,msg          :: Maybe Html -- ^ the current UI message if any, possibly from the current request
     ,today        :: Day        -- ^ today's date (for queries containing relative dates)
     ,j            :: Journal    -- ^ the up-to-date parsed unfiltered journal
-    ,q            :: String     -- ^ the current q parameter, the main query expression
-    ,m            :: Query    -- ^ a query parsed from the q parameter
+    ,q            :: Text       -- ^ the current q parameter, the main query expression
+    ,m            :: Query      -- ^ a query parsed from the q parameter
     ,qopts        :: [QueryOpt] -- ^ query options parsed from the q parameter
-    ,am           :: Query    -- ^ a query parsed from the accounts sidebar query expr ("a" parameter)
+    ,am           :: Query      -- ^ a query parsed from the accounts sidebar query expr ("a" parameter)
     ,aopts        :: [QueryOpt] -- ^ query options parsed from the accounts sidebar query expr
     ,showpostings :: Bool       -- ^ current p parameter, 1 or 0 shows/hides all postings where applicable
     ,showsidebar  :: Bool       -- ^ current showsidebar cookie value
@@ -165,10 +164,10 @@ nullviewdata :: ViewData
 nullviewdata = viewdataWithDateAndParams nulldate "" "" ""
 
 -- | Make a ViewData using the given date and request parameters, and defaults elsewhere.
-viewdataWithDateAndParams :: Day -> String -> String -> String -> ViewData
+viewdataWithDateAndParams :: Day -> Text -> Text -> Text -> ViewData
 viewdataWithDateAndParams d q a p =
-    let (querymatcher,queryopts) = parseQuery d (T.pack q)
-        (acctsmatcher,acctsopts) = parseQuery d (T.pack a)
+    let (querymatcher,queryopts) = parseQuery d q
+        (acctsmatcher,acctsopts) = parseQuery d a
     in VD {
            opts         = defwebopts
           ,j            = nulljournal
@@ -235,8 +234,8 @@ getViewData = do
                                    return (j, Just e)
 
           -- | Get the named request parameter, or the empty string if not present.
-          getParameterOrNull :: String -> Handler String
-          getParameterOrNull p = T.unpack `fmap` fromMaybe "" <$> lookupGetParam (T.pack p)
+          getParameterOrNull :: Text -> Handler Text
+          getParameterOrNull = fmap (fromMaybe "") . lookupGetParam
 
 -- | Get the message that was set by the last request, in a
 -- referentially transparent manner (allowing multiple reads).

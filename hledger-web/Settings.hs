@@ -7,6 +7,7 @@
 module Settings where
 
 import Data.Default (def)
+import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Data.Yaml
 import Language.Haskell.TH.Syntax (Q, Exp)
@@ -18,9 +19,11 @@ import Yesod.Default.Util
 import Settings.Development
 
 
-hledgerorgurl, manualurl :: String
-hledgerorgurl     = "http://hledger.org"
-manualurl         = hledgerorgurl++"/manual"
+hledgerorgurl :: Text
+hledgerorgurl = "http://hledger.org"
+
+manualurl :: Text
+manualurl = hledgerorgurl <> "/manual"
 
 -- | The default IP address to listen on. May be overridden with --host.
 defhost :: String

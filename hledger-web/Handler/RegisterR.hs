@@ -28,12 +28,11 @@ getRegisterR = do
   -- staticRootUrl <- (staticRoot . settings) <$> getYesod
   let -- injournal = isNothing inacct
       filtering = m /= Any
-      -- title = "Transactions in "++a++s1++s2
-      title = T.unpack a++s1++s2
-               where
-                 (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
-                 s1 = if inclsubs then "" else " (excluding subaccounts)"
-                 s2 = if filtering then ", filtered" else ""
+      title = a <> s1 <> s2
+        where
+          (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
+          s1 = if inclsubs then "" else " (excluding subaccounts)"
+          s2 = if filtering then ", filtered" else ""
       maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
   hledgerLayout vd "register" [hamlet|
        <h2 #contenttitle>#{title}
@@ -89,10 +88,10 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
 |]
 
      where
-       evenodd = if even n then "even" else "odd" :: String
+       evenodd = if even n then "even" else "odd" :: Text
        datetransition | newm = "newmonth"
                       | newd = "newday"
-                      | otherwise = "" :: String
+                      | otherwise = "" :: Text
        (firstposting, date, desc) = (False, show $ tdate tacct, tdescription tacct)
        -- acctquery = (here, [("q", pack $ accountQuery acct)])
        showamt = not split || not (isZeroMixedAmount amt)
@@ -171,9 +170,9 @@ registerChartHtml percommoditytxnreports =
 |]
            -- [#{dayToJsTimestamp $ ltrace "\ndate" $ triDate i}, #{ltrace "balancequantity" $ simpleMixedAmountQuantity $ triCommodityBalance c i}, '#{ltrace "balance" $ show $ triCommodityBalance c i}, '#{ltrace "amount" $ show $ triCommodityAmount c i}''],
  where
-   charttitle = case maybe "" (fst.snd) $ headMay percommoditytxnreports
-           of "" -> ""
-              s  -> s++":"
+   charttitle = case maybe "" (fst.snd) $ headMay percommoditytxnreports of
+     "" -> ""
+     s  -> s <> ":"
    colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
    simpleMixedAmountQuantity = maybe 0 aquantity . headMay . amounts

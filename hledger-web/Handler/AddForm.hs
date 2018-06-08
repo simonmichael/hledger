@@ -8,9 +8,10 @@ module Handler.AddForm where
 import Import
 
 import Control.Monad.State.Strict (evalStateT)
-import Data.List (sort)
 import Data.Either (lefts, rights)
+import Data.List (sort)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Void (Void)
@@ -24,9 +25,9 @@ import Hledger.Cli.Commands.Add (appendToJournalFileOrStdout)
 -- Don't know how to handle the variable posting fields with yesod-form yet.
 data AddForm = AddForm
     { addFormDate         :: Day
-    , addFormDescription  :: Maybe Text -- String
+    , addFormDescription  :: Maybe Text
     -- , addFormPostings     :: [(AccountName, String)]
-    , addFormJournalFile  :: Maybe Text -- FilePath
+    , addFormJournalFile  :: Maybe Text
     }
   deriving Show
 
@@ -46,11 +47,11 @@ postAddForm = do
       validateJournalFile :: Text -> Either FormMessage Text
       validateJournalFile f
         | T.unpack f `elem` journalFilePaths j = Right f
-        | otherwise                          = Left $ MsgInvalidEntry $ T.pack "the selected journal file \"" <> f <> "\"is unknown"
+        | otherwise = Left $ MsgInvalidEntry $ "the selected journal file \"" <> f <> "\"is unknown"
 
       validateDate :: Text -> Handler (Either FormMessage Day)
       validateDate s = return $
-        case fixSmartDateStrEither' today $ T.pack $ strip $ T.unpack s of
+        case fixSmartDateStrEither' today (T.strip s) of
           Right d  -> Right d
           Left _   -> Left $ MsgInvalidEntry $ "could not parse date \"" <> s <> "\":"
 
@@ -60,7 +61,7 @@ postAddForm = do
     <*> iopt (check validateJournalFile textField) "journal"
 
   ok <- case formresult of
-    FormMissing      -> showErrors ["there is no form data"::String] >> return False
+    FormMissing      -> showErrors ["there is no form data" :: Text] >> return False
     FormFailure errs -> showErrors errs >> return False
     FormSuccess dat  -> do
       let AddForm{
@@ -68,7 +69,7 @@ postAddForm = do
             ,addFormDescription=mdesc
             ,addFormJournalFile=mjournalfile
             } = dat
-          desc = maybe "" T.unpack mdesc
+          desc = fromMaybe "" mdesc
           journalfile = maybe (journalFilePath j) T.unpack mjournalfile
 
       -- 2. the fixed fields look good; now process the posting fields adhocly,
@@ -101,7 +102,7 @@ postAddForm = do
                | otherwise = either (\e -> Left [L.head $ lines e]) Right
                               (balanceTransaction Nothing $ nulltransaction {
                                   tdate=date
-                                 ,tdescription=T.pack desc
+                                 ,tdescription=desc
                                  ,tpostings=[nullposting{paccount=acct, pamount=Mixed [amt]} | (acct,amt) <- zip accts amts]
                                  })
       case etxn of
