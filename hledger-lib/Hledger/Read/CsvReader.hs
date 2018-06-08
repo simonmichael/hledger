@@ -187,7 +187,7 @@ parseCsv2 = undefined
 parseCassava :: FilePath -> String -> Either String [Record]
 parseCassava path content =  fmap fromCassavaToCSV $ DCSV.decode DCSV.NoHeader (C.pack content)
 
-fromCassavaToCSV :: (V.Vector (V.Vector C.ByteString)) -> [Record]
+fromCassavaToCSV :: (V.Vector (V.Vector C.ByteString)) -> CSV
 fromCassavaToCSV records = V.toList (V.map toCSVRecord records)
     where toCSVRecord fields = V.toList (V.map (C.unpack) fields)
 >>>>>>> Conversion to Text CSV type
@@ -861,15 +861,15 @@ tests_CsvReader = tests "CsvReader" [
   ,tests "rulesp" [
      test "trailing comments" $
       parseWithState' rules rulesp "skip\n# \n#\n" `is` Right rules{rdirectives = [("skip","")]}
-  
+
     ,test "trailing blank lines" $
       parseWithState' rules rulesp "skip\n\n  \n" `is` (Right rules{rdirectives = [("skip","")]})
-  
+
     ,test "no final newline" $
       parseWithState' rules rulesp "skip" `is` (Right rules{rdirectives=[("skip","")]})
 
     ,test "assignment with empty value" $
-      parseWithState' rules rulesp "account1 \nif foo\n  account2 foo\n" `is` 
+      parseWithState' rules rulesp "account1 \nif foo\n  account2 foo\n" `is`
         (Right rules{rassignments = [("account1","")], rconditionalblocks = [([["foo"]],[("account2","foo")])]})
 
     ]
