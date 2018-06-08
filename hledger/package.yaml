@@ -86,7 +86,6 @@ dependencies:
 - cmdargs >=0.10
 - containers
 - csv
-- cassava
 - data-default >=0.5
 - Decimal
 - directory

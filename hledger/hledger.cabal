@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3be7e8745a826dbfc9d0007b9b37c3962486573614267365e6dafb8f7079ece6
+-- hash: fc9d50bfd8e455c344f6ba60fd05358537cb2f3a6bc968eca7e554364f4cc1fe
 
 name:           hledger
 version:        1.10.99
@@ -118,7 +118,6 @@ library
     , base >=4.8 && <4.12
     , base-compat-batteries >=0.10.1 && <0.11
     , bytestring
-    , cassava
     , cmdargs >=0.10
     , containers
     , csv
@@ -172,7 +171,6 @@ executable hledger
     , base >=4.8 && <4.12
     , base-compat-batteries >=0.10.1 && <0.11
     , bytestring
-    , cassava
     , cmdargs >=0.10
     , containers
     , csv
@@ -228,7 +226,6 @@ test-suite test
     , base >=4.8 && <4.12
     , base-compat-batteries >=0.10.1 && <0.11
     , bytestring
-    , cassava
     , cmdargs >=0.10
     , containers
     , csv
@@ -283,7 +280,6 @@ benchmark bench
     , base >=4.8 && <4.12
     , base-compat-batteries >=0.10.1 && <0.11
     , bytestring
-    , cassava
     , cmdargs >=0.10
     , containers
     , criterion
