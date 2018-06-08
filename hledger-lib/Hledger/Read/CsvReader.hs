@@ -53,8 +53,15 @@ import System.Locale (defaultTimeLocale)
 import Safe
 import System.Directory (doesFileExist)
 import System.FilePath
+<<<<<<< HEAD
 import Text.CSV (parseCSV, CSV)
 import qualified Data.Csv as DSCV
+=======
+import Test.HUnit hiding (State)
+import Text.CSV (parseCSV, CSV, Record, Field)
+import qualified Data.Csv as DCSV
+import qualified Data.Vector as V
+>>>>>>> Conversion to Text CSV type
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 import qualified Text.Parsec as Parsec
@@ -173,8 +180,17 @@ parseCsv path csvdata =
     "-" -> liftM (parseCSV "(stdin)") getContents
     _   -> return $ parseCSV path csvdata
 
+<<<<<<< HEAD
 parseCsv2 :: FilePath -> String -> IO (Either Parsec.ParseError CSV)
 parseCsv2 = undefined
+=======
+parseCassava :: FilePath -> String -> Either String [Record]
+parseCassava path content =  fmap fromCassavaToCSV $ DCSV.decode DCSV.NoHeader (C.pack content)
+
+fromCassavaToCSV :: (V.Vector (V.Vector C.ByteString)) -> [Record]
+fromCassavaToCSV records = V.toList (V.map toCSVRecord records)
+    where toCSVRecord fields = V.toList (V.map (C.unpack) fields)
+>>>>>>> Conversion to Text CSV type
 
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
