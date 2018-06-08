@@ -6,22 +6,17 @@ module Handler.Common where
 
 import Import
 
--- import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar
+import Data.Time.Calendar (Day, toGregorian)
 import System.FilePath (takeFileName)
-#if BLAZE_HTML_0_4
-import Text.Blaze (preEscapedString)
-#else
 import Text.Blaze.Internal (preEscapedString)
-#endif
-import Text.Printf
+import Text.Printf (printf)
 
-import Hledger.Utils
+import Hledger.Cli.CliOptions
 import Hledger.Data
 import Hledger.Query
 import Hledger.Reports
-import Hledger.Cli.CliOptions
+import Hledger.Utils
 import Hledger.Web.WebOptions
 
 -------------------------------------------------------------------------------

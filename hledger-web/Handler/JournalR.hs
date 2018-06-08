@@ -3,18 +3,18 @@
 
 module Handler.JournalR where
 
--- import Data.Text (Text)
-import qualified Data.Text as T
 import Import
+
+import qualified Data.Text as T
 
 import Handler.AddForm
 import Handler.Common
 
+import Hledger.Cli.CliOptions
 import Hledger.Data
 import Hledger.Query
 import Hledger.Reports
 import Hledger.Utils
-import Hledger.Cli.CliOptions
 import Hledger.Web.WebOptions
 
 -- | The formatted journal view, with sidebar.

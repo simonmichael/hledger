@@ -6,16 +6,16 @@
 -- declared in the Foundation.hs file.
 module Settings where
 
-import Prelude
-import Text.Shakespeare.Text (st)
-import Language.Haskell.TH.Syntax
-import Yesod.Default.Config
-import Yesod.Default.Util
+import Data.Default (def)
 import Data.Text (Text)
 import Data.Yaml
-import Settings.Development
-import Data.Default (def)
+import Language.Haskell.TH.Syntax (Q, Exp)
 import Text.Hamlet
+import Text.Shakespeare.Text (st)
+import Yesod.Default.Config
+import Yesod.Default.Util
+
+import Settings.Development
 
 
 hledgerorgurl, manualurl :: String

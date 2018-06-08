@@ -5,11 +5,10 @@ module Handler.RegisterR where
 
 import Import
 
-import Data.List
-import Data.Maybe
--- import Data.Text (Text)
+import Data.List (intersperse)
+import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Text as T
-import Safe
+import Safe (headMay)
 
 import Handler.AddForm
 import Handler.Common

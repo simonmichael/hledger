@@ -4,13 +4,9 @@
 
 module Handler.Utils where
 
-import Prelude
 import Data.Time.Calendar
 import Data.Time.Clock
 import Data.Time.Format
-#if !(MIN_VERSION_time(1,5,0))
-import System.Locale (defaultTimeLocale)
-#endif
 
 numbered :: [a] -> [(Int,a)]
 numbered = zip [1..]

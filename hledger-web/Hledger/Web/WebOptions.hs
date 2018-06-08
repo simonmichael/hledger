@@ -1,13 +1,13 @@
 {-# LANGUAGE CPP #-}
-module Hledger.Web.WebOptions
-where
-import Prelude
-import Data.Default
-import Data.Maybe
-import System.Environment
+module Hledger.Web.WebOptions where
 
-import Hledger.Cli hiding (progname,version,prognameandversion)
-import Settings
+import Data.Default (def)
+import Data.Maybe (fromMaybe)
+import System.Environment (getArgs)
+
+import Settings (defhost, defport, defbaseurl)
+
+import Hledger.Cli hiding (progname, version)
 
 progname, version :: String
 progname = "hledger-web"

@@ -1,53 +1,36 @@
 {-# LANGUAGE CPP, MultiParamTypeClasses, OverloadedStrings, RecordWildCards, QuasiQuotes, TemplateHaskell, TypeFamilies, TypeSynonymInstances, FlexibleInstances #-}
-{-
+-- | Define the web application's foundation, in the usual Yesod style.
+--   See a default Yesod app's comments for more details of each part.
 
-Define the web application's foundation, in the usual Yesod style.
-See a default Yesod app's comments for more details of each part.
-
--}
 module Foundation where
 
-import Prelude
-import Data.IORef
+import Data.IORef (IORef, readIORef, writeIORef)
+import Data.List (isPrefixOf, sort, nub)
+import Data.Maybe (fromMaybe)
+import Data.Text (Text)
+import qualified Data.Text as T
+import Data.Time.Calendar (Day)
+import Network.HTTP.Conduit (Manager)
+import Text.Blaze (Markup)
+import Text.Blaze.Internal (preEscapedString)
+import Text.Blaze.Html.Renderer.String (renderHtml)
+import Text.Hamlet (hamletFile)
+import Text.JSON
 import Yesod
 import Yesod.Static
 import Yesod.Default.Config
-#ifndef DEVELOPMENT
-import Yesod.Default.Util (addStaticContentExternal)
-#endif
-import Network.HTTP.Conduit (Manager)
--- import qualified Settings
+
 import Settings.StaticFiles
 import Settings (staticRoot, widgetFile, Extra (..))
 #ifndef DEVELOPMENT
 import Settings (staticDir)
 import Text.Jasmine (minifym)
+import Yesod.Default.Util (addStaticContentExternal)
 #endif
-import Text.Blaze.Html.Renderer.String (renderHtml)
-import Text.Hamlet (hamletFile)
 
+import Hledger
+import Hledger.Cli
 import Hledger.Web.WebOptions
-import Hledger.Data.Types
--- import Hledger.Web.Settings
--- import Hledger.Web.Settings.StaticFiles
-
--- for addform
-import Data.List
-import Data.Maybe
-import Data.Text as Text (Text,pack,unpack)
-import Data.Time.Calendar
-#if BLAZE_HTML_0_4
-import Text.Blaze (preEscapedString, Markup)
-#else
-import Text.Blaze (Markup)
-import Text.Blaze.Internal (preEscapedString)
-#endif
-import Text.JSON
-import Hledger.Data.Journal
-import Hledger.Query
-import Hledger hiding (is)
-import Hledger.Cli hiding (version)
-
 
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -62,8 +45,6 @@ data App = App
     , appJournal :: IORef Journal
     }
 
--- Set up i18n messages. See the message folder.
-mkMessage "App" "messages" "en"
 
 -- This is where we define all of the routes in our application. For a full
 -- explanation of the syntax, please see:
@@ -100,11 +81,6 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 instance Yesod App where
     approot = ApprootMaster $ appRoot . settings
 
---    -- Store session data on the client in encrypted cookies,
---    -- default session idle timeout is 120 minutes
---    makeSessionBackend _ = fmap Just $ defaultClientSessionBackend
---                             (120 * 60)
---                             ".hledger-web_client_session_key.aes"
     -- don't use session data
     makeSessionBackend _ = return Nothing
 
@@ -118,13 +94,6 @@ instance Yesod App where
         -- default-layout-wrapper is the entire page. Since the final
         -- value passed to hamletToRepHtml cannot be a widget, this allows
         -- you to use normal widget features in default-layout.
-
-    --     pc <- widgetToPageContent $ do
-    --         $(widgetFile "normalize")
-    --         addStylesheet $ StaticR css_bootstrap_css
-    --         $(widgetFile "default-layout")
-    --     hamletToRepHtml $(hamletFile "templates/default-layout-wrapper.hamlet")
-
         pc <- widgetToPageContent $ do
             addStylesheet $ StaticR css_bootstrap_min_css
             addStylesheet $ StaticR css_bootstrap_datepicker_standalone_min_css
@@ -150,13 +119,6 @@ instance Yesod App where
         staticRootUrl <- (staticRoot . settings) <$> getYesod
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
-    -- TODO outdated, still needed ?
-    -- This is done to provide an optimization for serving static files from
-    -- a separate domain. Please see the staticRoot setting in Settings.hs
-    -- urlRenderOverride y (StaticR s) =
-    --     Just $ uncurry (joinPath y (Settings.staticRoot $ settings y)) $ renderRoute s
-    urlParamRenderOverride _ _ _ = Nothing
-
 #ifndef DEVELOPMENT
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -164,9 +126,6 @@ instance Yesod App where
     -- users receiving stale content.
     addStaticContent = addStaticContentExternal minifym base64md5 Settings.staticDir (StaticR . flip StaticRoute [])
 #endif
-
-    -- Place Javascript at bottom of the body tag so the rest of the page loads first
-    jsLoader _ = BottomOfBody
 
 -- This instance is required to use forms. You can modify renderMessage to
 -- achieve customized and internationalized form validation messages.
@@ -176,13 +135,6 @@ instance RenderMessage App FormMessage where
 -- | Get the 'Extra' value, used to hold data from the settings.yml file.
 getExtra :: Handler Extra
 getExtra = fmap (appExtra . settings) getYesod
-
--- Note: previous versions of the scaffolding included a deliver function to
--- send emails. Unfortunately, there are too many different options for us to
--- give a reasonable default. Instead, the information is available on the
--- wiki:
---
--- https://github.com/yesodweb/yesod/wiki/Sending-email
 
 
 ----------------------------------------------------------------------
@@ -215,8 +167,8 @@ nullviewdata = viewdataWithDateAndParams nulldate "" "" ""
 -- | Make a ViewData using the given date and request parameters, and defaults elsewhere.
 viewdataWithDateAndParams :: Day -> String -> String -> String -> ViewData
 viewdataWithDateAndParams d q a p =
-    let (querymatcher,queryopts) = parseQuery d (pack q)
-        (acctsmatcher,acctsopts) = parseQuery d (pack a)
+    let (querymatcher,queryopts) = parseQuery d (T.pack q)
+        (acctsmatcher,acctsopts) = parseQuery d (T.pack a)
     in VD {
            opts         = defwebopts
           ,j            = nulljournal
@@ -284,7 +236,7 @@ getViewData = do
 
           -- | Get the named request parameter, or the empty string if not present.
           getParameterOrNull :: String -> Handler String
-          getParameterOrNull p = unpack `fmap` fromMaybe "" <$> lookupGetParam (pack p)
+          getParameterOrNull p = T.unpack `fmap` fromMaybe "" <$> lookupGetParam (T.pack p)
 
 -- | Get the message that was set by the last request, in a
 -- referentially transparent manner (allowing multiple reads).
@@ -391,4 +343,3 @@ journalradio journalfilepaths = [hamlet|
    <span class="input-lg" style="position:relative; top:-8px; left:8px;">#{p}
    <input name=journal type=radio value=#{p} class="form-control" style="width:auto; display:inline;">
 |]
-

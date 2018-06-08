@@ -38,7 +38,6 @@ extra-source-files:
     hledger-web.1
     hledger-web.info
     hledger-web.txt
-    messages/en.msg
     README
     static/css/bootstrap-datepicker.standalone.min.css
     static/css/bootstrap-theme.css
@@ -139,7 +138,7 @@ library
       Settings.StaticFiles
   other-modules:
       Paths_hledger_web
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  ghc-options: -Wall
   cpp-options: -DVERSION="1.9.99"
   build-depends:
       HUnit

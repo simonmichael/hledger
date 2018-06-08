@@ -2,12 +2,12 @@
 Re-export the modules of the hledger-web program.
 -}
 
-module Hledger.Web (
-                     module Hledger.Web.WebOptions,
-                     module Hledger.Web.Main,
-                     tests_Hledger_Web
-              )
-where
+module Hledger.Web
+  ( module Hledger.Web.WebOptions
+  , module Hledger.Web.Main
+  , tests_Hledger_Web
+  ) where
+
 import Test.HUnit
 
 import Hledger.Web.WebOptions

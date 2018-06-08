@@ -7,28 +7,26 @@ Released under GPL version 3 or later.
 
 -}
 
-module Hledger.Web.Main
-where
+module Hledger.Web.Main where
 
--- yesod scaffold imports
-import Yesod.Default.Config --(fromArgs)
--- import Yesod.Default.Main   (defaultMain)
-import Settings            --  (parseExtra)
-import Application          (makeApplication)
-import Data.String
+import Control.Monad ((<=<), when)
+import Data.Default (def)
+import Data.String (fromString)
+import qualified Data.Text as T
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, setHost, setPort)
 import Network.Wai.Handler.Launch (runHostPortUrl)
---
-import Control.Monad
-import Data.Text (pack)
+import Prelude hiding (putStrLn)
 import System.Exit (exitSuccess)
 import System.IO (hFlush, stdout)
-import Text.Printf
-import Prelude hiding (putStrLn)
+import Text.Printf (printf)
+import Yesod.Default.Config (AppConfig(..), DefaultEnv(Development))
+
+import Application (makeApplication)
+import Settings (Extra(..))
 
 import Hledger
-import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Web.WebOptions
 
 
@@ -74,11 +72,11 @@ web opts j = do
       h = host_ opts
       p = port_ opts
       u = base_url_ opts
-      staticRoot = pack <$> file_url_ opts
+      staticRoot = T.pack <$> file_url_ opts
       appconfig = AppConfig{appEnv = Development
                            ,appHost = fromString h
                            ,appPort = p
-                           ,appRoot = pack u
+                           ,appRoot = T.pack u
                            ,appExtra = Extra "" Nothing staticRoot
                            }
   app <- makeApplication opts j' appconfig

@@ -1,8 +1,6 @@
 {-# LANGUAGE CPP #-}
 module Settings.Development where
 
-import Prelude
-
 development :: Bool
 development =
 #if DEVELOPMENT

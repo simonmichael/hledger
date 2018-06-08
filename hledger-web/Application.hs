@@ -6,42 +6,29 @@ module Application
     , makeFoundation
     ) where
 
-import Data.Default
-import Data.IORef
 import Import
-import Yesod.Default.Config
-import Yesod.Default.Main
-import Yesod.Default.Handlers
-import Network.Wai.Middleware.RequestLogger (logStdoutDev, logStdout)
-import Network.HTTP.Conduit (newManager)
-import Prelude (head)
 
--- adapt to http-conduit 1.x or 2.x when cabal macros are available, otherwise assume 2.x
-#ifdef MIN_VERSION_http_conduit
-#if MIN_VERSION_http_conduit(2,0,0)
-#define http_conduit_2
-#endif
-#else
-#define http_conduit_2
-#endif
-#ifdef http_conduit_2
+import Data.Default (def)
+import Data.IORef (newIORef, writeIORef)
+import Network.Wai.Middleware.RequestLogger (logStdoutDev, logStdout)
 import Network.HTTP.Client (defaultManagerSettings)
-#else
-import Network.HTTP.Conduit (def)
-#endif
+import Network.HTTP.Conduit (newManager)
+import Yesod.Default.Config
+import Yesod.Default.Main (defaultDevelApp)
+import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
-import Handler.RootR
-import Handler.JournalR
-import Handler.RegisterR
-import Handler.SidebarR
+import Handler.RootR (getRootR)
+import Handler.JournalR (getJournalR, postJournalR)
+import Handler.RegisterR (getRegisterR, postRegisterR)
+import Handler.SidebarR (getSidebarR)
 
-import Hledger.Web.WebOptions (WebOpts(..), defwebopts)
 import Hledger.Data (Journal, nulljournal)
 import Hledger.Read (readJournalFile)
 import Hledger.Utils (error')
 import Hledger.Cli.CliOptions (defcliopts, journalFilePathFromOpts)
+import Hledger.Web.WebOptions (WebOpts(..), defwebopts)
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -65,12 +52,7 @@ makeApplication opts j conf = do
 
 makeFoundation :: AppConfig DefaultEnv Extra -> WebOpts -> IO App
 makeFoundation conf opts = do
-    manager <- newManager
-#ifdef http_conduit_2
-               defaultManagerSettings
-#else
-               def
-#endif
+    manager <- newManager defaultManagerSettings
     s <- staticSite
     jref <- newIORef nulljournal
     return $ App conf s manager opts jref

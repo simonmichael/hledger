@@ -8,21 +8,17 @@ module Handler.AddForm where
 import Import
 
 import Control.Monad.State.Strict (evalStateT)
-import Data.Either (lefts,rights)
 import Data.List (sort)
+import Data.Either (lefts, rights)
 import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
-import Data.Text (append, pack, unpack)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Void (Void)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
-import Hledger.Utils
-import Hledger.Data
-import Hledger.Read
+import Hledger
 import Hledger.Cli.Commands.Add (appendToJournalFileOrStdout)
-
 
 -- Part of the data required from the add form.
 -- Don't know how to handle the variable posting fields with yesod-form yet.
@@ -49,20 +45,20 @@ postAddForm = do
   let
       validateJournalFile :: Text -> Either FormMessage Text
       validateJournalFile f
-        | unpack f `elem` journalFilePaths j = Right f
-        | otherwise                          = Left $ MsgInvalidEntry $ pack "the selected journal file \"" `append` f `append` "\"is unknown"
+        | T.unpack f `elem` journalFilePaths j = Right f
+        | otherwise                          = Left $ MsgInvalidEntry $ T.pack "the selected journal file \"" <> f <> "\"is unknown"
 
       validateDate :: Text -> Handler (Either FormMessage Day)
       validateDate s = return $
-        case fixSmartDateStrEither' today $ T.pack $ strip $ unpack s of
+        case fixSmartDateStrEither' today $ T.pack $ strip $ T.unpack s of
           Right d  -> Right d
-          Left _   -> Left $ MsgInvalidEntry $ pack "could not parse date \"" `append` s `append` pack "\":" -- ++ show e)
+          Left _   -> Left $ MsgInvalidEntry $ "could not parse date \"" <> s <> "\":"
 
   formresult <- runInputPostResult $ AddForm
-    <$> ireq (checkMMap validateDate (pack . show) textField) "date"
+    <$> ireq (checkMMap validateDate (T.pack . show) textField) "date"
     <*> iopt textField "description"
     <*> iopt (check validateJournalFile textField) "journal"
-  
+
   ok <- case formresult of
     FormMissing      -> showErrors ["there is no form data"::String] >> return False
     FormFailure errs -> showErrors errs >> return False
@@ -72,8 +68,8 @@ postAddForm = do
             ,addFormDescription=mdesc
             ,addFormJournalFile=mjournalfile
             } = dat
-          desc = maybe "" unpack mdesc
-          journalfile = maybe (journalFilePath j) unpack mjournalfile
+          desc = maybe "" T.unpack mdesc
+          journalfile = maybe (journalFilePath j) T.unpack mjournalfile
 
       -- 2. the fixed fields look good; now process the posting fields adhocly,
       -- getting either errors or a balanced transaction

@@ -30,7 +30,6 @@ extra-source-files:
 - config/robots.txt
 - config/routes
 - config/settings.yml
-- messages/*.msg
 - static/css/*.css
 - static/css/*.map
 - static/fonts/*.eot
@@ -107,11 +106,11 @@ when:
 
 ghc-options:
 - -Wall
-- -fno-warn-unused-do-bind
-- -fno-warn-name-shadowing
-- -fno-warn-missing-signatures
-- -fno-warn-type-defaults
-- -fno-warn-orphans
+- -Wcompat
+- -Wincomplete-uni-patterns
+- -Wincomplete-record-updates
+- -Wredundant-constraints
+- -fwarn-tabs
 
 library:
   cpp-options: -DVERSION="1.9.99"
