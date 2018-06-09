@@ -223,8 +223,8 @@ instance Eq Posting where
 
 -- TODO: needs renaming, or removal if no longer needed. See also TextPosition in Hledger.UI.Editor
 -- | The position of parse errors (eg), like parsec's SourcePos but generic.
-data GenericSourcePos = GenericSourcePos FilePath Int Int    -- ^ name, 1-based line number and 1-based column number.
-                      | JournalSourcePos FilePath (Int, Int) -- ^ file name, inclusive range of 1-based line numbers (first, last).
+data GenericSourcePos = GenericSourcePos FilePath Int Int    -- ^ file path, 1-based line number and 1-based column number.
+                      | JournalSourcePos FilePath (Int, Int) -- ^ file path, inclusive range of 1-based line numbers (first, last).
   deriving (Eq, Read, Show, Ord, Data, Generic, Typeable)
 
 instance NFData GenericSourcePos

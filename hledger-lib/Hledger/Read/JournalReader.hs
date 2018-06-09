@@ -470,7 +470,7 @@ periodictransactionp = do
 transactionp :: JournalParser m Transaction
 transactionp = do
   -- ptrace "transactionp"
-  pos <- getPosition
+  startpos <- getPosition
   date <- datep <?> "transaction"
   edate <- optional (lift $ secondarydatep date) <?> "secondary date"
   lookAhead (lift spacenonewline <|> newline) <?> "whitespace or newline"
@@ -480,8 +480,8 @@ transactionp = do
   (comment, tags) <- lift transactioncommentp
   let year = first3 $ toGregorian date
   postings <- postingsp (Just year)
-  pos' <- getPosition
-  let sourcepos = journalSourcePos pos pos'
+  endpos <- getPosition
+  let sourcepos = journalSourcePos startpos endpos
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
 
 #ifdef TESTS
