@@ -65,6 +65,7 @@ import Data.Either
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 import Text.Printf (printf)
+import Data.Word
 
 import Hledger.Data
 import Hledger.Utils.UTF8IOCompat (getContents)
@@ -78,7 +79,7 @@ type Record = [Field]
 
 type Field = String
 
-data CSVError = CSVError String
+data CSVError = CSVError (ParseError Word8 CassavaMP.ConversionError)
     deriving Show
 
 reader :: Reader
@@ -191,7 +192,7 @@ parseCsv path csvdata =
 parseCassava :: FilePath -> String -> Either CSVError CSV
 parseCassava path content =
     case parseResult of
-        Left  msg -> Left $ CSVError $ show msg
+        Left  msg -> Left $ CSVError msg
         Right a   -> Right a
     where parseResult = fmap parseResultToCsv $ CassavaMP.decode Cassava.NoHeader path (C.pack content)
 
