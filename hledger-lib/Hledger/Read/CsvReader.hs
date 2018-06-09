@@ -64,8 +64,6 @@ import Data.Foldable
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 import qualified Text.Parsec as Parsec
-import qualified Text.Parsec.Error as Parsec
-import qualified Text.Parsec.Pos as Parsec
 import Text.Printf (printf)
 
 import Hledger.Data
@@ -82,7 +80,8 @@ type Record = [Field]
 
 type Field = String
 
-type CSVError = Parsec.ParseError
+data CSVError = CSVError String
+    deriving Show
 
 reader :: Reader
 reader = Reader
@@ -194,17 +193,13 @@ parseCsv path csvdata =
 parseCassava :: FilePath -> String -> Either CSVError CSV
 parseCassava path content =
     case parseResult of
-        Left  msg -> Left $ toErrorMessage msg
+        Left  msg -> Left $ CSVError msg
         Right a   -> Right a
     where parseResult = fmap fromCassavaToCSV $ DCSV.decode DCSV.NoHeader (C.pack content)
 
 fromCassavaToCSV :: (Vector (Vector C.ByteString)) -> CSV
 fromCassavaToCSV records = toList (toCSVRecord <$> records)
     where toCSVRecord fields = toList (C.unpack <$> fields)
-
-toErrorMessage :: String -> CSVError
-toErrorMessage msg = Parsec.newErrorMessage (Parsec.Message msg) (Parsec.newPos "" 0 0)
-
 
 printCSV :: CSV -> String
 printCSV records = unlines (printRecord `map` records)
@@ -213,8 +208,6 @@ printCSV records = unlines (printRecord `map` records)
           escape '"' = "\"\""
           escape x = [x]
           unlines = concat . intersperse "\n"
-
-
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
 validateCsv :: Int -> Either CSVError CSV -> Either String [CsvRecord]
