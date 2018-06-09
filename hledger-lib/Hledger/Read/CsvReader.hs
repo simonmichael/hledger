@@ -58,13 +58,12 @@ import System.FilePath
 import Text.CSV (parseCSV, CSV)
 import qualified Data.Csv as DSCV
 import Test.HUnit hiding (State)
-import qualified Data.Csv   as DCSV
-import qualified Data.Csv.Parser.Megaparsec as MPDCSV
+import qualified Data.Csv as Cassava
+import qualified Data.Csv.Parser.Megaparsec as CassavaMP
 import Data.Foldable
 import Data.Either
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
-import qualified Text.Parsec as Parsec
 import Text.Printf (printf)
 
 import Hledger.Data
@@ -194,7 +193,7 @@ parseCassava path content =
     case parseResult of
         Left  msg -> Left $ CSVError $ show msg
         Right a   -> Right a
-    where parseResult = fmap parseResultToCsv $ MPDCSV.decode DCSV.NoHeader path (C.pack content)
+    where parseResult = fmap parseResultToCsv $ CassavaMP.decode Cassava.NoHeader path (C.pack content)
 
 parseResultToCsv :: (Foldable t, Functor t) => t (t C.ByteString) -> CSV
 parseResultToCsv = toListList . unpackFields
