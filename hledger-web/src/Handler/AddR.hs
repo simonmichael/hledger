@@ -1,7 +1,6 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Handler.AddR
@@ -11,7 +10,7 @@ module Handler.AddR
 import Import
 
 import Control.Monad.State.Strict (evalStateT)
-import Data.List (sortBy)
+import Data.List (dropWhileEnd, sort)
 import qualified Data.Text as T
 import Data.Void (Void)
 import Safe (headMay)
@@ -40,7 +39,7 @@ postAddR = do
           amtparams  = parseNumberedParameters "amount" params
           pnum = length acctparams
       when (pnum == 0) (bail ["at least one posting must be entered"])
-      when (map fst acctparams /= [1..pnum] || map fst amtparams `elem` [[1..pnum], [1..pnum-1]])
+      when (map fst acctparams /= [1..pnum] || map fst amtparams `notElem` [[1..pnum], [1..pnum-1]])
         (bail ["the posting parameters are malformed"])
 
       let eaccts = runParser (accountnamep <* eof) "" . textstrip  . snd <$> acctparams
@@ -70,7 +69,7 @@ postAddR = do
 
 parseNumberedParameters :: Text -> [(Text, Text)] -> [(Int, Text)]
 parseNumberedParameters s =
-  reverse . dropWhile (T.null . snd) . sortBy (flip compare) . mapMaybe parseNum
+  dropWhileEnd (T.null . snd) . sort . mapMaybe parseNum
   where
     parseNum :: (Text, Text) -> Maybe (Int, Text)
     parseNum (k, v) = case parsewith paramnamep k of

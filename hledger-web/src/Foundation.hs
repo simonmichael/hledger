@@ -83,13 +83,12 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 instance Yesod App where
   approot = ApprootMaster $ appRoot . settings
 
-  -- don't use session data
-  makeSessionBackend _ = return Nothing
+  makeSessionBackend _ = Just <$> defaultClientSessionBackend 120 ".hledger-web_client_session_key.aes"
 
   defaultLayout widget = do
     master <- getYesod
-    lastmsg <- getMessage
     VD{am, here, j, opts, q, qopts, showsidebar} <- getViewData
+    msg <- getMessage
 
     let journalcurrent = if here == JournalR then "inacct" else "" :: Text
         ropts = reportopts_ (cliopts_ opts)
@@ -156,7 +155,6 @@ instance RenderMessage App FormMessage where
 data ViewData = VD {
      opts         :: WebOpts    -- ^ the command-line options at startup
     ,here         :: AppRoute   -- ^ the current route
-    ,msg          :: Maybe Html -- ^ the current UI message if any, possibly from the current request
     ,today        :: Day        -- ^ today's date (for queries containing relative dates)
     ,j            :: Journal    -- ^ the up-to-date parsed unfiltered journal
     ,q            :: Text       -- ^ the current q parameter, the main query expression
@@ -176,44 +174,39 @@ nullviewdata = viewdataWithDateAndParams nulldate "" ""
 -- | Make a ViewData using the given date and request parameters, and defaults elsewhere.
 viewdataWithDateAndParams :: Day -> Text -> Text -> ViewData
 viewdataWithDateAndParams d q a =
-    let (querymatcher,queryopts) = parseQuery d q
-        (acctsmatcher,acctsopts) = parseQuery d a
-    in VD {
-           opts         = defwebopts
-          ,j            = nulljournal
-          ,here         = RootR
-          ,msg          = Nothing
-          ,today        = d
-          ,q            = q
-          ,m            = querymatcher
-          ,qopts        = queryopts
-          ,am           = acctsmatcher
-          ,aopts        = acctsopts
-          ,showsidebar  = True
-          }
+  let (querymatcher, queryopts) = parseQuery d q
+      (acctsmatcher, acctsopts) = parseQuery d a
+  in VD
+     { opts = defwebopts
+     , here = RootR
+     , today = d
+     , j = nulljournal
+     , q = q
+     , m = querymatcher
+     , qopts = queryopts
+     , am = acctsmatcher
+     , aopts = acctsopts
+     , showsidebar = True
+     }
 
 -- | Gather data used by handlers and templates in the current request.
 getViewData :: Handler ViewData
 getViewData = getCurrentRoute >>= \case
-    Nothing -> return nullviewdata
-    Just here -> do
-      App {appOpts, appJournal} <- getYesod
-      let opts@WebOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} = appOpts
-      today      <- liftIO getCurrentDay
-      (j, merr)  <- getCurrentJournal appJournal copts{reportopts_=ropts{no_elide_=True}} today
-      lastmsg    <- getLastMessage
-      let msg = maybe lastmsg (Just . toHtml) merr
-      q          <- fromMaybe "" <$> lookupGetParam "q"
-      a          <- fromMaybe "" <$> lookupGetParam "a"
-      showsidebar <- shouldShowSidebar
-      return (viewdataWithDateAndParams today q a){
-                   opts=opts
-                  ,msg=msg
-                  ,here=here
-                  ,today=today
-                  ,j=j
-                  ,showsidebar=showsidebar
-                  }
+  Nothing -> return nullviewdata
+  Just here -> do
+    App {appOpts, appJournal = jref} <- getYesod
+    let opts@WebOpts {cliopts_ = copts@CliOpts {reportopts_ = ropts}} = appOpts
+    today <- liftIO getCurrentDay
+    (j, merr) <- getCurrentJournal jref copts {reportopts_ = ropts {no_elide_ = True}} today
+    case merr of
+      Just err -> setMessage (toHtml err)
+      Nothing -> pure ()
+    q <- fromMaybe "" <$> lookupGetParam "q"
+    a <- fromMaybe "" <$> lookupGetParam "a"
+    showsidebar <- shouldShowSidebar
+    return
+      (viewdataWithDateAndParams today q a)
+      {here, j, opts, showsidebar, today}
 
 -- | Find out if the sidebar should be visible. Show it, unless there is a
 -- showsidebar cookie set to "0", or a ?sidebar=0 query parameter.
@@ -243,8 +236,3 @@ getCurrentJournal jref opts d = do
            Left e -> do
              setMessage "error while reading journal"
              return (j, Just e)
-
--- | Get the message that was set by the last request, in a
--- referentially transparent manner (allowing multiple reads).
-getLastMessage :: Handler (Maybe Html)
-getLastMessage = cached getMessage

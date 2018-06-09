@@ -1,5 +1,5 @@
-$maybe m <- lastmsg
-  $if not $ isPrefixOf "Errors" (renderHtml m)
+$maybe m <- msg
+  $if not (isPrefixOf "Errors" (renderHtml m))
     <div #message>#{m}
 
 <div#spacer .col-xs-2.#{topShowsm}.#{topShowmd}>

@@ -23,7 +23,6 @@ import Handler.ImportR (postImportR)
 import Handler.JournalR (getJournalR)
 import Handler.RegisterR (getRegisterR)
 import Handler.RootR (getRootR)
-import Handler.SidebarR (getSidebarR)
 
 import Hledger.Data (Journal, nulljournal)
 import Hledger.Read (readJournalFile)

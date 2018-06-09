@@ -131,7 +131,6 @@ library
       Handler.JournalR
       Handler.RegisterR
       Handler.RootR
-      Handler.SidebarR
       Hledger.Web
       Hledger.Web.Main
       Hledger.Web.WebOptions

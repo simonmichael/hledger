@@ -84,8 +84,9 @@ numberTransactionsReportItems items = number 0 nulldate items
   where
     number :: Int -> Day -> [TransactionsReportItem] -> [(Int, Bool, Bool, TransactionsReportItem)]
     number _ _ [] = []
-    number n prevd (i@(Transaction{tdate=d},_,_,_,_,_):rest) = (n+1, newday, newmonth, i): number (n+1) d rest
+    number n prevd (i@(t, _, _, _, _, _):rest) = (n+1, newday, newmonth, i): number (n+1) d rest
       where
+        d = tdate t
         newday = d /= prevd
         newmonth = dm /= prevdm || dy /= prevdy
         (dy, dm, _) = toGregorian d
@@ -102,9 +103,9 @@ $forall t <- ts
     Just True -> "negative amount" :: Text
     _         -> "positive amount"
 
-showErrors :: ToMarkup a => [a] -> HandlerFor a ()
+showErrors :: ToMarkup a => [a] -> HandlerFor m ()
 showErrors errs = setMessage [shamlet|
 Errors:<br>
-$forall e<-errs
+$forall e <- errs
   \#{e}<br>
 |]

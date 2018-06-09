@@ -4,7 +4,6 @@
 /                RootR           GET
 /journal         JournalR        GET
 /register        RegisterR       GET
-/sidebar         SidebarR        GET
 /add             AddR            POST
 /edit            EditR           POST
 /import          ImportR         POST
