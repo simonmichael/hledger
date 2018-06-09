@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE CPP, MultiParamTypeClasses, OverloadedStrings, RecordWildCards, QuasiQuotes, TemplateHaskell, TypeFamilies, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE CPP, LambdaCase, MultiParamTypeClasses, NamedFieldPuns, OverloadedStrings, RecordWildCards, QuasiQuotes, TemplateHaskell, TypeFamilies, TypeSynonymInstances, FlexibleInstances #-}
 -- | Define the web application's foundation, in the usual Yesod style.
 --   See a default Yesod app's comments for more details of each part.
 
@@ -21,7 +21,7 @@ import Yesod.Static
 import Yesod.Default.Config
 
 import Settings.StaticFiles
-import Settings (staticRoot, widgetFile, Extra (..))
+import Settings (widgetFile, Extra (..))
 #ifndef DEVELOPMENT
 import Settings (staticDir)
 import Text.Jasmine (minifym)
@@ -115,7 +115,6 @@ instance Yesod App where
             addScript $ StaticR hledger_js
             $(widgetFile "default-layout")
 
-        staticRootUrl <- (staticRoot . settings) <$> getYesod
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
 #ifndef DEVELOPMENT
@@ -180,25 +179,18 @@ viewdataWithDateAndParams d q a =
 
 -- | Gather data used by handlers and templates in the current request.
 getViewData :: Handler ViewData
-getViewData = do
-  mhere      <- getCurrentRoute
-  case mhere of
+getViewData = getCurrentRoute >>= \case
     Nothing -> return nullviewdata
     Just here -> do
-      app        <- getYesod
-      let opts@WebOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} = appOpts app
+      App {appOpts, appJournal} <- getYesod
+      let opts@WebOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} = appOpts
       today      <- liftIO getCurrentDay
-      (j, merr)  <- getCurrentJournal app copts{reportopts_=ropts{no_elide_=True}} today
+      (j, merr)  <- getCurrentJournal appJournal copts{reportopts_=ropts{no_elide_=True}} today
       lastmsg    <- getLastMessage
       let msg = maybe lastmsg (Just . toHtml) merr
       q          <- fromMaybe "" <$> lookupGetParam "q"
       a          <- fromMaybe "" <$> lookupGetParam "a"
-      -- sidebar visibility: show it, unless there is a showsidebar cookie
-      -- set to "0", or a ?sidebar=0 query parameter.
-      msidebarparam <- lookupGetParam "sidebar"
-      msidebarcookie <- reqCookies <$> getRequest >>= return . lookup "showsidebar"
-      let showsidebar = maybe (msidebarcookie /= Just "0") (/="0") msidebarparam
-
+      showsidebar <- shouldShowSidebar
       return (viewdataWithDateAndParams today q a){
                    opts=opts
                   ,msg=msg
@@ -207,25 +199,35 @@ getViewData = do
                   ,j=j
                   ,showsidebar=showsidebar
                   }
-        where
-          -- | Update our copy of the journal if the file changed. If there is an
-          -- error while reloading, keep the old one and return the error, and set a
-          -- ui message.
-          getCurrentJournal :: App -> CliOpts -> Day -> Handler (Journal, Maybe String)
-          getCurrentJournal app opts d = do
-            -- XXX put this inside atomicModifyIORef' for thread safety
-            j <- liftIO $ readIORef $ appJournal app
-            (ej, changed) <- liftIO $ journalReloadIfChanged opts d j
-            -- re-apply any initial filter specified at startup
-            let initq = queryFromOpts d $ reportopts_ opts
-                ej' = filterJournalTransactions initq <$> ej
-            if not changed
-             then return (j,Nothing)
-             else case ej' of
-                    Right j' -> do liftIO $ writeIORef (appJournal app) j'
-                                   return (j',Nothing)
-                    Left e   -> do setMessage "error while reading"
-                                   return (j, Just e)
+
+-- | Find out if the sidebar should be visible. Show it, unless there is a
+-- showsidebar cookie set to "0", or a ?sidebar=0 query parameter.
+shouldShowSidebar :: Handler Bool
+shouldShowSidebar = do
+  msidebarparam <- lookupGetParam "sidebar"
+  msidebarcookie <- lookup "showsidebar" . reqCookies <$> getRequest
+  return $ maybe (msidebarcookie /= Just "0") (/="0") msidebarparam
+
+-- | Update our copy of the journal if the file changed. If there is an
+-- error while reloading, keep the old one and return the error, and set a
+-- ui message.
+getCurrentJournal :: IORef Journal -> CliOpts -> Day -> Handler (Journal, Maybe String)
+getCurrentJournal jref opts d = do
+  -- XXX put this inside atomicModifyIORef' for thread safety
+  j <- liftIO (readIORef jref)
+  (ej, changed) <- liftIO $ journalReloadIfChanged opts d j
+  -- re-apply any initial filter specified at startup
+  let initq = queryFromOpts d $ reportopts_ opts
+      ej' = filterJournalTransactions initq <$> ej
+  if not changed
+    then return (j,Nothing)
+    else case ej' of
+           Right j' -> do
+             liftIO $ writeIORef jref j'
+             return (j',Nothing)
+           Left e -> do
+             setMessage "error while reading journal"
+             return (j, Just e)
 
 -- | Get the message that was set by the last request, in a
 -- referentially transparent manner (allowing multiple reads).
@@ -235,8 +237,8 @@ getLastMessage = cached getMessage
 -- add form dialog, part of the default template
 
 -- | Add transaction form.
-addform :: Text -> ViewData -> HtmlUrl AppRoute
-addform _ vd@VD{..} = [hamlet|
+addform :: ViewData -> HtmlUrl AppRoute
+addform VD{..} = [hamlet|
 
 <script>
   jQuery(document).ready(function() {
@@ -281,7 +283,7 @@ addform _ vd@VD{..} = [hamlet|
     <input #description required .typeahead .form-control .input-lg type=text size=40 name=description placeholder="Description">
  <div .account-postings>
   $forall n <- postingnums
-    ^{postingfields vd n}
+    ^{postingfields n}
  <div .col-md-8 .col-xs-8 .col-sm-8>
  <div .col-md-4 .col-xs-4 .col-sm-4>
   <button type=submit .btn .btn-default .btn-lg name=submit>add
@@ -303,8 +305,8 @@ addform _ vd@VD{..} = [hamlet|
   numpostings = 4
   postingnums = [1..numpostings]
   filepaths = map fst $ jfiles j
-  postingfields :: ViewData -> Int -> HtmlUrl AppRoute
-  postingfields _ n = [hamlet|
+  postingfields :: Int -> HtmlUrl AppRoute
+  postingfields n = [hamlet|
 <div .form-group .row .account-group ##{grpvar}>
  <div .col-md-8 .col-xs-8 .col-sm-8>
   <input ##{acctvar} .account-input .typeahead .form-control .input-lg type=text name=#{acctvar} placeholder="#{acctph}">

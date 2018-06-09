@@ -7,7 +7,6 @@ import Import
 
 import Data.Time
 import Data.List (intersperse)
-import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Text as T
 import Safe (headMay)
 
@@ -32,22 +31,22 @@ getRegisterR = do
           s2 = if m /= Any then ", filtered" else ""
   hledgerLayout vd "register" $ do
     _ <- [hamlet|<h2 #contenttitle>#{title}|]
-    registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
+    registerReportHtml vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
 
 postRegisterR :: Handler Html
 postRegisterR = postAddForm
 
 -- | Generate html for an account register, including a balance chart and transaction list.
-registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
-registerReportHtml opts vd r = [hamlet|
+registerReportHtml :: ViewData -> TransactionsReport -> HtmlUrl AppRoute
+registerReportHtml vd r = [hamlet|
  <div .hidden-xs>
   ^{registerChartHtml $ transactionsReportByCommodity r}
- ^{registerItemsHtml opts vd r}
+ ^{registerItemsHtml vd r}
 |]
 
 -- | Generate html for a transaction list from an "TransactionsReport".
-registerItemsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
-registerItemsHtml _ vd (balancelabel,items) = [hamlet|
+registerItemsHtml :: ViewData -> TransactionsReport -> HtmlUrl AppRoute
+registerItemsHtml vd (balancelabel,items) = [hamlet|
 <div .table-responsive>
  <table.registerreport .table .table-striped .table-condensed>
   <thead>

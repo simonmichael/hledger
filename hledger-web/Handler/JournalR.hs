@@ -26,7 +26,7 @@ getJournalR = do
                   where s1 = if inclsubs then "" else " (excluding subaccounts)"
                 where
                   s2 = if m /= Any then ", filtered" else ""
-      maincontent = journalTransactionsReportAsHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
+      maincontent = journalTransactionsReportAsHtml vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
   hledgerLayout vd "journal" [hamlet|
        <div .row>
         <h2 #contenttitle>#{title}
@@ -40,8 +40,8 @@ postJournalR :: Handler Html
 postJournalR = postAddForm
 
 -- | Render a "TransactionsReport" as html for the formatted journal view.
-journalTransactionsReportAsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
-journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
+journalTransactionsReportAsHtml :: ViewData -> TransactionsReport -> HtmlUrl AppRoute
+journalTransactionsReportAsHtml vd (_,items) = [hamlet|
 <table .transactionsreport .table .table-condensed>
  <thead>
   <th .date style="text-align:left;">

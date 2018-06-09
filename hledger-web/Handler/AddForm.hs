@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, FlexibleContexts, OverloadedStrings, QuasiQuotes, RecordWildCards, TypeFamilies #-}
+{-# LANGUAGE CPP, FlexibleContexts, OverloadedStrings, QuasiQuotes, RecordWildCards, ScopedTypeVariables, TypeFamilies #-}
 -- | Add form data & handler. (The layout and js are defined in
 -- Foundation so that the add form can be in the default layout for
 -- all views.)
@@ -8,13 +8,12 @@ module Handler.AddForm where
 import Import
 
 import Control.Monad.State.Strict (evalStateT)
-import Data.Either (lefts, rights)
-import Data.List (sort)
-import Data.Maybe (fromMaybe, maybeToList)
+import Data.List (sortBy)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Void (Void)
 import Safe (headMay)
+import Text.Blaze (ToMarkup)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -30,31 +29,26 @@ data AddForm = AddForm
     , addFormJournalFile  :: Maybe Text
     } deriving Show
 
-postAddForm :: Handler Html
-postAddForm = do
-  let showErrors errs = do
-        setMessage [shamlet|
-                    Errors:<br>
-                    $forall e<-errs
-                     \#{e}<br>
-                   |]
-  -- 1. process the fixed fields with yesod-form
-
-  VD{..} <- getViewData
-  let validateJournalFile :: Text -> Either FormMessage Text
-      validateJournalFile f
-        | T.unpack f `elem` journalFilePaths j = Right f
-        | otherwise = Left $ MsgInvalidEntry $ "the selected journal file \"" <> f <> "\"is unknown"
-
-      validateDate :: Text -> Either FormMessage Day
-      validateDate s = case fixSmartDateStrEither' today (T.strip s) of
-        Right d  -> Right d
-        Left _   -> Left $ MsgInvalidEntry $ "could not parse date \"" <> s <> "\":"
-
-  formresult <- runInputPostResult $ AddForm
+addForm :: Day -> Journal -> FormInput Handler AddForm
+addForm today j = AddForm
     <$> ireq (checkMMap (pure . validateDate) (T.pack . show) textField) "date"
     <*> iopt textField "description"
     <*> iopt (check validateJournalFile textField) "journal"
+  where
+    validateJournalFile :: Text -> Either FormMessage Text
+    validateJournalFile f
+      | T.unpack f `elem` journalFilePaths j = Right f
+      | otherwise = Left $ MsgInvalidEntry $ "the selected journal file \"" <> f <> "\"is unknown"
+    validateDate :: Text -> Either FormMessage Day
+    validateDate s = case fixSmartDateStrEither' today (T.strip s) of
+      Right d  -> Right d
+      Left _   -> Left $ MsgInvalidEntry $ "could not parse date \"" <> s <> "\":"
+
+postAddForm :: Handler Html
+postAddForm = do
+  -- 1. process the fixed fields with yesod-form
+  VD{..} <- getViewData
+  formresult <- runInputPostResult (addForm today j)
 
   ok <- case formresult of
     FormMissing      -> showErrors ["there is no form data" :: Text] >> return False
@@ -72,16 +66,8 @@ postAddForm = do
       -- getting either errors or a balanced transaction
 
       (params,_) <- runRequestBody
-      let numberedParams s =
-            reverse $ dropWhile (T.null . snd) $ reverse $ sort
-            [ (n,v) | (k,v) <- params
-                    , let en = parsewith (paramnamep s) k :: Either (ParseError Char Void) Int
-                    , isRight en
-                    , let Right n = en
-                    ]
-            where paramnamep s = do {string s; n <- some digitChar; eof; return (read n :: Int)}
-          acctparams = numberedParams "account"
-          amtparams  = numberedParams "amount"
+      let acctparams = parseNumberedParameters "account" params
+          amtparams  = parseNumberedParameters "amount" params
           num = length acctparams
           paramErrs | num == 0 = ["at least one posting must be entered"]
                     | map fst acctparams == [1..num] &&
@@ -105,12 +91,32 @@ postAddForm = do
        Left errs -> showErrors errs >> return False
        Right t -> do
         -- 3. all fields look good and form a balanced transaction; append it to the file
-        liftIO $ do ensureJournalFileExists journalfile
-                    appendToJournalFileOrStdout journalfile $
-                      showTransaction $
-                      txnTieKnot -- XXX move into balanceTransaction
-                      t
+        liftIO (appendTransaction journalfile t)
         setMessage [shamlet|<span>Transaction added.|]
         return True
 
   if ok then redirect JournalR else redirect (JournalR, [("add","1")])
+
+parseNumberedParameters :: Text -> [(Text, Text)] -> [(Int, Text)]
+parseNumberedParameters s =
+  reverse . dropWhile (T.null . snd) . sortBy (flip compare) . mapMaybe parseNum
+  where
+    parseNum :: (Text, Text) -> Maybe (Int, Text)
+    parseNum (k, v) = case parsewith paramnamep k of
+      Left (_ :: ParseError Char Void) -> Nothing
+      Right k' -> Just (k', v)
+    paramnamep = string s *> (read <$> some digitChar) <* eof
+
+-- XXX move into balanceTransaction
+appendTransaction :: FilePath -> Transaction -> IO ()
+appendTransaction journalfile t = do
+  ensureJournalFileExists journalfile
+  appendToJournalFileOrStdout journalfile $
+    showTransaction (txnTieKnot t)
+
+showErrors :: ToMarkup a => [a] -> Handler ()
+showErrors errs = setMessage [shamlet|
+Errors:<br>
+$forall e<-errs
+  \#{e}<br>
+|]
