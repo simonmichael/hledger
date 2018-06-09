@@ -1,0 +1,32 @@
+<h2 #contenttitle>
+  #{header}
+
+<div .hidden-xs>
+  ^{registerChartHtml $ transactionsReportByCommodity r}
+
+<div .table-responsive>
+  <table.registerreport .table .table-striped .table-condensed>
+    <thead>
+      <tr>
+        <th style="text-align:left;">
+          Date
+          <span .glyphicon .glyphicon-chevron-up>
+        <th style="text-align:left;">Description
+        <th style="text-align:left;">To/From Account(s)
+        <th style="text-align:right; white-space:normal;">Amount Out/In
+        <th style="text-align:right; white-space:normal;">
+          #{balancelabel'}
+
+    <tbody>
+      $forall (n, newd, newm, (torig, tacct, split, acct, amt, bal)) <- numberTransactionsReportItems items
+        <tr ##{tindex torig} .item.#{evenodd n}.#{datetransition newm newd}
+            title="#{show torig}" style="vertical-align:top;">
+          <td .date>
+            <a href="@{JournalR}#transaction-#{tindex torig}">
+              #{show (tdate tacct)}
+          <td .description title="#{show torig}">#{textElideRight 30 (tdescription tacct)}
+          <td .account>#{elideRight 40 acct}
+          <td .amount style="text-align:right; white-space:nowrap;">
+            $if not split || not (isZeroMixedAmount amt)
+              \^{mixedAmountAsHtml amt}
+          <td .balance style="text-align:right;">^{mixedAmountAsHtml bal}

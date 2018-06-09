@@ -98,7 +98,7 @@ $forall t <- ts
   <span .#{c}>#{t}
   <br>
 |] where
-  ts = T.lines . T.pack $ showMixedAmountWithoutPrice b
+  ts = lines (showMixedAmountWithoutPrice b)
   c = case isNegativeMixedAmount b of
     Just True -> "negative amount" :: Text
     _         -> "positive amount"

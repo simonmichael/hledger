@@ -1,5 +1,10 @@
-{-# LANGUAGE ScopedTypeVariables, OverloadedStrings, QuasiQuotes, NamedFieldPuns #-}
 -- | /register handlers.
+
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Handler.RegisterR where
 
@@ -9,6 +14,7 @@ import Data.Time
 import Data.List (intersperse)
 import qualified Data.Text as T
 import Safe (headMay)
+import Text.Hamlet (hamletFile)
 
 import Handler.Common (mixedAmountAsHtml, numberTransactionsReportItems)
 
@@ -20,132 +26,29 @@ import Hledger.Web.WebOptions
 getRegisterR :: Handler Html
 getRegisterR = do
   VD{j, m, opts, qopts} <- getViewData
-  let title = a <> s1 <> s2
-        where
-          (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
-          s1 = if inclsubs then "" else " (excluding subaccounts)"
-          s2 = if m /= Any then ", filtered" else ""
+  let (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
+      s1 = if inclsubs then "" else " (excluding subaccounts)"
+      s2 = if m /= Any then ", filtered" else ""
+      header = a <> s1 <> s2
+
+  let r@(balancelabel,items) = accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
+      balancelabel' = if isJust (inAccount qopts) then balancelabel else "Total"
+      evenodd x = if even x then "even" else "odd" :: Text
+      datetransition newm newd
+        | newm = "newmonth"
+        | newd = "newday"
+        | otherwise = "" :: Text
+
   defaultLayout $ do
     setTitle "register - hledger-web"
-    _ <- toWidget [hamlet|<h2 #contenttitle>#{title}|]
-    toWidget $ registerReportHtml qopts $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
-
--- | Generate html for an account register, including a balance chart and transaction list.
-registerReportHtml :: [QueryOpt] -> TransactionsReport -> HtmlUrl AppRoute
-registerReportHtml qopts r = [hamlet|
- <div .hidden-xs>
-  ^{registerChartHtml $ transactionsReportByCommodity r}
- ^{registerItemsHtml qopts r}
-|]
-
--- | Generate html for a transaction list from an "TransactionsReport".
-registerItemsHtml :: [QueryOpt] -> TransactionsReport -> HtmlUrl AppRoute
-registerItemsHtml qopts (balancelabel,items) = [hamlet|
-<div .table-responsive>
- <table.registerreport .table .table-striped .table-condensed>
-  <thead>
-   <tr>
-    <th style="text-align:left;">
-     Date
-     <span .glyphicon .glyphicon-chevron-up>
-    <th style="text-align:left;">Description
-    <th style="text-align:left;">To/From Account(s)
-    <th style="text-align:right; white-space:normal;">Amount Out/In
-    <th style="text-align:right; white-space:normal;">#{balancelabel'}
-  $forall i <- numberTransactionsReportItems items
-   ^{itemAsHtml i}
- |]
- where
-   insomeacct = isJust $ inAccount qopts
-   balancelabel' = if insomeacct then balancelabel else "Total"
-
-   itemAsHtml :: (Int, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml (n, newd, newm, (torig, tacct, split, acct, amt, bal)) = [hamlet|
-<tr ##{tindex torig} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show torig}" style="vertical-align:top;">
- <td .date>
-  <a href="@{JournalR}#transaction-#{tindex torig}">#{date}
- <td .description title="#{show torig}">#{textElideRight 30 desc}
- <td .account>#{elideRight 40 acct}
- <td .amount style="text-align:right; white-space:nowrap;">
-  $if showamt
-   \^{mixedAmountAsHtml amt}
- <td .balance style="text-align:right;">^{mixedAmountAsHtml bal}
-|]
-     where
-       evenodd = if even n then "even" else "odd" :: Text
-       datetransition | newm = "newmonth"
-                      | newd = "newday"
-                      | otherwise = "" :: Text
-       (firstposting, date, desc) = (False, show $ tdate tacct, tdescription tacct)
-       showamt = not split || not (isZeroMixedAmount amt)
+    $(widgetFile "register")
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "TransactionsReportItem"s.
 registerChartHtml :: [(CommoditySymbol, (String, [TransactionsReportItem]))] -> HtmlUrl AppRoute
-registerChartHtml percommoditytxnreports =
+registerChartHtml percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
- [hamlet|
-<label #register-chart-label style=""><br>
-<div #register-chart style="height:150px; margin-bottom:1em; display:block;">
-<script type=text/javascript>
- \$(document).ready(function() {
-   var $chartdiv = $('#register-chart');
-   if ($chartdiv.is(':visible')) {
-     \$('#register-chart-label').text('#{charttitle}');
-     var seriesData = [
-      $forall (c,(_,items)) <- percommoditytxnreports
-       /* we render each commodity using two series:
-        * one with extra data points added to show a stepped balance line */
-       {
-        data: [
-          $forall i <- reverse items
-           [
-            #{dayToJsTimestamp $ triDate i},
-            #{simpleMixedAmountQuantity $ triCommodityBalance c i}
-           ],
-        ],
-        label: '#{shownull $ T.unpack c}',
-        color: #{colorForCommodity c},
-        lines: {
-          show: true,
-          steps: true,
-        },
-        points: {
-          show: false,
-        },
-        clickable: false,
-        hoverable: false,
-       },
-       /* and one with the original data, showing one clickable, hoverable point per transaction */
-       {
-        data: [
-          $forall i <- reverse items
-           [
-            #{dayToJsTimestamp $ triDate i},
-            #{simpleMixedAmountQuantity $ triCommodityBalance c i},
-            '#{showMixedAmountWithZeroCommodity $ triCommodityAmount c i}',
-            '#{showMixedAmountWithZeroCommodity $ triCommodityBalance c i}',
-            '#{concat $ intersperse "\\n" $ lines  $ show $ triOrigTransaction i}',
-            #{tindex $ triOrigTransaction i}
-           ],
-          /* [] */
-        ],
-        label: '',
-        color: #{colorForCommodity c},
-        lines: {
-          show: false,
-        },
-        points: {
-          show: true,
-        },
-       },
-     ]
-     var plot = registerChart($chartdiv, seriesData);
-     \$chartdiv.bind("plotclick", registerChartClick);
-   };
- });
-|]
  where
    charttitle = case maybe "" (fst.snd) $ headMay percommoditytxnreports of
      "" -> ""
