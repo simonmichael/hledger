@@ -18,12 +18,14 @@ module Hledger.Read.CsvReader (
   reader,
   -- * Misc.
   CsvRecord,
+  CSV, Record, Field,
   -- rules,
   rulesFileFor,
   parseRulesFile,
   parseAndValidateCsvRules,
   expandIncludes,
   transactionFromCsvRecord,
+  printCSV,
   -- * Tests
   tests_CsvReader,
 )
@@ -58,7 +60,6 @@ import Text.CSV (parseCSV, CSV)
 import qualified Data.Csv as DSCV
 =======
 import Test.HUnit hiding (State)
-import Text.CSV (CSV, Record, Field)
 import qualified Data.Csv as DCSV
 import qualified Data.Vector as V
 >>>>>>> Conversion to Text CSV type
@@ -76,6 +77,12 @@ import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSo
 
 import Data.Either
 
+
+type CSV = [Record]
+
+type Record = [Field]
+
+type Field = String
 
 reader :: Reader
 reader = Reader
@@ -208,6 +215,16 @@ fromCassavaToCSV records = V.toList (V.map toCSVRecord records)
 
 toErrorMessage :: String -> Parsec.ParseError
 toErrorMessage msg = Parsec.newErrorMessage (Parsec.Message msg) (Parsec.newPos "" 0 0)
+
+
+printCSV :: CSV -> String
+printCSV records = unlines (printRecord `map` records)
+    where printRecord = concat . intersperse "," . map printField
+          printField f = "\"" ++ concatMap escape f ++ "\""
+          escape '"' = "\"\""
+          escape x = [x]
+          unlines = concat . intersperse "\n"
+
 
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
