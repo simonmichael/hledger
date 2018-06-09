@@ -10,7 +10,7 @@ import Data.List (intersperse)
 import qualified Data.Text as T
 import Safe (headMay)
 
-import Handler.Common (hledgerLayout, numberTransactionsReportItems, mixedAmountAsHtml)
+import Handler.Common (mixedAmountAsHtml, numberTransactionsReportItems)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -19,15 +19,16 @@ import Hledger.Web.WebOptions
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
 getRegisterR = do
-  vd@VD{j, m, opts, qopts} <- getViewData
+  VD{j, m, opts, qopts} <- getViewData
   let title = a <> s1 <> s2
         where
           (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
           s1 = if inclsubs then "" else " (excluding subaccounts)"
           s2 = if m /= Any then ", filtered" else ""
-  hledgerLayout vd "register" $ do
-    _ <- [hamlet|<h2 #contenttitle>#{title}|]
-    registerReportHtml qopts $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
+  defaultLayout $ do
+    setTitle "register - hledger-web"
+    _ <- toWidget [hamlet|<h2 #contenttitle>#{title}|]
+    toWidget $ registerReportHtml qopts $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
 
 -- | Generate html for an account register, including a balance chart and transaction list.
 registerReportHtml :: [QueryOpt] -> TransactionsReport -> HtmlUrl AppRoute
@@ -58,8 +59,8 @@ registerItemsHtml qopts (balancelabel,items) = [hamlet|
    insomeacct = isJust $ inAccount qopts
    balancelabel' = if insomeacct then balancelabel else "Total"
 
-   itemAsHtml :: (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml (n, newd, newm, _, (torig, tacct, split, acct, amt, bal)) = [hamlet|
+   itemAsHtml :: (Int, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
+   itemAsHtml (n, newd, newm, (torig, tacct, split, acct, amt, bal)) = [hamlet|
 <tr ##{tindex torig} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show torig}" style="vertical-align:top;">
  <td .date>
   <a href="@{JournalR}#transaction-#{tindex torig}">#{date}
@@ -67,8 +68,8 @@ registerItemsHtml qopts (balancelabel,items) = [hamlet|
  <td .account>#{elideRight 40 acct}
  <td .amount style="text-align:right; white-space:nowrap;">
   $if showamt
-   \#{mixedAmountAsHtml amt}
- <td .balance style="text-align:right;">#{mixedAmountAsHtml bal}
+   \^{mixedAmountAsHtml amt}
+ <td .balance style="text-align:right;">^{mixedAmountAsHtml bal}
 |]
      where
        evenodd = if even n then "even" else "odd" :: Text

@@ -1,4 +1,38 @@
 $maybe m <- lastmsg
   $if not $ isPrefixOf "Errors" (renderHtml m)
     <div #message>#{m}
-^{widget}
+
+<div#spacer .col-xs-2.#{topShowsm}.#{topShowmd}>
+  <h1>
+    <button .visible-xs.btn.btn-default type="button" data-toggle="offcanvas">
+      <span .glyphicon.glyphicon-align-left.tgl-icon>
+
+<div#topbar .col-md-8 .col-sm-8 .col-xs-10>
+  <h1>#{takeFileName (journalFilePath j)}
+
+<div #sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
+  <table .main-menu .table>
+    <tr .#{journalcurrent}>
+      <td .top .acct>
+        <a href=@{JournalR} .#{journalcurrent}
+           title="Show general journal entries, most recent first">
+          Journal
+      <td .top>
+    ^{accounts}
+
+<div #main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
+  <div#searchformdiv .row>
+    <form#searchform .form-inline method=GET>
+      <div .form-group .col-md-12 .col-sm-12 .col-xs-12>
+        <div #searchbar .input-group>
+          <input .form-control name=q value=#{q} placeholder="Search"
+            title="Enter hledger search patterns to filter the data below">
+          <div .input-group-btn>
+            $if not (T.null q)
+              <a href=@{here} .btn .btn-default title="Clear search terms">
+                <span .glyphicon .glyphicon-remove-circle>
+            <button .btn .btn-default type=submit title="Apply search terms">
+              <span .glyphicon .glyphicon-search>
+            <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal"
+               title="Show search and general help">?
+  ^{widget}

@@ -9,8 +9,10 @@ import Data.IORef (IORef, readIORef, writeIORef)
 import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit (Manager)
+import System.FilePath (takeFileName)
 import Text.Blaze (Markup)
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Hamlet (hamletFile)
@@ -19,6 +21,7 @@ import Yesod.Static
 import Yesod.Default.Config
 
 import Handler.AddForm
+import Handler.Common (balanceReportAsHtml)
 import Settings.StaticFiles
 import Settings (widgetFile, Extra (..))
 #ifndef DEVELOPMENT
@@ -28,7 +31,7 @@ import Yesod.Default.Util (addStaticContentExternal)
 #endif
 
 import Hledger
-import Hledger.Cli
+import Hledger.Cli (CliOpts(..), journalReloadIfChanged)
 import Hledger.Web.WebOptions
 
 -- | The site argument for your application. This can be a good place to
@@ -78,50 +81,63 @@ type Form x = Html -> MForm (HandlerT App IO) (FormResult x, Widget)
 -- Please see the documentation for the Yesod typeclass. There are a number
 -- of settings which can be configured by overriding methods here.
 instance Yesod App where
-    approot = ApprootMaster $ appRoot . settings
+  approot = ApprootMaster $ appRoot . settings
 
-    -- don't use session data
-    makeSessionBackend _ = return Nothing
+  -- don't use session data
+  makeSessionBackend _ = return Nothing
 
-    defaultLayout widget = do
-        master <- getYesod
-        lastmsg <- getMessage
-        VD{j, opts} <- getViewData
+  defaultLayout widget = do
+    master <- getYesod
+    lastmsg <- getMessage
+    VD{am, here, j, opts, q, qopts, showsidebar} <- getViewData
 
-        -- We break up the default layout into two components:
-        -- default-layout is the contents of the body tag, and
-        -- default-layout-wrapper is the entire page. Since the final
-        -- value passed to hamletToRepHtml cannot be a widget, this allows
-        -- you to use normal widget features in default-layout.
-        pc <- widgetToPageContent $ do
-            addStylesheet $ StaticR css_bootstrap_min_css
-            addStylesheet $ StaticR css_bootstrap_datepicker_standalone_min_css
-             -- load these things early, in HEAD:
-            toWidgetHead [hamlet|
-                          <script type="text/javascript" src="@{StaticR js_jquery_min_js}">
-                          <script type="text/javascript" src="@{StaticR js_typeahead_bundle_min_js}">
-                         |]
-            addScript $ StaticR js_bootstrap_min_js
-            addScript $ StaticR js_bootstrap_datepicker_min_js
-            addScript $ StaticR js_jquery_url_js
-            addScript $ StaticR js_jquery_cookie_js
-            addScript $ StaticR js_jquery_hotkeys_js
-            addScript $ StaticR js_jquery_flot_min_js
-            addScript $ StaticR js_jquery_flot_time_min_js
-            addScript $ StaticR js_jquery_flot_tooltip_min_js
-            toWidget [hamlet| \<!--[if lte IE 8]> <script type="text/javascript" src="@{StaticR js_excanvas_min_js}"></script> <![endif]--> |]
-            addStylesheet $ StaticR hledger_css
-            addScript $ StaticR hledger_js
-            $(widgetFile "default-layout")
+    let journalcurrent = if here == JournalR then "inacct" else "" :: Text
+        ropts = reportopts_ (cliopts_ opts)
+        -- flip the default for items with zero amounts, show them by default
+        ropts' = ropts { empty_ = not (empty_ ropts) }
+        accounts = balanceReportAsHtml RegisterR j qopts $ balanceReport ropts' am j
 
-        withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
+        topShowmd = if showsidebar then "col-md-4" else "col-any-0" :: Text
+        topShowsm = if showsidebar then "col-sm-4" else "" :: Text
+        sideShowmd = if showsidebar then "col-md-4" else "col-any-0" :: Text
+        sideShowsm = if showsidebar then "col-sm-4" else "" :: Text
+        mainShowmd = if showsidebar then "col-md-8" else "col-md-12" :: Text
+        mainShowsm = if showsidebar then "col-sm-8" else "col-sm-12" :: Text
+
+    -- We break up the default layout into two components:
+    -- default-layout is the contents of the body tag, and
+    -- default-layout-wrapper is the entire page. Since the final
+    -- value passed to hamletToRepHtml cannot be a widget, this allows
+    -- you to use normal widget features in default-layout.
+    pc <- widgetToPageContent $ do
+      addStylesheet $ StaticR css_bootstrap_min_css
+      addStylesheet $ StaticR css_bootstrap_datepicker_standalone_min_css
+      -- load these things early, in HEAD:
+      toWidgetHead [hamlet|
+        <script type="text/javascript" src="@{StaticR js_jquery_min_js}">
+        <script type="text/javascript" src="@{StaticR js_typeahead_bundle_min_js}">
+      |]
+      addScript $ StaticR js_bootstrap_min_js
+      addScript $ StaticR js_bootstrap_datepicker_min_js
+      addScript $ StaticR js_jquery_url_js
+      addScript $ StaticR js_jquery_cookie_js
+      addScript $ StaticR js_jquery_hotkeys_js
+      addScript $ StaticR js_jquery_flot_min_js
+      addScript $ StaticR js_jquery_flot_time_min_js
+      addScript $ StaticR js_jquery_flot_tooltip_min_js
+      toWidget [hamlet| \<!--[if lte IE 8]> <script type="text/javascript" src="@{StaticR js_excanvas_min_js}"></script> <![endif]--> |]
+      addStylesheet $ StaticR hledger_css
+      addScript $ StaticR hledger_js
+      $(widgetFile "default-layout")
+
+    withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
 #ifndef DEVELOPMENT
-    -- This function creates static content files in the static folder
-    -- and names them based on a hash of their content. This allows
-    -- expiration dates to be set far in the future without worry of
-    -- users receiving stale content.
-    addStaticContent = addStaticContentExternal minifym base64md5 Settings.staticDir (StaticR . flip StaticRoute [])
+  -- This function creates static content files in the static folder
+  -- and names them based on a hash of their content. This allows
+  -- expiration dates to be set far in the future without worry of
+  -- users receiving stale content.
+  addStaticContent = addStaticContentExternal minifym base64md5 Settings.staticDir (StaticR . flip StaticRoute [])
 #endif
 
 -- This instance is required to use forms. You can modify renderMessage to

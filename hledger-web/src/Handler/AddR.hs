@@ -62,7 +62,7 @@ postAddR = do
        Right t -> do
         -- 3. all fields look good and form a balanced transaction; append it to the file
         liftIO (appendTransaction journalfile t)
-        setMessage [shamlet|<span>Transaction added.|]
+        setMessage "Transaction added."
         redirect JournalR
   where
     bail :: [Text] -> Handler ()
