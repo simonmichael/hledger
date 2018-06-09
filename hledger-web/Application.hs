@@ -17,9 +17,9 @@ import Yesod.Default.Config
 import Yesod.Default.Main (defaultDevelApp)
 import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
--- Import all relevant handler modules here.
--- Don't forget to add new modules to your cabal file!
 import Handler.AddR (postAddR)
+import Handler.EditR (postEditR)
+import Handler.ImportR (postImportR)
 import Handler.JournalR (getJournalR)
 import Handler.RegisterR (getRegisterR)
 import Handler.RootR (getRootR)
@@ -41,30 +41,29 @@ mkYesodDispatch "App" resourcesApp
 -- place to put your migrate statements to have automatic database
 -- migrations handled by Yesod.
 makeApplication :: WebOpts -> Journal -> AppConfig DefaultEnv Extra -> IO Application
-makeApplication opts j conf = do
-    foundation <- makeFoundation conf opts
-    writeIORef (appJournal foundation) j
-    app <- toWaiAppPlain foundation
-    return $ logWare app
+makeApplication opts' j' conf' = do
+    foundation <- makeFoundation conf' opts'
+    writeIORef (appJournal foundation) j'
+    logWare <$> toWaiAppPlain foundation
   where
     logWare | development  = logStdoutDev
-            | serve_ opts  = logStdout
+            | serve_ opts'  = logStdout
             | otherwise    = id
 
 makeFoundation :: AppConfig DefaultEnv Extra -> WebOpts -> IO App
-makeFoundation conf opts = do
+makeFoundation conf opts' = do
     manager <- newManager defaultManagerSettings
     s <- staticSite
     jref <- newIORef nulljournal
-    return $ App conf s manager opts jref
+    return $ App conf s manager opts' jref
 
 -- for yesod devel
 -- uses the journal specified by the LEDGER_FILE env var, or ~/.hledger.journal
 getApplicationDev :: IO (Int, Application)
 getApplicationDev = do
   f <- head `fmap` journalFilePathFromOpts defcliopts -- XXX head should be safe for now
-  j <- either error' id `fmap` readJournalFile def f
-  defaultDevelApp loader (makeApplication defwebopts j)
+  j' <- either error' id <$> readJournalFile def f
+  defaultDevelApp loader (makeApplication defwebopts j')
   where
     loader = Yesod.Default.Config.loadConfig (configSettings Development)
         { csParseExtra = parseExtra

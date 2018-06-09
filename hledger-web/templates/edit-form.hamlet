@@ -1,0 +1,24 @@
+<form#editform method=POST style=display:none;>
+  <h2#contenttitle>Edit journal
+  <table.form>
+    $if length (jfiles j) > 1
+     <tr>
+       <td colspan=2>
+         Editing ^{journalselect (fmap (T.unpack . snd) (jfiles j))}
+    <tr>
+      <td colspan=2>
+        <!-- XXX textarea ids are unquoted journal file paths here, not valid html -->
+         $forall f <- jfiles j
+          <textarea id=#{fst f}_textarea name=text rows=25 cols=80 style=display:none; disabled=disabled>
+            \#{snd f}
+    <tr#addbuttonrow>
+      <td>
+        <span.help>
+          ^{helplink "file-format" "file format help"}
+      <td>
+        <span.help>
+          Are you sure ? This will overwrite the journal. #
+        <input type=hidden name=action value=edit>
+        <input type=submit name=submit value="save journal">
+        \ or #
+        <a href="#" onclick="return editformToggle(event)">cancel
