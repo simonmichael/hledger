@@ -69,7 +69,7 @@ instance Show ModifierTransaction where
     show t = "= " ++ T.unpack (mtvalueexpr t) ++ "\n" ++ unlines (map show (mtpostings t))
 
 instance Show PeriodicTransaction where
-    show t = "~ " ++ T.unpack (ptperiodicexpr t) ++ "\n" ++ unlines (map show (ptpostings t))
+    show t = "~ " ++ T.unpack (ptperiodexpr t) ++ "\n" ++ unlines (map show (ptpostings t))
 
 sourceFilePath :: GenericSourcePos -> FilePath
 sourceFilePath = \case
