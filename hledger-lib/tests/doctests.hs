@@ -8,4 +8,7 @@ main = do
   fs1 <- glob "Hledger/**/*.hs"
   fs2 <- glob "Text/**/*.hs"
   --fs3 <- glob "other/ledger-parse/**/*.hs"
-  doctest $ filter (not . isInfixOf "/.") $ ["--fast", "Hledger.hs"] ++ fs1 ++ fs2
+  let fs = filter (not . isInfixOf "/.") $ ["Hledger.hs"] ++ fs1 ++ fs2
+  doctest $ 
+    "--fast" :  -- https://github.com/sol/doctest#a-note-on-performance 
+    fs
