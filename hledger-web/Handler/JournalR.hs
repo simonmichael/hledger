@@ -5,8 +5,9 @@ module Handler.JournalR where
 
 import Import
 
-import Handler.AddForm
 import Handler.Common
+       (accountQuery, hledgerLayout, mixedAmountAsHtml,
+        numberTransactionsReportItems)
 
 import Hledger.Cli.CliOptions
 import Hledger.Data
@@ -19,29 +20,24 @@ import Hledger.Web.WebOptions
 getJournalR :: Handler Html
 getJournalR = do
   vd@VD{j, m, opts, qopts} <- getViewData
-  let -- XXX like registerReportAsHtml
-      title = case inAccount qopts of
-                Nothing       -> "General Journal" <> s2
-                Just (a,inclsubs) -> "Transactions in " <> a <> s1 <> s2
-                  where s1 = if inclsubs then "" else " (excluding subaccounts)"
-                where
-                  s2 = if m /= Any then ", filtered" else ""
-      maincontent = journalTransactionsReportAsHtml $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
+  -- XXX like registerReportAsHtml
+  let title = case inAccount qopts of
+        Nothing -> "General Journal"
+        Just (a, inclsubs) -> "Transactions in " <> a <> if inclsubs then "" else " (excluding subaccounts)"
+      title' = title <> if m /= Any then ", filtered" else ""
+      maincontent = transactionsReportAsHtml $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
   hledgerLayout vd "journal" [hamlet|
        <div .row>
-        <h2 #contenttitle>#{title}
+        <h2 #contenttitle>#{title'}
         <!-- p>Journal entries record movements of commodities between accounts. -->
         <a #addformlink role="button" style="cursor:pointer; margin-top:1em;" data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal" href="#">Add a transaction
        <div .table-responsive>
         ^{maincontent}
      |]
 
-postJournalR :: Handler Html
-postJournalR = postAddForm
-
 -- | Render a "TransactionsReport" as html for the formatted journal view.
-journalTransactionsReportAsHtml :: TransactionsReport -> HtmlUrl AppRoute
-journalTransactionsReportAsHtml (_,items) = [hamlet|
+transactionsReportAsHtml :: (w, [TransactionsReportItem]) -> HtmlUrl AppRoute
+transactionsReportAsHtml (_,items) = [hamlet|
 <table .transactionsreport .table .table-condensed>
  <thead>
   <th .date style="text-align:left;">
@@ -50,11 +46,11 @@ journalTransactionsReportAsHtml (_,items) = [hamlet|
   <th .account style="text-align:left;">Account
   <th .amount style="text-align:right;">Amount
  $forall i <- numberTransactionsReportItems items
-  ^{itemAsHtml i}
+  ^{transactionReportItem i}
  |]
- where
-   itemAsHtml :: (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml (_, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
+
+transactionReportItem :: (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
+transactionReportItem (_, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
 <tr .title #transaction-#{tindex torig}>
  <td .date nowrap>#{date}
  <td .description colspan=2>#{textElideRight 60 desc}

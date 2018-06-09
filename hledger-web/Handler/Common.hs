@@ -9,6 +9,7 @@ import Import
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, toGregorian)
 import System.FilePath (takeFileName)
+import Text.Blaze (ToMarkup)
 import Text.Blaze.Internal (preEscapedString)
 import Text.Printf (printf)
 
@@ -51,7 +52,6 @@ topbar VD{j, showsidebar} = [hamlet|
    <span .glyphicon .glyphicon-align-left .tgl-icon>
 <div#topbar .col-md-8 .col-sm-8 .col-xs-10>
  <h1>#{title}
-
 |]
   where
     title = takeFileName $ journalFilePath j
@@ -106,15 +106,13 @@ searchform VD{q, here} = [hamlet|
     <div #searchbar .input-group>
      <input .form-control name=q value=#{q} title="Enter hledger search patterns to filter the data below" placeholder="Search">
      <div .input-group-btn>
-      $if filtering
+      $if not (T.null q)
        <a href=@{here} .btn .btn-default title="Clear search terms">
         <span .glyphicon .glyphicon-remove-circle>
       <button .btn .btn-default type=submit title="Apply search terms">
        <span .glyphicon .glyphicon-search>
       <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal" title="Show search and general help">?
 |]
- where
-  filtering = not $ T.null q
 
 -- -- | Edit journal form.
 -- editform :: ViewData -> HtmlUrl AppRoute
@@ -234,3 +232,9 @@ mixedAmountAsHtml b = preEscapedString $ unlines $ map addclass $ lines $ showMi
             Just True -> "negative amount"
             _         -> "positive amount"
 
+showErrors :: ToMarkup a => [a] -> Handler ()
+showErrors errs = setMessage [shamlet|
+Errors:<br>
+$forall e<-errs
+  \#{e}<br>
+|]

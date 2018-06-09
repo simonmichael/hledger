@@ -104,4 +104,4 @@ $newline never
                 $maybe m <- lastmsg
                   $if isPrefixOf "Errors" (renderHtml m)
                     <div #message>#{m}
-                ^{addform j}
+                ^{addFormHamlet j AddR}

@@ -123,6 +123,7 @@ library
       Application
       Foundation
       Handler.AddForm
+      Handler.AddR
       Handler.Common
       Handler.JournalR
       Handler.RegisterR

@@ -19,9 +19,10 @@ import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
 -- Import all relevant handler modules here.
 -- Don't forget to add new modules to your cabal file!
+import Handler.AddR (postAddR)
+import Handler.JournalR (getJournalR)
+import Handler.RegisterR (getRegisterR)
 import Handler.RootR (getRootR)
-import Handler.JournalR (getJournalR, postJournalR)
-import Handler.RegisterR (getRegisterR, postRegisterR)
 import Handler.SidebarR (getSidebarR)
 
 import Hledger.Data (Journal, nulljournal)

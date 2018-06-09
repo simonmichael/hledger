@@ -119,6 +119,7 @@ library:
   - Foundation
   - Handler.AddForm
   - Handler.Common
+  - Handler.AddR
   - Handler.JournalR
   - Handler.RegisterR
   - Handler.RootR

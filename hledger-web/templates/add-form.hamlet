@@ -1,0 +1,62 @@
+<script>
+  jQuery(document).ready(function() {
+    /* set up typeahead fields */
+    descriptionsSuggester = new Bloodhound({
+      local:#{listToJsonValueObjArrayStr descriptions},
+      limit:100,
+      datumTokenizer: function(d) { return [d.value]; },
+      queryTokenizer: function(q) { return [q]; }
+    });
+    descriptionsSuggester.initialize();
+
+    accountsSuggester = new Bloodhound({
+      local:#{listToJsonValueObjArrayStr accts},
+      limit:100,
+      datumTokenizer: function(d) { return [d.value]; },
+      queryTokenizer: function(q) { return [q]; }
+      /*
+        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+        datumTokenizer: Bloodhound.tokenizers.whitespace(d.value)
+        queryTokenizer: Bloodhound.tokenizers.whitespace
+      */
+    });
+    accountsSuggester.initialize();
+
+    enableTypeahead(jQuery('input#description'), descriptionsSuggester);
+    enableTypeahead(jQuery('input#account1, input#account2, input#account3, input#account4'), accountsSuggester);
+  });
+
+<form#addform action=@{r} method=POST .form>
+ <div .form-group>
+  <div .row>
+   <div .col-md-3 .col-xs-6 .col-sm-6>
+    <div #dateWrap .input-group .date>
+     <input #date required lang=en name=date .form-control .input-lg placeholder="Date" >
+     <div .input-group-addon>
+      <span .glyphicon .glyphicon-th>
+   <div .col-md-9 .col-xs-6 .col-sm-6>
+    <input #description required .typeahead .form-control .input-lg type=text size=40 name=description placeholder="Description">
+
+ <div .account-postings>
+  $forall n <- postingnums
+   <div .form-group .row .account-group #grp#{n}>
+    <div .col-md-8 .col-xs-8 .col-sm-8>
+     <input #account#{n} .account-input.form-control.input-lg.typeahead type=text name=account#{n} placeholder="Account #{n}">
+    <div .col-md-4 .col-xs-4 .col-sm-4>
+     <input #amount#{n} .amount-input.form-control.input-lg type=text name=amount#{n} placeholder="Amount#{n}">
+
+ <div .col-md-8 .col-xs-8 .col-sm-8>
+ <div .col-md-4 .col-xs-4 .col-sm-4>
+  <button type=submit .btn .btn-default .btn-lg name=submit>add
+ $if length filepaths > 1
+  <br>
+  <span .input-lg>to:
+   <select #journalselect .form-control.input-lg name=journal onchange="/*journalSelect(event)*/"  style="width:auto; display:inline-block;">
+    $forall p <- filepaths
+     <option value=#{p}>#{p}
+
+ <span style="padding-left:2em;">
+  <span .small>
+    Enter a value in the last field for
+    <a href="#" onclick="addformAddPosting(); return false;">more
+    (or ctrl +, ctrl -)

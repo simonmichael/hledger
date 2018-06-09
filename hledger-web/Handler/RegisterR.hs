@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, QuasiQuotes, NamedFieldPuns #-}
+{-# LANGUAGE ScopedTypeVariables, OverloadedStrings, QuasiQuotes, NamedFieldPuns #-}
 -- | /register handlers.
 
 module Handler.RegisterR where
@@ -10,13 +10,9 @@ import Data.List (intersperse)
 import qualified Data.Text as T
 import Safe (headMay)
 
-import Handler.AddForm (postAddForm)
-import Handler.Common
+import Handler.Common (hledgerLayout, numberTransactionsReportItems, mixedAmountAsHtml)
 
-import Hledger.Data
-import Hledger.Query
-import Hledger.Reports
-import Hledger.Utils
+import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.WebOptions
 
@@ -31,22 +27,19 @@ getRegisterR = do
           s2 = if m /= Any then ", filtered" else ""
   hledgerLayout vd "register" $ do
     _ <- [hamlet|<h2 #contenttitle>#{title}|]
-    registerReportHtml vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
-
-postRegisterR :: Handler Html
-postRegisterR = postAddForm
+    registerReportHtml qopts $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
 
 -- | Generate html for an account register, including a balance chart and transaction list.
-registerReportHtml :: ViewData -> TransactionsReport -> HtmlUrl AppRoute
-registerReportHtml vd r = [hamlet|
+registerReportHtml :: [QueryOpt] -> TransactionsReport -> HtmlUrl AppRoute
+registerReportHtml qopts r = [hamlet|
  <div .hidden-xs>
   ^{registerChartHtml $ transactionsReportByCommodity r}
- ^{registerItemsHtml vd r}
+ ^{registerItemsHtml qopts r}
 |]
 
 -- | Generate html for a transaction list from an "TransactionsReport".
-registerItemsHtml :: ViewData -> TransactionsReport -> HtmlUrl AppRoute
-registerItemsHtml VD{qopts} (balancelabel,items) = [hamlet|
+registerItemsHtml :: [QueryOpt] -> TransactionsReport -> HtmlUrl AppRoute
+registerItemsHtml qopts (balancelabel,items) = [hamlet|
 <div .table-responsive>
  <table.registerreport .table .table-striped .table-condensed>
   <thead>

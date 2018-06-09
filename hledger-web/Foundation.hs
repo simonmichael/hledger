@@ -6,20 +6,19 @@
 module Foundation where
 
 import Data.IORef (IORef, readIORef, writeIORef)
-import Data.List (isPrefixOf, sort, nub)
+import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit (Manager)
 import Text.Blaze (Markup)
-import Text.Blaze.Internal (preEscapedString)
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Hamlet (hamletFile)
-import Text.JSON
 import Yesod
 import Yesod.Static
 import Yesod.Default.Config
 
+import Handler.AddForm
 import Settings.StaticFiles
 import Settings (widgetFile, Extra (..))
 #ifndef DEVELOPMENT
@@ -233,104 +232,3 @@ getCurrentJournal jref opts d = do
 -- referentially transparent manner (allowing multiple reads).
 getLastMessage :: Handler (Maybe Html)
 getLastMessage = cached getMessage
-
--- add form dialog, part of the default template
-
--- | Add transaction form.
-addform :: Journal -> HtmlUrl AppRoute
-addform j = [hamlet|
-
-<script>
-  jQuery(document).ready(function() {
-
-    /* set up typeahead fields */
-
-    descriptionsSuggester = new Bloodhound({
-      local:#{listToJsonValueObjArrayStr descriptions},
-      limit:100,
-      datumTokenizer: function(d) { return [d.value]; },
-      queryTokenizer: function(q) { return [q]; }
-    });
-    descriptionsSuggester.initialize();
-
-    accountsSuggester = new Bloodhound({
-      local:#{listToJsonValueObjArrayStr accts},
-      limit:100,
-      datumTokenizer: function(d) { return [d.value]; },
-      queryTokenizer: function(q) { return [q]; }
-      /*
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-        datumTokenizer: Bloodhound.tokenizers.whitespace(d.value)
-        queryTokenizer: Bloodhound.tokenizers.whitespace
-      */
-    });
-    accountsSuggester.initialize();
-
-    enableTypeahead(jQuery('input#description'), descriptionsSuggester);
-    enableTypeahead(jQuery('input#account1, input#account2, input#account3, input#account4'), accountsSuggester);
-
-  });
-
-<form#addform method=POST .form>
- <div .form-group>
-  <div .row>
-   <div .col-md-3 .col-xs-6 .col-sm-6>
-    <div #dateWrap .input-group .date>
-     <input #date required lang=en name=date .form-control .input-lg placeholder="Date" >
-     <div .input-group-addon>
-      <span .glyphicon .glyphicon-th>
-   <div .col-md-9 .col-xs-6 .col-sm-6>
-    <input #description required .typeahead .form-control .input-lg type=text size=40 name=description placeholder="Description">
- <div .account-postings>
-  $forall n <- postingnums
-    ^{postingfields n}
- <div .col-md-8 .col-xs-8 .col-sm-8>
- <div .col-md-4 .col-xs-4 .col-sm-4>
-  <button type=submit .btn .btn-default .btn-lg name=submit>add
- $if length filepaths > 1
-  <br>
-  <span class="input-lg">to:
-   ^{journalselect filepaths}
- <span style="padding-left:2em;">
-  <span .small>
-    Enter a value in the last field for
-    <a href="#" onclick="addformAddPosting(); return false;">more
-    (or ctrl +, ctrl -)
-|]
- where
-  descriptions = sort $ nub $ map tdescription $ jtxns j
-  accts = journalAccountNamesDeclaredOrImplied j
-  escapeJSSpecialChars = regexReplaceCI "</script>" "<\\/script>" -- #236
-  listToJsonValueObjArrayStr as  = preEscapedString $ escapeJSSpecialChars $ encode $ JSArray $ map (\a -> JSObject $ toJSObject [("value", showJSON a)]) as
-  numpostings = 4
-  postingnums = [1..numpostings]
-  filepaths = map fst $ jfiles j
-  postingfields :: Int -> HtmlUrl AppRoute
-  postingfields n = [hamlet|
-<div .form-group .row .account-group ##{grpvar}>
- <div .col-md-8 .col-xs-8 .col-sm-8>
-  <input ##{acctvar} .account-input .typeahead .form-control .input-lg type=text name=#{acctvar} placeholder="#{acctph}">
- <div .col-md-4 .col-xs-4 .col-sm-4>
-  <input ##{amtvar} .amount-input .form-control .input-lg type=text name=#{amtvar} placeholder="#{amtph}">
-|]
-   where
-    acctvar = "account" ++ show n
-    acctph = "Account " ++ show n
-    amtvar = "amount" ++ show n
-    amtph = "Amount " ++ show n
-    grpvar = "grp" ++ show n
-
-journalselect :: [FilePath] -> HtmlUrl AppRoute
-journalselect journalfilepaths = [hamlet|
-<select id=journalselect name=journal onchange="/*journalSelect(event)*/" class="form-control input-lg" style="width:auto; display:inline-block;">
- $forall p <- journalfilepaths
-  <option value=#{p}>#{p}
-|]
-
-journalradio :: [FilePath] -> HtmlUrl AppRoute
-journalradio journalfilepaths = [hamlet|
- $forall p <- journalfilepaths
-  <div style="white-space:nowrap;">
-   <span class="input-lg" style="position:relative; top:-8px; left:8px;">#{p}
-   <input name=journal type=radio value=#{p} class="form-control" style="width:auto; display:inline;">
-|]
