@@ -9,7 +9,8 @@ packages:
 - hledger-web
 - hledger-api
 
-#extra-deps:
+extra-deps:
+- cassava-megaparsec-1.0.0
 
 nix:
   pure: false
