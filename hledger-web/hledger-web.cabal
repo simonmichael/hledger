@@ -119,6 +119,7 @@ flag threaded
   default: True
 
 library
+  hs-source-dirs: src
   exposed-modules:
       Application
       Foundation

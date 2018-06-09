@@ -113,6 +113,7 @@ ghc-options:
 - -fwarn-tabs
 
 library:
+  source-dirs: src
   cpp-options: -DVERSION="1.9.99"
   exposed-modules:
   - Application
