@@ -45,7 +45,8 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
     expenses:housing            $600
     assets:cash
 
-2017/01/01 Forecast transaction (monthly from 2016/1)
+2017/01/01
+    ; recur: monthly from 2016/1
     income                    $-1000
     expenses:food                $20
     expenses:leisure             $15
@@ -71,7 +72,7 @@ hledger register -b 2016-11 -e 2017-02 -f - --forecast
 >>>
 2016/12/31                      expenses:housing              $600          $600
                                 assets:cash                  $-600             0
-2017/01/01 Forecast transact..  income                      $-1000        $-1000
+2017/01/01                      income                      $-1000        $-1000
                                 expenses:food                  $20         $-980
                                 expenses:leisure               $15         $-965
                                 expenses:grocery               $30         $-935
@@ -96,6 +97,6 @@ hledger register -b 2015-12 -e 2017-02 -f - assets:cash --forecast
 >>>
 2016/01/01                      assets:cash                   $-10          $-10
 2016/12/02                      assets:cash                  $-600         $-610
-2017/01/01 Forecast transact..  assets:cash                 $10000         $9390
+2017/01/01                      assets:cash                 $10000         $9390
 >>>2
 >>>=0
