@@ -55,14 +55,12 @@ import System.Locale (defaultTimeLocale)
 import Safe
 import System.Directory (doesFileExist)
 import System.FilePath
-<<<<<<< HEAD
 import Text.CSV (parseCSV, CSV)
 import qualified Data.Csv as DSCV
-=======
 import Test.HUnit hiding (State)
 import qualified Data.Csv as DCSV
-import qualified Data.Vector as V
->>>>>>> Conversion to Text CSV type
+import Data.Vector (Vector)
+import Data.Foldable
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 import qualified Text.Parsec as Parsec
@@ -191,27 +189,20 @@ parseCsv path csvdata =
     "-" -> liftM (parseCassava "(stdin)") getContents
     _   -> return $ parseCassava path csvdata
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-parseCsv2 :: FilePath -> String -> IO (Either Parsec.ParseError CSV)
-parseCsv2 = undefined
-=======
+
 parseCassava :: FilePath -> String -> Either String [Record]
 parseCassava path content =  fmap fromCassavaToCSV $ DCSV.decode DCSV.NoHeader (C.pack content)
-=======
+
 parseCassava :: FilePath -> String -> Either Parsec.ParseError CSV
 parseCassava path content =
     case parseResult of
         Left  msg -> Left $ toErrorMessage msg
         Right a   -> Right a
     where parseResult = fmap fromCassavaToCSV $ DCSV.decode DCSV.NoHeader (C.pack content)
->>>>>>> Text CSV error messages
 
-fromCassavaToCSV :: (V.Vector (V.Vector C.ByteString)) -> CSV
-fromCassavaToCSV records = V.toList (V.map toCSVRecord records)
-    where toCSVRecord fields = V.toList (V.map (C.unpack) fields)
->>>>>>> Conversion to Text CSV type
-
+fromCassavaToCSV :: (Vector (Vector C.ByteString)) -> CSV
+fromCassavaToCSV records = toList (toCSVRecord <$> records)
+    where toCSVRecord fields = toList (C.unpack <$> fields)
 
 toErrorMessage :: String -> Parsec.ParseError
 toErrorMessage msg = Parsec.newErrorMessage (Parsec.Message msg) (Parsec.newPos "" 0 0)
