@@ -34,7 +34,7 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
     expenses:housing  $600
     assets:cash
 
-~ monthly from 2016/1
+~ monthly from 2016/1  * marked cleared, and with a description 
     income  $-1000
     expenses:food     $20
     expenses:leisure  $15
@@ -45,7 +45,7 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
     expenses:housing            $600
     assets:cash
 
-2017/01/01
+2017/01/01 * marked cleared, and with a description
     ; recur: monthly from 2016/1
     income                    $-1000
     expenses:food                $20
@@ -57,21 +57,19 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
 >>>=0
 
 
-hledger register -b 2016-11 -e 2017-02 -f - --forecast
+hledger register -b 2016-11 -e 2017-02 -f - --forecast  tag:a
 <<<
 2016/12/31
     expenses:housing  $600
     assets:cash
 
-~ monthly from 2016/1
+~ monthly from 2016/1  ; or a comment, maybe with a:tag
     income  $-1000
     expenses:food     $20
     expenses:leisure  $15
     expenses:grocery  $30
     assets:cash
 >>>
-2016/12/31                      expenses:housing              $600          $600
-                                assets:cash                  $-600             0
 2017/01/01                      income                      $-1000        $-1000
                                 expenses:food                  $20         $-980
                                 expenses:leisure               $15         $-965
