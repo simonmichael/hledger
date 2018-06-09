@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -23,51 +24,49 @@ import Handler.Common (showErrors)
 import Hledger
 import Hledger.Cli.Commands.Add (appendToJournalFileOrStdout)
 
-postAddR :: Handler Html
+postAddR :: Handler ()
 postAddR = do
-  -- 1. process the fixed fields with yesod-form
   VD{today, j} <- getViewData
-  formresult <- runInputPostResult (addForm today j)
-
-  ok <- case formresult of
-    FormMissing      -> showErrors ["there is no form data" :: Text] >> return False
-    FormFailure errs -> showErrors errs >> return False
+  -- 1. process the fixed fields with yesod-form
+  runInputPostResult (addForm today j) >>= \case
+    FormMissing      -> bail ["there is no form data"]
+    FormFailure errs -> bail errs
     FormSuccess form -> do
       let journalfile = maybe (journalFilePath j) T.unpack $ addFormJournalFile form
-
       -- 2. the fixed fields look good; now process the posting fields adhocly,
       -- getting either errors or a balanced transaction
       (params,_) <- runRequestBody
       let acctparams = parseNumberedParameters "account" params
           amtparams  = parseNumberedParameters "amount" params
           pnum = length acctparams
-          paramErrs | pnum == 0 = ["at least one posting must be entered"]
-                    | map fst acctparams == [1..pnum] &&
-                      map fst amtparams `elem` [[1..pnum], [1..pnum-1]] = []
-                    | otherwise = ["the posting parameters are malformed"]
-          eaccts = map (runParser (accountnamep <* eof) "" . textstrip  . snd) acctparams
-          eamts  = map (runParser (evalStateT (amountp <* eof) mempty) "" . textstrip . snd) amtparams
-          (accts, acctErrs) = (rights eaccts, map show $ lefts eaccts)
-          (amts', amtErrs)  = (rights eamts, map show $ lefts eamts)
+      when (pnum == 0) (bail ["at least one posting must be entered"])
+      when (map fst acctparams /= [1..pnum] || map fst amtparams `elem` [[1..pnum], [1..pnum-1]])
+        (bail ["the posting parameters are malformed"])
+
+      let eaccts = runParser (accountnamep <* eof) "" . textstrip  . snd <$> acctparams
+          eamts  = runParser (evalStateT (amountp <* eof) mempty) "" . textstrip . snd <$> amtparams
+          (acctErrs, accts) = partitionEithers eaccts
+          (amtErrs, amts')  = partitionEithers eamts
           amts | length amts' == pnum = amts'
-               | otherwise           = amts' ++ [missingamt]
-          errs = if not (null paramErrs) then paramErrs else acctErrs ++ amtErrs
-          etxn | not $ null errs = Left errs
-               | otherwise = either (Left . maybeToList . headMay . lines) Right
-                              (balanceTransaction Nothing $ nulltransaction {
-                                  tdate = addFormDate form
-                                 ,tdescription = fromMaybe "" $ addFormDescription form
-                                 ,tpostings=[nullposting{paccount=acct, pamount=Mixed [amt]} | (acct,amt) <- zip accts amts]
-                                 })
+               | otherwise = amts' ++ [missingamt]
+          errs = T.pack . parseErrorPretty <$> acctErrs ++ amtErrs
+      unless (null errs) (bail errs)
+
+      let etxn = balanceTransaction Nothing $ nulltransaction
+            { tdate = addFormDate form
+            , tdescription = fromMaybe "" $ addFormDescription form
+            , tpostings = (\(ac, am) -> nullposting {paccount = ac, pamount = Mixed [am]}) <$> zip accts amts
+            }
       case etxn of
-       Left errs' -> showErrors errs' >> return False
+       Left errs' -> bail (fmap T.pack . maybeToList . headMay $ lines errs')
        Right t -> do
         -- 3. all fields look good and form a balanced transaction; append it to the file
         liftIO (appendTransaction journalfile t)
         setMessage [shamlet|<span>Transaction added.|]
-        return True
-
-  if ok then redirect JournalR else redirect (JournalR, [("add","1")])
+        redirect JournalR
+  where
+    bail :: [Text] -> Handler ()
+    bail xs = showErrors xs >> redirect (JournalR, [("add","1")])
 
 parseNumberedParameters :: Text -> [(Text, Text)] -> [(Int, Text)]
 parseNumberedParameters s =
