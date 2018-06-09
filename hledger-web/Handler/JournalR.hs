@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, QuasiQuotes, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, NamedFieldPuns #-}
 -- | /journal handlers.
 
 module Handler.JournalR where
@@ -18,7 +18,7 @@ import Hledger.Web.WebOptions
 -- | The formatted journal view, with sidebar.
 getJournalR :: Handler Html
 getJournalR = do
-  vd@VD{..} <- getViewData
+  vd@VD{j, m, opts, qopts} <- getViewData
   let -- XXX like registerReportAsHtml
       title = case inAccount qopts of
                 Nothing       -> "General Journal" <> s2
@@ -26,7 +26,7 @@ getJournalR = do
                   where s1 = if inclsubs then "" else " (excluding subaccounts)"
                 where
                   s2 = if m /= Any then ", filtered" else ""
-      maincontent = journalTransactionsReportAsHtml vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
+      maincontent = journalTransactionsReportAsHtml $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
   hledgerLayout vd "journal" [hamlet|
        <div .row>
         <h2 #contenttitle>#{title}
@@ -40,8 +40,8 @@ postJournalR :: Handler Html
 postJournalR = postAddForm
 
 -- | Render a "TransactionsReport" as html for the formatted journal view.
-journalTransactionsReportAsHtml :: ViewData -> TransactionsReport -> HtmlUrl AppRoute
-journalTransactionsReportAsHtml vd (_,items) = [hamlet|
+journalTransactionsReportAsHtml :: TransactionsReport -> HtmlUrl AppRoute
+journalTransactionsReportAsHtml (_,items) = [hamlet|
 <table .transactionsreport .table .table-condensed>
  <thead>
   <th .date style="text-align:left;">
@@ -50,11 +50,11 @@ journalTransactionsReportAsHtml vd (_,items) = [hamlet|
   <th .account style="text-align:left;">Account
   <th .amount style="text-align:right;">Amount
  $forall i <- numberTransactionsReportItems items
-  ^{itemAsHtml vd i}
+  ^{itemAsHtml i}
  |]
  where
-   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml VD{..} (_, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
+   itemAsHtml :: (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
+   itemAsHtml (_, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
 <tr .title #transaction-#{tindex torig}>
  <td .date nowrap>#{date}
  <td .description colspan=2>#{textElideRight 60 desc}

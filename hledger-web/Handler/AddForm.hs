@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, FlexibleContexts, OverloadedStrings, QuasiQuotes, RecordWildCards, ScopedTypeVariables, TypeFamilies #-}
+{-# LANGUAGE CPP, FlexibleContexts, OverloadedStrings, QuasiQuotes, NamedFieldPuns, ScopedTypeVariables, TypeFamilies #-}
 -- | Add form data & handler. (The layout and js are defined in
 -- Foundation so that the add form can be in the default layout for
 -- all views.)
@@ -47,7 +47,7 @@ addForm today j = AddForm
 postAddForm :: Handler Html
 postAddForm = do
   -- 1. process the fixed fields with yesod-form
-  VD{..} <- getViewData
+  VD{today, j} <- getViewData
   formresult <- runInputPostResult (addForm today j)
 
   ok <- case formresult of

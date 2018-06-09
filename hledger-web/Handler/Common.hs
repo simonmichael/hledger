@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, OverloadedStrings, QuasiQuotes, RecordWildCards #-}
+{-# LANGUAGE CPP, OverloadedStrings, QuasiQuotes, NamedFieldPuns #-}
 -- | Common page components and rendering helpers.
 -- For global page layout, see Application.hs.
 
@@ -44,7 +44,7 @@ hledgerLayout vd title content = do
 
 -- | Global toolbar/heading area.
 topbar :: ViewData -> HtmlUrl AppRoute
-topbar VD{..} = [hamlet|
+topbar VD{j, showsidebar} = [hamlet|
 <div#spacer .#{showsm} .#{showmd} .col-xs-2>
  <h1>
   <button .visible-xs .btn .btn-default type="button" data-toggle="offcanvas">
@@ -60,7 +60,7 @@ topbar VD{..} = [hamlet|
 
 -- | The sidebar used on most views.
 sidebar :: ViewData -> HtmlUrl AppRoute
-sidebar vd@VD{..} =
+sidebar vd@VD{am, here, j, opts, showsidebar} =
  [hamlet|
  <div #sidebar-menu .#{showmd} .#{showsm} .sidebar-offcanvas>
   <table .main-menu .table>
@@ -99,7 +99,7 @@ sidebar vd@VD{..} =
 
 -- | Search form for entering custom queries to filter journal data.
 searchform :: ViewData -> HtmlUrl AppRoute
-searchform VD{..} = [hamlet|
+searchform VD{q, here} = [hamlet|
 <div#searchformdiv .row>
  <form#searchform .form-inline method=GET>
   <div .form-group .col-md-12 .col-sm-12 .col-xs-12>
@@ -174,7 +174,7 @@ helplink topic label = [hamlet|
 
 -- | Render a "BalanceReport" as html.
 balanceReportAsHtml :: ViewData -> BalanceReport -> HtmlUrl AppRoute
-balanceReportAsHtml VD{..} (items, total) =
+balanceReportAsHtml VD{j, qopts} (items, total) =
  [hamlet|
   $forall i <- items
    ^{itemAsHtml i}

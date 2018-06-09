@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, QuasiQuotes, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings, QuasiQuotes, NamedFieldPuns #-}
 -- | /register handlers.
 
 module Handler.RegisterR where
@@ -23,7 +23,7 @@ import Hledger.Web.WebOptions
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
 getRegisterR = do
-  vd@VD{..} <- getViewData
+  vd@VD{j, m, opts, qopts} <- getViewData
   let title = a <> s1 <> s2
         where
           (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
@@ -46,7 +46,7 @@ registerReportHtml vd r = [hamlet|
 
 -- | Generate html for a transaction list from an "TransactionsReport".
 registerItemsHtml :: ViewData -> TransactionsReport -> HtmlUrl AppRoute
-registerItemsHtml vd (balancelabel,items) = [hamlet|
+registerItemsHtml VD{qopts} (balancelabel,items) = [hamlet|
 <div .table-responsive>
  <table.registerreport .table .table-striped .table-condensed>
   <thead>
@@ -59,14 +59,14 @@ registerItemsHtml vd (balancelabel,items) = [hamlet|
     <th style="text-align:right; white-space:normal;">Amount Out/In
     <th style="text-align:right; white-space:normal;">#{balancelabel'}
   $forall i <- numberTransactionsReportItems items
-   ^{itemAsHtml vd i}
+   ^{itemAsHtml i}
  |]
  where
-   insomeacct = isJust $ inAccount $ qopts vd
+   insomeacct = isJust $ inAccount qopts
    balancelabel' = if insomeacct then balancelabel else "Total"
 
-   itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
-   itemAsHtml VD{..} (n, newd, newm, _, (torig, tacct, split, acct, amt, bal)) = [hamlet|
+   itemAsHtml :: (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
+   itemAsHtml (n, newd, newm, _, (torig, tacct, split, acct, amt, bal)) = [hamlet|
 <tr ##{tindex torig} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show torig}" style="vertical-align:top;">
  <td .date>
   <a href="@{JournalR}#transaction-#{tindex torig}">#{date}

@@ -1,5 +1,5 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE CPP, LambdaCase, MultiParamTypeClasses, NamedFieldPuns, OverloadedStrings, RecordWildCards, QuasiQuotes, TemplateHaskell, TypeFamilies, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE CPP, LambdaCase, MultiParamTypeClasses, NamedFieldPuns, OverloadedStrings, QuasiQuotes, TemplateHaskell, TypeFamilies, TypeSynonymInstances, FlexibleInstances #-}
 -- | Define the web application's foundation, in the usual Yesod style.
 --   See a default Yesod app's comments for more details of each part.
 
@@ -87,7 +87,7 @@ instance Yesod App where
     defaultLayout widget = do
         master <- getYesod
         lastmsg <- getMessage
-        vd@VD{..} <- getViewData
+        VD{j, opts} <- getViewData
 
         -- We break up the default layout into two components:
         -- default-layout is the contents of the body tag, and
@@ -237,8 +237,8 @@ getLastMessage = cached getMessage
 -- add form dialog, part of the default template
 
 -- | Add transaction form.
-addform :: ViewData -> HtmlUrl AppRoute
-addform VD{..} = [hamlet|
+addform :: Journal -> HtmlUrl AppRoute
+addform j = [hamlet|
 
 <script>
   jQuery(document).ready(function() {
