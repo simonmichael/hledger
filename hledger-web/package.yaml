@@ -123,7 +123,6 @@ library:
   - Handler.RegisterR
   - Handler.RootR
   - Handler.SidebarR
-  - Handler.Utils
   - Hledger.Web
   - Hledger.Web.Main
   - Hledger.Web.WebOptions

@@ -20,16 +20,12 @@ getJournalR :: Handler Html
 getJournalR = do
   vd@VD{..} <- getViewData
   let -- XXX like registerReportAsHtml
-      inacct = inAccount qopts
-      -- injournal = isNothing inacct
-      filtering = m /= Any
-      -- showlastcolumn = if injournal && not filtering then False else True
-      title = case inacct of
+      title = case inAccount qopts of
                 Nothing       -> "General Journal" <> s2
                 Just (a,inclsubs) -> "Transactions in " <> a <> s1 <> s2
                   where s1 = if inclsubs then "" else " (excluding subaccounts)"
                 where
-                  s2 = if filtering then ", filtered" else ""
+                  s2 = if m /= Any then ", filtered" else ""
       maincontent = journalTransactionsReportAsHtml opts vd $ journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
   hledgerLayout vd "journal" [hamlet|
        <div .row>
@@ -57,7 +53,6 @@ journalTransactionsReportAsHtml _ vd (_,items) = [hamlet|
   ^{itemAsHtml vd i}
  |]
  where
--- .#{datetransition}
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (_, _, _, _, (torig, _, split, _, amt, _)) = [hamlet|
 <tr .title #transaction-#{tindex torig}>

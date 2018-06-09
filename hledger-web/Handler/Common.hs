@@ -75,7 +75,7 @@ sidebar vd@VD{..} =
   ropts = reportopts_ $ cliopts_ opts
   -- flip the default for items with zero amounts, show them by default
   ropts' = ropts{empty_=not $ empty_ ropts}
-  accounts = balanceReportAsHtml opts vd $ balanceReport ropts' am j
+  accounts = balanceReportAsHtml vd $ balanceReport ropts' am j
   showmd = if showsidebar then "col-md-4" else "col-any-0" :: Text
   showsm = if showsidebar then "col-sm-4" else "" :: Text
 
@@ -169,19 +169,15 @@ helplink topic label = [hamlet|
 |]
     where u = manualurl <> if T.null topic then "" else T.cons '#' topic
 
-nulltemplate :: HtmlUrl AppRoute
-nulltemplate = [hamlet||]
-
-
 ----------------------------------------------------------------------
 -- hledger report renderers
 
 -- | Render a "BalanceReport" as html.
-balanceReportAsHtml :: WebOpts -> ViewData -> BalanceReport -> HtmlUrl AppRoute
-balanceReportAsHtml _ vd@VD{..} (items',total) =
+balanceReportAsHtml :: ViewData -> BalanceReport -> HtmlUrl AppRoute
+balanceReportAsHtml VD{..} (items, total) =
  [hamlet|
   $forall i <- items
-   ^{itemAsHtml vd i}
+   ^{itemAsHtml i}
   <tr .total>
    <td>
    <td>
@@ -190,9 +186,8 @@ balanceReportAsHtml _ vd@VD{..} (items',total) =
  where
    l = ledgerFromJournal Any j
    inacctmatcher = inAccountQuery qopts
-   items = items' -- maybe items' (\m -> filter (matchesAccount m . \(a,_,_,_)->a) items') showacctmatcher
-   itemAsHtml :: ViewData -> BalanceReportItem -> HtmlUrl AppRoute
-   itemAsHtml _ (acct, adisplay, aindent, abal) = [hamlet|
+   itemAsHtml :: BalanceReportItem -> HtmlUrl AppRoute
+   itemAsHtml (acct, adisplay, aindent, abal) = [hamlet|
 <tr .#{inacctclass}>
  <td .acct>
   <div .ff-wrapper>
@@ -217,9 +212,6 @@ accountQuery = ("inacct:" <>) .  quoteIfSpaced
 
 accountOnlyQuery :: AccountName -> Text
 accountOnlyQuery = ("inacctonly:" <>) . quoteIfSpaced
-
-accountUrl :: AppRoute -> AccountName -> (AppRoute, [(Text, Text)])
-accountUrl r a = (r, [("q", accountQuery a)])
 
 numberTransactionsReportItems :: [TransactionsReportItem] -> [(Int,Bool,Bool,Bool,TransactionsReportItem)]
 numberTransactionsReportItems [] = []

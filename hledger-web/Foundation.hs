@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE CPP, MultiParamTypeClasses, OverloadedStrings, RecordWildCards, QuasiQuotes, TemplateHaskell, TypeFamilies, TypeSynonymInstances, FlexibleInstances #-}
 -- | Define the web application's foundation, in the usual Yesod style.
 --   See a default Yesod app's comments for more details of each part.
@@ -102,7 +103,6 @@ instance Yesod App where
                           <script type="text/javascript" src="@{StaticR js_typeahead_bundle_min_js}">
                          |]
             addScript $ StaticR js_bootstrap_min_js
-            -- addScript $ StaticR js_typeahead_bundle_min_js
             addScript $ StaticR js_bootstrap_datepicker_min_js
             addScript $ StaticR js_jquery_url_js
             addScript $ StaticR js_jquery_cookie_js
@@ -131,15 +131,12 @@ instance Yesod App where
 instance RenderMessage App FormMessage where
     renderMessage _ _ = defaultFormMessage
 
--- | Get the 'Extra' value, used to hold data from the settings.yml file.
-getExtra :: Handler Extra
-getExtra = fmap (appExtra . settings) getYesod
-
 
 ----------------------------------------------------------------------
 -- template and handler utilities
 
 -- view data, used by the add form and handlers
+-- XXX Parameter p - show/hide postings
 
 -- | A bundle of data useful for hledger-web request handlers and templates.
 data ViewData = VD {
@@ -153,7 +150,6 @@ data ViewData = VD {
     ,qopts        :: [QueryOpt] -- ^ query options parsed from the q parameter
     ,am           :: Query      -- ^ a query parsed from the accounts sidebar query expr ("a" parameter)
     ,aopts        :: [QueryOpt] -- ^ query options parsed from the accounts sidebar query expr
-    ,showpostings :: Bool       -- ^ current p parameter, 1 or 0 shows/hides all postings where applicable
     ,showsidebar  :: Bool       -- ^ current showsidebar cookie value
     } deriving (Show)
 
@@ -161,11 +157,11 @@ instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
 
 -- | Make a default ViewData, using day 0 as today's date.
 nullviewdata :: ViewData
-nullviewdata = viewdataWithDateAndParams nulldate "" "" ""
+nullviewdata = viewdataWithDateAndParams nulldate "" ""
 
 -- | Make a ViewData using the given date and request parameters, and defaults elsewhere.
-viewdataWithDateAndParams :: Day -> Text -> Text -> Text -> ViewData
-viewdataWithDateAndParams d q a p =
+viewdataWithDateAndParams :: Day -> Text -> Text -> ViewData
+viewdataWithDateAndParams d q a =
     let (querymatcher,queryopts) = parseQuery d q
         (acctsmatcher,acctsopts) = parseQuery d a
     in VD {
@@ -179,7 +175,6 @@ viewdataWithDateAndParams d q a p =
           ,qopts        = queryopts
           ,am           = acctsmatcher
           ,aopts        = acctsopts
-          ,showpostings = p == "1"
           ,showsidebar  = True
           }
 
@@ -196,16 +191,15 @@ getViewData = do
       (j, merr)  <- getCurrentJournal app copts{reportopts_=ropts{no_elide_=True}} today
       lastmsg    <- getLastMessage
       let msg = maybe lastmsg (Just . toHtml) merr
-      q          <- getParameterOrNull "q"
-      a          <- getParameterOrNull "a"
-      p          <- getParameterOrNull "p"
+      q          <- fromMaybe "" <$> lookupGetParam "q"
+      a          <- fromMaybe "" <$> lookupGetParam "a"
       -- sidebar visibility: show it, unless there is a showsidebar cookie
       -- set to "0", or a ?sidebar=0 query parameter.
       msidebarparam <- lookupGetParam "sidebar"
       msidebarcookie <- reqCookies <$> getRequest >>= return . lookup "showsidebar"
       let showsidebar = maybe (msidebarcookie /= Just "0") (/="0") msidebarparam
 
-      return (viewdataWithDateAndParams today q a p){
+      return (viewdataWithDateAndParams today q a){
                    opts=opts
                   ,msg=msg
                   ,here=here
@@ -230,12 +224,8 @@ getViewData = do
              else case ej' of
                     Right j' -> do liftIO $ writeIORef (appJournal app) j'
                                    return (j',Nothing)
-                    Left e   -> do setMessage $ "error while reading" {- ++ ": " ++ e-}
+                    Left e   -> do setMessage "error while reading"
                                    return (j, Just e)
-
-          -- | Get the named request parameter, or the empty string if not present.
-          getParameterOrNull :: Text -> Handler Text
-          getParameterOrNull = fmap (fromMaybe "") . lookupGetParam
 
 -- | Get the message that was set by the last request, in a
 -- referentially transparent manner (allowing multiple reads).

@@ -5,14 +5,14 @@ module Handler.RegisterR where
 
 import Import
 
+import Data.Time
 import Data.List (intersperse)
 import Data.Maybe (fromMaybe, isJust)
 import qualified Data.Text as T
 import Safe (headMay)
 
-import Handler.AddForm
+import Handler.AddForm (postAddForm)
 import Handler.Common
-import Handler.Utils
 
 import Hledger.Data
 import Hledger.Query
@@ -25,25 +25,19 @@ import Hledger.Web.WebOptions
 getRegisterR :: Handler Html
 getRegisterR = do
   vd@VD{..} <- getViewData
-  -- staticRootUrl <- (staticRoot . settings) <$> getYesod
-  let -- injournal = isNothing inacct
-      filtering = m /= Any
-      title = a <> s1 <> s2
+  let title = a <> s1 <> s2
         where
           (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
           s1 = if inclsubs then "" else " (excluding subaccounts)"
-          s2 = if filtering then ", filtered" else ""
-      maincontent = registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
-  hledgerLayout vd "register" [hamlet|
-       <h2 #contenttitle>#{title}
-       <!-- p>Transactions affecting this account, with running balance. -->
-       ^{maincontent}
-     |]
+          s2 = if m /= Any then ", filtered" else ""
+  hledgerLayout vd "register" $ do
+    _ <- [hamlet|<h2 #contenttitle>#{title}|]
+    registerReportHtml opts vd $ accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
 
 postRegisterR :: Handler Html
 postRegisterR = postAddForm
 
--- Generate html for an account register, including a balance chart and transaction list.
+-- | Generate html for an account register, including a balance chart and transaction list.
 registerReportHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 registerReportHtml opts vd r = [hamlet|
  <div .hidden-xs>
@@ -51,7 +45,7 @@ registerReportHtml opts vd r = [hamlet|
  ^{registerItemsHtml opts vd r}
 |]
 
--- Generate html for a transaction list from an "TransactionsReport".
+-- | Generate html for a transaction list from an "TransactionsReport".
 registerItemsHtml :: WebOpts -> ViewData -> TransactionsReport -> HtmlUrl AppRoute
 registerItemsHtml _ vd (balancelabel,items) = [hamlet|
 <div .table-responsive>
@@ -72,10 +66,8 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
    insomeacct = isJust $ inAccount $ qopts vd
    balancelabel' = if insomeacct then balancelabel else "Total"
 
-   -- filtering = m /= Any
    itemAsHtml :: ViewData -> (Int, Bool, Bool, Bool, TransactionsReportItem) -> HtmlUrl AppRoute
    itemAsHtml VD{..} (n, newd, newm, _, (torig, tacct, split, acct, amt, bal)) = [hamlet|
-
 <tr ##{tindex torig} .item.#{evenodd}.#{firstposting}.#{datetransition} title="#{show torig}" style="vertical-align:top;">
  <td .date>
   <a href="@{JournalR}#transaction-#{tindex torig}">#{date}
@@ -86,22 +78,16 @@ registerItemsHtml _ vd (balancelabel,items) = [hamlet|
    \#{mixedAmountAsHtml amt}
  <td .balance style="text-align:right;">#{mixedAmountAsHtml bal}
 |]
-
      where
        evenodd = if even n then "even" else "odd" :: Text
        datetransition | newm = "newmonth"
                       | newd = "newday"
                       | otherwise = "" :: Text
        (firstposting, date, desc) = (False, show $ tdate tacct, tdescription tacct)
-       -- acctquery = (here, [("q", pack $ accountQuery acct)])
        showamt = not split || not (isZeroMixedAmount amt)
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "TransactionsReportItem"s.
-               -- registerChartHtml :: forall t (t1 :: * -> *) t2 t3 t4 t5.
-               --                      Data.Foldable.Foldable t1 =>
-               --                      t1 (Transaction, t2, t3, t4, t5, MixedAmount)
-               --                      -> t -> Text.Blaze.Internal.HtmlM ()
 registerChartHtml :: [(CommoditySymbol, (String, [TransactionsReportItem]))] -> HtmlUrl AppRoute
 registerChartHtml percommoditytxnreports =
  -- have to make sure plot is not called when our container (maincontent)
@@ -125,7 +111,6 @@ registerChartHtml percommoditytxnreports =
             #{dayToJsTimestamp $ triDate i},
             #{simpleMixedAmountQuantity $ triCommodityBalance c i}
            ],
-          /* [] */
         ],
         label: '#{shownull $ T.unpack c}',
         color: #{colorForCommodity c},
@@ -168,7 +153,6 @@ registerChartHtml percommoditytxnreports =
    };
  });
 |]
-           -- [#{dayToJsTimestamp $ ltrace "\ndate" $ triDate i}, #{ltrace "balancequantity" $ simpleMixedAmountQuantity $ triCommodityBalance c i}, '#{ltrace "balance" $ show $ triCommodityBalance c i}, '#{ltrace "amount" $ show $ triCommodityAmount c i}''],
  where
    charttitle = case maybe "" (fst.snd) $ headMay percommoditytxnreports of
      "" -> ""
@@ -177,3 +161,9 @@ registerChartHtml percommoditytxnreports =
    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
    simpleMixedAmountQuantity = maybe 0 aquantity . headMay . amounts
    shownull c = if null c then " " else c
+
+dayToJsTimestamp :: Day -> Integer
+dayToJsTimestamp d =
+  read (formatTime defaultTimeLocale "%s" t) * 1000 -- XXX read
+  where
+    t = UTCTime d (secondsToDiffTime 0)

@@ -10,11 +10,11 @@ import Import
 import Control.Monad.State.Strict (evalStateT)
 import Data.Either (lefts, rights)
 import Data.List (sort)
-import qualified Data.List as L (head) -- qualified keeps dev & prod builds warning-free
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, maybeToList)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Void (Void)
+import Safe (headMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -23,18 +23,16 @@ import Hledger.Cli.Commands.Add (appendToJournalFileOrStdout)
 
 -- Part of the data required from the add form.
 -- Don't know how to handle the variable posting fields with yesod-form yet.
+-- XXX Variable postings fields
 data AddForm = AddForm
     { addFormDate         :: Day
     , addFormDescription  :: Maybe Text
-    -- , addFormPostings     :: [(AccountName, String)]
     , addFormJournalFile  :: Maybe Text
-    }
-  deriving Show
+    } deriving Show
 
 postAddForm :: Handler Html
 postAddForm = do
   let showErrors errs = do
-        -- error $ show errs -- XXX uncomment to prevent redirect for debugging
         setMessage [shamlet|
                     Errors:<br>
                     $forall e<-errs
@@ -43,20 +41,18 @@ postAddForm = do
   -- 1. process the fixed fields with yesod-form
 
   VD{..} <- getViewData
-  let
-      validateJournalFile :: Text -> Either FormMessage Text
+  let validateJournalFile :: Text -> Either FormMessage Text
       validateJournalFile f
         | T.unpack f `elem` journalFilePaths j = Right f
         | otherwise = Left $ MsgInvalidEntry $ "the selected journal file \"" <> f <> "\"is unknown"
 
-      validateDate :: Text -> Handler (Either FormMessage Day)
-      validateDate s = return $
-        case fixSmartDateStrEither' today (T.strip s) of
-          Right d  -> Right d
-          Left _   -> Left $ MsgInvalidEntry $ "could not parse date \"" <> s <> "\":"
+      validateDate :: Text -> Either FormMessage Day
+      validateDate s = case fixSmartDateStrEither' today (T.strip s) of
+        Right d  -> Right d
+        Left _   -> Left $ MsgInvalidEntry $ "could not parse date \"" <> s <> "\":"
 
   formresult <- runInputPostResult $ AddForm
-    <$> ireq (checkMMap validateDate (T.pack . show) textField) "date"
+    <$> ireq (checkMMap (pure . validateDate) (T.pack . show) textField) "date"
     <*> iopt textField "description"
     <*> iopt (check validateJournalFile textField) "journal"
 
@@ -99,7 +95,7 @@ postAddForm = do
                | otherwise           = amts' ++ [missingamt]
           errs = if not (null paramErrs) then paramErrs else (acctErrs ++ amtErrs)
           etxn | not $ null errs = Left errs
-               | otherwise = either (\e -> Left [L.head $ lines e]) Right
+               | otherwise = either (Left . maybeToList . headMay . lines) Right
                               (balanceTransaction Nothing $ nulltransaction {
                                   tdate=date
                                  ,tdescription=desc

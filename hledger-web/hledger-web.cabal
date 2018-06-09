@@ -128,7 +128,6 @@ library
       Handler.RegisterR
       Handler.RootR
       Handler.SidebarR
-      Handler.Utils
       Hledger.Web
       Hledger.Web.Main
       Hledger.Web.WebOptions
@@ -189,7 +188,7 @@ executable hledger-web
       Paths_hledger_web
   hs-source-dirs:
       app
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  ghc-options: -Wall -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fwarn-tabs
   cpp-options: -DVERSION="1.9.99"
   build-depends:
       HUnit
