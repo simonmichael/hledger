@@ -45,6 +45,7 @@ module Hledger.Data.Dates (
   elapsedSeconds,
   prevday,
   parsePeriodExpr,
+  parsePeriodExpr',
   nulldatespan,
   failIfInvalidYear,
   failIfInvalidMonth,
@@ -313,7 +314,13 @@ earliest (Just d1) (Just d2) = Just $ min d1 d2
 -- | Parse a period expression to an Interval and overall DateSpan using
 -- the provided reference date, or return a parse error.
 parsePeriodExpr :: Day -> Text -> Either (ParseError Char CustomErr) (Interval, DateSpan)
-parsePeriodExpr refdate s = parsewith (periodexpr refdate <* eof) (T.toLower s)
+parsePeriodExpr refdate s = parsewith (periodexprp refdate <* eof) (T.toLower s)
+
+-- | Like parsePeriodExpr, but call error' on failure.
+parsePeriodExpr' :: Day -> Text -> (Interval, DateSpan)
+parsePeriodExpr' refdate s =
+  either (error' . ("failed to parse:" ++) . parseErrorPretty) id $
+  parsePeriodExpr refdate s
 
 maybePeriod :: Day -> Text -> Maybe (Interval,DateSpan)
 maybePeriod refdate = either (const Nothing) Just . parsePeriodExpr refdate
@@ -910,23 +917,23 @@ lastthisnextthing = do
 -- Right (DayOfMonth 2,DateSpan 2009/01/01-)
 -- >>> p "every 2nd day of month 2009-"
 -- Right (DayOfMonth 2,DateSpan 2009/01/01-)
-periodexpr :: Day -> SimpleTextParser (Interval, DateSpan)
-periodexpr rdate = surroundedBy (skipMany spacenonewline) . choice $ map try [
-                    intervalanddateperiodexpr rdate,
-                    (,) NoInterval <$> periodexprdatespan rdate
+periodexprp :: Day -> SimpleTextParser (Interval, DateSpan)
+periodexprp rdate = surroundedBy (skipMany spacenonewline) . choice $ map try [
+                    intervalanddateperiodexprp rdate,
+                    (,) NoInterval <$> periodexprdatespanp rdate
                    ]
 
-intervalanddateperiodexpr :: Day -> SimpleTextParser (Interval, DateSpan)
-intervalanddateperiodexpr rdate = do
-  i <- reportinginterval
+intervalanddateperiodexprp :: Day -> SimpleTextParser (Interval, DateSpan)
+intervalanddateperiodexprp rdate = do
+  i <- reportingintervalp
   s <- option def . try $ do
       skipMany spacenonewline
-      periodexprdatespan rdate
+      periodexprdatespanp rdate
   return (i,s)
 
 -- Parse a reporting interval.
-reportinginterval :: SimpleTextParser Interval
-reportinginterval = choice' [
+reportingintervalp :: SimpleTextParser Interval
+reportingintervalp = choice' [
                        tryinterval "day"     "daily"     Days,
                        tryinterval "week"    "weekly"    Weeks,
                        tryinterval "month"   "monthly"   Months,
@@ -1007,19 +1014,19 @@ reportinginterval = choice' [
           singular' = T.pack singular
           plural'   = T.pack $ singular ++ "s"
 
-periodexprdatespan :: Day -> SimpleTextParser DateSpan
-periodexprdatespan rdate = choice $ map try [
-                            doubledatespan rdate,
-                            fromdatespan rdate,
-                            todatespan rdate,
-                            justdatespan rdate
+periodexprdatespanp :: Day -> SimpleTextParser DateSpan
+periodexprdatespanp rdate = choice $ map try [
+                            doubledatespanp rdate,
+                            fromdatespanp rdate,
+                            todatespanp rdate,
+                            justdatespanp rdate
                            ]
 
 -- |
 -- -- >>> parsewith (doubledatespan (parsedate "2018/01/01") <* eof) "20180101-201804"
 -- Right DateSpan 2018/01/01-2018/04/01
-doubledatespan :: Day -> SimpleTextParser DateSpan
-doubledatespan rdate = do
+doubledatespanp :: Day -> SimpleTextParser DateSpan
+doubledatespanp rdate = do
   optional (string "from" >> skipMany spacenonewline)
   b <- smartdate
   skipMany spacenonewline
@@ -1027,8 +1034,8 @@ doubledatespan rdate = do
   e <- smartdate
   return $ DateSpan (Just $ fixSmartDate rdate b) (Just $ fixSmartDate rdate e)
 
-fromdatespan :: Day -> SimpleTextParser DateSpan
-fromdatespan rdate = do
+fromdatespanp :: Day -> SimpleTextParser DateSpan
+fromdatespanp rdate = do
   b <- choice [
     do
       string "from" >> skipMany spacenonewline
@@ -1041,14 +1048,14 @@ fromdatespan rdate = do
     ]
   return $ DateSpan (Just $ fixSmartDate rdate b) Nothing
 
-todatespan :: Day -> SimpleTextParser DateSpan
-todatespan rdate = do
+todatespanp :: Day -> SimpleTextParser DateSpan
+todatespanp rdate = do
   choice [string "to", string "-"] >> skipMany spacenonewline
   e <- smartdate
   return $ DateSpan Nothing (Just $ fixSmartDate rdate e)
 
-justdatespan :: Day -> SimpleTextParser DateSpan
-justdatespan rdate = do
+justdatespanp :: Day -> SimpleTextParser DateSpan
+justdatespanp rdate = do
   optional (string "in" >> skipMany spacenonewline)
   d <- smartdate
   return $ spanFromSmartDate rdate d
