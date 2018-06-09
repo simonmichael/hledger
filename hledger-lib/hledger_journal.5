@@ -439,8 +439,9 @@ will be the maximum from all posting amounts in that commmodity
 or if there are no such amounts in the journal, a default format is used
 (like \f[C]$1000.00\f[]).
 .PP
-Price amounts and amounts in D directives usually don't affect amount
-format inference, but in some situations they can do so indirectly.
+Price amounts and amounts in \f[C]D\f[] directives usually don't affect
+amount format inference, but in some situations they can do so
+indirectly.
 (Eg when D's default commodity is applied to a commodity\-less amount,
 or when an amountless posting is balanced using a price's commodity, or
 when \-V is used.) If you find this causing problems, set the desired
@@ -627,7 +628,6 @@ assignment).
 Note that using balance assignments makes your journal a little less
 explicit; to know the exact amount posted, you have to run hledger or do
 the calculations yourself, instead of just reading it.
-.SS Prices
 .SS Transaction prices
 .PP
 Within a transaction, you can note an amount's price in another
@@ -636,10 +636,10 @@ This can be used to document the cost (in a purchase) or selling price
 (in a sale).
 For example, transaction prices are useful to record purchases of a
 foreign currency.
-.PP
-Transaction prices are fixed, and do not change over time.
-(Ledger users: Ledger uses a different syntax for fixed prices,
-\f[C]{=UNITPRICE}\f[], which hledger currently ignores).
+Note transaction prices are fixed at the time of the transaction, and do
+not change over time.
+See also market prices, which represent prevailing exchange rates on a
+certain date.
 .PP
 There are several ways to record a transaction price:
 .IP "1." 3
@@ -680,10 +680,13 @@ hledger infer the price that balances the transaction:
 .fi
 .RE
 .PP
-Amounts with transaction prices can be displayed in the transaction
-price's commodity by using the \f[C]\-B/\-\-cost\f[] flag (except for
-#551) (\[lq]B\[rq] is from \[lq]cost Basis\[rq]).
-Eg for the above, here is how \-B affects the balance report:
+(Ledger users: Ledger uses a different syntax for fixed prices,
+\f[C]{=UNITPRICE}\f[], which hledger currently ignores).
+.PP
+Use the \f[C]\-B/\-\-cost\f[] flag to convert amounts to their
+transaction price's commodity, if any.
+(mnemonic: \[lq]B\[rq] is from \[lq]cost Basis\[rq], as in Ledger).
+Eg here is how \-B affects the balance report for the example above:
 .IP
 .nf
 \f[C]
@@ -715,40 +718,6 @@ equivalent, \-B shows something different:
 $\ hledger\ bal\ \-N\ \-\-flat\ \-B
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ €\-100\ \ assets:dollars\ \ #\ <\-\ the\ dollars\[aq]\ selling\ price
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ €100\ \ assets:euros
-\f[]
-.fi
-.SS Market prices
-.PP
-Market prices are not tied to a particular transaction; they represent
-historical exchange rates between two commodities.
-(Ledger calls them historical prices.) For example, the prices published
-by a stock exchange or the foreign exchange market.
-hledger can use these prices to show the market value of things at a
-given date, see market value.
-.PP
-To record market prices, use P directives in the main journal or in an
-included file.
-Their format is:
-.IP
-.nf
-\f[C]
-P\ DATE\ COMMODITYBEINGPRICED\ UNITPRICE
-\f[]
-.fi
-.PP
-DATE is a simple date as usual.
-COMMODITYBEINGPRICED is the symbol of the commodity being priced.
-UNITPRICE is an ordinary amount (symbol and quantity) in a second
-commodity, specifying the unit price or conversion rate for the first
-commodity in terms of the second, on the given date.
-.PP
-For example, the following directives say that one euro was worth 1.35
-US dollars during 2009, and $1.40 from 2010 onward:
-.IP
-.nf
-\f[C]
-P\ 2009/1/1\ €\ $1.35
-P\ 2010/1/1\ €\ $1.40
 \f[]
 .fi
 .SS Comments
@@ -853,6 +822,53 @@ For example, the following transaction has three tags (\f[C]A\f[],
 Tags are like Ledger's metadata feature, except hledger's tag values are
 simple strings.
 .SS Directives
+.PP
+A directive is a line in the journal beginning with a special keyword,
+that influences how the journal is processed.
+Some directives may also have indented sub\-directives on the following
+lines (\f[C]commodity\f[]).
+.SS Directive scope, multiple files
+.PP
+Directives vary in which journal entries they affect:
+.IP \[bu] 2
+some form a begin/end pair, and affect the enclosed journal entries (and
+included files):
+.PD 0
+.P
+.PD
+\f[C]alias\f[] & \f[C]end\ aliases\f[]; \f[C]comment\f[] &
+\f[C]end\ comment\f[]
+.IP \[bu] 2
+some affect the subsequent journal entries (and included files) in the
+current file:
+.PD 0
+.P
+.PD
+\f[C]alias\f[] or \f[C]comment\f[] without an end directive, \f[C]Y\f[]
+.IP \[bu] 2
+some affect all journal entries (and included files) anywhere in the
+current file:
+.PD 0
+.P
+.PD
+\f[C]account\f[], \f[C]commodity\f[], \f[C]D\f[], \f[C]P\f[].
+.PP
+It's important to note that directives can affect the current file and
+child (included) files, but not sibling or parent (including) files.
+This is by design, for simplicity and predictability of reports, but it
+can be surprising at times.
+Eg, in:
+.IP
+.nf
+\f[C]
+hledger\ \-f\ a.prices\ \-f\ b.journal
+\f[]
+.fi
+.PP
+the prices defined in a.prices will not be effective in b.journal (a
+sibling file).
+Instead, you have to include (or inline) a.prices in b.journal, or vice
+versa.
 .SS Comment blocks
 .PP
 A line containing just \f[C]comment\f[] starts a commented region of the
@@ -946,11 +962,11 @@ with a decimal point (a period or comma, followed by 0 or more decimal
 digits).
 .SS Default commodity
 .PP
-The D directive sets a default commodity (and display format), to be
-used for amounts without a commodity symbol (ie, plain numbers).
+The \f[C]D\f[] directive sets a default commodity (and display format),
+to be used for amounts without a commodity symbol (ie, plain numbers).
 (Note this differs from Ledger's default commodity directive.) The
 commodity and display format will be applied to all subsequent
-commodity\-less amounts, or until the next D directive.
+commodity\-less amounts, or until the next \f[C]D\f[] directive.
 .IP
 .nf
 \f[C]
@@ -966,6 +982,41 @@ D\ $1,000.00
 .PP
 As with the \f[C]commodity\f[] directive, the amount must always be
 written with a decimal point.
+.SS Market prices
+.PP
+The \f[C]P\f[] directive declares a market price, which is an exchange
+rate between two commodities on a certain date.
+(In Ledger, they are called \[lq]historical prices\[rq].) These are
+often obtained from a stock exchange, cryptocurrency exchange, or the
+foreign exchange market.
+.PP
+Here is the format:
+.IP
+.nf
+\f[C]
+P\ DATE\ COMMODITYA\ COMMODITYBAMOUNT
+\f[]
+.fi
+.IP \[bu] 2
+DATE is a simple date
+.IP \[bu] 2
+COMMODITYA is the symbol of the commodity being priced
+.IP \[bu] 2
+COMMODITYBAMOUNT is an amount (symbol and quantity) in a second
+commodity, giving the price in commodity B of one unit of commodity A.
+.PP
+These two market price directives say that one euro was worth 1.35 US
+dollars during 2009, and $1.40 from 2010 onward:
+.IP
+.nf
+\f[C]
+P\ 2009/1/1\ €\ $1.35
+P\ 2010/1/1\ €\ $1.40
+\f[]
+.fi
+.PP
+The \f[C]\-V/\-\-value\f[] flag can be used to convert reported amounts
+to another commodity using these prices.
 .SS Declaring accounts
 .PP
 The \f[C]account\f[] directive predeclares account names.

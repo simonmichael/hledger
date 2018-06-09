@@ -77,7 +77,7 @@ File: hledger_journal.info,  Node: FILE FORMAT,  Next: EDITOR SUPPORT,  Prev: To
 * Virtual Postings::
 * Balance Assertions::
 * Balance Assignments::
-* Prices::
+* Transaction prices::
 * Comments::
 * Tags::
 * Directives::
@@ -400,12 +400,12 @@ written).  The display format is chosen as follows:
    * or if there are no such amounts in the journal, a default format is
      used (like '$1000.00').
 
-   Price amounts and amounts in D directives usually don't affect amount
-format inference, but in some situations they can do so indirectly.  (Eg
-when D's default commodity is applied to a commodity-less amount, or
-when an amountless posting is balanced using a price's commodity, or
-when -V is used.)  If you find this causing problems, set the desired
-format with a commodity directive.
+   Price amounts and amounts in 'D' directives usually don't affect
+amount format inference, but in some situations they can do so
+indirectly.  (Eg when D's default commodity is applied to a
+commodity-less amount, or when an amountless posting is balanced using a
+price's commodity, or when -V is used.)  If you find this causing
+problems, set the desired format with a commodity directive.
 
 
 File: hledger_journal.info,  Node: Virtual Postings,  Next: Balance Assertions,  Prev: Amounts,  Up: FILE FORMAT
@@ -569,7 +569,7 @@ virtual.  They are not affected by the '--real/-R' flag or 'real:'
 query.
 
 
-File: hledger_journal.info,  Node: Balance Assignments,  Next: Prices,  Prev: Balance Assertions,  Up: FILE FORMAT
+File: hledger_journal.info,  Node: Balance Assignments,  Next: Transaction prices,  Prev: Balance Assertions,  Up: FILE FORMAT
 
 1.10 Balance Assignments
 ========================
@@ -602,30 +602,18 @@ little less explicit; to know the exact amount posted, you have to run
 hledger or do the calculations yourself, instead of just reading it.
 
 
-File: hledger_journal.info,  Node: Prices,  Next: Comments,  Prev: Balance Assignments,  Up: FILE FORMAT
+File: hledger_journal.info,  Node: Transaction prices,  Next: Comments,  Prev: Balance Assignments,  Up: FILE FORMAT
 
-1.11 Prices
-===========
-
-* Menu:
-
-* Transaction prices::
-* Market prices::
-
-
-File: hledger_journal.info,  Node: Transaction prices,  Next: Market prices,  Up: Prices
-
-1.11.1 Transaction prices
--------------------------
+1.11 Transaction prices
+=======================
 
 Within a transaction, you can note an amount's price in another
 commodity.  This can be used to document the cost (in a purchase) or
 selling price (in a sale).  For example, transaction prices are useful
-to record purchases of a foreign currency.
-
-   Transaction prices are fixed, and do not change over time.  (Ledger
-users: Ledger uses a different syntax for fixed prices, '{=UNITPRICE}',
-which hledger currently ignores).
+to record purchases of a foreign currency.  Note transaction prices are
+fixed at the time of the transaction, and do not change over time.  See
+also market prices, which represent prevailing exchange rates on a
+certain date.
 
    There are several ways to record a transaction price:
 
@@ -648,10 +636,13 @@ which hledger currently ignores).
        assets:euros     €100          ; one hundred euros purchased
        assets:dollars  $-135          ; for $135
 
-   Amounts with transaction prices can be displayed in the transaction
-price's commodity by using the '-B/--cost' flag (except for #551) ("B"
-is from "cost Basis").  Eg for the above, here is how -B affects the
-balance report:
+   (Ledger users: Ledger uses a different syntax for fixed prices,
+'{=UNITPRICE}', which hledger currently ignores).
+
+   Use the '-B/--cost' flag to convert amounts to their transaction
+price's commodity, if any.  (mnemonic: "B" is from "cost Basis", as in
+Ledger).  Eg here is how -B affects the balance report for the example
+above:
 
 $ hledger bal -N --flat
                $-135  assets:dollars
@@ -674,36 +665,7 @@ $ hledger bal -N --flat -B
                 €100  assets:euros
 
 
-File: hledger_journal.info,  Node: Market prices,  Prev: Transaction prices,  Up: Prices
-
-1.11.2 Market prices
---------------------
-
-Market prices are not tied to a particular transaction; they represent
-historical exchange rates between two commodities.  (Ledger calls them
-historical prices.)  For example, the prices published by a stock
-exchange or the foreign exchange market.  hledger can use these prices
-to show the market value of things at a given date, see market value.
-
-   To record market prices, use P directives in the main journal or in
-an included file.  Their format is:
-
-P DATE COMMODITYBEINGPRICED UNITPRICE
-
-   DATE is a simple date as usual.  COMMODITYBEINGPRICED is the symbol
-of the commodity being priced.  UNITPRICE is an ordinary amount (symbol
-and quantity) in a second commodity, specifying the unit price or
-conversion rate for the first commodity in terms of the second, on the
-given date.
-
-   For example, the following directives say that one euro was worth
-1.35 US dollars during 2009, and $1.40 from 2010 onward:
-
-P 2009/1/1 € $1.35
-P 2010/1/1 € $1.40
-
-
-File: hledger_journal.info,  Node: Comments,  Next: Tags,  Prev: Prices,  Up: FILE FORMAT
+File: hledger_journal.info,  Node: Comments,  Next: Tags,  Prev: Transaction prices,  Up: FILE FORMAT
 
 1.12 Comments
 =============
@@ -792,21 +754,55 @@ File: hledger_journal.info,  Node: Directives,  Next: Periodic transactions,  Pr
 1.14 Directives
 ===============
 
+A directive is a line in the journal beginning with a special keyword,
+that influences how the journal is processed.  Some directives may also
+have indented sub-directives on the following lines ('commodity').
 * Menu:
 
+* Directive scope multiple files::
 * Comment blocks::
 * Including other files::
 * Default year::
 * Declaring commodities::
 * Default commodity::
+* Market prices::
 * Declaring accounts::
 * Rewriting accounts::
 * Default parent account::
 
 
-File: hledger_journal.info,  Node: Comment blocks,  Next: Including other files,  Up: Directives
+File: hledger_journal.info,  Node: Directive scope multiple files,  Next: Comment blocks,  Up: Directives
 
-1.14.1 Comment blocks
+1.14.1 Directive scope, multiple files
+--------------------------------------
+
+Directives vary in which journal entries they affect:
+
+   * some form a begin/end pair, and affect the enclosed journal entries
+     (and included files):
+     'alias' & 'end aliases'; 'comment' & 'end comment'
+   * some affect the subsequent journal entries (and included files) in
+     the current file:
+     'alias' or 'comment' without an end directive, 'Y'
+   * some affect all journal entries (and included files) anywhere in
+     the current file:
+     'account', 'commodity', 'D', 'P'.
+
+   It's important to note that directives can affect the current file
+and child (included) files, but not sibling or parent (including) files.
+This is by design, for simplicity and predictability of reports, but it
+can be surprising at times.  Eg, in:
+
+hledger -f a.prices -f b.journal
+
+   the prices defined in a.prices will not be effective in b.journal (a
+sibling file).  Instead, you have to include (or inline) a.prices in
+b.journal, or vice versa.
+
+
+File: hledger_journal.info,  Node: Comment blocks,  Next: Including other files,  Prev: Directive scope multiple files,  Up: Directives
+
+1.14.2 Comment blocks
 ---------------------
 
 A line containing just 'comment' starts a commented region of the file,
@@ -816,7 +812,7 @@ file) ends it.  See also comments.
 
 File: hledger_journal.info,  Node: Including other files,  Next: Default year,  Prev: Comment blocks,  Up: Directives
 
-1.14.2 Including other files
+1.14.3 Including other files
 ----------------------------
 
 You can pull in the content of additional files by writing an include
@@ -833,7 +829,7 @@ include journal, timeclock or timedot files, but not CSV files.
 
 File: hledger_journal.info,  Node: Default year,  Next: Declaring commodities,  Prev: Including other files,  Up: Directives
 
-1.14.3 Default year
+1.14.4 Default year
 -------------------
 
 You can set a default year to be used for subsequent dates which don't
@@ -859,7 +855,7 @@ Y2010      ; change default year to 2010
 
 File: hledger_journal.info,  Node: Declaring commodities,  Next: Default commodity,  Prev: Default year,  Up: Directives
 
-1.14.4 Declaring commodities
+1.14.5 Declaring commodities
 ----------------------------
 
 The 'commodity' directive declares commodities which may be used in the
@@ -895,16 +891,16 @@ always be written with a decimal point (a period or comma, followed by 0
 or more decimal digits).
 
 
-File: hledger_journal.info,  Node: Default commodity,  Next: Declaring accounts,  Prev: Declaring commodities,  Up: Directives
+File: hledger_journal.info,  Node: Default commodity,  Next: Market prices,  Prev: Declaring commodities,  Up: Directives
 
-1.14.5 Default commodity
+1.14.6 Default commodity
 ------------------------
 
-The D directive sets a default commodity (and display format), to be
+The 'D' directive sets a default commodity (and display format), to be
 used for amounts without a commodity symbol (ie, plain numbers).  (Note
 this differs from Ledger's default commodity directive.)  The commodity
 and display format will be applied to all subsequent commodity-less
-amounts, or until the next D directive.
+amounts, or until the next 'D' directive.
 
 # commodity-less amounts should be treated as dollars
 # (and displayed with symbol on the left, thousands separators and two decimal places)
@@ -918,9 +914,39 @@ D $1,000.00
 with a decimal point.
 
 
-File: hledger_journal.info,  Node: Declaring accounts,  Next: Rewriting accounts,  Prev: Default commodity,  Up: Directives
+File: hledger_journal.info,  Node: Market prices,  Next: Declaring accounts,  Prev: Default commodity,  Up: Directives
 
-1.14.6 Declaring accounts
+1.14.7 Market prices
+--------------------
+
+The 'P' directive declares a market price, which is an exchange rate
+between two commodities on a certain date.  (In Ledger, they are called
+"historical prices".)  These are often obtained from a stock exchange,
+cryptocurrency exchange, or the foreign exchange market.
+
+   Here is the format:
+
+P DATE COMMODITYA COMMODITYBAMOUNT
+
+   * DATE is a simple date
+   * COMMODITYA is the symbol of the commodity being priced
+   * COMMODITYBAMOUNT is an amount (symbol and quantity) in a second
+     commodity, giving the price in commodity B of one unit of commodity
+     A.
+
+   These two market price directives say that one euro was worth 1.35 US
+dollars during 2009, and $1.40 from 2010 onward:
+
+P 2009/1/1 € $1.35
+P 2010/1/1 € $1.40
+
+   The '-V/--value' flag can be used to convert reported amounts to
+another commodity using these prices.
+
+
+File: hledger_journal.info,  Node: Declaring accounts,  Next: Rewriting accounts,  Prev: Market prices,  Up: Directives
+
+1.14.8 Declaring accounts
 -------------------------
 
 The 'account' directive predeclares account names.  The simplest form is
@@ -962,7 +988,7 @@ account assets:bank:checking   1110
 
 File: hledger_journal.info,  Node: Rewriting accounts,  Next: Default parent account,  Prev: Declaring accounts,  Up: Directives
 
-1.14.7 Rewriting accounts
+1.14.9 Rewriting accounts
 -------------------------
 
 You can define aliases which rewrite your account names (after reading
@@ -987,7 +1013,7 @@ be useful for:
 
 File: hledger_journal.info,  Node: Basic aliases,  Next: Regex aliases,  Up: Rewriting accounts
 
-1.14.7.1 Basic aliases
+1.14.9.1 Basic aliases
 ......................
 
 To set an account alias, use the 'alias' directive in your journal file.
@@ -1010,7 +1036,7 @@ alias checking = assets:bank:wells fargo:checking
 
 File: hledger_journal.info,  Node: Regex aliases,  Next: Multiple aliases,  Prev: Basic aliases,  Up: Rewriting accounts
 
-1.14.7.2 Regex aliases
+1.14.9.2 Regex aliases
 ......................
 
 There is also a more powerful variant that uses a regular expression,
@@ -1035,7 +1061,7 @@ whitespace.
 
 File: hledger_journal.info,  Node: Multiple aliases,  Next: end aliases,  Prev: Regex aliases,  Up: Rewriting accounts
 
-1.14.7.3 Multiple aliases
+1.14.9.3 Multiple aliases
 .........................
 
 You can define as many aliases as you like using directives or
@@ -1051,7 +1077,7 @@ following order:
 
 File: hledger_journal.info,  Node: end aliases,  Prev: Multiple aliases,  Up: Rewriting accounts
 
-1.14.7.4 'end aliases'
+1.14.9.4 'end aliases'
 ......................
 
 You can clear (forget) all currently defined aliases with the 'end
@@ -1062,8 +1088,8 @@ end aliases
 
 File: hledger_journal.info,  Node: Default parent account,  Prev: Rewriting accounts,  Up: Directives
 
-1.14.8 Default parent account
------------------------------
+1.14.10 Default parent account
+------------------------------
 
 You can specify a parent account which will be prepended to all accounts
 within a section of the journal.  Use the 'apply account' and 'end apply
@@ -1204,87 +1230,87 @@ Tag Table:
 Node: Top76
 Node: FILE FORMAT2376
 Ref: #file-format2500
-Node: Transactions2772
-Ref: #transactions2893
-Node: Postings3577
-Ref: #postings3704
-Node: Dates4699
-Ref: #dates4814
-Node: Simple dates4879
-Ref: #simple-dates5005
-Node: Secondary dates5371
-Ref: #secondary-dates5525
-Node: Posting dates7088
-Ref: #posting-dates7217
-Node: Status8591
-Ref: #status8711
-Node: Description10419
-Ref: #description10557
-Node: Payee and note10876
-Ref: #payee-and-note10990
-Node: Account names11232
-Ref: #account-names11375
-Node: Amounts11862
-Ref: #amounts11998
-Node: Virtual Postings15013
-Ref: #virtual-postings15172
-Node: Balance Assertions16392
-Ref: #balance-assertions16567
-Node: Assertions and ordering17463
-Ref: #assertions-and-ordering17649
-Node: Assertions and included files18349
-Ref: #assertions-and-included-files18590
-Node: Assertions and multiple -f options18923
-Ref: #assertions-and-multiple--f-options19177
-Node: Assertions and commodities19309
-Ref: #assertions-and-commodities19544
-Node: Assertions and subaccounts20240
-Ref: #assertions-and-subaccounts20472
-Node: Assertions and virtual postings20993
-Ref: #assertions-and-virtual-postings21200
-Node: Balance Assignments21342
-Ref: #balance-assignments21511
-Node: Prices22631
-Ref: #prices22764
-Node: Transaction prices22815
-Ref: #transaction-prices22960
-Node: Market prices25116
-Ref: #market-prices25251
-Node: Comments26211
-Ref: #comments26333
-Node: Tags27503
-Ref: #tags27621
-Node: Directives29023
-Ref: #directives29166
-Node: Comment blocks29359
-Ref: #comment-blocks29504
-Node: Including other files29680
-Ref: #including-other-files29860
-Node: Default year30249
-Ref: #default-year30418
-Node: Declaring commodities30841
-Ref: #declaring-commodities31024
-Node: Default commodity32251
-Ref: #default-commodity32432
-Node: Declaring accounts33064
-Ref: #declaring-accounts33244
-Node: Rewriting accounts34591
-Ref: #rewriting-accounts34776
-Node: Basic aliases35380
-Ref: #basic-aliases35526
-Node: Regex aliases36216
-Ref: #regex-aliases36387
-Node: Multiple aliases37105
-Ref: #multiple-aliases37280
-Node: end aliases37778
-Ref: #end-aliases37925
-Node: Default parent account38026
-Ref: #default-parent-account38192
-Node: Periodic transactions38851
-Ref: #periodic-transactions39030
-Node: Automated postings40329
-Ref: #automated-postings40483
-Node: EDITOR SUPPORT41616
-Ref: #editor-support41734
+Node: Transactions2784
+Ref: #transactions2905
+Node: Postings3589
+Ref: #postings3716
+Node: Dates4711
+Ref: #dates4826
+Node: Simple dates4891
+Ref: #simple-dates5017
+Node: Secondary dates5383
+Ref: #secondary-dates5537
+Node: Posting dates7100
+Ref: #posting-dates7229
+Node: Status8603
+Ref: #status8723
+Node: Description10431
+Ref: #description10569
+Node: Payee and note10888
+Ref: #payee-and-note11002
+Node: Account names11244
+Ref: #account-names11387
+Node: Amounts11874
+Ref: #amounts12010
+Node: Virtual Postings15027
+Ref: #virtual-postings15186
+Node: Balance Assertions16406
+Ref: #balance-assertions16581
+Node: Assertions and ordering17477
+Ref: #assertions-and-ordering17663
+Node: Assertions and included files18363
+Ref: #assertions-and-included-files18604
+Node: Assertions and multiple -f options18937
+Ref: #assertions-and-multiple--f-options19191
+Node: Assertions and commodities19323
+Ref: #assertions-and-commodities19558
+Node: Assertions and subaccounts20254
+Ref: #assertions-and-subaccounts20486
+Node: Assertions and virtual postings21007
+Ref: #assertions-and-virtual-postings21214
+Node: Balance Assignments21356
+Ref: #balance-assignments21537
+Node: Transaction prices22657
+Ref: #transaction-prices22826
+Node: Comments25094
+Ref: #comments25228
+Node: Tags26398
+Ref: #tags26516
+Node: Directives27918
+Ref: #directives28061
+Node: Directive scope multiple files28517
+Ref: #directive-scope-multiple-files28705
+Node: Comment blocks29655
+Ref: #comment-blocks29839
+Node: Including other files30015
+Ref: #including-other-files30195
+Node: Default year30584
+Ref: #default-year30753
+Node: Declaring commodities31176
+Ref: #declaring-commodities31359
+Node: Default commodity32586
+Ref: #default-commodity32762
+Node: Market prices33398
+Ref: #market-prices33563
+Node: Declaring accounts34404
+Ref: #declaring-accounts34580
+Node: Rewriting accounts35927
+Ref: #rewriting-accounts36112
+Node: Basic aliases36716
+Ref: #basic-aliases36862
+Node: Regex aliases37552
+Ref: #regex-aliases37723
+Node: Multiple aliases38441
+Ref: #multiple-aliases38616
+Node: end aliases39114
+Ref: #end-aliases39261
+Node: Default parent account39362
+Ref: #default-parent-account39530
+Node: Periodic transactions40189
+Ref: #periodic-transactions40368
+Node: Automated postings41667
+Ref: #automated-postings41821
+Node: EDITOR SUPPORT42954
+Ref: #editor-support43072
 
 End Tag Table
