@@ -82,6 +82,8 @@ type Record = [Field]
 
 type Field = String
 
+type CSVError = Parsec.ParseError
+
 reader :: Reader
 reader = Reader
   {rFormat     = "csv"
@@ -183,17 +185,13 @@ readJournalFromCsv mrulesfile csvfile csvdata =
 
   return $ Right nulljournal{jtxns=txns''}
 
-parseCsv :: FilePath -> String -> IO (Either Parsec.ParseError CSV)
+parseCsv :: FilePath -> String -> IO (Either CSVError CSV)
 parseCsv path csvdata =
   case path of
     "-" -> liftM (parseCassava "(stdin)") getContents
     _   -> return $ parseCassava path csvdata
 
-
-parseCassava :: FilePath -> String -> Either String [Record]
-parseCassava path content =  fmap fromCassavaToCSV $ DCSV.decode DCSV.NoHeader (C.pack content)
-
-parseCassava :: FilePath -> String -> Either Parsec.ParseError CSV
+parseCassava :: FilePath -> String -> Either CSVError CSV
 parseCassava path content =
     case parseResult of
         Left  msg -> Left $ toErrorMessage msg
@@ -204,7 +202,7 @@ fromCassavaToCSV :: (Vector (Vector C.ByteString)) -> CSV
 fromCassavaToCSV records = toList (toCSVRecord <$> records)
     where toCSVRecord fields = toList (C.unpack <$> fields)
 
-toErrorMessage :: String -> Parsec.ParseError
+toErrorMessage :: String -> CSVError
 toErrorMessage msg = Parsec.newErrorMessage (Parsec.Message msg) (Parsec.newPos "" 0 0)
 
 
@@ -219,7 +217,7 @@ printCSV records = unlines (printRecord `map` records)
 
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
-validateCsv :: Int -> Either Parsec.ParseError CSV -> Either String [CsvRecord]
+validateCsv :: Int -> Either CSVError CSV -> Either String [CsvRecord]
 validateCsv _ (Left e) = Left $ show e
 validateCsv numhdrlines (Right rs) = validate $ drop numhdrlines $ filternulls rs
   where
