@@ -59,8 +59,8 @@ import Text.CSV (parseCSV, CSV)
 import qualified Data.Csv as DSCV
 import Test.HUnit hiding (State)
 import qualified Data.Csv as DCSV
-import Data.Vector (Vector)
 import Data.Foldable
+import Data.Either
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 import qualified Text.Parsec as Parsec
@@ -70,8 +70,6 @@ import Hledger.Data
 import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
 import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos)
-
-import Data.Either
 
 
 type CSV = [Record]
@@ -195,11 +193,13 @@ parseCassava path content =
     case parseResult of
         Left  msg -> Left $ CSVError msg
         Right a   -> Right a
-    where parseResult = fmap fromCassavaToCSV $ DCSV.decode DCSV.NoHeader (C.pack content)
+    where parseResult = fmap parseResultToCsv $ DCSV.decode DCSV.NoHeader (C.pack content)
 
-fromCassavaToCSV :: (Vector (Vector C.ByteString)) -> CSV
-fromCassavaToCSV records = toList (toCSVRecord <$> records)
-    where toCSVRecord fields = toList (C.unpack <$> fields)
+parseResultToCsv :: (Foldable t, Functor t) => t (t C.ByteString) -> CSV
+parseResultToCsv = toListList . unpackFields
+    where
+        toListList = toList . fmap toList
+        unpackFields  = (fmap . fmap) C.unpack
 
 printCSV :: CSV -> String
 printCSV records = unlines (printRecord `map` records)
