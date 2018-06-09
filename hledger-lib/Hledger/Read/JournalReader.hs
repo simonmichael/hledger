@@ -457,14 +457,45 @@ modifiertransactionp = do
   return $ ModifierTransaction valueexpr postings
 
 -- | Parse a periodic transaction
-periodictransactionp :: JournalParser m PeriodicTransaction
+periodictransactionp :: MonadIO m => JournalParser m PeriodicTransaction
 periodictransactionp = do
   char '~' <?> "periodic transaction"
-  lift (skipMany spacenonewline)
-  periodexpr <- lift $ T.strip <$> descriptionp
-  _ <- lift followingcommentp
-  postings <- postingsp Nothing
-  return $ PeriodicTransaction periodexpr postings
+  lift $ skipMany spacenonewline
+  -- XXX periodexprp in Hledger.Data.Dates is a SimpleTextParser, which we can't call directly here.
+  -- Instead, read until two or more spaces and reparse that. More use of two spaces is not ideal.
+  pos <- getPosition
+  periodtxt <- lift singlespacedtextp
+  d <- liftIO getCurrentDay
+  (interval, span) <-
+    case parsePeriodExpr d periodtxt of
+        Right (i,s) -> return (i,s)
+        Left e -> 
+          -- Show an informative error. XXX a bit unidiomatic, check for megaparsec helpers  
+          fail $ -- XXX
+            showGenericSourcePos (genericSourcePos pos) ++ ":\n" ++
+            (unlines $ drop 1 $ lines $ parseErrorPretty e) ++
+            "while parsing a period expression in: "++T.unpack periodtxt++"\n" ++
+            "2+ spaces are needed between period expression and any description/comment." 
+  -- In periodic transactions, the period expression has an additional constraint:
+  case checkPeriodicTransactionStartDate interval span periodtxt of
+    Just e -> fail e -- XXX
+    Nothing -> do
+      status <- lift statusp
+      code <- lift codep
+      description <- lift $ T.strip <$> descriptionp
+      (comment, tags) <- lift transactioncommentp
+      postings <- postingsp (Just $ first3 $ toGregorian d)
+      return $ nullperiodictransaction{
+         ptperiodexpr=periodtxt
+        ,ptinterval=interval
+        ,ptspan=span
+        ,ptstatus=status
+        ,ptcode=code
+        ,ptdescription=description
+        ,ptcomment=comment
+        ,pttags=tags
+        ,ptpostings=postings
+        }
 
 -- | Parse a (possibly unbalanced) transaction.
 transactionp :: JournalParser m Transaction

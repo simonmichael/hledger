@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, StandaloneDeriving, DeriveGeneric, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE CPP, DeriveDataTypeable, StandaloneDeriving, DeriveGeneric, TypeSynonymInstances, FlexibleInstances, OverloadedStrings #-}
 {-|
 
 Most data types are defined here to avoid import cycles.
@@ -229,7 +229,10 @@ data GenericSourcePos = GenericSourcePos FilePath Int Int    -- ^ file path, 1-b
 
 instance NFData GenericSourcePos
 
-{-# ANN Transaction "HLint: ignore" #-}
+--{-# ANN Transaction "HLint: ignore" #-}
+--    Ambiguous type variable ‘p0’ arising from an annotation
+--    prevents the constraint ‘(Data p0)’ from being solved.
+--    Probable fix: use a type annotation to specify what ‘p0’ should be.
 data Transaction = Transaction {
       tindex                   :: Integer,   -- ^ this transaction's 1-based position in the input stream, or 0 when not available
       tsourcepos               :: GenericSourcePos,
@@ -253,10 +256,31 @@ data ModifierTransaction = ModifierTransaction {
 
 instance NFData ModifierTransaction
 
+-- ^ A periodic transaction rule, describing a transaction that recurs.
 data PeriodicTransaction = PeriodicTransaction {
-      ptperiodicexpr :: Text,
+      ptperiodexpr   :: Text,     -- ^ the period expression as written
+      ptinterval     :: Interval, -- ^ the interval at which this transaction recurs 
+      ptspan         :: DateSpan, -- ^ the (possibly unbounded) period during which this transaction recurs. Contains a whole number of intervals. 
+      --
+      ptstatus       :: Status,   -- ^ some of Transaction's fields
+      ptcode         :: Text,
+      ptdescription  :: Text,
+      ptcomment      :: Text,
+      pttags         :: [Tag],
       ptpostings     :: [Posting]
     } deriving (Eq,Typeable,Data,Generic)
+
+nullperiodictransaction = PeriodicTransaction{
+      ptperiodexpr   = ""
+     ,ptinterval     = def
+     ,ptspan         = def
+     ,ptstatus       = Unmarked
+     ,ptcode         = ""
+     ,ptdescription  = ""
+     ,ptcomment      = ""
+     ,pttags         = []
+     ,ptpostings     = []
+}
 
 instance NFData PeriodicTransaction
 
