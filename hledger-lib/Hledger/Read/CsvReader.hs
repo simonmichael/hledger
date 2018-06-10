@@ -63,7 +63,6 @@ import qualified Data.Csv as Cassava
 import qualified Data.Csv.Parser.Megaparsec as CassavaMP
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
-import qualified Data.ByteString.Char8 as C
 import Data.Foldable
 import Data.Either
 import Text.Megaparsec hiding (parse)
@@ -206,7 +205,7 @@ parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> CSV
 parseResultToCsv = toListList . unpackFields
     where
         toListList = toList . fmap toList
-        unpackFields  = (fmap . fmap) C.unpack
+        unpackFields  = (fmap . fmap) (T.unpack . T.decodeUtf8)
 
 printCSV :: CSV -> String
 printCSV records = unlines (printRecord `map` records)
