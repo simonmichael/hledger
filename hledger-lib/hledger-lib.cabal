@@ -131,6 +131,7 @@ library
     , regex-tdfa
     , safe >=0.2
     , split >=0.1
+    , string-conversions
     , tabular >=0.2
     , text >=1.2
     , time >=1.5
@@ -230,6 +231,7 @@ test-suite doctests
     , regex-tdfa
     , safe >=0.2
     , split >=0.1
+    , string-conversions
     , tabular >=0.2
     , text >=1.2
     , time >=1.5
@@ -329,6 +331,7 @@ test-suite easytests
     , regex-tdfa
     , safe >=0.2
     , split >=0.1
+    , string-conversions
     , tabular >=0.2
     , text >=1.2
     , time >=1.5
@@ -428,6 +431,7 @@ test-suite hunittests
     , regex-tdfa
     , safe >=0.2
     , split >=0.1
+    , string-conversions
     , tabular >=0.2
     , test-framework
     , test-framework-hunit

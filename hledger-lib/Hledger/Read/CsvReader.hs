@@ -44,6 +44,7 @@ import Data.Ord
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import qualified Data.Text.IO as T
 import Data.Time.Calendar (Day)
 #if MIN_VERSION_time(1,5,0)
@@ -60,6 +61,9 @@ import qualified Data.Csv as DSCV
 import Test.HUnit hiding (State)
 import qualified Data.Csv as Cassava
 import qualified Data.Csv.Parser.Megaparsec as CassavaMP
+import qualified Data.ByteString as B
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.ByteString.Char8 as C
 import Data.Foldable
 import Data.Either
 import Text.Megaparsec hiding (parse)
@@ -72,6 +76,7 @@ import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
 import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos)
 
+import Data.String.Conversions
 
 type CSV = [Record]
 
@@ -141,7 +146,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   records <- (either throwerr id .
               dbg2 "validateCsv" . validateCsv skip .
               dbg2 "parseCsv")
-             `fmap` parseCsv parsecfilename (T.unpack csvdata)
+             `fmap` parseCsv parsecfilename csvdata
   dbg1IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
@@ -183,20 +188,21 @@ readJournalFromCsv mrulesfile csvfile csvdata =
 
   return $ Right nulljournal{jtxns=txns''}
 
-parseCsv :: FilePath -> String -> IO (Either CSVError CSV)
+parseCsv :: FilePath -> Text -> IO (Either CSVError CSV)
 parseCsv path csvdata =
   case path of
-    "-" -> liftM (parseCassava "(stdin)") getContents
+    "-" -> liftM (parseCassava "(stdin)") T.getContents
     _   -> return $ parseCassava path csvdata
 
-parseCassava :: FilePath -> String -> Either CSVError CSV
+parseCassava :: FilePath -> Text -> Either CSVError CSV
 parseCassava path content =
     case parseResult of
         Left  msg -> Left $ CSVError msg
         Right a   -> Right a
-    where parseResult = fmap parseResultToCsv $ CassavaMP.decode Cassava.NoHeader path (C.pack content)
+    where parseResult = fmap parseResultToCsv $ CassavaMP.decode Cassava.NoHeader path lazyContent
+          lazyContent = cs $ T.encodeUtf8 content
 
-parseResultToCsv :: (Foldable t, Functor t) => t (t C.ByteString) -> CSV
+parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> CSV
 parseResultToCsv = toListList . unpackFields
     where
         toListList = toList . fmap toList
