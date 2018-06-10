@@ -17,14 +17,14 @@
 # 2. reading CSV with in-field and out-field
  printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >t.$$.csv.rules ; hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 <<<
-10/2009/09,Flubber Co,50,
-11/2009/09,Flubber Co,,50
+10/2009/09,Flubber Co🎅,50,
+11/2009/09,Flubber Co🎅,,50
 >>>
-2009/09/10 Flubber Co
+2009/09/10 Flubber Co🎅
     Assets:MyAccount             $50
     income:unknown              $-50
 
-2009/09/11 Flubber Co
+2009/09/11 Flubber Co🎅
     Assets:MyAccount            $-50
     expenses:unknown             $50
 
