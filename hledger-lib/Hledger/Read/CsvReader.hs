@@ -31,7 +31,7 @@ module Hledger.Read.CsvReader (
 )
 where
 import Prelude ()
-import "base-compat-batteries" Prelude.Compat hiding (getContents)
+import "base-compat-batteries" Prelude.Compat
 import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Except
@@ -71,7 +71,6 @@ import Text.Printf (printf)
 import Data.Word
 
 import Hledger.Data
-import Hledger.Utils.UTF8IOCompat (getContents)
 import Hledger.Utils
 import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos)
 
