@@ -1,0 +1,42 @@
+# Testing parse error messages for accuracy and usefulness.
+
+# 1. A journal with an incomplete date.
+<
+2018
+
+$ hledger -f - print
+>2
+hledger: -:1:5:
+unexpected newline
+expecting date separator or the rest of year or month
+
+>=1
+
+# 2. A journal with an unbalanced transaction.
+# When read from stdin, this example actually passes because hledger tries all readers 
+# and the timedot reader parses it (and shows two decimal places).
+<
+2018/1/1
+  a  1
+
+$ hledger -f - bal -N
+>
+                1.00  a
+
+# 3. If we force journal format, we get the expected error.
+$ hledger -f journal:- bal -N
+>2 /hledger: could not balance this transaction \(real postings are off by 1\)/
+>=1
+
+# 4. A posting without two spaces between account and amount (forcing journal format).
+<
+2018/1/1
+  (a) 1
+
+# hledger doesn't detect this as an error directly, it parses account name "(a) 1" here.
+$ hledger -f journal:- print -x
+2018/01/01
+    (a) 1               0
+
+>=
+
