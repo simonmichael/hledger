@@ -141,7 +141,8 @@ or [email](docs.html#helpfeedback):
 If you prefer more control or if hledger-install failed, here's how to use stack yourself:
 
 1. **Install or upgrade to the latest stack**\
-   The latest version of stack (1.7) is recommended, for best avoidance of ecosystem breakages.
+   The latest version of stack (1.7.1) is recommended, for best avoidance of ecosystem breakages.
+   If an older version fails to install hledger, you should install the latest release of stack and try again.
    If you can get at least stack 1.3 installed, eg from your system packages, you can usually run `stack upgrade` to quickly upgrade it to the latest.
 
     On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
