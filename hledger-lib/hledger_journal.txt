@@ -886,54 +886,86 @@ FILE FORMAT
        ported.
 
    Periodic transactions
-       Periodic transaction rules (enabled by --forecast or --budget) describe
-       recurring  transactions.   They look like a transaction where the first
-       line is a tilde (~) followed by a period  expression  (mnemonic:  ~  is
-       like a recurring sine wave):
+       Periodic transaction rules  describe  transactions  that  recur.   They
+       allow  you  to  generate future transactions for forecast reports (with
+       --forecast), without having to write them out explicitly in  the  jour-
+       nal.   Secondly,  they  also  can  be used to define budget goals (with
+       --budget).
 
-              ~ weekly
-                assets:bank:checking   $400 ; paycheck
-                income:acme inc
+       A periodic transaction rule looks like a regular  journal  entry,  with
+       the  date  replaced  by  a  tilde  (~)  followed by a period expression
+       (mnemonic: ~ looks like a repeating sine wave):
 
-       Periodic transactions have a dual purpose:
+              ~ monthly
+                  expenses:rent          $2000
+                  assets:bank:checking
 
-       o With  --forecast,  each  periodic  transaction  rule generates future
-         transactions, recurring at the specified interval, which can be  seen
-         in  reports.   Forecast  transactions  begin the day after the latest
-         recorded journal transaction (or today, if there are no transactions)
-         and  end  6  months  from today (or at the report end date, if speci-
-         fied).
+       There is an additional constraint on the period expression:  the  start
+       date   must   fall   on   a  natural  boundary  of  the  interval.   Eg
+       monthly from 2018/1/1 is valid, but monthly from 2018/1/15 is not.
 
-       o With --budget (supported  by  the  balance  command),  each  periodic
-         transaction  rule  declares  recurring budget goals for the specified
-         accounts, which can be seen in budget reports.  Eg the example  above
-         declares  the  goal of receiving $400 from income:acme inc (and also,
-         depositing $400 into assets:bank:checking) every week.
+       Also, if you write a transaction description or same-line  comment,  it
+       must  be  separated  from  the period expression by two or more spaces.
+       Eg:
 
-       (Actually, you can generate one-off  transactions  too,  by  writing  a
-       period expression with no report interval.)
+              ;                              2 or more spaces
+              ;                                    ||
+              ;                                    vv
+              ~ every 2 weeks from 2018/6 to 2018/9  paycheck
+                  assets:bank:checking   $1500
+                  income:acme inc
+
+   Generating forecasts with periodic transactions
+       With the --forecast flag,  each  periodic  transaction  rule  generates
+       future  transactions recurring at the specified interval, beginning the
+       day after the latest recorded journal transaction (or today,  if  there
+       are  no transactions), and ending 6 months from today (or at the report
+       end date, if specified).  The generated transactions will appear in all
+       reports.   They  will  have  a "recur:" transaction tag added, with the
+       generating period expression as its value.
+
+       This can be useful for forecasting balances into the future, and exper-
+       imenting  with  different  scenarios,  without having to write a lot of
+       journal entries.  It can also help with data entry  (describe  most  of
+       your transactions with periodic rules, and every so often copy the out-
+       put of print --forecast to the journal).
+
+       You can generate one-time transactions too; just write a period expres-
+       sion  specifying a date with no report interval.  You could use this to
+       forecast an estimated transaction, that  is  automatically  deactivated
+       once  the actual transaction (or any other transaction on or after that
+       date) is recorded.
+
+   Setting budget goals with periodic transactions
+       With the --budget flag, currently supported  by  the  balance  command,
+       each  periodic transaction rule declares recurring budget goals for the
+       specified accounts.  Eg the first example  above  declares  a  goal  of
+       spending  $2000  on  rent  (and  also,  a goal of depositing $2000 into
+       checking) every month.  Goals and actual performance can then  be  com-
+       pared in budget reports.
 
        For  more  details, see: balance: Budget report and Cookbook: Budgeting
        and Forecasting.
 
    Automated postings
-       Automated postings (enabled by --auto) are postings added automatically
-       by  rule to certain transactions.  An automated posting rule looks like
-       a transaction where the first line is an equal sign (=) followed  by  a
-       query (mnemonic: = tests for matching transactions, and also looks like
-       posting lines):
+       Automated posting rules describe extra postings that should be added to
+       certain transactions at report time, when the --auto flag is used.
+
+       An  automated  posting  rule looks like a regular journal entry, except
+       the first line is an equal sign (=) followed by a  query  (mnemonic:  =
+       looks like posting lines):
 
               = expenses:gifts
                   budget:gifts  *-1
                   assets:budget  *1
 
-       The posting amounts can be of the form *N, which means "the  amount  of
-       the  matched  transaction's  first posting, multiplied by N".  They can
+       The  posting  amounts can be of the form *N, which means "the amount of
+       the matched transaction's first posting, multiplied by  N".   They  can
        also be ordinary fixed amounts.  Fixed amounts with no commodity symbol
-       will  be  given  the  same commodity as the matched transaction's first
+       will be given the same commodity as  the  matched  transaction's  first
        posting.
 
-       This example adds a corresponding (unbalanced) budget posting to  every
+       This  example adds a corresponding (unbalanced) budget posting to every
        transaction involving the expenses:gifts account:
 
               = expenses:gifts
@@ -949,16 +981,16 @@ FILE FORMAT
                   (budget:gifts)            $-20
                   assets
 
-       Like  postings  recorded  by  hand,  automated  postings participate in
+       Like postings recorded  by  hand,  automated  postings  participate  in
        transaction balancing, missing amount inference and balance assertions.
 
 EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
-       nal files easier.  They add colour, navigation aids  and  helpful  com-
-       mands.   For  hledger  users  who  edit  the journal file directly (the
+       nal  files  easier.   They add colour, navigation aids and helpful com-
+       mands.  For hledger users who  edit  the  journal  file  directly  (the
        majority), using one of these modes is quite recommended.
 
-       These were written with Ledger in mind,  but  also  work  with  hledger
+       These  were  written  with  Ledger  in mind, but also work with hledger
        files:
 
 
@@ -977,7 +1009,7 @@ EDITOR SUPPORT
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -991,7 +1023,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 

@@ -86,7 +86,11 @@ module Hledger.Read.Common (
   postingcommentp,
 
   -- ** bracketed dates
-  bracketeddatetagsp
+  bracketeddatetagsp,
+
+  -- ** misc
+  singlespacedtextp,
+  singlespacep
 )
 where
 --- * imports
@@ -193,6 +197,7 @@ rjp = runJournalParser
 genericSourcePos :: SourcePos -> GenericSourcePos
 genericSourcePos p = GenericSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p) (fromIntegral . unPos $ sourceColumn p)
 
+-- | Construct a generic start & end line parse position from start and end megaparsec SourcePos's. 
 journalSourcePos :: SourcePos -> SourcePos -> GenericSourcePos
 journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ sourceLine p, fromIntegral $ line')
     where line'
@@ -438,19 +443,26 @@ modifiedaccountnamep = do
     joinAccountNames parent
     a
 
--- | Parse an account name. Account names start with a non-space, may
--- have single spaces inside them, and are terminated by two or more
--- spaces (or end of input). Also they have one or more components of
--- at least one character, separated by the account separator char.
--- (This parser will also consume one following space, if present.)
+-- | Parse an account name, plus one following space if present. 
+-- Account names start with a non-space, may have single spaces inside them, 
+-- and are terminated by two or more spaces (or end of input). 
+-- (Also they have one or more components of at least one character, 
+-- separated by the account separator character, but we don't check that here.) 
 accountnamep :: TextParser m AccountName
-accountnamep = do
+accountnamep = singlespacedtextp
+
+-- | Parse any text beginning with a non-whitespace character, until a double space or the end of input.
+-- Consumes one of the following spaces, if present.
+singlespacedtextp :: TextParser m T.Text
+singlespacedtextp = do
   firstPart <- part
-  otherParts <- many $ try $ singleSpace *> part
+  otherParts <- many $ try $ singlespacep *> part
   pure $! T.unwords $ firstPart : otherParts
   where
     part = takeWhile1P Nothing (not . isSpace)
-    singleSpace = void spacenonewline *> notFollowedBy spacenonewline
+
+-- | Parse one non-newline whitespace character that is not followed by another one.
+singlespacep = void spacenonewline *> notFollowedBy spacenonewline
 
 --- ** amounts
 

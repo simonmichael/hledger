@@ -915,33 +915,60 @@ Prior to hledger 1.0, legacy `account` and `end` spellings were also supported.
 
 ## Periodic transactions
 
-Periodic transaction rules (enabled by `--forecast` or `--budget`) describe recurring transactions.
-They look like a transaction where the first line is a tilde (`~`)
-followed by a [period expression](manual.html#period-expressions)
-(mnemonic: `~` is like a recurring sine wave):
+Periodic transaction rules describe transactions that recur.
+They allow you to generate future transactions for forecast reports (with `--forecast`),
+without having to write them out explicitly in the journal.
+Secondly, they also can be used to define budget goals (with `--budget`).
+
+A periodic transaction rule looks like a regular journal entry,
+with the date replaced by a tilde (`~`) followed by a [period expression](manual.html#period-expressions)
+(mnemonic: `~` looks like a repeating sine wave):
 ```journal
-~ weekly
-  assets:bank:checking   $400 ; paycheck
-  income:acme inc
+~ monthly
+    expenses:rent          $2000
+    assets:bank:checking
+```
+There is an additional constraint on the period expression:
+the start date must fall on a natural boundary of the interval.
+Eg `monthly from 2018/1/1` is valid, but `monthly from 2018/1/15` is not.
+
+Also, if you write a transaction description or same-line comment, 
+it must be separated from the period expression by **two or more spaces**. Eg:
+```journal
+;                              2 or more spaces
+;                                    ||
+;                                    vv
+~ every 2 weeks from 2018/6 to 2018/9  paycheck
+    assets:bank:checking   $1500
+    income:acme inc
 ```
 
-Periodic transactions have a dual purpose:
+### Generating forecasts with periodic transactions
 
-- With `--forecast`,
-each periodic transaction rule generates future transactions,
-recurring at the specified interval,
-which can be seen in reports.
-Forecast transactions begin the day after the latest recorded journal transaction (or today, if there are no transactions)
-and end 6 months from today (or at the report end date, if specified).
+With the `--forecast` flag,
+each periodic transaction rule generates future transactions recurring at the specified interval,
+beginning the day after the latest recorded journal transaction (or today, if there are no transactions),
+and ending 6 months from today (or at the report end date, if specified).
+The generated transactions will appear in all reports.
+They will have a "recur:" transaction tag added, with the generating period expression as its value.
 
-- With `--budget` (supported by the balance command),
-each periodic transaction rule declares recurring budget goals for the specified accounts,
-which can be seen in [budget reports](/manual.html#budget-report).
-Eg the example above declares the goal of receiving $400 from `income:acme inc`
-(and also, depositing $400 into `assets:bank:checking`) every week.
+This can be useful for forecasting balances into the future,
+and experimenting with different scenarios, without having to write a lot of journal entries.
+It can also help with data entry (describe most of your transactions with periodic rules,
+and every so often copy the output of `print --forecast` to the journal).
 
-(Actually, you can generate one-off transactions too,
-by writing a period expression with no report interval.)
+You can generate one-time transactions too; 
+just write a period expression specifying a date with no report interval.
+You could use this to forecast an estimated transaction, that is automatically deactivated 
+once the actual transaction (or any other transaction on or after that date) is recorded.
+
+### Setting budget goals with periodic transactions
+
+With the `--budget` flag, currently supported by the balance command,
+each periodic transaction rule declares recurring budget goals for the specified accounts.
+Eg the first example above declares a goal of spending $2000 on rent
+(and also, a goal of depositing $2000 into checking) every month.
+Goals and actual performance can then be compared in [budget reports](/manual.html#budget-report).
 
 For more details, see:
 [balance: Budget report](manual.html#budget-report)
@@ -950,10 +977,12 @@ and
 
 ## Automated postings
 
-Automated postings (enabled by `--auto`) are postings added automatically by rule to certain transactions.
-An automated posting rule looks like a transaction where
-the first line is an equal sign (`=`) followed by a [query](manual.html#queries)
-(mnemonic: `=` tests for matching transactions, and also looks like posting lines):
+Automated posting rules describe extra postings that should be added to certain transactions at report time,
+when the `--auto` flag is used.
+
+An automated posting rule looks like a regular journal entry,
+except the first line is an equal sign (`=`) followed by a [query](manual.html#queries)
+(mnemonic: `=` looks like posting lines):
 ```journal
 = expenses:gifts
     budget:gifts  *-1

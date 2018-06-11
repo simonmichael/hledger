@@ -1,4 +1,4 @@
-# Test --forecast switch
+# 1. A balance report with forecasted transactions.
 hledger bal -M -b 2016-11 -e 2017-02 -f - --forecast
 <<<
 2016/12/31
@@ -28,13 +28,14 @@ Balance changes in 2016/12/01-2017/01/31:
 >>>=0
 
 
+# 2. print forecasted transactions, with status and description.
 hledger print -b 2016-11 -e 2017-02 -f - --forecast
 <<<
 2016/12/31
     expenses:housing  $600
     assets:cash
 
-~ monthly from 2016/1
+~ monthly from 2016/1  * marked cleared, and with a description 
     income  $-1000
     expenses:food     $20
     expenses:leisure  $15
@@ -45,7 +46,8 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
     expenses:housing            $600
     assets:cash
 
-2017/01/01 Forecast transaction (monthly from 2016/1)
+2017/01/01 * marked cleared, and with a description
+    ; recur: monthly from 2016/1
     income                    $-1000
     expenses:food                $20
     expenses:leisure             $15
@@ -56,22 +58,21 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
 >>>=0
 
 
-hledger register -b 2016-11 -e 2017-02 -f - --forecast
+# 3. A register with forecasted transactions, with a comment and tag.
+hledger register -b 2016-11 -e 2017-02 -f - --forecast  tag:a
 <<<
 2016/12/31
     expenses:housing  $600
     assets:cash
 
-~ monthly from 2016/1
+~ monthly from 2016/1  ; or a comment, maybe with a:tag
     income  $-1000
     expenses:food     $20
     expenses:leisure  $15
     expenses:grocery  $30
     assets:cash
 >>>
-2016/12/31                      expenses:housing              $600          $600
-                                assets:cash                  $-600             0
-2017/01/01 Forecast transact..  income                      $-1000        $-1000
+2017/01/01                      income                      $-1000        $-1000
                                 expenses:food                  $20         $-980
                                 expenses:leisure               $15         $-965
                                 expenses:grocery               $30         $-935
@@ -79,7 +80,7 @@ hledger register -b 2016-11 -e 2017-02 -f - --forecast
 >>>2
 >>>=0
 
-# Check that --forecast generates transactions only after last transaction in journal
+# 4. Check that --forecast generates transactions only after last transaction date in journal.
 hledger register -b 2015-12 -e 2017-02 -f - assets:cash --forecast
 <<<
 2016/01/01
@@ -96,6 +97,6 @@ hledger register -b 2015-12 -e 2017-02 -f - assets:cash --forecast
 >>>
 2016/01/01                      assets:cash                   $-10          $-10
 2016/12/02                      assets:cash                  $-600         $-610
-2017/01/01 Forecast transact..  assets:cash                 $10000         $9390
+2017/01/01                      assets:cash                 $10000         $9390
 >>>2
 >>>=0
