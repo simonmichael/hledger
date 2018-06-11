@@ -8,6 +8,9 @@
 $ hledger -f - print
 >2
 hledger: -:1:5:
+  |
+1 | 2018
+  |     ^
 unexpected newline
 expecting date separator or the rest of year or month
 
