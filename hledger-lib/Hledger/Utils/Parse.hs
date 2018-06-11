@@ -34,10 +34,10 @@ import Data.List
 import Data.Text (Text)
 import Text.Megaparsec
 import Text.Megaparsec.Char
+import Text.Megaparsec.Custom
 import Text.Printf
 
 import Hledger.Data.Types
-import Hledger.Utils.ParseErrors
 import Hledger.Utils.UTF8IOCompat (error')
 
 -- | A parser of string to some type.

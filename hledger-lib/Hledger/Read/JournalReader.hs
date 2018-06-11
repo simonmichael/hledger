@@ -90,6 +90,7 @@ import Text.Megaparsec.Error
 #endif
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
+import Text.Megaparsec.Custom
 import Text.Printf
 import System.FilePath
 
@@ -98,7 +99,6 @@ import Hledger.Read.Common
 import Hledger.Read.TimeclockReader (timeclockfilep)
 import Hledger.Read.TimedotReader (timedotfilep)
 import Hledger.Utils
-import Hledger.Utils.ParseErrors
 
 -- $setup
 -- >>> :set -XOverloadedStrings

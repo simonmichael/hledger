@@ -114,10 +114,10 @@ import System.Time (getClockTime)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer (decimal)
+import Text.Megaparsec.Custom
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Utils.ParseErrors
 import qualified Hledger.Query as Q (Query(Any))
 
 -- | A hledger journal reader is a triple of storage format name, a

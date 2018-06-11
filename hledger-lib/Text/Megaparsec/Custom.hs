@@ -5,7 +5,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
 
-module Hledger.Utils.ParseErrors (
+module Text.Megaparsec.Custom (
   -- * Custom parse error type
   CustomErr,
 

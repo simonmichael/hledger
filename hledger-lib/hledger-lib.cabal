@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 86a93717a2fa0b215398b09da43e823e40cbf65bdd62a40ef0473549b2d5900c
+-- hash: b808d840bfd7de5e860adb6ac41ec6bcee061cebcff87b4a1b87d2a46c58b0bf
 
 name:           hledger-lib
 version:        1.9.99
@@ -95,7 +95,7 @@ library
       Hledger.Utils.UTF8IOCompat
       Text.Tabular.AsciiWide
   other-modules:
-      Hledger.Utils.ParseErrors
+      Text.Megaparsec.Custom
       Paths_hledger_lib
   hs-source-dirs:
       ./.
@@ -182,13 +182,13 @@ test-suite doctests
       Hledger.Utils.Color
       Hledger.Utils.Debug
       Hledger.Utils.Parse
-      Hledger.Utils.ParseErrors
       Hledger.Utils.Regex
       Hledger.Utils.String
       Hledger.Utils.Test
       Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
+      Text.Megaparsec.Custom
       Text.Tabular.AsciiWide
       Paths_hledger_lib
   hs-source-dirs:
@@ -279,13 +279,13 @@ test-suite easytests
       Hledger.Utils.Color
       Hledger.Utils.Debug
       Hledger.Utils.Parse
-      Hledger.Utils.ParseErrors
       Hledger.Utils.Regex
       Hledger.Utils.String
       Hledger.Utils.Test
       Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
+      Text.Megaparsec.Custom
       Text.Tabular.AsciiWide
       Paths_hledger_lib
   hs-source-dirs:
@@ -376,13 +376,13 @@ test-suite hunittests
       Hledger.Utils.Color
       Hledger.Utils.Debug
       Hledger.Utils.Parse
-      Hledger.Utils.ParseErrors
       Hledger.Utils.Regex
       Hledger.Utils.String
       Hledger.Utils.Test
       Hledger.Utils.Text
       Hledger.Utils.Tree
       Hledger.Utils.UTF8IOCompat
+      Text.Megaparsec.Custom
       Text.Tabular.AsciiWide
       Paths_hledger_lib
   hs-source-dirs:
