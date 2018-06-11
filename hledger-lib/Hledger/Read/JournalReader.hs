@@ -265,7 +265,7 @@ indentedlinep = lift (skipSome spacenonewline) >> (rstrip <$> lift restofline)
 -- >>> Right _ <- rjp commoditydirectivep "commodity $\n\n" -- a commodity with no format
 -- >>> Right _ <- rjp commoditydirectivep "commodity $1.00\n  format $1.00" -- both, what happens ?
 commoditydirectivep :: JournalParser m ()
-commoditydirectivep = try commoditydirectiveonelinep <|> commoditydirectivemultilinep
+commoditydirectivep = commoditydirectiveonelinep <|> commoditydirectivemultilinep
 
 -- | Parse a one-line commodity directive.
 --
@@ -273,10 +273,12 @@ commoditydirectivep = try commoditydirectiveonelinep <|> commoditydirectivemulti
 -- >>> Right _ <- rjp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
 commoditydirectiveonelinep :: JournalParser m ()
 commoditydirectiveonelinep = do
-  string "commodity"
-  lift (skipSome spacenonewline)
-  pos <- getPosition
-  Amount{acommodity,astyle} <- amountp
+  (pos, Amount{acommodity,astyle}) <- try $ do
+    string "commodity"
+    lift (skipSome spacenonewline)
+    pos <- getPosition
+    amount <- amountp
+    pure $ (pos, amount)
   lift (skipMany spacenonewline)
   _ <- lift followingcommentp
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg2 "style from commodity directive" astyle}
