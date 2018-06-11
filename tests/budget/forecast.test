@@ -1,4 +1,4 @@
-# Test --forecast switch
+# 1. A balance report with forecasted transactions.
 hledger bal -M -b 2016-11 -e 2017-02 -f - --forecast
 <<<
 2016/12/31
@@ -28,6 +28,7 @@ Balance changes in 2016/12/01-2017/01/31:
 >>>=0
 
 
+# 2. print forecasted transactions, with status and description.
 hledger print -b 2016-11 -e 2017-02 -f - --forecast
 <<<
 2016/12/31
@@ -57,6 +58,7 @@ hledger print -b 2016-11 -e 2017-02 -f - --forecast
 >>>=0
 
 
+# 3. A register with forecasted transactions, with a comment and tag.
 hledger register -b 2016-11 -e 2017-02 -f - --forecast  tag:a
 <<<
 2016/12/31
@@ -78,7 +80,7 @@ hledger register -b 2016-11 -e 2017-02 -f - --forecast  tag:a
 >>>2
 >>>=0
 
-# Check that --forecast generates transactions only after last transaction in journal
+# 4. Check that --forecast generates transactions only after last transaction date in journal.
 hledger register -b 2015-12 -e 2017-02 -f - assets:cash --forecast
 <<<
 2016/01/01
