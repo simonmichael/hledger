@@ -134,11 +134,37 @@ customParseErrorPretty source err = case findCustomError err of
 
 --- * Modified Megaparsec source
 
--- The below code has been copied from the Megaparsec module and modified
--- to suit our needs. These changes are indicated by square brackets.
+-- The below code has been copied from Megaparsec (v.6.4.1,
+-- Text.Megaparsec.Error) and modified to suit our needs. These changes are
+-- indicated by square brackets. The following copyright notice, conditions,
+-- and disclaimer apply to all code below this point.
 --
--- NOTE: I am not sure what we are now obligated to do, having directly
--- copied source code from another project.
+-- Copyright © 2015–2018 Megaparsec contributors<br>
+-- Copyright © 2007 Paolo Martini<br>
+-- Copyright © 1999–2000 Daan Leijen
+--
+-- All rights reserved.
+--
+-- Redistribution and use in source and binary forms, with or without
+-- modification, are permitted provided that the following conditions are met:
+--
+-- * Redistributions of source code must retain the above copyright notice,
+--   this list of conditions and the following disclaimer.
+--
+-- * Redistributions in binary form must reproduce the above copyright notice,
+--   this list of conditions and the following disclaimer in the documentation
+--   and/or other materials provided with the distribution.
+--
+-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS “AS IS” AND ANY EXPRESS
+-- OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+-- OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+-- NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY DIRECT, INDIRECT,
+-- INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+-- LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+-- OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+-- LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+-- NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+-- EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 -- | Pretty-print a 'ParseError Char CustomErr' and display the line on
@@ -172,14 +198,14 @@ customParseErrorPretty_ w s e l =
   sourcePosStackPretty (errorPos e) <> ":\n" <>
     padding <> "|\n" <>
     lineNumber <> " | " <> rline <> "\n" <>
-    padding <> "| " <> rpadding <> highlight <> "\n" <>
+    padding <> "| " <> rpadding <> highlight <> "\n" <> -- [added `highlight`]
     parseErrorTextPretty e
   where
     epos       = NE.head (errorPos e) -- [changed from NE.last to NE.head]
     lineNumber = (show . unPos . sourceLine) epos
     padding    = replicate (length lineNumber + 1) ' '
     rpadding   = replicate (unPos (sourceColumn epos) - 1) ' '
-    highlight  = replicate (unPos l) '^'
+    highlight  = replicate (unPos l) '^' -- [added]
     rline      =
       case rline' of
         [] -> "<empty line>"
