@@ -175,8 +175,8 @@ rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = d
   outputFromOpts rawopts opts{reportopts_=ropts{query_=""}} j j'
 
 postingp' :: T.Text -> IO Posting
-postingp' t = runErroringJournalParser (postingp Nothing <* eof) t' >>= \case
-        Left err -> fail err
+postingp' t = runJournalParser (postingp Nothing <* eof) t' >>= \case
+        Left err -> fail $ parseErrorPretty' t' err
         Right p -> return p
     where t' = " " <> t <> "\n" -- inject space and newline for proper parsing
 

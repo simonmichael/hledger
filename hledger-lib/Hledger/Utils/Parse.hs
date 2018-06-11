@@ -1,34 +1,56 @@
 {-# LANGUAGE CPP, TypeFamilies #-}
-module Hledger.Utils.Parse where
 
-import Control.Monad.Except
+module Hledger.Utils.Parse (
+  SimpleStringParser,
+  SimpleTextParser,
+  TextParser,
+  JournalParser,
+
+  choice',
+  choiceInState,
+  surroundedBy,
+  parsewith,
+  parsewithString,
+  parseWithState,
+  parseWithState',
+  fromparse,
+  parseerror,
+  showDateParseError,
+  nonspace,
+  isNonNewlineSpace,
+  spacenonewline,
+  restofline,
+  eolof,
+
+  -- * re-exports
+  CustomErr
+)
+where
+
 import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.Char
 import Data.Functor.Identity (Identity(..))
 import Data.List
 import Data.Text (Text)
-import Data.Void (Void)
 import Text.Megaparsec
 import Text.Megaparsec.Char
+import Text.Megaparsec.Custom
 import Text.Printf
 
 import Hledger.Data.Types
 import Hledger.Utils.UTF8IOCompat (error')
 
 -- | A parser of string to some type.
-type SimpleStringParser a = Parsec Void String a
+type SimpleStringParser a = Parsec CustomErr String a
 
 -- | A parser of strict text to some type.
-type SimpleTextParser = Parsec Void Text  -- XXX an "a" argument breaks the CsvRulesParser declaration somehow
+type SimpleTextParser = Parsec CustomErr Text  -- XXX an "a" argument breaks the CsvRulesParser declaration somehow
 
 -- | A parser of text in some monad.
-type TextParser m a = ParsecT Void Text m a
+type TextParser m a = ParsecT CustomErr Text m a
 
 -- | A parser of text in some monad, with a journal as state.
-type JournalParser m a = StateT Journal (ParsecT Void Text m) a
-
--- | A parser of text in some monad, with a journal as state, that can throw an error string mid-parse.
-type ErroringJournalParser m a = StateT Journal (ParsecT Void Text (ExceptT String m)) a
+type JournalParser m a = StateT Journal (ParsecT CustomErr Text m) a
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.
@@ -37,7 +59,7 @@ choice' = choice . map try
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.
-choiceInState :: [StateT s (ParsecT Void Text m) a] -> StateT s (ParsecT Void Text m) a
+choiceInState :: [StateT s (ParsecT CustomErr Text m) a] -> StateT s (ParsecT CustomErr Text m) a
 choiceInState = choice . map try
 
 surroundedBy :: Applicative m => m openclose -> m a -> m a
@@ -49,7 +71,7 @@ parsewith p = runParser p ""
 parsewithString :: Parsec e String a -> String -> Either (ParseError Char e) a
 parsewithString p = runParser p ""
 
-parseWithState :: Monad m => st -> StateT st (ParsecT Void Text m) a -> Text -> m (Either (ParseError Char Void) a)
+parseWithState :: Monad m => st -> StateT st (ParsecT CustomErr Text m) a -> Text -> m (Either (ParseError Char CustomErr) a)
 parseWithState ctx p s = runParserT (evalStateT p ctx) "" s
 
 parseWithState'
@@ -78,7 +100,7 @@ nonspace = satisfy (not . isSpace)
 isNonNewlineSpace :: Char -> Bool
 isNonNewlineSpace c = c /= '\n' && isSpace c
 
-spacenonewline :: (Stream s, Char ~ Token s) => ParsecT Void s m Char
+spacenonewline :: (Stream s, Char ~ Token s) => ParsecT CustomErr s m Char
 spacenonewline = satisfy isNonNewlineSpace
 
 restofline :: TextParser m String

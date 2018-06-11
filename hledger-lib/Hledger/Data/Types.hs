@@ -183,6 +183,7 @@ instance NFData PostingType
 type TagName = Text
 type TagValue = Text
 type Tag = (TagName, TagValue)  -- ^ A tag name and (possibly empty) value.
+type DateTag = (TagName, Day)
 
 -- | The status of a transaction or posting, recorded with a status mark
 -- (nothing, !, or *). What these mean is ultimately user defined.
