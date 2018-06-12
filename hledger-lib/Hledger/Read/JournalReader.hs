@@ -460,30 +460,37 @@ modifiertransactionp = do
 -- | Parse a periodic transaction
 periodictransactionp :: MonadIO m => JournalParser m PeriodicTransaction
 periodictransactionp = do
+
+  -- first line
   char '~' <?> "periodic transaction"
   lift $ skipMany spacenonewline
-
+  -- a period expression
   pos <- getPosition
   d <- liftIO getCurrentDay
-
-  -- T.strip is for removing the trailing two spaces
   (periodtxt, (interval, span)) <- lift $ first T.strip <$> match (periodexprp d)
-
-  -- not yet sure how I should add context ("while parsing a period expression") and
-  -- suggestions ("2+ spaces are needed ...") to `TrivialError` parse errors
-
   -- In periodic transactions, the period expression has an additional constraint:
   case checkPeriodicTransactionStartDate interval span periodtxt of
     Just e -> parseErrorAt pos e
     Nothing -> pure ()
+  -- The line can end here, or it can continue with one or more spaces
+  -- and then zero or more of the following fields. A bit awkward.
+  (status, code, description, (comment, tags)) <-
+    (lift eolof >> return (Unmarked, "", "", ("", [])))
+    <|>
+    (do
+      lift $ skipSome spacenonewline 
+      s         <- lift statusp
+      c         <- lift codep
+      desc      <- lift $ T.strip <$> descriptionp
+      (cmt, ts) <- lift transactioncommentp
+      return (s,c,desc,(cmt,ts))
+    )
 
-  status <- lift statusp
-  code <- lift codep
-  description <- lift $ T.strip <$> descriptionp
-  (comment, tags) <- lift transactioncommentp
+  -- next lines
   postings <- postingsp (Just $ first3 $ toGregorian d)
+
   return $ nullperiodictransaction{
-      ptperiodexpr=periodtxt
+     ptperiodexpr=periodtxt
     ,ptinterval=interval
     ,ptspan=span
     ,ptstatus=status
