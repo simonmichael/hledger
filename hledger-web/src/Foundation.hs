@@ -6,7 +6,6 @@
 module Foundation where
 
 import Data.IORef (IORef, readIORef, writeIORef)
-import Data.List (isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -14,16 +13,15 @@ import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit (Manager)
 import System.FilePath (takeFileName)
 import Text.Blaze (Markup)
-import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Hamlet (hamletFile)
 import Yesod
 import Yesod.Static
 import Yesod.Default.Config
 
-import Handler.AddForm
-import Handler.Common (balanceReportAsHtml)
+import Settings (Extra(..), widgetFile)
 import Settings.StaticFiles
-import Settings (widgetFile, Extra (..))
+import Widget.Common (balanceReportAsHtml)
+
 #ifndef DEVELOPMENT
 import Settings (staticDir)
 import Text.Jasmine (minifym)
@@ -87,7 +85,8 @@ instance Yesod App where
 
   defaultLayout widget = do
     master <- getYesod
-    VD{am, here, j, opts, q, qopts, showsidebar} <- getViewData
+    here <- fromMaybe RootR <$> getCurrentRoute
+    VD {am, j, opts, q, qopts, showsidebar} <- getViewData
     msg <- getMessage
 
     let journalcurrent = if here == JournalR then "inacct" else "" :: Text
@@ -152,18 +151,17 @@ instance RenderMessage App FormMessage where
 -- XXX Parameter p - show/hide postings
 
 -- | A bundle of data useful for hledger-web request handlers and templates.
-data ViewData = VD {
-     opts         :: WebOpts    -- ^ the command-line options at startup
-    ,here         :: AppRoute   -- ^ the current route
-    ,today        :: Day        -- ^ today's date (for queries containing relative dates)
-    ,j            :: Journal    -- ^ the up-to-date parsed unfiltered journal
-    ,q            :: Text       -- ^ the current q parameter, the main query expression
-    ,m            :: Query      -- ^ a query parsed from the q parameter
-    ,qopts        :: [QueryOpt] -- ^ query options parsed from the q parameter
-    ,am           :: Query      -- ^ a query parsed from the accounts sidebar query expr ("a" parameter)
-    ,aopts        :: [QueryOpt] -- ^ query options parsed from the accounts sidebar query expr
-    ,showsidebar  :: Bool       -- ^ current showsidebar cookie value
-    } deriving (Show)
+data ViewData = VD
+  { opts         :: WebOpts    -- ^ the command-line options at startup
+  , today        :: Day        -- ^ today's date (for queries containing relative dates)
+  , j            :: Journal    -- ^ the up-to-date parsed unfiltered journal
+  , q            :: Text       -- ^ the current q parameter, the main query expression
+  , m            :: Query      -- ^ a query parsed from the q parameter
+  , qopts        :: [QueryOpt] -- ^ query options parsed from the q parameter
+  , am           :: Query      -- ^ a query parsed from the accounts sidebar query expr ("a" parameter)
+  , aopts        :: [QueryOpt] -- ^ query options parsed from the accounts sidebar query expr
+  , showsidebar  :: Bool       -- ^ current showsidebar cookie value
+  } deriving (Show)
 
 instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
 
@@ -178,7 +176,6 @@ viewdataWithDateAndParams d q a =
       (acctsmatcher, acctsopts) = parseQuery d a
   in VD
      { opts = defwebopts
-     , here = RootR
      , today = d
      , j = nulljournal
      , q = q
@@ -191,22 +188,20 @@ viewdataWithDateAndParams d q a =
 
 -- | Gather data used by handlers and templates in the current request.
 getViewData :: Handler ViewData
-getViewData = getCurrentRoute >>= \case
-  Nothing -> return nullviewdata
-  Just here -> do
-    App {appOpts, appJournal = jref} <- getYesod
-    let opts@WebOpts {cliopts_ = copts@CliOpts {reportopts_ = ropts}} = appOpts
-    today <- liftIO getCurrentDay
-    (j, merr) <- getCurrentJournal jref copts {reportopts_ = ropts {no_elide_ = True}} today
-    case merr of
-      Just err -> setMessage (toHtml err)
-      Nothing -> pure ()
-    q <- fromMaybe "" <$> lookupGetParam "q"
-    a <- fromMaybe "" <$> lookupGetParam "a"
-    showsidebar <- shouldShowSidebar
-    return
-      (viewdataWithDateAndParams today q a)
-      {here, j, opts, showsidebar, today}
+getViewData = do
+  App {appOpts, appJournal = jref} <- getYesod
+  let opts@WebOpts {cliopts_ = copts@CliOpts {reportopts_ = ropts}} = appOpts
+  today <- liftIO getCurrentDay
+  (j, merr) <- getCurrentJournal jref copts {reportopts_ = ropts {no_elide_ = True}} today
+  case merr of
+    Just err -> setMessage (toHtml err)
+    Nothing -> pure ()
+  q <- fromMaybe "" <$> lookupGetParam "q"
+  a <- fromMaybe "" <$> lookupGetParam "a"
+  showsidebar <- shouldShowSidebar
+  return
+    (viewdataWithDateAndParams today q a)
+    {j, opts, showsidebar, today}
 
 -- | Find out if the sidebar should be visible. Show it, unless there is a
 -- showsidebar cookie set to "0", or a ?sidebar=0 query parameter.

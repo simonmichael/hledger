@@ -7,12 +7,20 @@ import           Prelude              as Import hiding (head, init, last,
                                                  readFile, tail, writeFile)
 import           Yesod                as Import hiding (Route (..))
 
-import           Control.Monad        as Import (when, unless, void)
-import           Data.Bifunctor       as Import (first, second, bimap)
-import           Data.Default         as Import (Default(def))
-import           Data.Either          as Import (lefts, rights, partitionEithers)
-import           Data.Maybe           as Import (fromMaybe, maybeToList, mapMaybe, isJust)
+import           Control.Arrow        as Import ((&&&))
+import           Control.Monad        as Import
+import           Data.Bifunctor       as Import
+import           Data.Default         as Import
+import           Data.Either          as Import
+import           Data.Foldable        as Import
+import           Data.List            as Import (foldl', unfoldr)
+import           Data.Maybe           as Import
 import           Data.Text            as Import (Text)
+import           Data.Time            as Import hiding (parseTime)
+import           Data.Traversable     as Import
+import           Data.Void            as Import (Void)
+import           Text.Blaze           as Import (Markup)
+import           Text.Printf          as Import (printf)
 
 import           Foundation           as Import
 import           Settings             as Import

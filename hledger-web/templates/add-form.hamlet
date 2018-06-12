@@ -1,6 +1,5 @@
 <script>
   jQuery(document).ready(function() {
-    /* set up typeahead fields */
     descriptionsSuggester = new Bloodhound({
       local:#{listToJsonValueObjArrayStr descriptions},
       limit:100,
@@ -10,53 +9,62 @@
     descriptionsSuggester.initialize();
 
     accountsSuggester = new Bloodhound({
-      local:#{listToJsonValueObjArrayStr accts},
+      local:#{listToJsonValueObjArrayStr (journalAccountNamesDeclaredOrImplied j)},
       limit:100,
       datumTokenizer: function(d) { return [d.value]; },
       queryTokenizer: function(q) { return [q]; }
-      /*
-        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
-        datumTokenizer: Bloodhound.tokenizers.whitespace(d.value)
-        queryTokenizer: Bloodhound.tokenizers.whitespace
-      */
     });
     accountsSuggester.initialize();
 
-    enableTypeahead(jQuery('input#description'), descriptionsSuggester);
-    enableTypeahead(jQuery('input#account1, input#account2, input#account3, input#account4'), accountsSuggester);
+    jQuery('input[name=description]').typeahead({ highlight: true }, { source: descriptionsSuggester.ttAdapter() });
+    jQuery('input[name=account]').typeahead({ highlight: true }, { source: accountsSuggester.ttAdapter() });
   });
+^{extra}
 
-<form#addform action=@{r} method=POST .form>
- <div .form-group>
+<div .form-group>
   <div .row>
-   <div .col-md-3 .col-xs-6 .col-sm-6>
-    <div #dateWrap .input-group .date>
-     <input #date required lang=en name=date .form-control .input-lg placeholder="Date" >
-     <div .input-group-addon>
-      <span .glyphicon .glyphicon-th>
-   <div .col-md-9 .col-xs-6 .col-sm-6>
-    <input #description required .typeahead .form-control .input-lg type=text size=40 name=description placeholder="Description">
+    <div .col-md-3 .col-xs-6 .col-sm-6 :isJust (fvErrors dateView):.has-error>
+      <div #dateWrap .form-group.input-group.date>
+        ^{fvInput dateView}
+        <div .input-group-addon>
+          <span .glyphicon .glyphicon-th>
+      $maybe err <- fvErrors dateView
+        <span .help-block .error-block>#{err}
+    <div .col-md-9 .col-xs-6 .col-sm-6 :isJust (fvErrors descView):.has-error>
+      <div .form-group>
+        ^{fvInput descView}
+      $maybe err <- fvErrors descView
+        <span .help-block .error-block>#{err}
+  <div .row>
+    <div .col-md-3 .col-xs-6 .col-sm-6>
+    <div .col-md-9 .col-xs-6 .col-sm-6>
 
- <div .account-postings>
-  $forall n <- postingnums
-   <div .form-group .row .account-group #grp#{n}>
-    <div .col-md-8 .col-xs-8 .col-sm-8>
-     <input #account#{n} .account-input.form-control.input-lg.typeahead type=text name=account#{n} placeholder="Account #{n}">
-    <div .col-md-4 .col-xs-4 .col-sm-4>
-     <input #amount#{n} .amount-input.form-control.input-lg type=text name=amount#{n} placeholder="Amount#{n}">
+<div .account-postings>
+  $forall (n, (acc, amt, accE, amtE)) <- msgs
+    <div .form-group .row .account-group #grp#{n}>
+      <div .col-md-8 .col-xs-8 .col-sm-8 :isJust accE:.has-error>
+        <input .account-input.form-control.input-lg.typeahead type=text
+          name=account placeholder="Account #{n}" value="#{acc}">
+        $maybe err <- accE
+          <span .help-block .error-block>_{err}
+      <div .col-md-4 .col-xs-4 .col-sm-4 :isJust amtE:.has-error>
+        <input .amount-input.form-control.input-lg type=text
+          name=amount placeholder="Amount #{n}" value="#{amt}">
+        $maybe err <- amtE
+          <span .help-block .error-block>_{err}
 
- <div .col-md-8 .col-xs-8 .col-sm-8>
- <div .col-md-4 .col-xs-4 .col-sm-4>
-  <button type=submit .btn .btn-default .btn-lg name=submit>add
- $if length filepaths > 1
+<div .row>
+  <div .col-md-8 .col-xs-8 .col-sm-8>
+  <div .col-md-4 .col-xs-4 .col-sm-4>
+    <button type=submit .btn .btn-default .btn-lg name=submit>add
+
+$if length journals > 1
   <br>
   <span .input-lg>to:
-   <select #journalselect .form-control.input-lg name=journal onchange="/*journalSelect(event)*/"  style="width:auto; display:inline-block;">
-    $forall p <- filepaths
-     <option value=#{p}>#{p}
-
- <span style="padding-left:2em;">
-  <span .small>
-    Enter a value in the last field for
+    <select #journalselect .form-control.input-lg name=journal style="width:auto; display:inline-block;">
+      $forall p <- journals
+        <option value=#{p}>#{p}
+<span .small style="padding-left:2em;">
+  Enter a value in the last field for
     <a href="#" onclick="addformAddPosting(); return false;">more
     (or ctrl +, ctrl -)

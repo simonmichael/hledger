@@ -10,22 +10,20 @@ module Handler.RegisterR where
 
 import Import
 
-import Data.Time
 import Data.List (intersperse)
 import qualified Data.Text as T
-import Safe (headMay)
 import Text.Hamlet (hamletFile)
-
-import Handler.Common (mixedAmountAsHtml, numberTransactionsReportItems)
 
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.WebOptions
+import Widget.AddForm (addForm)
+import Widget.Common (mixedAmountAsHtml, numberTransactionsReportItems)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
 getRegisterR = do
-  VD{j, m, opts, qopts} <- getViewData
+  VD{j, m, opts, qopts, today} <- getViewData
   let (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
       s1 = if inclsubs then "" else " (excluding subaccounts)"
       s2 = if m /= Any then ", filtered" else ""
@@ -39,6 +37,7 @@ getRegisterR = do
         | newd = "newday"
         | otherwise = "" :: Text
 
+  (addView, addEnctype) <- generateFormPost (addForm j today)
   defaultLayout $ do
     setTitle "register - hledger-web"
     $(widgetFile "register")
@@ -50,12 +49,12 @@ registerChartHtml percommoditytxnreports = $(hamletFile "templates/chart.hamlet"
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  where
-   charttitle = case maybe "" (fst.snd) $ headMay percommoditytxnreports of
+   charttitle = case maybe "" (fst . snd) $ listToMaybe percommoditytxnreports of
      "" -> ""
      s  -> s <> ":"
    colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
-   simpleMixedAmountQuantity = maybe 0 aquantity . headMay . amounts
+   simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts
    shownull c = if null c then " " else c
 
 dayToJsTimestamp :: Day -> Integer

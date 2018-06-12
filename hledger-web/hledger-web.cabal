@@ -123,14 +123,12 @@ library
   exposed-modules:
       Application
       Foundation
-      Handler.AddForm
       Handler.AddR
       Handler.Common
       Handler.EditR
       Handler.ImportR
       Handler.JournalR
       Handler.RegisterR
-      Handler.RootR
       Hledger.Web
       Hledger.Web.Main
       Hledger.Web.WebOptions
@@ -138,6 +136,8 @@ library
       Settings
       Settings.Development
       Settings.StaticFiles
+      Widget.AddForm
+      Widget.Common
   other-modules:
       Paths_hledger_web
   ghc-options: -Wall

@@ -1,29 +1,36 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Handler.ImportR
-  ( postImportR
+  ( getImportR
+  , postImportR
   ) where
 
 import Import
 
-import Control.Monad.Trans (lift)
-import Control.Monad.Trans.Except
+importForm :: Markup -> MForm Handler (FormResult FileInfo, Widget)
+importForm = identifyForm "import" $ \extra -> do
+  (res, view) <- mreq fileField "file" Nothing
+  pure (res, [whamlet|
+    #{extra}
+    <p>
+      Hello, my name is #
+      ^{fvInput view}
+      <input type=submit value="Introduce myself">
+  |])
 
-import Handler.Common (showErrors)
+getImportR :: Handler Html
+getImportR = do
+  (view, enctype) <- generateFormPost importForm
+  defaultLayout [whamlet|<form enctype=#{enctype}>^{view}|]
 
 -- | Handle a post from the journal import form.
-postImportR :: Handler ()
-postImportR = runE $ do
-  ((res, _), _) <- lift . runFormPost . renderDivs $ areq fileField "file" Nothing
+postImportR :: Handler Html
+postImportR = do
+  ((res, view), enctype) <- runFormPost importForm
   case res of
-    FormMissing -> throwE ["No file provided"]
-    FormFailure es -> throwE es
+    FormMissing -> defaultLayout [whamlet|<form enctype=#{enctype}>^{view}|]
+    FormFailure _ -> defaultLayout [whamlet|<form enctype=#{enctype}>^{view}|]
     FormSuccess _ -> do
-     setMessage "File uploaded successfully"
-     redirect JournalR
-  where
-    runE :: ExceptT [Text] Handler () -> Handler ()
-    runE f = runExceptT f >>= \case
-      Left e -> showErrors e >> redirect JournalR
-      Right x -> pure x
+      setMessage "File uploaded successfully"
+      redirect JournalR

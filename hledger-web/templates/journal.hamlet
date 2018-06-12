@@ -30,3 +30,13 @@
               #{elideAccountName 40 acc}
           <td .amount .nonhead style="text-align:right;">
             ^{mixedAmountAsHtml amt}
+
+<div .modal #addmodal tabindex="-1" role="dialog" aria-labelledby="addLabel" aria-hidden="true">
+  <div .modal-dialog .modal-lg>
+    <div .modal-content>
+      <div .modal-header>
+        <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
+        <h3 .modal-title #addLabel>Add a transaction
+      <div .modal-body>
+        <form#addform.form action=@{AddR} method=POST enctype=#{addEnctype}>
+          ^{addView}

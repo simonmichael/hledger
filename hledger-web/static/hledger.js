@@ -78,10 +78,9 @@ function registerChart($container, series) {
         position: 'sw'
       },
       grid: {
-        markings:
-         function (axes) {
+        markings: function () {
           var now = Date.now();
-          var markings = [
+          return [
             {
               xaxis: { to: now }, // past
               yaxis: { to: 0 },   // <0
@@ -103,7 +102,6 @@ function registerChart($container, series) {
               lineWidth:1
             },
           ];
-          return markings;
         },
         hoverable: true,
         autoHighlight: true,
@@ -127,15 +125,16 @@ function registerChart($container, series) {
 }
 
 function registerChartClick(ev, pos, item) {
-  if (item) {
-    targetselector = '#'+item.series.data[item.dataIndex][5];
-    $target = $(targetselector);
-    if ($target.length) {
-      window.location.hash = targetselector;
-      $('html, body').animate({
-        scrollTop: $target.offset().top
-      }, 1000);
-    }
+  if (!item) {
+    return;
+  }
+  var targetselector = '#' + item.series.data[item.dataIndex][5];
+  var $target = $(targetselector);
+  if ($target.length) {
+    window.location.hash = targetselector;
+    $('html, body').animate({
+      scrollTop: $target.offset().top
+    }, 1000);
   }
 }
 
@@ -192,9 +191,8 @@ function addformAddPosting() {
   // clear and renumber the field, add keybindings
   $acctinput
     .val('')
-    .prop('id','account'+(num+1))
-    .prop('name','account'+(num+1))
-    .prop('placeholder','Account '+(num+1));
+    .prop('name', 'account')
+    .prop('placeholder', 'Account ' + (num + 1));
   //lastrow.find('input') // not :last this time
   $acctinput
     .bind('keydown', 'ctrl+shift+=', addformAddPosting)
@@ -203,9 +201,8 @@ function addformAddPosting() {
 
   $amntinput
     .val('')
-    .prop('id','amount'+(num+1))
-    .prop('name','amount'+(num+1))
-    .prop('placeholder','Amount '+(num+1))
+    .prop('name','amount')
+    .prop('placeholder','Amount ' + (num + 1))
     .keypress(addformAddPosting);
 
   $acctinput
@@ -241,47 +238,3 @@ function sidebarToggle() {
   $('#spacer').toggleClass('col-md-4 col-sm-4 col-any-0');
   $.cookie('showsidebar', $('#sidebar-menu').hasClass('col-any-0') ? '0' : '1');
 }
-
-//----------------------------------------------------------------------
-// MISC
-
-function enableTypeahead($el, suggester) {
-  return $el.typeahead(
-    {
-      highlight: true
-    },
-    {
-      source: suggester.ttAdapter()
-    }
-  );
-}
-
-// function journalSelect(ev) {
-//   var textareas = $('textarea', $('form#editform'));
-//   for (i=0; i<textareas.length; i++) {
-//     textareas[i].style.display = 'none';
-//     textareas[i].disabled = true;
-//   }
-//   var targ = getTarget(ev);
-//   if (targ.value) {
-//     var journalid = targ.value+'_textarea';
-//     var textarea = document.getElementById(journalid);
-//   }
-//   else {
-//     var textarea = textareas[0];
-//   }
-//   textarea.style.display = 'block';
-//   textarea.disabled = false;
-//   return true;
-// }
-
-// // Get the current event's target in a robust way.
-// // http://www.quirksmode.org/js/events_properties.html
-// function getTarget(ev) {
-//   var targ;
-//   if (!ev) var ev = window.event;
-//   if (ev.target) targ = ev.target;
-//   else if (ev.srcElement) targ = ev.srcElement;
-//   if (targ.nodeType == 3) targ = targ.parentNode;
-//   return targ;
-// }

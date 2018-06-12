@@ -1,10 +1,10 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE CPP, OverloadedStrings, TemplateHaskell #-}
 module Application
-    ( makeApplication
-    , getApplicationDev
-    , makeFoundation
-    ) where
+  ( makeApplication
+  , getApplicationDev
+  , makeFoundation
+  ) where
 
 import Import
 
@@ -15,15 +15,13 @@ import Network.HTTP.Client (defaultManagerSettings)
 import Network.HTTP.Conduit (newManager)
 import Yesod.Default.Config
 import Yesod.Default.Main (defaultDevelApp)
-import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
-import Handler.AddR (postAddR)
-import Handler.EditR (postEditR)
-import Handler.ImportR (postImportR)
+import Handler.AddR (getAddR, postAddR)
+import Handler.Common (getFaviconR, getRobotsR, getRootR)
+import Handler.EditR (getEditR, postEditR)
+import Handler.ImportR (getImportR, postImportR)
 import Handler.JournalR (getJournalR)
 import Handler.RegisterR (getRegisterR)
-import Handler.RootR (getRootR)
-
 import Hledger.Data (Journal, nulljournal)
 import Hledger.Read (readJournalFile)
 import Hledger.Utils (error')
@@ -46,7 +44,7 @@ makeApplication opts' j' conf' = do
     logWare <$> toWaiAppPlain foundation
   where
     logWare | development  = logStdoutDev
-            | serve_ opts'  = logStdout
+            | serve_ opts' = logStdout
             | otherwise    = id
 
 makeFoundation :: AppConfig DefaultEnv Extra -> WebOpts -> IO App
