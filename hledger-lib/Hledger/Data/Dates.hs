@@ -919,7 +919,9 @@ lastthisnextthing = do
 -- >>> p "every 2nd day of month 2009-"
 -- Right (DayOfMonth 2,DateSpan 2009/01/01-)
 periodexprp :: Day -> TextParser m (Interval, DateSpan)
-periodexprp rdate = surroundedBy (skipMany spacenonewline) . choice $ map try [
+periodexprp rdate = do
+  skipMany spacenonewline
+  choice $ map try [
                     intervalanddateperiodexprp rdate,
                     (,) NoInterval <$> periodexprdatespanp rdate
                    ]
