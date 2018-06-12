@@ -75,6 +75,7 @@ import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Except (ExceptT(..))
 import Control.Monad.State.Strict
+import Data.Bifunctor (first)
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
 import Data.String
@@ -461,41 +462,37 @@ periodictransactionp :: MonadIO m => JournalParser m PeriodicTransaction
 periodictransactionp = do
   char '~' <?> "periodic transaction"
   lift $ skipMany spacenonewline
-  -- XXX periodexprp in Hledger.Data.Dates is a SimpleTextParser, which we can't call directly here.
-  -- Instead, read until two or more spaces and reparse that. More use of two spaces is not ideal.
+
   pos <- getPosition
-  periodtxt <- lift singlespacedtextp
   d <- liftIO getCurrentDay
-  (interval, span) <-
-    case parsePeriodExpr d periodtxt of
-        Right (i,s) -> return (i,s)
-        Left e -> 
-          -- Show an informative error. XXX a bit unidiomatic, check for megaparsec helpers  
-          fail $ -- XXX
-            showGenericSourcePos (genericSourcePos pos) ++ ":\n" ++
-            (unlines $ drop 1 $ lines $ parseErrorPretty e) ++
-            "while parsing a period expression in: "++T.unpack periodtxt++"\n" ++
-            "2+ spaces are needed between period expression and any description/comment." 
+
+  -- T.strip is for removing the trailing two spaces
+  (periodtxt, (interval, span)) <- lift $ first T.strip <$> match (periodexprp d)
+
+  -- not yet sure how I should add context ("while parsing a period expression") and
+  -- suggestions ("2+ spaces are needed ...") to `TrivialError` parse errors
+
   -- In periodic transactions, the period expression has an additional constraint:
   case checkPeriodicTransactionStartDate interval span periodtxt of
-    Just e -> fail e -- XXX
-    Nothing -> do
-      status <- lift statusp
-      code <- lift codep
-      description <- lift $ T.strip <$> descriptionp
-      (comment, tags) <- lift transactioncommentp
-      postings <- postingsp (Just $ first3 $ toGregorian d)
-      return $ nullperiodictransaction{
-         ptperiodexpr=periodtxt
-        ,ptinterval=interval
-        ,ptspan=span
-        ,ptstatus=status
-        ,ptcode=code
-        ,ptdescription=description
-        ,ptcomment=comment
-        ,pttags=tags
-        ,ptpostings=postings
-        }
+    Just e -> parseErrorAt pos e
+    Nothing -> pure ()
+
+  status <- lift statusp
+  code <- lift codep
+  description <- lift $ T.strip <$> descriptionp
+  (comment, tags) <- lift transactioncommentp
+  postings <- postingsp (Just $ first3 $ toGregorian d)
+  return $ nullperiodictransaction{
+      ptperiodexpr=periodtxt
+    ,ptinterval=interval
+    ,ptspan=span
+    ,ptstatus=status
+    ,ptcode=code
+    ,ptdescription=description
+    ,ptcomment=comment
+    ,pttags=tags
+    ,ptpostings=postings
+    }
 
 -- | Parse a (possibly unbalanced) transaction.
 transactionp :: JournalParser m Transaction

@@ -44,6 +44,7 @@ module Hledger.Data.Dates (
   showDateSpanMonthAbbrev,
   elapsedSeconds,
   prevday,
+  periodexprp,
   parsePeriodExpr,
   parsePeriodExpr',
   nulldatespan,
@@ -730,14 +731,14 @@ Big numbers not beginning with a valid YYYYMMDD are parsed as a year:
 Right ("201813012","","")
 
 -}
-smartdate :: SimpleTextParser SmartDate
+smartdate :: TextParser m SmartDate
 smartdate = do
   -- XXX maybe obscures date errors ? see ledgerdate
   (y,m,d) <- choice' [yyyymmdd, yyyymm, ymd, ym, md, y, d, month, mon, today, yesterday, tomorrow, lastthisnextthing]
   return (y,m,d)
 
 -- | Like smartdate, but there must be nothing other than whitespace after the date.
-smartdateonly :: SimpleTextParser SmartDate
+smartdateonly :: TextParser m SmartDate
 smartdateonly = do
   d <- smartdate
   skipMany spacenonewline
@@ -763,7 +764,7 @@ failIfInvalidYear s  = unless (validYear s)  $ fail $ "bad year number: " ++ s
 failIfInvalidMonth s = unless (validMonth s) $ fail $ "bad month number: " ++ s
 failIfInvalidDay s   = unless (validDay s)   $ fail $ "bad day number: " ++ s
 
-yyyymmdd :: SimpleTextParser SmartDate
+yyyymmdd :: TextParser m SmartDate
 yyyymmdd = do
   y <- count 4 digitChar
   m <- count 2 digitChar
@@ -772,14 +773,14 @@ yyyymmdd = do
   failIfInvalidDay d
   return (y,m,d)
 
-yyyymm :: SimpleTextParser SmartDate
+yyyymm :: TextParser m SmartDate
 yyyymm = do
   y <- count 4 digitChar
   m <- count 2 digitChar
   failIfInvalidMonth m
   return (y,m,"01")
 
-ymd :: SimpleTextParser SmartDate
+ymd :: TextParser m SmartDate
 ymd = do
   y <- some digitChar
   failIfInvalidYear y
@@ -791,7 +792,7 @@ ymd = do
   failIfInvalidDay d
   return $ (y,m,d)
 
-ym :: SimpleTextParser SmartDate
+ym :: TextParser m SmartDate
 ym = do
   y <- some digitChar
   failIfInvalidYear y
@@ -800,19 +801,19 @@ ym = do
   failIfInvalidMonth m
   return (y,m,"")
 
-y :: SimpleTextParser SmartDate
+y :: TextParser m SmartDate
 y = do
   y <- some digitChar
   failIfInvalidYear y
   return (y,"","")
 
-d :: SimpleTextParser SmartDate
+d :: TextParser m SmartDate
 d = do
   d <- some digitChar
   failIfInvalidDay d
   return ("","",d)
 
-md :: SimpleTextParser SmartDate
+md :: TextParser m SmartDate
 md = do
   m <- some digitChar
   failIfInvalidMonth m
@@ -830,38 +831,38 @@ weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
 monthIndex t = maybe 0 (+1) $ t `elemIndex` months
 monIndex t   = maybe 0 (+1) $ t `elemIndex` monthabbrevs
 
-month :: SimpleTextParser SmartDate
+month :: TextParser m SmartDate
 month = do
-  m <- choice $ map (try . string) months
+  m <- choice $ map (try . string') months
   let i = monthIndex m
   return ("",show i,"")
 
-mon :: SimpleTextParser SmartDate
+mon :: TextParser m SmartDate
 mon = do
-  m <- choice $ map (try . string) monthabbrevs
+  m <- choice $ map (try . string') monthabbrevs
   let i = monIndex m
   return ("",show i,"")
 
-weekday :: SimpleTextParser Int
+weekday :: TextParser m Int
 weekday = do
   wday <- choice . map string' $ weekdays ++ weekdayabbrevs
   let i = head . catMaybes $ [wday `elemIndex` weekdays, wday `elemIndex` weekdayabbrevs]
   return (i+1)
 
-today,yesterday,tomorrow :: SimpleTextParser SmartDate
-today     = string "today"     >> return ("","","today")
-yesterday = string "yesterday" >> return ("","","yesterday")
-tomorrow  = string "tomorrow"  >> return ("","","tomorrow")
+today,yesterday,tomorrow :: TextParser m SmartDate
+today     = string' "today"     >> return ("","","today")
+yesterday = string' "yesterday" >> return ("","","yesterday")
+tomorrow  = string' "tomorrow"  >> return ("","","tomorrow")
 
-lastthisnextthing :: SimpleTextParser SmartDate
+lastthisnextthing :: TextParser m SmartDate
 lastthisnextthing = do
-  r <- choice $ map string [
+  r <- choice $ map string' [
         "last"
        ,"this"
        ,"next"
       ]
   skipMany spacenonewline  -- make the space optional for easier scripting
-  p <- choice $ map string [
+  p <- choice $ map string' [
         "day"
        ,"week"
        ,"month"
@@ -869,7 +870,7 @@ lastthisnextthing = do
        ,"year"
       ]
 -- XXX support these in fixSmartDate
---       ++ (map string $ months ++ monthabbrevs ++ weekdays ++ weekdayabbrevs)
+--       ++ (map string' $ months ++ monthabbrevs ++ weekdays ++ weekdayabbrevs)
 
   return ("", T.unpack r, T.unpack p)
 
@@ -917,13 +918,13 @@ lastthisnextthing = do
 -- Right (DayOfMonth 2,DateSpan 2009/01/01-)
 -- >>> p "every 2nd day of month 2009-"
 -- Right (DayOfMonth 2,DateSpan 2009/01/01-)
-periodexprp :: Day -> SimpleTextParser (Interval, DateSpan)
+periodexprp :: Day -> TextParser m (Interval, DateSpan)
 periodexprp rdate = surroundedBy (skipMany spacenonewline) . choice $ map try [
                     intervalanddateperiodexprp rdate,
                     (,) NoInterval <$> periodexprdatespanp rdate
                    ]
 
-intervalanddateperiodexprp :: Day -> SimpleTextParser (Interval, DateSpan)
+intervalanddateperiodexprp :: Day -> TextParser m (Interval, DateSpan)
 intervalanddateperiodexprp rdate = do
   i <- reportingintervalp
   s <- option def . try $ do
@@ -932,46 +933,46 @@ intervalanddateperiodexprp rdate = do
   return (i,s)
 
 -- Parse a reporting interval.
-reportingintervalp :: SimpleTextParser Interval
+reportingintervalp :: TextParser m Interval
 reportingintervalp = choice' [
                        tryinterval "day"     "daily"     Days,
                        tryinterval "week"    "weekly"    Weeks,
                        tryinterval "month"   "monthly"   Months,
                        tryinterval "quarter" "quarterly" Quarters,
                        tryinterval "year"    "yearly"    Years,
-                       do string "biweekly"
+                       do string' "biweekly"
                           return $ Weeks 2,
-                       do string "bimonthly"
+                       do string' "bimonthly"
                           return $ Months 2,
-                       do string "every"
+                       do string' "every"
                           skipMany spacenonewline
                           n <- nth
                           skipMany spacenonewline
-                          string "day"
+                          string' "day"
                           of_ "week"
                           return $ DayOfWeek n,
-                       do string "every"
+                       do string' "every"
                           skipMany spacenonewline
                           n <- weekday
                           return $ DayOfWeek n,
-                       do string "every"
+                       do string' "every"
                           skipMany spacenonewline
                           n <- nth
                           skipMany spacenonewline
-                          string "day"
+                          string' "day"
                           optOf_ "month"
                           return $ DayOfMonth n,
-                       do string "every"
+                       do string' "every"
                           let mnth = choice' [month, mon] >>= \(_,m,_) -> return (read m)
                           d_o_y <- makePermParser $ DayOfYear <$$> try (skipMany spacenonewline *> mnth) <||> try (skipMany spacenonewline *> nth)
                           optOf_ "year"
                           return d_o_y,
-                       do string "every"
+                       do string' "every"
                           skipMany spacenonewline
                           ("",m,d) <- md
                           optOf_ "year"
                           return $ DayOfYear (read m) (read d),
-                       do string "every"
+                       do string' "every"
                           skipMany spacenonewline
                           n <- nth
                           skipMany spacenonewline
@@ -982,31 +983,31 @@ reportingintervalp = choice' [
     where
       of_ period = do
         skipMany spacenonewline
-        string "of"
+        string' "of"
         skipMany spacenonewline
-        string period
+        string' period
         
       optOf_ period = optional $ try $ of_ period
       
       nth = do n <- some digitChar
-               choice' $ map string ["st","nd","rd","th"]
+               choice' $ map string' ["st","nd","rd","th"]
                return $ read n
 
       -- Parse any of several variants of a basic interval, eg "daily", "every day", "every N days".
-      tryinterval :: String -> String -> (Int -> Interval) -> SimpleTextParser Interval
+      tryinterval :: String -> String -> (Int -> Interval) -> TextParser m Interval
       tryinterval singular compact intcons =
         choice' [
-          do string compact'
+          do string' compact'
              return $ intcons 1,
-          do string "every"
+          do string' "every"
              skipMany spacenonewline
-             string singular'
+             string' singular'
              return $ intcons 1,
-          do string "every"
+          do string' "every"
              skipMany spacenonewline
              n <- fmap read $ some digitChar
              skipMany spacenonewline
-             string plural'
+             string' plural'
              return $ intcons n
           ]
         where
@@ -1014,7 +1015,7 @@ reportingintervalp = choice' [
           singular' = T.pack singular
           plural'   = T.pack $ singular ++ "s"
 
-periodexprdatespanp :: Day -> SimpleTextParser DateSpan
+periodexprdatespanp :: Day -> TextParser m DateSpan
 periodexprdatespanp rdate = choice $ map try [
                             doubledatespanp rdate,
                             fromdatespanp rdate,
@@ -1025,38 +1026,38 @@ periodexprdatespanp rdate = choice $ map try [
 -- |
 -- -- >>> parsewith (doubledatespan (parsedate "2018/01/01") <* eof) "20180101-201804"
 -- Right DateSpan 2018/01/01-2018/04/01
-doubledatespanp :: Day -> SimpleTextParser DateSpan
+doubledatespanp :: Day -> TextParser m DateSpan
 doubledatespanp rdate = do
-  optional (string "from" >> skipMany spacenonewline)
+  optional (string' "from" >> skipMany spacenonewline)
   b <- smartdate
   skipMany spacenonewline
-  optional (choice [string "to", string "-"] >> skipMany spacenonewline)
+  optional (choice [string' "to", string' "-"] >> skipMany spacenonewline)
   e <- smartdate
   return $ DateSpan (Just $ fixSmartDate rdate b) (Just $ fixSmartDate rdate e)
 
-fromdatespanp :: Day -> SimpleTextParser DateSpan
+fromdatespanp :: Day -> TextParser m DateSpan
 fromdatespanp rdate = do
   b <- choice [
     do
-      string "from" >> skipMany spacenonewline
+      string' "from" >> skipMany spacenonewline
       smartdate
     ,
     do
       d <- smartdate
-      string "-"
+      string' "-"
       return d
     ]
   return $ DateSpan (Just $ fixSmartDate rdate b) Nothing
 
-todatespanp :: Day -> SimpleTextParser DateSpan
+todatespanp :: Day -> TextParser m DateSpan
 todatespanp rdate = do
-  choice [string "to", string "-"] >> skipMany spacenonewline
+  choice [string' "to", string' "-"] >> skipMany spacenonewline
   e <- smartdate
   return $ DateSpan Nothing (Just $ fixSmartDate rdate e)
 
-justdatespanp :: Day -> SimpleTextParser DateSpan
+justdatespanp :: Day -> TextParser m DateSpan
 justdatespanp rdate = do
-  optional (string "in" >> skipMany spacenonewline)
+  optional (string' "in" >> skipMany spacenonewline)
   d <- smartdate
   return $ spanFromSmartDate rdate d
 
