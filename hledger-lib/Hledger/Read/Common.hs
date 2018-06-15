@@ -399,31 +399,55 @@ datep' mYear = do
 -- Leading zeroes may be omitted (except in a timezone).
 datetimep :: JournalParser m LocalTime
 datetimep = do
-  day <- datep
-  lift $ skipSome spacenonewline
-  h <- some digitChar
-  let h' = read h
-  guard $ h' >= 0 && h' <= 23
-  char ':'
-  m <- some digitChar
-  let m' = read m
-  guard $ m' >= 0 && m' <= 59
-  s <- optional $ char ':' >> some digitChar
-  let s' = case s of Just sstr -> read sstr
-                     Nothing   -> 0
-  guard $ s' >= 0 && s' <= 59
-  {- tz <- -}
-  optional $ do
-                   plusminus <- oneOf ("-+" :: [Char])
-                   d1 <- digitChar
-                   d2 <- digitChar
-                   d3 <- digitChar
-                   d4 <- digitChar
-                   return $ plusminus:d1:d2:d3:d4:""
-  -- ltz <- liftIO $ getCurrentTimeZone
-  -- let tz' = maybe ltz (fromMaybe ltz . parseTime defaultTimeLocale "%z") tz
-  -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
-  return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
+  mYear <- getYear
+  lift $ datetimep' mYear
+
+datetimep' :: Maybe Year -> TextParser m LocalTime
+datetimep' mYear = do
+  day <- datep' mYear
+  skipSome spacenonewline
+  time <- timeOfDay
+  optional timeZone -- ignoring time zones
+  pure $ LocalTime day time
+
+  where
+    timeOfDay :: TextParser m TimeOfDay
+    timeOfDay = do
+      pos1 <- getPosition
+      h' <- twoDigitDecimal <?> "hour"
+      pos2 <- getPosition
+      unless (h' >= 0 && h' <= 23) $ parseErrorAtRegion pos1 pos2
+        "invalid time (bad hour)"
+
+      char ':' <?> "':' (hour-minute separator)"
+      pos3 <- getPosition
+      m' <- twoDigitDecimal <?> "minute"
+      pos4 <- getPosition
+      unless (m' >= 0 && m' <= 59) $ parseErrorAtRegion pos3 pos4
+        "invalid time (bad minute)"
+
+      s' <- option 0 $ do
+        char ':' <?> "':' (minute-second separator)"
+        pos5 <- getPosition
+        s' <- twoDigitDecimal <?> "second"
+        pos6 <- getPosition
+        unless (s' >= 0 && s' <= 59) $ parseErrorAtRegion pos5 pos6
+          "invalid time (bad second)" -- we do not support leap seconds
+        pure s'
+
+      pure $ TimeOfDay h' m' (fromIntegral s')
+
+    twoDigitDecimal :: TextParser m Int
+    twoDigitDecimal = do
+      d1 <- digitToInt <$> digitChar
+      d2 <- digitToInt <$> (digitChar <?> "a second digit")
+      pure $ d1*10 + d2
+
+    timeZone :: TextParser m String
+    timeZone = do
+      plusminus <- satisfy $ \c -> c == '-' || c == '+'
+      fourDigits <- count 4 (digitChar <?> "a digit (for a time zone)")
+      pure $ plusminus:fourDigits
 
 secondarydatep :: Day -> TextParser m Day
 secondarydatep primaryDate = char '=' *> datep' (Just primaryYear)
