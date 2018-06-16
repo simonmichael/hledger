@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f9b958b9292d00ff739999dbd9f5a467b38eac93caa7d16950e03c4c15737b4c
+-- hash: 979ca4df732320e72b08f7b8422b1b45104ae64053d58f08ec06a62475c42981
 
 name:           hledger-web
 version:        1.9.99
@@ -96,8 +96,15 @@ extra-source-files:
     static/js/jquery.url.js
     static/js/typeahead.bundle.js
     static/js/typeahead.bundle.min.js
+    templates/add-form.hamlet
+    templates/chart.hamlet
     templates/default-layout-wrapper.hamlet
     templates/default-layout.hamlet
+    templates/edit-form.hamlet
+    templates/journal.hamlet
+    templates/manage.hamlet
+    templates/register.hamlet
+    templates/upload-form.hamlet
 
 source-repository head
   type: git
@@ -139,18 +146,19 @@ library
       Widget.AddForm
       Widget.Common
   other-modules:
+      Handler.UploadR
       Paths_hledger_web
-  ghc-options: -Wall
+  ghc-options: -Wall -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fwarn-tabs
   cpp-options: -DVERSION="1.9.99"
   build-depends:
       HUnit
     , base >=4.8 && <4.12
-    , base-compat-batteries >=0.10.1 && <0.11
     , blaze-html
     , blaze-markup
     , bytestring
     , clientsession
     , cmdargs >=0.10
+    , conduit
     , conduit-extra >=1.1
     , data-default
     , directory
@@ -163,8 +171,6 @@ library
     , json
     , megaparsec >=6.4.1
     , mtl
-    , parsec >=3
-    , safe >=0.2
     , shakespeare >=2.0.2.2
     , template-haskell
     , text >=1.2
@@ -194,43 +200,7 @@ executable hledger-web
   ghc-options: -Wall -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fwarn-tabs
   cpp-options: -DVERSION="1.9.99"
   build-depends:
-      HUnit
-    , base >=4.8 && <4.12
-    , base-compat-batteries >=0.10.1 && <0.11
-    , blaze-html
-    , blaze-markup
-    , bytestring
-    , clientsession
-    , cmdargs >=0.10
-    , conduit-extra >=1.1
-    , data-default
-    , directory
-    , filepath
-    , hjsmin
-    , hledger >=1.9.99 && <2.0
-    , hledger-lib >=1.9.99 && <2.0
-    , hledger-web
-    , http-client
-    , http-conduit
-    , json
-    , megaparsec >=6.4.1
-    , mtl
-    , parsec >=3
-    , safe >=0.2
-    , shakespeare >=2.0.2.2
-    , template-haskell
-    , text >=1.2
-    , time >=1.5
-    , transformers
-    , wai
-    , wai-extra
-    , wai-handler-launch >=1.3
-    , warp
-    , yaml
-    , yesod >=1.4 && <1.7
-    , yesod-core >=1.4 && <1.7
-    , yesod-form >=1.4 && <1.7
-    , yesod-static >=1.4 && <1.7
+      hledger-web
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
@@ -250,47 +220,11 @@ test-suite test
       Paths_hledger_web
   hs-source-dirs:
       tests
-  ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
+  ghc-options: -Wall -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fwarn-tabs
   cpp-options: -DVERSION="1.9.99"
   build-depends:
-      HUnit
-    , base >=4.8 && <4.12
-    , base-compat-batteries >=0.10.1 && <0.11
-    , blaze-html
-    , blaze-markup
-    , bytestring
-    , clientsession
-    , cmdargs >=0.10
-    , conduit-extra >=1.1
-    , data-default
-    , directory
-    , filepath
-    , hjsmin
-    , hledger >=1.9.99 && <2.0
-    , hledger-lib >=1.9.99 && <2.0
-    , hledger-web
+      hledger-web
     , hspec
-    , http-client
-    , http-conduit
-    , json
-    , megaparsec >=6.4.1
-    , mtl
-    , parsec >=3
-    , safe >=0.2
-    , shakespeare >=2.0.2.2
-    , template-haskell
-    , text >=1.2
-    , time >=1.5
-    , transformers
-    , wai
-    , wai-extra
-    , wai-handler-launch >=1.3
-    , warp
-    , yaml
-    , yesod >=1.4 && <1.7
-    , yesod-core >=1.4 && <1.7
-    , yesod-form >=1.4 && <1.7
-    , yesod-static >=1.4 && <1.7
     , yesod-test
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT

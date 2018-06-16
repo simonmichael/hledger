@@ -1,7 +1,0 @@
-<form#importform method=POST style=display:none;>
- <table.form>
-  <tr>
-   <td>
-    <input type=file name=file>
-    <input type=submit name=submit value="import from file">
-    <a href="#" onclick="return importformToggle(event)">cancel

@@ -1,8 +1,7 @@
-<div .row>
-  <h2 #contenttitle>#{title'}
-  <a #addformlink href="#" role="button" style="cursor:pointer; margin-top:1em;"
-     data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal">
-    Add a transaction
+<h2 #contenttitle>#{title'}
+<a #addformlink href="#" role="button" style="cursor:pointer; margin-top:1em;"
+   data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal">
+  Add a transaction
 
 <div .table-responsive>
   <table .transactionsreport .table .table-condensed>

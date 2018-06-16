@@ -1,9 +1,13 @@
 /favicon.ico     FaviconR        GET
 /robots.txt      RobotsR         GET
 /static          StaticR         Static getStatic
+
 /                RootR           GET
 /journal         JournalR        GET
 /register        RegisterR       GET
 /add             AddR            GET POST
-/edit            EditR           GET POST
-/import          ImportR         GET POST
+
+/manage             ManageR         GET
+/edit/#FilePath     EditR           GET POST
+/upload/#FilePath   UploadR         GET POST
+/download/#FilePath DownloadR       GET

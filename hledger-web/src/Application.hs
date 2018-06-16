@@ -1,5 +1,9 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE CPP, OverloadedStrings, TemplateHaskell #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ViewPatterns #-}
+
 module Application
   ( makeApplication
   , getApplicationDev
@@ -17,9 +21,10 @@ import Yesod.Default.Config
 import Yesod.Default.Main (defaultDevelApp)
 
 import Handler.AddR (getAddR, postAddR)
-import Handler.Common (getFaviconR, getRobotsR, getRootR)
+import Handler.Common
+       (getDownloadR, getFaviconR, getManageR, getRobotsR, getRootR)
 import Handler.EditR (getEditR, postEditR)
-import Handler.ImportR (getImportR, postImportR)
+import Handler.UploadR (getUploadR, postUploadR)
 import Handler.JournalR (getJournalR)
 import Handler.RegisterR (getRegisterR)
 import Hledger.Data (Journal, nulljournal)
@@ -41,7 +46,7 @@ makeApplication :: WebOpts -> Journal -> AppConfig DefaultEnv Extra -> IO Applic
 makeApplication opts' j' conf' = do
     foundation <- makeFoundation conf' opts'
     writeIORef (appJournal foundation) j'
-    logWare <$> toWaiAppPlain foundation
+    logWare <$> toWaiApp foundation
   where
     logWare | development  = logStdoutDev
             | serve_ opts' = logStdout

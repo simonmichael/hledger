@@ -53,7 +53,6 @@ addForm j today = identifyForm "add" $ \extra -> do
 
   pure (makeTransaction <$> dateRes <*> descRes <*> postRes, $(widgetFile "add-form"))
   where
-
     makeTransaction date desc postings =
       nulltransaction {tdate = date, tdescription = desc, tpostings = postings}
 

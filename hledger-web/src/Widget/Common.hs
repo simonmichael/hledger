@@ -1,4 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -10,22 +11,49 @@ module Widget.Common
   , helplink
   , mixedAmountAsHtml
   , numberTransactionsReportItems
+  , fromFormSuccess
+  , writeValidJournal
+  , journalFile404
   ) where
 
-import Data.Foldable (for_)
+import Data.Default (def)
+import Data.Foldable (find, for_)
 import Data.List (mapAccumL)
 import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, toGregorian)
-import Text.Blaze
+import System.FilePath (takeFileName)
+import Text.Blaze ((!), textValue)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (preEscapedString)
 import Yesod
 
 import Hledger
+import Hledger.Cli.Utils (writeFileWithBackupIfChanged)
 import Settings (manualurl)
+
+journalFile404 :: FilePath -> Journal -> HandlerFor m (FilePath, Text)
+journalFile404 f j =
+  case find ((== f) . fst) (jfiles j) of
+    Just (_, txt) -> pure (takeFileName f, txt)
+    Nothing -> notFound
+
+fromFormSuccess :: HandlerFor m a -> FormResult a -> HandlerFor m a
+fromFormSuccess h FormMissing = h
+fromFormSuccess h (FormFailure _) = h
+fromFormSuccess _ (FormSuccess a) = return a
+
+writeValidJournal :: MonadHandler m => FilePath -> Text -> m (Either String ())
+writeValidJournal f txt =
+  liftIO (readJournal def (Just f) txt) >>= \case
+    Left e -> return (Left e)
+    Right _ -> do
+      -- And write to the file
+      _ <- liftIO (writeFileWithBackupIfChanged f txt)
+      return (Right ())
+
 
 -- | Link to a topic in the manual.
 helplink :: Text -> Text -> HtmlUrl r
@@ -33,8 +61,14 @@ helplink topic label _ = H.a ! A.href u ! A.target "hledgerhelp" $ toHtml label
   where u = textValue $ manualurl <> if T.null topic then "" else T.cons '#' topic
 
 -- | Render a "BalanceReport" as html.
-balanceReportAsHtml :: r -> Journal -> [QueryOpt] -> BalanceReport -> HtmlUrl r
-balanceReportAsHtml registerR j qopts (items, total) = [hamlet|
+balanceReportAsHtml :: Eq r => (r, r) -> r -> Journal -> [QueryOpt] -> BalanceReport -> HtmlUrl r
+balanceReportAsHtml (journalR, registerR) here j qopts (items, total) = [hamlet|
+<tr :here == journalR:.inacct>
+  <td .top .acct>
+    <a href=@{journalR} :here == journalR:.inacct
+       title="Show general journal entries, most recent first">
+      Journal
+  <td .top>
 $forall (acct, adisplay, aindent, abal) <- items
   <tr .#{inacctClass acct}>
     <td .acct>

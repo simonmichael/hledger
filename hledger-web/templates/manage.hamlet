@@ -1,0 +1,24 @@
+<h2>
+  Your journal's files
+
+<div.row>
+  <div .col-xs-12.col-sm-8.col-md-6>
+    <table .table.table-condensed>
+      <thead>
+        <th>
+          File
+        <th>
+      <tbody>
+        $forall (path, _) <- jfiles j
+          <tr>
+            <td>
+              #{path}
+            <td style="text-align:right">
+              <a href=@{EditR path}>
+                Edit
+              &nbsp;&nbsp;
+              <a href=@{UploadR path}>
+                Upload
+              &nbsp;&nbsp;
+              <a href=@{DownloadR path}>
+                Download

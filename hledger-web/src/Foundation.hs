@@ -1,5 +1,16 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE CPP, LambdaCase, MultiParamTypeClasses, NamedFieldPuns, OverloadedStrings, QuasiQuotes, TemplateHaskell, TypeFamilies, TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE ViewPatterns #-}
+
 -- | Define the web application's foundation, in the usual Yesod style.
 --   See a default Yesod app's comments for more details of each part.
 
@@ -86,21 +97,23 @@ instance Yesod App where
   defaultLayout widget = do
     master <- getYesod
     here <- fromMaybe RootR <$> getCurrentRoute
-    VD {am, j, opts, q, qopts, showsidebar} <- getViewData
+    VD {j, m, opts, q, qopts} <- getViewData
     msg <- getMessage
+    showSidebar <- shouldShowSidebar
 
-    let journalcurrent = if here == JournalR then "inacct" else "" :: Text
-        ropts = reportopts_ (cliopts_ opts)
+    let ropts = reportopts_ (cliopts_ opts)
         -- flip the default for items with zero amounts, show them by default
         ropts' = ropts { empty_ = not (empty_ ropts) }
-        accounts = balanceReportAsHtml RegisterR j qopts $ balanceReport ropts' am j
+        accounts =
+          balanceReportAsHtml (JournalR, RegisterR) here j qopts $
+          balanceReport ropts' m j
 
-        topShowmd = if showsidebar then "col-md-4" else "col-any-0" :: Text
-        topShowsm = if showsidebar then "col-sm-4" else "" :: Text
-        sideShowmd = if showsidebar then "col-md-4" else "col-any-0" :: Text
-        sideShowsm = if showsidebar then "col-sm-4" else "" :: Text
-        mainShowmd = if showsidebar then "col-md-8" else "col-md-12" :: Text
-        mainShowsm = if showsidebar then "col-sm-8" else "col-sm-12" :: Text
+        topShowmd = if showSidebar then "col-md-4" else "col-any-0" :: Text
+        topShowsm = if showSidebar then "col-sm-4" else "" :: Text
+        sideShowmd = if showSidebar then "col-md-4" else "col-any-0" :: Text
+        sideShowsm = if showSidebar then "col-sm-4" else "" :: Text
+        mainShowmd = if showSidebar then "col-md-8" else "col-md-12" :: Text
+        mainShowsm = if showSidebar then "col-sm-8" else "col-sm-12" :: Text
 
     -- We break up the default layout into two components:
     -- default-layout is the contents of the body tag, and
@@ -158,50 +171,33 @@ data ViewData = VD
   , q            :: Text       -- ^ the current q parameter, the main query expression
   , m            :: Query      -- ^ a query parsed from the q parameter
   , qopts        :: [QueryOpt] -- ^ query options parsed from the q parameter
-  , am           :: Query      -- ^ a query parsed from the accounts sidebar query expr ("a" parameter)
-  , aopts        :: [QueryOpt] -- ^ query options parsed from the accounts sidebar query expr
-  , showsidebar  :: Bool       -- ^ current showsidebar cookie value
   } deriving (Show)
 
 instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
 
--- | Make a default ViewData, using day 0 as today's date.
-nullviewdata :: ViewData
-nullviewdata = viewdataWithDateAndParams nulldate "" ""
-
--- | Make a ViewData using the given date and request parameters, and defaults elsewhere.
-viewdataWithDateAndParams :: Day -> Text -> Text -> ViewData
-viewdataWithDateAndParams d q a =
-  let (querymatcher, queryopts) = parseQuery d q
-      (acctsmatcher, acctsopts) = parseQuery d a
-  in VD
-     { opts = defwebopts
-     , today = d
-     , j = nulljournal
-     , q = q
-     , m = querymatcher
-     , qopts = queryopts
-     , am = acctsmatcher
-     , aopts = acctsopts
-     , showsidebar = True
-     }
-
 -- | Gather data used by handlers and templates in the current request.
 getViewData :: Handler ViewData
 getViewData = do
-  App {appOpts, appJournal = jref} <- getYesod
-  let opts@WebOpts {cliopts_ = copts@CliOpts {reportopts_ = ropts}} = appOpts
+  y <- getYesod
   today <- liftIO getCurrentDay
-  (j, merr) <- getCurrentJournal jref copts {reportopts_ = ropts {no_elide_ = True}} today
-  case merr of
-    Just err -> setMessage (toHtml err)
-    Nothing -> pure ()
+  let copts = cliopts_ (appOpts y)
+  (j, merr) <-
+    getCurrentJournal
+      (appJournal y)
+      copts {reportopts_ = (reportopts_ copts) {no_elide_ = True}}
+      today
+  maybe (pure ()) (setMessage . toHtml) merr
   q <- fromMaybe "" <$> lookupGetParam "q"
-  a <- fromMaybe "" <$> lookupGetParam "a"
-  showsidebar <- shouldShowSidebar
+  let (querymatcher, queryopts) = parseQuery today q
   return
-    (viewdataWithDateAndParams today q a)
-    {j, opts, showsidebar, today}
+    VD
+    { opts = appOpts y
+    , today = today
+    , j = j
+    , q = q
+    , m = querymatcher
+    , qopts = queryopts
+    }
 
 -- | Find out if the sidebar should be visible. Show it, unless there is a
 -- showsidebar cookie set to "0", or a ?sidebar=0 query parameter.
@@ -221,10 +217,9 @@ getCurrentJournal jref opts d = do
   (ej, changed) <- liftIO $ journalReloadIfChanged opts d j
   -- re-apply any initial filter specified at startup
   let initq = queryFromOpts d $ reportopts_ opts
-      ej' = filterJournalTransactions initq <$> ej
   if not changed
     then return (j,Nothing)
-    else case ej' of
+    else case filterJournalTransactions initq <$> ej of
            Right j' -> do
              liftIO $ writeIORef jref j'
              return (j',Nothing)
