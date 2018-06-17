@@ -21,10 +21,6 @@ import Data.Text (Text, pack)
 import Data.Text.Encoding (encodeUtf8)
 -- import Safe
 import Test.HUnit
--- #ifdef TESTS
--- import Test.Framework
--- import Text.Megaparsec.Error
--- #endif
 import Text.Megaparsec (eof)
 -- import Text.Printf
 import System.Time

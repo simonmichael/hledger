@@ -89,7 +89,10 @@ module Hledger.Read.Common (
 
   -- ** misc
   singlespacedtextp,
-  singlespacep
+  singlespacep,
+
+  -- * tests
+  tests_Hledger_Read_Common
 )
 where
 --- * imports
@@ -114,6 +117,7 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (getClockTime)
+import Test.HUnit
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer (decimal)
@@ -496,19 +500,21 @@ spaceandamountormissingp =
     lift $ skipSome spacenonewline
     Mixed . (:[]) <$> amountp
 
-#ifdef TESTS
-assertParseEqual' :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
-assertParseEqual' parse expected = either (assertFailure.show) (`is'` expected) parse
+assertParseEqual' ::
+     (Show a, Eq a)
+  => Identity (Either (ParseError Char CustomErr) a)
+  -> a
+  -> Assertion
+assertParseEqual' parse expected = either (assertFailure.show) (`is'` expected) (runIdentity parse)
 
 is' :: (Eq a, Show a) => a -> a -> Assertion
-a `is'` e = assertEqual e a
+a `is'` e = assertEqual "values are equal" e a
 
-test_spaceandamountormissingp = do
+test_spaceandamountormissingp = TestCase $ do
     assertParseEqual' (parseWithState mempty spaceandamountormissingp " $47.18") (Mixed [usd 47.18])
     assertParseEqual' (parseWithState mempty spaceandamountormissingp "$47.18") missingmixedamt
     assertParseEqual' (parseWithState mempty spaceandamountormissingp " ") missingmixedamt
     assertParseEqual' (parseWithState mempty spaceandamountormissingp "") missingmixedamt
-#endif
 
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
@@ -594,8 +600,7 @@ amountwithoutpricep = do
           Right res -> pure res
 
 
-#ifdef TESTS
-test_amountp = do
+test_amountp = TestCase $ do
     assertParseEqual' (parseWithState mempty amountp "$47.18") (usd 47.18)
     assertParseEqual' (parseWithState mempty amountp "$1.") (usd 1 `withPrecision` 0)
   -- ,"amount with unit price" ~: do
@@ -606,7 +611,6 @@ test_amountp = do
     assertParseEqual'
      (parseWithState mempty amountp "$10 @@ €5")
      (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
-#endif
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
@@ -1256,3 +1260,5 @@ match' :: TextParser m a -> TextParser m (Text, a)
 match' p = do
   (!txt, p) <- match p
   pure (txt, p)
+
+tests_Hledger_Read_Common = TestList [test_spaceandamountormissingp, test_amountp]
