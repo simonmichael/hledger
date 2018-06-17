@@ -16,12 +16,17 @@
 
 module Foundation where
 
+import Control.Monad (join)
+import qualified Data.ByteString.Char8 as BC
+import Data.Traversable (for)
 import Data.IORef (IORef, readIORef, writeIORef)
 import Data.Maybe (fromMaybe)
+import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit (Manager)
+import Network.Wai (requestHeaders)
 import System.FilePath (takeFileName)
 import Text.Blaze (Markup)
 import Text.Hamlet (hamletFile)
@@ -166,12 +171,13 @@ instance RenderMessage App FormMessage where
 
 -- | A bundle of data useful for hledger-web request handlers and templates.
 data ViewData = VD
-  { opts         :: WebOpts    -- ^ the command-line options at startup
-  , today        :: Day        -- ^ today's date (for queries containing relative dates)
-  , j            :: Journal    -- ^ the up-to-date parsed unfiltered journal
-  , q            :: Text       -- ^ the current q parameter, the main query expression
-  , m            :: Query      -- ^ a query parsed from the q parameter
-  , qopts        :: [QueryOpt] -- ^ query options parsed from the q parameter
+  { opts  :: WebOpts    -- ^ the command-line options at startup
+  , today :: Day        -- ^ today's date (for queries containing relative dates)
+  , j     :: Journal    -- ^ the up-to-date parsed unfiltered journal
+  , q     :: Text       -- ^ the current q parameter, the main query expression
+  , m     :: Query      -- ^ a query parsed from the q parameter
+  , qopts :: [QueryOpt] -- ^ query options parsed from the q parameter
+  , caps  :: [Capability] -- ^ capabilities enabled for this request
   } deriving (Show)
 
 instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
@@ -179,26 +185,25 @@ instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
 -- | Gather data used by handlers and templates in the current request.
 getViewData :: Handler ViewData
 getViewData = do
-  y <- getYesod
+  App {appOpts = opts, appJournal} <- getYesod
   today <- liftIO getCurrentDay
-  let copts = cliopts_ (appOpts y)
+  let copts = cliopts_ opts
   (j, merr) <-
     getCurrentJournal
-      (appJournal y)
+      appJournal
       copts {reportopts_ = (reportopts_ copts) {no_elide_ = True}}
       today
   maybe (pure ()) (setMessage . toHtml) merr
   q <- fromMaybe "" <$> lookupGetParam "q"
-  let (querymatcher, queryopts) = parseQuery today q
-  return
-    VD
-    { opts = appOpts y
-    , today = today
-    , j = j
-    , q = q
-    , m = querymatcher
-    , qopts = queryopts
-    }
+  let (m, qopts) = parseQuery today q
+  caps <- case capabilitiesHeader_ opts of
+    Nothing -> return (capabilities_ opts)
+    Just h -> do
+      hs <- fmap snd . filter ((== h) . fst) . requestHeaders <$> waiRequest
+      fmap join . for hs $ \x -> case capabilityFromBS x of
+        Left e -> [] <$ addMessage "" ("Unknown permission: " <> toHtml (BC.unpack e))
+        Right c -> pure [c]
+  return VD {opts, today, j, q, m, qopts, caps}
 
 -- | Find out if the sidebar should be visible. Show it, unless there is a
 -- showsidebar cookie set to "0", or a ?sidebar=0 query parameter.

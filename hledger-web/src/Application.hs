@@ -6,19 +6,16 @@
 
 module Application
   ( makeApplication
-  , getApplicationDev
   , makeFoundation
   ) where
 
 import Import
 
-import Data.Default (def)
 import Data.IORef (newIORef, writeIORef)
 import Network.Wai.Middleware.RequestLogger (logStdoutDev, logStdout)
 import Network.HTTP.Client (defaultManagerSettings)
 import Network.HTTP.Conduit (newManager)
 import Yesod.Default.Config
-import Yesod.Default.Main (defaultDevelApp)
 
 import Handler.AddR (getAddR, postAddR)
 import Handler.Common
@@ -28,10 +25,7 @@ import Handler.UploadR (getUploadR, postUploadR)
 import Handler.JournalR (getJournalR)
 import Handler.RegisterR (getRegisterR)
 import Hledger.Data (Journal, nulljournal)
-import Hledger.Read (readJournalFile)
-import Hledger.Utils (error')
-import Hledger.Cli.CliOptions (defcliopts, journalFilePathFromOpts)
-import Hledger.Web.WebOptions (WebOpts(..), defwebopts)
+import Hledger.Web.WebOptions (WebOpts(serve_))
 
 -- This line actually creates our YesodDispatch instance. It is the second half
 -- of the call to mkYesodData which occurs in Foundation.hs. Please see the
@@ -58,15 +52,3 @@ makeFoundation conf opts' = do
     s <- staticSite
     jref <- newIORef nulljournal
     return $ App conf s manager opts' jref
-
--- for yesod devel
--- uses the journal specified by the LEDGER_FILE env var, or ~/.hledger.journal
-getApplicationDev :: IO (Int, Application)
-getApplicationDev = do
-  f <- head `fmap` journalFilePathFromOpts defcliopts -- XXX head should be safe for now
-  j' <- either error' id <$> readJournalFile def f
-  defaultDevelApp loader (makeApplication defwebopts j')
-  where
-    loader = Yesod.Default.Config.loadConfig (configSettings Development)
-        { csParseExtra = parseExtra
-        }

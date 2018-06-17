@@ -1,4 +1,6 @@
-{-# LANGUAGE CPP, OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-|
 
 hledger-web - a hledger add-on providing a web interface.
@@ -9,23 +11,26 @@ Released under GPL version 3 or later.
 
 module Hledger.Web.Main where
 
-import Control.Monad ((<=<), when)
-import Data.Default (def)
+import Control.Monad (when)
 import Data.String (fromString)
 import qualified Data.Text as T
+import Data.Foldable (traverse_)
+import Network.Wai (Application)
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, setHost, setPort)
 import Network.Wai.Handler.Launch (runHostPortUrl)
 import Prelude hiding (putStrLn)
 import System.Exit (exitSuccess)
 import System.IO (hFlush, stdout)
 import Text.Printf (printf)
-import Yesod.Default.Config (AppConfig(..), DefaultEnv(Development))
+import Yesod.Default.Config
+import Yesod.Default.Main (defaultDevelApp)
 
 import Application (makeApplication)
-import Settings (Extra(..))
+import Settings (Extra(..), parseExtra)
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Cli.Utils (journalTransform)
 import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Web.WebOptions
 
@@ -35,6 +40,14 @@ hledgerWebMain = do
   opts <- getHledgerWebOpts
   when (debug_ (cliopts_ opts) > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
   runWith opts
+
+hledgerWebDev :: IO (Int, Application)
+hledgerWebDev =
+  withJournalDo' defwebopts (\o j -> defaultDevelApp loader $ makeApplication o j)
+  where
+    loader =
+      Yesod.Default.Config.loadConfig
+        (configSettings Development) {csParseExtra = parseExtra}
 
 runWith :: WebOpts -> IO ()
 runWith opts
@@ -86,10 +99,7 @@ web opts j = do
     then do
       putStrLn "Press ctrl-c to quit"
       hFlush stdout
-      let warpsettings =
-            setHost (fromString h) $
-            setPort p $
-            defaultSettings
+      let warpsettings = setHost (fromString h) (setPort p defaultSettings)
       Network.Wai.Handler.Warp.runSettings warpsettings app
     else do
       putStrLn "Starting web browser..."

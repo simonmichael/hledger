@@ -103,6 +103,7 @@ library:
   - blaze-html
   - blaze-markup
   - bytestring
+  - case-insensitive
   - clientsession
   - cmdargs >=0.10
   - conduit
