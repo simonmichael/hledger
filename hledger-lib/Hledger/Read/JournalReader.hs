@@ -76,6 +76,7 @@ import Control.Monad
 import Control.Monad.Except (ExceptT(..))
 import Control.Monad.State.Strict
 import Data.Bifunctor (first)
+import Data.Functor.Identity (Identity(..))
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
 import Data.String
@@ -85,10 +86,6 @@ import Data.Time.Calendar
 import Data.Time.LocalTime
 import Safe
 import Test.HUnit
-#ifdef TESTS
-import Test.Framework
-import Text.Megaparsec.Error
-#endif
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 import Text.Megaparsec.Custom
@@ -519,24 +516,23 @@ transactionp = do
   let sourcepos = journalSourcePos startpos endpos
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
 
-#ifdef TESTS
-test_transactionp = do
+test_transactionp = TestCase $ do
     let s `gives` t = do
-                        let p = parseWithState mempty transactionp s
-                        assertBool $ isRight p
+                        let p = runIdentity $ parseWithState mempty transactionp s
+                        assertBool "Parse success" (isRight p)
                         let Right t2 = p
                             -- same f = assertEqual (f t) (f t2)
-                        assertEqual (tdate t) (tdate t2)
-                        assertEqual (tdate2 t) (tdate2 t2)
-                        assertEqual (tstatus t) (tstatus t2)
-                        assertEqual (tcode t) (tcode t2)
-                        assertEqual (tdescription t) (tdescription t2)
-                        assertEqual (tcomment t) (tcomment t2)
-                        assertEqual (ttags t) (ttags t2)
-                        assertEqual (tpreceding_comment_lines t) (tpreceding_comment_lines t2)
-                        assertEqual (show $ tpostings t) (show $ tpostings t2)
+                        assertEqual "Equal date" (tdate t) (tdate t2)
+                        assertEqual "Equal date2" (tdate2 t) (tdate2 t2)
+                        assertEqual "Equal status" (tstatus t) (tstatus t2)
+                        assertEqual "Equal code" (tcode t) (tcode t2)
+                        assertEqual "Equal description" (tdescription t) (tdescription t2)
+                        assertEqual "Equal comment" (tcomment t) (tcomment t2)
+                        assertEqual "Equal tags" (ttags t) (ttags t2)
+                        assertEqual "Equal preceding comments" (tpreceding_comment_lines t) (tpreceding_comment_lines t2)
+                        assertEqual "Equal postings" (show $ tpostings t) (show $ tpostings t2)
     -- "0000/01/01\n\n" `gives` nulltransaction
-    unlines [
+    T.unlines [
       "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
       "    ; tcomment2",
       "    ; ttag1: val1",
@@ -567,50 +563,45 @@ test_transactionp = do
         ],
       tpreceding_comment_lines=""
       }
-    unlines [
-      "2015/1/1",
-      ]
+    T.unlines ["2015/1/1"]
      `gives`
-     nulltransaction{
-      tdate=parsedate "2015/01/01",
-      }
+     nulltransaction{ tdate=parsedate "2015/01/01" }
 
-    assertRight $ parseWithState mempty transactionp $ unlines
+    assertBool "transactionp parses a well-formed transactionParse OK" $
+      isRight . runIdentity . parseWithState mempty transactionp $ T.unlines
       ["2007/01/28 coopportunity"
       ,"    expenses:food:groceries                   $47.18"
       ,"    assets:checking                          $-47.18"
       ,""
       ]
 
-    -- transactionp should not parse just a date
-    assertLeft $ parseWithState mempty transactionp "2009/1/1\n"
+    assertBool "transactionp should not parse just a date" $
+      isLeft . runIdentity $ parseWithState mempty transactionp "2009/1/1\n"
 
-    -- transactionp should not parse just a date and description
-    assertLeft $ parseWithState mempty transactionp "2009/1/1 a\n"
+    assertBool "transactionp should not parse just a date and description" $
+      isLeft . runIdentity $ parseWithState mempty transactionp "2009/1/1 a\n"
 
-    -- transactionp should not parse a following comment as part of the description
-    let p = parseWithState mempty transactionp "2009/1/1 a ;comment\n b 1\n"
-    assertRight p
-    assertEqual "a" (let Right p' = p in tdescription p')
+    let p = runIdentity $ parseWithState mempty transactionp "2009/1/1 a ;comment\n b 1\n"
+    assertEqual "transactionp should not parse a following comment as part of the description"
+      (Right "a") (tdescription <$> p)
 
-    -- parse transaction with following whitespace line
-    assertRight $ parseWithState mempty transactionp $ unlines
+    assertBool "transactionp parses a following whitespace line" $
+      isRight . runIdentity . parseWithState mempty transactionp $ T.unlines
         ["2012/1/1"
         ,"  a  1"
         ,"  b"
         ," "
         ]
 
-    let p = parseWithState mempty transactionp $ unlines
+    let p = runIdentity . parseWithState mempty transactionp $ T.unlines
              ["2009/1/1 x  ; transaction comment"
              ," a  1  ; posting 1 comment"
              ," ; posting 1 comment 2"
              ," b"
              ," ; posting 2 comment"
              ]
-    assertRight p
-    assertEqual 2 (let Right t = p in length $ tpostings t)
-#endif
+    assertBool "transactionp parses parses comments anywhere" (isRight p)
+    assertEqual "Has 2 postings" 2 (let Right t = p in length $ tpostings t)
 
 --- ** postings
 
@@ -653,14 +644,12 @@ postingp mTransactionYear = do
    , pbalanceassertion=massertion
    }
 
-#ifdef TESTS
-test_postingp = do
+test_postingp = TestCase $ do
     let s `gives` ep = do
-                         let parse = parseWithState mempty (postingp Nothing) s
-                         assertBool -- "postingp parser"
-                           $ isRight parse
+                         let parse = runIdentity $ parseWithState mempty (postingp Nothing) s
+                         assertBool "Example is parsed well" $ isRight parse
                          let Right ap = parse
-                             same f = assertEqual (f ep) (f ap)
+                             same f = assertEqual "Posting is parsed well" (f ep) (f ap)
                          same pdate
                          same pstatus
                          same paccount
@@ -687,30 +676,28 @@ test_postingp = do
                         ,ptags=[("a","a"), ("date","2012/11/28"), ("date2","2012/11/29"), ("b","b")]
                         ,pdate=parsedateM "2012/11/28"}
 
-    assertBool -- "postingp parses a quoted commodity with numbers"
-      (isRight $ parseWithState mempty (postingp Nothing) "  a  1 \"DE123\"\n")
+    assertBool "postingp parses a quoted commodity with numbers"
+      (isRight . runIdentity $ parseWithState mempty (postingp Nothing) "  a  1 \"DE123\"\n")
 
-  -- ,"postingp parses balance assertions and fixed lot prices" ~: do
-    assertBool (isRight $ parseWithState mempty (postingp Nothing) "  a  1 \"DE123\" =$1 { =2.2 EUR} \n")
+    assertBool "postingp parses balance assertions and fixed lot prices"
+      (isRight . runIdentity $ parseWithState mempty (postingp Nothing) "  a  1 \"DE123\" =$1 { =2.2 EUR} \n")
 
     -- let parse = parseWithState mempty postingp " a\n ;next-line comment\n"
     -- assertRight parse
     -- let Right p = parse
     -- assertEqual "next-line comment\n" (pcomment p)
     -- assertEqual (Just nullmixedamt) (pbalanceassertion p)
-#endif
 
 --- * more tests
 
-tests_Hledger_Read_JournalReader = TestList $ concat [
-    -- test_numberp
-    [
+tests_Hledger_Read_JournalReader = TestList [
+    test_transactionp,
+    test_postingp,
     "showParsedMarketPrice" ~: do
       let mp = parseWithState mempty marketpricedirectivep "P 2017/01/30 BTC $922.83\n"
           mpString = (fmap . fmap) showMarketPrice mp
       mpString `is` (Just (Right "P 2017/01/30 BTC $922.83"))
     ]
- ]
 
 {- old hunit tests
 
