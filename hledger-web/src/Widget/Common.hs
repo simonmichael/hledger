@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -10,7 +9,6 @@ module Widget.Common
   , balanceReportAsHtml
   , helplink
   , mixedAmountAsHtml
-  , numberTransactionsReportItems
   , fromFormSuccess
   , writeValidJournal
   , journalFile404
@@ -18,11 +16,9 @@ module Widget.Common
 
 import Data.Default (def)
 import Data.Foldable (find, for_)
-import Data.List (mapAccumL)
 import Data.Semigroup ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Time.Calendar (Day, toGregorian)
 import System.FilePath (takeFileName)
 import Text.Blaze ((!), textValue)
 import qualified Text.Blaze.Html5 as H
@@ -50,7 +46,6 @@ writeValidJournal f txt =
   liftIO (readJournal def (Just f) txt) >>= \case
     Left e -> return (Left e)
     Right _ -> do
-      -- And write to the file
       _ <- liftIO (writeFileWithBackupIfChanged f txt)
       return (Right ())
 
@@ -101,19 +96,6 @@ accountQuery = ("inacct:" <>) .  quoteIfSpaced
 
 accountOnlyQuery :: AccountName -> Text
 accountOnlyQuery = ("inacctonly:" <>) . quoteIfSpaced
-
-numberTransactionsReportItems :: [TransactionsReportItem] -> [(Int, Bool, Bool, TransactionsReportItem)]
-numberTransactionsReportItems = snd . mapAccumL number (0, nulldate)
-  where
-    number :: (Int, Day) -> TransactionsReportItem -> ((Int, Day), (Int, Bool, Bool, TransactionsReportItem))
-    number (!n, !prevd) i@(t, _, _, _, _, _) = ((n', d), (n', newday, newmonth, i))
-      where
-        n' = n + 1
-        d = tdate t
-        newday = d /= prevd
-        newmonth = dm /= prevdm || dy /= prevdy
-        (dy, dm, _) = toGregorian d
-        (prevdy, prevdm, _) = toGregorian prevd
 
 mixedAmountAsHtml :: MixedAmount -> HtmlUrl a
 mixedAmountAsHtml b _ =

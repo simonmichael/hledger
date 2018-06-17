@@ -2,10 +2,12 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Widget.AddForm
   ( addForm
+  , addModal
   ) where
 
 import Control.Monad.State.Strict (evalStateT)
@@ -25,6 +27,27 @@ import Hledger
 import Settings (widgetFile)
 
 -- XXX <select> which journal to add to
+
+addModal ::
+     ( MonadWidget m
+     , r ~ Route (HandlerSite m)
+     , m ~ WidgetFor (HandlerSite m)
+     , RenderMessage (HandlerSite m) FormMessage
+     )
+  => r -> Journal -> Day -> m ()
+addModal addR j today = do
+  (addView, addEnctype) <- generateFormPost (addForm j today)
+  [whamlet|
+<div .modal.fade #addmodal tabindex="-1" role="dialog" aria-labelledby="addLabel" aria-hidden="true">
+  <div .modal-dialog .modal-lg>
+    <div .modal-content>
+      <div .modal-header>
+        <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
+        <h3 .modal-title #addLabel>Add a transaction
+      <div .modal-body>
+        <form#addform.form action=@{addR} method=POST enctype=#{addEnctype}>
+          ^{addView}
+|]
 
 addForm ::
      (site ~ HandlerSite m, RenderMessage site FormMessage, MonadHandler m)

@@ -4,13 +4,13 @@
 <div .hidden-xs>
   ^{registerChartHtml $ transactionsReportByCommodity r}
 
-<div .table-responsive>
-  <table.registerreport .table .table-striped .table-condensed>
+<div.table-responsive>
+  <table .table.table-striped.table-condensed>
     <thead>
       <tr>
         <th style="text-align:left;">
           Date
-          <span .glyphicon .glyphicon-chevron-up>
+          <span .glyphicon.glyphicon-chevron-up>
         <th style="text-align:left;">Description
         <th style="text-align:left;">To/From Account(s)
         <th style="text-align:right; white-space:normal;">Amount Out/In
@@ -18,9 +18,8 @@
           #{balancelabel'}
 
     <tbody>
-      $forall (n, newd, newm, (torig, tacct, split, acct, amt, bal)) <- numberTransactionsReportItems items
-        <tr ##{tindex torig} .item.#{evenodd n}.#{datetransition newm newd}
-            title="#{show torig}" style="vertical-align:top;">
+      $forall (torig, tacct, split, acct, amt, bal) <- items
+        <tr ##{tindex torig} .item title="#{show torig}" style="vertical-align:top;">
           <td .date>
             <a href="@{JournalR}#transaction-#{tindex torig}">
               #{show (tdate tacct)}
@@ -28,15 +27,7 @@
           <td .account>#{elideRight 40 acct}
           <td .amount style="text-align:right; white-space:nowrap;">
             $if not split || not (isZeroMixedAmount amt)
-              \^{mixedAmountAsHtml amt}
+              ^{mixedAmountAsHtml amt}
           <td .balance style="text-align:right;">^{mixedAmountAsHtml bal}
 
-<div .modal #addmodal tabindex="-1" role="dialog" aria-labelledby="addLabel" aria-hidden="true">
-  <div .modal-dialog .modal-lg>
-    <div .modal-content>
-      <div .modal-header>
-        <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
-        <h3 .modal-title #addLabel>Add a transaction
-      <div .modal-body>
-        <form#addform.form action=@{AddR} method=POST enctype=#{addEnctype}>
-          ^{addView}
+^{addModal AddR j today}

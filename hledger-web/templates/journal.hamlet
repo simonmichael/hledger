@@ -16,7 +16,7 @@
         <td .date nowrap>#{show (tdate torig)}
         <td .description colspan=2>#{textElideRight 60 (tdescription torig)}
         <td .amount style="text-align:right;">
-          $if not split || not (isZeroMixedAmount amt)
+          $if not split && not (isZeroMixedAmount amt)
             \^{mixedAmountAsHtml amt}
 
       $forall Posting { paccount = acc, pamount = amt } <- tpostings torig
@@ -30,12 +30,4 @@
           <td .amount .nonhead style="text-align:right;">
             ^{mixedAmountAsHtml amt}
 
-<div .modal #addmodal tabindex="-1" role="dialog" aria-labelledby="addLabel" aria-hidden="true">
-  <div .modal-dialog .modal-lg>
-    <div .modal-content>
-      <div .modal-header>
-        <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
-        <h3 .modal-title #addLabel>Add a transaction
-      <div .modal-body>
-        <form#addform.form action=@{AddR} method=POST enctype=#{addEnctype}>
-          ^{addView}
+^{addModal AddR j today}

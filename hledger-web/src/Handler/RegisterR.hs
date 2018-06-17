@@ -17,8 +17,8 @@ import Text.Hamlet (hamletFile)
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.WebOptions
-import Widget.AddForm (addForm)
-import Widget.Common (mixedAmountAsHtml, numberTransactionsReportItems)
+import Widget.AddForm (addModal)
+import Widget.Common (mixedAmountAsHtml)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
@@ -31,13 +31,6 @@ getRegisterR = do
 
   let r@(balancelabel,items) = accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
       balancelabel' = if isJust (inAccount qopts) then balancelabel else "Total"
-      evenodd x = if even x then "even" else "odd" :: Text
-      datetransition newm newd
-        | newm = "newmonth"
-        | newd = "newday"
-        | otherwise = "" :: Text
-
-  (addView, addEnctype) <- generateFormPost (addForm j today)
   defaultLayout $ do
     setTitle "register - hledger-web"
     $(widgetFile "register")

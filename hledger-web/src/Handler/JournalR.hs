@@ -12,7 +12,7 @@ import Import
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.WebOptions
-import Widget.AddForm (addForm)
+import Widget.AddForm (addModal)
 import Widget.Common (accountQuery, mixedAmountAsHtml)
 
 -- | The formatted journal view, with sidebar.
@@ -27,7 +27,6 @@ getJournalR = do
       acctlink a = (RegisterR, [("q", accountQuery a)])
       (_, items) = journalTransactionsReport (reportopts_ $ cliopts_ opts) j m
 
-  (addView, addEnctype) <- generateFormPost (addForm j today)
   defaultLayout $ do
     setTitle "journal - hledger-web"
     $(widgetFile "journal")

@@ -4,9 +4,13 @@
 // STARTUP
 
 $(document).ready(function() {
-  // cache the input element as a variable
-  // for minor performance   benefits
-  var dateEl = $('#dateWrap');
+  // date picker
+  // http://bootstrap-datepicker.readthedocs.io/en/latest/options.html
+  var dateEl = $('#dateWrap').datepicker({
+    showOnFocus: false,
+    autoclose: true,
+    format: 'yyyy-mm-dd'
+  });;
 
   // ensure add form always focuses its first field
   $('#addmodal')
@@ -18,21 +22,6 @@ $(document).ready(function() {
       dateEl.datepicker('hide');
     });
 
-  // show add form if ?add=1
-  if ($.url.param('add')) { addformShow(true); }
-
-  // date picker
-  // http://bootstrap-datepicker.readthedocs.io/en/latest/options.html
-  dateEl.datepicker({
-    showOnFocus: false,
-    autoclose: true,
-    format: 'yyyy-mm-dd'
-  });
-
-  // sidebar account hover handlers
-  $('#sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
-  $('#sidebar td').mouseleave(function(){ $(this).removeClass('mouseover'); });
-
   // keyboard shortcuts
   // 'body' seems to hold focus better than document in FF
   $('body').bind('keydown', 'h',       function(){ $('#helpmodal').modal('toggle'); return false; });
@@ -42,11 +31,11 @@ $(document).ready(function() {
   $('body').bind('keydown', 'a',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'n',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'f',       function(){ $('#searchform input').focus(); return false; });
+  $('body, #addform input, #addform select').bind('keydown', 'ctrl++',       addformAddPosting);
   $('body, #addform input, #addform select').bind('keydown', 'ctrl+shift+=', addformAddPosting);
   $('body, #addform input, #addform select').bind('keydown', 'ctrl+=',       addformAddPosting);
   $('body, #addform input, #addform select').bind('keydown', 'ctrl+-',       addformDeletePosting);
   $('.amount-input:last').keypress(addformAddPosting);
-
 
   // highlight the entry from the url hash
   if (window.location.hash && $(window.location.hash)[0]) {
@@ -173,49 +162,38 @@ function focus($el) {
 
 // Insert another posting row in the add form.
 function addformAddPosting() {
-  $('.amount-input:last').off('keypress');
-  // do nothing if it's not currently visible
-  if (!$('#addform').is(':visible')) return;
-  // save a copy of last row
-  var lastrow = $('#addform .form-group:last').clone();
+  if (!$('#addform').is(':visible')) {
+    return;
+  }
 
-  // replace the submit button with an amount field, clear and renumber it, add the keybindings
+  var prevLastRow = $('.amount-input:last');
+  prevLastRow.off('keypress');
+
+  // Clone the currently last row
+  $('#addform .account-postings').append(prevLastRow.clone());
   var num = $('#addform .account-group').length;
 
-  // insert the new last row
-  $('#addform .account-postings').append(lastrow);
-  // TODO: Enable typehead on dynamically created inputs
-
-  var $acctinput = $('.account-input:last');
-  var $amntinput = $('.amount-input:last');
   // clear and renumber the field, add keybindings
-  $acctinput
+  // XXX Enable typehead on dynamically created inputs
+  $('.amount-input:last')
     .val('')
-    .prop('name', 'account')
-    .prop('placeholder', 'Account ' + (num + 1));
-  //lastrow.find('input') // not :last this time
-  $acctinput
-    .bind('keydown', 'ctrl+shift+=', addformAddPosting)
-    .bind('keydown', 'ctrl+=', addformAddPosting)
-    .bind('keydown', 'ctrl+-', addformDeletePosting);
-
-  $amntinput
-    .val('')
-    .prop('name','amount')
-    .prop('placeholder','Amount ' + (num + 1))
+    .prop('placeholder','Amount ' + num)
     .keypress(addformAddPosting);
 
-  $acctinput
+  $('.account-input:last')
+    .val('')
+    .prop('placeholder', 'Account ' + num)
+    .bind('keydown', 'ctrl++', addformAddPosting)
     .bind('keydown', 'ctrl+shift+=', addformAddPosting)
     .bind('keydown', 'ctrl+=', addformAddPosting)
     .bind('keydown', 'ctrl+-', addformDeletePosting);
-
 }
 
 // Remove the add form's last posting row, if empty, keeping at least two.
 function addformDeletePosting() {
-  var num = $('#addform .account-group').length;
-  if (num <= 2) return;
+  if ($('#addform .account-group').length <= 2) {
+    return;
+  }
   // remember if the last row's field or button had focus
   var focuslost =
     $('.account-input:last').is(':focus')

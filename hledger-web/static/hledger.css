@@ -20,37 +20,6 @@
 /*------------------------------------------------------------------------------------------*/
 /* 4. typeahead styles */
 
-/*
-.typeahead,
-.tt-query,
-.tt-hint {
-  width: 396px;
-  height: 30px;
-  padding: 8px 12px;
-  font-size: 24px;
-  line-height: 30px;
-  border: 2px solid #ccc;
-  -webkit-border-radius: 8px;
-     -moz-border-radius: 8px;
-          border-radius: 8px;
-  outline: none;
-}
-
-.typeahead {
-  background-color: #fff;
-}
-
-.typeahead:focus {
-  border: 2px solid #0097cf;
-}
-
-.tt-query {
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-     -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
-}
-
-*/
 .tt-hint {
   color: #bbb;
 }
@@ -100,7 +69,7 @@ code {
 
 ul {
     list-style-type: none;
-	  padding: 0;
+    padding: 0;
 }
 
 #main-content {
@@ -200,24 +169,6 @@ ul {
     whitespace: nowrap;
 }
 
-#main-content {
-   /*
-    -webkit-transition: width 0.3s ease, margin 0.3s ease;
-    -moz-transition: width 0.3s ease, margin 0.3s ease;
-    -o-transition: width 0.3s ease, margin 0.3s ease;
-    transition: width 0.3s ease, margin 0.3s ease;
-*/
-}
-
-#sidebar-menu {
-    /*
-    -webkit-transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease,height 1s ease 1s;
-    -moz-transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease,height 1s ease 1s;
-    -o-transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease,height 1s ease 1s;
-    transition: width 0.3s ease, margin 0.3s ease,opacity 0.3s ease,height 1s ease 1s;
-*/
-}
-
 .col-any-0 {
     width:0 !important;
     height:0 !important;
@@ -227,10 +178,6 @@ ul {
 
 .tgl-icon {
     font-size:large;
-}
-
-#searchbar {
-    width: 100% !important;
 }
 
 @media screen and (max-width: 768px) {

@@ -11,14 +11,12 @@
       <tbody>
         $forall (path, _) <- jfiles j
           <tr>
-            <td>
+            <td style="vertical-align:middle">
               #{path}
             <td style="text-align:right">
-              <a href=@{EditR path}>
+              <a.btn.btn-default href=@{EditR path}>
                 Edit
-              &nbsp;&nbsp;
-              <a href=@{UploadR path}>
+              <a.btn.btn-default href=@{UploadR path}>
                 Upload
-              &nbsp;&nbsp;
-              <a href=@{DownloadR path}>
+              <a.btn.btn-default href=@{DownloadR path}>
                 Download
