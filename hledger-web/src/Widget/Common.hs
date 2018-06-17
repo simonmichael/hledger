@@ -56,8 +56,8 @@ helplink topic label _ = H.a ! A.href u ! A.target "hledgerhelp" $ toHtml label
   where u = textValue $ manualurl <> if T.null topic then "" else T.cons '#' topic
 
 -- | Render a "BalanceReport" as html.
-balanceReportAsHtml :: Eq r => (r, r) -> r -> Journal -> [QueryOpt] -> BalanceReport -> HtmlUrl r
-balanceReportAsHtml (journalR, registerR) here j qopts (items, total) = [hamlet|
+balanceReportAsHtml :: Eq r => (r, r) -> r -> Bool -> Journal -> [QueryOpt] -> BalanceReport -> HtmlUrl r
+balanceReportAsHtml (journalR, registerR) here hideEmpty j qopts (items, total) = [hamlet|
 <tr :here == journalR:.inacct>
   <td .top .acct>
     <a href=@{journalR} :here == journalR:.inacct
@@ -65,8 +65,8 @@ balanceReportAsHtml (journalR, registerR) here j qopts (items, total) = [hamlet|
       Journal
   <td .top>
 $forall (acct, adisplay, aindent, abal) <- items
-  <tr .#{inacctClass acct}>
-    <td .acct>
+  <tr .#{inacctClass acct} :isZeroMixedAmount abal && hideEmpty:.hide>
+    <td .acct :isZeroMixedAmount abal:.empty>
       <div .ff-wrapper>
         \#{indent aindent}
         <a href="@?{acctLink acct}" .#{inacctClass acct}

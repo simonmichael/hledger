@@ -100,12 +100,13 @@ instance Yesod App where
     VD {j, m, opts, q, qopts} <- getViewData
     msg <- getMessage
     showSidebar <- shouldShowSidebar
+    hideEmptyAccts <- (== Just "1") . lookup "hideemptyaccts" . reqCookies <$> getRequest
 
     let ropts = reportopts_ (cliopts_ opts)
         -- flip the default for items with zero amounts, show them by default
         ropts' = ropts { empty_ = not (empty_ ropts) }
         accounts =
-          balanceReportAsHtml (JournalR, RegisterR) here j qopts $
+          balanceReportAsHtml (JournalR, RegisterR) here hideEmptyAccts j qopts $
           balanceReport ropts' m j
 
         topShowmd = if showSidebar then "col-md-4" else "col-any-0" :: Text
@@ -216,13 +217,12 @@ getCurrentJournal jref opts d = do
   j <- liftIO (readIORef jref)
   (ej, changed) <- liftIO $ journalReloadIfChanged opts d j
   -- re-apply any initial filter specified at startup
-  let initq = queryFromOpts d $ reportopts_ opts
-  if not changed
-    then return (j,Nothing)
-    else case filterJournalTransactions initq <$> ej of
-           Right j' -> do
-             liftIO $ writeIORef jref j'
-             return (j',Nothing)
-           Left e -> do
-             setMessage "error while reading journal"
-             return (j, Just e)
+  let initq = queryFromOpts d (reportopts_ opts)
+  case (changed, filterJournalTransactions initq <$> ej) of
+    (False, _) -> return (j, Nothing)
+    (True, Right j') -> do
+      liftIO $ writeIORef jref j'
+      return (j',Nothing)
+    (True, Left e) -> do
+      setMessage "error while reading journal"
+      return (j, Just e)

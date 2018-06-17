@@ -47,6 +47,7 @@
                 <li> <code>a</code> - add a transaction (escape to cancel)
                 <li> <code>s</code> - toggle sidebar
                 <li> <code>f</code> - focus search form ("find")
+                <li> <code>e</code> - hide empty accounts in sidebar
             <p>
               <b>General
               <ul>

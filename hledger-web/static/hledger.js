@@ -28,6 +28,7 @@ $(document).ready(function() {
   $('body').bind('keydown', 'shift+/', function(){ $('#helpmodal').modal('toggle'); return false; });
   $('body').bind('keydown', 'j',       function(){ location.href = document.hledgerWebBaseurl+'/journal'; return false; });
   $('body').bind('keydown', 's',       function(){ sidebarToggle(); return false; });
+  $('body').bind('keydown', 'e',       function(){ emptyAccountsToggle(); return false; });
   $('body').bind('keydown', 'a',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'n',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'f',       function(){ $('#searchform input').focus(); return false; });
@@ -215,4 +216,9 @@ function sidebarToggle() {
   $('#main-content').toggleClass('col-md-8 col-sm-8 col-md-12 col-sm-12');
   $('#spacer').toggleClass('col-md-4 col-sm-4 col-any-0');
   $.cookie('showsidebar', $('#sidebar-menu').hasClass('col-any-0') ? '0' : '1');
+}
+
+function emptyAccountsToggle() {
+  $('.acct.empty').parent().toggleClass('hide');
+  $.cookie('hideemptyaccts', $.cookie('hideemptyaccts') === '1' ? '0' : '1')
 }
