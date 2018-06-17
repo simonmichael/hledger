@@ -1,4 +1,6 @@
-<h2 #contenttitle>#{title'}
+<h2>
+  #{title'}
+
 <a #addformlink href="#" role="button" style="cursor:pointer; margin-top:1em;"
    data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal">
   Add a transaction
@@ -13,21 +15,23 @@
 
     $forall (torig, _, split, _, amt, _) <- items
       <tr .title #transaction-#{tindex torig}>
-        <td .date nowrap>#{show (tdate torig)}
-        <td .description colspan=2>#{textElideRight 60 (tdescription torig)}
+        <td .date nowrap>
+          #{show (tdate torig)}
+        <td colspan=2>
+          #{textElideRight 60 (tdescription torig)}
         <td .amount style="text-align:right;">
           $if not split && not (isZeroMixedAmount amt)
-            \^{mixedAmountAsHtml amt}
+            ^{mixedAmountAsHtml amt}
 
       $forall Posting { paccount = acc, pamount = amt } <- tpostings torig
-        <tr .item.posting title="#{show torig}">
-          <td .nonhead>
-          <td .nonhead>
-          <td .nonhead>
+        <tr .posting title="#{show torig}">
+          <td>
+          <td>
+          <td>
             &nbsp;
             <a href="@?{acctlink acc}##{tindex torig}" title="#{acc}">
               #{elideAccountName 40 acc}
-          <td .amount .nonhead style="text-align:right;">
+          <td .amount style="text-align:right;">
             ^{mixedAmountAsHtml amt}
 
 ^{addModal AddR j today}

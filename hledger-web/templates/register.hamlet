@@ -1,4 +1,4 @@
-<h2 #contenttitle>
+<h2>
   #{header}
 
 <div .hidden-xs>
@@ -19,15 +19,18 @@
 
     <tbody>
       $forall (torig, tacct, split, acct, amt, bal) <- items
-        <tr ##{tindex torig} .item title="#{show torig}" style="vertical-align:top;">
+        <tr ##{tindex torig} title="#{show torig}" style="vertical-align:top;">
           <td .date>
             <a href="@{JournalR}#transaction-#{tindex torig}">
               #{show (tdate tacct)}
-          <td .description title="#{show torig}">#{textElideRight 30 (tdescription tacct)}
-          <td .account>#{elideRight 40 acct}
+          <td title="#{show torig}">
+            #{textElideRight 30 (tdescription tacct)}
+          <td .account>
+            #{elideRight 40 acct}
           <td .amount style="text-align:right; white-space:nowrap;">
             $if not split || not (isZeroMixedAmount amt)
               ^{mixedAmountAsHtml amt}
-          <td .balance style="text-align:right;">^{mixedAmountAsHtml bal}
+          <td style="text-align:right;">
+            ^{mixedAmountAsHtml bal}
 
 ^{addModal AddR j today}

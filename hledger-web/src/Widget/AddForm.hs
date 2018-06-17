@@ -38,7 +38,7 @@ addModal ::
 addModal addR j today = do
   (addView, addEnctype) <- generateFormPost (addForm j today)
   [whamlet|
-<div .modal.fade #addmodal tabindex="-1" role="dialog" aria-labelledby="addLabel" aria-hidden="true">
+<div .modal #addmodal tabindex="-1" role="dialog" aria-labelledby="addLabel" aria-hidden="true">
   <div .modal-dialog .modal-lg>
     <div .modal-content>
       <div .modal-header>

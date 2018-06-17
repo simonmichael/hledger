@@ -2,6 +2,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Widget.Common
   ( accountQuery
@@ -24,6 +25,7 @@ import Text.Blaze ((!), textValue)
 import qualified Text.Blaze.Html5 as H
 import qualified Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (preEscapedString)
+import Text.Hamlet (hamletFile)
 import Yesod
 
 import Hledger
@@ -57,39 +59,13 @@ helplink topic label _ = H.a ! A.href u ! A.target "hledgerhelp" $ toHtml label
 
 -- | Render a "BalanceReport" as html.
 balanceReportAsHtml :: Eq r => (r, r) -> r -> Bool -> Journal -> [QueryOpt] -> BalanceReport -> HtmlUrl r
-balanceReportAsHtml (journalR, registerR) here hideEmpty j qopts (items, total) = [hamlet|
-<tr :here == journalR:.inacct>
-  <td .top .acct>
-    <a href=@{journalR} :here == journalR:.inacct
-       title="Show general journal entries, most recent first">
-      Journal
-  <td .top>
-$forall (acct, adisplay, aindent, abal) <- items
-  <tr .#{inacctClass acct} :isZeroMixedAmount abal && hideEmpty:.hide>
-    <td .acct :isZeroMixedAmount abal:.empty>
-      <div .ff-wrapper>
-        \#{indent aindent}
-        <a href="@?{acctLink acct}" .#{inacctClass acct}
-           title="Show transactions affecting this account and subaccounts">
-          #{adisplay}
-        $if hasSubs acct
-          <a href="@?{acctOnlyLink acct}" .only .hidden-sm .hidden-xs
-             title="Show transactions affecting this account but not subaccounts">only
-    <td>
-      ^{mixedAmountAsHtml abal}
-<tr .total>
-  <td>
-  <td>
-    ^{mixedAmountAsHtml total}
-|] where
-  l = ledgerFromJournal Any j
-  inacctClass acct = case inAccountQuery qopts of
-    Just m' -> if m' `matchesAccount` acct then "inacct" else ""
-    Nothing -> "" :: Text
-  hasSubs acct = maybe True (not . null . asubs) (ledgerAccount l acct)
-  indent a = preEscapedString $ concat $ replicate (2 + 2 * a) "&nbsp;"
-  acctLink acct = (registerR, [("q", accountQuery acct)])
-  acctOnlyLink acct = (registerR, [("q", accountOnlyQuery acct)])
+balanceReportAsHtml (journalR, registerR) here hideEmpty j qopts (items, total) =
+  $(hamletFile "templates/balance-report.hamlet")
+  where
+    l = ledgerFromJournal Any j
+    indent a = preEscapedString $ concat $ replicate (2 + 2 * a) "&nbsp;"
+    hasSubAccounts acct = maybe True (not . null . asubs) (ledgerAccount l acct)
+    matchesAcctSelector acct = Just True == ((`matchesAccount` acct) <$> inAccountQuery qopts)
 
 accountQuery :: AccountName -> Text
 accountQuery = ("inacct:" <>) .  quoteIfSpaced

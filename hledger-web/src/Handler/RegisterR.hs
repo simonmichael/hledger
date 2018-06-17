@@ -29,7 +29,9 @@ getRegisterR = do
       s2 = if m /= Any then ", filtered" else ""
       header = a <> s1 <> s2
 
-  let r@(balancelabel,items) = accountTransactionsReport (reportopts_ $ cliopts_ opts) j m $ fromMaybe Any $ inAccountQuery qopts
+  let ropts = reportopts_ (cliopts_ opts)
+      acctQuery = fromMaybe Any (inAccountQuery qopts)
+      r@(balancelabel,items) = accountTransactionsReport ropts j m acctQuery
       balancelabel' = if isJust (inAccount qopts) then balancelabel else "Total"
   defaultLayout $ do
     setTitle "register - hledger-web"

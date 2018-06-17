@@ -41,7 +41,7 @@
 
 <div .account-postings>
   $forall (n, (acc, amt, accE, amtE)) <- msgs
-    <div .form-group .row .account-group #grp#{n}>
+    <div .form-group .row .account-group>
       <div .col-md-8 .col-xs-8 .col-sm-8 :isJust accE:.has-error>
         <input .account-input.form-control.input-lg.typeahead type=text
           name=account placeholder="Account #{n}" value="#{acc}">
@@ -65,6 +65,7 @@ $if length journals > 1
       $forall p <- journals
         <option value=#{p}>#{p}
 <span .small style="padding-left:2em;">
-  Enter a value in the last field for
-    <a href="#" onclick="addformAddPosting(); return false;">more
-    (or ctrl +, ctrl -)
+  Enter a value in the last field for #
+  <a href="#" onclick="addformAddPosting(); return false;">
+    more
+  \ (or ctrl +, ctrl -)

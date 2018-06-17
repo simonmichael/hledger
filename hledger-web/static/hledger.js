@@ -167,7 +167,7 @@ function addformAddPosting() {
     return;
   }
 
-  var prevLastRow = $('.amount-input:last');
+  var prevLastRow = $('#addform .account-group:last');
   prevLastRow.off('keypress');
 
   // Clone the currently last row
@@ -201,8 +201,8 @@ function addformDeletePosting() {
     || $('.amount-input:last').is(':focus');
   // delete last row
   $('#addform .account-group:last').remove();
-  if(focuslost){
-    focus($('account-input:last'));
+  if (focuslost) {
+    focus($('.account-input:last'));
   }
   // Rebind keypress
   $('.amount-input:last').keypress(addformAddPosting);

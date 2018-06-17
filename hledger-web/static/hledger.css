@@ -39,9 +39,6 @@
   max-height:300px;
 }
 
-.tt-suggestions {
-}
-
 .tt-suggestion {
   padding: 3px 20px;
   font-size: 18px;
@@ -51,7 +48,6 @@
 .tt-suggestion.tt-cursor {
   color: #fff;
   background-color: #0097cf;
-
 }
 
 .tt-suggestion p {
@@ -105,51 +101,37 @@ ul {
 
 #sidebar-menu .main-menu a {
     display: inline;
-	  font-size: 16px;
-	  font-weight: 500;
-	  color: #2F2F2F;
-	  padding: 4px 20px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #2F2F2F;
+    padding: 4px 20px;
 }
 
 #sidebar-menu .main-menu a:hover {
-	  color: #11427D;
-	  text-decoration: none;
-	  background-color: transparent;
+    color: #11427D;
+    text-decoration: none;
+    background-color: transparent;
 }
 
-#sidebar-menu .main-menu .only{
+#sidebar-menu .main-menu .only {
     visibility: hidden;
     padding: 1px;
 }
 
-#sidebar-menu .main-menu tr:hover > td > div > .only {
+#sidebar-menu .main-menu tr:hover .only {
     visibility: visible;
 }
 
-#sidebar-menu .main-menu .only:hover{
-    border-left: none;
-}
-#sidebar-menu .main-menu .balance {
-    float: right;
-}
-
-#sidebar-menu .main-menu .total {
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-    border-top: 1px solid black;
-}
-
-#sidebar-menu .main-menu .inacct {
+#sidebar-menu .main-menu .inacct, #sidebar-menu .main-menu .inacct .acct-name {
     font-weight: bold;
-	  color: #11427D;
+    color: #11427D;
     background-color: #f9f9f9;
 }
 
 #sidebar-menu .main-menu .amount {
     float: right;
     overflow-x:auto;
-	  font-weight: 500 !important;
+    font-weight: 500 !important;
 }
 
 #sidebar-menu .main-menu .acct {
@@ -157,7 +139,7 @@ ul {
     vertical-align:bottom;
 }
 
-.transactionsreport .nonhead {
+.transactionsreport .posting td {
     border: none !important;
 }
 
