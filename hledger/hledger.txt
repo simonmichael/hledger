@@ -623,20 +623,20 @@ OPTIONS
        For example:
 
               # one euro is worth this many dollars from nov 1
-              P 2016/11/01  $1.10
+              P 2016/11/01 EUR $1.10
 
               # purchase some euros on nov 3
               2016/11/3
-                  assets:euros        100
+                  assets:euros        100 EUR
                   assets:checking
 
               # the euro is worth fewer dollars by dec 21
-              P 2016/12/21  $1.03
+              P 2016/12/21 EUR $1.03
 
        How many euros do I have ?
 
               $ hledger -f t.j bal -N euros
-                              100  assets:euros
+                              100 EUR  assets:euros
 
        What are they worth at end of nov 3 ?
 
@@ -2145,8 +2145,8 @@ TROUBLESHOOTING
 
        "Illegal  byte  sequence"  or  "Invalid or incomplete multibyte or wide
        character" errors
-       In order to handle non-ascii letters and symbols (like ), hledger needs
-       an appropriate locale.  This is usually configured system-wide; you can
+       In order to handle non-ascii letters  and  symbols,  hledger  needs  an
+       appropriate  locale.   This  is usually configured system-wide; you can
        also configure it temporarily.  The locale may need to be one that sup-
        ports  UTF-8,  if you built hledger with GHC < 7.2 (or possibly always,
        I'm not sure yet).
