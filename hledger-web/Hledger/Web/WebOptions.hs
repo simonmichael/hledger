@@ -12,9 +12,8 @@ import qualified Data.Text as T
 import Data.Text (Text)
 import System.Environment (getArgs)
 
-import Settings (defhost, defport, defbaseurl)
-
 import Hledger.Cli hiding (progname, version)
+import Hledger.Web.Settings (defhost, defport, defbaseurl)
 
 progname, version :: String
 progname = "hledger-web"

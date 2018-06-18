@@ -5,7 +5,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Widget.AddForm
+module Hledger.Web.Widget.AddForm
   ( addForm
   , addModal
   ) where
@@ -24,7 +24,7 @@ import Text.Megaparsec (eof, parseErrorPretty, runParser)
 import Yesod
 
 import Hledger
-import Settings (widgetFile)
+import Hledger.Web.Settings (widgetFile)
 
 -- XXX <select> which journal to add to
 

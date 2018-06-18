@@ -25,13 +25,12 @@ import Text.Printf (printf)
 import Yesod.Default.Config
 import Yesod.Default.Main (defaultDevelApp)
 
-import Application (makeApplication)
-import Settings (Extra(..), parseExtra)
-
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.Cli.Utils (journalTransform)
 import Hledger.Utils.UTF8IOCompat (putStrLn)
+import Hledger.Web.Application (makeApplication)
+import Hledger.Web.Settings (Extra(..), parseExtra)
 import Hledger.Web.WebOptions
 
 

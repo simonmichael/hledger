@@ -5,14 +5,14 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Handler.EditR
+module Hledger.Web.Handler.EditR
   ( getEditR
   , postEditR
   ) where
 
-import Import
-
-import Widget.Common (fromFormSuccess, helplink, journalFile404, writeValidJournal)
+import Hledger.Web.Import
+import Hledger.Web.Widget.Common
+       (fromFormSuccess, helplink, journalFile404, writeValidJournal)
 
 editForm :: FilePath -> Text -> Markup -> MForm Handler (FormResult Text, Widget)
 editForm f txt =

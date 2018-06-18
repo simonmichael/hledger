@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
-module Import
-    ( module Import
-    ) where
+module Hledger.Web.Import
+  ( module Import
+  ) where
 
 import           Prelude              as Import hiding (head, init, last,
                                                  readFile, tail, writeFile)
@@ -21,10 +21,9 @@ import           Data.Traversable     as Import
 import           Data.Void            as Import (Void)
 import           Text.Blaze           as Import (Markup)
 
-import           Foundation           as Import
-import           Settings             as Import
-import           Settings.Development as Import
-import           Settings.StaticFiles as Import
+import           Hledger.Web.Foundation           as Import
+import           Hledger.Web.Settings             as Import
+import           Hledger.Web.Settings.StaticFiles as Import
 
 #if !(MIN_VERSION_base(4,11,0))
 import           Data.Monoid          as Import ((<>))

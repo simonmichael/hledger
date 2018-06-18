@@ -1,11 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Settings.StaticFiles where
+module Hledger.Web.Settings.StaticFiles where
 
 import System.IO (stdout, hFlush)
 import Yesod.Static (Static, embed, publicFiles, staticDevel)
 
-import Settings (staticDir)
-import Settings.Development (development)
+import Hledger.Web.Settings (staticDir, development)
 
 -- | use this to create your static file serving site
 -- staticSite :: IO Static.Static

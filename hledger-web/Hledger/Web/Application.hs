@@ -4,12 +4,10 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ViewPatterns #-}
 
-module Application
+module Hledger.Web.Application
   ( makeApplication
   , makeFoundation
   ) where
-
-import Import
 
 import Data.IORef (newIORef, writeIORef)
 import Network.Wai.Middleware.RequestLogger (logStdoutDev, logStdout)
@@ -17,14 +15,15 @@ import Network.HTTP.Client (defaultManagerSettings)
 import Network.HTTP.Conduit (newManager)
 import Yesod.Default.Config
 
-import Handler.AddR (getAddR, postAddR)
-import Handler.Common
-       (getDownloadR, getFaviconR, getManageR, getRobotsR, getRootR)
-import Handler.EditR (getEditR, postEditR)
-import Handler.UploadR (getUploadR, postUploadR)
-import Handler.JournalR (getJournalR)
-import Handler.RegisterR (getRegisterR)
 import Hledger.Data (Journal, nulljournal)
+import Hledger.Web.Handler.AddR (getAddR, postAddR)
+import Hledger.Web.Handler.Common
+       (getDownloadR, getFaviconR, getManageR, getRobotsR, getRootR)
+import Hledger.Web.Handler.EditR (getEditR, postEditR)
+import Hledger.Web.Handler.UploadR (getUploadR, postUploadR)
+import Hledger.Web.Handler.JournalR (getJournalR)
+import Hledger.Web.Handler.RegisterR (getRegisterR)
+import Hledger.Web.Import
 import Hledger.Web.WebOptions (WebOpts(serve_))
 
 -- This line actually creates our YesodDispatch instance. It is the second half

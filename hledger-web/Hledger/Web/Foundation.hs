@@ -14,7 +14,7 @@
 -- | Define the web application's foundation, in the usual Yesod style.
 --   See a default Yesod app's comments for more details of each part.
 
-module Foundation where
+module Hledger.Web.Foundation where
 
 import Control.Monad (join)
 import qualified Data.ByteString.Char8 as BC
@@ -34,19 +34,18 @@ import Yesod
 import Yesod.Static
 import Yesod.Default.Config
 
-import Settings (Extra(..), widgetFile)
-import Settings.StaticFiles
-import Widget.Common (balanceReportAsHtml)
-
 #ifndef DEVELOPMENT
-import Settings (staticDir)
+import Hledger.Web.Settings (staticDir)
 import Text.Jasmine (minifym)
 import Yesod.Default.Util (addStaticContentExternal)
 #endif
 
 import Hledger
 import Hledger.Cli (CliOpts(..), journalReloadIfChanged)
+import Hledger.Web.Settings (Extra(..), widgetFile)
+import Hledger.Web.Settings.StaticFiles
 import Hledger.Web.WebOptions
+import Hledger.Web.Widget.Common (balanceReportAsHtml)
 
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -154,7 +153,7 @@ instance Yesod App where
   -- and names them based on a hash of their content. This allows
   -- expiration dates to be set far in the future without worry of
   -- users receiving stale content.
-  addStaticContent = addStaticContentExternal minifym base64md5 Settings.staticDir (StaticR . flip StaticRoute [])
+  addStaticContent = addStaticContentExternal minifym base64md5 staticDir (StaticR . flip StaticRoute [])
 #endif
 
 -- This instance is required to use forms. You can modify renderMessage to

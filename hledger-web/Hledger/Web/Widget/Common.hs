@@ -4,7 +4,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Widget.Common
+module Hledger.Web.Widget.Common
   ( accountQuery
   , accountOnlyQuery
   , balanceReportAsHtml
@@ -30,7 +30,7 @@ import Yesod
 
 import Hledger
 import Hledger.Cli.Utils (writeFileWithBackupIfChanged)
-import Settings (manualurl)
+import Hledger.Web.Settings (manualurl)
 
 journalFile404 :: FilePath -> Journal -> HandlerFor m (FilePath, Text)
 journalFile404 f j =

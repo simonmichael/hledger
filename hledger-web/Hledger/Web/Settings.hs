@@ -4,7 +4,7 @@
 -- In addition, you can configure a number of different aspects of Yesod
 -- by overriding methods in the Yesod typeclass. That instance is
 -- declared in the Foundation.hs file.
-module Settings where
+module Hledger.Web.Settings where
 
 import Data.Default (def)
 import Data.Semigroup ((<>))
@@ -16,8 +16,16 @@ import Text.Shakespeare.Text (st)
 import Yesod.Default.Config
 import Yesod.Default.Util
 
-import Settings.Development
+development :: Bool
+development =
+#if DEVELOPMENT
+  True
+#else
+  False
+#endif
 
+production :: Bool
+production = not development
 
 hledgerorgurl :: Text
 hledgerorgurl = "http://hledger.org"

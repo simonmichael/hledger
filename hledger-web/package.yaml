@@ -44,8 +44,6 @@ extra-source-files:
 - hledger-web.txt
 - hledger-web.info
 
-#data-files:
-
 flags:
   library-only:
     description: Build for use with "yesod devel"
@@ -59,7 +57,6 @@ flags:
     description: Build with support for multithreaded execution.
     manual: false
     default: true
-
 
 when:
 - condition: (flag(dev)) || (flag(library-only))
@@ -76,26 +73,27 @@ ghc-options:
 - -fwarn-tabs
 
 library:
-  source-dirs: src
+  source-dirs: .
   cpp-options: -DVERSION="1.9.99"
   exposed-modules:
-  - Application
-  - Foundation
-  - Handler.AddR
-  - Handler.Common
-  - Handler.EditR
-  - Handler.ImportR
-  - Handler.JournalR
-  - Handler.RegisterR
   - Hledger.Web
+  - Hledger.Web.Application
+  - Hledger.Web.Foundation
+  - Hledger.Web.Handler.AddR
+  - Hledger.Web.Handler.Common
+  - Hledger.Web.Handler.EditR
+  - Hledger.Web.Handler.ImportR
+  - Hledger.Web.Handler.JournalR
+  - Hledger.Web.Handler.RegisterR
+  - Hledger.Web.Handler.UploadR
+  - Hledger.Web.Import
   - Hledger.Web.Main
+  - Hledger.Web.Settings
+  - Hledger.Web.Settings.Development
+  - Hledger.Web.Settings.StaticFiles
   - Hledger.Web.WebOptions
-  - Import
-  - Settings
-  - Settings.Development
-  - Settings.StaticFiles
-  - Widget.AddForm
-  - Widget.Common
+  - Hledger.Web.Widget.AddForm
+  - Hledger.Web.Widget.Common
   dependencies:
   - hledger-lib >=1.9.99 && <2.0
   - hledger >=1.9.99 && <2.0

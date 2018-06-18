@@ -4,19 +4,18 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Handler.UploadR
+module Hledger.Web.Handler.UploadR
   ( getUploadR
   , postUploadR
   ) where
-
-import Import
 
 import qualified Data.ByteString.Lazy as BL
 import Data.Conduit (connect)
 import Data.Conduit.Binary (sinkLbs)
 import qualified Data.Text.Encoding as TE
 
-import Widget.Common (fromFormSuccess, journalFile404, writeValidJournal)
+import Hledger.Web.Import
+import Hledger.Web.Widget.Common (fromFormSuccess, journalFile404, writeValidJournal)
 
 uploadForm :: FilePath -> Markup -> MForm Handler (FormResult FileInfo, Widget)
 uploadForm f =

@@ -4,17 +4,16 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Handler.AddR
+module Hledger.Web.Handler.AddR
   ( getAddR
   , postAddR
   ) where
 
-import Import
-
 import Hledger
 import Hledger.Cli.Commands.Add (appendToJournalFileOrStdout)
-import Widget.AddForm (addForm)
-import Widget.Common (fromFormSuccess)
+import Hledger.Web.Import
+import Hledger.Web.Widget.AddForm (addForm)
+import Hledger.Web.Widget.Common (fromFormSuccess)
 
 getAddR :: Handler ()
 getAddR = postAddR

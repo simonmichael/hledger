@@ -5,15 +5,14 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Handler.JournalR where
-
-import Import
+module Hledger.Web.Handler.JournalR where
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Web.Import
 import Hledger.Web.WebOptions
-import Widget.AddForm (addModal)
-import Widget.Common (accountQuery, mixedAmountAsHtml)
+import Hledger.Web.Widget.AddForm (addModal)
+import Hledger.Web.Widget.Common (accountQuery, mixedAmountAsHtml)
 
 -- | The formatted journal view, with sidebar.
 -- XXX like registerReportAsHtml

@@ -3,7 +3,7 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Handler.Common
+module Hledger.Web.Handler.Common
   ( getDownloadR
   , getFaviconR
   , getManageR
@@ -11,13 +11,12 @@ module Handler.Common
   , getRootR
   ) where
 
-import Import
-
 import qualified Data.Text as T
 import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
 import Hledger (jfiles)
-import Widget.Common (journalFile404)
+import Hledger.Web.Import
+import Hledger.Web.Widget.Common (journalFile404)
 
 getRootR :: Handler Html
 getRootR = redirect JournalR

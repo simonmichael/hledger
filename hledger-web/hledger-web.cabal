@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 979ca4df732320e72b08f7b8422b1b45104ae64053d58f08ec06a62475c42981
+-- hash: 830642fdd094b9838924e2e3865481d8bc65afb314152d5afafe2207c3d5a9a8
 
 name:           hledger-web
 version:        1.9.99
@@ -97,6 +97,7 @@ extra-source-files:
     static/js/typeahead.bundle.js
     static/js/typeahead.bundle.min.js
     templates/add-form.hamlet
+    templates/balance-report.hamlet
     templates/chart.hamlet
     templates/default-layout-wrapper.hamlet
     templates/default-layout.hamlet
@@ -126,27 +127,28 @@ flag threaded
   default: True
 
 library
-  hs-source-dirs: src
+  hs-source-dirs:
+      ./.
   exposed-modules:
-      Application
-      Foundation
-      Handler.AddR
-      Handler.Common
-      Handler.EditR
-      Handler.ImportR
-      Handler.JournalR
-      Handler.RegisterR
       Hledger.Web
+      Hledger.Web.Application
+      Hledger.Web.Foundation
+      Hledger.Web.Handler.AddR
+      Hledger.Web.Handler.Common
+      Hledger.Web.Handler.EditR
+      Hledger.Web.Handler.ImportR
+      Hledger.Web.Handler.JournalR
+      Hledger.Web.Handler.RegisterR
+      Hledger.Web.Handler.UploadR
+      Hledger.Web.Import
       Hledger.Web.Main
+      Hledger.Web.Settings
+      Hledger.Web.Settings.Development
+      Hledger.Web.Settings.StaticFiles
       Hledger.Web.WebOptions
-      Import
-      Settings
-      Settings.Development
-      Settings.StaticFiles
-      Widget.AddForm
-      Widget.Common
+      Hledger.Web.Widget.AddForm
+      Hledger.Web.Widget.Common
   other-modules:
-      Handler.UploadR
       Paths_hledger_web
   ghc-options: -Wall -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fwarn-tabs
   cpp-options: -DVERSION="1.9.99"

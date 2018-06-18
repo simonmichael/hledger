@@ -6,9 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Handler.RegisterR where
-
-import Import
+module Hledger.Web.Handler.RegisterR where
 
 import Data.List (intersperse)
 import qualified Data.Text as T
@@ -16,9 +14,10 @@ import Text.Hamlet (hamletFile)
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Web.Import
 import Hledger.Web.WebOptions
-import Widget.AddForm (addModal)
-import Widget.Common (mixedAmountAsHtml)
+import Hledger.Web.Widget.AddForm (addModal)
+import Hledger.Web.Widget.Common (mixedAmountAsHtml)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
