@@ -144,12 +144,12 @@ journalAddForecast opts@CliOpts{reportopts_=ropts} j = do
   today <- getCurrentDay
 
   -- "They start on or after the day following the latest normal transaction in the journal, or today if there are none."
-  let DateSpan mjournalstart _ = journalDateSpan False j  -- ignore secondary dates
-      forecaststart = fromMaybe today mjournalstart
+  let DateSpan _ mjournalend = dbg2 "journalspan"   $ journalDateSpan False j  -- ignore secondary dates
+      forecaststart          = dbg2 "forecaststart" $ fromMaybe today mjournalend
 
   -- "They end on or before the specified report end date, or 180 days from today if unspecified."
-  mspecifiedstart <- fst <$> specifiedStartEndDates ropts
-  let forecastend = fromMaybe (addDays 180 today) mspecifiedstart
+  mspecifiedend <-  snd . dbg2 "specifieddates" <$> specifiedStartEndDates ropts
+  let forecastend = dbg2 "forecastend" $ fromMaybe (addDays 180 today) mspecifiedend
 
   let forecastspan = DateSpan (Just forecaststart) (Just forecastend)
       forecasttxns = [ txnTieKnot t | pt <- jperiodictxns j
