@@ -916,11 +916,11 @@ Prior to hledger 1.0, legacy `account` and `end` spellings were also supported.
 ## Periodic transactions
 
 Periodic transaction rules describe transactions that recur.
-They allow you to generate future transactions for forecast reports (with `--forecast`),
-without having to write them out explicitly in the journal.
+They allow you to generate future transactions for forecasting,
+without having to write them out explicitly in the journal (with `--forecast`).
 Secondly, they also can be used to define budget goals (with `--budget`).
 
-A periodic transaction rule looks like a regular journal entry,
+A periodic transaction rule looks like a normal journal entry,
 with the date replaced by a tilde (`~`) followed by a [period expression](manual.html#period-expressions)
 (mnemonic: `~` looks like a repeating sine wave):
 ```journal
@@ -932,9 +932,10 @@ There is an additional constraint on the period expression:
 the start date must fall on a natural boundary of the interval.
 Eg `monthly from 2018/1/1` is valid, but `monthly from 2018/1/15` is not.
 
-Also, if you write a transaction description or same-line comment, 
+If you write a transaction description or same-line comment, 
 it must be separated from the period expression by **two or more spaces**. Eg:
-```journal
+
+```
 ;                              2 or more spaces
 ;                                    ||
 ;                                    vv
@@ -943,24 +944,32 @@ it must be separated from the period expression by **two or more spaces**. Eg:
     income:acme inc
 ```
 
-### Generating forecasts with periodic transactions
+### Forecasting with periodic transactions
 
-With the `--forecast` flag,
-each periodic transaction rule generates future transactions recurring at the specified interval,
-beginning the day after the latest recorded journal transaction (or today, if there are no transactions),
-and ending 6 months from today (or at the report end date, if specified).
-The generated transactions will appear in all reports.
-They will have a "recur:" transaction tag added, with the generating period expression as its value.
+With the `--forecast` flag, each periodic transaction rule generates
+future transactions recurring at the specified interval.
+These are not saved in the journal, but appear in all reports.
+They will look like normal transactions, but with an extra
+[tag](manual.html#tags-1) named `recur`, whose value is the generating period expression.
 
-This can be useful for forecasting balances into the future,
-and experimenting with different scenarios, without having to write a lot of journal entries.
-It can also help with data entry (describe most of your transactions with periodic rules,
-and every so often copy the output of `print --forecast` to the journal).
+Forecast transactions begin 
+on or after the day after the latest normal (non-periodic) transaction in the journal,
+or today if there are none.
 
-You can generate one-time transactions too; 
+They end on or before the report end date if specified, or 180 days from today if unspecified.
+
+Forecasting can be useful for estimating balances into the future, 
+and experimenting with different scenarios.
+Note the start date logic means that forecasted transactions are automatically replaced
+by normal transactions as you add those.
+
+Forecasting can also help with data entry:
+describe most of your transactions with periodic rules,
+and every so often copy the output of `print --forecast` to the journal.
+
+You can generate one-time transactions too:
 just write a period expression specifying a date with no report interval.
-You could use this to forecast an estimated transaction, that is automatically deactivated 
-once the actual transaction (or any other transaction on or after that date) is recorded.
+(You could also write a normal transaction with a future date, but remember this disables forecast transactions on previous dates.)
 
 ### Setting budget goals with periodic transactions
 
@@ -980,7 +989,7 @@ and
 Automated posting rules describe extra postings that should be added to certain transactions at report time,
 when the `--auto` flag is used.
 
-An automated posting rule looks like a regular journal entry,
+An automated posting rule looks like a normal journal entry,
 except the first line is an equal sign (`=`) followed by a [query](manual.html#queries)
 (mnemonic: `=` looks like posting lines):
 ```journal
