@@ -132,22 +132,34 @@ journalApplyValue ropts j = do
                 | otherwise    = id
     return $ convert j
 
--- | Run PeriodicTransactions from journal from today or journal end to requested end day.
--- Add generated transactions to the journal
+-- | Generate periodic transactions from all periodic transaction rules in the journal.
+-- These transactions are added to the in-memory Journal (but not the on-disk file).
+--
+-- They start on or after the day following the latest normal transaction in the journal,
+-- or today if there are none.
+-- They end on or before the specified report end date, or 180 days from today if unspecified.
+--
 journalAddForecast :: CliOpts -> Journal -> IO Journal
-journalAddForecast opts j = do
+journalAddForecast opts@CliOpts{reportopts_=ropts} j = do
   today <- getCurrentDay
-  -- Create forecast starting from end of journal + 1 day, and until the end of requested reporting period
-  -- If end is not provided, do 180 days of forecast.
-  -- Note that jdatespan already returns last day + 1
-  let startDate = fromMaybe today $ spanEnd (jdatespan j) 
-      endDate = fromMaybe (addDays 180 today) $ periodEnd (period_ ropts)
-      dates = DateSpan (Just startDate) (Just endDate)
-      withForecast = [ txnTieKnot t | pt <- jperiodictxns j, t <- runPeriodicTransaction pt dates, spanContainsDate dates (tdate t) ] ++ (jtxns j)
-      ropts = reportopts_ opts
-  if forecast_ ropts 
-    then return $ journalBalanceTransactions' opts j { jtxns = withForecast }
-    else return j
+
+  -- "They start on or after the day following the latest normal transaction in the journal, or today if there are none."
+  let DateSpan mjournalstart _ = journalDateSpan False j  -- ignore secondary dates
+      forecaststart = fromMaybe today mjournalstart
+
+  -- "They end on or before the specified report end date, or 180 days from today if unspecified."
+  mspecifiedstart <- fst <$> specifiedStartEndDates ropts
+  let forecastend = fromMaybe (addDays 180 today) mspecifiedstart
+
+  let forecastspan = DateSpan (Just forecaststart) (Just forecastend)
+      forecasttxns = [ txnTieKnot t | pt <- jperiodictxns j
+                                    , t <- runPeriodicTransaction pt forecastspan
+                                    , spanContainsDate forecastspan (tdate t)
+                                    ]
+  return $
+    if forecast_ ropts 
+      then journalBalanceTransactions' opts j{ jtxns = forecasttxns ++ jtxns j }  -- XXX wouldn't appending be better ?
+      else j
   where      
     journalBalanceTransactions' opts j =
       let assrt = not . ignore_assertions_ $ inputopts_ opts
