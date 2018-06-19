@@ -416,7 +416,7 @@ reportSpan j ropts = do
     dbg2 "specifieddates" <$> specifiedStartEndDates ropts
   let
     DateSpan mjournalstartdate mjournalenddate =
-      dbg2 "journalspan" $ journalDateSpan False j  -- don't bother with secondary dates
+      dbg2 "journalspan" $ journalDateSpan False j  -- ignore secondary dates
     mstartdate = mspecifiedstartdate <|> mjournalstartdate
     menddate   = mspecifiedenddate   <|> mjournalenddate
   return $ dbg1 "reportspan" $ DateSpan mstartdate menddate
