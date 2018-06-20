@@ -74,8 +74,6 @@ import Hledger.Data
 import Hledger.Utils
 import Hledger.Read.Common (Reader(..),InputOpts(..),amountp, statusp, genericSourcePos)
 
-import Data.String.Conversions
-
 type CSV = [Record]
 
 type Record = [Field]
@@ -198,7 +196,7 @@ parseCassava path content =
         Left  msg -> Left $ CSVError msg
         Right a   -> Right a
     where parseResult = fmap parseResultToCsv $ CassavaMP.decodeWith decodeOptions Cassava.NoHeader path lazyContent
-          lazyContent = cs $ T.encodeUtf8 content
+          lazyContent = BL.fromStrict $ T.encodeUtf8 content
 
 decodeOptions :: Cassava.DecodeOptions
 decodeOptions = Cassava.defaultDecodeOptions {
