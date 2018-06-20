@@ -197,8 +197,13 @@ parseCassava path content =
     case parseResult of
         Left  msg -> Left $ CSVError msg
         Right a   -> Right a
-    where parseResult = fmap parseResultToCsv $ CassavaMP.decode Cassava.NoHeader path lazyContent
+    where parseResult = fmap parseResultToCsv $ CassavaMP.decodeWith decodeOptions Cassava.NoHeader path lazyContent
           lazyContent = cs $ T.encodeUtf8 content
+
+decodeOptions :: Cassava.DecodeOptions
+decodeOptions = Cassava.defaultDecodeOptions {
+                      Cassava.decDelimiter = fromIntegral (ord ',')
+                    }
 
 parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> CSV
 parseResultToCsv = toListList . unpackFields
