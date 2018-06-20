@@ -20,7 +20,6 @@ import Network.Wai.Handler.Warp (runSettings, defaultSettings, setHost, setPort)
 import Network.Wai.Handler.Launch (runHostPortUrl)
 --
 import Control.Monad
-import Data.Default
 import Data.Text (pack)
 import System.Exit (exitSuccess)
 import System.IO (hFlush, stdout)
@@ -46,23 +45,25 @@ runWith opts
   | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
   | otherwise = do
     requireJournalFileExists =<< (head `fmap` journalFilePathFromOpts (cliopts_ opts)) -- XXX head should be safe for now
-    withJournalDo' opts web
+    withJournalDoWeb opts web
 
-withJournalDo' :: WebOpts -> (WebOpts -> Journal -> IO ()) -> IO ()
-withJournalDo' opts@WebOpts {cliopts_ = cliopts} cmd = do
-  f <- head `fmap` journalFilePathFromOpts cliopts -- XXX head should be safe for now
+-- | A version of withJournalDo specialised for hledger-web.
+-- Disallows the special - file to avoid some bug,
+-- takes WebOpts rather than CliOpts.
+withJournalDoWeb :: WebOpts -> (WebOpts -> Journal -> IO ()) -> IO ()
+withJournalDoWeb opts@WebOpts {cliopts_ = copts} cmd = do
+  journalpaths <- journalFilePathFromOpts copts
 
   -- https://github.com/simonmichael/hledger/issues/202
-  -- -f- gives [Error#yesod-core] <stdin>: hGetContents: illegal operation (handle is closed) for some reason
-  -- Also we may be writing to this file. Just disallow it.
-  when (f == "-") $ error' "hledger-web doesn't support -f -, please specify a file path"
+  -- -f- gives [Error#yesod-core] <stdin>: hGetContents: illegal operation (handle is closed)
+  -- Also we may try to write to this file. Just disallow -.
+  when (head journalpaths == "-") $  -- always non-empty
+    error' "hledger-web doesn't support -f -, please specify a file path"
 
-  let fn = cmd opts
-         . pivotByOpts cliopts
-         . anonymiseByOpts cliopts
-       <=< journalApplyValue (reportopts_ cliopts)
-       <=< journalAddForecast cliopts
-  readJournalFile def f >>= either error' fn
+  -- keep synced with withJournalDo  TODO refactor
+  readJournalFiles (inputopts_ copts) journalpaths 
+  >>= mapM (journalTransform copts)
+  >>= either error' (cmd opts)
 
 -- | The web command.
 web :: WebOpts -> Journal -> IO ()
