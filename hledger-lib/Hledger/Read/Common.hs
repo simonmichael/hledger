@@ -662,7 +662,7 @@ priceamountp = option NoPrice $ do
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
-  priceAmount <- amountwithoutpricep
+  priceAmount <- amountwithoutpricep <?> "amount (as a price)"
 
   pure $ priceConstructor priceAmount
 
@@ -674,7 +674,7 @@ partialbalanceassertionp = optional $ do
     char '='
     pure sourcepos
   lift (skipMany spacenonewline)
-  a <- amountp -- XXX should restrict to a simple amount
+  a <- amountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
   return (a, sourcepos)
 
 -- balanceassertion :: Monad m => TextParser m (Maybe MixedAmount)
@@ -714,7 +714,7 @@ fixedlotpricep = optional $ do
 -- and the digit group style if any.
 --
 numberp :: Maybe AmountStyle -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-numberp suggestedStyle = do
+numberp suggestedStyle = label "number" $ do
     -- a number is an optional sign followed by a sequence of digits possibly
     -- interspersed with periods, commas, or both
     -- ptrace "numberp"
@@ -726,10 +726,9 @@ numberp suggestedStyle = do
            $ fromRawNumber rawNum mExp of
       Left errMsg -> fail errMsg
       Right (q, p, d, g) -> pure (sign q, p, d, g)
-    <?> "numberp"
 
 exponentp :: TextParser m Int
-exponentp = char' 'e' *> signp <*> decimal <?> "exponentp"
+exponentp = char' 'e' *> signp <*> decimal <?> "exponent"
 
 -- | Interpret a raw number as a decimal number.
 --
@@ -763,8 +762,8 @@ fromRawNumber raw mExp = case raw of
           (quantity, precision) = toQuantity (mconcat digitGrps) decimalGrp
 
       in  Right (quantity, precision, mDecPt, Just digitGroupStyle)
-    Just _ ->
-      Left "mixing digit separators with exponents is not allowed"
+    Just _ -> Left
+      "invalid number: mixing digit separators with exponents is not allowed"
 
   where
     -- Outputs digit group sizes from least significant to most significant
@@ -821,10 +820,20 @@ disambiguateNumber suggestedStyle (AmbiguousNumber grp1 sep grp2) =
 -- Right (WithSeparators ' ' ["1","000"] Nothing)
 --
 rawnumberp :: TextParser m (Either AmbiguousNumber RawNumber)
-rawnumberp = label "rawnumberp" $ do
+rawnumberp = label "number" $ do
   rawNumber <- fmap Right leadingDecimalPt <|> leadingDigits
+
   -- Guard against mistyped numbers
-  notFollowedBy $ satisfy isDecimalPointChar <|> char ' ' *> digitChar
+  mExtraDecimalSep <- optional $ lookAhead $ satisfy isDecimalPointChar
+  when (isJust mExtraDecimalSep) $
+    fail "invalid number (invalid use of separator)"
+
+  mExtraFragment <- optional $ lookAhead $ try $
+    char ' ' *> getPosition <* digitChar
+  case mExtraFragment of
+    Just pos -> parseErrorAt pos "invalid number (excessive trailing digits)"
+    Nothing -> pure ()
+
   return $ dbg8 "rawnumberp" rawNumber
   where
 
@@ -900,7 +909,7 @@ instance Monoid DigitGrp where
   mappend = (Sem.<>)
 
 digitgroupp :: TextParser m DigitGrp
-digitgroupp = label "digit group"
+digitgroupp = label "digits"
             $ makeGroup <$> takeWhile1P (Just "digit") isDigit
   where
     makeGroup = uncurry DigitGrp . foldl' step (0, 0) . T.unpack
