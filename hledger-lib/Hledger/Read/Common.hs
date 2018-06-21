@@ -523,6 +523,7 @@ test_spaceandamountormissingp = do
 amountp :: JournalParser m Amount
 amountp = label "amount" $ do
   amount <- amountwithoutpricep
+  lift $ skipMany spacenonewline
   price <- priceamountp
   pure $ amount { aprice = price }
 
@@ -657,7 +658,7 @@ simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
 priceamountp :: JournalParser m Price
 priceamountp = option NoPrice $ do
-  try $ lift (skipMany spacenonewline) *> char '@'
+  char '@'
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
