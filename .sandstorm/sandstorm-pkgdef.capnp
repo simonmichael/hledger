@@ -124,8 +124,9 @@ const pkgdef :Spk.PackageDefinition = (
         # Sizes are given in device-independent pixels, so if you took these
         # screenshots on a Retina-style high DPI screen, divide each dimension by two.
 
-        #(width = 746, height = 795, jpeg = embed "path/to/screenshot-1.jpeg"),
-        #(width = 640, height = 480, png = embed "path/to/screenshot-2.png"),
+        (width = 1920, height = 1040, png = embed "screenshot1.png"),
+        (width = 1920, height = 1040, png = embed "screenshot2.png"),
+        (width = 1920, height = 1040, png = embed "screenshot3.png")
       ],
       changeLog = (defaultText = embed "changelog.md"),
       # Documents the history of changes in Github-flavored markdown format (with the same restrictions
