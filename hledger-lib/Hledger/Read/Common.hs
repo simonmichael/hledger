@@ -517,14 +517,84 @@ test_spaceandamountormissingp = do
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
 amountp :: JournalParser m Amount
-amountp = do
+amountp = label "amount" $ do
   amount <- amountwithoutpricep
   price <- priceamountp
   pure $ amount { aprice = price }
 
 amountwithoutpricep :: JournalParser m Amount
-amountwithoutpricep =
-  try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
+amountwithoutpricep = do
+  (mult, sign) <- lift $ (,) <$> multiplierp <*> signp
+  leftsymbolamountp mult sign <|> rightornosymbolamountp mult sign
+
+  where
+
+  leftsymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
+  leftsymbolamountp mult sign = label "amount" $ do
+    c <- lift commoditysymbolp
+    suggestedStyle <- getAmountStyle c
+
+    commodityspaced <- lift $ skipMany' spacenonewline
+
+    sign2 <- lift $ signp
+    posBeforeNum <- getPosition
+    ambiguousRawNum <- lift rawnumberp
+    mExponent <- lift $ optional $ try exponentp
+    posAfterNum <- getPosition
+    let numRegion = (posBeforeNum, posAfterNum)
+
+    (q,prec,mdec,mgrps) <- lift $
+      interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+    let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
+    return $ Amount c (sign (sign2 q)) NoPrice s mult
+
+  rightornosymbolamountp
+    :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
+  rightornosymbolamountp mult sign = label "amount" $ do
+    posBeforeNum <- getPosition
+    ambiguousRawNum <- lift rawnumberp
+    mExponent <- lift $ optional $ try exponentp
+    posAfterNum <- getPosition
+    let numRegion = (posBeforeNum, posAfterNum)
+
+    mSpaceAndCommodity <- lift $ optional $ try $
+      (,) <$> skipMany' spacenonewline <*> commoditysymbolp
+
+    case mSpaceAndCommodity of
+      Just (commodityspaced, c) -> do
+        suggestedStyle <- getAmountStyle c
+        (q,prec,mdec,mgrps) <- lift $
+          interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+
+        let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
+        return $ Amount c (sign q) NoPrice s mult
+
+      Nothing -> do
+        suggestedStyle <- getDefaultAmountStyle
+        (q,prec,mdec,mgrps) <- lift $
+          interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+
+        -- apply the most recently seen default commodity and style to this commodityless amount
+        defcs <- getDefaultCommodityAndStyle
+        let (c,s) = case defcs of
+              Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
+              Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
+        return $ Amount c (sign q) NoPrice s mult
+
+  -- For reducing code duplication. Doesn't parse anything. Has the type
+  -- of a parser only in order to throw parse errors (for convenience).
+  interpretNumber
+    :: (SourcePos, SourcePos)
+    -> Maybe AmountStyle
+    -> Either AmbiguousNumber RawNumber
+    -> Maybe Int
+    -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+  interpretNumber posRegion suggestedStyle ambiguousNum mExp =
+    let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousNum
+    in  case fromRawNumber rawNum mExp of
+          Left errMsg -> uncurry parseErrorAtRegion posRegion errMsg
+          Right res -> pure res
+
 
 #ifdef TESTS
 test_amountp = do
@@ -568,50 +638,6 @@ skipMany' p = go False
       if more
         then go True
         else pure isNull
-
-leftsymbolamountp :: JournalParser m Amount
-leftsymbolamountp = do
-  sign <- lift signp
-  m <- lift multiplierp
-  c <- lift commoditysymbolp
-  suggestedStyle <- getAmountStyle c
-  commodityspaced <- lift $ skipMany' spacenonewline
-  (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
-  let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-  return $ Amount c (sign q) NoPrice s m
-  <?> "left-symbol amount"
-
-rightsymbolamountp :: JournalParser m Amount
-rightsymbolamountp = do
-  m <- lift multiplierp
-  sign <- lift signp
-  ambiguousRawNum <- lift rawnumberp
-  mExponent <- lift $ optional $ try exponentp
-  commodityspaced <- lift $ skipMany' spacenonewline
-  c <- lift commoditysymbolp
-  suggestedStyle <- getAmountStyle c
-
-  let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousRawNum
-  (q, prec, mdec, mgrps) <- case fromRawNumber rawNum mExponent of
-    Left errMsg -> fail errMsg
-    Right res -> pure res
-
-  let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-  return $ Amount c (sign q) NoPrice s m
-  <?> "right-symbol amount"
-
-nosymbolamountp :: JournalParser m Amount
-nosymbolamountp = do
-  m <- lift multiplierp
-  suggestedStyle <- getDefaultAmountStyle
-  (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
-  -- apply the most recently seen default commodity and style to this commodityless amount
-  defcs <- getDefaultCommodityAndStyle
-  let (c,s) = case defcs of
-        Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
-        Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-  return $ Amount c q NoPrice s m
-  <?> "no-symbol amount"
 
 commoditysymbolp :: TextParser m CommoditySymbol
 commoditysymbolp =
