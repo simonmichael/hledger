@@ -620,20 +620,20 @@ certain date.
   1. Write the price per unit, as '@ UNITPRICE' after the amount:
 
      2009/1/1
-       assets:euros     €100 @ $1.35  ; one hundred euros purchased at $1.35 each
-       assets:dollars                 ; balancing amount is -$135.00
+       assets:euros     100 EUR @ $1.35  ; one hundred euros purchased at $1.35 each
+       assets:dollars                    ; balancing amount is -$135.00
 
   2. Write the total price, as '@@ TOTALPRICE' after the amount:
 
      2009/1/1
-       assets:euros     €100 @@ $135  ; one hundred euros purchased at $135 for the lot
+       assets:euros     100 EUR @@ $135  ; one hundred euros purchased at $135 for the lot
        assets:dollars
 
   3. Specify amounts for all postings, using exactly two commodities,
      and let hledger infer the price that balances the transaction:
 
      2009/1/1
-       assets:euros     €100          ; one hundred euros purchased
+       assets:euros    100 EUR        ; one hundred euros purchased
        assets:dollars  $-135          ; for $135
 
    (Ledger users: Ledger uses a different syntax for fixed prices,
@@ -645,8 +645,8 @@ Ledger).  Eg here is how -B affects the balance report for the example
 above:
 
 $ hledger bal -N --flat
-               $-135  assets:dollars
-                €100  assets:euros
+               $-135    assets:dollars
+               100 EUR  assets:euros
 $ hledger bal -N --flat -B
                $-135  assets:dollars
                 $135  assets:euros    # <- the euros' cost
@@ -658,11 +658,11 @@ transaction is equivalent, -B shows something different:
 
 2009/1/1
   assets:dollars  $-135               ; 135 dollars sold
-  assets:euros     €100               ; for 100 euros
+  assets:euros    100 EUR             ; for 100 euros
 
 $ hledger bal -N --flat -B
-               €-100  assets:dollars  # <- the dollars' selling price
-                €100  assets:euros
+               -100 EUR  assets:dollars  # <- the dollars' selling price
+                100 EUR  assets:euros
 
 
 File: hledger_journal.info,  Node: Comments,  Next: Tags,  Prev: Transaction prices,  Up: FILE FORMAT
@@ -937,8 +937,8 @@ P DATE COMMODITYA COMMODITYBAMOUNT
    These two market price directives say that one euro was worth 1.35 US
 dollars during 2009, and $1.40 from 2010 onward:
 
-P 2009/1/1 € $1.35
-P 2010/1/1 € $1.40
+P 2009/1/1 EUR $1.35
+P 2010/1/1 EUR $1.40
 
    The '-V/--value' flag can be used to convert reported amounts to
 another commodity using these prices.
@@ -1319,49 +1319,49 @@ Node: Balance Assignments21356
 Ref: #balance-assignments21537
 Node: Transaction prices22657
 Ref: #transaction-prices22826
-Node: Comments25094
-Ref: #comments25228
-Node: Tags26398
-Ref: #tags26516
-Node: Directives27918
-Ref: #directives28061
-Node: Directive scope multiple files28517
-Ref: #directive-scope-multiple-files28705
-Node: Comment blocks29655
-Ref: #comment-blocks29839
-Node: Including other files30015
-Ref: #including-other-files30195
-Node: Default year30584
-Ref: #default-year30753
-Node: Declaring commodities31176
-Ref: #declaring-commodities31359
-Node: Default commodity32586
-Ref: #default-commodity32762
-Node: Market prices33398
-Ref: #market-prices33563
-Node: Declaring accounts34404
-Ref: #declaring-accounts34580
-Node: Rewriting accounts35927
-Ref: #rewriting-accounts36112
-Node: Basic aliases36716
-Ref: #basic-aliases36862
-Node: Regex aliases37552
-Ref: #regex-aliases37723
-Node: Multiple aliases38441
-Ref: #multiple-aliases38616
-Node: end aliases39114
-Ref: #end-aliases39261
-Node: Default parent account39362
-Ref: #default-parent-account39530
-Node: Periodic transactions40189
-Ref: #periodic-transactions40368
-Node: Generating forecasts with periodic transactions41609
-Ref: #generating-forecasts-with-periodic-transactions41890
-Node: Setting budget goals with periodic transactions42983
-Ref: #setting-budget-goals-with-periodic-transactions43264
-Node: Automated postings43723
-Ref: #automated-postings43877
-Node: EDITOR SUPPORT45017
-Ref: #editor-support45135
+Node: Comments25099
+Ref: #comments25233
+Node: Tags26403
+Ref: #tags26521
+Node: Directives27923
+Ref: #directives28066
+Node: Directive scope multiple files28522
+Ref: #directive-scope-multiple-files28710
+Node: Comment blocks29660
+Ref: #comment-blocks29844
+Node: Including other files30020
+Ref: #including-other-files30200
+Node: Default year30589
+Ref: #default-year30758
+Node: Declaring commodities31181
+Ref: #declaring-commodities31364
+Node: Default commodity32591
+Ref: #default-commodity32767
+Node: Market prices33403
+Ref: #market-prices33568
+Node: Declaring accounts34409
+Ref: #declaring-accounts34585
+Node: Rewriting accounts35932
+Ref: #rewriting-accounts36117
+Node: Basic aliases36721
+Ref: #basic-aliases36867
+Node: Regex aliases37557
+Ref: #regex-aliases37728
+Node: Multiple aliases38446
+Ref: #multiple-aliases38621
+Node: end aliases39119
+Ref: #end-aliases39266
+Node: Default parent account39367
+Ref: #default-parent-account39535
+Node: Periodic transactions40194
+Ref: #periodic-transactions40373
+Node: Generating forecasts with periodic transactions41614
+Ref: #generating-forecasts-with-periodic-transactions41895
+Node: Setting budget goals with periodic transactions42988
+Ref: #setting-budget-goals-with-periodic-transactions43269
+Node: Automated postings43728
+Ref: #automated-postings43882
+Node: EDITOR SUPPORT45022
+Ref: #editor-support45140
 
 End Tag Table

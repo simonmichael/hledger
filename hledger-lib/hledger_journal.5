@@ -649,8 +649,8 @@ Write the price per unit, as \f[C]\@\ UNITPRICE\f[] after the amount:
 .nf
 \f[C]
 2009/1/1
-\ \ assets:euros\ \ \ \ \ €100\ \@\ $1.35\ \ ;\ one\ hundred\ euros\ purchased\ at\ $1.35\ each
-\ \ assets:dollars\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;\ balancing\ amount\ is\ \-$135.00
+\ \ assets:euros\ \ \ \ \ 100\ EUR\ \@\ $1.35\ \ ;\ one\ hundred\ euros\ purchased\ at\ $1.35\ each
+\ \ assets:dollars\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;\ balancing\ amount\ is\ \-$135.00
 \f[]
 .fi
 .RE
@@ -661,7 +661,7 @@ Write the total price, as \f[C]\@\@\ TOTALPRICE\f[] after the amount:
 .nf
 \f[C]
 2009/1/1
-\ \ assets:euros\ \ \ \ \ €100\ \@\@\ $135\ \ ;\ one\ hundred\ euros\ purchased\ at\ $135\ for\ the\ lot
+\ \ assets:euros\ \ \ \ \ 100\ EUR\ \@\@\ $135\ \ ;\ one\ hundred\ euros\ purchased\ at\ $135\ for\ the\ lot
 \ \ assets:dollars
 \f[]
 .fi
@@ -674,7 +674,7 @@ hledger infer the price that balances the transaction:
 .nf
 \f[C]
 2009/1/1
-\ \ assets:euros\ \ \ \ \ €100\ \ \ \ \ \ \ \ \ \ ;\ one\ hundred\ euros\ purchased
+\ \ assets:euros\ \ \ \ 100\ EUR\ \ \ \ \ \ \ \ ;\ one\ hundred\ euros\ purchased
 \ \ assets:dollars\ \ $\-135\ \ \ \ \ \ \ \ \ \ ;\ for\ $135
 \f[]
 .fi
@@ -691,8 +691,8 @@ Eg here is how \-B affects the balance report for the example above:
 .nf
 \f[C]
 $\ hledger\ bal\ \-N\ \-\-flat
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-135\ \ assets:dollars
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ €100\ \ assets:euros
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-135\ \ \ \ assets:dollars
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 100\ EUR\ \ assets:euros
 $\ hledger\ bal\ \-N\ \-\-flat\ \-B
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $\-135\ \ assets:dollars
 \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ $135\ \ assets:euros\ \ \ \ #\ <\-\ the\ euros\[aq]\ cost
@@ -709,15 +709,15 @@ equivalent, \-B shows something different:
 \f[C]
 2009/1/1
 \ \ assets:dollars\ \ $\-135\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;\ 135\ dollars\ sold
-\ \ assets:euros\ \ \ \ \ €100\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ;\ for\ 100\ euros
+\ \ assets:euros\ \ \ \ 100\ EUR\ \ \ \ \ \ \ \ \ \ \ \ \ ;\ for\ 100\ euros
 \f[]
 .fi
 .IP
 .nf
 \f[C]
 $\ hledger\ bal\ \-N\ \-\-flat\ \-B
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ €\-100\ \ assets:dollars\ \ #\ <\-\ the\ dollars\[aq]\ selling\ price
-\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ €100\ \ assets:euros
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \-100\ EUR\ \ assets:dollars\ \ #\ <\-\ the\ dollars\[aq]\ selling\ price
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 100\ EUR\ \ assets:euros
 \f[]
 .fi
 .SS Comments
@@ -1010,8 +1010,8 @@ dollars during 2009, and $1.40 from 2010 onward:
 .IP
 .nf
 \f[C]
-P\ 2009/1/1\ €\ $1.35
-P\ 2010/1/1\ €\ $1.40
+P\ 2009/1/1\ EUR\ $1.35
+P\ 2010/1/1\ EUR\ $1.40
 \f[]
 .fi
 .PP

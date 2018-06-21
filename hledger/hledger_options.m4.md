@@ -392,20 +392,20 @@ For example:
 
 ```journal
 # one euro is worth this many dollars from nov 1
-P 2016/11/01 € $1.10
+P 2016/11/01 EUR $1.10
 
 # purchase some euros on nov 3
 2016/11/3
-    assets:euros        €100
+    assets:euros        100 EUR
     assets:checking
 
 # the euro is worth fewer dollars by dec 21
-P 2016/12/21 € $1.03
+P 2016/12/21 EUR $1.03
 ```
 How many euros do I have ?
 ```
 $ hledger -f t.j bal -N euros
-                €100  assets:euros
+                100 EUR  assets:euros
 ```
 What are they worth at end of nov 3 ?
 ```

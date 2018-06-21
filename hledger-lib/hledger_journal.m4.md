@@ -473,15 +473,15 @@ There are several ways to record a transaction price:
 
     ```journal
     2009/1/1
-      assets:euros     €100 @ $1.35  ; one hundred euros purchased at $1.35 each
-      assets:dollars                 ; balancing amount is -$135.00
+      assets:euros     100 EUR @ $1.35  ; one hundred euros purchased at $1.35 each
+      assets:dollars                    ; balancing amount is -$135.00
     ```
 
 2. Write the total price, as `@@ TOTALPRICE` after the amount:
 
     ```journal
     2009/1/1
-      assets:euros     €100 @@ $135  ; one hundred euros purchased at $135 for the lot
+      assets:euros     100 EUR @@ $135  ; one hundred euros purchased at $135 for the lot
       assets:dollars
     ```
 
@@ -490,7 +490,7 @@ There are several ways to record a transaction price:
 
     ```journal
     2009/1/1
-      assets:euros     €100          ; one hundred euros purchased
+      assets:euros    100 EUR        ; one hundred euros purchased
       assets:dollars  $-135          ; for $135
     ```
 
@@ -504,8 +504,8 @@ Eg here is how -B affects the balance report for the example above:
 
 ```shell
 $ hledger bal -N --flat
-               $-135  assets:dollars
-                €100  assets:euros
+               $-135    assets:dollars
+               100 EUR  assets:euros
 $ hledger bal -N --flat -B
                $-135  assets:dollars
                 $135  assets:euros    # <- the euros' cost
@@ -519,12 +519,12 @@ is equivalent, -B shows something different:
 ```journal
 2009/1/1
   assets:dollars  $-135               ; 135 dollars sold
-  assets:euros     €100               ; for 100 euros
+  assets:euros    100 EUR             ; for 100 euros
 ```
 ```shell
 $ hledger bal -N --flat -B
-               €-100  assets:dollars  # <- the dollars' selling price
-                €100  assets:euros
+               -100 EUR  assets:dollars  # <- the dollars' selling price
+                100 EUR  assets:euros
 ```
 
 ## Comments
@@ -801,8 +801,8 @@ P DATE COMMODITYA COMMODITYBAMOUNT
 These two market price directives say that one euro was worth 1.35 US dollars during 2009, 
 and $1.40 from 2010 onward:
 ```journal
-P 2009/1/1 € $1.35
-P 2010/1/1 € $1.40
+P 2009/1/1 EUR $1.35
+P 2010/1/1 EUR $1.40
 ```
 
 The [`-V/--value`](manual.html#market-value) flag can be used to convert reported amounts

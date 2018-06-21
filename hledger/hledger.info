@@ -657,20 +657,20 @@ recent one, or in case of equal dates, the last-parsed one.
    For example:
 
 # one euro is worth this many dollars from nov 1
-P 2016/11/01 € $1.10
+P 2016/11/01 EUR $1.10
 
 # purchase some euros on nov 3
 2016/11/3
-    assets:euros        €100
+    assets:euros        100 EUR
     assets:checking
 
 # the euro is worth fewer dollars by dec 21
-P 2016/12/21 € $1.03
+P 2016/12/21 EUR $1.03
 
    How many euros do I have ?
 
 $ hledger -f t.j bal -N euros
-                €100  assets:euros
+                100 EUR  assets:euros
 
    What are they worth at end of nov 3 ?
 
@@ -2465,106 +2465,106 @@ Node: Cost21487
 Ref: #cost21595
 Node: Market value21713
 Ref: #market-value21848
-Node: Combining -B and -V23214
-Ref: #combining--b-and--v23377
-Node: Output destination23524
-Ref: #output-destination23686
-Node: Output format23969
-Ref: #output-format24121
-Node: Regular expressions24506
-Ref: #regular-expressions24643
-Node: QUERIES26004
-Ref: #queries26106
-Node: COMMANDS30068
-Ref: #commands30180
-Node: accounts31162
-Ref: #accounts31260
-Node: activity32506
-Ref: #activity32616
-Node: add32976
-Ref: #add33075
-Node: balance35736
-Ref: #balance35847
-Node: Classic balance report38930
-Ref: #classic-balance-report39103
-Node: Customising the classic balance report40472
-Ref: #customising-the-classic-balance-report40700
-Node: Colour support42774
-Ref: #colour-support42941
-Node: Flat mode43114
-Ref: #flat-mode43262
-Node: Depth limited balance reports43675
-Ref: #depth-limited-balance-reports43875
-Node: Multicolumn balance report44331
-Ref: #multicolumn-balance-report44529
-Node: Budget report49709
-Ref: #budget-report49852
-Ref: #output-format-152886
-Node: balancesheet52964
-Ref: #balancesheet53100
-Node: balancesheetequity55411
-Ref: #balancesheetequity55560
-Node: cashflow56097
-Ref: #cashflow56225
-Node: check-dates58348
-Ref: #check-dates58475
-Node: check-dupes58592
-Ref: #check-dupes58716
-Node: close58853
-Ref: #close58960
-Node: help59290
-Ref: #help59390
-Node: import60464
-Ref: #import60578
-Node: incomestatement61308
-Ref: #incomestatement61442
-Node: prices63846
-Ref: #prices63961
-Node: print64004
-Ref: #print64114
-Node: print-unique69008
-Ref: #print-unique69134
-Node: register69202
-Ref: #register69329
-Node: Custom register output73830
-Ref: #custom-register-output73959
-Node: register-match75189
-Ref: #register-match75323
-Node: rewrite75506
-Ref: #rewrite75623
-Node: stats75692
-Ref: #stats75795
-Node: tags76665
-Ref: #tags76763
-Node: test76999
-Ref: #test77083
-Node: ADD-ON COMMANDS77451
-Ref: #add-on-commands77561
-Node: Official add-ons78848
-Ref: #official-add-ons78988
-Node: api79075
-Ref: #api79164
-Node: ui79216
-Ref: #ui79315
-Node: web79373
-Ref: #web79462
-Node: Third party add-ons79508
-Ref: #third-party-add-ons79683
-Node: diff79818
-Ref: #diff79915
-Node: iadd80014
-Ref: #iadd80128
-Node: interest80211
-Ref: #interest80332
-Node: irr80427
-Ref: #irr80525
-Node: Experimental add-ons80603
-Ref: #experimental-add-ons80755
-Node: autosync81035
-Ref: #autosync81146
-Node: chart81385
-Ref: #chart81504
-Node: check81575
-Ref: #check81677
+Node: Combining -B and -V23216
+Ref: #combining--b-and--v23379
+Node: Output destination23526
+Ref: #output-destination23688
+Node: Output format23971
+Ref: #output-format24123
+Node: Regular expressions24508
+Ref: #regular-expressions24645
+Node: QUERIES26006
+Ref: #queries26108
+Node: COMMANDS30070
+Ref: #commands30182
+Node: accounts31164
+Ref: #accounts31262
+Node: activity32508
+Ref: #activity32618
+Node: add32978
+Ref: #add33077
+Node: balance35738
+Ref: #balance35849
+Node: Classic balance report38932
+Ref: #classic-balance-report39105
+Node: Customising the classic balance report40474
+Ref: #customising-the-classic-balance-report40702
+Node: Colour support42776
+Ref: #colour-support42943
+Node: Flat mode43116
+Ref: #flat-mode43264
+Node: Depth limited balance reports43677
+Ref: #depth-limited-balance-reports43877
+Node: Multicolumn balance report44333
+Ref: #multicolumn-balance-report44531
+Node: Budget report49711
+Ref: #budget-report49854
+Ref: #output-format-152888
+Node: balancesheet52966
+Ref: #balancesheet53102
+Node: balancesheetequity55413
+Ref: #balancesheetequity55562
+Node: cashflow56099
+Ref: #cashflow56227
+Node: check-dates58350
+Ref: #check-dates58477
+Node: check-dupes58594
+Ref: #check-dupes58718
+Node: close58855
+Ref: #close58962
+Node: help59292
+Ref: #help59392
+Node: import60466
+Ref: #import60580
+Node: incomestatement61310
+Ref: #incomestatement61444
+Node: prices63848
+Ref: #prices63963
+Node: print64006
+Ref: #print64116
+Node: print-unique69010
+Ref: #print-unique69136
+Node: register69204
+Ref: #register69331
+Node: Custom register output73832
+Ref: #custom-register-output73961
+Node: register-match75191
+Ref: #register-match75325
+Node: rewrite75508
+Ref: #rewrite75625
+Node: stats75694
+Ref: #stats75797
+Node: tags76667
+Ref: #tags76765
+Node: test77001
+Ref: #test77085
+Node: ADD-ON COMMANDS77453
+Ref: #add-on-commands77563
+Node: Official add-ons78850
+Ref: #official-add-ons78990
+Node: api79077
+Ref: #api79166
+Node: ui79218
+Ref: #ui79317
+Node: web79375
+Ref: #web79464
+Node: Third party add-ons79510
+Ref: #third-party-add-ons79685
+Node: diff79820
+Ref: #diff79917
+Node: iadd80016
+Ref: #iadd80130
+Node: interest80213
+Ref: #interest80334
+Node: irr80429
+Ref: #irr80527
+Node: Experimental add-ons80605
+Ref: #experimental-add-ons80757
+Node: autosync81037
+Ref: #autosync81148
+Node: chart81387
+Ref: #chart81506
+Node: check81577
+Ref: #check81679
 
 End Tag Table
