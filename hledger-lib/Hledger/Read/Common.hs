@@ -328,9 +328,13 @@ statusp =
     ]
 
 codep :: TextParser m Text
-codep = option "" $ try $ do
-  skipSome spacenonewline
-  between (char '(') (char ')') $ takeWhileP Nothing (/= ')')
+codep = option "" $ do
+  try $ do
+    skipSome spacenonewline
+    char '('
+  code <- takeWhileP Nothing $ \c -> c /= ')' && c /= '\n'
+  char ')' <?> "closing bracket ')' for transaction code"
+  pure code
 
 descriptionp :: TextParser m Text
 descriptionp = takeWhileP Nothing (not . semicolonOrNewline)
@@ -652,9 +656,8 @@ simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
 priceamountp :: JournalParser m Price
-priceamountp = option NoPrice $ try $ do
-  lift (skipMany spacenonewline)
-  char '@'
+priceamountp = option NoPrice $ do
+  try $ lift (skipMany spacenonewline) *> char '@'
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
@@ -663,10 +666,12 @@ priceamountp = option NoPrice $ try $ do
   pure $ priceConstructor priceAmount
 
 partialbalanceassertionp :: JournalParser m BalanceAssertion
-partialbalanceassertionp = optional $ try $ do
-  lift (skipMany spacenonewline)
-  sourcepos <- genericSourcePos <$> lift getPosition
-  char '='
+partialbalanceassertionp = optional $ do
+  sourcepos <- try $ do
+    lift (skipMany spacenonewline)
+    sourcepos <- genericSourcePos <$> lift getPosition
+    char '='
+    pure sourcepos
   lift (skipMany spacenonewline)
   a <- amountp -- XXX should restrict to a simple amount
   return (a, sourcepos)
@@ -683,9 +688,10 @@ partialbalanceassertionp = optional $ try $ do
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
 fixedlotpricep :: JournalParser m (Maybe Amount)
-fixedlotpricep = optional $ try $ do
-  lift (skipMany spacenonewline)
-  char '{'
+fixedlotpricep = optional $ do
+  try $ do
+    lift (skipMany spacenonewline)
+    char '{'
   lift (skipMany spacenonewline)
   char '='
   lift (skipMany spacenonewline)
