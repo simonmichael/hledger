@@ -142,7 +142,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   records <- (either throwerr id .
               dbg2 "validateCsv" . validateCsv skip .
               dbg2 "parseCsv")
-             `fmap` parseCsv parsecfilename csvdata
+             `fmap` parseCsv ',' parsecfilename csvdata
   dbg1IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
@@ -184,23 +184,23 @@ readJournalFromCsv mrulesfile csvfile csvdata =
 
   return $ Right nulljournal{jtxns=txns''}
 
-parseCsv :: FilePath -> Text -> IO (Either CSVError CSV)
-parseCsv path csvdata =
+parseCsv :: Char -> FilePath -> Text -> IO (Either CSVError CSV)
+parseCsv separator path csvdata =
   case path of
-    "-" -> liftM (parseCassava "(stdin)") T.getContents
-    _   -> return $ parseCassava path csvdata
+    "-" -> liftM (parseCassava separator "(stdin)") T.getContents
+    _   -> return $ parseCassava separator path csvdata
 
-parseCassava :: FilePath -> Text -> Either CSVError CSV
-parseCassava path content =
+parseCassava :: Char -> FilePath -> Text -> Either CSVError CSV
+parseCassava separator path content =
     case parseResult of
         Left  msg -> Left $ CSVError msg
         Right a   -> Right a
-    where parseResult = fmap parseResultToCsv $ CassavaMP.decodeWith decodeOptions Cassava.NoHeader path lazyContent
+    where parseResult = fmap parseResultToCsv $ CassavaMP.decodeWith (decodeOptions separator) Cassava.NoHeader path lazyContent
           lazyContent = fromStrict $ T.encodeUtf8 content
 
-decodeOptions :: Cassava.DecodeOptions
-decodeOptions = Cassava.defaultDecodeOptions {
-                      Cassava.decDelimiter = fromIntegral (ord ',')
+decodeOptions :: Char -> Cassava.DecodeOptions
+decodeOptions separator = Cassava.defaultDecodeOptions {
+                      Cassava.decDelimiter = fromIntegral (ord separator)
                     }
 
 parseResultToCsv :: (Foldable t, Functor t) => t (t B.ByteString) -> CSV
