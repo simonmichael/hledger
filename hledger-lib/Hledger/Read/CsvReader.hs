@@ -96,7 +96,8 @@ reader = Reader
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts f t = do
   let rulesfile = mrules_file_ iopts
-  r <- liftIO $ readJournalFromCsv rulesfile f t
+  let separator = separator_ iopts
+  r <- liftIO $ readJournalFromCsv separator rulesfile f t
   case r of Left e -> throwError e
             Right j -> return $ journalNumberAndTieTransactions j
 -- XXX does not use parseAndFinaliseJournal like the other readers
@@ -112,9 +113,9 @@ parse iopts f t = do
 -- 4. if the rules file didn't exist, create it with the default rules and filename
 -- 5. return the transactions as a Journal
 -- @
-readJournalFromCsv :: Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
-readJournalFromCsv Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
-readJournalFromCsv mrulesfile csvfile csvdata =
+readJournalFromCsv :: Char -> Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
+readJournalFromCsv separator Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
+readJournalFromCsv separator mrulesfile csvfile csvdata =
  handle (\e -> return $ Left $ show (e :: IOException)) $ do
   let throwerr = throw.userError
 
@@ -142,7 +143,7 @@ readJournalFromCsv mrulesfile csvfile csvdata =
   records <- (either throwerr id .
               dbg2 "validateCsv" . validateCsv skip .
               dbg2 "parseCsv")
-             `fmap` parseCsv ',' parsecfilename csvdata
+             `fmap` parseCsv separator parsecfilename csvdata
   dbg1IO "first 3 csv records" $ take 3 records
 
   -- identify header lines
