@@ -613,28 +613,75 @@ feature, except hledger's tag values are simple strings.
 
 A directive is a line in the journal beginning with a special keyword,
 that influences how the journal is processed.
-Some directives may also have indented sub-directives on the following lines (`commodity`).
+hledger's directives are based on a subset of Ledger's, but there are many differences 
+(and also some differences between hledger versions).
 
-### Directive scope, multiple files
+Directives' behaviour and interactions can get a little bit [complex](https://github.com/simonmichael/hledger/issues/793), 
+so here is a table summarising the directives and their effects, with links to more detailed docs.
 
-Directives vary in which journal entries they affect:
+<!-- <style> -->
+<!-- table a code { white-space:nowrap; } -->
+<!-- h1,h2,h3,h4,h5,h6 { color:red; } -->
+<!-- </style> -->
 
-- some form a begin/end pair, and affect the enclosed journal entries (and included files):\
-  `alias` & `end aliases`; `comment` & `end comment`
-- some affect the subsequent journal entries (and included files) in the current file:\
-  `alias` or `comment` without an end directive, `Y`
-- some affect all journal entries (and included files) anywhere in the current file:\
-  `account`, `commodity`, `D`, `P`.
+| directive         | end directive       | subdirectives   | purpose                                                            | can affect (as of 2018/06)
+|:------------------|:--------------------|:----------------|:-------------------------------------------------------------------|:---------------------------------------------
+| [`account`]       |                     | any text        | declare an account name & optional account code                    | account code: balance reports (except `balance` single-column mode)  <!-- all entries in all files -->
+| [`alias`]         | `end aliases`       |                 | rewrite account names                                              | following inline/included entries until end of current file or end directive
+| [`apply account`] | `end apply account` |                 | prepend a common parent to account names                           | following inline/included entries until end of current file or end directive
+| [`comment`]       | `end comment`       |                 | ignore part of journal                                             | following inline/included entries until end of current file or end directive
+| [`commodity`]     |                     | `format`        | declare a commodity and its number notation & display style        | number notation: following entries in that commodity in all files; <br>display style: amounts of that commodity in reports
+| [`D`]             |                     |                 | declare a commodity, number notation & display style for commodityless amounts  | commodity: all commodityless entries in all files; <br>number notation: following commodityless entries and entries in that commodity in all files; <br>display style: amounts of that commodity in reports
+| [`include`]       |                     |                 | include entries/directives from another file                       | what the included directives affect
+| [`P`]             |                     |                 | declare a market price for a commodity                             | amounts of that commodity in reports, when -V is used
+| [`Y`]             |                     |                 | declare a year for yearless dates                                  | following inline/included entries until end of current file
 
-It's important to note that directives can affect the current file and
-child (included) files, but not sibling or parent (including) files.
-This is by design, for simplicity and predictability of reports, but
-it can be surprising at times. Eg, in:
+[`account`]:       #declaring-accounts
+[`alias`]:         #rewriting-accounts
+[`apply account`]: #default-parent-account
+[`comment`]:       #comment-blocks
+[`commodity`]:     #declaring-commodities
+[`D`]:             #default-commodity
+[`include`]:       #including-other-files
+[`P`]:             #market-prices
+[`Y`]:             #default-year
 
-    hledger -f a.prices -f b.journal
+And some definitions:
 
-the prices defined in a.prices will not be effective in b.journal (a sibling file).
-Instead, you have to include (or inline) a.prices in b.journal, or vice versa.
+|||
+|:----------------|:--------------------------------------------------------------------------------------------------------------------
+| subdirective    | optional indented directive or unparsed text lines immediately following a parent directive
+| account code    | numeric code influencing account display order in most balance reports
+| number notation | how to interpret numbers when parsing journal entries (the identity of the decimal separator character). (Currently each commodity can have its own notation, even in the same file.)
+| display style   | how to display amounts of a commodity in reports (symbol side and spacing, digit groups, decimal separator, decimal places)
+| directive scope | which entries and (when there are multiple files) which files are affected by a directive
+
+<!-- | **entries affected:**  | -->
+<!-- | following     | subsequent entries in the file/parse stream -->
+<!-- | delimited     | subsequent entries, until an optional end directive -->
+<!-- | all           | all preceding and following entries -->
+<!-- | **files affected:**    | -->
+<!-- | current       | affects current file only -->
+<!-- | children      | affects current file and files included by it -->
+<!-- | siblings      | affects current file, included files, and other same-level files, but not higher-level files -->
+<!-- | all           | affects all files -->
+
+As you can see, directives vary in which journal entries and files they affect,
+and whether they are focussed on input (parsing) or output (reports).
+Some directives have multiple effects.
+
+If you have a journal made up of multiple files, or pass multiple -f options on the command line,
+note that directives which affect input typically last only until the end of their defining file.
+This provides more simplicity and predictability, eg reports are not changed by writing file options in a different order.
+It can be surprising at times though. 
+<!-- TODO: retest
+For example, in:
+
+    hledger -f a.aliases -f b.journal
+
+you might expect account aliases defined in a.aliases to affect b.journal, but they will not,
+unless you `include a.aliases` in b.journal, or vice versa.
+-->
 
 ### Comment blocks
 
