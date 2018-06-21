@@ -779,8 +779,11 @@ account liabilities             2000
 account revenues                4000
 account expenses                6000
 ```
-This affects account display order in reports: accounts with codes are listed before accounts without codes, in increasing code order.
-(Otherwise, accounts are listed alphabetically.) 
+This affects account display order in reports: 
+accounts with codes are listed before accounts without codes and in increasing code order,
+instead of listing all accounts alphabetically. 
+(*Note: currently not supported in the `balance` command's single-column mode.*)
+
 Account codes should be all numeric digits, unique, and separated from the account name by at least two spaces (since account names may contain single spaces). 
 By convention, often the first digit indicates the type of account, 
 as in 
@@ -971,7 +974,7 @@ You can generate one-time transactions too:
 just write a period expression specifying a date with no report interval.
 (You could also write a normal transaction with a future date, but remember this disables forecast transactions on previous dates.)
 
-### Setting budget goals with periodic transactions
+### Budgeting with periodic transactions
 
 With the `--budget` flag, currently supported by the balance command,
 each periodic transaction rule declares recurring budget goals for the specified accounts.
