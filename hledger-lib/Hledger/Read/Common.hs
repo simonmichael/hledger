@@ -328,9 +328,13 @@ statusp =
     ]
 
 codep :: TextParser m Text
-codep = option "" $ try $ do
-  skipSome spacenonewline
-  between (char '(') (char ')') $ takeWhileP Nothing (/= ')')
+codep = option "" $ do
+  try $ do
+    skipSome spacenonewline
+    char '('
+  code <- takeWhileP Nothing $ \c -> c /= ')' && c /= '\n'
+  char ')' <?> "closing bracket ')' for transaction code"
+  pure code
 
 descriptionp :: TextParser m Text
 descriptionp = takeWhileP Nothing (not . semicolonOrNewline)
@@ -399,31 +403,55 @@ datep' mYear = do
 -- Leading zeroes may be omitted (except in a timezone).
 datetimep :: JournalParser m LocalTime
 datetimep = do
-  day <- datep
-  lift $ skipSome spacenonewline
-  h <- some digitChar
-  let h' = read h
-  guard $ h' >= 0 && h' <= 23
-  char ':'
-  m <- some digitChar
-  let m' = read m
-  guard $ m' >= 0 && m' <= 59
-  s <- optional $ char ':' >> some digitChar
-  let s' = case s of Just sstr -> read sstr
-                     Nothing   -> 0
-  guard $ s' >= 0 && s' <= 59
-  {- tz <- -}
-  optional $ do
-                   plusminus <- oneOf ("-+" :: [Char])
-                   d1 <- digitChar
-                   d2 <- digitChar
-                   d3 <- digitChar
-                   d4 <- digitChar
-                   return $ plusminus:d1:d2:d3:d4:""
-  -- ltz <- liftIO $ getCurrentTimeZone
-  -- let tz' = maybe ltz (fromMaybe ltz . parseTime defaultTimeLocale "%z") tz
-  -- return $ localTimeToUTC tz' $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
-  return $ LocalTime day $ TimeOfDay h' m' (fromIntegral s')
+  mYear <- getYear
+  lift $ datetimep' mYear
+
+datetimep' :: Maybe Year -> TextParser m LocalTime
+datetimep' mYear = do
+  day <- datep' mYear
+  skipSome spacenonewline
+  time <- timeOfDay
+  optional timeZone -- ignoring time zones
+  pure $ LocalTime day time
+
+  where
+    timeOfDay :: TextParser m TimeOfDay
+    timeOfDay = do
+      pos1 <- getPosition
+      h' <- twoDigitDecimal <?> "hour"
+      pos2 <- getPosition
+      unless (h' >= 0 && h' <= 23) $ parseErrorAtRegion pos1 pos2
+        "invalid time (bad hour)"
+
+      char ':' <?> "':' (hour-minute separator)"
+      pos3 <- getPosition
+      m' <- twoDigitDecimal <?> "minute"
+      pos4 <- getPosition
+      unless (m' >= 0 && m' <= 59) $ parseErrorAtRegion pos3 pos4
+        "invalid time (bad minute)"
+
+      s' <- option 0 $ do
+        char ':' <?> "':' (minute-second separator)"
+        pos5 <- getPosition
+        s' <- twoDigitDecimal <?> "second"
+        pos6 <- getPosition
+        unless (s' >= 0 && s' <= 59) $ parseErrorAtRegion pos5 pos6
+          "invalid time (bad second)" -- we do not support leap seconds
+        pure s'
+
+      pure $ TimeOfDay h' m' (fromIntegral s')
+
+    twoDigitDecimal :: TextParser m Int
+    twoDigitDecimal = do
+      d1 <- digitToInt <$> digitChar
+      d2 <- digitToInt <$> (digitChar <?> "a second digit")
+      pure $ d1*10 + d2
+
+    timeZone :: TextParser m String
+    timeZone = do
+      plusminus <- satisfy $ \c -> c == '-' || c == '+'
+      fourDigits <- count 4 (digitChar <?> "a digit (for a time zone)")
+      pure $ plusminus:fourDigits
 
 secondarydatep :: Day -> TextParser m Day
 secondarydatep primaryDate = char '=' *> datep' (Just primaryYear)
@@ -493,14 +521,85 @@ test_spaceandamountormissingp = do
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
 amountp :: JournalParser m Amount
-amountp = do
+amountp = label "amount" $ do
   amount <- amountwithoutpricep
+  lift $ skipMany spacenonewline
   price <- priceamountp
   pure $ amount { aprice = price }
 
 amountwithoutpricep :: JournalParser m Amount
-amountwithoutpricep =
-  try leftsymbolamountp <|> try rightsymbolamountp <|> nosymbolamountp
+amountwithoutpricep = do
+  (mult, sign) <- lift $ (,) <$> multiplierp <*> signp
+  leftsymbolamountp mult sign <|> rightornosymbolamountp mult sign
+
+  where
+
+  leftsymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
+  leftsymbolamountp mult sign = label "amount" $ do
+    c <- lift commoditysymbolp
+    suggestedStyle <- getAmountStyle c
+
+    commodityspaced <- lift $ skipMany' spacenonewline
+
+    sign2 <- lift $ signp
+    posBeforeNum <- getPosition
+    ambiguousRawNum <- lift rawnumberp
+    mExponent <- lift $ optional $ try exponentp
+    posAfterNum <- getPosition
+    let numRegion = (posBeforeNum, posAfterNum)
+
+    (q,prec,mdec,mgrps) <- lift $
+      interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+    let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
+    return $ Amount c (sign (sign2 q)) NoPrice s mult
+
+  rightornosymbolamountp
+    :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
+  rightornosymbolamountp mult sign = label "amount" $ do
+    posBeforeNum <- getPosition
+    ambiguousRawNum <- lift rawnumberp
+    mExponent <- lift $ optional $ try exponentp
+    posAfterNum <- getPosition
+    let numRegion = (posBeforeNum, posAfterNum)
+
+    mSpaceAndCommodity <- lift $ optional $ try $
+      (,) <$> skipMany' spacenonewline <*> commoditysymbolp
+
+    case mSpaceAndCommodity of
+      Just (commodityspaced, c) -> do
+        suggestedStyle <- getAmountStyle c
+        (q,prec,mdec,mgrps) <- lift $
+          interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+
+        let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
+        return $ Amount c (sign q) NoPrice s mult
+
+      Nothing -> do
+        suggestedStyle <- getDefaultAmountStyle
+        (q,prec,mdec,mgrps) <- lift $
+          interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+
+        -- apply the most recently seen default commodity and style to this commodityless amount
+        defcs <- getDefaultCommodityAndStyle
+        let (c,s) = case defcs of
+              Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
+              Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
+        return $ Amount c (sign q) NoPrice s mult
+
+  -- For reducing code duplication. Doesn't parse anything. Has the type
+  -- of a parser only in order to throw parse errors (for convenience).
+  interpretNumber
+    :: (SourcePos, SourcePos)
+    -> Maybe AmountStyle
+    -> Either AmbiguousNumber RawNumber
+    -> Maybe Int
+    -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
+  interpretNumber posRegion suggestedStyle ambiguousNum mExp =
+    let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousNum
+    in  case fromRawNumber rawNum mExp of
+          Left errMsg -> uncurry parseErrorAtRegion posRegion errMsg
+          Right res -> pure res
+
 
 #ifdef TESTS
 test_amountp = do
@@ -545,50 +644,6 @@ skipMany' p = go False
         then go True
         else pure isNull
 
-leftsymbolamountp :: JournalParser m Amount
-leftsymbolamountp = do
-  sign <- lift signp
-  m <- lift multiplierp
-  c <- lift commoditysymbolp
-  suggestedStyle <- getAmountStyle c
-  commodityspaced <- lift $ skipMany' spacenonewline
-  (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
-  let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-  return $ Amount c (sign q) NoPrice s m
-  <?> "left-symbol amount"
-
-rightsymbolamountp :: JournalParser m Amount
-rightsymbolamountp = do
-  m <- lift multiplierp
-  sign <- lift signp
-  ambiguousRawNum <- lift rawnumberp
-  mExponent <- lift $ optional $ try exponentp
-  commodityspaced <- lift $ skipMany' spacenonewline
-  c <- lift commoditysymbolp
-  suggestedStyle <- getAmountStyle c
-
-  let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousRawNum
-  (q, prec, mdec, mgrps) <- case fromRawNumber rawNum mExponent of
-    Left errMsg -> fail errMsg
-    Right res -> pure res
-
-  let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
-  return $ Amount c (sign q) NoPrice s m
-  <?> "right-symbol amount"
-
-nosymbolamountp :: JournalParser m Amount
-nosymbolamountp = do
-  m <- lift multiplierp
-  suggestedStyle <- getDefaultAmountStyle
-  (q,prec,mdec,mgrps) <- lift $ numberp suggestedStyle
-  -- apply the most recently seen default commodity and style to this commodityless amount
-  defcs <- getDefaultCommodityAndStyle
-  let (c,s) = case defcs of
-        Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
-        Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
-  return $ Amount c q NoPrice s m
-  <?> "no-symbol amount"
-
 commoditysymbolp :: TextParser m CommoditySymbol
 commoditysymbolp =
   quotedcommoditysymbolp <|> simplecommoditysymbolp <?> "commodity symbol"
@@ -602,23 +657,24 @@ simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
 priceamountp :: JournalParser m Price
-priceamountp = option NoPrice $ try $ do
-  lift (skipMany spacenonewline)
+priceamountp = option NoPrice $ do
   char '@'
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
 
   lift (skipMany spacenonewline)
-  priceAmount <- amountwithoutpricep
+  priceAmount <- amountwithoutpricep <?> "amount (as a price)"
 
   pure $ priceConstructor priceAmount
 
 partialbalanceassertionp :: JournalParser m BalanceAssertion
-partialbalanceassertionp = optional $ try $ do
+partialbalanceassertionp = optional $ do
+  sourcepos <- try $ do
+    lift (skipMany spacenonewline)
+    sourcepos <- genericSourcePos <$> lift getPosition
+    char '='
+    pure sourcepos
   lift (skipMany spacenonewline)
-  sourcepos <- genericSourcePos <$> lift getPosition
-  char '='
-  lift (skipMany spacenonewline)
-  a <- amountp -- XXX should restrict to a simple amount
+  a <- amountp <?> "amount (for a balance assertion or assignment)" -- XXX should restrict to a simple amount
   return (a, sourcepos)
 
 -- balanceassertion :: Monad m => TextParser m (Maybe MixedAmount)
@@ -633,9 +689,10 @@ partialbalanceassertionp = optional $ try $ do
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
 fixedlotpricep :: JournalParser m (Maybe Amount)
-fixedlotpricep = optional $ try $ do
-  lift (skipMany spacenonewline)
-  char '{'
+fixedlotpricep = optional $ do
+  try $ do
+    lift (skipMany spacenonewline)
+    char '{'
   lift (skipMany spacenonewline)
   char '='
   lift (skipMany spacenonewline)
@@ -657,7 +714,7 @@ fixedlotpricep = optional $ try $ do
 -- and the digit group style if any.
 --
 numberp :: Maybe AmountStyle -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-numberp suggestedStyle = do
+numberp suggestedStyle = label "number" $ do
     -- a number is an optional sign followed by a sequence of digits possibly
     -- interspersed with periods, commas, or both
     -- ptrace "numberp"
@@ -669,10 +726,9 @@ numberp suggestedStyle = do
            $ fromRawNumber rawNum mExp of
       Left errMsg -> fail errMsg
       Right (q, p, d, g) -> pure (sign q, p, d, g)
-    <?> "numberp"
 
 exponentp :: TextParser m Int
-exponentp = char' 'e' *> signp <*> decimal <?> "exponentp"
+exponentp = char' 'e' *> signp <*> decimal <?> "exponent"
 
 -- | Interpret a raw number as a decimal number.
 --
@@ -706,8 +762,8 @@ fromRawNumber raw mExp = case raw of
           (quantity, precision) = toQuantity (mconcat digitGrps) decimalGrp
 
       in  Right (quantity, precision, mDecPt, Just digitGroupStyle)
-    Just _ ->
-      Left "mixing digit separators with exponents is not allowed"
+    Just _ -> Left
+      "invalid number: mixing digit separators with exponents is not allowed"
 
   where
     -- Outputs digit group sizes from least significant to most significant
@@ -764,10 +820,20 @@ disambiguateNumber suggestedStyle (AmbiguousNumber grp1 sep grp2) =
 -- Right (WithSeparators ' ' ["1","000"] Nothing)
 --
 rawnumberp :: TextParser m (Either AmbiguousNumber RawNumber)
-rawnumberp = label "rawnumberp" $ do
+rawnumberp = label "number" $ do
   rawNumber <- fmap Right leadingDecimalPt <|> leadingDigits
+
   -- Guard against mistyped numbers
-  notFollowedBy $ satisfy isDecimalPointChar <|> char ' ' *> digitChar
+  mExtraDecimalSep <- optional $ lookAhead $ satisfy isDecimalPointChar
+  when (isJust mExtraDecimalSep) $
+    fail "invalid number (invalid use of separator)"
+
+  mExtraFragment <- optional $ lookAhead $ try $
+    char ' ' *> getPosition <* digitChar
+  case mExtraFragment of
+    Just pos -> parseErrorAt pos "invalid number (excessive trailing digits)"
+    Nothing -> pure ()
+
   return $ dbg8 "rawnumberp" rawNumber
   where
 
@@ -843,7 +909,7 @@ instance Monoid DigitGrp where
   mappend = (Sem.<>)
 
 digitgroupp :: TextParser m DigitGrp
-digitgroupp = label "digit group"
+digitgroupp = label "digits"
             $ makeGroup <$> takeWhile1P (Just "digit") isDigit
   where
     makeGroup = uncurry DigitGrp . foldl' step (0, 0) . T.unpack
