@@ -62,7 +62,7 @@ import Test.HUnit hiding (State)
 import qualified Data.Csv as Cassava
 import qualified Data.Csv.Parser.Megaparsec as CassavaMP
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
+import Data.ByteString.Lazy (fromStrict)
 import Data.Foldable
 import Data.Either
 import Text.Megaparsec hiding (parse)
@@ -196,7 +196,7 @@ parseCassava path content =
         Left  msg -> Left $ CSVError msg
         Right a   -> Right a
     where parseResult = fmap parseResultToCsv $ CassavaMP.decodeWith decodeOptions Cassava.NoHeader path lazyContent
-          lazyContent = BL.fromStrict $ T.encodeUtf8 content
+          lazyContent = fromStrict $ T.encodeUtf8 content
 
 decodeOptions :: Cassava.DecodeOptions
 decodeOptions = Cassava.defaultDecodeOptions {
