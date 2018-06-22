@@ -265,14 +265,14 @@ indentedlinep = lift (skipSome spacenonewline) >> (rstrip <$> lift restofline)
 -- >>> Right _ <- rjp commoditydirectivep "commodity $\n  format $1.00"
 -- >>> Right _ <- rjp commoditydirectivep "commodity $\n\n" -- a commodity with no format
 -- >>> Right _ <- rjp commoditydirectivep "commodity $1.00\n  format $1.00" -- both, what happens ?
-commoditydirectivep :: JournalParser m ()
+commoditydirectivep :: Monad m => JournalParser m ()
 commoditydirectivep = commoditydirectiveonelinep <|> commoditydirectivemultilinep
 
 -- | Parse a one-line commodity directive.
 --
 -- >>> Right _ <- rjp commoditydirectiveonelinep "commodity $1.00"
 -- >>> Right _ <- rjp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
-commoditydirectiveonelinep :: JournalParser m ()
+commoditydirectiveonelinep :: Monad m => JournalParser m ()
 commoditydirectiveonelinep = do
   (pos, Amount{acommodity,astyle}) <- try $ do
     string "commodity"
@@ -293,7 +293,7 @@ pleaseincludedecimalpoint = "to avoid ambiguity, please include a decimal point 
 -- | Parse a multi-line commodity directive, containing 0 or more format subdirectives.
 --
 -- >>> Right _ <- rjp commoditydirectivemultilinep "commodity $ ; blah \n  format $1.00 ; blah"
-commoditydirectivemultilinep :: JournalParser m ()
+commoditydirectivemultilinep :: Monad m => JournalParser m ()
 commoditydirectivemultilinep = do
   string "commodity"
   lift (skipSome spacenonewline)
@@ -307,7 +307,7 @@ commoditydirectivemultilinep = do
 
 -- | Parse a format (sub)directive, throwing a parse error if its
 -- symbol does not match the one given.
-formatdirectivep :: CommoditySymbol -> JournalParser m AmountStyle
+formatdirectivep :: Monad m => CommoditySymbol -> JournalParser m AmountStyle
 formatdirectivep expectedsym = do
   string "format"
   lift (skipSome spacenonewline)
@@ -404,7 +404,7 @@ defaultyeardirectivep = do
   failIfInvalidYear y
   setYear y'
 
-defaultcommoditydirectivep :: JournalParser m ()
+defaultcommoditydirectivep :: Monad m => JournalParser m ()
 defaultcommoditydirectivep = do
   char 'D' <?> "default commodity"
   lift (skipSome spacenonewline)
@@ -415,7 +415,7 @@ defaultcommoditydirectivep = do
   then parseErrorAt pos pleaseincludedecimalpoint
   else setDefaultCommodityAndStyle (acommodity, astyle)
 
-marketpricedirectivep :: JournalParser m MarketPrice
+marketpricedirectivep :: Monad m => JournalParser m MarketPrice
 marketpricedirectivep = do
   char 'P' <?> "market price"
   lift (skipMany spacenonewline)
@@ -435,7 +435,7 @@ ignoredpricecommoditydirectivep = do
   lift restofline
   return ()
 
-commodityconversiondirectivep :: JournalParser m ()
+commodityconversiondirectivep :: Monad m => JournalParser m ()
 commodityconversiondirectivep = do
   char 'C' <?> "commodity conversion"
   lift (skipSome spacenonewline)
@@ -449,7 +449,7 @@ commodityconversiondirectivep = do
 
 --- ** transactions
 
-modifiertransactionp :: JournalParser m ModifierTransaction
+modifiertransactionp :: Monad m => JournalParser m ModifierTransaction
 modifiertransactionp = do
   char '=' <?> "modifier transaction"
   lift (skipMany spacenonewline)
@@ -502,7 +502,7 @@ periodictransactionp = do
     }
 
 -- | Parse a (possibly unbalanced) transaction.
-transactionp :: JournalParser m Transaction
+transactionp :: Monad m => JournalParser m Transaction
 transactionp = do
   -- ptrace "transactionp"
   startpos <- getPosition
@@ -616,7 +616,7 @@ test_transactionp = do
 
 -- Parse the following whitespace-beginning lines as postings, posting
 -- tags, and/or comments (inferring year, if needed, from the given date).
-postingsp :: Maybe Year -> JournalParser m [Posting]
+postingsp :: Monad m => Maybe Year -> JournalParser m [Posting]
 postingsp mTransactionYear = many (postingp mTransactionYear) <?> "postings"
 
 -- linebeginningwithspaces :: JournalParser m String
@@ -626,7 +626,7 @@ postingsp mTransactionYear = many (postingp mTransactionYear) <?> "postings"
 --   cs <- lift restofline
 --   return $ sp ++ (c:cs) ++ "\n"
 
-postingp :: Maybe Year -> JournalParser m Posting
+postingp :: Monad m => Maybe Year -> JournalParser m Posting
 postingp mTransactionYear = do
   -- pdbg 0 "postingp"
   (status, account) <- try $ do

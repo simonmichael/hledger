@@ -499,7 +499,7 @@ singlespacep = void spacenonewline *> notFollowedBy spacenonewline
 -- | Parse whitespace then an amount, with an optional left or right
 -- currency symbol and optional price, or return the special
 -- "missing" marker amount.
-spaceandamountormissingp :: JournalParser m MixedAmount
+spaceandamountormissingp :: Monad m => JournalParser m MixedAmount
 spaceandamountormissingp =
   option missingmixedamt $ try $ do
     lift $ skipSome spacenonewline
@@ -522,21 +522,22 @@ test_spaceandamountormissingp = do
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
 -- ledger-style balance assertion or fixed lot price declaration.
-amountp :: JournalParser m Amount
+amountp :: Monad m => JournalParser m Amount
 amountp = label "amount" $ do
   amount <- amountwithoutpricep
   lift $ skipMany spacenonewline
   price <- priceamountp
   pure $ amount { aprice = price }
 
-amountwithoutpricep :: JournalParser m Amount
+amountwithoutpricep :: Monad m => JournalParser m Amount
 amountwithoutpricep = do
   (mult, sign) <- lift $ (,) <$> multiplierp <*> signp
   leftsymbolamountp mult sign <|> rightornosymbolamountp mult sign
 
   where
 
-  leftsymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
+  leftsymbolamountp
+    :: Monad m => Bool -> (Decimal -> Decimal) -> JournalParser m Amount
   leftsymbolamountp mult sign = label "amount" $ do
     c <- lift commoditysymbolp
     suggestedStyle <- getAmountStyle c
@@ -545,21 +546,21 @@ amountwithoutpricep = do
 
     sign2 <- lift $ signp
     posBeforeNum <- getPosition
-    ambiguousRawNum <- lift rawnumberp
+    numExcerpt <- lift numberexcerptp
     mExponent <- lift $ optional $ try exponentp
     posAfterNum <- getPosition
     let numRegion = (posBeforeNum, posAfterNum)
 
     (q,prec,mdec,mgrps) <- lift $
-      interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+      interpretNumber numRegion suggestedStyle numExcerpt mExponent
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
     return $ Amount c (sign (sign2 q)) NoPrice s mult
 
   rightornosymbolamountp
-    :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
+    :: Monad m => Bool -> (Decimal -> Decimal) -> JournalParser m Amount
   rightornosymbolamountp mult sign = label "amount" $ do
     posBeforeNum <- getPosition
-    ambiguousRawNum <- lift rawnumberp
+    numExcerpt <- lift numberexcerptp
     mExponent <- lift $ optional $ try exponentp
     posAfterNum <- getPosition
     let numRegion = (posBeforeNum, posAfterNum)
@@ -571,7 +572,7 @@ amountwithoutpricep = do
       Just (commodityspaced, c) -> do
         suggestedStyle <- getAmountStyle c
         (q,prec,mdec,mgrps) <- lift $
-          interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+          interpretNumber numRegion suggestedStyle numExcerpt mExponent
 
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
         return $ Amount c (sign q) NoPrice s mult
@@ -579,7 +580,7 @@ amountwithoutpricep = do
       Nothing -> do
         suggestedStyle <- getDefaultAmountStyle
         (q,prec,mdec,mgrps) <- lift $
-          interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+          interpretNumber numRegion suggestedStyle numExcerpt mExponent
 
         -- apply the most recently seen default commodity and style to this commodityless amount
         defcs <- getDefaultCommodityAndStyle
@@ -588,19 +589,22 @@ amountwithoutpricep = do
               Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
         return $ Amount c (sign q) NoPrice s mult
 
-  -- For reducing code duplication. Doesn't parse anything. Has the type
-  -- of a parser only in order to throw parse errors (for convenience).
   interpretNumber
-    :: (SourcePos, SourcePos)
+    :: Monad m
+    => (SourcePos, SourcePos)
     -> Maybe AmountStyle
-    -> Either AmbiguousNumber RawNumber
+    -> SourceExcerpt
     -> Maybe Int
     -> TextParser m (Quantity, Int, Maybe Char, Maybe DigitGroupStyle)
-  interpretNumber posRegion suggestedStyle ambiguousNum mExp =
+  interpretNumber posRegion suggestedStyle numExcerpt mExp = do
+    ambiguousNum <- reparseExcerpt numExcerpt (rawnumberp <* hidden eof)
+      -- issue #793 may potentially require `rawnumberp` to depend on the commodity,
+      -- e.g. through `suggestedStyle`, which is why we have delayed the interpretation
+      -- of `numExcerpt` until now.
     let rawNum = either (disambiguateNumber suggestedStyle) id ambiguousNum
-    in  case fromRawNumber rawNum mExp of
-          Left errMsg -> uncurry parseErrorAtRegion posRegion errMsg
-          Right res -> pure res
+    case fromRawNumber rawNum mExp of
+      Left errMsg -> uncurry parseErrorAtRegion posRegion errMsg
+      Right res -> pure res
 
 
 #ifdef TESTS
@@ -658,7 +662,7 @@ quotedcommoditysymbolp =
 simplecommoditysymbolp :: TextParser m CommoditySymbol
 simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
-priceamountp :: JournalParser m Price
+priceamountp :: Monad m => JournalParser m Price
 priceamountp = option NoPrice $ do
   char '@'
   priceConstructor <- char '@' *> pure TotalPrice <|> pure UnitPrice
@@ -668,7 +672,7 @@ priceamountp = option NoPrice $ do
 
   pure $ priceConstructor priceAmount
 
-partialbalanceassertionp :: JournalParser m BalanceAssertion
+partialbalanceassertionp :: Monad m => JournalParser m BalanceAssertion
 partialbalanceassertionp = optional $ do
   sourcepos <- try $ do
     lift (skipMany spacenonewline)
@@ -690,7 +694,7 @@ partialbalanceassertionp = optional $ do
 --          <|> return Nothing
 
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
-fixedlotpricep :: JournalParser m (Maybe Amount)
+fixedlotpricep :: Monad m => JournalParser m (Maybe Amount)
 fixedlotpricep = optional $ do
   try $ do
     lift (skipMany spacenonewline)
@@ -802,6 +806,22 @@ disambiguateNumber suggestedStyle (AmbiguousNumber grp1 sep grp2) =
       AmountStyle{asprecision = 0} -> False
       _ -> True
 
+-- | Extract an unprocessed string representing a number for later interpretation
+-- (when more information is available).
+numberexcerptp :: TextParser m SourceExcerpt
+numberexcerptp = label "number" $ excerpt_ $ do
+  optional dec -- leading decimal point
+  digitGrp
+  many $ try $ sep *> digitGrp
+  optional dec -- trailing decimal point
+
+  failOnTrailingNumberFragment
+
+  where
+    digitGrp = takeWhile1P (Just "digit") isDigit
+    sep = satisfy isDigitSeparatorChar
+    dec = satisfy isDecimalPointChar
+
 -- | Parse and interpret the structure of a number without external hints.
 -- Numbers are digit strings, possibly separated into digit groups by one
 -- of two types of separators. (1) Numbers may optionally have a decimal
@@ -824,18 +844,7 @@ disambiguateNumber suggestedStyle (AmbiguousNumber grp1 sep grp2) =
 rawnumberp :: TextParser m (Either AmbiguousNumber RawNumber)
 rawnumberp = label "number" $ do
   rawNumber <- fmap Right leadingDecimalPt <|> leadingDigits
-
-  -- Guard against mistyped numbers
-  mExtraDecimalSep <- optional $ lookAhead $ satisfy isDecimalPointChar
-  when (isJust mExtraDecimalSep) $
-    fail "invalid number (invalid use of separator)"
-
-  mExtraFragment <- optional $ lookAhead $ try $
-    char ' ' *> getPosition <* digitChar
-  case mExtraFragment of
-    Just pos -> parseErrorAt pos "invalid number (excessive trailing digits)"
-    Nothing -> pure ()
-
+  failOnTrailingNumberFragment
   return $ dbg8 "rawnumberp" rawNumber
   where
 
@@ -883,6 +892,19 @@ rawnumberp = label "number" $ do
     decPt <- satisfy isDecimalPointChar
     pure $ NoSeparators grp1 (Just (decPt, mempty))
 
+
+-- | Guard against malformed numbers by checking for remaining number fragments
+failOnTrailingNumberFragment :: TextParser m ()
+failOnTrailingNumberFragment = do
+  mExtraDecimalSep <- optional $ lookAhead $ satisfy isDecimalPointChar
+  when (isJust mExtraDecimalSep) $
+    fail "invalid number (invalid use of separator)"
+
+  mExtraFragment <- optional $ lookAhead $ try $
+    char ' ' *> getPosition <* digitChar
+  case mExtraFragment of
+    Just pos -> parseErrorAt pos "invalid number (excessive trailing digits)"
+    Nothing -> pure ()
 
 isDecimalPointChar :: Char -> Bool
 isDecimalPointChar c = c == '.' || c == ','
