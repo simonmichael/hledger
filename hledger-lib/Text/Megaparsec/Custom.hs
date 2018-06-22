@@ -14,6 +14,11 @@ module Text.Megaparsec.Custom (
   parseErrorAtRegion,
   withSource,
 
+  -- * Re-parsing
+  SourceExcerpt,
+  excerpt_,
+  reparseExcerpt,
+
   -- * Pretty-printing custom parse errors
   customParseErrorPretty
 )
@@ -22,6 +27,7 @@ where
 import Prelude ()
 import "base-compat-batteries" Prelude.Compat hiding (readFile)
 
+import Control.Monad.Trans.Class (lift)
 import Data.Foldable (asum, toList)
 import qualified Data.List.NonEmpty as NE
 import Data.Proxy (Proxy (Proxy))
@@ -45,7 +51,10 @@ data CustomErr
   -- | Attach a source file to a parse error (for error reporting from
   -- include files, e.g. with the 'region' parser combinator)
   | ErrorWithSource Text -- Source file contents
-                    (ParseError Char CustomErr) -- The original
+                    (ParseError Char CustomErr) -- Original error
+  -- | Re-throw a parse error obtained from the "re-parsing" of a fragment
+  -- of the source text.
+  | ErrorReparsing (ParseError Char CustomErr) -- Source fragment parse error
   deriving (Show, Eq, Ord)
 
 -- We require an 'Ord' instance for 'CustomError' so that they may be
@@ -58,6 +67,7 @@ deriving instance (Ord c, Ord e) => Ord (ParseError c e)
 instance ShowErrorComponent CustomErr where
   showErrorComponent (ErrorFailAt _ _ errMsg) = errMsg
   showErrorComponent (ErrorWithSource _ e) = parseErrorTextPretty e
+  showErrorComponent (ErrorReparsing e) = parseErrorTextPretty e
 
 
 --- * Throwing custom parse errors
@@ -88,12 +98,59 @@ parseErrorAtRegion startPos endPos msg =
   in  customFailure (ErrorFailAt startPos endCol msg)
 {-# INLINABLE parseErrorAtRegion #-}
 
--- | Attach a source file to a parse error. Intended for use with the
--- 'region' parser combinator.
+-- | Attach a source file to a parse error. Intended only for include
+-- files via the 'region' parser combinator.
 
 withSource :: Text -> ParseError Char CustomErr -> ParseError Char CustomErr
 withSource s e =
   FancyError (errorPos e) $ S.singleton $ ErrorCustom $ ErrorWithSource s e
+
+
+--- * Re-parsing
+
+-- | A fragment of source suitable for "re-parsing". The purpose of this
+-- data type is to preserve the content and source position of the excerpt
+-- so that parse errors raised during "re-parsing" may properly reference
+-- the original source.
+data SourceExcerpt = SourceExcerpt SourcePos Text
+
+-- | `sourceExcerpt p` applies the given parser `p` and extracts the
+-- portion of the source consumed by `p`, along with the source position
+-- of this portion. This is the only way to create a source excerpt
+-- suitable for "re-parsing" by `reparseExcerpt`.
+--
+-- This function could be extended to return the result of `p`, but we don't
+-- currently need this.
+
+excerpt_ :: MonadParsec CustomErr Text m => m a -> m SourceExcerpt
+excerpt_ p = do
+  pos <- getPosition
+  (!txt, _) <- match p
+  pure $ SourceExcerpt pos txt
+
+-- | `reparseExcerpt s p` "re-parses" the source excerpt `s` using the
+-- parser `p`. Parse errors raised by `p` will be re-thrown at the source
+-- position of the source excerpt.
+--
+-- In order for the correct source file to be displayed when re-throwing
+-- parse errors, the user must ensure that the source file during the use
+-- of `reparseExcerpt s p` is the same as that during the use of `excerpt`
+-- that generated the source excerpt `s`. However, this precondition will
+-- almost always be satisfied in practice, because the only way to change
+-- the source file is through `withSource` (which should be reserved for
+-- include files).
+
+reparseExcerpt
+  :: Monad m
+  => SourceExcerpt
+  -> ParsecT CustomErr Text m a
+  -> ParsecT CustomErr Text m a
+reparseExcerpt (SourceExcerpt pos txt) p = do
+  res <- lift $ runParserT (setPosition pos *> p) "" txt
+  case res of
+    Right result -> pure result
+    Left parseErr -> customFailure $ ErrorReparsing parseErr
+{-# INLINABLE reparseExcerpt #-}
 
 
 --- * Pretty-printing custom parse errors
@@ -120,6 +177,8 @@ customParseErrorPretty source err = case findCustomError err of
         newErr = FancyError newPositionStack (S.singleton (ErrorFail errMsg))
 
     in  customParseErrorPretty' source newErr errorIntervalLength
+
+  Just (ErrorReparsing customErr) -> customParseErrorPretty source customErr
 
   where
     findCustomError :: ParseError Char CustomErr -> Maybe CustomErr
