@@ -23,13 +23,16 @@ getRootR = redirect JournalR
 
 getManageR :: Handler Html
 getManageR = do
-  VD{j} <- getViewData
+  VD{caps, j} <- getViewData
+  when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
   defaultLayout $ do
     setTitle "Manage journal"
     $(widgetFile "manage")
 
 getDownloadR :: FilePath -> Handler TypedContent
 getDownloadR f = do
-  (f', txt) <- journalFile404 f . j =<< getViewData
+  VD{caps, j} <- getViewData
+  when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
+  (f', txt) <- journalFile404 f j
   addHeader "Content-Disposition" ("attachment; filename=\"" <> T.pack f' <> "\"")
   sendResponse ("text/plain" :: ByteString, toContent txt)
