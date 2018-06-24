@@ -20,7 +20,9 @@ getAddR = postAddR
 
 postAddR :: Handler ()
 postAddR = do
-  VD{j, today} <- getViewData
+  VD{caps, j, today} <- getViewData
+  when (CapAdd `notElem` caps) (permissionDenied "Missing the 'add' capability")
+
   ((res, view), enctype) <- runFormPost $ addForm j today
   t <- txnTieKnot <$> fromFormSuccess (showForm view enctype) res
   -- XXX(?) move into balanceTransaction

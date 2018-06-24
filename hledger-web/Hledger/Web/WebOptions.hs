@@ -57,8 +57,8 @@ webflags =
       "CAP,CAP2"
       "enable these capabilities - comma-separated, possible values are: view, add, manage (default: view,add)"
   , flagReq
-      ["capabilities-from-header"]
-      (\s opts -> Right $ setopt "capabilities-from-header" s opts)
+      ["capabilities-header"]
+      (\s opts -> Right $ setopt "capabilities-header" s opts)
       "HEADER"
       "read enabled capabilities from a HTTP header (e.g. X-Sandstorm-Permissions, disabled by default)"
   ]
@@ -124,7 +124,7 @@ rawOptsToWebOpts rawopts =
       , base_url_ = b
       , file_url_ = stripTrailingSlash <$> maybestringopt "file-url" rawopts
       , capabilities_ = caps
-      , capabilitiesHeader_ = mk . BC.pack <$> maybestringopt "capabilities-from-header" rawopts
+      , capabilitiesHeader_ = mk . BC.pack <$> maybestringopt "capabilities-header" rawopts
       , cliopts_ = cliopts
       }
   where

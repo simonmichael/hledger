@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-|
 
@@ -14,7 +13,6 @@ module Hledger.Web.Main where
 import Control.Monad (when)
 import Data.String (fromString)
 import qualified Data.Text as T
-import Data.Foldable (traverse_)
 import Network.Wai (Application)
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, setHost, setPort)
 import Network.Wai.Handler.Launch (runHostPortUrl)
@@ -42,7 +40,7 @@ hledgerWebMain = do
 
 hledgerWebDev :: IO (Int, Application)
 hledgerWebDev =
-  withJournalDo' defwebopts (\o j -> defaultDevelApp loader $ makeApplication o j)
+  withJournalDoWeb defwebopts (\o j -> defaultDevelApp loader $ makeApplication o j)
   where
     loader =
       Yesod.Default.Config.loadConfig
@@ -50,28 +48,27 @@ hledgerWebDev =
 
 runWith :: WebOpts -> IO ()
 runWith opts
-  | "help"            `inRawOpts` (rawopts_ $ cliopts_ opts) = putStr (showModeUsage webmode) >> exitSuccess
-  | "version"         `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn prognameandversion >> exitSuccess
-  | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
-  | otherwise = do
-    requireJournalFileExists =<< (head `fmap` journalFilePathFromOpts (cliopts_ opts)) -- XXX head should be safe for now
-    withJournalDoWeb opts web
+  | "help"            `inRawOpts` rawopts_ (cliopts_ opts) = putStr (showModeUsage webmode) >> exitSuccess
+  | "version"         `inRawOpts` rawopts_ (cliopts_ opts) = putStrLn prognameandversion >> exitSuccess
+  | "binary-filename" `inRawOpts` rawopts_ (cliopts_ opts) = putStrLn (binaryfilename progname)
+  | otherwise = withJournalDoWeb opts web
 
 -- | A version of withJournalDo specialised for hledger-web.
 -- Disallows the special - file to avoid some bug,
 -- takes WebOpts rather than CliOpts.
-withJournalDoWeb :: WebOpts -> (WebOpts -> Journal -> IO ()) -> IO ()
+withJournalDoWeb :: WebOpts -> (WebOpts -> Journal -> IO a) -> IO a
 withJournalDoWeb opts@WebOpts {cliopts_ = copts} cmd = do
   journalpaths <- journalFilePathFromOpts copts
 
   -- https://github.com/simonmichael/hledger/issues/202
   -- -f- gives [Error#yesod-core] <stdin>: hGetContents: illegal operation (handle is closed)
   -- Also we may try to write to this file. Just disallow -.
-  when (head journalpaths == "-") $  -- always non-empty
+  when ("-" `elem` journalpaths) $  -- always non-empty
     error' "hledger-web doesn't support -f -, please specify a file path"
+  mapM_ requireJournalFileExists journalpaths
 
   -- keep synced with withJournalDo  TODO refactor
-  readJournalFiles (inputopts_ copts) journalpaths 
+  readJournalFiles (inputopts_ copts) journalpaths
   >>= mapM (journalTransform copts)
   >>= either error' (cmd opts)
 

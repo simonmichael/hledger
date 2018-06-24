@@ -101,7 +101,7 @@ instance Yesod App where
   defaultLayout widget = do
     master <- getYesod
     here <- fromMaybe RootR <$> getCurrentRoute
-    VD {j, m, opts, q, qopts} <- getViewData
+    VD {caps, j, m, opts, q, qopts} <- getViewData
     msg <- getMessage
     showSidebar <- shouldShowSidebar
     hideEmptyAccts <- (== Just "1") . lookup "hideemptyaccts" . reqCookies <$> getRequest
@@ -198,8 +198,8 @@ getViewData = do
   caps <- case capabilitiesHeader_ opts of
     Nothing -> return (capabilities_ opts)
     Just h -> do
-      hs <- fmap snd . filter ((== h) . fst) . requestHeaders <$> waiRequest
-      fmap join . for hs $ \x -> case capabilityFromBS x of
+      hs <- fmap (BC.split ',' . snd) . filter ((== h) . fst) . requestHeaders <$> waiRequest
+      fmap join . for (join hs) $ \x -> case capabilityFromBS x of
         Left e -> [] <$ addMessage "" ("Unknown permission: " <> toHtml (BC.unpack e))
         Right c -> pure [c]
   return VD {opts, today, j, q, m, qopts, caps}

@@ -24,6 +24,7 @@ import           Text.Blaze           as Import (Markup)
 import           Hledger.Web.Foundation           as Import
 import           Hledger.Web.Settings             as Import
 import           Hledger.Web.Settings.StaticFiles as Import
+import           Hledger.Web.WebOptions           as Import (Capability(..))
 
 #if !(MIN_VERSION_base(4,11,0))
 import           Data.Monoid          as Import ((<>))

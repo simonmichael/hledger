@@ -27,7 +27,9 @@ getEditR = postEditR
 
 postEditR :: FilePath -> Handler ()
 postEditR f = do
-  VD {j} <- getViewData
+  VD {caps, j} <- getViewData
+  when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
+
   (f', txt) <- journalFile404 f j
   ((res, view), enctype) <- runFormPost (editForm f' txt)
   text <- fromFormSuccess (showForm view enctype) res

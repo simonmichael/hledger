@@ -31,7 +31,9 @@ getUploadR = postUploadR
 
 postUploadR :: FilePath -> Handler ()
 postUploadR f = do
-  VD {j} <- getViewData
+  VD {caps, j} <- getViewData
+  when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
+
   (f', _) <- journalFile404 f j
   ((res, view), enctype) <- runFormPost (uploadForm f')
   fi <- fromFormSuccess (showForm view enctype) res

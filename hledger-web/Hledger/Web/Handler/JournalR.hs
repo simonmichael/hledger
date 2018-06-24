@@ -15,10 +15,10 @@ import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common (accountQuery, mixedAmountAsHtml)
 
 -- | The formatted journal view, with sidebar.
--- XXX like registerReportAsHtml
 getJournalR :: Handler Html
 getJournalR = do
-  VD{j, m, opts, qopts, today} <- getViewData
+  VD{caps, j, m, opts, qopts, today} <- getViewData
+  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
   let title = case inAccount qopts of
         Nothing -> "General Journal"
         Just (a, inclsubs) -> "Transactions in " <> a <> if inclsubs then "" else " (excluding subaccounts)"

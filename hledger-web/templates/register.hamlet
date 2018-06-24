@@ -33,4 +33,5 @@
           <td style="text-align:right;">
             ^{mixedAmountAsHtml bal}
 
-^{addModal AddR j today}
+$if elem CapAdd caps
+  ^{addModal AddR j today}

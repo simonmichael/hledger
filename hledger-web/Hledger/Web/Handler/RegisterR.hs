@@ -22,7 +22,9 @@ import Hledger.Web.Widget.Common (mixedAmountAsHtml)
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
 getRegisterR = do
-  VD{j, m, opts, qopts, today} <- getViewData
+  VD{caps, j, m, opts, qopts, today} <- getViewData
+  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+
   let (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
       s1 = if inclsubs then "" else " (excluding subaccounts)"
       s2 = if m /= Any then ", filtered" else ""

@@ -7,27 +7,30 @@
 <div#topbar .col-md-8 .col-sm-8 .col-xs-10>
   <h1>#{takeFileName (journalFilePath j)}
 
-<div#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
-  <table .main-menu .table>
-    ^{accounts}
+$if elem CapView caps
+  <div#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
+    <table .main-menu .table>
+      ^{accounts}
 
 <div#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
   $maybe m <- msg
     <div #message .alert.alert-info>#{m}
-  <form#searchform.input-group method=GET>
-    <input .form-control name=q value=#{q} placeholder="Search"
-      title="Enter hledger search patterns to filter the data below">
-    <div .input-group-btn>
-      $if not (T.null q)
-        <a href=@{here} .btn .btn-default title="Clear search terms">
-          <span .glyphicon .glyphicon-remove-circle>
-      <button .btn .btn-default type=submit title="Apply search terms">
-        <span .glyphicon .glyphicon-search>
-      <a href="@{ManageR}" .btn.btn-default title="Manage journal files">
-        <span .glyphicon .glyphicon-wrench>
-      <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal"
-         title="Show search and general help">
-        <span .glyphicon .glyphicon-question-sign>
+  $if elem CapView caps
+    <form#searchform.input-group method=GET>
+      <input .form-control name=q value=#{q} placeholder="Search"
+        title="Enter hledger search patterns to filter the data below">
+      <div .input-group-btn>
+        $if not (T.null q)
+          <a href=@{here} .btn .btn-default title="Clear search terms">
+            <span .glyphicon .glyphicon-remove-circle>
+        <button .btn .btn-default type=submit title="Apply search terms">
+          <span .glyphicon .glyphicon-search>
+        $if elem CapManage caps
+          <a href="@{ManageR}" .btn.btn-default title="Manage journal files">
+            <span .glyphicon .glyphicon-wrench>
+        <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal"
+           title="Show search and general help">
+          <span .glyphicon .glyphicon-question-sign>
   ^{widget}
 
 <div .modal.fade #helpmodal tabindex="-1" role="dialog" aria-labelledby="helpLabel" aria-hidden="true">
