@@ -16,6 +16,8 @@ module Text.Megaparsec.Custom (
 
   -- * Re-parsing
   SourceExcerpt,
+  getExcerptText,
+
   excerpt_,
   reparseExcerpt,
 
@@ -112,7 +114,13 @@ withSource s e =
 -- data type is to preserve the content and source position of the excerpt
 -- so that parse errors raised during "re-parsing" may properly reference
 -- the original source.
+
 data SourceExcerpt = SourceExcerpt SourcePos Text
+
+-- | Get the raw text of a source excerpt.
+
+getExcerptText :: SourceExcerpt -> Text
+getExcerptText (SourceExcerpt _ txt) = txt
 
 -- | `sourceExcerpt p` applies the given parser `p` and extracts the
 -- portion of the source consumed by `p`, along with the source position

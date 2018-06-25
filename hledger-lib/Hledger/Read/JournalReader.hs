@@ -75,7 +75,6 @@ import qualified Control.Exception as C
 import Control.Monad
 import Control.Monad.Except (ExceptT(..))
 import Control.Monad.State.Strict
-import Data.Bifunctor (first)
 import qualified Data.Map.Strict as M
 import Data.Text (Text)
 import Data.String
@@ -467,7 +466,12 @@ periodictransactionp = do
   -- a period expression
   pos <- getPosition
   d <- liftIO getCurrentDay
-  (periodtxt, (interval, span)) <- lift $ first T.strip <$> match (periodexprp d)
+  periodExcerpt <- lift $ excerpt_ singlespacedtextp
+  (interval, span) <- lift $ reparseExcerpt periodExcerpt (periodexprp d)
+    -- first parsing with `singlespacedtextp`, then "re-parsing" with
+    -- `periodexprp` allows `periodexprp` to know nothing about the single-
+    -- and double-space parsing rules
+  let periodtxt = T.strip $ getExcerptText periodExcerpt
   -- In periodic transactions, the period expression has an additional constraint:
   case checkPeriodicTransactionStartDate interval span periodtxt of
     Just e -> parseErrorAt pos e
