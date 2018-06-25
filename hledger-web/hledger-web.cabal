@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 541d9fc4104cd8cdcda3b38d002fbf354769af5b4f46e7b12ec1f0a70f452b12
+-- hash: f95975f3e5a52d5f6d87d3a8fbb3feb0b74e14c550820bb276de675d990010f2
 
 name:           hledger-web
 version:        1.9.99
@@ -187,10 +187,8 @@ library
     , yesod-core >=1.4 && <1.7
     , yesod-form >=1.4 && <1.7
     , yesod-static >=1.4 && <1.7
-  if (flag(dev)) || (flag(library-only))
-    cpp-options: -DDEVELOPMENT
-  if flag(dev)
-    ghc-options: -O0
+  if impl(ghc >=8)
+    ghc-options: -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
   default-language: Haskell2010
 
 executable hledger-web
@@ -204,10 +202,8 @@ executable hledger-web
   build-depends:
       base
     , hledger-web
-  if (flag(dev)) || (flag(library-only))
-    cpp-options: -DDEVELOPMENT
-  if flag(dev)
-    ghc-options: -O0
+  if impl(ghc >=8)
+    ghc-options: -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
   if flag(library-only)
     buildable: False
   if flag(threaded)
@@ -230,8 +226,6 @@ test-suite test
     , hledger-web
     , hspec
     , yesod-test
-  if (flag(dev)) || (flag(library-only))
-    cpp-options: -DDEVELOPMENT
-  if flag(dev)
-    ghc-options: -O0
+  if impl(ghc >=8)
+    ghc-options: -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
   default-language: Haskell2010

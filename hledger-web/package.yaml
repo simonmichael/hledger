@@ -67,11 +67,13 @@ when:
 ghc-options:
 - -Wall
 - -fwarn-tabs
-#XXX to be reenabled once 7.6.3 support is dropped:
-#- -Wcompat
-#- -Wincomplete-uni-patterns
-#- -Wincomplete-record-updates
-#- -Wredundant-constraints
+when:
+- condition: impl(ghc >=8)
+  ghc-options:
+  - -Wcompat
+  - -Wincomplete-uni-patterns
+  - -Wincomplete-record-updates
+  - -Wredundant-constraints
 
 library:
   source-dirs: .
