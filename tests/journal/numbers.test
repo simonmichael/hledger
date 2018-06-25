@@ -221,3 +221,37 @@ hledger bal -f -
 	b  -,100.0 EUR
 >>>
 >>>=1
+
+# 20. the digit group separator '.' should not be mistaken for a commodity
+hledger bal -f -
+<<<
+2017/1/1
+	a   1..
+    b
+>>>
+>>>=1
+
+# 21. the decimal separator '.' should not be mistaken for a commodity
+hledger bal -f -
+<<<
+2017/1/1
+	a   .1 $
+    b
+>>>=0
+
+# 22. the digit group separator ',' should not be mistaken for a commodity
+hledger bal -f -
+<<<
+2017/1/1
+	a   1,,
+    b
+>>>
+>>>=1
+
+# 23. the decimal separator ',' should not be mistaken for a commodity
+hledger bal -f -
+<<<
+2017/1/1
+	a   ,1 $
+    b
+>>>=0
