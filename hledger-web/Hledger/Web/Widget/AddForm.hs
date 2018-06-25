@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -26,12 +27,14 @@ import Yesod
 import Hledger
 import Hledger.Web.Settings (widgetFile)
 
--- XXX <select> which journal to add to
-
 addModal ::
      ( MonadWidget m
      , r ~ Route (HandlerSite m)
+#if MIN_VERSION_yesod(1,6,0)
      , m ~ WidgetFor (HandlerSite m)
+#else
+     , m ~ WidgetT (HandlerSite m) IO
+#endif
      , RenderMessage (HandlerSite m) FormMessage
      )
   => r -> Journal -> Day -> m ()
@@ -54,7 +57,11 @@ addForm ::
   => Journal
   -> Day
   -> Markup
+#if MIN_VERSION_yesod(1,6,0)
   -> MForm m (FormResult Transaction, WidgetFor site ())
+#else
+  -> MForm m (FormResult Transaction, WidgetT site IO ())
+#endif
 addForm j today = identifyForm "add" $ \extra -> do
   (dateRes, dateView) <- mreq dateField dateFS Nothing
   (descRes, descView) <- mreq textField descFS Nothing

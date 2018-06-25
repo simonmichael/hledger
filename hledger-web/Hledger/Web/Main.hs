@@ -25,7 +25,6 @@ import Yesod.Default.Main (defaultDevelApp)
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
-import Hledger.Cli.Utils (journalTransform)
 import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Web.Application (makeApplication)
 import Hledger.Web.Settings (Extra(..), parseExtra)

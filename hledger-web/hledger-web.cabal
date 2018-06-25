@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 830642fdd094b9838924e2e3865481d8bc65afb314152d5afafe2207c3d5a9a8
+-- hash: 541d9fc4104cd8cdcda3b38d002fbf354769af5b4f46e7b12ec1f0a70f452b12
 
 name:           hledger-web
 version:        1.9.99
@@ -136,21 +136,19 @@ library
       Hledger.Web.Handler.AddR
       Hledger.Web.Handler.Common
       Hledger.Web.Handler.EditR
-      Hledger.Web.Handler.ImportR
       Hledger.Web.Handler.JournalR
       Hledger.Web.Handler.RegisterR
       Hledger.Web.Handler.UploadR
       Hledger.Web.Import
       Hledger.Web.Main
       Hledger.Web.Settings
-      Hledger.Web.Settings.Development
       Hledger.Web.Settings.StaticFiles
       Hledger.Web.WebOptions
       Hledger.Web.Widget.AddForm
       Hledger.Web.Widget.Common
   other-modules:
       Paths_hledger_web
-  ghc-options: -Wall -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fwarn-tabs
+  ghc-options: -Wall -fwarn-tabs
   cpp-options: -DVERSION="1.9.99"
   build-depends:
       HUnit
@@ -174,6 +172,7 @@ library
     , json
     , megaparsec >=6.4.1
     , mtl
+    , semigroups
     , shakespeare >=2.0.2.2
     , template-haskell
     , text >=1.2
@@ -200,10 +199,11 @@ executable hledger-web
       Paths_hledger_web
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fwarn-tabs
+  ghc-options: -Wall -fwarn-tabs
   cpp-options: -DVERSION="1.9.99"
   build-depends:
-      hledger-web
+      base
+    , hledger-web
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
@@ -223,10 +223,11 @@ test-suite test
       Paths_hledger_web
   hs-source-dirs:
       tests
-  ghc-options: -Wall -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints -fwarn-tabs
+  ghc-options: -Wall -fwarn-tabs
   cpp-options: -DVERSION="1.9.99"
   build-depends:
-      hledger-web
+      base
+    , hledger-web
     , hspec
     , yesod-test
   if (flag(dev)) || (flag(library-only))

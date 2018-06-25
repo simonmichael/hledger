@@ -13,7 +13,7 @@ import           Data.ByteString      as Import (ByteString)
 import           Data.Default         as Import
 import           Data.Either          as Import
 import           Data.Foldable        as Import
-import           Data.List            as Import (foldl', unfoldr)
+import           Data.List            as Import (unfoldr)
 import           Data.Maybe           as Import
 import           Data.Text            as Import (Text)
 import           Data.Time            as Import hiding (parseTime)

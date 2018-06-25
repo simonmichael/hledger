@@ -66,11 +66,12 @@ when:
 
 ghc-options:
 - -Wall
-- -Wcompat
-- -Wincomplete-uni-patterns
-- -Wincomplete-record-updates
-- -Wredundant-constraints
 - -fwarn-tabs
+#XXX to be reenabled once 7.6.3 support is dropped:
+#- -Wcompat
+#- -Wincomplete-uni-patterns
+#- -Wincomplete-record-updates
+#- -Wredundant-constraints
 
 library:
   source-dirs: .
@@ -82,14 +83,12 @@ library:
   - Hledger.Web.Handler.AddR
   - Hledger.Web.Handler.Common
   - Hledger.Web.Handler.EditR
-  - Hledger.Web.Handler.ImportR
   - Hledger.Web.Handler.JournalR
   - Hledger.Web.Handler.RegisterR
   - Hledger.Web.Handler.UploadR
   - Hledger.Web.Import
   - Hledger.Web.Main
   - Hledger.Web.Settings
-  - Hledger.Web.Settings.Development
   - Hledger.Web.Settings.StaticFiles
   - Hledger.Web.WebOptions
   - Hledger.Web.Widget.AddForm
@@ -115,6 +114,7 @@ library:
   - json
   - megaparsec >=6.4.1
   - mtl
+  - semigroups
   - shakespeare >=2.0.2.2
   - template-haskell
   - text >=1.2
@@ -137,6 +137,7 @@ executables:
     main: main.hs
     cpp-options: -DVERSION="1.9.99"
     dependencies:
+    - base
     - hledger-web
     when:
     - condition: flag(library-only)
@@ -150,6 +151,7 @@ tests:
     main: main.hs
     cpp-options: -DVERSION="1.9.99"
     dependencies:
+    - base
     - hledger-web
     - hspec
     - yesod-test

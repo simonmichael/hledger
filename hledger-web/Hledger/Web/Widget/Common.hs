@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -32,16 +33,20 @@ import Hledger
 import Hledger.Cli.Utils (writeFileWithBackupIfChanged)
 import Hledger.Web.Settings (manualurl)
 
+#if MIN_VERSION_yesod(1,6,0)
 journalFile404 :: FilePath -> Journal -> HandlerFor m (FilePath, Text)
+#else
+journalFile404 :: FilePath -> Journal -> HandlerT m IO (FilePath, Text)
+#endif
 journalFile404 f j =
   case find ((== f) . fst) (jfiles j) of
     Just (_, txt) -> pure (takeFileName f, txt)
     Nothing -> notFound
 
-fromFormSuccess :: HandlerFor m a -> FormResult a -> HandlerFor m a
+fromFormSuccess :: Applicative m => m a -> FormResult a -> m a
 fromFormSuccess h FormMissing = h
 fromFormSuccess h (FormFailure _) = h
-fromFormSuccess _ (FormSuccess a) = return a
+fromFormSuccess _ (FormSuccess a) = pure a
 
 writeValidJournal :: MonadHandler m => FilePath -> Text -> m (Either String ())
 writeValidJournal f txt =

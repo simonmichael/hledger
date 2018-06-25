@@ -21,7 +21,7 @@ import qualified Data.ByteString.Char8 as BC
 import Data.Traversable (for)
 import Data.IORef (IORef, readIORef, writeIORef)
 import Data.Maybe (fromMaybe)
-import Data.Semigroup ((<>))
+import Data.Monoid ((<>))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
