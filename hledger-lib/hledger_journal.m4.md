@@ -858,6 +858,9 @@ before generating reports). hledger's account aliases can be useful for:
 - experimenting with new account organisations, like a new hierarchy or combining two accounts into one
 - customising reports
 
+Account aliases also affect [account directives](#declaring-accounts).
+They do not affect account names being entered via hledger add or hledger-web.
+
 See also [Cookbook: Rewrite account names](https://github.com/simonmichael/hledger/wiki/Rewrite-account-names).
 
 #### Basic aliases
@@ -927,9 +930,6 @@ You can clear (forget) all currently defined aliases with the `end aliases` dire
 ```journal
 end aliases
 ```
-
-Account aliases also affect [account directives](#declaring-accounts).
-They do not affect account names being entered via hledger add or hledger-web.
 
 ### Default parent account
 
