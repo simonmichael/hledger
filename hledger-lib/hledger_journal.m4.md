@@ -829,11 +829,13 @@ account expenses                6000
 This affects how accounts are sorted in account and balance reports: 
 accounts with codes are listed before accounts without codes, and in increasing code order
 (instead of listing all accounts alphabetically). 
-Some current limitations:
+Warning, this feature is incomplete; account codes do not yet affect sort order in
 
-- in the `balance` command's single-column mode, account codes do not affect sort order
-- in flat mode reports, account codes on parent accounts do not affect the sort order of subaccounts.
-  (To work around this, declare account codes on the subaccounts as well.) 
+- the `accounts` command
+- the `balance` command's single-column mode
+- flat mode balance reports
+  (to work around this, declare account codes on the subaccounts as well).
+- hledger-web's sidebar 
 
 Account codes should be all numeric digits, unique, and separated from the account name by at least two spaces (since account names may contain single spaces). 
 By convention, often the first digit indicates the type of account, 
