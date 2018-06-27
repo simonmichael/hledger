@@ -928,6 +928,9 @@ You can clear (forget) all currently defined aliases with the `end aliases` dire
 end aliases
 ```
 
+Account aliases also affect [account directives](#declaring-accounts).
+They do not affect account names being entered via hledger add or hledger-web.
+
 ### Default parent account
 
 You can specify a parent account which will be prepended to all accounts
@@ -962,6 +965,10 @@ include personal.journal
 ```
 
 Prior to hledger 1.0, legacy `account` and `end` spellings were also supported.
+
+A default parent account also affects [account directives](#declaring-accounts).
+It does not affect account names being entered via hledger add or hledger-web.
+If account aliases are present, they are applied after the default parent account.
 
 ## Periodic transactions
 

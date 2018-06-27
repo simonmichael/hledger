@@ -1,0 +1,19 @@
+# account names
+
+# 1. account directives are affected by aliases and apply account.
+<
+apply account c
+alias c:a=b
+account a
+$ hledger -f - accounts
+b
+
+
+
+# TODO
+# a trailing : should give a clear error
+# 2009/1/1
+#  a:  1
+# $ hledger -f - print
+# >2 /accountname seems ill-formed: a:/
+# >= 1
