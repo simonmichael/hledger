@@ -850,15 +850,16 @@ account assets:bank:checking   1110
 
 ### Rewriting accounts
 
-You can define aliases which rewrite your account names (after reading the journal,
-before generating reports). hledger's account aliases can be useful for:
+You can define account alias rules which rewrite your account names, or parts of them, 
+before generating reports. 
+This can be useful for:
 
 - expanding shorthand account names to their full form, allowing easier data entry and a less verbose journal
 - adapting old journals to your current chart of accounts
 - experimenting with new account organisations, like a new hierarchy or combining two accounts into one
 - customising reports
 
-Account aliases also affect [account directives](#declaring-accounts).
+Account aliases also rewrite account names in [account directives](#declaring-accounts).
 They do not affect account names being entered via hledger add or hledger-web.
 
 See also [Cookbook: Rewrite account names](https://github.com/simonmichael/hledger/wiki/Rewrite-account-names).
