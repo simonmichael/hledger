@@ -874,7 +874,7 @@ alias OLD = NEW
 Or, you can use the `--alias 'OLD=NEW'` option on the command line.
 This affects all entries. It's useful for trying out aliases interactively.
 
-OLD and NEW are full account names.
+OLD and NEW are case sensitive full account names.
 hledger will replace any occurrence of the old account name with the
 new one. Subaccounts are also affected. Eg:
 
