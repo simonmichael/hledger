@@ -459,7 +459,9 @@ secondarydatep primaryDate = char '=' *> datep' (Just primaryYear)
 
 --- ** account names
 
--- | Parse an account name, then apply any parent account prefix and/or account aliases currently in effect.
+-- | Parse an account name (plus one following space if present), 
+-- then apply any parent account prefix and/or account aliases currently in effect,
+-- in that order. (Ie first add the parent account prefix, then rewrite with aliases).
 modifiedaccountnamep :: JournalParser m AccountName
 modifiedaccountnamep = do
   parent <- getParentAccount

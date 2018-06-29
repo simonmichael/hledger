@@ -826,10 +826,16 @@ account liabilities             2000
 account revenues                4000
 account expenses                6000
 ```
-This affects account display order in reports: 
-accounts with codes are listed before accounts without codes and in increasing code order,
-instead of listing all accounts alphabetically. 
-(*Note: currently not supported in the `balance` command's single-column mode.*)
+This affects how accounts are sorted in account and balance reports: 
+accounts with codes are listed before accounts without codes, and in increasing code order
+(instead of listing all accounts alphabetically). 
+Warning, this feature is incomplete; account codes do not yet affect sort order in
+
+- the `accounts` command
+- the `balance` command's single-column mode
+- flat mode balance reports
+  (to work around this, declare account codes on the subaccounts as well).
+- hledger-web's sidebar 
 
 Account codes should be all numeric digits, unique, and separated from the account name by at least two spaces (since account names may contain single spaces). 
 By convention, often the first digit indicates the type of account, 
@@ -850,13 +856,17 @@ account assets:bank:checking   1110
 
 ### Rewriting accounts
 
-You can define aliases which rewrite your account names (after reading the journal,
-before generating reports). hledger's account aliases can be useful for:
+You can define account alias rules which rewrite your account names, or parts of them, 
+before generating reports. 
+This can be useful for:
 
 - expanding shorthand account names to their full form, allowing easier data entry and a less verbose journal
 - adapting old journals to your current chart of accounts
 - experimenting with new account organisations, like a new hierarchy or combining two accounts into one
 - customising reports
+
+Account aliases also rewrite account names in [account directives](#declaring-accounts).
+They do not affect account names being entered via hledger add or hledger-web.
 
 See also [Cookbook: Rewrite account names](https://github.com/simonmichael/hledger/wiki/Rewrite-account-names).
 
@@ -874,7 +884,7 @@ alias OLD = NEW
 Or, you can use the `--alias 'OLD=NEW'` option on the command line.
 This affects all entries. It's useful for trying out aliases interactively.
 
-OLD and NEW are full account names.
+OLD and NEW are case sensitive full account names.
 hledger will replace any occurrence of the old account name with the
 new one. Subaccounts are also affected. Eg:
 
@@ -962,6 +972,10 @@ include personal.journal
 ```
 
 Prior to hledger 1.0, legacy `account` and `end` spellings were also supported.
+
+A default parent account also affects [account directives](#declaring-accounts).
+It does not affect account names being entered via hledger add or hledger-web.
+If account aliases are present, they are applied after the default parent account.
 
 ## Periodic transactions
 

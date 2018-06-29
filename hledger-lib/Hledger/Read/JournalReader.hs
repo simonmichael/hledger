@@ -248,7 +248,7 @@ accountdirectivep :: JournalParser m ()
 accountdirectivep = do
   string "account"
   lift (skipSome spacenonewline)
-  acct <- lift accountnamep  -- eats single spaces
+  acct <- modifiedaccountnamep  -- account directives can be modified by alias/apply account
   macode' :: Maybe String <- (optional $ lift $ skipSome spacenonewline >> some digitChar)
   let macode :: Maybe AccountCode = read <$> macode'
   newline
