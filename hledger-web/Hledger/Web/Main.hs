@@ -1,4 +1,5 @@
-{-# LANGUAGE CPP, OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-|
 
 hledger-web - a hledger add-on providing a web interface.
@@ -7,28 +8,26 @@ Released under GPL version 3 or later.
 
 -}
 
-module Hledger.Web.Main
-where
+module Hledger.Web.Main where
 
--- yesod scaffold imports
-import Yesod.Default.Config --(fromArgs)
--- import Yesod.Default.Main   (defaultMain)
-import Settings            --  (parseExtra)
-import Application          (makeApplication)
-import Data.String
+import Control.Monad (when)
+import Data.String (fromString)
+import qualified Data.Text as T
+import Network.Wai (Application)
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, setHost, setPort)
 import Network.Wai.Handler.Launch (runHostPortUrl)
---
-import Control.Monad
-import Data.Text (pack)
+import Prelude hiding (putStrLn)
 import System.Exit (exitSuccess)
 import System.IO (hFlush, stdout)
-import Text.Printf
-import Prelude hiding (putStrLn)
+import Text.Printf (printf)
+import Yesod.Default.Config
+import Yesod.Default.Main (defaultDevelApp)
 
 import Hledger
-import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Utils.UTF8IOCompat (putStrLn)
+import Hledger.Web.Application (makeApplication)
+import Hledger.Web.Settings (Extra(..), parseExtra)
 import Hledger.Web.WebOptions
 
 
@@ -38,30 +37,37 @@ hledgerWebMain = do
   when (debug_ (cliopts_ opts) > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
   runWith opts
 
+hledgerWebDev :: IO (Int, Application)
+hledgerWebDev =
+  withJournalDoWeb defwebopts (\o j -> defaultDevelApp loader $ makeApplication o j)
+  where
+    loader =
+      Yesod.Default.Config.loadConfig
+        (configSettings Development) {csParseExtra = parseExtra}
+
 runWith :: WebOpts -> IO ()
 runWith opts
-  | "help"            `inRawOpts` (rawopts_ $ cliopts_ opts) = putStr (showModeUsage webmode) >> exitSuccess
-  | "version"         `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn prognameandversion >> exitSuccess
-  | "binary-filename" `inRawOpts` (rawopts_ $ cliopts_ opts) = putStrLn (binaryfilename progname)
-  | otherwise = do
-    requireJournalFileExists =<< (head `fmap` journalFilePathFromOpts (cliopts_ opts)) -- XXX head should be safe for now
-    withJournalDoWeb opts web
+  | "help"            `inRawOpts` rawopts_ (cliopts_ opts) = putStr (showModeUsage webmode) >> exitSuccess
+  | "version"         `inRawOpts` rawopts_ (cliopts_ opts) = putStrLn prognameandversion >> exitSuccess
+  | "binary-filename" `inRawOpts` rawopts_ (cliopts_ opts) = putStrLn (binaryfilename progname)
+  | otherwise = withJournalDoWeb opts web
 
 -- | A version of withJournalDo specialised for hledger-web.
 -- Disallows the special - file to avoid some bug,
 -- takes WebOpts rather than CliOpts.
-withJournalDoWeb :: WebOpts -> (WebOpts -> Journal -> IO ()) -> IO ()
+withJournalDoWeb :: WebOpts -> (WebOpts -> Journal -> IO a) -> IO a
 withJournalDoWeb opts@WebOpts {cliopts_ = copts} cmd = do
   journalpaths <- journalFilePathFromOpts copts
 
   -- https://github.com/simonmichael/hledger/issues/202
   -- -f- gives [Error#yesod-core] <stdin>: hGetContents: illegal operation (handle is closed)
   -- Also we may try to write to this file. Just disallow -.
-  when (head journalpaths == "-") $  -- always non-empty
+  when ("-" `elem` journalpaths) $  -- always non-empty
     error' "hledger-web doesn't support -f -, please specify a file path"
+  mapM_ requireJournalFileExists journalpaths
 
   -- keep synced with withJournalDo  TODO refactor
-  readJournalFiles (inputopts_ copts) journalpaths 
+  readJournalFiles (inputopts_ copts) journalpaths
   >>= mapM (journalTransform copts)
   >>= either error' (cmd opts)
 
@@ -74,11 +80,11 @@ web opts j = do
       h = host_ opts
       p = port_ opts
       u = base_url_ opts
-      staticRoot = pack <$> file_url_ opts
+      staticRoot = T.pack <$> file_url_ opts
       appconfig = AppConfig{appEnv = Development
                            ,appHost = fromString h
                            ,appPort = p
-                           ,appRoot = pack u
+                           ,appRoot = T.pack u
                            ,appExtra = Extra "" Nothing staticRoot
                            }
   app <- makeApplication opts j' appconfig
@@ -88,10 +94,7 @@ web opts j = do
     then do
       putStrLn "Press ctrl-c to quit"
       hFlush stdout
-      let warpsettings =
-            setHost (fromString h) $
-            setPort p $
-            defaultSettings
+      let warpsettings = setHost (fromString h) (setPort p defaultSettings)
       Network.Wai.Handler.Warp.runSettings warpsettings app
     else do
       putStrLn "Starting web browser..."

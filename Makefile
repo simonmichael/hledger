@@ -134,11 +134,7 @@ SOURCEFILES:= \
 	hledger-*/Hledger/*hs \
 	hledger-*/Hledger/*/*hs \
 	hledger-lib/other/ledger-parse/Ledger/Parser/*hs \
-	hledger-web/app/*.hs \
-	hledger-web/tests/*.hs \
-	hledger-web/Handler/*.hs \
-	hledger-web/Hledger/*.hs \
-	hledger-web/Settings/*.hs \
+	hledger-web/**/*.hs \
 
 HPACKFILES:= \
 	hledger/*package.yaml \

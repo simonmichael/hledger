@@ -1,12 +1,10 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Settings.StaticFiles where
+module Hledger.Web.Settings.StaticFiles where
 
-import Prelude (IO, putStrLn, (++), (>>), return)
 import System.IO (stdout, hFlush)
-import Yesod.Static
-import qualified Yesod.Static as Static
-import Settings (staticDir)
-import Settings.Development
+import Yesod.Static (Static, embed, publicFiles, staticDevel)
+
+import Hledger.Web.Settings (staticDir, development)
 
 -- | use this to create your static file serving site
 -- staticSite :: IO Static.Static
@@ -20,14 +18,14 @@ import Settings.Development
 -- $(staticFiles Settings.staticDir)
 
 
-staticSite :: IO Static.Static
+staticSite :: IO Static
 staticSite =
   if development
    then (do
             putStrLn ("Using web files from: " ++ staticDir ++ "/") >> hFlush stdout
-            Static.staticDevel staticDir)
+            staticDevel staticDir)
    else (do
             -- putStrLn "Using built-in web files" >> hFlush stdout
-            return $(Static.embed staticDir))
+            return $(embed staticDir))
 
 $(publicFiles staticDir)

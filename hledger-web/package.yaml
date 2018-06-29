@@ -30,7 +30,6 @@ extra-source-files:
 - config/robots.txt
 - config/routes
 - config/settings.yml
-- messages/*.msg
 - static/css/*.css
 - static/css/*.map
 - static/fonts/*.eot
@@ -44,8 +43,6 @@ extra-source-files:
 - hledger-web.1
 - hledger-web.txt
 - hledger-web.info
-
-#data-files:
 
 flags:
   library-only:
@@ -61,44 +58,6 @@ flags:
     manual: false
     default: true
 
-dependencies:
-- hledger-lib >=1.9.99 && <2.0
-- hledger >=1.9.99 && <2.0
-- base >=4.8 && <4.12
-- base-compat-batteries >=0.10.1 && <0.11
-- blaze-html
-- blaze-markup
-- bytestring
-- clientsession
-- cmdargs >=0.10
-- data-default
-- directory
-- filepath
-- hjsmin
-- http-conduit
-- http-client
-- HUnit
-- conduit-extra >=1.1
-- safe >=0.2
-- shakespeare >=2.0.2.2
-- template-haskell
-- text >=1.2
-- time >=1.5
-- transformers
-- wai
-- wai-extra
-- wai-handler-launch >=1.3
-- warp
-- yaml
-- yesod        >=1.4 && < 1.7
-- yesod-core   >=1.4 && < 1.7
-- yesod-form   >=1.4 && < 1.7
-- yesod-static >=1.4 && < 1.7
-- json
-- megaparsec >=6.4.1
-- mtl
-- parsec >=3
-
 when:
 - condition: (flag(dev)) || (flag(library-only))
   cpp-options: -DDEVELOPMENT
@@ -107,31 +66,72 @@ when:
 
 ghc-options:
 - -Wall
-- -fno-warn-unused-do-bind
-- -fno-warn-name-shadowing
-- -fno-warn-missing-signatures
-- -fno-warn-type-defaults
-- -fno-warn-orphans
+- -fwarn-tabs
+when:
+- condition: impl(ghc >=8)
+  ghc-options:
+  - -Wcompat
+  - -Wincomplete-uni-patterns
+  - -Wincomplete-record-updates
+  - -Wredundant-constraints
 
 library:
+  source-dirs: .
   cpp-options: -DVERSION="1.9.99"
   exposed-modules:
-  - Application
-  - Foundation
-  - Handler.AddForm
-  - Handler.Common
-  - Handler.JournalR
-  - Handler.RegisterR
-  - Handler.RootR
-  - Handler.SidebarR
-  - Handler.Utils
   - Hledger.Web
+  - Hledger.Web.Application
+  - Hledger.Web.Foundation
+  - Hledger.Web.Handler.AddR
+  - Hledger.Web.Handler.Common
+  - Hledger.Web.Handler.EditR
+  - Hledger.Web.Handler.JournalR
+  - Hledger.Web.Handler.RegisterR
+  - Hledger.Web.Handler.UploadR
+  - Hledger.Web.Import
   - Hledger.Web.Main
+  - Hledger.Web.Settings
+  - Hledger.Web.Settings.StaticFiles
   - Hledger.Web.WebOptions
-  - Import
-  - Settings
-  - Settings.Development
-  - Settings.StaticFiles
+  - Hledger.Web.Widget.AddForm
+  - Hledger.Web.Widget.Common
+  dependencies:
+  - hledger-lib >=1.9.99 && <2.0
+  - hledger >=1.9.99 && <2.0
+  - base >=4.8 && <4.12
+  - blaze-html
+  - blaze-markup
+  - bytestring
+  - case-insensitive
+  - clientsession
+  - cmdargs >=0.10
+  - conduit
+  - conduit-extra >=1.1
+  - data-default
+  - directory
+  - filepath
+  - hjsmin
+  - http-conduit
+  - http-client
+  - json
+  - megaparsec >=6.4.1
+  - mtl
+  - semigroups
+  - shakespeare >=2.0.2.2
+  - template-haskell
+  - text >=1.2
+  - time >=1.5
+  - transformers
+  - wai
+  - wai-extra
+  - wai-handler-launch >=1.3
+  - warp
+  - yaml
+  - yesod        >=1.4 && < 1.7
+  - yesod-core   >=1.4 && < 1.7
+  - yesod-form   >=1.4 && < 1.7
+  - yesod-static >=1.4 && < 1.7
+  - HUnit
 
 executables:
   hledger-web:
@@ -139,6 +139,7 @@ executables:
     main: main.hs
     cpp-options: -DVERSION="1.9.99"
     dependencies:
+    - base
     - hledger-web
     when:
     - condition: flag(library-only)
@@ -152,6 +153,7 @@ tests:
     main: main.hs
     cpp-options: -DVERSION="1.9.99"
     dependencies:
+    - base
     - hledger-web
     - hspec
     - yesod-test

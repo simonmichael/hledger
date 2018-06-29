@@ -1,0 +1,22 @@
+<h2>
+  Your journal's files
+
+<div.row>
+  <div .col-xs-12.col-sm-8.col-md-6>
+    <table .table.table-condensed>
+      <thead>
+        <th>
+          File
+        <th>
+      <tbody>
+        $forall (path, _) <- jfiles j
+          <tr>
+            <td style="vertical-align:middle">
+              #{path}
+            <td style="text-align:right">
+              <a.btn.btn-default href=@{EditR path}>
+                Edit
+              <a.btn.btn-default href=@{UploadR path}>
+                Upload
+              <a.btn.btn-default href=@{DownloadR path}>
+                Download

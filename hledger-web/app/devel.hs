@@ -1,5 +1,5 @@
 {-# LANGUAGE PackageImports #-}
-import "hledger-web" Application (getApplicationDev)
+import "hledger-web" Hledger.Web.Main (hledgerWebDev)
 import Network.Wai.Handler.Warp (runSettings, defaultSettings, setPort)
 import Control.Concurrent (forkIO)
 import System.Directory (doesFileExist, removeFile)
@@ -9,7 +9,7 @@ import Control.Concurrent (threadDelay)
 main :: IO ()
 main = do
     putStrLn "Starting devel application"
-    (port, app) <- getApplicationDev
+    (port, app) <- hledgerWebDev
     forkIO $ runSettings (setPort port defaultSettings) app
     loop
 

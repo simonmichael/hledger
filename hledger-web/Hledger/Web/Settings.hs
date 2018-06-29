@@ -4,23 +4,34 @@
 -- In addition, you can configure a number of different aspects of Yesod
 -- by overriding methods in the Yesod typeclass. That instance is
 -- declared in the Foundation.hs file.
-module Settings where
+module Hledger.Web.Settings where
 
-import Prelude
-import Text.Shakespeare.Text (st)
-import Language.Haskell.TH.Syntax
-import Yesod.Default.Config
-import Yesod.Default.Util
+import Data.Default (def)
+import Data.Semigroup ((<>))
 import Data.Text (Text)
 import Data.Yaml
-import Settings.Development
-import Data.Default (def)
+import Language.Haskell.TH.Syntax (Q, Exp)
 import Text.Hamlet
+import Text.Shakespeare.Text (st)
+import Yesod.Default.Config
+import Yesod.Default.Util
 
+development :: Bool
+development =
+#if DEVELOPMENT
+  True
+#else
+  False
+#endif
 
-hledgerorgurl, manualurl :: String
-hledgerorgurl     = "http://hledger.org"
-manualurl         = hledgerorgurl++"/manual"
+production :: Bool
+production = not development
+
+hledgerorgurl :: Text
+hledgerorgurl = "http://hledger.org"
+
+manualurl :: Text
+manualurl = hledgerorgurl <> "/manual"
 
 -- | The default IP address to listen on. May be overridden with --host.
 defhost :: String

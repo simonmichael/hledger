@@ -1,0 +1,37 @@
+<h2>
+  #{header}
+
+<div .hidden-xs>
+  ^{registerChartHtml $ transactionsReportByCommodity r}
+
+<div.table-responsive>
+  <table .table.table-striped.table-condensed>
+    <thead>
+      <tr>
+        <th style="text-align:left;">
+          Date
+          <span .glyphicon.glyphicon-chevron-up>
+        <th style="text-align:left;">Description
+        <th style="text-align:left;">To/From Account(s)
+        <th style="text-align:right; white-space:normal;">Amount Out/In
+        <th style="text-align:right; white-space:normal;">
+          #{balancelabel'}
+
+    <tbody>
+      $forall (torig, tacct, split, acct, amt, bal) <- items
+        <tr ##{tindex torig} title="#{show torig}" style="vertical-align:top;">
+          <td .date>
+            <a href="@{JournalR}#transaction-#{tindex torig}">
+              #{show (tdate tacct)}
+          <td title="#{show torig}">
+            #{textElideRight 30 (tdescription tacct)}
+          <td .account>
+            #{elideRight 40 acct}
+          <td .amount style="text-align:right; white-space:nowrap;">
+            $if not split || not (isZeroMixedAmount amt)
+              ^{mixedAmountAsHtml amt}
+          <td style="text-align:right;">
+            ^{mixedAmountAsHtml bal}
+
+$if elem CapAdd caps
+  ^{addModal AddR j today}

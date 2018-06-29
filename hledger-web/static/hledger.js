@@ -4,9 +4,13 @@
 // STARTUP
 
 $(document).ready(function() {
-  // cache the input element as a variable
-  // for minor performance   benefits
-  var dateEl = $('#dateWrap');
+  // date picker
+  // http://bootstrap-datepicker.readthedocs.io/en/latest/options.html
+  var dateEl = $('#dateWrap').datepicker({
+    showOnFocus: false,
+    autoclose: true,
+    format: 'yyyy-mm-dd'
+  });;
 
   // ensure add form always focuses its first field
   $('#addmodal')
@@ -18,35 +22,21 @@ $(document).ready(function() {
       dateEl.datepicker('hide');
     });
 
-  // show add form if ?add=1
-  if ($.url.param('add')) { addformShow(true); }
-
-  // date picker
-  // http://bootstrap-datepicker.readthedocs.io/en/latest/options.html
-  dateEl.datepicker({
-    showOnFocus: false,
-    autoclose: true,
-    format: 'yyyy-mm-dd'
-  });
-
-  // sidebar account hover handlers
-  $('#sidebar td a').mouseenter(function(){ $(this).parent().addClass('mouseover'); });
-  $('#sidebar td').mouseleave(function(){ $(this).removeClass('mouseover'); });
-
   // keyboard shortcuts
   // 'body' seems to hold focus better than document in FF
   $('body').bind('keydown', 'h',       function(){ $('#helpmodal').modal('toggle'); return false; });
   $('body').bind('keydown', 'shift+/', function(){ $('#helpmodal').modal('toggle'); return false; });
   $('body').bind('keydown', 'j',       function(){ location.href = document.hledgerWebBaseurl+'/journal'; return false; });
   $('body').bind('keydown', 's',       function(){ sidebarToggle(); return false; });
+  $('body').bind('keydown', 'e',       function(){ emptyAccountsToggle(); return false; });
   $('body').bind('keydown', 'a',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'n',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'f',       function(){ $('#searchform input').focus(); return false; });
+  $('body, #addform input, #addform select').bind('keydown', 'ctrl++',       addformAddPosting);
   $('body, #addform input, #addform select').bind('keydown', 'ctrl+shift+=', addformAddPosting);
   $('body, #addform input, #addform select').bind('keydown', 'ctrl+=',       addformAddPosting);
   $('body, #addform input, #addform select').bind('keydown', 'ctrl+-',       addformDeletePosting);
   $('.amount-input:last').keypress(addformAddPosting);
-
 
   // highlight the entry from the url hash
   if (window.location.hash && $(window.location.hash)[0]) {
@@ -78,10 +68,9 @@ function registerChart($container, series) {
         position: 'sw'
       },
       grid: {
-        markings:
-         function (axes) {
+        markings: function () {
           var now = Date.now();
-          var markings = [
+          return [
             {
               xaxis: { to: now }, // past
               yaxis: { to: 0 },   // <0
@@ -103,7 +92,6 @@ function registerChart($container, series) {
               lineWidth:1
             },
           ];
-          return markings;
         },
         hoverable: true,
         autoHighlight: true,
@@ -127,15 +115,16 @@ function registerChart($container, series) {
 }
 
 function registerChartClick(ev, pos, item) {
-  if (item) {
-    targetselector = '#'+item.series.data[item.dataIndex][5];
-    $target = $(targetselector);
-    if ($target.length) {
-      window.location.hash = targetselector;
-      $('html, body').animate({
-        scrollTop: $target.offset().top
-      }, 1000);
-    }
+  if (!item) {
+    return;
+  }
+  var targetselector = '#' + item.series.data[item.dataIndex][5];
+  var $target = $(targetselector);
+  if ($target.length) {
+    window.location.hash = targetselector;
+    $('html, body').animate({
+      scrollTop: $target.offset().top
+    }, 1000);
   }
 }
 
@@ -174,59 +163,46 @@ function focus($el) {
 
 // Insert another posting row in the add form.
 function addformAddPosting() {
-  $('.amount-input:last').off('keypress');
-  // do nothing if it's not currently visible
-  if (!$('#addform').is(':visible')) return;
-  // save a copy of last row
-  var lastrow = $('#addform .form-group:last').clone();
+  if (!$('#addform').is(':visible')) {
+    return;
+  }
 
-  // replace the submit button with an amount field, clear and renumber it, add the keybindings
+  var prevLastRow = $('#addform .account-group:last');
+  prevLastRow.off('keypress');
+
+  // Clone the currently last row
+  $('#addform .account-postings').append(prevLastRow.clone());
   var num = $('#addform .account-group').length;
 
-  // insert the new last row
-  $('#addform .account-postings').append(lastrow);
-  // TODO: Enable typehead on dynamically created inputs
-
-  var $acctinput = $('.account-input:last');
-  var $amntinput = $('.amount-input:last');
   // clear and renumber the field, add keybindings
-  $acctinput
+  // XXX Enable typehead on dynamically created inputs
+  $('.amount-input:last')
     .val('')
-    .prop('id','account'+(num+1))
-    .prop('name','account'+(num+1))
-    .prop('placeholder','Account '+(num+1));
-  //lastrow.find('input') // not :last this time
-  $acctinput
-    .bind('keydown', 'ctrl+shift+=', addformAddPosting)
-    .bind('keydown', 'ctrl+=', addformAddPosting)
-    .bind('keydown', 'ctrl+-', addformDeletePosting);
-
-  $amntinput
-    .val('')
-    .prop('id','amount'+(num+1))
-    .prop('name','amount'+(num+1))
-    .prop('placeholder','Amount '+(num+1))
+    .prop('placeholder','Amount ' + num)
     .keypress(addformAddPosting);
 
-  $acctinput
+  $('.account-input:last')
+    .val('')
+    .prop('placeholder', 'Account ' + num)
+    .bind('keydown', 'ctrl++', addformAddPosting)
     .bind('keydown', 'ctrl+shift+=', addformAddPosting)
     .bind('keydown', 'ctrl+=', addformAddPosting)
     .bind('keydown', 'ctrl+-', addformDeletePosting);
-
 }
 
 // Remove the add form's last posting row, if empty, keeping at least two.
 function addformDeletePosting() {
-  var num = $('#addform .account-group').length;
-  if (num <= 2) return;
+  if ($('#addform .account-group').length <= 2) {
+    return;
+  }
   // remember if the last row's field or button had focus
   var focuslost =
     $('.account-input:last').is(':focus')
     || $('.amount-input:last').is(':focus');
   // delete last row
   $('#addform .account-group:last').remove();
-  if(focuslost){
-    focus($('account-input:last'));
+  if (focuslost) {
+    focus($('.account-input:last'));
   }
   // Rebind keypress
   $('.amount-input:last').keypress(addformAddPosting);
@@ -242,46 +218,7 @@ function sidebarToggle() {
   $.cookie('showsidebar', $('#sidebar-menu').hasClass('col-any-0') ? '0' : '1');
 }
 
-//----------------------------------------------------------------------
-// MISC
-
-function enableTypeahead($el, suggester) {
-  return $el.typeahead(
-    {
-      highlight: true
-    },
-    {
-      source: suggester.ttAdapter()
-    }
-  );
+function emptyAccountsToggle() {
+  $('.acct.empty').parent().toggleClass('hide');
+  $.cookie('hideemptyaccts', $.cookie('hideemptyaccts') === '1' ? '0' : '1')
 }
-
-// function journalSelect(ev) {
-//   var textareas = $('textarea', $('form#editform'));
-//   for (i=0; i<textareas.length; i++) {
-//     textareas[i].style.display = 'none';
-//     textareas[i].disabled = true;
-//   }
-//   var targ = getTarget(ev);
-//   if (targ.value) {
-//     var journalid = targ.value+'_textarea';
-//     var textarea = document.getElementById(journalid);
-//   }
-//   else {
-//     var textarea = textareas[0];
-//   }
-//   textarea.style.display = 'block';
-//   textarea.disabled = false;
-//   return true;
-// }
-
-// // Get the current event's target in a robust way.
-// // http://www.quirksmode.org/js/events_properties.html
-// function getTarget(ev) {
-//   var targ;
-//   if (!ev) var ev = window.event;
-//   if (ev.target) targ = ev.target;
-//   else if (ev.srcElement) targ = ev.srcElement;
-//   if (targ.nodeType == 3) targ = targ.parentNode;
-//   return targ;
-// }

@@ -1,0 +1,25 @@
+<tr :here == journalR:.inacct>
+  <td .top .acct>
+    <a href=@{journalR} :here == journalR:.inacct
+       title="Show general journal entries, most recent first">
+      Journal
+  <td .top>
+$forall (acct, adisplay, aindent, abal) <- items
+  <tr
+     :matchesAcctSelector acct:.inacct
+     :isZeroMixedAmount abal && hideEmpty:.hide>
+    <td .acct :isZeroMixedAmount abal:.empty>
+      <div .ff-wrapper>
+        \#{indent aindent}
+        <a.acct-name href="@?{(registerR, [("q", accountQuery acct)])}"
+           title="Show transactions affecting this account and subaccounts">
+          #{adisplay}
+        $if hasSubAccounts acct
+          <a href="@?{(registerR, [("q", accountOnlyQuery acct)])}" .only.hidden-sm.hidden-xs
+             title="Show transactions affecting this account but not subaccounts">only
+    <td>
+      ^{mixedAmountAsHtml abal}
+<tr .total>
+  <td>
+  <td>
+    ^{mixedAmountAsHtml total}

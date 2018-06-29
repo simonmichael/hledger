@@ -11,7 +11,7 @@ module Hledger.Cli.Utils
      withJournalDo,
      writeOutput,
      journalTransform,
-     journalApplyValue, 
+     journalApplyValue,
      journalAddForecast,
      generateAutomaticPostings,
      journalReload,

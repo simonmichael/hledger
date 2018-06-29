@@ -1,0 +1,59 @@
+<label #register-chart-label style=""><br>
+<div #register-chart style="height:150px; margin-bottom:1em; display:block;">
+<script type=text/javascript>
+ \$(document).ready(function() {
+   var $chartdiv = $('#register-chart');
+   if ($chartdiv.is(':visible')) {
+     \$('#register-chart-label').text('#{charttitle}');
+     var seriesData = [
+      $forall (c,(_,items)) <- percommoditytxnreports
+       /* we render each commodity using two series:
+        * one with extra data points added to show a stepped balance line */
+       {
+        data: [
+          $forall i <- reverse items
+           [
+            #{dayToJsTimestamp $ triDate i},
+            #{simpleMixedAmountQuantity $ triCommodityBalance c i}
+           ],
+        ],
+        label: '#{shownull $ T.unpack c}',
+        color: #{colorForCommodity c},
+        lines: {
+          show: true,
+          steps: true,
+        },
+        points: {
+          show: false,
+        },
+        clickable: false,
+        hoverable: false,
+       },
+       /* and one with the original data, showing one clickable, hoverable point per transaction */
+       {
+        data: [
+          $forall i <- reverse items
+           [
+            #{dayToJsTimestamp $ triDate i},
+            #{simpleMixedAmountQuantity $ triCommodityBalance c i},
+            '#{showMixedAmountWithZeroCommodity $ triCommodityAmount c i}',
+            '#{showMixedAmountWithZeroCommodity $ triCommodityBalance c i}',
+            '#{concat $ intersperse "\\n" $ lines  $ show $ triOrigTransaction i}',
+            #{tindex $ triOrigTransaction i}
+           ],
+          /* [] */
+        ],
+        label: '',
+        color: #{colorForCommodity c},
+        lines: {
+          show: false,
+        },
+        points: {
+          show: true,
+        },
+       },
+     ]
+     var plot = registerChart($chartdiv, seriesData);
+     \$chartdiv.bind("plotclick", registerChartClick);
+   };
+ });
