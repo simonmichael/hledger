@@ -115,13 +115,13 @@ Eg, if you use bash:
 Now you should be able to run the hledger tools and see the expected versions. Eg:
 ```shell
 $ hledger --version
-hledger 1.9
+hledger 1.10
 $ hledger-ui --version
-hledger-ui 1.9
+hledger-ui 1.10
 $ hledger web --version
-hledger-web 1.9
+hledger-web 1.10
 $ hledger iadd --version
-This is hledger-iadd version 1.3.2
+This is hledger-iadd version 1.3.5
 ```
 
 #### Need help ?
@@ -147,7 +147,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 
     On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-2. **`stack install --resolver=lts hledger-lib-1.9 hledger-1.9 [hledger-ui-1.9] [hledger-web-1.9.1] [hledger-api-1.9]`**\
+2. **`stack install --resolver=lts hledger-lib-1.10 hledger-1.10 [hledger-ui-1.10] [hledger-web-1.10.1] [hledger-api-1.10]`**\
     This installs the specified hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
     The bracketed packages are optional; if you include them, don't type the brackets, and do always 
     include the preceding hledger-lib and hledger packages.\
@@ -181,7 +181,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
    and [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
    can be installed similarly to the above. Eg:
 
-    **`stack install --resolver=lts hledger-lib-1.9 hledger-1.9 hledger-iadd-1.3.2`**
+    **`stack install --resolver=lts hledger-lib-1.10 hledger-1.10 hledger-iadd-1.3.5`**
 
 6. **[Test](#test)**
 
@@ -206,6 +206,6 @@ and includes the [latest improvements](https://github.com/simonmichael/hledger/c
 5. **[If you see link errors..](#link-errors)**
 6. **[Set up \$PATH](#set-up-path)**
 7. **[Test](#test)**
-   (Development versions will have a .99 suffix, 1.9.99 means 2.0-dev)
+   (Development versions will have a .99 suffix, 1.10.99 means 1.11-dev)
 
 cabal users may find the `cabal-install.sh` or `cabal.project` files useful.
