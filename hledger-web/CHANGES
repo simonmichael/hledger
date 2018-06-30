@@ -1,6 +1,21 @@
 User-visible changes in hledger-web. See also hledger, hledger-lib.
 
 
+# 1.10 (2018/6/30)
+
+* multiple -f options, and --auto, work again
+
+* view, add, edit permissions can be set at CLI or by Sandstorm HTTP header
+
+* the edit form has been revived, for whole-journal editing
+
+* the journal can now be uploaded and downloaded
+
+* the e key toggles empty accounts in the sidebar
+
+* use hledger-lib 1.10
+
+
 # 1.9.2 (2018/4/30)
 
 * use hledger-lib 1.9.1

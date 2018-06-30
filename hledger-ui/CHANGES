@@ -1,6 +1,17 @@
 User-visible changes in hledger-ui. See also hledger, hledger-lib.
 
 
+# 1.10 (2018/6/30)
+
+* the effect of --value, --forecast, and --anon flags is now preserved on reload (#753)
+
+* edit-at-transaction-position is now also supported when $EDITOR is neovim
+
+* support/require fsnotify 0.3.0.1+
+
+* use hledger-lib 1.10
+
+
 # 1.9.1 (2018/4/30)
 
 * use hledger-lib 1.9.1

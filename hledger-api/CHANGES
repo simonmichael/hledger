@@ -1,6 +1,11 @@
 User-visible changes in hledger-api. See also hledger, hledger-lib.
 
 
+# 1.10 (2018/6/30)
+
+* use hledger-lib 1.10
+
+
 # 1.9.1 (2018/4/30)
 
 * use hledger-lib 1.9.1

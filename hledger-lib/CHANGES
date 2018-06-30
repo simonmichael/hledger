@@ -2,6 +2,21 @@ API-ish changes in the hledger-lib package.
 Most user-visible changes are noted in the hledger changelog, instead.
 
 
+# 1.10 (2018/6/30)
+
+* build cleanly with all supported GHC versions again (7.10 to 8.4)
+
+* support/use latest base-compat (#794)
+
+* support/require megaparsec 6.4+
+
+* extensive refactoring and cleanup of parsers and related types and utilities
+
+* readJournalFile(s) cleanup, these now use InputOpts
+
+* doctests now run a bit faster (#802)
+
+
 # 1.9.1 (2018/4/30)
 
 * new generic PeriodicReport, and some report-related type aliases
