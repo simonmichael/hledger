@@ -50,7 +50,7 @@ h4 { margin-top:2em; }
 Here are the changes in major hledger releases, and any more-recent minor releases.
 
 The [hledger installer](file:///Users/simon/src/PLAINTEXTACCOUNTING/hledger/site/_site/download.html#b1.-with-hledger-install)
-was last updated on 2018/05/14
+was last updated on 2018/06/30
 ([changes](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh))
 
 <!--
@@ -95,7 +95,14 @@ Nana Amfo.
 <!-- | [hledger-web](#hledger-web-1.10) -->
 <!-- | [hledger-api](#hledger-api-1.10) -->
 
-(pending)
+(pending, please see changelogs:)
+
+<http://hackage.haskell.org/package/hledger-lib-1.10/changelog>  
+<http://hackage.haskell.org/package/hledger-1.10/changelog>  
+<http://hackage.haskell.org/package/hledger-ui-1.10/changelog>  
+<http://hackage.haskell.org/package/hledger-web-1.10/changelog>  
+<http://hackage.haskell.org/package/hledger-api-1.10/changelog>  
+
 
 
 ## 2018/3/31 hledger 1.9
