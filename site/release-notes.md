@@ -81,11 +81,11 @@ Jacob Weisz,
 Peter Simons,
 Stephen Morgan,
 Pavlo Kerestey,
-trevorriles,
+Trevor Riles,
 Léo Gaspard,
 Mykola Orliuk,
 Wad,
-Aerex.
+Nana Amfo.
 
 <!--   [project](#project-wide-changes-for-1.10) -->
 <!-- | [hledger-install](#hledger-install.sh-1.10) -->
