@@ -6,7 +6,8 @@ h4 { margin-top:2em; }
 </style>
 <nav id="toc">
 <ol>
-<li><a href="#latest-minor-release">Latest (2018/4/30)</a>
+<!-- <li><a href="#latest-minor-release">Latest (2018/4/30)</a> -->
+<li><a href="#hledger-1.10">hledger 1.10 (2018/6/30)</a>
 <li><a href="#hledger-1.9">hledger 1.9 (2018/3/31)</a>
 <li><a href="#hledger-1.5">hledger 1.5 (2017/12/31)</a>
 <li><a href="#hledger-1.4">hledger 1.4 (2017/9/30)</a>
@@ -52,6 +53,7 @@ The [hledger installer](file:///Users/simon/src/PLAINTEXTACCOUNTING/hledger/site
 was last updated on 2018/05/14
 ([changes](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh))
 
+<!--
 ## Latest minor release
 
 <http://hackage.haskell.org/package/hledger-lib-1.9.1/changelog>  
@@ -59,6 +61,41 @@ was last updated on 2018/05/14
 <http://hackage.haskell.org/package/hledger-ui-1.9.1/changelog>  
 <http://hackage.haskell.org/package/hledger-web-1.9.2/changelog>  
 <http://hackage.haskell.org/package/hledger-api-1.9.1/changelog>  
+-->
+
+
+## 2018/6/30 hledger 1.10
+
+<!-- ***Report cleanups, -->
+<!-- *** -->
+
+<!-- ([announcement](https://groups.google.com/forum/#!topic/hledger/)) -->
+
+Release contributors:
+Alex Chen,
+Everett Hildenbrandt,
+Jakub Zárybnický,
+Nolan Darilek,
+Dmitry Astapov,
+Jacob Weisz,
+Peter Simons,
+Stephen Morgan,
+Pavlo Kerestey,
+trevorriles,
+Léo Gaspard,
+Mykola Orliuk,
+Wad,
+Aerex.
+
+<!--   [project](#project-wide-changes-for-1.10) -->
+<!-- | [hledger-install](#hledger-install.sh-1.10) -->
+<!-- | [hledger-lib](#hledger-lib-1.10) -->
+<!-- | [hledger](#hledger-1.10-1) -->
+<!-- | [hledger-ui](#hledger-ui-1.10) -->
+<!-- | [hledger-web](#hledger-web-1.10) -->
+<!-- | [hledger-api](#hledger-api-1.10) -->
+
+(pending)
 
 
 ## 2018/3/31 hledger 1.9
