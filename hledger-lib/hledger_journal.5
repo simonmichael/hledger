@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "March 2018" "hledger 1.9.99" "hledger User Manuals"
+.TH "hledger_journal" "5" "June 2018" "hledger 1.9.99" "hledger User Manuals"
 
 
 
@@ -825,50 +825,173 @@ simple strings.
 .PP
 A directive is a line in the journal beginning with a special keyword,
 that influences how the journal is processed.
-Some directives may also have indented sub\-directives on the following
-lines (\f[C]commodity\f[]).
-.SS Directive scope, multiple files
+hledger's directives are based on a subset of Ledger's, but there are
+many differences (and also some differences between hledger versions).
 .PP
-Directives vary in which journal entries they affect:
-.IP \[bu] 2
-some form a begin/end pair, and affect the enclosed journal entries (and
-included files):
-.PD 0
-.P
-.PD
-\f[C]alias\f[] & \f[C]end\ aliases\f[]; \f[C]comment\f[] &
+Directives' behaviour and interactions can get a little bit complex, so
+here is a table summarising the directives and their effects, with links
+to more detailed docs.
+.PP
+.TS
+tab(@);
+lw(7.8n) lw(8.6n) lw(7.0n) lw(27.8n) lw(18.8n).
+T{
+directive
+T}@T{
+end directive
+T}@T{
+subdirectives
+T}@T{
+purpose
+T}@T{
+can affect (as of 2018/06)
+T}
+_
+T{
+\f[C]account\f[]
+T}@T{
+T}@T{
+any text
+T}@T{
+declare an account name & optional account code
+T}@T{
+account code: balance reports (except \f[C]balance\f[] single\-column
+mode)
+T}
+T{
+\f[C]alias\f[]
+T}@T{
+\f[C]end\ aliases\f[]
+T}@T{
+T}@T{
+rewrite account names
+T}@T{
+following inline/included entries until end of current file or end
+directive
+T}
+T{
+\f[C]apply\ account\f[]
+T}@T{
+\f[C]end\ apply\ account\f[]
+T}@T{
+T}@T{
+prepend a common parent to account names
+T}@T{
+following inline/included entries until end of current file or end
+directive
+T}
+T{
+\f[C]comment\f[]
+T}@T{
 \f[C]end\ comment\f[]
-.IP \[bu] 2
-some affect the subsequent journal entries (and included files) in the
-current file:
-.PD 0
-.P
-.PD
-\f[C]alias\f[] or \f[C]comment\f[] without an end directive, \f[C]Y\f[]
-.IP \[bu] 2
-some affect all journal entries (and included files) anywhere in the
-current file:
-.PD 0
-.P
-.PD
-\f[C]account\f[], \f[C]commodity\f[], \f[C]D\f[], \f[C]P\f[].
+T}@T{
+T}@T{
+ignore part of journal
+T}@T{
+following inline/included entries until end of current file or end
+directive
+T}
+T{
+\f[C]commodity\f[]
+T}@T{
+T}@T{
+\f[C]format\f[]
+T}@T{
+declare a commodity and its number notation & display style
+T}@T{
+number notation: following entries in that commodity in all files;
+display style: amounts of that commodity in reports
+T}
+T{
+\f[C]D\f[]
+T}@T{
+T}@T{
+T}@T{
+declare a commodity, number notation & display style for commodityless
+amounts
+T}@T{
+commodity: all commodityless entries in all files; number notation:
+following commodityless entries and entries in that commodity in all
+files; display style: amounts of that commodity in reports
+T}
+T{
+\f[C]include\f[]
+T}@T{
+T}@T{
+T}@T{
+include entries/directives from another file
+T}@T{
+what the included directives affect
+T}
+T{
+\f[C]P\f[]
+T}@T{
+T}@T{
+T}@T{
+declare a market price for a commodity
+T}@T{
+amounts of that commodity in reports, when \-V is used
+T}
+T{
+\f[C]Y\f[]
+T}@T{
+T}@T{
+T}@T{
+declare a year for yearless dates
+T}@T{
+following inline/included entries until end of current file
+T}
+.TE
 .PP
-It's important to note that directives can affect the current file and
-child (included) files, but not sibling or parent (including) files.
-This is by design, for simplicity and predictability of reports, but it
-can be surprising at times.
-Eg, in:
-.IP
-.nf
-\f[C]
-hledger\ \-f\ a.prices\ \-f\ b.journal
-\f[]
-.fi
+And some definitions:
 .PP
-the prices defined in a.prices will not be effective in b.journal (a
-sibling file).
-Instead, you have to include (or inline) a.prices in b.journal, or vice
-versa.
+.TS
+tab(@);
+lw(8.9n) lw(61.1n).
+T{
+subdirective
+T}@T{
+optional indented directive or unparsed text lines immediately following
+a parent directive
+T}
+T{
+account code
+T}@T{
+numeric code influencing account display order in most balance reports
+T}
+T{
+number notation
+T}@T{
+how to interpret numbers when parsing journal entries (the identity of
+the decimal separator character).
+(Currently each commodity can have its own notation, even in the same
+file.)
+T}
+T{
+display style
+T}@T{
+how to display amounts of a commodity in reports (symbol side and
+spacing, digit groups, decimal separator, decimal places)
+T}
+T{
+directive scope
+T}@T{
+which entries and (when there are multiple files) which files are
+affected by a directive
+T}
+.TE
+.PP
+As you can see, directives vary in which journal entries and files they
+affect, and whether they are focussed on input (parsing) or output
+(reports).
+Some directives have multiple effects.
+.PP
+If you have a journal made up of multiple files, or pass multiple \-f
+options on the command line, note that directives which affect input
+typically last only until the end of their defining file.
+This provides more simplicity and predictability, eg reports are not
+changed by writing file options in a different order.
+It can be surprising at times though.
 .SS Comment blocks
 .PP
 A line containing just \f[C]comment\f[] starts a commented region of the
@@ -1047,11 +1170,24 @@ account\ expenses\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 6000
 \f[]
 .fi
 .PP
-This affects account display order in reports: accounts with codes are
-listed before accounts without codes, in increasing code order.
-(Otherwise, accounts are listed alphabetically.) Account codes should be
-all numeric digits, unique, and separated from the account name by at
-least two spaces (since account names may contain single spaces).
+This affects how accounts are sorted in account and balance reports:
+accounts with codes are listed before accounts without codes, and in
+increasing code order (instead of listing all accounts alphabetically).
+Warning, this feature is incomplete; account codes do not yet affect
+sort order in
+.IP \[bu] 2
+the \f[C]accounts\f[] command
+.IP \[bu] 2
+the \f[C]balance\f[] command's single\-column mode
+.IP \[bu] 2
+flat mode balance reports (to work around this, declare account codes on
+the subaccounts as well).
+.IP \[bu] 2
+hledger\-web's sidebar
+.PP
+Account codes should be all numeric digits, unique, and separated from
+the account name by at least two spaces (since account names may contain
+single spaces).
 By convention, often the first digit indicates the type of account, as
 in this numbering scheme and the example above.
 In future, we might use this to recognize account types.
@@ -1072,9 +1208,9 @@ account\ assets:bank:checking\ \ \ 1110
 .fi
 .SS Rewriting accounts
 .PP
-You can define aliases which rewrite your account names (after reading
-the journal, before generating reports).
-hledger's account aliases can be useful for:
+You can define account alias rules which rewrite your account names, or
+parts of them, before generating reports.
+This can be useful for:
 .IP \[bu] 2
 expanding shorthand account names to their full form, allowing easier
 data entry and a less verbose journal
@@ -1085,6 +1221,10 @@ experimenting with new account organisations, like a new hierarchy or
 combining two accounts into one
 .IP \[bu] 2
 customising reports
+.PP
+Account aliases also rewrite account names in account directives.
+They do not affect account names being entered via hledger add or
+hledger\-web.
 .PP
 See also Cookbook: Rewrite account names.
 .SS Basic aliases
@@ -1106,7 +1246,7 @@ command line.
 This affects all entries.
 It's useful for trying out aliases interactively.
 .PP
-OLD and NEW are full account names.
+OLD and NEW are case sensitive full account names.
 hledger will replace any occurrence of the old account name with the new
 one.
 Subaccounts are also affected.
@@ -1216,16 +1356,22 @@ include\ personal.journal
 .PP
 Prior to hledger 1.0, legacy \f[C]account\f[] and \f[C]end\f[] spellings
 were also supported.
+.PP
+A default parent account also affects account directives.
+It does not affect account names being entered via hledger add or
+hledger\-web.
+If account aliases are present, they are applied after the default
+parent account.
 .SS Periodic transactions
 .PP
 Periodic transaction rules describe transactions that recur.
-They allow you to generate future transactions for forecast reports
-(with \f[C]\-\-forecast\f[]), without having to write them out
-explicitly in the journal.
+They allow you to generate future transactions for forecasting, without
+having to write them out explicitly in the journal (with
+\f[C]\-\-forecast\f[]).
 Secondly, they also can be used to define budget goals (with
 \f[C]\-\-budget\f[]).
 .PP
-A periodic transaction rule looks like a regular journal entry, with the
+A periodic transaction rule looks like a normal journal entry, with the
 date replaced by a tilde (\f[C]~\f[]) followed by a period expression
 (mnemonic: \f[C]~\f[] looks like a repeating sine wave):
 .IP
@@ -1242,9 +1388,8 @@ date must fall on a natural boundary of the interval.
 Eg \f[C]monthly\ from\ 2018/1/1\f[] is valid, but
 \f[C]monthly\ from\ 2018/1/15\f[] is not.
 .PP
-Also, if you write a transaction description or same\-line comment, it
-must be separated from the period expression by \f[B]two or more
-spaces\f[].
+If you write a transaction description or same\-line comment, it must be
+separated from the period expression by \f[B]two or more spaces\f[].
 Eg:
 .IP
 .nf
@@ -1257,30 +1402,34 @@ Eg:
 \ \ \ \ income:acme\ inc
 \f[]
 .fi
-.SS Generating forecasts with periodic transactions
+.SS Forecasting with periodic transactions
 .PP
 With the \f[C]\-\-forecast\f[] flag, each periodic transaction rule
-generates future transactions recurring at the specified interval,
-beginning the day after the latest recorded journal transaction (or
-today, if there are no transactions), and ending 6 months from today (or
-at the report end date, if specified).
-The generated transactions will appear in all reports.
-They will have a \[lq]recur:\[rq] transaction tag added, with the
-generating period expression as its value.
+generates future transactions recurring at the specified interval.
+These are not saved in the journal, but appear in all reports.
+They will look like normal transactions, but with an extra tag named
+\f[C]recur\f[], whose value is the generating period expression.
 .PP
-This can be useful for forecasting balances into the future, and
-experimenting with different scenarios, without having to write a lot of
-journal entries.
-It can also help with data entry (describe most of your transactions
-with periodic rules, and every so often copy the output of
-\f[C]print\ \-\-forecast\f[] to the journal).
+Forecast transactions begin on or after the day after the latest normal
+(non\-periodic) transaction in the journal, or today if there are none.
 .PP
-You can generate one\-time transactions too; just write a period
+They end on or before the report end date if specified, or 180 days from
+today if unspecified.
+.PP
+Forecasting can be useful for estimating balances into the future, and
+experimenting with different scenarios.
+Note the start date logic means that forecasted transactions are
+automatically replaced by normal transactions as you add those.
+.PP
+Forecasting can also help with data entry: describe most of your
+transactions with periodic rules, and every so often copy the output of
+\f[C]print\ \-\-forecast\f[] to the journal.
+.PP
+You can generate one\-time transactions too: just write a period
 expression specifying a date with no report interval.
-You could use this to forecast an estimated transaction, that is
-automatically deactivated once the actual transaction (or any other
-transaction on or after that date) is recorded.
-.SS Setting budget goals with periodic transactions
+(You could also write a normal transaction with a future date, but
+remember this disables forecast transactions on previous dates.)
+.SS Budgeting with periodic transactions
 .PP
 With the \f[C]\-\-budget\f[] flag, currently supported by the balance
 command, each periodic transaction rule declares recurring budget goals
@@ -1297,7 +1446,7 @@ Automated posting rules describe extra postings that should be added to
 certain transactions at report time, when the \f[C]\-\-auto\f[] flag is
 used.
 .PP
-An automated posting rule looks like a regular journal entry, except the
+An automated posting rule looks like a normal journal entry, except the
 first line is an equal sign (\f[C]=\f[]) followed by a query (mnemonic:
 \f[C]=\f[] looks like posting lines):
 .IP

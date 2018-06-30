@@ -601,34 +601,97 @@ FILE FORMAT
 
    Directives
        A directive is a line in the journal beginning with a special  keyword,
-       that influences how the journal is processed.  Some directives may also
-       have indented sub-directives on the following lines (commodity).
+       that influences how the journal is processed.  hledger's directives are
+       based on a subset of Ledger's, but there are many differences (and also
+       some differences between hledger versions).
 
-   Directive scope, multiple files
-       Directives vary in which journal entries they affect:
+       Directives' behaviour and interactions can get a little bit complex, so
+       here is a table summarising the  directives  and  their  effects,  with
+       links to more detailed docs.
 
-       o some form a begin/end pair, and affect the enclosed  journal  entries
-         (and included files):
-       alias & end aliases; comment & end comment
 
-       o some  affect  the  subsequent journal entries (and included files) in
-         the current file:
-       alias or comment without an end directive, Y
+       direc-          end                 subdi-    purpose                        can affect  (as  of
+       tive            directive           rec-                                     2018/06)
+                                           tives
+       -------------------------------------------------------------------------------------------------
+       account                             any       declare an  account  name  &   account  code: bal-
+                                           text      optional account code          ance        reports
+                                                                                    (except     balance
+                                                                                    single-column mode)
+       alias           end aliases                   rewrite account names          following
+                                                                                    inline/included
+                                                                                    entries  until  end
+                                                                                    of  current file or
+                                                                                    end directive
+       apply account   end apply account             prepend a common  parent  to   following
+                                                     account names                  inline/included
+                                                                                    entries  until  end
+                                                                                    of current file  or
+                                                                                    end directive
+       comment         end comment                   ignore part of journal         following
+                                                                                    inline/included
+                                                                                    entries  until  end
+                                                                                    of current file  or
+                                                                                    end directive
+       commodity                           format    declare  a commodity and its   number    notation:
+                                                     number  notation  &  display   following   entries
+                                                     style                          in  that  commodity
+                                                                                    in all files;  dis-
+                                                                                    play style: amounts
+                                                                                    of  that  commodity
+                                                                                    in reports
+       D                                             declare  a commodity, number   commodity: all com-
+                                                     notation & display style for   modityless  entries
+                                                     commodityless amounts          in  all files; num-
+                                                                                    ber notation:  fol-
+                                                                                    lowing   commodity-
+                                                                                    less  entries   and
+                                                                                    entries   in   that
+                                                                                    commodity  in   all
+                                                                                    files;      display
+                                                                                    style:  amounts  of
+                                                                                    that  commodity  in
+                                                                                    reports
+       include                                       include   entries/directives   what  the  included
+                                                     from another file              directives affect
+       P                                             declare a market price for a   amounts   of   that
+                                                     commodity                      commodity        in
+                                                                                    reports, when -V is
+                                                                                    used
+       Y                                             declare a year for  yearless   following
+                                                     dates                          inline/included
+                                                                                    entries  until  end
+                                                                                    of current file
 
-       o some affect all journal entries (and included files) anywhere in  the
-         current file:
-       account, commodity, D, P.
+       And some definitions:
 
-       It's  important to note that directives can affect the current file and
-       child (included) files, but not sibling or  parent  (including)  files.
-       This is by design, for simplicity and predictability of reports, but it
-       can be surprising at times.  Eg, in:
 
-              hledger -f a.prices -f b.journal
+       subdirec-   optional  indented  directive  or unparsed text lines immedi-
+       tive        ately following a parent directive
+       account     numeric  code  influencing account display order in most bal-
+       code        ance reports
 
-       the prices defined in a.prices will not be effective  in  b.journal  (a
-       sibling  file).   Instead,  you have to include (or inline) a.prices in
-       b.journal, or vice versa.
+
+
+       number      how  to  interpret  numbers when parsing journal entries (the
+       notation    identity of the  decimal  separator  character).   (Currently
+                   each  commodity  can  have its own notation, even in the same
+                   file.)
+       display     how to display amounts of a commodity in reports (symbol side
+       style       and spacing, digit groups, decimal separator, decimal places)
+       directive   which entries and (when there are multiple files) which files
+       scope       are affected by a directive
+
+       As you can see, directives vary in which journal entries and files they
+       affect, and whether they are focussed  on  input  (parsing)  or  output
+       (reports).  Some directives have multiple effects.
+
+       If  you  have  a journal made up of multiple files, or pass multiple -f
+       options on the command line, note that directives  which  affect  input
+       typically  last  only  until the end of their defining file.  This pro-
+       vides more simplicity and predictability, eg reports are not changed by
+       writing  file  options  in  a different order.  It can be surprising at
+       times though.
 
    Comment blocks
        A line containing just comment starts a commented region of  the  file,
@@ -763,14 +826,26 @@ FILE FORMAT
               account revenues                4000
               account expenses                6000
 
-       This affects account display order in reports: accounts with codes  are
-       listed  before accounts without codes, in increasing code order.  (Oth-
-       erwise, accounts are listed alphabetically.) Account  codes  should  be
-       all  numeric  digits, unique, and separated from the account name by at
-       least two spaces (since account names may contain single  spaces).   By
-       convention,  often the first digit indicates the type of account, as in
-       this numbering scheme and the example above.  In future, we  might  use
-       this to recognize account types.
+       This affects how accounts are sorted in account  and  balance  reports:
+       accounts  with  codes  are listed before accounts without codes, and in
+       increasing code order (instead of listing all accounts alphabetically).
+       Warning,  this  feature  is incomplete; account codes do not yet affect
+       sort order in
+
+       o the accounts command
+
+       o the balance command's single-column mode
+
+       o flat mode balance reports (to work around this, declare account codes
+         on the subaccounts as well).
+
+       o hledger-web's sidebar
+
+       Account  codes should be all numeric digits, unique, and separated from
+       the account name by at least two spaces (since account names  may  con-
+       tain  single  spaces).   By convention, often the first digit indicates
+       the type of account, as in this numbering scheme and the example above.
+       In future, we might use this to recognize account types.
 
        An account directive can also have indented subdirectives following it,
        which are currently ignored.  Here is the full syntax:
@@ -783,9 +858,8 @@ FILE FORMAT
                 some-tag:12345
 
    Rewriting accounts
-       You can define aliases which rewrite your account names (after  reading
-       the journal, before generating reports).  hledger's account aliases can
-       be useful for:
+       You can define account alias rules which rewrite your account names, or
+       parts of them, before generating reports.  This can be useful for:
 
        o expanding shorthand account names to their full form, allowing easier
          data entry and a less verbose journal
@@ -797,11 +871,15 @@ FILE FORMAT
 
        o customising reports
 
+       Account aliases also rewrite account names in account directives.  They
+       do  not  affect  account  names  being  entered  via  hledger  add   or
+       hledger-web.
+
        See also Cookbook: Rewrite account names.
 
    Basic aliases
-       To set an account alias, use the alias directive in your journal  file.
-       This  affects all subsequent journal entries in the current file or its
+       To  set an account alias, use the alias directive in your journal file.
+       This affects all subsequent journal entries in the current file or  its
        included files.  The spaces around the = are optional:
 
               alias OLD = NEW
@@ -809,54 +887,54 @@ FILE FORMAT
        Or, you can use the --alias 'OLD=NEW' option on the command line.  This
        affects all entries.  It's useful for trying out aliases interactively.
 
-       OLD and NEW are full account names.  hledger will  replace  any  occur-
-       rence  of  the old account name with the new one.  Subaccounts are also
-       affected.  Eg:
+       OLD  and  NEW  are  case  sensitive  full  account names.  hledger will
+       replace any occurrence of the old account name with the new one.   Sub-
+       accounts are also affected.  Eg:
 
               alias checking = assets:bank:wells fargo:checking
               # rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
 
    Regex aliases
-       There is also a more powerful variant that uses a  regular  expression,
+       There  is  also a more powerful variant that uses a regular expression,
        indicated by the forward slashes:
 
               alias /REGEX/ = REPLACEMENT
 
        or --alias '/REGEX/=REPLACEMENT'.
 
-       REGEX  is  a  case-insensitive regular expression.  Anywhere it matches
-       inside an account name, the matched part will be replaced  by  REPLACE-
-       MENT.   If REGEX contains parenthesised match groups, these can be ref-
+       REGEX is a case-insensitive regular expression.   Anywhere  it  matches
+       inside  an  account name, the matched part will be replaced by REPLACE-
+       MENT.  If REGEX contains parenthesised match groups, these can be  ref-
        erenced by the usual numeric backreferences in REPLACEMENT.  Eg:
 
               alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
               # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 
-       Also note that REPLACEMENT continues to the end of line (or on  command
-       line,  to  end  of  option argument), so it can contain trailing white-
+       Also  note that REPLACEMENT continues to the end of line (or on command
+       line, to end of option argument), so it  can  contain  trailing  white-
        space.
 
    Multiple aliases
-       You can define as many aliases as you like  using  directives  or  com-
-       mand-line  options.  Aliases are recursive - each alias sees the result
-       of applying previous ones.   (This  is  different  from  Ledger,  where
+       You  can  define  as  many aliases as you like using directives or com-
+       mand-line options.  Aliases are recursive - each alias sees the  result
+       of  applying  previous  ones.   (This  is  different from Ledger, where
        aliases are non-recursive by default).  Aliases are applied in the fol-
        lowing order:
 
-       1. alias directives, most recently seen first (recent  directives  take
+       1. alias  directives,  most recently seen first (recent directives take
           precedence over earlier ones; directives not yet seen are ignored)
 
        2. alias options, in the order they appear on the command line
 
    end aliases
-       You   can  clear  (forget)  all  currently  defined  aliases  with  the
+       You  can  clear  (forget)  all  currently  defined  aliases  with   the
        end aliases directive:
 
               end aliases
 
    Default parent account
-       You can specify a  parent  account  which  will  be  prepended  to  all
-       accounts  within  a  section of the journal.  Use the apply account and
+       You  can  specify  a  parent  account  which  will  be prepended to all
+       accounts within a section of the journal.  Use  the  apply account  and
        end apply account directives like so:
 
               apply account home
@@ -873,7 +951,7 @@ FILE FORMAT
                   home:food           $10
                   home:cash          $-10
 
-       If end apply account is omitted, the effect lasts to  the  end  of  the
+       If  end apply account  is  omitted,  the effect lasts to the end of the
        file.  Included files are also affected, eg:
 
               apply account business
@@ -882,19 +960,23 @@ FILE FORMAT
               apply account personal
               include personal.journal
 
-       Prior  to  hledger 1.0, legacy account and end spellings were also sup-
+       Prior to hledger 1.0, legacy account and end spellings were  also  sup-
        ported.
+
+       A  default parent account also affects account directives.  It does not
+       affect account names being entered via hledger add or hledger-web.   If
+       account  aliases are present, they are applied after the default parent
+       account.
 
    Periodic transactions
        Periodic transaction rules  describe  transactions  that  recur.   They
-       allow  you  to  generate future transactions for forecast reports (with
-       --forecast), without having to write them out explicitly in  the  jour-
-       nal.   Secondly,  they  also  can  be used to define budget goals (with
-       --budget).
+       allow you to generate future transactions for forecasting, without hav-
+       ing to write them out explicitly  in  the  journal  (with  --forecast).
+       Secondly, they also can be used to define budget goals (with --budget).
 
-       A periodic transaction rule looks like a regular  journal  entry,  with
-       the  date  replaced  by  a  tilde  (~)  followed by a period expression
-       (mnemonic: ~ looks like a repeating sine wave):
+       A periodic transaction rule looks like a normal journal entry, with the
+       date replaced by a tilde (~) followed by a period expression (mnemonic:
+       ~ looks like a repeating sine wave):
 
               ~ monthly
                   expenses:rent          $2000
@@ -904,9 +986,8 @@ FILE FORMAT
        date   must   fall   on   a  natural  boundary  of  the  interval.   Eg
        monthly from 2018/1/1 is valid, but monthly from 2018/1/15 is not.
 
-       Also, if you write a transaction description or same-line  comment,  it
-       must  be  separated  from  the period expression by two or more spaces.
-       Eg:
+       If you write a transaction description or same-line comment, it must be
+       separated from the period expression by two or more spaces.  Eg:
 
               ;                              2 or more spaces
               ;                                    ||
@@ -915,28 +996,34 @@ FILE FORMAT
                   assets:bank:checking   $1500
                   income:acme inc
 
-   Generating forecasts with periodic transactions
-       With the --forecast flag,  each  periodic  transaction  rule  generates
-       future  transactions recurring at the specified interval, beginning the
-       day after the latest recorded journal transaction (or today,  if  there
-       are  no transactions), and ending 6 months from today (or at the report
-       end date, if specified).  The generated transactions will appear in all
-       reports.   They  will  have  a "recur:" transaction tag added, with the
-       generating period expression as its value.
+   Forecasting with periodic transactions
+       With  the  --forecast  flag,  each  periodic transaction rule generates
+       future transactions recurring at the specified interval.  These are not
+       saved  in  the journal, but appear in all reports.  They will look like
+       normal transactions, but with an extra tag named recur, whose value  is
+       the generating period expression.
 
-       This can be useful for forecasting balances into the future, and exper-
-       imenting  with  different  scenarios,  without having to write a lot of
-       journal entries.  It can also help with data entry  (describe  most  of
-       your transactions with periodic rules, and every so often copy the out-
-       put of print --forecast to the journal).
+       Forecast transactions begin on or after the day after the latest normal
+       (non-periodic) transaction in the journal, or today if there are  none.
 
-       You can generate one-time transactions too; just write a period expres-
-       sion  specifying a date with no report interval.  You could use this to
-       forecast an estimated transaction, that  is  automatically  deactivated
-       once  the actual transaction (or any other transaction on or after that
-       date) is recorded.
+       They  end  on  or  before the report end date if specified, or 180 days
+       from today if unspecified.
 
-   Setting budget goals with periodic transactions
+       Forecasting can be useful for estimating balances into the future,  and
+       experimenting  with  different  scenarios.   Note  the start date logic
+       means that forecasted transactions are automatically replaced by normal
+       transactions as you add those.
+
+       Forecasting can also help with data entry: describe most of your trans-
+       actions with periodic rules, and every so  often  copy  the  output  of
+       print --forecast to the journal.
+
+       You can generate one-time transactions too: just write a period expres-
+       sion specifying a date with no report interval.  (You could also  write
+       a  normal  transaction  with  a future date, but remember this disables
+       forecast transactions on previous dates.)
+
+   Budgeting with periodic transactions
        With the --budget flag, currently supported  by  the  balance  command,
        each  periodic transaction rule declares recurring budget goals for the
        specified accounts.  Eg the first example  above  declares  a  goal  of
@@ -951,9 +1038,9 @@ FILE FORMAT
        Automated posting rules describe extra postings that should be added to
        certain transactions at report time, when the --auto flag is used.
 
-       An  automated  posting  rule looks like a regular journal entry, except
-       the first line is an equal sign (=) followed by a  query  (mnemonic:  =
-       looks like posting lines):
+       An automated posting rule looks like a normal journal entry, except the
+       first line is an equal sign (=) followed by a query (mnemonic: =  looks
+       like posting lines):
 
               = expenses:gifts
                   budget:gifts  *-1
@@ -1003,6 +1090,7 @@ EDITOR SUPPORT
        Textmate       https://github.com/ledger/ledger/wiki/Using-TextMate-2
        Text   Wran-   https://github.com/ledger/ledger/wiki/Edit-
        gler           ing-Ledger-files-with-TextWrangler
+
        Visual  Stu-   https://marketplace.visualstudio.com/items?item-
        dio Code       Name=mark-hansen.hledger-vscode
 
@@ -1031,4 +1119,4 @@ SEE ALSO
 
 
 
-hledger 1.9.99                    March 2018                hledger_journal(5)
+hledger 1.9.99                     June 2018                hledger_journal(5)
