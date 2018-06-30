@@ -1,5 +1,5 @@
 name: hledger
-version: '1.9.99'
+version: '1.10'
 synopsis: Command-line interface for the hledger accounting tool
 description: |
   This is hledger's command-line interface.
@@ -78,7 +78,7 @@ ghc-options:
 - -optP-Wno-nonportable-include-path
 
 dependencies:
-- hledger-lib >=1.9.99 && <2.0
+- hledger-lib >=1.10 && <1.11
 - ansi-terminal >=0.6.2.3
 - base >=4.8 && <4.12
 - base-compat-batteries >=0.10.1 && <0.11
@@ -121,7 +121,7 @@ when:
   - terminfo
 
 library:
-  cpp-options: -DVERSION="1.9.99"
+  cpp-options: -DVERSION="1.10"
   exposed-modules:
   - Hledger.Cli
   - Hledger.Cli.Main
@@ -161,7 +161,7 @@ executables:
   hledger:
     source-dirs: app
     main: hledger-cli.hs
-    cpp-options: -DVERSION="1.9.99"
+    cpp-options: -DVERSION="1.10"
     when:
     - condition: flag(threaded)
       ghc-options: -threaded
@@ -172,7 +172,7 @@ tests:
   test:
     source-dirs: test
     main: test.hs
-    cpp-options: -DVERSION="1.9.99"
+    cpp-options: -DVERSION="1.10"
     dependencies:
     - hledger
     - test-framework
