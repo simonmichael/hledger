@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f95975f3e5a52d5f6d87d3a8fbb3feb0b74e14c550820bb276de675d990010f2
+-- hash: d58757b35977bccf2ea50f50f71519bcc38f63f7d0a9cc7ea2a9cd36fa070267
 
 name:           hledger-web
 version:        1.9.99
@@ -208,24 +208,4 @@ executable hledger-web
     buildable: False
   if flag(threaded)
     ghc-options: -threaded
-  default-language: Haskell2010
-
-test-suite test
-  type: exitcode-stdio-1.0
-  main-is: main.hs
-  other-modules:
-      HomeTest
-      TestImport
-      Paths_hledger_web
-  hs-source-dirs:
-      tests
-  ghc-options: -Wall -fwarn-tabs
-  cpp-options: -DVERSION="1.9.99"
-  build-depends:
-      base
-    , hledger-web
-    , hspec
-    , yesod-test
-  if impl(ghc >=8)
-    ghc-options: -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
   default-language: Haskell2010
