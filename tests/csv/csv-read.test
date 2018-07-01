@@ -32,23 +32,6 @@
 >>>=0
 
 
-# 20. reading CSV with in-field and out-field
- printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >t.$$.csv.rules ; hledger --separator ';' -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
-<<<
-10/2009/09;Flubber Co🎅;50;
-11/2009/09;Flubber Co🎅;;50
->>>
-2009/09/10 Flubber Co🎅
-    Assets:MyAccount             $50
-    income:unknown              $-50
-
-2009/09/11 Flubber Co🎅
-    Assets:MyAccount            $-50
-    expenses:unknown             $50
-
->>>2
->>>=0
-
 # 3. handle conditions assigning multiple fields
  printf 'fields date, description, amount\ndate-format %%d/%%Y/%%m\ncurrency $\naccount1 assets:myacct\nif Flubber\n  account2 acct\n  comment cmt' >t.$$.csv.rules; printf '10/2009/09,Flubber Co,50\n' | hledger -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
 >>>
@@ -107,6 +90,23 @@
 2009/11/09
     liabilities:bank             $60
     expense:other               $-60
+
+>>>2
+>>>=0
+
+# 8. reading CSV with custom separator
+ printf 'account1 Assets:MyAccount\ndate %%1\ndate-format %%d/%%Y/%%m\ndescription %%2\namount-in %%3\namount-out %%4\ncurrency $\n' >t.$$.csv.rules ; hledger --separator ';' -f csv:- --rules-file t.$$.csv.rules print && rm -rf t.$$.csv.rules
+<<<
+10/2009/09;Flubber Co🎅;50;
+11/2009/09;Flubber Co🎅;;50
+>>>
+2009/09/10 Flubber Co🎅
+    Assets:MyAccount             $50
+    income:unknown              $-50
+
+2009/09/11 Flubber Co🎅
+    Assets:MyAccount            $-50
+    expenses:unknown             $50
 
 >>>2
 >>>=0
