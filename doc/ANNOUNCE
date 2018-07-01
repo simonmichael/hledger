@@ -45,10 +45,10 @@ One of the easiest is the hledger-install script, which requires only
 bash and will build and install the hledger tools in $HOME/.local/bin/:
 
 $ curl -O https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh
-$ less hledger-install.sh # (do security review)
-$ bash hledger-install.sh # (add -v for more detail; use bash -x to show commands being run)
+$ less hledger-install.sh  # do security review
+$ bash hledger-install.sh
 
-or (insecure):
+or (insecure; add -x flag to bash to see commands that were run):
 
 $ curl https://raw.githubusercontent.com/simonmichael/hledger/master/hledger-install/hledger-install.sh | bash
 
@@ -66,7 +66,7 @@ Say hello and ask questions in the #hledger IRC channel on Freenode:
 http://irc.hledger.org.
 
 New users and contributors are always welcome! Give feedback, report
-bugs, send pull requests, write, evangelise, donate.
+bugs, send pull requests, write, evangelise, help sustain us by donating.
 
 
 Best!
