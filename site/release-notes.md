@@ -49,7 +49,7 @@ h4 { margin-top:2em; }
 
 Here are the changes in major hledger releases, and any more-recent minor releases.
 
-The [hledger installer](file:///Users/simon/src/PLAINTEXTACCOUNTING/hledger/site/_site/download.html#b1.-with-hledger-install)
+The [hledger installer](http://hledger.org/download#b1.-with-hledger-install)
 was last updated on 2018/06/30
 ([changes](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh))
 
