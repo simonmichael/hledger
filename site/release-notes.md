@@ -66,10 +66,10 @@ was last updated on 2018/06/30
 
 ## 2018/6/30 hledger 1.10
 
-<!-- ***Report cleanups, -->
+<!-- ***(pending) -->
 <!-- *** -->
 
-<!-- ([announcement](https://groups.google.com/forum/#!topic/hledger/)) -->
+([announcement](https://groups.google.com/d/topic/hledger/SWFV2n6xMQA/discussion))
 
 Release contributors:
 Alex Chen,
@@ -87,21 +87,125 @@ Mykola Orliuk,
 Wad,
 Nana Amfo.
 
-<!--   [project](#project-wide-changes-for-1.10) -->
-<!-- | [hledger-install](#hledger-install.sh-1.10) -->
-<!-- | [hledger-lib](#hledger-lib-1.10) -->
-<!-- | [hledger](#hledger-1.10-1) -->
-<!-- | [hledger-ui](#hledger-ui-1.10) -->
-<!-- | [hledger-web](#hledger-web-1.10) -->
-<!-- | [hledger-api](#hledger-api-1.10) -->
+  [project](#project-wide-changes-for-1.10)
+| [hledger-install](#hledger-install.sh-1.10)
+| [hledger-lib](#hledger-lib-1.10)
+| [hledger](#hledger-1.10-1)
+| [hledger-ui](#hledger-ui-1.10)
+| [hledger-web](#hledger-web-1.10)
+| [hledger-api](#hledger-api-1.10)
 
-(pending, please see changelogs:)
+### project-wide changes for 1.10
 
-<http://hackage.haskell.org/package/hledger-lib-1.10/changelog>  
-<http://hackage.haskell.org/package/hledger-1.10/changelog>  
-<http://hackage.haskell.org/package/hledger-ui-1.10/changelog>  
-<http://hackage.haskell.org/package/hledger-web-1.10/changelog>  
-<http://hackage.haskell.org/package/hledger-api-1.10/changelog>  
+
+### hledger-lib 1.10
+
+* build cleanly with all supported GHC versions again (7.10 to 8.4)
+
+* support/use latest base-compat (#794)
+
+* support/require megaparsec 6.4+
+
+* extensive refactoring and cleanup of parsers and related types and utilities
+
+* readJournalFile(s) cleanup, these now use InputOpts
+
+* doctests now run a bit faster (#802)
+
+
+### hledger 1.10
+
+* journal: many parse error messages have become more informative, and
+  some now show the source line and error location.
+
+* journal: ;tag: is no longer parsed as a tag named ";tag" (#655)
+
+* journal: transaction price amounts having their own price amounts is
+  now a parse error
+
+* journal: amounts with space as digit group separator and trailing whitespace 
+  now parse correctly (#780)
+
+* journal: in amounts containing digits and a single space, the space
+  is now interpreted as a digit group separator, not a decimal separator (#749)
+
+* journal: in commodity/format/D directives, the amount must now include a decimal separator.
+
+  When more precise control is needed over number parsing, our
+  recommended solution is commodity directives. Commodity directives
+  that don't specify the decimal separator leave things ambiguous,
+  increasing the chance of misparsing numbers. In some cases it could
+  cause amounts with a decimal point to be parsed as if with a digit
+  group separator, so 1.234 became 1234.
+
+  It seems the simple and really only way to do this reliably is to require
+  an explicit decimal point character. Most folks probably do this already.
+  Unfortunately, it makes another potential incompatiblity with ledger and
+  beancount journals. But the error message will be clear and easy to
+  work around.
+
+* journal: directives currently have diverse and somewhat tricky
+  semantics, especially with multiple files.  The manual now describes
+  their behaviour precisely.
+
+* journal: `alias` and `apply account` directives now affect `account` directives (#825)
+
+* journal: periodic transactions can now have all the usual transaction fields
+  (status mark, code, description, comment), for generating more expressive
+  forecast transactions.
+
+* journal: forecast transactions now have the generating period
+  expression attached as a tag named "recur".
+
+* journal: periodic transactions now start on the first instance of the 
+  recurring date, rather than the day after the last regular transaction (#750)
+
+* journal: periodic transaction rules now allow period expressions relative to today's date
+
+* csv: amount-in/amount-out errors are more detailed
+
+* balance: --drop is now ignored when not in flat mode, 
+  rather than producing a corrupted report (#754)
+
+* budget: --drop now preserves the <unbudgeted> top-level account in --budget reports
+
+* register: in CSV output, the code field is now included (#746)
+
+* smart dates now allow  the YYYYMM format, and are better documented
+
+* use hledger-lib 1.10
+
+
+### hledger-ui 1.10
+
+* the effect of --value, --forecast, and --anon flags is now preserved on reload (#753)
+
+* edit-at-transaction-position is now also supported when $EDITOR is neovim
+
+* support/require fsnotify 0.3.0.1+
+
+* use hledger-lib 1.10
+
+
+### hledger-web 1.10
+
+* multiple -f options, and --auto, work again
+
+* view, add, edit permissions can be set at CLI or by Sandstorm HTTP header
+
+* the edit form has been revived, for whole-journal editing
+
+* the journal can now be uploaded and downloaded
+
+* the e key toggles empty accounts in the sidebar
+
+* use hledger-lib 1.10
+
+
+### hledger-api 1.10
+
+* use hledger-lib 1.10
+
 
 
 
