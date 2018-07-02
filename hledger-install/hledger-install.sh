@@ -49,9 +49,10 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20180630
+HLEDGER_INSTALL_VERSION=20180702
 
-RESOLVER="--resolver=lts"
+#RESOLVER="--resolver=lts"  # 20180702: lts doesn't have base-compat-batteries yet
+RESOLVER="--resolver=nightly-2018-06-02"
   # ^ You can specify a different stackage snapshot here, 
   # or comment out this line to use your current global resolver, which might 
   # avoid some unnecessary building. OSX Sierra+ requires at least lts-8.0. 
@@ -909,48 +910,93 @@ fi
 # if we'll be using cabal, run cabal update once at the start
 (! has_cmd stack && has_cmd cabal && try_info cabal update )
 
+# Compare dotted number version strings, based on https://stackoverflow.com/a/4025065/84401.
+# cmpver A B's exit status *and* output is
+# 0 for A ~= B (1 is equivalent to 1.0, 1.0.0 etc.)
+# 1 for A > B
+# 2 for A < B.
+cmpver () {
+    if [[ $1 == $2 ]]
+    then
+        echo 0; return 0
+    fi
+    local IFS=.
+    local i ver1=($1) ver2=($2)
+    # fill empty fields in ver1 with zeros
+    for ((i=${#ver1[@]}; i<${#ver2[@]}; i++))
+    do
+        ver1[i]=0
+    done
+    for ((i=0; i<${#ver1[@]}; i++))
+    do
+        if [[ -z ${ver2[i]} ]]
+        then
+            # fill empty fields in ver2 with zeros
+            ver2[i]=0
+        fi
+        if ((10#${ver1[i]} > 10#${ver2[i]}))
+        then
+            echo 1; return 1
+        fi
+        if ((10#${ver1[i]} < 10#${ver2[i]}))
+        then
+            echo 2; return 2
+        fi
+    done
+    echo 0; return 0
+}
+
 # try installing each package that needs installing, in turn
 echo ----------
-if [[ $(cmd_version hledger) < $HLEDGER_VERSION ]]; then
+
+if [[ $(cmpver $(cmd_version hledger) $HLEDGER_VERSION) = 2 ]]; then
   echo Installing hledger
   try_install hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
-if [[ $(cmd_version hledger-ui) < $HLEDGER_UI_VERSION ]]; then 
+
+if [[ $(cmpver $(cmd_version hledger-ui) $HLEDGER_UI_VERSION) = 2 ]]; then 
   echo Installing hledger-ui
-  try_install hledger-ui-$HLEDGER_UI_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
+  try_install hledger-ui-$HLEDGER_UI_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION \
+    fsnotify-0.3.0.1
     # brick-0.19 data-clist-0.1.2.0
     # ^ when hledger-iadd requires a non-stack brick, use the same version here to avoid rebuilding
   echo
 fi
-if [[ $(cmd_version hledger-web) < $HLEDGER_WEB_VERSION ]]; then 
+
+if [[ $(cmpver $(cmd_version hledger-web) $HLEDGER_WEB_VERSION) = 2 ]]; then 
   echo Installing hledger-web
   try_install hledger-web-$HLEDGER_WEB_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
-if [[ $(cmd_version hledger-api) < $HLEDGER_API_VERSION ]]; then 
+
+if [[ $(cmpver $(cmd_version hledger-api) $HLEDGER_API_VERSION) = 2 ]]; then 
   echo Installing hledger-api
   try_install hledger-api-$HLEDGER_API_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
+
 # Third-party addons. We allow these to use an older version of
 # hledger-lib, in case their bounds have not been updated yet. 
-if [[ $(cmd_version hledger-diff) < $HLEDGER_DIFF_VERSION ]]; then 
+if [[ $(cmpver $(cmd_version hledger-diff) $HLEDGER_DIFF_VERSION) = 2 ]]; then 
   echo Installing hledger-diff
   try_install hledger-diff-$HLEDGER_DIFF_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
-if [[ $(cmd_version hledger-iadd) < $HLEDGER_IADD_VERSION ]]; then 
+
+if [[ $(cmpver $(cmd_version hledger-iadd) $HLEDGER_IADD_VERSION) = 2 ]]; then 
   echo Installing hledger-iadd
   try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
-if [[ $(cmd_version hledger-interest) < $HLEDGER_INTEREST_VERSION ]]; then 
+
+if [[ $(cmpver $(cmd_version hledger-interest) $HLEDGER_INTEREST_VERSION) = 2 ]]; then 
   echo Installing hledger-interest
   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
-if [[ $(cmd_version hledger-irr) < $HLEDGER_IRR_VERSION ]]; then 
+
+if [[ $(cmpver $(cmd_version hledger-irr) $HLEDGER_IRR_VERSION) = 2 ]]; then 
   echo Installing hledger-irr
   try_install hledger-irr-$HLEDGER_IRR_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
