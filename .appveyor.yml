@@ -38,6 +38,9 @@ install:
 - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 - 7z x stack.zip stack.exe
 - stack --version
+# temporary, troubleshooting https://github.com/commercialhaskell/stack/issues/4125
+- stack upgrade --git
+- stack --version
 #
 # install ghc
 # using ghc 8.2 to avoid a hledger-web -> network/stack build issue on windows,
