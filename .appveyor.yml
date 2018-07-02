@@ -28,8 +28,8 @@ environment:
 # only those files for cache invalidation, quicker than checksumming all cached content.
 cache:
 - "%LOCALAPPDATA%\\Programs\\stack"
-- C:\sr
 - C:\Users\appveyor\AppData\Roaming\local\bin
+- C:\sr
 - .stack-work
 - hledger-lib\.stack-work -> hledger-lib\**
 - hledger\.stack-work     -> hledger\**
@@ -38,12 +38,12 @@ cache:
 install:
 - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 - 7z x stack.zip stack.exe
-- move stack.exe stack-release.exe
-- stack-release --version
 # temporary, troubleshooting https://github.com/commercialhaskell/stack/issues/4125
-- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
-- echo %PATH%
-- stack-release upgrade --git
+# - move stack.exe stack-release.exe
+# - stack-release --version
+# - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
+# - echo %PATH%
+# - stack-release upgrade --git
 - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe .
 - stack --version
 
@@ -53,7 +53,8 @@ install:
 # network 2.7.0.1 should work around it when released
 # https://github.com/haskell/network/issues/313
 # https://github.com/commercialhaskell/stack/issues/3944
-- stack --stack-yaml=stack-ghc8.2.yaml setup
+#- stack --stack-yaml=stack-ghc8.2.yaml setup
+- stack setup
 #- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 #- stack install shelltestrunner
 
@@ -62,7 +63,8 @@ install:
 # hledger-ui's vty dep isn't available on windows
 # hledger-api not tried recently 
 build_script:
-- stack --stack-yaml=stack-ghc8.2.yaml build --test --copy-bins --local-bin-path=. hledger hledger-web
+#- stack --stack-yaml=stack-ghc8.2.yaml build --test --copy-bins --local-bin-path=. hledger hledger-web
+- stack build --test --copy-bins --local-bin-path=. hledger hledger-web
 - 7z a -tzip hledger.zip hledger.exe hledger-web.exe
 #- hledger-install/hledger-install.sh
 #- make stacktest
