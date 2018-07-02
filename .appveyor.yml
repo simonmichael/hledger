@@ -29,6 +29,7 @@ environment:
 cache:
 - "%LOCALAPPDATA%\\Programs\\stack"
 - C:\sr
+- C:\Users\appveyor\AppData\Roaming\local\bin
 - .stack-work
 - hledger-lib\.stack-work -> hledger-lib\**
 - hledger\.stack-work     -> hledger\**
@@ -39,8 +40,12 @@ install:
 - 7z x stack.zip stack.exe
 - stack --version
 # temporary, troubleshooting https://github.com/commercialhaskell/stack/issues/4125
+- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 - stack upgrade --git
 - stack --version
+- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack .
+- stack --version
+
 #
 # install ghc
 # using ghc 8.2 to avoid a hledger-web -> network/stack build issue on windows,
