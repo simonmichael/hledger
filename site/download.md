@@ -33,7 +33,7 @@ but they can be [out of date](https://repology.org/metapackage/hledger/badges) o
 
 |
 |----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-| Windows:             | [1.9.1](https://ci.appveyor.com/api/buildjobs/ln9saus4y41gr1n8/artifacts/hledger.zip) or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) (<span class=warnings>[no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444), [doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774), [unusually many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791))</span>
+| Windows:             | [1.9.1](https://ci.appveyor.com/api/buildjobs/ln9saus4y41gr1n8/artifacts/hledger.zip) or [latest nightly dev build](https://ci.appveyor.com/api/projects/simonmichael/hledger/artifacts/hledger.zip?branch=master) (<span class=warnings>[no hledger-ui](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444), [doesn't work on old windows ?](https://github.com/simonmichael/hledger/issues/774), [unusually many files in PATH causing hangs](https://github.com/simonmichael/hledger/issues/791), [appveyor builds have been failing again](https://github.com/simonmichael/hledger/issues/832) )</span>
 | Mac:                 | **`brew install hledger`** <span class=warnings>([only hledger CLI](https://github.com/simonmichael/hledger/issues/321#issuecomment-179920520))</span>
 | Arch Linux:          | **`pacman -S hledger`**
 | Debian,&nbsp;Ubuntu: | **`sudo apt install hledger hledger-ui hledger-web`**
@@ -148,10 +148,9 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 
     On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-2. **`stack install --resolver=lts hledger-lib-1.10 hledger-1.10 [hledger-ui-1.10] [hledger-web-1.10.1] [hledger-api-1.10]`**\
-    This installs the specified hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
-    The bracketed packages are optional; if you include them, don't type the brackets, and do always 
-    include the preceding hledger-lib and hledger packages.\
+2. **`stack install --resolver=nightly-2018-06-02 hledger-lib-1.10 hledger-1.10 hledger-ui-1.10 fsnotify-0.3.0.1 hledger-web-1.10.1 hledger-api-1.10`**\
+    This installs the main hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
+    You can save some time by omitting hledger-* packages you don't want.\
     <span class=warnings>([windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
 
     The command above uses stackage's nightly snapshot.
@@ -182,7 +181,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
    and [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
    can be installed similarly to the above. Eg:
 
-    **`stack install --resolver=lts hledger-lib-1.10 hledger-1.10 hledger-iadd-1.3.5`**
+    **`stack install --resolver=nightly-2018-06-02 hledger-lib-1.10 hledger-1.10 hledger-iadd-1.3.5`**
 
 6. **[Test](#test)**
 
