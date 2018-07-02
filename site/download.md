@@ -70,6 +70,7 @@ Also, here are some known build issues and workarounds:\
 ### b1. with hledger-install
 
 Our [hledger-install script](https://github.com/simonmichael/hledger/tree/master/hledger-install)
+(last updated: [2018/07/02](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh))
 is recommended as the easiest and most-likely-to-just-work build method,
 on GNU/linux, mac and freeBSD
 (and possibly other BSDs if you install cabal-install first, or on unixlike environments on windows):
