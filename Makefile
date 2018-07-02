@@ -720,6 +720,9 @@ travistest: $(call def-help,travistest, run tests similar to our travis CI tests
 # releasetest: Clean unittest functest fullcabaltest haddocktest #buildtest doctest \
 # 	$(call def-help,releasetest,pre-release tests)
 
+HLEDGERINSTALLSH=$(PWD)/hledger-install/hledger-install.sh 
+installtest: $(call def-help,installtest, run hledger-install.sh from another directory)
+	(cd; $(HLEDGERINSTALLSH))
 
 ###############################################################################
 $(call def-help-subheading,BENCHMARKING:)
