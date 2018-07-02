@@ -50,8 +50,8 @@ h4 { margin-top:2em; }
 Here are the changes in major hledger releases, and any more-recent minor releases.
 
 The [hledger installer](http://hledger.org/download#b1.-with-hledger-install)
-was last updated on 2018/06/30
-([changes](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh))
+was last updated on 
+([2018/07/02](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh)).
 
 <!--
 ## Latest minor release
@@ -102,7 +102,7 @@ Nana Amfo.
 
 * build cleanly with all supported GHC versions again (7.10 to 8.4)
 
-* support/use latest base-compat (#794)
+* support/uses latest base-compat (#794)
 
 * support/require megaparsec 6.4+
 
@@ -173,7 +173,7 @@ Nana Amfo.
 
 * smart dates now allow  the YYYYMM format, and are better documented
 
-* use hledger-lib 1.10
+* uses hledger-lib 1.10
 
 
 ### hledger-ui 1.10
@@ -184,12 +184,10 @@ Nana Amfo.
 
 * support/require fsnotify 0.3.0.1+
 
-* use hledger-lib 1.10
+* uses hledger-lib 1.10
 
 
 ### hledger-web 1.10
-
-* multiple -f options, and --auto, work again
 
 * view, add, edit permissions can be set at CLI or by Sandstorm HTTP header
 
@@ -199,12 +197,14 @@ Nana Amfo.
 
 * the e key toggles empty accounts in the sidebar
 
-* use hledger-lib 1.10
+* multiple -f options, and --auto, work again
+
+* uses hledger-lib 1.10
 
 
 ### hledger-api 1.10
 
-* use hledger-lib 1.10
+* uses hledger-lib 1.10
 
 
 
