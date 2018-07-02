@@ -38,11 +38,12 @@ install:
 - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 - 7z x stack.zip stack.exe
 - stack --version
+#
 # install ghc
-# using 8.2 to avoid a hledger-web -> network/stack build issue on windows
+# using ghc 8.2 to avoid a hledger-web -> network/stack build issue on windows,
+# network 2.7.0.1 should work around it when released
 # https://github.com/haskell/network/issues/313
 # https://github.com/commercialhaskell/stack/issues/3944
-# network 2.7.0.1 should work around it when released
 - stack --stack-yaml=stack-ghc8.2.yaml setup
 #- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 #- stack install shelltestrunner
