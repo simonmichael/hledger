@@ -15,7 +15,7 @@ import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async
 import Control.Monad
 -- import Control.Monad.IO.Class (liftIO)
-#if !MIN_VERSION_vty(0,15,0)
+#if !MIN_VERSION_vty(5,15,0)
 import Data.Default (def)
 #endif
 -- import Data.Monoid              --
@@ -228,7 +228,7 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
             )
 
         -- and start the app. Must be inside the withManager block
-#if MIN_VERSION_vty(0,15,0)
+#if MIN_VERSION_vty(5,15,0)
         let myVty = mkVty mempty
 #else
         let myVty = mkVty def
