@@ -1,6 +1,13 @@
 User-visible changes in hledger-ui. See also hledger, hledger-lib.
 
 
+# 1.10.1 (2018/7/3)
+
+* restore support for fsnotify 0.2.1.2, as well as 0.3.x (#833)
+
+* fix a vty version bound & possibly build failures with old vty (#494)
+
+
 # 1.10 (2018/6/30)
 
 * the effect of --value, --forecast, and --anon flags is now preserved on reload (#753)
