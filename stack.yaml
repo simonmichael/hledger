@@ -9,10 +9,7 @@ packages:
 - hledger-web
 - hledger-api
 
-extra-deps:
-# hledger-ui
-# newer fsnotify has a different api and may be more robust
-- fsnotify-0.3.0.1
+#extra-deps:
 
 nix:
   pure: false

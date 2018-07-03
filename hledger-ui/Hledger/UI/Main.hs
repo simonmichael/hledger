@@ -212,7 +212,12 @@ runBrickUi uopts@UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}} j = do
           d
           -- predicate: ignore changes not involving our files
           (\fev -> case fev of
-            Modified f _ False -> f `elem` files
+#if MIN_VERSION_fsnotify(0,3,0)
+            Modified f _ False
+#else
+            Modified f _
+#endif
+                               -> f `elem` files
             -- Added    f _ -> f `elem` files
             -- Removed  f _ -> f `elem` files
             -- we don't handle adding/removing journal files right now

@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 93120fb2299854b48774c4d03660702d22bd43021aa4030f664636b8bc0d0738
+-- hash: 8d627646c88a184e5c5ceee98240bc0a5e80936fb197fef9b480c422526f1d7c
 
 name:           hledger-ui
 version:        1.10
@@ -75,7 +75,7 @@ executable hledger-ui
     , data-default
     , directory
     , filepath
-    , fsnotify >=0.3.0.1
+    , fsnotify >=0.2.1.2 && <0.4
     , hledger >=1.10 && <1.11
     , hledger-lib >=1.10 && <1.11
     , megaparsec >=6.4.1
