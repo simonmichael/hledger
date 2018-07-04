@@ -43,7 +43,7 @@ install:
 - move stack.exe stack-release.exe
 - stack-release --version
 - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
-- stack upgrade --git-branch 4125-cabal-style-build-tools
+- stack-release upgrade --git-branch 4125-cabal-style-build-tools
 - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe .
 - copy stack.exe stack-512f76f3.exe
 - stack --version
