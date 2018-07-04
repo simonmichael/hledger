@@ -1003,35 +1003,47 @@ FILE FORMAT
        normal transactions, but with an extra tag named recur, whose value  is
        the generating period expression.
 
-       Forecast transactions begin on or after the day after the latest normal
-       (non-periodic) transaction in the journal, or today if there are  none.
+       Forecast  transactions  start  on  the first occurrence, and end on the
+       last occurrence, of their interval within  the  forecast  period.   The
+       forecast period:
 
-       They  end  on  or  before the report end date if specified, or 180 days
-       from today if unspecified.
+       o begins on the later of
 
-       Forecasting can be useful for estimating balances into the future,  and
-       experimenting  with  different  scenarios.   Note  the start date logic
+         o the report start date if specified with -b/-p/date:
+
+         o the  day  after the latest normal (non-periodic) transaction in the
+           journal, or today if there are no normal transactions.
+
+       o ends on the report end date if specified  with  -e/-p/date:,  or  180
+         days from today.
+
+       where  "today"  means  the current date at report time.  The "later of"
+       rule ensures that forecast transactions do not overlap normal  transac-
+       tions in time; they will begin only after normal transactions end.
+
+       Forecasting  can be useful for estimating balances into the future, and
+       experimenting with different scenarios.   Note  the  start  date  logic
        means that forecasted transactions are automatically replaced by normal
        transactions as you add those.
 
        Forecasting can also help with data entry: describe most of your trans-
-       actions with periodic rules, and every so  often  copy  the  output  of
+       actions  with  periodic  rules,  and  every so often copy the output of
        print --forecast to the journal.
 
        You can generate one-time transactions too: just write a period expres-
-       sion specifying a date with no report interval.  (You could also  write
-       a  normal  transaction  with  a future date, but remember this disables
+       sion  specifying a date with no report interval.  (You could also write
+       a normal transaction with a future date,  but  remember  this  disables
        forecast transactions on previous dates.)
 
    Budgeting with periodic transactions
-       With the --budget flag, currently supported  by  the  balance  command,
-       each  periodic transaction rule declares recurring budget goals for the
-       specified accounts.  Eg the first example  above  declares  a  goal  of
-       spending  $2000  on  rent  (and  also,  a goal of depositing $2000 into
-       checking) every month.  Goals and actual performance can then  be  com-
+       With  the  --budget  flag,  currently supported by the balance command,
+       each periodic transaction rule declares recurring budget goals for  the
+       specified  accounts.   Eg  the  first  example above declares a goal of
+       spending $2000 on rent (and also,  a  goal  of  depositing  $2000  into
+       checking)  every  month.  Goals and actual performance can then be com-
        pared in budget reports.
 
-       For  more  details, see: balance: Budget report and Cookbook: Budgeting
+       For more details, see: balance: Budget report and  Cookbook:  Budgeting
        and Forecasting.
 
    Automated postings
@@ -1039,20 +1051,20 @@ FILE FORMAT
        certain transactions at report time, when the --auto flag is used.
 
        An automated posting rule looks like a normal journal entry, except the
-       first line is an equal sign (=) followed by a query (mnemonic: =  looks
+       first  line is an equal sign (=) followed by a query (mnemonic: = looks
        like posting lines):
 
               = expenses:gifts
                   budget:gifts  *-1
                   assets:budget  *1
 
-       The  posting  amounts can be of the form *N, which means "the amount of
-       the matched transaction's first posting, multiplied by  N".   They  can
+       The posting amounts can be of the form *N, which means "the  amount  of
+       the  matched  transaction's  first posting, multiplied by N".  They can
        also be ordinary fixed amounts.  Fixed amounts with no commodity symbol
-       will be given the same commodity as  the  matched  transaction's  first
+       will  be  given  the  same commodity as the matched transaction's first
        posting.
 
-       This  example adds a corresponding (unbalanced) budget posting to every
+       This example adds a corresponding (unbalanced) budget posting to  every
        transaction involving the expenses:gifts account:
 
               = expenses:gifts
@@ -1068,16 +1080,16 @@ FILE FORMAT
                   (budget:gifts)            $-20
                   assets
 
-       Like postings recorded  by  hand,  automated  postings  participate  in
+       Like  postings  recorded  by  hand,  automated  postings participate in
        transaction balancing, missing amount inference and balance assertions.
 
 EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
-       nal  files  easier.   They add colour, navigation aids and helpful com-
-       mands.  For hledger users who  edit  the  journal  file  directly  (the
+       nal files easier.  They add colour, navigation aids  and  helpful  com-
+       mands.   For  hledger  users  who  edit  the journal file directly (the
        majority), using one of these modes is quite recommended.
 
-       These  were  written  with  Ledger  in mind, but also work with hledger
+       These were written with Ledger in mind,  but  also  work  with  hledger
        files:
 
 
@@ -1090,14 +1102,13 @@ EDITOR SUPPORT
        Textmate       https://github.com/ledger/ledger/wiki/Using-TextMate-2
        Text   Wran-   https://github.com/ledger/ledger/wiki/Edit-
        gler           ing-Ledger-files-with-TextWrangler
-
        Visual  Stu-   https://marketplace.visualstudio.com/items?item-
        dio Code       Name=mark-hansen.hledger-vscode
 
 
 
 REPORTING BUGS
-       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
+       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
        or hledger mail list)
 
 
@@ -1111,7 +1122,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
+       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
@@ -1119,4 +1130,4 @@ SEE ALSO
 
 
 
-hledger 1.9.99                     June 2018                hledger_journal(5)
+hledger 1.10                       June 2018                hledger_journal(5)
