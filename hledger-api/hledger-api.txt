@@ -117,4 +117,4 @@ SEE ALSO
 
 
 
-hledger-api 1.9.99                 June 2018                    hledger-api(1)
+hledger-api 1.10                   June 2018                    hledger-api(1)

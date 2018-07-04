@@ -3,8 +3,8 @@ This is hledger-ui.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger-ui.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 
-hledger-ui(1) hledger-ui 1.9.99
-*******************************
+hledger-ui(1) hledger-ui 1.10
+*****************************
 
 hledger-ui is hledger's curses-style interface, providing an efficient
 full-window text UI for viewing accounts and transactions, and some
@@ -377,19 +377,19 @@ to cancel the reload attempt.)
 
 Tag Table:
 Node: Top71
-Node: OPTIONS827
-Ref: #options924
-Node: KEYS4141
-Ref: #keys4236
-Node: SCREENS7195
-Ref: #screens7280
-Node: Accounts screen7370
-Ref: #accounts-screen7498
-Node: Register screen9728
-Ref: #register-screen9883
-Node: Transaction screen11957
-Ref: #transaction-screen12115
-Node: Error screen12985
-Ref: #error-screen13107
+Node: OPTIONS823
+Ref: #options920
+Node: KEYS4137
+Ref: #keys4232
+Node: SCREENS7191
+Ref: #screens7276
+Node: Accounts screen7366
+Ref: #accounts-screen7494
+Node: Register screen9724
+Ref: #register-screen9879
+Node: Transaction screen11953
+Ref: #transaction-screen12111
+Node: Error screen12981
+Ref: #error-screen13103
 
 End Tag Table

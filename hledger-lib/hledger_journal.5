@@ -1,6 +1,6 @@
 .\"t
 
-.TH "hledger_journal" "5" "June 2018" "hledger 1.9.99" "hledger User Manuals"
+.TH "hledger_journal" "5" "June 2018" "hledger 1.10" "hledger User Manuals"
 
 
 
@@ -1410,11 +1410,26 @@ These are not saved in the journal, but appear in all reports.
 They will look like normal transactions, but with an extra tag named
 \f[C]recur\f[], whose value is the generating period expression.
 .PP
-Forecast transactions begin on or after the day after the latest normal
-(non\-periodic) transaction in the journal, or today if there are none.
+Forecast transactions start on the first occurrence, and end on the last
+occurrence, of their interval within the forecast period.
+The forecast period:
+.IP \[bu] 2
+begins on the later of
+.RS 2
+.IP \[bu] 2
+the report start date if specified with \-b/\-p/date:
+.IP \[bu] 2
+the day after the latest normal (non\-periodic) transaction in the
+journal, or today if there are no normal transactions.
+.RE
+.IP \[bu] 2
+ends on the report end date if specified with \-e/\-p/date:, or 180 days
+from today.
 .PP
-They end on or before the report end date if specified, or 180 days from
-today if unspecified.
+where \[lq]today\[rq] means the current date at report time.
+The \[lq]later of\[rq] rule ensures that forecast transactions do not
+overlap normal transactions in time; they will begin only after normal
+transactions end.
 .PP
 Forecasting can be useful for estimating balances into the future, and
 experimenting with different scenarios.
