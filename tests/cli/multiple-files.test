@@ -58,3 +58,11 @@ hledger print -f personal.journal -f ../journal/a.timeclock -f ../journal/b.time
 
 >>>2
 >>>=0
+
+# 4. same-date transactions in different files are shown in the right order
+hledger -f a.j -f b.j reg
+>>>
+2018/01/01 a1                   (a)                              1             1
+2018/01/01 b1                   (b)                              1             2
+>>>2
+>>>=0
