@@ -37,15 +37,15 @@ cache:
 
 install:
 # temporary, troubleshooting https://github.com/commercialhaskell/stack/issues/4125
-# - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
-# - 7z x stack.zip stack.exe
-#- move stack.exe stack-release.exe
-#- stack-release --version
+- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack-81889990.exe
+- curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
+- 7z x stack.zip stack.exe
+- move stack.exe stack-release.exe
+- stack-release --version
 - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
-- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack-git.exe
-- stack --version
-- stack-git upgrade --git-branch 4125-cabal-style-build-tools
+- stack upgrade --git-branch 4125-cabal-style-build-tools
 - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe .
+- copy stack.exe stack-512f76f3.exe
 - stack --version
 
 #
