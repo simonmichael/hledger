@@ -36,13 +36,15 @@ cache:
 - hledger-web\.stack-work -> hledger-web\**
 
 install:
-- curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
-- 7z x stack.zip stack.exe
 # temporary, troubleshooting https://github.com/commercialhaskell/stack/issues/4125
-- move stack.exe stack-release.exe
-- stack-release --version
+# - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
+# - 7z x stack.zip stack.exe
+#- move stack.exe stack-release.exe
+#- stack-release --version
 - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
-- stack-release upgrade --git--branch 4125-cabal-style-build-tools
+- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack-git.exe
+- stack --version
+- stack-git upgrade --git--branch 4125-cabal-style-build-tools
 - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe .
 - stack --version
 
