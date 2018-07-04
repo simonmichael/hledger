@@ -50,12 +50,12 @@ install:
 
 #
 # install ghc
-# using ghc 8.2 to avoid a hledger-web -> network/stack build issue on windows,
+#- stack setup
+# use ghc 8.2 to avoid a hledger-web -> network/stack build issue on windows,
 # network 2.7.0.1 should work around it when released
 # https://github.com/haskell/network/issues/313
 # https://github.com/commercialhaskell/stack/issues/3944
-#- stack --stack-yaml=stack-ghc8.2.yaml setup
-- stack setup
+- stack --stack-yaml=stack-ghc8.2.yaml setup
 #- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 #- stack install shelltestrunner
 
@@ -64,8 +64,8 @@ install:
 # hledger-ui's vty dep isn't available on windows
 # hledger-api not tried recently 
 build_script:
-#- stack --stack-yaml=stack-ghc8.2.yaml build --test --copy-bins --local-bin-path=. hledger hledger-web
-- stack build --test --copy-bins --local-bin-path=. hledger hledger-web
+#- stack build --test --copy-bins --local-bin-path=. hledger hledger-web
+- stack build --test --copy-bins --local-bin-path=. hledger hledger-web --stack-yaml=stack-ghc8.2.yaml
 - 7z a -tzip hledger.zip hledger.exe hledger-web.exe
 #- hledger-install/hledger-install.sh
 #- make stacktest
