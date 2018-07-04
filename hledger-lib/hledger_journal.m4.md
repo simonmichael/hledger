@@ -1022,12 +1022,14 @@ of their interval within the forecast period. The forecast period:
 - begins on the later of
   - the report start date if specified with -b/-p/date:
   - the day after the latest normal (non-periodic) transaction in the journal,
-    (or today if there are no normal transactions).
+    or today if there are no normal transactions.
 
 - ends on the report end date if specified with -e/-p/date:,
   or 180 days from today.
 
 where "today" means the current date at report time.
+The "later of" rule ensures that forecast transactions do not overlap normal transactions in time;
+they will begin only after normal transactions end.
 
 Forecasting can be useful for estimating balances into the future, 
 and experimenting with different scenarios.
