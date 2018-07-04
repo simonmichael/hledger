@@ -44,7 +44,7 @@ install:
 - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack-git.exe
 - stack --version
-- stack-git upgrade --git--branch 4125-cabal-style-build-tools
+- stack-git upgrade --git-branch 4125-cabal-style-build-tools
 - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe .
 - stack --version
 
