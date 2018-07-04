@@ -249,4 +249,4 @@ SEE ALSO
 
 
 
-hledger 1.10                       June 2018                    hledger_csv(5)
+hledger 1.10                       July 2018                    hledger_csv(5)
