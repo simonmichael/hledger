@@ -1016,11 +1016,18 @@ These are not saved in the journal, but appear in all reports.
 They will look like normal transactions, but with an extra
 [tag](manual.html#tags-1) named `recur`, whose value is the generating period expression.
 
-Forecast transactions begin 
-on or after the day after the latest normal (non-periodic) transaction in the journal,
-or today if there are none.
+Forecast transactions start on the first occurrence, and end on the last occurrence,
+of their interval within the forecast period. The forecast period:
 
-They end on or before the report end date if specified, or 180 days from today if unspecified.
+- begins on the later of
+  - the report start date if specified with -b/-p/date:
+  - the day after the latest normal (non-periodic) transaction in the journal,
+    (or today if there are no normal transactions).
+
+- ends on the report end date if specified with -e/-p/date:,
+  or 180 days from today.
+
+where "today" means the current date at report time.
 
 Forecasting can be useful for estimating balances into the future, 
 and experimenting with different scenarios.
