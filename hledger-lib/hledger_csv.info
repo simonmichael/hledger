@@ -3,8 +3,8 @@ This is hledger_csv.info, produced by makeinfo version 6.5 from stdin.
 
 File: hledger_csv.info,  Node: Top,  Next: CSV RULES,  Up: (dir)
 
-hledger_csv(5) hledger 1.10
-***************************
+hledger_csv(5) hledger 1.10.99
+******************************
 
 hledger can read CSV (comma-separated value) files as if they were
 journal files, automatically converting each CSV record into a
@@ -317,33 +317,33 @@ one rules file will be used for all the CSV files being read.
 
 Tag Table:
 Node: Top72
-Node: CSV RULES2163
-Ref: #csv-rules2271
-Node: skip2533
-Ref: #skip2627
-Node: date-format2799
-Ref: #date-format2926
-Node: field list3432
-Ref: #field-list3569
-Node: field assignment4274
-Ref: #field-assignment4429
-Node: conditional block4933
-Ref: #conditional-block5087
-Node: include5983
-Ref: #include6113
-Node: newest-first6344
-Ref: #newest-first6458
-Node: CSV TIPS6869
-Ref: #csv-tips6963
-Node: CSV ordering7081
-Ref: #csv-ordering7199
-Node: CSV accounts7380
-Ref: #csv-accounts7518
-Node: CSV amounts7772
-Ref: #csv-amounts7918
-Node: CSV balance assertions8693
-Ref: #csv-balance-assertions8875
-Node: Reading multiple CSV files9080
-Ref: #reading-multiple-csv-files9250
+Node: CSV RULES2169
+Ref: #csv-rules2277
+Node: skip2539
+Ref: #skip2633
+Node: date-format2805
+Ref: #date-format2932
+Node: field list3438
+Ref: #field-list3575
+Node: field assignment4280
+Ref: #field-assignment4435
+Node: conditional block4939
+Ref: #conditional-block5093
+Node: include5989
+Ref: #include6119
+Node: newest-first6350
+Ref: #newest-first6464
+Node: CSV TIPS6875
+Ref: #csv-tips6969
+Node: CSV ordering7087
+Ref: #csv-ordering7205
+Node: CSV accounts7386
+Ref: #csv-accounts7524
+Node: CSV amounts7778
+Ref: #csv-amounts7924
+Node: CSV balance assertions8699
+Ref: #csv-balance-assertions8881
+Node: Reading multiple CSV files9086
+Ref: #reading-multiple-csv-files9256
 
 End Tag Table

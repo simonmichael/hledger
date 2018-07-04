@@ -8,7 +8,7 @@ m4_define({{_webcombined_}}, m4_ifdef({{WEB && COMBINED}},{{$1}}) )m4_dnl
 m4_dnl
 m4_define({{_author_}}, {{}})m4_dnl
 m4_define({{_monthyear_}}, {{July 2018}})m4_dnl
-m4_define({{_version_}}, {{1.10}})m4_dnl
+m4_define({{_version_}}, {{1.10.99}})m4_dnl
 m4_dnl
 m4_dnl Links to dev and recent release versions of a manual.
 m4_dnl $1 is the manual's web slug: hledger, hledger-ui, journal, csv etc.
