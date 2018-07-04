@@ -225,16 +225,21 @@ moveFlagsAfterCommand args = moveArgs $ ensureDebugHasArg args
        (bs,"--debug":[])                                   -> bs++"--debug=1":[]
        _                                                   -> as
 
-    -- -h ..., --version ...
-    moveArgs (f:a:as)   | isMovableNoArgFlag f                   = (moveArgs $ a:as) ++ [f]
-    -- -f FILE ..., --alias ALIAS ...
-    moveArgs (f:v:a:as) | isMovableReqArgFlag f, isValue v       = (moveArgs $ a:as) ++ [f,v]
-    -- -fFILE ..., --alias=ALIAS ...
-    moveArgs (fv:a:as)  | isMovableReqArgFlagAndValue fv         = (moveArgs $ a:as) ++ [fv]
-    -- -f(missing arg)
-    moveArgs (f:a:as)   | isMovableReqArgFlag f, not (isValue a) = (moveArgs $ a:as) ++ [f]
-    -- anything else
-    moveArgs as = as
+    moveArgs args = insertFlagsAfterCommand $ moveArgs' (args, [])
+      where
+        -- -h ..., --version ...
+        moveArgs' ((f:a:as), flags)   | isMovableNoArgFlag f                   = moveArgs' (a:as, flags ++ [f])
+        -- -f FILE ..., --alias ALIAS ...
+        moveArgs' ((f:v:a:as), flags) | isMovableReqArgFlag f, isValue v       = moveArgs' (a:as, flags ++ [f,v])
+        -- -fFILE ..., --alias=ALIAS ...
+        moveArgs' ((fv:a:as), flags)  | isMovableReqArgFlagAndValue fv         = moveArgs' (a:as, flags ++ [fv])
+        -- -f(missing arg)
+        moveArgs' ((f:a:as), flags)   | isMovableReqArgFlag f, not (isValue a) = moveArgs' (a:as, flags ++ [f])
+        -- anything else
+        moveArgs' (as, flags) = (as, flags)
+
+        insertFlagsAfterCommand ([],           flags) = flags
+        insertFlagsAfterCommand (command:args, flags) = [command] ++ flags ++ args
 
 isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` noargflagstomove
 
