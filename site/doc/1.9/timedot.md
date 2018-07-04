@@ -1,6 +1,6 @@
 # timedot format
 
-This doc is for version **1.9 (dev)**. []{.docversions}
+This doc is for version **1.9.1**. []{.docversions}
 
 \$toc\$
 
@@ -96,7 +96,7 @@ Balance changes in 2016/02/01-2016/02/03:
 ```
 
 I prefer to use period for separating account components. We can make
-this work with an [account alias](/journal.html#account-aliases):
+this work with an [account alias](/journal.html#rewriting-accounts):
 
 ``` {.timedot}
 2016/2/4

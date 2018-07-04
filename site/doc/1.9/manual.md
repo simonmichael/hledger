@@ -1,10 +1,8 @@
 \$toc\$
 
-
-
 ## hledger
 
-This doc is for version **1.9 (dev)**. []{.docversions}
+This doc is for version **1.9.1**. []{.docversions}
 
 ### NAME
 
@@ -708,7 +706,7 @@ in a number of places:
 -   [query terms](#queries), on the command line and in the hledger-web
     search form: `REGEX`, `desc:REGEX`, `cur:REGEX`, `tag:...=REGEX`
 -   [CSV rules](#csv-rules) conditional blocks: `if REGEX ...`
--   [account alias](#account-aliases) directives and options:
+-   [account alias](#rewriting-accounts) directives and options:
     `alias /REGEX/ = REPLACEMENT`, `--alias /REGEX/=REPLACEMENT`
 
 hledger's regular expressions come from the
@@ -773,11 +771,9 @@ which:
 The following kinds of search terms can be used. Remember these can also
 be prefixed with **`not:`**, eg to exclude a particular subaccount.
 
-**`REGEX`**
-:   match account names by this regular expression. (No prefix is
-    equivalent to `acct:`).
-
-**`acct:REGEX`**
+**`REGEX`, `acct:REGEX`**
+:   match account names by this regular expression. (With no prefix,
+    `acct:` is assumed.)
 :   same as above
 
 **`amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N`**
@@ -1120,8 +1116,33 @@ Show accounts and their balances. Aliases: b, bal.
 `--show-unbudgeted`
 :   with --budget, show unbudgeted accounts also
 
-The balance command displays accounts and balances. It is hledger's most
-featureful and versatile command.
+The balance command is hledger's most versatile command. Note, despite
+the name, it is not always used for showing real-world account balances;
+the more accounting-aware [balancesheet](#balancesheet) and
+[incomestatement](#incomestatement) may be more convenient for that.
+
+By default, it displays all accounts, and each account's change in
+balance during the entire period of the journal. Balance changes are
+calculated by adding up the postings in each account. You can limit the
+postings matched, by a [query](#queries), to see fewer accounts, changes
+over a different time period, changes from only cleared transactions,
+etc.
+
+If you include an account's complete history of postings in the report,
+the balance change is equivalent to the account's current ending
+balance. For a real-world account, typically you won't have all
+transactions in the journal; instead you'll have all transactions after
+a certain date, and an "opening balances" transaction setting the
+correct starting balance on that date. Then the balance command will
+show real-world account balances. In some cases the -H/--historical flag
+is used to ensure this (more below).
+
+The balance command can produce several styles of report:
+
+##### Classic balance report
+
+This is the original balance report, as found in Ledger. It usually
+looks like this:
 
 ``` {.shell}
 $ hledger balance
@@ -1139,19 +1160,14 @@ $ hledger balance
                    0
 ```
 
-More precisely, the balance command shows the *change* to each account's
-balance caused by all (matched) postings. In the common case where you
-do not filter by date and your journal sets the correct opening
-balances, this is the same as the account's ending balance.
-
 By default, accounts are displayed hierarchically, with subaccounts
 indented below their parent. At each level of the tree, accounts are
-sorted by [account code](/manual.html#account-directive) if any, then by
-account name. Or with `-S/--sort-amount`, by their balance amount.
+sorted by [account code](/manual.html#declaring-accounts) if any, then
+by account name. Or with `-S/--sort-amount`, by their balance amount.
 
 "Boring" accounts, which contain a single interesting subaccount and no
 balance of their own, are elided into the following line for more
-compact output. (Not yet supported in tabular reports.) Use `--no-elide`
+compact output. (Eg above, the "liabilities" account.) Use `--no-elide`
 to prevent this.
 
 Account balances are "inclusive" - they include the balances of any
@@ -1161,7 +1177,7 @@ Accounts which have zero balance (and no non-zero subaccounts) are
 omitted. Use `-E/--empty` to show them.
 
 A final total is displayed by default; use `-N/--no-total` to suppress
-it:
+it, eg:
 
 ``` {.shell}
 $ hledger balance -p 2008/6 expenses --no-total
@@ -1170,13 +1186,80 @@ $ hledger balance -p 2008/6 expenses --no-total
                   $1    supplies
 ```
 
+##### Customising the classic balance report
+
+You can customise the layout of classic balance reports with
+`--format FMT`:
+
+``` {.shell}
+$ hledger balance --format "%20(account) %12(total)"
+              assets          $-1
+         bank:saving           $1
+                cash          $-2
+            expenses           $2
+                food           $1
+            supplies           $1
+              income          $-2
+               gifts          $-1
+              salary          $-1
+   liabilities:debts           $1
+---------------------------------
+                                0
+```
+
+The FMT format string (plus a newline) specifies the formatting applied
+to each account/balance pair. It may contain any suitable text, with
+data fields interpolated like so:
+
+`%[MIN][.MAX](FIELDNAME)`
+
+-   MIN pads with spaces to at least this width (optional)
+-   MAX truncates at this width (optional)
+-   FIELDNAME must be enclosed in parentheses, and can be one of:
+
+    -   `depth_spacer` - a number of spaces equal to the account's
+        depth, or if MIN is specified, MIN \* depth spaces.
+    -   `account` - the account's name
+    -   `total` - the account's balance/posted total, right justified
+
+Also, FMT can begin with an optional prefix to control how
+multi-commodity amounts are rendered:
+
+-   `%_` - render on multiple lines, bottom-aligned (the default)
+-   `%^` - render on multiple lines, top-aligned
+-   `%,` - render on one line, comma-separated
+
+There are some quirks. Eg in one-line mode, `%(depth_spacer)` has no
+effect, instead `%(account)` has indentation built in. <!-- XXX retest:
+Consistent column widths are not well enforced, causing ragged edges unless you set suitable widths.
+Beware of specifying a maximum width; it will clip account names and amounts that are too wide, with no visible indication.
+--> Experimentation may be needed to get pleasing results.
+
+Some example formats:
+
+-   `%(total)` - the account's total
+-   `%-20.20(account)` - the account's name, left justified, padded to
+    20 characters and clipped at 20 characters
+-   `%,%-50(account)  %25(total)` - account name padded to 50
+    characters, total padded to 20 characters, with multiple commodities
+    rendered on one line
+-   `%20(total)  %2(depth_spacer)%-(account)` - the default format for
+    the single-column balance report
+
+##### Colour support
+
+The balance command shows negative amounts in red, if:
+
+-   the `TERM` environment variable is not set to `dumb`
+-   the output is not being redirected or piped anywhere
+
 ##### Flat mode
 
-To see a flat list of full account names instead of the default
-hierarchical display, use `--flat`. In this mode, accounts (unless
-depth-clipped) show their "exclusive" balance, excluding any subaccount
-balances. In this mode, you can also use `--drop N` to omit the first
-few account name components.
+To see a flat list instead of the default hierarchical display, use
+`--flat`. In this mode, accounts (unless depth-clipped) show their full
+names and "exclusive" balance, excluding any subaccount balances. In
+this mode, you can also use `--drop N` to omit the first few account
+name components.
 
 ``` {.shell}
 $ hledger balance -p 2008/6 expenses -N --flat --drop 1
@@ -1186,30 +1269,37 @@ $ hledger balance -p 2008/6 expenses -N --flat --drop 1
 
 ##### Depth limited balance reports
 
-With `--depth N`, balance shows accounts only to the specified depth.
-This is very useful to show a complex charts of accounts in less detail.
-In flat mode, balances from accounts below the depth limit will be shown
-as part of a parent account at the depth limit.
+With `--depth N` or `depth:N` or just `-N`, balance reports show
+accounts only to the specified numeric depth. This is very useful to
+summarise a complex set of accounts and get an overview.
 
 ``` {.shell}
-$ hledger balance -N --depth 1
+$ hledger balance -N -1
                  $-1  assets
                   $2  expenses
                  $-2  income
                   $1  liabilities
 ```
 
-<!-- $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done -->
-##### Multicolumn balance reports
+Flat-mode balance reports, which normally show exclusive balances, show
+inclusive balances at the depth limit.
 
-With a [reporting interval](#reporting-interval), multiple balance
-columns will be shown, one for each report period. There are three types
-of multi-column balance report, showing different information:
+<!-- $ for y in 2006 2007 2008 2009 2010; do echo; echo $y; hledger -f $y.journal balance ^expenses --depth 2; done -->
+##### Multicolumn balance report
+
+Multicolumn or tabular balance reports are a very useful hledger
+feature, and usually the preferred style. They share many of the above
+features, but they show the report as a table, with columns representing
+time periods. This mode is activated by providing a [reporting
+interval](#reporting-interval).
+
+There are three types of multicolumn balance report, showing different
+information:
 
 1.  By default: each column shows the sum of postings in that period, ie
     the account's change of balance in that period. This is useful eg
     for a monthly income statement: <!--
-        multi-column income statement: 
+        multicolumn income statement: 
 
            $ hledger balance ^income ^expense -p 'monthly this year' --depth 3
 
@@ -1270,8 +1360,8 @@ of multi-column balance report, showing different information:
                           ||           0           0           0 
     ```
 
-Multi-column balance reports display accounts in flat mode by default;
-to see the hierarchy, use `--tree`.
+Multicolumn balance reports display accounts in flat mode by default; to
+see the hierarchy, use `--tree`.
 
 With a reporting interval (like `--quarterly` above), the report
 start/end dates will be adjusted if necessary so that they encompass the
@@ -1312,14 +1402,23 @@ Balance changes in 2008:
 # Average is rounded to the dollar here since all journal amounts are
 ```
 
-##### Budgets
+Limitations:
 
-With `--budget` and a [report interval](manual.html#report-intervals),
-all [periodic transactions](journal.html#periodic-transactions) in your
-journal with that interval, active during the requested report period,
-are interpreted as recurring budget goals for the specified accounts
-(and subaccounts), and the report will show the difference between
-actual and budgeted balances.
+In multicolumn reports the [`-V/--value` flag](#market-value) uses the
+market price on the report end date, for all columns (not the price on
+each column's end date).
+
+Eliding of boring parent accounts in tree mode, as in the classic
+balance report, is not yet supported in multicolumn reports.
+
+##### Budget report
+
+With `--budget`, extra columns are displayed showing budget goals for
+each account and period, if any. Budget goals are defined by [periodic
+transactions](journal.html#periodic-transactions). This is very useful
+for comparing planned and actual income, expenses, time usage, etc.
+--budget is most often combined with a [report
+interval](manual.html#report-intervals).
 
 For example, you can take average monthly expenses in the common expense
 categories to construct a minimal monthly budget:
@@ -1350,140 +1449,58 @@ categories to construct a minimal monthly budget:
   assets:bank:checking
 ```
 
-You can now see a monthly budget performance report:
+You can now see a monthly budget report:
 
 ``` {.shell}
 $ hledger balance -M --budget
-Balance changes in 2017/11/01-2017/12/31:
-
-                       ||                2017/11                  2017/12 
-=======================++=================================================
- <unbudgeted>:expenses ||                    $20                     $100 
- assets:bank:checking  || $-2445 [99% of $-2480]  $-2665 [107% of $-2480] 
- expenses:bus          ||       $49 [98% of $50]        $53 [106% of $50] 
- expenses:food         ||     $396 [99% of $400]      $412 [103% of $400] 
- expenses:movies       ||      $30 [100% of $30]            0 [0% of $30] 
- income                ||   $1950 [98% of $2000]    $2100 [105% of $2000] 
------------------------++-------------------------------------------------
-                       ||                      0                        0 
-```
-
-You can roll over unspent budgets to next period with `--cumulative`:
-
-``` {.shell}
-$ hledger balance -M --budget --cumulative
-Ending balances (cumulative) in 2017/11/01-2017/12/31:
-
-                       ||             2017/11/30               2017/12/31 
-=======================++=================================================
- <unbudgeted>:expenses ||                    $20                     $120 
- assets:bank:checking  || $-2445 [99% of $-2480]  $-5110 [103% of $-4960] 
- expenses:bus          ||       $49 [98% of $50]      $102 [102% of $100] 
- expenses:food         ||     $396 [99% of $400]      $808 [101% of $800] 
- expenses:movies       ||      $30 [100% of $30]         $30 [50% of $60] 
- income                ||   $1950 [98% of $2000]    $4050 [101% of $4000] 
------------------------++-------------------------------------------------
-                       ||                      0                        0
-```
-
-Accounts with no budget goals (not mentioned in the periodic
-transactions) will be aggregated under `<unbudgeted>`, unless you add
-the `--show-unbudgeted` flag to display them normally:
-
-``` {.shell}
-$ hledger balance --budget --show-unbudgeted
-Balance changes in 2017/11/01-2017/12/31:
+Budget performance in 2017/11/01-2017/12/31:
 
                       ||                2017/11                  2017/12 
 ======================++=================================================
+ <unbudgeted>         ||                    $20                     $100 
  assets:bank:checking || $-2445 [99% of $-2480]  $-2665 [107% of $-2480] 
  expenses:bus         ||       $49 [98% of $50]        $53 [106% of $50] 
  expenses:food        ||     $396 [99% of $400]      $412 [103% of $400] 
- expenses:gifts       ||                      0                     $100 
  expenses:movies      ||      $30 [100% of $30]            0 [0% of $30] 
- expenses:supplies    ||                    $20                        0 
  income               ||   $1950 [98% of $2000]    $2100 [105% of $2000] 
 ----------------------++-------------------------------------------------
                       ||                      0                        0 
 ```
 
-Note --budget first arrived in hledger in 1.5 and is still pretty young;
-join the discussions on mail list and issue tracker to help us refine
-it.
+By default, only accounts with budget goals during the report period are
+shown. `--show-unbudgeted` shows unbudgeted accounts as well. Top-level
+accounts with no budget goals anywhere below them are grouped under
+`<unbudgeted>`.
+
+You can roll over unspent budgets to next period with `--cumulative`:
+
+``` {.shell}
+$ hledger balance -M --budget --cumulative
+Budget performance in 2017/11/01-2017/12/31:
+
+                      ||             2017/11/30               2017/12/31 
+======================++=================================================
+ <unbudgeted>         ||                    $20                     $120 
+ assets:bank:checking || $-2445 [99% of $-2480]  $-5110 [103% of $-4960] 
+ expenses:bus         ||       $49 [98% of $50]      $102 [102% of $100] 
+ expenses:food        ||     $396 [99% of $400]      $808 [101% of $800] 
+ expenses:movies      ||      $30 [100% of $30]         $30 [50% of $60] 
+ income               ||   $1950 [98% of $2000]    $4050 [101% of $4000] 
+----------------------++-------------------------------------------------
+                      ||                      0                        0
+```
+
+Note, the `-S/--sort-amount` flag is not yet fully supported with
+`--budget`.
 
 For more examples, see [Budgeting and
 Forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting%20and%20forecasting).
 
-##### Custom balance output
+##### Output format
 
-You can customise the layout of simple (non-tabular) balance reports
-with `--format FMT`:
-
-``` {.shell}
-$ hledger balance --format "%20(account) %12(total)"
-              assets          $-1
-         bank:saving           $1
-                cash          $-2
-            expenses           $2
-                food           $1
-            supplies           $1
-              income          $-2
-               gifts          $-1
-              salary          $-1
-   liabilities:debts           $1
----------------------------------
-                                0
-```
-
-The FMT format string (plus a newline) specifies the formatting applied
-to each account/balance pair. It may contain any suitable text, with
-data fields interpolated like so:
-
-`%[MIN][.MAX](FIELDNAME)`
-
--   MIN pads with spaces to at least this width (optional)
--   MAX truncates at this width (optional)
--   FIELDNAME must be enclosed in parentheses, and can be one of:
-
-    -   `depth_spacer` - a number of spaces equal to the account's
-        depth, or if MIN is specified, MIN \* depth spaces.
-    -   `account` - the account's name
-    -   `total` - the account's balance/posted total, right justified
-
-Also, FMT can begin with an optional prefix to control how
-multi-commodity amounts are rendered:
-
--   `%_` - render on multiple lines, bottom-aligned (the default)
--   `%^` - render on multiple lines, top-aligned
--   `%,` - render on one line, comma-separated
-
-There are some quirks. Eg in one-line mode, `%(depth_spacer)` has no
-effect, instead `%(account)` has indentation built in. <!-- XXX retest:
-Consistent column widths are not well enforced, causing ragged edges unless you set suitable widths.
-Beware of specifying a maximum width; it will clip account names and amounts that are too wide, with no visible indication.
---> Experimentation may be needed to get pleasing results.
-
-Some example formats:
-
--   `%(total)` - the account's total
--   `%-20.20(account)` - the account's name, left justified, padded to
-    20 characters and clipped at 20 characters
--   `%,%-50(account)  %25(total)` - account name padded to 50
-    characters, total padded to 20 characters, with multiple commodities
-    rendered on one line
--   `%20(total)  %2(depth_spacer)%-(account)` - the default format for
-    the single-column balance report
-
-This command also supports [output
+The balance command supports [output
 destination](/manual.html#output-destination) and [output
 format](/manual.html#output-format) selection.
-
-##### Colour support
-
-The balance command shows negative amounts in red, if:
-
--   the `TERM` environment variable is not set to `dumb`
--   the output is not being redirected or piped anywhere
 
 #### balancesheet
 
@@ -2304,7 +2321,7 @@ In a Cygwin/MSYS/Mintty window, the tab key is not supported in hledger
 add.
 
 Not all of Ledger's journal file syntax is supported. See [file format
-differences](faq#file-format-differences).
+differences](https://github.com/simonmichael/hledger/wiki/FAQ#file-formats).
 
 On large data files, hledger is slower and uses more memory than Ledger.
 
@@ -2378,7 +2395,7 @@ accepts `fr_FR.UTF8`, mac osx requires exactly `fr_FR.UTF-8`).
 
 ## hledger-ui
 
-This doc is for version **1.9 (dev)**. []{.docversions}
+This doc is for version **1.9.1**. []{.docversions}
 
 ### NAME
 
@@ -2787,7 +2804,7 @@ program is restarted.
 
 ## hledger-web
 
-This doc is for version **1.9 (dev)**. []{.docversions}
+This doc is for version **1.9.1**. []{.docversions}
 
 ### NAME
 
@@ -3037,7 +3054,7 @@ Does not work well on small screens.
 
 ## hledger-api
 
-This doc is for version **1.9 (dev)**. []{.docversions}
+This doc is for version **1.9.1**. []{.docversions}
 
 ### NAME
 
@@ -3139,7 +3156,7 @@ awkward.
 
 ## journal format
 
-This doc is for version **1.9 (dev)**. []{.docversions}
+This doc is for version **1.9.1**. []{.docversions}
 
 ### NAME
 
@@ -3156,10 +3173,11 @@ a number of transaction entries, each describing a transfer of money (or
 any commodity) between two or more named accounts, in a simple format
 readable by both hledger and humans.
 
-hledger's journal format is a compatible subset,
-[mostly](faq.html#file-format-differences), of [ledger's journal
+hledger's journal format is a compatible subset, mostly, of [ledger's
+journal
 format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format), so
-hledger can work with [compatible](faq.html#file-format-differences)
+hledger can work with
+[compatible](https://github.com/simonmichael/hledger/wiki/FAQ#file-formats)
 ledger journal files as well. It's safe, and encouraged, to run both
 hledger and ledger on the same journal file, eg to validate the results
 you're getting.
@@ -3414,7 +3432,7 @@ Account names may contain single spaces, eg:
 `assets:accounts receivable`. Because of this, they must always be
 followed by **two or more spaces** (or newline).
 
-Account names can be [aliased](#account-aliases).
+Account names can be [aliased](#rewriting-accounts).
 
 #### Amounts
 
@@ -3476,8 +3494,8 @@ hledger displays amounts, it will choose a consistent format for each
 commodity. (Except for [price amounts](#prices), which are always
 formatted as written). The display format is chosen as follows:
 
--   if there is a [commodity directive](#commodity-directive) specifying
-    the format, that is used
+-   if there is a [commodity directive](#declaring-commodities)
+    specifying the format, that is used
 -   otherwise the format is inferred from the first posting amount in
     that commodity in the journal, and the precision (number of decimal
     places) will be the maximum from all posting amounts in that
@@ -3773,10 +3791,6 @@ star (`*`) are comments, and will be ignored. (Star comments cause
 org-mode nodes to be ignored, allowing emacs users to fold and navigate
 their journals with org-mode or orgstruct-mode.)
 
-Also, anything between [`comment` and `end comment`
-directives](#multi-line-comments) is a (multi-line) comment. If there is
-no `end comment`, the comment extends to the end of the file.
-
 You can attach comments to a transaction by writing them after the
 description and/or indented on the following lines (before the
 postings). Similarly, you can attach comments to an individual posting
@@ -3805,6 +3819,9 @@ end comment
     ; another comment line for posting 2
 ; a file comment (because not indented)
 ```
+
+You can also comment larger regions of a file using [`comment` and
+`end comment` directives](#comment-blocks).
 
 #### Tags
 
@@ -3858,7 +3875,156 @@ except hledger's tag values are simple strings.
 
 #### Directives
 
-##### Account aliases
+##### Comment blocks
+
+A line containing just `comment` starts a commented region of the file,
+and a line containing just `end comment` (or the end of the current
+file) ends it. See also [comments](#comments).
+
+##### Including other files
+
+You can pull in the content of additional files by writing an include
+directive, like this:
+
+``` {.journal}
+include path/to/file.journal
+```
+
+If the path does not begin with a slash, it is relative to the current
+file. Glob patterns (`*`) are not currently supported.
+
+The `include` directive can only be used in journal files. It can
+include journal, timeclock or timedot files, but not CSV files.
+
+##### Default year
+
+You can set a default year to be used for subsequent dates which don't
+specify a year. This is a line beginning with `Y` followed by the year.
+Eg:
+
+``` {.journal}
+Y2009      ; set default year to 2009
+
+12/15      ; equivalent to 2009/12/15
+  expenses  1
+  assets
+
+Y2010      ; change default year to 2010
+
+2009/1/30  ; specifies the year, not affected
+  expenses  1
+  assets
+
+1/31       ; equivalent to 2010/1/31
+  expenses  1
+  assets
+```
+
+##### Declaring commodities
+
+The `commodity` directive declares commodities which may be used in the
+journal (though currently we do not enforce this). It may be written on
+a single line, like this:
+
+``` {.journal}
+; commodity EXAMPLEAMOUNT
+
+; display AAAA amounts with the symbol on the right, space-separated,
+; using period as decimal point, with four decimal places, and
+; separating thousands with comma.
+commodity 1,000.0000 AAAA
+```
+
+or on multiple lines, using the "format" subdirective. In this case the
+commodity symbol appears twice and should be the same in both places:
+
+``` {.journal}
+; commodity SYMBOL
+;   format EXAMPLEAMOUNT
+
+; display indian rupees with currency name on the left,
+; thousands, lakhs and crores comma-separated,
+; period as decimal point, and two decimal places.
+commodity INR
+  format INR 9,99,99,999.00
+```
+
+Commodity directives have a second purpose: they define the standard
+display format for amounts in the commodity. Normally the display format
+is inferred from journal entries, but this can be unpredictable;
+declaring it with a commodity directive overrides this and removes
+ambiguity. Towards this end, amounts in commodity directives must always
+be written with a decimal point (a period or comma, followed by 0 or
+more decimal digits).
+
+##### Default commodity
+
+The D directive sets a default commodity (and display format), to be
+used for amounts without a commodity symbol (ie, plain numbers). (Note
+this differs from Ledger's default commodity directive.) The commodity
+and display format will be applied to all subsequent commodity-less
+amounts, or until the next D directive.
+
+``` {.journal}
+# commodity-less amounts should be treated as dollars
+# (and displayed with symbol on the left, thousands separators and two decimal places)
+D $1,000.00
+
+1/1
+  a     5    ; <- commodity-less amount, becomes $1
+  b
+```
+
+As with the `commodity` directive, the amount must always be written
+with a decimal point.
+
+##### Declaring accounts
+
+The `account` directive predeclares account names. The simplest form is
+`account ACCTNAME`, eg:
+
+``` {.journal}
+account assets:bank:checking
+```
+
+Currently this mainly helps with account name autocompletion in eg
+hledger add, hledger-iadd, hledger-web, and ledger-mode.\
+In future it will also help detect misspelled accounts.
+
+Account names can be followed by a numeric account code:
+
+``` {.journal}
+account assets                  1000
+account assets:bank:checking    1110
+account liabilities             2000
+account revenues                4000
+account expenses                6000
+```
+
+This affects account display order in reports: accounts with codes are
+listed before accounts without codes, in increasing code order.
+(Otherwise, accounts are listed alphabetically.) Account codes should be
+all numeric digits, unique, and separated from the account name by at
+least two spaces (since account names may contain single spaces). By
+convention, often the first digit indicates the type of account, as in
+[this numbering
+scheme](http://www.dwmbeancounter.com/BCTutorSite/Courses/ChartAccounts/lesson02-6.html)
+and the example above. In future, we might use this to recognize account
+types.
+
+An account directive can also have indented subdirectives following it,
+which are currently ignored. Here is the full syntax:
+
+``` {.journal}
+; account ACCTNAME  [OPTIONALCODE]
+;   [OPTIONALSUBDIRECTIVES]
+
+account assets:bank:checking   1110
+  a comment
+  some-tag:12345
+```
+
+##### Rewriting accounts
 
 You can define aliases which rewrite your account names (after reading
 the journal, before generating reports). hledger's account aliases can
@@ -3871,7 +4037,8 @@ be useful for:
     or combining two accounts into one
 -   customising reports
 
-See also [Cookbook: rewrite account names](account-aliases.html).
+See also [Cookbook: Rewrite account
+names](https://github.com/simonmichael/hledger/wiki/Rewrite-account-names).
 
 ###### Basic aliases
 
@@ -3933,7 +4100,7 @@ order:
     precedence over earlier ones; directives not yet seen are ignored)
 2.  alias options, in the order they appear on the command line
 
-###### end aliases
+###### `end aliases`
 
 You can clear (forget) all currently defined aliases with the
 `end aliases` directive:
@@ -3942,53 +4109,7 @@ You can clear (forget) all currently defined aliases with the
 end aliases
 ```
 
-##### account directive
-
-The `account` directive predeclares account names. The simplest form is
-`account ACCTNAME`, eg:
-
-``` {.journal}
-account assets:bank:checking
-```
-
-Currently this mainly helps with account name autocompletion in eg
-hledger add, hledger-iadd, hledger-web, and ledger-mode.\
-In future it will also help detect misspelled accounts.
-
-Account names can be followed by a numeric account code:
-
-``` {.journal}
-account assets                  1000
-account assets:bank:checking    1110
-account liabilities             2000
-account revenues                4000
-account expenses                6000
-```
-
-This affects account display order in reports: accounts with codes are
-listed before accounts without codes, in increasing code order.
-(Otherwise, accounts are listed alphabetically.) Account codes should be
-all numeric digits, unique, and separated from the account name by at
-least two spaces (since account names may contain single spaces). By
-convention, often the first digit indicates the type of account, as in
-[this numbering
-scheme](http://www.dwmbeancounter.com/BCTutorSite/Courses/ChartAccounts/lesson02-6.html)
-and the example above. In future, we might use this to recognize account
-types.
-
-An account directive can also have indented subdirectives following it,
-which are currently ignored. Here is the full syntax:
-
-``` {.journal}
-; account ACCTNAME  [OPTIONALCODE]
-;   [OPTIONALSUBDIRECTIVES]
-
-account assets:bank:checking   1110
-  a comment
-  some-tag:12345
-```
-
-##### apply account directive
+##### Default parent account
 
 You can specify a parent account which will be prepended to all accounts
 within a section of the journal. Use the `apply account` and
@@ -4026,106 +4147,13 @@ include personal.journal
 Prior to hledger 1.0, legacy `account` and `end` spellings were also
 supported.
 
-##### Multi-line comments
+#### Periodic transactions
 
-A line containing just `comment` starts a multi-line comment, and a line
-containing just `end comment` ends it. See [comments](#comments).
-
-##### commodity directive
-
-The `commodity` directive predefines commodities (currently this is just
-informational), and also it may define the display format for amounts in
-this commodity (overriding the automatically inferred format).
-
-It may be written on a single line, like this:
-
-``` {.journal}
-; commodity EXAMPLEAMOUNT
-
-; display AAAA amounts with the symbol on the right, space-separated,
-; using period as decimal point, with four decimal places, and
-; separating thousands with comma.
-commodity 1,000.0000 AAAA
-```
-
-or on multiple lines, using the "format" subdirective. In this case the
-commodity symbol appears twice and should be the same in both places:
-
-``` {.journal}
-; commodity SYMBOL
-;   format EXAMPLEAMOUNT
-
-; display indian rupees with currency name on the left,
-; thousands, lakhs and crores comma-separated,
-; period as decimal point, and two decimal places.
-commodity INR
-  format INR 9,99,99,999.00
-```
-
-##### Default commodity
-
-The D directive sets a default commodity (and display format), to be
-used for amounts without a commodity symbol (ie, plain numbers). (Note
-this differs from Ledger's default commodity directive.) The commodity
-and display format will be applied to all subsequent commodity-less
-amounts, or until the next D directive.
-
-``` {.journal}
-# commodity-less amounts should be treated as dollars
-# (and displayed with symbol on the left, thousands separators and two decimal places)
-D $1,000.00
-
-1/1
-  a     5    ; <- commodity-less amount, becomes $1
-  b
-```
-
-##### Default year
-
-You can set a default year to be used for subsequent dates which don't
-specify a year. This is a line beginning with `Y` followed by the year.
-Eg:
-
-``` {.journal}
-Y2009      ; set default year to 2009
-
-12/15      ; equivalent to 2009/12/15
-  expenses  1
-  assets
-
-Y2010      ; change default year to 2010
-
-2009/1/30  ; specifies the year, not affected
-  expenses  1
-  assets
-
-1/31       ; equivalent to 2010/1/31
-  expenses  1
-  assets
-```
-
-##### Including other files
-
-You can pull in the content of additional journal files by writing an
-include directive, like this:
-
-``` {.journal}
-include path/to/file.journal
-```
-
-If the path does not begin with a slash, it is relative to the current
-file. Glob patterns (`*`) are not currently supported.
-
-The `include` directive can only be used in journal files. It can
-include journal, timeclock or timedot files, but not CSV files.
-
-### Periodic transactions
-
-Periodic transactions are a kind of rule with a dual purpose: they can
-specify recurring future transactions (with `--forecast`), or budget
-goals (with `--budget`). They look a bit like a transaction, except the
+Periodic transaction rules (enabled by `--forecast` or `--budget`)
+describe recurring transactions. They look like a transaction where the
 first line is a tilde (`~`) followed by a [period
-expression](manual.html#period-expressions):
+expression](manual.html#period-expressions) (mnemonic: `~` is like a
+recurring sine wave):
 
 ``` {.journal}
 ~ weekly
@@ -4133,26 +4161,36 @@ expression](manual.html#period-expressions):
   income:acme inc
 ```
 
-With `--forecast`, each periodic transaction rule generates recurring
-"forecast" transactions at the specified interval, beginning the day
-after the latest recorded journal transaction (or today, if there are no
-transactions) and ending 6 months from today (or at the report end date,
-if specified).
+Periodic transactions have a dual purpose:
 
-With `balance --budget`, each periodic transaction declares recurring
-budget goals for the specified accounts. Eg the example above declares
-the goal of receiving \$400 from `income:acme inc` (and also, depositing
-\$400 into `assets:bank:checking`) every week.
+-   With `--forecast`, each periodic transaction rule generates future
+    transactions, recurring at the specified interval, which can be seen
+    in reports. Forecast transactions begin the day after the latest
+    recorded journal transaction (or today, if there are no
+    transactions) and end 6 months from today (or at the report end
+    date, if specified).
 
-For more details, see: [balance: Budgeting](manual.html#budgeting) and
-[Budgeting and Forecasting](budgeting-and-forecasting.html).
+-   With `--budget` (supported by the balance command), each periodic
+    transaction rule declares recurring budget goals for the specified
+    accounts, which can be seen in [budget
+    reports](/manual.html#budget-report). Eg the example above declares
+    the goal of receiving \$400 from `income:acme inc` (and also,
+    depositing \$400 into `assets:bank:checking`) every week.
 
-### Automated postings
+(Actually, you can generate one-off transactions too, by writing a
+period expression with no report interval.)
 
-Automated postings are postings added automatically by rule to certain
-transactions (with `--auto`). An automated posting rule looks like a
-transaction where the first line is an equal sign (`=`) followed by a
-[query](manual.html#queries):
+For more details, see: [balance: Budget
+report](manual.html#budget-report) and [Cookbook: Budgeting and
+Forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting-and-forecasting).
+
+#### Automated postings
+
+Automated postings (enabled by `--auto`) are postings added
+automatically by rule to certain transactions. An automated posting rule
+looks like a transaction where the first line is an equal sign (`=`)
+followed by a [query](manual.html#queries) (mnemonic: `=` tests for
+matching transactions, and also looks like posting lines):
 
 ``` {.journal}
 = expenses:gifts
@@ -4165,8 +4203,9 @@ the matched transaction's first posting, multiplied by N". They can also
 be ordinary fixed amounts. Fixed amounts with no commodity symbol will
 be given the same commodity as the matched transaction's first posting.
 
-This example adds a corresponding (unbalanced) budget posting to every
-transaction involving the `expenses:gifts` account:
+This example adds a corresponding ([unbalanced](#virtual-postings))
+budget posting to every transaction involving the `expenses:gifts`
+account:
 
 ``` {.journal}
 = expenses:gifts
@@ -4181,9 +4220,13 @@ transaction involving the `expenses:gifts` account:
 $ hledger print --auto
 2017/12/14
     expenses:gifts             $20
-    assets
     (budget:gifts)            $-20
+    assets
 ```
+
+Like postings recorded by hand, automated postings participate in
+[transaction balancing, missing amount inference](#postings) and
+[balance assertions](#balance-assertions).
 
 ### EDITOR SUPPORT
 
@@ -4225,7 +4268,7 @@ https://twitter.com/LedgerTips/status/501767602067472384
 
 ## csv format
 
-This doc is for version **1.9 (dev)**. []{.docversions}
+This doc is for version **1.9.1**. []{.docversions}
 
 ### NAME
 
@@ -4498,7 +4541,7 @@ rules file will be used for all the CSV files being read.
 
 ## timeclock format
 
-This doc is for version **1.9 (dev)**. []{.docversions}
+This doc is for version **1.9.1**. []{.docversions}
 
 ### NAME
 
@@ -4567,7 +4610,7 @@ To generate time logs, ie to clock in and clock out, you could:
 
 ## timedot format
 
-This doc is for version **1.9 (dev)**. []{.docversions}
+This doc is for version **1.9.1**. []{.docversions}
 
 ### NAME
 
@@ -4661,7 +4704,7 @@ Balance changes in 2016/02/01-2016/02/03:
 ```
 
 I prefer to use period for separating account components. We can make
-this work with an [account alias](/journal.html#account-aliases):
+this work with an [account alias](/journal.html#rewriting-accounts):
 
 ``` {.timedot}
 2016/2/4
