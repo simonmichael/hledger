@@ -28,6 +28,7 @@ environment:
 # only those files for cache invalidation, quicker than checksumming all cached content.
 cache:
 - stack*.exe
+- C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe
 - "%LOCALAPPDATA%\\Programs\\stack"
 - C:\Users\appveyor\AppData\Roaming\local\bin
 - C:\sr
@@ -48,6 +49,7 @@ install:
 - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe .
 - copy stack.exe stack-512f76f3.exe
 - stack --version
+- dir
 
 #
 # install ghc
