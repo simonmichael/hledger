@@ -27,6 +27,7 @@ environment:
 # To declare cache dependency on specific files add "-> FILEPATTERN below. Appveyor will checksum 
 # only those files for cache invalidation, quicker than checksumming all cached content.
 cache:
+- stack*.exe
 - "%LOCALAPPDATA%\\Programs\\stack"
 - C:\Users\appveyor\AppData\Roaming\local\bin
 - C:\sr
