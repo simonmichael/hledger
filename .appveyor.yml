@@ -39,21 +39,23 @@ install:
 # temporary, troubleshooting https://github.com/commercialhaskell/stack/issues/4125
 
 - dir
-- del stack*.exe
 
-# latest stack release
-- curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
-- 7z x stack.zip stack.exe
-- move stack.exe stack-release.exe
-- stack-release --version
+# install latest stack release
+# - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
+# - 7z x stack.zip stack.exe
+# - move stack.exe stack-release.exe
+# - stack-release --version
 
-# stack 4125-cabal-style-build-tools branch
-- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
-- stack-release upgrade --git --git-branch 4125-cabal-style-build-tools
-- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe C:\Users\appveyor\AppData\Roaming\local\bin\stack-4125-cabal-style-build-tools.exe
-- copy stack-4125-cabal-style-build-tools.exe stack.exe
+# install latest stack 4125-cabal-style-build-tools branch
+# - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
+# - stack-release upgrade --git --git-branch 4125-cabal-style-build-tools
+# - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe C:\Users\appveyor\AppData\Roaming\local\bin\stack-4125-cabal-style-build-tools.exe
 
+# use the former
+#- copy stack-release.exe stack.exe
 # use the latter
+- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack-4125-cabal-style-build-tools.exe stack.exe
+
 - stack --version
 - dir
 
