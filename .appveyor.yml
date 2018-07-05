@@ -27,8 +27,6 @@ environment:
 # To declare cache dependency on specific files add "-> FILEPATTERN below. Appveyor will checksum 
 # only those files for cache invalidation, quicker than checksumming all cached content.
 cache:
-- stack*.exe
-- C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe
 - "%LOCALAPPDATA%\\Programs\\stack"
 - C:\Users\appveyor\AppData\Roaming\local\bin
 - C:\sr
@@ -39,15 +37,23 @@ cache:
 
 install:
 # temporary, troubleshooting https://github.com/commercialhaskell/stack/issues/4125
-#- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack-81889990.exe
+
+- dir
+- del stack*.exe
+
+# latest stack release
 - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 - 7z x stack.zip stack.exe
 - move stack.exe stack-release.exe
 - stack-release --version
+
+# stack 4125-cabal-style-build-tools branch
 - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 - stack-release upgrade --git --git-branch 4125-cabal-style-build-tools
-- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe .
-- copy stack.exe stack-512f76f3.exe
+- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe C:\Users\appveyor\AppData\Roaming\local\bin\stack-4125-cabal-style-build-tools.exe
+- copy stack-4125-cabal-style-build-tools.exe stack.exe
+
+# use the latter
 - stack --version
 - dir
 
