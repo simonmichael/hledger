@@ -43,16 +43,16 @@ install:
 # install latest stack release
 # - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
 # - 7z x stack.zip stack.exe
+# - copy stack.exe stack-release.exe
 # - stack --version
 
 # install latest stack 4125-cabal-style-build-tools branch
-# - move stack.exe stack-release.exe
 # - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 # - stack-release upgrade --git --git-branch 4125-cabal-style-build-tools
-# - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe C:\Users\appveyor\AppData\Roaming\local\bin\stack-4125-cabal-style-build-tools.exe
+# - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe C:\Users\appveyor\AppData\Roaming\local\bin\stack-4125.exe
+# - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack.exe
 
 # install latest stack master
-- move stack.exe stack-release.exe
 - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 # - stack-release upgrade --git
 #- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe C:\Users\appveyor\AppData\Roaming\local\bin\stack-master.exe
