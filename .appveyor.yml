@@ -35,11 +35,17 @@ cache:
 - hledger-web\.stack-work -> hledger-web\**
 
 install:
-# - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
-# - 7z x stack.zip stack.exe
-# - stack --version
 # temporary, working around https://github.com/commercialhaskell/stack/issues/4125
+# install latest stack release
+- curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
+- 7z x stack.zip stack.exe
+- copy stack.exe stack-release.exe
+- stack --version
+# install latest stack master
 - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
+- stack-release upgrade --git
+- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe C:\Users\appveyor\AppData\Roaming\local\bin\stack-master.exe
+- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack.exe
 - stack --version
 
 #
