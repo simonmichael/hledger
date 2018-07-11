@@ -49,10 +49,10 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=201807022
+HLEDGER_INSTALL_VERSION=20180711
 
-#RESOLVER="--resolver=lts"  # 20180702: lts doesn't have base-compat-batteries yet
-RESOLVER="--resolver=nightly-2018-06-02"
+RESOLVER="--resolver=lts-12"
+#RESOLVER="--resolver=nightly-2018-07-09"
   # ^ You can specify a different stackage snapshot here, 
   # or comment out this line to use your current global resolver, which might 
   # avoid some unnecessary building. OSX Sierra+ requires at least lts-8.0. 
@@ -60,7 +60,7 @@ RESOLVER="--resolver=nightly-2018-06-02"
 
 HLEDGER_LIB_VERSION=1.10
 HLEDGER_VERSION=1.10
-HLEDGER_UI_VERSION=1.10
+HLEDGER_UI_VERSION=1.10.1
 HLEDGER_WEB_VERSION=1.10
 HLEDGER_API_VERSION=1.10
 
