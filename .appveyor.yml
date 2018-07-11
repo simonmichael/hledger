@@ -35,9 +35,13 @@ cache:
 - hledger-web\.stack-work -> hledger-web\**
 
 install:
-- curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
-- 7z x stack.zip stack.exe
+# - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
+# - 7z x stack.zip stack.exe
+# - stack --version
+# temporary, working around https://github.com/commercialhaskell/stack/issues/4125
+- set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
 - stack --version
+
 #
 # install ghc
 # using ghc 8.2 to avoid a hledger-web -> network/stack build issue on windows,
