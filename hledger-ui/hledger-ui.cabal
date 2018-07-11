@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 6d33330b300e0157396548bad1c303fa608cb5f611d108f4f0080e130b12c04e
+-- hash: a08eae62b1bcb94e33894772811910e76f2bc8263ce58975497009236c139250
 
 name:           hledger-ui
 version:        1.10.1
