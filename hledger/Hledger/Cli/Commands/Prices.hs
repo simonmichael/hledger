@@ -30,12 +30,12 @@ prices opts j = do
   let cprices = concatMap postingCosts . allPostings $ j
       icprices = concatMap postingCosts . mapAmount invertPrice . allPostings $ j
       printPrices = mapM_ (putStrLn . showPrice)
-      forBoolOpt opt | boolopt opt $ rawopts_ opts = id
+      ifBoolOpt opt | boolopt opt $ rawopts_ opts = id
                      | otherwise = const []
       allPrices = sortOn mpdate . concat $
           [ jmarketprices j
-          , forBoolOpt "costs" cprices
-          , forBoolOpt "inverted-costs" icprices
+          , ifBoolOpt "costs" cprices
+          , ifBoolOpt "inverted-costs" icprices
           ]
   
   printPrices allPrices
