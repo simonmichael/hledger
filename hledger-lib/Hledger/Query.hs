@@ -530,33 +530,27 @@ queryEndDate _ _ = Nothing
 queryTermDateSpan (Date span) = Just span
 queryTermDateSpan _ = Nothing
 
--- | What date span (or secondary date span) does this query specify ?
--- For OR expressions, use the widest possible span. NOT is ignored.
+-- | What date span (or with a true argument, what secondary date span) does this query specify ?
+-- OR clauses specifying multiple spans return their union (the span enclosing all of them).
+-- AND clauses specifying multiple spans return their intersection.
+-- NOT clauses are ignored.
 queryDateSpan :: Bool -> Query -> DateSpan
-queryDateSpan secondary q = spansUnion $ queryDateSpans secondary q
+queryDateSpan secondary (Or qs)  = spansUnion     $ map (queryDateSpan secondary) qs
+queryDateSpan secondary (And qs) = spansIntersect $ map (queryDateSpan secondary) qs
+queryDateSpan False (Date span)  = span
+queryDateSpan True (Date2 span)  = span
+queryDateSpan _ _                = nulldatespan
 
--- | Extract all date (or secondary date) spans specified in this query.
--- NOT is ignored.
-queryDateSpans :: Bool -> Query -> [DateSpan]
-queryDateSpans secondary (Or qs) = concatMap (queryDateSpans secondary) qs
-queryDateSpans secondary (And qs) = concatMap (queryDateSpans secondary) qs
-queryDateSpans False (Date span) = [span]
-queryDateSpans True (Date2 span) = [span]
-queryDateSpans _ _ = []
-
--- | What date span (or secondary date span) does this query specify ?
--- For OR expressions, use the widest possible span. NOT is ignored.
+-- | What date span does this query specify, treating primary and secondary dates as equivalent ?
+-- OR clauses specifying multiple spans return their union (the span enclosing all of them).
+-- AND clauses specifying multiple spans return their intersection.
+-- NOT clauses are ignored.
 queryDateSpan' :: Query -> DateSpan
-queryDateSpan' q = spansUnion $ queryDateSpans' q
-
--- | Extract all date (or secondary date) spans specified in this query.
--- NOT is ignored.
-queryDateSpans' :: Query -> [DateSpan]
-queryDateSpans' (Or qs) = concatMap queryDateSpans' qs
-queryDateSpans' (And qs) = concatMap queryDateSpans' qs
-queryDateSpans' (Date span) = [span]
-queryDateSpans' (Date2 span) = [span]
-queryDateSpans' _ = []
+queryDateSpan' (Or qs)      = spansUnion     $ map queryDateSpan' qs
+queryDateSpan' (And qs)     = spansIntersect $ map queryDateSpan' qs
+queryDateSpan' (Date span)  = span
+queryDateSpan' (Date2 span) = span
+queryDateSpan' _            = nulldatespan
 
 -- | What is the earliest of these dates, where Nothing is latest ?
 earliestMaybeDate :: [Maybe Day] -> Maybe Day
