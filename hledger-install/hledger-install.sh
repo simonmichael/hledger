@@ -49,7 +49,7 @@ HERE
 HLEDGER_INSTALL_TOOL=hledger-install.sh
   # ^ this script's name (can't use $0 when it's piped into bash)
 
-HLEDGER_INSTALL_VERSION=20180711
+HLEDGER_INSTALL_VERSION=20180715
 
 RESOLVER="--resolver=lts-12"
 #RESOLVER="--resolver=nightly-2018-07-09"
