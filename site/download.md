@@ -148,13 +148,13 @@ If you prefer more control or if hledger-install failed, here's how to use stack
 
     On Windows, the 64-bit version of stack is [preferred](https://github.com/simonmichael/hledger/issues/275#issuecomment-123834252).
 
-2. **`stack install --resolver=nightly-2018-06-02 hledger-lib-1.10 hledger-1.10 hledger-ui-1.10 fsnotify-0.3.0.1 hledger-web-1.10.1 hledger-api-1.10`**\
+2. **`stack install --resolver=lts-12 hledger-lib-1.10 hledger-1.10 hledger-ui-1.10.1 hledger-web-1.10 hledger-api-1.10`**\
     This installs the main hledger packages (and dependencies) from [Stackage](https://www.stackage.org) and/or [Hackage](http://hackage.haskell.org).
     You can save some time by omitting hledger-* packages you don't want.\
     <span class=warnings>([windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
 
     The command above uses stackage's nightly snapshot.
-    You might be able to reduce build time by specifying an older snapshot that you've used before (eg: `--resolver=lts-10.8`), or by omitting the --resolver option.
+    You might be able to reduce build time by specifying an older snapshot that you've used before, or by omitting the --resolver option.
     To estimate the build time, add `--dry-run`. 
     You can kill and restart this without losing progress. 
     
