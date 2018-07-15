@@ -17,28 +17,34 @@ import System.Console.CmdArgs.Explicit
 
 pricesmode = hledgerCommandMode
   [here| prices
-Print all market prices from the journal.
+Print market price directives from the journal.
+With --costs, also print synthetic market prices based on transaction prices.
+With --inverted-costs, also print inverse prices based on transaction prices.
+Prices (and postings providing prices) can be filtered by a query.
   |]
   [flagNone ["costs"] (setboolopt "costs") "print transaction prices from postings"
   ,flagNone ["inverted-costs"] (setboolopt "inverted-costs") "print transaction inverted prices from postings also"]
   [generalflagsgroup1]
   []
-  ([], Nothing)
+  ([], Just $ argsFlag "[QUERY]")
 
+-- XXX the original hledger-prices script always ignored assertions 
 prices opts j = do
-  -- XXX the original hledger-prices script always ignored assertions 
-  let cprices = concatMap postingCosts . allPostings $ j
-      icprices = concatMap postingCosts . mapAmount invertPrice . allPostings $ j
-      printPrices = mapM_ (putStrLn . showPrice)
-      ifBoolOpt opt | boolopt opt $ rawopts_ opts = id
-                     | otherwise = const []
-      allPrices = sortOn mpdate . concat $
-          [ jmarketprices j
-          , ifBoolOpt "costs" cprices
-          , ifBoolOpt "inverted-costs" icprices
-          ]
-  
-  printPrices allPrices
+  d <- getCurrentDay
+  let
+    q          = queryFromOpts d (reportopts_ opts)
+    ps         = filter (matchesPosting q) $ allPostings j
+    mprices    = jmarketprices j
+    cprices    = concatMap postingCosts ps
+    icprices   = concatMap postingCosts . mapAmount invertPrice $ ps
+    allprices  = mprices ++ ifBoolOpt "costs" cprices ++ ifBoolOpt "inverted-costs" icprices
+  mapM_ (putStrLn . showPrice) $
+    sortOn mpdate $
+    filter (matchesMarketPrice q) $
+    allprices
+  where
+    ifBoolOpt opt | boolopt opt $ rawopts_ opts = id
+                  | otherwise = const []
 
 showPrice :: MarketPrice -> String
 showPrice mp = unwords ["P", show $ mpdate mp, T.unpack . quoteCommoditySymbolIfNeeded $ mpcommodity mp, showAmountWithZeroCommodity $ mpamount mp]
