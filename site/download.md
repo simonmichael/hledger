@@ -177,9 +177,7 @@ If you prefer more control or if hledger-install failed, here's how to use stack
    [hledger-iadd](http://hackage.haskell.org/package/hledger-iadd),
    [hledger-interest](http://hackage.haskell.org/package/hledger-interest),
    and [hledger-irr](http://hackage.haskell.org/package/hledger-irr)
-   can be installed similarly to the above. Eg:
-
-    **`stack install --resolver=nightly-2018-06-02 hledger-lib-1.10 hledger-1.10 hledger-iadd-1.3.5`**
+   can be installed similarly to the above.
 
 6. **[Test](#test)**
 
