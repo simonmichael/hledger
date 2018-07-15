@@ -2426,7 +2426,12 @@ This command also supports output destination and output format
 selection.
 .SS prices
 .PP
-Print all market prices from the journal.
+Print market price directives from the journal.
+With \[en]costs, also print synthetic market prices based on transaction
+prices.
+With \[en]inverted\-costs, also print inverse prices based on
+transaction prices.
+Prices (and postings providing prices) can be filtered by a query.
 .SS print
 .PP
 Show transactions from the journal.

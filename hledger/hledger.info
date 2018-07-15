@@ -1921,7 +1921,10 @@ File: hledger.info,  Node: prices,  Next: print,  Prev: incomestatement,  Up: CO
 4.14 prices
 ===========
 
-Print all market prices from the journal.
+Print market price directives from the journal.  With -costs, also print
+synthetic market prices based on transaction prices.  With
+-inverted-costs, also print inverse prices based on transaction prices.
+Prices (and postings providing prices) can be filtered by a query.
 
 
 File: hledger.info,  Node: print,  Next: print-unique,  Prev: prices,  Up: COMMANDS
@@ -2520,51 +2523,51 @@ Node: incomestatement61310
 Ref: #incomestatement61444
 Node: prices63848
 Ref: #prices63963
-Node: print64006
-Ref: #print64116
-Node: print-unique69010
-Ref: #print-unique69136
-Node: register69204
-Ref: #register69331
-Node: Custom register output73832
-Ref: #custom-register-output73961
-Node: register-match75191
-Ref: #register-match75325
-Node: rewrite75508
-Ref: #rewrite75625
-Node: stats75694
-Ref: #stats75797
-Node: tags76667
-Ref: #tags76765
-Node: test77001
-Ref: #test77085
-Node: ADD-ON COMMANDS77453
-Ref: #add-on-commands77563
-Node: Official add-ons78850
-Ref: #official-add-ons78990
-Node: api79077
-Ref: #api79166
-Node: ui79218
-Ref: #ui79317
-Node: web79375
-Ref: #web79464
-Node: Third party add-ons79510
-Ref: #third-party-add-ons79685
-Node: diff79820
-Ref: #diff79917
-Node: iadd80016
-Ref: #iadd80130
-Node: interest80213
-Ref: #interest80334
-Node: irr80429
-Ref: #irr80527
-Node: Experimental add-ons80605
-Ref: #experimental-add-ons80757
-Node: autosync81037
-Ref: #autosync81148
-Node: chart81387
-Ref: #chart81506
-Node: check81577
-Ref: #check81679
+Node: print64235
+Ref: #print64345
+Node: print-unique69239
+Ref: #print-unique69365
+Node: register69433
+Ref: #register69560
+Node: Custom register output74061
+Ref: #custom-register-output74190
+Node: register-match75420
+Ref: #register-match75554
+Node: rewrite75737
+Ref: #rewrite75854
+Node: stats75923
+Ref: #stats76026
+Node: tags76896
+Ref: #tags76994
+Node: test77230
+Ref: #test77314
+Node: ADD-ON COMMANDS77682
+Ref: #add-on-commands77792
+Node: Official add-ons79079
+Ref: #official-add-ons79219
+Node: api79306
+Ref: #api79395
+Node: ui79447
+Ref: #ui79546
+Node: web79604
+Ref: #web79693
+Node: Third party add-ons79739
+Ref: #third-party-add-ons79914
+Node: diff80049
+Ref: #diff80146
+Node: iadd80245
+Ref: #iadd80359
+Node: interest80442
+Ref: #interest80563
+Node: irr80658
+Ref: #irr80756
+Node: Experimental add-ons80834
+Ref: #experimental-add-ons80986
+Node: autosync81266
+Ref: #autosync81377
+Node: chart81616
+Ref: #chart81735
+Node: check81806
+Ref: #check81908
 
 End Tag Table
