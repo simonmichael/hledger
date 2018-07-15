@@ -506,7 +506,10 @@ you can alter the report mode with `--change`/`--cumulative`/`--historical`.
 This command also supports [output destination](/manual.html#output-destination) and [output format](/manual.html#output-format) selection.
 
 ## prices
-Print all [market prices](/manual#market-prices) from the journal.
+Print [market price directives](/manual#market-prices) from the journal.
+With --costs, also print synthetic market prices based on [transaction prices](/manual#transaction-prices).
+With --inverted-costs, also print inverse prices based on transaction prices.
+Prices (and postings providing prices) can be filtered by a query.
 
 ## print
 Show transactions from the journal. Aliases: p, txns.

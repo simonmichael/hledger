@@ -19,6 +19,7 @@ module Hledger.Query (
   -- * accessors
   queryIsNull,
   queryIsAcct,
+  queryIsAmt,
   queryIsDepth,
   queryIsDate,
   queryIsDate2,
@@ -41,6 +42,8 @@ module Hledger.Query (
   matchesAccount,
   matchesMixedAmount,
   matchesAmount,
+  matchesCommodity,
+  matchesMarketPrice,
   words'',
   -- * tests
   tests_Hledger_Query
@@ -481,6 +484,10 @@ queryIsAcct :: Query -> Bool
 queryIsAcct (Acct _) = True
 queryIsAcct _ = False
 
+queryIsAmt :: Query -> Bool
+queryIsAmt (Amt _ _) = True
+queryIsAmt _         = False
+
 queryIsSym :: Query -> Bool
 queryIsSym (Sym _) = True
 queryIsSym _ = False
@@ -530,33 +537,27 @@ queryEndDate _ _ = Nothing
 queryTermDateSpan (Date span) = Just span
 queryTermDateSpan _ = Nothing
 
--- | What date span (or secondary date span) does this query specify ?
--- For OR expressions, use the widest possible span. NOT is ignored.
+-- | What date span (or with a true argument, what secondary date span) does this query specify ?
+-- OR clauses specifying multiple spans return their union (the span enclosing all of them).
+-- AND clauses specifying multiple spans return their intersection.
+-- NOT clauses are ignored.
 queryDateSpan :: Bool -> Query -> DateSpan
-queryDateSpan secondary q = spansUnion $ queryDateSpans secondary q
+queryDateSpan secondary (Or qs)  = spansUnion     $ map (queryDateSpan secondary) qs
+queryDateSpan secondary (And qs) = spansIntersect $ map (queryDateSpan secondary) qs
+queryDateSpan False (Date span)  = span
+queryDateSpan True (Date2 span)  = span
+queryDateSpan _ _                = nulldatespan
 
--- | Extract all date (or secondary date) spans specified in this query.
--- NOT is ignored.
-queryDateSpans :: Bool -> Query -> [DateSpan]
-queryDateSpans secondary (Or qs) = concatMap (queryDateSpans secondary) qs
-queryDateSpans secondary (And qs) = concatMap (queryDateSpans secondary) qs
-queryDateSpans False (Date span) = [span]
-queryDateSpans True (Date2 span) = [span]
-queryDateSpans _ _ = []
-
--- | What date span (or secondary date span) does this query specify ?
--- For OR expressions, use the widest possible span. NOT is ignored.
+-- | What date span does this query specify, treating primary and secondary dates as equivalent ?
+-- OR clauses specifying multiple spans return their union (the span enclosing all of them).
+-- AND clauses specifying multiple spans return their intersection.
+-- NOT clauses are ignored.
 queryDateSpan' :: Query -> DateSpan
-queryDateSpan' q = spansUnion $ queryDateSpans' q
-
--- | Extract all date (or secondary date) spans specified in this query.
--- NOT is ignored.
-queryDateSpans' :: Query -> [DateSpan]
-queryDateSpans' (Or qs) = concatMap queryDateSpans' qs
-queryDateSpans' (And qs) = concatMap queryDateSpans' qs
-queryDateSpans' (Date span) = [span]
-queryDateSpans' (Date2 span) = [span]
-queryDateSpans' _ = []
+queryDateSpan' (Or qs)      = spansUnion     $ map queryDateSpan' qs
+queryDateSpan' (And qs)     = spansIntersect $ map queryDateSpan' qs
+queryDateSpan' (Date span)  = span
+queryDateSpan' (Date2 span) = span
+queryDateSpan' _            = nulldatespan
 
 -- | What is the earliest of these dates, where Nothing is latest ?
 earliestMaybeDate :: [Maybe Day] -> Maybe Day
@@ -641,6 +642,10 @@ matchesMixedAmount :: Query -> MixedAmount -> Bool
 matchesMixedAmount q (Mixed []) = q `matchesAmount` nullamt
 matchesMixedAmount q (Mixed as) = any (q `matchesAmount`) as
 
+matchesCommodity :: Query -> CommoditySymbol -> Bool
+matchesCommodity (Sym r) s = regexMatchesCI ("^" ++ r ++ "$") (T.unpack s)
+matchesCommodity _ _ = True
+
 -- | Does the match expression match this (simple) amount ?
 matchesAmount :: Query -> Amount -> Bool
 matchesAmount (Not q) a = not $ q `matchesAmount` a
@@ -650,7 +655,7 @@ matchesAmount (Or qs) a = any (`matchesAmount` a) qs
 matchesAmount (And qs) a = all (`matchesAmount` a) qs
 --
 matchesAmount (Amt ord n) a = compareAmount ord n a
-matchesAmount (Sym r) a = regexMatchesCI ("^" ++ r ++ "$") $ T.unpack $ acommodity a
+matchesAmount (Sym r) a = matchesCommodity (Sym r) (acommodity a)
 --
 matchesAmount _ _ = True
 
@@ -694,7 +699,7 @@ matchesPosting q@(Amt _ _) Posting{pamount=amt} = q `matchesMixedAmount` amt
 -- matchesPosting (Empty False) Posting{pamount=a} = True
 -- matchesPosting (Empty True) Posting{pamount=a} = isZeroMixedAmount a
 matchesPosting (Empty _) _ = True
-matchesPosting (Sym r) Posting{pamount=Mixed as} = any (regexMatchesCI $ "^" ++ r ++ "$") $ map (T.unpack . acommodity) as
+matchesPosting (Sym r) Posting{pamount=Mixed as} = any (matchesCommodity (Sym r)) $ map acommodity as
 matchesPosting (Tag n v) p = case (n, v) of
   ("payee", Just v) -> maybe False (regexMatchesCI v . T.unpack . transactionPayee) $ ptransaction p
   ("note", Just v) -> maybe False (regexMatchesCI v . T.unpack . transactionNote) $ ptransaction p
@@ -776,6 +781,18 @@ matchesTags namepat valuepat = not . null . filter (match namepat valuepat)
   where
     match npat Nothing     (n,_) = regexMatchesCI npat (T.unpack n) -- XXX
     match npat (Just vpat) (n,v) = regexMatchesCI npat (T.unpack n) && regexMatchesCI vpat (T.unpack v)
+
+-- | Does the query match this market price ?
+matchesMarketPrice :: Query -> MarketPrice -> Bool
+matchesMarketPrice (None) _      = False
+matchesMarketPrice (Not q) p     = not $ matchesMarketPrice q p
+matchesMarketPrice (Or qs) p     = any (`matchesMarketPrice` p) qs
+matchesMarketPrice (And qs) p    = all (`matchesMarketPrice` p) qs
+matchesMarketPrice q@(Amt _ _) p = matchesAmount q (mpamount p)
+matchesMarketPrice q@(Sym _) p   = matchesCommodity q (mpcommodity p)
+matchesMarketPrice (Date span) p = spanContainsDate span (mpdate p)
+matchesMarketPrice _ _           = True
+
 
 -- tests
 
