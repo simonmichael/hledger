@@ -153,10 +153,8 @@ If you prefer more control or if hledger-install failed, here's how to use stack
     You can save some time by omitting hledger-* packages you don't want.\
     <span class=warnings>([windows: hledger-ui is not available](https://github.com/jtdaugherty/vty/pull/1#issuecomment-297143444))</span>
 
-    The command above uses stackage's nightly snapshot.
-    You might be able to reduce build time by specifying an older snapshot that you've used before, or by omitting the --resolver option.
-    To estimate the build time, add `--dry-run`. 
     You can kill and restart this without losing progress. 
+    To estimate the build time, add `--dry-run`. 
     
     If you see "was generated with a newer version of hpack, please upgrade and try again" errors, you can ignore them.
     (Upgrade to the latest stack release to stop them.)
