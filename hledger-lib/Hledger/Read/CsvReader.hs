@@ -441,7 +441,7 @@ rulesp = do
           }
 
 blankorcommentlinep :: CsvRulesParser ()
-blankorcommentlinep = lift (pdbg 3 "trying blankorcommentlinep") >> choiceInState [blanklinep, commentlinep]
+blankorcommentlinep = lift (dbgparse 3 "trying blankorcommentlinep") >> choiceInState [blanklinep, commentlinep]
 
 blanklinep :: CsvRulesParser ()
 blanklinep = lift (skipMany spacenonewline) >> newline >> return () <?> "blank line"
@@ -454,7 +454,7 @@ commentcharp = oneOf (";#*" :: [Char])
 
 directivep :: CsvRulesParser (DirectiveName, String)
 directivep = (do
-  lift $ pdbg 3 "trying directive"
+  lift $ dbgparse 3 "trying directive"
   d <- fmap T.unpack $ choiceInState $ map (lift . string . T.pack) directives
   v <- (((char ':' >> lift (many spacenonewline)) <|> lift (some spacenonewline)) >> directivevalp)
        <|> (optional (char ':') >> lift (skipMany spacenonewline) >> lift eolof >> return "")
@@ -477,7 +477,7 @@ directivevalp = anyChar `manyTill` lift eolof
 
 fieldnamelistp :: CsvRulesParser [CsvFieldName]
 fieldnamelistp = (do
-  lift $ pdbg 3 "trying fieldnamelist"
+  lift $ dbgparse 3 "trying fieldnamelist"
   string "fields"
   optional $ char ':'
   lift (skipSome spacenonewline)
@@ -503,7 +503,7 @@ barefieldnamep = some $ noneOf (" \t\n,;#~" :: [Char])
 
 fieldassignmentp :: CsvRulesParser (JournalFieldName, FieldTemplate)
 fieldassignmentp = do
-  lift $ pdbg 3 "trying fieldassignmentp"
+  lift $ dbgparse 3 "trying fieldassignmentp"
   f <- journalfieldnamep
   assignmentseparatorp
   v <- fieldvalp
@@ -512,7 +512,7 @@ fieldassignmentp = do
 
 journalfieldnamep :: CsvRulesParser String
 journalfieldnamep = do
-  lift (pdbg 2 "trying journalfieldnamep")
+  lift (dbgparse 2 "trying journalfieldnamep")
   T.unpack <$> choiceInState (map (lift . string . T.pack) journalfieldnames)
 
 -- Transaction fields and pseudo fields for CSV conversion. 
@@ -536,7 +536,7 @@ journalfieldnames = [
 
 assignmentseparatorp :: CsvRulesParser ()
 assignmentseparatorp = do
-  lift $ pdbg 3 "trying assignmentseparatorp"
+  lift $ dbgparse 3 "trying assignmentseparatorp"
   choice [
     -- try (lift (skipMany spacenonewline) >> oneOf ":="),
     try (lift (skipMany spacenonewline) >> char ':'),
@@ -547,12 +547,12 @@ assignmentseparatorp = do
 
 fieldvalp :: CsvRulesParser String
 fieldvalp = do
-  lift $ pdbg 2 "trying fieldvalp"
+  lift $ dbgparse 2 "trying fieldvalp"
   anyChar `manyTill` lift eolof
 
 conditionalblockp :: CsvRulesParser ConditionalBlock
 conditionalblockp = do
-  lift $ pdbg 3 "trying conditionalblockp"
+  lift $ dbgparse 3 "trying conditionalblockp"
   string "if" >> lift (skipMany spacenonewline) >> optional newline
   ms <- some recordmatcherp
   as <- many (lift (skipSome spacenonewline) >> fieldassignmentp)
@@ -563,7 +563,7 @@ conditionalblockp = do
 
 recordmatcherp :: CsvRulesParser [String]
 recordmatcherp = do
-  lift $ pdbg 2 "trying recordmatcherp"
+  lift $ dbgparse 2 "trying recordmatcherp"
   -- pos <- currentPos
   _  <- optional (matchoperatorp >> lift (skipMany spacenonewline) >> optional newline)
   ps <- patternsp
@@ -582,20 +582,20 @@ matchoperatorp = fmap T.unpack $ choiceInState $ map string
 
 patternsp :: CsvRulesParser [String]
 patternsp = do
-  lift $ pdbg 3 "trying patternsp"
+  lift $ dbgparse 3 "trying patternsp"
   ps <- many regexp
   return ps
 
 regexp :: CsvRulesParser String
 regexp = do
-  lift $ pdbg 3 "trying regexp"
+  lift $ dbgparse 3 "trying regexp"
   notFollowedBy matchoperatorp
   c <- lift nonspace
   cs <- anyChar `manyTill` lift eolof
   return $ strip $ c:cs
 
 -- fieldmatcher = do
---   pdbg 2 "trying fieldmatcher"
+--   dbgparse 2 "trying fieldmatcher"
 --   f <- fromMaybe "all" `fmap` (optional $ do
 --          f' <- fieldname
 --          lift (skipMany spacenonewline)

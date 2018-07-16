@@ -8,7 +8,38 @@
 -- http://hackage.haskell.org/packages/archive/traced/2009.7.20/doc/html/Debug-Traced.html
 
 module Hledger.Utils.Debug (
-   module Hledger.Utils.Debug
+   pprint
+  ,pshow
+  ,ptrace
+  ,traceWith
+  ,debugLevel
+  ,ptraceAt
+  ,dbg0
+  ,dbgExit
+  ,dbg1
+  ,dbg2
+  ,dbg3
+  ,dbg4
+  ,dbg5
+  ,dbg6
+  ,dbg7
+  ,dbg8
+  ,dbg9
+  ,ptraceAtIO
+  ,dbg0IO
+  ,dbg1IO
+  ,dbg2IO
+  ,dbg3IO
+  ,dbg4IO
+  ,dbg5IO
+  ,dbg6IO
+  ,dbg7IO
+  ,dbg8IO
+  ,dbg9IO
+  ,plog
+  ,plogAt
+  ,traceParse
+  ,dbgparse
   ,module Debug.Trace
 )
 where
@@ -27,30 +58,21 @@ import           Text.Megaparsec
 import           Text.Printf
 import           Text.Show.Pretty (ppShow, pPrint)
 
--- | Easier alias for pretty-show's pPrint.
+-- | Pretty print. Easier alias for pretty-show's pPrint.
 pprint :: Show a => a -> IO ()
 pprint = pPrint
 
--- | Easier alias for pretty-show's ppShow.
+-- | Pretty show. Easier alias for pretty-show's ppShow.
 pshow :: Show a => a -> String
 pshow = ppShow
+
+-- | Pretty trace. Easier alias for traceShowId + ppShow.
+ptrace :: Show a => a -> a
+ptrace = traceWith pshow
 
 -- | Trace (print to stderr) a showable value using a custom show function.
 traceWith :: (a -> String) -> a -> a
 traceWith f a = trace (f a) a
-
--- | Parsec trace - show the current parsec position and next input,
--- and the provided label if it's non-null.
-ptrace :: String -> TextParser m ()
-ptrace msg = do
-  pos <- getPosition
-  next <- (T.take peeklength) `fmap` getInput
-  let (l,c) = (sourceLine pos, sourceColumn pos)
-      s  = printf "at line %2d col %2d: %s" (unPos l) (unPos c) (show next) :: String
-      s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
-  trace s' $ return ()
-  where
-    peeklength = 30
 
 -- | Global debug level, which controls the verbosity of debug output
 -- on the console. The default is 0 meaning no debug output. The
@@ -75,105 +97,109 @@ debugLevel = case snd $ break (=="--debug") args of
     where
       args = unsafePerformIO getArgs
 
--- | Convenience aliases for tracePrettyAt.
+-- | Pretty-print a label and a showable value to the console
+-- if the global debug level is at or above the specified level.
+-- At level 0, always prints. Otherwise, uses unsafePerformIO.
+ptraceAt :: Show a => Int -> String -> a -> a
+ptraceAt level
+    | level > 0 && debugLevel < level = flip const
+    | otherwise = \s a -> let p = ppShow a
+                              ls = lines p
+                              nlorspace | length ls > 1 = "\n"
+                                        | otherwise     = " " ++ take (10 - length s) (repeat ' ')
+                              ls' | length ls > 1 = map (" "++) ls
+                                  | otherwise     = ls
+                          in trace (s++":"++nlorspace++intercalate "\n" ls') a
 
--- Always pretty-print a message and the showable value to the console, then return it.
--- ("dbg" without the 0 clashes with megaparsec 5.1).
+-- | Pretty-print a message and the showable value to the console, then return it.
 dbg0 :: Show a => String -> a -> a
-dbg0 = tracePrettyAt 0
+dbg0 = ptraceAt 0
+-- "dbg" would clash with megaparsec
 
--- | Pretty-print a message and the showable value to the console when the debug level is >= 1, then return it. Uses unsafePerformIO.
+-- | Like dbg0, but also exit the program. Uses unsafePerformIO.
+dbgExit :: Show a => String -> a -> a
+dbgExit msg = const (unsafePerformIO exitFailure) . dbg0 msg
+
+-- | Pretty-print a message and the showable value to the console when the global debug level is >= 1, then return it.
+-- Uses unsafePerformIO.
 dbg1 :: Show a => String -> a -> a
-dbg1 = tracePrettyAt 1
+dbg1 = ptraceAt 1
 
 dbg2 :: Show a => String -> a -> a
-dbg2 = tracePrettyAt 2
+dbg2 = ptraceAt 2
 
 dbg3 :: Show a => String -> a -> a
-dbg3 = tracePrettyAt 3
+dbg3 = ptraceAt 3
 
 dbg4 :: Show a => String -> a -> a
-dbg4 = tracePrettyAt 4
+dbg4 = ptraceAt 4
 
 dbg5 :: Show a => String -> a -> a
-dbg5 = tracePrettyAt 5
+dbg5 = ptraceAt 5
 
 dbg6 :: Show a => String -> a -> a
-dbg6 = tracePrettyAt 6
+dbg6 = ptraceAt 6
 
 dbg7 :: Show a => String -> a -> a
-dbg7 = tracePrettyAt 7
+dbg7 = ptraceAt 7
 
 dbg8 :: Show a => String -> a -> a
-dbg8 = tracePrettyAt 8
+dbg8 = ptraceAt 8
 
 dbg9 :: Show a => String -> a -> a
-dbg9 = tracePrettyAt 9
+dbg9 = ptraceAt 9
 
--- | Convenience aliases for tracePrettyAtIO.
--- Like dbg, but convenient to insert in an IO monad.
--- XXX These have a bug; they should use traceIO, not trace,
--- otherwise GHC can occasionally over-optimise
+-- | Like ptraceAt, but convenient to insert in an IO monad (plus
+-- convenience aliases).
+-- XXX These have a bug; they should use
+-- traceIO, not trace, otherwise GHC can occasionally over-optimise
 -- (cf lpaste a few days ago where it killed/blocked a child thread).
+ptraceAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
+ptraceAtIO lvl lbl x = liftIO $ ptraceAt lvl lbl x `seq` return ()
+
+-- XXX Could not deduce (a ~ ())
+-- ptraceAtM :: (Monad m, Show a) => Int -> String -> a -> m a
+-- ptraceAtM lvl lbl x = ptraceAt lvl lbl x `seq` return x
+
 dbg0IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg0IO = tracePrettyAtIO 0
+dbg0IO = ptraceAtIO 0
 
 dbg1IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg1IO = tracePrettyAtIO 1
+dbg1IO = ptraceAtIO 1
 
 dbg2IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg2IO = tracePrettyAtIO 2
+dbg2IO = ptraceAtIO 2
 
 dbg3IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg3IO = tracePrettyAtIO 3
+dbg3IO = ptraceAtIO 3
 
 dbg4IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg4IO = tracePrettyAtIO 4
+dbg4IO = ptraceAtIO 4
 
 dbg5IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg5IO = tracePrettyAtIO 5
+dbg5IO = ptraceAtIO 5
 
 dbg6IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg6IO = tracePrettyAtIO 6
+dbg6IO = ptraceAtIO 6
 
 dbg7IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg7IO = tracePrettyAtIO 7
+dbg7IO = ptraceAtIO 7
 
 dbg8IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg8IO = tracePrettyAtIO 8
+dbg8IO = ptraceAtIO 8
 
 dbg9IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg9IO = tracePrettyAtIO 9
+dbg9IO = ptraceAtIO 9
 
--- | Pretty-print a message and a showable value to the console if the debug level is at or above the specified level.
--- At level 0, always prints. Otherwise, uses unsafePerformIO.
-tracePrettyAt :: Show a => Int -> String -> a -> a
-tracePrettyAt lvl = dbgppshow lvl
-
--- tracePrettyAtM :: (Monad m, Show a) => Int -> String -> a -> m a
--- tracePrettyAtM lvl lbl x = tracePrettyAt lvl lbl x `seq` return x
--- XXX Could not deduce (a ~ ())
--- from the context (Show a)
---   bound by the type signature for
---              dbgM :: Show a => String -> a -> IO ()
---   at hledger/Hledger/Cli/Main.hs:200:13-42
---   ‘a’ is a rigid type variable bound by
---       the type signature for dbgM :: Show a => String -> a -> IO ()
---       at hledger/Hledger/Cli/Main.hs:200:13
--- Expected type: String -> a -> IO ()
---   Actual type: String -> a -> IO a
-
-tracePrettyAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
-tracePrettyAtIO lvl lbl x = liftIO $ tracePrettyAt lvl lbl x `seq` return ()
-
-log0 :: Show a => String -> a -> a
-log0 = logPrettyAt 0
+-- | Log a message and a pretty-printed showable value to ./debug.log, then return it.
+plog :: Show a => String -> a -> a
+plog = plogAt 0
 
 -- | Log a message and a pretty-printed showable value to ./debug.log, 
--- if the debug level is at or above the specified level.
+-- if the global debug level is at or above the specified level.
 -- At level 0, always logs. Otherwise, uses unsafePerformIO.
-logPrettyAt :: Show a => Int -> String -> a -> a
-logPrettyAt lvl
+plogAt :: Show a => Int -> String -> a -> a
+plogAt lvl
     | lvl > 0 && debugLevel < lvl = flip const
     | otherwise = \s a -> 
         let p = ppShow a
@@ -185,66 +211,37 @@ logPrettyAt lvl
             output = s++":"++nlorspace++intercalate "\n" ls'
         in unsafePerformIO $ appendFile "debug.log" output >> return a
 
--- | print this string to the console before evaluating the expression,
--- if the global debug level is at or above the specified level.  Uses unsafePerformIO.
--- dbgtrace :: Int -> String -> a -> a
--- dbgtrace level
---     | debugLevel >= level = trace
---     | otherwise           = flip const
+-- XXX redundant ? More/less robust than log0 ?
+-- -- | Like dbg, but writes the output to "debug.log" in the current directory.
+-- -- Uses unsafePerformIO. Can fail due to log file contention if called too quickly
+-- -- ("*** Exception: debug.log: openFile: resource busy (file is locked)").
+-- dbglog :: Show a => String -> a -> a
+-- dbglog label a =
+--   (unsafePerformIO $
+--     appendFile "debug.log" $ label ++ ": " ++ ppShow a ++ "\n")
+--   `seq` a
 
--- | Print a showable value to the console, with a message, if the
--- debug level is at or above the specified level (uses
--- unsafePerformIO).
--- Values are displayed with show, all on one line, which is hard to read.
--- dbgshow :: Show a => Int -> String -> a -> a
--- dbgshow level
---     | debugLevel >= level = ltrace
---     | otherwise           = flip const
+-- | Print the provided label (if non-null) and current parser state
+-- (position and next input) to the console. (See also megaparsec's dbg.)
+traceParse :: String -> TextParser m ()
+traceParse msg = do
+  pos <- getPosition
+  next <- (T.take peeklength) `fmap` getInput
+  let (l,c) = (sourceLine pos, sourceColumn pos)
+      s  = printf "at line %2d col %2d: %s" (unPos l) (unPos c) (show next) :: String
+      s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
+  trace s' $ return ()
+  where
+    peeklength = 30
 
--- | Print a showable value to the console, with a message, if the
--- debug level is at or above the specified level (uses
--- unsafePerformIO).
--- Values are displayed with ppShow, each field/constructor on its own line.
-dbgppshow :: Show a => Int -> String -> a -> a
-dbgppshow level
-    | level > 0 && debugLevel < level = flip const
-    | otherwise = \s a -> let p = ppShow a
-                              ls = lines p
-                              nlorspace | length ls > 1 = "\n"
-                                        | otherwise     = " " ++ take (10 - length s) (repeat ' ')
-                              ls' | length ls > 1 = map (" "++) ls
-                                  | otherwise     = ls
-                          in trace (s++":"++nlorspace++intercalate "\n" ls') a
+-- | Print the provided label (if non-null) and current parser state
+-- (position and next input) to the console if the global debug level
+-- is at or above the specified level. Uses unsafePerformIO.
+-- (See also megaparsec's dbg.)
+traceParseAt :: Int -> String -> TextParser m ()
+traceParseAt level msg = when (level <= debugLevel) $ traceParse msg
 
--- -- | Print a showable value to the console, with a message, if the
--- -- debug level is at or above the specified level (uses
--- -- unsafePerformIO).
--- -- Values are displayed with pprint. Field names are not shown, but the
--- -- output is compact with smart line wrapping, long data elided,
--- -- and slow calculations timed out.
--- dbgpprint :: Data a => Int -> String -> a -> a
--- dbgpprint level msg a
---     | debugLevel >= level = unsafePerformIO $ do
---                               pprint a >>= putStrLn . ((msg++": \n") ++) . show
---                               return a
---     | otherwise           = a
+-- | Convenience alias for traceParseAt
+dbgparse :: Int -> String -> TextParser m ()
+dbgparse level msg = traceParseAt level msg
 
--- | Like dbg, then exit the program. Uses unsafePerformIO.
-dbgExit :: Show a => String -> a -> a
-dbgExit msg = const (unsafePerformIO exitFailure) . dbg0 msg
-
--- | Print a message and parsec debug info (parse position and next
--- input) to the console when the debug level is at or above
--- this level. Uses unsafePerformIO.
--- pdbgAt :: GenParser m => Float -> String -> m ()
-pdbg :: Int -> String -> TextParser m ()
-pdbg level msg = when (level <= debugLevel) $ ptrace msg
-
--- | Like dbg, but writes the output to "debug.log" in the current directory.
--- Uses unsafePerformIO. Can fail due to log file contention if called too quickly
--- ("*** Exception: debug.log: openFile: resource busy (file is locked)").
-dbglog :: Show a => String -> a -> a
-dbglog label a =
-  (unsafePerformIO $
-    appendFile "debug.log" $ label ++ ": " ++ ppShow a ++ "\n")
-  `seq` a

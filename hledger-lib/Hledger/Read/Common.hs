@@ -719,7 +719,7 @@ numberp :: Maybe AmountStyle -> TextParser m (Quantity, Int, Maybe Char, Maybe D
 numberp suggestedStyle = label "number" $ do
     -- a number is an optional sign followed by a sequence of digits possibly
     -- interspersed with periods, commas, or both
-    -- ptrace "numberp"
+    -- dbgparse 0 "numberp"
     sign <- signp
     rawNum <- either (disambiguateNumber suggestedStyle) id <$> rawnumberp
     mExp <- optional $ try $ exponentp
@@ -1214,7 +1214,7 @@ commenttagsanddatesp mYear = do
 bracketeddatetagsp
   :: Maybe Year -> TextParser m [(TagName, Day)]
 bracketeddatetagsp mYear1 = do
-  -- pdbg 0 "bracketeddatetagsp"
+  -- dbgparse 0 "bracketeddatetagsp"
   try $ do
     s <- lookAhead
        $ between (char '[') (char ']')

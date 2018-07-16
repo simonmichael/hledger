@@ -357,7 +357,7 @@ accountaliasp = regexaliasp <|> basicaliasp
 
 basicaliasp :: TextParser m AccountAlias
 basicaliasp = do
-  -- pdbg 0 "basicaliasp"
+  -- dbgparse 0 "basicaliasp"
   old <- rstrip <$> (some $ noneOf ("=" :: [Char]))
   char '='
   skipMany spacenonewline
@@ -366,7 +366,7 @@ basicaliasp = do
 
 regexaliasp :: TextParser m AccountAlias
 regexaliasp = do
-  -- pdbg 0 "regexaliasp"
+  -- dbgparse 0 "regexaliasp"
   char '/'
   re <- some $ noneOf ("/\n\r" :: [Char]) -- paranoid: don't try to read past line end
   char '/'
@@ -504,7 +504,7 @@ periodictransactionp = do
 -- | Parse a (possibly unbalanced) transaction.
 transactionp :: JournalParser m Transaction
 transactionp = do
-  -- ptrace "transactionp"
+  -- dbgparse 0 "transactionp"
   startpos <- getPosition
   date <- datep <?> "transaction"
   edate <- optional (lift $ secondarydatep date) <?> "secondary date"
@@ -628,7 +628,7 @@ postingsp mTransactionYear = many (postingp mTransactionYear) <?> "postings"
 
 postingp :: Maybe Year -> JournalParser m Posting
 postingp mTransactionYear = do
-  -- pdbg 0 "postingp"
+  -- dbgparse 0 "postingp"
   (status, account) <- try $ do
     lift (skipSome spacenonewline)
     status <- lift statusp
