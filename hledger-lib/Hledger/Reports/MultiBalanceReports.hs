@@ -69,11 +69,11 @@ type MultiBalanceReportRow    = (AccountName, AccountName, Int, [MixedAmount], M
 type MultiBalanceReportTotals = ([MixedAmount], MixedAmount, MixedAmount) -- (Totals list, sum of totals, average of totals)
 
 instance Show MultiBalanceReport where
-    -- use ppShow to break long lists onto multiple lines
-    -- we add some bogus extra shows here to help ppShow parse the output
+    -- use pshow (pretty-show's ppShow) to break long lists onto multiple lines
+    -- we add some bogus extra shows here to help it parse the output
     -- and wrap tuples and lists properly
     show (MultiBalanceReport (spans, items, totals)) =
-        "MultiBalanceReport (ignore extra quotes):\n" ++ ppShow (show spans, map show items, totals)
+        "MultiBalanceReport (ignore extra quotes):\n" ++ pshow (show spans, map show items, totals)
 
 -- type alias just to remind us which AccountNames might be depth-clipped, below.
 type ClippedAccountName = AccountName

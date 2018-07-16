@@ -8,9 +8,8 @@
 -- http://hackage.haskell.org/packages/archive/traced/2009.7.20/doc/html/Debug-Traced.html
 
 module Hledger.Utils.Debug (
-  module Hledger.Utils.Debug
+   module Hledger.Utils.Debug
   ,module Debug.Trace
-  ,ppShow
 )
 where
 
@@ -26,10 +25,15 @@ import           System.Exit
 import           System.IO.Unsafe (unsafePerformIO)
 import           Text.Megaparsec
 import           Text.Printf
-import           Text.Show.Pretty (ppShow)
+import           Text.Show.Pretty (ppShow, pPrint)
 
+-- | Easier alias for pretty-show's pPrint.
 pprint :: Show a => a -> IO ()
-pprint = putStrLn . ppShow
+pprint = pPrint
+
+-- | Easier alias for pretty-show's ppShow.
+pshow :: Show a => a -> String
+pshow = ppShow
 
 -- | Trace (print to stderr) a showable value using a custom show function.
 traceWith :: (a -> String) -> a -> a
