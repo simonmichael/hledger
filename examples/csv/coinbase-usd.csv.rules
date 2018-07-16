@@ -11,4 +11,4 @@
 
 include coinbase-common.rules
 
-account1 assets:coinbase:btc
+account1 assets:coinbase:usd

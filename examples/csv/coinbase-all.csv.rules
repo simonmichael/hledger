@@ -1,0 +1,29 @@
+# hledger CSV rules for coinbase combined transaction history CSV
+# (https://www.coinbase.com/tax-center, Transaction History (All))
+
+skip 3
+fields timestamp,transaction_type,asset,quantity_transacted,usd_spot_price_at_transaction,usd_amount_transacted_inclusive_of_coinbase_fees,address,notes
+
+date %timestamp
+date-format %m/%d/%Y
+description %notes
+comment  price-excl-fees:$%usd_spot_price_at_transaction
+
+account1 assets:personal:online:coinbase
+if ,BCH,
+ account1 assets:personal:online:coinbase:bch
+if ,BTC,
+ account1 assets:personal:online:coinbase:btc
+if ,ETH,
+ account1 assets:personal:online:coinbase:eth
+if ,LTC,
+ account1 assets:personal:online:coinbase:ltc
+
+currency %asset 
+
+amount %quantity_transacted @@ $%usd_amount_transacted_inclusive_of_coinbase_fees
+if ,(Sell|Send),
+ amount -%quantity_transacted @@ $%usd_amount_transacted_inclusive_of_coinbase_fees
+
+if ,(Buy|Receive),
+ account2 assets:bank:checking

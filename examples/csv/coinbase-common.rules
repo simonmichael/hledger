@@ -1,4 +1,4 @@
-# Specific hledger CSV rules for coinbase per-account reports
+# Common hledger CSV rules for coinbase per-account reports
 # (https://www.coinbase.com/reports, type: transaction history)
 # Sample:
 # Transactions
@@ -9,6 +9,24 @@
 # 2017-04-06 17:09:04 -0700,0.04182499,0.04182499,BTC,1111aaaa,Bought 0.04182499 BTC for $52.00 USD.,false,52.0,USD,2.0,USD,Visa debit ********1234,2222bbbb,"","","","","","",3333cccc,4444dddd,""
 # 2017-04-09 10:55:56 -0700,0.04973356,0.00790857,BTC,1111aaaa,Bought 0.00790857 BTC for $10.00 USD.,false,10.0,USD,0.38,USD,Visa debit ********1234,5555eeee,"","","","","","",3333cccc,6666ffff,""
 
-include coinbase-common.rules
+skip 4
+fields date, balance, amount, currency, to, notes, instantly_exchanged, transfer_total, etc...
+date-format %Y-%m-%d %T %z
+account1 assets:online:coinbase:btc wallet
+description %notes
+# add a trailing space to currency:
+currency %currency 
 
-account1 assets:coinbase:btc
+if Visa debit.*1234
+ account2 assets:bank:checking
+# TODO want BTC on account1 posting, $ on account2 posting
+
+if Brave wallet
+ account2 expenses:business:dues
+
+# if there's a transfer total, add that as price
+# The double quotes enclosing each field have been removed at this point.
+# TODO when supported, we'll set the other posting's amount instead
+if ^[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,[^,]+
+ amount %amount @@ $%transfer_total
+
