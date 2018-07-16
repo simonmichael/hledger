@@ -100,7 +100,7 @@ Please do a web search for the error and send corrections for this list:
  |-----------------|-------------------------------------------------------
  | Centos:         | **`sudo yum install -y libstdc++-devel ncurses-devel zlib-devel`** *# [?](https://github.com/simonmichael/hledger/issues/715)*
  | Debian, Ubuntu: | **`sudo apt install -y libtinfo-dev`** *# ?*
- | Fedora, RHEL:   | **`sudo dnf install -y ncurses-devel`** *# ?*
+ | Fedora, RHEL:   | **`sudo dnf install -y gmp-devel ncurses-devel`** *# ?*
 
 #### Set up $PATH
 
