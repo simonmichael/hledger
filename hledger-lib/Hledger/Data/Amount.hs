@@ -58,6 +58,7 @@ module Hledger.Data.Amount (
   -- ** arithmetic
   costOfAmount,
   divideAmount,
+  multiplyAmount,
   amountValue,
   -- ** rendering
   amountstyle,
@@ -84,6 +85,7 @@ module Hledger.Data.Amount (
   -- ** arithmetic
   costOfMixedAmount,
   divideMixedAmount,
+  multiplyMixedAmount,
   averageMixedAmounts,
   isNegativeAmount,
   isNegativeMixedAmount,
@@ -216,6 +218,10 @@ costOfAmount a@Amount{aquantity=q, aprice=price} =
 -- | Divide an amount's quantity by a constant.
 divideAmount :: Amount -> Quantity -> Amount
 divideAmount a@Amount{aquantity=q} d = a{aquantity=q/d}
+
+-- | Multiply an amount's quantity by a constant.
+multiplyAmount :: Amount -> Quantity -> Amount
+multiplyAmount a@Amount{aquantity=q} d = a{aquantity=q*d}
 
 -- | Is this amount negative ? The price is ignored.
 isNegativeAmount :: Amount -> Bool
@@ -538,6 +544,10 @@ costOfMixedAmount (Mixed as) = Mixed $ map costOfAmount as
 -- | Divide a mixed amount's quantities by a constant.
 divideMixedAmount :: MixedAmount -> Quantity -> MixedAmount
 divideMixedAmount (Mixed as) d = Mixed $ map (`divideAmount` d) as
+
+-- | Multiply a mixed amount's quantities by a constant.
+multiplyMixedAmount :: MixedAmount -> Quantity -> MixedAmount
+multiplyMixedAmount (Mixed as) d = Mixed $ map (`multiplyAmount` d) as
 
 -- | Calculate the average of some mixed amounts.
 averageMixedAmounts :: [MixedAmount] -> MixedAmount
