@@ -949,13 +949,13 @@ cmpver () {
 # try installing each package that needs installing, in turn
 echo ----------
 
-if [[ $(cmpver "$(cmd_version hledger)" $HLEDGER_VERSION) = 2 ]]; then
+if [[ $(cmpver "$(cmd_version hledger 2>/dev/null)" $HLEDGER_VERSION) = 2 ]]; then
   echo Installing hledger
   try_install hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 
-if [[ $(cmpver "$(cmd_version hledger-ui)" $HLEDGER_UI_VERSION) = 2 ]]; then
+if [[ $(cmpver "$(cmd_version hledger-ui 2>/dev/null)" $HLEDGER_UI_VERSION) = 2 ]]; then
   echo Installing hledger-ui
   try_install hledger-ui-$HLEDGER_UI_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION \
     fsnotify-0.3.0.1
@@ -964,13 +964,13 @@ if [[ $(cmpver "$(cmd_version hledger-ui)" $HLEDGER_UI_VERSION) = 2 ]]; then
   echo
 fi
 
-if [[ $(cmpver "$(cmd_version hledger-web)" $HLEDGER_WEB_VERSION) = 2 ]]; then
+if [[ $(cmpver "$(cmd_version hledger-web 2>/dev/null)" $HLEDGER_WEB_VERSION) = 2 ]]; then
   echo Installing hledger-web
   try_install hledger-web-$HLEDGER_WEB_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 
-if [[ $(cmpver "$(cmd_version hledger-api)" $HLEDGER_API_VERSION) = 2 ]]; then
+if [[ $(cmpver "$(cmd_version hledger-api 2>/dev/null)" $HLEDGER_API_VERSION) = 2 ]]; then
   echo Installing hledger-api
   try_install hledger-api-$HLEDGER_API_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
@@ -978,25 +978,25 @@ fi
 
 # Third-party addons. We allow these to use an older version of
 # hledger-lib, in case their bounds have not been updated yet.
-if [[ $(cmpver "$(cmd_version hledger-diff)" $HLEDGER_DIFF_VERSION) = 2 ]]; then
+if [[ $(cmpver "$(cmd_version hledger-diff 2>/dev/null)" $HLEDGER_DIFF_VERSION) = 2 ]]; then
   echo Installing hledger-diff
   try_install hledger-diff-$HLEDGER_DIFF_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 
-if [[ $(cmpver "$(cmd_version hledger-iadd)" $HLEDGER_IADD_VERSION) = 2 ]]; then
+if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) = 2 ]]; then
   echo Installing hledger-iadd
   try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 
-if [[ $(cmpver "$(cmd_version hledger-interest)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
+if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
   echo Installing hledger-interest
   try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
 fi
 
-if [[ $(cmpver "$(cmd_version hledger-irr)" $HLEDGER_IRR_VERSION) = 2 ]]; then
+if [[ $(cmpver "$(cmd_version hledger-irr 2>/dev/null)" $HLEDGER_IRR_VERSION) = 2 ]]; then
   echo Installing hledger-irr
   try_install hledger-irr-$HLEDGER_IRR_VERSION hledger-lib-$HLEDGER_LIB_VERSION
   echo
