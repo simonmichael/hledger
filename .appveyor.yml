@@ -38,7 +38,7 @@ cache:
 install:
 # temporary, troubleshooting https://github.com/commercialhaskell/stack/issues/4125
 
-- dir
+#- dir
 
 # install latest stack release
 # - curl -skL -ostack.zip http://www.stackage.org/stack/windows-x86_64
@@ -54,12 +54,14 @@ install:
 
 # install latest stack master
 - set PATH=C:\Users\appveyor\AppData\Roaming\local\bin;%PATH%
+# show the stack-installed binares that were restored from cache, can vary by instance
+- dir C:\Users\appveyor\AppData\Roaming\local\bin
 # - stack-release upgrade --git
 #- copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe C:\Users\appveyor\AppData\Roaming\local\bin\stack-master.exe
 # - copy C:\Users\appveyor\AppData\Roaming\local\bin\stack.exe stack.exe
 - stack --version
 
-- dir
+#- dir
 
 #
 # install ghc
