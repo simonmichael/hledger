@@ -29,6 +29,7 @@ module Hledger.Query (
   queryIsReal,
   queryIsStatus,
   queryIsEmpty,
+  queryIsComment,
   queryStartDate,
   queryEndDate,
   queryDateSpan,
@@ -96,6 +97,7 @@ data Query = Any              -- ^ always match
                               --   and sometimes like a query option (for controlling display)
            | Tag Regexp (Maybe Regexp)  -- ^ match if a tag's name, and optionally its value, is matched by these respective regexps
                                         -- matching the regexp if provided, exists
+           | Comment Regexp   -- ^ match any transaction or posting comment
     deriving (Eq,Data,Typeable)
 
 -- custom Show implementation to show strings more accurately, eg for debugging regexps
@@ -110,13 +112,14 @@ instance Show Query where
   show (Acct r)      = "Acct "   ++ show r
   show (Date ds)     = "Date ("  ++ show ds ++ ")"
   show (Date2 ds)    = "Date2 (" ++ show ds ++ ")"
-  show (StatusQ b)    = "StatusQ " ++ show b
+  show (StatusQ b)   = "StatusQ " ++ show b
   show (Real b)      = "Real "   ++ show b
   show (Amt ord qty) = "Amt "    ++ show ord ++ " " ++ show qty
   show (Sym r)       = "Sym "    ++ show r
   show (Empty b)     = "Empty "  ++ show b
   show (Depth n)     = "Depth "  ++ show n
   show (Tag s ms)    = "Tag "    ++ show s ++ " (" ++ show ms ++ ")"
+  show (Comment r)   = "Comment " ++ show r
 
 -- | A query option changes a query's/report's behaviour and output in some way.
 data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register focussed on this account
@@ -182,6 +185,7 @@ tests_parseQuery = [
     parseQuery d "desc:'x x'" `is` (Desc "x x", [])
     parseQuery d "'a a' 'b" `is` (Or [Acct "a a",Acct "'b"], [])
     parseQuery d "\"" `is` (Acct "\"", [])
+    parseQuery d "comment:'x x'" `is` (Comment "x x", [])
  ]
 
 -- XXX
@@ -243,6 +247,7 @@ prefixes = map (<>":") [
     ,"empty"
     ,"depth"
     ,"tag"
+    ,"comment"
     ]
 
 defaultprefix :: T.Text
@@ -269,6 +274,7 @@ parseQueryTerm d (T.stripPrefix "not:" -> Just s) =
     Right _ -> Left Any -- not:somequeryoption will be ignored
 parseQueryTerm _ (T.stripPrefix "code:" -> Just s) = Left $ Code $ T.unpack s
 parseQueryTerm _ (T.stripPrefix "desc:" -> Just s) = Left $ Desc $ T.unpack s
+parseQueryTerm _ (T.stripPrefix "comment:" -> Just s) = Left $ Comment $ T.unpack s
 parseQueryTerm _ (T.stripPrefix "payee:" -> Just s) = Left $ Tag "payee" $ Just $ T.unpack s
 parseQueryTerm _ (T.stripPrefix "note:" -> Just s) = Left $ Tag "note" $ Just $ T.unpack s
 parseQueryTerm _ (T.stripPrefix "acct:" -> Just s) = Left $ Acct $ T.unpack s
@@ -504,6 +510,10 @@ queryIsEmpty :: Query -> Bool
 queryIsEmpty (Empty _) = True
 queryIsEmpty _ = False
 
+queryIsComment :: Query -> Bool
+queryIsComment (Comment _) = True
+queryIsComment _ = False
+
 -- | Does this query specify a start date and nothing else (that would
 -- filter postings prior to the date) ?
 -- When the flag is true, look for a starting secondary date instead.
@@ -704,6 +714,7 @@ matchesPosting (Tag n v) p = case (n, v) of
   ("payee", Just v) -> maybe False (regexMatchesCI v . T.unpack . transactionPayee) $ ptransaction p
   ("note", Just v) -> maybe False (regexMatchesCI v . T.unpack . transactionNote) $ ptransaction p
   (n, v) -> matchesTags n v $ postingAllTags p
+matchesPosting q@(Comment _) p = maybe False (matchesTransaction q) (ptransaction p)
 
 tests_matchesPosting = [
    "matchesPosting" ~: do
@@ -755,10 +766,17 @@ matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Empty _) _ = True
 matchesTransaction (Depth d) t = any (Depth d `matchesPosting`) $ tpostings t
 matchesTransaction q@(Sym _) t = any (q `matchesPosting`) $ tpostings t
+matchesTransaction (Comment r) t = any (regexMatchesCI r . T.unpack) (allComments t)
 matchesTransaction (Tag n v) t = case (n, v) of
   ("payee", Just v) -> regexMatchesCI v . T.unpack . transactionPayee $ t
   ("note", Just v) -> regexMatchesCI v . T.unpack . transactionNote $ t
   (n, v) -> matchesTags n v $ transactionAllTags t
+
+allComments :: Transaction -> [T.Text]
+allComments t = tComments ++ concatMap pComments (tpostings t)
+  where
+    tComments = [tdescription t, tcomment t, tpreceding_comment_lines t]
+    pComments p = [pcomment p]
 
 tests_matchesTransaction = [
   "matchesTransaction" ~: do
@@ -772,6 +790,11 @@ tests_matchesTransaction = [
    assertBool "" $ (Tag "note" (Just "note")) `matchesTransaction` nulltransaction{tdescription="payee|note"}
    -- a tag match on a transaction also matches posting tags
    assertBool "" $ (Tag "postingtag" Nothing) `matchesTransaction` nulltransaction{tpostings=[nullposting{ptags=[("postingtag","")]}]}
+   -- the "comment" query matches all comments
+   assertBool "" $ (Comment "foo.*bar") `matchesTransaction` nulltransaction{tdescription="payee|foo note bar"}
+   assertBool "" $ (Comment "foo.*bar") `matchesTransaction` nulltransaction{tcomment="jaja foobar"}
+   assertBool "" $ (Comment "foo.*bar") `matchesTransaction` nulltransaction{tpreceding_comment_lines="foo abc bar"}
+   assertBool "" $ (Comment "foo.*bar") `matchesTransaction` nulltransaction{tpostings=[nullposting{pcomment="foo 123 bar"}]}
  ]
 
 -- | Filter a list of tags by matching against their names and
