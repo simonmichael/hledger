@@ -191,17 +191,18 @@ includedirectivep = do
   lift (skipSome spacenonewline)
   filename <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
 
-  -- save parent state
-  parentParserState <- getParserState
-  parentj <- get
-
-  let childj = newJournalWithParseStateFrom parentj
   parentpos <- getPosition
 
   -- read child input
   let curdir = takeDirectory (sourceName parentpos)
   filepath <- lift $ expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
   childInput <- lift $ readFilePortably filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
+
+  -- save parent state
+  parentParserState <- getParserState
+  parentj <- get
+
+  let childj = newJournalWithParseStateFrom parentj
 
   -- set child state
   setInput childInput
