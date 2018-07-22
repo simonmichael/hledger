@@ -800,10 +800,10 @@ getEffectiveAssignment rules record f = lastMay $ assignmentsFor f
 renderTemplate ::  CsvRules -> CsvRecord -> FieldTemplate -> String
 renderTemplate rules record t = regexReplaceBy "%[A-z0-9]+" replace t
   where
-    replace ('%':pat) = maybe pat (\i -> atDef "" record (i-1)) mi
+    replace ('%':pat) = maybe pat (\i -> atDef "" record (i-1)) mindex
       where
-        mi | all isDigit pat = readMay pat
-           | otherwise       = lookup pat $ rcsvfieldindexes rules
+        mindex | all isDigit pat = readMay pat
+               | otherwise       = lookup (map toLower pat) $ rcsvfieldindexes rules
     replace pat       = pat
 
 -- Parse the date string using the specified date-format, or if unspecified try these default formats:
