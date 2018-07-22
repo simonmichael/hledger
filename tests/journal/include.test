@@ -35,3 +35,16 @@ include b.timedot
     (b.bb)            1.00
 
 >>>=0
+
+# 3. include glob patterns
+printf '2018/01/01\n (A)  1\n' >xy.journal; printf '2018/02/01\n  (B)  1' >yy.journal; hledger -f - print; rm -rf x.journal y.journal
+<<<
+include *y.journal
+>>>
+2018/01/01
+    (A)               1
+
+2018/02/01
+    (B)               1
+
+>>>=0
