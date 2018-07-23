@@ -94,6 +94,7 @@ import Text.Megaparsec.Char
 import Text.Megaparsec.Custom
 import Text.Printf
 import System.FilePath
+import System.FilePath.Glob hiding (match)
 
 import Hledger.Data
 import Hledger.Read.Common
@@ -189,15 +190,18 @@ includedirectivep :: MonadIO m => JournalParser m ()
 includedirectivep = do
   string "include"
   lift (skipSome spacenonewline)
-  filename <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
+  fileglob <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
 
   parentpos <- getPosition
 
   curdir <- lift $ expandPath (takeDirectory $ sourceName parentpos) ""
-                   `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
-   -- </> correctly handles case when 'filename' is absolute
-  let filepaths = [curdir </> filename]
-  -- read child inputs
+                   `orRethrowIOError` (show parentpos ++ " locating " ++ fileglob)
+
+  filepaths <- if isLiteral (compile fileglob)
+                  -- </> and globDir1 correctly handle case when 'fileglob' is absolute
+                  then pure [curdir </> fileglob]
+                  else liftIO $ globDir1 (compile fileglob) curdir
+
   forM_ filepaths $ parseChild parentpos
 
   void newline
