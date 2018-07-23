@@ -196,35 +196,40 @@ includedirectivep = do
   curdir <- lift $ expandPath (takeDirectory $ sourceName parentpos) ""
                    `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
    -- </> correctly handles case when 'filename' is absolute
-  let filepath = curdir </> filename
-  -- read child input
-  childInput <- lift $ readFilePortably filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
-
-  -- save parent state
-  parentParserState <- getParserState
-  parentj <- get
-
-  let childj = newJournalWithParseStateFrom parentj
-
-  -- set child state
-  setInput childInput
-  pushPosition $ initialPos filepath
-  put childj
-
-  -- parse include file
-  let parsers = [ journalp
-                , timeclockfilep
-                , timedotfilep
-                ] -- can't include a csv file yet, that reader is special
-  updatedChildj <- journalAddFile (filepath, childInput) <$>
-                   region (withSource childInput) (choiceInState parsers)
-
-  -- restore parent state, prepending the child's parse info
-  setParserState parentParserState
-  put $ updatedChildj <> parentj
-  -- discard child's parse info, prepend its (reversed) list data, combine other fields
+  let filepaths = [curdir </> filename]
+  -- read child inputs
+  forM_ filepaths $ parseChild parentpos
 
   void newline
+
+  where
+    parseChild parentpos filepath = do
+        childInput <- lift $ readFilePortably filepath
+                             `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
+
+        -- save parent state
+        parentParserState <- getParserState
+        parentj <- get
+
+        let childj = newJournalWithParseStateFrom parentj
+
+        -- set child state
+        setInput childInput
+        pushPosition $ initialPos filepath
+        put childj
+
+        -- parse include file
+        let parsers = [ journalp
+                      , timeclockfilep
+                      , timedotfilep
+                      ] -- can't include a csv file yet, that reader is special
+        updatedChildj <- journalAddFile (filepath, childInput) <$>
+                        region (withSource childInput) (choiceInState parsers)
+
+        -- restore parent state, prepending the child's parse info
+        setParserState parentParserState
+        put $ updatedChildj <> parentj
+        -- discard child's parse info, prepend its (reversed) list data, combine other fields
 
 
 newJournalWithParseStateFrom :: Journal -> Journal
