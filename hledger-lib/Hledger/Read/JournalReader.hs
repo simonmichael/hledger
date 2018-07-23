@@ -204,11 +204,17 @@ includedirectivep = do
   void newline
 
   where
-    getFilePaths curdir fileglob =
-        if isLiteral (compile fileglob)
-            -- </> and globDir1 correctly handle case when 'fileglob' is absolute
-            then pure [curdir </> fileglob]
-            else liftIO $ globDir1 (compile fileglob) curdir
+    getFilePaths curdir filename = do
+        -- Compiling filename as a glob pattern works even if it is a literal
+        fileglob <- case tryCompileWith compDefault{errorRecovery=False} filename of
+            Right x -> pure x
+            Left e -> fail $ "Invalid glob pattern: " ++ e
+        -- Get all matching files in the current working directory
+        filepaths <- liftIO $ globDir1 fileglob curdir
+        if (not . null) filepaths
+            then pure filepaths
+            else fail $ "No existing files match pattern: " ++ filename
+
     parseChild parentpos filepath = do
         childInput <- lift $ readFilePortably filepath
                              `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
