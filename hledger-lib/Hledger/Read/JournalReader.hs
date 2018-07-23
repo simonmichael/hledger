@@ -193,9 +193,11 @@ includedirectivep = do
 
   parentpos <- getPosition
 
+  curdir <- lift $ expandPath (takeDirectory $ sourceName parentpos) ""
+                   `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
+   -- </> correctly handles case when 'filename' is absolute
+  let filepath = curdir </> filename
   -- read child input
-  let curdir = takeDirectory (sourceName parentpos)
-  filepath <- lift $ expandPath curdir filename `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
   childInput <- lift $ readFilePortably filepath `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
 
   -- save parent state
