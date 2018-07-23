@@ -190,23 +190,25 @@ includedirectivep :: MonadIO m => JournalParser m ()
 includedirectivep = do
   string "include"
   lift (skipSome spacenonewline)
-  fileglob <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
+  filename <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
 
   parentpos <- getPosition
 
   curdir <- lift $ expandPath (takeDirectory $ sourceName parentpos) ""
-                   `orRethrowIOError` (show parentpos ++ " locating " ++ fileglob)
+                   `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
 
-  filepaths <- if isLiteral (compile fileglob)
-                  -- </> and globDir1 correctly handle case when 'fileglob' is absolute
-                  then pure [curdir </> fileglob]
-                  else liftIO $ globDir1 (compile fileglob) curdir
+  filepaths <- getFilePaths curdir filename
 
   forM_ filepaths $ parseChild parentpos
 
   void newline
 
   where
+    getFilePaths curdir fileglob =
+        if isLiteral (compile fileglob)
+            -- </> and globDir1 correctly handle case when 'fileglob' is absolute
+            then pure [curdir </> fileglob]
+            else liftIO $ globDir1 (compile fileglob) curdir
     parseChild parentpos filepath = do
         childInput <- lift $ readFilePortably filepath
                              `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
