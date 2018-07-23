@@ -48,3 +48,15 @@ include *y.journal
     (B)               1
 
 >>>=0
+
+# 4. include invalid glob patterns
+hledger -f - print
+<<<
+include [.journal
+>>>=1
+
+# 5. include nonexsitant file
+hledger -f - print
+<<<
+include doesnotexist.journal
+>>>=1
