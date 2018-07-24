@@ -94,7 +94,7 @@ import Text.Megaparsec.Char
 import Text.Megaparsec.Custom
 import Text.Printf
 import System.FilePath
-import System.FilePath.Glob hiding (match)
+import "Glob" System.FilePath.Glob hiding (match)
 
 import Hledger.Data
 import Hledger.Read.Common
