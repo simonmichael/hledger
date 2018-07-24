@@ -698,7 +698,9 @@ include path/to/file.journal
 ```
 
 If the path does not begin with a slash, it is relative to the current file.
-Glob patterns (`*`) are not currently supported.
+The include file path may contain
+[common glob patterns](https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile)
+(e.g. `*`).
 
 The `include` directive can only be used in journal files.
 It can include journal, timeclock or timedot files, but not CSV files.
