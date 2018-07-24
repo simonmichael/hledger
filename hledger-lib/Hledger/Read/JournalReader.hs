@@ -194,26 +194,25 @@ includedirectivep = do
 
   parentpos <- getPosition
 
-  curdir <- lift $ expandPath (takeDirectory $ sourceName parentpos) ""
-                   `orRethrowIOError` (show parentpos ++ " locating " ++ filename)
-
-  filepaths <- getFilePaths curdir filename
+  filepaths <- getFilePaths parentpos filename
 
   forM_ filepaths $ parseChild parentpos
 
   void newline
 
   where
-    getFilePaths curdir filename = do
+    getFilePaths parserpos filename = do
+        curdir <- lift $ expandPath (takeDirectory $ sourceName parserpos) ""
+                         `orRethrowIOError` (show parserpos ++ " locating " ++ filename)
         -- Compiling filename as a glob pattern works even if it is a literal
         fileglob <- case tryCompileWith compDefault{errorRecovery=False} filename of
             Right x -> pure x
-            Left e -> fail $ "Invalid glob pattern: " ++ e
+            Left e -> parseErrorAt parserpos $ "Invalid glob pattern: " ++ e
         -- Get all matching files in the current working directory
         filepaths <- liftIO $ globDir1 fileglob curdir
         if (not . null) filepaths
             then pure filepaths
-            else fail $ "No existing files match pattern: " ++ filename
+            else parseErrorAt parserpos$  "No existing files match pattern: " ++ filename
 
     parseChild parentpos filepath = do
         childInput <- lift $ readFilePortably filepath
