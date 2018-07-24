@@ -705,7 +705,8 @@ FILE FORMAT
               include path/to/file.journal
 
        If  the path does not begin with a slash, it is relative to the current
-       file.  Glob patterns (*) are not currently supported.
+       file.  The include file path may contain  common  glob  patterns  (e.g.
+       *).
 
        The include directive can only  be  used  in  journal  files.   It  can
        include journal, timeclock or timedot files, but not CSV files.

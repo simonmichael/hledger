@@ -1011,7 +1011,8 @@ include\ path/to/file.journal
 .PP
 If the path does not begin with a slash, it is relative to the current
 file.
-Glob patterns (\f[C]*\f[]) are not currently supported.
+The include file path may contain common glob patterns (e.g.
+\f[C]*\f[]).
 .PP
 The \f[C]include\f[] directive can only be used in journal files.
 It can include journal, timeclock or timedot files, but not CSV files.
