@@ -92,7 +92,7 @@ STACK=stack
 #STACK=stack --with-hpack=hpack-0.20
 
 # -j16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless
-SHELLTESTOPTS=--execdir -j16 --hide-successes
+SHELLTESTOPTS=--execdir -j16 --hide-successes --exclude=/_
 
 # make sure shelltest is a released version of shelltestrunner
 # run shell tests using the executable specified in tests
