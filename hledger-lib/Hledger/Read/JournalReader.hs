@@ -208,8 +208,9 @@ includedirectivep = do
         fileglob <- case tryCompileWith compDefault{errorRecovery=False} filename of
             Right x -> pure x
             Left e -> parseErrorAt parserpos $ "Invalid glob pattern: " ++ e
-        -- Get all matching files in the current working directory
-        filepaths <- liftIO $ globDir1 fileglob curdir
+        -- Get all matching files in the current working directory, sorting in
+        -- lexicographic order to simulate the output of 'ls'.
+        filepaths <- liftIO $ sort <$> globDir1 fileglob curdir
         if (not . null) filepaths
             then pure filepaths
             else parseErrorAt parserpos$  "No existing files match pattern: " ++ filename
