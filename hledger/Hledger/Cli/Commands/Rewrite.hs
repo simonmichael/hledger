@@ -23,7 +23,8 @@ import qualified Data.Algorithm.Diff as D
 
 rewritemode = hledgerCommandMode
   [here| rewrite
-Print all transactions, adding custom postings to the matched ones.
+Print all transactions, rewriting the postings of matched transactions.
+For now the only rewrite available is adding new postings, like print --auto.
 
 FLAGS
 
@@ -145,6 +146,20 @@ Be careful. Whole transaction being re-formatted in a style of output from
 See also: 
 
 https://github.com/simonmichael/hledger/issues/99
+
+#### rewrite vs. print --auto
+
+This command predates print --auto, and currently does much the same thing,
+but with these differences:
+
+- with multiple files, rewrite lets rules in any file affect all other files.
+  print --auto uses standard directive scoping; rules affect only child files.
+
+- rewrite's query limits which transactions can be rewritten; all are printed.
+  print --auto's query limits which transactions are printed.
+
+- rewrite applies rules specified on command line or in the journal.
+  print --auto applies rules specified in the journal.
 
   |]
   [flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
