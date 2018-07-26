@@ -6,6 +6,7 @@ h4 { margin-top:2em; }
 </style>
 <nav id="toc">
 <ol>
+<li><a href="#hledger-install">hledger-install</a>
 <!-- <li><a href="#latest-minor-release">Latest (2018/4/30)</a> -->
 <li><a href="#hledger-1.10">hledger 1.10 (2018/6/30)</a>
 <li><a href="#hledger-1.9">hledger 1.9 (2018/3/31)</a>
@@ -47,11 +48,13 @@ h4 { margin-top:2em; }
 
 # Release notes
 
-Here are the changes in major hledger releases, and any more-recent minor releases.
 
-The [hledger installer](http://hledger.org/download#b1.-with-hledger-install)
-was last updated on 
-([2018/07/02](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh)).
+### hledger-install
+
+The [hledger installer](download.html#b1.-with-hledger-install)
+is updated frequently; here are the
+[latest changes](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh).
+
 
 <!--
 ## Latest minor release
@@ -66,45 +69,31 @@ was last updated on
 
 ## 2018/6/30 hledger 1.10
 
-<!-- ***(pending) -->
-<!-- *** -->
-
-([announcement](https://groups.google.com/d/topic/hledger/SWFV2n6xMQA/discussion))
-
-Release contributors:
-Alex Chen,
-Everett Hildenbrandt,
-Jakub Zárybnický,
-Nolan Darilek,
-Dmitry Astapov,
-Jacob Weisz,
-Peter Simons,
-Stephen Morgan,
-Pavlo Kerestey,
-Trevor Riles,
-Léo Gaspard,
-Mykola Orliuk,
-Wad,
-Nana Amfo.
+***hledger-web edit/upload/download and permissions,
+more expressive periodic transactions,
+more informative parse errors,
+misc fixes
+***
+([announcement](https://groups.google.com/forum/#!msg/hledger/SWFV2n6xMQA/Ss78nil8AQAJ))
 
   [project](#project-wide-changes-for-1.10)
-| [hledger-install](#hledger-install.sh-1.10)
 | [hledger-lib](#hledger-lib-1.10)
 | [hledger](#hledger-1.10-1)
 | [hledger-ui](#hledger-ui-1.10)
 | [hledger-web](#hledger-web-1.10)
 | [hledger-api](#hledger-api-1.10)
+| [credits](#credits-1.10)
 
 ### project-wide changes for 1.10
 
-
-### hledger-lib 1.10
-
 * build cleanly with all supported GHC versions again (7.10 to 8.4)
 
-* support/uses latest base-compat (#794)
+* support latest deps
 
-* support/require megaparsec 6.4+
+* back in Stackage LTS (12.0)
+
+
+### hledger-lib 1.10
 
 * extensive refactoring and cleanup of parsers and related types and utilities
 
@@ -118,7 +107,7 @@ Nana Amfo.
 * journal: many parse error messages have become more informative, and
   some now show the source line and error location.
 
-* journal: ;tag: is no longer parsed as a tag named ";tag" (#655)
+* journal: `;tag:` is no longer parsed as a tag named ";tag" (#655)
 
 * journal: transaction price amounts having their own price amounts is
   now a parse error
@@ -207,6 +196,24 @@ Nana Amfo.
 * uses hledger-lib 1.10
 
 
+### credits 1.10
+
+Release contributors:
+Alex Chen,
+Everett Hildenbrandt,
+Jakub Zárybnický,
+Nolan Darilek,
+Dmitry Astapov,
+Jacob Weisz,
+Peter Simons,
+Stephen Morgan,
+Pavlo Kerestey,
+Trevor Riles,
+Léo Gaspard,
+Mykola Orliuk,
+Wad,
+Nana Amfo.
+
 
 
 ## 2018/3/31 hledger 1.9
@@ -230,7 +237,6 @@ Moritz Kiefer,
 Mykola Orliuk.
 
   [project](#project-wide-changes-for-1.9)
-| [hledger-install](#hledger-install.sh-1.9)
 | [hledger-lib](#hledger-lib-1.9)
 | [hledger](#hledger-1.9-1)
 | [hledger-ui](#hledger-ui-1.9)
@@ -241,7 +247,6 @@ Mykola Orliuk.
 
 * support ghc 8.4, latest deps
 
-### hledger-install.sh 1.9
 
 ### hledger-lib 1.9
 
@@ -347,7 +352,6 @@ Nadrieril,
 Alvaro Fernando García.
 
   [project](#project-wide-changes-for-1.5)
-| [hledger-install](#hledger-install.sh-1.5)
 | [hledger-lib](#hledger-lib-1.5)
 | [hledger](#hledger-1.5-1)
 | [hledger-ui](#hledger-ui-1.5)
@@ -362,7 +366,6 @@ Alvaro Fernando García.
   must tediously and promptly test and release hackage revisions for
   or risk falling out of stackage. Trying it this way for a bit.
 
-### hledger-install.sh 1.5
 
 ### hledger-lib 1.5
 
@@ -471,7 +474,6 @@ Nissar Chababy,
 Peter Simons.
 
   [project](#project-wide-changes-for-1.4)
-| [hledger-install](#hledger-install.sh-1.4)
 | [hledger-lib](#hledger-lib-1.4)
 | [hledger](#hledger-1.4-1)
 | [hledger-ui](#hledger-ui-1.4)
@@ -490,9 +492,7 @@ test-stackage" for finding stackage build problems, switch to GHC
 
 * improve makefile help and speed
 
-### hledger-install.sh 1.4
-
-Added a new installer script for the hledger tools, which aims to
+* Added a new installer script for the hledger tools, which aims to
 dodge common pitfalls and just work. Based on the stack install
 script, this bash script is cross platform, uses cabal or stack,
 installs stack and GHC if needed, and installs the latest release of

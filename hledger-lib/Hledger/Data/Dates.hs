@@ -545,6 +545,7 @@ startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 -- 2016-12-31          
 -- >>> nthdayofyearcontaining 1 1 wed22nd
 -- 2017-01-01          
+nthdayofyearcontaining :: Month -> MonthDay -> Day -> Day
 nthdayofyearcontaining m n d | mmddOfSameYear <= d = mmddOfSameYear
                              | otherwise = mmddOfPrevYear
     where mmddOfSameYear = addDays (fromIntegral n-1) $ applyN (m-1) nextmonth s
@@ -568,6 +569,7 @@ nthdayofyearcontaining m n d | mmddOfSameYear <= d = mmddOfSameYear
 -- 2017-10-23          
 -- >>> nthdayofmonthcontaining 30 wed22nd
 -- 2017-10-30          
+nthdayofmonthcontaining :: MonthDay -> Day -> Day
 nthdayofmonthcontaining n d | nthOfSameMonth <= d = nthOfSameMonth
                             | otherwise = nthOfPrevMonth
     where nthOfSameMonth = nthdayofmonth n s
@@ -591,6 +593,7 @@ nthdayofmonthcontaining n d | nthOfSameMonth <= d = nthOfSameMonth
 -- 2017-11-16          
 -- >>> nthdayofweekcontaining 5 wed22nd
 -- 2017-11-17          
+nthdayofweekcontaining :: WeekDay -> Day -> Day
 nthdayofweekcontaining n d | nthOfSameWeek <= d = nthOfSameWeek
                            | otherwise = nthOfPrevWeek
     where nthOfSameWeek = addDays (fromIntegral n-1) s
@@ -614,16 +617,20 @@ nthdayofweekcontaining n d | nthOfSameWeek <= d = nthOfSameWeek
 -- 2017-10-26
 -- >>> nthweekdayofmonthcontaining 4 5 wed22nd
 -- 2017-10-27
+nthweekdayofmonthcontaining :: Int -> WeekDay -> Day -> Day
 nthweekdayofmonthcontaining n wd d | nthWeekdaySameMonth <= d  = nthWeekdaySameMonth
                                    | otherwise = nthWeekdayPrevMonth
     where nthWeekdaySameMonth = advancetonthweekday n wd $ startofmonth d
           nthWeekdayPrevMonth = advancetonthweekday n wd $ prevmonth d
-          
+
 -- | Advance to nth weekday wd after given start day s
-advancetonthweekday n wd s = addWeeks (n-1) . firstMatch (>=s) . iterate (addWeeks 1) $ firstweekday s
-  where          
+advancetonthweekday :: Int -> WeekDay -> Day -> Day
+advancetonthweekday n wd s = 
+  maybe err (addWeeks (n-1)) $ firstMatch (>=s) $ iterate (addWeeks 1) $ firstweekday s
+  where
+    err = error' "advancetonthweekday: should not happen"
     addWeeks k = addDays (7 * fromIntegral k)
-    firstMatch p = head . dropWhile (not . p)
+    firstMatch p = headMay . dropWhile (not . p) 
     firstweekday = addDays (fromIntegral wd-1) . startofweek
 
 ----------------------------------------------------------------------
@@ -822,6 +829,7 @@ md = do
   failIfInvalidDay d
   return ("",m,d)
 
+-- These are compared case insensitively, and should all be kept lower case. 
 months         = ["january","february","march","april","may","june",
                   "july","august","september","october","november","december"]
 monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]
@@ -845,9 +853,11 @@ mon = do
 
 weekday :: TextParser m Int
 weekday = do
-  wday <- choice . map string' $ weekdays ++ weekdayabbrevs
-  let i = head . catMaybes $ [wday `elemIndex` weekdays, wday `elemIndex` weekdayabbrevs]
-  return (i+1)
+  wday <- T.toLower <$> (choice . map string' $ weekdays ++ weekdayabbrevs)
+  case catMaybes $ [wday `elemIndex` weekdays, wday `elemIndex` weekdayabbrevs] of
+    (i:_) -> return (i+1)
+    []    -> fail  $ "weekday: should not happen: attempted to find " <> 
+                      show wday <> " in " <> show (weekdays ++ weekdayabbrevs) 
 
 today,yesterday,tomorrow :: TextParser m SmartDate
 today     = string' "today"     >> return ("","","today")
