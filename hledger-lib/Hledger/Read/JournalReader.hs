@@ -469,13 +469,15 @@ commodityconversiondirectivep = do
 
 --- ** transactions
 
+-- TODO transactionmodifierp ? transactionrewritep ?
 modifiertransactionp :: JournalParser m ModifierTransaction
 modifiertransactionp = do
   char '=' <?> "modifier transaction"
   lift (skipMany spacenonewline)
-  valueexpr <- T.pack <$> lift restofline
+  querytxt <- T.pack <$> lift restofline  -- TODO should not consume a same-line comment
+  (_cmt, _tags) <- lift transactioncommentp   -- TODO apply these to modified txns ?
   postings <- postingsp Nothing
-  return $ ModifierTransaction valueexpr postings
+  return $ ModifierTransaction querytxt postings
 
 -- | Parse a periodic transaction
 periodictransactionp :: MonadIO m => JournalParser m PeriodicTransaction
@@ -648,7 +650,7 @@ postingsp mTransactionYear = many (postingp mTransactionYear) <?> "postings"
 
 postingp :: Maybe Year -> JournalParser m Posting
 postingp mTransactionYear = do
-  -- dbgparse 0 "postingp"
+  -- lift $ dbgparse 0 "postingp"
   (status, account) <- try $ do
     lift (skipSome spacenonewline)
     status <- lift statusp
