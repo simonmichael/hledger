@@ -474,10 +474,14 @@ modifiedaccountnamep = do
     a
 
 -- | Parse an account name, plus one following space if present. 
--- Account names start with a non-space, may have single spaces inside them, 
+-- Account names have one or more parts separated by the account separator character,
 -- and are terminated by two or more spaces (or end of input). 
--- (Also they have one or more components of at least one character, 
--- separated by the account separator character, but we don't check that here.) 
+-- Each part is at least one character long, may have single spaces inside it,
+-- and starts with a non-whitespace.
+-- Note, this means "{account}", "%^!" and ";comment" are all accepted
+-- (parent parsers usually prevent/consume the last).
+-- It should have required parts to start with an alphanumeric;
+-- for now it remains as-is for backwards compatibility.
 accountnamep :: TextParser m AccountName
 accountnamep = singlespacedtextp
 
