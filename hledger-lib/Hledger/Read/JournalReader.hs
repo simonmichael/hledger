@@ -474,8 +474,8 @@ modifiertransactionp :: JournalParser m ModifierTransaction
 modifiertransactionp = do
   char '=' <?> "modifier transaction"
   lift (skipMany spacenonewline)
-  querytxt <- T.pack <$> lift restofline  -- TODO should not consume a same-line comment
-  (_cmt, _tags) <- lift transactioncommentp   -- TODO apply these to modified txns ?
+  querytxt <- lift $ T.strip <$> descriptionp
+  (_comment, _tags) <- lift transactioncommentp   -- TODO apply these to modified txns ?
   postings <- postingsp Nothing
   return $ ModifierTransaction querytxt postings
 
