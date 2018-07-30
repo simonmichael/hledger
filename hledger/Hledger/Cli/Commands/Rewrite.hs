@@ -178,12 +178,12 @@ but with these differences:
 rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = do 
   d <- getCurrentDay
   let q = queryFromOpts d ropts
-  modifier <- modifierTransactionFromOpts rawopts
+  modifier <- transactionModifierFromOpts rawopts
   -- create re-writer
-  let modifiers = modifier : jmodifiertxns j
+  let modifiers = modifier : jtxnmodifiers j
       -- Note that some query matches require transaction. Thus modifiers
       -- pipeline should include txnTieKnot on every step.
-      modifier' = foldr (flip (.) . fmap txnTieKnot . runModifierTransaction q) id modifiers
+      modifier' = foldr (flip (.) . fmap txnTieKnot . transactionModifierToFunction q) id modifiers
   -- rewrite matched transactions
   let j' = j{jtxns=map modifier' ts}
   -- run the print command, showing all transactions
@@ -195,11 +195,11 @@ postingp' t = runJournalParser (postingp Nothing <* eof) t' >>= \case
         Right p -> return p
     where t' = " " <> t <> "\n" -- inject space and newline for proper parsing
 
-modifierTransactionFromOpts :: RawOpts -> IO ModifierTransaction
-modifierTransactionFromOpts opts = do
+transactionModifierFromOpts :: RawOpts -> IO TransactionModifier
+transactionModifierFromOpts opts = do
     postings <- mapM (postingp' . stripquotes . T.pack) $ listofstringopt "add-posting" opts
     return
-        ModifierTransaction { mtvalueexpr = T.empty, mtpostings = postings }
+        TransactionModifier { tmquerytxt = T.empty, tmpostings = postings }
 
 outputFromOpts :: RawOpts -> (CliOpts -> Journal -> Journal -> IO ())
 outputFromOpts opts

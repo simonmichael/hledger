@@ -166,7 +166,7 @@ data Amount = Amount {
       aquantity   :: Quantity,
       aprice      :: Price,           -- ^ the (fixed) price for this amount, if any
       astyle      :: AmountStyle,
-      amultiplier :: Bool             -- ^ amount is a multipier for AutoTransactions
+      amultiplier :: Bool             -- ^ amount is a multipier used in TransactionModifier postings
     } deriving (Eq,Ord,Typeable,Data,Generic)
 
 instance NFData Amount
@@ -249,12 +249,12 @@ data Transaction = Transaction {
 
 instance NFData Transaction
 
-data ModifierTransaction = ModifierTransaction {
-      mtvalueexpr :: Text,
-      mtpostings  :: [Posting]
+data TransactionModifier = TransactionModifier {
+      tmquerytxt :: Text,
+      tmpostings :: [Posting]
     } deriving (Eq,Typeable,Data,Generic)
 
-instance NFData ModifierTransaction
+instance NFData TransactionModifier
 
 -- ^ A periodic transaction rule, describing a transaction that recurs.
 data PeriodicTransaction = PeriodicTransaction {
@@ -329,7 +329,7 @@ data Journal = Journal {
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
   ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts  XXX misnamed
   ,jmarketprices          :: [MarketPrice]
-  ,jmodifiertxns          :: [ModifierTransaction]
+  ,jtxnmodifiers          :: [TransactionModifier]
   ,jperiodictxns          :: [PeriodicTransaction]
   ,jtxns                  :: [Transaction]
   ,jfinalcommentlines     :: Text                                   -- ^ any final trailing comments in the (main) journal file

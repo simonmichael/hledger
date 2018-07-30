@@ -13,7 +13,7 @@ other data format (see "Hledger.Read").
 module Hledger.Data.Journal (
   -- * Parsing helpers
   addMarketPrice,
-  addModifierTransaction,
+  addTransactionModifier,
   addPeriodicTransaction,
   addTransaction,
   journalBalanceTransactions,
@@ -138,7 +138,7 @@ instance Show Journal where
 -- showJournalDebug j = unlines [
 --                       show j
 --                      ,show (jtxns j)
---                      ,show (jmodifiertxns j)
+--                      ,show (jtxnmodifiers j)
 --                      ,show (jperiodictxns j)
 --                      ,show $ jparsetimeclockentries j
 --                      ,show $ jmarketprices j
@@ -170,7 +170,7 @@ instance Sem.Semigroup Journal where
     ,jcommodities               = jcommodities               j1 <> jcommodities               j2
     ,jinferredcommodities       = jinferredcommodities       j1 <> jinferredcommodities       j2
     ,jmarketprices              = jmarketprices              j1 <> jmarketprices              j2
-    ,jmodifiertxns              = jmodifiertxns              j1 <> jmodifiertxns              j2
+    ,jtxnmodifiers              = jtxnmodifiers              j1 <> jtxnmodifiers              j2
     ,jperiodictxns              = jperiodictxns              j1 <> jperiodictxns              j2
     ,jtxns                      = jtxns                      j1 <> jtxns                      j2
     ,jfinalcommentlines         = jfinalcommentlines         j2
@@ -197,7 +197,7 @@ nulljournal = Journal {
   ,jcommodities               = M.fromList []
   ,jinferredcommodities       = M.fromList []
   ,jmarketprices              = []
-  ,jmodifiertxns              = []
+  ,jtxnmodifiers              = []
   ,jperiodictxns              = []
   ,jtxns                      = []
   ,jfinalcommentlines         = ""
@@ -217,8 +217,8 @@ mainfile = headDef ("", "") . jfiles
 addTransaction :: Transaction -> Journal -> Journal
 addTransaction t j = j { jtxns = t : jtxns j }
 
-addModifierTransaction :: ModifierTransaction -> Journal -> Journal
-addModifierTransaction mt j = j { jmodifiertxns = mt : jmodifiertxns j }
+addTransactionModifier :: TransactionModifier -> Journal -> Journal
+addTransactionModifier mt j = j { jtxnmodifiers = mt : jtxnmodifiers j }
 
 addPeriodicTransaction :: PeriodicTransaction -> Journal -> Journal
 addPeriodicTransaction pt j = j { jperiodictxns = pt : jperiodictxns j }
@@ -497,7 +497,7 @@ journalFinalise t path txt assrt j@Journal{jfiles=fs} =
    j {jfiles        = (path,txt) : reverse fs
      ,jlastreadtime = t
      ,jtxns         = reverse $ jtxns j -- NOTE: see addTransaction
-     ,jmodifiertxns = reverse $ jmodifiertxns j -- NOTE: see addModifierTransaction
+     ,jtxnmodifiers = reverse $ jtxnmodifiers j -- NOTE: see addTransactionModifier
      ,jperiodictxns = reverse $ jperiodictxns j -- NOTE: see addPeriodicTransaction
      ,jmarketprices = reverse $ jmarketprices j -- NOTE: see addMarketPrice
      })

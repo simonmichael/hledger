@@ -26,7 +26,7 @@ import Hledger.Query
 instance Show Ledger where
     show l = printf "Ledger with %d transactions, %d accounts\n" --"%s"
              (length (jtxns $ ljournal l) +
-              length (jmodifiertxns $ ljournal l) +
+              length (jtxnmodifiers $ ljournal l) +
               length (jperiodictxns $ ljournal l))
              (length $ ledgerAccountNames l)
              -- (showtree $ ledgerAccountNameTree l)

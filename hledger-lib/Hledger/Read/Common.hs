@@ -209,9 +209,9 @@ journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ 
 generateAutomaticPostings :: Journal -> Journal
 generateAutomaticPostings j = j { jtxns = map modifier $ jtxns j }
   where
-    modifier = foldr (flip (.) . runModifierTransaction') id mtxns
-    runModifierTransaction' = fmap txnTieKnot . runModifierTransaction Q.Any
-    mtxns = jmodifiertxns j
+    modifier = foldr (flip (.) . transactionModifierToFunction') id mtxns
+    transactionModifierToFunction' = fmap txnTieKnot . transactionModifierToFunction Q.Any
+    mtxns = jtxnmodifiers j
 
 -- | Given a megaparsec ParsedJournal parser, input options, file
 -- path and file content: parse and post-process a Journal, or give an error.

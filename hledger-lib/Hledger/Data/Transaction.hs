@@ -65,8 +65,8 @@ import Hledger.Data.Amount
 
 instance Show Transaction where show = showTransactionUnelided
 
-instance Show ModifierTransaction where
-    show t = "= " ++ T.unpack (mtvalueexpr t) ++ "\n" ++ unlines (map show (mtpostings t))
+instance Show TransactionModifier where
+    show t = "= " ++ T.unpack (tmquerytxt t) ++ "\n" ++ unlines (map show (tmpostings t))
 
 instance Show PeriodicTransaction where
     show t = "~ " ++ T.unpack (ptperiodexpr t) ++ "\n" ++ unlines (map show (ptpostings t))

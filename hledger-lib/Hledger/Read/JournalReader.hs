@@ -154,7 +154,7 @@ addJournalItemP =
   choice [
       directivep
     , transactionp          >>= modify' . addTransaction
-    , modifiertransactionp  >>= modify' . addModifierTransaction
+    , transactionmodifierp  >>= modify' . addTransactionModifier
     , periodictransactionp  >>= modify' . addPeriodicTransaction
     , marketpricedirectivep >>= modify' . addMarketPrice
     , void (lift emptyorcommentlinep)
@@ -470,14 +470,14 @@ commodityconversiondirectivep = do
 --- ** transactions
 
 -- TODO transactionmodifierp ? transactionrewritep ?
-modifiertransactionp :: JournalParser m ModifierTransaction
-modifiertransactionp = do
+transactionmodifierp :: JournalParser m TransactionModifier
+transactionmodifierp = do
   char '=' <?> "modifier transaction"
   lift (skipMany spacenonewline)
   querytxt <- lift $ T.strip <$> descriptionp
   (_comment, _tags) <- lift transactioncommentp   -- TODO apply these to modified txns ?
   postings <- postingsp Nothing
-  return $ ModifierTransaction querytxt postings
+  return $ TransactionModifier querytxt postings
 
 -- | Parse a periodic transaction
 periodictransactionp :: MonadIO m => JournalParser m PeriodicTransaction
@@ -748,8 +748,8 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
     test_postingp,
     test_transactionp,
     [
-   "modifiertransactionp" ~: do
-     assertParse (parseWithState mempty modifiertransactionp "= (some value expr)\n some:postings  1\n")
+   "transactionmodifierp" ~: do
+     assertParse (parseWithState mempty transactionmodifierp "= (some value expr)\n some:postings  1\n")
 
   ,"periodictransactionp" ~: do
      assertParse (parseWithState mempty periodictransactionp "~ (some period expr)\n some:postings  1\n")
