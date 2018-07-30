@@ -129,9 +129,12 @@ isLeft _        = False
 isRight :: Either a b -> Bool
 isRight = not . isLeft
 
--- | Apply a function the specified number of times. Possibly uses O(n) stack ?
+-- | Apply a function the specified number of times,
+-- which should be > 0 (otherwise does nothing).
+-- Possibly uses O(n) stack ?
 applyN :: Int -> (a -> a) -> a -> a
-applyN n f = (!! n) . iterate f
+applyN n f | n < 1     = id
+           | otherwise = (!! n) . iterate f
 -- from protolude, compare
 -- applyN :: Int -> (a -> a) -> a -> a
 -- applyN n f = X.foldr (.) identity (X.replicate n f)
