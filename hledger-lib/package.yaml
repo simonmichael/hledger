@@ -108,12 +108,13 @@ library:
   - Hledger.Data.Ledger
   - Hledger.Data.MarketPrice
   - Hledger.Data.Period
+  - Hledger.Data.PeriodicTransaction
   - Hledger.Data.StringFormat
   - Hledger.Data.Posting
   - Hledger.Data.RawOptions
   - Hledger.Data.Timeclock
   - Hledger.Data.Transaction
-  - Hledger.Data.AutoTransaction
+  - Hledger.Data.TransactionModifier
   - Hledger.Data.Types
   - Hledger.Query
   - Hledger.Read

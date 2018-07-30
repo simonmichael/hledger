@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 43aa3146bd1ffaeb1d8fa11aef445ffdb30976bcb6bc6285e93199a770cb982c
+-- hash: 61409a17c81f76ecd1ec1a836d308b382b0c1dffce1c3076bdfe5f8ac6da4370
 
 name:           hledger-lib
 version:        1.10.99
@@ -59,12 +59,13 @@ library
       Hledger.Data.Ledger
       Hledger.Data.MarketPrice
       Hledger.Data.Period
+      Hledger.Data.PeriodicTransaction
       Hledger.Data.StringFormat
       Hledger.Data.Posting
       Hledger.Data.RawOptions
       Hledger.Data.Timeclock
       Hledger.Data.Transaction
-      Hledger.Data.AutoTransaction
+      Hledger.Data.TransactionModifier
       Hledger.Data.Types
       Hledger.Query
       Hledger.Read
@@ -149,18 +150,19 @@ test-suite doctests
       Hledger.Data.Account
       Hledger.Data.AccountName
       Hledger.Data.Amount
-      Hledger.Data.AutoTransaction
       Hledger.Data.Commodity
       Hledger.Data.Dates
       Hledger.Data.Journal
       Hledger.Data.Ledger
       Hledger.Data.MarketPrice
       Hledger.Data.Period
+      Hledger.Data.PeriodicTransaction
       Hledger.Data.Posting
       Hledger.Data.RawOptions
       Hledger.Data.StringFormat
       Hledger.Data.Timeclock
       Hledger.Data.Transaction
+      Hledger.Data.TransactionModifier
       Hledger.Data.Types
       Hledger.Query
       Hledger.Read
@@ -246,18 +248,19 @@ test-suite easytests
       Hledger.Data.Account
       Hledger.Data.AccountName
       Hledger.Data.Amount
-      Hledger.Data.AutoTransaction
       Hledger.Data.Commodity
       Hledger.Data.Dates
       Hledger.Data.Journal
       Hledger.Data.Ledger
       Hledger.Data.MarketPrice
       Hledger.Data.Period
+      Hledger.Data.PeriodicTransaction
       Hledger.Data.Posting
       Hledger.Data.RawOptions
       Hledger.Data.StringFormat
       Hledger.Data.Timeclock
       Hledger.Data.Transaction
+      Hledger.Data.TransactionModifier
       Hledger.Data.Types
       Hledger.Query
       Hledger.Read
@@ -344,18 +347,19 @@ test-suite hunittests
       Hledger.Data.Account
       Hledger.Data.AccountName
       Hledger.Data.Amount
-      Hledger.Data.AutoTransaction
       Hledger.Data.Commodity
       Hledger.Data.Dates
       Hledger.Data.Journal
       Hledger.Data.Ledger
       Hledger.Data.MarketPrice
       Hledger.Data.Period
+      Hledger.Data.PeriodicTransaction
       Hledger.Data.Posting
       Hledger.Data.RawOptions
       Hledger.Data.StringFormat
       Hledger.Data.Timeclock
       Hledger.Data.Transaction
+      Hledger.Data.TransactionModifier
       Hledger.Data.Types
       Hledger.Query
       Hledger.Read

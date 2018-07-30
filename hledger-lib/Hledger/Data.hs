@@ -17,12 +17,13 @@ module Hledger.Data (
                module Hledger.Data.Ledger,
                module Hledger.Data.MarketPrice,
                module Hledger.Data.Period,
+               module Hledger.Data.PeriodicTransaction,
                module Hledger.Data.Posting,
                module Hledger.Data.RawOptions,
                module Hledger.Data.StringFormat,
                module Hledger.Data.Timeclock,
                module Hledger.Data.Transaction,
-               module Hledger.Data.AutoTransaction,
+               module Hledger.Data.TransactionModifier,
                module Hledger.Data.Types,
                tests_Hledger_Data
               )
@@ -38,12 +39,13 @@ import Hledger.Data.Journal
 import Hledger.Data.Ledger
 import Hledger.Data.MarketPrice
 import Hledger.Data.Period
+import Hledger.Data.PeriodicTransaction
 import Hledger.Data.Posting
 import Hledger.Data.RawOptions
 import Hledger.Data.StringFormat
 import Hledger.Data.Timeclock
 import Hledger.Data.Transaction
-import Hledger.Data.AutoTransaction
+import Hledger.Data.TransactionModifier
 import Hledger.Data.Types
 
 tests_Hledger_Data :: Test
