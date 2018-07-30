@@ -844,8 +844,11 @@ monthabbrevs   = ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","n
 weekdays       = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
 weekdayabbrevs = ["mon","tue","wed","thu","fri","sat","sun"]
 
-monthIndex t = maybe 0 (+1) $ t `elemIndex` months
-monIndex t   = maybe 0 (+1) $ t `elemIndex` monthabbrevs
+-- | Convert a case insensitive english month name to a month number.
+monthIndex name = maybe 0 (+1) $ T.toLower name `elemIndex` months
+
+-- | Convert a case insensitive english three-letter month abbreviation to a month number.
+monIndex   name = maybe 0 (+1) $ T.toLower name `elemIndex` monthabbrevs
 
 month :: TextParser m SmartDate
 month = do
