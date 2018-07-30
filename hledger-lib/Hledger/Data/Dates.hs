@@ -526,8 +526,10 @@ prevyear = startofyear . addGregorianYearsClip (-1)
 nextyear = startofyear . addGregorianYearsClip 1
 startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 
--- | For given date d find year-long interval that starts on given MM/DD of year
--- and covers it. 
+-- | For given date d find year-long interval that starts on given
+-- MM/DD of year and covers it.
+-- The given MM and DD should be basically valid (1-12 & 1-31),
+-- or an error is raised.
 --
 -- Examples: lets take 2017-11-22. Year-long intervals covering it that
 -- starts before Nov 22 will start in 2017. However
@@ -546,14 +548,18 @@ startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
 -- >>> nthdayofyearcontaining 1 1 wed22nd
 -- 2017-01-01          
 nthdayofyearcontaining :: Month -> MonthDay -> Day -> Day
-nthdayofyearcontaining m n d | mmddOfSameYear <= d = mmddOfSameYear
-                             | otherwise = mmddOfPrevYear
-    where mmddOfSameYear = addDays (fromIntegral n-1) $ applyN (m-1) nextmonth s
-          mmddOfPrevYear = addDays (fromIntegral n-1) $ applyN (m-1) nextmonth $ prevyear s
-          s = startofyear d
+nthdayofyearcontaining m md date
+  | not (validMonth $ show m)  = error' $ "nthdayofyearcontaining: invalid month "++show m
+  | not (validDay   $ show md) = error' $ "nthdayofyearcontaining: invalid day "  ++show md
+  | mmddOfSameYear <= date = mmddOfSameYear
+  | otherwise = mmddOfPrevYear
+  where mmddOfSameYear = addDays (fromIntegral md-1) $ applyN (m-1) nextmonth s
+        mmddOfPrevYear = addDays (fromIntegral md-1) $ applyN (m-1) nextmonth $ prevyear s
+        s = startofyear date
 
 -- | For given date d find month-long interval that starts on nth day of month
 -- and covers it. 
+-- The given day of month should be basically valid (1-31), or an error is raised.
 --
 -- Examples: lets take 2017-11-22. Month-long intervals covering it that
 -- start on 1st-22nd of month will start in Nov. However
@@ -570,11 +576,13 @@ nthdayofyearcontaining m n d | mmddOfSameYear <= d = mmddOfSameYear
 -- >>> nthdayofmonthcontaining 30 wed22nd
 -- 2017-10-30          
 nthdayofmonthcontaining :: MonthDay -> Day -> Day
-nthdayofmonthcontaining n d | nthOfSameMonth <= d = nthOfSameMonth
-                            | otherwise = nthOfPrevMonth
-    where nthOfSameMonth = nthdayofmonth n s
-          nthOfPrevMonth = nthdayofmonth n $ prevmonth s
-          s = startofmonth d
+nthdayofmonthcontaining md date
+  | not (validDay $ show md) = error' $ "nthdayofmonthcontaining: invalid day "  ++show md
+  | nthOfSameMonth <= date = nthOfSameMonth
+  | otherwise = nthOfPrevMonth
+  where nthOfSameMonth = nthdayofmonth md s
+        nthOfPrevMonth = nthdayofmonth md $ prevmonth s
+        s = startofmonth date
 
 -- | For given date d find week-long interval that starts on nth day of week
 -- and covers it. 
