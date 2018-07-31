@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d1bcfc2bad2b9f2114002a466f18bc1ecfb1f80209a98191cf5f4f3750decc75
+-- hash: 16e7ba806b0cc431b0c3737628ff623378d53a2a9540ecb7fa89d9b45713e6fb
 
 name:           hledger-ui
 version:        1.10.99
@@ -25,7 +25,7 @@ author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
 license:        GPL-3
 license-file:   LICENSE
-tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2
+tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3
 build-type:     Simple
 cabal-version:  >= 1.10
 extra-source-files:
