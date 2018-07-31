@@ -33,7 +33,6 @@ module Hledger.Read.Common (
   journalSourcePos,
   generateAutomaticPostings,
   parseAndFinaliseJournal,
-  parseAndFinaliseJournal',  -- TODO unused ? check addons
   setYear,
   getYear,
   setDefaultCommodityAndStyle,
@@ -228,20 +227,6 @@ parseAndFinaliseJournal parser iopts f txt = do
                         Right j -> return j
                         Left e  -> throwError e
     Left e   -> throwError $ customParseErrorPretty txt e
-
-parseAndFinaliseJournal' :: JournalParser Identity ParsedJournal -> InputOpts 
-                            -> FilePath -> Text -> ExceptT String IO Journal
-parseAndFinaliseJournal' parser iopts f txt = do
-  t <- liftIO getClockTime
-  y <- liftIO getCurrentYear
-  let ep = runParser (evalStateT parser nulljournal {jparsedefaultyear=Just y}) f txt
-  case ep of
-    Right pj -> 
-      let pj' = if auto_ iopts then generateAutomaticPostings pj else pj in      
-      case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
-                        Right j -> return j
-                        Left e  -> throwError e
-    Left e   -> throwError $ parseErrorPretty e
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
