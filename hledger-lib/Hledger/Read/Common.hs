@@ -121,7 +121,6 @@ import Text.Megaparsec.Custom
 
 import Hledger.Data
 import Hledger.Utils
-import qualified Hledger.Query as Q (Query(Any))
 
 -- | A hledger journal reader is a triple of storage format name, a
 -- detector of that format, and a parser from that format to Journal.
@@ -210,7 +209,7 @@ applyTransactionModifiers :: Journal -> Journal
 applyTransactionModifiers j = j { jtxns = map applyallmodifiers $ jtxns j }
   where
     applyallmodifiers = 
-      foldr (flip (.) . transactionModifierToFunction Q.Any) id (jtxnmodifiers j)
+      foldr (flip (.) . transactionModifierToFunction) id (jtxnmodifiers j)
 
 -- | Given a megaparsec ParsedJournal parser, input options, file
 -- path and file content: parse and post-process a Journal, or give an error.
