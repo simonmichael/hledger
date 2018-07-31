@@ -10,6 +10,7 @@ where
 #if !(MIN_VERSION_base(4,11,0))
 import Control.Monad.Writer
 #endif
+import Data.Functor.Identity
 import Data.List (sortOn, foldl')
 import Data.String.Here
 import qualified Data.Text as T
@@ -176,31 +177,29 @@ but with these differences:
 -- TODO allow using this on unbalanced entries, eg to rewrite while editing
 
 rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = do 
-  d <- getCurrentDay
-  let q = queryFromOpts d ropts
-  modifier <- transactionModifierFromOpts rawopts
   -- create re-writer
-  let modifiers = modifier : jtxnmodifiers j
-      applyallmodifiers = foldr (flip (.) . transactionModifierToFunction q) id modifiers
+  let modifiers = transactionModifierFromOpts opts : jtxnmodifiers j
+      applyallmodifiers = foldr (flip (.) . transactionModifierToFunction) id modifiers
   -- rewrite matched transactions
   let j' = j{jtxns=map applyallmodifiers ts}
-  -- run the print command, showing all transactions
-  outputFromOpts rawopts opts{reportopts_=ropts{query_=""}} j j'
+  -- run the print command, showing all transactions, or show diffs
+  printOrDiff rawopts opts{reportopts_=ropts{query_=""}} j j'
 
-postingp' :: T.Text -> IO Posting
-postingp' t = runJournalParser (postingp Nothing <* eof) t' >>= \case
-        Left err -> fail $ parseErrorPretty' t' err
-        Right p -> return p
-    where t' = " " <> t <> "\n" -- inject space and newline for proper parsing
+-- | Build a 'TransactionModifier' from any query arguments and --add-posting flags
+-- provided on the command line, or throw a parse error.
+transactionModifierFromOpts :: CliOpts -> TransactionModifier
+transactionModifierFromOpts CliOpts{rawopts_=rawopts,reportopts_=ropts} = 
+  TransactionModifier{tmquerytxt=q, tmpostings=ps}
+  where
+    q = T.pack $ query_ ropts
+    ps = map (parseposting . stripquotes . T.pack) $ listofstringopt "add-posting" rawopts
+    parseposting t = either (error' . parseErrorPretty' t') id ep 
+      where
+        ep = runIdentity (runJournalParser (postingp Nothing <* eof) t')
+        t' = " " <> t <> "\n" -- inject space and newline for proper parsing
 
-transactionModifierFromOpts :: RawOpts -> IO TransactionModifier
-transactionModifierFromOpts opts = do
-    postings <- mapM (postingp' . stripquotes . T.pack) $ listofstringopt "add-posting" opts
-    return
-        TransactionModifier { tmquerytxt = T.empty, tmpostings = postings }
-
-outputFromOpts :: RawOpts -> (CliOpts -> Journal -> Journal -> IO ())
-outputFromOpts opts
+printOrDiff :: RawOpts -> (CliOpts -> Journal -> Journal -> IO ())
+printOrDiff opts
     | boolopt "diff" opts = const diffOutput
     | otherwise = flip (const print')
 

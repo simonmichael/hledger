@@ -190,6 +190,7 @@ hledger rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0'
 >>>
 2016/12/31
     expenses:housing         $600.00
+    (budget:housing)        $-600.00
     assets:cash
 
 2017/01/01
