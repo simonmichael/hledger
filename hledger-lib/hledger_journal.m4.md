@@ -1059,12 +1059,15 @@ For more details, see:
 and
 [Cookbook: Budgeting and Forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting-and-forecasting).
 
-## Automated postings
 
-Automated posting rules describe extra postings that should be added to certain transactions at report time,
-when the `--auto` flag is used.
+<a name="automated-postings" />
+## Transaction Modifiers
 
-An automated posting rule looks like a normal journal entry,
+Transaction modifier rules describe changes that should be applied automatically to certain transactions.
+Currently, this means adding extra postings (also known as "automated postings").
+Transaction modifiers are enabled by the `--auto` flag.
+
+A transaction modifier rule looks a bit like a normal journal entry,
 except the first line is an equal sign (`=`) followed by a [query](manual.html#queries)
 (mnemonic: `=` looks like posting lines):
 ```journal
