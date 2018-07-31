@@ -206,11 +206,10 @@ journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ 
 
 -- | Generate Automatic postings and add them to the current journal.
 generateAutomaticPostings :: Journal -> Journal
-generateAutomaticPostings j = j { jtxns = map modifier $ jtxns j }
+generateAutomaticPostings j = j { jtxns = map applyallmodifiers $ jtxns j }
   where
-    modifier = foldr (flip (.) . transactionModifierToFunction') id mtxns
-    transactionModifierToFunction' = fmap txnTieKnot . transactionModifierToFunction Q.Any
-    mtxns = jtxnmodifiers j
+    applyallmodifiers = 
+      foldr (flip (.) . transactionModifierToFunction Q.Any) id (jtxnmodifiers j)
 
 -- | Given a megaparsec ParsedJournal parser, input options, file
 -- path and file content: parse and post-process a Journal, or give an error.

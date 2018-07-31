@@ -21,6 +21,7 @@ import Data.Time.Calendar
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Amount
+import Hledger.Data.Transaction
 import Hledger.Query
 import Hledger.Utils.UTF8IOCompat (error')
 -- import Hledger.Utils.Debug
@@ -32,10 +33,12 @@ import Hledger.Utils.UTF8IOCompat (error')
 -- >>> import Hledger.Data.Journal
 
 -- | Converts a 'TransactionModifier' and a 'Query' to a 
--- 'Transaction'-transforming function. The query allows injection of
--- additional restrictions on which postings to modify. 
--- The transformer function will not call 'txnTieKnot', you will
--- probably want to call that after using it.
+-- 'Transaction'-transforming function, which applies the modification(s)
+-- specified by the TransactionModifier. Currently this means adding automated
+-- postings when certain other postings - specified by the TransactionModifier,
+-- and additionally limited by the extra query, if it's not 'Any' - are present.
+-- The postings of the transformed transaction will reference it, as usual 
+-- ('txnTieKnot').
 --
 -- >>> transactionModifierToFunction Any (TransactionModifier "" ["pong" `post` usd 2]) nulltransaction{tpostings=["ping" `post` usd 1]}
 -- 0000/01/01
@@ -61,7 +64,7 @@ import Hledger.Utils.UTF8IOCompat (error')
 -- <BLANKLINE>
 transactionModifierToFunction :: Query -> TransactionModifier -> (Transaction -> Transaction)
 transactionModifierToFunction q mt = 
-  \t@(tpostings -> ps) -> t { tpostings = generatePostings ps } -- TODO add modifier txn comment/tags ?
+  \t@(tpostings -> ps) -> txnTieKnot t{ tpostings=generatePostings ps } -- TODO add modifier txn comment/tags ?
   where
     q' = simplifyQuery $ And [q, tmParseQuery mt (error' "a transaction modifier's query cannot depend on current date")]
     mods = map tmPostingToFunction $ tmpostings mt

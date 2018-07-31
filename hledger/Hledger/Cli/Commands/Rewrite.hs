@@ -181,11 +181,9 @@ rewrite opts@CliOpts{rawopts_=rawopts,reportopts_=ropts} j@Journal{jtxns=ts} = d
   modifier <- transactionModifierFromOpts rawopts
   -- create re-writer
   let modifiers = modifier : jtxnmodifiers j
-      -- Note that some query matches require transaction. Thus modifiers
-      -- pipeline should include txnTieKnot on every step.
-      modifier' = foldr (flip (.) . fmap txnTieKnot . transactionModifierToFunction q) id modifiers
+      applyallmodifiers = foldr (flip (.) . transactionModifierToFunction q) id modifiers
   -- rewrite matched transactions
-  let j' = j{jtxns=map modifier' ts}
+  let j' = j{jtxns=map applyallmodifiers ts}
   -- run the print command, showing all transactions
   outputFromOpts rawopts opts{reportopts_=ropts{query_=""}} j j'
 
