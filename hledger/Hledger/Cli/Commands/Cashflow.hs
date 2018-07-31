@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, RecordWildCards, NoCPP #-}
+{-# LANGUAGE QuasiQuotes, RecordWildCards #-}
 {-|
 
 The @cashflow@ command prints a simplified cashflow statement.  It just
