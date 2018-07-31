@@ -13,7 +13,6 @@ module Hledger.Cli.Utils
      journalTransform,
      journalApplyValue,
      journalAddForecast,
-     applyTransactionModifiers, -- XXX why reexported here ?
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
