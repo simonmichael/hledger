@@ -82,7 +82,6 @@ File: hledger_journal.info,  Node: FILE FORMAT,  Next: EDITOR SUPPORT,  Prev: To
 * Tags::
 * Directives::
 * Periodic transactions::
-* Automated postings::
 
 
 File: hledger_journal.info,  Node: Transactions,  Next: Postings,  Up: FILE FORMAT
@@ -1197,7 +1196,7 @@ If account aliases are present, they are applied after the default
 parent account.
 
 
-File: hledger_journal.info,  Node: Periodic transactions,  Next: Automated postings,  Prev: Directives,  Up: FILE FORMAT
+File: hledger_journal.info,  Node: Periodic transactions,  Prev: Directives,  Up: FILE FORMAT
 
 1.15 Periodic transactions
 ==========================
@@ -1209,7 +1208,7 @@ they also can be used to define budget goals (with '--budget').
 
    A periodic transaction rule looks like a normal journal entry, with
 the date replaced by a tilde ('~') followed by a period expression
-(mnemonic: '~' looks like a repeating sine wave):
+(mnemonic: '~' looks like a recurring sine wave.):
 
 ~ monthly
     expenses:rent          $2000
@@ -1293,18 +1292,16 @@ compared in budget reports.
    For more details, see: balance: Budget report and Cookbook: Budgeting
 and Forecasting.
 
-
-File: hledger_journal.info,  Node: Automated postings,  Prev: Periodic transactions,  Up: FILE FORMAT
+   ## Transaction Modifiers
 
-1.16 Automated postings
-=======================
+   Transaction modifier rules describe changes that should be applied
+automatically to certain transactions.  Currently, this means adding
+extra postings (also known as "automated postings").  Transaction
+modifiers are enabled by the '--auto' flag.
 
-Automated posting rules describe extra postings that should be added to
-certain transactions at report time, when the '--auto' flag is used.
-
-   An automated posting rule looks like a normal journal entry, except
-the first line is an equal sign ('=') followed by a query (mnemonic: '='
-looks like posting lines):
+   A transaction modifier rule looks a bit like a normal journal entry,
+except the first line is an equal sign ('=') followed by a query
+(mnemonic: '=' suggests matching something.):
 
 = expenses:gifts
     budget:gifts  *-1
@@ -1367,89 +1364,87 @@ Tag Table:
 Node: Top76
 Node: FILE FORMAT2378
 Ref: #file-format2502
-Node: Transactions2786
-Ref: #transactions2907
-Node: Postings3591
-Ref: #postings3718
-Node: Dates4713
-Ref: #dates4828
-Node: Simple dates4893
-Ref: #simple-dates5019
-Node: Secondary dates5385
-Ref: #secondary-dates5539
-Node: Posting dates7102
-Ref: #posting-dates7231
-Node: Status8605
-Ref: #status8725
-Node: Description10433
-Ref: #description10571
-Node: Payee and note10890
-Ref: #payee-and-note11004
-Node: Account names11246
-Ref: #account-names11389
-Node: Amounts11876
-Ref: #amounts12012
-Node: Virtual Postings15029
-Ref: #virtual-postings15188
-Node: Balance Assertions16408
-Ref: #balance-assertions16583
-Node: Assertions and ordering17479
-Ref: #assertions-and-ordering17665
-Node: Assertions and included files18365
-Ref: #assertions-and-included-files18606
-Node: Assertions and multiple -f options18939
-Ref: #assertions-and-multiple--f-options19193
-Node: Assertions and commodities19325
-Ref: #assertions-and-commodities19560
-Node: Assertions and subaccounts20256
-Ref: #assertions-and-subaccounts20488
-Node: Assertions and virtual postings21009
-Ref: #assertions-and-virtual-postings21216
-Node: Balance Assignments21358
-Ref: #balance-assignments21539
-Node: Transaction prices22659
-Ref: #transaction-prices22828
-Node: Comments25096
-Ref: #comments25230
-Node: Tags26400
-Ref: #tags26518
-Node: Directives27920
-Ref: #directives28063
-Node: Comment blocks33919
-Ref: #comment-blocks34064
-Node: Including other files34240
-Ref: #including-other-files34420
-Node: Default year34809
-Ref: #default-year34978
-Node: Declaring commodities35401
-Ref: #declaring-commodities35584
-Node: Default commodity36811
-Ref: #default-commodity36987
-Node: Market prices37623
-Ref: #market-prices37788
-Node: Declaring accounts38629
-Ref: #declaring-accounts38805
-Node: Rewriting accounts40476
-Ref: #rewriting-accounts40661
-Node: Basic aliases41395
-Ref: #basic-aliases41541
-Node: Regex aliases42245
-Ref: #regex-aliases42416
-Node: Multiple aliases43134
-Ref: #multiple-aliases43309
-Node: end aliases43807
-Ref: #end-aliases43954
-Node: Default parent account44055
-Ref: #default-parent-account44221
-Node: Periodic transactions45105
-Ref: #periodic-transactions45284
-Node: Forecasting with periodic transactions46494
-Ref: #forecasting-with-periodic-transactions46737
-Node: Budgeting with periodic transactions48424
-Ref: #budgeting-with-periodic-transactions48663
-Node: Automated postings49122
-Ref: #automated-postings49276
-Node: EDITOR SUPPORT50415
-Ref: #editor-support50533
+Node: Transactions2763
+Ref: #transactions2884
+Node: Postings3568
+Ref: #postings3695
+Node: Dates4690
+Ref: #dates4805
+Node: Simple dates4870
+Ref: #simple-dates4996
+Node: Secondary dates5362
+Ref: #secondary-dates5516
+Node: Posting dates7079
+Ref: #posting-dates7208
+Node: Status8582
+Ref: #status8702
+Node: Description10410
+Ref: #description10548
+Node: Payee and note10867
+Ref: #payee-and-note10981
+Node: Account names11223
+Ref: #account-names11366
+Node: Amounts11853
+Ref: #amounts11989
+Node: Virtual Postings15006
+Ref: #virtual-postings15165
+Node: Balance Assertions16385
+Ref: #balance-assertions16560
+Node: Assertions and ordering17456
+Ref: #assertions-and-ordering17642
+Node: Assertions and included files18342
+Ref: #assertions-and-included-files18583
+Node: Assertions and multiple -f options18916
+Ref: #assertions-and-multiple--f-options19170
+Node: Assertions and commodities19302
+Ref: #assertions-and-commodities19537
+Node: Assertions and subaccounts20233
+Ref: #assertions-and-subaccounts20465
+Node: Assertions and virtual postings20986
+Ref: #assertions-and-virtual-postings21193
+Node: Balance Assignments21335
+Ref: #balance-assignments21516
+Node: Transaction prices22636
+Ref: #transaction-prices22805
+Node: Comments25073
+Ref: #comments25207
+Node: Tags26377
+Ref: #tags26495
+Node: Directives27897
+Ref: #directives28040
+Node: Comment blocks33896
+Ref: #comment-blocks34041
+Node: Including other files34217
+Ref: #including-other-files34397
+Node: Default year34805
+Ref: #default-year34974
+Node: Declaring commodities35397
+Ref: #declaring-commodities35580
+Node: Default commodity36807
+Ref: #default-commodity36983
+Node: Market prices37619
+Ref: #market-prices37784
+Node: Declaring accounts38625
+Ref: #declaring-accounts38801
+Node: Rewriting accounts40472
+Ref: #rewriting-accounts40657
+Node: Basic aliases41391
+Ref: #basic-aliases41537
+Node: Regex aliases42241
+Ref: #regex-aliases42412
+Node: Multiple aliases43130
+Ref: #multiple-aliases43305
+Node: end aliases43803
+Ref: #end-aliases43950
+Node: Default parent account44051
+Ref: #default-parent-account44217
+Node: Periodic transactions45101
+Ref: #periodic-transactions45253
+Node: Forecasting with periodic transactions46464
+Ref: #forecasting-with-periodic-transactions46707
+Node: Budgeting with periodic transactions48394
+Ref: #budgeting-with-periodic-transactions48633
+Node: EDITOR SUPPORT50380
+Ref: #editor-support50498
 
 End Tag Table
