@@ -31,7 +31,7 @@ module Hledger.Read.Common (
   rjp,
   genericSourcePos,
   journalSourcePos,
-  generateAutomaticPostings,
+  applyTransactionModifiers,
   parseAndFinaliseJournal,
   setYear,
   getYear,
@@ -204,9 +204,10 @@ journalSourcePos p p' = JournalSourcePos (sourceName p) (fromIntegral . unPos $ 
             | otherwise = unPos $ sourceLine p' -- might be at end of file withat last new-line
 
 
--- | Generate Automatic postings and add them to the current journal.
-generateAutomaticPostings :: Journal -> Journal
-generateAutomaticPostings j = j { jtxns = map applyallmodifiers $ jtxns j }
+-- | Apply any transaction modifier rules in the journal 
+-- (adding automated postings to transactions, eg).
+applyTransactionModifiers :: Journal -> Journal
+applyTransactionModifiers j = j { jtxns = map applyallmodifiers $ jtxns j }
   where
     applyallmodifiers = 
       foldr (flip (.) . transactionModifierToFunction Q.Any) id (jtxnmodifiers j)
@@ -221,7 +222,7 @@ parseAndFinaliseJournal parser iopts f txt = do
   ep <- liftIO $ runParserT (evalStateT parser nulljournal {jparsedefaultyear=Just y}) f txt
   case ep of
     Right pj -> 
-      let pj' = if auto_ iopts then generateAutomaticPostings pj else pj in
+      let pj' = if auto_ iopts then applyTransactionModifiers pj else pj in
       case journalFinalise t f txt (not $ ignore_assertions_ iopts) pj' of
                         Right j -> return j
                         Left e  -> throwError e
