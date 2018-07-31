@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, DeriveDataTypeable, StandaloneDeriving, DeriveGeneric, TypeSynonymInstances, FlexibleInstances, OverloadedStrings #-}
+{-# LANGUAGE DeriveDataTypeable, StandaloneDeriving, DeriveGeneric, TypeSynonymInstances, FlexibleInstances, OverloadedStrings #-}
 {-|
 
 Most data types are defined here to avoid import cycles.

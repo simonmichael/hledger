@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, FlexibleContexts, TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts, TypeFamilies #-}
 -- | Debugging helpers
 
 -- more:
