@@ -10,7 +10,7 @@ title: home
 
 <!-- INTRO -->
 
-<img src="/images/coins2-248.png" width="" height="200" style="float:right; margin:1em 1em 0 1em;" />
+<img src="images/coins2-248.png" width="" height="200" style="float:right; margin:1em 1em 0 1em;" />
 <h1 style="/*font-size:4em;*/ ">hledger</h1>
 <span style="font-size:xx-large;">
 Friendly, robust, plain text accounting.
