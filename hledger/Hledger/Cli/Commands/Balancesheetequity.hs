@@ -1,4 +1,4 @@
-{-# LANGUAGE QuasiQuotes, RecordWildCards, NoCPP #-}
+{-# LANGUAGE QuasiQuotes, RecordWildCards #-}
 {-|
 
 The @balancesheetequity@ command prints a simple balance sheet.
