@@ -1374,7 +1374,7 @@ Secondly, they also can be used to define budget goals (with
 .PP
 A periodic transaction rule looks like a normal journal entry, with the
 date replaced by a tilde (\f[C]~\f[]) followed by a period expression
-(mnemonic: \f[C]~\f[] looks like a repeating sine wave):
+(mnemonic: \f[C]~\f[] looks like a recurring sine wave.):
 .IP
 .nf
 \f[C]
@@ -1456,15 +1456,18 @@ Goals and actual performance can then be compared in budget reports.
 .PP
 For more details, see: balance: Budget report and Cookbook: Budgeting
 and Forecasting.
-.SS Automated postings
 .PP
-Automated posting rules describe extra postings that should be added to
-certain transactions at report time, when the \f[C]\-\-auto\f[] flag is
-used.
+ ## Transaction Modifiers
 .PP
-An automated posting rule looks like a normal journal entry, except the
-first line is an equal sign (\f[C]=\f[]) followed by a query (mnemonic:
-\f[C]=\f[] looks like posting lines):
+Transaction modifier rules describe changes that should be applied
+automatically to certain transactions.
+Currently, this means adding extra postings (also known as
+\[lq]automated postings\[rq]).
+Transaction modifiers are enabled by the \f[C]\-\-auto\f[] flag.
+.PP
+A transaction modifier rule looks a bit like a normal journal entry,
+except the first line is an equal sign (\f[C]=\f[]) followed by a query
+(mnemonic: \f[C]=\f[] suggests matching something.):
 .IP
 .nf
 \f[C]

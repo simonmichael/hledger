@@ -708,12 +708,12 @@ FILE FORMAT
        file.  The include file path may contain  common  glob  patterns  (e.g.
        *).
 
-       The include directive can only  be  used  in  journal  files.   It  can
+       The  include  directive  can  only  be  used  in journal files.  It can
        include journal, timeclock or timedot files, but not CSV files.
 
    Default year
-       You  can set a default year to be used for subsequent dates which don't
-       specify a year.  This is a line beginning with Y followed by the  year.
+       You can set a default year to be used for subsequent dates which  don't
+       specify  a year.  This is a line beginning with Y followed by the year.
        Eg:
 
               Y2009      ; set default year to 2009
@@ -733,8 +733,8 @@ FILE FORMAT
                 assets
 
    Declaring commodities
-       The  commodity  directive declares commodities which may be used in the
-       journal (though currently we do not enforce this).  It may  be  written
+       The commodity directive declares commodities which may be used  in  the
+       journal  (though  currently we do not enforce this).  It may be written
        on a single line, like this:
 
               ; commodity EXAMPLEAMOUNT
@@ -744,8 +744,8 @@ FILE FORMAT
               ; separating thousands with comma.
               commodity 1,000.0000 AAAA
 
-       or  on  multiple  lines, using the "format" subdirective.  In this case
-       the commodity symbol appears twice and  should  be  the  same  in  both
+       or on multiple lines, using the "format" subdirective.   In  this  case
+       the  commodity  symbol  appears  twice  and  should be the same in both
        places:
 
               ; commodity SYMBOL
@@ -757,19 +757,19 @@ FILE FORMAT
               commodity INR
                 format INR 9,99,99,999.00
 
-       Commodity  directives  have  a second purpose: they define the standard
+       Commodity directives have a second purpose: they  define  the  standard
        display format for amounts in the commodity.  Normally the display for-
-       mat  is  inferred  from journal entries, but this can be unpredictable;
-       declaring it with a commodity  directive  overrides  this  and  removes
-       ambiguity.   Towards  this  end,  amounts  in commodity directives must
-       always be written with a decimal point (a period or comma, followed  by
+       mat is inferred from journal entries, but this  can  be  unpredictable;
+       declaring  it  with  a  commodity  directive overrides this and removes
+       ambiguity.  Towards this end,  amounts  in  commodity  directives  must
+       always  be written with a decimal point (a period or comma, followed by
        0 or more decimal digits).
 
    Default commodity
-       The  D  directive  sets a default commodity (and display format), to be
+       The D directive sets a default commodity (and display  format),  to  be
        used for amounts without a commodity symbol (ie, plain numbers).  (Note
-       this  differs from Ledger's default commodity directive.) The commodity
-       and display format will be applied  to  all  subsequent  commodity-less
+       this differs from Ledger's default commodity directive.) The  commodity
+       and  display  format  will  be applied to all subsequent commodity-less
        amounts, or until the next D directive.
 
               # commodity-less amounts should be treated as dollars
@@ -784,9 +784,9 @@ FILE FORMAT
        a decimal point.
 
    Market prices
-       The P directive declares a market price,  which  is  an  exchange  rate
+       The  P  directive  declares  a  market price, which is an exchange rate
        between two commodities on a certain date.  (In Ledger, they are called
-       "historical prices".) These are often obtained from a  stock  exchange,
+       "historical  prices".)  These are often obtained from a stock exchange,
        cryptocurrency exchange, or the foreign exchange market.
 
        Here is the format:
@@ -797,25 +797,25 @@ FILE FORMAT
 
        o COMMODITYA is the symbol of the commodity being priced
 
-       o COMMODITYBAMOUNT  is an amount (symbol and quantity) in a second com-
+       o COMMODITYBAMOUNT is an amount (symbol and quantity) in a second  com-
          modity, giving the price in commodity B of one unit of commodity A.
 
-       These two market price directives say that one euro was worth  1.35  US
+       These  two  market price directives say that one euro was worth 1.35 US
        dollars during 2009, and $1.40 from 2010 onward:
 
               P 2009/1/1  $1.35
               P 2010/1/1  $1.40
 
-       The  -V/--value flag can be used to convert reported amounts to another
+       The -V/--value flag can be used to convert reported amounts to  another
        commodity using these prices.
 
    Declaring accounts
-       The account directive predeclares account names.  The simplest form  is
+       The  account directive predeclares account names.  The simplest form is
        account ACCTNAME, eg:
 
               account assets:bank:checking
 
-       Currently  this  mainly  helps  with  account name autocompletion in eg
+       Currently this mainly helps with  account  name  autocompletion  in  eg
        hledger add, hledger-iadd, hledger-web, and ledger-mode.
        In future it will also help detect misspelled accounts.
 
@@ -827,10 +827,10 @@ FILE FORMAT
               account revenues                4000
               account expenses                6000
 
-       This affects how accounts are sorted in account  and  balance  reports:
-       accounts  with  codes  are listed before accounts without codes, and in
+       This  affects  how  accounts are sorted in account and balance reports:
+       accounts with codes are listed before accounts without  codes,  and  in
        increasing code order (instead of listing all accounts alphabetically).
-       Warning,  this  feature  is incomplete; account codes do not yet affect
+       Warning, this feature is incomplete; account codes do  not  yet  affect
        sort order in
 
        o the accounts command
@@ -842,9 +842,9 @@ FILE FORMAT
 
        o hledger-web's sidebar
 
-       Account  codes should be all numeric digits, unique, and separated from
-       the account name by at least two spaces (since account names  may  con-
-       tain  single  spaces).   By convention, often the first digit indicates
+       Account codes should be all numeric digits, unique, and separated  from
+       the  account  name by at least two spaces (since account names may con-
+       tain single spaces).  By convention, often the  first  digit  indicates
        the type of account, as in this numbering scheme and the example above.
        In future, we might use this to recognize account types.
 
@@ -873,14 +873,14 @@ FILE FORMAT
        o customising reports
 
        Account aliases also rewrite account names in account directives.  They
-       do  not  affect  account  names  being  entered  via  hledger  add   or
+       do   not  affect  account  names  being  entered  via  hledger  add  or
        hledger-web.
 
        See also Cookbook: Rewrite account names.
 
    Basic aliases
-       To  set an account alias, use the alias directive in your journal file.
-       This affects all subsequent journal entries in the current file or  its
+       To set an account alias, use the alias directive in your journal  file.
+       This  affects all subsequent journal entries in the current file or its
        included files.  The spaces around the = are optional:
 
               alias OLD = NEW
@@ -888,54 +888,54 @@ FILE FORMAT
        Or, you can use the --alias 'OLD=NEW' option on the command line.  This
        affects all entries.  It's useful for trying out aliases interactively.
 
-       OLD  and  NEW  are  case  sensitive  full  account names.  hledger will
-       replace any occurrence of the old account name with the new one.   Sub-
+       OLD and NEW are  case  sensitive  full  account  names.   hledger  will
+       replace  any occurrence of the old account name with the new one.  Sub-
        accounts are also affected.  Eg:
 
               alias checking = assets:bank:wells fargo:checking
               # rewrites "checking" to "assets:bank:wells fargo:checking", or "checking:a" to "assets:bank:wells fargo:checking:a"
 
    Regex aliases
-       There  is  also a more powerful variant that uses a regular expression,
+       There is also a more powerful variant that uses a  regular  expression,
        indicated by the forward slashes:
 
               alias /REGEX/ = REPLACEMENT
 
        or --alias '/REGEX/=REPLACEMENT'.
 
-       REGEX is a case-insensitive regular expression.   Anywhere  it  matches
-       inside  an  account name, the matched part will be replaced by REPLACE-
-       MENT.  If REGEX contains parenthesised match groups, these can be  ref-
+       REGEX  is  a  case-insensitive regular expression.  Anywhere it matches
+       inside an account name, the matched part will be replaced  by  REPLACE-
+       MENT.   If REGEX contains parenthesised match groups, these can be ref-
        erenced by the usual numeric backreferences in REPLACEMENT.  Eg:
 
               alias /^(.+):bank:([^:]+)(.*)/ = \1:\2 \3
               # rewrites "assets:bank:wells fargo:checking" to  "assets:wells fargo checking"
 
-       Also  note that REPLACEMENT continues to the end of line (or on command
-       line, to end of option argument), so it  can  contain  trailing  white-
+       Also note that REPLACEMENT continues to the end of line (or on  command
+       line,  to  end  of  option argument), so it can contain trailing white-
        space.
 
    Multiple aliases
-       You  can  define  as  many aliases as you like using directives or com-
-       mand-line options.  Aliases are recursive - each alias sees the  result
-       of  applying  previous  ones.   (This  is  different from Ledger, where
+       You can define as many aliases as you like  using  directives  or  com-
+       mand-line  options.  Aliases are recursive - each alias sees the result
+       of applying previous ones.   (This  is  different  from  Ledger,  where
        aliases are non-recursive by default).  Aliases are applied in the fol-
        lowing order:
 
-       1. alias  directives,  most recently seen first (recent directives take
+       1. alias directives, most recently seen first (recent  directives  take
           precedence over earlier ones; directives not yet seen are ignored)
 
        2. alias options, in the order they appear on the command line
 
    end aliases
-       You  can  clear  (forget)  all  currently  defined  aliases  with   the
+       You   can  clear  (forget)  all  currently  defined  aliases  with  the
        end aliases directive:
 
               end aliases
 
    Default parent account
-       You  can  specify  a  parent  account  which  will  be prepended to all
-       accounts within a section of the journal.  Use  the  apply account  and
+       You can specify a  parent  account  which  will  be  prepended  to  all
+       accounts  within  a  section of the journal.  Use the apply account and
        end apply account directives like so:
 
               apply account home
@@ -952,7 +952,7 @@ FILE FORMAT
                   home:food           $10
                   home:cash          $-10
 
-       If  end apply account  is  omitted,  the effect lasts to the end of the
+       If end apply account is omitted, the effect lasts to  the  end  of  the
        file.  Included files are also affected, eg:
 
               apply account business
@@ -961,30 +961,30 @@ FILE FORMAT
               apply account personal
               include personal.journal
 
-       Prior to hledger 1.0, legacy account and end spellings were  also  sup-
+       Prior  to  hledger 1.0, legacy account and end spellings were also sup-
        ported.
 
-       A  default parent account also affects account directives.  It does not
-       affect account names being entered via hledger add or hledger-web.   If
-       account  aliases are present, they are applied after the default parent
+       A default parent account also affects account directives.  It does  not
+       affect  account names being entered via hledger add or hledger-web.  If
+       account aliases are present, they are applied after the default  parent
        account.
 
    Periodic transactions
-       Periodic transaction rules  describe  transactions  that  recur.   They
+       Periodic  transaction  rules  describe  transactions  that recur.  They
        allow you to generate future transactions for forecasting, without hav-
-       ing to write them out explicitly  in  the  journal  (with  --forecast).
+       ing  to  write  them  out  explicitly in the journal (with --forecast).
        Secondly, they also can be used to define budget goals (with --budget).
 
        A periodic transaction rule looks like a normal journal entry, with the
        date replaced by a tilde (~) followed by a period expression (mnemonic:
-       ~ looks like a repeating sine wave):
+       ~ looks like a recurring sine wave.):
 
               ~ monthly
                   expenses:rent          $2000
                   assets:bank:checking
 
-       There is an additional constraint on the period expression:  the  start
-       date   must   fall   on   a  natural  boundary  of  the  interval.   Eg
+       There  is  an additional constraint on the period expression: the start
+       date  must  fall  on  a  natural  boundary   of   the   interval.    Eg
        monthly from 2018/1/1 is valid, but monthly from 2018/1/15 is not.
 
        If you write a transaction description or same-line comment, it must be
@@ -998,74 +998,77 @@ FILE FORMAT
                   income:acme inc
 
    Forecasting with periodic transactions
-       With  the  --forecast  flag,  each  periodic transaction rule generates
+       With the --forecast flag,  each  periodic  transaction  rule  generates
        future transactions recurring at the specified interval.  These are not
-       saved  in  the journal, but appear in all reports.  They will look like
-       normal transactions, but with an extra tag named recur, whose value  is
+       saved in the journal, but appear in all reports.  They will  look  like
+       normal  transactions, but with an extra tag named recur, whose value is
        the generating period expression.
 
-       Forecast  transactions  start  on  the first occurrence, and end on the
-       last occurrence, of their interval within  the  forecast  period.   The
+       Forecast transactions start on the first occurrence,  and  end  on  the
+       last  occurrence,  of  their  interval within the forecast period.  The
        forecast period:
 
        o begins on the later of
 
          o the report start date if specified with -b/-p/date:
 
-         o the  day  after the latest normal (non-periodic) transaction in the
+         o the day after the latest normal (non-periodic) transaction  in  the
            journal, or today if there are no normal transactions.
 
-       o ends on the report end date if specified  with  -e/-p/date:,  or  180
+       o ends  on  the  report  end date if specified with -e/-p/date:, or 180
          days from today.
 
-       where  "today"  means  the current date at report time.  The "later of"
-       rule ensures that forecast transactions do not overlap normal  transac-
+       where "today" means the current date at report time.   The  "later  of"
+       rule  ensures that forecast transactions do not overlap normal transac-
        tions in time; they will begin only after normal transactions end.
 
-       Forecasting  can be useful for estimating balances into the future, and
-       experimenting with different scenarios.   Note  the  start  date  logic
+       Forecasting can be useful for estimating balances into the future,  and
+       experimenting  with  different  scenarios.   Note  the start date logic
        means that forecasted transactions are automatically replaced by normal
        transactions as you add those.
 
        Forecasting can also help with data entry: describe most of your trans-
-       actions  with  periodic  rules,  and  every so often copy the output of
+       actions with periodic rules, and every so  often  copy  the  output  of
        print --forecast to the journal.
 
        You can generate one-time transactions too: just write a period expres-
-       sion  specifying a date with no report interval.  (You could also write
-       a normal transaction with a future date,  but  remember  this  disables
+       sion specifying a date with no report interval.  (You could also  write
+       a  normal  transaction  with  a future date, but remember this disables
        forecast transactions on previous dates.)
 
    Budgeting with periodic transactions
-       With  the  --budget  flag,  currently supported by the balance command,
-       each periodic transaction rule declares recurring budget goals for  the
-       specified  accounts.   Eg  the  first  example above declares a goal of
-       spending $2000 on rent (and also,  a  goal  of  depositing  $2000  into
-       checking)  every  month.  Goals and actual performance can then be com-
+       With the --budget flag, currently supported  by  the  balance  command,
+       each  periodic transaction rule declares recurring budget goals for the
+       specified accounts.  Eg the first example  above  declares  a  goal  of
+       spending  $2000  on  rent  (and  also,  a goal of depositing $2000 into
+       checking) every month.  Goals and actual performance can then  be  com-
        pared in budget reports.
 
-       For more details, see: balance: Budget report and  Cookbook:  Budgeting
+       For  more  details, see: balance: Budget report and Cookbook: Budgeting
        and Forecasting.
 
-   Automated postings
-       Automated posting rules describe extra postings that should be added to
-       certain transactions at report time, when the --auto flag is used.
+        ## Transaction Modifiers
 
-       An automated posting rule looks like a normal journal entry, except the
-       first  line is an equal sign (=) followed by a query (mnemonic: = looks
-       like posting lines):
+       Transaction modifier rules describe  changes  that  should  be  applied
+       automatically  to  certain  transactions.  Currently, this means adding
+       extra postings (also known as "automated postings").  Transaction modi-
+       fiers are enabled by the --auto flag.
+
+       A  transaction  modifier  rule looks a bit like a normal journal entry,
+       except the first line  is  an  equal  sign  (=)  followed  by  a  query
+       (mnemonic: = suggests matching something.):
 
               = expenses:gifts
                   budget:gifts  *-1
                   assets:budget  *1
 
-       The posting amounts can be of the form *N, which means "the  amount  of
-       the  matched  transaction's  first posting, multiplied by N".  They can
+       The  posting  amounts can be of the form *N, which means "the amount of
+       the matched transaction's first posting, multiplied by  N".   They  can
        also be ordinary fixed amounts.  Fixed amounts with no commodity symbol
-       will  be  given  the  same commodity as the matched transaction's first
+       will be given the same commodity as  the  matched  transaction's  first
        posting.
 
-       This example adds a corresponding (unbalanced) budget posting to  every
+       This  example adds a corresponding (unbalanced) budget posting to every
        transaction involving the expenses:gifts account:
 
               = expenses:gifts
@@ -1081,16 +1084,16 @@ FILE FORMAT
                   (budget:gifts)            $-20
                   assets
 
-       Like  postings  recorded  by  hand,  automated  postings participate in
+       Like postings recorded  by  hand,  automated  postings  participate  in
        transaction balancing, missing amount inference and balance assertions.
 
 EDITOR SUPPORT
        Add-on modes exist for various text editors, to make working with jour-
-       nal files easier.  They add colour, navigation aids  and  helpful  com-
-       mands.   For  hledger  users  who  edit  the journal file directly (the
+       nal  files  easier.   They add colour, navigation aids and helpful com-
+       mands.  For hledger users who  edit  the  journal  file  directly  (the
        majority), using one of these modes is quite recommended.
 
-       These were written with Ledger in mind,  but  also  work  with  hledger
+       These  were  written  with  Ledger  in mind, but also work with hledger
        files:
 
 
@@ -1109,7 +1112,7 @@ EDITOR SUPPORT
 
 
 REPORTING BUGS
-       Report  bugs at http://bugs.hledger.org (or on the #hledger IRC channel
+       Report bugs at http://bugs.hledger.org (or on the #hledger IRC  channel
        or hledger mail list)
 
 
@@ -1123,7 +1126,7 @@ COPYRIGHT
 
 
 SEE ALSO
-       hledger(1),     hledger-ui(1),     hledger-web(1),      hledger-api(1),
+       hledger(1),      hledger-ui(1),     hledger-web(1),     hledger-api(1),
        hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_time-
        dot(5), ledger(1)
 
