@@ -40,7 +40,7 @@ exchange rates.
 
 -}
 
-{-# LANGUAGE CPP, StandaloneDeriving, RecordWildCards, OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving, RecordWildCards, OverloadedStrings #-}
 
 module Hledger.Data.Amount (
   -- * Amount

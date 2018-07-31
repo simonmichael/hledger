@@ -1,4 +1,4 @@
-{-# LANGUAGE CPP, RecordWildCards, DeriveDataTypeable #-}
+{-# LANGUAGE RecordWildCards, DeriveDataTypeable #-}
 {-|
 
 Options common to most hledger reports.

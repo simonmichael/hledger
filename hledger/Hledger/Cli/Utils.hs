@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, CPP #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-|
 
 Utilities for top-level modules and ghci. See also Hledger.Read and
