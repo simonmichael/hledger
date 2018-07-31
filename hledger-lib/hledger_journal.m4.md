@@ -988,7 +988,7 @@ Secondly, they also can be used to define budget goals (with `--budget`).
 
 A periodic transaction rule looks like a normal journal entry,
 with the date replaced by a tilde (`~`) followed by a [period expression](manual.html#period-expressions)
-(mnemonic: `~` looks like a repeating sine wave):
+(mnemonic: `~` looks like a recurring sine wave.):
 ```journal
 ~ monthly
     expenses:rent          $2000
@@ -1069,7 +1069,7 @@ Transaction modifiers are enabled by the `--auto` flag.
 
 A transaction modifier rule looks a bit like a normal journal entry,
 except the first line is an equal sign (`=`) followed by a [query](manual.html#queries)
-(mnemonic: `=` looks like posting lines):
+(mnemonic: `=` suggests matching something.):
 ```journal
 = expenses:gifts
     budget:gifts  *-1
