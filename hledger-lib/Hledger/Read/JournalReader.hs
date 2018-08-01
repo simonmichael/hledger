@@ -213,7 +213,7 @@ includedirectivep = do
         filepaths <- liftIO $ sort <$> globDir1 fileglob curdir
         if (not . null) filepaths
             then pure filepaths
-            else parseErrorAt parserpos$  "No existing files match pattern: " ++ filename
+            else parseErrorAt parserpos $ "No existing files match pattern: " ++ filename
 
     parseChild parentpos filepath = do
         childInput <- lift $ readFilePortably filepath
