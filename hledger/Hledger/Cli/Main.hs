@@ -169,14 +169,17 @@ main = do
       | isBadCommand             = badCommandError
 
       -- builtin commands
-      | Just (cmdmode, cmdaction) <- findCommand cmd = do 
-        if cmd=="add" -- add command does extra work before reading journal
-        then (do
-          journalFilePathFromOpts opts >>= (ensureJournalFileExists . head) 
-          withJournalDo opts cmdaction)
-          `orShowHelp` cmdmode
-        else
-          withJournalDo opts cmdaction `orShowHelp` cmdmode
+      | Just (cmdmode, cmdaction) <- findCommand cmd =
+        (case cmd of
+          "test" -> -- should not read the journal
+            cmdaction opts (error "journal-less command tried to use the journal")
+          "add" ->  -- should create the journal if missing
+            (ensureJournalFileExists =<< (head <$> journalFilePathFromOpts opts)) >>
+            withJournalDo opts cmdaction
+          _ ->      -- all other commands: read the journal or fail if missing
+            withJournalDo opts cmdaction
+        )
+        `orShowHelp` cmdmode
 
       -- addon commands
       | isExternalCommand = do

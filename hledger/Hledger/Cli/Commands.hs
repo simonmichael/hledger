@@ -230,8 +230,12 @@ testmode = (defCommandMode ["test"]) {
  }
 
 -- | Run some or all hledger-lib and hledger unit tests, and exit with success or failure.
+--
+-- Unlike other hledger commands, this one does not operate on the user's Journal.
+-- For ease of implementation the Journal parameter remains in the type signature, 
+-- but it will not be valid and should not be used.
 testcmd :: CliOpts -> Journal -> IO ()
-testcmd opts _ = do
+testcmd opts _donotuse = do
   let ts = 
         (if tree_ $ reportopts_ opts then matchedTestsTree else matchedTestsFlat) 
           opts tests_Hledger_Cli_Commands
