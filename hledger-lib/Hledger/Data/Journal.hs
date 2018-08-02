@@ -881,7 +881,6 @@ journalDateSpan secondary j
       pdates   = concatMap (catMaybes . map (if secondary then (Just . postingDate2) else pdate) . tpostings) ts
       ts       = jtxns j
 
--- #ifdef TESTS
 test_journalDateSpan = do
  "journalDateSpan" ~: do
   assertEqual "" (DateSpan (Just $ fromGregorian 2014 1 10) (Just $ fromGregorian 2014 10 11))
@@ -894,7 +893,6 @@ test_journalDateSpan = do
                                             ,tpostings = [posting{pdate2=Just (parsedate "2014/10/10")}]
                                             }
                             ]}
--- #endif
 
 -- | Apply the pivot transformation to all postings in a journal,
 -- replacing their account name by their value for the given field or tag.
