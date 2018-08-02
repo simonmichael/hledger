@@ -216,6 +216,10 @@ includedirectivep = do
             else parseErrorAt parserpos $ "No existing files match pattern: " ++ filename
 
     parseChild parentpos filepath = do
+        parentfilestack <- fmap sourceName . statePos <$> getParserState
+        when (filepath `elem` parentfilestack)
+            $ parseErrorAt parentpos ("Cyclic include: " ++ filepath)
+
         childInput <- lift $ readFilePortably filepath
                              `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
 
