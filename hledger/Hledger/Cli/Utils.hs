@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NoOverloadedStrings #-} -- prevent trouble if turned on in ghci
 {-|
 
 Utilities for top-level modules and ghci. See also Hledger.Read and

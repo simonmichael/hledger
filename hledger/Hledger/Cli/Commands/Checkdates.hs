@@ -1,4 +1,5 @@
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE NoOverloadedStrings #-} -- prevent trouble if turned on in ghci
 
 module Hledger.Cli.Commands.Checkdates (
   checkdatesmode
