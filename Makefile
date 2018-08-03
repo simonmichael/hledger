@@ -653,9 +653,11 @@ pkgtest: $(call def-help,pkgtest, run the test suites in each package )
 hunittest: $(call def-help,hunittest, run just the hunit tests in hledger-lib )
 	@($(STACKTEST) hledger-lib:test:hunittests && echo $@ PASSED) || (echo $@ FAILED; false)
 
-# doctests don't run with ghc 8.4 on mac, see package.yaml
+# doctest with ghc 8.4 on mac requires a workaround, see hledger-lib/package.yaml.
+# Or, could run it with ghc 8.2: 
+#	@($(STACKTEST) --stack-yaml stack-ghc8.2.yaml hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
 doctest: $(call def-help,doctest, run just the doctest tests in hledger-lib )
-	@($(STACKTEST) --stack-yaml stack-ghc8.2.yaml hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
+	@($(STACKTEST) hledger-lib:test:doctests && echo $@ PASSED) || (echo $@ FAILED; false)
 
 easytest: $(call def-help,easytest, run just the easytest tests in hledger-lib )
 	@($(STACKTEST) hledger-lib:test:easytests && echo $@ PASSED) || (echo $@ FAILED; false)

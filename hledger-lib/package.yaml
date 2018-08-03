@@ -154,14 +154,14 @@ tests:
     main: doctests.hs
     source-dirs: tests
     dependencies:
-    - doctest >=0.8
     - Glob >=0.7
-    # doctest with ghc 8.4 on mac requires a workaround, but we'll leave it enabled
+    - doctest >=0.8
+    # doctest with ghc 8.4 on mac requires a workaround:
+    # ~$ locate HSinteger-gmp-1.0.2.0.o
+    # /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o
+    # ~$ mv /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o{,_DISABLE_GHC_ISSUE_15105}
+    # See https://github.com/sol/doctest/issues/199,
     # https://ghc.haskell.org/trac/ghc/ticket/15105#comment:10
-    # https://github.com/sol/doctest/issues/199
-    # when:
-    # - condition: impl(ghc >= 8.4) && os(darwin)
-    #   buildable: false
 
   hunittests:
     main: hunittests.hs
