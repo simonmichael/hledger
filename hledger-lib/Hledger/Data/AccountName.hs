@@ -24,6 +24,8 @@ import Text.Printf
 import Hledger.Data.Types
 import Hledger.Utils
 
+-- $setup
+-- >>> :set -XOverloadedStrings
 
 acctsepchar :: Char
 acctsepchar = ':'
