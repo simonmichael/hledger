@@ -122,6 +122,9 @@ import Text.Megaparsec.Custom
 import Hledger.Data
 import Hledger.Utils
 
+-- $setup
+-- >>> :set -XOverloadedStrings
+
 -- | A hledger journal reader is a triple of storage format name, a
 -- detector of that format, and a parser from that format to Journal.
 data Reader = Reader {
@@ -977,26 +980,46 @@ emptyorcommentlinep = do
 -- until the next newline. This parser should extract the "content" from
 -- comments. The resulting parser returns this content plus the raw text
 -- of the comment itself.
-followingcommentp' :: (Monoid a) => TextParser m a -> TextParser m (Text, a)
+--
+-- See followingcommentp for tests.
+--
+followingcommentp' :: (Monoid a, Show a) => TextParser m a -> TextParser m (Text, a)
 followingcommentp' contentp = do
   skipMany spacenonewline
-  sameLine <- try headerp *> match' contentp <|> pure ("", mempty)
+  -- there can be 0 or 1 sameLine
+  sameLine <- try headerp *> ((:[]) <$> match' contentp) <|> pure []
   _ <- eolof
-  lowerLines <- many $
+  -- there can be 0 or more nextLines
+  nextLines <- many $
     try (skipSome spacenonewline *> headerp) *> match' contentp <* eolof
-
-  let (textLines, results) = unzip $ sameLine : lowerLines
-      strippedCommentText = T.unlines $ map T.strip textLines
-      result = mconcat results
-  pure (strippedCommentText, result)
+  let
+    -- if there's just a next-line comment, insert an empty same-line comment
+    -- so the next-line comment doesn't get rendered as a same-line comment.
+    sameLine' | null sameLine && not (null nextLines) = [("",mempty)]
+              | otherwise = sameLine 
+    (texts, contents) = unzip $ sameLine' ++ nextLines
+    strippedCommentText = T.unlines $ map T.strip texts
+    commentContent = mconcat contents
+  pure (strippedCommentText, commentContent)
 
   where
     headerp = char ';' *> skipMany spacenonewline
 
 {-# INLINABLE followingcommentp' #-}
 
--- | Parse the text of a (possibly multiline) comment following a journal
--- item.
+-- | Parse the text of a (possibly multiline) comment following a journal item.
+--
+-- >>> rtp followingcommentp ""   -- no comment
+-- Right ""
+-- >>> rtp followingcommentp ";"    -- just a (empty) same-line comment. newline is added
+-- Right "\n"
+-- >>> rtp followingcommentp ";  \n"
+-- Right "\n"
+-- >>> rtp followingcommentp ";\n ;\n"  -- a same-line and a next-line comment
+-- Right "\n\n"
+-- >>> rtp followingcommentp "\n ;\n"  -- just a next-line comment. Insert an empty same-line comment so the next-line comment doesn't become a same-line comment.
+-- Right "\n\n"
+--
 followingcommentp :: TextParser m Text
 followingcommentp =
   fst <$> followingcommentp' (void $ takeWhileP Nothing (/= '\n'))
