@@ -606,7 +606,7 @@ ghci-api: (call def-help,ghci-api, start ghci REPL on hledger-lib + hledger + hl
 # 		hledger-web/app/main.hs \
 # 		hledger-api/hledger-api.hs \
 
-ghci-doctest: $(call def-help,ghci-lib-doctest, start ghci REPL on hledger-lib doctests)
+ghci-doctest: $(call def-help,ghci-doctest, start ghci REPL on hledger-lib doctests)
 	cd hledger-lib; $(STACK) ghci hledger-lib:test:doctests
 
 
