@@ -1,0 +1,4 @@
+# Run unit tests, making it easier to run all tests.
+
+$ hledger test
+>2 /Errors: 0  Failures: 0$/
