@@ -156,6 +156,7 @@ tests:
     dependencies:
     - Glob >=0.7
     - doctest >=0.8
+    # doctest >=0.16.0 needed to show verbose progress output
     # doctest with ghc 8.4 on mac requires a workaround:
     # ~$ locate HSinteger-gmp-1.0.2.0.o
     # /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o
