@@ -72,6 +72,10 @@ module Hledger.Data.Amount (
   maxprecisionwithpoint,
   setAmountPrecision,
   withPrecision,
+  setAmountInternalPrecision,
+  withInternalPrecision,
+  setAmountDecimalPoint,
+  withDecimalPoint,
   canonicaliseAmount,
   -- * MixedAmount
   nullmixedamt,
@@ -260,6 +264,31 @@ showAmountDebug Amount{..} = printf "Amount {acommodity=%s, aquantity=%s, aprice
 -- | Get the string representation of an amount, without any \@ price.
 showAmountWithoutPrice :: Amount -> String
 showAmountWithoutPrice a = showAmount a{aprice=NoPrice}
+
+-- | Set an amount's internal precision, ie rounds the Decimal representing 
+-- the amount's quantity to some number of decimal places.
+-- Rounding is done with Data.Decimal's default roundTo function:
+-- "If the value ends in 5 then it is rounded to the nearest even value (Banker's Rounding)".
+-- Does not change the amount's display precision.
+-- Intended only for internal use, eg when comparing amounts in tests. 
+setAmountInternalPrecision :: Int -> Amount -> Amount
+setAmountInternalPrecision p a@Amount{ aquantity=q, astyle=s } = a{ 
+   astyle=s{asprecision=p} 
+  ,aquantity=roundTo (fromIntegral p) q
+  }
+
+-- | Set an amount's internal precision, flipped.
+-- Intended only for internal use, eg when comparing amounts in tests. 
+withInternalPrecision :: Amount -> Int -> Amount
+withInternalPrecision = flip setAmountInternalPrecision
+
+-- | Set (or clear) an amount's display decimal point.
+setAmountDecimalPoint :: Maybe Char -> Amount -> Amount
+setAmountDecimalPoint mc a@Amount{ astyle=s } = a{ astyle=s{asdecimalpoint=mc} }
+
+-- | Set (or clear) an amount's display decimal point, flipped.
+withDecimalPoint :: Amount -> Maybe Char -> Amount
+withDecimalPoint = flip setAmountDecimalPoint
 
 -- | Colour version.
 cshowAmountWithoutPrice :: Amount -> String
