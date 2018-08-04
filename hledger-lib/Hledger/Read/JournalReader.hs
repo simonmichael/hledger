@@ -574,14 +574,15 @@ test_transactionp = TestCase $ do
       tstatus=Unmarked,
       tcode="code",
       tdescription="desc",
-      tcomment=" tcomment1\n tcomment2\n ttag1: val1\n",
+      tcomment="tcomment1\ntcomment2\nttag1: val1\n",
       ttags=[("ttag1","val1")],
       tpostings=[
         nullposting{
+          pdate=Just $ parsedate "2012/05/14",
           pstatus=Cleared,
           paccount="a",
           pamount=Mixed [usd 1],
-          pcomment=" pcomment1\n pcomment2\n ptag1: val1\n  ptag2: val2\n",
+          pcomment="pcomment1\npcomment2\nptag1: val1\nptag2: val2\n",
           ptype=RegularPosting,
           ptags=[("ptag1","val1"),("ptag2","val2")],
           ptransaction=Nothing
@@ -600,12 +601,6 @@ test_transactionp = TestCase $ do
       ,"    assets:checking                          $-47.18"
       ,""
       ]
-
-    assertBool "transactionp should not parse just a date" $
-      isLeft . runIdentity $ parseWithState mempty transactionp "2009/1/1\n"
-
-    assertBool "transactionp should not parse just a date and description" $
-      isLeft . runIdentity $ parseWithState mempty transactionp "2009/1/1 a\n"
 
     let p = runIdentity $ parseWithState mempty transactionp "2009/1/1 a ;comment\n b 1\n"
     assertEqual "transactionp should not parse a following comment as part of the description"
@@ -686,21 +681,20 @@ test_postingp = TestCase $ do
                          same ptags
                          same ptransaction
     "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n" `gives`
-      posting{paccount="expenses:food:dining", pamount=Mixed [usd 10], pcomment=" a: a a \n b: b b \n", ptags=[("a","a a"), ("b","b b")]}
+      posting{paccount="expenses:food:dining", pamount=Mixed [usd 10], pcomment="a: a a\nb: b b\n", ptags=[("a","a a"), ("b","b b")]}
 
     " a  1 ; [2012/11/28]\n" `gives`
-      ("a" `post` num 1){pcomment=" [2012/11/28]\n"
-                        ,ptags=[("date","2012/11/28")]
+      ("a" `post` num 1){pcomment="[2012/11/28]\n"
                         ,pdate=parsedateM "2012/11/28"}
 
     " a  1 ; a:a, [=2012/11/28]\n" `gives`
-      ("a" `post` num 1){pcomment=" a:a, [=2012/11/28]\n"
-                        ,ptags=[("a","a"), ("date2","2012/11/28")]
+      ("a" `post` num 1){pcomment="a:a, [=2012/11/28]\n"
+                        ,ptags=[("a","a")]
                         ,pdate=Nothing}
 
     " a  1 ; a:a\n  ; [2012/11/28=2012/11/29],b:b\n" `gives`
-      ("a" `post` num 1){pcomment=" a:a\n [2012/11/28=2012/11/29],b:b\n"
-                        ,ptags=[("a","a"), ("date","2012/11/28"), ("date2","2012/11/29"), ("b","b")]
+      ("a" `post` num 1){pcomment="a:a\n[2012/11/28=2012/11/29],b:b\n"
+                        ,ptags=[("a","a"), ("[2012/11/28=2012/11/29],b","b")] -- XXX ugly tag name parsed
                         ,pdate=parsedateM "2012/11/28"}
 
     assertBool "postingp parses a quoted commodity with numbers"
