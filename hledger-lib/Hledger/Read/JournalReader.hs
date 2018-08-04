@@ -671,15 +671,15 @@ test_postingp = TestCase $ do
                          let parse = runIdentity $ parseWithState mempty (postingp Nothing) s
                          assertBool "Example is parsed well" $ isRight parse
                          let Right ap = parse
-                             same f = assertEqual "Posting is parsed well" (f ep) (f ap)
-                         same pdate
-                         same pstatus
-                         same paccount
-                         same pamount
-                         same pcomment
-                         same ptype
-                         same ptags
-                         same ptransaction
+                             same msg f = assertEqual ("Posting "++msg++" differs") (f ep) (f ap)
+                         same "date" pdate
+                         same "status" pstatus
+                         same "account" paccount
+                         same "amount" pamount
+                         same "comment" pcomment
+                         same "type" ptype
+                         same "tags" ptags
+                         same "transaction" ptransaction
     "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n" `gives`
       posting{paccount="expenses:food:dining", pamount=Mixed [usd 10], pcomment="a: a a\nb: b b\n", ptags=[("a","a a"), ("b","b b")]}
 
