@@ -500,16 +500,6 @@ spaceandamountormissingp =
     lift $ skipSome spacenonewline
     Mixed . (:[]) <$> amountp
 
-assertParseEqual' ::
-     (Show a, Eq a)
-  => Identity (Either (ParseError Char CustomErr) a)
-  -> a
-  -> Assertion
-assertParseEqual' parse expected = either (assertFailure.show) (`is'` expected) (runIdentity parse)
-
-is' :: (Eq a, Show a) => a -> a -> Assertion
-a `is'` e = assertEqual "values are equal" e a
-
 test_spaceandamountormissingp = TestCase $ do
     assertParseEqual' (parseWithState mempty spaceandamountormissingp " $47.18") (Mixed [usd 47.18])
     assertParseEqual' (parseWithState mempty spaceandamountormissingp "$47.18") missingmixedamt
