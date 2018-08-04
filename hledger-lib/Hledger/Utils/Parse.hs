@@ -71,6 +71,8 @@ parsewith p = runParser p ""
 parsewithString :: Parsec e String a -> String -> Either (ParseError Char e) a
 parsewithString p = runParser p ""
 
+-- | Run a stateful parser with some initial state on a text.
+-- See also: runTextParser, runJournalParser.
 parseWithState :: Monad m => st -> StateT st (ParsecT CustomErr Text m) a -> Text -> m (Either (ParseError Char CustomErr) a)
 parseWithState ctx p s = runParserT (evalStateT p ctx) "" s
 

@@ -189,12 +189,12 @@ rawOptsToInputOpts rawopts = InputOpts{
 
 --- * parsing utilities
 
--- | Run a string parser with no state in the identity monad.
+-- | Run a text parser in the identity monad. See also: parseWithState.
 runTextParser, rtp :: TextParser Identity a -> Text -> Either (ParseError Char CustomErr) a
 runTextParser p t =  runParser p "" t
 rtp = runTextParser
 
--- | Run a journal parser with a null journal-parsing state.
+-- | Run a journal parser in some monad. See also: parseWithState.
 runJournalParser, rjp :: Monad m => JournalParser m a -> Text -> m (Either (ParseError Char CustomErr) a)
 runJournalParser p t = runParserT (evalStateT p mempty) "" t
 rjp = runJournalParser
