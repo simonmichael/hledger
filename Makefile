@@ -670,8 +670,9 @@ builtintest: $(call def-help,builtintest, run hledgers built in test command)
 # assumes hledger is built and uses whatever build is there, avoiding excessive rebuilding
 #functest: addons tests/addons/hledger-addon 
 functest: tests/addons/hledger-addon \
-	$(call def-help,functest, run the functional tests for hledger )
-	@($(SHELLTESTSTK) tests \
+	$(call def-help,functest, build hledger quickly and run the functional tests (and some unit tests) )
+	@stack build --fast hledger
+	@($(SHELLTESTSTK) -w `stack exec -- which hledger` tests \
 		&& echo $@ PASSED) || (echo $@ FAILED; false)
 
 ADDONEXTS=pl py rb sh hs lhs rkt exe com bat
