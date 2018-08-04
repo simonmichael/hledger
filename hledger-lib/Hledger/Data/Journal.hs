@@ -765,8 +765,7 @@ commodityStylesFromAmounts amts = M.fromList commstyles
     commstyles = [(c, canonicalStyleFrom $ map astyle as) | (c,as) <- commamts]
 
 -- | Given an ordered list of amount styles, choose a canonical style.
--- That is: the style of the first, and the
--- maximum precision of all.
+-- That is: the style of the first, and the maximum precision of all.
 canonicalStyleFrom :: [AmountStyle] -> AmountStyle
 canonicalStyleFrom [] = amountstyle
 canonicalStyleFrom ss@(first:_) =
