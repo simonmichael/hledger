@@ -179,6 +179,7 @@ a file format for human-friendly approximate time logging
 ### Data entry, import, management
 
 [Convert CSV files](https://github.com/simonmichael/hledger/wiki/Convert CSV files)  
+[Customize default CSV accounts](https://github.com/simonmichael/hledger/wiki/Customize default CSV accounts)  
 [Track changes with version control](https://github.com/simonmichael/hledger/wiki/Track changes with version control)  
 [Use another account separator character](https://github.com/simonmichael/hledger/wiki/Use another account separator character)  
 [Full-fledged hledger](https://github.com/adept/full-fledged-hledger)  
