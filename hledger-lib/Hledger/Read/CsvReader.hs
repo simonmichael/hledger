@@ -64,7 +64,6 @@ import qualified Data.Csv.Parser.Megaparsec as CassavaMP
 import qualified Data.ByteString as B
 import Data.ByteString.Lazy (fromStrict)
 import Data.Foldable
-import Data.Either
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 import Text.Printf (printf)
@@ -114,7 +113,7 @@ parse iopts f t = do
 -- 5. return the transactions as a Journal
 -- @
 readJournalFromCsv :: Char -> Maybe FilePath -> FilePath -> Text -> IO (Either String Journal)
-readJournalFromCsv separator Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
+readJournalFromCsv _ Nothing "-" _ = return $ Left "please use --rules-file when reading CSV from stdin"
 readJournalFromCsv separator mrulesfile csvfile csvdata =
  handle (\e -> return $ Left $ show (e :: IOException)) $ do
   let throwerr = throw.userError
@@ -186,10 +185,10 @@ readJournalFromCsv separator mrulesfile csvfile csvdata =
   return $ Right nulljournal{jtxns=txns''}
 
 parseCsv :: Char -> FilePath -> Text -> IO (Either CSVError CSV)
-parseCsv separator path csvdata =
-  case path of
+parseCsv separator filePath csvdata =
+  case filePath of
     "-" -> liftM (parseCassava separator "(stdin)") T.getContents
-    _   -> return $ parseCassava separator path csvdata
+    _   -> return $ parseCassava separator filePath csvdata
 
 parseCassava :: Char -> FilePath -> Text -> Either CSVError CSV
 parseCassava separator path content =
@@ -211,12 +210,12 @@ parseResultToCsv = toListList . unpackFields
         unpackFields  = (fmap . fmap) (T.unpack . T.decodeUtf8)
 
 printCSV :: CSV -> String
-printCSV records = unlines (printRecord `map` records)
+printCSV records = unlined (printRecord `map` records)
     where printRecord = concat . intersperse "," . map printField
           printField f = "\"" ++ concatMap escape f ++ "\""
           escape '"' = "\"\""
           escape x = [x]
-          unlines = concat . intersperse "\n"
+          unlined = concat . intersperse "\n"
 
 -- | Return the cleaned up and validated CSV data (can be empty), or an error.
 validateCsv :: Int -> Either CSVError CSV -> Either String [CsvRecord]
