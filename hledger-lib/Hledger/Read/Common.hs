@@ -114,12 +114,14 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (getClockTime)
+import Test.HUnit
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
 
 import Hledger.Data
+import Hledger.Data.Amount
 import Hledger.Utils
 
 -- $setup
@@ -496,19 +498,17 @@ spaceandamountormissingp =
     lift $ skipSome spacenonewline
     Mixed . (:[]) <$> amountp
 
-#ifdef TESTS
-assertParseEqual' :: (Show a, Eq a) => (Either ParseError a) -> a -> Assertion
+assertParseEqual' :: (Show a, Eq a) => (Either (ParseError Char Void) a) -> a -> Assertion
 assertParseEqual' parse expected = either (assertFailure.show) (`is'` expected) parse
 
 is' :: (Eq a, Show a) => a -> a -> Assertion
-a `is'` e = assertEqual e a
+a `is'` e = assertEqual "values are equal" e a
 
 test_spaceandamountormissingp = do
     assertParseEqual' (parseWithState mempty spaceandamountormissingp " $47.18") (Mixed [usd 47.18])
     assertParseEqual' (parseWithState mempty spaceandamountormissingp "$47.18") missingmixedamt
     assertParseEqual' (parseWithState mempty spaceandamountormissingp " ") missingmixedamt
     assertParseEqual' (parseWithState mempty spaceandamountormissingp "") missingmixedamt
-#endif
 
 -- | Parse a single-commodity amount, with optional symbol on the left or
 -- right, optional unit or total price, and optional (ignored)
@@ -594,7 +594,6 @@ amountwithoutpricep = do
           Right res -> pure res
 
 
-#ifdef TESTS
 test_amountp = do
     assertParseEqual' (parseWithState mempty amountp "$47.18") (usd 47.18)
     assertParseEqual' (parseWithState mempty amountp "$1.") (usd 1 `withPrecision` 0)
@@ -604,9 +603,15 @@ test_amountp = do
      (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1))
   -- ,"amount with total price" ~: do
     assertParseEqual'
-     (parseWithState mempty amountp "$10 @@ €5")
-     (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
-#endif
+     (
+        (
+          (parseWithState :: Monad m => st -> StateT st (ParsecT Void Text m) a -> Text -> m (Either (ParseError Char Void) a))
+            (mempty :: Monoid a => a)
+            (amountp :: Monad m => JournalParser m Amount)
+            ("$10 @@ €5" :: Text)
+        ) :: Either (ParseError Char Void) Amount
+     )
+     ((usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0)) :: Amount)
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
