@@ -1060,7 +1060,7 @@ and
 [Cookbook: Budgeting and Forecasting](https://github.com/simonmichael/hledger/wiki/Budgeting-and-forecasting).
 
 
-<a name="automated-postings" />
+<a name="automated-postings"></a>
 
 ## Transaction Modifiers
 
