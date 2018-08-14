@@ -1061,6 +1061,7 @@ and
 
 
 <a name="automated-postings" />
+
 ## Transaction Modifiers
 
 Transaction modifier rules describe changes that should be applied automatically to certain transactions.
