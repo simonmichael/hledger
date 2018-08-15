@@ -675,7 +675,8 @@ test_postingp = TestCase $ do
                          same "date" pdate
                          same "status" pstatus
                          same "account" paccount
-                         same "amount" pamount
+                         -- same "amount" pamount
+                         assertEqual "Posting amount differs!" (showMixedAmountDebug $ pamount ep) (showMixedAmountDebug $ pamount ap)
                          same "comment" pcomment
                          same "type" ptype
                          same "tags" ptags

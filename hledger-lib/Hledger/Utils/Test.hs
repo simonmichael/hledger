@@ -3,6 +3,7 @@ module Hledger.Utils.Test where
 import Data.Functor.Identity
 import Test.HUnit
 import Text.Megaparsec
+import Hledger.Utils.Debug (pshow)
 
 -- | Get a Test's label, or the empty string.
 testName :: Test -> String
@@ -38,10 +39,21 @@ assertParseFailure parse = either (const $ return ()) (const $ assertFailure "pa
 assertParseEqual :: (Show a, Eq a, Show t, Show e) => (Either (ParseError t e) a) -> a -> Assertion
 assertParseEqual parse expected = either (assertFailure.show) (`is` expected) parse
 
--- | Assert that the parse result returned from an identity monad is some expected value, 
--- printing the parse error on failure.
+-- | Assert that the parse result returned from an identity monad is some expected value,
+-- on failure printing the parse error or differing values.
 assertParseEqual' :: (Show a, Eq a, Show t, Show e) => Identity (Either (ParseError t e) a) -> a -> Assertion
-assertParseEqual' parse expected = either (assertFailure.show) (`is` expected) (runIdentity parse)
+assertParseEqual' parse expected = 
+  either 
+    (assertFailure . ("parse error: "++) . pshow) 
+    (\actual -> assertEqual (unlines ["expected: " ++ show expected, " but got: " ++ show actual]) expected actual) 
+    $ runIdentity parse
+
+assertParseEqual'' :: (Show a, Eq a, Show t, Show e) => String -> Identity (Either (ParseError t e) a) -> a -> Assertion
+assertParseEqual'' label parse expected = 
+  either 
+    (assertFailure . ("parse error: "++) . pshow) 
+    (\actual -> assertEqual (unlines [label, "expected: " ++ show expected, " but got: " ++ show actual]) expected actual) 
+    $ runIdentity parse
 
 printParseError :: (Show a) => a -> IO ()
 printParseError e = do putStr "parse error at "; print e
