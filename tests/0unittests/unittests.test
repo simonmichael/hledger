@@ -1,4 +1,9 @@
 # Run unit tests, making it easier to run all tests.
 
+# 1. easytest tests passed
 $ hledger test
->2 /Errors: 0  Failures: 0$/
+> /tests passed, no failures!/
+
+# 2. hunit tests passed
+$ hledger test
+> /Errors: 0  Failures: 0$/
