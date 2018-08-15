@@ -37,7 +37,7 @@ include b.timedot
 >>>=0
 
 # 3. include glob patterns
-printf '2018/01/01\n (A)  1\n' >ab.journal; printf '2018/01/01\n  (B)  1' >bb.journal; hledger -f - print; rm -f ab.journal bb.journal
+ printf '2018/01/01\n (A)  1\n' >ab.journal; printf '2018/01/01\n  (B)  1' >bb.journal; hledger -f - print; rm -f ab.journal bb.journal
 <<<
 include *b.journal
 >>>
