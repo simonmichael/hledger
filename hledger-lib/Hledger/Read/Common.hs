@@ -92,7 +92,8 @@ module Hledger.Read.Common (
   singlespacep,
 
   -- * tests
-  tests_Hledger_Read_Common
+  tests_Hledger_Read_Common,
+  Hledger.Read.Common.easytests
 )
 where
 --- * imports
@@ -118,12 +119,13 @@ import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (getClockTime)
 import Test.HUnit
+import EasyTest hiding (char, char')
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer (decimal)
 import Text.Megaparsec.Custom
 
-import Hledger.Data
+import Hledger.Data hiding (easytests)
 import Hledger.Utils
 
 -- $setup
@@ -588,18 +590,6 @@ amountwithoutpricep = do
     in  case fromRawNumber rawNum mExp of
           Left errMsg -> uncurry parseErrorAtRegion posRegion errMsg
           Right res -> pure res
-
-
-test_amountp = TestCase $ do
-    assertParseEqual' (parseWithState mempty amountp "$47.18") (usd 47.18)
-    assertParseEqual' (parseWithState mempty amountp "$1.") (usd 1 `withPrecision` 0)
--- TODO
---    assertParseEqual'' "amount with unit price"
---      (parseWithState mempty amountp "$10 @ €0.5")
---      (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1))
---    assertParseEqual'' "amount with total price"
---     (parseWithState mempty amountp "$10 @@ €5")
---     (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
 
 -- | Parse an amount from a string, or get an error.
 amountp' :: String -> Amount
@@ -1250,4 +1240,15 @@ match' p = do
   (!txt, p) <- match p
   pure (txt, p)
 
-tests_Hledger_Read_Common = TestList [test_spaceandamountormissingp, test_amountp]
+tests_Hledger_Read_Common = TestList [
+  test_spaceandamountormissingp
+  ]
+
+easytests = scope "Common" $ tests [
+  scope "amountp" $ tests [
+    scope "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)
+   ,scope "ends with decimal mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
+--   ,scope "with unit price"        $ expectParseEq amountp "$10 @ €0.5" (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) 
+--   ,scope "with total price"       $ expectParseEq amountp "$10 @@ €5"  (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
+    ]
+  ]

@@ -3,7 +3,6 @@ hledger's built-in commands, and helpers for printing the commands list.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE CPP #-}
 
@@ -38,7 +37,6 @@ module Hledger.Cli.Commands (
 where
 
 -- import Control.Concurrent
-import Control.Exception
 import Control.Monad
 import Data.Default
 -- import Data.CallStack
@@ -53,9 +51,7 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import System.Console.CmdArgs.Explicit as C
 import System.Exit
-import System.IO (stdout)
-import EasyTest
-import Test.HUnit
+import Test.HUnit as HUnit
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -219,141 +215,46 @@ commandsFromCommandsList s =
   concatMap (splitOn "|") [w | ' ':l <- lines s, let w:_ = words l]
 
 
+-- The test command, defined here for easy access to other modules' tests.
 
--- The test command, defined here so it can access other commands' tests.
+testmode = hledgerCommandMode
+  [here| test
+Run the unit tests built in to hledger-lib and hledger, 
+printing results on stdout and exiting with success or failure.
 
-testmode = (defCommandMode ["test"]) {
-  modeHelp = "run built-in self-tests"
- ,modeArgs = ([], Just $ argsFlag "[REGEXPS]")
- ,modeGroupFlags = Group {
-     groupUnnamed = []
-    ,groupHidden = [
-        flagNone ["tree"] (\opts -> setboolopt "tree" opts) "show tests hierarchically"
-       ,flagNone ["flat"] (\opts -> setboolopt "flat" opts) "show tests as a flat list"
-      ]
-    ,groupNamed = [generalflagsgroup3]
-    }
- }
+Tests are run in two batches: easytest-based and hunit-based tests.
+If any test fails or gives an error, the exit code will be non-zero.
 
--- | Run some or all hledger-lib and hledger unit tests, and exit with success or failure.
+If a pattern argument (case sensitive) is provided, only easytests 
+in that scope and only hunit tests whose name contains it are run.
+
+If a numeric second argument is provided, it will set the randomness
+seed for easytests. 
+
+FLAGS
+  |]
+  []
+  [generalflagsgroup3]
+  []
+  ([], Just $ argsFlag "[TESTPATTERN] [SEED]")
+
+-- | See testmode.
 --
 -- Unlike other hledger commands, this one does not operate on the user's Journal.
--- For ease of implementation the Journal parameter remains in the type signature, 
--- but it will raise an error if used.
+-- For ease of implementation the Journal parameter remains in the type signature. 
 testcmd :: CliOpts -> Journal -> IO ()
-testcmd opts _donotuse = do
+testcmd opts _undefined = do 
+  let args = words' $ query_ $ reportopts_ opts
   putStrLn "\n=== easytest tests: ===\n"
-  runEasyTests opts
-
-  putStrLn "\n\n=== hunit tests: ===\n"
-  runHunitTests opts
-    -- hide exit exception output when running tests from ghci/ghcid
-    `catch` (\(_::ExitCode) -> return ())
-
-  -- whitespace to separate test results from ghcid status
+  e1 <- runEasyTests args easytests
+  when (not e1) $ putStr "\n"
+  putStrLn "=== hunit tests: ===\n"
+  e2 <- runHunitTests args tests_Hledger_Cli_Commands
   putStrLn ""
+  if or [e1, e2] then exitFailure else exitSuccess
 
--- | Run some easytests.
--- XXX Just duplicates the ones in hledger-lib/tests/easytest.hs for now.
-runEasyTests _opts = do
-  run
-  -- rerun "journal.standard account types.queries.assets"
-  -- rerunOnly 2686786430487349354 "journal.standard account types.queries.assets"
-    $ tests [
+-- collected hledger-lib + hledger hunit tests
 
-      scope "journal.standard account types.queries" $
-        let
-          j = samplejournal
-          journalAccountNamesMatching :: Query -> Journal -> [AccountName]
-          journalAccountNamesMatching q = filter (q `matchesAccount`) . journalAccountNames
-          namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
-        in
-          tests
-            [ scope "assets" $
-              expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-            , scope "liabilities" $
-              expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
-            , scope "equity" $
-              expectEq (namesfrom journalEquityAccountQuery)    []
-            , scope "income" $
-              expectEq (namesfrom journalIncomeAccountQuery)    ["income","income:gifts","income:salary"]
-            , scope "expenses" $
-              expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
-            ]
-
-    ]
-
-runHunitTests opts = do
-  let ts = 
-        (if tree_ $ reportopts_ opts then matchedTestsTree else matchedTestsFlat) 
-          opts tests_Hledger_Cli_Commands
-  results <- liftM (fst . flip (,) 0) $ runTestTTStdout ts
-  if errors results > 0 || failures results > 0
-    then exitFailure
-    else exitWith ExitSuccess
-
--- | Like runTestTT but prints to stdout.
-runTestTTStdout t = do
-  (counts, 0) <- runTestText (putTextToHandle stdout True) t
-  return counts
-
--- -- | Like runTestTT but can optionally not erase progress output.
--- runTestTT' verbose t = do
---   (counts, 0) <- runTestText' (f stderr True) t
---   return counts
---   where f | verbose   = putTextToHandle'
---           | otherwise = putTextToHandle
-
--- -- | Like runTestText but also prints test names if any.
--- runTestText' :: PutText st -> Test -> IO (Counts, st)
--- runTestText' _pt _t@(TestLabel _label _) = error "HERE"  -- hPutStrLn stderr label >> runTestText pt t
--- runTestText' pt t = runTestText pt t
-
--- -- runTestText' (PutText put us0) t = do
--- --   (counts', us1) <- trace "XXX" $ performTest reportStart reportError reportFailure us0 t
--- --   us2 <- put (showCounts counts' ++ " :::: " ++ testName t) True us1
--- --   return (counts', us2)
--- --  where
--- --   reportStart ss us = put (showCounts (counts ss)) False us
--- --   reportError   = reportProblem "Error:"   "Error in:   "
--- --   reportFailure = reportProblem "Failure:" "Failure in: "
--- --   reportProblem p0 p1 loc msg ss us = put line True us
--- --    where line  = "### " ++ kind ++ path' ++ "\n" ++ formatLocation loc ++ msg
--- --          kind  = if null path' then p0 else p1
--- --          path' = showPath (path ss)
-
--- -- formatLocation :: Maybe SrcLoc -> String
--- -- formatLocation Nothing = ""
--- -- formatLocation (Just loc) = srcLocFile loc ++ ":" ++ show (srcLocStartLine loc) ++ "\n"
-
--- -- | Like putTextToHandle but does not erase progress lines.
--- putTextToHandle'
---     :: Handle
---     -> Bool -- ^ Write progress lines to handle?
---     -> PutText Int
--- putTextToHandle' handle showProgress = PutText put initCnt
---  where
---   initCnt = if showProgress then 0 else -1
---   put line pers (-1) = do when pers (hPutStrLn handle line); return (-1)
---   put line True  cnt = do hPutStrLn handle (erase cnt ++ line); return 0
---   put line False _   = do hPutStr handle ('\n' : line); return (length line)
---     -- The "erasing" strategy with a single '\r' relies on the fact that the
---     -- lengths of successive summary lines are monotonically nondecreasing.
---   erase cnt = if cnt == 0 then "" else "\r" ++ replicate cnt ' ' ++ "\r"
-
--- | All or pattern-matched tests, as a flat list to show simple names.
-matchedTestsFlat opts = TestList . 
-  filter (matchesAccount (queryFromOpts nulldate $ reportopts_ opts) . T.pack . testName) . 
-  flattenTests
-
--- | All or pattern-matched tests, in the original suites to show hierarchical names.
-matchedTestsTree opts = 
-  filterTests (matchesAccount (queryFromOpts nulldate $ reportopts_ opts) . T.pack . testName) 
-
-
--- collected hledger-lib + hledger unit tests
-
-tests_Hledger_Cli_Commands :: Test.HUnit.Test
 tests_Hledger_Cli_Commands = TestList [
    tests_Hledger
   ,tests_Hledger_Cli_CliOptions

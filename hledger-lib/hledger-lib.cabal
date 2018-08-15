@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: afb7a8b69691588056deb8465bec29cc05326218651e83f7f47d169e4c46aa95
+-- hash: b52d450888004e007b3689cfe42d916ab8e8af3bc91a6a374ff022a719e86611
 
 name:           hledger-lib
 version:        1.10.99
@@ -117,6 +117,7 @@ library
     , data-default >=0.5
     , deepseq
     , directory
+    , easytest
     , extra
     , filepath
     , hashtables >=1.2.3.1
@@ -215,6 +216,7 @@ test-suite doctests
     , deepseq
     , directory
     , doctest >=0.8
+    , easytest
     , extra
     , filepath
     , hashtables >=1.2.3.1
@@ -411,6 +413,7 @@ test-suite hunittests
     , data-default >=0.5
     , deepseq
     , directory
+    , easytest
     , extra
     , filepath
     , hashtables >=1.2.3.1

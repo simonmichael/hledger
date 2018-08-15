@@ -31,6 +31,7 @@ module Hledger.Read (
   -- * Tests
   samplejournal,
   tests_Hledger_Read,
+  easytests,
 
 ) where
 
@@ -44,6 +45,7 @@ import Data.Ord
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (Day)
+import EasyTest
 import Safe
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
@@ -55,7 +57,8 @@ import Text.Printf
 
 import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
 import Hledger.Data.Types
-import Hledger.Read.Common
+import Hledger.Read.Common hiding (easytests)
+import qualified Hledger.Read.Common (easytests)
 import qualified Hledger.Read.JournalReader   as JournalReader
 -- import qualified Hledger.Read.LedgerReader    as LedgerReader
 import qualified Hledger.Read.TimedotReader   as TimedotReader
@@ -359,4 +362,8 @@ tests_Hledger_Read = TestList $
     jE <- readJournal def Nothing "" -- don't know how to get it from journal
     either error' (assertBool "journalp parsing an empty file should give an empty journal" . null . jtxns) jE
 
+  ]
+
+easytests = scope "Read" $ tests [
+  Hledger.Read.Common.easytests
   ]

@@ -52,6 +52,7 @@ dependencies:
 - Decimal
 - deepseq
 - directory
+- easytest
 - filepath
 - hashtables >=1.2.3.1
 - megaparsec >=6.4.1
@@ -177,4 +178,3 @@ tests:
     source-dirs: tests
     dependencies:
     - hledger-lib
-    - easytest

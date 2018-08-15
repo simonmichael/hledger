@@ -1,14 +1,20 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger (
   module X
  ,tests_Hledger
+ ,Hledger.easytests
 )
 where
 import           Test.HUnit
+import           EasyTest
 
-import           Hledger.Data    as X
-import           Hledger.Query   as X
-import           Hledger.Read    as X hiding (samplejournal)
+import           Hledger.Data    as X hiding (easytests)
+import qualified Hledger.Data    (easytests)
+import           Hledger.Read    as X hiding (samplejournal, easytests)
+import qualified Hledger.Read    (easytests)
 import           Hledger.Reports as X
+import           Hledger.Query   as X
 import           Hledger.Utils   as X
 
 tests_Hledger = TestList
@@ -19,3 +25,8 @@ tests_Hledger = TestList
     ,tests_Hledger_Reports
     ,tests_Hledger_Utils
     ]
+
+easytests = scope "Hledger" $ tests [
+   Hledger.Data.easytests
+  ,Hledger.Read.easytests
+  ]

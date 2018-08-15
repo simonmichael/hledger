@@ -787,14 +787,20 @@ With additional QUERY arguments, only transactions matching the query are consid
 ## test
 Run built-in unit tests.
 
-```shell
-$ hledger test
-Cases: 74  Tried: 74  Errors: 0  Failures: 0
-```
-
 This command runs hledger's built-in unit tests and displays a quick report.
-With a regular expression argument, it selects only tests with matching names.
-It's mainly used in development, but it's also nice to be able to
-check your hledger executable for smoke at any time.
+It's mainly used during development, but it's also nice to be able to
+sanity-check your installed hledger executable at any time.
+
+It runs the unit tests built in to hledger-lib and hledger, 
+printing results on stdout and exiting with success or failure.
+
+Tests are run in two batches: easytest-based and hunit-based tests.
+If any test fails or gives an error, the exit code will be non-zero.
+
+If a pattern argument (case sensitive) is provided, only easytests 
+in that scope and only hunit tests whose name contains it are run.
+
+If a numeric second argument is provided, it will set the randomness
+seed for easytests. 
 
 _include_(hledger_addons.m4.md)
