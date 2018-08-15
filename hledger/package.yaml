@@ -89,6 +89,7 @@ dependencies:
 - data-default >=0.5
 - Decimal
 - directory
+- easytest
 - file-embed >=0.0.10
 - filepath
 - haskeline >=0.6
