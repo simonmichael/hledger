@@ -150,14 +150,12 @@ amountstyle = AmountStyle L False 0 (Just '.') Nothing
 -------------------------------------------------------------------------------
 -- Amount
 
-instance Show Amount where
-  show _a@Amount{..}
-    --  debugLevel < 2 = showAmountWithoutPrice a
-    --  debugLevel < 3 = showAmount a
-    | debugLevel < 6 =
-       printf "Amount {acommodity=%s, aquantity=%s, ..}" (show acommodity) (show aquantity)
-    | otherwise      = --showAmountDebug a
-       printf "Amount {acommodity=%s, aquantity=%s, aprice=%s, astyle=%s}" (show acommodity) (show aquantity) (showPriceDebug aprice) (show astyle)
+instance Show Price where
+  show NoPrice        = "NoPrice"
+  show (UnitPrice a)  = "\"@ " ++ showAmountWithoutPrice a ++ "..\"" 
+  show (TotalPrice a) = "\"@@ " ++ showAmountWithoutPrice a ++ "..\""
+
+deriving instance Show Amount 
 
 instance Num Amount where
     abs a@Amount{aquantity=q}    = a{aquantity=abs q}

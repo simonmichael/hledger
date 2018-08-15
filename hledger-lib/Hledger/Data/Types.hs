@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable, StandaloneDeriving, DeriveGeneric, TypeSynonymInstances, FlexibleInstances, OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 {-|
 
 Most data types are defined here to avoid import cycles.
@@ -32,6 +33,7 @@ import Data.Text (Text)
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (ClockTime(..))
+import Text.Printf
 
 import Hledger.Utils.Regex
 
@@ -137,9 +139,18 @@ data AmountStyle = AmountStyle {
       asprecision       :: !Int,                 -- ^ number of digits displayed after the decimal point
       asdecimalpoint    :: Maybe Char,           -- ^ character used as decimal point: period or comma. Nothing means "unspecified, use default"
       asdigitgroups     :: Maybe DigitGroupStyle -- ^ style for displaying digit groups, if any
-} deriving (Eq,Ord,Read,Show,Typeable,Data,Generic)
+} deriving (Eq,Ord,Read,Typeable,Data,Generic)
 
 instance NFData AmountStyle
+
+instance Show AmountStyle where
+  show AmountStyle{..} =
+    printf "AmountStyle \"%s %s %s %s %s..\""
+    (show ascommodityside)
+    (show ascommodityspaced)
+    (show asprecision)
+    (show asdecimalpoint)
+    (show asdigitgroups)
 
 -- | A style for displaying digit groups in the integer part of a
 -- floating point number. It consists of the character used to
