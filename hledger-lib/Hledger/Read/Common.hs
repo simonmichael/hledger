@@ -1248,7 +1248,31 @@ easytests = scope "Common" $ tests [
   scope "amountp" $ tests [
     scope "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)
    ,scope "ends-with-decimal-mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
---   ,scope "unit-price"        $ expectParseEq amountp "$10 @ €0.5" (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) 
---   ,scope "total-price"       $ expectParseEq amountp "$10 @@ €5"  (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
+   ,scope "unit-price"        $ expectParseEq amountp "$10 @ €0.5" 
+      -- not precise enough:
+      -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalpoint=Just '.'
+      amount{
+         acommodity="$"
+        ,aquantity=10 -- need to test internal precision with roundTo ? I think not 
+        ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+        ,aprice=UnitPrice $
+          amount{
+             acommodity="€"
+            ,aquantity=0.5
+            ,astyle=amountstyle{asprecision=1, asdecimalpoint=Just '.'}
+            } 
+        } 
+   ,scope "total-price"       $ expectParseEq amountp "$10 @@ €5"
+      amount{
+         acommodity="$"
+        ,aquantity=10 
+        ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+        ,aprice=TotalPrice $
+          amount{
+             acommodity="€"
+            ,aquantity=5
+            ,astyle=amountstyle{asprecision=0, asdecimalpoint=Nothing}
+            } 
+        } 
     ]
   ]

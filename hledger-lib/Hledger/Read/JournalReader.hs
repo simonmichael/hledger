@@ -676,25 +676,26 @@ test_postingp = TestCase $ do
                          same "status" pstatus
                          same "account" paccount
                          -- same "amount" pamount
--- TODO                  assertEqual "Posting amount differs!" (showMixedAmountDebug $ pamount ep) (showMixedAmountDebug $ pamount ap)
+                         -- more revealing:
+                         assertEqual "amount differs!" (showMixedAmountDebug $ pamount ep) (showMixedAmountDebug $ pamount ap)
                          same "comment" pcomment
                          same "type" ptype
                          same "tags" ptags
                          same "transaction" ptransaction
     "  expenses:food:dining  $10.00   ; a: a a \n   ; b: b b \n" `gives`
       posting{paccount="expenses:food:dining", pamount=Mixed [usd 10], pcomment="a: a a\nb: b b\n", ptags=[("a","a a"), ("b","b b")]}
-
-    " a  1 ; [2012/11/28]\n" `gives`
+    
+    " a  1. ; [2012/11/28]\n" `gives`  -- trailing decimal point required to match num's asdecimalpoint
       ("a" `post` num 1){pcomment="[2012/11/28]\n"
                         ,pdate=parsedateM "2012/11/28"}
 
-    " a  1 ; a:a, [=2012/11/28]\n" `gives`
-      ("a" `post` num 1){pcomment="a:a, [=2012/11/28]\n"
+    " a  2. ; a:a, [=2012/11/28]\n" `gives`
+      ("a" `post` num 2){pcomment="a:a, [=2012/11/28]\n"
                         ,ptags=[("a","a")]
                         ,pdate=Nothing}
 
-    " a  1 ; a:a\n  ; [2012/11/28=2012/11/29],b:b\n" `gives`
-      ("a" `post` num 1){pcomment="a:a\n[2012/11/28=2012/11/29],b:b\n"
+    " a  3. ; a:a\n  ; [2012/11/28=2012/11/29],b:b\n" `gives`
+      ("a" `post` num 3){pcomment="a:a\n[2012/11/28=2012/11/29],b:b\n"
                         ,ptags=[("a","a"), ("[2012/11/28=2012/11/29],b","b")] -- XXX ugly tag name parsed
                         ,pdate=parsedateM "2012/11/28"}
 
