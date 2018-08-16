@@ -7,6 +7,7 @@ import Control.Exception
 import Control.Monad
 import Control.Monad.State.Strict (StateT)
 --import Control.Monad.State.Strict (evalStateT)
+import Data.CallStack
 import Data.Functor.Identity
 import Data.List
 import qualified Data.Text as T
@@ -102,7 +103,12 @@ runEasyTests args easytests = (do
 expectParseEq :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> a -> EasyTest.Test ()
 expectParseEq parser input expected = do
   let ep = runIdentity $ parseWithState mempty parser input
-  either (fail.("parse error at "++).parseErrorPretty) (flip expectEq expected) ep
+  either (fail.("parse error at "++).parseErrorPretty) (flip expectEq' expected) ep
+
+-- | Like easytest's expectEq, but pretty-prints the values in failure output. 
+expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> EasyTest.Test ()
+expectEq' x y = if x == y then ok else crash $
+  "expected:\n" <> T.pack (pshow x) <> "\nbut got:\n" <> T.pack (pshow y) <> "\n"
 
 -- | Run some hunit tests, returning True if there was a problem.
 -- With arguments, runs only tests whose names contain the first argument
