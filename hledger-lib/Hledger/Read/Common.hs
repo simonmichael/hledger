@@ -1247,8 +1247,8 @@ tests_Hledger_Read_Common = TestList [
 easytests = scope "Common" $ tests [
   scope "amountp" $ tests [
     scope "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)
-   ,scope "ends with decimal mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
---   ,scope "with unit price"        $ expectParseEq amountp "$10 @ €0.5" (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) 
---   ,scope "with total price"       $ expectParseEq amountp "$10 @@ €5"  (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
+   ,scope "ends-with-decimal-mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
+--   ,scope "unit-price"        $ expectParseEq amountp "$10 @ €0.5" (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) 
+--   ,scope "total-price"       $ expectParseEq amountp "$10 @@ €5"  (usd 10 `withPrecision` 0 @@ (eur 5 `withPrecision` 0))
     ]
   ]

@@ -92,9 +92,9 @@ runEasyTests args easytests = (do
 
 expectParseEq parser input expected = do
   let ep = runIdentity $ parseWithState mempty parser input
-  scope "parse succeeded" $ expectRight ep
+  scope "parse-succeeded" $ expectRight ep
   let Right p = ep
-  scope "parse result" $ expectEq p expected
+  scope "parse-result" $ expectEq p expected
 
 -- | Run some hunit tests, returning True if there was a problem.
 -- With arguments, runs only tests whose names contain the first argument
