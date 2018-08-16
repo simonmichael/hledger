@@ -5,6 +5,8 @@ module Hledger.Utils.Test where
 
 import Control.Exception
 import Control.Monad
+import Control.Monad.State.Strict (StateT)
+--import Control.Monad.State.Strict (evalStateT)
 import Data.Functor.Identity
 import Data.List
 import qualified Data.Text as T
@@ -14,6 +16,7 @@ import System.Exit
 import System.IO
 import Test.HUnit as HUnit
 import Text.Megaparsec
+import Text.Megaparsec.Custom
 
 import Hledger.Utils.Debug (pshow)
 import Hledger.Utils.Parse (parseWithState)
@@ -90,11 +93,16 @@ runEasyTests args easytests = (do
   )
   `catch` (\(_::ExitCode) -> return True)
 
+-- ok to specify Identity here ?
+--expectParseEq :: (Monad m, Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text m) a -> T.Text -> a -> EasyTest.Test ()
+--  ep <- runParserT (evalStateT parser mempty) "" input
+-- | Given a (stateful, identity-monadic) parser, input text, and expected parse result,
+-- make an easytest Test that parses the text and compares the result,
+-- showing a nice failure message if either step fails.
+expectParseEq :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> a -> EasyTest.Test ()
 expectParseEq parser input expected = do
   let ep = runIdentity $ parseWithState mempty parser input
-  scope "parse-succeeded" $ expectRight ep
-  let Right p = ep
-  scope "parse-result" $ expectEq p expected
+  either (fail.("parse error at "++).parseErrorPretty) (flip expectEq expected) ep
 
 -- | Run some hunit tests, returning True if there was a problem.
 -- With arguments, runs only tests whose names contain the first argument
