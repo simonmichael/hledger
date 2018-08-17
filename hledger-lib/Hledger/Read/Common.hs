@@ -560,10 +560,11 @@ amountwithoutpricep = do
         suggestedStyle <- getDefaultAmountStyle
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
         -- if a default commodity has been set, apply it and its style to this amount
+        -- (unless it's a multiplier in an automated posting)
         defcs <- getDefaultCommodityAndStyle
-        let (c,s) = case defcs of
-              Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
-              Nothing          -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
+        let (c,s) = case (mult, defcs) of
+              (False, Just (defc,defs)) -> (defc, defs{asprecision=max (asprecision defs) prec})
+              _ -> ("", amountstyle{asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps})
         return $ Amount c (sign q) NoPrice s mult
 
   -- For reducing code duplication. Doesn't parse anything. Has the type

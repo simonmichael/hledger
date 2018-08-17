@@ -72,29 +72,22 @@ D $1,000.0
 
 >>>=0
 
-# 6. A default commodity should not disrupt automated posting amounts.
-#hledger -f- print --auto
-#<<<
-#commodity 1,000.00 EUR
-#
-#D 1,000.00 EUR
-#
-#alias /Assets:Depot:([^:]+):(.*)/ = Assets:Depot:\1
-#
-#= ^Assets:Depot
-#  [Assets:Depot]    *-1
-#  [Assets:Savings]  *1
-#
-#2018/01/01 * Buying Shares
-#  Assets:Depot:LyxorACWI:20180101  0.43346 LyxorACWI @@ 100.00 EUR
-#  Assets:Checking
-#
-#>>>
-#2018/01/01 * Buying Shares
-#    Assets:Depot:LyxorACWI     0.43346 LyxorACWI @@ 100.00 EUR
-#    [Assets:Depot]            -0.43346 LyxorACWI @@ 100.00 EUR
-#    [Assets:Savings]           0.43346 LyxorACWI @@ 100.00 EUR
-#    Assets:Checking
-#
-#>>>=
+# 6. A default commodity should not affect parsing of 
+# automated posting multiplier amounts.
+hledger -f- print --auto
+<<<
+D $1000.
+
+= a
+  (b)  *2
+
+2018/1/1
+  (a)  €1
+
+>>>
+2018/01/01
+    (a)              €1
+    (b)              €2
+
+>>>=
 
