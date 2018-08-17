@@ -837,15 +837,15 @@ easytests = test "JournalReader" $ tests [
          ptperiodexpr  = "monthly from 2018/6"
         ,ptinterval    = Months 1
         ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
-        ,ptcomment     = "In 2019 we will change this\n"
+        ,ptdescription = "In 2019 we will change this\n"
         }
-    ,_test "more-period-text-in-description-after-one-space" $ skip >> expectParseEqIO periodictransactionp 
+    ,_test "more-period-text-in-description-after-one-space" $ expectParseEqIO periodictransactionp 
       "~ monthly from 2018/6 In 2019 we will change this\n" 
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
         ,ptinterval    = Months 1
         ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
-        ,ptcomment     = "In 2019 we will change this\n"
+        ,ptdescription = "In 2019 we will change this\n"
         }
     ]
   ]
