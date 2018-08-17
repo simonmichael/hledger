@@ -365,5 +365,6 @@ tests_Hledger_Read = TestList $
   ]
 
 easytests = scope "Read" $ tests [
-  Hledger.Read.Common.easytests
+   Hledger.Read.Common.easytests
+  ,JournalReader.easytests
   ]

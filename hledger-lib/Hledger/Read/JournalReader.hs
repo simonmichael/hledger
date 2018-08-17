@@ -65,7 +65,7 @@ module Hledger.Read.JournalReader (
 
   -- * Tests
   ,tests_Hledger_Read_JournalReader
-
+  ,easytests
 )
 where
 --- * imports
@@ -84,6 +84,7 @@ import Data.List
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
+import EasyTest hiding (char, char')
 import Safe
 import Test.HUnit
 import Text.Megaparsec hiding (parse)
@@ -93,8 +94,8 @@ import Text.Printf
 import System.FilePath
 import "Glob" System.FilePath.Glob hiding (match)
 
-import Hledger.Data
-import Hledger.Read.Common
+import Hledger.Data hiding (easytests)
+import Hledger.Read.Common hiding (easytests)
 import Hledger.Read.TimeclockReader (timeclockfilep)
 import Hledger.Read.TimedotReader (timedotfilep)
 import Hledger.Utils
@@ -814,3 +815,37 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
 
  ]]
 -}
+
+easytests = scope "JournalReader" $ tests [
+  scope "periodictransactionp" $ tests [
+     scope "more-period-text-in-comment" $ expectParseEqIO periodictransactionp 
+      "~ monthly from 2018/6  ;In 2019 we will change this\n" 
+      nullperiodictransaction {
+         ptperiodexpr  = "monthly from 2018/6"
+        ,ptinterval    = Months 1
+        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
+        ,ptstatus      = Unmarked
+        ,ptcode        = ""
+        ,ptdescription = ""
+        ,ptcomment     = "In 2019 we will change this\n"
+        ,pttags        = []
+        ,ptpostings    = []
+        }
+    ,scope "more-period-text-in-description-after-two-spaces" $ skip >> expectParseEqIO periodictransactionp 
+      "~ monthly from 2018/6   In 2019 we will change this\n" 
+      nullperiodictransaction {
+         ptperiodexpr  = "monthly from 2018/6"
+        ,ptinterval    = Months 1
+        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
+        ,ptcomment     = "In 2019 we will change this\n"
+        }
+    ,scope "more-period-text-in-description-after-one-space" $ skip >> expectParseEqIO periodictransactionp 
+      "~ monthly from 2018/6 In 2019 we will change this\n" 
+      nullperiodictransaction {
+         ptperiodexpr  = "monthly from 2018/6"
+        ,ptinterval    = Months 1
+        ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
+        ,ptcomment     = "In 2019 we will change this\n"
+        }
+    ]
+  ]
