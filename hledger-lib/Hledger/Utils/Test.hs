@@ -5,8 +5,7 @@ module Hledger.Utils.Test where
 
 import Control.Exception
 import Control.Monad
-import Control.Monad.State.Strict (StateT)
---import Control.Monad.State.Strict (evalStateT)
+import Control.Monad.State.Strict (StateT, evalStateT)
 import Data.CallStack
 import Data.Functor.Identity
 import Data.List
@@ -94,16 +93,21 @@ runEasyTests args easytests = (do
   )
   `catch` (\(_::ExitCode) -> return True)
 
--- ok to specify Identity here ?
---expectParseEq :: (Monad m, Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text m) a -> T.Text -> a -> EasyTest.Test ()
---  ep <- runParserT (evalStateT parser mempty) "" input
--- | Given a (stateful, identity-monadic) parser, input text, and expected parse result,
+-- | Given a stateful, runnable-in-Identity-monad parser, input text, and expected parse result,
 -- make an easytest Test that parses the text and compares the result,
 -- showing a nice failure message if either step fails.
 expectParseEq :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> a -> EasyTest.Test ()
 expectParseEq parser input expected = do
   let ep = runIdentity $ parseWithState mempty parser input
-  either (fail.("parse error at "++).parseErrorPretty) (flip expectEq' expected) ep
+  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
+
+-- | Given a stateful, runnable-in-IO-monad parser, input text, and expected parse result,
+-- make an easytest Test that parses the text and compares the result,
+-- showing a nice failure message if either step fails.
+expectParseEqIO :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> EasyTest.Test ()
+expectParseEqIO parser input expected = do
+  ep <- io $ runParserT (evalStateT parser mempty) "" input
+  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
 
 -- | Like easytest's expectEq, but pretty-prints the values in failure output. 
 expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> EasyTest.Test ()
