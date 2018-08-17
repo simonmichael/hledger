@@ -279,7 +279,7 @@ data PeriodicTransaction = PeriodicTransaction {
       ptcomment      :: Text,
       pttags         :: [Tag],
       ptpostings     :: [Posting]
-    } deriving (Eq,Typeable,Data,Generic)
+    } deriving (Eq,Typeable,Data,Generic) -- , Show in PeriodicTransaction.hs
 
 nullperiodictransaction = PeriodicTransaction{
       ptperiodexpr   = ""
@@ -313,7 +313,7 @@ data MarketPrice = MarketPrice {
       mpdate      :: Day,
       mpcommodity :: CommoditySymbol,
       mpamount    :: Amount
-    } deriving (Eq,Ord,Typeable,Data,Generic) -- & Show (in Amount.hs)
+    } deriving (Eq,Ord,Typeable,Data,Generic) -- , Show in Amount.hs
 
 instance NFData MarketPrice
 

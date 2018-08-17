@@ -1,6 +1,7 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-|
 
 A 'PeriodicTransaction' is a rule describing recurring transactions.
@@ -16,6 +17,8 @@ where
 import Data.Monoid ((<>))
 #endif
 import qualified Data.Text as T
+import Text.Printf
+
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Amount
@@ -42,6 +45,27 @@ _ptgen str = do
         runPeriodicTransaction
           nullperiodictransaction{ ptperiodexpr=t , ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1] } 
           nulldatespan
+
+
+--deriving instance Show PeriodicTransaction
+-- for better pretty-printing:
+instance Show PeriodicTransaction where
+  show PeriodicTransaction{..} =
+    printf "PeriodicTransactionPP {%s, %s, %s, %s, %s, %s, %s, %s, %s}"
+      ("ptperiodexpr=" ++ show ptperiodexpr)
+      ("ptinterval=" ++ show ptinterval)
+      ("ptspan=" ++ show (show ptspan))
+      ("ptstatus=" ++ show (show ptstatus))
+      ("ptcode=" ++ show ptcode)
+      ("ptdescription=" ++ show ptdescription)
+      ("ptcomment=" ++ show ptcomment)
+      ("pttags=" ++ show pttags)
+      ("ptpostings=" ++ show ptpostings)
+
+-- A basic human-readable rendering.
+--showPeriodicTransaction t = "~ " ++ T.unpack (ptperiodexpr t) ++ "\n" ++ unlines (map show (ptpostings t))
+
+--nullperiodictransaction is defined in Types.hs
 
 -- | Generate transactions from 'PeriodicTransaction' within a 'DateSpan'
 --

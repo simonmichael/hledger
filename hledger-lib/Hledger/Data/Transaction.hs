@@ -68,9 +68,6 @@ instance Show Transaction where show = showTransactionUnelided
 instance Show TransactionModifier where
     show t = "= " ++ T.unpack (tmquerytxt t) ++ "\n" ++ unlines (map show (tmpostings t))
 
-instance Show PeriodicTransaction where
-    show t = "~ " ++ T.unpack (ptperiodexpr t) ++ "\n" ++ unlines (map show (ptpostings t))
-
 sourceFilePath :: GenericSourcePos -> FilePath
 sourceFilePath = \case
     GenericSourcePos fp _ _ -> fp
