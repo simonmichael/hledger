@@ -529,48 +529,37 @@ amountwithoutpricep = do
   leftsymbolamountp mult sign = label "amount" $ do
     c <- lift commoditysymbolp
     suggestedStyle <- getAmountStyle c
-
     commodityspaced <- lift $ skipMany' spacenonewline
-
     sign2 <- lift $ signp
     posBeforeNum <- getPosition
     ambiguousRawNum <- lift rawnumberp
     mExponent <- lift $ optional $ try exponentp
     posAfterNum <- getPosition
     let numRegion = (posBeforeNum, posAfterNum)
-
-    (q,prec,mdec,mgrps) <- lift $
-      interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+    (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
     return $ Amount c (sign (sign2 q)) NoPrice s mult
 
-  rightornosymbolamountp
-    :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
+  rightornosymbolamountp :: Bool -> (Decimal -> Decimal) -> JournalParser m Amount
   rightornosymbolamountp mult sign = label "amount" $ do
     posBeforeNum <- getPosition
     ambiguousRawNum <- lift rawnumberp
     mExponent <- lift $ optional $ try exponentp
     posAfterNum <- getPosition
     let numRegion = (posBeforeNum, posAfterNum)
-
-    mSpaceAndCommodity <- lift $ optional $ try $
-      (,) <$> skipMany' spacenonewline <*> commoditysymbolp
-
+    mSpaceAndCommodity <- lift $ optional $ try $ (,) <$> skipMany' spacenonewline <*> commoditysymbolp
     case mSpaceAndCommodity of
+      -- right symbol amount
       Just (commodityspaced, c) -> do
         suggestedStyle <- getAmountStyle c
-        (q,prec,mdec,mgrps) <- lift $
-          interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
-
+        (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalpoint=mdec, asdigitgroups=mgrps}
         return $ Amount c (sign q) NoPrice s mult
-
+      -- no symbol amount
       Nothing -> do
         suggestedStyle <- getDefaultAmountStyle
-        (q,prec,mdec,mgrps) <- lift $
-          interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
-
-        -- apply the most recently seen default commodity and style to this commodityless amount
+        (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
+        -- if a default commodity has been set, apply it and its style to this amount
         defcs <- getDefaultCommodityAndStyle
         let (c,s) = case defcs of
               Just (defc,defs) -> (defc, defs{asprecision=max (asprecision defs) prec})
