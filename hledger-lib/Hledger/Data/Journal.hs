@@ -97,7 +97,7 @@ import Safe (headMay, headDef)
 import Data.Time.Calendar
 import Data.Tree
 import System.Time (ClockTime(TOD))
-import Test.HUnit
+import Test.HUnit hiding (test)
 import Text.Printf
 import qualified Data.Map as M
 
@@ -1088,23 +1088,18 @@ tests_Hledger_Data_Journal = TestList $
   --   journalProfitAndLossAccountNames j `is` ["expenses","expenses:e","income","income:i"]
  ]
 
-easytests = scope "Journal" $ tests [
-  scope "standard account types" $ do
+easytests = test "Journal" $ tests [
+  test "standard account types" $ do
     let
       j = samplejournal
       journalAccountNamesMatching :: Query -> Journal -> [AccountName]
       journalAccountNamesMatching q = filter (q `matchesAccount`) . journalAccountNames
       namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
     tests
-      [ scope "assets" $
-        expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-      , scope "liabilities" $
-        expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
-      , scope "equity" $
-        expectEq (namesfrom journalEquityAccountQuery)    []
-      , scope "income" $
-        expectEq (namesfrom journalIncomeAccountQuery)    ["income","income:gifts","income:salary"]
-      , scope "expenses" $
-        expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
+      [ "assets"      $ expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+      , "liabilities" $ expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
+      , "equity"      $ expectEq (namesfrom journalEquityAccountQuery)    []
+      , "income"      $ expectEq (namesfrom journalIncomeAccountQuery)    ["income","income:gifts","income:salary"]
+      , "expenses"    $ expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
       ]
   ]

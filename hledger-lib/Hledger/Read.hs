@@ -52,7 +52,7 @@ import System.Environment (getEnv)
 import System.Exit (exitFailure)
 import System.FilePath
 import System.IO
-import Test.HUnit
+import Test.HUnit hiding (test)
 import Text.Printf
 
 import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
@@ -364,7 +364,7 @@ tests_Hledger_Read = TestList $
 
   ]
 
-easytests = scope "Read" $ tests [
+easytests = test "Read" $ tests [
    Hledger.Read.Common.easytests
   ,JournalReader.easytests
   ]

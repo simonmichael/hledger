@@ -14,13 +14,15 @@ import EasyTest
 import Safe 
 import System.Exit
 import System.IO
-import Test.HUnit as HUnit
+import Test.HUnit as HUnit hiding (test)
 import Text.Megaparsec
 import Text.Megaparsec.Custom
 
 import Hledger.Utils.Debug (pshow)
 import Hledger.Utils.Parse (parseWithState)
 import Hledger.Utils.UTF8IOCompat (error')
+
+-- * HUnit helpers
 
 -- | Get a Test's label, or the empty string.
 testName :: HUnit.Test -> String
@@ -71,48 +73,6 @@ assertParseEqual'' label parse expected =
     (assertFailure . ("parse error: "++) . pshow) 
     (\actual -> assertEqual (unlines [label, "expected: " ++ show expected, " but got: " ++ show actual]) expected actual) 
     $ runIdentity parse
-
-printParseError :: (Show a) => a -> IO ()
-printParseError e = do putStr "parse error at "; print e
-
--- | Run some easytests, returning True if there was a problem. Catches ExitCode.
--- With arguments, runs only tests in the scope named by the first argument
--- (case sensitive). 
--- If there is a second argument, it should be an integer and will be used
--- as the seed for randomness. 
-runEasyTests :: [String] -> EasyTest.Test () -> IO Bool
-runEasyTests args easytests = (do
-  case args of
-    []    -> EasyTest.run easytests
-    [a]   -> EasyTest.runOnly (T.pack a) easytests
-    a:b:_ -> do
-      case readMay b :: Maybe Int of
-        Nothing   -> error' "the second argument should be an integer (a seed for easytest)"
-        Just seed -> EasyTest.rerunOnly seed (T.pack a) easytests
-  return False
-  )
-  `catch` (\(_::ExitCode) -> return True)
-
--- | Given a stateful, runnable-in-Identity-monad parser, input text, and expected parse result,
--- make an easytest Test that parses the text and compares the result,
--- showing a nice failure message if either step fails.
-expectParseEq :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> a -> EasyTest.Test ()
-expectParseEq parser input expected = do
-  let ep = runIdentity $ parseWithState mempty parser input
-  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
-
--- | Given a stateful, runnable-in-IO-monad parser, input text, and expected parse result,
--- make an easytest Test that parses the text and compares the result,
--- showing a nice failure message if either step fails.
-expectParseEqIO :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> EasyTest.Test ()
-expectParseEqIO parser input expected = do
-  ep <- io $ runParserT (evalStateT parser mempty) "" input
-  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
-
--- | Like easytest's expectEq, but pretty-prints the values in failure output. 
-expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> EasyTest.Test ()
-expectEq' x y = if x == y then ok else crash $
-  "expected:\n" <> T.pack (pshow x) <> "\nbut got:\n" <> T.pack (pshow y) <> "\n"
 
 -- | Run some hunit tests, returning True if there was a problem.
 -- With arguments, runs only tests whose names contain the first argument
@@ -186,4 +146,66 @@ runHunitTests args hunittests = do
 --     -- The "erasing" strategy with a single '\r' relies on the fact that the
 --     -- lengths of successive summary lines are monotonically nondecreasing.
 --   erase cnt = if cnt == 0 then "" else "\r" ++ replicate cnt ' ' ++ "\r"
+
+-- * easytest helpers
+
+-- | Name the given test(s). A more readable synonym for scope.
+test :: T.Text -> EasyTest.Test a -> EasyTest.Test a 
+test = scope
+
+-- | Skip the given test(s), with the same type signature as test.
+_test :: T.Text -> EasyTest.Test a -> EasyTest.Test a 
+_test _name = (skip >>) 
+
+-- | Name the given test(s). Another synonym for test.
+it :: T.Text -> EasyTest.Test a -> EasyTest.Test a 
+it = test
+
+-- | Name the given test(s). Another synonym for _test.
+_it :: T.Text -> EasyTest.Test a -> EasyTest.Test a 
+_it = _test
+
+-- | Run some easytests, returning True if there was a problem. Catches ExitCode.
+-- With arguments, runs only tests in the scope named by the first argument
+-- (case sensitive). 
+-- If there is a second argument, it should be an integer and will be used
+-- as the seed for randomness. 
+runEasyTests :: [String] -> EasyTest.Test () -> IO Bool
+runEasyTests args easytests = (do
+  case args of
+    []    -> EasyTest.run easytests
+    [a]   -> EasyTest.runOnly (T.pack a) easytests
+    a:b:_ -> do
+      case readMay b :: Maybe Int of
+        Nothing   -> error' "the second argument should be an integer (a seed for easytest)"
+        Just seed -> EasyTest.rerunOnly seed (T.pack a) easytests
+  return False
+  )
+  `catch` (\(_::ExitCode) -> return True)
+
+-- | Given a stateful, runnable-in-Identity-monad parser, input text, and expected parse result,
+-- make an easytest Test that parses the text and compares the result,
+-- showing a nice failure message if either step fails.
+expectParseEq :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> a -> EasyTest.Test ()
+expectParseEq parser input expected = do
+  let ep = runIdentity $ parseWithState mempty parser input
+  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
+
+-- | Given a stateful, runnable-in-IO-monad parser, input text, and expected parse result,
+-- make an easytest Test that parses the text and compares the result,
+-- showing a nice failure message if either step fails.
+expectParseEqIO :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> EasyTest.Test ()
+expectParseEqIO parser input expected = do
+  ep <- io $ runParserT (evalStateT parser mempty) "" input
+  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
+
+-- | Like easytest's expectEq, but pretty-prints the values in failure output. 
+expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> EasyTest.Test ()
+expectEq' x y = if x == y then ok else crash $
+  "expected:\n" <> T.pack (pshow x) <> "\nbut got:\n" <> T.pack (pshow y) <> "\n"
+
+-- * misc
+
+printParseError :: (Show a) => a -> IO ()
+printParseError e = do putStr "parse error at "; print e
 

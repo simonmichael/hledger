@@ -6,7 +6,7 @@ module Hledger (
  ,Hledger.easytests
 )
 where
-import           Test.HUnit
+import           Test.HUnit hiding (test)
 import           EasyTest
 
 import           Hledger.Data    as X hiding (easytests)
@@ -26,7 +26,7 @@ tests_Hledger = TestList
     ,tests_Hledger_Utils
     ]
 
-easytests = scope "Hledger" $ tests [
+easytests = test "Hledger" $ tests [
    Hledger.Data.easytests
   ,Hledger.Read.easytests
   ]

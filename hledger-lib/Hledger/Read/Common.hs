@@ -118,7 +118,7 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (getClockTime)
-import Test.HUnit
+import Test.HUnit hiding (test)
 import EasyTest hiding (char, char')
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -1234,11 +1234,11 @@ tests_Hledger_Read_Common = TestList [
   test_spaceandamountormissingp
   ]
 
-easytests = scope "Common" $ tests [
-  scope "amountp" $ tests [
-    scope "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)
-   ,scope "ends-with-decimal-mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
-   ,scope "unit-price"        $ expectParseEq amountp "$10 @ €0.5" 
+easytests = test "Common" $ tests [
+  test "amountp" $ tests [
+    test "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)
+   ,test "ends-with-decimal-mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
+   ,test "unit-price"             $ expectParseEq amountp "$10 @ €0.5" 
       -- not precise enough:
       -- (usd 10 `withPrecision` 0 `at` (eur 0.5 `withPrecision` 1)) -- `withStyle` asdecimalpoint=Just '.'
       amount{
@@ -1252,7 +1252,7 @@ easytests = scope "Common" $ tests [
             ,astyle=amountstyle{asprecision=1, asdecimalpoint=Just '.'}
             } 
         } 
-   ,scope "total-price"       $ expectParseEq amountp "$10 @@ €5"
+   ,test "total-price"            $ expectParseEq amountp "$10 @@ €5"
       amount{
          acommodity="$"
         ,aquantity=10 

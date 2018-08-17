@@ -16,7 +16,7 @@ main = do
   -- rerunOnly 2686786430487349354 "journal.standard account types.queries.assets"
     $ tests [
 
-      scope "journal.standard account types.queries" $
+      test "journal.standard account types.queries" $
         let
           j = samplejournal
           journalAccountNamesMatching :: Query -> Journal -> [AccountName]
@@ -24,15 +24,15 @@ main = do
           namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
         in
           tests
-            [ scope "assets" $
+            [ test "assets" $
               expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-            , scope "liabilities" $
+            , test "liabilities" $
               expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
-            , scope "equity" $
+            , test "equity" $
               expectEq (namesfrom journalEquityAccountQuery)    []
-            , scope "income" $
+            , test "income" $
               expectEq (namesfrom journalIncomeAccountQuery)    ["income","income:gifts","income:salary"]
-            , scope "expenses" $
+            , test "expenses" $
               expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
             ]
 
