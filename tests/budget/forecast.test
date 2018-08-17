@@ -1,3 +1,7 @@
+# Test generation of periodic transactions with --forecast.
+# Note periodic transaction tests should include a regular transaction
+# to pin the start date of forecasted transactions.
+
 # 1. A balance report with forecasted transactions.
 hledger bal -M -b 2016-11 -e 2017-02 -f - --forecast
 <<<
