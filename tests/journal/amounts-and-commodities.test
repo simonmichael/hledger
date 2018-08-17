@@ -123,7 +123,7 @@ $ hledger -f- bal -V -N
 
 $ hledger -f- reg amt:1
 
-# 10. This commodity directive should complain about a missing decimal point,
+# 10. This commodity directive should complain about a missing decimal separator,
 # which we now require.
 <
 commodity 1 000  USD
@@ -132,7 +132,7 @@ commodity 1 000  USD
   (a)   USD1 000
 
 $ hledger -f- bal
->2 /decimal point/
+>2 /decimal separator/
 >=1
 
 # 11. After a space-grouped amount, a posting comment should parse.

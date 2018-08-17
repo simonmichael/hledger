@@ -309,7 +309,7 @@ commoditydirectiveonelinep = do
   else modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
 
 pleaseincludedecimalpoint :: String
-pleaseincludedecimalpoint = "to avoid ambiguity, please include a decimal point in commodity directives"
+pleaseincludedecimalpoint = "to avoid ambiguity, please include a decimal separator in commodity directives"
 
 -- | Parse a multi-line commodity directive, containing 0 or more format subdirectives.
 --
@@ -470,7 +470,6 @@ commodityconversiondirectivep = do
 
 --- ** transactions
 
--- TODO transactionmodifierp ? transactionrewritep ?
 transactionmodifierp :: JournalParser m TransactionModifier
 transactionmodifierp = do
   char '=' <?> "modifier transaction"

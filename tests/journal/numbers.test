@@ -126,11 +126,11 @@ commodity €1,000.00
 >>>2
 >>>=0
 
-# 11. Commodity directive requires a decimal point
+# 11. Commodity directive requires a decimal separator
 hledger bal -f -
 <<<
 commodity 1000 EUR
->>>2 /please include a decimal point/
+>>>2 /please include a decimal separator/
 >>>=1
 
 # 12. Commodity directive with zero precision
