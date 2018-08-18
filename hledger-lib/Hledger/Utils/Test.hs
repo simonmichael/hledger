@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -27,6 +28,9 @@ module Hledger.Utils.Test (
 import Control.Exception
 import Control.Monad
 import Control.Monad.State.Strict (StateT, evalStateT)
+#if !(MIN_VERSION_base(4,11,0))
+import Data.Monoid ((<>))
+#endif
 import Data.CallStack
 import Data.Functor.Identity
 import Data.List
