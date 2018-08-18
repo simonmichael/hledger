@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 297d8918f59c94ceae6e61bc5df3a67247c22d5cd135ae9f9ffc8fd84cf144d7
+-- hash: d57b8219639b29c3affb66a7fd2b59fd95ab75cdc827801f6dadc691643bd048
 
 name:           hledger-lib
 version:        1.10.99
@@ -198,7 +198,7 @@ test-suite doctests
       Paths_hledger_lib
   hs-source-dirs:
       ./.
-      tests
+      test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       Decimal
@@ -298,7 +298,7 @@ test-suite easytests
       Paths_hledger_lib
   hs-source-dirs:
       ./.
-      tests
+      test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       Decimal
@@ -398,7 +398,7 @@ test-suite hunittests
       Paths_hledger_lib
   hs-source-dirs:
       ./.
-      tests
+      test
   ghc-options: -Wall -fno-warn-unused-do-bind -fno-warn-name-shadowing -fno-warn-missing-signatures -fno-warn-type-defaults -fno-warn-orphans
   build-depends:
       Decimal

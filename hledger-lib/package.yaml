@@ -154,7 +154,7 @@ tests:
 
   doctests:
     main: doctests.hs
-    source-dirs: tests
+    source-dirs: test
     dependencies:
     - Glob >=0.7
     - doctest >=0.8
@@ -168,7 +168,7 @@ tests:
 
   hunittests:
     main: hunittests.hs
-    source-dirs: tests
+    source-dirs: test
     dependencies:
     - hledger-lib
     - test-framework
@@ -176,6 +176,6 @@ tests:
 
   easytests:
     main: easytests.hs
-    source-dirs: tests
+    source-dirs: test
     dependencies:
     - hledger-lib
