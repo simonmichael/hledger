@@ -1,13 +1,8 @@
-import Hledger.Cli (tests_Hledger_Cli)
-import System.Environment (getArgs)
-import Test.Framework.Providers.HUnit (hUnitTestToTests)
-import Test.Framework.Runners.Console (defaultMainWithArgs)
+{-
+Run hledger's (and hledger-lib's) unit tests as a cabal test suite,
+by running the test command with no options.
+-}
 
-main :: IO ()
-main = do
-  args <- getArgs
-  let args' = "--hide-successes" : args
-  defaultMainWithArgs (hUnitTestToTests tests_Hledger_Cli) args'
+import Hledger.Cli
 
-
-
+main = testcmd defcliopts (error "journal-less command tried to use the journal")

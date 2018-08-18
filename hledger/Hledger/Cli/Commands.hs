@@ -8,6 +8,7 @@ hledger's built-in commands, and helpers for printing the commands list.
 
 module Hledger.Cli.Commands (
    findCommand
+  ,testcmd
   ,builtinCommands
   ,builtinCommandNames
   ,printCommandsList
