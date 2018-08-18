@@ -49,3 +49,4 @@ extra-deps:
 # hledger-ui
 # newer fsnotify has a different api and may be more robust
 - fsnotify-0.3.0.1
+- Glob-0.9.2
