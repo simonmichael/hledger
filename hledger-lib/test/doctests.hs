@@ -1,13 +1,18 @@
 {- 
-Runs hledger doctests.
-Usage examples: in hledger source dir, 
-make ghci-doctest, :main [--verbose] [--slow] [CIFILEPATHSUBSTRINGS]
-or:
-stack test hledger-lib:test:doctests [--test-arguments '[--verbose] [--slow] [CIFILEPATHSUBSTRINGS]']
+Run doctests in Hledger source files under the current directory
+(./Hledger.hs, ./Hledger/**, ./Text/**) using the doctest runner.
 
-Arguments are case-insensitive file path substrings.
+Arguments are case-insensitive file path substrings, to limit the files searched.
 --verbose shows files being searched for doctests and progress while running.
 --slow reloads ghci between each test (https://github.com/sol/doctest#a-note-on-performance).
+
+Eg, in hledger source dir:
+ 
+$ make ghci-doctest, :main [--verbose] [--slow] [CIFILEPATHSUBSTRINGS]
+
+or:
+
+$ stack test hledger-lib:test:doctests [--test-arguments '[--verbose] [--slow] [CIFILEPATHSUBSTRINGS]']
 
 -}
 
@@ -28,10 +33,12 @@ main = do
     pats    = filter (not . ("-" `isPrefixOf`)) args
 
   -- find source files
-  sourcefiles1 <- glob "Hledger/**/*.hs"
-  sourcefiles2 <- glob "Text/**/*.hs"
-  let sourcefiles = filter (not . isInfixOf "/.") $ ["Hledger.hs"] ++ sourcefiles1 ++ sourcefiles2
-  
+  sourcefiles <- filter (not . isInfixOf "/.") <$> mconcat [ 
+     glob "Hledger.hs"
+    ,glob "Hledger/**/*.hs"
+    ,glob "Text/**/*.hs"
+    ]
+
   -- filter by patterns (case insensitive infix substring match)
   let 
     fs | null pats = sourcefiles
