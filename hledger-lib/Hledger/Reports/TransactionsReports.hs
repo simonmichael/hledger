@@ -48,7 +48,7 @@ import Hledger.Utils.Debug
 -- indicating multiple other accounts and a display string describing
 -- them) with or without a notion of current account(s).
 -- Two kinds of report use this data structure, see journalTransactionsReport
--- and accountTransactionsReport below for detais.
+-- and accountTransactionsReport below for details.
 type TransactionsReport = (String                   -- label for the balance column, eg "balance" or "total"
                           ,[TransactionsReportItem] -- line items, one per transaction
                           )
