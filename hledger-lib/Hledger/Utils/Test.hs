@@ -4,9 +4,9 @@
 
 module Hledger.Utils.Test (
   -- * easytest
-   module E
+   module EasyTest
   ,runEasyTests
-  ,Hledger.Utils.Test.tests
+  ,tests
   ,_tests
   ,test
   ,_test
@@ -15,7 +15,7 @@ module Hledger.Utils.Test (
   ,expectParseEq
   ,expectParseEqIO
   -- * HUnit
-  ,module U
+  ,module Test.HUnit
   ,runHunitTests
   ,assertParse
   ,assertParseFailure
@@ -41,10 +41,10 @@ import System.IO
 import Text.Megaparsec
 import Text.Megaparsec.Custom
 
-import EasyTest as E hiding (char, char', tests)
-import EasyTest (tests)
-import Test.HUnit as U hiding (Test, test)
-import qualified Test.HUnit as U (Test)
+import EasyTest hiding (char, char', tests)  -- reexported
+import qualified EasyTest as E               -- used here
+import Test.HUnit hiding (Test, test)        -- reexported
+import qualified Test.HUnit as U             -- used here
 
 import Hledger.Utils.Debug (pshow)
 import Hledger.Utils.Parse (parseWithState)
@@ -70,11 +70,11 @@ _it = _test
 
 -- | Name and group a list of tests. Combines easytest's "scope" and "tests".
 tests :: T.Text -> [E.Test ()] -> E.Test () 
-tests name = E.scope name . EasyTest.tests
+tests name = E.scope name . E.tests
 
 -- | Skip the given list of tests, with the same type signature as "group".
 _tests :: T.Text -> [E.Test ()] -> E.Test () 
-_tests _name = (E.skip >>) . EasyTest.tests
+_tests _name = (E.skip >>) . E.tests
 
 -- | Run some easytests, returning True if there was a problem. Catches ExitCode.
 -- With arguments, runs only tests in the scope named by the first argument
