@@ -48,11 +48,11 @@ $(call def-help-heading, )
 
 add-to-help-1: $(call def-help,[help], list documented rules in this makefile )
 
-help-%: $(call def-help,help-SECTION, list documented rules in the given section )
-	make help 2>&1 | sed -n '/$*/,/: $$/p'
+help-%: $(call def-help,help-SECTION, list documented rules containing some string )
+	make help 2>&1 | grep -i $*
 
 %-help: $(call def-help,SECTION-help, same but easier to type (can append "-help" to any "make RULE") )
-	@make help 2>&1 | sed -n '/$*/,/: $$/p'
+	@make help 2>&1 | grep -i $*
 
 add-to-help-2: $(call def-help,RULE -n, show what RULE would do )
 
