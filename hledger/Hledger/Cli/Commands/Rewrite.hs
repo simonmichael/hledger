@@ -210,8 +210,7 @@ diffOutput j j' = do
 
 type Chunk = (GenericSourcePos, [DiffLine String])
 
--- | Render list of changed lines as a unified diff
---
+-- XXX doctests, update needed:
 -- >>> putStr $ renderPatch [(GenericSourcePos "a" 1 1, [D.First "x", D.Second "y"])]
 -- --- a
 -- +++ a
@@ -236,6 +235,7 @@ type Chunk = (GenericSourcePos, [DiffLine String])
 -- +++ b
 -- @@ -5,0 +5,1 @@
 -- +z
+-- | Render list of changed lines as a unified diff
 renderPatch :: [Chunk] -> String
 renderPatch = go Nothing . sortOn fst where
     go _ [] = ""
