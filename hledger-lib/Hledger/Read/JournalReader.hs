@@ -816,8 +816,9 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
 
 easytests = tests "JournalReader" [
   tests "periodictransactionp" [
+
     -- tests from #807
-    test "more-period-text-in-comment-after-one-space" $ expectParseEqIO periodictransactionp 
+    test "more-period-text-in-comment-after-one-space" $ expectParseEqIO periodictransactionp
       "~ monthly from 2018/6 ;In 2019 we will change this\n" 
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
@@ -830,6 +831,7 @@ easytests = tests "JournalReader" [
         ,pttags        = []
         ,ptpostings    = []
         }
+
     ,_test "more-period-text-in-description-after-two-spaces" $ expectParseEqIO periodictransactionp -- TODO 
       "~ monthly from 2018/6   In 2019 we will change this\n" 
       nullperiodictransaction {
@@ -838,6 +840,7 @@ easytests = tests "JournalReader" [
         ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
         ,ptdescription = "In 2019 we will change this\n"
         }
+
     ,_test "more-period-text-in-description-after-one-space" $ expectParseEqIO periodictransactionp -- TODO
       "~ monthly from 2018/6 In 2019 we will change this\n" 
       nullperiodictransaction {
@@ -846,7 +849,8 @@ easytests = tests "JournalReader" [
         ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
         ,ptdescription = "In 2019 we will change this\n"
         }
-    ,_test "Next-year-in-description" $ expectParseEqIO periodictransactionp -- TODO
+
+    ,_test "Next-year-in-description" $ expectParseEqIO periodictransactionp -- TODO read error
       "~ monthly  Next year blah blah\n"
       nullperiodictransaction {
          ptperiodexpr  = "monthly"
@@ -854,5 +858,6 @@ easytests = tests "JournalReader" [
         ,ptspan        = DateSpan Nothing Nothing
         ,ptdescription = "Next year blah blah\n"
         }
+
     ]
   ]
