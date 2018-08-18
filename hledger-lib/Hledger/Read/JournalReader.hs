@@ -847,5 +847,6 @@ easytests = test "JournalReader" $ tests [
         ,ptspan        = DateSpan (Just $ parsedate "2018/06/01") Nothing
         ,ptdescription = "In 2019 we will change this\n"
         }
+    -- TODO any more cases from https://github.com/simonmichael/hledger/pull/807#issuecomment-396994403 ?
     ]
   ]
