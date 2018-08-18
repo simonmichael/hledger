@@ -600,7 +600,7 @@ ghci-ui: $(call def-help,ghci-ui, start ghci REPL on hledger-lib + hledger + hle
 ghci-web: link-web-dirs $(call def-help,ghci-web, start ghci REPL on hledger-lib + hledger + hledger-web)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-web/app/main.hs
 
-ghci-api: (call def-help,ghci-api, start ghci REPL on hledger-lib + hledger + hledger-api)
+ghci-api: $(call def-help,ghci-api, start ghci REPL on hledger-lib + hledger + hledger-api)
 	$(STACK) exec -- $(GHCI) $(BUILDFLAGS) hledger-api/hledger-api.hs
 
 # ghci-all: $(call def-help,ghci-all, start ghci REPL on all the hledger)
