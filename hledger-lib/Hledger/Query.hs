@@ -60,7 +60,6 @@ import Data.Monoid ((<>))
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe (readDef, headDef)
-import Test.HUnit
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -796,7 +795,6 @@ matchesMarketPrice _ _           = True
 
 -- tests
 
-tests_Hledger_Query :: Test
 tests_Hledger_Query = TestList $
     tests_simplifyQuery
  ++ tests_words''

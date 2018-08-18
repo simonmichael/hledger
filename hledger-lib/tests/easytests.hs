@@ -6,7 +6,6 @@
 
 {-# LANGUAGE OverloadedStrings #-}
 
-import EasyTest
 import Hledger
 
 main :: IO ()

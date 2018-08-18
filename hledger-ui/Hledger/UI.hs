@@ -9,13 +9,13 @@ module Hledger.UI (
                      tests_Hledger_UI
               )
 where
-import Test.HUnit
 
 import Hledger.UI.Main
 import Hledger.UI.UIOptions
 import Hledger.UI.Theme
+import Test.HUnit as U
 
-tests_Hledger_UI :: Test
+tests_Hledger_UI :: U.Test
 tests_Hledger_UI = TestList
  [
  --  tests_Hledger_UI_Main

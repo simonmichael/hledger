@@ -13,9 +13,9 @@ import qualified Data.Map as M
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (headDef)
-import Test.HUnit
 import Text.Printf
 
+import Hledger.Utils.Test
 import Hledger.Data.Types
 import Hledger.Data.Account
 import Hledger.Data.Journal

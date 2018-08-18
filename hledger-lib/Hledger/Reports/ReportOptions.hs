@@ -47,7 +47,6 @@ import Data.Default
 import Safe
 import System.Console.ANSI (hSupportsANSI)
 import System.IO (stdout)
-import Test.HUnit
 import Text.Megaparsec.Error
 
 import Hledger.Data
@@ -372,7 +371,6 @@ queryFromOptsOnly _d ReportOpts{..} = simplifyQuery flagsq
               ++ [Or $ map StatusQ statuses_]
               ++ (maybe [] ((:[]) . Depth) depth_)
 
-tests_queryFromOpts :: [Test]
 tests_queryFromOpts = [
  "queryFromOpts" ~: do
   assertEqual "" Any (queryFromOpts nulldate defreportopts)
@@ -395,7 +393,6 @@ queryOptsFromOpts d ReportOpts{..} = flagsqopts ++ argsqopts
     flagsqopts = []
     argsqopts = snd $ parseQuery d (T.pack query_)
 
-tests_queryOptsFromOpts :: [Test]
 tests_queryOptsFromOpts = [
  "queryOptsFromOpts" ~: do
   assertEqual "" [] (queryOptsFromOpts nulldate defreportopts)
@@ -445,7 +442,6 @@ specifiedEndDate :: ReportOpts -> IO (Maybe Day)
 specifiedEndDate ropts = snd <$> specifiedStartEndDates ropts
 
 
-tests_Hledger_Reports_ReportOptions :: Test
 tests_Hledger_Reports_ReportOptions = TestList $
     tests_queryFromOpts
  ++ tests_queryOptsFromOpts

@@ -28,7 +28,6 @@ module Hledger.Data (
                tests_Hledger_Data
               )
 where
-import Test.HUnit
 
 import Hledger.Data.Account
 import Hledger.Data.AccountName
@@ -47,8 +46,8 @@ import Hledger.Data.Timeclock
 import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
 import Hledger.Data.Types
+import Hledger.Utils.Test
 
-tests_Hledger_Data :: Test
 tests_Hledger_Data = TestList
     [
      tests_Hledger_Data_Account

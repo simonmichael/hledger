@@ -13,7 +13,6 @@ module Hledger.Cli.Commands.Incomestatement (
 
 import Data.String.Here
 import System.Console.CmdArgs.Explicit
-import Test.HUnit
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -56,7 +55,6 @@ incomestatementmode = compoundBalanceCommandMode incomestatementSpec
 incomestatement :: CliOpts -> Journal -> IO ()
 incomestatement = compoundBalanceCommand incomestatementSpec
 
-tests_Hledger_Cli_Commands_Incomestatement :: Test
 tests_Hledger_Cli_Commands_Incomestatement = TestList
  [
  ]

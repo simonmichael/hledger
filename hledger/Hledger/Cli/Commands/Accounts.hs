@@ -26,7 +26,6 @@ import Data.Monoid
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit as C
-import Test.HUnit
 
 import Hledger
 import Prelude hiding (putStrLn)

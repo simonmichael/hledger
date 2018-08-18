@@ -59,7 +59,6 @@ import           Control.Monad.State.Strict
 import           Data.Maybe (fromMaybe)
 import           Data.Text (Text)
 import qualified Data.Text as T
-import           Test.HUnit
 import           Text.Megaparsec hiding (parse)
 import           Text.Megaparsec.Char
 

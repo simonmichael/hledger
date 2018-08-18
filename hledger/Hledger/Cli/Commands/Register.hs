@@ -21,7 +21,6 @@ import Data.Maybe
 import qualified Data.Text as T
 import System.Console.CmdArgs.Explicit
 import Text.CSV
-import Test.HUnit
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -201,6 +200,5 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth (mdate, mendda
       (balfirstline:balrest) = take numlines $ replicate (numlines - ballen) "" ++ ballines -- balance amount is bottom-aligned
       spacer = replicate (totalwidth - (amtwidth + 2 + balwidth)) ' '
 
-tests_Hledger_Cli_Commands_Register :: Test
 tests_Hledger_Cli_Commands_Register = TestList
   tests_postingsReportAsText

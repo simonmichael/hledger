@@ -25,7 +25,6 @@ module Hledger.Cli.Utils
      readFileStrictly,
      pivotByOpts,
      anonymiseByOpts,
-     Test(TestList),
     )
 where
 import Control.Exception as C
@@ -47,7 +46,6 @@ import System.FilePath ((</>), splitFileName, takeDirectory)
 import System.Info (os)
 import System.Process (readProcessWithExitCode)
 import System.Time (ClockTime, getClockTime, diffClockTimes, TimeDiff(TimeDiff))
-import Test.HUnit
 import Text.Printf
 import Text.Regex.TDFA ((=~))
 

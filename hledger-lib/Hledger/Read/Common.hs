@@ -118,8 +118,6 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import System.Time (getClockTime)
-import Test.HUnit hiding (test)
-import EasyTest hiding (char, char')
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Megaparsec.Char.Lexer (decimal)
@@ -1234,8 +1232,8 @@ tests_Hledger_Read_Common = TestList [
   test_spaceandamountormissingp
   ]
 
-easytests = test "Common" $ tests [
-  test "amountp" $ tests [
+easytests = tests "Common" [
+  tests "amountp" [
     test "basic"                  $ expectParseEq amountp "$47.18"     (usd 47.18)
    ,test "ends-with-decimal-mark" $ expectParseEq amountp "$1."        (usd 1  `withPrecision` 0)
    ,test "unit-price"             $ expectParseEq amountp "$10 @ €0.5" 

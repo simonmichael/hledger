@@ -16,7 +16,6 @@ module Hledger.Cli.Commands.Cashflow (
 
 import Data.String.Here
 import System.Console.CmdArgs.Explicit
-import Test.HUnit
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -53,7 +52,6 @@ cashflowmode = compoundBalanceCommandMode cashflowSpec
 cashflow :: CliOpts -> Journal -> IO ()
 cashflow = compoundBalanceCommand cashflowSpec
 
-tests_Hledger_Cli_Commands_Cashflow :: Test
 tests_Hledger_Cli_Commands_Cashflow = TestList
  [
  ]

@@ -34,7 +34,6 @@ import Control.Exception hiding (try)
 import Control.Monad
 import Control.Monad.Except
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
--- import Test.HUnit
 import Data.Char (toLower, isDigit, isSpace)
 import "base-compat-batteries" Data.List.Compat
 import Data.List.NonEmpty (fromList)
@@ -54,7 +53,6 @@ import System.Locale (defaultTimeLocale)
 import Safe
 import System.Directory (doesFileExist)
 import System.FilePath
-import Test.HUnit hiding (State)
 import Text.CSV (parseCSV, CSV)
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char

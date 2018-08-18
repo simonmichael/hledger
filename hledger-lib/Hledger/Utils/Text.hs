@@ -57,7 +57,6 @@ module Hledger.Utils.Text
   tests_Hledger_Utils_Text
   )
 where
-import Test.HUnit
 
 -- import Data.Char
 import Data.List
@@ -72,6 +71,7 @@ import qualified Data.Text as T
 -- import Hledger.Utils.Parse
 -- import Hledger.Utils.Regex
 import Hledger.Utils.String (charWidth)
+import Hledger.Utils.Test
 
 -- lowercase, uppercase :: String -> String
 -- lowercase = map toLower

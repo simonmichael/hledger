@@ -25,7 +25,6 @@ import Data.Maybe
 import Data.Ord
 import Data.Time.Calendar
 import Safe
-import Test.HUnit
 import Text.Tabular as T
 import Text.Tabular.AsciiWide
 
@@ -348,6 +347,5 @@ tableAsText (ReportOpts{pretty_tables_ = pretty}) showcell =
         acctswidth = maximum' $ map strWidth (headerContents l)
         l'         = padRightWide acctswidth <$> l
 
-tests_Hledger_Reports_MultiBalanceReport :: Test
 tests_Hledger_Reports_MultiBalanceReport = TestList
   tests_multiBalanceReport

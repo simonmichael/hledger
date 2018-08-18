@@ -13,7 +13,6 @@ module Hledger.Cli.Commands.Balancesheet (
 
 import Data.String.Here
 import System.Console.CmdArgs.Explicit
-import Test.HUnit
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -56,7 +55,6 @@ balancesheetmode = compoundBalanceCommandMode balancesheetSpec
 balancesheet :: CliOpts -> Journal -> IO ()
 balancesheet = compoundBalanceCommand balancesheetSpec
 
-tests_Hledger_Cli_Commands_Balancesheet :: Test
 tests_Hledger_Cli_Commands_Balancesheet = TestList
  [
  ]

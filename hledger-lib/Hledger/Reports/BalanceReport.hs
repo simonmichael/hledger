@@ -28,7 +28,6 @@ import Data.List
 import Data.Ord
 import Data.Maybe
 import Data.Time.Calendar
-import Test.HUnit
 
 import Hledger.Data
 import Hledger.Read (mamountp')
@@ -397,6 +396,5 @@ Right samplejournal2 =
 --    (defreportopts, samplejournal, "expenses") `gives` True
 --  ]
 
-tests_Hledger_Reports_BalanceReport :: Test
 tests_Hledger_Reports_BalanceReport = TestList
   tests_balanceReport

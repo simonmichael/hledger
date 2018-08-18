@@ -1,7 +1,28 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Hledger.Utils.Test where
+module Hledger.Utils.Test (
+  -- * easytest
+   module E
+  ,runEasyTests
+  ,Hledger.Utils.Test.tests
+  ,_tests
+  ,test
+  ,_test
+  ,it
+  ,_it
+  ,expectParseEq
+  ,expectParseEqIO
+  -- * HUnit
+  ,module U
+  ,runHunitTests
+  ,assertParse
+  ,assertParseFailure
+  ,assertParseEqual
+  ,assertParseEqual'
+  ,is
+
+) where
 
 import Control.Exception
 import Control.Monad
@@ -10,33 +31,101 @@ import Data.CallStack
 import Data.Functor.Identity
 import Data.List
 import qualified Data.Text as T
-import EasyTest
 import Safe 
 import System.Exit
 import System.IO
-import Test.HUnit as HUnit hiding (test)
 import Text.Megaparsec
 import Text.Megaparsec.Custom
+
+import EasyTest as E hiding (char, char', tests)
+import EasyTest (tests)
+import Test.HUnit as U hiding (Test, test)
+import qualified Test.HUnit as U (Test)
 
 import Hledger.Utils.Debug (pshow)
 import Hledger.Utils.Parse (parseWithState)
 import Hledger.Utils.UTF8IOCompat (error')
 
+-- * easytest helpers
+
+-- | Name the given test(s). A readability synonym for easytest's "scope".
+test :: T.Text -> E.Test a -> E.Test a 
+test = E.scope
+
+-- | Skip the given test(s), with the same type signature as "test".
+_test :: T.Text -> E.Test a -> E.Test a 
+_test _name = (E.skip >>) 
+
+-- | Name the given test(s). A synonym for "test".
+it :: T.Text -> E.Test a -> E.Test a 
+it = test
+
+-- | Skip the given test(s). A synonym for "_test".
+_it :: T.Text -> E.Test a -> E.Test a 
+_it = _test
+
+-- | Name and group a list of tests. Combines easytest's "scope" and "tests".
+tests :: T.Text -> [E.Test ()] -> E.Test () 
+tests name = E.scope name . EasyTest.tests
+
+-- | Skip the given list of tests, with the same type signature as "group".
+_tests :: T.Text -> [E.Test ()] -> E.Test () 
+_tests _name = (E.skip >>) . EasyTest.tests
+
+-- | Run some easytests, returning True if there was a problem. Catches ExitCode.
+-- With arguments, runs only tests in the scope named by the first argument
+-- (case sensitive). 
+-- If there is a second argument, it should be an integer and will be used
+-- as the seed for randomness. 
+runEasyTests :: [String] -> E.Test () -> IO Bool
+runEasyTests args easytests = (do
+  case args of
+    []    -> E.run easytests
+    [a]   -> E.runOnly (T.pack a) easytests
+    a:b:_ -> do
+      case readMay b :: Maybe Int of
+        Nothing   -> error' "the second argument should be an integer (a seed for easytest)"
+        Just seed -> E.rerunOnly seed (T.pack a) easytests
+  return False
+  )
+  `catch` (\(_::ExitCode) -> return True)
+
+-- | Given a stateful, runnable-in-Identity-monad parser, input text, and expected parse result,
+-- make an easytest Test that parses the text and compares the result,
+-- showing a nice failure message if either step fails.
+expectParseEq :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> a -> E.Test ()
+expectParseEq parser input expected = do
+  let ep = runIdentity $ parseWithState mempty parser input
+  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
+
+-- | Given a stateful, runnable-in-IO-monad parser, input text, and expected parse result,
+-- make an easytest Test that parses the text and compares the result,
+-- showing a nice failure message if either step fails.
+expectParseEqIO :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> E.Test ()
+expectParseEqIO parser input expected = do
+  ep <- E.io $ runParserT (evalStateT parser mempty) "" input
+  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
+
+-- | Like easytest's expectEq, but pretty-prints the values in failure output. 
+expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> E.Test ()
+expectEq' x y = if x == y then E.ok else E.crash $
+  "expected:\n" <> T.pack (pshow x) <> "\nbut got:\n" <> T.pack (pshow y) <> "\n"
+
 -- * HUnit helpers
 
 -- | Get a Test's label, or the empty string.
-testName :: HUnit.Test -> String
+testName :: U.Test -> String
 testName (TestLabel n _) = n
 testName _ = ""
 
 -- | Flatten a Test containing TestLists into a list of single tests.
-flattenTests :: HUnit.Test -> [HUnit.Test]
+flattenTests :: U.Test -> [U.Test]
 flattenTests (TestLabel _ t@(TestList _)) = flattenTests t
 flattenTests (TestList ts) = concatMap flattenTests ts
 flattenTests t = [t]
 
 -- | Filter TestLists in a Test, recursively, preserving the structure.
-filterTests :: (HUnit.Test -> Bool) -> HUnit.Test -> HUnit.Test
+filterTests :: (U.Test -> Bool) -> U.Test -> U.Test
 filterTests p (TestLabel l ts) = TestLabel l (filterTests p ts)
 filterTests p (TestList ts) = TestList $ filter (any p . flattenTests) $ map (filterTests p) ts
 filterTests _ t = t
@@ -67,17 +156,18 @@ assertParseEqual' parse expected =
     (\actual -> assertEqual (unlines ["expected: " ++ show expected, " but got: " ++ show actual]) expected actual) 
     $ runIdentity parse
 
-assertParseEqual'' :: (Show a, Eq a, Show t, Show e) => String -> Identity (Either (ParseError t e) a) -> a -> Assertion
-assertParseEqual'' label parse expected = 
-  either 
-    (assertFailure . ("parse error: "++) . pshow) 
-    (\actual -> assertEqual (unlines [label, "expected: " ++ show expected, " but got: " ++ show actual]) expected actual) 
-    $ runIdentity parse
+---- | Labelled version of assertParseEqual'.
+--assertParseEqual'' :: (Show a, Eq a, Show t, Show e) => String -> Identity (Either (ParseError t e) a) -> a -> Assertion
+--assertParseEqual'' label parse expected = 
+--  either 
+--    (assertFailure . ("parse error: "++) . pshow) 
+--    (\actual -> assertEqual (unlines [label, "expected: " ++ show expected, " but got: " ++ show actual]) expected actual) 
+--    $ runIdentity parse
 
 -- | Run some hunit tests, returning True if there was a problem.
 -- With arguments, runs only tests whose names contain the first argument
 -- (case sensitive). 
-runHunitTests :: [String] -> HUnit.Test -> IO Bool
+runHunitTests :: [String] -> U.Test -> IO Bool
 runHunitTests args hunittests = do
   let ts = 
         (case args of
@@ -89,7 +179,7 @@ runHunitTests args hunittests = do
   where
     -- | Like runTestTT but prints to stdout.
     runTestTTStdout t = do
-      (counts, 0) <- HUnit.runTestText (putTextToHandle stdout True) t
+      (counts, 0) <- U.runTestText (putTextToHandle stdout True) t
       return counts
 
 --    matchedTests opts ts 
@@ -146,66 +236,3 @@ runHunitTests args hunittests = do
 --     -- The "erasing" strategy with a single '\r' relies on the fact that the
 --     -- lengths of successive summary lines are monotonically nondecreasing.
 --   erase cnt = if cnt == 0 then "" else "\r" ++ replicate cnt ' ' ++ "\r"
-
--- * easytest helpers
-
--- | Name the given test(s). A more readable synonym for scope.
-test :: T.Text -> EasyTest.Test a -> EasyTest.Test a 
-test = scope
-
--- | Skip the given test(s), with the same type signature as test.
-_test :: T.Text -> EasyTest.Test a -> EasyTest.Test a 
-_test _name = (skip >>) 
-
--- | Name the given test(s). Another synonym for test.
-it :: T.Text -> EasyTest.Test a -> EasyTest.Test a 
-it = test
-
--- | Name the given test(s). Another synonym for _test.
-_it :: T.Text -> EasyTest.Test a -> EasyTest.Test a 
-_it = _test
-
--- | Run some easytests, returning True if there was a problem. Catches ExitCode.
--- With arguments, runs only tests in the scope named by the first argument
--- (case sensitive). 
--- If there is a second argument, it should be an integer and will be used
--- as the seed for randomness. 
-runEasyTests :: [String] -> EasyTest.Test () -> IO Bool
-runEasyTests args easytests = (do
-  case args of
-    []    -> EasyTest.run easytests
-    [a]   -> EasyTest.runOnly (T.pack a) easytests
-    a:b:_ -> do
-      case readMay b :: Maybe Int of
-        Nothing   -> error' "the second argument should be an integer (a seed for easytest)"
-        Just seed -> EasyTest.rerunOnly seed (T.pack a) easytests
-  return False
-  )
-  `catch` (\(_::ExitCode) -> return True)
-
--- | Given a stateful, runnable-in-Identity-monad parser, input text, and expected parse result,
--- make an easytest Test that parses the text and compares the result,
--- showing a nice failure message if either step fails.
-expectParseEq :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> a -> EasyTest.Test ()
-expectParseEq parser input expected = do
-  let ep = runIdentity $ parseWithState mempty parser input
-  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
-
--- | Given a stateful, runnable-in-IO-monad parser, input text, and expected parse result,
--- make an easytest Test that parses the text and compares the result,
--- showing a nice failure message if either step fails.
-expectParseEqIO :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> EasyTest.Test ()
-expectParseEqIO parser input expected = do
-  ep <- io $ runParserT (evalStateT parser mempty) "" input
-  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
-
--- | Like easytest's expectEq, but pretty-prints the values in failure output. 
-expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> EasyTest.Test ()
-expectEq' x y = if x == y then ok else crash $
-  "expected:\n" <> T.pack (pshow x) <> "\nbut got:\n" <> T.pack (pshow y) <> "\n"
-
--- * misc
-
-printParseError :: (Show a) => a -> IO ()
-printParseError e = do putStr "parse error at "; print e
-

@@ -120,7 +120,7 @@ showHelp = hPutStr stderr $ unlines [
 -- most similar recent transaction in the journal.
 getAndAddTransactions :: EntryState -> IO ()
 getAndAddTransactions es@EntryState{..} = (do
-  mt <- runInputT (setComplete noCompletion defaultSettings) (run $ haskeline $ confirmedTransactionWizard es)
+  mt <- runInputT (setComplete noCompletion defaultSettings) (System.Console.Wizard.run $ haskeline $ confirmedTransactionWizard es)
   case mt of
     Nothing -> fail "urk ?"
     Just t -> do

@@ -84,9 +84,7 @@ import Data.List
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
-import EasyTest hiding (char, char')
 import Safe
-import Test.HUnit hiding (test)
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 import Text.Megaparsec.Custom
@@ -816,8 +814,8 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
  ]]
 -}
 
-easytests = test "JournalReader" $ tests [
-  test "periodictransactionp" $ tests [
+easytests = tests "JournalReader" [
+  tests "periodictransactionp" [
     test "more-period-text-in-comment" $ expectParseEqIO periodictransactionp 
       "~ monthly from 2018/6  ;In 2019 we will change this\n" 
       nullperiodictransaction {

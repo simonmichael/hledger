@@ -51,7 +51,6 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import System.Console.CmdArgs.Explicit as C
 import System.Exit
-import Test.HUnit as HUnit
 
 import Hledger
 import Hledger.Cli.CliOptions

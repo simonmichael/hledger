@@ -18,7 +18,6 @@ import Data.Monoid
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Tree
-import Test.HUnit
 import Text.Printf
 
 import Hledger.Data.Types

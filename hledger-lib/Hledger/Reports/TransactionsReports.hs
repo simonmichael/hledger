@@ -34,7 +34,6 @@ import Data.Ord
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
--- import Test.HUnit
 
 import Hledger.Data
 import Hledger.Query

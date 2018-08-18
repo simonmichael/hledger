@@ -13,11 +13,11 @@ value of things at a given date.
 module Hledger.Data.MarketPrice
 where
 import qualified Data.Text as T
-import Test.HUnit
 
 import Hledger.Data.Amount
 import Hledger.Data.Dates
 import Hledger.Data.Types
+import Hledger.Utils.Test
 
 -- | Get the string representation of an market price, based on its
 -- commodity's display settings.

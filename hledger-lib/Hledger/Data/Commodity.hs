@@ -19,7 +19,6 @@ import Data.Maybe (fromMaybe)
 import Data.Monoid
 #endif
 import qualified Data.Text as T
-import Test.HUnit
 -- import qualified Data.Map as M
 
 import Hledger.Data.Types

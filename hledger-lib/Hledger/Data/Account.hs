@@ -16,7 +16,6 @@ import Data.Ord
 import qualified Data.Map as M
 import Data.Text (pack,unpack)
 import Safe (headMay, lookupJustDef)
-import Test.HUnit
 import Text.Printf
 
 import Hledger.Data.AccountName

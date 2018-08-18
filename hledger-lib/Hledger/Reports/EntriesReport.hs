@@ -16,11 +16,11 @@ where
 
 import Data.List
 import Data.Ord
-import Test.HUnit
 
 import Hledger.Data
 import Hledger.Query
 import Hledger.Reports.ReportOptions
+import Hledger.Utils
 
 
 -- | A journal entries report is a list of whole transactions as
@@ -37,7 +37,6 @@ entriesReport opts q j =
       date = transactionDateFn opts
       ts = jtxns $ journalSelectingAmountFromOpts opts j
 
-tests_entriesReport :: [Test]
 tests_entriesReport = [
   "entriesReport" ~: do
     assertEqual "not acct" 1 (length $ entriesReport defreportopts (Not $ Acct "bank") samplejournal)
@@ -45,7 +44,6 @@ tests_entriesReport = [
     assertEqual "date" 3 (length $ entriesReport defreportopts (Date sp) samplejournal)
  ]
 
-tests_Hledger_Reports_EntriesReport :: Test
 tests_Hledger_Reports_EntriesReport = TestList $
  tests_entriesReport
 

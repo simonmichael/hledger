@@ -20,7 +20,6 @@ import Data.Time.LocalTime
 #if !(MIN_VERSION_time(1,5,0))
 import System.Locale (defaultTimeLocale)
 #endif
-import Test.HUnit
 import Text.Printf
 
 import Hledger.Utils

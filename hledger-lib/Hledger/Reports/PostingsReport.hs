@@ -23,7 +23,6 @@ import Data.Ord (comparing)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe (headMay, lastMay)
-import Test.HUnit
 
 import Hledger.Data
 import Hledger.Query
@@ -423,7 +422,6 @@ tests_postingsReport = [
 -}
  ]
 
-tests_Hledger_Reports_PostingsReport :: Test
 tests_Hledger_Reports_PostingsReport = TestList $
     tests_summarisePostingsByInterval
  ++ tests_postingsReport

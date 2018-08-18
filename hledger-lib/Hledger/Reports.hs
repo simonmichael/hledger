@@ -24,8 +24,6 @@ module Hledger.Reports (
 )
 where
 
-import Test.HUnit
-
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
 import Hledger.Reports.EntriesReport
@@ -35,8 +33,8 @@ import Hledger.Reports.BalanceReport
 import Hledger.Reports.MultiBalanceReports
 import Hledger.Reports.BudgetReport
 -- import Hledger.Reports.BalanceHistoryReport
+import Hledger.Utils.Test
 
-tests_Hledger_Reports :: Test
 tests_Hledger_Reports = TestList $
  -- ++ tests_isInterestingIndented
  [

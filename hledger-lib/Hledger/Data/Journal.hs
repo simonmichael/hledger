@@ -92,12 +92,10 @@ import Data.Ord
 import qualified Data.Semigroup as Sem
 import Data.Text (Text)
 import qualified Data.Text as T
-import EasyTest
 import Safe (headMay, headDef)
 import Data.Time.Calendar
 import Data.Tree
 import System.Time (ClockTime(TOD))
-import Test.HUnit hiding (test)
 import Text.Printf
 import qualified Data.Map as M
 
@@ -1088,18 +1086,18 @@ tests_Hledger_Data_Journal = TestList $
   --   journalProfitAndLossAccountNames j `is` ["expenses","expenses:e","income","income:i"]
  ]
 
-easytests = test "Journal" $ tests [
+easytests = tests "Journal" [
   test "standard account types" $ do
     let
       j = samplejournal
       journalAccountNamesMatching :: Query -> Journal -> [AccountName]
       journalAccountNamesMatching q = filter (q `matchesAccount`) . journalAccountNames
       namesfrom qfunc = journalAccountNamesMatching (qfunc j) j
-    tests
-      [ "assets"      $ expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
-      , "liabilities" $ expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
-      , "equity"      $ expectEq (namesfrom journalEquityAccountQuery)    []
-      , "income"      $ expectEq (namesfrom journalIncomeAccountQuery)    ["income","income:gifts","income:salary"]
-      , "expenses"    $ expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
+    tests ""
+      [ test "assets"      $ expectEq (namesfrom journalAssetAccountQuery)     ["assets","assets:bank","assets:bank:checking","assets:bank:saving","assets:cash"]
+      , test "liabilities" $ expectEq (namesfrom journalLiabilityAccountQuery) ["liabilities","liabilities:debts"]
+      , test "equity"      $ expectEq (namesfrom journalEquityAccountQuery)    []
+      , test "income"      $ expectEq (namesfrom journalIncomeAccountQuery)    ["income","income:gifts","income:salary"]
+      , test "expenses"    $ expectEq (namesfrom journalExpenseAccountQuery)   ["expenses","expenses:food","expenses:supplies"]
       ]
   ]

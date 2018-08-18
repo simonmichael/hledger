@@ -128,7 +128,6 @@ import Data.Ord (comparing)
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Safe (maximumDef)
-import Test.HUnit
 import Text.Printf
 import qualified Data.Map as M
 

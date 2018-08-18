@@ -18,12 +18,13 @@ import "base-compat-batteries" Prelude.Compat
 import Numeric
 import Data.Char (isPrint)
 import Data.Maybe
-import Test.HUnit
+import qualified Test.HUnit as U (test)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
 import Hledger.Utils.Parse
 import Hledger.Utils.String (formatString)
+import Hledger.Utils.Test
 
 -- | A format specification/template to use when rendering a report line item as text.
 --
@@ -148,7 +149,7 @@ testParser s expected = case (parseStringFormat s) of
     Left  error -> assertFailure $ show error
     Right actual -> assertEqual ("Input: " ++ s) expected actual
 
-tests_Hledger_Data_StringFormat = test [ formattingTests ++ parserTests ]
+tests_Hledger_Data_StringFormat = U.test [ formattingTests ++ parserTests ]
 
 formattingTests = [
       testFormat (FormatLiteral " ")                                ""            " "

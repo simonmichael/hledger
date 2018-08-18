@@ -11,7 +11,6 @@ import Data.String.Here
 import Hledger
 import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
-import Test.HUnit
 import Text.Printf
 
 -- checkdatesmode :: Mode RawOpts
@@ -80,7 +79,6 @@ checkTransactions compare ts =
       then acc{fa_previous=Just current}
       else acc{fa_error=Just current}
 
-tests_Hledger_Cli_Commands_Checkdates :: Test
 tests_Hledger_Cli_Commands_Checkdates = TestList
  [
  ]

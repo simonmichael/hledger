@@ -8,12 +8,11 @@ module Hledger.Web
   , tests_Hledger_Web
   ) where
 
-import Test.HUnit
-
 import Hledger.Web.WebOptions
 import Hledger.Web.Main
+import Test.HUnit as U
 
-tests_Hledger_Web :: Test
+tests_Hledger_Web :: U.Test
 tests_Hledger_Web = TestList
  [
  --  tests_Hledger_Web_WebOptions

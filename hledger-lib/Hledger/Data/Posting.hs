@@ -68,7 +68,6 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe
-import Test.HUnit
 
 import Hledger.Utils
 import Hledger.Data.Types

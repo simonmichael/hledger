@@ -66,7 +66,6 @@ module Hledger.Cli.CliOptions (
 --  -- * Convenience re-exports
 --  module Data.String.Here,
 --  module System.Console.CmdArgs.Explicit,
---  module Test.HUnit
 )
 where
 
@@ -96,7 +95,6 @@ import System.Directory
 import System.Environment
 import System.Exit (exitSuccess)
 import System.FilePath
-import Test.HUnit
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -709,7 +707,6 @@ getDirectoryContentsSafe d =
 
 -- tests
 
-tests_Hledger_Cli_CliOptions :: Test
 tests_Hledger_Cli_CliOptions = TestList
  [
  ]

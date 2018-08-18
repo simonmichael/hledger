@@ -6,8 +6,6 @@ module Hledger (
  ,Hledger.easytests
 )
 where
-import           Test.HUnit hiding (test)
-import           EasyTest
 
 import           Hledger.Data    as X hiding (easytests)
 import qualified Hledger.Data    (easytests)
@@ -26,7 +24,7 @@ tests_Hledger = TestList
     ,tests_Hledger_Utils
     ]
 
-easytests = test "Hledger" $ tests [
+easytests = tests "Hledger" [
    Hledger.Data.easytests
   ,Hledger.Read.easytests
   ]

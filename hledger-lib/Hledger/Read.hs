@@ -45,14 +45,12 @@ import Data.Ord
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time (Day)
-import EasyTest
 import Safe
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
 import System.FilePath
 import System.IO
-import Test.HUnit hiding (test)
 import Text.Printf
 
 import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
@@ -364,7 +362,7 @@ tests_Hledger_Read = TestList $
 
   ]
 
-easytests = test "Read" $ tests [
+easytests = tests "Read" [
    Hledger.Read.Common.easytests
   ,JournalReader.easytests
   ]

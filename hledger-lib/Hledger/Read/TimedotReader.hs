@@ -43,7 +43,6 @@ import Data.Char (isSpace)
 import Data.List (foldl')
 import Data.Maybe
 import Data.Text (Text)
-import Test.HUnit
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 

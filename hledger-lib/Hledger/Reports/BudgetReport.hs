@@ -17,7 +17,6 @@ import Data.Monoid ((<>))
 import Data.Ord
 import Data.Time.Calendar
 import Safe
-import Test.HUnit
 --import Data.List
 --import Data.Maybe
 import qualified Data.Map as Map
@@ -27,7 +26,6 @@ import qualified Data.Text as T
 --import System.Console.CmdArgs.Explicit as C
 --import Lucid as L
 --import Text.CSV
---import Test.HUnit
 import Text.Printf (printf)
 import Text.Tabular as T
 --import Text.Tabular.AsciiWide
@@ -356,6 +354,5 @@ maybeAccountNameDrop :: ReportOpts -> AccountName -> AccountName
 maybeAccountNameDrop opts a | flat_ opts = accountNameDrop (drop_ opts) a
                             | otherwise  = a
 
-tests_Hledger_Reports_BudgetReport :: Test
 tests_Hledger_Reports_BudgetReport = TestList [
   ]
