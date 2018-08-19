@@ -540,6 +540,7 @@ transactionp = do
   let sourcepos = journalSourcePos startpos endpos
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
 
+-- old HUnit tests
 test_transactionp = TestCase $ do
     let s `gives` t = do
                         let p = runIdentity $ parseWithState mempty transactionp s
@@ -554,8 +555,10 @@ test_transactionp = TestCase $ do
                         assertEqual "Equal comment" (tcomment t) (tcomment t2)
                         assertEqual "Equal tags" (ttags t) (ttags t2)
                         assertEqual "Equal preceding comments" (tpreceding_comment_lines t) (tpreceding_comment_lines t2)
-                        assertEqual "Equal postings" (show $ tpostings t) (show $ tpostings t2)
-    -- "0000/01/01\n\n" `gives` nulltransaction
+                        assertEqual "Equal postings" (tpostings t) (tpostings t2)
+
+    T.unlines ["2015/1/1"] `gives` nulltransaction{ tdate=parsedate "2015/01/01" }
+
     T.unlines [
       "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
       "    ; tcomment2",
@@ -576,7 +579,7 @@ test_transactionp = TestCase $ do
       ttags=[("ttag1","val1")],
       tpostings=[
         nullposting{
-          pdate=Just $ parsedate "2012/05/14",
+          pdate=Nothing,
           pstatus=Cleared,
           paccount="a",
           pamount=Mixed [usd 1],
@@ -588,9 +591,6 @@ test_transactionp = TestCase $ do
         ],
       tpreceding_comment_lines=""
       }
-    T.unlines ["2015/1/1"]
-     `gives`
-     nulltransaction{ tdate=parsedate "2015/01/01" }
 
     assertBool "transactionp parses a well-formed transactionParse OK" $
       isRight . runIdentity . parseWithState mempty transactionp $ T.unlines
@@ -621,6 +621,77 @@ test_transactionp = TestCase $ do
              ]
     assertBool "transactionp parses parses comments anywhere" (isRight p)
     assertEqual "Has 2 postings" 2 (let Right t = p in length $ tpostings t)
+
+-- new easytest tests, for comparison
+transactionp_tests = tests "transactionp" [
+
+   test "just-a-date" $ expectParseEq transactionp "2015/1/1\n" nulltransaction{tdate=parsedate "2015/01/01"}
+
+  ,test "more-complex" $ expectParseEq transactionp 
+    (T.unlines [
+      "2012/05/14=2012/05/15 (code) desc  ; tcomment1",
+      "    ; tcomment2",
+      "    ; ttag1: val1",
+      "    * a         $1.00  ; pcomment1",
+      "    ; pcomment2",
+      "    ; ptag1: val1",
+      "    ; ptag2: val2"
+      ])
+    nulltransaction{
+      tsourcepos=JournalSourcePos "" (1,7),  -- XXX why 7 here ?
+      tpreceding_comment_lines="",
+      tdate=parsedate "2012/05/14",
+      tdate2=Just $ parsedate "2012/05/15",
+      tstatus=Unmarked,
+      tcode="code",
+      tdescription="desc",
+      tcomment="tcomment1\ntcomment2\nttag1: val1\n",
+      ttags=[("ttag1","val1")],
+      tpostings=[
+        nullposting{
+          pdate=Nothing,
+          pstatus=Cleared,
+          paccount="a",
+          pamount=Mixed [usd 1],
+          pcomment="pcomment1\npcomment2\nptag1: val1\nptag2: val2\n",
+          ptype=RegularPosting,
+          ptags=[("ptag1","val1"),("ptag2","val2")],
+          ptransaction=Nothing
+          }
+        ]
+    }
+
+    ,it "parses a well-formed transaction" $
+      expect $ isRight $ rjp transactionp $ T.unlines
+        ["2007/01/28 coopportunity"
+        ,"    expenses:food:groceries                   $47.18"
+        ,"    assets:checking                          $-47.18"
+        ,""
+        ]
+
+--    ,it "does not parse a following comment as part of the description"
+--      let p = runIdentity $ parseWithState mempty transactionp "2009/1/1 a ;comment\n b 1\n"
+--      (Right "a") (tdescription <$> p)
+
+--    assertBool "transactionp parses a following whitespace line" $
+--      isRight . runIdentity . parseWithState mempty transactionp $ T.unlines
+--        ["2012/1/1"
+--        ,"  a  1"
+--        ,"  b"
+--        ," "
+--        ]
+--
+--    let p = runIdentity . parseWithState mempty transactionp $ T.unlines
+--             ["2009/1/1 x  ; transaction comment"
+--             ," a  1  ; posting 1 comment"
+--             ," ; posting 1 comment 2"
+--             ," b"
+--             ," ; posting 2 comment"
+--             ]
+--    assertBool "transactionp parses parses comments anywhere" (isRight p)
+--    assertEqual "Has 2 postings" 2 (let Right t = p in length $ tpostings t)
+
+  ]
 
 --- ** postings
 
@@ -714,28 +785,13 @@ test_postingp = TestCase $ do
 tests_Hledger_Read_JournalReader = TestList [
     test_transactionp,
     test_postingp,
+
     "showParsedMarketPrice" ~: do
       let mp = parseWithState mempty marketpricedirectivep "P 2017/01/30 BTC $922.83\n"
           mpString = (fmap . fmap) showMarketPrice mp
       mpString `is` (Just (Right "P 2017/01/30 BTC $922.83"))
-    ]
 
-{- old hunit tests
-
-tests_Hledger_Read_JournalReader = TestList $ concat [
-    test_numberp,
-    test_amountp,
-    test_spaceandamountormissingp,
-    test_tagcomment,
-    test_inlinecomment,
-    test_comments,
-    test_ledgerDateSyntaxToTags,
-    test_postingp,
-    test_transactionp,
-    [
-   "transactionmodifierp" ~: do
-     assertParse (parseWithState mempty transactionmodifierp "= (some value expr)\n some:postings  1\n")
-
+{- old hunit tests TODO
   ,"periodictransactionp" ~: do
      assertParse (parseWithState mempty periodictransactionp "~ (some period expr)\n some:postings  1\n")
 
@@ -810,12 +866,19 @@ tests_Hledger_Read_JournalReader = TestList $ concat [
              (either (const "parse error") showAmountDebug parseresult) ~?= (showAmountDebug amount)
      assertAmountParse (parseWithState mempty amountp "1 @ $2")
        (num 1 `withPrecision` 0 `at` (usd 2 `withPrecision` 0))
-
- ]]
 -}
+  ]
 
 easytests = tests "JournalReader" [
-  tests "periodictransactionp" [
+   tests "transactionmodifierp" [
+    test "transactionmodifierp" $ expectParseEqIO transactionmodifierp 
+      "= (some value expr)\n some:postings  1.\n"
+      nulltransactionmodifier {
+        tmquerytxt = "(some value expr)"
+       ,tmpostings = [nullposting{paccount="some:postings", pamount=Mixed[num 1]}]
+      }
+    ]
+  ,tests "periodictransactionp" [
 
     -- tests from #807
     test "more-period-text-in-comment-after-one-space" $ expectParseEqIO periodictransactionp
@@ -859,5 +922,6 @@ easytests = tests "JournalReader" [
         ,ptdescription = "Next year blah blah\n"
         }
 
+    ,transactionp_tests
     ]
   ]

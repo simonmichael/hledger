@@ -691,6 +691,28 @@ numberp suggestedStyle = label "number" $ do
       Left errMsg -> fail errMsg
       Right (q, p, d, g) -> pure (sign q, p, d, g)
 
+test_numberp = TestCase $ do
+  let t `is` n = assertParseEqual (rtp (numberp Nothing) t) n
+  let assertFails = assertBool "numberp" . isLeft . rtp (numberp Nothing)
+  assertFails ""
+  "0"          `is` (0, 0, Nothing, Nothing)
+  "1"          `is` (1, 0, Nothing, Nothing)
+  "1.1"        `is` (1.1, 1, Just '.', Nothing)
+  "1,000.1"    `is` (1000.1, 1, Just '.', Just $ DigitGroups ',' [3])
+  "1.00.000,1" `is` (100000.1, 1, Just ',', Just $ DigitGroups '.' [3,2])
+  "1,000,000"  `is` (1000000, 0, Nothing, Just $ DigitGroups ',' [3,3])  -- could be simplified to [3]
+  "1."         `is` (1, 0, Just '.', Nothing)
+  "1,"         `is` (1, 0, Just ',', Nothing)
+  ".1"         `is` (0.1, 1, Just '.', Nothing)
+  ",1"         `is` (0.1, 1, Just ',', Nothing)
+  assertFails "1,000.000,1"
+  assertFails "1.000,000.1"
+  assertFails "1,000.000.1"
+  assertFails "1,,1"
+  assertFails "1..1"
+  assertFails ".1,"
+  assertFails ",1."
+
 exponentp :: TextParser m Int
 exponentp = char' 'e' *> signp <*> decimal <?> "exponent"
 
@@ -879,7 +901,6 @@ digitgroupp = label "digits"
     makeGroup = uncurry DigitGrp . foldl' step (0, 0) . T.unpack
     step (!l, !a) c = (l+1, a*10 + fromIntegral (digitToInt c))
 
-
 data RawNumber
   = NoSeparators   DigitGrp (Maybe (Char, DigitGrp))        -- 100 or 100. or .100 or 100.50
   | WithSeparators Char [DigitGrp] (Maybe (Char, DigitGrp)) -- 1,000,000 or 1,000.50
@@ -887,28 +908,6 @@ data RawNumber
 
 data AmbiguousNumber = AmbiguousNumber DigitGrp Char DigitGrp  -- 1,000
   deriving (Show, Eq)
-
--- test_numberp = do
---       let s `is` n = assertParseEqual (parseWithState mempty numberp s) n
---           assertFails = assertBool . isLeft . parseWithState mempty numberp
---       assertFails ""
---       "0"          `is` (0, 0, '.', ',', [])
---       "1"          `is` (1, 0, '.', ',', [])
---       "1.1"        `is` (1.1, 1, '.', ',', [])
---       "1,000.1"    `is` (1000.1, 1, '.', ',', [3])
---       "1.00.000,1" `is` (100000.1, 1, ',', '.', [3,2])
---       "1,000,000"  `is` (1000000, 0, '.', ',', [3,3])
---       "1."         `is` (1,   0, '.', ',', [])
---       "1,"         `is` (1,   0, ',', '.', [])
---       ".1"         `is` (0.1, 1, '.', ',', [])
---       ",1"         `is` (0.1, 1, ',', '.', [])
---       assertFails "1,000.000,1"
---       assertFails "1.000,000.1"
---       assertFails "1,000.000.1"
---       assertFails "1,,1"
---       assertFails "1..1"
---       assertFails ".1,"
---       assertFails ",1."
 
 --- ** comments
 
@@ -1229,7 +1228,8 @@ match' p = do
   pure (txt, p)
 
 tests_Hledger_Read_Common = TestList [
-  test_spaceandamountormissingp
+   test_numberp
+  ,test_spaceandamountormissingp
   ]
 
 easytests = tests "Common" [

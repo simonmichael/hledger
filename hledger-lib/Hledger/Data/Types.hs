@@ -268,6 +268,11 @@ data TransactionModifier = TransactionModifier {
 instance NFData TransactionModifier
 
 -- ^ A periodic transaction rule, describing a transaction that recurs.
+nulltransactionmodifier = TransactionModifier{
+  tmquerytxt = ""
+ ,tmpostings = []
+}
+
 data PeriodicTransaction = PeriodicTransaction {
       ptperiodexpr   :: Text,     -- ^ the period expression as written
       ptinterval     :: Interval, -- ^ the interval at which this transaction recurs 

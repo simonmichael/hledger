@@ -83,7 +83,7 @@ showGenericSourcePos = \case
     JournalSourcePos fp (line, line') -> show fp ++ " (lines " ++ show line ++ "-" ++ show line' ++ ")"
 
 nullsourcepos :: GenericSourcePos
-nullsourcepos = GenericSourcePos "" 1 1
+nullsourcepos = JournalSourcePos "" (1,1)
 
 nulltransaction :: Transaction
 nulltransaction = Transaction {
