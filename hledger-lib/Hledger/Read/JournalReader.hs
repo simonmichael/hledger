@@ -541,21 +541,22 @@ transactionp = do
   return $ txnTieKnot $ Transaction 0 sourcepos date edate status code description comment tags postings ""
 
 -- old HUnit tests
-test_transactionp = TestCase $ do
-    let s `gives` t = do
-                        let p = runIdentity $ parseWithState mempty transactionp s
-                        assertBool "Parse success" (isRight p)
-                        let Right t2 = p
-                            -- same f = assertEqual (f t) (f t2)
-                        assertEqual "Equal date" (tdate t) (tdate t2)
-                        assertEqual "Equal date2" (tdate2 t) (tdate2 t2)
-                        assertEqual "Equal status" (tstatus t) (tstatus t2)
-                        assertEqual "Equal code" (tcode t) (tcode t2)
-                        assertEqual "Equal description" (tdescription t) (tdescription t2)
-                        assertEqual "Equal comment" (tcomment t) (tcomment t2)
-                        assertEqual "Equal tags" (ttags t) (ttags t2)
-                        assertEqual "Equal preceding comments" (tpreceding_comment_lines t) (tpreceding_comment_lines t2)
-                        assertEqual "Equal postings" (tpostings t) (tpostings t2)
+test_transactionp = 
+  let s `gives` t = do
+                      let p = runIdentity $ parseWithState mempty transactionp s
+                      assertBool "Parse success" (isRight p)
+                      let Right t2 = p
+                          -- same f = assertEqual (f t) (f t2)
+                      assertEqual "Equal date" (tdate t) (tdate t2)
+                      assertEqual "Equal date2" (tdate2 t) (tdate2 t2)
+                      assertEqual "Equal status" (tstatus t) (tstatus t2)
+                      assertEqual "Equal code" (tcode t) (tcode t2)
+                      assertEqual "Equal description" (tdescription t) (tdescription t2)
+                      assertEqual "Equal comment" (tcomment t) (tcomment t2)
+                      assertEqual "Equal tags" (ttags t) (ttags t2)
+                      assertEqual "Equal preceding comments" (tpreceding_comment_lines t) (tpreceding_comment_lines t2)
+                      assertEqual "Equal postings" (tpostings t) (tpostings t2)
+  in TestCase $ do
 
     T.unlines ["2015/1/1"] `gives` nulltransaction{ tdate=parsedate "2015/01/01" }
 
@@ -622,7 +623,7 @@ test_transactionp = TestCase $ do
     assertBool "transactionp parses parses comments anywhere" (isRight p)
     assertEqual "Has 2 postings" 2 (let Right t = p in length $ tpostings t)
 
--- new easytest tests, for comparison
+-- the above as easytests, just for comparison
 transactionp_tests = tests "transactionp" [
 
    test "just-a-date" $ expectParseEq transactionp "2015/1/1\n" nulltransaction{tdate=parsedate "2015/01/01"}
@@ -661,35 +662,36 @@ transactionp_tests = tests "transactionp" [
         ]
     }
 
-    ,it "parses a well-formed transaction" $
-      expect $ isRight $ rjp transactionp $ T.unlines
-        ["2007/01/28 coopportunity"
-        ,"    expenses:food:groceries                   $47.18"
-        ,"    assets:checking                          $-47.18"
-        ,""
-        ]
+  ,test "parses a well-formed transaction" $
+    expect $ isRight $ rjp transactionp $ T.unlines
+      ["2007/01/28 coopportunity"
+      ,"    expenses:food:groceries                   $47.18"
+      ,"    assets:checking                          $-47.18"
+      ,""
+      ]
 
---    ,it "does not parse a following comment as part of the description"
---      let p = runIdentity $ parseWithState mempty transactionp "2009/1/1 a ;comment\n b 1\n"
---      (Right "a") (tdescription <$> p)
+  ,test "does not parse a following comment as part of the description" $
+    expectParseEqOn transactionp "2009/1/1 a ;comment\n b 1\n" tdescription "a"
 
---    assertBool "transactionp parses a following whitespace line" $
---      isRight . runIdentity . parseWithState mempty transactionp $ T.unlines
---        ["2012/1/1"
---        ,"  a  1"
---        ,"  b"
---        ," "
---        ]
---
---    let p = runIdentity . parseWithState mempty transactionp $ T.unlines
---             ["2009/1/1 x  ; transaction comment"
---             ," a  1  ; posting 1 comment"
---             ," ; posting 1 comment 2"
---             ," b"
---             ," ; posting 2 comment"
---             ]
---    assertBool "transactionp parses parses comments anywhere" (isRight p)
---    assertEqual "Has 2 postings" 2 (let Right t = p in length $ tpostings t)
+  ,test "transactionp parses a following whitespace line" $
+    expect $ isRight $ rjp transactionp $ T.unlines
+      ["2012/1/1"
+      ,"  a  1"
+      ,"  b"
+      ," "
+      ]
+
+  ,test "comments everywhere, two postings parsed" $
+    expectParseEqOn transactionp 
+      (T.unlines
+        ["2009/1/1 x  ; transaction comment"
+        ," a  1  ; posting 1 comment"
+        ," ; posting 1 comment 2"
+        ," b"
+        ," ; posting 2 comment"
+        ])
+      (length . tpostings)
+      2
 
   ]
 
@@ -870,18 +872,21 @@ tests_Hledger_Read_JournalReader = TestList [
   ]
 
 easytests = tests "JournalReader" [
+
    tests "transactionmodifierp" [
-    test "transactionmodifierp" $ expectParseEqIO transactionmodifierp 
+
+    test "basic" $ expectParseEq transactionmodifierp 
       "= (some value expr)\n some:postings  1.\n"
       nulltransactionmodifier {
         tmquerytxt = "(some value expr)"
        ,tmpostings = [nullposting{paccount="some:postings", pamount=Mixed[num 1]}]
       }
     ]
+
   ,tests "periodictransactionp" [
 
     -- tests from #807
-    test "more-period-text-in-comment-after-one-space" $ expectParseEqIO periodictransactionp
+    test "more-period-text-in-comment-after-one-space" $ expectParseEq periodictransactionp
       "~ monthly from 2018/6 ;In 2019 we will change this\n" 
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
@@ -895,7 +900,7 @@ easytests = tests "JournalReader" [
         ,ptpostings    = []
         }
 
-    ,_test "more-period-text-in-description-after-two-spaces" $ expectParseEqIO periodictransactionp -- TODO 
+    ,_test "more-period-text-in-description-after-two-spaces" $ expectParseEq periodictransactionp -- TODO 
       "~ monthly from 2018/6   In 2019 we will change this\n" 
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
@@ -904,7 +909,7 @@ easytests = tests "JournalReader" [
         ,ptdescription = "In 2019 we will change this\n"
         }
 
-    ,_test "more-period-text-in-description-after-one-space" $ expectParseEqIO periodictransactionp -- TODO
+    ,_test "more-period-text-in-description-after-one-space" $ expectParseEq periodictransactionp -- TODO
       "~ monthly from 2018/6 In 2019 we will change this\n" 
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
@@ -913,7 +918,7 @@ easytests = tests "JournalReader" [
         ,ptdescription = "In 2019 we will change this\n"
         }
 
-    ,_test "Next-year-in-description" $ expectParseEqIO periodictransactionp -- TODO read error
+    ,_test "Next-year-in-description" $ expectParseEq periodictransactionp -- TODO read error
       "~ monthly  Next year blah blah\n"
       nullperiodictransaction {
          ptperiodexpr  = "monthly"
@@ -923,5 +928,6 @@ easytests = tests "JournalReader" [
         }
 
     ,transactionp_tests
+
     ]
   ]

@@ -13,7 +13,9 @@ module Hledger.Utils.Test (
   ,it
   ,_it
   ,expectParseEq
-  ,expectParseEqIO
+  ,expectParseEqOn
+--  ,expectParseEq
+--  ,expectParseEqOnIO
   -- * HUnit
   ,module Test.HUnit
   ,runHunitTests
@@ -47,7 +49,6 @@ import Test.HUnit hiding (Test, test)        -- reexported
 import qualified Test.HUnit as U             -- used here
 
 import Hledger.Utils.Debug (pshow)
-import Hledger.Utils.Parse (parseWithState)
 import Hledger.Utils.UTF8IOCompat (error')
 
 -- * easytest helpers
@@ -94,26 +95,46 @@ runEasyTests args easytests = (do
   )
   `catch` (\(_::ExitCode) -> return True)
 
--- | Given a stateful, runnable-in-Identity-monad parser, input text, and expected parse result,
--- make an easytest Test that parses the text and compares the result,
--- showing a nice failure message if either step fails.
-expectParseEq :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> a -> E.Test ()
-expectParseEq parser input expected = do
-  let ep = runIdentity $ parseWithState mempty parser input
-  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
-
--- | Given a stateful, runnable-in-IO-monad parser, input text, and expected parse result,
--- make an easytest Test that parses the text and compares the result,
--- showing a nice failure message if either step fails.
-expectParseEqIO :: (Monoid st, Eq a, Show a) => StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> E.Test ()
-expectParseEqIO parser input expected = do
-  ep <- E.io $ runParserT (evalStateT parser mempty) "" input
-  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected) ep
-
--- | Like easytest's expectEq, but pretty-prints the values in failure output. 
+-- | Like easytest's expectEq, but pretty-prints the values in the failure output. 
 expectEq' :: (Eq a, Show a, HasCallStack) => a -> a -> E.Test ()
 expectEq' x y = if x == y then E.ok else E.crash $
   "expected:\n" <> T.pack (pshow x) <> "\nbut got:\n" <> T.pack (pshow y) <> "\n"
+
+-- XXX unnecessary ?
+-- | Given a stateful, runnable-in-Identity-monad parser, input text, and 
+-- expected parse result, make a Test that parses the text and compares 
+-- the result, showing a nice failure message if either step fails.
+--expectParseEq :: (Monoid st, Eq a, Show a, HasCallStack) => 
+--  StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> a -> E.Test ()
+--expectParseEq parser input expected = expectParseEqOn parser input id expected
+--
+-- | Like expectParseEq, but also takes a transform function 
+-- to call on the parse result before comparing it.
+--expectParseEqOn :: (Monoid st, Eq b, Show b, HasCallStack) => 
+--  StateT st (ParsecT CustomErr T.Text Identity) a -> T.Text -> (a -> b) -> b -> E.Test ()
+--expectParseEqOn parser input f expected = do
+--  let ep = runIdentity $ parseWithState mempty parser input
+--  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected . f) ep
+--
+expectParseEq :: (Monoid st, Eq a, Show a, HasCallStack) => 
+  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> E.Test ()
+expectParseEq = expectParseEqIO
+
+expectParseEqOn :: (Monoid st, Eq b, Show b, HasCallStack) => 
+  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> E.Test ()
+expectParseEqOn = expectParseEqOnIO
+
+-- | Like expectParseEq, but takes a parser runnable in the IO monad.
+expectParseEqIO :: (Monoid st, Eq a, Show a, HasCallStack) => 
+  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> a -> E.Test ()
+expectParseEqIO parser input expected = expectParseEqOnIO parser input id expected
+
+-- | Like expectParseEqOn, but takes a parser runnable in the IO monad.
+expectParseEqOnIO :: (Monoid st, Eq b, Show b, HasCallStack) => 
+  StateT st (ParsecT CustomErr T.Text IO) a -> T.Text -> (a -> b) -> b -> E.Test ()
+expectParseEqOnIO parser input f expected = do
+  ep <- E.io $ runParserT (evalStateT parser mempty) "" input
+  either (fail.("parse error at "++).parseErrorPretty) (expectEq' expected . f) ep
 
 -- * HUnit helpers
 
