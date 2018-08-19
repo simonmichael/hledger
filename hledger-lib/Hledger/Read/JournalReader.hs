@@ -885,7 +885,6 @@ easytests = tests "JournalReader" [
 
   ,tests "periodictransactionp" [
 
-    -- tests from #807
     test "more-period-text-in-comment-after-one-space" $ expectParseEq periodictransactionp
       "~ monthly from 2018/6 ;In 2019 we will change this\n" 
       nullperiodictransaction {
@@ -900,7 +899,8 @@ easytests = tests "JournalReader" [
         ,ptpostings    = []
         }
 
-    ,_test "more-period-text-in-description-after-two-spaces" $ expectParseEq periodictransactionp -- TODO 
+     -- TODO #807
+    ,_test "more-period-text-in-description-after-two-spaces" $ expectParseEq periodictransactionp 
       "~ monthly from 2018/6   In 2019 we will change this\n" 
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
@@ -909,7 +909,7 @@ easytests = tests "JournalReader" [
         ,ptdescription = "In 2019 we will change this\n"
         }
 
-    ,_test "more-period-text-in-description-after-one-space" $ expectParseEq periodictransactionp -- TODO
+    ,_test "more-period-text-in-description-after-one-space" $ expectParseEq periodictransactionp
       "~ monthly from 2018/6 In 2019 we will change this\n" 
       nullperiodictransaction {
          ptperiodexpr  = "monthly from 2018/6"
@@ -918,7 +918,7 @@ easytests = tests "JournalReader" [
         ,ptdescription = "In 2019 we will change this\n"
         }
 
-    ,_test "Next-year-in-description" $ expectParseEq periodictransactionp -- TODO read error
+    ,_test "Next-year-in-description" $ expectParseEq periodictransactionp
       "~ monthly  Next year blah blah\n"
       nullperiodictransaction {
          ptperiodexpr  = "monthly"
